@@ -2,26 +2,105 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ============================================================
+   ScoreRise Global Styles
+   ============================================================ */
+
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #0f172a;
+  --color-algebra: #3B82F6;
+  --color-advanced-math: #A855F7;
+  --color-geometry: #14B8A6;
+  --color-data-analysis: #F59E0B;
+  --color-reading-writing: #FB7185;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #0a0f1e;
+    --foreground: #f8fafc;
   }
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+@layer base {
+  html { scroll-behavior: smooth; }
+  body {
+    color: var(--foreground);
+    background: var(--background);
+    font-family: var(--font-geist-sans), Inter, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  :focus-visible {
+    @apply outline-none ring-2 ring-blue-500 ring-offset-2;
+  }
+}
+
+@layer components {
+  .badge-algebra   { @apply bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300; }
+  .badge-advanced  { @apply bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300; }
+  .badge-geometry  { @apply bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-300; }
+  .badge-data      { @apply bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300; }
+  .badge-reading   { @apply bg-rose-100 text-rose-600 dark:bg-rose-900/40 dark:text-rose-300; }
+
+  .glass-card {
+    @apply bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border border-white/20 dark:border-slate-700/50 rounded-2xl shadow-lg;
+  }
+
+  .gradient-text {
+    @apply bg-gradient-to-r from-blue-600 via-purple-500 to-teal-500 bg-clip-text text-transparent;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-3 text-base font-semibold text-white shadow-md transition-all hover:bg-blue-700 hover:shadow-lg active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-6 py-3 text-base font-semibold text-slate-900 dark:text-white shadow-sm transition-all hover:bg-slate-50 dark:hover:bg-slate-700 active:scale-95;
+  }
 }
 
 @layer utilities {
-  .text-balance {
-    text-wrap: balance;
+  .animate-fade-up {
+    animation: fadeUp 0.6s ease-out both;
+  }
+  .animate-fade-in {
+    animation: fadeIn 0.4s ease-out both;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  .text-balance { text-wrap: balance; }
+
+  /* Premium shimmer — light sweeps across text, no color shift */
+  .shimmer-headline {
+    background: linear-gradient(
+      105deg,
+      #e2e8f0 0%,
+      #e2e8f0 38%,
+      #ffffff 48%,
+      #c7d8f4 53%,
+      #e2e8f0 62%,
+      #e2e8f0 100%
+    );
+    background-size: 300% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: shimmerSweep 4s ease-in-out infinite;
+  }
+
+  @keyframes shimmerSweep {
+    0%   { background-position: 200% center; }
+    60%  { background-position: -100% center; }
+    100% { background-position: -100% center; }
   }
 }
