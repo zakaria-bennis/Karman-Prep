@@ -6,9 +6,10 @@ import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { UserButton } from "@clerk/nextjs";
-import { Settings, BookOpen, Flag, Users } from "lucide-react";
+import { Settings, BookOpen, Flag, Users, UserCog } from "lucide-react";
 import { fetchUserRole } from "@/lib/supabase/queries/admin";
 import { StrataLogo } from "@/components/shared/StrataLogo";
+import ImpersonationMenu from "@/components/admin/ImpersonationMenu";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const { userId } = await auth();
@@ -31,9 +32,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <nav className="ml-6 flex items-center gap-1 text-sm">
           <AdminNavLink href="/admin/curriculum" icon={BookOpen} label="Curriculum" />
           <AdminNavLink href="/admin/cohorts" icon={Users} label="Cohorts" />
+          <AdminNavLink href="/admin/users" icon={UserCog} label="Users" />
           <AdminNavLink href="/admin/curriculum?tab=flagged" icon={Flag} label="Flagged" />
         </nav>
         <div className="ml-auto flex items-center gap-4">
+          <ImpersonationMenu />
           <span className="text-[11px] font-semibold text-amber-300/80 bg-amber-400/10 border border-amber-400/20 px-2 py-0.5 rounded-full">
             Internal tool
           </span>

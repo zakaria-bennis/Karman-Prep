@@ -51,6 +51,9 @@ ON CONFLICT (test_date) DO NOTHING;
 
 
 -- ─── 3. Wipe any prior test_% rows for a clean slate ───────
+DELETE FROM public.parent_student_links
+  WHERE parent_user_id  IN (SELECT id FROM public.users WHERE clerk_id LIKE 'test_%')
+     OR student_user_id IN (SELECT id FROM public.users WHERE clerk_id LIKE 'test_%');
 DELETE FROM public.cohort_members
   WHERE user_id IN (SELECT id FROM public.users WHERE clerk_id LIKE 'test_%');
 DELETE FROM public.tutor_assignments
@@ -74,7 +77,7 @@ INSERT INTO public.users (clerk_id, email, role, first_name, last_name) VALUES
   ('test_tutor_nabil',   'nabil.test@strata.local',   'tutor', 'Nabil',   'Kafil Asrar');
 
 
--- ─── 5. Students (10) ──────────────────────────────────────
+-- ─── 5. Students (10) + one parent linked to Sofia ────────
 INSERT INTO public.users (clerk_id, email, role, first_name, last_name, sat_test_date) VALUES
   ('test_student_01', 'elijah.turner.test@strata.local',     'student', 'Elijah',   'Turner',    '2026-05-02'),
   ('test_student_02', 'sofia.park.test@strata.local',        'student', 'Sofia',    'Park',      '2026-05-02'),
@@ -86,6 +89,10 @@ INSERT INTO public.users (clerk_id, email, role, first_name, last_name, sat_test
   ('test_student_08', 'noah.goldberg.test@strata.local',     'student', 'Noah',     'Goldberg',  '2026-05-02'),
   ('test_student_09', 'priya.krishnan.test@strata.local',    'student', 'Priya',    'Krishnan',  '2026-06-06'),
   ('test_student_10', 'lucas.chen.test@strata.local',        'student', 'Lucas',    'Chen',      '2026-06-06');
+
+-- Parent account, linked to Sofia (test_student_02) below in step 9b.
+INSERT INTO public.users (clerk_id, email, role, first_name, last_name) VALUES
+  ('test_parent_01', 'helen.park.test@strata.local', 'parent', 'Helen', 'Park');
 
 
 -- ─── 6. Subscriptions ──────────────────────────────────────
@@ -140,6 +147,13 @@ INSERT INTO public.tutor_assignments (tutor_user_id, student_user_id, started_at
   ((SELECT id FROM public.users WHERE clerk_id = 'test_tutor_nabil'),
    (SELECT id FROM public.users WHERE clerk_id = 'test_student_10'),
    NOW() - INTERVAL '25 days');
+
+
+-- ─── 9b. Parent → student links (requires migration 008) ──
+-- Helen Park is Sofia's mom. She'll only ever see Sofia's data.
+INSERT INTO public.parent_student_links (parent_user_id, student_user_id) VALUES
+  ((SELECT id FROM public.users WHERE clerk_id = 'test_parent_01'),
+   (SELECT id FROM public.users WHERE clerk_id = 'test_student_02'));
 
 
 -- ─── 10. Diagnostic results ───────────────────────────────
@@ -222,4 +236,5 @@ UNION ALL SELECT 'cohort_members (test)',   COUNT(*) FROM public.cohort_members 
 UNION ALL SELECT 'tutor_assignments (test)',COUNT(*) FROM public.tutor_assignments   WHERE student_user_id IN (SELECT id FROM public.users WHERE clerk_id LIKE 'test_%')
 UNION ALL SELECT 'diagnostic_results (test)',COUNT(*) FROM public.diagnostic_results WHERE user_id  IN (SELECT id FROM public.users WHERE clerk_id LIKE 'test_%')
 UNION ALL SELECT 'tutor_notes (test)',      COUNT(*) FROM public.tutor_notes         WHERE tutor_user_id IN (SELECT id FROM public.users WHERE clerk_id LIKE 'test_%')
-UNION ALL SELECT 'cohort_homework (test)',  COUNT(*) FROM public.cohort_homework     WHERE cohort_id IN (SELECT id FROM public.cohorts WHERE tutor_user_id IN (SELECT id FROM public.users WHERE clerk_id LIKE 'test_%'));
+UNION ALL SELECT 'cohort_homework (test)',  COUNT(*) FROM public.cohort_homework     WHERE cohort_id IN (SELECT id FROM public.cohorts WHERE tutor_user_id IN (SELECT id FROM public.users WHERE clerk_id LIKE 'test_%'))
+UNION ALL SELECT 'parent_student_links (test)', COUNT(*) FROM public.parent_student_links WHERE parent_user_id IN (SELECT id FROM public.users WHERE clerk_id LIKE 'test_%');

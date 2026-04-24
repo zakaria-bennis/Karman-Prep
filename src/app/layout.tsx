@@ -3,10 +3,13 @@
 // ============================================================
 
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import localFont from "next/font/local";
 import { ClerkProvider } from "@clerk/nextjs";
 import { strataClerkAppearance } from "@/lib/clerkAppearance";
 import { ThemeProvider } from "@/components/shared/ThemeProvider";
+import ImpersonationBanner from "@/components/admin/ImpersonationBanner";
+import { IMPERSONATE_COOKIE } from "@/lib/supabase/queries/admin";
 import "./globals.css";
 
 const geistSans = localFont({
@@ -44,7 +47,13 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
 };
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  // Check for the admin "View as" cookie — if set, we float a banner
+  // site-wide so the admin can always exit impersonation, even from
+  // inside a portal they don't normally control.
+  const cookieStore = await cookies();
+  const impersonatedRole = cookieStore.get(IMPERSONATE_COOKIE)?.value ?? null;
+
   return (
     <ClerkProvider
       appearance={strataClerkAppearance}
@@ -68,7 +77,10 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     >
       <html lang="en" suppressHydrationWarning>
         <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-          <ThemeProvider>{children}</ThemeProvider>
+          <ThemeProvider>
+            {impersonatedRole && <ImpersonationBanner role={impersonatedRole} />}
+            {children}
+          </ThemeProvider>
         </body>
       </html>
     </ClerkProvider>
