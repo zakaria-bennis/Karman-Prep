@@ -128,3 +128,130 @@ export async function fetchTutors(): Promise<TutorRow[]> {
   if (error) throw error;
   return (data ?? []) as TutorRow[];
 }
+
+// ─────────────────────────────────────────────────────────────
+// Cohort detail page — one cohort + its members + tutor note + homework.
+// ─────────────────────────────────────────────────────────────
+
+export interface CohortMemberRow {
+  user_id: string;
+  first_name: string | null;
+  last_name: string | null;
+  email: string;
+  avatar_url: string | null;
+  joined_at: string;
+}
+
+export interface HomeworkRow {
+  id: string;
+  title: string;
+  body: string | null;
+  assigned_at: string;
+  due_at: string | null;
+  created_by: {
+    first_name: string | null;
+    last_name: string | null;
+    email: string;
+  };
+}
+
+export interface CohortDetail {
+  cohort: AdminCohortRow;
+  members: CohortMemberRow[];
+  tutorNote: string | null;           // body of the tutor's per-cohort note (if any)
+  homework: HomeworkRow[];
+}
+
+export async function fetchCohortDetail(cohortId: string): Promise<CohortDetail | null> {
+  const supabase = createAdminClient();
+
+  // Fetch the cohort with its tutor in one round-trip.
+  const { data: cohortRow, error: cohortErr } = await supabase
+    .from("cohorts")
+    .select(
+      `id, name, tier, sat_date, max_size, current_topic, status, created_at, ended_at,
+       tutor:users!cohorts_tutor_user_id_fkey (id, first_name, last_name, email)`
+    )
+    .eq("id", cohortId)
+    .maybeSingle();
+  if (cohortErr) throw cohortErr;
+  if (!cohortRow) return null;
+
+  type RawCohort = Omit<AdminCohortRow, "tutor" | "member_count"> & {
+    tutor: AdminCohortRow["tutor"] | AdminCohortRow["tutor"][] | null;
+  };
+  const rc = cohortRow as RawCohort;
+  const tutor = Array.isArray(rc.tutor) ? rc.tutor[0] : rc.tutor;
+  if (!tutor) return null;
+
+  // Parallel: members, tutor note, homework.
+  const [membersRes, noteRes, homeworkRes] = await Promise.all([
+    supabase
+      .from("cohort_members")
+      .select(
+        `joined_at,
+         user:users!cohort_members_user_id_fkey (id, first_name, last_name, email, avatar_url)`
+      )
+      .eq("cohort_id", cohortId)
+      .is("left_at", null)
+      .order("joined_at", { ascending: true }),
+    supabase
+      .from("tutor_notes")
+      .select("body")
+      .eq("cohort_id", cohortId)
+      .eq("tutor_user_id", tutor.id)
+      .maybeSingle(),
+    supabase
+      .from("cohort_homework")
+      .select(
+        `id, title, body, assigned_at, due_at,
+         created_by:users!cohort_homework_created_by_user_id_fkey (first_name, last_name, email)`
+      )
+      .eq("cohort_id", cohortId)
+      .order("assigned_at", { ascending: false }),
+  ]);
+
+  if (membersRes.error)  throw membersRes.error;
+  if (noteRes.error)     throw noteRes.error;
+  if (homeworkRes.error) throw homeworkRes.error;
+
+  // Normalize joined user rows.
+  type RawMember = {
+    joined_at: string;
+    user: CohortMemberRow | CohortMemberRow[] | null;
+  };
+  const members: CohortMemberRow[] = ((membersRes.data ?? []) as unknown as RawMember[])
+    .flatMap((r) => {
+      const u = Array.isArray(r.user) ? r.user[0] : r.user;
+      return u ? [{ ...u, joined_at: r.joined_at }] : [];
+    });
+
+  type RawHw = Omit<HomeworkRow, "created_by"> & {
+    created_by: HomeworkRow["created_by"] | HomeworkRow["created_by"][] | null;
+  };
+  const homework: HomeworkRow[] = ((homeworkRes.data ?? []) as unknown as RawHw[])
+    .flatMap((h) => {
+      const cb = Array.isArray(h.created_by) ? h.created_by[0] : h.created_by;
+      if (!cb) return [];
+      return [{ id: h.id, title: h.title, body: h.body, assigned_at: h.assigned_at, due_at: h.due_at, created_by: cb }];
+    });
+
+  return {
+    cohort: {
+      id: rc.id,
+      name: rc.name,
+      tier: rc.tier,
+      sat_date: rc.sat_date,
+      max_size: rc.max_size,
+      current_topic: rc.current_topic,
+      status: rc.status,
+      created_at: rc.created_at,
+      ended_at: rc.ended_at,
+      tutor,
+      member_count: members.length,
+    },
+    members,
+    tutorNote: (noteRes.data as { body?: string } | null)?.body ?? null,
+    homework,
+  };
+}

@@ -158,6 +158,57 @@ INSERT INTO public.diagnostic_results (user_id, taken_at, score_range_low, score
   ((SELECT id FROM public.users WHERE clerk_id = 'test_student_09'), NOW() - INTERVAL '28 days',  530, 580, '{"algebra":80,"advanced_math":72,"geometry":78,"data_analysis":75,"reading_writing":85}'::jsonb),
   ((SELECT id FROM public.users WHERE clerk_id = 'test_student_10'), NOW() - INTERVAL '24 days',  520, 570, '{"algebra":78,"advanced_math":70,"geometry":75,"data_analysis":72,"reading_writing":82}'::jsonb);
 
+
+-- ─── 11. Tutor progress notes — one per cohort ─────────────
+-- Requires migration 006 (tutor_notes). One ongoing "notepad"
+-- per (tutor, cohort) pair.
+INSERT INTO public.tutor_notes (tutor_user_id, cohort_id, body) VALUES
+  ((SELECT id FROM public.users WHERE clerk_id = 'test_tutor_zakaria'),
+   (SELECT id FROM public.cohorts WHERE name = 'Seminar · May 2, 2026 · Zakaria'),
+   E'Week 3 — Linear Functions.\n\nGroup is engaged overall. Elijah and Amara are ahead on the practice sets; Darius needs review on slope-intercept form — planning to pull him aside next session. Running the "interpret-the-graph" drill format again next week, students liked it. Sofia missed last session — follow up on whether to record catch-up video.'),
+  ((SELECT id FROM public.users WHERE clerk_id = 'test_tutor_nabil'),
+   (SELECT id FROM public.cohorts WHERE name = 'Small Group · May 2, 2026 · Nabil'),
+   E'Advanced Math — Polynomials.\n\nStrong group. Maya is the pacer, Jordan asks great questions, Noah is quieter but scored the highest on last week''s drill. Focus next week: rational expressions and polynomial division. Target: get everyone comfortable with synthetic division before we move to exponential functions.');
+
+
+-- ─── 12. Cohort homework — requires migration 007 ─────────
+-- Several past + upcoming assignments per cohort so the UI
+-- has meaningful content to show.
+INSERT INTO public.cohort_homework (cohort_id, title, body, assigned_at, due_at, created_by_user_id) VALUES
+  -- Seminar (taught by Zakaria)
+  ((SELECT id FROM public.cohorts WHERE name = 'Seminar · May 2, 2026 · Zakaria'),
+   'Linear Equations — Practice Set A',
+   E'Complete problems 1–15 from the practice packet. Focus on the multi-step problems (10–15); those mirror what we saw on the diagnostic.\n\nBring your work to Thursday''s session — we''ll go over the trickiest two as a group.',
+   NOW() - INTERVAL '14 days',
+   NOW() - INTERVAL '7 days',
+   (SELECT id FROM public.users WHERE clerk_id = 'test_tutor_zakaria')),
+  ((SELECT id FROM public.cohorts WHERE name = 'Seminar · May 2, 2026 · Zakaria'),
+   'Linear Functions — Interpretation Drills',
+   E'Khan Academy unit: Linear functions word problems (approximately 20 minutes). Finish the quiz at the end and screenshot your score — we''ll discuss the common mistakes at the start of the next session.',
+   NOW() - INTERVAL '7 days',
+   NOW() + INTERVAL '2 days',
+   (SELECT id FROM public.users WHERE clerk_id = 'test_tutor_zakaria')),
+  ((SELECT id FROM public.cohorts WHERE name = 'Seminar · May 2, 2026 · Zakaria'),
+   'Systems of Equations — preview assignment',
+   E'Watch the 18-minute intro video (link in the cohort chat) and try the first 5 problems from the accompanying worksheet. We''ll debug any stuck points together next session.',
+   NOW() - INTERVAL '1 day',
+   NOW() + INTERVAL '7 days',
+   (SELECT id FROM public.users WHERE clerk_id = 'test_tutor_zakaria')),
+
+  -- Small group (taught by Nabil)
+  ((SELECT id FROM public.cohorts WHERE name = 'Small Group · May 2, 2026 · Nabil'),
+   'Polynomial Factoring — 15 problems',
+   E'From the small-group packet, complete problems 23–37. If you get stuck, try the hint first before looking at the answer. Submit the answers in the cohort chat by the due date — I''ll leave individualized feedback for each of you.',
+   NOW() - INTERVAL '5 days',
+   NOW() - INTERVAL '1 day',
+   (SELECT id FROM public.users WHERE clerk_id = 'test_tutor_nabil')),
+  ((SELECT id FROM public.cohorts WHERE name = 'Small Group · May 2, 2026 · Nabil'),
+   'Rational Expressions — concept review',
+   E'Read the short reference sheet I posted in the cohort chat, then complete the 10-problem mixed set. Expected time: 30–45 minutes. Bring any problem you spent more than 5 minutes on to our next session.',
+   NOW() - INTERVAL '12 hours',
+   NOW() + INTERVAL '5 days',
+   (SELECT id FROM public.users WHERE clerk_id = 'test_tutor_nabil'));
+
 COMMIT;
 
 
@@ -169,4 +220,6 @@ UNION ALL SELECT 'subscriptions (test)',    COUNT(*) FROM public.subscriptions  
 UNION ALL SELECT 'cohorts (test)',          COUNT(*) FROM public.cohorts             WHERE tutor_user_id IN (SELECT id FROM public.users WHERE clerk_id LIKE 'test_%')
 UNION ALL SELECT 'cohort_members (test)',   COUNT(*) FROM public.cohort_members      WHERE user_id  IN (SELECT id FROM public.users WHERE clerk_id LIKE 'test_%')
 UNION ALL SELECT 'tutor_assignments (test)',COUNT(*) FROM public.tutor_assignments   WHERE student_user_id IN (SELECT id FROM public.users WHERE clerk_id LIKE 'test_%')
-UNION ALL SELECT 'diagnostic_results (test)',COUNT(*) FROM public.diagnostic_results WHERE user_id  IN (SELECT id FROM public.users WHERE clerk_id LIKE 'test_%');
+UNION ALL SELECT 'diagnostic_results (test)',COUNT(*) FROM public.diagnostic_results WHERE user_id  IN (SELECT id FROM public.users WHERE clerk_id LIKE 'test_%')
+UNION ALL SELECT 'tutor_notes (test)',      COUNT(*) FROM public.tutor_notes         WHERE tutor_user_id IN (SELECT id FROM public.users WHERE clerk_id LIKE 'test_%')
+UNION ALL SELECT 'cohort_homework (test)',  COUNT(*) FROM public.cohort_homework     WHERE cohort_id IN (SELECT id FROM public.cohorts WHERE tutor_user_id IN (SELECT id FROM public.users WHERE clerk_id LIKE 'test_%'));

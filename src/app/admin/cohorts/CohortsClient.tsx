@@ -6,7 +6,8 @@
 // ============================================================
 
 import { useMemo, useState, useTransition } from "react";
-import { Plus, Users, Calendar, GraduationCap, X, Loader2 } from "lucide-react";
+import { Plus, GraduationCap, X, Loader2, Filter, ChevronRight } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { actionCreateCohort } from "./actions";
 import type {
@@ -33,6 +34,13 @@ interface Props {
 
 export default function CohortsClient({ cohorts, satDates, tutors }: Props) {
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [tutorFilter, setTutorFilter] = useState<string>(""); // "" = all tutors
+
+  // Filter cohorts by the selected tutor (empty string = show everyone).
+  const visibleCohorts = useMemo(() => {
+    if (!tutorFilter) return cohorts;
+    return cohorts.filter((c) => c.tutor.id === tutorFilter);
+  }, [cohorts, tutorFilter]);
 
   return (
     <div>
@@ -60,6 +68,34 @@ export default function CohortsClient({ cohorts, satDates, tutors }: Props) {
         </button>
       </header>
 
+      {/* Filter bar — only show once we actually have cohorts to filter through */}
+      {cohorts.length > 0 && (
+        <div className="mb-4 flex items-center gap-3">
+          <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
+            <Filter className="w-3.5 h-3.5" />
+            Filter
+          </div>
+          <select
+            value={tutorFilter}
+            onChange={(e) => setTutorFilter(e.target.value)}
+            className="rounded-lg bg-slate-950/60 border border-slate-800 text-slate-200 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500"
+          >
+            <option value="">All tutors ({cohorts.length})</option>
+            {tutors.map((t) => {
+              const n = cohorts.filter((c) => c.tutor.id === t.id).length;
+              return (
+                <option key={t.id} value={t.id}>
+                  {tutorDisplay(t)} ({n})
+                </option>
+              );
+            })}
+          </select>
+          {tutorFilter && visibleCohorts.length === 0 && (
+            <span className="text-xs text-slate-500">No cohorts for this tutor.</span>
+          )}
+        </div>
+      )}
+
       {cohorts.length === 0 ? (
         <EmptyState
           canCreate={satDates.length > 0 && tutors.length > 0}
@@ -67,7 +103,7 @@ export default function CohortsClient({ cohorts, satDates, tutors }: Props) {
           missingTutors={tutors.length === 0}
         />
       ) : (
-        <CohortTable cohorts={cohorts} />
+        <CohortTable cohorts={visibleCohorts} />
       )}
 
       {dialogOpen && (
@@ -86,6 +122,7 @@ export default function CohortsClient({ cohorts, satDates, tutors }: Props) {
 // ─────────────────────────────────────────────────────────────
 
 function CohortTable({ cohorts }: { cohorts: AdminCohortRow[] }) {
+  const router = useRouter();
   return (
     <div className="rounded-xl border border-slate-800 overflow-hidden">
       <table className="w-full text-sm">
@@ -97,19 +134,28 @@ function CohortTable({ cohorts }: { cohorts: AdminCohortRow[] }) {
             <th className="text-left  px-4 py-3 font-semibold">Tutor</th>
             <th className="text-right px-4 py-3 font-semibold">Members</th>
             <th className="text-left  px-4 py-3 font-semibold">Status</th>
+            <th aria-hidden="true" className="w-10"></th>
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-800">
           {cohorts.map((c) => (
-            <tr key={c.id} className="hover:bg-slate-900/40 transition-colors">
+            <tr
+              key={c.id}
+              onClick={() => router.push(`/admin/cohorts/${c.id}`)}
+              className="hover:bg-slate-900/40 cursor-pointer transition-colors focus:outline-none focus:bg-slate-900/60"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") router.push(`/admin/cohorts/${c.id}`);
+              }}
+              role="link"
+              aria-label={`Open ${c.name}`}
+            >
               <td className="px-4 py-3 text-white font-medium">{c.name}</td>
               <td className="px-4 py-3">
                 <TierBadge tier={c.tier} />
               </td>
               <td className="px-4 py-3 text-slate-300">{formatDate(c.sat_date)}</td>
-              <td className="px-4 py-3 text-slate-300">
-                {tutorDisplay(c.tutor)}
-              </td>
+              <td className="px-4 py-3 text-slate-300">{tutorDisplay(c.tutor)}</td>
               <td className="px-4 py-3 text-right">
                 <span
                   className={cn(
@@ -123,6 +169,9 @@ function CohortTable({ cohorts }: { cohorts: AdminCohortRow[] }) {
               </td>
               <td className="px-4 py-3">
                 <StatusBadge status={c.status} />
+              </td>
+              <td className="px-2 py-3 text-slate-600">
+                <ChevronRight className="w-4 h-4" />
               </td>
             </tr>
           ))}
