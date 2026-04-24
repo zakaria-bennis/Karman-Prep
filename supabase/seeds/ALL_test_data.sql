@@ -143,17 +143,20 @@ INSERT INTO public.tutor_assignments (tutor_user_id, student_user_id, started_at
 
 
 -- ─── 10. Diagnostic results ───────────────────────────────
+-- score_range_low / high are SECTION scores (200–800 per the
+-- DB CHECK constraint), not totals. Think of them as the
+-- estimated R/W or Math section score with a ±40-point band.
 INSERT INTO public.diagnostic_results (user_id, taken_at, score_range_low, score_range_high, domain_scores) VALUES
-  ((SELECT id FROM public.users WHERE clerk_id = 'test_student_01'), NOW() - INTERVAL '20 days',  980, 1080, '{"algebra":65,"advanced_math":50,"geometry":70,"data_analysis":60,"reading_writing":75}'::jsonb),
-  ((SELECT id FROM public.users WHERE clerk_id = 'test_student_02'), NOW() - INTERVAL '19 days',  940, 1040, '{"algebra":55,"advanced_math":45,"geometry":60,"data_analysis":50,"reading_writing":70}'::jsonb),
-  ((SELECT id FROM public.users WHERE clerk_id = 'test_student_03'), NOW() - INTERVAL '17 days', 1000, 1100, '{"algebra":70,"advanced_math":60,"geometry":75,"data_analysis":65,"reading_writing":80}'::jsonb),
-  ((SELECT id FROM public.users WHERE clerk_id = 'test_student_04'), NOW() - INTERVAL '14 days',  970, 1070, '{"algebra":60,"advanced_math":55,"geometry":65,"data_analysis":55,"reading_writing":75}'::jsonb),
-  ((SELECT id FROM public.users WHERE clerk_id = 'test_student_05'), NOW() - INTERVAL '11 days',  920, 1020, '{"algebra":50,"advanced_math":40,"geometry":55,"data_analysis":45,"reading_writing":65}'::jsonb),
-  ((SELECT id FROM public.users WHERE clerk_id = 'test_student_06'), NOW() - INTERVAL '9 days',  1010, 1110, '{"algebra":72,"advanced_math":62,"geometry":70,"data_analysis":68,"reading_writing":75}'::jsonb),
-  ((SELECT id FROM public.users WHERE clerk_id = 'test_student_07'), NOW() - INTERVAL '8 days',  1020, 1120, '{"algebra":75,"advanced_math":65,"geometry":72,"data_analysis":70,"reading_writing":78}'::jsonb),
-  ((SELECT id FROM public.users WHERE clerk_id = 'test_student_08'), NOW() - INTERVAL '6 days',   990, 1090, '{"algebra":68,"advanced_math":58,"geometry":68,"data_analysis":62,"reading_writing":72}'::jsonb),
-  ((SELECT id FROM public.users WHERE clerk_id = 'test_student_09'), NOW() - INTERVAL '28 days', 1060, 1160, '{"algebra":80,"advanced_math":72,"geometry":78,"data_analysis":75,"reading_writing":85}'::jsonb),
-  ((SELECT id FROM public.users WHERE clerk_id = 'test_student_10'), NOW() - INTERVAL '24 days', 1040, 1140, '{"algebra":78,"advanced_math":70,"geometry":75,"data_analysis":72,"reading_writing":82}'::jsonb);
+  ((SELECT id FROM public.users WHERE clerk_id = 'test_student_01'), NOW() - INTERVAL '20 days',  490, 540, '{"algebra":65,"advanced_math":50,"geometry":70,"data_analysis":60,"reading_writing":75}'::jsonb),
+  ((SELECT id FROM public.users WHERE clerk_id = 'test_student_02'), NOW() - INTERVAL '19 days',  470, 520, '{"algebra":55,"advanced_math":45,"geometry":60,"data_analysis":50,"reading_writing":70}'::jsonb),
+  ((SELECT id FROM public.users WHERE clerk_id = 'test_student_03'), NOW() - INTERVAL '17 days',  500, 550, '{"algebra":70,"advanced_math":60,"geometry":75,"data_analysis":65,"reading_writing":80}'::jsonb),
+  ((SELECT id FROM public.users WHERE clerk_id = 'test_student_04'), NOW() - INTERVAL '14 days',  485, 535, '{"algebra":60,"advanced_math":55,"geometry":65,"data_analysis":55,"reading_writing":75}'::jsonb),
+  ((SELECT id FROM public.users WHERE clerk_id = 'test_student_05'), NOW() - INTERVAL '11 days',  460, 510, '{"algebra":50,"advanced_math":40,"geometry":55,"data_analysis":45,"reading_writing":65}'::jsonb),
+  ((SELECT id FROM public.users WHERE clerk_id = 'test_student_06'), NOW() - INTERVAL '9 days',   505, 555, '{"algebra":72,"advanced_math":62,"geometry":70,"data_analysis":68,"reading_writing":75}'::jsonb),
+  ((SELECT id FROM public.users WHERE clerk_id = 'test_student_07'), NOW() - INTERVAL '8 days',   510, 560, '{"algebra":75,"advanced_math":65,"geometry":72,"data_analysis":70,"reading_writing":78}'::jsonb),
+  ((SELECT id FROM public.users WHERE clerk_id = 'test_student_08'), NOW() - INTERVAL '6 days',   495, 545, '{"algebra":68,"advanced_math":58,"geometry":68,"data_analysis":62,"reading_writing":72}'::jsonb),
+  ((SELECT id FROM public.users WHERE clerk_id = 'test_student_09'), NOW() - INTERVAL '28 days',  530, 580, '{"algebra":80,"advanced_math":72,"geometry":78,"data_analysis":75,"reading_writing":85}'::jsonb),
+  ((SELECT id FROM public.users WHERE clerk_id = 'test_student_10'), NOW() - INTERVAL '24 days',  520, 570, '{"algebra":78,"advanced_math":70,"geometry":75,"data_analysis":72,"reading_writing":82}'::jsonb);
 
 COMMIT;
 
