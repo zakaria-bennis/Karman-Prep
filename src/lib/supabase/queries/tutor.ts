@@ -8,6 +8,7 @@ import type {
   TutorNodeOverride,
   TutorCheckpointAssignment,
 } from "@/types/quiz";
+import type { CohortStatus, CohortTier } from "@/lib/supabase/queries/cohorts";
 
 // ── Student roster ────────────────────────────────────────────
 // Returns all users with role='student'. Real tutor–student assignment
@@ -181,7 +182,9 @@ export interface StudentDashboardRow {
   atmosphere_level: 0 | 1 | 2 | 3;
 }
 
-export async function fetchStudentDashboardRows(): Promise<StudentDashboardRow[]> {
+export async function fetchStudentDashboardRows(
+  onlyClerkIds?: string[] | null
+): Promise<StudentDashboardRow[]> {
   const supabase = createAdminClient();
 
   const [students, statuses, flagsOpen] = await Promise.all([
@@ -189,6 +192,12 @@ export async function fetchStudentDashboardRows(): Promise<StudentDashboardRow[]
     supabase.from("learn_node_status").select("user_id, node_id, status, confidence_band, updated_at"),
     supabase.from("flagged_questions").select("student_id").eq("resolved", false),
   ]);
+
+  // Optional scoping: when called with a list of clerk_ids, drop everyone else.
+  // Pass `null`/omit to keep the legacy "show all students" behavior (admin use).
+  const filteredStudents = onlyClerkIds
+    ? students.filter((s) => onlyClerkIds.includes(s.clerk_id))
+    : students;
 
   const statusMap = new Map<string, Array<{ node_id: string; status: string; confidence_band: string | null; updated_at: string }>>();
   for (const row of statuses.data ?? []) {
@@ -203,7 +212,7 @@ export async function fetchStudentDashboardRows(): Promise<StudentDashboardRow[]
     flagMap.set(r.student_id, (flagMap.get(r.student_id) ?? 0) + 1);
   }
 
-  return students.map((s) => {
+  return filteredStudents.map((s) => {
     const rows = statusMap.get(s.clerk_id) ?? [];
     const readingMastered = rows.filter((r) => r.node_id.startsWith("rw-") && r.status === "mastered").length;
     const mathMastered = rows.filter((r) => r.node_id.startsWith("ma-") && r.status === "mastered").length;
@@ -240,3 +249,254 @@ export async function fetchStudentDashboardRows(): Promise<StudentDashboardRow[]
     };
   });
 }
+
+
+// ─────────────────────────────────────────────────────────────
+// Tutor-scoped data: cohorts this tutor leads and the clerk_ids
+// of every student visible to them (cohort members + 1:1).
+// ─────────────────────────────────────────────────────────────
+
+export interface TutorCohortRow {
+  id: string;
+  name: string;
+  tier: CohortTier;
+  sat_date: string;
+  max_size: number;
+  current_topic: string | null;
+  status: CohortStatus;
+  member_count: number;
+  homework_count: number;
+}
+
+export interface TutorScope {
+  cohorts: TutorCohortRow[];
+  /** Clerk IDs of every student under this tutor's care */
+  studentClerkIds: string[];
+  /** UUID of the tutor user row (for notes / homework lookups) */
+  tutorUserId: string | null;
+}
+
+export async function fetchTutorScope(tutorClerkId: string): Promise<TutorScope> {
+  const supabase = createAdminClient();
+
+  // 1. Resolve the tutor's users.id from their clerk_id.
+  const { data: tutorRow } = await supabase
+    .from("users")
+    .select("id, role")
+    .eq("clerk_id", tutorClerkId)
+    .maybeSingle();
+  if (!tutorRow) return { cohorts: [], studentClerkIds: [], tutorUserId: null };
+
+  const tutorUserId = tutorRow.id as string;
+
+  // 2. Cohorts this tutor leads, plus member + homework counts.
+  const [cohortsRes, membersRes, homeworkRes, assignmentsRes] = await Promise.all([
+    supabase
+      .from("cohorts")
+      .select("id, name, tier, sat_date, max_size, current_topic, status")
+      .eq("tutor_user_id", tutorUserId)
+      .order("sat_date", { ascending: true }),
+    supabase
+      .from("cohort_members")
+      .select("cohort_id, user_id")
+      .is("left_at", null),
+    supabase
+      .from("cohort_homework")
+      .select("cohort_id"),
+    supabase
+      .from("tutor_assignments")
+      .select("student_user_id")
+      .eq("tutor_user_id", tutorUserId)
+      .is("ended_at", null),
+  ]);
+
+  if (cohortsRes.error)     throw cohortsRes.error;
+  if (membersRes.error)     throw membersRes.error;
+  if (homeworkRes.error)    throw homeworkRes.error;
+  if (assignmentsRes.error) throw assignmentsRes.error;
+
+  const cohortIds = new Set<string>((cohortsRes.data ?? []).map((c) => c.id as string));
+  const memberCounts = new Map<string, number>();
+  const cohortMemberUserIds = new Set<string>();
+  for (const r of (membersRes.data ?? []) as { cohort_id: string; user_id: string }[]) {
+    if (!cohortIds.has(r.cohort_id)) continue;
+    memberCounts.set(r.cohort_id, (memberCounts.get(r.cohort_id) ?? 0) + 1);
+    cohortMemberUserIds.add(r.user_id);
+  }
+
+  const homeworkCounts = new Map<string, number>();
+  for (const r of (homeworkRes.data ?? []) as { cohort_id: string }[]) {
+    if (!cohortIds.has(r.cohort_id)) continue;
+    homeworkCounts.set(r.cohort_id, (homeworkCounts.get(r.cohort_id) ?? 0) + 1);
+  }
+
+  const oneOnOneUserIds = new Set<string>(
+    (assignmentsRes.data ?? []).map((a) => (a as { student_user_id: string }).student_user_id)
+  );
+
+  const allStudentUserIds = [...new Set([...cohortMemberUserIds, ...oneOnOneUserIds])];
+
+  // 3. Map students.id → clerk_id (that's what the existing dashboard
+  //    queries join on).
+  let studentClerkIds: string[] = [];
+  if (allStudentUserIds.length > 0) {
+    const { data: ids, error } = await supabase
+      .from("users")
+      .select("clerk_id")
+      .in("id", allStudentUserIds);
+    if (error) throw error;
+    studentClerkIds = (ids ?? []).map((r) => (r as { clerk_id: string }).clerk_id);
+  }
+
+  const cohorts: TutorCohortRow[] = (cohortsRes.data ?? []).map((c) => ({
+    id:             c.id            as string,
+    name:           c.name          as string,
+    tier:           c.tier          as CohortTier,
+    sat_date:       c.sat_date      as string,
+    max_size:       c.max_size      as number,
+    current_topic: (c.current_topic as string | null) ?? null,
+    status:         c.status        as CohortStatus,
+    member_count:   memberCounts.get(c.id as string)   ?? 0,
+    homework_count: homeworkCounts.get(c.id as string) ?? 0,
+  }));
+
+  return { cohorts, studentClerkIds, tutorUserId };
+}
+
+
+// ─────────────────────────────────────────────────────────────
+// Tutor's view of a single cohort — with ownership enforced at
+// the query layer so a tutor can't URL-hack into another's cohort.
+// ─────────────────────────────────────────────────────────────
+
+export interface TutorCohortMember {
+  user_id: string;
+  first_name: string | null;
+  last_name: string | null;
+  email: string;
+  avatar_url: string | null;
+  joined_at: string;
+}
+
+export interface TutorHomework {
+  id: string;
+  title: string;
+  body: string | null;
+  assigned_at: string;
+  due_at: string | null;
+}
+
+export interface TutorCohortDetail {
+  cohort: {
+    id: string;
+    name: string;
+    tier: CohortTier;
+    sat_date: string;
+    max_size: number;
+    current_topic: string | null;
+    status: CohortStatus;
+  };
+  members: TutorCohortMember[];
+  noteBody: string;                 // '' if no note yet
+  noteId: string | null;            // null if no note row yet
+  homework: TutorHomework[];
+}
+
+/**
+ * Fetch a cohort from the tutor's perspective. Returns null if the
+ * cohort doesn't exist OR the caller is not its tutor (so the caller
+ * can 404 either way — no data leak).
+ */
+export async function fetchTutorCohortDetail(
+  cohortId: string,
+  tutorClerkId: string
+): Promise<TutorCohortDetail | null> {
+  const supabase = createAdminClient();
+
+  const { data: tutor } = await supabase
+    .from("users")
+    .select("id")
+    .eq("clerk_id", tutorClerkId)
+    .maybeSingle();
+  if (!tutor) return null;
+  const tutorUserId = tutor.id as string;
+
+  const { data: cohort, error: cErr } = await supabase
+    .from("cohorts")
+    .select("id, name, tier, sat_date, max_size, current_topic, status, tutor_user_id")
+    .eq("id", cohortId)
+    .maybeSingle();
+  if (cErr) throw cErr;
+  if (!cohort) return null;
+  if ((cohort as { tutor_user_id: string }).tutor_user_id !== tutorUserId) {
+    return null;  // not this tutor's cohort — pretend it doesn't exist
+  }
+
+  const [membersRes, noteRes, homeworkRes] = await Promise.all([
+    supabase
+      .from("cohort_members")
+      .select(`
+        joined_at,
+        user:users!cohort_members_user_id_fkey (id, first_name, last_name, email, avatar_url)
+      `)
+      .eq("cohort_id", cohortId)
+      .is("left_at", null)
+      .order("joined_at", { ascending: true }),
+    supabase
+      .from("tutor_notes")
+      .select("id, body")
+      .eq("tutor_user_id", tutorUserId)
+      .eq("cohort_id", cohortId)
+      .maybeSingle(),
+    supabase
+      .from("cohort_homework")
+      .select("id, title, body, assigned_at, due_at")
+      .eq("cohort_id", cohortId)
+      .order("assigned_at", { ascending: false }),
+  ]);
+
+  if (membersRes.error)  throw membersRes.error;
+  if (noteRes.error)     throw noteRes.error;
+  if (homeworkRes.error) throw homeworkRes.error;
+
+  type RawMember = {
+    joined_at: string;
+    user: {
+      id: string; first_name: string | null; last_name: string | null;
+      email: string; avatar_url: string | null;
+    } | Array<{
+      id: string; first_name: string | null; last_name: string | null;
+      email: string; avatar_url: string | null;
+    }> | null;
+  };
+  const members: TutorCohortMember[] = ((membersRes.data ?? []) as RawMember[]).flatMap((r) => {
+    const u = Array.isArray(r.user) ? r.user[0] : r.user;
+    return u ? [{
+      user_id:    u.id,
+      first_name: u.first_name,
+      last_name:  u.last_name,
+      email:      u.email,
+      avatar_url: u.avatar_url,
+      joined_at:  r.joined_at,
+    }] : [];
+  });
+
+  const note = noteRes.data as { id: string; body: string } | null;
+
+  return {
+    cohort: {
+      id:             cohort.id            as string,
+      name:           cohort.name          as string,
+      tier:           cohort.tier          as CohortTier,
+      sat_date:       cohort.sat_date      as string,
+      max_size:       cohort.max_size      as number,
+      current_topic: (cohort.current_topic as string | null) ?? null,
+      status:         cohort.status        as CohortStatus,
+    },
+    members,
+    noteBody: note?.body ?? "",
+    noteId:   note?.id ?? null,
+    homework: (homeworkRes.data ?? []) as TutorHomework[],
+  };
+}
+
