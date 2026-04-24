@@ -2,26 +2,30 @@
 
 // ============================================================
 // CohortDetailClient — header + tabs (Members / Notes / Homework).
-// Admin side is read-only for Notes and Homework in this slice.
-// The tutor portal (future session) will own the CRUD for those.
+// Admin can add/remove members. Notes + homework are read-only
+// here (the tutor portal owns their CRUD).
 // ============================================================
 
+import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
-import { BookOpen, ClipboardList, Users as UsersIcon } from "lucide-react";
+import { BookOpen, ClipboardList, Loader2, Plus, Trash2, Users as UsersIcon, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type {
   CohortDetail,
   CohortMemberRow,
+  EligibleStudentRow,
   HomeworkRow,
   CohortTier,
   CohortStatus,
 } from "@/lib/supabase/queries/cohorts";
+import { actionAddCohortMember, actionRemoveCohortMember } from "./members-actions";
 
 type TabKey = "members" | "notes" | "homework";
 
 interface Props {
   detail: CohortDetail;
   activeTab: TabKey;
+  eligibleStudents: EligibleStudentRow[];
 }
 
 const TIER_LABEL: Record<CohortTier, string> = {
@@ -29,7 +33,7 @@ const TIER_LABEL: Record<CohortTier, string> = {
   group: "Seminar",
 };
 
-export default function CohortDetailClient({ detail, activeTab }: Props) {
+export default function CohortDetailClient({ detail, activeTab, eligibleStudents }: Props) {
   const { cohort, members, tutorNote, homework } = detail;
 
   return (
@@ -91,7 +95,15 @@ export default function CohortDetailClient({ detail, activeTab }: Props) {
       </div>
 
       {/* ── Tab content ────────────────────────────────────── */}
-      {activeTab === "members"  && <MembersTab members={members} />}
+      {activeTab === "members"  && (
+        <MembersTab
+          cohortId={cohort.id}
+          members={members}
+          seatsOpen={cohort.max_size - members.length}
+          cohortTier={cohort.tier}
+          eligibleStudents={eligibleStudents}
+        />
+      )}
       {activeTab === "notes"    && <NotesTab note={tutorNote} tutorName={tutorDisplay(cohort.tutor)} />}
       {activeTab === "homework" && <HomeworkTab homework={homework} />}
     </div>
@@ -139,40 +151,245 @@ function TabLink({
 
 // ─── Members tab ─────────────────────────────────────────────
 
-function MembersTab({ members }: { members: CohortMemberRow[] }) {
-  if (members.length === 0) {
-    return (
-      <EmptyBlock
-        title="No members yet"
-        subtitle="Students will appear here once they enroll or an admin adds them."
-      />
-    );
-  }
+function MembersTab({
+  cohortId, members, seatsOpen, cohortTier, eligibleStudents,
+}: {
+  cohortId: string;
+  members: CohortMemberRow[];
+  seatsOpen: number;
+  cohortTier: CohortTier;
+  eligibleStudents: EligibleStudentRow[];
+}) {
+  const [adding, setAdding] = useState(false);
+  const [rowError, setRowError] = useState<string | null>(null);
+
+  const fullCapacity = seatsOpen <= 0;
+
   return (
-    <div className="rounded-xl border border-slate-800 overflow-hidden">
-      <table className="w-full text-sm">
-        <thead className="bg-slate-900/60 text-slate-400 text-xs uppercase tracking-wider">
-          <tr>
-            <th className="text-left px-4 py-3 font-semibold">Name</th>
-            <th className="text-left px-4 py-3 font-semibold">Email</th>
-            <th className="text-left px-4 py-3 font-semibold">Joined</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-slate-800">
-          {members.map((m) => (
-            <tr key={m.user_id} className="hover:bg-slate-900/40 transition-colors">
-              <td className="px-4 py-3">
-                <div className="flex items-center gap-3">
-                  <Avatar name={studentDisplay(m)} avatarUrl={m.avatar_url} />
-                  <span className="text-white font-medium">{studentDisplay(m)}</span>
-                </div>
-              </td>
-              <td className="px-4 py-3 text-slate-400 font-mono text-xs">{m.email}</td>
-              <td className="px-4 py-3 text-slate-400 text-xs">{formatDateTime(m.joined_at)}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-slate-400">
+          {seatsOpen > 0
+            ? <>{seatsOpen} open seat{seatsOpen === 1 ? "" : "s"}.</>
+            : <>Cohort is at capacity.</>}
+        </p>
+        <button
+          onClick={() => setAdding(true)}
+          disabled={fullCapacity || eligibleStudents.length === 0}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+          title={
+            fullCapacity ? "Cohort is at capacity"
+            : eligibleStudents.length === 0 ? "No eligible students available"
+            : undefined
+          }
+        >
+          <Plus className="w-4 h-4" />
+          Add member
+        </button>
+      </div>
+
+      {members.length === 0 ? (
+        <EmptyBlock
+          title="No members yet"
+          subtitle="Click Add member to place a student in this cohort."
+        />
+      ) : (
+        <div className="rounded-xl border border-slate-800 overflow-hidden">
+          <table className="w-full text-sm">
+            <thead className="bg-slate-900/60 text-slate-400 text-xs uppercase tracking-wider">
+              <tr>
+                <th className="text-left px-4 py-3 font-semibold">Name</th>
+                <th className="text-left px-4 py-3 font-semibold">Email</th>
+                <th className="text-left px-4 py-3 font-semibold">Joined</th>
+                <th aria-hidden="true" className="w-12" />
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-800">
+              {members.map((m) => (
+                <MemberRow
+                  key={m.user_id}
+                  cohortId={cohortId}
+                  member={m}
+                  onError={setRowError}
+                />
+              ))}
+            </tbody>
+          </table>
+          {rowError && (
+            <div className="px-4 py-2 text-xs text-rose-300 bg-rose-500/5 border-t border-slate-800">
+              {rowError}
+            </div>
+          )}
+        </div>
+      )}
+
+      {adding && (
+        <AddMemberDialog
+          cohortId={cohortId}
+          cohortTier={cohortTier}
+          eligibleStudents={eligibleStudents}
+          onClose={() => setAdding(false)}
+        />
+      )}
+    </div>
+  );
+}
+
+function MemberRow({
+  cohortId, member, onError,
+}: {
+  cohortId: string;
+  member: CohortMemberRow;
+  onError: (msg: string | null) => void;
+}) {
+  const [pending, startTransition] = useTransition();
+
+  function remove() {
+    const name = studentDisplay(member);
+    if (!confirm(`Remove ${name} from this cohort? Their progress is kept — this only ends their cohort membership.`)) return;
+    onError(null);
+    startTransition(async () => {
+      try { await actionRemoveCohortMember(cohortId, member.user_id); }
+      catch (e) { onError(e instanceof Error ? e.message : "Failed to remove member"); }
+    });
+  }
+
+  return (
+    <tr className="hover:bg-slate-900/40 transition-colors">
+      <td className="px-4 py-3">
+        <div className="flex items-center gap-3">
+          <Avatar name={studentDisplay(member)} avatarUrl={member.avatar_url} />
+          <span className="text-white font-medium">{studentDisplay(member)}</span>
+        </div>
+      </td>
+      <td className="px-4 py-3 text-slate-400 font-mono text-xs">{member.email}</td>
+      <td className="px-4 py-3 text-slate-400 text-xs">{formatDateTime(member.joined_at)}</td>
+      <td className="px-2 py-3">
+        <button
+          onClick={remove}
+          disabled={pending}
+          className="text-slate-500 hover:text-rose-300 disabled:opacity-50"
+          aria-label={`Remove ${studentDisplay(member)} from cohort`}
+        >
+          {pending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+        </button>
+      </td>
+    </tr>
+  );
+}
+
+function AddMemberDialog({
+  cohortId, cohortTier, eligibleStudents, onClose,
+}: {
+  cohortId: string;
+  cohortTier: CohortTier;
+  eligibleStudents: EligibleStudentRow[];
+  onClose: () => void;
+}) {
+  const [studentId, setStudentId] = useState("");
+  const [err, setErr] = useState<string | null>(null);
+  const [pending, startTransition] = useTransition();
+
+  // Sort: students with matching sub tier first (clearest candidates),
+  // then everyone else (admin override).
+  const sorted = useMemo(() => {
+    const matching = eligibleStudents.filter((s) => s.subscription_tier === cohortTier);
+    const other    = eligibleStudents.filter((s) => s.subscription_tier !== cohortTier);
+    return [...matching, ...other];
+  }, [eligibleStudents, cohortTier]);
+
+  const selected = sorted.find((s) => s.id === studentId) ?? null;
+  const tierMismatch = selected && selected.subscription_tier !== cohortTier;
+
+  function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setErr(null);
+    startTransition(async () => {
+      try {
+        await actionAddCohortMember(cohortId, studentId);
+        onClose();
+      } catch (e) {
+        setErr(e instanceof Error ? e.message : "Failed to add member");
+      }
+    });
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-40 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        className="relative w-full max-w-lg rounded-2xl bg-slate-900 border border-slate-800 shadow-2xl p-6"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button onClick={onClose} className="absolute top-4 right-4 text-slate-500 hover:text-slate-200" aria-label="Close">
+          <X className="w-5 h-5" />
+        </button>
+        <h2 className="text-lg font-bold text-white">Add member</h2>
+        <p className="text-sm text-slate-400 mt-1">
+          Only students not currently in another active cohort are shown.
+        </p>
+
+        <form onSubmit={submit} className="mt-5 space-y-3">
+          <label className="block">
+            <span className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
+              Student
+            </span>
+            <select
+              value={studentId}
+              onChange={(e) => setStudentId(e.target.value)}
+              required
+              className="w-full rounded-lg bg-slate-950/60 border border-slate-800 text-slate-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+            >
+              <option value="">Select a student…</option>
+              {sorted.map((s) => {
+                const name = [s.first_name, s.last_name].filter(Boolean).join(" ") || s.email;
+                const tierBit = s.subscription_tier ? ` · ${s.subscription_tier}` : " · no active sub";
+                return (
+                  <option key={s.id} value={s.id}>
+                    {name}{tierBit}
+                  </option>
+                );
+              })}
+            </select>
+          </label>
+
+          {tierMismatch && (
+            <p className="text-xs text-amber-300 bg-amber-400/10 border border-amber-400/20 rounded-lg px-3 py-2">
+              Heads up — this student&apos;s subscription tier is{" "}
+              <span className="font-semibold">{selected?.subscription_tier ?? "none"}</span>, not{" "}
+              <span className="font-semibold">{cohortTier}</span>. You can still place them (admin override),
+              but their billing won&apos;t match the cohort.
+            </p>
+          )}
+
+          {err && (
+            <p className="text-sm text-rose-300 bg-rose-500/10 border border-rose-400/20 rounded-lg px-3 py-2">
+              {err}
+            </p>
+          )}
+
+          <div className="flex justify-end gap-2 pt-2">
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={pending}
+              className="px-4 py-2 rounded-lg border border-slate-700 text-slate-300 hover:bg-slate-800 text-sm font-semibold disabled:opacity-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={!studentId || pending}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold disabled:opacity-50"
+            >
+              {pending && <Loader2 className="w-4 h-4 animate-spin" />}
+              Add to cohort
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

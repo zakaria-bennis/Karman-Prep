@@ -130,6 +130,83 @@ export async function fetchTutors(): Promise<TutorRow[]> {
 }
 
 // ─────────────────────────────────────────────────────────────
+// Students eligible to be added to a cohort (for the admin
+// "Add member" dialog). Eligibility rules:
+//   · role = 'student'
+//   · NOT currently a member of any active cohort (DB already
+//     rejects this via the partial unique index, but we filter
+//     in the query so the dropdown only shows valid candidates)
+//
+// Subscription tier is returned so the admin UI can warn when
+// the student's paid tier doesn't match the cohort's tier —
+// the admin can still override (sometimes useful for testing /
+// edge cases); the DB won't reject the mismatch.
+// ─────────────────────────────────────────────────────────────
+export interface EligibleStudentRow {
+  id: string;                      // users.id (uuid)
+  first_name: string | null;
+  last_name: string | null;
+  email: string;
+  subscription_tier: string | null;  // from subscriptions.tier if active/trialing
+}
+
+export async function fetchEligibleStudentsForCohort(
+  _cohortId: string
+): Promise<EligibleStudentRow[]> {
+  const supabase = createAdminClient();
+
+  // All active-cohort members — we exclude these.
+  const { data: activeMembers, error: amErr } = await supabase
+    .from("cohort_members")
+    .select("user_id")
+    .is("left_at", null);
+  if (amErr) throw amErr;
+
+  const inACohort = new Set<string>(
+    (activeMembers ?? []).map((m) => (m as { user_id: string }).user_id)
+  );
+
+  const { data: students, error: sErr } = await supabase
+    .from("users")
+    .select("id, first_name, last_name, email, clerk_id, role")
+    .eq("role", "student")
+    .order("first_name", { ascending: true, nullsFirst: false });
+  if (sErr) throw sErr;
+
+  const eligibleUsers = (students ?? []).filter(
+    (s) => !inACohort.has((s as { id: string }).id)
+  );
+
+  if (eligibleUsers.length === 0) return [];
+
+  // Fetch latest active subscription per student to show their paid tier.
+  const clerkIds = eligibleUsers.map((s) => (s as { clerk_id: string }).clerk_id);
+  const { data: subs } = await supabase
+    .from("subscriptions")
+    .select("user_id, tier, status")
+    .in("user_id", clerkIds)
+    .in("status", ["active", "trialing"]);
+
+  const tierByClerk = new Map<string, string>();
+  for (const s of (subs ?? []) as { user_id: string; tier: string }[]) {
+    // Keep first seen — a student shouldn't have multiple active subs.
+    if (!tierByClerk.has(s.user_id)) tierByClerk.set(s.user_id, s.tier);
+  }
+
+  return eligibleUsers.map((s) => {
+    const row = s as { id: string; first_name: string | null; last_name: string | null; email: string; clerk_id: string };
+    return {
+      id: row.id,
+      first_name: row.first_name,
+      last_name:  row.last_name,
+      email:      row.email,
+      subscription_tier: tierByClerk.get(row.clerk_id) ?? null,
+    };
+  });
+}
+
+
+// ─────────────────────────────────────────────────────────────
 // Cohort detail page — one cohort + its members + tutor note + homework.
 // ─────────────────────────────────────────────────────────────
 
