@@ -22,24 +22,27 @@ interface Node {
   opacityAmp: number;     // amplitude of oscillation
 }
 
-const NODE_COUNT = 60;
-const MAX_LINK_DIST = 150;
-const NODE_COLOR = "160, 140, 255";   // brighter purple-violet
-const LINK_COLOR  = "130, 110, 230";  // stronger purple link
+// Tuned to a supporting role under CloudAurora — fewer, dimmer, smaller.
+// The aurora is the star now; the constellation adds texture and motion
+// without competing for attention.
+const NODE_COUNT = 38;
+const MAX_LINK_DIST = 140;
+const NODE_COLOR = "180, 200, 255";   // cool pale blue
+const LINK_COLOR  = "140, 170, 255";  // pale blue link
 
 function createNode(w: number, h: number): Node {
-  const speed = 0.08 + Math.random() * 0.12;
+  const speed = 0.05 + Math.random() * 0.09;
   const angle = Math.random() * Math.PI * 2;
   return {
     x: Math.random() * w,
     y: Math.random() * h,
     vx: Math.cos(angle) * speed,
     vy: Math.sin(angle) * speed,
-    radius: 1.8 + Math.random() * 2.0,              // bigger dots
-    baseOpacity: 0.60 + Math.random() * 0.25,        // much higher base
+    radius: 1.0 + Math.random() * 1.4,
+    baseOpacity: 0.30 + Math.random() * 0.20,
     opacityPhase: Math.random() * Math.PI * 2,
     opacitySpeed: 0.0003 + Math.random() * 0.0005,
-    opacityAmp: 0.18 + Math.random() * 0.20,
+    opacityAmp: 0.12 + Math.random() * 0.14,
   };
 }
 
@@ -51,6 +54,9 @@ export default function ConstellationBackground() {
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
+
+    // Respect reduced-motion — draw a single static frame and stop.
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     let animId: number;
     let nodes: Node[] = [];
@@ -101,13 +107,13 @@ export default function ConstellationBackground() {
           const proximity = 1 - dist / MAX_LINK_DIST;
           const opA = a.baseOpacity + Math.sin(a.opacityPhase) * a.opacityAmp;
           const opB = b.baseOpacity + Math.sin(b.opacityPhase) * b.opacityAmp;
-          const lineOp = proximity * Math.min(opA, opB) * 0.75;  // was 0.45
+          const lineOp = proximity * Math.min(opA, opB) * 0.35;
 
           ctx.beginPath();
           ctx.moveTo(a.x, a.y);
           ctx.lineTo(b.x, b.y);
           ctx.strokeStyle = `rgba(${LINK_COLOR}, ${lineOp.toFixed(3)})`;
-          ctx.lineWidth = 1.0;   // was 0.7
+          ctx.lineWidth = 0.6;
           ctx.stroke();
         }
       }
@@ -135,7 +141,9 @@ export default function ConstellationBackground() {
         ctx.fill();
       }
 
-      animId = requestAnimationFrame(draw);
+      if (!reduceMotion) {
+        animId = requestAnimationFrame(draw);
+      }
     }
 
     animId = requestAnimationFrame(draw);

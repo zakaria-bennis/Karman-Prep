@@ -7,12 +7,13 @@
 
 import { TrendingUp, Users, Award, Clock } from "lucide-react";
 import { useEffect, useRef } from "react";
+import Reveal from "@/components/shared/Reveal";
 
 const STATS = [
-  { icon: TrendingUp, value: "+285",   label: "Average score improvement", color: "text-blue-500" },
-  { icon: Users,      value: "2,400+", label: "Students tutored",          color: "text-purple-500" },
-  { icon: Award,      value: "94%",    label: "Reach their target score",  color: "text-teal-500" },
-  { icon: Clock,      value: "16 wks", label: "Median time to goal",       color: "text-amber-500" },
+  { icon: TrendingUp, value: "+285",   label: "Average score improvement", color: "text-blue-300" },
+  { icon: Users,      value: "2,400+", label: "Students tutored",          color: "text-purple-300" },
+  { icon: Award,      value: "94%",    label: "Reach their target score",  color: "text-teal-300" },
+  { icon: Clock,      value: "16 wks", label: "Median time to goal",       color: "text-amber-300" },
 ];
 
 const TESTIMONIALS = [
@@ -52,23 +53,23 @@ const ROW_1 = TESTIMONIALS;
 
 function TestimonialCard({ t }: { t: typeof TESTIMONIALS[0] }) {
   return (
-    <div className="flex-shrink-0 w-80 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 shadow-sm flex flex-col gap-3 mx-3">
+    <div className="flex-shrink-0 w-80 glass-cloud p-5 flex flex-col gap-3 mx-3">
       <div className="flex items-center justify-between">
-        <span className="inline-flex items-center gap-1.5 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 px-3 py-1 rounded-full text-xs font-bold">
+        <span className="inline-flex items-center gap-1.5 bg-emerald-400/15 text-emerald-300 px-3 py-1 rounded-full text-xs font-bold border border-emerald-400/20">
           <TrendingUp className="w-3 h-3" />{t.improvement}
         </span>
-        <span className="text-xs font-medium text-blue-500 dark:text-blue-400">with {t.tutor}</span>
+        <span className="text-xs font-medium text-blue-300">with {t.tutor}</span>
       </div>
       <div className="flex gap-0.5">
         {[...Array(5)].map((_, i) => (
-          <svg key={i} className="w-3.5 h-3.5 text-amber-400 fill-current" viewBox="0 0 20 20">
+          <svg key={i} className="w-3.5 h-3.5 text-amber-300 fill-current" viewBox="0 0 20 20">
             <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
           </svg>
         ))}
       </div>
-      <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed flex-1">&ldquo;{t.quote}&rdquo;</p>
+      <p className="text-sm text-slate-300 leading-relaxed flex-1">&ldquo;{t.quote}&rdquo;</p>
       <div>
-        <p className="text-sm font-semibold text-slate-900 dark:text-white">{t.name}</p>
+        <p className="text-sm font-semibold text-white">{t.name}</p>
         <p className="text-xs text-slate-400">{t.role}</p>
       </div>
     </div>
@@ -107,25 +108,40 @@ function ScrollingRow({ items, reverse = false }: { items: typeof TESTIMONIALS; 
 
 export default function SocialProof() {
   return (
-    <section id="results" className="py-20 bg-white dark:bg-slate-950 overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-14">
-        <div className="text-center mb-14">
-          <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white">Real students. Real results.</h2>
-          <p className="mt-3 text-slate-500 dark:text-slate-400 max-w-xl mx-auto">
+    <section id="results" className="relative py-24 bg-cloud-night bg-grain overflow-hidden">
+      {/* Atmospheric glow */}
+      <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+        <div
+          className="absolute top-20 left-1/3 w-[600px] h-[600px] rounded-full blur-3xl"
+          style={{ background: "radial-gradient(circle, rgba(94,228,198,0.07), transparent 70%)" }}
+        />
+      </div>
+
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-14">
+        <Reveal className="text-center mb-14">
+          <span className="type-label text-teal-300/80">Real outcomes</span>
+          <h2 className="type-display-lg mt-4 text-white">
+            Real students. Real <span className="italic text-teal-200 font-[650]">results</span>.
+          </h2>
+          <p className="type-body-lg mt-5 text-slate-400 max-w-xl mx-auto text-balance">
             Hear directly from the students and parents who worked with Zakaria and Nabil.
           </p>
-        </div>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+        </Reveal>
+
+        <Reveal as="stagger" className="grid grid-cols-2 lg:grid-cols-4 gap-6">
           {STATS.map(({ icon: Icon, value, label, color }) => (
-            <div key={label} className="glass-card p-6 text-center">
-              <Icon className={`w-7 h-7 mx-auto mb-3 ${color}`} />
-              <div className="text-3xl font-extrabold text-slate-900 dark:text-white mb-1">{value}</div>
-              <div className="text-sm text-slate-500 dark:text-slate-400">{label}</div>
-            </div>
+            <Reveal key={label}>
+              <div className="glass-cloud p-6 text-center">
+                <Icon className={`w-7 h-7 mx-auto mb-3 ${color}`} />
+                <div className="type-mono text-3xl font-extrabold text-white mb-1">{value}</div>
+                <div className="text-sm text-slate-400">{label}</div>
+              </div>
+            </Reveal>
           ))}
-        </div>
+        </Reveal>
       </div>
-      <div>
+
+      <div className="relative">
         <ScrollingRow items={ROW_1} reverse={false} />
       </div>
     </section>

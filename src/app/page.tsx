@@ -22,18 +22,24 @@ export const metadata: Metadata = {
 };
 
 export default function HomePage() {
+  // Landing is always rendered in dark mode — this is a designed,
+  // branded experience that ignores the visitor's theme preference.
+  // All `dark:` variants inside landing sections activate via this
+  // wrapper (Tailwind darkMode: 'class' matches any ancestor .dark).
   return (
-    <main className="min-h-screen">
-      <Navbar />
-      <Hero />
-      <SampleQuiz />
-      <HowItWorks />
-      <SocialProof />
-      <FounderSection />
-      <SampleLesson />
-      <Pricing />
-      <EmailCapture />
-      <Footer />
-    </main>
+    <div className="dark">
+      <main className="min-h-screen">
+        <Navbar />
+        <Hero />
+        <SampleQuiz />
+        <HowItWorks />
+        <SocialProof />
+        <FounderSection />
+        <SampleLesson />
+        <Pricing />
+        <EmailCapture />
+        <Footer />
+      </main>
+    </div>
   );
 }

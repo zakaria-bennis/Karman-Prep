@@ -151,7 +151,7 @@ export const PRICING_TIERS: PricingTier[] = [
     period: "/month",
     description: "Full curriculum access and live seminar-style group sessions to keep you on track.",
     features: [
-      "Access to full curriculum library (150+ lessons)",
+      "Access to full curriculum library (100+ lessons)",
       "Live seminar-style group sessions with your cohort", // #5 removed 15-student cap
       "Personalized diagnostic assessment",
       "Progress tracking dashboard",

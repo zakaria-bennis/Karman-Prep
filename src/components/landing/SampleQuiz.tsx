@@ -296,10 +296,10 @@ export default function SampleQuiz() {
 
   if (showResult) {
     return (
-      <section id="sample-quiz" className="py-20 bg-slate-50 dark:bg-slate-900/50">
-        <div className="max-w-2xl mx-auto px-4 sm:px-6">
-          <div className="glass-card p-6 sm:p-8">
-            <h3 className="text-2xl font-extrabold text-slate-900 dark:text-white text-center mb-2">
+      <section id="sample-quiz" className="relative py-24 bg-cloud-night bg-grain overflow-hidden">
+        <div className="relative max-w-2xl mx-auto px-4 sm:px-6">
+          <div className="glass-cloud-strong p-6 sm:p-8">
+            <h3 className="text-2xl font-extrabold text-white text-center mb-2">
               Your Estimated Score
             </h3>
             <p className="text-center text-slate-500 dark:text-slate-400 text-sm mb-8">
@@ -359,23 +359,31 @@ export default function SampleQuiz() {
   }
 
   return (
-    <section id="sample-quiz" className="py-20 bg-slate-50 dark:bg-slate-900/50">
-      <div className="max-w-2xl mx-auto px-4 sm:px-6">
+    <section id="sample-quiz" className="relative py-24 bg-cloud-night bg-grain overflow-hidden">
+      {/* Atmospheric glow */}
+      <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+        <div
+          className="absolute top-20 -right-40 w-[520px] h-[520px] rounded-full blur-3xl"
+          style={{ background: "radial-gradient(circle, rgba(196,167,255,0.08), transparent 70%)" }}
+        />
+      </div>
+
+      <div className="relative max-w-2xl mx-auto px-4 sm:px-6">
         {/* Headline */}
         <div className="text-center mb-10">
-          <div className="inline-flex items-center gap-2 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-4 py-1.5 rounded-full text-sm font-semibold mb-4">
+          <div className="inline-flex items-center gap-2 bg-purple-400/15 text-purple-300 px-4 py-1.5 rounded-full text-sm font-semibold mb-5 border border-purple-400/20">
             <SectionIcon className="w-4 h-4" />
             Free 22-Question Diagnostic
           </div>
-          <h2 className="text-3xl font-bold text-slate-900 dark:text-white">
-            Find your SAT baseline in 10 minutes
+          <h2 className="type-display-lg text-white">
+            Find your SAT <span className="italic text-purple-200 font-[650]">baseline</span>.
           </h2>
-          <p className="mt-3 text-slate-600 dark:text-slate-300">
+          <p className="type-body-lg mt-4 text-slate-400 text-balance">
             22 questions across all SAT domains. Get your estimated score range and personalized starting point.
           </p>
         </div>
 
-        <div className="glass-card p-6 sm:p-8">
+        <div className="glass-cloud-strong p-6 sm:p-8">
           {/* Progress bar */}
           <div className="mb-6">
             <div className="flex items-center justify-between mb-2">
