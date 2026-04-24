@@ -1,27 +1,25 @@
 // ============================================================
-// Clerk-powered Sign Up page
-// Reads ?tier= query param to pass selected plan to onboarding.
+// Clerk-powered Sign Up — branded backdrop
 // ============================================================
 
 import { SignUp } from "@clerk/nextjs";
 import Link from "next/link";
 import { StrataLogo } from "@/components/shared/StrataLogo";
+import AuthBackdrop from "@/components/shared/AuthBackdrop";
 
 export default function SignUpPage() {
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4">
-      <Link href="/" className="mb-4" aria-label="Strata home">
-        <StrataLogo size={30} theme="dark" />
+    <div className="relative min-h-screen flex flex-col items-center justify-center px-4 py-12 overflow-hidden">
+      <AuthBackdrop />
+
+      <Link href="/" className="mb-4 relative z-10" aria-label="Strata home">
+        <StrataLogo size={64} variant="stacked" />
       </Link>
-      <p className="text-slate-500 dark:text-slate-400 text-sm mb-6">7-day free trial · No charge until day 8</p>
-      <SignUp
-        appearance={{
-          elements: {
-            formButtonPrimary: "bg-blue-600 hover:bg-blue-700 text-sm normal-case",
-            card: "shadow-xl rounded-2xl",
-          },
-        }}
-      />
+      <p className="text-slate-400 text-xs mb-6 relative z-10">
+        7-day free trial
+      </p>
+
+      <SignUp routing="path" path="/auth/sign-up" signInUrl="/auth/sign-in" />
     </div>
   );
 }

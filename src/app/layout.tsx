@@ -5,6 +5,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import { ClerkProvider } from "@clerk/nextjs";
+import { strataClerkAppearance } from "@/lib/clerkAppearance";
 import { ThemeProvider } from "@/components/shared/ThemeProvider";
 import "./globals.css";
 
@@ -46,6 +47,21 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <ClerkProvider
+      appearance={strataClerkAppearance}
+      localization={{
+        signIn: {
+          start: {
+            title: "Log in to Strata",
+            subtitle: "Welcome back",
+          },
+        },
+        signUp: {
+          start: {
+            title: "Create your Strata account",
+            subtitle: "Start your free trial",
+          },
+        },
+      }}
       signInFallbackRedirectUrl="/dashboard/student"
       signUpFallbackRedirectUrl="/onboarding"
       afterSignOutUrl="/"

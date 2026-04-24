@@ -18,7 +18,7 @@ const STATS = [
   { icon: TrendingUp, value: "+285",   label: "Average score improvement", color: "text-blue-500" },
   { icon: Users,      value: "2,400+", label: "Students tutored",          color: "text-purple-500" },
   { icon: Award,      value: "94%",    label: "Reach their target score",  color: "text-teal-500" },
-  { icon: Clock,      value: "4 mo",   label: "Median time to goal",       color: "text-amber-500" },
+  { icon: Clock,      value: "16 wks", label: "Median time to goal",       color: "text-amber-500" },
 ];
 
 const FOUNDERS = [

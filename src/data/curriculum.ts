@@ -79,82 +79,87 @@ export interface CurriculumNode {
 }
 
 // ── Position generators ─────────────────────────────────────
+// A single brain split into two lobes. Reading = left lobe, Math = right lobe.
+// Each lobe is an elliptical hemisphere; nodes are distributed across three
+// horizontal bands that correspond to the three curriculum tiers:
+//   • Tier 1 (Foundations) → bottom of the lobe (Troposphere)
+//   • Tier 2 (Core)        → middle
+//   • Tier 3 (Advanced)    → top of the lobe (Stratosphere)
 
-const PI = Math.PI;
+export const LOBE_LAYOUT = {
+  // Each lobe is a vertical ellipse.
+  cy:          0.50,   // both lobes share the same vertical center
+  rx:          0.17,   // horizontal half-width
+  ry:          0.38,   // vertical half-height
 
-/** Heart parametric curve point, normalized to [0.05, 0.95] */
-function heartPt(t: number): [number, number] {
-  const mx = 16 * Math.sin(t) ** 3;
-  const my =
-    13 * Math.cos(t) -
-    5 * Math.cos(2 * t) -
-    2 * Math.cos(3 * t) -
-    Math.cos(4 * t);
-  const x = 0.05 + 0.9 * ((mx + 16) / 32);
-  const y = 0.05 + 0.9 * (1 - (my + 17) / 30);
-  return [+x.toFixed(3), +y.toFixed(3)];
-}
+  reading: { cx: 0.29 }, // left lobe (Reading & Writing)
+  math:    { cx: 0.71 }, // right lobe (Math)
 
-/** Brain lobe point — ellipse with deterministic radial jitter */
-function brainPt(
-  cx: number, cy: number,
-  rx: number, ry: number,
-  i: number, total: number
-): [number, number] {
-  const t = (2 * PI * i) / total;
-  const jitter = (((i * 7 + 3) % 5) - 2) * 0.02;
-  const x = Math.max(0.05, Math.min(0.95, cx + (rx + jitter) * Math.cos(t)));
-  const y = Math.max(0.08, Math.min(0.92, cy + (ry + jitter) * Math.sin(t)));
-  return [+x.toFixed(3), +y.toFixed(3)];
+  // Atmospheric strip at the very top of the map (Stratosphere).
+  // Nodes never go above this y.
+  topLimit: 0.08,
+  bottomLimit: 0.94,
+};
+
+/**
+ * Distribute `count` nodes inside an elliptical lobe, restricted to a
+ * horizontal band (yFrac is fraction of ry, −1 = top, +1 = bottom).
+ * Deterministic for the same (cx, cy, count, seed).
+ */
+function distributeInLobe(
+  cx: number, cy: number, rx: number, ry: number,
+  yFracMin: number, yFracMax: number,
+  count: number, seed: number
+): [number, number][] {
+  const pts: [number, number][] = [];
+
+  // Use a mild low-discrepancy sequence (Halton-like) so the nodes scatter
+  // nicely across the band instead of clustering.
+  const phi1 = 0.7548776662466927;
+  const phi2 = 0.5698402909980532;
+  let s1 = (seed * 0.6180339887) % 1;
+  let s2 = (seed * 0.3141592653) % 1;
+
+  for (let i = 0; i < count; i++) {
+    s1 = (s1 + phi1) % 1;
+    s2 = (s2 + phi2) % 1;
+
+    const yFrac = yFracMin + s1 * (yFracMax - yFracMin);
+    const y = cy + yFrac * ry;
+
+    // Max x-offset inside the ellipse at this y
+    const maxOff = rx * Math.sqrt(Math.max(0, 1 - yFrac * yFrac)) * 0.90;
+    const x = cx + (2 * s2 - 1) * maxOff;
+
+    pts.push([+x.toFixed(3), +y.toFixed(3)]);
+  }
+  return pts;
 }
 
 // ── Pre-computed positions ────────────────────────────────────
+// Both subjects share the same brain. Reading nodes live in the left lobe,
+// Math nodes live in the right lobe. Tier 1 sits near the bottom of the
+// lobe (Troposphere), Tier 3 near the top (Stratosphere).
 
-// Reading & Writing — heart shape
-// T1 (15): t = 0.70π → 1.30π  (bottom of heart)
-// T2 right (10): t = 0.25π → 0.70π  (right side)
-// T2 left (10): t = 1.30π → 1.75π  (left side)
-// T3 right (6): t = 0 → 0.25π  (right peak)
-// T3 left (6): t = 1.75π → 2.00π  (left peak)
-// T3 center (3): hand-placed inside the heart top center
+const { cy: LOBE_CY, rx: LOBE_RX, ry: LOBE_RY, reading: L_READ, math: L_MATH } = LOBE_LAYOUT;
+
+// Tier y-bands (as fractions of ry, negative = up)
+const T1_YMIN =  0.20, T1_YMAX =  0.82;   // bottom of lobe
+const T2_YMIN = -0.28, T2_YMAX =  0.38;   // middle
+const T3_YMIN = -0.84, T3_YMAX = -0.22;   // top of lobe
+
+// Reading & Writing — left lobe
 const rwPos: [number, number][] = [
-  ...Array.from({ length: 15 }, (_, i) =>
-    heartPt(0.70 * PI + (i / 14) * 0.60 * PI)
-  ),
-  ...Array.from({ length: 10 }, (_, i) =>
-    heartPt(0.25 * PI + (i / 9) * 0.45 * PI)
-  ),
-  ...Array.from({ length: 10 }, (_, i) =>
-    heartPt(1.30 * PI + (i / 9) * 0.45 * PI)
-  ),
-  ...Array.from({ length: 6 }, (_, i) =>
-    heartPt((i / 5) * 0.25 * PI)
-  ),
-  ...Array.from({ length: 6 }, (_, i) =>
-    heartPt(1.75 * PI + (i / 5) * 0.25 * PI)
-  ),
-  [0.46, 0.28], [0.50, 0.33], [0.54, 0.28],
+  ...distributeInLobe(L_READ.cx, LOBE_CY, LOBE_RX, LOBE_RY, T1_YMIN, T1_YMAX, 15, 11),
+  ...distributeInLobe(L_READ.cx, LOBE_CY, LOBE_RX, LOBE_RY, T2_YMIN, T2_YMAX, 20, 47),
+  ...distributeInLobe(L_READ.cx, LOBE_CY, LOBE_RX, LOBE_RY, T3_YMIN, T3_YMAX, 15, 83),
 ];
 
-// Math — brain (dual lobe) shape
-// T1 (15): left lobe  cx=0.25, cy=0.50
-// T2 (20): right lobe cx=0.70, cy=0.50
-// T3 bridge (9): center  cx=0.475, cy=0.48
-// T3 stem (6): descending stem below center
+// Math — right lobe
 const mathPos: [number, number][] = [
-  ...Array.from({ length: 15 }, (_, i) =>
-    brainPt(0.25, 0.50, 0.18, 0.25, i, 15)
-  ),
-  ...Array.from({ length: 20 }, (_, i) =>
-    brainPt(0.70, 0.50, 0.20, 0.26, i, 20)
-  ),
-  ...Array.from({ length: 9 }, (_, i) =>
-    brainPt(0.475, 0.48, 0.09, 0.13, i, 9)
-  ),
-  ...Array.from({ length: 6 }, (_, i) => {
-    const xVar = (((i * 13 + 5) % 3) - 1) * 0.018;
-    return [+(0.462 + xVar).toFixed(3), +(0.77 + (i / 5) * 0.14).toFixed(3)] as [number, number];
-  }),
+  ...distributeInLobe(L_MATH.cx, LOBE_CY, LOBE_RX, LOBE_RY, T1_YMIN, T1_YMAX, 15, 113),
+  ...distributeInLobe(L_MATH.cx, LOBE_CY, LOBE_RX, LOBE_RY, T2_YMIN, T2_YMAX, 20, 151),
+  ...distributeInLobe(L_MATH.cx, LOBE_CY, LOBE_RX, LOBE_RY, T3_YMIN, T3_YMAX, 15, 193),
 ];
 
 // ── Topic definitions ────────────────────────────────────────
@@ -983,8 +988,8 @@ export const SUBJECT_LABELS: Record<Subject, string> = {
 };
 
 export const SUBJECT_COLORS: Record<Subject, { hex: string; glow: string; dim: string }> = {
-  reading: { hex: "#FB7185", glow: "#fb718580", dim: "#fb718530" },
-  math:    { hex: "#818CF8", glow: "#818cf880", dim: "#818cf830" },
+  reading: { hex: "#EC4899", glow: "#ec489980", dim: "#ec489930" },  // magenta-pink
+  math:    { hex: "#38BDF8", glow: "#38bdf880", dim: "#38bdf830" },  // sky cyan
 };
 
 // ── Atmospheric tier naming ──────────────────────────────────

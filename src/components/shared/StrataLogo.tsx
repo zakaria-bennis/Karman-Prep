@@ -1,76 +1,121 @@
 // ============================================================
-// StrataLogo — premium node-tree mark with atmospheric strata layers.
-// Purple (#534AB7) = nodes/structure, Teal (#1D9E75) = apex mastery.
-// Works at any size; designed for 32px height minimum.
+// StrataLogo — the brand mark is ONLY the four chevrons.
+// Never the dark rounded "badge" in-app.
+//
+// Variants:
+//   • StrataLogoMark              — chevron mark alone (svg, any size)
+//   • <StrataLogo />              — chevrons + "STRATA" wordmark INLINE (default)
+//   • <StrataLogo variant="stacked" /> — chevrons above, STRATA centered below
+//
+// The wordmark is a thin, uppercase sans-serif with the same pink→purple→cyan
+// gradient as the mark (background-clip: text).
 // ============================================================
+
+const GRAD_STOPS: { offset: string; color: string }[] = [
+  { offset: "0%",   color: "#EC4899" },   // pink-500
+  { offset: "45%",  color: "#A855F7" },   // purple-500
+  { offset: "100%", color: "#38BDF8" },   // sky-400
+];
+
+const GRADIENT_CSS = `linear-gradient(90deg, ${GRAD_STOPS.map((s) => `${s.color} ${s.offset}`).join(", ")})`;
+const MARK_GRADIENT_ID = "strata-mark-gradient";
 
 interface MarkProps {
   size?: number;
+  className?: string;
 }
 
-/** The SVG icon mark only (no wordmark text) */
-export function StrataLogoMark({ size = 32 }: MarkProps) {
+/** The four chevrons alone — transparent background, any size, brand gradient fill. */
+export function StrataLogoMark({ size = 32, className }: MarkProps) {
   return (
     <svg
       width={size}
       height={size}
-      viewBox="0 0 32 32"
+      viewBox="0 0 100 100"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
+      className={className}
       aria-hidden="true"
     >
-      {/* ── Atmospheric strata layers ──────────────────────────
-          Five bars tapering and fading as they rise, evoking
-          the layers from troposphere (bottom) to exosphere (top) */}
-      <rect x="2"   y="26.5" width="28" height="3"   rx="1.5"  fill="#534AB7" fillOpacity="0.20"/>
-      <rect x="5"   y="21.5" width="22" height="2.5" rx="1.25" fill="#534AB7" fillOpacity="0.25"/>
-      <rect x="8.5" y="17"   width="15" height="2"   rx="1"    fill="#534AB7" fillOpacity="0.30"/>
-      <rect x="12"  y="13"   width="8"  height="1.5" rx="0.75" fill="#534AB7" fillOpacity="0.35"/>
-      <rect x="14"  y="9.5"  width="4"  height="1"   rx="0.5"  fill="#1D9E75" fillOpacity="0.45"/>
+      <defs>
+        <linearGradient id={MARK_GRADIENT_ID} x1="0" y1="0" x2="100" y2="0" gradientUnits="userSpaceOnUse">
+          {GRAD_STOPS.map((s) => (
+            <stop key={s.offset} offset={s.offset} stopColor={s.color} />
+          ))}
+        </linearGradient>
+      </defs>
 
-      {/* ── Node-tree connector lines ──────────────────────────
-          Root → left mid, root → right mid (purple)
-          Both mids → apex (transitions to teal) */}
-      <line x1="16" y1="27.5" x2="10.5" y2="21"   stroke="#534AB7" strokeWidth="1.3" strokeLinecap="round"/>
-      <line x1="16" y1="27.5" x2="21.5" y2="21"   stroke="#534AB7" strokeWidth="1.3" strokeLinecap="round"/>
-      <line x1="10.5" y1="19.5" x2="16" y2="8"    stroke="#534AB7" strokeWidth="1.3" strokeLinecap="round" strokeOpacity="0.65"/>
-      <line x1="21.5" y1="19.5" x2="16" y2="8"    stroke="#534AB7" strokeWidth="1.3" strokeLinecap="round" strokeOpacity="0.65"/>
-
-      {/* ── Nodes ─────────────────────────────────────────────
-          Root (bottom) and two mid nodes: deep purple
-          Apex (top): teal — represents mastery reached */}
-      <circle cx="16"   cy="28.5" r="2"   fill="#534AB7"/>
-      <circle cx="10.5" cy="20.5" r="1.8" fill="#534AB7"/>
-      <circle cx="21.5" cy="20.5" r="1.8" fill="#534AB7"/>
-      <circle cx="16"   cy="7"    r="2.5" fill="#1D9E75"/>
+      {/* Four stacked chevrons — narrowest at the top, widest at the bottom */}
+      <path d="M 18 78 L 50 56 L 82 78 L 68 78 L 50 65 L 32 78 Z" fill={`url(#${MARK_GRADIENT_ID})`} />
+      <path d="M 20 66 L 50 46 L 80 66 L 66 66 L 50 54 L 34 66 Z" fill={`url(#${MARK_GRADIENT_ID})`} />
+      <path d="M 22 54 L 50 36 L 78 54 L 65 54 L 50 43 L 35 54 Z" fill={`url(#${MARK_GRADIENT_ID})`} />
+      <path d="M 24 42 L 50 26 L 76 42 L 63 42 L 50 32 L 37 42 Z" fill={`url(#${MARK_GRADIENT_ID})`} />
     </svg>
   );
 }
 
 interface FullLogoProps {
   size?: number;
-  /** "dark" forces white wordmark; "light" forces slate wordmark; "auto" = dark: white, light: slate */
+  /** kept for API stability — gradient is fixed */
   theme?: "dark" | "light" | "auto";
+  /** Deprecated: use <StrataLogoMark /> directly for mark-only. */
+  markOnly?: boolean;
+  /** "inline" = chevrons + "STRATA" side-by-side (default, for nav bars).
+   *  "stacked" = chevrons centered above, STRATA centered below (for hero / auth pages). */
+  variant?: "inline" | "stacked";
+  className?: string;
 }
 
-/** Full logo: mark + "STRATA" wordmark */
-export function StrataLogo({ size = 32, theme = "auto" }: FullLogoProps) {
-  const textClass =
-    theme === "dark"
-      ? "text-white"
-      : theme === "light"
-      ? "text-slate-900"
-      : "text-slate-900 dark:text-white";
-
+function Wordmark({ fontSize, letterSpacing }: { fontSize: number; letterSpacing: string }) {
   return (
-    <span className="inline-flex items-center gap-2.5">
+    <span
+      className="uppercase bg-clip-text text-transparent select-none"
+      style={{
+        fontSize,
+        letterSpacing,
+        fontWeight: 300,              // thin sans-serif
+        lineHeight: 1,
+        backgroundImage: GRADIENT_CSS,
+        WebkitBackgroundClip: "text",
+        backgroundClip: "text",
+      }}
+    >
+      Strata
+    </span>
+  );
+}
+
+export function StrataLogo({
+  size = 32,
+  theme = "auto",
+  markOnly = false,
+  variant = "inline",
+  className,
+}: FullLogoProps) {
+  void theme;
+
+  if (markOnly) return <StrataLogoMark size={size} className={className} />;
+
+  if (variant === "stacked") {
+    return (
+      <div className={`inline-flex flex-col items-center ${className ?? ""}`} style={{ gap: size * 0.2 }}>
+        <StrataLogoMark size={size} />
+        <Wordmark
+          fontSize={size * 0.36}
+          letterSpacing="0.42em"
+        />
+      </div>
+    );
+  }
+
+  // inline (default — used in nav bars, sidebars, footer)
+  return (
+    <span className={`inline-flex items-center ${className ?? ""}`} style={{ gap: size * 0.28 }}>
       <StrataLogoMark size={size} />
-      <span
-        className={`font-bold tracking-widest uppercase ${textClass}`}
-        style={{ fontSize: size * 0.56, letterSpacing: "0.18em" }}
-      >
-        Strata
-      </span>
+      <Wordmark
+        fontSize={size * 0.46}
+        letterSpacing="0.24em"
+      />
     </span>
   );
 }

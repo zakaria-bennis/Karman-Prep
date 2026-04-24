@@ -34,16 +34,16 @@ export default function FlagReviewList({ flagged }: Props) {
 
   if (rows.length === 0) {
     return (
-      <div className="rounded-lg border border-dashed border-slate-300 dark:border-slate-700 p-12 text-center">
-        <Check className="w-8 h-8 text-emerald-500 mx-auto mb-3" />
-        <p className="text-sm text-slate-500">No open flags. Every flagged question has been reviewed.</p>
+      <div className="rounded-xl border border-dashed border-slate-700 p-12 text-center bg-slate-900/40">
+        <Check className="w-8 h-8 text-emerald-400 mx-auto mb-3" />
+        <p className="text-sm text-slate-400">No open flags. Every flagged question has been reviewed.</p>
       </div>
     );
   }
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-slate-500 dark:text-slate-400">
+      <p className="text-sm text-slate-400">
         {rows.length} unresolved flag{rows.length !== 1 ? "s" : ""}.
       </p>
       {rows.map((flag) => {
@@ -53,7 +53,7 @@ export default function FlagReviewList({ flagged }: Props) {
         return (
           <article
             key={flag.id}
-            className="rounded-lg border border-rose-200 dark:border-rose-900/50 bg-rose-50/30 dark:bg-rose-900/10 p-5"
+            className="rounded-xl border border-rose-500/30 bg-rose-500/5 p-5"
           >
             <header className="flex items-start gap-3 mb-3">
               <Flag className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />

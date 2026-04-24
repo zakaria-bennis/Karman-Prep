@@ -11,6 +11,8 @@ import { Flame, BookOpen, TrendingUp, ArrowRight, Lock, CheckCircle, Clock } fro
 import { cn } from "@/lib/utils";
 import { DOMAIN_COLORS, DOMAIN_LABELS, type SATDomain, type DomainScores } from "@/types";
 import DashboardLayout from "./DashboardLayout";
+import DomainProgress from "./DomainProgress";
+import type { NodeStatus } from "@/data/curriculum";
 
 interface Props {
   user: { email: string; role: string } | null;
@@ -22,6 +24,8 @@ interface Props {
     last_visited: string | null;
     concepts: { title: string; domain: string; difficulty: number } | null;
   }>;
+  /** The newer learn_node_status map keyed by node_id. */
+  nodeStatuses?: Map<string, NodeStatus>;
   diagnostic: {
     score_range_low: number;
     score_range_high: number;
@@ -47,9 +51,12 @@ function domainCompletion(progress: Props["progress"], domain: SATDomain): numbe
   return Math.round((mastered / domainProgress.length) * 100);
 }
 
-export default function StudentDashboardClient({ user, progress, diagnostic, subscription }: Props) {
+export default function StudentDashboardClient({ user, progress, nodeStatuses, diagnostic, subscription }: Props) {
+  const nodeStatusMap = nodeStatuses ?? new Map<string, NodeStatus>();
+  const masteredFromNodes = Array.from(nodeStatusMap.values()).filter((s) => s === "mastered").length;
   const streak = calculateStreak(progress);
-  const masteredCount = progress.filter((p) => p.status === "mastered").length;
+  // Prefer the newer learn_node_status count; fall back to legacy progress table
+  const masteredCount = masteredFromNodes > 0 ? masteredFromNodes : progress.filter((p) => p.status === "mastered").length;
   const totalConcepts = Math.max(progress.length, 15); // Show out of at least 15
   const overallPct = Math.round((masteredCount / totalConcepts) * 100);
 
@@ -75,7 +82,7 @@ export default function StudentDashboardClient({ user, progress, diagnostic, sub
           </div>
         )}
 
-        {/* Top stats row */}
+        {/* Top stats row — two are clickable and open detail pages */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {/* Streak */}
           <div className="glass-card p-4 flex flex-col items-center gap-1">
@@ -90,23 +97,29 @@ export default function StudentDashboardClient({ user, progress, diagnostic, sub
             <span className="text-xs text-slate-500 dark:text-slate-400 mt-1">overall</span>
           </div>
 
-          {/* Mastered concepts */}
-          <div className="glass-card p-4 flex flex-col items-center gap-1">
-            <CheckCircle className="w-6 h-6 text-emerald-500" />
+          {/* Mastered concepts → /dashboard/student/mastered */}
+          <Link
+            href="/dashboard/student/mastered"
+            className="glass-card p-4 flex flex-col items-center gap-1 hover:shadow-xl transition-shadow cursor-pointer group"
+          >
+            <CheckCircle className="w-6 h-6 text-emerald-500 group-hover:scale-110 transition-transform" />
             <span className="text-3xl font-extrabold text-slate-900 dark:text-white">{masteredCount}</span>
-            <span className="text-xs text-slate-500 dark:text-slate-400">mastered</span>
-          </div>
+            <span className="text-xs text-slate-500 dark:text-slate-400 group-hover:text-emerald-500 transition-colors">mastered →</span>
+          </Link>
 
-          {/* Predicted score */}
-          <div className="glass-card p-4 flex flex-col items-center gap-1">
-            <TrendingUp className="w-6 h-6 text-blue-500" />
+          {/* Predicted score → /dashboard/student/predicted-sat */}
+          <Link
+            href="/dashboard/student/predicted-sat"
+            className="glass-card p-4 flex flex-col items-center gap-1 hover:shadow-xl transition-shadow cursor-pointer group"
+          >
+            <TrendingUp className="w-6 h-6 text-blue-500 group-hover:scale-110 transition-transform" />
             <span className="text-2xl font-extrabold text-slate-900 dark:text-white">
               {diagnostic
                 ? `${diagnostic.score_range_low}–${diagnostic.score_range_high}`
                 : "—"}
             </span>
-            <span className="text-xs text-slate-500 dark:text-slate-400">predicted SAT</span>
-          </div>
+            <span className="text-xs text-slate-500 dark:text-slate-400 group-hover:text-blue-500 transition-colors">predicted SAT →</span>
+          </Link>
         </div>
 
         {/* Next lesson */}
@@ -151,37 +164,8 @@ export default function StudentDashboardClient({ user, progress, diagnostic, sub
           )}
         </div>
 
-        {/* Domain progress bars */}
-        <div>
-          <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-3">Domain Progress</h2>
-          <div className="glass-card p-5 space-y-4">
-            {(["algebra", "advanced_math", "geometry", "data_analysis"] as SATDomain[]).map((domain) => {
-              const pctVal = domainCompletion(progress, domain);
-              const color = DOMAIN_COLORS[domain];
-              const diagScore = diagnostic?.domain_scores[domain as keyof DomainScores] ?? null;
-
-              return (
-                <div key={domain}>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-sm font-medium text-slate-700 dark:text-slate-200">{DOMAIN_LABELS[domain]}</span>
-                    <div className="flex items-center gap-3">
-                      {diagScore !== null && (
-                        <span className="text-xs text-slate-400">{diagScore}% diagnostic</span>
-                      )}
-                      <span className="text-xs font-bold" style={{ color: color.hex }}>{pctVal}%</span>
-                    </div>
-                  </div>
-                  <div className="h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
-                    <div
-                      className="h-full rounded-full transition-all duration-700"
-                      style={{ width: `${pctVal}%`, backgroundColor: color.hex }}
-                    />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+        {/* Domain progress — new tabbed component (Reading / Math) */}
+        <DomainProgress statuses={nodeStatusMap} />
 
         {/* No diagnostic CTA */}
         {!diagnostic && (

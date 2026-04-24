@@ -19,7 +19,7 @@ interface Props {
 
 const CSV_HEADERS = [
   "question_text","choice_a","choice_b","choice_c","choice_d",
-  "correct_answer","difficulty","topic_cluster","explanation_text",
+  "correct_answer","difficulty","topic_cluster","hint","explanation_text",
   "explanation_a","explanation_b","explanation_c","explanation_d",
   "desmos_strategy",
 ];
@@ -31,6 +31,7 @@ function buildCsvTemplate(topicCluster: string): string {
       '"What is 2 + 2?"',
       '"3"','"4"','"5"','"6"',
       "B","foundational",`"${topicCluster}"`,
+      '"Think about basic addition."',
       '"Two plus two equals four by basic arithmetic."',
       '"3 is too low — check your addition."','"Correct — 2 + 2 = 4."','"5 is off by one."','"6 is too high — try again."',
       '"Type 2+2 into Desmos to verify."',
@@ -81,6 +82,7 @@ function toBulkRows(parsed: Record<string, string>[]): BulkImportRow[] {
     correct_answer: (r.correct_answer.toUpperCase() as BulkImportRow["correct_answer"]) || "A",
     difficulty: (r.difficulty as BulkImportRow["difficulty"]) || "foundational",
     topic_cluster: r.topic_cluster,
+    hint: r.hint || undefined,
     explanation_text: r.explanation_text,
     explanation_a: r.explanation_a || undefined,
     explanation_b: r.explanation_b || undefined,
@@ -144,19 +146,18 @@ export default function BulkImportPanel({ nodeId, subject, topicCluster }: Props
   }
 
   return (
-    <section className="rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 p-5">
+    <section className="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-bold text-slate-900 dark:text-white">Bulk Import</h3>
+        <h3 className="text-sm font-bold text-white">Bulk import</h3>
         <button
           onClick={handleDownloadTemplate}
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-700"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-400 hover:text-indigo-300"
         >
           <Download className="w-3.5 h-3.5" /> CSV template
         </button>
       </div>
-      <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 max-w-xl">
-        Upload a CSV or JSON file. Questions are previewed before anything is saved. The CSV template
-        shows the exact column order — required columns are <code>question_text</code>, <code>choice_a</code>–<code>choice_d</code>, <code>correct_answer</code>, <code>difficulty</code>, and <code>explanation_text</code>.
+      <p className="text-xs text-slate-500 mb-4 max-w-2xl">
+        Upload a CSV or JSON file with many questions at once. The file is previewed before anything is saved. Required columns: <code className="text-slate-300 bg-slate-800 px-1 py-0.5 rounded">question_text</code>, <code className="text-slate-300 bg-slate-800 px-1 py-0.5 rounded">choice_a</code>–<code className="text-slate-300 bg-slate-800 px-1 py-0.5 rounded">choice_d</code>, <code className="text-slate-300 bg-slate-800 px-1 py-0.5 rounded">correct_answer</code>, <code className="text-slate-300 bg-slate-800 px-1 py-0.5 rounded">difficulty</code>, <code className="text-slate-300 bg-slate-800 px-1 py-0.5 rounded">explanation_text</code>. Optional: <code className="text-slate-300 bg-slate-800 px-1 py-0.5 rounded">hint</code>.
       </p>
 
       <div className="flex items-center gap-3">
@@ -169,7 +170,7 @@ export default function BulkImportPanel({ nodeId, subject, topicCluster }: Props
         />
         <button
           onClick={() => fileInputRef.current?.click()}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-sm font-semibold"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-100 text-sm font-semibold hover:bg-slate-700"
         >
           <Upload className="w-3.5 h-3.5" /> Choose file
         </button>
@@ -179,33 +180,33 @@ export default function BulkImportPanel({ nodeId, subject, topicCluster }: Props
       </div>
 
       {parseError && (
-        <div className="mt-3 rounded border border-rose-300 bg-rose-50 dark:bg-rose-900/20 px-3 py-2 text-xs text-rose-700 dark:text-rose-300 flex items-center gap-2">
+        <div className="mt-3 rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-xs text-rose-300 flex items-center gap-2">
           <AlertCircle className="w-3.5 h-3.5" /> {parseError}
         </div>
       )}
 
       {success && (
-        <div className="mt-3 rounded border border-emerald-300 bg-emerald-50 dark:bg-emerald-900/20 px-3 py-2 text-xs text-emerald-700 dark:text-emerald-300 flex items-center gap-2">
+        <div className="mt-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-300 flex items-center gap-2">
           <Check className="w-3.5 h-3.5" /> {success}
         </div>
       )}
 
       {preview && (
         <div className="mt-4">
-          <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Preview</h4>
-          <div className="rounded border border-slate-200 dark:border-slate-800 max-h-80 overflow-y-auto text-xs">
+          <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Preview</h4>
+          <div className="rounded-lg border border-slate-800 max-h-80 overflow-y-auto text-xs">
             <table className="w-full">
-              <thead className="bg-slate-100 dark:bg-slate-900 sticky top-0">
+              <thead className="bg-slate-800 sticky top-0 text-slate-400">
                 <tr>
-                  <th className="text-left px-3 py-2">Question</th>
-                  <th className="text-left px-3 py-2">Difficulty</th>
-                  <th className="text-left px-3 py-2">Correct</th>
+                  <th className="text-left px-3 py-2 font-semibold">Question</th>
+                  <th className="text-left px-3 py-2 font-semibold">Difficulty</th>
+                  <th className="text-left px-3 py-2 font-semibold">Correct</th>
                 </tr>
               </thead>
               <tbody>
                 {preview.map((r, i) => (
-                  <tr key={i} className="border-t border-slate-200 dark:border-slate-800">
-                    <td className="px-3 py-2 text-slate-700 dark:text-slate-300 truncate max-w-[28rem]">{r.question_text}</td>
+                  <tr key={i} className="border-t border-slate-800">
+                    <td className="px-3 py-2 text-slate-200 truncate max-w-[28rem]">{r.question_text}</td>
                     <td className="px-3 py-2 text-slate-500">{r.difficulty}</td>
                     <td className="px-3 py-2 text-slate-500">{r.correct_answer}</td>
                   </tr>
@@ -216,7 +217,7 @@ export default function BulkImportPanel({ nodeId, subject, topicCluster }: Props
           <div className="mt-3 flex justify-end gap-2">
             <button
               onClick={() => setPreview(null)}
-              className="px-3 py-1.5 rounded text-sm font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800"
+              className="px-3 py-1.5 rounded-lg text-sm font-semibold text-slate-400 hover:bg-slate-800"
             >
               Cancel
             </button>
@@ -224,8 +225,8 @@ export default function BulkImportPanel({ nodeId, subject, topicCluster }: Props
               onClick={handleConfirm}
               disabled={importing}
               className={cn(
-                "px-4 py-1.5 rounded text-sm font-bold text-white bg-blue-600",
-                importing ? "opacity-50 cursor-not-allowed" : "hover:bg-blue-700"
+                "px-4 py-1.5 rounded-lg text-sm font-bold text-white bg-indigo-500",
+                importing ? "opacity-50 cursor-not-allowed" : "hover:bg-indigo-400"
               )}
             >
               {importing ? "Importing…" : `Import ${preview.length} questions`}

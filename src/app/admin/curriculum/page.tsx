@@ -1,11 +1,12 @@
 // ============================================================
-// /admin/curriculum — Node browser + Flagged tab
+// /admin/curriculum — Node browser + Flagged tab (dark).
 // ============================================================
 
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ChevronRight } from "lucide-react";
 import { createAdminClient } from "@/lib/supabase/server";
-import { groupNodesForAdmin, SUBJECT_LABELS, TIER_LABELS } from "@/data/curriculum";
+import { groupNodesForAdmin, SUBJECT_LABELS, nodeAtmosphere, ATMOSPHERE_COLORS } from "@/data/curriculum";
 import { fetchFlaggedQuestions } from "@/lib/supabase/queries/quiz";
 import FlagReviewList from "@/components/admin/FlagReviewList";
 
@@ -37,75 +38,87 @@ export default async function AdminCurriculumPage({ searchParams }: PageProps) {
   ]);
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
-      {/* Tabs */}
-      <div className="mb-6 border-b border-slate-200 dark:border-slate-800 flex gap-4">
+    <div className="max-w-6xl mx-auto px-5 py-8">
+      {/* Top tabs */}
+      <div className="mb-6 border-b border-slate-800 flex gap-1 text-sm">
         <Link
           href="/admin/curriculum"
-          className={`pb-3 text-sm font-semibold border-b-2 ${activeTab === "nodes" ? "border-blue-600 text-blue-600" : "border-transparent text-slate-500 hover:text-slate-900 dark:hover:text-white"}`}
+          className={`px-4 pb-3 font-semibold border-b-2 ${activeTab === "nodes" ? "border-indigo-500 text-indigo-400" : "border-transparent text-slate-500 hover:text-slate-200"}`}
         >
           Nodes
         </Link>
         <Link
           href="/admin/curriculum?tab=flagged"
-          className={`pb-3 text-sm font-semibold border-b-2 ${activeTab === "flagged" ? "border-blue-600 text-blue-600" : "border-transparent text-slate-500 hover:text-slate-900 dark:hover:text-white"}`}
+          className={`px-4 pb-3 font-semibold border-b-2 ${activeTab === "flagged" ? "border-indigo-500 text-indigo-400" : "border-transparent text-slate-500 hover:text-slate-200"}`}
         >
-          Flagged Questions {flagged.length > 0 && `(${flagged.length})`}
+          Flagged {flagged.length > 0 && <span className="text-rose-400">({flagged.length})</span>}
         </Link>
       </div>
 
       {activeTab === "nodes" ? (
-        <div className="space-y-8">
-          <p className="text-sm text-slate-500 dark:text-slate-400 max-w-2xl">
-            Select a node to manage its quiz questions. Question counts appear next to each node.
+        <div className="space-y-10">
+          <p className="text-sm text-slate-400 max-w-2xl">
+            Pick a node to manage its <span className="text-white">questions</span>, <span className="text-white">textbook page</span>, and <span className="text-white">video</span>. Question counts appear next to each node.
           </p>
 
           {(["reading", "math"] as const).map((subject) => (
             <section key={subject}>
-              <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-4">
+              <h2 className="text-xs font-bold text-slate-400 uppercase tracking-[0.25em] mb-4">
                 {SUBJECT_LABELS[subject]}
               </h2>
-              <div className="space-y-5">
+              <div className="space-y-4">
                 {([1, 2, 3] as const).map((tier) => {
                   const clusters = grouped[subject][tier];
                   if (!clusters || Object.keys(clusters).length === 0) return null;
+                  const atmo = nodeAtmosphere(tier);
+                  const atmoHex = ATMOSPHERE_COLORS[atmo].hex;
+                  const atmoSubtitle =
+                    atmo === "Troposphere"  ? "easiest · foundational concepts" :
+                    atmo === "Mesosphere"   ? "intermediate · core SAT skills" :
+                                              "hardest · advanced mastery";
                   return (
-                    <div key={tier} className="rounded-lg border border-slate-200 dark:border-slate-800 overflow-hidden">
-                      <div className="px-4 py-2 bg-slate-100 dark:bg-slate-900 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-widest">
-                        Tier {tier} · {TIER_LABELS[tier]}
+                    <div key={tier} className="rounded-xl border border-slate-800 overflow-hidden bg-slate-900/40">
+                      <div
+                        className="px-4 py-2 text-[11px] font-bold uppercase tracking-[0.25em] flex items-center gap-2"
+                        style={{ background: atmoHex + "15", color: atmoHex, borderBottom: `1px solid ${atmoHex}30` }}
+                      >
+                        <span className="w-1.5 h-1.5 rounded-full" style={{ background: atmoHex }} />
+                        {atmo}
+                        <span className="text-slate-500 font-normal tracking-normal normal-case ml-1">· {atmoSubtitle}</span>
                       </div>
-                      <div className="divide-y divide-slate-200 dark:divide-slate-800">
+                      <div className="divide-y divide-slate-800">
                         {Object.entries(clusters).map(([cluster, nodes]) => (
                           <div key={cluster}>
-                            <div className="px-4 py-2 bg-slate-50 dark:bg-slate-900/50 text-[11px] font-semibold text-slate-500 uppercase tracking-wide">
+                            <div className="px-4 py-1.5 bg-slate-900/40 text-[11px] font-semibold text-slate-500 uppercase tracking-wide">
                               {cluster}
                             </div>
                             <ul>
                               {nodes.map((n) => {
                                 const count = counts.get(n.id) ?? 0;
+                                const countClass =
+                                  count === 0
+                                    ? "bg-red-500/10 text-red-300 border-red-500/30"
+                                    : count < 10
+                                    ? "bg-amber-500/10 text-amber-300 border-amber-500/30"
+                                    : count >= 100
+                                    ? "bg-emerald-500/10 text-emerald-300 border-emerald-500/30"
+                                    : "bg-indigo-500/10 text-indigo-300 border-indigo-500/30";
                                 return (
                                   <li key={n.id}>
                                     <Link
                                       href={`/admin/curriculum/${n.id}`}
-                                      className="flex items-center gap-4 px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
+                                      className="flex items-center gap-4 px-4 py-2.5 hover:bg-white/5 transition-colors group"
                                     >
-                                      <code className="text-xs font-mono text-slate-400 shrink-0 w-14">{n.id}</code>
-                                      <span className="text-sm font-medium text-slate-900 dark:text-white flex-1 truncate">
+                                      <code className="text-xs font-mono text-slate-500 shrink-0 w-14">{n.id}</code>
+                                      <span className="text-sm font-medium text-slate-200 group-hover:text-white flex-1 truncate">
                                         {n.topic}
                                       </span>
                                       <span className="text-xs text-slate-500 flex items-center gap-3">
-                                        <span>Difficulty {n.difficulty}</span>
-                                        <span
-                                          className={`px-2 py-0.5 rounded-full text-[11px] font-bold tabular-nums ${
-                                            count === 0
-                                              ? "bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400"
-                                              : count < 10
-                                              ? "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400"
-                                              : "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400"
-                                          }`}
-                                        >
-                                          {count} {count === 1 ? "question" : "questions"}
+                                        <span>Diff {n.difficulty}</span>
+                                        <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold tabular-nums border ${countClass}`}>
+                                          {count} / 100
                                         </span>
+                                        <ChevronRight className="w-3.5 h-3.5 text-slate-600 group-hover:text-slate-300" />
                                       </span>
                                     </Link>
                                   </li>

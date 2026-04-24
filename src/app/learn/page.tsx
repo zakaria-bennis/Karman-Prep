@@ -45,24 +45,6 @@ export default async function LearnPage() {
 
   const stats = await getCompletionStats(userId);
 
-  return (
-    <div className="min-h-[calc(100vh-56px)] flex flex-col items-center justify-center px-4 py-12">
-      {/* Heading */}
-      <div className="text-center mb-12">
-        <p className="text-xs font-bold tracking-widest text-slate-500 uppercase mb-3">
-          Constellation Map
-        </p>
-        <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mb-3">
-          Choose your path
-        </h1>
-        <p className="text-slate-400 text-sm max-w-sm mx-auto">
-          Master every node in your constellation to unlock the next tier.
-          Each star is a concept. Each line is a connection.
-        </p>
-      </div>
-
-      {/* Portal cards */}
-      <PortalCards readingStats={stats.reading} mathStats={stats.math} />
-    </div>
-  );
+  // Full-screen hero — the PortalCards component is now itself a fixed two-pane hero.
+  return <PortalCards readingStats={stats.reading} mathStats={stats.math} />;
 }

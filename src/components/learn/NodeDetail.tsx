@@ -81,7 +81,7 @@ export default function NodeDetail({ node, subject, currentStatus, currentScore,
   }
 
   return (
-    <div className="min-h-[calc(100vh-56px)] bg-[#060b16] px-4 py-8 overflow-y-auto">
+    <div className="min-h-screen bg-[#060b16] px-4 pt-20 pb-8 overflow-y-auto">
       <div className="max-w-2xl mx-auto space-y-6">
 
         {/* Back link */}

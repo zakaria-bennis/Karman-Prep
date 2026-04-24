@@ -15,8 +15,8 @@ import { cn } from "@/lib/utils";
 const ELIGIBILITY = [
   {
     icon: Clock,
-    title: "Stay for at least 4 months",
-    desc: "Maintain an active paid subscription for a minimum of 4 consecutive months after your trial ends.",
+    title: "Stay for at least 16 weeks",
+    desc: "Maintain an active paid subscription for a minimum of 16 consecutive weeks after your trial ends.",
   },
   {
     icon: CheckCircle,

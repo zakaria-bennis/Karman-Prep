@@ -19,6 +19,7 @@ import DesmosWindow from "./DesmosWindow";
 import Scratchpad from "./Scratchpad";
 import ExplanationPanel from "./ExplanationPanel";
 import QuizResults from "./QuizResults";
+import MathText from "./MathText";
 
 interface Props {
   node: MappedNode;
@@ -265,7 +266,7 @@ function ActiveQuizScreen({
   node: MappedNode;
   q: QuizQuestionWithChoices;
   onClose: () => void;
-  onSelectAnswer: (l: AnswerLetter) => void;
+  onSelectAnswer: (l: string) => void;
   onSubmit: () => void;
   onFlagClick: () => void;
 }) {
@@ -326,11 +327,32 @@ function ActiveQuizScreen({
           <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-3">
             {q.topic_cluster}
           </p>
-          <h2 className="text-xl md:text-2xl font-semibold leading-relaxed text-slate-100 whitespace-pre-wrap">
-            {q.question_text}
+          {q.image_url && (
+            <div className="mb-5 rounded-xl overflow-hidden border border-slate-700 bg-slate-950 inline-block max-w-full">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={q.image_url}
+                alt={q.image_alt ?? ""}
+                className="max-h-80 w-auto object-contain"
+              />
+            </div>
+          )}
+          <h2 className="text-xl md:text-2xl font-semibold leading-relaxed text-slate-100">
+            <MathText text={q.question_text} />
           </h2>
 
-          {/* Answer choices */}
+          {/* Answer area — multiple choice OR numeric input */}
+          {q.answer_format === "numeric_entry" ? (
+            <NumericAnswerInput
+              value={state.selectedAnswer ?? ""}
+              onChange={onSelectAnswer}
+              isSubmitted={isSubmitted}
+              studentAnswer={state.selectedAnswer}
+              correctAnswer={q.correct_answer}
+              tolerance={q.numeric_tolerance}
+              wasCorrect={state.phase === "submitted_correct"}
+            />
+          ) : (
           <div className="mt-8 space-y-3">
             {sortedChoices.map((choice) => {
               const letter = choice.letter;
@@ -364,11 +386,12 @@ function ActiveQuizScreen({
                   )}>
                     {showCorrect ? <Check className="w-4 h-4" /> : letter}
                   </span>
-                  <span className="text-base text-slate-100 pt-1 flex-1">{choice.choice_text}</span>
+                  <span className="text-base text-slate-100 pt-1 flex-1"><MathText text={choice.choice_text} /></span>
                 </button>
               );
             })}
           </div>
+          )}
 
           {/* Submit button */}
           {!isSubmitted && state.selectedAnswer && (
@@ -415,6 +438,60 @@ function ProgressDot({ isCurrent, isAnswered, isCorrect, isFlagged }: {
       {isFlagged && (
         <Flag className="absolute -top-1 -right-1 w-2 h-2 text-amber-400" />
       )}
+    </div>
+  );
+}
+
+function NumericAnswerInput({
+  value,
+  onChange,
+  isSubmitted,
+  studentAnswer,
+  correctAnswer,
+  tolerance,
+  wasCorrect,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  isSubmitted: boolean;
+  studentAnswer: string | null;
+  correctAnswer: string;
+  tolerance: number | null;
+  wasCorrect: boolean;
+}) {
+  const showFeedback = isSubmitted && studentAnswer !== null;
+  const feedbackClass = showFeedback
+    ? wasCorrect
+      ? "border-emerald-500 bg-emerald-500/15"
+      : "border-rose-500 bg-rose-500/15"
+    : value
+    ? "border-blue-500 bg-blue-500/10"
+    : "border-slate-700 bg-slate-900";
+
+  return (
+    <div className="mt-8 space-y-3">
+      <div className={cn("rounded-xl border px-5 py-4", feedbackClass)}>
+        <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+          Your answer
+        </label>
+        <input
+          type="text"
+          inputMode="decimal"
+          autoComplete="off"
+          autoFocus
+          disabled={isSubmitted}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder="Type a number (e.g. 3.14 or 1/2)"
+          className="w-full bg-transparent border-0 text-2xl md:text-3xl font-mono font-bold text-white placeholder:text-slate-600 focus:outline-none tabular-nums"
+        />
+        {showFeedback && !wasCorrect && (
+          <p className="mt-3 text-sm text-rose-300">
+            Your answer: <span className="font-bold">{studentAnswer}</span> · Correct: <span className="font-bold text-emerald-300">{correctAnswer}</span>
+            {tolerance ? <span className="text-slate-400"> (± {tolerance})</span> : null}
+          </p>
+        )}
+      </div>
     </div>
   );
 }

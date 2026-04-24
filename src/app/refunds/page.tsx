@@ -44,7 +44,7 @@ const SECTIONS = [
     content: (
       <>
         <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed mb-3">
-          If you complete the Strata program — including the full diagnostic, maintaining an active subscription for at least 4 months, attending your scheduled sessions, and taking an official College Board SAT — and your score does not improve by at least 50 points, we will refund every dollar you paid.
+          If you complete the Strata program — including the full diagnostic, maintaining an active subscription for at least 16 weeks, attending your scheduled sessions, and taking an official College Board SAT — and your score does not improve by at least 50 points, we will refund every dollar you paid.
         </p>
         <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
           Full eligibility requirements and how to claim are detailed on our{" "}

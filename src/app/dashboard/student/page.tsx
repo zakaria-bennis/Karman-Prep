@@ -50,10 +50,24 @@ export default async function StudentDashboardPage() {
     .limit(1)
     .single();
 
+  // Fetch learn_node_status — keyed by Clerk userId (the string) directly
+  const { data: nodeStatusRows } = await supabase
+    .from("learn_node_status")
+    .select("node_id, status")
+    .eq("user_id", userId);
+
+  const nodeStatuses = new Map(
+    (nodeStatusRows ?? []).map((r) => {
+      const row = r as { node_id: string; status: string };
+      return [row.node_id, row.status] as const;
+    })
+  );
+
   return (
     <StudentDashboardClient
       user={user}
       progress={progress || []}
+      nodeStatuses={nodeStatuses as Map<string, import("@/data/curriculum").NodeStatus>}
       diagnostic={diagnostic}
       subscription={sub}
     />

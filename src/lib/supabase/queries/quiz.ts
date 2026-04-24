@@ -51,13 +51,17 @@ export interface NewQuestionInput {
   question_text: string;
   question_type: QuizQuestion["question_type"];
   difficulty: QuizDifficulty;
-  correct_answer: AnswerLetter;
+  difficulty_level: 1 | 2 | 3 | 4 | 5 | 6 | 7;
+  answer_format: "multiple_choice" | "numeric_entry";
+  correct_answer: string;             // letter for MC, numeric string for numeric_entry
+  numeric_tolerance: number | null;
   explanation_text: string;
   explanation_per_choice: Partial<Record<AnswerLetter, string>> | null;
+  hint: string | null;
   subject: QuizQuestion["subject"];
   topic_cluster: string;
   desmos_strategy: string | null;
-  choices: { letter: AnswerLetter; choice_text: string }[];
+  choices: { letter: AnswerLetter; choice_text: string }[];  // ignored when answer_format = 'numeric_entry'
   display_order?: number;
 }
 
@@ -71,9 +75,13 @@ export async function insertQuestion(input: NewQuestionInput): Promise<QuizQuest
       question_text: input.question_text,
       question_type: input.question_type,
       difficulty: input.difficulty,
+      difficulty_level: input.difficulty_level,
+      answer_format: input.answer_format,
       correct_answer: input.correct_answer,
+      numeric_tolerance: input.numeric_tolerance,
       explanation_text: input.explanation_text,
       explanation_per_choice: input.explanation_per_choice,
+      hint: input.hint,
       subject: input.subject,
       topic_cluster: input.topic_cluster,
       desmos_strategy: input.desmos_strategy,
@@ -84,21 +92,26 @@ export async function insertQuestion(input: NewQuestionInput): Promise<QuizQuest
 
   if (qErr || !question) throw qErr ?? new Error("Failed to insert question");
 
-  const choicesToInsert = input.choices.map((c) => ({
-    question_id: question.id,
-    letter: c.letter,
-    choice_text: c.choice_text,
-    is_correct: c.letter === input.correct_answer,
-  }));
+  // Only MC questions have 4 choices
+  let choices: AnswerChoice[] = [];
+  if (input.answer_format === "multiple_choice") {
+    const choicesToInsert = input.choices.map((c) => ({
+      question_id: question.id,
+      letter: c.letter,
+      choice_text: c.choice_text,
+      is_correct: c.letter === input.correct_answer,
+    }));
 
-  const { data: choices, error: cErr } = await supabase
-    .from("answer_choices")
-    .insert(choicesToInsert)
-    .select();
+    const { data: chData, error: cErr } = await supabase
+      .from("answer_choices")
+      .insert(choicesToInsert)
+      .select();
 
-  if (cErr) throw cErr;
+    if (cErr) throw cErr;
+    choices = (chData ?? []) as AnswerChoice[];
+  }
 
-  return { ...(question as QuizQuestion), answer_choices: (choices ?? []) as AnswerChoice[] };
+  return { ...(question as QuizQuestion), answer_choices: choices };
 }
 
 export async function updateQuestionDifficulty(
@@ -113,9 +126,27 @@ export async function updateQuestionDifficulty(
   if (error) throw error;
 }
 
+/** Set a question's 1-7 difficulty level. Also updates the legacy enum so old readers stay in sync. */
+export async function updateQuestionDifficultyLevel(
+  questionId: string,
+  level: 1 | 2 | 3 | 4 | 5 | 6 | 7
+): Promise<void> {
+  const supabase = createAdminClient();
+  const legacy: QuizDifficulty =
+    level <= 2 ? "foundational" :
+    level <= 4 ? "intermediate" :
+    level <= 6 ? "advanced" :
+                 "mastery";
+  const { error } = await supabase
+    .from("quiz_questions")
+    .update({ difficulty_level: level, difficulty: legacy, updated_at: new Date().toISOString() })
+    .eq("id", questionId);
+  if (error) throw error;
+}
+
 export async function updateQuestion(
   questionId: string,
-  patch: Partial<Pick<QuizQuestion, "question_text" | "difficulty" | "correct_answer" | "explanation_text" | "explanation_per_choice" | "topic_cluster" | "desmos_strategy" | "display_order">>
+  patch: Partial<Pick<QuizQuestion, "question_text" | "difficulty" | "difficulty_level" | "answer_format" | "correct_answer" | "numeric_tolerance" | "explanation_text" | "explanation_per_choice" | "hint" | "topic_cluster" | "desmos_strategy" | "display_order" | "image_url" | "image_storage_path" | "image_alt">>
 ): Promise<void> {
   const supabase = createAdminClient();
   const { error } = await supabase
@@ -137,6 +168,59 @@ export async function deleteQuestion(questionId: string): Promise<void> {
   const supabase = createAdminClient();
   const { error } = await supabase.from("quiz_questions").delete().eq("id", questionId);
   if (error) throw error;
+}
+
+// ── Question image upload / remove ───────────────────────────
+
+export async function uploadQuestionImage(
+  questionId: string,
+  fileName: string,
+  fileBytes: ArrayBuffer,
+  contentType: string,
+  alt: string | null
+): Promise<{ publicUrl: string; storagePath: string }> {
+  const supabase = createAdminClient();
+  const safeName = fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
+  const storagePath = `${questionId}/${Date.now()}-${safeName}`;
+
+  const { error: uploadErr } = await supabase.storage
+    .from("question-images")
+    .upload(storagePath, fileBytes, { contentType, cacheControl: "3600", upsert: false });
+  if (uploadErr) throw uploadErr;
+
+  const { data: pub } = supabase.storage.from("question-images").getPublicUrl(storagePath);
+  const publicUrl = pub.publicUrl;
+
+  await supabase
+    .from("quiz_questions")
+    .update({
+      image_url: publicUrl,
+      image_storage_path: storagePath,
+      image_alt: alt,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", questionId);
+
+  return { publicUrl, storagePath };
+}
+
+export async function removeQuestionImage(
+  questionId: string,
+  storagePath: string | null
+): Promise<void> {
+  const supabase = createAdminClient();
+  if (storagePath) {
+    await supabase.storage.from("question-images").remove([storagePath]);
+  }
+  await supabase
+    .from("quiz_questions")
+    .update({
+      image_url: null,
+      image_storage_path: null,
+      image_alt: null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", questionId);
 }
 
 // ── Quiz attempts ──────────────────────────────────────────────

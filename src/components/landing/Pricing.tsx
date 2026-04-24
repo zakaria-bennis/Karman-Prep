@@ -19,7 +19,7 @@ export default function Pricing() {
             Transparent pricing. No surprises.
           </h2>
           <p className="mt-3 text-slate-500 dark:text-slate-400 max-w-xl mx-auto">
-            All plans include a 7-day free trial. Cancel anytime before day 8.
+            All plans include this 7-day free trial, cancel any time.
           </p>
         </div>
 

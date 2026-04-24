@@ -16,7 +16,7 @@ import TextbookContent from "./TextbookContent";
 
 interface Props {
   question: QuizQuestionWithChoices;
-  studentAnswer: AnswerLetter | null;
+  studentAnswer: string | null;     // letter for MC, numeric string for numeric_entry
   onNext: () => void;
 }
 

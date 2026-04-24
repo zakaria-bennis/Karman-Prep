@@ -1,14 +1,15 @@
 "use client";
 
 // ============================================================
-// Portal selection cards — Framer Motion animated
-// Used on /learn mode selection page
+// HeroPortal — full-screen split between Reading (left lobe) and
+// Math (right lobe). Clicking a half plays a "tilt your head up to
+// the stars" transition before routing to that constellation.
 // ============================================================
 
-import { motion } from "framer-motion";
-import Link from "next/link";
-import { BookOpen, Calculator, ArrowRight, Star } from "lucide-react";
-import { RW_NODES, MATH_NODES } from "@/data/curriculum";
+import { AnimatePresence, motion, useMotionValue, useTransform } from "framer-motion";
+import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { ArrowRight, BookOpen, Calculator, Sparkles } from "lucide-react";
 
 interface SubjectStats {
   total: number;
@@ -21,171 +22,345 @@ interface Props {
   mathStats: SubjectStats;
 }
 
-const CARDS = [
+// Deterministic pseudo-random for SSR-stable starfields
+function pr(seed: number) {
+  const x = Math.sin(seed + 1) * 10000;
+  return x - Math.floor(x);
+}
+
+const READING_STARS = Array.from({ length: 110 }, (_, i) => ({
+  top: pr(i * 2.1) * 100,
+  left: pr(i * 2.1 + 0.7) * 100,
+  r: 0.5 + pr(i * 3.9) * 1.6,
+  o: 0.25 + pr(i * 4.7) * 0.65,
+  depth: 1 + (i % 3) * 0.8,   // 3 parallax layers (1, 1.8, 2.6)
+}));
+const MATH_STARS = Array.from({ length: 110 }, (_, i) => ({
+  top: pr(i * 2.3 + 77) * 100,
+  left: pr(i * 2.3 + 77.7) * 100,
+  r: 0.5 + pr(i * 4.1 + 11) * 1.6,
+  o: 0.25 + pr(i * 4.9 + 13) * 0.65,
+  depth: 1 + (i % 3) * 0.8,
+}));
+
+const HALVES = [
   {
     subject: "reading" as const,
     href: "/learn/reading",
-    label: "Reading & Writing",
-    emoji: "♥",
+    description: "The shape of argument. The weight of evidence. The geometry of language.",
     Icon: BookOpen,
-    tagline: "Heart constellation · 50 nodes",
-    gradient: "from-rose-500/20 via-pink-600/10 to-transparent",
-    border: "border-rose-500/20",
-    glow: "hover:shadow-rose-500/20",
-    iconColor: "text-rose-400",
-    barColor: "bg-rose-500",
-    accentColor: "text-rose-400",
-    bgStarColor: "#fb7185",
-    nodes: RW_NODES,
+    color: "#EC4899",
+    glowFrom: "#EC4899",
+    glowTo: "#9F1239",
+    stars: READING_STARS,
+    cta: "Into the constellation",
   },
   {
     subject: "math" as const,
     href: "/learn/math",
-    label: "Math",
-    emoji: "⬡",
+    description: "Functions, curves, proofs. The quiet grammar underneath the world.",
     Icon: Calculator,
-    tagline: "Brain constellation · 50 nodes",
-    gradient: "from-indigo-500/20 via-blue-600/10 to-transparent",
-    border: "border-indigo-500/20",
-    glow: "hover:shadow-indigo-500/20",
-    iconColor: "text-indigo-400",
-    barColor: "bg-indigo-500",
-    accentColor: "text-indigo-400",
-    bgStarColor: "#818cf8",
-    nodes: MATH_NODES,
+    color: "#38BDF8",
+    glowFrom: "#38BDF8",
+    glowTo: "#075985",
+    stars: MATH_STARS,
+    cta: "Into the constellation",
   },
 ];
 
-const container = {
-  hidden: {},
-  show: { transition: { staggerChildren: 0.15 } },
-};
-
-const card = {
-  hidden: { opacity: 0, y: 48 },
-  show:   { opacity: 1, y: 0, transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] } },
-};
-
-function MiniConstellation({ color, nodes }: { color: string; nodes: typeof RW_NODES }) {
-  // Render a tiny SVG preview of the constellation shape (all locked look)
-  const W = 200, H = 130;
-  const pts = nodes.map((n) => ({ x: n.x * W, y: n.y * H, id: n.id }));
-  const edges = nodes.flatMap((n) =>
-    n.prereqIds.map((pid) => {
-      const from = pts.find((p) => p.id === pid);
-      const to   = pts.find((p) => p.id === n.id);
-      return from && to ? { x1: from.x, y1: from.y, x2: to.x, y2: to.y } : null;
-    }).filter(Boolean)
-  ) as { x1: number; y1: number; x2: number; y2: number }[];
-
-  return (
-    <svg
-      width="100%"
-      viewBox={`0 0 ${W} ${H}`}
-      className="absolute inset-0 opacity-25 pointer-events-none"
-      aria-hidden
-    >
-      {edges.slice(0, 60).map((e, i) => (
-        <line key={i} x1={e.x1} y1={e.y1} x2={e.x2} y2={e.y2}
-          stroke={color} strokeWidth={0.5} strokeOpacity={0.6} />
-      ))}
-      {pts.map((p) => (
-        <circle key={p.id} cx={p.x} cy={p.y} r={1.2}
-          fill={color} fillOpacity={0.8} />
-      ))}
-    </svg>
-  );
-}
-
 export default function PortalCards({ readingStats, mathStats }: Props) {
+  const router = useRouter();
+  const [hovered, setHovered] = useState<"reading" | "math" | null>(null);
+  const [transitioning, setTransitioning] = useState<"reading" | "math" | null>(null);
   const statsMap = { reading: readingStats, math: mathStats };
 
+  // Mouse parallax — subtle sky-shift as you move your cursor
+  const mx = useMotionValue(0);
+  const my = useMotionValue(0);
+  const parallaxX = useTransform(mx, [-1, 1], [-12, 12]);
+  const parallaxY = useTransform(my, [-1, 1], [-8, 8]);
+
+  function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
+    const rect = e.currentTarget.getBoundingClientRect();
+    mx.set(((e.clientX - rect.left) / rect.width) * 2 - 1);
+    my.set(((e.clientY - rect.top) / rect.height) * 2 - 1);
+  }
+
+  function handleEnter(subject: "reading" | "math", href: string) {
+    if (transitioning) return;
+    setTransitioning(subject);
+    // Let the full tilt-up pan play before routing (~2.2s total)
+    setTimeout(() => router.push(href), 2200);
+  }
+
+  // On unmount, reset scroll so the constellation page starts at top
+  useEffect(() => {
+    return () => { if (typeof window !== "undefined") window.scrollTo(0, 0); };
+  }, []);
+
   return (
-    <motion.div
-      variants={container}
-      initial="hidden"
-      animate="show"
-      className="flex flex-col sm:flex-row gap-6 w-full max-w-2xl"
+    <div
+      onMouseMove={handleMouseMove}
+      className="fixed inset-0 flex overflow-hidden bg-[#02040a]"
     >
-      {CARDS.map((c) => {
-        const stats = statsMap[c.subject];
-        const pct = stats.total > 0
-          ? Math.round((stats.mastered / stats.total) * 100)
-          : 0;
-        const started = stats.mastered > 0 || stats.available > 1;
+      {HALVES.map((h) => {
+        const stats = statsMap[h.subject];
+        const pct = stats.total > 0 ? Math.round((stats.mastered / stats.total) * 100) : 0;
+        const isHovered = hovered === h.subject;
+        const isOther   = hovered !== null && hovered !== h.subject;
+        const isLeaving = transitioning === h.subject;
+        const isDimming = transitioning !== null && transitioning !== h.subject;
 
         return (
-          <motion.div
-            key={c.subject}
-            variants={card}
-            whileHover={{ scale: 1.03, y: -6 }}
-            whileTap={{ scale: 0.98 }}
-            transition={{ type: "spring", stiffness: 300, damping: 22 }}
-            className="flex-1"
+          <motion.button
+            key={h.subject}
+            type="button"
+            onMouseEnter={() => setHovered(h.subject)}
+            onMouseLeave={() => setHovered(null)}
+            onClick={() => handleEnter(h.subject, h.href)}
+            className="relative flex-1 group overflow-hidden cursor-pointer text-left"
+            animate={{
+              flex: isLeaving ? 3 : isDimming ? 0.4 : 1,
+              filter: isDimming ? "brightness(0.3) saturate(0.5)" : "brightness(1)",
+            }}
+            transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
           >
-            <Link href={c.href} className="block group">
+            {/* Animated backdrop layer — hover darkens the other side */}
+            <motion.div
+              className="absolute inset-0"
+              animate={{
+                filter: isOther ? "brightness(0.55) saturate(0.7)" : "brightness(1) saturate(1)",
+              }}
+              transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+            >
+              {/* Base space gradient */}
               <div
-                className={[
-                  "relative overflow-hidden rounded-2xl border bg-white/[0.03]",
-                  "p-6 flex flex-col gap-4",
-                  "transition-shadow duration-300",
-                  c.border,
-                  c.glow,
-                  "hover:shadow-2xl",
-                ].join(" ")}
+                className="absolute inset-0"
+                style={{
+                  background: `radial-gradient(ellipse at ${h.subject === "reading" ? "80%" : "20%"} 55%, ${h.glowFrom}28 0%, ${h.glowTo}10 45%, #02040a 80%)`,
+                }}
+              />
+
+              {/* Brand-color halo pulses on hover */}
+              <motion.div
+                className="absolute inset-0 pointer-events-none"
+                animate={{ opacity: isHovered ? 1 : 0.55 }}
+                transition={{ duration: 0.5 }}
+                style={{
+                  background: `radial-gradient(circle at ${h.subject === "reading" ? "72%" : "28%"} 55%, ${h.color}22, transparent 55%)`,
+                }}
+              />
+
+              {/* Parallax starfield — 3 depth layers that drift with the cursor */}
+              <motion.div
+                className="absolute inset-0"
+                style={{ x: parallaxX, y: parallaxY }}
               >
-                {/* Gradient backdrop */}
-                <div className={`absolute inset-0 bg-gradient-to-br ${c.gradient} pointer-events-none`} />
+                {h.stars.map((s, i) => {
+                  const depthMul = s.depth;
+                  return (
+                    <motion.span
+                      key={i}
+                      className="absolute rounded-full bg-white"
+                      style={{
+                        top: `${s.top}%`,
+                        left: `${s.left}%`,
+                        width: `${s.r * depthMul}px`,
+                        height: `${s.r * depthMul}px`,
+                        opacity: s.o,
+                      }}
+                      animate={isHovered ? {
+                        opacity: [s.o, Math.min(1, s.o * 1.6), s.o],
+                      } : {}}
+                      transition={{
+                        duration: 2 + (i % 5) * 0.5,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                        delay: (i % 8) * 0.1,
+                      }}
+                    />
+                  );
+                })}
+              </motion.div>
 
-                {/* Mini constellation preview */}
-                <MiniConstellation color={c.bgStarColor} nodes={c.nodes} />
+              {/* (streak animation removed — replaced by the full-screen sky-pan overlay) */}
+            </motion.div>
 
-                {/* Content */}
-                <div className="relative z-10">
-                  {/* Icon */}
-                  <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center mb-4">
-                    <c.Icon className={`w-6 h-6 ${c.iconColor}`} />
-                  </div>
+            {/* Vertical dividing edge glow */}
+            {h.subject === "reading" && (
+              <div
+                className="absolute right-0 top-0 bottom-0 w-px pointer-events-none"
+                style={{ background: `linear-gradient(180deg, transparent, ${h.color}30 50%, transparent)` }}
+              />
+            )}
 
-                  {/* Title */}
-                  <h2 className="text-xl font-extrabold text-white mb-1">{c.label}</h2>
-                  <p className="text-xs text-slate-500 mb-5">{c.tagline}</p>
+            {/* Content */}
+            <motion.div
+              className="relative z-10 h-full flex flex-col items-center justify-center px-6 text-center pointer-events-none"
+              animate={{
+                scale: isLeaving ? 1.25 : isHovered ? 1.04 : 1,
+                opacity: isLeaving ? 0 : 1,
+                y: isLeaving ? -60 : 0,
+              }}
+              transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <motion.div
+                className="mb-8"
+                animate={{
+                  y: isHovered ? -8 : 0,
+                  filter: isHovered
+                    ? `drop-shadow(0 0 32px ${h.color})`
+                    : `drop-shadow(0 0 0px transparent)`,
+                }}
+                transition={{ duration: 0.5 }}
+              >
+                <h.Icon className="w-16 h-16" style={{ color: h.color }} />
+              </motion.div>
 
-                  {/* Progress bar */}
-                  <div className="mb-4">
-                    <div className="flex justify-between text-xs mb-1.5">
-                      <span className="text-slate-400">
-                        {stats.mastered} / {stats.total} mastered
-                      </span>
-                      <span className={`font-bold ${c.accentColor}`}>{pct}%</span>
-                    </div>
-                    <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
-                      <motion.div
-                        className={`h-full rounded-full ${c.barColor}`}
-                        initial={{ width: 0 }}
-                        animate={{ width: `${pct}%` }}
-                        transition={{ duration: 1, delay: 0.4, ease: "easeOut" }}
-                      />
-                    </div>
-                  </div>
+              <h2
+                className="text-5xl sm:text-6xl font-extrabold text-white mb-6 tracking-tight"
+                style={{ textShadow: `0 0 40px ${h.color}50` }}
+              >
+                {h.subject === "reading" ? "Reading & Writing" : "Math"}
+              </h2>
+              <p
+                className="max-w-sm text-base leading-relaxed text-slate-300/90 mb-10 italic"
+                style={{ fontFamily: "Georgia, serif" }}
+              >
+                {h.description}
+              </p>
 
-                  {/* CTA */}
-                  <div className="flex items-center justify-between">
-                    <span className={`text-sm font-semibold ${c.accentColor} flex items-center gap-1`}>
-                      {started ? (
-                        <><Star className="w-3.5 h-3.5" /> Continue</>
-                      ) : (
-                        "Begin constellation"
-                      )}
-                    </span>
-                    <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-white group-hover:translate-x-1 transition-all" />
-                  </div>
-                </div>
+              {/* Progress pill */}
+              <div
+                className="flex items-center gap-4 px-5 py-2.5 rounded-full border backdrop-blur-sm mb-10"
+                style={{
+                  background: `${h.color}0f`,
+                  borderColor: `${h.color}40`,
+                }}
+              >
+                <span className="text-xs font-semibold text-slate-200 tabular-nums">
+                  {stats.mastered} <span className="text-slate-500">/</span> {stats.total}
+                </span>
+                <span className="w-px h-4 bg-white/20" />
+                <span className="text-xs font-bold tabular-nums" style={{ color: h.color }}>
+                  {pct}% mastered
+                </span>
               </div>
-            </Link>
-          </motion.div>
+
+              {/* CTA */}
+              <motion.span
+                className="inline-flex items-center gap-2 px-7 py-3 rounded-full text-sm font-bold tracking-wide"
+                style={{
+                  background: isHovered ? h.color : `${h.color}20`,
+                  color: isHovered ? "#ffffff" : h.color,
+                  border: `1px solid ${h.color}`,
+                }}
+                animate={{
+                  boxShadow: isHovered ? `0 0 50px ${h.color}70` : `0 0 0px transparent`,
+                }}
+                transition={{ duration: 0.3 }}
+              >
+                <Sparkles className="w-4 h-4" />
+                {h.cta}
+                <ArrowRight className="w-4 h-4" />
+              </motion.span>
+            </motion.div>
+          </motion.button>
         );
       })}
-    </motion.div>
+
+      {/* Center divider nebula */}
+      <div
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none w-px h-2/3"
+        style={{ background: "linear-gradient(180deg, transparent, rgba(255,255,255,0.2) 50%, transparent)" }}
+      />
+
+      {/* Horizon → sky pan-up transition */}
+      <AnimatePresence>
+        {transitioning && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.4 }}
+            className="absolute inset-0 z-50 pointer-events-none overflow-hidden"
+            style={{ perspective: 1400 }}
+          >
+            {/* Ground layer — dark foreground. Recedes as the camera tilts up. */}
+            <motion.div
+              className="absolute inset-0"
+              initial={{ opacity: 1 }}
+              animate={{ opacity: 0 }}
+              transition={{ duration: 1.6, ease: [0.22, 1, 0.36, 1], delay: 0.3 }}
+              style={{
+                background:
+                  "linear-gradient(180deg, transparent 0%, transparent 55%, #02040a 75%, #000 100%)",
+              }}
+            />
+
+            {/* Sky layer — perspective-tilted starscape that rotates from looking-down to looking-up */}
+            <motion.div
+              className="absolute inset-0"
+              initial={{ rotateX: 72, translateY: "30%", scale: 1.3 }}
+              animate={{ rotateX: 0, translateY: "0%",  scale: 1.0 }}
+              transition={{ duration: 2.0, ease: [0.22, 1, 0.36, 1] }}
+              style={{ transformOrigin: "50% 100%" }}
+            >
+              {/* Deep space backdrop tinted by the chosen subject */}
+              <div
+                className="absolute inset-0"
+                style={{
+                  background: `radial-gradient(ellipse at 50% 40%, ${transitioning === "reading" ? "#ec489930" : "#38bdf830"} 0%, #02040a 55%, #000 100%)`,
+                }}
+              />
+
+              {/* Extra dense starfield for the sky */}
+              {Array.from({ length: 200 }).map((_, i) => {
+                const top = pr(i * 2.2 + 101) * 100;
+                const left = pr(i * 2.2 + 202) * 100;
+                const r = 0.3 + pr(i * 3.7 + 303) * 1.8;
+                const o = 0.3 + pr(i * 4.9 + 404) * 0.7;
+                const twinkleDelay = pr(i * 5.3) * 2;
+                return (
+                  <motion.span
+                    key={i}
+                    className="absolute rounded-full bg-white"
+                    style={{
+                      top: `${top}%`,
+                      left: `${left}%`,
+                      width: `${r}px`,
+                      height: `${r}px`,
+                      opacity: o,
+                    }}
+                    animate={{ opacity: [o, Math.min(1, o * 1.4), o] }}
+                    transition={{ duration: 2.4, repeat: Infinity, delay: twinkleDelay, ease: "easeInOut" }}
+                  />
+                );
+              })}
+
+              {/* Horizon line — a soft glow where sky meets ground; fades out at the end of the pan */}
+              <motion.div
+                className="absolute left-0 right-0 h-px"
+                initial={{ top: "70%", opacity: 0.7 }}
+                animate={{ top: "-20%", opacity: 0 }}
+                transition={{ duration: 1.8, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
+                style={{
+                  background: `linear-gradient(90deg, transparent, ${transitioning === "reading" ? "#ec4899" : "#38bdf8"}, transparent)`,
+                  boxShadow: `0 0 40px ${transitioning === "reading" ? "#ec4899" : "#38bdf8"}80`,
+                }}
+              />
+            </motion.div>
+
+            {/* Final dark fade at the end so the constellation page can take over */}
+            <motion.div
+              className="absolute inset-0 bg-[#02040a]"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.4, delay: 1.9 }}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }

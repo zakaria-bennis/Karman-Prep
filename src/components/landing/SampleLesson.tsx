@@ -69,6 +69,7 @@ export default function SampleLesson() {
               "Command of evidence (quantitative)",
               "Transitional logic",
               "Authorial purpose and tone",
+              "Inferences from data-rich passages",
             ].map((lesson) => (
               <div
                 key={lesson}
@@ -89,6 +90,7 @@ export default function SampleLesson() {
               "Circle equations in standard form",
               "Trigonometric identities",
               "Statistical inference & margin of error",
+              "Complex numbers & polynomial roots",
             ].map((lesson) => (
               <div
                 key={lesson}

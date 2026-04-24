@@ -31,6 +31,15 @@ const STATUS_LABELS: Record<string, { label: string; color: string }> = {
   incomplete: { label: "Incomplete", color: "text-slate-500" },
 };
 
+/** Tier-specific gradients used for the giant tier-name display in the Current Plan card. */
+const TIER_GRADIENTS: Record<string, string> = {
+  group:       "linear-gradient(90deg, #7dd3fc 0%, #38bdf8 60%, #0ea5e9 100%)",   // Seminar — light blue
+  small_group: "linear-gradient(90deg, #6ee7b7 0%, #22c55e 60%, #059669 100%)",   // Small Group — green
+  private:     "linear-gradient(90deg, #c4b5fd 0%, #a855f7 60%, #7c3aed 100%)",   // Private — violet
+  elite:       "linear-gradient(90deg, #fde68a 0%, #facc15 50%, #ca8a04 100%)",   // Elite — gold
+  default:     "linear-gradient(90deg, #EC4899 0%, #A855F7 50%, #38BDF8 100%)",
+};
+
 export default function BillingClient({ subscription, currentTier, allTiers }: Props) {
   const [loadingPortal, setLoadingPortal] = useState(false);
   const [loadingCheckout, setLoadingCheckout] = useState<string | null>(null);
@@ -38,14 +47,45 @@ export default function BillingClient({ subscription, currentTier, allTiers }: P
   const statusInfo = subscription ? STATUS_LABELS[subscription.status] : null;
   const isActive = subscription?.status === "active" || subscription?.status === "trialing";
 
-  /** Opens Stripe Customer Portal for self-serve management */
+  const [portalError, setPortalError] = useState<string | null>(null);
+  const [fallbackOpen, setFallbackOpen] = useState(false);
+
+  /** Opens Stripe Customer Portal for self-serve management.
+   *  Falls back to an inline management modal if the portal can't open
+   *  (e.g. dev-mode fake customer IDs, misconfigured Stripe, etc.). */
   async function openPortal() {
     setLoadingPortal(true);
+    setPortalError(null);
     try {
       const res = await fetch("/api/stripe/portal", { method: "POST" });
-      const { url, error } = await res.json();
-      if (url) window.location.href = url;
-      else console.error("Portal error:", error);
+      const json = await res.json();
+      if (json?.url) {
+        window.location.href = json.url;
+        return;
+      }
+      // Anything else → show inline fallback
+      setPortalError(json?.error ?? "Stripe portal unavailable");
+      setFallbackOpen(true);
+    } catch (err) {
+      setPortalError(err instanceof Error ? err.message : "Network error");
+      setFallbackOpen(true);
+    } finally {
+      setLoadingPortal(false);
+    }
+  }
+
+  /** Cancels the current subscription (dev-safe: hits a local action). */
+  async function cancelSubscription() {
+    if (!confirm("Cancel your subscription? You'll keep access through the end of the current billing period.")) return;
+    setLoadingPortal(true);
+    try {
+      const res = await fetch("/api/stripe/portal", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "cancel" }),
+      });
+      if (res.ok) window.location.reload();
+      else alert("Could not cancel — please contact support.");
     } finally {
       setLoadingPortal(false);
     }
@@ -83,8 +123,11 @@ export default function BillingClient({ subscription, currentTier, allTiers }: P
               </div>
               {isActive && currentTier ? (
                 <>
-                  <p className="text-2xl font-extrabold text-slate-900 dark:text-white mt-2">
-                    {currentTier.name} — {currentTier.price}<span className="text-base font-normal text-slate-400">{currentTier.period}</span>
+                  <p
+                    className="text-4xl font-extrabold mt-2 uppercase tracking-tight bg-clip-text text-transparent"
+                    style={{ backgroundImage: TIER_GRADIENTS[currentTier.id] ?? TIER_GRADIENTS.default }}
+                  >
+                    {currentTier.name}
                   </p>
                   {statusInfo && (
                     <p className={cn("text-sm font-semibold mt-1", statusInfo.color)}>
@@ -198,7 +241,7 @@ export default function BillingClient({ subscription, currentTier, allTiers }: P
           {[
             ["When will I be charged?", "Your card is charged on day 8 of your free trial, or immediately if you skip the trial."],
             ["Can I cancel anytime?", "Yes — cancel via the Manage Plan button or email support before your renewal date."],
-            ["What's the refund policy?", "We offer a 50-point score guarantee. If your score doesn't improve by 50 points after 4 months, contact us for a full refund."],
+            ["What's the refund policy?", "We offer a 50-point score guarantee. If your score doesn't improve by 50 points after 16 weeks, contact us for a full refund."],
           ].map(([q, a]) => (
             <div key={q}>
               <p className="font-semibold text-slate-900 dark:text-white">{q}</p>
@@ -207,6 +250,62 @@ export default function BillingClient({ subscription, currentTier, allTiers }: P
           ))}
         </div>
       </div>
+
+      {/* ── Fallback self-serve modal (shown if Stripe portal can't open) ── */}
+      {fallbackOpen && (
+        <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-6" onClick={() => setFallbackOpen(false)}>
+          <div className="w-full max-w-lg bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 p-6" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">Manage your plan</h3>
+            {portalError && (
+              <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">
+                Stripe customer portal not reachable — using in-app management instead.
+              </p>
+            )}
+
+            {/* Plan options */}
+            <div className="mt-5 space-y-2">
+              <p className="text-xs font-bold uppercase tracking-widest text-slate-500">Switch plan</p>
+              {allTiers.filter((t) => t.id !== currentTier?.id).map((t) => (
+                <button
+                  key={t.id}
+                  onClick={() => startCheckout(t.id)}
+                  disabled={loadingCheckout === t.id}
+                  className="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 text-left transition-colors"
+                >
+                  <span>
+                    <span className="font-bold text-slate-900 dark:text-white">{t.name}</span>
+                    <span className="text-xs text-slate-500 ml-2">{t.price}<span className="text-slate-400">{t.period}</span></span>
+                  </span>
+                  <span className="text-xs font-semibold text-blue-500">
+                    {loadingCheckout === t.id ? "Loading…" : "Switch →"}
+                  </span>
+                </button>
+              ))}
+            </div>
+
+            {/* Cancel */}
+            <div className="mt-5 pt-5 border-t border-slate-200 dark:border-slate-800">
+              <button
+                onClick={cancelSubscription}
+                disabled={loadingPortal}
+                className="w-full px-4 py-3 rounded-xl border border-rose-200 dark:border-rose-900/60 bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 text-sm font-bold hover:bg-rose-100 dark:hover:bg-rose-900/30 disabled:opacity-50"
+              >
+                {loadingPortal ? "Processing…" : "Cancel subscription"}
+              </button>
+              <p className="text-[11px] text-slate-400 text-center mt-2">
+                You keep access through the end of your current billing period.
+              </p>
+            </div>
+
+            <button
+              onClick={() => setFallbackOpen(false)}
+              className="mt-4 w-full text-center text-xs font-semibold text-slate-500 hover:text-slate-900 dark:hover:text-white"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </DashboardLayout>
   );
 }

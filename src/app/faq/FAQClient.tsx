@@ -95,7 +95,7 @@ const FAQ_SECTIONS: { title: string; items: FAQItem[] }[] = [
     items: [
       {
         q: "What is the score improvement guarantee?",
-        a: "If you follow your personalized learning path consistently for 4 months and don't improve by at least 50 points on your next official SAT, we'll give you a full refund — no questions asked.",
+        a: "If you follow your personalized learning path consistently for 16 weeks and don't improve by at least 50 points on your next official SAT, we'll give you a full refund — no questions asked.",
       },
       {
         q: "What does 'following the learning path' mean?",
