@@ -23,6 +23,13 @@ export async function POST(req: NextRequest) {
     const { role } = await req.json();
     const email = clerkUser.emailAddresses[0]?.emailAddress || "";
 
+    // Mirror Clerk profile fields into Supabase so cohort lists can show
+    // first names without a round-trip to Clerk. imageUrl is Clerk's hosted
+    // avatar — students can later override it by uploading their own.
+    const firstName = clerkUser.firstName || null;
+    const lastName  = clerkUser.lastName  || null;
+    const avatarUrl = clerkUser.imageUrl  || null;
+
     const supabase = createAdminClient();
 
     // Upsert so re-calling this is idempotent
@@ -30,6 +37,9 @@ export async function POST(req: NextRequest) {
       clerk_id: userId,
       email,
       role: role || "student",
+      first_name: firstName,
+      last_name:  lastName,
+      avatar_url: avatarUrl,
     });
 
     if (error) {

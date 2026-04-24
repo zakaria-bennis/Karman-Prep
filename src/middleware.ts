@@ -23,6 +23,7 @@ const isPublicRoute = createRouteMatcher([
   "/api/stripe/webhook",       // Stripe webhooks bypass auth
   "/api/email/subscribe",      // Email capture
   "/api/diagnostic/sample",    // Sample quiz (no account needed)
+  "/api/cron(.*)",             // Vercel Cron — routes self-auth via CRON_SECRET header
 ]);
 
 export default clerkMiddleware(async (auth, request) => {
