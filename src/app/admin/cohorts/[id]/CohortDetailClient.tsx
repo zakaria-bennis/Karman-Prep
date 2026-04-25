@@ -8,8 +8,10 @@
 
 import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { BookOpen, ClipboardList, Loader2, Plus, Trash2, Users as UsersIcon, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useConfirm } from "@/components/shared/ConfirmDialog";
 import type {
   CohortDetail,
   CohortMemberRow,
@@ -243,14 +245,28 @@ function MemberRow({
   onError: (msg: string | null) => void;
 }) {
   const [pending, startTransition] = useTransition();
+  const router = useRouter();
+  const confirm = useConfirm();
 
-  function remove() {
+  async function remove() {
     const name = studentDisplay(member);
-    if (!confirm(`Remove ${name} from this cohort? Their progress is kept — this only ends their cohort membership.`)) return;
+    const ok = await confirm({
+      title: `Remove ${name}?`,
+      description:
+        "This ends their cohort membership. Quiz history and node mastery stay with the student — they can be added to another cohort right away.",
+      confirmLabel: "Remove",
+      danger: true,
+    });
+    if (!ok) return;
+
     onError(null);
     startTransition(async () => {
-      try { await actionRemoveCohortMember(cohortId, member.user_id); }
-      catch (e) { onError(e instanceof Error ? e.message : "Failed to remove member"); }
+      try {
+        await actionRemoveCohortMember(cohortId, member.user_id);
+        router.refresh(); // pull fresh server data so the row disappears
+      } catch (e) {
+        onError(e instanceof Error ? e.message : "Failed to remove member");
+      }
     });
   }
 
@@ -289,6 +305,7 @@ function AddMemberDialog({
   const [studentId, setStudentId] = useState("");
   const [err, setErr] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const router = useRouter();
 
   // Sort: students with matching sub tier first (clearest candidates),
   // then everyone else (admin override).
@@ -307,6 +324,7 @@ function AddMemberDialog({
     startTransition(async () => {
       try {
         await actionAddCohortMember(cohortId, studentId);
+        router.refresh();
         onClose();
       } catch (e) {
         setErr(e instanceof Error ? e.message : "Failed to add member");

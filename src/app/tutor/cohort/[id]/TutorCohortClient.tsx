@@ -7,8 +7,10 @@
 
 import { useState, useTransition } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { BookOpen, ClipboardList, Users as UsersIcon, Plus, Trash2, Loader2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useConfirm } from "@/components/shared/ConfirmDialog";
 import type {
   TutorCohortDetail,
   TutorCohortMember,
@@ -247,6 +249,7 @@ function HomeworkComposer({
   const [dueAt, setDueAt] = useState("");   // datetime-local value (no TZ)
   const [pending, startTransition] = useTransition();
   const [err, setErr] = useState<string | null>(null);
+  const router = useRouter();
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -259,6 +262,7 @@ function HomeworkComposer({
           body: body || undefined,
           due_at: dueIso,
         });
+        router.refresh();
         onDone();
       } catch (e) {
         setErr(e instanceof Error ? e.message : "Failed");
@@ -331,13 +335,26 @@ function HomeworkComposer({
 function HomeworkItem({ cohortId, h }: { cohortId: string; h: TutorHomework }) {
   const [pending, startTransition] = useTransition();
   const [err, setErr] = useState<string | null>(null);
+  const router = useRouter();
+  const confirm = useConfirm();
 
-  function deleteMe() {
-    if (!confirm(`Delete "${h.title}"? Students will no longer see this.`)) return;
+  async function deleteMe() {
+    const ok = await confirm({
+      title: `Delete "${h.title}"?`,
+      description: "Students will no longer see this assignment. This can't be undone.",
+      confirmLabel: "Delete",
+      danger: true,
+    });
+    if (!ok) return;
+
     setErr(null);
     startTransition(async () => {
-      try { await actionDeleteHomework(cohortId, h.id); }
-      catch (e) { setErr(e instanceof Error ? e.message : "Failed"); }
+      try {
+        await actionDeleteHomework(cohortId, h.id);
+        router.refresh();
+      } catch (e) {
+        setErr(e instanceof Error ? e.message : "Failed");
+      }
     });
   }
 

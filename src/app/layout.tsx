@@ -8,6 +8,7 @@ import localFont from "next/font/local";
 import { ClerkProvider } from "@clerk/nextjs";
 import { strataClerkAppearance } from "@/lib/clerkAppearance";
 import { ThemeProvider } from "@/components/shared/ThemeProvider";
+import { ConfirmProvider } from "@/components/shared/ConfirmDialog";
 import ImpersonationBanner from "@/components/admin/ImpersonationBanner";
 import { IMPERSONATE_COOKIE } from "@/lib/supabase/queries/admin";
 import "./globals.css";
@@ -78,8 +79,10 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       <html lang="en" suppressHydrationWarning>
         <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
           <ThemeProvider>
-            {impersonatedRole && <ImpersonationBanner role={impersonatedRole} />}
-            {children}
+            <ConfirmProvider>
+              {impersonatedRole && <ImpersonationBanner role={impersonatedRole} />}
+              {children}
+            </ConfirmProvider>
           </ThemeProvider>
         </body>
       </html>

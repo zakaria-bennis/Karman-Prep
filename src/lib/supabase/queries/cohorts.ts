@@ -207,6 +207,131 @@ export async function fetchEligibleStudentsForCohort(
 
 
 // ─────────────────────────────────────────────────────────────
+// Stripe lifecycle hooks — keep cohort membership in sync with
+// subscription state.
+//
+// Called from /api/stripe/webhook on:
+//   · subscription.deleted  → dropFromActiveCohort
+//   · subscription.updated  with status canceled / unpaid /
+//     incomplete_expired / past_due → dropFromActiveCohort
+//   · subscription.updated/created with status active / trialing
+//     → restoreLastCohort (idempotent — no-op if already in one)
+// ─────────────────────────────────────────────────────────────
+
+/**
+ * Soft-remove the user from any cohort they're currently in.
+ * Returns the cohort id they were dropped from, or null.
+ */
+export async function dropFromActiveCohort(clerkId: string): Promise<string | null> {
+  const supabase = createAdminClient();
+  const { data: user } = await supabase
+    .from("users")
+    .select("id")
+    .eq("clerk_id", clerkId)
+    .maybeSingle();
+  if (!user) return null;
+
+  const userId = (user as { id: string }).id;
+
+  // Find the active membership first so we can return the cohort id.
+  const { data: active } = await supabase
+    .from("cohort_members")
+    .select("cohort_id")
+    .eq("user_id", userId)
+    .is("left_at", null)
+    .maybeSingle();
+  if (!active) return null;
+
+  const cohortId = (active as { cohort_id: string }).cohort_id;
+  const { error } = await supabase
+    .from("cohort_members")
+    .update({ left_at: new Date().toISOString() })
+    .eq("user_id", userId)
+    .eq("cohort_id", cohortId)
+    .is("left_at", null);
+  if (error) {
+    console.error("[cohorts] dropFromActiveCohort error:", error);
+    return null;
+  }
+  return cohortId;
+}
+
+/**
+ * If the user has a previously-left cohort, restore them by clearing
+ * left_at on that row — only if:
+ *   · they're not already in another active cohort
+ *   · the previous cohort isn't completed
+ *   · the previous cohort still has at least one open seat
+ *
+ * Returns the cohort id they were restored to, or null.
+ */
+export async function restoreLastCohort(clerkId: string): Promise<string | null> {
+  const supabase = createAdminClient();
+
+  const { data: user } = await supabase
+    .from("users")
+    .select("id")
+    .eq("clerk_id", clerkId)
+    .maybeSingle();
+  if (!user) return null;
+  const userId = (user as { id: string }).id;
+
+  // Skip if they're already in an active cohort (idempotent).
+  const { data: existingActive } = await supabase
+    .from("cohort_members")
+    .select("cohort_id")
+    .eq("user_id", userId)
+    .is("left_at", null)
+    .maybeSingle();
+  if (existingActive) return null;
+
+  // Most recently-left cohort.
+  const { data: lastLeft } = await supabase
+    .from("cohort_members")
+    .select("cohort_id, left_at")
+    .eq("user_id", userId)
+    .not("left_at", "is", null)
+    .order("left_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (!lastLeft) return null;
+
+  const cohortId = (lastLeft as { cohort_id: string }).cohort_id;
+
+  const { data: cohort } = await supabase
+    .from("cohorts")
+    .select("id, max_size, status")
+    .eq("id", cohortId)
+    .maybeSingle();
+  if (!cohort) return null;
+  const c = cohort as { max_size: number; status: string };
+  if (c.status === "completed") return null;
+
+  // Check seat availability.
+  const { count: filled } = await supabase
+    .from("cohort_members")
+    .select("*", { count: "exact", head: true })
+    .eq("cohort_id", cohortId)
+    .is("left_at", null);
+  if ((filled ?? 0) >= c.max_size) return null;
+
+  // Restore: clear left_at on the existing row. This works because
+  // the row's primary key is (cohort_id, user_id) — there's still
+  // exactly one row for this pair.
+  const { error } = await supabase
+    .from("cohort_members")
+    .update({ left_at: null })
+    .eq("user_id", userId)
+    .eq("cohort_id", cohortId);
+  if (error) {
+    console.error("[cohorts] restoreLastCohort error:", error);
+    return null;
+  }
+  return cohortId;
+}
+
+
+// ─────────────────────────────────────────────────────────────
 // Cohort detail page — one cohort + its members + tutor note + homework.
 // ─────────────────────────────────────────────────────────────
 
