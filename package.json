@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@clerk/nextjs": "^7.2.3",
+    "@react-email/components": "^1.0.12",
     "@sentry/nextjs": "^10.49.0",
     "@stripe/stripe-js": "^9.2.0",
     "@supabase/supabase-js": "^2.104.0",
@@ -21,6 +22,7 @@
     "d3": "^7.9.0",
     "framer-motion": "^12.38.0",
     "howler": "^2.2.4",
+    "ical-generator": "^10.2.0",
     "katex": "^0.16.45",
     "lucide-react": "^1.8.0",
     "next": "^16.2.4",

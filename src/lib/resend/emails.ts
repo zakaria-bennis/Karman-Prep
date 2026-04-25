@@ -3,10 +3,7 @@
 // All transactional email sending goes through this file.
 // ============================================================
 
-import { Resend } from "resend";
-
-const resend = new Resend(process.env.RESEND_API_KEY);
-const FROM = process.env.RESEND_FROM_EMAIL || "hello@strata.com";
+import { resend, FROM } from "./client";
 
 /** Sends a welcome email to a newly signed-up user */
 export async function sendWelcomeEmail({
