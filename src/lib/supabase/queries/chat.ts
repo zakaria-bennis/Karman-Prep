@@ -82,6 +82,35 @@ export async function findChatChannelById(channelId: string): Promise<ChatChanne
   return (data as ChatChannelRow | null) ?? null;
 }
 
+/** All channels (cohort_chat + qa) for a given cohort. Returns 0, 1, or 2 rows. */
+export async function findChannelsByCohort(cohortId: string): Promise<ChatChannelRow[]> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("chat_channels")
+    .select("*")
+    .eq("cohort_id", cohortId);
+  if (error) throw error;
+  return ((data as ChatChannelRow[] | null) ?? []);
+}
+
+export interface InsertChatChannelInput {
+  slack_channel_id: string;
+  cohort_id: string;
+  channel_type: "cohort_chat" | "qa";
+  display_name: string;
+}
+
+export async function insertChatChannel(input: InsertChatChannelInput): Promise<ChatChannelRow> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("chat_channels")
+    .insert(input)
+    .select("*")
+    .single();
+  if (error) throw error;
+  return data as ChatChannelRow;
+}
+
 /** Is the user (UUID) an active member of the channel's cohort? */
 export async function isStudentInChannelCohort(
   studentUuid: string,

@@ -12,6 +12,7 @@ import {
   dropFromActiveCohort,
   restoreLastCohort,
 } from "@/lib/supabase/queries/cohorts";
+import { ensureCohortChannels } from "@/lib/chat/provisioning";
 import Stripe from "stripe";
 
 // Stripe subscription statuses that mean the seat is no longer paid for.
@@ -84,6 +85,12 @@ export async function POST(req: NextRequest) {
           const restored = await restoreLastCohort(userId);
           if (restored) {
             console.log(`[webhook] Restored ${userId} to cohort ${restored} on subscription.created`);
+            // Auto-provision Slack channels for this cohort if they don't
+            // exist yet. Idempotent — safe to call on every restore. Wrapped
+            // so a Slack failure doesn't break the rest of the webhook flow.
+            ensureCohortChannels(restored).catch((err) =>
+              console.error(`[webhook] ensureCohortChannels failed for ${restored}:`, err)
+            );
           }
         }
 
@@ -133,6 +140,9 @@ export async function POST(req: NextRequest) {
           const restored = await restoreLastCohort(userId);
           if (restored) {
             console.log(`[webhook] Restored ${userId} to cohort ${restored} (status=${sub.status})`);
+            ensureCohortChannels(restored).catch((err) =>
+              console.error(`[webhook] ensureCohortChannels failed for ${restored}:`, err)
+            );
           }
         }
 
