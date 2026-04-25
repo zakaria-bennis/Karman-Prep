@@ -16,6 +16,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { createBooking, CalAdapterError } from "@/lib/cal";
+import {
+  enableMeetingRegistration,
+  extractZoomMeetingId,
+  registerAttendee,
+  ZoomAdapterError,
+} from "@/lib/zoom";
 import { createAdminClient } from "@/lib/supabase/server";
 import {
   canSelfBook,
@@ -188,8 +194,39 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Persist. zoom_meeting_id + zoom_start_url stay null until the
-    // Zoom webhook fires (P5) — meetingUrl from Cal is the join URL.
+    // ─── Zoom: layer single-use unique-per-attendee join URL ──
+    // Cal created the meeting on our Zoom account. We immediately
+    // (a) flip the meeting to require registration, then (b) register
+    // the student → Zoom returns a join URL unique to that registrant.
+    // The URL embeds a tk= token; reusing it from a different account
+    // is rejected by Zoom.
+    //
+    // Falls back to Cal's standard join URL if any Zoom step errors.
+    // The booking still succeeds; the student gets a non-unique link.
+    const calMeetingUrl = calResp.meetingUrl ?? null;
+    const zoomMeetingId = extractZoomMeetingId(calMeetingUrl);
+    let zoomJoinUrl: string | null = calMeetingUrl;
+    if (zoomMeetingId) {
+      try {
+        await enableMeetingRegistration(zoomMeetingId);
+        const reg = await registerAttendee({
+          meetingId: zoomMeetingId,
+          firstName: clerkUser?.firstName ?? attendeeName.split(" ")[0] ?? "Strata",
+          lastName: clerkUser?.lastName ?? "",
+          email: attendeeEmail,
+        });
+        zoomJoinUrl = reg.join_url;
+      } catch (zoomErr) {
+        const isAdapter = zoomErr instanceof ZoomAdapterError;
+        console.error(
+          "[api/bookings/create] zoom registration failed (falling back to Cal URL):",
+          isAdapter ? zoomErr.toString() : zoomErr
+        );
+      }
+    }
+
+    // Persist. zoom_meeting_id is now set (Cal's response had it);
+    // zoom_start_url stays null until the Zoom webhook (P5) brings it.
     let row;
     try {
       row = await insertBooking({
@@ -198,8 +235,8 @@ export async function POST(req: NextRequest) {
         plan_tier: sub.tier,
         cal_booking_uid: calResp.uid,
         cal_event_type_id: calResp.eventTypeId,
-        zoom_join_url: calResp.meetingUrl ?? null,
-        zoom_meeting_id: null,
+        zoom_join_url: zoomJoinUrl,
+        zoom_meeting_id: zoomMeetingId,
         zoom_start_url: null,
         scheduled_start: calResp.start,
         scheduled_end: calResp.end,

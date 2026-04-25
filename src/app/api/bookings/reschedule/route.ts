@@ -28,6 +28,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { rescheduleBooking, CalAdapterError } from "@/lib/cal";
 import {
+  enableMeetingRegistration,
+  extractZoomMeetingId,
+  registerAttendee,
+  ZoomAdapterError,
+} from "@/lib/zoom";
+import { createAdminClient } from "@/lib/supabase/server";
+import {
   findBookingById,
   getUserUuidByClerkId,
   isWithinCancellationWindow,
@@ -130,6 +137,42 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // ─── Zoom: re-register the student on the NEW meeting ─────
+  // Cal generates a fresh Zoom meeting on reschedule, so the prior
+  // unique URL is dead. Same flow as create: enable registration,
+  // register the student, save the unique URL.
+  const calMeetingUrl = calResp.meetingUrl ?? null;
+  const newZoomMeetingId = extractZoomMeetingId(calMeetingUrl);
+  let newZoomJoinUrl: string | null = calMeetingUrl;
+  if (newZoomMeetingId) {
+    try {
+      await enableMeetingRegistration(newZoomMeetingId);
+      // Re-fetch the student row to register against their real email/name,
+      // since the caller can be the tutor (not the student).
+      const supa = createAdminClient();
+      const { data: student } = await supa
+        .from("users")
+        .select("first_name, last_name, email")
+        .eq("id", booking.student_id)
+        .maybeSingle();
+      if (student?.email) {
+        const reg = await registerAttendee({
+          meetingId: newZoomMeetingId,
+          firstName: student.first_name || "Strata",
+          lastName: student.last_name || "",
+          email: student.email,
+        });
+        newZoomJoinUrl = reg.join_url;
+      }
+    } catch (zoomErr) {
+      const isAdapter = zoomErr instanceof ZoomAdapterError;
+      console.error(
+        "[api/bookings/reschedule] zoom re-registration failed (falling back to Cal URL):",
+        isAdapter ? zoomErr.toString() : zoomErr
+      );
+    }
+  }
+
   const updated = await updateBooking(booking.id, {
     rescheduled_from: booking.scheduled_start,
     scheduled_start: calResp.start,
@@ -137,8 +180,8 @@ export async function POST(req: NextRequest) {
     reschedule_count: booking.reschedule_count + 1,
     cancelled_within_window: withinWindow,
     credit_forfeited: forfeit,
-    zoom_join_url: calResp.meetingUrl ?? null,
-    zoom_meeting_id: null,
+    zoom_join_url: newZoomJoinUrl,
+    zoom_meeting_id: newZoomMeetingId,
     zoom_start_url: null,
   });
 
