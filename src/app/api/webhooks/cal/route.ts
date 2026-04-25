@@ -29,6 +29,10 @@ import {
   sendBookingReschedule,
 } from "@/lib/resend/booking-emails";
 import { extractZoomMeetingId } from "@/lib/zoom/url";
+import {
+  consumeTokenForBooking,
+  releaseTokenFromBooking,
+} from "@/lib/supabase/queries/tokens";
 
 // node:crypto + Buffer require Node runtime, not Edge.
 export const runtime = "nodejs";
@@ -232,6 +236,17 @@ export async function POST(req: NextRequest) {
             cancelled_within_window: withinWindow,
             credit_forfeited: forfeit,
           });
+        }
+        // Token resolution — idempotent. Cancel API route may have
+        // already done this; that's fine, our update WHERE clauses
+        // make this a no-op the second time.
+        if (withinWindow && forfeit) {
+          await consumeTokenForBooking({
+            bookingId: booking.id,
+            reason: "forfeited_within_window",
+          });
+        } else if (!withinWindow) {
+          await releaseTokenFromBooking(booking.id);
         }
         if (!booking.cancellation_email_sent) {
           await sendBookingCancellation({

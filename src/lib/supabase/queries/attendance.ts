@@ -20,6 +20,7 @@
 // ============================================================
 
 import { createAdminClient } from "@/lib/supabase/server";
+import { consumeTokenForBooking } from "./tokens";
 
 export interface AttendanceLogRow {
   id: string;
@@ -309,6 +310,7 @@ export async function finalizeAttendanceForMeeting(args: {
         .update({ status: "no_show" })
         .eq("id", b.id);
       if (error) throw error;
+      await consumeTokenForBooking({ bookingId: b.id, reason: "no_show" });
     }
     return;
   }
@@ -327,5 +329,9 @@ export async function finalizeAttendanceForMeeting(args: {
       .update({ status: present ? "completed" : "no_show" })
       .eq("id", bookingId);
     if (error) throw error;
+    await consumeTokenForBooking({
+      bookingId,
+      reason: present ? "completed" : "no_show",
+    });
   }
 }

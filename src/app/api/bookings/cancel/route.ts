@@ -21,6 +21,10 @@ import {
   shouldForfeitCredit,
   updateBooking,
 } from "@/lib/supabase/queries/bookings";
+import {
+  consumeTokenForBooking,
+  releaseTokenFromBooking,
+} from "@/lib/supabase/queries/tokens";
 
 interface CancelRequest {
   bookingId: string;
@@ -87,6 +91,24 @@ export async function POST(req: NextRequest) {
     cancelled_within_window: withinWindow,
     credit_forfeited: forfeit,
   });
+
+  // Token resolution: within-window forfeits, outside-window refunds.
+  // Idempotent — re-running (e.g. via Cal webhook) is a no-op once the
+  // first call has either consumed or released the token.
+  try {
+    if (withinWindow && forfeit) {
+      await consumeTokenForBooking({
+        bookingId: booking.id,
+        reason: "forfeited_within_window",
+      });
+    } else if (!withinWindow) {
+      await releaseTokenFromBooking(booking.id);
+    }
+    // group/small_group within-window: no token to forfeit (those tiers
+    // don't have tokens at all). Falls through.
+  } catch (err) {
+    console.error("[api/bookings/cancel] token resolution failed:", err);
+  }
 
   return NextResponse.json({ booking: updated });
 }

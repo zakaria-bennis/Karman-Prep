@@ -22,6 +22,11 @@ import {
   getUserUuidByClerkId,
   insertBooking,
 } from "@/lib/supabase/queries/bookings";
+import {
+  assignTokenToBooking,
+  ensureEliteMonthlyTokens,
+  getAvailableTokenCount,
+} from "@/lib/supabase/queries/tokens";
 
 interface CreateBookingRequest {
   eventTypeId: number | string;
@@ -70,6 +75,24 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Tutor profile not found" }, { status: 404 });
   }
 
+  // Token check — fail fast if the student has nothing to spend.
+  // For Elite, lazy-grant the current month's batch on first hit.
+  if (sub.tier === "elite") {
+    await ensureEliteMonthlyTokens(studentUuid);
+  }
+  const tokensAvailable = await getAvailableTokenCount(studentUuid);
+  if (tokensAvailable < 1) {
+    return NextResponse.json(
+      {
+        error:
+          sub.tier === "elite"
+            ? "No session credits remaining this month."
+            : "No session credits available — purchase a session to book.",
+      },
+      { status: 403 }
+    );
+  }
+
   const clerkUser = await currentUser();
   const attendeeName =
     [clerkUser?.firstName, clerkUser?.lastName].filter(Boolean).join(" ") ||
@@ -110,8 +133,9 @@ export async function POST(req: NextRequest) {
 
   // Persist. zoom_meeting_id + zoom_start_url stay null until the
   // Zoom webhook fires (P5) — meetingUrl from Cal is the join URL.
+  let row;
   try {
-    const row = await insertBooking({
+    row = await insertBooking({
       student_id: studentUuid,
       tutor_id: tutorUuid,
       plan_tier: sub.tier,
@@ -123,15 +147,30 @@ export async function POST(req: NextRequest) {
       scheduled_start: calResp.start,
       scheduled_end: calResp.end,
     });
-    return NextResponse.json({ booking: row }, { status: 201 });
   } catch (err) {
-    // Booking exists on Cal but persistence failed — surface 500 so
-    // the caller knows the DB is out of sync. The webhook BOOKING_CREATED
-    // (P4) will reconcile by inserting the row when Cal echoes the event.
     console.error("[api/bookings/create] supabase persist failed:", err);
     return NextResponse.json(
       { error: "Booking created on Cal.com but failed to persist locally", calBookingUid: calResp.uid },
       { status: 500 }
     );
   }
+
+  // Reserve a token for this booking. Race window between the early
+  // count check and now is tiny but real — if it strikes, log loudly
+  // (the booking row + Cal record exist; admin can refund).
+  try {
+    const tokenId = await assignTokenToBooking({
+      userUuid: studentUuid,
+      bookingId: row.id,
+    });
+    if (!tokenId) {
+      console.error(
+        `[api/bookings/create] race: no tokens available at assign time for booking=${row.id}`
+      );
+    }
+  } catch (err) {
+    console.error("[api/bookings/create] token assignment failed:", err);
+  }
+
+  return NextResponse.json({ booking: row }, { status: 201 });
 }
