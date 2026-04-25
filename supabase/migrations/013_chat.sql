@@ -318,12 +318,13 @@ CREATE TABLE IF NOT EXISTS public.channel_mutes (
   created_at   TIMESTAMPTZ  NOT NULL DEFAULT now()
 );
 
--- One active mute per (student, channel). Older expired mutes are
--- preserved as audit history; the active one is the row whose
--- muted_until is null OR in the future.
-CREATE INDEX IF NOT EXISTS channel_mutes_active_idx
-  ON public.channel_mutes (student_id, channel_id)
-  WHERE muted_until IS NULL OR muted_until > now();
+-- Lookup index for "is this student muted in this channel right now?"
+-- Plain index (not partial WHERE muted_until > now()) because Postgres
+-- requires IMMUTABLE functions in index predicates and now() is STABLE.
+-- The route filters muted_until at query time; the index narrows
+-- (student_id, channel_id) so the row count is tiny by then.
+CREATE INDEX IF NOT EXISTS channel_mutes_lookup_idx
+  ON public.channel_mutes (student_id, channel_id);
 
 ALTER TABLE public.channel_mutes ENABLE ROW LEVEL SECURITY;
 
