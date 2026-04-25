@@ -6,9 +6,9 @@
 // ============================================================
 
 import { useEffect, useMemo, useState, useTransition } from "react";
-import { Link2, Loader2, Plus, Trash2, X } from "lucide-react";
+import { Link2, Loader2, Plus, Search, Trash2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { AdminUserRow, LinkedStudentRow } from "@/lib/supabase/queries/users";
+import type { AdminCohortLite, AdminUserRow, LinkedStudentRow } from "@/lib/supabase/queries/users";
 import type { AppRole } from "@/lib/supabase/queries/admin";
 import {
   actionSetUserRole,
@@ -25,18 +25,45 @@ const ROLE_COLOR: Record<AppRole, string> = {
   admin:   "bg-amber-400/10 text-amber-300 border-amber-400/20",
 };
 
+type SubTier = NonNullable<AdminUserRow["tier"]>;
+const TIER_LABEL: Record<SubTier, string> = {
+  group:       "Seminar",
+  small_group: "Small Group",
+  private:     "Private",
+  elite:       "Elite",
+  annual:      "Annual",
+};
+const TIER_COLOR: Record<SubTier, string> = {
+  group:       "bg-indigo-400/10 text-indigo-300 border-indigo-400/20",
+  small_group: "bg-teal-400/10 text-teal-300 border-teal-400/20",
+  private:     "bg-amber-400/10 text-amber-300 border-amber-400/20",
+  elite:       "bg-violet-400/10 text-violet-300 border-violet-400/20",
+  annual:      "bg-emerald-400/10 text-emerald-300 border-emerald-400/20",
+};
+
 interface Props {
   users: AdminUserRow[];
+  cohorts: AdminCohortLite[];
 }
 
-export default function UsersClient({ users }: Props) {
+export default function UsersClient({ users, cohorts }: Props) {
   const [roleFilter, setRoleFilter] = useState<"all" | AppRole>("all");
+  const [cohortFilter, setCohortFilter] = useState<string>("all");
+  const [search, setSearch] = useState("");
   const [linkingParent, setLinkingParent] = useState<AdminUserRow | null>(null);
 
   const filtered = useMemo(() => {
-    if (roleFilter === "all") return users;
-    return users.filter((u) => u.role === roleFilter);
-  }, [users, roleFilter]);
+    const q = search.trim().toLowerCase();
+    return users.filter((u) => {
+      if (roleFilter !== "all" && u.role !== roleFilter) return false;
+      if (cohortFilter !== "all" && !u.cohort_ids.includes(cohortFilter)) return false;
+      if (q.length > 0) {
+        const hay = [u.first_name, u.last_name, u.email].filter(Boolean).join(" ").toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+  }, [users, roleFilter, cohortFilter, search]);
 
   const students = useMemo(
     () => users.filter((u) => u.role === "student"),
@@ -63,23 +90,53 @@ export default function UsersClient({ users }: Props) {
         </div>
       </header>
 
-      {/* Role filter pills */}
-      <div className="mb-4 flex flex-wrap gap-2">
-        {(["all", "student", "tutor", "parent", "admin"] as const).map((r) => (
-          <button
-            key={r}
-            onClick={() => setRoleFilter(r)}
-            className={cn(
-              "px-3 py-1.5 rounded-lg border text-xs font-semibold transition-colors",
-              roleFilter === r
-                ? "bg-indigo-600 border-indigo-500 text-white"
-                : "bg-slate-950/40 border-slate-800 text-slate-300 hover:bg-slate-800"
-            )}
+      {/* Filter bar — search + role pills + cohort dropdown */}
+      <div className="mb-4 space-y-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="relative flex-1">
+            <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search by name or email…"
+              className="w-full pl-9 pr-3 py-2 rounded-lg bg-slate-950/60 border border-slate-800 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+            />
+          </div>
+          <select
+            value={cohortFilter}
+            onChange={(e) => setCohortFilter(e.target.value)}
+            className="rounded-lg bg-slate-950/60 border border-slate-800 text-slate-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
           >
-            {r === "all" ? "All" : r.charAt(0).toUpperCase() + r.slice(1)}
-            <span className="ml-1.5 text-[10px] opacity-70">{counts[r]}</span>
-          </button>
-        ))}
+            <option value="all">All cohorts ({cohorts.length})</option>
+            {cohorts.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name} ({c.tier === "small_group" ? "Small Group" : "Seminar"})
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          {(["all", "student", "tutor", "parent", "admin"] as const).map((r) => (
+            <button
+              key={r}
+              onClick={() => setRoleFilter(r)}
+              className={cn(
+                "px-3 py-1.5 rounded-lg border text-xs font-semibold transition-colors",
+                roleFilter === r
+                  ? "bg-indigo-600 border-indigo-500 text-white"
+                  : "bg-slate-950/40 border-slate-800 text-slate-300 hover:bg-slate-800"
+              )}
+            >
+              {r === "all" ? "All" : r.charAt(0).toUpperCase() + r.slice(1)}
+              <span className="ml-1.5 text-[10px] opacity-70">{counts[r]}</span>
+            </button>
+          ))}
+          <span className="ml-auto text-xs text-slate-500 self-center">
+            {filtered.length} of {users.length} matching
+          </span>
+        </div>
       </div>
 
       <div className="rounded-xl border border-slate-800 overflow-hidden">
@@ -89,6 +146,7 @@ export default function UsersClient({ users }: Props) {
               <th className="text-left px-4 py-3 font-semibold">Name</th>
               <th className="text-left px-4 py-3 font-semibold">Email</th>
               <th className="text-left px-4 py-3 font-semibold">Role</th>
+              <th className="text-left px-4 py-3 font-semibold">Tier</th>
               <th className="text-left px-4 py-3 font-semibold">Links</th>
               <th aria-hidden="true" className="w-10" />
             </tr>
@@ -167,6 +225,15 @@ function UserRow({
           </select>
           {pending && <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-500" />}
         </div>
+      </td>
+      <td className="px-4 py-3">
+        {user.tier ? (
+          <span className={cn("inline-block px-2 py-0.5 rounded-md text-xs font-semibold border", TIER_COLOR[user.tier])}>
+            {TIER_LABEL[user.tier]}
+          </span>
+        ) : (
+          <span className="text-xs text-slate-600">—</span>
+        )}
       </td>
       <td className="px-4 py-3">
         {user.role === "parent" ? (

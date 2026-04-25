@@ -15,6 +15,16 @@ export interface AdminUserRow {
   created_at: string;
   /** Count of linked students. Only set when role === 'parent'. */
   linked_student_count: number;
+  /** Most-recent active/trialing subscription tier; null if none. */
+  tier: "group" | "small_group" | "private" | "elite" | "annual" | null;
+  /** All cohort_ids the user is currently an active member of. */
+  cohort_ids: string[];
+}
+
+export interface AdminCohortLite {
+  id: string;
+  name: string;
+  tier: "group" | "small_group";
 }
 
 export interface LinkedStudentRow {
@@ -26,12 +36,13 @@ export interface LinkedStudentRow {
 
 // ─────────────────────────────────────────────────────────────
 // All users with basic profile info + linked-student counts
-// (for parents). Used by /admin/users.
+// (for parents) + active subscription tier + cohort memberships.
+// Used by /admin/users.
 // ─────────────────────────────────────────────────────────────
 export async function fetchAdminUsersList(): Promise<AdminUserRow[]> {
   const supabase = createAdminClient();
 
-  const [usersRes, linksRes] = await Promise.all([
+  const [usersRes, linksRes, subsRes, membersRes] = await Promise.all([
     supabase
       .from("users")
       .select("id, clerk_id, email, first_name, last_name, role, created_at")
@@ -40,13 +51,39 @@ export async function fetchAdminUsersList(): Promise<AdminUserRow[]> {
     supabase
       .from("parent_student_links")
       .select("parent_user_id"),
+    supabase
+      .from("subscriptions")
+      .select("user_id, tier, status, created_at")
+      .in("status", ["active", "trialing"])
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("cohort_members")
+      .select("user_id, cohort_id")
+      .is("left_at", null),
   ]);
-  if (usersRes.error) throw usersRes.error;
-  if (linksRes.error) throw linksRes.error;
+  if (usersRes.error)  throw usersRes.error;
+  if (linksRes.error)  throw linksRes.error;
+  if (subsRes.error)   throw subsRes.error;
+  if (membersRes.error) throw membersRes.error;
 
   const linkCounts = new Map<string, number>();
   for (const r of (linksRes.data ?? []) as { parent_user_id: string }[]) {
     linkCounts.set(r.parent_user_id, (linkCounts.get(r.parent_user_id) ?? 0) + 1);
+  }
+
+  // First (most-recent due to ORDER BY) tier per Clerk-userid.
+  // subscriptions.user_id is TEXT (Clerk id), not the users.id UUID.
+  const tierByClerkId = new Map<string, AdminUserRow["tier"]>();
+  for (const r of (subsRes.data ?? []) as Array<{ user_id: string; tier: string }>) {
+    if (!tierByClerkId.has(r.user_id)) {
+      tierByClerkId.set(r.user_id, r.tier as AdminUserRow["tier"]);
+    }
+  }
+
+  const cohortIdsByUuid = new Map<string, string[]>();
+  for (const r of (membersRes.data ?? []) as Array<{ user_id: string; cohort_id: string }>) {
+    if (!cohortIdsByUuid.has(r.user_id)) cohortIdsByUuid.set(r.user_id, []);
+    cohortIdsByUuid.get(r.user_id)!.push(r.cohort_id);
   }
 
   return (usersRes.data ?? []).map((u) => ({
@@ -58,7 +95,20 @@ export async function fetchAdminUsersList(): Promise<AdminUserRow[]> {
     role: u.role as AppRole,
     created_at: u.created_at as string,
     linked_student_count: linkCounts.get(u.id as string) ?? 0,
+    tier: tierByClerkId.get(u.clerk_id as string) ?? null,
+    cohort_ids: cohortIdsByUuid.get(u.id as string) ?? [],
   }));
+}
+
+/** Lightweight cohort list for admin UI dropdowns. */
+export async function fetchAdminCohortsLite(): Promise<AdminCohortLite[]> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("cohorts")
+    .select("id, name, tier")
+    .order("name", { ascending: true });
+  if (error) throw error;
+  return ((data ?? []) as AdminCohortLite[]);
 }
 
 // ─────────────────────────────────────────────────────────────

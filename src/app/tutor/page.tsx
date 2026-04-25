@@ -117,7 +117,10 @@ export default async function TutorPage() {
               </p>
             </div>
           ) : (
-            <StudentTable rows={rows} />
+            <StudentTable
+              rows={rows}
+              cohorts={scope.cohorts.map((c) => ({ id: c.id, name: c.name, tier: c.tier }))}
+            />
           )}
         </section>
       </div>

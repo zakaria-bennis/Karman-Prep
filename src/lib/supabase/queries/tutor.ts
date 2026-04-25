@@ -15,8 +15,11 @@ import type { CohortStatus, CohortTier } from "@/lib/supabase/queries/cohorts";
 // is a Prompt 3 concern.
 
 export interface StudentRosterRow {
+  id: string;
   clerk_id: string;
   email: string;
+  first_name: string | null;
+  last_name: string | null;
   role: string | null;
   created_at: string;
   sat_test_date: string | null;
@@ -26,7 +29,7 @@ export async function fetchStudentRoster(): Promise<StudentRosterRow[]> {
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("users")
-    .select("clerk_id, email, role, created_at, sat_test_date")
+    .select("id, clerk_id, email, first_name, last_name, role, created_at, sat_test_date")
     .eq("role", "student")
     .order("created_at", { ascending: false });
   if (error) throw error;
@@ -172,6 +175,8 @@ export async function fetchCheckpointAssignments(
 export interface StudentDashboardRow {
   clerk_id: string;
   email: string;
+  first_name: string | null;
+  last_name: string | null;
   reading_mastered: number;
   math_mastered: number;
   reading_total: number;
@@ -180,6 +185,10 @@ export interface StudentDashboardRow {
   flagged_open: number;
   last_active: string | null;
   atmosphere_level: 0 | 1 | 2 | 3;
+  /** Most-recent active subscription tier; null if none. */
+  plan_tier: "group" | "small_group" | "private" | "elite" | "annual" | null;
+  /** Cohort_ids the student is currently an active member of. */
+  cohort_ids: string[];
 }
 
 export async function fetchStudentDashboardRows(
@@ -187,10 +196,19 @@ export async function fetchStudentDashboardRows(
 ): Promise<StudentDashboardRow[]> {
   const supabase = createAdminClient();
 
-  const [students, statuses, flagsOpen] = await Promise.all([
+  const [students, statuses, flagsOpen, subs, members] = await Promise.all([
     fetchStudentRoster(),
     supabase.from("learn_node_status").select("user_id, node_id, status, confidence_band, updated_at"),
     supabase.from("flagged_questions").select("student_id").eq("resolved", false),
+    supabase
+      .from("subscriptions")
+      .select("user_id, tier, status, created_at")
+      .in("status", ["active", "trialing"])
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("cohort_members")
+      .select("user_id, cohort_id")
+      .is("left_at", null),
   ]);
 
   // Optional scoping: when called with a list of clerk_ids, drop everyone else.
@@ -198,6 +216,25 @@ export async function fetchStudentDashboardRows(
   const filteredStudents = onlyClerkIds
     ? students.filter((s) => onlyClerkIds.includes(s.clerk_id))
     : students;
+
+  // Most-recent tier per Clerk userid (subscriptions.user_id is TEXT).
+  const tierByClerkId = new Map<string, StudentDashboardRow["plan_tier"]>();
+  for (const r of (subs.data ?? []) as Array<{ user_id: string; tier: string }>) {
+    if (!tierByClerkId.has(r.user_id)) {
+      tierByClerkId.set(r.user_id, r.tier as StudentDashboardRow["plan_tier"]);
+    }
+  }
+  // Map student UUID → Clerk id (we have the roster) so we can correlate
+  // cohort_members (user_id UUID) back to clerk_id-keyed rows.
+  const clerkIdByUuid = new Map<string, string>();
+  for (const s of students) clerkIdByUuid.set(s.id, s.clerk_id);
+  const cohortIdsByClerkId = new Map<string, string[]>();
+  for (const r of (members.data ?? []) as Array<{ user_id: string; cohort_id: string }>) {
+    const ck = clerkIdByUuid.get(r.user_id);
+    if (!ck) continue;
+    if (!cohortIdsByClerkId.has(ck)) cohortIdsByClerkId.set(ck, []);
+    cohortIdsByClerkId.get(ck)!.push(r.cohort_id);
+  }
 
   const statusMap = new Map<string, Array<{ node_id: string; status: string; confidence_band: string | null; updated_at: string }>>();
   for (const row of statuses.data ?? []) {
@@ -238,6 +275,8 @@ export async function fetchStudentDashboardRows(
     return {
       clerk_id: s.clerk_id,
       email: s.email,
+      first_name: s.first_name ?? null,
+      last_name: s.last_name ?? null,
       reading_mastered: readingMastered,
       math_mastered: mathMastered,
       reading_total: 50,
@@ -246,6 +285,8 @@ export async function fetchStudentDashboardRows(
       flagged_open: flagMap.get(s.clerk_id) ?? 0,
       last_active: lastActive,
       atmosphere_level: atmosphereLevel,
+      plan_tier: tierByClerkId.get(s.clerk_id) ?? null,
+      cohort_ids: cohortIdsByClerkId.get(s.clerk_id) ?? [],
     };
   });
 }
