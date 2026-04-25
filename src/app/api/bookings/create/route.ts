@@ -16,6 +16,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { createBooking, CalAdapterError } from "@/lib/cal";
+import { createAdminClient } from "@/lib/supabase/server";
 import {
   canSelfBook,
   getActiveSubscription,
@@ -34,6 +35,17 @@ interface CreateBookingRequest {
   start: string;     // ISO datetime of the chosen slot
   timeZone: string;  // student's IANA TZ (e.g. America/New_York)
 }
+
+/** How long /api/bookings/create holds a per-user mutex. Anti-abuse
+ *  fix #3+#7: prevents the double-tap / multi-tab race where two
+ *  simultaneous booking attempts both pass the tokens-available
+ *  check. Auto-expires on crash. */
+const BOOKING_LOCK_MS = 10_000;
+
+/** Anti-abuse fix #4: cap booking creates per student per 24h.
+ *  Cancelled-outside-window bookings still count — prevents the
+ *  book/cancel/book/cancel infrastructure-spam pattern. */
+const MAX_BOOKINGS_PER_24H = 10;
 
 export async function POST(req: NextRequest) {
   const { userId } = await auth();
@@ -75,102 +87,153 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Tutor profile not found" }, { status: 404 });
   }
 
-  // Token check — fail fast if the student has nothing to spend.
-  // For Elite, lazy-grant the current month's batch on first hit.
-  if (sub.tier === "elite") {
-    await ensureEliteMonthlyTokens(studentUuid);
+  // ─── Anti-abuse fix #3+#7: per-user mutex ──────────────────
+  // Compare-and-set the lock atomically. If we can't acquire
+  // (lock is held and not yet expired), 429 the second request.
+  const supa = createAdminClient();
+  const nowIso = new Date().toISOString();
+  const lockUntilIso = new Date(Date.now() + BOOKING_LOCK_MS).toISOString();
+  const { data: lockGrant, error: lockErr } = await supa
+    .from("users")
+    .update({ booking_lock_until: lockUntilIso })
+    .eq("id", studentUuid)
+    .or(`booking_lock_until.is.null,booking_lock_until.lt.${nowIso}`)
+    .select("id")
+    .maybeSingle();
+  if (lockErr) {
+    console.error("[api/bookings/create] lock acquire error:", lockErr);
+    return NextResponse.json({ error: "Internal error acquiring booking lock" }, { status: 500 });
   }
-  const tokensAvailable = await getAvailableTokenCount(studentUuid);
-  if (tokensAvailable < 1) {
+  if (!lockGrant) {
     return NextResponse.json(
-      {
-        error:
-          sub.tier === "elite"
-            ? "No session credits remaining this month."
-            : "No session credits available — purchase a session to book.",
-      },
-      { status: 403 }
+      { error: "Another booking is already in progress for this account, please wait a few seconds." },
+      { status: 429 }
     );
   }
 
-  const clerkUser = await currentUser();
-  const attendeeName =
-    [clerkUser?.firstName, clerkUser?.lastName].filter(Boolean).join(" ") ||
-    "Strata Student";
-  const attendeeEmail = clerkUser?.emailAddresses[0]?.emailAddress;
-  if (!attendeeEmail) {
-    return NextResponse.json(
-      { error: "Student email missing in Clerk profile" },
-      { status: 400 }
-    );
-  }
-
-  // Cal.com call — single point of contact, may throw CalAdapterError.
-  let calResp;
+  // Everything below this line must release the lock on the way out.
   try {
-    calResp = await createBooking({
-      eventTypeId: body.eventTypeId,
-      start: body.start,
-      attendee: {
-        name: attendeeName,
-        email: attendeeEmail,
-        timeZone: body.timeZone,
-        language: "en",
-      },
-      metadata: {
-        student_id: userId,
-        plan_tier: sub.tier,
-      },
-    });
-  } catch (err) {
-    const isAdapter = err instanceof CalAdapterError;
-    console.error("[api/bookings/create] cal error:", isAdapter ? err.toString() : err);
-    return NextResponse.json(
-      { error: "Failed to create booking on Cal.com" },
-      { status: 502 }
-    );
-  }
-
-  // Persist. zoom_meeting_id + zoom_start_url stay null until the
-  // Zoom webhook fires (P5) — meetingUrl from Cal is the join URL.
-  let row;
-  try {
-    row = await insertBooking({
-      student_id: studentUuid,
-      tutor_id: tutorUuid,
-      plan_tier: sub.tier,
-      cal_booking_uid: calResp.uid,
-      cal_event_type_id: calResp.eventTypeId,
-      zoom_join_url: calResp.meetingUrl ?? null,
-      zoom_meeting_id: null,
-      zoom_start_url: null,
-      scheduled_start: calResp.start,
-      scheduled_end: calResp.end,
-    });
-  } catch (err) {
-    console.error("[api/bookings/create] supabase persist failed:", err);
-    return NextResponse.json(
-      { error: "Booking created on Cal.com but failed to persist locally", calBookingUid: calResp.uid },
-      { status: 500 }
-    );
-  }
-
-  // Reserve a token for this booking. Race window between the early
-  // count check and now is tiny but real — if it strikes, log loudly
-  // (the booking row + Cal record exist; admin can refund).
-  try {
-    const tokenId = await assignTokenToBooking({
-      userUuid: studentUuid,
-      bookingId: row.id,
-    });
-    if (!tokenId) {
-      console.error(
-        `[api/bookings/create] race: no tokens available at assign time for booking=${row.id}`
+    // ─── Anti-abuse fix #4: 24h booking-create rate limit ────
+    const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    const { count: recentCount, error: countErr } = await supa
+      .from("bookings")
+      .select("id", { count: "exact", head: true })
+      .eq("student_id", studentUuid)
+      .gte("created_at", since24h);
+    if (countErr) {
+      console.error("[api/bookings/create] rate-limit count error:", countErr);
+    }
+    if ((recentCount ?? 0) >= MAX_BOOKINGS_PER_24H) {
+      return NextResponse.json(
+        {
+          error: `You've made ${recentCount} bookings in the last 24 hours. Please try again later.`,
+        },
+        { status: 429 }
       );
     }
-  } catch (err) {
-    console.error("[api/bookings/create] token assignment failed:", err);
-  }
 
-  return NextResponse.json({ booking: row }, { status: 201 });
+    // Token check — fail fast if the student has nothing to spend.
+    // For Elite, lazy-grant the current month's batch on first hit.
+    if (sub.tier === "elite") {
+      await ensureEliteMonthlyTokens(studentUuid);
+    }
+    const tokensAvailable = await getAvailableTokenCount(studentUuid);
+    if (tokensAvailable < 1) {
+      return NextResponse.json(
+        {
+          error:
+            sub.tier === "elite"
+              ? "No session credits remaining this month."
+              : "No session credits available — purchase a session to book.",
+        },
+        { status: 403 }
+      );
+    }
+
+    const clerkUser = await currentUser();
+    const attendeeName =
+      [clerkUser?.firstName, clerkUser?.lastName].filter(Boolean).join(" ") ||
+      "Strata Student";
+    const attendeeEmail = clerkUser?.emailAddresses[0]?.emailAddress;
+    if (!attendeeEmail) {
+      return NextResponse.json(
+        { error: "Student email missing in Clerk profile" },
+        { status: 400 }
+      );
+    }
+
+    // Cal.com call — single point of contact, may throw CalAdapterError.
+    let calResp;
+    try {
+      calResp = await createBooking({
+        eventTypeId: body.eventTypeId,
+        start: body.start,
+        attendee: {
+          name: attendeeName,
+          email: attendeeEmail,
+          timeZone: body.timeZone,
+          language: "en",
+        },
+        metadata: {
+          student_id: userId,
+          plan_tier: sub.tier,
+        },
+      });
+    } catch (err) {
+      const isAdapter = err instanceof CalAdapterError;
+      console.error("[api/bookings/create] cal error:", isAdapter ? err.toString() : err);
+      return NextResponse.json(
+        { error: "Failed to create booking on Cal.com" },
+        { status: 502 }
+      );
+    }
+
+    // Persist. zoom_meeting_id + zoom_start_url stay null until the
+    // Zoom webhook fires (P5) — meetingUrl from Cal is the join URL.
+    let row;
+    try {
+      row = await insertBooking({
+        student_id: studentUuid,
+        tutor_id: tutorUuid,
+        plan_tier: sub.tier,
+        cal_booking_uid: calResp.uid,
+        cal_event_type_id: calResp.eventTypeId,
+        zoom_join_url: calResp.meetingUrl ?? null,
+        zoom_meeting_id: null,
+        zoom_start_url: null,
+        scheduled_start: calResp.start,
+        scheduled_end: calResp.end,
+      });
+    } catch (err) {
+      console.error("[api/bookings/create] supabase persist failed:", err);
+      return NextResponse.json(
+        { error: "Booking created on Cal.com but failed to persist locally", calBookingUid: calResp.uid },
+        { status: 500 }
+      );
+    }
+
+    // Reserve a token for this booking. The mutex above means no other
+    // concurrent attempt could have grabbed one in between.
+    try {
+      const tokenId = await assignTokenToBooking({
+        userUuid: studentUuid,
+        bookingId: row.id,
+      });
+      if (!tokenId) {
+        console.error(
+          `[api/bookings/create] race: no tokens available at assign time for booking=${row.id}`
+        );
+      }
+    } catch (err) {
+      console.error("[api/bookings/create] token assignment failed:", err);
+    }
+
+    return NextResponse.json({ booking: row }, { status: 201 });
+  } finally {
+    // Release the mutex regardless of outcome.
+    await supa
+      .from("users")
+      .update({ booking_lock_until: null })
+      .eq("id", studentUuid);
+  }
 }

@@ -32,6 +32,20 @@ export async function POST(req: NextRequest) {
 
     const supabase = createAdminClient();
 
+    // Capture signup IP on first sync only — never overwrite. Best-effort
+    // signal for the admin moderation tab to spot multi-account trial
+    // abuse (one person registering N Clerk identities to farm Elite
+    // trial tokens). This is informational; the real abuse fix is
+    // payment-method fingerprinting at the Stripe layer.
+    const fwd = req.headers.get("x-forwarded-for") || "";
+    const signupIp = fwd.split(",")[0].trim() || req.headers.get("x-real-ip") || null;
+
+    const { data: existing } = await supabase
+      .from("users")
+      .select("signup_ip")
+      .eq("clerk_id", userId)
+      .maybeSingle();
+
     // Upsert so re-calling this is idempotent
     const { error } = await supabase.from("users").upsert({
       clerk_id: userId,
@@ -40,6 +54,7 @@ export async function POST(req: NextRequest) {
       first_name: firstName,
       last_name:  lastName,
       avatar_url: avatarUrl,
+      ...(existing?.signup_ip ? {} : { signup_ip: signupIp }),
     });
 
     if (error) {

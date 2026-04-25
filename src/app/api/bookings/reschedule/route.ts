@@ -3,8 +3,21 @@
 //
 // Moves a booking to a new start time. Hard cap: one reschedule
 // per booking (DB CHECK enforces; route returns a clean 403 first).
-// Within-24h reschedule still forfeits credit for Private + Elite,
-// matching the cancel rule.
+//
+// Token semantics (anti-abuse fix #1):
+//   · Outside-24h reschedule  → free, token stays attached.
+//   · Within-24h reschedule   → original token is consumed
+//     (forfeited_within_window) and a new token is reserved for
+//     the rescheduled session. Cost = 1 credit, equivalent to
+//     a within-24h cancel + immediate rebook.
+//   · If the student doesn't have a replacement token available,
+//     the within-24h reschedule is REJECTED with 403 — they must
+//     either cancel (forfeit one credit) or wait for a free
+//     reschedule window.
+//
+// This closes the loophole where a student could escape attendance
+// by rescheduling within 24h (no penalty) then cancelling outside
+// the new 24h window (refund) — net zero token cost.
 //
 // Cal.com generates a NEW Zoom meeting on reschedule, so we wipe
 // zoom_meeting_id / zoom_start_url and refresh zoom_join_url from
@@ -21,6 +34,11 @@ import {
   shouldForfeitCredit,
   updateBooking,
 } from "@/lib/supabase/queries/bookings";
+import {
+  assignTokenToBooking,
+  consumeTokenForBooking,
+  getAvailableTokenCount,
+} from "@/lib/supabase/queries/tokens";
 
 interface RescheduleRequest {
   bookingId: string;
@@ -81,6 +99,21 @@ export async function POST(req: NextRequest) {
   const withinWindow = isWithinCancellationWindow(booking.scheduled_start);
   const forfeit = shouldForfeitCredit(booking.plan_tier, withinWindow);
 
+  // Within-window reschedule with credit at stake: must have a
+  // replacement token available before we burn the original.
+  if (withinWindow && forfeit) {
+    const replacementCount = await getAvailableTokenCount(booking.student_id);
+    if (replacementCount < 1) {
+      return NextResponse.json(
+        {
+          error:
+            "Rescheduling within 24 hours costs your current session credit. You'd need another available credit to lock in the new time, but your bank is empty. Cancel the session instead, or reschedule before the 24-hour window opens.",
+        },
+        { status: 403 }
+      );
+    }
+  }
+
   let calResp;
   try {
     calResp = await rescheduleBooking({
@@ -108,6 +141,26 @@ export async function POST(req: NextRequest) {
     zoom_meeting_id: null,
     zoom_start_url: null,
   });
+
+  // Token transition for within-window reschedules: consume the
+  // original (forfeited), then reserve a replacement for the new
+  // booking row. The unique index on (assigned_booking_id) WHERE
+  // active permits a fresh active token alongside the now-consumed
+  // one on the same booking_id.
+  if (withinWindow && forfeit) {
+    try {
+      await consumeTokenForBooking({
+        bookingId: booking.id,
+        reason: "forfeited_within_window",
+      });
+      await assignTokenToBooking({
+        userUuid: booking.student_id,
+        bookingId: booking.id,
+      });
+    } catch (err) {
+      console.error("[api/bookings/reschedule] token transition failed:", err);
+    }
+  }
 
   return NextResponse.json({ booking: updated });
 }
