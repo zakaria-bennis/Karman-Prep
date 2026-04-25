@@ -72,15 +72,28 @@ export async function POST(req: NextRequest) {
 
   // Cancel on Cal first, then update DB. If Cal fails, DB row
   // stays 'scheduled' — surfaces 502 so the caller can retry.
+  // Exception: Cal returns 400 "already cancelled" if the booking
+  // was cancelled out-of-band (Cal native UI, prior attempt that
+  // succeeded on Cal but failed on our DB write). That's the desired
+  // final state — treat as success and let the DB catch up.
   if (booking.cal_booking_uid) {
     try {
       await cancelBooking(booking.cal_booking_uid, body.reason);
     } catch (err) {
       const isAdapter = err instanceof CalAdapterError;
-      console.error("[api/bookings/cancel] cal error:", isAdapter ? err.toString() : err);
-      return NextResponse.json(
-        { error: "Failed to cancel on Cal.com" },
-        { status: 502 }
+      const alreadyCancelled =
+        isAdapter &&
+        err.statusCode === 400 &&
+        JSON.stringify(err.body ?? "").toLowerCase().includes("already");
+      if (!alreadyCancelled) {
+        console.error("[api/bookings/cancel] cal error:", isAdapter ? err.toString() : err);
+        return NextResponse.json(
+          { error: "Failed to cancel on Cal.com" },
+          { status: 502 }
+        );
+      }
+      console.warn(
+        `[api/bookings/cancel] booking ${booking.id} already cancelled on Cal — syncing DB`
       );
     }
   }
