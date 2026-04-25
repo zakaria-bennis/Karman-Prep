@@ -11,6 +11,7 @@ import { UserButton } from "@clerk/nextjs";
 import {
   LayoutDashboard, BookOpen, BarChart3, ClipboardList,
   CreditCard, Menu, X, CalendarClock, Users as UsersIcon,
+  MessageSquare,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -26,6 +27,7 @@ interface NavItem {
 const STUDENT_NAV: NavItem[] = [
   { href: "/dashboard/student",           icon: LayoutDashboard, label: "Dashboard" },
   { href: "/dashboard/student/schedule",  icon: CalendarClock,   label: "Schedule" },
+  { href: "/dashboard/student/chat",      icon: MessageSquare,   label: "Chat" },
   { href: "/learn",                       icon: BookOpen,        label: "Learn" },
   { href: "/diagnostic",                  icon: ClipboardList,   label: "Diagnostic" },
   { href: "/dashboard/student/progress",  icon: BarChart3,       label: "Progress" },
