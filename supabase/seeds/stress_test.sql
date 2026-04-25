@@ -511,5 +511,5 @@ BEGIN
   RAISE NOTICE '║   bookings:               %                  ║', LPAD(b_count::TEXT, 4);
   RAISE NOTICE '╚════════════════════════════════════════════════╝';
   RAISE NOTICE '';
-  RAISE NOTICE 'Cleanup: DELETE FROM users WHERE clerk_id LIKE ''test_stress_%'';';
+  RAISE NOTICE 'Cleanup: DELETE FROM users WHERE clerk_id LIKE ''test_stress_%%'';';
 END $$;
