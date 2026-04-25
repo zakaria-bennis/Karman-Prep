@@ -177,6 +177,10 @@ export async function createBooking(
 /**
  * Cancel a booking by its Cal-assigned UID. The webhook
  * BOOKING_CANCELLED will fire as a side effect.
+ *
+ * Cal v2 rejects the cancel with HTTP 400 if `cancellationReason`
+ * is missing or empty — so always send a non-empty reason, falling
+ * back to a generic label if the caller didn't supply one.
  */
 export async function cancelBooking(
   calBookingUid: string,
@@ -186,7 +190,7 @@ export async function cancelBooking(
     operation: "cancelBooking",
     method: "POST",
     path: `/bookings/${encodeURIComponent(calBookingUid)}/cancel`,
-    body: reason ? { cancellationReason: reason } : {},
+    body: { cancellationReason: reason && reason.trim() ? reason : "Cancelled by user" },
   });
 }
 
