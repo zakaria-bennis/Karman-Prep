@@ -122,8 +122,14 @@ export async function getAvailability(args: {
   dateTo: string;   // ISO date or datetime
   timeZone?: string;
 }): Promise<AvailableSlot[]> {
+  // Verified against the live Cal v2 API on 2026-04-25:
+  // GET /v2/slots/available with cal-api-version=2024-08-13 returns
+  // { status, data: { slots: { "YYYY-MM-DD": [{ time: ISO }, ...] } } }
+  // — only `time` per slot. End is implied by the event-type duration;
+  // we surface end === time so callers that need an end have something
+  // non-undefined to render. Display widgets only use `start`.
   interface CalSlotsResponse {
-    slots?: Record<string, Array<{ start: string; end?: string }>>;
+    slots?: Record<string, Array<{ time: string; start?: string; end?: string }>>;
   }
 
   const data = await callCal<CalSlotsResponse>({
@@ -142,12 +148,9 @@ export async function getAvailability(args: {
   const buckets = data?.slots ?? {};
   for (const date of Object.keys(buckets)) {
     for (const slot of buckets[date] ?? []) {
-      out.push({
-        start: slot.start,
-        // Cal sometimes omits `end` (it's implied by the event-type duration);
-        // callers either pass duration explicitly or treat undefined as "use default".
-        end: slot.end ?? slot.start,
-      });
+      const start = slot.time ?? slot.start;
+      if (!start) continue;
+      out.push({ start, end: slot.end ?? start });
     }
   }
   return out;
