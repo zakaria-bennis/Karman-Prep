@@ -161,33 +161,34 @@ export function UpcomingSession({ booking, tutorName, rescheduleProps }: Upcomin
   }
 
   return (
-    <div className="rounded-2xl bg-white/[0.04] border border-white/10 p-6 backdrop-blur-md">
-      <div className="flex items-start gap-4">
-        <div className="rounded-xl bg-blue-500/15 border border-blue-400/25 p-2.5">
-          <CalendarClock className="w-5 h-5 text-blue-300" />
+    <div className="rounded-xl bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 p-4">
+      <div className="flex items-start gap-3">
+        <div className="rounded-lg bg-blue-500/10 border border-blue-500/20 p-1.5 shrink-0">
+          <CalendarClock className="w-4 h-4 text-blue-500" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+          <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
             Next session
           </p>
-          <p className="mt-1 text-base font-bold text-slate-100">{date}</p>
-          <p className="text-sm text-slate-300">{range}</p>
-          <p className="mt-2 text-sm text-slate-400">
-            with <span className="text-slate-200 font-semibold">{tutorName}</span>
+          <p className="mt-0.5 text-sm font-bold text-slate-900 dark:text-white truncate">
+            {date}
+          </p>
+          <p className="text-xs text-slate-600 dark:text-slate-400">
+            {range} · with <span className="font-semibold text-slate-800 dark:text-slate-200">{tutorName}</span>
           </p>
         </div>
       </div>
 
-      <div className="mt-5 flex flex-wrap gap-2">
+      <div className="mt-3 flex flex-wrap gap-1.5">
         {booking.zoom_join_url ? (
           <a
             href={booking.zoom_join_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-gradient-to-r from-blue-600 via-indigo-500 to-violet-500 text-white font-bold text-sm"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-blue-500 hover:bg-blue-400 text-white font-semibold text-xs"
           >
-            <Video className="w-4 h-4" />
-            Join session
+            <Video className="w-3.5 h-3.5" />
+            Join
           </a>
         ) : null}
 
@@ -198,9 +199,9 @@ export function UpcomingSession({ booking, tutorName, rescheduleProps }: Upcomin
               setError(null);
               setMode("rescheduling");
             }}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border border-white/15 text-slate-200 font-semibold text-sm hover:bg-white/5 disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-xs hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50"
           >
-            <RotateCcw className="w-4 h-4" />
+            <RotateCcw className="w-3.5 h-3.5" />
             Reschedule
           </button>
         ) : null}
@@ -208,20 +209,20 @@ export function UpcomingSession({ booking, tutorName, rescheduleProps }: Upcomin
         <button
           disabled={isPending}
           onClick={onCancel}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border border-rose-400/30 text-rose-200 font-semibold text-sm hover:bg-rose-400/10 disabled:opacity-50"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-rose-300 dark:border-rose-400/30 text-rose-600 dark:text-rose-300 font-semibold text-xs hover:bg-rose-50 dark:hover:bg-rose-400/10 disabled:opacity-50"
         >
-          <X className="w-4 h-4" />
-          {within ? "Cancel (within 24h)" : "Cancel"}
+          <X className="w-3.5 h-3.5" />
+          {within ? "Cancel (24h)" : "Cancel"}
         </button>
       </div>
 
       {!canSelfReschedule && booking.reschedule_count >= 1 ? (
-        <p className="mt-3 text-xs text-slate-500">
-          You've already used your free reschedule for this session.
+        <p className="mt-2 text-[11px] text-slate-500">
+          Free reschedule already used for this session.
         </p>
       ) : null}
 
-      {error ? <p className="mt-3 text-sm text-rose-300">{error}</p> : null}
+      {error ? <p className="mt-2 text-xs text-rose-600 dark:text-rose-400">{error}</p> : null}
     </div>
   );
 }

@@ -10,23 +10,64 @@ import { usePathname } from "next/navigation";
 import { UserButton } from "@clerk/nextjs";
 import {
   LayoutDashboard, BookOpen, BarChart3, ClipboardList,
-  CreditCard, Menu, X
+  CreditCard, Menu, X, CalendarClock, Users as UsersIcon,
+  type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { StrataLogo } from "@/components/shared/StrataLogo";
 
-const NAV_ITEMS = [
-  { href: "/dashboard/student", icon: LayoutDashboard, label: "Dashboard" },
-  { href: "/learn",             icon: BookOpen,        label: "Learn" },
-  { href: "/diagnostic",        icon: ClipboardList,   label: "Diagnostic" },
-  { href: "/dashboard/student/progress", icon: BarChart3, label: "Progress" },
-  { href: "/billing",           icon: CreditCard,      label: "Billing" },
+interface NavItem {
+  href: string;
+  icon: LucideIcon;
+  label: string;
+}
+
+const STUDENT_NAV: NavItem[] = [
+  { href: "/dashboard/student",           icon: LayoutDashboard, label: "Dashboard" },
+  { href: "/dashboard/student/schedule",  icon: CalendarClock,   label: "Schedule" },
+  { href: "/learn",                       icon: BookOpen,        label: "Learn" },
+  { href: "/diagnostic",                  icon: ClipboardList,   label: "Diagnostic" },
+  { href: "/dashboard/student/progress",  icon: BarChart3,       label: "Progress" },
+  { href: "/billing",                     icon: CreditCard,      label: "Billing" },
 ];
+
+const TUTOR_NAV: NavItem[] = [
+  { href: "/tutor",          icon: UsersIcon,     label: "My Students" },
+  { href: "/tutor/schedule", icon: CalendarClock, label: "My Schedule" },
+];
+
+function pickNav(pathname: string): NavItem[] {
+  if (pathname.startsWith("/tutor")) return TUTOR_NAV;
+  return STUDENT_NAV;
+}
+
+function pickHome(pathname: string): string {
+  if (pathname.startsWith("/tutor")) return "/tutor";
+  return "/dashboard/student";
+}
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const navItems = pickNav(pathname);
+  const homeHref = pickHome(pathname);
+
+  // Active item = longest href that's an exact match or a path prefix.
+  // Without this, /tutor/schedule lights up *both* "My Students" (/tutor)
+  // and "My Schedule" (/tutor/schedule) because both prefix-match.
+  const activeHref = (() => {
+    let bestLen = -1;
+    let best = "";
+    for (const { href } of navItems) {
+      const matches = pathname === href || pathname.startsWith(href + "/");
+      if (matches && href.length > bestLen) {
+        best = href;
+        bestLen = href.length;
+      }
+    }
+    return best;
+  })();
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex">
@@ -38,15 +79,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
-        {/* Logo — links to landing page */}
-        <Link href="/" className="flex items-center px-5 h-16 border-b border-slate-200 dark:border-slate-800" aria-label="Strata home">
+        {/* Logo — links the signed-in user to their own home (student
+            dashboard or tutor portal). Marketing landing is reachable
+            through the global nav after sign-out. */}
+        <Link href={homeHref} className="flex items-center px-5 h-16 border-b border-slate-200 dark:border-slate-800" aria-label="Go to your dashboard">
           <StrataLogo size={26} />
         </Link>
 
         {/* Nav items */}
         <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-          {NAV_ITEMS.map(({ href, icon: Icon, label }) => {
-            const active = pathname === href || pathname.startsWith(href + "/");
+          {navItems.map(({ href, icon: Icon, label }) => {
+            const active = href === activeHref;
             return (
               <Link
                 key={href}
@@ -93,7 +136,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           >
             {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
-          <Link href="/" aria-label="Strata home"><StrataLogo size={24} /></Link>
+          <Link href={homeHref} aria-label="Go to your dashboard"><StrataLogo size={24} /></Link>
         </header>
 
         <main className="flex-1 overflow-y-auto">{children}</main>

@@ -123,24 +123,25 @@ export async function getUpcomingBookingForStudent(
   return (data as BookingRow | null) ?? null;
 }
 
-/** Sessions that count against an Elite student's 8-per-month limit:
- *  every booking that's not cancelled, plus cancellations that
- *  forfeited a credit. Reset boundary is the start of the calendar
- *  month in the server's UTC clock. */
-export async function countEliteSessionsThisMonth(studentUuid: string): Promise<number> {
+/** Tutor's bookings, optionally filtered to upcoming/scheduled only.
+ *  Used by /tutor/schedule. Most recent first if !upcomingOnly. */
+export async function getBookingsForTutor(
+  tutorUuid: string,
+  opts?: { upcomingOnly?: boolean }
+): Promise<BookingRow[]> {
   const supabase = createAdminClient();
-  const startOfMonth = new Date();
-  startOfMonth.setUTCDate(1);
-  startOfMonth.setUTCHours(0, 0, 0, 0);
-  const { count, error } = await supabase
-    .from("bookings")
-    .select("id", { count: "exact", head: true })
-    .eq("student_id", studentUuid)
-    .eq("plan_tier", "elite")
-    .gte("scheduled_start", startOfMonth.toISOString())
-    .or("status.neq.cancelled,credit_forfeited.eq.true");
+  let q = supabase.from("bookings").select("*").eq("tutor_id", tutorUuid);
+  if (opts?.upcomingOnly) {
+    q = q
+      .gte("scheduled_start", new Date().toISOString())
+      .eq("status", "scheduled")
+      .order("scheduled_start", { ascending: true });
+  } else {
+    q = q.order("scheduled_start", { ascending: false });
+  }
+  const { data, error } = await q;
   if (error) throw error;
-  return count ?? 0;
+  return ((data as BookingRow[] | null) ?? []);
 }
 
 // ─────────────────────────────────────────────────────────────
