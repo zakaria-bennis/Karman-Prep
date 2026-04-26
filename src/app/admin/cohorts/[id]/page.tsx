@@ -8,6 +8,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
 import { fetchCohortDetail, fetchEligibleStudentsForCohort } from "@/lib/supabase/queries/cohorts";
+import { findChannelsByCohort } from "@/lib/supabase/queries/chat";
 import CohortDetailClient from "./CohortDetailClient";
 
 export const metadata: Metadata = { title: "Admin — Cohort | Strata" };
@@ -22,11 +23,16 @@ export default async function AdminCohortDetailPage({ params, searchParams }: Pa
   const { id } = await params;
   const { tab } = await searchParams;
 
-  const [detail, eligibleStudents] = await Promise.all([
+  const [detail, eligibleStudents, chatChannels] = await Promise.all([
     fetchCohortDetail(id),
     fetchEligibleStudentsForCohort(id),
+    findChannelsByCohort(id),
   ]);
   if (!detail) notFound();
+  // Channels are provisioned when both the cohort_chat and qa rows exist.
+  const chatProvisioned =
+    chatChannels.some((c) => c.channel_type === "cohort_chat") &&
+    chatChannels.some((c) => c.channel_type === "qa");
 
   const activeTab =
     tab === "notes"    ? "notes"    :
@@ -42,7 +48,12 @@ export default async function AdminCohortDetailPage({ params, searchParams }: Pa
         <ChevronLeft className="w-4 h-4" />
         All cohorts
       </Link>
-      <CohortDetailClient detail={detail} activeTab={activeTab} eligibleStudents={eligibleStudents} />
+      <CohortDetailClient
+        detail={detail}
+        activeTab={activeTab}
+        eligibleStudents={eligibleStudents}
+        chatProvisioned={chatProvisioned}
+      />
     </div>
   );
 }

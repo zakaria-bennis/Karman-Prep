@@ -21,6 +21,7 @@ import type {
   CohortStatus,
 } from "@/lib/supabase/queries/cohorts";
 import { actionAddCohortMember, actionRemoveCohortMember } from "./members-actions";
+import { ProvisionChatButton } from "@/components/admin/ProvisionChatButton";
 
 type TabKey = "members" | "notes" | "homework";
 
@@ -28,6 +29,7 @@ interface Props {
   detail: CohortDetail;
   activeTab: TabKey;
   eligibleStudents: EligibleStudentRow[];
+  chatProvisioned: boolean;
 }
 
 const TIER_LABEL: Record<CohortTier, string> = {
@@ -35,7 +37,7 @@ const TIER_LABEL: Record<CohortTier, string> = {
   group: "Seminar",
 };
 
-export default function CohortDetailClient({ detail, activeTab, eligibleStudents }: Props) {
+export default function CohortDetailClient({ detail, activeTab, eligibleStudents, chatProvisioned }: Props) {
   const { cohort, members, tutorNote, homework } = detail;
 
   return (
@@ -66,6 +68,9 @@ export default function CohortDetailClient({ detail, activeTab, eligibleStudents
             {cohort.current_topic}
           </p>
         )}
+        <div className="mt-3">
+          <ProvisionChatButton cohortId={cohort.id} alreadyProvisioned={chatProvisioned} />
+        </div>
       </header>
 
       {/* ── Tab nav ────────────────────────────────────────── */}
