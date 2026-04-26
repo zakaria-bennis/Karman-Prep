@@ -17,13 +17,18 @@ This design means our Slack workspace cost is **flat** (one bot, one workspace) 
    - App name: `Strata`
    - Workspace: pick yours
 3. **OAuth & Permissions** tab → **Scopes** → **Bot Token Scopes** → add:
-   - `channels:manage` — create + archive private channels
-   - `channels:read` — list channels for cohort provisioning
+   - `channels:manage` — create + archive PUBLIC channels
+   - `channels:read` — list public channels
+   - `groups:write` — **REQUIRED** to create + archive private channels (cohort channels are private)
+   - `groups:read` — list private channels (for the lookup-existing flow)
+   - `groups:history` — read message history from private channels (only matters if you wire up the message.channels webhook later)
    - `chat:write` — post + delete messages
    - `pins:write` — pin tutor-highlighted Q&A answers
    - `reactions:write` — future
    - `users:read` — resolve tutor identities in the workspace
    - `users:read.email` — map a tutor's Slack id to their Strata email
+
+   After adding new scopes, Slack will banner-prompt you to **Reinstall to Workspace** at the top of OAuth & Permissions. Reinstall — your bot token value stays the same, the scope set just widens.
 4. **Install to Workspace** at the top of the OAuth page. Authorize.
 5. **Bot User OAuth Token** appears (starts with `xoxb-`) → paste into `.env.local`:
    ```
