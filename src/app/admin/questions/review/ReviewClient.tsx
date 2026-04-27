@@ -1,19 +1,21 @@
 "use client";
 
 // ============================================================
-// ReviewClient — flagged-question triage list with filter bar
-// and per-card Accept / Reject controls. Accept opens a small
-// node-id picker (questions land in the bank with no node;
-// admin assigns one before sending the question live).
+// ReviewClient — two-tab triage page:
+//   · Flagged tab — needs_review questions with the AI-written
+//     flag_reason banner. Filterable by flag_type / domain /
+//     source_pdf.
+//   · Bank tab — OK questions imported with no curriculum node
+//     assigned. Same Accept-with-node-picker + Reject controls.
 //
-// Full inline-modify (mass field editing) is deferred — the
-// admin can always edit a question via /admin/curriculum/[node]
-// once a node has been assigned via Accept.
+// Per-card Accept opens a small node-id picker (questions land
+// in the bank with no node by default; admin assigns one before
+// sending the question live in a specific Learn quiz pool).
 // ============================================================
 
 import { useMemo, useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Check, X, AlertTriangle, ExternalLink, BookOpen } from "lucide-react";
+import { Check, X, AlertTriangle, ExternalLink, BookOpen, Eye } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   actionAcceptFlaggedQuestion,
@@ -22,10 +24,21 @@ import {
 import { getNodes } from "@/data/curriculum";
 import { SAT_DOMAINS, CLUSTER_BY_DOMAIN, type SATDomain } from "@/lib/question-bank/taxonomy";
 import type { QuizQuestionWithChoices } from "@/types/quiz";
+import StudentQuestionPreview from "@/components/admin/StudentQuestionPreview";
+
+type Tab = "flagged" | "bank";
 
 interface Props {
-  questions: QuizQuestionWithChoices[];
+  activeTab: Tab;
+  flagged: QuizQuestionWithChoices[];
+  bank: QuizQuestionWithChoices[];
   sourcePdfs: string[];
+  counts: {
+    flagged: number;
+    bank: number;
+    skip: number;
+    partial_emit: number;
+  };
   activeFilters: {
     flag_type?: "skip" | "partial_emit";
     domain?: string;
@@ -39,11 +52,26 @@ const MATH_DOMAINS = new Set<SATDomain>([
   "algebra", "advanced_math", "geometry", "data_analysis",
 ]);
 
-export default function ReviewClient({ questions, sourcePdfs, activeFilters }: Props) {
+export default function ReviewClient({
+  activeTab,
+  flagged,
+  bank,
+  sourcePdfs,
+  counts,
+  activeFilters,
+}: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [, startTransition] = useTransition();
   const [pendingId, setPendingId] = useState<string | null>(null);
+  const [previewQuestion, setPreviewQuestion] = useState<QuizQuestionWithChoices | null>(null);
+
+  function setTab(tab: Tab) {
+    const params = new URLSearchParams(searchParams);
+    if (tab === "bank") params.set("tab", "bank");
+    else params.delete("tab");
+    router.push(`/admin/questions/review${params.toString() ? `?${params.toString()}` : ""}`);
+  }
 
   function setFilter(key: "flag_type" | "domain" | "source_pdf", value: string) {
     const params = new URLSearchParams(searchParams);
@@ -73,69 +101,140 @@ export default function ReviewClient({ questions, sourcePdfs, activeFilters }: P
     }
   }
 
+  const visibleQuestions = activeTab === "flagged" ? flagged : bank;
+  const showFilters = activeTab === "flagged";
+
   return (
     <>
-      {/* ── Filter bar ──────────────────────────────────────── */}
-      <div className="flex flex-wrap items-center gap-2 mb-5 text-xs">
-        <FilterSelect
-          label="Flag type"
-          value={activeFilters.flag_type ?? ""}
-          options={[
-            { value: "", label: "All flag types" },
-            { value: "partial_emit", label: "Partial emit" },
-            { value: "skip", label: "Skip" },
-          ]}
-          onChange={(v) => setFilter("flag_type", v)}
+      {/* ── Tab toggle ─────────────────────────────────────── */}
+      <div className="flex border-b border-slate-800 mb-5">
+        <TabButton
+          active={activeTab === "flagged"}
+          onClick={() => setTab("flagged")}
+          label="Flagged"
+          count={counts.flagged}
+          tone="amber"
         />
-        <FilterSelect
-          label="Domain"
-          value={activeFilters.domain ?? ""}
-          options={[
-            { value: "", label: "All domains" },
-            ...SAT_DOMAINS.map((d) => ({ value: d, label: CLUSTER_BY_DOMAIN[d] })),
-          ]}
-          onChange={(v) => setFilter("domain", v)}
+        <TabButton
+          active={activeTab === "bank"}
+          onClick={() => setTab("bank")}
+          label="Bank"
+          count={counts.bank}
+          tone="indigo"
         />
-        <FilterSelect
-          label="Source PDF"
-          value={activeFilters.source_pdf ?? ""}
-          options={[
-            { value: "", label: "All PDFs" },
-            ...sourcePdfs.map((p) => ({ value: p, label: p })),
-          ]}
-          onChange={(v) => setFilter("source_pdf", v)}
-        />
-        {(activeFilters.flag_type || activeFilters.domain || activeFilters.source_pdf) && (
-          <button
-            onClick={() => router.push("/admin/questions/review")}
-            className="ml-auto text-slate-500 hover:text-slate-300"
-          >
-            Clear filters
-          </button>
-        )}
       </div>
 
-      {/* ── Cards ──────────────────────────────────────────── */}
-      {questions.length === 0 ? (
-        <div className="rounded-xl border border-slate-800 bg-slate-900/40 px-6 py-12 text-center text-sm text-slate-500">
-          {activeFilters.flag_type || activeFilters.domain || activeFilters.source_pdf
-            ? "No flagged questions match the current filters."
-            : "No flagged questions. The bank is clean."}
+      {/* ── Filter bar (Flagged tab only) ──────────────────── */}
+      {showFilters && (
+        <div className="flex flex-wrap items-center gap-2 mb-5 text-xs">
+          <FilterSelect
+            label="Flag type"
+            value={activeFilters.flag_type ?? ""}
+            options={[
+              { value: "", label: "All flag types" },
+              { value: "partial_emit", label: "Partial emit" },
+              { value: "skip", label: "Skip" },
+            ]}
+            onChange={(v) => setFilter("flag_type", v)}
+          />
+          <FilterSelect
+            label="Domain"
+            value={activeFilters.domain ?? ""}
+            options={[
+              { value: "", label: "All domains" },
+              ...SAT_DOMAINS.map((d) => ({ value: d, label: CLUSTER_BY_DOMAIN[d] })),
+            ]}
+            onChange={(v) => setFilter("domain", v)}
+          />
+          <FilterSelect
+            label="Source PDF"
+            value={activeFilters.source_pdf ?? ""}
+            options={[
+              { value: "", label: "All PDFs" },
+              ...sourcePdfs.map((p) => ({ value: p, label: p })),
+            ]}
+            onChange={(v) => setFilter("source_pdf", v)}
+          />
+          {(activeFilters.flag_type || activeFilters.domain || activeFilters.source_pdf) && (
+            <button
+              onClick={() => router.push("/admin/questions/review")}
+              className="ml-auto text-slate-500 hover:text-slate-300"
+            >
+              Clear filters
+            </button>
+          )}
         </div>
+      )}
+
+      {/* ── Cards ──────────────────────────────────────────── */}
+      {visibleQuestions.length === 0 ? (
+        <EmptyState tab={activeTab} hasFilters={!!(activeFilters.flag_type || activeFilters.domain || activeFilters.source_pdf)} />
       ) : (
         <div className="space-y-4">
-          {questions.map((q) => (
+          {visibleQuestions.map((q) => (
             <QuestionCard
               key={q.id}
               question={q}
               busy={pendingId === q.id}
               onAccept={(nodeId) => handleAccept(q.id, nodeId)}
               onReject={() => handleReject(q.id)}
+              onPreview={() => setPreviewQuestion(q)}
             />
           ))}
         </div>
       )}
+
+      {previewQuestion && (
+        <StudentQuestionPreview
+          question={previewQuestion}
+          onClose={() => setPreviewQuestion(null)}
+        />
+      )}
     </>
+  );
+}
+
+function TabButton({
+  active, onClick, label, count, tone,
+}: {
+  active: boolean;
+  onClick: () => void;
+  label: string;
+  count: number;
+  tone: "amber" | "indigo";
+}) {
+  const accent = tone === "amber" ? "text-amber-300" : "text-indigo-300";
+  return (
+    <button
+      onClick={onClick}
+      className={cn(
+        "px-4 py-2 text-sm font-semibold border-b-2 -mb-px transition-colors",
+        active
+          ? "border-white text-white"
+          : "border-transparent text-slate-500 hover:text-slate-300"
+      )}
+    >
+      {label}
+      <span className={cn("ml-2 text-xs font-mono", active ? accent : "text-slate-600")}>
+        {count}
+      </span>
+    </button>
+  );
+}
+
+function EmptyState({ tab, hasFilters }: { tab: Tab; hasFilters: boolean }) {
+  let copy: string;
+  if (tab === "flagged") {
+    copy = hasFilters
+      ? "No flagged questions match the current filters."
+      : "No flagged questions. Anything the routine emitted as needs_review will land here for triage.";
+  } else {
+    copy = "No questions in the bank. Imported PDF-routine questions land here with no curriculum node assigned — accept one with a node picked to send it live.";
+  }
+  return (
+    <div className="rounded-xl border border-slate-800 bg-slate-900/40 px-6 py-12 text-center text-sm text-slate-500">
+      {copy}
+    </div>
   );
 }
 
@@ -171,11 +270,13 @@ function QuestionCard({
   busy,
   onAccept,
   onReject,
+  onPreview,
 }: {
   question: QuizQuestionWithChoices;
   busy: boolean;
   onAccept: (nodeId: string | null) => void;
   onReject: () => void;
+  onPreview: () => void;
 }) {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [selectedNode, setSelectedNode] = useState<string>("");
@@ -186,16 +287,27 @@ function QuestionCard({
   const candidateNodes = useMemo(() => getNodes(subject), [subject]);
 
   const choices = question.answer_choices.sort((a, b) => a.letter.localeCompare(b.letter));
+  const isFlagged = question.import_status === "needs_review";
 
   return (
     <article className="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
-      {/* ── Flag banner ─────────────────────────────────── */}
+      {/* ── Header banner ─ flag for needs_review, plain meta for bank */}
       <div className="flex items-start gap-2 mb-4 text-xs">
-        <AlertTriangle className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" />
+        {isFlagged ? (
+          <AlertTriangle className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" />
+        ) : (
+          <BookOpen className="w-4 h-4 text-indigo-400 mt-0.5 shrink-0" />
+        )}
         <div className="flex-1">
-          <div className="text-amber-200 font-medium">
-            {question.import_flag_type === "skip" ? "Unsolvable" : "Needs review"} — {question.import_flag_reason}
-          </div>
+          {isFlagged ? (
+            <div className="text-amber-200 font-medium">
+              {question.import_flag_type === "skip" ? "Unsolvable" : "Needs review"} — {question.import_flag_reason}
+            </div>
+          ) : (
+            <div className="text-indigo-200 font-medium">
+              In bank — pick a curriculum node to send this question live in Learn.
+            </div>
+          )}
           <div className="text-slate-500 mt-0.5 flex items-center gap-3 flex-wrap">
             {question.source_pdf && (
               <span>
@@ -278,6 +390,12 @@ function QuestionCard({
 
       {/* ── Actions ─────────────────────────────────────── */}
       <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-800">
+        <button
+          onClick={onPreview}
+          className="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 border border-slate-700 hover:bg-white/5"
+        >
+          <Eye className="w-3 h-3 inline mr-1" /> Preview
+        </button>
         <button
           onClick={onReject}
           disabled={busy}

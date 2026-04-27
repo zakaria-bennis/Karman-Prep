@@ -4,7 +4,7 @@
 
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Inbox } from "lucide-react";
 import { createAdminClient } from "@/lib/supabase/server";
 import { groupNodesForAdmin, SUBJECT_LABELS, nodeAtmosphere, ATMOSPHERE_COLORS } from "@/data/curriculum";
 import { fetchFlaggedQuestions } from "@/lib/supabase/queries/quiz";
@@ -30,6 +30,17 @@ async function fetchQuestionCounts(): Promise<Map<string, number>> {
   return map;
 }
 
+/** Count of questions in the bank — node_id IS NULL and ok. */
+async function fetchBankCount(): Promise<number> {
+  const supabase = createAdminClient();
+  const { count } = await supabase
+    .from("quiz_questions")
+    .select("id", { count: "exact", head: true })
+    .is("node_id", null)
+    .or("import_status.is.null,import_status.eq.ok");
+  return count ?? 0;
+}
+
 interface PageProps {
   searchParams: Promise<{ tab?: string }>;
 }
@@ -39,8 +50,9 @@ export default async function AdminCurriculumPage({ searchParams }: PageProps) {
   const activeTab = tab === "flagged" ? "flagged" : "nodes";
 
   const grouped = groupNodesForAdmin();
-  const [counts, flagged] = await Promise.all([
+  const [counts, bankCount, flagged] = await Promise.all([
     fetchQuestionCounts(),
+    fetchBankCount(),
     activeTab === "flagged" ? fetchFlaggedQuestions() : Promise.resolve([]),
   ]);
 
@@ -61,6 +73,20 @@ export default async function AdminCurriculumPage({ searchParams }: PageProps) {
           Flagged {flagged.length > 0 && <span className="text-rose-400">({flagged.length})</span>}
         </Link>
       </div>
+
+      {/* Bank-count chip — visible only when there are questions waiting */}
+      {bankCount > 0 && activeTab === "nodes" && (
+        <Link
+          href="/admin/questions/review?tab=bank"
+          className="mb-5 inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-indigo-500/30 bg-indigo-500/[0.06] text-xs text-indigo-200 hover:bg-indigo-500/[0.12] transition-colors"
+        >
+          <Inbox className="w-3.5 h-3.5" />
+          <span>
+            <span className="font-semibold">{bankCount} question{bankCount === 1 ? "" : "s"} in bank</span>
+            <span className="text-indigo-300/70"> — click to triage and assign curriculum nodes</span>
+          </span>
+        </Link>
+      )}
 
       {activeTab === "nodes" ? (
         <div className="space-y-10">

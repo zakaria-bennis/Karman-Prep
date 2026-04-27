@@ -11,7 +11,7 @@
 // ============================================================
 
 import { useRef, useState } from "react";
-import { Upload, AlertCircle, FileWarning } from "lucide-react";
+import { Upload, AlertCircle, FileWarning, FileText, Clipboard } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   CSV_HEADERS,
@@ -20,6 +20,8 @@ import {
   ImportResultBanner,
 } from "@/components/admin/BulkImportPanel";
 import { actionBulkImport, type BulkImportRow, type BulkImportResult } from "@/app/admin/actions";
+
+type InputMode = "file" | "paste";
 
 function buildBankTemplate(): string {
   return [
@@ -46,11 +48,32 @@ function buildBankTemplate(): string {
 
 export default function BankImportClient() {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [mode, setMode] = useState<InputMode>("file");
   const [filename, setFilename] = useState<string | null>(null);
+  const [pastedText, setPastedText] = useState("");
   const [preview, setPreview] = useState<BulkImportRow[] | null>(null);
   const [parseError, setParseError] = useState<string | null>(null);
   const [importing, setImporting] = useState(false);
   const [result, setResult] = useState<BulkImportResult | null>(null);
+
+  function parseRows(text: string, isJson: boolean): BulkImportRow[] {
+    let rows: BulkImportRow[];
+    if (isJson) {
+      const data = JSON.parse(text);
+      if (!Array.isArray(data)) throw new Error("JSON must be an array of question objects");
+      rows = data as BulkImportRow[];
+    } else {
+      rows = toBulkRows(parseCsv(text));
+    }
+    if (rows.length === 0) throw new Error("No rows found");
+    const missingDomain = rows.findIndex((r) => !r.domain?.trim());
+    if (missingDomain >= 0) {
+      throw new Error(
+        `Row ${missingDomain + 2} has no \`domain\` value. The bank importer derives subject from domain — every row needs one of the 8 SAT domain slugs.`
+      );
+    }
+    return rows;
+  }
 
   async function handleFile(file: File) {
     setParseError(null);
@@ -58,23 +81,26 @@ export default function BankImportClient() {
     setFilename(file.name);
     const text = await file.text();
     try {
-      let rows: BulkImportRow[];
-      if (file.name.endsWith(".json")) {
-        const data = JSON.parse(text);
-        if (!Array.isArray(data)) throw new Error("JSON must be an array of question objects");
-        rows = data as BulkImportRow[];
-      } else {
-        rows = toBulkRows(parseCsv(text));
-      }
-      if (rows.length === 0) throw new Error("No rows found");
-      // Bank flow needs domain on every row to derive subject.
-      const missingDomain = rows.findIndex((r) => !r.domain?.trim());
-      if (missingDomain >= 0) {
-        throw new Error(
-          `Row ${missingDomain + 2} has no \`domain\` value. The bank importer derives subject from domain — every row needs one of the 8 SAT domain slugs.`
-        );
-      }
-      setPreview(rows);
+      setPreview(parseRows(text, file.name.endsWith(".json")));
+    } catch (err) {
+      setParseError(err instanceof Error ? err.message : "Parse error");
+      setPreview(null);
+    }
+  }
+
+  function handleParsePasted() {
+    setParseError(null);
+    setResult(null);
+    setFilename(null);
+    const text = pastedText.trim();
+    if (!text) {
+      setParseError("Paste a CSV or JSON payload first.");
+      setPreview(null);
+      return;
+    }
+    try {
+      const isJson = text.startsWith("[") || text.startsWith("{");
+      setPreview(parseRows(text, isJson));
     } catch (err) {
       setParseError(err instanceof Error ? err.message : "Parse error");
       setPreview(null);
@@ -88,6 +114,7 @@ export default function BankImportClient() {
       const r = await actionBulkImport(null, null, preview);
       setResult(r);
       setPreview(null);
+      setPastedText("");
       if (fileInputRef.current) fileInputRef.current.value = "";
     } catch (err) {
       setParseError(err instanceof Error ? err.message : "Import failed");
@@ -142,27 +169,65 @@ export default function BankImportClient() {
           </button>
         </div>
 
-        <div className="flex items-center gap-3">
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".csv,.json"
-            className="hidden"
-            onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])}
-          />
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-100 text-sm font-semibold hover:bg-slate-700"
-          >
-            <Upload className="w-3.5 h-3.5" /> Choose file
-          </button>
-          {filename && <span className="text-xs text-slate-500">{filename}</span>}
-          {previewBreakdown && (
-            <span className="text-xs text-slate-500">
-              · {previewBreakdown.ok} ok / {previewBreakdown.flagged} flagged
-            </span>
-          )}
+        {/* ── Mode toggle: file vs paste ───────────────── */}
+        <div className="flex border-b border-slate-800 mb-3 -mx-1">
+          <ModeTab active={mode === "file"} onClick={() => setMode("file")} icon={FileText} label="Choose file" />
+          <ModeTab active={mode === "paste"} onClick={() => setMode("paste")} icon={Clipboard} label="Paste CSV" />
         </div>
+
+        {mode === "file" ? (
+          <div className="flex items-center gap-3">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".csv,.json"
+              className="hidden"
+              onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])}
+            />
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-100 text-sm font-semibold hover:bg-slate-700"
+            >
+              <Upload className="w-3.5 h-3.5" /> Choose file
+            </button>
+            {filename && <span className="text-xs text-slate-500">{filename}</span>}
+            {previewBreakdown && (
+              <span className="text-xs text-slate-500">
+                · {previewBreakdown.ok} ok / {previewBreakdown.flagged} flagged
+              </span>
+            )}
+          </div>
+        ) : (
+          <div>
+            <textarea
+              value={pastedText}
+              onChange={(e) => setPastedText(e.target.value)}
+              placeholder="Paste the CSV here — header row first, then data rows. Or paste a JSON array of question objects."
+              className="w-full min-h-[12rem] max-h-[24rem] px-3 py-2 rounded-lg bg-slate-950/60 border border-slate-700 text-slate-100 text-xs font-mono resize-y focus:outline-none focus:border-indigo-400/60"
+            />
+            <div className="mt-2 flex items-center gap-3">
+              <button
+                onClick={handleParsePasted}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-100 text-sm font-semibold hover:bg-slate-700"
+              >
+                <Clipboard className="w-3.5 h-3.5" /> Parse pasted CSV
+              </button>
+              {pastedText && (
+                <button
+                  onClick={() => { setPastedText(""); setPreview(null); setParseError(null); }}
+                  className="text-xs text-slate-500 hover:text-slate-300"
+                >
+                  Clear
+                </button>
+              )}
+              {previewBreakdown && (
+                <span className="text-xs text-slate-500">
+                  · {previewBreakdown.ok} ok / {previewBreakdown.flagged} flagged
+                </span>
+              )}
+            </div>
+          </div>
+        )}
 
         {parseError && (
           <div className="mt-3 rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-xs text-rose-300 flex items-start gap-2">
@@ -246,5 +311,29 @@ export default function BankImportClient() {
         </span>
       </div>
     </div>
+  );
+}
+
+function ModeTab({
+  active, onClick, icon: Icon, label,
+}: {
+  active: boolean;
+  onClick: () => void;
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={cn(
+        "px-3 py-1.5 text-xs font-semibold border-b-2 -mb-px transition-colors inline-flex items-center gap-1.5",
+        active
+          ? "border-indigo-400 text-white"
+          : "border-transparent text-slate-500 hover:text-slate-300"
+      )}
+    >
+      <Icon className="w-3 h-3" />
+      {label}
+    </button>
   );
 }
