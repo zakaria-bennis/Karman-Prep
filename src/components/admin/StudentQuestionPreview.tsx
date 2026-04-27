@@ -19,6 +19,7 @@
 import { useEffect } from "react";
 import { X } from "lucide-react";
 import type { QuizQuestionWithChoices } from "@/types/quiz";
+import MathText from "@/components/learn/MathText";
 
 interface Props {
   question: QuizQuestionWithChoices;
@@ -111,20 +112,20 @@ function PassageColumn({ question }: { question: QuizQuestionWithChoices }) {
         </p>
       )}
       {question.passage && (
-        <div className="whitespace-pre-wrap">{question.passage}</div>
+        <MathText text={question.passage} className="whitespace-pre-wrap" />
       )}
       {(question.passage_a || question.passage_b) && (
         <div className="space-y-5">
           {question.passage_a && (
             <div>
               <div className="text-xs uppercase tracking-wide text-slate-500 mb-2 not-italic font-sans">Text 1</div>
-              <div className="whitespace-pre-wrap">{question.passage_a}</div>
+              <MathText text={question.passage_a} className="whitespace-pre-wrap" />
             </div>
           )}
           {question.passage_b && (
             <div>
               <div className="text-xs uppercase tracking-wide text-slate-500 mb-2 not-italic font-sans">Text 2</div>
-              <div className="whitespace-pre-wrap">{question.passage_b}</div>
+              <MathText text={question.passage_b} className="whitespace-pre-wrap" />
             </div>
           )}
         </div>
@@ -142,9 +143,19 @@ function PromptColumn({
 }) {
   return (
     <div>
-      <p className="text-slate-100 text-[15px] leading-relaxed mb-5 whitespace-pre-wrap">
-        {question.question_text}
-      </p>
+      <MathText
+        text={question.question_text}
+        className="block text-slate-100 text-[15px] leading-relaxed mb-5 whitespace-pre-wrap"
+      />
+
+      {question.image_url && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={question.image_url}
+          alt={question.image_alt ?? "Question figure"}
+          className="mb-5 max-w-full rounded-lg border border-white/10 bg-white"
+        />
+      )}
 
       {question.answer_format === "multiple_choice" ? (
         <ul className="space-y-2.5">
@@ -160,7 +171,7 @@ function PromptColumn({
               <span className="shrink-0 inline-flex items-center justify-center w-6 h-6 rounded-full border border-white/20 text-xs font-mono">
                 {c.letter}
               </span>
-              <span className="whitespace-pre-wrap">{c.choice_text}</span>
+              <MathText text={c.choice_text} className="whitespace-pre-wrap" />
             </li>
           ))}
         </ul>
@@ -189,7 +200,7 @@ function PromptColumn({
       {question.hint && (
         <details className="mt-4 text-xs text-slate-500">
           <summary className="cursor-pointer hover:text-slate-300">Hint</summary>
-          <p className="mt-1.5 text-slate-400">{question.hint}</p>
+          <MathText text={question.hint} className="mt-1.5 text-slate-400 block" />
         </details>
       )}
     </div>

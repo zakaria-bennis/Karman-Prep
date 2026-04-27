@@ -25,6 +25,7 @@ import { getNodes } from "@/data/curriculum";
 import { SAT_DOMAINS, CLUSTER_BY_DOMAIN, type SATDomain } from "@/lib/question-bank/taxonomy";
 import type { QuizQuestionWithChoices } from "@/types/quiz";
 import StudentQuestionPreview from "@/components/admin/StudentQuestionPreview";
+import MathText from "@/components/learn/MathText";
 
 type Tab = "flagged" | "bank";
 
@@ -350,32 +351,43 @@ function QuestionCard({
         </div>
       )}
 
-      {/* ── Question + choices ──────────────────────────── */}
-      <p className="text-slate-100 font-medium mb-3 whitespace-pre-wrap">{question.question_text}</p>
+      {/* ── Question + image + choices ──────────────────── */}
+      <MathText
+        text={question.question_text}
+        className="block text-slate-100 font-medium mb-3 whitespace-pre-wrap"
+      />
+      {question.image_url && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={question.image_url}
+          alt={question.image_alt ?? "Question figure"}
+          className="mb-3 max-w-full max-h-72 rounded border border-slate-700 bg-white object-contain"
+        />
+      )}
       {question.answer_format === "multiple_choice" ? (
         <ul className="space-y-1.5 mb-4">
           {choices.map((c) => (
             <li
               key={c.id}
               className={cn(
-                "px-3 py-2 rounded border text-sm",
+                "px-3 py-2 rounded border text-sm flex items-start gap-2",
                 c.is_correct
                   ? "border-emerald-500/40 bg-emerald-500/5 text-emerald-100"
                   : "border-slate-800 bg-slate-950/40 text-slate-300"
               )}
             >
-              <span className="font-mono text-xs text-slate-500 mr-2">{c.letter}.</span>
-              {c.choice_text}
-              {c.is_correct && <Check className="w-3.5 h-3.5 inline ml-2 text-emerald-400" />}
+              <span className="font-mono text-xs text-slate-500 shrink-0">{c.letter}.</span>
+              <MathText text={c.choice_text} className="flex-1" />
+              {c.is_correct && <Check className="w-3.5 h-3.5 inline text-emerald-400 shrink-0" />}
             </li>
           ))}
         </ul>
       ) : (
-        <div className="mb-4 px-3 py-2 rounded border border-emerald-500/40 bg-emerald-500/5 text-emerald-100 text-sm">
-          <span className="text-xs uppercase tracking-wide text-emerald-300/70 mr-2">SPR answer:</span>
-          {question.correct_answer}
+        <div className="mb-4 px-3 py-2 rounded border border-emerald-500/40 bg-emerald-500/5 text-emerald-100 text-sm flex items-start gap-2 flex-wrap">
+          <span className="text-xs uppercase tracking-wide text-emerald-300/70">SPR answer:</span>
+          <MathText text={question.correct_answer} />
           {question.numeric_tolerance != null && (
-            <span className="text-slate-500 text-xs ml-2">±{question.numeric_tolerance}</span>
+            <span className="text-slate-500 text-xs">±{question.numeric_tolerance}</span>
           )}
         </div>
       )}
@@ -384,7 +396,7 @@ function QuestionCard({
       {question.explanation_text && (
         <details className="mb-4 text-xs">
           <summary className="cursor-pointer text-slate-400 hover:text-slate-200">Show explanation</summary>
-          <p className="mt-2 text-slate-400 whitespace-pre-wrap">{question.explanation_text}</p>
+          <MathText text={question.explanation_text} className="mt-2 text-slate-400 whitespace-pre-wrap block" />
         </details>
       )}
 

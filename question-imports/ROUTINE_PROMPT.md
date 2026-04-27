@@ -243,6 +243,104 @@ GOOD: "Start by isolating the radical on one side."
 BAD:  "Square both sides to eliminate the radical."
 
 ═══════════════════════════════════════════════════
+KATEX FORMATTING — REQUIRED FOR ALL MATH CONTENT
+═══════════════════════════════════════════════════
+
+Every mathematical expression — anywhere it appears — MUST be
+wrapped in KaTeX delimiters so the Strata renderer displays it
+properly. The student-facing UI uses KaTeX; raw text like
+"11/6" renders as "11/6" instead of as a real fraction.
+
+Apply to:
+  · question_text
+  · choice_a · choice_b · choice_c · choice_d
+  · explanation_text
+  · explanation_a · explanation_b · explanation_c · explanation_d
+  · hint
+  · desmos_strategy
+  · correct_answer (when it's a fraction/expression — SPR rows)
+
+Delimiters:
+  · `$…$` for inline math (most cases)
+  · `$$…$$` for display math (large equations on their own line)
+
+Common patterns:
+
+  fraction               $\dfrac{11}{6}$  or short:  $\tfrac{11}{6}$
+  exponent               $x^2$ · $(1.20)^{x/4}$
+  subscript              $x_1$ · $a_n$
+  square root            $\sqrt{5k+9}$
+  variables              $x$, $y$, $p$, $k$ (always wrap single-letter
+                         math variables in `$…$` so they render in
+                         italic math font, not as plain prose letters)
+  point notation         $(-5, 5)$ · $\left(0, \tfrac{11}{6}\right)$
+  equations              $y = 6x^2 + bx + c$
+  inequalities           $0 \le x \le 10$
+  multiplication         $\cdot$ (NOT `*` or `·` literally) so
+                         $2 \cdot 3 = 6$
+  percent                $44\%$ (escape the percent)
+  big display equation   $$\tfrac{5}{9}x^2 + 9x + \sqrt{5k+9}\,x - \sqrt{5k+9} = 0$$
+
+Examples in choice rows:
+
+  WRONG: "(0, 11/6)"
+  RIGHT: "$\left(0, \tfrac{11}{6}\right)$"
+
+  WRONG: "x = -36"
+  RIGHT: "$x = -36$"
+
+  WRONG: "20"  (when the answer is a numeric percentage)
+  RIGHT: "$20\%$"  or just "20" if context is clear and no formula.
+
+R&W choices that contain no math (e.g. "Put down", "Forget about")
+do NOT need KaTeX wrapping. Apply KaTeX ONLY to actual mathematical
+content. Plain English never gets `$…$`.
+
+CSV escaping note: KaTeX strings often contain backslashes
+(e.g. `\dfrac`, `\sqrt`). Backslashes don't need any special
+CSV escaping — just emit them literally. The dollar signs
+delimiting math also don't need escaping in CSV.
+
+═══════════════════════════════════════════════════
+IMAGES (graphs, charts, tables, diagrams)
+═══════════════════════════════════════════════════
+
+Many SAT questions are unsolvable without an embedded visual
+(parabola graph, scatterplot, geometry diagram, data table).
+The CSV `image_path` column references a PNG file you must
+crop from the source PDF page and bundle into the run output.
+
+For each question whose visual is essential:
+
+  1. Render the source page at a high DPI (e.g.
+     `pdftoppm -r 200 -f <N> -l <N> -png <pdf> page-<N>`).
+  2. Crop the visual region (PIL `Image.crop` or ImageMagick).
+     Auto-trim white margins for compactness.
+  3. Save under `runs/<timestamp>/images/page-<N>.png`.
+  4. Set the row's `image_path` column to `images/page-<N>.png`
+     (relative path within the run directory).
+  5. Set `image_alt` to a 1-2 sentence description of what
+     the figure shows (used for accessibility AND as a fallback
+     if the image fails to load).
+
+If a question has a visual but the routine can't reliably crop
+it (multi-figure pages, ambiguous boundaries), flag the row
+needs_review with `flag_reason = "Requires manual image upload —
+visual present at page <N>"`. Don't ship a math question
+without its essential figure.
+
+The current Strata importer accepts the rows with `image_path`
+and `image_alt` columns; once the tarball ingestion path is
+built (separate work), the user uploads the .tar.gz containing
+both `questions.csv` and the `images/` directory.
+
+For now (until tarball ingestion ships): emit the images to
+the run directory anyway, and ALSO flag every image-bearing
+question as needs_review with the manual-upload reason above.
+That way the admin knows to attach the visual via
+/admin/curriculum/[nodeId] after accepting with a node.
+
+═══════════════════════════════════════════════════
 DESMOS TIPS
 ═══════════════════════════════════════════════════
 
@@ -361,4 +459,9 @@ NEVER
   · Never share passages across rows
   · Never modify PDFs in incoming/ (only move them to done/)
   · Never delete any output file from a previous run
+  · Never emit raw math like "11/6" or "x^2" without KaTeX
+    delimiters — wrap in `$…$` (inline) or `$$…$$` (display)
+  · Never ship a math question whose essential figure is
+    missing — flag needs_review and tell the admin to attach
+    the visual manually until the tarball pipeline ships
 ````
