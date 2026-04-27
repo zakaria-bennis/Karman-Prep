@@ -276,6 +276,58 @@ export default function DiagnosticClient({ questions, isSubscribed }: Props) {
     }
   }
 
+  // Keyboard shortcuts:
+  //   Escape — close calculator / scratchpad (whichever is open).
+  //   Enter  — advance to the next question once an answer is picked
+  //            (mirrors what the on-screen primary button does, so a
+  //            student doesn't have to scroll past the explanation
+  //            on long questions to click "Next Question").
+  // Guards:
+  //   · isEditable — when focus is in an input / textarea / contenteditable
+  //     (e.g. the annotation editor textarea, which has its own Escape
+  //     handler), we leave the key alone so the focused element wins.
+  //   · Modal-open checks for Enter — Enter inside the exit confirm or
+  //     question navigator overlays would feel like the overlay is
+  //     submitting; bail.
+  useEffect(() => {
+    if (scoring) return;
+    function onKey(e: KeyboardEvent) {
+      const target = e.target as HTMLElement | null;
+      const isEditable =
+        target?.tagName === "INPUT" ||
+        target?.tagName === "TEXTAREA" ||
+        target?.isContentEditable === true;
+      if (isEditable) return;
+
+      if (e.key === "Escape") {
+        if (desmosOpen || scratchpadOpen) {
+          e.preventDefault();
+          if (desmosOpen) setDesmosOpen(false);
+          if (scratchpadOpen) setScratchpadOpen(false);
+        }
+        return;
+      }
+
+      if (e.key === "Enter") {
+        if (exitConfirmOpen || navigatorOpen || desmosOpen || scratchpadOpen) return;
+        if (!isAnswered || isSubmitting) return;
+        e.preventDefault();
+        handleNext();
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [
+    scoring,
+    desmosOpen,
+    scratchpadOpen,
+    exitConfirmOpen,
+    navigatorOpen,
+    isAnswered,
+    isSubmitting,
+    handleNext,
+  ]);
+
   if (scoring) {
     return (
       <DiagnosticResults

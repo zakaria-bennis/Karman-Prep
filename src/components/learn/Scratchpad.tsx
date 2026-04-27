@@ -20,20 +20,15 @@ interface Props {
 
 type Tool = "pen" | "eraser";
 
-// 10-color palette — tuned for legibility on the aubergine
-// canvas. Order roughly mirrors the rainbow with neutrals at the
-// ends so muscle-memory feels natural.
+// 5-color palette — soft pastels tuned for the aubergine canvas.
+// White anchors the set; the four pastels carry equal weight so
+// the swatches read as a balanced row.
 const PEN_COLORS: { hex: string; label: string }[] = [
   { hex: "#FFFFFF", label: "White" },
-  { hex: "#F8FAFC", label: "Bone" },
-  { hex: "#FBBF24", label: "Amber" },
-  { hex: "#FB923C", label: "Orange" },
-  { hex: "#F87171", label: "Red" },
-  { hex: "#EC4899", label: "Pink" },
-  { hex: "#A855F7", label: "Violet" },
-  { hex: "#60A5FA", label: "Sky" },
-  { hex: "#34D399", label: "Emerald" },
-  { hex: "#22D3EE", label: "Cyan" },
+  { hex: "#C4B5FD", label: "Lavender" },
+  { hex: "#86EFAC", label: "Pastel green" },
+  { hex: "#93C5FD", label: "Pastel blue" },
+  { hex: "#FDBA74", label: "Pastel orange" },
 ];
 
 // Strata aubergine — almost black, slight purple. Tuned to read
@@ -52,17 +47,47 @@ export default function Scratchpad({ onClose, constraintsRef }: Props) {
   const [paletteOpen, setPaletteOpen] = useState(false);
   const paletteRef = useRef<HTMLDivElement>(null);
 
-  // Handle HiDPI rendering
+  // Sync the canvas bitmap to the layout size at HiDPI. Runs on
+  // every layout change via ResizeObserver — the parent in
+  // DiagnosticClient toggles display:none for persistence, so the
+  // canvas may mount at 0x0 (clientWidth/Height are 0 while
+  // hidden). A one-shot useEffect would lock in a 0x0 bitmap and
+  // strokes would silently no-op. Existing drawing is preserved
+  // across resizes by blitting through an offscreen canvas.
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const dpr = window.devicePixelRatio || 1;
-    const w = canvas.clientWidth;
-    const h = canvas.clientHeight;
-    canvas.width = w * dpr;
-    canvas.height = h * dpr;
-    const ctx = canvas.getContext("2d");
-    if (ctx) ctx.scale(dpr, dpr);
+
+    const sync = () => {
+      const dpr = window.devicePixelRatio || 1;
+      const cssW = canvas.clientWidth;
+      const cssH = canvas.clientHeight;
+      if (cssW === 0 || cssH === 0) return;
+      const targetW = Math.round(cssW * dpr);
+      const targetH = Math.round(cssH * dpr);
+      if (canvas.width === targetW && canvas.height === targetH) return;
+
+      // Snapshot the current bitmap so resize doesn't wipe strokes.
+      let snapshot: HTMLCanvasElement | null = null;
+      if (canvas.width > 0 && canvas.height > 0) {
+        snapshot = document.createElement("canvas");
+        snapshot.width = canvas.width;
+        snapshot.height = canvas.height;
+        snapshot.getContext("2d")?.drawImage(canvas, 0, 0);
+      }
+
+      canvas.width = targetW;
+      canvas.height = targetH;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+      ctx.scale(dpr, dpr);
+      if (snapshot) ctx.drawImage(snapshot, 0, 0, cssW, cssH);
+    };
+
+    sync();
+    const ro = new ResizeObserver(sync);
+    ro.observe(canvas);
+    return () => ro.disconnect();
   }, []);
 
   // Click-outside to close the color palette.
@@ -198,8 +223,8 @@ export default function Scratchpad({ onClose, constraintsRef }: Props) {
             </button>
 
             {paletteOpen && (
-              <div className="absolute right-0 top-9 z-30 rounded-xl border border-white/10 bg-[#0B1026]/95 backdrop-blur-xl shadow-2xl p-2">
-                <div className="grid grid-cols-5 gap-1.5">
+              <div className="absolute right-0 top-9 z-30 rounded-xl border border-white/10 bg-[#0B1026]/95 backdrop-blur-xl shadow-2xl px-3 py-2.5">
+                <div className="flex items-center gap-3">
                   {PEN_COLORS.map((c) => (
                     <button
                       key={c.hex}
@@ -211,7 +236,7 @@ export default function Scratchpad({ onClose, constraintsRef }: Props) {
                       title={c.label}
                       aria-label={`${c.label} pen`}
                       className={cn(
-                        "w-6 h-6 rounded-full border transition-transform",
+                        "w-7 h-7 rounded-full border transition-transform",
                         penColor === c.hex
                           ? "border-white scale-110 ring-2 ring-blue-400/50"
                           : "border-white/20 hover:scale-105"

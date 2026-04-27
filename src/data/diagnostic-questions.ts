@@ -9,10 +9,10 @@
 //     · Problem-Solving/Data · 5
 //     · Geometry & Trig      · 5
 //   Reading & Writing (15q):
-//     · Information & Ideas         · 4
-//     · Craft & Structure           · 4
-//     · Expression of Ideas         · 4
-//     · Standard English Conventions· 3
+//     · Information & Ideas         · 3
+//     · Craft & Structure           · 3
+//     · Expression of Ideas         · 3
+//     · Standard English Conventions· 6
 //
 // Conventions:
 //   · Math expressions use KaTeX `$…$` (inline) and `$$…$$`
@@ -230,25 +230,7 @@ const QUESTION_POOL: DiagnosticQuestion[] = [
   // READING & WRITING (15)
   // ═══════════════════════════════════════════════════════════
 
-  // ─── INFORMATION & IDEAS (4) ────────────────────────────────
-  {
-    id: "info-1",
-    domain: "info_ideas",
-    difficulty: 1,
-    conceptId: "central-idea",
-    passage:
-      "Sea otters are voracious eaters of sea urchins. In coastal regions where otter populations have rebounded, urchin numbers have collapsed and the kelp forests the urchins were grazing have regrown. The recovered kelp now shelters fish, crabs, and seabirds — species that had vanished from the same waters when the kelp was gone.",
-    text: "Which choice best states the main idea of the text?",
-    options: [
-      "A) Sea otters compete with seabirds for food along the coast.",
-      "B) Kelp forests are vital because they shelter many marine species.",
-      "C) The recovery of sea otter populations has driven the recovery of entire kelp-forest ecosystems.",
-      "D) Sea urchins are an invasive species in many coastal regions.",
-    ],
-    correct: "C",
-    explanation:
-      "The text traces a chain — otters return → urchins decline → kelp regrows → other species shelter — and (C) names that whole chain. (B) is true of the text but isn't its main point; (A) and (D) aren't supported.",
-  },
+  // ─── INFORMATION & IDEAS (3) ────────────────────────────────
   {
     id: "info-2",
     domain: "info_ideas",
@@ -293,10 +275,10 @@ const QUESTION_POOL: DiagnosticQuestion[] = [
     difficulty: 3,
     conceptId: "quantitative-evidence",
     passage:
-      "A study of 2,400 high school students reported that those sleeping at least eight hours per night averaged $1{,}230$ on a practice SAT, while those sleeping six hours or fewer averaged $1{,}080$ — a $150$-point gap.",
+      "A study of 2,400 high school students reported that those sleeping at least eight hours per night averaged 1,230 on a practice SAT, while those sleeping six hours or fewer averaged 1,080 — a 150-point gap.",
     text: "Which conclusion does the data most directly support?",
     options: [
-      "A) Sleeping at least eight hours causes a $150$-point increase in SAT performance.",
+      "A) Sleeping at least eight hours causes a 150-point increase in SAT performance.",
       "B) On average, students who slept at least eight hours outperformed those who slept six hours or fewer in the study.",
       "C) Most high-scoring students sleep more than eight hours every night.",
       "D) Students cannot achieve high SAT scores without eight hours of sleep.",
@@ -306,25 +288,7 @@ const QUESTION_POOL: DiagnosticQuestion[] = [
       "The reported data is a difference in averages between two groups. Only (B) restates that without overstating it. (A) confuses correlation with causation; (C) and (D) extend beyond what was measured.",
   },
 
-  // ─── CRAFT & STRUCTURE (4) ──────────────────────────────────
-  {
-    id: "craft-1",
-    domain: "craft_structure",
-    difficulty: 1,
-    conceptId: "words-in-context",
-    passage:
-      "Even her sharpest critics conceded that the senator's address had moved them. Her opponents — who had spent the morning preparing rebuttals — sat in unaccustomed silence as she spoke, and when she finished, the chamber rose in applause. The remarks were, by every measure, ______ the most compelling she had ever given.",
-    text: "Which choice completes the text with the most logical and precise word or phrase?",
-    options: [
-      "A) tedious",
-      "B) ambiguous",
-      "C) routine",
-      "D) compelling",
-    ],
-    correct: "D",
-    explanation:
-      "The clues — opponents are moved, the chamber stands and applauds — describe a strongly persuasive speech. \"Compelling\" matches; \"tedious,\" \"ambiguous,\" and \"routine\" all contradict the response described.",
-  },
+  // ─── CRAFT & STRUCTURE (3) ──────────────────────────────────
   {
     id: "craft-2",
     domain: "craft_structure",
@@ -382,25 +346,7 @@ const QUESTION_POOL: DiagnosticQuestion[] = [
       "Text 2 doesn't dispute that outdoor play is important; it observes that the predicted decline in well-being hasn't shown up in the data. That's principled agreement plus empirical caution — (B).",
   },
 
-  // ─── EXPRESSION OF IDEAS (4) ────────────────────────────────
-  {
-    id: "expr-1",
-    domain: "expression_ideas",
-    difficulty: 1,
-    conceptId: "transitions",
-    passage:
-      "Coastal cities are particularly vulnerable to storm surges from intensifying hurricanes. ______ inland flooding from prolonged rainfall now affects millions of Americans every year, in places far removed from the coastline.",
-    text: "Which choice completes the text with the most logical transition?",
-    options: [
-      "A) For example,",
-      "B) Therefore,",
-      "C) However,",
-      "D) In contrast,",
-    ],
-    correct: "C",
-    explanation:
-      "The first sentence highlights coastal vulnerability; the second pivots to a different threat (inland flooding) facing different places. \"However\" signals that pivot. \"For example\" is wrong (inland flooding isn't an example of a coastal storm surge); \"Therefore\" implies the second follows logically from the first; \"In contrast\" overstates the opposition.",
-  },
+  // ─── EXPRESSION OF IDEAS (3) ────────────────────────────────
   {
     id: "expr-2",
     domain: "expression_ideas",
@@ -456,58 +402,114 @@ const QUESTION_POOL: DiagnosticQuestion[] = [
       "(B) opens with \"Despite\" to make the contrast explicit. (A) just conjoins the ideas without contrast; (C) buries it in a non-restrictive clause; (D) creates a false causation.",
   },
 
-  // ─── STANDARD ENGLISH CONVENTIONS (3) ───────────────────────
+  // ─── STANDARD ENGLISH CONVENTIONS (6) ───────────────────────
   {
     id: "conv-1",
     domain: "conventions",
-    difficulty: 1,
+    difficulty: 2,
     conceptId: "subject-verb-agreement",
     passage:
-      "The collection of antique maps ______ on display in the new wing of the museum until the end of the year.",
+      "Each of the proposals submitted by the regional development committees ______ subject to formal review by the chief engineer before any construction can begin.",
     text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
     options: [
       "A) is",
       "B) are",
-      "C) were",
-      "D) have been",
+      "C) have been",
+      "D) were",
     ],
     correct: "A",
     explanation:
-      "The subject is \"the collection,\" which is singular, so the verb is \"is.\" The other choices treat \"maps\" as the subject, but it's the object of the prepositional phrase \"of antique maps.\"",
+      "The subject is \"Each,\" which is grammatically singular and takes a singular verb. The plural nouns \"proposals\" and \"committees\" sit inside prepositional phrases that modify \"each\" but do not control the verb.",
   },
   {
     id: "conv-2",
     domain: "conventions",
     difficulty: 2,
-    conceptId: "punctuation",
+    conceptId: "pronoun-antecedent-agreement",
     passage:
-      "The library ______ which had been closed for renovations all summer ______ reopened on a rainy Monday in early September.",
+      "Although the orchestra had been together for less than a year, ______ performance of the new symphony on opening night drew sustained applause from every corner of the hall.",
     text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
     options: [
-      "A) , / ,",
-      "B) — / ,",
-      "C) , / —",
-      "D) ; / ;",
+      "A) their",
+      "B) it's",
+      "C) its",
+      "D) there",
     ],
-    correct: "A",
+    correct: "C",
     explanation:
-      "The clause \"which had been closed…\" is a non-restrictive modifier and should be set off with a matching pair of punctuation marks. Two commas (A) is the conventional choice. Mixing dashes and commas (B, C) is incorrect; semicolons (D) cannot bracket a modifier.",
+      "\"The orchestra\" is a collective noun treated as singular in standard American English, so the possessive pronoun must be \"its.\" \"Their\" treats the orchestra as plural; \"it's\" is the contraction of \"it is\"; \"there\" is not a possessive form.",
   },
   {
     id: "conv-3",
     domain: "conventions",
     difficulty: 3,
-    conceptId: "sentence-boundaries",
-    text: "Which choice produces a complete sentence that conforms to the conventions of Standard English?",
+    conceptId: "verb-tense-consistency",
+    passage:
+      "By the time the lighthouse keeper finally spotted the small fishing vessel through the heavy fog, the boat ______ for nearly an hour, its hull battered repeatedly against the rocks at the base of the cliff.",
+    text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
     options: [
-      "A) Although the report had been finished by the deadline.",
-      "B) Although the report had been finished by the deadline, the supervisor asked for revisions.",
-      "C) The report finished by the deadline; the supervisor asked for revisions however.",
-      "D) Finishing the report by the deadline, although the supervisor asked for revisions.",
+      "A) drifts",
+      "B) drifted",
+      "C) had been drifting",
+      "D) has been drifting",
     ],
-    correct: "B",
+    correct: "C",
     explanation:
-      "(A) and (D) are subordinate clauses with no main clause attached — fragments. (C) misuses \"however\" as a coordinating conjunction without proper punctuation. (B) pairs the subordinate \"although\" clause with a complete main clause.",
+      "The drifting began before — and was still going on at — the moment the keeper spotted the boat, so the verb requires the past perfect progressive (\"had been drifting\"). Simple past (B) collapses the time relationship; the present forms in (A) and (D) clash with the past-tense narrative frame.",
+  },
+  {
+    id: "conv-4",
+    domain: "conventions",
+    difficulty: 3,
+    conceptId: "punctuation",
+    passage:
+      "The exhibition celebrates a single overlooked influence on nineteenth-century American landscape ______ the bold compositional asymmetries of Japanese woodblock prints.",
+    text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
+    options: [
+      "A) painting,",
+      "B) painting;",
+      "C) painting:",
+      "D) painting",
+    ],
+    correct: "C",
+    explanation:
+      "What follows the blank is a noun phrase that elaborates on \"a single overlooked influence.\" A colon (C) is the conventional way to introduce an elaboration after a complete independent clause. A semicolon (B) requires an independent clause on each side; a comma (A) under-punctuates the boundary; removing punctuation (D) creates a run-on.",
+  },
+  {
+    id: "conv-5",
+    domain: "conventions",
+    difficulty: 2,
+    conceptId: "sentence-boundaries",
+    passage:
+      "The earthquake struck the coastal village just before ______ residents were jolted awake by what one later described as \"the sound of the entire hillside groaning loose.\"",
+    text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
+    options: [
+      "A) dawn,",
+      "B) dawn",
+      "C) dawn;",
+      "D) dawn, and,",
+    ],
+    correct: "C",
+    explanation:
+      "The two halves of the sentence are independent clauses, each with its own subject and verb. A semicolon (C) is the conventional way to join two independent clauses without a coordinating conjunction. (A) creates a comma splice; (B) is a fused / run-on sentence; (D) misplaces commas around the coordinating conjunction.",
+  },
+  {
+    id: "conv-6",
+    domain: "conventions",
+    difficulty: 3,
+    conceptId: "modifier-placement",
+    passage:
+      "Eager to test the prototype before the upcoming trade show, ______",
+    text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
+    options: [
+      "A) the production version included redesigned bearings and a quieter motor.",
+      "B) redesigned bearings and a quieter motor were installed in the production version.",
+      "C) the engineers worked through the night to install redesigned bearings and a quieter motor.",
+      "D) there were redesigned bearings and a quieter motor in the production version of the device.",
+    ],
+    correct: "C",
+    explanation:
+      "The opening modifier \"Eager to test the prototype before the upcoming trade show\" must attach to a subject that can plausibly be eager — i.e., a person. Only (C) places \"the engineers\" as the subject of the main clause. (A), (B), and (D) leave the modifier dangling, since their subjects (the production version, the bearings and motor, the expletive \"there\") cannot be eager.",
   },
 ];
 
