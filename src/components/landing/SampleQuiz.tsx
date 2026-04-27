@@ -344,7 +344,7 @@ export default function SampleQuiz() {
                   ? "Solid foundation — let's push you to 1400+."
                   : totalScore >= 900
                   ? "There's real room to grow. A full diagnostic will show exactly where."
-                  : "Great that you took the quiz — this is exactly why Strata exists."}
+                  : "Great that you took the quiz — this is exactly why Karman Prep exists."}
               </p>
               <Link href="/auth/sign-up" className="btn-primary w-full text-base py-4">
                 Get My Full Diagnostic — Free

@@ -21,7 +21,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
       <header className="h-14 shrink-0 flex items-center gap-4 px-5 border-b border-slate-800 bg-slate-900/70 backdrop-blur-sm sticky top-0 z-20">
-        <Link href="/" aria-label="Strata home" className="flex items-center">
+        <Link href="/" aria-label="Karman Prep home" className="flex items-center">
           <StrataLogo size={24} />
         </Link>
         <span className="text-slate-700">/</span>

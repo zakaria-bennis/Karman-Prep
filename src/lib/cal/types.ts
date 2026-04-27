@@ -1,7 +1,7 @@
 // ============================================================
 // Cal.com Platform API — TypeScript types
 //
-// Only models the fields Strata actually consumes from Cal's
+// Only models the fields Karman Prep actually consumes from Cal's
 // responses. Cal v2 returns more, but typing what we *use* keeps
 // noise low and avoids drift if Cal adds optional fields.
 // ============================================================
@@ -12,7 +12,7 @@ export type IsoDateTime = string;
 export type BookingPlanTier = "group" | "small_group" | "private" | "elite";
 
 /** Stored on every Cal booking so webhook handlers can resolve it
- *  back to a Strata user + plan tier without a separate lookup. */
+ *  back to a Karman Prep user + plan tier without a separate lookup. */
 export interface BookingMetadata {
   student_id: string; // Clerk user id (text) of the student
   plan_tier: BookingPlanTier;

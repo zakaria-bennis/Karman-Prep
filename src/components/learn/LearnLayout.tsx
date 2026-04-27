@@ -39,7 +39,7 @@ export default function LearnLayout({ children }: { children: React.ReactNode })
             "bg-black/35 border border-white/10 backdrop-blur-md shadow-lg"
           )}
         >
-          <Link href="/" aria-label="Strata home" className="opacity-80 hover:opacity-100 transition-opacity">
+          <Link href="/" aria-label="Karman Prep home" className="opacity-80 hover:opacity-100 transition-opacity">
             <StrataLogoMark size={20} />
           </Link>
           <span className="w-px h-4 bg-white/10" />

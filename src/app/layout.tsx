@@ -25,9 +25,14 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
+  // Resolves relative OG image paths and canonical URLs to the production
+  // domain so social-share previews work in dev and prod.
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_APP_URL ?? "https://karmanprep.com"
+  ),
   title: {
-    default: "Strata — SAT Tutoring That Gets Results",
-    template: "%s | Strata",
+    default: "Karman Prep — SAT Tutoring That Gets Results",
+    template: "%s | Karman Prep",
   },
   description:
     "Personalized SAT prep with expert tutors, adaptive diagnostics, and a score improvement guarantee. Group, private, and elite plans starting at $40/month.",
@@ -36,13 +41,13 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     url: process.env.NEXT_PUBLIC_APP_URL,
-    siteName: "Strata",
-    title: "Strata — SAT Tutoring That Gets Results",
+    siteName: "Karman Prep",
+    title: "Karman Prep — SAT Tutoring That Gets Results",
     description: "Personalized SAT prep with expert tutors, adaptive diagnostics, and a score improvement guarantee.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Strata — SAT Tutoring That Gets Results",
+    title: "Karman Prep — SAT Tutoring That Gets Results",
     description: "Personalized SAT prep. Score improvement guarantee.",
   },
   robots: { index: true, follow: true },
@@ -61,13 +66,13 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       localization={{
         signIn: {
           start: {
-            title: "Log in to Strata",
+            title: "Log in to Karman Prep",
             subtitle: "Welcome back",
           },
         },
         signUp: {
           start: {
-            title: "Create your Strata account",
+            title: "Create your Karman Prep account",
             subtitle: "Start your free trial",
           },
         },

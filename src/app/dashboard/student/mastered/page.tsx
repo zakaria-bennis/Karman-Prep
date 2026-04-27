@@ -9,7 +9,7 @@ import { createAdminClient } from "@/lib/supabase/server";
 import { RW_NODES, MATH_NODES, type CurriculumNode } from "@/data/curriculum";
 import MasteredNodesList from "@/components/dashboard/MasteredNodesList";
 
-export const metadata: Metadata = { title: "Mastered Nodes — Strata" };
+export const metadata: Metadata = { title: "Mastered Nodes — Karman Prep" };
 
 export interface MasteredNodeRow extends CurriculumNode {
   mastered_at: string;

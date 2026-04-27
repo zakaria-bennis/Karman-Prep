@@ -10,7 +10,7 @@ import { groupNodesForAdmin, SUBJECT_LABELS, nodeAtmosphere, ATMOSPHERE_COLORS }
 import { fetchFlaggedQuestions } from "@/lib/supabase/queries/quiz";
 import FlagReviewList from "@/components/admin/FlagReviewList";
 
-export const metadata: Metadata = { title: "Admin — Curriculum | Strata" };
+export const metadata: Metadata = { title: "Admin — Curriculum | Karman Prep" };
 
 async function fetchQuestionCounts(): Promise<Map<string, number>> {
   const supabase = createAdminClient();

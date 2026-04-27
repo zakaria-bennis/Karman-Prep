@@ -18,7 +18,7 @@ import { fetchTutorScope, fetchStudentDashboardRows } from "@/lib/supabase/queri
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import StudentTable from "@/components/tutor/StudentTable";
 
-export const metadata: Metadata = { title: "Tutor Portal — Strata" };
+export const metadata: Metadata = { title: "Tutor Portal — Karman Prep" };
 export const dynamic = "force-dynamic";
 
 export default async function TutorPage() {

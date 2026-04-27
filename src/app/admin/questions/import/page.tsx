@@ -9,7 +9,7 @@ import Link from "next/link";
 import { ChevronRight, Upload } from "lucide-react";
 import BankImportClient from "./BankImportClient";
 
-export const metadata: Metadata = { title: "Admin — Question import | Strata" };
+export const metadata: Metadata = { title: "Admin — Question import | Karman Prep" };
 
 export default function QuestionImportPage() {
   return (

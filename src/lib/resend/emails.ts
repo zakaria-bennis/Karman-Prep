@@ -18,10 +18,10 @@ export async function sendWelcomeEmail({
   return resend.emails.send({
     from: FROM,
     to,
-    subject: "Welcome to Strata — let's boost that score 🚀",
+    subject: "Welcome to Karman Prep — let's boost that score 🚀",
     html: `
       <div style="font-family: Inter, sans-serif; max-width: 600px; margin: auto; padding: 32px;">
-        <h1 style="color: #2563EB;">Welcome to Strata, ${firstName}!</h1>
+        <h1 style="color: #2563EB;">Welcome to Karman Prep, ${firstName}!</h1>
         <p>You're now registered as a <strong>${role}</strong>.</p>
         <p>Here's what to do next:</p>
         <ol>
@@ -34,7 +34,7 @@ export async function sendWelcomeEmail({
           Go to Dashboard
         </a>
         <p style="color:#6B7280;font-size:14px;margin-top:32px;">
-          The Strata Team · <a href="${process.env.NEXT_PUBLIC_APP_URL}">strata.com</a>
+          The Karman Prep Team · <a href="${process.env.NEXT_PUBLIC_APP_URL}">karmanprep.com</a>
         </p>
       </div>
     `,
@@ -54,11 +54,11 @@ export async function sendTrialEndingEmail({
   return resend.emails.send({
     from: FROM,
     to,
-    subject: "Your Strata trial ends in 2 days",
+    subject: "Your Karman Prep trial ends in 2 days",
     html: `
       <div style="font-family: Inter, sans-serif; max-width: 600px; margin: auto; padding: 32px;">
         <h2 style="color: #D97706;">Your free trial ends on ${trialEndDate}</h2>
-        <p>Hi ${firstName}, your 7-day free trial of Strata ends soon.</p>
+        <p>Hi ${firstName}, your 7-day free trial of Karman Prep ends soon.</p>
         <p>To keep your progress and continue your personalized SAT prep, your subscription will auto-activate on ${trialEndDate}.</p>
         <a href="${process.env.NEXT_PUBLIC_APP_URL}/billing"
            style="background:#2563EB;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;display:inline-block;margin-top:16px;">

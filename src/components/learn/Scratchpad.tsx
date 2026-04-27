@@ -3,7 +3,7 @@
 // ============================================================
 // Scratchpad — floating draggable canvas for freehand scratch work.
 //
-// Strata-themed: deep aubergine background (almost-black with a
+// Karman Prep-themed: deep aubergine background (almost-black with a
 // purple tint), white default pen, plus a 10-color palette that
 // pops out of the pen button. Pointer events; no pressure.
 // ============================================================
@@ -31,7 +31,7 @@ const PEN_COLORS: { hex: string; label: string }[] = [
   { hex: "#FDBA74", label: "Pastel orange" },
 ];
 
-// Strata aubergine — almost black, slight purple. Tuned to read
+// Karman Prep aubergine — almost black, slight purple. Tuned to read
 // as a distinct surface against the navy diagnostic shell while
 // still feeling part of the same family.
 const SCRATCHPAD_BG = "#150C24";

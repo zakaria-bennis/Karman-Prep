@@ -10,7 +10,7 @@ import { auth } from "@clerk/nextjs/server";
 import { Users as UsersIcon } from "lucide-react";
 import { createAdminClient } from "@/lib/supabase/server";
 
-export const metadata: Metadata = { title: "Parent Portal — Strata" };
+export const metadata: Metadata = { title: "Parent Portal — Karman Prep" };
 export const dynamic = "force-dynamic";
 
 interface LinkedStudent {
@@ -62,7 +62,7 @@ export default async function ParentDashboardPage() {
           <h1 className="text-2xl font-extrabold text-white">Your students</h1>
           <p className="text-sm text-slate-400 mt-1">
             You can see progress for the student(s) linked to your account.
-            {" "}If someone is missing, ask a Strata admin to add the link.
+            {" "}If someone is missing, ask a Karman Prep admin to add the link.
           </p>
         </header>
 
@@ -71,7 +71,7 @@ export default async function ParentDashboardPage() {
             <UsersIcon className="w-8 h-8 mx-auto text-slate-600 mb-3" />
             <h2 className="text-base font-semibold text-white">No students linked yet</h2>
             <p className="mt-2 text-sm text-slate-400 max-w-md mx-auto">
-              A Strata admin will link your account to your student(s) shortly.
+              A Karman Prep admin will link your account to your student(s) shortly.
               Check back soon, or reach out to support if it&apos;s been more than a day.
             </p>
           </div>

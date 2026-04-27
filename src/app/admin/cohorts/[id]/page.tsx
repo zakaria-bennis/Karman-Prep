@@ -11,7 +11,7 @@ import { fetchCohortDetail, fetchEligibleStudentsForCohort } from "@/lib/supabas
 import { findChannelsByCohort } from "@/lib/supabase/queries/chat";
 import CohortDetailClient from "./CohortDetailClient";
 
-export const metadata: Metadata = { title: "Admin — Cohort | Strata" };
+export const metadata: Metadata = { title: "Admin — Cohort | Karman Prep" };
 export const dynamic = "force-dynamic";
 
 interface PageProps {

@@ -55,7 +55,7 @@ export default async function StudentChatPage() {
   }
 
   const clerkUser = await currentUser();
-  const first = clerkUser?.firstName ?? "Strata";
+  const first = clerkUser?.firstName ?? "Karman Prep";
   const lastInitial = clerkUser?.lastName ? clerkUser.lastName[0].toUpperCase() + "." : "";
   const postingAs = lastInitial ? `${first} ${lastInitial}` : first;
 

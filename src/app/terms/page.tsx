@@ -8,22 +8,22 @@ import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
 
 export const metadata: Metadata = {
-  title: "Terms of Service — Strata SAT Tutoring",
-  description: "Strata's Terms of Service covering subscriptions, sessions, cancellation, the score guarantee, and acceptable use.",
+  title: "Terms of Service — Karman Prep SAT Tutoring",
+  description: "Karman Prep's Terms of Service covering subscriptions, sessions, cancellation, the score guarantee, and acceptable use.",
 };
 
 const SECTIONS = [
   {
     id: "acceptance",
     title: "1. Acceptance of Terms",
-    content: `By creating a Strata account or using the Strata platform (strataSAT.com), you agree to these Terms of Service and our Privacy Policy. If you do not agree, do not use the platform. These terms apply to all users including students, parents, and tutors.`,
+    content: `By creating a Karman Prep account or using the Karman Prep platform (karmanprep.com), you agree to these Terms of Service and our Privacy Policy. If you do not agree, do not use the platform. These terms apply to all users including students, parents, and tutors.`,
   },
   {
     id: "subscriptions",
     title: "2. Subscriptions & Billing",
     content: null,
     list: [
-      "Strata offers monthly and annual subscription plans. All plans begin with a 7-day free trial. You will not be charged during the trial period.",
+      "Karman Prep offers monthly and annual subscription plans. All plans begin with a 7-day free trial. You will not be charged during the trial period.",
       "On day 8 of your trial, your card on file will be automatically charged at the rate of your selected plan. You authorize this recurring charge by entering your payment details.",
       "Monthly subscriptions renew automatically on the same date each month. Annual subscriptions renew on the anniversary of your purchase date.",
       "All prices are in USD and inclusive of applicable taxes where required.",
@@ -35,7 +35,7 @@ const SECTIONS = [
     title: "3. Cancellation",
     content: null,
     list: [
-      "You may cancel your subscription at any time through Account → Billing → Cancel Subscription, or by emailing billing@strataSAT.com.",
+      "You may cancel your subscription at any time through Account → Billing → Cancel Subscription, or by emailing billing@karmanprep.com.",
       "Cancellation stops future billing. You retain full platform access through the end of your current billing period.",
       "Cancellation does not automatically generate a refund for the current billing period. See our Refund Policy for details.",
       "Cancelling during your 7-day trial before day 8 incurs no charge.",
@@ -50,13 +50,13 @@ const SECTIONS = [
       "Late cancellations (under 24 hours) and no-shows count as completed sessions and are not rescheduled without charge.",
       "Three or more no-shows within a single month may result in account review and temporary suspension of session scheduling privileges.",
       "Session recordings: all group sessions are recorded and available to paid subscribers. Private and Elite sessions are not recorded without explicit consent from both the student and tutor.",
-      "Strata reserves the right to substitute an equivalent tutor if your scheduled tutor is unavailable, with advance notice where possible.",
+      "Karman Prep reserves the right to substitute an equivalent tutor if your scheduled tutor is unavailable, with advance notice where possible.",
     ],
   },
   {
     id: "guarantee",
     title: "5. Score Improvement Guarantee",
-    content: `The 50-point score improvement guarantee is subject to full eligibility requirements detailed at strataSAT.com/guarantee. Meeting the eligibility requirements is the student's responsibility. Strata reserves the right to verify claims using official score documentation.`,
+    content: `The 50-point score improvement guarantee is subject to full eligibility requirements detailed at karmanprep.com/guarantee. Meeting the eligibility requirements is the student's responsibility. Karman Prep reserves the right to verify claims using official score documentation.`,
   },
   {
     id: "acceptable-use",
@@ -64,25 +64,25 @@ const SECTIONS = [
     content: null,
     list: [
       "Accounts are for individual use only. Sharing login credentials with others is prohibited and may result in account termination.",
-      "You may not reproduce, distribute, or resell any Strata curriculum, lesson content, or platform materials without written permission.",
-      "You may not record tutoring sessions without the explicit consent of your tutor and Strata.",
-      "Abusive, harassing, or disrespectful behavior toward tutors or Strata staff will result in immediate account termination without refund.",
-      "Strata's platform and content are for lawful educational use only.",
+      "You may not reproduce, distribute, or resell any Karman Prep curriculum, lesson content, or platform materials without written permission.",
+      "You may not record tutoring sessions without the explicit consent of your tutor and Karman Prep.",
+      "Abusive, harassing, or disrespectful behavior toward tutors or Karman Prep staff will result in immediate account termination without refund.",
+      "Karman Prep's platform and content are for lawful educational use only.",
     ],
   },
   {
     id: "intellectual-property",
     title: "7. Intellectual Property",
-    content: `All content on the Strata platform — including lesson videos, diagnostic questions, curriculum materials, graphics, and software — is the exclusive property of Strata or its licensors. Nothing in these Terms grants you ownership or a license to use Strata's intellectual property outside of your personal, non-commercial educational use on the platform.`,
+    content: `All content on the Karman Prep platform — including lesson videos, diagnostic questions, curriculum materials, graphics, and software — is the exclusive property of Karman Prep or its licensors. Nothing in these Terms grants you ownership or a license to use Karman Prep's intellectual property outside of your personal, non-commercial educational use on the platform.`,
   },
   {
     id: "disclaimers",
     title: "8. Disclaimers & Limitation of Liability",
     content: null,
     list: [
-      'Strata provides the platform "as is" and makes no guarantees of specific score outcomes beyond the terms of the 50-point guarantee.',
-      "Strata is not liable for internet connectivity issues, College Board testing irregularities, or student circumstances outside our control that affect test performance.",
-      "To the maximum extent permitted by law, Strata's total liability for any claim is limited to the amount you paid in the preceding 3 months.",
+      'Karman Prep provides the platform "as is" and makes no guarantees of specific score outcomes beyond the terms of the 50-point guarantee.',
+      "Karman Prep is not liable for internet connectivity issues, College Board testing irregularities, or student circumstances outside our control that affect test performance.",
+      "To the maximum extent permitted by law, Karman Prep's total liability for any claim is limited to the amount you paid in the preceding 3 months.",
     ],
   },
   {
@@ -93,12 +93,12 @@ const SECTIONS = [
   {
     id: "changes",
     title: "10. Changes to These Terms",
-    content: `Strata may update these Terms at any time. We will notify you by email at least 14 days before material changes take effect. Continued use of the platform after that date constitutes acceptance of the updated Terms.`,
+    content: `Karman Prep may update these Terms at any time. We will notify you by email at least 14 days before material changes take effect. Continued use of the platform after that date constitutes acceptance of the updated Terms.`,
   },
   {
     id: "contact",
     title: "11. Contact",
-    content: `Questions about these Terms? Email legal@strataSAT.com. We respond within 2 business days.`,
+    content: `Questions about these Terms? Email legal@karmanprep.com. We respond within 2 business days.`,
   },
 ];
 

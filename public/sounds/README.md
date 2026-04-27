@@ -1,4 +1,4 @@
-# Strata — Sound Effects
+# Karman Prep — Sound Effects
 
 Place MP3 files here. All sounds are optional — the app degrades gracefully if files are missing.
 

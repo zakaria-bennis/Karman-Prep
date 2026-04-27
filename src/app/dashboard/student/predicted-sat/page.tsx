@@ -8,7 +8,7 @@ import { redirect } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/server";
 import PredictedSATChart from "@/components/dashboard/PredictedSATChart";
 
-export const metadata: Metadata = { title: "Predicted SAT — Strata" };
+export const metadata: Metadata = { title: "Predicted SAT — Karman Prep" };
 
 export interface WeekPoint {
   weekLabel: string;

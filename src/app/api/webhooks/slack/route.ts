@@ -9,7 +9,7 @@
 //      events directly. Tutors who post in Slack natively are a
 //      future-iteration concern (would need retroactive
 //      moderation + sync to chat_messages); for now those posts
-//      simply don't appear in Strata's UI.
+//      simply don't appear in Karman Prep's UI.
 //
 // Signature verification per Slack docs:
 //   sig = HMAC-SHA256(signing_secret, "v0:" + ts + ":" + raw_body)

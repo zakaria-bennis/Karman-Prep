@@ -16,7 +16,7 @@ import EmailCapture from "@/components/landing/EmailCapture";
 import Footer from "@/components/landing/Footer";
 
 export const metadata: Metadata = {
-  title: "Strata — SAT Tutoring That Gets Results",
+  title: "Karman Prep — SAT Tutoring That Gets Results",
   description:
     "Personalized SAT prep with expert tutors, adaptive diagnostics, and a 50-point score improvement guarantee. Start free today.",
 };

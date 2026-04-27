@@ -31,7 +31,7 @@ import RevenueClient, {
 } from "./RevenueClient";
 import { snapshotRevenueAction } from "./actions";
 
-export const metadata: Metadata = { title: "Admin — Revenue | Strata" };
+export const metadata: Metadata = { title: "Admin — Revenue | Karman Prep" };
 export const dynamic = "force-dynamic";
 
 // Single source of truth for plan economics.

@@ -12,7 +12,7 @@ import { fetchQuestionsForNode } from "@/lib/supabase/queries/quiz";
 import { fetchNodeContent } from "@/lib/supabase/queries/content";
 import NodeTabs from "@/components/admin/NodeTabs";
 
-export const metadata: Metadata = { title: "Edit Node — Strata Admin" };
+export const metadata: Metadata = { title: "Edit Node — Karman Prep Admin" };
 
 interface Params {
   params: Promise<{ nodeId: string }>;

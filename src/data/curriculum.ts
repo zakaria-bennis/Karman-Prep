@@ -1,5 +1,5 @@
 // ============================================================
-// Strata Learn — Curriculum Data (Source of Truth)
+// Karman Prep Learn — Curriculum Data (Source of Truth)
 // ============================================================
 //
 // 📖 NON-DEVELOPER EDITING GUIDE

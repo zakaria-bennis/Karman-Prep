@@ -43,7 +43,7 @@ interface BaseCtx {
   timeZone: string;
 }
 
-const ORGANIZER_EMAIL = process.env.RESEND_FROM_EMAIL || "hello@strata.com";
+const ORGANIZER_EMAIL = process.env.RESEND_FROM_EMAIL || "hello@karmanprep.com";
 
 function formatDate(d: Date, tz: string): string {
   return new Intl.DateTimeFormat("en-US", {
@@ -104,7 +104,7 @@ export async function sendBookingConfirmation(ctx: BaseCtx) {
   return resend.emails.send({
     from: FROM,
     to: recipients(ctx),
-    subject: "Your Strata Session is Confirmed",
+    subject: "Your Karman Prep Session is Confirmed",
     html,
     attachments: [icsAttachment("session.ics", ics)],
   });
@@ -147,7 +147,7 @@ export async function sendBookingCancellation(
   return resend.emails.send({
     from: FROM,
     to: recipients(ctx),
-    subject: "Your Strata Session Has Been Cancelled",
+    subject: "Your Karman Prep Session Has Been Cancelled",
     html,
     attachments: [icsAttachment("cancellation.ics", ics)],
   });
@@ -187,7 +187,7 @@ export async function sendBookingReschedule(ctx: BaseCtx & { oldStart: Date }) {
   return resend.emails.send({
     from: FROM,
     to: recipients(ctx),
-    subject: "Your Strata Session Has Been Rescheduled",
+    subject: "Your Karman Prep Session Has Been Rescheduled",
     html,
     attachments: [icsAttachment("session.ics", ics)],
   });

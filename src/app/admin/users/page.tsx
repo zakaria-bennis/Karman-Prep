@@ -7,7 +7,7 @@ import type { Metadata } from "next";
 import { fetchAdminCohortsLite, fetchAdminUsersList } from "@/lib/supabase/queries/users";
 import UsersClient from "./UsersClient";
 
-export const metadata: Metadata = { title: "Admin — Users | Strata" };
+export const metadata: Metadata = { title: "Admin — Users | Karman Prep" };
 export const dynamic = "force-dynamic";
 
 export default async function AdminUsersPage() {

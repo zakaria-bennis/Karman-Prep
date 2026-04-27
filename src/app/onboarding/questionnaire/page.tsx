@@ -61,7 +61,7 @@ export default async function OnboardingQuestionnairePage() {
   return (
     <div className="relative min-h-screen flex flex-col items-center px-4 py-10 overflow-hidden">
       <AuthBackdrop />
-      <Link href="/" className="mb-8 relative z-10" aria-label="Strata home">
+      <Link href="/" className="mb-8 relative z-10" aria-label="Karman Prep home">
         <StrataLogo size={56} variant="stacked" />
       </Link>
 

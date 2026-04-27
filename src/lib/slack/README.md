@@ -4,7 +4,7 @@ This module owns every direct call to the Slack Web API. Anything that needs to 
 
 ## Architecture: single-bot
 
-Strata uses a **single Slack bot identity** to post every chat message on a student's behalf. Students never log in to Slack and never get Slack identities. Tutors and admins can optionally be added to the workspace as paid members so they can read channels natively; if not, they read everything through Strata's UI.
+Karman Prep uses a **single Slack bot identity** to post every chat message on a student's behalf. Students never log in to Slack and never get Slack identities. Tutors and admins can optionally be added to the workspace as paid members so they can read channels natively; if not, they read everything through Karman Prep's UI.
 
 The bot prefixes each message with the student's display name (`*FirstName L.:* content...`) so attribution is preserved when read in Slack. DMs are stored entirely in Supabase since students have no Slack identity to DM each other with.
 
@@ -14,7 +14,7 @@ This design means our Slack workspace cost is **flat** (one bot, one workspace) 
 
 1. Create a workspace at https://slack.com if you don't have one. The workspace owner manages billing.
 2. Go to https://api.slack.com/apps → **Create New App** → **From Scratch**.
-   - App name: `Strata`
+   - App name: `Karman Prep`
    - Workspace: pick yours
 3. **OAuth & Permissions** tab → **Scopes** → **Bot Token Scopes** → add:
    - `channels:manage` — create + archive PUBLIC channels
@@ -26,7 +26,7 @@ This design means our Slack workspace cost is **flat** (one bot, one workspace) 
    - `pins:write` — pin tutor-highlighted Q&A answers
    - `reactions:write` — future
    - `users:read` — resolve tutor identities in the workspace
-   - `users:read.email` — map a tutor's Slack id to their Strata email
+   - `users:read.email` — map a tutor's Slack id to their Karman Prep email
 
    After adding new scopes, Slack will banner-prompt you to **Reinstall to Workspace** at the top of OAuth & Permissions. Reinstall — your bot token value stays the same, the scope set just widens.
 4. **Install to Workspace** at the top of the OAuth page. Authorize.
@@ -51,7 +51,7 @@ This design means our Slack workspace cost is **flat** (one bot, one workspace) 
 | `createCohortChannel(input)`        | Cohort provisioning route, after Stripe payment clears for a seminar/small-group student. Creates a private channel named `strata-<slug>-{chat\|qa}`. |
 | `postMessage(input)`                | Every successful message send (cohort chat, Q&A question, Q&A answer). The body is `*<displayName>:* <content>` plus image URLs on new lines. |
 | `deleteMessage(channelId, ts)`      | Moderation pipeline when a human reviewer removes a flagged message. Followed by an in-channel "removed for guidelines violation" notice. |
-| `pinMessage(channelId, ts)`         | Tutor pins an answer — surfaces to top of Strata Q&A board AND of the Slack channel.   |
+| `pinMessage(channelId, ts)`         | Tutor pins an answer — surfaces to top of Karman Prep Q&A board AND of the Slack channel.   |
 | `unpinMessage(channelId, ts)`       | Tutor unpins.                                                                          |
 | `archiveChannel(channelId)`         | Cohort marked completed — channel becomes read-only and stops counting against Slack's channel quota. |
 

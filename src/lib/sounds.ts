@@ -1,5 +1,5 @@
 // ============================================================
-// Strata — Sound System (Howler.js wrapper)
+// Karman Prep — Sound System (Howler.js wrapper)
 // All sounds gracefully fail if the file is missing or if
 // the browser blocks audio — sound is an enhancement only.
 //

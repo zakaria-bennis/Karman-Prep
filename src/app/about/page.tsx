@@ -9,9 +9,9 @@ import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
 
 export const metadata: Metadata = {
-  title: "About Strata — SAT Tutoring Built by Tutors",
+  title: "About Karman Prep — SAT Tutoring Built by Tutors",
   description:
-    "Strata was founded by two 99th-percentile tutors who saw firsthand that the best SAT prep was out of reach for most families. We built the platform we wished we'd had.",
+    "Karman Prep was founded by two 99th-percentile tutors who saw firsthand that the best SAT prep was out of reach for most families. We built the platform we wished we'd had.",
 };
 
 const STATS = [
@@ -28,7 +28,7 @@ const FOUNDERS = [
     initials: "ZB",
     gradient: "from-blue-500 to-purple-600",
     credential: "99th percentile SAT · 1,200+ students tutored",
-    bio: "Zakaria built Strata's diagnostic engine and curriculum framework after years of 1-on-1 coaching that consistently produced 200–300+ point improvements. He leads platform development and backend systems.",
+    bio: "Zakaria built Karman Prep's diagnostic engine and curriculum framework after years of 1-on-1 coaching that consistently produced 200–300+ point improvements. He leads platform development and backend systems.",
     focus: "Curriculum design, platform architecture, data & analytics",
   },
   {
@@ -37,7 +37,7 @@ const FOUNDERS = [
     initials: "NK",
     gradient: "from-teal-500 to-blue-600",
     credential: "99th percentile SAT · 1,200+ students tutored",
-    bio: "Nabil specializes in turning math anxiety into real confidence through patient, adaptive instruction. He leads marketing strategy, content production, and the student-facing experience at Strata.",
+    bio: "Nabil specializes in turning math anxiety into real confidence through patient, adaptive instruction. He leads marketing strategy, content production, and the student-facing experience at Karman Prep.",
     focus: "Student experience, content & social media, brand voice",
   },
 ];
@@ -122,7 +122,7 @@ export default function AboutPage() {
               The problem with existing prep companies isn&apos;t that they don&apos;t know how to teach the SAT. It&apos;s that their model isn&apos;t built around the individual student. Kaplan and Princeton Review use generic curricula. Khan Academy is free but offers zero accountability. Independent tutors are excellent but inconsistent — and at $120/hr, most families can&apos;t sustain it.
             </p>
             <p>
-              Strata is built on a different premise: diagnose first, personalize always, and hold both the student and the tutor accountable to real outcomes. The 50-point guarantee isn&apos;t a marketing stunt — it&apos;s the standard we hold ourselves to.
+              Karman Prep is built on a different premise: diagnose first, personalize always, and hold both the student and the tutor accountable to real outcomes. The 50-point guarantee isn&apos;t a marketing stunt — it&apos;s the standard we hold ourselves to.
             </p>
           </div>
         </section>
@@ -135,7 +135,7 @@ export default function AboutPage() {
                 Meet the founders
               </h2>
               <p className="mt-3 text-slate-500 dark:text-slate-400 max-w-xl mx-auto">
-                Two equal partners, complementary strengths. Every major decision at Strata requires both founders to agree.
+                Two equal partners, complementary strengths. Every major decision at Karman Prep requires both founders to agree.
               </p>
             </div>
 
@@ -165,7 +165,7 @@ export default function AboutPage() {
         <section className="max-w-5xl mx-auto px-4 sm:px-6 py-16">
           <div className="text-center mb-12">
             <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white">
-              What makes Strata different
+              What makes Karman Prep different
             </h2>
             <p className="mt-3 text-slate-500 dark:text-slate-400 max-w-xl mx-auto">
               We compete against every category of prep — and we win on every dimension that matters.

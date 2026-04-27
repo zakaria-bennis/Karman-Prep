@@ -11,7 +11,7 @@ import { RW_NODES, MATH_NODES } from "@/data/curriculum";
 import PortalCards from "@/components/learn/PortalCards";
 
 export const metadata: Metadata = {
-  title: "Learn — Strata",
+  title: "Learn — Karman Prep",
   description: "Choose your constellation and start mastering the SAT.",
 };
 

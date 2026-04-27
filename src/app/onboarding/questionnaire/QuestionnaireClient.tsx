@@ -1,7 +1,7 @@
 "use client";
 
 // ============================================================
-// QuestionnaireClient — multi-step intake form, Strata cloud
+// QuestionnaireClient — multi-step intake form, Karman Prep cloud
 // aesthetic. Renders a glass card on top of the auth backdrop.
 //
 // Steps depend on tier:
@@ -620,7 +620,7 @@ function Step_Heard(props: {
 }) {
   return (
     <div className="space-y-3">
-      <Label>How did you hear about Strata?</Label>
+      <Label>How did you hear about Karman Prep?</Label>
       <div className="grid grid-cols-2 gap-2">
         {HEARD_OPTIONS.map((opt) => (
           <button

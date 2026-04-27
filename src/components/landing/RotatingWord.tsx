@@ -2,7 +2,7 @@
 
 // ============================================================
 // RotatingWord — cycles through the brand promise words, each
-// colored from Strata's subject palette. Width animates so the
+// colored from Karman Prep's subject palette. Width animates so the
 // surrounding sentence never jumps.
 //
 // Accessibility: the entire rotation is announced once via an

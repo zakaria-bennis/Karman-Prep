@@ -1,5 +1,5 @@
 // ============================================================
-// Strata — Quiz & Lesson System Types
+// Karman Prep — Quiz & Lesson System Types
 // Mirrors migration 002_lesson_quiz.sql.
 // ============================================================
 

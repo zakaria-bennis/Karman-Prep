@@ -32,7 +32,7 @@ export default function Footer() {
 
           {/* Brand + social */}
           <div className="col-span-2 md:col-span-1">
-            <Link href="/" className="inline-block mb-3" aria-label="Strata home">
+            <Link href="/" className="inline-block mb-3" aria-label="Karman Prep home">
               <StrataLogo size={26} theme="dark" />
             </Link>
             <p className="text-sm leading-relaxed mb-5">
@@ -98,8 +98,8 @@ export default function Footer() {
         </div>
 
         <div className="border-t border-slate-800 pt-8 flex flex-col sm:flex-row justify-between items-center gap-3">
-          <p className="text-sm">© {new Date().getFullYear()} Strata. All rights reserved.</p>
-          <p className="text-xs">SAT® is a registered trademark of College Board, which is not affiliated with Strata.</p>
+          <p className="text-sm">© {new Date().getFullYear()} Karman Prep. All rights reserved.</p>
+          <p className="text-xs">SAT® is a registered trademark of College Board, which is not affiliated with Karman Prep.</p>
         </div>
       </div>
     </footer>

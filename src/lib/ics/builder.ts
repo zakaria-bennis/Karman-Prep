@@ -25,8 +25,8 @@ export type IcsMethod = "REQUEST" | "CANCEL";
 
 export function buildBookingIcs(input: BookingIcsInput, method: IcsMethod): string {
   const cal = ical({
-    name: "Strata SAT Prep",
-    prodId: { company: "Strata", product: "Strata Booking", language: "EN" },
+    name: "Karman Prep SAT Prep",
+    prodId: { company: "Karman Prep", product: "Karman Prep Booking", language: "EN" },
   });
 
   cal.method(method === "CANCEL" ? ICalCalendarMethod.CANCEL : ICalCalendarMethod.REQUEST);
@@ -42,7 +42,7 @@ export function buildBookingIcs(input: BookingIcsInput, method: IcsMethod): stri
     location: input.meetingUrl ?? undefined,
     description: input.meetingUrl ? `Join: ${input.meetingUrl}` : undefined,
     organizer: {
-      name: input.organizerName ?? "Strata",
+      name: input.organizerName ?? "Karman Prep",
       email: input.organizerEmail,
     },
   });

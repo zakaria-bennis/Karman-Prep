@@ -1,7 +1,7 @@
 // ============================================================
 // Shared layout for all React Email templates.
 // Light theme, inline styles, conservative HTML — email clients
-// hate everything fancy. Brand color (Strata blue) only on
+// hate everything fancy. Brand color (Karman Prep blue) only on
 // header + buttons.
 // ============================================================
 
@@ -56,7 +56,7 @@ export function Layout({ preview, children }: LayoutProps) {
           {children}
           <Hr style={{ borderColor: "#e2e8f0", marginTop: 32, marginBottom: 16 }} />
           <Text style={{ color: "#64748b", fontSize: 12, margin: 0 }}>
-            Strata · SAT Tutoring
+            Karman Prep · SAT Tutoring
           </Text>
         </Container>
       </Body>

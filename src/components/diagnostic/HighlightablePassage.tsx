@@ -13,7 +13,7 @@
 //      to the selection.
 //   3. Click "Highlight" → range is added to local state and
 //      the passage re-renders with that span wrapped in a
-//      <mark> element using a Strata-themed semi-transparent
+//      <mark> element using a Karman Prep-themed semi-transparent
 //      blue (readable, low-saturation, dark-mode safe).
 //   4. Click an existing highlight → opens a popover with
 //      "Annotate", "Remove" and (if annotated) the saved note.
@@ -47,7 +47,7 @@ export interface PassageHighlight {
   colorIdx?: number;
 }
 
-// Strata-friendly highlight palette — saturated enough to pop on
+// Karman Prep-friendly highlight palette — saturated enough to pop on
 // the dark surface but transparent enough to keep the prose
 // underneath legible. Each entry pairs a fill (rgba) with a
 // hover variant (slightly punchier).

@@ -211,7 +211,7 @@ export function CohortChat({
         setSendError(
           rejectionCopy ??
             body.error ??
-            "This message breaches Strata's terms of use and was not sent."
+            "This message breaches Karman Prep's terms of use and was not sent."
         );
         return;
       }
@@ -408,7 +408,7 @@ export function CohortChat({
   );
 }
 
-// Strata "cloud chat" bubble. Self messages right-aligned in a
+// Karman Prep "cloud chat" bubble. Self messages right-aligned in a
 // blue→indigo gradient that matches the site's CTA family.
 // Others' messages left-aligned in the same glass-card surface
 // used across the dashboard (white/[0.06] + border white/10 +

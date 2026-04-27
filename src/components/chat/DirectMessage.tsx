@@ -181,7 +181,7 @@ export function DirectMessage({
         setSendError(
           rejectionCopy ??
             body.error ??
-            "This message breaches Strata's terms of use and was not sent."
+            "This message breaches Karman Prep's terms of use and was not sent."
         );
         return;
       }

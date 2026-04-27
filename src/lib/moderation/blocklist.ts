@@ -28,7 +28,7 @@
 /** Whole-word literal matches. Compared case-insensitively. */
 export const BLOCKED_TERMS: readonly string[] = [
   // ─── Profanity / harassment intensifiers ──────────────────
-  // Aggressive list — Strata's audience is 14-18 and parent-
+  // Aggressive list — Karman Prep's audience is 14-18 and parent-
   // visible. Better to over-block + let students rephrase
   // than under-block and have a parent see a slur in chat.
   "fuck",

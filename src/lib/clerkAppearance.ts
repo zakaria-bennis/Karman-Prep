@@ -1,5 +1,5 @@
 // ============================================================
-// Clerk theme — Strata brand skin.
+// Clerk theme — Karman Prep brand skin.
 // Applied globally via <ClerkProvider appearance={strataClerkAppearance} />
 // so every Clerk surface (sign-in, sign-up, UserProfile, UserButton
 // dropdown, invitations) inherits the same dark brand look.

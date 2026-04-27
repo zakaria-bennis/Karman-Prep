@@ -5,7 +5,7 @@
 //
 // Architecture: single-bot model (see project_slack_chat.md).
 // One Slack bot identity authenticated by SLACK_BOT_TOKEN posts
-// every Strata student message. Display names are prefixed in
+// every Karman Prep student message. Display names are prefixed in
 // the message body so attribution is preserved when tutors or
 // admins read a channel natively in Slack.
 //
@@ -75,7 +75,7 @@ function sanitizeChannelName(raw: string): string {
 }
 
 /** Compose the actual Slack channel name from a cohort slug + type.
- *  Pattern:  strata-<slug>-{chat|qa}. Strata UI displays the cohort's
+ *  Pattern:  strata-<slug>-{chat|qa}. Karman Prep UI displays the cohort's
  *  human-friendly name (chat_channels.display_name) — never this slug. */
 function composeChannelName(input: CreateChannelInput): string {
   const slug = sanitizeChannelName(input.cohortSlug);
@@ -157,7 +157,7 @@ export async function deleteMessage(channelId: string, ts: string): Promise<void
 }
 
 /** Pin a message in a channel — used for tutor-highlighted Q&A
- *  answers so they surface to the top in Strata's UI and in Slack. */
+ *  answers so they surface to the top in Karman Prep's UI and in Slack. */
 export async function pinMessage(channelId: string, ts: string): Promise<void> {
   const startedAt = logCall("pinMessage", { channel: channelId, ts });
   try {

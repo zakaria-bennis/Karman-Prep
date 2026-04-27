@@ -12,7 +12,7 @@ import {
 } from "@/lib/supabase/queries/cohorts";
 import CohortsClient from "./CohortsClient";
 
-export const metadata: Metadata = { title: "Admin — Cohorts | Strata" };
+export const metadata: Metadata = { title: "Admin — Cohorts | Karman Prep" };
 
 // Don't cache — admins will be creating cohorts and expect to see them
 // immediately on return to the list.
