@@ -31,7 +31,7 @@ export default async function NodeEditorPage({ params, searchParams }: Params) {
   if (!node) notFound();
 
   const [questions, content] = await Promise.all([
-    fetchQuestionsForNode(nodeId),
+    fetchQuestionsForNode(nodeId, { includeFlagged: true }),
     fetchNodeContent(nodeId),
   ]);
 

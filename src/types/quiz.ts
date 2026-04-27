@@ -33,9 +33,16 @@ export interface AnswerChoice {
   is_correct: boolean;
 }
 
+export type ImportStatus = "ok" | "needs_review";
+export type ImportFlagType = "skip" | "partial_emit";
+export type AnswerSource = "extracted" | "inferred" | "hand_corrected";
+
 export interface QuizQuestion {
   id: string;
-  node_id: string;
+  /** Curriculum node this question is tied to. NULL for PDF-imported
+   *  questions that live in the bank until an admin routes them via
+   *  the Question Review UI. */
+  node_id: string | null;
   question_text: string;
   question_type: QuizQuestionType;
   difficulty: QuizDifficulty;                // legacy — kept for back-compat display
@@ -57,6 +64,31 @@ export interface QuizQuestion {
   updated_at: string;
   is_flagged: boolean;
   flag_count: number;
+
+  // ── Ingestion fields (migration 020) ───────────────────────
+  /** Italic source attribution shown above literature passages. */
+  passage_intro: string | null;
+  /** Single-passage R&W content. */
+  passage: string | null;
+  /** First passage for cross-text-connection (paired) questions. */
+  passage_a: string | null;
+  /** Second passage for cross-text-connection (paired) questions. */
+  passage_b: string | null;
+  /** One of the 8 SAT domain slugs (see lib/question-bank/taxonomy.ts). */
+  domain: string | null;
+  /** One of the 72 SAT concept slugs (see lib/question-bank/taxonomy.ts). */
+  concept_slug: string | null;
+  /** Whether the answer was extracted from the key, inferred, or hand-corrected. */
+  answer_source: AnswerSource | null;
+  /** Filename of the source PDF (e.g., "official-sat-practice-test-1.pdf"). */
+  source_pdf: string | null;
+  source_page: number | null;
+  /** SHA-1 of normalized question_text + choices — the dedupe key. */
+  content_hash: string | null;
+  /** "needs_review" hides the question from students until accepted in /admin/questions/review. */
+  import_status: ImportStatus | null;
+  import_flag_type: ImportFlagType | null;
+  import_flag_reason: string | null;
 }
 
 /** Admin-supplied overrides for a node's textbook + video.

@@ -6,7 +6,7 @@ import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { UserButton } from "@clerk/nextjs";
-import { Settings, BookOpen, Flag, Users, UserCog, DollarSign } from "lucide-react";
+import { Settings, BookOpen, Flag, Users, UserCog, DollarSign, ClipboardCheck, Upload } from "lucide-react";
 import { fetchUserRole } from "@/lib/supabase/queries/admin";
 import { StrataLogo } from "@/components/shared/StrataLogo";
 import ImpersonationMenu from "@/components/admin/ImpersonationMenu";
@@ -31,6 +31,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         </div>
         <nav className="ml-6 flex items-center gap-1 text-sm">
           <AdminNavLink href="/admin/curriculum" icon={BookOpen} label="Curriculum" />
+          <AdminNavLink href="/admin/questions/import" icon={Upload} label="Import" />
+          <AdminNavLink href="/admin/questions/review" icon={ClipboardCheck} label="Review" />
           <AdminNavLink href="/admin/cohorts" icon={Users} label="Cohorts" />
           <AdminNavLink href="/admin/users" icon={UserCog} label="Users" />
           <AdminNavLink href="/admin/revenue" icon={DollarSign} label="Revenue" />

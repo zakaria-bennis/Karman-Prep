@@ -124,7 +124,7 @@ export default function FlagReviewList({ flagged }: Props) {
                 question={q}
                 onSave={async (patch) => {
                   try {
-                    await actionUpdateQuestion(q.id, patch, q.node_id);
+                    await actionUpdateQuestion(q.id, patch, q.node_id ?? "");
                     setEditingId(null);
                   } catch (err) {
                     console.error(err);

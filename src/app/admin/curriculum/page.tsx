@@ -14,11 +14,18 @@ export const metadata: Metadata = { title: "Admin — Curriculum | Strata" };
 
 async function fetchQuestionCounts(): Promise<Map<string, number>> {
   const supabase = createAdminClient();
-  const { data } = await supabase.from("quiz_questions").select("node_id");
+  // Count live questions only — needs_review (flagged) questions
+  // aren't being served, so showing them in the per-node count
+  // misleads the curriculum browser.
+  const { data } = await supabase
+    .from("quiz_questions")
+    .select("node_id")
+    .not("node_id", "is", null)
+    .or("import_status.is.null,import_status.eq.ok");
   const map = new Map<string, number>();
   for (const r of data ?? []) {
-    const n = (r as { node_id: string }).node_id;
-    map.set(n, (map.get(n) ?? 0) + 1);
+    const n = (r as { node_id: string | null }).node_id;
+    if (n) map.set(n, (map.get(n) ?? 0) + 1);
   }
   return map;
 }

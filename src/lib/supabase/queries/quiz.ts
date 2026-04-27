@@ -14,21 +14,40 @@ import type {
   QuestionResponse,
   AdaptiveStep,
   AnswerLetter,
+  AnswerSource,
+  ImportFlagType,
+  ImportStatus,
   QuizDifficulty,
   ConfidenceBand,
   FlaggedQuestion,
 } from "@/types/quiz";
 
+// ── Live-question filter ─────────────────────────────────────
+// PDF-imported questions land with import_status = 'needs_review'
+// and must be hidden from students until an admin accepts them
+// in /admin/questions/review. Existing rows pre-migration-020 have
+// import_status = NULL, which also counts as live.
+//
+// supabase-js .or() syntax: comma-separated PostgREST clauses.
+const LIVE_FILTER = "import_status.is.null,import_status.eq.ok";
+
 // ── Question catalog ──────────────────────────────────────────
 
+/** Fetch questions for a curriculum node.
+ *  Defaults to live-only (hides `needs_review` flagged questions).
+ *  Pass `{ includeFlagged: true }` from admin contexts that need
+ *  to see everything. */
 export async function fetchQuestionsForNode(
-  nodeId: string
+  nodeId: string,
+  opts: { includeFlagged?: boolean } = {}
 ): Promise<QuizQuestionWithChoices[]> {
   const supabase = createAdminClient();
-  const { data, error } = await supabase
+  let query = supabase
     .from("quiz_questions")
     .select("*, answer_choices(*)")
-    .eq("node_id", nodeId)
+    .eq("node_id", nodeId);
+  if (!opts.includeFlagged) query = query.or(LIVE_FILTER);
+  const { data, error } = await query
     .order("display_order", { ascending: true })
     .order("difficulty", { ascending: true });
   if (error) throw error;
@@ -47,7 +66,9 @@ export async function fetchAllQuestionsForAdmin(): Promise<QuizQuestionWithChoic
 }
 
 export interface NewQuestionInput {
-  node_id: string;
+  /** Null for PDF-imported questions that live in the bank
+   *  until an admin assigns a node in /admin/questions/review. */
+  node_id: string | null;
   question_text: string;
   question_type: QuizQuestion["question_type"];
   difficulty: QuizDifficulty;
@@ -63,10 +84,51 @@ export interface NewQuestionInput {
   desmos_strategy: string | null;
   choices: { letter: AnswerLetter; choice_text: string }[];  // ignored when answer_format = 'numeric_entry'
   display_order?: number;
+
+  // ── Ingestion fields (migration 020) ───────────────────────
+  passage_intro?: string | null;
+  passage?: string | null;
+  passage_a?: string | null;
+  passage_b?: string | null;
+  domain?: string | null;
+  concept_slug?: string | null;
+  answer_source?: AnswerSource | null;
+  source_pdf?: string | null;
+  source_page?: number | null;
+  content_hash?: string | null;
+  import_status?: ImportStatus | null;
+  import_flag_type?: ImportFlagType | null;
+  import_flag_reason?: string | null;
 }
 
-export async function insertQuestion(input: NewQuestionInput): Promise<QuizQuestionWithChoices> {
+export interface InsertQuestionResult {
+  question: QuizQuestionWithChoices;
+  /** True when (source_pdf, content_hash) already existed and the
+   *  insert was skipped per the spec's "silently skip on conflict"
+   *  decision. The returned `question` is the existing row. */
+  duplicateSkipped: boolean;
+}
+
+export async function insertQuestion(input: NewQuestionInput): Promise<InsertQuestionResult> {
   const supabase = createAdminClient();
+
+  // ── Idempotent re-import: when both source_pdf and content_hash
+  //    are set, look up an existing row first and bail silently
+  //    if found. The unique index in migration 020 also enforces
+  //    this at the DB level — this lookup just lets us return the
+  //    existing row instead of catching a duplicate-key error.
+  if (input.source_pdf && input.content_hash) {
+    const { data: existing, error: dupErr } = await supabase
+      .from("quiz_questions")
+      .select("*, answer_choices(*)")
+      .eq("source_pdf", input.source_pdf)
+      .eq("content_hash", input.content_hash)
+      .maybeSingle();
+    if (dupErr) throw dupErr;
+    if (existing) {
+      return { question: existing as QuizQuestionWithChoices, duplicateSkipped: true };
+    }
+  }
 
   const { data: question, error: qErr } = await supabase
     .from("quiz_questions")
@@ -86,6 +148,19 @@ export async function insertQuestion(input: NewQuestionInput): Promise<QuizQuest
       topic_cluster: input.topic_cluster,
       desmos_strategy: input.desmos_strategy,
       display_order: input.display_order ?? 0,
+      passage_intro: input.passage_intro ?? null,
+      passage: input.passage ?? null,
+      passage_a: input.passage_a ?? null,
+      passage_b: input.passage_b ?? null,
+      domain: input.domain ?? null,
+      concept_slug: input.concept_slug ?? null,
+      answer_source: input.answer_source ?? null,
+      source_pdf: input.source_pdf ?? null,
+      source_page: input.source_page ?? null,
+      content_hash: input.content_hash ?? null,
+      import_status: input.import_status ?? null,
+      import_flag_type: input.import_flag_type ?? null,
+      import_flag_reason: input.import_flag_reason ?? null,
     })
     .select()
     .single();
@@ -111,7 +186,10 @@ export async function insertQuestion(input: NewQuestionInput): Promise<QuizQuest
     choices = (chData ?? []) as AnswerChoice[];
   }
 
-  return { ...(question as QuizQuestion), answer_choices: choices };
+  return {
+    question: { ...(question as QuizQuestion), answer_choices: choices },
+    duplicateSkipped: false,
+  };
 }
 
 export async function updateQuestionDifficulty(
@@ -167,6 +245,83 @@ export async function reorderQuestions(orderedIds: string[]): Promise<void> {
 export async function deleteQuestion(questionId: string): Promise<void> {
   const supabase = createAdminClient();
   const { error } = await supabase.from("quiz_questions").delete().eq("id", questionId);
+  if (error) throw error;
+}
+
+// ── Ingestion-flow selectors (for /admin/questions/review) ──
+
+export interface QuestionReviewFilter {
+  flag_type?: ImportFlagType;
+  domain?: string;
+  source_pdf?: string;
+}
+
+/** All questions whose import_status = 'needs_review', filterable by
+ *  flag_type / domain / source_pdf. Powers /admin/questions/review. */
+export async function selectQuestionsNeedingReview(
+  filter: QuestionReviewFilter = {}
+): Promise<QuizQuestionWithChoices[]> {
+  const supabase = createAdminClient();
+  let q = supabase
+    .from("quiz_questions")
+    .select("*, answer_choices(*)")
+    .eq("import_status", "needs_review");
+  if (filter.flag_type)  q = q.eq("import_flag_type", filter.flag_type);
+  if (filter.domain)     q = q.eq("domain", filter.domain);
+  if (filter.source_pdf) q = q.eq("source_pdf", filter.source_pdf);
+  const { data, error } = await q.order("created_at", { ascending: false });
+  if (error) throw error;
+  return (data ?? []) as QuizQuestionWithChoices[];
+}
+
+/** Distinct list of source_pdf values currently in needs_review.
+ *  Powers the PDF dropdown in /admin/questions/review. */
+export async function selectNeedsReviewSourcePdfs(): Promise<string[]> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("quiz_questions")
+    .select("source_pdf")
+    .eq("import_status", "needs_review")
+    .not("source_pdf", "is", null);
+  if (error) throw error;
+  const set = new Set<string>();
+  for (const r of (data ?? []) as { source_pdf: string }[]) set.add(r.source_pdf);
+  return [...set].sort();
+}
+
+/** Live bank questions with no node_id assigned. Admin uses these
+ *  in the Review UI to pick a node before sending the question live
+ *  in a specific Learn quiz pool. */
+export async function selectBankQuestions(): Promise<QuizQuestionWithChoices[]> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("quiz_questions")
+    .select("*, answer_choices(*)")
+    .is("node_id", null)
+    .or(LIVE_FILTER)
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return (data ?? []) as QuizQuestionWithChoices[];
+}
+
+/** Accept a flagged question — flips it to live and clears flag fields.
+ *  Optionally assigns a node_id at the same time. */
+export async function acceptFlaggedQuestion(
+  questionId: string,
+  opts: { nodeId?: string | null } = {}
+): Promise<void> {
+  const supabase = createAdminClient();
+  const patch: Record<string, unknown> = {
+    import_status: "ok",
+    import_flag_type: null,
+    import_flag_reason: null,
+    updated_at: new Date().toISOString(),
+  };
+  if (opts.nodeId !== undefined) patch.node_id = opts.nodeId;
+  const { error } = await supabase
+    .from("quiz_questions")
+    .update(patch)
+    .eq("id", questionId);
   if (error) throw error;
 }
 

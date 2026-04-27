@@ -37,3 +37,13 @@ next-env.d.ts
 
 # Claude Code (local scratchpad, worktrees, session state)
 .claude/
+
+# PDF-ingestion routine — keep folder structure + README/prompt
+# in repo, ignore everything else (PDFs, run outputs). The
+# .gitkeep file in each subdir preserves the directory.
+/question-imports/incoming/*
+!/question-imports/incoming/.gitkeep
+/question-imports/done/*
+!/question-imports/done/.gitkeep
+/question-imports/runs/*
+!/question-imports/runs/.gitkeep

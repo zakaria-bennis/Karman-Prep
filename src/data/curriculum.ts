@@ -150,16 +150,16 @@ const T3_YMIN = -0.84, T3_YMAX = -0.22;   // top of lobe
 
 // Reading & Writing — left lobe
 const rwPos: [number, number][] = [
-  ...distributeInLobe(L_READ.cx, LOBE_CY, LOBE_RX, LOBE_RY, T1_YMIN, T1_YMAX, 15, 11),
-  ...distributeInLobe(L_READ.cx, LOBE_CY, LOBE_RX, LOBE_RY, T2_YMIN, T2_YMAX, 20, 47),
-  ...distributeInLobe(L_READ.cx, LOBE_CY, LOBE_RX, LOBE_RY, T3_YMIN, T3_YMAX, 15, 83),
+  ...distributeInLobe(L_READ.cx, LOBE_CY, LOBE_RX, LOBE_RY, T1_YMIN, T1_YMAX, 20, 11),
+  ...distributeInLobe(L_READ.cx, LOBE_CY, LOBE_RX, LOBE_RY, T2_YMIN, T2_YMAX, 17, 47),
+  ...distributeInLobe(L_READ.cx, LOBE_CY, LOBE_RX, LOBE_RY, T3_YMIN, T3_YMAX, 12, 83),
 ];
 
 // Math — right lobe
 const mathPos: [number, number][] = [
-  ...distributeInLobe(L_MATH.cx, LOBE_CY, LOBE_RX, LOBE_RY, T1_YMIN, T1_YMAX, 15, 113),
-  ...distributeInLobe(L_MATH.cx, LOBE_CY, LOBE_RX, LOBE_RY, T2_YMIN, T2_YMAX, 20, 151),
-  ...distributeInLobe(L_MATH.cx, LOBE_CY, LOBE_RX, LOBE_RY, T3_YMIN, T3_YMAX, 15, 193),
+  ...distributeInLobe(L_MATH.cx, LOBE_CY, LOBE_RX, LOBE_RY, T1_YMIN, T1_YMAX, 13, 113),
+  ...distributeInLobe(L_MATH.cx, LOBE_CY, LOBE_RX, LOBE_RY, T2_YMIN, T2_YMAX, 19, 151),
+  ...distributeInLobe(L_MATH.cx, LOBE_CY, LOBE_RX, LOBE_RY, T3_YMIN, T3_YMAX, 8, 193),
 ];
 
 // ── Topic definitions ────────────────────────────────────────
@@ -191,7 +191,7 @@ function defaultCluster(tier: Tier, subject: Subject): string {
   return "Advanced Math & Strategy";
 }
 
-// ─── Reading & Writing (50 nodes) ───────────────────────────
+// ─── Reading & Writing (49 nodes) ───────────────────────────
 
 const rwRaw: Omit<RawNode, "subject">[] = [
   // ── Tier 1 · Foundations (nodes 00–14) ──
@@ -237,53 +237,87 @@ const rwRaw: Omit<RawNode, "subject">[] = [
     description: "Analyze how specific word choices shape meaning, tone, and the reader's reaction.",
     prereqIds: ["rw-04"],
   },
+  // Conventions nodes — modeled on The Critical Reader's complete
+  // SAT grammar rule list (16 rules; we skip Faulty Comparisons,
+  // Transitions [→ rw-20], Dangling Modifiers [→ rw-28], and
+  // Shorter-Is-Better [→ rw-25] which already exist as nodes).
   {
-    id: "rw-07", tier: 1, difficulty: 2,
+    id: "rw-50", tier: 1, difficulty: 2,
     topic: "Subject-verb agreement",
-    description: "Ensure verbs match their subjects in number and person, including across complex sentences.",
+    description: "Match verbs to their subjects in number across compound subjects, prepositional phrases, and non-essential clauses; remember that each and every are singular.",
     prereqIds: ["rw-05"],
   },
   {
-    id: "rw-08", tier: 1, difficulty: 2,
-    topic: "Pronoun reference & agreement",
-    description: "Make pronouns agree with their antecedents and avoid ambiguous references.",
+    id: "rw-51", tier: 1, difficulty: 2,
+    topic: "Verb tense",
+    description: "Maintain tense consistency; use present perfect, simple past, and past perfect correctly; choose between active and passive voice and between TO- and -ING verb forms.",
+    prereqIds: ["rw-50"],
+  },
+  {
+    id: "rw-52", tier: 1, difficulty: 2,
+    topic: "Pronouns & nouns",
+    description: "Match pronouns to their antecedents in number; distinguish people (who) from things (which); choose between who and whom by case.",
     prereqIds: ["rw-06"],
   },
   {
-    id: "rw-09", tier: 1, difficulty: 2,
-    topic: "Sentence boundaries",
-    description: "Identify and fix sentence fragments and run-on sentences using correct punctuation and conjunctions.",
-    prereqIds: ["rw-07"],
+    id: "rw-53", tier: 1, difficulty: 2,
+    topic: "Apostrophes (plural vs. possessive)",
+    description: "Distinguish possessive forms (the dog's bowl) from plurals (the dogs); use possessive pronouns (its, their) without apostrophes.",
+    prereqIds: ["rw-52"],
   },
   {
-    id: "rw-10", tier: 1, difficulty: 2,
-    topic: "Comma usage",
-    description: "Apply comma rules for coordinate adjectives, introductory clauses, and compound sentences.",
-    prereqIds: ["rw-08"],
+    id: "rw-54", tier: 1, difficulty: 2,
+    topic: "Periods & semicolons",
+    description: "Separate two complete sentences with a period or semicolon; use a semicolon (not a comma) before conjunctive adverbs like however, therefore, and moreover.",
+    prereqIds: ["rw-50"],
   },
   {
-    id: "rw-11", tier: 1, difficulty: 2,
-    topic: "Apostrophes & possession",
-    description: "Use apostrophes correctly to indicate possession and avoid common contraction errors.",
-    prereqIds: ["rw-09"],
+    id: "rw-55", tier: 1, difficulty: 2,
+    topic: "Comma + FANBOYS",
+    description: "Join two complete sentences with a comma plus a FANBOYS coordinating conjunction; avoid comma splices and the unneeded comma+FANBOYS+verb pattern.",
+    prereqIds: ["rw-54"],
   },
   {
-    id: "rw-12", tier: 1, difficulty: 2,
-    topic: "Parallel structure",
-    description: "Ensure items in a series, comparisons, and paired elements follow the same grammatical form.",
-    prereqIds: ["rw-10"],
+    id: "rw-56", tier: 1, difficulty: 2,
+    topic: "Commas & dependent clauses",
+    description: "Place a comma after an introductory dependent clause; omit the comma when the dependent clause comes after the main clause.",
+    prereqIds: ["rw-55"],
   },
   {
-    id: "rw-13", tier: 1, difficulty: 2,
-    topic: "Verb tense consistency",
-    description: "Maintain consistent verb tenses within and across sentences to avoid awkward shifts.",
-    prereqIds: ["rw-11"],
+    id: "rw-57", tier: 1, difficulty: 2,
+    topic: "Non-essential information",
+    description: "Set off non-essential phrases and clauses with a matched pair of commas, dashes, or parentheses (never mix the two ends).",
+    prereqIds: ["rw-56"],
   },
   {
-    id: "rw-14", tier: 1, difficulty: 2,
-    topic: "Capitalization & mechanics",
-    description: "Apply capitalization rules and recognize punctuation that affects meaning and clarity.",
-    prereqIds: ["rw-12", "rw-13"],
+    id: "rw-58", tier: 1, difficulty: 2,
+    topic: "Commas with names & titles",
+    description: "Add commas around a name or title only when it is non-essential; omit them when the name is required to identify which person or thing is meant.",
+    prereqIds: ["rw-57"],
+  },
+  {
+    id: "rw-59", tier: 1, difficulty: 2,
+    topic: "Additional comma uses & misuses",
+    description: "Use commas in lists and between coordinate adjectives; avoid them between subjects and verbs, before prepositions, between compound items, and around essential that-clauses.",
+    prereqIds: ["rw-58"],
+  },
+  {
+    id: "rw-60", tier: 1, difficulty: 2,
+    topic: "Colons & dashes",
+    description: "Use a colon or dash after a complete sentence to introduce a list, an explanation, or an amplification of what came before.",
+    prereqIds: ["rw-54"],
+  },
+  {
+    id: "rw-61", tier: 1, difficulty: 2,
+    topic: "Parallel structure & word pairs",
+    description: "Keep items in lists, paired comparisons, and word pairs (either…or, neither…nor, not only…but also) in matching grammatical form.",
+    prereqIds: ["rw-50"],
+  },
+  {
+    id: "rw-62", tier: 1, difficulty: 2,
+    topic: "Question marks",
+    description: "Use a question mark for a direct question; use a period for an indirect question (e.g., \"She asked whether he would come.\").",
+    prereqIds: ["rw-54"],
   },
 
   // ── Tier 2 · Core — Right side (nodes 15–24) ──
@@ -291,7 +325,7 @@ const rwRaw: Omit<RawNode, "subject">[] = [
     id: "rw-15", tier: 2, difficulty: 2,
     topic: "Central idea vs. theme",
     description: "Distinguish between the explicit central idea of a non-fiction text and the implicit theme of a literary one.",
-    prereqIds: ["rw-14"],
+    prereqIds: ["rw-05"],
   },
   {
     id: "rw-16", tier: 2, difficulty: 2,
@@ -321,7 +355,7 @@ const rwRaw: Omit<RawNode, "subject">[] = [
     id: "rw-20", tier: 2, difficulty: 2,
     topic: "Transitional words & phrases",
     description: "Choose transitions that accurately convey the logical relationship between sentences and paragraphs.",
-    prereqIds: ["rw-14"],
+    prereqIds: ["rw-06"],
   },
   {
     id: "rw-21", tier: 2, difficulty: 2,
@@ -353,7 +387,7 @@ const rwRaw: Omit<RawNode, "subject">[] = [
     id: "rw-25", tier: 2, difficulty: 2,
     topic: "Redundancy & conciseness",
     description: "Eliminate wordiness, repetition, and unnecessary information that weakens writing.",
-    prereqIds: ["rw-14"],
+    prereqIds: ["rw-06"],
   },
   {
     id: "rw-26", tier: 2, difficulty: 2,
@@ -362,22 +396,10 @@ const rwRaw: Omit<RawNode, "subject">[] = [
     prereqIds: ["rw-25"],
   },
   {
-    id: "rw-27", tier: 2, difficulty: 2,
-    topic: "Formal vs. informal register",
-    description: "Recognize when to adjust diction and tone to match the audience and context of a passage.",
-    prereqIds: ["rw-25"],
-  },
-  {
     id: "rw-28", tier: 2, difficulty: 2,
     topic: "Modifier placement",
     description: "Place modifying phrases and clauses immediately adjacent to the words they describe.",
     prereqIds: ["rw-26"],
-  },
-  {
-    id: "rw-29", tier: 2, difficulty: 2,
-    topic: "Active vs. passive voice",
-    description: "Choose between active and passive voice to convey clarity, emphasis, and appropriate formality.",
-    prereqIds: ["rw-27"],
   },
   {
     id: "rw-30", tier: 2, difficulty: 2,
@@ -389,12 +411,6 @@ const rwRaw: Omit<RawNode, "subject">[] = [
     id: "rw-31", tier: 2, difficulty: 2,
     topic: "Command of evidence — quantitative",
     description: "Use data from graphs and tables as evidence to complete, support, or challenge an argument in the text.",
-    prereqIds: ["rw-29"],
-  },
-  {
-    id: "rw-32", tier: 2, difficulty: 3,
-    topic: "Logical fallacies",
-    description: "Recognize flawed reasoning patterns (ad hominem, false dichotomy, slippery slope) in argumentative texts.",
     prereqIds: ["rw-30"],
   },
   {
@@ -407,7 +423,7 @@ const rwRaw: Omit<RawNode, "subject">[] = [
     id: "rw-34", tier: 2, difficulty: 3,
     topic: "Multi-paragraph structure",
     description: "Understand how paragraphs relate to one another and how structure supports the overall argument.",
-    prereqIds: ["rw-32", "rw-33"],
+    prereqIds: ["rw-33"],
   },
 
   // ── Tier 3 · Advanced — Right peak (nodes 35–40) ──
@@ -436,16 +452,10 @@ const rwRaw: Omit<RawNode, "subject">[] = [
     prereqIds: ["rw-37"],
   },
   {
-    id: "rw-39", tier: 3, difficulty: 3,
-    topic: "Figurative language & literary devices",
-    description: "Analyze metaphor, irony, allusion, and other devices and their effect on meaning and tone.",
-    prereqIds: ["rw-37"],
-  },
-  {
     id: "rw-40", tier: 3, difficulty: 3,
     topic: "Nuanced vocabulary in context",
     description: "Distinguish between subtle differences in meaning for advanced vocabulary in science and social studies passages.",
-    prereqIds: ["rw-38", "rw-39"],
+    prereqIds: ["rw-38"],
   },
 
   // ── Tier 3 · Advanced — Left peak (nodes 41–46) ──
@@ -468,12 +478,6 @@ const rwRaw: Omit<RawNode, "subject">[] = [
     prereqIds: ["rw-42"],
   },
   {
-    id: "rw-44", tier: 3, difficulty: 3,
-    topic: "Advanced sentence complexity",
-    description: "Control complex and compound-complex sentence structures for precise meaning without introducing errors.",
-    prereqIds: ["rw-41"],
-  },
-  {
     id: "rw-45", tier: 3, difficulty: 3,
     topic: "Precise word choice in context",
     description: "Select the single word or phrase that most accurately conveys the intended meaning in high-stakes revision questions.",
@@ -483,7 +487,7 @@ const rwRaw: Omit<RawNode, "subject">[] = [
     id: "rw-46", tier: 3, difficulty: 3,
     topic: "Structural analysis of texts",
     description: "Analyze how an author's structural choices (paragraph order, section headings, emphasis) affect meaning and persuasiveness.",
-    prereqIds: ["rw-44", "rw-45"],
+    prereqIds: ["rw-45"],
   },
 
   // ── Tier 3 · Advanced — Center apex (nodes 47–49) ──
@@ -499,15 +503,9 @@ const rwRaw: Omit<RawNode, "subject">[] = [
     description: "Map an argument's full logical structure — premises, inference steps, and conclusion — to spot weaknesses.",
     prereqIds: ["rw-47"],
   },
-  {
-    id: "rw-49", tier: 3, difficulty: 3,
-    topic: "Full-passage strategy",
-    description: "Apply pacing, annotation, and process-of-elimination strategies to maximize accuracy across the Reading & Writing section.",
-    prereqIds: ["rw-48"],
-  },
 ];
 
-// ─── Math (50 nodes) ─────────────────────────────────────────
+// ─── Math (40 nodes) ─────────────────────────────────────────
 
 const maRaw: Omit<RawNode, "subject">[] = [
   // ── Tier 1 · Foundations (nodes 00–14) ──
@@ -566,12 +564,6 @@ const maRaw: Omit<RawNode, "subject">[] = [
     prereqIds: ["ma-02", "ma-07"],
   },
   {
-    id: "ma-09", tier: 1, difficulty: 2,
-    topic: "Domain & range",
-    description: "Determine the domain and range of functions from equations, tables, and graphs.",
-    prereqIds: ["ma-08"],
-  },
-  {
     id: "ma-10", tier: 1, difficulty: 2,
     topic: "Introduction to polynomials",
     description: "Classify polynomials by degree, identify leading coefficients, and understand end behavior.",
@@ -594,12 +586,6 @@ const maRaw: Omit<RawNode, "subject">[] = [
     topic: "Coordinate plane geometry",
     description: "Find midpoints, distances, and slopes; interpret lines on the coordinate plane.",
     prereqIds: ["ma-12"],
-  },
-  {
-    id: "ma-14", tier: 1, difficulty: 2,
-    topic: "Order of operations & arithmetic",
-    description: "Apply PEMDAS correctly and work fluently with integers, fractions, and decimals.",
-    prereqIds: ["ma-05"],
   },
 
   // ── Tier 2 · Core — Right lobe (nodes 15–34) ──
@@ -649,19 +635,13 @@ const maRaw: Omit<RawNode, "subject">[] = [
     id: "ma-22", tier: 2, difficulty: 2,
     topic: "Radical expressions",
     description: "Simplify radicals, rationalize denominators, and solve equations involving square roots.",
-    prereqIds: ["ma-09"],
+    prereqIds: ["ma-07"],
   },
   {
     id: "ma-23", tier: 2, difficulty: 2,
     topic: "Exponential growth & decay",
     description: "Model and interpret exponential functions in real-world contexts including compound interest.",
     prereqIds: ["ma-06"],
-  },
-  {
-    id: "ma-24", tier: 2, difficulty: 2,
-    topic: "Logarithms",
-    description: "Understand logarithms as the inverse of exponentials; evaluate and apply basic logarithm properties.",
-    prereqIds: ["ma-23"],
   },
   {
     id: "ma-25", tier: 2, difficulty: 2,
@@ -729,37 +709,7 @@ const maRaw: Omit<RawNode, "subject">[] = [
     id: "ma-35", tier: 3, difficulty: 3,
     topic: "Nonlinear systems of equations",
     description: "Solve systems involving one linear and one quadratic (or other nonlinear) equation algebraically and graphically.",
-    prereqIds: ["ma-19", "ma-24"],
-  },
-  {
-    id: "ma-36", tier: 3, difficulty: 3,
-    topic: "Complex numbers",
-    description: "Perform arithmetic with complex numbers and use them to express solutions to equations with no real roots.",
-    prereqIds: ["ma-22"],
-  },
-  {
-    id: "ma-37", tier: 3, difficulty: 3,
-    topic: "Polynomial remainder theorem",
-    description: "Apply the remainder and factor theorems to divide polynomials and identify roots.",
-    prereqIds: ["ma-20", "ma-21"],
-  },
-  {
-    id: "ma-38", tier: 3, difficulty: 3,
-    topic: "Advanced function composition",
-    description: "Evaluate and simplify composite functions (f ∘ g)(x) and understand the concept of inverse functions.",
-    prereqIds: ["ma-26"],
-  },
-  {
-    id: "ma-39", tier: 3, difficulty: 3,
-    topic: "Exponential equations & logarithms",
-    description: "Solve exponential equations using logarithms and apply change-of-base formula.",
-    prereqIds: ["ma-24", "ma-35"],
-  },
-  {
-    id: "ma-40", tier: 3, difficulty: 3,
-    topic: "Trigonometric identities",
-    description: "Apply Pythagorean identities and co-function relationships to simplify and solve trig expressions.",
-    prereqIds: ["ma-34"],
+    prereqIds: ["ma-19"],
   },
   {
     id: "ma-41", tier: 3, difficulty: 3,
@@ -780,24 +730,12 @@ const maRaw: Omit<RawNode, "subject">[] = [
     prereqIds: ["ma-30", "ma-31"],
   },
 
-  // ── Tier 3 · Advanced — Stem (nodes 44–49) ──
-  {
-    id: "ma-44", tier: 3, difficulty: 3,
-    topic: "Permutations & combinations",
-    description: "Use counting principles, permutations, and combinations to calculate probabilities of complex events.",
-    prereqIds: ["ma-39"],
-  },
-  {
-    id: "ma-45", tier: 3, difficulty: 3,
-    topic: "Geometric sequences & series",
-    description: "Identify geometric sequences, write explicit and recursive formulas, and find partial sums.",
-    prereqIds: ["ma-35"],
-  },
+  // ── Tier 3 · Advanced — Stem (nodes 46–49) ──
   {
     id: "ma-46", tier: 3, difficulty: 3,
     topic: "Algebraic manipulation of complex expressions",
     description: "Rewrite expressions in equivalent forms to reveal properties and solve multi-step problems.",
-    prereqIds: ["ma-37", "ma-38"],
+    prereqIds: ["ma-21"],
   },
   {
     id: "ma-47", tier: 3, difficulty: 3,
@@ -809,7 +747,7 @@ const maRaw: Omit<RawNode, "subject">[] = [
     id: "ma-48", tier: 3, difficulty: 3,
     topic: "Multi-step problem solving",
     description: "Translate complex word problems into equations, systems, or models and solve efficiently.",
-    prereqIds: ["ma-44", "ma-46", "ma-47"],
+    prereqIds: ["ma-46", "ma-47"],
   },
   {
     id: "ma-49", tier: 3, difficulty: 3,
