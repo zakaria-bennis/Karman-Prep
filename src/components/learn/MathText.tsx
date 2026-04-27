@@ -22,14 +22,19 @@ type Seg =
   | { kind: "block";  latex: string };
 
 function parse(text: string): Seg[] {
-  // Extract $$…$$ first (greedy block), then remaining $…$ inline
+  // Extract $$…$$ first (greedy block), then remaining $…$ inline.
+  //
+  // Both regexes accept `\$` (escaped dollar) inside the math span
+  // — that's how KaTeX writes a literal currency symbol, and the
+  // old `[^\$]` class was rejecting it, which truncated every
+  // expression containing money (e.g. `$\$80$ is on sale for $25\%$ off`).
   const out: Seg[] = [];
   let rest = text;
 
-  // Block pass
+  // Block pass — greedy [\s\S], OK to leave as-is.
   const blockChunks: { before: string; latex: string }[] = [];
   while (true) {
-    const m = rest.match(/\$\$([\s\S]+?)\$\$/);
+    const m = rest.match(/\$\$((?:\\\$|[^$])+?)\$\$/);
     if (!m) break;
     blockChunks.push({ before: rest.slice(0, m.index!), latex: m[1].trim() });
     rest = rest.slice((m.index ?? 0) + m[0].length);
@@ -41,12 +46,12 @@ function parse(text: string): Seg[] {
   }
   if (rest) segmentsAfterBlock.push({ kind: "text", value: rest });
 
-  // Inline pass on each text segment
+  // Inline pass — same fix for `\$`.
   for (const seg of segmentsAfterBlock) {
     if (seg.kind !== "text") { out.push(seg); continue; }
     let remaining = seg.value;
     while (true) {
-      const m = remaining.match(/\$([^\$\n]+?)\$/);
+      const m = remaining.match(/\$((?:\\\$|[^$\n])+?)\$/);
       if (!m) break;
       const before = remaining.slice(0, m.index!);
       if (before) out.push({ kind: "text", value: before });
@@ -79,10 +84,13 @@ export default function MathText({ text, className = "", blockClassName = "" }: 
       {segs.map((s, i) => {
         if (s.kind === "text") return <span key={i}>{s.value}</span>;
         if (s.kind === "inline") {
+          // Baseline alignment + inheriting color/size keeps the
+          // math inline with prose. The CSS override on .katex in
+          // globals.css does the heavy lifting here.
           return (
             <span
               key={i}
-              className="inline-block align-middle"
+              className="align-baseline"
               dangerouslySetInnerHTML={{ __html: renderKaTeX(s.latex, false) }}
             />
           );

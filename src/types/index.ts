@@ -63,12 +63,20 @@ export interface DiagnosticResult {
   weak_concepts: string[]; // concept IDs
 }
 
-/** Per-domain scores (used in DiagnosticResult and UI) */
+/** Per-domain scores (used in DiagnosticResult and UI).
+ *  Mirrors the 8 official Digital SAT domains — 4 Math, 4 R&W.
+ *  All values are difficulty-weighted percentages (0-100). */
 export interface DomainScores {
+  // Math — College Board's 4 Math domains
   algebra: number;
   advanced_math: number;
-  geometry: number;
-  data_analysis: number;
+  geometry: number;            // "Geometry & Trig" on the Bluebook score report
+  data_analysis: number;       // "Problem-Solving & Data Analysis"
+  // Reading & Writing — College Board's 4 R&W domains
+  info_ideas: number;          // Information & Ideas
+  craft_structure: number;     // Craft & Structure
+  expression_ideas: number;    // Expression of Ideas
+  conventions: number;         // Standard English Conventions
 }
 
 /** A practice or diagnostic question */
@@ -84,7 +92,28 @@ export interface Question {
 
 // ---- Domain / Color System ----------------------------------------
 
-export type SATDomain = "algebra" | "advanced_math" | "geometry" | "data_analysis" | "reading_writing";
+export type SATDomain =
+  | "algebra"
+  | "advanced_math"
+  | "geometry"
+  | "data_analysis"
+  | "info_ideas"
+  | "craft_structure"
+  | "expression_ideas"
+  | "conventions";
+
+/** Which SAT section a domain belongs to. Used by the predicted-score
+ *  pipeline to roll 8 domain scores into Math + R&W section sub-scores. */
+export const DOMAIN_SECTION: Record<SATDomain, "math" | "rw"> = {
+  algebra: "math",
+  advanced_math: "math",
+  geometry: "math",
+  data_analysis: "math",
+  info_ideas: "rw",
+  craft_structure: "rw",
+  expression_ideas: "rw",
+  conventions: "rw",
+};
 
 /** Tailwind color classes for each SAT domain */
 export const DOMAIN_COLORS: Record<SATDomain, { bg: string; text: string; border: string; hex: string }> = {
@@ -112,11 +141,29 @@ export const DOMAIN_COLORS: Record<SATDomain, { bg: string; text: string; border
     border: "border-amber-500",
     hex: "#F59E0B",
   },
-  reading_writing: {
+  info_ideas: {
     bg: "bg-rose-400",
     text: "text-rose-400",
     border: "border-rose-400",
     hex: "#FB7185",
+  },
+  craft_structure: {
+    bg: "bg-pink-500",
+    text: "text-pink-500",
+    border: "border-pink-500",
+    hex: "#EC4899",
+  },
+  expression_ideas: {
+    bg: "bg-fuchsia-500",
+    text: "text-fuchsia-500",
+    border: "border-fuchsia-500",
+    hex: "#D946EF",
+  },
+  conventions: {
+    bg: "bg-indigo-400",
+    text: "text-indigo-400",
+    border: "border-indigo-400",
+    hex: "#818CF8",
   },
 };
 
@@ -124,8 +171,11 @@ export const DOMAIN_LABELS: Record<SATDomain, string> = {
   algebra: "Algebra",
   advanced_math: "Advanced Math",
   geometry: "Geometry & Trig",
-  data_analysis: "Data Analysis",
-  reading_writing: "Reading & Writing",
+  data_analysis: "Problem-Solving & Data",
+  info_ideas: "Information & Ideas",
+  craft_structure: "Craft & Structure",
+  expression_ideas: "Expression of Ideas",
+  conventions: "Standard English Conventions",
 };
 
 // ---- Subscription Tiers ----------------------------------------

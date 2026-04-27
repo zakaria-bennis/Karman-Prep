@@ -43,6 +43,9 @@ interface PublicMessage {
   is_anonymous: boolean;
   is_pinned: boolean;
   is_highlighted: boolean;
+  /** True when the caller is the sender — drives iMessage-style
+   *  right-aligned bubble. Sender_id itself is never exposed. */
+  is_self: boolean;
   moderation_status: ChatMessageRow["moderation_status"];
   /** Replaces content for the viewer when the message is rejected. */
   rejection_message: string | null;
@@ -135,6 +138,7 @@ export async function GET(req: NextRequest) {
       is_anonymous: r.is_anonymous,
       is_pinned: r.is_pinned,
       is_highlighted: r.is_highlighted,
+      is_self: r.sender_id === callerUuid,
       moderation_status: r.moderation_status,
       rejection_message: isRejected ? r.rejection_message : null,
       created_at: r.created_at,

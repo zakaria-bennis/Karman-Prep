@@ -29,6 +29,15 @@ interface Props {
   channelDisplayName: string;
   /** Current user's first name + last initial preview, server-rendered. */
   postingAsPreview: string;
+  /** Which kind of message to send. Defaults to cohort chat; pass
+   *  "qa_question" to power the Q&A board with the same UI. */
+  messageType?: "cohort_message" | "qa_question";
+  /** Subtitle shown under the channel name in the header — defaults
+   *  to "Cohort chat". For Q&A pass "Q&A board". */
+  subtitle?: string;
+  /** Placeholder copy in the input box — overrides the default
+   *  "Posting as ..." line. Useful for Q&A: "Ask a question…". */
+  inputPlaceholder?: string;
 }
 
 interface Message {
@@ -43,6 +52,7 @@ interface Message {
   is_anonymous: boolean;
   is_pinned: boolean;
   is_highlighted: boolean;
+  is_self: boolean;
   moderation_status: "pending" | "approved" | "flagged" | "rejected";
   rejection_message: string | null;
   created_at: string;
@@ -60,7 +70,14 @@ function formatTime(iso: string): string {
     : new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }).format(d);
 }
 
-export function CohortChat({ channelId, channelDisplayName, postingAsPreview }: Props) {
+export function CohortChat({
+  channelId,
+  channelDisplayName,
+  postingAsPreview,
+  messageType = "cohort_message",
+  subtitle = "Cohort chat",
+  inputPlaceholder,
+}: Props) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [oldestLoaded, setOldestLoaded] = useState<string | null>(null);
   const [loadingInitial, setLoadingInitial] = useState(true);
@@ -177,21 +194,39 @@ export function CohortChat({ channelId, channelDisplayName, postingAsPreview }: 
           content: trimmed,
           mediaUrls: pendingImages.map((p) => p.url),
           isAnonymous,
-          messageType: "cohort_message",
+          messageType,
         }),
       });
       const body = (await res.json().catch(() => ({}))) as {
-        message?: Message;
+        message?: Message | string;
         error?: string;
         rejected?: boolean;
       };
       if (!res.ok) {
-        setSendError(body.error ?? `Send failed (${res.status})`);
+        // Rejected payloads put the user-facing copy in `message`
+        // (the moderation pipeline's rejection_message). Plain
+        // errors put it in `error`. Fall back to a friendly line.
+        const rejectionCopy =
+          body.rejected && typeof body.message === "string" ? body.message : null;
+        setSendError(
+          rejectionCopy ??
+            body.error ??
+            "This message breaches Strata's terms of use and was not sent."
+        );
         return;
       }
       setDraft("");
       setPendingImages([]);
-      // Realtime subscription will refetch — but optimistically scroll.
+      // Realtime may not be enabled (depends on supabase_realtime
+      // publication membership) — refetch the latest page so the
+      // sent message appears immediately for the sender either way.
+      try {
+        const page = await loadPage();
+        const ordered = [...page.messages].reverse();
+        setMessages(ordered);
+      } catch (err) {
+        console.error("[CohortChat] post-send refetch failed:", err);
+      }
       requestAnimationFrame(() => {
         scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
       });
@@ -235,17 +270,29 @@ export function CohortChat({ channelId, channelDisplayName, postingAsPreview }: 
   }, [messages]);
 
   return (
-    <div className="flex flex-col h-full max-h-[calc(100vh-9rem)] rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/40 overflow-hidden">
+    <div className="relative flex flex-col h-full max-h-[calc(100vh-9rem)] rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-md overflow-hidden">
+      {/* Faint cloud-aura background — radial blue glow in the
+          center of the scroll surface. Pointer-events none so it
+          never intercepts clicks. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 opacity-60"
+        style={{
+          background:
+            "radial-gradient(60% 50% at 50% 30%, rgba(59,130,246,0.10) 0%, rgba(99,102,241,0.05) 35%, transparent 70%)",
+        }}
+      />
+
       {/* Header */}
-      <header className="px-5 py-3 border-b border-slate-200 dark:border-slate-800">
-        <h3 className="text-sm font-bold text-slate-900 dark:text-white">{channelDisplayName}</h3>
-        <p className="text-[11px] text-slate-500">Cohort chat</p>
+      <header className="relative px-5 py-3 border-b border-white/10">
+        <h3 className="text-sm font-bold text-white">{channelDisplayName}</h3>
+        <p className="text-[11px] text-slate-400">{subtitle}</p>
       </header>
 
       {/* Messages */}
       <div
         ref={scrollRef}
-        className="flex-1 overflow-y-auto px-5 py-4 space-y-3"
+        className="relative flex-1 overflow-y-auto px-4 py-4 space-y-2.5"
         onScroll={(e) => {
           if ((e.currentTarget.scrollTop < 50) && hasMore && !loadingMore) {
             loadOlder();
@@ -253,12 +300,12 @@ export function CohortChat({ channelId, channelDisplayName, postingAsPreview }: 
         }}
       >
         {loadingInitial ? (
-          <div className="flex items-center gap-2 text-slate-500 text-sm justify-center py-8">
+          <div className="flex items-center gap-2 text-slate-400 text-sm justify-center py-8">
             <Loader2 className="w-4 h-4 animate-spin" />
             Loading…
           </div>
         ) : orderedMessages.length === 0 ? (
-          <p className="text-center text-sm text-slate-500 py-8">
+          <p className="text-center text-sm text-slate-400 py-8">
             No messages yet. Start the conversation.
           </p>
         ) : (
@@ -266,13 +313,13 @@ export function CohortChat({ channelId, channelDisplayName, postingAsPreview }: 
             {hasMore && !loadingMore && (
               <button
                 onClick={loadOlder}
-                className="block mx-auto text-xs text-blue-500 hover:text-blue-400 mb-2"
+                className="block mx-auto text-xs text-blue-300 hover:text-blue-200 mb-2"
               >
                 Load older
               </button>
             )}
             {loadingMore && (
-              <div className="flex justify-center text-xs text-slate-500 py-2">
+              <div className="flex justify-center text-xs text-slate-400 py-2">
                 <Loader2 className="w-3 h-3 animate-spin" />
               </div>
             )}
@@ -284,13 +331,13 @@ export function CohortChat({ channelId, channelDisplayName, postingAsPreview }: 
       </div>
 
       {/* Input */}
-      <div className="border-t border-slate-200 dark:border-slate-800 px-4 py-3 space-y-2">
+      <div className="relative border-t border-white/10 px-4 py-3 space-y-2 bg-white/[0.02]">
         {pendingImages.length > 0 && (
           <div className="flex flex-wrap gap-2">
             {pendingImages.map((img, idx) => (
               <div key={idx} className="relative">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={img.preview} alt="" className="w-16 h-16 object-cover rounded-md border border-slate-300 dark:border-slate-700" />
+                <img src={img.preview} alt="" className="w-16 h-16 object-cover rounded-md border border-white/15" />
                 <button
                   onClick={() => removePendingImage(idx)}
                   className="absolute -top-1 -right-1 bg-rose-500 text-white rounded-full p-0.5"
@@ -302,8 +349,8 @@ export function CohortChat({ channelId, channelDisplayName, postingAsPreview }: 
             ))}
           </div>
         )}
-        {sendError && <p className="text-xs text-rose-500">{sendError}</p>}
-        {imageError && <p className="text-xs text-rose-500">{imageError}</p>}
+        {sendError && <p className="text-xs text-rose-300">{sendError}</p>}
+        {imageError && <p className="text-xs text-rose-300">{imageError}</p>}
         <div className="flex items-end gap-2">
           <textarea
             value={draft}
@@ -314,10 +361,13 @@ export function CohortChat({ channelId, channelDisplayName, postingAsPreview }: 
                 handleSend();
               }
             }}
-            placeholder={isAnonymous ? "Post anonymously…" : `Posting as ${postingAsPreview}…`}
+            placeholder={
+              inputPlaceholder ??
+              (isAnonymous ? "Post anonymously…" : `Posting as ${postingAsPreview}…`)
+            }
             rows={1}
             disabled={sending}
-            className="flex-1 resize-none bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400 disabled:opacity-50"
+            className="flex-1 resize-none bg-white/[0.06] border border-white/10 rounded-xl px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-blue-400/60 focus:bg-white/[0.08] disabled:opacity-50"
           />
           <input
             ref={fileInputRef}
@@ -331,7 +381,7 @@ export function CohortChat({ channelId, channelDisplayName, postingAsPreview }: 
             onClick={() => fileInputRef.current?.click()}
             disabled={sending}
             aria-label="Attach image"
-            className="p-2 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50"
+            className="p-2 rounded-xl text-slate-400 hover:text-slate-200 hover:bg-white/[0.06] disabled:opacity-50"
           >
             <ImageIcon className="w-4.5 h-4.5" />
           </button>
@@ -339,17 +389,17 @@ export function CohortChat({ channelId, channelDisplayName, postingAsPreview }: 
             type="button"
             onClick={handleSend}
             disabled={sending || (!draft.trim() && pendingImages.length === 0)}
-            className="px-3 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-white text-sm font-semibold disabled:opacity-50"
+            className="px-3.5 py-2 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 hover:from-blue-400 hover:to-indigo-500 text-white text-sm font-semibold shadow-[0_4px_14px_rgba(59,130,246,0.35)] disabled:opacity-50 disabled:shadow-none"
           >
             {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
           </button>
         </div>
-        <label className="flex items-center gap-2 text-xs text-slate-500 cursor-pointer">
+        <label className="flex items-center gap-2 text-xs text-slate-400 cursor-pointer">
           <input
             type="checkbox"
             checked={isAnonymous}
             onChange={(e) => setIsAnonymous(e.target.checked)}
-            className="rounded border-slate-300"
+            className="rounded border-white/20 bg-white/5"
           />
           Post anonymously {isAnonymous ? "(shown as Anonymous)" : `(shown as ${postingAsPreview})`}
         </label>
@@ -358,52 +408,103 @@ export function CohortChat({ channelId, channelDisplayName, postingAsPreview }: 
   );
 }
 
+// Strata "cloud chat" bubble. Self messages right-aligned in a
+// blue→indigo gradient that matches the site's CTA family.
+// Others' messages left-aligned in the same glass-card surface
+// used across the dashboard (white/[0.06] + border white/10 +
+// backdrop-blur). Rejected messages render in amber regardless
+// of side. iMessage's pinched-corner trick is preserved so the
+// shape still reads as "chat" and not "card."
 function MessageBubble({ message }: { message: Message }) {
   const rejected = message.moderation_status === "rejected";
+  const self = message.is_self;
+
+  const bubbleColor = rejected
+    ? "bg-amber-400/15 text-amber-100 border border-amber-400/30"
+    : self
+      ? "bg-gradient-to-br from-blue-500 to-indigo-600 text-white"
+      : "bg-white/[0.06] text-slate-100 border border-white/10 backdrop-blur-sm";
+
+  const bubbleShape = self ? "rounded-2xl rounded-br-md" : "rounded-2xl rounded-bl-md";
+
+  // Self bubbles get a soft blue-tinted glow so they feel "lit" —
+  // matches the cloud-aura aesthetic on the landing page.
+  const bubbleShadow = !rejected && self
+    ? "shadow-[0_6px_20px_-6px_rgba(59,130,246,0.45)]"
+    : "shadow-sm";
+
   return (
-    <div
-      className={[
-        "flex flex-col gap-1 rounded-xl px-3 py-2 border",
-        rejected
-          ? "border-amber-200 dark:border-amber-400/30 bg-amber-50 dark:bg-amber-400/5"
-          : "border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40",
-        message.is_pinned ? "ring-1 ring-blue-300/30" : "",
-      ].join(" ")}
-    >
-      <div className="flex items-center gap-2 text-[11px]">
-        <span className="font-semibold text-slate-700 dark:text-slate-200">{message.display_name}</span>
-        {message.real_name && message.real_name !== message.display_name && (
-          <span className="text-slate-400">({message.real_name})</span>
+    <div className={["flex w-full", self ? "justify-end" : "justify-start"].join(" ")}>
+      <div className={["flex flex-col max-w-[78%]", self ? "items-end" : "items-start"].join(" ")}>
+        {/* Sender name above bubble — only for OTHER people's
+            messages, like iMessage in a group chat. */}
+        {!self && (
+          <div className="flex items-center gap-1.5 text-[11px] mb-0.5 px-2">
+            <span className="font-semibold text-slate-300">{message.display_name}</span>
+            {message.real_name && message.real_name !== message.display_name && (
+              <span className="text-slate-500">({message.real_name})</span>
+            )}
+            {message.is_pinned && <Pin className="w-3 h-3 text-blue-300" aria-label="Pinned" />}
+          </div>
         )}
-        <span className="text-slate-400">{formatTime(message.created_at)}</span>
-        {message.is_pinned && <Pin className="w-3 h-3 text-blue-400" aria-label="Pinned" />}
-      </div>
-      {rejected ? (
-        <p className="text-xs italic text-amber-700 dark:text-amber-300">
-          {message.rejection_message ?? "Message removed."}
-        </p>
-      ) : (
-        <>
-          {message.content && (
-            <p className="text-sm text-slate-700 dark:text-slate-200 whitespace-pre-wrap break-words">
-              {message.content}
-            </p>
+
+        <div
+          className={[
+            "relative px-3.5 py-2",
+            bubbleColor,
+            bubbleShape,
+            bubbleShadow,
+            message.is_pinned ? "ring-1 ring-blue-300/40" : "",
+          ].join(" ")}
+        >
+          {/* Subtle inner highlight on self bubbles — top-edge
+              white-tint that gives the gradient a "lit from above"
+              feel without obscuring the text. */}
+          {!rejected && self && (
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0 rounded-2xl rounded-br-md opacity-40"
+              style={{
+                background:
+                  "linear-gradient(to bottom, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 35%)",
+              }}
+            />
           )}
-          {message.media_urls.length > 0 && (
-            <div className="flex flex-wrap gap-2 mt-1">
-              {message.media_urls.map((url, i) => (
-                /* eslint-disable-next-line @next/next/no-img-element */
-                <img
-                  key={i}
-                  src={url}
-                  alt=""
-                  className="max-w-xs max-h-64 rounded-md border border-slate-200 dark:border-slate-700"
-                />
-              ))}
+
+          {rejected ? (
+            <p className="relative text-xs italic">
+              {message.rejection_message ?? "Message removed."}
+            </p>
+          ) : (
+            <div className="relative">
+              {message.content && (
+                <p className="text-[15px] leading-snug whitespace-pre-wrap break-words">
+                  {message.content}
+                </p>
+              )}
+              {message.media_urls.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-1.5">
+                  {message.media_urls.map((url, i) => (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img
+                      key={i}
+                      src={url}
+                      alt=""
+                      className="max-w-xs max-h-64 rounded-lg"
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           )}
-        </>
-      )}
+        </div>
+
+        {/* Timestamp under bubble — small, muted, side-aligned. */}
+        <div className={["flex items-center gap-1 mt-0.5 px-2 text-[10px] text-slate-500", self ? "flex-row-reverse" : ""].join(" ")}>
+          <span>{formatTime(message.created_at)}</span>
+          {self && message.is_pinned && <Pin className="w-2.5 h-2.5 text-blue-400" aria-label="Pinned" />}
+        </div>
+      </div>
     </div>
   );
 }

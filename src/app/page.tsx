@@ -6,7 +6,7 @@
 import type { Metadata } from "next";
 import Navbar from "@/components/landing/Navbar";
 import Hero from "@/components/landing/Hero";
-import SampleQuiz from "@/components/landing/SampleQuiz";
+import DiagnosticTeaser from "@/components/landing/DiagnosticTeaser";
 import HowItWorks from "@/components/landing/HowItWorks";
 import SocialProof from "@/components/landing/SocialProof";
 import SampleLesson from "@/components/landing/SampleLesson";
@@ -31,7 +31,7 @@ export default function HomePage() {
       <main className="min-h-screen">
         <Navbar />
         <Hero />
-        <SampleQuiz />
+        <DiagnosticTeaser />
         <HowItWorks />
         <SocialProof />
         <FounderSection />

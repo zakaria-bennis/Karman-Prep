@@ -66,7 +66,7 @@ interface FullLogoProps {
   className?: string;
 }
 
-function Wordmark({ fontSize, letterSpacing }: { fontSize: number; letterSpacing: string }) {
+export function StrataWordmark({ fontSize, letterSpacing }: { fontSize: number; letterSpacing: string }) {
   return (
     <span
       className="uppercase bg-clip-text text-transparent select-none"
@@ -100,7 +100,7 @@ export function StrataLogo({
     return (
       <div className={`inline-flex flex-col items-center ${className ?? ""}`} style={{ gap: size * 0.2 }}>
         <StrataLogoMark size={size} />
-        <Wordmark
+        <StrataWordmark
           fontSize={size * 0.36}
           letterSpacing="0.42em"
         />
@@ -112,7 +112,7 @@ export function StrataLogo({
   return (
     <span className={`inline-flex items-center ${className ?? ""}`} style={{ gap: size * 0.28 }}>
       <StrataLogoMark size={size} />
-      <Wordmark
+      <StrataWordmark
         fontSize={size * 0.46}
         letterSpacing="0.24em"
       />

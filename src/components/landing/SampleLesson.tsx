@@ -1,11 +1,28 @@
+"use client";
+
 // ============================================================
 // Sample lesson section — video teaser + locked curriculum peek.
-// Dark cloud design; section title ends with italic last word.
+//
+// The sample lesson video is OPEN — visitors can watch it
+// without a free trial. The actual lesson library that comes
+// after stays gated.
+//
+// To swap in the real video: drop its embed URL in
+// SAMPLE_VIDEO_URL below. Anything that supports an iframe
+// player works (YouTube, Vimeo, Cloudflare Stream, Mux).
 // ============================================================
 
-import { Play, Lock, ArrowRight } from "lucide-react";
+import { Play, Lock } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
 import Reveal from "@/components/shared/Reveal";
+
+// Replace with the production embed URL when the lesson video
+// is uploaded. Use the embed-style URL for YouTube
+// ("https://www.youtube.com/embed/<id>?rel=0&modestbranding=1")
+// to suppress related-video chrome. Vimeo / Cloudflare Stream
+// embed URLs work the same way.
+const SAMPLE_VIDEO_URL: string | null = null;
 
 const RW_LESSONS = [
   "Rhetorical synthesis",
@@ -26,6 +43,7 @@ const MATH_LESSONS = [
 ];
 
 export default function SampleLesson() {
+  const [playing, setPlaying] = useState(false);
   return (
     <section id="sample-lesson" className="relative py-24 bg-cloud-night bg-grain overflow-hidden">
       {/* Atmospheric glow — ties to the cloud language */}
@@ -48,34 +66,47 @@ export default function SampleLesson() {
         </Reveal>
 
         <Reveal delay={0.08}>
-          <Link
-            href="/auth/sign-up"
-            className="relative rounded-2xl overflow-hidden bg-slate-900 aspect-video shadow-2xl group block border border-white/10"
-            aria-label="Start free trial to watch sample lesson"
+          <div
+            className="relative rounded-2xl overflow-hidden bg-slate-900 aspect-video shadow-2xl border border-white/10"
+            aria-label="Sample SAT lesson"
           >
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-900/50 to-purple-900/50 flex items-center justify-center z-10">
-              <div className="flex flex-col items-center gap-3">
-                <div className="w-20 h-20 rounded-full bg-white/15 backdrop-blur-sm border-2 border-white/40 flex items-center justify-center transition-all group-hover:scale-110 group-hover:bg-white/25">
-                  <Play className="w-8 h-8 text-white fill-white ml-1" />
+            {playing && SAMPLE_VIDEO_URL ? (
+              <iframe
+                src={SAMPLE_VIDEO_URL}
+                title="Sample SAT lesson"
+                className="w-full h-full"
+                frameBorder={0}
+                allow="autoplay; encrypted-media; picture-in-picture"
+                allowFullScreen
+              />
+            ) : (
+              <button
+                type="button"
+                onClick={() => setPlaying(true)}
+                className="absolute inset-0 flex items-center justify-center group"
+                aria-label="Play sample lesson"
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-900/50 to-purple-900/50 z-10" />
+                <div className="relative z-20">
+                  <div className="w-20 h-20 rounded-full bg-white/15 backdrop-blur-sm border-2 border-white/40 flex items-center justify-center transition-all group-hover:scale-110 group-hover:bg-white/25">
+                    <Play className="w-8 h-8 text-white fill-white ml-1" />
+                  </div>
                 </div>
-                <span className="flex items-center gap-1.5 bg-white/10 backdrop-blur-sm text-white text-xs font-semibold px-3 py-1.5 rounded-full border border-white/20 opacity-0 group-hover:opacity-100 transition-opacity">
-                  Start free trial to watch <ArrowRight className="w-3 h-3" />
-                </span>
-              </div>
-            </div>
 
-            <div className="w-full h-full bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center">
-              <div className="text-center text-white/20 select-none pointer-events-none">
-                <div className="text-6xl font-bold">▶</div>
-                <p className="mt-2 text-sm">SAT Algebra Masterclass — Lesson 1</p>
-              </div>
-            </div>
+                <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center">
+                  <div className="text-center text-white/20 select-none pointer-events-none">
+                    <div className="text-6xl font-bold">▶</div>
+                    <p className="mt-2 text-sm">SAT Algebra Masterclass — Lesson 1</p>
+                  </div>
+                </div>
 
-            <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 p-4 z-10">
-              <p className="text-white font-semibold text-sm">Linear Equations &amp; Inequalities</p>
-              <p className="text-white/60 text-xs mt-0.5">8 min · Algebra · Beginner</p>
-            </div>
-          </Link>
+                <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 p-4 z-20">
+                  <p className="text-white font-semibold text-sm text-left">Linear Equations &amp; Inequalities</p>
+                  <p className="text-white/60 text-xs mt-0.5 text-left">8 min · Algebra · Beginner</p>
+                </div>
+              </button>
+            )}
+          </div>
         </Reveal>
 
         <Reveal className="mt-8" delay={0.12}>

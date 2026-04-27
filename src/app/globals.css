@@ -166,4 +166,20 @@
       scroll-behavior: auto !important;
     }
   }
+
+  /* ── KaTeX inline alignment ─────────────────────────────────
+     KaTeX defaults to font-size: 1.21em (relative to parent),
+     which makes inline math visibly larger than the prose
+     around it. Force it to inherit the parent's font size so
+     "If $3x + 5 = 26$, what is the value of $x$?" reads as a
+     single continuous line. Color is inherited so the math
+     doesn't look like a brighter, separate island. */
+  .katex {
+    font-size: 1em !important;
+    line-height: inherit;
+    color: inherit;
+  }
+  .katex-html {
+    vertical-align: baseline;
+  }
 }

@@ -27,14 +27,104 @@
 
 /** Whole-word literal matches. Compared case-insensitively. */
 export const BLOCKED_TERMS: readonly string[] = [
-  // Sexual / explicit (starter set — extend as needed)
+  // ─── Profanity / harassment intensifiers ──────────────────
+  // Aggressive list — Strata's audience is 14-18 and parent-
+  // visible. Better to over-block + let students rephrase
+  // than under-block and have a parent see a slur in chat.
+  "fuck",
+  "fucker",
+  "fuckers",
+  "fucking",
+  "fucked",
+  "fuckin",
+  "motherfucker",
+  "motherfuckers",
+  "motherfucking",
+  "mf",
+  "mfer",
+  "stfu",
+  "wtf",
+  "bitch",
+  "bitches",
+  "bitching",
+  "biatch",
+  "asshole",
+  "assholes",
+  "ass-hole",
+  "dickhead",
+  "dickheads",
+  "douche",
+  "douchebag",
+  "shit",
+  "shits",
+  "shitty",
+  "shitting",
+  "bullshit",
+  "piss",
+  "pissed",
+  "pissing",
+  "twat",
+  "wanker",
+  "prick",
+
+  // ─── Slurs (always rejected) ──────────────────────────────
+  "cunt",
+  "whore",
+  "whores",
+  "slut",
+  "sluts",
+  "skank",
+  "nigger",
+  "niggers",
+  "nigga",
+  "niggas",
+  "faggot",
+  "faggots",
+  "fag",
+  "fags",
+  "homo",
+  "dyke",
+  "tranny",
+  "trannies",
+  "retard",
+  "retards",
+  "retarded",
+  "tard",
+  "spaz",
+  "chink",
+  "gook",
+  "kike",
+  "wetback",
+  "spic",
+  "raghead",
+  "towelhead",
+
+  // ─── Sexual / explicit ────────────────────────────────────
   "sex",
   "sexual",
   "porn",
+  "porno",
   "nudes",
   "horny",
+  "boobs",
+  "tits",
+  "titties",
+  "pussy",
+  "pussies",
+  "dick",
+  "dicks",
+  "penis",
+  "penises",
+  "vagina",
+  "vaginas",
+  "blowjob",
+  "blowjobs",
+  "handjob",
+  "handjobs",
+  "anal",
+  "cumshot",
 
-  // Self-harm signals (any mention auto-rejects to surface for human follow-up)
+  // ─── Self-harm signals (any mention auto-rejects to surface for human follow-up) ──
   "kms",
   "kys",
   "suicide",
@@ -43,10 +133,8 @@ export const BLOCKED_TERMS: readonly string[] = [
   "self harm",
   "self-harm",
   "cut myself",
-
-  // Slurs — intentionally not enumerated in source. Add per your
-  // legal / community-guidelines team. The blocklist would be
-  // populated from a separate non-public list in production.
+  "end it all",
+  "want to die",
 ];
 
 /** Raw regex patterns. Tested with .test(message). */

@@ -7,7 +7,7 @@
 // ============================================================
 
 import Link from "next/link";
-import { Flame, BookOpen, TrendingUp, ArrowRight, Lock, CheckCircle, Clock } from "lucide-react";
+import { Flame, BookOpen, TrendingUp, ArrowRight, Lock, CheckCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DOMAIN_COLORS, DOMAIN_LABELS, type SATDomain, type DomainScores } from "@/types";
 import DashboardLayout from "./DashboardLayout";
@@ -154,11 +154,11 @@ export default function StudentDashboardClient({ user, progress, nodeStatuses, d
           ) : (
             <div className="glass-card p-5 text-center">
               <p className="text-slate-500 dark:text-slate-400 text-sm">
-                No lessons unlocked yet.{" "}
-                <Link href="/diagnostic" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
-                  Take the diagnostic
+                No lessons unlocked yet — head to your{" "}
+                <Link href="/dashboard/student/progress" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
+                  progress page
                 </Link>{" "}
-                to get your personalized learning path.
+                to see where you&apos;re starting from.
               </p>
             </div>
           )}
@@ -166,21 +166,6 @@ export default function StudentDashboardClient({ user, progress, nodeStatuses, d
 
         {/* Domain progress — new tabbed component (Reading / Math) */}
         <DomainProgress statuses={nodeStatusMap} />
-
-        {/* No diagnostic CTA */}
-        {!diagnostic && (
-          <div className="glass-card p-6 text-center border-2 border-dashed border-blue-200 dark:border-blue-800">
-            <Clock className="w-8 h-8 text-blue-500 mx-auto mb-3" />
-            <h3 className="font-bold text-slate-900 dark:text-white mb-2">Take the Diagnostic First</h3>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
-              Our 20-question adaptive diagnostic builds your personalized learning path in 35 minutes.
-            </p>
-            <Link href="/diagnostic" className="btn-primary text-sm">
-              Start Diagnostic
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-          </div>
-        )}
 
         {/* Recent activity */}
         {progress.length > 0 && (

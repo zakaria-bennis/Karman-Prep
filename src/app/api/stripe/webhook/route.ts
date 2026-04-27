@@ -127,6 +127,12 @@ export async function POST(req: NextRequest) {
             trial_end: sub.trial_end
               ? new Date(sub.trial_end * 1000).toISOString()
               : null,
+            // Stamp canceled_at the moment status flips to canceled,
+            // so the Revenue dashboard can compute real monthly churn.
+            // Stripe also sends `customer.subscription.deleted` (handled
+            // below), but `subscription.updated` fires first when a
+            // user cancels at period end.
+            canceled_at: sub.status === "canceled" ? new Date().toISOString() : null,
           })
           .eq("stripe_subscription_id", sub.id);
 
@@ -156,7 +162,7 @@ export async function POST(req: NextRequest) {
 
         await supabase
           .from("subscriptions")
-          .update({ status: "canceled" })
+          .update({ status: "canceled", canceled_at: new Date().toISOString() })
           .eq("stripe_subscription_id", sub.id);
 
         // Always drop on hard cancel. The cohort_members row stays
@@ -176,6 +182,49 @@ export async function POST(req: NextRequest) {
       case "customer.subscription.trial_will_end": {
         // Could trigger a trial-ending email here
         console.log("[webhook] Trial ending soon for subscription:", event.data.object);
+        break;
+      }
+
+      // ---- Refund issued ----
+      // Powers the refund-rate KPI on /admin/revenue. Idempotent
+      // via stripe_refund_id UNIQUE constraint — duplicate webhook
+      // deliveries silently no-op.
+      case "charge.refunded": {
+        const charge = event.data.object as Stripe.Charge;
+        const userId = charge.metadata?.userId;
+        const subscriptionId = (charge as unknown as { subscription?: string }).subscription;
+
+        // A charge can carry multiple refunds; iterate just in case.
+        const refundsList = (charge.refunds?.data ?? []) as Stripe.Refund[];
+        for (const r of refundsList) {
+          // Resolve the parent subscription in our DB (if any).
+          let subDbId: string | null = null;
+          if (subscriptionId) {
+            const { data } = await supabase
+              .from("subscriptions")
+              .select("id")
+              .eq("stripe_subscription_id", subscriptionId)
+              .maybeSingle();
+            subDbId = (data as { id?: string } | null)?.id ?? null;
+          }
+          let userDbId: string | null = null;
+          if (userId) {
+            const { data } = await supabase
+              .from("users")
+              .select("id")
+              .eq("clerk_id", userId)
+              .maybeSingle();
+            userDbId = (data as { id?: string } | null)?.id ?? null;
+          }
+          await supabase.from("refunds").upsert({
+            stripe_refund_id: r.id,
+            subscription_id: subDbId,
+            user_id: userDbId,
+            amount_cents: r.amount,
+            reason: r.reason ?? null,
+            issued_at: new Date(r.created * 1000).toISOString(),
+          }, { onConflict: "stripe_refund_id" });
+        }
         break;
       }
 

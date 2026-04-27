@@ -33,14 +33,14 @@ import {
 } from "./providers";
 import { type ModerationInput, type ModerationOutcome } from "./types";
 
-/** Spec-locked rejection copy shown to the student in place of their
- *  message when Layer 1 fires. */
+/** Shown to the student in place of their message when Layer 1 fires
+ *  (explicit profanity, slurs, sexual terms, self-harm signals, PII). */
 const KEYWORD_REJECTION_MESSAGE =
-  "This message could not be sent as it contains content that violates Strata's Community Guidelines. If you believe this is an error please contact your tutor.";
+  "This message breaches Strata's terms of use and was not sent. If you believe this is an error, please contact your tutor.";
 
-/** Same shape, different copy for Layer 2 high-severity holds. */
+/** Layer 2 high-severity hold — message is queued for human review. */
 const AI_HIGH_REJECTION_MESSAGE =
-  "This message is being reviewed by our team before it can be sent. You'll be notified once review is complete.";
+  "This message breaches Strata's terms of use and is being reviewed by our team. You'll be notified once review is complete.";
 
 export async function moderateMessage(input: ModerationInput): Promise<ModerationOutcome> {
   // ─── Layer 1 — keyword + regex ─────────────────────────────

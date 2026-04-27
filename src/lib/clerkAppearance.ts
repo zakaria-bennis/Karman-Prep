@@ -4,13 +4,24 @@
 // so every Clerk surface (sign-in, sign-up, UserProfile, UserButton
 // dropdown, invitations) inherits the same dark brand look.
 //
+// We layer the official `dark` baseTheme from @clerk/themes
+// underneath our token + element overrides — that gives us
+// readable contrast on every Clerk-rendered modal we don't
+// explicitly style (UserProfile sub-pages, MFA flows, etc.)
+// without having to enumerate each element class by hand.
+//
 // To tweak: edit values here. No other changes required.
 // ============================================================
+
+import { dark } from "@clerk/themes";
 
 // The `Appearance` type from @clerk/types isn't exposed as a separate package
 // dependency, so we let TypeScript infer the shape via the `as const` satisfies
 // pattern. ClerkProvider will validate when this is applied.
 export const strataClerkAppearance = {
+  // Sets every default colour/border/etc. to dark-mode-safe values.
+  // Our `variables` and `elements` below override on top.
+  baseTheme: dark,
   // Color tokens Clerk uses internally — aligned with the landing's
   // cloud palette (blue + violet) so the auth flow feels continuous.
   variables: {
@@ -101,9 +112,51 @@ export const strataClerkAppearance = {
     userButtonPopoverActionButtonText: "text-slate-200",
     userButtonPopoverFooter: "bg-transparent border-white/10",
 
-    // UserProfile surface (Settings page inside Clerk)
-    pageScrollBox: "bg-slate-950",
-    profileSectionPrimaryButton: "text-blue-300 hover:text-blue-200",
+    // UserProfile surface (Settings page inside Clerk).
+    // The dark baseTheme handles background; we tighten the text
+    // contrast here for the parts the screenshot showed as washed
+    // out (sidebar nav, section row labels/values, kebab menus).
+    modalContent: "bg-[#0B1026]",
+    modalCloseButton: "text-slate-400 hover:text-white",
+    pageScrollBox: "bg-[#0B1026]",
+    page: "bg-[#0B1026]",
+    scrollBox: "bg-[#0B1026]",
+    cardBox: "bg-[#0B1026] border border-white/10",
+
+    // Sidebar nav — was very dim against the navy.
+    navbar: "bg-white/[0.02] border-r border-white/10",
+    navbarButton:
+      "text-slate-300 hover:text-white hover:bg-white/[0.06] rounded-lg",
+    navbarButtonText: "text-slate-200 font-semibold",
+    navbarButton__active:
+      "bg-blue-500/15 text-white border border-blue-400/30",
+    navbarMobileMenuRow: "border-white/10",
+    navbarMobileMenuButton: "text-slate-300 hover:text-white",
+
+    // Section heading + each row's label / value (the things that
+    // looked dark-on-dark in the screenshot).
+    profileSectionTitle: "text-white font-bold",
+    profileSectionTitleText: "text-white",
+    profileSectionContent: "text-slate-200",
+    profileSectionPrimaryButton:
+      "text-blue-300 hover:text-blue-200 font-semibold",
+    profileSection__connectedAccounts: "text-slate-200",
+    profilePage: "text-slate-100",
+
+    // Form rows inside the section accordions.
+    formFieldLabelRow: "text-slate-300",
+    accordionTriggerButton:
+      "text-slate-200 hover:bg-white/[0.04]",
+    accordionContent: "text-slate-200",
+
+    // Per-row kebab + dropdown menu.
+    menuButton: "text-slate-400 hover:text-white",
+    menuList:
+      "bg-[#0B1026] border border-white/10 shadow-2xl",
+    menuItem: "text-slate-200 hover:bg-white/[0.06]",
+
+    // "Primary" / status badges next to email & phone.
+    badge: "bg-blue-500/15 text-blue-200 border border-blue-400/30",
   },
 
   // Layout tweaks — logo image shown at top of the Clerk card
