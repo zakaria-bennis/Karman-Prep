@@ -325,7 +325,13 @@ export async function acceptFlaggedQuestion(
   if (error) throw error;
 }
 
-// ── Question image upload / remove ───────────────────────────
+// ── Question image upload / remove (R2-backed) ──────────────
+// Storage moved from Supabase Storage to Cloudflare R2 — same
+// table fields (image_url, image_storage_path, image_alt) so
+// existing rows that still point at Supabase URLs keep working
+// during the migration window. New uploads land in R2.
+
+import { uploadToR2, deleteFromR2, safeFilename } from "@/lib/storage/r2";
 
 export async function uploadQuestionImage(
   questionId: string,
@@ -335,16 +341,13 @@ export async function uploadQuestionImage(
   alt: string | null
 ): Promise<{ publicUrl: string; storagePath: string }> {
   const supabase = createAdminClient();
-  const safeName = fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
-  const storagePath = `${questionId}/${Date.now()}-${safeName}`;
+  const key = `question-images/${questionId}/${Date.now()}-${safeFilename(fileName)}`;
 
-  const { error: uploadErr } = await supabase.storage
-    .from("question-images")
-    .upload(storagePath, fileBytes, { contentType, cacheControl: "3600", upsert: false });
-  if (uploadErr) throw uploadErr;
-
-  const { data: pub } = supabase.storage.from("question-images").getPublicUrl(storagePath);
-  const publicUrl = pub.publicUrl;
+  const { publicUrl, storagePath } = await uploadToR2({
+    key,
+    body: fileBytes,
+    contentType,
+  });
 
   await supabase
     .from("quiz_questions")
@@ -364,9 +367,20 @@ export async function removeQuestionImage(
   storagePath: string | null
 ): Promise<void> {
   const supabase = createAdminClient();
+
   if (storagePath) {
-    await supabase.storage.from("question-images").remove([storagePath]);
+    // R2 keys start with "question-images/"; legacy Supabase Storage
+    // paths look like "<questionId>/<timestamp>-<filename>" with no
+    // bucket prefix. Detect which provider hosts the file.
+    if (storagePath.startsWith("question-images/")) {
+      await deleteFromR2(storagePath).catch(() => {
+        // Don't fail the row update if the object was already gone.
+      });
+    } else {
+      await supabase.storage.from("question-images").remove([storagePath]).catch(() => {});
+    }
   }
+
   await supabase
     .from("quiz_questions")
     .update({

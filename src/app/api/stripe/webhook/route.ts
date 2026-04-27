@@ -38,7 +38,9 @@ async function parseWebhookEvent(req: NextRequest): Promise<Stripe.Event> {
 
   if (!sig) throw new Error("Missing stripe-signature header");
 
-  return stripe.webhooks.constructEvent(
+  // constructEventAsync uses Web Crypto under the hood — required on
+  // Cloudflare Workers (no Node crypto module). Works in Node too.
+  return stripe.webhooks.constructEventAsync(
     body,
     sig,
     process.env.STRIPE_WEBHOOK_SECRET!

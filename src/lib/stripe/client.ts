@@ -4,10 +4,18 @@
 
 import Stripe from "stripe";
 
-/** Server-side Stripe client. Never import in browser code. */
+/** Server-side Stripe client. Never import in browser code.
+ *
+ *  Configured with the fetch-based HTTP client so it works in both
+ *  Node (local dev) and Cloudflare Workers (prod via OpenNext). The
+ *  default uses Node's http module which breaks on the edge runtime
+ *  — fetch is portable everywhere. Webhook signature verification
+ *  must use stripe.webhooks.constructEventAsync (Web Crypto under
+ *  the hood) — see /api/stripe/webhook/route.ts. */
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2026-03-25.dahlia",
   typescript: true,
+  httpClient: Stripe.createFetchHttpClient(),
 });
 
 /**
