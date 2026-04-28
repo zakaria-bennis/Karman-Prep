@@ -38,6 +38,13 @@ main = ".open-next/worker.js"
 compatibility_date = "2025-03-25"
 compatibility_flags = ["nodejs_compat"]
 
+# Custom domains — CF auto-creates the DNS records since
+# karmanprep.com is already in this account. SSL issues automatically.
+routes = [
+  { pattern = "karmanprep.com", custom_domain = true },
+  { pattern = "www.karmanprep.com", custom_domain = true },
+]
+
 # Static assets bundled with the worker (Next.js public/ + build output).
 # OpenNext writes these to .open-next/assets during build.
 [assets]
