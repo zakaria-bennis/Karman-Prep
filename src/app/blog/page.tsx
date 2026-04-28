@@ -11,9 +11,9 @@ import Footer from "@/components/landing/Footer";
 import EmailCapture from "@/components/landing/EmailCapture";
 
 export const metadata: Metadata = {
-  title: "Blog — SAT Tips & Strategy | Karman Prep",
+  title: "Blog — SAT Tips & Strategy | Karman",
   description:
-    "Free SAT study guides, score improvement strategies, test-taking tips, and expert advice from Karman Prep's tutors. Coming soon.",
+    "Free SAT study guides, score improvement strategies, test-taking tips, and expert advice from Karman's tutors. Coming soon.",
 };
 
 const UPCOMING_TOPICS = [
@@ -58,7 +58,7 @@ export default function BlogPage() {
               <span className="text-blue-600 dark:text-blue-400">Strategy</span>
             </h1>
             <p className="text-lg text-slate-600 dark:text-slate-300 leading-relaxed">
-              Free SAT study guides, score improvement breakdowns, test-taking strategies, and expert advice — straight from the tutors behind Karman Prep.
+              Free SAT study guides, score improvement breakdowns, test-taking strategies, and expert advice — straight from the tutors behind Karman.
             </p>
           </div>
         </section>

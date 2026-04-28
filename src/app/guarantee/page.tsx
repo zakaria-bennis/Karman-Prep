@@ -21,7 +21,7 @@ const ELIGIBILITY = [
   {
     icon: CheckCircle,
     title: "Complete the full diagnostic",
-    desc: "Take and submit the full Karman Prep diagnostic assessment within your first 7 days on the platform.",
+    desc: "Take and submit the full Karman diagnostic assessment within your first 7 days on the platform.",
   },
   {
     icon: Star,
@@ -43,15 +43,15 @@ const ELIGIBILITY = [
 const FAQS = [
   {
     q: "What counts as a 50-point improvement?",
-    a: "We compare your Karman Prep diagnostic baseline score (taken within your first 7 days) to your official College Board SAT score. If the difference is less than 50 points, you are eligible for a full refund — no questions asked.",
+    a: "We compare your Karman diagnostic baseline score (taken within your first 7 days) to your official College Board SAT score. If the difference is less than 50 points, you are eligible for a full refund — no questions asked.",
   },
   {
     q: "Does the guarantee apply to the Seminar ($40/mo) plan?",
     a: "Yes — all paid plans are eligible for the 50-point score improvement guarantee as long as you meet the eligibility requirements. The Seminar plan does not include 1-on-1 sessions, so the session attendance requirement applies to the platform practice sessions instead.",
   },
   {
-    q: "What if I took an SAT before joining Karman Prep?",
-    a: "We use your Karman Prep diagnostic score as the baseline, not any prior SAT score. This makes the benchmark consistent and fair regardless of your testing history before joining.",
+    q: "What if I took an SAT before joining Karman?",
+    a: "We use your Karman diagnostic score as the baseline, not any prior SAT score. This makes the benchmark consistent and fair regardless of your testing history before joining.",
   },
   {
     q: "How long does a refund take to process?",
@@ -103,7 +103,7 @@ export default function GuaranteePage() {
               <span className="text-blue-600 dark:text-blue-400">Score Guarantee</span>
             </h1>
             <p className="text-lg text-slate-600 dark:text-slate-300 max-w-xl mx-auto">
-              If you follow the Karman Prep program and your SAT score doesn&apos;t improve by at least 50 points, we will refund every dollar you paid. No fine print. No runaround.
+              If you follow the Karman program and your SAT score doesn&apos;t improve by at least 50 points, we will refund every dollar you paid. No fine print. No runaround.
             </p>
           </div>
         </section>
@@ -119,7 +119,7 @@ export default function GuaranteePage() {
               <span className="text-blue-600 dark:text-blue-400">full refund.</span>
             </p>
             <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">
-              We measure your improvement from your Karman Prep diagnostic baseline to your official College Board SAT score. If the gap is less than 50 points and you met all eligibility requirements, we refund 100% of subscription fees paid.
+              We measure your improvement from your Karman diagnostic baseline to your official College Board SAT score. If the gap is less than 50 points and you met all eligibility requirements, we refund 100% of subscription fees paid.
             </p>
           </div>
 

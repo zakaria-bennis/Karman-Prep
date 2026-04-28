@@ -1,5 +1,5 @@
 // ============================================================
-// Karman Prep Diagnostic — 35-question Bluebook-shaped sample.
+// Karman Diagnostic — 35-question Bluebook-shaped sample.
 //
 // Mirrors the Digital SAT's 8-domain coverage and authentic
 // question register:

@@ -104,7 +104,7 @@ export default function DiagnosticResults({ scoring, totalQuestions, answers, qu
             const widthPct = Math.max(highPct - lowPct, 1.5);
             return (
               <div className="mt-7 mb-2 relative">
-                {/* Endpoint labels — small Karman Prep-blue numerals
+                {/* Endpoint labels — small Karman-blue numerals
                     sitting just above each end of the range. */}
                 <div
                   className="absolute -top-5 text-[10px] font-bold text-blue-300 tabular-nums pointer-events-none"
@@ -123,7 +123,7 @@ export default function DiagnosticResults({ scoring, totalQuestions, answers, qu
                 <div className="relative h-2.5 rounded-full bg-gradient-to-r from-rose-400 via-amber-400 to-emerald-500 shadow-[inset_0_1px_2px_rgba(0,0,0,0.25)]">
                   {/* Range capsule — sits ON the bar, slightly
                       taller so it reads as raised, with a soft
-                      Karman Prep glow. Width literally is the range. */}
+                      Karman glow. Width literally is the range. */}
                   <div
                     className="absolute top-1/2 -translate-y-1/2 h-4 rounded-full bg-white border border-blue-300/60 shadow-[0_0_14px_rgba(59,130,246,0.55)]"
                     style={{ left: `${lowPct}%`, width: `${widthPct}%` }}

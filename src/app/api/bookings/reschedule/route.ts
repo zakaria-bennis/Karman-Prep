@@ -158,7 +158,7 @@ export async function POST(req: NextRequest) {
       if (student?.email) {
         const reg = await registerAttendee({
           meetingId: newZoomMeetingId,
-          firstName: student.first_name || "Karman Prep",
+          firstName: student.first_name || "Karman",
           lastName: student.last_name || "",
           email: student.email,
         });

@@ -53,7 +53,7 @@ function lastInitial(name: string | null | undefined): string {
 
 function formatDisplayName(firstName: string | null, lastName: string | null, isAnonymous: boolean): string {
   if (isAnonymous) return "Anonymous";
-  const first = (firstName ?? "").trim() || "Karman Prep";
+  const first = (firstName ?? "").trim() || "Karman";
   const last = lastInitial(lastName);
   return last ? `${first} ${last}` : first;
 }

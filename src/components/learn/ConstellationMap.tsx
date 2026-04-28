@@ -260,7 +260,7 @@ function ConstellationMapInner({ activeSubject, readingNodes, mathNodes }: Props
           viewBox={`0 0 ${W} ${H}`}
           preserveAspectRatio="xMidYMid slice"
           className="block"
-          aria-label="Karman Prep constellation map"
+          aria-label="Karman constellation map"
         >
           <defs>
             {/* Deep-space vertical gradient: lighter near Troposphere (bottom) */}

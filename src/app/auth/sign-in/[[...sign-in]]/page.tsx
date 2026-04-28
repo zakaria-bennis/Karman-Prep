@@ -12,7 +12,7 @@ export default function SignInPage() {
     <div className="relative min-h-screen flex flex-col items-center justify-center px-4 py-12 overflow-hidden">
       <AuthBackdrop />
 
-      <Link href="/" className="mb-8 relative z-10" aria-label="Karman Prep home">
+      <Link href="/" className="mb-8 relative z-10" aria-label="Karman home">
         <StrataLogo size={64} variant="stacked" />
       </Link>
 

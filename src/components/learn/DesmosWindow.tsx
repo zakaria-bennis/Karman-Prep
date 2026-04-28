@@ -1,11 +1,11 @@
 "use client";
 
 // ============================================================
-// DesmosWindow — Karman Prep-skinned Desmos calculator embed.
+// DesmosWindow — Karman-skinned Desmos calculator embed.
 //
 // Switched from <iframe> to the Desmos JS API so we can:
 //   · Run dark mode (`invertedColors: true`) — matches the
-//     Karman Prep navy surface instead of the white desmos.com page.
+//     Karman navy surface instead of the white desmos.com page.
 //   · Toggle between Graphing  ↔  Scientific in-place without
 //     a full iframe reload.
 //   · Trim the chrome around the calculator so the floating
@@ -93,7 +93,7 @@ export default function DesmosWindow({ onClose, constraintsRef }: Props) {
     }
 
     const opts: DesmosOptions = {
-      invertedColors: true,   // dark mode — matches Karman Prep
+      invertedColors: true,   // dark mode — matches Karman
       border: false,          // we draw our own chrome
       fontSize: 14,
     };

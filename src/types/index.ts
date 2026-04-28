@@ -1,5 +1,5 @@
 // ============================================================
-// Karman Prep — Global TypeScript Types
+// Karman — Global TypeScript Types
 // Mirrors the Supabase database schema + app-level types.
 // ============================================================
 

@@ -15,7 +15,7 @@ import { ChevronLeft, Calendar, Users as UsersIcon, BookOpen } from "lucide-reac
 import { fetchUserRole } from "@/lib/supabase/queries/admin";
 import { createAdminClient } from "@/lib/supabase/server";
 
-export const metadata: Metadata = { title: "Student — Parent Portal | Karman Prep" };
+export const metadata: Metadata = { title: "Student — Parent Portal | Karman" };
 export const dynamic = "force-dynamic";
 
 interface PageProps {

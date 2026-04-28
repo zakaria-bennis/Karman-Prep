@@ -83,7 +83,7 @@ function verifySignature(rawBody: string, signature: string, secret: string): bo
 
 function fullName(u: UserRow): string {
   const joined = [u.first_name, u.last_name].filter(Boolean).join(" ").trim();
-  return joined || u.email || "Karman Prep user";
+  return joined || u.email || "Karman user";
 }
 
 async function loadBookingPeople(booking: BookingRow): Promise<{

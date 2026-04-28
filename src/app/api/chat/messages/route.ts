@@ -131,7 +131,7 @@ export async function GET(req: NextRequest) {
       channel_id: r.channel_id,
       message_type: r.message_type,
       parent_message_id: r.parent_message_id,
-      display_name: r.display_name_override ?? "Karman Prep",
+      display_name: r.display_name_override ?? "Karman",
       real_name: showRealName ? nameById.get(r.sender_id) : undefined,
       content: isRejected && !isTutor && !isAdmin ? null : r.content,
       media_urls: isRejected && !isTutor && !isAdmin ? [] : r.media_urls,

@@ -8,8 +8,8 @@ import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
 
 export const metadata: Metadata = {
-  title: "FAQ — Karman Prep SAT Tutoring",
-  description: "Answers to the most common questions about Karman Prep SAT tutoring, pricing, tutors, scheduling, and the score improvement guarantee.",
+  title: "FAQ — Karman SAT Tutoring",
+  description: "Answers to the most common questions about Karman SAT tutoring, pricing, tutors, scheduling, and the score improvement guarantee.",
 };
 
 export default function FAQPage() {

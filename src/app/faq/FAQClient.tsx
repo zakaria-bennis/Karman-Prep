@@ -19,8 +19,8 @@ const FAQ_SECTIONS: { title: string; items: FAQItem[] }[] = [
     title: "Getting Started",
     items: [
       {
-        q: "What is Karman Prep?",
-        a: "Karman Prep is a personalized SAT tutoring platform built around two expert tutors — Zakaria and Nabil. We combine adaptive diagnostic assessments, structured lesson plans, and 1-on-1 coaching to help students improve their SAT scores by an average of 285 points.",
+        q: "What is Karman?",
+        a: "Karman is a personalized SAT tutoring platform built around two expert tutors — Zakaria and Nabil. We combine adaptive diagnostic assessments, structured lesson plans, and 1-on-1 coaching to help students improve their SAT scores by an average of 285 points.",
       },
       {
         q: "How does the free trial work?",
@@ -28,14 +28,14 @@ const FAQ_SECTIONS: { title: string; items: FAQItem[] }[] = [
       },
       {
         q: "Who are the tutors?",
-        a: "Zakaria and Nabil are the core tutors at Karman Prep. Both scored in the 99th percentile on the SAT and have collectively tutored over 2,400 students. They specialize in SAT math and have developed a teaching methodology that consistently produces 200–300+ point improvements. Students regularly credit them by name for their success.",
+        a: "Zakaria and Nabil are the core tutors at Karman. Both scored in the 99th percentile on the SAT and have collectively tutored over 2,400 students. They specialize in SAT math and have developed a teaching methodology that consistently produces 200–300+ point improvements. Students regularly credit them by name for their success.",
       },
       {
         q: "What's the first thing I should do after signing up?",
         a: "Take the free 20-question diagnostic assessment. It covers all four SAT math domains and gives you a predicted score range, a domain-by-domain breakdown, and an auto-generated learning path. The whole thing takes about 35 minutes and immediately tells you where to focus.",
       },
       {
-        q: "Is Karman Prep just for math, or does it cover Reading & Writing too?",
+        q: "Is Karman just for math, or does it cover Reading & Writing too?",
         a: "Our current curriculum is focused on SAT Math, which is where the largest score improvements come from for most students. Reading & Writing content is on our roadmap and will be available soon.",
       },
     ],
@@ -136,11 +136,11 @@ const FAQ_SECTIONS: { title: string; items: FAQItem[] }[] = [
     title: "Technical & Account",
     items: [
       {
-        q: "What devices can I use Karman Prep on?",
-        a: "Karman Prep is fully mobile-responsive and works on any device — phone, tablet, or desktop. Most students do self-paced lessons on their phones and tutoring sessions on a laptop.",
+        q: "What devices can I use Karman on?",
+        a: "Karman is fully mobile-responsive and works on any device — phone, tablet, or desktop. Most students do self-paced lessons on their phones and tutoring sessions on a laptop.",
       },
       {
-        q: "Can I use Karman Prep on multiple devices?",
+        q: "Can I use Karman on multiple devices?",
         a: "Yes — your account syncs across all devices. Start a lesson on your phone and continue on your laptop seamlessly.",
       },
       {
@@ -189,7 +189,7 @@ export default function FAQClient() {
           Got questions? We&apos;ve got answers.
         </h1>
         <p className="text-slate-500 dark:text-slate-400 max-w-xl mx-auto">
-          Everything you need to know about Karman Prep, our tutors, pricing, and the score improvement guarantee.
+          Everything you need to know about Karman, our tutors, pricing, and the score improvement guarantee.
         </p>
       </div>
 

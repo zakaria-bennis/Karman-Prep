@@ -179,9 +179,9 @@ export default function PredictedSATChart({ points, diagnosticsCount }: Props) {
         <div className="flex items-start gap-3 text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl p-4">
           <Info className="w-3.5 h-3.5 mt-0.5 shrink-0" />
           <div>
-            <strong className="text-slate-700 dark:text-slate-300">How this is calculated:</strong> your Karman Prep diagnostic sets a baseline score range.
+            <strong className="text-slate-700 dark:text-slate-300">How this is calculated:</strong> your Karman diagnostic sets a baseline score range.
             Each node you master between then and now adds approximately +8 points to both the low and high ends of your projected range.
-            A refreshed diagnostic re-anchors the line. Real SAT prediction will get more precise as Karman Prep collects more usage data.
+            A refreshed diagnostic re-anchors the line. Real SAT prediction will get more precise as Karman collects more usage data.
           </div>
         </div>
       </div>

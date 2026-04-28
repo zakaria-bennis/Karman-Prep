@@ -10,7 +10,7 @@ const FOUNDERS = [
     credential: "99th percentile · 1,200+ students tutored",
     initials: "ZB",
     gradient: "from-blue-500 to-purple-600",
-    bio: "Zakaria developed Karman Prep's core curriculum after years of 1-on-1 coaching that consistently produced 200–300+ point improvements.",
+    bio: "Zakaria developed Karman's core curriculum after years of 1-on-1 coaching that consistently produced 200–300+ point improvements.",
     bio2: "His Socratic teaching method builds genuine understanding — not just test-taking tricks — so students carry their skills all the way to test day.",
   },
   {
@@ -45,7 +45,7 @@ export default function FounderSection() {
             Meet your <span className="italic text-purple-200 font-[650]">tutors</span>.
           </h2>
           <p className="type-body-lg mt-5 text-slate-400 max-w-xl mx-auto text-balance">
-            Every Karman Prep session is led by one of two tutors who have dedicated their careers to SAT mastery.
+            Every Karman session is led by one of two tutors who have dedicated their careers to SAT mastery.
           </p>
         </Reveal>
 

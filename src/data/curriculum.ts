@@ -1,5 +1,5 @@
 // ============================================================
-// Karman Prep Learn — Curriculum Data (Source of Truth)
+// Karman Learn — Curriculum Data (Source of Truth)
 // ============================================================
 //
 // 📖 NON-DEVELOPER EDITING GUIDE

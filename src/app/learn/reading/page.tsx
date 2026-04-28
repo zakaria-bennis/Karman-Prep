@@ -13,7 +13,7 @@ import ConstellationMap, { type MappedNode } from "@/components/learn/Constellat
 import { initUserProgress } from "@/app/learn/actions";
 
 export const metadata: Metadata = {
-  title: "Reading & Writing — Learn | Karman Prep",
+  title: "Reading & Writing — Learn | Karman",
 };
 
 export default async function ReadingPage() {

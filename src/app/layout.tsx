@@ -31,8 +31,8 @@ export const metadata: Metadata = {
     process.env.NEXT_PUBLIC_APP_URL ?? "https://karmanprep.com"
   ),
   title: {
-    default: "Karman Prep — SAT Tutoring That Gets Results",
-    template: "%s | Karman Prep",
+    default: "Karman — SAT Tutoring That Gets Results",
+    template: "%s | Karman",
   },
   description:
     "Personalized SAT prep with expert tutors, adaptive diagnostics, and a score improvement guarantee. Group, private, and elite plans starting at $40/month.",
@@ -41,13 +41,13 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     url: process.env.NEXT_PUBLIC_APP_URL,
-    siteName: "Karman Prep",
-    title: "Karman Prep — SAT Tutoring That Gets Results",
+    siteName: "Karman",
+    title: "Karman — SAT Tutoring That Gets Results",
     description: "Personalized SAT prep with expert tutors, adaptive diagnostics, and a score improvement guarantee.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Karman Prep — SAT Tutoring That Gets Results",
+    title: "Karman — SAT Tutoring That Gets Results",
     description: "Personalized SAT prep. Score improvement guarantee.",
   },
   robots: { index: true, follow: true },
@@ -66,13 +66,13 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       localization={{
         signIn: {
           start: {
-            title: "Log in to Karman Prep",
+            title: "Log in to Karman",
             subtitle: "Welcome back",
           },
         },
         signUp: {
           start: {
-            title: "Create your Karman Prep account",
+            title: "Create your Karman account",
             subtitle: "Start your free trial",
           },
         },

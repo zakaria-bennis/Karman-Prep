@@ -104,7 +104,7 @@ export async function sendBookingConfirmation(ctx: BaseCtx) {
   return resend.emails.send({
     from: FROM,
     to: recipients(ctx),
-    subject: "Your Karman Prep Session is Confirmed",
+    subject: "Your Karman Session is Confirmed",
     html,
     attachments: [icsAttachment("session.ics", ics)],
   });
@@ -147,7 +147,7 @@ export async function sendBookingCancellation(
   return resend.emails.send({
     from: FROM,
     to: recipients(ctx),
-    subject: "Your Karman Prep Session Has Been Cancelled",
+    subject: "Your Karman Session Has Been Cancelled",
     html,
     attachments: [icsAttachment("cancellation.ics", ics)],
   });
@@ -187,7 +187,7 @@ export async function sendBookingReschedule(ctx: BaseCtx & { oldStart: Date }) {
   return resend.emails.send({
     from: FROM,
     to: recipients(ctx),
-    subject: "Your Karman Prep Session Has Been Rescheduled",
+    subject: "Your Karman Session Has Been Rescheduled",
     html,
     attachments: [icsAttachment("session.ics", ics)],
   });

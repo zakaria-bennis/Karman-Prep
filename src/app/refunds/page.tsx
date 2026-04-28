@@ -9,9 +9,9 @@ import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
 
 export const metadata: Metadata = {
-  title: "Refund Policy — Karman Prep SAT Tutoring",
+  title: "Refund Policy — Karman SAT Tutoring",
   description:
-    "Karman Prep's refund policy: 7-day trial money-back guarantee and 50-point score improvement guarantee. Full details on how to request a refund.",
+    "Karman's refund policy: 7-day trial money-back guarantee and 50-point score improvement guarantee. Full details on how to request a refund.",
 };
 
 const SECTIONS = [
@@ -24,7 +24,7 @@ const SECTIONS = [
     content: (
       <>
         <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed mb-3">
-          All new Karman Prep subscriptions include a 7-day free trial. You will not be charged during this period. If you cancel before day 8, you owe nothing — ever.
+          All new Karman subscriptions include a 7-day free trial. You will not be charged during this period. If you cancel before day 8, you owe nothing — ever.
         </p>
         <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed mb-3">
           If you are billed on day 8 and contact us within 24 hours of that charge, we will issue a full refund, no questions asked. This applies to all plans.
@@ -44,7 +44,7 @@ const SECTIONS = [
     content: (
       <>
         <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed mb-3">
-          If you complete the Karman Prep program — including the full diagnostic, maintaining an active subscription for at least 16 weeks, attending your scheduled sessions, and taking an official College Board SAT — and your score does not improve by at least 50 points, we will refund every dollar you paid.
+          If you complete the Karman program — including the full diagnostic, maintaining an active subscription for at least 16 weeks, attending your scheduled sessions, and taking an official College Board SAT — and your score does not improve by at least 50 points, we will refund every dollar you paid.
         </p>
         <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
           Full eligibility requirements and how to claim are detailed on our{" "}
@@ -67,7 +67,7 @@ const SECTIONS = [
           <strong className="text-slate-900 dark:text-white">Cancellation</strong> stops future billing. You keep access to the platform through the end of your current billing period, and no further charges are made. Cancellation does not automatically trigger a refund for the current period.
         </p>
         <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-          <strong className="text-slate-900 dark:text-white">Refunds</strong> return money already charged. Outside of the 7-day trial window and the 50-point guarantee, Karman Prep does not offer prorated refunds for unused time in a billing period — but we review edge cases individually. Contact us at{" "}
+          <strong className="text-slate-900 dark:text-white">Refunds</strong> return money already charged. Outside of the 7-day trial window and the 50-point guarantee, Karman does not offer prorated refunds for unused time in a billing period — but we review edge cases individually. Contact us at{" "}
           <a href="mailto:billing@karmanprep.com" className="text-blue-600 dark:text-blue-400 underline">billing@karmanprep.com</a>.
         </p>
       </>

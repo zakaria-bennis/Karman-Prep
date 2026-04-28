@@ -1,5 +1,5 @@
 // ============================================================
-// recommendTier — picks the right Karman Prep plan based on the
+// recommendTier — picks the right Karman plan based on the
 // pre-payment questionnaire responses.
 //
 // Design philosophy:

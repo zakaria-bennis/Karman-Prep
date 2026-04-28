@@ -159,7 +159,7 @@ export async function POST(req: NextRequest) {
     const clerkUser = await currentUser();
     const attendeeName =
       [clerkUser?.firstName, clerkUser?.lastName].filter(Boolean).join(" ") ||
-      "Karman Prep Student";
+      "Karman Student";
     const attendeeEmail = clerkUser?.emailAddresses[0]?.emailAddress;
     if (!attendeeEmail) {
       return NextResponse.json(
@@ -211,7 +211,7 @@ export async function POST(req: NextRequest) {
         await enableMeetingRegistration(zoomMeetingId);
         const reg = await registerAttendee({
           meetingId: zoomMeetingId,
-          firstName: clerkUser?.firstName ?? attendeeName.split(" ")[0] ?? "Karman Prep",
+          firstName: clerkUser?.firstName ?? attendeeName.split(" ")[0] ?? "Karman",
           lastName: clerkUser?.lastName ?? "",
           email: attendeeEmail,
         });

@@ -14,7 +14,7 @@ import { fetchUserRole } from "@/lib/supabase/queries/admin";
 import { createAdminClient } from "@/lib/supabase/server";
 import TutorCohortClient from "./TutorCohortClient";
 
-export const metadata: Metadata = { title: "Cohort — Tutor Portal | Karman Prep" };
+export const metadata: Metadata = { title: "Cohort — Tutor Portal | Karman" };
 export const dynamic = "force-dynamic";
 
 interface PageProps {

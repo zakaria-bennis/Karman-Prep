@@ -15,7 +15,7 @@
 //
 // Single-bot model: students never get added to channels
 // individually — the bot is the only Slack-side member, and
-// access is gated by Karman Prep's RLS via cohort_members.
+// access is gated by Karman's RLS via cohort_members.
 // ============================================================
 
 import { createAdminClient } from "@/lib/supabase/server";

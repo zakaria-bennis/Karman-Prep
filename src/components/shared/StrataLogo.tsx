@@ -80,7 +80,7 @@ export function StrataWordmark({ fontSize, letterSpacing }: { fontSize: number; 
         backgroundClip: "text",
       }}
     >
-      Karman Prep
+      Karman
     </span>
   );
 }

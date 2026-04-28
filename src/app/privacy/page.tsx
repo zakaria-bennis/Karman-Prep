@@ -8,16 +8,16 @@ import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy — Karman Prep SAT Tutoring",
+  title: "Privacy Policy — Karman SAT Tutoring",
   description:
-    "How Karman Prep collects, uses, and protects your personal information. GDPR and CCPA compliant.",
+    "How Karman collects, uses, and protects your personal information. GDPR and CCPA compliant.",
 };
 
 const SECTIONS = [
   {
     id: "overview",
     title: "1. Overview",
-    content: `Karman Prep ("we", "us", "our") operates karmanprep.com and the Karman Prep tutoring platform. This Privacy Policy explains what personal information we collect, how we use it, and your rights regarding that information. We are committed to protecting student and family privacy and comply with applicable U.S. privacy laws including CCPA.`,
+    content: `Karman ("we", "us", "our") operates karmanprep.com and the Karman tutoring platform. This Privacy Policy explains what personal information we collect, how we use it, and your rights regarding that information. We are committed to protecting student and family privacy and comply with applicable U.S. privacy laws including CCPA.`,
   },
   {
     id: "what-we-collect",
@@ -28,7 +28,7 @@ const SECTIONS = [
         subtitle: "Account information",
         items: [
           "Name and email address (provided at sign-up)",
-          "Password (stored securely and hashed by Clerk — never visible to Karman Prep)",
+          "Password (stored securely and hashed by Clerk — never visible to Karman)",
           "Role (student, parent, or tutor)",
           "SAT test date (optional, provided during onboarding)",
         ],
@@ -45,7 +45,7 @@ const SECTIONS = [
       {
         subtitle: "Payment information",
         items: [
-          "Billing details are processed entirely by Stripe. Karman Prep never stores or has access to your full credit card number, CVV, or bank account details.",
+          "Billing details are processed entirely by Stripe. Karman never stores or has access to your full credit card number, CVV, or bank account details.",
           "We retain: your Stripe customer ID, subscription tier, subscription status, and billing history for account management.",
         ],
       },
@@ -54,7 +54,7 @@ const SECTIONS = [
         items: [
           "Email address for transactional emails (receipts, session reminders, progress reports)",
           "Email address for marketing communications (only with your explicit consent)",
-          "Support messages sent to Karman Prep",
+          "Support messages sent to Karman",
         ],
       },
       {
@@ -73,7 +73,7 @@ const SECTIONS = [
     title: "3. How We Use Your Information",
     content: null,
     list: [
-      "Create and manage your Karman Prep account",
+      "Create and manage your Karman account",
       "Personalize your diagnostic results and study path",
       "Deliver and schedule tutoring sessions",
       "Send transactional emails (receipts, reminders, progress reports)",
@@ -124,7 +124,7 @@ const SECTIONS = [
   {
     id: "children",
     title: "7. Children's Privacy",
-    content: `The Karman Prep platform is designed for students age 13 and older. We do not knowingly collect personal information from children under 13. If a parent or guardian believes their child under 13 has created an account, please contact us at privacy@karmanprep.com and we will promptly delete the account. For students between 13–17, we encourage parental involvement and offer parent dashboard accounts.`,
+    content: `The Karman platform is designed for students age 13 and older. We do not knowingly collect personal information from children under 13. If a parent or guardian believes their child under 13 has created an account, please contact us at privacy@karmanprep.com and we will promptly delete the account. For students between 13–17, we encourage parental involvement and offer parent dashboard accounts.`,
   },
   {
     id: "security",

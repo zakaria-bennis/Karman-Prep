@@ -1,7 +1,7 @@
 "use client";
 
 // ============================================================
-// How Karman Prep works — three-step scroll-revealed vignette using
+// How Karman works — three-step scroll-revealed vignette using
 // react-useanimations icon animations.
 //
 // react-useanimations is a free, hand-drawn icon animation pack
@@ -14,7 +14,7 @@
 //
 // Each animation plays once on viewport entry and replays on
 // hover. Subtle, polished, agency-trailer feel — no infinite
-// loops, no twitchy motion. Karman Prep gradient lives in the badge
+// loops, no twitchy motion. Karman gradient lives in the badge
 // border + atmospheric glow; the icon stays brand-colored via
 // the `strokeColor` prop.
 // ============================================================
@@ -91,7 +91,7 @@ export default function HowItWorks() {
         <Reveal className="text-center mb-24">
           <span className="type-label text-blue-300/80">How it works</span>
           <h2 className="type-display-lg mt-4 text-white">
-            How Karman Prep <span className="italic text-blue-200 font-[650]">works</span>.
+            How Karman <span className="italic text-blue-200 font-[650]">works</span>.
           </h2>
           <p className="type-body-lg mt-5 text-slate-400 max-w-xl mx-auto text-balance">
             A proven three-step system that takes you from your current score to your target score.

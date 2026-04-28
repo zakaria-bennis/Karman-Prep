@@ -23,7 +23,7 @@ import {
 } from "@/lib/supabase/queries/quiz";
 import ReviewClient from "./ReviewClient";
 
-export const metadata: Metadata = { title: "Admin — Question review | Karman Prep" };
+export const metadata: Metadata = { title: "Admin — Question review | Karman" };
 
 interface PageProps {
   searchParams: Promise<{

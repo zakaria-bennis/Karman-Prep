@@ -102,7 +102,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               cyan — and only fades in once the sidebar expands. */}
           <Link
             href="/"
-            aria-label="Go to the Karman Prep landing page"
+            aria-label="Go to the Karman landing page"
             className="relative flex items-center gap-3 h-12 px-3.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
           >
             <StrataLogoMark size={20} />
@@ -189,7 +189,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           >
             {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
-          <Link href="/" aria-label="Go to the Karman Prep landing page"><StrataLogoMark size={24} /></Link>
+          <Link href="/" aria-label="Go to the Karman landing page"><StrataLogoMark size={24} /></Link>
         </header>
 
         <main className="flex-1 overflow-y-auto">{children}</main>

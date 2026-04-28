@@ -1,6 +1,6 @@
 // ============================================================
 // Slack adapter — TypeScript types.
-// Only models the inputs/outputs Karman Prep consumes. Slack returns
+// Only models the inputs/outputs Karman consumes. Slack returns
 // much more on every call; we type what we use.
 // ============================================================
 
