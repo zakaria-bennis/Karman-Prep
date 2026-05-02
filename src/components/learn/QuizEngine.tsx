@@ -321,131 +321,166 @@ function ActiveQuizScreen({
         ))}
       </div>
 
-      {/* Question area */}
-      <div className="absolute top-24 inset-x-0 bottom-20 overflow-y-auto px-6 py-8">
-        <div className="max-w-3xl mx-auto">
-          <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-3">
-            {q.topic_cluster}
-          </p>
+      {/* Question area — College Board Bluebook-style split view.
+          R&W (with passage): two columns. Left = passage (serif,
+            scrollable). Right = question + choices (sans, scrollable).
+          Math (no passage): single centered column.
+          Vertical divider between columns mimics the SAT digital
+          test layout. Each column scrolls independently. */}
+      {(() => {
+        const hasPassage = !!(q.passage_intro || q.passage || q.passage_a || q.passage_b);
 
-          {/* Passage block — for R&W questions only. Renders BEFORE the
-              question stem so the student has context. Three shapes:
-                · passage_intro alone (literature source line in italic)
-                · passage_intro + passage (typical R&W: italic source +
-                  body text)
-                · passage_a + passage_b (cross-text comparison) — two
-                  columns side by side */}
-          {(q.passage_intro || q.passage || q.passage_a || q.passage_b) && (
-            <div className="mb-5 rounded-xl border border-slate-800 bg-slate-900/40 px-5 py-4 text-sm leading-relaxed text-slate-200 font-serif">
-              {q.passage_a && q.passage_b ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  <div>
-                    <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-2">Text 1</div>
-                    <MathText text={q.passage_a} className="whitespace-pre-wrap block" />
-                  </div>
-                  <div>
-                    <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-2">Text 2</div>
-                    <MathText text={q.passage_b} className="whitespace-pre-wrap block" />
-                  </div>
-                </div>
-              ) : (
-                <>
-                  {q.passage_intro && (
-                    <p className="italic text-slate-400 text-[13px] mb-3">
-                      <MathText text={q.passage_intro} />
-                    </p>
-                  )}
-                  {q.passage && (
-                    <MathText text={q.passage} className="whitespace-pre-wrap block" />
-                  )}
-                </>
-              )}
-            </div>
-          )}
-
-          {q.image_url && (
-            <div className="mb-5 rounded-xl overflow-hidden border border-slate-700 bg-slate-950 inline-block max-w-full">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={q.image_url}
-                alt={q.image_alt ?? ""}
-                className="max-h-80 w-auto object-contain"
+        const choicesAndSubmit = (
+          <>
+            {q.answer_format === "numeric_entry" ? (
+              <NumericAnswerInput
+                value={state.selectedAnswer ?? ""}
+                onChange={onSelectAnswer}
+                isSubmitted={isSubmitted}
+                studentAnswer={state.selectedAnswer}
+                correctAnswer={q.correct_answer}
+                tolerance={q.numeric_tolerance}
+                wasCorrect={state.phase === "submitted_correct"}
               />
-            </div>
-          )}
-          <h2 className="text-xl md:text-2xl font-semibold leading-relaxed text-slate-100">
-            <MathText text={q.question_text} />
-          </h2>
+            ) : (
+              <div className="mt-7 space-y-3">
+                {sortedChoices.map((choice) => {
+                  const letter = choice.letter;
+                  const isSelected = state.selectedAnswer === letter;
+                  const isCorrect = letter === correctLetter;
+                  const showCorrect = isSubmitted && isCorrect;
+                  const showWrong = isSubmitted && isSelected && !isCorrect;
+                  return (
+                    <button
+                      key={letter}
+                      onClick={() => !isSubmitted && onSelectAnswer(letter)}
+                      disabled={isSubmitted}
+                      className={cn(
+                        "w-full text-left rounded-xl border px-5 py-3.5 transition-all",
+                        "flex items-start gap-4",
+                        !isSubmitted && "hover:border-blue-500 hover:bg-blue-500/5 cursor-pointer",
+                        isSelected && !isSubmitted && "border-blue-500 bg-blue-500/10",
+                        !isSelected && !isSubmitted && "border-slate-700 bg-slate-900",
+                        showCorrect && "border-emerald-500 bg-emerald-500/15",
+                        showWrong && "border-rose-500 bg-rose-500/15",
+                        isSubmitted && !isSelected && !isCorrect && "opacity-50 border-slate-800"
+                      )}
+                    >
+                      <span className={cn(
+                        "shrink-0 w-7 h-7 rounded-full flex items-center justify-center font-bold text-[13px] mt-0.5",
+                        !isSubmitted && !isSelected && "bg-slate-800 text-slate-300",
+                        !isSubmitted && isSelected && "bg-blue-500 text-white",
+                        showCorrect && "bg-emerald-500 text-white",
+                        showWrong && "bg-rose-500 text-white",
+                        isSubmitted && !isSelected && !isCorrect && "bg-slate-800 text-slate-500"
+                      )}>
+                        {showCorrect ? <Check className="w-3.5 h-3.5" /> : letter}
+                      </span>
+                      <span className="text-[16px] text-slate-100 leading-[1.5] flex-1">
+                        <MathText text={choice.choice_text} />
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
 
-          {/* Answer area — multiple choice OR numeric input */}
-          {q.answer_format === "numeric_entry" ? (
-            <NumericAnswerInput
-              value={state.selectedAnswer ?? ""}
-              onChange={onSelectAnswer}
-              isSubmitted={isSubmitted}
-              studentAnswer={state.selectedAnswer}
-              correctAnswer={q.correct_answer}
-              tolerance={q.numeric_tolerance}
-              wasCorrect={state.phase === "submitted_correct"}
-            />
-          ) : (
-          <div className="mt-8 space-y-3">
-            {sortedChoices.map((choice) => {
-              const letter = choice.letter;
-              const isSelected = state.selectedAnswer === letter;
-              const isCorrect = letter === correctLetter;
-              const showCorrect = isSubmitted && isCorrect;
-              const showWrong = isSubmitted && isSelected && !isCorrect;
-              return (
-                <button
-                  key={letter}
-                  onClick={() => !isSubmitted && onSelectAnswer(letter)}
-                  disabled={isSubmitted}
-                  className={cn(
-                    "w-full text-left rounded-xl border px-5 py-4 transition-all",
-                    "flex items-start gap-4",
-                    !isSubmitted && "hover:border-blue-500 hover:bg-blue-500/5 cursor-pointer",
-                    isSelected && !isSubmitted && "border-blue-500 bg-blue-500/10",
-                    !isSelected && !isSubmitted && "border-slate-700 bg-slate-900",
-                    showCorrect && "border-emerald-500 bg-emerald-500/15",
-                    showWrong && "border-rose-500 bg-rose-500/15",
-                    isSubmitted && !isSelected && !isCorrect && "opacity-50 border-slate-800"
-                  )}
-                >
-                  <span className={cn(
-                    "shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm",
-                    !isSubmitted && !isSelected && "bg-slate-800 text-slate-300",
-                    !isSubmitted && isSelected && "bg-blue-500 text-white",
-                    showCorrect && "bg-emerald-500 text-white",
-                    showWrong && "bg-rose-500 text-white",
-                    isSubmitted && !isSelected && !isCorrect && "bg-slate-800 text-slate-500"
-                  )}>
-                    {showCorrect ? <Check className="w-4 h-4" /> : letter}
-                  </span>
-                  <span className="text-base text-slate-100 pt-1 flex-1"><MathText text={choice.choice_text} /></span>
-                </button>
-              );
-            })}
-          </div>
-          )}
-
-          {/* Submit button */}
-          {!isSubmitted && state.selectedAnswer && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mt-6 flex justify-end"
-            >
-              <button
-                onClick={onSubmit}
-                className="px-8 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm transition-colors"
+            {!isSubmitted && state.selectedAnswer && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-6 flex justify-end"
               >
-                Submit Answer
-              </button>
-            </motion.div>
-          )}
-        </div>
-      </div>
+                <button
+                  onClick={onSubmit}
+                  className="px-8 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm transition-colors"
+                >
+                  Submit Answer
+                </button>
+              </motion.div>
+            )}
+          </>
+        );
+
+        const questionPanel = (
+          <div className="max-w-xl mx-auto">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 mb-4">
+              {q.topic_cluster}
+            </p>
+            {/* For math questions without a passage, the figure renders
+                here above the question stem. */}
+            {!hasPassage && q.image_url && (
+              <div className="mb-5 rounded-xl overflow-hidden border border-slate-700 bg-slate-950 inline-block max-w-full">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={q.image_url}
+                  alt={q.image_alt ?? ""}
+                  className="max-h-80 w-auto object-contain"
+                />
+              </div>
+            )}
+            <h2 className="text-[19px] md:text-[20px] font-medium leading-[1.5] text-slate-100">
+              <MathText text={q.question_text} />
+            </h2>
+            {choicesAndSubmit}
+          </div>
+        );
+
+        if (hasPassage) {
+          // Two-column Bluebook layout.
+          return (
+            <div className="absolute top-24 inset-x-0 bottom-20 overflow-hidden">
+              <div className="h-full grid md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-slate-800">
+                {/* LEFT: passage. Serif typography, generous line-height,
+                    sized close to the College Board digital test. */}
+                <div className="overflow-y-auto px-6 md:px-10 py-8">
+                  <article className="max-w-prose mx-auto font-serif text-[17px] leading-[1.7] text-slate-100">
+                    {q.passage_a && q.passage_b ? (
+                      <>
+                        <section className="mb-7">
+                          <div className="text-[10px] font-sans font-bold uppercase tracking-[0.2em] text-slate-500 mb-2">
+                            Text 1
+                          </div>
+                          <MathText text={q.passage_a} className="whitespace-pre-wrap block" />
+                        </section>
+                        <section>
+                          <div className="text-[10px] font-sans font-bold uppercase tracking-[0.2em] text-slate-500 mb-2">
+                            Text 2
+                          </div>
+                          <MathText text={q.passage_b} className="whitespace-pre-wrap block" />
+                        </section>
+                      </>
+                    ) : (
+                      <>
+                        {q.passage_intro && (
+                          <p className="italic text-slate-400 text-[15px] leading-[1.6] mb-5">
+                            <MathText text={q.passage_intro} />
+                          </p>
+                        )}
+                        {q.passage && (
+                          <MathText text={q.passage} className="whitespace-pre-wrap block" />
+                        )}
+                      </>
+                    )}
+                  </article>
+                </div>
+
+                {/* RIGHT: question + choices, sans-serif. */}
+                <div className="overflow-y-auto px-6 md:px-10 py-8">
+                  {questionPanel}
+                </div>
+              </div>
+            </div>
+          );
+        }
+
+        // Math-without-passage: single centered column.
+        return (
+          <div className="absolute top-24 inset-x-0 bottom-20 overflow-y-auto px-6 py-8">
+            {questionPanel}
+          </div>
+        );
+      })()}
     </>
   );
 
