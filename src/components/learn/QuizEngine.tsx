@@ -327,6 +327,42 @@ function ActiveQuizScreen({
           <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-3">
             {q.topic_cluster}
           </p>
+
+          {/* Passage block — for R&W questions only. Renders BEFORE the
+              question stem so the student has context. Three shapes:
+                · passage_intro alone (literature source line in italic)
+                · passage_intro + passage (typical R&W: italic source +
+                  body text)
+                · passage_a + passage_b (cross-text comparison) — two
+                  columns side by side */}
+          {(q.passage_intro || q.passage || q.passage_a || q.passage_b) && (
+            <div className="mb-5 rounded-xl border border-slate-800 bg-slate-900/40 px-5 py-4 text-sm leading-relaxed text-slate-200 font-serif">
+              {q.passage_a && q.passage_b ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div>
+                    <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-2">Text 1</div>
+                    <MathText text={q.passage_a} className="whitespace-pre-wrap block" />
+                  </div>
+                  <div>
+                    <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-2">Text 2</div>
+                    <MathText text={q.passage_b} className="whitespace-pre-wrap block" />
+                  </div>
+                </div>
+              ) : (
+                <>
+                  {q.passage_intro && (
+                    <p className="italic text-slate-400 text-[13px] mb-3">
+                      <MathText text={q.passage_intro} />
+                    </p>
+                  )}
+                  {q.passage && (
+                    <MathText text={q.passage} className="whitespace-pre-wrap block" />
+                  )}
+                </>
+              )}
+            </div>
+          )}
+
           {q.image_url && (
             <div className="mb-5 rounded-xl overflow-hidden border border-slate-700 bg-slate-950 inline-block max-w-full">
               {/* eslint-disable-next-line @next/next/no-img-element */}
