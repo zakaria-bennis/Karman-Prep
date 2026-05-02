@@ -452,8 +452,14 @@ function ActiveQuizScreen({
                       </>
                     ) : (
                       <>
+                        {/* passage_intro and the passage body share
+                            the article's font/size/line-height/color.
+                            We deliberately do NOT italicize the intro;
+                            College Board reserves italics for work
+                            titles inside the prose, not for the source
+                            attribution as a whole. Just paragraph-spaced. */}
                         {q.passage_intro && (
-                          <p className="italic text-slate-400 text-[15px] leading-[1.6] mb-5">
+                          <p className="mb-5">
                             <MathText text={q.passage_intro} />
                           </p>
                         )}
