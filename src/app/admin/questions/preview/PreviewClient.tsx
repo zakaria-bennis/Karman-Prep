@@ -1,0 +1,220 @@
+"use client";
+
+// ============================================================
+// PreviewClient — list + filter UI sitting above the QuestionPreview
+// renderer. Filters narrow the question pool; current selection is
+// driven by index into the filtered list, navigated with prev/next or
+// the dropdown.
+// ============================================================
+
+import { useMemo, useState } from "react";
+import { ChevronLeft, ChevronRight, Filter, AlertTriangle } from "lucide-react";
+import { cn } from "@/lib/utils";
+import type { QuizQuestionWithChoices } from "@/types/quiz";
+import { QuestionPreview } from "./QuestionPreview";
+
+type Subject = "all" | "reading" | "math";
+type Status = "all" | "ok" | "needs_review";
+
+export default function PreviewClient({ initial }: { initial: QuizQuestionWithChoices[] }) {
+  const [subject, setSubject] = useState<Subject>("all");
+  const [status, setStatus] = useState<Status>("all");
+  const [pdf, setPdf] = useState<string>("all");
+  const [domain, setDomain] = useState<string>("all");
+  const [idx, setIdx] = useState(0);
+
+  // Distinct PDFs / domains for filter dropdowns.
+  const allPdfs = useMemo(
+    () => Array.from(new Set(initial.map((q) => q.source_pdf || "(unknown)"))).sort(),
+    [initial]
+  );
+  const allDomains = useMemo(
+    () => Array.from(new Set(initial.map((q) => q.domain || "(unknown)"))).sort(),
+    [initial]
+  );
+
+  const filtered = useMemo(() => {
+    return initial.filter((q) => {
+      if (subject !== "all" && q.subject !== subject) return false;
+      if (status !== "all" && q.import_status !== status) return false;
+      if (pdf !== "all" && (q.source_pdf || "(unknown)") !== pdf) return false;
+      if (domain !== "all" && (q.domain || "(unknown)") !== domain) return false;
+      return true;
+    });
+  }, [initial, subject, status, pdf, domain]);
+
+  // Keep idx in range when filters change.
+  const safeIdx = filtered.length > 0 ? Math.min(idx, filtered.length - 1) : 0;
+  const current = filtered[safeIdx];
+
+  function jump(delta: number) {
+    setIdx((cur) => {
+      const next = cur + delta;
+      if (next < 0) return 0;
+      if (next >= filtered.length) return filtered.length - 1;
+      return next;
+    });
+  }
+
+  function selectRow(i: number) {
+    setIdx(i);
+  }
+
+  return (
+    <div>
+      {/* Filter + nav toolbar */}
+      <div className="border-y border-slate-800 bg-slate-900/40">
+        <div className="max-w-7xl mx-auto px-5 py-3 flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2 text-xs text-slate-400">
+            <Filter className="w-3.5 h-3.5" />
+            <span>Filters</span>
+          </div>
+
+          <select
+            value={subject}
+            onChange={(e) => { setSubject(e.target.value as Subject); setIdx(0); }}
+            className="rounded-lg bg-slate-900 border border-slate-700 px-2.5 py-1.5 text-xs text-slate-100 focus:outline-none focus:border-indigo-500"
+          >
+            <option value="all">All subjects</option>
+            <option value="reading">Reading</option>
+            <option value="math">Math</option>
+          </select>
+
+          <select
+            value={status}
+            onChange={(e) => { setStatus(e.target.value as Status); setIdx(0); }}
+            className="rounded-lg bg-slate-900 border border-slate-700 px-2.5 py-1.5 text-xs text-slate-100 focus:outline-none focus:border-indigo-500"
+          >
+            <option value="all">All statuses</option>
+            <option value="ok">ok</option>
+            <option value="needs_review">needs_review</option>
+          </select>
+
+          <select
+            value={pdf}
+            onChange={(e) => { setPdf(e.target.value); setIdx(0); }}
+            className="rounded-lg bg-slate-900 border border-slate-700 px-2.5 py-1.5 text-xs text-slate-100 max-w-[18rem] focus:outline-none focus:border-indigo-500"
+          >
+            <option value="all">All PDFs</option>
+            {allPdfs.map((p) => (
+              <option key={p} value={p}>{p}</option>
+            ))}
+          </select>
+
+          <select
+            value={domain}
+            onChange={(e) => { setDomain(e.target.value); setIdx(0); }}
+            className="rounded-lg bg-slate-900 border border-slate-700 px-2.5 py-1.5 text-xs text-slate-100 focus:outline-none focus:border-indigo-500"
+          >
+            <option value="all">All domains</option>
+            {allDomains.map((d) => (
+              <option key={d} value={d}>{d}</option>
+            ))}
+          </select>
+
+          {/* Counter + nav */}
+          <div className="ml-auto flex items-center gap-2">
+            <span className="text-xs text-slate-500">
+              {filtered.length === 0 ? "0 questions" : (
+                <>
+                  <span className="text-slate-300 font-semibold">{safeIdx + 1}</span>
+                  {" of "}{filtered.length}
+                </>
+              )}
+            </span>
+            <button
+              onClick={() => jump(-1)}
+              disabled={safeIdx === 0 || filtered.length === 0}
+              className="p-1.5 rounded-md bg-slate-800 border border-slate-700 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed"
+              aria-label="Previous question"
+            >
+              <ChevronLeft className="w-4 h-4 text-slate-200" />
+            </button>
+            <button
+              onClick={() => jump(1)}
+              disabled={safeIdx >= filtered.length - 1 || filtered.length === 0}
+              className="p-1.5 rounded-md bg-slate-800 border border-slate-700 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed"
+              aria-label="Next question"
+            >
+              <ChevronRight className="w-4 h-4 text-slate-200" />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* 2-pane: list + preview */}
+      <div className="max-w-7xl mx-auto px-5 py-4 grid grid-cols-1 lg:grid-cols-[20rem_1fr] gap-4">
+        {/* Left: list of filtered questions */}
+        <aside className="lg:max-h-[calc(100vh-12rem)] lg:overflow-y-auto rounded-xl border border-slate-800 bg-slate-900/30 divide-y divide-slate-800">
+          {filtered.length === 0 ? (
+            <div className="p-6 text-xs text-slate-500 italic">No questions match these filters.</div>
+          ) : (
+            filtered.map((q, i) => (
+              <button
+                key={q.id}
+                onClick={() => selectRow(i)}
+                className={cn(
+                  "w-full text-left px-3.5 py-2.5 flex items-start gap-2 hover:bg-slate-800/50 transition-colors",
+                  i === safeIdx && "bg-slate-800"
+                )}
+              >
+                <span className="shrink-0 text-[10px] font-mono text-slate-500 mt-0.5 w-6 text-right tabular-nums">
+                  {i + 1}
+                </span>
+                <span className="flex-1 min-w-0">
+                  <span className="block text-[12px] text-slate-200 line-clamp-2 leading-snug">
+                    {q.question_text || "(no question text)"}
+                  </span>
+                  <span className="mt-1 flex flex-wrap items-center gap-1.5 text-[10px] text-slate-500">
+                    <span className="px-1.5 rounded bg-slate-800 text-slate-300">{q.subject}</span>
+                    <span className="px-1.5 rounded bg-slate-800 text-slate-300">L{q.difficulty_level ?? "—"}</span>
+                    <span className="truncate max-w-[8rem]">{q.concept_slug ?? "(no slug)"}</span>
+                    {q.import_status === "needs_review" && (
+                      <AlertTriangle className="w-3 h-3 text-amber-400" />
+                    )}
+                  </span>
+                </span>
+              </button>
+            ))
+          )}
+        </aside>
+
+        {/* Right: live preview */}
+        <main className="rounded-xl border border-slate-800 bg-slate-950 overflow-hidden">
+          {current ? (
+            <>
+              {/* Metadata strip above the preview, mirrors what the
+                  admin needs to know about this row but never shown to
+                  students. */}
+              <div className="px-5 py-2 border-b border-slate-800 bg-slate-900/60 text-[11px] text-slate-400 flex flex-wrap items-center gap-x-4 gap-y-1 font-mono">
+                <span className="text-slate-500">id:</span>
+                <span className="text-slate-300 truncate max-w-[14rem]">{current.id}</span>
+                <span className="text-slate-500">pdf:</span>
+                <span className="text-slate-300">{current.source_pdf ?? "—"} p{current.source_page ?? "—"}</span>
+                <span className="text-slate-500">slug:</span>
+                <span className="text-slate-300">{current.concept_slug ?? "—"}</span>
+                <span className="text-slate-500">domain:</span>
+                <span className="text-slate-300">{current.domain ?? "—"}</span>
+                <span className="text-slate-500">level:</span>
+                <span className="text-slate-300">{current.difficulty_level ?? "—"}</span>
+                <span className={cn(
+                  "ml-auto px-1.5 rounded font-bold",
+                  current.import_status === "needs_review"
+                    ? "bg-amber-500/15 text-amber-300"
+                    : "bg-emerald-500/15 text-emerald-300"
+                )}>
+                  {current.import_status ?? "ok"}
+                </span>
+              </div>
+              <QuestionPreview q={current} />
+            </>
+          ) : (
+            <div className="px-6 py-10 text-center text-sm text-slate-500">
+              No question selected.
+            </div>
+          )}
+        </main>
+      </div>
+    </div>
+  );
+}

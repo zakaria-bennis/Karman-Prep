@@ -6,7 +6,7 @@ import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { UserButton } from "@clerk/nextjs";
-import { Settings, BookOpen, Flag, Users, UserCog, DollarSign, ClipboardCheck, Upload } from "lucide-react";
+import { Settings, BookOpen, Users, UserCog, DollarSign, ClipboardCheck, Upload, Eye } from "lucide-react";
 import { fetchUserRole } from "@/lib/supabase/queries/admin";
 import { StrataLogo } from "@/components/shared/StrataLogo";
 import ImpersonationMenu from "@/components/admin/ImpersonationMenu";
@@ -33,10 +33,13 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           <AdminNavLink href="/admin/curriculum" icon={BookOpen} label="Curriculum" />
           <AdminNavLink href="/admin/questions/import" icon={Upload} label="Import" />
           <AdminNavLink href="/admin/questions/review" icon={ClipboardCheck} label="Review" />
+          <AdminNavLink href="/admin/questions/preview" icon={Eye} label="Preview" />
           <AdminNavLink href="/admin/cohorts" icon={Users} label="Cohorts" />
           <AdminNavLink href="/admin/users" icon={UserCog} label="Users" />
           <AdminNavLink href="/admin/revenue" icon={DollarSign} label="Revenue" />
-          <AdminNavLink href="/admin/curriculum?tab=flagged" icon={Flag} label="Flagged" />
+          {/* Top-bar "Flagged" link removed — redundant with the in-page
+              Nodes/Flagged tab on /admin/curriculum. The count badge
+              there is the canonical surface for unresolved flags. */}
         </nav>
         <div className="ml-auto flex items-center gap-4">
           <ImpersonationMenu />
