@@ -3,6 +3,16 @@ const nextConfig = {
   // Cloudflare Workers (via OpenNext) needs the Node.js runtime
   // compatibility flag — set in wrangler.toml.
   // See: https://opennext.js.org/cloudflare/get-started
+  experimental: {
+    serverActions: {
+      // Default is 1 MB. Bulk question imports send a parsed CSV in
+      // the request body; when figures are inlined as base64 data
+      // URLs (~190 KB per image), a typical SAT PDF's CSV runs
+      // 3–5 MB. 25 MB gives us plenty of headroom for the worst
+      // PDFs and is well under Cloudflare Workers' request body cap.
+      bodySizeLimit: "25mb",
+    },
+  },
   images: {
     // CF Workers don't run the default Next.js Image Optimization API;
     // serve images unoptimized (R2-hosted images are already PNG/WebP).

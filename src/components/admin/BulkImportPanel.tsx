@@ -28,8 +28,15 @@ interface Props {
   topicCluster: string;
 }
 
-// 30 columns in exact spec §2 order — used for both the template
+// 32 columns in exact spec §2 order — used for both the template
 // download and as the canonical header set.
+//
+// image_url accepts BOTH a regular URL and a base64 data URL
+// (data:image/png;base64,...). When the bulk importer sees a data
+// URL, it decodes the bytes, uploads them to R2, and replaces the
+// cell with the resulting public R2 URL before insert. That keeps
+// the "single CSV in, single CSV upload" workflow intact for the
+// Custom-GPT pipeline that inlines figures into the file.
 export const CSV_HEADERS = [
   "question_text",
   "choice_a", "choice_b", "choice_c", "choice_d",
@@ -42,6 +49,7 @@ export const CSV_HEADERS = [
   "domain", "concept_slug", "answer_source",
   "source_pdf", "source_page", "content_hash",
   "import_status", "import_flag_type", "import_flag_reason",
+  "image_url", "image_alt",
 ] as const;
 
 function buildCsvTemplate(topicCluster: string): string {
@@ -63,9 +71,10 @@ function buildCsvTemplate(topicCluster: string): string {
       '"Type 3x+5=26 into Desmos and read the intersection."',
       "", "", "", "",
       "multiple_choice", "",
-      "algebra", "linear-equations", "extracted",
+      "algebra", "linear-equations-one-variable", "extracted",
       "", "", "",
       "ok", "", "",
+      "", "",
     ].join(","),
   ].join("\n");
 }
@@ -149,6 +158,8 @@ export function toBulkRows(parsed: Record<string, string>[]): BulkImportRow[] {
         ? r.import_flag_type
         : undefined,
     import_flag_reason: r.import_flag_reason || undefined,
+    image_url: r.image_url || undefined,
+    image_alt: r.image_alt || undefined,
   }));
 }
 

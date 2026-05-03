@@ -99,6 +99,15 @@ export interface NewQuestionInput {
   import_status?: ImportStatus | null;
   import_flag_type?: ImportFlagType | null;
   import_flag_reason?: string | null;
+
+  // ── Question figure (migration 004) ───────────────────────
+  // Optional. Set when bulkImportRows already materialized a
+  // data: URL → R2 upload before calling insertQuestion. The
+  // post-insert actionUploadQuestionImage path can still attach
+  // images later for rows that didn't carry one in the CSV.
+  image_url?: string | null;
+  image_storage_path?: string | null;
+  image_alt?: string | null;
 }
 
 export interface InsertQuestionResult {
@@ -161,6 +170,9 @@ export async function insertQuestion(input: NewQuestionInput): Promise<InsertQue
       import_status: input.import_status ?? null,
       import_flag_type: input.import_flag_type ?? null,
       import_flag_reason: input.import_flag_reason ?? null,
+      image_url: input.image_url ?? null,
+      image_storage_path: input.image_storage_path ?? null,
+      image_alt: input.image_alt ?? null,
     })
     .select()
     .single();
@@ -525,6 +537,19 @@ export async function fetchFlaggedQuestions(): Promise<
     .order("created_at", { ascending: false });
   if (error) throw error;
   return (data ?? []) as Array<FlaggedQuestion & { question: QuizQuestionWithChoices | null }>;
+}
+
+/** Cheap count-only query for the unresolved-flag badge in the
+ *  admin nav. Avoids fetching every row (and the joined question
+ *  payload) just to display a number. */
+export async function fetchFlaggedQuestionCount(): Promise<number> {
+  const supabase = createAdminClient();
+  const { count, error } = await supabase
+    .from("flagged_questions")
+    .select("id", { count: "exact", head: true })
+    .eq("resolved", false);
+  if (error) throw error;
+  return count ?? 0;
 }
 
 export async function fetchFlaggedQuestionsForStudent(
