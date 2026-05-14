@@ -21,10 +21,7 @@ import {
   getUpcomingBookingForStudent,
   type BookingPlanTier,
 } from "@/lib/supabase/queries/bookings";
-import {
-  ensureEliteMonthlyTokens,
-  getAvailableTokenCount,
-} from "@/lib/supabase/queries/tokens";
+import { ensureEliteMonthlyTokens, getAvailableTokenCount } from "@/lib/supabase/queries/tokens";
 
 export const metadata: Metadata = { title: "Schedule" };
 export const dynamic = "force-dynamic";
@@ -49,11 +46,7 @@ export default async function StudentSchedulePage() {
   const isActive = sub?.status === "active" || sub?.status === "trialing";
   if (!isActive) redirect("/billing?required=1");
 
-  const { data: user } = await supabase
-    .from("users")
-    .select("id")
-    .eq("clerk_id", userId)
-    .single();
+  const { data: user } = await supabase.from("users").select("id").eq("clerk_id", userId).single();
   if (!user?.id) redirect("/onboarding");
 
   const planTier = sub.tier as BookingPlanTier;
@@ -110,13 +103,11 @@ export default async function StudentSchedulePage() {
 
   return (
     <DashboardLayout>
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+      <div className="mx-auto max-w-4xl space-y-6 px-4 py-8 sm:px-6">
         <header>
-          <p className="text-xs font-bold tracking-widest text-blue-500 uppercase mb-1">
-            Schedule
-          </p>
-          <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
-            <CalendarClock className="w-6 h-6 text-slate-400" />
+          <p className="mb-1 text-xs font-bold uppercase tracking-widest text-blue-500">Schedule</p>
+          <h1 className="flex items-center gap-2 text-2xl font-extrabold text-slate-900 dark:text-white">
+            <CalendarClock className="h-6 w-6 text-slate-400" />
             Your sessions
           </h1>
           {!upcoming ? (
@@ -153,7 +144,7 @@ export default async function StudentSchedulePage() {
         ) : null}
 
         {canSelfBook && !assignedTutor ? (
-          <div className="rounded-xl border border-amber-200 dark:border-amber-400/20 bg-amber-50 dark:bg-amber-400/5 px-4 py-3">
+          <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-400/20 dark:bg-amber-400/5">
             <p className="text-sm text-amber-800 dark:text-amber-200">
               No tutor assigned yet. An admin will pair you with a tutor shortly.
             </p>

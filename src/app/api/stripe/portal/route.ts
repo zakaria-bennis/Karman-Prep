@@ -41,10 +41,7 @@ export async function POST(req: Request) {
     if (action === "cancel") {
       // Dev sub IDs start with 'sub_dev_' — mark canceled in DB, skip Stripe
       if (sub.stripe_subscription_id?.startsWith("sub_dev")) {
-        await supabase
-          .from("subscriptions")
-          .update({ status: "canceled" })
-          .eq("user_id", userId);
+        await supabase.from("subscriptions").update({ status: "canceled" }).eq("user_id", userId);
         return NextResponse.json({ ok: true, mode: "dev" });
       }
 
@@ -53,10 +50,7 @@ export async function POST(req: Request) {
         await stripe.subscriptions.update(sub.stripe_subscription_id, {
           cancel_at_period_end: true,
         });
-        await supabase
-          .from("subscriptions")
-          .update({ status: "canceled" })
-          .eq("user_id", userId);
+        await supabase.from("subscriptions").update({ status: "canceled" }).eq("user_id", userId);
         return NextResponse.json({ ok: true, mode: "stripe" });
       } catch (stripeErr) {
         console.error("[portal] Stripe cancel failed:", stripeErr);
@@ -79,7 +73,7 @@ export async function POST(req: Request) {
       console.warn("[portal] Stripe portal unavailable:", stripeErr);
       return NextResponse.json(
         { error: "Stripe portal unavailable for this account" },
-        { status: 200 }    // 200 so client parses JSON and uses fallback UI
+        { status: 200 } // 200 so client parses JSON and uses fallback UI
       );
     }
   } catch (error) {

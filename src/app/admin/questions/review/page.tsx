@@ -62,19 +62,20 @@ export default async function QuestionReviewPage({ searchParams }: PageProps) {
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-5 py-8">
+    <div className="mx-auto max-w-6xl px-5 py-8">
       <div className="mb-6">
         <Link
           href="/admin/curriculum"
-          className="inline-flex items-center gap-1 text-xs text-slate-500 hover:text-slate-300 mb-3"
+          className="mb-3 inline-flex items-center gap-1 text-xs text-slate-500 hover:text-slate-300"
         >
-          <ChevronRight className="w-3 h-3 rotate-180" /> Back to admin
+          <ChevronRight className="h-3 w-3 rotate-180" /> Back to admin
         </Link>
-        <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-          <ClipboardCheck className="w-5 h-5 text-amber-400" /> Question review
+        <h1 className="flex items-center gap-2 text-2xl font-bold text-white">
+          <ClipboardCheck className="h-5 w-5 text-amber-400" /> Question review
         </h1>
-        <p className="text-sm text-slate-400 mt-1.5">
-          {counts.bank} in bank · {counts.flagged} flagged ({counts.partial_emit} partial_emit · {counts.skip} skip)
+        <p className="mt-1.5 text-sm text-slate-400">
+          {counts.bank} in bank · {counts.flagged} flagged ({counts.partial_emit} partial_emit ·{" "}
+          {counts.skip} skip)
         </p>
       </div>
 

@@ -7,22 +7,36 @@
 //
 // Returns the full ScoredDiagnostic so the client can render
 // the results page in one round-trip.
+//
+// REFERENCE PATTERN — request body validation with Zod.
+// Every new API route accepting JSON should follow this shape:
+//   1. Define a Zod schema as the source of truth for the body
+//   2. .safeParse() the request body — never trust req.json() blind
+//   3. On invalid input return 400 with structured field errors
+//   4. The TypeScript type is inferred via z.infer<>
 // ============================================================
 
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
+import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/server";
 import { scoreDiagnostic, type AnswerInput } from "@/lib/diagnostic-scoring";
-import type { SATDomain } from "@/types";
+import { SAT_DOMAINS } from "@/lib/question-bank/taxonomy";
 
-interface AnswerPayload {
-  questionId: string;
-  selectedAnswer: string;
-  domain: SATDomain;
-  difficulty: 1 | 2 | 3;
-  conceptId?: string;
-  correct: boolean;
-}
+// Zod schema = source of truth. The TypeScript type is derived,
+// not duplicated, via z.infer<>.
+const AnswerSchema = z.object({
+  questionId: z.string().min(1),
+  selectedAnswer: z.string(),
+  domain: z.enum(SAT_DOMAINS),
+  difficulty: z.union([z.literal(1), z.literal(2), z.literal(3)]),
+  conceptId: z.string().optional(),
+  correct: z.boolean(),
+});
+
+const SubmitDiagnosticSchema = z.object({
+  answers: z.array(AnswerSchema).min(1, "answers array must have at least one entry"),
+});
 
 export async function POST(req: NextRequest) {
   try {
@@ -31,10 +45,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { answers }: { answers: AnswerPayload[] } = await req.json();
-    if (!Array.isArray(answers) || answers.length === 0) {
-      return NextResponse.json({ error: "Answers array required" }, { status: 400 });
+    // Parse + validate the body. safeParse never throws — it returns
+    // a discriminated union we destructure cleanly.
+    const raw = await req.json().catch(() => null);
+    const parsed = SubmitDiagnosticSchema.safeParse(raw);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: "Invalid request body", issues: parsed.error.issues },
+        { status: 400 }
+      );
     }
+    const { answers } = parsed.data;
 
     // Normalize to the engine's input shape. We trust the client's
     // `correct` flag — it's already validated against the question
@@ -44,7 +65,7 @@ export async function POST(req: NextRequest) {
       domain: a.domain,
       difficulty: a.difficulty,
       conceptId: a.conceptId,
-      correct: a.correct === true,
+      correct: a.correct,
     }));
 
     const result = scoreDiagnostic(inputs);

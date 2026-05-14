@@ -16,11 +16,7 @@ import { useRef, useState } from "react";
 import { Upload, Download, Check, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Subject } from "@/data/curriculum";
-import {
-  actionBulkImport,
-  type BulkImportRow,
-  type BulkImportResult,
-} from "@/app/admin/actions";
+import { actionBulkImport, type BulkImportRow, type BulkImportResult } from "@/app/admin/actions";
 
 interface Props {
   nodeId: string;
@@ -39,17 +35,37 @@ interface Props {
 // Custom-GPT pipeline that inlines figures into the file.
 export const CSV_HEADERS = [
   "question_text",
-  "choice_a", "choice_b", "choice_c", "choice_d",
-  "correct_answer", "difficulty", "topic_cluster",
-  "hint", "explanation_text",
-  "explanation_a", "explanation_b", "explanation_c", "explanation_d",
+  "choice_a",
+  "choice_b",
+  "choice_c",
+  "choice_d",
+  "correct_answer",
+  "difficulty",
+  "topic_cluster",
+  "hint",
+  "explanation_text",
+  "explanation_a",
+  "explanation_b",
+  "explanation_c",
+  "explanation_d",
   "desmos_strategy",
-  "passage_intro", "passage", "passage_a", "passage_b",
-  "question_format", "numeric_tolerance",
-  "domain", "concept_slug", "answer_source",
-  "source_pdf", "source_page", "content_hash",
-  "import_status", "import_flag_type", "import_flag_reason",
-  "image_url", "image_alt",
+  "passage_intro",
+  "passage",
+  "passage_a",
+  "passage_b",
+  "question_format",
+  "numeric_tolerance",
+  "domain",
+  "concept_slug",
+  "answer_source",
+  "source_pdf",
+  "source_page",
+  "content_hash",
+  "import_status",
+  "import_flag_type",
+  "import_flag_reason",
+  "image_url",
+  "image_alt",
 ] as const;
 
 function buildCsvTemplate(topicCluster: string): string {
@@ -60,8 +76,13 @@ function buildCsvTemplate(topicCluster: string): string {
     CSV_HEADERS.join(","),
     [
       '"If 3x + 5 = 26, what is the value of x?"',
-      '"5"', '"6"', '"7"', '"8"',
-      "C", "2", `"${topicCluster}"`,
+      '"5"',
+      '"6"',
+      '"7"',
+      '"8"',
+      "C",
+      "2",
+      `"${topicCluster}"`,
       '"Start by isolating the variable term."',
       '"Subtract 5 from both sides to get 3x = 21, then divide by 3 to find x = 7."',
       '"5 results from forgetting to subtract 5 first."',
@@ -69,12 +90,23 @@ function buildCsvTemplate(topicCluster: string): string {
       '"Correct — x = 7."',
       '"8 results from dividing 24 by 3 instead of 21."',
       '"Type 3x+5=26 into Desmos and read the intersection."',
-      "", "", "", "",
-      "multiple_choice", "",
-      "algebra", "linear-equations-one-variable", "extracted",
-      "", "", "",
-      "ok", "", "",
-      "", "",
+      "",
+      "",
+      "",
+      "",
+      "multiple_choice",
+      "",
+      "algebra",
+      "linear-equations-one-variable",
+      "extracted",
+      "",
+      "",
+      "",
+      "ok",
+      "",
+      "",
+      "",
+      "",
     ].join(","),
   ].join("\n");
 }
@@ -90,15 +122,20 @@ export function parseCsv(text: string): Record<string, string>[] {
   for (let i = 0; i < text.length; i++) {
     const c = text[i];
     if (inQuotes) {
-      if (c === '"' && text[i + 1] === '"') { field += '"'; i++; }
-      else if (c === '"') inQuotes = false;
+      if (c === '"' && text[i + 1] === '"') {
+        field += '"';
+        i++;
+      } else if (c === '"') inQuotes = false;
       else field += c;
     } else {
       if (c === '"') inQuotes = true;
-      else if (c === ",") { row.push(field); field = ""; }
-      else if (c === "\n" || c === "\r") {
+      else if (c === ",") {
+        row.push(field);
+        field = "";
+      } else if (c === "\n" || c === "\r") {
         if (c === "\r" && text[i + 1] === "\n") i++;
-        row.push(field); field = "";
+        row.push(field);
+        field = "";
         if (row.some((v) => v.trim() !== "")) rows.push(row);
         row = [];
       } else field += c;
@@ -112,7 +149,9 @@ export function parseCsv(text: string): Record<string, string>[] {
   const headers = rows[0].map((h) => h.trim());
   return rows.slice(1).map((r) => {
     const obj: Record<string, string> = {};
-    headers.forEach((h, i) => { obj[h] = (r[i] ?? "").trim(); });
+    headers.forEach((h, i) => {
+      obj[h] = (r[i] ?? "").trim();
+    });
     return obj;
   });
 }
@@ -138,8 +177,7 @@ export function toBulkRows(parsed: Record<string, string>[]): BulkImportRow[] {
     passage: r.passage || undefined,
     passage_a: r.passage_a || undefined,
     passage_b: r.passage_b || undefined,
-    question_format:
-      r.question_format === "numeric_entry" ? "numeric_entry" : "multiple_choice",
+    question_format: r.question_format === "numeric_entry" ? "numeric_entry" : "multiple_choice",
     numeric_tolerance: r.numeric_tolerance || undefined,
     domain: r.domain || undefined,
     concept_slug: r.concept_slug || undefined,
@@ -152,7 +190,12 @@ export function toBulkRows(parsed: Record<string, string>[]): BulkImportRow[] {
     source_pdf: r.source_pdf || undefined,
     source_page: r.source_page || undefined,
     content_hash: r.content_hash || undefined,
-    import_status: r.import_status === "needs_review" ? "needs_review" : r.import_status === "ok" ? "ok" : undefined,
+    import_status:
+      r.import_status === "needs_review"
+        ? "needs_review"
+        : r.import_status === "ok"
+          ? "ok"
+          : undefined,
     import_flag_type:
       r.import_flag_type === "skip" || r.import_flag_type === "partial_emit"
         ? r.import_flag_type
@@ -218,23 +261,29 @@ export default function BulkImportPanel({ nodeId, subject, topicCluster }: Props
 
   return (
     <section className="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
-      <div className="flex items-center justify-between mb-3">
+      <div className="mb-3 flex items-center justify-between">
         <h3 className="text-sm font-bold text-white">Bulk import</h3>
         <button
           onClick={handleDownloadTemplate}
           className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-400 hover:text-indigo-300"
         >
-          <Download className="w-3.5 h-3.5" /> CSV template
+          <Download className="h-3.5 w-3.5" /> CSV template
         </button>
       </div>
-      <p className="text-xs text-slate-500 mb-4 max-w-2xl">
-        Upload a CSV or JSON file. Accepts the legacy 15-column template AND
-        the 30-column routine template (PDF-ingestion output). Required:
-        <code className="text-slate-300 bg-slate-800 px-1 py-0.5 rounded mx-1">question_text</code>,
-        <code className="text-slate-300 bg-slate-800 px-1 py-0.5 rounded mx-1">correct_answer</code>,
-        <code className="text-slate-300 bg-slate-800 px-1 py-0.5 rounded mx-1">explanation_text</code>.
-        Choices are required for multiple-choice rows; SPR rows leave them blank
-        and set <code className="text-slate-300 bg-slate-800 px-1 py-0.5 rounded mx-0.5">question_format=numeric_entry</code>.
+      <p className="mb-4 max-w-2xl text-xs text-slate-500">
+        Upload a CSV or JSON file. Accepts the legacy 15-column template AND the 30-column routine
+        template (PDF-ingestion output). Required:
+        <code className="mx-1 rounded bg-slate-800 px-1 py-0.5 text-slate-300">question_text</code>,
+        <code className="mx-1 rounded bg-slate-800 px-1 py-0.5 text-slate-300">correct_answer</code>
+        ,
+        <code className="mx-1 rounded bg-slate-800 px-1 py-0.5 text-slate-300">
+          explanation_text
+        </code>
+        . Choices are required for multiple-choice rows; SPR rows leave them blank and set{" "}
+        <code className="mx-0.5 rounded bg-slate-800 px-1 py-0.5 text-slate-300">
+          question_format=numeric_entry
+        </code>
+        .
       </p>
 
       <div className="flex items-center gap-3">
@@ -247,18 +296,16 @@ export default function BulkImportPanel({ nodeId, subject, topicCluster }: Props
         />
         <button
           onClick={() => fileInputRef.current?.click()}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-100 text-sm font-semibold hover:bg-slate-700"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 px-3 py-1.5 text-sm font-semibold text-slate-100 hover:bg-slate-700"
         >
-          <Upload className="w-3.5 h-3.5" /> Choose file
+          <Upload className="h-3.5 w-3.5" /> Choose file
         </button>
-        {preview && (
-          <span className="text-xs text-slate-500">{preview.length} rows parsed</span>
-        )}
+        {preview && <span className="text-xs text-slate-500">{preview.length} rows parsed</span>}
       </div>
 
       {parseError && (
-        <div className="mt-3 rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-xs text-rose-300 flex items-center gap-2">
-          <AlertCircle className="w-3.5 h-3.5" /> {parseError}
+        <div className="mt-3 flex items-center gap-2 rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-xs text-rose-300">
+          <AlertCircle className="h-3.5 w-3.5" /> {parseError}
         </div>
       )}
 
@@ -266,29 +313,33 @@ export default function BulkImportPanel({ nodeId, subject, topicCluster }: Props
 
       {preview && (
         <div className="mt-4">
-          <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Preview</h4>
-          <div className="rounded-lg border border-slate-800 max-h-80 overflow-y-auto text-xs">
+          <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
+            Preview
+          </h4>
+          <div className="max-h-80 overflow-y-auto rounded-lg border border-slate-800 text-xs">
             <table className="w-full">
-              <thead className="bg-slate-800 sticky top-0 text-slate-400">
+              <thead className="sticky top-0 bg-slate-800 text-slate-400">
                 <tr>
-                  <th className="text-left px-3 py-2 font-semibold">Question</th>
-                  <th className="text-left px-3 py-2 font-semibold">Difficulty</th>
-                  <th className="text-left px-3 py-2 font-semibold">Correct</th>
-                  <th className="text-left px-3 py-2 font-semibold">Slug</th>
-                  <th className="text-left px-3 py-2 font-semibold">Status</th>
+                  <th className="px-3 py-2 text-left font-semibold">Question</th>
+                  <th className="px-3 py-2 text-left font-semibold">Difficulty</th>
+                  <th className="px-3 py-2 text-left font-semibold">Correct</th>
+                  <th className="px-3 py-2 text-left font-semibold">Slug</th>
+                  <th className="px-3 py-2 text-left font-semibold">Status</th>
                 </tr>
               </thead>
               <tbody>
                 {preview.map((r, i) => (
                   <tr key={i} className="border-t border-slate-800">
-                    <td className="px-3 py-2 text-slate-200 truncate max-w-[24rem]">{r.question_text}</td>
+                    <td className="max-w-[24rem] truncate px-3 py-2 text-slate-200">
+                      {r.question_text}
+                    </td>
                     <td className="px-3 py-2 text-slate-500">{r.difficulty}</td>
                     <td className="px-3 py-2 text-slate-500">{r.correct_answer}</td>
                     <td className="px-3 py-2 text-slate-500">{r.concept_slug ?? "—"}</td>
                     <td className="px-3 py-2">
                       <span
                         className={cn(
-                          "inline-block text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded",
+                          "inline-block rounded px-1.5 py-0.5 text-[10px] uppercase tracking-wide",
                           r.import_status === "needs_review"
                             ? "bg-amber-500/15 text-amber-300"
                             : "bg-emerald-500/15 text-emerald-300"
@@ -305,7 +356,7 @@ export default function BulkImportPanel({ nodeId, subject, topicCluster }: Props
           <div className="mt-3 flex justify-end gap-2">
             <button
               onClick={() => setPreview(null)}
-              className="px-3 py-1.5 rounded-lg text-sm font-semibold text-slate-400 hover:bg-slate-800"
+              className="rounded-lg px-3 py-1.5 text-sm font-semibold text-slate-400 hover:bg-slate-800"
             >
               Cancel
             </button>
@@ -313,8 +364,8 @@ export default function BulkImportPanel({ nodeId, subject, topicCluster }: Props
               onClick={handleConfirm}
               disabled={importing}
               className={cn(
-                "px-4 py-1.5 rounded-lg text-sm font-bold text-white bg-indigo-500",
-                importing ? "opacity-50 cursor-not-allowed" : "hover:bg-indigo-400"
+                "rounded-lg bg-indigo-500 px-4 py-1.5 text-sm font-bold text-white",
+                importing ? "cursor-not-allowed opacity-50" : "hover:bg-indigo-400"
               )}
             >
               {importing ? "Importing…" : `Import ${preview.length} questions`}
@@ -332,22 +383,24 @@ export function ImportResultBanner({ result }: { result: BulkImportResult }) {
   return (
     <div className="mt-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-300">
       <div className="flex items-center gap-2 font-semibold">
-        <Check className="w-3.5 h-3.5" /> Imported {total} rows
+        <Check className="h-3.5 w-3.5" /> Imported {total} rows
       </div>
       <ul className="mt-1.5 space-y-0.5 text-emerald-200/80">
         <li>· {result.inserted} live</li>
         <li>· {result.flagged_for_review} flagged for review</li>
         <li>· {result.skipped_duplicates} skipped (duplicate)</li>
-        {result.errored > 0 && (
-          <li className="text-rose-300">· {result.errored} errored</li>
-        )}
+        {result.errored > 0 && <li className="text-rose-300">· {result.errored} errored</li>}
       </ul>
       {result.errors.length > 0 && (
         <details className="mt-2 cursor-pointer text-rose-300">
-          <summary className="font-semibold">Show {result.errors.length} error{result.errors.length === 1 ? "" : "s"}</summary>
+          <summary className="font-semibold">
+            Show {result.errors.length} error{result.errors.length === 1 ? "" : "s"}
+          </summary>
           <ul className="mt-1 space-y-0.5 text-[11px]">
             {result.errors.map((e, i) => (
-              <li key={i}>row {e.row}: {e.message}</li>
+              <li key={i}>
+                row {e.row}: {e.message}
+              </li>
             ))}
           </ul>
         </details>

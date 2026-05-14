@@ -18,7 +18,7 @@ export interface QuestionSearchResult {
   question_text: string;
   concept_slug: string | null;
   domain: string | null;
-  node_id: string | null;       // null = bank
+  node_id: string | null; // null = bank
   source_pdf: string | null;
   source_page: number | null;
   /** "node" if assigned, "bank" if loose. Drives the click-target route. */
@@ -29,16 +29,14 @@ const MAX_RESULTS = 10;
 
 /** Search quiz_questions by question_text + concept_slug + source_pdf.
  *  Returns up to MAX_RESULTS, prioritizing live questions over bank. */
-export async function actionSearchBankQuestions(
-  query: string
-): Promise<QuestionSearchResult[]> {
+export async function actionSearchBankQuestions(query: string): Promise<QuestionSearchResult[]> {
   const { userId } = await auth();
   if (!userId) return [];
   const isAdmin = await requireRole(userId, ["admin"]);
   if (!isAdmin) return [];
 
   const trimmed = query.trim();
-  if (trimmed.length < 2) return [];  // avoid noisy 1-char hits
+  if (trimmed.length < 2) return []; // avoid noisy 1-char hits
 
   // Escape % and _ so a user typing literal SQL wildcards doesn't
   // accidentally broaden the search.

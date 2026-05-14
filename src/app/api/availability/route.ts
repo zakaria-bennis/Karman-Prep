@@ -22,10 +22,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "No active subscription" }, { status: 403 });
   }
   if (!canSelfBook(sub.tier)) {
-    return NextResponse.json(
-      { error: "Plan not eligible for self-booking" },
-      { status: 403 }
-    );
+    return NextResponse.json({ error: "Plan not eligible for self-booking" }, { status: 403 });
   }
 
   const sp = req.nextUrl.searchParams;

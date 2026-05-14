@@ -16,11 +16,7 @@
 // API version pinned via the `cal-api-version` header.
 // ============================================================
 
-import type {
-  CreateBookingParams,
-  AvailableSlot,
-  CalBookingResponse,
-} from "./types";
+import type { CreateBookingParams, AvailableSlot, CalBookingResponse } from "./types";
 import { CalAdapterError } from "./types";
 
 /** Cal v2 stable API version. Bump deliberately when reading
@@ -119,7 +115,7 @@ async function callCal<T>(opts: RequestOptions): Promise<T> {
 export async function getAvailability(args: {
   eventTypeId: number | string;
   dateFrom: string; // ISO date or datetime
-  dateTo: string;   // ISO date or datetime
+  dateTo: string; // ISO date or datetime
   timeZone?: string;
 }): Promise<AvailableSlot[]> {
   // Verified against the live Cal v2 API on 2026-04-25:
@@ -163,9 +159,7 @@ export async function getAvailability(args: {
  * also fire — we use the API response as the source of truth at
  * call time, then reconcile in the webhook handler.
  */
-export async function createBooking(
-  params: CreateBookingParams
-): Promise<CalBookingResponse> {
+export async function createBooking(params: CreateBookingParams): Promise<CalBookingResponse> {
   return callCal<CalBookingResponse>({
     operation: "createBooking",
     method: "POST",

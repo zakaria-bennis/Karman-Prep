@@ -27,10 +27,6 @@ export default async function BillingPage() {
   const currentTier = PRICING_TIERS.find((t) => t.id === sub?.tier);
 
   return (
-    <BillingClient
-      subscription={sub}
-      currentTier={currentTier || null}
-      allTiers={PRICING_TIERS}
-    />
+    <BillingClient subscription={sub} currentTier={currentTier || null} allTiers={PRICING_TIERS} />
   );
 }

@@ -27,8 +27,8 @@ export async function POST(req: NextRequest) {
     // first names without a round-trip to Clerk. imageUrl is Clerk's hosted
     // avatar — students can later override it by uploading their own.
     const firstName = clerkUser.firstName || null;
-    const lastName  = clerkUser.lastName  || null;
-    const avatarUrl = clerkUser.imageUrl  || null;
+    const lastName = clerkUser.lastName || null;
+    const avatarUrl = clerkUser.imageUrl || null;
 
     const supabase = createAdminClient();
 
@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
       email,
       role: role || "student",
       first_name: firstName,
-      last_name:  lastName,
+      last_name: lastName,
       avatar_url: avatarUrl,
       ...(existing?.signup_ip ? {} : { signup_ip: signupIp }),
     });

@@ -44,15 +44,20 @@ function parseCsv(text: string): Record<string, string>[] {
   for (let i = 0; i < text.length; i++) {
     const c = text[i];
     if (inQuotes) {
-      if (c === '"' && text[i + 1] === '"') { field += '"'; i++; }
-      else if (c === '"') inQuotes = false;
+      if (c === '"' && text[i + 1] === '"') {
+        field += '"';
+        i++;
+      } else if (c === '"') inQuotes = false;
       else field += c;
     } else {
       if (c === '"') inQuotes = true;
-      else if (c === ",") { row.push(field); field = ""; }
-      else if (c === "\n" || c === "\r") {
+      else if (c === ",") {
+        row.push(field);
+        field = "";
+      } else if (c === "\n" || c === "\r") {
         if (c === "\r" && text[i + 1] === "\n") i++;
-        row.push(field); field = "";
+        row.push(field);
+        field = "";
         if (row.some((v) => v.trim() !== "")) rows.push(row);
         row = [];
       } else field += c;
@@ -66,7 +71,9 @@ function parseCsv(text: string): Record<string, string>[] {
   const headers = rows[0].map((h) => h.trim());
   return rows.slice(1).map((r) => {
     const obj: Record<string, string> = {};
-    headers.forEach((h, i) => { obj[h] = (r[i] ?? "").trim(); });
+    headers.forEach((h, i) => {
+      obj[h] = (r[i] ?? "").trim();
+    });
     return obj;
   });
 }
@@ -100,16 +107,16 @@ function rowsFromParsed(parsed: Record<string, string>[]): BulkImportRow[] {
     domain: r.domain || undefined,
     concept_slug: r.concept_slug || undefined,
     answer_source:
-      r.answer_source === "extracted" || r.answer_source === "inferred" || r.answer_source === "hand_corrected"
+      r.answer_source === "extracted" ||
+      r.answer_source === "inferred" ||
+      r.answer_source === "hand_corrected"
         ? r.answer_source
         : undefined,
     source_pdf: r.source_pdf || undefined,
     source_page: r.source_page || undefined,
     content_hash: r.content_hash || undefined,
     import_status:
-      r.import_status === "ok" || r.import_status === "needs_review"
-        ? r.import_status
-        : undefined,
+      r.import_status === "ok" || r.import_status === "needs_review" ? r.import_status : undefined,
     import_flag_type:
       r.import_flag_type === "skip" || r.import_flag_type === "partial_emit"
         ? r.import_flag_type
@@ -154,7 +161,10 @@ async function downloadFromR2(s3: S3Client, bucket: string, key: string): Promis
   const total = chunks.reduce((n, c) => n + c.length, 0);
   const buf = new Uint8Array(total);
   let off = 0;
-  for (const c of chunks) { buf.set(c, off); off += c.length; }
+  for (const c of chunks) {
+    buf.set(c, off);
+    off += c.length;
+  }
   return new TextDecoder("utf-8").decode(buf);
 }
 
@@ -198,7 +208,7 @@ export async function POST(req: NextRequest) {
     .select("*")
     .eq("status", "complete")
     .order("completed_at", { ascending: true })
-    .limit(20);  // bounded per run; the cron can pick up the rest next tick
+    .limit(20); // bounded per run; the cron can pick up the rest next tick
 
   if (queryErr) {
     return NextResponse.json({ error: queryErr.message }, { status: 500 });

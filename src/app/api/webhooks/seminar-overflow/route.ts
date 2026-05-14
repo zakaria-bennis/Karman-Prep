@@ -134,13 +134,8 @@ export async function POST(req: NextRequest) {
   }
 
   // Email all admins.
-  const { data: admins } = await supa
-    .from("users")
-    .select("email, first_name")
-    .eq("role", "admin");
-  const adminEmails = (admins ?? [])
-    .map((a) => a.email as string)
-    .filter((e) => !!e);
+  const { data: admins } = await supa.from("users").select("email, first_name").eq("role", "admin");
+  const adminEmails = (admins ?? []).map((a) => a.email as string).filter((e) => !!e);
 
   if (adminEmails.length > 0) {
     try {

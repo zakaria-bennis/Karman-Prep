@@ -22,8 +22,8 @@ async function guardRealAdmin() {
 type ImpersonateRole = Exclude<AppRole, "admin">;
 
 function landingFor(role: ImpersonateRole): string {
-  if (role === "tutor")   return "/tutor";
-  if (role === "parent")  return "/dashboard/parent";
+  if (role === "tutor") return "/tutor";
+  if (role === "parent") return "/dashboard/parent";
   return "/dashboard/student";
 }
 

@@ -5,15 +5,15 @@ maintenance, and one-off pipeline tooling. Most are `node --env-file=.env.local 
 
 ## Layout
 
-| Folder | Purpose | Safety |
-|---|---|---|
-| **[`admin/`](./admin/)** | User / role management (one-shot, run as needed) | Safe — narrow scope |
-| **[`seed/`](./seed/)** | Seed test data into the dev database | Safe — but use `--reset` carefully |
-| **[`maintenance/`](./maintenance/)** | Wipe / recover / requeue / migrate | **Destructive** — read each script's header before running |
-| **[`pdf-pipeline/`](./pdf-pipeline/)** | Old SAT PDF ingestion daemon (mostly deprecated; replaced by ChatGPT Custom GPT) | Read-mostly |
-| **[`build/`](./build/)** | Build-time helpers invoked by `npm run cf:build` | Don't run by hand |
-| **[`tests/`](./tests/)** | Manual smoke-test scripts | Safe — exercise specific paths |
-| **[`launchd/`](./launchd/)** | macOS launchd plist + installer for the now-paused PDF-watch daemon | Don't reinstall unless you also restart the daemon |
+| Folder                                 | Purpose                                                                          | Safety                                                     |
+| -------------------------------------- | -------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| **[`admin/`](./admin/)**               | User / role management (one-shot, run as needed)                                 | Safe — narrow scope                                        |
+| **[`seed/`](./seed/)**                 | Seed test data into the dev database                                             | Safe — but use `--reset` carefully                         |
+| **[`maintenance/`](./maintenance/)**   | Wipe / recover / requeue / migrate                                               | **Destructive** — read each script's header before running |
+| **[`pdf-pipeline/`](./pdf-pipeline/)** | Old SAT PDF ingestion daemon (mostly deprecated; replaced by ChatGPT Custom GPT) | Read-mostly                                                |
+| **[`build/`](./build/)**               | Build-time helpers invoked by `npm run cf:build`                                 | Don't run by hand                                          |
+| **[`tests/`](./tests/)**               | Manual smoke-test scripts                                                        | Safe — exercise specific paths                             |
+| **[`launchd/`](./launchd/)**           | macOS launchd plist + installer for the now-paused PDF-watch daemon              | Don't reinstall unless you also restart the daemon         |
 
 ---
 
@@ -36,23 +36,23 @@ node --env-file=.env.local scripts/seed/seed-test-payout-data.mjs [--reset]
 
 ### Maintenance — destructive
 
-| Command | What it wipes |
-|---|---|
-| `node --env-file=.env.local scripts/maintenance/wipe-bank.mjs` | Every `quiz_questions` + `quiz_attempts` row (preserves curriculum tree + PDF jobs) |
-| `node --env-file=.env.local scripts/maintenance/wipe-image-questions.mjs` | Only image-bearing questions (text-only ones survive) |
-| `node --env-file=.env.local scripts/maintenance/reset-diagnostics.mjs` | All diagnostic attempts + responses |
+| Command                                                                   | What it wipes                                                                       |
+| ------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| `node --env-file=.env.local scripts/maintenance/wipe-bank.mjs`            | Every `quiz_questions` + `quiz_attempts` row (preserves curriculum tree + PDF jobs) |
+| `node --env-file=.env.local scripts/maintenance/wipe-image-questions.mjs` | Only image-bearing questions (text-only ones survive)                               |
+| `node --env-file=.env.local scripts/maintenance/reset-diagnostics.mjs`    | All diagnostic attempts + responses                                                 |
 
 **Read each script's top-of-file comment before running.** They're idempotent but they delete real data.
 
 ### Maintenance — recovery (very rarely needed)
 
-| Command | When |
-|---|---|
-| `scripts/maintenance/recover-answerkeys.mjs` | A batch of CSVs imported with bad answer keys — re-runs answer-key extraction against the original PDFs |
-| `scripts/maintenance/recover-domain-bug.mjs` | Older bug where 48 rows got domain-normalized incorrectly |
-| `scripts/maintenance/requeue-failed-jobs.mjs` | Reset failed `pdf_processing_jobs` rows back to queued status |
-| `scripts/maintenance/fix-smoke-test-rows.mjs` | One-off fixup from an earlier smoke test |
-| `scripts/maintenance/migrate-images-to-r2.mjs` | One-off migration of inline-base64 images to R2 storage |
+| Command                                        | When                                                                                                    |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `scripts/maintenance/recover-answerkeys.mjs`   | A batch of CSVs imported with bad answer keys — re-runs answer-key extraction against the original PDFs |
+| `scripts/maintenance/recover-domain-bug.mjs`   | Older bug where 48 rows got domain-normalized incorrectly                                               |
+| `scripts/maintenance/requeue-failed-jobs.mjs`  | Reset failed `pdf_processing_jobs` rows back to queued status                                           |
+| `scripts/maintenance/fix-smoke-test-rows.mjs`  | One-off fixup from an earlier smoke test                                                                |
+| `scripts/maintenance/migrate-images-to-r2.mjs` | One-off migration of inline-base64 images to R2 storage                                                 |
 
 ### PDF pipeline (mostly deprecated)
 
@@ -67,6 +67,7 @@ npm run pdf:finalize   # finalize a specific job after a CSV upload
 ```
 
 For one-off CSV → bank imports outside the admin UI:
+
 ```bash
 node --env-file=.env.local scripts/pdf-pipeline/import-csv-direct.mjs <path/to/file.csv>
 ```

@@ -8,10 +8,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { stripe } from "@/lib/integrations/stripe/client";
 import { createAdminClient } from "@/lib/supabase/server";
 import { sendWelcomeEmail } from "@/lib/integrations/resend/emails";
-import {
-  dropFromActiveCohort,
-  restoreLastCohort,
-} from "@/lib/supabase/queries/cohorts";
+import { dropFromActiveCohort, restoreLastCohort } from "@/lib/supabase/queries/cohorts";
 import { ensureCohortChannels } from "@/lib/chat/provisioning";
 import Stripe from "stripe";
 
@@ -26,10 +23,7 @@ const INACTIVE_STATUSES = new Set<Stripe.Subscription.Status>([
 
 // Statuses that mean the seat IS paid for. Triggers cohort restore
 // from the user's last membership (if any seat is still open).
-const ACTIVE_STATUSES = new Set<Stripe.Subscription.Status>([
-  "active",
-  "trialing",
-]);
+const ACTIVE_STATUSES = new Set<Stripe.Subscription.Status>(["active", "trialing"]);
 
 /** Verifies the Stripe signature and returns the parsed event */
 async function parseWebhookEvent(req: NextRequest): Promise<Stripe.Event> {
@@ -40,11 +34,7 @@ async function parseWebhookEvent(req: NextRequest): Promise<Stripe.Event> {
 
   // constructEventAsync uses Web Crypto under the hood — required on
   // Cloudflare Workers (no Node crypto module). Works in Node too.
-  return stripe.webhooks.constructEventAsync(
-    body,
-    sig,
-    process.env.STRIPE_WEBHOOK_SECRET!
-  );
+  return stripe.webhooks.constructEventAsync(body, sig, process.env.STRIPE_WEBHOOK_SECRET!);
 }
 
 export async function POST(req: NextRequest) {
@@ -75,9 +65,7 @@ export async function POST(req: NextRequest) {
           stripe_subscription_id: sub.id,
           tier,
           status: sub.status,
-          trial_end: sub.trial_end
-            ? new Date(sub.trial_end * 1000).toISOString()
-            : null,
+          trial_end: sub.trial_end ? new Date(sub.trial_end * 1000).toISOString() : null,
         });
 
         // Auto-restore cohort membership if the user previously had one
@@ -86,7 +74,9 @@ export async function POST(req: NextRequest) {
         if (ACTIVE_STATUSES.has(sub.status)) {
           const restored = await restoreLastCohort(userId);
           if (restored) {
-            console.log(`[webhook] Restored ${userId} to cohort ${restored} on subscription.created`);
+            console.log(
+              `[webhook] Restored ${userId} to cohort ${restored} on subscription.created`
+            );
             // Auto-provision Slack channels for this cohort if they don't
             // exist yet. Idempotent — safe to call on every restore. Wrapped
             // so a Slack failure doesn't break the rest of the webhook flow.
@@ -126,9 +116,7 @@ export async function POST(req: NextRequest) {
           .update({
             status: sub.status,
             tier,
-            trial_end: sub.trial_end
-              ? new Date(sub.trial_end * 1000).toISOString()
-              : null,
+            trial_end: sub.trial_end ? new Date(sub.trial_end * 1000).toISOString() : null,
             // Stamp canceled_at the moment status flips to canceled,
             // so the Revenue dashboard can compute real monthly churn.
             // Stripe also sends `customer.subscription.deleted` (handled
@@ -142,12 +130,16 @@ export async function POST(req: NextRequest) {
         if (INACTIVE_STATUSES.has(sub.status)) {
           const dropped = await dropFromActiveCohort(userId);
           if (dropped) {
-            console.log(`[webhook] Dropped ${userId} from cohort ${dropped} (status=${sub.status})`);
+            console.log(
+              `[webhook] Dropped ${userId} from cohort ${dropped} (status=${sub.status})`
+            );
           }
         } else if (ACTIVE_STATUSES.has(sub.status)) {
           const restored = await restoreLastCohort(userId);
           if (restored) {
-            console.log(`[webhook] Restored ${userId} to cohort ${restored} (status=${sub.status})`);
+            console.log(
+              `[webhook] Restored ${userId} to cohort ${restored} (status=${sub.status})`
+            );
             ensureCohortChannels(restored).catch((err) =>
               console.error(`[webhook] ensureCohortChannels failed for ${restored}:`, err)
             );
@@ -173,7 +165,9 @@ export async function POST(req: NextRequest) {
         if (userId) {
           const dropped = await dropFromActiveCohort(userId);
           if (dropped) {
-            console.log(`[webhook] Dropped ${userId} from cohort ${dropped} on subscription.deleted`);
+            console.log(
+              `[webhook] Dropped ${userId} from cohort ${dropped} on subscription.deleted`
+            );
           }
         }
 
@@ -218,14 +212,17 @@ export async function POST(req: NextRequest) {
               .maybeSingle();
             userDbId = (data as { id?: string } | null)?.id ?? null;
           }
-          await supabase.from("refunds").upsert({
-            stripe_refund_id: r.id,
-            subscription_id: subDbId,
-            user_id: userDbId,
-            amount_cents: r.amount,
-            reason: r.reason ?? null,
-            issued_at: new Date(r.created * 1000).toISOString(),
-          }, { onConflict: "stripe_refund_id" });
+          await supabase.from("refunds").upsert(
+            {
+              stripe_refund_id: r.id,
+              subscription_id: subDbId,
+              user_id: userDbId,
+              amount_cents: r.amount,
+              reason: r.reason ?? null,
+              issued_at: new Date(r.created * 1000).toISOString(),
+            },
+            { onConflict: "stripe_refund_id" }
+          );
         }
         break;
       }

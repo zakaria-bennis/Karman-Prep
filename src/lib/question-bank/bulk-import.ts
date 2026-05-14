@@ -11,15 +11,8 @@
 // — the move is purely structural (extract for reuse).
 // ============================================================
 
-import {
-  insertQuestion,
-} from "@/lib/supabase/queries/quiz";
-import type {
-  AnswerLetter,
-  AnswerSource,
-  ImportFlagType,
-  ImportStatus,
-} from "@/types/quiz";
+import { insertQuestion } from "@/lib/supabase/queries/quiz";
+import type { AnswerLetter, AnswerSource, ImportFlagType, ImportStatus } from "@/types/quiz";
 import {
   isValidSlug,
   isValidDomain,
@@ -27,7 +20,11 @@ import {
   CLUSTER_BY_DOMAIN,
   type SATDomain,
 } from "@/lib/question-bank/taxonomy";
-import { levelToLegacyDifficulty, type QuizDifficulty, type QuizDifficultyLevel } from "@/types/quiz";
+import {
+  levelToLegacyDifficulty,
+  type QuizDifficulty,
+  type QuizDifficultyLevel,
+} from "@/types/quiz";
 import { uploadToR2 } from "@/lib/storage/r2";
 import crypto from "node:crypto";
 
@@ -85,9 +82,7 @@ const LEGACY_LEVEL_MAP = {
   mastery: 6,
 } as const;
 
-const MATH_DOMAINS = new Set<SATDomain>([
-  "algebra", "advanced_math", "geometry", "data_analysis",
-]);
+const MATH_DOMAINS = new Set<SATDomain>(["algebra", "advanced_math", "geometry", "data_analysis"]);
 
 function subjectFromDomain(domain: SATDomain): "reading" | "math" {
   return MATH_DOMAINS.has(domain) ? "math" : "reading";
@@ -102,7 +97,7 @@ function subjectFromDomain(domain: SATDomain): "reading" | "math" {
 async function materializeImage(
   imageUrl: string | undefined,
   sourcePdf: string | undefined,
-  contentHash: string | undefined,
+  contentHash: string | undefined
 ): Promise<{ url: string | null; storagePath: string | null }> {
   if (!imageUrl) return { url: null, storagePath: null };
   const trimmed = imageUrl.trim();
@@ -119,8 +114,7 @@ async function materializeImage(
   // Hash the bytes so the same image (e.g. shared whole-page render
   // across questions) dedupes to one R2 object.
   const sha = crypto.createHash("sha256").update(bytes).digest("hex").slice(0, 16);
-  const stem = (sourcePdf?.replace(/\.pdf$/i, "") || "unknown")
-    .replace(/[^a-zA-Z0-9._-]/g, "_");
+  const stem = (sourcePdf?.replace(/\.pdf$/i, "") || "unknown").replace(/[^a-zA-Z0-9._-]/g, "_");
   // Include content_hash in the key so re-runs with a tweaked CSV
   // overwrite cleanly while still benefiting from the sha dedup
   // across rows of the same PDF.
@@ -191,10 +185,10 @@ export async function bulkImportRows(
           r.import_flag_type = r.import_flag_type ?? "partial_emit";
           const where = [
             r.source_pdf,
-            r.source_page !== undefined && r.source_page !== ""
-              ? `page ${r.source_page}`
-              : null,
-          ].filter(Boolean).join(" · ");
+            r.source_page !== undefined && r.source_page !== "" ? `page ${r.source_page}` : null,
+          ]
+            .filter(Boolean)
+            .join(" · ");
           r.import_flag_reason = where
             ? `Image attached — verify the figure was extracted correctly (${where}).`
             : "Image attached — verify the figure was extracted correctly.";
@@ -216,8 +210,7 @@ export async function bulkImportRows(
 
       const { level, legacy } = parseDifficulty(r.difficulty);
       const format = r.question_format ?? "multiple_choice";
-      const question_type =
-        rowSubject === "reading" ? "evidence_based" : "math_computation";
+      const question_type = rowSubject === "reading" ? "evidence_based" : "math_computation";
 
       const cluster =
         (r.concept_slug && clusterFromSlug(r.concept_slug)) ||
@@ -260,8 +253,11 @@ export async function bulkImportRows(
       // Materialize image_url. If it's a data URL, this uploads
       // bytes to R2 and returns the new https URL + storage path.
       // If it's already https, this is a no-op pass-through.
-      const { url: resolvedImageUrl, storagePath: resolvedImagePath } =
-        await materializeImage(r.image_url, r.source_pdf, r.content_hash);
+      const { url: resolvedImageUrl, storagePath: resolvedImagePath } = await materializeImage(
+        r.image_url,
+        r.source_pdf,
+        r.content_hash
+      );
 
       const { duplicateSkipped } = await insertQuestion({
         node_id: nodeId,

@@ -51,12 +51,23 @@ function domainCompletion(progress: Props["progress"], domain: SATDomain): numbe
   return Math.round((mastered / domainProgress.length) * 100);
 }
 
-export default function StudentDashboardClient({ user, progress, nodeStatuses, diagnostic, subscription }: Props) {
+export default function StudentDashboardClient({
+  user,
+  progress,
+  nodeStatuses,
+  diagnostic,
+  subscription,
+}: Props) {
   const nodeStatusMap = nodeStatuses ?? new Map<string, NodeStatus>();
-  const masteredFromNodes = Array.from(nodeStatusMap.values()).filter((s) => s === "mastered").length;
+  const masteredFromNodes = Array.from(nodeStatusMap.values()).filter(
+    (s) => s === "mastered"
+  ).length;
   const streak = calculateStreak(progress);
   // Prefer the newer learn_node_status count; fall back to legacy progress table
-  const masteredCount = masteredFromNodes > 0 ? masteredFromNodes : progress.filter((p) => p.status === "mastered").length;
+  const masteredCount =
+    masteredFromNodes > 0
+      ? masteredFromNodes
+      : progress.filter((p) => p.status === "mastered").length;
   const totalConcepts = Math.max(progress.length, 15); // Show out of at least 15
   const overallPct = Math.round((masteredCount / totalConcepts) * 100);
 
@@ -69,93 +80,119 @@ export default function StudentDashboardClient({ user, progress, nodeStatuses, d
 
   return (
     <DashboardLayout>
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-8">
+      <div className="mx-auto max-w-5xl space-y-8 px-4 py-8 sm:px-6">
         {/* Trial banner */}
         {subscription?.status === "trialing" && trialEndsLabel && (
-          <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-xl px-4 py-3 flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-700 dark:bg-amber-900/20">
             <p className="text-sm font-medium text-amber-700 dark:text-amber-300">
               {trialEndsLabel} — your card will be charged automatically.
             </p>
-            <Link href="/billing" className="text-sm font-semibold text-amber-700 dark:text-amber-400 hover:underline flex items-center gap-1">
-              Manage plan <ArrowRight className="w-3.5 h-3.5" />
+            <Link
+              href="/billing"
+              className="flex items-center gap-1 text-sm font-semibold text-amber-700 hover:underline dark:text-amber-400"
+            >
+              Manage plan <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>
         )}
 
         {/* Top stats row — two are clickable and open detail pages */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
           {/* Streak */}
-          <div className="glass-card p-4 flex flex-col items-center gap-1">
-            <Flame className="w-6 h-6 text-orange-500" />
+          <div className="glass-card flex flex-col items-center gap-1 p-4">
+            <Flame className="h-6 w-6 text-orange-500" />
             <span className="text-3xl font-extrabold text-slate-900 dark:text-white">{streak}</span>
             <span className="text-xs text-slate-500 dark:text-slate-400">day streak</span>
           </div>
 
           {/* Progress ring */}
-          <div className="glass-card p-4 flex flex-col items-center gap-1">
+          <div className="glass-card flex flex-col items-center gap-1 p-4">
             <ProgressRing pct={overallPct} size={56} />
-            <span className="text-xs text-slate-500 dark:text-slate-400 mt-1">overall</span>
+            <span className="mt-1 text-xs text-slate-500 dark:text-slate-400">overall</span>
           </div>
 
           {/* Mastered concepts → /dashboard/student/mastered */}
           <Link
             href="/dashboard/student/mastered"
-            className="glass-card p-4 flex flex-col items-center gap-1 hover:shadow-xl transition-shadow cursor-pointer group"
+            className="glass-card group flex cursor-pointer flex-col items-center gap-1 p-4 transition-shadow hover:shadow-xl"
           >
-            <CheckCircle className="w-6 h-6 text-emerald-500 group-hover:scale-110 transition-transform" />
-            <span className="text-3xl font-extrabold text-slate-900 dark:text-white">{masteredCount}</span>
-            <span className="text-xs text-slate-500 dark:text-slate-400 group-hover:text-emerald-500 transition-colors">mastered →</span>
+            <CheckCircle className="h-6 w-6 text-emerald-500 transition-transform group-hover:scale-110" />
+            <span className="text-3xl font-extrabold text-slate-900 dark:text-white">
+              {masteredCount}
+            </span>
+            <span className="text-xs text-slate-500 transition-colors group-hover:text-emerald-500 dark:text-slate-400">
+              mastered →
+            </span>
           </Link>
 
           {/* Predicted score → /dashboard/student/predicted-sat */}
           <Link
             href="/dashboard/student/predicted-sat"
-            className="glass-card p-4 flex flex-col items-center gap-1 hover:shadow-xl transition-shadow cursor-pointer group"
+            className="glass-card group flex cursor-pointer flex-col items-center gap-1 p-4 transition-shadow hover:shadow-xl"
           >
-            <TrendingUp className="w-6 h-6 text-blue-500 group-hover:scale-110 transition-transform" />
+            <TrendingUp className="h-6 w-6 text-blue-500 transition-transform group-hover:scale-110" />
             <span className="text-2xl font-extrabold text-slate-900 dark:text-white">
-              {diagnostic
-                ? `${diagnostic.score_range_low}–${diagnostic.score_range_high}`
-                : "—"}
+              {diagnostic ? `${diagnostic.score_range_low}–${diagnostic.score_range_high}` : "—"}
             </span>
-            <span className="text-xs text-slate-500 dark:text-slate-400 group-hover:text-blue-500 transition-colors">predicted SAT →</span>
+            <span className="text-xs text-slate-500 transition-colors group-hover:text-blue-500 dark:text-slate-400">
+              predicted SAT →
+            </span>
           </Link>
         </div>
 
         {/* Next lesson */}
         <div>
-          <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-3">Continue Learning</h2>
+          <h2 className="mb-3 text-lg font-bold text-slate-900 dark:text-white">
+            Continue Learning
+          </h2>
           {nextLesson ? (
             <Link
               href={`/dashboard/student/lesson/${nextLesson.concept_id}`}
-              className="glass-card p-5 flex items-center gap-4 hover:shadow-xl transition-all group"
+              className="glass-card group flex items-center gap-4 p-5 transition-all hover:shadow-xl"
             >
-              <div className={cn(
-                "w-12 h-12 rounded-xl flex items-center justify-center shrink-0",
-                `bg-[${DOMAIN_COLORS[nextLesson.concepts?.domain as SATDomain]?.hex}]/10`
-              )}
-                style={{ backgroundColor: DOMAIN_COLORS[nextLesson.concepts?.domain as SATDomain]?.hex + "20" }}
+              <div
+                className={cn(
+                  "flex h-12 w-12 shrink-0 items-center justify-center rounded-xl",
+                  `bg-[${DOMAIN_COLORS[nextLesson.concepts?.domain as SATDomain]?.hex}]/10`
+                )}
+                style={{
+                  backgroundColor:
+                    DOMAIN_COLORS[nextLesson.concepts?.domain as SATDomain]?.hex + "20",
+                }}
               >
-                <BookOpen className="w-5 h-5" style={{ color: DOMAIN_COLORS[nextLesson.concepts?.domain as SATDomain]?.hex }} />
+                <BookOpen
+                  className="h-5 w-5"
+                  style={{ color: DOMAIN_COLORS[nextLesson.concepts?.domain as SATDomain]?.hex }}
+                />
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-semibold text-slate-900 dark:text-white truncate">{nextLesson.concepts?.title || "Next Lesson"}</p>
-                <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-1.5">
-                  <span>{DOMAIN_LABELS[nextLesson.concepts?.domain as SATDomain] || "SAT Math"}</span>
+              <div className="min-w-0 flex-1">
+                <p className="truncate font-semibold text-slate-900 dark:text-white">
+                  {nextLesson.concepts?.title || "Next Lesson"}
+                </p>
+                <p className="mt-0.5 flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400">
+                  <span>
+                    {DOMAIN_LABELS[nextLesson.concepts?.domain as SATDomain] || "SAT Math"}
+                  </span>
                   <span>·</span>
                   <span>{nextLesson.status === "in_progress" ? "In progress" : "Ready"}</span>
                   {nextLesson.quiz_score !== null && (
-                    <><span>·</span><span>{nextLesson.quiz_score}%</span></>
+                    <>
+                      <span>·</span>
+                      <span>{nextLesson.quiz_score}%</span>
+                    </>
                   )}
                 </p>
               </div>
-              <ArrowRight className="w-5 h-5 text-slate-400 group-hover:text-blue-500 transition-colors" />
+              <ArrowRight className="h-5 w-5 text-slate-400 transition-colors group-hover:text-blue-500" />
             </Link>
           ) : (
             <div className="glass-card p-5 text-center">
-              <p className="text-slate-500 dark:text-slate-400 text-sm">
+              <p className="text-sm text-slate-500 dark:text-slate-400">
                 No lessons unlocked yet — head to your{" "}
-                <Link href="/dashboard/student/progress" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
+                <Link
+                  href="/dashboard/student/progress"
+                  className="font-medium text-blue-600 hover:underline dark:text-blue-400"
+                >
                   progress page
                 </Link>{" "}
                 to see where you&apos;re starting from.
@@ -170,21 +207,34 @@ export default function StudentDashboardClient({ user, progress, nodeStatuses, d
         {/* Recent activity */}
         {progress.length > 0 && (
           <div>
-            <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-3">Recent Activity</h2>
+            <h2 className="mb-3 text-lg font-bold text-slate-900 dark:text-white">
+              Recent Activity
+            </h2>
             <div className="space-y-2">
               {progress.slice(0, 5).map((p) => (
-                <div key={p.id} className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700">
-                  <div className={cn(
-                    "w-2 h-2 rounded-full",
-                    p.status === "mastered" ? "bg-emerald-500" :
-                    p.status === "in_progress" ? "bg-blue-500" :
-                    p.status === "available" ? "bg-amber-400" : "bg-slate-300"
-                  )} />
-                  <span className="text-sm text-slate-700 dark:text-slate-200 flex-1 truncate">
+                <div
+                  key={p.id}
+                  className="flex items-center gap-3 rounded-xl border border-slate-100 bg-white px-4 py-3 dark:border-slate-700 dark:bg-slate-800/50"
+                >
+                  <div
+                    className={cn(
+                      "h-2 w-2 rounded-full",
+                      p.status === "mastered"
+                        ? "bg-emerald-500"
+                        : p.status === "in_progress"
+                          ? "bg-blue-500"
+                          : p.status === "available"
+                            ? "bg-amber-400"
+                            : "bg-slate-300"
+                    )}
+                  />
+                  <span className="flex-1 truncate text-sm text-slate-700 dark:text-slate-200">
                     {p.concepts?.title || "Concept"}
                   </span>
-                  {p.status === "locked" && <Lock className="w-3.5 h-3.5 text-slate-400" />}
-                  {p.status === "mastered" && <CheckCircle className="w-3.5 h-3.5 text-emerald-500" />}
+                  {p.status === "locked" && <Lock className="h-3.5 w-3.5 text-slate-400" />}
+                  {p.status === "mastered" && (
+                    <CheckCircle className="h-3.5 w-3.5 text-emerald-500" />
+                  )}
                   {p.quiz_score !== null && (
                     <span className="text-xs text-slate-400">{p.quiz_score}%</span>
                   )}
@@ -206,7 +256,14 @@ function ProgressRing({ pct, size = 64 }: { pct: number; size?: number }) {
 
   return (
     <svg width={size} height={size} className="-rotate-90">
-      <circle cx={size / 2} cy={size / 2} r={r} strokeWidth={6} className="stroke-slate-200 dark:stroke-slate-700" fill="none" />
+      <circle
+        cx={size / 2}
+        cy={size / 2}
+        r={r}
+        strokeWidth={6}
+        className="stroke-slate-200 dark:stroke-slate-700"
+        fill="none"
+      />
       <circle
         cx={size / 2}
         cy={size / 2}
@@ -224,7 +281,7 @@ function ProgressRing({ pct, size = 64 }: { pct: number; size?: number }) {
         y="50%"
         dominantBaseline="middle"
         textAnchor="middle"
-        className="fill-slate-900 dark:fill-white text-[11px] font-bold rotate-90"
+        className="rotate-90 fill-slate-900 text-[11px] font-bold dark:fill-white"
         transform={`rotate(90 ${size / 2} ${size / 2})`}
       >
         {pct}%

@@ -41,25 +41,31 @@ export default async function NodePage({ params }: Params) {
     .from("learn_node_status")
     .select("node_id, status, score, attempts")
     .eq("user_id", userId)
-    .in("node_id", nodes.map((n) => n.id));
+    .in(
+      "node_id",
+      nodes.map((n) => n.id)
+    );
 
   const statusMap = new Map(
-    statusRows?.map((r) => [r.node_id, { status: r.status as NodeStatus, score: r.score, attempts: r.attempts }]) ?? []
+    statusRows?.map((r) => [
+      r.node_id,
+      { status: r.status as NodeStatus, score: r.score, attempts: r.attempts },
+    ]) ?? []
   );
 
   const currentStatus = statusMap.get(nodeId)?.status ?? "locked";
-  const currentScore  = statusMap.get(nodeId)?.score ?? null;
+  const currentScore = statusMap.get(nodeId)?.score ?? null;
 
   // Prereq node details with their status
   const prereqs = node.prereqIds.map((pid) => {
     const pn = getNode(sub, pid)!;
-    return { ...pn, status: statusMap.get(pid)?.status ?? "locked" as NodeStatus };
+    return { ...pn, status: statusMap.get(pid)?.status ?? ("locked" as NodeStatus) };
   });
 
   // Nodes this lesson unlocks (dependents)
   const unlocks = nodes
     .filter((n) => n.prereqIds.includes(nodeId))
-    .map((n) => ({ ...n, status: statusMap.get(n.id)?.status ?? "locked" as NodeStatus }));
+    .map((n) => ({ ...n, status: statusMap.get(n.id)?.status ?? ("locked" as NodeStatus) }));
 
   return (
     <NodeDetail

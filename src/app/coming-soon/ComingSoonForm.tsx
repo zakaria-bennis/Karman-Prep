@@ -40,8 +40,8 @@ export default function ComingSoonForm() {
 
   if (status === "success") {
     return (
-      <div className="flex items-center justify-center gap-2 text-sm text-emerald-300 py-3">
-        <CheckCircle className="w-4 h-4" />
+      <div className="flex items-center justify-center gap-2 py-3 text-sm text-emerald-300">
+        <CheckCircle className="h-4 w-4" />
         {message}
       </div>
     );
@@ -49,8 +49,8 @@ export default function ComingSoonForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
-      <div className="flex items-center gap-2 bg-slate-900/80 border border-slate-700 rounded-lg px-3 py-2 focus-within:border-indigo-500/60 transition-colors">
-        <Mail className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+      <div className="flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-900/80 px-3 py-2 transition-colors focus-within:border-indigo-500/60">
+        <Mail className="h-3.5 w-3.5 shrink-0 text-slate-500" />
         <input
           type="email"
           required
@@ -66,15 +66,11 @@ export default function ComingSoonForm() {
           className="text-slate-400 hover:text-white disabled:opacity-50"
           aria-label="Subscribe"
         >
-          <ArrowRight className="w-4 h-4" />
+          <ArrowRight className="h-4 w-4" />
         </button>
       </div>
-      {status === "error" && (
-        <p className="text-xs text-rose-300">{message}</p>
-      )}
-      {status === "loading" && (
-        <p className="text-xs text-slate-500">Submitting…</p>
-      )}
+      {status === "error" && <p className="text-xs text-rose-300">{message}</p>}
+      {status === "loading" && <p className="text-xs text-slate-500">Submitting…</p>}
     </form>
   );
 }

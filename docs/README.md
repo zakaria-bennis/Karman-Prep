@@ -28,5 +28,5 @@ Everything that's not application code lives here.
 
 - **[`/supabase/migrations/`](../supabase/migrations/)** — every SQL migration ever applied to the database, in numbered order
 - **[`/scripts/`](../scripts/)** — admin / maintenance / seed scripts you run from the command line
-- **[`/tools/question-imports/`](../tools/question-imports/)** *(planned)* — Python pipeline + ChatGPT knowledge files for the SAT question import tooling
+- **[`/tools/question-imports/`](../tools/question-imports/)** _(planned)_ — Python pipeline + ChatGPT knowledge files for the SAT question import tooling
 - **[`/src/`](../src/)** — application code (Next.js app, components, lib helpers)

@@ -24,7 +24,7 @@ import type { PdfProcessingJob } from "@/types/pdf-job";
 
 export const runtime = "nodejs";
 
-const MAX_FILE_BYTES = 50 * 1024 * 1024;  // 50 MB per PDF
+const MAX_FILE_BYTES = 50 * 1024 * 1024; // 50 MB per PDF
 
 /** Upload bytes to R2 from a Worker-runtime route. Prefers the
  *  native R2 binding (env.R2) because the AWS S3 SDK pulls in
@@ -44,7 +44,9 @@ async function putToR2(
     // and exposed on env at runtime. We type it locally to avoid pulling in
     // @cloudflare/workers-types just for this single call site.
     type R2PutOpts = { httpMetadata?: { contentType?: string; cacheControl?: string } };
-    type R2BucketLike = { put: (key: string, value: ArrayBuffer | Uint8Array, opts?: R2PutOpts) => Promise<unknown> };
+    type R2BucketLike = {
+      put: (key: string, value: ArrayBuffer | Uint8Array, opts?: R2PutOpts) => Promise<unknown>;
+    };
     const env = ctx?.env as { R2?: R2BucketLike } | undefined;
     if (env?.R2) {
       await env.R2.put(key, body, {
@@ -92,10 +94,7 @@ export async function POST(request: Request) {
   // ── Validate ────────────────────────────────────────────
   for (const f of files) {
     if (!f.name.toLowerCase().endsWith(".pdf")) {
-      return NextResponse.json(
-        { error: `"${f.name}" is not a .pdf file.` },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: `"${f.name}" is not a .pdf file.` }, { status: 400 });
     }
     if (f.size > MAX_FILE_BYTES) {
       return NextResponse.json(
@@ -115,7 +114,7 @@ export async function POST(request: Request) {
       .from("pdf_processing_jobs")
       .insert({
         source_pdf: f.name,
-        pdf_storage_path: "pending",  // overwritten below once we know the key
+        pdf_storage_path: "pending", // overwritten below once we know the key
         pdf_size_bytes: f.size,
         uploaded_by_user_id: userId,
         status: "queued",
@@ -135,17 +134,14 @@ export async function POST(request: Request) {
 
     try {
       const buf = await f.arrayBuffer();
-      await putToR2(
-        key,
-        buf,
-        f.type || "application/pdf",
-        "private, max-age=31536000"
-      );
+      await putToR2(key, buf, f.type || "application/pdf", "private, max-age=31536000");
     } catch (err) {
       // Roll back the job row so the queue stays clean.
       await supabase.from("pdf_processing_jobs").delete().eq("id", jobId);
       return NextResponse.json(
-        { error: `R2 upload failed for "${f.name}": ${err instanceof Error ? err.message : "unknown"}` },
+        {
+          error: `R2 upload failed for "${f.name}": ${err instanceof Error ? err.message : "unknown"}`,
+        },
         { status: 502 }
       );
     }

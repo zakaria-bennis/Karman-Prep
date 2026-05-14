@@ -29,11 +29,11 @@ async function guardAdmin() {
 export interface CreateCohortInput {
   name: string;
   tier: CohortTier;
-  sat_date: string;           // ISO date (YYYY-MM-DD)
-  tutor_user_id: string;      // users.id
+  sat_date: string; // ISO date (YYYY-MM-DD)
+  tutor_user_id: string; // users.id
   max_size: number;
   current_topic?: string | null;
-  status?: CohortStatus;      // default 'forming'
+  status?: CohortStatus; // default 'forming'
 }
 
 export async function actionCreateCohort(input: CreateCohortInput): Promise<{ id: string }> {

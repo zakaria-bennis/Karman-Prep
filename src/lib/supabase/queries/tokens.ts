@@ -15,11 +15,7 @@ import { createAdminClient } from "@/lib/supabase/server";
 
 export type TokenSource = "elite_monthly" | "private_purchase" | "admin_grant";
 
-export type ConsumedReason =
-  | "completed"
-  | "no_show"
-  | "forfeited_within_window"
-  | "expired";
+export type ConsumedReason = "completed" | "no_show" | "forfeited_within_window" | "expired";
 
 export interface TokenRow {
   id: string;

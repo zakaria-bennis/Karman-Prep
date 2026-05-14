@@ -52,7 +52,7 @@ function searchNodes(query: string): NodeResult[] {
       n.topic.toLowerCase().includes(q) ||
       n.description.toLowerCase().includes(q) ||
       n.concept_slug.toLowerCase().includes(q) ||
-      n.id.toLowerCase().includes(q),
+      n.id.toLowerCase().includes(q)
   );
   // Bias towards exact-prefix topic matches.
   matches.sort((a, b) => {
@@ -103,7 +103,7 @@ export default function NodeQuestionSearch() {
       ...nodeResults,
       ...questionResults.map<QuestionResult>((q) => ({ kind: "question", q })),
     ],
-    [nodeResults, questionResults],
+    [nodeResults, questionResults]
   );
 
   // Reset highlight when results change.
@@ -166,8 +166,8 @@ export default function NodeQuestionSearch() {
 
   return (
     <div ref={containerRef} className="relative w-full max-w-md">
-      <div className="flex items-center gap-2 bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 focus-within:border-indigo-500/60 focus-within:bg-slate-900/90 transition-colors">
-        <Search className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+      <div className="flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 transition-colors focus-within:border-indigo-500/60 focus-within:bg-slate-900/90">
+        <Search className="h-3.5 w-3.5 shrink-0 text-slate-500" />
         <input
           ref={inputRef}
           type="search"
@@ -181,25 +181,28 @@ export default function NodeQuestionSearch() {
         />
         {query && (
           <button
-            onClick={() => { setQuery(""); inputRef.current?.focus(); }}
+            onClick={() => {
+              setQuery("");
+              inputRef.current?.focus();
+            }}
             className="text-slate-500 hover:text-slate-300"
             aria-label="Clear search"
           >
-            <X className="w-3.5 h-3.5" />
+            <X className="h-3.5 w-3.5" />
           </button>
         )}
       </div>
 
       {open && (
-        <div className="absolute right-0 mt-1.5 w-[28rem] max-w-[90vw] rounded-lg border border-slate-700 bg-slate-950/95 backdrop-blur-sm shadow-xl shadow-black/50 z-30 overflow-hidden">
+        <div className="absolute right-0 z-30 mt-1.5 w-[28rem] max-w-[90vw] overflow-hidden rounded-lg border border-slate-700 bg-slate-950/95 shadow-xl shadow-black/50 backdrop-blur-sm">
           {results.length === 0 ? (
             <div className="px-3 py-3 text-xs text-slate-500">
               {loading ? "Searching…" : `No results for "${query.trim()}".`}
             </div>
           ) : (
-            <ul className="max-h-[28rem] overflow-y-auto divide-y divide-slate-800/60">
+            <ul className="max-h-[28rem] divide-y divide-slate-800/60 overflow-y-auto">
               {nodeResults.length > 0 && (
-                <li className="px-3 py-1 text-[10px] uppercase tracking-wide text-slate-500 font-bold bg-slate-900/50">
+                <li className="bg-slate-900/50 px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-slate-500">
                   Nodes ({nodeResults.length})
                 </li>
               )}
@@ -209,14 +212,14 @@ export default function NodeQuestionSearch() {
                   active={activeIndex === i}
                   onMouseEnter={() => setActiveIndex(i)}
                   onClick={() => navigateTo(r)}
-                  icon={<GraduationCap className="w-3.5 h-3.5 text-indigo-400" />}
+                  icon={<GraduationCap className="h-3.5 w-3.5 text-indigo-400" />}
                   primary={r.node.topic}
                   secondary={`${r.node.id} · ${r.node.concept_slug}`}
                   tertiary={r.node.description}
                 />
               ))}
               {questionResults.length > 0 && (
-                <li className="px-3 py-1 text-[10px] uppercase tracking-wide text-slate-500 font-bold bg-slate-900/50">
+                <li className="bg-slate-900/50 px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-slate-500">
                   Questions ({questionResults.length})
                 </li>
               )}
@@ -231,23 +234,29 @@ export default function NodeQuestionSearch() {
                     onClick={() => navigateTo({ kind: "question", q })}
                     icon={
                       isBank ? (
-                        <Inbox className="w-3.5 h-3.5 text-amber-400" />
+                        <Inbox className="h-3.5 w-3.5 text-amber-400" />
                       ) : (
-                        <FileQuestion className="w-3.5 h-3.5 text-emerald-400" />
+                        <FileQuestion className="h-3.5 w-3.5 text-emerald-400" />
                       )
                     }
-                    primary={q.question_text.slice(0, 100) + (q.question_text.length > 100 ? "…" : "")}
+                    primary={
+                      q.question_text.slice(0, 100) + (q.question_text.length > 100 ? "…" : "")
+                    }
                     secondary={[
                       q.concept_slug,
-                      q.source_pdf ? `${q.source_pdf}${q.source_page ? `:${q.source_page}` : ""}` : null,
+                      q.source_pdf
+                        ? `${q.source_pdf}${q.source_page ? `:${q.source_page}` : ""}`
+                        : null,
                       isBank ? "in bank" : null,
-                    ].filter(Boolean).join(" · ")}
+                    ]
+                      .filter(Boolean)
+                      .join(" · ")}
                   />
                 );
               })}
             </ul>
           )}
-          <div className="px-3 py-1.5 text-[10px] text-slate-600 border-t border-slate-800/60 flex items-center gap-3">
+          <div className="flex items-center gap-3 border-t border-slate-800/60 px-3 py-1.5 text-[10px] text-slate-600">
             <kbd className="text-slate-500">↑↓</kbd> navigate
             <kbd className="text-slate-500">↵</kbd> open
             <kbd className="text-slate-500">esc</kbd> close
@@ -281,19 +290,17 @@ function ResultRow({
       onMouseEnter={onMouseEnter}
       onClick={onClick}
       className={cn(
-        "px-3 py-2 cursor-pointer text-sm flex items-start gap-2",
-        active ? "bg-indigo-500/10" : "hover:bg-slate-800/60",
+        "flex cursor-pointer items-start gap-2 px-3 py-2 text-sm",
+        active ? "bg-indigo-500/10" : "hover:bg-slate-800/60"
       )}
     >
       <span className="mt-0.5 shrink-0">{icon}</span>
-      <span className="flex-1 min-w-0">
-        <div className="text-slate-100 truncate">{primary}</div>
+      <span className="min-w-0 flex-1">
+        <div className="truncate text-slate-100">{primary}</div>
         {secondary && (
-          <div className="text-[11px] text-slate-500 truncate font-mono">{secondary}</div>
+          <div className="truncate font-mono text-[11px] text-slate-500">{secondary}</div>
         )}
-        {tertiary && (
-          <div className="text-[11px] text-slate-500 truncate">{tertiary}</div>
-        )}
+        {tertiary && <div className="truncate text-[11px] text-slate-500">{tertiary}</div>}
       </span>
     </li>
   );

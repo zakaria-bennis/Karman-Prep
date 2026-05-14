@@ -182,19 +182,19 @@ export function BookingWidget(props: BookingWidgetProps) {
 
   // ─────────── Render ───────────
   return (
-    <div className="rounded-xl bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 p-4">
-      <header className="flex items-baseline justify-between mb-4">
+    <div className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900/40">
+      <header className="mb-4 flex items-baseline justify-between">
         <div className="min-w-0">
-          <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
             {props.rescheduleBookingId ? "Reschedule with" : "Book with"}
           </p>
-          <h3 className="text-sm font-bold text-slate-900 dark:text-white mt-0.5 truncate">
+          <h3 className="mt-0.5 truncate text-sm font-bold text-slate-900 dark:text-white">
             {props.tutorName}
           </h3>
         </div>
         {!props.rescheduleBookingId && typeof props.tokensAvailable === "number" ? (
-          <span className="text-xs text-slate-500 shrink-0 ml-3 inline-flex items-baseline gap-1">
-            <span className="text-base font-extrabold text-slate-900 dark:text-white leading-none">
+          <span className="ml-3 inline-flex shrink-0 items-baseline gap-1 text-xs text-slate-500">
+            <span className="text-base font-extrabold leading-none text-slate-900 dark:text-white">
               {props.tokensAvailable}
             </span>
             <span>token{props.tokensAvailable === 1 ? "" : "s"}</span>
@@ -203,30 +203,30 @@ export function BookingWidget(props: BookingWidgetProps) {
       </header>
 
       {load.kind === "loading" ? (
-        <div className="flex items-center gap-2 text-slate-500 text-xs py-6 justify-center">
-          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+        <div className="flex items-center justify-center gap-2 py-6 text-xs text-slate-500">
+          <Loader2 className="h-3.5 w-3.5 animate-spin" />
           Loading available times…
         </div>
       ) : load.kind === "error" ? (
-        <p className="text-xs text-rose-600 dark:text-rose-400 py-6 text-center">{load.message}</p>
+        <p className="py-6 text-center text-xs text-rose-600 dark:text-rose-400">{load.message}</p>
       ) : orderedDays.length === 0 ? (
-        <div className="flex flex-col items-center text-slate-500 py-6">
-          <Calendar className="w-5 h-5 mb-1.5 opacity-60" />
+        <div className="flex flex-col items-center py-6 text-slate-500">
+          <Calendar className="mb-1.5 h-5 w-5 opacity-60" />
           <p className="text-xs">No openings in the next two weeks.</p>
         </div>
       ) : submit.kind === "success" ? (
         <div className="flex flex-col items-center py-5 text-center">
-          <CheckCircle2 className="w-6 h-6 text-emerald-500 mb-2" />
-          <p className="text-sm text-slate-900 dark:text-white font-semibold mb-0.5">
+          <CheckCircle2 className="mb-2 h-6 w-6 text-emerald-500" />
+          <p className="mb-0.5 text-sm font-semibold text-slate-900 dark:text-white">
             {props.rescheduleBookingId ? "Session rescheduled" : "Session booked"}
           </p>
-          <p className="text-xs text-slate-500 mb-3">Calendar invite is on its way.</p>
+          <p className="mb-3 text-xs text-slate-500">Calendar invite is on its way.</p>
           {submit.joinUrl ? (
             <a
               href={submit.joinUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center px-3.5 py-1.5 rounded-md bg-blue-500 hover:bg-blue-400 text-white font-semibold text-xs"
+              className="inline-flex items-center rounded-md bg-blue-500 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-blue-400"
             >
               Open Zoom link
             </a>
@@ -234,16 +234,16 @@ export function BookingWidget(props: BookingWidgetProps) {
         </div>
       ) : (
         <>
-          <div className="space-y-4 max-h-80 overflow-y-auto pr-0.5">
+          <div className="max-h-80 space-y-4 overflow-y-auto pr-0.5">
             {orderedDays.map((dk) => {
               const slots = slotsByDay.get(dk) ?? [];
               const sample = new Date(slots[0]!.start);
               return (
                 <div key={dk}>
-                  <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
+                  <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-500">
                     {formatDay(sample, tz)}
                   </p>
-                  <div className="grid grid-cols-4 sm:grid-cols-5 gap-1.5">
+                  <div className="grid grid-cols-4 gap-1.5 sm:grid-cols-5">
                     {slots.map((slot) => {
                       const active = selected?.start === slot.start;
                       return (
@@ -251,10 +251,10 @@ export function BookingWidget(props: BookingWidgetProps) {
                           key={slot.start}
                           onClick={() => setSelected(slot)}
                           className={[
-                            "px-2 py-1.5 rounded-md text-xs font-medium border transition-colors",
+                            "rounded-md border px-2 py-1.5 text-xs font-medium transition-colors",
                             active
-                              ? "bg-blue-500 text-white border-blue-500"
-                              : "bg-slate-50 dark:bg-slate-800/60 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:border-blue-400",
+                              ? "border-blue-500 bg-blue-500 text-white"
+                              : "border-slate-200 bg-slate-50 text-slate-700 hover:border-blue-400 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-200",
                           ].join(" ")}
                         >
                           {formatTime(new Date(slot.start), tz)}
@@ -268,21 +268,22 @@ export function BookingWidget(props: BookingWidgetProps) {
           </div>
 
           {selected ? (
-            <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-800">
-              <p className="text-xs text-slate-600 dark:text-slate-300 mb-2">
+            <div className="mt-4 border-t border-slate-200 pt-4 dark:border-slate-800">
+              <p className="mb-2 text-xs text-slate-600 dark:text-slate-300">
                 <span className="text-slate-500">Selected:</span>{" "}
                 <span className="font-semibold text-slate-900 dark:text-white">
-                  {formatDay(new Date(selected.start), tz)}, {formatTime(new Date(selected.start), tz)}
+                  {formatDay(new Date(selected.start), tz)},{" "}
+                  {formatTime(new Date(selected.start), tz)}
                 </span>
               </p>
               {submit.kind === "error" ? (
-                <p className="text-xs text-rose-600 dark:text-rose-400 mb-2">{submit.message}</p>
+                <p className="mb-2 text-xs text-rose-600 dark:text-rose-400">{submit.message}</p>
               ) : null}
               <div className="flex gap-2">
                 <button
                   disabled={submit.kind === "submitting"}
                   onClick={onConfirm}
-                  className="flex-1 px-3 py-1.5 rounded-md bg-blue-500 hover:bg-blue-400 text-white font-semibold text-xs disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 rounded-md bg-blue-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-400 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {submit.kind === "submitting"
                     ? "Submitting…"
@@ -296,7 +297,7 @@ export function BookingWidget(props: BookingWidgetProps) {
                     setSelected(null);
                     setSubmit({ kind: "idle" });
                   }}
-                  className="px-3 py-1.5 rounded-md border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-semibold text-xs hover:bg-slate-100 dark:hover:bg-slate-800"
+                  className="rounded-md border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
                 >
                   Cancel
                 </button>

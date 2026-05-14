@@ -16,8 +16,19 @@
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
-  Check, X, AlertTriangle, ExternalLink, BookOpen, Eye, Search,
-  Sparkles, ChevronDown, ChevronRight, Lightbulb, Calculator, CheckCheck,
+  Check,
+  X,
+  AlertTriangle,
+  ExternalLink,
+  BookOpen,
+  Eye,
+  Search,
+  Sparkles,
+  ChevronDown,
+  ChevronRight,
+  Lightbulb,
+  Calculator,
+  CheckCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -41,9 +52,7 @@ type Tab = "flagged" | "bank";
 
 // Build once — used by the picker to display the currently-selected
 // node's label without rebuilding the search index per render.
-const NODE_INDEX = new Map<string, ConceptSlug>(
-  CONCEPT_SLUGS.map((c) => [c.nodeId, c])
-);
+const NODE_INDEX = new Map<string, ConceptSlug>(CONCEPT_SLUGS.map((c) => [c.nodeId, c]));
 
 interface Props {
   activeTab: Tab;
@@ -114,7 +123,10 @@ export default function ReviewClient({
   }
 
   async function handleReject(questionId: string) {
-    if (!confirm("Reject this question? It will be DELETED from the database. This can't be undone.")) return;
+    if (
+      !confirm("Reject this question? It will be DELETED from the database. This can't be undone.")
+    )
+      return;
     setPendingId(questionId);
     try {
       await actionRejectFlaggedQuestion(questionId);
@@ -126,18 +138,22 @@ export default function ReviewClient({
 
   // ── Bulk: auto-accept every Bank-tab question to its slug-implied node
   const [bulkAccepting, setBulkAccepting] = useState(false);
-  const [bulkResult, setBulkResult] = useState<
-    { accepted: number; skipped: number; errored: number } | null
-  >(null);
+  const [bulkResult, setBulkResult] = useState<{
+    accepted: number;
+    skipped: number;
+    errored: number;
+  } | null>(null);
 
   async function handleAcceptAll() {
     const total = bank.length;
     if (total === 0) return;
-    if (!confirm(
-      `Auto-accept all ${total} bank question${total === 1 ? "" : "s"}?\n\n` +
-      `Each will be assigned to the curriculum node implied by its concept_slug. ` +
-      `Questions whose slug doesn't map to a node will be skipped (you can pick those manually).`
-    )) {
+    if (
+      !confirm(
+        `Auto-accept all ${total} bank question${total === 1 ? "" : "s"}?\n\n` +
+          `Each will be assigned to the curriculum node implied by its concept_slug. ` +
+          `Questions whose slug doesn't map to a node will be skipped (you can pick those manually).`
+      )
+    ) {
       return;
     }
     setBulkAccepting(true);
@@ -161,8 +177,7 @@ export default function ReviewClient({
   const visibleQuestions = activeTab === "flagged" ? flagged : bank;
   const showFilters = activeTab === "flagged";
   const allExpanded =
-    visibleQuestions.length > 0 &&
-    visibleQuestions.every((q) => expandedIds.has(q.id));
+    visibleQuestions.length > 0 && visibleQuestions.every((q) => expandedIds.has(q.id));
 
   function toggleAllExpanded() {
     if (allExpanded) {
@@ -175,7 +190,7 @@ export default function ReviewClient({
   return (
     <>
       {/* ── Tab toggle ─────────────────────────────────────── */}
-      <div className="flex border-b border-slate-800 mb-5">
+      <div className="mb-5 flex border-b border-slate-800">
         <TabButton
           active={activeTab === "flagged"}
           onClick={() => setTab("flagged")}
@@ -194,7 +209,7 @@ export default function ReviewClient({
 
       {/* ── Filter bar (Flagged tab only) ──────────────────── */}
       {showFilters && (
-        <div className="flex flex-wrap items-center gap-2 mb-5 text-xs">
+        <div className="mb-5 flex flex-wrap items-center gap-2 text-xs">
           <FilterSelect
             label="Flag type"
             value={activeFilters.flag_type ?? ""}
@@ -236,55 +251,73 @@ export default function ReviewClient({
 
       {/* ── Bulk-accept result banner (Bank tab only, after a run) ─ */}
       {bulkResult && activeTab === "bank" && (
-        <div className="mb-3 px-3 py-2 rounded-lg border border-emerald-500/30 bg-emerald-500/[0.06] text-xs text-emerald-200 flex items-start gap-2">
-          <CheckCheck className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+        <div className="mb-3 flex items-start gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/[0.06] px-3 py-2 text-xs text-emerald-200">
+          <CheckCheck className="mt-0.5 h-3.5 w-3.5 shrink-0" />
           <div className="flex-1">
-            Auto-accepted <span className="font-semibold">{bulkResult.accepted}</span> question{bulkResult.accepted === 1 ? "" : "s"} to their default nodes.
+            Auto-accepted <span className="font-semibold">{bulkResult.accepted}</span> question
+            {bulkResult.accepted === 1 ? "" : "s"} to their default nodes.
             {bulkResult.skipped > 0 && (
-              <> <span className="text-amber-300">{bulkResult.skipped} skipped</span> (no slug match — assign manually).</>
+              <>
+                {" "}
+                <span className="text-amber-300">{bulkResult.skipped} skipped</span> (no slug match
+                — assign manually).
+              </>
             )}
             {bulkResult.errored > 0 && (
-              <> <span className="text-rose-300">{bulkResult.errored} errored</span> (see console).</>
+              <>
+                {" "}
+                <span className="text-rose-300">{bulkResult.errored} errored</span> (see console).
+              </>
             )}
           </div>
-          <button onClick={() => setBulkResult(null)} className="text-emerald-300/70 hover:text-emerald-100">
-            <X className="w-3 h-3" />
+          <button
+            onClick={() => setBulkResult(null)}
+            className="text-emerald-300/70 hover:text-emerald-100"
+          >
+            <X className="h-3 w-3" />
           </button>
         </div>
       )}
 
       {/* ── Cards ──────────────────────────────────────────── */}
       {visibleQuestions.length === 0 ? (
-        <EmptyState tab={activeTab} hasFilters={!!(activeFilters.flag_type || activeFilters.domain || activeFilters.source_pdf)} />
+        <EmptyState
+          tab={activeTab}
+          hasFilters={
+            !!(activeFilters.flag_type || activeFilters.domain || activeFilters.source_pdf)
+          }
+        />
       ) : (
         <>
-          <div className="flex items-center justify-between mb-2 text-xs gap-2">
+          <div className="mb-2 flex items-center justify-between gap-2 text-xs">
             {/* Bank-tab-only: bulk-accept-all */}
             {activeTab === "bank" ? (
               <button
                 onClick={handleAcceptAll}
                 disabled={bulkAccepting || bank.length === 0}
                 className={cn(
-                  "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold disabled:opacity-50",
-                  "text-white bg-emerald-500 hover:bg-emerald-400 disabled:hover:bg-emerald-500"
+                  "inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold disabled:opacity-50",
+                  "bg-emerald-500 text-white hover:bg-emerald-400 disabled:hover:bg-emerald-500"
                 )}
               >
-                <CheckCheck className="w-3 h-3" />
-                {bulkAccepting
-                  ? `Accepting ${bank.length}…`
-                  : `Auto-accept all (${bank.length})`}
+                <CheckCheck className="h-3 w-3" />
+                {bulkAccepting ? `Accepting ${bank.length}…` : `Auto-accept all (${bank.length})`}
               </button>
             ) : (
               <div />
             )}
             <button
               onClick={toggleAllExpanded}
-              className="text-slate-400 hover:text-slate-200 inline-flex items-center gap-1"
+              className="inline-flex items-center gap-1 text-slate-400 hover:text-slate-200"
             >
               {allExpanded ? (
-                <><ChevronRight className="w-3 h-3" /> Collapse all</>
+                <>
+                  <ChevronRight className="h-3 w-3" /> Collapse all
+                </>
               ) : (
-                <><ChevronDown className="w-3 h-3" /> Expand all</>
+                <>
+                  <ChevronDown className="h-3 w-3" /> Expand all
+                </>
               )}
             </button>
           </div>
@@ -316,7 +349,11 @@ export default function ReviewClient({
 }
 
 function TabButton({
-  active, onClick, label, count, tone,
+  active,
+  onClick,
+  label,
+  count,
+  tone,
 }: {
   active: boolean;
   onClick: () => void;
@@ -329,14 +366,14 @@ function TabButton({
     <button
       onClick={onClick}
       className={cn(
-        "px-4 py-2 text-sm font-semibold border-b-2 -mb-px transition-colors",
+        "-mb-px border-b-2 px-4 py-2 text-sm font-semibold transition-colors",
         active
           ? "border-white text-white"
           : "border-transparent text-slate-500 hover:text-slate-300"
       )}
     >
       {label}
-      <span className={cn("ml-2 text-xs font-mono", active ? accent : "text-slate-600")}>
+      <span className={cn("ml-2 font-mono text-xs", active ? accent : "text-slate-600")}>
         {count}
       </span>
     </button>
@@ -350,7 +387,8 @@ function EmptyState({ tab, hasFilters }: { tab: Tab; hasFilters: boolean }) {
       ? "No flagged questions match the current filters."
       : "No flagged questions. Anything the routine emitted as needs_review will land here for triage.";
   } else {
-    copy = "No questions in the bank. Imported PDF-routine questions land here with no curriculum node assigned — accept one with a node picked to send it live.";
+    copy =
+      "No questions in the bank. Imported PDF-routine questions land here with no curriculum node assigned — accept one with a node picked to send it live.";
   }
   return (
     <div className="rounded-xl border border-slate-800 bg-slate-900/40 px-6 py-12 text-center text-sm text-slate-500">
@@ -376,10 +414,12 @@ function FilterSelect({
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-slate-200 text-xs"
+        className="rounded border border-slate-700 bg-slate-900 px-2 py-1 text-xs text-slate-200"
       >
         {options.map((o) => (
-          <option key={o.value} value={o.value}>{o.label}</option>
+          <option key={o.value} value={o.value}>
+            {o.label}
+          </option>
         ))}
       </select>
     </label>
@@ -415,21 +455,23 @@ function QuestionCard({
       {/* ── Header (always visible) — clicking toggles expansion ── */}
       <button
         onClick={onToggleExpanded}
-        className="w-full text-left px-5 pt-4 pb-3 flex items-start gap-2 hover:bg-white/[0.02] rounded-t-xl transition-colors"
+        className="flex w-full items-start gap-2 rounded-t-xl px-5 pb-3 pt-4 text-left transition-colors hover:bg-white/[0.02]"
       >
         {expanded ? (
-          <ChevronDown className="w-4 h-4 text-slate-500 mt-0.5 shrink-0" />
+          <ChevronDown className="mt-0.5 h-4 w-4 shrink-0 text-slate-500" />
         ) : (
-          <ChevronRight className="w-4 h-4 text-slate-500 mt-0.5 shrink-0" />
+          <ChevronRight className="mt-0.5 h-4 w-4 shrink-0 text-slate-500" />
         )}
         {isFlagged ? (
-          <AlertTriangle className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" />
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
         ) : (
-          <BookOpen className="w-4 h-4 text-indigo-400 mt-0.5 shrink-0" />
+          <BookOpen className="mt-0.5 h-4 w-4 shrink-0 text-indigo-400" />
         )}
-        <div className="flex-1 min-w-0">
+        <div className="min-w-0 flex-1">
           {/* Banner line */}
-          <div className={cn("text-xs font-medium", isFlagged ? "text-amber-200" : "text-indigo-200")}>
+          <div
+            className={cn("text-xs font-medium", isFlagged ? "text-amber-200" : "text-indigo-200")}
+          >
             {isFlagged
               ? `${question.import_flag_type === "skip" ? "Unsolvable" : "Needs review"} — ${question.import_flag_reason ?? ""}`
               : "In bank — pick a curriculum node to send this question live in Learn."}
@@ -438,38 +480,32 @@ function QuestionCard({
               admin can jump to the source PDF and verify the
               figure / question quickly. */}
           {isFlagged && question.source_pdf && (
-            <div className="mt-2 inline-flex items-center gap-2 rounded-md bg-slate-800/70 border border-slate-700 px-2.5 py-1 text-[12px]">
-              <ExternalLink className="w-3.5 h-3.5 text-amber-300 shrink-0" />
-              <span className="text-slate-200 font-mono">{question.source_pdf}</span>
+            <div className="mt-2 inline-flex items-center gap-2 rounded-md border border-slate-700 bg-slate-800/70 px-2.5 py-1 text-[12px]">
+              <ExternalLink className="h-3.5 w-3.5 shrink-0 text-amber-300" />
+              <span className="font-mono text-slate-200">{question.source_pdf}</span>
               {question.source_page != null && (
                 <>
                   <span className="text-slate-600">›</span>
-                  <span className="text-amber-200 font-semibold">page {question.source_page}</span>
+                  <span className="font-semibold text-amber-200">page {question.source_page}</span>
                 </>
               )}
               <span className="text-slate-600">·</span>
-              <span className="text-slate-400">
-                {question.subject === "math" ? "Math" : "R&W"}
-              </span>
+              <span className="text-slate-400">{question.subject === "math" ? "Math" : "R&W"}</span>
             </div>
           )}
           {/* Question stem (truncated when collapsed) */}
-          <div
-            className={cn(
-              "mt-2 text-sm text-slate-200",
-              !expanded && "truncate"
-            )}
-          >
+          <div className={cn("mt-2 text-sm text-slate-200", !expanded && "truncate")}>
             {question.question_text}
           </div>
           {/* Compact meta row */}
-          <div className="text-[11px] text-slate-500 mt-1 flex items-center gap-3 flex-wrap">
+          <div className="mt-1 flex flex-wrap items-center gap-3 text-[11px] text-slate-500">
             {/* Source repeats here only when NOT flagged — the
                 flagged badge above already covers it prominently. */}
             {!isFlagged && question.source_pdf && (
               <span>
-                <ExternalLink className="w-3 h-3 inline mr-1" />
-                {question.source_pdf}{question.source_page ? `:${question.source_page}` : ""}
+                <ExternalLink className="mr-1 inline h-3 w-3" />
+                {question.source_pdf}
+                {question.source_page ? `:${question.source_page}` : ""}
               </span>
             )}
             <span>{question.concept_slug ?? "—"}</span>
@@ -480,7 +516,7 @@ function QuestionCard({
             {correctChoice && (
               <>
                 <span>·</span>
-                <span className="text-emerald-400 font-mono">answer {correctChoice.letter}</span>
+                <span className="font-mono text-emerald-400">answer {correctChoice.letter}</span>
               </>
             )}
           </div>
@@ -491,24 +527,24 @@ function QuestionCard({
       {expanded && (
         <div className="px-5 pb-3 pt-1">
           {question.passage_intro && (
-            <p className="italic text-slate-400 text-sm mb-2">{question.passage_intro}</p>
+            <p className="mb-2 text-sm italic text-slate-400">{question.passage_intro}</p>
           )}
           {question.passage && (
-            <div className="mb-3 px-3 py-2.5 rounded-lg bg-slate-950/60 border border-slate-800 text-slate-300 text-sm leading-relaxed font-serif whitespace-pre-wrap">
+            <div className="mb-3 whitespace-pre-wrap rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-2.5 font-serif text-sm leading-relaxed text-slate-300">
               {question.passage}
             </div>
           )}
           {(question.passage_a || question.passage_b) && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+            <div className="mb-3 grid grid-cols-1 gap-3 md:grid-cols-2">
               {question.passage_a && (
-                <div className="px-3 py-2.5 rounded-lg bg-slate-950/60 border border-slate-800 text-slate-300 text-sm font-serif whitespace-pre-wrap">
-                  <div className="text-xs uppercase tracking-wide text-slate-500 mb-1">Text 1</div>
+                <div className="whitespace-pre-wrap rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-2.5 font-serif text-sm text-slate-300">
+                  <div className="mb-1 text-xs uppercase tracking-wide text-slate-500">Text 1</div>
                   {question.passage_a}
                 </div>
               )}
               {question.passage_b && (
-                <div className="px-3 py-2.5 rounded-lg bg-slate-950/60 border border-slate-800 text-slate-300 text-sm font-serif whitespace-pre-wrap">
-                  <div className="text-xs uppercase tracking-wide text-slate-500 mb-1">Text 2</div>
+                <div className="whitespace-pre-wrap rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-2.5 font-serif text-sm text-slate-300">
+                  <div className="mb-1 text-xs uppercase tracking-wide text-slate-500">Text 2</div>
                   {question.passage_b}
                 </div>
               )}
@@ -518,7 +554,7 @@ function QuestionCard({
           {/* Question text (full) + image */}
           <MathText
             text={question.question_text}
-            className="block text-slate-100 font-medium mb-3 whitespace-pre-wrap"
+            className="mb-3 block whitespace-pre-wrap font-medium text-slate-100"
           />
           {question.image_url && (
             <figure className="mb-3 inline-block max-w-full rounded-xl border border-slate-700/50 bg-slate-200 p-2 shadow-md shadow-black/40">
@@ -526,33 +562,40 @@ function QuestionCard({
               <img
                 src={question.image_url}
                 alt={question.image_alt ?? "Question figure"}
-                className="block max-w-full max-h-72 object-contain rounded"
+                className="block max-h-72 max-w-full rounded object-contain"
               />
             </figure>
           )}
 
           {/* Choices + per-choice explanations */}
           {question.answer_format === "multiple_choice" ? (
-            <ul className="space-y-2 mb-4">
+            <ul className="mb-4 space-y-2">
               {choices.map((c) => {
                 const expl = perChoice[c.letter];
                 return (
                   <li
                     key={c.id}
                     className={cn(
-                      "px-3 py-2 rounded border text-sm",
+                      "rounded border px-3 py-2 text-sm",
                       c.is_correct
                         ? "border-emerald-500/40 bg-emerald-500/5"
                         : "border-slate-800 bg-slate-950/40"
                     )}
                   >
-                    <div className={cn("flex items-start gap-2", c.is_correct ? "text-emerald-100" : "text-slate-300")}>
-                      <span className="font-mono text-xs text-slate-500 shrink-0">{c.letter}.</span>
+                    <div
+                      className={cn(
+                        "flex items-start gap-2",
+                        c.is_correct ? "text-emerald-100" : "text-slate-300"
+                      )}
+                    >
+                      <span className="shrink-0 font-mono text-xs text-slate-500">{c.letter}.</span>
                       <MathText text={c.choice_text} className="flex-1" />
-                      {c.is_correct && <Check className="w-3.5 h-3.5 inline text-emerald-400 shrink-0" />}
+                      {c.is_correct && (
+                        <Check className="inline h-3.5 w-3.5 shrink-0 text-emerald-400" />
+                      )}
                     </div>
                     {expl && (
-                      <div className="mt-1.5 pl-5 text-xs text-slate-400 italic">
+                      <div className="mt-1.5 pl-5 text-xs italic text-slate-400">
                         <MathText text={expl} />
                       </div>
                     )}
@@ -561,34 +604,36 @@ function QuestionCard({
               })}
             </ul>
           ) : (
-            <div className="mb-4 px-3 py-2 rounded border border-emerald-500/40 bg-emerald-500/5 text-emerald-100 text-sm flex items-start gap-2 flex-wrap">
-              <span className="text-xs uppercase tracking-wide text-emerald-300/70">SPR answer:</span>
+            <div className="mb-4 flex flex-wrap items-start gap-2 rounded border border-emerald-500/40 bg-emerald-500/5 px-3 py-2 text-sm text-emerald-100">
+              <span className="text-xs uppercase tracking-wide text-emerald-300/70">
+                SPR answer:
+              </span>
               <MathText text={question.correct_answer} />
               {question.numeric_tolerance != null && (
-                <span className="text-slate-500 text-xs">±{question.numeric_tolerance}</span>
+                <span className="text-xs text-slate-500">±{question.numeric_tolerance}</span>
               )}
             </div>
           )}
 
           {/* Right-answer walkthrough */}
           {question.explanation_text && (
-            <div className="mb-3 px-3 py-2.5 rounded-lg bg-slate-950/40 border border-slate-800">
-              <div className="text-xs uppercase tracking-wide text-slate-500 mb-1">
+            <div className="mb-3 rounded-lg border border-slate-800 bg-slate-950/40 px-3 py-2.5">
+              <div className="mb-1 text-xs uppercase tracking-wide text-slate-500">
                 Right-answer walkthrough
               </div>
               <MathText
                 text={question.explanation_text}
-                className="text-sm text-slate-300 whitespace-pre-wrap block"
+                className="block whitespace-pre-wrap text-sm text-slate-300"
               />
             </div>
           )}
 
           {/* Hint (R&W and Math) */}
           {question.hint && (
-            <div className="mb-3 px-3 py-2.5 rounded-lg bg-amber-500/5 border border-amber-500/20 flex items-start gap-2">
-              <Lightbulb className="w-3.5 h-3.5 text-amber-400 mt-0.5 shrink-0" />
+            <div className="mb-3 flex items-start gap-2 rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-2.5">
+              <Lightbulb className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-400" />
               <div className="flex-1">
-                <div className="text-xs uppercase tracking-wide text-amber-300/70 mb-0.5">Hint</div>
+                <div className="mb-0.5 text-xs uppercase tracking-wide text-amber-300/70">Hint</div>
                 <MathText text={question.hint} className="text-sm text-amber-100/90" />
               </div>
             </div>
@@ -596,10 +641,12 @@ function QuestionCard({
 
           {/* Desmos strategy (math only — field is null for R&W) */}
           {question.desmos_strategy && (
-            <div className="mb-3 px-3 py-2.5 rounded-lg bg-sky-500/5 border border-sky-500/20 flex items-start gap-2">
-              <Calculator className="w-3.5 h-3.5 text-sky-400 mt-0.5 shrink-0" />
+            <div className="mb-3 flex items-start gap-2 rounded-lg border border-sky-500/20 bg-sky-500/5 px-3 py-2.5">
+              <Calculator className="mt-0.5 h-3.5 w-3.5 shrink-0 text-sky-400" />
               <div className="flex-1">
-                <div className="text-xs uppercase tracking-wide text-sky-300/70 mb-0.5">Desmos strategy</div>
+                <div className="mb-0.5 text-xs uppercase tracking-wide text-sky-300/70">
+                  Desmos strategy
+                </div>
                 <MathText text={question.desmos_strategy} className="text-sm text-sky-100/90" />
               </div>
             </div>
@@ -609,31 +656,31 @@ function QuestionCard({
 
       {/* ── Actions (always visible at the bottom) ────── */}
       <div className="px-5 pb-4">
-        <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-800">
+        <div className="flex items-center justify-end gap-2 border-t border-slate-800 pt-3">
           <button
             onClick={onPreview}
-            className="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 border border-slate-700 hover:bg-white/5"
+            className="rounded-lg border border-slate-700 px-3 py-1.5 text-xs font-semibold text-slate-300 hover:bg-white/5"
           >
-            <Eye className="w-3 h-3 inline mr-1" /> Preview
+            <Eye className="mr-1 inline h-3 w-3" /> Preview
           </button>
           <button
             onClick={onReject}
             disabled={busy}
-            className="px-3 py-1.5 rounded-lg text-xs font-semibold text-rose-300 border border-rose-500/30 hover:bg-rose-500/10 disabled:opacity-50"
+            className="rounded-lg border border-rose-500/30 px-3 py-1.5 text-xs font-semibold text-rose-300 hover:bg-rose-500/10 disabled:opacity-50"
           >
-            <X className="w-3 h-3 inline mr-1" /> Reject
+            <X className="mr-1 inline h-3 w-3" /> Reject
           </button>
           <button
             onClick={() => setPickerOpen((o) => !o)}
             disabled={busy}
             className={cn(
-              "px-3 py-1.5 rounded-lg text-xs font-bold disabled:opacity-50",
+              "rounded-lg px-3 py-1.5 text-xs font-bold disabled:opacity-50",
               pickerOpen
-                ? "text-slate-300 border border-slate-700 hover:bg-white/5"
-                : "text-white bg-emerald-500 hover:bg-emerald-400"
+                ? "border border-slate-700 text-slate-300 hover:bg-white/5"
+                : "bg-emerald-500 text-white hover:bg-emerald-400"
             )}
           >
-            <Check className="w-3 h-3 inline mr-1" /> {pickerOpen ? "Close picker" : "Accept…"}
+            <Check className="mr-1 inline h-3 w-3" /> {pickerOpen ? "Close picker" : "Accept…"}
           </button>
         </div>
 
@@ -667,7 +714,7 @@ function NodePicker({
   onAccept: (nodeId: string | null) => void;
   onCancel: () => void;
 }) {
-  const autoNodeId = slug ? nodeIdFromSlug(slug) ?? null : null;
+  const autoNodeId = slug ? (nodeIdFromSlug(slug) ?? null) : null;
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(autoNodeId);
   const [query, setQuery] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
@@ -683,23 +730,23 @@ function NodePicker({
     return searchSlugs(q).slice(0, 8);
   }, [query]);
 
-  const selected = selectedNodeId ? NODE_INDEX.get(selectedNodeId) ?? null : null;
+  const selected = selectedNodeId ? (NODE_INDEX.get(selectedNodeId) ?? null) : null;
   const isAutoPick = selectedNodeId === autoNodeId && autoNodeId !== null;
 
   return (
-    <div className="mt-3 rounded-lg border border-slate-700 bg-slate-950/40 p-3 space-y-2">
+    <div className="mt-3 space-y-2 rounded-lg border border-slate-700 bg-slate-950/40 p-3">
       {/* Current selection */}
       <div className="flex items-center gap-2 text-xs">
-        <span className="text-slate-500 shrink-0">Send to:</span>
+        <span className="shrink-0 text-slate-500">Send to:</span>
         {selected ? (
           <>
-            <span className="font-mono text-slate-400 shrink-0">{selected.nodeId}</span>
-            <span className="text-slate-200 truncate">{selected.label}</span>
-            <span className="text-slate-600 shrink-0">·</span>
-            <span className="text-slate-500 shrink-0">{CLUSTER_BY_DOMAIN[selected.domain]}</span>
+            <span className="shrink-0 font-mono text-slate-400">{selected.nodeId}</span>
+            <span className="truncate text-slate-200">{selected.label}</span>
+            <span className="shrink-0 text-slate-600">·</span>
+            <span className="shrink-0 text-slate-500">{CLUSTER_BY_DOMAIN[selected.domain]}</span>
             {isAutoPick && (
-              <span className="ml-auto inline-flex items-center gap-1 text-emerald-400 shrink-0">
-                <Sparkles className="w-3 h-3" /> auto-picked from slug
+              <span className="ml-auto inline-flex shrink-0 items-center gap-1 text-emerald-400">
+                <Sparkles className="h-3 w-3" /> auto-picked from slug
               </span>
             )}
           </>
@@ -709,8 +756,8 @@ function NodePicker({
       </div>
 
       {/* Search input */}
-      <div className="flex items-center gap-2 bg-slate-900 border border-slate-700 rounded px-2 py-1">
-        <Search className="w-3 h-3 text-slate-500 shrink-0" />
+      <div className="flex items-center gap-2 rounded border border-slate-700 bg-slate-900 px-2 py-1">
+        <Search className="h-3 w-3 shrink-0 text-slate-500" />
         <input
           ref={inputRef}
           type="text"
@@ -722,7 +769,7 @@ function NodePicker({
         {query && (
           <button
             onClick={() => setQuery("")}
-            className="text-slate-500 hover:text-slate-300 text-xs"
+            className="text-xs text-slate-500 hover:text-slate-300"
           >
             ×
           </button>
@@ -731,7 +778,7 @@ function NodePicker({
 
       {/* Match list (only when typing) */}
       {matches.length > 0 && (
-        <ul className="max-h-56 overflow-y-auto rounded border border-slate-800 divide-y divide-slate-800/60">
+        <ul className="max-h-56 divide-y divide-slate-800/60 overflow-y-auto rounded border border-slate-800">
           {matches.map((m) => {
             const isCurrent = m.nodeId === selectedNodeId;
             return (
@@ -742,13 +789,13 @@ function NodePicker({
                     setQuery("");
                   }}
                   className={cn(
-                    "w-full text-left px-2.5 py-1.5 text-xs hover:bg-slate-800/60 flex items-center gap-2",
+                    "flex w-full items-center gap-2 px-2.5 py-1.5 text-left text-xs hover:bg-slate-800/60",
                     isCurrent && "bg-emerald-500/10"
                   )}
                 >
-                  <span className="font-mono text-slate-500 shrink-0">{m.nodeId}</span>
-                  <span className="text-slate-200 truncate flex-1">{m.label}</span>
-                  <span className="text-slate-600 shrink-0">{CLUSTER_BY_DOMAIN[m.domain]}</span>
+                  <span className="shrink-0 font-mono text-slate-500">{m.nodeId}</span>
+                  <span className="flex-1 truncate text-slate-200">{m.label}</span>
+                  <span className="shrink-0 text-slate-600">{CLUSTER_BY_DOMAIN[m.domain]}</span>
                 </button>
               </li>
             );
@@ -756,7 +803,7 @@ function NodePicker({
         </ul>
       )}
       {query.trim() && matches.length === 0 && (
-        <div className="text-xs text-slate-500 italic px-1">No nodes match "{query}".</div>
+        <div className="px-1 text-xs italic text-slate-500">No nodes match "{query}".</div>
       )}
 
       {/* Actions */}
@@ -777,9 +824,9 @@ function NodePicker({
           <button
             onClick={() => onAccept(selectedNodeId)}
             disabled={busy}
-            className="px-3 py-1 rounded text-xs font-bold text-white bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50"
+            className="rounded bg-emerald-500 px-3 py-1 text-xs font-bold text-white hover:bg-emerald-400 disabled:opacity-50"
           >
-            <Check className="w-3 h-3 inline mr-1" /> Accept
+            <Check className="mr-1 inline h-3 w-3" /> Accept
           </button>
         </div>
       </div>

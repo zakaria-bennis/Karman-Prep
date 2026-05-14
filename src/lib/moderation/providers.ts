@@ -50,9 +50,7 @@ export interface OpenAIModerationResult {
   isHighSeverity: boolean;
 }
 
-export async function callOpenAIModeration(
-  content: string
-): Promise<OpenAIModerationResult> {
+export async function callOpenAIModeration(content: string): Promise<OpenAIModerationResult> {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) throw new Error("OPENAI_API_KEY is not set");
 

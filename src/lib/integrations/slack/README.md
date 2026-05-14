@@ -29,6 +29,7 @@ This design means our Slack workspace cost is **flat** (one bot, one workspace) 
    - `users:read.email` — map a tutor's Slack id to their Karman email
 
    After adding new scopes, Slack will banner-prompt you to **Reinstall to Workspace** at the top of OAuth & Permissions. Reinstall — your bot token value stays the same, the scope set just widens.
+
 4. **Install to Workspace** at the top of the OAuth page. Authorize.
 5. **Bot User OAuth Token** appears (starts with `xoxb-`) → paste into `.env.local`:
    ```
@@ -46,14 +47,14 @@ This design means our Slack workspace cost is **flat** (one bot, one workspace) 
 
 ## Adapter functions (single-bot model)
 
-| Function                            | When it's called                                                                       |
-| ----------------------------------- | -------------------------------------------------------------------------------------- |
-| `createCohortChannel(input)`        | Cohort provisioning route, after Stripe payment clears for a seminar/small-group student. Creates a private channel named `strata-<slug>-{chat\|qa}`. |
-| `postMessage(input)`                | Every successful message send (cohort chat, Q&A question, Q&A answer). The body is `*<displayName>:* <content>` plus image URLs on new lines. |
-| `deleteMessage(channelId, ts)`      | Moderation pipeline when a human reviewer removes a flagged message. Followed by an in-channel "removed for guidelines violation" notice. |
-| `pinMessage(channelId, ts)`         | Tutor pins an answer — surfaces to top of Karman Q&A board AND of the Slack channel.   |
-| `unpinMessage(channelId, ts)`       | Tutor unpins.                                                                          |
-| `archiveChannel(channelId)`         | Cohort marked completed — channel becomes read-only and stops counting against Slack's channel quota. |
+| Function                       | When it's called                                                                                                                                      |
+| ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `createCohortChannel(input)`   | Cohort provisioning route, after Stripe payment clears for a seminar/small-group student. Creates a private channel named `strata-<slug>-{chat\|qa}`. |
+| `postMessage(input)`           | Every successful message send (cohort chat, Q&A question, Q&A answer). The body is `*<displayName>:* <content>` plus image URLs on new lines.         |
+| `deleteMessage(channelId, ts)` | Moderation pipeline when a human reviewer removes a flagged message. Followed by an in-channel "removed for guidelines violation" notice.             |
+| `pinMessage(channelId, ts)`    | Tutor pins an answer — surfaces to top of Karman Q&A board AND of the Slack channel.                                                                  |
+| `unpinMessage(channelId, ts)`  | Tutor unpins.                                                                                                                                         |
+| `archiveChannel(channelId)`    | Cohort marked completed — channel becomes read-only and stops counting against Slack's channel quota.                                                 |
 
 ## What's intentionally absent
 

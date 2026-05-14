@@ -30,20 +30,22 @@ type Phase = "zoomOut" | "panUp" | "reveal" | "banner" | "done";
 export default function TierAscensionCinematic({ currentTier, nextTier, onComplete }: Props) {
   const [phase, setPhase] = useState<Phase>("zoomOut");
   const fromAtmo: AtmosphereTier = nodeAtmosphere(currentTier);
-  const toAtmo:   AtmosphereTier = ascendsTo(currentTier);
+  const toAtmo: AtmosphereTier = ascendsTo(currentTier);
 
   const fromColor = ATMOSPHERE_COLORS[fromAtmo].hex;
-  const toColor   = ATMOSPHERE_COLORS[toAtmo].hex;
+  const toColor = ATMOSPHERE_COLORS[toAtmo].hex;
 
   // Schedule phase transitions
   useEffect(() => {
     const timers: ReturnType<typeof setTimeout>[] = [];
 
     // Phase 1 → 2 @ 1500 ms
-    timers.push(setTimeout(() => {
-      setPhase("panUp");
-      playSound("tierAscendBreak");
-    }, 1500));
+    timers.push(
+      setTimeout(() => {
+        setPhase("panUp");
+        playSound("tierAscendBreak");
+      }, 1500)
+    );
 
     // Phase 2 → 3 @ 2500 ms
     timers.push(setTimeout(() => setPhase("reveal"), 2500));
@@ -52,11 +54,13 @@ export default function TierAscensionCinematic({ currentTier, nextTier, onComple
     timers.push(setTimeout(() => setPhase("banner"), 4000));
 
     // Ambient crossfade overlap (start halfway through Phase 2)
-    timers.push(setTimeout(() => {
-      const fromTrack = ambientTrackFor(fromAtmo);
-      const toTrack   = ambientTrackFor(toAtmo);
-      crossfadeAmbient(fromTrack, toTrack, 2000);
-    }, 2000));
+    timers.push(
+      setTimeout(() => {
+        const fromTrack = ambientTrackFor(fromAtmo);
+        const toTrack = ambientTrackFor(toAtmo);
+        crossfadeAmbient(fromTrack, toTrack, 2000);
+      }, 2000)
+    );
 
     // Start Phase 1 rumble immediately
     playSound("tierAscendRumble");
@@ -145,7 +149,7 @@ export default function TierAscensionCinematic({ currentTier, nextTier, onComple
             initial={{ opacity: 0 }}
             animate={{ opacity: [0, 0.85, 0] }}
             transition={{ duration: 1.0, times: [0, 0.55, 1] }}
-            className="absolute inset-0 bg-black pointer-events-none"
+            className="pointer-events-none absolute inset-0 bg-black"
           />
         )}
       </AnimatePresence>
@@ -176,7 +180,7 @@ export default function TierAscensionCinematic({ currentTier, nextTier, onComple
                   delay: s.delay,
                   ease: "easeOut",
                 }}
-                className="absolute w-1 h-1 rounded-full"
+                className="absolute h-1 w-1 rounded-full"
                 style={{
                   left: `${s.x}%`,
                   top: `${s.y}%`,
@@ -199,12 +203,12 @@ export default function TierAscensionCinematic({ currentTier, nextTier, onComple
             transition={{ duration: 0.5, ease: "easeOut" }}
             className="absolute inset-0 flex items-center justify-center p-6"
           >
-            <div className="text-center max-w-xl">
-              <p className="text-xs font-bold uppercase tracking-[0.3em] text-white/60 mb-3">
+            <div className="max-w-xl text-center">
+              <p className="mb-3 text-xs font-bold uppercase tracking-[0.3em] text-white/60">
                 You have ascended to
               </p>
               <h1
-                className="text-5xl sm:text-6xl font-extrabold tracking-tight mb-5"
+                className="mb-5 text-5xl font-extrabold tracking-tight sm:text-6xl"
                 style={{
                   color: toColor,
                   textShadow: `0 0 40px ${toColor}70`,
@@ -212,7 +216,7 @@ export default function TierAscensionCinematic({ currentTier, nextTier, onComple
               >
                 {toAtmo}
               </h1>
-              <p className="text-base text-white/80 mb-8 leading-relaxed">
+              <p className="mb-8 text-base leading-relaxed text-white/80">
                 {ATMOSPHERE_CONTEXT[toAtmo]}
               </p>
               <button
@@ -220,7 +224,7 @@ export default function TierAscensionCinematic({ currentTier, nextTier, onComple
                   setPhase("done");
                   onComplete();
                 }}
-                className="px-8 py-3 rounded-full font-semibold text-sm text-white border border-white/20 hover:bg-white/10 backdrop-blur-sm transition-colors"
+                className="rounded-full border border-white/20 px-8 py-3 text-sm font-semibold text-white backdrop-blur-sm transition-colors hover:bg-white/10"
               >
                 Continue Your Ascent
               </button>
@@ -239,9 +243,13 @@ import type { SoundName } from "@/lib/sounds";
 
 function ambientTrackFor(atmo: AtmosphereTier): SoundName {
   switch (atmo) {
-    case "Troposphere":  return "ambientTroposphere";
-    case "Mesosphere":   return "ambientMesosphere";
-    case "Stratosphere": return "ambientStratosphere";
-    case "Kármán Line":  return "ambientKarman";
+    case "Troposphere":
+      return "ambientTroposphere";
+    case "Mesosphere":
+      return "ambientMesosphere";
+    case "Stratosphere":
+      return "ambientStratosphere";
+    case "Kármán Line":
+      return "ambientKarman";
   }
 }

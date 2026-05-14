@@ -59,11 +59,18 @@ export async function GET() {
     return NextResponse.json({ error: "Roster lookup failed" }, { status: 500 });
   }
 
-  type UserRow = { id: string; clerk_id: string | null; first_name: string | null; last_name: string | null; email: string; role: string };
+  type UserRow = {
+    id: string;
+    clerk_id: string | null;
+    first_name: string | null;
+    last_name: string | null;
+    email: string;
+    role: string;
+  };
   type Row = { user_id: string; users: UserRow | UserRow[] | null };
 
   const peers: PeerEntry[] = ((rows as unknown as Row[] | null) ?? [])
-    .map((r) => (Array.isArray(r.users) ? r.users[0] ?? null : r.users))
+    .map((r) => (Array.isArray(r.users) ? (r.users[0] ?? null) : r.users))
     .filter((u): u is UserRow => !!u && u.id !== callerUuid && u.role === "student" && !!u.clerk_id)
     .map((u) => {
       const first = (u.first_name ?? "").trim() || u.email.split("@")[0];

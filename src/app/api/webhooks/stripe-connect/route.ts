@@ -106,10 +106,14 @@ type Supabase = ReturnType<typeof createAdminClient>;
 
 async function processEvent(event: Stripe.Event, supabase: Supabase) {
   switch (event.type) {
-    case "account.updated":      return handleAccountUpdated(event, supabase);
-    case "payout.paid":          return handlePayoutPaid(event, supabase);
-    case "payout.failed":        return handlePayoutFailed(event, supabase);
-    default:                     return; // ignored event type
+    case "account.updated":
+      return handleAccountUpdated(event, supabase);
+    case "payout.paid":
+      return handlePayoutPaid(event, supabase);
+    case "payout.failed":
+      return handlePayoutFailed(event, supabase);
+    default:
+      return; // ignored event type
   }
 }
 
@@ -125,9 +129,7 @@ async function handleAccountUpdated(event: Stripe.Event, supabase: Supabase) {
     .from("users")
     .update({
       stripe_payouts_enabled: payoutsEnabled,
-      stripe_connect_onboarded_at: payoutsEnabled
-        ? new Date().toISOString()
-        : null,
+      stripe_connect_onboarded_at: payoutsEnabled ? new Date().toISOString() : null,
       payment_info_updated_at: new Date().toISOString(),
     })
     .eq("stripe_connect_account_id", accountId);
@@ -159,7 +161,11 @@ async function handlePayoutPaid(event: Stripe.Event, supabase: Supabase) {
     .update({ payout_status: "paid" })
     .in("id", (req.session_ids as string[]) ?? []);
 
-  try { await supabase.rpc("refresh_tutor_earnings_summary"); } catch { /* non-fatal */ }
+  try {
+    await supabase.rpc("refresh_tutor_earnings_summary");
+  } catch {
+    /* non-fatal */
+  }
 }
 
 // ──────────────────────────────────────────────────────────
@@ -185,7 +191,7 @@ async function handlePayoutFailed(event: Stripe.Event, supabase: Supabase) {
 
   await supabase
     .from("sessions")
-    .update({ payout_status: "approved" })  // money's at Stripe, not yet in tutor's hand
+    .update({ payout_status: "approved" }) // money's at Stripe, not yet in tutor's hand
     .in("id", (req.session_ids as string[]) ?? []);
 
   // Notify admin

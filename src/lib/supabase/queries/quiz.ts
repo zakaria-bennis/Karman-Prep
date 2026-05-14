@@ -42,10 +42,7 @@ export async function fetchQuestionsForNode(
   opts: { includeFlagged?: boolean } = {}
 ): Promise<QuizQuestionWithChoices[]> {
   const supabase = createAdminClient();
-  let query = supabase
-    .from("quiz_questions")
-    .select("*, answer_choices(*)")
-    .eq("node_id", nodeId);
+  let query = supabase.from("quiz_questions").select("*, answer_choices(*)").eq("node_id", nodeId);
   if (!opts.includeFlagged) query = query.or(LIVE_FILTER);
   const { data, error } = await query
     .order("display_order", { ascending: true })
@@ -74,7 +71,7 @@ export interface NewQuestionInput {
   difficulty: QuizDifficulty;
   difficulty_level: 1 | 2 | 3 | 4 | 5 | 6 | 7;
   answer_format: "multiple_choice" | "numeric_entry";
-  correct_answer: string;             // letter for MC, numeric string for numeric_entry
+  correct_answer: string; // letter for MC, numeric string for numeric_entry
   numeric_tolerance: number | null;
   explanation_text: string;
   explanation_per_choice: Partial<Record<AnswerLetter, string>> | null;
@@ -82,7 +79,7 @@ export interface NewQuestionInput {
   subject: QuizQuestion["subject"];
   topic_cluster: string;
   desmos_strategy: string | null;
-  choices: { letter: AnswerLetter; choice_text: string }[];  // ignored when answer_format = 'numeric_entry'
+  choices: { letter: AnswerLetter; choice_text: string }[]; // ignored when answer_format = 'numeric_entry'
   display_order?: number;
 
   // ── Ingestion fields (migration 020) ───────────────────────
@@ -223,10 +220,7 @@ export async function updateQuestionDifficultyLevel(
 ): Promise<void> {
   const supabase = createAdminClient();
   const legacy: QuizDifficulty =
-    level <= 2 ? "foundational" :
-    level <= 4 ? "intermediate" :
-    level <= 6 ? "advanced" :
-                 "mastery";
+    level <= 2 ? "foundational" : level <= 4 ? "intermediate" : level <= 6 ? "advanced" : "mastery";
   const { error } = await supabase
     .from("quiz_questions")
     .update({ difficulty_level: level, difficulty: legacy, updated_at: new Date().toISOString() })
@@ -236,7 +230,26 @@ export async function updateQuestionDifficultyLevel(
 
 export async function updateQuestion(
   questionId: string,
-  patch: Partial<Pick<QuizQuestion, "question_text" | "difficulty" | "difficulty_level" | "answer_format" | "correct_answer" | "numeric_tolerance" | "explanation_text" | "explanation_per_choice" | "hint" | "topic_cluster" | "desmos_strategy" | "display_order" | "image_url" | "image_storage_path" | "image_alt">>
+  patch: Partial<
+    Pick<
+      QuizQuestion,
+      | "question_text"
+      | "difficulty"
+      | "difficulty_level"
+      | "answer_format"
+      | "correct_answer"
+      | "numeric_tolerance"
+      | "explanation_text"
+      | "explanation_per_choice"
+      | "hint"
+      | "topic_cluster"
+      | "desmos_strategy"
+      | "display_order"
+      | "image_url"
+      | "image_storage_path"
+      | "image_alt"
+    >
+  >
 ): Promise<void> {
   const supabase = createAdminClient();
   const { error } = await supabase
@@ -278,8 +291,8 @@ export async function selectQuestionsNeedingReview(
     .from("quiz_questions")
     .select("*, answer_choices(*)")
     .eq("import_status", "needs_review");
-  if (filter.flag_type)  q = q.eq("import_flag_type", filter.flag_type);
-  if (filter.domain)     q = q.eq("domain", filter.domain);
+  if (filter.flag_type) q = q.eq("import_flag_type", filter.flag_type);
+  if (filter.domain) q = q.eq("domain", filter.domain);
   if (filter.source_pdf) q = q.eq("source_pdf", filter.source_pdf);
   const { data, error } = await q.order("created_at", { ascending: false });
   if (error) throw error;
@@ -330,10 +343,7 @@ export async function acceptFlaggedQuestion(
     updated_at: new Date().toISOString(),
   };
   if (opts.nodeId !== undefined) patch.node_id = opts.nodeId;
-  const { error } = await supabase
-    .from("quiz_questions")
-    .update(patch)
-    .eq("id", questionId);
+  const { error } = await supabase.from("quiz_questions").update(patch).eq("id", questionId);
   if (error) throw error;
 }
 
@@ -389,7 +399,10 @@ export async function removeQuestionImage(
         // Don't fail the row update if the object was already gone.
       });
     } else {
-      await supabase.storage.from("question-images").remove([storagePath]).catch(() => {});
+      await supabase.storage
+        .from("question-images")
+        .remove([storagePath])
+        .catch(() => {});
     }
   }
 
@@ -406,10 +419,7 @@ export async function removeQuestionImage(
 
 // ── Quiz attempts ──────────────────────────────────────────────
 
-export async function createQuizAttempt(
-  studentId: string,
-  nodeId: string
-): Promise<QuizAttempt> {
+export async function createQuizAttempt(studentId: string, nodeId: string): Promise<QuizAttempt> {
   const supabase = createAdminClient();
 
   const { count } = await supabase
@@ -465,11 +475,7 @@ export async function recordQuestionResponse(input: {
   response_time_seconds: number;
 }): Promise<QuestionResponse> {
   const supabase = createAdminClient();
-  const { data, error } = await supabase
-    .from("question_responses")
-    .insert(input)
-    .select()
-    .single();
+  const { data, error } = await supabase.from("question_responses").insert(input).select().single();
   if (error || !data) throw error ?? new Error("Failed to record response");
   return data as QuestionResponse;
 }
@@ -500,9 +506,7 @@ export async function fetchAllAttemptsForStudent(studentId: string): Promise<Qui
   return (data ?? []) as QuizAttempt[];
 }
 
-export async function fetchResponsesForAttempt(
-  attemptId: string
-): Promise<QuestionResponse[]> {
+export async function fetchResponsesForAttempt(attemptId: string): Promise<QuestionResponse[]> {
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("question_responses")
@@ -565,10 +569,7 @@ export async function fetchFlaggedQuestionsForStudent(
   return (data ?? []) as Array<FlaggedQuestion & { question: QuizQuestionWithChoices | null }>;
 }
 
-export async function resolveFlaggedQuestion(
-  flagId: string,
-  resolvedBy: string
-): Promise<void> {
+export async function resolveFlaggedQuestion(flagId: string, resolvedBy: string): Promise<void> {
   const supabase = createAdminClient();
   const { error } = await supabase
     .from("flagged_questions")

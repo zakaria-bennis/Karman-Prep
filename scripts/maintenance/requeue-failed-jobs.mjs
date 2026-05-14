@@ -40,7 +40,11 @@ async function main() {
     completed_at: null,
     error_message: null,
     module_status: {
-      key: "pending", m1: "pending", m2: "pending", m3: "pending", m4: "pending",
+      key: "pending",
+      m1: "pending",
+      m2: "pending",
+      m3: "pending",
+      m4: "pending",
     },
     progress: {
       stage: "queued",
@@ -60,4 +64,7 @@ async function main() {
   console.log(`\nRe-queued ${failed.length} job(s). The daemon will pick them up within 30s.`);
 }
 
-main().catch((err) => { console.error("FATAL:", err.message); process.exit(1); });
+main().catch((err) => {
+  console.error("FATAL:", err.message);
+  process.exit(1);
+});

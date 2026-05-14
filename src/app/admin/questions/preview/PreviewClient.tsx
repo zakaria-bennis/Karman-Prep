@@ -64,16 +64,19 @@ export default function PreviewClient({ initial }: { initial: QuizQuestionWithCh
     <div>
       {/* Filter + nav toolbar */}
       <div className="border-y border-slate-800 bg-slate-900/40">
-        <div className="max-w-7xl mx-auto px-5 py-3 flex flex-wrap items-center gap-3">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-3 px-5 py-3">
           <div className="flex items-center gap-2 text-xs text-slate-400">
-            <Filter className="w-3.5 h-3.5" />
+            <Filter className="h-3.5 w-3.5" />
             <span>Filters</span>
           </div>
 
           <select
             value={subject}
-            onChange={(e) => { setSubject(e.target.value as Subject); setIdx(0); }}
-            className="rounded-lg bg-slate-900 border border-slate-700 px-2.5 py-1.5 text-xs text-slate-100 focus:outline-none focus:border-indigo-500"
+            onChange={(e) => {
+              setSubject(e.target.value as Subject);
+              setIdx(0);
+            }}
+            className="rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-1.5 text-xs text-slate-100 focus:border-indigo-500 focus:outline-none"
           >
             <option value="all">All subjects</option>
             <option value="reading">Reading</option>
@@ -82,8 +85,11 @@ export default function PreviewClient({ initial }: { initial: QuizQuestionWithCh
 
           <select
             value={status}
-            onChange={(e) => { setStatus(e.target.value as Status); setIdx(0); }}
-            className="rounded-lg bg-slate-900 border border-slate-700 px-2.5 py-1.5 text-xs text-slate-100 focus:outline-none focus:border-indigo-500"
+            onChange={(e) => {
+              setStatus(e.target.value as Status);
+              setIdx(0);
+            }}
+            className="rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-1.5 text-xs text-slate-100 focus:border-indigo-500 focus:outline-none"
           >
             <option value="all">All statuses</option>
             <option value="ok">ok</option>
@@ -92,85 +98,102 @@ export default function PreviewClient({ initial }: { initial: QuizQuestionWithCh
 
           <select
             value={pdf}
-            onChange={(e) => { setPdf(e.target.value); setIdx(0); }}
-            className="rounded-lg bg-slate-900 border border-slate-700 px-2.5 py-1.5 text-xs text-slate-100 max-w-[18rem] focus:outline-none focus:border-indigo-500"
+            onChange={(e) => {
+              setPdf(e.target.value);
+              setIdx(0);
+            }}
+            className="max-w-[18rem] rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-1.5 text-xs text-slate-100 focus:border-indigo-500 focus:outline-none"
           >
             <option value="all">All PDFs</option>
             {allPdfs.map((p) => (
-              <option key={p} value={p}>{p}</option>
+              <option key={p} value={p}>
+                {p}
+              </option>
             ))}
           </select>
 
           <select
             value={domain}
-            onChange={(e) => { setDomain(e.target.value); setIdx(0); }}
-            className="rounded-lg bg-slate-900 border border-slate-700 px-2.5 py-1.5 text-xs text-slate-100 focus:outline-none focus:border-indigo-500"
+            onChange={(e) => {
+              setDomain(e.target.value);
+              setIdx(0);
+            }}
+            className="rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-1.5 text-xs text-slate-100 focus:border-indigo-500 focus:outline-none"
           >
             <option value="all">All domains</option>
             {allDomains.map((d) => (
-              <option key={d} value={d}>{d}</option>
+              <option key={d} value={d}>
+                {d}
+              </option>
             ))}
           </select>
 
           {/* Counter + nav */}
           <div className="ml-auto flex items-center gap-2">
             <span className="text-xs text-slate-500">
-              {filtered.length === 0 ? "0 questions" : (
+              {filtered.length === 0 ? (
+                "0 questions"
+              ) : (
                 <>
-                  <span className="text-slate-300 font-semibold">{safeIdx + 1}</span>
-                  {" of "}{filtered.length}
+                  <span className="font-semibold text-slate-300">{safeIdx + 1}</span>
+                  {" of "}
+                  {filtered.length}
                 </>
               )}
             </span>
             <button
               onClick={() => jump(-1)}
               disabled={safeIdx === 0 || filtered.length === 0}
-              className="p-1.5 rounded-md bg-slate-800 border border-slate-700 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="rounded-md border border-slate-700 bg-slate-800 p-1.5 hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-40"
               aria-label="Previous question"
             >
-              <ChevronLeft className="w-4 h-4 text-slate-200" />
+              <ChevronLeft className="h-4 w-4 text-slate-200" />
             </button>
             <button
               onClick={() => jump(1)}
               disabled={safeIdx >= filtered.length - 1 || filtered.length === 0}
-              className="p-1.5 rounded-md bg-slate-800 border border-slate-700 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="rounded-md border border-slate-700 bg-slate-800 p-1.5 hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-40"
               aria-label="Next question"
             >
-              <ChevronRight className="w-4 h-4 text-slate-200" />
+              <ChevronRight className="h-4 w-4 text-slate-200" />
             </button>
           </div>
         </div>
       </div>
 
       {/* 2-pane: list + preview */}
-      <div className="max-w-7xl mx-auto px-5 py-4 grid grid-cols-1 lg:grid-cols-[20rem_1fr] gap-4">
+      <div className="mx-auto grid max-w-7xl grid-cols-1 gap-4 px-5 py-4 lg:grid-cols-[20rem_1fr]">
         {/* Left: list of filtered questions */}
-        <aside className="lg:max-h-[calc(100vh-12rem)] lg:overflow-y-auto rounded-xl border border-slate-800 bg-slate-900/30 divide-y divide-slate-800">
+        <aside className="divide-y divide-slate-800 rounded-xl border border-slate-800 bg-slate-900/30 lg:max-h-[calc(100vh-12rem)] lg:overflow-y-auto">
           {filtered.length === 0 ? (
-            <div className="p-6 text-xs text-slate-500 italic">No questions match these filters.</div>
+            <div className="p-6 text-xs italic text-slate-500">
+              No questions match these filters.
+            </div>
           ) : (
             filtered.map((q, i) => (
               <button
                 key={q.id}
                 onClick={() => selectRow(i)}
                 className={cn(
-                  "w-full text-left px-3.5 py-2.5 flex items-start gap-2 hover:bg-slate-800/50 transition-colors",
+                  "flex w-full items-start gap-2 px-3.5 py-2.5 text-left transition-colors hover:bg-slate-800/50",
                   i === safeIdx && "bg-slate-800"
                 )}
               >
-                <span className="shrink-0 text-[10px] font-mono text-slate-500 mt-0.5 w-6 text-right tabular-nums">
+                <span className="mt-0.5 w-6 shrink-0 text-right font-mono text-[10px] tabular-nums text-slate-500">
                   {i + 1}
                 </span>
-                <span className="flex-1 min-w-0">
-                  <span className="block text-[12px] text-slate-200 line-clamp-2 leading-snug">
+                <span className="min-w-0 flex-1">
+                  <span className="line-clamp-2 block text-[12px] leading-snug text-slate-200">
                     {q.question_text || "(no question text)"}
                   </span>
                   <span className="mt-1 flex flex-wrap items-center gap-1.5 text-[10px] text-slate-500">
-                    <span className="px-1.5 rounded bg-slate-800 text-slate-300">{q.subject}</span>
-                    <span className="px-1.5 rounded bg-slate-800 text-slate-300">L{q.difficulty_level ?? "—"}</span>
-                    <span className="truncate max-w-[8rem]">{q.concept_slug ?? "(no slug)"}</span>
+                    <span className="rounded bg-slate-800 px-1.5 text-slate-300">{q.subject}</span>
+                    <span className="rounded bg-slate-800 px-1.5 text-slate-300">
+                      L{q.difficulty_level ?? "—"}
+                    </span>
+                    <span className="max-w-[8rem] truncate">{q.concept_slug ?? "(no slug)"}</span>
                     {q.import_status === "needs_review" && (
-                      <AlertTriangle className="w-3 h-3 text-amber-400" />
+                      <AlertTriangle className="h-3 w-3 text-amber-400" />
                     )}
                   </span>
                 </span>
@@ -180,29 +203,33 @@ export default function PreviewClient({ initial }: { initial: QuizQuestionWithCh
         </aside>
 
         {/* Right: live preview */}
-        <main className="rounded-xl border border-slate-800 bg-slate-950 overflow-hidden">
+        <main className="overflow-hidden rounded-xl border border-slate-800 bg-slate-950">
           {current ? (
             <>
               {/* Metadata strip above the preview, mirrors what the
                   admin needs to know about this row but never shown to
                   students. */}
-              <div className="px-5 py-2 border-b border-slate-800 bg-slate-900/60 text-[11px] text-slate-400 flex flex-wrap items-center gap-x-4 gap-y-1 font-mono">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-slate-800 bg-slate-900/60 px-5 py-2 font-mono text-[11px] text-slate-400">
                 <span className="text-slate-500">id:</span>
-                <span className="text-slate-300 truncate max-w-[14rem]">{current.id}</span>
+                <span className="max-w-[14rem] truncate text-slate-300">{current.id}</span>
                 <span className="text-slate-500">pdf:</span>
-                <span className="text-slate-300">{current.source_pdf ?? "—"} p{current.source_page ?? "—"}</span>
+                <span className="text-slate-300">
+                  {current.source_pdf ?? "—"} p{current.source_page ?? "—"}
+                </span>
                 <span className="text-slate-500">slug:</span>
                 <span className="text-slate-300">{current.concept_slug ?? "—"}</span>
                 <span className="text-slate-500">domain:</span>
                 <span className="text-slate-300">{current.domain ?? "—"}</span>
                 <span className="text-slate-500">level:</span>
                 <span className="text-slate-300">{current.difficulty_level ?? "—"}</span>
-                <span className={cn(
-                  "ml-auto px-1.5 rounded font-bold",
-                  current.import_status === "needs_review"
-                    ? "bg-amber-500/15 text-amber-300"
-                    : "bg-emerald-500/15 text-emerald-300"
-                )}>
+                <span
+                  className={cn(
+                    "ml-auto rounded px-1.5 font-bold",
+                    current.import_status === "needs_review"
+                      ? "bg-amber-500/15 text-amber-300"
+                      : "bg-emerald-500/15 text-emerald-300"
+                  )}
+                >
                   {current.import_status ?? "ok"}
                 </span>
               </div>

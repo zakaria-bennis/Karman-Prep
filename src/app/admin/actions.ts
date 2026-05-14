@@ -80,7 +80,19 @@ export async function actionUpdateQuestionDifficultyLevel(
 
 export async function actionUpdateQuestion(
   questionId: string,
-  patch: Partial<Pick<QuizQuestion, "question_text" | "difficulty" | "correct_answer" | "explanation_text" | "explanation_per_choice" | "hint" | "topic_cluster" | "desmos_strategy">>,
+  patch: Partial<
+    Pick<
+      QuizQuestion,
+      | "question_text"
+      | "difficulty"
+      | "correct_answer"
+      | "explanation_text"
+      | "explanation_per_choice"
+      | "hint"
+      | "topic_cluster"
+      | "desmos_strategy"
+    >
+  >,
   nodeId: string
 ) {
   await guardAdmin();
@@ -258,12 +270,17 @@ export async function actionAcceptAllBank(): Promise<{
     .or("import_status.is.null,import_status.eq.ok");
   if (error) throw new Error(`Bank query failed: ${error.message}`);
 
-  const result = { accepted: 0, skipped_no_slug_match: 0, errored: 0, errors: [] as Array<{ questionId: string; message: string }> };
+  const result = {
+    accepted: 0,
+    skipped_no_slug_match: 0,
+    errored: 0,
+    errors: [] as Array<{ questionId: string; message: string }>,
+  };
 
   for (const row of data ?? []) {
     const qid = row.id as string;
     const slug = row.concept_slug as string | null;
-    const nodeId = slug ? nodeFromSlug(slug) ?? null : null;
+    const nodeId = slug ? (nodeFromSlug(slug) ?? null) : null;
     if (!nodeId) {
       result.skipped_no_slug_match++;
       continue;

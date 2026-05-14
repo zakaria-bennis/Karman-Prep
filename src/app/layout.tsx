@@ -27,23 +27,29 @@ const geistMono = localFont({
 export const metadata: Metadata = {
   // Resolves relative OG image paths and canonical URLs to the production
   // domain so social-share previews work in dev and prod.
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_APP_URL ?? "https://karmanprep.com"
-  ),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? "https://karmanprep.com"),
   title: {
     default: "Karman — SAT Tutoring That Gets Results",
     template: "%s | Karman",
   },
   description:
     "Personalized SAT prep with expert tutors, adaptive diagnostics, and a score improvement guarantee. Group, private, and elite plans starting at $40/month.",
-  keywords: ["SAT tutoring", "SAT prep", "SAT math", "college admissions", "score improvement", "online SAT tutor"],
+  keywords: [
+    "SAT tutoring",
+    "SAT prep",
+    "SAT math",
+    "college admissions",
+    "score improvement",
+    "online SAT tutor",
+  ],
   openGraph: {
     type: "website",
     locale: "en_US",
     url: process.env.NEXT_PUBLIC_APP_URL,
     siteName: "Karman",
     title: "Karman — SAT Tutoring That Gets Results",
-    description: "Personalized SAT prep with expert tutors, adaptive diagnostics, and a score improvement guarantee.",
+    description:
+      "Personalized SAT prep with expert tutors, adaptive diagnostics, and a score improvement guarantee.",
   },
   twitter: {
     card: "summary_large_image",

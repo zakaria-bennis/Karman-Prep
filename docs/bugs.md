@@ -9,13 +9,13 @@ on 2026-04-28; diagnostics run same day.
 
 User said "in whatever order makes sense" (not strictly sequential). The plan:
 
-| Order | Item | Effort | Status |
-|-------|------|--------|--------|
-| 1 | #1 Auto-pick node + slug typeahead | ~1 day | Blocked on design answer (see below) |
-| 2 | #5 + #6 Review UI: show all 4 explanation surfaces; collapse-by-default + expand-all | ~1 day | Ready |
-| 3 | #7 Drag-and-drop CSV dropzone | ~0.5 day | Ready |
-| 4 | #2 Confirm filename diagnostic with user | varies | Awaiting user verification |
-| 5 | #3 + #4 Web upload PDF → 4-session orchestration → folder-watch ingest | 1–2 weeks | Architecture project — not started |
+| Order | Item                                                                                 | Effort    | Status                               |
+| ----- | ------------------------------------------------------------------------------------ | --------- | ------------------------------------ |
+| 1     | #1 Auto-pick node + slug typeahead                                                   | ~1 day    | Blocked on design answer (see below) |
+| 2     | #5 + #6 Review UI: show all 4 explanation surfaces; collapse-by-default + expand-all | ~1 day    | Ready                                |
+| 3     | #7 Drag-and-drop CSV dropzone                                                        | ~0.5 day  | Ready                                |
+| 4     | #2 Confirm filename diagnostic with user                                             | varies    | Awaiting user verification           |
+| 5     | #3 + #4 Web upload PDF → 4-session orchestration → folder-watch ingest               | 1–2 weeks | Architecture project — not started   |
 
 The smaller items ship fast and remove the daily friction in the review
 workflow. The big architecture (#3 + #4) is one project, not two.
@@ -28,11 +28,13 @@ workflow. The big architecture (#3 + #4) is one project, not two.
 admin has to pick a node from an 89-node list manually. Way too slow.
 
 **Want.**
+
 - Default node auto-picked from the row's `concept_slug`.
 - Search box that filters nodes by keyword if the auto-pick is wrong.
 - Same UX on both the Bank tab and the Flagged tab.
 
 **State of the code (after slug↔node unification on 2026-04-28).**
+
 - Slugs are 1:1 with curriculum nodes now. Every CSV row's `concept_slug`
   maps to exactly one curriculum node via `nodeIdFromSlug(slug)` in
   `src/lib/question-bank/taxonomy.ts`.
@@ -50,6 +52,7 @@ admin has to pick a node from an 89-node list manually. Way too slow.
 `source_pdf = 2025-12-USV2`.
 
 **Diagnostic verdict: not a code bug.** The CSV → DB → UI chain is intact.
+
 - No hardcoded fallback string exists anywhere in the repo (verified via grep
   for `2025-12-USV2`, `202512usv2`, `202512`, `USV2` — zero matches).
 - `BulkImportPanel.tsx:103-143` parses by header name (not position).
@@ -78,6 +81,7 @@ that uploads a PDF, splits into 4 module-sized chunks, fans out to 4
 Claude sessions, and merges results.
 
 **Architecture recon (2026-04-28).** Substantial gaps:
+
 - ✓ R2 binding (`env.R2`) wired in `wrangler.toml:64-67`
 - ✓ Clerk admin gate works (`actions.ts:48-54` `guardAdmin()`)
 - ✓ One cron trigger exists (`0 6 * * *` daily, syncs SAT dates)
@@ -89,10 +93,11 @@ Claude sessions, and merges results.
   on the dev's machine — not in cloud storage
 
 **What needs to be built (rough shape).**
+
 1. Multipart PDF upload endpoint at `/api/admin/pdf-upload` — drops to
    R2 under `question-imports/uploads/<ts>/<filename>.pdf`
 2. Cloudflare Queue binding + 5 messages enqueued: 1 "extract answer key"
-   + 4 "process module N" jobs with the answer-key result fanned in
+   - 4 "process module N" jobs with the answer-key result fanned in
 3. Queue consumer at `/api/workers/process-pdf-job` — adds Anthropic SDK
    dependency, calls Claude API with the PDF page range as multimodal input
 4. Each consumer writes its CSV to R2 under
@@ -112,12 +117,14 @@ manually upload them. Want the review/flagged tabs to continuously poll a
 folder and ingest anything that lands.
 
 **State of the code.**
+
 - Today: import is exclusively manual via `BankImportClient.tsx:110-124`
   (client-side parse → server action → direct DB insert).
 - There's no folder-watch poller, no R2 inbox path conventions, no
   ingest-from-storage code path.
 
 **What needs to be built.**
+
 1. Cron worker that scans `r2://karmanprep-question-images/question-imports/runs/`
    for unprocessed CSVs (use a sentinel like `_processed` marker file).
 2. Streams each CSV row through the same `actionBulkImport` codepath as
@@ -136,6 +143,7 @@ than two phases — the storage path conventions need to match.
 hint, or Desmos strategies.
 
 **Diagnostic verdict.** The schema **already has all four fields**:
+
 - `quiz_questions.explanation_text` — right-answer walkthrough
 - `quiz_questions.explanation_per_choice` (JSONB) — per-choice explanations
   `{A: "...", B: "...", C: "...", D: "..."}`
@@ -158,11 +166,13 @@ preview correctly shows only the hint.
 ## #6 — UI: show all explanations + hint + desmos in Review tab; collapse-by-default with expand-all/collapse-all
 
 **User pain.**
+
 - Review cards are always expanded; long lists are hard to scan.
 - Many fields the admin needs to see (per-choice explanations, hint,
   desmos strategy) are not rendered in the Review tab.
 
 **Want.**
+
 - Review cards collapsed by default. Click a card to expand.
 - Expand-all / Collapse-all toggle at the top of the list.
 - When expanded, show: question, choices, correct letter, all per-choice

@@ -29,10 +29,7 @@ import {
   sendBookingReschedule,
 } from "@/lib/integrations/resend/booking-emails";
 import { extractZoomMeetingId } from "@/lib/integrations/zoom/url";
-import {
-  consumeTokenForBooking,
-  releaseTokenFromBooking,
-} from "@/lib/supabase/queries/tokens";
+import { consumeTokenForBooking, releaseTokenFromBooking } from "@/lib/supabase/queries/tokens";
 
 // node:crypto + Buffer require Node runtime, not Edge.
 export const runtime = "nodejs";
@@ -115,10 +112,7 @@ async function loadBookingPeople(booking: BookingRow): Promise<{
   const parentEmails: string[] = [];
   if (parentLinks && parentLinks.length > 0) {
     const parentIds = parentLinks.map((l) => l.parent_user_id);
-    const { data: parents } = await supa
-      .from("users")
-      .select("email")
-      .in("id", parentIds);
+    const { data: parents } = await supa.from("users").select("email").in("id", parentIds);
     for (const p of parents ?? []) {
       if (p.email) parentEmails.push(p.email);
     }
@@ -199,10 +193,7 @@ export async function POST(req: NextRequest) {
         // so the Zoom webhook (P5) can route attendance events.
         const joinUrl = booking.zoom_join_url ?? p.location ?? null;
         const zoomId = booking.zoom_meeting_id ?? extractZoomMeetingId(joinUrl);
-        if (
-          (!booking.zoom_join_url && joinUrl) ||
-          (!booking.zoom_meeting_id && zoomId)
-        ) {
+        if ((!booking.zoom_join_url && joinUrl) || (!booking.zoom_meeting_id && zoomId)) {
           await updateBooking(booking.id, {
             zoom_join_url: joinUrl,
             zoom_meeting_id: zoomId,

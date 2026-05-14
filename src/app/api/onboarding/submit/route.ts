@@ -16,21 +16,26 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { createAdminClient } from "@/lib/supabase/server";
-import {
-  getActiveSubscription,
-  getUserUuidByClerkId,
-} from "@/lib/supabase/queries/bookings";
+import { getActiveSubscription, getUserUuidByClerkId } from "@/lib/supabase/queries/bookings";
 import { assignTutorOneToOne, placeInCohort } from "@/lib/onboarding/placement";
 
 const VALID_HS_YEARS = ["freshman", "sophomore", "junior", "senior"] as const;
-const VALID_DAYS = ["monday","tuesday","wednesday","thursday","friday","saturday","sunday"] as const;
-const VALID_TIMES = ["morning","afternoon","evening"] as const;
+const VALID_DAYS = [
+  "monday",
+  "tuesday",
+  "wednesday",
+  "thursday",
+  "friday",
+  "saturday",
+  "sunday",
+] as const;
+const VALID_TIMES = ["morning", "afternoon", "evening"] as const;
 
 interface OnboardingPayload {
   // Always required
-  satTestDate: string;       // YYYY-MM-DD
-  goalSatScore: number;      // 400–1600
-  hsYear: typeof VALID_HS_YEARS[number];
+  satTestDate: string; // YYYY-MM-DD
+  goalSatScore: number; // 400–1600
+  hsYear: (typeof VALID_HS_YEARS)[number];
 
   // Optional academic background
   recentSatMath?: number | null;
@@ -56,7 +61,7 @@ function validate(p: Partial<OnboardingPayload>, tier: string): string | null {
   if (typeof p.goalSatScore !== "number" || p.goalSatScore < 400 || p.goalSatScore > 1600) {
     return "goalSatScore must be 400-1600";
   }
-  if (!p.hsYear || !VALID_HS_YEARS.includes(p.hsYear as typeof VALID_HS_YEARS[number])) {
+  if (!p.hsYear || !VALID_HS_YEARS.includes(p.hsYear as (typeof VALID_HS_YEARS)[number])) {
     return "hsYear required (freshman|sophomore|junior|senior)";
   }
   if (p.recentSatMath != null && (p.recentSatMath < 200 || p.recentSatMath > 800)) {
@@ -79,10 +84,10 @@ function validate(p: Partial<OnboardingPayload>, tier: string): string | null {
     }
     if (!p.timeZone) return "timeZone required for Private/Elite";
     for (const d of p.availableDays) {
-      if (!VALID_DAYS.includes(d as typeof VALID_DAYS[number])) return `Invalid day: ${d}`;
+      if (!VALID_DAYS.includes(d as (typeof VALID_DAYS)[number])) return `Invalid day: ${d}`;
     }
     for (const t of p.availableTimes) {
-      if (!VALID_TIMES.includes(t as typeof VALID_TIMES[number])) return `Invalid time: ${t}`;
+      if (!VALID_TIMES.includes(t as (typeof VALID_TIMES)[number])) return `Invalid time: ${t}`;
     }
   }
 
@@ -153,14 +158,19 @@ export async function POST(req: NextRequest) {
         tier: sub.tier,
         satTestDate: body.satTestDate!,
       });
-      placementSummary = { cohortId: r.cohortId, cohortName: r.cohortName, cohortCreated: r.created };
+      placementSummary = {
+        cohortId: r.cohortId,
+        cohortName: r.cohortName,
+        cohortCreated: r.created,
+      };
     } else if (sub.tier === "private" || sub.tier === "elite") {
       const r = await assignTutorOneToOne({
         studentUuid,
         availableDays: body.availableDays,
         availableTimes: body.availableTimes,
       });
-      if (r) placementSummary = { tutorUuid: r.tutorUuid, matchedAvailability: r.matchedAvailability };
+      if (r)
+        placementSummary = { tutorUuid: r.tutorUuid, matchedAvailability: r.matchedAvailability };
       else placementSummary = { warning: "No tutors available — admin will assign manually" };
     }
   } catch (err) {

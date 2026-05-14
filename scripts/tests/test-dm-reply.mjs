@@ -39,7 +39,8 @@ for (let i = 0; i < args.length; i += 1) {
 }
 
 const recipientEmail = process.env.TEST_DM_BENNISZ_EMAIL ?? "bennisz@outlook.com";
-const text = process.env.TEST_DM_TEXT ?? "Hey! Quick Q on yesterday's reading set when you have a sec.";
+const text =
+  process.env.TEST_DM_TEXT ?? "Hey! Quick Q on yesterday's reading set when you have a sec.";
 
 const { data: recipient, error: rErr } = await supa
   .from("users")
@@ -92,7 +93,9 @@ if (fromEmailOverride) {
   sender = peers[Math.floor(Math.random() * peers.length)];
 }
 
-console.log(`[test-dm-reply] from ${sender.first_name} ${sender.last_name ?? ""} → ${recipient.email}`);
+console.log(
+  `[test-dm-reply] from ${sender.first_name} ${sender.last_name ?? ""} → ${recipient.email}`
+);
 
 const { data: row, error: insErr } = await supa
   .from("direct_messages")

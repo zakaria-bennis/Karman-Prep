@@ -13,7 +13,7 @@ import { fetchUserRole } from "@/lib/supabase/queries/admin";
 async function guardAdmin() {
   const { userId } = await auth();
   if (!userId) throw new Error("Not authenticated");
-  const role = await fetchUserRole(userId);        // REAL role, not impersonated
+  const role = await fetchUserRole(userId); // REAL role, not impersonated
   if (role !== "admin") throw new Error("Admin role required");
 }
 
@@ -33,9 +33,13 @@ export async function actionAddCohortMember(cohortId: string, studentUserId: str
   const [cohortRes, membersRes, studentRes] = await Promise.all([
     supabase.from("cohorts").select("id, max_size, name").eq("id", cohortId).maybeSingle(),
     supabase.from("cohort_members").select("user_id").eq("cohort_id", cohortId).is("left_at", null),
-    supabase.from("users").select("id, role, first_name, last_name, email").eq("id", studentUserId).maybeSingle(),
+    supabase
+      .from("users")
+      .select("id, role, first_name, last_name, email")
+      .eq("id", studentUserId)
+      .maybeSingle(),
   ]);
-  if (cohortRes.error)  throw new Error(cohortRes.error.message);
+  if (cohortRes.error) throw new Error(cohortRes.error.message);
   if (membersRes.error) throw new Error(membersRes.error.message);
   if (studentRes.error) throw new Error(studentRes.error.message);
 
@@ -52,7 +56,8 @@ export async function actionAddCohortMember(cohortId: string, studentUserId: str
 
   const student = studentRes.data as { id: string; role: string } | null;
   if (!student) throw new Error("Student not found");
-  if (student.role !== "student") throw new Error(`Target user is '${student.role}', not 'student'`);
+  if (student.role !== "student")
+    throw new Error(`Target user is '${student.role}', not 'student'`);
 
   // Check they're not in ANOTHER active cohort (would violate the
   // partial unique index). Friendlier error than letting Postgres throw.
@@ -67,12 +72,14 @@ export async function actionAddCohortMember(cohortId: string, studentUserId: str
     const o = otherMembership as Other;
     const other = Array.isArray(o.cohorts) ? o.cohorts[0] : o.cohorts;
     const label = other?.name ?? o.cohort_id;
-    throw new Error(`Student is already in another active cohort: ${label}. Remove them from that cohort first.`);
+    throw new Error(
+      `Student is already in another active cohort: ${label}. Remove them from that cohort first.`
+    );
   }
 
   const { error } = await supabase.from("cohort_members").insert({
     cohort_id: cohortId,
-    user_id:   studentUserId,
+    user_id: studentUserId,
   });
   if (error) {
     // 23505 = unique violation (the partial index caught a race)
@@ -101,7 +108,7 @@ export async function actionRemoveCohortMember(cohortId: string, studentUserId: 
     .from("cohort_members")
     .update({ left_at: new Date().toISOString() })
     .eq("cohort_id", cohortId)
-    .eq("user_id",   studentUserId)
+    .eq("user_id", studentUserId)
     .is("left_at", null);
   if (error) throw new Error(error.message);
 

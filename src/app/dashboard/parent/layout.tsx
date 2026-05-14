@@ -9,11 +9,7 @@ import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { resolveEffectiveRole } from "@/lib/supabase/queries/admin";
 
-export default async function ParentDashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default async function ParentDashboardLayout({ children }: { children: React.ReactNode }) {
   const { userId } = await auth();
   if (!userId) redirect("/auth/sign-in");
 

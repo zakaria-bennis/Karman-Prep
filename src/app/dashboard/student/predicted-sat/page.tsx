@@ -31,23 +31,28 @@ function buildWeeklySeries(
   // Start = earliest diagnostic or earliest mastery event
   const startCandidates: Date[] = [];
   diagnostics.forEach((d) => startCandidates.push(new Date(d.taken_at)));
-  mastery.forEach((m) => { if (m.completed_at) startCandidates.push(new Date(m.completed_at)); });
+  mastery.forEach((m) => {
+    if (m.completed_at) startCandidates.push(new Date(m.completed_at));
+  });
   if (startCandidates.length === 0) return [];
 
   const start = new Date(Math.min(...startCandidates.map((d) => d.getTime())));
   start.setHours(0, 0, 0, 0);
   // Snap to Monday
   const dow = start.getDay();
-  const offset = (dow === 0 ? 6 : dow - 1);
+  const offset = dow === 0 ? 6 : dow - 1;
   start.setDate(start.getDate() - offset);
 
   const now = new Date();
-  const weeksElapsed = Math.max(1, Math.floor((now.getTime() - start.getTime()) / (7 * 24 * 60 * 60 * 1000)) + 1);
+  const weeksElapsed = Math.max(
+    1,
+    Math.floor((now.getTime() - start.getTime()) / (7 * 24 * 60 * 60 * 1000)) + 1
+  );
   const numWeeks = Math.min(16, Math.max(4, weeksElapsed));
 
   // Baseline from first diagnostic (or a default if none)
   const firstDiag = [...diagnostics].sort((a, b) => a.taken_at.localeCompare(b.taken_at))[0];
-  const baselineLow  = firstDiag?.score_range_low  ?? 1000;
+  const baselineLow = firstDiag?.score_range_low ?? 1000;
   const baselineHigh = firstDiag?.score_range_high ?? 1100;
 
   // Model: +8 points per mastered node, applied to both bounds
@@ -67,7 +72,7 @@ function buildWeeklySeries(
     }).length;
 
     const delta = masteredByWeek * POINTS_PER_MASTERED;
-    const low  = Math.min(1600, baselineLow  + delta);
+    const low = Math.min(1600, baselineLow + delta);
     const high = Math.min(1600, baselineHigh + delta);
 
     // Use diagnostic mid-range if a new diagnostic landed this week
@@ -77,7 +82,7 @@ function buildWeeklySeries(
     });
 
     const source: WeekPoint["source"] = diagThisWeek ? "diagnostic" : "projection";
-    const effectiveLow  = diagThisWeek?.score_range_low  ?? low;
+    const effectiveLow = diagThisWeek?.score_range_low ?? low;
     const effectiveHigh = diagThisWeek?.score_range_high ?? high;
 
     points.push({
@@ -126,7 +131,10 @@ export default async function PredictedSATPage() {
     .eq("user_id", userId)
     .eq("status", "mastered");
 
-  const points = buildWeeklySeries(diagnostics, (mastery ?? []) as { completed_at: string | null }[]);
+  const points = buildWeeklySeries(
+    diagnostics,
+    (mastery ?? []) as { completed_at: string | null }[]
+  );
 
   return <PredictedSATChart points={points} diagnosticsCount={diagnostics.length} />;
 }

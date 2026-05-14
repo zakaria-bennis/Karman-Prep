@@ -31,10 +31,10 @@ interface Props {
 }
 
 const TABS: { key: Tab; label: string }[] = [
-  { key: "skills",   label: "Skills Overview" },
+  { key: "skills", label: "Skills Overview" },
   { key: "controls", label: "Tutor Controls" },
-  { key: "flagged",  label: "Flagged Questions" },
-  { key: "quiz",     label: "Quiz History" },
+  { key: "flagged", label: "Flagged Questions" },
+  { key: "quiz", label: "Quiz History" },
 ];
 
 export default function StudentDetailTabs({
@@ -49,33 +49,34 @@ export default function StudentDetailTabs({
 
   return (
     <div>
-      <div className="border-b border-slate-200 dark:border-slate-800 flex gap-1 mb-5 overflow-x-auto">
+      <div className="mb-5 flex gap-1 overflow-x-auto border-b border-slate-200 dark:border-slate-800">
         {TABS.map((t) => {
           const count =
-            t.key === "flagged" ? flagged.length :
-            t.key === "quiz"    ? attempts.length :
-            null;
+            t.key === "flagged" ? flagged.length : t.key === "quiz" ? attempts.length : null;
           return (
             <button
               key={t.key}
               onClick={() => setActiveTab(t.key)}
               className={cn(
-                "pb-3 px-3 text-sm font-semibold border-b-2 whitespace-nowrap transition-colors",
+                "whitespace-nowrap border-b-2 px-3 pb-3 text-sm font-semibold transition-colors",
                 activeTab === t.key
                   ? "border-blue-600 text-blue-600"
                   : "border-transparent text-slate-500 hover:text-slate-900 dark:hover:text-white"
               )}
             >
-              {t.label}{count !== null ? ` (${count})` : ""}
+              {t.label}
+              {count !== null ? ` (${count})` : ""}
             </button>
           );
         })}
       </div>
 
-      {activeTab === "skills"   && <SkillsOverviewTab statuses={statuses} />}
+      {activeTab === "skills" && <SkillsOverviewTab statuses={statuses} />}
       {activeTab === "controls" && <TutorControlsTab studentId={studentId} statuses={statuses} />}
-      {activeTab === "flagged"  && <FlaggedTab studentId={studentId} flagged={flagged} />}
-      {activeTab === "quiz"     && <QuizHistoryTab attempts={attempts} responsesByAttempt={responsesByAttempt} />}
+      {activeTab === "flagged" && <FlaggedTab studentId={studentId} flagged={flagged} />}
+      {activeTab === "quiz" && (
+        <QuizHistoryTab attempts={attempts} responsesByAttempt={responsesByAttempt} />
+      )}
     </div>
   );
 }

@@ -23,7 +23,7 @@ interface Props {
   onClose: () => void;
 }
 
-const CARD_WIDTH  = 280;
+const CARD_WIDTH = 280;
 const CARD_HEIGHT = 230;
 
 export default function NodeCard({ node, origin, onWatchLesson, onStartQuiz, onClose }: Props) {
@@ -44,7 +44,7 @@ export default function NodeCard({ node, origin, onWatchLesson, onStartQuiz, onC
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.3 }}
       transition={{ type: "spring", stiffness: 380, damping: 30 }}
-      className="fixed z-40 rounded-2xl border shadow-2xl overflow-hidden"
+      className="fixed z-40 overflow-hidden rounded-2xl border shadow-2xl"
       style={{
         left: clampedX,
         top: clampedY,
@@ -63,50 +63,54 @@ export default function NodeCard({ node, origin, onWatchLesson, onStartQuiz, onC
       {/* Close */}
       <button
         onClick={onClose}
-        className="absolute top-2 right-2 w-7 h-7 rounded-full flex items-center justify-center bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-colors z-10"
+        className="absolute right-2 top-2 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-white/5 text-slate-400 transition-colors hover:bg-white/10 hover:text-white"
         aria-label="Close"
       >
-        <X className="w-4 h-4" />
+        <X className="h-4 w-4" />
       </button>
 
       <div className="p-5 pt-4">
         {/* Tier badge */}
-        <div className="flex items-center gap-2 mb-2">
+        <div className="mb-2 flex items-center gap-2">
           <span
-            className="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full"
-            style={{ color: subjectColor, background: subjectColor + "15", border: `1px solid ${subjectColor}30` }}
+            className="rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest"
+            style={{
+              color: subjectColor,
+              background: subjectColor + "15",
+              border: `1px solid ${subjectColor}30`,
+            }}
           >
             {atmosphere} · {TIER_LABELS[node.tier]}
           </span>
         </div>
 
         {/* Title */}
-        <h3 className="text-base font-bold text-white leading-snug mb-1">{node.topic}</h3>
-        <p className="text-xs text-slate-400 line-clamp-2 mb-4">{node.description}</p>
+        <h3 className="mb-1 text-base font-bold leading-snug text-white">{node.topic}</h3>
+        <p className="mb-4 line-clamp-2 text-xs text-slate-400">{node.description}</p>
 
         {/* Action buttons */}
         {isLocked ? (
-          <div className="rounded-lg border border-slate-800 bg-slate-900/50 p-3 flex items-center gap-2">
-            <Lock className="w-3.5 h-3.5 text-slate-500" />
+          <div className="flex items-center gap-2 rounded-lg border border-slate-800 bg-slate-900/50 p-3">
+            <Lock className="h-3.5 w-3.5 text-slate-500" />
             <span className="text-xs text-slate-500">Complete prerequisite nodes to unlock.</span>
           </div>
         ) : (
           <div className="space-y-2">
             <button
               onClick={onWatchLesson}
-              className="w-full py-2.5 rounded-lg font-semibold text-sm flex items-center justify-center gap-2 transition-transform hover:scale-[1.02] active:scale-[0.98]"
+              className="flex w-full items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-semibold transition-transform hover:scale-[1.02] active:scale-[0.98]"
               style={{ background: subjectColor, color: "#fff" }}
             >
-              <Play className="w-4 h-4" /> Watch Lesson
+              <Play className="h-4 w-4" /> Watch Lesson
             </button>
             <button
               onClick={onStartQuiz}
               className={cn(
-                "w-full py-2.5 rounded-lg font-semibold text-sm flex items-center justify-center gap-2",
-                "border border-white/10 bg-white/5 text-white hover:bg-white/10 transition-colors"
+                "flex w-full items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-semibold",
+                "border border-white/10 bg-white/5 text-white transition-colors hover:bg-white/10"
               )}
             >
-              <Zap className="w-4 h-4" /> Start Quiz
+              <Zap className="h-4 w-4" /> Start Quiz
             </button>
           </div>
         )}

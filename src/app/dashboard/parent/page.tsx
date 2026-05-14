@@ -16,8 +16,8 @@ export const dynamic = "force-dynamic";
 interface LinkedStudent {
   id: string;
   first_name: string | null;
-  last_name:  string | null;
-  email:      string;
+  last_name: string | null;
+  email: string;
   avatar_url: string | null;
   sat_test_date: string | null;
 }
@@ -33,19 +33,20 @@ async function fetchLinkedStudents(parentClerkId: string): Promise<LinkedStudent
 
   const { data, error } = await supabase
     .from("parent_student_links")
-    .select(`
+    .select(
+      `
       student:users!parent_student_links_student_user_id_fkey
         (id, first_name, last_name, email, avatar_url, sat_test_date)
-    `)
+    `
+    )
     .eq("parent_user_id", parent.id);
   if (error) throw error;
 
   type Row = { student: LinkedStudent | LinkedStudent[] | null };
-  return ((data ?? []) as Row[])
-    .flatMap((r) => {
-      const s = Array.isArray(r.student) ? r.student[0] : r.student;
-      return s ? [s] : [];
-    });
+  return ((data ?? []) as Row[]).flatMap((r) => {
+    const s = Array.isArray(r.student) ? r.student[0] : r.student;
+    return s ? [s] : [];
+  });
 }
 
 export default async function ParentDashboardPage() {
@@ -56,23 +57,25 @@ export default async function ParentDashboardPage() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
-      <div className="max-w-4xl mx-auto px-5 py-10">
+      <div className="mx-auto max-w-4xl px-5 py-10">
         <header className="mb-8">
-          <p className="text-xs font-bold tracking-widest text-blue-400 uppercase mb-1">Parent Portal</p>
+          <p className="mb-1 text-xs font-bold uppercase tracking-widest text-blue-400">
+            Parent Portal
+          </p>
           <h1 className="text-2xl font-extrabold text-white">Your students</h1>
-          <p className="text-sm text-slate-400 mt-1">
-            You can see progress for the student(s) linked to your account.
-            {" "}If someone is missing, ask a Karman admin to add the link.
+          <p className="mt-1 text-sm text-slate-400">
+            You can see progress for the student(s) linked to your account. If someone is missing,
+            ask a Karman admin to add the link.
           </p>
         </header>
 
         {students.length === 0 ? (
           <div className="rounded-xl border border-dashed border-slate-800 px-8 py-12 text-center">
-            <UsersIcon className="w-8 h-8 mx-auto text-slate-600 mb-3" />
+            <UsersIcon className="mx-auto mb-3 h-8 w-8 text-slate-600" />
             <h2 className="text-base font-semibold text-white">No students linked yet</h2>
-            <p className="mt-2 text-sm text-slate-400 max-w-md mx-auto">
-              A Karman admin will link your account to your student(s) shortly.
-              Check back soon, or reach out to support if it&apos;s been more than a day.
+            <p className="mx-auto mt-2 max-w-md text-sm text-slate-400">
+              A Karman admin will link your account to your student(s) shortly. Check back soon, or
+              reach out to support if it&apos;s been more than a day.
             </p>
           </div>
         ) : (
@@ -81,19 +84,24 @@ export default async function ParentDashboardPage() {
               <li key={s.id}>
                 <Link
                   href={`/dashboard/parent/${s.id}`}
-                  className="block rounded-xl border border-slate-800 bg-slate-900/40 p-5 hover:bg-slate-900/70 transition-colors"
+                  className="block rounded-xl border border-slate-800 bg-slate-900/40 p-5 transition-colors hover:bg-slate-900/70"
                 >
                   <div className="flex items-center gap-4">
-                    <Avatar name={`${s.first_name ?? ""} ${s.last_name ?? ""}`.trim() || s.email} avatarUrl={s.avatar_url} />
+                    <Avatar
+                      name={`${s.first_name ?? ""} ${s.last_name ?? ""}`.trim() || s.email}
+                      avatarUrl={s.avatar_url}
+                    />
                     <div className="flex-1">
-                      <div className="text-white font-semibold">
+                      <div className="font-semibold text-white">
                         {[s.first_name, s.last_name].filter(Boolean).join(" ") || s.email}
                       </div>
-                      <div className="text-xs text-slate-400 mt-0.5">
-                        {s.sat_test_date ? `Target SAT · ${formatDate(s.sat_test_date)}` : "Target SAT date not set"}
+                      <div className="mt-0.5 text-xs text-slate-400">
+                        {s.sat_test_date
+                          ? `Target SAT · ${formatDate(s.sat_test_date)}`
+                          : "Target SAT date not set"}
                       </div>
                     </div>
-                    <span className="text-slate-600 text-sm">View →</span>
+                    <span className="text-sm text-slate-600">View →</span>
                   </div>
                 </Link>
               </li>
@@ -101,9 +109,9 @@ export default async function ParentDashboardPage() {
           </ul>
         )}
 
-        <p className="mt-8 text-xs text-slate-600 max-w-md">
-          Per-student detail view (progress, cohort, recent activity) is coming shortly.
-          This landing page is the access point — your linked students will appear above.
+        <p className="mt-8 max-w-md text-xs text-slate-600">
+          Per-student detail view (progress, cohort, recent activity) is coming shortly. This
+          landing page is the access point — your linked students will appear above.
         </p>
       </div>
     </div>
@@ -113,7 +121,13 @@ export default async function ParentDashboardPage() {
 function Avatar({ name, avatarUrl }: { name: string; avatarUrl: string | null }) {
   if (avatarUrl) {
     /* eslint-disable-next-line @next/next/no-img-element */
-    return <img src={avatarUrl} alt={name} className="w-10 h-10 rounded-full object-cover border border-slate-700" />;
+    return (
+      <img
+        src={avatarUrl}
+        alt={name}
+        className="h-10 w-10 rounded-full border border-slate-700 object-cover"
+      />
+    );
   }
   const initials = name
     .split(" ")
@@ -125,7 +139,7 @@ function Avatar({ name, avatarUrl }: { name: string; avatarUrl: string | null })
   return (
     <div
       aria-hidden="true"
-      className="w-10 h-10 rounded-full bg-slate-800 border border-slate-700 text-slate-300 text-sm font-bold flex items-center justify-center"
+      className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-700 bg-slate-800 text-sm font-bold text-slate-300"
     >
       {initials || "?"}
     </div>
@@ -135,5 +149,10 @@ function Avatar({ name, avatarUrl }: { name: string; avatarUrl: string | null })
 function formatDate(iso: string): string {
   const [y, m, d] = iso.split("-").map(Number);
   const date = new Date(Date.UTC(y, m - 1, d));
-  return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    timeZone: "UTC",
+  });
 }

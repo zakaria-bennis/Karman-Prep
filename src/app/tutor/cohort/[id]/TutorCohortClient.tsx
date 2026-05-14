@@ -8,7 +8,15 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { BookOpen, ClipboardList, Users as UsersIcon, Plus, Trash2, Loader2, X } from "lucide-react";
+import {
+  BookOpen,
+  ClipboardList,
+  Users as UsersIcon,
+  Plus,
+  Trash2,
+  Loader2,
+  X,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useConfirm } from "@/components/shared/ConfirmDialog";
 import type {
@@ -17,11 +25,7 @@ import type {
   TutorHomework,
 } from "@/lib/supabase/queries/tutor";
 import type { CohortTier, CohortStatus } from "@/lib/supabase/queries/cohorts";
-import {
-  actionSaveCohortNote,
-  actionCreateHomework,
-  actionDeleteHomework,
-} from "./actions";
+import { actionSaveCohortNote, actionCreateHomework, actionDeleteHomework } from "./actions";
 
 type TabKey = "members" | "notes" | "homework";
 
@@ -37,32 +41,54 @@ export default function TutorCohortClient({ detail }: Props) {
     <div>
       {/* Header */}
       <header className="mb-6">
-        <div className="flex flex-wrap items-center gap-3 mb-2">
+        <div className="mb-2 flex flex-wrap items-center gap-3">
           <TierBadge tier={cohort.tier} />
           <StatusBadge status={cohort.status} />
           <span className="text-sm text-slate-400">{formatDate(cohort.sat_date)} SAT</span>
           <span className="text-slate-700">·</span>
-          <span className="text-sm text-slate-400 font-mono">
+          <span className="font-mono text-sm text-slate-400">
             {members.length}/{cohort.max_size} seats
           </span>
         </div>
-        <h1 className="text-2xl font-extrabold text-white tracking-tight">{cohort.name}</h1>
+        <h1 className="text-2xl font-extrabold tracking-tight text-white">{cohort.name}</h1>
         {cohort.current_topic && (
           <p className="mt-2 text-sm text-slate-400">
-            <span className="font-semibold text-slate-300">Current topic —</span> {cohort.current_topic}
+            <span className="font-semibold text-slate-300">Current topic —</span>{" "}
+            {cohort.current_topic}
           </p>
         )}
       </header>
 
       {/* Tabs */}
-      <div className="border-b border-slate-800 flex gap-1 text-sm mb-6">
-        <TabButton tab="members"  activeTab={activeTab} onClick={setActiveTab} icon={UsersIcon}    label="Members"  count={members.length} />
-        <TabButton tab="notes"    activeTab={activeTab} onClick={setActiveTab} icon={ClipboardList} label="Notes"    count={noteBody ? 1 : 0} />
-        <TabButton tab="homework" activeTab={activeTab} onClick={setActiveTab} icon={BookOpen}      label="Homework" count={homework.length} />
+      <div className="mb-6 flex gap-1 border-b border-slate-800 text-sm">
+        <TabButton
+          tab="members"
+          activeTab={activeTab}
+          onClick={setActiveTab}
+          icon={UsersIcon}
+          label="Members"
+          count={members.length}
+        />
+        <TabButton
+          tab="notes"
+          activeTab={activeTab}
+          onClick={setActiveTab}
+          icon={ClipboardList}
+          label="Notes"
+          count={noteBody ? 1 : 0}
+        />
+        <TabButton
+          tab="homework"
+          activeTab={activeTab}
+          onClick={setActiveTab}
+          icon={BookOpen}
+          label="Homework"
+          count={homework.length}
+        />
       </div>
 
-      {activeTab === "members"  && <MembersTab  members={members} />}
-      {activeTab === "notes"    && <NotesTab    cohortId={cohort.id} initialBody={noteBody} />}
+      {activeTab === "members" && <MembersTab members={members} />}
+      {activeTab === "notes" && <NotesTab cohortId={cohort.id} initialBody={noteBody} />}
       {activeTab === "homework" && <HomeworkTab cohortId={cohort.id} homework={homework} />}
     </div>
   );
@@ -71,27 +97,35 @@ export default function TutorCohortClient({ detail }: Props) {
 // ─── Tab button ────────────────────────────────────────────
 
 function TabButton({
-  tab, activeTab, onClick, icon: Icon, label, count,
+  tab,
+  activeTab,
+  onClick,
+  icon: Icon,
+  label,
+  count,
 }: {
-  tab: TabKey; activeTab: TabKey; onClick: (t: TabKey) => void;
+  tab: TabKey;
+  activeTab: TabKey;
+  onClick: (t: TabKey) => void;
   icon: React.ComponentType<{ className?: string }>;
-  label: string; count: number;
+  label: string;
+  count: number;
 }) {
   const active = activeTab === tab;
   return (
     <button
       onClick={() => onClick(tab)}
       className={cn(
-        "inline-flex items-center gap-2 px-4 pb-3 font-semibold border-b-2 transition-colors",
+        "inline-flex items-center gap-2 border-b-2 px-4 pb-3 font-semibold transition-colors",
         active
           ? "border-indigo-500 text-indigo-400"
           : "border-transparent text-slate-500 hover:text-slate-200"
       )}
     >
-      <Icon className="w-4 h-4" />
+      <Icon className="h-4 w-4" />
       {label}
       {count > 0 && (
-        <span className={cn("text-xs font-mono", active ? "text-indigo-300" : "text-slate-500")}>
+        <span className={cn("font-mono text-xs", active ? "text-indigo-300" : "text-slate-500")}>
           {count}
         </span>
       )}
@@ -111,26 +145,26 @@ function MembersTab({ members }: { members: TutorCohortMember[] }) {
     );
   }
   return (
-    <div className="rounded-xl border border-slate-800 overflow-hidden">
+    <div className="overflow-hidden rounded-xl border border-slate-800">
       <table className="w-full text-sm">
-        <thead className="bg-slate-900/60 text-slate-400 text-xs uppercase tracking-wider">
+        <thead className="bg-slate-900/60 text-xs uppercase tracking-wider text-slate-400">
           <tr>
-            <th className="text-left px-4 py-3 font-semibold">Name</th>
-            <th className="text-left px-4 py-3 font-semibold">Email</th>
-            <th className="text-left px-4 py-3 font-semibold">Joined</th>
+            <th className="px-4 py-3 text-left font-semibold">Name</th>
+            <th className="px-4 py-3 text-left font-semibold">Email</th>
+            <th className="px-4 py-3 text-left font-semibold">Joined</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-800">
           {members.map((m) => (
-            <tr key={m.user_id} className="hover:bg-slate-900/40 transition-colors">
+            <tr key={m.user_id} className="transition-colors hover:bg-slate-900/40">
               <td className="px-4 py-3">
                 <div className="flex items-center gap-3">
                   <Avatar name={fullName(m) || m.email} avatarUrl={m.avatar_url} />
-                  <span className="text-white font-medium">{fullName(m) || m.email}</span>
+                  <span className="font-medium text-white">{fullName(m) || m.email}</span>
                 </div>
               </td>
-              <td className="px-4 py-3 text-slate-400 font-mono text-xs">{m.email}</td>
-              <td className="px-4 py-3 text-slate-400 text-xs">{formatDateTime(m.joined_at)}</td>
+              <td className="px-4 py-3 font-mono text-xs text-slate-400">{m.email}</td>
+              <td className="px-4 py-3 text-xs text-slate-400">{formatDateTime(m.joined_at)}</td>
             </tr>
           ))}
         </tbody>
@@ -163,7 +197,7 @@ function NotesTab({ cohortId, initialBody }: { cohortId: string; initialBody: st
 
   return (
     <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-5">
-      <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
+      <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-400">
         Progress notes — only you and admin see these
       </label>
       <textarea
@@ -171,7 +205,7 @@ function NotesTab({ cohortId, initialBody }: { cohortId: string; initialBody: st
         onChange={(e) => setBody(e.target.value)}
         rows={10}
         placeholder="How is the cohort doing? What are you focused on this week?"
-        className="w-full rounded-lg bg-slate-950/60 border border-slate-800 text-slate-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 resize-y"
+        className="w-full resize-y rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-2 text-sm text-slate-100 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
       />
       {err && <p className="mt-2 text-xs text-rose-300">{err}</p>}
       <div className="mt-3 flex items-center justify-between">
@@ -181,9 +215,9 @@ function NotesTab({ cohortId, initialBody }: { cohortId: string; initialBody: st
         <button
           onClick={save}
           disabled={!dirty || pending}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+          className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {pending && <Loader2 className="w-4 h-4 animate-spin" />}
+          {pending && <Loader2 className="h-4 w-4 animate-spin" />}
           Save notes
         </button>
       </div>
@@ -205,9 +239,9 @@ function HomeworkTab({ cohortId, homework }: { cohortId: string; homework: Tutor
         {!composerOpen && (
           <button
             onClick={() => setComposerOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-500"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="h-4 w-4" />
             Post homework
           </button>
         )}
@@ -238,15 +272,17 @@ function HomeworkTab({ cohortId, homework }: { cohortId: string; homework: Tutor
 }
 
 function HomeworkComposer({
-  cohortId, onDone, onCancel,
+  cohortId,
+  onDone,
+  onCancel,
 }: {
   cohortId: string;
   onDone: () => void;
   onCancel: () => void;
 }) {
   const [title, setTitle] = useState("");
-  const [body, setBody]   = useState("");
-  const [dueAt, setDueAt] = useState("");   // datetime-local value (no TZ)
+  const [body, setBody] = useState("");
+  const [dueAt, setDueAt] = useState(""); // datetime-local value (no TZ)
   const [pending, startTransition] = useTransition();
   const [err, setErr] = useState<string | null>(null);
   const router = useRouter();
@@ -273,12 +309,17 @@ function HomeworkComposer({
   return (
     <form
       onSubmit={submit}
-      className="rounded-xl border border-slate-800 bg-slate-900/40 p-5 space-y-3"
+      className="space-y-3 rounded-xl border border-slate-800 bg-slate-900/40 p-5"
     >
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold text-white">Post new homework</h3>
-        <button type="button" onClick={onCancel} className="text-slate-500 hover:text-slate-200" aria-label="Cancel">
-          <X className="w-4 h-4" />
+        <button
+          type="button"
+          onClick={onCancel}
+          className="text-slate-500 hover:text-slate-200"
+          aria-label="Cancel"
+        >
+          <X className="h-4 w-4" />
         </button>
       </div>
 
@@ -289,24 +330,24 @@ function HomeworkComposer({
         placeholder="Title (e.g. Linear Functions — Practice Set B)"
         required
         maxLength={140}
-        className="w-full rounded-lg bg-slate-950/60 border border-slate-800 text-slate-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+        className="w-full rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-2 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
       />
       <textarea
         value={body}
         onChange={(e) => setBody(e.target.value)}
         rows={4}
         placeholder="Instructions (optional) — describe the task, link to resources, etc."
-        className="w-full rounded-lg bg-slate-950/60 border border-slate-800 text-slate-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/40 resize-y"
+        className="w-full resize-y rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-2 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
       />
       <div>
-        <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">
+        <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-slate-400">
           Due date (optional)
         </label>
         <input
           type="datetime-local"
           value={dueAt}
           onChange={(e) => setDueAt(e.target.value)}
-          className="rounded-lg bg-slate-950/60 border border-slate-800 text-slate-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+          className="rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-2 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
         />
       </div>
       {err && <p className="text-xs text-rose-300">{err}</p>}
@@ -315,16 +356,16 @@ function HomeworkComposer({
           type="button"
           onClick={onCancel}
           disabled={pending}
-          className="px-3 py-1.5 rounded-lg border border-slate-700 text-slate-300 hover:bg-slate-800 text-sm"
+          className="rounded-lg border border-slate-700 px-3 py-1.5 text-sm text-slate-300 hover:bg-slate-800"
         >
           Cancel
         </button>
         <button
           type="submit"
           disabled={pending || !title.trim()}
-          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold disabled:opacity-50"
+          className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-500 disabled:opacity-50"
         >
-          {pending && <Loader2 className="w-4 h-4 animate-spin" />}
+          {pending && <Loader2 className="h-4 w-4 animate-spin" />}
           Post
         </button>
       </div>
@@ -360,8 +401,8 @@ function HomeworkItem({ cohortId, h }: { cohortId: string; h: TutorHomework }) {
 
   return (
     <li className="rounded-xl border border-slate-800 bg-slate-900/40 p-5">
-      <div className="flex items-start justify-between gap-4 mb-2">
-        <h3 className="text-white font-semibold">{h.title}</h3>
+      <div className="mb-2 flex items-start justify-between gap-4">
+        <h3 className="font-semibold text-white">{h.title}</h3>
         <div className="flex items-center gap-2">
           <DueBadge dueAt={h.due_at} />
           <button
@@ -370,14 +411,16 @@ function HomeworkItem({ cohortId, h }: { cohortId: string; h: TutorHomework }) {
             className="text-slate-500 hover:text-rose-300 disabled:opacity-50"
             aria-label="Delete homework"
           >
-            {pending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+            {pending ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Trash2 className="h-4 w-4" />
+            )}
           </button>
         </div>
       </div>
       {h.body && (
-        <p className="text-sm text-slate-400 whitespace-pre-wrap leading-relaxed mb-3">
-          {h.body}
-        </p>
+        <p className="mb-3 whitespace-pre-wrap text-sm leading-relaxed text-slate-400">{h.body}</p>
       )}
       <div className="text-xs text-slate-500">
         Assigned {formatDateTime(h.assigned_at)}
@@ -396,13 +439,25 @@ function DueBadge({ dueAt }: { dueAt: string | null }) {
   const now = new Date();
   const ms = due.getTime() - now.getTime();
   const days = Math.round(ms / (1000 * 60 * 60 * 24));
-  let label: string; let classes: string;
-  if (ms < 0)       { label = days <= -1 ? `${Math.abs(days)}d overdue` : "due earlier"; classes = "bg-slate-700/20 text-slate-400 border-slate-600/30"; }
-  else if (days <= 1) { label = days === 0 ? "due today" : "due tomorrow"; classes = "bg-rose-400/10 text-rose-300 border-rose-400/20"; }
-  else if (days <= 3) { label = `due in ${days}d`; classes = "bg-amber-400/10 text-amber-300 border-amber-400/20"; }
-  else               { label = `due in ${days}d`; classes = "bg-emerald-400/10 text-emerald-300 border-emerald-400/20"; }
+  let label: string;
+  let classes: string;
+  if (ms < 0) {
+    label = days <= -1 ? `${Math.abs(days)}d overdue` : "due earlier";
+    classes = "bg-slate-700/20 text-slate-400 border-slate-600/30";
+  } else if (days <= 1) {
+    label = days === 0 ? "due today" : "due tomorrow";
+    classes = "bg-rose-400/10 text-rose-300 border-rose-400/20";
+  } else if (days <= 3) {
+    label = `due in ${days}d`;
+    classes = "bg-amber-400/10 text-amber-300 border-amber-400/20";
+  } else {
+    label = `due in ${days}d`;
+    classes = "bg-emerald-400/10 text-emerald-300 border-emerald-400/20";
+  }
   return (
-    <span className={cn("inline-block px-2 py-0.5 rounded-md text-xs font-semibold border", classes)}>
+    <span
+      className={cn("inline-block rounded-md border px-2 py-0.5 text-xs font-semibold", classes)}
+    >
       {label}
     </span>
   );
@@ -412,7 +467,7 @@ function EmptyBlock({ title, subtitle }: { title: string; subtitle: string }) {
   return (
     <div className="rounded-xl border border-dashed border-slate-800 px-8 py-10 text-center">
       <h3 className="text-base font-semibold text-white">{title}</h3>
-      <p className="mt-2 text-sm text-slate-400 max-w-md mx-auto">{subtitle}</p>
+      <p className="mx-auto mt-2 max-w-md text-sm text-slate-400">{subtitle}</p>
     </div>
   );
 }
@@ -420,13 +475,25 @@ function EmptyBlock({ title, subtitle }: { title: string; subtitle: string }) {
 function Avatar({ name, avatarUrl }: { name: string; avatarUrl: string | null }) {
   if (avatarUrl) {
     /* eslint-disable-next-line @next/next/no-img-element */
-    return <img src={avatarUrl} alt={name} className="w-7 h-7 rounded-full object-cover border border-slate-700" />;
+    return (
+      <img
+        src={avatarUrl}
+        alt={name}
+        className="h-7 w-7 rounded-full border border-slate-700 object-cover"
+      />
+    );
   }
-  const initials = name.split(" ").map((w) => w[0]).filter(Boolean).slice(0, 2).join("").toUpperCase();
+  const initials = name
+    .split(" ")
+    .map((w) => w[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
   return (
     <div
       aria-hidden="true"
-      className="w-7 h-7 rounded-full bg-slate-800 border border-slate-700 text-slate-300 text-xs font-semibold flex items-center justify-center"
+      className="flex h-7 w-7 items-center justify-center rounded-full border border-slate-700 bg-slate-800 text-xs font-semibold text-slate-300"
     >
       {initials || "?"}
     </div>
@@ -434,11 +501,14 @@ function Avatar({ name, avatarUrl }: { name: string; avatarUrl: string | null })
 }
 
 function TierBadge({ tier }: { tier: CohortTier }) {
-  const classes = tier === "small_group"
-    ? "bg-teal-400/10 text-teal-300 border-teal-400/20"
-    : "bg-indigo-400/10 text-indigo-300 border-indigo-400/20";
+  const classes =
+    tier === "small_group"
+      ? "bg-teal-400/10 text-teal-300 border-teal-400/20"
+      : "bg-indigo-400/10 text-indigo-300 border-indigo-400/20";
   return (
-    <span className={cn("inline-block px-2 py-0.5 rounded-md text-xs font-semibold border", classes)}>
+    <span
+      className={cn("inline-block rounded-md border px-2 py-0.5 text-xs font-semibold", classes)}
+    >
       {tier === "small_group" ? "Small Group" : "Seminar"}
     </span>
   );
@@ -446,12 +516,17 @@ function TierBadge({ tier }: { tier: CohortTier }) {
 
 function StatusBadge({ status }: { status: CohortStatus }) {
   const map: Record<CohortStatus, string> = {
-    forming:   "bg-slate-400/10 text-slate-300 border-slate-400/20",
-    active:    "bg-emerald-400/10 text-emerald-300 border-emerald-400/20",
+    forming: "bg-slate-400/10 text-slate-300 border-slate-400/20",
+    active: "bg-emerald-400/10 text-emerald-300 border-emerald-400/20",
     completed: "bg-slate-600/20 text-slate-400 border-slate-600/30",
   };
   return (
-    <span className={cn("inline-block px-2 py-0.5 rounded-md text-xs font-semibold border", map[status])}>
+    <span
+      className={cn(
+        "inline-block rounded-md border px-2 py-0.5 text-xs font-semibold",
+        map[status]
+      )}
+    >
       {status}
     </span>
   );
@@ -464,9 +539,18 @@ function fullName(p: { first_name: string | null; last_name: string | null }) {
 function formatDate(iso: string): string {
   const [y, m, d] = iso.split("-").map(Number);
   const date = new Date(Date.UTC(y, m - 1, d));
-  return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    timeZone: "UTC",
+  });
 }
 
 function formatDateTime(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  return new Date(iso).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
 }

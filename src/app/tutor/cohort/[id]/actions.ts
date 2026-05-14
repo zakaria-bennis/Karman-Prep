@@ -91,7 +91,7 @@ export async function actionSaveCohortNote(cohortId: string, body: string) {
 export interface CreateHomeworkInput {
   title: string;
   body?: string;
-  due_at?: string | null;    // ISO datetime
+  due_at?: string | null; // ISO datetime
 }
 
 export async function actionCreateHomework(cohortId: string, input: CreateHomeworkInput) {
@@ -101,10 +101,10 @@ export async function actionCreateHomework(cohortId: string, input: CreateHomewo
 
   const supabase = createAdminClient();
   const { error } = await supabase.from("cohort_homework").insert({
-    cohort_id:          cohortId,
+    cohort_id: cohortId,
     title,
-    body:               input.body?.trim() || null,
-    due_at:             input.due_at ?? null,
+    body: input.body?.trim() || null,
+    due_at: input.due_at ?? null,
     created_by_user_id: cohortTutorId,
   });
   if (error) throw new Error(error.message);
@@ -120,7 +120,7 @@ export async function actionDeleteHomework(cohortId: string, homeworkId: string)
     .from("cohort_homework")
     .delete()
     .eq("id", homeworkId)
-    .eq("cohort_id", cohortId);  // defensive: scope by cohort too
+    .eq("cohort_id", cohortId); // defensive: scope by cohort too
   if (error) throw new Error(error.message);
 
   revalidatePath(`/tutor/cohort/${cohortId}`);

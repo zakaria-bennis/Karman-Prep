@@ -14,18 +14,9 @@
 import { render } from "@react-email/components";
 import { resend, FROM } from "./client";
 import { buildBookingIcs } from "@/lib/ics/builder";
-import {
-  BookingConfirmation,
-  type BookingConfirmationProps,
-} from "@/emails/BookingConfirmation";
-import {
-  BookingCancellation,
-  type BookingCancellationProps,
-} from "@/emails/BookingCancellation";
-import {
-  BookingReschedule,
-  type BookingRescheduleProps,
-} from "@/emails/BookingReschedule";
+import { BookingConfirmation, type BookingConfirmationProps } from "@/emails/BookingConfirmation";
+import { BookingCancellation, type BookingCancellationProps } from "@/emails/BookingCancellation";
+import { BookingReschedule, type BookingRescheduleProps } from "@/emails/BookingReschedule";
 import type { BookingPlanTier } from "@/lib/supabase/queries/bookings";
 
 interface BaseCtx {

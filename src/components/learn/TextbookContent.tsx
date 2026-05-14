@@ -68,7 +68,7 @@ function renderInline(text: string): string {
       .replace(/>/g, "&gt;");
     const safeUrl = String(url).replace(/&/g, "&amp;").replace(/"/g, "&quot;");
     imagePlaceholders.push(
-      `<img src="${safeUrl}" alt="${safeAlt}" class="my-4 max-w-full h-auto rounded-lg block" />`,
+      `<img src="${safeUrl}" alt="${safeAlt}" class="my-4 max-w-full h-auto rounded-lg block" />`
     );
     return `IMG${imagePlaceholders.length - 1}`;
   });
@@ -92,22 +92,16 @@ function renderInline(text: string): string {
   //   · 1-4 digits per side keeps phone numbers etc. out.
   //   · `(?![\d.])` so the ratio isn't followed by "." or another
   //     digit — protects "1/2.5" and "1/22000" patterns.
-  text = text.replace(
-    /(?<![\/\\\d.])\b(\d{1,4})\/(\d{1,4})\b(?![\d.])/g,
-    (m, num, den) => {
-      const html = renderToKatex(`\\frac{${num}}{${den}}`, false);
-      // Bail if KaTeX couldn't render — leave the original "1/2".
-      if (html === `\\frac{${num}}{${den}}`) return m;
-      mathPlaceholders.push(html);
-      return `MATH${mathPlaceholders.length - 1}`;
-    },
-  );
+  text = text.replace(/(?<![\/\\\d.])\b(\d{1,4})\/(\d{1,4})\b(?![\d.])/g, (m, num, den) => {
+    const html = renderToKatex(`\\frac{${num}}{${den}}`, false);
+    // Bail if KaTeX couldn't render — leave the original "1/2".
+    if (html === `\\frac{${num}}{${den}}`) return m;
+    mathPlaceholders.push(html);
+    return `MATH${mathPlaceholders.length - 1}`;
+  });
 
   // ── 4. HTML-escape the remaining prose ───────────────────
-  text = text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
+  text = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
   // ── 5. Inline formatting — ORDER MATTERS: bold before italic
   text = text.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
@@ -239,14 +233,26 @@ export default function TextbookContent({ markdown, className = "" }: Props) {
           return <p key={idx} className="mb-4" dangerouslySetInnerHTML={{ __html: t.html }} />;
         }
         if (t.type === "heading" && t.level === 2) {
-          return <h2 key={idx} className="text-xl font-bold text-slate-900 dark:text-white mt-8 mb-3" dangerouslySetInnerHTML={{ __html: renderInline(t.text) }} />;
+          return (
+            <h2
+              key={idx}
+              className="mb-3 mt-8 text-xl font-bold text-slate-900 dark:text-white"
+              dangerouslySetInnerHTML={{ __html: renderInline(t.text) }}
+            />
+          );
         }
         if (t.type === "heading" && t.level === 3) {
-          return <h3 key={idx} className="text-base font-semibold text-slate-900 dark:text-white mt-6 mb-2" dangerouslySetInnerHTML={{ __html: renderInline(t.text) }} />;
+          return (
+            <h3
+              key={idx}
+              className="mb-2 mt-6 text-base font-semibold text-slate-900 dark:text-white"
+              dangerouslySetInnerHTML={{ __html: renderInline(t.text) }}
+            />
+          );
         }
         if (t.type === "bullet") {
           return (
-            <ul key={idx} className="mb-4 list-disc pl-6 space-y-1.5">
+            <ul key={idx} className="mb-4 list-disc space-y-1.5 pl-6">
               {t.items.map((it, j) => (
                 <li key={j} dangerouslySetInnerHTML={{ __html: renderInline(it) }} />
               ))}
@@ -255,7 +261,7 @@ export default function TextbookContent({ markdown, className = "" }: Props) {
         }
         if (t.type === "number") {
           return (
-            <ol key={idx} className="mb-4 list-decimal pl-6 space-y-1.5">
+            <ol key={idx} className="mb-4 list-decimal space-y-1.5 pl-6">
               {t.items.map((it, j) => (
                 <li key={j} dangerouslySetInnerHTML={{ __html: renderInline(it) }} />
               ))}

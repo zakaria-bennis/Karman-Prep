@@ -23,14 +23,24 @@ const SECTIONS = [
     title: "7-Day Trial Money-Back Guarantee",
     content: (
       <>
-        <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed mb-3">
-          All new Karman subscriptions include a 7-day free trial. You will not be charged during this period. If you cancel before day 8, you owe nothing — ever.
+        <p className="mb-3 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
+          All new Karman subscriptions include a 7-day free trial. You will not be charged during
+          this period. If you cancel before day 8, you owe nothing — ever.
         </p>
-        <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed mb-3">
-          If you are billed on day 8 and contact us within 24 hours of that charge, we will issue a full refund, no questions asked. This applies to all plans.
+        <p className="mb-3 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
+          If you are billed on day 8 and contact us within 24 hours of that charge, we will issue a
+          full refund, no questions asked. This applies to all plans.
         </p>
-        <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-          To cancel during your trial: go to <strong>Account → Billing → Cancel Subscription</strong>, or email <a href="mailto:billing@karmanprep.com" className="text-blue-600 dark:text-blue-400 underline">billing@karmanprep.com</a>.
+        <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-300">
+          To cancel during your trial: go to{" "}
+          <strong>Account → Billing → Cancel Subscription</strong>, or email{" "}
+          <a
+            href="mailto:billing@karmanprep.com"
+            className="text-blue-600 underline dark:text-blue-400"
+          >
+            billing@karmanprep.com
+          </a>
+          .
         </p>
       </>
     ),
@@ -43,14 +53,21 @@ const SECTIONS = [
     title: "50-Point Score Improvement Guarantee",
     content: (
       <>
-        <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed mb-3">
-          If you complete the Karman program — including the full diagnostic, maintaining an active subscription for at least 16 weeks, attending your scheduled sessions, and taking an official College Board SAT — and your score does not improve by at least 50 points, we will refund every dollar you paid.
+        <p className="mb-3 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
+          If you complete the Karman program — including the full diagnostic, maintaining an active
+          subscription for at least 16 weeks, attending your scheduled sessions, and taking an
+          official College Board SAT — and your score does not improve by at least 50 points, we
+          will refund every dollar you paid.
         </p>
-        <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+        <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-300">
           Full eligibility requirements and how to claim are detailed on our{" "}
-          <Link href="/guarantee" className="text-blue-600 dark:text-blue-400 underline hover:opacity-80">
+          <Link
+            href="/guarantee"
+            className="text-blue-600 underline hover:opacity-80 dark:text-blue-400"
+          >
             Score Guarantee page
-          </Link>.
+          </Link>
+          .
         </p>
       </>
     ),
@@ -63,12 +80,24 @@ const SECTIONS = [
     title: "Cancellation vs. Refund",
     content: (
       <>
-        <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed mb-3">
-          <strong className="text-slate-900 dark:text-white">Cancellation</strong> stops future billing. You keep access to the platform through the end of your current billing period, and no further charges are made. Cancellation does not automatically trigger a refund for the current period.
+        <p className="mb-3 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
+          <strong className="text-slate-900 dark:text-white">Cancellation</strong> stops future
+          billing. You keep access to the platform through the end of your current billing period,
+          and no further charges are made. Cancellation does not automatically trigger a refund for
+          the current period.
         </p>
-        <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-          <strong className="text-slate-900 dark:text-white">Refunds</strong> return money already charged. Outside of the 7-day trial window and the 50-point guarantee, Karman does not offer prorated refunds for unused time in a billing period — but we review edge cases individually. Contact us at{" "}
-          <a href="mailto:billing@karmanprep.com" className="text-blue-600 dark:text-blue-400 underline">billing@karmanprep.com</a>.
+        <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-300">
+          <strong className="text-slate-900 dark:text-white">Refunds</strong> return money already
+          charged. Outside of the 7-day trial window and the 50-point guarantee, Karman does not
+          offer prorated refunds for unused time in a billing period — but we review edge cases
+          individually. Contact us at{" "}
+          <a
+            href="mailto:billing@karmanprep.com"
+            className="text-blue-600 underline dark:text-blue-400"
+          >
+            billing@karmanprep.com
+          </a>
+          .
         </p>
       </>
     ),
@@ -81,11 +110,14 @@ const SECTIONS = [
     title: "Annual Plans",
     content: (
       <>
-        <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed mb-3">
-          Annual plan subscribers may request a prorated refund within the first 30 days of purchase. After 30 days, annual subscriptions are non-refundable but remain active for the full year.
+        <p className="mb-3 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
+          Annual plan subscribers may request a prorated refund within the first 30 days of
+          purchase. After 30 days, annual subscriptions are non-refundable but remain active for the
+          full year.
         </p>
-        <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-          The 50-point score improvement guarantee applies to annual plans under the same eligibility conditions as monthly plans.
+        <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-300">
+          The 50-point score improvement guarantee applies to annual plans under the same
+          eligibility conditions as monthly plans.
         </p>
       </>
     ),
@@ -97,16 +129,18 @@ export default function RefundsPage() {
     <>
       <Navbar />
       <main className="min-h-screen bg-white dark:bg-slate-950">
-
         {/* Header */}
-        <section className="bg-gradient-to-b from-slate-50 to-white dark:from-slate-900 dark:to-slate-950 pt-20 pb-12 text-center px-4">
-          <div className="max-w-2xl mx-auto">
-            <h1 className="text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-4">
+        <section className="bg-gradient-to-b from-slate-50 to-white px-4 pb-12 pt-20 text-center dark:from-slate-900 dark:to-slate-950">
+          <div className="mx-auto max-w-2xl">
+            <h1 className="mb-4 text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white">
               Refund Policy
             </h1>
-            <p className="text-slate-500 dark:text-slate-400 text-base">
+            <p className="text-base text-slate-500 dark:text-slate-400">
               Effective April 2025 · Questions? Email{" "}
-              <a href="mailto:billing@karmanprep.com" className="text-blue-600 dark:text-blue-400 underline">
+              <a
+                href="mailto:billing@karmanprep.com"
+                className="text-blue-600 underline dark:text-blue-400"
+              >
                 billing@karmanprep.com
               </a>
             </p>
@@ -114,15 +148,17 @@ export default function RefundsPage() {
         </section>
 
         {/* Policy sections */}
-        <section className="max-w-3xl mx-auto px-4 sm:px-6 py-10 space-y-6">
+        <section className="mx-auto max-w-3xl space-y-6 px-4 py-10 sm:px-6">
           {SECTIONS.map(({ icon: Icon, color, bg, border, title, content }) => (
             <div key={title} className={`rounded-2xl border ${border} p-6`}>
               <div className="flex items-start gap-4">
-                <div className={`w-10 h-10 rounded-xl ${bg} flex items-center justify-center shrink-0`}>
-                  <Icon className={`w-5 h-5 ${color}`} />
+                <div
+                  className={`h-10 w-10 rounded-xl ${bg} flex shrink-0 items-center justify-center`}
+                >
+                  <Icon className={`h-5 w-5 ${color}`} />
                 </div>
                 <div className="flex-1">
-                  <h2 className="font-bold text-slate-900 dark:text-white mb-3">{title}</h2>
+                  <h2 className="mb-3 font-bold text-slate-900 dark:text-white">{title}</h2>
                   {content}
                 </div>
               </div>
@@ -131,7 +167,9 @@ export default function RefundsPage() {
 
           {/* How to request */}
           <div className="glass-card p-6">
-            <h2 className="font-bold text-slate-900 dark:text-white mb-4">How to request a refund</h2>
+            <h2 className="mb-4 font-bold text-slate-900 dark:text-white">
+              How to request a refund
+            </h2>
             <ol className="space-y-3">
               {[
                 "Email billing@karmanprep.com with your account email and the reason for your refund request.",
@@ -139,8 +177,11 @@ export default function RefundsPage() {
                 "We will respond within 1 business day to confirm receipt.",
                 "Approved refunds are returned to your original payment method within 5–10 business days.",
               ].map((step, i) => (
-                <li key={i} className="flex items-start gap-3 text-sm text-slate-600 dark:text-slate-300">
-                  <span className="w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">
+                <li
+                  key={i}
+                  className="flex items-start gap-3 text-sm text-slate-600 dark:text-slate-300"
+                >
+                  <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white">
                     {i + 1}
                   </span>
                   {step}
@@ -151,7 +192,7 @@ export default function RefundsPage() {
 
           {/* Non-refundable note */}
           <div className="glass-card p-6">
-            <h2 className="font-bold text-slate-900 dark:text-white mb-3">Non-refundable items</h2>
+            <h2 className="mb-3 font-bold text-slate-900 dark:text-white">Non-refundable items</h2>
             <ul className="space-y-2">
               {[
                 "Sessions already delivered by a tutor",
@@ -159,18 +200,21 @@ export default function RefundsPage() {
                 "Annual plan fees after the first 30 days",
                 "Subscription fees for months where the 50-point guarantee eligibility requirements were not met",
               ].map((item) => (
-                <li key={item} className="flex items-start gap-2.5 text-sm text-slate-600 dark:text-slate-300">
-                  <AlertCircle className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
+                <li
+                  key={item}
+                  className="flex items-start gap-2.5 text-sm text-slate-600 dark:text-slate-300"
+                >
+                  <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
                   {item}
                 </li>
               ))}
             </ul>
           </div>
 
-          <div className="text-center pt-4">
-            <Link href="/guarantee" className="btn-primary inline-flex text-sm px-6 py-3">
+          <div className="pt-4 text-center">
+            <Link href="/guarantee" className="btn-primary inline-flex px-6 py-3 text-sm">
               View Full Score Guarantee Terms
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
         </section>

@@ -24,8 +24,9 @@ import { createAdminClient } from "@/lib/supabase/server";
 
 /** Default tutor assignments for cohort tiers. Override via env in
  *  prod when the real tutors have stable Clerk ids. */
-const DEFAULT_SEMINAR_TUTOR_CLERK     = process.env.DEFAULT_SEMINAR_TUTOR_CLERK     ?? "test_tutor_nabil";
-const DEFAULT_SMALLGROUP_TUTOR_CLERK  = process.env.DEFAULT_SMALLGROUP_TUTOR_CLERK  ?? "test_tutor_zakaria";
+const DEFAULT_SEMINAR_TUTOR_CLERK = process.env.DEFAULT_SEMINAR_TUTOR_CLERK ?? "test_tutor_nabil";
+const DEFAULT_SMALLGROUP_TUTOR_CLERK =
+  process.env.DEFAULT_SMALLGROUP_TUTOR_CLERK ?? "test_tutor_zakaria";
 
 const COHORT_MAX_SIZE: Record<"group" | "small_group", number> = {
   group: 200,
@@ -203,7 +204,7 @@ export async function assignTutorOneToOne(
     loadByTutor.set(a.tutor_user_id, (loadByTutor.get(a.tutor_user_id) ?? 0) + 1);
   }
 
-  const studentDays  = input.availableDays  ?? [];
+  const studentDays = input.availableDays ?? [];
   const studentTimes = input.availableTimes ?? [];
 
   let candidates = tutors;
@@ -215,7 +216,7 @@ export async function assignTutorOneToOne(
       const tt = t.available_times ?? [];
       // Tutor with no availability set = treat as flexible (don't filter out).
       if (td.length === 0 || tt.length === 0) return true;
-      const dayOverlap  = studentDays.some((d)  => td.includes(d));
+      const dayOverlap = studentDays.some((d) => td.includes(d));
       const timeOverlap = studentTimes.some((t2) => tt.includes(t2));
       return dayOverlap && timeOverlap;
     });

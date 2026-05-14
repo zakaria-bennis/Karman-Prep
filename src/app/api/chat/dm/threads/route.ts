@@ -49,7 +49,9 @@ export async function GET() {
 
   const { data: rows, error } = await supa
     .from("direct_messages")
-    .select("id, sender_id, recipient_id, content, media_urls, read_at, created_at, moderation_status")
+    .select(
+      "id, sender_id, recipient_id, content, media_urls, read_at, created_at, moderation_status"
+    )
     .or(`sender_id.eq.${callerUuid},recipient_id.eq.${callerUuid}`)
     .neq("moderation_status", "rejected")
     .order("created_at", { ascending: false })
@@ -72,10 +74,13 @@ export async function GET() {
   };
 
   // Collapse to one entry per other-party. Track unread on the fly.
-  const byOther = new Map<string, {
-    lastRow: Row;
-    unread: number;
-  }>();
+  const byOther = new Map<
+    string,
+    {
+      lastRow: Row;
+      unread: number;
+    }
+  >();
 
   for (const r of (rows as Row[] | null) ?? []) {
     const otherUuid = r.sender_id === callerUuid ? r.recipient_id : r.sender_id;
@@ -105,8 +110,17 @@ export async function GET() {
     .select("id, clerk_id, first_name, last_name, email")
     .in("id", otherUuids);
 
-  const userById = new Map<string, { clerk_id: string | null; first_name: string | null; last_name: string | null; email: string }>();
-  for (const u of (users as Array<{ id: string; clerk_id: string | null; first_name: string | null; last_name: string | null; email: string }> | null) ?? []) {
+  const userById = new Map<
+    string,
+    { clerk_id: string | null; first_name: string | null; last_name: string | null; email: string }
+  >();
+  for (const u of (users as Array<{
+    id: string;
+    clerk_id: string | null;
+    first_name: string | null;
+    last_name: string | null;
+    email: string;
+  }> | null) ?? []) {
     userById.set(u.id, u);
   }
 

@@ -50,10 +50,7 @@ export async function resolveEffectiveRole(clerkId: string): Promise<AppRole | n
   return real;
 }
 
-export async function requireRole(
-  clerkId: string,
-  allowed: AppRole[]
-): Promise<boolean> {
+export async function requireRole(clerkId: string, allowed: AppRole[]): Promise<boolean> {
   const role = await resolveEffectiveRole(clerkId);
   return role !== null && allowed.includes(role);
 }

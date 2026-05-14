@@ -36,7 +36,9 @@ const missing = [
   ["R2_SECRET_ACCESS_KEY", R2_SECRET],
   ["R2_BUCKET_NAME", R2_BUCKET],
   ["R2_PUBLIC_URL", R2_PUBLIC],
-].filter(([_, v]) => !v).map(([k]) => k);
+]
+  .filter(([_, v]) => !v)
+  .map(([k]) => k);
 if (missing.length) {
   console.error(`Missing env vars: ${missing.join(", ")}`);
   console.error("Fill these in .env.local then re-run.");
@@ -112,9 +114,7 @@ async function main() {
     }
 
     // 4. Delete the Supabase copy
-    const { error: rmErr } = await supabase.storage
-      .from("question-images")
-      .remove([oldPath]);
+    const { error: rmErr } = await supabase.storage.from("question-images").remove([oldPath]);
     if (rmErr) {
       console.warn(`  Supabase delete failed (${rmErr.message}) — orphan left at ${oldPath}`);
     } else {

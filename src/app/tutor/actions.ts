@@ -49,10 +49,7 @@ export async function actionAssignCheckpointRetake(input: {
   revalidatePath(`/tutor/${input.student_id}`);
 }
 
-export async function actionOverrideCooldown(input: {
-  student_id: string;
-  checkpoint_id: string;
-}) {
+export async function actionOverrideCooldown(input: { student_id: string; checkpoint_id: string }) {
   const tutorId = await guardTutor();
   await overrideCheckpointCooldown({ tutor_id: tutorId, ...input });
   revalidatePath(`/tutor/${input.student_id}`);
@@ -66,7 +63,18 @@ export async function actionResolveFlag(flagId: string, studentId: string) {
 
 export async function actionEditFlaggedQuestion(
   questionId: string,
-  patch: Partial<Pick<QuizQuestion, "question_text" | "difficulty" | "correct_answer" | "explanation_text" | "explanation_per_choice" | "topic_cluster" | "desmos_strategy">>,
+  patch: Partial<
+    Pick<
+      QuizQuestion,
+      | "question_text"
+      | "difficulty"
+      | "correct_answer"
+      | "explanation_text"
+      | "explanation_per_choice"
+      | "topic_cluster"
+      | "desmos_strategy"
+    >
+  >,
   studentId: string
 ) {
   await guardTutor();

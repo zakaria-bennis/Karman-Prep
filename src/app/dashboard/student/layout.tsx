@@ -14,11 +14,7 @@ import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/server";
 
-export default async function StudentDashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default async function StudentDashboardLayout({ children }: { children: React.ReactNode }) {
   const { userId } = await auth();
   if (!userId) redirect("/auth/sign-in");
 

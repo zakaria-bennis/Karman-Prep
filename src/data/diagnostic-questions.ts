@@ -75,35 +75,50 @@ export interface DiagnosticQuestion {
 const QUESTION_POOL: DiagnosticQuestion[] = [
   // ─── ALGEBRA (5) ────────────────────────────────────────────
   {
-    id: "alg-1", domain: "algebra", difficulty: 1, conceptId: "linear-equations-one-variable",
+    id: "alg-1",
+    domain: "algebra",
+    difficulty: 1,
+    conceptId: "linear-equations-one-variable",
     text: "If $3x + 5 = 26$, what is the value of $x$?",
     options: ["A) $5$", "B) $6$", "C) $7$", "D) $8$"],
     correct: "C",
     explanation: "$3x = 21$, so $x = 7$.",
   },
   {
-    id: "alg-2", domain: "algebra", difficulty: 1, conceptId: "linear-equations-one-variable",
+    id: "alg-2",
+    domain: "algebra",
+    difficulty: 1,
+    conceptId: "linear-equations-one-variable",
     text: "Which of the following expressions is equivalent to $4(x - 3) + 2x$?",
     options: ["A) $6x - 12$", "B) $6x - 3$", "C) $4x - 12$", "D) $2x - 12$"],
     correct: "A",
     explanation: "$4(x - 3) = 4x - 12$. Adding $2x$ gives $6x - 12$.",
   },
   {
-    id: "alg-3", domain: "algebra", difficulty: 2, conceptId: "systems-of-linear-equations",
+    id: "alg-3",
+    domain: "algebra",
+    difficulty: 2,
+    conceptId: "systems-of-linear-equations",
     text: "If $2x + y = 11$ and $x - y = 1$, what is the value of $x$?",
     options: ["A) $3$", "B) $4$", "C) $5$", "D) $6$"],
     correct: "B",
     explanation: "Adding the two equations gives $3x = 12$, so $x = 4$.",
   },
   {
-    id: "alg-4", domain: "algebra", difficulty: 2, conceptId: "linear-equations-two-variables",
+    id: "alg-4",
+    domain: "algebra",
+    difficulty: 2,
+    conceptId: "linear-equations-two-variables",
     text: "The function $f$ is defined by $f(x) = 2x + 7$. What is the value of $f(-3)$?",
     options: ["A) $1$", "B) $-1$", "C) $4$", "D) $13$"],
     correct: "A",
     explanation: "$f(-3) = 2(-3) + 7 = -6 + 7 = 1$.",
   },
   {
-    id: "alg-5", domain: "algebra", difficulty: 3, conceptId: "linear-inequalities",
+    id: "alg-5",
+    domain: "algebra",
+    difficulty: 3,
+    conceptId: "linear-inequalities",
     text: "What is the smallest integer value of $x$ for which $5x - 8 > 27$?",
     options: ["A) $6$", "B) $7$", "C) $8$", "D) $9$"],
     correct: "C",
@@ -112,72 +127,111 @@ const QUESTION_POOL: DiagnosticQuestion[] = [
 
   // ─── ADVANCED MATH (5) ──────────────────────────────────────
   {
-    id: "adv-1", domain: "advanced_math", difficulty: 1, conceptId: "quadratic-equations-factoring",
+    id: "adv-1",
+    domain: "advanced_math",
+    difficulty: 1,
+    conceptId: "quadratic-equations-factoring",
     text: "What are the solutions to the equation $x^2 - 7x + 12 = 0$?",
     options: ["A) $2$ and $6$", "B) $3$ and $4$", "C) $-3$ and $-4$", "D) $1$ and $12$"],
     correct: "B",
     explanation: "Factor: $(x - 3)(x - 4) = 0$, so $x = 3$ or $x = 4$.",
   },
   {
-    id: "adv-2", domain: "advanced_math", difficulty: 2, conceptId: "introduction-to-polynomials",
+    id: "adv-2",
+    domain: "advanced_math",
+    difficulty: 2,
+    conceptId: "introduction-to-polynomials",
     text: "If $p(x) = x^3 - 2x^2 + x - 4$, what is the value of $p(2)$?",
     options: ["A) $-2$", "B) $0$", "C) $2$", "D) $4$"],
     correct: "A",
     explanation: "$p(2) = 8 - 8 + 2 - 4 = -2$.",
   },
   {
-    id: "adv-3", domain: "advanced_math", difficulty: 2, conceptId: "exponential-growth-and-decay",
+    id: "adv-3",
+    domain: "advanced_math",
+    difficulty: 2,
+    conceptId: "exponential-growth-and-decay",
     text: "A bacterial culture doubles in size every $4$ hours. If the culture starts at $200$ cells, how many cells will be present after $12$ hours?",
     options: ["A) $800$", "B) $1{,}200$", "C) $1{,}600$", "D) $2{,}400$"],
     correct: "C",
     explanation: "$12$ hours is $3$ doublings, so $200 \\cdot 2^3 = 200 \\cdot 8 = 1{,}600$.",
   },
   {
-    id: "adv-4", domain: "advanced_math", difficulty: 3, conceptId: "rational-expressions",
+    id: "adv-4",
+    domain: "advanced_math",
+    difficulty: 3,
+    conceptId: "rational-expressions",
     text: "Which of the following expressions is equivalent to $\\dfrac{x^2 - 16}{x - 4}$ for $x \\neq 4$?",
     options: ["A) $x - 4$", "B) $x + 4$", "C) $x^2 - 4$", "D) $x + 16$"],
     correct: "B",
     explanation: "$x^2 - 16 = (x - 4)(x + 4)$. Dividing by $(x - 4)$ leaves $x + 4$.",
   },
   {
-    id: "adv-5", domain: "advanced_math", difficulty: 3, conceptId: "quadratic-functions-vertex-form",
+    id: "adv-5",
+    domain: "advanced_math",
+    difficulty: 3,
+    conceptId: "quadratic-functions-vertex-form",
     text: "The function $f$ is defined by $f(x) = (x - 5)^2 + 3$. The minimum value of $f$ occurs at $x =\\,$?",
     options: ["A) $-5$", "B) $-3$", "C) $3$", "D) $5$"],
     correct: "D",
-    explanation: "A function in vertex form $(x - h)^2 + k$ has its vertex at $x = h$. Here $h = 5$.",
+    explanation:
+      "A function in vertex form $(x - h)^2 + k$ has its vertex at $x = h$. Here $h = 5$.",
   },
 
   // ─── PROBLEM-SOLVING & DATA ANALYSIS (5) ────────────────────
   {
-    id: "data-1", domain: "data_analysis", difficulty: 1, conceptId: "ratios-and-proportions",
+    id: "data-1",
+    domain: "data_analysis",
+    difficulty: 1,
+    conceptId: "ratios-and-proportions",
     text: "A recipe uses $3$ cups of flour for every $2$ cups of sugar. How many cups of sugar are needed for $12$ cups of flour?",
     options: ["A) $6$", "B) $8$", "C) $9$", "D) $18$"],
     correct: "B",
-    explanation: "Set up the proportion $\\dfrac{3}{2} = \\dfrac{12}{x}$. Cross-multiplying gives $3x = 24$, so $x = 8$.",
+    explanation:
+      "Set up the proportion $\\dfrac{3}{2} = \\dfrac{12}{x}$. Cross-multiplying gives $3x = 24$, so $x = 8$.",
   },
   {
-    id: "data-2", domain: "data_analysis", difficulty: 1, conceptId: "percentages",
+    id: "data-2",
+    domain: "data_analysis",
+    difficulty: 1,
+    conceptId: "percentages",
     text: "A jacket originally priced at $\\$80$ is on sale for $25\\%$ off. What is the sale price?",
     options: ["A) $\\$20$", "B) $\\$55$", "C) $\\$60$", "D) $\\$75$"],
     correct: "C",
     explanation: "$25\\%$ of $\\$80$ is $\\$20$. Sale price $= 80 - 20 = 60$.",
   },
   {
-    id: "data-3", domain: "data_analysis", difficulty: 2, conceptId: "statistical-measures",
+    id: "data-3",
+    domain: "data_analysis",
+    difficulty: 2,
+    conceptId: "statistical-measures",
     text: "Five quiz scores are $12$, $14$, $14$, $18$, and $22$. What is the difference between the mean and the median of these scores?",
     options: ["A) $0$", "B) $2$", "C) $3$", "D) $4$"],
     correct: "B",
-    explanation: "Mean $= \\dfrac{12+14+14+18+22}{5} = \\dfrac{80}{5} = 16$. Median $= 14$. Difference $= 2$.",
+    explanation:
+      "Mean $= \\dfrac{12+14+14+18+22}{5} = \\dfrac{80}{5} = 16$. Median $= 14$. Difference $= 2$.",
   },
   {
-    id: "data-4", domain: "data_analysis", difficulty: 2, conceptId: "probability-basics",
+    id: "data-4",
+    domain: "data_analysis",
+    difficulty: 2,
+    conceptId: "probability-basics",
     text: "A spinner is divided into $8$ equal sections numbered $1$ through $8$. What is the probability of landing on a number greater than $5$?",
-    options: ["A) $\\dfrac{1}{4}$", "B) $\\dfrac{3}{8}$", "C) $\\dfrac{1}{2}$", "D) $\\dfrac{5}{8}$"],
+    options: [
+      "A) $\\dfrac{1}{4}$",
+      "B) $\\dfrac{3}{8}$",
+      "C) $\\dfrac{1}{2}$",
+      "D) $\\dfrac{5}{8}$",
+    ],
     correct: "B",
-    explanation: "Numbers greater than $5$ are $\\{6, 7, 8\\}$ — $3$ out of $8$ equally likely sections.",
+    explanation:
+      "Numbers greater than $5$ are $\\{6, 7, 8\\}$ — $3$ out of $8$ equally likely sections.",
   },
   {
-    id: "data-5", domain: "data_analysis", difficulty: 3, conceptId: "interpreting-complex-data",
+    id: "data-5",
+    domain: "data_analysis",
+    difficulty: 3,
+    conceptId: "interpreting-complex-data",
     text: "A study reports a correlation coefficient of $r = 0.84$ between hours studied per week and final exam score. Which of the following statements is best supported by this finding?",
     options: [
       "A) Studying causes higher exam scores.",
@@ -186,44 +240,66 @@ const QUESTION_POOL: DiagnosticQuestion[] = [
       "D) Studying has no relationship with exam score.",
     ],
     correct: "C",
-    explanation: "An $r$ value near $+1$ indicates a strong positive linear association. Correlation does not establish causation, so (A) overstates the result.",
+    explanation:
+      "An $r$ value near $+1$ indicates a strong positive linear association. Correlation does not establish causation, so (A) overstates the result.",
   },
 
   // ─── GEOMETRY & TRIG (5) ────────────────────────────────────
   {
-    id: "geo-1", domain: "geometry", difficulty: 1, conceptId: "triangle-congruence-and-similarity",
+    id: "geo-1",
+    domain: "geometry",
+    difficulty: 1,
+    conceptId: "triangle-congruence-and-similarity",
     text: "In a right triangle, the legs measure $6$ and $8$. What is the length of the hypotenuse?",
     options: ["A) $10$", "B) $12$", "C) $14$", "D) $\\sqrt{48}$"],
     correct: "A",
     explanation: "By the Pythagorean theorem, $\\sqrt{6^2 + 8^2} = \\sqrt{100} = 10$.",
   },
   {
-    id: "geo-2", domain: "geometry", difficulty: 1, conceptId: "circle-equations-in-standard-form",
+    id: "geo-2",
+    domain: "geometry",
+    difficulty: 1,
+    conceptId: "circle-equations-in-standard-form",
     text: "A circle has radius $5$. What is the area of the circle, in terms of $\\pi$?",
     options: ["A) $10\\pi$", "B) $15\\pi$", "C) $20\\pi$", "D) $25\\pi$"],
     correct: "D",
     explanation: "Area $= \\pi r^2 = \\pi (5)^2 = 25\\pi$.",
   },
   {
-    id: "geo-3", domain: "geometry", difficulty: 2, conceptId: "coordinate-plane-geometry",
+    id: "geo-3",
+    domain: "geometry",
+    difficulty: 2,
+    conceptId: "coordinate-plane-geometry",
     text: "What is the distance between the points $(2, -1)$ and $(5, 3)$ in the $xy$-plane?",
     options: ["A) $3$", "B) $4$", "C) $5$", "D) $7$"],
     correct: "C",
     explanation: "Distance $= \\sqrt{(5 - 2)^2 + (3 - (-1))^2} = \\sqrt{9 + 16} = \\sqrt{25} = 5$.",
   },
   {
-    id: "geo-4", domain: "geometry", difficulty: 2, conceptId: "area-perimeter-and-volume",
+    id: "geo-4",
+    domain: "geometry",
+    difficulty: 2,
+    conceptId: "area-perimeter-and-volume",
     text: "A right circular cylinder has radius $3$ and height $10$. What is the volume of the cylinder, in terms of $\\pi$?",
     options: ["A) $30\\pi$", "B) $60\\pi$", "C) $90\\pi$", "D) $100\\pi$"],
     correct: "C",
     explanation: "Volume $= \\pi r^2 h = \\pi (3)^2 (10) = 9\\pi \\cdot 10 = 90\\pi$.",
   },
   {
-    id: "geo-5", domain: "geometry", difficulty: 3, conceptId: "trigonometric-ratios",
+    id: "geo-5",
+    domain: "geometry",
+    difficulty: 3,
+    conceptId: "trigonometric-ratios",
     text: "In a right triangle, $\\sin(\\theta) = \\dfrac{5}{13}$. What is the value of $\\cos(\\theta)$?",
-    options: ["A) $\\dfrac{5}{12}$", "B) $\\dfrac{12}{13}$", "C) $\\dfrac{13}{12}$", "D) $\\dfrac{12}{5}$"],
+    options: [
+      "A) $\\dfrac{5}{12}$",
+      "B) $\\dfrac{12}{13}$",
+      "C) $\\dfrac{13}{12}$",
+      "D) $\\dfrac{12}{5}$",
+    ],
     correct: "B",
-    explanation: "If $\\sin(\\theta) = \\dfrac{5}{13}$, then the opposite side is $5$ and the hypotenuse is $13$. By the Pythagorean theorem, the adjacent side is $\\sqrt{13^2 - 5^2} = \\sqrt{144} = 12$, so $\\cos(\\theta) = \\dfrac{12}{13}$.",
+    explanation:
+      "If $\\sin(\\theta) = \\dfrac{5}{13}$, then the opposite side is $5$ and the hypotenuse is $13$. By the Pythagorean theorem, the adjacent side is $\\sqrt{13^2 - 5^2} = \\sqrt{144} = 12$, so $\\cos(\\theta) = \\dfrac{12}{13}$.",
   },
 
   // ═══════════════════════════════════════════════════════════
@@ -373,15 +449,10 @@ const QUESTION_POOL: DiagnosticQuestion[] = [
     passage:
       "Meteorologists distinguish between several kinds of brief temperature anomalies. The most familiar — and the one residents of the Midwest most often experience in late spring — is a sudden, short return of cold weather after a warm spell, sometimes called a ______.",
     text: "Which choice completes the text with the most logical and precise word or phrase?",
-    options: [
-      "A) chill",
-      "B) cold snap",
-      "C) winter",
-      "D) freeze",
-    ],
+    options: ["A) chill", "B) cold snap", "C) winter", "D) freeze"],
     correct: "B",
     explanation:
-      "\"Cold snap\" specifically denotes a sudden, brief drop in temperature, typically out of season. The other choices are too vague (\"chill\") or refer to longer/different conditions.",
+      '"Cold snap" specifically denotes a sudden, brief drop in temperature, typically out of season. The other choices are too vague ("chill") or refer to longer/different conditions.',
   },
   {
     id: "expr-4",
@@ -399,7 +470,7 @@ const QUESTION_POOL: DiagnosticQuestion[] = [
     ],
     correct: "B",
     explanation:
-      "(B) opens with \"Despite\" to make the contrast explicit. (A) just conjoins the ideas without contrast; (C) buries it in a non-restrictive clause; (D) creates a false causation.",
+      '(B) opens with "Despite" to make the contrast explicit. (A) just conjoins the ideas without contrast; (C) buries it in a non-restrictive clause; (D) creates a false causation.',
   },
 
   // ─── STANDARD ENGLISH CONVENTIONS (6) ───────────────────────
@@ -411,15 +482,10 @@ const QUESTION_POOL: DiagnosticQuestion[] = [
     passage:
       "Each of the proposals submitted by the regional development committees ______ subject to formal review by the chief engineer before any construction can begin.",
     text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
-    options: [
-      "A) is",
-      "B) are",
-      "C) have been",
-      "D) were",
-    ],
+    options: ["A) is", "B) are", "C) have been", "D) were"],
     correct: "A",
     explanation:
-      "The subject is \"Each,\" which is grammatically singular and takes a singular verb. The plural nouns \"proposals\" and \"committees\" sit inside prepositional phrases that modify \"each\" but do not control the verb.",
+      'The subject is "Each," which is grammatically singular and takes a singular verb. The plural nouns "proposals" and "committees" sit inside prepositional phrases that modify "each" but do not control the verb.',
   },
   {
     id: "conv-2",
@@ -429,15 +495,10 @@ const QUESTION_POOL: DiagnosticQuestion[] = [
     passage:
       "Although the orchestra had been together for less than a year, ______ performance of the new symphony on opening night drew sustained applause from every corner of the hall.",
     text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
-    options: [
-      "A) their",
-      "B) it's",
-      "C) its",
-      "D) there",
-    ],
+    options: ["A) their", "B) it's", "C) its", "D) there"],
     correct: "C",
     explanation:
-      "\"The orchestra\" is a collective noun treated as singular in standard American English, so the possessive pronoun must be \"its.\" \"Their\" treats the orchestra as plural; \"it's\" is the contraction of \"it is\"; \"there\" is not a possessive form.",
+      '"The orchestra" is a collective noun treated as singular in standard American English, so the possessive pronoun must be "its." "Their" treats the orchestra as plural; "it\'s" is the contraction of "it is"; "there" is not a possessive form.',
   },
   {
     id: "conv-3",
@@ -447,15 +508,10 @@ const QUESTION_POOL: DiagnosticQuestion[] = [
     passage:
       "By the time the lighthouse keeper finally spotted the small fishing vessel through the heavy fog, the boat ______ for nearly an hour, its hull battered repeatedly against the rocks at the base of the cliff.",
     text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
-    options: [
-      "A) drifts",
-      "B) drifted",
-      "C) had been drifting",
-      "D) has been drifting",
-    ],
+    options: ["A) drifts", "B) drifted", "C) had been drifting", "D) has been drifting"],
     correct: "C",
     explanation:
-      "The drifting began before — and was still going on at — the moment the keeper spotted the boat, so the verb requires the past perfect progressive (\"had been drifting\"). Simple past (B) collapses the time relationship; the present forms in (A) and (D) clash with the past-tense narrative frame.",
+      'The drifting began before — and was still going on at — the moment the keeper spotted the boat, so the verb requires the past perfect progressive ("had been drifting"). Simple past (B) collapses the time relationship; the present forms in (A) and (D) clash with the past-tense narrative frame.',
   },
   {
     id: "conv-4",
@@ -465,15 +521,10 @@ const QUESTION_POOL: DiagnosticQuestion[] = [
     passage:
       "The exhibition celebrates a single overlooked influence on nineteenth-century American landscape ______ the bold compositional asymmetries of Japanese woodblock prints.",
     text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
-    options: [
-      "A) painting,",
-      "B) painting;",
-      "C) painting:",
-      "D) painting",
-    ],
+    options: ["A) painting,", "B) painting;", "C) painting:", "D) painting"],
     correct: "C",
     explanation:
-      "What follows the blank is a noun phrase that elaborates on \"a single overlooked influence.\" A colon (C) is the conventional way to introduce an elaboration after a complete independent clause. A semicolon (B) requires an independent clause on each side; a comma (A) under-punctuates the boundary; removing punctuation (D) creates a run-on.",
+      'What follows the blank is a noun phrase that elaborates on "a single overlooked influence." A colon (C) is the conventional way to introduce an elaboration after a complete independent clause. A semicolon (B) requires an independent clause on each side; a comma (A) under-punctuates the boundary; removing punctuation (D) creates a run-on.',
   },
   {
     id: "conv-5",
@@ -481,14 +532,9 @@ const QUESTION_POOL: DiagnosticQuestion[] = [
     difficulty: 2,
     conceptId: "periods-and-semicolons",
     passage:
-      "The earthquake struck the coastal village just before ______ residents were jolted awake by what one later described as \"the sound of the entire hillside groaning loose.\"",
+      'The earthquake struck the coastal village just before ______ residents were jolted awake by what one later described as "the sound of the entire hillside groaning loose."',
     text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
-    options: [
-      "A) dawn,",
-      "B) dawn",
-      "C) dawn;",
-      "D) dawn, and,",
-    ],
+    options: ["A) dawn,", "B) dawn", "C) dawn;", "D) dawn, and,"],
     correct: "C",
     explanation:
       "The two halves of the sentence are independent clauses, each with its own subject and verb. A semicolon (C) is the conventional way to join two independent clauses without a coordinating conjunction. (A) creates a comma splice; (B) is a fused / run-on sentence; (D) misplaces commas around the coordinating conjunction.",
@@ -498,8 +544,7 @@ const QUESTION_POOL: DiagnosticQuestion[] = [
     domain: "conventions",
     difficulty: 3,
     conceptId: "modifier-placement",
-    passage:
-      "Eager to test the prototype before the upcoming trade show, ______",
+    passage: "Eager to test the prototype before the upcoming trade show, ______",
     text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
     options: [
       "A) the production version included redesigned bearings and a quieter motor.",
@@ -509,7 +554,7 @@ const QUESTION_POOL: DiagnosticQuestion[] = [
     ],
     correct: "C",
     explanation:
-      "The opening modifier \"Eager to test the prototype before the upcoming trade show\" must attach to a subject that can plausibly be eager — i.e., a person. Only (C) places \"the engineers\" as the subject of the main clause. (A), (B), and (D) leave the modifier dangling, since their subjects (the production version, the bearings and motor, the expletive \"there\") cannot be eager.",
+      'The opening modifier "Eager to test the prototype before the upcoming trade show" must attach to a subject that can plausibly be eager — i.e., a person. Only (C) places "the engineers" as the subject of the main clause. (A), (B), and (D) leave the modifier dangling, since their subjects (the production version, the bearings and motor, the expletive "there") cannot be eager.',
   },
 ];
 

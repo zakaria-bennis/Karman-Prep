@@ -15,7 +15,7 @@ const FIREFLIES_GRAPHQL = "https://api.fireflies.ai/graphql";
 export interface FirefliesSentence {
   speaker_name: string | null;
   text: string;
-  start_time: number | null;  // seconds from start
+  start_time: number | null; // seconds from start
 }
 
 export interface FirefliesAttendee {

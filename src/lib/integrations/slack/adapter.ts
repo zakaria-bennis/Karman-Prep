@@ -90,9 +90,7 @@ function composeChannelName(input: CreateChannelInput): string {
 /** Create a private Slack channel for a cohort's chat or Q&A.
  *  The bot is the only initial member. Tutors are added later
  *  manually if they want native Slack access. */
-export async function createCohortChannel(
-  input: CreateChannelInput
-): Promise<CreateChannelResult> {
+export async function createCohortChannel(input: CreateChannelInput): Promise<CreateChannelResult> {
   const name = composeChannelName(input);
   const startedAt = logCall("createCohortChannel", { name });
   try {
@@ -115,9 +113,7 @@ export async function createCohortChannel(
  *  sender's display name so attribution shows up natively in Slack.
  *  Image URLs are appended as links — Slack auto-unfurls supported
  *  image MIME types inline. */
-export async function postMessage(
-  input: PostMessageInput
-): Promise<PostMessageResult> {
+export async function postMessage(input: PostMessageInput): Promise<PostMessageResult> {
   const startedAt = logCall("postMessage", { channel: input.channelId });
   const lines: string[] = [`*${input.displayName}:* ${input.content}`];
   for (const url of input.imageUrls ?? []) {

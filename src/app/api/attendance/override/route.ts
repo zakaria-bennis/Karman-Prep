@@ -21,10 +21,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { fetchUserRole } from "@/lib/supabase/queries/admin";
 import { applyAttendanceOverride } from "@/lib/supabase/queries/attendance";
-import {
-  findBookingById,
-  getUserUuidByClerkId,
-} from "@/lib/supabase/queries/bookings";
+import { findBookingById, getUserUuidByClerkId } from "@/lib/supabase/queries/bookings";
 
 interface OverrideRequest {
   bookingId: string;

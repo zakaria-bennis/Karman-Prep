@@ -45,17 +45,17 @@ export interface QuizQuestion {
   node_id: string | null;
   question_text: string;
   question_type: QuizQuestionType;
-  difficulty: QuizDifficulty;                // legacy — kept for back-compat display
-  difficulty_level: QuizDifficultyLevel;     // 1–7 — the new source of truth
-  answer_format: QuizAnswerFormat;           // 'multiple_choice' or 'numeric_entry'
-  correct_answer: string;                    // letter A/B/C/D (MC) OR numeric string (numeric_entry)
-  numeric_tolerance: number | null;          // ± range for numeric answers; null = exact match
+  difficulty: QuizDifficulty; // legacy — kept for back-compat display
+  difficulty_level: QuizDifficultyLevel; // 1–7 — the new source of truth
+  answer_format: QuizAnswerFormat; // 'multiple_choice' or 'numeric_entry'
+  correct_answer: string; // letter A/B/C/D (MC) OR numeric string (numeric_entry)
+  numeric_tolerance: number | null; // ± range for numeric answers; null = exact match
   explanation_text: string;
   explanation_per_choice: Partial<Record<AnswerLetter, string>> | null;
-  hint: string | null;                       // shown to students while answering (optional)
-  image_url: string | null;                  // optional graph / table / figure shown above the question
-  image_storage_path: string | null;         // object key inside the 'question-images' bucket
-  image_alt: string | null;                  // alt text for accessibility
+  hint: string | null; // shown to students while answering (optional)
+  image_url: string | null; // optional graph / table / figure shown above the question
+  image_storage_path: string | null; // object key inside the 'question-images' bucket
+  image_alt: string | null; // alt text for accessibility
   subject: Subject;
   topic_cluster: string;
   desmos_strategy: string | null;
@@ -168,7 +168,7 @@ export interface TutorCheckpointAssignment {
   id: string;
   tutor_id: string;
   student_id: string;
-  checkpoint_id: string;   // e.g. "reading:1"
+  checkpoint_id: string; // e.g. "reading:1"
   assigned_at: string;
   reason: string | null;
   cooldown_override: boolean;
@@ -183,18 +183,64 @@ export const DIFFICULTY_ORDER: QuizDifficulty[] = [
   "mastery",
 ];
 
-export const DIFFICULTY_COLORS: Record<QuizDifficulty, { bg: string; text: string; border: string; hex: string }> = {
-  foundational: { bg: "bg-emerald-100 dark:bg-emerald-900/30", text: "text-emerald-700 dark:text-emerald-300", border: "border-emerald-300 dark:border-emerald-700", hex: "#10b981" },
-  intermediate: { bg: "bg-amber-100 dark:bg-amber-900/30",     text: "text-amber-700 dark:text-amber-300",     border: "border-amber-300 dark:border-amber-700",     hex: "#f59e0b" },
-  advanced:     { bg: "bg-orange-100 dark:bg-orange-900/30",   text: "text-orange-700 dark:text-orange-300",   border: "border-orange-300 dark:border-orange-700",   hex: "#f97316" },
-  mastery:      { bg: "bg-rose-100 dark:bg-rose-900/30",       text: "text-rose-700 dark:text-rose-300",       border: "border-rose-300 dark:border-rose-700",       hex: "#e11d48" },
+export const DIFFICULTY_COLORS: Record<
+  QuizDifficulty,
+  { bg: string; text: string; border: string; hex: string }
+> = {
+  foundational: {
+    bg: "bg-emerald-100 dark:bg-emerald-900/30",
+    text: "text-emerald-700 dark:text-emerald-300",
+    border: "border-emerald-300 dark:border-emerald-700",
+    hex: "#10b981",
+  },
+  intermediate: {
+    bg: "bg-amber-100 dark:bg-amber-900/30",
+    text: "text-amber-700 dark:text-amber-300",
+    border: "border-amber-300 dark:border-amber-700",
+    hex: "#f59e0b",
+  },
+  advanced: {
+    bg: "bg-orange-100 dark:bg-orange-900/30",
+    text: "text-orange-700 dark:text-orange-300",
+    border: "border-orange-300 dark:border-orange-700",
+    hex: "#f97316",
+  },
+  mastery: {
+    bg: "bg-rose-100 dark:bg-rose-900/30",
+    text: "text-rose-700 dark:text-rose-300",
+    border: "border-rose-300 dark:border-rose-700",
+    hex: "#e11d48",
+  },
 };
 
-export const CONFIDENCE_COLORS: Record<ConfidenceBand, { bg: string; text: string; hex: string; label: string }> = {
-  struggling:  { bg: "bg-red-100 dark:bg-red-900/30",      text: "text-red-700 dark:text-red-300",      hex: "#ef4444", label: "Struggling" },
-  developing:  { bg: "bg-yellow-100 dark:bg-yellow-900/30", text: "text-yellow-700 dark:text-yellow-300", hex: "#eab308", label: "Developing" },
-  proficient:  { bg: "bg-green-100 dark:bg-green-900/30",  text: "text-green-700 dark:text-green-300",  hex: "#22c55e", label: "Proficient" },
-  mastered:    { bg: "bg-teal-100 dark:bg-teal-900/30",    text: "text-teal-700 dark:text-teal-300",    hex: "#14b8a6", label: "Mastered" },
+export const CONFIDENCE_COLORS: Record<
+  ConfidenceBand,
+  { bg: string; text: string; hex: string; label: string }
+> = {
+  struggling: {
+    bg: "bg-red-100 dark:bg-red-900/30",
+    text: "text-red-700 dark:text-red-300",
+    hex: "#ef4444",
+    label: "Struggling",
+  },
+  developing: {
+    bg: "bg-yellow-100 dark:bg-yellow-900/30",
+    text: "text-yellow-700 dark:text-yellow-300",
+    hex: "#eab308",
+    label: "Developing",
+  },
+  proficient: {
+    bg: "bg-green-100 dark:bg-green-900/30",
+    text: "text-green-700 dark:text-green-300",
+    hex: "#22c55e",
+    label: "Proficient",
+  },
+  mastered: {
+    bg: "bg-teal-100 dark:bg-teal-900/30",
+    text: "text-teal-700 dark:text-teal-300",
+    hex: "#14b8a6",
+    label: "Mastered",
+  },
 };
 
 /** Given a 0-100 score, return the confidence band classification. */
@@ -226,16 +272,19 @@ export const DIFFICULTY_LEVEL_LABELS: Record<QuizDifficultyLevel, string> = {
 
 /** Color for each 1-7 level — gradient from green (easy) to deep rose (hard). */
 export const DIFFICULTY_LEVEL_HEX: Record<QuizDifficultyLevel, string> = {
-  1: "#10b981",   // emerald
-  2: "#22c55e",   // green
-  3: "#84cc16",   // lime
-  4: "#eab308",   // yellow
-  5: "#f97316",   // orange
-  6: "#ef4444",   // red
-  7: "#be123c",   // rose-700
+  1: "#10b981", // emerald
+  2: "#22c55e", // green
+  3: "#84cc16", // lime
+  4: "#eab308", // yellow
+  5: "#f97316", // orange
+  6: "#ef4444", // red
+  7: "#be123c", // rose-700
 };
 
-export function stepDifficultyLevel(current: QuizDifficultyLevel, wasCorrect: boolean): QuizDifficultyLevel {
+export function stepDifficultyLevel(
+  current: QuizDifficultyLevel,
+  wasCorrect: boolean
+): QuizDifficultyLevel {
   const next = wasCorrect ? current + 1 : current - 1;
   return Math.max(1, Math.min(7, next)) as QuizDifficultyLevel;
 }
@@ -243,10 +292,14 @@ export function stepDifficultyLevel(current: QuizDifficultyLevel, wasCorrect: bo
 /** Map the legacy 4-level enum to a 1-7 integer. */
 export function legacyDifficultyToLevel(d: QuizDifficulty): QuizDifficultyLevel {
   switch (d) {
-    case "foundational": return 2;
-    case "intermediate": return 4;
-    case "advanced":     return 5;
-    case "mastery":      return 6;
+    case "foundational":
+      return 2;
+    case "intermediate":
+      return 4;
+    case "advanced":
+      return 5;
+    case "mastery":
+      return 6;
   }
 }
 

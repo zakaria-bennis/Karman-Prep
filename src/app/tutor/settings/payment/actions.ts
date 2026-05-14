@@ -33,7 +33,9 @@ async function callerRow() {
   const supabase = createAdminClient();
   const { data: u } = await supabase
     .from("users")
-    .select("id, role, email, first_name, last_name, stripe_connect_account_id, stripe_payouts_enabled")
+    .select(
+      "id, role, email, first_name, last_name, stripe_connect_account_id, stripe_payouts_enabled"
+    )
     .eq("clerk_id", clerkId)
     .maybeSingle();
   if (!u) throw new Error("user_not_found");
@@ -62,7 +64,13 @@ export async function actionStartOnboarding(): Promise<{ url: string }> {
   let caller, supabase;
   try {
     ({ caller, supabase } = await callerRow());
-    console.log("[onboarding] caller resolved:", caller.id, caller.email, "existing acct:", caller.stripe_connect_account_id ?? "none");
+    console.log(
+      "[onboarding] caller resolved:",
+      caller.id,
+      caller.email,
+      "existing acct:",
+      caller.stripe_connect_account_id ?? "none"
+    );
   } catch (err) {
     console.error("[onboarding] callerRow failed:", err instanceof Error ? err.message : err);
     throw err;
@@ -79,7 +87,10 @@ export async function actionStartOnboarding(): Promise<{ url: string }> {
       });
       console.log("[onboarding] created Stripe account:", accountId);
     } catch (err) {
-      console.error("[onboarding] createExpressAccount failed:", err instanceof Error ? err.message : err);
+      console.error(
+        "[onboarding] createExpressAccount failed:",
+        err instanceof Error ? err.message : err
+      );
       throw err;
     }
 
@@ -108,7 +119,10 @@ export async function actionStartOnboarding(): Promise<{ url: string }> {
     url = await createOnboardingLink(accountId, baseUrl);
     console.log("[onboarding] onboarding link created");
   } catch (err) {
-    console.error("[onboarding] createOnboardingLink failed:", err instanceof Error ? err.message : err);
+    console.error(
+      "[onboarding] createOnboardingLink failed:",
+      err instanceof Error ? err.message : err
+    );
     throw err;
   }
 
@@ -136,10 +150,7 @@ export async function actionUpdatePaymentDetails(): Promise<{ url: string }> {
     return { url };
   }
   const baseUrl = await publicBaseUrl();
-  const url = await createUpdateLink(
-    caller.stripe_connect_account_id as string,
-    baseUrl,
-  );
+  const url = await createUpdateLink(caller.stripe_connect_account_id as string, baseUrl);
   return { url };
 }
 
@@ -156,7 +167,12 @@ export async function actionRefreshAccountStatus(): Promise<{
 }> {
   const { caller, supabase } = await callerRow();
   if (!caller.stripe_connect_account_id) {
-    return { payouts_enabled: false, charges_enabled: false, ready: false, instant_payouts_active: false };
+    return {
+      payouts_enabled: false,
+      charges_enabled: false,
+      ready: false,
+      instant_payouts_active: false,
+    };
   }
   const status = await fetchAccountStatus(caller.stripe_connect_account_id as string);
 

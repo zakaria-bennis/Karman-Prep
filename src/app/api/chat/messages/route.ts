@@ -61,7 +61,10 @@ export async function GET(req: NextRequest) {
   const channelId = sp.get("channelId");
   const before = sp.get("before") ?? undefined;
   const limitRaw = parseInt(sp.get("limit") ?? "", 10);
-  const limit = Math.min(MAX_LIMIT, Number.isFinite(limitRaw) && limitRaw > 0 ? limitRaw : DEFAULT_LIMIT);
+  const limit = Math.min(
+    MAX_LIMIT,
+    Number.isFinite(limitRaw) && limitRaw > 0 ? limitRaw : DEFAULT_LIMIT
+  );
   if (!channelId) {
     return NextResponse.json({ error: "Missing channelId" }, { status: 400 });
   }
@@ -95,7 +98,9 @@ export async function GET(req: NextRequest) {
       .from("parent_student_links")
       .select("student_user_id")
       .eq("parent_user_id", callerUuid);
-    parentAllowedSenders = new Set(((links ?? []) as Array<{ student_user_id: string }>).map((l) => l.student_user_id));
+    parentAllowedSenders = new Set(
+      ((links ?? []) as Array<{ student_user_id: string }>).map((l) => l.student_user_id)
+    );
   }
 
   // Resolve real names in one batch for tutors / admins / parents.
@@ -109,7 +114,12 @@ export async function GET(req: NextRequest) {
         .from("users")
         .select("id, first_name, last_name, email")
         .in("id", senderIds);
-      for (const u of (users ?? []) as Array<{ id: string; first_name: string | null; last_name: string | null; email: string }>) {
+      for (const u of (users ?? []) as Array<{
+        id: string;
+        first_name: string | null;
+        last_name: string | null;
+        email: string;
+      }>) {
         const name = [u.first_name, u.last_name].filter(Boolean).join(" ").trim();
         nameById.set(u.id, name || u.email);
       }
@@ -125,7 +135,8 @@ export async function GET(req: NextRequest) {
 
   const messages: PublicMessage[] = visible.map((r) => {
     const isRejected = r.moderation_status === "rejected";
-    const showRealName = seesRealNames && (isTutor || isAdmin || parentAllowedSenders.has(r.sender_id));
+    const showRealName =
+      seesRealNames && (isTutor || isAdmin || parentAllowedSenders.has(r.sender_id));
     return {
       id: r.id,
       channel_id: r.channel_id,

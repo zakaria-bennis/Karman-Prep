@@ -15,7 +15,7 @@ import { fetchUserRole, type AppRole } from "@/lib/supabase/queries/admin";
 async function guardAdmin() {
   const { userId } = await auth();
   if (!userId) throw new Error("Not authenticated");
-  const role = await fetchUserRole(userId);       // real role, not impersonated
+  const role = await fetchUserRole(userId); // real role, not impersonated
   if (role !== "admin") throw new Error("Admin role required");
   return userId;
 }
@@ -27,10 +27,7 @@ export async function actionSetUserRole(targetUserId: string, nextRole: AppRole)
   if (!ALLOWED_ROLES.includes(nextRole)) throw new Error(`Invalid role: ${nextRole}`);
 
   const supabase = createAdminClient();
-  const { error } = await supabase
-    .from("users")
-    .update({ role: nextRole })
-    .eq("id", targetUserId);
+  const { error } = await supabase.from("users").update({ role: nextRole }).eq("id", targetUserId);
   if (error) throw new Error(error.message);
 
   // If the user was demoted from parent, their links remain — on purpose.
@@ -55,15 +52,17 @@ export async function actionLinkParentToStudent(parentUserId: string, studentUse
     .in("id", [parentUserId, studentUserId]);
   if (usersErr) throw new Error(usersErr.message);
 
-  const parent  = users?.find((u) => u.id === parentUserId);
+  const parent = users?.find((u) => u.id === parentUserId);
   const student = users?.find((u) => u.id === studentUserId);
-  if (!parent  || parent.role  !== "parent")  throw new Error("Parent user must have role='parent'");
-  if (!student || student.role !== "student") throw new Error("Student user must have role='student'");
+  if (!parent || parent.role !== "parent") throw new Error("Parent user must have role='parent'");
+  if (!student || student.role !== "student")
+    throw new Error("Student user must have role='student'");
 
   const { error } = await supabase
     .from("parent_student_links")
     .insert({ parent_user_id: parentUserId, student_user_id: studentUserId });
-  if (error && error.code !== "23505") {         // 23505 = unique_violation (already linked)
+  if (error && error.code !== "23505") {
+    // 23505 = unique_violation (already linked)
     throw new Error(error.message);
   }
 
@@ -77,7 +76,7 @@ export async function actionUnlinkParentFromStudent(parentUserId: string, studen
   const { error } = await supabase
     .from("parent_student_links")
     .delete()
-    .eq("parent_user_id",  parentUserId)
+    .eq("parent_user_id", parentUserId)
     .eq("student_user_id", studentUserId);
   if (error) throw new Error(error.message);
 

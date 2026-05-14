@@ -26,8 +26,11 @@ export async function POST(req: NextRequest) {
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   let body: Partial<HighlightRequest>;
-  try { body = (await req.json()) as Partial<HighlightRequest>; }
-  catch { return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 }); }
+  try {
+    body = (await req.json()) as Partial<HighlightRequest>;
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  }
   if (!body.messageId || typeof body.highlighted !== "boolean") {
     return NextResponse.json({ error: "Missing messageId or highlighted" }, { status: 400 });
   }

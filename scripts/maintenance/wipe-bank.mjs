@@ -46,9 +46,7 @@ const TABLES = [
 ];
 
 async function count(table) {
-  const { count, error } = await supabase
-    .from(table)
-    .select("id", { count: "exact", head: true });
+  const { count, error } = await supabase.from(table).select("id", { count: "exact", head: true });
   if (error) {
     return `error: ${error.message}`;
   }
@@ -72,17 +70,11 @@ async function main() {
   const ALL = "00000000-0000-0000-0000-000000000000";
 
   console.log("\nWiping quiz_attempts (cascades → question_responses)…");
-  const { error: e1 } = await supabase
-    .from("quiz_attempts")
-    .delete()
-    .neq("id", ALL);
+  const { error: e1 } = await supabase.from("quiz_attempts").delete().neq("id", ALL);
   if (e1) throw new Error(`quiz_attempts delete failed: ${e1.message}`);
 
   console.log("Wiping quiz_questions (cascades → answer_choices, flagged_questions)…");
-  const { error: e2 } = await supabase
-    .from("quiz_questions")
-    .delete()
-    .neq("id", ALL);
+  const { error: e2 } = await supabase.from("quiz_questions").delete().neq("id", ALL);
   if (e2) throw new Error(`quiz_questions delete failed: ${e2.message}`);
 
   console.log("");

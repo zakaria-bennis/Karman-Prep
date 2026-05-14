@@ -48,12 +48,12 @@ export async function markNodeComplete(nodeId: string, subject: Subject) {
 
   // 1. Mark the node mastered
   await supabase.from("learn_node_status").upsert({
-    user_id:      userId,
-    node_id:      nodeId,
-    status:       "mastered",
-    score:        100,
+    user_id: userId,
+    node_id: nodeId,
+    status: "mastered",
+    score: 100,
     completed_at: new Date().toISOString(),
-    updated_at:   new Date().toISOString(),
+    updated_at: new Date().toISOString(),
   });
 
   // 2. Load current status map for this user + subject
@@ -62,7 +62,10 @@ export async function markNodeComplete(nodeId: string, subject: Subject) {
     .from("learn_node_status")
     .select("node_id, status")
     .eq("user_id", userId)
-    .in("node_id", nodes.map((n) => n.id));
+    .in(
+      "node_id",
+      nodes.map((n) => n.id)
+    );
 
   const statusMap = new Map(statusRows?.map((r) => [r.node_id, r.status]) ?? []);
   statusMap.set(nodeId, "mastered"); // reflect the update we just made
@@ -78,9 +81,9 @@ export async function markNodeComplete(nodeId: string, subject: Subject) {
   if (nowAvailable.length > 0) {
     await supabase.from("learn_node_status").upsert(
       nowAvailable.map((n) => ({
-        user_id:    userId,
-        node_id:    n.id,
-        status:     "available",
+        user_id: userId,
+        node_id: n.id,
+        status: "available",
         updated_at: new Date().toISOString(),
       }))
     );
@@ -100,9 +103,9 @@ export async function markNodeInProgress(nodeId: string, subject: Subject) {
   const supabase = createAdminClient();
 
   await supabase.from("learn_node_status").upsert({
-    user_id:    userId,
-    node_id:    nodeId,
-    status:     "in_progress",
+    user_id: userId,
+    node_id: nodeId,
+    status: "in_progress",
     updated_at: new Date().toISOString(),
   });
 

@@ -28,11 +28,7 @@ export default async function StudentDashboardPage() {
   if (!isActive) redirect("/billing?required=1");
 
   // Fetch user info
-  const { data: user } = await supabase
-    .from("users")
-    .select("*")
-    .eq("clerk_id", userId)
-    .single();
+  const { data: user } = await supabase.from("users").select("*").eq("clerk_id", userId).single();
 
   // Fetch progress across all concepts
   const { data: progress } = await supabase

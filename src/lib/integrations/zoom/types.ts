@@ -8,7 +8,7 @@ export interface ZoomParticipant {
   user_name?: string;
   id?: string;
   email?: string;
-  join_time?: string;  // ISO
+  join_time?: string; // ISO
   leave_time?: string; // ISO
   leave_reason?: string;
 }

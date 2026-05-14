@@ -45,23 +45,23 @@ export function HintButton({ used, alreadyOpenedOnThisQuestion, onUse }: Props) 
             : "Use a hint"
       }
       className={cn(
-        "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all",
+        "inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold transition-all",
         exhausted
-          ? "border-slate-700/50 bg-transparent text-slate-600 cursor-not-allowed opacity-60"
+          ? "cursor-not-allowed border-slate-700/50 bg-transparent text-slate-600 opacity-60"
           : alreadyOpenedOnThisQuestion
-            ? "border-emerald-400/50 bg-emerald-400/10 text-emerald-300 cursor-default"
-            : "border-amber-400/40 bg-amber-400/[0.06] text-amber-300 hover:bg-amber-400/15 hover:border-amber-400/60"
+            ? "cursor-default border-emerald-400/50 bg-emerald-400/10 text-emerald-300"
+            : "border-amber-400/40 bg-amber-400/[0.06] text-amber-300 hover:border-amber-400/60 hover:bg-amber-400/15"
       )}
     >
       {alreadyOpenedOnThisQuestion ? (
-        <Check className="w-3.5 h-3.5" />
+        <Check className="h-3.5 w-3.5" />
       ) : (
-        <Lightbulb className="w-3.5 h-3.5" />
+        <Lightbulb className="h-3.5 w-3.5" />
       )}
       <span>{alreadyOpenedOnThisQuestion ? "Hint shown" : "Hint"}</span>
       <span
         className={cn(
-          "ml-0.5 px-1.5 py-0.5 rounded text-[10px] font-bold",
+          "ml-0.5 rounded px-1.5 py-0.5 text-[10px] font-bold",
           exhausted
             ? "bg-slate-800/60 text-slate-500"
             : alreadyOpenedOnThisQuestion

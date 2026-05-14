@@ -51,40 +51,87 @@ const NODE_TO_DOMAIN = new Map();
 console.log(`loaded ${SLUG_TO_NODE.size} slug→node mappings from curriculum.ts`);
 
 const VALID_DOMAINS = new Set([
-  "algebra", "advanced_math", "geometry", "data_analysis",
-  "info_ideas", "craft_structure", "expression_ideas", "conventions",
+  "algebra",
+  "advanced_math",
+  "geometry",
+  "data_analysis",
+  "info_ideas",
+  "craft_structure",
+  "expression_ideas",
+  "conventions",
 ]);
-const READING_DOMAINS = new Set(["info_ideas", "craft_structure", "expression_ideas", "conventions"]);
+const READING_DOMAINS = new Set([
+  "info_ideas",
+  "craft_structure",
+  "expression_ideas",
+  "conventions",
+]);
 
 const CLUSTER_BY_DOMAIN = {
-  algebra:          "Algebra",
-  advanced_math:    "Advanced Math",
-  geometry:         "Geometry & Trigonometry",
-  data_analysis:    "Problem-Solving & Data Analysis",
-  info_ideas:       "Information & Ideas",
-  craft_structure:  "Craft & Structure",
+  algebra: "Algebra",
+  advanced_math: "Advanced Math",
+  geometry: "Geometry & Trigonometry",
+  data_analysis: "Problem-Solving & Data Analysis",
+  info_ideas: "Information & Ideas",
+  craft_structure: "Craft & Structure",
   expression_ideas: "Expression of Ideas",
-  conventions:      "Standard English Conventions",
+  conventions: "Standard English Conventions",
 };
 
 // ── Minimal RFC4180-ish CSV parser ───────────────────────────
 function parseCsv(text) {
   const rows = [];
-  let row = [], cell = "", i = 0, inQuotes = false;
+  let row = [],
+    cell = "",
+    i = 0,
+    inQuotes = false;
   while (i < text.length) {
     const ch = text[i];
     if (inQuotes) {
-      if (ch === '"' && text[i + 1] === '"') { cell += '"'; i += 2; continue; }
-      if (ch === '"') { inQuotes = false; i++; continue; }
-      cell += ch; i++; continue;
+      if (ch === '"' && text[i + 1] === '"') {
+        cell += '"';
+        i += 2;
+        continue;
+      }
+      if (ch === '"') {
+        inQuotes = false;
+        i++;
+        continue;
+      }
+      cell += ch;
+      i++;
+      continue;
     }
-    if (ch === '"') { inQuotes = true; i++; continue; }
-    if (ch === ',') { row.push(cell); cell = ""; i++; continue; }
-    if (ch === '\r') { i++; continue; }
-    if (ch === '\n') { row.push(cell); rows.push(row); row = []; cell = ""; i++; continue; }
-    cell += ch; i++;
+    if (ch === '"') {
+      inQuotes = true;
+      i++;
+      continue;
+    }
+    if (ch === ",") {
+      row.push(cell);
+      cell = "";
+      i++;
+      continue;
+    }
+    if (ch === "\r") {
+      i++;
+      continue;
+    }
+    if (ch === "\n") {
+      row.push(cell);
+      rows.push(row);
+      row = [];
+      cell = "";
+      i++;
+      continue;
+    }
+    cell += ch;
+    i++;
   }
-  if (cell.length > 0 || row.length > 0) { row.push(cell); rows.push(row); }
+  if (cell.length > 0 || row.length > 0) {
+    row.push(cell);
+    rows.push(row);
+  }
   return rows;
 }
 
@@ -111,8 +158,16 @@ async function main() {
 
   // index columns by name so we don't depend on order
   const col = (name) => header.indexOf(name);
-  const need = ["question_text", "correct_answer", "domain", "concept_slug",
-                "source_pdf", "content_hash", "import_status", "question_format"];
+  const need = [
+    "question_text",
+    "correct_answer",
+    "domain",
+    "concept_slug",
+    "source_pdf",
+    "content_hash",
+    "import_status",
+    "question_format",
+  ];
   for (const n of need) {
     if (col(n) < 0) {
       console.error(`CSV missing required column: ${n}`);
@@ -163,7 +218,7 @@ async function main() {
     const eB = get("explanation_b");
     const eC = get("explanation_c");
     const eD = get("explanation_d");
-    const explanationPerChoice = (eA || eB || eC || eD) ? { A: eA, B: eB, C: eC, D: eD } : null;
+    const explanationPerChoice = eA || eB || eC || eD ? { A: eA, B: eB, C: eC, D: eD } : null;
 
     // Insert quiz_questions
     const insertPayload = {
@@ -245,9 +300,16 @@ async function main() {
     if (result.errors.length > 10) console.log(`  …and ${result.errors.length - 10} more`);
   }
   // Final bank totals
-  const { count: q } = await supabase.from("quiz_questions").select("id", { count: "exact", head: true });
-  const { count: c } = await supabase.from("answer_choices").select("id", { count: "exact", head: true });
+  const { count: q } = await supabase
+    .from("quiz_questions")
+    .select("id", { count: "exact", head: true });
+  const { count: c } = await supabase
+    .from("answer_choices")
+    .select("id", { count: "exact", head: true });
   console.log(`\nbank now: ${q} questions, ${c} choices`);
 }
 
-main().catch((err) => { console.error("FATAL:", err.message); process.exit(1); });
+main().catch((err) => {
+  console.error("FATAL:", err.message);
+  process.exit(1);
+});

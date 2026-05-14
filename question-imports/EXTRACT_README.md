@@ -73,11 +73,11 @@ Both paths land rows in the same `quiz_questions` table.
 
 Set env vars before invoking Stage 2:
 
-| Var | Default | Use when |
-|-----|---------|----------|
-| `GEMINI_API_KEY` | (none — required) | Always. Get one at aistudio.google.com/apikey |
-| `GEMINI_MODEL` | `gemini-2.5-flash` | `gemini-2.5-pro` for higher quality (~25 RPD free-tier limit) |
-| `CHUNK_PAGES` | `25` | Lower if Gemini truncates output past 65 k tokens |
+| Var              | Default            | Use when                                                      |
+| ---------------- | ------------------ | ------------------------------------------------------------- |
+| `GEMINI_API_KEY` | (none — required)  | Always. Get one at aistudio.google.com/apikey                 |
+| `GEMINI_MODEL`   | `gemini-2.5-flash` | `gemini-2.5-pro` for higher quality (~25 RPD free-tier limit) |
+| `CHUNK_PAGES`    | `25`               | Lower if Gemini truncates output past 65 k tokens             |
 
 ## When to reach for `marker` (heavier but math-aware)
 
@@ -110,13 +110,13 @@ batch call; Stage 2 stays the same.
 
 ## Why this replaces the Claude daemon path
 
-| Failure mode (Claude daemon) | Why it disappears here |
-|---|---|
-| Hits Claude Max rate limit mid-run | No Claude in the loop |
-| 30–90 minute extraction times | ~5 min total per PDF |
-| 78 GB RAM crash | Stage 1 ≈ 200 MB, Stage 2 ≈ 50 MB |
+| Failure mode (Claude daemon)                                 | Why it disappears here                                         |
+| ------------------------------------------------------------ | -------------------------------------------------------------- |
+| Hits Claude Max rate limit mid-run                           | No Claude in the loop                                          |
+| 30–90 minute extraction times                                | ~5 min total per PDF                                           |
+| 78 GB RAM crash                                              | Stage 1 ≈ 200 MB, Stage 2 ≈ 50 MB                              |
 | "Claude finished without creating runs/<ts>/" silent failure | Both stages either return text or hard-fail with a clear error |
-| Long-running detached processes | Each script runs to completion in the foreground |
+| Long-running detached processes                              | Each script runs to completion in the foreground               |
 
 The Claude routine (`ROUTINE_PROMPT.md`), the `pull-pdf-job.mjs`
 daemon, and `/admin/jobs` all still exist and still work for anyone who

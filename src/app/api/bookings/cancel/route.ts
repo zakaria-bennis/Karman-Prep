@@ -21,10 +21,7 @@ import {
   shouldForfeitCredit,
   updateBooking,
 } from "@/lib/supabase/queries/bookings";
-import {
-  consumeTokenForBooking,
-  releaseTokenFromBooking,
-} from "@/lib/supabase/queries/tokens";
+import { consumeTokenForBooking, releaseTokenFromBooking } from "@/lib/supabase/queries/tokens";
 
 interface CancelRequest {
   bookingId: string;
@@ -52,18 +49,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Booking not found" }, { status: 404 });
   }
   if (booking.status !== "scheduled") {
-    return NextResponse.json(
-      { error: `Booking is already ${booking.status}` },
-      { status: 409 }
-    );
+    return NextResponse.json({ error: `Booking is already ${booking.status}` }, { status: 409 });
   }
 
   // Ownership: only the student or tutor on the booking may cancel.
   const callerUuid = await getUserUuidByClerkId(userId);
-  if (
-    !callerUuid ||
-    (callerUuid !== booking.student_id && callerUuid !== booking.tutor_id)
-  ) {
+  if (!callerUuid || (callerUuid !== booking.student_id && callerUuid !== booking.tutor_id)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -84,13 +75,12 @@ export async function POST(req: NextRequest) {
       const alreadyCancelled =
         isAdapter &&
         err.statusCode === 400 &&
-        JSON.stringify(err.body ?? "").toLowerCase().includes("already");
+        JSON.stringify(err.body ?? "")
+          .toLowerCase()
+          .includes("already");
       if (!alreadyCancelled) {
         console.error("[api/bookings/cancel] cal error:", isAdapter ? err.toString() : err);
-        return NextResponse.json(
-          { error: "Failed to cancel on Cal.com" },
-          { status: 502 }
-        );
+        return NextResponse.json({ error: "Failed to cancel on Cal.com" }, { status: 502 });
       }
       console.warn(
         `[api/bookings/cancel] booking ${booking.id} already cancelled on Cal — syncing DB`

@@ -109,8 +109,7 @@ export async function uploadToR2(input: R2UploadInput): Promise<R2UploadResult> 
   }
 
   // Fallback: AWS S3 SDK (next dev, Node scripts).
-  const body =
-    input.body instanceof ArrayBuffer ? new Uint8Array(input.body) : input.body;
+  const body = input.body instanceof ArrayBuffer ? new Uint8Array(input.body) : input.body;
   await client().send(
     new PutObjectCommand({
       Bucket: bucket(),
@@ -132,9 +131,7 @@ export async function deleteFromR2(storagePath: string): Promise<void> {
     await binding.delete(storagePath);
     return;
   }
-  await client().send(
-    new DeleteObjectCommand({ Bucket: bucket(), Key: storagePath })
-  );
+  await client().send(new DeleteObjectCommand({ Bucket: bucket(), Key: storagePath }));
 }
 
 /** Sanitize a user-supplied filename for safe use as an object key. */

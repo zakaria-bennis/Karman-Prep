@@ -31,9 +31,7 @@ interface PageProps {
   searchParams: Promise<{ range?: string }>;
 }
 
-const VALID_RANGES: TimeRange[] = [
-  "today", "7d", "14d", "30d", "3mo", "6mo", "1y", "all",
-];
+const VALID_RANGES: TimeRange[] = ["today", "7d", "14d", "30d", "3mo", "6mo", "1y", "all"];
 
 export default async function TutorEarningsDataPage({ searchParams }: PageProps) {
   const sp = await searchParams;
@@ -49,7 +47,10 @@ export default async function TutorEarningsDataPage({ searchParams }: PageProps)
 
   const supabase = createAdminClient();
   const { data: caller } = await supabase
-    .from("users").select("id").eq("clerk_id", clerkId).maybeSingle();
+    .from("users")
+    .select("id")
+    .eq("clerk_id", clerkId)
+    .maybeSingle();
   if (!caller) redirect("/auth/sign-in");
 
   const tutorUserId = caller.id as string;
@@ -68,22 +69,20 @@ export default async function TutorEarningsDataPage({ searchParams }: PageProps)
 
   return (
     <DashboardLayout>
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-8">
+      <div className="mx-auto max-w-6xl space-y-8 px-4 py-8 sm:px-6">
         <Link
           href="/tutor/earnings"
           className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-900 dark:hover:text-white"
         >
-          <ChevronLeft className="w-4 h-4" /> My earnings
+          <ChevronLeft className="h-4 w-4" /> My earnings
         </Link>
 
         <header>
-          <p className="text-xs font-bold tracking-widest text-blue-500 uppercase mb-1">
+          <p className="mb-1 text-xs font-bold uppercase tracking-widest text-blue-500">
             Tutor Portal
           </p>
-          <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white">
-            Earning data
-          </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+          <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white">Earning data</h1>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             Filter sessions by time range. Bottom chart shows trends across the last 12 weeks.
           </p>
         </header>

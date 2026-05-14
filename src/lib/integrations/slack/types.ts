@@ -52,10 +52,7 @@ export class SlackAdapterError extends Error {
     public readonly context?: unknown,
     message?: string
   ) {
-    super(
-      message ??
-        `slack-adapter:${operation} failed${slackError ? ` (${slackError})` : ""}`
-    );
+    super(message ?? `slack-adapter:${operation} failed${slackError ? ` (${slackError})` : ""}`);
     this.name = "SlackAdapterError";
   }
 }

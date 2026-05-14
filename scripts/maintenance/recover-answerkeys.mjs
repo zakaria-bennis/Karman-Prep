@@ -36,9 +36,16 @@ function runChild(cmd, argv, opts = {}) {
       env: process.env,
       ...opts,
     });
-    let stdout = "", stderr = "";
-    child.stdout.on("data", (c) => { stdout += c; process.stdout.write(c); });
-    child.stderr.on("data", (c) => { stderr += c; process.stderr.write(c); });
+    let stdout = "",
+      stderr = "";
+    child.stdout.on("data", (c) => {
+      stdout += c;
+      process.stdout.write(c);
+    });
+    child.stderr.on("data", (c) => {
+      stderr += c;
+      process.stderr.write(c);
+    });
     child.on("error", reject);
     child.on("exit", (code) => resolve({ code: code ?? -1, stdout, stderr }));
   });
@@ -84,10 +91,7 @@ async function main() {
 
     // 2. Re-run stage 2 to re-classify with the new answer-key.
     console.log("\n  2/5  Re-running stage 2…");
-    const r2 = await runChild("python3", [
-      "question-imports/stage2_classify.py",
-      extractDir,
-    ], {
+    const r2 = await runChild("python3", ["question-imports/stage2_classify.py", extractDir], {
       env: {
         ...process.env,
         GEMINI_MODEL: process.env.GEMINI_MODEL || "gemini-2.5-flash",
@@ -123,7 +127,11 @@ async function main() {
         imported_counts: {},
         completed_at: null,
         error_message: null,
-        progress: { stage: "finalizing", message: "Recovery: re-uploading CSVs", updated_at: new Date().toISOString() },
+        progress: {
+          stage: "finalizing",
+          message: "Recovery: re-uploading CSVs",
+          updated_at: new Date().toISOString(),
+        },
       })
       .eq("id", job.id);
     if (e2) {
@@ -147,7 +155,12 @@ async function main() {
     console.log(`  ✓ done with ${stem}`);
   }
 
-  console.log("\n\nAll PDFs processed. The cron ping at the end of each finalize\nshould have re-imported the rows. Check /admin/jobs to confirm.");
+  console.log(
+    "\n\nAll PDFs processed. The cron ping at the end of each finalize\nshould have re-imported the rows. Check /admin/jobs to confirm."
+  );
 }
 
-main().catch((err) => { console.error("FATAL:", err.message); process.exit(1); });
+main().catch((err) => {
+  console.error("FATAL:", err.message);
+  process.exit(1);
+});

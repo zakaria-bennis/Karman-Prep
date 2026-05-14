@@ -30,7 +30,7 @@ interface Props {
 type Seg =
   | { kind: "text"; value: string }
   | { kind: "inline"; latex: string }
-  | { kind: "block";  latex: string };
+  | { kind: "block"; latex: string };
 
 function parse(text: string): Seg[] {
   // Extract $$…$$ first (greedy block), then remaining $…$ inline.
@@ -59,7 +59,10 @@ function parse(text: string): Seg[] {
 
   // Inline pass — same fix for `\$`.
   for (const seg of segmentsAfterBlock) {
-    if (seg.kind !== "text") { out.push(seg); continue; }
+    if (seg.kind !== "text") {
+      out.push(seg);
+      continue;
+    }
     let remaining = seg.value;
     while (true) {
       const m = remaining.match(/\$((?:\\\$|[^$\n])+?)\$/);
@@ -88,11 +91,7 @@ const BLANK_OR_UNDERSCORE_PATTERN = /_{2,}|(?<!\w)[_-]*blank[_-]*(?!\w)/gi;
 /** Replace each blank marker with one fixed-width continuous underline
  *  at the baseline. Width is uniform — what matters is that the blank
  *  reads as one clean line, not a string of dashes or the literal word. */
-function renderTextWithBlanks(
-  text: string,
-  segKey: number,
-  treatBlankWord: boolean,
-): ReactNode {
+function renderTextWithBlanks(text: string, segKey: number, treatBlankWord: boolean): ReactNode {
   const pattern = treatBlankWord ? BLANK_OR_UNDERSCORE_PATTERN : UNDERSCORE_PATTERN;
   // Walk via matchAll so we get both the matches and the in-between text.
   const segments: { value: string; isBlank: boolean }[] = [];
@@ -105,7 +104,7 @@ function renderTextWithBlanks(
     segments.push({ value: m[0], isBlank: true });
     cursor = m.index + m[0].length;
   }
-  if (segments.length === 0) return text;  // hot path — most segments
+  if (segments.length === 0) return text; // hot path — most segments
   if (cursor < text.length) {
     segments.push({ value: text.slice(cursor), isBlank: false });
   }
@@ -158,7 +157,8 @@ export default function MathText({
   return (
     <span className={className} style={{ whiteSpace: "pre-wrap" }}>
       {segs.map((s, i) => {
-        if (s.kind === "text") return <span key={i}>{renderTextWithBlanks(s.value, i, treatBlankWord)}</span>;
+        if (s.kind === "text")
+          return <span key={i}>{renderTextWithBlanks(s.value, i, treatBlankWord)}</span>;
         if (s.kind === "inline") {
           // Baseline alignment + inheriting color/size keeps the
           // math inline with prose. The CSS override on .katex in
@@ -174,7 +174,7 @@ export default function MathText({
         return (
           <span
             key={i}
-            className={`block my-3 text-center ${blockClassName}`}
+            className={`my-3 block text-center ${blockClassName}`}
             dangerouslySetInnerHTML={{ __html: renderKaTeX(s.latex, true) }}
           />
         );

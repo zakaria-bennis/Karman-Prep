@@ -5,6 +5,7 @@ SAT practice PDFs from `incoming/` into the two CSVs the Strata
 importer at `/admin/questions/import` consumes.
 
 Verified against the implemented importer:
+
 - 30-column CSV schema (`src/components/admin/BulkImportPanel.tsx` `CSV_HEADERS`)
 - 8 domains + 89 concept slugs, 1:1 with curriculum nodes
   (`src/lib/question-bank/taxonomy.ts`, derived from `src/data/curriculum.ts`)
@@ -20,7 +21,7 @@ When the spec for the importer changes, update this file in lockstep.
 
 ## Paste the block below into a Claude Code session
 
-````
+```
 You are a question-extraction routine for the Strata SAT prep
 platform. Your job: read SAT practice PDFs from a folder, extract
 every solvable question, classify each one against a locked
@@ -599,4 +600,4 @@ NEVER
   · Never ship a math question whose essential figure is
     missing — flag needs_review and tell the admin to attach
     the visual manually until the tarball pipeline ships
-````
+```

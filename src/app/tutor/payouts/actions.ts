@@ -32,7 +32,7 @@ import {
 import { resend, FROM } from "@/lib/integrations/resend/client";
 
 const APPLICATION_FEE_INSTANT = 0.025; // 2.5%
-const APPLICATION_FEE_STANDARD = 0;    // ACH is free to the tutor
+const APPLICATION_FEE_STANDARD = 0; // ACH is free to the tutor
 
 export type PayoutMethod = "instant" | "standard";
 
@@ -57,13 +57,15 @@ export async function actionRequestPayout(method: PayoutMethod): Promise<PayoutR
   // 1. Caller + Stripe onboarded check
   const { data: caller } = await supabase
     .from("users")
-    .select("id, role, email, first_name, last_name, stripe_connect_account_id, stripe_payouts_enabled")
+    .select(
+      "id, role, email, first_name, last_name, stripe_connect_account_id, stripe_payouts_enabled"
+    )
     .eq("clerk_id", clerkId)
     .maybeSingle();
   if (!caller) throw new Error("user_not_found");
   if (caller.role !== "tutor" && caller.role !== "admin") throw new Error("forbidden");
   if (!caller.stripe_connect_account_id) throw new Error("not_onboarded");
-  if (!caller.stripe_payouts_enabled)    throw new Error("payouts_not_enabled");
+  if (!caller.stripe_payouts_enabled) throw new Error("payouts_not_enabled");
 
   // For instant payouts, double-check the capability is live (cached
   // flag may be out of date if the tutor just added a debit card).
@@ -105,13 +107,13 @@ export async function actionRequestPayout(method: PayoutMethod): Promise<PayoutR
       tutor_user_id: caller.id,
       total_amount: gross,
       total_hours: totalHours,
-      booking_ids: [],          // legacy column kept; not used post-sessions migration
-      session_ids: sessionIds,  // canonical going forward
+      booking_ids: [], // legacy column kept; not used post-sessions migration
+      session_ids: sessionIds, // canonical going forward
       payout_method: method,
       payment_method: "stripe",
       application_fee_amount: fee,
       net_amount: net,
-      status: "pending_approval",  // bumped to 'paid' once Stripe completes
+      status: "pending_approval", // bumped to 'paid' once Stripe completes
     })
     .select("id")
     .single();
@@ -173,7 +175,7 @@ export async function actionRequestPayout(method: PayoutMethod): Promise<PayoutR
       .eq("id", requestId);
     await supabase
       .from("sessions")
-      .update({ payout_status: "approved" })  // money's at Stripe but not yet in tutor's hand
+      .update({ payout_status: "approved" }) // money's at Stripe but not yet in tutor's hand
       .in("id", sessionIds);
     throw new Error(`payout_failed: ${errMessage(err)}`);
   }
@@ -191,10 +193,7 @@ export async function actionRequestPayout(method: PayoutMethod): Promise<PayoutR
       paid_at: now,
     })
     .eq("id", requestId);
-  await supabase
-    .from("sessions")
-    .update({ payout_status: "paid" })
-    .in("id", sessionIds);
+  await supabase.from("sessions").update({ payout_status: "paid" }).in("id", sessionIds);
 
   // 10. Refresh earnings view
   try {
@@ -212,13 +211,13 @@ export async function actionRequestPayout(method: PayoutMethod): Promise<PayoutR
       subject: `Payout sent — $${net.toFixed(2)}`,
       html: `<p>Hi ${tutorName},</p>
 <p>Your KarmanPrep payout of <strong>$${net.toFixed(2)}</strong> is on its way${
-  method === "instant"
-    ? " — should arrive on your debit card in seconds"
-    : " via ACH — typically 2-3 business days"
-}.</p>
+        method === "instant"
+          ? " — should arrive on your debit card in seconds"
+          : " via ACH — typically 2-3 business days"
+      }.</p>
 <p>${eligible.length} session${eligible.length === 1 ? "" : "s"} · ${totalHours.toFixed(2)} hours · ${
-  method === "instant" ? `$${fee.toFixed(2)} fee` : "no fee"
-} · gross $${gross.toFixed(2)}</p>
+        method === "instant" ? `$${fee.toFixed(2)} fee` : "no fee"
+      } · gross $${gross.toFixed(2)}</p>
 <p>—<br/>KarmanPrep</p>`,
     });
   } catch (err) {
@@ -248,7 +247,7 @@ async function rollback(
   supabase: ReturnType<typeof createAdminClient>,
   requestId: string,
   sessionIds: string[],
-  err: unknown,
+  err: unknown
 ) {
   await supabase
     .from("payout_requests")

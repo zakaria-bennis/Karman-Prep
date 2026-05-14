@@ -67,10 +67,7 @@ export async function POST(req: NextRequest) {
     if (!plainToken) {
       return NextResponse.json({ error: "Missing plainToken" }, { status: 400 });
     }
-    const encryptedToken = crypto
-      .createHmac("sha256", secret)
-      .update(plainToken)
-      .digest("hex");
+    const encryptedToken = crypto.createHmac("sha256", secret).update(plainToken).digest("hex");
     return NextResponse.json({ plainToken, encryptedToken });
   }
 

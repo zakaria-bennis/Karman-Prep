@@ -37,14 +37,14 @@ export interface SessionRecapProps {
 }
 
 const FIELD_LABELS: Array<[keyof SessionRecapProps["fields"], string]> = [
-  ["date_and_time_of_session",              "Date and Time of Session"],
-  ["student_performance_progress",          "Student Performance/Progress"],
-  ["subjects_covered_during_session",       "Subjects Covered During the Session"],
-  ["specific_weak_points_or_mistakes",      "Specific Weak Points or Mistakes to Review"],
-  ["next_steps_homework_assigned",          "Next Steps Homework Assigned"],
-  ["subjects_to_cover_next_session",        "Subjects to Cover Next Session"],
+  ["date_and_time_of_session", "Date and Time of Session"],
+  ["student_performance_progress", "Student Performance/Progress"],
+  ["subjects_covered_during_session", "Subjects Covered During the Session"],
+  ["specific_weak_points_or_mistakes", "Specific Weak Points or Mistakes to Review"],
+  ["next_steps_homework_assigned", "Next Steps Homework Assigned"],
+  ["subjects_to_cover_next_session", "Subjects to Cover Next Session"],
   ["homework_practice_before_next_session", "Homework/Practice to Complete Before Next Session"],
-  ["date_and_time_of_next_session",         "Date and Time of Next Session"],
+  ["date_and_time_of_next_session", "Date and Time of Next Session"],
 ];
 
 export function SessionRecap({
@@ -57,22 +57,22 @@ export function SessionRecap({
   fields,
 }: SessionRecapProps) {
   const signature = (signatureOverride?.trim() || `Best regards,\n${tutorName}`).trim();
-  const subtitle = sessionType === "group"
-    ? `${cohortName ?? "Class session"} · ${sessionDate}`
-    : `${studentName ?? "Student"} · ${sessionDate}`;
+  const subtitle =
+    sessionType === "group"
+      ? `${cohortName ?? "Class session"} · ${sessionDate}`
+      : `${studentName ?? "Student"} · ${sessionDate}`;
   const heading = sessionType === "group" ? "Class session recap" : "Session recap";
-  const preview = sessionType === "group"
-    ? `Class recap — ${cohortName ?? "session"} — ${sessionDate}`
-    : `Session recap for ${studentName ?? "student"} — ${sessionDate}`;
+  const preview =
+    sessionType === "group"
+      ? `Class recap — ${cohortName ?? "session"} — ${sessionDate}`
+      : `Session recap for ${studentName ?? "student"} — ${sessionDate}`;
 
   return (
     <Layout preview={preview}>
       <Heading style={{ color: "#0f172a", fontSize: 22, marginTop: 0, marginBottom: 4 }}>
         {heading}
       </Heading>
-      <Text style={{ color: "#475569", fontSize: 14, margin: "0 0 24px 0" }}>
-        {subtitle}
-      </Text>
+      <Text style={{ color: "#475569", fontSize: 14, margin: "0 0 24px 0" }}>{subtitle}</Text>
 
       <Section>
         {FIELD_LABELS.map(([key, label]) => (

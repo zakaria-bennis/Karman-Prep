@@ -20,7 +20,7 @@ const STARS = Array.from({ length: 160 }, (_, i) => ({
   // Independent twinkle timing per star — staggered so they feel alive
   // without any JS animation loop.
   twinkleDuration: 3 + pr(i * 5.71) * 4,
-  twinkleDelay:    pr(i * 6.13) * 6,
+  twinkleDelay: pr(i * 6.13) * 6,
 }));
 
 export default function AuthBackdrop() {
@@ -39,10 +39,7 @@ export default function AuthBackdrop() {
       />
 
       {/* Aurora blobs — violet, blue, teal — echoing the Hero's CloudAurora */}
-      <div
-        aria-hidden
-        className="absolute inset-0 -z-10 pointer-events-none overflow-hidden"
-      >
+      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
         <div
           className="absolute rounded-full"
           style={{
@@ -85,15 +82,15 @@ export default function AuthBackdrop() {
       </div>
 
       {/* Star field — twinkling in place */}
-      <div aria-hidden className="absolute inset-0 -z-10 pointer-events-none overflow-hidden">
+      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
         {STARS.map((s, i) => (
           <span
             key={i}
             className="absolute rounded-full bg-white"
             style={{
-              top:    `${s.top}%`,
-              left:   `${s.left}%`,
-              width:  `${s.r}px`,
+              top: `${s.top}%`,
+              left: `${s.left}%`,
+              width: `${s.r}px`,
               height: `${s.r}px`,
               opacity: s.o,
               animation: `authTwinkle ${s.twinkleDuration}s ease-in-out ${s.twinkleDelay}s infinite`,
@@ -105,7 +102,7 @@ export default function AuthBackdrop() {
       {/* Grain overlay — matches landing's .bg-grain */}
       <div
         aria-hidden
-        className="absolute inset-0 -z-10 pointer-events-none"
+        className="pointer-events-none absolute inset-0 -z-10"
         style={{
           opacity: 0.1,
           mixBlendMode: "overlay",

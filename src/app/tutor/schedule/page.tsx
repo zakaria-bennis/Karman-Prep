@@ -117,8 +117,8 @@ function formatTime(iso: string, tz: string): string {
 
 type TabKey = "upcoming" | "seminars" | "small-groups";
 const ALL_TABS: { key: TabKey; label: string }[] = [
-  { key: "upcoming",     label: "Upcoming" },
-  { key: "seminars",     label: "Seminars" },
+  { key: "upcoming", label: "Upcoming" },
+  { key: "seminars", label: "Seminars" },
   { key: "small-groups", label: "Small Groups" },
 ];
 
@@ -188,20 +188,20 @@ export default async function TutorSchedulePage({
 
   return (
     <DashboardLayout>
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+      <div className="mx-auto max-w-4xl space-y-6 px-4 py-8 sm:px-6">
         <header>
-          <p className="text-xs font-bold tracking-widest text-blue-500 uppercase mb-1">
+          <p className="mb-1 text-xs font-bold uppercase tracking-widest text-blue-500">
             Tutor Portal
           </p>
-          <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
-            <CalendarClock className="w-6 h-6 text-slate-400" />
+          <h1 className="flex items-center gap-2 text-2xl font-extrabold text-slate-900 dark:text-white">
+            <CalendarClock className="h-6 w-6 text-slate-400" />
             My schedule
           </h1>
         </header>
 
         {/* Tab nav */}
-        <nav className="border-b border-slate-200 dark:border-slate-800 -mb-2">
-          <ul className="flex gap-1 -mb-px">
+        <nav className="-mb-2 border-b border-slate-200 dark:border-slate-800">
+          <ul className="-mb-px flex gap-1">
             {ALL_TABS.map((t) => {
               const count =
                 t.key === "upcoming"
@@ -215,16 +215,16 @@ export default async function TutorSchedulePage({
                   <Link
                     href={`/tutor/schedule${t.key === "upcoming" ? "" : `?tab=${t.key}`}`}
                     className={[
-                      "inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold border-b-2 -mb-px transition-colors",
+                      "-mb-px inline-flex items-center gap-1.5 border-b-2 px-3 py-2 text-sm font-semibold transition-colors",
                       active
                         ? "border-blue-500 text-blue-600 dark:text-blue-400"
-                        : "border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:border-slate-300 dark:hover:border-slate-700",
+                        : "border-transparent text-slate-600 hover:border-slate-300 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-700 dark:hover:text-white",
                     ].join(" ")}
                   >
                     {t.label}
                     <span
                       className={[
-                        "inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded text-[11px] font-bold",
+                        "inline-flex h-5 min-w-[20px] items-center justify-center rounded px-1.5 text-[11px] font-bold",
                         active
                           ? "bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300"
                           : "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400",
@@ -240,7 +240,7 @@ export default async function TutorSchedulePage({
         </nav>
 
         {visible.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-slate-200 dark:border-slate-800 px-6 py-10 text-center">
+          <div className="rounded-xl border border-dashed border-slate-200 px-6 py-10 text-center dark:border-slate-800">
             <p className="text-sm text-slate-500 dark:text-slate-400">
               {tab === "upcoming"
                 ? "Nothing scheduled. New bookings will show up here as students book in."
@@ -291,10 +291,10 @@ function ScheduleGrouped({
         const heading = formatDay(dayBookings[0]!.scheduled_start, tz);
         return (
           <div key={k}>
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">
               {heading}
             </p>
-            <ul className="rounded-xl border border-slate-200 dark:border-slate-800 divide-y divide-slate-200 dark:divide-slate-800 overflow-hidden">
+            <ul className="divide-y divide-slate-200 overflow-hidden rounded-xl border border-slate-200 dark:divide-slate-800 dark:border-slate-800">
               {dayBookings.map((b) => {
                 const student = studentsById.get(b.student_id);
                 const tier = tierLabel(b.plan_tier);
@@ -302,20 +302,24 @@ function ScheduleGrouped({
                 return (
                   <li
                     key={b.id}
-                    className="flex items-center gap-3 px-4 py-3 bg-white dark:bg-slate-900/40 hover:bg-slate-50 dark:hover:bg-slate-900/70 transition-colors"
+                    className="flex items-center gap-3 bg-white px-4 py-3 transition-colors hover:bg-slate-50 dark:bg-slate-900/40 dark:hover:bg-slate-900/70"
                   >
-                    <span className="font-mono text-sm text-slate-700 dark:text-slate-200 w-20 shrink-0">
+                    <span className="w-20 shrink-0 font-mono text-sm text-slate-700 dark:text-slate-200">
                       {formatTime(b.scheduled_start, tz)}
                     </span>
-                    <span className="flex-1 min-w-0">
-                      <span className="font-semibold text-slate-900 dark:text-white truncate block">
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate font-semibold text-slate-900 dark:text-white">
                         {studentDisplay(student)}
                       </span>
-                      <span className={`inline-block mt-0.5 text-[10px] font-semibold px-1.5 py-0.5 rounded border ${tier.cls}`}>
+                      <span
+                        className={`mt-0.5 inline-block rounded border px-1.5 py-0.5 text-[10px] font-semibold ${tier.cls}`}
+                      >
                         {tier.label}
                       </span>
                     </span>
-                    <span className={`text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded ${status.cls}`}>
+                    <span
+                      className={`rounded px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${status.cls}`}
+                    >
                       {status.label}
                     </span>
                     {showJoin && b.status === "scheduled" && b.zoom_join_url ? (
@@ -323,9 +327,9 @@ function ScheduleGrouped({
                         href={b.zoom_join_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-500 hover:bg-blue-400 text-white text-xs font-semibold"
+                        className="inline-flex items-center gap-1 rounded-lg bg-blue-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-400"
                       >
-                        <Video className="w-3.5 h-3.5" />
+                        <Video className="h-3.5 w-3.5" />
                         Join
                       </a>
                     ) : null}

@@ -9,7 +9,15 @@
 import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { BookOpen, ClipboardList, Loader2, Plus, Trash2, Users as UsersIcon, X } from "lucide-react";
+import {
+  BookOpen,
+  ClipboardList,
+  Loader2,
+  Plus,
+  Trash2,
+  Users as UsersIcon,
+  X,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useConfirm } from "@/components/shared/ConfirmDialog";
 import type {
@@ -37,31 +45,30 @@ const TIER_LABEL: Record<CohortTier, string> = {
   group: "Seminar",
 };
 
-export default function CohortDetailClient({ detail, activeTab, eligibleStudents, chatProvisioned }: Props) {
+export default function CohortDetailClient({
+  detail,
+  activeTab,
+  eligibleStudents,
+  chatProvisioned,
+}: Props) {
   const { cohort, members, tutorNote, homework } = detail;
 
   return (
     <div>
       {/* ── Header ─────────────────────────────────────────── */}
       <header className="mb-6">
-        <div className="flex flex-wrap items-center gap-3 mb-2">
+        <div className="mb-2 flex flex-wrap items-center gap-3">
           <TierBadge tier={cohort.tier} />
           <StatusBadge status={cohort.status} />
-          <span className="text-sm text-slate-400">
-            {formatDate(cohort.sat_date)} SAT
-          </span>
+          <span className="text-sm text-slate-400">{formatDate(cohort.sat_date)} SAT</span>
           <span className="text-slate-700">·</span>
-          <span className="text-sm text-slate-400">
-            {tutorDisplay(cohort.tutor)}
-          </span>
+          <span className="text-sm text-slate-400">{tutorDisplay(cohort.tutor)}</span>
           <span className="text-slate-700">·</span>
-          <span className="text-sm text-slate-400 font-mono">
+          <span className="font-mono text-sm text-slate-400">
             {cohort.member_count}/{cohort.max_size} seats
           </span>
         </div>
-        <h1 className="text-2xl font-extrabold text-white tracking-tight">
-          {cohort.name}
-        </h1>
+        <h1 className="text-2xl font-extrabold tracking-tight text-white">{cohort.name}</h1>
         {cohort.current_topic && (
           <p className="mt-2 text-sm text-slate-400">
             <span className="font-semibold text-slate-300">Current topic —</span>{" "}
@@ -74,7 +81,7 @@ export default function CohortDetailClient({ detail, activeTab, eligibleStudents
       </header>
 
       {/* ── Tab nav ────────────────────────────────────────── */}
-      <div className="border-b border-slate-800 flex gap-1 text-sm mb-6">
+      <div className="mb-6 flex gap-1 border-b border-slate-800 text-sm">
         <TabLink
           cohortId={cohort.id}
           tab="members"
@@ -102,7 +109,7 @@ export default function CohortDetailClient({ detail, activeTab, eligibleStudents
       </div>
 
       {/* ── Tab content ────────────────────────────────────── */}
-      {activeTab === "members"  && (
+      {activeTab === "members" && (
         <MembersTab
           cohortId={cohort.id}
           members={members}
@@ -111,7 +118,9 @@ export default function CohortDetailClient({ detail, activeTab, eligibleStudents
           eligibleStudents={eligibleStudents}
         />
       )}
-      {activeTab === "notes"    && <NotesTab note={tutorNote} tutorName={tutorDisplay(cohort.tutor)} />}
+      {activeTab === "notes" && (
+        <NotesTab note={tutorNote} tutorName={tutorDisplay(cohort.tutor)} />
+      )}
       {activeTab === "homework" && <HomeworkTab homework={homework} />}
     </div>
   );
@@ -120,7 +129,12 @@ export default function CohortDetailClient({ detail, activeTab, eligibleStudents
 // ─── Tab link ────────────────────────────────────────────────
 
 function TabLink({
-  cohortId, tab, activeTab, icon: Icon, label, count,
+  cohortId,
+  tab,
+  activeTab,
+  icon: Icon,
+  label,
+  count,
 }: {
   cohortId: string;
   tab: TabKey;
@@ -130,25 +144,22 @@ function TabLink({
   count: number;
 }) {
   const active = activeTab === tab;
-  const href = tab === "members"
-    ? `/admin/cohorts/${cohortId}`
-    : `/admin/cohorts/${cohortId}?tab=${tab}`;
+  const href =
+    tab === "members" ? `/admin/cohorts/${cohortId}` : `/admin/cohorts/${cohortId}?tab=${tab}`;
   return (
     <Link
       href={href}
       className={cn(
-        "inline-flex items-center gap-2 px-4 pb-3 font-semibold border-b-2 transition-colors",
+        "inline-flex items-center gap-2 border-b-2 px-4 pb-3 font-semibold transition-colors",
         active
           ? "border-indigo-500 text-indigo-400"
           : "border-transparent text-slate-500 hover:text-slate-200"
       )}
     >
-      <Icon className="w-4 h-4" />
+      <Icon className="h-4 w-4" />
       {label}
       {count > 0 && (
-        <span className={cn("text-xs font-mono",
-          active ? "text-indigo-300" : "text-slate-500"
-        )}>
+        <span className={cn("font-mono text-xs", active ? "text-indigo-300" : "text-slate-500")}>
           {count}
         </span>
       )}
@@ -159,7 +170,11 @@ function TabLink({
 // ─── Members tab ─────────────────────────────────────────────
 
 function MembersTab({
-  cohortId, members, seatsOpen, cohortTier, eligibleStudents,
+  cohortId,
+  members,
+  seatsOpen,
+  cohortTier,
+  eligibleStudents,
 }: {
   cohortId: string;
   members: CohortMemberRow[];
@@ -176,21 +191,27 @@ function MembersTab({
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <p className="text-sm text-slate-400">
-          {seatsOpen > 0
-            ? <>{seatsOpen} open seat{seatsOpen === 1 ? "" : "s"}.</>
-            : <>Cohort is at capacity.</>}
+          {seatsOpen > 0 ? (
+            <>
+              {seatsOpen} open seat{seatsOpen === 1 ? "" : "s"}.
+            </>
+          ) : (
+            <>Cohort is at capacity.</>
+          )}
         </p>
         <button
           onClick={() => setAdding(true)}
           disabled={fullCapacity || eligibleStudents.length === 0}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-50"
           title={
-            fullCapacity ? "Cohort is at capacity"
-            : eligibleStudents.length === 0 ? "No eligible students available"
-            : undefined
+            fullCapacity
+              ? "Cohort is at capacity"
+              : eligibleStudents.length === 0
+                ? "No eligible students available"
+                : undefined
           }
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="h-4 w-4" />
           Add member
         </button>
       </div>
@@ -201,29 +222,24 @@ function MembersTab({
           subtitle="Click Add member to place a student in this cohort."
         />
       ) : (
-        <div className="rounded-xl border border-slate-800 overflow-hidden">
+        <div className="overflow-hidden rounded-xl border border-slate-800">
           <table className="w-full text-sm">
-            <thead className="bg-slate-900/60 text-slate-400 text-xs uppercase tracking-wider">
+            <thead className="bg-slate-900/60 text-xs uppercase tracking-wider text-slate-400">
               <tr>
-                <th className="text-left px-4 py-3 font-semibold">Name</th>
-                <th className="text-left px-4 py-3 font-semibold">Email</th>
-                <th className="text-left px-4 py-3 font-semibold">Joined</th>
+                <th className="px-4 py-3 text-left font-semibold">Name</th>
+                <th className="px-4 py-3 text-left font-semibold">Email</th>
+                <th className="px-4 py-3 text-left font-semibold">Joined</th>
                 <th aria-hidden="true" className="w-12" />
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800">
               {members.map((m) => (
-                <MemberRow
-                  key={m.user_id}
-                  cohortId={cohortId}
-                  member={m}
-                  onError={setRowError}
-                />
+                <MemberRow key={m.user_id} cohortId={cohortId} member={m} onError={setRowError} />
               ))}
             </tbody>
           </table>
           {rowError && (
-            <div className="px-4 py-2 text-xs text-rose-300 bg-rose-500/5 border-t border-slate-800">
+            <div className="border-t border-slate-800 bg-rose-500/5 px-4 py-2 text-xs text-rose-300">
               {rowError}
             </div>
           )}
@@ -243,7 +259,9 @@ function MembersTab({
 }
 
 function MemberRow({
-  cohortId, member, onError,
+  cohortId,
+  member,
+  onError,
 }: {
   cohortId: string;
   member: CohortMemberRow;
@@ -276,15 +294,15 @@ function MemberRow({
   }
 
   return (
-    <tr className="hover:bg-slate-900/40 transition-colors">
+    <tr className="transition-colors hover:bg-slate-900/40">
       <td className="px-4 py-3">
         <div className="flex items-center gap-3">
           <Avatar name={studentDisplay(member)} avatarUrl={member.avatar_url} />
-          <span className="text-white font-medium">{studentDisplay(member)}</span>
+          <span className="font-medium text-white">{studentDisplay(member)}</span>
         </div>
       </td>
-      <td className="px-4 py-3 text-slate-400 font-mono text-xs">{member.email}</td>
-      <td className="px-4 py-3 text-slate-400 text-xs">{formatDateTime(member.joined_at)}</td>
+      <td className="px-4 py-3 font-mono text-xs text-slate-400">{member.email}</td>
+      <td className="px-4 py-3 text-xs text-slate-400">{formatDateTime(member.joined_at)}</td>
       <td className="px-2 py-3">
         <button
           onClick={remove}
@@ -292,7 +310,7 @@ function MemberRow({
           className="text-slate-500 hover:text-rose-300 disabled:opacity-50"
           aria-label={`Remove ${studentDisplay(member)} from cohort`}
         >
-          {pending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+          {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
         </button>
       </td>
     </tr>
@@ -300,7 +318,10 @@ function MemberRow({
 }
 
 function AddMemberDialog({
-  cohortId, cohortTier, eligibleStudents, onClose,
+  cohortId,
+  cohortTier,
+  eligibleStudents,
+  onClose,
 }: {
   cohortId: string;
   cohortTier: CohortTier;
@@ -316,7 +337,7 @@ function AddMemberDialog({
   // then everyone else (admin override).
   const sorted = useMemo(() => {
     const matching = eligibleStudents.filter((s) => s.subscription_tier === cohortTier);
-    const other    = eligibleStudents.filter((s) => s.subscription_tier !== cohortTier);
+    const other = eligibleStudents.filter((s) => s.subscription_tier !== cohortTier);
     return [...matching, ...other];
   }, [eligibleStudents, cohortTier]);
 
@@ -339,39 +360,46 @@ function AddMemberDialog({
 
   return (
     <div
-      className="fixed inset-0 z-40 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+      className="fixed inset-0 z-40 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-lg rounded-2xl bg-slate-900 border border-slate-800 shadow-2xl p-6"
+        className="relative w-full max-w-lg rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <button onClick={onClose} className="absolute top-4 right-4 text-slate-500 hover:text-slate-200" aria-label="Close">
-          <X className="w-5 h-5" />
+        <button
+          onClick={onClose}
+          className="absolute right-4 top-4 text-slate-500 hover:text-slate-200"
+          aria-label="Close"
+        >
+          <X className="h-5 w-5" />
         </button>
         <h2 className="text-lg font-bold text-white">Add member</h2>
-        <p className="text-sm text-slate-400 mt-1">
+        <p className="mt-1 text-sm text-slate-400">
           Only students not currently in another active cohort are shown.
         </p>
 
         <form onSubmit={submit} className="mt-5 space-y-3">
           <label className="block">
-            <span className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
+            <span className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-400">
               Student
             </span>
             <select
               value={studentId}
               onChange={(e) => setStudentId(e.target.value)}
               required
-              className="w-full rounded-lg bg-slate-950/60 border border-slate-800 text-slate-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+              className="w-full rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-2 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
             >
               <option value="">Select a student…</option>
               {sorted.map((s) => {
                 const name = [s.first_name, s.last_name].filter(Boolean).join(" ") || s.email;
-                const tierBit = s.subscription_tier ? ` · ${s.subscription_tier}` : " · no active sub";
+                const tierBit = s.subscription_tier
+                  ? ` · ${s.subscription_tier}`
+                  : " · no active sub";
                 return (
                   <option key={s.id} value={s.id}>
-                    {name}{tierBit}
+                    {name}
+                    {tierBit}
                   </option>
                 );
               })}
@@ -379,16 +407,16 @@ function AddMemberDialog({
           </label>
 
           {tierMismatch && (
-            <p className="text-xs text-amber-300 bg-amber-400/10 border border-amber-400/20 rounded-lg px-3 py-2">
+            <p className="rounded-lg border border-amber-400/20 bg-amber-400/10 px-3 py-2 text-xs text-amber-300">
               Heads up — this student&apos;s subscription tier is{" "}
               <span className="font-semibold">{selected?.subscription_tier ?? "none"}</span>, not{" "}
-              <span className="font-semibold">{cohortTier}</span>. You can still place them (admin override),
-              but their billing won&apos;t match the cohort.
+              <span className="font-semibold">{cohortTier}</span>. You can still place them (admin
+              override), but their billing won&apos;t match the cohort.
             </p>
           )}
 
           {err && (
-            <p className="text-sm text-rose-300 bg-rose-500/10 border border-rose-400/20 rounded-lg px-3 py-2">
+            <p className="rounded-lg border border-rose-400/20 bg-rose-500/10 px-3 py-2 text-sm text-rose-300">
               {err}
             </p>
           )}
@@ -398,16 +426,16 @@ function AddMemberDialog({
               type="button"
               onClick={onClose}
               disabled={pending}
-              className="px-4 py-2 rounded-lg border border-slate-700 text-slate-300 hover:bg-slate-800 text-sm font-semibold disabled:opacity-50"
+              className="rounded-lg border border-slate-700 px-4 py-2 text-sm font-semibold text-slate-300 hover:bg-slate-800 disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={!studentId || pending}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500 disabled:opacity-50"
             >
-              {pending && <Loader2 className="w-4 h-4 animate-spin" />}
+              {pending && <Loader2 className="h-4 w-4 animate-spin" />}
               Add to cohort
             </button>
           </div>
@@ -430,12 +458,10 @@ function NotesTab({ note, tutorName }: { note: string | null; tutorName: string 
   }
   return (
     <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-6">
-      <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-3">
+      <div className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500">
         Notes by {tutorName}
       </div>
-      <div className="text-slate-200 text-sm leading-relaxed whitespace-pre-wrap">
-        {note}
-      </div>
+      <div className="whitespace-pre-wrap text-sm leading-relaxed text-slate-200">{note}</div>
     </div>
   );
 }
@@ -454,20 +480,17 @@ function HomeworkTab({ homework }: { homework: HomeworkRow[] }) {
   return (
     <ul className="space-y-3">
       {homework.map((h) => (
-        <li
-          key={h.id}
-          className="rounded-xl border border-slate-800 bg-slate-900/40 p-5"
-        >
-          <div className="flex items-start justify-between gap-4 mb-2">
-            <h3 className="text-white font-semibold">{h.title}</h3>
+        <li key={h.id} className="rounded-xl border border-slate-800 bg-slate-900/40 p-5">
+          <div className="mb-2 flex items-start justify-between gap-4">
+            <h3 className="font-semibold text-white">{h.title}</h3>
             <DueBadge dueAt={h.due_at} />
           </div>
           {h.body && (
-            <p className="text-sm text-slate-400 whitespace-pre-wrap leading-relaxed mb-3">
+            <p className="mb-3 whitespace-pre-wrap text-sm leading-relaxed text-slate-400">
               {h.body}
             </p>
           )}
-          <div className="text-xs text-slate-500 flex flex-wrap gap-x-3 gap-y-1">
+          <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-500">
             <span>Assigned {formatDateTime(h.assigned_at)}</span>
             {h.due_at && <span>· Due {formatDateTime(h.due_at)}</span>}
             <span>· by {tutorDisplay(h.created_by)}</span>
@@ -503,7 +526,7 @@ function DueBadge({ dueAt }: { dueAt: string | null }) {
   return (
     <span
       className={cn(
-        "shrink-0 inline-block px-2 py-0.5 rounded-md text-xs font-semibold border",
+        "inline-block shrink-0 rounded-md border px-2 py-0.5 text-xs font-semibold",
         classes
       )}
     >
@@ -518,7 +541,7 @@ function EmptyBlock({ title, subtitle }: { title: string; subtitle: string }) {
   return (
     <div className="rounded-xl border border-dashed border-slate-800 px-8 py-12 text-center">
       <h3 className="text-base font-semibold text-white">{title}</h3>
-      <p className="mt-2 text-sm text-slate-400 max-w-md mx-auto">{subtitle}</p>
+      <p className="mx-auto mt-2 max-w-md text-sm text-slate-400">{subtitle}</p>
     </div>
   );
 }
@@ -526,7 +549,13 @@ function EmptyBlock({ title, subtitle }: { title: string; subtitle: string }) {
 function Avatar({ name, avatarUrl }: { name: string; avatarUrl: string | null }) {
   if (avatarUrl) {
     /* eslint-disable-next-line @next/next/no-img-element */
-    return <img src={avatarUrl} alt={name} className="w-7 h-7 rounded-full object-cover border border-slate-700" />;
+    return (
+      <img
+        src={avatarUrl}
+        alt={name}
+        className="h-7 w-7 rounded-full border border-slate-700 object-cover"
+      />
+    );
   }
   // Initials fallback
   const initials = name
@@ -538,7 +567,7 @@ function Avatar({ name, avatarUrl }: { name: string; avatarUrl: string | null })
     .toUpperCase();
   return (
     <div
-      className="w-7 h-7 rounded-full bg-slate-800 border border-slate-700 text-slate-300 text-xs font-semibold flex items-center justify-center"
+      className="flex h-7 w-7 items-center justify-center rounded-full border border-slate-700 bg-slate-800 text-xs font-semibold text-slate-300"
       aria-hidden="true"
     >
       {initials || "?"}
@@ -552,7 +581,9 @@ function TierBadge({ tier }: { tier: CohortTier }) {
       ? "bg-teal-400/10 text-teal-300 border-teal-400/20"
       : "bg-indigo-400/10 text-indigo-300 border-indigo-400/20";
   return (
-    <span className={cn("inline-block px-2 py-0.5 rounded-md text-xs font-semibold border", classes)}>
+    <span
+      className={cn("inline-block rounded-md border px-2 py-0.5 text-xs font-semibold", classes)}
+    >
       {TIER_LABEL[tier]}
     </span>
   );
@@ -560,12 +591,17 @@ function TierBadge({ tier }: { tier: CohortTier }) {
 
 function StatusBadge({ status }: { status: CohortStatus }) {
   const map: Record<CohortStatus, string> = {
-    forming:   "bg-slate-400/10 text-slate-300 border-slate-400/20",
-    active:    "bg-emerald-400/10 text-emerald-300 border-emerald-400/20",
+    forming: "bg-slate-400/10 text-slate-300 border-slate-400/20",
+    active: "bg-emerald-400/10 text-emerald-300 border-emerald-400/20",
     completed: "bg-slate-600/20 text-slate-400 border-slate-600/30",
   };
   return (
-    <span className={cn("inline-block px-2 py-0.5 rounded-md text-xs font-semibold border", map[status])}>
+    <span
+      className={cn(
+        "inline-block rounded-md border px-2 py-0.5 text-xs font-semibold",
+        map[status]
+      )}
+    >
       {status}
     </span>
   );

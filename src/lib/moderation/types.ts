@@ -41,7 +41,11 @@ export interface ModerationInput {
 }
 
 export class ModerationError extends Error {
-  constructor(public readonly stage: string, message: string, public readonly context?: unknown) {
+  constructor(
+    public readonly stage: string,
+    message: string,
+    public readonly context?: unknown
+  ) {
     super(`moderation:${stage}: ${message}`);
     this.name = "ModerationError";
   }

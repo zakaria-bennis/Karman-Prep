@@ -25,48 +25,49 @@ const FOUNDERS = [
 
 export default function FounderSection() {
   return (
-    <section className="relative py-24 bg-cloud-night bg-grain overflow-hidden">
+    <section className="bg-cloud-night bg-grain relative overflow-hidden py-24">
       {/* Atmospheric glow */}
-      <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+      <div className="pointer-events-none absolute inset-0" aria-hidden="true">
         <div
-          className="absolute top-10 -right-40 w-[520px] h-[520px] rounded-full blur-3xl"
+          className="absolute -right-40 top-10 h-[520px] w-[520px] rounded-full blur-3xl"
           style={{ background: "radial-gradient(circle, rgba(127,179,255,0.08), transparent 70%)" }}
         />
         <div
-          className="absolute bottom-0 -left-40 w-[520px] h-[520px] rounded-full blur-3xl"
+          className="absolute -left-40 bottom-0 h-[520px] w-[520px] rounded-full blur-3xl"
           style={{ background: "radial-gradient(circle, rgba(196,167,255,0.07), transparent 70%)" }}
         />
       </div>
 
-      <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <Reveal className="text-center mb-14">
+      <div className="relative mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+        <Reveal className="mb-14 text-center">
           <span className="type-label text-purple-300/80">The people</span>
           <h2 className="type-display-lg mt-4 text-white">
-            Meet your <span className="italic text-purple-200 font-[650]">tutors</span>.
+            Meet your <span className="font-[650] italic text-purple-200">tutors</span>.
           </h2>
-          <p className="type-body-lg mt-5 text-slate-400 max-w-xl mx-auto text-balance">
-            Every Karman session is led by one of two tutors who have dedicated their careers to SAT mastery.
+          <p className="type-body-lg mx-auto mt-5 max-w-xl text-balance text-slate-400">
+            Every Karman session is led by one of two tutors who have dedicated their careers to SAT
+            mastery.
           </p>
         </Reveal>
 
-        <Reveal as="stagger" className="grid md:grid-cols-2 gap-8">
+        <Reveal as="stagger" className="grid gap-8 md:grid-cols-2">
           {FOUNDERS.map((founder) => (
             <Reveal key={founder.name}>
-              <div className="glass-cloud p-8 flex flex-col items-center text-center gap-5 h-full">
+              <div className="glass-cloud flex h-full flex-col items-center gap-5 p-8 text-center">
                 <div
-                  className={`w-24 h-24 rounded-full bg-gradient-to-br ${founder.gradient} flex items-center justify-center text-white text-2xl font-extrabold shadow-lg shrink-0`}
+                  className={`h-24 w-24 rounded-full bg-gradient-to-br ${founder.gradient} flex shrink-0 items-center justify-center text-2xl font-extrabold text-white shadow-lg`}
                 >
                   {founder.initials}
                 </div>
                 <div>
                   <h3 className="text-xl font-bold text-white">{founder.name}</h3>
-                  <p className="text-sm text-blue-300 font-semibold mt-1">{founder.credential}</p>
+                  <p className="mt-1 text-sm font-semibold text-blue-300">{founder.credential}</p>
                 </div>
                 <div className="space-y-2">
-                  <p className="text-sm text-slate-300 leading-relaxed italic">
+                  <p className="text-sm italic leading-relaxed text-slate-300">
                     &ldquo;{founder.bio}
                   </p>
-                  <p className="text-sm text-slate-300 leading-relaxed italic">
+                  <p className="text-sm italic leading-relaxed text-slate-300">
                     {founder.bio2}&rdquo;
                   </p>
                 </div>

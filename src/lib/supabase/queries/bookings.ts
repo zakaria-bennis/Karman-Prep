@@ -67,9 +67,7 @@ export async function getUserUuidByClerkId(clerkId: string): Promise<string | nu
 
 /** Most-recent active or trialing subscription for a Clerk user.
  *  Subscriptions.user_id stores the Clerk text id directly. */
-export async function getActiveSubscription(
-  clerkId: string
-): Promise<ActiveSubscription | null> {
+export async function getActiveSubscription(clerkId: string): Promise<ActiveSubscription | null> {
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("subscriptions")
@@ -85,11 +83,7 @@ export async function getActiveSubscription(
 
 export async function findBookingById(id: string): Promise<BookingRow | null> {
   const supabase = createAdminClient();
-  const { data, error } = await supabase
-    .from("bookings")
-    .select("*")
-    .eq("id", id)
-    .maybeSingle();
+  const { data, error } = await supabase.from("bookings").select("*").eq("id", id).maybeSingle();
   if (error) throw error;
   return (data as BookingRow | null) ?? null;
 }
@@ -141,7 +135,7 @@ export async function getBookingsForTutor(
   }
   const { data, error } = await q;
   if (error) throw error;
-  return ((data as BookingRow[] | null) ?? []);
+  return (data as BookingRow[] | null) ?? [];
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -165,14 +159,9 @@ export async function insertBooking(input: InsertBookingInput): Promise<BookingR
   const supabase = createAdminClient();
   const row = {
     ...input,
-    cal_event_type_id:
-      input.cal_event_type_id != null ? String(input.cal_event_type_id) : null,
+    cal_event_type_id: input.cal_event_type_id != null ? String(input.cal_event_type_id) : null,
   };
-  const { data, error } = await supabase
-    .from("bookings")
-    .insert(row)
-    .select("*")
-    .single();
+  const { data, error } = await supabase.from("bookings").insert(row).select("*").single();
   if (error) throw error;
   return data as BookingRow;
 }
@@ -194,10 +183,7 @@ export interface UpdateBookingFields {
   cancellation_email_sent?: boolean;
 }
 
-export async function updateBooking(
-  id: string,
-  fields: UpdateBookingFields
-): Promise<BookingRow> {
+export async function updateBooking(id: string, fields: UpdateBookingFields): Promise<BookingRow> {
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("bookings")
@@ -224,10 +210,7 @@ export function isWithinCancellationWindow(scheduledStart: string | Date): boole
 /** Per locked tier policy: only Private + Elite have an individual
  *  session credit at stake, so only they forfeit on within-window
  *  cancel/reschedule. Group + small_group never forfeit. */
-export function shouldForfeitCredit(
-  tier: BookingPlanTier,
-  withinWindow: boolean
-): boolean {
+export function shouldForfeitCredit(tier: BookingPlanTier, withinWindow: boolean): boolean {
   if (!withinWindow) return false;
   return tier === "private" || tier === "elite";
 }

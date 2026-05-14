@@ -113,10 +113,7 @@ export async function actionFlagQuestion(input: {
   });
 }
 
-export async function actionUpdateWatchPercentage(
-  nodeId: string,
-  percentage: number
-) {
+export async function actionUpdateWatchPercentage(nodeId: string, percentage: number) {
   const { userId } = await auth();
   if (!userId) return;
   await updateWatchPercentage(userId, nodeId, percentage);

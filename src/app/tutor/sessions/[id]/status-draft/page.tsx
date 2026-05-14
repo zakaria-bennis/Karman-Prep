@@ -48,7 +48,8 @@ export default async function StatusDraftPage({ params }: PageProps) {
   // ── Fetch booking + tutor + student ─────────────────────
   const { data: booking } = await supabase
     .from("bookings")
-    .select(`
+    .select(
+      `
       id, tutor_id, student_id, plan_tier, scheduled_start, duration_minutes,
       transcript, transcript_source, transcript_received_at,
       status_draft, status_draft_created_at, status_draft_edited_at,
@@ -60,7 +61,8 @@ export default async function StatusDraftPage({ params }: PageProps) {
       student:users!bookings_student_id_fkey (
         id, first_name, last_name, email
       )
-    `)
+    `
+    )
     .eq("id", bookingId)
     .maybeSingle();
 
@@ -76,14 +78,22 @@ export default async function StatusDraftPage({ params }: PageProps) {
   // either single objects or arrays depending on FK detection).
   const arr = <T,>(v: unknown): T | null =>
     Array.isArray(v) ? ((v[0] as T) ?? null) : ((v as T) ?? null);
-  type UserMini = { id: string; first_name: string | null; last_name: string | null; email: string | null; email_signature?: string | null };
-  const tutor   = arr<UserMini>(booking.tutor);
+  type UserMini = {
+    id: string;
+    first_name: string | null;
+    last_name: string | null;
+    email: string | null;
+    email_signature?: string | null;
+  };
+  const tutor = arr<UserMini>(booking.tutor);
   const student = arr<UserMini>(booking.student);
 
   // ── Fetch linked parents via parent_student_links ───────
   const { data: parentLinks } = await supabase
     .from("parent_student_links")
-    .select("parent:users!parent_student_links_parent_user_id_fkey (id, first_name, last_name, email)")
+    .select(
+      "parent:users!parent_student_links_parent_user_id_fkey (id, first_name, last_name, email)"
+    )
     .eq("student_user_id", booking.student_id);
 
   const parents = (parentLinks ?? [])
@@ -114,7 +124,7 @@ export default async function StatusDraftPage({ params }: PageProps) {
       name: displayName(p) || (p.email ?? "Parent"),
       email: p.email!,
     })),
-    cohortName: null,  // bookings aren't directly tied to cohorts; skip for v1
+    cohortName: null, // bookings aren't directly tied to cohorts; skip for v1
     sessionDateIso: booking.scheduled_start as string,
     durationMinutes: (booking.duration_minutes as number | null) ?? 60,
     planTier: booking.plan_tier as string,
@@ -132,12 +142,12 @@ export default async function StatusDraftPage({ params }: PageProps) {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
-      <div className="max-w-7xl mx-auto px-5 py-8">
+      <div className="mx-auto max-w-7xl px-5 py-8">
         <Link
           href="/tutor/schedule"
-          className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-slate-200 mb-4"
+          className="mb-4 inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-slate-200"
         >
-          <ChevronLeft className="w-4 h-4" />
+          <ChevronLeft className="h-4 w-4" />
           My schedule
         </Link>
         <StatusDraftClient data={data} />

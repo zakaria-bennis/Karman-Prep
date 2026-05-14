@@ -48,25 +48,17 @@ export interface TutorEarningsSession {
   enrolled: EnrolledStudent[];
 }
 
-export type TimeRange =
-  | "today"
-  | "7d"
-  | "14d"
-  | "30d"
-  | "3mo"
-  | "6mo"
-  | "1y"
-  | "all";
+export type TimeRange = "today" | "7d" | "14d" | "30d" | "3mo" | "6mo" | "1y" | "all";
 
 export const TIME_RANGE_LABELS: Record<TimeRange, string> = {
   today: "Today",
-  "7d":  "Last 7 days",
+  "7d": "Last 7 days",
   "14d": "Last 14 days",
   "30d": "Last 30 days",
   "3mo": "Last 3 months",
   "6mo": "Last 6 months",
-  "1y":  "Last 12 months",
-  all:   "All time",
+  "1y": "Last 12 months",
+  all: "All time",
 };
 
 /** Returns ISO timestamp for the start of a range, or null for "all". */
@@ -74,16 +66,24 @@ export function rangeStartIso(range: TimeRange): string | null {
   const now = new Date();
   switch (range) {
     case "today": {
-      const d = new Date(now); d.setHours(0, 0, 0, 0);
+      const d = new Date(now);
+      d.setHours(0, 0, 0, 0);
       return d.toISOString();
     }
-    case "7d":  return new Date(now.getTime() -  7 * 86400_000).toISOString();
-    case "14d": return new Date(now.getTime() - 14 * 86400_000).toISOString();
-    case "30d": return new Date(now.getTime() - 30 * 86400_000).toISOString();
-    case "3mo": return new Date(now.getTime() - 90  * 86400_000).toISOString();
-    case "6mo": return new Date(now.getTime() - 182 * 86400_000).toISOString();
-    case "1y":  return new Date(now.getTime() - 365 * 86400_000).toISOString();
-    case "all": return null;
+    case "7d":
+      return new Date(now.getTime() - 7 * 86400_000).toISOString();
+    case "14d":
+      return new Date(now.getTime() - 14 * 86400_000).toISOString();
+    case "30d":
+      return new Date(now.getTime() - 30 * 86400_000).toISOString();
+    case "3mo":
+      return new Date(now.getTime() - 90 * 86400_000).toISOString();
+    case "6mo":
+      return new Date(now.getTime() - 182 * 86400_000).toISOString();
+    case "1y":
+      return new Date(now.getTime() - 365 * 86400_000).toISOString();
+    case "all":
+      return null;
   }
 }
 
@@ -137,18 +137,20 @@ export async function fetchTutorEarningsSummary(
 export async function fetchTutorRecentSessions(
   tutorUserId: string,
   range: TimeRange = "30d",
-  limit = 100,
+  limit = 100
 ): Promise<TutorEarningsSession[]> {
   const supabase = createAdminClient();
   let q = supabase
     .from("sessions")
-    .select(`
+    .select(
+      `
       id, scheduled_start, duration_minutes, status, cohort_id,
       zoom_meeting_id, zoom_attended_emails,
       recap_email_sent, recap_sent_at, payout_status, payout_amount, tutor_hours,
       cohort:cohorts(id, name, tier),
       bookings(student:users!bookings_student_id_fkey(id, first_name, last_name, email))
-    `)
+    `
+    )
     .eq("tutor_id", tutorUserId)
     .neq("status", "cancelled")
     .order("scheduled_start", { ascending: false })
@@ -159,7 +161,7 @@ export async function fetchTutorRecentSessions(
 
   const { data } = await q;
 
-  const arr = <T,>(v: unknown): T | null =>
+  const arr = <T>(v: unknown): T | null =>
     Array.isArray(v) ? ((v[0] as T) ?? null) : ((v as T) ?? null);
 
   return (data ?? []).map((row) => {
@@ -170,20 +172,20 @@ export async function fetchTutorRecentSessions(
       .map((b) => arr<EnrolledStudent>(b.student))
       .filter((s): s is EnrolledStudent => !!s && !!s.id);
     return {
-      id:                   row.id as string,
-      scheduled_start:      row.scheduled_start as string,
-      duration_minutes:     (row.duration_minutes as number | null) ?? null,
+      id: row.id as string,
+      scheduled_start: row.scheduled_start as string,
+      duration_minutes: (row.duration_minutes as number | null) ?? null,
       tier,
-      status:               row.status as string,
-      cohort_id:            (row.cohort_id as string | null) ?? null,
-      zoom_meeting_id:      (row.zoom_meeting_id as string | null) ?? null,
+      status: row.status as string,
+      cohort_id: (row.cohort_id as string | null) ?? null,
+      zoom_meeting_id: (row.zoom_meeting_id as string | null) ?? null,
       zoom_attended_emails: (row.zoom_attended_emails as string[] | null) ?? null,
-      recap_email_sent:     row.recap_email_sent === true,
-      recap_sent_at:        (row.recap_sent_at as string | null) ?? null,
-      payout_status:        (row.payout_status as string) ?? "not_eligible",
-      payout_amount:        (row.payout_amount as number | null) ?? null,
-      tutor_hours:          (row.tutor_hours   as number | null) ?? null,
-      cohort:               cohortObj,
+      recap_email_sent: row.recap_email_sent === true,
+      recap_sent_at: (row.recap_sent_at as string | null) ?? null,
+      payout_status: (row.payout_status as string) ?? "not_eligible",
+      payout_amount: (row.payout_amount as number | null) ?? null,
+      tutor_hours: (row.tutor_hours as number | null) ?? null,
+      cohort: cohortObj,
       enrolled,
     };
   });
@@ -208,7 +210,7 @@ export interface WeeklyEarningsPoint {
  *  in range — including weeks with $0. Reads from sessions. */
 export async function fetchTutorWeeklyEarnings(
   tutorUserId: string,
-  weeks = 12,
+  weeks = 12
 ): Promise<WeeklyEarningsPoint[]> {
   const supabase = createAdminClient();
   const startDate = new Date(Date.now() - weeks * 7 * 86400_000);
@@ -235,8 +237,8 @@ export async function fetchTutorWeeklyEarnings(
     const key = monday.toISOString().slice(0, 10);
     const bucket = buckets.get(key);
     if (!bucket) continue;
-    bucket.amount   += Number(row.payout_amount ?? 0);
-    bucket.hours    += Number(row.tutor_hours   ?? 0);
+    bucket.amount += Number(row.payout_amount ?? 0);
+    bucket.hours += Number(row.tutor_hours ?? 0);
     bucket.sessions += 1;
   }
 
@@ -251,7 +253,7 @@ export async function fetchTutorWeeklyEarnings(
 // regardless of 1:1 vs group).
 // ──────────────────────────────────────────────────────────
 export async function fetchTutorStudentSessionCounts(
-  tutorUserId: string,
+  tutorUserId: string
 ): Promise<Map<string, number>> {
   const supabase = createAdminClient();
   const { data } = await supabase
@@ -271,7 +273,7 @@ export async function fetchTutorStudentSessionCounts(
 
 function mondayOf(d: Date): Date {
   const result = new Date(d);
-  const day = result.getDay() || 7;  // Sunday=0 → 7
+  const day = result.getDay() || 7; // Sunday=0 → 7
   result.setHours(0, 0, 0, 0);
   result.setDate(result.getDate() - (day - 1));
   return result;
@@ -286,25 +288,27 @@ export async function fetchTutorPayoutRequests(
   const supabase = createAdminClient();
   const { data } = await supabase
     .from("payout_requests")
-    .select(`
+    .select(
+      `
       id, total_amount, total_hours, net_amount, payout_method,
       status, requested_at, approved_at, paid_at, cancelled_at, booking_count
-    `)
+    `
+    )
     .eq("tutor_user_id", tutorUserId)
     .order("requested_at", { ascending: false })
     .limit(limit);
 
   return (data ?? []).map((row) => ({
-    id:             row.id as string,
-    total_amount:   Number(row.total_amount as number | string) || 0,
-    total_hours:    Number(row.total_hours  as number | string) || 0,
-    net_amount:     row.net_amount != null ? Number(row.net_amount as number | string) : null,
-    payout_method:  (row.payout_method  as string | null) ?? null,
-    status:         row.status as string,
-    requested_at:   row.requested_at as string,
-    approved_at:    (row.approved_at  as string | null) ?? null,
-    paid_at:        (row.paid_at      as string | null) ?? null,
-    cancelled_at:   (row.cancelled_at as string | null) ?? null,
-    booking_count:  (row.booking_count as number | null) ?? null,
+    id: row.id as string,
+    total_amount: Number(row.total_amount as number | string) || 0,
+    total_hours: Number(row.total_hours as number | string) || 0,
+    net_amount: row.net_amount != null ? Number(row.net_amount as number | string) : null,
+    payout_method: (row.payout_method as string | null) ?? null,
+    status: row.status as string,
+    requested_at: row.requested_at as string,
+    approved_at: (row.approved_at as string | null) ?? null,
+    paid_at: (row.paid_at as string | null) ?? null,
+    cancelled_at: (row.cancelled_at as string | null) ?? null,
+    booking_count: (row.booking_count as number | null) ?? null,
   }));
 }

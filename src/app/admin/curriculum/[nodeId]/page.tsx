@@ -36,19 +36,19 @@ export default async function NodeEditorPage({ params, searchParams }: Params) {
   ]);
 
   return (
-    <div className="max-w-5xl mx-auto px-5 py-8">
+    <div className="mx-auto max-w-5xl px-5 py-8">
       {/* Header */}
       <div className="mb-6">
         <Link
           href="/admin/curriculum"
-          className="inline-flex items-center gap-1 text-xs text-slate-500 hover:text-slate-300 mb-3"
+          className="mb-3 inline-flex items-center gap-1 text-xs text-slate-500 hover:text-slate-300"
         >
-          <ArrowLeft className="w-3.5 h-3.5" /> All nodes
+          <ArrowLeft className="h-3.5 w-3.5" /> All nodes
         </Link>
         <h1 className="text-2xl font-extrabold text-white">{node.topic}</h1>
-        <div className="mt-2 flex items-center gap-3 text-xs text-slate-500 flex-wrap">
+        <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-slate-500">
           <span
-            className="px-2 py-0.5 rounded-full font-bold uppercase tracking-[0.18em]"
+            className="rounded-full px-2 py-0.5 font-bold uppercase tracking-[0.18em]"
             style={{
               background: ATMOSPHERE_COLORS[nodeAtmosphere(node.tier)].hex + "15",
               color: ATMOSPHERE_COLORS[nodeAtmosphere(node.tier)].hex,
@@ -61,9 +61,11 @@ export default async function NodeEditorPage({ params, searchParams }: Params) {
           <span>·</span>
           <span>{node.subject === "reading" ? "Reading & Writing" : "Math"}</span>
           <span>·</span>
-          <span>Topic: <span className="text-slate-300">{node.topic_cluster}</span></span>
+          <span>
+            Topic: <span className="text-slate-300">{node.topic_cluster}</span>
+          </span>
         </div>
-        <p className="mt-3 text-sm text-slate-400 max-w-2xl">{node.description}</p>
+        <p className="mt-3 max-w-2xl text-sm text-slate-400">{node.description}</p>
       </div>
 
       <NodeTabs
@@ -75,7 +77,9 @@ export default async function NodeEditorPage({ params, searchParams }: Params) {
         initialTextbook={content?.textbook_content ?? node.textbook_content ?? ""}
         initialVideoUrl={content?.video_url ?? node.video_url ?? null}
         initialVideoStoragePath={content?.video_storage_path ?? null}
-        initialVideoDuration={content?.video_duration_seconds ?? node.estimated_video_length_seconds ?? null}
+        initialVideoDuration={
+          content?.video_duration_seconds ?? node.estimated_video_length_seconds ?? null
+        }
       />
     </div>
   );

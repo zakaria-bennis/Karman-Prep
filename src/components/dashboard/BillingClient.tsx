@@ -7,7 +7,14 @@
 // ============================================================
 
 import { useState } from "react";
-import { CreditCard, CheckCircle, AlertCircle, ExternalLink, ArrowRight, Check } from "lucide-react";
+import {
+  CreditCard,
+  CheckCircle,
+  AlertCircle,
+  ExternalLink,
+  ArrowRight,
+  Check,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PRICING_TIERS, type PricingTier } from "@/types";
 import DashboardLayout from "./DashboardLayout";
@@ -24,20 +31,20 @@ interface Props {
 }
 
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
-  active:     { label: "Active",    color: "text-emerald-600" },
-  trialing:   { label: "Free Trial", color: "text-blue-600" },
-  canceled:   { label: "Canceled",  color: "text-red-500" },
-  past_due:   { label: "Past Due",  color: "text-amber-600" },
+  active: { label: "Active", color: "text-emerald-600" },
+  trialing: { label: "Free Trial", color: "text-blue-600" },
+  canceled: { label: "Canceled", color: "text-red-500" },
+  past_due: { label: "Past Due", color: "text-amber-600" },
   incomplete: { label: "Incomplete", color: "text-slate-500" },
 };
 
 /** Tier-specific gradients used for the giant tier-name display in the Current Plan card. */
 const TIER_GRADIENTS: Record<string, string> = {
-  group:       "linear-gradient(90deg, #7dd3fc 0%, #38bdf8 60%, #0ea5e9 100%)",   // Seminar — light blue
-  small_group: "linear-gradient(90deg, #6ee7b7 0%, #22c55e 60%, #059669 100%)",   // Small Group — green
-  private:     "linear-gradient(90deg, #c4b5fd 0%, #a855f7 60%, #7c3aed 100%)",   // Private — violet
-  elite:       "linear-gradient(90deg, #fde68a 0%, #facc15 50%, #ca8a04 100%)",   // Elite — gold
-  default:     "linear-gradient(90deg, #EC4899 0%, #A855F7 50%, #38BDF8 100%)",
+  group: "linear-gradient(90deg, #7dd3fc 0%, #38bdf8 60%, #0ea5e9 100%)", // Seminar — light blue
+  small_group: "linear-gradient(90deg, #6ee7b7 0%, #22c55e 60%, #059669 100%)", // Small Group — green
+  private: "linear-gradient(90deg, #c4b5fd 0%, #a855f7 60%, #7c3aed 100%)", // Private — violet
+  elite: "linear-gradient(90deg, #fde68a 0%, #facc15 50%, #ca8a04 100%)", // Elite — gold
+  default: "linear-gradient(90deg, #EC4899 0%, #A855F7 50%, #38BDF8 100%)",
 };
 
 export default function BillingClient({ subscription, currentTier, allTiers }: Props) {
@@ -76,7 +83,12 @@ export default function BillingClient({ subscription, currentTier, allTiers }: P
 
   /** Cancels the current subscription (dev-safe: hits a local action). */
   async function cancelSubscription() {
-    if (!confirm("Cancel your subscription? You'll keep access through the end of the current billing period.")) return;
+    if (
+      !confirm(
+        "Cancel your subscription? You'll keep access through the end of the current billing period."
+      )
+    )
+      return;
     setLoadingPortal(true);
     try {
       const res = await fetch("/api/stripe/portal", {
@@ -110,30 +122,34 @@ export default function BillingClient({ subscription, currentTier, allTiers }: P
 
   return (
     <DashboardLayout>
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 space-y-8">
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Billing & Subscription</h1>
+      <div className="mx-auto max-w-3xl space-y-8 px-4 py-8 sm:px-6">
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
+          Billing & Subscription
+        </h1>
 
         {/* Current plan card */}
         <div className="glass-card p-6">
-          <div className="flex items-start justify-between gap-4 flex-wrap">
+          <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <div className="flex items-center gap-2 mb-1">
-                <CreditCard className="w-5 h-5 text-blue-500" />
+              <div className="mb-1 flex items-center gap-2">
+                <CreditCard className="h-5 w-5 text-blue-500" />
                 <h2 className="font-bold text-slate-900 dark:text-white">Current Plan</h2>
               </div>
               {isActive && currentTier ? (
                 <>
                   <p
-                    className="text-4xl font-extrabold mt-2 uppercase tracking-tight bg-clip-text text-transparent"
-                    style={{ backgroundImage: TIER_GRADIENTS[currentTier.id] ?? TIER_GRADIENTS.default }}
+                    className="mt-2 bg-clip-text text-4xl font-extrabold uppercase tracking-tight text-transparent"
+                    style={{
+                      backgroundImage: TIER_GRADIENTS[currentTier.id] ?? TIER_GRADIENTS.default,
+                    }}
                   >
                     {currentTier.name}
                   </p>
                   {statusInfo && (
-                    <p className={cn("text-sm font-semibold mt-1", statusInfo.color)}>
+                    <p className={cn("mt-1 text-sm font-semibold", statusInfo.color)}>
                       {statusInfo.label}
                       {subscription?.trial_end && subscription.status === "trialing" && (
-                        <span className="text-slate-400 font-normal ml-1">
+                        <span className="ml-1 font-normal text-slate-400">
                           · Ends {new Date(subscription.trial_end).toLocaleDateString()}
                         </span>
                       )}
@@ -141,7 +157,7 @@ export default function BillingClient({ subscription, currentTier, allTiers }: P
                   )}
                 </>
               ) : (
-                <p className="text-slate-500 dark:text-slate-400 mt-2">No active subscription</p>
+                <p className="mt-2 text-slate-500 dark:text-slate-400">No active subscription</p>
               )}
             </div>
 
@@ -149,20 +165,23 @@ export default function BillingClient({ subscription, currentTier, allTiers }: P
               <button
                 onClick={openPortal}
                 disabled={loadingPortal}
-                className="btn-secondary text-sm flex items-center gap-2"
+                className="btn-secondary flex items-center gap-2 text-sm"
               >
                 {loadingPortal ? "Loading..." : "Manage Plan"}
-                <ExternalLink className="w-4 h-4" />
+                <ExternalLink className="h-4 w-4" />
               </button>
             )}
           </div>
 
           {/* Features of current plan */}
           {currentTier && (
-            <ul className="mt-4 space-y-2 border-t border-slate-100 dark:border-slate-700 pt-4">
+            <ul className="mt-4 space-y-2 border-t border-slate-100 pt-4 dark:border-slate-700">
               {currentTier.features.map((f) => (
-                <li key={f} className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
-                  <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" />
+                <li
+                  key={f}
+                  className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300"
+                >
+                  <CheckCircle className="h-4 w-4 shrink-0 text-emerald-500" />
                   {f}
                 </li>
               ))}
@@ -173,44 +192,52 @@ export default function BillingClient({ subscription, currentTier, allTiers }: P
         {/* No subscription — show plans */}
         {!isActive && (
           <>
-            <div className="flex items-center gap-2 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300 px-4 py-3 rounded-xl border border-amber-200 dark:border-amber-700 text-sm">
-              <AlertCircle className="w-4 h-4 shrink-0" />
+            <div className="flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700 dark:border-amber-700 dark:bg-amber-900/20 dark:text-amber-300">
+              <AlertCircle className="h-4 w-4 shrink-0" />
               <span>Subscribe to access all lessons, diagnostics, and progress tracking.</span>
             </div>
 
-            <div className="grid sm:grid-cols-2 gap-4">
+            <div className="grid gap-4 sm:grid-cols-2">
               {allTiers.map((tier) => (
                 <div
                   key={tier.id}
                   className={cn(
-                    "rounded-2xl p-5 border-2 transition-all",
+                    "rounded-2xl border-2 p-5 transition-all",
                     tier.highlighted
                       ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
-                      : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800"
+                      : "border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800"
                   )}
                 >
-                  <div className="flex items-start justify-between mb-3">
+                  <div className="mb-3 flex items-start justify-between">
                     <div>
                       <h3 className="font-bold text-slate-900 dark:text-white">{tier.name}</h3>
-                      <p className="text-2xl font-extrabold text-slate-900 dark:text-white mt-1">
-                        {tier.price}<span className="text-sm font-normal text-slate-400">{tier.period}</span>
+                      <p className="mt-1 text-2xl font-extrabold text-slate-900 dark:text-white">
+                        {tier.price}
+                        <span className="text-sm font-normal text-slate-400">{tier.period}</span>
                       </p>
                     </div>
                     <div className="flex flex-col items-end gap-1">
                       {tier.highlighted && (
-                        <span className="bg-blue-600 text-white text-xs font-bold px-2.5 py-1 rounded-full">Popular</span>
+                        <span className="rounded-full bg-blue-600 px-2.5 py-1 text-xs font-bold text-white">
+                          Popular
+                        </span>
                       )}
                       {tier.bestValue && (
-                        <span className="bg-amber-500 text-white text-xs font-bold px-2.5 py-1 rounded-full">Best Value</span>
+                        <span className="rounded-full bg-amber-500 px-2.5 py-1 text-xs font-bold text-white">
+                          Best Value
+                        </span>
                       )}
                     </div>
                   </div>
 
                   {/* Compact perks list */}
-                  <ul className="space-y-1.5 mb-4">
+                  <ul className="mb-4 space-y-1.5">
                     {tier.features.map((f) => (
-                      <li key={f} className="flex items-start gap-2 text-xs text-slate-600 dark:text-slate-300">
-                        <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-0.5" />
+                      <li
+                        key={f}
+                        className="flex items-start gap-2 text-xs text-slate-600 dark:text-slate-300"
+                      >
+                        <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-500" />
                         {f}
                       </li>
                     ))}
@@ -220,14 +247,12 @@ export default function BillingClient({ subscription, currentTier, allTiers }: P
                     onClick={() => startCheckout(tier.id)}
                     disabled={loadingCheckout === tier.id}
                     className={cn(
-                      "w-full py-2.5 rounded-xl text-sm font-semibold transition-all flex items-center justify-center gap-2",
-                      tier.highlighted
-                        ? "bg-blue-600 text-white hover:bg-blue-700"
-                        : "btn-primary"
+                      "flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold transition-all",
+                      tier.highlighted ? "bg-blue-600 text-white hover:bg-blue-700" : "btn-primary"
                     )}
                   >
                     {loadingCheckout === tier.id ? "Loading..." : tier.cta}
-                    <ArrowRight className="w-4 h-4" />
+                    <ArrowRight className="h-4 w-4" />
                   </button>
                 </div>
               ))}
@@ -236,16 +261,25 @@ export default function BillingClient({ subscription, currentTier, allTiers }: P
         )}
 
         {/* FAQ */}
-        <div className="glass-card p-6 space-y-4 text-sm">
+        <div className="glass-card space-y-4 p-6 text-sm">
           <h3 className="font-bold text-slate-900 dark:text-white">Billing FAQ</h3>
           {[
-            ["When will I be charged?", "Your card is charged on day 8 of your free trial, or immediately if you skip the trial."],
-            ["Can I cancel anytime?", "Yes — cancel via the Manage Plan button or email support before your renewal date."],
-            ["What's the refund policy?", "We offer a 50-point score guarantee. If your score doesn't improve by 50 points after 16 weeks, contact us for a full refund."],
+            [
+              "When will I be charged?",
+              "Your card is charged on day 8 of your free trial, or immediately if you skip the trial.",
+            ],
+            [
+              "Can I cancel anytime?",
+              "Yes — cancel via the Manage Plan button or email support before your renewal date.",
+            ],
+            [
+              "What's the refund policy?",
+              "We offer a 50-point score guarantee. If your score doesn't improve by 50 points after 16 weeks, contact us for a full refund.",
+            ],
           ].map(([q, a]) => (
             <div key={q}>
               <p className="font-semibold text-slate-900 dark:text-white">{q}</p>
-              <p className="text-slate-500 dark:text-slate-400 mt-0.5">{a}</p>
+              <p className="mt-0.5 text-slate-500 dark:text-slate-400">{a}</p>
             </div>
           ))}
         </div>
@@ -253,9 +287,17 @@ export default function BillingClient({ subscription, currentTier, allTiers }: P
 
       {/* ── Fallback self-serve modal (shown if Stripe portal can't open) ── */}
       {fallbackOpen && (
-        <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-6" onClick={() => setFallbackOpen(false)}>
-          <div className="w-full max-w-lg bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 p-6" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">Manage your plan</h3>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-6"
+          onClick={() => setFallbackOpen(false)}
+        >
+          <div
+            className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-slate-800 dark:bg-slate-900"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">
+              Manage your plan
+            </h3>
             {portalError && (
               <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">
                 Stripe customer portal not reachable — using in-app management instead.
@@ -264,35 +306,42 @@ export default function BillingClient({ subscription, currentTier, allTiers }: P
 
             {/* Plan options */}
             <div className="mt-5 space-y-2">
-              <p className="text-xs font-bold uppercase tracking-widest text-slate-500">Switch plan</p>
-              {allTiers.filter((t) => t.id !== currentTier?.id).map((t) => (
-                <button
-                  key={t.id}
-                  onClick={() => startCheckout(t.id)}
-                  disabled={loadingCheckout === t.id}
-                  className="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 text-left transition-colors"
-                >
-                  <span>
-                    <span className="font-bold text-slate-900 dark:text-white">{t.name}</span>
-                    <span className="text-xs text-slate-500 ml-2">{t.price}<span className="text-slate-400">{t.period}</span></span>
-                  </span>
-                  <span className="text-xs font-semibold text-blue-500">
-                    {loadingCheckout === t.id ? "Loading…" : "Switch →"}
-                  </span>
-                </button>
-              ))}
+              <p className="text-xs font-bold uppercase tracking-widest text-slate-500">
+                Switch plan
+              </p>
+              {allTiers
+                .filter((t) => t.id !== currentTier?.id)
+                .map((t) => (
+                  <button
+                    key={t.id}
+                    onClick={() => startCheckout(t.id)}
+                    disabled={loadingCheckout === t.id}
+                    className="flex w-full items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-left transition-colors hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800/50 dark:hover:bg-slate-800"
+                  >
+                    <span>
+                      <span className="font-bold text-slate-900 dark:text-white">{t.name}</span>
+                      <span className="ml-2 text-xs text-slate-500">
+                        {t.price}
+                        <span className="text-slate-400">{t.period}</span>
+                      </span>
+                    </span>
+                    <span className="text-xs font-semibold text-blue-500">
+                      {loadingCheckout === t.id ? "Loading…" : "Switch →"}
+                    </span>
+                  </button>
+                ))}
             </div>
 
             {/* Cancel */}
-            <div className="mt-5 pt-5 border-t border-slate-200 dark:border-slate-800">
+            <div className="mt-5 border-t border-slate-200 pt-5 dark:border-slate-800">
               <button
                 onClick={cancelSubscription}
                 disabled={loadingPortal}
-                className="w-full px-4 py-3 rounded-xl border border-rose-200 dark:border-rose-900/60 bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 text-sm font-bold hover:bg-rose-100 dark:hover:bg-rose-900/30 disabled:opacity-50"
+                className="w-full rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-bold text-rose-600 hover:bg-rose-100 disabled:opacity-50 dark:border-rose-900/60 dark:bg-rose-900/20 dark:text-rose-400 dark:hover:bg-rose-900/30"
               >
                 {loadingPortal ? "Processing…" : "Cancel subscription"}
               </button>
-              <p className="text-[11px] text-slate-400 text-center mt-2">
+              <p className="mt-2 text-center text-[11px] text-slate-400">
                 You keep access through the end of your current billing period.
               </p>
             </div>

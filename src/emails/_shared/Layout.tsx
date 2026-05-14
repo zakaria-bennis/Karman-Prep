@@ -5,16 +5,7 @@
 // header + buttons.
 // ============================================================
 
-import {
-  Body,
-  Container,
-  Head,
-  Hr,
-  Html,
-  Preview,
-  Section,
-  Text,
-} from "@react-email/components";
+import { Body, Container, Head, Hr, Html, Preview, Section, Text } from "@react-email/components";
 import * as React from "react";
 
 interface LayoutProps {
@@ -55,9 +46,7 @@ export function Layout({ preview, children }: LayoutProps) {
           </Section>
           {children}
           <Hr style={{ borderColor: "#e2e8f0", marginTop: 32, marginBottom: 16 }} />
-          <Text style={{ color: "#64748b", fontSize: 12, margin: 0 }}>
-            Karman · SAT Tutoring
-          </Text>
+          <Text style={{ color: "#64748b", fontSize: 12, margin: 0 }}>Karman · SAT Tutoring</Text>
         </Container>
       </Body>
     </Html>

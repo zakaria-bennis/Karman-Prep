@@ -24,10 +24,7 @@ import {
   SlackAdapterError,
   type CreateChannelResult,
 } from "@/lib/integrations/slack";
-import {
-  findChannelsByCohort,
-  insertChatChannel,
-} from "@/lib/supabase/queries/chat";
+import { findChannelsByCohort, insertChatChannel } from "@/lib/supabase/queries/chat";
 
 export interface EnsureChannelsResult {
   cohortChatChannelId: string;
@@ -121,10 +118,7 @@ export async function ensureCohortChannels(cohortId: string): Promise<EnsureChan
         });
         createdNow += 1;
       } catch (err) {
-        console.error(
-          `[chat-provisioning] qa row insert failed (cohort=${cohortId}):`,
-          err
-        );
+        console.error(`[chat-provisioning] qa row insert failed (cohort=${cohortId}):`, err);
       }
     }
   }

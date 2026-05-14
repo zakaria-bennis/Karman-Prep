@@ -17,9 +17,9 @@ interface Node {
   radius: number;
   // Independent opacity oscillation per node
   baseOpacity: number;
-  opacityPhase: number;   // radians offset
-  opacitySpeed: number;   // radians per ms
-  opacityAmp: number;     // amplitude of oscillation
+  opacityPhase: number; // radians offset
+  opacitySpeed: number; // radians per ms
+  opacityAmp: number; // amplitude of oscillation
 }
 
 // Tuned to a supporting role under CloudAurora — fewer, dimmer, smaller.
@@ -27,8 +27,8 @@ interface Node {
 // without competing for attention.
 const NODE_COUNT = 38;
 const MAX_LINK_DIST = 140;
-const NODE_COLOR = "180, 200, 255";   // cool pale blue
-const LINK_COLOR  = "140, 170, 255";  // pale blue link
+const NODE_COLOR = "180, 200, 255"; // cool pale blue
+const LINK_COLOR = "140, 170, 255"; // pale blue link
 
 function createNode(w: number, h: number): Node {
   const speed = 0.05 + Math.random() * 0.09;
@@ -39,7 +39,7 @@ function createNode(w: number, h: number): Node {
     vx: Math.cos(angle) * speed,
     vy: Math.sin(angle) * speed,
     radius: 1.0 + Math.random() * 1.4,
-    baseOpacity: 0.30 + Math.random() * 0.20,
+    baseOpacity: 0.3 + Math.random() * 0.2,
     opacityPhase: Math.random() * Math.PI * 2,
     opacitySpeed: 0.0003 + Math.random() * 0.0005,
     opacityAmp: 0.12 + Math.random() * 0.14,
@@ -63,11 +63,9 @@ export default function ConstellationBackground() {
 
     function resize() {
       if (!canvas) return;
-      canvas.width  = canvas.offsetWidth;
+      canvas.width = canvas.offsetWidth;
       canvas.height = canvas.offsetHeight;
-      nodes = Array.from({ length: NODE_COUNT }, () =>
-        createNode(canvas.width, canvas.height)
-      );
+      nodes = Array.from({ length: NODE_COUNT }, () => createNode(canvas.width, canvas.height));
     }
 
     resize();
@@ -85,9 +83,9 @@ export default function ConstellationBackground() {
       for (const n of nodes) {
         n.x += n.vx;
         n.y += n.vy;
-        if (n.x < -10)    n.x = w + 10;
+        if (n.x < -10) n.x = w + 10;
         if (n.x > w + 10) n.x = -10;
-        if (n.y < -10)    n.y = h + 10;
+        if (n.y < -10) n.y = h + 10;
         if (n.y > h + 10) n.y = -10;
 
         // Individual breathing opacity
@@ -157,7 +155,7 @@ export default function ConstellationBackground() {
   return (
     <canvas
       ref={canvasRef}
-      className="absolute inset-0 w-full h-full"
+      className="absolute inset-0 h-full w-full"
       style={{ pointerEvents: "none" }}
       aria-hidden="true"
     />
