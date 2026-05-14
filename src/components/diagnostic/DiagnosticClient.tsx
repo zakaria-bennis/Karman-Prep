@@ -8,8 +8,7 @@
 // that drives the inline results screen.
 // ============================================================
 
-import { useState, useEffect, useCallback, useRef } from "react";
-import { AnimatePresence } from "framer-motion";
+import { useState, useEffect, useRef } from "react";
 import {
   ArrowRight,
   CheckCircle,
@@ -323,6 +322,9 @@ export default function DiagnosticClient({ questions, isSubscribed }: Props) {
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
+    // handleNext is intentionally re-bound every render so the closure stays fresh
+    // without lifting handleNext/handleSubmit into useCallback chains.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     scoring,
     desmosOpen,
@@ -845,8 +847,8 @@ export default function DiagnosticClient({ questions, isSubscribed }: Props) {
             <p className="text-sm leading-relaxed text-slate-300">
               The diagnostic must be completed in one session. If you leave now, your answers,
               highlights, and bookmarks for this attempt will be{" "}
-              <span className="font-semibold text-rose-300">discarded</span> and you'll start fresh
-              next time.
+              <span className="font-semibold text-rose-300">discarded</span> and you&apos;ll start
+              fresh next time.
             </p>
             <div className="mt-5 flex items-center justify-end gap-2">
               <button

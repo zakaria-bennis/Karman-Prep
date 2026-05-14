@@ -56,11 +56,6 @@ function stripToText(html: string): string {
     .trim();
 }
 
-// Looks for "Saturday, May 2, 2026" style date phrases.
-// College Board uses weekday + month + day + year consistently.
-const DATE_PHRASE =
-  /(?:sunday|monday|tuesday|wednesday|thursday|friday|saturday),?\s+(january|february|march|april|may|june|july|august|september|october|november|december)\s+(\d{1,2}),?\s+(\d{4})/gi;
-
 export async function fetchSatDatesFromCollegeBoard(): Promise<ParsedSatDate[]> {
   const res = await fetch(SAT_DATES_SOURCE_URL, {
     headers: {
@@ -88,7 +83,6 @@ export async function fetchSatDatesFromCollegeBoard(): Promise<ParsedSatDate[]> 
   // test-date anchor, look at the following ~400 chars for reg / late-reg
   // dates. Labels on the CB page include "Registration Deadline" and
   // "Late Registration Deadline".
-  const matches = [...text.matchAll(DATE_PHRASE)];
   const rows: ParsedSatDate[] = [];
 
   // The page interleaves all three kinds of dates (test / reg / late-reg)

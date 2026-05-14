@@ -56,7 +56,6 @@ async function getRevenueMetrics(): Promise<RevenueData> {
   const supabase = createAdminClient();
   const now = Date.now();
   const since30d = new Date(now - 30 * 24 * 60 * 60 * 1000).toISOString();
-  const since60d = new Date(now - 60 * 24 * 60 * 60 * 1000).toISOString();
 
   // ─── Active + trialing subs per tier ─────────────────────
   const { data: subRows } = await supabase

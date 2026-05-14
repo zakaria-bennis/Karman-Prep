@@ -53,7 +53,6 @@ export default function PayoutsClient({
 
   const totalHours = eligibleSessions.reduce((s, e) => s + (e.tutor_hours ?? 0), 0);
   const instantNet = round2(pendingAmount * (1 - APP_FEE_INSTANT));
-  const instantFee = round2(pendingAmount * APP_FEE_INSTANT);
 
   function request(method: PayoutMethod) {
     if (

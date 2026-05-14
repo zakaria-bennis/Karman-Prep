@@ -359,14 +359,14 @@ export function ChatShell({ cohortChannel, qaChannel, postingAsPreview, selfUuid
           {mode.kind === "cohort" && !cohortChannel && (
             <div className="rounded-2xl border border-amber-400/20 bg-amber-400/5 px-4 py-3">
               <p className="text-sm text-amber-200">
-                Your cohort chat hasn't been provisioned yet.
+                Your cohort chat hasn&apos;t been provisioned yet.
               </p>
             </div>
           )}
           {mode.kind === "qa" && !qaChannel && (
             <div className="rounded-2xl border border-amber-400/20 bg-amber-400/5 px-4 py-3">
               <p className="text-sm text-amber-200">
-                Q&A hasn't been provisioned for this cohort yet.
+                Q&amp;A hasn&apos;t been provisioned for this cohort yet.
               </p>
             </div>
           )}

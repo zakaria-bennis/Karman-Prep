@@ -16,7 +16,7 @@ import {
   Check,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { PRICING_TIERS, type PricingTier } from "@/types";
+import { type PricingTier } from "@/types";
 import DashboardLayout from "./DashboardLayout";
 
 interface Props {

@@ -247,7 +247,7 @@ export default function NodeDetail({
             <div>
               <p className="text-sm font-semibold text-emerald-400">Already mastered</p>
               <p className="mt-0.5 text-xs text-slate-500">
-                You've completed this node.{" "}
+                You&apos;ve completed this node.{" "}
                 <Link
                   href={`/learn/${subject}`}
                   className="text-slate-400 underline hover:text-white"

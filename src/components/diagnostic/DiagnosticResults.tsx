@@ -23,13 +23,7 @@ import {
   Sparkles,
   BookmarkCheck,
 } from "lucide-react";
-import {
-  DOMAIN_COLORS,
-  DOMAIN_LABELS,
-  DOMAIN_SECTION,
-  type SATDomain,
-  type DomainScores,
-} from "@/types";
+import { DOMAIN_COLORS, DOMAIN_LABELS, type SATDomain, type DomainScores } from "@/types";
 import type { ScoredDiagnostic } from "@/lib/diagnostic-scoring";
 
 interface Props {
@@ -250,8 +244,8 @@ export default function DiagnosticResults({
                   No clear strength yet
                 </p>
                 <p className="mt-1 text-xs leading-relaxed text-slate-600 dark:text-slate-400">
-                  You haven't scored consistently high in any single domain. As you work through
-                  your learning path, your strongest domain will start to surface here.
+                  You haven&apos;t scored consistently high in any single domain. As you work
+                  through your learning path, your strongest domain will start to surface here.
                 </p>
               </>
             )}

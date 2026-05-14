@@ -27,23 +27,7 @@ import {
   uploadVideoFile,
   deleteVideo,
 } from "@/lib/supabase/queries/content";
-import type {
-  AnswerLetter,
-  AnswerSource,
-  ImportFlagType,
-  ImportStatus,
-  QuizDifficulty,
-  QuizQuestion,
-  QuizDifficultyLevel,
-} from "@/types/quiz";
-import {
-  isValidSlug,
-  isValidDomain,
-  clusterFromSlug,
-  CLUSTER_BY_DOMAIN,
-  type SATDomain,
-} from "@/lib/question-bank/taxonomy";
-import { levelToLegacyDifficulty } from "@/types/quiz";
+import type { QuizDifficulty, QuizQuestion } from "@/types/quiz";
 
 async function guardAdmin(): Promise<string> {
   const { userId } = await auth();

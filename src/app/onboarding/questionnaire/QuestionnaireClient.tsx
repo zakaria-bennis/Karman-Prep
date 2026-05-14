@@ -232,7 +232,7 @@ export default function QuestionnaireClient({ firstName, tier, satDates }: Props
     return (
       <div className="relative z-10 w-full max-w-xl rounded-3xl border border-white/10 bg-white/[0.04] p-8 text-center shadow-2xl backdrop-blur-md">
         <CheckCircle2 className="mx-auto mb-4 h-14 w-14 text-emerald-400" />
-        <h2 className="mb-2 text-2xl font-extrabold text-white">You're all set</h2>
+        <h2 className="mb-2 text-2xl font-extrabold text-white">You&apos;re all set</h2>
         <DoneSummary tier={done.tier} placement={done.placement} />
         <button
           onClick={() => router.push("/dashboard/student")}
@@ -253,7 +253,7 @@ export default function QuestionnaireClient({ firstName, tier, satDates }: Props
           Welcome, {firstName}
         </p>
         <h1 className="text-2xl font-extrabold text-white sm:text-3xl">
-          Let's get you{" "}
+          Let&apos;s get you{" "}
           <span className="bg-gradient-to-r from-blue-400 via-indigo-300 to-violet-300 bg-clip-text font-extrabold italic text-transparent">
             placed
           </span>
@@ -412,7 +412,7 @@ function Step_SatSchedule(props: {
       </div>
 
       <div>
-        <Label>What's your goal score?</Label>
+        <Label>What&apos;s your goal score?</Label>
         <div className="mb-1 text-center text-3xl font-extrabold text-white">
           {props.goalSatScore}
         </div>
@@ -668,7 +668,7 @@ function Step_Family(props: {
         recommended.
       </p>
       <div>
-        <Label>Parent's email</Label>
+        <Label>Parent&apos;s email</Label>
         <input
           type="email"
           value={props.parentEmail}
@@ -678,7 +678,7 @@ function Step_Family(props: {
         />
       </div>
       <div>
-        <Label>Parent's phone</Label>
+        <Label>Parent&apos;s phone</Label>
         <input
           type="tel"
           value={props.parentPhone}
@@ -722,7 +722,7 @@ function DoneSummary({ tier, placement }: { tier: string; placement: Record<stri
     const created = placement.cohortCreated as boolean | undefined;
     return (
       <p className="text-sm text-slate-300">
-        You've been placed in{" "}
+        You&apos;ve been placed in{" "}
         <span className="font-semibold text-white">{name ?? "your cohort"}</span>.
         {created ? " (Brand-new cohort created for your SAT date.)" : ""}
       </p>
@@ -732,14 +732,14 @@ function DoneSummary({ tier, placement }: { tier: string; placement: Record<stri
     const matched = placement.matchedAvailability as boolean | undefined;
     return (
       <p className="text-sm text-slate-300">
-        You've been paired with a tutor.{" "}
+        You&apos;ve been paired with a tutor.{" "}
         {matched
           ? "Their availability matches yours."
           : "We'll fine-tune the match once your tutor reviews your schedule."}
       </p>
     );
   }
-  return <p className="text-sm text-slate-300">You're all set.</p>;
+  return <p className="text-sm text-slate-300">You&apos;re all set.</p>;
 }
 
 // ─────────────────────────────────────────────────────────────

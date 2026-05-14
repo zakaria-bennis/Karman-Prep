@@ -32,7 +32,6 @@ import {
   type PdfJobStatus,
   type PdfJobStage,
   type PdfModuleStatus,
-  type PdfModuleKey,
   type PdfProcessingJob,
 } from "@/types/pdf-job";
 

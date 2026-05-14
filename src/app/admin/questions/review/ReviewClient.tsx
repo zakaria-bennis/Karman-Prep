@@ -803,7 +803,9 @@ function NodePicker({
         </ul>
       )}
       {query.trim() && matches.length === 0 && (
-        <div className="px-1 text-xs italic text-slate-500">No nodes match "{query}".</div>
+        <div className="px-1 text-xs italic text-slate-500">
+          No nodes match &ldquo;{query}&rdquo;.
+        </div>
       )}
 
       {/* Actions */}

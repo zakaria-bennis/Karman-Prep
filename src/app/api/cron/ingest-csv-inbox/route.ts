@@ -26,7 +26,7 @@ import { createAdminClient } from "@/lib/supabase/server";
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { bulkImportRows, type BulkImportRow } from "@/lib/question-bank/bulk-import";
-import type { PdfProcessingJob, PdfModuleKey } from "@/types/pdf-job";
+import type { PdfProcessingJob } from "@/types/pdf-job";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
