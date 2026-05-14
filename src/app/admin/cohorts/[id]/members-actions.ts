@@ -9,6 +9,7 @@ import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/server";
 import { fetchUserRole } from "@/lib/supabase/queries/admin";
+import { archiveCohortIfEmpty, unarchiveCohort } from "@/lib/supabase/queries/cohorts";
 import { cohortMemberMutationInputSchema } from "../../schemas";
 
 async function guardAdmin() {
@@ -91,6 +92,10 @@ export async function actionAddCohortMember(cohortId: string, studentUserId: str
     throw new Error(error.message);
   }
 
+  // If admin is adding to a previously-archived cohort, bring it
+  // back to the dashboards. No-op when already active.
+  await unarchiveCohort(cohortId);
+
   revalidatePath(`/admin/cohorts/${cohortId}`);
   revalidatePath(`/admin/cohorts`);
   revalidatePath(`/tutor/cohort/${cohortId}`);
@@ -114,6 +119,10 @@ export async function actionRemoveCohortMember(cohortId: string, studentUserId: 
     .eq("user_id", studentUserId)
     .is("left_at", null);
   if (error) throw new Error(error.message);
+
+  // If that was the last active member, soft-archive the cohort so
+  // it disappears from the admin + tutor dashboards.
+  await archiveCohortIfEmpty(cohortId);
 
   revalidatePath(`/admin/cohorts/${cohortId}`);
   revalidatePath(`/admin/cohorts`);

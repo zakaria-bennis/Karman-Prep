@@ -343,6 +343,7 @@ export async function fetchTutorScope(tutorClerkId: string): Promise<TutorScope>
       .from("cohorts")
       .select("id, name, tier, sat_date, max_size, current_topic, status")
       .eq("tutor_user_id", tutorUserId)
+      .is("archived_at", null)
       .order("sat_date", { ascending: true }),
     supabase
       .from("cohort_members")
