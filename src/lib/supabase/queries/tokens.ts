@@ -168,3 +168,26 @@ export async function consumeTokenForBooking(args: {
     .is("consumed_at", null);
   if (error) throw error;
 }
+
+/** Bulk variant of `consumeTokenForBooking` — one round-trip for
+ *  every booking sharing the same `reason`. Used by the meeting-end
+ *  finalizer (`finalizeAttendanceForMeeting`) to collapse N per-row
+ *  token updates into a single statement. Same idempotent guarantee:
+ *  the `consumed_at IS NULL` filter means already-consumed tokens
+ *  are silently skipped. */
+export async function consumeTokensForBookings(
+  bookingIds: string[],
+  reason: Exclude<ConsumedReason, "expired">
+): Promise<void> {
+  if (bookingIds.length === 0) return;
+  const supabase = createAdminClient();
+  const { error } = await supabase
+    .from("tokens")
+    .update({
+      consumed_at: new Date().toISOString(),
+      consumed_reason: reason,
+    })
+    .in("assigned_booking_id", bookingIds)
+    .is("consumed_at", null);
+  if (error) throw error;
+}

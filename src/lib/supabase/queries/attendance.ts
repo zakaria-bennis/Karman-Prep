@@ -20,7 +20,7 @@
 // ============================================================
 
 import { createAdminClient } from "@/lib/supabase/server";
-import { consumeTokenForBooking } from "./tokens";
+import { consumeTokensForBookings } from "./tokens";
 
 export interface AttendanceLogRow {
   id: string;
@@ -258,26 +258,34 @@ export async function finalizeAttendanceForMeeting(args: {
     .eq("zoom_meeting_id", args.zoomMeetingId);
   if (logsErr) throw logsErr;
 
-  // Phase 1: close open joins.
-  for (const raw of (logs as AttendanceLogRow[] | null) ?? []) {
-    if (raw.join_events.length <= raw.leave_events.length) continue;
-    const unmatched = raw.join_events[raw.join_events.length - 1];
-    const interval = Math.max(
-      0,
-      Math.floor((new Date(args.endTime).getTime() - new Date(unmatched).getTime()) / 1000)
-    );
-    if (interval === 0) continue;
-    const { error } = await supabase
-      .from("attendance_logs")
-      .update({
-        leave_events: [...raw.leave_events, args.endTime],
-        total_duration_seconds: raw.total_duration_seconds + interval,
+  // ── Phase 1: close open joins ─────────────────────────────
+  // Each row needs its own UPDATE (the new leave_events array and
+  // total_duration_seconds are per-row), but the rows are
+  // independent so we fire them in parallel rather than serially.
+  // Was N sequential round-trips; now ~1 wall-clock latency unit.
+  const endTimeMs = new Date(args.endTime).getTime();
+  await Promise.all(
+    ((logs as AttendanceLogRow[] | null) ?? [])
+      .filter((raw) => raw.join_events.length > raw.leave_events.length)
+      .map(async (raw) => {
+        const unmatched = raw.join_events[raw.join_events.length - 1];
+        const interval = Math.max(
+          0,
+          Math.floor((endTimeMs - new Date(unmatched).getTime()) / 1000)
+        );
+        if (interval === 0) return;
+        const { error } = await supabase
+          .from("attendance_logs")
+          .update({
+            leave_events: [...raw.leave_events, args.endTime],
+            total_duration_seconds: raw.total_duration_seconds + interval,
+          })
+          .eq("id", raw.id);
+        if (error) throw error;
       })
-      .eq("id", raw.id);
-    if (error) throw error;
-  }
+  );
 
-  // Phase 2: refetch (so is_present reflects new totals) and finalize bookings.
+  // ── Phase 2: refetch (so is_present reflects new totals) ──
   const { data: refreshed, error: refreshErr } = await supabase
     .from("attendance_logs")
     .select("booking_id, is_present, manually_overridden, overridden_present")
@@ -298,38 +306,64 @@ export async function finalizeAttendanceForMeeting(args: {
     presentByBooking.set(r.booking_id, (presentByBooking.get(r.booking_id) ?? false) || present);
   }
 
+  // ── Phase 3a: no attendance at all → mark every scheduled
+  // booking as no_show in a single bulk update. ─────────────
   if (presentByBooking.size === 0) {
-    // No attendance logs for this meeting — every booking is a no_show.
     const bookings = await findBookingsByZoomMeetingId(args.zoomMeetingId);
-    for (const b of bookings) {
-      if (b.status !== "scheduled") continue;
-      const { error } = await supabase
-        .from("bookings")
-        .update({ status: "no_show" })
-        .eq("id", b.id);
-      if (error) throw error;
-      await consumeTokenForBooking({ bookingId: b.id, reason: "no_show" });
-    }
+    const scheduledIds = bookings.filter((b) => b.status === "scheduled").map((b) => b.id);
+    if (scheduledIds.length === 0) return;
+    const { error } = await supabase
+      .from("bookings")
+      .update({ status: "no_show" })
+      .in("id", scheduledIds);
+    if (error) throw error;
+    await consumeTokensForBookings(scheduledIds, "no_show");
     return;
   }
 
-  for (const [bookingId, present] of presentByBooking.entries()) {
-    const { data: booking, error: bErr } = await supabase
-      .from("bookings")
-      .select("status")
-      .eq("id", bookingId)
-      .maybeSingle();
-    if (bErr) throw bErr;
-    if (!booking || booking.status !== "scheduled") continue;
+  // ── Phase 3b: split bookings into completed vs no_show by
+  // attendance, then fire two bulk updates + two bulk token
+  // consumptions in parallel. ───────────────────────────────
+  // Single round-trip to read all booking statuses (was N).
+  const allIds = Array.from(presentByBooking.keys());
+  const { data: bookingRows, error: bErr } = await supabase
+    .from("bookings")
+    .select("id, status")
+    .in("id", allIds);
+  if (bErr) throw bErr;
+  const scheduled = new Set(
+    ((bookingRows as Array<{ id: string; status: string }> | null) ?? [])
+      .filter((b) => b.status === "scheduled")
+      .map((b) => b.id)
+  );
 
-    const { error } = await supabase
-      .from("bookings")
-      .update({ status: present ? "completed" : "no_show" })
-      .eq("id", bookingId);
-    if (error) throw error;
-    await consumeTokenForBooking({
-      bookingId,
-      reason: present ? "completed" : "no_show",
-    });
+  const completedIds: string[] = [];
+  const noShowIds: string[] = [];
+  for (const [bookingId, present] of presentByBooking.entries()) {
+    if (!scheduled.has(bookingId)) continue;
+    (present ? completedIds : noShowIds).push(bookingId);
   }
+
+  await Promise.all([
+    completedIds.length > 0
+      ? supabase
+          .from("bookings")
+          .update({ status: "completed" })
+          .in("id", completedIds)
+          .then(({ error }) => {
+            if (error) throw error;
+          })
+      : Promise.resolve(),
+    noShowIds.length > 0
+      ? supabase
+          .from("bookings")
+          .update({ status: "no_show" })
+          .in("id", noShowIds)
+          .then(({ error }) => {
+            if (error) throw error;
+          })
+      : Promise.resolve(),
+    consumeTokensForBookings(completedIds, "completed"),
+    consumeTokensForBookings(noShowIds, "no_show"),
+  ]);
 }
