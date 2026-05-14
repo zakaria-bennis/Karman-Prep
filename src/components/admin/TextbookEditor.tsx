@@ -5,6 +5,7 @@
 // ============================================================
 
 import { useRef, useState, useTransition } from "react";
+import Image from "next/image";
 import { Save, Eye, Edit3, Info, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import TextbookContent from "@/components/learn/TextbookContent";
@@ -230,7 +231,15 @@ and drops a markdown image at your cursor."
                     title="Click to re-insert markdown reference at cursor"
                     className="overflow-hidden rounded border border-slate-800 bg-slate-900 transition-colors hover:border-indigo-500"
                   >
-                    <img src={url} alt={`Pasted image ${i + 1}`} className="block h-16 w-auto" />
+                    <Image
+                      src={url}
+                      alt={`Pasted image ${i + 1}`}
+                      width={128}
+                      height={64}
+                      className="block h-16 w-auto"
+                      style={{ height: 64, width: "auto" }}
+                      unoptimized
+                    />
                   </button>
                 ))}
               </div>

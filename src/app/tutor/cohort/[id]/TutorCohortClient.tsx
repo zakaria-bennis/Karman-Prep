@@ -6,6 +6,7 @@
 // ============================================================
 
 import { useState, useTransition } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
   BookOpen,
@@ -473,12 +474,14 @@ function EmptyBlock({ title, subtitle }: { title: string; subtitle: string }) {
 
 function Avatar({ name, avatarUrl }: { name: string; avatarUrl: string | null }) {
   if (avatarUrl) {
-    /* eslint-disable-next-line @next/next/no-img-element */
     return (
-      <img
+      <Image
         src={avatarUrl}
         alt={name}
+        width={28}
+        height={28}
         className="h-7 w-7 rounded-full border border-slate-700 object-cover"
+        unoptimized
       />
     );
   }
