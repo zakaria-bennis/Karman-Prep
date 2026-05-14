@@ -100,6 +100,25 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // ── Approved with flag: HOLD until admin reviews. ─────────
+  // DM rendering masks pending content for the recipient; the
+  // sender still sees their own message.
+  if (outcome.decision === "approved_with_flag") {
+    const row = await insertDirectMessage({
+      sender_id: senderUuid,
+      recipient_id: recipientUuid,
+      cohort_id: sharedCohortId,
+      content: body.content ?? "",
+      media_urls: body.mediaUrls ?? [],
+      moderation_status: "flagged",
+      keyword_flagged: false,
+      ai_flagged: true,
+      ai_flag_reason: outcome.reason,
+      rejection_message: null,
+    });
+    return NextResponse.json({ message: row, pendingReview: true }, { status: 201 });
+  }
+
   const row = await insertDirectMessage({
     sender_id: senderUuid,
     recipient_id: recipientUuid,
@@ -108,8 +127,8 @@ export async function POST(req: NextRequest) {
     media_urls: body.mediaUrls ?? [],
     moderation_status: "approved",
     keyword_flagged: false,
-    ai_flagged: outcome.decision === "approved_with_flag",
-    ai_flag_reason: outcome.decision === "approved_with_flag" ? outcome.reason : null,
+    ai_flagged: false,
+    ai_flag_reason: null,
     rejection_message: null,
   });
 
@@ -180,12 +199,17 @@ export async function GET(req: NextRequest) {
 
   const messages: PublicDirectMessage[] = rows.map((r) => {
     const isRejected = r.moderation_status === "rejected";
+    const isFlagged = r.moderation_status === "flagged";
+    const isSelf = r.sender_id === callerUuid;
+    // Sender always sees own content. Admin + tutor always see all.
+    // Recipient: rejected → hidden; flagged → hidden (pending review).
+    const hideContent = (isRejected || isFlagged) && !isAdmin && !isTutor && !isSelf;
     return {
       id: r.id,
       sender_id: r.sender_id,
       recipient_id: r.recipient_id,
-      content: isRejected && !isAdmin && !isTutor ? null : r.content,
-      media_urls: isRejected && !isAdmin && !isTutor ? [] : r.media_urls,
+      content: hideContent ? null : r.content,
+      media_urls: hideContent ? [] : r.media_urls,
       moderation_status: r.moderation_status,
       rejection_message: isRejected ? r.rejection_message : null,
       created_at: r.created_at,

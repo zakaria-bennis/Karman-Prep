@@ -434,13 +434,19 @@ export function CohortChat({
 // shape still reads as "chat" and not "card."
 function MessageBubble({ message }: { message: Message }) {
   const rejected = message.moderation_status === "rejected";
+  const flagged = message.moderation_status === "flagged";
   const self = message.is_self;
+  // Recipients on a flagged message have null content (server-side
+  // mask); render a placeholder rather than an empty bubble.
+  const flaggedForOthers = flagged && !self;
 
   const bubbleColor = rejected
     ? "bg-amber-400/15 text-amber-100 border border-amber-400/30"
-    : self
-      ? "bg-gradient-to-br from-blue-500 to-indigo-600 text-white"
-      : "bg-white/[0.06] text-slate-100 border border-white/10 backdrop-blur-sm";
+    : flaggedForOthers
+      ? "bg-amber-400/10 text-amber-100/90 border border-amber-400/20"
+      : self
+        ? "bg-gradient-to-br from-blue-500 to-indigo-600 text-white"
+        : "bg-white/[0.06] text-slate-100 border border-white/10 backdrop-blur-sm";
 
   const bubbleShape = self ? "rounded-2xl rounded-br-md" : "rounded-2xl rounded-bl-md";
 
@@ -491,8 +497,17 @@ function MessageBubble({ message }: { message: Message }) {
             <p className="relative text-xs italic">
               {message.rejection_message ?? "Message removed."}
             </p>
+          ) : flaggedForOthers ? (
+            <p className="relative text-xs italic">
+              This message was automatically flagged and is pending admin review.
+            </p>
           ) : (
             <div className="relative">
+              {flagged && self ? (
+                <p className="mb-1 text-[11px] uppercase tracking-wide text-amber-300/80">
+                  Pending admin review — only you can see this
+                </p>
+              ) : null}
               {message.content && (
                 <p className="whitespace-pre-wrap break-words text-[15px] leading-snug">
                   {message.content}

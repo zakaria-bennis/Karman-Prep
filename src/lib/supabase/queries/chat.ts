@@ -310,3 +310,156 @@ export async function findChatMessageById(messageId: string): Promise<ChatMessag
   if (error) throw error;
   return (data as ChatMessageRow | null) ?? null;
 }
+
+export async function findDirectMessageById(messageId: string): Promise<DirectMessageRow | null> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("direct_messages")
+    .select("*")
+    .eq("id", messageId)
+    .maybeSingle();
+  if (error) throw error;
+  return (data as DirectMessageRow | null) ?? null;
+}
+
+// ─────────────────────────────────────────────────────────────
+// Moderation queue (/admin/moderation)
+// ─────────────────────────────────────────────────────────────
+
+export interface ListModerationQueueArgs {
+  /** Which moderation states to include. Default: ['flagged']. */
+  statuses?: ModerationStatus[];
+  limit: number;
+  /** ISO created_at; returns rows STRICTLY OLDER than this. */
+  before?: string;
+}
+
+export async function listFlaggedChatMessages(
+  args: ListModerationQueueArgs
+): Promise<ChatMessageRow[]> {
+  const supabase = createAdminClient();
+  let q = supabase
+    .from("chat_messages")
+    .select("*")
+    .in("moderation_status", args.statuses ?? ["flagged"])
+    .order("created_at", { ascending: false })
+    .limit(args.limit);
+  if (args.before) q = q.lt("created_at", args.before);
+  const { data, error } = await q;
+  if (error) throw error;
+  return (data as ChatMessageRow[] | null) ?? [];
+}
+
+export async function listFlaggedDirectMessages(
+  args: ListModerationQueueArgs
+): Promise<DirectMessageRow[]> {
+  const supabase = createAdminClient();
+  let q = supabase
+    .from("direct_messages")
+    .select("*")
+    .in("moderation_status", args.statuses ?? ["flagged"])
+    .order("created_at", { ascending: false })
+    .limit(args.limit);
+  if (args.before) q = q.lt("created_at", args.before);
+  const { data, error } = await q;
+  if (error) throw error;
+  return (data as DirectMessageRow[] | null) ?? [];
+}
+
+// ─────────────────────────────────────────────────────────────
+// Moderation actions (approve / reject from /admin/moderation)
+// ─────────────────────────────────────────────────────────────
+
+/** Updates a chat_message row to 'approved' state after a human
+ *  review. Also stamps the human_review_* audit fields. The Slack
+ *  post is performed by the caller (it needs the channel context);
+ *  the resulting slack_message_ts is passed here. */
+export async function approveChatMessage(args: {
+  messageId: string;
+  adminUuid: string;
+  slackMessageTs: string;
+}): Promise<ChatMessageRow> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("chat_messages")
+    .update({
+      moderation_status: "approved",
+      slack_message_ts: args.slackMessageTs,
+      human_reviewed: true,
+      human_review_action: "approved",
+      human_reviewed_by: args.adminUuid,
+      human_reviewed_at: new Date().toISOString(),
+    })
+    .eq("id", args.messageId)
+    .select("*")
+    .single();
+  if (error) throw error;
+  return data as ChatMessageRow;
+}
+
+export async function rejectChatMessage(args: {
+  messageId: string;
+  adminUuid: string;
+  rejectionMessage: string;
+}): Promise<ChatMessageRow> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("chat_messages")
+    .update({
+      moderation_status: "rejected",
+      rejection_message: args.rejectionMessage,
+      human_reviewed: true,
+      human_review_action: "removed",
+      human_reviewed_by: args.adminUuid,
+      human_reviewed_at: new Date().toISOString(),
+    })
+    .eq("id", args.messageId)
+    .select("*")
+    .single();
+  if (error) throw error;
+  return data as ChatMessageRow;
+}
+
+export async function approveDirectMessage(args: {
+  messageId: string;
+  adminUuid: string;
+}): Promise<DirectMessageRow> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("direct_messages")
+    .update({
+      moderation_status: "approved",
+      human_reviewed: true,
+      human_review_action: "approved",
+      human_reviewed_by: args.adminUuid,
+      human_reviewed_at: new Date().toISOString(),
+    })
+    .eq("id", args.messageId)
+    .select("*")
+    .single();
+  if (error) throw error;
+  return data as DirectMessageRow;
+}
+
+export async function rejectDirectMessage(args: {
+  messageId: string;
+  adminUuid: string;
+  rejectionMessage: string;
+}): Promise<DirectMessageRow> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("direct_messages")
+    .update({
+      moderation_status: "rejected",
+      rejection_message: args.rejectionMessage,
+      human_reviewed: true,
+      human_review_action: "removed",
+      human_reviewed_by: args.adminUuid,
+      human_reviewed_at: new Date().toISOString(),
+    })
+    .eq("id", args.messageId)
+    .select("*")
+    .single();
+  if (error) throw error;
+  return data as DirectMessageRow;
+}

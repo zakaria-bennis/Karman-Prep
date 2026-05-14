@@ -9,10 +9,13 @@
 //      target channel (or Q&A authority for answers)
 //   3. Mute check (channel_mutes)
 //   4. moderateMessage() — Layer 1 + 2 of the pipeline
-//   5. If approved or approved_with_flag: postMessage to Slack
-//      and insert chat_messages row with the moderation state
-//   6. If rejected: insert a rejected row (so it appears in the
-//      moderation queue) and return the rejection message
+//   5. If approved: postMessage to Slack, insert with status=approved
+//   6. If approved_with_flag: HOLD — DO NOT post to Slack; insert
+//      with status='flagged'. Sender sees their own message; the
+//      recipient sees a "pending admin review" placeholder. Admin
+//      acts on it from /admin/moderation, which either approves
+//      (posts to Slack + flips to approved) or rejects.
+//   7. If rejected: insert a rejected row and return the rejection.
 //
 // Email is NOT sent here. High-severity rejection alerts to
 // MODERATION_ALERT_EMAIL fire from the moderation queue
@@ -157,7 +160,32 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // ─── Approved (or approved_with_flag): post to Slack first ─
+  // ─── Approved with flag: HOLD — do NOT post to Slack yet ─
+  // The sender's UI shows their message as "pending review"; the
+  // recipient sees a placeholder. /admin/moderation triggers the
+  // Slack post on approve, or marks rejected to keep it hidden.
+  if (outcome.decision === "approved_with_flag") {
+    const row = await insertChatMessage({
+      slack_message_ts: `flagged-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      channel_id: channel.id,
+      sender_id: senderUuid,
+      is_anonymous: isAnonymous,
+      display_name_override: displayName,
+      message_type: body.messageType,
+      content: body.content ?? "",
+      media_urls: body.mediaUrls ?? [],
+      parent_message_id: body.parentMessageId ?? null,
+      moderation_status: "flagged",
+      keyword_flagged: false,
+      ai_flagged: true,
+      ai_flag_reason: outcome.reason,
+      rejection_message: null,
+      cohort_label: channel.display_name,
+    });
+    return NextResponse.json({ message: row, pendingReview: true }, { status: 201 });
+  }
+
+  // ─── Approved (clean): post to Slack first ─
   let slackTs: string;
   try {
     const result = await slackPostMessage({
@@ -188,8 +216,8 @@ export async function POST(req: NextRequest) {
     parent_message_id: body.parentMessageId ?? null,
     moderation_status: "approved",
     keyword_flagged: false,
-    ai_flagged: outcome.decision === "approved_with_flag",
-    ai_flag_reason: outcome.decision === "approved_with_flag" ? outcome.reason : null,
+    ai_flagged: false,
+    ai_flag_reason: null,
     rejection_message: null,
     cohort_label: channel.display_name,
   });
