@@ -22,18 +22,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
 import { resend, FROM } from "@/lib/integrations/resend/client";
+import { seminarOverflowBodySchema } from "../schemas";
 
 export const runtime = "nodejs";
 
 const SEMINAR_CAP = 200;
-
-interface CohortMembersInsertPayload {
-  type: string;
-  table: string;
-  schema: string;
-  record?: { cohort_id?: string; left_at?: string | null };
-  old_record?: unknown;
-}
 
 export async function POST(req: NextRequest) {
   const expected = process.env.SUPABASE_DB_WEBHOOK_SECRET;
@@ -46,12 +39,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  let payload: CohortMembersInsertPayload;
-  try {
-    payload = (await req.json()) as CohortMembersInsertPayload;
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  const parsed = seminarOverflowBodySchema.safeParse(await req.json().catch(() => ({})));
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: "Invalid request body", issues: parsed.error.issues },
+      { status: 400 }
+    );
   }
+  const payload = parsed.data;
 
   if (
     payload.table !== "cohort_members" ||

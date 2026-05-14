@@ -18,92 +18,20 @@ import { auth } from "@clerk/nextjs/server";
 import { createAdminClient } from "@/lib/supabase/server";
 import { getActiveSubscription, getUserUuidByClerkId } from "@/lib/supabase/queries/bookings";
 import { assignTutorOneToOne, placeInCohort } from "@/lib/onboarding/placement";
-
-const VALID_HS_YEARS = ["freshman", "sophomore", "junior", "senior"] as const;
-const VALID_DAYS = [
-  "monday",
-  "tuesday",
-  "wednesday",
-  "thursday",
-  "friday",
-  "saturday",
-  "sunday",
-] as const;
-const VALID_TIMES = ["morning", "afternoon", "evening"] as const;
-
-interface OnboardingPayload {
-  // Always required
-  satTestDate: string; // YYYY-MM-DD
-  goalSatScore: number; // 400–1600
-  hsYear: (typeof VALID_HS_YEARS)[number];
-
-  // Optional academic background
-  recentSatMath?: number | null;
-  recentSatReading?: number | null;
-  recentSatTimePressure?: boolean | null;
-  psatScore?: number | null;
-
-  // Required for Private/Elite
-  availableDays?: string[];
-  availableTimes?: string[];
-  timeZone?: string;
-
-  // Always collected
-  parentEmail?: string | null;
-  parentPhone?: string | null;
-  heardAboutStrata?: string | null;
-}
-
-function validate(p: Partial<OnboardingPayload>, tier: string): string | null {
-  if (!p.satTestDate || !/^\d{4}-\d{2}-\d{2}$/.test(p.satTestDate)) {
-    return "satTestDate (YYYY-MM-DD) required";
-  }
-  if (typeof p.goalSatScore !== "number" || p.goalSatScore < 400 || p.goalSatScore > 1600) {
-    return "goalSatScore must be 400-1600";
-  }
-  if (!p.hsYear || !VALID_HS_YEARS.includes(p.hsYear as (typeof VALID_HS_YEARS)[number])) {
-    return "hsYear required (freshman|sophomore|junior|senior)";
-  }
-  if (p.recentSatMath != null && (p.recentSatMath < 200 || p.recentSatMath > 800)) {
-    return "recentSatMath must be 200-800";
-  }
-  if (p.recentSatReading != null && (p.recentSatReading < 200 || p.recentSatReading > 800)) {
-    return "recentSatReading must be 200-800";
-  }
-  if (p.psatScore != null && (p.psatScore < 320 || p.psatScore > 1520)) {
-    return "psatScore must be 320-1520";
-  }
-
-  const isOneToOne = tier === "private" || tier === "elite";
-  if (isOneToOne) {
-    if (!p.availableDays || p.availableDays.length === 0) {
-      return "availableDays required for Private/Elite";
-    }
-    if (!p.availableTimes || p.availableTimes.length === 0) {
-      return "availableTimes required for Private/Elite";
-    }
-    if (!p.timeZone) return "timeZone required for Private/Elite";
-    for (const d of p.availableDays) {
-      if (!VALID_DAYS.includes(d as (typeof VALID_DAYS)[number])) return `Invalid day: ${d}`;
-    }
-    for (const t of p.availableTimes) {
-      if (!VALID_TIMES.includes(t as (typeof VALID_TIMES)[number])) return `Invalid time: ${t}`;
-    }
-  }
-
-  return null;
-}
+import { onboardingPayloadSchema } from "../schemas";
 
 export async function POST(req: NextRequest) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  let body: Partial<OnboardingPayload>;
-  try {
-    body = (await req.json()) as Partial<OnboardingPayload>;
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  const parsed = onboardingPayloadSchema.safeParse(await req.json().catch(() => ({})));
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: "Invalid request body", issues: parsed.error.issues },
+      { status: 400 }
+    );
   }
+  const body = parsed.data;
 
   const sub = await getActiveSubscription(userId);
   if (!sub) {
@@ -113,9 +41,24 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const validationErr = validate(body, sub.tier);
-  if (validationErr) {
-    return NextResponse.json({ error: validationErr }, { status: 400 });
+  // Tier-conditional rule: Private/Elite must declare availability.
+  // Zod can't enforce this without the DB lookup, so it lives here.
+  if (sub.tier === "private" || sub.tier === "elite") {
+    if (!body.availableDays || body.availableDays.length === 0) {
+      return NextResponse.json(
+        { error: "availableDays required for Private/Elite" },
+        { status: 400 }
+      );
+    }
+    if (!body.availableTimes || body.availableTimes.length === 0) {
+      return NextResponse.json(
+        { error: "availableTimes required for Private/Elite" },
+        { status: 400 }
+      );
+    }
+    if (!body.timeZone) {
+      return NextResponse.json({ error: "timeZone required for Private/Elite" }, { status: 400 });
+    }
   }
 
   const studentUuid = await getUserUuidByClerkId(userId);
@@ -156,7 +99,7 @@ export async function POST(req: NextRequest) {
       const r = await placeInCohort({
         studentUuid,
         tier: sub.tier,
-        satTestDate: body.satTestDate!,
+        satTestDate: body.satTestDate,
       });
       placementSummary = {
         cohortId: r.cohortId,

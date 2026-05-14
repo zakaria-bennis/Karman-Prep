@@ -6,22 +6,19 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { addToWaitlist } from "@/lib/integrations/resend/emails";
+import { emailSubscribeBodySchema } from "../schemas";
 
 export async function POST(req: NextRequest) {
   try {
-    const { email } = await req.json();
-
-    if (!email || typeof email !== "string") {
-      return NextResponse.json({ error: "Valid email required" }, { status: 400 });
+    const parsed = emailSubscribeBodySchema.safeParse(await req.json().catch(() => ({})));
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: "Invalid request body", issues: parsed.error.issues },
+        { status: 400 }
+      );
     }
 
-    // Basic email format check
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return NextResponse.json({ error: "Invalid email format" }, { status: 400 });
-    }
-
-    await addToWaitlist(email);
+    await addToWaitlist(parsed.data.email);
 
     return NextResponse.json({ success: true });
   } catch (error) {
