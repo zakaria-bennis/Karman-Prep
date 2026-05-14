@@ -5,9 +5,12 @@
 // before writing to Supabase or posting to Slack. No shortcuts.
 //
 // Layer 1: keyword + regex blocklist (instant; src/lib/moderation/blocklist.ts).
+//          Text-only — images don't have a Layer 1 gate.
 // Layer 2: OpenAI Moderation (src/lib/moderation/providers.ts).
 //          Categorical safety: sexual/minors, self-harm, violence,
-//          hate, harassment. 4-second hard timeout.
+//          hate, harassment. Multimodal — moderates text AND any
+//          attached image URLs in a single call. 4-second hard
+//          timeout.
 // Layer 3: caller's responsibility (write Supabase + post Slack).
 //
 // Combination rule:
@@ -18,6 +21,11 @@
 //                                  outage doesn't open the floodgates.
 //                                  User sees "try again" message.
 //   · Layer 2 clean             → approved.
+//
+// Empty message guard: a message with no text AND no images can't
+// reach this function — the chat send/dm routes reject those at
+// validation. If we ever see one here, we approve (no content to
+// review).
 // ============================================================
 
 import { scanForBlocked } from "./blocklist";
@@ -55,15 +63,20 @@ export async function moderateMessage(input: ModerationInput): Promise<Moderatio
     }
   }
 
-  // No text means image-only. We don't moderate images yet — bypass Layer 2.
-  if (!input.content || input.content.trim().length === 0) {
+  // Empty message guard: text + image counts both zero means there's
+  // nothing to moderate. The send routes filter this case out upstream,
+  // but defending here keeps the function pure-functional and easier
+  // to reason about.
+  const hasContent = !!input.content && input.content.trim().length > 0;
+  const hasImages = input.mediaUrls.length > 0;
+  if (!hasContent && !hasImages) {
     return { decision: "approved" };
   }
 
-  // ─── Layer 2 — OpenAI Moderation ───────────────────────────
+  // ─── Layer 2 — OpenAI Moderation (multimodal) ──────────────
   let result;
   try {
-    result = await callOpenAIModeration(input.content);
+    result = await callOpenAIModeration(input.content ?? "", input.mediaUrls);
   } catch (err) {
     const errMsg = err instanceof Error ? err.message : String(err);
     console.error(`[moderation] openai error sender=${input.senderId}:`, errMsg);

@@ -5,6 +5,9 @@
 //   · Free endpoint (with billing on file), categorical safety;
 //     especially good for sexual/minors, self-harm, hate,
 //     violence, harassment.
+//   · Multimodal: omni-moderation-latest accepts a mix of text
+//     and image URLs in a single input array, so we send both
+//     in one round-trip when a message has images attached.
 //   · Wrapped in a 4-second AbortController timeout.
 //
 // Pipeline fails CLOSED if this errors (rejects the message and
@@ -50,9 +53,44 @@ export interface OpenAIModerationResult {
   isHighSeverity: boolean;
 }
 
-export async function callOpenAIModeration(content: string): Promise<OpenAIModerationResult> {
+type ModerationInputPart =
+  | { type: "text"; text: string }
+  | { type: "image_url"; image_url: { url: string } };
+
+/** Run text + image URLs through OpenAI Moderation in a single call.
+ *  When both arrays are empty the function short-circuits to a clean
+ *  result without making a network round-trip — callers should
+ *  generally avoid that case (a message with neither text nor images
+ *  shouldn't have reached moderation anyway). */
+export async function callOpenAIModeration(
+  content: string,
+  imageUrls: string[] = []
+): Promise<OpenAIModerationResult> {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) throw new Error("OPENAI_API_KEY is not set");
+
+  const trimmed = content.trim();
+  if (trimmed.length === 0 && imageUrls.length === 0) {
+    return { flagged: false, worstCategory: null, worstScore: 0, isHighSeverity: false };
+  }
+
+  // Build a multimodal input array. omni-moderation-latest accepts
+  // either a string (text-only) or an array of {type,text|image_url}
+  // parts; we always use the array form when images are present.
+  // For text-only messages we still use the string form to match the
+  // pre-multimodal behavior byte-for-byte.
+  const requestBody =
+    imageUrls.length === 0
+      ? { model: "omni-moderation-latest", input: trimmed }
+      : {
+          model: "omni-moderation-latest",
+          input: [
+            ...(trimmed.length > 0 ? [{ type: "text" as const, text: trimmed }] : []),
+            ...imageUrls.map(
+              (url): ModerationInputPart => ({ type: "image_url", image_url: { url } })
+            ),
+          ],
+        };
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), PROVIDER_TIMEOUT_MS);
@@ -64,10 +102,7 @@ export async function callOpenAIModeration(content: string): Promise<OpenAIModer
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        model: "omni-moderation-latest",
-        input: content,
-      }),
+      body: JSON.stringify(requestBody),
       signal: controller.signal,
     });
 
