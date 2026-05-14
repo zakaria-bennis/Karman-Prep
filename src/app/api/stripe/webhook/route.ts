@@ -6,6 +6,10 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { stripe } from "@/lib/integrations/stripe/client";
+import {
+  chargeMetadataSchema,
+  subscriptionMetadataSchema,
+} from "@/lib/integrations/stripe/schemas";
 import { createAdminClient } from "@/lib/supabase/server";
 import { sendWelcomeEmail } from "@/lib/integrations/resend/emails";
 import { dropFromActiveCohort, restoreLastCohort } from "@/lib/supabase/queries/cohorts";
@@ -54,10 +58,18 @@ export async function POST(req: NextRequest) {
       // ---- Subscription created (also fires when trial starts) ----
       case "customer.subscription.created": {
         const sub = event.data.object as Stripe.Subscription;
-        const userId = sub.metadata?.userId;
-        const tier = sub.metadata?.tier || "group";
-
-        if (!userId) break;
+        const meta = subscriptionMetadataSchema.safeParse(sub.metadata);
+        if (!meta.success) {
+          // Either userId missing (subscription created outside our flow)
+          // or tier wasn't one of the 4 locked values. Skip rather than
+          // insert garbage. Return 200 — no retry helps.
+          console.warn(
+            `[webhook] subscription.created skipped — bad metadata on ${sub.id}:`,
+            meta.error.issues
+          );
+          break;
+        }
+        const { userId, tier } = meta.data;
 
         await supabase.from("subscriptions").upsert({
           user_id: userId,
@@ -106,10 +118,15 @@ export async function POST(req: NextRequest) {
       // ---- Subscription updated (upgrade / downgrade / renewed / paused) ----
       case "customer.subscription.updated": {
         const sub = event.data.object as Stripe.Subscription;
-        const userId = sub.metadata?.userId;
-        const tier = sub.metadata?.tier || "group";
-
-        if (!userId) break;
+        const meta = subscriptionMetadataSchema.safeParse(sub.metadata);
+        if (!meta.success) {
+          console.warn(
+            `[webhook] subscription.updated skipped — bad metadata on ${sub.id}:`,
+            meta.error.issues
+          );
+          break;
+        }
+        const { userId, tier } = meta.data;
 
         await supabase
           .from("subscriptions")
@@ -187,7 +204,10 @@ export async function POST(req: NextRequest) {
       // deliveries silently no-op.
       case "charge.refunded": {
         const charge = event.data.object as Stripe.Charge;
-        const userId = charge.metadata?.userId;
+        // userId on charge metadata is optional — refunds for ad-hoc
+        // charges (rare) may not carry it. Subscription resolves via
+        // the subscription id below regardless.
+        const userId = chargeMetadataSchema.safeParse(charge.metadata).data?.userId ?? null;
         const subscriptionId = (charge as unknown as { subscription?: string }).subscription;
 
         // A charge can carry multiple refunds; iterate just in case.
