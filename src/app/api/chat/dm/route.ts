@@ -21,12 +21,7 @@ import {
   type DirectMessageRow,
 } from "@/lib/supabase/queries/chat";
 import { moderateMessage } from "@/lib/moderation/pipeline";
-
-interface DmSendRequest {
-  recipientId: string; // Clerk id of the recipient
-  content: string;
-  mediaUrls?: string[];
-}
+import { sendDmBodySchema } from "../schemas";
 
 interface PublicDirectMessage {
   id: string;
@@ -43,21 +38,14 @@ export async function POST(req: NextRequest) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  let body: Partial<DmSendRequest>;
-  try {
-    body = (await req.json()) as Partial<DmSendRequest>;
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
-  }
-
-  if (!body.recipientId)
-    return NextResponse.json({ error: "Missing recipientId" }, { status: 400 });
-  if (!body.content && (!body.mediaUrls || body.mediaUrls.length === 0)) {
+  const parsed = sendDmBodySchema.safeParse(await req.json().catch(() => ({})));
+  if (!parsed.success) {
     return NextResponse.json(
-      { error: "Message must have content or at least one image" },
+      { error: "Invalid request body", issues: parsed.error.issues },
       { status: 400 }
     );
   }
+  const body = parsed.data;
 
   // ── Wave 1: sender/recipient UUID lookups in parallel ────────
   const [senderUuid, recipientUuid] = await Promise.all([

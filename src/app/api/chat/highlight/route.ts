@@ -15,25 +15,20 @@ import {
   setMessageHighlighted,
 } from "@/lib/supabase/queries/chat";
 import { getUserUuidByClerkId } from "@/lib/supabase/queries/bookings";
-
-interface HighlightRequest {
-  messageId: string;
-  highlighted: boolean;
-}
+import { highlightMessageBodySchema } from "../schemas";
 
 export async function POST(req: NextRequest) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  let body: Partial<HighlightRequest>;
-  try {
-    body = (await req.json()) as Partial<HighlightRequest>;
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  const parsed = highlightMessageBodySchema.safeParse(await req.json().catch(() => ({})));
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: "Invalid request body", issues: parsed.error.issues },
+      { status: 400 }
+    );
   }
-  if (!body.messageId || typeof body.highlighted !== "boolean") {
-    return NextResponse.json({ error: "Missing messageId or highlighted" }, { status: 400 });
-  }
+  const body = parsed.data;
 
   const callerUuid = await getUserUuidByClerkId(userId);
   if (!callerUuid) return NextResponse.json({ error: "User profile not found" }, { status: 404 });

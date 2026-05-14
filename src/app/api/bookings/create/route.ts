@@ -34,13 +34,7 @@ import {
   ensureEliteMonthlyTokens,
   getAvailableTokenCount,
 } from "@/lib/supabase/queries/tokens";
-
-interface CreateBookingRequest {
-  eventTypeId: number | string;
-  tutorClerkId: string;
-  start: string; // ISO datetime of the chosen slot
-  timeZone: string; // student's IANA TZ (e.g. America/New_York)
-}
+import { createBookingBodySchema } from "../schemas";
 
 /** How long /api/bookings/create holds a per-user mutex. Anti-abuse
  *  fix #3+#7: prevents the double-tap / multi-tab race where two
@@ -67,19 +61,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Plan not eligible for self-booking" }, { status: 403 });
   }
 
-  let body: Partial<CreateBookingRequest>;
-  try {
-    body = (await req.json()) as Partial<CreateBookingRequest>;
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
-  }
-
-  if (!body.eventTypeId || !body.tutorClerkId || !body.start || !body.timeZone) {
+  const parsed = createBookingBodySchema.safeParse(await req.json().catch(() => ({})));
+  if (!parsed.success) {
     return NextResponse.json(
-      { error: "Missing eventTypeId, tutorClerkId, start, or timeZone" },
+      { error: "Invalid request body", issues: parsed.error.issues },
       { status: 400 }
     );
   }
+  const body = parsed.data;
 
   const studentUuid = await getUserUuidByClerkId(userId);
   if (!studentUuid) {

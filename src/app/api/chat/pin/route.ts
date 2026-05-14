@@ -14,25 +14,20 @@ import {
 } from "@/lib/supabase/queries/chat";
 import { getUserUuidByClerkId } from "@/lib/supabase/queries/bookings";
 import { pinMessage, unpinMessage, SlackAdapterError } from "@/lib/integrations/slack";
-
-interface PinRequest {
-  messageId: string;
-  pinned: boolean;
-}
+import { pinMessageBodySchema } from "../schemas";
 
 export async function POST(req: NextRequest) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  let body: Partial<PinRequest>;
-  try {
-    body = (await req.json()) as Partial<PinRequest>;
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  const parsed = pinMessageBodySchema.safeParse(await req.json().catch(() => ({})));
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: "Invalid request body", issues: parsed.error.issues },
+      { status: 400 }
+    );
   }
-  if (!body.messageId || typeof body.pinned !== "boolean") {
-    return NextResponse.json({ error: "Missing messageId or pinned" }, { status: 400 });
-  }
+  const body = parsed.data;
 
   const callerUuid = await getUserUuidByClerkId(userId);
   if (!callerUuid) return NextResponse.json({ error: "User profile not found" }, { status: 404 });
