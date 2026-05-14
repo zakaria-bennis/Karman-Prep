@@ -4,14 +4,21 @@
 
 /** Three-state outcome of running a message through the pipeline. */
 export type ModerationOutcome =
-  /** Layer 1 (keyword) matched, OR Layer 2 returned high severity.
-   *  Either way, the message must NOT be delivered to Slack. The
+  /** Layer 1 (keyword) matched, Layer 2 returned high severity, OR
+   *  Layer 2.5 (Karman bullying classifier) flagged. Either way,
+   *  the message must NOT be delivered to Slack. The
    *  rejection_message field contains the copy to show the student. */
-  | { decision: "rejected"; reason: string; rejection_message: string; layer: "keyword" | "ai" }
-  /** Layer 2 returned low/medium severity. Deliver, but the message
-   *  enters the human review queue and `ai_flagged=true` on the row. */
+  | {
+      decision: "rejected";
+      reason: string;
+      rejection_message: string;
+      layer: "keyword" | "ai" | "karman";
+    }
+  /** Layer 2 returned low/medium severity AND Layer 2.5 was clean.
+   *  Deliver, but the message enters the human review queue and
+   *  `ai_flagged=true` on the row. */
   | { decision: "approved_with_flag"; reason: string }
-  /** Clean — Layer 1 + Layer 2 both passed. Deliver normally. */
+  /** Clean — every layer passed. Deliver normally. */
   | { decision: "approved" };
 
 export type ClaudeSeverity = "low" | "medium" | "high";

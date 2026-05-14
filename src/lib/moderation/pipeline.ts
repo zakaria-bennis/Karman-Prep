@@ -1,5 +1,5 @@
 // ============================================================
-// Two-layer moderation pipeline.
+// Three-layer moderation pipeline.
 //
 // Every chat send route MUST run content through moderateMessage()
 // before writing to Supabase or posting to Slack. No shortcuts.
@@ -10,17 +10,39 @@
 //          Categorical safety: sexual/minors, self-harm, violence,
 //          hate, harassment. Multimodal — moderates text AND any
 //          attached image URLs in a single call. 4-second hard
-//          timeout.
+//          timeout. FAILS CLOSED — outage = rejection.
+// Layer 2.5: Karman bullying classifier
+//          (src/lib/moderation/karman-classifier.ts). Runs in
+//          parallel with Layer 2. Asks a school-audience-specific
+//          question OpenAI's safety categories don't cover ("would
+//          a parent be upset to see this?"). Additive — if it
+//          errors out the pipeline still uses the Layer 2 result.
 // Layer 3: caller's responsibility (write Supabase + post Slack).
 //
 // Combination rule:
-//   · Layer 1 keyword hit       → reject (held).
-//   · Layer 2 flagged + HIGH    → reject (held).
-//   · Layer 2 flagged (medium)  → approved_with_flag (delivered + queued).
-//   · Layer 2 errors out        → REJECT (fail-CLOSED) so a provider
-//                                  outage doesn't open the floodgates.
-//                                  User sees "try again" message.
-//   · Layer 2 clean             → approved.
+//   · Layer 1 keyword hit                → reject (held).
+//   · Layer 2 flagged + HIGH category    → reject (held).
+//   · Layer 2 flagged + score ≥ 0.5      → reject (held).
+//                                          For a 14-18 school audience
+//                                          we don't let high-confidence
+//                                          flags through just because
+//                                          the category isn't on the
+//                                          always-HIGH list.
+//   · Layer 2.5 (Karman) flagged         → reject (held). Karman's
+//                                          school-audience prompt is
+//                                          stricter than OpenAI's
+//                                          safety classifier — when
+//                                          it says flag, we don't
+//                                          second-guess.
+//   · Layer 2 flagged (medium, < 0.5)    → approved_with_flag (delivered
+//        AND Karman clean                  + queued for review).
+//   · Layer 2 errors out                 → REJECT (fail-CLOSED) so a
+//                                          provider outage doesn't open
+//                                          the floodgates. User sees
+//                                          "try again" message.
+//   · Layer 2.5 errors out (only)        → ignored (additive layer; we
+//                                          still have a Layer 2 result).
+//   · Both Layer 2 and 2.5 clean         → approved.
 //
 // Empty message guard: a message with no text AND no images can't
 // reach this function — the chat send/dm routes reject those at
@@ -29,6 +51,7 @@
 // ============================================================
 
 import { scanForBlocked } from "./blocklist";
+import { callKarmanClassifier } from "./karman-classifier";
 import { callOpenAIModeration } from "./providers";
 import { type ModerationInput, type ModerationOutcome } from "./types";
 
@@ -45,6 +68,13 @@ const AI_HIGH_REJECTION_MESSAGE =
  *  in a few seconds; transient OpenAI hiccups are short-lived. */
 const AI_UNAVAILABLE_MESSAGE =
   "We're having a momentary issue checking your message. Please try again in a few seconds.";
+
+/** For a 14-18 school audience: any OpenAI flag at or above this
+ *  category-score threshold rejects, even if the category isn't on
+ *  the always-HIGH list. 0.5 is a deliberately permissive bar —
+ *  better to make a student rephrase than have a parent see vile
+ *  content delivered with a "we're reviewing it" badge. */
+const SCHOOL_REJECT_THRESHOLD = 0.5;
 
 export async function moderateMessage(input: ModerationInput): Promise<ModerationOutcome> {
   // ─── Layer 1 — keyword + regex ─────────────────────────────
@@ -73,14 +103,24 @@ export async function moderateMessage(input: ModerationInput): Promise<Moderatio
     return { decision: "approved" };
   }
 
-  // ─── Layer 2 — OpenAI Moderation (multimodal) ──────────────
-  let result;
-  try {
-    result = await callOpenAIModeration(input.content ?? "", input.mediaUrls);
-  } catch (err) {
-    const errMsg = err instanceof Error ? err.message : String(err);
+  // ─── Layer 2 + 2.5 — run in parallel ──────────────────────
+  // OpenAI Moderation handles both text and image URLs (multimodal).
+  // Karman classifier is text-only and only runs when there's text;
+  // for image-only messages we skip it (no string to classify).
+  const [openaiResult, karmanResult] = await Promise.allSettled([
+    callOpenAIModeration(input.content ?? "", input.mediaUrls),
+    hasContent
+      ? callKarmanClassifier(input.content ?? "")
+      : Promise.resolve({ flagged: false, reason: "no text" }),
+  ]);
+
+  // OpenAI Moderation fails CLOSED — provider outage = rejection.
+  if (openaiResult.status === "rejected") {
+    const errMsg =
+      openaiResult.reason instanceof Error
+        ? openaiResult.reason.message
+        : String(openaiResult.reason);
     console.error(`[moderation] openai error sender=${input.senderId}:`, errMsg);
-    // Fail CLOSED — single provider down means we can't safely deliver.
     return {
       decision: "rejected",
       layer: "ai",
@@ -88,9 +128,40 @@ export async function moderateMessage(input: ModerationInput): Promise<Moderatio
       rejection_message: AI_UNAVAILABLE_MESSAGE,
     };
   }
+  const result = openaiResult.value;
 
-  // High-severity → reject.
-  if (result.flagged && result.isHighSeverity) {
+  // Karman classifier is ADDITIVE — log on error and continue with
+  // just the OpenAI result. We don't fail-CLOSED on it because the
+  // OpenAI safety floor is still in place.
+  const karman =
+    karmanResult.status === "fulfilled"
+      ? karmanResult.value
+      : (console.error(
+          `[moderation] karman classifier error sender=${input.senderId}:`,
+          karmanResult.reason instanceof Error
+            ? karmanResult.reason.message
+            : String(karmanResult.reason)
+        ),
+        { flagged: false, reason: "karman classifier unavailable" });
+
+  // Layer 2.5 (Karman) flag → reject. Karman's school-audience
+  // prompt is stricter than OpenAI's safety categories — if it says
+  // a parent would be uncomfortable, we don't second-guess.
+  if (karman.flagged) {
+    return {
+      decision: "rejected",
+      layer: "karman",
+      reason: `Karman: ${karman.reason}`,
+      rejection_message: AI_HIGH_REJECTION_MESSAGE,
+    };
+  }
+
+  // Layer 2 (OpenAI) HIGH-category OR score ≥ 0.5 → reject. For a
+  // school audience we don't let high-confidence flags through just
+  // because the category isn't on the always-HIGH list. The 0.93-
+  // score `sexual` flag we saw in prod is exactly the kind of case
+  // this catches.
+  if (result.flagged && (result.isHighSeverity || result.worstScore >= SCHOOL_REJECT_THRESHOLD)) {
     return {
       decision: "rejected",
       layer: "ai",
@@ -99,7 +170,8 @@ export async function moderateMessage(input: ModerationInput): Promise<Moderatio
     };
   }
 
-  // Medium-severity → deliver + queue for review.
+  // Layer 2 medium-severity (score < 0.5) and Karman clean → deliver
+  // + queue for review.
   if (result.flagged) {
     return {
       decision: "approved_with_flag",
