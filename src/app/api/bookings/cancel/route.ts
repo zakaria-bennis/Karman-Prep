@@ -22,11 +22,7 @@ import {
   updateBooking,
 } from "@/lib/supabase/queries/bookings";
 import { consumeTokenForBooking, releaseTokenFromBooking } from "@/lib/supabase/queries/tokens";
-
-interface CancelRequest {
-  bookingId: string;
-  reason?: string;
-}
+import { cancelBookingBodySchema } from "../schemas";
 
 export async function POST(req: NextRequest) {
   const { userId } = await auth();
@@ -34,15 +30,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  let body: Partial<CancelRequest>;
-  try {
-    body = (await req.json()) as Partial<CancelRequest>;
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  const parsed = cancelBookingBodySchema.safeParse(await req.json().catch(() => ({})));
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: "Invalid request body", issues: parsed.error.issues },
+      { status: 400 }
+    );
   }
-  if (!body.bookingId) {
-    return NextResponse.json({ error: "Missing bookingId" }, { status: 400 });
-  }
+  const body = parsed.data;
 
   const booking = await findBookingById(body.bookingId);
   if (!booking) {

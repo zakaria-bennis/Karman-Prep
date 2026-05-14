@@ -29,22 +29,12 @@ import {
   isStudentInCohort,
   isStudentMuted,
   isTutorOfChannel,
-  type ChatMessageType,
 } from "@/lib/supabase/queries/chat";
 import { getUserUuidByClerkId } from "@/lib/supabase/queries/bookings";
 import { moderateMessage } from "@/lib/moderation/pipeline";
 import { postMessage as slackPostMessage, SlackAdapterError } from "@/lib/integrations/slack";
 import { evaluateSendChannelAuth } from "@/lib/chat/can-send";
-
-interface SendRequest {
-  channelId: string;
-  content: string;
-  mediaUrls?: string[];
-  isAnonymous?: boolean;
-  messageType: ChatMessageType;
-  /** Required when messageType = 'qa_answer' — the question this answers. */
-  parentMessageId?: string;
-}
+import { sendMessageBodySchema } from "../schemas";
 
 function lastInitial(name: string | null | undefined): string {
   if (!name) return "";
@@ -67,24 +57,14 @@ export async function POST(req: NextRequest) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  let body: Partial<SendRequest>;
-  try {
-    body = (await req.json()) as Partial<SendRequest>;
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
-  }
-  if (!body.channelId || !body.messageType) {
-    return NextResponse.json({ error: "Missing channelId or messageType" }, { status: 400 });
-  }
-  if (!body.content && (!body.mediaUrls || body.mediaUrls.length === 0)) {
+  const parsed = sendMessageBodySchema.safeParse(await req.json().catch(() => ({})));
+  if (!parsed.success) {
     return NextResponse.json(
-      { error: "Message must have content or at least one image" },
+      { error: "Invalid request body", issues: parsed.error.issues },
       { status: 400 }
     );
   }
-  if (body.messageType === "qa_answer" && !body.parentMessageId) {
-    return NextResponse.json({ error: "qa_answer requires parentMessageId" }, { status: 400 });
-  }
+  const body = parsed.data;
 
   // ─── Wave 1: independent prereqs run in parallel ─────────────
   // senderUuid and the channel lookup don't depend on each other.

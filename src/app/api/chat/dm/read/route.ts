@@ -14,25 +14,20 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { createAdminClient } from "@/lib/supabase/server";
 import { getUserUuidByClerkId } from "@/lib/supabase/queries/bookings";
-
-interface ReadRequest {
-  withClerkId: string;
-}
+import { readDmBodySchema } from "../../schemas";
 
 export async function POST(req: NextRequest) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  let body: Partial<ReadRequest>;
-  try {
-    body = (await req.json()) as Partial<ReadRequest>;
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  const parsed = readDmBodySchema.safeParse(await req.json().catch(() => ({})));
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: "Invalid request body", issues: parsed.error.issues },
+      { status: 400 }
+    );
   }
-
-  if (!body.withClerkId) {
-    return NextResponse.json({ error: "Missing withClerkId" }, { status: 400 });
-  }
+  const body = parsed.data;
 
   const callerUuid = await getUserUuidByClerkId(userId);
   const otherUuid = await getUserUuidByClerkId(body.withClerkId);

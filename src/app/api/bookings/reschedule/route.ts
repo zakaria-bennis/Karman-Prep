@@ -46,12 +46,7 @@ import {
   consumeTokenForBooking,
   getAvailableTokenCount,
 } from "@/lib/supabase/queries/tokens";
-
-interface RescheduleRequest {
-  bookingId: string;
-  newStart: string; // ISO datetime
-  reason?: string;
-}
+import { rescheduleBookingBodySchema } from "../schemas";
 
 export async function POST(req: NextRequest) {
   const { userId } = await auth();
@@ -59,15 +54,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  let body: Partial<RescheduleRequest>;
-  try {
-    body = (await req.json()) as Partial<RescheduleRequest>;
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  const parsed = rescheduleBookingBodySchema.safeParse(await req.json().catch(() => ({})));
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: "Invalid request body", issues: parsed.error.issues },
+      { status: 400 }
+    );
   }
-  if (!body.bookingId || !body.newStart) {
-    return NextResponse.json({ error: "Missing bookingId or newStart" }, { status: 400 });
-  }
+  const body = parsed.data;
 
   const booking = await findBookingById(body.bookingId);
   if (!booking) {
