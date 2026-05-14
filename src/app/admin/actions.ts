@@ -282,7 +282,8 @@ export async function actionAcceptAllBank(): Promise<{
 }> {
   await guardAdmin();
 
-  const { nodeIdFromSlug: nodeFromSlug } = await import("@/lib/question-bank/taxonomy");
+  const { nodeIdFromSlug } = await import("@/lib/question-bank/taxonomy");
+  const { classifyBankRowsForAccept } = await import("@/lib/question-bank/classify-bank-accept");
   const supabase = (await import("@/lib/supabase/server")).createAdminClient();
 
   // Fetch every bank row: status=ok AND node_id IS NULL. We pull the
@@ -294,34 +295,39 @@ export async function actionAcceptAllBank(): Promise<{
     .or("import_status.is.null,import_status.eq.ok");
   if (error) throw new Error(`Bank query failed: ${error.message}`);
 
-  const result = {
-    accepted: 0,
-    skipped_no_slug_match: 0,
-    errored: 0,
-    errors: [] as Array<{ questionId: string; message: string }>,
-  };
+  // ── Classification (pure, unit-tested) ────────────────────
+  const { toAccept, skippedIds } = classifyBankRowsForAccept(
+    (data ?? []) as Array<{ id: string; concept_slug: string | null }>,
+    nodeIdFromSlug
+  );
 
-  for (const row of data ?? []) {
-    const qid = row.id as string;
-    const slug = row.concept_slug as string | null;
-    const nodeId = slug ? (nodeFromSlug(slug) ?? null) : null;
-    if (!nodeId) {
-      result.skipped_no_slug_match++;
-      continue;
-    }
-    try {
-      await acceptFlaggedQuestion(qid, { nodeId });
-      result.accepted++;
-    } catch (err) {
-      result.errored++;
-      result.errors.push({
-        questionId: qid,
-        message: err instanceof Error ? err.message : String(err),
-      });
-    }
-  }
+  // ── Accept the matched rows in parallel ───────────────────
+  // Was a sequential for-await loop — for a 50-row bank that's 50
+  // sequential round-trips. Promise.all collapses the wall-clock
+  // to ~max(individual round-trips). Per-row errors are still
+  // recorded individually via the catch handler in each promise.
+  const errors: Array<{ questionId: string; message: string }> = [];
+  let accepted = 0;
+  await Promise.all(
+    toAccept.map(async ({ questionId, nodeId }) => {
+      try {
+        await acceptFlaggedQuestion(questionId, { nodeId });
+        accepted++;
+      } catch (err) {
+        errors.push({
+          questionId,
+          message: err instanceof Error ? err.message : String(err),
+        });
+      }
+    })
+  );
 
   revalidatePath("/admin/questions/review");
   revalidatePath("/admin/curriculum");
-  return result;
+  return {
+    accepted,
+    skipped_no_slug_match: skippedIds.length,
+    errored: errors.length,
+    errors,
+  };
 }
