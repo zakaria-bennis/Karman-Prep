@@ -9,21 +9,7 @@
 // ============================================================
 
 import { useState, useEffect, useRef } from "react";
-import {
-  ArrowRight,
-  CheckCircle,
-  XCircle,
-  Calculator,
-  PencilLine,
-  Lightbulb,
-  Highlighter,
-  Ban,
-  Bookmark,
-  BookmarkCheck,
-  LayoutGrid,
-  X,
-  AlertTriangle,
-} from "lucide-react";
+import { ArrowRight, CheckCircle, XCircle, Lightbulb, Highlighter, Ban } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { DOMAIN_COLORS, DOMAIN_LABELS, DOMAIN_SECTION, type SATDomain } from "@/types";
@@ -35,6 +21,8 @@ import DiagnosticResults from "./DiagnosticResults";
 import { HighlightablePassage, type PassageHighlight } from "./HighlightablePassage";
 import { HintButton, MAX_HINTS } from "./HintButton";
 import { QuestionNavigator } from "./QuestionNavigator";
+import { DiagnosticHeader } from "./parts/DiagnosticHeader";
+import { ExitConfirmModal } from "./parts/ExitConfirmModal";
 
 interface DiagnosticQuestion {
   id: string;
@@ -64,10 +52,6 @@ interface Props {
 const SECTION_SECONDS: Record<"math" | "rw", number> = {
   math: 32 * 60,
   rw: 18 * 60,
-};
-const SECTION_LABELS: Record<"math" | "rw", string> = {
-  math: "Math",
-  rw: "Reading & Writing",
 };
 
 export default function DiagnosticClient({ questions, isSubscribed }: Props) {
@@ -349,180 +333,36 @@ export default function DiagnosticClient({ questions, isSubscribed }: Props) {
     );
   }
 
-  // Section timer formatting + warning color stages.
+  // Section timer warning color stages.
   const totalSectionSec = SECTION_SECONDS[currentSection];
   const timerPct = (sectionTimeLeft / totalSectionSec) * 100;
   const minutesLeft = Math.floor(sectionTimeLeft / 60);
   const timerColor =
     sectionTimeLeft > 5 * 60 ? "#3B82F6" : sectionTimeLeft > 60 ? "#F59E0B" : "#EF4444";
-  function fmtClock(sec: number): string {
-    const m = Math.floor(sec / 60);
-    const s = sec % 60;
-    return `${m}:${s.toString().padStart(2, "0")}`;
-  }
 
   return (
     <div
       ref={shellRef}
       className="relative flex min-h-screen flex-col bg-slate-50 dark:bg-slate-950"
     >
-      {/* Header */}
-      <div className="border-b border-slate-200 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-900">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            {/* Exit — opens a confirmation modal because the
-                diagnostic must be completed in one session and any
-                in-flight answers will be discarded. */}
-            <button
-              type="button"
-              onClick={() => setExitConfirmOpen(true)}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-semibold text-slate-600 transition-colors hover:border-rose-400 hover:text-rose-600 dark:border-slate-700 dark:text-slate-300 dark:hover:text-rose-300"
-              aria-label="Exit diagnostic"
-              title="Exit diagnostic (progress will be lost)"
-            >
-              <X className="h-3.5 w-3.5" />
-              Exit
-            </button>
-            <div>
-              <span className="text-sm font-semibold text-slate-900 dark:text-white">
-                Question {sectionPosition} / {sectionLength}
-              </span>
-              <span className="ml-2 text-xs text-slate-500">SAT Diagnostic</span>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            {/* Calculator (Desmos) — math questions only.
-                Pinkish-red active accent so it stands apart from
-                the white tools to its right. */}
-            {isMathQuestion && (
-              <button
-                type="button"
-                onClick={() => setDesmosOpen((o) => !o)}
-                className={cn(
-                  "inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-semibold transition-colors",
-                  desmosOpen
-                    ? "border-rose-500 bg-rose-500 text-white"
-                    : "border-slate-200 text-slate-600 hover:border-rose-400 hover:text-rose-600 dark:border-slate-700 dark:text-rose-200 dark:hover:text-rose-300"
-                )}
-                aria-pressed={desmosOpen}
-                aria-label="Toggle Desmos calculator"
-              >
-                <Calculator className="h-3.5 w-3.5" />
-                Calculator
-              </button>
-            )}
-
-            {/* Scratchpad — pristine white accent. */}
-            {isMathQuestion && (
-              <button
-                type="button"
-                onClick={() => setScratchpadOpen((o) => !o)}
-                className={cn(
-                  "inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-semibold transition-colors",
-                  scratchpadOpen
-                    ? "border-white bg-white text-slate-900"
-                    : "border-slate-200 text-slate-600 hover:border-white hover:bg-white/90 hover:text-slate-900 dark:border-slate-700 dark:text-white dark:hover:bg-white dark:hover:text-slate-900"
-                )}
-                aria-pressed={scratchpadOpen}
-                aria-label="Toggle scratchpad"
-              >
-                <PencilLine className="h-3.5 w-3.5" />
-                Scratchpad
-              </button>
-            )}
-
-            {/* Question navigator — opens a slide-in grid of all
-                35 questions with status pips for jump navigation. */}
-            <button
-              type="button"
-              onClick={() => setNavigatorOpen(true)}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-semibold text-slate-600 transition-colors hover:border-blue-400 hover:text-blue-600 dark:border-slate-700 dark:text-slate-300 dark:hover:text-blue-400"
-              aria-label="Open question navigator"
-              title="All questions"
-            >
-              <LayoutGrid className="h-3.5 w-3.5" />
-              Questions
-            </button>
-
-            {/* Bookmark — pristine white. Active state inverts to
-                solid white so the student sees at a glance that the
-                question is flagged for review. */}
-            <button
-              type="button"
-              onClick={toggleBookmark}
-              className={cn(
-                "inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-semibold transition-colors",
-                isBookmarked
-                  ? "border-white bg-white text-slate-900"
-                  : "border-slate-200 text-slate-600 hover:border-white hover:bg-white/90 hover:text-slate-900 dark:border-slate-700 dark:text-white dark:hover:bg-white dark:hover:text-slate-900"
-              )}
-              aria-pressed={isBookmarked}
-              aria-label={isBookmarked ? "Remove bookmark" : "Bookmark for review"}
-              title={isBookmarked ? "Bookmarked — click to remove" : "Bookmark for review"}
-            >
-              {isBookmarked ? (
-                <BookmarkCheck className="h-3.5 w-3.5" />
-              ) : (
-                <Bookmark className="h-3.5 w-3.5" />
-              )}
-              {isBookmarked ? "Saved" : "Bookmark"}
-            </button>
-
-            {/* Section timer — clock for the active SAT section.
-                Shows "Math 31:42" or "Reading & Writing 17:08", with
-                a circular progress ring that turns amber under 5
-                minutes and red under 1 minute. When the section's
-                clock hits zero, we auto-advance past the last
-                question of the section (or submit if R&W). */}
-            <div className="ml-1 flex items-center gap-2 border-l border-slate-200 pl-1.5 pl-3 dark:border-slate-800">
-              <svg width="32" height="32" className="-rotate-90">
-                <circle
-                  cx="16"
-                  cy="16"
-                  r="12"
-                  strokeWidth="3"
-                  fill="none"
-                  className="stroke-slate-200 dark:stroke-slate-700"
-                />
-                <circle
-                  cx="16"
-                  cy="16"
-                  r="12"
-                  strokeWidth="3"
-                  fill="none"
-                  stroke={timerColor}
-                  strokeLinecap="round"
-                  strokeDasharray={75.4}
-                  strokeDashoffset={75.4 - (timerPct / 100) * 75.4}
-                  className="transition-all duration-1000"
-                />
-              </svg>
-              <div className="flex flex-col leading-none">
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                  {SECTION_LABELS[currentSection]}
-                </span>
-                <span className="font-mono text-sm font-bold" style={{ color: timerColor }}>
-                  {fmtClock(sectionTimeLeft)}
-                </span>
-              </div>
-              {minutesLeft <= 0 && sectionTimeLeft > 0 && (
-                <span className="sr-only">Less than a minute remaining</span>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Progress bar */}
-        <div className="mx-auto mt-2 max-w-6xl">
-          <div className="h-1.5 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
-            <div
-              className="h-full rounded-full bg-blue-500 transition-all duration-300"
-              style={{ width: `${(sectionPosition / sectionLength) * 100}%` }}
-            />
-          </div>
-        </div>
-      </div>
+      <DiagnosticHeader
+        sectionPosition={sectionPosition}
+        sectionLength={sectionLength}
+        isMathQuestion={isMathQuestion}
+        desmosOpen={desmosOpen}
+        scratchpadOpen={scratchpadOpen}
+        isBookmarked={isBookmarked}
+        currentSection={currentSection}
+        sectionTimeLeft={sectionTimeLeft}
+        timerColor={timerColor}
+        timerPct={timerPct}
+        minutesLeft={minutesLeft}
+        onOpenExit={() => setExitConfirmOpen(true)}
+        onOpenNavigator={() => setNavigatorOpen(true)}
+        onToggleDesmos={() => setDesmosOpen((o) => !o)}
+        onToggleScratchpad={() => setScratchpadOpen((o) => !o)}
+        onToggleBookmark={toggleBookmark}
+      />
 
       {/* Question — switches to split-pane when a passage is present
           (R&W convention from Bluebook: passage on the left, prompt
@@ -823,53 +663,11 @@ export default function DiagnosticClient({ questions, isSubscribed }: Props) {
         </div>
       )}
 
-      {/* Exit confirmation — discards all in-flight progress and
-          routes the student away from the diagnostic. */}
-      {exitConfirmOpen && (
-        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
-          <div
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-            onClick={() => setExitConfirmOpen(false)}
-            aria-hidden
-          />
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="exit-diag-title"
-            className="relative w-full max-w-md rounded-2xl border border-white/10 bg-[#0B1026] p-6 shadow-2xl"
-          >
-            <div className="mb-2 flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-amber-300" />
-              <h2 id="exit-diag-title" className="text-lg font-extrabold text-white">
-                Exit the diagnostic?
-              </h2>
-            </div>
-            <p className="text-sm leading-relaxed text-slate-300">
-              The diagnostic must be completed in one session. If you leave now, your answers,
-              highlights, and bookmarks for this attempt will be{" "}
-              <span className="font-semibold text-rose-300">discarded</span> and you&apos;ll start
-              fresh next time.
-            </p>
-            <div className="mt-5 flex items-center justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => setExitConfirmOpen(false)}
-                className="rounded-lg px-3.5 py-2 text-sm font-semibold text-slate-300 hover:bg-white/[0.06] hover:text-white"
-              >
-                Keep going
-              </button>
-              <button
-                type="button"
-                onClick={exitDiagnostic}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-rose-500 px-3.5 py-2 text-sm font-semibold text-white shadow-[0_4px_14px_rgba(244,63,94,0.4)] hover:bg-rose-400"
-              >
-                <X className="h-4 w-4" />
-                Exit and discard
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ExitConfirmModal
+        open={exitConfirmOpen}
+        onKeepGoing={() => setExitConfirmOpen(false)}
+        onExit={exitDiagnostic}
+      />
 
       {/* Question navigator — slide-in panel with status pips and
           jump-to-question. Mounts at top-level so its overlay
