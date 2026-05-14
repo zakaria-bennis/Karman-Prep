@@ -16,7 +16,7 @@ interface Params {
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { subject, nodeId } = await params;
   const node = getNode(subject as Subject, nodeId);
-  return { title: node ? `${node.topic} — Learn | Strata` : "Lesson | Strata" };
+  return { title: node ? `${node.topic} — Learn | Karman` : "Lesson | Karman" };
 }
 
 export default async function NodePage({ params }: Params) {

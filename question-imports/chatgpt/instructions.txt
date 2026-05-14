@@ -1,0 +1,43 @@
+Extract SAT practice questions from College Board released-exam PDFs into a SINGLE 32-column CSV using Code Interpreter — no zip, no sidecar files. OCR pages (pdfplumber for text PDFs; pdf2image at 150 DPI + pytesseract for scans). Find answer-key page(s) at the end and build {q_id: answer}. Extract every solvable question, classify against taxonomy.txt, extract figures per images.txt, output one downloadable file at /mnt/data/<pdf-stem>-questions.csv.
+
+CSV: UTF-8, LF, RFC 4180 escaping (wrap fields with commas/quotes/newlines in double quotes; double up embedded quotes). Header + one row per question. EXACTLY 32 columns in this order: question_text, choice_a, choice_b, choice_c, choice_d, correct_answer, difficulty, topic_cluster, hint, explanation_text, explanation_a, explanation_b, explanation_c, explanation_d, desmos_strategy, passage_intro, passage, passage_a, passage_b, question_format, numeric_tolerance, domain, concept_slug, answer_source, source_pdf, source_page, content_hash, import_status, import_flag_type, import_flag_reason, image_url, image_alt.
+
+content_hash = sha1(lowercase(stripped(question_text + "|" + choice_a + "|" + choice_b + "|" + choice_c + "|" + choice_d))). For numeric_entry rows hash question_text only.
+
+TAXONOMY: domain, topic_cluster, concept_slug values come from taxonomy.txt — never invent. domain uses underscores; concept_slug uses dashes.
+
+EXPLANATIONS — UWorld-quality depth. Be specific about WHICH passage text and HOW; never write "the passage doesn't support it" without saying what does and why.
+
+R&W (multiple choice): substantial evidence-grounded analysis on every choice.
+- explanation_text: 2-4 sentences synthesizing why the correct answer is right, citing specific passage evidence (quote phrases or reference paragraph/sentence) and the reasoning that links evidence to answer.
+- explanation_a..d: ALL FOUR REQUIRED, each 3-6 sentences.
+  · Correct: identify exact passage support (quote when possible), walk through the reasoning, explain why this beats close alternatives.
+  · Each wrong: (1) what the answer means if true, (2) which specific text contradicts it (quote/paraphrase counter-evidence), (3) name the trap (keyword trap = passage word in wrong context; surface plausibility; partial truth; opposite meaning; scope confusion; evidence mismatch; tone/register mismatch; common misreading). Treat each as a teaching moment.
+
+MATH (any format): ONE thorough step-by-step walkthrough — no per-choice slots.
+- explanation_text: 4-8+ granular numbered steps. Each step:
+    · States the action: "Step N: [what you're doing in plain English]"
+    · Shows the math in KaTeX on its own line
+    · Explains WHY — what concept/identity it leverages, why this operation is valid, what it gets you closer to. Don't skip "obvious" steps; the student is learning, not verifying. Connect each step to the next so the chain of reasoning is visible.
+  End with a CHECK: substitute the answer back into the original equation, OR a sanity check (units, sign, magnitude).
+- explanation_a..d: LEAVE BLANK for ALL math, including MC. The walkthrough alone is the explanation.
+- desmos_strategy: separate field — see DESMOS. Alternate solution path, not a replacement.
+
+HINT (every row, ONE sentence): methodological nudge that does NOT reveal answer or operation. Good math: "Translate the word problem into one equation before computing." Bad: "Multiply both sides by 4." Good R&W: "Focus on what the passage explicitly claims, not what feels intuitive." Bad: "The answer is A."
+
+DESMOS_STRATEGY (math only — fill nearly every math row): 2-4 numbered steps with exact inputs in backticks. e.g. "Step 1: Type `y = 6x^2 + bx + c`. Step 2: Slider b, c. Step 3: Adjust until curve passes through (0, 11/6); read b." Skip only for pure abstract algebra, geometry without coordinates, non-graphable combinatorics.
+
+NUMERIC_TOLERANCE (SPR only): whole/finite-decimal answers = "" (exact). Repeating decimals (1/3) = "0.001", correct_answer = fraction or 4-decimal form. Surds kept symbolic = "0.01". Fractions accepting decimals = "0.001". Percentages: correct_answer is the number without "%"; tolerance "" unless repeating. Money: "" unless repeating.
+
+ANSWER-KEY (key is ~95% reliable; trust by default):
+- Match + solve agrees → correct_answer=key, source=extracted, status=ok.
+- Match + solve disagrees → defer to key, status=ok. Exception (≤5%/PDF): articulated reason key is wrong → status=needs_review, flag_type=partial_emit, reason="Possible key error: [reason]."
+- No match → correct_answer=inferred, source=inferred, status=needs_review, reason="No answer key entry — inferred."
+
+DIFFICULTY 1-7 (calibrate to full College Board spread, not just this PDF): 1-2 = easy/foundational, 3-4 = medium (most common), 5-6 = hard, 7 = rare/intricate. Math difficulty rises with: steps required, non-obvious setup, multi-concept synthesis, edge cases, non-standard approaches needed. R&W difficulty rises with: vocab subtlety, nuanced rhetorical analysis, technical/specialized passages, multiple surface-plausible distractors, uncommon grammar in long sentences.
+
+PASSAGES (R&W only): each question gets its OWN passage on its OWN row. Literature: passage_intro = italic source line. Cross-text: passage_a + passage_b, leave passage blank. Math: all four passage fields blank.
+
+KaTeX: wrap ALL math in $…$ inline or $$…$$ block in question_text, choices, explanations, hint, desmos_strategy, correct_answer (when symbolic). Plain English never gets $…$.
+
+After writing the CSV, print: row count, subject/difficulty/domain splits, needs_review reasons, image count, total CSV size. Sanity-check: every row has 32 cols, non-empty explanation_text, valid concept_slug, unique content_hash, every image_url is either empty or starts with "data:image/". explanation_a..d BLANK on math rows, FULL (3+ sentences each) on R&W MC rows.

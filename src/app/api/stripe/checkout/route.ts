@@ -6,7 +6,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { auth, currentUser } from "@clerk/nextjs/server";
-import { createCheckoutSession, getOrCreateCustomer } from "@/lib/stripe/client";
+import { createCheckoutSession, getOrCreateCustomer } from "@/lib/integrations/stripe/client";
 import { createAdminClient } from "@/lib/supabase/server";
 
 export async function POST(req: NextRequest) {

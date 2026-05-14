@@ -1,5 +1,5 @@
 // ============================================================
-// Strata Learn — Curriculum Data (Source of Truth)
+// Karman Learn — Curriculum Data (Source of Truth)
 // ============================================================
 //
 // 📖 NON-DEVELOPER EDITING GUIDE
@@ -50,6 +50,8 @@
 //              and brain-lobe (Math) curves. Do not edit manually.
 // ============================================================
 
+import type { SATDomain } from "@/lib/question-bank/taxonomy";
+
 export type Subject = "reading" | "math";
 export type Tier = 1 | 2 | 3;
 
@@ -66,6 +68,12 @@ export interface CurriculumNode {
   subject: Subject;
   tier: Tier;
   topic: string;
+  /** Kebab-case slug derived from `topic`. 1:1 with the question-bank
+   *  taxonomy; the routine emits this value in `concept_slug` and the
+   *  importer matches questions back to the node by it. */
+  concept_slug: string;
+  /** SAT domain. 1:1 with `SAT_DOMAINS` in lib/question-bank/taxonomy.ts. */
+  domain: SATDomain;
   description: string;
   difficulty: 1 | 2 | 3;
   x: number;               // normalized 0–1 for constellation map
@@ -79,82 +87,87 @@ export interface CurriculumNode {
 }
 
 // ── Position generators ─────────────────────────────────────
+// A single brain split into two lobes. Reading = left lobe, Math = right lobe.
+// Each lobe is an elliptical hemisphere; nodes are distributed across three
+// horizontal bands that correspond to the three curriculum tiers:
+//   • Tier 1 (Foundations) → bottom of the lobe (Troposphere)
+//   • Tier 2 (Core)        → middle
+//   • Tier 3 (Advanced)    → top of the lobe (Stratosphere)
 
-const PI = Math.PI;
+export const LOBE_LAYOUT = {
+  // Each lobe is a vertical ellipse.
+  cy:          0.50,   // both lobes share the same vertical center
+  rx:          0.17,   // horizontal half-width
+  ry:          0.38,   // vertical half-height
 
-/** Heart parametric curve point, normalized to [0.05, 0.95] */
-function heartPt(t: number): [number, number] {
-  const mx = 16 * Math.sin(t) ** 3;
-  const my =
-    13 * Math.cos(t) -
-    5 * Math.cos(2 * t) -
-    2 * Math.cos(3 * t) -
-    Math.cos(4 * t);
-  const x = 0.05 + 0.9 * ((mx + 16) / 32);
-  const y = 0.05 + 0.9 * (1 - (my + 17) / 30);
-  return [+x.toFixed(3), +y.toFixed(3)];
-}
+  reading: { cx: 0.29 }, // left lobe (Reading & Writing)
+  math:    { cx: 0.71 }, // right lobe (Math)
 
-/** Brain lobe point — ellipse with deterministic radial jitter */
-function brainPt(
-  cx: number, cy: number,
-  rx: number, ry: number,
-  i: number, total: number
-): [number, number] {
-  const t = (2 * PI * i) / total;
-  const jitter = (((i * 7 + 3) % 5) - 2) * 0.02;
-  const x = Math.max(0.05, Math.min(0.95, cx + (rx + jitter) * Math.cos(t)));
-  const y = Math.max(0.08, Math.min(0.92, cy + (ry + jitter) * Math.sin(t)));
-  return [+x.toFixed(3), +y.toFixed(3)];
+  // Atmospheric strip at the very top of the map (Stratosphere).
+  // Nodes never go above this y.
+  topLimit: 0.08,
+  bottomLimit: 0.94,
+};
+
+/**
+ * Distribute `count` nodes inside an elliptical lobe, restricted to a
+ * horizontal band (yFrac is fraction of ry, −1 = top, +1 = bottom).
+ * Deterministic for the same (cx, cy, count, seed).
+ */
+function distributeInLobe(
+  cx: number, cy: number, rx: number, ry: number,
+  yFracMin: number, yFracMax: number,
+  count: number, seed: number
+): [number, number][] {
+  const pts: [number, number][] = [];
+
+  // Use a mild low-discrepancy sequence (Halton-like) so the nodes scatter
+  // nicely across the band instead of clustering.
+  const phi1 = 0.7548776662466927;
+  const phi2 = 0.5698402909980532;
+  let s1 = (seed * 0.6180339887) % 1;
+  let s2 = (seed * 0.3141592653) % 1;
+
+  for (let i = 0; i < count; i++) {
+    s1 = (s1 + phi1) % 1;
+    s2 = (s2 + phi2) % 1;
+
+    const yFrac = yFracMin + s1 * (yFracMax - yFracMin);
+    const y = cy + yFrac * ry;
+
+    // Max x-offset inside the ellipse at this y
+    const maxOff = rx * Math.sqrt(Math.max(0, 1 - yFrac * yFrac)) * 0.90;
+    const x = cx + (2 * s2 - 1) * maxOff;
+
+    pts.push([+x.toFixed(3), +y.toFixed(3)]);
+  }
+  return pts;
 }
 
 // ── Pre-computed positions ────────────────────────────────────
+// Both subjects share the same brain. Reading nodes live in the left lobe,
+// Math nodes live in the right lobe. Tier 1 sits near the bottom of the
+// lobe (Troposphere), Tier 3 near the top (Stratosphere).
 
-// Reading & Writing — heart shape
-// T1 (15): t = 0.70π → 1.30π  (bottom of heart)
-// T2 right (10): t = 0.25π → 0.70π  (right side)
-// T2 left (10): t = 1.30π → 1.75π  (left side)
-// T3 right (6): t = 0 → 0.25π  (right peak)
-// T3 left (6): t = 1.75π → 2.00π  (left peak)
-// T3 center (3): hand-placed inside the heart top center
+const { cy: LOBE_CY, rx: LOBE_RX, ry: LOBE_RY, reading: L_READ, math: L_MATH } = LOBE_LAYOUT;
+
+// Tier y-bands (as fractions of ry, negative = up)
+const T1_YMIN =  0.20, T1_YMAX =  0.82;   // bottom of lobe
+const T2_YMIN = -0.28, T2_YMAX =  0.38;   // middle
+const T3_YMIN = -0.84, T3_YMAX = -0.22;   // top of lobe
+
+// Reading & Writing — left lobe
 const rwPos: [number, number][] = [
-  ...Array.from({ length: 15 }, (_, i) =>
-    heartPt(0.70 * PI + (i / 14) * 0.60 * PI)
-  ),
-  ...Array.from({ length: 10 }, (_, i) =>
-    heartPt(0.25 * PI + (i / 9) * 0.45 * PI)
-  ),
-  ...Array.from({ length: 10 }, (_, i) =>
-    heartPt(1.30 * PI + (i / 9) * 0.45 * PI)
-  ),
-  ...Array.from({ length: 6 }, (_, i) =>
-    heartPt((i / 5) * 0.25 * PI)
-  ),
-  ...Array.from({ length: 6 }, (_, i) =>
-    heartPt(1.75 * PI + (i / 5) * 0.25 * PI)
-  ),
-  [0.46, 0.28], [0.50, 0.33], [0.54, 0.28],
+  ...distributeInLobe(L_READ.cx, LOBE_CY, LOBE_RX, LOBE_RY, T1_YMIN, T1_YMAX, 20, 11),
+  ...distributeInLobe(L_READ.cx, LOBE_CY, LOBE_RX, LOBE_RY, T2_YMIN, T2_YMAX, 17, 47),
+  ...distributeInLobe(L_READ.cx, LOBE_CY, LOBE_RX, LOBE_RY, T3_YMIN, T3_YMAX, 12, 83),
 ];
 
-// Math — brain (dual lobe) shape
-// T1 (15): left lobe  cx=0.25, cy=0.50
-// T2 (20): right lobe cx=0.70, cy=0.50
-// T3 bridge (9): center  cx=0.475, cy=0.48
-// T3 stem (6): descending stem below center
+// Math — right lobe
 const mathPos: [number, number][] = [
-  ...Array.from({ length: 15 }, (_, i) =>
-    brainPt(0.25, 0.50, 0.18, 0.25, i, 15)
-  ),
-  ...Array.from({ length: 20 }, (_, i) =>
-    brainPt(0.70, 0.50, 0.20, 0.26, i, 20)
-  ),
-  ...Array.from({ length: 9 }, (_, i) =>
-    brainPt(0.475, 0.48, 0.09, 0.13, i, 9)
-  ),
-  ...Array.from({ length: 6 }, (_, i) => {
-    const xVar = (((i * 13 + 5) % 3) - 1) * 0.018;
-    return [+(0.462 + xVar).toFixed(3), +(0.77 + (i / 5) * 0.14).toFixed(3)] as [number, number];
-  }),
+  ...distributeInLobe(L_MATH.cx, LOBE_CY, LOBE_RX, LOBE_RY, T1_YMIN, T1_YMAX, 13, 113),
+  ...distributeInLobe(L_MATH.cx, LOBE_CY, LOBE_RX, LOBE_RY, T2_YMIN, T2_YMAX, 19, 151),
+  ...distributeInLobe(L_MATH.cx, LOBE_CY, LOBE_RX, LOBE_RY, T3_YMIN, T3_YMAX, 8, 193),
 ];
 
 // ── Topic definitions ────────────────────────────────────────
@@ -165,6 +178,8 @@ interface RawNode {
   tier: Tier;
   difficulty: 1 | 2 | 3;
   topic: string;
+  concept_slug: string;
+  domain: SATDomain;
   description: string;
   prereqIds: string[];
   topic_cluster?: string;
@@ -186,159 +201,253 @@ function defaultCluster(tier: Tier, subject: Subject): string {
   return "Advanced Math & Strategy";
 }
 
-// ─── Reading & Writing (50 nodes) ───────────────────────────
+// ─── Reading & Writing (49 nodes) ───────────────────────────
 
 const rwRaw: Omit<RawNode, "subject">[] = [
   // ── Tier 1 · Foundations (nodes 00–14) ──
   {
     id: "rw-00", tier: 1, difficulty: 1,
     topic: "Main idea & central claims",
+    concept_slug: "main-idea-and-central-claims",
+    domain: "info_ideas",
     description: "Identify the central claim or main idea of a passage and distinguish it from supporting details.",
     prereqIds: [],
   },
   {
     id: "rw-01", tier: 1, difficulty: 1,
     topic: "Supporting details & evidence",
+    concept_slug: "supporting-details-and-evidence",
+    domain: "info_ideas",
     description: "Locate and evaluate evidence that supports an author's central claim.",
     prereqIds: ["rw-00"],
   },
   {
     id: "rw-02", tier: 1, difficulty: 1,
     topic: "Author's purpose & intent",
+    concept_slug: "authors-purpose-and-intent",
+    domain: "craft_structure",
     description: "Determine why an author wrote a passage and how that purpose shapes the text.",
     prereqIds: ["rw-01"],
   },
   {
     id: "rw-03", tier: 1, difficulty: 1,
     topic: "Text organization patterns",
+    concept_slug: "text-organization-patterns",
+    domain: "craft_structure",
     description: "Recognize structural patterns (chronological, cause-effect, compare-contrast) and how they serve the author's purpose.",
     prereqIds: ["rw-01"],
   },
   {
     id: "rw-04", tier: 1, difficulty: 1,
     topic: "Vocabulary in context",
+    concept_slug: "vocabulary-in-context",
+    domain: "craft_structure",
     description: "Use surrounding context to determine the precise meaning of words and phrases.",
     prereqIds: ["rw-02"],
   },
   {
     id: "rw-05", tier: 1, difficulty: 1,
     topic: "Inference & implicit meaning",
+    concept_slug: "inference-and-implicit-meaning",
+    domain: "info_ideas",
     description: "Draw conclusions from evidence that is implied rather than directly stated.",
     prereqIds: ["rw-03"],
   },
   {
     id: "rw-06", tier: 1, difficulty: 1,
     topic: "Word choice & connotation",
+    concept_slug: "word-choice-and-connotation",
+    domain: "craft_structure",
     description: "Analyze how specific word choices shape meaning, tone, and the reader's reaction.",
     prereqIds: ["rw-04"],
   },
+  // Conventions nodes — modeled on The Critical Reader's complete
+  // SAT grammar rule list (16 rules; we skip Faulty Comparisons,
+  // Transitions [→ rw-20], Dangling Modifiers [→ rw-28], and
+  // Shorter-Is-Better [→ rw-25] which already exist as nodes).
   {
-    id: "rw-07", tier: 1, difficulty: 2,
+    id: "rw-50", tier: 1, difficulty: 2,
     topic: "Subject-verb agreement",
-    description: "Ensure verbs match their subjects in number and person, including across complex sentences.",
+    concept_slug: "subject-verb-agreement",
+    domain: "conventions",
+    description: "Match verbs to their subjects in number across compound subjects, prepositional phrases, and non-essential clauses; remember that each and every are singular.",
     prereqIds: ["rw-05"],
   },
   {
-    id: "rw-08", tier: 1, difficulty: 2,
-    topic: "Pronoun reference & agreement",
-    description: "Make pronouns agree with their antecedents and avoid ambiguous references.",
+    id: "rw-51", tier: 1, difficulty: 2,
+    topic: "Verb tense",
+    concept_slug: "verb-tense",
+    domain: "conventions",
+    description: "Maintain tense consistency; use present perfect, simple past, and past perfect correctly; choose between active and passive voice and between TO- and -ING verb forms.",
+    prereqIds: ["rw-50"],
+  },
+  {
+    id: "rw-52", tier: 1, difficulty: 2,
+    topic: "Pronouns & nouns",
+    concept_slug: "pronouns-and-nouns",
+    domain: "conventions",
+    description: "Match pronouns to their antecedents in number; distinguish people (who) from things (which); choose between who and whom by case.",
     prereqIds: ["rw-06"],
   },
   {
-    id: "rw-09", tier: 1, difficulty: 2,
-    topic: "Sentence boundaries",
-    description: "Identify and fix sentence fragments and run-on sentences using correct punctuation and conjunctions.",
-    prereqIds: ["rw-07"],
+    id: "rw-53", tier: 1, difficulty: 2,
+    topic: "Apostrophes (plural vs. possessive)",
+    concept_slug: "apostrophes-plural-vs-possessive",
+    domain: "conventions",
+    description: "Distinguish possessive forms (the dog's bowl) from plurals (the dogs); use possessive pronouns (its, their) without apostrophes.",
+    prereqIds: ["rw-52"],
   },
   {
-    id: "rw-10", tier: 1, difficulty: 2,
-    topic: "Comma usage",
-    description: "Apply comma rules for coordinate adjectives, introductory clauses, and compound sentences.",
-    prereqIds: ["rw-08"],
+    id: "rw-54", tier: 1, difficulty: 2,
+    topic: "Periods & semicolons",
+    concept_slug: "periods-and-semicolons",
+    domain: "conventions",
+    description: "Separate two complete sentences with a period or semicolon; use a semicolon (not a comma) before conjunctive adverbs like however, therefore, and moreover.",
+    prereqIds: ["rw-50"],
   },
   {
-    id: "rw-11", tier: 1, difficulty: 2,
-    topic: "Apostrophes & possession",
-    description: "Use apostrophes correctly to indicate possession and avoid common contraction errors.",
-    prereqIds: ["rw-09"],
+    id: "rw-55", tier: 1, difficulty: 2,
+    topic: "Comma + FANBOYS",
+    concept_slug: "comma-fanboys",
+    domain: "conventions",
+    description: "Join two complete sentences with a comma plus a FANBOYS coordinating conjunction; avoid comma splices and the unneeded comma+FANBOYS+verb pattern.",
+    prereqIds: ["rw-54"],
   },
   {
-    id: "rw-12", tier: 1, difficulty: 2,
-    topic: "Parallel structure",
-    description: "Ensure items in a series, comparisons, and paired elements follow the same grammatical form.",
-    prereqIds: ["rw-10"],
+    id: "rw-56", tier: 1, difficulty: 2,
+    topic: "Commas & dependent clauses",
+    concept_slug: "commas-and-dependent-clauses",
+    domain: "conventions",
+    description: "Place a comma after an introductory dependent clause; omit the comma when the dependent clause comes after the main clause.",
+    prereqIds: ["rw-55"],
   },
   {
-    id: "rw-13", tier: 1, difficulty: 2,
-    topic: "Verb tense consistency",
-    description: "Maintain consistent verb tenses within and across sentences to avoid awkward shifts.",
-    prereqIds: ["rw-11"],
+    id: "rw-57", tier: 1, difficulty: 2,
+    topic: "Non-essential information",
+    concept_slug: "non-essential-information",
+    domain: "conventions",
+    description: "Set off non-essential phrases and clauses with a matched pair of commas, dashes, or parentheses (never mix the two ends).",
+    prereqIds: ["rw-56"],
   },
   {
-    id: "rw-14", tier: 1, difficulty: 2,
-    topic: "Capitalization & mechanics",
-    description: "Apply capitalization rules and recognize punctuation that affects meaning and clarity.",
-    prereqIds: ["rw-12", "rw-13"],
+    id: "rw-58", tier: 1, difficulty: 2,
+    topic: "Commas with names & titles",
+    concept_slug: "commas-with-names-and-titles",
+    domain: "conventions",
+    description: "Add commas around a name or title only when it is non-essential; omit them when the name is required to identify which person or thing is meant.",
+    prereqIds: ["rw-57"],
+  },
+  {
+    id: "rw-59", tier: 1, difficulty: 2,
+    topic: "Additional comma uses & misuses",
+    concept_slug: "additional-comma-uses-and-misuses",
+    domain: "conventions",
+    description: "Use commas in lists and between coordinate adjectives; avoid them between subjects and verbs, before prepositions, between compound items, and around essential that-clauses.",
+    prereqIds: ["rw-58"],
+  },
+  {
+    id: "rw-60", tier: 1, difficulty: 2,
+    topic: "Colons & dashes",
+    concept_slug: "colons-and-dashes",
+    domain: "conventions",
+    description: "Use a colon or dash after a complete sentence to introduce a list, an explanation, or an amplification of what came before.",
+    prereqIds: ["rw-54"],
+  },
+  {
+    id: "rw-61", tier: 1, difficulty: 2,
+    topic: "Parallel structure & word pairs",
+    concept_slug: "parallel-structure-and-word-pairs",
+    domain: "conventions",
+    description: "Keep items in lists, paired comparisons, and word pairs (either…or, neither…nor, not only…but also) in matching grammatical form.",
+    prereqIds: ["rw-50"],
+  },
+  {
+    id: "rw-62", tier: 1, difficulty: 2,
+    topic: "Question marks",
+    concept_slug: "question-marks",
+    domain: "conventions",
+    description: "Use a question mark for a direct question; use a period for an indirect question (e.g., \"She asked whether he would come.\").",
+    prereqIds: ["rw-54"],
   },
 
   // ── Tier 2 · Core — Right side (nodes 15–24) ──
   {
     id: "rw-15", tier: 2, difficulty: 2,
     topic: "Central idea vs. theme",
+    concept_slug: "central-idea-vs-theme",
+    domain: "info_ideas",
     description: "Distinguish between the explicit central idea of a non-fiction text and the implicit theme of a literary one.",
-    prereqIds: ["rw-14"],
+    prereqIds: ["rw-05"],
   },
   {
     id: "rw-16", tier: 2, difficulty: 2,
     topic: "Rhetorical appeals",
+    concept_slug: "rhetorical-appeals",
+    domain: "craft_structure",
     description: "Identify how authors use ethos (credibility), pathos (emotion), and logos (logic) to persuade readers.",
     prereqIds: ["rw-15"],
   },
   {
     id: "rw-17", tier: 2, difficulty: 2,
     topic: "Tone & point of view",
+    concept_slug: "tone-and-point-of-view",
+    domain: "craft_structure",
     description: "Determine the author's tone and recognize how perspective shapes the presentation of information.",
     prereqIds: ["rw-16"],
   },
   {
     id: "rw-18", tier: 2, difficulty: 2,
     topic: "Citing textual evidence",
+    concept_slug: "citing-textual-evidence",
+    domain: "info_ideas",
     description: "Select specific evidence from the passage that most directly supports a given claim.",
     prereqIds: ["rw-15"],
   },
   {
     id: "rw-19", tier: 2, difficulty: 2,
     topic: "Evaluating argument strength",
+    concept_slug: "evaluating-argument-strength",
+    domain: "craft_structure",
     description: "Assess whether evidence adequately supports a claim and identify gaps in reasoning.",
     prereqIds: ["rw-18"],
   },
   {
     id: "rw-20", tier: 2, difficulty: 2,
     topic: "Transitional words & phrases",
+    concept_slug: "transitional-words-and-phrases",
+    domain: "expression_ideas",
     description: "Choose transitions that accurately convey the logical relationship between sentences and paragraphs.",
-    prereqIds: ["rw-14"],
+    prereqIds: ["rw-06"],
   },
   {
     id: "rw-21", tier: 2, difficulty: 2,
     topic: "Cross-text synthesis",
+    concept_slug: "cross-text-synthesis",
+    domain: "info_ideas",
     description: "Combine information from two passages to answer questions neither could answer alone.",
     prereqIds: ["rw-20"],
   },
   {
     id: "rw-22", tier: 2, difficulty: 2,
     topic: "Charts & data in passages",
+    concept_slug: "charts-and-data-in-passages",
+    domain: "info_ideas",
     description: "Read tables, graphs, and infographics embedded in passages and connect them to the written argument.",
     prereqIds: ["rw-21"],
   },
   {
     id: "rw-23", tier: 2, difficulty: 2,
     topic: "Interpreting graphs alongside text",
+    concept_slug: "interpreting-graphs-alongside-text",
+    domain: "info_ideas",
     description: "Determine what a graph shows, how it aligns with or contradicts the passage, and what it implies.",
     prereqIds: ["rw-22"],
   },
   {
     id: "rw-24", tier: 2, difficulty: 2,
     topic: "Authorial perspective & bias",
+    concept_slug: "authorial-perspective-and-bias",
+    domain: "craft_structure",
     description: "Identify an author's underlying assumptions, values, or biases and how they shape the argument.",
     prereqIds: ["rw-23"],
   },
@@ -347,374 +456,422 @@ const rwRaw: Omit<RawNode, "subject">[] = [
   {
     id: "rw-25", tier: 2, difficulty: 2,
     topic: "Redundancy & conciseness",
+    concept_slug: "redundancy-and-conciseness",
+    domain: "expression_ideas",
     description: "Eliminate wordiness, repetition, and unnecessary information that weakens writing.",
-    prereqIds: ["rw-14"],
+    prereqIds: ["rw-06"],
   },
   {
     id: "rw-26", tier: 2, difficulty: 2,
     topic: "Sentence variety & combining",
+    concept_slug: "sentence-variety-and-combining",
+    domain: "expression_ideas",
     description: "Improve flow by combining short sentences and varying structure without losing clarity.",
-    prereqIds: ["rw-25"],
-  },
-  {
-    id: "rw-27", tier: 2, difficulty: 2,
-    topic: "Formal vs. informal register",
-    description: "Recognize when to adjust diction and tone to match the audience and context of a passage.",
     prereqIds: ["rw-25"],
   },
   {
     id: "rw-28", tier: 2, difficulty: 2,
     topic: "Modifier placement",
+    concept_slug: "modifier-placement",
+    domain: "conventions",
     description: "Place modifying phrases and clauses immediately adjacent to the words they describe.",
     prereqIds: ["rw-26"],
   },
   {
-    id: "rw-29", tier: 2, difficulty: 2,
-    topic: "Active vs. passive voice",
-    description: "Choose between active and passive voice to convey clarity, emphasis, and appropriate formality.",
-    prereqIds: ["rw-27"],
-  },
-  {
     id: "rw-30", tier: 2, difficulty: 2,
     topic: "Command of evidence — textual",
+    concept_slug: "command-of-evidence-textual",
+    domain: "info_ideas",
     description: "Identify the most specific quote or detail from the text that proves a point or answers a question.",
     prereqIds: ["rw-28", "rw-18"],
   },
   {
     id: "rw-31", tier: 2, difficulty: 2,
     topic: "Command of evidence — quantitative",
+    concept_slug: "command-of-evidence-quantitative",
+    domain: "info_ideas",
     description: "Use data from graphs and tables as evidence to complete, support, or challenge an argument in the text.",
-    prereqIds: ["rw-29"],
-  },
-  {
-    id: "rw-32", tier: 2, difficulty: 3,
-    topic: "Logical fallacies",
-    description: "Recognize flawed reasoning patterns (ad hominem, false dichotomy, slippery slope) in argumentative texts.",
     prereqIds: ["rw-30"],
   },
   {
     id: "rw-33", tier: 2, difficulty: 3,
     topic: "Counterclaims & rebuttals",
+    concept_slug: "counterclaims-and-rebuttals",
+    domain: "info_ideas",
     description: "Identify how authors anticipate opposition and evaluate whether their rebuttals are effective.",
     prereqIds: ["rw-31"],
   },
   {
     id: "rw-34", tier: 2, difficulty: 3,
     topic: "Multi-paragraph structure",
+    concept_slug: "multi-paragraph-structure",
+    domain: "expression_ideas",
     description: "Understand how paragraphs relate to one another and how structure supports the overall argument.",
-    prereqIds: ["rw-32", "rw-33"],
+    prereqIds: ["rw-33"],
   },
 
   // ── Tier 3 · Advanced — Right peak (nodes 35–40) ──
   {
     id: "rw-35", tier: 3, difficulty: 3,
     topic: "Rhetorical synthesis",
+    concept_slug: "rhetorical-synthesis",
+    domain: "expression_ideas",
     description: "Select and integrate evidence from multiple perspectives to best achieve a specific rhetorical goal.",
     prereqIds: ["rw-24"],
   },
   {
     id: "rw-36", tier: 3, difficulty: 3,
     topic: "Advanced argumentation analysis",
+    concept_slug: "advanced-argumentation-analysis",
+    domain: "craft_structure",
     description: "Evaluate the structure, strength, and limitations of complex multi-part arguments.",
     prereqIds: ["rw-35"],
   },
   {
     id: "rw-37", tier: 3, difficulty: 3,
     topic: "Dual-passage analysis",
+    concept_slug: "dual-passage-analysis",
+    domain: "info_ideas",
     description: "Analyze how two authors address the same topic differently and synthesize their viewpoints.",
     prereqIds: ["rw-36"],
   },
   {
     id: "rw-38", tier: 3, difficulty: 3,
     topic: "Literary authorial purpose",
+    concept_slug: "literary-authorial-purpose",
+    domain: "craft_structure",
     description: "Interpret how an author's choices in literary texts serve complex thematic and aesthetic purposes.",
-    prereqIds: ["rw-37"],
-  },
-  {
-    id: "rw-39", tier: 3, difficulty: 3,
-    topic: "Figurative language & literary devices",
-    description: "Analyze metaphor, irony, allusion, and other devices and their effect on meaning and tone.",
     prereqIds: ["rw-37"],
   },
   {
     id: "rw-40", tier: 3, difficulty: 3,
     topic: "Nuanced vocabulary in context",
+    concept_slug: "nuanced-vocabulary-in-context",
+    domain: "craft_structure",
     description: "Distinguish between subtle differences in meaning for advanced vocabulary in science and social studies passages.",
-    prereqIds: ["rw-38", "rw-39"],
+    prereqIds: ["rw-38"],
   },
 
   // ── Tier 3 · Advanced — Left peak (nodes 41–46) ──
   {
     id: "rw-41", tier: 3, difficulty: 3,
     topic: "Advanced transitions & cohesion",
+    concept_slug: "advanced-transitions-and-cohesion",
+    domain: "expression_ideas",
     description: "Select transitions that precisely convey logical relationships in complex, multi-part arguments.",
     prereqIds: ["rw-34"],
   },
   {
     id: "rw-42", tier: 3, difficulty: 3,
     topic: "Statistical claim evaluation",
+    concept_slug: "statistical-claim-evaluation",
+    domain: "info_ideas",
     description: "Assess whether statistical evidence supports a claim, identify misleading statistics, and understand margins of error.",
     prereqIds: ["rw-41"],
   },
   {
     id: "rw-43", tier: 3, difficulty: 3,
     topic: "Information & ideas integration",
+    concept_slug: "information-and-ideas-integration",
+    domain: "info_ideas",
     description: "Combine ideas from multiple sources and data types to draw nuanced, well-supported conclusions.",
     prereqIds: ["rw-42"],
   },
   {
-    id: "rw-44", tier: 3, difficulty: 3,
-    topic: "Advanced sentence complexity",
-    description: "Control complex and compound-complex sentence structures for precise meaning without introducing errors.",
-    prereqIds: ["rw-41"],
-  },
-  {
     id: "rw-45", tier: 3, difficulty: 3,
     topic: "Precise word choice in context",
+    concept_slug: "precise-word-choice-in-context",
+    domain: "craft_structure",
     description: "Select the single word or phrase that most accurately conveys the intended meaning in high-stakes revision questions.",
     prereqIds: ["rw-43"],
   },
   {
     id: "rw-46", tier: 3, difficulty: 3,
     topic: "Structural analysis of texts",
+    concept_slug: "structural-analysis-of-texts",
+    domain: "craft_structure",
     description: "Analyze how an author's structural choices (paragraph order, section headings, emphasis) affect meaning and persuasiveness.",
-    prereqIds: ["rw-44", "rw-45"],
+    prereqIds: ["rw-45"],
   },
 
   // ── Tier 3 · Advanced — Center apex (nodes 47–49) ──
   {
     id: "rw-47", tier: 3, difficulty: 3,
     topic: "Cross-disciplinary evidence use",
+    concept_slug: "cross-disciplinary-evidence-use",
+    domain: "info_ideas",
     description: "Integrate data, quotations, and reasoning from science, history, and literature passages into a single coherent response.",
     prereqIds: ["rw-40", "rw-46"],
   },
   {
     id: "rw-48", tier: 3, difficulty: 3,
     topic: "Logical structure of arguments",
+    concept_slug: "logical-structure-of-arguments",
+    domain: "craft_structure",
     description: "Map an argument's full logical structure — premises, inference steps, and conclusion — to spot weaknesses.",
     prereqIds: ["rw-47"],
   },
-  {
-    id: "rw-49", tier: 3, difficulty: 3,
-    topic: "Full-passage strategy",
-    description: "Apply pacing, annotation, and process-of-elimination strategies to maximize accuracy across the Reading & Writing section.",
-    prereqIds: ["rw-48"],
-  },
 ];
 
-// ─── Math (50 nodes) ─────────────────────────────────────────
+// ─── Math (40 nodes) ─────────────────────────────────────────
 
 const maRaw: Omit<RawNode, "subject">[] = [
   // ── Tier 1 · Foundations (nodes 00–14) ──
   {
     id: "ma-00", tier: 1, difficulty: 1,
     topic: "Linear equations (one variable)",
+    concept_slug: "linear-equations-one-variable",
+    domain: "algebra",
     description: "Solve equations of the form ax + b = c and interpret solutions in context.",
     prereqIds: [],
   },
   {
     id: "ma-01", tier: 1, difficulty: 1,
     topic: "Linear equations (two variables)",
+    concept_slug: "linear-equations-two-variables",
+    domain: "algebra",
     description: "Write, graph, and interpret equations relating two quantities with constant rate of change.",
     prereqIds: ["ma-00"],
   },
   {
     id: "ma-02", tier: 1, difficulty: 1,
     topic: "Linear inequalities",
+    concept_slug: "linear-inequalities",
+    domain: "algebra",
     description: "Solve and graph one- and two-variable linear inequalities and interpret solution sets.",
     prereqIds: ["ma-01"],
   },
   {
     id: "ma-03", tier: 1, difficulty: 1,
     topic: "Ratios & proportions",
+    concept_slug: "ratios-and-proportions",
+    domain: "data_analysis",
     description: "Set up and solve proportion equations; apply to scale, mixtures, and real-world comparisons.",
     prereqIds: ["ma-00"],
   },
   {
     id: "ma-04", tier: 1, difficulty: 1,
     topic: "Percentages",
+    concept_slug: "percentages",
+    domain: "data_analysis",
     description: "Calculate percent of a number, percent change, and reverse-percent problems.",
     prereqIds: ["ma-03"],
   },
   {
     id: "ma-05", tier: 1, difficulty: 1,
     topic: "Unit rates & conversions",
+    concept_slug: "unit-rates-and-conversions",
+    domain: "data_analysis",
     description: "Convert between units using dimensional analysis and interpret rates in real-world contexts.",
     prereqIds: ["ma-03"],
   },
   {
     id: "ma-06", tier: 1, difficulty: 1,
     topic: "Properties of exponents",
+    concept_slug: "properties-of-exponents",
+    domain: "advanced_math",
     description: "Apply product, quotient, power, and zero-exponent rules to simplify expressions.",
     prereqIds: ["ma-04"],
   },
   {
     id: "ma-07", tier: 1, difficulty: 1,
     topic: "Simplifying algebraic expressions",
+    concept_slug: "simplifying-algebraic-expressions",
+    domain: "advanced_math",
     description: "Combine like terms, distribute, and factor out common terms from polynomial expressions.",
     prereqIds: ["ma-06"],
   },
   {
     id: "ma-08", tier: 1, difficulty: 2,
     topic: "Evaluating & interpreting functions",
+    concept_slug: "evaluating-and-interpreting-functions",
+    domain: "advanced_math",
     description: "Evaluate f(x) at given values and interpret function notation in applied problems.",
     prereqIds: ["ma-02", "ma-07"],
   },
   {
-    id: "ma-09", tier: 1, difficulty: 2,
-    topic: "Domain & range",
-    description: "Determine the domain and range of functions from equations, tables, and graphs.",
-    prereqIds: ["ma-08"],
-  },
-  {
     id: "ma-10", tier: 1, difficulty: 2,
     topic: "Introduction to polynomials",
+    concept_slug: "introduction-to-polynomials",
+    domain: "advanced_math",
     description: "Classify polynomials by degree, identify leading coefficients, and understand end behavior.",
     prereqIds: ["ma-07"],
   },
   {
     id: "ma-11", tier: 1, difficulty: 2,
     topic: "Area, perimeter & volume",
+    concept_slug: "area-perimeter-and-volume",
+    domain: "geometry",
     description: "Calculate area and perimeter of standard shapes and volume of 3D figures including cylinders and cones.",
     prereqIds: ["ma-04"],
   },
   {
     id: "ma-12", tier: 1, difficulty: 2,
     topic: "Angle relationships",
+    concept_slug: "angle-relationships",
+    domain: "geometry",
     description: "Apply properties of supplementary, complementary, vertical, and corresponding angles.",
     prereqIds: ["ma-11"],
   },
   {
     id: "ma-13", tier: 1, difficulty: 2,
     topic: "Coordinate plane geometry",
+    concept_slug: "coordinate-plane-geometry",
+    domain: "geometry",
     description: "Find midpoints, distances, and slopes; interpret lines on the coordinate plane.",
     prereqIds: ["ma-12"],
-  },
-  {
-    id: "ma-14", tier: 1, difficulty: 2,
-    topic: "Order of operations & arithmetic",
-    description: "Apply PEMDAS correctly and work fluently with integers, fractions, and decimals.",
-    prereqIds: ["ma-05"],
   },
 
   // ── Tier 2 · Core — Right lobe (nodes 15–34) ──
   {
     id: "ma-15", tier: 2, difficulty: 2,
     topic: "Systems of linear equations",
+    concept_slug: "systems-of-linear-equations",
+    domain: "algebra",
     description: "Solve systems by substitution and elimination; interpret solutions as intersection points.",
     prereqIds: ["ma-01", "ma-02"],
   },
   {
     id: "ma-16", tier: 2, difficulty: 2,
     topic: "Systems of linear inequalities",
+    concept_slug: "systems-of-linear-inequalities",
+    domain: "algebra",
     description: "Graph and interpret solution regions for systems of inequalities, including optimization contexts.",
     prereqIds: ["ma-15"],
   },
   {
     id: "ma-17", tier: 2, difficulty: 2,
     topic: "Quadratic equations — factoring",
+    concept_slug: "quadratic-equations-factoring",
+    domain: "advanced_math",
     description: "Factor trinomials and use the zero-product property to solve quadratic equations.",
     prereqIds: ["ma-15"],
   },
   {
     id: "ma-18", tier: 2, difficulty: 2,
     topic: "Quadratic equations — quadratic formula",
+    concept_slug: "quadratic-equations-quadratic-formula",
+    domain: "advanced_math",
     description: "Apply the quadratic formula and discriminant to solve and analyze quadratic equations.",
     prereqIds: ["ma-17"],
   },
   {
     id: "ma-19", tier: 2, difficulty: 2,
     topic: "Quadratic functions — vertex form",
+    concept_slug: "quadratic-functions-vertex-form",
+    domain: "advanced_math",
     description: "Convert between standard and vertex form; identify vertex, axis of symmetry, and direction of opening.",
     prereqIds: ["ma-18"],
   },
   {
     id: "ma-20", tier: 2, difficulty: 2,
     topic: "Polynomial operations",
+    concept_slug: "polynomial-operations",
+    domain: "advanced_math",
     description: "Add, subtract, multiply, and divide polynomials; understand the relationship between roots and factors.",
     prereqIds: ["ma-10", "ma-17"],
   },
   {
     id: "ma-21", tier: 2, difficulty: 2,
     topic: "Rational expressions",
+    concept_slug: "rational-expressions",
+    domain: "advanced_math",
     description: "Simplify, add, subtract, and multiply rational expressions; identify excluded values.",
     prereqIds: ["ma-20"],
   },
   {
     id: "ma-22", tier: 2, difficulty: 2,
     topic: "Radical expressions",
+    concept_slug: "radical-expressions",
+    domain: "advanced_math",
     description: "Simplify radicals, rationalize denominators, and solve equations involving square roots.",
-    prereqIds: ["ma-09"],
+    prereqIds: ["ma-07"],
   },
   {
     id: "ma-23", tier: 2, difficulty: 2,
     topic: "Exponential growth & decay",
+    concept_slug: "exponential-growth-and-decay",
+    domain: "advanced_math",
     description: "Model and interpret exponential functions in real-world contexts including compound interest.",
     prereqIds: ["ma-06"],
   },
   {
-    id: "ma-24", tier: 2, difficulty: 2,
-    topic: "Logarithms",
-    description: "Understand logarithms as the inverse of exponentials; evaluate and apply basic logarithm properties.",
-    prereqIds: ["ma-23"],
-  },
-  {
     id: "ma-25", tier: 2, difficulty: 2,
     topic: "Absolute value equations",
+    concept_slug: "absolute-value-equations",
+    domain: "algebra",
     description: "Solve absolute value equations and inequalities; interpret solutions on a number line.",
     prereqIds: ["ma-15"],
   },
   {
     id: "ma-26", tier: 2, difficulty: 2,
     topic: "Function transformations",
+    concept_slug: "function-transformations",
+    domain: "advanced_math",
     description: "Apply horizontal/vertical shifts, reflections, and stretches to graphs of any function.",
     prereqIds: ["ma-08", "ma-19"],
   },
   {
     id: "ma-27", tier: 2, difficulty: 2,
     topic: "Linear vs. exponential models",
+    concept_slug: "linear-vs-exponential-models",
+    domain: "advanced_math",
     description: "Determine whether a data set is best modeled by a linear or exponential function and write the equation.",
     prereqIds: ["ma-23"],
   },
   {
     id: "ma-28", tier: 2, difficulty: 2,
     topic: "Scatterplots & lines of best fit",
+    concept_slug: "scatterplots-and-lines-of-best-fit",
+    domain: "data_analysis",
     description: "Interpret scatterplot trends, estimate lines of best fit, and use them to make predictions.",
     prereqIds: ["ma-13"],
   },
   {
     id: "ma-29", tier: 2, difficulty: 2,
     topic: "Statistical measures",
+    concept_slug: "statistical-measures",
+    domain: "data_analysis",
     description: "Calculate and interpret mean, median, mode, range, and standard deviation; compare distributions.",
     prereqIds: ["ma-04"],
   },
   {
     id: "ma-30", tier: 2, difficulty: 2,
     topic: "Probability basics",
+    concept_slug: "probability-basics",
+    domain: "data_analysis",
     description: "Calculate simple and compound probabilities; apply counting principles and conditional probability.",
     prereqIds: ["ma-29"],
   },
   {
     id: "ma-31", tier: 2, difficulty: 2,
     topic: "Two-way tables",
+    concept_slug: "two-way-tables",
+    domain: "data_analysis",
     description: "Interpret frequency and relative frequency in two-way tables; calculate conditional probabilities.",
     prereqIds: ["ma-30"],
   },
   {
     id: "ma-32", tier: 2, difficulty: 2,
     topic: "Triangle congruence & similarity",
+    concept_slug: "triangle-congruence-and-similarity",
+    domain: "geometry",
     description: "Apply SSS, SAS, ASA congruence and AA, SAS similarity to solve for unknown sides and angles.",
     prereqIds: ["ma-12"],
   },
   {
     id: "ma-33", tier: 2, difficulty: 2,
     topic: "Pythagorean theorem & distance formula",
+    concept_slug: "pythagorean-theorem-and-distance-formula",
+    domain: "geometry",
     description: "Apply the Pythagorean theorem and distance formula in 2D and 3D contexts.",
     prereqIds: ["ma-32", "ma-13"],
   },
   {
     id: "ma-34", tier: 2, difficulty: 3,
     topic: "Trigonometric ratios",
+    concept_slug: "trigonometric-ratios",
+    domain: "geometry",
     description: "Define and apply sine, cosine, and tangent (SOH-CAH-TOA) to solve right triangle problems.",
     prereqIds: ["ma-33", "ma-12"],
   },
@@ -723,92 +880,66 @@ const maRaw: Omit<RawNode, "subject">[] = [
   {
     id: "ma-35", tier: 3, difficulty: 3,
     topic: "Nonlinear systems of equations",
+    concept_slug: "nonlinear-systems-of-equations",
+    domain: "advanced_math",
     description: "Solve systems involving one linear and one quadratic (or other nonlinear) equation algebraically and graphically.",
-    prereqIds: ["ma-19", "ma-24"],
-  },
-  {
-    id: "ma-36", tier: 3, difficulty: 3,
-    topic: "Complex numbers",
-    description: "Perform arithmetic with complex numbers and use them to express solutions to equations with no real roots.",
-    prereqIds: ["ma-22"],
-  },
-  {
-    id: "ma-37", tier: 3, difficulty: 3,
-    topic: "Polynomial remainder theorem",
-    description: "Apply the remainder and factor theorems to divide polynomials and identify roots.",
-    prereqIds: ["ma-20", "ma-21"],
-  },
-  {
-    id: "ma-38", tier: 3, difficulty: 3,
-    topic: "Advanced function composition",
-    description: "Evaluate and simplify composite functions (f ∘ g)(x) and understand the concept of inverse functions.",
-    prereqIds: ["ma-26"],
-  },
-  {
-    id: "ma-39", tier: 3, difficulty: 3,
-    topic: "Exponential equations & logarithms",
-    description: "Solve exponential equations using logarithms and apply change-of-base formula.",
-    prereqIds: ["ma-24", "ma-35"],
-  },
-  {
-    id: "ma-40", tier: 3, difficulty: 3,
-    topic: "Trigonometric identities",
-    description: "Apply Pythagorean identities and co-function relationships to simplify and solve trig expressions.",
-    prereqIds: ["ma-34"],
+    prereqIds: ["ma-19"],
   },
   {
     id: "ma-41", tier: 3, difficulty: 3,
     topic: "Circle equations in standard form",
+    concept_slug: "circle-equations-in-standard-form",
+    domain: "geometry",
     description: "Write and interpret the standard form (x – h)² + (y – k)² = r² and complete the square to convert.",
     prereqIds: ["ma-33"],
   },
   {
     id: "ma-42", tier: 3, difficulty: 3,
     topic: "Arc length & sector area",
+    concept_slug: "arc-length-and-sector-area",
+    domain: "geometry",
     description: "Calculate arc length and sector area using radian measures; convert between radians and degrees.",
     prereqIds: ["ma-41"],
   },
   {
     id: "ma-43", tier: 3, difficulty: 3,
     topic: "Statistical inference & margin of error",
+    concept_slug: "statistical-inference-and-margin-of-error",
+    domain: "data_analysis",
     description: "Interpret confidence intervals, margin of error, and make valid inferences from sample data.",
     prereqIds: ["ma-30", "ma-31"],
   },
 
-  // ── Tier 3 · Advanced — Stem (nodes 44–49) ──
-  {
-    id: "ma-44", tier: 3, difficulty: 3,
-    topic: "Permutations & combinations",
-    description: "Use counting principles, permutations, and combinations to calculate probabilities of complex events.",
-    prereqIds: ["ma-39"],
-  },
-  {
-    id: "ma-45", tier: 3, difficulty: 3,
-    topic: "Geometric sequences & series",
-    description: "Identify geometric sequences, write explicit and recursive formulas, and find partial sums.",
-    prereqIds: ["ma-35"],
-  },
+  // ── Tier 3 · Advanced — Stem (nodes 46–49) ──
   {
     id: "ma-46", tier: 3, difficulty: 3,
     topic: "Algebraic manipulation of complex expressions",
+    concept_slug: "algebraic-manipulation-of-complex-expressions",
+    domain: "advanced_math",
     description: "Rewrite expressions in equivalent forms to reveal properties and solve multi-step problems.",
-    prereqIds: ["ma-37", "ma-38"],
+    prereqIds: ["ma-21"],
   },
   {
     id: "ma-47", tier: 3, difficulty: 3,
     topic: "Interpreting complex data",
+    concept_slug: "interpreting-complex-data",
+    domain: "data_analysis",
     description: "Analyze histograms, dot plots, box plots, and combinations of data displays to draw conclusions.",
     prereqIds: ["ma-43"],
   },
   {
     id: "ma-48", tier: 3, difficulty: 3,
     topic: "Multi-step problem solving",
+    concept_slug: "multi-step-problem-solving",
+    domain: "advanced_math",
     description: "Translate complex word problems into equations, systems, or models and solve efficiently.",
-    prereqIds: ["ma-44", "ma-46", "ma-47"],
+    prereqIds: ["ma-46", "ma-47"],
   },
   {
     id: "ma-49", tier: 3, difficulty: 3,
     topic: "Full-section strategy",
+    concept_slug: "full-section-strategy",
+    domain: "advanced_math",
     description: "Apply time management, calculator strategy, answer estimation, and back-solving to maximize your Math score.",
     prereqIds: ["ma-48"],
   },
@@ -983,8 +1114,8 @@ export const SUBJECT_LABELS: Record<Subject, string> = {
 };
 
 export const SUBJECT_COLORS: Record<Subject, { hex: string; glow: string; dim: string }> = {
-  reading: { hex: "#FB7185", glow: "#fb718580", dim: "#fb718530" },
-  math:    { hex: "#818CF8", glow: "#818cf880", dim: "#818cf830" },
+  reading: { hex: "#EC4899", glow: "#ec489980", dim: "#ec489930" },  // magenta-pink
+  math:    { hex: "#38BDF8", glow: "#38bdf880", dim: "#38bdf830" },  // sky cyan
 };
 
 // ── Atmospheric tier naming ──────────────────────────────────

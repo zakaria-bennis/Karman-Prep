@@ -5,7 +5,7 @@
 // ============================================================
 
 import { NextRequest, NextResponse } from "next/server";
-import { addToWaitlist } from "@/lib/resend/emails";
+import { addToWaitlist } from "@/lib/integrations/resend/emails";
 
 export async function POST(req: NextRequest) {
   try {

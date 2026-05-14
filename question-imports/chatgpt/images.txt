@@ -1,0 +1,127 @@
+FIGURE EXTRACTION PROTOCOL — feeds the image_url and image_alt columns
+of the 32-column CSV. Images live INLINE in the CSV as base64 data URLs.
+No sidecar files, no zip bundle. The Karman Prep importer detects the
+data URL prefix on upload, decodes the bytes, and uploads them to R2
+automatically — your job is just to embed them in the CSV correctly.
+
+═══════════════════════════════════════════════════════════════
+WHEN A QUESTION GETS A FIGURE
+═══════════════════════════════════════════════════════════════
+A question is "figure-bearing" if its meaning depends on a visual
+that text alone cannot replace. Typical cases:
+- Math: graph, scatterplot, geometry diagram, coordinate plane,
+  table of values, histogram, bar chart, function plot
+- R&W: chart/table embedded in the passage (info_ideas questions
+  asking to read data from a figure)
+- Anything where the question stem says "the figure shown",
+  "based on the graph", "the table above", etc.
+
+If a question CAN be solved from text alone — even if the PDF shows
+a figure for context — leave image_url + image_alt empty. Don't
+attach decorative images.
+
+═══════════════════════════════════════════════════════════════
+EXTRACTION ORDER (try these in order, fall back as needed)
+═══════════════════════════════════════════════════════════════
+
+Step 1 — TRY embedded image lookup with PyMuPDF (fitz):
+    import fitz
+    doc = fitz.open(<pdf-path>)
+    page = doc[source_page - 1]      # 0-indexed in fitz
+    images = page.get_images(full=True)
+For each entry, extract via doc.extract_image(xref) → bytes + ext.
+Pick the LARGEST embedded image on the page (by byte count). This
+works for modern College Board releases where the figure is an
+embedded raster. ~70% of cases.
+
+Step 2 — IF Step 1 finds nothing useful (scanned PDFs, no embedded
+xrefs on the page), render the FULL page at 150 DPI and use THAT
+as the figure:
+    from pdf2image import convert_from_path
+    import io
+    pages = convert_from_path(<pdf>, dpi=150,
+                              first_page=source_page,
+                              last_page=source_page)
+    buf = io.BytesIO()
+    pages[0].save(buf, format="PNG")
+    image_bytes = buf.getvalue()
+    mime = "image/png"
+This is wasteful (the question text and choices are also in the
+image) but always correct. Better than no figure at all.
+
+Step 3 — DO NOT attempt programmatic cropping based on layout
+analysis or OpenCV blob detection. It is unreliable and produces
+worse output than the whole-page fallback. Vision-driven cropping
+is out of scope.
+
+═══════════════════════════════════════════════════════════════
+INLINE BASE64 ENCODING (the part that lands in the CSV)
+═══════════════════════════════════════════════════════════════
+Once you have `image_bytes` and `mime` for a figure:
+
+    import base64
+    b64 = base64.b64encode(image_bytes).decode("ascii")
+    data_url = f"data:{mime};base64,{b64}"
+
+That string goes verbatim into the row's `image_url` column.
+A typical 150-DPI page-screenshot PNG is ~140 KB raw → ~190 KB as
+a base64 string. CSV escaping: quote the cell normally; the data
+URL contains no commas/quotes/newlines so RFC 4180 quoting alone
+is sufficient.
+
+To keep CSV size manageable on large PDFs:
+- For Step 2 fallbacks (whole-page renders), use PNG quantize via
+  Pillow if the page exceeds 250 KB:
+      img = Image.open(io.BytesIO(image_bytes))
+      img.thumbnail((1500, 1500))   # cap dimensions
+      buf = io.BytesIO()
+      img.save(buf, format="PNG", optimize=True)
+      image_bytes = buf.getvalue()
+- For Step 1 embedded extracts, leave bytes untouched (they're
+  already at the source resolution).
+
+═══════════════════════════════════════════════════════════════
+CSV FIELDS
+═══════════════════════════════════════════════════════════════
+- image_url  = the data URL string above ("data:image/png;base64,…")
+               OR empty when the question has no figure.
+               Never put a relative file path or a bare https URL
+               here from the GPT side — the CSV is fully self-
+               contained for ChatGPT's output.
+- image_alt  = 1-2 sentence description suitable for screen readers
+               AND as a fallback if the image fails to load. Be
+               specific about WHAT THE FIGURE SHOWS; don't repeat
+               the question text. Empty when image_url is empty.
+                 Good: "Scatterplot of 10 points, x in 0–10, with a
+                        positive linear trend; line of best fit
+                        y = 2x + 3 is drawn."
+                 Bad : "Graph for question 14."
+
+═══════════════════════════════════════════════════════════════
+OUTPUT (single CSV file — no zip, no sidecar)
+═══════════════════════════════════════════════════════════════
+Write the 32-column CSV to /mnt/data/<pdf-stem>-questions.csv and
+return the download link. Expected size:
+- R&W-only PDFs (no figures): ~150 KB.
+- Mixed PDFs with ~10-20 figures: ~3-5 MB.
+- Math-heavy PDFs with whole-page fallbacks on every figure: up to
+  ~10 MB. If your output approaches that, switch ALL figure
+  extractions to PNG-optimize per the Pillow snippet above.
+
+═══════════════════════════════════════════════════════════════
+SANITY CHECKS BEFORE FINISHING
+═══════════════════════════════════════════════════════════════
+- Every figure-bearing math question (your own judgment from the
+  question_text — phrases like "the figure shown", "the graph",
+  "the table") has a non-empty image_url. Whole-page fallback is
+  fine; just do it.
+- Every non-empty image_url starts with "data:image/" and contains
+  ";base64," — verify with a quick grep before writing the CSV.
+- Every non-empty image_url has a non-empty image_alt.
+- Total CSV size < 20 MB. If larger, you're either over-attaching
+  (decorative figures) or not optimizing whole-page renders.
+- If you skipped a question's figure (couldn't extract, ambiguous,
+  multi-figure page) leave image_url + image_alt empty AND set
+  import_status="needs_review",
+  import_flag_type="partial_emit",
+  import_flag_reason="Figure on page N — manual upload needed".

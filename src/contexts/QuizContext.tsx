@@ -18,15 +18,15 @@ import {
 } from "react";
 import type {
   AdaptiveStep,
-  AnswerLetter,
   ConfidenceBand,
   QuizDifficulty,
+  QuizDifficultyLevel,
   QuizQuestionWithChoices,
 } from "@/types/quiz";
 import {
-  DIFFICULTY_ORDER,
   getConfidenceBand,
-  stepDifficulty,
+  stepDifficultyLevel,
+  levelToLegacyDifficulty,
 } from "@/types/quiz";
 import {
   actionStartQuiz,
@@ -51,9 +51,11 @@ export type QuizPhase =
 
 export interface PerQuestionRecord {
   questionId: string;
-  studentAnswer: AnswerLetter | null;
+  /** The raw answer a student gave — letter A/B/C/D for MC, numeric string for numeric_entry. */
+  studentAnswer: string | null;
   isCorrect: boolean | null;
-  difficulty: QuizDifficulty;
+  difficulty: QuizDifficulty;         // legacy
+  difficultyLevel: QuizDifficultyLevel;
   responseTimeSeconds: number;
   flagged: boolean;
   flagNote?: string | null;
@@ -70,8 +72,8 @@ export interface QuizState {
   usedQuestionIds: Set<string>;
 
   currentIndex: number;
-  currentDifficulty: QuizDifficulty;
-  selectedAnswer: AnswerLetter | null;
+  currentLevel: QuizDifficultyLevel;
+  selectedAnswer: string | null;        // letter or numeric string
   questionStartedAt: number;
 
   records: PerQuestionRecord[];
@@ -98,7 +100,7 @@ const initialState: QuizState = {
   selectedQuestions: [],
   usedQuestionIds: new Set<string>(),
   currentIndex: 0,
-  currentDifficulty: "foundational",
+  currentLevel: 1,
   selectedAnswer: null,
   questionStartedAt: 0,
   records: [],
@@ -121,7 +123,7 @@ type Action =
       allQuestions: QuizQuestionWithChoices[];
       first: QuizQuestionWithChoices;
     }
-  | { type: "SELECT_ANSWER"; answer: AnswerLetter }
+  | { type: "SELECT_ANSWER"; answer: string }
   | {
       type: "SUBMIT_ANSWER";
       isCorrect: boolean;
@@ -130,7 +132,7 @@ type Action =
   | {
       type: "ADVANCE_TO_NEXT";
       next: QuizQuestionWithChoices | null;
-      nextDifficulty: QuizDifficulty;
+      nextLevel: QuizDifficultyLevel;
     }
   | { type: "SHOW_VIDEO_PROMPT" }
   | { type: "DISMISS_VIDEO_PROMPT" }
@@ -169,7 +171,7 @@ function reducer(state: QuizState, action: Action): QuizState {
         selectedQuestions: [action.first],
         usedQuestionIds: used,
         currentIndex: 0,
-        currentDifficulty: action.first.difficulty,
+        currentLevel: (action.first.difficulty_level ?? 1) as QuizDifficultyLevel,
         questionStartedAt: Date.now(),
         records: [],
         adaptivePath: [],
@@ -183,11 +185,13 @@ function reducer(state: QuizState, action: Action): QuizState {
     case "SUBMIT_ANSWER": {
       if (state.phase !== "answering" || !state.selectedAnswer) return state;
       const q = state.selectedQuestions[state.currentIndex];
+      const level = (q.difficulty_level ?? 1) as QuizDifficultyLevel;
       const record: PerQuestionRecord = {
         questionId: q.id,
         studentAnswer: state.selectedAnswer,
         isCorrect: action.isCorrect,
         difficulty: q.difficulty,
+        difficultyLevel: level,
         responseTimeSeconds: action.responseTimeSeconds,
         flagged: state.records[state.currentIndex]?.flagged ?? false,
         flagNote: state.records[state.currentIndex]?.flagNote,
@@ -228,7 +232,7 @@ function reducer(state: QuizState, action: Action): QuizState {
         ...state,
         phase: "answering",
         currentIndex: nextIndex,
-        currentDifficulty: action.nextDifficulty,
+        currentLevel: action.nextLevel,
         selectedAnswer: null,
         questionStartedAt: Date.now(),
         selectedQuestions: [...state.selectedQuestions, action.next],
@@ -248,7 +252,8 @@ function reducer(state: QuizState, action: Action): QuizState {
         questionId: state.selectedQuestions[state.currentIndex].id,
         studentAnswer: null,
         isCorrect: null,
-        difficulty: state.currentDifficulty,
+        difficulty: levelToLegacyDifficulty(state.currentLevel),
+        difficultyLevel: state.currentLevel,
         responseTimeSeconds: 0,
         flagged: false,
       };
@@ -276,30 +281,65 @@ function reducer(state: QuizState, action: Action): QuizState {
   }
 }
 
+// ── Answer evaluation (MC or numeric) ──────────────────────
+
+export function evaluateAnswer(studentAnswer: string, q: QuizQuestionWithChoices): boolean {
+  if (q.answer_format === "numeric_entry") {
+    return evaluateNumeric(studentAnswer, q.correct_answer, q.numeric_tolerance);
+  }
+  // Multiple choice — trimmed string compare
+  return studentAnswer.trim().toUpperCase() === q.correct_answer.trim().toUpperCase();
+}
+
+function evaluateNumeric(student: string, correct: string, tolerance: number | null): boolean {
+  const parseNum = (s: string): number | null => {
+    const trimmed = s.trim();
+    // Support simple fractions like "1/2"
+    if (/^-?\d+\s*\/\s*\d+$/.test(trimmed)) {
+      const [a, b] = trimmed.split("/").map((x) => parseFloat(x.trim()));
+      if (!Number.isFinite(a) || !Number.isFinite(b) || b === 0) return null;
+      return a / b;
+    }
+    const n = parseFloat(trimmed);
+    return Number.isFinite(n) ? n : null;
+  };
+
+  const a = parseNum(student);
+  const b = parseNum(correct);
+  if (a === null || b === null) {
+    // Fall back to string equality for weird inputs (π, etc.)
+    return student.trim() === correct.trim();
+  }
+  const tol = tolerance ?? 0;
+  return Math.abs(a - b) <= tol + 1e-9;
+}
+
 // ── Adaptive selection helper ───────────────────────────────
 
+/**
+ * Find a question at or near the target difficulty level (1–7), searching
+ * outward from the target until a usable question is found.
+ */
 export function selectNextQuestion(
   all: QuizQuestionWithChoices[],
-  target: QuizDifficulty,
+  targetLevel: QuizDifficultyLevel,
   used: Set<string>
 ): QuizQuestionWithChoices | null {
-  const ordered = DIFFICULTY_ORDER;
-  const targetIdx = ordered.indexOf(target);
-
-  // Search outward from target difficulty
-  for (let offset = 0; offset < ordered.length; offset++) {
+  for (let offset = 0; offset < 7; offset++) {
     for (const sign of offset === 0 ? [0] : [-1, 1]) {
-      const idx = targetIdx + offset * sign;
-      if (idx < 0 || idx >= ordered.length) continue;
-      const d = ordered[idx];
-      const pool = all.filter((q) => q.difficulty === d && !used.has(q.id));
+      const level = targetLevel + offset * sign;
+      if (level < 1 || level > 7) continue;
+      const pool = all.filter(
+        (q) => (q.difficulty_level ?? 1) === level && !used.has(q.id)
+      );
       if (pool.length > 0) {
-        // Pick the one with lowest display_order (stable).
         return pool.sort((a, b) => a.display_order - b.display_order)[0];
       }
     }
   }
-  return null;
+  // Absolute last resort — return any unused question
+  const anyUnused = all.filter((q) => !used.has(q.id));
+  return anyUnused.length > 0 ? anyUnused.sort((a, b) => a.display_order - b.display_order)[0] : null;
 }
 
 // ── Context shape ────────────────────────────────────────────
@@ -307,7 +347,7 @@ export function selectNextQuestion(
 interface QuizContextValue {
   state: QuizState;
   startQuiz: (nodeId: string, subject: Subject) => Promise<void>;
-  selectAnswer: (answer: AnswerLetter) => void;
+  selectAnswer: (answer: string) => void;
   submitAnswer: () => Promise<void>;
   nextQuestion: () => Promise<void>;
   dismissVideoPrompt: () => void;
@@ -339,7 +379,8 @@ export function QuizProvider({ children }: { children: ReactNode }) {
     const { attemptId, questions } = await actionStartQuiz(nodeId);
 
     // Pick a foundational question to start with (or the easiest available).
-    const first = selectNextQuestion(questions, "foundational", new Set());
+    // Start at the easiest level available for this node (typically 1)
+    const first = selectNextQuestion(questions, 1, new Set());
     if (!first) {
       // No questions exist — fail gracefully.
       dispatch({ type: "RESET" });
@@ -354,7 +395,7 @@ export function QuizProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
-  const selectAnswer = useCallback((answer: AnswerLetter) => {
+  const selectAnswer = useCallback((answer: string) => {
     dispatch({ type: "SELECT_ANSWER", answer });
   }, []);
 
@@ -362,7 +403,7 @@ export function QuizProvider({ children }: { children: ReactNode }) {
     if (state.phase !== "answering" || !state.selectedAnswer || !state.attemptId) return;
 
     const q = state.selectedQuestions[state.currentIndex];
-    const isCorrect = state.selectedAnswer === q.correct_answer;
+    const isCorrect = evaluateAnswer(state.selectedAnswer, q);
     const responseTimeSeconds = Math.round((Date.now() - state.questionStartedAt) / 1000);
 
     dispatch({ type: "SUBMIT_ANSWER", isCorrect, responseTimeSeconds });
@@ -370,11 +411,12 @@ export function QuizProvider({ children }: { children: ReactNode }) {
     if (isCorrect) playSound("nodeComplete");
     else playSound("error");
 
-    // Fire-and-forget server write
+    // Fire-and-forget server write — student_answer is stored as free TEXT now
     actionRecordResponse({
       attempt_id: state.attemptId,
       question_id: q.id,
-      student_answer: state.selectedAnswer,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      student_answer: state.selectedAnswer as any,
       is_correct: isCorrect,
       difficulty_at_time: q.difficulty,
       response_time_seconds: responseTimeSeconds,
@@ -420,9 +462,9 @@ export function QuizProvider({ children }: { children: ReactNode }) {
     }
 
     // Pick the next question adaptively
-    const nextDifficulty = stepDifficulty(state.currentDifficulty, wasCorrect);
-    const next = selectNextQuestion(state.allQuestions, nextDifficulty, state.usedQuestionIds);
-    dispatch({ type: "ADVANCE_TO_NEXT", next, nextDifficulty });
+    const nextLevel = stepDifficultyLevel(state.currentLevel, wasCorrect);
+    const next = selectNextQuestion(state.allQuestions, nextLevel, state.usedQuestionIds);
+    dispatch({ type: "ADVANCE_TO_NEXT", next, nextLevel });
   }, [state]);
 
   const dismissVideoPrompt = useCallback(() => {

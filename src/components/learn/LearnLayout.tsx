@@ -1,78 +1,90 @@
 "use client";
 
 // ============================================================
-// Learn portal layout — minimal dark top bar + full-width content
-// Intentionally different from DashboardLayout (no sidebar)
-// so the constellation map can breathe.
+// Learn portal layout — full-screen content with a FLOATING
+// translucent glass top bar. The content below takes the full
+// viewport (no fixed-height header eating 56 px).
 // ============================================================
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { UserButton } from "@clerk/nextjs";
-import { ArrowLeft, BookOpen, Calculator } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { StrataLogo } from "@/components/shared/StrataLogo";
+import { StrataLogoMark } from "@/components/shared/StrataLogo";
 
-const SUBJECT_TABS = [
-  { href: "/learn/reading", label: "Reading & Writing", Icon: BookOpen, color: "text-rose-400" },
-  { href: "/learn/math",    label: "Math",              Icon: Calculator,  color: "text-indigo-400" },
-];
+const SUBJECT_HREFS = ["/learn/reading", "/learn/math"];
 
 export default function LearnLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const onSubjectPage = SUBJECT_TABS.some((t) => pathname.startsWith(t.href));
+  const onConstellation = SUBJECT_HREFS.some((h) => pathname.startsWith(h));
 
   return (
-    <div className="min-h-screen bg-[#060b16] flex flex-col">
-      {/* Top bar */}
-      <header className="h-14 shrink-0 flex items-center gap-3 px-4 border-b border-white/5 bg-[#060b16]/90 backdrop-blur-sm z-20">
-        {/* Logo */}
-        <Link href="/" className="mr-1" aria-label="Strata home">
-          <StrataLogo size={22} theme="dark" />
-        </Link>
+    <div className="min-h-screen bg-[#02040a] relative">
+      {/* ── Content (full 100vh) ────────────────────────── */}
+      <main className="min-h-screen relative z-0">{children}</main>
 
-        {/* Back to dashboard */}
-        <Link
-          href="/dashboard/student"
-          className="flex items-center gap-1 text-sm text-slate-500 hover:text-slate-300 transition-colors"
+      {/* ── Floating translucent top bar ─────────────────
+          On /learn (the hero) it's subtle; on constellation pages
+          it's even more minimal (just translucent mark + back). */}
+      <header
+        className={cn(
+          "fixed top-0 left-0 right-0 z-40 flex items-center gap-3 px-4 py-3",
+          "pointer-events-none",   // children re-enable interactions
+        )}
+      >
+        <div
+          className={cn(
+            "pointer-events-auto inline-flex items-center gap-3 rounded-full px-3 py-1.5",
+            "bg-black/35 border border-white/10 backdrop-blur-md shadow-lg"
+          )}
         >
-          <ArrowLeft className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">Dashboard</span>
-        </Link>
+          <Link href="/" aria-label="Karman home" className="opacity-80 hover:opacity-100 transition-opacity">
+            <StrataLogoMark size={20} />
+          </Link>
+          <span className="w-px h-4 bg-white/10" />
+          <Link
+            href="/dashboard/student"
+            className="flex items-center gap-1 text-[11px] font-semibold text-slate-300 hover:text-white transition-colors uppercase tracking-widest"
+          >
+            <ArrowLeft className="w-3 h-3" />
+            Dashboard
+          </Link>
+        </div>
 
-        {/* Subject tabs (shown on /learn/reading and /learn/math) */}
-        {onSubjectPage && (
-          <nav className="flex items-center gap-1 ml-4">
-            {SUBJECT_TABS.map(({ href, label, Icon, color }) => {
-              const active = pathname.startsWith(href);
-              return (
-                <Link
-                  key={href}
-                  href={href}
-                  className={cn(
-                    "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all",
-                    active
-                      ? "bg-white/10 text-white"
-                      : "text-slate-500 hover:text-slate-300 hover:bg-white/5"
-                  )}
-                >
-                  <Icon className={cn("w-3.5 h-3.5", active ? color : "")} />
-                  <span className="hidden sm:inline">{label}</span>
-                </Link>
-              );
-            })}
-          </nav>
+        {/* Subject switch (only on constellation pages) — a tiny floating pill */}
+        {onConstellation && (
+          <div className="pointer-events-auto ml-auto mr-12 hidden sm:inline-flex items-center gap-1 rounded-full p-1 bg-black/35 border border-white/10 backdrop-blur-md shadow-lg">
+            <Link
+              href="/learn/reading"
+              className={cn(
+                "px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider transition-colors",
+                pathname.startsWith("/learn/reading")
+                  ? "bg-pink-500/20 text-pink-300"
+                  : "text-slate-500 hover:text-slate-200"
+              )}
+            >
+              Reading
+            </Link>
+            <Link
+              href="/learn/math"
+              className={cn(
+                "px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider transition-colors",
+                pathname.startsWith("/learn/math")
+                  ? "bg-sky-500/20 text-sky-300"
+                  : "text-slate-500 hover:text-slate-200"
+              )}
+            >
+              Math
+            </Link>
+          </div>
         )}
 
-        {/* Spacer */}
-        <div className="flex-1" />
-
-        {/* User button */}
-        <UserButton />
+        {/* User button — floats top-right, translucent */}
+        <div className={cn("pointer-events-auto rounded-full p-1 bg-black/35 border border-white/10 backdrop-blur-md shadow-lg", !onConstellation && "ml-auto")}>
+          <UserButton />
+        </div>
       </header>
-
-      {/* Main content */}
-      <main className="flex-1 overflow-hidden">{children}</main>
     </div>
   );
 }

@@ -1,0 +1,654 @@
+"use client";
+
+// ============================================================
+// RevenueClient — admin revenue dashboard surface.
+//
+// All charts are vanilla SVG so no external chart library is
+// pulled in. Sections render in priority order:
+//   1. KPI strip            (MRR, ARR, Students, ARPU, Churn, LTV)
+//   2. 30d momentum         (new subs, cancellations, refunds, past-due)
+//   3. MRR trend sparkline  (from revenue_snapshots)
+//   4. Forecast band        (3 / 6 / 12 month projection)
+//   5. Pie + tier table     (where revenue comes from)
+//   6. Cohort retention     (signup-month rows × months-later columns)
+//   7. Dunning queue        (past-due students with amounts owed)
+//   8. Per-tutor revenue    (top earners by attribution)
+//   9. Status breakdown     (Stripe statuses)
+// ============================================================
+
+import { useState, useTransition } from "react";
+import {
+  TrendingUp, Users, DollarSign, Calculator, AlertTriangle, ArrowUpRight,
+  ArrowDownRight, Info, RefreshCw, Activity, Target, Loader2, Receipt,
+  BookmarkX,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+
+// ─────────────────────────────────────────────────────────────
+// Public data shapes — the page component computes these.
+// ─────────────────────────────────────────────────────────────
+
+export interface TierBreakdown {
+  tier: "group" | "small_group" | "private" | "elite";
+  label: string;
+  color: string;
+  model: "subscription" | "per_session";
+  price: number;
+  studentCount: number;
+  revenue: number;
+  unitsLabel: string;
+}
+
+export interface MrrSnapshot {
+  capturedAt: string;
+  mrr: number;
+  activeStudents: number;
+}
+
+export interface CohortRow {
+  /** YYYY-MM */
+  month: string;
+  /** Cohort size at signup. */
+  size: number;
+  /** Active count at month 0, 1, 3, 6 since signup. null when
+   *  that checkpoint is in the future. */
+  counts: Array<number | null>;
+}
+
+export interface DunningEntry {
+  name: string;
+  email: string | null;
+  tier: string;
+  amountOwed: number;
+}
+
+export interface TutorRevenueRow {
+  tutorId: string;
+  name: string;
+  sessions: number;
+  revenue: number;
+}
+
+export interface RevenueData {
+  asOf: string;
+  totalMrr: number;
+  totalArr: number;
+  totalStudents: number;
+  arpu: number;
+  monthlyChurnRate: number;
+  ltv: number | null;
+  refunds30dCount: number;
+  refunds30dDollars: number;
+  refundRate: number;
+  tiers: TierBreakdown[];
+  statusCounts: Record<string, number>;
+  newSubs30d: number;
+  cancellations30d: number;
+  usedBookingFallback: boolean;
+  estimatedSessionsPerStudent: number;
+  snapshots: MrrSnapshot[];
+  forecast: {
+    in3Months: number;
+    in6Months: number;
+    in12Months: number;
+    monthlyNetNewSubs: number;
+    monthlyNetNewMrr: number;
+  };
+  cohorts: CohortRow[];
+  dunning: DunningEntry[];
+  tutorRevenue: TutorRevenueRow[];
+}
+
+interface Props {
+  data: RevenueData;
+  snapshotAction: () => Promise<{ ok: true; mrr: number } | { ok: false; error: string }>;
+}
+
+// ─────────────────────────────────────────────────────────────
+// Helpers
+// ─────────────────────────────────────────────────────────────
+
+function fmtMoney(n: number): string {
+  return n.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
+}
+function fmtPctRatio(ratio: number): string {
+  return `${(ratio * 100).toFixed(1)}%`;
+}
+function fmtPct(num: number, den: number): string {
+  if (den === 0) return "0%";
+  return `${Math.round((num / den) * 100)}%`;
+}
+function fmtMonth(yyyymm: string): string {
+  const [y, m] = yyyymm.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, 1)).toLocaleDateString("en-US", {
+    month: "short", year: "numeric", timeZone: "UTC",
+  });
+}
+
+// ─────────────────────────────────────────────────────────────
+// Pie chart — vanilla SVG.
+// ─────────────────────────────────────────────────────────────
+
+interface PieSlice { tier: string; label: string; value: number; color: string }
+function PieChart({ slices, total, hovered, onHover }: {
+  slices: PieSlice[]; total: number;
+  hovered: string | null; onHover: (tier: string | null) => void;
+}) {
+  const size = 220;
+  const cx = size / 2;
+  const cy = size / 2;
+  const r = 90;
+  if (total === 0) {
+    return (
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+        <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth={28} />
+        <text x={cx} y={cy} textAnchor="middle" dominantBaseline="middle"
+              fill="#64748b" fontSize="12" fontWeight={600}>No revenue yet</text>
+      </svg>
+    );
+  }
+  let acc = 0;
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+      {slices.filter((s) => s.value > 0).map((s) => {
+        const start = (acc / total) * Math.PI * 2 - Math.PI / 2;
+        const end   = ((acc + s.value) / total) * Math.PI * 2 - Math.PI / 2;
+        acc += s.value;
+        const isHovered = hovered === s.tier;
+        const slR = isHovered ? r + 6 : r;
+        const x1 = cx + slR * Math.cos(start);
+        const y1 = cy + slR * Math.sin(start);
+        const x2 = cx + slR * Math.cos(end);
+        const y2 = cy + slR * Math.sin(end);
+        const largeArc = end - start > Math.PI ? 1 : 0;
+        const d = `M ${cx} ${cy} L ${x1} ${y1} A ${slR} ${slR} 0 ${largeArc} 1 ${x2} ${y2} Z`;
+        return (
+          <path key={s.tier} d={d} fill={s.color}
+                opacity={hovered && hovered !== s.tier ? 0.5 : 1}
+                style={{ transition: "opacity 0.15s ease" }}
+                onMouseEnter={() => onHover(s.tier)}
+                onMouseLeave={() => onHover(null)} />
+        );
+      })}
+      <circle cx={cx} cy={cy} r={50} fill="#0f172a" />
+      <text x={cx} y={cy - 6} textAnchor="middle" fill="#94a3b8" fontSize="10" fontWeight={700}>MONTHLY</text>
+      <text x={cx} y={cy + 12} textAnchor="middle" fill="#fff" fontSize="18" fontWeight={800}>
+        {fmtMoney(total)}
+      </text>
+    </svg>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// MRR trend sparkline
+// ─────────────────────────────────────────────────────────────
+
+function MrrSparkline({ snapshots }: { snapshots: MrrSnapshot[] }) {
+  if (snapshots.length < 2) {
+    return (
+      <div className="text-center py-12 text-xs text-slate-500">
+        Need at least 2 snapshots to draw a trend.
+        <br />
+        <span className="text-slate-600">Hit "Snapshot now" to capture today's MRR.</span>
+      </div>
+    );
+  }
+  const w = 800;
+  const h = 120;
+  const pad = 12;
+  const xs = snapshots.map((_, i) => i);
+  const ys = snapshots.map((s) => s.mrr);
+  const maxY = Math.max(...ys, 1);
+  const minY = Math.min(...ys, 0);
+  const xScale = (i: number) => pad + (i / Math.max(1, xs.length - 1)) * (w - 2 * pad);
+  const yScale = (v: number) => h - pad - ((v - minY) / Math.max(1, maxY - minY)) * (h - 2 * pad);
+  const path = snapshots.map((s, i) => `${i === 0 ? "M" : "L"} ${xScale(i)} ${yScale(s.mrr)}`).join(" ");
+  const area = `${path} L ${xScale(xs.length - 1)} ${h - pad} L ${xScale(0)} ${h - pad} Z`;
+  const last = snapshots[snapshots.length - 1];
+  return (
+    <div>
+      <svg width="100%" viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="spark-area" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#10b981" stopOpacity={0.3} />
+            <stop offset="100%" stopColor="#10b981" stopOpacity={0} />
+          </linearGradient>
+        </defs>
+        <path d={area} fill="url(#spark-area)" />
+        <path d={path} stroke="#34d399" strokeWidth={1.5} fill="none" />
+        {snapshots.map((s, i) => (
+          <circle key={i} cx={xScale(i)} cy={yScale(s.mrr)} r={2.5} fill="#34d399">
+            <title>{`${new Date(s.capturedAt).toLocaleDateString()} — ${fmtMoney(s.mrr)}`}</title>
+          </circle>
+        ))}
+      </svg>
+      <div className="flex items-center justify-between mt-2 text-[10px] text-slate-500">
+        <span>{new Date(snapshots[0].capturedAt).toLocaleDateString()}</span>
+        <span>Latest: <span className="text-slate-300 font-semibold tabular-nums">{fmtMoney(last.mrr)}</span></span>
+        <span>{new Date(last.capturedAt).toLocaleDateString()}</span>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Top-level dashboard
+// ─────────────────────────────────────────────────────────────
+
+export default function RevenueClient({ data, snapshotAction }: Props) {
+  const [hovered, setHovered] = useState<string | null>(null);
+  const [snapMsg, setSnapMsg] = useState<string | null>(null);
+  const [pending, startTransition] = useTransition();
+
+  const slices = data.tiers.map((t) => ({
+    tier: t.tier, label: t.label, value: t.revenue, color: t.color,
+  }));
+
+  function handleSnapshot() {
+    setSnapMsg(null);
+    startTransition(async () => {
+      const r = await snapshotAction();
+      if (r.ok) setSnapMsg(`Captured: ${fmtMoney(r.mrr)} MRR.`);
+      else setSnapMsg(`Error: ${r.error}`);
+    });
+  }
+
+  return (
+    <div className="max-w-6xl mx-auto px-5 py-8 space-y-6">
+      {/* ─── Header ─────────────────────────────────────── */}
+      <header className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-widest text-emerald-400 mb-1">Admin</p>
+          <h1 className="text-2xl font-extrabold text-white flex items-center gap-2">
+            <DollarSign className="w-6 h-6 text-emerald-400" />
+            Revenue
+          </h1>
+          <p className="mt-1 text-xs text-slate-400">
+            Computed from active + trialing subscriptions and bookings in the trailing 30 days. As of{" "}
+            {new Date(data.asOf).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })}.
+          </p>
+        </div>
+        <div className="flex flex-col items-end gap-1">
+          <button
+            type="button"
+            onClick={handleSnapshot}
+            disabled={pending}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border border-emerald-400/40 bg-emerald-400/10 text-emerald-300 hover:bg-emerald-400/15 disabled:opacity-50"
+          >
+            {pending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
+            Snapshot now
+          </button>
+          {snapMsg && <span className="text-[10px] text-emerald-200">{snapMsg}</span>}
+        </div>
+      </header>
+
+      {/* ─── KPI strip — 6 cards ─────────────────────────── */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+        <Kpi label="MRR" value={fmtMoney(data.totalMrr)} icon={<DollarSign className="w-4 h-4" />} accent="emerald" />
+        <Kpi label="ARR (run-rate)" value={fmtMoney(data.totalArr)} icon={<TrendingUp className="w-4 h-4" />} accent="blue" />
+        <Kpi label="Students" value={data.totalStudents.toLocaleString()} icon={<Users className="w-4 h-4" />} accent="violet" />
+        <Kpi label="ARPU" value={fmtMoney(data.arpu)} icon={<Calculator className="w-4 h-4" />} accent="amber" hint="Avg / student / mo" />
+        <Kpi
+          label="Churn (mo)"
+          value={fmtPctRatio(data.monthlyChurnRate)}
+          icon={<Activity className="w-4 h-4" />}
+          accent="rose"
+          hint={data.monthlyChurnRate === 0 ? "No cancels in last 30d" : "Last 30d / start-of-period"}
+        />
+        <Kpi
+          label="LTV"
+          value={data.ltv == null ? "—" : fmtMoney(data.ltv)}
+          icon={<Target className="w-4 h-4" />}
+          accent="teal"
+          hint={data.ltv == null ? "Needs churn data" : "ARPU ÷ monthly churn"}
+        />
+      </div>
+
+      {/* ─── 30d momentum ─────────────────────────────────── */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <MomentumCard label="New subs (30d)" value={data.newSubs30d} direction="up" color="emerald" />
+        <MomentumCard label="Cancellations (30d)" value={data.cancellations30d} direction="down" color="rose" />
+        <MomentumCard
+          label="Refunds issued (30d)"
+          value={data.refunds30dCount}
+          direction="down"
+          color="rose"
+          hint={data.refunds30dDollars > 0 ? `${fmtMoney(data.refunds30dDollars)} refunded` : "No refunds yet"}
+        />
+        <MomentumCard
+          label="Past-due now"
+          value={data.dunning.length}
+          direction="down"
+          color="amber"
+          hint={data.dunning.length > 0 ? `~${fmtMoney(data.dunning.reduce((s, d) => s + d.amountOwed, 0))} at risk` : undefined}
+        />
+      </div>
+
+      {/* ─── MRR trend sparkline ─────────────────────────── */}
+      <section className="rounded-xl border border-slate-800 bg-slate-900/40 p-5">
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-sm font-bold text-white uppercase tracking-widest inline-flex items-center gap-1.5">
+            <Activity className="w-4 h-4 text-emerald-400" />
+            MRR trend
+          </h2>
+          <span className="text-[10px] text-slate-500">Last {data.snapshots.length} snapshots</span>
+        </div>
+        <MrrSparkline snapshots={data.snapshots} />
+      </section>
+
+      {/* ─── Forecast band ────────────────────────────────── */}
+      <section className="rounded-xl border border-slate-800 bg-slate-900/40 p-5">
+        <h2 className="text-sm font-bold text-white uppercase tracking-widest mb-3 inline-flex items-center gap-1.5">
+          <TrendingUp className="w-4 h-4 text-blue-400" />
+          Forecast at current pace
+        </h2>
+        <p className="text-[10px] text-slate-500 mb-3">
+          Net new MRR/mo: <span className={cn("font-semibold", data.forecast.monthlyNetNewMrr >= 0 ? "text-emerald-300" : "text-rose-300")}>
+            {data.forecast.monthlyNetNewMrr >= 0 ? "+" : ""}{fmtMoney(data.forecast.monthlyNetNewMrr)}
+          </span> · Net new students/mo:{" "}
+          <span className={cn("font-semibold", data.forecast.monthlyNetNewSubs >= 0 ? "text-emerald-300" : "text-rose-300")}>
+            {data.forecast.monthlyNetNewSubs >= 0 ? "+" : ""}{data.forecast.monthlyNetNewSubs.toFixed(1)}
+          </span>
+        </p>
+        <div className="grid grid-cols-3 gap-3">
+          <ForecastTile label="in 3 months" value={data.forecast.in3Months} />
+          <ForecastTile label="in 6 months" value={data.forecast.in6Months} />
+          <ForecastTile label="in 12 months" value={data.forecast.in12Months} />
+        </div>
+      </section>
+
+      {/* ─── Pie + tier breakdown ─────────────────────── */}
+      <section className="rounded-xl border border-slate-800 bg-slate-900/40 p-5">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-sm font-bold text-white uppercase tracking-widest">
+            Where the revenue comes from
+          </h2>
+          <span className="text-[10px] text-slate-500">Hover a slice to highlight</span>
+        </div>
+        <div className="grid md:grid-cols-[260px_1fr] gap-6 items-center">
+          <div className="flex justify-center">
+            <PieChart slices={slices} total={data.totalMrr} hovered={hovered} onHover={setHovered} />
+          </div>
+          <div>
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-[10px] uppercase tracking-wider text-slate-500 border-b border-slate-800">
+                  <th className="text-left font-semibold py-2">Tier</th>
+                  <th className="text-right font-semibold py-2">Students</th>
+                  <th className="text-right font-semibold py-2">Revenue / mo</th>
+                  <th className="text-right font-semibold py-2">% of MRR</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.tiers.map((t) => {
+                  const isHovered = hovered === t.tier;
+                  return (
+                    <tr key={t.tier}
+                        onMouseEnter={() => setHovered(t.tier)}
+                        onMouseLeave={() => setHovered(null)}
+                        className={cn("border-b border-slate-800/60 transition-colors", isHovered ? "bg-white/[0.04]" : "")}>
+                      <td className="py-2.5">
+                        <div className="flex items-center gap-2">
+                          <span className="w-2.5 h-2.5 rounded-sm shrink-0" style={{ background: t.color }} />
+                          <div>
+                            <p className={cn("text-sm font-semibold", isHovered ? "text-white" : "text-slate-200")}>{t.label}</p>
+                            <p className="text-[10px] text-slate-500">
+                              {t.model === "subscription" ? `$${t.price}/mo subscription` : `$${t.price}/session`}
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="text-right tabular-nums text-slate-200">{t.studentCount}</td>
+                      <td className="text-right tabular-nums">
+                        <p className="text-slate-100 font-semibold">{fmtMoney(t.revenue)}</p>
+                        <p className="text-[10px] text-slate-500">{t.unitsLabel}</p>
+                      </td>
+                      <td className="text-right tabular-nums text-slate-300">{fmtPct(t.revenue, data.totalMrr)}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td className="pt-3 text-sm font-bold text-slate-300">Total</td>
+                  <td className="pt-3 text-right tabular-nums font-bold text-slate-100">{data.totalStudents}</td>
+                  <td className="pt-3 text-right tabular-nums font-bold text-emerald-300">{fmtMoney(data.totalMrr)}</td>
+                  <td className="pt-3 text-right tabular-nums text-slate-500">100%</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+        {data.usedBookingFallback && (
+          <div className="mt-4 flex items-start gap-2 p-3 rounded-lg border border-amber-400/20 bg-amber-400/5">
+            <AlertTriangle className="w-4 h-4 text-amber-300 shrink-0 mt-0.5" />
+            <p className="text-xs text-amber-200">
+              <span className="font-semibold">Per-session revenue is estimated.</span> No bookings on
+              file in the last 30 days for one or more per-session tiers, so we assumed{" "}
+              <span className="font-mono">{data.estimatedSessionsPerStudent}</span> sessions/student/month.
+            </p>
+          </div>
+        )}
+      </section>
+
+      {/* ─── Cohort retention ─────────────────────────────── */}
+      <section className="rounded-xl border border-slate-800 bg-slate-900/40 p-5">
+        <h2 className="text-sm font-bold text-white uppercase tracking-widest mb-3 inline-flex items-center gap-1.5">
+          <Users className="w-4 h-4 text-violet-400" />
+          Cohort retention
+        </h2>
+        <p className="text-[10px] text-slate-500 mb-4">
+          Each row is a signup-month cohort. Cells show how many of that cohort were still active at month
+          0 / 1 / 3 / 6 since signup. Future months show "—".
+        </p>
+        {data.cohorts.length === 0 ? (
+          <div className="text-center py-8 text-xs text-slate-500">No cohorts yet.</div>
+        ) : (
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-[10px] uppercase tracking-wider text-slate-500 border-b border-slate-800">
+                <th className="text-left font-semibold py-2">Cohort</th>
+                <th className="text-right font-semibold py-2">Size</th>
+                <th className="text-right font-semibold py-2">M0</th>
+                <th className="text-right font-semibold py-2">M1</th>
+                <th className="text-right font-semibold py-2">M3</th>
+                <th className="text-right font-semibold py-2">M6</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.cohorts.map((c) => (
+                <tr key={c.month} className="border-b border-slate-800/60">
+                  <td className="py-2.5 text-slate-200 font-semibold">{fmtMonth(c.month)}</td>
+                  <td className="text-right tabular-nums text-slate-300">{c.size}</td>
+                  {c.counts.map((cnt, i) => (
+                    <td key={i} className="text-right tabular-nums">
+                      {cnt === null ? (
+                        <span className="text-slate-600">—</span>
+                      ) : (
+                        <CohortCell active={cnt} total={c.size} />
+                      )}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </section>
+
+      {/* ─── Dunning queue ────────────────────────────────── */}
+      <section className="rounded-xl border border-slate-800 bg-slate-900/40 p-5">
+        <h2 className="text-sm font-bold text-white uppercase tracking-widest mb-3 inline-flex items-center gap-1.5">
+          <BookmarkX className="w-4 h-4 text-amber-400" />
+          Dunning queue
+          <span className="text-[10px] font-normal text-slate-500">({data.dunning.length} past-due)</span>
+        </h2>
+        {data.dunning.length === 0 ? (
+          <div className="text-center py-6 text-xs text-emerald-300">No past-due subscriptions.</div>
+        ) : (
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-[10px] uppercase tracking-wider text-slate-500 border-b border-slate-800">
+                <th className="text-left font-semibold py-2">Student</th>
+                <th className="text-left font-semibold py-2">Tier</th>
+                <th className="text-right font-semibold py-2">Amount at risk</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.dunning.map((d, i) => (
+                <tr key={i} className="border-b border-slate-800/60">
+                  <td className="py-2.5">
+                    <p className="text-sm font-semibold text-slate-200">{d.name}</p>
+                    {d.email && <p className="text-[10px] text-slate-500">{d.email}</p>}
+                  </td>
+                  <td className="text-slate-300 text-xs">{d.tier}</td>
+                  <td className="text-right tabular-nums text-amber-300 font-semibold">{fmtMoney(d.amountOwed)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </section>
+
+      {/* ─── Per-tutor revenue ────────────────────────────── */}
+      <section className="rounded-xl border border-slate-800 bg-slate-900/40 p-5">
+        <h2 className="text-sm font-bold text-white uppercase tracking-widest mb-3 inline-flex items-center gap-1.5">
+          <Receipt className="w-4 h-4 text-blue-400" />
+          Per-tutor revenue (last 30d)
+        </h2>
+        {data.tutorRevenue.length === 0 ? (
+          <div className="text-center py-6 text-xs text-slate-500">No tutor-attributed revenue in the last 30 days.</div>
+        ) : (
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-[10px] uppercase tracking-wider text-slate-500 border-b border-slate-800">
+                <th className="text-left font-semibold py-2">Tutor</th>
+                <th className="text-right font-semibold py-2">Sessions</th>
+                <th className="text-right font-semibold py-2">Attributed revenue</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.tutorRevenue.map((t) => (
+                <tr key={t.tutorId} className="border-b border-slate-800/60">
+                  <td className="py-2.5 text-slate-200 font-semibold">{t.name}</td>
+                  <td className="text-right tabular-nums text-slate-300">{t.sessions}</td>
+                  <td className="text-right tabular-nums text-emerald-300 font-semibold">{fmtMoney(t.revenue)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </section>
+
+      {/* ─── Subscription status breakdown ─────────────── */}
+      <section className="rounded-xl border border-slate-800 bg-slate-900/40 p-5">
+        <h2 className="text-sm font-bold text-white uppercase tracking-widest mb-4">
+          Subscription status
+        </h2>
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+          <StatusPill label="Active"     count={data.statusCounts.active     ?? 0} color="emerald" />
+          <StatusPill label="Trialing"   count={data.statusCounts.trialing   ?? 0} color="blue" />
+          <StatusPill label="Past due"   count={data.statusCounts.past_due   ?? 0} color="amber" />
+          <StatusPill label="Canceled"   count={data.statusCounts.canceled   ?? 0} color="rose" />
+          <StatusPill label="Incomplete" count={data.statusCounts.incomplete ?? 0} color="slate" />
+        </div>
+      </section>
+
+      {/* ─── Footer note ──────────────────────────────────── */}
+      <section className="rounded-xl border border-slate-800 bg-slate-900/40 p-5">
+        <div className="flex items-start gap-2">
+          <Info className="w-4 h-4 text-blue-300 shrink-0 mt-0.5" />
+          <div className="text-xs text-slate-300 leading-relaxed">
+            <p className="font-semibold text-slate-100 mb-1">Production swap-in</p>
+            <p>
+              Numbers come from Supabase. When the customer base grows, swap the queries inside{" "}
+              <span className="font-mono text-slate-400">getRevenueMetrics()</span> for{" "}
+              <span className="font-mono text-slate-400">stripe.subscriptions.list()</span> grouped by
+              Stripe price id — the return shape doesn't change. Snapshots populate from the
+              "Snapshot now" button (or wire it to a Vercel Cron / pg_cron nightly).
+            </p>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Sub-components
+// ─────────────────────────────────────────────────────────────
+
+const ACCENT_RING: Record<string, string> = {
+  emerald: "border-emerald-400/40 text-emerald-300 bg-emerald-400/10",
+  blue:    "border-blue-400/40 text-blue-300 bg-blue-400/10",
+  violet:  "border-violet-400/40 text-violet-300 bg-violet-400/10",
+  amber:   "border-amber-400/40 text-amber-300 bg-amber-400/10",
+  rose:    "border-rose-400/40 text-rose-300 bg-rose-400/10",
+  slate:   "border-slate-600/40 text-slate-300 bg-slate-600/10",
+  teal:    "border-teal-400/40 text-teal-300 bg-teal-400/10",
+};
+
+function Kpi({ label, value, icon, accent, hint }: {
+  label: string; value: string; icon: React.ReactNode; accent: string; hint?: string;
+}) {
+  return (
+    <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-4">
+      <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2 inline-flex items-center gap-1.5">
+        <span className={cn("w-5 h-5 rounded-md flex items-center justify-center", ACCENT_RING[accent])}>{icon}</span>
+        {label}
+      </p>
+      <p className="text-xl font-extrabold text-white tabular-nums">{value}</p>
+      {hint && <p className="text-[10px] text-slate-500 mt-1">{hint}</p>}
+    </div>
+  );
+}
+
+function MomentumCard({ label, value, direction, color, hint }: {
+  label: string; value: number; direction: "up" | "down";
+  color: "emerald" | "rose" | "amber"; hint?: string;
+}) {
+  const Arrow = direction === "up" ? ArrowUpRight : ArrowDownRight;
+  return (
+    <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-4">
+      <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">{label}</p>
+      <div className={cn(
+        "flex items-baseline gap-2",
+        color === "emerald" ? "text-emerald-300" : color === "rose" ? "text-rose-300" : "text-amber-300"
+      )}>
+        <span className="text-2xl font-extrabold tabular-nums">{value}</span>
+        <Arrow className="w-4 h-4" />
+      </div>
+      {hint && <p className="text-[10px] text-slate-500 mt-1">{hint}</p>}
+    </div>
+  );
+}
+
+function ForecastTile({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="rounded-xl border border-blue-400/20 bg-blue-400/5 p-4 text-center">
+      <p className="text-[10px] font-bold uppercase tracking-widest text-blue-300">{label}</p>
+      <p className="text-xl font-extrabold text-white mt-1 tabular-nums">{fmtMoney(value)}</p>
+    </div>
+  );
+}
+
+function StatusPill({ label, count, color }: { label: string; count: number; color: string }) {
+  return (
+    <div className={cn("rounded-lg border px-3 py-2.5 text-center", ACCENT_RING[color])}>
+      <p className="text-2xl font-extrabold tabular-nums">{count}</p>
+      <p className="text-[10px] font-bold uppercase tracking-widest mt-1 opacity-80">{label}</p>
+    </div>
+  );
+}
+
+function CohortCell({ active, total }: { active: number; total: number }) {
+  const pct = total > 0 ? active / total : 0;
+  // Color band: deep green when ≥80% retained, amber 50-80%, rose <50%.
+  const color = pct >= 0.8 ? "text-emerald-300" : pct >= 0.5 ? "text-amber-300" : "text-rose-300";
+  return (
+    <div className="inline-flex flex-col items-end">
+      <span className={cn("font-semibold tabular-nums", color)}>{active}</span>
+      <span className="text-[9px] text-slate-500 tabular-nums">{Math.round(pct * 100)}%</span>
+    </div>
+  );
+}

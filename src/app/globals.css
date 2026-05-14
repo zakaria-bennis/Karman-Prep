@@ -3,17 +3,24 @@
 @tailwind utilities;
 
 /* ============================================================
-   ScoreRise Global Styles
+   Karman Global Styles — design tokens, type scale, motion
    ============================================================ */
 
 :root {
   --background: #ffffff;
   --foreground: #0f172a;
-  --color-algebra: #3B82F6;
-  --color-advanced-math: #A855F7;
-  --color-geometry: #14B8A6;
-  --color-data-analysis: #F59E0B;
-  --color-reading-writing: #FB7185;
+
+  /* Subject palette — also used as the brand's "promise" colors */
+  --color-algebra: #3B82F6;      /* dream     */
+  --color-advanced-math: #A855F7; /* inspire   */
+  --color-geometry: #14B8A6;     /* achieve   */
+  --color-data-analysis: #F59E0B; /* excel    */
+  --color-reading-writing: #FB7185; /* wonder  */
+
+  /* Cloud design — atmospheric depths */
+  --cloud-bg: #070B1C;
+  --cloud-bg-soft: #0B1026;
+  --cloud-fog: rgba(148, 163, 255, 0.04);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -29,7 +36,9 @@
     color: var(--foreground);
     background: var(--background);
     font-family: var(--font-geist-sans), Inter, system-ui, sans-serif;
+    font-feature-settings: "ss01", "ss02", "cv11";
     -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
   }
   :focus-visible {
     @apply outline-none ring-2 ring-blue-500 ring-offset-2;
@@ -47,6 +56,14 @@
     @apply bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border border-white/20 dark:border-slate-700/50 rounded-2xl shadow-lg;
   }
 
+  /* Cloud-design glass surface — floats on dark atmospheric bg */
+  .glass-cloud {
+    @apply bg-white/[0.04] backdrop-blur-md border border-white/10 rounded-2xl shadow-2xl;
+  }
+  .glass-cloud-strong {
+    @apply bg-white/[0.06] backdrop-blur-md border border-white/15 rounded-2xl shadow-2xl;
+  }
+
   .gradient-text {
     @apply bg-gradient-to-r from-blue-600 via-purple-500 to-teal-500 bg-clip-text text-transparent;
   }
@@ -58,21 +75,46 @@
   .btn-secondary {
     @apply inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-6 py-3 text-base font-semibold text-slate-900 dark:text-white shadow-sm transition-all hover:bg-slate-50 dark:hover:bg-slate-700 active:scale-95;
   }
+
+  /* ------------------------------------------------------------
+     Type scale — single source of truth for the whole site.
+     Use these instead of ad-hoc text-* combinations.
+     ------------------------------------------------------------ */
+  .type-display-xl {
+    @apply font-extrabold leading-[0.95] tracking-[-0.04em];
+    font-size: clamp(2.75rem, 6.4vw + 1rem, 6.25rem);
+  }
+  .type-display-lg {
+    @apply font-bold leading-[1.05] tracking-[-0.03em];
+    font-size: clamp(2rem, 3.2vw + 1rem, 3.75rem);
+  }
+  .type-display-md {
+    @apply font-bold leading-[1.15] tracking-[-0.02em];
+    font-size: clamp(1.5rem, 1.8vw + 1rem, 2.25rem);
+  }
+  .type-body-lg {
+    @apply font-normal leading-[1.55];
+    font-size: clamp(1.0625rem, 0.4vw + 1rem, 1.25rem);
+  }
+  .type-body {
+    @apply text-base font-normal leading-[1.6];
+  }
+  .type-label {
+    @apply text-xs font-semibold uppercase tracking-[0.14em];
+  }
+  .type-mono {
+    @apply font-mono tabular-nums;
+  }
 }
 
 @layer utilities {
-  .animate-fade-up {
-    animation: fadeUp 0.6s ease-out both;
-  }
-  .animate-fade-in {
-    animation: fadeIn 0.4s ease-out both;
-  }
+  .animate-fade-up { animation: fadeUp 0.6s ease-out both; }
+  .animate-fade-in { animation: fadeIn 0.4s ease-out both; }
 
   @keyframes fadeUp {
     from { opacity: 0; transform: translateY(24px); }
     to   { opacity: 1; transform: translateY(0); }
   }
-
   @keyframes fadeIn {
     from { opacity: 0; }
     to   { opacity: 1; }
@@ -80,27 +122,64 @@
 
   .text-balance { text-wrap: balance; }
 
-  /* Premium shimmer — light sweeps across text, no color shift */
-  .shimmer-headline {
-    background: linear-gradient(
-      105deg,
-      #e2e8f0 0%,
-      #e2e8f0 38%,
-      #ffffff 48%,
-      #c7d8f4 53%,
-      #e2e8f0 62%,
-      #e2e8f0 100%
-    );
-    background-size: 300% 100%;
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    animation: shimmerSweep 4s ease-in-out infinite;
+  /* ------------------------------------------------------------
+     Cloud design utilities
+     ------------------------------------------------------------ */
+
+  /* Deep navy base — the "sky" behind the clouds */
+  .bg-cloud-night {
+    background:
+      radial-gradient(ellipse 120% 80% at 50% 0%, #0E1438 0%, transparent 60%),
+      radial-gradient(ellipse 100% 60% at 50% 100%, #070A1C 0%, transparent 55%),
+      linear-gradient(180deg, #070B1C 0%, #08091A 100%);
   }
 
-  @keyframes shimmerSweep {
-    0%   { background-position: 200% center; }
-    60%  { background-position: -100% center; }
-    100% { background-position: -100% center; }
+  /* Film grain — SVG fractal noise, CSS-only, no image asset */
+  .bg-grain::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.12;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0.9 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  }
+
+  /* God-ray — soft beam behind the headline */
+  .cloud-godray {
+    background: radial-gradient(
+      ellipse 60% 80% at 50% 40%,
+      rgba(168, 140, 255, 0.12) 0%,
+      rgba(99, 120, 255, 0.06) 35%,
+      transparent 70%
+    );
+  }
+
+  /* Reduced motion — disable every non-essential animation site-wide */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  /* ── KaTeX inline alignment ─────────────────────────────────
+     KaTeX defaults to font-size: 1.21em (relative to parent),
+     which makes inline math visibly larger than the prose
+     around it. Force it to inherit the parent's font size so
+     "If $3x + 5 = 26$, what is the value of $x$?" reads as a
+     single continuous line. Color is inherited so the math
+     doesn't look like a brighter, separate island. */
+  .katex {
+    font-size: 1em !important;
+    line-height: inherit;
+    color: inherit;
+  }
+  .katex-html {
+    vertical-align: baseline;
   }
 }

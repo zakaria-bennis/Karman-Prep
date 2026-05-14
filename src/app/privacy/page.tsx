@@ -8,16 +8,16 @@ import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy — Strata SAT Tutoring",
+  title: "Privacy Policy — Karman SAT Tutoring",
   description:
-    "How Strata collects, uses, and protects your personal information. GDPR and CCPA compliant.",
+    "How Karman collects, uses, and protects your personal information. GDPR and CCPA compliant.",
 };
 
 const SECTIONS = [
   {
     id: "overview",
     title: "1. Overview",
-    content: `Strata ("we", "us", "our") operates strataSAT.com and the Strata tutoring platform. This Privacy Policy explains what personal information we collect, how we use it, and your rights regarding that information. We are committed to protecting student and family privacy and comply with applicable U.S. privacy laws including CCPA.`,
+    content: `Karman ("we", "us", "our") operates karmanprep.com and the Karman tutoring platform. This Privacy Policy explains what personal information we collect, how we use it, and your rights regarding that information. We are committed to protecting student and family privacy and comply with applicable U.S. privacy laws including CCPA.`,
   },
   {
     id: "what-we-collect",
@@ -28,7 +28,7 @@ const SECTIONS = [
         subtitle: "Account information",
         items: [
           "Name and email address (provided at sign-up)",
-          "Password (stored securely and hashed by Clerk — never visible to Strata)",
+          "Password (stored securely and hashed by Clerk — never visible to Karman)",
           "Role (student, parent, or tutor)",
           "SAT test date (optional, provided during onboarding)",
         ],
@@ -45,7 +45,7 @@ const SECTIONS = [
       {
         subtitle: "Payment information",
         items: [
-          "Billing details are processed entirely by Stripe. Strata never stores or has access to your full credit card number, CVV, or bank account details.",
+          "Billing details are processed entirely by Stripe. Karman never stores or has access to your full credit card number, CVV, or bank account details.",
           "We retain: your Stripe customer ID, subscription tier, subscription status, and billing history for account management.",
         ],
       },
@@ -54,7 +54,7 @@ const SECTIONS = [
         items: [
           "Email address for transactional emails (receipts, session reminders, progress reports)",
           "Email address for marketing communications (only with your explicit consent)",
-          "Support messages sent to Strata",
+          "Support messages sent to Karman",
         ],
       },
       {
@@ -73,7 +73,7 @@ const SECTIONS = [
     title: "3. How We Use Your Information",
     content: null,
     list: [
-      "Create and manage your Strata account",
+      "Create and manage your Karman account",
       "Personalize your diagnostic results and study path",
       "Deliver and schedule tutoring sessions",
       "Send transactional emails (receipts, reminders, progress reports)",
@@ -117,19 +117,19 @@ const SECTIONS = [
       "Correction: request that we correct inaccurate or incomplete data",
       "Deletion: request that we delete your personal data (subject to legal retention requirements)",
       "Portability: request your data in a machine-readable format",
-      "Opt-out of marketing emails: use the unsubscribe link in any email or email privacy@strataSAT.com",
+      "Opt-out of marketing emails: use the unsubscribe link in any email or email privacy@karmanprep.com",
       "California residents (CCPA): you have the right to know what data we sell (we do not sell personal data) and to opt out of any future sale",
     ],
   },
   {
     id: "children",
     title: "7. Children's Privacy",
-    content: `The Strata platform is designed for students age 13 and older. We do not knowingly collect personal information from children under 13. If a parent or guardian believes their child under 13 has created an account, please contact us at privacy@strataSAT.com and we will promptly delete the account. For students between 13–17, we encourage parental involvement and offer parent dashboard accounts.`,
+    content: `The Karman platform is designed for students age 13 and older. We do not knowingly collect personal information from children under 13. If a parent or guardian believes their child under 13 has created an account, please contact us at privacy@karmanprep.com and we will promptly delete the account. For students between 13–17, we encourage parental involvement and offer parent dashboard accounts.`,
   },
   {
     id: "security",
     title: "8. Security",
-    content: `We use industry-standard security measures including encrypted data transmission (HTTPS/TLS), encrypted data storage via Supabase, row-level security policies that ensure users can only access their own data, and third-party authentication management via Clerk. No system is 100% secure. If you believe your account has been compromised, contact privacy@strataSAT.com immediately.`,
+    content: `We use industry-standard security measures including encrypted data transmission (HTTPS/TLS), encrypted data storage via Supabase, row-level security policies that ensure users can only access their own data, and third-party authentication management via Clerk. No system is 100% secure. If you believe your account has been compromised, contact privacy@karmanprep.com immediately.`,
   },
   {
     id: "changes",
@@ -139,7 +139,7 @@ const SECTIONS = [
   {
     id: "contact",
     title: "10. Contact",
-    content: `For any privacy-related questions, requests, or concerns, email privacy@strataSAT.com. We respond within 5 business days.`,
+    content: `For any privacy-related questions, requests, or concerns, email privacy@karmanprep.com. We respond within 5 business days.`,
   },
 ];
 
@@ -157,8 +157,8 @@ export default function PrivacyPage() {
             </h1>
             <p className="text-slate-500 dark:text-slate-400 text-base">
               Effective April 2025 · Questions:{" "}
-              <a href="mailto:privacy@strataSAT.com" className="text-blue-600 dark:text-blue-400 underline">
-                privacy@strataSAT.com
+              <a href="mailto:privacy@karmanprep.com" className="text-blue-600 dark:text-blue-400 underline">
+                privacy@karmanprep.com
               </a>
             </p>
           </div>

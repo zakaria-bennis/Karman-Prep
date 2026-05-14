@@ -4,15 +4,14 @@
 // ThemeToggle — sun/moon button for dark/light mode switch
 // ============================================================
 
-import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { Sun, Moon } from "lucide-react";
+import { useTheme } from "@/components/shared/ThemeProvider";
 
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
-  // Avoid hydration mismatch — only render after mount
   useEffect(() => setMounted(true), []);
   if (!mounted) return <div className="w-9 h-9" />;
 

@@ -15,13 +15,13 @@ import { cn } from "@/lib/utils";
 const ELIGIBILITY = [
   {
     icon: Clock,
-    title: "Stay for at least 4 months",
-    desc: "Maintain an active paid subscription for a minimum of 4 consecutive months after your trial ends.",
+    title: "Stay for at least 16 weeks",
+    desc: "Maintain an active paid subscription for a minimum of 16 consecutive weeks after your trial ends.",
   },
   {
     icon: CheckCircle,
     title: "Complete the full diagnostic",
-    desc: "Take and submit the full Strata diagnostic assessment within your first 7 days on the platform.",
+    desc: "Take and submit the full Karman diagnostic assessment within your first 7 days on the platform.",
   },
   {
     icon: Star,
@@ -43,15 +43,15 @@ const ELIGIBILITY = [
 const FAQS = [
   {
     q: "What counts as a 50-point improvement?",
-    a: "We compare your Strata diagnostic baseline score (taken within your first 7 days) to your official College Board SAT score. If the difference is less than 50 points, you are eligible for a full refund — no questions asked.",
+    a: "We compare your Karman diagnostic baseline score (taken within your first 7 days) to your official College Board SAT score. If the difference is less than 50 points, you are eligible for a full refund — no questions asked.",
   },
   {
     q: "Does the guarantee apply to the Seminar ($40/mo) plan?",
     a: "Yes — all paid plans are eligible for the 50-point score improvement guarantee as long as you meet the eligibility requirements. The Seminar plan does not include 1-on-1 sessions, so the session attendance requirement applies to the platform practice sessions instead.",
   },
   {
-    q: "What if I took an SAT before joining Strata?",
-    a: "We use your Strata diagnostic score as the baseline, not any prior SAT score. This makes the benchmark consistent and fair regardless of your testing history before joining.",
+    q: "What if I took an SAT before joining Karman?",
+    a: "We use your Karman diagnostic score as the baseline, not any prior SAT score. This makes the benchmark consistent and fair regardless of your testing history before joining.",
   },
   {
     q: "How long does a refund take to process?",
@@ -103,7 +103,7 @@ export default function GuaranteePage() {
               <span className="text-blue-600 dark:text-blue-400">Score Guarantee</span>
             </h1>
             <p className="text-lg text-slate-600 dark:text-slate-300 max-w-xl mx-auto">
-              If you follow the Strata program and your SAT score doesn&apos;t improve by at least 50 points, we will refund every dollar you paid. No fine print. No runaround.
+              If you follow the Karman program and your SAT score doesn&apos;t improve by at least 50 points, we will refund every dollar you paid. No fine print. No runaround.
             </p>
           </div>
         </section>
@@ -119,7 +119,7 @@ export default function GuaranteePage() {
               <span className="text-blue-600 dark:text-blue-400">full refund.</span>
             </p>
             <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">
-              We measure your improvement from your Strata diagnostic baseline to your official College Board SAT score. If the gap is less than 50 points and you met all eligibility requirements, we refund 100% of subscription fees paid.
+              We measure your improvement from your Karman diagnostic baseline to your official College Board SAT score. If the gap is less than 50 points and you met all eligibility requirements, we refund 100% of subscription fees paid.
             </p>
           </div>
 
@@ -149,7 +149,7 @@ export default function GuaranteePage() {
             <ol className="space-y-3">
               {[
                 "Take your official SAT and receive your College Board score report.",
-                "Email guarantee@strataSAT.com with your score report attached within 30 days of your test date.",
+                "Email guarantee@karmanprep.com with your score report attached within 30 days of your test date.",
                 "We will verify your eligibility within 3 business days.",
                 "If approved, your full refund is processed to your original payment method within 5–10 business days.",
               ].map((step, i) => (
@@ -162,7 +162,7 @@ export default function GuaranteePage() {
               ))}
             </ol>
             <p className="mt-5 text-xs text-slate-400 dark:text-slate-500">
-              Questions? Email <a href="mailto:guarantee@strataSAT.com" className="underline hover:text-blue-500">guarantee@strataSAT.com</a> — we respond within 24 hours.
+              Questions? Email <a href="mailto:guarantee@karmanprep.com" className="underline hover:text-blue-500">guarantee@karmanprep.com</a> — we respond within 24 hours.
             </p>
           </div>
 

@@ -81,7 +81,7 @@ export default function NodeDetail({ node, subject, currentStatus, currentScore,
   }
 
   return (
-    <div className="min-h-[calc(100vh-56px)] bg-[#060b16] px-4 py-8 overflow-y-auto">
+    <div className="min-h-screen bg-[#060b16] px-4 pt-20 pb-8 overflow-y-auto">
       <div className="max-w-2xl mx-auto space-y-6">
 
         {/* Back link */}
@@ -154,7 +154,7 @@ export default function NodeDetail({ node, subject, currentStatus, currentScore,
             <p className="text-sm text-slate-400 text-center px-4">
               Animated lesson content for <span className="font-semibold text-slate-200">{node.topic}</span> is coming soon.
             </p>
-            <span className="text-xs text-slate-600 px-3 py-1 rounded-full border border-white/5 bg-white/5">
+            <span className="text-xs text-slate-300 px-3 py-1 rounded-full border border-white/10 bg-white/[0.06]">
               Lesson in development
             </span>
           </div>
@@ -165,7 +165,7 @@ export default function NodeDetail({ node, subject, currentStatus, currentScore,
               <div key={item} className="flex items-center gap-2 text-sm text-slate-500">
                 <div className="w-1.5 h-1.5 rounded-full" style={{ background: subjectColor + "80" }} />
                 {item}
-                <span className="text-xs text-slate-700 italic">(lesson coming soon)</span>
+                <span className="text-xs text-slate-400 italic">(lesson coming soon)</span>
               </div>
             ))}
           </div>
@@ -181,7 +181,7 @@ export default function NodeDetail({ node, subject, currentStatus, currentScore,
             <p className="text-sm text-slate-400">
               Practice questions for this node are in development.
             </p>
-            <p className="text-xs text-slate-600 mt-1">Check back soon — or mark this node complete to unlock the next concept.</p>
+            <p className="text-xs text-slate-400 mt-1">Check back soon — or mark this node complete to unlock the next concept.</p>
           </div>
         </div>
 
@@ -248,10 +248,10 @@ export default function NodeDetail({ node, subject, currentStatus, currentScore,
           </button>
         ) : (
           <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-5 flex items-center gap-3">
-            <Lock className="w-5 h-5 text-slate-600 shrink-0" />
+            <Lock className="w-5 h-5 text-slate-400 shrink-0" />
             <div>
-              <p className="text-sm font-semibold text-slate-500">Node locked</p>
-              <p className="text-xs text-slate-600 mt-0.5">
+              <p className="text-sm font-semibold text-slate-200">Node locked</p>
+              <p className="text-xs text-slate-400 mt-0.5">
                 Complete all prerequisite nodes to unlock this one.
               </p>
             </div>
@@ -294,9 +294,9 @@ export default function NodeDetail({ node, subject, currentStatus, currentScore,
                   key={u.id}
                   className="flex items-center gap-3 px-4 py-3 rounded-xl border border-white/5 bg-white/[0.02] opacity-60"
                 >
-                  <Lock className="w-4 h-4 shrink-0 text-slate-600" />
-                  <span className="text-sm text-slate-500 flex-1 truncate">{u.topic}</span>
-                  <span className="text-xs text-slate-700">Tier {u.tier}</span>
+                  <Lock className="w-4 h-4 shrink-0 text-slate-400" />
+                  <span className="text-sm text-slate-300 flex-1 truncate">{u.topic}</span>
+                  <span className="text-xs text-slate-400">Tier {u.tier}</span>
                 </div>
               ))}
             </div>

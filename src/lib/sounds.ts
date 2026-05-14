@@ -1,5 +1,5 @@
 // ============================================================
-// Strata — Sound System (Howler.js wrapper)
+// Karman — Sound System (Howler.js wrapper)
 // All sounds gracefully fail if the file is missing or if
 // the browser blocks audio — sound is an enhancement only.
 //
@@ -109,5 +109,5 @@ export function playSound(name: SoundName): void {
 /** Preload all sounds (call once after user interaction to warm the cache) */
 export function preloadSounds(): void {
   if (typeof window === "undefined") return;
-  _cache ?? initCache();
+  if (!_cache) initCache();
 }

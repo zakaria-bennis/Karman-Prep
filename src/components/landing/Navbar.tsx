@@ -29,7 +29,7 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-16">
 
           {/* Logo */}
-          <Link href="/" aria-label="Strata home">
+          <Link href="/" aria-label="Karman home">
             <StrataLogo size={28} />
           </Link>
 

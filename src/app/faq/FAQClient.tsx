@@ -19,8 +19,8 @@ const FAQ_SECTIONS: { title: string; items: FAQItem[] }[] = [
     title: "Getting Started",
     items: [
       {
-        q: "What is Strata?",
-        a: "Strata is a personalized SAT tutoring platform built around two expert tutors — Zakaria and Nabil. We combine adaptive diagnostic assessments, structured lesson plans, and 1-on-1 coaching to help students improve their SAT scores by an average of 285 points.",
+        q: "What is Karman?",
+        a: "Karman is a personalized SAT tutoring platform built around two expert tutors — Zakaria and Nabil. We combine adaptive diagnostic assessments, structured lesson plans, and 1-on-1 coaching to help students improve their SAT scores by an average of 285 points.",
       },
       {
         q: "How does the free trial work?",
@@ -28,14 +28,14 @@ const FAQ_SECTIONS: { title: string; items: FAQItem[] }[] = [
       },
       {
         q: "Who are the tutors?",
-        a: "Zakaria and Nabil are the core tutors at Strata. Both scored in the 99th percentile on the SAT and have collectively tutored over 2,400 students. They specialize in SAT math and have developed a teaching methodology that consistently produces 200–300+ point improvements. Students regularly credit them by name for their success.",
+        a: "Zakaria and Nabil are the core tutors at Karman. Both scored in the 99th percentile on the SAT and have collectively tutored over 2,400 students. They specialize in SAT math and have developed a teaching methodology that consistently produces 200–300+ point improvements. Students regularly credit them by name for their success.",
       },
       {
         q: "What's the first thing I should do after signing up?",
         a: "Take the free 20-question diagnostic assessment. It covers all four SAT math domains and gives you a predicted score range, a domain-by-domain breakdown, and an auto-generated learning path. The whole thing takes about 35 minutes and immediately tells you where to focus.",
       },
       {
-        q: "Is Strata just for math, or does it cover Reading & Writing too?",
+        q: "Is Karman just for math, or does it cover Reading & Writing too?",
         a: "Our current curriculum is focused on SAT Math, which is where the largest score improvements come from for most students. Reading & Writing content is on our roadmap and will be available soon.",
       },
     ],
@@ -95,7 +95,7 @@ const FAQ_SECTIONS: { title: string; items: FAQItem[] }[] = [
     items: [
       {
         q: "What is the score improvement guarantee?",
-        a: "If you follow your personalized learning path consistently for 4 months and don't improve by at least 50 points on your next official SAT, we'll give you a full refund — no questions asked.",
+        a: "If you follow your personalized learning path consistently for 16 weeks and don't improve by at least 50 points on your next official SAT, we'll give you a full refund — no questions asked.",
       },
       {
         q: "What does 'following the learning path' mean?",
@@ -107,7 +107,7 @@ const FAQ_SECTIONS: { title: string; items: FAQItem[] }[] = [
       },
       {
         q: "How do I claim the guarantee?",
-        a: "Email us at support@strata.com with your official SAT score report (before and after). We'll review your completion record in the dashboard and process your refund within 5 business days if you qualify.",
+        a: "Email us at support@karmanprep.com with your official SAT score report (before and after). We'll review your completion record in the dashboard and process your refund within 5 business days if you qualify.",
       },
     ],
   },
@@ -136,11 +136,11 @@ const FAQ_SECTIONS: { title: string; items: FAQItem[] }[] = [
     title: "Technical & Account",
     items: [
       {
-        q: "What devices can I use Strata on?",
-        a: "Strata is fully mobile-responsive and works on any device — phone, tablet, or desktop. Most students do self-paced lessons on their phones and tutoring sessions on a laptop.",
+        q: "What devices can I use Karman on?",
+        a: "Karman is fully mobile-responsive and works on any device — phone, tablet, or desktop. Most students do self-paced lessons on their phones and tutoring sessions on a laptop.",
       },
       {
-        q: "Can I use Strata on multiple devices?",
+        q: "Can I use Karman on multiple devices?",
         a: "Yes — your account syncs across all devices. Start a lesson on your phone and continue on your laptop seamlessly.",
       },
       {
@@ -189,7 +189,7 @@ export default function FAQClient() {
           Got questions? We&apos;ve got answers.
         </h1>
         <p className="text-slate-500 dark:text-slate-400 max-w-xl mx-auto">
-          Everything you need to know about Strata, our tutors, pricing, and the score improvement guarantee.
+          Everything you need to know about Karman, our tutors, pricing, and the score improvement guarantee.
         </p>
       </div>
 
@@ -223,8 +223,8 @@ export default function FAQClient() {
             Our team is happy to help. Reach out and we&apos;ll get back to you within a few hours.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <a href="mailto:support@strata.com" className="btn-secondary text-sm">
-              Email support@strata.com
+            <a href="mailto:support@karmanprep.com" className="btn-secondary text-sm">
+              Email support@karmanprep.com
             </a>
             <Link href="/auth/sign-up" className="btn-primary text-sm">
               Start Free Trial
