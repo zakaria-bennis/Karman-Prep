@@ -25,17 +25,7 @@ import {
 } from "@/lib/supabase/queries/bookings";
 import { sendBookingConfirmation } from "@/lib/integrations/resend/booking-emails";
 import { extractZoomMeetingId } from "@/lib/integrations/zoom/url";
-
-interface PushRequest {
-  cohortId: string;
-  sessionStart: string; // ISO start
-  sessionEnd: string; // ISO end
-  zoomMeetingId?: string;
-  zoomJoinUrl: string;
-  zoomStartUrl?: string;
-  /** IANA timezone used for the email date/time formatting. */
-  timeZone?: string;
-}
+import { pushSessionBodySchema } from "../schemas";
 
 const EMAIL_BATCH_SIZE = 50;
 
@@ -65,19 +55,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  let body: Partial<PushRequest>;
-  try {
-    body = (await req.json()) as Partial<PushRequest>;
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
-  }
-
-  if (!body.cohortId || !body.sessionStart || !body.sessionEnd || !body.zoomJoinUrl) {
+  const parsed = pushSessionBodySchema.safeParse(await req.json().catch(() => ({})));
+  if (!parsed.success) {
     return NextResponse.json(
-      { error: "Missing cohortId, sessionStart, sessionEnd, or zoomJoinUrl" },
+      { error: "Invalid request body", issues: parsed.error.issues },
       { status: 400 }
     );
   }
+  const body = parsed.data;
 
   const supa = createAdminClient();
 

@@ -16,6 +16,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { fetchUserRole } from "@/lib/supabase/queries/admin";
 import { ensureCohortChannels } from "@/lib/chat/provisioning";
+import { provisionCohortBodySchema } from "../schemas";
 
 export async function POST(req: NextRequest) {
   const { userId } = await auth();
@@ -26,15 +27,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  let body: { cohortId?: string };
-  try {
-    body = (await req.json()) as { cohortId?: string };
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  const parsed = provisionCohortBodySchema.safeParse(await req.json().catch(() => ({})));
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: "Invalid request body", issues: parsed.error.issues },
+      { status: 400 }
+    );
   }
-  if (!body.cohortId) {
-    return NextResponse.json({ error: "Missing cohortId" }, { status: 400 });
-  }
+  const body = parsed.data;
 
   const result = await ensureCohortChannels(body.cohortId);
   if (!result) {

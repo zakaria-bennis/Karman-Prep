@@ -9,6 +9,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { stripe } from "@/lib/integrations/stripe/client";
 import { createAdminClient } from "@/lib/supabase/server";
+import { stripePortalBodySchema } from "../schemas";
 
 export async function POST(req: Request) {
   try {
@@ -17,14 +18,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Parse optional body (won't exist on standard Manage-Plan clicks)
-    let action: string | null = null;
-    try {
-      const body = await req.json();
-      action = typeof body?.action === "string" ? body.action : null;
-    } catch {
-      // No body — default flow
-    }
+    // Body is optional (Manage-Plan clicks send no body). On any
+    // parse/shape error we fall through to the default open-portal
+    // flow rather than 400 — clients depend on that legacy behaviour.
+    const parsed = stripePortalBodySchema.safeParse(await req.json().catch(() => ({})));
+    const action = parsed.success ? (parsed.data.action ?? null) : null;
 
     const supabase = createAdminClient();
     const { data: sub } = await supabase

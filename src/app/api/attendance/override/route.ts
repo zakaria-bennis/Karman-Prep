@@ -22,14 +22,7 @@ import { auth } from "@clerk/nextjs/server";
 import { fetchUserRole } from "@/lib/supabase/queries/admin";
 import { applyAttendanceOverride } from "@/lib/supabase/queries/attendance";
 import { findBookingById, getUserUuidByClerkId } from "@/lib/supabase/queries/bookings";
-
-interface OverrideRequest {
-  bookingId: string;
-  /** Clerk id of the student whose attendance is being overridden. */
-  studentClerkId: string;
-  overrideValue: boolean;
-  reason: string;
-}
+import { attendanceOverrideBodySchema } from "../schemas";
 
 export async function POST(req: NextRequest) {
   const { userId } = await auth();
@@ -42,24 +35,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  let body: Partial<OverrideRequest>;
-  try {
-    body = (await req.json()) as Partial<OverrideRequest>;
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
-  }
-
-  if (
-    !body.bookingId ||
-    !body.studentClerkId ||
-    typeof body.overrideValue !== "boolean" ||
-    !body.reason
-  ) {
+  const parsed = attendanceOverrideBodySchema.safeParse(await req.json().catch(() => ({})));
+  if (!parsed.success) {
     return NextResponse.json(
-      { error: "Missing bookingId, studentClerkId, overrideValue, or reason" },
+      { error: "Invalid request body", issues: parsed.error.issues },
       { status: 400 }
     );
   }
+  const body = parsed.data;
 
   const booking = await findBookingById(body.bookingId);
   if (!booking) {

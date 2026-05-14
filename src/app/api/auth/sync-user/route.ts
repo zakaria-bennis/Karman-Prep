@@ -7,6 +7,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { createAdminClient } from "@/lib/supabase/server";
+import { syncUserBodySchema } from "../schemas";
 
 export async function POST(req: NextRequest) {
   try {
@@ -20,7 +21,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const { role } = await req.json();
+    const parsed = syncUserBodySchema.safeParse(await req.json().catch(() => ({})));
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: "Invalid request body", issues: parsed.error.issues },
+        { status: 400 }
+      );
+    }
+    const { role } = parsed.data;
     const email = clerkUser.emailAddresses[0]?.emailAddress || "";
 
     // Mirror Clerk profile fields into Supabase so cohort lists can show
