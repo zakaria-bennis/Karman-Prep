@@ -188,9 +188,40 @@ This runs `supabase gen types typescript --project-id ...` and writes to `src/ty
 
 - "An error occurred in the Server Components render" in production = Next.js hides the real error. Run `npx wrangler tail --format=pretty` against the live deployment to see the actual stack trace.
 
-### Migrations are paste-into-Supabase-Studio
+### Migrations run via `supabase db push`
 
-- We don't have a migration runner yet. Workflow: write SQL in `supabase/migrations/NNN_description.sql`, paste into Supabase Studio → SQL Editor → Run, then commit the file. **Always use the next sequential number.**
+Migration files live in `supabase/migrations/` named `<YYYYMMDDHHMMSS>_description.sql` (UTC). The Supabase CLI applies them in timestamp order and tracks state in the remote `supabase_migrations.schema_migrations` table.
+
+**Authoring a new migration:**
+
+1. Generate a fresh timestamp + create the file:
+
+   ```bash
+   echo "supabase/migrations/$(date -u +%Y%m%d%H%M%S)_add_thing.sql"
+   ```
+
+2. Write your SQL in the new file. Use `IF NOT EXISTS` / `IF EXISTS` so re-runs are no-ops.
+3. **Locally**: `npm run db:status` shows local vs remote drift. `npm run db:push` applies any pending migrations to the linked project. Always dry-run first if you're unsure:
+
+   ```bash
+   npx supabase db push --dry-run
+   ```
+
+4. After the migration applies, regenerate types: `npm run db:types`, commit `src/types/supabase.ts` alongside the migration.
+5. PR + merge. CI will also run `supabase db push` on `main` merges — see `.github/workflows/db-deploy.yml`.
+
+**Hotfix / emergency:** the legacy paste-into-SQL-Editor flow still works as a last resort. If you do, follow up by marking the migration as already-applied so the runner doesn't try to re-apply it:
+
+```bash
+npx supabase migration repair --status applied <timestamp>
+```
+
+**First-time setup** (one-time, per laptop):
+
+```bash
+npx supabase login                                     # browser OAuth
+npx supabase link --project-ref yyocjxvrakuhnvepaevh   # paste DB password
+```
 
 ---
 

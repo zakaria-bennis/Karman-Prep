@@ -1,0 +1,56 @@
+# ============================================================
+# DB deploy — applies new Supabase migrations to production.
+#
+# Triggers on merges to main, but ONLY when files under
+# supabase/migrations/ changed. Also runnable manually via
+# the "Run workflow" button on the Actions tab.
+#
+# Required GitHub secrets:
+#   SUPABASE_ACCESS_TOKEN  — personal access token (Supabase
+#                            dashboard → Account → Access Tokens)
+#   SUPABASE_DB_PASSWORD   — postgres password for the linked
+#                            project (Supabase dashboard →
+#                            Project Settings → Database)
+#
+# Safety: `supabase db push` is idempotent. Migrations already
+# tracked in `supabase_migrations.schema_migrations` are skipped.
+# Concurrency cap below prevents two pushes racing.
+# ============================================================
+
+name: DB deploy
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "supabase/migrations/**"
+  workflow_dispatch:
+
+concurrency:
+  group: db-deploy
+  cancel-in-progress: false
+
+jobs:
+  push:
+    name: Apply migrations to prod
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_PROJECT_REF: yyocjxvrakuhnvepaevh
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Link project
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: supabase link --project-ref "$SUPABASE_PROJECT_REF"
+
+      - name: Push migrations
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: supabase db push
