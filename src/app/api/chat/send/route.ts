@@ -34,6 +34,7 @@ import {
 import { getUserUuidByClerkId } from "@/lib/supabase/queries/bookings";
 import { moderateMessage } from "@/lib/moderation/pipeline";
 import { postMessage as slackPostMessage, SlackAdapterError } from "@/lib/integrations/slack";
+import { evaluateSendChannelAuth } from "@/lib/chat/can-send";
 
 interface SendRequest {
   channelId: string;
@@ -127,25 +128,18 @@ export async function POST(req: NextRequest) {
   ]);
   const isAdmin = role === "admin";
 
-  // Authority check:
-  //   · cohort_message + qa_question: sender must be an active cohort member OR the cohort's tutor
-  //   · qa_answer:                    only tutors (and admins) may answer
-  if (body.messageType === "qa_answer") {
-    if (!isTutor && !isAdmin) {
-      return NextResponse.json({ error: "Only tutors can post Q&A answers" }, { status: 403 });
-    }
-  } else {
-    if (!isMember && !isTutor && !isAdmin) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-  }
-
-  // Mute check (only applies to students; tutors + admins bypass).
-  if (!isTutor && !isAdmin && muted) {
-    return NextResponse.json(
-      { error: "You're temporarily muted in this channel." },
-      { status: 403 }
-    );
+  // All the authority + mute logic lives in `evaluateSendChannelAuth`
+  // so the rules can be unit-tested without standing up Clerk +
+  // Supabase mocks. See src/lib/chat/can-send.ts.
+  const authDecision = evaluateSendChannelAuth({
+    messageType: body.messageType,
+    isMember,
+    isTutor,
+    isAdmin,
+    muted,
+  });
+  if (!authDecision.ok) {
+    return NextResponse.json({ error: authDecision.error }, { status: authDecision.status });
   }
 
   // Resolve sender's display name for the post.
