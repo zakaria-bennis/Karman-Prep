@@ -11,6 +11,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "@clerk/nextjs/server";
 import { fetchUserRole, IMPERSONATE_COOKIE, type AppRole } from "@/lib/supabase/queries/admin";
+import { setImpersonationInputSchema } from "./schemas";
 
 async function guardRealAdmin() {
   const { userId } = await auth();
@@ -28,6 +29,7 @@ function landingFor(role: ImpersonateRole): string {
 }
 
 export async function actionSetImpersonation(role: ImpersonateRole) {
+  setImpersonationInputSchema.parse({ role });
   await guardRealAdmin();
   const store = await cookies();
   store.set(IMPERSONATE_COOKIE, role, {

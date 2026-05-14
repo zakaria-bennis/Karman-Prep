@@ -12,6 +12,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { requireRole } from "@/lib/supabase/queries/admin";
 import { createAdminClient } from "@/lib/supabase/server";
+import { searchBankQuestionsInputSchema } from "../schemas";
 
 export interface QuestionSearchResult {
   id: string;
@@ -30,13 +31,18 @@ const MAX_RESULTS = 10;
 /** Search quiz_questions by question_text + concept_slug + source_pdf.
  *  Returns up to MAX_RESULTS, prioritizing live questions over bank. */
 export async function actionSearchBankQuestions(query: string): Promise<QuestionSearchResult[]> {
+  // Empty result on parse failure (preserves the existing "noisy
+  // 1-char hit" behavior — the action's caller treats [] as "no
+  // matches" and never surfaces a thrown error).
+  const parsed = searchBankQuestionsInputSchema.safeParse({ query: query.trim() });
+  if (!parsed.success) return [];
+
   const { userId } = await auth();
   if (!userId) return [];
   const isAdmin = await requireRole(userId, ["admin"]);
   if (!isAdmin) return [];
 
-  const trimmed = query.trim();
-  if (trimmed.length < 2) return []; // avoid noisy 1-char hits
+  const trimmed = parsed.data.query;
 
   // Escape % and _ so a user typing literal SQL wildcards doesn't
   // accidentally broaden the search.

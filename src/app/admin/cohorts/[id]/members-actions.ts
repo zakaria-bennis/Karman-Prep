@@ -9,6 +9,7 @@ import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/server";
 import { fetchUserRole } from "@/lib/supabase/queries/admin";
+import { cohortMemberMutationInputSchema } from "../../schemas";
 
 async function guardAdmin() {
   const { userId } = await auth();
@@ -26,6 +27,7 @@ async function guardAdmin() {
  *     pre-check for a friendly error message)
  */
 export async function actionAddCohortMember(cohortId: string, studentUserId: string) {
+  cohortMemberMutationInputSchema.parse({ cohortId, studentUserId });
   await guardAdmin();
   const supabase = createAdminClient();
 
@@ -101,6 +103,7 @@ export async function actionAddCohortMember(cohortId: string, studentUserId: str
  * added to a different cohort immediately.
  */
 export async function actionRemoveCohortMember(cohortId: string, studentUserId: string) {
+  cohortMemberMutationInputSchema.parse({ cohortId, studentUserId });
   await guardAdmin();
   const supabase = createAdminClient();
 

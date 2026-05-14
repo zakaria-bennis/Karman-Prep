@@ -11,6 +11,11 @@ import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/server";
 import { fetchUserRole, type AppRole } from "@/lib/supabase/queries/admin";
+import {
+  linkParentStudentInputSchema,
+  setUserRoleInputSchema,
+  unlinkParentStudentInputSchema,
+} from "../schemas";
 
 async function guardAdmin() {
   const { userId } = await auth();
@@ -20,11 +25,10 @@ async function guardAdmin() {
   return userId;
 }
 
-const ALLOWED_ROLES: AppRole[] = ["student", "tutor", "parent", "admin"];
-
 export async function actionSetUserRole(targetUserId: string, nextRole: AppRole) {
+  // Schema enforces non-empty targetUserId + valid AppRole.
+  setUserRoleInputSchema.parse({ targetUserId, nextRole });
   await guardAdmin();
-  if (!ALLOWED_ROLES.includes(nextRole)) throw new Error(`Invalid role: ${nextRole}`);
 
   const supabase = createAdminClient();
   const { error } = await supabase.from("users").update({ role: nextRole }).eq("id", targetUserId);
@@ -37,10 +41,9 @@ export async function actionSetUserRole(targetUserId: string, nextRole: AppRole)
 }
 
 export async function actionLinkParentToStudent(parentUserId: string, studentUserId: string) {
+  // Schema enforces non-empty IDs + parentUserId !== studentUserId.
+  linkParentStudentInputSchema.parse({ parentUserId, studentUserId });
   await guardAdmin();
-  if (parentUserId === studentUserId) {
-    throw new Error("Parent and student cannot be the same user");
-  }
 
   const supabase = createAdminClient();
 
@@ -70,6 +73,7 @@ export async function actionLinkParentToStudent(parentUserId: string, studentUse
 }
 
 export async function actionUnlinkParentFromStudent(parentUserId: string, studentUserId: string) {
+  unlinkParentStudentInputSchema.parse({ parentUserId, studentUserId });
   await guardAdmin();
 
   const supabase = createAdminClient();

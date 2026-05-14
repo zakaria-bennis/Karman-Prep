@@ -10,13 +10,7 @@ import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/server";
 import { requireRole } from "@/lib/supabase/queries/admin";
 import type { CohortStatus, CohortTier } from "@/lib/supabase/queries/cohorts";
-
-// Hard caps mirrored from the DB CHECK constraint in migration 006.
-// Kept in sync here so the UI can validate before the DB round-trips.
-const TIER_MAX_CAP: Record<CohortTier, number> = {
-  small_group: 5,
-  group: 200,
-};
+import { createCohortInputSchema } from "../schemas";
 
 async function guardAdmin() {
   const { userId } = await auth();
@@ -37,36 +31,23 @@ export interface CreateCohortInput {
 }
 
 export async function actionCreateCohort(input: CreateCohortInput): Promise<{ id: string }> {
+  // Schema enforces: non-empty trimmed name, valid tier + status enums,
+  // YYYY-MM-DD sat_date, positive-int max_size within the per-tier cap.
+  // Replaces the inline checks that used to live here.
+  const v = createCohortInputSchema.parse(input);
   await guardAdmin();
-
-  // Validate input before sending to the DB — friendlier errors.
-  const name = input.name?.trim();
-  if (!name) throw new Error("Cohort name is required");
-  if (!["group", "small_group"].includes(input.tier)) {
-    throw new Error(`Invalid tier: ${input.tier}`);
-  }
-  if (!input.sat_date) throw new Error("SAT date is required");
-  if (!input.tutor_user_id) throw new Error("Tutor is required");
-
-  const cap = TIER_MAX_CAP[input.tier];
-  if (!Number.isInteger(input.max_size) || input.max_size < 1) {
-    throw new Error("Max size must be a positive integer");
-  }
-  if (input.max_size > cap) {
-    throw new Error(`Max size for ${input.tier === "group" ? "Seminar" : "Small Group"} is ${cap}`);
-  }
 
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("cohorts")
     .insert({
-      name,
-      tier: input.tier,
-      sat_date: input.sat_date,
-      tutor_user_id: input.tutor_user_id,
-      max_size: input.max_size,
-      current_topic: input.current_topic?.trim() || null,
-      status: input.status ?? "forming",
+      name: v.name,
+      tier: v.tier,
+      sat_date: v.sat_date,
+      tutor_user_id: v.tutor_user_id,
+      max_size: v.max_size,
+      current_topic: v.current_topic?.trim() || null,
+      status: v.status ?? "forming",
     })
     .select("id")
     .single();
