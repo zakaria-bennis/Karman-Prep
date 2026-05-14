@@ -8,6 +8,9 @@
 //   · Students see display_name_override only (never the real
 //     sender). For rejected messages, content is replaced with
 //     rejection_message.
+//   · For 'flagged' messages (hold-until-approval): the sender
+//     still sees their own content; everyone else outside admin
+//     and tutors sees a "pending review" placeholder (null content).
 //   · Tutors and admins see both display_name_override AND a
 //     real_name field (firstName + lastName).
 //   · Parents see real_name only for messages sent BY their
@@ -141,6 +144,11 @@ export async function GET(req: NextRequest) {
 
   const messages: PublicMessage[] = visible.map((r) => {
     const isRejected = r.moderation_status === "rejected";
+    const isFlagged = r.moderation_status === "flagged";
+    const isSelf = r.sender_id === callerUuid;
+    // Sender always sees own content. Admin + tutor always see all.
+    // Everyone else: rejected → hidden; flagged → hidden (pending review).
+    const hideContent = (isRejected || isFlagged) && !isTutor && !isAdmin && !isSelf;
     const showRealName =
       seesRealNames && (isTutor || isAdmin || parentAllowedSenders.has(r.sender_id));
     return {
@@ -150,12 +158,12 @@ export async function GET(req: NextRequest) {
       parent_message_id: r.parent_message_id,
       display_name: r.display_name_override ?? "Karman",
       real_name: showRealName ? nameById.get(r.sender_id) : undefined,
-      content: isRejected && !isTutor && !isAdmin ? null : r.content,
-      media_urls: isRejected && !isTutor && !isAdmin ? [] : r.media_urls,
+      content: hideContent ? null : r.content,
+      media_urls: hideContent ? [] : r.media_urls,
       is_anonymous: r.is_anonymous,
       is_pinned: r.is_pinned,
       is_highlighted: r.is_highlighted,
-      is_self: r.sender_id === callerUuid,
+      is_self: isSelf,
       moderation_status: r.moderation_status,
       rejection_message: isRejected ? r.rejection_message : null,
       created_at: r.created_at,

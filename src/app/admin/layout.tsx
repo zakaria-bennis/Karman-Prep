@@ -15,6 +15,7 @@ import {
   ClipboardCheck,
   Upload,
   Eye,
+  ShieldAlert,
 } from "lucide-react";
 import { fetchUserRole } from "@/lib/supabase/queries/admin";
 import { StrataLogo } from "@/components/shared/StrataLogo";
@@ -46,6 +47,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           <AdminNavLink href="/admin/cohorts" icon={Users} label="Cohorts" />
           <AdminNavLink href="/admin/users" icon={UserCog} label="Users" />
           <AdminNavLink href="/admin/revenue" icon={DollarSign} label="Revenue" />
+          <AdminNavLink href="/admin/moderation" icon={ShieldAlert} label="Moderation" />
           {/* Top-bar "Flagged" link removed — redundant with the in-page
               Nodes/Flagged tab on /admin/curriculum. The count badge
               there is the canonical surface for unresolved flags. */}
