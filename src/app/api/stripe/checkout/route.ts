@@ -7,6 +7,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { createCheckoutSession, getOrCreateCustomer } from "@/lib/integrations/stripe/client";
+import { createCheckoutBodySchema } from "@/lib/integrations/stripe/schemas";
 import { createAdminClient } from "@/lib/supabase/server";
 
 export async function POST(req: NextRequest) {
@@ -21,10 +22,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const { tier } = await req.json();
-    if (!tier) {
-      return NextResponse.json({ error: "Tier is required" }, { status: 400 });
+    const parsed = createCheckoutBodySchema.safeParse(await req.json().catch(() => ({})));
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: "Invalid request body", issues: parsed.error.issues },
+        { status: 400 }
+      );
     }
+    const { tier } = parsed.data;
 
     const email = clerkUser.emailAddresses[0]?.emailAddress;
     if (!email) {
