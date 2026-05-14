@@ -62,36 +62,36 @@ export async function fetchAdminUsersList(): Promise<AdminUserRow[]> {
   if (membersRes.error) throw membersRes.error;
 
   const linkCounts = new Map<string, number>();
-  for (const r of (linksRes.data ?? []) as { parent_user_id: string }[]) {
+  for (const r of linksRes.data ?? []) {
     linkCounts.set(r.parent_user_id, (linkCounts.get(r.parent_user_id) ?? 0) + 1);
   }
 
   // First (most-recent due to ORDER BY) tier per Clerk-userid.
   // subscriptions.user_id is TEXT (Clerk id), not the users.id UUID.
   const tierByClerkId = new Map<string, AdminUserRow["tier"]>();
-  for (const r of (subsRes.data ?? []) as Array<{ user_id: string; tier: string }>) {
+  for (const r of subsRes.data ?? []) {
     if (!tierByClerkId.has(r.user_id)) {
       tierByClerkId.set(r.user_id, r.tier as AdminUserRow["tier"]);
     }
   }
 
   const cohortIdsByUuid = new Map<string, string[]>();
-  for (const r of (membersRes.data ?? []) as Array<{ user_id: string; cohort_id: string }>) {
+  for (const r of membersRes.data ?? []) {
     if (!cohortIdsByUuid.has(r.user_id)) cohortIdsByUuid.set(r.user_id, []);
     cohortIdsByUuid.get(r.user_id)!.push(r.cohort_id);
   }
 
   return (usersRes.data ?? []).map((u) => ({
-    id: u.id as string,
-    clerk_id: u.clerk_id as string,
-    email: u.email as string,
-    first_name: (u.first_name as string | null) ?? null,
-    last_name: (u.last_name as string | null) ?? null,
+    id: u.id,
+    clerk_id: u.clerk_id,
+    email: u.email,
+    first_name: u.first_name,
+    last_name: u.last_name,
     role: u.role as AppRole,
-    created_at: u.created_at as string,
-    linked_student_count: linkCounts.get(u.id as string) ?? 0,
-    tier: tierByClerkId.get(u.clerk_id as string) ?? null,
-    cohort_ids: cohortIdsByUuid.get(u.id as string) ?? [],
+    created_at: u.created_at,
+    linked_student_count: linkCounts.get(u.id) ?? 0,
+    tier: tierByClerkId.get(u.clerk_id) ?? null,
+    cohort_ids: cohortIdsByUuid.get(u.id) ?? [],
   }));
 }
 
@@ -124,8 +124,7 @@ export async function fetchLinkedStudentsForParent(
     .eq("parent_user_id", parentUserId);
   if (error) throw error;
 
-  type Row = { student: LinkedStudentRow | LinkedStudentRow[] | null };
-  return ((data ?? []) as Row[]).flatMap((r) => {
+  return (data ?? []).flatMap((r) => {
     const s = Array.isArray(r.student) ? r.student[0] : r.student;
     return s ? [s] : [];
   });

@@ -92,16 +92,10 @@ export interface QuizQuestion {
 }
 
 /** Admin-supplied overrides for a node's textbook + video.
- *  When present, overrides the defaults defined in curriculum.ts. */
-export interface NodeContent {
-  node_id: string;
-  textbook_content: string | null;
-  video_url: string | null;
-  video_storage_path: string | null;
-  video_duration_seconds: number | null;
-  updated_by: string | null;
-  updated_at: string;
-}
+ *  When present, overrides the defaults defined in curriculum.ts.
+ *  Sourced from the generated DB schema. */
+export type NodeContent =
+  import("@/types/supabase").Database["public"]["Tables"]["node_content"]["Row"];
 
 export interface QuizQuestionWithChoices extends QuizQuestion {
   answer_choices: AnswerChoice[];

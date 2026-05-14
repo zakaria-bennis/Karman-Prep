@@ -64,28 +64,25 @@ export async function fetchCohorts(): Promise<AdminCohortRow[]> {
 
   // Group active members by cohort for counts
   const counts = new Map<string, number>();
-  for (const m of (membersRes.data ?? []) as { cohort_id: string }[]) {
+  for (const m of membersRes.data ?? []) {
     counts.set(m.cohort_id, (counts.get(m.cohort_id) ?? 0) + 1);
   }
 
   // Supabase types the joined `tutor` as an array OR object depending on the
   // relationship — in our case it's a 1:1 via FK, but the typegen defaults to
   // array. Normalise here.
-  type Raw = Omit<AdminCohortRow, "tutor" | "member_count"> & {
-    tutor: AdminCohortRow["tutor"] | AdminCohortRow["tutor"][] | null;
-  };
   const rows: AdminCohortRow[] = [];
-  for (const r of (cohortsRes.data ?? []) as Raw[]) {
+  for (const r of cohortsRes.data ?? []) {
     const tutor = Array.isArray(r.tutor) ? r.tutor[0] : r.tutor;
     if (!tutor) continue;
     rows.push({
       id: r.id,
       name: r.name,
-      tier: r.tier,
+      tier: r.tier as CohortTier,
       sat_date: r.sat_date,
       max_size: r.max_size,
       current_topic: r.current_topic,
-      status: r.status,
+      status: r.status as CohortStatus,
       created_at: r.created_at,
       ended_at: r.ended_at,
       tutor,
@@ -109,7 +106,7 @@ export async function fetchUpcomingSatDates(): Promise<SatDateRow[]> {
     .gte("test_date", today)
     .order("test_date", { ascending: true });
   if (error) throw error;
-  return (data ?? []) as SatDateRow[];
+  return data ?? [];
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -123,7 +120,7 @@ export async function fetchTutors(): Promise<TutorRow[]> {
     .eq("role", "tutor")
     .order("first_name", { ascending: true, nullsFirst: false });
   if (error) throw error;
-  return (data ?? []) as TutorRow[];
+  return data ?? [];
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -159,9 +156,7 @@ export async function fetchEligibleStudentsForCohort(
     .is("left_at", null);
   if (amErr) throw amErr;
 
-  const inACohort = new Set<string>(
-    (activeMembers ?? []).map((m) => (m as { user_id: string }).user_id)
-  );
+  const inACohort = new Set<string>((activeMembers ?? []).map((m) => m.user_id));
 
   const { data: students, error: sErr } = await supabase
     .from("users")
@@ -170,12 +165,12 @@ export async function fetchEligibleStudentsForCohort(
     .order("first_name", { ascending: true, nullsFirst: false });
   if (sErr) throw sErr;
 
-  const eligibleUsers = (students ?? []).filter((s) => !inACohort.has((s as { id: string }).id));
+  const eligibleUsers = (students ?? []).filter((s) => !inACohort.has(s.id));
 
   if (eligibleUsers.length === 0) return [];
 
   // Fetch latest active subscription per student to show their paid tier.
-  const clerkIds = eligibleUsers.map((s) => (s as { clerk_id: string }).clerk_id);
+  const clerkIds = eligibleUsers.map((s) => s.clerk_id);
   const { data: subs } = await supabase
     .from("subscriptions")
     .select("user_id, tier, status")
@@ -183,27 +178,18 @@ export async function fetchEligibleStudentsForCohort(
     .in("status", ["active", "trialing"]);
 
   const tierByClerk = new Map<string, string>();
-  for (const s of (subs ?? []) as { user_id: string; tier: string }[]) {
+  for (const s of subs ?? []) {
     // Keep first seen — a student shouldn't have multiple active subs.
     if (!tierByClerk.has(s.user_id)) tierByClerk.set(s.user_id, s.tier);
   }
 
-  return eligibleUsers.map((s) => {
-    const row = s as {
-      id: string;
-      first_name: string | null;
-      last_name: string | null;
-      email: string;
-      clerk_id: string;
-    };
-    return {
-      id: row.id,
-      first_name: row.first_name,
-      last_name: row.last_name,
-      email: row.email,
-      subscription_tier: tierByClerk.get(row.clerk_id) ?? null,
-    };
-  });
+  return eligibleUsers.map((s) => ({
+    id: s.id,
+    first_name: s.first_name,
+    last_name: s.last_name,
+    email: s.email,
+    subscription_tier: tierByClerk.get(s.clerk_id) ?? null,
+  }));
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -231,7 +217,7 @@ export async function dropFromActiveCohort(clerkId: string): Promise<string | nu
     .maybeSingle();
   if (!user) return null;
 
-  const userId = (user as { id: string }).id;
+  const userId = user.id;
 
   // Find the active membership first so we can return the cohort id.
   const { data: active } = await supabase
@@ -242,7 +228,7 @@ export async function dropFromActiveCohort(clerkId: string): Promise<string | nu
     .maybeSingle();
   if (!active) return null;
 
-  const cohortId = (active as { cohort_id: string }).cohort_id;
+  const cohortId = active.cohort_id;
   const { error } = await supabase
     .from("cohort_members")
     .update({ left_at: new Date().toISOString() })
@@ -274,7 +260,7 @@ export async function restoreLastCohort(clerkId: string): Promise<string | null>
     .eq("clerk_id", clerkId)
     .maybeSingle();
   if (!user) return null;
-  const userId = (user as { id: string }).id;
+  const userId = user.id;
 
   // Skip if they're already in an active cohort (idempotent).
   const { data: existingActive } = await supabase
@@ -296,7 +282,7 @@ export async function restoreLastCohort(clerkId: string): Promise<string | null>
     .maybeSingle();
   if (!lastLeft) return null;
 
-  const cohortId = (lastLeft as { cohort_id: string }).cohort_id;
+  const cohortId = lastLeft.cohort_id;
 
   const { data: cohort } = await supabase
     .from("cohorts")
@@ -304,8 +290,7 @@ export async function restoreLastCohort(clerkId: string): Promise<string | null>
     .eq("id", cohortId)
     .maybeSingle();
   if (!cohort) return null;
-  const c = cohort as { max_size: number; status: string };
-  if (c.status === "completed") return null;
+  if (cohort.status === "completed") return null;
 
   // Check seat availability.
   const { count: filled } = await supabase
@@ -313,7 +298,7 @@ export async function restoreLastCohort(clerkId: string): Promise<string | null>
     .select("*", { count: "exact", head: true })
     .eq("cohort_id", cohortId)
     .is("left_at", null);
-  if ((filled ?? 0) >= c.max_size) return null;
+  if ((filled ?? 0) >= cohort.max_size) return null;
 
   // Restore: clear left_at on the existing row. This works because
   // the row's primary key is (cohort_id, user_id) — there's still

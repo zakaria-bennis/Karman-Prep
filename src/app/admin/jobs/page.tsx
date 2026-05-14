@@ -41,7 +41,7 @@ export default async function AdminJobsPage() {
     );
   }
 
-  const jobs = (data ?? []) as PdfProcessingJob[];
+  const jobs = (data ?? []) as unknown as PdfProcessingJob[];
 
   return (
     <div className="mx-auto max-w-5xl px-5 py-8">

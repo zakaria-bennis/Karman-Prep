@@ -27,6 +27,7 @@ import {
 } from "@/lib/integrations/openai/generate-status-draft";
 import { sendRecapEmail } from "@/lib/integrations/resend/recap-email";
 import { computePayout } from "@/lib/payouts/compute-amount";
+import type { Json } from "@/types/supabase";
 
 interface BookingForAuth {
   id: string;
@@ -116,7 +117,7 @@ export async function actionSaveDraft(
   const { error } = await supabase
     .from("bookings")
     .update({
-      status_draft: draft,
+      status_draft: draft as unknown as Json,
       status_draft_edited_at: now,
     })
     .eq("id", bookingId);
@@ -156,7 +157,7 @@ export async function actionRegenerateDraft(
   const { error } = await supabase
     .from("bookings")
     .update({
-      status_draft: draft,
+      status_draft: draft as unknown as Json,
       status_draft_created_at: now,
       status_draft_edited_at: null,
     })
@@ -217,7 +218,7 @@ export async function actionSetManualTranscript(
   await supabase
     .from("bookings")
     .update({
-      status_draft: draft ?? { error: draftError },
+      status_draft: (draft ?? { error: draftError }) as unknown as Json,
       status_draft_created_at: new Date().toISOString(),
       status_draft_edited_at: null,
     })
@@ -405,7 +406,7 @@ export async function actionSendRecap(
   const { error: sessUpdErr } = await supabase
     .from("sessions")
     .update({
-      status_draft: draft,
+      status_draft: draft as unknown as Json,
       status_draft_edited_at: now,
       recap_email_sent: true,
       recap_sent_at: now,
@@ -426,7 +427,7 @@ export async function actionSendRecap(
   await supabase
     .from("bookings")
     .update({
-      status_draft: draft,
+      status_draft: draft as unknown as Json,
       status_draft_edited_at: now,
       recap_email_sent: true,
       recap_sent_at: now,
