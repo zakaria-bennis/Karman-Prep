@@ -11,9 +11,19 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { AnimatePresence } from "framer-motion";
 import {
-  ArrowRight, CheckCircle, XCircle, Calculator,
-  PencilLine, Lightbulb, Highlighter, Ban, Bookmark, BookmarkCheck,
-  LayoutGrid, X, AlertTriangle,
+  ArrowRight,
+  CheckCircle,
+  XCircle,
+  Calculator,
+  PencilLine,
+  Lightbulb,
+  Highlighter,
+  Ban,
+  Bookmark,
+  BookmarkCheck,
+  LayoutGrid,
+  X,
+  AlertTriangle,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -112,12 +122,8 @@ export default function DiagnosticClient({ questions, isSubscribed }: Props) {
   // (now first) into Math, the visible "Question X / N" resets
   // so the student tracks their position within the section
   // rather than across the whole diagnostic.
-  const sectionStartIdx = questions.findIndex(
-    (q) => DOMAIN_SECTION[q.domain] === currentSection
-  );
-  const sectionLength = questions.filter(
-    (q) => DOMAIN_SECTION[q.domain] === currentSection
-  ).length;
+  const sectionStartIdx = questions.findIndex((q) => DOMAIN_SECTION[q.domain] === currentSection);
+  const sectionLength = questions.filter((q) => DOMAIN_SECTION[q.domain] === currentSection).length;
   const sectionPosition = currentIdx - sectionStartIdx + 1;
 
   // Browser-level guard — warn the student if they try to close
@@ -346,9 +352,7 @@ export default function DiagnosticClient({ questions, isSubscribed }: Props) {
   const timerPct = (sectionTimeLeft / totalSectionSec) * 100;
   const minutesLeft = Math.floor(sectionTimeLeft / 60);
   const timerColor =
-    sectionTimeLeft > 5 * 60 ? "#3B82F6"
-      : sectionTimeLeft > 60   ? "#F59E0B"
-      :                          "#EF4444";
+    sectionTimeLeft > 5 * 60 ? "#3B82F6" : sectionTimeLeft > 60 ? "#F59E0B" : "#EF4444";
   function fmtClock(sec: number): string {
     const m = Math.floor(sec / 60);
     const s = sec % 60;
@@ -356,10 +360,13 @@ export default function DiagnosticClient({ questions, isSubscribed }: Props) {
   }
 
   return (
-    <div ref={shellRef} className="relative min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col">
+    <div
+      ref={shellRef}
+      className="relative flex min-h-screen flex-col bg-slate-50 dark:bg-slate-950"
+    >
       {/* Header */}
-      <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 py-3">
-        <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
+      <div className="border-b border-slate-200 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-900">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             {/* Exit — opens a confirmation modal because the
                 diagnostic must be completed in one session and any
@@ -367,11 +374,11 @@ export default function DiagnosticClient({ questions, isSubscribed }: Props) {
             <button
               type="button"
               onClick={() => setExitConfirmOpen(true)}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-rose-400 hover:text-rose-600 dark:hover:text-rose-300 transition-colors"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-semibold text-slate-600 transition-colors hover:border-rose-400 hover:text-rose-600 dark:border-slate-700 dark:text-slate-300 dark:hover:text-rose-300"
               aria-label="Exit diagnostic"
               title="Exit diagnostic (progress will be lost)"
             >
-              <X className="w-3.5 h-3.5" />
+              <X className="h-3.5 w-3.5" />
               Exit
             </button>
             <div>
@@ -391,15 +398,15 @@ export default function DiagnosticClient({ questions, isSubscribed }: Props) {
                 type="button"
                 onClick={() => setDesmosOpen((o) => !o)}
                 className={cn(
-                  "inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-colors",
+                  "inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-semibold transition-colors",
                   desmosOpen
-                    ? "bg-rose-500 text-white border-rose-500"
-                    : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-rose-200 hover:border-rose-400 hover:text-rose-600 dark:hover:text-rose-300"
+                    ? "border-rose-500 bg-rose-500 text-white"
+                    : "border-slate-200 text-slate-600 hover:border-rose-400 hover:text-rose-600 dark:border-slate-700 dark:text-rose-200 dark:hover:text-rose-300"
                 )}
                 aria-pressed={desmosOpen}
                 aria-label="Toggle Desmos calculator"
               >
-                <Calculator className="w-3.5 h-3.5" />
+                <Calculator className="h-3.5 w-3.5" />
                 Calculator
               </button>
             )}
@@ -410,15 +417,15 @@ export default function DiagnosticClient({ questions, isSubscribed }: Props) {
                 type="button"
                 onClick={() => setScratchpadOpen((o) => !o)}
                 className={cn(
-                  "inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-colors",
+                  "inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-semibold transition-colors",
                   scratchpadOpen
-                    ? "bg-white text-slate-900 border-white"
-                    : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-white hover:border-white hover:text-slate-900 hover:bg-white/90 dark:hover:bg-white dark:hover:text-slate-900"
+                    ? "border-white bg-white text-slate-900"
+                    : "border-slate-200 text-slate-600 hover:border-white hover:bg-white/90 hover:text-slate-900 dark:border-slate-700 dark:text-white dark:hover:bg-white dark:hover:text-slate-900"
                 )}
                 aria-pressed={scratchpadOpen}
                 aria-label="Toggle scratchpad"
               >
-                <PencilLine className="w-3.5 h-3.5" />
+                <PencilLine className="h-3.5 w-3.5" />
                 Scratchpad
               </button>
             )}
@@ -428,11 +435,11 @@ export default function DiagnosticClient({ questions, isSubscribed }: Props) {
             <button
               type="button"
               onClick={() => setNavigatorOpen(true)}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-blue-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-semibold text-slate-600 transition-colors hover:border-blue-400 hover:text-blue-600 dark:border-slate-700 dark:text-slate-300 dark:hover:text-blue-400"
               aria-label="Open question navigator"
               title="All questions"
             >
-              <LayoutGrid className="w-3.5 h-3.5" />
+              <LayoutGrid className="h-3.5 w-3.5" />
               Questions
             </button>
 
@@ -443,18 +450,20 @@ export default function DiagnosticClient({ questions, isSubscribed }: Props) {
               type="button"
               onClick={toggleBookmark}
               className={cn(
-                "inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-colors",
+                "inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-semibold transition-colors",
                 isBookmarked
-                  ? "bg-white text-slate-900 border-white"
-                  : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-white hover:border-white hover:text-slate-900 hover:bg-white/90 dark:hover:bg-white dark:hover:text-slate-900"
+                  ? "border-white bg-white text-slate-900"
+                  : "border-slate-200 text-slate-600 hover:border-white hover:bg-white/90 hover:text-slate-900 dark:border-slate-700 dark:text-white dark:hover:bg-white dark:hover:text-slate-900"
               )}
               aria-pressed={isBookmarked}
               aria-label={isBookmarked ? "Remove bookmark" : "Bookmark for review"}
               title={isBookmarked ? "Bookmarked — click to remove" : "Bookmark for review"}
             >
-              {isBookmarked
-                ? <BookmarkCheck className="w-3.5 h-3.5" />
-                : <Bookmark className="w-3.5 h-3.5" />}
+              {isBookmarked ? (
+                <BookmarkCheck className="h-3.5 w-3.5" />
+              ) : (
+                <Bookmark className="h-3.5 w-3.5" />
+              )}
               {isBookmarked ? "Saved" : "Bookmark"}
             </button>
 
@@ -464,11 +473,22 @@ export default function DiagnosticClient({ questions, isSubscribed }: Props) {
                 minutes and red under 1 minute. When the section's
                 clock hits zero, we auto-advance past the last
                 question of the section (or submit if R&W). */}
-            <div className="flex items-center gap-2 pl-1.5 ml-1 border-l border-slate-200 dark:border-slate-800 pl-3">
+            <div className="ml-1 flex items-center gap-2 border-l border-slate-200 pl-1.5 pl-3 dark:border-slate-800">
               <svg width="32" height="32" className="-rotate-90">
-                <circle cx="16" cy="16" r="12" strokeWidth="3" fill="none" className="stroke-slate-200 dark:stroke-slate-700" />
                 <circle
-                  cx="16" cy="16" r="12" strokeWidth="3" fill="none"
+                  cx="16"
+                  cy="16"
+                  r="12"
+                  strokeWidth="3"
+                  fill="none"
+                  className="stroke-slate-200 dark:stroke-slate-700"
+                />
+                <circle
+                  cx="16"
+                  cy="16"
+                  r="12"
+                  strokeWidth="3"
+                  fill="none"
                   stroke={timerColor}
                   strokeLinecap="round"
                   strokeDasharray={75.4}
@@ -480,7 +500,7 @@ export default function DiagnosticClient({ questions, isSubscribed }: Props) {
                 <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                   {SECTION_LABELS[currentSection]}
                 </span>
-                <span className="text-sm font-mono font-bold" style={{ color: timerColor }}>
+                <span className="font-mono text-sm font-bold" style={{ color: timerColor }}>
                   {fmtClock(sectionTimeLeft)}
                 </span>
               </div>
@@ -492,8 +512,8 @@ export default function DiagnosticClient({ questions, isSubscribed }: Props) {
         </div>
 
         {/* Progress bar */}
-        <div className="max-w-6xl mx-auto mt-2">
-          <div className="h-1.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+        <div className="mx-auto mt-2 max-w-6xl">
+          <div className="h-1.5 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
             <div
               className="h-full rounded-full bg-blue-500 transition-all duration-300"
               style={{ width: `${(sectionPosition / sectionLength) * 100}%` }}
@@ -505,12 +525,12 @@ export default function DiagnosticClient({ questions, isSubscribed }: Props) {
       {/* Question — switches to split-pane when a passage is present
           (R&W convention from Bluebook: passage on the left, prompt
           + choices on the right). */}
-      <div className="flex-1 flex items-start justify-center p-4 pt-8">
+      <div className="flex flex-1 items-start justify-center p-4 pt-8">
         <div className={cn("w-full", question.passage ? "max-w-6xl" : "max-w-2xl")}>
           {/* Domain tag */}
-          <div className="flex items-center gap-2 mb-4">
+          <div className="mb-4 flex items-center gap-2">
             <span
-              className="px-2.5 py-1 rounded-md text-xs font-semibold"
+              className="rounded-md px-2.5 py-1 text-xs font-semibold"
               style={{
                 backgroundColor: DOMAIN_COLORS[question.domain as SATDomain]?.hex + "20",
                 color: DOMAIN_COLORS[question.domain as SATDomain]?.hex,
@@ -519,13 +539,16 @@ export default function DiagnosticClient({ questions, isSubscribed }: Props) {
               {DOMAIN_LABELS[question.domain as SATDomain] || question.domain}
             </span>
             <span className="text-xs text-slate-400">
-              {"★".repeat(question.difficulty)}{"☆".repeat(3 - question.difficulty)}
+              {"★".repeat(question.difficulty)}
+              {"☆".repeat(3 - question.difficulty)}
             </span>
           </div>
 
-          <div className={cn(
-            question.passage ? "grid lg:grid-cols-2 gap-6 lg:gap-10 items-start" : ""
-          )}>
+          <div
+            className={cn(
+              question.passage ? "grid items-start gap-6 lg:grid-cols-2 lg:gap-10" : ""
+            )}
+          >
             {/* Passage column — only when passage is present. Highlight
                 + annotate is wired through HighlightablePassage. */}
             {question.passage && (
@@ -539,7 +562,7 @@ export default function DiagnosticClient({ questions, isSubscribed }: Props) {
 
             {/* Prompt + answer choices column */}
             <div>
-              <h2 className="text-lg sm:text-xl font-semibold text-slate-900 dark:text-white mb-6 leading-relaxed font-sans">
+              <h2 className="mb-6 font-sans text-lg font-semibold leading-relaxed text-slate-900 dark:text-white sm:text-xl">
                 <MathText text={question.text} />
               </h2>
 
@@ -559,35 +582,84 @@ export default function DiagnosticClient({ questions, isSubscribed }: Props) {
                         onClick={() => !isCrossed && handleSelect(option)}
                         disabled={choiceDisabled}
                         className={cn(
-                          "w-full text-left pl-4 pr-20 py-4 rounded-xl border-2 text-sm font-medium transition-all",
-                          isCrossed && "border-slate-200 dark:border-slate-700 bg-slate-100/60 dark:bg-slate-800/40 opacity-50 cursor-not-allowed",
-                          !isCrossed && isHighlighted && !isAnswered && "border-amber-400/60 bg-amber-400/[0.06] dark:bg-amber-400/[0.08] hover:border-amber-400 hover:bg-amber-400/[0.12]",
-                          !isCrossed && !isHighlighted && !isAnswered && "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20",
-                          !isCrossed && isAnswered && isCorrect && "border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20",
-                          !isCrossed && isAnswered && isSelected && !isCorrect && "border-red-400 bg-red-50 dark:bg-red-900/20",
-                          !isCrossed && isAnswered && !isSelected && !isCorrect && "border-slate-200 dark:border-slate-700 opacity-50"
+                          "w-full rounded-xl border-2 py-4 pl-4 pr-20 text-left text-sm font-medium transition-all",
+                          isCrossed &&
+                            "cursor-not-allowed border-slate-200 bg-slate-100/60 opacity-50 dark:border-slate-700 dark:bg-slate-800/40",
+                          !isCrossed &&
+                            isHighlighted &&
+                            !isAnswered &&
+                            "border-amber-400/60 bg-amber-400/[0.06] hover:border-amber-400 hover:bg-amber-400/[0.12] dark:bg-amber-400/[0.08]",
+                          !isCrossed &&
+                            !isHighlighted &&
+                            !isAnswered &&
+                            "border-slate-200 bg-white hover:border-blue-400 hover:bg-blue-50 dark:border-slate-700 dark:bg-slate-800 dark:hover:bg-blue-900/20",
+                          !isCrossed &&
+                            isAnswered &&
+                            isCorrect &&
+                            "border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20",
+                          !isCrossed &&
+                            isAnswered &&
+                            isSelected &&
+                            !isCorrect &&
+                            "border-red-400 bg-red-50 dark:bg-red-900/20",
+                          !isCrossed &&
+                            isAnswered &&
+                            !isSelected &&
+                            !isCorrect &&
+                            "border-slate-200 opacity-50 dark:border-slate-700"
                         )}
                       >
                         <div className="flex items-center gap-3">
-                          <span className={cn(
-                            "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 relative",
-                            !isAnswered && !isCrossed && !isHighlighted && "bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300",
-                            !isAnswered && !isCrossed && isHighlighted && "bg-amber-400/30 text-amber-700 dark:text-amber-200",
-                            isCrossed && "bg-slate-200 dark:bg-slate-700/60 text-slate-400 line-through",
-                            !isCrossed && isAnswered && isCorrect && "bg-emerald-500 text-white",
-                            !isCrossed && isAnswered && isSelected && !isCorrect && "bg-red-400 text-white",
-                          )}>
-                            {!isCrossed && isAnswered && isCorrect ? <CheckCircle className="w-4 h-4" /> :
-                             !isCrossed && isAnswered && isSelected ? <XCircle className="w-4 h-4" /> : letter}
+                          <span
+                            className={cn(
+                              "relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold",
+                              !isAnswered &&
+                                !isCrossed &&
+                                !isHighlighted &&
+                                "bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300",
+                              !isAnswered &&
+                                !isCrossed &&
+                                isHighlighted &&
+                                "bg-amber-400/30 text-amber-700 dark:text-amber-200",
+                              isCrossed &&
+                                "bg-slate-200 text-slate-400 line-through dark:bg-slate-700/60",
+                              !isCrossed && isAnswered && isCorrect && "bg-emerald-500 text-white",
+                              !isCrossed &&
+                                isAnswered &&
+                                isSelected &&
+                                !isCorrect &&
+                                "bg-red-400 text-white"
+                            )}
+                          >
+                            {!isCrossed && isAnswered && isCorrect ? (
+                              <CheckCircle className="h-4 w-4" />
+                            ) : !isCrossed && isAnswered && isSelected ? (
+                              <XCircle className="h-4 w-4" />
+                            ) : (
+                              letter
+                            )}
                           </span>
-                          <span className={cn(
-                            "flex-1",
-                            isCrossed && "line-through text-slate-400",
-                            !isCrossed && isAnswered && isCorrect && "text-emerald-700 dark:text-emerald-300",
-                            !isCrossed && isAnswered && isSelected && !isCorrect && "text-red-600 dark:text-red-400",
-                            !isCrossed && isAnswered && !isSelected && !isCorrect && "text-slate-500",
-                            !isCrossed && !isAnswered && "text-slate-700 dark:text-slate-200"
-                          )}>
+                          <span
+                            className={cn(
+                              "flex-1",
+                              isCrossed && "text-slate-400 line-through",
+                              !isCrossed &&
+                                isAnswered &&
+                                isCorrect &&
+                                "text-emerald-700 dark:text-emerald-300",
+                              !isCrossed &&
+                                isAnswered &&
+                                isSelected &&
+                                !isCorrect &&
+                                "text-red-600 dark:text-red-400",
+                              !isCrossed &&
+                                isAnswered &&
+                                !isSelected &&
+                                !isCorrect &&
+                                "text-slate-500",
+                              !isCrossed && !isAnswered && "text-slate-700 dark:text-slate-200"
+                            )}
+                          >
                             <MathText text={choiceBody} />
                           </span>
                         </div>
@@ -600,10 +672,10 @@ export default function DiagnosticClient({ questions, isSubscribed }: Props) {
                           tap targets: cross-out + highlight. */}
                       <div
                         className={cn(
-                          "absolute top-1/2 -translate-y-1/2 right-2 flex items-center gap-1 transition-opacity",
+                          "absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-1 transition-opacity",
                           isCrossed || isHighlighted
                             ? "opacity-100"
-                            : "opacity-0 group-hover:opacity-100 focus-within:opacity-100"
+                            : "opacity-0 focus-within:opacity-100 group-hover:opacity-100"
                         )}
                       >
                         <button
@@ -612,16 +684,20 @@ export default function DiagnosticClient({ questions, isSubscribed }: Props) {
                             e.stopPropagation();
                             toggleHighlightChoice(letter);
                           }}
-                          aria-label={isHighlighted ? `Remove highlight from choice ${letter}` : `Highlight choice ${letter}`}
+                          aria-label={
+                            isHighlighted
+                              ? `Remove highlight from choice ${letter}`
+                              : `Highlight choice ${letter}`
+                          }
                           title={isHighlighted ? "Remove highlight" : "Highlight"}
                           className={cn(
-                            "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
+                            "flex h-8 w-8 items-center justify-center rounded-lg transition-colors",
                             isHighlighted
                               ? "bg-amber-400/20 text-amber-300"
                               : "text-slate-400 hover:bg-amber-400/15 hover:text-amber-300"
                           )}
                         >
-                          <Highlighter className="w-4 h-4" />
+                          <Highlighter className="h-4 w-4" />
                         </button>
                         <button
                           type="button"
@@ -629,75 +705,83 @@ export default function DiagnosticClient({ questions, isSubscribed }: Props) {
                             e.stopPropagation();
                             toggleCrossOut(letter);
                           }}
-                          aria-label={isCrossed ? `Restore choice ${letter}` : `Cross out choice ${letter}`}
+                          aria-label={
+                            isCrossed ? `Restore choice ${letter}` : `Cross out choice ${letter}`
+                          }
                           title={isCrossed ? "Restore choice" : "Cross out"}
                           className={cn(
-                            "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
+                            "flex h-8 w-8 items-center justify-center rounded-lg transition-colors",
                             isCrossed
                               ? "bg-rose-400/20 text-rose-300"
                               : "text-slate-400 hover:bg-rose-400/15 hover:text-rose-300"
                           )}
                         >
-                          <Ban className="w-4 h-4" />
+                          <Ban className="h-4 w-4" />
                         </button>
                       </div>
                     </div>
                   );
-            })}
-          </div>
+                })}
+              </div>
 
-          {/* Hint reveal — shown when the student has spent a hint
+              {/* Hint reveal — shown when the student has spent a hint
               on this question. Renders the question's explanation
               before they've answered, framed as a study tip.
               Uses MathText so any $...$ in the explanation typesets
               cleanly (e.g. "$3x = 21$, so $x = 7$"). */}
-          {hintShownThisQuestion && !showExplanation && (
-            <div className="mt-4 p-4 rounded-xl text-sm border border-amber-400/40 bg-amber-400/[0.08] text-amber-100">
-              <div className="flex items-center gap-2 mb-1">
-                <Lightbulb className="w-4 h-4 text-amber-300" />
-                <span className="text-xs font-bold uppercase tracking-widest text-amber-300">Hint</span>
-              </div>
-              <div className="leading-relaxed">
-                <MathText text={question.explanation} />
-              </div>
-            </div>
-          )}
-
-          {/* Explanation */}
-          {showExplanation && (
-            <div className={cn(
-              "mt-4 p-4 rounded-xl text-sm border",
-              selected === question.correct
-                ? "bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-700"
-                : "bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-700"
-            )}>
-              {selected !== question.correct && (
-                <span className="font-bold">Correct answer: {question.correct}. </span>
+              {hintShownThisQuestion && !showExplanation && (
+                <div className="mt-4 rounded-xl border border-amber-400/40 bg-amber-400/[0.08] p-4 text-sm text-amber-100">
+                  <div className="mb-1 flex items-center gap-2">
+                    <Lightbulb className="h-4 w-4 text-amber-300" />
+                    <span className="text-xs font-bold uppercase tracking-widest text-amber-300">
+                      Hint
+                    </span>
+                  </div>
+                  <div className="leading-relaxed">
+                    <MathText text={question.explanation} />
+                  </div>
+                </div>
               )}
-              <MathText text={question.explanation} />
-            </div>
-          )}
 
-          {/* Next / Submit */}
-          {isAnswered && (
-            <button
-              onClick={handleNext}
-              disabled={isSubmitting}
-              className="btn-primary w-full mt-5"
-            >
-              {isSubmitting ? "Saving results..." : isLast ? "See My Results" : "Next Question"}
-              <ArrowRight className="w-4 h-4" />
-            </button>
-          )}
+              {/* Explanation */}
+              {showExplanation && (
+                <div
+                  className={cn(
+                    "mt-4 rounded-xl border p-4 text-sm",
+                    selected === question.correct
+                      ? "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-300"
+                      : "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-700 dark:bg-amber-900/20 dark:text-amber-300"
+                  )}
+                >
+                  {selected !== question.correct && (
+                    <span className="font-bold">Correct answer: {question.correct}. </span>
+                  )}
+                  <MathText text={question.explanation} />
+                </div>
+              )}
+
+              {/* Next / Submit */}
+              {isAnswered && (
+                <button
+                  onClick={handleNext}
+                  disabled={isSubmitting}
+                  className="btn-primary mt-5 w-full"
+                >
+                  {isSubmitting ? "Saving results..." : isLast ? "See My Results" : "Next Question"}
+                  <ArrowRight className="h-4 w-4" />
+                </button>
+              )}
 
               {/* Bottom row — Hint on the left, Skip on the right
                   (when no answer chosen yet) or just Hint when
                   answered. Hint is always shown so its counter
                   is consistently visible across questions. */}
-              <div className={cn(
-                "mt-3 flex items-center gap-3",
-                isAnswered ? "justify-start" : "justify-between"
-              )}>
+              <div
+                className={cn(
+                  "mt-3 flex items-center gap-3",
+                  isAnswered ? "justify-start" : "justify-between"
+                )}
+              >
                 <HintButton
                   used={hintsUsed}
                   alreadyOpenedOnThisQuestion={hintShownThisQuestion}
@@ -706,10 +790,10 @@ export default function DiagnosticClient({ questions, isSubscribed }: Props) {
                 {!isAnswered && (
                   <button
                     onClick={handleNext}
-                    className="text-sm text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 flex items-center gap-1.5 transition-colors py-2"
+                    className="flex items-center gap-1.5 py-2 text-sm text-slate-400 transition-colors hover:text-slate-600 dark:hover:text-slate-300"
                   >
                     Skip this question
-                    <ArrowRight className="w-3.5 h-3.5" />
+                    <ArrowRight className="h-3.5 w-3.5" />
                   </button>
                 )}
               </div>
@@ -725,27 +809,15 @@ export default function DiagnosticClient({ questions, isSubscribed }: Props) {
           stays mounted; only its visibility flips via CSS, so the
           internal Desmos calculator instance is preserved). */}
       {isMathQuestion && (
-        <div
-          key={`desmos-host-${question.id}`}
-          className={desmosOpen ? "" : "hidden"}
-        >
-          <DesmosWindow
-            onClose={() => setDesmosOpen(false)}
-            constraintsRef={shellRef}
-          />
+        <div key={`desmos-host-${question.id}`} className={desmosOpen ? "" : "hidden"}>
+          <DesmosWindow onClose={() => setDesmosOpen(false)} constraintsRef={shellRef} />
         </div>
       )}
 
       {/* Scratchpad — same persistence pattern as Desmos. */}
       {isMathQuestion && (
-        <div
-          key={`scratch-host-${question.id}`}
-          className={scratchpadOpen ? "" : "hidden"}
-        >
-          <Scratchpad
-            onClose={() => setScratchpadOpen(false)}
-            constraintsRef={shellRef}
-          />
+        <div key={`scratch-host-${question.id}`} className={scratchpadOpen ? "" : "hidden"}>
+          <Scratchpad onClose={() => setScratchpadOpen(false)} constraintsRef={shellRef} />
         </div>
       )}
 
@@ -762,34 +834,34 @@ export default function DiagnosticClient({ questions, isSubscribed }: Props) {
             role="dialog"
             aria-modal="true"
             aria-labelledby="exit-diag-title"
-            className="relative w-full max-w-md rounded-2xl border border-white/10 bg-[#0B1026] shadow-2xl p-6"
+            className="relative w-full max-w-md rounded-2xl border border-white/10 bg-[#0B1026] p-6 shadow-2xl"
           >
-            <div className="flex items-center gap-2 mb-2">
-              <AlertTriangle className="w-5 h-5 text-amber-300" />
+            <div className="mb-2 flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-amber-300" />
               <h2 id="exit-diag-title" className="text-lg font-extrabold text-white">
                 Exit the diagnostic?
               </h2>
             </div>
-            <p className="text-sm text-slate-300 leading-relaxed">
-              The diagnostic must be completed in one session. If you leave now, your
-              answers, highlights, and bookmarks for this attempt will be{" "}
-              <span className="font-semibold text-rose-300">discarded</span> and you'll
-              start fresh next time.
+            <p className="text-sm leading-relaxed text-slate-300">
+              The diagnostic must be completed in one session. If you leave now, your answers,
+              highlights, and bookmarks for this attempt will be{" "}
+              <span className="font-semibold text-rose-300">discarded</span> and you'll start fresh
+              next time.
             </p>
             <div className="mt-5 flex items-center justify-end gap-2">
               <button
                 type="button"
                 onClick={() => setExitConfirmOpen(false)}
-                className="px-3.5 py-2 rounded-lg text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/[0.06]"
+                className="rounded-lg px-3.5 py-2 text-sm font-semibold text-slate-300 hover:bg-white/[0.06] hover:text-white"
               >
                 Keep going
               </button>
               <button
                 type="button"
                 onClick={exitDiagnostic}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-rose-500 hover:bg-rose-400 text-white text-sm font-semibold shadow-[0_4px_14px_rgba(244,63,94,0.4)]"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-rose-500 px-3.5 py-2 text-sm font-semibold text-white shadow-[0_4px_14px_rgba(244,63,94,0.4)] hover:bg-rose-400"
               >
-                <X className="w-4 h-4" />
+                <X className="h-4 w-4" />
                 Exit and discard
               </button>
             </div>

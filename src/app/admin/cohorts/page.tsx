@@ -5,11 +5,7 @@
 // ============================================================
 
 import type { Metadata } from "next";
-import {
-  fetchCohorts,
-  fetchUpcomingSatDates,
-  fetchTutors,
-} from "@/lib/supabase/queries/cohorts";
+import { fetchCohorts, fetchUpcomingSatDates, fetchTutors } from "@/lib/supabase/queries/cohorts";
 import CohortsClient from "./CohortsClient";
 
 export const metadata: Metadata = { title: "Admin — Cohorts | Karman" };
@@ -26,7 +22,7 @@ export default async function AdminCohortsPage() {
   ]);
 
   return (
-    <div className="max-w-6xl mx-auto px-5 py-8">
+    <div className="mx-auto max-w-6xl px-5 py-8">
       <CohortsClient cohorts={cohorts} satDates={satDates} tutors={tutors} />
     </div>
   );

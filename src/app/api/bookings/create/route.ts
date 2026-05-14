@@ -38,8 +38,8 @@ import {
 interface CreateBookingRequest {
   eventTypeId: number | string;
   tutorClerkId: string;
-  start: string;     // ISO datetime of the chosen slot
-  timeZone: string;  // student's IANA TZ (e.g. America/New_York)
+  start: string; // ISO datetime of the chosen slot
+  timeZone: string; // student's IANA TZ (e.g. America/New_York)
 }
 
 /** How long /api/bookings/create holds a per-user mutex. Anti-abuse
@@ -64,10 +64,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "No active subscription" }, { status: 403 });
   }
   if (!canSelfBook(sub.tier)) {
-    return NextResponse.json(
-      { error: "Plan not eligible for self-booking" },
-      { status: 403 }
-    );
+    return NextResponse.json({ error: "Plan not eligible for self-booking" }, { status: 403 });
   }
 
   let body: Partial<CreateBookingRequest>;
@@ -112,7 +109,10 @@ export async function POST(req: NextRequest) {
   }
   if (!lockGrant) {
     return NextResponse.json(
-      { error: "Another booking is already in progress for this account, please wait a few seconds." },
+      {
+        error:
+          "Another booking is already in progress for this account, please wait a few seconds.",
+      },
       { status: 429 }
     );
   }
@@ -158,8 +158,7 @@ export async function POST(req: NextRequest) {
 
     const clerkUser = await currentUser();
     const attendeeName =
-      [clerkUser?.firstName, clerkUser?.lastName].filter(Boolean).join(" ") ||
-      "Karman Student";
+      [clerkUser?.firstName, clerkUser?.lastName].filter(Boolean).join(" ") || "Karman Student";
     const attendeeEmail = clerkUser?.emailAddresses[0]?.emailAddress;
     if (!attendeeEmail) {
       return NextResponse.json(
@@ -188,10 +187,7 @@ export async function POST(req: NextRequest) {
     } catch (err) {
       const isAdapter = err instanceof CalAdapterError;
       console.error("[api/bookings/create] cal error:", isAdapter ? err.toString() : err);
-      return NextResponse.json(
-        { error: "Failed to create booking on Cal.com" },
-        { status: 502 }
-      );
+      return NextResponse.json({ error: "Failed to create booking on Cal.com" }, { status: 502 });
     }
 
     // ─── Zoom: layer single-use unique-per-attendee join URL ──
@@ -244,7 +240,10 @@ export async function POST(req: NextRequest) {
     } catch (err) {
       console.error("[api/bookings/create] supabase persist failed:", err);
       return NextResponse.json(
-        { error: "Booking created on Cal.com but failed to persist locally", calBookingUid: calResp.uid },
+        {
+          error: "Booking created on Cal.com but failed to persist locally",
+          calBookingUid: calResp.uid,
+        },
         { status: 500 }
       );
     }
@@ -268,9 +267,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ booking: row }, { status: 201 });
   } finally {
     // Release the mutex regardless of outcome.
-    await supa
-      .from("users")
-      .update({ booking_lock_until: null })
-      .eq("id", studentUuid);
+    await supa.from("users").update({ booking_lock_until: null }).eq("id", studentUuid);
   }
 }

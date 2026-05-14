@@ -3,9 +3,4 @@
 // ============================================================
 
 export * from "./types";
-export {
-  getAvailability,
-  createBooking,
-  cancelBooking,
-  rescheduleBooking,
-} from "./adapter";
+export { getAvailability, createBooking, cancelBooking, rescheduleBooking } from "./adapter";

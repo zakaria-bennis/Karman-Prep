@@ -4,7 +4,17 @@
 
 import type { Metadata } from "next";
 import Link from "next/link";
-import { TrendingUp, Users, Award, Clock, ArrowRight, Shield, Zap, BarChart3, HeartHandshake } from "lucide-react";
+import {
+  TrendingUp,
+  Users,
+  Award,
+  Clock,
+  ArrowRight,
+  Shield,
+  Zap,
+  BarChart3,
+  HeartHandshake,
+} from "lucide-react";
 import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
 
@@ -15,10 +25,10 @@ export const metadata: Metadata = {
 };
 
 const STATS = [
-  { icon: TrendingUp, value: "+285",   label: "Average score improvement", color: "text-blue-500" },
-  { icon: Users,      value: "2,400+", label: "Students tutored",          color: "text-purple-500" },
-  { icon: Award,      value: "94%",    label: "Reach their target score",  color: "text-teal-500" },
-  { icon: Clock,      value: "16 wks", label: "Median time to goal",       color: "text-amber-500" },
+  { icon: TrendingUp, value: "+285", label: "Average score improvement", color: "text-blue-500" },
+  { icon: Users, value: "2,400+", label: "Students tutored", color: "text-purple-500" },
+  { icon: Award, value: "94%", label: "Reach their target score", color: "text-teal-500" },
+  { icon: Clock, value: "16 wks", label: "Median time to goal", color: "text-amber-500" },
 ];
 
 const FOUNDERS = [
@@ -78,31 +88,34 @@ export default function AboutPage() {
     <>
       <Navbar />
       <main className="min-h-screen bg-white dark:bg-slate-950">
-
         {/* Hero */}
-        <section className="bg-gradient-to-b from-blue-50/80 to-white dark:from-slate-900 dark:to-slate-950 pt-20 pb-16 text-center px-4">
-          <div className="max-w-3xl mx-auto">
-            <div className="inline-flex items-center gap-2 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-4 py-1.5 rounded-full text-sm font-semibold mb-8 border border-blue-200/60 dark:border-blue-700/40">
-              <Zap className="w-3.5 h-3.5" />
+        <section className="bg-gradient-to-b from-blue-50/80 to-white px-4 pb-16 pt-20 text-center dark:from-slate-900 dark:to-slate-950">
+          <div className="mx-auto max-w-3xl">
+            <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-blue-200/60 bg-blue-50 px-4 py-1.5 text-sm font-semibold text-blue-700 dark:border-blue-700/40 dark:bg-blue-900/30 dark:text-blue-300">
+              <Zap className="h-3.5 w-3.5" />
               Built by tutors, for students
             </div>
-            <h1 className="text-4xl sm:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-5">
+            <h1 className="mb-5 text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-5xl">
               We built the SAT platform{" "}
               <span className="text-blue-600 dark:text-blue-400">we wished we&apos;d had.</span>
             </h1>
-            <p className="text-lg text-slate-600 dark:text-slate-300 max-w-2xl mx-auto leading-relaxed">
-              The best SAT prep has always existed — but it cost $1,500 or more and was out of reach for most families. We saw that firsthand in hundreds of tutoring sessions. So we built something better.
+            <p className="mx-auto max-w-2xl text-lg leading-relaxed text-slate-600 dark:text-slate-300">
+              The best SAT prep has always existed — but it cost $1,500 or more and was out of reach
+              for most families. We saw that firsthand in hundreds of tutoring sessions. So we built
+              something better.
             </p>
           </div>
         </section>
 
         {/* Stats */}
-        <section className="max-w-5xl mx-auto px-4 sm:px-6 py-12">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <section className="mx-auto max-w-5xl px-4 py-12 sm:px-6">
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
             {STATS.map(({ icon: Icon, value, label, color }) => (
               <div key={label} className="glass-card p-6 text-center">
-                <Icon className={`w-7 h-7 mx-auto mb-3 ${color}`} />
-                <div className="text-3xl font-extrabold text-slate-900 dark:text-white mb-1">{value}</div>
+                <Icon className={`mx-auto mb-3 h-7 w-7 ${color}`} />
+                <div className="mb-1 text-3xl font-extrabold text-slate-900 dark:text-white">
+                  {value}
+                </div>
                 <div className="text-sm text-slate-500 dark:text-slate-400">{label}</div>
               </div>
             ))}
@@ -110,49 +123,72 @@ export default function AboutPage() {
         </section>
 
         {/* Story */}
-        <section className="max-w-3xl mx-auto px-4 sm:px-6 py-10">
-          <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white mb-5">
+        <section className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
+          <h2 className="mb-5 text-2xl font-bold text-slate-900 dark:text-white sm:text-3xl">
             The story
           </h2>
-          <div className="space-y-4 text-slate-600 dark:text-slate-300 text-base leading-relaxed">
+          <div className="space-y-4 text-base leading-relaxed text-slate-600 dark:text-slate-300">
             <p>
-              Zakaria and Nabil have each tutored over 1,200 students privately. After years of watching the same pattern repeat — students improving dramatically with the right 1-on-1 instruction but unable to access it consistently — they decided to build a platform that could scale what works.
+              Zakaria and Nabil have each tutored over 1,200 students privately. After years of
+              watching the same pattern repeat — students improving dramatically with the right
+              1-on-1 instruction but unable to access it consistently — they decided to build a
+              platform that could scale what works.
             </p>
             <p>
-              The problem with existing prep companies isn&apos;t that they don&apos;t know how to teach the SAT. It&apos;s that their model isn&apos;t built around the individual student. Kaplan and Princeton Review use generic curricula. Khan Academy is free but offers zero accountability. Independent tutors are excellent but inconsistent — and at $120/hr, most families can&apos;t sustain it.
+              The problem with existing prep companies isn&apos;t that they don&apos;t know how to
+              teach the SAT. It&apos;s that their model isn&apos;t built around the individual
+              student. Kaplan and Princeton Review use generic curricula. Khan Academy is free but
+              offers zero accountability. Independent tutors are excellent but inconsistent — and at
+              $120/hr, most families can&apos;t sustain it.
             </p>
             <p>
-              Karman is built on a different premise: diagnose first, personalize always, and hold both the student and the tutor accountable to real outcomes. The 50-point guarantee isn&apos;t a marketing stunt — it&apos;s the standard we hold ourselves to.
+              Karman is built on a different premise: diagnose first, personalize always, and hold
+              both the student and the tutor accountable to real outcomes. The 50-point guarantee
+              isn&apos;t a marketing stunt — it&apos;s the standard we hold ourselves to.
             </p>
           </div>
         </section>
 
         {/* Founders */}
-        <section className="bg-slate-50 dark:bg-slate-900/50 py-16 px-4">
-          <div className="max-w-4xl mx-auto">
-            <div className="text-center mb-12">
-              <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white">
+        <section className="bg-slate-50 px-4 py-16 dark:bg-slate-900/50">
+          <div className="mx-auto max-w-4xl">
+            <div className="mb-12 text-center">
+              <h2 className="text-2xl font-bold text-slate-900 dark:text-white sm:text-3xl">
                 Meet the founders
               </h2>
-              <p className="mt-3 text-slate-500 dark:text-slate-400 max-w-xl mx-auto">
-                Two equal partners, complementary strengths. Every major decision at Karman requires both founders to agree.
+              <p className="mx-auto mt-3 max-w-xl text-slate-500 dark:text-slate-400">
+                Two equal partners, complementary strengths. Every major decision at Karman requires
+                both founders to agree.
               </p>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-8">
+            <div className="grid gap-8 md:grid-cols-2">
               {FOUNDERS.map((founder) => (
-                <div key={founder.name} className="glass-card p-8 flex flex-col items-center text-center gap-5">
-                  <div className={`w-24 h-24 rounded-full bg-gradient-to-br ${founder.gradient} flex items-center justify-center text-white text-2xl font-extrabold shadow-lg shrink-0`}>
+                <div
+                  key={founder.name}
+                  className="glass-card flex flex-col items-center gap-5 p-8 text-center"
+                >
+                  <div
+                    className={`h-24 w-24 rounded-full bg-gradient-to-br ${founder.gradient} flex shrink-0 items-center justify-center text-2xl font-extrabold text-white shadow-lg`}
+                  >
                     {founder.initials}
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-slate-900 dark:text-white">{founder.name}</h3>
-                    <p className="text-sm text-blue-500 dark:text-blue-400 font-semibold mt-1">{founder.role}</p>
-                    <p className="text-xs text-slate-400 mt-1">{founder.credential}</p>
+                    <h3 className="text-xl font-bold text-slate-900 dark:text-white">
+                      {founder.name}
+                    </h3>
+                    <p className="mt-1 text-sm font-semibold text-blue-500 dark:text-blue-400">
+                      {founder.role}
+                    </p>
+                    <p className="mt-1 text-xs text-slate-400">{founder.credential}</p>
                   </div>
-                  <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{founder.bio}</p>
-                  <div className="w-full bg-slate-50 dark:bg-slate-800 rounded-xl px-4 py-3 text-left">
-                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">Focus area</p>
+                  <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-300">
+                    {founder.bio}
+                  </p>
+                  <div className="w-full rounded-xl bg-slate-50 px-4 py-3 text-left dark:bg-slate-800">
+                    <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                      Focus area
+                    </p>
                     <p className="text-sm text-slate-600 dark:text-slate-300">{founder.focus}</p>
                   </div>
                 </div>
@@ -162,24 +198,29 @@ export default function AboutPage() {
         </section>
 
         {/* What makes us different */}
-        <section className="max-w-5xl mx-auto px-4 sm:px-6 py-16">
-          <div className="text-center mb-12">
-            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white">
+        <section className="mx-auto max-w-5xl px-4 py-16 sm:px-6">
+          <div className="mb-12 text-center">
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white sm:text-3xl">
               What makes Karman different
             </h2>
-            <p className="mt-3 text-slate-500 dark:text-slate-400 max-w-xl mx-auto">
-              We compete against every category of prep — and we win on every dimension that matters.
+            <p className="mx-auto mt-3 max-w-xl text-slate-500 dark:text-slate-400">
+              We compete against every category of prep — and we win on every dimension that
+              matters.
             </p>
           </div>
-          <div className="grid sm:grid-cols-2 gap-6">
+          <div className="grid gap-6 sm:grid-cols-2">
             {DIFFERENTIATORS.map(({ icon: Icon, title, desc, color, bg }) => (
-              <div key={title} className="glass-card p-6 flex gap-4">
-                <div className={`w-12 h-12 rounded-xl ${bg} flex items-center justify-center shrink-0`}>
-                  <Icon className={`w-6 h-6 ${color}`} />
+              <div key={title} className="glass-card flex gap-4 p-6">
+                <div
+                  className={`h-12 w-12 rounded-xl ${bg} flex shrink-0 items-center justify-center`}
+                >
+                  <Icon className={`h-6 w-6 ${color}`} />
                 </div>
                 <div>
-                  <h3 className="font-bold text-slate-900 dark:text-white mb-1">{title}</h3>
-                  <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">{desc}</p>
+                  <h3 className="mb-1 font-bold text-slate-900 dark:text-white">{title}</h3>
+                  <p className="text-sm leading-relaxed text-slate-500 dark:text-slate-400">
+                    {desc}
+                  </p>
                 </div>
               </div>
             ))}
@@ -187,22 +228,27 @@ export default function AboutPage() {
         </section>
 
         {/* Mission statement */}
-        <section className="bg-gradient-to-r from-blue-600 to-purple-600 py-16 px-4 text-center">
-          <div className="max-w-3xl mx-auto">
-            <p className="text-blue-100 text-sm font-semibold uppercase tracking-widest mb-4">Our mission</p>
-            <p className="text-2xl sm:text-3xl font-bold text-white leading-snug">
-              &ldquo;The only SAT platform that combines personalized diagnostics, animated concept lessons, and live tutoring — at a price parents actually accept.&rdquo;
+        <section className="bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-16 text-center">
+          <div className="mx-auto max-w-3xl">
+            <p className="mb-4 text-sm font-semibold uppercase tracking-widest text-blue-100">
+              Our mission
+            </p>
+            <p className="text-2xl font-bold leading-snug text-white sm:text-3xl">
+              &ldquo;The only SAT platform that combines personalized diagnostics, animated concept
+              lessons, and live tutoring — at a price parents actually accept.&rdquo;
             </p>
             <div className="mt-10">
-              <Link href="/auth/sign-up" className="inline-flex items-center gap-2 bg-white text-blue-700 font-semibold px-8 py-4 rounded-xl hover:bg-blue-50 transition-colors">
+              <Link
+                href="/auth/sign-up"
+                className="inline-flex items-center gap-2 rounded-xl bg-white px-8 py-4 font-semibold text-blue-700 transition-colors hover:bg-blue-50"
+              >
                 Start Your Free Trial
-                <ArrowRight className="w-5 h-5" />
+                <ArrowRight className="h-5 w-5" />
               </Link>
-              <p className="mt-3 text-blue-200 text-sm">7-day free trial · Cancel anytime</p>
+              <p className="mt-3 text-sm text-blue-200">7-day free trial · Cancel anytime</p>
             </div>
           </div>
         </section>
-
       </main>
       <Footer />
     </>

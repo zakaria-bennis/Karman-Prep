@@ -14,18 +14,27 @@
 // so there's a long runway to fix the parser.
 // ============================================================
 
-export const SAT_DATES_SOURCE_URL =
-  "https://satsuite.collegeboard.org/sat/dates-deadlines";
+export const SAT_DATES_SOURCE_URL = "https://satsuite.collegeboard.org/sat/dates-deadlines";
 
 export interface ParsedSatDate {
-  test_date: string;                        // YYYY-MM-DD
-  registration_deadline: string | null;     // YYYY-MM-DD, null if not yet published
+  test_date: string; // YYYY-MM-DD
+  registration_deadline: string | null; // YYYY-MM-DD, null if not yet published
   late_registration_deadline: string | null;
 }
 
 const MONTH_INDEX: Record<string, number> = {
-  january: 1, february: 2, march: 3, april: 4, may: 5, june: 6,
-  july: 7, august: 8, september: 9, october: 10, november: 11, december: 12,
+  january: 1,
+  february: 2,
+  march: 3,
+  april: 4,
+  may: 5,
+  june: 6,
+  july: 7,
+  august: 8,
+  september: 9,
+  october: 10,
+  november: 11,
+  december: 12,
 };
 
 function toIsoDate(month: string, day: number, year: number): string | null {
@@ -115,7 +124,11 @@ export async function fetchSatDatesFromCollegeBoard(): Promise<ParsedSatDate[]> 
   for (const entry of labeled) {
     if (entry.label === "test" || entry.label === null) {
       if (current) rows.push(current);
-      current = { test_date: entry.date, registration_deadline: null, late_registration_deadline: null };
+      current = {
+        test_date: entry.date,
+        registration_deadline: null,
+        late_registration_deadline: null,
+      };
     } else if (current && entry.label === "reg") {
       current.registration_deadline ??= entry.date;
     } else if (current && entry.label === "late") {

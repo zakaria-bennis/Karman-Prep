@@ -15,7 +15,7 @@ export const metadata: Metadata = { title: "Admin — Cohort | Karman" };
 export const dynamic = "force-dynamic";
 
 interface PageProps {
-  params:       Promise<{ id: string }>;
+  params: Promise<{ id: string }>;
   searchParams: Promise<{ tab?: string }>;
 }
 
@@ -34,18 +34,15 @@ export default async function AdminCohortDetailPage({ params, searchParams }: Pa
     chatChannels.some((c) => c.channel_type === "cohort_chat") &&
     chatChannels.some((c) => c.channel_type === "qa");
 
-  const activeTab =
-    tab === "notes"    ? "notes"    :
-    tab === "homework" ? "homework" :
-                         "members";
+  const activeTab = tab === "notes" ? "notes" : tab === "homework" ? "homework" : "members";
 
   return (
-    <div className="max-w-6xl mx-auto px-5 py-8">
+    <div className="mx-auto max-w-6xl px-5 py-8">
       <Link
         href="/admin/cohorts"
-        className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-slate-200 mb-4"
+        className="mb-4 inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-slate-200"
       >
-        <ChevronLeft className="w-4 h-4" />
+        <ChevronLeft className="h-4 w-4" />
         All cohorts
       </Link>
       <CohortDetailClient

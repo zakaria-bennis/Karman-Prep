@@ -74,7 +74,9 @@ async function main() {
     .from("quiz_questions")
     .select("id", { count: "exact", head: true });
   console.log(`\nBank total before delete: ${totalBefore}`);
-  console.log(`After delete:             ${(totalBefore ?? 0) - targets.length} (text-only rows preserved)`);
+  console.log(
+    `After delete:             ${(totalBefore ?? 0) - targets.length} (text-only rows preserved)`
+  );
 
   // ── 3. Delete in batches ─────────────────────────────────
   // Supabase .in() can choke on very long ID lists. Batch to be safe.
@@ -83,10 +85,7 @@ async function main() {
   let deleted = 0;
   for (let i = 0; i < ids.length; i += BATCH) {
     const slice = ids.slice(i, i + BATCH);
-    const { error: delErr } = await supabase
-      .from("quiz_questions")
-      .delete()
-      .in("id", slice);
+    const { error: delErr } = await supabase.from("quiz_questions").delete().in("id", slice);
     if (delErr) {
       console.error(`\ndelete failed at batch ${i}-${i + slice.length}:`, delErr.message);
       process.exit(1);

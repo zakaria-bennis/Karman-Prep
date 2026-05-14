@@ -42,24 +42,22 @@ export default function Hero() {
   }
 
   return (
-    <section
-      className="relative overflow-hidden bg-cloud-night bg-grain pt-24 pb-28 sm:pt-32 sm:pb-36"
-    >
+    <section className="bg-cloud-night bg-grain relative overflow-hidden pb-28 pt-24 sm:pb-36 sm:pt-32">
       {/* Atmospheric layers — ordered furthest-back first */}
       <CloudAurora />
       <ConstellationBackground />
-      <div className="absolute inset-0 pointer-events-none cloud-godray" aria-hidden="true" />
+      <div className="cloud-godray pointer-events-none absolute inset-0" aria-hidden="true" />
 
       <motion.div
-        className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center"
+        className="relative mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8"
         variants={heroStagger}
         initial="hidden"
         animate="show"
       >
         {/* Eyebrow trust badge */}
         <motion.div variants={fadeUp} transition={{ duration: 0.55, ease }}>
-          <div className="inline-flex items-center gap-2 bg-white/[0.06] backdrop-blur-sm text-blue-200/90 px-4 py-1.5 rounded-full type-label border border-white/15">
-            <Star className="w-3.5 h-3.5 fill-current" />
+          <div className="type-label inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.06] px-4 py-1.5 text-blue-200/90 backdrop-blur-sm">
+            <Star className="h-3.5 w-3.5 fill-current" />
             <span>2,400+ students improved their scores</span>
           </div>
         </motion.div>
@@ -68,10 +66,10 @@ export default function Hero() {
         <motion.h1
           variants={fadeUp}
           transition={{ duration: 0.65, ease }}
-          className="type-display-xl text-balance mt-8 text-white"
+          className="type-display-xl mt-8 text-balance text-white"
         >
           <span className="block">Built to</span>
-          <span className="block mt-1 sm:mt-2">
+          <span className="mt-1 block sm:mt-2">
             <RotatingWord />
             <span className="text-white">.</span>
           </span>
@@ -81,10 +79,10 @@ export default function Hero() {
         <motion.p
           variants={fadeUp}
           transition={{ duration: 0.6, ease }}
-          className="type-body-lg mt-8 text-slate-300/95 max-w-2xl mx-auto text-balance"
+          className="type-body-lg mx-auto mt-8 max-w-2xl text-balance text-slate-300/95"
         >
           Personalized SAT prep with expert tutors, adaptive diagnostics, and a{" "}
-          <span className="text-white font-semibold">50-point score improvement guarantee</span>
+          <span className="font-semibold text-white">50-point score improvement guarantee</span>
           —or your money back.
         </motion.p>
 
@@ -92,21 +90,21 @@ export default function Hero() {
         <motion.div
           variants={fadeUp}
           transition={{ duration: 0.6, ease }}
-          className="mt-10 flex flex-col sm:flex-row gap-4 items-center justify-center"
+          className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row"
         >
           <Link
             ref={ctaRef}
             href="/auth/sign-up"
             onMouseMove={handleCTAMove}
             onMouseLeave={handleCTALeave}
-            className="btn-primary text-base px-8 py-4 group w-full sm:w-auto transition-transform duration-[180ms] ease-out will-change-transform"
+            className="btn-primary group w-full px-8 py-4 text-base transition-transform duration-[180ms] ease-out will-change-transform sm:w-auto"
           >
             Start Free Trial
-            <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+            <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
           </Link>
           <a
             href="#sample-quiz"
-            className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/[0.06] backdrop-blur-sm px-8 py-4 text-base font-semibold text-white shadow-sm transition-all hover:bg-white/[0.12] hover:border-white/30 w-full sm:w-auto"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/[0.06] px-8 py-4 text-base font-semibold text-white shadow-sm backdrop-blur-sm transition-all hover:border-white/30 hover:bg-white/[0.12] sm:w-auto"
           >
             Take the Free Quiz
           </a>
@@ -128,11 +126,11 @@ export default function Hero() {
         >
           {[
             { icon: Shield, label: "Score Guarantee" },
-            { icon: Zap,    label: "Adaptive Learning" },
-            { icon: Star,   label: "4.9/5 Rating" },
+            { icon: Zap, label: "Adaptive Learning" },
+            { icon: Star, label: "4.9/5 Rating" },
           ].map(({ icon: Icon, label }) => (
-            <div key={label} className="flex items-center gap-2 text-slate-400 text-sm font-medium">
-              <Icon className="w-4 h-4 text-blue-300/90" />
+            <div key={label} className="flex items-center gap-2 text-sm font-medium text-slate-400">
+              <Icon className="h-4 w-4 text-blue-300/90" />
               {label}
             </div>
           ))}
@@ -142,22 +140,22 @@ export default function Hero() {
         <motion.div
           variants={fadeUp}
           transition={{ duration: 0.7, ease }}
-          className="mt-14 mx-auto max-w-sm bg-white/[0.04] backdrop-blur-md border border-white/10 rounded-2xl shadow-2xl p-6"
+          className="mx-auto mt-14 max-w-sm rounded-2xl border border-white/10 bg-white/[0.04] p-6 shadow-2xl backdrop-blur-md"
         >
-          <p className="type-label text-slate-400 mb-4">Average score improvement</p>
+          <p className="type-label mb-4 text-slate-400">Average score improvement</p>
           <div className="flex items-end justify-center gap-4">
             <div className="text-center">
               <div className="type-mono text-2xl font-bold text-slate-400">1235</div>
-              <div className="text-xs text-slate-500 mt-1">Before</div>
+              <div className="mt-1 text-xs text-slate-500">Before</div>
             </div>
-            <div className="flex items-center gap-2 mb-1">
+            <div className="mb-1 flex items-center gap-2">
               <div className="h-px w-8 bg-gradient-to-r from-slate-600 to-blue-400" />
-              <span className="type-mono text-blue-300 font-bold text-sm">+285</span>
+              <span className="type-mono text-sm font-bold text-blue-300">+285</span>
               <div className="h-px w-8 bg-gradient-to-r from-blue-400 to-slate-600" />
             </div>
             <div className="text-center">
               <div className="type-mono text-2xl font-bold text-blue-300">1520</div>
-              <div className="text-xs text-slate-500 mt-1">After</div>
+              <div className="mt-1 text-xs text-slate-500">After</div>
             </div>
           </div>
         </motion.div>

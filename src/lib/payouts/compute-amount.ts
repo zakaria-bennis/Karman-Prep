@@ -21,7 +21,7 @@
 // ============================================================
 
 const DEFAULT_HOURLY_RATE = 35;
-const INCREMENT_MINUTES   = 15;
+const INCREMENT_MINUTES = 15;
 
 export interface PayoutBreakdown {
   /** Raw session length in minutes. */
@@ -38,7 +38,7 @@ export interface PayoutBreakdown {
 
 export function computePayout(
   durationMinutes: number | null | undefined,
-  hourlyRate: number | null | undefined,
+  hourlyRate: number | null | undefined
 ): PayoutBreakdown {
   const rawMinutes = Math.max(0, Math.round(durationMinutes ?? 0));
   const paidMinutes = Math.floor(rawMinutes / INCREMENT_MINUTES) * INCREMENT_MINUTES;
@@ -51,7 +51,7 @@ export function computePayout(
 /** Convenience for places that just need the dollar amount. */
 export function computePayoutAmount(
   durationMinutes: number | null | undefined,
-  hourlyRate: number | null | undefined,
+  hourlyRate: number | null | undefined
 ): number {
   return computePayout(durationMinutes, hourlyRate).payoutAmount;
 }

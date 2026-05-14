@@ -71,7 +71,9 @@ const missing = [
   ["R2_ACCESS_KEY_ID", R2_KEY],
   ["R2_SECRET_ACCESS_KEY", R2_SECRET],
   ["R2_BUCKET_NAME", R2_BUCKET],
-].filter(([, v]) => !v).map(([k]) => k);
+]
+  .filter(([, v]) => !v)
+  .map(([k]) => k);
 if (missing.length) {
   console.error(`Missing env vars: ${missing.join(", ")}`);
   console.error("Set them in .env.local and run with --env-file=.env.local.");
@@ -148,16 +150,18 @@ async function pullOneJob(job) {
   const localPdfPath = path.join(localDir, sanitizeFilename(job.source_pdf));
 
   console.log(`  downloading from r2://${R2_BUCKET}/${job.pdf_storage_path}`);
-  const obj = await r2.send(new GetObjectCommand({
-    Bucket: R2_BUCKET,
-    Key: job.pdf_storage_path,
-  }));
+  const obj = await r2.send(
+    new GetObjectCommand({
+      Bucket: R2_BUCKET,
+      Key: job.pdf_storage_path,
+    })
+  );
   if (!obj.Body) throw new Error("R2 object body was empty");
   const chunks = [];
   for await (const chunk of obj.Body) {
     chunks.push(chunk);
   }
-  const buf = Buffer.concat(chunks.map((c) => Buffer.isBuffer(c) ? c : Buffer.from(c)));
+  const buf = Buffer.concat(chunks.map((c) => (Buffer.isBuffer(c) ? c : Buffer.from(c))));
   await writeFile(localPdfPath, buf);
   console.log(`  saved → ${localPdfPath} (${(buf.length / 1024 / 1024).toFixed(1)} MB)`);
 
@@ -192,7 +196,9 @@ function macNotify(title, body) {
   const escape = (s) => String(s).replace(/'/g, "\\'");
   const cmd = `display notification '${escape(body)}' with title '${escape(title)}' sound name 'Ping'`;
   const child = spawn("osascript", ["-e", cmd], { stdio: "ignore" });
-  child.on("error", () => { /* osascript missing / sandbox — ignore */ });
+  child.on("error", () => {
+    /* osascript missing / sandbox — ignore */
+  });
 }
 
 function sanitizeFilename(name) {
@@ -205,7 +211,12 @@ function sanitizeFilename(name) {
 // ─────────────────────────────────────────────────────────────
 
 async function fileExists(p) {
-  try { await stat(p); return true; } catch { return false; }
+  try {
+    await stat(p);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 async function listRunsDirs() {
@@ -237,7 +248,11 @@ async function markJobFailed(jobId, message) {
     .update({
       status: "failed",
       module_status: {
-        key: "failed", m1: "failed", m2: "failed", m3: "failed", m4: "failed",
+        key: "failed",
+        m1: "failed",
+        m2: "failed",
+        m3: "failed",
+        m4: "failed",
       },
       error_message: message.slice(0, 1000),
       progress: {
@@ -314,7 +329,9 @@ async function findLocalPdfForJob(job) {
     const entries = await readdir(dir);
     const pdf = entries.find((e) => e.toLowerCase().endsWith(".pdf"));
     if (pdf) return path.join(dir, pdf);
-  } catch { /* dir doesn't exist */ }
+  } catch {
+    /* dir doesn't exist */
+  }
   return null;
 }
 
@@ -330,8 +347,14 @@ function runChild(cmd, argv, opts = {}) {
     });
     let stdout = "";
     let stderr = "";
-    child.stdout.on("data", (c) => { stdout += c; process.stdout.write(c); });
-    child.stderr.on("data", (c) => { stderr += c; process.stderr.write(c); });
+    child.stdout.on("data", (c) => {
+      stdout += c;
+      process.stdout.write(c);
+    });
+    child.stderr.on("data", (c) => {
+      stderr += c;
+      process.stderr.write(c);
+    });
     child.on("error", (err) => reject(err));
     child.on("exit", (code, signal) => {
       resolve({ code: code ?? -1, signal, stdout, stderr });
@@ -359,11 +382,8 @@ async function processWithGemini(job, localPdfPath) {
   // Stage 1: PDF → per-page text + per-page PNG + answer-key JSON.
   // The script writes to question-imports/extract-out/<pdf-stem>/.
   await setProgress(job.id, "processing", "Stage 1: extracting text + answer key");
-  const stage1 = await runChild("python3", [
-    "question-imports/stage1_extract.py",
-    localPdfPath,
-  ], {
-    env: { ...process.env },  // inherits GEMINI_API_KEY for answer-key vision call
+  const stage1 = await runChild("python3", ["question-imports/stage1_extract.py", localPdfPath], {
+    env: { ...process.env }, // inherits GEMINI_API_KEY for answer-key vision call
   });
   if (stage1.code !== 0) {
     const tail = stage1.stderr.slice(-500) || stage1.stdout.slice(-500);
@@ -385,10 +405,7 @@ async function processWithGemini(job, localPdfPath) {
   // gemini-2.5-flash-lite has a higher daily quota than gemini-2.5-flash
   // on the free tier (and works equally well for structured extraction).
   await setProgress(job.id, "processing", "Stage 2: classifying via Gemini");
-  const stage2 = await runChild("python3", [
-    "question-imports/stage2_classify.py",
-    extractDir,
-  ], {
+  const stage2 = await runChild("python3", ["question-imports/stage2_classify.py", extractDir], {
     env: {
       ...process.env,
       // Default to gemini-2.5-flash. Free-tier daily request quota is 20
@@ -425,7 +442,10 @@ async function processWithGemini(job, localPdfPath) {
   if (finResult.code !== 0) {
     const tail = finResult.stderr.slice(-500) || finResult.stdout.slice(-500);
     await markJobFailed(job.id, `finalize-pdf-job exited ${finResult.code}: ${tail}`);
-    macNotify("Karman: finalize failed", `finalize-pdf-job exited ${finResult.code} on ${job.source_pdf}.`);
+    macNotify(
+      "Karman: finalize failed",
+      `finalize-pdf-job exited ${finResult.code} on ${job.source_pdf}.`
+    );
     return false;
   }
 
@@ -471,7 +491,9 @@ async function watchLoop() {
         if (claimable) {
           const localPdf = await findLocalPdfForJob(claimable);
           if (!localPdf) {
-            console.warn(`[watch] job ${claimable.id} is running but local PDF missing — marking failed`);
+            console.warn(
+              `[watch] job ${claimable.id} is running but local PDF missing — marking failed`
+            );
             await markJobFailed(claimable.id, "Local PDF not found in incoming/.");
           } else if (await claimJob(claimable)) {
             lastReason = "";
@@ -525,7 +547,7 @@ async function watchLoop() {
 }
 
 if (WATCH) {
-  watchLoop();  // never resolves — runs until SIGINT
+  watchLoop(); // never resolves — runs until SIGINT
 } else {
   oneShot().catch((err) => {
     console.error(err);

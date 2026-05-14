@@ -52,14 +52,14 @@ export interface PassageHighlight {
 // underneath legible. Each entry pairs a fill (rgba) with a
 // hover variant (slightly punchier).
 const HIGHLIGHT_PALETTE: { fill: string; hover: string; label: string }[] = [
-  { fill: "rgba(96, 165, 250, 0.55)",  hover: "rgba(96, 165, 250, 0.70)",  label: "Blue"    }, // sky-400
-  { fill: "rgba(251, 191, 36, 0.55)",  hover: "rgba(251, 191, 36, 0.70)",  label: "Amber"   }, // amber-400
-  { fill: "rgba(52, 211, 153, 0.55)",  hover: "rgba(52, 211, 153, 0.70)",  label: "Emerald" }, // emerald-400
-  { fill: "rgba(244, 114, 182, 0.55)", hover: "rgba(244, 114, 182, 0.70)", label: "Pink"    }, // pink-400
-  { fill: "rgba(168, 85, 247, 0.55)",  hover: "rgba(168, 85, 247, 0.70)",  label: "Violet"  }, // purple-500
-  { fill: "rgba(34, 211, 238, 0.55)",  hover: "rgba(34, 211, 238, 0.70)",  label: "Cyan"    }, // cyan-400
-  { fill: "rgba(251, 113, 133, 0.55)", hover: "rgba(251, 113, 133, 0.70)", label: "Rose"    }, // rose-400
-  { fill: "rgba(163, 230, 53, 0.55)",  hover: "rgba(163, 230, 53, 0.70)",  label: "Lime"    }, // lime-400
+  { fill: "rgba(96, 165, 250, 0.55)", hover: "rgba(96, 165, 250, 0.70)", label: "Blue" }, // sky-400
+  { fill: "rgba(251, 191, 36, 0.55)", hover: "rgba(251, 191, 36, 0.70)", label: "Amber" }, // amber-400
+  { fill: "rgba(52, 211, 153, 0.55)", hover: "rgba(52, 211, 153, 0.70)", label: "Emerald" }, // emerald-400
+  { fill: "rgba(244, 114, 182, 0.55)", hover: "rgba(244, 114, 182, 0.70)", label: "Pink" }, // pink-400
+  { fill: "rgba(168, 85, 247, 0.55)", hover: "rgba(168, 85, 247, 0.70)", label: "Violet" }, // purple-500
+  { fill: "rgba(34, 211, 238, 0.55)", hover: "rgba(34, 211, 238, 0.70)", label: "Cyan" }, // cyan-400
+  { fill: "rgba(251, 113, 133, 0.55)", hover: "rgba(251, 113, 133, 0.70)", label: "Rose" }, // rose-400
+  { fill: "rgba(163, 230, 53, 0.55)", hover: "rgba(163, 230, 53, 0.70)", label: "Lime" }, // lime-400
 ];
 
 interface Props {
@@ -111,7 +111,10 @@ function segmentPassage(passage: string, highlights: PassageHighlight[]): Seg[] 
  *  text node tree to compute the start/end character offsets
  *  relative to the original passage string. Returns null if the
  *  selection isn't fully inside the container. */
-function selectionToOffsets(container: HTMLElement, sel: Selection): { start: number; end: number } | null {
+function selectionToOffsets(
+  container: HTMLElement,
+  sel: Selection
+): { start: number; end: number } | null {
   if (sel.rangeCount === 0) return null;
   const range = sel.getRangeAt(0);
   if (!container.contains(range.startContainer) || !container.contains(range.endContainer)) {
@@ -128,7 +131,7 @@ function selectionToOffsets(container: HTMLElement, sel: Selection): { start: nu
   while ((node = walker.nextNode())) {
     const text = node.textContent ?? "";
     if (node === range.startContainer) start = offset + range.startOffset;
-    if (node === range.endContainer)   end   = offset + range.endOffset;
+    if (node === range.endContainer) end = offset + range.endOffset;
     offset += text.length;
     if (start !== -1 && end !== -1) break;
   }
@@ -146,7 +149,7 @@ function placePopover(
   containerRect: DOMRect,
   targetRect: DOMRect,
   popoverWidth: number,
-  popoverHeight: number,
+  popoverHeight: number
 ): { top: number; left: number } {
   const margin = 8;
   // Vertical: prefer above, fall back to below.
@@ -183,7 +186,7 @@ function placeAnnotationEditor(
   passageRect: DOMRect,
   highlightRect: DOMRect,
   popoverWidth: number,
-  popoverHeight: number,
+  popoverHeight: number
 ): { top: number; left: number } {
   const margin = 12;
   const vw = window.innerWidth;
@@ -346,10 +349,10 @@ export function HighlightablePassage({ passage, passageIntro, highlights, onChan
   return (
     <div
       ref={containerRef}
-      className="relative rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/40 p-6 lg:max-h-[calc(100vh-14rem)] lg:overflow-y-auto"
+      className="relative rounded-xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900/40 lg:max-h-[calc(100vh-14rem)] lg:overflow-y-auto"
     >
       {passageIntro && (
-        <p className="text-sm italic text-slate-500 dark:text-slate-400 mb-4 font-serif leading-relaxed">
+        <p className="mb-4 font-serif text-sm italic leading-relaxed text-slate-500 dark:text-slate-400">
           {passageIntro}
         </p>
       )}
@@ -357,7 +360,7 @@ export function HighlightablePassage({ passage, passageIntro, highlights, onChan
       <div
         ref={passageRef}
         onMouseUp={handleMouseUp}
-        className="font-serif text-[17px] leading-[1.7] text-slate-800 dark:text-slate-100 whitespace-pre-line select-text"
+        className="select-text whitespace-pre-line font-serif text-[17px] leading-[1.7] text-slate-800 dark:text-slate-100"
       >
         {segments.map((seg, idx) =>
           seg.kind === "text" ? (
@@ -379,7 +382,7 @@ export function HighlightablePassage({ passage, passageIntro, highlights, onChan
                   onMouseEnter={(e) => onHighlightEnter(seg.hl, e.currentTarget)}
                   onMouseLeave={onHighlightLeave}
                   className={[
-                    "rounded-sm px-0.5 cursor-pointer transition-colors",
+                    "cursor-pointer rounded-sm px-0.5 transition-colors",
                     "text-slate-900 dark:text-white",
                     seg.hl.annotation
                       ? "underline decoration-white/70 decoration-dotted underline-offset-4"
@@ -478,16 +481,16 @@ function AnnotationEditor({
       animate={{ opacity: 1, scale: 1 }}
       transition={{ type: "spring", stiffness: 400, damping: 30 }}
       style={{ position: "fixed", top: initialPos.top, left: initialPos.left, width }}
-      className="z-[80] rounded-xl border border-white/10 bg-[#0B1026]/95 backdrop-blur-xl shadow-2xl"
+      className="z-[80] rounded-xl border border-white/10 bg-[#0B1026]/95 shadow-2xl backdrop-blur-xl"
       onMouseDown={(e) => e.stopPropagation()}
     >
       {/* Title bar — drag handle. */}
       <div
         onPointerDown={(e) => controls.start(e)}
-        className="flex items-center justify-between px-3 py-2 border-b border-white/10 cursor-grab active:cursor-grabbing select-none touch-none"
+        className="flex cursor-grab touch-none select-none items-center justify-between border-b border-white/10 px-3 py-2 active:cursor-grabbing"
       >
-        <div className="flex items-center gap-1.5 pointer-events-none">
-          <GripHorizontal className="w-3.5 h-3.5 text-slate-500" />
+        <div className="pointer-events-none flex items-center gap-1.5">
+          <GripHorizontal className="h-3.5 w-3.5 text-slate-500" />
           <span className="text-[11px] font-bold uppercase tracking-widest text-blue-400">
             Annotation
           </span>
@@ -496,14 +499,14 @@ function AnnotationEditor({
           type="button"
           onClick={onClose}
           onPointerDown={(e) => e.stopPropagation()}
-          className="w-5 h-5 rounded hover:bg-white/[0.08] flex items-center justify-center text-slate-400 hover:text-white"
+          className="flex h-5 w-5 items-center justify-center rounded text-slate-400 hover:bg-white/[0.08] hover:text-white"
           aria-label="Close annotation"
         >
-          <X className="w-3 h-3" />
+          <X className="h-3 w-3" />
         </button>
       </div>
 
-      <div className="p-3 space-y-2">
+      <div className="space-y-2 p-3">
         <textarea
           ref={taRef}
           value={draft}
@@ -517,7 +520,7 @@ function AnnotationEditor({
           }}
           placeholder="Write a note about this highlight…"
           rows={3}
-          className="w-full resize-none rounded-md bg-white/[0.06] border border-white/10 px-2.5 py-2 text-xs text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-blue-400/60"
+          className="w-full resize-none rounded-md border border-white/10 bg-white/[0.06] px-2.5 py-2 text-xs text-slate-100 placeholder:text-slate-500 focus:border-blue-400/60 focus:outline-none"
         />
         <div className="flex items-center justify-between gap-2">
           <button
@@ -525,15 +528,15 @@ function AnnotationEditor({
             onClick={onRemove}
             className="inline-flex items-center gap-1 px-2 py-1 text-[11px] font-semibold text-rose-300 hover:text-rose-200"
           >
-            <Trash2 className="w-3 h-3" />
+            <Trash2 className="h-3 w-3" />
             Remove
           </button>
           <button
             type="button"
             onClick={onSave}
-            className="inline-flex items-center gap-1 px-3 py-1 rounded-md bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-[11px] font-semibold"
+            className="inline-flex items-center gap-1 rounded-md bg-gradient-to-br from-blue-500 to-indigo-600 px-3 py-1 text-[11px] font-semibold text-white"
           >
-            <Save className="w-3 h-3" />
+            <Save className="h-3 w-3" />
             Save
           </button>
         </div>
@@ -573,24 +576,22 @@ function AnnotationViewer({
       transition={{ duration: 0.15 }}
       style={{ position: "fixed", top: initialPos.top, left: initialPos.left, width }}
       // Translucent so the passage text underneath remains visible.
-      className="z-[70] rounded-xl border border-white/15 bg-[#0B1026]/70 backdrop-blur-md shadow-xl"
+      className="z-[70] rounded-xl border border-white/15 bg-[#0B1026]/70 shadow-xl backdrop-blur-md"
       onMouseLeave={onClose}
     >
       <div
         onPointerDown={(e) => controls.start(e)}
-        className="flex items-center justify-between px-3 py-1.5 border-b border-white/10 cursor-grab active:cursor-grabbing select-none touch-none"
+        className="flex cursor-grab touch-none select-none items-center justify-between border-b border-white/10 px-3 py-1.5 active:cursor-grabbing"
       >
-        <div className="flex items-center gap-1.5 pointer-events-none">
-          <GripHorizontal className="w-3 h-3 text-slate-400/80" />
-          <MessageSquarePlus className="w-3 h-3 text-blue-300" />
+        <div className="pointer-events-none flex items-center gap-1.5">
+          <GripHorizontal className="h-3 w-3 text-slate-400/80" />
+          <MessageSquarePlus className="h-3 w-3 text-blue-300" />
           <span className="text-[10px] font-bold uppercase tracking-widest text-blue-300">
             Annotation
           </span>
         </div>
       </div>
-      <p className="px-3 py-2 text-xs text-slate-100 leading-relaxed">
-        {annotation}
-      </p>
+      <p className="px-3 py-2 text-xs leading-relaxed text-slate-100">{annotation}</p>
     </motion.div>
   );
 }

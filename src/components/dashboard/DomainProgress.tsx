@@ -12,7 +12,13 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { BookOpen, Calculator, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { RW_NODES, MATH_NODES, SUBJECT_COLORS, type Subject, type NodeStatus } from "@/data/curriculum";
+import {
+  RW_NODES,
+  MATH_NODES,
+  SUBJECT_COLORS,
+  type Subject,
+  type NodeStatus,
+} from "@/data/curriculum";
 
 interface Props {
   statuses: Map<string, NodeStatus>;
@@ -43,60 +49,67 @@ function buildDomains(nodes: typeof RW_NODES, statuses: Map<string, NodeStatus>)
 export default function DomainProgress({ statuses }: Props) {
   const [tab, setTab] = useState<Subject>("reading");
 
-  const readingDomains = useMemo(() => buildDomains(RW_NODES,   statuses), [statuses]);
-  const mathDomains    = useMemo(() => buildDomains(MATH_NODES, statuses), [statuses]);
+  const readingDomains = useMemo(() => buildDomains(RW_NODES, statuses), [statuses]);
+  const mathDomains = useMemo(() => buildDomains(MATH_NODES, statuses), [statuses]);
 
   const domains = tab === "reading" ? readingDomains : mathDomains;
   const hex = SUBJECT_COLORS[tab].hex;
 
   const totalMastered = domains.reduce((a, d) => a + d.mastered, 0);
-  const totalNodes    = domains.reduce((a, d) => a + d.total, 0);
+  const totalNodes = domains.reduce((a, d) => a + d.total, 0);
 
   return (
     <section>
-      <div className="flex items-center justify-between mb-3 gap-3 flex-wrap">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-lg font-bold text-slate-900 dark:text-white">Domain progress</h2>
 
         {/* Subject tabs */}
-        <div className="inline-flex rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 overflow-hidden text-xs">
+        <div className="inline-flex overflow-hidden rounded-lg border border-slate-200 bg-white text-xs dark:border-slate-700 dark:bg-slate-900">
           <button
             onClick={() => setTab("reading")}
             className={cn(
-              "px-3 py-2 font-semibold flex items-center gap-1.5",
-              tab === "reading" ? "text-rose-500" : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+              "flex items-center gap-1.5 px-3 py-2 font-semibold",
+              tab === "reading"
+                ? "text-rose-500"
+                : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
             )}
             style={tab === "reading" ? { background: "rgba(236, 72, 153, 0.1)" } : undefined}
           >
-            <BookOpen className="w-3 h-3" /> Reading
+            <BookOpen className="h-3 w-3" /> Reading
           </button>
           <button
             onClick={() => setTab("math")}
             className={cn(
-              "px-3 py-2 font-semibold flex items-center gap-1.5 border-l border-slate-200 dark:border-slate-700",
-              tab === "math" ? "text-sky-500" : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+              "flex items-center gap-1.5 border-l border-slate-200 px-3 py-2 font-semibold dark:border-slate-700",
+              tab === "math"
+                ? "text-sky-500"
+                : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
             )}
             style={tab === "math" ? { background: "rgba(56, 189, 248, 0.1)" } : undefined}
           >
-            <Calculator className="w-3 h-3" /> Math
+            <Calculator className="h-3 w-3" /> Math
           </button>
         </div>
       </div>
 
       <div className="glass-card p-5">
         {/* Overall strip */}
-        <div className="mb-5 pb-4 border-b border-slate-100 dark:border-slate-800">
-          <div className="flex justify-between items-baseline mb-1.5">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">
+        <div className="mb-5 border-b border-slate-100 pb-4 dark:border-slate-800">
+          <div className="mb-1.5 flex items-baseline justify-between">
+            <span className="text-xs font-bold uppercase tracking-widest text-slate-500">
               {tab === "reading" ? "Reading & Writing overall" : "Math overall"}
             </span>
-            <span className="text-xs text-slate-500 tabular-nums">
+            <span className="text-xs tabular-nums text-slate-500">
               {totalMastered} / {totalNodes}
             </span>
           </div>
-          <div className="h-2.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+          <div className="h-2.5 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
             <div
               className="h-full rounded-full transition-all"
-              style={{ width: `${(totalMastered / Math.max(1, totalNodes)) * 100}%`, background: hex }}
+              style={{
+                width: `${(totalMastered / Math.max(1, totalNodes)) * 100}%`,
+                background: hex,
+              }}
             />
           </div>
         </div>
@@ -107,16 +120,20 @@ export default function DomainProgress({ statuses }: Props) {
             const pct = Math.round((d.mastered / Math.max(1, d.total)) * 100);
             return (
               <div key={d.cluster}>
-                <div className="flex justify-between items-baseline mb-1">
-                  <span className="text-sm font-medium text-slate-700 dark:text-slate-200 truncate">{d.cluster}</span>
-                  <div className="flex items-center gap-2 text-xs text-slate-500 shrink-0 ml-2 tabular-nums">
+                <div className="mb-1 flex items-baseline justify-between">
+                  <span className="truncate text-sm font-medium text-slate-700 dark:text-slate-200">
+                    {d.cluster}
+                  </span>
+                  <div className="ml-2 flex shrink-0 items-center gap-2 text-xs tabular-nums text-slate-500">
                     {d.inProgress > 0 && (
                       <span className="text-blue-500">{d.inProgress} in progress</span>
                     )}
-                    <span className="font-bold" style={{ color: hex }}>{pct}%</span>
+                    <span className="font-bold" style={{ color: hex }}>
+                      {pct}%
+                    </span>
                   </div>
                 </div>
-                <div className="h-1.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                <div className="h-1.5 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
                   <div
                     className="h-full rounded-full transition-all duration-700"
                     style={{ width: `${pct}%`, background: hex }}
@@ -132,7 +149,8 @@ export default function DomainProgress({ statuses }: Props) {
           className="mt-5 inline-flex items-center gap-1 text-xs font-semibold hover:underline"
           style={{ color: hex }}
         >
-          Open {tab === "reading" ? "Reading" : "Math"} constellation <ArrowRight className="w-3 h-3" />
+          Open {tab === "reading" ? "Reading" : "Math"} constellation{" "}
+          <ArrowRight className="h-3 w-3" />
         </Link>
       </div>
     </section>

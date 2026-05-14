@@ -36,7 +36,7 @@ export default async function AdminQuestionPreviewPage() {
 
   if (error) {
     return (
-      <div className="max-w-5xl mx-auto px-5 py-8 text-rose-300 text-sm">
+      <div className="mx-auto max-w-5xl px-5 py-8 text-sm text-rose-300">
         Failed to load questions: {error.message}
       </div>
     );
@@ -45,19 +45,19 @@ export default async function AdminQuestionPreviewPage() {
 
   return (
     <div className="min-h-[calc(100vh-3.5rem)]">
-      <div className="max-w-7xl mx-auto px-5 py-6">
+      <div className="mx-auto max-w-7xl px-5 py-6">
         <Link
           href="/admin/curriculum"
-          className="inline-flex items-center gap-1 text-xs text-slate-500 hover:text-slate-300 mb-3"
+          className="mb-3 inline-flex items-center gap-1 text-xs text-slate-500 hover:text-slate-300"
         >
-          <ChevronRight className="w-3 h-3 rotate-180" /> Back to admin
+          <ChevronRight className="h-3 w-3 rotate-180" /> Back to admin
         </Link>
-        <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-          <Eye className="w-5 h-5 text-indigo-400" /> Question preview
+        <h1 className="flex items-center gap-2 text-2xl font-bold text-white">
+          <Eye className="h-5 w-5 text-indigo-400" /> Question preview
         </h1>
-        <p className="text-sm text-slate-400 mt-1">
-          {questions.length.toLocaleString()} question{questions.length === 1 ? "" : "s"} in the bank.
-          Each renders identically to the student quiz screen.
+        <p className="mt-1 text-sm text-slate-400">
+          {questions.length.toLocaleString()} question{questions.length === 1 ? "" : "s"} in the
+          bank. Each renders identically to the student quiz screen.
         </p>
       </div>
       <PreviewClient initial={questions} />

@@ -21,7 +21,10 @@
 import { revalidatePath } from "next/cache";
 import { auth } from "@clerk/nextjs/server";
 import { createAdminClient } from "@/lib/supabase/server";
-import { generateStatusDraft, type StatusDraft } from "@/lib/integrations/openai/generate-status-draft";
+import {
+  generateStatusDraft,
+  type StatusDraft,
+} from "@/lib/integrations/openai/generate-status-draft";
 import { sendRecapEmail } from "@/lib/integrations/resend/recap-email";
 import { computePayout } from "@/lib/payouts/compute-amount";
 
@@ -68,29 +71,31 @@ async function authForBooking(bookingId: string): Promise<{
 
   const { data: booking } = await supabase
     .from("bookings")
-    .select(`
+    .select(
+      `
       id, tutor_id, student_id, plan_tier, duration_minutes, transcript, scheduled_start, recap_email_sent,
       tutor:users!bookings_tutor_id_fkey (first_name, last_name, email, email_signature, hourly_rate),
       student:users!bookings_student_id_fkey (first_name, last_name, email)
-    `)
+    `
+    )
     .eq("id", bookingId)
     .maybeSingle();
   if (!booking) throw new Error("booking_not_found");
 
   // Supabase joined relations come back as either single objects or arrays
   // depending on FK shape — normalize.
-  const arr = (v: unknown) => (Array.isArray(v) ? v[0] ?? null : v);
+  const arr = (v: unknown) => (Array.isArray(v) ? (v[0] ?? null) : v);
   const normalized: BookingForAuth = {
-    id:               booking.id as string,
-    tutor_id:         booking.tutor_id as string,
-    student_id:       booking.student_id as string,
-    plan_tier:        booking.plan_tier as string,
+    id: booking.id as string,
+    tutor_id: booking.tutor_id as string,
+    student_id: booking.student_id as string,
+    plan_tier: booking.plan_tier as string,
     duration_minutes: (booking.duration_minutes as number | null) ?? null,
-    transcript:       (booking.transcript as string | null) ?? null,
-    scheduled_start:  booking.scheduled_start as string,
+    transcript: (booking.transcript as string | null) ?? null,
+    scheduled_start: booking.scheduled_start as string,
     recap_email_sent: (booking.recap_email_sent as boolean | null) ?? null,
-    tutor:            arr(booking.tutor)   as BookingForAuth["tutor"],
-    student:          arr(booking.student) as BookingForAuth["student"],
+    tutor: arr(booking.tutor) as BookingForAuth["tutor"],
+    student: arr(booking.student) as BookingForAuth["student"],
   };
 
   if (!isAdmin && normalized.tutor_id !== caller.id) throw new Error("forbidden");
@@ -133,14 +138,13 @@ export async function actionRegenerateDraft(
   if (!booking.transcript) throw new Error("no_transcript");
 
   const tutorName = displayName(booking.tutor) || "Tutor";
-  const ctxExtra  = await sessionContextFromBooking(bookingId, booking);
+  const ctxExtra = await sessionContextFromBooking(bookingId, booking);
 
   const draft = await generateStatusDraft(booking.transcript, {
     sessionType: ctxExtra.sessionType,
-    studentName: ctxExtra.sessionType === "individual"
-      ? (displayName(booking.student) || "Student")
-      : undefined,
-    cohortName:    ctxExtra.cohortName,
+    studentName:
+      ctxExtra.sessionType === "individual" ? displayName(booking.student) || "Student" : undefined,
+    cohortName: ctxExtra.cohortName,
     enrolledCount: ctxExtra.enrolledCount,
     tutorName,
     sessionDate: formatSessionDate(booking.scheduled_start),
@@ -184,7 +188,7 @@ export async function actionSetManualTranscript(
       transcript,
       transcript_source: "manual",
       transcript_received_at: new Date().toISOString(),
-      tutor_hours: ((booking.duration_minutes ?? 60) / 60),
+      tutor_hours: (booking.duration_minutes ?? 60) / 60,
     })
     .eq("id", bookingId);
 
@@ -196,12 +200,13 @@ export async function actionSetManualTranscript(
     const ctxExtra = await sessionContextFromBooking(bookingId, booking);
     draft = await generateStatusDraft(transcript, {
       sessionType: ctxExtra.sessionType,
-      studentName: ctxExtra.sessionType === "individual"
-        ? (displayName(booking.student) || "Student")
-        : undefined,
-      cohortName:    ctxExtra.cohortName,
+      studentName:
+        ctxExtra.sessionType === "individual"
+          ? displayName(booking.student) || "Student"
+          : undefined,
+      cohortName: ctxExtra.cohortName,
       enrolledCount: ctxExtra.enrolledCount,
-      tutorName:   displayName(booking.tutor) || "Tutor",
+      tutorName: displayName(booking.tutor) || "Tutor",
       sessionDate: formatSessionDate(booking.scheduled_start),
       sessionDurationMinutes: booking.duration_minutes ?? 60,
     });
@@ -243,19 +248,23 @@ export async function actionSetManualTranscript(
 // ──────────────────────────────────────────────────────────
 const ONE_ON_ONE_TIERS = new Set(["private", "elite"]);
 
-interface BookingMeta { id: string; student_user_id: string; student_email: string | null; }
+interface BookingMeta {
+  id: string;
+  student_user_id: string;
+  student_email: string | null;
+}
 
 /** For a session, return: all bookings + every linked email
  *  (each booking's student + each of that student's parents). */
 async function gatherRecipientsForSession(
   supabase: ReturnType<typeof createAdminClient>,
-  sessionId: string,
+  sessionId: string
 ): Promise<{ bookings: BookingMeta[]; emails: string[] }> {
   const { data: rows } = await supabase
     .from("bookings")
     .select("id, student_id, student:users!bookings_student_id_fkey(id, email)")
     .eq("session_id", sessionId);
-  const arr = (v: unknown) => (Array.isArray(v) ? v[0] ?? null : v);
+  const arr = (v: unknown) => (Array.isArray(v) ? (v[0] ?? null) : v);
 
   const bookings: BookingMeta[] = [];
   const studentIds: string[] = [];
@@ -263,9 +272,9 @@ async function gatherRecipientsForSession(
     const stu = arr(row.student) as { id?: string; email?: string | null } | null;
     if (!stu?.id) continue;
     bookings.push({
-      id:               row.id as string,
-      student_user_id:  row.student_id as string,
-      student_email:    stu.email ?? null,
+      id: row.id as string,
+      student_user_id: row.student_id as string,
+      student_email: stu.email ?? null,
     });
     studentIds.push(row.student_id as string);
   }
@@ -299,7 +308,7 @@ export async function actionSendRecap(
   const { booking } = await authForBooking(bookingId);
   const supabase = createAdminClient();
 
-  if (!booking.tutor)   throw new Error("missing_tutor_data");
+  if (!booking.tutor) throw new Error("missing_tutor_data");
   if (!booking.student) throw new Error("missing_student_data");
 
   // ── Find the linked session ───────────────────────────
@@ -322,11 +331,9 @@ export async function actionSendRecap(
   if (!sessionRow) throw new Error("session_not_found");
   if (sessionRow.recap_email_sent) throw new Error("already_sent");
 
-  const arr = (v: unknown) => (Array.isArray(v) ? v[0] ?? null : v);
+  const arr = (v: unknown) => (Array.isArray(v) ? (v[0] ?? null) : v);
   const cohort = arr(sessionRow.cohort) as { name?: string; tier?: string } | null;
-  const isGroup =
-    !!sessionRow.cohort_id ||
-    (!ONE_ON_ONE_TIERS.has(booking.plan_tier));
+  const isGroup = !!sessionRow.cohort_id || !ONE_ON_ONE_TIERS.has(booking.plan_tier);
 
   // ── Resolve recipients ────────────────────────────────
   let emails: string[];
@@ -337,14 +344,16 @@ export async function actionSendRecap(
     // + every parent across the session. Single email to all.
     const gathered = await gatherRecipientsForSession(supabase, sessionId);
     allBookings = gathered.bookings;
-    emails      = gathered.emails;
+    emails = gathered.emails;
   } else {
     // INDIVIDUAL: respect client recipientIds (student + parent toggles)
-    allBookings = [{
-      id:               bookingId,
-      student_user_id:  booking.student_id,
-      student_email:    booking.student.email ?? null,
-    }];
+    allBookings = [
+      {
+        id: bookingId,
+        student_user_id: booking.student_id,
+        student_email: booking.student.email ?? null,
+      },
+    ];
     const list: string[] = [];
     const parentIds: string[] = [];
     for (const id of recipientIds) {
@@ -355,8 +364,7 @@ export async function actionSendRecap(
       }
     }
     if (parentIds.length > 0) {
-      const { data: parents } = await supabase
-        .from("users").select("email").in("id", parentIds);
+      const { data: parents } = await supabase.from("users").select("email").in("id", parentIds);
       for (const p of parents ?? []) if (p.email) list.push(p.email);
     }
     emails = [...new Set(list)];
@@ -364,10 +372,10 @@ export async function actionSendRecap(
 
   if (emails.length === 0) throw new Error("no_resolved_emails");
 
-  const tutorName   = displayName(booking.tutor) || "Tutor";
+  const tutorName = displayName(booking.tutor) || "Tutor";
   const sessionDate = formatSessionDate(booking.scheduled_start);
   const studentName = displayName(booking.student) || "Student";
-  const cohortName  = cohort?.name ?? "Class session";
+  const cohortName = cohort?.name ?? "Class session";
 
   const subject = isGroup
     ? `Class recap — ${cohortName} — ${shortDate(booking.scheduled_start)}`
@@ -381,7 +389,7 @@ export async function actionSendRecap(
     props: {
       sessionType: isGroup ? "group" : "individual",
       studentName: isGroup ? undefined : studentName,
-      cohortName:  isGroup ? cohortName : undefined,
+      cohortName: isGroup ? cohortName : undefined,
       sessionDate,
       tutorName,
       signatureOverride: booking.tutor.email_signature ?? null,
@@ -403,11 +411,14 @@ export async function actionSendRecap(
       recap_sent_at: now,
       payout_status: "pending",
       payout_amount: payout.payoutAmount,
-      tutor_hours:   payout.paidHours,
+      tutor_hours: payout.paidHours,
     })
     .eq("id", sessionId);
   if (sessUpdErr) {
-    console.error(`[send-recap] CRITICAL: email sent (id=${sendResult.messageId}) but session update failed:`, sessUpdErr.message);
+    console.error(
+      `[send-recap] CRITICAL: email sent (id=${sendResult.messageId}) but session update failed:`,
+      sessUpdErr.message
+    );
     throw new Error(`session_update_failed_after_send: ${sessUpdErr.message}`);
   }
 
@@ -421,17 +432,20 @@ export async function actionSendRecap(
       recap_sent_at: now,
       recap_resend_message_id: sendResult.messageId,
     })
-    .in("id", allBookings.map((b) => b.id));
+    .in(
+      "id",
+      allBookings.map((b) => b.id)
+    );
 
   // ── Audit log: one row per recipient student ──────────
   for (const b of allBookings) {
     await supabase.from("status_email_log").insert({
-      booking_id:        b.id,
-      tutor_user_id:     booking.tutor_id,
-      student_user_id:   b.student_user_id,
-      recipient_emails:  emails,
-      channels_used:     ["email"],
-      status:            "sent",
+      booking_id: b.id,
+      tutor_user_id: booking.tutor_id,
+      student_user_id: b.student_user_id,
+      recipient_emails: emails,
+      channels_used: ["email"],
+      status: "sent",
       resend_message_id: sendResult.messageId,
     });
   }
@@ -456,7 +470,9 @@ export async function actionSendRecap(
 
 function shortDate(iso: string): string {
   return new Date(iso).toLocaleDateString("en-US", {
-    month: "short", day: "numeric", year: "numeric",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
   });
 }
 
@@ -464,7 +480,7 @@ function shortDate(iso: string): string {
  *  and pull cohort name + enrollment count for prompt context. */
 async function sessionContextFromBooking(
   bookingId: string,
-  booking: BookingForAuth,
+  booking: BookingForAuth
 ): Promise<{
   sessionType: "individual" | "group";
   cohortName?: string;
@@ -476,11 +492,10 @@ async function sessionContextFromBooking(
     .select("session_id, cohort_id, cohort:cohorts(name, tier)")
     .eq("id", bookingId)
     .maybeSingle();
-  const arr = (v: unknown) => (Array.isArray(v) ? v[0] ?? null : v);
-  const cohort = row ? arr(row.cohort) as { name?: string; tier?: string } | null : null;
+  const arr = (v: unknown) => (Array.isArray(v) ? (v[0] ?? null) : v);
+  const cohort = row ? (arr(row.cohort) as { name?: string; tier?: string } | null) : null;
   const isGroup =
-    !!row?.cohort_id ||
-    (booking.plan_tier !== "private" && booking.plan_tier !== "elite");
+    !!row?.cohort_id || (booking.plan_tier !== "private" && booking.plan_tier !== "elite");
 
   if (!isGroup) return { sessionType: "individual" };
 
@@ -511,7 +526,12 @@ function displayName(u: { first_name: string | null; last_name: string | null } 
 function formatSessionDate(iso: string): string {
   const d = new Date(iso);
   return d.toLocaleString("en-US", {
-    weekday: "long", month: "long", day: "numeric", year: "numeric",
-    hour: "numeric", minute: "2-digit", timeZoneName: "short",
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZoneName: "short",
   });
 }

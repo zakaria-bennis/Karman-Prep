@@ -19,19 +19,19 @@ export const viewportOnce = { once: true, margin: "-80px" } as const;
 // Fade + rise on enter. Use for every section header / card / item.
 export const fadeUp: Variants = {
   hidden: { opacity: 0, y: 24 },
-  show:   { opacity: 1, y: 0 },
+  show: { opacity: 1, y: 0 },
 };
 
 export const fadeIn: Variants = {
   hidden: { opacity: 0 },
-  show:   { opacity: 1 },
+  show: { opacity: 1 },
 };
 
 // Container that staggers its children's reveal.
 export function stagger(gap = 0.09, delay = 0.05): Variants {
   return {
     hidden: {},
-    show:   { transition: { staggerChildren: gap, delayChildren: delay } },
+    show: { transition: { staggerChildren: gap, delayChildren: delay } },
   };
 }
 

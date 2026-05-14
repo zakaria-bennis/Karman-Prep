@@ -8,14 +8,14 @@
 // ============================================================
 
 export type SoundName =
-  | "nodeClick"         // Node selected on constellation map
-  | "nodeComplete"      // Correct quiz answer / node mastered
-  | "tierUnlock"        // A new tier becomes available
-  | "checkpointPass"    // Checkpoint quiz passed
-  | "error"             // Incorrect answer or failed action
-  | "tierAscendRumble"  // Tier-ascent cinematic Phase 1 building tension
-  | "tierAscendBreak"   // Tier-ascent cinematic Phase 2 atmospheric breakthrough
-  | "ambientTroposphere"// Crossfade-in tracks for each atmosphere
+  | "nodeClick" // Node selected on constellation map
+  | "nodeComplete" // Correct quiz answer / node mastered
+  | "tierUnlock" // A new tier becomes available
+  | "checkpointPass" // Checkpoint quiz passed
+  | "error" // Incorrect answer or failed action
+  | "tierAscendRumble" // Tier-ascent cinematic Phase 1 building tension
+  | "tierAscendBreak" // Tier-ascent cinematic Phase 2 atmospheric breakthrough
+  | "ambientTroposphere" // Crossfade-in tracks for each atmosphere
   | "ambientMesosphere"
   | "ambientStratosphere"
   | "ambientKarman";
@@ -45,17 +45,17 @@ function initCache() {
       new Howl({ src: [src], volume, preload: false, html5: true, loop });
 
     _cache = {
-      nodeClick:             make("/sounds/node-click.mp3",        0.25),
-      nodeComplete:          make("/sounds/node-complete.mp3",     0.55),
-      tierUnlock:            make("/sounds/tier-unlock.mp3",       0.65),
-      checkpointPass:        make("/sounds/checkpoint-pass.mp3",   0.70),
-      error:                 make("/sounds/error.mp3",             0.40),
-      tierAscendRumble:      make("/sounds/tier-ascend.mp3",       0.60),
-      tierAscendBreak:       make("/sounds/tier-breakthrough.mp3", 0.80),
-      ambientTroposphere:    make("/sounds/ambient-troposphere.mp3", 0.40, true),
-      ambientMesosphere:     make("/sounds/ambient-mesosphere.mp3",  0.40, true),
-      ambientStratosphere:   make("/sounds/ambient-stratosphere.mp3", 0.40, true),
-      ambientKarman:         make("/sounds/ambient-karman.mp3",    0.40, true),
+      nodeClick: make("/sounds/node-click.mp3", 0.25),
+      nodeComplete: make("/sounds/node-complete.mp3", 0.55),
+      tierUnlock: make("/sounds/tier-unlock.mp3", 0.65),
+      checkpointPass: make("/sounds/checkpoint-pass.mp3", 0.7),
+      error: make("/sounds/error.mp3", 0.4),
+      tierAscendRumble: make("/sounds/tier-ascend.mp3", 0.6),
+      tierAscendBreak: make("/sounds/tier-breakthrough.mp3", 0.8),
+      ambientTroposphere: make("/sounds/ambient-troposphere.mp3", 0.4, true),
+      ambientMesosphere: make("/sounds/ambient-mesosphere.mp3", 0.4, true),
+      ambientStratosphere: make("/sounds/ambient-stratosphere.mp3", 0.4, true),
+      ambientKarman: make("/sounds/ambient-karman.mp3", 0.4, true),
     };
   } catch {
     // Howler not available (SSR, missing dep) — no-op

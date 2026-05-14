@@ -30,7 +30,10 @@ import {
   renderTranscriptText,
   parseZoomMeetingId,
 } from "@/lib/integrations/fireflies/client";
-import { generateStatusDraft, type StatusDraft } from "@/lib/integrations/openai/generate-status-draft";
+import {
+  generateStatusDraft,
+  type StatusDraft,
+} from "@/lib/integrations/openai/generate-status-draft";
 
 export const runtime = "nodejs";
 
@@ -84,12 +87,7 @@ export async function POST(request: Request) {
   // Defensively dig for the meeting id — Fireflies uses snake_case
   // (meeting_id) but accept camelCase variants too.
   const externalId =
-    body.meeting_id ||
-    body.transcript_id ||
-    body.meetingId ||
-    body.transcriptId ||
-    body.id ||
-    null;
+    body.meeting_id || body.transcript_id || body.meetingId || body.transcriptId || body.id || null;
   const eventName = body.event || body.eventType || null;
 
   const supabase = createAdminClient();
@@ -181,11 +179,7 @@ export async function POST(request: Request) {
 
 type Supabase = ReturnType<typeof createAdminClient>;
 
-async function processWebhook(
-  webhookEventId: string,
-  externalId: string,
-  supabase: Supabase
-) {
+async function processWebhook(webhookEventId: string, externalId: string, supabase: Supabase) {
   // ── Fetch transcript from Fireflies ──────────────────────
   const transcript = await fetchFirefliesTranscript(externalId);
   const transcriptText = renderTranscriptText(transcript.sentences);
@@ -209,10 +203,7 @@ async function processWebhook(
   }
 
   // Link the webhook event back to the booking for audit trail.
-  await supabase
-    .from("webhook_events")
-    .update({ booking_id: booking.id })
-    .eq("id", webhookEventId);
+  await supabase.from("webhook_events").update({ booking_id: booking.id }).eq("id", webhookEventId);
 
   // ── Save transcript on the booking ──────────────────────
   const baseUpdate = {
@@ -229,7 +220,8 @@ async function processWebhook(
   const isOneOnOne = ONE_ON_ONE_TIERS.has(booking.plan_tier);
   // (We now support group sessions too — recap content excludes
   //  student names per product spec. The 1:1 gate is removed.)
-  void isOneOnOne; void tutorHours;
+  void isOneOnOne;
+  void tutorHours;
 
   // ── Generate status draft via OpenAI ────────────────────
   // For group sessions: GPT writes a class-level recap (no names).
@@ -241,7 +233,7 @@ async function processWebhook(
     draft = await generateStatusDraft(transcriptText, {
       sessionType: isGroup ? "group" : "individual",
       studentName: isGroup ? undefined : studentDisplayName(booking),
-      tutorName:   tutorDisplayName(booking),
+      tutorName: tutorDisplayName(booking),
       sessionDate: formatSessionDate(booking.scheduled_start),
       sessionDurationMinutes: durationMinutes,
     });
@@ -272,7 +264,9 @@ async function processWebhook(
     link: `/tutor/sessions/${booking.id}/status-draft`,
   });
 
-  console.log(`[fireflies-webhook] processed booking ${booking.id} — draft ${draft ? "OK" : "FAILED"}`);
+  console.log(
+    `[fireflies-webhook] processed booking ${booking.id} — draft ${draft ? "OK" : "FAILED"}`
+  );
 }
 
 // ──────────────────────────────────────────────────────────
@@ -341,7 +335,7 @@ async function findMatchingBooking(
   // Strategy 3: time window fallback
   if (transcriptDateMs) {
     const start = new Date(transcriptDateMs - 60 * 60_000).toISOString();
-    const end   = new Date(transcriptDateMs + 60 * 60_000).toISOString();
+    const end = new Date(transcriptDateMs + 60 * 60_000).toISOString();
     const { data } = await supabase
       .from("bookings")
       .select(BOOKING_SELECT)
@@ -359,18 +353,18 @@ async function findMatchingBooking(
 // Supabase joined relations come back as arrays sometimes; normalize.
 function normalize(row: unknown): BookingMatch {
   const r = row as Record<string, unknown>;
-  const arr = (v: unknown) => (Array.isArray(v) ? v[0] ?? null : v);
+  const arr = (v: unknown) => (Array.isArray(v) ? (v[0] ?? null) : v);
   return {
-    id:                r.id as string,
-    tutor_id:          r.tutor_id as string,
-    student_id:        r.student_id as string,
-    plan_tier:         r.plan_tier as string,
-    scheduled_start:   r.scheduled_start as string,
-    duration_minutes:  (r.duration_minutes as number | null) ?? null,
-    zoom_meeting_id:   (r.zoom_meeting_id as string | null) ?? null,
-    zoom_join_url:     (r.zoom_join_url as string | null) ?? null,
-    tutor:             arr(r.tutor)   as BookingMatch["tutor"],
-    student:           arr(r.student) as BookingMatch["student"],
+    id: r.id as string,
+    tutor_id: r.tutor_id as string,
+    student_id: r.student_id as string,
+    plan_tier: r.plan_tier as string,
+    scheduled_start: r.scheduled_start as string,
+    duration_minutes: (r.duration_minutes as number | null) ?? null,
+    zoom_meeting_id: (r.zoom_meeting_id as string | null) ?? null,
+    zoom_join_url: (r.zoom_join_url as string | null) ?? null,
+    tutor: arr(r.tutor) as BookingMatch["tutor"],
+    student: arr(r.student) as BookingMatch["student"],
   };
 }
 

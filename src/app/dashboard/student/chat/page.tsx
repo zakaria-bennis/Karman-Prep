@@ -48,8 +48,13 @@ export default async function StudentChatPage() {
       .from("chat_channels")
       .select("id, display_name, channel_type")
       .eq("cohort_id", membership.cohort_id);
-    for (const r of (rows as Array<{ id: string; display_name: string; channel_type: string }> | null) ?? []) {
-      if (r.channel_type === "cohort_chat") cohortChannel = { id: r.id, display_name: r.display_name };
+    for (const r of (rows as Array<{
+      id: string;
+      display_name: string;
+      channel_type: string;
+    }> | null) ?? []) {
+      if (r.channel_type === "cohort_chat")
+        cohortChannel = { id: r.id, display_name: r.display_name };
       if (r.channel_type === "qa") qaChannel = { id: r.id, display_name: r.display_name };
     }
   }
@@ -61,29 +66,31 @@ export default async function StudentChatPage() {
 
   return (
     <DashboardLayout>
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 h-[calc(100vh-4rem)] flex flex-col">
+      <div className="mx-auto flex h-[calc(100vh-4rem)] max-w-6xl flex-col px-4 py-6 sm:px-6">
         <header className="mb-4">
-          <p className="text-xs font-bold tracking-widest text-blue-500 uppercase mb-1">Chat</p>
-          <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
-            <MessageSquare className="w-6 h-6 text-slate-400" />
+          <p className="mb-1 text-xs font-bold uppercase tracking-widest text-blue-500">Chat</p>
+          <h1 className="flex items-center gap-2 text-2xl font-extrabold text-slate-900 dark:text-white">
+            <MessageSquare className="h-6 w-6 text-slate-400" />
             Conversations
           </h1>
         </header>
 
         {!membership?.cohort_id ? (
-          <div className="rounded-xl border border-dashed border-slate-200 dark:border-slate-800 px-6 py-10 text-center">
+          <div className="rounded-xl border border-dashed border-slate-200 px-6 py-10 text-center dark:border-slate-800">
             <p className="text-sm text-slate-500 dark:text-slate-400">
-              You're not in a cohort yet. Cohort chat unlocks once you're placed (admin assigns you after signup).
+              You're not in a cohort yet. Cohort chat unlocks once you're placed (admin assigns you
+              after signup).
             </p>
           </div>
         ) : !cohortChannel && !qaChannel ? (
-          <div className="rounded-xl border border-amber-200 dark:border-amber-400/20 bg-amber-50 dark:bg-amber-400/5 px-4 py-3">
+          <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-400/20 dark:bg-amber-400/5">
             <p className="text-sm text-amber-800 dark:text-amber-200">
-              Your cohort chat hasn't been set up yet. Ask your tutor or admin to provision it from the cohort detail page.
+              Your cohort chat hasn't been set up yet. Ask your tutor or admin to provision it from
+              the cohort detail page.
             </p>
           </div>
         ) : (
-          <div className="flex-1 min-h-0">
+          <div className="min-h-0 flex-1">
             <ChatShell
               cohortChannel={cohortChannel}
               qaChannel={qaChannel}

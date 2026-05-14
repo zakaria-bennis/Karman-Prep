@@ -35,15 +35,11 @@ export function useUnreadChat(): number {
 
     const channel = supabase
       .channel("dashboard-chat-unread")
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "direct_messages" },
-        () => fetchTotal()
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "direct_messages" }, () =>
+        fetchTotal()
       )
-      .on(
-        "postgres_changes",
-        { event: "UPDATE", schema: "public", table: "direct_messages" },
-        () => fetchTotal()
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "direct_messages" }, () =>
+        fetchTotal()
       )
       .subscribe();
 

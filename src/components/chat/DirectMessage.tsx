@@ -50,7 +50,12 @@ function formatTime(iso: string): string {
   const sameDay = d.toDateString() === today.toDateString();
   return sameDay
     ? new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit" }).format(d)
-    : new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }).format(d);
+    : new Intl.DateTimeFormat("en-US", {
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+      }).format(d);
 }
 
 export function DirectMessage({
@@ -126,15 +131,17 @@ export function DirectMessage({
         { event: "INSERT", schema: "public", table: "direct_messages" },
         async (payload) => {
           const r = payload.new as DmMessage;
-          const involvesPair =
-            (r.sender_id === selfUuid) || (r.recipient_id === selfUuid);
+          const involvesPair = r.sender_id === selfUuid || r.recipient_id === selfUuid;
           if (!involvesPair) return;
           try {
             const rows = await loadMessages();
             setMessages(rows);
             markRead();
             requestAnimationFrame(() => {
-              scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+              scrollRef.current?.scrollTo({
+                top: scrollRef.current.scrollHeight,
+                behavior: "smooth",
+              });
             });
           } catch (err) {
             console.error("[DirectMessage] realtime refetch failed:", err);
@@ -228,7 +235,7 @@ export function DirectMessage({
   }
 
   return (
-    <div className="relative flex flex-col h-full max-h-[calc(100vh-9rem)] rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-md overflow-hidden">
+    <div className="relative flex h-full max-h-[calc(100vh-9rem)] flex-col overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-md">
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 opacity-60"
@@ -238,41 +245,43 @@ export function DirectMessage({
         }}
       />
 
-      <header className="relative px-5 py-3 border-b border-white/10">
+      <header className="relative border-b border-white/10 px-5 py-3">
         <h3 className="text-sm font-bold text-white">{withDisplayName}</h3>
         <p className="text-[11px] text-slate-400">Direct message · {withRealName}</p>
       </header>
 
-      <div ref={scrollRef} className="relative flex-1 overflow-y-auto px-4 py-4 space-y-2.5">
+      <div ref={scrollRef} className="relative flex-1 space-y-2.5 overflow-y-auto px-4 py-4">
         {loadingInitial ? (
-          <div className="flex items-center gap-2 text-slate-400 text-sm justify-center py-8">
-            <Loader2 className="w-4 h-4 animate-spin" />
+          <div className="flex items-center justify-center gap-2 py-8 text-sm text-slate-400">
+            <Loader2 className="h-4 w-4 animate-spin" />
             Loading…
           </div>
         ) : messages.length === 0 ? (
-          <p className="text-center text-sm text-slate-400 py-8">
+          <p className="py-8 text-center text-sm text-slate-400">
             No messages yet. Say hi to {withDisplayName}.
           </p>
         ) : (
-          messages.map((m) => (
-            <DmBubble key={m.id} message={m} self={m.sender_id === selfUuid} />
-          ))
+          messages.map((m) => <DmBubble key={m.id} message={m} self={m.sender_id === selfUuid} />)
         )}
       </div>
 
-      <div className="relative border-t border-white/10 px-4 py-3 space-y-2 bg-white/[0.02]">
+      <div className="relative space-y-2 border-t border-white/10 bg-white/[0.02] px-4 py-3">
         {pendingImages.length > 0 && (
           <div className="flex flex-wrap gap-2">
             {pendingImages.map((img, idx) => (
               <div key={idx} className="relative">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={img.preview} alt="" className="w-16 h-16 object-cover rounded-md border border-white/15" />
+                <img
+                  src={img.preview}
+                  alt=""
+                  className="h-16 w-16 rounded-md border border-white/15 object-cover"
+                />
                 <button
                   onClick={() => removePendingImage(idx)}
-                  className="absolute -top-1 -right-1 bg-rose-500 text-white rounded-full p-0.5"
+                  className="absolute -right-1 -top-1 rounded-full bg-rose-500 p-0.5 text-white"
                   aria-label="Remove image"
                 >
-                  <X className="w-3 h-3" />
+                  <X className="h-3 w-3" />
                 </button>
               </div>
             ))}
@@ -293,7 +302,7 @@ export function DirectMessage({
             placeholder={`Message ${withDisplayName}…`}
             rows={1}
             disabled={sending}
-            className="flex-1 resize-none bg-white/[0.06] border border-white/10 rounded-xl px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-blue-400/60 focus:bg-white/[0.08] disabled:opacity-50"
+            className="flex-1 resize-none rounded-xl border border-white/10 bg-white/[0.06] px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-blue-400/60 focus:bg-white/[0.08] focus:outline-none disabled:opacity-50"
           />
           <input
             ref={fileInputRef}
@@ -307,7 +316,7 @@ export function DirectMessage({
             onClick={() => fileInputRef.current?.click()}
             disabled={sending}
             aria-label="Attach image"
-            className="p-2 rounded-xl text-slate-400 hover:text-slate-200 hover:bg-white/[0.06] disabled:opacity-50"
+            className="rounded-xl p-2 text-slate-400 hover:bg-white/[0.06] hover:text-slate-200 disabled:opacity-50"
           >
             <ImageIcon className="w-4.5 h-4.5" />
           </button>
@@ -315,9 +324,9 @@ export function DirectMessage({
             type="button"
             onClick={handleSend}
             disabled={sending || (!draft.trim() && pendingImages.length === 0)}
-            className="px-3.5 py-2 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 hover:from-blue-400 hover:to-indigo-500 text-white text-sm font-semibold shadow-[0_4px_14px_rgba(59,130,246,0.35)] disabled:opacity-50 disabled:shadow-none"
+            className="rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 px-3.5 py-2 text-sm font-semibold text-white shadow-[0_4px_14px_rgba(59,130,246,0.35)] hover:from-blue-400 hover:to-indigo-500 disabled:opacity-50 disabled:shadow-none"
           >
-            {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+            {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
           </button>
         </div>
       </div>
@@ -335,16 +344,13 @@ function DmBubble({ message, self }: { message: DmMessage; self: boolean }) {
       : "bg-white/[0.06] text-slate-100 border border-white/10 backdrop-blur-sm";
 
   const bubbleShape = self ? "rounded-2xl rounded-br-md" : "rounded-2xl rounded-bl-md";
-  const bubbleShadow = !rejected && self
-    ? "shadow-[0_6px_20px_-6px_rgba(59,130,246,0.45)]"
-    : "shadow-sm";
+  const bubbleShadow =
+    !rejected && self ? "shadow-[0_6px_20px_-6px_rgba(59,130,246,0.45)]" : "shadow-sm";
 
   return (
     <div className={["flex w-full", self ? "justify-end" : "justify-start"].join(" ")}>
-      <div className={["flex flex-col max-w-[78%]", self ? "items-end" : "items-start"].join(" ")}>
-        <div
-          className={["relative px-3.5 py-2", bubbleColor, bubbleShape, bubbleShadow].join(" ")}
-        >
+      <div className={["flex max-w-[78%] flex-col", self ? "items-end" : "items-start"].join(" ")}>
+        <div className={["relative px-3.5 py-2", bubbleColor, bubbleShape, bubbleShadow].join(" ")}>
           {!rejected && self && (
             <div
               aria-hidden
@@ -362,22 +368,27 @@ function DmBubble({ message, self }: { message: DmMessage; self: boolean }) {
           ) : (
             <div className="relative">
               {message.content && (
-                <p className="text-[15px] leading-snug whitespace-pre-wrap break-words">
+                <p className="whitespace-pre-wrap break-words text-[15px] leading-snug">
                   {message.content}
                 </p>
               )}
               {message.media_urls.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-1.5">
+                <div className="mt-1.5 flex flex-wrap gap-2">
                   {message.media_urls.map((url, i) => (
                     /* eslint-disable-next-line @next/next/no-img-element */
-                    <img key={i} src={url} alt="" className="max-w-xs max-h-64 rounded-lg" />
+                    <img key={i} src={url} alt="" className="max-h-64 max-w-xs rounded-lg" />
                   ))}
                 </div>
               )}
             </div>
           )}
         </div>
-        <div className={["flex items-center gap-1 mt-0.5 px-2 text-[10px] text-slate-500", self ? "flex-row-reverse" : ""].join(" ")}>
+        <div
+          className={[
+            "mt-0.5 flex items-center gap-1 px-2 text-[10px] text-slate-500",
+            self ? "flex-row-reverse" : "",
+          ].join(" ")}
+        >
           <span>{formatTime(message.created_at)}</span>
         </div>
       </div>

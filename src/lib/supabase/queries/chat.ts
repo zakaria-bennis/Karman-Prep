@@ -90,7 +90,7 @@ export async function findChannelsByCohort(cohortId: string): Promise<ChatChanne
     .select("*")
     .eq("cohort_id", cohortId);
   if (error) throw error;
-  return ((data as ChatChannelRow[] | null) ?? []);
+  return (data as ChatChannelRow[] | null) ?? [];
 }
 
 export interface InsertChatChannelInput {
@@ -102,11 +102,7 @@ export interface InsertChatChannelInput {
 
 export async function insertChatChannel(input: InsertChatChannelInput): Promise<ChatChannelRow> {
   const supabase = createAdminClient();
-  const { data, error } = await supabase
-    .from("chat_channels")
-    .insert(input)
-    .select("*")
-    .single();
+  const { data, error } = await supabase.from("chat_channels").insert(input).select("*").single();
   if (error) throw error;
   return data as ChatChannelRow;
 }
@@ -133,10 +129,7 @@ export async function isStudentInChannelCohort(
 }
 
 /** Is the user the tutor of the channel's cohort? */
-export async function isTutorOfChannel(
-  tutorUuid: string,
-  channelId: string
-): Promise<boolean> {
+export async function isTutorOfChannel(tutorUuid: string, channelId: string): Promise<boolean> {
   const supabase = createAdminClient();
   const { data: channel } = await supabase
     .from("chat_channels")
@@ -149,10 +142,7 @@ export async function isTutorOfChannel(
 }
 
 /** Active mute on (student, channel)? */
-export async function isStudentMuted(
-  studentUuid: string,
-  channelId: string
-): Promise<boolean> {
+export async function isStudentMuted(studentUuid: string, channelId: string): Promise<boolean> {
   const supabase = createAdminClient();
   const nowIso = new Date().toISOString();
   const { count, error } = await supabase
@@ -213,11 +203,7 @@ export interface InsertChatMessageInput {
 
 export async function insertChatMessage(input: InsertChatMessageInput): Promise<ChatMessageRow> {
   const supabase = createAdminClient();
-  const { data, error } = await supabase
-    .from("chat_messages")
-    .insert(input)
-    .select("*")
-    .single();
+  const { data, error } = await supabase.from("chat_messages").insert(input).select("*").single();
   if (error) throw error;
   return data as ChatMessageRow;
 }
@@ -235,13 +221,11 @@ export interface InsertDirectMessageInput {
   rejection_message: string | null;
 }
 
-export async function insertDirectMessage(input: InsertDirectMessageInput): Promise<DirectMessageRow> {
+export async function insertDirectMessage(
+  input: InsertDirectMessageInput
+): Promise<DirectMessageRow> {
   const supabase = createAdminClient();
-  const { data, error } = await supabase
-    .from("direct_messages")
-    .insert(input)
-    .select("*")
-    .single();
+  const { data, error } = await supabase.from("direct_messages").insert(input).select("*").single();
   if (error) throw error;
   return data as DirectMessageRow;
 }
@@ -267,7 +251,7 @@ export async function listChatMessages(args: {
   if (args.before) q = q.lt("created_at", args.before);
   const { data, error } = await q;
   if (error) throw error;
-  return ((data as ChatMessageRow[] | null) ?? []);
+  return (data as ChatMessageRow[] | null) ?? [];
 }
 
 export async function listDirectMessages(args: {
@@ -290,7 +274,7 @@ export async function listDirectMessages(args: {
   if (args.before) q = q.lt("created_at", args.before);
   const { data, error } = await q;
   if (error) throw error;
-  return ((data as DirectMessageRow[] | null) ?? []);
+  return (data as DirectMessageRow[] | null) ?? [];
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -306,7 +290,10 @@ export async function setMessagePinned(messageId: string, pinned: boolean): Prom
   if (error) throw error;
 }
 
-export async function setMessageHighlighted(messageId: string, highlighted: boolean): Promise<void> {
+export async function setMessageHighlighted(
+  messageId: string,
+  highlighted: boolean
+): Promise<void> {
   const supabase = createAdminClient();
   const { error } = await supabase
     .from("chat_messages")

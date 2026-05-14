@@ -6,7 +6,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ChevronRight, Inbox } from "lucide-react";
 import { createAdminClient } from "@/lib/supabase/server";
-import { groupNodesForAdmin, SUBJECT_LABELS, nodeAtmosphere, ATMOSPHERE_COLORS } from "@/data/curriculum";
+import {
+  groupNodesForAdmin,
+  SUBJECT_LABELS,
+  nodeAtmosphere,
+  ATMOSPHERE_COLORS,
+} from "@/data/curriculum";
 import { fetchFlaggedQuestions, fetchFlaggedQuestionCount } from "@/lib/supabase/queries/quiz";
 import FlagReviewList from "@/components/admin/FlagReviewList";
 import NodeQuestionSearch from "@/components/admin/NodeQuestionSearch";
@@ -68,24 +73,30 @@ export default async function AdminCurriculumPage({ searchParams }: PageProps) {
   const totalAttached = Array.from(counts.values()).reduce((a, b) => a + b, 0);
 
   return (
-    <div className="max-w-6xl mx-auto px-5 py-8">
+    <div className="mx-auto max-w-6xl px-5 py-8">
       {/* Page header — total counts at a glance */}
       <header className="mb-6">
         <h1 className="text-2xl font-bold text-white">Curriculum</h1>
         <div className="mt-1.5 flex flex-wrap items-baseline gap-x-4 gap-y-1 text-xs text-slate-400">
           <span>
             <span className="text-base font-bold text-white">{totalAttached.toLocaleString()}</span>
-            <span className="ml-1.5">question{totalAttached === 1 ? "" : "s"} across all nodes</span>
+            <span className="ml-1.5">
+              question{totalAttached === 1 ? "" : "s"} across all nodes
+            </span>
           </span>
           {bankCount > 0 && (
             <span>
-              <span className="text-sm font-semibold text-indigo-300">{bankCount.toLocaleString()}</span>
+              <span className="text-sm font-semibold text-indigo-300">
+                {bankCount.toLocaleString()}
+              </span>
               <span className="ml-1.5">in bank</span>
             </span>
           )}
           {flaggedCount > 0 && (
             <span>
-              <span className="text-sm font-semibold text-amber-300">{flaggedCount.toLocaleString()}</span>
+              <span className="text-sm font-semibold text-amber-300">
+                {flaggedCount.toLocaleString()}
+              </span>
               <span className="ml-1.5">flagged</span>
             </span>
           )}
@@ -93,22 +104,22 @@ export default async function AdminCurriculumPage({ searchParams }: PageProps) {
       </header>
 
       {/* Tabs row + search bar (top-right) */}
-      <div className="mb-6 border-b border-slate-800 flex items-center gap-1 text-sm">
+      <div className="mb-6 flex items-center gap-1 border-b border-slate-800 text-sm">
         <Link
           href="/admin/curriculum"
-          className={`px-4 pb-3 font-semibold border-b-2 ${activeTab === "nodes" ? "border-indigo-500 text-indigo-400" : "border-transparent text-slate-500 hover:text-slate-200"}`}
+          className={`border-b-2 px-4 pb-3 font-semibold ${activeTab === "nodes" ? "border-indigo-500 text-indigo-400" : "border-transparent text-slate-500 hover:text-slate-200"}`}
         >
           Nodes
         </Link>
         <Link
           href="/admin/curriculum?tab=flagged"
-          className={`px-4 pb-3 font-semibold border-b-2 inline-flex items-center gap-2 ${activeTab === "flagged" ? "border-indigo-500 text-indigo-400" : "border-transparent text-slate-500 hover:text-slate-200"}`}
+          className={`inline-flex items-center gap-2 border-b-2 px-4 pb-3 font-semibold ${activeTab === "flagged" ? "border-indigo-500 text-indigo-400" : "border-transparent text-slate-500 hover:text-slate-200"}`}
         >
           Flagged
           {flaggedCount > 0 && (
             <span
               aria-label={`${flaggedCount} unresolved flag${flaggedCount === 1 ? "" : "s"}`}
-              className="inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 rounded-full bg-blue-500 text-white text-[11px] font-bold leading-none"
+              className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-blue-500 px-1.5 text-[11px] font-bold leading-none text-white"
             >
               {flaggedCount}
             </span>
@@ -124,12 +135,17 @@ export default async function AdminCurriculumPage({ searchParams }: PageProps) {
       {bankCount > 0 && activeTab === "nodes" && (
         <Link
           href="/admin/questions/review?tab=bank"
-          className="mb-5 inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-indigo-500/30 bg-indigo-500/[0.06] text-xs text-indigo-200 hover:bg-indigo-500/[0.12] transition-colors"
+          className="mb-5 inline-flex items-center gap-2 rounded-lg border border-indigo-500/30 bg-indigo-500/[0.06] px-3 py-2 text-xs text-indigo-200 transition-colors hover:bg-indigo-500/[0.12]"
         >
-          <Inbox className="w-3.5 h-3.5" />
+          <Inbox className="h-3.5 w-3.5" />
           <span>
-            <span className="font-semibold">{bankCount} question{bankCount === 1 ? "" : "s"} in bank</span>
-            <span className="text-indigo-300/70"> — click to triage and assign curriculum nodes</span>
+            <span className="font-semibold">
+              {bankCount} question{bankCount === 1 ? "" : "s"} in bank
+            </span>
+            <span className="text-indigo-300/70">
+              {" "}
+              — click to triage and assign curriculum nodes
+            </span>
           </span>
         </Link>
       )}
@@ -138,7 +154,7 @@ export default async function AdminCurriculumPage({ searchParams }: PageProps) {
         <div className="space-y-10">
           {(["reading", "math"] as const).map((subject) => (
             <section key={subject}>
-              <h2 className="text-xs font-bold text-slate-400 uppercase tracking-[0.25em] mb-4">
+              <h2 className="mb-4 text-xs font-bold uppercase tracking-[0.25em] text-slate-400">
                 {SUBJECT_LABELS[subject]}
               </h2>
               <div className="space-y-4">
@@ -148,23 +164,37 @@ export default async function AdminCurriculumPage({ searchParams }: PageProps) {
                   const atmo = nodeAtmosphere(tier);
                   const atmoHex = ATMOSPHERE_COLORS[atmo].hex;
                   const atmoSubtitle =
-                    atmo === "Troposphere"  ? "easiest · foundational concepts" :
-                    atmo === "Mesosphere"   ? "intermediate · core SAT skills" :
-                                              "hardest · advanced mastery";
+                    atmo === "Troposphere"
+                      ? "easiest · foundational concepts"
+                      : atmo === "Mesosphere"
+                        ? "intermediate · core SAT skills"
+                        : "hardest · advanced mastery";
                   return (
-                    <div key={tier} className="rounded-xl border border-slate-800 overflow-hidden bg-slate-900/40">
+                    <div
+                      key={tier}
+                      className="overflow-hidden rounded-xl border border-slate-800 bg-slate-900/40"
+                    >
                       <div
-                        className="px-4 py-2 text-[11px] font-bold uppercase tracking-[0.25em] flex items-center gap-2"
-                        style={{ background: atmoHex + "15", color: atmoHex, borderBottom: `1px solid ${atmoHex}30` }}
+                        className="flex items-center gap-2 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.25em]"
+                        style={{
+                          background: atmoHex + "15",
+                          color: atmoHex,
+                          borderBottom: `1px solid ${atmoHex}30`,
+                        }}
                       >
-                        <span className="w-1.5 h-1.5 rounded-full" style={{ background: atmoHex }} />
+                        <span
+                          className="h-1.5 w-1.5 rounded-full"
+                          style={{ background: atmoHex }}
+                        />
                         {atmo}
-                        <span className="text-slate-500 font-normal tracking-normal normal-case ml-1">· {atmoSubtitle}</span>
+                        <span className="ml-1 font-normal normal-case tracking-normal text-slate-500">
+                          · {atmoSubtitle}
+                        </span>
                       </div>
                       <div className="divide-y divide-slate-800">
                         {Object.entries(clusters).map(([cluster, nodes]) => (
                           <div key={cluster}>
-                            <div className="px-4 py-1.5 bg-slate-900/40 text-[11px] font-semibold text-slate-500 uppercase tracking-wide">
+                            <div className="bg-slate-900/40 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
                               {cluster}
                             </div>
                             <ul>
@@ -174,26 +204,30 @@ export default async function AdminCurriculumPage({ searchParams }: PageProps) {
                                   count === 0
                                     ? "bg-red-500/10 text-red-300 border-red-500/30"
                                     : count < 10
-                                    ? "bg-amber-500/10 text-amber-300 border-amber-500/30"
-                                    : count >= 100
-                                    ? "bg-emerald-500/10 text-emerald-300 border-emerald-500/30"
-                                    : "bg-indigo-500/10 text-indigo-300 border-indigo-500/30";
+                                      ? "bg-amber-500/10 text-amber-300 border-amber-500/30"
+                                      : count >= 100
+                                        ? "bg-emerald-500/10 text-emerald-300 border-emerald-500/30"
+                                        : "bg-indigo-500/10 text-indigo-300 border-indigo-500/30";
                                 return (
                                   <li key={n.id}>
                                     <Link
                                       href={`/admin/curriculum/${n.id}`}
-                                      className="flex items-center gap-4 px-4 py-2.5 hover:bg-white/5 transition-colors group"
+                                      className="group flex items-center gap-4 px-4 py-2.5 transition-colors hover:bg-white/5"
                                     >
-                                      <code className="text-xs font-mono text-slate-500 shrink-0 w-14">{n.id}</code>
-                                      <span className="text-sm font-medium text-slate-200 group-hover:text-white flex-1 truncate">
+                                      <code className="w-14 shrink-0 font-mono text-xs text-slate-500">
+                                        {n.id}
+                                      </code>
+                                      <span className="flex-1 truncate text-sm font-medium text-slate-200 group-hover:text-white">
                                         {n.topic}
                                       </span>
-                                      <span className="text-xs text-slate-500 flex items-center gap-3">
+                                      <span className="flex items-center gap-3 text-xs text-slate-500">
                                         <span>Diff {n.difficulty}</span>
-                                        <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold tabular-nums border ${countClass}`}>
+                                        <span
+                                          className={`rounded-full border px-2 py-0.5 text-[11px] font-bold tabular-nums ${countClass}`}
+                                        >
                                           {count} / 100
                                         </span>
-                                        <ChevronRight className="w-3.5 h-3.5 text-slate-600 group-hover:text-slate-300" />
+                                        <ChevronRight className="h-3.5 w-3.5 text-slate-600 group-hover:text-slate-300" />
                                       </span>
                                     </Link>
                                   </li>

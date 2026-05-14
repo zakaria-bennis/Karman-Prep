@@ -20,6 +20,7 @@ PDF → CSV → Strata question bank pipeline.
 
    Output goes to [`runs/<ISO timestamp>/`](runs/). Processed PDFs are
    moved to [`done/`](done/) so re-runs only see new files.
+
 3. **Inspect the CSVs.** First few batches especially — eyeball the
    `concept_slug` and `correct_answer` columns to make sure the
    routine is calibrating reasonably. The routine is opinionated

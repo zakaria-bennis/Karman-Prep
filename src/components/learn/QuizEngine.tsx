@@ -7,9 +7,7 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  X, Flag, Calculator, PencilLine, Check, Loader2,
-} from "lucide-react";
+import { X, Flag, Calculator, PencilLine, Check, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { MappedNode } from "./ConstellationMap";
 import { QUIZ_TOTAL_QUESTIONS, useQuiz } from "@/contexts/QuizContext";
@@ -31,9 +29,19 @@ interface Props {
 const LETTERS: AnswerLetter[] = ["A", "B", "C", "D"];
 
 export default function QuizEngine({ node, videoUrl, onClose, onGoToNext }: Props) {
-  const { state, startQuiz, selectAnswer, submitAnswer, nextQuestion,
-          dismissVideoPrompt, flagCurrent, toggleDesmos, toggleScratchpad,
-          retakeQuiz, reset } = useQuiz();
+  const {
+    state,
+    startQuiz,
+    selectAnswer,
+    submitAnswer,
+    nextQuestion,
+    dismissVideoPrompt,
+    flagCurrent,
+    toggleDesmos,
+    toggleScratchpad,
+    retakeQuiz,
+    reset,
+  } = useQuiz();
 
   const containerRef = useRef<HTMLDivElement>(null);
   const [flagOpen, setFlagOpen] = useState(false);
@@ -111,20 +119,20 @@ export default function QuizEngine({ node, videoUrl, onClose, onGoToNext }: Prop
       exit={{ opacity: 0 }}
       transition={{ duration: 0.25 }}
       onPointerDown={registerActivity}
-      className="fixed inset-0 z-[60] bg-slate-950 text-white overflow-hidden"
+      className="fixed inset-0 z-[60] overflow-hidden bg-slate-950 text-white"
     >
       {/* Loading state */}
       {state.phase === "loading" && (
-        <div className="w-full h-full flex flex-col items-center justify-center gap-3">
-          <Loader2 className="w-8 h-8 animate-spin text-blue-400" />
+        <div className="flex h-full w-full flex-col items-center justify-center gap-3">
+          <Loader2 className="h-8 w-8 animate-spin text-blue-400" />
           <p className="text-sm text-slate-400">Loading your adaptive quiz…</p>
         </div>
       )}
 
       {/* No questions state */}
       {state.phase === "idle" && state.selectedQuestions.length === 0 && (
-        <div className="w-full h-full flex flex-col items-center justify-center gap-4 text-center px-6">
-          <p className="text-slate-400 max-w-md">Preparing…</p>
+        <div className="flex h-full w-full flex-col items-center justify-center gap-4 px-6 text-center">
+          <p className="max-w-md text-slate-400">Preparing…</p>
         </div>
       )}
 
@@ -147,7 +155,9 @@ export default function QuizEngine({ node, videoUrl, onClose, onGoToNext }: Prop
       )}
 
       {/* Bottom toolbar — visible during quiz */}
-      {(state.phase === "answering" || state.phase === "submitted_correct" || state.phase === "submitted_wrong") && (
+      {(state.phase === "answering" ||
+        state.phase === "submitted_correct" ||
+        state.phase === "submitted_wrong") && (
         <BottomToolbar
           subject={node.subject}
           onDesmos={toggleDesmos}
@@ -165,7 +175,10 @@ export default function QuizEngine({ node, videoUrl, onClose, onGoToNext }: Prop
       {/* 3-consecutive-wrongs video prompt */}
       <AnimatePresence>
         {state.phase === "video_prompt" && (
-          <VideoPromptBanner videoUrl={videoUrl ?? node.video_url ?? null} onDismiss={() => dismissVideoPrompt()} />
+          <VideoPromptBanner
+            videoUrl={videoUrl ?? node.video_url ?? null}
+            onDismiss={() => dismissVideoPrompt()}
+          />
         )}
       </AnimatePresence>
 
@@ -177,7 +190,7 @@ export default function QuizEngine({ node, videoUrl, onClose, onGoToNext }: Prop
               initial={{ opacity: 0 }}
               animate={{ opacity: 0.7 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 z-[65] bg-black pointer-events-none"
+              className="pointer-events-none absolute inset-0 z-[65] bg-black"
             />
             <DesmosWindow onClose={toggleDesmos} constraintsRef={containerRef} />
           </>
@@ -192,7 +205,7 @@ export default function QuizEngine({ node, videoUrl, onClose, onGoToNext }: Prop
               initial={{ opacity: 0 }}
               animate={{ opacity: 0.7 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 z-[65] bg-black pointer-events-none"
+              className="pointer-events-none absolute inset-0 z-[65] bg-black"
             />
             <Scratchpad onClose={toggleScratchpad} constraintsRef={containerRef} />
           </>
@@ -206,31 +219,32 @@ export default function QuizEngine({ node, videoUrl, onClose, onGoToNext }: Prop
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[75] bg-black/70 flex items-center justify-center p-6"
+            className="fixed inset-0 z-[75] flex items-center justify-center bg-black/70 p-6"
             onClick={() => setFlagOpen(false)}
           >
             <motion.div
               initial={{ scale: 0.9, y: 10 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 10 }}
-              className="w-full max-w-md bg-slate-900 border border-slate-700 rounded-2xl p-6"
+              className="w-full max-w-md rounded-2xl border border-slate-700 bg-slate-900 p-6"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex items-center gap-2 mb-2">
-                <Flag className="w-4 h-4 text-rose-400" />
+              <div className="mb-2 flex items-center gap-2">
+                <Flag className="h-4 w-4 text-rose-400" />
                 <h3 className="text-base font-bold">Flag this question</h3>
               </div>
-              <p className="text-xs text-slate-400 mb-4">
-                Send it to your tutor's review queue. An optional note helps them understand what went wrong.
+              <p className="mb-4 text-xs text-slate-400">
+                Send it to your tutor's review queue. An optional note helps them understand what
+                went wrong.
               </p>
               <textarea
                 value={flagNote}
                 onChange={(e) => setFlagNote(e.target.value)}
                 placeholder="Optional note (e.g. 'answer key seems wrong', 'ambiguous wording')…"
                 rows={3}
-                className="w-full rounded-lg bg-slate-800 border border-slate-700 p-3 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-rose-500"
+                className="w-full rounded-lg border border-slate-700 bg-slate-800 p-3 text-sm text-slate-100 placeholder:text-slate-500 focus:border-rose-500 focus:outline-none"
               />
-              <div className="flex gap-3 mt-4 justify-end">
+              <div className="mt-4 flex justify-end gap-3">
                 <button
                   onClick={() => setFlagOpen(false)}
                   className="px-4 py-2 text-sm font-semibold text-slate-400 hover:text-white"
@@ -239,7 +253,7 @@ export default function QuizEngine({ node, videoUrl, onClose, onGoToNext }: Prop
                 </button>
                 <button
                   onClick={handleFlagSubmit}
-                  className="px-4 py-2 rounded-lg bg-rose-500 hover:bg-rose-600 text-white text-sm font-bold"
+                  className="rounded-lg bg-rose-500 px-4 py-2 text-sm font-bold text-white hover:bg-rose-600"
                 >
                   Submit Flag
                 </button>
@@ -292,8 +306,8 @@ function ActiveQuizScreen({
   onNext: () => void;
 }) {
   const { state } = useQuiz();
-  const sortedChoices = useMemo(() =>
-    [...q.answer_choices].sort((a, b) => (a.letter > b.letter ? 1 : -1)),
+  const sortedChoices = useMemo(
+    () => [...q.answer_choices].sort((a, b) => (a.letter > b.letter ? 1 : -1)),
     [q]
   );
   const isSubmitted = state.phase === "submitted_correct" || state.phase === "submitted_wrong";
@@ -312,31 +326,32 @@ function ActiveQuizScreen({
   return (
     <>
       {/* Top bar */}
-      <div className="absolute top-0 inset-x-0 h-14 flex items-center px-6 border-b border-slate-800 bg-slate-950/80 backdrop-blur-sm z-10">
-        <div className="flex-1 min-w-0">
-          <p className="text-xs text-slate-500 uppercase tracking-widest font-semibold">
+      <div className="absolute inset-x-0 top-0 z-10 flex h-14 items-center border-b border-slate-800 bg-slate-950/80 px-6 backdrop-blur-sm">
+        <div className="min-w-0 flex-1">
+          <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">
             {node.subject === "reading" ? "Reading & Writing" : "Math"}
           </p>
-          <p className="text-sm font-bold truncate">{node.topic}</p>
+          <p className="truncate text-sm font-bold">{node.topic}</p>
         </div>
         <div className="flex-1 text-center">
           <span className="text-sm font-semibold text-slate-300">
-            Question <span className="text-white">{state.currentIndex + 1}</span> of {QUIZ_TOTAL_QUESTIONS}
+            Question <span className="text-white">{state.currentIndex + 1}</span> of{" "}
+            {QUIZ_TOTAL_QUESTIONS}
           </span>
         </div>
-        <div className="flex-1 flex justify-end">
+        <div className="flex flex-1 justify-end">
           <button
             onClick={onClose}
-            className="w-9 h-9 rounded-full hover:bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white"
+            className="flex h-9 w-9 items-center justify-center rounded-full text-slate-400 hover:bg-slate-800 hover:text-white"
             aria-label="Close quiz"
           >
-            <X className="w-4 h-4" />
+            <X className="h-4 w-4" />
           </button>
         </div>
       </div>
 
       {/* Progress dots row (top) */}
-      <div className="absolute top-14 inset-x-0 h-10 flex items-center justify-center gap-2 border-b border-slate-800 bg-slate-950/60 z-10">
+      <div className="absolute inset-x-0 top-14 z-10 flex h-10 items-center justify-center gap-2 border-b border-slate-800 bg-slate-950/60">
         {dots.map((d) => (
           <ProgressDot key={d.i} {...d} />
         ))}
@@ -366,7 +381,7 @@ function ActiveQuizScreen({
             >
               <button
                 onClick={onSubmit}
-                className="px-8 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm transition-colors"
+                className="rounded-xl bg-blue-600 px-8 py-3 text-sm font-bold text-white transition-colors hover:bg-blue-700"
               >
                 Submit Answer
               </button>
@@ -380,13 +395,13 @@ function ActiveQuizScreen({
           >
             <button
               onClick={() => onToggleExplanations(true)}
-              className="px-6 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-100 font-semibold text-sm transition-colors"
+              className="rounded-xl border border-slate-700 bg-slate-800 px-6 py-3 text-sm font-semibold text-slate-100 transition-colors hover:bg-slate-700"
             >
               Show explanations
             </button>
             <button
               onClick={onNext}
-              className="px-8 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm transition-colors"
+              className="rounded-xl bg-blue-600 px-8 py-3 text-sm font-bold text-white transition-colors hover:bg-blue-700"
             >
               Next question →
             </button>
@@ -394,65 +409,68 @@ function ActiveQuizScreen({
         ) : null;
 
         // ── Choices block (renders in either right or left panel) ──
-        const choicesBlock = q.answer_format === "numeric_entry" ? (
-          <NumericAnswerInput
-            value={state.selectedAnswer ?? ""}
-            onChange={onSelectAnswer}
-            isSubmitted={isSubmitted}
-            studentAnswer={state.selectedAnswer}
-            correctAnswer={q.correct_answer}
-            tolerance={q.numeric_tolerance}
-            wasCorrect={state.phase === "submitted_correct"}
-          />
-        ) : (
-          <div className="mt-7 space-y-3">
-            {sortedChoices.map((choice) => {
-              const letter = choice.letter;
-              const isSelected = state.selectedAnswer === letter;
-              const isCorrect = letter === correctLetter;
-              const showCorrect = isSubmitted && isCorrect;
-              const showWrong = isSubmitted && isSelected && !isCorrect;
-              return (
-                <button
-                  key={letter}
-                  onClick={() => !isSubmitted && onSelectAnswer(letter)}
-                  disabled={isSubmitted}
-                  className={cn(
-                    "w-full text-left rounded-xl border px-5 py-3.5 transition-all",
-                    "flex items-start gap-4",
-                    !isSubmitted && "hover:border-blue-500 hover:bg-blue-500/5 cursor-pointer",
-                    isSelected && !isSubmitted && "border-blue-500 bg-blue-500/10",
-                    !isSelected && !isSubmitted && "border-slate-700 bg-slate-900",
-                    showCorrect && "border-emerald-500 bg-emerald-500/15",
-                    showWrong && "border-rose-500 bg-rose-500/15",
-                    isSubmitted && !isSelected && !isCorrect && "opacity-50 border-slate-800"
-                  )}
-                >
-                  <span className={cn(
-                    "shrink-0 w-7 h-7 rounded-full flex items-center justify-center font-bold text-[13px] mt-0.5",
-                    !isSubmitted && !isSelected && "bg-slate-800 text-slate-300",
-                    !isSubmitted && isSelected && "bg-blue-500 text-white",
-                    showCorrect && "bg-emerald-500 text-white",
-                    showWrong && "bg-rose-500 text-white",
-                    isSubmitted && !isSelected && !isCorrect && "bg-slate-800 text-slate-500"
-                  )}>
-                    {showCorrect ? <Check className="w-3.5 h-3.5" /> : letter}
-                  </span>
-                  <span className="text-[16px] text-slate-100 leading-[1.5] flex-1">
-                    <MathText text={choice.choice_text} />
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        );
+        const choicesBlock =
+          q.answer_format === "numeric_entry" ? (
+            <NumericAnswerInput
+              value={state.selectedAnswer ?? ""}
+              onChange={onSelectAnswer}
+              isSubmitted={isSubmitted}
+              studentAnswer={state.selectedAnswer}
+              correctAnswer={q.correct_answer}
+              tolerance={q.numeric_tolerance}
+              wasCorrect={state.phase === "submitted_correct"}
+            />
+          ) : (
+            <div className="mt-7 space-y-3">
+              {sortedChoices.map((choice) => {
+                const letter = choice.letter;
+                const isSelected = state.selectedAnswer === letter;
+                const isCorrect = letter === correctLetter;
+                const showCorrect = isSubmitted && isCorrect;
+                const showWrong = isSubmitted && isSelected && !isCorrect;
+                return (
+                  <button
+                    key={letter}
+                    onClick={() => !isSubmitted && onSelectAnswer(letter)}
+                    disabled={isSubmitted}
+                    className={cn(
+                      "w-full rounded-xl border px-5 py-3.5 text-left transition-all",
+                      "flex items-start gap-4",
+                      !isSubmitted && "cursor-pointer hover:border-blue-500 hover:bg-blue-500/5",
+                      isSelected && !isSubmitted && "border-blue-500 bg-blue-500/10",
+                      !isSelected && !isSubmitted && "border-slate-700 bg-slate-900",
+                      showCorrect && "border-emerald-500 bg-emerald-500/15",
+                      showWrong && "border-rose-500 bg-rose-500/15",
+                      isSubmitted && !isSelected && !isCorrect && "border-slate-800 opacity-50"
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        "mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[13px] font-bold",
+                        !isSubmitted && !isSelected && "bg-slate-800 text-slate-300",
+                        !isSubmitted && isSelected && "bg-blue-500 text-white",
+                        showCorrect && "bg-emerald-500 text-white",
+                        showWrong && "bg-rose-500 text-white",
+                        isSubmitted && !isSelected && !isCorrect && "bg-slate-800 text-slate-500"
+                      )}
+                    >
+                      {showCorrect ? <Check className="h-3.5 w-3.5" /> : letter}
+                    </span>
+                    <span className="flex-1 text-[16px] leading-[1.5] text-slate-100">
+                      <MathText text={choice.choice_text} />
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          );
 
         const questionPanel = (
-          <div className="max-w-xl mx-auto">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 mb-4">
+          <div className="mx-auto max-w-xl">
+            <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
               {q.topic_cluster}
             </p>
-            <h2 className="text-[19px] md:text-[20px] font-medium leading-[1.5] text-slate-100">
+            <h2 className="text-[19px] font-medium leading-[1.5] text-slate-100 md:text-[20px]">
               <MathText text={q.question_text} />
             </h2>
             {choicesBlock}
@@ -469,20 +487,20 @@ function ActiveQuizScreen({
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 16 }}
             transition={{ duration: 0.2 }}
-            className="max-w-xl mx-auto"
+            className="mx-auto max-w-xl"
           >
-            <h3 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400 mb-4">
+            <h3 className="mb-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
               Explanation
             </h3>
 
             {q.explanation_text && (
               <div className="mb-6 text-[16px] leading-[1.6] text-slate-100">
-                <MathText text={q.explanation_text} className="whitespace-pre-wrap block" />
+                <MathText text={q.explanation_text} className="block whitespace-pre-wrap" />
               </div>
             )}
 
             {perChoiceMap && q.answer_format === "multiple_choice" && (
-              <div className="space-y-3 mb-6">
+              <div className="mb-6 space-y-3">
                 {LETTERS.map((letter) => {
                   const expl = perChoiceMap[letter];
                   if (!expl) return null;
@@ -492,26 +510,30 @@ function ActiveQuizScreen({
                     <div
                       key={letter}
                       className={cn(
-                        "rounded-xl border px-4 py-3 flex items-start gap-3",
+                        "flex items-start gap-3 rounded-xl border px-4 py-3",
                         isCorrect && "border-emerald-500/40 bg-emerald-500/5",
                         !isCorrect && isStudentChoice && "border-rose-500/40 bg-rose-500/5",
                         !isCorrect && !isStudentChoice && "border-slate-800 bg-slate-900/40"
                       )}
                     >
-                      <span className={cn(
-                        "shrink-0 w-7 h-7 rounded-full flex items-center justify-center font-bold text-[13px] mt-0.5",
-                        isCorrect && "bg-emerald-500 text-white",
-                        !isCorrect && isStudentChoice && "bg-rose-500 text-white",
-                        !isCorrect && !isStudentChoice && "bg-slate-800 text-slate-300"
-                      )}>
+                      <span
+                        className={cn(
+                          "mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[13px] font-bold",
+                          isCorrect && "bg-emerald-500 text-white",
+                          !isCorrect && isStudentChoice && "bg-rose-500 text-white",
+                          !isCorrect && !isStudentChoice && "bg-slate-800 text-slate-300"
+                        )}
+                      >
                         {letter}
                       </span>
                       <div className="flex-1 text-[16px] leading-[1.5] text-slate-100">
                         {(isCorrect || isStudentChoice) && (
-                          <span className={cn(
-                            "inline-block text-[10px] font-bold uppercase tracking-wider mr-2 align-middle",
-                            isCorrect ? "text-emerald-300" : "text-rose-300"
-                          )}>
+                          <span
+                            className={cn(
+                              "mr-2 inline-block align-middle text-[10px] font-bold uppercase tracking-wider",
+                              isCorrect ? "text-emerald-300" : "text-rose-300"
+                            )}
+                          >
                             {isCorrect ? "Correct" : "Your answer"}
                           </span>
                         )}
@@ -525,25 +547,25 @@ function ActiveQuizScreen({
 
             {q.desmos_strategy && (
               <div className="mb-6 rounded-xl border border-sky-500/30 bg-sky-500/5 p-4">
-                <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-sky-300 mb-2">
+                <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-sky-300">
                   Desmos strategy
                 </div>
                 <div className="text-[16px] leading-[1.6] text-sky-100">
-                  <MathText text={q.desmos_strategy} className="whitespace-pre-wrap block" />
+                  <MathText text={q.desmos_strategy} className="block whitespace-pre-wrap" />
                 </div>
               </div>
             )}
 
-            <div className="flex flex-wrap justify-end gap-3 mt-6 pt-2 border-t border-slate-800/60">
+            <div className="mt-6 flex flex-wrap justify-end gap-3 border-t border-slate-800/60 pt-2">
               <button
                 onClick={() => onToggleExplanations(false)}
-                className="px-6 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-100 font-semibold text-sm transition-colors"
+                className="rounded-xl border border-slate-700 bg-slate-800 px-6 py-3 text-sm font-semibold text-slate-100 transition-colors hover:bg-slate-700"
               >
                 Hide explanations
               </button>
               <button
                 onClick={onNext}
-                className="px-8 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm transition-colors"
+                className="rounded-xl bg-blue-600 px-8 py-3 text-sm font-bold text-white transition-colors hover:bg-blue-700"
               >
                 Next question →
               </button>
@@ -562,27 +584,27 @@ function ActiveQuizScreen({
             <img
               src={q.image_url!}
               alt={q.image_alt ?? ""}
-              className="max-h-[28rem] w-auto mx-auto block object-contain rounded"
+              className="mx-auto block max-h-[28rem] w-auto rounded object-contain"
             />
           </figure>
         ) : null;
 
         // Passage block (used in left column whenever R&W has passage).
         const passageBlock = (
-          <article className="max-w-prose mx-auto font-serif text-[17px] leading-[1.7] text-slate-100">
+          <article className="mx-auto max-w-prose font-serif text-[17px] leading-[1.7] text-slate-100">
             {q.passage_a && q.passage_b ? (
               <>
                 <section className="mb-7">
-                  <div className="text-[10px] font-sans font-bold uppercase tracking-[0.2em] text-slate-500 mb-2">
+                  <div className="mb-2 font-sans text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">
                     Text 1
                   </div>
-                  <MathText text={q.passage_a} className="whitespace-pre-wrap block" />
+                  <MathText text={q.passage_a} className="block whitespace-pre-wrap" />
                 </section>
                 <section>
-                  <div className="text-[10px] font-sans font-bold uppercase tracking-[0.2em] text-slate-500 mb-2">
+                  <div className="mb-2 font-sans text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">
                     Text 2
                   </div>
-                  <MathText text={q.passage_b} className="whitespace-pre-wrap block" />
+                  <MathText text={q.passage_b} className="block whitespace-pre-wrap" />
                 </section>
               </>
             ) : (
@@ -592,9 +614,7 @@ function ActiveQuizScreen({
                     <MathText text={q.passage_intro} />
                   </p>
                 )}
-                {q.passage && (
-                  <MathText text={q.passage} className="whitespace-pre-wrap block" />
-                )}
+                {q.passage && <MathText text={q.passage} className="block whitespace-pre-wrap" />}
               </>
             )}
           </article>
@@ -608,22 +628,22 @@ function ActiveQuizScreen({
         // column, mirroring College Board Bluebook behavior.
         if (hasPassage || hasFigure) {
           return (
-            <div className="absolute top-24 inset-x-0 bottom-20 overflow-hidden">
-              <div className="h-full grid md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-slate-800">
+            <div className="absolute inset-x-0 bottom-20 top-24 overflow-hidden">
+              <div className="grid h-full divide-y divide-slate-800 md:grid-cols-2 md:divide-x md:divide-y-0">
                 {/* LEFT */}
-                <div className="overflow-y-auto px-6 md:px-10 py-8">
+                <div className="overflow-y-auto px-6 py-8 md:px-10">
                   {figureCard}
                   {hasPassage && passageBlock}
                   {inExplanationMode && (
-                    <div className="mt-10 pt-6 border-t border-slate-700/50">
-                      {questionPanel}
-                    </div>
+                    <div className="mt-10 border-t border-slate-700/50 pt-6">{questionPanel}</div>
                   )}
                 </div>
                 {/* RIGHT */}
-                <div className="overflow-y-auto px-6 md:px-10 py-8">
+                <div className="overflow-y-auto px-6 py-8 md:px-10">
                   <AnimatePresence mode="wait" initial={false}>
-                    {inExplanationMode ? explanationsPanel : (
+                    {inExplanationMode ? (
+                      explanationsPanel
+                    ) : (
                       <motion.div
                         key="question"
                         initial={{ opacity: 0, x: -12 }}
@@ -646,14 +666,10 @@ function ActiveQuizScreen({
         // on the RIGHT — same shape as R&W in explanation mode.
         if (inExplanationMode) {
           return (
-            <div className="absolute top-24 inset-x-0 bottom-20 overflow-hidden">
-              <div className="h-full grid md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-slate-800">
-                <div className="overflow-y-auto px-6 md:px-10 py-8">
-                  {questionPanel}
-                </div>
-                <div className="overflow-y-auto px-6 md:px-10 py-8">
-                  {explanationsPanel}
-                </div>
+            <div className="absolute inset-x-0 bottom-20 top-24 overflow-hidden">
+              <div className="grid h-full divide-y divide-slate-800 md:grid-cols-2 md:divide-x md:divide-y-0">
+                <div className="overflow-y-auto px-6 py-8 md:px-10">{questionPanel}</div>
+                <div className="overflow-y-auto px-6 py-8 md:px-10">{explanationsPanel}</div>
               </div>
             </div>
           );
@@ -661,7 +677,7 @@ function ActiveQuizScreen({
 
         // Math, default: single centered column.
         return (
-          <div className="absolute top-24 inset-x-0 bottom-20 overflow-y-auto px-6 py-8">
+          <div className="absolute inset-x-0 bottom-20 top-24 overflow-y-auto px-6 py-8">
             {questionPanel}
           </div>
         );
@@ -673,7 +689,12 @@ function ActiveQuizScreen({
   void onFlagClick;
 }
 
-function ProgressDot({ isCurrent, isAnswered, isCorrect, isFlagged }: {
+function ProgressDot({
+  isCurrent,
+  isAnswered,
+  isCorrect,
+  isFlagged,
+}: {
   i: number;
   isCurrent: boolean;
   isAnswered: boolean;
@@ -684,16 +705,14 @@ function ProgressDot({ isCurrent, isAnswered, isCorrect, isFlagged }: {
     <div className="relative">
       <div
         className={cn(
-          "w-2 h-2 rounded-full transition-colors",
+          "h-2 w-2 rounded-full transition-colors",
           !isAnswered && !isCurrent && "bg-slate-700",
-          isCurrent && "bg-blue-400 animate-pulse",
+          isCurrent && "animate-pulse bg-blue-400",
           isAnswered && isCorrect && "bg-emerald-500",
-          isAnswered && !isCorrect && "bg-rose-500",
+          isAnswered && !isCorrect && "bg-rose-500"
         )}
       />
-      {isFlagged && (
-        <Flag className="absolute -top-1 -right-1 w-2 h-2 text-amber-400" />
-      )}
+      {isFlagged && <Flag className="absolute -right-1 -top-1 h-2 w-2 text-amber-400" />}
     </div>
   );
 }
@@ -721,13 +740,13 @@ function NumericAnswerInput({
       ? "border-emerald-500 bg-emerald-500/15"
       : "border-rose-500 bg-rose-500/15"
     : value
-    ? "border-blue-500 bg-blue-500/10"
-    : "border-slate-700 bg-slate-900";
+      ? "border-blue-500 bg-blue-500/10"
+      : "border-slate-700 bg-slate-900";
 
   return (
     <div className="mt-8 space-y-3">
       <div className={cn("rounded-xl border px-5 py-4", feedbackClass)}>
-        <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+        <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-400">
           Your answer
         </label>
         <input
@@ -739,11 +758,12 @@ function NumericAnswerInput({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder="Type a number (e.g. 3.14 or 1/2)"
-          className="w-full bg-transparent border-0 text-2xl md:text-3xl font-mono font-bold text-white placeholder:text-slate-600 focus:outline-none tabular-nums"
+          className="w-full border-0 bg-transparent font-mono text-2xl font-bold tabular-nums text-white placeholder:text-slate-600 focus:outline-none md:text-3xl"
         />
         {showFeedback && !wasCorrect && (
           <p className="mt-3 text-sm text-rose-300">
-            Your answer: <span className="font-bold">{studentAnswer}</span> · Correct: <span className="font-bold text-emerald-300">{correctAnswer}</span>
+            Your answer: <span className="font-bold">{studentAnswer}</span> · Correct:{" "}
+            <span className="font-bold text-emerald-300">{correctAnswer}</span>
             {tolerance ? <span className="text-slate-400"> (± {tolerance})</span> : null}
           </p>
         )}
@@ -777,72 +797,82 @@ function BottomToolbar({
   });
 
   return (
-    <div className="absolute bottom-0 inset-x-0 h-16 border-t border-slate-800 bg-slate-950/80 backdrop-blur-sm z-10 flex items-center px-6">
+    <div className="absolute inset-x-0 bottom-0 z-10 flex h-16 items-center border-t border-slate-800 bg-slate-950/80 px-6 backdrop-blur-sm">
       <div className="flex items-center gap-2">
         {subject === "math" && (
           <button
             onClick={onDesmos}
             className={cn(
-              "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold border transition-colors",
+              "flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold transition-colors",
               state.isDesmosOpen
-                ? "bg-indigo-500 border-indigo-400 text-white"
-                : "border-slate-700 hover:border-indigo-500 text-slate-300 hover:text-white"
+                ? "border-indigo-400 bg-indigo-500 text-white"
+                : "border-slate-700 text-slate-300 hover:border-indigo-500 hover:text-white"
             )}
           >
-            <Calculator className="w-4 h-4" /> Desmos
+            <Calculator className="h-4 w-4" /> Desmos
           </button>
         )}
         <button
           onClick={onScratchpad}
           className={cn(
-            "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold border transition-colors",
+            "flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold transition-colors",
             state.isScratchpadOpen
-              ? "bg-slate-200 border-slate-100 text-slate-900"
-              : "border-slate-700 hover:border-slate-400 text-slate-300 hover:text-white"
+              ? "border-slate-100 bg-slate-200 text-slate-900"
+              : "border-slate-700 text-slate-300 hover:border-slate-400 hover:text-white"
           )}
         >
-          <PencilLine className="w-4 h-4" /> Scratchpad
+          <PencilLine className="h-4 w-4" /> Scratchpad
         </button>
       </div>
 
-      <div className="flex-1 flex items-center justify-center gap-2">
-        {dots.map((d) => <ProgressDot key={d.i} {...d} />)}
+      <div className="flex flex-1 items-center justify-center gap-2">
+        {dots.map((d) => (
+          <ProgressDot key={d.i} {...d} />
+        ))}
       </div>
 
       <button
         onClick={onFlag}
-        className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold border border-slate-700 text-slate-300 hover:border-rose-500 hover:text-rose-400 transition-colors"
+        className="flex items-center gap-2 rounded-lg border border-slate-700 px-3 py-2 text-sm font-semibold text-slate-300 transition-colors hover:border-rose-500 hover:text-rose-400"
       >
-        <Flag className="w-4 h-4" /> Flag
+        <Flag className="h-4 w-4" /> Flag
       </button>
     </div>
   );
 }
 
-function VideoPromptBanner({ videoUrl, onDismiss }: { videoUrl: string | null; onDismiss: () => void }) {
-  useEffect(() => { playSound("error"); }, []);
+function VideoPromptBanner({
+  videoUrl,
+  onDismiss,
+}: {
+  videoUrl: string | null;
+  onDismiss: () => void;
+}) {
+  useEffect(() => {
+    playSound("error");
+  }, []);
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="absolute inset-0 z-[70] bg-slate-950/95 backdrop-blur-sm flex flex-col items-center justify-center p-6"
+      className="absolute inset-0 z-[70] flex flex-col items-center justify-center bg-slate-950/95 p-6 backdrop-blur-sm"
     >
       <button
         onClick={onDismiss}
-        className="absolute top-4 right-4 w-9 h-9 rounded-full hover:bg-white/10 text-slate-400 hover:text-white flex items-center justify-center"
+        className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full text-slate-400 hover:bg-white/10 hover:text-white"
         aria-label="Dismiss"
       >
-        <X className="w-5 h-5" />
+        <X className="h-5 w-5" />
       </button>
-      <p className="text-center text-lg font-semibold text-white mb-4 max-w-lg">
+      <p className="mb-4 max-w-lg text-center text-lg font-semibold text-white">
         This concept might need another look before continuing.
       </p>
-      <div className="w-full max-w-3xl aspect-video rounded-xl overflow-hidden bg-slate-900 border border-slate-700">
+      <div className="aspect-video w-full max-w-3xl overflow-hidden rounded-xl border border-slate-700 bg-slate-900">
         {videoUrl ? (
-          <video src={videoUrl} controls autoPlay className="w-full h-full" />
+          <video src={videoUrl} controls autoPlay className="h-full w-full" />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-slate-500 text-sm">
+          <div className="flex h-full w-full items-center justify-center text-sm text-slate-500">
             Lesson video will auto-play once uploaded.
           </div>
         )}

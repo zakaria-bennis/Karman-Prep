@@ -13,46 +13,49 @@ import Reveal from "@/components/shared/Reveal";
 
 export default function Pricing() {
   return (
-    <section id="pricing" className="relative py-24 bg-cloud-night bg-grain overflow-hidden">
+    <section id="pricing" className="bg-cloud-night bg-grain relative overflow-hidden py-24">
       {/* Atmospheric glow */}
-      <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+      <div className="pointer-events-none absolute inset-0" aria-hidden="true">
         <div
-          className="absolute top-10 left-1/2 -translate-x-1/2 w-[700px] h-[400px] rounded-full blur-3xl"
-          style={{ background: "radial-gradient(ellipse, rgba(127,179,255,0.08), transparent 70%)" }}
+          className="absolute left-1/2 top-10 h-[400px] w-[700px] -translate-x-1/2 rounded-full blur-3xl"
+          style={{
+            background: "radial-gradient(ellipse, rgba(127,179,255,0.08), transparent 70%)",
+          }}
         />
       </div>
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <Reveal className="text-center mb-16">
+      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <Reveal className="mb-16 text-center">
           <span className="type-label text-blue-300/80">Pricing</span>
           <h2 className="type-display-lg mt-4 text-white">
-            Transparent pricing. No <span className="italic text-blue-200 font-[650]">surprises</span>.
+            Transparent pricing. No{" "}
+            <span className="font-[650] italic text-blue-200">surprises</span>.
           </h2>
-          <p className="type-body-lg mt-5 text-slate-400 max-w-xl mx-auto text-balance">
+          <p className="type-body-lg mx-auto mt-5 max-w-xl text-balance text-slate-400">
             All plans include this 7-day free trial, cancel any time.
           </p>
         </Reveal>
 
-        <Reveal as="stagger" className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+        <Reveal as="stagger" className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
           {PRICING_TIERS.map((tier) => (
             <Reveal
               key={tier.id}
               className={cn(
-                "relative rounded-2xl p-6 flex flex-col gap-5 transition-all backdrop-blur-md",
+                "relative flex flex-col gap-5 rounded-2xl p-6 backdrop-blur-md transition-all",
                 tier.highlighted
-                  ? "bg-gradient-to-b from-blue-600 to-blue-700 text-white shadow-2xl shadow-blue-500/25 scale-105 border-0"
-                  : "bg-white/[0.04] border border-white/10 shadow-xl hover:bg-white/[0.07] hover:border-white/20",
+                  ? "scale-105 border-0 bg-gradient-to-b from-blue-600 to-blue-700 text-white shadow-2xl shadow-blue-500/25"
+                  : "border border-white/10 bg-white/[0.04] shadow-xl hover:border-white/20 hover:bg-white/[0.07]",
                 tier.bestValue && "pt-8"
               )}
             >
               {tier.highlighted && (
-                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-amber-400 text-amber-900 px-4 py-1 rounded-full text-xs font-bold whitespace-nowrap flex items-center gap-1">
-                  <Zap className="w-3 h-3" /> Most Popular
+                <div className="absolute -top-3.5 left-1/2 flex -translate-x-1/2 items-center gap-1 whitespace-nowrap rounded-full bg-amber-400 px-4 py-1 text-xs font-bold text-amber-900">
+                  <Zap className="h-3 w-3" /> Most Popular
                 </div>
               )}
               {tier.bestValue && (
-                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-amber-500 text-white px-4 py-1 rounded-full text-xs font-bold whitespace-nowrap flex items-center gap-1 shadow-md shadow-amber-500/30">
-                  <Gem className="w-3 h-3" /> Best Value
+                <div className="absolute -top-3.5 left-1/2 flex -translate-x-1/2 items-center gap-1 whitespace-nowrap rounded-full bg-amber-500 px-4 py-1 text-xs font-bold text-white shadow-md shadow-amber-500/30">
+                  <Gem className="h-3 w-3" /> Best Value
                 </div>
               )}
 
@@ -60,7 +63,7 @@ export default function Pricing() {
               <div>
                 <h3
                   className={cn(
-                    "text-lg font-bold mb-1",
+                    "mb-1 text-lg font-bold",
                     tier.highlighted ? "text-white" : "text-white"
                   )}
                 >
@@ -88,7 +91,7 @@ export default function Pricing() {
                 </span>
                 <span
                   className={cn(
-                    "text-sm mb-1.5",
+                    "mb-1.5 text-sm",
                     tier.highlighted ? "text-blue-200" : "text-slate-400"
                   )}
                 >
@@ -97,12 +100,12 @@ export default function Pricing() {
               </div>
 
               {/* Features */}
-              <ul className="space-y-2.5 flex-1">
+              <ul className="flex-1 space-y-2.5">
                 {tier.features.map((feature) => (
                   <li key={feature} className="flex items-start gap-2.5 text-sm">
                     <Check
                       className={cn(
-                        "w-4 h-4 shrink-0 mt-0.5",
+                        "mt-0.5 h-4 w-4 shrink-0",
                         tier.highlighted ? "text-blue-200" : "text-emerald-400"
                       )}
                     />
@@ -117,9 +120,9 @@ export default function Pricing() {
               <Link
                 href={`/auth/sign-up?tier=${tier.id}`}
                 className={cn(
-                  "text-center py-3 px-6 rounded-xl font-semibold text-sm transition-all",
+                  "rounded-xl px-6 py-3 text-center text-sm font-semibold transition-all",
                   tier.highlighted
-                    ? "bg-white text-blue-700 hover:bg-blue-50 shadow-lg"
+                    ? "bg-white text-blue-700 shadow-lg hover:bg-blue-50"
                     : "btn-primary"
                 )}
               >
@@ -130,15 +133,17 @@ export default function Pricing() {
         </Reveal>
 
         {/* Guarantee note */}
-        <div className="text-center mt-10 space-y-1.5">
+        <div className="mt-10 space-y-1.5 text-center">
           <p className="text-sm text-slate-400">
             All plans include our{" "}
-            <span className="font-semibold text-slate-200">50-point score improvement guarantee*</span>
-            {" "}or your money back.
+            <span className="font-semibold text-slate-200">
+              50-point score improvement guarantee*
+            </span>{" "}
+            or your money back.
           </p>
           <p className="text-xs text-slate-500">
             *Terms apply.{" "}
-            <Link href="/guarantee" className="underline hover:text-blue-300 transition-colors">
+            <Link href="/guarantee" className="underline transition-colors hover:text-blue-300">
               See full guarantee terms
             </Link>
           </p>

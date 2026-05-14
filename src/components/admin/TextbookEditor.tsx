@@ -60,7 +60,7 @@ export default function TextbookEditor({ nodeId, initial }: Props) {
   async function handlePaste(e: React.ClipboardEvent<HTMLTextAreaElement>) {
     const items = Array.from(e.clipboardData?.items ?? []);
     const imageItems = items.filter((it) => it.type.startsWith("image/"));
-    if (imageItems.length === 0) return;  // not an image — let default paste happen
+    if (imageItems.length === 0) return; // not an image — let default paste happen
 
     e.preventDefault();
     setPasteError(null);
@@ -116,47 +116,56 @@ export default function TextbookEditor({ nodeId, initial }: Props) {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-base font-bold text-white">Textbook page</h2>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Markdown + KaTeX. Use <code className="text-slate-300 bg-slate-800 px-1 py-0.5 rounded">$…$</code> for inline math and <code className="text-slate-300 bg-slate-800 px-1 py-0.5 rounded">$$…$$</code> for block math.
+          <p className="mt-0.5 text-xs text-slate-500">
+            Markdown + KaTeX. Use{" "}
+            <code className="rounded bg-slate-800 px-1 py-0.5 text-slate-300">$…$</code> for inline
+            math and <code className="rounded bg-slate-800 px-1 py-0.5 text-slate-300">$$…$$</code>{" "}
+            for block math.
           </p>
         </div>
         <div className="flex items-center gap-2">
           {/* Mobile view toggle */}
-          <div className="md:hidden flex rounded-lg border border-slate-800 bg-slate-900 text-xs overflow-hidden">
+          <div className="flex overflow-hidden rounded-lg border border-slate-800 bg-slate-900 text-xs md:hidden">
             <button
               onClick={() => setMobileView("edit")}
-              className={cn("px-3 py-1.5 font-semibold flex items-center gap-1", mobileView === "edit" ? "bg-slate-800 text-white" : "text-slate-500")}
+              className={cn(
+                "flex items-center gap-1 px-3 py-1.5 font-semibold",
+                mobileView === "edit" ? "bg-slate-800 text-white" : "text-slate-500"
+              )}
             >
-              <Edit3 className="w-3 h-3" /> Edit
+              <Edit3 className="h-3 w-3" /> Edit
             </button>
             <button
               onClick={() => setMobileView("preview")}
-              className={cn("px-3 py-1.5 font-semibold flex items-center gap-1", mobileView === "preview" ? "bg-slate-800 text-white" : "text-slate-500")}
+              className={cn(
+                "flex items-center gap-1 px-3 py-1.5 font-semibold",
+                mobileView === "preview" ? "bg-slate-800 text-white" : "text-slate-500"
+              )}
             >
-              <Eye className="w-3 h-3" /> Preview
+              <Eye className="h-3 w-3" /> Preview
             </button>
           </div>
           <button
             onClick={handleSave}
             disabled={saved || pending}
             className={cn(
-              "inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold",
+              "inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold",
               saved
-                ? "bg-emerald-500/20 text-emerald-300 cursor-default"
-                : "bg-indigo-500 hover:bg-indigo-400 text-white",
-              pending && "opacity-60 cursor-wait"
+                ? "cursor-default bg-emerald-500/20 text-emerald-300"
+                : "bg-indigo-500 text-white hover:bg-indigo-400",
+              pending && "cursor-wait opacity-60"
             )}
           >
-            <Save className="w-3.5 h-3.5" />
+            <Save className="h-3.5 w-3.5" />
             {pending ? "Saving…" : saved ? "Saved" : "Save"}
           </button>
         </div>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-4">
+      <div className="grid gap-4 md:grid-cols-2">
         {/* Editor pane */}
         <div className={cn("md:block", mobileView === "edit" ? "block" : "hidden")}>
           <Header icon={Edit3} label="Markdown" />
@@ -166,7 +175,7 @@ export default function TextbookEditor({ nodeId, initial }: Props) {
             onChange={(e) => handleChange(e.target.value)}
             onPaste={handlePaste}
             rows={30}
-            className="w-full rounded-lg border border-slate-800 bg-slate-900 text-slate-100 font-mono text-[13px] px-4 py-3 focus:outline-none focus:border-indigo-500 leading-relaxed resize-none"
+            className="w-full resize-none rounded-lg border border-slate-800 bg-slate-900 px-4 py-3 font-mono text-[13px] leading-relaxed text-slate-100 focus:border-indigo-500 focus:outline-none"
             style={{ minHeight: "32rem" }}
             placeholder="# Section heading
 
@@ -186,28 +195,30 @@ $$\\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$$
 Paste a screenshot anywhere in this editor — it auto-uploads
 and drops a markdown image at your cursor."
           />
-          <div className="mt-2 text-[11px] text-slate-600 flex items-center gap-1">
-            <Info className="w-3 h-3 shrink-0" />
+          <div className="mt-2 flex items-center gap-1 text-[11px] text-slate-600">
+            <Info className="h-3 w-3 shrink-0" />
             <span>
-              KaTeX backslashes need to be escaped once: write <code className="mx-1 text-slate-400 bg-slate-800 px-1 rounded">\\frac</code> not <code className="mx-1 text-slate-400 bg-slate-800 px-1 rounded">\frac</code>.
-              Paste an image (Cmd+V) to upload it inline.
+              KaTeX backslashes need to be escaped once: write{" "}
+              <code className="mx-1 rounded bg-slate-800 px-1 text-slate-400">\\frac</code> not{" "}
+              <code className="mx-1 rounded bg-slate-800 px-1 text-slate-400">\frac</code>. Paste an
+              image (Cmd+V) to upload it inline.
             </span>
           </div>
           {pasteUploading && (
-            <div className="mt-2 text-[11px] text-indigo-300 flex items-center gap-1.5">
-              <Loader2 className="w-3 h-3 animate-spin" />
+            <div className="mt-2 flex items-center gap-1.5 text-[11px] text-indigo-300">
+              <Loader2 className="h-3 w-3 animate-spin" />
               Uploading pasted image…
             </div>
           )}
           {pasteError && (
-            <div className="mt-2 text-[11px] text-rose-300 flex items-center gap-1.5">
-              <Info className="w-3 h-3 shrink-0" />
+            <div className="mt-2 flex items-center gap-1.5 text-[11px] text-rose-300">
+              <Info className="h-3 w-3 shrink-0" />
               Paste-upload failed: {pasteError}
             </div>
           )}
           {pastedThisSession.length > 0 && (
             <div className="mt-3">
-              <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">
+              <div className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">
                 Pasted this session ({pastedThisSession.length}) — click to re-insert at cursor
               </div>
               <div className="flex flex-wrap gap-2">
@@ -217,13 +228,9 @@ and drops a markdown image at your cursor."
                     type="button"
                     onClick={() => insertAtCursor(`\n\n![Pasted image](${url})\n\n`)}
                     title="Click to re-insert markdown reference at cursor"
-                    className="rounded border border-slate-800 hover:border-indigo-500 bg-slate-900 overflow-hidden transition-colors"
+                    className="overflow-hidden rounded border border-slate-800 bg-slate-900 transition-colors hover:border-indigo-500"
                   >
-                    <img
-                      src={url}
-                      alt={`Pasted image ${i + 1}`}
-                      className="h-16 w-auto block"
-                    />
+                    <img src={url} alt={`Pasted image ${i + 1}`} className="block h-16 w-auto" />
                   </button>
                 ))}
               </div>
@@ -234,9 +241,12 @@ and drops a markdown image at your cursor."
         {/* Live preview pane */}
         <div className={cn("md:block", mobileView === "preview" ? "block" : "hidden")}>
           <Header icon={Eye} label="Live preview" />
-          <div className="rounded-lg border border-slate-800 bg-white text-slate-900 px-6 py-6 overflow-y-auto" style={{ minHeight: "32rem", maxHeight: "60rem" }}>
+          <div
+            className="overflow-y-auto rounded-lg border border-slate-800 bg-white px-6 py-6 text-slate-900"
+            style={{ minHeight: "32rem", maxHeight: "60rem" }}
+          >
             {markdown.trim().length === 0 ? (
-              <p className="text-slate-400 italic text-sm">Preview appears here as you type.</p>
+              <p className="text-sm italic text-slate-400">Preview appears here as you type.</p>
             ) : (
               <TextbookContent markdown={markdown} />
             )}
@@ -247,10 +257,16 @@ and drops a markdown image at your cursor."
   );
 }
 
-function Header({ icon: Icon, label }: { icon: React.ComponentType<{ className?: string }>; label: string }) {
+function Header({
+  icon: Icon,
+  label,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+}) {
   return (
-    <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
-      <Icon className="w-3 h-3" />
+    <div className="mb-2 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">
+      <Icon className="h-3 w-3" />
       {label}
     </div>
   );

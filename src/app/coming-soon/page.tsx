@@ -26,26 +26,24 @@ export const metadata: Metadata = {
 
 export default function ComingSoonPage() {
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center px-6">
-      <main className="max-w-md w-full text-center">
-        <div className="inline-flex items-center justify-center mb-8">
+    <div className="flex min-h-screen items-center justify-center bg-slate-950 px-6 text-slate-100">
+      <main className="w-full max-w-md text-center">
+        <div className="mb-8 inline-flex items-center justify-center">
           <StrataLogo size={56} variant="stacked" />
         </div>
 
-        <h1 className="text-3xl font-bold tracking-tight text-white mb-3">
-          Coming <span className="italic font-light text-slate-400">soon</span>
+        <h1 className="mb-3 text-3xl font-bold tracking-tight text-white">
+          Coming <span className="font-light italic text-slate-400">soon</span>
         </h1>
 
-        <p className="text-sm text-slate-400 leading-relaxed mb-8">
-          We&apos;re finalizing something we&apos;ve been working on for a long time.
-          Drop your email and we&apos;ll let you know the moment it&apos;s ready.
+        <p className="mb-8 text-sm leading-relaxed text-slate-400">
+          We&apos;re finalizing something we&apos;ve been working on for a long time. Drop your
+          email and we&apos;ll let you know the moment it&apos;s ready.
         </p>
 
         <ComingSoonForm />
 
-        <p className="mt-10 text-[11px] text-slate-600">
-          © {new Date().getFullYear()} Karman
-        </p>
+        <p className="mt-10 text-[11px] text-slate-600">© {new Date().getFullYear()} Karman</p>
       </main>
     </div>
   );

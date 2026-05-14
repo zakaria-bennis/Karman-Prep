@@ -9,7 +9,8 @@ import Footer from "@/components/landing/Footer";
 
 export const metadata: Metadata = {
   title: "Terms of Service — Karman SAT Tutoring",
-  description: "Karman's Terms of Service covering subscriptions, sessions, cancellation, the score guarantee, and acceptable use.",
+  description:
+    "Karman's Terms of Service covering subscriptions, sessions, cancellation, the score guarantee, and acceptable use.",
 };
 
 const SECTIONS = [
@@ -107,32 +108,32 @@ export default function TermsPage() {
     <>
       <Navbar />
       <main className="min-h-screen bg-white dark:bg-slate-950">
-
         {/* Header */}
-        <section className="bg-gradient-to-b from-slate-50 to-white dark:from-slate-900 dark:to-slate-950 pt-20 pb-12 text-center px-4">
-          <div className="max-w-2xl mx-auto">
-            <h1 className="text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-4">
+        <section className="bg-gradient-to-b from-slate-50 to-white px-4 pb-12 pt-20 text-center dark:from-slate-900 dark:to-slate-950">
+          <div className="mx-auto max-w-2xl">
+            <h1 className="mb-4 text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white">
               Terms of Service
             </h1>
-            <p className="text-slate-500 dark:text-slate-400 text-base">
+            <p className="text-base text-slate-500 dark:text-slate-400">
               Effective April 2025 · Governing law: Texas, United States
             </p>
           </div>
         </section>
 
         {/* Table of contents + content */}
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-10 flex flex-col lg:flex-row gap-10">
-
+        <div className="mx-auto flex max-w-3xl flex-col gap-10 px-4 py-10 sm:px-6 lg:flex-row">
           {/* TOC sidebar — hidden on mobile */}
-          <aside className="hidden lg:block w-52 shrink-0">
+          <aside className="hidden w-52 shrink-0 lg:block">
             <div className="sticky top-24">
-              <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3">Contents</p>
+              <p className="mb-3 text-xs font-bold uppercase tracking-widest text-slate-400">
+                Contents
+              </p>
               <nav className="space-y-1">
                 {SECTIONS.map((s) => (
                   <a
                     key={s.id}
                     href={`#${s.id}`}
-                    className="block text-sm text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors py-0.5"
+                    className="block py-0.5 text-sm text-slate-500 transition-colors hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400"
                   >
                     {s.title}
                   </a>
@@ -145,19 +146,22 @@ export default function TermsPage() {
           <div className="flex-1 space-y-10">
             {SECTIONS.map((section) => (
               <section key={section.id} id={section.id} className="scroll-mt-24">
-                <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-3">
+                <h2 className="mb-3 text-lg font-bold text-slate-900 dark:text-white">
                   {section.title}
                 </h2>
                 {section.content && (
-                  <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                  <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-300">
                     {section.content}
                   </p>
                 )}
                 {section.list && (
                   <ul className="space-y-2.5">
                     {section.list.map((item, i) => (
-                      <li key={i} className="flex items-start gap-2.5 text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-                        <span className="mt-2 w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
+                      <li
+                        key={i}
+                        className="flex items-start gap-2.5 text-sm leading-relaxed text-slate-600 dark:text-slate-300"
+                      >
+                        <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-blue-500" />
                         {item}
                       </li>
                     ))}
@@ -166,10 +170,16 @@ export default function TermsPage() {
               </section>
             ))}
 
-            <div className="border-t border-slate-200 dark:border-slate-700 pt-8 flex flex-wrap gap-4 text-sm">
-              <Link href="/privacy" className="text-blue-600 dark:text-blue-400 hover:underline">Privacy Policy</Link>
-              <Link href="/refunds" className="text-blue-600 dark:text-blue-400 hover:underline">Refund Policy</Link>
-              <Link href="/guarantee" className="text-blue-600 dark:text-blue-400 hover:underline">Score Guarantee</Link>
+            <div className="flex flex-wrap gap-4 border-t border-slate-200 pt-8 text-sm dark:border-slate-700">
+              <Link href="/privacy" className="text-blue-600 hover:underline dark:text-blue-400">
+                Privacy Policy
+              </Link>
+              <Link href="/refunds" className="text-blue-600 hover:underline dark:text-blue-400">
+                Refund Policy
+              </Link>
+              <Link href="/guarantee" className="text-blue-600 hover:underline dark:text-blue-400">
+                Score Guarantee
+              </Link>
             </div>
           </div>
         </div>

@@ -46,24 +46,19 @@ export async function fetchAdminUsersList(): Promise<AdminUserRow[]> {
     supabase
       .from("users")
       .select("id, clerk_id, email, first_name, last_name, role, created_at")
-      .order("role",       { ascending: true })
+      .order("role", { ascending: true })
       .order("first_name", { ascending: true, nullsFirst: false }),
-    supabase
-      .from("parent_student_links")
-      .select("parent_user_id"),
+    supabase.from("parent_student_links").select("parent_user_id"),
     supabase
       .from("subscriptions")
       .select("user_id, tier, status, created_at")
       .in("status", ["active", "trialing"])
       .order("created_at", { ascending: false }),
-    supabase
-      .from("cohort_members")
-      .select("user_id, cohort_id")
-      .is("left_at", null),
+    supabase.from("cohort_members").select("user_id, cohort_id").is("left_at", null),
   ]);
-  if (usersRes.error)  throw usersRes.error;
-  if (linksRes.error)  throw linksRes.error;
-  if (subsRes.error)   throw subsRes.error;
+  if (usersRes.error) throw usersRes.error;
+  if (linksRes.error) throw linksRes.error;
+  if (subsRes.error) throw subsRes.error;
   if (membersRes.error) throw membersRes.error;
 
   const linkCounts = new Map<string, number>();
@@ -91,7 +86,7 @@ export async function fetchAdminUsersList(): Promise<AdminUserRow[]> {
     clerk_id: u.clerk_id as string,
     email: u.email as string,
     first_name: (u.first_name as string | null) ?? null,
-    last_name:  (u.last_name  as string | null) ?? null,
+    last_name: (u.last_name as string | null) ?? null,
     role: u.role as AppRole,
     created_at: u.created_at as string,
     linked_student_count: linkCounts.get(u.id as string) ?? 0,
@@ -108,20 +103,24 @@ export async function fetchAdminCohortsLite(): Promise<AdminCohortLite[]> {
     .select("id, name, tier")
     .order("name", { ascending: true });
   if (error) throw error;
-  return ((data ?? []) as AdminCohortLite[]);
+  return (data ?? []) as AdminCohortLite[];
 }
 
 // ─────────────────────────────────────────────────────────────
 // Students linked to a given parent.
 // ─────────────────────────────────────────────────────────────
-export async function fetchLinkedStudentsForParent(parentUserId: string): Promise<LinkedStudentRow[]> {
+export async function fetchLinkedStudentsForParent(
+  parentUserId: string
+): Promise<LinkedStudentRow[]> {
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("parent_student_links")
-    .select(`
+    .select(
+      `
       student:users!parent_student_links_student_user_id_fkey
         (id, first_name, last_name, email)
-    `)
+    `
+    )
     .eq("parent_user_id", parentUserId);
   if (error) throw error;
 

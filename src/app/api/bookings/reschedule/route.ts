@@ -66,10 +66,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
   if (!body.bookingId || !body.newStart) {
-    return NextResponse.json(
-      { error: "Missing bookingId or newStart" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "Missing bookingId or newStart" }, { status: 400 });
   }
 
   const booking = await findBookingById(body.bookingId);
@@ -77,10 +74,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Booking not found" }, { status: 404 });
   }
   if (booking.status !== "scheduled") {
-    return NextResponse.json(
-      { error: `Booking is already ${booking.status}` },
-      { status: 409 }
-    );
+    return NextResponse.json({ error: `Booking is already ${booking.status}` }, { status: 409 });
   }
   if (booking.reschedule_count >= 1) {
     return NextResponse.json(
@@ -96,10 +90,7 @@ export async function POST(req: NextRequest) {
   }
 
   const callerUuid = await getUserUuidByClerkId(userId);
-  if (
-    !callerUuid ||
-    (callerUuid !== booking.student_id && callerUuid !== booking.tutor_id)
-  ) {
+  if (!callerUuid || (callerUuid !== booking.student_id && callerUuid !== booking.tutor_id)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -131,10 +122,7 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     const isAdapter = err instanceof CalAdapterError;
     console.error("[api/bookings/reschedule] cal error:", isAdapter ? err.toString() : err);
-    return NextResponse.json(
-      { error: "Failed to reschedule on Cal.com" },
-      { status: 502 }
-    );
+    return NextResponse.json({ error: "Failed to reschedule on Cal.com" }, { status: 502 });
   }
 
   // ─── Zoom: re-register the student on the NEW meeting ─────

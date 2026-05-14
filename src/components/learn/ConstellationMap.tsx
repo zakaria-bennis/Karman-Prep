@@ -50,7 +50,7 @@ const BG_STARS = Array.from({ length: 320 }, (_, i) => ({
   y: pr(i * 2.111 + 1.3) * H,
   r: 0.35 + pr(i * 3.77) * 1.3,
   o: 0.18 + pr(i * 4.29) * 0.55,
-  tw: pr(i * 5.71),   // twinkle phase offset
+  tw: pr(i * 5.71), // twinkle phase offset
 }));
 
 // ── Nebula blobs — two very soft colored gradients as atmosphere ──
@@ -67,31 +67,66 @@ interface StarConfig {
   coreOpacity: number;
   haloOpacity: number;
   rayOpacity: number;
-  rayLen: number;      // multiplier on base radius
-  glow: number;        // halo radius multiplier
+  rayLen: number; // multiplier on base radius
+  glow: number; // halo radius multiplier
   pulse: boolean;
 }
 
 function starConfig(status: NodeStatus): StarConfig {
   switch (status) {
     case "locked":
-      return { coreOpacity: 0.25, haloOpacity: 0.0,  rayOpacity: 0.0,  rayLen: 0,   glow: 0, pulse: false };
+      return {
+        coreOpacity: 0.25,
+        haloOpacity: 0.0,
+        rayOpacity: 0.0,
+        rayLen: 0,
+        glow: 0,
+        pulse: false,
+      };
     case "available":
-      return { coreOpacity: 0.95, haloOpacity: 0.40, rayOpacity: 0.70, rayLen: 2.4, glow: 3.0, pulse: true };
+      return {
+        coreOpacity: 0.95,
+        haloOpacity: 0.4,
+        rayOpacity: 0.7,
+        rayLen: 2.4,
+        glow: 3.0,
+        pulse: true,
+      };
     case "in_progress":
-      return { coreOpacity: 1.0,  haloOpacity: 0.55, rayOpacity: 0.90, rayLen: 2.8, glow: 3.6, pulse: false };
+      return {
+        coreOpacity: 1.0,
+        haloOpacity: 0.55,
+        rayOpacity: 0.9,
+        rayLen: 2.8,
+        glow: 3.6,
+        pulse: false,
+      };
     case "partially_complete":
-      return { coreOpacity: 1.0,  haloOpacity: 0.70, rayOpacity: 1.0,  rayLen: 3.0, glow: 4.0, pulse: false };
+      return {
+        coreOpacity: 1.0,
+        haloOpacity: 0.7,
+        rayOpacity: 1.0,
+        rayLen: 3.0,
+        glow: 4.0,
+        pulse: false,
+      };
     case "mastered":
-      return { coreOpacity: 1.0,  haloOpacity: 0.90, rayOpacity: 1.0,  rayLen: 3.6, glow: 4.6, pulse: false };
+      return {
+        coreOpacity: 1.0,
+        haloOpacity: 0.9,
+        rayOpacity: 1.0,
+        rayLen: 3.6,
+        glow: 4.6,
+        pulse: false,
+      };
   }
 }
 
 // ── Edge brightness ──────────────────────────────────────────
 function edgeOpacity(from: NodeStatus, to: NodeStatus, active: boolean): number {
-  if (!active) return 0.06;                                    // inactive lobe — very faint
-  if (from === "mastered" && to === "mastered")   return 0.65;
-  if (from === "mastered")                        return 0.45;
+  if (!active) return 0.06; // inactive lobe — very faint
+  if (from === "mastered" && to === "mastered") return 0.65;
+  if (from === "mastered") return 0.45;
   if (from === "in_progress" || to === "in_progress") return 0.28;
   if (from === "available" || to === "available") return 0.22;
   return 0.09;
@@ -144,17 +179,17 @@ function ConstellationMapInner({ activeSubject, readingNodes, mathNodes }: Props
 
   const allNodes: MappedNode[] = [...readingNodes, ...mathNodes];
   const activeNodes = activeSubject === "reading" ? readingNodes : mathNodes;
-  const otherNodes  = activeSubject === "reading" ? mathNodes   : readingNodes;
+  const otherNodes = activeSubject === "reading" ? mathNodes : readingNodes;
   const otherSubject: Subject = activeSubject === "reading" ? "math" : "reading";
 
   const readingEdges = getEdges("reading");
-  const mathEdges    = getEdges("math");
+  const mathEdges = getEdges("math");
 
   const allNodeMap = new Map(allNodes.map((n) => [n.id, n]));
-  const statusMap  = new Map(activeNodes.map((n) => [n.id, n.status]));
+  const statusMap = new Map(activeNodes.map((n) => [n.id, n.status]));
 
   const activeHex = SUBJECT_COLORS[activeSubject].hex;
-  const otherHex  = SUBJECT_COLORS[otherSubject].hex;
+  const otherHex = SUBJECT_COLORS[otherSubject].hex;
 
   // SVG coords ↔ screen coords (respects preserveAspectRatio="xMidYMid meet")
   function toScreen(nx: number, ny: number): { x: number; y: number } {
@@ -162,7 +197,10 @@ function ConstellationMapInner({ activeSubject, readingNodes, mathNodes }: Props
     const rect = mapRef.current.getBoundingClientRect();
     const svgAspect = W / H;
     const boxAspect = rect.width / rect.height;
-    let renderW = rect.width, renderH = rect.height, ox = 0, oy = 0;
+    let renderW = rect.width,
+      renderH = rect.height,
+      ox = 0,
+      oy = 0;
     if (boxAspect > svgAspect) {
       renderW = rect.height * svgAspect;
       ox = (rect.width - renderW) / 2;
@@ -172,7 +210,7 @@ function ConstellationMapInner({ activeSubject, readingNodes, mathNodes }: Props
     }
     return {
       x: rect.left + ox + nx * renderW,
-      y: rect.top  + oy + ny * renderH,
+      y: rect.top + oy + ny * renderH,
     };
   }
 
@@ -205,7 +243,9 @@ function ConstellationMapInner({ activeSubject, readingNodes, mathNodes }: Props
         });
       })
       .catch(console.error);
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [selectedNode]);
 
   function closeAll() {
@@ -248,7 +288,7 @@ function ConstellationMapInner({ activeSubject, readingNodes, mathNodes }: Props
       }}
     >
       <div
-        className="w-full h-full transition-opacity duration-300"
+        className="h-full w-full transition-opacity duration-300"
         style={{
           opacity: isOverlayOpen ? 0.4 : 1,
           pointerEvents: isOverlayOpen ? "none" : "auto",
@@ -265,7 +305,7 @@ function ConstellationMapInner({ activeSubject, readingNodes, mathNodes }: Props
           <defs>
             {/* Deep-space vertical gradient: lighter near Troposphere (bottom) */}
             <linearGradient id="space-gradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%"  stopColor="#02040a" />
+              <stop offset="0%" stopColor="#02040a" />
               <stop offset="40%" stopColor="#050913" />
               <stop offset="75%" stopColor="#0a1426" />
               <stop offset="100%" stopColor="#142244" />
@@ -273,23 +313,23 @@ function ConstellationMapInner({ activeSubject, readingNodes, mathNodes }: Props
 
             {/* Soft nebulae (extremely faint color washes) */}
             <radialGradient id="nebula-pink" cx="50%" cy="50%" r="50%">
-              <stop offset="0%"   stopColor="#ec4899" stopOpacity="0.18" />
+              <stop offset="0%" stopColor="#ec4899" stopOpacity="0.18" />
               <stop offset="100%" stopColor="#ec4899" stopOpacity="0" />
             </radialGradient>
             <radialGradient id="nebula-cyan" cx="50%" cy="50%" r="50%">
-              <stop offset="0%"   stopColor="#38bdf8" stopOpacity="0.18" />
+              <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.18" />
               <stop offset="100%" stopColor="#38bdf8" stopOpacity="0" />
             </radialGradient>
 
             {/* Star halos per subject */}
             <radialGradient id="halo-reading" cx="50%" cy="50%" r="50%">
-              <stop offset="0%"   stopColor="#ec4899" stopOpacity="0.8" />
-              <stop offset="40%"  stopColor="#ec4899" stopOpacity="0.3" />
+              <stop offset="0%" stopColor="#ec4899" stopOpacity="0.8" />
+              <stop offset="40%" stopColor="#ec4899" stopOpacity="0.3" />
               <stop offset="100%" stopColor="#ec4899" stopOpacity="0" />
             </radialGradient>
             <radialGradient id="halo-math" cx="50%" cy="50%" r="50%">
-              <stop offset="0%"   stopColor="#38bdf8" stopOpacity="0.8" />
-              <stop offset="40%"  stopColor="#38bdf8" stopOpacity="0.3" />
+              <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.8" />
+              <stop offset="40%" stopColor="#38bdf8" stopOpacity="0.3" />
               <stop offset="100%" stopColor="#38bdf8" stopOpacity="0" />
             </radialGradient>
 
@@ -307,8 +347,20 @@ function ConstellationMapInner({ activeSubject, readingNodes, mathNodes }: Props
           <rect width={W} height={H} fill="url(#space-gradient)" />
 
           {/* Nebulae — one behind each lobe */}
-          <ellipse cx={NEBULAE[0].cx} cy={NEBULAE[0].cy} rx={NEBULAE[0].rx} ry={NEBULAE[0].ry} fill="url(#nebula-pink)" />
-          <ellipse cx={NEBULAE[1].cx} cy={NEBULAE[1].cy} rx={NEBULAE[1].rx} ry={NEBULAE[1].ry} fill="url(#nebula-cyan)" />
+          <ellipse
+            cx={NEBULAE[0].cx}
+            cy={NEBULAE[0].cy}
+            rx={NEBULAE[0].rx}
+            ry={NEBULAE[0].ry}
+            fill="url(#nebula-pink)"
+          />
+          <ellipse
+            cx={NEBULAE[1].cx}
+            cy={NEBULAE[1].cy}
+            rx={NEBULAE[1].rx}
+            ry={NEBULAE[1].ry}
+            fill="url(#nebula-cyan)"
+          />
 
           {/* Background star field — parallaxes subtly with the cursor */}
           <motion.g style={{ x: parallaxTransformX, y: parallaxTransformY }}>
@@ -318,11 +370,11 @@ function ConstellationMapInner({ activeSubject, readingNodes, mathNodes }: Props
           </motion.g>
 
           {/* ── Atmospheric tier labels on the right edge ──── */}
-          {([
-            { label: "TROPOSPHERE",   y: H * 0.88 },
-            { label: "MESOSPHERE",    y: H * 0.54 },
-            { label: "STRATOSPHERE",  y: H * 0.13 },
-          ]).map(({ label, y }) => (
+          {[
+            { label: "TROPOSPHERE", y: H * 0.88 },
+            { label: "MESOSPHERE", y: H * 0.54 },
+            { label: "STRATOSPHERE", y: H * 0.13 },
+          ].map(({ label, y }) => (
             <text
               key={label}
               x={W - 18}
@@ -365,8 +417,10 @@ function ConstellationMapInner({ activeSubject, readingNodes, mathNodes }: Props
               return (
                 <line
                   key={`e-${i}`}
-                  x1={fn.x * W} y1={fn.y * H}
-                  x2={tn.x * W} y2={tn.y * H}
+                  x1={fn.x * W}
+                  y1={fn.y * H}
+                  x2={tn.x * W}
+                  y2={tn.y * H}
                   stroke={activeHex}
                   strokeWidth={highlight ? 1.4 : 0.85}
                   strokeOpacity={highlight ? 0.85 : opacity}
@@ -378,91 +432,121 @@ function ConstellationMapInner({ activeSubject, readingNodes, mathNodes }: Props
 
           {/* ── Nodes (stars) — ONLY active subject ──────────── */}
           <g>
-            {allNodes.filter((n) => n.subject === activeSubject).map((node) => {
-              const cx = node.x * W;
-              const cy = node.y * H;
-              const active = node.subject === activeSubject;
-              const subjectHex = active ? activeHex : otherHex;
-              const haloId = node.subject === "reading" ? "halo-reading" : "halo-math";
-              const r = DIFF_R[node.difficulty];
-              const cfg = starConfig(node.status);
-              const isHovered = hovered === node.id;
-              const isLocked = node.status === "locked";
+            {allNodes
+              .filter((n) => n.subject === activeSubject)
+              .map((node) => {
+                const cx = node.x * W;
+                const cy = node.y * H;
+                const active = node.subject === activeSubject;
+                const subjectHex = active ? activeHex : otherHex;
+                const haloId = node.subject === "reading" ? "halo-reading" : "halo-math";
+                const r = DIFF_R[node.difficulty];
+                const cfg = starConfig(node.status);
+                const isHovered = hovered === node.id;
+                const isLocked = node.status === "locked";
 
-              // Non-active lobe gets muted
-              const dimFactor = active ? 1 : 0.25;
-              const coreO = cfg.coreOpacity * dimFactor;
-              const haloO = cfg.haloOpacity * dimFactor;
-              const rayO  = cfg.rayOpacity  * dimFactor;
+                // Non-active lobe gets muted
+                const dimFactor = active ? 1 : 0.25;
+                const coreO = cfg.coreOpacity * dimFactor;
+                const haloO = cfg.haloOpacity * dimFactor;
+                const rayO = cfg.rayOpacity * dimFactor;
 
-              return (
-                <g
-                  key={node.id}
-                  transform={`translate(${cx}, ${cy})`}
-                  style={{ cursor: !active || isLocked ? "default" : "pointer" }}
-                  onClick={() => handleNodeClick(node)}
-                  onMouseEnter={() => setHovered(node.id)}
-                  onMouseLeave={() => setHovered(null)}
-                  role={active && !isLocked ? "button" : undefined}
-                  aria-label={`${node.topic} — ${node.status}`}
-                  tabIndex={active && !isLocked ? 0 : -1}
-                  onKeyDown={(e) => e.key === "Enter" && handleNodeClick(node)}
-                >
-                  {/* Outer halo */}
-                  {cfg.haloOpacity > 0 && (
+                return (
+                  <g
+                    key={node.id}
+                    transform={`translate(${cx}, ${cy})`}
+                    style={{ cursor: !active || isLocked ? "default" : "pointer" }}
+                    onClick={() => handleNodeClick(node)}
+                    onMouseEnter={() => setHovered(node.id)}
+                    onMouseLeave={() => setHovered(null)}
+                    role={active && !isLocked ? "button" : undefined}
+                    aria-label={`${node.topic} — ${node.status}`}
+                    tabIndex={active && !isLocked ? 0 : -1}
+                    onKeyDown={(e) => e.key === "Enter" && handleNodeClick(node)}
+                  >
+                    {/* Outer halo */}
+                    {cfg.haloOpacity > 0 && (
+                      <circle
+                        r={r * cfg.glow}
+                        fill={`url(#${haloId})`}
+                        opacity={isHovered ? Math.min(1, haloO * 1.5) : haloO}
+                        className={cfg.pulse && active ? "animate-pulse" : undefined}
+                      />
+                    )}
+
+                    {/* Hover ring (only on active lobe) */}
+                    {isHovered && active && !isLocked && (
+                      <circle
+                        r={r * cfg.glow + 4}
+                        fill="none"
+                        stroke={subjectHex}
+                        strokeWidth={0.8}
+                        strokeOpacity={0.55}
+                        strokeDasharray="2 3"
+                      />
+                    )}
+
+                    {/* Diffraction rays (the cross + diagonals) */}
+                    {cfg.rayLen > 0 && (
+                      <g opacity={rayO}>
+                        {/* Vertical + horizontal rays */}
+                        <line
+                          x1={0}
+                          y1={-r * cfg.rayLen}
+                          x2={0}
+                          y2={r * cfg.rayLen}
+                          stroke={subjectHex}
+                          strokeWidth={0.7}
+                          strokeLinecap="round"
+                        />
+                        <line
+                          x1={-r * cfg.rayLen}
+                          y1={0}
+                          x2={r * cfg.rayLen}
+                          y2={0}
+                          stroke={subjectHex}
+                          strokeWidth={0.7}
+                          strokeLinecap="round"
+                        />
+                        {/* Shorter diagonals — white for sparkle */}
+                        <line
+                          x1={-r * cfg.rayLen * 0.55}
+                          y1={-r * cfg.rayLen * 0.55}
+                          x2={r * cfg.rayLen * 0.55}
+                          y2={r * cfg.rayLen * 0.55}
+                          stroke="#ffffff"
+                          strokeWidth={0.35}
+                          strokeOpacity={0.55}
+                          strokeLinecap="round"
+                        />
+                        <line
+                          x1={-r * cfg.rayLen * 0.55}
+                          y1={r * cfg.rayLen * 0.55}
+                          x2={r * cfg.rayLen * 0.55}
+                          y2={-r * cfg.rayLen * 0.55}
+                          stroke="#ffffff"
+                          strokeWidth={0.35}
+                          strokeOpacity={0.55}
+                          strokeLinecap="round"
+                        />
+                      </g>
+                    )}
+
+                    {/* Bright white core */}
                     <circle
-                      r={r * cfg.glow}
-                      fill={`url(#${haloId})`}
-                      opacity={isHovered ? Math.min(1, haloO * 1.5) : haloO}
-                      className={cfg.pulse && active ? "animate-pulse" : undefined}
+                      r={r * 0.55}
+                      fill="#ffffff"
+                      opacity={coreO}
+                      filter={node.status === "mastered" && active ? "url(#star-glow)" : undefined}
                     />
-                  )}
 
-                  {/* Hover ring (only on active lobe) */}
-                  {isHovered && active && !isLocked && (
-                    <circle
-                      r={r * cfg.glow + 4}
-                      fill="none"
-                      stroke={subjectHex}
-                      strokeWidth={0.8}
-                      strokeOpacity={0.55}
-                      strokeDasharray="2 3"
-                    />
-                  )}
-
-                  {/* Diffraction rays (the cross + diagonals) */}
-                  {cfg.rayLen > 0 && (
-                    <g opacity={rayO}>
-                      {/* Vertical + horizontal rays */}
-                      <line x1={0} y1={-r * cfg.rayLen} x2={0} y2={r * cfg.rayLen}
-                        stroke={subjectHex} strokeWidth={0.7} strokeLinecap="round" />
-                      <line x1={-r * cfg.rayLen} y1={0} x2={r * cfg.rayLen} y2={0}
-                        stroke={subjectHex} strokeWidth={0.7} strokeLinecap="round" />
-                      {/* Shorter diagonals — white for sparkle */}
-                      <line x1={-r * cfg.rayLen * 0.55} y1={-r * cfg.rayLen * 0.55}
-                            x2={ r * cfg.rayLen * 0.55} y2={ r * cfg.rayLen * 0.55}
-                            stroke="#ffffff" strokeWidth={0.35} strokeOpacity={0.55} strokeLinecap="round" />
-                      <line x1={-r * cfg.rayLen * 0.55} y1={ r * cfg.rayLen * 0.55}
-                            x2={ r * cfg.rayLen * 0.55} y2={-r * cfg.rayLen * 0.55}
-                            stroke="#ffffff" strokeWidth={0.35} strokeOpacity={0.55} strokeLinecap="round" />
-                    </g>
-                  )}
-
-                  {/* Bright white core */}
-                  <circle
-                    r={r * 0.55}
-                    fill="#ffffff"
-                    opacity={coreO}
-                    filter={node.status === "mastered" && active ? "url(#star-glow)" : undefined}
-                  />
-
-                  {/* Tiny colored inner dot on mastered stars */}
-                  {node.status === "mastered" && active && (
-                    <circle r={r * 0.25} fill={subjectHex} opacity={0.9} />
-                  )}
-                </g>
-              );
-            })}
+                    {/* Tiny colored inner dot on mastered stars */}
+                    {node.status === "mastered" && active && (
+                      <circle r={r * 0.25} fill={subjectHex} opacity={0.9} />
+                    )}
+                  </g>
+                );
+              })}
           </g>
         </svg>
       </div>
@@ -485,7 +569,10 @@ function ConstellationMapInner({ activeSubject, readingNodes, mathNodes }: Props
             origin={cardOrigin}
             onWatchLesson={() => setLessonOpen(true)}
             onStartQuiz={() => setQuizOpen(true)}
-            onClose={() => { setSelectedNode(null); setCardOrigin(null); }}
+            onClose={() => {
+              setSelectedNode(null);
+              setCardOrigin(null);
+            }}
           />
         )}
       </AnimatePresence>
@@ -522,39 +609,50 @@ function ConstellationMapInner({ activeSubject, readingNodes, mathNodes }: Props
       {hoveredNode && !selectedNode && (
         <div
           className={cn(
-            "pointer-events-none absolute left-1/2 -translate-x-1/2 bottom-6",
-            "flex items-center gap-3 px-4 py-2.5 rounded-xl",
-            "bg-slate-900/95 border border-white/10 backdrop-blur-sm shadow-2xl",
-            "text-sm text-white max-w-xs z-30"
+            "pointer-events-none absolute bottom-6 left-1/2 -translate-x-1/2",
+            "flex items-center gap-3 rounded-xl px-4 py-2.5",
+            "border border-white/10 bg-slate-900/95 shadow-2xl backdrop-blur-sm",
+            "z-30 max-w-xs text-sm text-white"
           )}
         >
           <div
-            className="w-2.5 h-2.5 rounded-full shrink-0"
+            className="h-2.5 w-2.5 shrink-0 rounded-full"
             style={{
               backgroundColor:
-                hoveredNode.status === "locked" ? "#475569" :
-                hoveredNode.subject === "reading" ? "#EC4899" : "#38BDF8",
+                hoveredNode.status === "locked"
+                  ? "#475569"
+                  : hoveredNode.subject === "reading"
+                    ? "#EC4899"
+                    : "#38BDF8",
             }}
           />
           <div className="min-w-0">
-            <p className="font-semibold truncate">
+            <p className="truncate font-semibold">
               {hoveredNode.topic}{" "}
               {hoveredNode.subject !== activeSubject && (
-                <span className="text-slate-500 text-xs">({hoveredNode.subject === "math" ? "Math" : "R&W"} — not active)</span>
+                <span className="text-xs text-slate-500">
+                  ({hoveredNode.subject === "math" ? "Math" : "R&W"} — not active)
+                </span>
               )}
             </p>
-            <p className="text-xs text-slate-400 capitalize">
+            <p className="text-xs capitalize text-slate-400">
               {TIER_LABELS[hoveredNode.tier]} · Difficulty {hoveredNode.difficulty} ·{" "}
               <span
                 className={cn(
-                  hoveredNode.status === "locked"             ? "text-slate-500" :
-                  hoveredNode.status === "mastered"           ? "text-emerald-400" :
-                  hoveredNode.status === "partially_complete" ? "text-teal-400" :
-                  hoveredNode.status === "available"          ? "text-amber-400" :
-                  "text-blue-400"
+                  hoveredNode.status === "locked"
+                    ? "text-slate-500"
+                    : hoveredNode.status === "mastered"
+                      ? "text-emerald-400"
+                      : hoveredNode.status === "partially_complete"
+                        ? "text-teal-400"
+                        : hoveredNode.status === "available"
+                          ? "text-amber-400"
+                          : "text-blue-400"
                 )}
               >
-                {hoveredNode.status === "in_progress" ? "in progress" : hoveredNode.status.replace(/_/g, " ")}
+                {hoveredNode.status === "in_progress"
+                  ? "in progress"
+                  : hoveredNode.status.replace(/_/g, " ")}
               </span>
             </p>
           </div>
@@ -562,26 +660,27 @@ function ConstellationMapInner({ activeSubject, readingNodes, mathNodes }: Props
       )}
 
       {/* ── Legend ───────────────────────────────────────────── */}
-      <div className="absolute bottom-4 right-4 flex flex-col gap-1.5 pointer-events-none z-10 bg-black/35 border border-white/10 backdrop-blur-md rounded-xl px-3 py-2">
-        {(
-          [
-            { status: "mastered" as NodeStatus,           label: "Mastered",       color: activeHex },
-            { status: "partially_complete" as NodeStatus, label: "Partial pass",   color: activeHex + "cc" },
-            { status: "in_progress" as NodeStatus,        label: "In progress",    color: activeHex + "99" },
-            { status: "available" as NodeStatus,          label: "Available",      color: activeHex + "66" },
-            { status: "locked" as NodeStatus,             label: "Locked",         color: "#475569" },
-          ]
-        ).map(({ status, label, color }) => (
+      <div className="pointer-events-none absolute bottom-4 right-4 z-10 flex flex-col gap-1.5 rounded-xl border border-white/10 bg-black/35 px-3 py-2 backdrop-blur-md">
+        {[
+          { status: "mastered" as NodeStatus, label: "Mastered", color: activeHex },
+          {
+            status: "partially_complete" as NodeStatus,
+            label: "Partial pass",
+            color: activeHex + "cc",
+          },
+          { status: "in_progress" as NodeStatus, label: "In progress", color: activeHex + "99" },
+          { status: "available" as NodeStatus, label: "Available", color: activeHex + "66" },
+          { status: "locked" as NodeStatus, label: "Locked", color: "#475569" },
+        ].map(({ status, label, color }) => (
           <div key={status} className="flex items-center gap-2">
             <div
-              className="w-2.5 h-2.5 rounded-full border border-white/10"
+              className="h-2.5 w-2.5 rounded-full border border-white/10"
               style={{ backgroundColor: color }}
             />
             <span className="text-xs text-slate-500">{label}</span>
           </div>
         ))}
       </div>
-
     </motion.div>
   );
 }

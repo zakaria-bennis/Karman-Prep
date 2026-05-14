@@ -174,10 +174,7 @@ export function ChatShell({ cohortChannel, qaChannel, postingAsPreview, selfUuid
   }, [pickerOpen]);
 
   // ─── Total unread across all DMs (for the Chat tab badge) ─
-  const totalUnread = useMemo(
-    () => threads.reduce((sum, t) => sum + t.unreadCount, 0),
-    [threads]
-  );
+  const totalUnread = useMemo(() => threads.reduce((sum, t) => sum + t.unreadCount, 0), [threads]);
 
   // ─── Select a peer to DM (from picker or sidebar) ─────────
   function openDm(peer: { clerkId: string; displayName: string; realName: string }) {
@@ -199,15 +196,15 @@ export function ChatShell({ cohortChannel, qaChannel, postingAsPreview, selfUuid
   const existingPeers = peers.filter((p) => peersWithThread.has(p.clerkId));
 
   return (
-    <div className="flex flex-col h-full gap-3">
+    <div className="flex h-full flex-col gap-3">
       {/* ─── Top bar: tabs + DM picker ─────────────────────── */}
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-        <div className="inline-flex items-center gap-1 p-1 rounded-xl bg-white/[0.04] border border-white/10">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="inline-flex items-center gap-1 rounded-xl border border-white/10 bg-white/[0.04] p-1">
           <TabButton
             active={mode.kind === "cohort"}
             onClick={() => setMode({ kind: "cohort" })}
             disabled={!cohortChannel}
-            icon={<MessageSquare className="w-3.5 h-3.5" />}
+            icon={<MessageSquare className="h-3.5 w-3.5" />}
             label="Chat"
             badge={totalUnread > 0 && mode.kind !== "dm" ? totalUnread : undefined}
           />
@@ -215,7 +212,7 @@ export function ChatShell({ cohortChannel, qaChannel, postingAsPreview, selfUuid
             active={mode.kind === "qa"}
             onClick={() => setMode({ kind: "qa" })}
             disabled={!qaChannel}
-            icon={<HelpCircle className="w-3.5 h-3.5" />}
+            icon={<HelpCircle className="h-3.5 w-3.5" />}
             label="Q&A"
           />
         </div>
@@ -225,28 +222,34 @@ export function ChatShell({ cohortChannel, qaChannel, postingAsPreview, selfUuid
           <button
             type="button"
             onClick={() => setPickerOpen((o) => !o)}
-            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 hover:from-blue-400 hover:to-indigo-500 text-white text-sm font-semibold shadow-[0_4px_14px_rgba(59,130,246,0.35)]"
+            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 px-3.5 py-2 text-sm font-semibold text-white shadow-[0_4px_14px_rgba(59,130,246,0.35)] hover:from-blue-400 hover:to-indigo-500"
           >
-            <UserPlus className="w-4 h-4" />
+            <UserPlus className="h-4 w-4" />
             New DM
-            <ChevronDown className={["w-3.5 h-3.5 transition-transform", pickerOpen ? "rotate-180" : ""].join(" ")} />
+            <ChevronDown
+              className={["h-3.5 w-3.5 transition-transform", pickerOpen ? "rotate-180" : ""].join(
+                " "
+              )}
+            />
           </button>
 
           {pickerOpen && (
-            <div className="absolute right-0 top-full mt-2 w-72 max-h-96 overflow-y-auto rounded-2xl border border-white/10 bg-[#0B1026]/95 backdrop-blur-xl shadow-2xl z-30">
-              <div className="px-4 py-3 border-b border-white/10">
-                <p className="text-[11px] font-bold uppercase tracking-widest text-blue-400">Cohort-mates</p>
-                <p className="text-[11px] text-slate-500 mt-0.5">DMs are limited to your cohort.</p>
+            <div className="absolute right-0 top-full z-30 mt-2 max-h-96 w-72 overflow-y-auto rounded-2xl border border-white/10 bg-[#0B1026]/95 shadow-2xl backdrop-blur-xl">
+              <div className="border-b border-white/10 px-4 py-3">
+                <p className="text-[11px] font-bold uppercase tracking-widest text-blue-400">
+                  Cohort-mates
+                </p>
+                <p className="mt-0.5 text-[11px] text-slate-500">DMs are limited to your cohort.</p>
               </div>
 
               {peers.length === 0 ? (
-                <p className="px-4 py-6 text-xs text-slate-400 text-center">
+                <p className="px-4 py-6 text-center text-xs text-slate-400">
                   No cohort-mates available to DM yet.
                 </p>
               ) : (
                 <div className="py-1">
                   {newPeers.length > 0 && (
-                    <div className="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+                    <div className="px-3 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-wider text-slate-500">
                       Start new
                     </div>
                   )}
@@ -254,7 +257,7 @@ export function ChatShell({ cohortChannel, qaChannel, postingAsPreview, selfUuid
                     <PeerRow key={p.clerkId} peer={p} onPick={openDm} />
                   ))}
                   {existingPeers.length > 0 && (
-                    <div className="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+                    <div className="px-3 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-wider text-slate-500">
                       Already chatting
                     </div>
                   )}
@@ -269,17 +272,19 @@ export function ChatShell({ cohortChannel, qaChannel, postingAsPreview, selfUuid
       </div>
 
       {/* ─── Body: sidebar + main pane ─────────────────────── */}
-      <div className="flex flex-1 min-h-0 gap-3">
-        <aside className="w-64 shrink-0 hidden md:flex flex-col rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-md overflow-hidden">
-          <div className="px-3 py-3 border-b border-white/10">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-blue-400">Channels</p>
+      <div className="flex min-h-0 flex-1 gap-3">
+        <aside className="hidden w-64 shrink-0 flex-col overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-md md:flex">
+          <div className="border-b border-white/10 px-3 py-3">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-blue-400">
+              Channels
+            </p>
           </div>
-          <div className="overflow-y-auto flex-1 p-2 space-y-1">
+          <div className="flex-1 space-y-1 overflow-y-auto p-2">
             {cohortChannel && (
               <SidebarItem
                 active={mode.kind === "cohort"}
                 onClick={() => setMode({ kind: "cohort" })}
-                icon={<Hash className="w-3.5 h-3.5" />}
+                icon={<Hash className="h-3.5 w-3.5" />}
                 label={cohortChannel.display_name}
                 hint="Cohort chat"
               />
@@ -288,13 +293,13 @@ export function ChatShell({ cohortChannel, qaChannel, postingAsPreview, selfUuid
               <SidebarItem
                 active={mode.kind === "qa"}
                 onClick={() => setMode({ kind: "qa" })}
-                icon={<HelpCircle className="w-3.5 h-3.5" />}
+                icon={<HelpCircle className="h-3.5 w-3.5" />}
                 label="Q&A"
                 hint={qaChannel.display_name}
               />
             )}
 
-            <div className="pt-3 pb-1 px-2 text-[10px] font-bold uppercase tracking-widest text-blue-400">
+            <div className="px-2 pb-1 pt-3 text-[10px] font-bold uppercase tracking-widest text-blue-400">
               Direct messages
             </div>
 
@@ -309,7 +314,12 @@ export function ChatShell({ cohortChannel, qaChannel, postingAsPreview, selfUuid
                   thread={t}
                   active={mode.kind === "dm" && mode.clerkId === t.otherClerkId}
                   onClick={() =>
-                    setMode({ kind: "dm", clerkId: t.otherClerkId, displayName: t.displayName, realName: t.realName })
+                    setMode({
+                      kind: "dm",
+                      clerkId: t.otherClerkId,
+                      displayName: t.displayName,
+                      realName: t.realName,
+                    })
                   }
                 />
               ))
@@ -318,7 +328,7 @@ export function ChatShell({ cohortChannel, qaChannel, postingAsPreview, selfUuid
         </aside>
 
         {/* Main pane */}
-        <div className="flex-1 min-w-0">
+        <div className="min-w-0 flex-1">
           {mode.kind === "cohort" && cohortChannel && (
             <CohortChat
               channelId={cohortChannel.id}
@@ -387,17 +397,17 @@ function TabButton({
       onClick={onClick}
       disabled={disabled}
       className={[
-        "relative inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all",
+        "relative inline-flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-semibold transition-all",
         active
           ? "bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-[0_3px_10px_rgba(59,130,246,0.3)]"
-          : "text-slate-300 hover:text-white hover:bg-white/[0.06]",
-        disabled ? "opacity-40 cursor-not-allowed" : "",
+          : "text-slate-300 hover:bg-white/[0.06] hover:text-white",
+        disabled ? "cursor-not-allowed opacity-40" : "",
       ].join(" ")}
     >
       {icon}
       {label}
       {badge !== undefined && badge > 0 && (
-        <span className="ml-1 inline-flex items-center justify-center min-w-4 h-4 px-1 rounded-full bg-blue-400 text-[10px] font-bold text-[#0B1026]">
+        <span className="ml-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-blue-400 px-1 text-[10px] font-bold text-[#0B1026]">
           {badge > 99 ? "99+" : badge}
         </span>
       )}
@@ -423,14 +433,16 @@ function SidebarItem({
       type="button"
       onClick={onClick}
       className={[
-        "w-full text-left px-3 py-2 rounded-lg flex items-center gap-2 transition-colors",
-        active ? "bg-blue-500/15 text-white" : "text-slate-300 hover:bg-white/[0.05] hover:text-white",
+        "flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left transition-colors",
+        active
+          ? "bg-blue-500/15 text-white"
+          : "text-slate-300 hover:bg-white/[0.05] hover:text-white",
       ].join(" ")}
     >
       <span className={active ? "text-blue-300" : "text-slate-500"}>{icon}</span>
-      <span className="flex-1 min-w-0">
-        <span className="block text-xs font-semibold truncate">{label}</span>
-        {hint && <span className="block text-[10px] text-slate-500 truncate">{hint}</span>}
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-xs font-semibold">{label}</span>
+        {hint && <span className="block truncate text-[10px] text-slate-500">{hint}</span>}
       </span>
     </button>
   );
@@ -451,7 +463,7 @@ function SidebarThread({
       type="button"
       onClick={onClick}
       className={[
-        "w-full text-left px-3 py-2 rounded-lg flex items-start gap-2 transition-colors",
+        "flex w-full items-start gap-2 rounded-lg px-3 py-2 text-left transition-colors",
         active
           ? "bg-blue-500/15 text-white"
           : hasUnread
@@ -462,28 +474,37 @@ function SidebarThread({
       {/* Avatar circle with first initial */}
       <div
         className={[
-          "shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold border",
+          "flex h-7 w-7 shrink-0 items-center justify-center rounded-full border text-[11px] font-bold",
           active
-            ? "bg-gradient-to-br from-blue-500 to-indigo-600 text-white border-blue-400/40"
-            : "bg-white/[0.06] text-slate-300 border-white/10",
+            ? "border-blue-400/40 bg-gradient-to-br from-blue-500 to-indigo-600 text-white"
+            : "border-white/10 bg-white/[0.06] text-slate-300",
         ].join(" ")}
       >
         {(thread.displayName[0] ?? "?").toUpperCase()}
       </div>
 
-      <div className="flex-1 min-w-0">
+      <div className="min-w-0 flex-1">
         <div className="flex items-center justify-between gap-2">
-          <span className={["text-xs truncate", hasUnread ? "font-bold" : "font-semibold"].join(" ")}>
+          <span
+            className={["truncate text-xs", hasUnread ? "font-bold" : "font-semibold"].join(" ")}
+          >
             {thread.displayName}
           </span>
-          <span className="shrink-0 text-[10px] text-slate-500">{relativeTimeShort(thread.lastMessageAt)}</span>
+          <span className="shrink-0 text-[10px] text-slate-500">
+            {relativeTimeShort(thread.lastMessageAt)}
+          </span>
         </div>
-        <div className="flex items-center justify-between gap-2 mt-0.5">
-          <span className={["text-[11px] truncate", hasUnread ? "text-slate-200" : "text-slate-500"].join(" ")}>
+        <div className="mt-0.5 flex items-center justify-between gap-2">
+          <span
+            className={[
+              "truncate text-[11px]",
+              hasUnread ? "text-slate-200" : "text-slate-500",
+            ].join(" ")}
+          >
             {thread.lastMessagePreview ?? "—"}
           </span>
           {hasUnread && (
-            <span className="shrink-0 inline-flex items-center justify-center min-w-4 h-4 px-1 rounded-full bg-blue-400 text-[10px] font-bold text-[#0B1026]">
+            <span className="inline-flex h-4 min-w-4 shrink-0 items-center justify-center rounded-full bg-blue-400 px-1 text-[10px] font-bold text-[#0B1026]">
               {thread.unreadCount > 99 ? "99+" : thread.unreadCount}
             </span>
           )}
@@ -493,21 +514,31 @@ function SidebarThread({
   );
 }
 
-function PeerRow({ peer, onPick, hasThread }: { peer: Peer; onPick: (p: Peer) => void; hasThread?: boolean }) {
+function PeerRow({
+  peer,
+  onPick,
+  hasThread,
+}: {
+  peer: Peer;
+  onPick: (p: Peer) => void;
+  hasThread?: boolean;
+}) {
   return (
     <button
       type="button"
       onClick={() => onPick(peer)}
-      className="w-full text-left px-3 py-2 hover:bg-white/[0.05] flex items-center gap-2.5 group"
+      className="group flex w-full items-center gap-2.5 px-3 py-2 text-left hover:bg-white/[0.05]"
     >
-      <div className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold bg-white/[0.06] text-slate-300 border border-white/10 group-hover:border-blue-400/40 group-hover:text-white">
+      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.06] text-[11px] font-bold text-slate-300 group-hover:border-blue-400/40 group-hover:text-white">
         {(peer.displayName[0] ?? "?").toUpperCase()}
       </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-xs font-semibold text-slate-100 truncate">{peer.displayName}</p>
-        <p className="text-[10px] text-slate-500 truncate">{peer.realName}</p>
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-xs font-semibold text-slate-100">{peer.displayName}</p>
+        <p className="truncate text-[10px] text-slate-500">{peer.realName}</p>
       </div>
-      {hasThread && <Check className="shrink-0 w-3.5 h-3.5 text-emerald-400/70" aria-label="Already chatting" />}
+      {hasThread && (
+        <Check className="h-3.5 w-3.5 shrink-0 text-emerald-400/70" aria-label="Already chatting" />
+      )}
     </button>
   );
 }

@@ -12,7 +12,7 @@ export interface AdminCohortRow {
   id: string;
   name: string;
   tier: CohortTier;
-  sat_date: string;                 // ISO date
+  sat_date: string; // ISO date
   max_size: number;
   current_topic: string | null;
   status: CohortStatus;
@@ -24,7 +24,7 @@ export interface AdminCohortRow {
     last_name: string | null;
     email: string;
   };
-  member_count: number;             // active members (left_at IS NULL)
+  member_count: number; // active members (left_at IS NULL)
 }
 
 export interface SatDateRow {
@@ -56,10 +56,7 @@ export async function fetchCohorts(): Promise<AdminCohortRow[]> {
       .order("sat_date", { ascending: true })
       .order("tier", { ascending: true })
       .order("name", { ascending: true }),
-    supabase
-      .from("cohort_members")
-      .select("cohort_id")
-      .is("left_at", null),
+    supabase.from("cohort_members").select("cohort_id").is("left_at", null),
   ]);
 
   if (cohortsRes.error) throw cohortsRes.error;
@@ -143,11 +140,11 @@ export async function fetchTutors(): Promise<TutorRow[]> {
 // edge cases); the DB won't reject the mismatch.
 // ─────────────────────────────────────────────────────────────
 export interface EligibleStudentRow {
-  id: string;                      // users.id (uuid)
+  id: string; // users.id (uuid)
   first_name: string | null;
   last_name: string | null;
   email: string;
-  subscription_tier: string | null;  // from subscriptions.tier if active/trialing
+  subscription_tier: string | null; // from subscriptions.tier if active/trialing
 }
 
 export async function fetchEligibleStudentsForCohort(
@@ -173,9 +170,7 @@ export async function fetchEligibleStudentsForCohort(
     .order("first_name", { ascending: true, nullsFirst: false });
   if (sErr) throw sErr;
 
-  const eligibleUsers = (students ?? []).filter(
-    (s) => !inACohort.has((s as { id: string }).id)
-  );
+  const eligibleUsers = (students ?? []).filter((s) => !inACohort.has((s as { id: string }).id));
 
   if (eligibleUsers.length === 0) return [];
 
@@ -194,17 +189,22 @@ export async function fetchEligibleStudentsForCohort(
   }
 
   return eligibleUsers.map((s) => {
-    const row = s as { id: string; first_name: string | null; last_name: string | null; email: string; clerk_id: string };
+    const row = s as {
+      id: string;
+      first_name: string | null;
+      last_name: string | null;
+      email: string;
+      clerk_id: string;
+    };
     return {
       id: row.id,
       first_name: row.first_name,
-      last_name:  row.last_name,
-      email:      row.email,
+      last_name: row.last_name,
+      email: row.email,
       subscription_tier: tierByClerk.get(row.clerk_id) ?? null,
     };
   });
 }
-
 
 // ─────────────────────────────────────────────────────────────
 // Stripe lifecycle hooks — keep cohort membership in sync with
@@ -330,7 +330,6 @@ export async function restoreLastCohort(clerkId: string): Promise<string | null>
   return cohortId;
 }
 
-
 // ─────────────────────────────────────────────────────────────
 // Cohort detail page — one cohort + its members + tutor note + homework.
 // ─────────────────────────────────────────────────────────────
@@ -360,7 +359,7 @@ export interface HomeworkRow {
 export interface CohortDetail {
   cohort: AdminCohortRow;
   members: CohortMemberRow[];
-  tutorNote: string | null;           // body of the tutor's per-cohort note (if any)
+  tutorNote: string | null; // body of the tutor's per-cohort note (if any)
   homework: HomeworkRow[];
 }
 
@@ -413,8 +412,8 @@ export async function fetchCohortDetail(cohortId: string): Promise<CohortDetail 
       .order("assigned_at", { ascending: false }),
   ]);
 
-  if (membersRes.error)  throw membersRes.error;
-  if (noteRes.error)     throw noteRes.error;
+  if (membersRes.error) throw membersRes.error;
+  if (noteRes.error) throw noteRes.error;
   if (homeworkRes.error) throw homeworkRes.error;
 
   // Normalize joined user rows.
@@ -422,21 +421,30 @@ export async function fetchCohortDetail(cohortId: string): Promise<CohortDetail 
     joined_at: string;
     user: CohortMemberRow | CohortMemberRow[] | null;
   };
-  const members: CohortMemberRow[] = ((membersRes.data ?? []) as unknown as RawMember[])
-    .flatMap((r) => {
+  const members: CohortMemberRow[] = ((membersRes.data ?? []) as unknown as RawMember[]).flatMap(
+    (r) => {
       const u = Array.isArray(r.user) ? r.user[0] : r.user;
       return u ? [{ ...u, joined_at: r.joined_at }] : [];
-    });
+    }
+  );
 
   type RawHw = Omit<HomeworkRow, "created_by"> & {
     created_by: HomeworkRow["created_by"] | HomeworkRow["created_by"][] | null;
   };
-  const homework: HomeworkRow[] = ((homeworkRes.data ?? []) as unknown as RawHw[])
-    .flatMap((h) => {
-      const cb = Array.isArray(h.created_by) ? h.created_by[0] : h.created_by;
-      if (!cb) return [];
-      return [{ id: h.id, title: h.title, body: h.body, assigned_at: h.assigned_at, due_at: h.due_at, created_by: cb }];
-    });
+  const homework: HomeworkRow[] = ((homeworkRes.data ?? []) as unknown as RawHw[]).flatMap((h) => {
+    const cb = Array.isArray(h.created_by) ? h.created_by[0] : h.created_by;
+    if (!cb) return [];
+    return [
+      {
+        id: h.id,
+        title: h.title,
+        body: h.body,
+        assigned_at: h.assigned_at,
+        due_at: h.due_at,
+        created_by: cb,
+      },
+    ];
+  });
 
   return {
     cohort: {

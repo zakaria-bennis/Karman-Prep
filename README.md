@@ -22,13 +22,13 @@ Env vars live in `.env.local` (gitignored). Mirror to Cloudflare via `npx wrangl
 
 ## Where things live
 
-| Path | What |
-|---|---|
-| **[`src/`](./src/)** | Application code — Next.js routes, components, lib helpers, types |
-| **[`supabase/migrations/`](./supabase/migrations/)** | Every SQL migration applied to the database, in numbered order |
-| **[`scripts/`](./scripts/)** | Admin / maintenance / seed scripts (run from CLI) |
-| **[`question-imports/`](./question-imports/)** | SAT question-extraction pipeline (Python + ChatGPT knowledge files) |
-| **[`docs/`](./docs/)** | Everything else — see the [docs index](./docs/README.md) |
+| Path                                                 | What                                                                |
+| ---------------------------------------------------- | ------------------------------------------------------------------- |
+| **[`src/`](./src/)**                                 | Application code — Next.js routes, components, lib helpers, types   |
+| **[`supabase/migrations/`](./supabase/migrations/)** | Every SQL migration applied to the database, in numbered order      |
+| **[`scripts/`](./scripts/)**                         | Admin / maintenance / seed scripts (run from CLI)                   |
+| **[`question-imports/`](./question-imports/)**       | SAT question-extraction pipeline (Python + ChatGPT knowledge files) |
+| **[`docs/`](./docs/)**                               | Everything else — see the [docs index](./docs/README.md)            |
 
 ## Tech stack
 

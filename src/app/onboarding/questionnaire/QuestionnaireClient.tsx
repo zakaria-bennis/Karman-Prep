@@ -16,8 +16,15 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  ArrowLeft, ArrowRight, CalendarCheck, GraduationCap, Clock, Users, Sparkles,
-  CheckCircle2, Loader2,
+  ArrowLeft,
+  ArrowRight,
+  CalendarCheck,
+  GraduationCap,
+  Clock,
+  Users,
+  Sparkles,
+  CheckCircle2,
+  Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -33,8 +40,16 @@ interface Props {
 }
 
 const HS_YEARS = ["freshman", "sophomore", "junior", "senior"] as const;
-const DAYS = ["monday","tuesday","wednesday","thursday","friday","saturday","sunday"] as const;
-const TIMES = ["morning","afternoon","evening"] as const;
+const DAYS = [
+  "monday",
+  "tuesday",
+  "wednesday",
+  "thursday",
+  "friday",
+  "saturday",
+  "sunday",
+] as const;
+const TIMES = ["morning", "afternoon", "evening"] as const;
 
 const HEARD_OPTIONS = [
   "Friend or classmate",
@@ -93,7 +108,9 @@ export default function QuestionnaireClient({ firstName, tier, satDates }: Props
       const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
       if (tz && COMMON_TZ.includes(tz)) setTimeZone(tz);
       else if (tz) setTimeZone(tz);
-    } catch { /* keep default */ }
+    } catch {
+      /* keep default */
+    }
   }, []);
 
   // ─── Step list (depends on tier) ─────────────────────────
@@ -115,7 +132,8 @@ export default function QuestionnaireClient({ firstName, tier, satDates }: Props
   function canAdvance(): { ok: boolean; reason?: string } {
     if (currentStep.key === "sat") {
       if (!satTestDate) return { ok: false, reason: "Pick your SAT date." };
-      if (goalSatScore < 400 || goalSatScore > 1600) return { ok: false, reason: "Goal score must be 400–1600." };
+      if (goalSatScore < 400 || goalSatScore > 1600)
+        return { ok: false, reason: "Goal score must be 400–1600." };
     }
     if (currentStep.key === "bg") {
       if (!hsYear) return { ok: false, reason: "Pick your high school year." };
@@ -126,8 +144,10 @@ export default function QuestionnaireClient({ firstName, tier, satDates }: Props
       if (!psatTaken) return { ok: false, reason: "Have you taken the PSAT?" };
     }
     if (currentStep.key === "avail") {
-      if (availableDays.length === 0) return { ok: false, reason: "Pick at least one available day." };
-      if (availableTimes.length === 0) return { ok: false, reason: "Pick at least one available time." };
+      if (availableDays.length === 0)
+        return { ok: false, reason: "Pick at least one available day." };
+      if (availableTimes.length === 0)
+        return { ok: false, reason: "Pick at least one available time." };
       if (!timeZone) return { ok: false, reason: "Pick your timezone." };
     }
     if (currentStep.key === "family") {
@@ -140,7 +160,9 @@ export default function QuestionnaireClient({ firstName, tier, satDates }: Props
   // ─── Submit ──────────────────────────────────────────────
   const [submitting, setSubmitting] = useState(false);
   const [submitErr, setSubmitErr] = useState<string | null>(null);
-  const [done, setDone] = useState<{ tier: string; placement: Record<string, unknown> } | null>(null);
+  const [done, setDone] = useState<{ tier: string; placement: Record<string, unknown> } | null>(
+    null
+  );
   const [validationErr, setValidationErr] = useState<string | null>(null);
 
   async function handleSubmit() {
@@ -208,13 +230,13 @@ export default function QuestionnaireClient({ firstName, tier, satDates }: Props
   // ─── Done state ──────────────────────────────────────────
   if (done) {
     return (
-      <div className="relative z-10 w-full max-w-xl rounded-3xl bg-white/[0.04] border border-white/10 backdrop-blur-md shadow-2xl p-8 text-center">
-        <CheckCircle2 className="w-14 h-14 text-emerald-400 mx-auto mb-4" />
-        <h2 className="text-2xl font-extrabold text-white mb-2">You're all set</h2>
+      <div className="relative z-10 w-full max-w-xl rounded-3xl border border-white/10 bg-white/[0.04] p-8 text-center shadow-2xl backdrop-blur-md">
+        <CheckCircle2 className="mx-auto mb-4 h-14 w-14 text-emerald-400" />
+        <h2 className="mb-2 text-2xl font-extrabold text-white">You're all set</h2>
         <DoneSummary tier={done.tier} placement={done.placement} />
         <button
           onClick={() => router.push("/dashboard/student")}
-          className="mt-6 px-6 py-3 rounded-xl font-bold text-white bg-gradient-to-r from-blue-600 via-indigo-500 to-violet-500 hover:from-blue-500 hover:via-indigo-400 hover:to-violet-400 transition-all"
+          className="mt-6 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-500 to-violet-500 px-6 py-3 font-bold text-white transition-all hover:from-blue-500 hover:via-indigo-400 hover:to-violet-400"
         >
           Go to your dashboard
         </button>
@@ -226,13 +248,13 @@ export default function QuestionnaireClient({ firstName, tier, satDates }: Props
   return (
     <div className="relative z-10 w-full max-w-xl">
       {/* Header */}
-      <div className="text-center mb-6">
-        <p className="text-xs font-bold tracking-widest text-blue-300 uppercase mb-1">
+      <div className="mb-6 text-center">
+        <p className="mb-1 text-xs font-bold uppercase tracking-widest text-blue-300">
           Welcome, {firstName}
         </p>
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-white">
+        <h1 className="text-2xl font-extrabold text-white sm:text-3xl">
           Let's get you{" "}
-          <span className="italic font-extrabold bg-gradient-to-r from-blue-400 via-indigo-300 to-violet-300 bg-clip-text text-transparent">
+          <span className="bg-gradient-to-r from-blue-400 via-indigo-300 to-violet-300 bg-clip-text font-extrabold italic text-transparent">
             placed
           </span>
         </h1>
@@ -242,30 +264,30 @@ export default function QuestionnaireClient({ firstName, tier, satDates }: Props
       </div>
 
       {/* Step indicator */}
-      <ol className="flex items-center justify-center gap-2 mb-5">
+      <ol className="mb-5 flex items-center justify-center gap-2">
         {steps.map((s, i) => (
           <li key={s.key} className="flex items-center gap-2">
             <span
               className={cn(
-                "w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold border transition-colors",
+                "flex h-7 w-7 items-center justify-center rounded-full border text-[11px] font-bold transition-colors",
                 i < stepIdx
-                  ? "bg-emerald-500/20 border-emerald-400/40 text-emerald-200"
+                  ? "border-emerald-400/40 bg-emerald-500/20 text-emerald-200"
                   : i === stepIdx
-                    ? "bg-gradient-to-br from-blue-500 to-violet-500 border-transparent text-white"
-                    : "bg-white/[0.03] border-white/10 text-slate-500"
+                    ? "border-transparent bg-gradient-to-br from-blue-500 to-violet-500 text-white"
+                    : "border-white/10 bg-white/[0.03] text-slate-500"
               )}
             >
               {i + 1}
             </span>
-            {i < steps.length - 1 && <span className="w-4 h-px bg-white/10" />}
+            {i < steps.length - 1 && <span className="h-px w-4 bg-white/10" />}
           </li>
         ))}
       </ol>
 
       {/* Card */}
-      <div className="rounded-3xl bg-white/[0.04] border border-white/10 backdrop-blur-md shadow-2xl p-6 sm:p-8">
-        <div className="flex items-center gap-2 mb-4 text-xs font-semibold uppercase tracking-wider text-slate-400">
-          <currentStep.icon className="w-3.5 h-3.5" />
+      <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-6 shadow-2xl backdrop-blur-md sm:p-8">
+        <div className="mb-4 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-400">
+          <currentStep.icon className="h-3.5 w-3.5" />
           Step {stepIdx + 1} of {steps.length} — {currentStep.label}
         </div>
 
@@ -281,28 +303,40 @@ export default function QuestionnaireClient({ firstName, tier, satDates }: Props
 
         {currentStep.key === "bg" && (
           <Step_Background
-            hsYear={hsYear} setHsYear={setHsYear}
-            satTaken={satTaken} setSatTaken={setSatTaken}
-            recentSatMath={recentSatMath} setRecentSatMath={setRecentSatMath}
-            recentSatReading={recentSatReading} setRecentSatReading={setRecentSatReading}
-            recentSatTimePressure={recentSatTimePressure} setRecentSatTimePressure={setRecentSatTimePressure}
-            psatTaken={psatTaken} setPsatTaken={setPsatTaken}
-            psatScore={psatScore} setPsatScore={setPsatScore}
+            hsYear={hsYear}
+            setHsYear={setHsYear}
+            satTaken={satTaken}
+            setSatTaken={setSatTaken}
+            recentSatMath={recentSatMath}
+            setRecentSatMath={setRecentSatMath}
+            recentSatReading={recentSatReading}
+            setRecentSatReading={setRecentSatReading}
+            recentSatTimePressure={recentSatTimePressure}
+            setRecentSatTimePressure={setRecentSatTimePressure}
+            psatTaken={psatTaken}
+            setPsatTaken={setPsatTaken}
+            psatScore={psatScore}
+            setPsatScore={setPsatScore}
           />
         )}
 
         {currentStep.key === "avail" && (
           <Step_Availability
-            availableDays={availableDays} setAvailableDays={setAvailableDays}
-            availableTimes={availableTimes} setAvailableTimes={setAvailableTimes}
-            timeZone={timeZone} setTimeZone={setTimeZone}
+            availableDays={availableDays}
+            setAvailableDays={setAvailableDays}
+            availableTimes={availableTimes}
+            setAvailableTimes={setAvailableTimes}
+            timeZone={timeZone}
+            setTimeZone={setTimeZone}
           />
         )}
 
         {currentStep.key === "family" && (
           <Step_Family
-            parentEmail={parentEmail} setParentEmail={setParentEmail}
-            parentPhone={parentPhone} setParentPhone={setParentPhone}
+            parentEmail={parentEmail}
+            setParentEmail={setParentEmail}
+            parentPhone={parentPhone}
+            setParentPhone={setParentPhone}
           />
         )}
 
@@ -313,12 +347,8 @@ export default function QuestionnaireClient({ firstName, tier, satDates }: Props
           />
         )}
 
-        {validationErr && (
-          <p className="mt-4 text-sm text-rose-300">{validationErr}</p>
-        )}
-        {submitErr && (
-          <p className="mt-4 text-sm text-rose-300">{submitErr}</p>
-        )}
+        {validationErr && <p className="mt-4 text-sm text-rose-300">{validationErr}</p>}
+        {submitErr && <p className="mt-4 text-sm text-rose-300">{submitErr}</p>}
 
         {/* Footer buttons */}
         <div className="mt-6 flex items-center justify-between">
@@ -326,20 +356,20 @@ export default function QuestionnaireClient({ firstName, tier, satDates }: Props
             type="button"
             onClick={prev}
             disabled={stepIdx === 0 || submitting}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-slate-300 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
+            className="inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold text-slate-300 hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="h-4 w-4" />
             Previous
           </button>
           <button
             type="button"
             onClick={next}
             disabled={submitting}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-blue-600 via-indigo-500 to-violet-500 hover:from-blue-500 hover:via-indigo-400 hover:to-violet-400 disabled:opacity-50 transition-all"
+            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-500 to-violet-500 px-5 py-2.5 text-sm font-bold text-white transition-all hover:from-blue-500 hover:via-indigo-400 hover:to-violet-400 disabled:opacity-50"
           >
-            {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
+            {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
             {stepIdx === steps.length - 1 ? "Finish & place me" : "Next"}
-            {!submitting && <ArrowRight className="w-4 h-4" />}
+            {!submitting && <ArrowRight className="h-4 w-4" />}
           </button>
         </div>
       </div>
@@ -353,24 +383,26 @@ export default function QuestionnaireClient({ firstName, tier, satDates }: Props
 
 function Step_SatSchedule(props: {
   satDates: SatDateOption[];
-  satTestDate: string; setSatTestDate: (v: string) => void;
-  goalSatScore: number; setGoalSatScore: (v: number) => void;
+  satTestDate: string;
+  setSatTestDate: (v: string) => void;
+  goalSatScore: number;
+  setGoalSatScore: (v: number) => void;
 }) {
   return (
     <div className="space-y-6">
       <div>
         <Label>Which SAT date are you registered for?</Label>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
           {props.satDates.map((d) => (
             <button
               key={d.iso}
               type="button"
               onClick={() => props.setSatTestDate(d.iso)}
               className={cn(
-                "px-3 py-2 rounded-lg text-xs font-semibold border transition-colors",
+                "rounded-lg border px-3 py-2 text-xs font-semibold transition-colors",
                 props.satTestDate === d.iso
-                  ? "bg-blue-500 text-white border-blue-500"
-                  : "bg-white/[0.03] text-slate-200 border-white/10 hover:border-white/30"
+                  ? "border-blue-500 bg-blue-500 text-white"
+                  : "border-white/10 bg-white/[0.03] text-slate-200 hover:border-white/30"
               )}
             >
               {d.label}
@@ -381,7 +413,7 @@ function Step_SatSchedule(props: {
 
       <div>
         <Label>What's your goal score?</Label>
-        <div className="text-center text-3xl font-extrabold text-white mb-1">
+        <div className="mb-1 text-center text-3xl font-extrabold text-white">
           {props.goalSatScore}
         </div>
         <input
@@ -393,8 +425,9 @@ function Step_SatSchedule(props: {
           onChange={(e) => props.setGoalSatScore(Number(e.target.value))}
           className="w-full accent-blue-400"
         />
-        <div className="flex justify-between text-[11px] text-slate-500 mt-1">
-          <span>400</span><span>1600</span>
+        <div className="mt-1 flex justify-between text-[11px] text-slate-500">
+          <span>400</span>
+          <span>1600</span>
         </div>
       </div>
     </div>
@@ -402,29 +435,36 @@ function Step_SatSchedule(props: {
 }
 
 function Step_Background(props: {
-  hsYear: string; setHsYear: (v: string) => void;
-  satTaken: "yes" | "no" | ""; setSatTaken: (v: "yes" | "no" | "") => void;
-  recentSatMath: number; setRecentSatMath: (n: number) => void;
-  recentSatReading: number; setRecentSatReading: (n: number) => void;
-  recentSatTimePressure: "yes" | "no" | ""; setRecentSatTimePressure: (v: "yes" | "no" | "") => void;
-  psatTaken: "yes" | "no" | ""; setPsatTaken: (v: "yes" | "no" | "") => void;
-  psatScore: number; setPsatScore: (n: number) => void;
+  hsYear: string;
+  setHsYear: (v: string) => void;
+  satTaken: "yes" | "no" | "";
+  setSatTaken: (v: "yes" | "no" | "") => void;
+  recentSatMath: number;
+  setRecentSatMath: (n: number) => void;
+  recentSatReading: number;
+  setRecentSatReading: (n: number) => void;
+  recentSatTimePressure: "yes" | "no" | "";
+  setRecentSatTimePressure: (v: "yes" | "no" | "") => void;
+  psatTaken: "yes" | "no" | "";
+  setPsatTaken: (v: "yes" | "no" | "") => void;
+  psatScore: number;
+  setPsatScore: (n: number) => void;
 }) {
   return (
     <div className="space-y-6">
       <div>
         <Label>What year are you in high school?</Label>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           {HS_YEARS.map((y) => (
             <button
               key={y}
               type="button"
               onClick={() => props.setHsYear(y)}
               className={cn(
-                "px-3 py-2 rounded-lg text-xs font-semibold border capitalize transition-colors",
+                "rounded-lg border px-3 py-2 text-xs font-semibold capitalize transition-colors",
                 props.hsYear === y
-                  ? "bg-blue-500 text-white border-blue-500"
-                  : "bg-white/[0.03] text-slate-200 border-white/10 hover:border-white/30"
+                  ? "border-blue-500 bg-blue-500 text-white"
+                  : "border-white/10 bg-white/[0.03] text-slate-200 hover:border-white/30"
               )}
             >
               {y}
@@ -442,29 +482,48 @@ function Step_Background(props: {
         <>
           <div>
             <Label>Most recent Math score</Label>
-            <div className="text-center text-2xl font-extrabold text-white mb-1">
+            <div className="mb-1 text-center text-2xl font-extrabold text-white">
               {props.recentSatMath}
             </div>
-            <input type="range" min={200} max={800} step={5}
+            <input
+              type="range"
+              min={200}
+              max={800}
+              step={5}
               value={props.recentSatMath}
               onChange={(e) => props.setRecentSatMath(Number(e.target.value))}
-              className="w-full accent-blue-400" />
-            <div className="flex justify-between text-[11px] text-slate-500 mt-1"><span>200</span><span>800</span></div>
+              className="w-full accent-blue-400"
+            />
+            <div className="mt-1 flex justify-between text-[11px] text-slate-500">
+              <span>200</span>
+              <span>800</span>
+            </div>
           </div>
           <div>
             <Label>Most recent Reading & Writing score</Label>
-            <div className="text-center text-2xl font-extrabold text-white mb-1">
+            <div className="mb-1 text-center text-2xl font-extrabold text-white">
               {props.recentSatReading}
             </div>
-            <input type="range" min={200} max={800} step={5}
+            <input
+              type="range"
+              min={200}
+              max={800}
+              step={5}
               value={props.recentSatReading}
               onChange={(e) => props.setRecentSatReading(Number(e.target.value))}
-              className="w-full accent-blue-400" />
-            <div className="flex justify-between text-[11px] text-slate-500 mt-1"><span>200</span><span>800</span></div>
+              className="w-full accent-blue-400"
+            />
+            <div className="mt-1 flex justify-between text-[11px] text-slate-500">
+              <span>200</span>
+              <span>800</span>
+            </div>
           </div>
           <div>
             <Label>Was time a pressuring factor on that test?</Label>
-            <YesNoChoice value={props.recentSatTimePressure} onChange={props.setRecentSatTimePressure} />
+            <YesNoChoice
+              value={props.recentSatTimePressure}
+              onChange={props.setRecentSatTimePressure}
+            />
           </div>
         </>
       )}
@@ -476,14 +535,22 @@ function Step_Background(props: {
       {props.psatTaken === "yes" && (
         <div>
           <Label>PSAT total score</Label>
-          <div className="text-center text-2xl font-extrabold text-white mb-1">
+          <div className="mb-1 text-center text-2xl font-extrabold text-white">
             {props.psatScore}
           </div>
-          <input type="range" min={320} max={1520} step={10}
+          <input
+            type="range"
+            min={320}
+            max={1520}
+            step={10}
             value={props.psatScore}
             onChange={(e) => props.setPsatScore(Number(e.target.value))}
-            className="w-full accent-blue-400" />
-          <div className="flex justify-between text-[11px] text-slate-500 mt-1"><span>320</span><span>1520</span></div>
+            className="w-full accent-blue-400"
+          />
+          <div className="mt-1 flex justify-between text-[11px] text-slate-500">
+            <span>320</span>
+            <span>1520</span>
+          </div>
         </div>
       )}
     </div>
@@ -491,9 +558,12 @@ function Step_Background(props: {
 }
 
 function Step_Availability(props: {
-  availableDays: string[]; setAvailableDays: (v: string[]) => void;
-  availableTimes: string[]; setAvailableTimes: (v: string[]) => void;
-  timeZone: string; setTimeZone: (v: string) => void;
+  availableDays: string[];
+  setAvailableDays: (v: string[]) => void;
+  availableTimes: string[];
+  setAvailableTimes: (v: string[]) => void;
+  timeZone: string;
+  setTimeZone: (v: string) => void;
 }) {
   function toggleDay(d: string) {
     props.setAvailableDays(
@@ -513,7 +583,7 @@ function Step_Availability(props: {
     <div className="space-y-6">
       <div>
         <Label>Which days are you available?</Label>
-        <div className="grid grid-cols-3 sm:grid-cols-7 gap-1.5">
+        <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-7">
           {DAYS.map((d) => {
             const on = props.availableDays.includes(d);
             return (
@@ -522,10 +592,10 @@ function Step_Availability(props: {
                 type="button"
                 onClick={() => toggleDay(d)}
                 className={cn(
-                  "px-2 py-2 rounded-lg text-[11px] font-semibold border capitalize transition-colors",
+                  "rounded-lg border px-2 py-2 text-[11px] font-semibold capitalize transition-colors",
                   on
-                    ? "bg-blue-500 text-white border-blue-500"
-                    : "bg-white/[0.03] text-slate-200 border-white/10 hover:border-white/30"
+                    ? "border-blue-500 bg-blue-500 text-white"
+                    : "border-white/10 bg-white/[0.03] text-slate-200 hover:border-white/30"
                 )}
               >
                 {d.slice(0, 3)}
@@ -546,10 +616,10 @@ function Step_Availability(props: {
                 type="button"
                 onClick={() => toggleTime(t)}
                 className={cn(
-                  "px-3 py-2.5 rounded-lg text-xs font-semibold border capitalize transition-colors",
+                  "rounded-lg border px-3 py-2.5 text-xs font-semibold capitalize transition-colors",
                   on
-                    ? "bg-blue-500 text-white border-blue-500"
-                    : "bg-white/[0.03] text-slate-200 border-white/10 hover:border-white/30"
+                    ? "border-blue-500 bg-blue-500 text-white"
+                    : "border-white/10 bg-white/[0.03] text-slate-200 hover:border-white/30"
                 )}
               >
                 <div>{t}</div>
@@ -567,13 +637,17 @@ function Step_Availability(props: {
         <select
           value={props.timeZone}
           onChange={(e) => props.setTimeZone(e.target.value)}
-          className="w-full px-3 py-2 rounded-lg bg-white/[0.03] border border-white/10 text-slate-100 text-sm focus:outline-none focus:border-blue-400"
+          className="w-full rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-slate-100 focus:border-blue-400 focus:outline-none"
         >
           {COMMON_TZ.map((tz) => (
-            <option key={tz} value={tz} className="bg-slate-900">{tz}</option>
+            <option key={tz} value={tz} className="bg-slate-900">
+              {tz}
+            </option>
           ))}
           {!COMMON_TZ.includes(props.timeZone) && (
-            <option value={props.timeZone} className="bg-slate-900">{props.timeZone}</option>
+            <option value={props.timeZone} className="bg-slate-900">
+              {props.timeZone}
+            </option>
           )}
         </select>
       </div>
@@ -582,13 +656,16 @@ function Step_Availability(props: {
 }
 
 function Step_Family(props: {
-  parentEmail: string; setParentEmail: (v: string) => void;
-  parentPhone: string; setParentPhone: (v: string) => void;
+  parentEmail: string;
+  setParentEmail: (v: string) => void;
+  parentPhone: string;
+  setParentPhone: (v: string) => void;
 }) {
   return (
     <div className="space-y-5">
       <p className="text-xs text-slate-400">
-        Parents see your progress + chat history through the parent portal. Optional but recommended.
+        Parents see your progress + chat history through the parent portal. Optional but
+        recommended.
       </p>
       <div>
         <Label>Parent's email</Label>
@@ -597,7 +674,7 @@ function Step_Family(props: {
           value={props.parentEmail}
           onChange={(e) => props.setParentEmail(e.target.value)}
           placeholder="parent@example.com"
-          className="w-full px-3 py-2 rounded-lg bg-white/[0.03] border border-white/10 text-slate-100 text-sm placeholder:text-slate-500 focus:outline-none focus:border-blue-400"
+          className="w-full rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-blue-400 focus:outline-none"
         />
       </div>
       <div>
@@ -607,17 +684,14 @@ function Step_Family(props: {
           value={props.parentPhone}
           onChange={(e) => props.setParentPhone(e.target.value)}
           placeholder="(555) 123-4567"
-          className="w-full px-3 py-2 rounded-lg bg-white/[0.03] border border-white/10 text-slate-100 text-sm placeholder:text-slate-500 focus:outline-none focus:border-blue-400"
+          className="w-full rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-blue-400 focus:outline-none"
         />
       </div>
     </div>
   );
 }
 
-function Step_Heard(props: {
-  heardAboutStrata: string;
-  setHeardAboutStrata: (v: string) => void;
-}) {
+function Step_Heard(props: { heardAboutStrata: string; setHeardAboutStrata: (v: string) => void }) {
   return (
     <div className="space-y-3">
       <Label>How did you hear about Karman?</Label>
@@ -628,10 +702,10 @@ function Step_Heard(props: {
             type="button"
             onClick={() => props.setHeardAboutStrata(opt)}
             className={cn(
-              "px-3 py-2 rounded-lg text-xs font-semibold border text-left transition-colors",
+              "rounded-lg border px-3 py-2 text-left text-xs font-semibold transition-colors",
               props.heardAboutStrata === opt
-                ? "bg-blue-500 text-white border-blue-500"
-                : "bg-white/[0.03] text-slate-200 border-white/10 hover:border-white/30"
+                ? "border-blue-500 bg-blue-500 text-white"
+                : "border-white/10 bg-white/[0.03] text-slate-200 hover:border-white/30"
             )}
           >
             {opt}
@@ -648,7 +722,8 @@ function DoneSummary({ tier, placement }: { tier: string; placement: Record<stri
     const created = placement.cohortCreated as boolean | undefined;
     return (
       <p className="text-sm text-slate-300">
-        You've been placed in <span className="font-semibold text-white">{name ?? "your cohort"}</span>.
+        You've been placed in{" "}
+        <span className="font-semibold text-white">{name ?? "your cohort"}</span>.
         {created ? " (Brand-new cohort created for your SAT date.)" : ""}
       </p>
     );
@@ -673,13 +748,16 @@ function DoneSummary({ tier, placement }: { tier: string; placement: Record<stri
 
 function Label({ children }: { children: React.ReactNode }) {
   return (
-    <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
+    <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-400">
       {children}
     </label>
   );
 }
 
-function YesNoChoice({ value, onChange }: {
+function YesNoChoice({
+  value,
+  onChange,
+}: {
   value: "yes" | "no" | "";
   onChange: (v: "yes" | "no" | "") => void;
 }) {
@@ -691,10 +769,10 @@ function YesNoChoice({ value, onChange }: {
           type="button"
           onClick={() => onChange(opt)}
           className={cn(
-            "px-3 py-2 rounded-lg text-xs font-semibold border capitalize transition-colors",
+            "rounded-lg border px-3 py-2 text-xs font-semibold capitalize transition-colors",
             value === opt
-              ? "bg-blue-500 text-white border-blue-500"
-              : "bg-white/[0.03] text-slate-200 border-white/10 hover:border-white/30"
+              ? "border-blue-500 bg-blue-500 text-white"
+              : "border-white/10 bg-white/[0.03] text-slate-200 hover:border-white/30"
           )}
         >
           {opt}

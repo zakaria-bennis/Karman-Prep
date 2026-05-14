@@ -30,7 +30,7 @@ export default async function MathPage() {
     .in("node_id", allIds);
 
   const statusMap = new Map(statusRows?.map((r) => [r.node_id, r.status as NodeStatus]) ?? []);
-  if (!RW_NODES.some((n) => statusMap.has(n.id)))   await initUserProgress("reading");
+  if (!RW_NODES.some((n) => statusMap.has(n.id))) await initUserProgress("reading");
   if (!MATH_NODES.some((n) => statusMap.has(n.id))) await initUserProgress("math");
 
   const finalRows = statusRows ?? [];
@@ -54,10 +54,6 @@ export default async function MathPage() {
   }));
 
   return (
-    <ConstellationMap
-      activeSubject="math"
-      readingNodes={readingNodes}
-      mathNodes={mathNodes}
-    />
+    <ConstellationMap activeSubject="math" readingNodes={readingNodes} mathNodes={mathNodes} />
   );
 }

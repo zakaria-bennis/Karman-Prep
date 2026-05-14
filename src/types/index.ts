@@ -70,13 +70,13 @@ export interface DomainScores {
   // Math — College Board's 4 Math domains
   algebra: number;
   advanced_math: number;
-  geometry: number;            // "Geometry & Trig" on the Bluebook score report
-  data_analysis: number;       // "Problem-Solving & Data Analysis"
+  geometry: number; // "Geometry & Trig" on the Bluebook score report
+  data_analysis: number; // "Problem-Solving & Data Analysis"
   // Reading & Writing — College Board's 4 R&W domains
-  info_ideas: number;          // Information & Ideas
-  craft_structure: number;     // Craft & Structure
-  expression_ideas: number;    // Expression of Ideas
-  conventions: number;         // Standard English Conventions
+  info_ideas: number; // Information & Ideas
+  craft_structure: number; // Craft & Structure
+  expression_ideas: number; // Expression of Ideas
+  conventions: number; // Standard English Conventions
 }
 
 /** A practice or diagnostic question */
@@ -116,7 +116,10 @@ export const DOMAIN_SECTION: Record<SATDomain, "math" | "rw"> = {
 };
 
 /** Tailwind color classes for each SAT domain */
-export const DOMAIN_COLORS: Record<SATDomain, { bg: string; text: string; border: string; hex: string }> = {
+export const DOMAIN_COLORS: Record<
+  SATDomain,
+  { bg: string; text: string; border: string; hex: string }
+> = {
   algebra: {
     bg: "bg-blue-500",
     text: "text-blue-500",
@@ -196,10 +199,11 @@ export interface PricingTier {
 export const PRICING_TIERS: PricingTier[] = [
   {
     id: "group",
-    name: "Seminar",                         // #10 renamed Group → Seminar
+    name: "Seminar", // #10 renamed Group → Seminar
     price: "$40",
     period: "/month",
-    description: "Full curriculum access and live seminar-style group sessions to keep you on track.",
+    description:
+      "Full curriculum access and live seminar-style group sessions to keep you on track.",
     features: [
       "Access to full curriculum library (100+ lessons)",
       "Live seminar-style group sessions with your cohort", // #5 removed 15-student cap
@@ -254,7 +258,7 @@ export const PRICING_TIERS: PricingTier[] = [
     description: "8 private sessions per month with a dedicated elite SAT specialist.",
     features: [
       "8 private 1-on-1 sessions per month",
-      "Dedicated elite SAT specialist",              // #12 removed founder names
+      "Dedicated elite SAT specialist", // #12 removed founder names
       "Custom study plan built around your test date",
       "50-point score improvement guarantee",
       "24/7 priority support via text",
@@ -263,7 +267,7 @@ export const PRICING_TIERS: PricingTier[] = [
     ],
     cta: "Start Free Trial",
     highlighted: false,
-    bestValue: true,                                  // #11 Best Value badge
+    bestValue: true, // #11 Best Value badge
     stripePriceEnvKey: "STRIPE_PRICE_ELITE_MONTHLY",
   },
 ];

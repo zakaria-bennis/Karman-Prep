@@ -16,67 +16,61 @@ import { ArrowRight, ClipboardCheck, Clock, Sparkles } from "lucide-react";
 
 export default function DiagnosticTeaser() {
   return (
-    <section
-      id="sample-quiz"
-      className="relative py-24 bg-cloud-night bg-grain overflow-hidden"
-    >
+    <section id="sample-quiz" className="bg-cloud-night bg-grain relative overflow-hidden py-24">
       {/* Atmospheric glow — same vocabulary as the rest of the landing. */}
-      <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+      <div className="pointer-events-none absolute inset-0" aria-hidden="true">
         <div
-          className="absolute top-20 -right-40 w-[520px] h-[520px] rounded-full blur-3xl"
+          className="absolute -right-40 top-20 h-[520px] w-[520px] rounded-full blur-3xl"
           style={{ background: "radial-gradient(circle, rgba(196,167,255,0.10), transparent 70%)" }}
         />
         <div
-          className="absolute -bottom-32 -left-20 w-[420px] h-[420px] rounded-full blur-3xl"
+          className="absolute -bottom-32 -left-20 h-[420px] w-[420px] rounded-full blur-3xl"
           style={{ background: "radial-gradient(circle, rgba(99,102,241,0.10), transparent 70%)" }}
         />
       </div>
 
-      <div className="relative max-w-3xl mx-auto px-4 sm:px-6">
+      <div className="relative mx-auto max-w-3xl px-4 sm:px-6">
         {/* Headline */}
-        <div className="text-center mb-10">
-          <div className="inline-flex items-center gap-2 bg-purple-400/15 text-purple-300 px-4 py-1.5 rounded-full text-sm font-semibold mb-5 border border-purple-400/20">
-            <ClipboardCheck className="w-4 h-4" />
+        <div className="mb-10 text-center">
+          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-purple-400/20 bg-purple-400/15 px-4 py-1.5 text-sm font-semibold text-purple-300">
+            <ClipboardCheck className="h-4 w-4" />
             Your free diagnostic
           </div>
           <h2 className="type-display-lg text-white">
-            Find your SAT <span className="italic text-purple-200 font-[650]">baseline</span>.
+            Find your SAT <span className="font-[650] italic text-purple-200">baseline</span>.
           </h2>
-          <p className="type-body-lg mt-4 text-slate-400 text-balance">
-            35 questions across all eight Digital SAT domains. Get a difficulty-weighted
-            score range, a per-domain breakdown, and the exact topics you need to start with.
+          <p className="type-body-lg mt-4 text-balance text-slate-400">
+            35 questions across all eight Digital SAT domains. Get a difficulty-weighted score
+            range, a per-domain breakdown, and the exact topics you need to start with.
           </p>
         </div>
 
         {/* Stat strip — three small cards reinforcing what they get. */}
         <div className="glass-cloud-strong p-6 sm:p-8">
-          <div className="grid sm:grid-cols-3 gap-4 mb-8">
+          <div className="mb-8 grid gap-4 sm:grid-cols-3">
             <StatCard
-              icon={<Clock className="w-5 h-5" />}
+              icon={<Clock className="h-5 w-5" />}
               value="~35 min"
               label="One sitting, untimed retakes never offered"
             />
             <StatCard
-              icon={<ClipboardCheck className="w-5 h-5" />}
+              icon={<ClipboardCheck className="h-5 w-5" />}
               value="35 questions"
               label="Math + Reading & Writing"
             />
             <StatCard
-              icon={<Sparkles className="w-5 h-5" />}
+              icon={<Sparkles className="h-5 w-5" />}
               value="Foundation-aware"
               label="Tells you what to start with — not just what's lowest"
             />
           </div>
 
           {/* CTA */}
-          <Link
-            href="/diagnostic"
-            className="btn-primary w-full text-base py-4 justify-center"
-          >
+          <Link href="/diagnostic" className="btn-primary w-full justify-center py-4 text-base">
             Begin the diagnostic
-            <ArrowRight className="w-5 h-5" />
+            <ArrowRight className="h-5 w-5" />
           </Link>
-          <p className="mt-3 text-xs text-slate-400 text-center">
+          <p className="mt-3 text-center text-xs text-slate-400">
             Free · sign-in required so we can save your results
           </p>
         </div>
@@ -85,22 +79,14 @@ export default function DiagnosticTeaser() {
   );
 }
 
-function StatCard({
-  icon,
-  value,
-  label,
-}: {
-  icon: React.ReactNode;
-  value: string;
-  label: string;
-}) {
+function StatCard({ icon, value, label }: { icon: React.ReactNode; value: string; label: string }) {
   return (
     <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
-      <div className="flex items-center gap-2 text-purple-300 mb-2">
+      <div className="mb-2 flex items-center gap-2 text-purple-300">
         {icon}
         <span className="text-sm font-bold">{value}</span>
       </div>
-      <p className="text-xs text-slate-400 leading-relaxed">{label}</p>
+      <p className="text-xs leading-relaxed text-slate-400">{label}</p>
     </div>
   );
 }

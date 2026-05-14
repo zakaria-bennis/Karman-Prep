@@ -33,7 +33,7 @@ const READING_STARS = Array.from({ length: 110 }, (_, i) => ({
   left: pr(i * 2.1 + 0.7) * 100,
   r: 0.5 + pr(i * 3.9) * 1.6,
   o: 0.25 + pr(i * 4.7) * 0.65,
-  depth: 1 + (i % 3) * 0.8,   // 3 parallax layers (1, 1.8, 2.6)
+  depth: 1 + (i % 3) * 0.8, // 3 parallax layers (1, 1.8, 2.6)
 }));
 const MATH_STARS = Array.from({ length: 110 }, (_, i) => ({
   top: pr(i * 2.3 + 77) * 100,
@@ -95,19 +95,18 @@ export default function PortalCards({ readingStats, mathStats }: Props) {
 
   // On unmount, reset scroll so the constellation page starts at top
   useEffect(() => {
-    return () => { if (typeof window !== "undefined") window.scrollTo(0, 0); };
+    return () => {
+      if (typeof window !== "undefined") window.scrollTo(0, 0);
+    };
   }, []);
 
   return (
-    <div
-      onMouseMove={handleMouseMove}
-      className="fixed inset-0 flex overflow-hidden bg-[#02040a]"
-    >
+    <div onMouseMove={handleMouseMove} className="fixed inset-0 flex overflow-hidden bg-[#02040a]">
       {HALVES.map((h) => {
         const stats = statsMap[h.subject];
         const pct = stats.total > 0 ? Math.round((stats.mastered / stats.total) * 100) : 0;
         const isHovered = hovered === h.subject;
-        const isOther   = hovered !== null && hovered !== h.subject;
+        const isOther = hovered !== null && hovered !== h.subject;
         const isLeaving = transitioning === h.subject;
         const isDimming = transitioning !== null && transitioning !== h.subject;
 
@@ -118,7 +117,7 @@ export default function PortalCards({ readingStats, mathStats }: Props) {
             onMouseEnter={() => setHovered(h.subject)}
             onMouseLeave={() => setHovered(null)}
             onClick={() => handleEnter(h.subject, h.href)}
-            className="relative flex-1 group overflow-hidden cursor-pointer text-left"
+            className="group relative flex-1 cursor-pointer overflow-hidden text-left"
             animate={{
               flex: isLeaving ? 3 : isDimming ? 0.4 : 1,
               filter: isDimming ? "brightness(0.3) saturate(0.5)" : "brightness(1)",
@@ -143,7 +142,7 @@ export default function PortalCards({ readingStats, mathStats }: Props) {
 
               {/* Brand-color halo pulses on hover */}
               <motion.div
-                className="absolute inset-0 pointer-events-none"
+                className="pointer-events-none absolute inset-0"
                 animate={{ opacity: isHovered ? 1 : 0.55 }}
                 transition={{ duration: 0.5 }}
                 style={{
@@ -152,10 +151,7 @@ export default function PortalCards({ readingStats, mathStats }: Props) {
               />
 
               {/* Parallax starfield — 3 depth layers that drift with the cursor */}
-              <motion.div
-                className="absolute inset-0"
-                style={{ x: parallaxX, y: parallaxY }}
-              >
+              <motion.div className="absolute inset-0" style={{ x: parallaxX, y: parallaxY }}>
                 {h.stars.map((s, i) => {
                   const depthMul = s.depth;
                   return (
@@ -169,9 +165,13 @@ export default function PortalCards({ readingStats, mathStats }: Props) {
                         height: `${s.r * depthMul}px`,
                         opacity: s.o,
                       }}
-                      animate={isHovered ? {
-                        opacity: [s.o, Math.min(1, s.o * 1.6), s.o],
-                      } : {}}
+                      animate={
+                        isHovered
+                          ? {
+                              opacity: [s.o, Math.min(1, s.o * 1.6), s.o],
+                            }
+                          : {}
+                      }
                       transition={{
                         duration: 2 + (i % 5) * 0.5,
                         repeat: Infinity,
@@ -189,14 +189,16 @@ export default function PortalCards({ readingStats, mathStats }: Props) {
             {/* Vertical dividing edge glow */}
             {h.subject === "reading" && (
               <div
-                className="absolute right-0 top-0 bottom-0 w-px pointer-events-none"
-                style={{ background: `linear-gradient(180deg, transparent, ${h.color}30 50%, transparent)` }}
+                className="pointer-events-none absolute bottom-0 right-0 top-0 w-px"
+                style={{
+                  background: `linear-gradient(180deg, transparent, ${h.color}30 50%, transparent)`,
+                }}
               />
             )}
 
             {/* Content */}
             <motion.div
-              className="relative z-10 h-full flex flex-col items-center justify-center px-6 text-center pointer-events-none"
+              className="pointer-events-none relative z-10 flex h-full flex-col items-center justify-center px-6 text-center"
               animate={{
                 scale: isLeaving ? 1.25 : isHovered ? 1.04 : 1,
                 opacity: isLeaving ? 0 : 1,
@@ -214,17 +216,17 @@ export default function PortalCards({ readingStats, mathStats }: Props) {
                 }}
                 transition={{ duration: 0.5 }}
               >
-                <h.Icon className="w-16 h-16" style={{ color: h.color }} />
+                <h.Icon className="h-16 w-16" style={{ color: h.color }} />
               </motion.div>
 
               <h2
-                className="text-5xl sm:text-6xl font-extrabold text-white mb-6 tracking-tight"
+                className="mb-6 text-5xl font-extrabold tracking-tight text-white sm:text-6xl"
                 style={{ textShadow: `0 0 40px ${h.color}50` }}
               >
                 {h.subject === "reading" ? "Reading & Writing" : "Math"}
               </h2>
               <p
-                className="max-w-sm text-base leading-relaxed text-slate-300/90 mb-10 italic"
+                className="mb-10 max-w-sm text-base italic leading-relaxed text-slate-300/90"
                 style={{ fontFamily: "Georgia, serif" }}
               >
                 {h.description}
@@ -232,16 +234,16 @@ export default function PortalCards({ readingStats, mathStats }: Props) {
 
               {/* Progress pill */}
               <div
-                className="flex items-center gap-4 px-5 py-2.5 rounded-full border backdrop-blur-sm mb-10"
+                className="mb-10 flex items-center gap-4 rounded-full border px-5 py-2.5 backdrop-blur-sm"
                 style={{
                   background: `${h.color}0f`,
                   borderColor: `${h.color}40`,
                 }}
               >
-                <span className="text-xs font-semibold text-slate-200 tabular-nums">
+                <span className="text-xs font-semibold tabular-nums text-slate-200">
                   {stats.mastered} <span className="text-slate-500">/</span> {stats.total}
                 </span>
-                <span className="w-px h-4 bg-white/20" />
+                <span className="h-4 w-px bg-white/20" />
                 <span className="text-xs font-bold tabular-nums" style={{ color: h.color }}>
                   {pct}% mastered
                 </span>
@@ -249,7 +251,7 @@ export default function PortalCards({ readingStats, mathStats }: Props) {
 
               {/* CTA */}
               <motion.span
-                className="inline-flex items-center gap-2 px-7 py-3 rounded-full text-sm font-bold tracking-wide"
+                className="inline-flex items-center gap-2 rounded-full px-7 py-3 text-sm font-bold tracking-wide"
                 style={{
                   background: isHovered ? h.color : `${h.color}20`,
                   color: isHovered ? "#ffffff" : h.color,
@@ -260,9 +262,9 @@ export default function PortalCards({ readingStats, mathStats }: Props) {
                 }}
                 transition={{ duration: 0.3 }}
               >
-                <Sparkles className="w-4 h-4" />
+                <Sparkles className="h-4 w-4" />
                 {h.cta}
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRight className="h-4 w-4" />
               </motion.span>
             </motion.div>
           </motion.button>
@@ -271,8 +273,11 @@ export default function PortalCards({ readingStats, mathStats }: Props) {
 
       {/* Center divider nebula */}
       <div
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none w-px h-2/3"
-        style={{ background: "linear-gradient(180deg, transparent, rgba(255,255,255,0.2) 50%, transparent)" }}
+        className="pointer-events-none absolute left-1/2 top-1/2 h-2/3 w-px -translate-x-1/2 -translate-y-1/2"
+        style={{
+          background:
+            "linear-gradient(180deg, transparent, rgba(255,255,255,0.2) 50%, transparent)",
+        }}
       />
 
       {/* Horizon → sky pan-up transition */}
@@ -283,7 +288,7 @@ export default function PortalCards({ readingStats, mathStats }: Props) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.4 }}
-            className="absolute inset-0 z-50 pointer-events-none overflow-hidden"
+            className="pointer-events-none absolute inset-0 z-50 overflow-hidden"
             style={{ perspective: 1400 }}
           >
             {/* Ground layer — dark foreground. Recedes as the camera tilts up. */}
@@ -302,7 +307,7 @@ export default function PortalCards({ readingStats, mathStats }: Props) {
             <motion.div
               className="absolute inset-0"
               initial={{ rotateX: 72, translateY: "30%", scale: 1.3 }}
-              animate={{ rotateX: 0, translateY: "0%",  scale: 1.0 }}
+              animate={{ rotateX: 0, translateY: "0%", scale: 1.0 }}
               transition={{ duration: 2.0, ease: [0.22, 1, 0.36, 1] }}
               style={{ transformOrigin: "50% 100%" }}
             >
@@ -333,7 +338,12 @@ export default function PortalCards({ readingStats, mathStats }: Props) {
                       opacity: o,
                     }}
                     animate={{ opacity: [o, Math.min(1, o * 1.4), o] }}
-                    transition={{ duration: 2.4, repeat: Infinity, delay: twinkleDelay, ease: "easeInOut" }}
+                    transition={{
+                      duration: 2.4,
+                      repeat: Infinity,
+                      delay: twinkleDelay,
+                      ease: "easeInOut",
+                    }}
                   />
                 );
               })}

@@ -155,18 +155,36 @@ const FAQ_SECTIONS: { title: string; items: FAQItem[] }[] = [
   },
 ];
 
-function AccordionItem({ item, isOpen, onToggle }: { item: FAQItem; isOpen: boolean; onToggle: () => void }) {
+function AccordionItem({
+  item,
+  isOpen,
+  onToggle,
+}: {
+  item: FAQItem;
+  isOpen: boolean;
+  onToggle: () => void;
+}) {
   return (
-    <div className="border-b border-slate-200 dark:border-slate-700 last:border-0">
+    <div className="border-b border-slate-200 last:border-0 dark:border-slate-700">
       <button
         onClick={onToggle}
-        className="w-full text-left flex items-center justify-between gap-4 py-5 text-sm font-semibold text-slate-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+        className="flex w-full items-center justify-between gap-4 py-5 text-left text-sm font-semibold text-slate-900 transition-colors hover:text-blue-600 dark:text-white dark:hover:text-blue-400"
       >
         <span>{item.q}</span>
-        <ChevronDown className={cn("w-4 h-4 shrink-0 text-slate-400 transition-transform duration-200", isOpen && "rotate-180")} />
+        <ChevronDown
+          className={cn(
+            "h-4 w-4 shrink-0 text-slate-400 transition-transform duration-200",
+            isOpen && "rotate-180"
+          )}
+        />
       </button>
-      <div className={cn("overflow-hidden transition-all duration-300", isOpen ? "max-h-96 pb-5" : "max-h-0")}>
-        <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{item.a}</p>
+      <div
+        className={cn(
+          "overflow-hidden transition-all duration-300",
+          isOpen ? "max-h-96 pb-5" : "max-h-0"
+        )}
+      >
+        <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-300">{item.a}</p>
       </div>
     </div>
   );
@@ -180,24 +198,25 @@ export default function FAQClient() {
   return (
     <main className="min-h-screen bg-white dark:bg-slate-950">
       {/* Hero */}
-      <div className="bg-gradient-to-b from-blue-50 to-white dark:from-slate-900 dark:to-slate-950 py-16 px-4 text-center">
-        <div className="inline-flex items-center gap-2 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-4 py-1.5 rounded-full text-sm font-semibold mb-6">
-          <TrendingUp className="w-3.5 h-3.5" />
+      <div className="bg-gradient-to-b from-blue-50 to-white px-4 py-16 text-center dark:from-slate-900 dark:to-slate-950">
+        <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-blue-100 px-4 py-1.5 text-sm font-semibold text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
+          <TrendingUp className="h-3.5 w-3.5" />
           Frequently Asked Questions
         </div>
-        <h1 className="text-4xl sm:text-5xl font-extrabold text-slate-900 dark:text-white mb-4">
+        <h1 className="mb-4 text-4xl font-extrabold text-slate-900 dark:text-white sm:text-5xl">
           Got questions? We&apos;ve got answers.
         </h1>
-        <p className="text-slate-500 dark:text-slate-400 max-w-xl mx-auto">
-          Everything you need to know about Karman, our tutors, pricing, and the score improvement guarantee.
+        <p className="mx-auto max-w-xl text-slate-500 dark:text-slate-400">
+          Everything you need to know about Karman, our tutors, pricing, and the score improvement
+          guarantee.
         </p>
       </div>
 
       {/* FAQ sections */}
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-16 space-y-12">
+      <div className="mx-auto max-w-3xl space-y-12 px-4 py-16 sm:px-6">
         {FAQ_SECTIONS.map((section) => (
           <div key={section.title}>
-            <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-2 pb-3 border-b-2 border-blue-500">
+            <h2 className="mb-2 border-b-2 border-blue-500 pb-3 text-lg font-bold text-slate-900 dark:text-white">
               {section.title}
             </h2>
             <div>
@@ -218,11 +237,13 @@ export default function FAQClient() {
 
         {/* Still have questions CTA */}
         <div className="glass-card p-8 text-center">
-          <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Still have questions?</h3>
-          <p className="text-slate-500 dark:text-slate-400 text-sm mb-6">
+          <h3 className="mb-2 text-xl font-bold text-slate-900 dark:text-white">
+            Still have questions?
+          </h3>
+          <p className="mb-6 text-sm text-slate-500 dark:text-slate-400">
             Our team is happy to help. Reach out and we&apos;ll get back to you within a few hours.
           </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          <div className="flex flex-col justify-center gap-3 sm:flex-row">
             <a href="mailto:support@karmanprep.com" className="btn-secondary text-sm">
               Email support@karmanprep.com
             </a>

@@ -26,11 +26,11 @@ const isMaintenanceExempt = createRouteMatcher([
   "/coming-soon",
   "/auth/sign-in(.*)",
   "/auth/sign-up(.*)",
-  "/api/stripe/webhook",        // Stripe webhooks
-  "/api/cal(.*)",               // Cal.com webhooks
-  "/api/webhooks(.*)",          // Slack/Zoom/etc.
-  "/api/cron(.*)",              // CF cron triggers (self-auth via CRON_SECRET)
-  "/api/email/subscribe",       // Coming-soon notify form posts here
+  "/api/stripe/webhook", // Stripe webhooks
+  "/api/cal(.*)", // Cal.com webhooks
+  "/api/webhooks(.*)", // Slack/Zoom/etc.
+  "/api/cron(.*)", // CF cron triggers (self-auth via CRON_SECRET)
+  "/api/email/subscribe", // Coming-soon notify form posts here
 ]);
 
 /** Routes that don't require auth in normal (post-launch) operation.

@@ -41,6 +41,7 @@ npm run dev
 ```
 
 `npm run dev` starts:
+
 - Next.js dev server on http://localhost:3000
 - `stripe listen` forwarding webhooks to `localhost:3000/api/stripe/webhook`
 
@@ -58,16 +59,16 @@ node --env-file=.env.local scripts/admin/grant-admin.mjs you@example.com
 
 ## Day-to-day commands
 
-| Command | What it does |
-|---|---|
-| `npm run dev` | Next.js + Stripe webhook listener |
-| `npm run dev:next` | Just Next.js |
-| `npm run lint` | ESLint check |
-| `npx tsc --noEmit` | TypeScript check (no emit) |
-| `npm run cf:build` | Build for Cloudflare Workers via OpenNext |
-| `npm run cf:preview` | Run the built worker locally |
-| `npm run cf:deploy` | Push to production at karmanprep.com |
-| `npm run pdf:pull` | One-shot poll of the (mostly deprecated) PDF ingestion queue |
+| Command              | What it does                                                 |
+| -------------------- | ------------------------------------------------------------ |
+| `npm run dev`        | Next.js + Stripe webhook listener                            |
+| `npm run dev:next`   | Just Next.js                                                 |
+| `npm run lint`       | ESLint check                                                 |
+| `npx tsc --noEmit`   | TypeScript check (no emit)                                   |
+| `npm run cf:build`   | Build for Cloudflare Workers via OpenNext                    |
+| `npm run cf:preview` | Run the built worker locally                                 |
+| `npm run cf:deploy`  | Push to production at karmanprep.com                         |
+| `npm run pdf:pull`   | One-shot poll of the (mostly deprecated) PDF ingestion queue |
 
 Maintenance + admin scripts live in [`scripts/`](./scripts/) — see [scripts/README.md](./scripts/README.md) for a full inventory + when-to-use guide.
 
@@ -88,12 +89,14 @@ Examples:
 
 ### PR workflow
 
-1. **Branch off `main`** (never push to `main` directly — branch protection prevents it anyway)
+1. **Branch off `main`** (see warning below — never push to `main` directly)
 2. **Make your changes**, push to your branch
 3. **Open a PR** using the [PR template](.github/pull_request_template.md). Fill in Summary, Test plan, Rollback.
 4. **Wait for CI to go green** (typecheck, lint, build)
 5. **Get one approval** from a CODEOWNER
 6. **Squash-merge** (default; keeps `main` history linear)
+
+> ⚠️ **`main` is not yet protected by GitHub.** We're on the GitHub Free plan, which doesn't enforce branch protection on private repos. **The honor system is in effect**: never `git push origin main` directly, never merge your own PR without an approval (unless it's a hotfix and you Slack the team), and never force-push. We'll upgrade to GitHub Pro ($4/mo) and add real protection as the team grows.
 
 ### Commit messages
 
@@ -122,7 +125,7 @@ matches the existing pattern in lib/integrations/stripe/client.ts.
 - **File names**: kebab-case for multi-word (`compute-amount.ts`). Components keep PascalCase (`PayoutsClient.tsx`).
 - **Imports**: use the `@/` alias for anything in `src/` (`import { foo } from "@/lib/utils"`)
 - **Server actions**: `"use server"` at top of file. Auth check first thing.
-- **API routes**: validate request body with Zod. Return clean error JSON on failure.
+- **API routes**: validate request body with **Zod**. Reference pattern: [`src/app/api/diagnostic/submit/route.ts`](./src/app/api/diagnostic/submit/route.ts) — define a Zod schema as the source of truth, `.safeParse()` the body, return `400` with structured `issues` on invalid input. Never trust `req.json()` blindly.
 - **Database queries**: live in `src/lib/supabase/queries/<area>.ts`, not inline in pages or components.
 - **No magic strings**: enums or `as const` arrays for things like plan tiers (`"private" | "elite" | "small_group" | "group"`).
 
@@ -134,18 +137,18 @@ Until we wire up generated types (planned), Supabase queries return typed rows b
 
 ## Architecture quick map
 
-| Concern | Lives in |
-|---|---|
-| Pages + API routes | `src/app/` (Next.js App Router) |
-| React UI components | `src/components/` |
-| Third-party SDK wrappers (Stripe, Cal, Zoom, etc.) | `src/lib/integrations/` |
-| Database queries + Supabase client | `src/lib/supabase/` |
-| Pure business logic (payouts, taxonomy, etc.) | `src/lib/<domain>/` |
-| Email templates (React Email) | `src/emails/` |
-| Curriculum data | `src/data/curriculum.ts` |
-| SQL schema migrations | `supabase/migrations/` (numbered, applied in order) |
-| CLI scripts | `scripts/` (categorized by concern) |
-| Docs | `docs/` (start with `docs/README.md`) |
+| Concern                                            | Lives in                                            |
+| -------------------------------------------------- | --------------------------------------------------- |
+| Pages + API routes                                 | `src/app/` (Next.js App Router)                     |
+| React UI components                                | `src/components/`                                   |
+| Third-party SDK wrappers (Stripe, Cal, Zoom, etc.) | `src/lib/integrations/`                             |
+| Database queries + Supabase client                 | `src/lib/supabase/`                                 |
+| Pure business logic (payouts, taxonomy, etc.)      | `src/lib/<domain>/`                                 |
+| Email templates (React Email)                      | `src/emails/`                                       |
+| Curriculum data                                    | `src/data/curriculum.ts`                            |
+| SQL schema migrations                              | `supabase/migrations/` (numbered, applied in order) |
+| CLI scripts                                        | `scripts/` (categorized by concern)                 |
+| Docs                                               | `docs/` (start with `docs/README.md`)               |
 
 ### Key flows
 
@@ -186,11 +189,13 @@ npm run cf:deploy
 That's it. There's no staging environment yet — every deploy goes to production at https://karmanprep.com.
 
 **Before deploying:**
+
 1. CI is green
 2. PR is reviewed and merged to `main`
 3. Run `npm run cf:build` locally first to catch any build-time issues
 
 **After deploying:**
+
 - Smoke-test the affected feature
 - If something breaks, deploy the previous commit (no automated rollback yet — `git revert` + redeploy)
 
@@ -198,13 +203,13 @@ That's it. There's no staging environment yet — every deploy goes to productio
 
 ## Where to ask for help
 
-| Question | Where |
-|---|---|
-| "How do I X locally?" | This file → if not here, ask in `#engineering` |
-| "Why does the codebase do Y?" | `docs/adr/` (Architecture Decision Records) — coming soon |
-| "What's broken in prod?" | Sentry → `#alerts` |
-| "Who owns this code?" | [.github/CODEOWNERS](.github/CODEOWNERS) |
-| "Is this feature shipped?" | [docs/reference/webpages-inventory.docx](./docs/reference/webpages-inventory.docx) |
-| Stuck for >30 min | Ask in Slack — don't burn a half-day |
+| Question                      | Where                                                                              |
+| ----------------------------- | ---------------------------------------------------------------------------------- |
+| "How do I X locally?"         | This file → if not here, ask in `#engineering`                                     |
+| "Why does the codebase do Y?" | `docs/adr/` (Architecture Decision Records) — coming soon                          |
+| "What's broken in prod?"      | Sentry → `#alerts`                                                                 |
+| "Who owns this code?"         | [.github/CODEOWNERS](.github/CODEOWNERS)                                           |
+| "Is this feature shipped?"    | [docs/reference/webpages-inventory.docx](./docs/reference/webpages-inventory.docx) |
+| Stuck for >30 min             | Ask in Slack — don't burn a half-day                                               |
 
 Welcome aboard.

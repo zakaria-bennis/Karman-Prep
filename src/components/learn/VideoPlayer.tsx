@@ -16,15 +16,15 @@ interface Props {
   nodeId: string;
   subject: "reading" | "math";
   videoUrl: string | null;
-  durationSeconds: number;        // total seconds for the mocked video
+  durationSeconds: number; // total seconds for the mocked video
   initialWatchPercentage: number; // resume from where we left off
 }
 
 const CHAPTERS = [
   { label: "Concept Overview", fraction: 0.0 },
-  { label: "Example 1",        fraction: 0.25 },
-  { label: "Example 2",        fraction: 0.50 },
-  { label: "Example 3",        fraction: 0.75 },
+  { label: "Example 1", fraction: 0.25 },
+  { label: "Example 2", fraction: 0.5 },
+  { label: "Example 3", fraction: 0.75 },
 ];
 
 export default function VideoPlayer({
@@ -70,7 +70,9 @@ export default function VideoPlayer({
 
   // Persist on unmount (close) too
   useEffect(() => {
-    return () => { persist(); };
+    return () => {
+      persist();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -95,10 +97,10 @@ export default function VideoPlayer({
   return (
     <div className="w-full">
       {/* Aspect-ratio video frame */}
-      <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-800">
+      <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-slate-800 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
         {videoUrl ? (
           <video
-            className="w-full h-full"
+            className="h-full w-full"
             controls
             src={videoUrl}
             onPlay={() => setIsPlaying(true)}
@@ -108,14 +110,18 @@ export default function VideoPlayer({
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 text-center">
             <button
               onClick={() => setIsPlaying((p) => !p)}
-              className="w-16 h-16 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
+              className="flex h-16 w-16 items-center justify-center rounded-full bg-white/10 transition-colors hover:bg-white/20"
               aria-label={isPlaying ? "Pause" : "Play"}
             >
-              {isPlaying ? <Pause className="w-7 h-7 text-white" /> : <Play className="w-7 h-7 text-white translate-x-0.5" />}
+              {isPlaying ? (
+                <Pause className="h-7 w-7 text-white" />
+              ) : (
+                <Play className="h-7 w-7 translate-x-0.5 text-white" />
+              )}
             </button>
-            <p className="text-xs text-slate-400 max-w-sm">
-              Video placeholder. The Mux player will be wired in once the lesson
-              recordings are uploaded. Playback is simulated for now.
+            <p className="max-w-sm text-xs text-slate-400">
+              Video placeholder. The Mux player will be wired in once the lesson recordings are
+              uploaded. Playback is simulated for now.
             </p>
           </div>
         )}
@@ -125,14 +131,14 @@ export default function VideoPlayer({
       <div className="mt-3">
         <div className="relative h-1.5 rounded-full bg-slate-200 dark:bg-slate-800">
           <div
-            className="absolute top-0 left-0 h-full rounded-full bg-blue-500 transition-all"
+            className="absolute left-0 top-0 h-full rounded-full bg-blue-500 transition-all"
             style={{ width: `${pct}%` }}
           />
           {CHAPTERS.map((c) => (
             <button
               key={c.label}
               onClick={() => jumpToChapter(c.fraction)}
-              className="absolute top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-white dark:bg-slate-300 hover:scale-125 transition-transform border border-slate-400 dark:border-slate-600"
+              className="absolute top-1/2 h-2.5 w-2.5 -translate-y-1/2 rounded-full border border-slate-400 bg-white transition-transform hover:scale-125 dark:border-slate-600 dark:bg-slate-300"
               style={{ left: `calc(${c.fraction * 100}% - 5px)` }}
               aria-label={`Jump to ${c.label}`}
               title={c.label}
@@ -141,19 +147,21 @@ export default function VideoPlayer({
         </div>
 
         {/* Time + chapters legend */}
-        <div className="flex items-center justify-between mt-2 text-xs text-slate-500 dark:text-slate-400">
-          <span className="font-mono">{mm(seconds)} / {mm(durationSeconds)}</span>
-          <div className="flex gap-3 flex-wrap justify-end">
+        <div className="mt-2 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+          <span className="font-mono">
+            {mm(seconds)} / {mm(durationSeconds)}
+          </span>
+          <div className="flex flex-wrap justify-end gap-3">
             {CHAPTERS.map((c) => (
               <button
                 key={c.label}
                 onClick={() => jumpToChapter(c.fraction)}
                 className={cn(
-                  "flex items-center gap-1 hover:text-slate-900 dark:hover:text-white transition-colors",
+                  "flex items-center gap-1 transition-colors hover:text-slate-900 dark:hover:text-white",
                   pct >= c.fraction * 100 && "text-blue-500"
                 )}
               >
-                <SkipForward className="w-3 h-3" />
+                <SkipForward className="h-3 w-3" />
                 {c.label}
               </button>
             ))}

@@ -42,10 +42,7 @@ async function main() {
   }
 
   const ALL = "00000000-0000-0000-0000-000000000000";
-  const { error: e1 } = await supabase
-    .from("pdf_processing_jobs")
-    .delete()
-    .neq("id", ALL);
+  const { error: e1 } = await supabase.from("pdf_processing_jobs").delete().neq("id", ALL);
   if (e1) throw new Error(`delete failed: ${e1.message}`);
 
   const { count } = await supabase
@@ -54,4 +51,7 @@ async function main() {
   console.log(`\nAfter:  ${count ?? 0} job(s) — /admin/jobs is now empty.`);
 }
 
-main().catch((err) => { console.error("FATAL:", err.message); process.exit(1); });
+main().catch((err) => {
+  console.error("FATAL:", err.message);
+  process.exit(1);
+});

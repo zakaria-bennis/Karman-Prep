@@ -15,14 +15,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
-import {
-  ArrowRight,
-  BarChart3,
-  Sparkles,
-  Target,
-  AlertCircle,
-  TrendingUp,
-} from "lucide-react";
+import { ArrowRight, BarChart3, Sparkles, Target, AlertCircle, TrendingUp } from "lucide-react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { createAdminClient } from "@/lib/supabase/server";
 import { DOMAIN_LABELS, type SATDomain, type DomainScores } from "@/types";
@@ -89,9 +82,12 @@ export default async function StudentProgressPage() {
   const masteredCount = masteryRowsTyped.filter((r) => r.status === "mastered").length;
   const inProgressCount = masteryRowsTyped.filter((r) => r.status === "in_progress").length;
 
-  const latestMid = latest ? Math.round((latest.score_range_low + latest.score_range_high) / 2) : null;
+  const latestMid = latest
+    ? Math.round((latest.score_range_low + latest.score_range_high) / 2)
+    : null;
   const firstMid = first ? Math.round((first.score_range_low + first.score_range_high) / 2) : null;
-  const delta = latestMid !== null && firstMid !== null && diagnostics.length > 1 ? latestMid - firstMid : null;
+  const delta =
+    latestMid !== null && firstMid !== null && diagnostics.length > 1 ? latestMid - firstMid : null;
 
   // Group weak topics by domain for the breakdown card
   const weakByDomain: Record<SATDomain, string[]> = {
@@ -114,15 +110,16 @@ export default async function StudentProgressPage() {
 
   return (
     <DashboardLayout>
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
+      <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6">
         <header className="mb-6">
-          <p className="text-xs font-bold tracking-widest text-blue-500 uppercase mb-1">Progress</p>
-          <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
-            <BarChart3 className="w-6 h-6 text-slate-400" />
+          <p className="mb-1 text-xs font-bold uppercase tracking-widest text-blue-500">Progress</p>
+          <h1 className="flex items-center gap-2 text-2xl font-extrabold text-slate-900 dark:text-white">
+            <BarChart3 className="h-6 w-6 text-slate-400" />
             Your progress
           </h1>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Diagnostic snapshots, weak-topic focus areas, and constellation mastery — all in one place.
+            Diagnostic snapshots, weak-topic focus areas, and constellation mastery — all in one
+            place.
           </p>
         </header>
 
@@ -131,7 +128,7 @@ export default async function StudentProgressPage() {
         ) : (
           <div className="space-y-6">
             {/* ─── Top row: predicted score + mastery ──────────── */}
-            <div className="grid sm:grid-cols-2 gap-4">
+            <div className="grid gap-4 sm:grid-cols-2">
               <PredictedCard
                 low={latest.score_range_low}
                 high={latest.score_range_high}
@@ -139,7 +136,7 @@ export default async function StudentProgressPage() {
                 takenAt={latest.taken_at}
               />
               <CounterCard
-                icon={<Sparkles className="w-4 h-4" />}
+                icon={<Sparkles className="h-4 w-4" />}
                 label="Concepts mastered"
                 value={masteredCount}
                 hint={inProgressCount > 0 ? `${inProgressCount} in progress` : "Keep going"}
@@ -166,21 +163,23 @@ export default async function StudentProgressPage() {
 
 function EmptyState() {
   return (
-    <div className="rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 px-8 py-12 text-center">
-      <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center mx-auto mb-4">
-        <TrendingUp className="w-7 h-7 text-white" />
+    <div className="rounded-2xl border border-dashed border-slate-300 px-8 py-12 text-center dark:border-slate-700">
+      <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600">
+        <TrendingUp className="h-7 w-7 text-white" />
       </div>
-      <h2 className="text-lg font-bold text-slate-900 dark:text-white">No diagnostic on file yet</h2>
-      <p className="mt-1 text-sm text-slate-500 dark:text-slate-400 max-w-md mx-auto">
+      <h2 className="text-lg font-bold text-slate-900 dark:text-white">
+        No diagnostic on file yet
+      </h2>
+      <p className="mx-auto mt-1 max-w-md text-sm text-slate-500 dark:text-slate-400">
         Take your first diagnostic — 35 questions, ~35 minutes — and your predicted SAT range,
         domain breakdown, and weak topics will all show up here.
       </p>
       <Link
         href="/diagnostic"
-        className="inline-flex items-center gap-1.5 mt-5 px-4 py-2 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 hover:from-blue-400 hover:to-indigo-500 text-white text-sm font-semibold shadow-[0_4px_14px_rgba(59,130,246,0.35)]"
+        className="mt-5 inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-[0_4px_14px_rgba(59,130,246,0.35)] hover:from-blue-400 hover:to-indigo-500"
       >
         Take the diagnostic
-        <ArrowRight className="w-4 h-4" />
+        <ArrowRight className="h-4 w-4" />
       </Link>
     </div>
   );
@@ -200,8 +199,8 @@ function PredictedCard({
   const mid = Math.round((low + high) / 2);
   const tookAgo = formatDaysAgo(takenAt);
   return (
-    <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/40 p-5">
-      <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2">
+    <div className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900/40">
+      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
         Predicted SAT
       </p>
       <p className="text-3xl font-extrabold text-slate-900 dark:text-white">
@@ -213,9 +212,9 @@ function PredictedCard({
           <span
             className={
               delta > 0
-                ? "text-emerald-600 dark:text-emerald-400 font-semibold"
+                ? "font-semibold text-emerald-600 dark:text-emerald-400"
                 : delta < 0
-                  ? "text-rose-500 font-semibold"
+                  ? "font-semibold text-rose-500"
                   : "text-slate-400"
             }
           >
@@ -241,8 +240,8 @@ function CounterCard({
   hint: string;
 }) {
   return (
-    <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/40 p-5">
-      <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2 inline-flex items-center gap-1.5">
+    <div className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900/40">
+      <p className="mb-2 inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
         <span className="text-blue-500 dark:text-blue-400">{icon}</span>
         {label}
       </p>
@@ -253,18 +252,23 @@ function CounterCard({
 }
 
 const MATH_DOMAINS: SATDomain[] = ["algebra", "advanced_math", "geometry", "data_analysis"];
-const RW_DOMAINS: SATDomain[] = ["info_ideas", "craft_structure", "expression_ideas", "conventions"];
+const RW_DOMAINS: SATDomain[] = [
+  "info_ideas",
+  "craft_structure",
+  "expression_ideas",
+  "conventions",
+];
 
 function DomainBreakdown({ scores }: { scores: DomainScores }) {
   return (
-    <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/40 p-5">
-      <h2 className="font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+    <div className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900/40">
+      <h2 className="mb-4 flex items-center gap-2 font-bold text-slate-900 dark:text-white">
         Domain breakdown
         <span className="text-xs font-normal text-slate-400">(latest diagnostic)</span>
       </h2>
 
       <DomainSubsection title="Math" domains={MATH_DOMAINS} scores={scores} />
-      <div className="mt-5 pt-5 border-t border-slate-200 dark:border-slate-800">
+      <div className="mt-5 border-t border-slate-200 pt-5 dark:border-slate-800">
         <DomainSubsection title="Reading & Writing" domains={RW_DOMAINS} scores={scores} />
       </div>
     </div>
@@ -285,11 +289,13 @@ function DomainSubsection({
     .sort((a, b) => a[1] - b[1]);
   return (
     <div>
-      <p className="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-3">{title}</p>
+      <p className="mb-3 text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+        {title}
+      </p>
       <div className="space-y-3">
         {entries.map(([domain, score]) => (
           <div key={domain}>
-            <div className="flex items-center justify-between mb-1">
+            <div className="mb-1 flex items-center justify-between">
               <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
                 {DOMAIN_LABELS[domain]}
               </span>
@@ -297,7 +303,7 @@ function DomainSubsection({
                 {score}%
               </span>
             </div>
-            <div className="h-2.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+            <div className="h-2.5 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
               <div
                 className="h-full rounded-full transition-all duration-700"
                 style={{ width: `${score}%`, backgroundColor: domainHeatColor(score) }}
@@ -316,42 +322,43 @@ function WeakTopics({ weakByDomain }: { weakByDomain: Record<SATDomain, string[]
   );
   if (domains.length === 0) {
     return (
-      <div className="rounded-2xl border border-emerald-200 dark:border-emerald-700/40 bg-emerald-50 dark:bg-emerald-900/10 px-5 py-4">
-        <p className="text-sm font-bold text-emerald-700 dark:text-emerald-300 inline-flex items-center gap-1.5">
-          <Sparkles className="w-4 h-4" />
+      <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 dark:border-emerald-700/40 dark:bg-emerald-900/10">
+        <p className="inline-flex items-center gap-1.5 text-sm font-bold text-emerald-700 dark:text-emerald-300">
+          <Sparkles className="h-4 w-4" />
           No weak topics flagged
         </p>
-        <p className="text-xs text-emerald-700/80 dark:text-emerald-300/80 mt-1">
-          You answered every question correctly on the diagnostic. Strong starting point — your learning path will push the harder material.
+        <p className="mt-1 text-xs text-emerald-700/80 dark:text-emerald-300/80">
+          You answered every question correctly on the diagnostic. Strong starting point — your
+          learning path will push the harder material.
         </p>
       </div>
     );
   }
   return (
-    <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/40 p-5">
-      <h2 className="font-bold text-slate-900 dark:text-white mb-3 inline-flex items-center gap-2">
-        <AlertCircle className="w-4 h-4 text-amber-500" />
+    <div className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900/40">
+      <h2 className="mb-3 inline-flex items-center gap-2 font-bold text-slate-900 dark:text-white">
+        <AlertCircle className="h-4 w-4 text-amber-500" />
         Topics to focus on
       </h2>
-      <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
+      <p className="mb-4 text-xs text-slate-500 dark:text-slate-400">
         Pulled from the topics you missed on your latest diagnostic, grouped by domain.
       </p>
-      <div className="grid sm:grid-cols-2 gap-3">
+      <div className="grid gap-3 sm:grid-cols-2">
         {domains.map((d) => (
           <div
             key={d}
-            className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 px-4 py-3"
+            className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 dark:border-slate-800 dark:bg-slate-900/60"
           >
-            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
               {DOMAIN_LABELS[d]}
             </p>
             <ul className="space-y-1">
               {weakByDomain[d].map((slug) => (
                 <li
                   key={slug}
-                  className="text-sm text-slate-700 dark:text-slate-200 flex items-center gap-1.5"
+                  className="flex items-center gap-1.5 text-sm text-slate-700 dark:text-slate-200"
                 >
-                  <span className="w-1 h-1 rounded-full bg-amber-500" />
+                  <span className="h-1 w-1 rounded-full bg-amber-500" />
                   {topicLabel(slug)}
                 </li>
               ))}
@@ -371,5 +378,9 @@ function formatDaysAgo(iso: string): string {
   if (diffDay === 0) return "today";
   if (diffDay === 1) return "yesterday";
   if (diffDay < 30) return `${diffDay} days ago`;
-  return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" }).format(d);
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(d);
 }

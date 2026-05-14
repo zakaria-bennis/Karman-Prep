@@ -29,7 +29,7 @@ import { extractZoomMeetingId } from "@/lib/integrations/zoom/url";
 interface PushRequest {
   cohortId: string;
   sessionStart: string; // ISO start
-  sessionEnd: string;   // ISO end
+  sessionEnd: string; // ISO end
   zoomMeetingId?: string;
   zoomJoinUrl: string;
   zoomStartUrl?: string;
@@ -170,8 +170,7 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  const zoomMeetingId =
-    body.zoomMeetingId ?? extractZoomMeetingId(body.zoomJoinUrl) ?? null;
+  const zoomMeetingId = body.zoomMeetingId ?? extractZoomMeetingId(body.zoomJoinUrl) ?? null;
 
   // Insert one booking per member.
   const inserted: BookingRow[] = [];

@@ -58,8 +58,7 @@ const PATCHES = [
     patch: {
       question_text:
         "In the given equation, $k$ is a positive constant. The product of the solutions to the equation is $81$. What is the value of $k$?\n\n$$\\tfrac{5}{9}x^2 + 9x + \\sqrt{5k+9} \\cdot x - \\sqrt{5k+9} = 0$$",
-      hint:
-        "For a quadratic $ax^2 + bx + c = 0$, the product of the roots is $c/a$ — set that equal to $81$ and solve for $k$.",
+      hint: "For a quadratic $ax^2 + bx + c = 0$, the product of the roots is $c/a$ — set that equal to $81$ and solve for $k$.",
       explanation_text:
         "Treating the equation as a quadratic in $x$, the product of the roots equals $\\dfrac{\\text{constant term}}{\\text{leading coefficient}}$. Solving the resulting equation in $k$ yields $k = \\tfrac{36}{5}$.",
       desmos_strategy:
@@ -74,8 +73,7 @@ const PATCHES = [
     patch: {
       question_text:
         "The expression $6x^4 + 17x^2 + 5$ can be rewritten as $(3x^2 + a)(2x^2 + b)$, where $a$ and $b$ are positive integers, or as $(3x^2 + c)(2x^2 + d)$, where $c$ and $d$ are positive nonintegers. What is the value of $a + c$?",
-      hint:
-        "Expand each factored form and match coefficients to $6x^4 + 17x^2 + 5$; you'll get two systems — one for the integer factoring and one for the non-integer factoring.",
+      hint: "Expand each factored form and match coefficients to $6x^4 + 17x^2 + 5$; you'll get two systems — one for the integer factoring and one for the non-integer factoring.",
       explanation_text:
         "Expanding $(3x^2 + a)(2x^2 + b) = 6x^4 + (3b + 2a)x^2 + ab$. Matching: $3b + 2a = 17$ and $ab = 5$. The integer solution is $a = 1$, $b = 5$. For non-integer $c, d$ with $cd = 5$ and $3d + 2c = 17$, substitute $d = 5/c$ to get $2c^2 - 17c + 15 = 0$, whose non-integer root is $c = \\tfrac{15}{2}$. So $a + c = 1 + \\tfrac{15}{2} = \\tfrac{17}{2}$.",
       desmos_strategy:
@@ -90,8 +88,7 @@ const PATCHES = [
     patch: {
       question_text:
         "The graph of $y = 6x^2 + bx + c$ is shown, where $b$ and $c$ are constants. What is the value of $bc$?",
-      hint:
-        "Read two points off the graph and use the symmetry of a parabola to find the axis of symmetry — that gives you $b$ directly.",
+      hint: "Read two points off the graph and use the symmetry of a parabola to find the axis of symmetry — that gives you $b$ directly.",
       explanation_text:
         "The two highlighted points $(-2, -3)$ and $(0, -3)$ share the same $y$-value, so the axis of symmetry is $x = -1$. From $-\\dfrac{b}{2 \\cdot 6} = -1$, $b = 12$. Substituting $(0, -3)$ into $y = 6x^2 + 12x + c$ gives $c = -3$. So $bc = 12 \\cdot (-3) = -36$.",
       desmos_strategy:
@@ -105,8 +102,7 @@ const PATCHES = [
     patch: {
       question_text:
         "A circle in the $xy$-plane has its center at $(-5, 5)$. Line $t$ is tangent to this circle at the point $(6, -1)$. Which of the following points also lies on line $t$?",
-      hint:
-        "A tangent line is perpendicular to the radius drawn to the point of tangency — find the slope of that radius first.",
+      hint: "A tangent line is perpendicular to the radius drawn to the point of tangency — find the slope of that radius first.",
       explanation_text:
         "The radius from $(-5, 5)$ to $(6, -1)$ has slope $\\dfrac{-1 - 5}{6 - (-5)} = -\\dfrac{6}{11}$. The tangent at $(6, -1)$ is perpendicular to this radius, so its slope is $\\dfrac{11}{6}$. The tangent line is $y + 1 = \\dfrac{11}{6}(x - 6)$, or $y = \\dfrac{11}{6}x - 12$. Plugging $x = 12$ gives $y = 22 - 12 = 10$, so $(12, 10)$ lies on the line.",
       explanation_per_choice: {
@@ -137,13 +133,11 @@ async function uploadPage75Image() {
   const buf = await readFile(filePath);
   const storagePath = `${PDF.replace(/\./g, "-")}/page-75-parabola.png`;
 
-  const { error: upErr } = await supabase.storage
-    .from("question-images")
-    .upload(storagePath, buf, {
-      contentType: "image/png",
-      cacheControl: "3600",
-      upsert: true,
-    });
+  const { error: upErr } = await supabase.storage.from("question-images").upload(storagePath, buf, {
+    contentType: "image/png",
+    cacheControl: "3600",
+    upsert: true,
+  });
   if (upErr) throw upErr;
 
   const { data: pub } = supabase.storage.from("question-images").getPublicUrl(storagePath);
@@ -165,10 +159,7 @@ async function patchRow(page, patch, imageFields = null) {
   }
 
   const update = { ...patch, ...(imageFields ?? {}), updated_at: new Date().toISOString() };
-  const { error: upErr } = await supabase
-    .from("quiz_questions")
-    .update(update)
-    .eq("id", row.id);
+  const { error: upErr } = await supabase.from("quiz_questions").update(update).eq("id", row.id);
   if (upErr) throw upErr;
 
   // Choice text patches
@@ -183,7 +174,9 @@ async function patchRow(page, patch, imageFields = null) {
     }
   }
 
-  console.log(`  page ${page}: patched ${Object.keys(patch).length} field(s)${CHOICE_PATCHES[page] ? ` + ${Object.keys(CHOICE_PATCHES[page]).length} choice(s)` : ""}${imageFields ? " + image" : ""}`);
+  console.log(
+    `  page ${page}: patched ${Object.keys(patch).length} field(s)${CHOICE_PATCHES[page] ? ` + ${Object.keys(CHOICE_PATCHES[page]).length} choice(s)` : ""}${imageFields ? " + image" : ""}`
+  );
 }
 
 // ── Run ───────────────────────────────────────────────────
@@ -195,7 +188,8 @@ async function main() {
   const page75ImageFields = {
     image_url: publicUrl,
     image_storage_path: storagePath,
-    image_alt: "Graph of y = 6x² + bx + c, showing the parabola passing through (-2, -3) and (0, -3) with vertex near (-1, -9).",
+    image_alt:
+      "Graph of y = 6x² + bx + c, showing the parabola passing through (-2, -3) and (0, -3) with vertex near (-1, -9).",
   };
 
   console.log("\nPatching rows…");

@@ -25,8 +25,7 @@ export function BookingConfirmation({
         Your session is confirmed
       </Heading>
       <Text style={{ color: "#334155", fontSize: 16, lineHeight: 1.5 }}>
-        Hi {studentFirstName}, your SAT prep session with <strong>{tutorName}</strong> is locked
-        in.
+        Hi {studentFirstName}, your SAT prep session with <strong>{tutorName}</strong> is locked in.
       </Text>
 
       <Section

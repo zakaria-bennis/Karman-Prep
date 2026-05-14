@@ -66,21 +66,21 @@ const FAQS = [
 function FAQItem({ q, a }: { q: string; a: string }) {
   const [open, setOpen] = useState(false);
   return (
-    <div className="border-b border-slate-200 dark:border-slate-700 last:border-0">
+    <div className="border-b border-slate-200 last:border-0 dark:border-slate-700">
       <button
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between py-5 text-left gap-4"
+        className="flex w-full items-center justify-between gap-4 py-5 text-left"
       >
         <span className="text-sm font-semibold text-slate-900 dark:text-white">{q}</span>
         <ChevronDown
           className={cn(
-            "w-5 h-5 text-slate-400 shrink-0 transition-transform duration-200",
+            "h-5 w-5 shrink-0 text-slate-400 transition-transform duration-200",
             open && "rotate-180"
           )}
         />
       </button>
       {open && (
-        <p className="pb-5 text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{a}</p>
+        <p className="pb-5 text-sm leading-relaxed text-slate-600 dark:text-slate-300">{a}</p>
       )}
     </div>
   );
@@ -91,52 +91,56 @@ export default function GuaranteePage() {
     <>
       <Navbar />
       <main className="min-h-screen bg-white dark:bg-slate-950">
-
         {/* Hero */}
-        <section className="bg-gradient-to-b from-blue-50/80 to-white dark:from-slate-900 dark:to-slate-950 pt-20 pb-16 text-center px-4">
-          <div className="max-w-3xl mx-auto">
-            <div className="w-16 h-16 rounded-2xl bg-blue-600 flex items-center justify-center mx-auto mb-6">
-              <Shield className="w-8 h-8 text-white" />
+        <section className="bg-gradient-to-b from-blue-50/80 to-white px-4 pb-16 pt-20 text-center dark:from-slate-900 dark:to-slate-950">
+          <div className="mx-auto max-w-3xl">
+            <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-600">
+              <Shield className="h-8 w-8 text-white" />
             </div>
-            <h1 className="text-4xl sm:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-4">
-              The 50-Point{" "}
-              <span className="text-blue-600 dark:text-blue-400">Score Guarantee</span>
+            <h1 className="mb-4 text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-5xl">
+              The 50-Point <span className="text-blue-600 dark:text-blue-400">Score Guarantee</span>
             </h1>
-            <p className="text-lg text-slate-600 dark:text-slate-300 max-w-xl mx-auto">
-              If you follow the Karman program and your SAT score doesn&apos;t improve by at least 50 points, we will refund every dollar you paid. No fine print. No runaround.
+            <p className="mx-auto max-w-xl text-lg text-slate-600 dark:text-slate-300">
+              If you follow the Karman program and your SAT score doesn&apos;t improve by at least
+              50 points, we will refund every dollar you paid. No fine print. No runaround.
             </p>
           </div>
         </section>
 
         {/* Main guarantee card */}
-        <section className="max-w-3xl mx-auto px-4 sm:px-6 py-12 space-y-10">
-
+        <section className="mx-auto max-w-3xl space-y-10 px-4 py-12 sm:px-6">
           {/* The promise */}
-          <div className="glass-card p-8 text-center border-2 border-blue-200 dark:border-blue-700">
-            <p className="text-xs font-bold tracking-widest text-blue-500 uppercase mb-3">Our Promise</p>
-            <p className="text-2xl font-bold text-slate-900 dark:text-white leading-snug">
+          <div className="glass-card border-2 border-blue-200 p-8 text-center dark:border-blue-700">
+            <p className="mb-3 text-xs font-bold uppercase tracking-widest text-blue-500">
+              Our Promise
+            </p>
+            <p className="text-2xl font-bold leading-snug text-slate-900 dark:text-white">
               Improve your SAT score by 50 points — or get a{" "}
               <span className="text-blue-600 dark:text-blue-400">full refund.</span>
             </p>
             <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">
-              We measure your improvement from your Karman diagnostic baseline to your official College Board SAT score. If the gap is less than 50 points and you met all eligibility requirements, we refund 100% of subscription fees paid.
+              We measure your improvement from your Karman diagnostic baseline to your official
+              College Board SAT score. If the gap is less than 50 points and you met all eligibility
+              requirements, we refund 100% of subscription fees paid.
             </p>
           </div>
 
           {/* Eligibility */}
           <div>
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6">
+            <h2 className="mb-6 text-xl font-bold text-slate-900 dark:text-white">
               Eligibility requirements
             </h2>
             <div className="space-y-4">
               {ELIGIBILITY.map(({ icon: Icon, title, desc }) => (
-                <div key={title} className="flex items-start gap-4 glass-card p-5">
-                  <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center shrink-0">
-                    <Icon className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                <div key={title} className="glass-card flex items-start gap-4 p-5">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 dark:bg-blue-900/30">
+                    <Icon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                   </div>
                   <div>
-                    <p className="font-semibold text-slate-900 dark:text-white text-sm">{title}</p>
-                    <p className="mt-1 text-sm text-slate-500 dark:text-slate-400 leading-relaxed">{desc}</p>
+                    <p className="text-sm font-semibold text-slate-900 dark:text-white">{title}</p>
+                    <p className="mt-1 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
+                      {desc}
+                    </p>
                   </div>
                 </div>
               ))}
@@ -145,7 +149,7 @@ export default function GuaranteePage() {
 
           {/* How to claim */}
           <div className="glass-card p-8">
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-4">How to claim</h2>
+            <h2 className="mb-4 text-xl font-bold text-slate-900 dark:text-white">How to claim</h2>
             <ol className="space-y-3">
               {[
                 "Take your official SAT and receive your College Board score report.",
@@ -153,8 +157,11 @@ export default function GuaranteePage() {
                 "We will verify your eligibility within 3 business days.",
                 "If approved, your full refund is processed to your original payment method within 5–10 business days.",
               ].map((step, i) => (
-                <li key={i} className="flex items-start gap-3 text-sm text-slate-600 dark:text-slate-300">
-                  <span className="w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">
+                <li
+                  key={i}
+                  className="flex items-start gap-3 text-sm text-slate-600 dark:text-slate-300"
+                >
+                  <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white">
                     {i + 1}
                   </span>
                   {step}
@@ -162,20 +169,27 @@ export default function GuaranteePage() {
               ))}
             </ol>
             <p className="mt-5 text-xs text-slate-400 dark:text-slate-500">
-              Questions? Email <a href="mailto:guarantee@karmanprep.com" className="underline hover:text-blue-500">guarantee@karmanprep.com</a> — we respond within 24 hours.
+              Questions? Email{" "}
+              <a href="mailto:guarantee@karmanprep.com" className="underline hover:text-blue-500">
+                guarantee@karmanprep.com
+              </a>{" "}
+              — we respond within 24 hours.
             </p>
           </div>
 
           {/* 7-day trial guarantee */}
-          <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-700 rounded-2xl p-8">
+          <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-8 dark:border-emerald-700 dark:bg-emerald-900/20">
             <div className="flex items-start gap-4">
-              <CheckCircle className="w-7 h-7 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+              <CheckCircle className="mt-0.5 h-7 w-7 shrink-0 text-emerald-600 dark:text-emerald-400" />
               <div>
-                <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
+                <h2 className="mb-2 text-lg font-bold text-slate-900 dark:text-white">
                   7-Day Trial Money-Back Guarantee
                 </h2>
-                <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-                  Not a good fit? Cancel any time before the end of your 7-day free trial and you will not be charged — ever. If you are billed on day 8 and contact us within 24 hours, we will issue a full refund with no questions asked. This is separate from the 50-point score guarantee.
+                <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-300">
+                  Not a good fit? Cancel any time before the end of your 7-day free trial and you
+                  will not be charged — ever. If you are billed on day 8 and contact us within 24
+                  hours, we will issue a full refund with no questions asked. This is separate from
+                  the 50-point score guarantee.
                 </p>
               </div>
             </div>
@@ -183,7 +197,7 @@ export default function GuaranteePage() {
 
           {/* FAQ */}
           <div>
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
+            <h2 className="mb-2 text-xl font-bold text-slate-900 dark:text-white">
               Frequently asked questions
             </h2>
             <div className="glass-card px-6">
@@ -194,13 +208,13 @@ export default function GuaranteePage() {
           </div>
 
           {/* CTA */}
-          <div className="text-center py-4">
-            <p className="text-slate-500 dark:text-slate-400 text-sm mb-5">
+          <div className="py-4 text-center">
+            <p className="mb-5 text-sm text-slate-500 dark:text-slate-400">
               Ready to guarantee your score improvement?
             </p>
-            <Link href="/auth/sign-up" className="btn-primary text-base px-8 py-4 inline-flex">
+            <Link href="/auth/sign-up" className="btn-primary inline-flex px-8 py-4 text-base">
               Start Your Free Trial
-              <ArrowRight className="w-5 h-5" />
+              <ArrowRight className="h-5 w-5" />
             </Link>
             <p className="mt-3 text-xs text-slate-400">Cancel anytime</p>
           </div>

@@ -31,14 +31,30 @@
 import { useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
-  ArrowLeft, ArrowRight, GraduationCap, Users, CalendarCheck, Target,
-  Clock, Sparkles, CheckCircle2, Loader2, Compass, Gauge, History, CreditCard,
+  ArrowLeft,
+  ArrowRight,
+  GraduationCap,
+  Users,
+  CalendarCheck,
+  Target,
+  Clock,
+  Sparkles,
+  CheckCircle2,
+  Loader2,
+  Compass,
+  Gauge,
+  History,
+  CreditCard,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
-  recommendTier, tierLabel,
-  type Recommendation, type Independence, type LearningPace,
-  type PriorPrepResult, type BillingPreference,
+  recommendTier,
+  tierLabel,
+  type Recommendation,
+  type Independence,
+  type LearningPace,
+  type PriorPrepResult,
+  type BillingPreference,
 } from "@/lib/onboarding/recommend-tier";
 
 type Role = "student" | "parent";
@@ -122,29 +138,50 @@ export default function OnboardingClient() {
   const [step, setStep] = useState(0);
   const [submitting, setSubmitting] = useState(false);
 
-  const steps = useMemo(() => [
-    "role", "sat", "goal", "baseline", "hours",
-    "independence", "pace", "prior", "billing", "recommendation",
-  ] as const, []);
+  const steps = useMemo(
+    () =>
+      [
+        "role",
+        "sat",
+        "goal",
+        "baseline",
+        "hours",
+        "independence",
+        "pace",
+        "prior",
+        "billing",
+        "recommendation",
+      ] as const,
+    []
+  );
   const totalSteps = steps.length;
   const currentStep = steps[step];
   const isLast = step === totalSteps - 1;
 
   const canAdvance = (() => {
     switch (currentStep) {
-      case "role": return !!role;
-      case "sat":  return !!satDate;
-      case "goal": return goalScore >= 400 && goalScore <= 1600;
+      case "role":
+        return !!role;
+      case "sat":
+        return !!satDate;
+      case "goal":
+        return goalScore >= 400 && goalScore <= 1600;
       case "baseline":
         if (hasBaseline === "") return false;
         if (hasBaseline === "yes") return baselineScore >= 400 && baselineScore <= 1600;
         return true;
-      case "hours": return hoursPerWeek >= 1;
-      case "independence": return !!independence;
-      case "pace": return !!pace;
-      case "prior": return !!priorPrep;
-      case "billing": return !!billing;
-      default: return true;
+      case "hours":
+        return hoursPerWeek >= 1;
+      case "independence":
+        return !!independence;
+      case "pace":
+        return !!pace;
+      case "prior":
+        return !!priorPrep;
+      case "billing":
+        return !!billing;
+      default:
+        return true;
     }
   })();
 
@@ -168,10 +205,24 @@ export default function OnboardingClient() {
       priorPrep,
       billingPreference: billing,
     });
-  }, [satDate, goalScore, hasBaseline, baselineScore, hoursPerWeek, independence, pace, priorPrep, billing]);
+  }, [
+    satDate,
+    goalScore,
+    hasBaseline,
+    baselineScore,
+    hoursPerWeek,
+    independence,
+    pace,
+    priorPrep,
+    billing,
+  ]);
 
-  function next() { if (canAdvance && step < totalSteps - 1) setStep(step + 1); }
-  function back() { if (step > 0) setStep(step - 1); }
+  function next() {
+    if (canAdvance && step < totalSteps - 1) setStep(step + 1);
+  }
+  function back() {
+    if (step > 0) setStep(step - 1);
+  }
 
   async function startCheckout(tier: string) {
     setSubmitting(true);
@@ -197,14 +248,16 @@ export default function OnboardingClient() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-10 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-slate-950 dark:to-slate-900">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 px-4 py-10 dark:from-slate-950 dark:to-slate-900">
       <div className="w-full max-w-xl">
         <div className="mb-6">
-          <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-2">
-            <span>Step {Math.min(step + 1, totalSteps)} of {totalSteps}</span>
+          <div className="mb-2 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+            <span>
+              Step {Math.min(step + 1, totalSteps)} of {totalSteps}
+            </span>
             <span>{role === "student" ? "Student intake" : "Parent intake"}</span>
           </div>
-          <div className="h-1 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
+          <div className="h-1 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
             <div
               className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 transition-all duration-300"
               style={{ width: `${((step + 1) / totalSteps) * 100}%` }}
@@ -212,7 +265,7 @@ export default function OnboardingClient() {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-white/10 bg-white/[0.04] dark:bg-slate-900/40 backdrop-blur-md p-6 sm:p-8 shadow-2xl">
+        <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 shadow-2xl backdrop-blur-md dark:bg-slate-900/40 sm:p-8">
           {currentStep === "role" && <RoleStep role={role} onPick={setRole} />}
 
           {currentStep === "sat" && (
@@ -224,7 +277,7 @@ export default function OnboardingClient() {
               prompt={copy.goal}
               value={goalScore}
               onChange={setGoalScore}
-              icon={<Target className="w-5 h-5 text-blue-400" />}
+              icon={<Target className="h-5 w-5 text-blue-400" />}
             />
           )}
 
@@ -246,12 +299,12 @@ export default function OnboardingClient() {
 
           {currentStep === "independence" && (
             <ChoiceStep
-              icon={<Compass className="w-5 h-5 text-blue-400" />}
+              icon={<Compass className="h-5 w-5 text-blue-400" />}
               prompt={copy.indeQ}
               options={[
-                { id: "on_my_own",      label: copy.indeOnOwn },
-                { id: "with_checkins",  label: copy.indeCheckins },
-                { id: "needs_structure",label: copy.indeStructure },
+                { id: "on_my_own", label: copy.indeOnOwn },
+                { id: "with_checkins", label: copy.indeCheckins },
+                { id: "needs_structure", label: copy.indeStructure },
               ]}
               value={independence}
               onChange={(v) => setIndependence(v as Independence)}
@@ -260,12 +313,12 @@ export default function OnboardingClient() {
 
           {currentStep === "pace" && (
             <ChoiceStep
-              icon={<Gauge className="w-5 h-5 text-blue-400" />}
+              icon={<Gauge className="h-5 w-5 text-blue-400" />}
               prompt={copy.paceQ}
               options={[
-                { id: "quick",   label: copy.paceQuick },
+                { id: "quick", label: copy.paceQuick },
                 { id: "average", label: copy.paceAvg },
-                { id: "slower",  label: copy.paceSlow },
+                { id: "slower", label: copy.paceSlow },
               ]}
               value={pace}
               onChange={(v) => setPace(v as LearningPace)}
@@ -274,11 +327,11 @@ export default function OnboardingClient() {
 
           {currentStep === "prior" && (
             <ChoiceStep
-              icon={<History className="w-5 h-5 text-blue-400" />}
+              icon={<History className="h-5 w-5 text-blue-400" />}
               prompt={copy.priorQ}
               options={[
                 { id: "first_time", label: copy.priorFirst },
-                { id: "worked",     label: copy.priorWorked },
+                { id: "worked", label: copy.priorWorked },
                 { id: "didnt_move", label: copy.priorFlat },
               ]}
               value={priorPrep}
@@ -288,12 +341,18 @@ export default function OnboardingClient() {
 
           {currentStep === "billing" && (
             <ChoiceStep
-              icon={<CreditCard className="w-5 h-5 text-blue-400" />}
+              icon={<CreditCard className="h-5 w-5 text-blue-400" />}
               prompt="How would you prefer to pay?"
               hint="All plans come with live tutoring — this just changes how billing works."
               options={[
-                { id: "subscription", label: "Predictable monthly subscription — same charge every month." },
-                { id: "per_session",  label: "Pay per session — only billed when I actually book one." },
+                {
+                  id: "subscription",
+                  label: "Predictable monthly subscription — same charge every month.",
+                },
+                {
+                  id: "per_session",
+                  label: "Pay per session — only billed when I actually book one.",
+                },
               ]}
               value={billing}
               onChange={(v) => setBilling(v as BillingPreference)}
@@ -302,7 +361,11 @@ export default function OnboardingClient() {
 
           {currentStep === "recommendation" && recommendation && (
             <RecommendationStep
-              recommendation={tierOverride ? { ...recommendation, tier: tierOverride as Recommendation["tier"] } : recommendation}
+              recommendation={
+                tierOverride
+                  ? { ...recommendation, tier: tierOverride as Recommendation["tier"] }
+                  : recommendation
+              }
               onPick={startCheckout}
               submitting={submitting}
               role={role}
@@ -315,19 +378,14 @@ export default function OnboardingClient() {
                 type="button"
                 onClick={back}
                 disabled={step === 0}
-                className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 disabled:opacity-40"
+                className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-slate-500 hover:text-slate-700 disabled:opacity-40 dark:text-slate-400 dark:hover:text-slate-200"
               >
-                <ArrowLeft className="w-4 h-4" />
+                <ArrowLeft className="h-4 w-4" />
                 Back
               </button>
-              <button
-                type="button"
-                onClick={next}
-                disabled={!canAdvance}
-                className="btn-primary"
-              >
+              <button type="button" onClick={next} disabled={!canAdvance} className="btn-primary">
                 Continue
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRight className="h-4 w-4" />
               </button>
             </div>
           )}
@@ -344,20 +402,22 @@ export default function OnboardingClient() {
 function RoleStep({ role, onPick }: { role: Role; onPick: (r: Role) => void }) {
   return (
     <div>
-      <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white">Who's filling this out?</h1>
+      <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white">
+        Who's filling this out?
+      </h1>
       <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
         We'll word the rest of the questions accordingly.
       </p>
       <div className="mt-6 space-y-3">
         <RoleOption
-          icon={<GraduationCap className="w-5 h-5" />}
+          icon={<GraduationCap className="h-5 w-5" />}
           label="I'm the student"
           desc="I want to improve my SAT score."
           active={role === "student"}
           onClick={() => onPick("student")}
         />
         <RoleOption
-          icon={<Users className="w-5 h-5" />}
+          icon={<Users className="h-5 w-5" />}
           label="I'm a parent"
           desc="I'm looking for prep for my child."
           active={role === "parent"}
@@ -369,41 +429,65 @@ function RoleStep({ role, onPick }: { role: Role; onPick: (r: Role) => void }) {
 }
 
 function RoleOption({
-  icon, label, desc, active, onClick,
-}: { icon: React.ReactNode; label: string; desc: string; active: boolean; onClick: () => void }) {
+  icon,
+  label,
+  desc,
+  active,
+  onClick,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  desc: string;
+  active: boolean;
+  onClick: () => void;
+}) {
   return (
     <button
       type="button"
       onClick={onClick}
       className={cn(
-        "w-full flex items-center gap-4 p-4 rounded-2xl border-2 text-left transition-all",
+        "flex w-full items-center gap-4 rounded-2xl border-2 p-4 text-left transition-all",
         active
           ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
-          : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/40 hover:border-blue-300"
+          : "border-slate-200 bg-white hover:border-blue-300 dark:border-slate-700 dark:bg-slate-800/40"
       )}
     >
-      <div className={cn(
-        "w-10 h-10 rounded-xl flex items-center justify-center shrink-0",
-        active ? "bg-blue-500 text-white" : "bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300"
-      )}>
+      <div
+        className={cn(
+          "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl",
+          active
+            ? "bg-blue-500 text-white"
+            : "bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300"
+        )}
+      >
         {icon}
       </div>
       <div>
-        <p className="font-semibold text-slate-900 dark:text-white text-sm">{label}</p>
-        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{desc}</p>
+        <p className="text-sm font-semibold text-slate-900 dark:text-white">{label}</p>
+        <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{desc}</p>
       </div>
     </button>
   );
 }
 
-function SatStep({ prompt, value, onChange }: { prompt: string; value: string; onChange: (v: string) => void }) {
+function SatStep({
+  prompt,
+  value,
+  onChange,
+}: {
+  prompt: string;
+  value: string;
+  onChange: (v: string) => void;
+}) {
   return (
     <div>
-      <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white inline-flex items-center gap-2">
-        <CalendarCheck className="w-5 h-5 text-blue-400" /> {prompt}
+      <h2 className="inline-flex items-center gap-2 text-2xl font-extrabold text-slate-900 dark:text-white">
+        <CalendarCheck className="h-5 w-5 text-blue-400" /> {prompt}
       </h2>
-      <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">Pick the closest official Digital SAT date — or let us know if you haven't registered yet.</p>
-      <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-2">
+      <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+        Pick the closest official Digital SAT date — or let us know if you haven't registered yet.
+      </p>
+      <div className="mt-6 grid grid-cols-1 gap-2 sm:grid-cols-2">
         {SAT_DATES.map((d) => {
           const isNotRegistered = d.iso === "not_registered";
           return (
@@ -412,11 +496,11 @@ function SatStep({ prompt, value, onChange }: { prompt: string; value: string; o
               type="button"
               onClick={() => onChange(d.iso)}
               className={cn(
-                "px-4 py-3 rounded-xl border-2 text-sm font-semibold text-left transition-all",
-                isNotRegistered && "sm:col-span-2 italic",
+                "rounded-xl border-2 px-4 py-3 text-left text-sm font-semibold transition-all",
+                isNotRegistered && "italic sm:col-span-2",
                 value === d.iso
-                  ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-200"
-                  : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/40 text-slate-700 dark:text-slate-200 hover:border-blue-300"
+                  ? "border-blue-500 bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-200"
+                  : "border-slate-200 bg-white text-slate-700 hover:border-blue-300 dark:border-slate-700 dark:bg-slate-800/40 dark:text-slate-200"
               )}
             >
               {d.label}
@@ -429,26 +513,40 @@ function SatStep({ prompt, value, onChange }: { prompt: string; value: string; o
 }
 
 function ScoreStep({
-  prompt, value, onChange, icon,
-}: { prompt: string; value: number; onChange: (n: number) => void; icon: React.ReactNode }) {
+  prompt,
+  value,
+  onChange,
+  icon,
+}: {
+  prompt: string;
+  value: number;
+  onChange: (n: number) => void;
+  icon: React.ReactNode;
+}) {
   return (
     <div>
-      <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white inline-flex items-center gap-2">
+      <h2 className="inline-flex items-center gap-2 text-2xl font-extrabold text-slate-900 dark:text-white">
         {icon} {prompt}
       </h2>
       <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">SAT scores run 400-1600.</p>
       <div className="mt-8">
-        <div className="text-center text-5xl font-extrabold text-slate-900 dark:text-white tabular-nums mb-3">
+        <div className="mb-3 text-center text-5xl font-extrabold tabular-nums text-slate-900 dark:text-white">
           {value}
         </div>
         <input
-          type="range" min={400} max={1600} step={10}
+          type="range"
+          min={400}
+          max={1600}
+          step={10}
           value={value}
           onChange={(e) => onChange(Number(e.target.value))}
           className="w-full accent-blue-500"
         />
-        <div className="flex justify-between text-xs text-slate-400 mt-2 tabular-nums">
-          <span>400</span><span>800</span><span>1200</span><span>1600</span>
+        <div className="mt-2 flex justify-between text-xs tabular-nums text-slate-400">
+          <span>400</span>
+          <span>800</span>
+          <span>1200</span>
+          <span>1600</span>
         </div>
       </div>
     </div>
@@ -456,11 +554,21 @@ function ScoreStep({
 }
 
 function BaselineStep({
-  prompt, yesLabel, noLabel, has, onPickHas, score, onScoreChange,
+  prompt,
+  yesLabel,
+  noLabel,
+  has,
+  onPickHas,
+  score,
+  onScoreChange,
 }: {
-  prompt: string; yesLabel: string; noLabel: string;
-  has: "" | "yes" | "no"; onPickHas: (v: "yes" | "no") => void;
-  score: number; onScoreChange: (n: number) => void;
+  prompt: string;
+  yesLabel: string;
+  noLabel: string;
+  has: "" | "yes" | "no";
+  onPickHas: (v: "yes" | "no") => void;
+  score: number;
+  onScoreChange: (n: number) => void;
 }) {
   return (
     <div>
@@ -470,10 +578,10 @@ function BaselineStep({
           type="button"
           onClick={() => onPickHas("no")}
           className={cn(
-            "px-4 py-3 rounded-xl border-2 text-sm font-semibold transition-all",
+            "rounded-xl border-2 px-4 py-3 text-sm font-semibold transition-all",
             has === "no"
-              ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-200"
-              : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/40 text-slate-700 dark:text-slate-200 hover:border-blue-300"
+              ? "border-blue-500 bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-200"
+              : "border-slate-200 bg-white text-slate-700 hover:border-blue-300 dark:border-slate-700 dark:bg-slate-800/40 dark:text-slate-200"
           )}
         >
           {noLabel}
@@ -482,10 +590,10 @@ function BaselineStep({
           type="button"
           onClick={() => onPickHas("yes")}
           className={cn(
-            "px-4 py-3 rounded-xl border-2 text-sm font-semibold transition-all",
+            "rounded-xl border-2 px-4 py-3 text-sm font-semibold transition-all",
             has === "yes"
-              ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-200"
-              : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/40 text-slate-700 dark:text-slate-200 hover:border-blue-300"
+              ? "border-blue-500 bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-200"
+              : "border-slate-200 bg-white text-slate-700 hover:border-blue-300 dark:border-slate-700 dark:bg-slate-800/40 dark:text-slate-200"
           )}
         >
           {yesLabel}
@@ -493,20 +601,26 @@ function BaselineStep({
       </div>
       {has === "yes" && (
         <div className="mt-8">
-          <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 text-center mb-3">
+          <p className="mb-3 text-center text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
             Most recent total
           </p>
-          <div className="text-center text-5xl font-extrabold text-slate-900 dark:text-white tabular-nums mb-3">
+          <div className="mb-3 text-center text-5xl font-extrabold tabular-nums text-slate-900 dark:text-white">
             {score}
           </div>
           <input
-            type="range" min={400} max={1600} step={10}
+            type="range"
+            min={400}
+            max={1600}
+            step={10}
             value={score}
             onChange={(e) => onScoreChange(Number(e.target.value))}
             className="w-full accent-blue-500"
           />
-          <div className="flex justify-between text-xs text-slate-400 mt-2 tabular-nums">
-            <span>400</span><span>800</span><span>1200</span><span>1600</span>
+          <div className="mt-2 flex justify-between text-xs tabular-nums text-slate-400">
+            <span>400</span>
+            <span>800</span>
+            <span>1200</span>
+            <span>1600</span>
           </div>
         </div>
       )}
@@ -514,28 +628,43 @@ function BaselineStep({
   );
 }
 
-function HoursStep({ prompt, value, onChange }: { prompt: string; value: number; onChange: (n: number) => void }) {
+function HoursStep({
+  prompt,
+  value,
+  onChange,
+}: {
+  prompt: string;
+  value: number;
+  onChange: (n: number) => void;
+}) {
   return (
     <div>
-      <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white inline-flex items-center gap-2">
-        <Clock className="w-5 h-5 text-blue-400" /> {prompt}
+      <h2 className="inline-flex items-center gap-2 text-2xl font-extrabold text-slate-900 dark:text-white">
+        <Clock className="h-5 w-5 text-blue-400" /> {prompt}
       </h2>
-      <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">Honest answer beats optimistic — we use this to size the recommendation.</p>
+      <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+        Honest answer beats optimistic — we use this to size the recommendation.
+      </p>
       <div className="mt-8">
-        <div className="text-center text-5xl font-extrabold text-slate-900 dark:text-white tabular-nums mb-1">
+        <div className="mb-1 text-center text-5xl font-extrabold tabular-nums text-slate-900 dark:text-white">
           {value}
         </div>
-        <p className="text-center text-xs text-slate-500 dark:text-slate-400 mb-3">
+        <p className="mb-3 text-center text-xs text-slate-500 dark:text-slate-400">
           {value === 1 ? "hour" : "hours"} per week
         </p>
         <input
-          type="range" min={1} max={20} step={1}
+          type="range"
+          min={1}
+          max={20}
+          step={1}
           value={value}
           onChange={(e) => onChange(Number(e.target.value))}
           className="w-full accent-blue-500"
         />
-        <div className="flex justify-between text-xs text-slate-400 mt-2">
-          <span>1h</span><span>10h</span><span>20h</span>
+        <div className="mt-2 flex justify-between text-xs text-slate-400">
+          <span>1h</span>
+          <span>10h</span>
+          <span>20h</span>
         </div>
       </div>
     </div>
@@ -543,7 +672,12 @@ function HoursStep({ prompt, value, onChange }: { prompt: string; value: number;
 }
 
 function ChoiceStep({
-  icon, prompt, hint, options, value, onChange,
+  icon,
+  prompt,
+  hint,
+  options,
+  value,
+  onChange,
 }: {
   icon: React.ReactNode;
   prompt: string;
@@ -554,12 +688,10 @@ function ChoiceStep({
 }) {
   return (
     <div>
-      <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white inline-flex items-center gap-2">
+      <h2 className="inline-flex items-center gap-2 text-2xl font-extrabold text-slate-900 dark:text-white">
         {icon} {prompt}
       </h2>
-      {hint && (
-        <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">{hint}</p>
-      )}
+      {hint && <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">{hint}</p>}
       <div className="mt-6 space-y-2">
         {options.map((o) => (
           <button
@@ -567,10 +699,10 @@ function ChoiceStep({
             type="button"
             onClick={() => onChange(o.id)}
             className={cn(
-              "w-full px-4 py-3 rounded-xl border-2 text-sm font-semibold text-left transition-all",
+              "w-full rounded-xl border-2 px-4 py-3 text-left text-sm font-semibold transition-all",
               value === o.id
-                ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-200"
-                : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/40 text-slate-700 dark:text-slate-200 hover:border-blue-300"
+                ? "border-blue-500 bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-200"
+                : "border-slate-200 bg-white text-slate-700 hover:border-blue-300 dark:border-slate-700 dark:bg-slate-800/40 dark:text-slate-200"
             )}
           >
             {o.label}
@@ -582,7 +714,10 @@ function ChoiceStep({
 }
 
 function RecommendationStep({
-  recommendation, onPick, submitting, role,
+  recommendation,
+  onPick,
+  submitting,
+  role,
 }: {
   recommendation: Recommendation;
   onPick: (tier: string) => void;
@@ -591,33 +726,38 @@ function RecommendationStep({
 }) {
   return (
     <div>
-      <p className="text-xs font-bold uppercase tracking-widest text-blue-400 inline-flex items-center gap-1.5">
-        <Sparkles className="w-3.5 h-3.5" />
+      <p className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-blue-400">
+        <Sparkles className="h-3.5 w-3.5" />
         Our recommendation for {role === "parent" ? "your child" : "you"}
       </p>
       <h2 className="mt-2 text-3xl font-extrabold text-slate-900 dark:text-white">
         {recommendation.headline}
       </h2>
 
-      <div className="mt-5 rounded-2xl border border-blue-300/40 bg-blue-50/60 dark:bg-blue-900/10 p-5">
-        <div className="flex items-center gap-2 text-blue-700 dark:text-blue-200 mb-2">
-          <CheckCircle2 className="w-4 h-4" />
-          <span className="text-sm font-bold uppercase tracking-wider">{tierLabel(recommendation.tier)}</span>
+      <div className="mt-5 rounded-2xl border border-blue-300/40 bg-blue-50/60 p-5 dark:bg-blue-900/10">
+        <div className="mb-2 flex items-center gap-2 text-blue-700 dark:text-blue-200">
+          <CheckCircle2 className="h-4 w-4" />
+          <span className="text-sm font-bold uppercase tracking-wider">
+            {tierLabel(recommendation.tier)}
+          </span>
         </div>
-        <p className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed">
+        <p className="text-sm leading-relaxed text-slate-700 dark:text-slate-200">
           {recommendation.why}
         </p>
       </div>
 
       {recommendation.signals.length > 0 && (
-        <div className="mt-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white/40 dark:bg-slate-800/30 p-4">
-          <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2">
+        <div className="mt-4 rounded-xl border border-slate-200 bg-white/40 p-4 dark:border-slate-700 dark:bg-slate-800/30">
+          <p className="mb-2 text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">
             Why we picked this
           </p>
           <ul className="space-y-1">
             {recommendation.signals.map((s, i) => (
-              <li key={i} className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed flex gap-2">
-                <span className="text-blue-400 shrink-0">•</span>
+              <li
+                key={i}
+                className="flex gap-2 text-xs leading-relaxed text-slate-600 dark:text-slate-300"
+              >
+                <span className="shrink-0 text-blue-400">•</span>
                 <span>{s}</span>
               </li>
             ))}
@@ -626,11 +766,11 @@ function RecommendationStep({
       )}
 
       {recommendation.alsoConsidered && (
-        <div className="mt-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white/40 dark:bg-slate-800/30 p-4">
+        <div className="mt-3 rounded-xl border border-slate-200 bg-white/40 p-4 dark:border-slate-700 dark:bg-slate-800/30">
           <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">
             We also considered
           </p>
-          <p className="mt-1 text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+          <p className="mt-1 text-xs leading-relaxed text-slate-600 dark:text-slate-300">
             <span className="font-semibold text-slate-700 dark:text-slate-200">
               {tierLabel(recommendation.alsoConsidered.tier)} —{" "}
             </span>
@@ -643,17 +783,17 @@ function RecommendationStep({
         type="button"
         onClick={() => onPick(recommendation.tier)}
         disabled={submitting}
-        className="btn-primary w-full mt-6 text-base py-4 justify-center"
+        className="btn-primary mt-6 w-full justify-center py-4 text-base"
       >
         {submitting ? (
           <>
-            <Loader2 className="w-4 h-4 animate-spin" />
+            <Loader2 className="h-4 w-4 animate-spin" />
             Setting up checkout…
           </>
         ) : (
           <>
             Start free trial — {tierLabel(recommendation.tier)}
-            <ArrowRight className="w-5 h-5" />
+            <ArrowRight className="h-5 w-5" />
           </>
         )}
       </button>
@@ -661,7 +801,7 @@ function RecommendationStep({
       <button
         type="button"
         onClick={() => onPick("group")}
-        className="mt-3 w-full text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
+        className="mt-3 w-full text-xs font-semibold text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
       >
         Or browse all plans →
       </button>

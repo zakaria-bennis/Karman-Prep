@@ -28,13 +28,20 @@ const SIGNED_URL_TTL_SECONDS = 60 * 60 * 24 * 30; // 30 days
 
 function extFor(mime: string): string {
   switch (mime) {
-    case "image/png": return "png";
-    case "image/jpeg": return "jpg";
-    case "image/webp": return "webp";
-    case "image/gif": return "gif";
-    case "image/heic": return "heic";
-    case "image/heif": return "heif";
-    default: return "bin";
+    case "image/png":
+      return "png";
+    case "image/jpeg":
+      return "jpg";
+    case "image/webp":
+      return "webp";
+    case "image/gif":
+      return "gif";
+    case "image/heic":
+      return "heic";
+    case "image/heif":
+      return "heif";
+    default:
+      return "bin";
   }
 }
 
@@ -67,12 +74,10 @@ export async function POST(req: NextRequest) {
   const buffer = Buffer.from(await file.arrayBuffer());
 
   const supa = createAdminClient();
-  const { error: upErr } = await supa.storage
-    .from("chat-media")
-    .upload(objectPath, buffer, {
-      contentType: file.type,
-      upsert: false,
-    });
+  const { error: upErr } = await supa.storage.from("chat-media").upload(objectPath, buffer, {
+    contentType: file.type,
+    upsert: false,
+  });
   if (upErr) {
     console.error("[api/chat/upload] upload failed:", upErr);
     return NextResponse.json({ error: "Failed to store file" }, { status: 500 });

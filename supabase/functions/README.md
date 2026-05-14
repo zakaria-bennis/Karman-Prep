@@ -4,11 +4,11 @@
 
 ## Webhook routes
 
-| Provider   | Route                              | Source path                                              | Auth                                             |
-| ---------- | ---------------------------------- | -------------------------------------------------------- | ------------------------------------------------ |
-| Cal.com    | `/api/webhooks/cal`                | `src/app/api/webhooks/cal/route.ts`                      | HMAC-SHA256 of raw body, header `X-Cal-Signature-256`. Secret in `CAL_WEBHOOK_SECRET`. |
-| Zoom       | `/api/webhooks/zoom`               | `src/app/api/webhooks/zoom/route.ts`                     | HMAC-SHA256 of `v0:<ts>:<body>`, header `x-zm-signature`. Secret in `ZOOM_WEBHOOK_SECRET`. Also handles `endpoint.url_validation` challenge. |
-| Supabase DB | `/api/webhooks/seminar-overflow`  | `src/app/api/webhooks/seminar-overflow/route.ts`         | Shared secret in `Authorization: Bearer <SUPABASE_DB_WEBHOOK_SECRET>`. |
+| Provider    | Route                            | Source path                                      | Auth                                                                                                                                         |
+| ----------- | -------------------------------- | ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| Cal.com     | `/api/webhooks/cal`              | `src/app/api/webhooks/cal/route.ts`              | HMAC-SHA256 of raw body, header `X-Cal-Signature-256`. Secret in `CAL_WEBHOOK_SECRET`.                                                       |
+| Zoom        | `/api/webhooks/zoom`             | `src/app/api/webhooks/zoom/route.ts`             | HMAC-SHA256 of `v0:<ts>:<body>`, header `x-zm-signature`. Secret in `ZOOM_WEBHOOK_SECRET`. Also handles `endpoint.url_validation` challenge. |
+| Supabase DB | `/api/webhooks/seminar-overflow` | `src/app/api/webhooks/seminar-overflow/route.ts` | Shared secret in `Authorization: Bearer <SUPABASE_DB_WEBHOOK_SECRET>`.                                                                       |
 
 ## Cal.com webhook configuration
 

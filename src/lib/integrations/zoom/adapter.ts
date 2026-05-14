@@ -77,7 +77,11 @@ async function getAccessToken(): Promise<string> {
   );
   const text = await res.text();
   let parsed: unknown;
-  try { parsed = JSON.parse(text); } catch { parsed = text; }
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    parsed = text;
+  }
   if (!res.ok) {
     throw new ZoomAdapterError("oauth", res.status, parsed);
   }
@@ -103,7 +107,9 @@ async function callZoom<T>(opts: ZoomRequestOptions): Promise<T> {
   const token = await getAccessToken();
   const url = `${ZOOM_API_BASE}${opts.path}`;
   const startedAt = Date.now();
-  console.log(`[zoom-adapter] ${new Date().toISOString()} ${opts.operation} → ${opts.method} ${opts.path}`);
+  console.log(
+    `[zoom-adapter] ${new Date().toISOString()} ${opts.operation} → ${opts.method} ${opts.path}`
+  );
 
   const res = await fetch(url, {
     method: opts.method,
@@ -115,9 +121,15 @@ async function callZoom<T>(opts: ZoomRequestOptions): Promise<T> {
   });
   const text = await res.text();
   let parsed: unknown;
-  try { parsed = text.length > 0 ? JSON.parse(text) : null; } catch { parsed = text; }
+  try {
+    parsed = text.length > 0 ? JSON.parse(text) : null;
+  } catch {
+    parsed = text;
+  }
 
-  console.log(`[zoom-adapter] ${opts.operation} done in ${Date.now() - startedAt}ms (HTTP ${res.status})`);
+  console.log(
+    `[zoom-adapter] ${opts.operation} done in ${Date.now() - startedAt}ms (HTTP ${res.status})`
+  );
 
   if (!res.ok) {
     throw new ZoomAdapterError(opts.operation, res.status, parsed);

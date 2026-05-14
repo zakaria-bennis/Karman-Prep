@@ -20,8 +20,16 @@
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
-  Sparkles, Save, Edit3, RefreshCw, Send, Loader2, AlertTriangle,
-  CheckCircle2, FileText, Users as UsersIcon,
+  Sparkles,
+  Save,
+  Edit3,
+  RefreshCw,
+  Send,
+  Loader2,
+  AlertTriangle,
+  CheckCircle2,
+  FileText,
+  Users as UsersIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { StatusDraft } from "@/lib/integrations/openai/generate-status-draft";
@@ -57,14 +65,17 @@ export interface StatusDraftPageData {
 type Field = keyof StatusDraft;
 
 const FIELDS: Array<{ key: Field; label: string }> = [
-  { key: "date_and_time_of_session",              label: "Date and Time of Session" },
-  { key: "student_performance_progress",          label: "Student Performance/Progress" },
-  { key: "subjects_covered_during_session",       label: "Subjects Covered During the Session" },
-  { key: "specific_weak_points_or_mistakes",      label: "Specific Weak Points or Mistakes to Review" },
-  { key: "next_steps_homework_assigned",          label: "Next Steps Homework Assigned" },
-  { key: "subjects_to_cover_next_session",        label: "Subjects to Cover Next Session" },
-  { key: "homework_practice_before_next_session", label: "Homework/Practice to Complete Before Next Session" },
-  { key: "date_and_time_of_next_session",         label: "Date and Time of Next Session" },
+  { key: "date_and_time_of_session", label: "Date and Time of Session" },
+  { key: "student_performance_progress", label: "Student Performance/Progress" },
+  { key: "subjects_covered_during_session", label: "Subjects Covered During the Session" },
+  { key: "specific_weak_points_or_mistakes", label: "Specific Weak Points or Mistakes to Review" },
+  { key: "next_steps_homework_assigned", label: "Next Steps Homework Assigned" },
+  { key: "subjects_to_cover_next_session", label: "Subjects to Cover Next Session" },
+  {
+    key: "homework_practice_before_next_session",
+    label: "Homework/Practice to Complete Before Next Session",
+  },
+  { key: "date_and_time_of_next_session", label: "Date and Time of Next Session" },
 ];
 
 const EMPTY_DRAFT: StatusDraft = Object.fromEntries(
@@ -88,7 +99,8 @@ export default function StatusDraftClient({ data }: { data: StatusDraftPageData 
   const [error, setError] = useState<string | null>(null);
 
   const allRecipients = useMemo(() => {
-    const list: Array<{ id: string; label: string; email: string; type: "student" | "parent" }> = [];
+    const list: Array<{ id: string; label: string; email: string; type: "student" | "parent" }> =
+      [];
     if (data.studentEmail) {
       list.push({
         id: `student:${data.bookingId}`,
@@ -173,7 +185,9 @@ export default function StatusDraftClient({ data }: { data: StatusDraftPageData 
           setDraft(res.draft);
           setEditMode(false);
         } else {
-          setError(`Transcript saved, but draft generation failed: ${res.draftError}. Write the draft manually below.`);
+          setError(
+            `Transcript saved, but draft generation failed: ${res.draftError}. Write the draft manually below.`
+          );
           setEditMode(true);
         }
         setPendingTranscript("");
@@ -210,12 +224,10 @@ export default function StatusDraftClient({ data }: { data: StatusDraftPageData 
     <div className="space-y-6">
       {/* ── Header ──────────────────────────────────────── */}
       <header>
-        <p className="text-xs font-semibold tracking-wider text-blue-400 uppercase mb-1.5">
+        <p className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-blue-400">
           Session Recap Draft
         </p>
-        <h1 className="text-2xl font-extrabold text-white tracking-tight">
-          {data.studentName}
-        </h1>
+        <h1 className="text-2xl font-extrabold tracking-tight text-white">{data.studentName}</h1>
         <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-slate-400">
           <span>{sessionDateLabel}</span>
           <span className="text-slate-700">·</span>
@@ -229,12 +241,13 @@ export default function StatusDraftClient({ data }: { data: StatusDraftPageData 
 
       {/* Group/Seminar gate — Phase 4 ships 1:1 only */}
       {!isOneOnOne && (
-        <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-sm text-amber-200 flex items-start gap-2">
-          <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+        <div className="flex items-start gap-2 rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-sm text-amber-200">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
           <div>
             <strong>Group session — auto-recap deferred.</strong> v1 ships recaps for{" "}
-            <code className="text-amber-100">private</code> and <code className="text-amber-100">elite</code> tier
-            sessions only. Group + small group recaps are tracked for v2.
+            <code className="text-amber-100">private</code> and{" "}
+            <code className="text-amber-100">elite</code> tier sessions only. Group + small group
+            recaps are tracked for v2.
           </div>
         </div>
       )}
@@ -242,28 +255,32 @@ export default function StatusDraftClient({ data }: { data: StatusDraftPageData 
       {/* ── No transcript yet — manual paste form ──────── */}
       {!data.hasTranscript && (
         <section className="rounded-xl border border-slate-800 bg-slate-900/40 p-5">
-          <div className="flex items-center gap-2 mb-3">
-            <FileText className="w-4 h-4 text-slate-400" />
+          <div className="mb-3 flex items-center gap-2">
+            <FileText className="h-4 w-4 text-slate-400" />
             <h2 className="text-sm font-bold text-white">No transcript yet</h2>
           </div>
-          <p className="text-sm text-slate-400 mb-3">
-            If Fireflies has a transcript for this session, the draft will appear here automatically.
-            Otherwise, paste the transcript below and we&apos;ll generate the draft.
+          <p className="mb-3 text-sm text-slate-400">
+            If Fireflies has a transcript for this session, the draft will appear here
+            automatically. Otherwise, paste the transcript below and we&apos;ll generate the draft.
           </p>
           <textarea
             value={pendingTranscript}
             onChange={(e) => setPendingTranscript(e.target.value)}
             placeholder={`Paste transcript here. Format like:\n\nZakaria: Today we covered linear equations…\nMaya: I'm still confused about negative coefficients.\n…`}
             rows={8}
-            className="w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-sm text-slate-100 font-mono leading-relaxed focus:outline-none focus:border-blue-500"
+            className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 font-mono text-sm leading-relaxed text-slate-100 focus:border-blue-500 focus:outline-none"
           />
           <div className="mt-3 flex justify-end">
             <button
               onClick={handleManualTranscript}
               disabled={isPending || !pendingTranscript.trim()}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-semibold"
+              className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
             >
-              {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+              {isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Sparkles className="h-4 w-4" />
+              )}
               Save transcript &amp; generate draft
             </button>
           </div>
@@ -272,11 +289,11 @@ export default function StatusDraftClient({ data }: { data: StatusDraftPageData 
 
       {/* ── Draft generation failed ─────────────────────── */}
       {data.draftError && (
-        <div className="rounded-xl border border-rose-500/30 bg-rose-500/5 px-4 py-3 text-sm text-rose-200 flex items-start gap-2">
-          <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+        <div className="flex items-start gap-2 rounded-xl border border-rose-500/30 bg-rose-500/5 px-4 py-3 text-sm text-rose-200">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
           <div>
-            <strong>Draft generation failed.</strong> The transcript is saved.
-            You can write the recap manually in the form below or regenerate.
+            <strong>Draft generation failed.</strong> The transcript is saved. You can write the
+            recap manually in the form below or regenerate.
             <div className="mt-1 font-mono text-xs text-rose-300/80">{data.draftError}</div>
           </div>
         </div>
@@ -291,24 +308,22 @@ export default function StatusDraftClient({ data }: { data: StatusDraftPageData 
 
       {/* ── Edit form + Preview (split 7/5 on desktop) ─── */}
       {(data.hasTranscript || data.draft || data.draftError) && (
-        <div className="grid lg:grid-cols-12 gap-6">
+        <div className="grid gap-6 lg:grid-cols-12">
           {/* LEFT — editable fields */}
-          <section className="lg:col-span-7 rounded-xl border border-slate-800 bg-slate-900/40 p-5">
-            <div className="flex items-center justify-between mb-4">
+          <section className="rounded-xl border border-slate-800 bg-slate-900/40 p-5 lg:col-span-7">
+            <div className="mb-4 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Edit3 className="w-4 h-4 text-slate-400" />
+                <Edit3 className="h-4 w-4 text-slate-400" />
                 <h2 className="text-sm font-bold text-white">Edit draft</h2>
                 {savedAt && (
-                  <span className="text-xs text-slate-500">
-                    · saved {timeSince(savedAt)} ago
-                  </span>
+                  <span className="text-xs text-slate-500">· saved {timeSince(savedAt)} ago</span>
                 )}
               </div>
               <div className="flex items-center gap-2">
                 {!editMode ? (
                   <button
                     onClick={() => setEditMode(true)}
-                    className="px-3 py-1.5 text-xs font-semibold rounded-md border border-slate-700 hover:bg-slate-800 text-slate-200"
+                    className="rounded-md border border-slate-700 px-3 py-1.5 text-xs font-semibold text-slate-200 hover:bg-slate-800"
                   >
                     Edit
                   </button>
@@ -316,9 +331,13 @@ export default function StatusDraftClient({ data }: { data: StatusDraftPageData 
                   <button
                     onClick={handleSaveDraft}
                     disabled={isPending}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white"
+                    className="inline-flex items-center gap-1.5 rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-40"
                   >
-                    {isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+                    {isPending ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <Save className="h-3.5 w-3.5" />
+                    )}
                     Save draft
                   </button>
                 )}
@@ -326,10 +345,14 @@ export default function StatusDraftClient({ data }: { data: StatusDraftPageData 
                   <button
                     onClick={handleRegenerate}
                     disabled={isPending}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md border border-slate-700 hover:bg-slate-800 disabled:opacity-40 text-slate-300"
+                    className="inline-flex items-center gap-1.5 rounded-md border border-slate-700 px-3 py-1.5 text-xs font-semibold text-slate-300 hover:bg-slate-800 disabled:opacity-40"
                     title="Re-run OpenAI on the stored transcript"
                   >
-                    {isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
+                    {isPending ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <RefreshCw className="h-3.5 w-3.5" />
+                    )}
                     Regenerate
                   </button>
                 )}
@@ -339,19 +362,24 @@ export default function StatusDraftClient({ data }: { data: StatusDraftPageData 
             <div className="space-y-4">
               {FIELDS.map((f) => (
                 <div key={f.key}>
-                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">
+                  <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-slate-400">
                     {f.label}
                   </label>
                   <textarea
                     value={draft[f.key] || ""}
                     onChange={(e) => updateField(f.key, e.target.value)}
                     readOnly={!editMode}
-                    rows={f.key === "student_performance_progress" || f.key === "subjects_covered_during_session" ? 4 : 2}
+                    rows={
+                      f.key === "student_performance_progress" ||
+                      f.key === "subjects_covered_during_session"
+                        ? 4
+                        : 2
+                    }
                     className={cn(
-                      "w-full rounded-md border px-3 py-2 text-sm leading-relaxed resize-y",
+                      "w-full resize-y rounded-md border px-3 py-2 text-sm leading-relaxed",
                       editMode
-                        ? "bg-slate-950 border-slate-700 text-slate-100 focus:outline-none focus:border-blue-500"
-                        : "bg-slate-900 border-slate-800 text-slate-200 cursor-default"
+                        ? "border-slate-700 bg-slate-950 text-slate-100 focus:border-blue-500 focus:outline-none"
+                        : "cursor-default border-slate-800 bg-slate-900 text-slate-200"
                     )}
                   />
                 </div>
@@ -362,8 +390,8 @@ export default function StatusDraftClient({ data }: { data: StatusDraftPageData 
           {/* RIGHT — preview */}
           <aside className="lg:col-span-5">
             <div className="sticky top-6 rounded-xl border border-slate-800 bg-slate-900/40 p-5">
-              <div className="flex items-center gap-2 mb-3">
-                <Sparkles className="w-4 h-4 text-blue-400" />
+              <div className="mb-3 flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-blue-400" />
                 <h2 className="text-sm font-bold text-white">Preview — what the parent sees</h2>
               </div>
               <RecapPreview
@@ -380,15 +408,15 @@ export default function StatusDraftClient({ data }: { data: StatusDraftPageData 
       {/* ── Recipients ──────────────────────────────────── */}
       {(data.hasTranscript || data.draft) && (
         <section className="rounded-xl border border-slate-800 bg-slate-900/40 p-5">
-          <div className="flex items-center gap-2 mb-3">
-            <UsersIcon className="w-4 h-4 text-slate-400" />
+          <div className="mb-3 flex items-center gap-2">
+            <UsersIcon className="h-4 w-4 text-slate-400" />
             <h2 className="text-sm font-bold text-white">Recipients</h2>
           </div>
           {allRecipients.length === 0 ? (
             <p className="text-sm text-slate-500">
-              No email addresses on file for this student or any linked parents.
-              Add a parent linkage in <code>parent_student_links</code> or update the
-              student email before sending.
+              No email addresses on file for this student or any linked parents. Add a parent
+              linkage in <code>parent_student_links</code> or update the student email before
+              sending.
             </p>
           ) : (
             <ul className="space-y-2">
@@ -398,11 +426,11 @@ export default function StatusDraftClient({ data }: { data: StatusDraftPageData 
                     type="checkbox"
                     checked={recipientIds.has(r.id)}
                     onChange={() => toggleRecipient(r.id)}
-                    className="w-4 h-4 accent-blue-500"
+                    className="h-4 w-4 accent-blue-500"
                   />
                   <span
                     className={cn(
-                      "px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider",
+                      "rounded px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider",
                       r.type === "student"
                         ? "bg-emerald-500/20 text-emerald-300"
                         : "bg-purple-500/20 text-purple-300"
@@ -410,7 +438,7 @@ export default function StatusDraftClient({ data }: { data: StatusDraftPageData 
                   >
                     {r.type}
                   </span>
-                  <span className="text-slate-200 font-medium">{r.label}</span>
+                  <span className="font-medium text-slate-200">{r.label}</span>
                   <span className="text-slate-500">{r.email}</span>
                 </li>
               ))}
@@ -434,9 +462,13 @@ export default function StatusDraftClient({ data }: { data: StatusDraftPageData 
           <button
             onClick={handleSend}
             disabled={isPending || !allFieldsFilled || recipientIds.size === 0 || !isOneOnOne}
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-bold"
+            className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-6 py-3 text-sm font-bold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
           >
-            {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+            {isPending ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Send className="h-4 w-4" />
+            )}
             Send recap &amp; mark for payout
           </button>
         </div>
@@ -460,25 +492,23 @@ function RecapPreview({
   fromName: string;
 }) {
   return (
-    <div className="rounded-md bg-slate-950 border border-slate-800 overflow-hidden">
-      <header className="px-4 py-3 border-b border-slate-800 bg-slate-900/60 text-xs">
+    <div className="overflow-hidden rounded-md border border-slate-800 bg-slate-950">
+      <header className="border-b border-slate-800 bg-slate-900/60 px-4 py-3 text-xs">
         <div className="text-slate-500">From</div>
         <div className="text-slate-200">{fromName} &lt;noreply@karmanprep.com&gt;</div>
         <div className="mt-1.5 text-slate-500">Subject</div>
-        <div className="text-slate-200 font-semibold">{subject}</div>
+        <div className="font-semibold text-slate-200">{subject}</div>
       </header>
-      <div className="px-4 py-4 text-sm text-slate-200 leading-relaxed space-y-3 font-serif">
+      <div className="space-y-3 px-4 py-4 font-serif text-sm leading-relaxed text-slate-200">
         {FIELDS.map((f) => (
           <div key={f.key}>
-            <div className="font-semibold not-italic font-sans text-slate-300">{f.label}:</div>
-            <div className="whitespace-pre-wrap mt-0.5">
-              {draft[f.key]?.trim() || (
-                <span className="italic text-slate-600">— empty —</span>
-              )}
+            <div className="font-sans font-semibold not-italic text-slate-300">{f.label}:</div>
+            <div className="mt-0.5 whitespace-pre-wrap">
+              {draft[f.key]?.trim() || <span className="italic text-slate-600">— empty —</span>}
             </div>
           </div>
         ))}
-        <div className="pt-3 mt-3 border-t border-slate-800 whitespace-pre-wrap text-slate-300">
+        <div className="mt-3 whitespace-pre-wrap border-t border-slate-800 pt-3 text-slate-300">
           {signature}
         </div>
       </div>
@@ -490,7 +520,10 @@ function RecapPreview({
 // Read-only state for already-sent recaps
 // ──────────────────────────────────────────────────────────
 function RecapAlreadySent({
-  data, draft, signature, subject,
+  data,
+  draft,
+  signature,
+  subject,
 }: {
   data: StatusDraftPageData;
   draft: StatusDraft;
@@ -500,12 +533,12 @@ function RecapAlreadySent({
   return (
     <div className="space-y-6">
       <header>
-        <p className="text-xs font-semibold tracking-wider text-emerald-400 uppercase mb-1.5">
+        <p className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-emerald-400">
           Recap sent
         </p>
-        <h1 className="text-2xl font-extrabold text-white tracking-tight">{data.studentName}</h1>
+        <h1 className="text-2xl font-extrabold tracking-tight text-white">{data.studentName}</h1>
         <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-slate-400">
-          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+          <CheckCircle2 className="h-4 w-4 text-emerald-400" />
           <span>Sent {data.recapSentAt ? new Date(data.recapSentAt).toLocaleString() : "—"}</span>
         </div>
       </header>
@@ -514,7 +547,12 @@ function RecapAlreadySent({
           This recap has already been sent. The fields below are read-only.
         </p>
       </div>
-      <RecapPreview draft={draft} signature={signature} subject={subject} fromName={data.tutorName} />
+      <RecapPreview
+        draft={draft}
+        signature={signature}
+        subject={subject}
+        fromName={data.tutorName}
+      />
     </div>
   );
 }
@@ -524,14 +562,27 @@ function RecapAlreadySent({
 // ──────────────────────────────────────────────────────────
 function PlanTierPill({ tier }: { tier: string }) {
   const map: Record<string, string> = {
-    private:     "bg-amber-500/20 text-amber-300",
-    elite:       "bg-violet-500/20 text-violet-300",
+    private: "bg-amber-500/20 text-amber-300",
+    elite: "bg-violet-500/20 text-violet-300",
     small_group: "bg-teal-500/20 text-teal-300",
-    group:       "bg-indigo-500/20 text-indigo-300",
+    group: "bg-indigo-500/20 text-indigo-300",
   };
-  const label = ({ private: "Private", elite: "Elite", small_group: "Small Group", group: "Seminar" } as Record<string, string>)[tier] ?? tier;
+  const label =
+    (
+      {
+        private: "Private",
+        elite: "Elite",
+        small_group: "Small Group",
+        group: "Seminar",
+      } as Record<string, string>
+    )[tier] ?? tier;
   return (
-    <span className={cn("px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider", map[tier] ?? "bg-slate-800 text-slate-300")}>
+    <span
+      className={cn(
+        "rounded px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider",
+        map[tier] ?? "bg-slate-800 text-slate-300"
+      )}
+    >
       {label}
     </span>
   );
@@ -553,15 +604,30 @@ function DraftStatusPill({ data }: { data: StatusDraftPageData }) {
   return <Pill color="amber">Drafting…</Pill>;
 }
 
-function Pill({ color, children }: { color: "emerald" | "slate" | "rose" | "blue" | "amber"; children: React.ReactNode }) {
+function Pill({
+  color,
+  children,
+}: {
+  color: "emerald" | "slate" | "rose" | "blue" | "amber";
+  children: React.ReactNode;
+}) {
   const map = {
     emerald: "bg-emerald-500/20 text-emerald-300",
-    slate:   "bg-slate-700 text-slate-300",
-    rose:    "bg-rose-500/20 text-rose-300",
-    blue:    "bg-blue-500/20 text-blue-300",
-    amber:   "bg-amber-500/20 text-amber-300",
+    slate: "bg-slate-700 text-slate-300",
+    rose: "bg-rose-500/20 text-rose-300",
+    blue: "bg-blue-500/20 text-blue-300",
+    amber: "bg-amber-500/20 text-amber-300",
   };
-  return <span className={cn("px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider", map[color])}>{children}</span>;
+  return (
+    <span
+      className={cn(
+        "rounded px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider",
+        map[color]
+      )}
+    >
+      {children}
+    </span>
+  );
 }
 
 // ──────────────────────────────────────────────────────────
@@ -569,8 +635,11 @@ function Pill({ color, children }: { color: "emerald" | "slate" | "rose" | "blue
 // ──────────────────────────────────────────────────────────
 function formatSessionDate(iso: string): string {
   return new Date(iso).toLocaleString("en-US", {
-    weekday: "short", month: "short", day: "numeric",
-    hour: "numeric", minute: "2-digit",
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
   });
 }
 function formatSessionEnd(iso: string, durationMinutes: number): string {
@@ -578,7 +647,11 @@ function formatSessionEnd(iso: string, durationMinutes: number): string {
   return end.toLocaleString("en-US", { hour: "numeric", minute: "2-digit", timeZoneName: "short" });
 }
 function shortDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  return new Date(iso).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
 }
 function timeSince(iso: string): string {
   const seconds = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
@@ -589,15 +662,19 @@ function timeSince(iso: string): string {
 }
 function humanizeError(err: unknown): string {
   const msg = err instanceof Error ? err.message : String(err);
-  if (msg === "already_sent")           return "This recap has already been sent. Refresh the page to see the locked state.";
-  if (msg === "group_session_deferred") return "Group/Seminar recaps are deferred to v2. Only Private and Elite recaps send for now.";
-  if (msg === "no_resolved_emails")     return "None of the selected recipients have email addresses on file.";
-  if (msg === "missing_student_data")   return "Couldn't find the student's data on this booking.";
-  if (msg === "missing_tutor_data")     return "Couldn't find the tutor's data on this booking.";
-  if (msg === "no_transcript")          return "There's no transcript saved for this session yet.";
-  if (msg === "empty_transcript")       return "Paste a transcript before saving.";
-  if (msg === "forbidden")              return "You don't have permission to edit this booking.";
-  if (msg.startsWith("resend_failed:")) return `Email delivery failed: ${msg.slice("resend_failed: ".length)}`;
+  if (msg === "already_sent")
+    return "This recap has already been sent. Refresh the page to see the locked state.";
+  if (msg === "group_session_deferred")
+    return "Group/Seminar recaps are deferred to v2. Only Private and Elite recaps send for now.";
+  if (msg === "no_resolved_emails")
+    return "None of the selected recipients have email addresses on file.";
+  if (msg === "missing_student_data") return "Couldn't find the student's data on this booking.";
+  if (msg === "missing_tutor_data") return "Couldn't find the tutor's data on this booking.";
+  if (msg === "no_transcript") return "There's no transcript saved for this session yet.";
+  if (msg === "empty_transcript") return "Paste a transcript before saving.";
+  if (msg === "forbidden") return "You don't have permission to edit this booking.";
+  if (msg.startsWith("resend_failed:"))
+    return `Email delivery failed: ${msg.slice("resend_failed: ".length)}`;
   if (msg.startsWith("booking_update_failed_after_send:")) {
     return "The email was sent BUT the booking record didn't update. Contact admin — manual fix needed.";
   }

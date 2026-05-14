@@ -1,0 +1,47 @@
+# Build artifacts
+.next/
+.open-next/
+.wrangler/
+node_modules/
+out/
+build/
+
+# Generated
+next-env.d.ts
+package-lock.json
+*.tsbuildinfo
+
+# Don't reformat docs we don't own
+docs/business/
+docs/reference/
+docs/recaps-payouts/
+docs/handoff.md
+docs/deployment-cloudflare.md
+docs/ingestion/
+
+# Don't touch the question-imports runtime data
+question-imports/extract-out/
+question-imports/runs/
+question-imports/incoming/
+question-imports/done/
+
+# SQL migrations — formatting could break semantic alignment in CREATE TABLE blocks
+supabase/migrations/
+supabase/schema.sql
+supabase/seeds/
+scripts/maintenance/wipe-question-bank.sql
+migrations/
+
+# Public assets
+public/
+
+# Word docs / binaries
+*.docx
+*.xlsx
+*.pdf
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.webp
+*.svg

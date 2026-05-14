@@ -27,43 +27,72 @@ if (!SUPA_URL || !SUPA_KEY) {
 
 // Admin (acts as tutor) — bennisz@outlook.com
 const TUTOR_USER_ID = "e2245a2b-1932-45c5-a889-157ff031fd85";
-const HOURLY_RATE   = 35;
+const HOURLY_RATE = 35;
 
 // Sessions to create. Each top-level entry = one actual session.
 // Group sessions list multiple `students` to create per-student
 // bookings linked to the same session.
 const SESSIONS = [
   // ─── 5 individual (1:1) sessions ─────────────────────
-  { type: "private", durationMin: 60,  daysAgo: 1, students: [{ firstName: "Maya",   lastName: "Patel" }] },
-  { type: "private", durationMin: 75,  daysAgo: 3, students: [{ firstName: "Carlos", lastName: "Rivera" }] },
-  { type: "elite",   durationMin: 90,  daysAgo: 5, students: [{ firstName: "Aisha",  lastName: "Johnson" }] },
-  { type: "private", durationMin: 65,  daysAgo: 7, students: [{ firstName: "Liam",   lastName: "Chen" }] },
-  { type: "elite",   durationMin: 120, daysAgo: 9, students: [{ firstName: "Sophia", lastName: "Martinez" }] },
+  {
+    type: "private",
+    durationMin: 60,
+    daysAgo: 1,
+    students: [{ firstName: "Maya", lastName: "Patel" }],
+  },
+  {
+    type: "private",
+    durationMin: 75,
+    daysAgo: 3,
+    students: [{ firstName: "Carlos", lastName: "Rivera" }],
+  },
+  {
+    type: "elite",
+    durationMin: 90,
+    daysAgo: 5,
+    students: [{ firstName: "Aisha", lastName: "Johnson" }],
+  },
+  {
+    type: "private",
+    durationMin: 65,
+    daysAgo: 7,
+    students: [{ firstName: "Liam", lastName: "Chen" }],
+  },
+  {
+    type: "elite",
+    durationMin: 120,
+    daysAgo: 9,
+    students: [{ firstName: "Sophia", lastName: "Martinez" }],
+  },
 
   // ─── 1 small group session, 4 students (max 5) ───────
   {
-    type: "small_group", durationMin: 90, daysAgo: 4,
+    type: "small_group",
+    durationMin: 90,
+    daysAgo: 4,
     cohortName: "May 2026 Small Group A",
     students: [
-      { firstName: "Ella",  lastName: "Williams" },
-      { firstName: "Noah",  lastName: "Anderson" },
+      { firstName: "Ella", lastName: "Williams" },
+      { firstName: "Noah", lastName: "Anderson" },
       { firstName: "Olivia", lastName: "Brown" },
-      { firstName: "Ben",   lastName: "Foster" },
+      { firstName: "Ben", lastName: "Foster" },
     ],
   },
 
   // ─── 1 seminar, 8 students (max 250) ─────────────────
   {
-    type: "group", durationMin: 120, daysAgo: 11,
+    type: "group",
+    durationMin: 120,
+    daysAgo: 11,
     cohortName: "Spring 2026 Seminar — Math Foundations",
     students: [
-      { firstName: "Ava",   lastName: "Davis" },
+      { firstName: "Ava", lastName: "Davis" },
       { firstName: "Mason", lastName: "Wilson" },
       { firstName: "Ethan", lastName: "Park" },
       { firstName: "Layla", lastName: "Singh" },
-      { firstName: "Jordan",lastName: "Reed" },
-      { firstName: "Zara",  lastName: "Khan" },
-      { firstName: "Kai",   lastName: "Tanaka" },
+      { firstName: "Jordan", lastName: "Reed" },
+      { firstName: "Zara", lastName: "Khan" },
+      { firstName: "Kai", lastName: "Tanaka" },
       { firstName: "Priya", lastName: "Mehta" },
     ],
   },
@@ -82,26 +111,35 @@ function fakeDraft(s) {
   const isGroup = s.type === "small_group" || s.type === "group";
   if (isGroup) {
     return {
-      date_and_time_of_session:              `${s.daysAgo} days ago — ${s.durationMin} min class`,
-      student_performance_progress:          "The class engaged actively in the linear-equations review and worked through the problem set with strong participation.",
-      subjects_covered_during_session:       "Worked through 12 questions covering: linear equations in two variables (4), systems of equations word problems (5), and slope-intercept interpretation (3).",
-      specific_weak_points_or_mistakes:      "Several students hesitated when faced with negative coefficients in two-step equations.",
-      next_steps_homework_assigned:          "Bluebook practice test 3, sections 1.1-1.3 (15 questions).",
-      subjects_to_cover_next_session:        "Quadratic functions: factoring, vertex form, and intro to function transformations.",
-      homework_practice_before_next_session: "Complete the assigned Bluebook section. Review notes from today's class.",
-      date_and_time_of_next_session:         "TBD — confirm with cohort schedule.",
+      date_and_time_of_session: `${s.daysAgo} days ago — ${s.durationMin} min class`,
+      student_performance_progress:
+        "The class engaged actively in the linear-equations review and worked through the problem set with strong participation.",
+      subjects_covered_during_session:
+        "Worked through 12 questions covering: linear equations in two variables (4), systems of equations word problems (5), and slope-intercept interpretation (3).",
+      specific_weak_points_or_mistakes:
+        "Several students hesitated when faced with negative coefficients in two-step equations.",
+      next_steps_homework_assigned: "Bluebook practice test 3, sections 1.1-1.3 (15 questions).",
+      subjects_to_cover_next_session:
+        "Quadratic functions: factoring, vertex form, and intro to function transformations.",
+      homework_practice_before_next_session:
+        "Complete the assigned Bluebook section. Review notes from today's class.",
+      date_and_time_of_next_session: "TBD — confirm with cohort schedule.",
     };
   }
   // Individual
   return {
-    date_and_time_of_session:              `${s.daysAgo} days ago — ${s.durationMin} min session`,
-    student_performance_progress:          `${s.students[0].firstName} engaged well, asked thoughtful questions, and made progress on quadratic equations.`,
-    subjects_covered_during_session:       "Quadratic equations, factoring, vertex form, function transformations.",
-    specific_weak_points_or_mistakes:      "Sometimes flipped signs when factoring; needs more practice with negative coefficients.",
-    next_steps_homework_assigned:          "Bluebook practice test 3, sections 1.1-1.3 (15 questions on quadratics).",
-    subjects_to_cover_next_session:        "Exponential functions and growth/decay word problems.",
-    homework_practice_before_next_session: "Complete the assigned Bluebook section. Review notes from today.",
-    date_and_time_of_next_session:         "TBD — confirm with student.",
+    date_and_time_of_session: `${s.daysAgo} days ago — ${s.durationMin} min session`,
+    student_performance_progress: `${s.students[0].firstName} engaged well, asked thoughtful questions, and made progress on quadratic equations.`,
+    subjects_covered_during_session:
+      "Quadratic equations, factoring, vertex form, function transformations.",
+    specific_weak_points_or_mistakes:
+      "Sometimes flipped signs when factoring; needs more practice with negative coefficients.",
+    next_steps_homework_assigned:
+      "Bluebook practice test 3, sections 1.1-1.3 (15 questions on quadratics).",
+    subjects_to_cover_next_session: "Exponential functions and growth/decay word problems.",
+    homework_practice_before_next_session:
+      "Complete the assigned Bluebook section. Review notes from today.",
+    date_and_time_of_next_session: "TBD — confirm with student.",
   };
 }
 
@@ -109,8 +147,14 @@ const cohortCache = new Map();
 async function ensureCohort(name, tier) {
   if (cohortCache.has(name)) return cohortCache.get(name);
   const { data: existing } = await supabase
-    .from("cohorts").select("id").eq("name", name).maybeSingle();
-  if (existing) { cohortCache.set(name, existing.id); return existing.id; }
+    .from("cohorts")
+    .select("id")
+    .eq("name", name)
+    .maybeSingle();
+  if (existing) {
+    cohortCache.set(name, existing.id);
+    return existing.id;
+  }
   // Pick the next upcoming SAT date — cohorts.sat_date FK requires a real one
   const { data: nextDate } = await supabase
     .from("sat_dates")
@@ -123,13 +167,17 @@ async function ensureCohort(name, tier) {
   const { data, error } = await supabase
     .from("cohorts")
     .insert({
-      name, tier, sat_date: satDate, tutor_user_id: TUTOR_USER_ID,
+      name,
+      tier,
+      sat_date: satDate,
+      tutor_user_id: TUTOR_USER_ID,
       // Per spec: small group ≤ 5, seminar ≤ 250
       max_size: tier === "small_group" ? 5 : 250,
       status: "active",
       current_topic: "Quadratic equations",
     })
-    .select("id").single();
+    .select("id")
+    .single();
   if (error) throw new Error(`cohort insert failed for ${name}: ${error.message}`);
   cohortCache.set(name, data.id);
   return data.id;
@@ -139,16 +187,23 @@ async function upsertStudent(s) {
   const clerkId = `test_payout_${s.firstName.toLowerCase()}_${s.lastName.toLowerCase()}`;
   const email = `${s.firstName.toLowerCase()}.${s.lastName.toLowerCase()}@payout-test.karmanprep.local`;
   const { data: existing } = await supabase
-    .from("users").select("id").eq("clerk_id", clerkId).maybeSingle();
+    .from("users")
+    .select("id")
+    .eq("clerk_id", clerkId)
+    .maybeSingle();
   if (existing) return { userId: existing.id, created: false };
   const { data, error } = await supabase
     .from("users")
     .insert({
-      clerk_id: clerkId, role: "student", email,
-      first_name: s.firstName, last_name: s.lastName,
+      clerk_id: clerkId,
+      role: "student",
+      email,
+      first_name: s.firstName,
+      last_name: s.lastName,
       onboarding_completed_at: new Date().toISOString(),
     })
-    .select("id").single();
+    .select("id")
+    .single();
   if (error) throw new Error(`student insert failed for ${s.firstName}: ${error.message}`);
   return { userId: data.id, created: true };
 }
@@ -187,26 +242,31 @@ async function createSession(meta, cohortId) {
   return { sessionId: data.id, start, end, amount: data.payout_amount, hours: data.tutor_hours };
 }
 
-async function createBookingForSession(meta, studentUserId, sessionId, sessionStart, sessionEnd, cohortId) {
-  const { error } = await supabase
-    .from("bookings")
-    .insert({
-      tutor_id: TUTOR_USER_ID,
-      student_id: studentUserId,
-      session_id: sessionId,
-      plan_tier: meta.type,
-      cohort_id: cohortId,
-      scheduled_start: sessionStart.toISOString(),
-      scheduled_end: sessionEnd.toISOString(),
-      status: "completed",
-      // Per-seat payout fields zeroed out — pay lives on the session row
-      payout_status: "not_eligible",
-      payout_amount: 0,
-      tutor_hours: 0,
-      // Recap mirror (per-student log; canonical state lives on session)
-      recap_email_sent: true,
-      recap_sent_at: new Date().toISOString(),
-    });
+async function createBookingForSession(
+  meta,
+  studentUserId,
+  sessionId,
+  sessionStart,
+  sessionEnd,
+  cohortId
+) {
+  const { error } = await supabase.from("bookings").insert({
+    tutor_id: TUTOR_USER_ID,
+    student_id: studentUserId,
+    session_id: sessionId,
+    plan_tier: meta.type,
+    cohort_id: cohortId,
+    scheduled_start: sessionStart.toISOString(),
+    scheduled_end: sessionEnd.toISOString(),
+    status: "completed",
+    // Per-seat payout fields zeroed out — pay lives on the session row
+    payout_status: "not_eligible",
+    payout_amount: 0,
+    tutor_hours: 0,
+    // Recap mirror (per-student log; canonical state lives on session)
+    recap_email_sent: true,
+    recap_sent_at: new Date().toISOString(),
+  });
   if (error) throw new Error(`booking insert failed: ${error.message}`);
 }
 
@@ -215,30 +275,37 @@ async function reset() {
 
   // Find admin's seeded sessions + bookings + payout_requests
   const { data: pr } = await supabase
-    .from("payout_requests").select("id").eq("tutor_user_id", TUTOR_USER_ID);
+    .from("payout_requests")
+    .select("id")
+    .eq("tutor_user_id", TUTOR_USER_ID);
   const prIds = (pr ?? []).map((r) => r.id);
   if (prIds.length > 0) {
     await supabase.from("payout_requests").delete().in("id", prIds);
     console.log(`  deleted ${prIds.length} payout_requests`);
   }
 
-  const { data: sess } = await supabase
-    .from("sessions").select("id").eq("tutor_id", TUTOR_USER_ID);
+  const { data: sess } = await supabase.from("sessions").select("id").eq("tutor_id", TUTOR_USER_ID);
   const sessIds = (sess ?? []).map((r) => r.id);
 
   // Delete bookings linked to these sessions (status_email_log cascades from FK)
   if (sessIds.length > 0) {
     const { count: delBookings } = await supabase
-      .from("bookings").delete({ count: "exact" }).in("session_id", sessIds);
+      .from("bookings")
+      .delete({ count: "exact" })
+      .in("session_id", sessIds);
     console.log(`  deleted ${delBookings ?? "?"} bookings`);
     const { count: delSessions } = await supabase
-      .from("sessions").delete({ count: "exact" }).in("id", sessIds);
+      .from("sessions")
+      .delete({ count: "exact" })
+      .in("id", sessIds);
     console.log(`  deleted ${delSessions ?? "?"} sessions`);
   }
 
   // Delete the seeded student users (orphaned now)
   const { count: delStudents } = await supabase
-    .from("users").delete({ count: "exact" }).like("clerk_id", "test_payout_%");
+    .from("users")
+    .delete({ count: "exact" })
+    .like("clerk_id", "test_payout_%");
   console.log(`  deleted ${delStudents ?? "?"} seeded student users`);
 
   console.log("Reset complete.\n");
@@ -256,9 +323,7 @@ async function main() {
   let totalBookings = 0;
 
   for (const meta of SESSIONS) {
-    const cohortId = meta.cohortName
-      ? await ensureCohort(meta.cohortName, meta.type)
-      : null;
+    const cohortId = meta.cohortName ? await ensureCohort(meta.cohortName, meta.type) : null;
     const { sessionId, start, end, amount, hours } = await createSession(meta, cohortId);
     totalGross += Number(amount);
     totalHours += Number(hours);
@@ -272,8 +337,8 @@ async function main() {
     const label = meta.cohortName ?? `${meta.students[0].firstName} ${meta.students[0].lastName}`;
     console.log(
       `  ${meta.type.padEnd(11)}  ${String(meta.durationMin).padStart(3)}min  ` +
-      `${String(hours).padStart(5)}h  $${String(Number(amount).toFixed(2)).padStart(7)}  ` +
-      `${meta.students.length} student${meta.students.length === 1 ? "" : "s"}  ${label}`
+        `${String(hours).padStart(5)}h  $${String(Number(amount).toFixed(2)).padStart(7)}  ` +
+        `${meta.students.length} student${meta.students.length === 1 ? "" : "s"}  ${label}`
     );
   }
 
@@ -289,8 +354,10 @@ async function main() {
   if (rpcErr) console.warn("  (refresh failed, non-fatal):", rpcErr.message);
 
   const { data: summary } = await supabase
-    .from("tutor_earnings_summary").select("*")
-    .eq("tutor_user_id", TUTOR_USER_ID).maybeSingle();
+    .from("tutor_earnings_summary")
+    .select("*")
+    .eq("tutor_user_id", TUTOR_USER_ID)
+    .maybeSingle();
   console.log("\nEarnings view now shows:");
   console.log(JSON.stringify(summary, null, 2));
 

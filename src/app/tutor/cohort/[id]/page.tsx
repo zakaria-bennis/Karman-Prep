@@ -42,7 +42,7 @@ export default async function TutorCohortPage({ params }: PageProps) {
         .eq("id", id)
         .maybeSingle();
       type TutorRef = { clerk_id: string } | { clerk_id: string }[] | null;
-      const tutorRef = cohort ? ((cohort as { tutor: TutorRef }).tutor) : null;
+      const tutorRef = cohort ? (cohort as { tutor: TutorRef }).tutor : null;
       const tutorClerkId = Array.isArray(tutorRef) ? tutorRef[0]?.clerk_id : tutorRef?.clerk_id;
       if (tutorClerkId) detail = await fetchTutorCohortDetail(id, tutorClerkId);
     }
@@ -52,12 +52,12 @@ export default async function TutorCohortPage({ params }: PageProps) {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
-      <div className="max-w-5xl mx-auto px-5 py-8">
+      <div className="mx-auto max-w-5xl px-5 py-8">
         <Link
           href="/tutor"
-          className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-slate-200 mb-4"
+          className="mb-4 inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-slate-200"
         >
-          <ChevronLeft className="w-4 h-4" />
+          <ChevronLeft className="h-4 w-4" />
           My cohorts
         </Link>
         <TutorCohortClient detail={detail} />

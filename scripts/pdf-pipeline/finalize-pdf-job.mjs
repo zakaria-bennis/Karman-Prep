@@ -34,7 +34,9 @@ import path from "node:path";
 const [, , JOB_ID, RUNS_DIR] = process.argv;
 if (!JOB_ID || !RUNS_DIR) {
   console.error("Usage: node scripts/finalize-pdf-job.mjs <jobId> <runs-dir>");
-  console.error("Example: node scripts/finalize-pdf-job.mjs 7a3b... question-imports/runs/20260428T210000Z");
+  console.error(
+    "Example: node scripts/finalize-pdf-job.mjs 7a3b... question-imports/runs/20260428T210000Z"
+  );
   process.exit(1);
 }
 
@@ -52,7 +54,9 @@ const missing = [
   ["R2_ACCESS_KEY_ID", R2_KEY],
   ["R2_SECRET_ACCESS_KEY", R2_SECRET],
   ["R2_BUCKET_NAME", R2_BUCKET],
-].filter(([, v]) => !v).map(([k]) => k);
+]
+  .filter(([, v]) => !v)
+  .map(([k]) => k);
 if (missing.length) {
   console.error(`Missing env vars: ${missing.join(", ")}`);
   process.exit(1);
@@ -115,12 +119,14 @@ async function main() {
   if (okExists) {
     const buf = await readFile(okCsvPath);
     const key = `csv-inbox/${JOB_ID}/questions.csv`;
-    await r2.send(new PutObjectCommand({
-      Bucket: R2_BUCKET,
-      Key: key,
-      Body: buf,
-      ContentType: "text/csv",
-    }));
+    await r2.send(
+      new PutObjectCommand({
+        Bucket: R2_BUCKET,
+        Key: key,
+        Body: buf,
+        ContentType: "text/csv",
+      })
+    );
     const rows = countCsvRows(buf.toString("utf-8"));
     console.log(`  uploaded → r2://${R2_BUCKET}/${key} (~${rows} rows)`);
     csvStoragePaths.questions = key;
@@ -128,12 +134,14 @@ async function main() {
   if (flaggedExists) {
     const buf = await readFile(flaggedCsvPath);
     const key = `csv-inbox/${JOB_ID}/questions_needs_review.csv`;
-    await r2.send(new PutObjectCommand({
-      Bucket: R2_BUCKET,
-      Key: key,
-      Body: buf,
-      ContentType: "text/csv",
-    }));
+    await r2.send(
+      new PutObjectCommand({
+        Bucket: R2_BUCKET,
+        Key: key,
+        Body: buf,
+        ContentType: "text/csv",
+      })
+    );
     const rows = countCsvRows(buf.toString("utf-8"));
     console.log(`  uploaded → r2://${R2_BUCKET}/${key} (~${rows} rows)`);
     csvStoragePaths.needs_review = key;
@@ -196,13 +204,17 @@ async function main() {
       } else {
         const me = body.jobs?.find?.((j) => j.job_id === JOB_ID);
         if (me) {
-          console.log(`  Ingested into bank: ${me.inserted} ok, ${me.flagged_for_review} flagged${me.skipped_duplicates ? `, ${me.skipped_duplicates} duplicates skipped` : ""}${me.errored ? `, ${me.errored} errors` : ""}.`);
+          console.log(
+            `  Ingested into bank: ${me.inserted} ok, ${me.flagged_for_review} flagged${me.skipped_duplicates ? `, ${me.skipped_duplicates} duplicates skipped` : ""}${me.errored ? `, ${me.errored} errors` : ""}.`
+          );
         } else {
           console.log(`  Ingest run completed (this job may be in a later batch).`);
         }
       }
     } catch (err) {
-      console.log(`  Could not reach ingest endpoint: ${err instanceof Error ? err.message : "unknown"}`);
+      console.log(
+        `  Could not reach ingest endpoint: ${err instanceof Error ? err.message : "unknown"}`
+      );
       console.log(`  The cron will retry on its next tick.`);
     }
   }

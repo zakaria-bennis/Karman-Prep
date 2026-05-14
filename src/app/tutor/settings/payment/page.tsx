@@ -43,7 +43,9 @@ export default async function PaymentSettingsPage({ searchParams }: PageProps) {
   const supabase = createAdminClient();
   const { data: caller } = await supabase
     .from("users")
-    .select("id, email, first_name, stripe_connect_account_id, stripe_payouts_enabled, stripe_connect_onboarded_at")
+    .select(
+      "id, email, first_name, stripe_connect_account_id, stripe_payouts_enabled, stripe_connect_onboarded_at"
+    )
     .eq("clerk_id", clerkId)
     .maybeSingle();
   if (!caller) redirect("/auth/sign-in");
@@ -76,28 +78,31 @@ export default async function PaymentSettingsPage({ searchParams }: PageProps) {
           .eq("id", caller.id);
       }
     } catch (err) {
-      console.error("[settings/payment] fetchAccountStatus failed:", err instanceof Error ? err.message : err);
+      console.error(
+        "[settings/payment] fetchAccountStatus failed:",
+        err instanceof Error ? err.message : err
+      );
     }
   }
 
   return (
     <DashboardLayout>
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+      <div className="mx-auto max-w-2xl space-y-6 px-4 py-8 sm:px-6">
         <Link
           href="/tutor/earnings"
           className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-900 dark:hover:text-white"
         >
-          <ChevronLeft className="w-4 h-4" /> My earnings
+          <ChevronLeft className="h-4 w-4" /> My earnings
         </Link>
 
         <header>
-          <p className="text-xs font-bold tracking-widest text-blue-500 uppercase mb-1">
+          <p className="mb-1 text-xs font-bold uppercase tracking-widest text-blue-500">
             Tutor Portal
           </p>
           <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white">
             Payment settings
           </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             Set up how you receive payouts from KarmanPrep.
           </p>
         </header>

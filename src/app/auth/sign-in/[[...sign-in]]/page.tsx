@@ -9,10 +9,10 @@ import AuthBackdrop from "@/components/shared/AuthBackdrop";
 
 export default function SignInPage() {
   return (
-    <div className="relative min-h-screen flex flex-col items-center justify-center px-4 py-12 overflow-hidden">
+    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-4 py-12">
       <AuthBackdrop />
 
-      <Link href="/" className="mb-8 relative z-10" aria-label="Karman home">
+      <Link href="/" className="relative z-10 mb-8" aria-label="Karman home">
         <StrataLogo size={64} variant="stacked" />
       </Link>
 

@@ -12,9 +12,9 @@
 // ============================================================
 
 const GRAD_STOPS: { offset: string; color: string }[] = [
-  { offset: "0%",   color: "#EC4899" },   // pink-500
-  { offset: "45%",  color: "#A855F7" },   // purple-500
-  { offset: "100%", color: "#38BDF8" },   // sky-400
+  { offset: "0%", color: "#EC4899" }, // pink-500
+  { offset: "45%", color: "#A855F7" }, // purple-500
+  { offset: "100%", color: "#38BDF8" }, // sky-400
 ];
 
 const GRADIENT_CSS = `linear-gradient(90deg, ${GRAD_STOPS.map((s) => `${s.color} ${s.offset}`).join(", ")})`;
@@ -38,7 +38,14 @@ export function StrataLogoMark({ size = 32, className }: MarkProps) {
       aria-hidden="true"
     >
       <defs>
-        <linearGradient id={MARK_GRADIENT_ID} x1="0" y1="0" x2="100" y2="0" gradientUnits="userSpaceOnUse">
+        <linearGradient
+          id={MARK_GRADIENT_ID}
+          x1="0"
+          y1="0"
+          x2="100"
+          y2="0"
+          gradientUnits="userSpaceOnUse"
+        >
           {GRAD_STOPS.map((s) => (
             <stop key={s.offset} offset={s.offset} stopColor={s.color} />
           ))}
@@ -46,10 +53,22 @@ export function StrataLogoMark({ size = 32, className }: MarkProps) {
       </defs>
 
       {/* Four stacked chevrons — narrowest at the top, widest at the bottom */}
-      <path d="M 18 78 L 50 56 L 82 78 L 68 78 L 50 65 L 32 78 Z" fill={`url(#${MARK_GRADIENT_ID})`} />
-      <path d="M 20 66 L 50 46 L 80 66 L 66 66 L 50 54 L 34 66 Z" fill={`url(#${MARK_GRADIENT_ID})`} />
-      <path d="M 22 54 L 50 36 L 78 54 L 65 54 L 50 43 L 35 54 Z" fill={`url(#${MARK_GRADIENT_ID})`} />
-      <path d="M 24 42 L 50 26 L 76 42 L 63 42 L 50 32 L 37 42 Z" fill={`url(#${MARK_GRADIENT_ID})`} />
+      <path
+        d="M 18 78 L 50 56 L 82 78 L 68 78 L 50 65 L 32 78 Z"
+        fill={`url(#${MARK_GRADIENT_ID})`}
+      />
+      <path
+        d="M 20 66 L 50 46 L 80 66 L 66 66 L 50 54 L 34 66 Z"
+        fill={`url(#${MARK_GRADIENT_ID})`}
+      />
+      <path
+        d="M 22 54 L 50 36 L 78 54 L 65 54 L 50 43 L 35 54 Z"
+        fill={`url(#${MARK_GRADIENT_ID})`}
+      />
+      <path
+        d="M 24 42 L 50 26 L 76 42 L 63 42 L 50 32 L 37 42 Z"
+        fill={`url(#${MARK_GRADIENT_ID})`}
+      />
     </svg>
   );
 }
@@ -66,14 +85,20 @@ interface FullLogoProps {
   className?: string;
 }
 
-export function StrataWordmark({ fontSize, letterSpacing }: { fontSize: number; letterSpacing: string }) {
+export function StrataWordmark({
+  fontSize,
+  letterSpacing,
+}: {
+  fontSize: number;
+  letterSpacing: string;
+}) {
   return (
     <span
-      className="uppercase bg-clip-text text-transparent select-none"
+      className="select-none bg-clip-text uppercase text-transparent"
       style={{
         fontSize,
         letterSpacing,
-        fontWeight: 300,              // thin sans-serif
+        fontWeight: 300, // thin sans-serif
         lineHeight: 1,
         backgroundImage: GRADIENT_CSS,
         WebkitBackgroundClip: "text",
@@ -98,12 +123,12 @@ export function StrataLogo({
 
   if (variant === "stacked") {
     return (
-      <div className={`inline-flex flex-col items-center ${className ?? ""}`} style={{ gap: size * 0.2 }}>
+      <div
+        className={`inline-flex flex-col items-center ${className ?? ""}`}
+        style={{ gap: size * 0.2 }}
+      >
         <StrataLogoMark size={size} />
-        <StrataWordmark
-          fontSize={size * 0.36}
-          letterSpacing="0.42em"
-        />
+        <StrataWordmark fontSize={size * 0.36} letterSpacing="0.42em" />
       </div>
     );
   }
@@ -112,10 +137,7 @@ export function StrataLogo({
   return (
     <span className={`inline-flex items-center ${className ?? ""}`} style={{ gap: size * 0.28 }}>
       <StrataLogoMark size={size} />
-      <StrataWordmark
-        fontSize={size * 0.46}
-        letterSpacing="0.24em"
-      />
+      <StrataWordmark fontSize={size * 0.46} letterSpacing="0.24em" />
     </span>
   );
 }

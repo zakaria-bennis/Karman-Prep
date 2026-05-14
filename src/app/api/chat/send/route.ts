@@ -51,7 +51,11 @@ function lastInitial(name: string | null | undefined): string {
   return trimmed ? trimmed[0].toUpperCase() + "." : "";
 }
 
-function formatDisplayName(firstName: string | null, lastName: string | null, isAnonymous: boolean): string {
+function formatDisplayName(
+  firstName: string | null,
+  lastName: string | null,
+  isAnonymous: boolean
+): string {
   if (isAnonymous) return "Anonymous";
   const first = (firstName ?? "").trim() || "Karman";
   const last = lastInitial(lastName);
@@ -69,10 +73,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
   if (!body.channelId || !body.messageType) {
-    return NextResponse.json(
-      { error: "Missing channelId or messageType" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "Missing channelId or messageType" }, { status: 400 });
   }
   if (!body.content && (!body.mediaUrls || body.mediaUrls.length === 0)) {
     return NextResponse.json(
@@ -81,10 +82,7 @@ export async function POST(req: NextRequest) {
     );
   }
   if (body.messageType === "qa_answer" && !body.parentMessageId) {
-    return NextResponse.json(
-      { error: "qa_answer requires parentMessageId" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "qa_answer requires parentMessageId" }, { status: 400 });
   }
 
   const senderUuid = await getUserUuidByClerkId(userId);
@@ -107,10 +105,7 @@ export async function POST(req: NextRequest) {
 
   if (body.messageType === "qa_answer") {
     if (!isTutor && !isAdmin) {
-      return NextResponse.json(
-        { error: "Only tutors can post Q&A answers" },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: "Only tutors can post Q&A answers" }, { status: 403 });
     }
   } else {
     if (!isMember && !isTutor && !isAdmin) {

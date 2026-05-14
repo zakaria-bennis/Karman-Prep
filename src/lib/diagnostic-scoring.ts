@@ -25,12 +25,7 @@
 //      we honestly say "no clear strength yet."
 // ============================================================
 
-import {
-  DOMAIN_SECTION,
-  DOMAIN_LABELS,
-  type SATDomain,
-  type DomainScores,
-} from "@/types";
+import { DOMAIN_SECTION, DOMAIN_LABELS, type SATDomain, type DomainScores } from "@/types";
 
 export interface AnswerInput {
   questionId: string;
@@ -152,7 +147,11 @@ function sectionScore(accuracy: number): SectionScore {
 // Focus area & strongest area selection
 // ─────────────────────────────────────────────────────────────
 
-function pickFocusArea(answers: AnswerInput[], domainScores: DomainScores, foundationIndex: number): FocusArea {
+function pickFocusArea(
+  answers: AnswerInput[],
+  domainScores: DomainScores,
+  foundationIndex: number
+): FocusArea {
   // Foundation pass — if the student is missing easy questions
   // across the board, no point sending them to "Advanced Math."
   if (foundationIndex < 60) {

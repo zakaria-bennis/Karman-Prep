@@ -34,7 +34,13 @@ export default async function MasteredPage() {
 
   const mastered: MasteredNodeRow[] = (rows ?? [])
     .map((r) => {
-      const row = r as { node_id: string; completed_at: string | null; best_quiz_score: number | null; attempts: number | null; updated_at: string };
+      const row = r as {
+        node_id: string;
+        completed_at: string | null;
+        best_quiz_score: number | null;
+        attempts: number | null;
+        updated_at: string;
+      };
       const node = nodeMap.get(row.node_id);
       if (!node) return null;
       return {

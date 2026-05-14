@@ -50,14 +50,14 @@ export async function createExpressAccount(input: CreateExpressAccountInput): Pr
     country: "US",
     email: input.email,
     capabilities: {
-      transfers:        { requested: true },
-      card_payments:    { requested: true },
+      transfers: { requested: true },
+      card_payments: { requested: true },
     },
     business_type: "individual",
     individual: {
       email: input.email,
       ...(input.firstName ? { first_name: input.firstName } : {}),
-      ...(input.lastName  ? { last_name:  input.lastName  } : {}),
+      ...(input.lastName ? { last_name: input.lastName } : {}),
     },
     settings: {
       payouts: {
@@ -85,7 +85,7 @@ export async function createOnboardingLink(
   const link = await stripe().accountLinks.create({
     account: connectedAccountId,
     refresh_url: `${baseUrl}/tutor/settings/payment?refresh=1`,
-    return_url:  `${baseUrl}/tutor/settings/payment?onboarded=1`,
+    return_url: `${baseUrl}/tutor/settings/payment?onboarded=1`,
     type: "account_onboarding",
   });
   return link.url;
@@ -100,7 +100,7 @@ export async function createUpdateLink(
   const link = await stripe().accountLinks.create({
     account: connectedAccountId,
     refresh_url: `${baseUrl}/tutor/settings/payment?refresh=1`,
-    return_url:  `${baseUrl}/tutor/settings/payment?updated=1`,
+    return_url: `${baseUrl}/tutor/settings/payment?updated=1`,
     type: "account_update",
   });
   return link.url;

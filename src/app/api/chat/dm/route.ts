@@ -44,12 +44,19 @@ export async function POST(req: NextRequest) {
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   let body: Partial<DmSendRequest>;
-  try { body = (await req.json()) as Partial<DmSendRequest>; }
-  catch { return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 }); }
+  try {
+    body = (await req.json()) as Partial<DmSendRequest>;
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  }
 
-  if (!body.recipientId) return NextResponse.json({ error: "Missing recipientId" }, { status: 400 });
+  if (!body.recipientId)
+    return NextResponse.json({ error: "Missing recipientId" }, { status: 400 });
   if (!body.content && (!body.mediaUrls || body.mediaUrls.length === 0)) {
-    return NextResponse.json({ error: "Message must have content or at least one image" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Message must have content or at least one image" },
+      { status: 400 }
+    );
   }
 
   const senderUuid = await getUserUuidByClerkId(userId);
@@ -64,10 +71,7 @@ export async function POST(req: NextRequest) {
   // Per locked spec: DMs only within the same cohort.
   const sharedCohortId = await findSharedCohort(senderUuid, recipientUuid);
   if (!sharedCohortId) {
-    return NextResponse.json(
-      { error: "You can only DM students in your cohort" },
-      { status: 403 }
-    );
+    return NextResponse.json({ error: "You can only DM students in your cohort" }, { status: 403 });
   }
 
   const outcome = await moderateMessage({
@@ -124,12 +128,16 @@ export async function GET(req: NextRequest) {
   const withClerkId = sp.get("withUserId");
   const before = sp.get("before") ?? undefined;
   const limitRaw = parseInt(sp.get("limit") ?? "", 10);
-  const limit = Math.min(MAX_LIMIT, Number.isFinite(limitRaw) && limitRaw > 0 ? limitRaw : DEFAULT_LIMIT);
+  const limit = Math.min(
+    MAX_LIMIT,
+    Number.isFinite(limitRaw) && limitRaw > 0 ? limitRaw : DEFAULT_LIMIT
+  );
   if (!withClerkId) return NextResponse.json({ error: "Missing withUserId" }, { status: 400 });
 
   const callerUuid = await getUserUuidByClerkId(userId);
   const otherUuid = await getUserUuidByClerkId(withClerkId);
-  if (!callerUuid || !otherUuid) return NextResponse.json({ error: "User profile not found" }, { status: 404 });
+  if (!callerUuid || !otherUuid)
+    return NextResponse.json({ error: "User profile not found" }, { status: 404 });
 
   // Caller must be one of the two parties OR a tutor of their shared cohort OR admin.
   const role = await fetchUserRole(userId);
@@ -138,10 +146,7 @@ export async function GET(req: NextRequest) {
   if (!isAdmin) {
     // Check tutor of any cohort that pair shares
     const supa = createAdminClient();
-    const { data } = await supa
-      .from("cohorts")
-      .select("id")
-      .eq("tutor_user_id", callerUuid);
+    const { data } = await supa.from("cohorts").select("id").eq("tutor_user_id", callerUuid);
     if (data && data.length > 0) {
       // For simplicity, allow tutors to read DMs of anyone in their cohorts.
       // Stricter check would verify both parties are in one of THIS tutor's cohorts.
@@ -156,7 +161,12 @@ export async function GET(req: NextRequest) {
   // (callerUuid, otherUuid) and caller isn't actually involved, the
   // result is an empty set unless they're tutor/admin reading another pair.
 
-  const rows = await listDirectMessages({ userUuidA: callerUuid, userUuidB: otherUuid, limit, before });
+  const rows = await listDirectMessages({
+    userUuidA: callerUuid,
+    userUuidB: otherUuid,
+    limit,
+    before,
+  });
 
   // If caller is neither party AND not tutor/admin, deny.
   // Quickest: peek at the first row.

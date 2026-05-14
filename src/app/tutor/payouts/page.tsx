@@ -49,13 +49,15 @@ export default async function TutorPayoutsPage() {
   // Eligible SESSIONS — ready to be bundled into a payout request.
   const { data: eligibleRaw } = await supabase
     .from("sessions")
-    .select(`
+    .select(
+      `
       id, scheduled_start, duration_minutes, status, cohort_id,
       zoom_meeting_id, zoom_attended_emails,
       recap_email_sent, recap_sent_at, payout_status, payout_amount, tutor_hours,
       cohort:cohorts(id, name, tier),
       bookings(student:users!bookings_student_id_fkey(id, first_name, last_name, email))
-    `)
+    `
+    )
     .eq("tutor_id", tutorUserId)
     .eq("recap_email_sent", true)
     .eq("payout_status", "pending")
@@ -68,23 +70,30 @@ export default async function TutorPayoutsPage() {
     const cohortObj = arr<TutorEarningsSession["cohort"]>(row.cohort);
     const bookingsArr = (row.bookings as Array<{ student?: unknown }> | null) ?? [];
     const enrolled = bookingsArr
-      .map((b) => arr<{ id: string; first_name: string | null; last_name: string | null; email: string | null }>(b.student))
+      .map((b) =>
+        arr<{
+          id: string;
+          first_name: string | null;
+          last_name: string | null;
+          email: string | null;
+        }>(b.student)
+      )
       .filter((s): s is NonNullable<typeof s> => !!s && !!s.id);
     return {
-      id:                   row.id as string,
-      scheduled_start:      row.scheduled_start as string,
-      duration_minutes:     (row.duration_minutes as number | null) ?? null,
-      tier:                 cohortObj?.tier ?? "private",
-      status:               row.status as string,
-      cohort_id:            (row.cohort_id as string | null) ?? null,
-      zoom_meeting_id:      (row.zoom_meeting_id as string | null) ?? null,
+      id: row.id as string,
+      scheduled_start: row.scheduled_start as string,
+      duration_minutes: (row.duration_minutes as number | null) ?? null,
+      tier: cohortObj?.tier ?? "private",
+      status: row.status as string,
+      cohort_id: (row.cohort_id as string | null) ?? null,
+      zoom_meeting_id: (row.zoom_meeting_id as string | null) ?? null,
       zoom_attended_emails: (row.zoom_attended_emails as string[] | null) ?? null,
-      recap_email_sent:     row.recap_email_sent === true,
-      recap_sent_at:        (row.recap_sent_at as string | null) ?? null,
-      payout_status:        (row.payout_status as string) ?? "pending",
-      payout_amount:        (row.payout_amount as number | null) ?? null,
-      tutor_hours:          (row.tutor_hours   as number | null) ?? null,
-      cohort:               cohortObj,
+      recap_email_sent: row.recap_email_sent === true,
+      recap_sent_at: (row.recap_sent_at as string | null) ?? null,
+      payout_status: (row.payout_status as string) ?? "pending",
+      payout_amount: (row.payout_amount as number | null) ?? null,
+      tutor_hours: (row.tutor_hours as number | null) ?? null,
+      cohort: cohortObj,
       enrolled,
     };
   });
@@ -108,45 +117,48 @@ export default async function TutorPayoutsPage() {
       const status = await fetchAccountStatus(caller.stripe_connect_account_id as string);
       instantAvailable = status.instant_payouts_active;
     } catch (err) {
-      console.warn("[payouts] fetchAccountStatus failed:", err instanceof Error ? err.message : err);
+      console.warn(
+        "[payouts] fetchAccountStatus failed:",
+        err instanceof Error ? err.message : err
+      );
     }
   }
 
   return (
     <DashboardLayout>
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+      <div className="mx-auto max-w-4xl space-y-6 px-4 py-8 sm:px-6">
         <Link
           href="/tutor/earnings"
           className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-900 dark:hover:text-white"
         >
-          <ChevronLeft className="w-4 h-4" /> My earnings
+          <ChevronLeft className="h-4 w-4" /> My earnings
         </Link>
 
         <header>
-          <p className="text-xs font-bold tracking-widest text-blue-500 uppercase mb-1">
+          <p className="mb-1 text-xs font-bold uppercase tracking-widest text-blue-500">
             Tutor Portal
           </p>
-          <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white">
-            Get paid
-          </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Pick instant or ACH. Money moves from KarmanPrep to your Stripe account, then to your bank or debit card.
+          <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white">Get paid</h1>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+            Pick instant or ACH. Money moves from KarmanPrep to your Stripe account, then to your
+            bank or debit card.
           </p>
         </header>
 
         {!caller.stripe_connect_account_id || !caller.stripe_payouts_enabled ? (
-          <div className="rounded-xl border border-amber-300 dark:border-amber-500/40 bg-amber-50 dark:bg-amber-500/10 p-5 flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-300 mt-0.5 shrink-0" />
+          <div className="flex items-start gap-3 rounded-xl border border-amber-300 bg-amber-50 p-5 dark:border-amber-500/40 dark:bg-amber-500/10">
+            <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600 dark:text-amber-300" />
             <div className="flex-1">
               <h2 className="text-sm font-bold text-amber-800 dark:text-amber-200">
                 Set up payments first
               </h2>
-              <p className="text-sm text-amber-700 dark:text-amber-300/90 mt-1">
-                Before you can request a payout, finish Stripe onboarding so we know where to send the money.
+              <p className="mt-1 text-sm text-amber-700 dark:text-amber-300/90">
+                Before you can request a payout, finish Stripe onboarding so we know where to send
+                the money.
               </p>
               <Link
                 href="/tutor/settings/payment"
-                className="inline-flex items-center gap-1.5 mt-3 px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-sm font-semibold"
+                className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-amber-600 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-700"
               >
                 Go to payment settings
               </Link>

@@ -50,7 +50,9 @@ export interface SessionContext {
 // ──────────────────────────────────────────────────────────
 // 1:1 prompt — personalized, references the student by name
 // ──────────────────────────────────────────────────────────
-const INDIVIDUAL_PROMPT = (ctx: SessionContext) => `You are a professional SAT tutor writing a structured session recap email for a parent. The tutor (${ctx.tutorName}) just finished a 1:1 session with their student (${ctx.studentName}).
+const INDIVIDUAL_PROMPT = (
+  ctx: SessionContext
+) => `You are a professional SAT tutor writing a structured session recap email for a parent. The tutor (${ctx.tutorName}) just finished a 1:1 session with their student (${ctx.studentName}).
 
 You will be given a Zoom transcript. Extract and structure the information into the JSON schema. Use SAT-specific terminology precisely:
 - "Reading" not "English"
@@ -74,7 +76,9 @@ Tone: professional, parent-facing, concise. No greetings, no pleasantries, just 
 // Group prompt (small_group + seminar) — NO student names,
 // focuses on session content + practice problem types + next steps
 // ──────────────────────────────────────────────────────────
-const GROUP_PROMPT = (ctx: SessionContext) => `You are a professional SAT tutor writing a structured class recap email. The tutor (${ctx.tutorName}) just finished a ${ctx.cohortName ? `${ctx.cohortName} ` : ""}group session${ctx.enrolledCount ? ` with ${ctx.enrolledCount} enrolled students` : ""}. This same recap will be sent to every parent of every enrolled student.
+const GROUP_PROMPT = (
+  ctx: SessionContext
+) => `You are a professional SAT tutor writing a structured class recap email. The tutor (${ctx.tutorName}) just finished a ${ctx.cohortName ? `${ctx.cohortName} ` : ""}group session${ctx.enrolledCount ? ` with ${ctx.enrolledCount} enrolled students` : ""}. This same recap will be sent to every parent of every enrolled student.
 
 CRITICAL CONTENT RULES FOR GROUP RECAPS:
 1. NEVER mention any individual student's name. Use "the class", "students", or "the group" — never "Maya did this" or "Carlos struggled with X".
@@ -112,7 +116,9 @@ const USER_PROMPT = (ctx: SessionContext, transcript: string) => {
     `- Session date: ${ctx.sessionDate}`,
     `- Duration: ${ctx.sessionDurationMinutes} minutes`,
     ctx.previousSessionDate ? `- Previous session: ${ctx.previousSessionDate}` : null,
-  ].filter(Boolean).join("\n");
+  ]
+    .filter(Boolean)
+    .join("\n");
 
   return `Session metadata:\n${meta}\n\nTranscript:\n${transcript}`;
 };
@@ -132,14 +138,14 @@ const RESPONSE_SCHEMA = {
     "date_and_time_of_next_session",
   ],
   properties: {
-    date_and_time_of_session:              { type: "string" },
-    student_performance_progress:          { type: "string" },
-    subjects_covered_during_session:       { type: "string" },
-    specific_weak_points_or_mistakes:      { type: "string" },
-    next_steps_homework_assigned:          { type: "string" },
-    subjects_to_cover_next_session:        { type: "string" },
+    date_and_time_of_session: { type: "string" },
+    student_performance_progress: { type: "string" },
+    subjects_covered_during_session: { type: "string" },
+    specific_weak_points_or_mistakes: { type: "string" },
+    next_steps_homework_assigned: { type: "string" },
+    subjects_to_cover_next_session: { type: "string" },
     homework_practice_before_next_session: { type: "string" },
-    date_and_time_of_next_session:         { type: "string" },
+    date_and_time_of_next_session: { type: "string" },
   },
 } as const;
 
@@ -160,7 +166,7 @@ export async function generateStatusDraft(
     model: "gpt-4o-mini",
     messages: [
       { role: "system", content: SYSTEM_PROMPT(context) },
-      { role: "user",   content: USER_PROMPT(context, transcript) },
+      { role: "user", content: USER_PROMPT(context, transcript) },
     ],
     temperature: 0.3,
     max_tokens: 1500,

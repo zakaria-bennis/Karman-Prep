@@ -26,8 +26,12 @@
 import type { Metadata } from "next";
 import { createAdminClient } from "@/lib/supabase/server";
 import RevenueClient, {
-  type RevenueData, type TierBreakdown, type CohortRow,
-  type DunningEntry, type TutorRevenueRow, type MrrSnapshot,
+  type RevenueData,
+  type TierBreakdown,
+  type CohortRow,
+  type DunningEntry,
+  type TutorRevenueRow,
+  type MrrSnapshot,
 } from "./RevenueClient";
 import { snapshotRevenueAction } from "./actions";
 
@@ -39,10 +43,10 @@ const TIER_ECONOMICS: Record<
   TierBreakdown["tier"],
   { label: string; price: number; model: "subscription" | "per_session"; color: string }
 > = {
-  group:       { label: "Seminar",     price: 40,  model: "subscription", color: "#3B82F6" },
-  small_group: { label: "Small Group", price: 60,  model: "per_session",  color: "#F59E0B" },
-  private:     { label: "Private",     price: 135, model: "per_session",  color: "#A855F7" },
-  elite:       { label: "Elite",       price: 800, model: "subscription", color: "#10B981" },
+  group: { label: "Seminar", price: 40, model: "subscription", color: "#3B82F6" },
+  small_group: { label: "Small Group", price: 60, model: "per_session", color: "#F59E0B" },
+  private: { label: "Private", price: 135, model: "per_session", color: "#A855F7" },
+  elite: { label: "Elite", price: 800, model: "subscription", color: "#10B981" },
 };
 
 const ESTIMATED_SESSIONS_PER_MONTH = 4;
@@ -59,13 +63,19 @@ async function getRevenueMetrics(): Promise<RevenueData> {
     .from("subscriptions")
     .select("tier, status, created_at, canceled_at, user_id");
   const allSubs = (subRows ?? []) as Array<{
-    tier: string; status: string; created_at: string;
-    canceled_at: string | null; user_id: string;
+    tier: string;
+    status: string;
+    created_at: string;
+    canceled_at: string | null;
+    user_id: string;
   }>;
 
   const activeSubs = allSubs.filter((r) => r.status === "active" || r.status === "trialing");
   const activeByTier: Record<TierBreakdown["tier"], number> = {
-    group: 0, small_group: 0, private: 0, elite: 0,
+    group: 0,
+    small_group: 0,
+    private: 0,
+    elite: 0,
   };
   for (const r of activeSubs) {
     if (r.tier in activeByTier) activeByTier[r.tier as TierBreakdown["tier"]] += 1;
@@ -78,10 +88,15 @@ async function getRevenueMetrics(): Promise<RevenueData> {
     .gte("scheduled_start", since30d)
     .in("status", ["scheduled", "completed"]);
   const bookings30d = (bookingRows ?? []) as Array<{
-    plan_tier: string; tutor_id: string; status: string;
+    plan_tier: string;
+    tutor_id: string;
+    status: string;
   }>;
   const bookingsByTier: Record<TierBreakdown["tier"], number> = {
-    group: 0, small_group: 0, private: 0, elite: 0,
+    group: 0,
+    small_group: 0,
+    private: 0,
+    elite: 0,
   };
   for (const r of bookings30d) {
     if (r.plan_tier in bookingsByTier) bookingsByTier[r.plan_tier as TierBreakdown["tier"]] += 1;
@@ -99,7 +114,8 @@ async function getRevenueMetrics(): Promise<RevenueData> {
       unitsLabel = `${studentCount} subs × $${econ.price}/mo`;
     } else {
       const realBookings = bookingsByTier[t];
-      const usedBookings = realBookings > 0 ? realBookings : studentCount * ESTIMATED_SESSIONS_PER_MONTH;
+      const usedBookings =
+        realBookings > 0 ? realBookings : studentCount * ESTIMATED_SESSIONS_PER_MONTH;
       if (realBookings === 0 && studentCount > 0) usedBookingFallback = true;
       revenue = usedBookings * econ.price;
       unitsLabel =
@@ -108,8 +124,14 @@ async function getRevenueMetrics(): Promise<RevenueData> {
           : `~${usedBookings} est. sessions × $${econ.price}`;
     }
     return {
-      tier: t, label: econ.label, color: econ.color, model: econ.model, price: econ.price,
-      studentCount, revenue, unitsLabel,
+      tier: t,
+      label: econ.label,
+      color: econ.color,
+      model: econ.model,
+      price: econ.price,
+      studentCount,
+      revenue,
+      unitsLabel,
     };
   });
 
@@ -119,7 +141,11 @@ async function getRevenueMetrics(): Promise<RevenueData> {
 
   // ─── Subscription status breakdown ────────────────────────
   const statusCounts: Record<string, number> = {
-    active: 0, trialing: 0, past_due: 0, canceled: 0, incomplete: 0,
+    active: 0,
+    trialing: 0,
+    past_due: 0,
+    canceled: 0,
+    incomplete: 0,
   };
   for (const r of allSubs) {
     statusCounts[r.status] = (statusCounts[r.status] ?? 0) + 1;
@@ -139,10 +165,7 @@ async function getRevenueMetrics(): Promise<RevenueData> {
   // but undercounts for fast-growing businesses.
   const startActive = totalStudents + cancellations30d;
   const monthlyChurnRate = startActive > 0 ? cancellations30d / startActive : 0;
-  const ltv =
-    monthlyChurnRate > 0 && arpu > 0
-      ? Math.round(arpu / monthlyChurnRate)
-      : null; // null = "not computable yet"
+  const ltv = monthlyChurnRate > 0 && arpu > 0 ? Math.round(arpu / monthlyChurnRate) : null; // null = "not computable yet"
 
   // ─── Refunds (trailing 30d) ───────────────────────────────
   const { data: refundRows } = await supabase
@@ -151,7 +174,8 @@ async function getRevenueMetrics(): Promise<RevenueData> {
     .gte("issued_at", since30d);
   const refunds30dCount = refundRows?.length ?? 0;
   const refunds30dCents = (refundRows ?? []).reduce(
-    (s, r) => s + ((r as { amount_cents: number }).amount_cents ?? 0), 0,
+    (s, r) => s + ((r as { amount_cents: number }).amount_cents ?? 0),
+    0
   );
   // Refund rate = refund $ / MRR (rough — refunds are one-offs).
   const refundRate = totalMrr > 0 ? refunds30dCents / 100 / totalMrr : 0;
@@ -162,9 +186,13 @@ async function getRevenueMetrics(): Promise<RevenueData> {
     .select("captured_at, mrr_cents, active_students")
     .order("captured_at", { ascending: false })
     .limit(30);
-  const snapshots: MrrSnapshot[] = ((snapRows ?? []) as Array<{
-    captured_at: string; mrr_cents: number; active_students: number;
-  }>)
+  const snapshots: MrrSnapshot[] = (
+    (snapRows ?? []) as Array<{
+      captured_at: string;
+      mrr_cents: number;
+      active_students: number;
+    }>
+  )
     .map((r) => ({
       capturedAt: r.captured_at,
       mrr: Math.round((r.mrr_cents ?? 0) / 100),
@@ -181,7 +209,7 @@ async function getRevenueMetrics(): Promise<RevenueData> {
     const oldest = snapshots[0];
     const monthsSpan = Math.max(
       0.25,
-      (now - new Date(oldest.capturedAt).getTime()) / (30 * 24 * 60 * 60 * 1000),
+      (now - new Date(oldest.capturedAt).getTime()) / (30 * 24 * 60 * 60 * 1000)
     );
     monthlyNetNewSubs = (totalStudents - oldest.activeStudents) / monthsSpan;
   } else {
@@ -189,8 +217,8 @@ async function getRevenueMetrics(): Promise<RevenueData> {
   }
   const monthlyNetNewMrr = arpu * monthlyNetNewSubs;
   const forecast = {
-    in3Months:  Math.max(0, Math.round(totalMrr + monthlyNetNewMrr * 3)),
-    in6Months:  Math.max(0, Math.round(totalMrr + monthlyNetNewMrr * 6)),
+    in3Months: Math.max(0, Math.round(totalMrr + monthlyNetNewMrr * 3)),
+    in6Months: Math.max(0, Math.round(totalMrr + monthlyNetNewMrr * 6)),
     in12Months: Math.max(0, Math.round(totalMrr + monthlyNetNewMrr * 12)),
     monthlyNetNewSubs,
     monthlyNetNewMrr,
@@ -228,9 +256,7 @@ async function getRevenueMetrics(): Promise<RevenueData> {
   });
 
   // ─── Dunning queue (past_due) ─────────────────────────────
-  const pastDueUserIds = allSubs
-    .filter((r) => r.status === "past_due")
-    .map((r) => r.user_id);
+  const pastDueUserIds = allSubs.filter((r) => r.status === "past_due").map((r) => r.user_id);
   let dunning: DunningEntry[] = [];
   if (pastDueUserIds.length > 0) {
     const { data: pdUsers } = await supabase
@@ -238,8 +264,14 @@ async function getRevenueMetrics(): Promise<RevenueData> {
       .select("clerk_id, first_name, last_name, email")
       .in("clerk_id", pastDueUserIds);
     const userByClerk = new Map(
-      ((pdUsers ?? []) as Array<{ clerk_id: string; first_name: string | null; last_name: string | null; email: string }>)
-        .map((u) => [u.clerk_id, u])
+      (
+        (pdUsers ?? []) as Array<{
+          clerk_id: string;
+          first_name: string | null;
+          last_name: string | null;
+          email: string;
+        }>
+      ).map((u) => [u.clerk_id, u])
     );
     dunning = allSubs
       .filter((r) => r.status === "past_due")
@@ -247,12 +279,11 @@ async function getRevenueMetrics(): Promise<RevenueData> {
         const u = userByClerk.get(r.user_id);
         const econ = TIER_ECONOMICS[r.tier as TierBreakdown["tier"]] ?? TIER_ECONOMICS.group;
         return {
-          name: u
-            ? [u.first_name, u.last_name].filter(Boolean).join(" ") || u.email
-            : r.user_id,
+          name: u ? [u.first_name, u.last_name].filter(Boolean).join(" ") || u.email : r.user_id,
           email: u?.email ?? null,
           tier: econ.label,
-          amountOwed: econ.model === "subscription" ? econ.price : econ.price * ESTIMATED_SESSIONS_PER_MONTH,
+          amountOwed:
+            econ.model === "subscription" ? econ.price : econ.price * ESTIMATED_SESSIONS_PER_MONTH,
         };
       });
   }
@@ -275,17 +306,21 @@ async function getRevenueMetrics(): Promise<RevenueData> {
       .select("id, first_name, last_name, email")
       .in("id", Array.from(tutorBookings.keys()));
     const tutorById = new Map(
-      ((tutors ?? []) as Array<{ id: string; first_name: string | null; last_name: string | null; email: string }>)
-        .map((u) => [u.id, u])
+      (
+        (tutors ?? []) as Array<{
+          id: string;
+          first_name: string | null;
+          last_name: string | null;
+          email: string;
+        }>
+      ).map((u) => [u.id, u])
     );
     tutorRevenue = Array.from(tutorBookings.entries())
       .map(([id, agg]) => {
         const u = tutorById.get(id);
         return {
           tutorId: id,
-          name: u
-            ? [u.first_name, u.last_name].filter(Boolean).join(" ") || u.email
-            : id,
+          name: u ? [u.first_name, u.last_name].filter(Boolean).join(" ") || u.email : id,
           sessions: agg.sessions,
           revenue: agg.revenue,
         };

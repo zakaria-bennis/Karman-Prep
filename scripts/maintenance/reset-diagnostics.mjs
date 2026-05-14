@@ -53,10 +53,7 @@ if (!existing || existing === 0) {
   process.exit(0);
 }
 
-const { error: delErr } = await supa
-  .from("diagnostic_results")
-  .delete()
-  .eq("user_id", user.id);
+const { error: delErr } = await supa.from("diagnostic_results").delete().eq("user_id", user.id);
 if (delErr) {
   console.error("[reset-diagnostics] delete failed:", delErr);
   process.exit(1);

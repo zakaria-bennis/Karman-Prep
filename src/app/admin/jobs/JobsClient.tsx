@@ -11,8 +11,17 @@
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
-  CheckCircle2, Clock, Loader2, XCircle, AlertTriangle, RefreshCw, FileText,
-  Download, Sparkles, Upload as UploadIcon, Database,
+  CheckCircle2,
+  Clock,
+  Loader2,
+  XCircle,
+  AlertTriangle,
+  RefreshCw,
+  FileText,
+  Download,
+  Sparkles,
+  Upload as UploadIcon,
+  Database,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -38,9 +47,7 @@ export default function JobsClient({ initialJobs }: { initialJobs: PdfProcessing
   const [autoRefresh, setAutoRefresh] = useState(true);
 
   // Auto-refresh while there are non-terminal jobs to watch.
-  const hasActiveJobs = initialJobs.some(
-    (j) => j.status === "queued" || j.status === "running"
-  );
+  const hasActiveJobs = initialJobs.some((j) => j.status === "queued" || j.status === "running");
 
   useEffect(() => {
     if (!autoRefresh || !hasActiveJobs) return;
@@ -53,11 +60,15 @@ export default function JobsClient({ initialJobs }: { initialJobs: PdfProcessing
   if (initialJobs.length === 0) {
     return (
       <div className="rounded-xl border border-slate-800 bg-slate-900/40 px-6 py-12 text-center text-sm text-slate-500">
-        <FileText className="w-6 h-6 mx-auto mb-2 text-slate-600" />
+        <FileText className="mx-auto mb-2 h-6 w-6 text-slate-600" />
         No PDFs uploaded yet. Upload one from{" "}
-        <a href="/admin/questions/import" className="text-indigo-300 hover:text-indigo-200 underline">
+        <a
+          href="/admin/questions/import"
+          className="text-indigo-300 underline hover:text-indigo-200"
+        >
           /admin/questions/import
-        </a>.
+        </a>
+        .
       </div>
     );
   }
@@ -65,14 +76,14 @@ export default function JobsClient({ initialJobs }: { initialJobs: PdfProcessing
   return (
     <>
       {/* Toolbar */}
-      <div className="flex items-center gap-3 mb-3 text-xs">
+      <div className="mb-3 flex items-center gap-3 text-xs">
         <button
           onClick={() => startTransition(() => router.refresh())}
           className="inline-flex items-center gap-1 text-slate-400 hover:text-slate-200"
         >
-          <RefreshCw className="w-3 h-3" /> Refresh
+          <RefreshCw className="h-3 w-3" /> Refresh
         </button>
-        <label className="inline-flex items-center gap-1.5 text-slate-500 ml-auto cursor-pointer">
+        <label className="ml-auto inline-flex cursor-pointer items-center gap-1.5 text-slate-500">
           <input
             type="checkbox"
             checked={autoRefresh}
@@ -94,10 +105,7 @@ export default function JobsClient({ initialJobs }: { initialJobs: PdfProcessing
 }
 
 function JobRow({ job }: { job: PdfProcessingJob }) {
-  const totalImported = Object.values(job.imported_counts).reduce(
-    (sum, n) => sum + (n ?? 0),
-    0
-  );
+  const totalImported = Object.values(job.imported_counts).reduce((sum, n) => sum + (n ?? 0), 0);
   // Derive the visible stage. `progress` arrives populated for jobs
   // run by the new daemon; older rows fall back to the status enum.
   const stage = deriveStage(job);
@@ -107,13 +115,11 @@ function JobRow({ job }: { job: PdfProcessingJob }) {
   return (
     <article className="rounded-lg border border-slate-800 bg-slate-900/60 px-4 py-3">
       <div className="flex items-start gap-3">
-        <FileText className="w-4 h-4 text-slate-500 mt-0.5 shrink-0" />
-        <div className="flex-1 min-w-0">
+        <FileText className="mt-0.5 h-4 w-4 shrink-0 text-slate-500" />
+        <div className="min-w-0 flex-1">
           {/* ── Title row ───────────────────────────────────── */}
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-sm font-semibold text-slate-100 truncate">
-              {job.source_pdf}
-            </span>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="truncate text-sm font-semibold text-slate-100">{job.source_pdf}</span>
             <JobStatusBadge status={job.status} />
             <span className="text-[11px] text-slate-500">
               {new Date(job.uploaded_at).toLocaleString()}
@@ -124,9 +130,7 @@ function JobRow({ job }: { job: PdfProcessingJob }) {
               </span>
             )}
             {job.pdf_page_count != null && (
-              <span className="text-[11px] text-slate-500">
-                {job.pdf_page_count} pages
-              </span>
+              <span className="text-[11px] text-slate-500">{job.pdf_page_count} pages</span>
             )}
             {totalImported > 0 && (
               <span className="text-[11px] text-emerald-400">
@@ -137,17 +141,15 @@ function JobRow({ job }: { job: PdfProcessingJob }) {
 
           {/* ── Live progress bar + stage chip ───────────────── */}
           <div className="mt-2.5">
-            <div className="flex items-center gap-2 mb-1 text-[11px]">
+            <div className="mb-1 flex items-center gap-2 text-[11px]">
               <StageIcon stage={stage} />
               <span className="font-medium text-slate-300">{STAGE_LABEL[stage]}</span>
-              {isActive && job.started_at && (
-                <ElapsedTime startedAt={job.started_at} />
-              )}
+              {isActive && job.started_at && <ElapsedTime startedAt={job.started_at} />}
               {job.progress?.message && (
-                <span className="text-slate-500 truncate">— {job.progress.message}</span>
+                <span className="truncate text-slate-500">— {job.progress.message}</span>
               )}
               {job.progress?.updated_at && (
-                <span className="text-slate-600 ml-auto shrink-0">
+                <span className="ml-auto shrink-0 text-slate-600">
                   updated {timeAgo(job.progress.updated_at)}
                 </span>
               )}
@@ -157,7 +159,7 @@ function JobRow({ job }: { job: PdfProcessingJob }) {
 
           {/* ── Per-module pills (collapsed by default for now;
                 useful when Hybrid-Full multi-session lands) ──── */}
-          <div className="mt-2 flex gap-1.5 flex-wrap">
+          <div className="mt-2 flex flex-wrap gap-1.5">
             {PDF_MODULE_KEYS.map((m) => (
               <ModulePill
                 key={m}
@@ -169,8 +171,8 @@ function JobRow({ job }: { job: PdfProcessingJob }) {
           </div>
 
           {job.error_message && (
-            <div className="mt-2 text-xs text-rose-300 flex items-start gap-1.5">
-              <AlertTriangle className="w-3 h-3 mt-0.5 shrink-0" />
+            <div className="mt-2 flex items-start gap-1.5 text-xs text-rose-300">
+              <AlertTriangle className="mt-0.5 h-3 w-3 shrink-0" />
               {job.error_message}
             </div>
           )}
@@ -199,30 +201,36 @@ function deriveStage(job: PdfProcessingJob): PdfJobStage {
 }
 
 function StageIcon({ stage }: { stage: PdfJobStage }) {
-  const map: Record<PdfJobStage, { icon: React.ComponentType<{ className?: string }>; className: string; spin?: boolean }> = {
-    queued:     { icon: Clock,        className: "text-slate-500" },
-    pulled:     { icon: Download,     className: "text-slate-400" },
-    processing: { icon: Sparkles,     className: "text-indigo-400", spin: false },
-    finalizing: { icon: UploadIcon,   className: "text-sky-400" },
-    ingesting:  { icon: Database,     className: "text-violet-400" },
-    complete:   { icon: CheckCircle2, className: "text-emerald-400" },
-    failed:     { icon: XCircle,      className: "text-rose-400" },
+  const map: Record<
+    PdfJobStage,
+    { icon: React.ComponentType<{ className?: string }>; className: string; spin?: boolean }
+  > = {
+    queued: { icon: Clock, className: "text-slate-500" },
+    pulled: { icon: Download, className: "text-slate-400" },
+    processing: { icon: Sparkles, className: "text-indigo-400", spin: false },
+    finalizing: { icon: UploadIcon, className: "text-sky-400" },
+    ingesting: { icon: Database, className: "text-violet-400" },
+    complete: { icon: CheckCircle2, className: "text-emerald-400" },
+    failed: { icon: XCircle, className: "text-rose-400" },
   };
   const entry = map[stage];
   const { icon: Icon, className } = entry;
   // Active stages get a soft pulse so the eye catches motion at a glance.
   const active = stage === "processing" || stage === "finalizing" || stage === "ingesting";
-  return <Icon className={cn("w-3.5 h-3.5 shrink-0", className, active && "animate-pulse")} />;
+  return <Icon className={cn("h-3.5 w-3.5 shrink-0", className, active && "animate-pulse")} />;
 }
 
 function ProgressBar({ percent, stage }: { percent: number; stage: PdfJobStage }) {
   const barColor =
-    stage === "failed"   ? "bg-rose-500/70" :
-    stage === "complete" ? "bg-emerald-500/70" :
-    stage === "queued"   ? "bg-slate-700" :
-                           "bg-indigo-500/70";
+    stage === "failed"
+      ? "bg-rose-500/70"
+      : stage === "complete"
+        ? "bg-emerald-500/70"
+        : stage === "queued"
+          ? "bg-slate-700"
+          : "bg-indigo-500/70";
   return (
-    <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+    <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-800">
       <div
         className={cn("h-full transition-all duration-700 ease-out", barColor)}
         style={{ width: `${percent}%` }}
@@ -239,11 +247,7 @@ function ElapsedTime({ startedAt }: { startedAt: string }) {
     return () => clearInterval(t);
   }, []);
   const elapsedSec = Math.max(0, Math.floor((now - new Date(startedAt).getTime()) / 1000));
-  return (
-    <span className="text-slate-500 font-mono">
-      ({formatDuration(elapsedSec)})
-    </span>
-  );
+  return <span className="font-mono text-slate-500">({formatDuration(elapsedSec)})</span>;
 }
 
 function formatDuration(sec: number): string {
@@ -267,18 +271,30 @@ function timeAgo(iso: string): string {
 }
 
 function JobStatusBadge({ status }: { status: PdfJobStatus }) {
-  const map: Record<PdfJobStatus, { label: string; className: string; icon: React.ComponentType<{ className?: string }> }> = {
-    queued:   { label: "Queued",   className: "bg-slate-800 text-slate-300",    icon: Clock },
-    running:  { label: "Running",  className: "bg-indigo-500/20 text-indigo-200", icon: Loader2 },
-    partial:  { label: "Partial",  className: "bg-amber-500/20 text-amber-200",  icon: AlertTriangle },
-    complete: { label: "Complete", className: "bg-emerald-500/20 text-emerald-200", icon: CheckCircle2 },
-    failed:   { label: "Failed",   className: "bg-rose-500/20 text-rose-200",    icon: XCircle },
+  const map: Record<
+    PdfJobStatus,
+    { label: string; className: string; icon: React.ComponentType<{ className?: string }> }
+  > = {
+    queued: { label: "Queued", className: "bg-slate-800 text-slate-300", icon: Clock },
+    running: { label: "Running", className: "bg-indigo-500/20 text-indigo-200", icon: Loader2 },
+    partial: { label: "Partial", className: "bg-amber-500/20 text-amber-200", icon: AlertTriangle },
+    complete: {
+      label: "Complete",
+      className: "bg-emerald-500/20 text-emerald-200",
+      icon: CheckCircle2,
+    },
+    failed: { label: "Failed", className: "bg-rose-500/20 text-rose-200", icon: XCircle },
   };
   const { label, className, icon: Icon } = map[status];
   const isAnimated = status === "running";
   return (
-    <span className={cn("inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold", className)}>
-      <Icon className={cn("w-3 h-3", isAnimated && "animate-spin")} /> {label}
+    <span
+      className={cn(
+        "inline-flex items-center gap-1 rounded px-2 py-0.5 text-[11px] font-semibold",
+        className
+      )}
+    >
+      <Icon className={cn("h-3 w-3", isAnimated && "animate-spin")} /> {label}
     </span>
   );
 }
@@ -293,13 +309,18 @@ function ModulePill({
   imported?: number;
 }) {
   const cls = {
-    pending:     "border-slate-700 text-slate-500",
+    pending: "border-slate-700 text-slate-500",
     in_progress: "border-indigo-500/50 text-indigo-200 bg-indigo-500/10",
-    complete:    "border-emerald-500/40 text-emerald-200 bg-emerald-500/10",
-    failed:      "border-rose-500/40 text-rose-200 bg-rose-500/10",
+    complete: "border-emerald-500/40 text-emerald-200 bg-emerald-500/10",
+    failed: "border-rose-500/40 text-rose-200 bg-rose-500/10",
   }[status];
   return (
-    <span className={cn("inline-flex items-center gap-1 px-2 py-0.5 rounded border text-[10px] font-medium", cls)}>
+    <span
+      className={cn(
+        "inline-flex items-center gap-1 rounded border px-2 py-0.5 text-[10px] font-medium",
+        cls
+      )}
+    >
       {label}
       {imported != null && status === "complete" && (
         <span className="text-emerald-400/80">· {imported}</span>

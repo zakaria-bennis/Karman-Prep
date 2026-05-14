@@ -11,23 +11,50 @@ import { useEffect, useRef } from "react";
 import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
 
 interface Blob {
-  color: string;        // rgb triplet
-  size: number;         // viewport-relative % (width and height)
-  x: string;            // starting left
-  y: string;            // starting top
-  driftX: number;       // px amplitude
-  driftY: number;       // px amplitude
-  duration: number;     // seconds per loop
+  color: string; // rgb triplet
+  size: number; // viewport-relative % (width and height)
+  x: string; // starting left
+  y: string; // starting top
+  driftX: number; // px amplitude
+  driftY: number; // px amplitude
+  duration: number; // seconds per loop
   parallaxStrength: number; // 0..1 — how much mouse/scroll moves this blob
 }
 
 const BLOBS: Blob[] = [
   // Violet — "inspire"
-  { color: "168, 140, 255", size: 80, x: "-10%", y: "-20%", driftX: 40, driftY: 30, duration: 48, parallaxStrength: 0.6 },
+  {
+    color: "168, 140, 255",
+    size: 80,
+    x: "-10%",
+    y: "-20%",
+    driftX: 40,
+    driftY: 30,
+    duration: 48,
+    parallaxStrength: 0.6,
+  },
   // Blue — "dream"
-  { color:  "88, 130, 255", size: 70, x: "55%",  y: "10%",  driftX: 50, driftY: 25, duration: 54, parallaxStrength: 0.9 },
+  {
+    color: "88, 130, 255",
+    size: 70,
+    x: "55%",
+    y: "10%",
+    driftX: 50,
+    driftY: 25,
+    duration: 54,
+    parallaxStrength: 0.9,
+  },
   // Teal — "achieve"
-  { color:  "80, 220, 200", size: 55, x: "20%",  y: "55%",  driftX: 35, driftY: 40, duration: 62, parallaxStrength: 0.4 },
+  {
+    color: "80, 220, 200",
+    size: 55,
+    x: "20%",
+    y: "55%",
+    driftX: 35,
+    driftY: 40,
+    duration: 62,
+    parallaxStrength: 0.4,
+  },
 ];
 
 export default function CloudAurora() {
@@ -82,7 +109,7 @@ export default function CloudAurora() {
   return (
     <motion.div
       ref={rootRef}
-      className="absolute inset-0 overflow-hidden pointer-events-none"
+      className="pointer-events-none absolute inset-0 overflow-hidden"
       style={{ y: reduce ? 0 : scrollShift }}
       aria-hidden="true"
     >

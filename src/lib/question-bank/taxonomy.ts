@@ -28,19 +28,19 @@ export const SAT_DOMAINS = [
   "conventions",
 ] as const;
 
-export type SATDomain = typeof SAT_DOMAINS[number];
+export type SATDomain = (typeof SAT_DOMAINS)[number];
 
 /** Display label for the cluster a domain belongs to.
  *  Written into `quiz_questions.topic_cluster` by the routine. */
 export const CLUSTER_BY_DOMAIN: Record<SATDomain, string> = {
-  algebra:          "Algebra",
-  advanced_math:    "Advanced Math",
-  geometry:         "Geometry & Trigonometry",
-  data_analysis:    "Problem-Solving & Data Analysis",
-  info_ideas:       "Information & Ideas",
-  craft_structure:  "Craft & Structure",
+  algebra: "Algebra",
+  advanced_math: "Advanced Math",
+  geometry: "Geometry & Trigonometry",
+  data_analysis: "Problem-Solving & Data Analysis",
+  info_ideas: "Information & Ideas",
+  craft_structure: "Craft & Structure",
   expression_ideas: "Expression of Ideas",
-  conventions:      "Standard English Conventions",
+  conventions: "Standard English Conventions",
 };
 
 export interface ConceptSlug {
@@ -53,23 +53,17 @@ export interface ConceptSlug {
 
 /** All concept slugs (one per curriculum node). Derived at module load
  *  from the curriculum so there is no separate list to keep in sync. */
-export const CONCEPT_SLUGS: ConceptSlug[] = [...RW_NODES, ...MATH_NODES].map(
-  (n) => ({
-    slug: n.concept_slug,
-    label: n.topic,
-    domain: n.domain,
-    nodeId: n.id,
-  })
-);
+export const CONCEPT_SLUGS: ConceptSlug[] = [...RW_NODES, ...MATH_NODES].map((n) => ({
+  slug: n.concept_slug,
+  label: n.topic,
+  domain: n.domain,
+  nodeId: n.id,
+}));
 
 // ── Indexes built once at module load ────────────────────────
 
-const SLUG_INDEX = new Map<string, ConceptSlug>(
-  CONCEPT_SLUGS.map((c) => [c.slug, c])
-);
-const NODE_TO_SLUG = new Map<string, string>(
-  CONCEPT_SLUGS.map((c) => [c.nodeId, c.slug])
-);
+const SLUG_INDEX = new Map<string, ConceptSlug>(CONCEPT_SLUGS.map((c) => [c.slug, c]));
+const NODE_TO_SLUG = new Map<string, string>(CONCEPT_SLUGS.map((c) => [c.nodeId, c.slug]));
 const DOMAIN_SET = new Set<string>(SAT_DOMAINS);
 
 // ── Helpers ──────────────────────────────────────────────────
@@ -118,9 +112,10 @@ export function isValidDomain(domain: string): domain is SATDomain {
 export function searchSlugs(query: string): ConceptSlug[] {
   const q = query.trim().toLowerCase();
   if (!q) return CONCEPT_SLUGS;
-  return CONCEPT_SLUGS.filter((c) =>
-    c.slug.toLowerCase().includes(q) ||
-    c.label.toLowerCase().includes(q) ||
-    c.domain.toLowerCase().includes(q)
+  return CONCEPT_SLUGS.filter(
+    (c) =>
+      c.slug.toLowerCase().includes(q) ||
+      c.label.toLowerCase().includes(q) ||
+      c.domain.toLowerCase().includes(q)
   );
 }

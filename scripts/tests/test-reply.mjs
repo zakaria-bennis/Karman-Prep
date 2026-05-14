@@ -23,7 +23,9 @@ const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const SLACK_BOT_TOKEN = process.env.SLACK_BOT_TOKEN;
 
 if (!SUPABASE_URL || !SUPABASE_KEY || !SLACK_BOT_TOKEN) {
-  console.error("[test-reply] Missing one of NEXT_PUBLIC_SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY / SLACK_BOT_TOKEN");
+  console.error(
+    "[test-reply] Missing one of NEXT_PUBLIC_SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY / SLACK_BOT_TOKEN"
+  );
   process.exit(1);
 }
 
@@ -33,9 +35,11 @@ const supa = createClient(SUPABASE_URL, SUPABASE_KEY, {
 const slack = new WebClient(SLACK_BOT_TOKEN);
 
 const bennisEmail = process.env.TEST_REPLY_BENNISZ_EMAIL ?? "bennisz@outlook.com";
-const textBody = process.env.TEST_REPLY_TEXT
-  ?? "Hey! Just wanted to say I really liked your point on the last reading passage — totally helped me crack the inference question.";
-const imageSourceUrl = process.env.TEST_REPLY_IMAGE_URL ?? "https://picsum.photos/seed/strata-test/600/400.jpg";
+const textBody =
+  process.env.TEST_REPLY_TEXT ??
+  "Hey! Just wanted to say I really liked your point on the last reading passage — totally helped me crack the inference question.";
+const imageSourceUrl =
+  process.env.TEST_REPLY_IMAGE_URL ?? "https://picsum.photos/seed/strata-test/600/400.jpg";
 const imageCaption = "Here's the diagram from the geometry problem we were stuck on:";
 
 // ─────────────────────────────────────────────────────────────
@@ -73,7 +77,9 @@ if (chErr || !channel) {
   console.error("[test-reply] No cohort_chat channel — provision the cohort first.", chErr);
   process.exit(1);
 }
-console.log(`[test-reply] cohort_chat channel: ${channel.display_name} (slack=${channel.slack_channel_id})`);
+console.log(
+  `[test-reply] cohort_chat channel: ${channel.display_name} (slack=${channel.slack_channel_id})`
+);
 
 // ─────────────────────────────────────────────────────────────
 // 2. Pick another active student in the same cohort.
@@ -106,7 +112,8 @@ console.log(`[test-reply] sending AS: ${displayName} (${sender.email})`);
 // 3. Post text message — Slack first, then Supabase row.
 // ─────────────────────────────────────────────────────────────
 async function postSlackAndInsert({ content, mediaUrls }) {
-  const slackText = `*${displayName}:* ${content}` + (mediaUrls.length ? "\n" + mediaUrls.join("\n") : "");
+  const slackText =
+    `*${displayName}:* ${content}` + (mediaUrls.length ? "\n" + mediaUrls.join("\n") : "");
   const slackRes = await slack.chat.postMessage({
     channel: channel.slack_channel_id,
     text: slackText,
@@ -156,12 +163,10 @@ if (!imgRes.ok) {
 const imgBuf = Buffer.from(await imgRes.arrayBuffer());
 const ext = (imgRes.headers.get("content-type") ?? "image/jpeg").includes("png") ? "png" : "jpg";
 const objectKey = `cohort/${channel.id}/test-${Date.now()}.${ext}`;
-const { error: upErr } = await supa.storage
-  .from("chat-media")
-  .upload(objectKey, imgBuf, {
-    contentType: `image/${ext === "jpg" ? "jpeg" : ext}`,
-    upsert: false,
-  });
+const { error: upErr } = await supa.storage.from("chat-media").upload(objectKey, imgBuf, {
+  contentType: `image/${ext === "jpg" ? "jpeg" : ext}`,
+  upsert: false,
+});
 if (upErr) {
   console.error("[test-reply] storage upload failed:", upErr);
   process.exit(1);

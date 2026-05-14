@@ -30,9 +30,9 @@ interface Props {
 
 const TABS: { key: Tab; label: string; Icon: React.ComponentType<{ className?: string }> }[] = [
   { key: "questions", label: "Questions", Icon: HelpCircle },
-  { key: "textbook",  label: "Textbook",  Icon: BookOpenText },
-  { key: "video",     label: "Video",     Icon: Video },
-  { key: "import",    label: "Bulk Import", Icon: Upload },
+  { key: "textbook", label: "Textbook", Icon: BookOpenText },
+  { key: "video", label: "Video", Icon: Video },
+  { key: "import", label: "Bulk Import", Icon: Upload },
 ];
 
 export default function NodeTabs({
@@ -50,19 +50,19 @@ export default function NodeTabs({
 
   return (
     <div>
-      <div className="mb-6 border-b border-slate-800 flex gap-0.5 text-sm overflow-x-auto">
+      <div className="mb-6 flex gap-0.5 overflow-x-auto border-b border-slate-800 text-sm">
         {TABS.map(({ key, label, Icon }) => (
           <button
             key={key}
             onClick={() => setActive(key)}
             className={cn(
-              "px-4 pb-3 pt-2 font-semibold border-b-2 flex items-center gap-1.5 whitespace-nowrap transition-colors",
+              "flex items-center gap-1.5 whitespace-nowrap border-b-2 px-4 pb-3 pt-2 font-semibold transition-colors",
               active === key
                 ? "border-indigo-500 text-indigo-400"
                 : "border-transparent text-slate-500 hover:text-slate-200"
             )}
           >
-            <Icon className="w-3.5 h-3.5" />
+            <Icon className="h-3.5 w-3.5" />
             {label}
             {key === "questions" && initialQuestions.length > 0 && (
               <span className="text-xs text-slate-600">({initialQuestions.length})</span>
@@ -79,9 +79,7 @@ export default function NodeTabs({
           initialQuestions={initialQuestions}
         />
       )}
-      {active === "textbook" && (
-        <TextbookEditor nodeId={nodeId} initial={initialTextbook} />
-      )}
+      {active === "textbook" && <TextbookEditor nodeId={nodeId} initial={initialTextbook} />}
       {active === "video" && (
         <VideoUploader
           nodeId={nodeId}

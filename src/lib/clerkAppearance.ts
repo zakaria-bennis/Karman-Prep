@@ -25,21 +25,21 @@ export const strataClerkAppearance = {
   // Color tokens Clerk uses internally — aligned with the landing's
   // cloud palette (blue + violet) so the auth flow feels continuous.
   variables: {
-    colorPrimary:           "#3B82F6",           // blue-500 — matches btn-primary
-    colorDanger:            "#ef4444",
-    colorSuccess:           "#10b981",
-    colorWarning:           "#f59e0b",
-    colorBackground:        "#0B1026",           // cloud-bg-soft (matches --cloud-bg-soft)
-    colorInputBackground:   "#0a0f22",
-    colorInputText:         "#f8fafc",
-    colorText:              "#f8fafc",
-    colorTextSecondary:     "#94a3b8",
+    colorPrimary: "#3B82F6", // blue-500 — matches btn-primary
+    colorDanger: "#ef4444",
+    colorSuccess: "#10b981",
+    colorWarning: "#f59e0b",
+    colorBackground: "#0B1026", // cloud-bg-soft (matches --cloud-bg-soft)
+    colorInputBackground: "#0a0f22",
+    colorInputText: "#f8fafc",
+    colorText: "#f8fafc",
+    colorTextSecondary: "#94a3b8",
     colorTextOnPrimaryBackground: "#ffffff",
-    colorNeutral:           "#cbd5e1",
-    borderRadius:           "1rem",              // rounded-2xl — matches landing cards
-    fontFamily:             "var(--font-geist-sans), Inter, system-ui, sans-serif",
-    fontFamilyButtons:      "var(--font-geist-sans), Inter, system-ui, sans-serif",
-    fontSize:               "0.95rem",
+    colorNeutral: "#cbd5e1",
+    borderRadius: "1rem", // rounded-2xl — matches landing cards
+    fontFamily: "var(--font-geist-sans), Inter, system-ui, sans-serif",
+    fontFamilyButtons: "var(--font-geist-sans), Inter, system-ui, sans-serif",
+    fontSize: "0.95rem",
     fontWeight: {
       normal: "400",
       medium: "500",
@@ -125,11 +125,9 @@ export const strataClerkAppearance = {
 
     // Sidebar nav — was very dim against the navy.
     navbar: "bg-white/[0.02] border-r border-white/10",
-    navbarButton:
-      "text-slate-300 hover:text-white hover:bg-white/[0.06] rounded-lg",
+    navbarButton: "text-slate-300 hover:text-white hover:bg-white/[0.06] rounded-lg",
     navbarButtonText: "text-slate-200 font-semibold",
-    navbarButton__active:
-      "bg-blue-500/15 text-white border border-blue-400/30",
+    navbarButton__active: "bg-blue-500/15 text-white border border-blue-400/30",
     navbarMobileMenuRow: "border-white/10",
     navbarMobileMenuButton: "text-slate-300 hover:text-white",
 
@@ -138,21 +136,18 @@ export const strataClerkAppearance = {
     profileSectionTitle: "text-white font-bold",
     profileSectionTitleText: "text-white",
     profileSectionContent: "text-slate-200",
-    profileSectionPrimaryButton:
-      "text-blue-300 hover:text-blue-200 font-semibold",
+    profileSectionPrimaryButton: "text-blue-300 hover:text-blue-200 font-semibold",
     profileSection__connectedAccounts: "text-slate-200",
     profilePage: "text-slate-100",
 
     // Form rows inside the section accordions.
     formFieldLabelRow: "text-slate-300",
-    accordionTriggerButton:
-      "text-slate-200 hover:bg-white/[0.04]",
+    accordionTriggerButton: "text-slate-200 hover:bg-white/[0.04]",
     accordionContent: "text-slate-200",
 
     // Per-row kebab + dropdown menu.
     menuButton: "text-slate-400 hover:text-white",
-    menuList:
-      "bg-[#0B1026] border border-white/10 shadow-2xl",
+    menuList: "bg-[#0B1026] border border-white/10 shadow-2xl",
     menuItem: "text-slate-200 hover:bg-white/[0.06]",
 
     // "Primary" / status badges next to email & phone.
@@ -161,7 +156,7 @@ export const strataClerkAppearance = {
 
   // Layout tweaks — logo image shown at top of the Clerk card
   layout: {
-    logoPlacement: "none",    // we'll render our own logo outside the card
+    logoPlacement: "none", // we'll render our own logo outside the card
     showOptionalFields: true,
     socialButtonsVariant: "blockButton",
     helpPageUrl: "/faq",

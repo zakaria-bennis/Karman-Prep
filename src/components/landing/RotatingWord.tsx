@@ -23,10 +23,10 @@ export interface Word {
 // the promise palette. One system, two jobs.
 export const STRATA_PROMISES: Word[] = [
   { text: "inspire", color: "#C4A7FF" }, // violet (advanced-math, lifted)
-  { text: "dream",   color: "#7FB3FF" }, // blue (algebra, lifted)
+  { text: "dream", color: "#7FB3FF" }, // blue (algebra, lifted)
   { text: "achieve", color: "#5EE4C6" }, // teal (geometry, lifted)
-  { text: "excel",   color: "#FFC574" }, // amber (data-analysis, lifted)
-  { text: "wonder",  color: "#FF9AA8" }, // rose (reading-writing, lifted)
+  { text: "excel", color: "#FFC574" }, // amber (data-analysis, lifted)
+  { text: "wonder", color: "#FF9AA8" }, // rose (reading-writing, lifted)
 ];
 
 interface Props {
@@ -61,9 +61,7 @@ export default function RotatingWord({ words = STRATA_PROMISES, interval = 2600 
   return (
     <>
       {/* Screen reader gets the full idea — read once */}
-      <span className="sr-only">
-        Built to {words.map((w) => w.text).join(", to ")}.
-      </span>
+      <span className="sr-only">Built to {words.map((w) => w.text).join(", to ")}.</span>
 
       <motion.span
         className="relative inline-flex items-baseline align-baseline"
@@ -76,8 +74,8 @@ export default function RotatingWord({ words = STRATA_PROMISES, interval = 2600 
             key={current.text}
             layout
             initial={{ y: "0.6em", opacity: 0, filter: "blur(10px)" }}
-            animate={{ y: 0,       opacity: 1, filter: "blur(0px)" }}
-            exit={{    y: "-0.6em", opacity: 0, filter: "blur(10px)" }}
+            animate={{ y: 0, opacity: 1, filter: "blur(0px)" }}
+            exit={{ y: "-0.6em", opacity: 0, filter: "blur(10px)" }}
             transition={{
               y: { duration: 0.55, ease: [0.22, 1, 0.36, 1] },
               opacity: { duration: 0.4 },
@@ -87,7 +85,7 @@ export default function RotatingWord({ words = STRATA_PROMISES, interval = 2600 
               color: current.color,
               textShadow: `0 0 40px ${current.color}55, 0 0 80px ${current.color}22`,
             }}
-            className="inline-block italic font-[650] will-change-transform"
+            className="inline-block font-[650] italic will-change-transform"
           >
             {current.text}
           </motion.span>

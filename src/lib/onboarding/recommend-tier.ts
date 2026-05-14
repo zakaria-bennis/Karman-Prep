@@ -87,30 +87,44 @@ export function tierLabel(tier: SubscriptionTier): string {
 // maps the score to one of two attention brackets, and the
 // billing preference picks the actual tier.
 
-interface ScoreBreakdown { points: number; signal: string | null }
+interface ScoreBreakdown {
+  points: number;
+  signal: string | null;
+}
 
 function scoreGap(input: RecommendationInput): ScoreBreakdown {
   const baseline = input.baselineScore ?? 1000;
   const gap = Math.max(0, input.goalScore - baseline);
-  if (gap >= 200) return { points: 3, signal: `Closing a ${gap}-point gap to your goal — big lift.` };
+  if (gap >= 200)
+    return { points: 3, signal: `Closing a ${gap}-point gap to your goal — big lift.` };
   if (gap >= 130) return { points: 2, signal: `A ${gap}-point goal is a substantial improvement.` };
-  if (gap >= 80)  return { points: 1, signal: `A ${gap}-point bump is moderate but real work.` };
-  return { points: 0, signal: input.baselineScore ? `Only a ${gap}-point bump from your last score — small lift.` : null };
+  if (gap >= 80) return { points: 1, signal: `A ${gap}-point bump is moderate but real work.` };
+  return {
+    points: 0,
+    signal: input.baselineScore
+      ? `Only a ${gap}-point bump from your last score — small lift.`
+      : null,
+  };
 }
 
 function scoreTime(input: RecommendationInput): ScoreBreakdown {
   if (input.weeksToTest == null) return { points: 0, signal: null };
   const w = input.weeksToTest;
-  if (w <= 6)  return { points: 3, signal: `Only ${w} weeks until test day — every session has to count.` };
+  if (w <= 6)
+    return { points: 3, signal: `Only ${w} weeks until test day — every session has to count.` };
   if (w <= 12) return { points: 2, signal: `${w} weeks until test day — tight runway.` };
-  if (w <= 20) return { points: 1, signal: `${w} weeks until test day — workable but no time to waste.` };
-  return       { points: 0, signal: `${w} weeks until test day — plenty of runway.` };
+  if (w <= 20)
+    return { points: 1, signal: `${w} weeks until test day — workable but no time to waste.` };
+  return { points: 0, signal: `${w} weeks until test day — plenty of runway.` };
 }
 
 function scoreIndependence(input: RecommendationInput): ScoreBreakdown {
   switch (input.independence) {
     case "needs_structure":
-      return { points: 3, signal: "Self-reported struggle to stick to a study plan without accountability." };
+      return {
+        points: 3,
+        signal: "Self-reported struggle to stick to a study plan without accountability.",
+      };
     case "with_checkins":
       return { points: 1, signal: "Does best with regular check-ins from a tutor." };
     case "on_my_own":
@@ -120,16 +134,29 @@ function scoreIndependence(input: RecommendationInput): ScoreBreakdown {
 
 function scorePace(input: RecommendationInput): ScoreBreakdown {
   switch (input.pace) {
-    case "slower":  return { points: 2, signal: "Prefers to work through new material multiple ways before it sticks." };
-    case "average": return { points: 1, signal: "Picks up new material at a typical pace." };
-    case "quick":   return { points: 0, signal: "Picks up new material quickly — first explanation usually does it." };
+    case "slower":
+      return {
+        points: 2,
+        signal: "Prefers to work through new material multiple ways before it sticks.",
+      };
+    case "average":
+      return { points: 1, signal: "Picks up new material at a typical pace." };
+    case "quick":
+      return {
+        points: 0,
+        signal: "Picks up new material quickly — first explanation usually does it.",
+      };
   }
 }
 
 function scorePriorPrep(input: RecommendationInput): ScoreBreakdown {
   switch (input.priorPrep) {
     case "didnt_move":
-      return { points: 2, signal: "Has tried prep before, and it didn't move the needle — needs a different approach." };
+      return {
+        points: 2,
+        signal:
+          "Has tried prep before, and it didn't move the needle — needs a different approach.",
+      };
     case "worked":
       return { points: 0, signal: "Prior prep worked — knows how to study for this test." };
     case "first_time":
@@ -139,7 +166,10 @@ function scorePriorPrep(input: RecommendationInput): ScoreBreakdown {
 
 function scoreHours(input: RecommendationInput): ScoreBreakdown {
   if (input.hoursPerWeek < 3) {
-    return { points: 1, signal: `Only ~${input.hoursPerWeek} hr/week to study — needs the most efficient time on task possible.` };
+    return {
+      points: 1,
+      signal: `Only ~${input.hoursPerWeek} hr/week to study — needs the most efficient time on task possible.`,
+    };
   }
   return { points: 0, signal: null };
 }
@@ -158,9 +188,7 @@ export function recommendTier(input: RecommendationInput): Recommendation {
     scoreHours(input),
   ];
   const totalPoints = breakdowns.reduce((s, b) => s + b.points, 0);
-  const signals = breakdowns
-    .filter((b) => b.signal !== null)
-    .map((b) => b.signal!) as string[];
+  const signals = breakdowns.filter((b) => b.signal !== null).map((b) => b.signal!) as string[];
 
   // Threshold — `>=5` triggers high-attention. Tuned so that a
   // student with a moderate gap + average pace + independent

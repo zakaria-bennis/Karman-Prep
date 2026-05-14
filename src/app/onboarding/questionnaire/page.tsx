@@ -52,16 +52,19 @@ export default async function OnboardingQuestionnairePage() {
 
   const satDates: SatDateOption[] =
     satRows && satRows.length > 0
-      ? satRows.map((r) => ({ iso: r.test_date as string, label: formatSatDate(r.test_date as string) }))
+      ? satRows.map((r) => ({
+          iso: r.test_date as string,
+          label: formatSatDate(r.test_date as string),
+        }))
       : FALLBACK_SAT_DATES;
 
   const clerkUser = await currentUser();
   const firstName = clerkUser?.firstName ?? existing?.first_name ?? "there";
 
   return (
-    <div className="relative min-h-screen flex flex-col items-center px-4 py-10 overflow-hidden">
+    <div className="relative flex min-h-screen flex-col items-center overflow-hidden px-4 py-10">
       <AuthBackdrop />
-      <Link href="/" className="mb-8 relative z-10" aria-label="Karman home">
+      <Link href="/" className="relative z-10 mb-8" aria-label="Karman home">
         <StrataLogo size={56} variant="stacked" />
       </Link>
 

@@ -25,8 +25,11 @@ export async function POST(req: NextRequest) {
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   let body: Partial<PinRequest>;
-  try { body = (await req.json()) as Partial<PinRequest>; }
-  catch { return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 }); }
+  try {
+    body = (await req.json()) as Partial<PinRequest>;
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  }
   if (!body.messageId || typeof body.pinned !== "boolean") {
     return NextResponse.json({ error: "Missing messageId or pinned" }, { status: 400 });
   }

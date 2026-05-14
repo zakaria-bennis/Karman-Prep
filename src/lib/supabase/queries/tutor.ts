@@ -3,11 +3,7 @@
 // ============================================================
 
 import { createAdminClient } from "@/lib/supabase/server";
-import type {
-  OverrideStatus,
-  TutorNodeOverride,
-  TutorCheckpointAssignment,
-} from "@/types/quiz";
+import type { OverrideStatus, TutorNodeOverride, TutorCheckpointAssignment } from "@/types/quiz";
 import type { CohortStatus, CohortTier } from "@/lib/supabase/queries/cohorts";
 
 // ── Student roster ────────────────────────────────────────────
@@ -60,9 +56,7 @@ export interface NodeStatusSnapshot {
   updated_at: string;
 }
 
-export async function fetchNodeStatuses(
-  studentId: string
-): Promise<NodeStatusSnapshot[]> {
+export async function fetchNodeStatuses(studentId: string): Promise<NodeStatusSnapshot[]> {
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("learn_node_status")
@@ -100,8 +94,7 @@ export async function applyTutorNodeOverride(input: {
   if (overrideErr) throw overrideErr;
 
   // 2. Apply to learn_node_status. Map "unlocked" → "available".
-  const applied =
-    input.override_status === "unlocked" ? "available" : input.override_status;
+  const applied = input.override_status === "unlocked" ? "available" : input.override_status;
 
   await supabase.from("learn_node_status").upsert({
     user_id: input.student_id,
@@ -111,9 +104,7 @@ export async function applyTutorNodeOverride(input: {
   });
 }
 
-export async function fetchTutorOverrides(
-  studentId: string
-): Promise<TutorNodeOverride[]> {
+export async function fetchTutorOverrides(studentId: string): Promise<TutorNodeOverride[]> {
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("tutor_node_overrides")
@@ -129,7 +120,7 @@ export async function fetchTutorOverrides(
 export async function assignCheckpointRetake(input: {
   tutor_id: string;
   student_id: string;
-  checkpoint_id: string;       // "reading:1" etc.
+  checkpoint_id: string; // "reading:1" etc.
   reason?: string;
 }): Promise<void> {
   const supabase = createAdminClient();
@@ -198,17 +189,16 @@ export async function fetchStudentDashboardRows(
 
   const [students, statuses, flagsOpen, subs, members] = await Promise.all([
     fetchStudentRoster(),
-    supabase.from("learn_node_status").select("user_id, node_id, status, confidence_band, updated_at"),
+    supabase
+      .from("learn_node_status")
+      .select("user_id, node_id, status, confidence_band, updated_at"),
     supabase.from("flagged_questions").select("student_id").eq("resolved", false),
     supabase
       .from("subscriptions")
       .select("user_id, tier, status, created_at")
       .in("status", ["active", "trialing"])
       .order("created_at", { ascending: false }),
-    supabase
-      .from("cohort_members")
-      .select("user_id, cohort_id")
-      .is("left_at", null),
+    supabase.from("cohort_members").select("user_id, cohort_id").is("left_at", null),
   ]);
 
   // Optional scoping: when called with a list of clerk_ids, drop everyone else.
@@ -236,9 +226,18 @@ export async function fetchStudentDashboardRows(
     cohortIdsByClerkId.get(ck)!.push(r.cohort_id);
   }
 
-  const statusMap = new Map<string, Array<{ node_id: string; status: string; confidence_band: string | null; updated_at: string }>>();
+  const statusMap = new Map<
+    string,
+    Array<{ node_id: string; status: string; confidence_band: string | null; updated_at: string }>
+  >();
   for (const row of statuses.data ?? []) {
-    const r = row as { user_id: string; node_id: string; status: string; confidence_band: string | null; updated_at: string };
+    const r = row as {
+      user_id: string;
+      node_id: string;
+      status: string;
+      confidence_band: string | null;
+      updated_at: string;
+    };
     if (!statusMap.has(r.user_id)) statusMap.set(r.user_id, []);
     statusMap.get(r.user_id)!.push(r);
   }
@@ -251,25 +250,30 @@ export async function fetchStudentDashboardRows(
 
   return filteredStudents.map((s) => {
     const rows = statusMap.get(s.clerk_id) ?? [];
-    const readingMastered = rows.filter((r) => r.node_id.startsWith("rw-") && r.status === "mastered").length;
-    const mathMastered = rows.filter((r) => r.node_id.startsWith("ma-") && r.status === "mastered").length;
+    const readingMastered = rows.filter(
+      (r) => r.node_id.startsWith("rw-") && r.status === "mastered"
+    ).length;
+    const mathMastered = rows.filter(
+      (r) => r.node_id.startsWith("ma-") && r.status === "mastered"
+    ).length;
     const struggling = rows.filter((r) => r.confidence_band === "struggling").length;
-    const lastActive = rows
-      .map((r) => r.updated_at)
-      .sort()
-      .reverse()[0] ?? null;
+    const lastActive =
+      rows
+        .map((r) => r.updated_at)
+        .sort()
+        .reverse()[0] ?? null;
 
     // Atmospheric level = how many tiers fully mastered
     // (15 Tier-1 + 20 Tier-2 + 15 Tier-3 per subject)
-    const tier1Done = rows.filter((r) =>
-      /^(rw|ma)-(0\d|1[0-4])$/.test(r.node_id) && r.status === "mastered"
-    ).length === 30;
-    const tier2Done = rows.filter((r) =>
-      /^(rw|ma)-(1[5-9]|2\d|3[0-4])$/.test(r.node_id) && r.status === "mastered"
-    ).length === 40;
-    const tier3Done = rows.filter((r) =>
-      /^(rw|ma)-(3[5-9]|4\d)$/.test(r.node_id) && r.status === "mastered"
-    ).length === 30;
+    const tier1Done =
+      rows.filter((r) => /^(rw|ma)-(0\d|1[0-4])$/.test(r.node_id) && r.status === "mastered")
+        .length === 30;
+    const tier2Done =
+      rows.filter((r) => /^(rw|ma)-(1[5-9]|2\d|3[0-4])$/.test(r.node_id) && r.status === "mastered")
+        .length === 40;
+    const tier3Done =
+      rows.filter((r) => /^(rw|ma)-(3[5-9]|4\d)$/.test(r.node_id) && r.status === "mastered")
+        .length === 30;
     const atmosphereLevel: 0 | 1 | 2 | 3 = tier3Done ? 3 : tier2Done ? 2 : tier1Done ? 1 : 0;
 
     return {
@@ -290,7 +294,6 @@ export async function fetchStudentDashboardRows(
     };
   });
 }
-
 
 // ─────────────────────────────────────────────────────────────
 // Tutor-scoped data: cohorts this tutor leads and the clerk_ids
@@ -337,13 +340,8 @@ export async function fetchTutorScope(tutorClerkId: string): Promise<TutorScope>
       .select("id, name, tier, sat_date, max_size, current_topic, status")
       .eq("tutor_user_id", tutorUserId)
       .order("sat_date", { ascending: true }),
-    supabase
-      .from("cohort_members")
-      .select("cohort_id, user_id")
-      .is("left_at", null),
-    supabase
-      .from("cohort_homework")
-      .select("cohort_id"),
+    supabase.from("cohort_members").select("cohort_id, user_id").is("left_at", null),
+    supabase.from("cohort_homework").select("cohort_id"),
     supabase
       .from("tutor_assignments")
       .select("student_user_id")
@@ -351,9 +349,9 @@ export async function fetchTutorScope(tutorClerkId: string): Promise<TutorScope>
       .is("ended_at", null),
   ]);
 
-  if (cohortsRes.error)     throw cohortsRes.error;
-  if (membersRes.error)     throw membersRes.error;
-  if (homeworkRes.error)    throw homeworkRes.error;
+  if (cohortsRes.error) throw cohortsRes.error;
+  if (membersRes.error) throw membersRes.error;
+  if (homeworkRes.error) throw homeworkRes.error;
   if (assignmentsRes.error) throw assignmentsRes.error;
 
   const cohortIds = new Set<string>((cohortsRes.data ?? []).map((c) => c.id as string));
@@ -390,20 +388,19 @@ export async function fetchTutorScope(tutorClerkId: string): Promise<TutorScope>
   }
 
   const cohorts: TutorCohortRow[] = (cohortsRes.data ?? []).map((c) => ({
-    id:             c.id            as string,
-    name:           c.name          as string,
-    tier:           c.tier          as CohortTier,
-    sat_date:       c.sat_date      as string,
-    max_size:       c.max_size      as number,
+    id: c.id as string,
+    name: c.name as string,
+    tier: c.tier as CohortTier,
+    sat_date: c.sat_date as string,
+    max_size: c.max_size as number,
     current_topic: (c.current_topic as string | null) ?? null,
-    status:         c.status        as CohortStatus,
-    member_count:   memberCounts.get(c.id as string)   ?? 0,
+    status: c.status as CohortStatus,
+    member_count: memberCounts.get(c.id as string) ?? 0,
     homework_count: homeworkCounts.get(c.id as string) ?? 0,
   }));
 
   return { cohorts, studentClerkIds, tutorUserId };
 }
-
 
 // ─────────────────────────────────────────────────────────────
 // Tutor's view of a single cohort — with ownership enforced at
@@ -438,8 +435,8 @@ export interface TutorCohortDetail {
     status: CohortStatus;
   };
   members: TutorCohortMember[];
-  noteBody: string;                 // '' if no note yet
-  noteId: string | null;            // null if no note row yet
+  noteBody: string; // '' if no note yet
+  noteId: string | null; // null if no note row yet
   homework: TutorHomework[];
 }
 
@@ -470,16 +467,18 @@ export async function fetchTutorCohortDetail(
   if (cErr) throw cErr;
   if (!cohort) return null;
   if ((cohort as { tutor_user_id: string }).tutor_user_id !== tutorUserId) {
-    return null;  // not this tutor's cohort — pretend it doesn't exist
+    return null; // not this tutor's cohort — pretend it doesn't exist
   }
 
   const [membersRes, noteRes, homeworkRes] = await Promise.all([
     supabase
       .from("cohort_members")
-      .select(`
+      .select(
+        `
         joined_at,
         user:users!cohort_members_user_id_fkey (id, first_name, last_name, email, avatar_url)
-      `)
+      `
+      )
       .eq("cohort_id", cohortId)
       .is("left_at", null)
       .order("joined_at", { ascending: true }),
@@ -496,48 +495,60 @@ export async function fetchTutorCohortDetail(
       .order("assigned_at", { ascending: false }),
   ]);
 
-  if (membersRes.error)  throw membersRes.error;
-  if (noteRes.error)     throw noteRes.error;
+  if (membersRes.error) throw membersRes.error;
+  if (noteRes.error) throw noteRes.error;
   if (homeworkRes.error) throw homeworkRes.error;
 
   type RawMember = {
     joined_at: string;
-    user: {
-      id: string; first_name: string | null; last_name: string | null;
-      email: string; avatar_url: string | null;
-    } | Array<{
-      id: string; first_name: string | null; last_name: string | null;
-      email: string; avatar_url: string | null;
-    }> | null;
+    user:
+      | {
+          id: string;
+          first_name: string | null;
+          last_name: string | null;
+          email: string;
+          avatar_url: string | null;
+        }
+      | Array<{
+          id: string;
+          first_name: string | null;
+          last_name: string | null;
+          email: string;
+          avatar_url: string | null;
+        }>
+      | null;
   };
   const members: TutorCohortMember[] = ((membersRes.data ?? []) as RawMember[]).flatMap((r) => {
     const u = Array.isArray(r.user) ? r.user[0] : r.user;
-    return u ? [{
-      user_id:    u.id,
-      first_name: u.first_name,
-      last_name:  u.last_name,
-      email:      u.email,
-      avatar_url: u.avatar_url,
-      joined_at:  r.joined_at,
-    }] : [];
+    return u
+      ? [
+          {
+            user_id: u.id,
+            first_name: u.first_name,
+            last_name: u.last_name,
+            email: u.email,
+            avatar_url: u.avatar_url,
+            joined_at: r.joined_at,
+          },
+        ]
+      : [];
   });
 
   const note = noteRes.data as { id: string; body: string } | null;
 
   return {
     cohort: {
-      id:             cohort.id            as string,
-      name:           cohort.name          as string,
-      tier:           cohort.tier          as CohortTier,
-      sat_date:       cohort.sat_date      as string,
-      max_size:       cohort.max_size      as number,
+      id: cohort.id as string,
+      name: cohort.name as string,
+      tier: cohort.tier as CohortTier,
+      sat_date: cohort.sat_date as string,
+      max_size: cohort.max_size as number,
       current_topic: (cohort.current_topic as string | null) ?? null,
-      status:         cohort.status        as CohortStatus,
+      status: cohort.status as CohortStatus,
     },
     members,
     noteBody: note?.body ?? "",
-    noteId:   note?.id ?? null,
+    noteId: note?.id ?? null,
     homework: (homeworkRes.data ?? []) as TutorHomework[],
   };
 }
-

@@ -26,7 +26,7 @@ async function getCompletionStats(userId: string) {
   const statuses = new Map(data?.map((r) => [r.node_id, r.status]) ?? []);
 
   const count = (nodes: typeof RW_NODES) => ({
-    total:    nodes.length,
+    total: nodes.length,
     mastered: nodes.filter((n) => statuses.get(n.id) === "mastered").length,
     available: nodes.filter(
       (n) => statuses.get(n.id) === "available" || statuses.get(n.id) === "in_progress"
@@ -35,7 +35,7 @@ async function getCompletionStats(userId: string) {
 
   return {
     reading: count(RW_NODES),
-    math:    count(MATH_NODES),
+    math: count(MATH_NODES),
   };
 }
 

@@ -19,24 +19,22 @@ import { uploadToR2, safeFilename } from "@/lib/storage/r2";
 
 export const runtime = "nodejs";
 
-const MAX_BYTES = 10 * 1024 * 1024;  // 10 MB per pasted image
-const ALLOWED_TYPES = new Set([
-  "image/png", "image/jpeg", "image/gif", "image/webp",
-]);
+const MAX_BYTES = 10 * 1024 * 1024; // 10 MB per pasted image
+const ALLOWED_TYPES = new Set(["image/png", "image/jpeg", "image/gif", "image/webp"]);
 
-async function putToR2(
-  key: string,
-  body: ArrayBuffer,
-  contentType: string,
-): Promise<void> {
+async function putToR2(key: string, body: ArrayBuffer, contentType: string): Promise<void> {
   // Prefer the native R2 binding (no fs.readFile path); fall back
   // to the S3 SDK helper for `next dev` or non-CF runtimes.
   try {
     const ctx = await getCloudflareContext({ async: true });
     type R2BucketLike = {
-      put: (key: string, value: ArrayBuffer, opts?: {
-        httpMetadata?: { contentType?: string; cacheControl?: string };
-      }) => Promise<unknown>;
+      put: (
+        key: string,
+        value: ArrayBuffer,
+        opts?: {
+          httpMetadata?: { contentType?: string; cacheControl?: string };
+        }
+      ) => Promise<unknown>;
     };
     const env = ctx?.env as { R2?: R2BucketLike } | undefined;
     if (env?.R2) {
@@ -77,7 +75,7 @@ export async function POST(request: Request) {
   } catch (err) {
     return NextResponse.json(
       { error: `Invalid multipart body: ${err instanceof Error ? err.message : "unknown"}` },
-      { status: 400 },
+      { status: 400 }
     );
   }
 
@@ -93,14 +91,14 @@ export async function POST(request: Request) {
   if (file.size > MAX_BYTES) {
     return NextResponse.json(
       { error: `Image exceeds the ${MAX_BYTES / 1024 / 1024} MB limit.` },
-      { status: 413 },
+      { status: 413 }
     );
   }
   const contentType = file.type || "image/png";
   if (!ALLOWED_TYPES.has(contentType)) {
     return NextResponse.json(
       { error: `Unsupported content type "${contentType}". Use PNG, JPEG, GIF, or WebP.` },
-      { status: 415 },
+      { status: 415 }
     );
   }
 
@@ -115,7 +113,7 @@ export async function POST(request: Request) {
   } catch (err) {
     return NextResponse.json(
       { error: `R2 upload failed: ${err instanceof Error ? err.message : "unknown"}` },
-      { status: 502 },
+      { status: 502 }
     );
   }
 

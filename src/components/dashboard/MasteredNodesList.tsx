@@ -24,11 +24,14 @@ export default function MasteredNodesList({ mastered }: Props) {
   const [subject, setSubject] = useState<SubjectFilter>("all");
   const [sort, setSort] = useState<SortMode>("chronological");
 
-  const counts = useMemo(() => ({
-    all:     mastered.length,
-    reading: mastered.filter((n) => n.subject === "reading").length,
-    math:    mastered.filter((n) => n.subject === "math").length,
-  }), [mastered]);
+  const counts = useMemo(
+    () => ({
+      all: mastered.length,
+      reading: mastered.filter((n) => n.subject === "reading").length,
+      math: mastered.filter((n) => n.subject === "math").length,
+    }),
+    [mastered]
+  );
 
   const filtered = useMemo(() => {
     const list = subject === "all" ? mastered : mastered.filter((n) => n.subject === subject);
@@ -40,46 +43,46 @@ export default function MasteredNodesList({ mastered }: Props) {
 
   return (
     <DashboardLayout>
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+      <div className="mx-auto max-w-5xl space-y-6 px-4 py-8 sm:px-6">
         <Link
           href="/dashboard/student"
           className="inline-flex items-center gap-1 text-xs text-slate-500 hover:text-slate-900 dark:hover:text-white"
         >
-          <ArrowLeft className="w-3.5 h-3.5" /> Back to dashboard
+          <ArrowLeft className="h-3.5 w-3.5" /> Back to dashboard
         </Link>
 
         {/* Header */}
-        <div className="flex items-end justify-between gap-4 flex-wrap">
+        <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2 text-emerald-500 mb-1">
-              <CheckCircle className="w-5 h-5" />
+            <div className="mb-1 flex items-center gap-2 text-emerald-500">
+              <CheckCircle className="h-5 w-5" />
               <span className="text-xs font-bold uppercase tracking-widest">Mastered Nodes</span>
             </div>
-            <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tabular-nums">
+            <h1 className="text-3xl font-extrabold tabular-nums text-slate-900 dark:text-white">
               {counts.all}
-              <span className="text-base text-slate-400 font-normal ml-2">of 100 mastered</span>
+              <span className="ml-2 text-base font-normal text-slate-400">of 100 mastered</span>
             </h1>
           </div>
 
           {/* Sort control */}
-          <div className="inline-flex rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 overflow-hidden text-xs">
+          <div className="inline-flex overflow-hidden rounded-lg border border-slate-200 bg-white text-xs dark:border-slate-700 dark:bg-slate-900">
             <button
               onClick={() => setSort("chronological")}
               className={cn(
-                "px-3 py-2 font-semibold flex items-center gap-1",
+                "flex items-center gap-1 px-3 py-2 font-semibold",
                 sort === "chronological"
-                  ? "bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white"
+                  ? "bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-white"
                   : "text-slate-500 hover:text-slate-900 dark:hover:text-white"
               )}
             >
-              <ArrowUpDown className="w-3 h-3" /> Chronological
+              <ArrowUpDown className="h-3 w-3" /> Chronological
             </button>
             <button
               onClick={() => setSort("alphabetical")}
               className={cn(
-                "px-3 py-2 font-semibold border-l border-slate-200 dark:border-slate-700",
+                "border-l border-slate-200 px-3 py-2 font-semibold dark:border-slate-700",
                 sort === "alphabetical"
-                  ? "bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white"
+                  ? "bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-white"
                   : "text-slate-500 hover:text-slate-900 dark:hover:text-white"
               )}
             >
@@ -90,29 +93,39 @@ export default function MasteredNodesList({ mastered }: Props) {
 
         {/* Subject tabs */}
         <div className="flex gap-1 border-b border-slate-200 dark:border-slate-800">
-          {([
-            { id: "all",     label: "All",               count: counts.all,     color: "#64748b" },
-            { id: "reading", label: "Reading & Writing", count: counts.reading, color: SUBJECT_COLORS.reading.hex },
-            { id: "math",    label: "Math",              count: counts.math,    color: SUBJECT_COLORS.math.hex },
-          ] as const).map((t) => (
+          {(
+            [
+              { id: "all", label: "All", count: counts.all, color: "#64748b" },
+              {
+                id: "reading",
+                label: "Reading & Writing",
+                count: counts.reading,
+                color: SUBJECT_COLORS.reading.hex,
+              },
+              { id: "math", label: "Math", count: counts.math, color: SUBJECT_COLORS.math.hex },
+            ] as const
+          ).map((t) => (
             <button
               key={t.id}
               onClick={() => setSubject(t.id as SubjectFilter)}
               className={cn(
-                "px-4 pb-3 pt-2 text-sm font-semibold border-b-2 transition-colors",
-                subject === t.id ? "text-slate-900 dark:text-white" : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+                "border-b-2 px-4 pb-3 pt-2 text-sm font-semibold transition-colors",
+                subject === t.id
+                  ? "text-slate-900 dark:text-white"
+                  : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
               )}
               style={subject === t.id ? { borderColor: t.color } : { borderColor: "transparent" }}
             >
-              {t.label} <span className="text-slate-400 text-xs ml-1 tabular-nums">({t.count})</span>
+              {t.label}{" "}
+              <span className="ml-1 text-xs tabular-nums text-slate-400">({t.count})</span>
             </button>
           ))}
         </div>
 
         {/* List */}
         {filtered.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-slate-300 dark:border-slate-700 p-12 text-center">
-            <CheckCircle className="w-8 h-8 text-slate-300 dark:text-slate-700 mx-auto mb-3" />
+          <div className="rounded-xl border border-dashed border-slate-300 p-12 text-center dark:border-slate-700">
+            <CheckCircle className="mx-auto mb-3 h-8 w-8 text-slate-300 dark:text-slate-700" />
             <p className="text-sm text-slate-500">
               {subject === "all"
                 ? "No mastered nodes yet. Ace a node's quiz twice in a row to master it."
@@ -130,35 +143,45 @@ export default function MasteredNodesList({ mastered }: Props) {
                 <Link
                   key={n.id}
                   href={`/learn/${n.subject}/${n.id}`}
-                  className="flex items-center gap-4 px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
+                  className="flex items-center gap-4 rounded-xl border border-slate-200 bg-white px-4 py-3 transition-colors hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900/50 dark:hover:bg-slate-800/50"
                 >
-                  <SubjectIcon className="w-4 h-4 shrink-0" style={{ color: subjectHex }} />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">
+                  <SubjectIcon className="h-4 w-4 shrink-0" style={{ color: subjectHex }} />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold text-slate-900 dark:text-white">
                       {n.topic}
                     </p>
-                    <div className="flex items-center gap-2 flex-wrap text-[11px] text-slate-500 mt-0.5">
+                    <div className="mt-0.5 flex flex-wrap items-center gap-2 text-[11px] text-slate-500">
                       <span
-                        className="px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider text-[10px]"
-                        style={{ color: atmoHex, background: atmoHex + "15", border: `1px solid ${atmoHex}30` }}
+                        className="rounded-full px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider"
+                        style={{
+                          color: atmoHex,
+                          background: atmoHex + "15",
+                          border: `1px solid ${atmoHex}30`,
+                        }}
                       >
                         {atmo}
                       </span>
                       <span>{n.topic_cluster}</span>
                       {n.attempts > 0 && (
                         <span className="flex items-center gap-0.5">
-                          <Flame className="w-2.5 h-2.5 text-amber-400" />
+                          <Flame className="h-2.5 w-2.5 text-amber-400" />
                           {n.attempts} {n.attempts === 1 ? "attempt" : "attempts"}
                         </span>
                       )}
                     </div>
                   </div>
-                  <div className="text-right shrink-0 text-xs">
+                  <div className="shrink-0 text-right text-xs">
                     {n.best_quiz_score !== null && (
-                      <span className="font-bold tabular-nums text-emerald-500">{n.best_quiz_score}%</span>
+                      <span className="font-bold tabular-nums text-emerald-500">
+                        {n.best_quiz_score}%
+                      </span>
                     )}
-                    <p className="text-slate-400 mt-0.5">
-                      {new Date(n.mastered_at).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}
+                    <p className="mt-0.5 text-slate-400">
+                      {new Date(n.mastered_at).toLocaleDateString(undefined, {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
                     </p>
                   </div>
                 </Link>

@@ -17,10 +17,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
-import {
-  fetchSatDatesFromCollegeBoard,
-  SAT_DATES_SOURCE_URL,
-} from "@/lib/sat-dates-source";
+import { fetchSatDatesFromCollegeBoard, SAT_DATES_SOURCE_URL } from "@/lib/sat-dates-source";
 
 // Force Node runtime — we use `@supabase/supabase-js` with the
 // service role key, which needs Node APIs (edge runtime would
@@ -59,9 +56,7 @@ export async function GET(req: NextRequest) {
       imported_at: now,
     }));
 
-    const { error } = await supabase
-      .from("sat_dates")
-      .upsert(rows, { onConflict: "test_date" });
+    const { error } = await supabase.from("sat_dates").upsert(rows, { onConflict: "test_date" });
 
     if (error) {
       console.error("[sync-sat-dates] Supabase upsert error:", error);

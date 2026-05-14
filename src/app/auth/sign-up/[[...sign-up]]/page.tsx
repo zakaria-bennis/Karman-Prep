@@ -9,15 +9,13 @@ import AuthBackdrop from "@/components/shared/AuthBackdrop";
 
 export default function SignUpPage() {
   return (
-    <div className="relative min-h-screen flex flex-col items-center justify-center px-4 py-12 overflow-hidden">
+    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-4 py-12">
       <AuthBackdrop />
 
-      <Link href="/" className="mb-4 relative z-10" aria-label="Karman home">
+      <Link href="/" className="relative z-10 mb-4" aria-label="Karman home">
         <StrataLogo size={64} variant="stacked" />
       </Link>
-      <p className="text-slate-400 text-xs mb-6 relative z-10">
-        7-day free trial
-      </p>
+      <p className="relative z-10 mb-6 text-xs text-slate-400">7-day free trial</p>
 
       <SignUp routing="path" path="/auth/sign-up" signInUrl="/auth/sign-in" />
     </div>

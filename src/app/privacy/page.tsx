@@ -87,14 +87,40 @@ const SECTIONS = [
   {
     id: "third-parties",
     title: "4. Third-Party Services",
-    content: "We share minimal data with the following trusted third-party services, each bound by their own privacy policies:",
+    content:
+      "We share minimal data with the following trusted third-party services, each bound by their own privacy policies:",
     table: [
-      { service: "Clerk", purpose: "Authentication — handles sign-in, sign-up, and password security", link: "https://clerk.com/privacy" },
-      { service: "Stripe", purpose: "Payments — processes all subscription billing and payouts", link: "https://stripe.com/privacy" },
-      { service: "Supabase", purpose: "Database — stores account data, progress, and diagnostic results on encrypted servers", link: "https://supabase.com/privacy" },
-      { service: "Resend", purpose: "Email delivery — sends transactional and marketing emails", link: "https://resend.com/privacy" },
-      { service: "Sentry", purpose: "Error monitoring — captures anonymized crash reports to fix platform bugs", link: "https://sentry.io/privacy/" },
-      { service: "PostHog", purpose: "Product analytics — aggregated, non-personally-identifiable usage data", link: "https://posthog.com/privacy" },
+      {
+        service: "Clerk",
+        purpose: "Authentication — handles sign-in, sign-up, and password security",
+        link: "https://clerk.com/privacy",
+      },
+      {
+        service: "Stripe",
+        purpose: "Payments — processes all subscription billing and payouts",
+        link: "https://stripe.com/privacy",
+      },
+      {
+        service: "Supabase",
+        purpose:
+          "Database — stores account data, progress, and diagnostic results on encrypted servers",
+        link: "https://supabase.com/privacy",
+      },
+      {
+        service: "Resend",
+        purpose: "Email delivery — sends transactional and marketing emails",
+        link: "https://resend.com/privacy",
+      },
+      {
+        service: "Sentry",
+        purpose: "Error monitoring — captures anonymized crash reports to fix platform bugs",
+        link: "https://sentry.io/privacy/",
+      },
+      {
+        service: "PostHog",
+        purpose: "Product analytics — aggregated, non-personally-identifiable usage data",
+        link: "https://posthog.com/privacy",
+      },
     ],
   },
   {
@@ -148,16 +174,18 @@ export default function PrivacyPage() {
     <>
       <Navbar />
       <main className="min-h-screen bg-white dark:bg-slate-950">
-
         {/* Header */}
-        <section className="bg-gradient-to-b from-slate-50 to-white dark:from-slate-900 dark:to-slate-950 pt-20 pb-12 text-center px-4">
-          <div className="max-w-2xl mx-auto">
-            <h1 className="text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-4">
+        <section className="bg-gradient-to-b from-slate-50 to-white px-4 pb-12 pt-20 text-center dark:from-slate-900 dark:to-slate-950">
+          <div className="mx-auto max-w-2xl">
+            <h1 className="mb-4 text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white">
               Privacy Policy
             </h1>
-            <p className="text-slate-500 dark:text-slate-400 text-base">
+            <p className="text-base text-slate-500 dark:text-slate-400">
               Effective April 2025 · Questions:{" "}
-              <a href="mailto:privacy@karmanprep.com" className="text-blue-600 dark:text-blue-400 underline">
+              <a
+                href="mailto:privacy@karmanprep.com"
+                className="text-blue-600 underline dark:text-blue-400"
+              >
                 privacy@karmanprep.com
               </a>
             </p>
@@ -165,18 +193,19 @@ export default function PrivacyPage() {
         </section>
 
         {/* Table of contents + content */}
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-10 flex flex-col lg:flex-row gap-10">
-
+        <div className="mx-auto flex max-w-3xl flex-col gap-10 px-4 py-10 sm:px-6 lg:flex-row">
           {/* TOC sidebar */}
-          <aside className="hidden lg:block w-52 shrink-0">
+          <aside className="hidden w-52 shrink-0 lg:block">
             <div className="sticky top-24">
-              <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3">Contents</p>
+              <p className="mb-3 text-xs font-bold uppercase tracking-widest text-slate-400">
+                Contents
+              </p>
               <nav className="space-y-1">
                 {SECTIONS.map((s) => (
                   <a
                     key={s.id}
                     href={`#${s.id}`}
-                    className="block text-sm text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors py-0.5"
+                    className="block py-0.5 text-sm text-slate-500 transition-colors hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400"
                   >
                     {s.title}
                   </a>
@@ -189,12 +218,12 @@ export default function PrivacyPage() {
           <div className="flex-1 space-y-10">
             {SECTIONS.map((section) => (
               <section key={section.id} id={section.id} className="scroll-mt-24">
-                <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-3">
+                <h2 className="mb-3 text-lg font-bold text-slate-900 dark:text-white">
                   {section.title}
                 </h2>
 
                 {section.content && (
-                  <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed mb-3">
+                  <p className="mb-3 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
                     {section.content}
                   </p>
                 )}
@@ -204,11 +233,16 @@ export default function PrivacyPage() {
                   <div className="space-y-5">
                     {section.subsections.map((sub) => (
                       <div key={sub.subtitle}>
-                        <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">{sub.subtitle}</p>
+                        <p className="mb-2 text-sm font-semibold text-slate-700 dark:text-slate-200">
+                          {sub.subtitle}
+                        </p>
                         <ul className="space-y-1.5">
                           {sub.items.map((item, i) => (
-                            <li key={i} className="flex items-start gap-2.5 text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-                              <span className="mt-2 w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
+                            <li
+                              key={i}
+                              className="flex items-start gap-2.5 text-sm leading-relaxed text-slate-600 dark:text-slate-300"
+                            >
+                              <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-blue-500" />
                               {item}
                             </li>
                           ))}
@@ -222,8 +256,11 @@ export default function PrivacyPage() {
                 {"list" in section && section.list && (
                   <ul className="space-y-2.5">
                     {section.list.map((item, i) => (
-                      <li key={i} className="flex items-start gap-2.5 text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-                        <span className="mt-2 w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
+                      <li
+                        key={i}
+                        className="flex items-start gap-2.5 text-sm leading-relaxed text-slate-600 dark:text-slate-300"
+                      >
+                        <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-blue-500" />
                         {item}
                       </li>
                     ))}
@@ -233,22 +270,36 @@ export default function PrivacyPage() {
                 {/* Third-party table */}
                 {"table" in section && section.table && (
                   <div className="overflow-x-auto">
-                    <table className="w-full text-sm border-collapse">
+                    <table className="w-full border-collapse text-sm">
                       <thead>
                         <tr className="border-b border-slate-200 dark:border-slate-700">
-                          <th className="text-left py-2 pr-4 font-semibold text-slate-700 dark:text-slate-200 w-28">Service</th>
-                          <th className="text-left py-2 font-semibold text-slate-700 dark:text-slate-200">Purpose</th>
+                          <th className="w-28 py-2 pr-4 text-left font-semibold text-slate-700 dark:text-slate-200">
+                            Service
+                          </th>
+                          <th className="py-2 text-left font-semibold text-slate-700 dark:text-slate-200">
+                            Purpose
+                          </th>
                         </tr>
                       </thead>
                       <tbody>
                         {section.table.map((row) => (
-                          <tr key={row.service} className="border-b border-slate-100 dark:border-slate-800">
-                            <td className="py-3 pr-4 font-medium text-slate-900 dark:text-white align-top">
-                              <a href={row.link} target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">
+                          <tr
+                            key={row.service}
+                            className="border-b border-slate-100 dark:border-slate-800"
+                          >
+                            <td className="py-3 pr-4 align-top font-medium text-slate-900 dark:text-white">
+                              <a
+                                href={row.link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:underline dark:text-blue-400"
+                              >
                                 {row.service}
                               </a>
                             </td>
-                            <td className="py-3 text-slate-600 dark:text-slate-300 leading-relaxed">{row.purpose}</td>
+                            <td className="py-3 leading-relaxed text-slate-600 dark:text-slate-300">
+                              {row.purpose}
+                            </td>
                           </tr>
                         ))}
                       </tbody>
@@ -258,10 +309,16 @@ export default function PrivacyPage() {
               </section>
             ))}
 
-            <div className="border-t border-slate-200 dark:border-slate-700 pt-8 flex flex-wrap gap-4 text-sm">
-              <Link href="/terms" className="text-blue-600 dark:text-blue-400 hover:underline">Terms of Service</Link>
-              <Link href="/refunds" className="text-blue-600 dark:text-blue-400 hover:underline">Refund Policy</Link>
-              <Link href="/guarantee" className="text-blue-600 dark:text-blue-400 hover:underline">Score Guarantee</Link>
+            <div className="flex flex-wrap gap-4 border-t border-slate-200 pt-8 text-sm dark:border-slate-700">
+              <Link href="/terms" className="text-blue-600 hover:underline dark:text-blue-400">
+                Terms of Service
+              </Link>
+              <Link href="/refunds" className="text-blue-600 hover:underline dark:text-blue-400">
+                Refund Policy
+              </Link>
+              <Link href="/guarantee" className="text-blue-600 hover:underline dark:text-blue-400">
+                Score Guarantee
+              </Link>
             </div>
           </div>
         </div>

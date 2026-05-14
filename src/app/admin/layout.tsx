@@ -6,7 +6,16 @@ import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { UserButton } from "@clerk/nextjs";
-import { Settings, BookOpen, Users, UserCog, DollarSign, ClipboardCheck, Upload, Eye } from "lucide-react";
+import {
+  Settings,
+  BookOpen,
+  Users,
+  UserCog,
+  DollarSign,
+  ClipboardCheck,
+  Upload,
+  Eye,
+} from "lucide-react";
 import { fetchUserRole } from "@/lib/supabase/queries/admin";
 import { StrataLogo } from "@/components/shared/StrataLogo";
 import ImpersonationMenu from "@/components/admin/ImpersonationMenu";
@@ -19,14 +28,14 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   if (role !== "admin") redirect("/dashboard/student");
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
-      <header className="h-14 shrink-0 flex items-center gap-4 px-5 border-b border-slate-800 bg-slate-900/70 backdrop-blur-sm sticky top-0 z-20">
+    <div className="flex min-h-screen flex-col bg-slate-950 text-slate-100">
+      <header className="sticky top-0 z-20 flex h-14 shrink-0 items-center gap-4 border-b border-slate-800 bg-slate-900/70 px-5 backdrop-blur-sm">
         <Link href="/" aria-label="Karman home" className="flex items-center">
           <StrataLogo size={24} />
         </Link>
         <span className="text-slate-700">/</span>
         <div className="flex items-center gap-1">
-          <Settings className="w-4 h-4 text-slate-400" />
+          <Settings className="h-4 w-4 text-slate-400" />
           <span className="text-sm font-bold text-white">Admin Console</span>
         </div>
         <nav className="ml-6 flex items-center gap-1 text-sm">
@@ -43,7 +52,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         </nav>
         <div className="ml-auto flex items-center gap-4">
           <ImpersonationMenu />
-          <span className="text-[11px] font-semibold text-amber-300/80 bg-amber-400/10 border border-amber-400/20 px-2 py-0.5 rounded-full">
+          <span className="rounded-full border border-amber-400/20 bg-amber-400/10 px-2 py-0.5 text-[11px] font-semibold text-amber-300/80">
             Internal tool
           </span>
           <UserButton appearance={{ elements: { userButtonAvatarBox: "w-7 h-7" } }} />
@@ -54,13 +63,21 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   );
 }
 
-function AdminNavLink({ href, icon: Icon, label }: { href: string; icon: React.ComponentType<{ className?: string }>; label: string }) {
+function AdminNavLink({
+  href,
+  icon: Icon,
+  label,
+}: {
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+}) {
   return (
     <Link
       href={href}
-      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
+      className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-slate-400 transition-colors hover:bg-white/5 hover:text-white"
     >
-      <Icon className="w-3.5 h-3.5" />
+      <Icon className="h-3.5 w-3.5" />
       {label}
     </Link>
   );

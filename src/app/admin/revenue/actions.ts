@@ -17,10 +17,10 @@ import { createAdminClient } from "@/lib/supabase/server";
 import { fetchUserRole } from "@/lib/supabase/queries/admin";
 
 const TIER_PRICES: Record<string, { price: number; model: "subscription" | "per_session" }> = {
-  group:       { price: 40,  model: "subscription" },
-  small_group: { price: 60,  model: "per_session"  },
-  private:     { price: 135, model: "per_session"  },
-  elite:       { price: 800, model: "subscription" },
+  group: { price: 40, model: "subscription" },
+  small_group: { price: 60, model: "per_session" },
+  private: { price: 135, model: "per_session" },
+  elite: { price: 800, model: "subscription" },
 };
 const ESTIMATED_SESSIONS_PER_MONTH = 4;
 

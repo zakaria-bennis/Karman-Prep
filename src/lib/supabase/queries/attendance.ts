@@ -174,9 +174,7 @@ export async function recordParticipantLeave(args: {
   const unmatchedJoinTime = existing.join_events[existing.join_events.length - 1];
   const intervalSeconds = Math.max(
     0,
-    Math.floor(
-      (new Date(args.leaveTime).getTime() - new Date(unmatchedJoinTime).getTime()) / 1000
-    )
+    Math.floor((new Date(args.leaveTime).getTime() - new Date(unmatchedJoinTime).getTime()) / 1000)
   );
 
   const { error } = await supabase

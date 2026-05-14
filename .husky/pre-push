@@ -1,0 +1,4 @@
+# Pre-push: full typecheck before pushing.
+# Slower than the per-file lint-staged hook (~30 sec) but catches
+# cross-file type breakage before it lands in CI.
+npx tsc --noEmit

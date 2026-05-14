@@ -23,11 +23,7 @@ import type {
   QuizDifficultyLevel,
   QuizQuestionWithChoices,
 } from "@/types/quiz";
-import {
-  getConfidenceBand,
-  stepDifficultyLevel,
-  levelToLegacyDifficulty,
-} from "@/types/quiz";
+import { getConfidenceBand, stepDifficultyLevel, levelToLegacyDifficulty } from "@/types/quiz";
 import {
   actionStartQuiz,
   actionRecordResponse,
@@ -54,7 +50,7 @@ export interface PerQuestionRecord {
   /** The raw answer a student gave — letter A/B/C/D for MC, numeric string for numeric_entry. */
   studentAnswer: string | null;
   isCorrect: boolean | null;
-  difficulty: QuizDifficulty;         // legacy
+  difficulty: QuizDifficulty; // legacy
   difficultyLevel: QuizDifficultyLevel;
   responseTimeSeconds: number;
   flagged: boolean;
@@ -73,7 +69,7 @@ export interface QuizState {
 
   currentIndex: number;
   currentLevel: QuizDifficultyLevel;
-  selectedAnswer: string | null;        // letter or numeric string
+  selectedAnswer: string | null; // letter or numeric string
   questionStartedAt: number;
 
   records: PerQuestionRecord[];
@@ -244,7 +240,11 @@ function reducer(state: QuizState, action: Action): QuizState {
       return { ...state, phase: "video_prompt" };
 
     case "DISMISS_VIDEO_PROMPT":
-      return { ...state, phase: state.selectedAnswer ? "submitted_wrong" : "answering", consecutiveWrong: 0 };
+      return {
+        ...state,
+        phase: state.selectedAnswer ? "submitted_wrong" : "answering",
+        consecutiveWrong: 0,
+      };
 
     case "FLAG_CURRENT": {
       const records = [...state.records];
@@ -329,9 +329,7 @@ export function selectNextQuestion(
     for (const sign of offset === 0 ? [0] : [-1, 1]) {
       const level = targetLevel + offset * sign;
       if (level < 1 || level > 7) continue;
-      const pool = all.filter(
-        (q) => (q.difficulty_level ?? 1) === level && !used.has(q.id)
-      );
+      const pool = all.filter((q) => (q.difficulty_level ?? 1) === level && !used.has(q.id));
       if (pool.length > 0) {
         return pool.sort((a, b) => a.display_order - b.display_order)[0];
       }
@@ -339,7 +337,9 @@ export function selectNextQuestion(
   }
   // Absolute last resort — return any unused question
   const anyUnused = all.filter((q) => !used.has(q.id));
-  return anyUnused.length > 0 ? anyUnused.sort((a, b) => a.display_order - b.display_order)[0] : null;
+  return anyUnused.length > 0
+    ? anyUnused.sort((a, b) => a.display_order - b.display_order)[0]
+    : null;
 }
 
 // ── Context shape ────────────────────────────────────────────
@@ -471,20 +471,23 @@ export function QuizProvider({ children }: { children: ReactNode }) {
     dispatch({ type: "DISMISS_VIDEO_PROMPT" });
   }, []);
 
-  const flagCurrent = useCallback(async (note?: string) => {
-    if (!state.selectedQuestions[state.currentIndex] || !state.nodeId) return;
-    const q = state.selectedQuestions[state.currentIndex];
-    dispatch({ type: "FLAG_CURRENT", note });
-    try {
-      await actionFlagQuestion({
-        question_id: q.id,
-        node_id: state.nodeId,
-        flag_note: note ?? null,
-      });
-    } catch (err) {
-      console.error(err);
-    }
-  }, [state]);
+  const flagCurrent = useCallback(
+    async (note?: string) => {
+      if (!state.selectedQuestions[state.currentIndex] || !state.nodeId) return;
+      const q = state.selectedQuestions[state.currentIndex];
+      dispatch({ type: "FLAG_CURRENT", note });
+      try {
+        await actionFlagQuestion({
+          question_id: q.id,
+          node_id: state.nodeId,
+          flag_note: note ?? null,
+        });
+      } catch (err) {
+        console.error(err);
+      }
+    },
+    [state]
+  );
 
   const toggleDesmos = useCallback(() => dispatch({ type: "TOGGLE_DESMOS" }), []);
   const toggleScratchpad = useCallback(() => dispatch({ type: "TOGGLE_SCRATCHPAD" }), []);
@@ -519,7 +522,19 @@ export function QuizProvider({ children }: { children: ReactNode }) {
       reset,
       retakeQuiz,
     }),
-    [state, startQuiz, selectAnswer, submitAnswer, nextQuestion, dismissVideoPrompt, flagCurrent, toggleDesmos, toggleScratchpad, reset, retakeQuiz]
+    [
+      state,
+      startQuiz,
+      selectAnswer,
+      submitAnswer,
+      nextQuestion,
+      dismissVideoPrompt,
+      flagCurrent,
+      toggleDesmos,
+      toggleScratchpad,
+      reset,
+      retakeQuiz,
+    ]
   );
 
   return <QuizContext.Provider value={value}>{children}</QuizContext.Provider>;
