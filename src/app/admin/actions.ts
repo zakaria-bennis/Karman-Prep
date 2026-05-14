@@ -3,6 +3,12 @@
 // ============================================================
 // Server Actions — Admin curriculum UI
 // Role-gated: admin only.
+//
+// Every action runs its input through a Zod schema before doing
+// any DB writes. Server actions are typed at compile time, but a
+// buggy client or future change that bypasses TS narrowing can
+// post garbage at runtime — these guards keep it from reaching
+// the question bank or curriculum content tables.
 // ============================================================
 
 import { auth } from "@clerk/nextjs/server";
@@ -28,6 +34,24 @@ import {
   deleteVideo,
 } from "@/lib/supabase/queries/content";
 import type { QuizDifficulty, QuizQuestion } from "@/types/quiz";
+import {
+  acceptFlaggedQuestionInputSchema,
+  bulkImportInputSchema,
+  deleteQuestionInputSchema,
+  deleteVideoInputSchema,
+  newQuestionInputSchema,
+  rejectFlaggedQuestionInputSchema,
+  removeQuestionImageInputSchema,
+  reorderQuestionsInputSchema,
+  resolveFlaggedQuestionInputSchema,
+  saveTextbookInputSchema,
+  saveVideoURLInputSchema,
+  updateQuestionDifficultyInputSchema,
+  updateQuestionDifficultyLevelInputSchema,
+  updateQuestionInputSchema,
+  uploadQuestionImageArgsSchema,
+  uploadVideoArgsSchema,
+} from "./schemas";
 
 async function guardAdmin(): Promise<string> {
   const { userId } = await auth();
@@ -38,9 +62,10 @@ async function guardAdmin(): Promise<string> {
 }
 
 export async function actionAddQuestion(input: NewQuestionInput) {
+  const v = newQuestionInputSchema.parse(input);
   await guardAdmin();
-  const { question } = await insertQuestion(input);
-  if (input.node_id) revalidatePath(`/admin/curriculum/${input.node_id}`);
+  const { question } = await insertQuestion(v as NewQuestionInput);
+  if (v.node_id) revalidatePath(`/admin/curriculum/${v.node_id}`);
   return question;
 }
 
@@ -49,6 +74,7 @@ export async function actionUpdateQuestionDifficulty(
   difficulty: QuizDifficulty,
   nodeId: string
 ) {
+  updateQuestionDifficultyInputSchema.parse({ questionId, difficulty, nodeId });
   await guardAdmin();
   await updateQuestionDifficulty(questionId, difficulty);
   revalidatePath(`/admin/curriculum/${nodeId}`);
@@ -58,6 +84,7 @@ export async function actionUpdateQuestionDifficultyLevel(
   questionId: string,
   level: 1 | 2 | 3 | 4 | 5 | 6 | 7
 ) {
+  updateQuestionDifficultyLevelInputSchema.parse({ questionId, level });
   await guardAdmin();
   await updateQuestionDifficultyLevel(questionId, level);
 }
@@ -79,6 +106,7 @@ export async function actionUpdateQuestion(
   >,
   nodeId: string
 ) {
+  updateQuestionInputSchema.parse({ questionId, patch, nodeId });
   await guardAdmin();
   await updateQuestion(questionId, patch);
   revalidatePath(`/admin/curriculum/${nodeId}`);
@@ -87,6 +115,7 @@ export async function actionUpdateQuestion(
 // ── Content (textbook + video) actions ────────────────────
 
 export async function actionSaveTextbook(nodeId: string, textbook: string) {
+  saveTextbookInputSchema.parse({ nodeId, textbook });
   const userId = await guardAdmin();
   await upsertTextbook(nodeId, textbook, userId);
   revalidatePath(`/admin/curriculum/${nodeId}`);
@@ -97,6 +126,7 @@ export async function actionSaveVideoURL(
   videoUrl: string | null,
   durationSeconds: number | null
 ) {
+  saveVideoURLInputSchema.parse({ nodeId, videoUrl, durationSeconds });
   const userId = await guardAdmin();
   await upsertVideoURL(nodeId, videoUrl, durationSeconds, userId);
   revalidatePath(`/admin/curriculum/${nodeId}`);
@@ -106,6 +136,7 @@ export async function actionUploadVideo(
   nodeId: string,
   formData: FormData
 ): Promise<{ publicUrl: string }> {
+  uploadVideoArgsSchema.parse({ nodeId });
   const userId = await guardAdmin();
   const file = formData.get("video") as File | null;
   if (!file) throw new Error("No video file in form data");
@@ -123,18 +154,21 @@ export async function actionUploadVideo(
 }
 
 export async function actionDeleteVideo(nodeId: string, storagePath: string | null) {
+  deleteVideoInputSchema.parse({ nodeId, storagePath });
   const userId = await guardAdmin();
   await deleteVideo(nodeId, storagePath, userId);
   revalidatePath(`/admin/curriculum/${nodeId}`);
 }
 
 export async function actionReorderQuestions(orderedIds: string[], nodeId: string) {
+  reorderQuestionsInputSchema.parse({ orderedIds, nodeId });
   await guardAdmin();
   await reorderQuestions(orderedIds);
   revalidatePath(`/admin/curriculum/${nodeId}`);
 }
 
 export async function actionDeleteQuestion(questionId: string, nodeId: string) {
+  deleteQuestionInputSchema.parse({ questionId, nodeId });
   await guardAdmin();
   await deleteQuestion(questionId);
   revalidatePath(`/admin/curriculum/${nodeId}`);
@@ -146,6 +180,7 @@ export async function actionUploadQuestionImage(
   formData: FormData,
   alt: string | null
 ): Promise<{ publicUrl: string }> {
+  uploadQuestionImageArgsSchema.parse({ questionId, nodeId, alt });
   await guardAdmin();
   const file = formData.get("image") as File | null;
   if (!file) throw new Error("No image file in form data");
@@ -166,12 +201,14 @@ export async function actionRemoveQuestionImage(
   nodeId: string,
   storagePath: string | null
 ) {
+  removeQuestionImageInputSchema.parse({ questionId, nodeId, storagePath });
   await guardAdmin();
   await removeQuestionImage(questionId, storagePath);
   revalidatePath(`/admin/curriculum/${nodeId}`);
 }
 
 export async function actionResolveFlaggedQuestion(flagId: string) {
+  resolveFlaggedQuestionInputSchema.parse({ flagId });
   const userId = await guardAdmin();
   await resolveFlaggedQuestion(flagId, userId);
   revalidatePath(`/admin/curriculum`);
@@ -201,6 +238,7 @@ export async function actionBulkImport(
   subject: "reading" | "math" | null,
   rows: BulkImportRow[]
 ): Promise<BulkImportResult> {
+  bulkImportInputSchema.parse({ nodeId, subject, rows });
   await guardAdmin();
   const result = await bulkImportRows(nodeId, subject, rows);
   if (nodeId) revalidatePath(`/admin/curriculum/${nodeId}`);
@@ -214,6 +252,7 @@ export async function actionAcceptFlaggedQuestion(
   questionId: string,
   opts: { nodeId?: string | null } = {}
 ): Promise<void> {
+  acceptFlaggedQuestionInputSchema.parse({ questionId, opts });
   await guardAdmin();
   await acceptFlaggedQuestion(questionId, opts);
   revalidatePath("/admin/questions/review");
@@ -221,6 +260,7 @@ export async function actionAcceptFlaggedQuestion(
 }
 
 export async function actionRejectFlaggedQuestion(questionId: string): Promise<void> {
+  rejectFlaggedQuestionInputSchema.parse({ questionId });
   await guardAdmin();
   await deleteQuestion(questionId);
   revalidatePath("/admin/questions/review");
