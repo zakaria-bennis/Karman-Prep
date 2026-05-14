@@ -51,7 +51,7 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: npm
-      - run: npm ci
+      - run: npm install --no-audit --no-fund
       - run: npx tsc --noEmit
 
   lint:
@@ -63,7 +63,7 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: npm
-      - run: npm ci
+      - run: npm install --no-audit --no-fund
       - run: npm run lint
 
   format:
@@ -75,15 +75,27 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: npm
-      - run: npm ci
+      - run: npm install --no-audit --no-fund
       - run: npm run format:check
+
+  test:
+    name: Unit tests (Vitest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm install --no-audit --no-fund
+      - run: npm test
 
   build:
     name: Cloudflare build
     runs-on: ubuntu-latest
     # Build is the heaviest check; only run after typecheck + lint pass
     # to avoid wasting compute on PRs that fail earlier.
-    needs: [typecheck, lint, format]
+    needs: [typecheck, lint, format, test]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -101,5 +113,5 @@ jobs:
           restore-keys: |
             nextjs-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-
             nextjs-${{ runner.os }}-
-      - run: npm ci
+      - run: npm install --no-audit --no-fund
       - run: npm run cf:build
