@@ -1,3 +1,5 @@
+import { withSentryConfig } from "@sentry/nextjs";
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Cloudflare Workers (via OpenNext) needs the Node.js runtime
@@ -39,4 +41,16 @@ if (process.env.NODE_ENV === "development") {
     .catch(() => {});
 }
 
-export default nextConfig;
+// Wrap with Sentry to enable runtime error capture + source-map upload.
+// Source-map upload requires SENTRY_AUTH_TOKEN — if absent (e.g. local dev,
+// CI without secrets), the Sentry plugin skips upload but still wires up
+// runtime error capture via the sentry.*.config.ts files + instrumentation.ts.
+export default withSentryConfig(nextConfig, {
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+  silent: !process.env.CI,
+  widenClientFileUpload: true,
+  hideSourceMaps: true,
+  // Disable telemetry to Sentry about the Sentry plugin itself
+  telemetry: false,
+});
