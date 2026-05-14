@@ -2,10 +2,24 @@
 
 Everything that's not application code lives here.
 
+## Start here (new contributors)
+
+- **[Handoff](./handoff.md)** — what Karman Prep is, who uses it, what's shipped, key product decisions
+- **[Architecture](./architecture.md)** — system map + how the pieces fit together (with Mermaid diagram)
+- **[CONTRIBUTING.md](../CONTRIBUTING.md)** _(repo root)_ — local setup, branching, PR conventions, gotchas
+
+## Architecture decisions
+
+Major technical choices and why we made them. Read these before deciding to do something differently.
+
+- **[ADR index](./adr/README.md)** — full list + when-to-write-one guide
+- [ADR 0001 — Per-session pay model](./adr/0001-per-session-tutor-pay.md)
+- [ADR 0002 — Stripe Connect Express](./adr/0002-stripe-connect-express.md)
+- [ADR 0003 — ChatGPT Custom GPT for question imports](./adr/0003-chatgpt-custom-gpt-imports.md)
+
 ## Operations & deployment
 
 - **[Deployment — Cloudflare](./deployment-cloudflare.md)** — how the app ships to Cloudflare Workers via OpenNext (build, deploy, secrets, custom domains)
-- **[Handoff](./handoff.md)** — context for anyone new picking up the codebase
 - **[Reconciliation](./reconciliation.md)** — billing / data reconciliation procedures
 - **[Bugs](./bugs.md)** — known issues + reproduction notes
 
