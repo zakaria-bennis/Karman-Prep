@@ -28,6 +28,10 @@ const nextConfig = {
       { protocol: "https", hostname: "images.karmanprep.com" },
       // Legacy Supabase Storage bucket — keep until migration is done.
       { protocol: "https", hostname: "**.supabase.co" },
+      // Clerk avatar host — mirrored into users.avatar_url via the
+      // sync-user route. Verified via prod DB: 100% of stored
+      // avatar_url hostnames are img.clerk.com.
+      { protocol: "https", hostname: "img.clerk.com" },
     ],
   },
 };

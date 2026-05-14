@@ -8,6 +8,7 @@
 // ============================================================
 
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@clerk/nextjs/server";
@@ -319,13 +320,16 @@ function Avatar({
   size?: "md" | "lg";
 }) {
   const cls = size === "lg" ? "w-14 h-14 text-base" : "w-10 h-10 text-sm";
+  const px = size === "lg" ? 56 : 40;
   if (avatarUrl) {
-    /* eslint-disable-next-line @next/next/no-img-element */
     return (
-      <img
+      <Image
         src={avatarUrl}
         alt={name}
+        width={px}
+        height={px}
         className={`${cls} rounded-full border border-slate-700 object-cover`}
+        unoptimized
       />
     );
   }

@@ -5,6 +5,7 @@
 // ============================================================
 
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
 import { Users as UsersIcon } from "lucide-react";
@@ -120,12 +121,14 @@ export default async function ParentDashboardPage() {
 
 function Avatar({ name, avatarUrl }: { name: string; avatarUrl: string | null }) {
   if (avatarUrl) {
-    /* eslint-disable-next-line @next/next/no-img-element */
     return (
-      <img
+      <Image
         src={avatarUrl}
         alt={name}
+        width={40}
+        height={40}
         className="h-10 w-10 rounded-full border border-slate-700 object-cover"
+        unoptimized
       />
     );
   }

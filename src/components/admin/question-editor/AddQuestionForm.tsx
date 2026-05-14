@@ -275,6 +275,13 @@ export function AddQuestionForm({
           )}
         </div>
         {imagePreviewUrl && (
+          // `imagePreviewUrl` is always a `blob:` URL from
+          // URL.createObjectURL — local, ephemeral, never travels
+          // to the optimizer. next/image with `unoptimized` would
+          // still need explicit width/height, but the user-uploaded
+          // file is arbitrary aspect ratio. Plain <img> with
+          // intrinsic sizing is the right tool here.
+          // eslint-disable-next-line @next/next/no-img-element
           <img
             src={imagePreviewUrl}
             alt={imageAlt || "Attached image preview"}
