@@ -16,6 +16,7 @@ import { ChevronRight, ShieldAlert } from "lucide-react";
 import {
   listFlaggedChatMessages,
   listFlaggedDirectMessages,
+  searchFlaggedMessages,
   type ChatMessageRow,
   type DirectMessageRow,
   type ModerationStatus,
@@ -28,7 +29,7 @@ export const metadata: Metadata = { title: "Admin — Moderation queue | Karman"
 const PAGE_LIMIT = 50;
 
 interface PageProps {
-  searchParams: Promise<{ tab?: string }>;
+  searchParams: Promise<{ tab?: string; q?: string }>;
 }
 
 export interface QueueItem {
@@ -42,17 +43,27 @@ export interface QueueItem {
   ai_flagged: boolean;
   rejection_message: string | null;
   created_at: string;
-  sender: { uuid: string; display_name: string; email: string };
+  sender: { uuid: string; display_name: string; email: string; warning_count: number };
   channel?: { id: string; name: string | null };
   recipient?: { uuid: string; display_name: string; email: string };
 }
 
-async function fetchQueueForTab(tab: "pending" | "history"): Promise<QueueItem[]> {
+async function fetchQueueForTab(tab: "pending" | "history", q?: string): Promise<QueueItem[]> {
   const statuses: ModerationStatus[] = tab === "pending" ? ["flagged"] : ["rejected"];
-  const [chatRows, dmRows] = await Promise.all([
-    listFlaggedChatMessages({ statuses, limit: PAGE_LIMIT }),
-    listFlaggedDirectMessages({ statuses, limit: PAGE_LIMIT }),
-  ]);
+  let chatRows: ChatMessageRow[];
+  let dmRows: DirectMessageRow[];
+  if (q && q.trim().length > 0) {
+    const r = await searchFlaggedMessages({ query: q.trim(), statuses, limit: PAGE_LIMIT });
+    chatRows = r.chat;
+    dmRows = r.dm;
+  } else {
+    const [c, d] = await Promise.all([
+      listFlaggedChatMessages({ statuses, limit: PAGE_LIMIT }),
+      listFlaggedDirectMessages({ statuses, limit: PAGE_LIMIT }),
+    ]);
+    chatRows = c;
+    dmRows = d;
+  }
 
   const userIds = new Set<string>();
   for (const r of chatRows) userIds.add(r.sender_id);
@@ -61,14 +72,26 @@ async function fetchQueueForTab(tab: "pending" | "history"): Promise<QueueItem[]
     userIds.add(r.recipient_id);
   }
   const channelIds = new Set<string>(chatRows.map((r) => r.channel_id));
+  const senderIds = new Set<string>();
+  for (const r of chatRows) senderIds.add(r.sender_id);
+  for (const r of dmRows) senderIds.add(r.sender_id);
 
   const supa = createAdminClient();
-  const [usersResp, channelsResp] = await Promise.all([
+  const [usersResp, channelsResp, warningsResp] = await Promise.all([
     userIds.size > 0
       ? supa.from("users").select("id, first_name, last_name, email").in("id", Array.from(userIds))
       : Promise.resolve({ data: [] }),
     channelIds.size > 0
       ? supa.from("chat_channels").select("id, display_name").in("id", Array.from(channelIds))
+      : Promise.resolve({ data: [] }),
+    // Warning counts: pull all warn-rows for the senders in this page,
+    // then count locally. One round-trip beats N count() calls.
+    senderIds.size > 0
+      ? supa
+          .from("moderation_actions")
+          .select("target_student_id")
+          .eq("action_type", "warn")
+          .in("target_student_id", Array.from(senderIds))
       : Promise.resolve({ data: [] }),
   ]);
 
@@ -79,16 +102,25 @@ async function fetchQueueForTab(tab: "pending" | "history"): Promise<QueueItem[]
     email: string;
   };
   type ChannelMini = { id: string; display_name: string | null };
+  type WarnRow = { target_student_id: string };
   const userById = new Map<string, UserMini>();
   for (const u of (usersResp.data ?? []) as UserMini[]) userById.set(u.id, u);
   const channelById = new Map<string, ChannelMini>();
   for (const c of (channelsResp.data ?? []) as ChannelMini[]) channelById.set(c.id, c);
+  const warningCountById = new Map<string, number>();
+  for (const w of (warningsResp.data ?? []) as WarnRow[]) {
+    warningCountById.set(w.target_student_id, (warningCountById.get(w.target_student_id) ?? 0) + 1);
+  }
 
-  function toSenderMini(uuid: string) {
+  function toSenderMini(uuid: string, includeWarnings: boolean) {
     const u = userById.get(uuid);
-    if (!u) return { uuid, display_name: "Unknown user", email: "" };
-    const name = [u.first_name, u.last_name].filter(Boolean).join(" ").trim();
-    return { uuid: u.id, display_name: name || u.email, email: u.email };
+    const base = !u
+      ? { uuid, display_name: "Unknown user", email: "" }
+      : (() => {
+          const name = [u.first_name, u.last_name].filter(Boolean).join(" ").trim();
+          return { uuid: u.id, display_name: name || u.email, email: u.email };
+        })();
+    return { ...base, warning_count: includeWarnings ? (warningCountById.get(uuid) ?? 0) : 0 };
   }
 
   const chatItems: QueueItem[] = chatRows.map((r: ChatMessageRow) => ({
@@ -102,7 +134,7 @@ async function fetchQueueForTab(tab: "pending" | "history"): Promise<QueueItem[]
     ai_flagged: r.ai_flagged,
     rejection_message: r.rejection_message,
     created_at: r.created_at,
-    sender: toSenderMini(r.sender_id),
+    sender: toSenderMini(r.sender_id, true),
     channel: { id: r.channel_id, name: channelById.get(r.channel_id)?.display_name ?? null },
   }));
   const dmItems: QueueItem[] = dmRows.map((r: DirectMessageRow) => ({
@@ -116,8 +148,8 @@ async function fetchQueueForTab(tab: "pending" | "history"): Promise<QueueItem[]
     ai_flagged: r.ai_flagged,
     rejection_message: r.rejection_message,
     created_at: r.created_at,
-    sender: toSenderMini(r.sender_id),
-    recipient: toSenderMini(r.recipient_id),
+    sender: toSenderMini(r.sender_id, true),
+    recipient: { ...toSenderMini(r.recipient_id, false) },
   }));
 
   return [...chatItems, ...dmItems]
@@ -128,13 +160,27 @@ async function fetchQueueForTab(tab: "pending" | "history"): Promise<QueueItem[]
 export default async function ModerationQueuePage({ searchParams }: PageProps) {
   const params = await searchParams;
   const tab: "pending" | "history" = params.tab === "history" ? "history" : "pending";
+  const q = params.q?.trim() || undefined;
 
-  // Fetch both tabs' counts in parallel for the tab badges.
-  const [items, pendingForCount] = await Promise.all([
-    fetchQueueForTab(tab),
-    tab === "pending" ? Promise.resolve(null) : fetchQueueForTab("pending"),
-  ]);
-  const pendingCount = pendingForCount ? pendingForCount.length : items.length;
+  // Fetch the current tab. The "pending" tab count for the badge
+  // is the visible items count when on pending; otherwise issue a
+  // small head-count query.
+  const items = await fetchQueueForTab(tab, q);
+  let pendingCount = items.length;
+  if (tab === "history") {
+    const supa = createAdminClient();
+    const [chatCount, dmCount] = await Promise.all([
+      supa
+        .from("chat_messages")
+        .select("id", { count: "exact", head: true })
+        .eq("moderation_status", "flagged"),
+      supa
+        .from("direct_messages")
+        .select("id", { count: "exact", head: true })
+        .eq("moderation_status", "flagged"),
+    ]);
+    pendingCount = (chatCount.count ?? 0) + (dmCount.count ?? 0);
+  }
 
   return (
     <div className="mx-auto max-w-6xl px-5 py-8">
@@ -163,7 +209,7 @@ export default async function ModerationQueuePage({ searchParams }: PageProps) {
         </TabLink>
       </div>
 
-      <ModerationQueueClient initialItems={items} tab={tab} />
+      <ModerationQueueClient initialItems={items} tab={tab} initialQuery={q ?? ""} />
     </div>
   );
 }

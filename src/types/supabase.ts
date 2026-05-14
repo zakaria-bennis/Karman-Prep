@@ -1085,6 +1085,7 @@ export type Database = {
           id: string;
           message_id: string | null;
           reason: string | null;
+          severity: string | null;
           target_student_id: string;
         };
         Insert: {
@@ -1097,6 +1098,7 @@ export type Database = {
           id?: string;
           message_id?: string | null;
           reason?: string | null;
+          severity?: string | null;
           target_student_id: string;
         };
         Update: {
@@ -1109,6 +1111,7 @@ export type Database = {
           id?: string;
           message_id?: string | null;
           reason?: string | null;
+          severity?: string | null;
           target_student_id?: string;
         };
         Relationships: [

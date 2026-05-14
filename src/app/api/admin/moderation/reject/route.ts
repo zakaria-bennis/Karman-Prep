@@ -17,6 +17,7 @@ import { getUserUuidByClerkId } from "@/lib/supabase/queries/bookings";
 import {
   findChatMessageById,
   findDirectMessageById,
+  recordModerationAction,
   rejectChatMessage,
   rejectDirectMessage,
 } from "@/lib/supabase/queries/chat";
@@ -53,6 +54,14 @@ export async function POST(req: NextRequest) {
       );
     }
     const updated = await rejectChatMessage({ messageId: row.id, adminUuid, rejectionMessage });
+    await recordModerationAction({
+      adminUuid,
+      targetStudentUuid: row.sender_id,
+      actionType: "remove_message",
+      channelId: row.channel_id,
+      messageId: row.id,
+      reason: rejectionMessage,
+    });
     return NextResponse.json({ message: updated });
   }
 
@@ -66,5 +75,12 @@ export async function POST(req: NextRequest) {
     );
   }
   const updated = await rejectDirectMessage({ messageId: row.id, adminUuid, rejectionMessage });
+  await recordModerationAction({
+    adminUuid,
+    targetStudentUuid: row.sender_id,
+    actionType: "remove_message",
+    dmId: row.id,
+    reason: rejectionMessage,
+  });
   return NextResponse.json({ message: updated });
 }
