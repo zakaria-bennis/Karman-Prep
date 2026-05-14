@@ -47,21 +47,6 @@ interface Props {
 const LETTERS: AnswerLetter[] = ["A", "B", "C", "D"];
 const DIFFICULTIES: QuizDifficulty[] = ["foundational", "intermediate", "advanced", "mastery"];
 
-// Dark-mode difficulty pill colors
-const DIFF_PILL: Record<QuizDifficulty, string> = {
-  foundational: "bg-emerald-500/15 text-emerald-300 border-emerald-500/30",
-  intermediate: "bg-amber-500/15 text-amber-300 border-amber-500/30",
-  advanced: "bg-orange-500/15 text-orange-300 border-orange-500/30",
-  mastery: "bg-rose-500/15 text-rose-300 border-rose-500/30",
-};
-
-const DIFF_LEFT_BORDER: Record<QuizDifficulty, string> = {
-  foundational: "border-l-emerald-400",
-  intermediate: "border-l-amber-400",
-  advanced: "border-l-orange-400",
-  mastery: "border-l-rose-400",
-};
-
 type ViewMode = "list" | "tabs";
 
 export default function QuestionEditor({ nodeId, subject, topicCluster, initialQuestions }: Props) {

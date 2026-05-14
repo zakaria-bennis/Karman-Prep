@@ -88,8 +88,8 @@ export default function TutorControlsTab({ studentId, statuses }: Props) {
           Node Status Overrides
         </h2>
         <p className="mb-3 text-xs text-slate-500">
-          Changes apply immediately and silently to the student's view. All overrides are logged to
-          the audit table.
+          Changes apply immediately and silently to the student&apos;s view. All overrides are
+          logged to the audit table.
         </p>
         <div className="relative mb-3">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />

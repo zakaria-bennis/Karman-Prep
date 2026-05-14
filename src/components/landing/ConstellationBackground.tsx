@@ -72,7 +72,7 @@ export default function ConstellationBackground() {
     const ro = new ResizeObserver(resize);
     ro.observe(canvas);
 
-    function draw(ts: number) {
+    function draw(_ts: number) {
       if (!canvas || !ctx) return;
       const w = canvas.width;
       const h = canvas.height;

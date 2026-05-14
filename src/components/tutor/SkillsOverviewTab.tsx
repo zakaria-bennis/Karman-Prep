@@ -36,9 +36,8 @@ interface Props {
 type SortKey = "topic" | "tier" | "cluster" | "status" | "best" | "attempts" | "watch" | "band";
 
 export default function SkillsOverviewTab({ statuses }: Props) {
-  const statusMap = new Map(statuses.map((s) => [s.node_id, s]));
-
   const allRows: Row[] = useMemo(() => {
+    const statusMap = new Map(statuses.map((s) => [s.node_id, s]));
     return [...RW_NODES, ...MATH_NODES].map((n) => {
       const s = statusMap.get(n.id);
       return {

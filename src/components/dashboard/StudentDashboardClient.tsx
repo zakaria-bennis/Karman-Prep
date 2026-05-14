@@ -43,16 +43,7 @@ function calculateStreak(progress: Props["progress"]): number {
   return Math.min(uniqueDays.size, 30); // Cap display at 30
 }
 
-/** Returns 0-100 completion for a domain */
-function domainCompletion(progress: Props["progress"], domain: SATDomain): number {
-  const domainProgress = progress.filter((p) => p.concepts?.domain === domain);
-  if (domainProgress.length === 0) return 0;
-  const mastered = domainProgress.filter((p) => p.status === "mastered").length;
-  return Math.round((mastered / domainProgress.length) * 100);
-}
-
 export default function StudentDashboardClient({
-  user,
   progress,
   nodeStatuses,
   diagnostic,

@@ -141,30 +141,6 @@ function selectionToOffsets(
   return { start, end };
 }
 
-/** Smart placement (CONTAINER-RELATIVE) — used for the small
- *  hover tooltip + the "Highlight" floating action button. Both
- *  of those should stay inside the passage card so they read as
- *  attached to it. */
-function placePopover(
-  containerRect: DOMRect,
-  targetRect: DOMRect,
-  popoverWidth: number,
-  popoverHeight: number
-): { top: number; left: number } {
-  const margin = 8;
-  // Vertical: prefer above, fall back to below.
-  let top = targetRect.top - containerRect.top - popoverHeight - margin;
-  if (top < margin) top = targetRect.bottom - containerRect.top + margin;
-
-  // Horizontal: center over target, then clamp.
-  let left = targetRect.left - containerRect.left + targetRect.width / 2 - popoverWidth / 2;
-  const maxLeft = containerRect.width - popoverWidth - margin;
-  if (left < margin) left = margin;
-  if (left > maxLeft) left = maxLeft;
-
-  return { top, left };
-}
-
 /** Smart placement (VIEWPORT-RELATIVE) for the annotation editor.
  *  The editor is mounted at top-level via `position: fixed` so
  *  it can't get clipped by the scrollable passage card. We also

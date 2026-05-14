@@ -122,7 +122,6 @@ export default function StatusDraftClient({ data }: { data: StatusDraftPageData 
 
   const allFieldsFilled = FIELDS.every((f) => draft[f.key]?.trim().length);
   const sessionDateLabel = formatSessionDate(data.sessionDateIso);
-  const sessionEndLabel = formatSessionEnd(data.sessionDateIso, data.durationMinutes);
   const signature = data.tutorSignatureOverride?.trim() || `Best regards,\n${data.tutorName}`;
   const subject = `Session recap — ${data.studentName} — ${shortDate(data.sessionDateIso)}`;
   // Group sessions are now supported too — this gate stays at app
@@ -641,10 +640,6 @@ function formatSessionDate(iso: string): string {
     hour: "numeric",
     minute: "2-digit",
   });
-}
-function formatSessionEnd(iso: string, durationMinutes: number): string {
-  const end = new Date(new Date(iso).getTime() + durationMinutes * 60_000);
-  return end.toLocaleString("en-US", { hour: "numeric", minute: "2-digit", timeZoneName: "short" });
 }
 function shortDate(iso: string): string {
   return new Date(iso).toLocaleDateString("en-US", {

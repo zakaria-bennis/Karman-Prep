@@ -15,7 +15,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
-import { ArrowRight, BarChart3, Sparkles, Target, AlertCircle, TrendingUp } from "lucide-react";
+import { ArrowRight, BarChart3, Sparkles, AlertCircle, TrendingUp } from "lucide-react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { createAdminClient } from "@/lib/supabase/server";
 import { DOMAIN_LABELS, type SATDomain, type DomainScores } from "@/types";

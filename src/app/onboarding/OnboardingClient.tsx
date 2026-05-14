@@ -403,10 +403,10 @@ function RoleStep({ role, onPick }: { role: Role; onPick: (r: Role) => void }) {
   return (
     <div>
       <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white">
-        Who's filling this out?
+        Who&apos;s filling this out?
       </h1>
       <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-        We'll word the rest of the questions accordingly.
+        We&apos;ll word the rest of the questions accordingly.
       </p>
       <div className="mt-6 space-y-3">
         <RoleOption
@@ -485,7 +485,8 @@ function SatStep({
         <CalendarCheck className="h-5 w-5 text-blue-400" /> {prompt}
       </h2>
       <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-        Pick the closest official Digital SAT date — or let us know if you haven't registered yet.
+        Pick the closest official Digital SAT date — or let us know if you haven&apos;t registered
+        yet.
       </p>
       <div className="mt-6 grid grid-cols-1 gap-2 sm:grid-cols-2">
         {SAT_DATES.map((d) => {

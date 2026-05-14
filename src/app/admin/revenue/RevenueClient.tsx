@@ -242,7 +242,9 @@ function MrrSparkline({ snapshots }: { snapshots: MrrSnapshot[] }) {
       <div className="py-12 text-center text-xs text-slate-500">
         Need at least 2 snapshots to draw a trend.
         <br />
-        <span className="text-slate-600">Hit "Snapshot now" to capture today's MRR.</span>
+        <span className="text-slate-600">
+          Hit &ldquo;Snapshot now&rdquo; to capture today&apos;s MRR.
+        </span>
       </div>
     );
   }
@@ -593,7 +595,7 @@ export default function RevenueClient({ data, snapshotAction }: Props) {
         </h2>
         <p className="mb-4 text-[10px] text-slate-500">
           Each row is a signup-month cohort. Cells show how many of that cohort were still active at
-          month 0 / 1 / 3 / 6 since signup. Future months show "—".
+          month 0 / 1 / 3 / 6 since signup. Future months show &ldquo;—&rdquo;.
         </p>
         {data.cohorts.length === 0 ? (
           <div className="py-8 text-center text-xs text-slate-500">No cohorts yet.</div>
@@ -728,8 +730,8 @@ export default function RevenueClient({ data, snapshotAction }: Props) {
               Numbers come from Supabase. When the customer base grows, swap the queries inside{" "}
               <span className="font-mono text-slate-400">getRevenueMetrics()</span> for{" "}
               <span className="font-mono text-slate-400">stripe.subscriptions.list()</span> grouped
-              by Stripe price id — the return shape doesn't change. Snapshots populate from the
-              "Snapshot now" button (or wire it to a Vercel Cron / pg_cron nightly).
+              by Stripe price id — the return shape doesn&apos;t change. Snapshots populate from the
+              &ldquo;Snapshot now&rdquo; button (or wire it to a Vercel Cron / pg_cron nightly).
             </p>
           </div>
         </div>

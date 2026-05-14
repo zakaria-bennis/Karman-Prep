@@ -179,7 +179,6 @@ function ConstellationMapInner({ activeSubject, readingNodes, mathNodes }: Props
 
   const allNodes: MappedNode[] = [...readingNodes, ...mathNodes];
   const activeNodes = activeSubject === "reading" ? readingNodes : mathNodes;
-  const otherNodes = activeSubject === "reading" ? mathNodes : readingNodes;
   const otherSubject: Subject = activeSubject === "reading" ? "math" : "reading";
 
   const readingEdges = getEdges("reading");

@@ -78,15 +78,15 @@ export default async function StudentChatPage() {
         {!membership?.cohort_id ? (
           <div className="rounded-xl border border-dashed border-slate-200 px-6 py-10 text-center dark:border-slate-800">
             <p className="text-sm text-slate-500 dark:text-slate-400">
-              You're not in a cohort yet. Cohort chat unlocks once you're placed (admin assigns you
-              after signup).
+              You&apos;re not in a cohort yet. Cohort chat unlocks once you&apos;re placed (admin
+              assigns you after signup).
             </p>
           </div>
         ) : !cohortChannel && !qaChannel ? (
           <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-400/20 dark:bg-amber-400/5">
             <p className="text-sm text-amber-800 dark:text-amber-200">
-              Your cohort chat hasn't been set up yet. Ask your tutor or admin to provision it from
-              the cohort detail page.
+              Your cohort chat hasn&apos;t been set up yet. Ask your tutor or admin to provision it
+              from the cohort detail page.
             </p>
           </div>
         ) : (

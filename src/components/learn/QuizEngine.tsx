@@ -11,11 +11,10 @@ import { X, Flag, Calculator, PencilLine, Check, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { MappedNode } from "./ConstellationMap";
 import { QUIZ_TOTAL_QUESTIONS, useQuiz } from "@/contexts/QuizContext";
-import type { AnswerLetter, QuizQuestionWithChoices } from "@/types/quiz";
+import type { QuizQuestionWithChoices } from "@/types/quiz";
 import { playSound } from "@/lib/sounds";
 import DesmosWindow from "./DesmosWindow";
 import Scratchpad from "./Scratchpad";
-import ExplanationPanel from "./ExplanationPanel";
 import QuizResults from "./QuizResults";
 import MathText from "./MathText";
 
@@ -25,8 +24,6 @@ interface Props {
   onClose: () => void;
   onGoToNext: (() => void) | null;
 }
-
-const LETTERS: AnswerLetter[] = ["A", "B", "C", "D"];
 
 export default function QuizEngine({ node, videoUrl, onClose, onGoToNext }: Props) {
   const {
@@ -167,11 +164,6 @@ export default function QuizEngine({ node, videoUrl, onClose, onGoToNext }: Prop
         />
       )}
 
-      {/* (The bottom-popup explanation panel was removed in favor of
-          the in-place "Show explanations" toggle inside ActiveQuizScreen.
-          Keep ExplanationPanel imported in case any other surface still
-          uses it, but don't render it from the quiz screen anymore.) */}
-
       {/* 3-consecutive-wrongs video prompt */}
       <AnimatePresence>
         {state.phase === "video_prompt" && (
@@ -234,8 +226,8 @@ export default function QuizEngine({ node, videoUrl, onClose, onGoToNext }: Prop
                 <h3 className="text-base font-bold">Flag this question</h3>
               </div>
               <p className="mb-4 text-xs text-slate-400">
-                Send it to your tutor's review queue. An optional note helps them understand what
-                went wrong.
+                Send it to your tutor&apos;s review queue. An optional note helps them understand
+                what went wrong.
               </p>
               <textarea
                 value={flagNote}
