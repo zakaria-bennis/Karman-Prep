@@ -26,7 +26,7 @@ import { fetchUserRole } from "@/lib/supabase/queries/admin";
 import {
   findChatChannelById,
   insertChatMessage,
-  isStudentInChannelCohort,
+  isStudentInCohort,
   isStudentMuted,
   isTutorOfChannel,
   type ChatMessageType,
@@ -85,24 +85,51 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "qa_answer requires parentMessageId" }, { status: 400 });
   }
 
-  const senderUuid = await getUserUuidByClerkId(userId);
+  // ─── Wave 1: independent prereqs run in parallel ─────────────
+  // senderUuid and the channel lookup don't depend on each other.
+  const [senderUuid, channel] = await Promise.all([
+    getUserUuidByClerkId(userId),
+    findChatChannelById(body.channelId),
+  ]);
   if (!senderUuid) {
     return NextResponse.json({ error: "User profile not found" }, { status: 404 });
   }
-
-  const channel = await findChatChannelById(body.channelId);
   if (!channel) {
     return NextResponse.json({ error: "Channel not found" }, { status: 404 });
   }
 
+  // ─── Wave 2: every remaining read fires in parallel ──────────
+  // Auth checks (role/member/tutor/mute), the Clerk user lookup for
+  // display name, and the moderation pipeline are all independent
+  // of each other — they just need senderUuid + channel. Doing them
+  // serially was the single biggest contributor to chat-send wall-
+  // clock latency. The mute lookup runs even for tutors/admins (who
+  // are exempt) so we don't add a second round-trip wave for the
+  // common student case; the wasted check on tutor sends is cheap.
+  //
+  // Moderation runs alongside the auth checks: if the sender turns
+  // out to be unauthorized we paid for one OpenAI call we'll discard,
+  // but the typical authorized send saves ~500-2000ms of wall-clock.
+  const isAnonymous = body.isAnonymous === true && body.messageType !== "qa_answer";
+  const [role, isMember, isTutor, muted, clerkUser, outcome] = await Promise.all([
+    fetchUserRole(userId),
+    isStudentInCohort(senderUuid, channel.cohort_id),
+    isTutorOfChannel(senderUuid, channel.id),
+    isStudentMuted(senderUuid, channel.id),
+    currentUser(),
+    moderateMessage({
+      content: body.content ?? "",
+      mediaUrls: body.mediaUrls ?? [],
+      senderId: userId,
+      channelId: channel.id,
+      messageType: body.messageType,
+    }),
+  ]);
+  const isAdmin = role === "admin";
+
   // Authority check:
   //   · cohort_message + qa_question: sender must be an active cohort member OR the cohort's tutor
   //   · qa_answer:                    only tutors (and admins) may answer
-  const role = await fetchUserRole(userId);
-  const isMember = await isStudentInChannelCohort(senderUuid, channel.id);
-  const isTutor = await isTutorOfChannel(senderUuid, channel.id);
-  const isAdmin = role === "admin";
-
   if (body.messageType === "qa_answer") {
     if (!isTutor && !isAdmin) {
       return NextResponse.json({ error: "Only tutors can post Q&A answers" }, { status: 403 });
@@ -114,33 +141,19 @@ export async function POST(req: NextRequest) {
   }
 
   // Mute check (only applies to students; tutors + admins bypass).
-  if (!isTutor && !isAdmin) {
-    const muted = await isStudentMuted(senderUuid, channel.id);
-    if (muted) {
-      return NextResponse.json(
-        { error: "You're temporarily muted in this channel." },
-        { status: 403 }
-      );
-    }
+  if (!isTutor && !isAdmin && muted) {
+    return NextResponse.json(
+      { error: "You're temporarily muted in this channel." },
+      { status: 403 }
+    );
   }
 
-  // Resolve sender's display fields for the post.
-  const clerkUser = await currentUser();
-  const isAnonymous = body.isAnonymous === true && body.messageType !== "qa_answer";
+  // Resolve sender's display name for the post.
   const displayName = formatDisplayName(
     clerkUser?.firstName ?? null,
     clerkUser?.lastName ?? null,
     isAnonymous
   );
-
-  // ─── Run the moderation pipeline ────────────────────────────
-  const outcome = await moderateMessage({
-    content: body.content ?? "",
-    mediaUrls: body.mediaUrls ?? [],
-    senderId: userId,
-    channelId: channel.id,
-    messageType: body.messageType,
-  });
 
   // ─── Rejected: persist as 'rejected' for the moderation queue ─
   if (outcome.decision === "rejected") {

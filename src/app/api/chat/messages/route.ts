@@ -20,7 +20,7 @@ import { fetchUserRole } from "@/lib/supabase/queries/admin";
 import { createAdminClient } from "@/lib/supabase/server";
 import {
   findChatChannelById,
-  isStudentInChannelCohort,
+  isStudentInCohort,
   isTutorOfChannel,
   listChatMessages,
   type ChatMessageRow,
@@ -69,15 +69,21 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Missing channelId" }, { status: 400 });
   }
 
-  const callerUuid = await getUserUuidByClerkId(userId);
+  // Wave 1: callerUuid + channel lookup are independent — fire in parallel.
+  const [callerUuid, channel] = await Promise.all([
+    getUserUuidByClerkId(userId),
+    findChatChannelById(channelId),
+  ]);
   if (!callerUuid) return NextResponse.json({ error: "User profile not found" }, { status: 404 });
-
-  const channel = await findChatChannelById(channelId);
   if (!channel) return NextResponse.json({ error: "Channel not found" }, { status: 404 });
 
-  const role = await fetchUserRole(userId);
-  const isMember = await isStudentInChannelCohort(callerUuid, channelId);
-  const isTutor = await isTutorOfChannel(callerUuid, channelId);
+  // Wave 2: role + membership + tutor check all depend only on callerUuid +
+  // channel — parallelize the three round-trips.
+  const [role, isMember, isTutor] = await Promise.all([
+    fetchUserRole(userId),
+    isStudentInCohort(callerUuid, channel.cohort_id),
+    isTutorOfChannel(callerUuid, channelId),
+  ]);
   const isAdmin = role === "admin";
   const isParent = role === "parent";
 

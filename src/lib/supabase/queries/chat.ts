@@ -107,22 +107,20 @@ export async function insertChatChannel(input: InsertChatChannelInput): Promise<
   return data as ChatChannelRow;
 }
 
-/** Is the user (UUID) an active member of the channel's cohort? */
-export async function isStudentInChannelCohort(
-  studentUuid: string,
-  channelId: string
-): Promise<boolean> {
+/** Is the user (UUID) an active member of the given cohort?
+ *
+ *  Callers in chat routes typically already have the `channel` object
+ *  (and therefore `channel.cohort_id`) from `findChatChannelById`, so
+ *  this function takes the cohort id directly instead of doing its own
+ *  channel lookup. Net effect: one DB round-trip per call (down from
+ *  two), which is real wall-clock latency on every chat send / message
+ *  fetch since this check sits on the hot path. */
+export async function isStudentInCohort(studentUuid: string, cohortId: string): Promise<boolean> {
   const supabase = createAdminClient();
-  const { data: channel } = await supabase
-    .from("chat_channels")
-    .select("cohort_id")
-    .eq("id", channelId)
-    .maybeSingle();
-  if (!channel) return false;
   const { count } = await supabase
     .from("cohort_members")
     .select("user_id", { count: "exact", head: true })
-    .eq("cohort_id", channel.cohort_id)
+    .eq("cohort_id", cohortId)
     .eq("user_id", studentUuid)
     .is("left_at", null);
   return (count ?? 0) > 0;
