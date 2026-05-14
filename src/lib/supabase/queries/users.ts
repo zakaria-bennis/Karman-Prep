@@ -101,6 +101,7 @@ export async function fetchAdminCohortsLite(): Promise<AdminCohortLite[]> {
   const { data, error } = await supabase
     .from("cohorts")
     .select("id, name, tier")
+    .is("archived_at", null)
     .order("name", { ascending: true });
   if (error) throw error;
   return (data ?? []) as AdminCohortLite[];

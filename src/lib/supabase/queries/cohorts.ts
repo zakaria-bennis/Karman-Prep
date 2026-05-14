@@ -53,6 +53,7 @@ export async function fetchCohorts(): Promise<AdminCohortRow[]> {
         `id, name, tier, sat_date, max_size, current_topic, status, created_at, ended_at,
          tutor:users!cohorts_tutor_user_id_fkey (id, first_name, last_name, email)`
       )
+      .is("archived_at", null)
       .order("sat_date", { ascending: true })
       .order("tier", { ascending: true })
       .order("name", { ascending: true }),
@@ -239,6 +240,7 @@ export async function dropFromActiveCohort(clerkId: string): Promise<string | nu
     console.error("[cohorts] dropFromActiveCohort error:", error);
     return null;
   }
+  await archiveCohortIfEmpty(cohortId);
   return cohortId;
 }
 
@@ -312,7 +314,60 @@ export async function restoreLastCohort(clerkId: string): Promise<string | null>
     console.error("[cohorts] restoreLastCohort error:", error);
     return null;
   }
+  // If this cohort was archived (because they were the last to leave),
+  // bring it back. Idempotent — no-op on already-active cohorts.
+  await unarchiveCohort(cohortId);
   return cohortId;
+}
+
+// ─────────────────────────────────────────────────────────────
+// Soft-archive on empty: silently remove cohorts from every
+// dashboard when the last active member leaves. Re-activates
+// automatically if a member rejoins (Stripe restore path).
+// ─────────────────────────────────────────────────────────────
+
+/** Sets cohorts.archived_at = now() iff the cohort has zero active
+ *  members AND isn't already archived. Idempotent. Returns true if
+ *  this call performed the archive. */
+export async function archiveCohortIfEmpty(cohortId: string): Promise<boolean> {
+  const supabase = createAdminClient();
+  const { count, error: countErr } = await supabase
+    .from("cohort_members")
+    .select("user_id", { count: "exact", head: true })
+    .eq("cohort_id", cohortId)
+    .is("left_at", null);
+  if (countErr) {
+    console.error("[cohorts] archiveCohortIfEmpty count error:", countErr);
+    return false;
+  }
+  if ((count ?? 0) > 0) return false;
+
+  const { data, error } = await supabase
+    .from("cohorts")
+    .update({ archived_at: new Date().toISOString() })
+    .eq("id", cohortId)
+    .is("archived_at", null)
+    .select("id")
+    .maybeSingle();
+  if (error) {
+    console.error("[cohorts] archiveCohortIfEmpty update error:", error);
+    return false;
+  }
+  return data !== null;
+}
+
+/** Clears archived_at on a cohort. Called when a student rejoins
+ *  a previously-archived cohort so it reappears on dashboards. */
+export async function unarchiveCohort(cohortId: string): Promise<void> {
+  const supabase = createAdminClient();
+  const { error } = await supabase
+    .from("cohorts")
+    .update({ archived_at: null })
+    .eq("id", cohortId)
+    .not("archived_at", "is", null);
+  if (error) {
+    console.error("[cohorts] unarchiveCohort error:", error);
+  }
 }
 
 // ─────────────────────────────────────────────────────────────

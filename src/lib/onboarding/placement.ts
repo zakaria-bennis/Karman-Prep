@@ -58,13 +58,16 @@ export interface PlaceInCohortResult {
 export async function placeInCohort(input: PlaceInCohortInput): Promise<PlaceInCohortResult> {
   const supabase = createAdminClient();
 
-  // Find candidate cohorts: tier + sat_date + not completed.
+  // Find candidate cohorts: tier + sat_date + not completed + not archived.
+  // Archived cohorts (empty drift) stay out of placement — let a fresh
+  // one spin up rather than reviving a dead one.
   const { data: cohorts, error: cErr } = await supabase
     .from("cohorts")
     .select("id, name, max_size, status")
     .eq("tier", input.tier)
     .eq("sat_date", input.satTestDate)
-    .neq("status", "completed");
+    .neq("status", "completed")
+    .is("archived_at", null);
   if (cErr) throw cErr;
 
   // Get current member counts per cohort in one query.

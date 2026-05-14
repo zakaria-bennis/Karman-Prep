@@ -695,6 +695,7 @@ export type Database = {
       };
       cohorts: {
         Row: {
+          archived_at: string | null;
           created_at: string;
           current_topic: string | null;
           ended_at: string | null;
@@ -707,6 +708,7 @@ export type Database = {
           tutor_user_id: string;
         };
         Insert: {
+          archived_at?: string | null;
           created_at?: string;
           current_topic?: string | null;
           ended_at?: string | null;
@@ -719,6 +721,7 @@ export type Database = {
           tutor_user_id: string;
         };
         Update: {
+          archived_at?: string | null;
           created_at?: string;
           current_topic?: string | null;
           ended_at?: string | null;
