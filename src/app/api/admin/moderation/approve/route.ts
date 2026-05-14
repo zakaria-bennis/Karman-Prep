@@ -22,6 +22,7 @@ import {
   findChatChannelById,
   findChatMessageById,
   findDirectMessageById,
+  recordModerationAction,
 } from "@/lib/supabase/queries/chat";
 import { postMessage as slackPostMessage, SlackAdapterError } from "@/lib/integrations/slack";
 import { moderationActionBodySchema } from "../schemas";
@@ -80,6 +81,14 @@ export async function POST(req: NextRequest) {
       adminUuid,
       slackMessageTs: slackTs,
     });
+    await recordModerationAction({
+      adminUuid,
+      targetStudentUuid: row.sender_id,
+      actionType: "approve_message",
+      channelId: row.channel_id,
+      messageId: row.id,
+      reason: body.reason ?? null,
+    });
     return NextResponse.json({ message: updated });
   }
 
@@ -93,5 +102,12 @@ export async function POST(req: NextRequest) {
     );
   }
   const updated = await approveDirectMessage({ messageId: row.id, adminUuid });
+  await recordModerationAction({
+    adminUuid,
+    targetStudentUuid: row.sender_id,
+    actionType: "approve_message",
+    dmId: row.id,
+    reason: body.reason ?? null,
+  });
   return NextResponse.json({ message: updated });
 }
