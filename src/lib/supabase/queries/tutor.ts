@@ -334,17 +334,24 @@ export async function fetchTutorScope(tutorClerkId: string): Promise<TutorScope>
   const tutorUserId = tutorRow.id as string;
 
   // 2. Cohorts this tutor leads, plus member + homework counts.
+  //    Student clerk_ids are pulled in via FK-relation joins on the
+  //    same round-trip — we used to do a third `.in("id", [...])` on
+  //    `users` after this batch resolved, costing an extra sequential
+  //    network hop on every tutor page load.
   const [cohortsRes, membersRes, homeworkRes, assignmentsRes] = await Promise.all([
     supabase
       .from("cohorts")
       .select("id, name, tier, sat_date, max_size, current_topic, status")
       .eq("tutor_user_id", tutorUserId)
       .order("sat_date", { ascending: true }),
-    supabase.from("cohort_members").select("cohort_id, user_id").is("left_at", null),
+    supabase
+      .from("cohort_members")
+      .select("cohort_id, user_id, student:users!cohort_members_user_id_fkey(clerk_id)")
+      .is("left_at", null),
     supabase.from("cohort_homework").select("cohort_id"),
     supabase
       .from("tutor_assignments")
-      .select("student_user_id")
+      .select("student_user_id, student:users!tutor_assignments_student_user_id_fkey(clerk_id)")
       .eq("tutor_user_id", tutorUserId)
       .is("ended_at", null),
   ]);
@@ -354,13 +361,29 @@ export async function fetchTutorScope(tutorClerkId: string): Promise<TutorScope>
   if (homeworkRes.error) throw homeworkRes.error;
   if (assignmentsRes.error) throw assignmentsRes.error;
 
+  // Supabase types FK joins as object-or-array depending on the
+  // multiplicity it can infer. Both forms collapse to one clerk_id
+  // since user_id is a single-fk reference. Helper accepts either.
+  type StudentJoin = { clerk_id: string } | { clerk_id: string }[] | null;
+  function pickClerkId(student: StudentJoin): string | null {
+    if (!student) return null;
+    if (Array.isArray(student)) return student[0]?.clerk_id ?? null;
+    return student.clerk_id ?? null;
+  }
+
   const cohortIds = new Set<string>((cohortsRes.data ?? []).map((c) => c.id as string));
   const memberCounts = new Map<string, number>();
-  const cohortMemberUserIds = new Set<string>();
-  for (const r of (membersRes.data ?? []) as { cohort_id: string; user_id: string }[]) {
+  const clerkIdSet = new Set<string>();
+
+  for (const r of (membersRes.data ?? []) as Array<{
+    cohort_id: string;
+    user_id: string;
+    student: StudentJoin;
+  }>) {
     if (!cohortIds.has(r.cohort_id)) continue;
     memberCounts.set(r.cohort_id, (memberCounts.get(r.cohort_id) ?? 0) + 1);
-    cohortMemberUserIds.add(r.user_id);
+    const clerkId = pickClerkId(r.student);
+    if (clerkId) clerkIdSet.add(clerkId);
   }
 
   const homeworkCounts = new Map<string, number>();
@@ -369,23 +392,15 @@ export async function fetchTutorScope(tutorClerkId: string): Promise<TutorScope>
     homeworkCounts.set(r.cohort_id, (homeworkCounts.get(r.cohort_id) ?? 0) + 1);
   }
 
-  const oneOnOneUserIds = new Set<string>(
-    (assignmentsRes.data ?? []).map((a) => (a as { student_user_id: string }).student_user_id)
-  );
-
-  const allStudentUserIds = [...new Set([...cohortMemberUserIds, ...oneOnOneUserIds])];
-
-  // 3. Map students.id → clerk_id (that's what the existing dashboard
-  //    queries join on).
-  let studentClerkIds: string[] = [];
-  if (allStudentUserIds.length > 0) {
-    const { data: ids, error } = await supabase
-      .from("users")
-      .select("clerk_id")
-      .in("id", allStudentUserIds);
-    if (error) throw error;
-    studentClerkIds = (ids ?? []).map((r) => (r as { clerk_id: string }).clerk_id);
+  for (const a of (assignmentsRes.data ?? []) as Array<{
+    student_user_id: string;
+    student: StudentJoin;
+  }>) {
+    const clerkId = pickClerkId(a.student);
+    if (clerkId) clerkIdSet.add(clerkId);
   }
+
+  const studentClerkIds = [...clerkIdSet];
 
   const cohorts: TutorCohortRow[] = (cohortsRes.data ?? []).map((c) => ({
     id: c.id as string,
@@ -451,26 +466,20 @@ export async function fetchTutorCohortDetail(
 ): Promise<TutorCohortDetail | null> {
   const supabase = createAdminClient();
 
-  const { data: tutor } = await supabase
-    .from("users")
-    .select("id")
-    .eq("clerk_id", tutorClerkId)
-    .maybeSingle();
-  if (!tutor) return null;
-  const tutorUserId = tutor.id as string;
-
-  const { data: cohort, error: cErr } = await supabase
-    .from("cohorts")
-    .select("id, name, tier, sat_date, max_size, current_topic, status, tutor_user_id")
-    .eq("id", cohortId)
-    .maybeSingle();
-  if (cErr) throw cErr;
-  if (!cohort) return null;
-  if ((cohort as { tutor_user_id: string }).tutor_user_id !== tutorUserId) {
-    return null; // not this tutor's cohort — pretend it doesn't exist
-  }
-
-  const [membersRes, noteRes, homeworkRes] = await Promise.all([
+  // Parallelize all 5 reads. The tutor lookup + cohort lookup used
+  // to be sequential `maybeSingle()` calls before the parallel batch,
+  // adding 2 extra round-trips on every cohort-detail page load.
+  // The note query's `tutor_user_id` filter is redundant given the
+  // one-tutor-per-cohort schema (`cohorts.tutor_user_id` is the
+  // single source of truth), so we can drop it from this read and
+  // do the ownership check on the cohort row instead.
+  const [tutorRes, cohortRes, membersRes, noteRes, homeworkRes] = await Promise.all([
+    supabase.from("users").select("id").eq("clerk_id", tutorClerkId).maybeSingle(),
+    supabase
+      .from("cohorts")
+      .select("id, name, tier, sat_date, max_size, current_topic, status, tutor_user_id")
+      .eq("id", cohortId)
+      .maybeSingle(),
     supabase
       .from("cohort_members")
       .select(
@@ -482,18 +491,24 @@ export async function fetchTutorCohortDetail(
       .eq("cohort_id", cohortId)
       .is("left_at", null)
       .order("joined_at", { ascending: true }),
-    supabase
-      .from("tutor_notes")
-      .select("id, body")
-      .eq("tutor_user_id", tutorUserId)
-      .eq("cohort_id", cohortId)
-      .maybeSingle(),
+    supabase.from("tutor_notes").select("id, body").eq("cohort_id", cohortId).maybeSingle(),
     supabase
       .from("cohort_homework")
       .select("id, title, body, assigned_at, due_at")
       .eq("cohort_id", cohortId)
       .order("assigned_at", { ascending: false }),
   ]);
+
+  const tutor = tutorRes.data;
+  if (!tutor) return null;
+  const tutorUserId = tutor.id as string;
+
+  if (cohortRes.error) throw cohortRes.error;
+  const cohort = cohortRes.data;
+  if (!cohort) return null;
+  if ((cohort as { tutor_user_id: string }).tutor_user_id !== tutorUserId) {
+    return null; // not this tutor's cohort — pretend it doesn't exist
+  }
 
   if (membersRes.error) throw membersRes.error;
   if (noteRes.error) throw noteRes.error;
