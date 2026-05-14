@@ -13,7 +13,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
-import { ArrowRight, Users as UsersIcon, UserSquare } from "lucide-react";
+import { ArrowRight, Users as UsersIcon, UserSquare, Wallet, CalendarClock } from "lucide-react";
 import { fetchTutorScope, fetchStudentDashboardRows } from "@/lib/supabase/queries/tutor";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import StudentTable from "@/components/tutor/StudentTable";
@@ -31,18 +31,34 @@ export default async function TutorPage() {
   return (
     <DashboardLayout>
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-10">
-        <header>
-          <p className="text-xs font-bold tracking-widest text-blue-500 uppercase mb-1">
-            Tutor Portal
-          </p>
-          <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white">
-            My students
-          </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            {scope.cohorts.length} cohort{scope.cohorts.length !== 1 ? "s" : ""}
-            {" · "}
-            {rows.length} student{rows.length !== 1 ? "s" : ""} across cohorts + 1:1
-          </p>
+        <header className="flex items-start justify-between gap-4 flex-wrap">
+          <div>
+            <p className="text-xs font-bold tracking-widest text-blue-500 uppercase mb-1">
+              Tutor Portal
+            </p>
+            <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white">
+              My students
+            </h1>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+              {scope.cohorts.length} cohort{scope.cohorts.length !== 1 ? "s" : ""}
+              {" · "}
+              {rows.length} student{rows.length !== 1 ? "s" : ""} across cohorts + 1:1
+            </p>
+          </div>
+          <nav className="flex items-center gap-2">
+            <Link
+              href="/tutor/schedule"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-blue-400 text-sm font-semibold text-slate-700 dark:text-slate-200"
+            >
+              <CalendarClock className="w-4 h-4 text-slate-400" /> Schedule
+            </Link>
+            <Link
+              href="/tutor/earnings"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-blue-400 text-sm font-semibold text-slate-700 dark:text-slate-200"
+            >
+              <Wallet className="w-4 h-4 text-slate-400" /> Earnings
+            </Link>
+          </nav>
         </header>
 
         {/* ── My Cohorts ───────────────────────────────────── */}

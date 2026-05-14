@@ -13,6 +13,10 @@
 /.next/
 /out/
 
+# Cloudflare / OpenNext build output (regenerated on every build)
+/.open-next/
+/.wrangler/
+
 # production
 /build
 
@@ -39,7 +43,7 @@ next-env.d.ts
 .claude/
 
 # PDF-ingestion routine — keep folder structure + README/prompt
-# in repo, ignore everything else (PDFs, run outputs). The
+# in repo, ignore everything else (PDFs, run outputs, logs). The
 # .gitkeep file in each subdir preserves the directory.
 /question-imports/incoming/*
 !/question-imports/incoming/.gitkeep
@@ -47,3 +51,6 @@ next-env.d.ts
 !/question-imports/done/.gitkeep
 /question-imports/runs/*
 !/question-imports/runs/.gitkeep
+/question-imports/extract-out/
+/question-imports/.pdf-watch.log
+/question-imports/*.log

@@ -23,8 +23,8 @@ import {
   type BookingPlanTier,
   type BookingRow,
 } from "@/lib/supabase/queries/bookings";
-import { sendBookingConfirmation } from "@/lib/resend/booking-emails";
-import { extractZoomMeetingId } from "@/lib/zoom/url";
+import { sendBookingConfirmation } from "@/lib/integrations/resend/booking-emails";
+import { extractZoomMeetingId } from "@/lib/integrations/zoom/url";
 
 interface PushRequest {
   cohortId: string;
@@ -159,7 +159,7 @@ export async function POST(req: NextRequest) {
     parentIdsByStudent.set(link.student_user_id, list);
     allParentIds.add(link.parent_user_id);
   }
-  let parentEmailById = new Map<string, string>();
+  const parentEmailById = new Map<string, string>();
   if (allParentIds.size > 0) {
     const { data: parentRows } = await supa
       .from("users")

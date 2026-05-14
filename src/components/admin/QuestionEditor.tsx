@@ -6,7 +6,7 @@
 
 import { Reorder } from "framer-motion";
 import Image from "next/image";
-import { useMemo, useRef, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { Plus, Trash2, ChevronDown, ChevronUp, GripVertical, Lightbulb, ImageIcon, X, Loader2, Upload } from "lucide-react";
 import type {
   QuizQuestionWithChoices,
@@ -585,9 +585,34 @@ function AddQuestionForm({
   const [perChoice, setPerChoice] = useState<Record<AnswerLetter, string>>({ A: "", B: "", C: "", D: "" });
   const [desmosStrategy, setDesmosStrategy] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
   const [imageAlt, setImageAlt] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const imageInputRef = useRef<HTMLInputElement>(null);
+
+  // Revoke the blob URL when it changes or the form unmounts to avoid leaks.
+  useEffect(() => {
+    if (!imagePreviewUrl) return;
+    return () => URL.revokeObjectURL(imagePreviewUrl);
+  }, [imagePreviewUrl]);
+
+  function setImageFromFile(file: File | null) {
+    setImageFile(file);
+    setImagePreviewUrl(file ? URL.createObjectURL(file) : null);
+  }
+
+  /** Cmd+V into any wired textarea: if the clipboard has an image, attach
+   *  it to this question (replacing any prior attachment) and show an
+   *  inline thumbnail. Plain-text pastes fall through untouched. */
+  function handleImagePaste(e: React.ClipboardEvent<HTMLTextAreaElement>) {
+    const items = Array.from(e.clipboardData?.items ?? []);
+    const imageItem = items.find((it) => it.type.startsWith("image/"));
+    if (!imageItem) return;
+    const file = imageItem.getAsFile();
+    if (!file) return;
+    e.preventDefault();
+    setImageFromFile(file);
+  }
 
   const inputClass = "w-full rounded-lg border border-slate-700 bg-slate-900 text-slate-100 px-3 py-2 text-sm placeholder:text-slate-600 focus:outline-none focus:border-indigo-500";
 
@@ -689,19 +714,19 @@ function AddQuestionForm({
         </Field>
       )}
 
-      <Field label="Question text" helper="Supports LaTeX — wrap inline math in $ … $, block in $$ … $$.">
-        <textarea required value={questionText} onChange={(e) => setQuestionText(e.target.value)} rows={3} className={cn(inputClass, "font-mono text-[13px]")} placeholder="e.g. Solve for x in $2x + 5 = 17$" />
+      <Field label="Question text" helper="Supports LaTeX — wrap inline math in $ … $, block in $$ … $$. Paste a screenshot (Cmd+V) to attach an image.">
+        <textarea required value={questionText} onChange={(e) => setQuestionText(e.target.value)} onPaste={handleImagePaste} rows={3} className={cn(inputClass, "font-mono text-[13px]")} placeholder="e.g. Solve for x in $2x + 5 = 17$" />
       </Field>
 
       {/* Optional image — table screenshot, graph, figure */}
-      <Field label="Image (optional)" helper="Attach a table, graph, or figure. Appears above the question text.">
+      <Field label="Image (optional)" helper="Attach a table, graph, or figure. Appears above the question text. You can also paste a screenshot directly into any text field.">
         <div className="flex items-center gap-3 flex-wrap">
           <input
             ref={imageInputRef}
             type="file"
             accept="image/*"
             className="hidden"
-            onChange={(e) => setImageFile(e.target.files?.[0] ?? null)}
+            onChange={(e) => setImageFromFile(e.target.files?.[0] ?? null)}
           />
           <button
             type="button"
@@ -712,13 +737,20 @@ function AddQuestionForm({
           </button>
           {imageFile && (
             <>
-              <span className="text-xs text-slate-400 truncate max-w-xs">{imageFile.name}</span>
-              <button type="button" onClick={() => { setImageFile(null); if (imageInputRef.current) imageInputRef.current.value = ""; }} className="text-rose-400 hover:text-rose-300 text-xs">
+              <span className="text-xs text-slate-400 truncate max-w-xs">{imageFile.name || "Pasted image"}</span>
+              <button type="button" onClick={() => { setImageFromFile(null); if (imageInputRef.current) imageInputRef.current.value = ""; }} className="text-rose-400 hover:text-rose-300 text-xs">
                 remove
               </button>
             </>
           )}
         </div>
+        {imagePreviewUrl && (
+          <img
+            src={imagePreviewUrl}
+            alt={imageAlt || "Attached image preview"}
+            className="mt-2 max-h-48 rounded-lg border border-slate-700 bg-slate-950"
+          />
+        )}
         {imageFile && (
           <input
             value={imageAlt}
@@ -769,18 +801,18 @@ function AddQuestionForm({
       </Field>
 
       <Field label="Hint (optional)" helper="Shown to students while answering — a small nudge.">
-        <textarea value={hint} onChange={(e) => setHint(e.target.value)} rows={2} className={inputClass} placeholder="e.g. 'Try plugging each answer choice back into the original equation.'" />
+        <textarea value={hint} onChange={(e) => setHint(e.target.value)} onPaste={handleImagePaste} rows={2} className={inputClass} placeholder="e.g. 'Try plugging each answer choice back into the original equation.'" />
       </Field>
 
-      <Field label="Explanation (required)" helper="Full explanation shown after a wrong answer.">
-        <textarea required value={explanation} onChange={(e) => setExplanation(e.target.value)} rows={3} className={inputClass} />
+      <Field label="Explanation (required)" helper="Full explanation shown after a wrong answer. Paste a screenshot (Cmd+V) to attach an image.">
+        <textarea required value={explanation} onChange={(e) => setExplanation(e.target.value)} onPaste={handleImagePaste} rows={3} className={inputClass} />
       </Field>
 
       {subject === "reading" && answerFormat === "multiple_choice" && (
         <div className="grid grid-cols-2 gap-3">
           {LETTERS.map((letter) => (
             <Field key={letter} label={`Why ${letter} is ${letter === correctAnswer ? "right" : "wrong"}`}>
-              <textarea value={perChoice[letter]} onChange={(e) => setPerChoice((c) => ({ ...c, [letter]: e.target.value }))} rows={2} className={inputClass} />
+              <textarea value={perChoice[letter]} onChange={(e) => setPerChoice((c) => ({ ...c, [letter]: e.target.value }))} onPaste={handleImagePaste} rows={2} className={inputClass} />
             </Field>
           ))}
         </div>
@@ -788,7 +820,7 @@ function AddQuestionForm({
 
       {subject === "math" && (
         <Field label="Desmos strategy (optional)">
-          <textarea value={desmosStrategy} onChange={(e) => setDesmosStrategy(e.target.value)} rows={2} className={inputClass} placeholder="Step-by-step Desmos approach for this question type." />
+          <textarea value={desmosStrategy} onChange={(e) => setDesmosStrategy(e.target.value)} onPaste={handleImagePaste} rows={2} className={inputClass} placeholder="Step-by-step Desmos approach for this question type." />
         </Field>
       )}
 

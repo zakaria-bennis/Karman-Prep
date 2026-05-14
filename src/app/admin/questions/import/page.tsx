@@ -8,6 +8,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ChevronRight, Upload } from "lucide-react";
 import BankImportClient from "./BankImportClient";
+import PdfUploadClient from "./PdfUploadClient";
 
 export const metadata: Metadata = { title: "Admin — Question import | Karman" };
 
@@ -25,10 +26,14 @@ export default function QuestionImportPage() {
           <Upload className="w-5 h-5 text-indigo-400" /> Question import
         </h1>
         <p className="text-sm text-slate-400 mt-1.5 max-w-2xl">
-          Bulk import the PDF-ingestion routine&apos;s output into the question bank.
+          Two paths in: drop PDFs for automated processing, or upload pre-baked
+          CSVs from a manual routine run.
         </p>
       </div>
-      <BankImportClient />
+      <div className="space-y-4">
+        <PdfUploadClient />
+        <BankImportClient />
+      </div>
     </div>
   );
 }

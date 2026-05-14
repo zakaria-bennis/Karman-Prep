@@ -100,7 +100,7 @@ export async function GET(req: NextRequest) {
 
   // Resolve real names in one batch for tutors / admins / parents.
   const seesRealNames = isTutor || isAdmin || isParent;
-  let nameById = new Map<string, string>();
+  const nameById = new Map<string, string>();
   if (seesRealNames) {
     const senderIds = Array.from(new Set(rows.map((r) => r.sender_id)));
     if (senderIds.length > 0) {

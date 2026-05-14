@@ -1,5 +1,5 @@
 // ============================================================
-// Cal.com adapter barrel — `import { ... } from "@/lib/cal"`
+// Cal.com adapter barrel — `import { ... } from "@/lib/integrations/cal"`
 // ============================================================
 
 export * from "./types";

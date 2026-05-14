@@ -150,7 +150,7 @@ export default async function TutorSchedulePage({
   //   seminars     : every group-tier booking, sorted chronologically newest-first
   //   small-groups : every small_group-tier booking, sorted newest-first
   let visible: BookingRow[];
-  let counts = { upcoming: 0, seminars: 0, smallGroups: 0 };
+  const counts = { upcoming: 0, seminars: 0, smallGroups: 0 };
   for (const b of all) {
     const isFutureScheduled =
       b.status === "scheduled" && new Date(b.scheduled_start).getTime() >= now;
@@ -174,7 +174,7 @@ export default async function TutorSchedulePage({
   }
 
   const studentIds = Array.from(new Set(visible.map((b) => b.student_id)));
-  let studentsById = new Map<string, StudentMini>();
+  const studentsById = new Map<string, StudentMini>();
   if (studentIds.length > 0) {
     const supa = createAdminClient();
     const { data: students } = await supa

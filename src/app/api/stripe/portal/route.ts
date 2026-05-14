@@ -7,7 +7,7 @@
 
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-import { stripe } from "@/lib/stripe/client";
+import { stripe } from "@/lib/integrations/stripe/client";
 import { createAdminClient } from "@/lib/supabase/server";
 
 export async function POST(req: Request) {

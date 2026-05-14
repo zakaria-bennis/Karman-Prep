@@ -24,8 +24,7 @@
 #   CAL_WEBHOOK_SECRET=...
 #   SLACK_BOT_TOKEN=...
 #   SLACK_SIGNING_SECRET=...
-#   OPENAI_API_KEY=...
-#   GEMINI_API_KEY=...
+#   OPENAI_API_KEY=...    (chat moderation — Layer 2)
 #   R2_ACCOUNT_ID=...
 #   R2_ACCESS_KEY_ID=...
 #   R2_SECRET_ACCESS_KEY=...
@@ -34,6 +33,9 @@
 # ============================================================
 
 name = "karmanprep"
+# OpenNext writes the worker entry to .open-next/worker.js. Our
+# `cf:build` script post-patches that file to add a scheduled()
+# handler (cron dispatch) — see scripts/build/patch-cf-worker.mjs.
 main = ".open-next/worker.js"
 compatibility_date = "2025-03-25"
 compatibility_flags = ["nodejs_compat"]
@@ -51,10 +53,14 @@ routes = [
 directory = ".open-next/assets"
 binding = "ASSETS"
 
-# ── Cron: nightly SAT-dates sync (migrated from vercel.json) ──
-# Cloudflare crons run in UTC. "0 6 * * *" = 06:00 UTC = ~01:00 ET.
+# ── Cron triggers ─────────────────────────────────────────────
+# Cloudflare crons run in UTC.
+#   "0 6 * * *"     — 06:00 UTC daily, sync SAT dates (existing).
+#   "*/5 * * * *"   — every 5 minutes, drain R2 csv-inbox/ → bank
+#                     (PDF-ingestion folder watcher; BUGS.md #4).
+# Each schedule is dispatched to a route by cf-worker-with-cron.js.
 [triggers]
-crons = ["0 6 * * *"]
+crons = ["0 6 * * *", "*/5 * * * *"]
 
 # ── R2 binding for question-image storage ─────────────────────
 # When code runs INSIDE the worker, you can use this binding

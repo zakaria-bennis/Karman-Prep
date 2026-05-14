@@ -1,16 +1,21 @@
 // ============================================================
 // SAT question taxonomy — single source of truth for the
-// 8 domains, 8 cluster labels, and 72 concept slugs that the
+// 8 domains, 8 cluster labels, and the concept slugs that the
 // PDF-ingestion routine emits and the importer validates.
 //
-// Why a TS constant and not a DB lookup table:
-//   · 72 values, all set by editorial decision, change via code
-//     review (not runtime data entry).
-//   · Routine reads it for client-side validation.
-//   · Importer reads it for slug + domain validation before
-//     hitting Postgres.
-//   · Admin UIs read it for typeahead pickers and cluster maps.
+// Slugs are 1:1 with curriculum nodes (see src/data/curriculum.ts).
+// Each curriculum node carries a `concept_slug` field; this module
+// derives the slug list by reading those nodes at load time, so
+// there is exactly one place to add or rename a topic.
+//
+// Why this is fine despite the cross-file import:
+//   curriculum.ts imports `SATDomain` type-only (erased at runtime),
+//   and this file imports the node arrays as values. Node.js / Vite
+//   resolve curriculum.ts first; by the time CONCEPT_SLUGS evaluates
+//   below, RW_NODES + MATH_NODES are fully populated.
 // ============================================================
+
+import { MATH_NODES, RW_NODES } from "@/data/curriculum";
 
 export const SAT_DOMAINS = [
   "algebra",
@@ -42,103 +47,28 @@ export interface ConceptSlug {
   slug: string;
   label: string;
   domain: SATDomain;
+  /** Curriculum node id this slug refers to. 1:1 with `slug`. */
+  nodeId: string;
 }
 
-/** All 72 SAT concept slugs grouped by domain (8 + 12 + 11 + 11 + 7 + 7 + 6 + 10). */
-export const CONCEPT_SLUGS: ConceptSlug[] = [
-  // ── ALGEBRA (8) ────────────────────────────────────────────
-  { slug: "linear-equations",       label: "Linear equations",        domain: "algebra" },
-  { slug: "systems-of-equations",   label: "Systems of equations",    domain: "algebra" },
-  { slug: "linear-inequalities",    label: "Linear inequalities",     domain: "algebra" },
-  { slug: "linear-functions",       label: "Linear functions",        domain: "algebra" },
-  { slug: "slope-intercept",        label: "Slope-intercept form",    domain: "algebra" },
-  { slug: "systems-of-inequalities",label: "Systems of inequalities", domain: "algebra" },
-  { slug: "absolute-value",         label: "Absolute value",          domain: "algebra" },
-  { slug: "linear-word-problems",   label: "Linear word problems",    domain: "algebra" },
-
-  // ── ADVANCED MATH (12) ─────────────────────────────────────
-  { slug: "quadratics",              label: "Quadratics",                  domain: "advanced_math" },
-  { slug: "quadratic-vertex",        label: "Quadratic vertex form",       domain: "advanced_math" },
-  { slug: "polynomials",             label: "Polynomials",                 domain: "advanced_math" },
-  { slug: "exponential-functions",   label: "Exponential functions",       domain: "advanced_math" },
-  { slug: "rational-expressions",    label: "Rational expressions",        domain: "advanced_math" },
-  { slug: "function-notation",       label: "Function notation",           domain: "advanced_math" },
-  { slug: "function-transformations",label: "Function transformations",    domain: "advanced_math" },
-  { slug: "radical-equations",       label: "Radical equations",           domain: "advanced_math" },
-  { slug: "exponential-growth-decay",label: "Exponential growth & decay",  domain: "advanced_math" },
-  { slug: "nonlinear-systems",       label: "Nonlinear systems",           domain: "advanced_math" },
-  { slug: "equivalent-expressions",  label: "Equivalent expressions",      domain: "advanced_math" },
-  { slug: "complex-numbers",         label: "Complex numbers",             domain: "advanced_math" },
-
-  // ── GEOMETRY & TRIGONOMETRY (11) ───────────────────────────
-  { slug: "triangles",          label: "Triangles",                domain: "geometry" },
-  { slug: "circles",            label: "Circles",                  domain: "geometry" },
-  { slug: "coordinate-geometry",label: "Coordinate geometry",      domain: "geometry" },
-  { slug: "trigonometry",       label: "Trigonometry",             domain: "geometry" },
-  { slug: "volume",             label: "Volume",                   domain: "geometry" },
-  { slug: "area-perimeter",     label: "Area & perimeter",         domain: "geometry" },
-  { slug: "lines-and-angles",   label: "Lines & angles",           domain: "geometry" },
-  { slug: "circle-equations",   label: "Circle equations",         domain: "geometry" },
-  { slug: "arc-sector",         label: "Arc length & sector area", domain: "geometry" },
-  { slug: "right-triangle-trig",label: "Right-triangle trig",      domain: "geometry" },
-  { slug: "unit-circle",        label: "Unit circle",              domain: "geometry" },
-
-  // ── PROBLEM-SOLVING & DATA ANALYSIS (11) ───────────────────
-  { slug: "ratios-rates",          label: "Ratios & rates",            domain: "data_analysis" },
-  { slug: "percentages",           label: "Percentages",               domain: "data_analysis" },
-  { slug: "statistics-center",     label: "Statistics — center",       domain: "data_analysis" },
-  { slug: "statistics-spread",     label: "Statistics — spread",       domain: "data_analysis" },
-  { slug: "statistics-inference",  label: "Statistics — inference",    domain: "data_analysis" },
-  { slug: "probability",           label: "Probability",               domain: "data_analysis" },
-  { slug: "data-interpretation",   label: "Data interpretation",       domain: "data_analysis" },
-  { slug: "two-way-tables",        label: "Two-way tables",            domain: "data_analysis" },
-  { slug: "scatterplots",          label: "Scatterplots",              domain: "data_analysis" },
-  { slug: "unit-conversion",       label: "Unit conversion",           domain: "data_analysis" },
-  { slug: "proportional-reasoning",label: "Proportional reasoning",    domain: "data_analysis" },
-
-  // ── INFORMATION & IDEAS (7) ────────────────────────────────
-  { slug: "central-idea",          label: "Central idea",          domain: "info_ideas" },
-  { slug: "command-of-evidence",   label: "Command of evidence",   domain: "info_ideas" },
-  { slug: "inference",             label: "Inference",             domain: "info_ideas" },
-  { slug: "quantitative-evidence", label: "Quantitative evidence", domain: "info_ideas" },
-  { slug: "purpose-and-function",  label: "Purpose & function",    domain: "info_ideas" },
-  { slug: "summarizing",           label: "Summarizing",           domain: "info_ideas" },
-  { slug: "comparing-texts",       label: "Comparing texts",       domain: "info_ideas" },
-
-  // ── CRAFT & STRUCTURE (7) ──────────────────────────────────
-  { slug: "words-in-context",      label: "Words in context",       domain: "craft_structure" },
-  { slug: "rhetorical-purpose",    label: "Rhetorical purpose",     domain: "craft_structure" },
-  { slug: "text-structure",        label: "Text structure",         domain: "craft_structure" },
-  { slug: "cross-text-connections",label: "Cross-text connections", domain: "craft_structure" },
-  { slug: "point-of-view",         label: "Point of view",          domain: "craft_structure" },
-  { slug: "argument-structure",    label: "Argument structure",     domain: "craft_structure" },
-  { slug: "tone-and-style",        label: "Tone & style",           domain: "craft_structure" },
-
-  // ── EXPRESSION OF IDEAS (6) ────────────────────────────────
-  { slug: "transitions",              label: "Transitions",              domain: "expression_ideas" },
-  { slug: "rhetorical-synthesis",     label: "Rhetorical synthesis",     domain: "expression_ideas" },
-  { slug: "precision",                label: "Precision (concision)",    domain: "expression_ideas" },
-  { slug: "sentence-combining",       label: "Sentence combining",       domain: "expression_ideas" },
-  { slug: "relevance",                label: "Relevance",                domain: "expression_ideas" },
-  { slug: "introductions-conclusions",label: "Introductions & conclusions", domain: "expression_ideas" },
-
-  // ── STANDARD ENGLISH CONVENTIONS (10) ──────────────────────
-  { slug: "subject-verb-agreement",label: "Subject-verb agreement",  domain: "conventions" },
-  { slug: "punctuation",           label: "Punctuation",             domain: "conventions" },
-  { slug: "sentence-boundaries",   label: "Sentence boundaries",     domain: "conventions" },
-  { slug: "pronoun-agreement",     label: "Pronoun agreement",       domain: "conventions" },
-  { slug: "modifier-placement",    label: "Modifier placement",      domain: "conventions" },
-  { slug: "parallel-structure",    label: "Parallel structure",      domain: "conventions" },
-  { slug: "verb-tense",            label: "Verb tense",              domain: "conventions" },
-  { slug: "apostrophes",           label: "Apostrophes",             domain: "conventions" },
-  { slug: "colons-and-dashes",     label: "Colons & dashes",         domain: "conventions" },
-  { slug: "quotation-marks",       label: "Quotation marks",         domain: "conventions" },
-];
+/** All concept slugs (one per curriculum node). Derived at module load
+ *  from the curriculum so there is no separate list to keep in sync. */
+export const CONCEPT_SLUGS: ConceptSlug[] = [...RW_NODES, ...MATH_NODES].map(
+  (n) => ({
+    slug: n.concept_slug,
+    label: n.topic,
+    domain: n.domain,
+    nodeId: n.id,
+  })
+);
 
 // ── Indexes built once at module load ────────────────────────
 
 const SLUG_INDEX = new Map<string, ConceptSlug>(
   CONCEPT_SLUGS.map((c) => [c.slug, c])
+);
+const NODE_TO_SLUG = new Map<string, string>(
+  CONCEPT_SLUGS.map((c) => [c.nodeId, c.slug])
 );
 const DOMAIN_SET = new Set<string>(SAT_DOMAINS);
 
@@ -153,6 +83,26 @@ export function clusterFromSlug(slug: string): string | undefined {
 /** Domain key for a slug, or undefined for unknown slugs. */
 export function domainFromSlug(slug: string): SATDomain | undefined {
   return SLUG_INDEX.get(slug)?.domain;
+}
+
+/** Curriculum node id for a slug, or undefined for unknown slugs.
+ *  This is what the auto-pick uses in the Review UI. */
+export function nodeIdFromSlug(slug: string): string | undefined {
+  return SLUG_INDEX.get(slug)?.nodeId;
+}
+
+/** Display label for a slug. Falls back to a humanized version of the
+ *  slug itself for unknown values (so legacy diagnostic data still
+ *  renders something readable rather than a raw kebab-case string). */
+export function labelFromSlug(slug: string): string {
+  const c = SLUG_INDEX.get(slug);
+  if (c) return c.label;
+  return slug.replace(/-/g, " ").replace(/\b\w/g, (m) => m.toUpperCase());
+}
+
+/** Slug for a curriculum node id (inverse of nodeIdFromSlug). */
+export function slugFromNodeId(nodeId: string): string | undefined {
+  return NODE_TO_SLUG.get(nodeId);
 }
 
 export function isValidSlug(slug: string): slug is ConceptSlug["slug"] {

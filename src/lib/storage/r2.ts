@@ -1,24 +1,45 @@
 // ============================================================
-// R2 storage helper — uploads files to a Cloudflare R2 bucket
-// using the S3-compatible API. Works identically in local dev
-// (Node) and in production (CF Workers via OpenNext).
+// R2 storage helper — uploads files to a Cloudflare R2 bucket.
 //
-// Why S3 SDK and not the R2 binding directly: the binding only
-// exists inside a CF Worker request handler. Anything that runs
-// at build time, in a Node script, or from a non-Worker context
-// (e.g. one-off admin scripts in /scripts/) can't see env.R2.
-// The S3-compatible API works everywhere.
+// Two code paths inside uploadToR2():
+//   1. Native R2 binding (env.R2.put) when running inside a CF
+//      Worker request. This is the production path. The binding
+//      avoids the AWS S3 SDK entirely, which matters because the
+//      SDK pulls in Node-only `fs.readFile` paths that unenv
+//      refuses to polyfill on Workers ("[unenv] fs.readFile is
+//      not implemented yet!").
+//   2. AWS S3 SDK fallback for `next dev` runs and Node scripts
+//      in /scripts/ where the binding isn't reachable.
 //
-// Required env vars:
+// Required env vars (S3 fallback only — binding mode reads none):
 //   R2_ACCOUNT_ID            — your CF account id (for the endpoint URL)
 //   R2_ACCESS_KEY_ID         — from the R2 API Token you generated
 //   R2_SECRET_ACCESS_KEY     — same
 //   R2_BUCKET_NAME           — e.g. "karmanprep-question-images"
 //   R2_PUBLIC_URL            — e.g. "https://images.karmanprep.com"
 //                              OR the default "https://pub-XXX.r2.dev"
+// (R2_PUBLIC_URL is also read in binding mode to build publicUrl.)
 // ============================================================
 
 import { S3Client, PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
+
+type R2PutOpts = { httpMetadata?: { contentType?: string; cacheControl?: string } };
+type R2BucketLike = {
+  put: (key: string, value: ArrayBuffer | Uint8Array, opts?: R2PutOpts) => Promise<unknown>;
+  delete: (key: string) => Promise<unknown>;
+};
+
+async function r2Binding(): Promise<R2BucketLike | null> {
+  try {
+    const ctx = await getCloudflareContext({ async: true });
+    const env = ctx?.env as { R2?: R2BucketLike } | undefined;
+    return env?.R2 ?? null;
+  } catch {
+    // getCloudflareContext throws when not in a CF context.
+    return null;
+  }
+}
 
 let _client: S3Client | null = null;
 
@@ -69,19 +90,36 @@ export interface R2UploadResult {
 }
 
 export async function uploadToR2(input: R2UploadInput): Promise<R2UploadResult> {
-  const Body =
-    input.body instanceof ArrayBuffer ? new Uint8Array(input.body) : input.body;
+  const cacheControl = input.cacheControl ?? "public, max-age=3600";
 
+  // Prefer the R2 binding (no fs.readFile path on Workers).
+  const binding = await r2Binding();
+  if (binding) {
+    const body =
+      input.body instanceof Buffer
+        ? new Uint8Array(input.body.buffer, input.body.byteOffset, input.body.byteLength)
+        : input.body;
+    await binding.put(input.key, body as ArrayBuffer | Uint8Array, {
+      httpMetadata: { contentType: input.contentType, cacheControl },
+    });
+    return {
+      publicUrl: `${publicBase()}/${input.key}`,
+      storagePath: input.key,
+    };
+  }
+
+  // Fallback: AWS S3 SDK (next dev, Node scripts).
+  const body =
+    input.body instanceof ArrayBuffer ? new Uint8Array(input.body) : input.body;
   await client().send(
     new PutObjectCommand({
       Bucket: bucket(),
       Key: input.key,
-      Body: Body as Uint8Array,
+      Body: body as Uint8Array,
       ContentType: input.contentType,
-      CacheControl: input.cacheControl ?? "public, max-age=3600",
+      CacheControl: cacheControl,
     })
   );
-
   return {
     publicUrl: `${publicBase()}/${input.key}`,
     storagePath: input.key,
@@ -89,6 +127,11 @@ export async function uploadToR2(input: R2UploadInput): Promise<R2UploadResult> 
 }
 
 export async function deleteFromR2(storagePath: string): Promise<void> {
+  const binding = await r2Binding();
+  if (binding) {
+    await binding.delete(storagePath);
+    return;
+  }
   await client().send(
     new DeleteObjectCommand({ Bucket: bucket(), Key: storagePath })
   );

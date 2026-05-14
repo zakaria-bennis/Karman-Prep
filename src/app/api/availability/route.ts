@@ -8,7 +8,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-import { getAvailability, CalAdapterError } from "@/lib/cal";
+import { getAvailability, CalAdapterError } from "@/lib/integrations/cal";
 import { canSelfBook, getActiveSubscription } from "@/lib/supabase/queries/bookings";
 
 export async function GET(req: NextRequest) {

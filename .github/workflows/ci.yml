@@ -1,0 +1,93 @@
+# ============================================================
+# CI — runs on every PR + push to main.
+#
+# Three checks, all required by branch protection:
+#   1. typecheck (tsc --noEmit)
+#   2. lint     (next lint)
+#   3. build    (cf:build via OpenNext)
+#
+# Build is the slowest (~3 min). Typecheck + lint run in parallel
+# upfront so fast failures surface fast. npm cache + Next.js
+# build cache make warm runs ~half the duration of cold ones.
+# ============================================================
+
+name: CI
+
+on:
+  push:
+    # Run on whichever branch is the trunk. `develop` is the current
+    # default; `main` listed too so the workflow keeps working if/when
+    # we rename the default branch.
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+# Cancel in-flight runs when a new commit lands on the same PR/branch.
+# Saves CI minutes; the older run was about to be obsolete anyway.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Mirror real env vars with placeholder values so the build doesn't
+  # crash on startup-time `process.env` reads. Real secrets aren't
+  # needed for typecheck/lint/build — only for runtime.
+  NEXT_PUBLIC_APP_URL: https://karmanprep.com
+  NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder
+  NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: pk_test_placeholder
+  CLERK_SECRET_KEY: sk_test_placeholder
+  STRIPE_SECRET_KEY: sk_test_placeholder
+  RESEND_API_KEY: re_placeholder
+  RESEND_FROM_EMAIL: hello@karmanprep.com
+
+jobs:
+  typecheck:
+    name: TypeScript
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npx tsc --noEmit
+
+  lint:
+    name: ESLint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+
+  build:
+    name: Cloudflare build
+    runs-on: ubuntu-latest
+    # Build is the heaviest check; only run after typecheck + lint pass
+    # to avoid wasting compute on PRs that fail earlier.
+    needs: [typecheck, lint]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Cache Next.js build
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ github.workspace }}/.next/cache
+            ${{ github.workspace }}/.open-next/cache
+          # Cache key invalidates when package-lock or any source file changes
+          key: nextjs-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ hashFiles('src/**', 'public/**', 'next.config.mjs') }}
+          restore-keys: |
+            nextjs-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-
+            nextjs-${{ runner.os }}-
+      - run: npm ci
+      - run: npm run cf:build

@@ -41,6 +41,7 @@ export default function StudentQuestionPreview({ question, onClose }: Props) {
   );
   const hasPassage =
     !!question.passage || !!question.passage_a || !!question.passage_b;
+  const hasFigure = !!question.image_url;
 
   return (
     <div
@@ -81,10 +82,13 @@ export default function StudentQuestionPreview({ question, onClose }: Props) {
         </div>
 
         {/* ── Body ───────────────────────────────────────── */}
+        {/* Split view fires whenever there's a passage OR a figure.
+            Left column stacks [figure card, passage]; right has the
+            prompt + choices. Pure-text math stays single-column. */}
         <div className="flex-1 overflow-y-auto">
-          {hasPassage ? (
+          {hasPassage || hasFigure ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
-              <PassageColumn question={question} />
+              <LeftColumn question={question} />
               <PromptColumn question={question} choices={choices} />
             </div>
           ) : (
@@ -103,32 +107,48 @@ export default function StudentQuestionPreview({ question, onClose }: Props) {
   );
 }
 
-function PassageColumn({ question }: { question: QuizQuestionWithChoices }) {
+function LeftColumn({ question }: { question: QuizQuestionWithChoices }) {
+  const hasPassage =
+    !!question.passage || !!question.passage_a || !!question.passage_b;
   return (
     <div className="text-slate-200 text-[15px] leading-relaxed font-serif">
-      {question.passage_intro && (
-        <p className="italic text-slate-400 text-sm mb-4">
-          {question.passage_intro}
-        </p>
+      {question.image_url && (
+        <figure className="mb-6 rounded-xl border border-slate-700/50 bg-slate-200 p-3 shadow-md shadow-black/40">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={question.image_url}
+            alt={question.image_alt ?? "Question figure"}
+            className="max-h-[28rem] w-auto mx-auto block object-contain rounded"
+          />
+        </figure>
       )}
-      {question.passage && (
-        <MathText text={question.passage} className="whitespace-pre-wrap" />
-      )}
-      {(question.passage_a || question.passage_b) && (
-        <div className="space-y-5">
-          {question.passage_a && (
-            <div>
-              <div className="text-xs uppercase tracking-wide text-slate-500 mb-2 not-italic font-sans">Text 1</div>
-              <MathText text={question.passage_a} className="whitespace-pre-wrap" />
+      {hasPassage && (
+        <>
+          {question.passage_intro && (
+            <p className="italic text-slate-400 text-sm mb-4">
+              {question.passage_intro}
+            </p>
+          )}
+          {question.passage && (
+            <MathText text={question.passage} className="whitespace-pre-wrap" />
+          )}
+          {(question.passage_a || question.passage_b) && (
+            <div className="space-y-5">
+              {question.passage_a && (
+                <div>
+                  <div className="text-xs uppercase tracking-wide text-slate-500 mb-2 not-italic font-sans">Text 1</div>
+                  <MathText text={question.passage_a} className="whitespace-pre-wrap" />
+                </div>
+              )}
+              {question.passage_b && (
+                <div>
+                  <div className="text-xs uppercase tracking-wide text-slate-500 mb-2 not-italic font-sans">Text 2</div>
+                  <MathText text={question.passage_b} className="whitespace-pre-wrap" />
+                </div>
+              )}
             </div>
           )}
-          {question.passage_b && (
-            <div>
-              <div className="text-xs uppercase tracking-wide text-slate-500 mb-2 not-italic font-sans">Text 2</div>
-              <MathText text={question.passage_b} className="whitespace-pre-wrap" />
-            </div>
-          )}
-        </div>
+        </>
       )}
     </div>
   );
@@ -147,15 +167,6 @@ function PromptColumn({
         text={question.question_text}
         className="block text-slate-100 text-[15px] leading-relaxed mb-5 whitespace-pre-wrap"
       />
-
-      {question.image_url && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={question.image_url}
-          alt={question.image_alt ?? "Question figure"}
-          className="mb-5 max-w-full rounded-lg border border-white/10 bg-white"
-        />
-      )}
 
       {question.answer_format === "multiple_choice" ? (
         <ul className="space-y-2.5">

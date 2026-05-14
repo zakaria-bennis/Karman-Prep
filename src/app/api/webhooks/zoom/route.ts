@@ -16,7 +16,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "node:crypto";
-import type { ZoomWebhookEnvelope } from "@/lib/zoom/types";
+import type { ZoomWebhookEnvelope } from "@/lib/integrations/zoom/types";
 import {
   finalizeAttendanceForMeeting,
   findBookingForParticipant,

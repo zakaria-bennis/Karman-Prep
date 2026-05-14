@@ -1,0 +1,32 @@
+# ============================================================
+# CODEOWNERS — auto-request review from the right person.
+#
+# Syntax: <pattern> <@github-handle> [<@another-handle>]
+# More specific patterns override less specific ones.
+# Lines starting with # are comments.
+#
+# As the team grows, add per-area owners (e.g. @design-lead for src/components/landing).
+# ============================================================
+
+# Default owner for everything
+*                                @zakariabennis
+
+# Database schema and migrations — touch carefully
+/supabase/                       @zakariabennis
+/supabase/migrations/            @zakariabennis
+
+# Production payment flow — payouts + Stripe Connect
+/src/lib/integrations/stripe/    @zakariabennis
+/src/app/tutor/payouts/          @zakariabennis
+/src/app/api/webhooks/stripe-connect/  @zakariabennis
+
+# Auth + role gating
+/src/middleware.ts               @zakariabennis
+/src/lib/supabase/queries/admin.ts  @zakariabennis
+
+# CI + repo config — review before changing
+/.github/                        @zakariabennis
+/wrangler.toml                   @zakariabennis
+/next.config.mjs                 @zakariabennis
+/package.json                    @zakariabennis
+/CONTRIBUTING.md                 @zakariabennis

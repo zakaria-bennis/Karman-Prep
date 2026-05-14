@@ -23,7 +23,7 @@ import {
   createCohortChannel,
   SlackAdapterError,
   type CreateChannelResult,
-} from "@/lib/slack";
+} from "@/lib/integrations/slack";
 import {
   findChannelsByCohort,
   insertChatChannel,

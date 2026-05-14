@@ -6,7 +6,8 @@ importer at `/admin/questions/import` consumes.
 
 Verified against the implemented importer:
 - 30-column CSV schema (`src/components/admin/BulkImportPanel.tsx` `CSV_HEADERS`)
-- 8 domains + 72 concept slugs (`src/lib/question-bank/taxonomy.ts`)
+- 8 domains + 89 concept slugs, 1:1 with curriculum nodes
+  (`src/lib/question-bank/taxonomy.ts`, derived from `src/data/curriculum.ts`)
 - Difficulty 1–7 (parsed by `src/app/admin/actions.ts` `parseDifficulty`)
 - `(source_pdf, content_hash)` dedupe is enforced at the DB level
   by migration 020's unique index — re-runs silently skip duplicates
@@ -35,9 +36,21 @@ Working directory contains:
   question-imports/
     incoming/    — PDFs to process (you process every file here)
     done/        — move each PDF here after processing it
-    runs/        — write outputs to runs/<ISO timestamp>/
+    runs/        — write outputs to a run directory (see below)
 
-If incoming/ is empty, exit cleanly without writing files.
+RUN DIRECTORY — RESUME-AWARE
+  · If the launcher specified an explicit run dir (e.g. the prompt
+    says "use runs/in-progress-<pdf-base>/ as the output directory"),
+    USE THAT PATH. Do NOT generate a new timestamp.
+  · If that dir already contains an `import-log.json`, this is a
+    RESUMED invocation — read the log, locate `last_completed_page`
+    for the current PDF, and start from page `last_completed_page + 1`.
+    APPEND to the existing CSVs (do not rewrite the header).
+  · If no explicit dir was given AND no in-progress dir exists in
+    runs/ for this PDF, create runs/<ISO timestamp>/ and start fresh.
+
+If incoming/ is empty (and no resume target exists), exit cleanly
+without writing files.
 
 ═══════════════════════════════════════════════════
 PER-PDF WORKFLOW
@@ -74,13 +87,22 @@ For each PDF in incoming/:
           choices are blank, hash just question_text.
        h. Determine import_status / import_flag_type /
           import_flag_reason per the FLAGGING rules below.
-       i. Append the row to the appropriate CSV in
-          runs/<timestamp>/.
+       i. Append the row to the appropriate CSV in the run dir.
 
-  4. After every ~10-page chunk, flush the in-flight rows to
-     disk and update import-log.json.
+  4. FLUSH AFTER EVERY PAGE (not every 10). The instant you finish
+     a page's questions:
+       · Append all rows for that page to questions.csv /
+         questions_needs_review.csv
+       · Update import-log.json with `last_completed_page` = the
+         page you just finished, and `status` = "in_progress"
+     This bounds the worst-case loss to one page if a rate-limit
+     or context-pressure kill lands mid-run.
 
-  5. After the whole PDF is done, move it to done/.
+  5. After the whole PDF is done:
+       · Set `status` = "complete" in import-log.json
+       · Move the PDF from incoming/ to done/
+       · (The launcher renames runs/in-progress-<pdf-base>/ to a
+         final timestamped path — you don't need to rename it.)
 
 ═══════════════════════════════════════════════════
 CSV SCHEMA — 30 columns, exact order
@@ -131,47 +153,115 @@ TAXONOMY — locked, never deviate
   expression_ideas → "Expression of Ideas"
   conventions      → "Standard English Conventions"
 
-72 CONCEPT SLUGS (use as the `concept_slug` field value).
+89 CONCEPT SLUGS (use as the `concept_slug` field value).
+Slugs are 1:1 with curriculum nodes (see src/data/curriculum.ts).
 Pick the SINGLE most-relevant slug. Never invent.
+Per-domain count: 6 + 17 + 8 + 9 + 15 + 14 + 6 + 14 = 89
 
-ALGEBRA (domain: algebra):
-  linear-equations, systems-of-equations, linear-inequalities,
-  linear-functions, slope-intercept, systems-of-inequalities,
-  absolute-value, linear-word-problems
+ALGEBRA (domain: algebra, 6 slugs):
+  linear-equations-one-variable
+  linear-equations-two-variables
+  linear-inequalities
+  systems-of-linear-equations
+  systems-of-linear-inequalities
+  absolute-value-equations
 
-ADVANCED MATH (domain: advanced_math):
-  quadratics, quadratic-vertex, polynomials, exponential-functions,
-  rational-expressions, function-notation, function-transformations,
-  radical-equations, exponential-growth-decay, nonlinear-systems,
-  equivalent-expressions, complex-numbers
+ADVANCED MATH (domain: advanced_math, 17 slugs):
+  properties-of-exponents
+  simplifying-algebraic-expressions
+  evaluating-and-interpreting-functions
+  introduction-to-polynomials
+  quadratic-equations-factoring
+  quadratic-equations-quadratic-formula
+  quadratic-functions-vertex-form
+  polynomial-operations
+  rational-expressions
+  radical-expressions
+  exponential-growth-and-decay
+  function-transformations
+  linear-vs-exponential-models
+  nonlinear-systems-of-equations
+  algebraic-manipulation-of-complex-expressions
+  multi-step-problem-solving
+  full-section-strategy
 
-GEOMETRY & TRIGONOMETRY (domain: geometry):
-  triangles, circles, coordinate-geometry, trigonometry, volume,
-  area-perimeter, lines-and-angles, circle-equations, arc-sector,
-  right-triangle-trig, unit-circle
+GEOMETRY & TRIGONOMETRY (domain: geometry, 8 slugs):
+  area-perimeter-and-volume
+  angle-relationships
+  coordinate-plane-geometry
+  triangle-congruence-and-similarity
+  pythagorean-theorem-and-distance-formula
+  trigonometric-ratios
+  circle-equations-in-standard-form
+  arc-length-and-sector-area
 
-PROBLEM-SOLVING & DATA ANALYSIS (domain: data_analysis):
-  ratios-rates, percentages, statistics-center, statistics-spread,
-  statistics-inference, probability, data-interpretation,
-  two-way-tables, scatterplots, unit-conversion, proportional-reasoning
+PROBLEM-SOLVING & DATA ANALYSIS (domain: data_analysis, 9 slugs):
+  ratios-and-proportions
+  percentages
+  unit-rates-and-conversions
+  scatterplots-and-lines-of-best-fit
+  statistical-measures
+  probability-basics
+  two-way-tables
+  statistical-inference-and-margin-of-error
+  interpreting-complex-data
 
-INFORMATION & IDEAS (domain: info_ideas):
-  central-idea, command-of-evidence, inference, quantitative-evidence,
-  purpose-and-function, summarizing, comparing-texts
+INFORMATION & IDEAS (domain: info_ideas, 15 slugs):
+  main-idea-and-central-claims
+  supporting-details-and-evidence
+  inference-and-implicit-meaning
+  central-idea-vs-theme
+  citing-textual-evidence
+  cross-text-synthesis
+  charts-and-data-in-passages
+  interpreting-graphs-alongside-text
+  command-of-evidence-textual
+  command-of-evidence-quantitative
+  counterclaims-and-rebuttals
+  dual-passage-analysis
+  statistical-claim-evaluation
+  information-and-ideas-integration
+  cross-disciplinary-evidence-use
 
-CRAFT & STRUCTURE (domain: craft_structure):
-  words-in-context, rhetorical-purpose, text-structure,
-  cross-text-connections, point-of-view, argument-structure,
-  tone-and-style
+CRAFT & STRUCTURE (domain: craft_structure, 14 slugs):
+  authors-purpose-and-intent
+  text-organization-patterns
+  vocabulary-in-context
+  word-choice-and-connotation
+  rhetorical-appeals
+  tone-and-point-of-view
+  evaluating-argument-strength
+  authorial-perspective-and-bias
+  advanced-argumentation-analysis
+  literary-authorial-purpose
+  nuanced-vocabulary-in-context
+  precise-word-choice-in-context
+  structural-analysis-of-texts
+  logical-structure-of-arguments
 
-EXPRESSION OF IDEAS (domain: expression_ideas):
-  transitions, rhetorical-synthesis, precision, sentence-combining,
-  relevance, introductions-conclusions
+EXPRESSION OF IDEAS (domain: expression_ideas, 6 slugs):
+  transitional-words-and-phrases
+  redundancy-and-conciseness
+  sentence-variety-and-combining
+  multi-paragraph-structure
+  rhetorical-synthesis
+  advanced-transitions-and-cohesion
 
-STANDARD ENGLISH CONVENTIONS (domain: conventions):
-  subject-verb-agreement, punctuation, sentence-boundaries,
-  pronoun-agreement, modifier-placement, parallel-structure,
-  verb-tense, apostrophes, colons-and-dashes, quotation-marks
+STANDARD ENGLISH CONVENTIONS (domain: conventions, 14 slugs):
+  subject-verb-agreement
+  verb-tense
+  pronouns-and-nouns
+  apostrophes-plural-vs-possessive
+  periods-and-semicolons
+  comma-fanboys
+  commas-and-dependent-clauses
+  non-essential-information
+  commas-with-names-and-titles
+  additional-comma-uses-and-misuses
+  colons-and-dashes
+  parallel-structure-and-word-pairs
+  question-marks
+  modifier-placement
 
 ═══════════════════════════════════════════════════
 DIFFICULTY (integer 1-7)
@@ -312,8 +402,12 @@ crop from the source PDF page and bundle into the run output.
 
 For each question whose visual is essential:
 
-  1. Render the source page at a high DPI (e.g.
-     `pdftoppm -r 200 -f <N> -l <N> -png <pdf> page-<N>`).
+  1. Render the source page at 150 DPI (NOT 200 — A4 at 200 DPI
+     produces ~1653×2337 px images, which exceeds Claude Code's
+     2000-px image-dimension cap and breaks the routine mid-run).
+     150 DPI yields ~1240×1755 px, comfortably under the cap and
+     still legible enough to read every question.
+     `pdftoppm -r 150 -f <N> -l <N> -png <pdf> page-<N>`
   2. Crop the visual region (PIL `Image.crop` or ImageMagick).
      Auto-trim white margins for compactness.
   3. Save under `runs/<timestamp>/images/page-<N>.png`.
@@ -415,17 +509,24 @@ at.
 IMPORT LOG
 ═══════════════════════════════════════════════════
 
-Write runs/<timestamp>/import-log.json after every chunk. Schema:
+Write `<run-dir>/import-log.json` after every page (per the FLUSH
+rule above). Schema:
 
 {
-  "run_id": "<ISO timestamp>",
+  "run_id": "<run dir basename>",
+  "status": "in_progress" | "complete" | "failed",
   "started_at": "<ISO>",
-  "ended_at": "<ISO>",
-  "duration_seconds": <int>,
+  "last_updated_at": "<ISO>",
+  "ended_at": "<ISO or null while in_progress>",
+  "duration_seconds": <int or null>,
+  "current_pdf": "<path or null when between PDFs/done>",
   "pdfs_processed": [
     {
       "filename": "<name>.pdf",
+      "source_path": "<path used as source_pdf in CSV rows>",
       "pages": <int>,
+      "last_completed_page": <int — 0 if none yet>,
+      "status": "in_progress" | "complete" | "failed",
       "questions_extracted": <int>,
       "questions_ok": <int>,
       "questions_needs_review": <int>,
@@ -439,13 +540,47 @@ Write runs/<timestamp>/import-log.json after every chunk. Schema:
   }
 }
 
+`last_completed_page` is the resume cursor. On a fresh run it
+starts at 0. After finishing page N it becomes N. On the next
+invocation, processing resumes at page N + 1.
+
 ═══════════════════════════════════════════════════
-RESUMABILITY
+RESUMABILITY + FAILURE MODE
 ═══════════════════════════════════════════════════
 
-If you hit context pressure mid-PDF: flush in-flight rows,
-update import-log, exit cleanly. Next invocation reads the log,
-finds the last processed page, and resumes from the next page.
+ON STARTUP (before doing any vision work):
+  1. Determine the run dir (per RUN DIRECTORY rules above).
+  2. If `<run-dir>/import-log.json` exists, READ it.
+  3. Find the entry in `pdfs_processed` for the current PDF. If
+     `status` is "complete", that PDF is done — skip it (move to
+     done/ if still in incoming/) and continue to the next PDF
+     or exit.
+  4. Otherwise, set the page cursor to `last_completed_page + 1`
+     and resume there. Do NOT re-process earlier pages — the
+     CSVs already contain those rows. (If you accidentally re-emit
+     a row, the DB-level `(source_pdf, content_hash)` unique index
+     will silently dedupe on import, but it wastes vision tokens.)
+
+BEFORE EXITING for any reason other than "all PDFs complete and
+incoming/ is empty" (rate limit, context pressure, unrecoverable
+error, user interrupt):
+  1. Flush any in-flight rows to disk.
+  2. Update import-log.json:
+       · Per-PDF `status` = "in_progress" (or "failed" if the
+         current page genuinely cannot be processed)
+       · Per-PDF `last_completed_page` = the LAST page whose rows
+         are FULLY persisted (do not advance past a partial page)
+       · Top-level `status` = "in_progress" or "failed"
+       · `last_updated_at` = now
+  3. Write a `FAILURE.md` (or `INTERRUPTED.md`) to the run dir
+     with one paragraph explaining what happened and what page
+     the next invocation should pick up at. The launcher's retry
+     loop reads this to decide whether to retry.
+
+NEVER exit silently with a freshly-created run dir and no
+import-log.json. If you got far enough to mkdir the run dir,
+you got far enough to write at least an initial log entry
+recording why nothing else got done.
 
 ═══════════════════════════════════════════════════
 NEVER

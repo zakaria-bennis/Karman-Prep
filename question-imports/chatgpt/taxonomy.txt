@@ -1,0 +1,147 @@
+SAT QUESTION TAXONOMY — locked, never deviate.
+This file is the authoritative reference for the `domain`, `topic_cluster`,
+and `concept_slug` columns of the 30-column extraction CSV. Pick exactly
+one slug per question, never invent a value.
+
+═══════════════════════════════════════════════════════════════
+8 DOMAINS (use as `domain`, UNDERSCORES — never dashes)
+═══════════════════════════════════════════════════════════════
+algebra
+advanced_math
+geometry
+data_analysis
+info_ideas
+craft_structure
+expression_ideas
+conventions
+
+═══════════════════════════════════════════════════════════════
+8 CLUSTERS (use as `topic_cluster`, 1:1 with the domain)
+═══════════════════════════════════════════════════════════════
+algebra            → Algebra
+advanced_math      → Advanced Math
+geometry           → Geometry & Trigonometry
+data_analysis      → Problem-Solving & Data Analysis
+info_ideas         → Information & Ideas
+craft_structure    → Craft & Structure
+expression_ideas   → Expression of Ideas
+conventions        → Standard English Conventions
+
+═══════════════════════════════════════════════════════════════
+89 CONCEPT SLUGS (use as `concept_slug`, exactly ONE per row, DASHES)
+═══════════════════════════════════════════════════════════════
+
+ALGEBRA (6, domain=algebra)
+linear-equations-one-variable
+linear-equations-two-variables
+linear-inequalities
+systems-of-linear-equations
+systems-of-linear-inequalities
+absolute-value-equations
+
+ADVANCED MATH (17, domain=advanced_math)
+properties-of-exponents
+simplifying-algebraic-expressions
+evaluating-and-interpreting-functions
+introduction-to-polynomials
+quadratic-equations-factoring
+quadratic-equations-quadratic-formula
+quadratic-functions-vertex-form
+polynomial-operations
+rational-expressions
+radical-expressions
+exponential-growth-and-decay
+function-transformations
+linear-vs-exponential-models
+nonlinear-systems-of-equations
+algebraic-manipulation-of-complex-expressions
+multi-step-problem-solving
+full-section-strategy
+
+GEOMETRY & TRIGONOMETRY (8, domain=geometry)
+area-perimeter-and-volume
+angle-relationships
+coordinate-plane-geometry
+triangle-congruence-and-similarity
+pythagorean-theorem-and-distance-formula
+trigonometric-ratios
+circle-equations-in-standard-form
+arc-length-and-sector-area
+
+PROBLEM-SOLVING & DATA ANALYSIS (9, domain=data_analysis)
+ratios-and-proportions
+percentages
+unit-rates-and-conversions
+scatterplots-and-lines-of-best-fit
+statistical-measures
+probability-basics
+two-way-tables
+statistical-inference-and-margin-of-error
+interpreting-complex-data
+
+INFORMATION & IDEAS (15, domain=info_ideas)
+main-idea-and-central-claims
+supporting-details-and-evidence
+inference-and-implicit-meaning
+central-idea-vs-theme
+citing-textual-evidence
+cross-text-synthesis
+charts-and-data-in-passages
+interpreting-graphs-alongside-text
+command-of-evidence-textual
+command-of-evidence-quantitative
+counterclaims-and-rebuttals
+dual-passage-analysis
+statistical-claim-evaluation
+information-and-ideas-integration
+cross-disciplinary-evidence-use
+
+CRAFT & STRUCTURE (14, domain=craft_structure)
+authors-purpose-and-intent
+text-organization-patterns
+vocabulary-in-context
+word-choice-and-connotation
+rhetorical-appeals
+tone-and-point-of-view
+evaluating-argument-strength
+authorial-perspective-and-bias
+advanced-argumentation-analysis
+literary-authorial-purpose
+nuanced-vocabulary-in-context
+precise-word-choice-in-context
+structural-analysis-of-texts
+logical-structure-of-arguments
+
+EXPRESSION OF IDEAS (6, domain=expression_ideas)
+transitional-words-and-phrases
+redundancy-and-conciseness
+sentence-variety-and-combining
+multi-paragraph-structure
+rhetorical-synthesis
+advanced-transitions-and-cohesion
+
+STANDARD ENGLISH CONVENTIONS (14, domain=conventions)
+subject-verb-agreement
+verb-tense
+pronouns-and-nouns
+apostrophes-plural-vs-possessive
+periods-and-semicolons
+comma-fanboys
+commas-and-dependent-clauses
+non-essential-information
+commas-with-names-and-titles
+additional-comma-uses-and-misuses
+colons-and-dashes
+parallel-structure-and-word-pairs
+question-marks
+modifier-placement
+
+═══════════════════════════════════════════════════════════════
+Validation rules
+═══════════════════════════════════════════════════════════════
+- domain MUST be one of the 8 values above (underscores).
+- topic_cluster MUST match its domain via the mapping above.
+- concept_slug MUST be one of the 89 values above (dashes).
+- If a question doesn't fit cleanly, pick the closest slug and flag
+  needs_review with reason "Concept slug uncertain: [your alternative]"
+  rather than inventing a new slug.

@@ -13,7 +13,7 @@ import {
   setMessagePinned,
 } from "@/lib/supabase/queries/chat";
 import { getUserUuidByClerkId } from "@/lib/supabase/queries/bookings";
-import { pinMessage, unpinMessage, SlackAdapterError } from "@/lib/slack";
+import { pinMessage, unpinMessage, SlackAdapterError } from "@/lib/integrations/slack";
 
 interface PinRequest {
   messageId: string;

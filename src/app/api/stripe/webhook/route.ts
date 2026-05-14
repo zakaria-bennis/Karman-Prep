@@ -5,9 +5,9 @@
 // ============================================================
 
 import { NextRequest, NextResponse } from "next/server";
-import { stripe } from "@/lib/stripe/client";
+import { stripe } from "@/lib/integrations/stripe/client";
 import { createAdminClient } from "@/lib/supabase/server";
-import { sendWelcomeEmail } from "@/lib/resend/emails";
+import { sendWelcomeEmail } from "@/lib/integrations/resend/emails";
 import {
   dropFromActiveCohort,
   restoreLastCohort,

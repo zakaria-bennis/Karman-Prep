@@ -1,15 +1,18 @@
 // ============================================================
 // GET /api/cron/sync-sat-dates
 //
-// Daily job (run by Vercel Cron, see vercel.json) that re-scrapes
-// the official College Board SAT dates page and upserts any new
-// rows or updated deadlines into public.sat_dates.
+// Daily job that re-scrapes the official College Board SAT dates
+// page and upserts any new rows or updated deadlines into
+// public.sat_dates. Never deletes rows — past test dates stay in
+// the table for historical cohort references. Upsert-only.
 //
-// Never deletes rows — past test dates must stay in the table
-// for historical cohort references. Upsert-only.
+// Trigger: Cloudflare Worker cron schedule "0 6 * * *" in
+// wrangler.toml [triggers].crons, dispatched here by
+// cf-worker-with-cron.js. The dispatcher attaches
+// `Authorization: Bearer <CRON_SECRET>`.
 //
-// Auth: Vercel Cron sends `Authorization: Bearer <CRON_SECRET>`.
-// Set CRON_SECRET in Vercel env vars (and .env.local for testing).
+// Set CRON_SECRET as a Cloudflare Worker secret (and in
+// .env.local for local dev / curl testing).
 // ============================================================
 
 import { NextRequest, NextResponse } from "next/server";

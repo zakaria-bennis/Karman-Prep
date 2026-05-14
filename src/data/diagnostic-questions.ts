@@ -75,28 +75,28 @@ export interface DiagnosticQuestion {
 const QUESTION_POOL: DiagnosticQuestion[] = [
   // ─── ALGEBRA (5) ────────────────────────────────────────────
   {
-    id: "alg-1", domain: "algebra", difficulty: 1, conceptId: "linear-equations",
+    id: "alg-1", domain: "algebra", difficulty: 1, conceptId: "linear-equations-one-variable",
     text: "If $3x + 5 = 26$, what is the value of $x$?",
     options: ["A) $5$", "B) $6$", "C) $7$", "D) $8$"],
     correct: "C",
     explanation: "$3x = 21$, so $x = 7$.",
   },
   {
-    id: "alg-2", domain: "algebra", difficulty: 1, conceptId: "linear-equations",
+    id: "alg-2", domain: "algebra", difficulty: 1, conceptId: "linear-equations-one-variable",
     text: "Which of the following expressions is equivalent to $4(x - 3) + 2x$?",
     options: ["A) $6x - 12$", "B) $6x - 3$", "C) $4x - 12$", "D) $2x - 12$"],
     correct: "A",
     explanation: "$4(x - 3) = 4x - 12$. Adding $2x$ gives $6x - 12$.",
   },
   {
-    id: "alg-3", domain: "algebra", difficulty: 2, conceptId: "systems-of-equations",
+    id: "alg-3", domain: "algebra", difficulty: 2, conceptId: "systems-of-linear-equations",
     text: "If $2x + y = 11$ and $x - y = 1$, what is the value of $x$?",
     options: ["A) $3$", "B) $4$", "C) $5$", "D) $6$"],
     correct: "B",
     explanation: "Adding the two equations gives $3x = 12$, so $x = 4$.",
   },
   {
-    id: "alg-4", domain: "algebra", difficulty: 2, conceptId: "linear-functions",
+    id: "alg-4", domain: "algebra", difficulty: 2, conceptId: "linear-equations-two-variables",
     text: "The function $f$ is defined by $f(x) = 2x + 7$. What is the value of $f(-3)$?",
     options: ["A) $1$", "B) $-1$", "C) $4$", "D) $13$"],
     correct: "A",
@@ -112,21 +112,21 @@ const QUESTION_POOL: DiagnosticQuestion[] = [
 
   // ─── ADVANCED MATH (5) ──────────────────────────────────────
   {
-    id: "adv-1", domain: "advanced_math", difficulty: 1, conceptId: "quadratics",
+    id: "adv-1", domain: "advanced_math", difficulty: 1, conceptId: "quadratic-equations-factoring",
     text: "What are the solutions to the equation $x^2 - 7x + 12 = 0$?",
     options: ["A) $2$ and $6$", "B) $3$ and $4$", "C) $-3$ and $-4$", "D) $1$ and $12$"],
     correct: "B",
     explanation: "Factor: $(x - 3)(x - 4) = 0$, so $x = 3$ or $x = 4$.",
   },
   {
-    id: "adv-2", domain: "advanced_math", difficulty: 2, conceptId: "polynomials",
+    id: "adv-2", domain: "advanced_math", difficulty: 2, conceptId: "introduction-to-polynomials",
     text: "If $p(x) = x^3 - 2x^2 + x - 4$, what is the value of $p(2)$?",
     options: ["A) $-2$", "B) $0$", "C) $2$", "D) $4$"],
     correct: "A",
     explanation: "$p(2) = 8 - 8 + 2 - 4 = -2$.",
   },
   {
-    id: "adv-3", domain: "advanced_math", difficulty: 2, conceptId: "exponential-functions",
+    id: "adv-3", domain: "advanced_math", difficulty: 2, conceptId: "exponential-growth-and-decay",
     text: "A bacterial culture doubles in size every $4$ hours. If the culture starts at $200$ cells, how many cells will be present after $12$ hours?",
     options: ["A) $800$", "B) $1{,}200$", "C) $1{,}600$", "D) $2{,}400$"],
     correct: "C",
@@ -140,7 +140,7 @@ const QUESTION_POOL: DiagnosticQuestion[] = [
     explanation: "$x^2 - 16 = (x - 4)(x + 4)$. Dividing by $(x - 4)$ leaves $x + 4$.",
   },
   {
-    id: "adv-5", domain: "advanced_math", difficulty: 3, conceptId: "quadratic-vertex",
+    id: "adv-5", domain: "advanced_math", difficulty: 3, conceptId: "quadratic-functions-vertex-form",
     text: "The function $f$ is defined by $f(x) = (x - 5)^2 + 3$. The minimum value of $f$ occurs at $x =\\,$?",
     options: ["A) $-5$", "B) $-3$", "C) $3$", "D) $5$"],
     correct: "D",
@@ -149,7 +149,7 @@ const QUESTION_POOL: DiagnosticQuestion[] = [
 
   // ─── PROBLEM-SOLVING & DATA ANALYSIS (5) ────────────────────
   {
-    id: "data-1", domain: "data_analysis", difficulty: 1, conceptId: "ratios-rates",
+    id: "data-1", domain: "data_analysis", difficulty: 1, conceptId: "ratios-and-proportions",
     text: "A recipe uses $3$ cups of flour for every $2$ cups of sugar. How many cups of sugar are needed for $12$ cups of flour?",
     options: ["A) $6$", "B) $8$", "C) $9$", "D) $18$"],
     correct: "B",
@@ -163,21 +163,21 @@ const QUESTION_POOL: DiagnosticQuestion[] = [
     explanation: "$25\\%$ of $\\$80$ is $\\$20$. Sale price $= 80 - 20 = 60$.",
   },
   {
-    id: "data-3", domain: "data_analysis", difficulty: 2, conceptId: "statistics-mean-median",
+    id: "data-3", domain: "data_analysis", difficulty: 2, conceptId: "statistical-measures",
     text: "Five quiz scores are $12$, $14$, $14$, $18$, and $22$. What is the difference between the mean and the median of these scores?",
     options: ["A) $0$", "B) $2$", "C) $3$", "D) $4$"],
     correct: "B",
     explanation: "Mean $= \\dfrac{12+14+14+18+22}{5} = \\dfrac{80}{5} = 16$. Median $= 14$. Difference $= 2$.",
   },
   {
-    id: "data-4", domain: "data_analysis", difficulty: 2, conceptId: "probability",
+    id: "data-4", domain: "data_analysis", difficulty: 2, conceptId: "probability-basics",
     text: "A spinner is divided into $8$ equal sections numbered $1$ through $8$. What is the probability of landing on a number greater than $5$?",
     options: ["A) $\\dfrac{1}{4}$", "B) $\\dfrac{3}{8}$", "C) $\\dfrac{1}{2}$", "D) $\\dfrac{5}{8}$"],
     correct: "B",
     explanation: "Numbers greater than $5$ are $\\{6, 7, 8\\}$ — $3$ out of $8$ equally likely sections.",
   },
   {
-    id: "data-5", domain: "data_analysis", difficulty: 3, conceptId: "data-interpretation",
+    id: "data-5", domain: "data_analysis", difficulty: 3, conceptId: "interpreting-complex-data",
     text: "A study reports a correlation coefficient of $r = 0.84$ between hours studied per week and final exam score. Which of the following statements is best supported by this finding?",
     options: [
       "A) Studying causes higher exam scores.",
@@ -191,35 +191,35 @@ const QUESTION_POOL: DiagnosticQuestion[] = [
 
   // ─── GEOMETRY & TRIG (5) ────────────────────────────────────
   {
-    id: "geo-1", domain: "geometry", difficulty: 1, conceptId: "triangles",
+    id: "geo-1", domain: "geometry", difficulty: 1, conceptId: "triangle-congruence-and-similarity",
     text: "In a right triangle, the legs measure $6$ and $8$. What is the length of the hypotenuse?",
     options: ["A) $10$", "B) $12$", "C) $14$", "D) $\\sqrt{48}$"],
     correct: "A",
     explanation: "By the Pythagorean theorem, $\\sqrt{6^2 + 8^2} = \\sqrt{100} = 10$.",
   },
   {
-    id: "geo-2", domain: "geometry", difficulty: 1, conceptId: "circles",
+    id: "geo-2", domain: "geometry", difficulty: 1, conceptId: "circle-equations-in-standard-form",
     text: "A circle has radius $5$. What is the area of the circle, in terms of $\\pi$?",
     options: ["A) $10\\pi$", "B) $15\\pi$", "C) $20\\pi$", "D) $25\\pi$"],
     correct: "D",
     explanation: "Area $= \\pi r^2 = \\pi (5)^2 = 25\\pi$.",
   },
   {
-    id: "geo-3", domain: "geometry", difficulty: 2, conceptId: "coordinate-geometry",
+    id: "geo-3", domain: "geometry", difficulty: 2, conceptId: "coordinate-plane-geometry",
     text: "What is the distance between the points $(2, -1)$ and $(5, 3)$ in the $xy$-plane?",
     options: ["A) $3$", "B) $4$", "C) $5$", "D) $7$"],
     correct: "C",
     explanation: "Distance $= \\sqrt{(5 - 2)^2 + (3 - (-1))^2} = \\sqrt{9 + 16} = \\sqrt{25} = 5$.",
   },
   {
-    id: "geo-4", domain: "geometry", difficulty: 2, conceptId: "volume",
+    id: "geo-4", domain: "geometry", difficulty: 2, conceptId: "area-perimeter-and-volume",
     text: "A right circular cylinder has radius $3$ and height $10$. What is the volume of the cylinder, in terms of $\\pi$?",
     options: ["A) $30\\pi$", "B) $60\\pi$", "C) $90\\pi$", "D) $100\\pi$"],
     correct: "C",
     explanation: "Volume $= \\pi r^2 h = \\pi (3)^2 (10) = 9\\pi \\cdot 10 = 90\\pi$.",
   },
   {
-    id: "geo-5", domain: "geometry", difficulty: 3, conceptId: "trigonometry",
+    id: "geo-5", domain: "geometry", difficulty: 3, conceptId: "trigonometric-ratios",
     text: "In a right triangle, $\\sin(\\theta) = \\dfrac{5}{13}$. What is the value of $\\cos(\\theta)$?",
     options: ["A) $\\dfrac{5}{12}$", "B) $\\dfrac{12}{13}$", "C) $\\dfrac{13}{12}$", "D) $\\dfrac{12}{5}$"],
     correct: "B",
@@ -235,7 +235,7 @@ const QUESTION_POOL: DiagnosticQuestion[] = [
     id: "info-2",
     domain: "info_ideas",
     difficulty: 2,
-    conceptId: "inference",
+    conceptId: "inference-and-implicit-meaning",
     passageIntro:
       "The following text is adapted from Edith Wharton's 1905 novel The House of Mirth. Lily Bart, a young society woman in financial trouble, has just returned to her aunt's house after a weekend away.",
     passage:
@@ -255,7 +255,7 @@ const QUESTION_POOL: DiagnosticQuestion[] = [
     id: "info-3",
     domain: "info_ideas",
     difficulty: 2,
-    conceptId: "command-of-evidence",
+    conceptId: "command-of-evidence-textual",
     passage:
       "A historian argues that public-health conditions in 19th-century industrial cities improved rapidly only after municipalities built modern water and sewage systems — that earlier reforms, such as bathhouses and street-cleaning, had little measurable effect.",
     text: "Which finding, if true, would most directly support the historian's argument?",
@@ -273,7 +273,7 @@ const QUESTION_POOL: DiagnosticQuestion[] = [
     id: "info-4",
     domain: "info_ideas",
     difficulty: 3,
-    conceptId: "quantitative-evidence",
+    conceptId: "command-of-evidence-quantitative",
     passage:
       "A study of 2,400 high school students reported that those sleeping at least eight hours per night averaged 1,230 on a practice SAT, while those sleeping six hours or fewer averaged 1,080 — a 150-point gap.",
     text: "Which conclusion does the data most directly support?",
@@ -293,7 +293,7 @@ const QUESTION_POOL: DiagnosticQuestion[] = [
     id: "craft-2",
     domain: "craft_structure",
     difficulty: 2,
-    conceptId: "purpose",
+    conceptId: "authors-purpose-and-intent",
     passageIntro:
       "The following text is adapted from a 2018 essay by literary critic Vivian Gornick.",
     passage:
@@ -313,7 +313,7 @@ const QUESTION_POOL: DiagnosticQuestion[] = [
     id: "craft-3",
     domain: "craft_structure",
     difficulty: 2,
-    conceptId: "text-structure",
+    conceptId: "text-organization-patterns",
     passage:
       "The essay opens with a personal anecdote about the author's grandfather's weekly checkers game at the corner pharmacy. From this scene the author develops a broader claim — that small communal rituals are the foundation of civic trust — and supports it with statistics on declining membership in local clubs and associations over the past four decades.",
     text: "Which choice best describes the overall structure of the text?",
@@ -331,7 +331,7 @@ const QUESTION_POOL: DiagnosticQuestion[] = [
     id: "craft-4",
     domain: "craft_structure",
     difficulty: 3,
-    conceptId: "cross-text-connections",
+    conceptId: "cross-text-synthesis",
     passage:
       "Text 1\nUnstructured outdoor play is essential to children's emotional development. Without regular opportunities to invent rules, settle disputes, and take small physical risks on their own, children miss the formative experiences that shape resilience and self-regulation.\n\nText 2\nRecent surveys document that today's children spend less time in unstructured outdoor play than at any point in the past century. So far, however, no measurable population-level decline in emotional well-being among adolescents has been observed.",
     text: "Based on the texts, how would the author of Text 2 most likely respond to the claim made in Text 1?",
@@ -369,7 +369,7 @@ const QUESTION_POOL: DiagnosticQuestion[] = [
     id: "expr-3",
     domain: "expression_ideas",
     difficulty: 2,
-    conceptId: "precision",
+    conceptId: "redundancy-and-conciseness",
     passage:
       "Meteorologists distinguish between several kinds of brief temperature anomalies. The most familiar — and the one residents of the Midwest most often experience in late spring — is a sudden, short return of cold weather after a warm spell, sometimes called a ______.",
     text: "Which choice completes the text with the most logical and precise word or phrase?",
@@ -425,7 +425,7 @@ const QUESTION_POOL: DiagnosticQuestion[] = [
     id: "conv-2",
     domain: "conventions",
     difficulty: 2,
-    conceptId: "pronoun-antecedent-agreement",
+    conceptId: "pronouns-and-nouns",
     passage:
       "Although the orchestra had been together for less than a year, ______ performance of the new symphony on opening night drew sustained applause from every corner of the hall.",
     text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
@@ -443,7 +443,7 @@ const QUESTION_POOL: DiagnosticQuestion[] = [
     id: "conv-3",
     domain: "conventions",
     difficulty: 3,
-    conceptId: "verb-tense-consistency",
+    conceptId: "verb-tense",
     passage:
       "By the time the lighthouse keeper finally spotted the small fishing vessel through the heavy fog, the boat ______ for nearly an hour, its hull battered repeatedly against the rocks at the base of the cliff.",
     text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
@@ -461,7 +461,7 @@ const QUESTION_POOL: DiagnosticQuestion[] = [
     id: "conv-4",
     domain: "conventions",
     difficulty: 3,
-    conceptId: "punctuation",
+    conceptId: "colons-and-dashes",
     passage:
       "The exhibition celebrates a single overlooked influence on nineteenth-century American landscape ______ the bold compositional asymmetries of Japanese woodblock prints.",
     text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
@@ -479,7 +479,7 @@ const QUESTION_POOL: DiagnosticQuestion[] = [
     id: "conv-5",
     domain: "conventions",
     difficulty: 2,
-    conceptId: "sentence-boundaries",
+    conceptId: "periods-and-semicolons",
     passage:
       "The earthquake struck the coastal village just before ______ residents were jolted awake by what one later described as \"the sound of the entire hillside groaning loose.\"",
     text: "Which choice completes the text so that it conforms to the conventions of Standard English?",

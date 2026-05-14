@@ -109,5 +109,5 @@ export function playSound(name: SoundName): void {
 /** Preload all sounds (call once after user interaction to warm the cache) */
 export function preloadSounds(): void {
   if (typeof window === "undefined") return;
-  _cache ?? initCache();
+  if (!_cache) initCache();
 }

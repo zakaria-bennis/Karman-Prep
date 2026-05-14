@@ -11,7 +11,7 @@
 // ============================================================
 
 import { useRef, useState } from "react";
-import { Upload, AlertCircle, FileWarning, FileText, Clipboard } from "lucide-react";
+import { Upload, AlertCircle, FileWarning, FileText, Clipboard, FileCheck2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   CSV_HEADERS,
@@ -39,7 +39,7 @@ function buildBankTemplate(): string {
       '"Type 3x+5=26 into Desmos and read the intersection."',
       "", "", "", "",
       "multiple_choice", "",
-      "algebra", "linear-equations", "extracted",
+      "algebra", "linear-equations-one-variable", "extracted",
       '"sample-pdf.pdf"', "47", '"a3b1c9d4e2f7..."',
       "ok", "", "",
     ].join(","),
@@ -53,6 +53,7 @@ export default function BankImportClient() {
   const [pastedText, setPastedText] = useState("");
   const [preview, setPreview] = useState<BulkImportRow[] | null>(null);
   const [parseError, setParseError] = useState<string | null>(null);
+  const [dragActive, setDragActive] = useState(false);
   const [importing, setImporting] = useState(false);
   const [result, setResult] = useState<BulkImportResult | null>(null);
 
@@ -86,6 +87,32 @@ export default function BankImportClient() {
       setParseError(err instanceof Error ? err.message : "Parse error");
       setPreview(null);
     }
+  }
+
+  function handleDrop(e: React.DragEvent<HTMLDivElement>) {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    const file = e.dataTransfer.files?.[0];
+    if (!file) return;
+    // Accept any single file; parser detects CSV vs JSON by extension.
+    if (!/\.(csv|json|tsv|txt)$/i.test(file.name)) {
+      setParseError(`Expected a .csv or .json file, got "${file.name}".`);
+      return;
+    }
+    handleFile(file);
+  }
+
+  function handleDragOver(e: React.DragEvent<HTMLDivElement>) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!dragActive) setDragActive(true);
+  }
+
+  function handleDragLeave(e: React.DragEvent<HTMLDivElement>) {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
   }
 
   function handleParsePasted() {
@@ -176,7 +203,7 @@ export default function BankImportClient() {
         </div>
 
         {mode === "file" ? (
-          <div className="flex items-center gap-3">
+          <div>
             <input
               ref={fileInputRef}
               type="file"
@@ -184,18 +211,44 @@ export default function BankImportClient() {
               className="hidden"
               onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])}
             />
-            <button
+            <div
               onClick={() => fileInputRef.current?.click()}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-100 text-sm font-semibold hover:bg-slate-700"
+              onDragOver={handleDragOver}
+              onDragEnter={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              className={cn(
+                "rounded-lg border-2 border-dashed px-6 py-10 text-center cursor-pointer transition-colors",
+                dragActive
+                  ? "border-indigo-400 bg-indigo-500/10"
+                  : filename
+                    ? "border-emerald-500/40 bg-emerald-500/5 hover:bg-emerald-500/10"
+                    : "border-slate-700 bg-slate-950/40 hover:border-slate-500 hover:bg-slate-900/60",
+              )}
             >
-              <Upload className="w-3.5 h-3.5" /> Choose file
-            </button>
-            {filename && <span className="text-xs text-slate-500">{filename}</span>}
-            {previewBreakdown && (
-              <span className="text-xs text-slate-500">
-                · {previewBreakdown.ok} ok / {previewBreakdown.flagged} flagged
-              </span>
-            )}
+              {filename ? (
+                <div className="flex flex-col items-center gap-2 text-sm">
+                  <FileCheck2 className="w-8 h-8 text-emerald-400" />
+                  <div className="text-emerald-200 font-semibold">{filename}</div>
+                  <div className="text-xs text-slate-500">
+                    Drop a different file or click to replace
+                    {previewBreakdown && (
+                      <> · {previewBreakdown.ok} ok / {previewBreakdown.flagged} flagged</>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center gap-2 text-sm">
+                  <Upload className={cn("w-8 h-8", dragActive ? "text-indigo-300" : "text-slate-500")} />
+                  <div className={cn("font-semibold", dragActive ? "text-indigo-200" : "text-slate-300")}>
+                    {dragActive ? "Drop the CSV to upload" : "Drag & drop a CSV here"}
+                  </div>
+                  <div className="text-xs text-slate-500">
+                    or click anywhere in this box to choose a file · .csv or .json
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         ) : (
           <div>

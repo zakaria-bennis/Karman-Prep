@@ -452,18 +452,6 @@ function ActiveQuizScreen({
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 mb-4">
               {q.topic_cluster}
             </p>
-            {/* For math questions without a passage, the figure renders
-                here above the question stem. */}
-            {!hasPassage && q.image_url && (
-              <div className="mb-5 rounded-xl overflow-hidden border border-slate-700 bg-slate-950 inline-block max-w-full">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={q.image_url}
-                  alt={q.image_alt ?? ""}
-                  className="max-h-80 w-auto object-contain"
-                />
-              </div>
-            )}
             <h2 className="text-[19px] md:text-[20px] font-medium leading-[1.5] text-slate-100">
               <MathText text={q.question_text} />
             </h2>
@@ -563,6 +551,22 @@ function ActiveQuizScreen({
           </motion.div>
         );
 
+        // Figure card — quiet tinted card that gives the College Board
+        // figure a gentle margin off the dark page bg without shouting.
+        // Used at the top of the left column whenever the question has
+        // an attached image (math graph, R&W chart, geometry diagram).
+        const hasFigure = !!q.image_url;
+        const figureCard = hasFigure ? (
+          <figure className="mb-6 rounded-xl border border-slate-700/50 bg-slate-200 p-3 shadow-md shadow-black/40">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={q.image_url!}
+              alt={q.image_alt ?? ""}
+              className="max-h-[28rem] w-auto mx-auto block object-contain rounded"
+            />
+          </figure>
+        ) : null;
+
         // Passage block (used in left column whenever R&W has passage).
         const passageBlock = (
           <article className="max-w-prose mx-auto font-serif text-[17px] leading-[1.7] text-slate-100">
@@ -597,16 +601,19 @@ function ActiveQuizScreen({
         );
 
         // ── Layout selection ──────────────────────────────────────
-        if (hasPassage) {
-          // R&W: left = passage (+ question/choices stacked under it
-          // when showExplanations), right = question/choices (default)
-          // OR explanations (when showExplanations).
+        // Anything with a passage OR a figure uses the split view.
+        // Left column stacks [figure?, passage?] in that order; right
+        // column has question/choices (default) or explanations.
+        // In explanation mode the question slides under the left
+        // column, mirroring College Board Bluebook behavior.
+        if (hasPassage || hasFigure) {
           return (
             <div className="absolute top-24 inset-x-0 bottom-20 overflow-hidden">
               <div className="h-full grid md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-slate-800">
                 {/* LEFT */}
                 <div className="overflow-y-auto px-6 md:px-10 py-8">
-                  {passageBlock}
+                  {figureCard}
+                  {hasPassage && passageBlock}
                   {inExplanationMode && (
                     <div className="mt-10 pt-6 border-t border-slate-700/50">
                       {questionPanel}

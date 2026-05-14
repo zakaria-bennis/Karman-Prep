@@ -26,102 +26,16 @@ import {
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { createAdminClient } from "@/lib/supabase/server";
 import { DOMAIN_LABELS, type SATDomain, type DomainScores } from "@/types";
+import { domainFromSlug, labelFromSlug } from "@/lib/question-bank/taxonomy";
 
 export const metadata: Metadata = { title: "Progress" };
 export const dynamic = "force-dynamic";
 
-// ─────────────────────────────────────────────────────────────
-// Slug → label / domain tables for the diagnostic's topic
-// taxonomy. Centralized so the same mapping is used when the
-// constellation graph eventually adopts these slugs.
-// ─────────────────────────────────────────────────────────────
-const TOPIC_LABELS: Record<string, string> = {
-  // Math — Algebra
-  "linear-equations": "Linear equations",
-  "systems-of-equations": "Systems of equations",
-  "linear-inequalities": "Linear inequalities",
-  inequalities: "Inequalities",
-  "linear-functions": "Linear functions",
-  // Math — Advanced
-  quadratics: "Quadratic equations",
-  "quadratic-vertex": "Quadratic vertex form",
-  polynomials: "Polynomial functions",
-  "exponential-functions": "Exponential functions",
-  "rational-expressions": "Rational expressions",
-  // Math — Geometry & Trig
-  triangles: "Triangles",
-  circles: "Circles",
-  "coordinate-geometry": "Coordinate geometry",
-  trigonometry: "Trigonometry",
-  volume: "Volume",
-  // Math — Problem-solving & Data
-  "ratios-rates": "Ratios & rates",
-  percentages: "Percentages",
-  "statistics-mean-median": "Mean & median",
-  statistics: "Statistics",
-  probability: "Probability",
-  "data-interpretation": "Data interpretation",
-  // R&W — Information & Ideas
-  "central-idea": "Central idea",
-  "command-of-evidence": "Command of evidence",
-  inference: "Inference",
-  "quantitative-evidence": "Quantitative evidence",
-  // R&W — Craft & Structure
-  "words-in-context": "Words in context",
-  purpose: "Author's purpose",
-  "text-structure": "Text structure",
-  "cross-text-connections": "Cross-text connections",
-  // R&W — Expression of Ideas
-  transitions: "Transitions",
-  "rhetorical-synthesis": "Rhetorical synthesis",
-  precision: "Precision",
-  // R&W — Standard English Conventions
-  "subject-verb-agreement": "Subject-verb agreement",
-  punctuation: "Punctuation",
-  "sentence-boundaries": "Sentence boundaries",
-};
-
-const TOPIC_DOMAIN: Record<string, SATDomain> = {
-  "linear-equations": "algebra",
-  "systems-of-equations": "algebra",
-  "linear-inequalities": "algebra",
-  inequalities: "algebra",
-  "linear-functions": "algebra",
-  quadratics: "advanced_math",
-  "quadratic-vertex": "advanced_math",
-  polynomials: "advanced_math",
-  "exponential-functions": "advanced_math",
-  "rational-expressions": "advanced_math",
-  triangles: "geometry",
-  circles: "geometry",
-  "coordinate-geometry": "geometry",
-  trigonometry: "geometry",
-  volume: "geometry",
-  "ratios-rates": "data_analysis",
-  percentages: "data_analysis",
-  "statistics-mean-median": "data_analysis",
-  statistics: "data_analysis",
-  probability: "data_analysis",
-  "data-interpretation": "data_analysis",
-  "central-idea": "info_ideas",
-  "command-of-evidence": "info_ideas",
-  inference: "info_ideas",
-  "quantitative-evidence": "info_ideas",
-  "words-in-context": "craft_structure",
-  purpose: "craft_structure",
-  "text-structure": "craft_structure",
-  "cross-text-connections": "craft_structure",
-  transitions: "expression_ideas",
-  "rhetorical-synthesis": "expression_ideas",
-  precision: "expression_ideas",
-  "subject-verb-agreement": "conventions",
-  punctuation: "conventions",
-  "sentence-boundaries": "conventions",
-};
-
-function topicLabel(slug: string): string {
-  return TOPIC_LABELS[slug] ?? slug.replace(/-/g, " ");
-}
+// Slug → label and slug → domain are derived from the canonical
+// taxonomy in `lib/question-bank/taxonomy.ts` (which is itself
+// derived from `data/curriculum.ts`). Keeping the source of truth
+// in one place means a topic rename only needs editing curriculum.ts.
+const topicLabel = labelFromSlug;
 
 function domainHeatColor(score: number): string {
   if (score >= 70) return "#22C55E";
@@ -192,7 +106,7 @@ export default async function StudentProgressPage() {
   };
   if (latest?.weak_concepts) {
     for (const slug of latest.weak_concepts) {
-      const dom = TOPIC_DOMAIN[slug];
+      const dom = domainFromSlug(slug);
       if (!dom) continue;
       weakByDomain[dom].push(slug);
     }

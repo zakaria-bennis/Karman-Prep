@@ -7,8 +7,9 @@ import Link from "next/link";
 import { ChevronRight, Inbox } from "lucide-react";
 import { createAdminClient } from "@/lib/supabase/server";
 import { groupNodesForAdmin, SUBJECT_LABELS, nodeAtmosphere, ATMOSPHERE_COLORS } from "@/data/curriculum";
-import { fetchFlaggedQuestions } from "@/lib/supabase/queries/quiz";
+import { fetchFlaggedQuestions, fetchFlaggedQuestionCount } from "@/lib/supabase/queries/quiz";
 import FlagReviewList from "@/components/admin/FlagReviewList";
+import NodeQuestionSearch from "@/components/admin/NodeQuestionSearch";
 
 export const metadata: Metadata = { title: "Admin — Curriculum | Karman" };
 
@@ -50,16 +51,49 @@ export default async function AdminCurriculumPage({ searchParams }: PageProps) {
   const activeTab = tab === "flagged" ? "flagged" : "nodes";
 
   const grouped = groupNodesForAdmin();
-  const [counts, bankCount, flagged] = await Promise.all([
+  // Always fetch the unresolved-flag COUNT so the blue badge on the
+  // Flagged tab is accurate even while the user is on the Nodes tab.
+  // Only fetch the FULL flag list (with joined questions) when the
+  // user is actually on the Flagged tab — that payload is heavy.
+  const [counts, bankCount, flaggedCount, flagged] = await Promise.all([
     fetchQuestionCounts(),
     fetchBankCount(),
+    fetchFlaggedQuestionCount(),
     activeTab === "flagged" ? fetchFlaggedQuestions() : Promise.resolve([]),
   ]);
 
+  // Total live questions across every curriculum node — the main
+  // headline metric. Sum of the per-node map (which already filters
+  // to import_status=ok and node_id IS NOT NULL).
+  const totalAttached = Array.from(counts.values()).reduce((a, b) => a + b, 0);
+
   return (
     <div className="max-w-6xl mx-auto px-5 py-8">
-      {/* Top tabs */}
-      <div className="mb-6 border-b border-slate-800 flex gap-1 text-sm">
+      {/* Page header — total counts at a glance */}
+      <header className="mb-6">
+        <h1 className="text-2xl font-bold text-white">Curriculum</h1>
+        <div className="mt-1.5 flex flex-wrap items-baseline gap-x-4 gap-y-1 text-xs text-slate-400">
+          <span>
+            <span className="text-base font-bold text-white">{totalAttached.toLocaleString()}</span>
+            <span className="ml-1.5">question{totalAttached === 1 ? "" : "s"} across all nodes</span>
+          </span>
+          {bankCount > 0 && (
+            <span>
+              <span className="text-sm font-semibold text-indigo-300">{bankCount.toLocaleString()}</span>
+              <span className="ml-1.5">in bank</span>
+            </span>
+          )}
+          {flaggedCount > 0 && (
+            <span>
+              <span className="text-sm font-semibold text-amber-300">{flaggedCount.toLocaleString()}</span>
+              <span className="ml-1.5">flagged</span>
+            </span>
+          )}
+        </div>
+      </header>
+
+      {/* Tabs row + search bar (top-right) */}
+      <div className="mb-6 border-b border-slate-800 flex items-center gap-1 text-sm">
         <Link
           href="/admin/curriculum"
           className={`px-4 pb-3 font-semibold border-b-2 ${activeTab === "nodes" ? "border-indigo-500 text-indigo-400" : "border-transparent text-slate-500 hover:text-slate-200"}`}
@@ -68,10 +102,22 @@ export default async function AdminCurriculumPage({ searchParams }: PageProps) {
         </Link>
         <Link
           href="/admin/curriculum?tab=flagged"
-          className={`px-4 pb-3 font-semibold border-b-2 ${activeTab === "flagged" ? "border-indigo-500 text-indigo-400" : "border-transparent text-slate-500 hover:text-slate-200"}`}
+          className={`px-4 pb-3 font-semibold border-b-2 inline-flex items-center gap-2 ${activeTab === "flagged" ? "border-indigo-500 text-indigo-400" : "border-transparent text-slate-500 hover:text-slate-200"}`}
         >
-          Flagged {flagged.length > 0 && <span className="text-rose-400">({flagged.length})</span>}
+          Flagged
+          {flaggedCount > 0 && (
+            <span
+              aria-label={`${flaggedCount} unresolved flag${flaggedCount === 1 ? "" : "s"}`}
+              className="inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 rounded-full bg-blue-500 text-white text-[11px] font-bold leading-none"
+            >
+              {flaggedCount}
+            </span>
+          )}
         </Link>
+        {/* Search bar: bottom-aligned with the tabs, pushed to the right */}
+        <div className="ml-auto pb-2">
+          <NodeQuestionSearch />
+        </div>
       </div>
 
       {/* Bank-count chip — visible only when there are questions waiting */}
@@ -90,10 +136,6 @@ export default async function AdminCurriculumPage({ searchParams }: PageProps) {
 
       {activeTab === "nodes" ? (
         <div className="space-y-10">
-          <p className="text-sm text-slate-400 max-w-2xl">
-            Pick a node to manage its <span className="text-white">questions</span>, <span className="text-white">textbook page</span>, and <span className="text-white">video</span>. Question counts appear next to each node.
-          </p>
-
           {(["reading", "math"] as const).map((subject) => (
             <section key={subject}>
               <h2 className="text-xs font-bold text-slate-400 uppercase tracking-[0.25em] mb-4">

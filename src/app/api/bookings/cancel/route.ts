@@ -13,7 +13,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-import { cancelBooking, CalAdapterError } from "@/lib/cal";
+import { cancelBooking, CalAdapterError } from "@/lib/integrations/cal";
 import {
   findBookingById,
   getUserUuidByClerkId,

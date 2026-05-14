@@ -156,14 +156,6 @@ export function QuestionPreview({ q }: { q: QuizQuestionWithChoices }) {
       <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 mb-4">
         {q.topic_cluster}
       </p>
-      {!hasPassage && q.image_url && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={q.image_url}
-          alt={q.image_alt ?? ""}
-          className="mb-5 max-h-80 rounded-xl border border-slate-700 bg-slate-950 object-contain"
-        />
-      )}
       <h2 className="text-[19px] md:text-[20px] font-medium leading-[1.5] text-slate-100">
         <MathText text={q.question_text} />
       </h2>
@@ -255,6 +247,19 @@ export function QuestionPreview({ q }: { q: QuizQuestionWithChoices }) {
     </motion.div>
   );
 
+  // Quiet tinted card matching the QuizEngine treatment.
+  const hasFigure = !!q.image_url;
+  const figureCard = hasFigure ? (
+    <figure className="mb-6 rounded-xl border border-slate-700/50 bg-slate-200 p-3 shadow-md shadow-black/40">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={q.image_url!}
+        alt={q.image_alt ?? ""}
+        className="max-h-[28rem] w-auto mx-auto block object-contain rounded"
+      />
+    </figure>
+  ) : null;
+
   const passageBlock = (
     <article className="max-w-prose mx-auto font-serif text-[17px] leading-[1.7] text-slate-100">
       {q.passage_a && q.passage_b ? (
@@ -288,12 +293,13 @@ export function QuestionPreview({ q }: { q: QuizQuestionWithChoices }) {
   );
 
   // ── Layout ───────────────────────────────────────────────────
-  if (hasPassage) {
+  if (hasPassage || hasFigure) {
     return (
       <div className="grid md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-slate-800 min-h-[640px]">
         {/* LEFT */}
         <div className="px-6 md:px-10 py-8 overflow-y-auto max-h-[calc(100vh-13rem)]">
-          {passageBlock}
+          {figureCard}
+          {hasPassage && passageBlock}
           {inExplanationMode && (
             <div className="mt-10 pt-6 border-t border-slate-700/50">{questionPanel}</div>
           )}

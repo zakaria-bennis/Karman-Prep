@@ -175,6 +175,32 @@ export async function bulkImportRows(
       if (r.concept_slug && !isValidSlug(r.concept_slug)) {
         throw new Error(`unknown concept_slug "${r.concept_slug}"`);
       }
+
+      // ── Auto-flag every image-bearing row ────────────────
+      // Image extraction is the failure-prone step in the GPT
+      // pipeline (vision crops can clip, embedded extracts can
+      // pick up logos). Flag every image row so it lands in
+      // /admin/questions/review for a quick visual sanity check
+      // before going live in Learn. If the GPT already flagged
+      // for a different reason (e.g. inferred answer key), keep
+      // the original reason — we just need it in the review
+      // queue, not necessarily for image-specific reasons.
+      if (r.image_url?.trim()) {
+        if (r.import_status !== "needs_review") {
+          r.import_status = "needs_review";
+          r.import_flag_type = r.import_flag_type ?? "partial_emit";
+          const where = [
+            r.source_pdf,
+            r.source_page !== undefined && r.source_page !== ""
+              ? `page ${r.source_page}`
+              : null,
+          ].filter(Boolean).join(" · ");
+          r.import_flag_reason = where
+            ? `Image attached — verify the figure was extracted correctly (${where}).`
+            : "Image attached — verify the figure was extracted correctly.";
+        }
+      }
+
       if (r.import_status === "needs_review" && !r.import_flag_reason?.trim()) {
         throw new Error("needs_review row missing import_flag_reason");
       }

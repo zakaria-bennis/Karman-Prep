@@ -21,7 +21,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
-import { resend, FROM } from "@/lib/resend/client";
+import { resend, FROM } from "@/lib/integrations/resend/client";
 
 export const runtime = "nodejs";
 

@@ -33,7 +33,7 @@ import {
 } from "@/lib/supabase/queries/chat";
 import { getUserUuidByClerkId } from "@/lib/supabase/queries/bookings";
 import { moderateMessage } from "@/lib/moderation/pipeline";
-import { postMessage as slackPostMessage, SlackAdapterError } from "@/lib/slack";
+import { postMessage as slackPostMessage, SlackAdapterError } from "@/lib/integrations/slack";
 
 interface SendRequest {
   channelId: string;

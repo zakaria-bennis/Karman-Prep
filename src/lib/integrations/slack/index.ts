@@ -1,5 +1,5 @@
 // ============================================================
-// Slack adapter barrel — `import { ... } from "@/lib/slack"`
+// Slack adapter barrel — `import { ... } from "@/lib/integrations/slack"`
 // ============================================================
 
 export {

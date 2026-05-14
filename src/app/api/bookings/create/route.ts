@@ -15,13 +15,13 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { auth, currentUser } from "@clerk/nextjs/server";
-import { createBooking, CalAdapterError } from "@/lib/cal";
+import { createBooking, CalAdapterError } from "@/lib/integrations/cal";
 import {
   enableMeetingRegistration,
   extractZoomMeetingId,
   registerAttendee,
   ZoomAdapterError,
-} from "@/lib/zoom";
+} from "@/lib/integrations/zoom";
 import { createAdminClient } from "@/lib/supabase/server";
 import {
   canSelfBook,

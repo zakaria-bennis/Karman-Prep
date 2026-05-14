@@ -27,8 +27,8 @@ import {
   sendBookingConfirmation,
   sendBookingCancellation,
   sendBookingReschedule,
-} from "@/lib/resend/booking-emails";
-import { extractZoomMeetingId } from "@/lib/zoom/url";
+} from "@/lib/integrations/resend/booking-emails";
+import { extractZoomMeetingId } from "@/lib/integrations/zoom/url";
 import {
   consumeTokenForBooking,
   releaseTokenFromBooking,

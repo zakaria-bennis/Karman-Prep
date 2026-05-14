@@ -1,5 +1,5 @@
 // ============================================================
-// Zoom adapter barrel — `import { ... } from "@/lib/zoom"`
+// Zoom adapter barrel — `import { ... } from "@/lib/integrations/zoom"`
 // ============================================================
 
 export {
