@@ -169,8 +169,11 @@ export async function POST(req: NextRequest) {
       parent_message_id: body.parentMessageId ?? null,
       moderation_status: "rejected",
       keyword_flagged: outcome.layer === "keyword",
-      ai_flagged: outcome.layer === "ai",
-      ai_flag_reason: outcome.layer === "ai" ? outcome.reason : null,
+      // Karman classifier rejections are AI-driven too — record them
+      // as ai_flagged with the layer source visible in the reason
+      // string so the moderation queue can group them.
+      ai_flagged: outcome.layer === "ai" || outcome.layer === "karman",
+      ai_flag_reason: outcome.layer === "ai" || outcome.layer === "karman" ? outcome.reason : null,
       rejection_message: outcome.rejection_message,
       cohort_label: channel.display_name,
     });

@@ -99,8 +99,11 @@ export async function POST(req: NextRequest) {
       media_urls: body.mediaUrls ?? [],
       moderation_status: "rejected",
       keyword_flagged: outcome.layer === "keyword",
-      ai_flagged: outcome.layer === "ai",
-      ai_flag_reason: outcome.layer === "ai" ? outcome.reason : null,
+      // Karman classifier rejections are AI-driven too — record them
+      // as ai_flagged with the layer source visible in the reason
+      // string so the moderation queue can group them.
+      ai_flagged: outcome.layer === "ai" || outcome.layer === "karman",
+      ai_flag_reason: outcome.layer === "ai" || outcome.layer === "karman" ? outcome.reason : null,
       rejection_message: outcome.rejection_message,
     });
     return NextResponse.json(
