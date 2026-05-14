@@ -11,11 +11,17 @@ import { describe, expect, it } from "vitest";
 import {
   bulkImportInputSchema,
   bulkImportRowSchema,
+  cohortMemberMutationInputSchema,
+  createCohortInputSchema,
+  impersonateRoleSchema,
+  linkParentStudentInputSchema,
   newQuestionInputSchema,
   quizDifficultyLevelSchema,
   quizDifficultySchema,
   reorderQuestionsInputSchema,
   saveVideoURLInputSchema,
+  searchBankQuestionsInputSchema,
+  setUserRoleInputSchema,
   updateQuestionInputSchema,
 } from "./schemas";
 
@@ -294,5 +300,156 @@ describe("reorderQuestionsInputSchema", () => {
       nodeId: "ma-00",
     });
     expect(r.success).toBe(false);
+  });
+});
+
+describe("impersonateRoleSchema", () => {
+  it.each(["student", "tutor", "parent"] as const)("accepts %s", (r) => {
+    expect(impersonateRoleSchema.parse(r)).toBe(r);
+  });
+
+  it("rejects 'admin' — an admin impersonating as admin is meaningless", () => {
+    expect(impersonateRoleSchema.safeParse("admin").success).toBe(false);
+  });
+
+  it("rejects unknown roles", () => {
+    expect(impersonateRoleSchema.safeParse("guest").success).toBe(false);
+  });
+});
+
+describe("searchBankQuestionsInputSchema", () => {
+  it("accepts a 2-char query", () => {
+    const r = searchBankQuestionsInputSchema.safeParse({ query: "ab" });
+    expect(r.success).toBe(true);
+  });
+
+  it("rejects a 1-char query (the existing 'noisy' threshold)", () => {
+    const r = searchBankQuestionsInputSchema.safeParse({ query: "a" });
+    expect(r.success).toBe(false);
+  });
+
+  it("rejects an empty query", () => {
+    expect(searchBankQuestionsInputSchema.safeParse({ query: "" }).success).toBe(false);
+  });
+});
+
+describe("createCohortInputSchema", () => {
+  const valid = {
+    name: "May 2027 SAT Cohort",
+    tier: "small_group" as const,
+    sat_date: "2027-05-01",
+    tutor_user_id: "user-abc",
+    max_size: 5,
+  };
+
+  it("accepts a well-formed small_group cohort", () => {
+    expect(createCohortInputSchema.safeParse(valid).success).toBe(true);
+  });
+
+  it("trims whitespace from name", () => {
+    const r = createCohortInputSchema.parse({ ...valid, name: "   trim me   " });
+    expect(r.name).toBe("trim me");
+  });
+
+  it("rejects an empty name (post-trim)", () => {
+    expect(createCohortInputSchema.safeParse({ ...valid, name: "   " }).success).toBe(false);
+  });
+
+  it("rejects an unknown tier", () => {
+    expect(createCohortInputSchema.safeParse({ ...valid, tier: "private" }).success).toBe(false);
+  });
+
+  it("rejects an ISO timestamp instead of YYYY-MM-DD", () => {
+    expect(
+      createCohortInputSchema.safeParse({ ...valid, sat_date: "2027-05-01T00:00:00Z" }).success
+    ).toBe(false);
+  });
+
+  it("rejects max_size > tier cap (small_group: 5)", () => {
+    expect(createCohortInputSchema.safeParse({ ...valid, max_size: 6 }).success).toBe(false);
+  });
+
+  it("rejects max_size > tier cap (group: 200)", () => {
+    expect(
+      createCohortInputSchema.safeParse({ ...valid, tier: "group", max_size: 201 }).success
+    ).toBe(false);
+  });
+
+  it("rejects non-integer max_size", () => {
+    expect(createCohortInputSchema.safeParse({ ...valid, max_size: 3.5 }).success).toBe(false);
+  });
+
+  it("rejects zero or negative max_size", () => {
+    expect(createCohortInputSchema.safeParse({ ...valid, max_size: 0 }).success).toBe(false);
+    expect(createCohortInputSchema.safeParse({ ...valid, max_size: -1 }).success).toBe(false);
+  });
+});
+
+describe("setUserRoleInputSchema", () => {
+  it("accepts each valid AppRole", () => {
+    for (const role of ["student", "tutor", "parent", "admin"] as const) {
+      const r = setUserRoleInputSchema.safeParse({ targetUserId: "u1", nextRole: role });
+      expect(r.success).toBe(true);
+    }
+  });
+
+  it("rejects unknown roles", () => {
+    expect(
+      setUserRoleInputSchema.safeParse({ targetUserId: "u1", nextRole: "superadmin" }).success
+    ).toBe(false);
+  });
+
+  it("rejects empty targetUserId", () => {
+    expect(setUserRoleInputSchema.safeParse({ targetUserId: "", nextRole: "tutor" }).success).toBe(
+      false
+    );
+  });
+});
+
+describe("linkParentStudentInputSchema", () => {
+  it("accepts two distinct non-empty IDs", () => {
+    const r = linkParentStudentInputSchema.safeParse({
+      parentUserId: "p1",
+      studentUserId: "s1",
+    });
+    expect(r.success).toBe(true);
+  });
+
+  it("rejects when parent === student (would create a self-link)", () => {
+    expect(
+      linkParentStudentInputSchema.safeParse({
+        parentUserId: "u1",
+        studentUserId: "u1",
+      }).success
+    ).toBe(false);
+  });
+
+  it("rejects empty IDs", () => {
+    expect(
+      linkParentStudentInputSchema.safeParse({ parentUserId: "", studentUserId: "s1" }).success
+    ).toBe(false);
+  });
+});
+
+describe("cohortMemberMutationInputSchema", () => {
+  it("accepts two non-empty IDs", () => {
+    expect(
+      cohortMemberMutationInputSchema.safeParse({
+        cohortId: "c1",
+        studentUserId: "s1",
+      }).success
+    ).toBe(true);
+  });
+
+  it("rejects empty cohortId", () => {
+    expect(
+      cohortMemberMutationInputSchema.safeParse({ cohortId: "", studentUserId: "s1" }).success
+    ).toBe(false);
+  });
+
+  it("rejects empty studentUserId", () => {
+    expect(
+      cohortMemberMutationInputSchema.safeParse({ cohortId: "c1", studentUserId: "" }).success
+    ).toBe(false);
   });
 });

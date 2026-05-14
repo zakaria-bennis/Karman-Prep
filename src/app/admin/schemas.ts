@@ -229,3 +229,89 @@ export const uploadQuestionImageArgsSchema = z.object({
   nodeId: nonEmptyString,
   alt: z.string().nullable(),
 });
+
+// ── Schemas for the other 6 admin server-action files ────────
+// Same gate-at-the-boundary pattern as the main actions.ts schemas
+// above. Kept here (rather than in per-area sibling files) so the
+// admin surface has one canonical schema home.
+
+// AppRole values match @/lib/supabase/queries/admin AppRole. Updates
+// here must stay in lockstep with that type.
+export const appRoleSchema = z.enum(["student", "tutor", "admin", "parent"]);
+
+// Impersonation can target anyone EXCEPT admin — an admin can't
+// impersonate as another admin (no point + would be confusing).
+// Mirrors `type ImpersonateRole = Exclude<AppRole, "admin">`.
+export const impersonateRoleSchema = z.enum(["student", "tutor", "parent"]);
+
+// CohortTier + CohortStatus from @/lib/supabase/queries/cohorts.
+export const cohortTierSchema = z.enum(["group", "small_group"]);
+export const cohortStatusSchema = z.enum(["forming", "active", "completed"]);
+
+// Per-tier max cohort size — mirrored from migration 006's CHECK
+// constraint. Update in lockstep with the DB.
+const TIER_MAX_CAP: Record<z.infer<typeof cohortTierSchema>, number> = {
+  small_group: 5,
+  group: 200,
+};
+
+// ── impersonation-actions.ts ──────────────────────────────
+export const setImpersonationInputSchema = z.object({
+  role: impersonateRoleSchema,
+});
+
+// ── curriculum/search-actions.ts ──────────────────────────
+export const searchBankQuestionsInputSchema = z.object({
+  // 1-char hits are noisy and the action filters them anyway, but
+  // gating at the schema makes the contract explicit.
+  query: z.string().min(2, "query must be at least 2 chars"),
+});
+
+// ── cohorts/actions.ts ────────────────────────────────────
+export const createCohortInputSchema = z
+  .object({
+    name: z
+      .string()
+      .min(1, "name is required")
+      .transform((s) => s.trim())
+      .pipe(z.string().min(1, "name cannot be whitespace-only")),
+    tier: cohortTierSchema,
+    // YYYY-MM-DD only; rejects ISO timestamps and free-form dates.
+    sat_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "sat_date must be YYYY-MM-DD"),
+    tutor_user_id: nonEmptyString,
+    max_size: z.number().int().positive(),
+    current_topic: z.string().nullable().optional(),
+    status: cohortStatusSchema.optional(),
+  })
+  .refine((d) => d.max_size <= TIER_MAX_CAP[d.tier], {
+    message: "max_size exceeds the per-tier cap (group: 200, small_group: 5)",
+    path: ["max_size"],
+  });
+
+// ── users/actions.ts ──────────────────────────────────────
+export const setUserRoleInputSchema = z.object({
+  targetUserId: nonEmptyString,
+  nextRole: appRoleSchema,
+});
+
+export const linkParentStudentInputSchema = z
+  .object({
+    parentUserId: nonEmptyString,
+    studentUserId: nonEmptyString,
+  })
+  .refine((d) => d.parentUserId !== d.studentUserId, {
+    message: "parent and student cannot be the same user",
+    path: ["studentUserId"],
+  });
+
+export const unlinkParentStudentInputSchema = z.object({
+  parentUserId: nonEmptyString,
+  studentUserId: nonEmptyString,
+});
+
+// ── cohorts/[id]/members-actions.ts ───────────────────────
+// Same shape for add + remove — kept as one schema (used twice).
+export const cohortMemberMutationInputSchema = z.object({
+  cohortId: nonEmptyString,
+  studentUserId: nonEmptyString,
+});
