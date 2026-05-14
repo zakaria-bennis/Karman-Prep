@@ -21,6 +21,9 @@ import type {
   ConfidenceBand,
   FlaggedQuestion,
 } from "@/types/quiz";
+import type { Database, Json } from "@/types/supabase";
+
+type QuizQuestionUpdate = Database["public"]["Tables"]["quiz_questions"]["Update"];
 
 // ── Live-question filter ─────────────────────────────────────
 // PDF-imported questions land with import_status = 'needs_review'
@@ -336,7 +339,7 @@ export async function acceptFlaggedQuestion(
   opts: { nodeId?: string | null } = {}
 ): Promise<void> {
   const supabase = createAdminClient();
-  const patch: Record<string, unknown> = {
+  const patch: QuizQuestionUpdate = {
     import_status: "ok",
     import_flag_type: null,
     import_flag_reason: null,
@@ -438,7 +441,7 @@ export async function createQuizAttempt(studentId: string, nodeId: string): Prom
     .select()
     .single();
   if (error || !data) throw error ?? new Error("Failed to create quiz attempt");
-  return data as QuizAttempt;
+  return data as unknown as QuizAttempt;
 }
 
 export async function finalizeQuizAttempt(
@@ -459,7 +462,7 @@ export async function finalizeQuizAttempt(
       questions_answered: input.questions_answered,
       questions_correct: input.questions_correct,
       confidence_band: input.confidence_band,
-      adaptive_path: input.adaptive_path,
+      adaptive_path: input.adaptive_path as unknown as Json,
       completed_at: new Date().toISOString(),
     })
     .eq("id", attemptId);
@@ -492,7 +495,7 @@ export async function fetchAttemptsForNode(
     .eq("node_id", nodeId)
     .order("attempt_number", { ascending: false });
   if (error) throw error;
-  return (data ?? []) as QuizAttempt[];
+  return (data ?? []) as unknown as QuizAttempt[];
 }
 
 export async function fetchAllAttemptsForStudent(studentId: string): Promise<QuizAttempt[]> {
@@ -503,7 +506,7 @@ export async function fetchAllAttemptsForStudent(studentId: string): Promise<Qui
     .eq("student_id", studentId)
     .order("started_at", { ascending: false });
   if (error) throw error;
-  return (data ?? []) as QuizAttempt[];
+  return (data ?? []) as unknown as QuizAttempt[];
 }
 
 export async function fetchResponsesForAttempt(attemptId: string): Promise<QuestionResponse[]> {

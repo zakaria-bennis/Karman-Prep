@@ -42,6 +42,9 @@ next-env.d.ts
 # Claude Code (local scratchpad, worktrees, session state)
 .claude/
 
+# Supabase CLI local state (version cache, project link, etc.)
+/supabase/.temp/
+
 # PDF-ingestion routine — keep folder structure + README/prompt
 # in repo, ignore everything else (PDFs, run outputs, logs). The
 # .gitkeep file in each subdir preserves the directory.

@@ -8,6 +8,7 @@ import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/server";
 import StudentDashboardClient from "@/components/dashboard/StudentDashboardClient";
+import type { DomainScores } from "@/types";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
@@ -64,7 +65,15 @@ export default async function StudentDashboardPage() {
       user={user}
       progress={progress || []}
       nodeStatuses={nodeStatuses as Map<string, import("@/data/curriculum").NodeStatus>}
-      diagnostic={diagnostic}
+      diagnostic={
+        diagnostic
+          ? {
+              score_range_low: diagnostic.score_range_low,
+              score_range_high: diagnostic.score_range_high,
+              domain_scores: diagnostic.domain_scores as unknown as DomainScores,
+            }
+          : null
+      }
       subscription={sub}
     />
   );

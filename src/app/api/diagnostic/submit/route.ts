@@ -22,6 +22,7 @@ import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/server";
 import { scoreDiagnostic, type AnswerInput } from "@/lib/diagnostic-scoring";
 import { SAT_DOMAINS } from "@/lib/question-bank/taxonomy";
+import type { Json } from "@/types/supabase";
 
 // Zod schema = source of truth. The TypeScript type is derived,
 // not duplicated, via z.infer<>.
@@ -90,7 +91,7 @@ export async function POST(req: NextRequest) {
         // 200-800 — handle both shapes when reading.
         score_range_low: result.totalLow,
         score_range_high: result.totalHigh,
-        domain_scores: result.domainScores,
+        domain_scores: result.domainScores as unknown as Json,
         weak_concepts: result.weakConcepts,
       })
       .select()

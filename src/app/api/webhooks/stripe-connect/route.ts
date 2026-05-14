@@ -25,6 +25,7 @@ import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createAdminClient } from "@/lib/supabase/server";
 import { resend, FROM } from "@/lib/integrations/resend/client";
+import type { Json } from "@/types/supabase";
 
 export const runtime = "nodejs";
 
@@ -66,7 +67,7 @@ export async function POST(request: Request) {
       source: "stripe_connect",
       external_event_id: event.id,
       event_type: event.type,
-      raw_payload: event as unknown as Record<string, unknown>,
+      raw_payload: event as unknown as Json,
     })
     .select("id")
     .single();

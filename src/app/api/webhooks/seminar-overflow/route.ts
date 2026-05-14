@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
     await Promise.all([
       supa
         .from("cohorts")
-        .select("id, name, tier, tutor_user_id, sat_date")
+        .select("id, name, tier, tutor_user_id, sat_date, max_size")
         .eq("id", cohortId)
         .maybeSingle(),
       supa
@@ -91,13 +91,7 @@ export async function POST(req: NextRequest) {
 
   // Only seminar (`group`) cohorts have a 200-cap. Small-group cohorts
   // are capped at 5 by product policy and are managed manually.
-  const c = cohort as {
-    id: string;
-    name: string;
-    tier: "group" | "small_group";
-    tutor_user_id: string;
-    sat_date: string | null;
-  };
+  const c = cohort;
 
   if (c.tier !== "group") {
     return NextResponse.json({ received: true, note: "not a seminar cohort" });
@@ -125,6 +119,7 @@ export async function POST(req: NextRequest) {
       tier: "group",
       tutor_user_id: c.tutor_user_id,
       sat_date: c.sat_date,
+      max_size: c.max_size,
     })
     .select("id, name")
     .single();

@@ -34,6 +34,7 @@ import {
   generateStatusDraft,
   type StatusDraft,
 } from "@/lib/integrations/openai/generate-status-draft";
+import type { Json } from "@/types/supabase";
 
 export const runtime = "nodejs";
 
@@ -102,9 +103,9 @@ export async function POST(request: Request) {
       source: "fireflies",
       external_event_id: externalId,
       event_type: eventName,
-      raw_payload: parseError
+      raw_payload: (parseError
         ? { _parse_error: parseError, _raw: rawText.slice(0, 2000) }
-        : (body as unknown as Record<string, unknown>),
+        : body) as unknown as Json,
     })
     .select("id")
     .single();
@@ -246,7 +247,7 @@ async function processWebhook(webhookEventId: string, externalId: string, supaba
     .from("bookings")
     .update({
       ...baseUpdate,
-      status_draft: draft ?? { error: draftError },
+      status_draft: (draft ?? { error: draftError }) as unknown as Json,
       status_draft_created_at: new Date().toISOString(),
     })
     .eq("id", booking.id);

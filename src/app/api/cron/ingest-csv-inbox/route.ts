@@ -214,11 +214,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: queryErr.message }, { status: 500 });
   }
 
-  const candidates = (jobs ?? []).filter((j: PdfProcessingJob) => {
+  const candidates = ((jobs ?? []) as unknown as PdfProcessingJob[]).filter((j) => {
     const hasPaths = j.csv_storage_paths && Object.keys(j.csv_storage_paths).length > 0;
     const alreadyIngested = j.imported_counts && Object.keys(j.imported_counts).length > 0;
     return hasPaths && !alreadyIngested;
-  }) as PdfProcessingJob[];
+  });
 
   if (candidates.length === 0) {
     return NextResponse.json({ ok: true, processed: 0, jobs: [] });

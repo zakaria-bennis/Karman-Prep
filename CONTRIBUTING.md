@@ -131,7 +131,21 @@ matches the existing pattern in lib/integrations/stripe/client.ts.
 
 ### Typing Supabase rows
 
-Until we wire up generated types (planned), Supabase queries return typed rows but joined relations come back as `unknown`. Use the `arr<T>()` helper pattern you'll see repeated across `src/lib/supabase/queries/*.ts`.
+Row types are **generated from the live DB schema** into [`src/types/supabase.ts`](./src/types/supabase.ts). The Supabase clients in [`src/lib/supabase/server.ts`](./src/lib/supabase/server.ts) and [`src/lib/supabase/client.ts`](./src/lib/supabase/client.ts) are parameterized with the `Database` type, so `.from("table").select(...)` infers the row shape automatically.
+
+**To regenerate after a migration:**
+
+```bash
+npm run db:types
+```
+
+This runs `supabase gen types typescript --project-id ...` and writes to `src/types/supabase.ts`. Commit the diff alongside your migration so CI typechecks against the new schema.
+
+**Gotchas:**
+
+- `jsonb` columns are typed as the opaque `Json` union. When writing a narrow shape (e.g. `StatusDraft`, `DomainScores`) into a jsonb column, cast at the boundary: `domain_scores: result.domainScores as unknown as Json`. When reading back, the inverse: `data.domain_scores as unknown as DomainScores`. Future work: validate jsonb shapes with Zod at read time so the cast is real.
+- `text` columns with constrained values (`role`, `tier`, `status`, `payout_status`) are typed as `string` — the DB doesn't have CHECK constraints or enums to back the narrower TS union. Cast or narrow at the call site: `data.role as AppRole`.
+- FK-joined relations (`tutor:users!fk(...)`) come back as `object | array` depending on Supabase's inference. Existing files use a `Raw` pattern + `Array.isArray()` guard; that pattern is being phased out as we adopt typed selects everywhere.
 
 ---
 

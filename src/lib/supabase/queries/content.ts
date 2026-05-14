@@ -14,14 +14,14 @@ export async function fetchNodeContent(nodeId: string): Promise<NodeContent | nu
     .select("*")
     .eq("node_id", nodeId)
     .maybeSingle();
-  return (data as NodeContent | null) ?? null;
+  return data;
 }
 
 export async function fetchAllNodeContent(): Promise<NodeContent[]> {
   const supabase = createAdminClient();
   const { data, error } = await supabase.from("node_content").select("*");
   if (error) throw error;
-  return (data ?? []) as NodeContent[];
+  return data ?? [];
 }
 
 export async function upsertTextbook(
