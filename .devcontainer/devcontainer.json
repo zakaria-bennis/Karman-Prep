@@ -1,0 +1,51 @@
+{
+  "name": "Karman Prep",
+  "image": "mcr.microsoft.com/devcontainers/typescript-node:1-22-bookworm",
+  "features": {
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": true,
+      "configureZshAsDefaultShell": false
+    }
+  },
+  "forwardPorts": [3000],
+  "portsAttributes": {
+    "3000": {
+      "label": "Next.js dev",
+      "onAutoForward": "notify"
+    }
+  },
+  "postCreateCommand": "npm install --no-audit --no-fund",
+  "postAttachCommand": {
+    "welcome": "echo '\\n📘 Welcome to Karman Prep!\\n  • Read CONTRIBUTING.md before your first PR\\n  • Copy .env.example → .env.local and fill in real values\\n  • Run npm run dev to start\\n'"
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "bradlc.vscode-tailwindcss",
+        "ms-playwright.playwright",
+        "vitest.explorer",
+        "GitHub.copilot",
+        "GitHub.vscode-pull-request-github",
+        "eamodio.gitlens",
+        "supabase.vscode-supabase-extension"
+      ],
+      "settings": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.codeActionsOnSave": {
+          "source.fixAll.eslint": "explicit"
+        },
+        "[typescript]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+        "[typescriptreact]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+        "[json]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+        "typescript.tsdk": "node_modules/typescript/lib"
+      }
+    }
+  },
+  "remoteEnv": {
+    "NODE_OPTIONS": "--max-old-space-size=4096"
+  }
+}
