@@ -51,9 +51,7 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: npm
-      # Upgrade npm to match local lock-file version
-      - run: npm install -g npm@latest
-      - run: npm ci
+      - run: npm install --no-audit --no-fund
       - run: npx tsc --noEmit
 
   lint:
@@ -65,9 +63,7 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: npm
-      # Upgrade npm to match local lock-file version
-      - run: npm install -g npm@latest
-      - run: npm ci
+      - run: npm install --no-audit --no-fund
       - run: npm run lint
 
   format:
@@ -79,9 +75,7 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: npm
-      # Upgrade npm to match local lock-file version
-      - run: npm install -g npm@latest
-      - run: npm ci
+      - run: npm install --no-audit --no-fund
       - run: npm run format:check
 
   test:
@@ -93,9 +87,7 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: npm
-      # Upgrade npm to match local lock-file version
-      - run: npm install -g npm@latest
-      - run: npm ci
+      - run: npm install --no-audit --no-fund
       - run: npm test
 
   build:
@@ -121,7 +113,5 @@ jobs:
           restore-keys: |
             nextjs-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-
             nextjs-${{ runner.os }}-
-      # Upgrade npm to match local lock-file version
-      - run: npm install -g npm@latest
-      - run: npm ci
+      - run: npm install --no-audit --no-fund
       - run: npm run cf:build
