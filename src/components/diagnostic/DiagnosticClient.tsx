@@ -8,7 +8,7 @@
 // that drives the inline results screen.
 // ============================================================
 
-import { useState, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowRight, CheckCircle, XCircle, Lightbulb, Highlighter, Ban } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -219,7 +219,12 @@ export default function DiagnosticClient({ questions, isSubscribed }: Props) {
     setShowExplanation(true);
   }
 
-  async function handleSubmit() {
+  // Memoized via useCallback so the keydown effect below (which lists
+  // handleNext in its deps) only re-binds the listener when an actual
+  // dep changes, not on every render. handleSubmit's identity changes
+  // when `questions` or `answers` changes — that's correct: the
+  // listener re-binds with the fresh closure.
+  const handleSubmit = useCallback(async () => {
     setIsSubmitting(true);
 
     // Build answer payload — the API needs domain + difficulty +
@@ -253,9 +258,9 @@ export default function DiagnosticClient({ questions, isSubscribed }: Props) {
     } finally {
       setIsSubmitting(false);
     }
-  }
+  }, [questions, answers]);
 
-  function handleNext() {
+  const handleNext = useCallback(() => {
     if (isLast) {
       handleSubmit();
     } else {
@@ -263,7 +268,7 @@ export default function DiagnosticClient({ questions, isSubscribed }: Props) {
       setSelected(null);
       setShowExplanation(false);
     }
-  }
+  }, [isLast, handleSubmit]);
 
   // Keyboard shortcuts:
   //   Escape — close calculator / scratchpad (whichever is open).
@@ -306,9 +311,6 @@ export default function DiagnosticClient({ questions, isSubscribed }: Props) {
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-    // handleNext is intentionally re-bound every render so the closure stays fresh
-    // without lifting handleNext/handleSubmit into useCallback chains.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     scoring,
     desmosOpen,
