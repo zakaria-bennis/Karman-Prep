@@ -59,8 +59,11 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const senderUuid = await getUserUuidByClerkId(userId);
-  const recipientUuid = await getUserUuidByClerkId(body.recipientId);
+  // ── Wave 1: sender/recipient UUID lookups in parallel ────────
+  const [senderUuid, recipientUuid] = await Promise.all([
+    getUserUuidByClerkId(userId),
+    getUserUuidByClerkId(body.recipientId),
+  ]);
   if (!senderUuid || !recipientUuid) {
     return NextResponse.json({ error: "User profile not found" }, { status: 404 });
   }
@@ -68,19 +71,24 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Cannot DM yourself" }, { status: 400 });
   }
 
+  // ── Wave 2: shared-cohort check + moderation in parallel ─────
+  // Moderation only needs userId + content; it doesn't depend on
+  // the cohort check. Running them together saves the OpenAI
+  // round-trip from sitting behind the cohort lookup serially.
   // Per locked spec: DMs only within the same cohort.
-  const sharedCohortId = await findSharedCohort(senderUuid, recipientUuid);
+  const [sharedCohortId, outcome] = await Promise.all([
+    findSharedCohort(senderUuid, recipientUuid),
+    moderateMessage({
+      content: body.content ?? "",
+      mediaUrls: body.mediaUrls ?? [],
+      senderId: userId,
+      channelId: null,
+      messageType: "direct_message",
+    }),
+  ]);
   if (!sharedCohortId) {
     return NextResponse.json({ error: "You can only DM students in your cohort" }, { status: 403 });
   }
-
-  const outcome = await moderateMessage({
-    content: body.content ?? "",
-    mediaUrls: body.mediaUrls ?? [],
-    senderId: userId,
-    channelId: null,
-    messageType: "direct_message",
-  });
 
   if (outcome.decision === "rejected") {
     await insertDirectMessage({
