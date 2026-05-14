@@ -1,0 +1,28 @@
+# Replit workspace config. See replit.md for the full agent context.
+# This file is just enough to make "Run" boot the dev server.
+
+run = "npm run dev:next"
+entrypoint = "src/app/layout.tsx"
+
+modules = ["nodejs-22:v0"]
+
+hidden = [".next", ".open-next", "node_modules", "out", ".wrangler"]
+
+[nix]
+channel = "stable-24_05"
+
+[env]
+NEXT_TELEMETRY_DISABLED = "1"
+
+[deployment]
+# Production deploy is via Cloudflare Workers (npm run cf:deploy), NOT
+# Replit Deployments. This block is here so the Deploy button in the
+# Replit UI surfaces a sane build command rather than a default that
+# would conflict with our OpenNext output.
+deploymentTarget = "cloudrun"
+build = ["npm", "run", "build"]
+run = ["npm", "run", "start"]
+
+[[ports]]
+localPort = 3000
+externalPort = 80
