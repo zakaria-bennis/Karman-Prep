@@ -23,6 +23,7 @@ import {
   updateBooking,
   type BookingRow,
 } from "@/lib/supabase/queries/bookings";
+import { enqueueFailedEmail, serializeEmailArgs } from "@/lib/integrations/resend/email-queue";
 import {
   sendBookingConfirmation,
   sendBookingCancellation,
@@ -200,7 +201,7 @@ export async function POST(req: NextRequest) {
           });
         }
         if (!booking.confirmation_email_sent) {
-          await sendBookingConfirmation({
+          const confirmationArgs = {
             uid,
             studentEmail: student.email,
             studentFirstName,
@@ -211,8 +212,22 @@ export async function POST(req: NextRequest) {
             end: new Date(booking.scheduled_end),
             meetingUrl: booking.zoom_join_url ?? p.location ?? null,
             timeZone: tz,
-          });
-          await updateBooking(booking.id, { confirmation_email_sent: true });
+          };
+          try {
+            await sendBookingConfirmation(confirmationArgs);
+            await updateBooking(booking.id, { confirmation_email_sent: true });
+          } catch (err) {
+            // Resend down? Queue + return 200 so Cal doesn't retry —
+            // we own the retry budget now (cron at /api/cron/retry-failed-emails).
+            console.error("[cal-webhook] confirmation email failed, queueing:", err);
+            await enqueueFailedEmail({
+              kind: "booking_confirmation",
+              payload: serializeEmailArgs(confirmationArgs),
+              dedupeKey: `${uid}:booking_confirmation`,
+              bookingId: booking.id,
+              error: err,
+            });
+          }
         }
         break;
       }
@@ -240,7 +255,7 @@ export async function POST(req: NextRequest) {
           await releaseTokenFromBooking(booking.id);
         }
         if (!booking.cancellation_email_sent) {
-          await sendBookingCancellation({
+          const cancellationArgs = {
             uid,
             studentEmail: student.email,
             studentFirstName,
@@ -254,8 +269,20 @@ export async function POST(req: NextRequest) {
             withinWindow,
             creditForfeited: forfeit,
             planTier: booking.plan_tier,
-          });
-          await updateBooking(booking.id, { cancellation_email_sent: true });
+          };
+          try {
+            await sendBookingCancellation(cancellationArgs);
+            await updateBooking(booking.id, { cancellation_email_sent: true });
+          } catch (err) {
+            console.error("[cal-webhook] cancellation email failed, queueing:", err);
+            await enqueueFailedEmail({
+              kind: "booking_cancellation",
+              payload: serializeEmailArgs(cancellationArgs),
+              dedupeKey: `${uid}:booking_cancellation`,
+              bookingId: booking.id,
+              error: err,
+            });
+          }
         }
         break;
       }
@@ -282,7 +309,7 @@ export async function POST(req: NextRequest) {
             zoom_join_url: p.location ?? booking.zoom_join_url,
           });
 
-          await sendBookingReschedule({
+          const rescheduleArgs = {
             uid,
             studentEmail: student.email,
             studentFirstName,
@@ -294,7 +321,22 @@ export async function POST(req: NextRequest) {
             meetingUrl: p.location ?? booking.zoom_join_url ?? null,
             timeZone: tz,
             oldStart,
-          });
+          };
+          try {
+            await sendBookingReschedule(rescheduleArgs);
+          } catch (err) {
+            // Reschedule has no `*_email_sent` flag (the start-time
+            // freshness check above is the dedupe), so a queue retry
+            // is the only safety net.
+            console.error("[cal-webhook] reschedule email failed, queueing:", err);
+            await enqueueFailedEmail({
+              kind: "booking_reschedule",
+              payload: serializeEmailArgs(rescheduleArgs),
+              dedupeKey: `${uid}:booking_reschedule:${newStart.toISOString()}`,
+              bookingId: booking.id,
+              error: err,
+            });
+          }
         }
         break;
       }

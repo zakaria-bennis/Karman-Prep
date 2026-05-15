@@ -36,8 +36,9 @@ ${PATCH_MARKER}
 // Maps wrangler.toml [triggers].crons schedule strings to routes
 // and invokes the fetch handler above in-process (no network hop).
 const __KARMAN_CRON_ROUTES = {
-    "*/5 * * * *": { path: "/api/cron/ingest-csv-inbox", method: "POST" },
-    "0 6 * * *":   { path: "/api/cron/sync-sat-dates",    method: "GET"  },
+    "*/5 * * * *":  { path: "/api/cron/ingest-csv-inbox",      method: "POST" },
+    "0 6 * * *":    { path: "/api/cron/sync-sat-dates",        method: "GET"  },
+    "*/2 * * * *":  { path: "/api/cron/retry-failed-emails",   method: "POST" },
 };
 
 const __karmanScheduledHandler = async (event, env, ctx) => {
