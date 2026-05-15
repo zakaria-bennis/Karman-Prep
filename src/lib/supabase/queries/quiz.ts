@@ -276,6 +276,22 @@ export async function deleteQuestion(questionId: string): Promise<void> {
   if (error) throw error;
 }
 
+/** Bulk-delete a set of questions in a single round trip. Used by
+ *  /admin/questions/review's "Reject N selected" action.
+ *  Returns the number of rows that actually existed and were
+ *  removed; callers compare this against the requested count to
+ *  surface "X of Y already gone" warnings if needed. */
+export async function deleteQuestions(questionIds: string[]): Promise<number> {
+  if (questionIds.length === 0) return 0;
+  const supabase = createAdminClient();
+  const { error, count } = await supabase
+    .from("quiz_questions")
+    .delete({ count: "exact" })
+    .in("id", questionIds);
+  if (error) throw error;
+  return count ?? 0;
+}
+
 // ── Ingestion-flow selectors (for /admin/questions/review) ──
 
 export interface QuestionReviewFilter {

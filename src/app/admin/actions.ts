@@ -21,6 +21,7 @@ import {
   updateQuestionDifficultyLevel,
   reorderQuestions,
   deleteQuestion,
+  deleteQuestions,
   resolveFlaggedQuestion,
   uploadQuestionImage,
   removeQuestionImage,
@@ -37,6 +38,7 @@ import type { QuizDifficulty, QuizQuestion } from "@/types/quiz";
 import {
   acceptFlaggedQuestionInputSchema,
   bulkImportInputSchema,
+  bulkRejectQuestionsInputSchema,
   deleteQuestionInputSchema,
   deleteVideoInputSchema,
   newQuestionInputSchema,
@@ -264,6 +266,21 @@ export async function actionRejectFlaggedQuestion(questionId: string): Promise<v
   await guardAdmin();
   await deleteQuestion(questionId);
   revalidatePath("/admin/questions/review");
+}
+
+/** Reject (DELETE) every question in `questionIds` in one round trip.
+ *  Used by /admin/questions/review's "Reject N selected" control.
+ *  A bad PDF can spray dozens of flagged rows; click-by-click reject
+ *  is what audit issue #15 calls out. */
+export async function actionBulkRejectQuestions(questionIds: string[]): Promise<{
+  rejected: number;
+  requested: number;
+}> {
+  bulkRejectQuestionsInputSchema.parse({ questionIds });
+  await guardAdmin();
+  const rejected = await deleteQuestions(questionIds);
+  revalidatePath("/admin/questions/review");
+  return { rejected, requested: questionIds.length };
 }
 
 /** Bulk-accept every question in the BANK tab — flips each to live

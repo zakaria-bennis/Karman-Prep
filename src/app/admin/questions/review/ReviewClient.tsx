@@ -13,14 +13,15 @@
 // sending the question live in a specific Learn quiz pool).
 // ============================================================
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { X, ChevronDown, ChevronRight, CheckCheck } from "lucide-react";
+import { X, ChevronDown, ChevronRight, CheckCheck, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   actionAcceptFlaggedQuestion,
   actionRejectFlaggedQuestion,
   actionAcceptAllBank,
+  actionBulkRejectQuestions,
 } from "@/app/admin/actions";
 import { SAT_DOMAINS, CLUSTER_BY_DOMAIN } from "@/lib/question-bank/taxonomy";
 import type { QuizQuestionWithChoices } from "@/types/quiz";
@@ -63,9 +64,23 @@ export default function ReviewClient({
   // Cards are collapsed by default — admins can expand individually
   // or use the toggle at the top of the list to expand/collapse all.
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  // Bulk-reject selection state — populated only on the Flagged tab.
+  // Cleared whenever the tab or filter changes so stale selections
+  // from a different filtered view don't follow the admin around.
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkRejecting, setBulkRejecting] = useState(false);
 
   function toggleExpanded(id: string) {
     setExpandedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleSelected(id: string) {
+    setSelectedIds((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
@@ -111,6 +126,29 @@ export default function ReviewClient({
     }
   }
 
+  async function handleBulkReject() {
+    const ids = Array.from(selectedIds);
+    if (ids.length === 0) return;
+    if (
+      !confirm(
+        `Reject ${ids.length} flagged question${ids.length === 1 ? "" : "s"}?\n\n` +
+          `Each will be DELETED from the database. This can't be undone.`
+      )
+    )
+      return;
+    setBulkRejecting(true);
+    try {
+      await actionBulkRejectQuestions(ids);
+      setSelectedIds(new Set());
+      startTransition(() => router.refresh());
+    } catch (err) {
+      console.error(err);
+      alert(`Bulk reject failed: ${err instanceof Error ? err.message : "unknown"}`);
+    } finally {
+      setBulkRejecting(false);
+    }
+  }
+
   // ── Bulk: auto-accept every Bank-tab question to its slug-implied node
   const [bulkAccepting, setBulkAccepting] = useState(false);
   const [bulkResult, setBulkResult] = useState<{
@@ -151,8 +189,38 @@ export default function ReviewClient({
 
   const visibleQuestions = activeTab === "flagged" ? flagged : bank;
   const showFilters = activeTab === "flagged";
+  const showBulkSelect = activeTab === "flagged";
   const allExpanded =
     visibleQuestions.length > 0 && visibleQuestions.every((q) => expandedIds.has(q.id));
+  const allVisibleSelected =
+    visibleQuestions.length > 0 && visibleQuestions.every((q) => selectedIds.has(q.id));
+  const selectedCount = selectedIds.size;
+
+  // Clear stale selections when the visible set changes (tab switch,
+  // filter change, or refresh after a delete). Keeps the "N selected"
+  // counter honest — otherwise a row that no longer exists could
+  // still be in the set and the bulk action would silently no-op.
+  useEffect(() => {
+    setSelectedIds((prev) => {
+      if (prev.size === 0) return prev;
+      const visibleIds = new Set(visibleQuestions.map((q) => q.id));
+      let changed = false;
+      const next = new Set<string>();
+      for (const id of prev) {
+        if (visibleIds.has(id)) next.add(id);
+        else changed = true;
+      }
+      return changed ? next : prev;
+    });
+  }, [visibleQuestions]);
+
+  function toggleSelectAllVisible() {
+    if (allVisibleSelected) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(visibleQuestions.map((q) => q.id)));
+    }
+  }
 
   function toggleAllExpanded() {
     if (allExpanded) {
@@ -265,22 +333,63 @@ export default function ReviewClient({
       ) : (
         <>
           <div className="mb-2 flex items-center justify-between gap-2 text-xs">
-            {/* Bank-tab-only: bulk-accept-all */}
-            {activeTab === "bank" ? (
-              <button
-                onClick={handleAcceptAll}
-                disabled={bulkAccepting || bank.length === 0}
-                className={cn(
-                  "inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold disabled:opacity-50",
-                  "bg-emerald-500 text-white hover:bg-emerald-400 disabled:hover:bg-emerald-500"
-                )}
-              >
-                <CheckCheck className="h-3 w-3" />
-                {bulkAccepting ? `Accepting ${bank.length}…` : `Auto-accept all (${bank.length})`}
-              </button>
-            ) : (
-              <div />
-            )}
+            <div className="flex items-center gap-3">
+              {/* Bank tab — auto-accept-all-by-slug shortcut */}
+              {activeTab === "bank" && (
+                <button
+                  onClick={handleAcceptAll}
+                  disabled={bulkAccepting || bank.length === 0}
+                  className={cn(
+                    "inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold disabled:opacity-50",
+                    "bg-emerald-500 text-white hover:bg-emerald-400 disabled:hover:bg-emerald-500"
+                  )}
+                >
+                  <CheckCheck className="h-3 w-3" />
+                  {bulkAccepting ? `Accepting ${bank.length}…` : `Auto-accept all (${bank.length})`}
+                </button>
+              )}
+              {/* Flagged tab — bulk-reject controls (audit issue #15) */}
+              {showBulkSelect && (
+                <>
+                  <label className="inline-flex cursor-pointer items-center gap-1.5 text-slate-400 hover:text-slate-200">
+                    <input
+                      type="checkbox"
+                      checked={allVisibleSelected}
+                      onChange={toggleSelectAllVisible}
+                      className="h-3.5 w-3.5 cursor-pointer accent-rose-500"
+                    />
+                    Select all{" "}
+                    {visibleQuestions.length > 0 && <span>({visibleQuestions.length})</span>}
+                  </label>
+                  {selectedCount > 0 && (
+                    <>
+                      <span className="text-slate-600">·</span>
+                      <span className="text-slate-300">{selectedCount} selected</span>
+                      <button
+                        onClick={handleBulkReject}
+                        disabled={bulkRejecting}
+                        className={cn(
+                          "inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold disabled:opacity-50",
+                          "bg-rose-600 text-white hover:bg-rose-500 disabled:hover:bg-rose-600"
+                        )}
+                      >
+                        <Trash2 className="h-3 w-3" />
+                        {bulkRejecting
+                          ? `Rejecting ${selectedCount}…`
+                          : `Reject ${selectedCount} selected`}
+                      </button>
+                      <button
+                        onClick={() => setSelectedIds(new Set())}
+                        disabled={bulkRejecting}
+                        className="text-slate-500 hover:text-slate-300 disabled:opacity-50"
+                      >
+                        Clear
+                      </button>
+                    </>
+                  )}
+                </>
+              )}
+            </div>
             <button
               onClick={toggleAllExpanded}
               className="inline-flex items-center gap-1 text-slate-400 hover:text-slate-200"
@@ -301,8 +410,11 @@ export default function ReviewClient({
               <QuestionCard
                 key={q.id}
                 question={q}
-                busy={pendingId === q.id}
+                busy={pendingId === q.id || bulkRejecting}
                 expanded={expandedIds.has(q.id)}
+                selectable={showBulkSelect}
+                selected={selectedIds.has(q.id)}
+                onToggleSelected={() => toggleSelected(q.id)}
                 onToggleExpanded={() => toggleExpanded(q.id)}
                 onAccept={(nodeId) => handleAccept(q.id, nodeId)}
                 onReject={() => handleReject(q.id)}
