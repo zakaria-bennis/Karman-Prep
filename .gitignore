@@ -62,3 +62,6 @@ next-env.d.ts
 /test-results/
 /playwright-report/
 /playwright/.cache/
+
+# Visual snapshot harness output
+/tests/visual/snapshots/
