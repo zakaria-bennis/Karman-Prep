@@ -11,7 +11,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
+  AlertTriangle,
   BookOpen,
+  CheckCircle2,
   ClipboardList,
   Loader2,
   Plus,
@@ -30,6 +32,7 @@ import type {
   CohortStatus,
 } from "@/lib/supabase/queries/cohorts";
 import { actionAddCohortMember, actionRemoveCohortMember } from "./members-actions";
+import { actionMarkCohortSetupComplete } from "./setup-actions";
 import { ProvisionChatButton } from "@/components/admin/ProvisionChatButton";
 
 type TabKey = "members" | "notes" | "homework";
@@ -80,6 +83,11 @@ export default function CohortDetailClient({
           <ProvisionChatButton cohortId={cohort.id} alreadyProvisioned={chatProvisioned} />
         </div>
       </header>
+
+      {cohort.setup_completed_at === null &&
+      (cohort.tier === "group" || cohort.tier === "small_group") ? (
+        <CohortSetupBanner cohortId={cohort.id} />
+      ) : null}
 
       {/* ── Tab nav ────────────────────────────────────────── */}
       <div className="mb-6 flex gap-1 border-b border-slate-800 text-sm">
@@ -638,4 +646,55 @@ function formatDateTime(iso: string): string {
     day: "numeric",
     year: "numeric",
   });
+}
+
+// ────────────────────────────────────────────────────────────────
+// Banner shown when a group/small_group cohort hasn't been
+// marked setup-complete. The "Mark setup complete" button calls
+// the server action; on success the banner goes away after the
+// page revalidates. While clicked we show a tiny spinner.
+// ────────────────────────────────────────────────────────────────
+function CohortSetupBanner({ cohortId }: { cohortId: string }) {
+  const router = useRouter();
+  const [pending, startTransition] = useTransition();
+  const [err, setErr] = useState<string | null>(null);
+
+  function onMarkComplete() {
+    setErr(null);
+    startTransition(async () => {
+      try {
+        await actionMarkCohortSetupComplete(cohortId);
+        router.refresh();
+      } catch (e) {
+        setErr(e instanceof Error ? e.message : "Couldn't mark complete");
+      }
+    });
+  }
+
+  return (
+    <div className="mb-6 flex flex-wrap items-start gap-3 rounded-xl border border-amber-400/30 bg-amber-400/10 px-4 py-3 text-sm">
+      <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
+      <div className="min-w-[15rem] flex-1">
+        <p className="font-semibold text-amber-200">This cohort still needs Cal/Zoom setup</p>
+        <p className="mt-0.5 text-xs text-amber-200/80">
+          Configure the seminar event in Cal.com (event-type, schedule, Zoom location) for this
+          cohort, then click the button to dismiss this banner. You&apos;ll get a daily reminder
+          email until it&apos;s marked complete.
+        </p>
+        {err ? <p className="mt-1.5 text-xs text-rose-300">{err}</p> : null}
+      </div>
+      <button
+        onClick={onMarkComplete}
+        disabled={pending}
+        className="inline-flex items-center gap-1 rounded-md border border-emerald-400/40 bg-emerald-400/10 px-3 py-1.5 text-xs font-semibold text-emerald-200 hover:bg-emerald-400/20 disabled:opacity-50"
+      >
+        {pending ? (
+          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+        ) : (
+          <CheckCircle2 className="h-3.5 w-3.5" />
+        )}
+        Mark setup complete
+      </button>
+    </div>
+  );
 }

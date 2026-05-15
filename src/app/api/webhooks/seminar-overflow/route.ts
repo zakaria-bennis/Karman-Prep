@@ -146,6 +146,7 @@ export async function POST(req: NextRequest) {
             <ol style="color: #334155;">
               <li>Rebalance students by moving some from <em>${c.name}</em> to <em>${newCohort?.name ?? overflowName}</em>.</li>
               <li>Configure the new cohort's seminar event in Cal.com (event-type, schedule, Zoom location).</li>
+              <li>Open the new cohort at <a href="https://karmanprep.com/admin/cohorts/${newCohort?.id ?? ""}">/admin/cohorts/${newCohort?.id ?? ""}</a> and click <strong>Mark setup complete</strong> when done &mdash; otherwise you&rsquo;ll get a daily reminder.</li>
               <li>Resume normal admin push flow once both seminars are scheduled.</li>
             </ol>
           </div>
