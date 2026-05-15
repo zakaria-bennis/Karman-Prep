@@ -93,7 +93,10 @@ export default function Footer() {
             <ul className="space-y-2 text-sm">
               {[
                 ["About", "/about"],
-                ["Blog", "/blog"],
+                // Blog link hidden from the public footer until we publish
+                // a first article (audit #12). The page itself still
+                // exists at /blog for anyone with the direct URL; just
+                // re-add this entry when content lands.
               ].map(([label, href]) => (
                 <li key={label}>
                   <Link href={href} className="transition-colors hover:text-white">
