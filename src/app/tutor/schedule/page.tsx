@@ -140,6 +140,17 @@ export default async function TutorSchedulePage({
   const tutorUuid = await getUserUuidByClerkId(userId);
   if (!tutorUuid) redirect("/onboarding");
 
+  // Read the tutor's preferred timezone — they set it during onboarding.
+  // Falls back to America/New_York for any legacy rows without one set
+  // (audit #14). Date/time formatting below uses this so a Pacific
+  // tutor doesn't see all their sessions in Eastern time.
+  const { data: tutorRow } = await createAdminClient()
+    .from("users")
+    .select("time_zone")
+    .eq("id", tutorUuid)
+    .maybeSingle();
+  const TZ = (tutorRow as { time_zone?: string | null } | null)?.time_zone ?? "America/New_York";
+
   const sp = await searchParams;
   const tab = parseTab(sp.tab);
 
@@ -184,8 +195,6 @@ export default async function TutorSchedulePage({
       .in("id", studentIds);
     for (const s of (students ?? []) as StudentMini[]) studentsById.set(s.id, s);
   }
-
-  const TZ = "America/New_York";
 
   return (
     <DashboardLayout>
