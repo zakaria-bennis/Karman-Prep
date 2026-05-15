@@ -92,8 +92,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Failed to save answers" }, { status: 500 });
   }
 
-  // Run placement / matching based on tier.
+  // Run placement / matching based on tier. Failures (throw OR
+  // no-available-tutor) flag the user for admin follow-up rather
+  // than silently leaving them un-placed. The student dashboard
+  // shows a "we're matching you with a tutor" banner; the admin
+  // gets an email so they can pair the student manually within
+  // ~24h (audit #10).
   let placementSummary: Record<string, unknown> = {};
+  let placementFailed = false;
+  let placementFailureReason: string | null = null;
   try {
     if (sub.tier === "group" || sub.tier === "small_group") {
       const r = await placeInCohort({
@@ -112,25 +119,97 @@ export async function POST(req: NextRequest) {
         availableDays: body.availableDays,
         availableTimes: body.availableTimes,
       });
-      if (r)
+      if (r) {
         placementSummary = { tutorUuid: r.tutorUuid, matchedAvailability: r.matchedAvailability };
-      else placementSummary = { warning: "No tutors available — admin will assign manually" };
+      } else {
+        placementSummary = { warning: "No tutors available — admin will assign manually" };
+        placementFailed = true;
+        placementFailureReason = `No tutor available matching student availability (tier=${sub.tier})`;
+      }
     }
   } catch (err) {
     console.error("[onboarding/submit] placement failed:", err);
-    // Don't fail the whole onboarding — answers are saved. Admin can fix.
     placementSummary = { error: "Auto-placement failed; admin will resolve" };
+    placementFailed = true;
+    placementFailureReason = err instanceof Error ? err.message : "Unknown placement error";
   }
 
-  // Mark onboarding complete.
+  // Mark onboarding complete. Also stamp placement_failure_at if
+  // we hit the warning / catch path so the student dashboard knows
+  // to render the matching banner. The flag self-clears via the
+  // dashboard's "user has any active cohort/tutor row" check.
   await supa
     .from("users")
-    .update({ onboarding_completed_at: new Date().toISOString() })
+    .update({
+      onboarding_completed_at: new Date().toISOString(),
+      ...(placementFailed ? { placement_failure_at: new Date().toISOString() } : {}),
+    })
     .eq("id", studentUuid);
+
+  // Admin alert — best-effort, never blocks onboarding response.
+  if (placementFailed) {
+    notifyAdminOfPlacementFailure({
+      studentUuid,
+      tier: sub.tier,
+      reason: placementFailureReason ?? "Unknown",
+    }).catch((err) => console.error("[onboarding/submit] admin alert failed:", err));
+  }
 
   return NextResponse.json({
     ok: true,
     tier: sub.tier,
     placement: placementSummary,
+    placementFailed,
+  });
+}
+
+/** Fire an email to ADMIN_NOTIFICATION_EMAIL when a student lands
+ *  on the dashboard without a cohort/tutor. Best-effort — failures
+ *  here are logged but don't block the onboarding response.
+ *  Includes the student name + email + tier + failure reason. */
+async function notifyAdminOfPlacementFailure(args: {
+  studentUuid: string;
+  tier: string;
+  reason: string;
+}): Promise<void> {
+  const adminEmail = process.env.ADMIN_NOTIFICATION_EMAIL;
+  if (!adminEmail) return;
+
+  const supa = createAdminClient();
+  const { data: student } = await supa
+    .from("users")
+    .select("first_name, last_name, email")
+    .eq("id", args.studentUuid)
+    .maybeSingle();
+  const name =
+    [student?.first_name, student?.last_name].filter(Boolean).join(" ").trim() ||
+    student?.email ||
+    args.studentUuid;
+
+  const { resend, FROM } = await import("@/lib/integrations/resend/client");
+  await resend.emails.send({
+    from: FROM,
+    to: adminEmail,
+    subject: `[Karman] Placement failed for ${name} (${args.tier})`,
+    html: `
+      <div style="font-family: Inter, sans-serif; max-width: 560px; margin: auto; padding: 24px; color: #0f172a;">
+        <h2 style="margin:0 0 12px 0;">Onboarding placement needs admin attention</h2>
+        <p style="color:#334155;">
+          <strong>${name}</strong> (${student?.email ?? "no email"}) just finished onboarding on the
+          <strong>${args.tier}</strong> tier, but auto-placement failed:
+        </p>
+        <pre style="background:#f1f5f9; padding:12px; border-radius:8px; font-size:12px; color:#1e293b; white-space:pre-wrap;">${args.reason}</pre>
+        <p style="color:#334155;">
+          Next step: open <a href="https://karmanprep.com/admin/users">/admin/users</a>, find this
+          student, and either
+          ${args.tier === "private" || args.tier === "elite" ? "create a tutor_assignments row" : "add them to a cohort from /admin/cohorts"}.
+          Once placed, the &ldquo;we&rsquo;re matching you&rdquo; banner on their dashboard goes
+          away automatically.
+        </p>
+        <p style="color:#94a3b8; font-size:11px; margin-top:24px;">
+          This alert fires from /api/onboarding/submit when placement throws or returns no match.
+        </p>
+      </div>
+    `,
   });
 }

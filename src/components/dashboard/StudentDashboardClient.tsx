@@ -32,6 +32,10 @@ interface Props {
     domain_scores: DomainScores;
   } | null;
   subscription: { tier: string; status: string; trial_end: string | null } | null;
+  /** True when the user's onboarding placement failed AND they
+   *  still have no cohort/tutor (audit #10). Drives the
+   *  "we're matching you with a tutor" banner. */
+  showPlacementBanner?: boolean;
 }
 
 /** Calculates streak from last_visited dates (simplified) */
@@ -48,6 +52,7 @@ export default function StudentDashboardClient({
   nodeStatuses,
   diagnostic,
   subscription,
+  showPlacementBanner,
 }: Props) {
   const nodeStatusMap = nodeStatuses ?? new Map<string, NodeStatus>();
   const masteredFromNodes = Array.from(nodeStatusMap.values()).filter(
@@ -72,6 +77,23 @@ export default function StudentDashboardClient({
   return (
     <DashboardLayout>
       <div className="mx-auto max-w-5xl space-y-8 px-4 py-8 sm:px-6">
+        {/* Placement-pending banner (audit #10) — shown while the
+            student is waiting on admin to pair them with a tutor /
+            cohort after an onboarding placement failure. Self-clears
+            once the cohort_members / tutor_assignments row exists. */}
+        {showPlacementBanner && (
+          <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm dark:border-blue-700 dark:bg-blue-900/20">
+            <p className="font-semibold text-blue-900 dark:text-blue-100">
+              We&rsquo;re matching you with a tutor
+            </p>
+            <p className="mt-0.5 text-xs text-blue-800/80 dark:text-blue-200/80">
+              Your answers are saved. Our team is pairing you with the right tutor / cohort &mdash;
+              you&rsquo;ll hear from us within 24 hours. In the meantime you can take the diagnostic
+              and start exploring the curriculum.
+            </p>
+          </div>
+        )}
+
         {/* Trial banner */}
         {subscription?.status === "trialing" && trialEndsLabel && (
           <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-700 dark:bg-amber-900/20">
