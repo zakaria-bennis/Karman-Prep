@@ -23,6 +23,7 @@
     "db:types": "npx supabase gen types typescript --project-id yyocjxvrakuhnvepaevh > src/types/supabase.ts",
     "db:push": "npx supabase db push",
     "db:status": "npx supabase migration list --linked",
+    "seed:dev": "node scripts/seed-dev.mjs",
     "prepare": "husky"
   },
   "dependencies": {
