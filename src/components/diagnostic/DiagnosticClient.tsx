@@ -44,6 +44,10 @@ interface Props {
   /** Whether the viewing user is already a paying / trialing
    *  subscriber. Drives the post-results CTA copy. */
   isSubscribed: boolean;
+  /** True when the student is taking the diagnostic for a SECOND+
+   *  time (admin granted a retake). Drives the intro copy to make
+   *  clear this submission will replace their prior baseline. */
+  isRetake?: boolean;
 }
 
 // Per-section time budgets — proportional to the real Digital SAT.
@@ -54,7 +58,7 @@ const SECTION_SECONDS: Record<"math" | "rw", number> = {
   rw: 18 * 60,
 };
 
-export default function DiagnosticClient({ questions, isSubscribed }: Props) {
+export default function DiagnosticClient({ questions, isSubscribed, isRetake }: Props) {
   const [currentIdx, setCurrentIdx] = useState(0);
   const [selected, setSelected] = useState<string | null>(null);
   const [answers, setAnswers] = useState<Record<string, string>>({});
@@ -365,6 +369,19 @@ export default function DiagnosticClient({ questions, isSubscribed }: Props) {
         onToggleScratchpad={() => setScratchpadOpen((o) => !o)}
         onToggleBookmark={toggleBookmark}
       />
+
+      {/* Retake notice — shown for admin-granted retakes so the
+          student knows this submission will replace their baseline. */}
+      {isRetake && currentIdx === 0 && !isAnswered ? (
+        <div className="mx-auto mt-4 w-full max-w-2xl rounded-lg border border-amber-300/40 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-200">
+          <p className="font-semibold">You&rsquo;re retaking the diagnostic</p>
+          <p className="mt-0.5 text-xs text-amber-800/80 dark:text-amber-200/80">
+            Your tutor / admin granted a retake. Submitting will create a fresh diagnostic_results
+            row alongside your prior one &mdash; the progress chart will show both so you can
+            measure improvement.
+          </p>
+        </div>
+      ) : null}
 
       {/* Question — switches to split-pane when a passage is present
           (R&W convention from Bluebook: passage on the left, prompt

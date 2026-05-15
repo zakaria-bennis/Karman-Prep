@@ -15,7 +15,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
-import { ArrowRight, BarChart3, Sparkles, AlertCircle, TrendingUp } from "lucide-react";
+import { ArrowRight, BarChart3, Sparkles, AlertCircle, RefreshCcw, TrendingUp } from "lucide-react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { createAdminClient } from "@/lib/supabase/server";
 import { DOMAIN_LABELS, type SATDomain, type DomainScores } from "@/types";
@@ -54,10 +54,12 @@ export default async function StudentProgressPage() {
   // Resolve internal user id
   const { data: user } = await supabase
     .from("users")
-    .select("id")
+    .select("id, diagnostic_retakes_remaining")
     .eq("clerk_id", userId)
     .maybeSingle();
   const internalId = (user as { id?: string } | null)?.id ?? null;
+  const retakesRemaining =
+    (user as { diagnostic_retakes_remaining?: number } | null)?.diagnostic_retakes_remaining ?? 0;
 
   // Diagnostics (newest first; we use [0] = latest, [last] = first)
   let diagnostics: DiagnosticRow[] = [];
@@ -148,8 +150,9 @@ export default async function StudentProgressPage() {
 
             {/* ─── Weak topics ───────────────────────────────── */}
             <WeakTopics weakByDomain={weakByDomain} />
-            {/* (No re-take CTA — the diagnostic is one-and-done per
-                student. Resets only happen via admin script.) */}
+            {/* Re-take CTA — only visible when the admin has granted
+                a retake. Each click consumes one grant on submit. */}
+            {retakesRemaining > 0 ? <RetakeCta /> : null}
           </div>
         )}
       </div>
@@ -383,4 +386,26 @@ function formatDaysAgo(iso: string): string {
     day: "numeric",
     year: "numeric",
   }).format(d);
+}
+
+// ─── Retake CTA ─────────────────────────────────────────────
+// Visible only when admin has granted a retake (users.diagnostic_retakes_remaining > 0).
+function RetakeCta() {
+  return (
+    <div className="mt-6 rounded-xl border border-emerald-300/40 bg-emerald-50 px-5 py-4 dark:border-emerald-400/30 dark:bg-emerald-400/10">
+      <p className="text-sm font-semibold text-emerald-900 dark:text-emerald-200">
+        A diagnostic retake is available
+      </p>
+      <p className="mt-0.5 text-xs text-emerald-800/80 dark:text-emerald-200/80">
+        Your admin granted a retake so you can benchmark your progress. Submitting will add a fresh
+        diagnostic_results row alongside your prior one &mdash; both show up on your trend chart.
+      </p>
+      <Link
+        href="/diagnostic"
+        className="mt-3 inline-flex items-center gap-1.5 rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700"
+      >
+        <RefreshCcw className="h-3.5 w-3.5" /> Retake diagnostic
+      </Link>
+    </div>
+  );
 }

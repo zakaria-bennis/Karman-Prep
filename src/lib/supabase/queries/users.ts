@@ -19,6 +19,9 @@ export interface AdminUserRow {
   tier: "group" | "small_group" | "private" | "elite" | "annual" | null;
   /** All cohort_ids the user is currently an active member of. */
   cohort_ids: string[];
+  /** Pending diagnostic retake grants. Admin clicks "Allow retake" to
+   *  bump this; the student consumes one per submission. */
+  diagnostic_retakes_remaining: number;
 }
 
 export interface AdminCohortLite {
@@ -45,7 +48,9 @@ export async function fetchAdminUsersList(): Promise<AdminUserRow[]> {
   const [usersRes, linksRes, subsRes, membersRes] = await Promise.all([
     supabase
       .from("users")
-      .select("id, clerk_id, email, first_name, last_name, role, created_at")
+      .select(
+        "id, clerk_id, email, first_name, last_name, role, created_at, diagnostic_retakes_remaining"
+      )
       .order("role", { ascending: true })
       .order("first_name", { ascending: true, nullsFirst: false }),
     supabase.from("parent_student_links").select("parent_user_id"),
@@ -92,6 +97,8 @@ export async function fetchAdminUsersList(): Promise<AdminUserRow[]> {
     linked_student_count: linkCounts.get(u.id) ?? 0,
     tier: tierByClerkId.get(u.clerk_id) ?? null,
     cohort_ids: cohortIdsByUuid.get(u.id) ?? [],
+    diagnostic_retakes_remaining:
+      (u as { diagnostic_retakes_remaining?: number }).diagnostic_retakes_remaining ?? 0,
   }));
 }
 

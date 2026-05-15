@@ -75,12 +75,29 @@ export async function POST(req: NextRequest) {
 
     const { data: user } = await supabase
       .from("users")
-      .select("id")
+      .select("id, diagnostic_retakes_remaining")
       .eq("clerk_id", userId)
       .single();
 
     if (!user) {
       return NextResponse.json({ error: "User not found in database" }, { status: 404 });
+    }
+
+    // Detect retake by checking for an existing prior result. If
+    // any exists, the submit gate above let them through only
+    // because diagnostic_retakes_remaining > 0; we decrement here.
+    const { count: priorCount } = await supabase
+      .from("diagnostic_results")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", user.id);
+    const isRetake = (priorCount ?? 0) > 0;
+    if (isRetake && (user.diagnostic_retakes_remaining ?? 0) <= 0) {
+      // Defensive: the gate at /diagnostic should have caught this.
+      // Reject so a stale tab can't submit a second result.
+      return NextResponse.json(
+        { error: "No retake granted. Ask an admin to allow another retake." },
+        { status: 403 }
+      );
     }
 
     const { data: row, error } = await supabase
@@ -100,6 +117,17 @@ export async function POST(req: NextRequest) {
     if (error) {
       console.error("[diagnostic/submit] Supabase error:", error);
       return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    // Consume the retake grant. Failures are non-fatal — the
+    // result is already saved; worst case the admin clicks
+    // "Allow retake" again. Idempotent via the WHERE clause.
+    if (isRetake) {
+      await supabase
+        .from("users")
+        .update({ diagnostic_retakes_remaining: (user.diagnostic_retakes_remaining ?? 0) - 1 })
+        .eq("id", user.id)
+        .gt("diagnostic_retakes_remaining", 0);
     }
 
     return NextResponse.json({

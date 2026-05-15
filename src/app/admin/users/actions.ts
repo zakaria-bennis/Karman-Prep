@@ -86,3 +86,34 @@ export async function actionUnlinkParentFromStudent(parentUserId: string, studen
 
   revalidatePath("/admin/users");
 }
+
+/**
+ * Grant the student a single diagnostic retake. Increments
+ * users.diagnostic_retakes_remaining by 1. The student then sees
+ * a "Retake diagnostic" CTA on /diagnostic and /progress; on
+ * submit the counter decrements back. (Audit #7.)
+ */
+export async function actionGrantDiagnosticRetake(targetUserId: string) {
+  await guardAdmin();
+  if (!targetUserId) throw new Error("Missing targetUserId");
+  const supabase = createAdminClient();
+
+  // Atomic increment via select-then-update. Race-tolerant for our
+  // scale; if two admins click at the same instant we'd grant two
+  // retakes, which is fine.
+  const { data: existing, error: readErr } = await supabase
+    .from("users")
+    .select("diagnostic_retakes_remaining")
+    .eq("id", targetUserId)
+    .single();
+  if (readErr) throw new Error(readErr.message);
+
+  const next = (existing?.diagnostic_retakes_remaining ?? 0) + 1;
+  const { error } = await supabase
+    .from("users")
+    .update({ diagnostic_retakes_remaining: next })
+    .eq("id", targetUserId);
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/admin/users");
+}
