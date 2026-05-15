@@ -9,7 +9,7 @@
 // is question-only.
 // ============================================================
 
-import { auth } from "@clerk/nextjs/server";
+import { safeAuth } from "@/lib/auth/dev-auth";
 import { requireRole } from "@/lib/supabase/queries/admin";
 import { createAdminClient } from "@/lib/supabase/server";
 import { searchBankQuestionsInputSchema } from "../schemas";
@@ -37,7 +37,7 @@ export async function actionSearchBankQuestions(query: string): Promise<Question
   const parsed = searchBankQuestionsInputSchema.safeParse({ query: query.trim() });
   if (!parsed.success) return [];
 
-  const { userId } = await auth();
+  const { userId } = await safeAuth();
   if (!userId) return [];
   const isAdmin = await requireRole(userId, ["admin"]);
   if (!isAdmin) return [];

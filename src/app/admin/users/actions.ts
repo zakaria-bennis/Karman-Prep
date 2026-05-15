@@ -7,7 +7,7 @@
 // impersonating as student).
 // ============================================================
 
-import { auth } from "@clerk/nextjs/server";
+import { safeAuth } from "@/lib/auth/dev-auth";
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/server";
 import { fetchUserRole, type AppRole } from "@/lib/supabase/queries/admin";
@@ -18,7 +18,7 @@ import {
 } from "../schemas";
 
 async function guardAdmin() {
-  const { userId } = await auth();
+  const { userId } = await safeAuth();
   if (!userId) throw new Error("Not authenticated");
   const role = await fetchUserRole(userId); // real role, not impersonated
   if (role !== "admin") throw new Error("Admin role required");

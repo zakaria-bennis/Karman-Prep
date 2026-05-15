@@ -57,3 +57,17 @@ npm run dev:next                                 # view mid-student dashboard
 To clean up: `delete from users where clerk_id like 'dev_seed_%';` (cascades).
 See `scripts/seed-dev.mjs` for the full fixture list + what state each
 persona exercises.
+
+### Playwright end-to-end tests
+
+`npm run test:e2e` — drives the full browser through multi-step user flows.
+Built on top of the dev bypass + seed fixtures: the suite auto-starts the
+dev server with `DEV_IMPERSONATE_CLERK_ID=dev_seed_admin` and runs
+`npm run seed:dev` in global setup, so tests can immediately exercise
+admin-only flows like impersonation. CI isn't wired up yet — that needs
+a Supabase fixture project reachable from GitHub Actions; tracked as
+follow-up.
+
+Tests live in `tests/e2e/`. Add a new spec there when adding a flow worth
+protecting end-to-end (UI clicks, navigation, banner state). For pure-logic
+checks, keep using Vitest.

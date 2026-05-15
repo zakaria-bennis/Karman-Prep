@@ -11,7 +11,7 @@
 // the question bank or curriculum content tables.
 // ============================================================
 
-import { auth } from "@clerk/nextjs/server";
+import { safeAuth } from "@/lib/auth/dev-auth";
 import { revalidatePath } from "next/cache";
 import { requireRole } from "@/lib/supabase/queries/admin";
 import {
@@ -56,7 +56,7 @@ import {
 } from "./schemas";
 
 async function guardAdmin(): Promise<string> {
-  const { userId } = await auth();
+  const { userId } = await safeAuth();
   if (!userId) throw new Error("Not authenticated");
   const ok = await requireRole(userId, ["admin"]);
   if (!ok) throw new Error("Admin role required");

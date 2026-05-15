@@ -5,7 +5,7 @@
 // Role-gated: admin only.
 // ============================================================
 
-import { auth } from "@clerk/nextjs/server";
+import { safeAuth } from "@/lib/auth/dev-auth";
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/server";
 import { requireRole } from "@/lib/supabase/queries/admin";
@@ -14,7 +14,7 @@ import type { CohortStatus, CohortTier } from "@/lib/supabase/queries/cohorts";
 import { createCohortInputSchema } from "../schemas";
 
 async function guardAdmin() {
-  const { userId } = await auth();
+  const { userId } = await safeAuth();
   if (!userId) throw new Error("Not authenticated");
   const ok = await requireRole(userId, ["admin"]);
   if (!ok) throw new Error("Admin role required");
