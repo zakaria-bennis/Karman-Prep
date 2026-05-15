@@ -38,6 +38,8 @@ export default defineConfig({
     trace: "on-first-retry",
   },
   projects: [
+    // ── Default projects (fast, run on `npm run test:e2e` /
+    //    `npm run test:visual`). Chromium only — daily dev cadence.
     {
       name: "e2e",
       testDir: "./tests/e2e",
@@ -47,6 +49,55 @@ export default defineConfig({
       name: "visual",
       testDir: "./tests/visual",
       use: { ...devices["Desktop Chrome"] },
+    },
+
+    // ── Cross-browser coverage (opt-in via --project=<name> or
+    //    `npm run test:e2e:all` / `test:visual:all`). Firefox and
+    //    WebKit catch CSS-engine + Web-API differences Chromium
+    //    hides. WebKit ≈ Safari's engine but not 100% — real
+    //    iOS Safari behavior still needs a real device.
+    {
+      name: "e2e-firefox",
+      testDir: "./tests/e2e",
+      use: { ...devices["Desktop Firefox"] },
+    },
+    {
+      name: "e2e-webkit",
+      testDir: "./tests/e2e",
+      use: { ...devices["Desktop Safari"] },
+    },
+    {
+      name: "visual-firefox",
+      testDir: "./tests/visual",
+      // Visual specs that pull a single static persona at desktop
+      // don't need re-running per engine — keep it scoped to the
+      // page-level snapshot file. States/tokens/timing specs lean
+      // on Chromium-only computed styles.
+      testMatch: /snapshots\.spec\.ts/,
+      use: { ...devices["Desktop Firefox"] },
+    },
+    {
+      name: "visual-webkit",
+      testDir: "./tests/visual",
+      testMatch: /snapshots\.spec\.ts/,
+      use: { ...devices["Desktop Safari"] },
+    },
+
+    // ── Mobile emulation. Playwright's device profiles set touch,
+    //    DPR, and viewport correctly — enough for layout / touch-
+    //    event bugs. Doesn't replicate real iOS Safari quirks
+    //    (scroll bounce, momentum) or real touch latency.
+    {
+      name: "mobile-chrome",
+      testDir: "./tests/visual",
+      testMatch: /snapshots\.spec\.ts/,
+      use: { ...devices["Pixel 7"] },
+    },
+    {
+      name: "mobile-safari",
+      testDir: "./tests/visual",
+      testMatch: /snapshots\.spec\.ts/,
+      use: { ...devices["iPhone 14"] },
     },
   ],
   // Auto-start the dev server with the bypass set to the admin
