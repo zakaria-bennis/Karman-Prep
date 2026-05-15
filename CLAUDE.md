@@ -154,6 +154,55 @@ For changes that affect any of those, the fallback workflow is:
 Treat that 60-second manual check as required for anything visual-heavy
 before merge.
 
+### Real-device capture workflow (iPhone wired to Mac)
+
+When you want me to look at how something **actually** renders on real iOS
+Safari — scroll bounce, color fidelity on the iPhone's P3 display, real
+touch behavior — plug the iPhone into the Mac and capture from there.
+Drop the resulting PNGs into `tests/visual/real-device-captures/`; I can
+`Read` any file in that folder at full pixel fidelity.
+
+**One-time setup (5 min):**
+
+1. **On iPhone:** Settings → Apps → Safari → Advanced → toggle **Web
+   Inspector** ON.
+2. **On Mac:** Safari → Settings → Advanced → check **Show features for
+   web developers**.
+3. Trust the Mac on the iPhone when prompted (USB connection).
+
+**Per-session (~30s):**
+
+1. Plug the iPhone into the Mac via USB. Unlock the phone.
+2. On the iPhone, open Safari and navigate to
+   `http://<laptop-LAN-IP>:3000/dashboard/student` (or wherever you want
+   to check). The dev bypass + seed fixtures work the same way they do
+   in the desktop dev flow.
+3. On the Mac, open Safari, then **Develop → [your iPhone name] → [the
+   open tab]**. A DevTools window pops up showing the real iPhone Safari's
+   DOM + console + computed styles.
+4. To capture: either
+   - Use DevTools' **screenshot** button on a node (right-click → Capture
+     Screenshot in the inspector), or
+   - On the iPhone itself: Volume Up + Side Button → Photos →
+     AirDrop / USB to Mac.
+5. Save the PNG to `tests/visual/real-device-captures/` with a name like
+   `iphone17pm__dashboard-student__banner-feels-off.png`. Tell me what to
+   look at; I'll read the file.
+
+**Even higher fidelity — built-in iPhone Mirroring (macOS 15+):**
+open the **iPhone Mirroring** app on the Mac with the iPhone connected.
+The phone's full screen mirrors at native resolution; use Cmd+Shift+4
+to screenshot any region. Same destination folder, same workflow.
+
+**For motion-feel checks:** QuickTime Player → File → New Movie
+Recording → camera dropdown → choose the iPhone. Records the phone's
+screen at full quality to a .mov file. I can't watch video but a human
+review still beats emulation for "does this animation feel snappy."
+
+I'll prompt you to do a real-device check whenever a change is visual-
+heavy or touches mobile-specific code (touch handlers, viewport meta,
+scroll behavior, hover-vs-touch states).
+
 See `docs/design-tokens.md` for the canonical type scale + palette the
 drift-checker compares against.
 
