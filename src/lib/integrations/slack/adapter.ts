@@ -125,6 +125,7 @@ export async function postMessage(input: PostMessageInput): Promise<PostMessageR
       text: lines.join("\n"),
       unfurl_links: false,
       unfurl_media: true, // images render inline
+      ...(input.clientMsgId ? { client_msg_id: input.clientMsgId } : {}),
     });
     if (!res.ok || !res.ts || !res.channel) {
       throw new SlackAdapterError("postMessage", res.error, res);
