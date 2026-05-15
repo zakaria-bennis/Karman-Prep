@@ -88,8 +88,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
+  const isTutorInitiated = callerUuid === booking.tutor_id;
+
   const withinWindow = isWithinCancellationWindow(booking.scheduled_start);
-  const forfeit = shouldForfeitCredit(booking.plan_tier, withinWindow);
+  // Tutor-initiated reschedules never penalize the student's credit —
+  // the student didn't choose to move it. The forfeit flag stays
+  // false so we skip the within-window replacement-token requirement
+  // AND the consume/assign transition below.
+  const forfeit = isTutorInitiated ? false : shouldForfeitCredit(booking.plan_tier, withinWindow);
 
   // Within-window reschedule with credit at stake: must have a
   // replacement token available before we burn the original.
