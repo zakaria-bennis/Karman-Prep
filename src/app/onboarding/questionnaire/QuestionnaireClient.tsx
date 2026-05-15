@@ -27,11 +27,15 @@ import {
   Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { SatScheduleStep, type SatDateOption } from "./_steps/SatSchedule";
+import { BackgroundStep } from "./_steps/Background";
+import { AvailabilityStep } from "./_steps/Availability";
+import { FamilyStep } from "./_steps/Family";
+import { HeardStep } from "./_steps/Heard";
+import { DoneSummary } from "./_steps/DoneSummary";
+import { COMMON_TZ } from "./_steps/shared";
 
-export interface SatDateOption {
-  iso: string;
-  label: string;
-}
+export type { SatDateOption };
 
 interface Props {
   firstName: string;
@@ -39,48 +43,6 @@ interface Props {
   satDates: SatDateOption[];
 }
 
-const HS_YEARS = ["freshman", "sophomore", "junior", "senior"] as const;
-const DAYS = [
-  "monday",
-  "tuesday",
-  "wednesday",
-  "thursday",
-  "friday",
-  "saturday",
-  "sunday",
-] as const;
-const TIMES = ["morning", "afternoon", "evening"] as const;
-
-const HEARD_OPTIONS = [
-  "Friend or classmate",
-  "Parent or family member",
-  "Tutor or teacher",
-  "School counselor",
-  "Instagram",
-  "TikTok",
-  "Google search",
-  "YouTube",
-  "Reddit",
-  "Other",
-];
-
-const COMMON_TZ = [
-  "America/New_York",
-  "America/Chicago",
-  "America/Denver",
-  "America/Los_Angeles",
-  "America/Phoenix",
-  "America/Anchorage",
-  "Pacific/Honolulu",
-  "Europe/London",
-  "Europe/Paris",
-  "Asia/Tokyo",
-  "Asia/Shanghai",
-  "Asia/Kolkata",
-  "Australia/Sydney",
-];
-
-// ─────────────────────────────────────────────────────────────
 export default function QuestionnaireClient({ firstName, tier, satDates }: Props) {
   const router = useRouter();
   const isOneToOne = tier === "private" || tier === "elite";
@@ -149,10 +111,6 @@ export default function QuestionnaireClient({ firstName, tier, satDates }: Props
       if (availableTimes.length === 0)
         return { ok: false, reason: "Pick at least one available time." };
       if (!timeZone) return { ok: false, reason: "Pick your timezone." };
-    }
-    if (currentStep.key === "family") {
-      // Both are technically optional, but at least one is encouraged.
-      // Don't block — empty is allowed. (Spec didn't mark required.)
     }
     return { ok: true };
   }
@@ -292,7 +250,7 @@ export default function QuestionnaireClient({ firstName, tier, satDates }: Props
         </div>
 
         {currentStep.key === "sat" && (
-          <Step_SatSchedule
+          <SatScheduleStep
             satDates={satDates}
             satTestDate={satTestDate}
             setSatTestDate={setSatTestDate}
@@ -302,7 +260,7 @@ export default function QuestionnaireClient({ firstName, tier, satDates }: Props
         )}
 
         {currentStep.key === "bg" && (
-          <Step_Background
+          <BackgroundStep
             hsYear={hsYear}
             setHsYear={setHsYear}
             satTaken={satTaken}
@@ -321,7 +279,7 @@ export default function QuestionnaireClient({ firstName, tier, satDates }: Props
         )}
 
         {currentStep.key === "avail" && (
-          <Step_Availability
+          <AvailabilityStep
             availableDays={availableDays}
             setAvailableDays={setAvailableDays}
             availableTimes={availableTimes}
@@ -332,7 +290,7 @@ export default function QuestionnaireClient({ firstName, tier, satDates }: Props
         )}
 
         {currentStep.key === "family" && (
-          <Step_Family
+          <FamilyStep
             parentEmail={parentEmail}
             setParentEmail={setParentEmail}
             parentPhone={parentPhone}
@@ -341,7 +299,7 @@ export default function QuestionnaireClient({ firstName, tier, satDates }: Props
         )}
 
         {currentStep.key === "heard" && (
-          <Step_Heard
+          <HeardStep
             heardAboutStrata={heardAboutStrata}
             setHeardAboutStrata={setHeardAboutStrata}
           />
@@ -373,411 +331,6 @@ export default function QuestionnaireClient({ firstName, tier, satDates }: Props
           </button>
         </div>
       </div>
-    </div>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────
-// Step components
-// ─────────────────────────────────────────────────────────────
-
-function Step_SatSchedule(props: {
-  satDates: SatDateOption[];
-  satTestDate: string;
-  setSatTestDate: (v: string) => void;
-  goalSatScore: number;
-  setGoalSatScore: (v: number) => void;
-}) {
-  return (
-    <div className="space-y-6">
-      <div>
-        <Label>Which SAT date are you registered for?</Label>
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-          {props.satDates.map((d) => (
-            <button
-              key={d.iso}
-              type="button"
-              onClick={() => props.setSatTestDate(d.iso)}
-              className={cn(
-                "rounded-lg border px-3 py-2 text-xs font-semibold transition-colors",
-                props.satTestDate === d.iso
-                  ? "border-blue-500 bg-blue-500 text-white"
-                  : "border-white/10 bg-white/[0.03] text-slate-200 hover:border-white/30"
-              )}
-            >
-              {d.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div>
-        <Label>What&apos;s your goal score?</Label>
-        <div className="mb-1 text-center text-3xl font-extrabold text-white">
-          {props.goalSatScore}
-        </div>
-        <input
-          type="range"
-          min={400}
-          max={1600}
-          step={10}
-          value={props.goalSatScore}
-          onChange={(e) => props.setGoalSatScore(Number(e.target.value))}
-          className="w-full accent-blue-400"
-        />
-        <div className="mt-1 flex justify-between text-[11px] text-slate-500">
-          <span>400</span>
-          <span>1600</span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function Step_Background(props: {
-  hsYear: string;
-  setHsYear: (v: string) => void;
-  satTaken: "yes" | "no" | "";
-  setSatTaken: (v: "yes" | "no" | "") => void;
-  recentSatMath: number;
-  setRecentSatMath: (n: number) => void;
-  recentSatReading: number;
-  setRecentSatReading: (n: number) => void;
-  recentSatTimePressure: "yes" | "no" | "";
-  setRecentSatTimePressure: (v: "yes" | "no" | "") => void;
-  psatTaken: "yes" | "no" | "";
-  setPsatTaken: (v: "yes" | "no" | "") => void;
-  psatScore: number;
-  setPsatScore: (n: number) => void;
-}) {
-  return (
-    <div className="space-y-6">
-      <div>
-        <Label>What year are you in high school?</Label>
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-          {HS_YEARS.map((y) => (
-            <button
-              key={y}
-              type="button"
-              onClick={() => props.setHsYear(y)}
-              className={cn(
-                "rounded-lg border px-3 py-2 text-xs font-semibold capitalize transition-colors",
-                props.hsYear === y
-                  ? "border-blue-500 bg-blue-500 text-white"
-                  : "border-white/10 bg-white/[0.03] text-slate-200 hover:border-white/30"
-              )}
-            >
-              {y}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div>
-        <Label>Have you taken the SAT yet?</Label>
-        <YesNoChoice value={props.satTaken} onChange={props.setSatTaken} />
-      </div>
-
-      {props.satTaken === "yes" && (
-        <>
-          <div>
-            <Label>Most recent Math score</Label>
-            <div className="mb-1 text-center text-2xl font-extrabold text-white">
-              {props.recentSatMath}
-            </div>
-            <input
-              type="range"
-              min={200}
-              max={800}
-              step={5}
-              value={props.recentSatMath}
-              onChange={(e) => props.setRecentSatMath(Number(e.target.value))}
-              className="w-full accent-blue-400"
-            />
-            <div className="mt-1 flex justify-between text-[11px] text-slate-500">
-              <span>200</span>
-              <span>800</span>
-            </div>
-          </div>
-          <div>
-            <Label>Most recent Reading & Writing score</Label>
-            <div className="mb-1 text-center text-2xl font-extrabold text-white">
-              {props.recentSatReading}
-            </div>
-            <input
-              type="range"
-              min={200}
-              max={800}
-              step={5}
-              value={props.recentSatReading}
-              onChange={(e) => props.setRecentSatReading(Number(e.target.value))}
-              className="w-full accent-blue-400"
-            />
-            <div className="mt-1 flex justify-between text-[11px] text-slate-500">
-              <span>200</span>
-              <span>800</span>
-            </div>
-          </div>
-          <div>
-            <Label>Was time a pressuring factor on that test?</Label>
-            <YesNoChoice
-              value={props.recentSatTimePressure}
-              onChange={props.setRecentSatTimePressure}
-            />
-          </div>
-        </>
-      )}
-
-      <div>
-        <Label>Have you taken the PSAT?</Label>
-        <YesNoChoice value={props.psatTaken} onChange={props.setPsatTaken} />
-      </div>
-      {props.psatTaken === "yes" && (
-        <div>
-          <Label>PSAT total score</Label>
-          <div className="mb-1 text-center text-2xl font-extrabold text-white">
-            {props.psatScore}
-          </div>
-          <input
-            type="range"
-            min={320}
-            max={1520}
-            step={10}
-            value={props.psatScore}
-            onChange={(e) => props.setPsatScore(Number(e.target.value))}
-            className="w-full accent-blue-400"
-          />
-          <div className="mt-1 flex justify-between text-[11px] text-slate-500">
-            <span>320</span>
-            <span>1520</span>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function Step_Availability(props: {
-  availableDays: string[];
-  setAvailableDays: (v: string[]) => void;
-  availableTimes: string[];
-  setAvailableTimes: (v: string[]) => void;
-  timeZone: string;
-  setTimeZone: (v: string) => void;
-}) {
-  function toggleDay(d: string) {
-    props.setAvailableDays(
-      props.availableDays.includes(d)
-        ? props.availableDays.filter((x) => x !== d)
-        : [...props.availableDays, d]
-    );
-  }
-  function toggleTime(t: string) {
-    props.setAvailableTimes(
-      props.availableTimes.includes(t)
-        ? props.availableTimes.filter((x) => x !== t)
-        : [...props.availableTimes, t]
-    );
-  }
-  return (
-    <div className="space-y-6">
-      <div>
-        <Label>Which days are you available?</Label>
-        <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-7">
-          {DAYS.map((d) => {
-            const on = props.availableDays.includes(d);
-            return (
-              <button
-                key={d}
-                type="button"
-                onClick={() => toggleDay(d)}
-                className={cn(
-                  "rounded-lg border px-2 py-2 text-[11px] font-semibold capitalize transition-colors",
-                  on
-                    ? "border-blue-500 bg-blue-500 text-white"
-                    : "border-white/10 bg-white/[0.03] text-slate-200 hover:border-white/30"
-                )}
-              >
-                {d.slice(0, 3)}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      <div>
-        <Label>What times work for you?</Label>
-        <div className="grid grid-cols-3 gap-2">
-          {TIMES.map((t) => {
-            const on = props.availableTimes.includes(t);
-            return (
-              <button
-                key={t}
-                type="button"
-                onClick={() => toggleTime(t)}
-                className={cn(
-                  "rounded-lg border px-3 py-2.5 text-xs font-semibold capitalize transition-colors",
-                  on
-                    ? "border-blue-500 bg-blue-500 text-white"
-                    : "border-white/10 bg-white/[0.03] text-slate-200 hover:border-white/30"
-                )}
-              >
-                <div>{t}</div>
-                <div className="text-[10px] font-normal opacity-70">
-                  {t === "morning" ? "9–12" : t === "afternoon" ? "12–5" : "5–11"}
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      <div>
-        <Label>Your time zone</Label>
-        <select
-          value={props.timeZone}
-          onChange={(e) => props.setTimeZone(e.target.value)}
-          className="w-full rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-slate-100 focus:border-blue-400 focus:outline-none"
-        >
-          {COMMON_TZ.map((tz) => (
-            <option key={tz} value={tz} className="bg-slate-900">
-              {tz}
-            </option>
-          ))}
-          {!COMMON_TZ.includes(props.timeZone) && (
-            <option value={props.timeZone} className="bg-slate-900">
-              {props.timeZone}
-            </option>
-          )}
-        </select>
-      </div>
-    </div>
-  );
-}
-
-function Step_Family(props: {
-  parentEmail: string;
-  setParentEmail: (v: string) => void;
-  parentPhone: string;
-  setParentPhone: (v: string) => void;
-}) {
-  return (
-    <div className="space-y-5">
-      <p className="text-xs text-slate-400">
-        Parents see your progress + chat history through the parent portal. Optional but
-        recommended.
-      </p>
-      <div>
-        <Label>Parent&apos;s email</Label>
-        <input
-          type="email"
-          value={props.parentEmail}
-          onChange={(e) => props.setParentEmail(e.target.value)}
-          placeholder="parent@example.com"
-          className="w-full rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-blue-400 focus:outline-none"
-        />
-      </div>
-      <div>
-        <Label>Parent&apos;s phone</Label>
-        <input
-          type="tel"
-          value={props.parentPhone}
-          onChange={(e) => props.setParentPhone(e.target.value)}
-          placeholder="(555) 123-4567"
-          className="w-full rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-blue-400 focus:outline-none"
-        />
-      </div>
-    </div>
-  );
-}
-
-function Step_Heard(props: { heardAboutStrata: string; setHeardAboutStrata: (v: string) => void }) {
-  return (
-    <div className="space-y-3">
-      <Label>How did you hear about Karman?</Label>
-      <div className="grid grid-cols-2 gap-2">
-        {HEARD_OPTIONS.map((opt) => (
-          <button
-            key={opt}
-            type="button"
-            onClick={() => props.setHeardAboutStrata(opt)}
-            className={cn(
-              "rounded-lg border px-3 py-2 text-left text-xs font-semibold transition-colors",
-              props.heardAboutStrata === opt
-                ? "border-blue-500 bg-blue-500 text-white"
-                : "border-white/10 bg-white/[0.03] text-slate-200 hover:border-white/30"
-            )}
-          >
-            {opt}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function DoneSummary({ tier, placement }: { tier: string; placement: Record<string, unknown> }) {
-  if (tier === "group" || tier === "small_group") {
-    const name = placement.cohortName as string | undefined;
-    const created = placement.cohortCreated as boolean | undefined;
-    return (
-      <p className="text-sm text-slate-300">
-        You&apos;ve been placed in{" "}
-        <span className="font-semibold text-white">{name ?? "your cohort"}</span>.
-        {created ? " (Brand-new cohort created for your SAT date.)" : ""}
-      </p>
-    );
-  }
-  if (tier === "private" || tier === "elite") {
-    const matched = placement.matchedAvailability as boolean | undefined;
-    return (
-      <p className="text-sm text-slate-300">
-        You&apos;ve been paired with a tutor.{" "}
-        {matched
-          ? "Their availability matches yours."
-          : "We'll fine-tune the match once your tutor reviews your schedule."}
-      </p>
-    );
-  }
-  return <p className="text-sm text-slate-300">You&apos;re all set.</p>;
-}
-
-// ─────────────────────────────────────────────────────────────
-// Tiny shared bits
-// ─────────────────────────────────────────────────────────────
-
-function Label({ children }: { children: React.ReactNode }) {
-  return (
-    <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-400">
-      {children}
-    </label>
-  );
-}
-
-function YesNoChoice({
-  value,
-  onChange,
-}: {
-  value: "yes" | "no" | "";
-  onChange: (v: "yes" | "no" | "") => void;
-}) {
-  return (
-    <div className="grid grid-cols-2 gap-2">
-      {(["yes", "no"] as const).map((opt) => (
-        <button
-          key={opt}
-          type="button"
-          onClick={() => onChange(opt)}
-          className={cn(
-            "rounded-lg border px-3 py-2 text-xs font-semibold capitalize transition-colors",
-            value === opt
-              ? "border-blue-500 bg-blue-500 text-white"
-              : "border-white/10 bg-white/[0.03] text-slate-200 hover:border-white/30"
-          )}
-        >
-          {opt}
-        </button>
-      ))}
     </div>
   );
 }
