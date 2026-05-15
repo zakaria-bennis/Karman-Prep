@@ -150,7 +150,17 @@ function CohortTable({ cohorts }: { cohorts: AdminCohortRow[] }) {
               role="link"
               aria-label={`Open ${c.name}`}
             >
-              <td className="px-4 py-3 font-medium text-white">{c.name}</td>
+              <td className="px-4 py-3 font-medium text-white">
+                <div className="flex items-center gap-2">
+                  <span>{c.name}</span>
+                  {c.setup_completed_at === null &&
+                  (c.tier === "group" || c.tier === "small_group") ? (
+                    <span className="inline-flex items-center gap-0.5 rounded-md bg-amber-400/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-300">
+                      Needs setup
+                    </span>
+                  ) : null}
+                </div>
+              </td>
               <td className="px-4 py-3">
                 <TierBadge tier={c.tier} />
               </td>

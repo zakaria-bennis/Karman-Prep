@@ -703,6 +703,7 @@ export type Database = {
           max_size: number;
           name: string;
           sat_date: string;
+          setup_completed_at: string | null;
           status: string;
           tier: string;
           tutor_user_id: string;
@@ -716,6 +717,7 @@ export type Database = {
           max_size: number;
           name: string;
           sat_date: string;
+          setup_completed_at?: string | null;
           status?: string;
           tier: string;
           tutor_user_id: string;
@@ -729,6 +731,7 @@ export type Database = {
           max_size?: number;
           name?: string;
           sat_date?: string;
+          setup_completed_at?: string | null;
           status?: string;
           tier?: string;
           tutor_user_id?: string;

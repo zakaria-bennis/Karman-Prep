@@ -60,9 +60,11 @@ binding = "ASSETS"
 #                     (PDF-ingestion folder watcher; BUGS.md #4).
 #   "*/2 * * * *"   — every 2 minutes, drain failed_emails queue
 #                     (Cal webhook email retry — audit issue #3).
+#   "0 14 * * *"    — 14:00 UTC (~9am ET) daily, remind admins about
+#                     cohorts still needing Cal/Zoom setup (#4).
 # Each schedule is dispatched to a route by scripts/build/patch-cf-worker.mjs.
 [triggers]
-crons = ["0 6 * * *", "*/5 * * * *", "*/2 * * * *"]
+crons = ["0 6 * * *", "*/5 * * * *", "*/2 * * * *", "0 14 * * *"]
 
 # ── R2 binding for question-image storage ─────────────────────
 # When code runs INSIDE the worker, you can use this binding

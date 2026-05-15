@@ -18,6 +18,11 @@ export interface AdminCohortRow {
   status: CohortStatus;
   created_at: string;
   ended_at: string | null;
+  /** Null = admin still needs to wire up Cal/Zoom for this cohort.
+   *  Drives the "Needs setup" badge + daily reminder cron. Only
+   *  meaningful for group + small_group tiers (private/elite use
+   *  per-tutor Cal OAuth instead). */
+  setup_completed_at: string | null;
   tutor: {
     id: string;
     first_name: string | null;
@@ -50,7 +55,7 @@ export async function fetchCohorts(): Promise<AdminCohortRow[]> {
     supabase
       .from("cohorts")
       .select(
-        `id, name, tier, sat_date, max_size, current_topic, status, created_at, ended_at,
+        `id, name, tier, sat_date, max_size, current_topic, status, created_at, ended_at, setup_completed_at,
          tutor:users!cohorts_tutor_user_id_fkey (id, first_name, last_name, email)`
       )
       .is("archived_at", null)
@@ -86,6 +91,7 @@ export async function fetchCohorts(): Promise<AdminCohortRow[]> {
       status: r.status as CohortStatus,
       created_at: r.created_at,
       ended_at: r.ended_at,
+      setup_completed_at: r.setup_completed_at,
       tutor,
       member_count: counts.get(r.id) ?? 0,
     });
@@ -371,6 +377,83 @@ export async function unarchiveCohort(cohortId: string): Promise<void> {
 }
 
 // ─────────────────────────────────────────────────────────────
+// Setup-completed tracking (audit issue #4).
+//
+// Group + small_group cohorts created by the seminar overflow
+// webhook (or by admin via /admin/cohorts) need an out-of-band
+// Cal/Zoom configuration step that Karman doesn't drive. We track
+// completion via cohorts.setup_completed_at:
+//   · NULL    → admin still needs to set up Cal/Zoom
+//   · NOT NULL → admin marked it complete; badge + reminder go quiet
+// ─────────────────────────────────────────────────────────────
+
+export interface CohortNeedingSetup {
+  id: string;
+  name: string;
+  tier: CohortTier;
+  sat_date: string;
+  created_at: string;
+  tutor_email: string;
+}
+
+/** All group/small_group cohorts not yet marked setup-complete and
+ *  not archived. Sorted oldest-first so the reminder email can show
+ *  "this cohort has been waiting N days for setup." */
+export async function listCohortsNeedingSetup(): Promise<CohortNeedingSetup[]> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("cohorts")
+    .select(
+      `id, name, tier, sat_date, created_at,
+       tutor:users!cohorts_tutor_user_id_fkey (email)`
+    )
+    .is("setup_completed_at", null)
+    .is("archived_at", null)
+    .in("tier", ["group", "small_group"])
+    .order("created_at", { ascending: true });
+  if (error) throw error;
+  type Row = {
+    id: string;
+    name: string;
+    tier: CohortTier;
+    sat_date: string;
+    created_at: string;
+    tutor: { email: string } | { email: string }[] | null;
+  };
+  return ((data ?? []) as Row[]).map((r) => ({
+    id: r.id,
+    name: r.name,
+    tier: r.tier,
+    sat_date: r.sat_date,
+    created_at: r.created_at,
+    tutor_email: Array.isArray(r.tutor) ? (r.tutor[0]?.email ?? "") : (r.tutor?.email ?? ""),
+  }));
+}
+
+/** Admin click "Mark setup complete" on the cohort detail page.
+ *  Idempotent — no-op if already set. */
+export async function markCohortSetupComplete(cohortId: string): Promise<void> {
+  const supabase = createAdminClient();
+  const { error } = await supabase
+    .from("cohorts")
+    .update({ setup_completed_at: new Date().toISOString() })
+    .eq("id", cohortId)
+    .is("setup_completed_at", null);
+  if (error) throw error;
+}
+
+/** Admin clicked "Mark setup incomplete" (rare — for fixing
+ *  mistakes). Useful for testing the reminder cron too. */
+export async function markCohortSetupIncomplete(cohortId: string): Promise<void> {
+  const supabase = createAdminClient();
+  const { error } = await supabase
+    .from("cohorts")
+    .update({ setup_completed_at: null })
+    .eq("id", cohortId);
+  if (error) throw error;
+}
+
+// ─────────────────────────────────────────────────────────────
 // Cohort detail page — one cohort + its members + tutor note + homework.
 // ─────────────────────────────────────────────────────────────
 
@@ -410,7 +493,7 @@ export async function fetchCohortDetail(cohortId: string): Promise<CohortDetail 
   const { data: cohortRow, error: cohortErr } = await supabase
     .from("cohorts")
     .select(
-      `id, name, tier, sat_date, max_size, current_topic, status, created_at, ended_at,
+      `id, name, tier, sat_date, max_size, current_topic, status, created_at, ended_at, setup_completed_at,
        tutor:users!cohorts_tutor_user_id_fkey (id, first_name, last_name, email)`
     )
     .eq("id", cohortId)
@@ -497,6 +580,7 @@ export async function fetchCohortDetail(cohortId: string): Promise<CohortDetail 
       status: rc.status,
       created_at: rc.created_at,
       ended_at: rc.ended_at,
+      setup_completed_at: rc.setup_completed_at,
       tutor,
       member_count: members.length,
     },
