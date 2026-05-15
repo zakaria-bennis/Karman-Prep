@@ -31,6 +31,10 @@ import {
   parseZoomMeetingId,
 } from "@/lib/integrations/fireflies/client";
 import {
+  pickBookingByTime,
+  TRANSCRIPT_TIME_WINDOW_MS,
+} from "@/lib/integrations/fireflies/match-booking";
+import {
   generateStatusDraft,
   type StatusDraft,
 } from "@/lib/integrations/openai/generate-status-draft";
@@ -298,9 +302,21 @@ const BOOKING_SELECT = `
  *   1. By zoom_meeting_id direct equality (most reliable).
  *   2. By zoom_join_url containing the same Zoom meeting id
  *      (some bookings may not have zoom_meeting_id populated).
- *   3. By time window: bookings.scheduled_start within ±60 min
- *      of transcript.date AND status='scheduled'.
- *   Returns the first match, or null. */
+ *   3. By time window: bookings.scheduled_start within
+ *      ±TRANSCRIPT_TIME_WINDOW_MS of transcript.date,
+ *      status != cancelled, and zoom_meeting_id IS NULL.
+ *
+ *  Strategy 3 only considers rows with no Zoom id because any
+ *  booking with a known Zoom id should have been caught by
+ *  Strategy 1/2 if the transcript really belonged to it. Without
+ *  this filter the time window could attach a transcript to a
+ *  booking with a *different* Zoom meeting (audit issue #16).
+ *
+ *  If Strategy 3 finds multiple plausible bookings whose
+ *  scheduled_start times are too close together to distinguish,
+ *  we throw `ambiguous_time_match` rather than picking one — the
+ *  webhook handler records the error on webhook_events and admin
+ *  resolves manually. */
 async function findMatchingBooking(
   supabase: Supabase,
   args: {
@@ -335,17 +351,37 @@ async function findMatchingBooking(
 
   // Strategy 3: time window fallback
   if (transcriptDateMs) {
-    const start = new Date(transcriptDateMs - 60 * 60_000).toISOString();
-    const end = new Date(transcriptDateMs + 60 * 60_000).toISOString();
+    const start = new Date(transcriptDateMs - TRANSCRIPT_TIME_WINDOW_MS).toISOString();
+    const end = new Date(transcriptDateMs + TRANSCRIPT_TIME_WINDOW_MS).toISOString();
     const { data } = await supabase
       .from("bookings")
       .select(BOOKING_SELECT)
       .gte("scheduled_start", start)
       .lte("scheduled_start", end)
+      .is("zoom_meeting_id", null)
       .neq("status", "cancelled")
       .order("scheduled_start", { ascending: true })
-      .limit(1);
-    if (data?.[0]) return normalize(data[0]);
+      .limit(5);
+
+    const candidates = (data ?? []).map((row) => {
+      const r = row as Record<string, unknown>;
+      return {
+        id: r.id as string,
+        scheduledStartMs: new Date(r.scheduled_start as string).getTime(),
+        raw: row,
+      };
+    });
+    const decision = pickBookingByTime(candidates, transcriptDateMs);
+    if (decision.kind === "match") {
+      const winner = candidates.find((c) => c.id === decision.id);
+      if (winner) return normalize(winner.raw);
+    } else if (decision.kind === "ambiguous") {
+      throw new Error(
+        `ambiguous_time_match (${decision.candidateIds.length} bookings within ±${
+          TRANSCRIPT_TIME_WINDOW_MS / 60_000
+        }min — admin must resolve manually): ${decision.candidateIds.join(", ")}`
+      );
+    }
   }
 
   return null;
