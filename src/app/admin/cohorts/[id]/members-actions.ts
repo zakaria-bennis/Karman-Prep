@@ -5,7 +5,7 @@
 // Role-gated: admin (real role, not impersonated).
 // ============================================================
 
-import { auth } from "@clerk/nextjs/server";
+import { safeAuth } from "@/lib/auth/dev-auth";
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/server";
 import { fetchUserRole } from "@/lib/supabase/queries/admin";
@@ -13,7 +13,7 @@ import { archiveCohortIfEmpty, unarchiveCohort } from "@/lib/supabase/queries/co
 import { cohortMemberMutationInputSchema } from "../../schemas";
 
 async function guardAdmin() {
-  const { userId } = await auth();
+  const { userId } = await safeAuth();
   if (!userId) throw new Error("Not authenticated");
   const role = await fetchUserRole(userId); // REAL role, not impersonated
   if (role !== "admin") throw new Error("Admin role required");

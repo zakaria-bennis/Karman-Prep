@@ -12,7 +12,7 @@
 // ============================================================
 
 import { revalidatePath } from "next/cache";
-import { auth } from "@clerk/nextjs/server";
+import { safeAuth } from "@/lib/auth/dev-auth";
 import { createAdminClient } from "@/lib/supabase/server";
 import { fetchUserRole } from "@/lib/supabase/queries/admin";
 
@@ -27,7 +27,7 @@ const ESTIMATED_SESSIONS_PER_MONTH = 4;
 export async function snapshotRevenueAction(): Promise<
   { ok: true; mrr: number } | { ok: false; error: string }
 > {
-  const { userId } = await auth();
+  const { userId } = await safeAuth();
   if (!userId) return { ok: false, error: "Unauthorized" };
   const role = await fetchUserRole(userId);
   if (role !== "admin") return { ok: false, error: "Admin only" };

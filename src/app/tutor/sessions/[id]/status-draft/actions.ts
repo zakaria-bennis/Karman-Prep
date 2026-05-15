@@ -19,7 +19,7 @@
 // ============================================================
 
 import { revalidatePath } from "next/cache";
-import { auth } from "@clerk/nextjs/server";
+import { safeAuth } from "@/lib/auth/dev-auth";
 import { createAdminClient } from "@/lib/supabase/server";
 import {
   generateStatusDraft,
@@ -55,7 +55,7 @@ async function authForBooking(bookingId: string): Promise<{
   callerUserId: string;
   isAdmin: boolean;
 }> {
-  const { userId: clerkId } = await auth();
+  const { userId: clerkId } = await safeAuth();
   if (!clerkId) throw new Error("not_signed_in");
 
   const supabase = createAdminClient();

@@ -5,7 +5,7 @@
 // Role-gated: tutor or admin only.
 // ============================================================
 
-import { auth } from "@clerk/nextjs/server";
+import { safeAuth } from "@/lib/auth/dev-auth";
 import { revalidatePath } from "next/cache";
 import { requireRole } from "@/lib/supabase/queries/admin";
 import {
@@ -17,7 +17,7 @@ import { resolveFlaggedQuestion, updateQuestion } from "@/lib/supabase/queries/q
 import type { OverrideStatus, QuizQuestion } from "@/types/quiz";
 
 async function guardTutor(): Promise<string> {
-  const { userId } = await auth();
+  const { userId } = await safeAuth();
   if (!userId) throw new Error("Not authenticated");
   const ok = await requireRole(userId, ["tutor", "admin"]);
   if (!ok) throw new Error("Tutor or admin role required");

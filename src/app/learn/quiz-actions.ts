@@ -5,7 +5,7 @@
 // Called from the QuizContext / QuizEngine client components.
 // ============================================================
 
-import { auth } from "@clerk/nextjs/server";
+import { safeAuth } from "@/lib/auth/dev-auth";
 import { revalidatePath } from "next/cache";
 import {
   fetchQuestionsForNode,
@@ -32,7 +32,7 @@ export async function actionFetchQuestions(nodeId: string): Promise<QuizQuestion
 }
 
 export async function actionFetchNodeBundle(nodeId: string) {
-  const { userId } = await auth();
+  const { userId } = await safeAuth();
   if (!userId) throw new Error("Not authenticated");
   return fetchNodeStatusBundle(userId, nodeId);
 }
@@ -41,7 +41,7 @@ export async function actionStartQuiz(nodeId: string): Promise<{
   attemptId: string;
   questions: QuizQuestionWithChoices[];
 }> {
-  const { userId } = await auth();
+  const { userId } = await safeAuth();
   if (!userId) throw new Error("Not authenticated");
 
   const [attempt, questions] = await Promise.all([
@@ -60,7 +60,7 @@ export async function actionRecordResponse(input: {
   difficulty_at_time: QuizDifficulty;
   response_time_seconds: number;
 }) {
-  const { userId } = await auth();
+  const { userId } = await safeAuth();
   if (!userId) throw new Error("Not authenticated");
   await recordQuestionResponse(input);
 }
@@ -74,7 +74,7 @@ export async function actionCompleteQuiz(input: {
   questions_correct: number;
   adaptive_path: AdaptiveStep[];
 }): Promise<{ newStatus: string; confidenceBand: ConfidenceBand }> {
-  const { userId } = await auth();
+  const { userId } = await safeAuth();
   if (!userId) throw new Error("Not authenticated");
 
   const confidence_band = getConfidenceBand(input.score);
@@ -103,7 +103,7 @@ export async function actionFlagQuestion(input: {
   node_id: string;
   flag_note: string | null;
 }) {
-  const { userId } = await auth();
+  const { userId } = await safeAuth();
   if (!userId) throw new Error("Not authenticated");
   await flagQuestion({
     question_id: input.question_id,
@@ -114,7 +114,7 @@ export async function actionFlagQuestion(input: {
 }
 
 export async function actionUpdateWatchPercentage(nodeId: string, percentage: number) {
-  const { userId } = await auth();
+  const { userId } = await safeAuth();
   if (!userId) return;
   await updateWatchPercentage(userId, nodeId, percentage);
 }

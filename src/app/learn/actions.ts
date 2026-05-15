@@ -6,14 +6,14 @@
 // initUserProgress: seed the first unlock for a new student
 // ============================================================
 
-import { auth } from "@clerk/nextjs/server";
+import { safeAuth } from "@/lib/auth/dev-auth";
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/server";
 import { getNodes, getUnlockedBy, type Subject } from "@/data/curriculum";
 
 /** Seed initial progress for a student who has never opened this subject */
 export async function initUserProgress(subject: Subject) {
-  const { userId } = await auth();
+  const { userId } = await safeAuth();
   if (!userId) return;
 
   const supabase = createAdminClient();
@@ -41,7 +41,7 @@ export async function initUserProgress(subject: Subject) {
  * whose prerequisites are now all mastered.
  */
 export async function markNodeComplete(nodeId: string, subject: Subject) {
-  const { userId } = await auth();
+  const { userId } = await safeAuth();
   if (!userId) throw new Error("Not authenticated");
 
   const supabase = createAdminClient();
@@ -97,7 +97,7 @@ export async function markNodeComplete(nodeId: string, subject: Subject) {
 
 /** Mark a node as in-progress (called when a student opens a node lesson) */
 export async function markNodeInProgress(nodeId: string, subject: Subject) {
-  const { userId } = await auth();
+  const { userId } = await safeAuth();
   if (!userId) return;
 
   const supabase = createAdminClient();

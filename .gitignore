@@ -57,3 +57,8 @@ next-env.d.ts
 /question-imports/extract-out/
 /question-imports/.pdf-watch.log
 /question-imports/*.log
+
+# Playwright artifacts
+/test-results/
+/playwright-report/
+/playwright/.cache/

@@ -25,7 +25,7 @@
 
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { auth } from "@clerk/nextjs/server";
+import { safeAuth } from "@/lib/auth/dev-auth";
 import { createAdminClient } from "@/lib/supabase/server";
 import {
   fetchUserRole,
@@ -36,7 +36,7 @@ import {
 import { impersonateUserInputSchema, setImpersonationInputSchema } from "./schemas";
 
 async function guardRealAdmin() {
-  const { userId } = await auth();
+  const { userId } = await safeAuth();
   if (!userId) throw new Error("Not authenticated");
   const real = await fetchUserRole(userId);
   if (real !== "admin") throw new Error("Admin role required");

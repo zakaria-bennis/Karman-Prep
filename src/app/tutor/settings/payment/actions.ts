@@ -15,7 +15,7 @@
 // ============================================================
 
 import { revalidatePath } from "next/cache";
-import { auth } from "@clerk/nextjs/server";
+import { safeAuth } from "@/lib/auth/dev-auth";
 import { headers } from "next/headers";
 import { createAdminClient } from "@/lib/supabase/server";
 import {
@@ -27,7 +27,7 @@ import {
 } from "@/lib/integrations/stripe/connect";
 
 async function callerRow() {
-  const { userId: clerkId } = await auth();
+  const { userId: clerkId } = await safeAuth();
   if (!clerkId) throw new Error("not_signed_in");
 
   const supabase = createAdminClient();

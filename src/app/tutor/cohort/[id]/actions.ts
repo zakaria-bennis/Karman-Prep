@@ -6,7 +6,7 @@
 // may only act on cohorts where they are the listed tutor).
 // ============================================================
 
-import { auth } from "@clerk/nextjs/server";
+import { safeAuth } from "@/lib/auth/dev-auth";
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/server";
 import { fetchUserRole } from "@/lib/supabase/queries/admin";
@@ -17,7 +17,7 @@ import { fetchUserRole } from "@/lib/supabase/queries/admin";
  * Throws a clear error when unauthorized.
  */
 async function guardCohortAccess(cohortId: string): Promise<string /* tutor_user_id */> {
-  const { userId } = await auth();
+  const { userId } = await safeAuth();
   if (!userId) throw new Error("Not authenticated");
 
   const role = await fetchUserRole(userId);

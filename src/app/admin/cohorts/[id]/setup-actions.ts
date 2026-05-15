@@ -12,12 +12,12 @@
 // ============================================================
 
 import { revalidatePath } from "next/cache";
-import { auth } from "@clerk/nextjs/server";
+import { safeAuth } from "@/lib/auth/dev-auth";
 import { fetchUserRole } from "@/lib/supabase/queries/admin";
 import { markCohortSetupComplete, markCohortSetupIncomplete } from "@/lib/supabase/queries/cohorts";
 
 async function guardAdmin() {
-  const { userId } = await auth();
+  const { userId } = await safeAuth();
   if (!userId) throw new Error("Not authenticated");
   const role = await fetchUserRole(userId);
   if (role !== "admin") throw new Error("Admin role required");
