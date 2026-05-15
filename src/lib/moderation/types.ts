@@ -40,6 +40,11 @@ export interface ModerationInput {
   mediaUrls: string[];
   /** Clerk user id of the sender. Logged for audit. */
   senderId: string;
+  /** App-side users.id of the sender. Used by the moderation cache to
+   *  look up the sender's recent approved messages in chat_messages /
+   *  direct_messages without an extra Clerk → UUID round-trip from
+   *  inside the pipeline. */
+  senderUuid: string;
   /** Channel id (chat_channels.id) for cohort/Q&A messages, or null
    *  for DMs (caller passes the recipient context separately). */
   channelId: string | null;
