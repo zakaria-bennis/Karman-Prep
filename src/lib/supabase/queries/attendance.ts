@@ -62,40 +62,111 @@ export async function findBookingsByZoomMeetingId(
 }
 
 /** Resolve which booking a participant join/leave applies to.
- *  Single-booking meetings (private/elite) return the only one
- *  regardless of email. Multi-booking meetings (group/small_group)
- *  require an email match against users.email. */
+ *
+ *  Resolution order:
+ *    1. Single-booking meeting (private/elite) → return the only
+ *       booking regardless of email. The Zoom participant has to
+ *       be the student; there's no ambiguity.
+ *    2. Multi-booking meeting (group/small_group) → match by email
+ *       (case-insensitive). This is the happy path when students
+ *       join Zoom from the same email they used to sign up.
+ *    3. **Fallback**: if email doesn't match, try a fuzzy match
+ *       against the cohort roster by participant display name —
+ *       "first last" or "last, first" against students.first_name +
+ *       last_name. Resolves the audit-flagged case where a student
+ *       joins from a school account or family Zoom account with a
+ *       different email but the right display name. Only returns
+ *       if EXACTLY ONE student in the cohort matches; ambiguous
+ *       matches stay unrecorded so an admin can manually override.
+ *
+ *  Audit #11 — previously this returned null on any email mismatch
+ *  for cohort meetings, silently dropping legitimate joins.
+ */
 export async function findBookingForParticipant(
   zoomMeetingId: string,
-  participantEmail: string | undefined
-): Promise<{ bookingId: string; studentId: string } | null> {
+  participantEmail: string | undefined,
+  participantName?: string
+): Promise<{ bookingId: string; studentId: string; matchedBy: string } | null> {
   const supabase = createAdminClient();
 
   const bookings = await findBookingsByZoomMeetingId(zoomMeetingId);
   if (bookings.length === 0) return null;
 
   if (bookings.length === 1) {
-    return { bookingId: bookings[0].id, studentId: bookings[0].student_id };
+    return {
+      bookingId: bookings[0].id,
+      studentId: bookings[0].student_id,
+      matchedBy: "single-booking",
+    };
   }
-
-  if (!participantEmail) return null;
 
   const studentIds = bookings.map((b) => b.student_id);
   const { data: students, error } = await supabase
     .from("users")
-    .select("id, email")
+    .select("id, email, first_name, last_name")
     .in("id", studentIds);
   if (error) throw error;
+  const roster = (students ?? []) as Array<{
+    id: string;
+    email: string;
+    first_name: string | null;
+    last_name: string | null;
+  }>;
 
-  const matchingStudent = (students ?? []).find(
-    (s) => (s.email as string).toLowerCase() === participantEmail.toLowerCase()
-  );
-  if (!matchingStudent) return null;
+  // Match #1: email.
+  if (participantEmail) {
+    const byEmail = roster.find(
+      (s) => (s.email ?? "").toLowerCase() === participantEmail.toLowerCase()
+    );
+    if (byEmail) {
+      const b = bookings.find((bk) => bk.student_id === byEmail.id);
+      if (b) return { bookingId: b.id, studentId: byEmail.id, matchedBy: "email" };
+    }
+  }
 
-  const matchingBooking = bookings.find((b) => b.student_id === matchingStudent.id);
-  if (!matchingBooking) return null;
+  // Match #2: display name. Tries "first last" + "last first" + the
+  // raw concatenation so common Zoom display formats all resolve.
+  if (participantName) {
+    const candidate = nameMatchOrNull(participantName, roster);
+    if (candidate) {
+      const b = bookings.find((bk) => bk.student_id === candidate.id);
+      if (b) return { bookingId: b.id, studentId: candidate.id, matchedBy: "name" };
+    }
+  }
 
-  return { bookingId: matchingBooking.id, studentId: matchingStudent.id as string };
+  return null;
+}
+
+/** Normalize a display name string and try to match it against the
+ *  roster. Returns the matching row only if EXACTLY ONE roster
+ *  entry has the same normalized "first last" (or its reverse) —
+ *  ambiguous matches return null so we don't risk attributing
+ *  attendance to the wrong student.
+ *
+ *  Exported for testing — kept private to this module otherwise. */
+export function nameMatchOrNull(
+  rawName: string,
+  roster: Array<{ id: string; first_name: string | null; last_name: string | null }>
+): { id: string } | null {
+  const normalize = (s: string) =>
+    s
+      .toLowerCase()
+      .replace(/[^a-z\s]/g, "") // drop punctuation
+      .replace(/\s+/g, " ")
+      .trim();
+  const candidate = normalize(rawName);
+  if (!candidate) return null;
+
+  const matches = roster.filter((s) => {
+    const first = normalize(s.first_name ?? "");
+    const last = normalize(s.last_name ?? "");
+    if (!first && !last) return false;
+    const forward = [first, last].filter(Boolean).join(" ").trim();
+    const reverse = [last, first].filter(Boolean).join(" ").trim();
+    return candidate === forward || candidate === reverse;
+  });
+  if (matches.length === 1) return matches[0];
+  return null;
 }
 
 async function fetchAttendanceLog(

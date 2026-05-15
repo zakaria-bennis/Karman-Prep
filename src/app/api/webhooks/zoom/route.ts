@@ -100,12 +100,21 @@ export async function POST(req: NextRequest) {
         if (!p?.join_time) {
           return NextResponse.json({ received: true, note: "no join_time" });
         }
-        const match = await findBookingForParticipant(meetingId, p.email);
+        // Pass the participant's Zoom display name as a fallback —
+        // findBookingForParticipant uses it to resolve cohort joins
+        // when the email doesn't match (e.g. student joined from a
+        // school or family account). See audit #11.
+        const match = await findBookingForParticipant(meetingId, p.email, p.user_name);
         if (!match) {
           console.warn(
-            `[zoom-webhook] participant_joined: no booking for meeting=${meetingId} email=${p.email}`
+            `[zoom-webhook] participant_joined: no booking match for meeting=${meetingId} email=${p.email ?? "(none)"} name=${p.user_name ?? "(none)"}`
           );
           return NextResponse.json({ received: true, note: "no matching booking" });
+        }
+        if (match.matchedBy !== "email" && match.matchedBy !== "single-booking") {
+          console.log(
+            `[zoom-webhook] participant_joined: matched by ${match.matchedBy} (booking=${match.bookingId})`
+          );
         }
         await recordParticipantJoin({
           bookingId: match.bookingId,
@@ -121,10 +130,10 @@ export async function POST(req: NextRequest) {
         if (!p?.leave_time) {
           return NextResponse.json({ received: true, note: "no leave_time" });
         }
-        const match = await findBookingForParticipant(meetingId, p.email);
+        const match = await findBookingForParticipant(meetingId, p.email, p.user_name);
         if (!match) {
           console.warn(
-            `[zoom-webhook] participant_left: no booking for meeting=${meetingId} email=${p.email}`
+            `[zoom-webhook] participant_left: no booking match for meeting=${meetingId} email=${p.email ?? "(none)"} name=${p.user_name ?? "(none)"}`
           );
           return NextResponse.json({ received: true, note: "no matching booking" });
         }
