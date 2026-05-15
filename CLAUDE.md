@@ -58,6 +58,20 @@ To clean up: `delete from users where clerk_id like 'dev_seed_%';` (cascades).
 See `scripts/seed-dev.mjs` for the full fixture list + what state each
 persona exercises.
 
+### Component tests (React Testing Library)
+
+For client components, add a co-located `.test.tsx` next to the component
+with the `// @vitest-environment jsdom` directive at the top. They run as
+part of `npm test` (no separate command). Use them for prop matrices
+(e.g. banner with / without a name, button enabled / disabled) and for
+behavior that doesn't need a full page (clicks, menu open/close, form
+state). Examples: `src/components/admin/ImpersonationBanner.test.tsx`,
+`src/components/admin/ImpersonationMenu.test.tsx`.
+
+For multi-step UI flows that hit real pages (impersonation flow, dashboard
+data), use Playwright instead — those tests get the full app + bypass +
+seeded data.
+
 ### Playwright end-to-end tests
 
 `npm run test:e2e` — drives the full browser through multi-step user flows.
