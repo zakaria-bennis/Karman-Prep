@@ -13,7 +13,7 @@
 
 import type { Metadata } from "next";
 import Link from "next/link";
-import { auth } from "@clerk/nextjs/server";
+import { safeAuth } from "@/lib/auth/dev-auth";
 import { redirect } from "next/navigation";
 import { ArrowRight, BarChart3, Sparkles, AlertCircle, RefreshCcw, TrendingUp } from "lucide-react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
@@ -47,7 +47,7 @@ interface DiagnosticRow {
 }
 
 export default async function StudentProgressPage() {
-  const { userId: realUserId } = await auth();
+  const { userId: realUserId } = await safeAuth();
   if (!realUserId) redirect("/auth/sign-in");
   const { clerkId: userId } = await resolveEffectiveClerkId(realUserId);
 

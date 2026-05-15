@@ -9,7 +9,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ChevronRight, Eye } from "lucide-react";
 import { redirect } from "next/navigation";
-import { auth } from "@clerk/nextjs/server";
+import { safeAuth } from "@/lib/auth/dev-auth";
 import { requireRole } from "@/lib/supabase/queries/admin";
 import { createAdminClient } from "@/lib/supabase/server";
 import type { QuizQuestionWithChoices } from "@/types/quiz";
@@ -19,7 +19,7 @@ export const metadata: Metadata = { title: "Admin — Question Preview | Karman"
 export const dynamic = "force-dynamic";
 
 export default async function AdminQuestionPreviewPage() {
-  const { userId } = await auth();
+  const { userId } = await safeAuth();
   if (!userId) redirect("/sign-in");
   const isAdmin = await requireRole(userId, ["admin"]);
   if (!isAdmin) redirect("/");

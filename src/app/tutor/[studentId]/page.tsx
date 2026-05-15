@@ -4,7 +4,7 @@
 // ============================================================
 
 import type { Metadata } from "next";
-import { auth } from "@clerk/nextjs/server";
+import { safeAuth } from "@/lib/auth/dev-auth";
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
@@ -29,7 +29,7 @@ interface Params {
 export default async function StudentDetailPage({ params, searchParams }: Params) {
   const [{ studentId }, { tab: tabParam }] = await Promise.all([params, searchParams]);
 
-  const { userId } = await auth();
+  const { userId } = await safeAuth();
   if (!userId) redirect("/auth/sign-in");
 
   const role = await fetchUserRole(userId);

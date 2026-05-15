@@ -3,7 +3,7 @@
 // ============================================================
 
 import type { Metadata } from "next";
-import { auth } from "@clerk/nextjs/server";
+import { safeAuth } from "@/lib/auth/dev-auth";
 import { redirect, notFound } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/server";
 import { resolveEffectiveClerkId } from "@/lib/supabase/queries/admin";
@@ -31,7 +31,7 @@ export default async function NodePage({ params }: Params) {
   const node = getNode(sub, nodeId);
   if (!node) notFound();
 
-  const { userId: realUserId } = await auth();
+  const { userId: realUserId } = await safeAuth();
   if (!realUserId) redirect("/auth/sign-in");
   const { clerkId: userId } = await resolveEffectiveClerkId(realUserId);
 

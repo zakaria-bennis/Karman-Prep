@@ -11,7 +11,7 @@
 
 import type { Metadata } from "next";
 import Link from "next/link";
-import { auth } from "@clerk/nextjs/server";
+import { safeAuth } from "@/lib/auth/dev-auth";
 import { redirect } from "next/navigation";
 import { CalendarClock, Video } from "lucide-react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
@@ -134,7 +134,7 @@ export default async function TutorSchedulePage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const { userId } = await auth();
+  const { userId } = await safeAuth();
   if (!userId) redirect("/auth/sign-in");
 
   const tutorUuid = await getUserUuidByClerkId(userId);

@@ -28,3 +28,15 @@ paying users yet.
 - No file should exceed ~700 lines — split by concern instead.
 - Server actions validate inputs with Zod schemas; add a schema when adding
   an action.
+
+## Dev-only auth bypass (for visual smoke tests)
+
+Clerk's sign-in flow can't be driven from automation. To view authenticated
+pages locally without typing real credentials, set `DEV_IMPERSONATE_CLERK_ID`
+in `.env.local` to any real Clerk id from the `users` table, then restart
+`npm run dev:next`. Every page renders as that user — middleware skips
+`auth.protect()` and `safeAuth()` returns the synthetic id.
+
+The bypass is hard-gated on `NODE_ENV !== "production"`; it cannot fire on
+the deployed Cloudflare Worker. Unset / clear the var to go back to real
+Clerk auth. See `src/lib/auth/dev-auth.ts`.
