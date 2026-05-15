@@ -2538,10 +2538,12 @@ export type Database = {
       };
       webhook_events: {
         Row: {
+          attempts: number;
           booking_id: string | null;
           error_message: string | null;
           event_type: string | null;
           external_event_id: string | null;
+          gave_up_at: string | null;
           id: string;
           processed: boolean;
           processed_at: string | null;
@@ -2550,10 +2552,12 @@ export type Database = {
           source: string;
         };
         Insert: {
+          attempts?: number;
           booking_id?: string | null;
           error_message?: string | null;
           event_type?: string | null;
           external_event_id?: string | null;
+          gave_up_at?: string | null;
           id?: string;
           processed?: boolean;
           processed_at?: string | null;
@@ -2562,10 +2566,12 @@ export type Database = {
           source: string;
         };
         Update: {
+          attempts?: number;
           booking_id?: string | null;
           error_message?: string | null;
           event_type?: string | null;
           external_event_id?: string | null;
+          gave_up_at?: string | null;
           id?: string;
           processed?: boolean;
           processed_at?: string | null;
