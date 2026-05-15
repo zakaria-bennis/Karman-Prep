@@ -31,6 +31,29 @@ export default async function StudentDashboardPage() {
   // Fetch user info
   const { data: user } = await supabase.from("users").select("*").eq("clerk_id", userId).single();
 
+  // Placement-failure banner check (audit #10):
+  //   show "we're matching you with a tutor" when the user's
+  //   onboarding flagged the placement_failure_at column AND they
+  //   still have no active cohort_members / tutor_assignments row.
+  //   The second condition makes the banner self-clear once an
+  //   admin places them, so we don't need a manual "resolve" action.
+  let showPlacementBanner = false;
+  if (user?.id && (user as { placement_failure_at?: string | null }).placement_failure_at) {
+    const [{ count: cohortCount }, { count: tutorCount }] = await Promise.all([
+      supabase
+        .from("cohort_members")
+        .select("user_id", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .is("left_at", null),
+      supabase
+        .from("tutor_assignments")
+        .select("student_user_id", { count: "exact", head: true })
+        .eq("student_user_id", user.id)
+        .is("ended_at", null),
+    ]);
+    showPlacementBanner = (cohortCount ?? 0) === 0 && (tutorCount ?? 0) === 0;
+  }
+
   // Fetch progress across all concepts
   const { data: progress } = await supabase
     .from("progress")
@@ -75,6 +98,7 @@ export default async function StudentDashboardPage() {
           : null
       }
       subscription={sub}
+      showPlacementBanner={showPlacementBanner}
     />
   );
 }

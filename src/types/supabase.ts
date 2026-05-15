@@ -2429,6 +2429,7 @@ export type Database = {
           parent_phone_collected: string | null;
           payment_info_updated_at: string | null;
           payment_method: string | null;
+          placement_failure_at: string | null;
           psat_score: number | null;
           recent_sat_math: number | null;
           recent_sat_reading: number | null;
@@ -2473,6 +2474,7 @@ export type Database = {
           parent_phone_collected?: string | null;
           payment_info_updated_at?: string | null;
           payment_method?: string | null;
+          placement_failure_at?: string | null;
           psat_score?: number | null;
           recent_sat_math?: number | null;
           recent_sat_reading?: number | null;
@@ -2517,6 +2519,7 @@ export type Database = {
           parent_phone_collected?: string | null;
           payment_info_updated_at?: string | null;
           payment_method?: string | null;
+          placement_failure_at?: string | null;
           psat_score?: number | null;
           recent_sat_math?: number | null;
           recent_sat_reading?: number | null;
