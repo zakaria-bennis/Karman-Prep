@@ -2414,6 +2414,7 @@ export type Database = {
           cal_setup_alerted_at: string | null;
           clerk_id: string;
           created_at: string;
+          diagnostic_retakes_remaining: number;
           email: string;
           email_signature: string | null;
           first_name: string | null;
@@ -2457,6 +2458,7 @@ export type Database = {
           cal_setup_alerted_at?: string | null;
           clerk_id: string;
           created_at?: string;
+          diagnostic_retakes_remaining?: number;
           email: string;
           email_signature?: string | null;
           first_name?: string | null;
@@ -2500,6 +2502,7 @@ export type Database = {
           cal_setup_alerted_at?: string | null;
           clerk_id?: string;
           created_at?: string;
+          diagnostic_retakes_remaining?: number;
           email?: string;
           email_signature?: string | null;
           first_name?: string | null;

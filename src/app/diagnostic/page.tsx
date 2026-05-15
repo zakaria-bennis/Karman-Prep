@@ -33,18 +33,25 @@ export default async function DiagnosticPage() {
 
   const { data: user } = await supabase
     .from("users")
-    .select("id")
+    .select("id, diagnostic_retakes_remaining")
     .eq("clerk_id", userId)
     .maybeSingle();
 
+  let isRetake = false;
   if (user?.id) {
     const { count } = await supabase
       .from("diagnostic_results")
       .select("*", { count: "exact", head: true })
       .eq("user_id", user.id);
-    if ((count ?? 0) > 0) {
+    const hasPriorResult = (count ?? 0) > 0;
+    // Gate: if they've already taken it AND no retake grant is
+    // pending, send them to /progress. With a grant > 0 the page
+    // lets them through and the submit handler decrements the
+    // counter atomically.
+    if (hasPriorResult && (user.diagnostic_retakes_remaining ?? 0) <= 0) {
       redirect("/dashboard/student/progress");
     }
+    isRetake = hasPriorResult;
   }
 
   const { data: sub } = await supabase
@@ -55,5 +62,11 @@ export default async function DiagnosticPage() {
 
   const isSubscribed = sub?.status === "active" || sub?.status === "trialing";
 
-  return <DiagnosticClient questions={DIAGNOSTIC_QUESTIONS} isSubscribed={isSubscribed} />;
+  return (
+    <DiagnosticClient
+      questions={DIAGNOSTIC_QUESTIONS}
+      isSubscribed={isSubscribed}
+      isRetake={isRetake}
+    />
+  );
 }
