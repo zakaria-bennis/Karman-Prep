@@ -28,8 +28,13 @@ import { CalAdapterError } from "./types";
  *  point CAL_OAUTH_AUTHORIZE_URL at their own deployment. */
 const DEFAULT_AUTHORIZE_URL = "https://app.cal.com/auth/oauth2/authorize";
 
-/** Default token-exchange endpoint. Per Cal docs (api-reference/v2/oauth2). */
-const DEFAULT_TOKEN_URL = "https://api.cal.com/v2/oauth2/token";
+/** Default token-exchange endpoint. Per Cal docs:
+ *  https://cal.com/docs/api-reference/v2/oauth2/exchange-authorization-code-or-refresh-token-for-tokens
+ *  The path is `/v2/auth/oauth2/token` — note the `auth/` segment that
+ *  isn't on the authorize URL (which is `/auth/oauth2/authorize` on
+ *  the app.cal.com domain). Sending the shorter `/v2/oauth2/token`
+ *  returns 404 (confirmed during PR #33 live testing). */
+const DEFAULT_TOKEN_URL = "https://api.cal.com/v2/auth/oauth2/token";
 
 /** Scopes Karman needs from a tutor:
  *   · EVENT_TYPE_READ — list the tutor's event-types so we can pick
@@ -196,14 +201,20 @@ interface ListEventTypesResponse {
 
 /** List the tutor's event-types using their OAuth access token.
  *  Used by /tutor/settings/booking and by the OAuth callback to
- *  auto-match a Karman event-type. */
+ *  auto-match a Karman event-type.
+ *
+ *  Note the cal-api-version header: the event-types endpoint pins
+ *  to "2024-06-14" per Cal's docs (booking endpoints use 2024-08-13
+ *  but event-types lives on the older pin). Sending the booking
+ *  version returns 404 from Cal's router (confirmed during PR #33
+ *  live testing). */
 export async function listEventTypes(accessToken: string): Promise<CalEventType[]> {
   const url = `${calApiUrl()}/event-types`;
   const res = await fetch(url, {
     method: "GET",
     headers: {
       Authorization: `Bearer ${accessToken}`,
-      "cal-api-version": "2024-08-13",
+      "cal-api-version": "2024-06-14",
     },
   });
   const text = await res.text();
