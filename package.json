@@ -28,6 +28,7 @@
     "db:push": "npx supabase db push",
     "db:status": "npx supabase migration list --linked",
     "seed:dev": "node scripts/seed-dev.mjs",
+    "check:sizes": "node scripts/check-file-sizes.mjs",
     "prepare": "husky"
   },
   "dependencies": {
