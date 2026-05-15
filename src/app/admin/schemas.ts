@@ -216,6 +216,14 @@ export const rejectFlaggedQuestionInputSchema = z.object({
   questionId: nonEmptyString,
 });
 
+export const bulkRejectQuestionsInputSchema = z.object({
+  // Cap at 200 — the Flagged list is paginated visually but not in
+  // the API, so we limit the per-call size to keep one DELETE round
+  // trip bounded. A bad PDF should never produce more than that
+  // many flags anyway.
+  questionIds: z.array(nonEmptyString).min(1).max(200),
+});
+
 // FormData-based actions (actionUploadVideo, actionUploadQuestionImage)
 // can't be fully validated with Zod because File is a binary handle,
 // not a JSON-serializable value. We validate the non-File args.

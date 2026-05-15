@@ -29,6 +29,9 @@ export function QuestionCard({
   question,
   busy,
   expanded,
+  selectable,
+  selected,
+  onToggleSelected,
   onToggleExpanded,
   onAccept,
   onReject,
@@ -37,6 +40,12 @@ export function QuestionCard({
   question: QuizQuestionWithChoices;
   busy: boolean;
   expanded: boolean;
+  /** When true, render the bulk-select checkbox in the header. The
+   *  Bank tab already has its own "auto-accept all" affordance, so
+   *  only the Flagged tab passes selectable=true. */
+  selectable?: boolean;
+  selected?: boolean;
+  onToggleSelected?: () => void;
   onToggleExpanded: () => void;
   onAccept: (nodeId: string | null) => void;
   onReject: () => void;
@@ -50,77 +59,107 @@ export function QuestionCard({
   const perChoice = question.explanation_per_choice ?? {};
 
   return (
-    <article className="rounded-xl border border-slate-800 bg-slate-900/60">
+    <article
+      className={cn(
+        "rounded-xl border bg-slate-900/60 transition-colors",
+        selected ? "border-rose-500/60 bg-rose-500/[0.04]" : "border-slate-800"
+      )}
+    >
       {/* ── Header (always visible) — clicking toggles expansion ── */}
-      <button
-        onClick={onToggleExpanded}
-        className="flex w-full items-start gap-2 rounded-t-xl px-5 pb-3 pt-4 text-left transition-colors hover:bg-white/[0.02]"
-      >
-        {expanded ? (
-          <ChevronDown className="mt-0.5 h-4 w-4 shrink-0 text-slate-500" />
-        ) : (
-          <ChevronRight className="mt-0.5 h-4 w-4 shrink-0 text-slate-500" />
-        )}
-        {isFlagged ? (
-          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
-        ) : (
-          <BookOpen className="mt-0.5 h-4 w-4 shrink-0 text-indigo-400" />
-        )}
-        <div className="min-w-0 flex-1">
-          {/* Banner line */}
-          <div
-            className={cn("text-xs font-medium", isFlagged ? "text-amber-200" : "text-indigo-200")}
+      <div className="flex items-start gap-1 rounded-t-xl px-5 pb-3 pt-4">
+        {selectable && (
+          <label
+            // Stop the surrounding header click from also toggling
+            // expansion when the admin is just trying to select.
+            onClick={(e) => e.stopPropagation()}
+            className="mt-0.5 inline-flex shrink-0 cursor-pointer items-center pr-1"
+            aria-label={selected ? "Deselect question" : "Select question for bulk reject"}
           >
-            {isFlagged
-              ? `${question.import_flag_type === "skip" ? "Unsolvable" : "Needs review"} — ${question.import_flag_reason ?? ""}`
-              : "In bank — pick a curriculum node to send this question live in Learn."}
-          </div>
-          {/* Source PDF + page — prominent on flagged rows so the
+            <input
+              type="checkbox"
+              checked={!!selected}
+              onChange={() => onToggleSelected?.()}
+              className="h-4 w-4 cursor-pointer accent-rose-500"
+            />
+          </label>
+        )}
+        <button
+          onClick={onToggleExpanded}
+          className="-m-2 flex flex-1 items-start gap-2 rounded-lg p-2 text-left transition-colors hover:bg-white/[0.02]"
+        >
+          {expanded ? (
+            <ChevronDown className="mt-0.5 h-4 w-4 shrink-0 text-slate-500" />
+          ) : (
+            <ChevronRight className="mt-0.5 h-4 w-4 shrink-0 text-slate-500" />
+          )}
+          {isFlagged ? (
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
+          ) : (
+            <BookOpen className="mt-0.5 h-4 w-4 shrink-0 text-indigo-400" />
+          )}
+          <div className="min-w-0 flex-1">
+            {/* Banner line */}
+            <div
+              className={cn(
+                "text-xs font-medium",
+                isFlagged ? "text-amber-200" : "text-indigo-200"
+              )}
+            >
+              {isFlagged
+                ? `${question.import_flag_type === "skip" ? "Unsolvable" : "Needs review"} — ${question.import_flag_reason ?? ""}`
+                : "In bank — pick a curriculum node to send this question live in Learn."}
+            </div>
+            {/* Source PDF + page — prominent on flagged rows so the
               admin can jump to the source PDF and verify the
               figure / question quickly. */}
-          {isFlagged && question.source_pdf && (
-            <div className="mt-2 inline-flex items-center gap-2 rounded-md border border-slate-700 bg-slate-800/70 px-2.5 py-1 text-[12px]">
-              <ExternalLink className="h-3.5 w-3.5 shrink-0 text-amber-300" />
-              <span className="font-mono text-slate-200">{question.source_pdf}</span>
-              {question.source_page != null && (
+            {isFlagged && question.source_pdf && (
+              <div className="mt-2 inline-flex items-center gap-2 rounded-md border border-slate-700 bg-slate-800/70 px-2.5 py-1 text-[12px]">
+                <ExternalLink className="h-3.5 w-3.5 shrink-0 text-amber-300" />
+                <span className="font-mono text-slate-200">{question.source_pdf}</span>
+                {question.source_page != null && (
+                  <>
+                    <span className="text-slate-600">›</span>
+                    <span className="font-semibold text-amber-200">
+                      page {question.source_page}
+                    </span>
+                  </>
+                )}
+                <span className="text-slate-600">·</span>
+                <span className="text-slate-400">
+                  {question.subject === "math" ? "Math" : "R&W"}
+                </span>
+              </div>
+            )}
+            {/* Question stem (truncated when collapsed) */}
+            <div className={cn("mt-2 text-sm text-slate-200", !expanded && "truncate")}>
+              {question.question_text}
+            </div>
+            {/* Compact meta row */}
+            <div className="mt-1 flex flex-wrap items-center gap-3 text-[11px] text-slate-500">
+              {/* Source repeats here only when NOT flagged — the
+                flagged badge above already covers it prominently. */}
+              {!isFlagged && question.source_pdf && (
+                <span>
+                  <ExternalLink className="mr-1 inline h-3 w-3" />
+                  {question.source_pdf}
+                  {question.source_page ? `:${question.source_page}` : ""}
+                </span>
+              )}
+              <span>{question.concept_slug ?? "—"}</span>
+              <span>·</span>
+              <span>{question.domain ?? "—"}</span>
+              <span>·</span>
+              <span>diff {question.difficulty_level}</span>
+              {correctChoice && (
                 <>
-                  <span className="text-slate-600">›</span>
-                  <span className="font-semibold text-amber-200">page {question.source_page}</span>
+                  <span>·</span>
+                  <span className="font-mono text-emerald-400">answer {correctChoice.letter}</span>
                 </>
               )}
-              <span className="text-slate-600">·</span>
-              <span className="text-slate-400">{question.subject === "math" ? "Math" : "R&W"}</span>
             </div>
-          )}
-          {/* Question stem (truncated when collapsed) */}
-          <div className={cn("mt-2 text-sm text-slate-200", !expanded && "truncate")}>
-            {question.question_text}
           </div>
-          {/* Compact meta row */}
-          <div className="mt-1 flex flex-wrap items-center gap-3 text-[11px] text-slate-500">
-            {/* Source repeats here only when NOT flagged — the
-                flagged badge above already covers it prominently. */}
-            {!isFlagged && question.source_pdf && (
-              <span>
-                <ExternalLink className="mr-1 inline h-3 w-3" />
-                {question.source_pdf}
-                {question.source_page ? `:${question.source_page}` : ""}
-              </span>
-            )}
-            <span>{question.concept_slug ?? "—"}</span>
-            <span>·</span>
-            <span>{question.domain ?? "—"}</span>
-            <span>·</span>
-            <span>diff {question.difficulty_level}</span>
-            {correctChoice && (
-              <>
-                <span>·</span>
-                <span className="font-mono text-emerald-400">answer {correctChoice.letter}</span>
-              </>
-            )}
-          </div>
-        </div>
-      </button>
+        </button>
+      </div>
 
       {/* ── Expanded body ─────────────────────────────── */}
       {expanded && (
