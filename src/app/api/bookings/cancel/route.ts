@@ -53,8 +53,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
+  const isTutorInitiated = callerUuid === booking.tutor_id;
+
   const withinWindow = isWithinCancellationWindow(booking.scheduled_start);
-  const forfeit = shouldForfeitCredit(booking.plan_tier, withinWindow);
+  // Tutor-initiated cancellations never forfeit the student's credit —
+  // the student didn't choose to drop. They get a token refund (via
+  // the !withinWindow branch below) regardless of timing.
+  const forfeit = isTutorInitiated ? false : shouldForfeitCredit(booking.plan_tier, withinWindow);
 
   // Cancel on Cal first, then update DB. If Cal fails, DB row
   // stays 'scheduled' — surfaces 502 so the caller can retry.
@@ -90,20 +95,24 @@ export async function POST(req: NextRequest) {
     credit_forfeited: forfeit,
   });
 
-  // Token resolution: within-window forfeits, outside-window refunds.
-  // Idempotent — re-running (e.g. via Cal webhook) is a no-op once the
-  // first call has either consumed or released the token.
+  // Token resolution. Idempotent — re-running (e.g. via Cal webhook)
+  // is a no-op once the first call has either consumed or released
+  // the token.
+  //   · Tutor-initiated cancel → always refund the student's token
+  //     (forfeit is forced false above).
+  //   · Student-initiated within-window forfeit → consume the token.
+  //   · Student-initiated outside the window → refund.
   try {
     if (withinWindow && forfeit) {
       await consumeTokenForBooking({
         bookingId: booking.id,
         reason: "forfeited_within_window",
       });
-    } else if (!withinWindow) {
+    } else {
       await releaseTokenFromBooking(booking.id);
     }
-    // group/small_group within-window: no token to forfeit (those tiers
-    // don't have tokens at all). Falls through.
+    // group/small_group within-window: no token to refund (those tiers
+    // don't have tokens at all). releaseTokenFromBooking is a no-op.
   } catch (err) {
     console.error("[api/bookings/cancel] token resolution failed:", err);
   }

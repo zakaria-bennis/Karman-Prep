@@ -16,6 +16,7 @@ import { redirect } from "next/navigation";
 import { CalendarClock, Video } from "lucide-react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { createAdminClient } from "@/lib/supabase/server";
+import { TutorBookingActions } from "./TutorBookingActions";
 import {
   getBookingsForTutor,
   getUserUuidByClerkId,
@@ -299,39 +300,56 @@ function ScheduleGrouped({
                 const student = studentsById.get(b.student_id);
                 const tier = tierLabel(b.plan_tier);
                 const status = statusLabel(b.status);
+                // Tutor self-serve cancel/reschedule on private/elite
+                // sessions that haven't happened yet (#8). Group +
+                // small_group bookings keep going through the admin
+                // since those move the whole cohort.
+                const canManage =
+                  b.status === "scheduled" &&
+                  (b.plan_tier === "private" || b.plan_tier === "elite") &&
+                  new Date(b.scheduled_start).getTime() > Date.now();
                 return (
                   <li
                     key={b.id}
-                    className="flex items-center gap-3 bg-white px-4 py-3 transition-colors hover:bg-slate-50 dark:bg-slate-900/40 dark:hover:bg-slate-900/70"
+                    className="bg-white px-4 py-3 transition-colors hover:bg-slate-50 dark:bg-slate-900/40 dark:hover:bg-slate-900/70"
                   >
-                    <span className="w-20 shrink-0 font-mono text-sm text-slate-700 dark:text-slate-200">
-                      {formatTime(b.scheduled_start, tz)}
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate font-semibold text-slate-900 dark:text-white">
-                        {studentDisplay(student)}
+                    <div className="flex items-center gap-3">
+                      <span className="w-20 shrink-0 font-mono text-sm text-slate-700 dark:text-slate-200">
+                        {formatTime(b.scheduled_start, tz)}
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate font-semibold text-slate-900 dark:text-white">
+                          {studentDisplay(student)}
+                        </span>
+                        <span
+                          className={`mt-0.5 inline-block rounded border px-1.5 py-0.5 text-[10px] font-semibold ${tier.cls}`}
+                        >
+                          {tier.label}
+                        </span>
                       </span>
                       <span
-                        className={`mt-0.5 inline-block rounded border px-1.5 py-0.5 text-[10px] font-semibold ${tier.cls}`}
+                        className={`rounded px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${status.cls}`}
                       >
-                        {tier.label}
+                        {status.label}
                       </span>
-                    </span>
-                    <span
-                      className={`rounded px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${status.cls}`}
-                    >
-                      {status.label}
-                    </span>
-                    {showJoin && b.status === "scheduled" && b.zoom_join_url ? (
-                      <a
-                        href={b.zoom_join_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 rounded-lg bg-blue-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-400"
-                      >
-                        <Video className="h-3.5 w-3.5" />
-                        Join
-                      </a>
+                      {showJoin && b.status === "scheduled" && b.zoom_join_url ? (
+                        <a
+                          href={b.zoom_join_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 rounded-lg bg-blue-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-400"
+                        >
+                          <Video className="h-3.5 w-3.5" />
+                          Join
+                        </a>
+                      ) : null}
+                    </div>
+                    {canManage ? (
+                      <TutorBookingActions
+                        bookingId={b.id}
+                        scheduledStart={b.scheduled_start}
+                        tier={b.plan_tier as "private" | "elite"}
+                      />
                     ) : null}
                   </li>
                 );
