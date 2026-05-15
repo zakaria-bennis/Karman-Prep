@@ -197,11 +197,55 @@ export interface InsertChatMessageInput {
   ai_flag_reason: string | null;
   rejection_message: string | null;
   cohort_label: string | null;
+  /** Deterministic dedupe key — see src/lib/chat/idempotency.ts.
+   *  When present, a partial unique index on (channel_id, client_msg_id)
+   *  rejects a second insert (Postgres error code 23505) so the route
+   *  can treat the duplicate as a no-op + return the existing row. */
+  client_msg_id?: string | null;
 }
+
+/** Postgres error code returned by a unique-index violation. */
+export const PG_UNIQUE_VIOLATION = "23505";
 
 export async function insertChatMessage(input: InsertChatMessageInput): Promise<ChatMessageRow> {
   const supabase = createAdminClient();
   const { data, error } = await supabase.from("chat_messages").insert(input).select("*").single();
+  if (error) throw error;
+  return data as ChatMessageRow;
+}
+
+/** Lookup the row that a 23505 collision refers to. The unique index
+ *  is (channel_id, client_msg_id) so the (channel, key) pair is the
+ *  natural lookup. */
+export async function findChatMessageByClientMsgId(args: {
+  channelId: string;
+  clientMsgId: string;
+}): Promise<ChatMessageRow | null> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("chat_messages")
+    .select("*")
+    .eq("channel_id", args.channelId)
+    .eq("client_msg_id", args.clientMsgId)
+    .neq("moderation_status", "rejected")
+    .maybeSingle();
+  if (error) throw error;
+  return (data as ChatMessageRow | null) ?? null;
+}
+
+/** Patch the row's slack_message_ts after a successful Slack post.
+ *  Called by chat/send after the insert + Slack post both succeed. */
+export async function updateChatMessageSlackTs(
+  messageId: string,
+  slackTs: string
+): Promise<ChatMessageRow> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("chat_messages")
+    .update({ slack_message_ts: slackTs })
+    .eq("id", messageId)
+    .select("*")
+    .single();
   if (error) throw error;
   return data as ChatMessageRow;
 }
@@ -217,6 +261,27 @@ export interface InsertDirectMessageInput {
   ai_flagged: boolean;
   ai_flag_reason: string | null;
   rejection_message: string | null;
+  client_msg_id?: string | null;
+}
+
+/** Mirror of findChatMessageByClientMsgId for DMs. The unique index is
+ *  (sender_id, recipient_id, client_msg_id). */
+export async function findDirectMessageByClientMsgId(args: {
+  senderUuid: string;
+  recipientUuid: string;
+  clientMsgId: string;
+}): Promise<DirectMessageRow | null> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("direct_messages")
+    .select("*")
+    .eq("sender_id", args.senderUuid)
+    .eq("recipient_id", args.recipientUuid)
+    .eq("client_msg_id", args.clientMsgId)
+    .neq("moderation_status", "rejected")
+    .maybeSingle();
+  if (error) throw error;
+  return (data as DirectMessageRow | null) ?? null;
 }
 
 export async function insertDirectMessage(

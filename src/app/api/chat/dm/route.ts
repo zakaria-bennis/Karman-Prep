@@ -15,13 +15,42 @@ import { fetchUserRole } from "@/lib/supabase/queries/admin";
 import { createAdminClient } from "@/lib/supabase/server";
 import { getUserUuidByClerkId } from "@/lib/supabase/queries/bookings";
 import {
+  findDirectMessageByClientMsgId,
   findSharedCohort,
   insertDirectMessage,
   listDirectMessages,
+  PG_UNIQUE_VIOLATION,
   type DirectMessageRow,
+  type InsertDirectMessageInput,
 } from "@/lib/supabase/queries/chat";
 import { moderateMessage } from "@/lib/moderation/pipeline";
+import { deriveClientMsgId } from "@/lib/chat/idempotency";
 import { sendDmBodySchema } from "../schemas";
+
+/** DM equivalent of chat-send's insertOrFindExisting — collapses a
+ *  rapid double-click into a single DM row via the partial unique
+ *  index on (sender_id, recipient_id, client_msg_id). */
+async function insertOrFindExistingDm(input: InsertDirectMessageInput): Promise<DirectMessageRow> {
+  try {
+    return await insertDirectMessage(input);
+  } catch (err) {
+    if (
+      typeof err === "object" &&
+      err !== null &&
+      "code" in err &&
+      (err as { code: string }).code === PG_UNIQUE_VIOLATION &&
+      input.client_msg_id
+    ) {
+      const existing = await findDirectMessageByClientMsgId({
+        senderUuid: input.sender_id,
+        recipientUuid: input.recipient_id,
+        clientMsgId: input.client_msg_id,
+      });
+      if (existing) return existing;
+    }
+    throw err;
+  }
+}
 
 interface PublicDirectMessage {
   id: string;
@@ -79,6 +108,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "You can only DM students in your cohort" }, { status: 403 });
   }
 
+  // Deterministic dedupe key — collapses double-clicks within a
+  // ~60s window into the same logical send.
+  const clientMsgId = deriveClientMsgId({
+    senderUuid,
+    channelId: null,
+    recipientUuid,
+    content: body.content ?? "",
+    mediaUrls: body.mediaUrls ?? [],
+  });
+
   if (outcome.decision === "rejected") {
     await insertDirectMessage({
       sender_id: senderUuid,
@@ -94,6 +133,7 @@ export async function POST(req: NextRequest) {
       ai_flagged: outcome.layer === "ai" || outcome.layer === "karman",
       ai_flag_reason: outcome.layer === "ai" || outcome.layer === "karman" ? outcome.reason : null,
       rejection_message: outcome.rejection_message,
+      client_msg_id: clientMsgId,
     });
     return NextResponse.json(
       { rejected: true, message: outcome.rejection_message },
@@ -105,7 +145,7 @@ export async function POST(req: NextRequest) {
   // DM rendering masks pending content for the recipient; the
   // sender still sees their own message.
   if (outcome.decision === "approved_with_flag") {
-    const row = await insertDirectMessage({
+    const row = await insertOrFindExistingDm({
       sender_id: senderUuid,
       recipient_id: recipientUuid,
       cohort_id: sharedCohortId,
@@ -116,11 +156,12 @@ export async function POST(req: NextRequest) {
       ai_flagged: true,
       ai_flag_reason: outcome.reason,
       rejection_message: null,
+      client_msg_id: clientMsgId,
     });
     return NextResponse.json({ message: row, pendingReview: true }, { status: 201 });
   }
 
-  const row = await insertDirectMessage({
+  const row = await insertOrFindExistingDm({
     sender_id: senderUuid,
     recipient_id: recipientUuid,
     cohort_id: sharedCohortId,
@@ -131,6 +172,7 @@ export async function POST(req: NextRequest) {
     ai_flagged: false,
     ai_flag_reason: null,
     rejection_message: null,
+    client_msg_id: clientMsgId,
   });
 
   return NextResponse.json({ message: row }, { status: 201 });

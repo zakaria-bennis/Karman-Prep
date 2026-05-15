@@ -28,16 +28,55 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 import { fetchUserRole } from "@/lib/supabase/queries/admin";
 import {
   findChatChannelById,
+  findChatMessageByClientMsgId,
   insertChatMessage,
   isStudentInCohort,
   isStudentMuted,
   isTutorOfChannel,
+  PG_UNIQUE_VIOLATION,
+  updateChatMessageSlackTs,
+  type ChatMessageRow,
+  type InsertChatMessageInput,
 } from "@/lib/supabase/queries/chat";
 import { getUserUuidByClerkId } from "@/lib/supabase/queries/bookings";
 import { moderateMessage } from "@/lib/moderation/pipeline";
 import { postMessage as slackPostMessage, SlackAdapterError } from "@/lib/integrations/slack";
 import { evaluateSendChannelAuth } from "@/lib/chat/can-send";
+import { deriveClientMsgId } from "@/lib/chat/idempotency";
 import { sendMessageBodySchema } from "../schemas";
+
+/** Insert a chat_messages row, returning the existing row on a unique
+ *  violation. The unique key is (channel_id, client_msg_id) restricted
+ *  to non-rejected rows — same content + sender within ~60s collapses
+ *  to one row. We use this for every send path so the route stays
+ *  idempotent regardless of which branch we hit. */
+async function insertOrFindExisting(
+  input: InsertChatMessageInput
+): Promise<{ row: ChatMessageRow; created: boolean }> {
+  try {
+    const row = await insertChatMessage(input);
+    return { row, created: true };
+  } catch (err) {
+    if (
+      typeof err === "object" &&
+      err !== null &&
+      "code" in err &&
+      (err as { code: string }).code === PG_UNIQUE_VIOLATION &&
+      input.client_msg_id
+    ) {
+      const existing = await findChatMessageByClientMsgId({
+        channelId: input.channel_id,
+        clientMsgId: input.client_msg_id,
+      });
+      if (existing) return { row: existing, created: false };
+    }
+    throw err;
+  }
+}
+
+function isPendingSlackTs(ts: string): boolean {
+  return ts.startsWith("pending-");
+}
 
 function lastInitial(name: string | null | undefined): string {
   if (!name) return "";
@@ -133,8 +172,21 @@ export async function POST(req: NextRequest) {
     isAnonymous
   );
 
+  // Deterministic dedupe key — same content/sender/channel/minute
+  // produces the same id, so a double-tap on Send collapses to one
+  // Slack post AND one DB row. See src/lib/chat/idempotency.ts.
+  const clientMsgId = deriveClientMsgId({
+    senderUuid,
+    channelId: channel.id,
+    content: body.content ?? "",
+    mediaUrls: body.mediaUrls ?? [],
+  });
+
   // ─── Rejected: persist as 'rejected' for the moderation queue ─
   if (outcome.decision === "rejected") {
+    // Rejected rows are excluded from the dedupe unique index so a
+    // subsequent legitimate (different) message isn't blocked. The
+    // client_msg_id is still recorded for the moderation queue's audit.
     await insertChatMessage({
       slack_message_ts: `rejected-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       channel_id: channel.id,
@@ -154,6 +206,7 @@ export async function POST(req: NextRequest) {
       ai_flag_reason: outcome.layer === "ai" || outcome.layer === "karman" ? outcome.reason : null,
       rejection_message: outcome.rejection_message,
       cohort_label: channel.display_name,
+      client_msg_id: clientMsgId,
     });
     return NextResponse.json(
       { rejected: true, message: outcome.rejection_message },
@@ -166,7 +219,7 @@ export async function POST(req: NextRequest) {
   // recipient sees a placeholder. /admin/moderation triggers the
   // Slack post on approve, or marks rejected to keep it hidden.
   if (outcome.decision === "approved_with_flag") {
-    const row = await insertChatMessage({
+    const { row } = await insertOrFindExisting({
       slack_message_ts: `flagged-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       channel_id: channel.id,
       sender_id: senderUuid,
@@ -182,31 +235,19 @@ export async function POST(req: NextRequest) {
       ai_flag_reason: outcome.reason,
       rejection_message: null,
       cohort_label: channel.display_name,
+      client_msg_id: clientMsgId,
     });
     return NextResponse.json({ message: row, pendingReview: true }, { status: 201 });
   }
 
-  // ─── Approved (clean): post to Slack first ─
-  let slackTs: string;
-  try {
-    const result = await slackPostMessage({
-      channelId: channel.slack_channel_id,
-      displayName,
-      content: body.content ?? "",
-      imageUrls: body.mediaUrls ?? [],
-    });
-    slackTs = result.ts;
-  } catch (err) {
-    const isAdapter = err instanceof SlackAdapterError;
-    console.error("[api/chat/send] slack post failed:", isAdapter ? err.toString() : err);
-    return NextResponse.json(
-      { error: "Failed to deliver message — please retry" },
-      { status: 502 }
-    );
-  }
-
-  const row = await insertChatMessage({
-    slack_message_ts: slackTs,
+  // ─── Approved (clean): insert FIRST so we have a journal entry,
+  //     then post to Slack with the same client_msg_id (Slack also
+  //     dedupes natively), then patch the row with the real ts.
+  //     If insert hits 23505 (a recent identical send), we return
+  //     the existing row — no double Slack post.
+  const pendingTs = `pending-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const { row, created } = await insertOrFindExisting({
+    slack_message_ts: pendingTs,
     channel_id: channel.id,
     sender_id: senderUuid,
     is_anonymous: isAnonymous,
@@ -221,7 +262,39 @@ export async function POST(req: NextRequest) {
     ai_flag_reason: null,
     rejection_message: null,
     cohort_label: channel.display_name,
+    client_msg_id: clientMsgId,
   });
 
-  return NextResponse.json({ message: row }, { status: 201 });
+  // Existing row already has a real ts — fully duplicate send, done.
+  if (!created && !isPendingSlackTs(row.slack_message_ts)) {
+    return NextResponse.json({ message: row }, { status: 201 });
+  }
+
+  // Either we just inserted, or we matched an existing row that
+  // never made it to Slack (prior failure). In both cases the
+  // Slack post needs to fire — we pass the same client_msg_id so
+  // Slack dedupes if it actually received the prior attempt.
+  let slackTs: string;
+  try {
+    const result = await slackPostMessage({
+      channelId: channel.slack_channel_id,
+      displayName,
+      content: body.content ?? "",
+      imageUrls: body.mediaUrls ?? [],
+      clientMsgId,
+    });
+    slackTs = result.ts;
+  } catch (err) {
+    const isAdapter = err instanceof SlackAdapterError;
+    console.error("[api/chat/send] slack post failed:", isAdapter ? err.toString() : err);
+    // Row stays with the pending ts so a retry can re-attempt Slack
+    // (Slack will dedupe via client_msg_id if it secretly received).
+    return NextResponse.json(
+      { error: "Failed to deliver message — please retry" },
+      { status: 502 }
+    );
+  }
+
+  const updated = await updateChatMessageSlackTs(row.id, slackTs);
+  return NextResponse.json({ message: updated }, { status: 201 });
 }

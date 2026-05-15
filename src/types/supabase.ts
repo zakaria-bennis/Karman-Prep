@@ -413,6 +413,7 @@ export type Database = {
           ai_flag_reason: string | null;
           ai_flagged: boolean;
           channel_id: string;
+          client_msg_id: string | null;
           cohort_label: string | null;
           content: string | null;
           created_at: string;
@@ -439,6 +440,7 @@ export type Database = {
           ai_flag_reason?: string | null;
           ai_flagged?: boolean;
           channel_id: string;
+          client_msg_id?: string | null;
           cohort_label?: string | null;
           content?: string | null;
           created_at?: string;
@@ -465,6 +467,7 @@ export type Database = {
           ai_flag_reason?: string | null;
           ai_flagged?: boolean;
           channel_id?: string;
+          client_msg_id?: string | null;
           cohort_label?: string | null;
           content?: string | null;
           created_at?: string;
@@ -839,6 +842,7 @@ export type Database = {
         Row: {
           ai_flag_reason: string | null;
           ai_flagged: boolean;
+          client_msg_id: string | null;
           cohort_id: string;
           content: string | null;
           created_at: string;
@@ -860,6 +864,7 @@ export type Database = {
         Insert: {
           ai_flag_reason?: string | null;
           ai_flagged?: boolean;
+          client_msg_id?: string | null;
           cohort_id: string;
           content?: string | null;
           created_at?: string;
@@ -881,6 +886,7 @@ export type Database = {
         Update: {
           ai_flag_reason?: string | null;
           ai_flagged?: boolean;
+          client_msg_id?: string | null;
           cohort_id?: string;
           content?: string | null;
           created_at?: string;

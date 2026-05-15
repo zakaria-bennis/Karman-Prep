@@ -36,6 +36,12 @@ export interface PostMessageInput {
   content: string;
   /** Optional signed Supabase Storage URLs for image attachments. */
   imageUrls?: string[];
+  /** Idempotency key — Slack dedupes by this value so calling the
+   *  same chat.postMessage twice for the same logical send (e.g. a
+   *  user clicking Send twice after our response timed out) doesn't
+   *  produce two Slack messages. We derive it deterministically
+   *  from (sender, content, channel, minute-bucket) in the caller. */
+  clientMsgId?: string;
 }
 
 export interface PostMessageResult {
