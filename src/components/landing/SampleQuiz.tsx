@@ -557,7 +557,7 @@ export default function SampleQuiz() {
           </div>
 
           {/* Topic tag */}
-          <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">
+          <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-400">
             {question.topic}
           </p>
 

@@ -28,7 +28,7 @@ export default function QuizHistoryTab({ attempts, responsesByAttempt }: Props) 
   if (sorted.length === 0) {
     return (
       <div className="rounded-lg border border-dashed border-slate-300 p-10 text-center dark:border-slate-700">
-        <p className="text-sm text-slate-500">No quiz attempts yet.</p>
+        <p className="text-sm text-slate-400">No quiz attempts yet.</p>
       </div>
     );
   }
@@ -68,9 +68,9 @@ export default function QuizHistoryTab({ attempts, responsesByAttempt }: Props) 
                   <h3 className="truncate font-semibold text-slate-900 dark:text-white">
                     {nodeTopic}
                   </h3>
-                  <span className="text-xs text-slate-500">#{a.attempt_number}</span>
+                  <span className="text-xs text-slate-400">#{a.attempt_number}</span>
                 </div>
-                <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-400">
                   <span>{new Date(a.started_at).toLocaleString()}</span>
                   {timeTaken !== null && (
                     <>
@@ -124,11 +124,11 @@ export default function QuizHistoryTab({ attempts, responsesByAttempt }: Props) 
 
             {isOpen && (
               <div className="border-t border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900/50">
-                <h4 className="mb-2 text-xs font-bold uppercase tracking-widest text-slate-500">
+                <h4 className="mb-2 text-xs font-bold uppercase tracking-widest text-slate-400">
                   Adaptive path
                 </h4>
                 {a.adaptive_path.length === 0 ? (
-                  <p className="text-xs text-slate-500">No steps recorded.</p>
+                  <p className="text-xs text-slate-400">No steps recorded.</p>
                 ) : (
                   <ol className="space-y-1.5">
                     {a.adaptive_path.map((step, i) => {
@@ -156,7 +156,7 @@ export default function QuizHistoryTab({ attempts, responsesByAttempt }: Props) 
                             {step.difficulty}
                           </span>
                           {r && (
-                            <span className="text-slate-500">
+                            <span className="text-slate-400">
                               — chose {r.student_answer} in {r.response_time_seconds}s
                             </span>
                           )}

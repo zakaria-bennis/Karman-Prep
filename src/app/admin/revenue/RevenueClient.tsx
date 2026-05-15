@@ -239,10 +239,10 @@ function PieChart({
 function MrrSparkline({ snapshots }: { snapshots: MrrSnapshot[] }) {
   if (snapshots.length < 2) {
     return (
-      <div className="py-12 text-center text-xs text-slate-500">
+      <div className="py-12 text-center text-xs text-slate-400">
         Need at least 2 snapshots to draw a trend.
         <br />
-        <span className="text-slate-600">
+        <span className="text-slate-400">
           Hit &ldquo;Snapshot now&rdquo; to capture today&apos;s MRR.
         </span>
       </div>
@@ -279,7 +279,7 @@ function MrrSparkline({ snapshots }: { snapshots: MrrSnapshot[] }) {
           </circle>
         ))}
       </svg>
-      <div className="mt-2 flex items-center justify-between text-[10px] text-slate-500">
+      <div className="mt-2 flex items-center justify-between text-[10px] text-slate-400">
         <span>{new Date(snapshots[0].capturedAt).toLocaleDateString()}</span>
         <span>
           Latest:{" "}
@@ -444,7 +444,7 @@ export default function RevenueClient({ data, snapshotAction }: Props) {
             <Activity className="h-4 w-4 text-emerald-400" />
             MRR trend
           </h2>
-          <span className="text-[10px] text-slate-500">Last {data.snapshots.length} snapshots</span>
+          <span className="text-[10px] text-slate-400">Last {data.snapshots.length} snapshots</span>
         </div>
         <MrrSparkline snapshots={data.snapshots} />
       </section>
@@ -455,7 +455,7 @@ export default function RevenueClient({ data, snapshotAction }: Props) {
           <TrendingUp className="h-4 w-4 text-blue-400" />
           Forecast at current pace
         </h2>
-        <p className="mb-3 text-[10px] text-slate-500">
+        <p className="mb-3 text-[10px] text-slate-400">
           Net new MRR/mo:{" "}
           <span
             className={cn(
@@ -490,7 +490,7 @@ export default function RevenueClient({ data, snapshotAction }: Props) {
           <h2 className="text-sm font-bold uppercase tracking-widest text-white">
             Where the revenue comes from
           </h2>
-          <span className="text-[10px] text-slate-500">Hover a slice to highlight</span>
+          <span className="text-[10px] text-slate-400">Hover a slice to highlight</span>
         </div>
         <div className="grid items-center gap-6 md:grid-cols-[260px_1fr]">
           <div className="flex justify-center">
@@ -504,7 +504,7 @@ export default function RevenueClient({ data, snapshotAction }: Props) {
           <div>
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-slate-800 text-[10px] uppercase tracking-wider text-slate-500">
+                <tr className="border-b border-slate-800 text-[10px] uppercase tracking-wider text-slate-400">
                   <th className="py-2 text-left font-semibold">Tier</th>
                   <th className="py-2 text-right font-semibold">Students</th>
                   <th className="py-2 text-right font-semibold">Revenue / mo</th>
@@ -539,7 +539,7 @@ export default function RevenueClient({ data, snapshotAction }: Props) {
                             >
                               {t.label}
                             </p>
-                            <p className="text-[10px] text-slate-500">
+                            <p className="text-[10px] text-slate-400">
                               {t.model === "subscription"
                                 ? `$${t.price}/mo subscription`
                                 : `$${t.price}/session`}
@@ -550,7 +550,7 @@ export default function RevenueClient({ data, snapshotAction }: Props) {
                       <td className="text-right tabular-nums text-slate-200">{t.studentCount}</td>
                       <td className="text-right tabular-nums">
                         <p className="font-semibold text-slate-100">{fmtMoney(t.revenue)}</p>
-                        <p className="text-[10px] text-slate-500">{t.unitsLabel}</p>
+                        <p className="text-[10px] text-slate-400">{t.unitsLabel}</p>
                       </td>
                       <td className="text-right tabular-nums text-slate-300">
                         {fmtPct(t.revenue, data.totalMrr)}
@@ -568,7 +568,7 @@ export default function RevenueClient({ data, snapshotAction }: Props) {
                   <td className="pt-3 text-right font-bold tabular-nums text-emerald-300">
                     {fmtMoney(data.totalMrr)}
                   </td>
-                  <td className="pt-3 text-right tabular-nums text-slate-500">100%</td>
+                  <td className="pt-3 text-right tabular-nums text-slate-400">100%</td>
                 </tr>
               </tfoot>
             </table>
@@ -593,16 +593,16 @@ export default function RevenueClient({ data, snapshotAction }: Props) {
           <Users className="h-4 w-4 text-violet-400" />
           Cohort retention
         </h2>
-        <p className="mb-4 text-[10px] text-slate-500">
+        <p className="mb-4 text-[10px] text-slate-400">
           Each row is a signup-month cohort. Cells show how many of that cohort were still active at
           month 0 / 1 / 3 / 6 since signup. Future months show &ldquo;—&rdquo;.
         </p>
         {data.cohorts.length === 0 ? (
-          <div className="py-8 text-center text-xs text-slate-500">No cohorts yet.</div>
+          <div className="py-8 text-center text-xs text-slate-400">No cohorts yet.</div>
         ) : (
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-slate-800 text-[10px] uppercase tracking-wider text-slate-500">
+              <tr className="border-b border-slate-800 text-[10px] uppercase tracking-wider text-slate-400">
                 <th className="py-2 text-left font-semibold">Cohort</th>
                 <th className="py-2 text-right font-semibold">Size</th>
                 <th className="py-2 text-right font-semibold">M0</th>
@@ -619,7 +619,7 @@ export default function RevenueClient({ data, snapshotAction }: Props) {
                   {c.counts.map((cnt, i) => (
                     <td key={i} className="text-right tabular-nums">
                       {cnt === null ? (
-                        <span className="text-slate-600">—</span>
+                        <span className="text-slate-400">—</span>
                       ) : (
                         <CohortCell active={cnt} total={c.size} />
                       )}
@@ -637,7 +637,7 @@ export default function RevenueClient({ data, snapshotAction }: Props) {
         <h2 className="mb-3 inline-flex items-center gap-1.5 text-sm font-bold uppercase tracking-widest text-white">
           <BookmarkX className="h-4 w-4 text-amber-400" />
           Dunning queue
-          <span className="text-[10px] font-normal text-slate-500">
+          <span className="text-[10px] font-normal text-slate-400">
             ({data.dunning.length} past-due)
           </span>
         </h2>
@@ -648,7 +648,7 @@ export default function RevenueClient({ data, snapshotAction }: Props) {
         ) : (
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-slate-800 text-[10px] uppercase tracking-wider text-slate-500">
+              <tr className="border-b border-slate-800 text-[10px] uppercase tracking-wider text-slate-400">
                 <th className="py-2 text-left font-semibold">Student</th>
                 <th className="py-2 text-left font-semibold">Tier</th>
                 <th className="py-2 text-right font-semibold">Amount at risk</th>
@@ -659,7 +659,7 @@ export default function RevenueClient({ data, snapshotAction }: Props) {
                 <tr key={i} className="border-b border-slate-800/60">
                   <td className="py-2.5">
                     <p className="text-sm font-semibold text-slate-200">{d.name}</p>
-                    {d.email && <p className="text-[10px] text-slate-500">{d.email}</p>}
+                    {d.email && <p className="text-[10px] text-slate-400">{d.email}</p>}
                   </td>
                   <td className="text-xs text-slate-300">{d.tier}</td>
                   <td className="text-right font-semibold tabular-nums text-amber-300">
@@ -679,13 +679,13 @@ export default function RevenueClient({ data, snapshotAction }: Props) {
           Per-tutor revenue (last 30d)
         </h2>
         {data.tutorRevenue.length === 0 ? (
-          <div className="py-6 text-center text-xs text-slate-500">
+          <div className="py-6 text-center text-xs text-slate-400">
             No tutor-attributed revenue in the last 30 days.
           </div>
         ) : (
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-slate-800 text-[10px] uppercase tracking-wider text-slate-500">
+              <tr className="border-b border-slate-800 text-[10px] uppercase tracking-wider text-slate-400">
                 <th className="py-2 text-left font-semibold">Tutor</th>
                 <th className="py-2 text-right font-semibold">Sessions</th>
                 <th className="py-2 text-right font-semibold">Attributed revenue</th>
@@ -769,7 +769,7 @@ function Kpi({
 }) {
   return (
     <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-4">
-      <p className="mb-2 inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-500">
+      <p className="mb-2 inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-400">
         <span
           className={cn("flex h-5 w-5 items-center justify-center rounded-md", ACCENT_RING[accent])}
         >
@@ -778,7 +778,7 @@ function Kpi({
         {label}
       </p>
       <p className="text-xl font-extrabold tabular-nums text-white">{value}</p>
-      {hint && <p className="mt-1 text-[10px] text-slate-500">{hint}</p>}
+      {hint && <p className="mt-1 text-[10px] text-slate-400">{hint}</p>}
     </div>
   );
 }
@@ -799,7 +799,7 @@ function MomentumCard({
   const Arrow = direction === "up" ? ArrowUpRight : ArrowDownRight;
   return (
     <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-4">
-      <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-slate-500">{label}</p>
+      <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">{label}</p>
       <div
         className={cn(
           "flex items-baseline gap-2",
@@ -813,7 +813,7 @@ function MomentumCard({
         <span className="text-2xl font-extrabold tabular-nums">{value}</span>
         <Arrow className="h-4 w-4" />
       </div>
-      {hint && <p className="mt-1 text-[10px] text-slate-500">{hint}</p>}
+      {hint && <p className="mt-1 text-[10px] text-slate-400">{hint}</p>}
     </div>
   );
 }
@@ -843,7 +843,7 @@ function CohortCell({ active, total }: { active: number; total: number }) {
   return (
     <div className="inline-flex flex-col items-end">
       <span className={cn("font-semibold tabular-nums", color)}>{active}</span>
-      <span className="text-[9px] tabular-nums text-slate-500">{Math.round(pct * 100)}%</span>
+      <span className="text-[9px] tabular-nums text-slate-400">{Math.round(pct * 100)}%</span>
     </div>
   );
 }

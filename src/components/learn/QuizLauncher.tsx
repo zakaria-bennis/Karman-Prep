@@ -39,7 +39,7 @@ export default function QuizLauncher({ attempts, onStartQuiz, onGoToNext, disabl
           </div>
           <div className="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800">
             <table className="w-full text-sm">
-              <thead className="bg-slate-50 text-[11px] uppercase tracking-wider text-slate-500 dark:bg-slate-900/50">
+              <thead className="bg-slate-50 text-[11px] uppercase tracking-wider text-slate-400 dark:bg-slate-900/50">
                 <tr>
                   <th className="px-3 py-2 text-left font-semibold">Attempt</th>
                   <th className="px-3 py-2 text-left font-semibold">Score</th>
@@ -87,7 +87,7 @@ export default function QuizLauncher({ attempts, onStartQuiz, onGoToNext, disabl
                           <span className="text-xs text-slate-400">—</span>
                         )}
                       </td>
-                      <td className="px-3 py-2 text-xs text-slate-500">
+                      <td className="px-3 py-2 text-xs text-slate-400">
                         {a.completed_at ? new Date(a.completed_at).toLocaleDateString() : "—"}
                       </td>
                     </tr>

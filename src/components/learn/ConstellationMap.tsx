@@ -629,7 +629,7 @@ function ConstellationMapInner({ activeSubject, readingNodes, mathNodes }: Props
             <p className="truncate font-semibold">
               {hoveredNode.topic}{" "}
               {hoveredNode.subject !== activeSubject && (
-                <span className="text-xs text-slate-500">
+                <span className="text-xs text-slate-400">
                   ({hoveredNode.subject === "math" ? "Math" : "R&W"} — not active)
                 </span>
               )}
@@ -639,7 +639,7 @@ function ConstellationMapInner({ activeSubject, readingNodes, mathNodes }: Props
               <span
                 className={cn(
                   hoveredNode.status === "locked"
-                    ? "text-slate-500"
+                    ? "text-slate-400"
                     : hoveredNode.status === "mastered"
                       ? "text-emerald-400"
                       : hoveredNode.status === "partially_complete"
@@ -676,7 +676,7 @@ function ConstellationMapInner({ activeSubject, readingNodes, mathNodes }: Props
               className="h-2.5 w-2.5 rounded-full border border-white/10"
               style={{ backgroundColor: color }}
             />
-            <span className="text-xs text-slate-500">{label}</span>
+            <span className="text-xs text-slate-400">{label}</span>
           </div>
         ))}
       </div>

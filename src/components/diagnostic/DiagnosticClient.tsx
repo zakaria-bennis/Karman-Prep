@@ -517,7 +517,7 @@ export default function DiagnosticClient({ questions, isSubscribed, isRetake }: 
                                 isAnswered &&
                                 !isSelected &&
                                 !isCorrect &&
-                                "text-slate-500",
+                                "text-slate-400",
                               !isCrossed && !isAnswered && "text-slate-700 dark:text-slate-200"
                             )}
                           >
@@ -651,7 +651,7 @@ export default function DiagnosticClient({ questions, isSubscribed, isRetake }: 
                 {!isAnswered && (
                   <button
                     onClick={handleNext}
-                    className="flex items-center gap-1.5 py-2 text-sm text-slate-400 transition-colors hover:text-slate-600 dark:hover:text-slate-300"
+                    className="flex items-center gap-1.5 py-2 text-sm text-slate-400 transition-colors hover:text-slate-400 dark:hover:text-slate-300"
                   >
                     Skip this question
                     <ArrowRight className="h-3.5 w-3.5" />

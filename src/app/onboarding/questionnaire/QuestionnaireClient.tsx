@@ -274,7 +274,7 @@ export default function QuestionnaireClient({ firstName, tier, satDates }: Props
                   ? "border-emerald-400/40 bg-emerald-500/20 text-emerald-200"
                   : i === stepIdx
                     ? "border-transparent bg-gradient-to-br from-blue-500 to-violet-500 text-white"
-                    : "border-white/10 bg-white/[0.03] text-slate-500"
+                    : "border-white/10 bg-white/[0.03] text-slate-400"
               )}
             >
               {i + 1}
@@ -425,7 +425,7 @@ function Step_SatSchedule(props: {
           onChange={(e) => props.setGoalSatScore(Number(e.target.value))}
           className="w-full accent-blue-400"
         />
-        <div className="mt-1 flex justify-between text-[11px] text-slate-500">
+        <div className="mt-1 flex justify-between text-[11px] text-slate-400">
           <span>400</span>
           <span>1600</span>
         </div>
@@ -494,7 +494,7 @@ function Step_Background(props: {
               onChange={(e) => props.setRecentSatMath(Number(e.target.value))}
               className="w-full accent-blue-400"
             />
-            <div className="mt-1 flex justify-between text-[11px] text-slate-500">
+            <div className="mt-1 flex justify-between text-[11px] text-slate-400">
               <span>200</span>
               <span>800</span>
             </div>
@@ -513,7 +513,7 @@ function Step_Background(props: {
               onChange={(e) => props.setRecentSatReading(Number(e.target.value))}
               className="w-full accent-blue-400"
             />
-            <div className="mt-1 flex justify-between text-[11px] text-slate-500">
+            <div className="mt-1 flex justify-between text-[11px] text-slate-400">
               <span>200</span>
               <span>800</span>
             </div>
@@ -547,7 +547,7 @@ function Step_Background(props: {
             onChange={(e) => props.setPsatScore(Number(e.target.value))}
             className="w-full accent-blue-400"
           />
-          <div className="mt-1 flex justify-between text-[11px] text-slate-500">
+          <div className="mt-1 flex justify-between text-[11px] text-slate-400">
             <span>320</span>
             <span>1520</span>
           </div>
@@ -674,7 +674,7 @@ function Step_Family(props: {
           value={props.parentEmail}
           onChange={(e) => props.setParentEmail(e.target.value)}
           placeholder="parent@example.com"
-          className="w-full rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-blue-400 focus:outline-none"
+          className="w-full rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-slate-100 placeholder:text-slate-400 focus:border-blue-400 focus:outline-none"
         />
       </div>
       <div>
@@ -684,7 +684,7 @@ function Step_Family(props: {
           value={props.parentPhone}
           onChange={(e) => props.setParentPhone(e.target.value)}
           placeholder="(555) 123-4567"
-          className="w-full rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-blue-400 focus:outline-none"
+          className="w-full rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-slate-100 placeholder:text-slate-400 focus:border-blue-400 focus:outline-none"
         />
       </div>
     </div>

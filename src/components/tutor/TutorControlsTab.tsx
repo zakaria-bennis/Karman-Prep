@@ -87,7 +87,7 @@ export default function TutorControlsTab({ studentId, statuses }: Props) {
         <h2 className="mb-3 text-sm font-bold text-slate-900 dark:text-white">
           Node Status Overrides
         </h2>
-        <p className="mb-3 text-xs text-slate-500">
+        <p className="mb-3 text-xs text-slate-400">
           Changes apply immediately and silently to the student&apos;s view. All overrides are
           logged to the audit table.
         </p>
@@ -122,11 +122,11 @@ export default function TutorControlsTab({ studentId, statuses }: Props) {
                       <div className="max-w-[20rem] truncate font-medium text-slate-900 dark:text-white">
                         {n.topic}
                       </div>
-                      <div className="text-xs text-slate-500">
+                      <div className="text-xs text-slate-400">
                         {SUBJECT_LABELS[n.subject]} · {n.topic_cluster}
                       </div>
                     </td>
-                    <td className="px-3 py-2 text-xs text-slate-500">{TIER_LABELS[n.tier]}</td>
+                    <td className="px-3 py-2 text-xs text-slate-400">{TIER_LABELS[n.tier]}</td>
                     <td className="px-3 py-2">
                       <select
                         value={curStatus}
@@ -155,7 +155,7 @@ export default function TutorControlsTab({ studentId, statuses }: Props) {
                           "inline-flex items-center gap-1 rounded border px-2 py-1 text-xs font-semibold",
                           curLocked
                             ? "border-rose-500 bg-rose-500 text-white"
-                            : "border-slate-300 text-slate-500 hover:text-slate-900 dark:border-slate-700 dark:hover:text-white"
+                            : "border-slate-300 text-slate-400 hover:text-slate-900 dark:border-slate-700 dark:hover:text-white"
                         )}
                       >
                         {curLocked ? <Lock className="h-3 w-3" /> : <Unlock className="h-3 w-3" />}
@@ -193,7 +193,7 @@ export default function TutorControlsTab({ studentId, statuses }: Props) {
                         {subject === "reading" ? "Reading & Writing" : "Math"} — Tier {tier}{" "}
                         Checkpoint
                       </div>
-                      <div className="text-xs text-slate-500">
+                      <div className="text-xs text-slate-400">
                         {TIER_LABELS[Number(tier) as 1 | 2 | 3]}
                       </div>
                     </td>

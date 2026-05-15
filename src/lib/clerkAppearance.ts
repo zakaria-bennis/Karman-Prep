@@ -74,9 +74,9 @@ export const strataClerkAppearance = {
     // Form fields
     formFieldInput:
       "bg-white/[0.03] border border-white/10 text-slate-100 " +
-      "placeholder:text-slate-500 focus:border-blue-400/60 focus:ring-1 focus:ring-blue-400/30",
+      "placeholder:text-slate-400 focus:border-blue-400/60 focus:ring-1 focus:ring-blue-400/30",
     formFieldLabel: "text-slate-300 font-semibold text-xs uppercase tracking-wider",
-    formFieldInputShowPasswordButton: "text-slate-500 hover:text-slate-300",
+    formFieldInputShowPasswordButton: "text-slate-400 hover:text-slate-300",
     formFieldAction: "text-blue-300 hover:text-blue-200",
 
     // Footer (e.g. "Don't have an account? Sign up")
@@ -87,7 +87,7 @@ export const strataClerkAppearance = {
 
     // Divider "or"
     dividerLine: "bg-white/10",
-    dividerText: "text-slate-500",
+    dividerText: "text-slate-400",
 
     // Identity preview chip (during multi-step flows)
     identityPreview: "bg-white/[0.04] border border-white/10",

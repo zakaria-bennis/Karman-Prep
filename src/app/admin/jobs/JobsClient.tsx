@@ -58,8 +58,8 @@ export default function JobsClient({ initialJobs }: { initialJobs: PdfProcessing
 
   if (initialJobs.length === 0) {
     return (
-      <div className="rounded-xl border border-slate-800 bg-slate-900/40 px-6 py-12 text-center text-sm text-slate-500">
-        <FileText className="mx-auto mb-2 h-6 w-6 text-slate-600" />
+      <div className="rounded-xl border border-slate-800 bg-slate-900/40 px-6 py-12 text-center text-sm text-slate-400">
+        <FileText className="mx-auto mb-2 h-6 w-6 text-slate-400" />
         No PDFs uploaded yet. Upload one from{" "}
         <a
           href="/admin/questions/import"
@@ -82,7 +82,7 @@ export default function JobsClient({ initialJobs }: { initialJobs: PdfProcessing
         >
           <RefreshCw className="h-3 w-3" /> Refresh
         </button>
-        <label className="ml-auto inline-flex cursor-pointer items-center gap-1.5 text-slate-500">
+        <label className="ml-auto inline-flex cursor-pointer items-center gap-1.5 text-slate-400">
           <input
             type="checkbox"
             checked={autoRefresh}
@@ -114,22 +114,22 @@ function JobRow({ job }: { job: PdfProcessingJob }) {
   return (
     <article className="rounded-lg border border-slate-800 bg-slate-900/60 px-4 py-3">
       <div className="flex items-start gap-3">
-        <FileText className="mt-0.5 h-4 w-4 shrink-0 text-slate-500" />
+        <FileText className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
         <div className="min-w-0 flex-1">
           {/* ── Title row ───────────────────────────────────── */}
           <div className="flex flex-wrap items-center gap-2">
             <span className="truncate text-sm font-semibold text-slate-100">{job.source_pdf}</span>
             <JobStatusBadge status={job.status} />
-            <span className="text-[11px] text-slate-500">
+            <span className="text-[11px] text-slate-400">
               {new Date(job.uploaded_at).toLocaleString()}
             </span>
             {job.pdf_size_bytes != null && (
-              <span className="text-[11px] text-slate-500">
+              <span className="text-[11px] text-slate-400">
                 {(job.pdf_size_bytes / 1024 / 1024).toFixed(1)} MB
               </span>
             )}
             {job.pdf_page_count != null && (
-              <span className="text-[11px] text-slate-500">{job.pdf_page_count} pages</span>
+              <span className="text-[11px] text-slate-400">{job.pdf_page_count} pages</span>
             )}
             {totalImported > 0 && (
               <span className="text-[11px] text-emerald-400">
@@ -145,10 +145,10 @@ function JobRow({ job }: { job: PdfProcessingJob }) {
               <span className="font-medium text-slate-300">{STAGE_LABEL[stage]}</span>
               {isActive && job.started_at && <ElapsedTime startedAt={job.started_at} />}
               {job.progress?.message && (
-                <span className="truncate text-slate-500">— {job.progress.message}</span>
+                <span className="truncate text-slate-400">— {job.progress.message}</span>
               )}
               {job.progress?.updated_at && (
-                <span className="ml-auto shrink-0 text-slate-600">
+                <span className="ml-auto shrink-0 text-slate-400">
                   updated {timeAgo(job.progress.updated_at)}
                 </span>
               )}
@@ -204,7 +204,7 @@ function StageIcon({ stage }: { stage: PdfJobStage }) {
     PdfJobStage,
     { icon: React.ComponentType<{ className?: string }>; className: string; spin?: boolean }
   > = {
-    queued: { icon: Clock, className: "text-slate-500" },
+    queued: { icon: Clock, className: "text-slate-400" },
     pulled: { icon: Download, className: "text-slate-400" },
     processing: { icon: Sparkles, className: "text-indigo-400", spin: false },
     finalizing: { icon: UploadIcon, className: "text-sky-400" },
@@ -246,7 +246,7 @@ function ElapsedTime({ startedAt }: { startedAt: string }) {
     return () => clearInterval(t);
   }, []);
   const elapsedSec = Math.max(0, Math.floor((now - new Date(startedAt).getTime()) / 1000));
-  return <span className="font-mono text-slate-500">({formatDuration(elapsedSec)})</span>;
+  return <span className="font-mono text-slate-400">({formatDuration(elapsedSec)})</span>;
 }
 
 function formatDuration(sec: number): string {
@@ -308,7 +308,7 @@ function ModulePill({
   imported?: number;
 }) {
   const cls = {
-    pending: "border-slate-700 text-slate-500",
+    pending: "border-slate-700 text-slate-400",
     in_progress: "border-indigo-500/50 text-indigo-200 bg-indigo-500/10",
     complete: "border-emerald-500/40 text-emerald-200 bg-emerald-500/10",
     failed: "border-rose-500/40 text-rose-200 bg-rose-500/10",

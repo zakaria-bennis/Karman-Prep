@@ -185,7 +185,7 @@ export function BookingWidget(props: BookingWidgetProps) {
     <div className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900/40">
       <header className="mb-4 flex items-baseline justify-between">
         <div className="min-w-0">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
             {props.rescheduleBookingId ? "Reschedule with" : "Book with"}
           </p>
           <h3 className="mt-0.5 truncate text-sm font-bold text-slate-900 dark:text-white">
@@ -193,7 +193,7 @@ export function BookingWidget(props: BookingWidgetProps) {
           </h3>
         </div>
         {!props.rescheduleBookingId && typeof props.tokensAvailable === "number" ? (
-          <span className="ml-3 inline-flex shrink-0 items-baseline gap-1 text-xs text-slate-500">
+          <span className="ml-3 inline-flex shrink-0 items-baseline gap-1 text-xs text-slate-400">
             <span className="text-base font-extrabold leading-none text-slate-900 dark:text-white">
               {props.tokensAvailable}
             </span>
@@ -203,14 +203,14 @@ export function BookingWidget(props: BookingWidgetProps) {
       </header>
 
       {load.kind === "loading" ? (
-        <div className="flex items-center justify-center gap-2 py-6 text-xs text-slate-500">
+        <div className="flex items-center justify-center gap-2 py-6 text-xs text-slate-400">
           <Loader2 className="h-3.5 w-3.5 animate-spin" />
           Loading available times…
         </div>
       ) : load.kind === "error" ? (
         <p className="py-6 text-center text-xs text-rose-600 dark:text-rose-400">{load.message}</p>
       ) : orderedDays.length === 0 ? (
-        <div className="flex flex-col items-center py-6 text-slate-500">
+        <div className="flex flex-col items-center py-6 text-slate-400">
           <Calendar className="mb-1.5 h-5 w-5 opacity-60" />
           <p className="text-xs">No openings in the next two weeks.</p>
         </div>
@@ -220,7 +220,7 @@ export function BookingWidget(props: BookingWidgetProps) {
           <p className="mb-0.5 text-sm font-semibold text-slate-900 dark:text-white">
             {props.rescheduleBookingId ? "Session rescheduled" : "Session booked"}
           </p>
-          <p className="mb-3 text-xs text-slate-500">Calendar invite is on its way.</p>
+          <p className="mb-3 text-xs text-slate-400">Calendar invite is on its way.</p>
           {submit.joinUrl ? (
             <a
               href={submit.joinUrl}
@@ -240,7 +240,7 @@ export function BookingWidget(props: BookingWidgetProps) {
               const sample = new Date(slots[0]!.start);
               return (
                 <div key={dk}>
-                  <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+                  <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
                     {formatDay(sample, tz)}
                   </p>
                   <div className="grid grid-cols-4 gap-1.5 sm:grid-cols-5">
@@ -270,7 +270,7 @@ export function BookingWidget(props: BookingWidgetProps) {
           {selected ? (
             <div className="mt-4 border-t border-slate-200 pt-4 dark:border-slate-800">
               <p className="mb-2 text-xs text-slate-600 dark:text-slate-300">
-                <span className="text-slate-500">Selected:</span>{" "}
+                <span className="text-slate-400">Selected:</span>{" "}
                 <span className="font-semibold text-slate-900 dark:text-white">
                   {formatDay(new Date(selected.start), tz)},{" "}
                   {formatTime(new Date(selected.start), tz)}

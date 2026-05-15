@@ -168,7 +168,7 @@ export default function GuaranteePage() {
                 </li>
               ))}
             </ol>
-            <p className="mt-5 text-xs text-slate-400 dark:text-slate-500">
+            <p className="mt-5 text-xs text-slate-400 dark:text-slate-400">
               Questions? Email{" "}
               <a href="mailto:guarantee@karmanprep.com" className="underline hover:text-blue-500">
                 guarantee@karmanprep.com

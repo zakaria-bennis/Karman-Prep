@@ -136,7 +136,7 @@ export default function EarningsDataClient({
         <div className="mb-3 flex items-center gap-2">
           <BarChart3 className="h-5 w-5 text-blue-400" />
           <h2 className="text-lg font-bold text-slate-900 dark:text-white">Earnings trend</h2>
-          <span className="text-xs text-slate-500">last 12 weeks</span>
+          <span className="text-xs text-slate-400">last 12 weeks</span>
         </div>
         <WeeklyChart points={weekly} />
       </section>
@@ -146,7 +146,7 @@ export default function EarningsDataClient({
         <h2 className="mb-3 flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
           <CalendarClock className="h-5 w-5 text-slate-400" />
           Sessions in this period
-          <span className="text-xs font-normal text-slate-500">({sessions.length})</span>
+          <span className="text-xs font-normal text-slate-400">({sessions.length})</span>
         </h2>
 
         {sessions.length === 0 ? (
@@ -199,7 +199,7 @@ export default function EarningsDataClient({
                     <div className="font-bold tabular-nums text-slate-900 dark:text-white">
                       {fmt.format(p.net_amount ?? p.total_amount)}
                     </div>
-                    <div className="truncate text-xs text-slate-500">
+                    <div className="truncate text-xs text-slate-400">
                       {p.booking_count ?? 0} session{p.booking_count === 1 ? "" : "s"} ·{" "}
                       {fmtHours(p.total_hours)}
                       {p.payout_method && (
@@ -217,7 +217,7 @@ export default function EarningsDataClient({
                     </div>
                   </div>
                 </div>
-                <div className="shrink-0 text-right text-xs text-slate-500">
+                <div className="shrink-0 text-right text-xs text-slate-400">
                   Requested {timeSince(p.requested_at)} ago
                   {p.paid_at && (
                     <div className="text-emerald-500">Paid {timeSince(p.paid_at)} ago</div>
@@ -287,12 +287,12 @@ function SessionRow({
         <span className="max-w-[18rem] truncate font-medium text-slate-900 dark:text-white">
           {s.cohort?.name ?? "(cohort missing)"}
         </span>
-        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
           {enrolled.length} enrolled
         </span>
       </div>
       {enrolled.length > 0 && (
-        <div className="mt-0.5 max-w-[18rem] truncate text-[11px] text-slate-500">
+        <div className="mt-0.5 max-w-[18rem] truncate text-[11px] text-slate-400">
           {enrolled.slice(0, 3).map(nameWithCount).join(", ")}
           {enrolled.length > 3 ? ` +${enrolled.length - 3}` : ""}
         </div>
@@ -383,7 +383,7 @@ function PayoutStatusPill({ status, compact }: { status: string; compact?: boole
   const map: Record<string, { label: string; cls: string }> = {
     not_eligible: {
       label: "—",
-      cls: "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-500",
+      cls: "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400",
     },
     pending: {
       label: "Pending",
@@ -405,13 +405,13 @@ function PayoutStatusPill({ status, compact }: { status: string; compact?: boole
       label: "Paid",
       cls: "bg-emerald-100 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300",
     },
-    cancelled: { label: "Cancelled", cls: "bg-slate-200 dark:bg-slate-800 text-slate-500" },
+    cancelled: { label: "Cancelled", cls: "bg-slate-200 dark:bg-slate-800 text-slate-400" },
     failed: {
       label: "Failed",
       cls: "bg-rose-100 dark:bg-rose-500/15 text-rose-700 dark:text-rose-300",
     },
   };
-  const m = map[status] ?? { label: status, cls: "bg-slate-100 dark:bg-slate-800 text-slate-500" };
+  const m = map[status] ?? { label: status, cls: "bg-slate-100 dark:bg-slate-800 text-slate-400" };
   return (
     <span
       className={cn(
@@ -454,13 +454,13 @@ function WeeklyChart({ points }: { points: WeeklyEarningsPoint[] }) {
   return (
     <div>
       <div className="mb-3 flex flex-wrap items-baseline gap-3">
-        <div className="text-xs font-bold uppercase tracking-wider text-slate-500">
+        <div className="text-xs font-bold uppercase tracking-wider text-slate-400">
           12-week total
         </div>
         <div className="text-lg font-extrabold tabular-nums text-slate-900 dark:text-white">
           {fmt.format(total)}
         </div>
-        <div className="text-xs text-slate-500">· {fmtHours(totalHours)}</div>
+        <div className="text-xs text-slate-400">· {fmtHours(totalHours)}</div>
       </div>
 
       <div className="overflow-x-auto">
@@ -531,7 +531,7 @@ function WeeklyChart({ points }: { points: WeeklyEarningsPoint[] }) {
         </svg>
       </div>
 
-      <div className="mt-3 text-xs text-slate-500">
+      <div className="mt-3 text-xs text-slate-400">
         Hover bars for week details. Bars represent gross earnings (pre-fee).
       </div>
     </div>

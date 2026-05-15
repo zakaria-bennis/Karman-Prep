@@ -123,8 +123,8 @@ export default function PaymentSettingsClient({ state }: { state: State }) {
               finish onboarding.
             </p>
             {state.requirements.length > 0 && (
-              <details className="text-xs text-slate-500">
-                <summary className="cursor-pointer hover:text-slate-700 dark:hover:text-slate-300">
+              <details className="text-xs text-slate-400">
+                <summary className="cursor-pointer hover:text-slate-400 dark:hover:text-slate-300">
                   What does Stripe need? ({state.requirements.length})
                 </summary>
                 <ul className="ml-4 mt-1 list-disc">
@@ -239,7 +239,7 @@ export default function PaymentSettingsClient({ state }: { state: State }) {
             </ul>
           </div>
         </div>
-        <p className="mt-3 text-xs text-slate-500">
+        <p className="mt-3 text-xs text-slate-400">
           You pick the method when requesting a payout. No hidden fees, no minimum.
         </p>
       </section>
@@ -300,7 +300,7 @@ function Capability({
         {label}
         {active && <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />}
       </div>
-      {hint && <div className="mt-1 text-[11px] text-slate-500">{hint}</div>}
+      {hint && <div className="mt-1 text-[11px] text-slate-400">{hint}</div>}
     </div>
   );
 }

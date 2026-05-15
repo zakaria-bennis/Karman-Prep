@@ -72,7 +72,7 @@ export default async function ParentDashboardPage() {
 
         {students.length === 0 ? (
           <div className="rounded-xl border border-dashed border-slate-800 px-8 py-12 text-center">
-            <UsersIcon className="mx-auto mb-3 h-8 w-8 text-slate-600" />
+            <UsersIcon className="mx-auto mb-3 h-8 w-8 text-slate-400" />
             <h2 className="text-base font-semibold text-white">No students linked yet</h2>
             <p className="mx-auto mt-2 max-w-md text-sm text-slate-400">
               A Karman admin will link your account to your student(s) shortly. Check back soon, or
@@ -102,7 +102,7 @@ export default async function ParentDashboardPage() {
                           : "Target SAT date not set"}
                       </div>
                     </div>
-                    <span className="text-sm text-slate-600">View →</span>
+                    <span className="text-sm text-slate-400">View →</span>
                   </div>
                 </Link>
               </li>
@@ -110,7 +110,7 @@ export default async function ParentDashboardPage() {
           </ul>
         )}
 
-        <p className="mt-8 max-w-md text-xs text-slate-600">
+        <p className="mt-8 max-w-md text-xs text-slate-400">
           Per-student detail view (progress, cohort, recent activity) is coming shortly. This
           landing page is the access point — your linked students will appear above.
         </p>

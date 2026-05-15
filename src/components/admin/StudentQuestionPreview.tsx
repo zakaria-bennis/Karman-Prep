@@ -56,22 +56,22 @@ export default function StudentQuestionPreview({ question, onClose }: Props) {
         <div className="flex shrink-0 items-center justify-between border-b border-white/10 bg-white/[0.03] px-6 py-3">
           <div className="flex items-center gap-3 text-xs">
             <span className="font-semibold text-slate-300">Student preview</span>
-            <span className="text-slate-600">·</span>
-            <span className="text-slate-500">
+            <span className="text-slate-400">·</span>
+            <span className="text-slate-400">
               {question.subject === "math" ? "Math" : "Reading & Writing"}
             </span>
             {question.concept_slug && (
               <>
-                <span className="text-slate-600">·</span>
-                <span className="text-slate-500">{question.concept_slug}</span>
+                <span className="text-slate-400">·</span>
+                <span className="text-slate-400">{question.concept_slug}</span>
               </>
             )}
-            <span className="text-slate-600">·</span>
-            <span className="text-slate-500">difficulty {question.difficulty_level}</span>
+            <span className="text-slate-400">·</span>
+            <span className="text-slate-400">difficulty {question.difficulty_level}</span>
           </div>
           <button
             onClick={onClose}
-            className="text-slate-500 transition-colors hover:text-white"
+            className="text-slate-400 transition-colors hover:text-white"
             aria-label="Close preview"
           >
             <X className="h-4 w-4" />
@@ -96,7 +96,7 @@ export default function StudentQuestionPreview({ question, onClose }: Props) {
         </div>
 
         {/* ── Footer hint ────────────────────────────────── */}
-        <div className="shrink-0 border-t border-white/10 bg-white/[0.02] px-6 py-2 text-[11px] text-slate-600">
+        <div className="shrink-0 border-t border-white/10 bg-white/[0.02] px-6 py-2 text-[11px] text-slate-400">
           Read-only preview · the correct answer is highlighted for the admin · students see no
           highlighting until they submit
         </div>
@@ -129,7 +129,7 @@ function LeftColumn({ question }: { question: QuizQuestionWithChoices }) {
             <div className="space-y-5">
               {question.passage_a && (
                 <div>
-                  <div className="mb-2 font-sans text-xs uppercase not-italic tracking-wide text-slate-500">
+                  <div className="mb-2 font-sans text-xs uppercase not-italic tracking-wide text-slate-400">
                     Text 1
                   </div>
                   <MathText text={question.passage_a} className="whitespace-pre-wrap" />
@@ -137,7 +137,7 @@ function LeftColumn({ question }: { question: QuizQuestionWithChoices }) {
               )}
               {question.passage_b && (
                 <div>
-                  <div className="mb-2 font-sans text-xs uppercase not-italic tracking-wide text-slate-500">
+                  <div className="mb-2 font-sans text-xs uppercase not-italic tracking-wide text-slate-400">
                     Text 2
                   </div>
                   <MathText text={question.passage_b} className="whitespace-pre-wrap" />
@@ -185,7 +185,7 @@ function PromptColumn({
         </ul>
       ) : (
         <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
-          <label className="mb-2 block text-xs uppercase tracking-wide text-slate-500">
+          <label className="mb-2 block text-xs uppercase tracking-wide text-slate-400">
             Numeric entry
           </label>
           <div className="flex items-center gap-3">
@@ -193,12 +193,12 @@ function PromptColumn({
               type="text"
               disabled
               placeholder="Student types answer here"
-              className="flex-1 rounded-lg border border-white/10 bg-slate-950/60 px-3 py-2 text-[15px] text-slate-300 placeholder:text-slate-600"
+              className="flex-1 rounded-lg border border-white/10 bg-slate-950/60 px-3 py-2 text-[15px] text-slate-300 placeholder:text-slate-400"
             />
             <span className="text-xs text-emerald-300">
               answer: <span className="font-mono">{question.correct_answer}</span>
               {question.numeric_tolerance != null && (
-                <span className="ml-1 text-slate-500">±{question.numeric_tolerance}</span>
+                <span className="ml-1 text-slate-400">±{question.numeric_tolerance}</span>
               )}
             </span>
           </div>
@@ -206,7 +206,7 @@ function PromptColumn({
       )}
 
       {question.hint && (
-        <details className="mt-4 text-xs text-slate-500">
+        <details className="mt-4 text-xs text-slate-400">
           <summary className="cursor-pointer hover:text-slate-300">Hint</summary>
           <MathText text={question.hint} className="mt-1.5 block text-slate-400" />
         </details>

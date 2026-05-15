@@ -65,9 +65,9 @@ export default function CohortDetailClient({
           <TierBadge tier={cohort.tier} />
           <StatusBadge status={cohort.status} />
           <span className="text-sm text-slate-400">{formatDate(cohort.sat_date)} SAT</span>
-          <span className="text-slate-700">·</span>
+          <span className="text-slate-400">·</span>
           <span className="text-sm text-slate-400">{tutorDisplay(cohort.tutor)}</span>
-          <span className="text-slate-700">·</span>
+          <span className="text-slate-400">·</span>
           <span className="font-mono text-sm text-slate-400">
             {cohort.member_count}/{cohort.max_size} seats
           </span>
@@ -162,13 +162,13 @@ function TabLink({
         "inline-flex items-center gap-2 border-b-2 px-4 pb-3 font-semibold transition-colors",
         active
           ? "border-indigo-500 text-indigo-400"
-          : "border-transparent text-slate-500 hover:text-slate-200"
+          : "border-transparent text-slate-400 hover:text-slate-200"
       )}
     >
       <Icon className="h-4 w-4" />
       {label}
       {count > 0 && (
-        <span className={cn("font-mono text-xs", active ? "text-indigo-300" : "text-slate-500")}>
+        <span className={cn("font-mono text-xs", active ? "text-indigo-300" : "text-slate-400")}>
           {count}
         </span>
       )}
@@ -316,7 +316,7 @@ function MemberRow({
         <button
           onClick={remove}
           disabled={pending}
-          className="text-slate-500 hover:text-rose-300 disabled:opacity-50"
+          className="text-slate-400 hover:text-rose-300 disabled:opacity-50"
           aria-label={`Remove ${studentDisplay(member)} from cohort`}
         >
           {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
@@ -378,7 +378,7 @@ function AddMemberDialog({
       >
         <button
           onClick={onClose}
-          className="absolute right-4 top-4 text-slate-500 hover:text-slate-200"
+          className="absolute right-4 top-4 text-slate-400 hover:text-slate-200"
           aria-label="Close"
         >
           <X className="h-5 w-5" />
@@ -467,7 +467,7 @@ function NotesTab({ note, tutorName }: { note: string | null; tutorName: string 
   }
   return (
     <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-6">
-      <div className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500">
+      <div className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-400">
         Notes by {tutorName}
       </div>
       <div className="whitespace-pre-wrap text-sm leading-relaxed text-slate-200">{note}</div>
@@ -499,7 +499,7 @@ function HomeworkTab({ homework }: { homework: HomeworkRow[] }) {
               {h.body}
             </p>
           )}
-          <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-500">
+          <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-400">
             <span>Assigned {formatDateTime(h.assigned_at)}</span>
             {h.due_at && <span>· Due {formatDateTime(h.due_at)}</span>}
             <span>· by {tutorDisplay(h.created_by)}</span>

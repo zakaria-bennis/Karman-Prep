@@ -72,7 +72,7 @@ export default async function TutorEarningsDataPage({ searchParams }: PageProps)
       <div className="mx-auto max-w-6xl space-y-8 px-4 py-8 sm:px-6">
         <Link
           href="/tutor/earnings"
-          className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-900 dark:hover:text-white"
+          className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-slate-900 dark:hover:text-white"
         >
           <ChevronLeft className="h-4 w-4" /> My earnings
         </Link>

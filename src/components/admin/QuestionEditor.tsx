@@ -101,7 +101,7 @@ export default function QuestionEditor({ nodeId, subject, topicCluster, initialQ
           <h2 className="text-base font-bold text-white">
             {questions.length} question{questions.length !== 1 ? "s" : ""}
           </h2>
-          <p className="mt-0.5 text-xs text-slate-500">
+          <p className="mt-0.5 text-xs text-slate-400">
             Target: ~100 per node.{" "}
             {viewMode === "list"
               ? "Drag the handle to reorder."
@@ -117,7 +117,7 @@ export default function QuestionEditor({ nodeId, subject, topicCluster, initialQ
                 "px-3 py-1.5 font-semibold",
                 viewMode === "list"
                   ? "bg-slate-800 text-white"
-                  : "text-slate-500 hover:text-slate-300"
+                  : "text-slate-400 hover:text-slate-300"
               )}
             >
               List
@@ -128,7 +128,7 @@ export default function QuestionEditor({ nodeId, subject, topicCluster, initialQ
                 "border-l border-slate-700 px-3 py-1.5 font-semibold",
                 viewMode === "tabs"
                   ? "bg-slate-800 text-white"
-                  : "text-slate-500 hover:text-slate-300"
+                  : "text-slate-400 hover:text-slate-300"
               )}
             >
               Tabs
@@ -157,7 +157,7 @@ export default function QuestionEditor({ nodeId, subject, topicCluster, initialQ
       {/* Difficulty filter chips */}
       {questions.length > 0 && (
         <div className="mb-4 flex flex-wrap items-center gap-2 text-xs">
-          <span className="font-semibold uppercase tracking-wider text-slate-500">Filter:</span>
+          <span className="font-semibold uppercase tracking-wider text-slate-400">Filter:</span>
           <FilterChip
             label={`All ${questions.length}`}
             active={filter === "all"}
@@ -174,7 +174,7 @@ export default function QuestionEditor({ nodeId, subject, topicCluster, initialQ
             />
           ))}
           {filter !== "all" && (
-            <span className="ml-2 text-slate-500">
+            <span className="ml-2 text-slate-400">
               Showing {filteredQuestions.length} of {questions.length}
             </span>
           )}
@@ -182,7 +182,7 @@ export default function QuestionEditor({ nodeId, subject, topicCluster, initialQ
       )}
 
       {questions.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-slate-700 p-10 text-center text-sm text-slate-500">
+        <div className="rounded-xl border border-dashed border-slate-700 p-10 text-center text-sm text-slate-400">
           No questions yet. Add one above or use Bulk Import tab.
         </div>
       ) : viewMode === "tabs" ? (
@@ -224,7 +224,7 @@ export default function QuestionEditor({ nodeId, subject, topicCluster, initialQ
       ) : (
         <div className="space-y-3">
           {filteredQuestions.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-slate-700 p-8 text-center text-sm text-slate-500">
+            <div className="rounded-xl border border-dashed border-slate-700 p-8 text-center text-sm text-slate-400">
               No <strong className="text-slate-300">{filter}</strong> questions yet.
             </div>
           ) : (

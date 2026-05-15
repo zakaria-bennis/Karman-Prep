@@ -115,7 +115,7 @@ export default async function TutorEarningsPage() {
             className="group flex items-start justify-between gap-3 rounded-xl border-2 border-slate-200 bg-white p-5 transition hover:border-blue-400 dark:border-slate-800 dark:bg-slate-900/60 dark:hover:border-blue-500/40"
           >
             <div>
-              <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-500">
+              <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-400">
                 <BarChart3 className="h-4 w-4" /> View earning data
               </div>
               <div className="mt-1 text-lg font-bold text-slate-900 dark:text-white">
@@ -131,7 +131,7 @@ export default async function TutorEarningsPage() {
         </section>
 
         {/* ── Light footer guidance ──────────────────── */}
-        <p className="text-center text-xs text-slate-500 dark:text-slate-500">
+        <p className="text-center text-xs text-slate-500 dark:text-slate-400">
           Pay = $35/hour, rounded down to 15-min increments. Same rate for 1:1 and group sessions.
         </p>
       </div>
@@ -169,7 +169,7 @@ function MetricCard({
       <div className="mt-1.5 text-xl font-extrabold tabular-nums text-slate-900 dark:text-white sm:text-2xl">
         {value}
       </div>
-      {footer && <div className="mt-1 text-xs text-slate-500 dark:text-slate-500">{footer}</div>}
+      {footer && <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">{footer}</div>}
     </div>
   );
 }

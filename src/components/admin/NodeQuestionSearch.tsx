@@ -167,7 +167,7 @@ export default function NodeQuestionSearch() {
   return (
     <div ref={containerRef} className="relative w-full max-w-md">
       <div className="flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 transition-colors focus-within:border-indigo-500/60 focus-within:bg-slate-900/90">
-        <Search className="h-3.5 w-3.5 shrink-0 text-slate-500" />
+        <Search className="h-3.5 w-3.5 shrink-0 text-slate-400" />
         <input
           ref={inputRef}
           type="search"
@@ -176,7 +176,7 @@ export default function NodeQuestionSearch() {
           onFocus={() => setOpen(query.trim().length >= 2)}
           onKeyDown={onKeyDown}
           placeholder="Search nodes, questions, slugs…"
-          className="flex-1 bg-transparent text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none"
+          className="flex-1 bg-transparent text-sm text-slate-100 placeholder:text-slate-400 focus:outline-none"
           aria-label="Search nodes and questions"
         />
         {query && (
@@ -185,7 +185,7 @@ export default function NodeQuestionSearch() {
               setQuery("");
               inputRef.current?.focus();
             }}
-            className="text-slate-500 hover:text-slate-300"
+            className="text-slate-400 hover:text-slate-300"
             aria-label="Clear search"
           >
             <X className="h-3.5 w-3.5" />
@@ -196,13 +196,13 @@ export default function NodeQuestionSearch() {
       {open && (
         <div className="absolute right-0 z-30 mt-1.5 w-[28rem] max-w-[90vw] overflow-hidden rounded-lg border border-slate-700 bg-slate-950/95 shadow-xl shadow-black/50 backdrop-blur-sm">
           {results.length === 0 ? (
-            <div className="px-3 py-3 text-xs text-slate-500">
+            <div className="px-3 py-3 text-xs text-slate-400">
               {loading ? "Searching…" : `No results for "${query.trim()}".`}
             </div>
           ) : (
             <ul className="max-h-[28rem] divide-y divide-slate-800/60 overflow-y-auto">
               {nodeResults.length > 0 && (
-                <li className="bg-slate-900/50 px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-slate-500">
+                <li className="bg-slate-900/50 px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-slate-400">
                   Nodes ({nodeResults.length})
                 </li>
               )}
@@ -219,7 +219,7 @@ export default function NodeQuestionSearch() {
                 />
               ))}
               {questionResults.length > 0 && (
-                <li className="bg-slate-900/50 px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-slate-500">
+                <li className="bg-slate-900/50 px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-slate-400">
                   Questions ({questionResults.length})
                 </li>
               )}
@@ -256,10 +256,10 @@ export default function NodeQuestionSearch() {
               })}
             </ul>
           )}
-          <div className="flex items-center gap-3 border-t border-slate-800/60 px-3 py-1.5 text-[10px] text-slate-600">
-            <kbd className="text-slate-500">↑↓</kbd> navigate
-            <kbd className="text-slate-500">↵</kbd> open
-            <kbd className="text-slate-500">esc</kbd> close
+          <div className="flex items-center gap-3 border-t border-slate-800/60 px-3 py-1.5 text-[10px] text-slate-400">
+            <kbd className="text-slate-400">↑↓</kbd> navigate
+            <kbd className="text-slate-400">↵</kbd> open
+            <kbd className="text-slate-400">esc</kbd> close
             {loading && <span className="ml-auto text-indigo-400">searching…</span>}
           </div>
         </div>
@@ -298,9 +298,9 @@ function ResultRow({
       <span className="min-w-0 flex-1">
         <div className="truncate text-slate-100">{primary}</div>
         {secondary && (
-          <div className="truncate font-mono text-[11px] text-slate-500">{secondary}</div>
+          <div className="truncate font-mono text-[11px] text-slate-400">{secondary}</div>
         )}
-        {tertiary && <div className="truncate text-[11px] text-slate-500">{tertiary}</div>}
+        {tertiary && <div className="truncate text-[11px] text-slate-400">{tertiary}</div>}
       </span>
     </li>
   );

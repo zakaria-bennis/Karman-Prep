@@ -130,7 +130,7 @@ export default function StudentTable({ rows, cohorts = [] }: Props) {
     return (
       <div className="rounded-lg border border-dashed border-slate-300 p-12 text-center dark:border-slate-700">
         <AlertCircle className="mx-auto mb-3 h-8 w-8 text-slate-400" />
-        <p className="text-sm text-slate-500">No students assigned yet.</p>
+        <p className="text-sm text-slate-400">No students assigned yet.</p>
       </div>
     );
   }
@@ -163,7 +163,7 @@ export default function StudentTable({ rows, cohorts = [] }: Props) {
             ))}
           </select>
         ) : null}
-        <span className="shrink-0 self-center text-xs text-slate-500 sm:ml-2">
+        <span className="shrink-0 self-center text-xs text-slate-400 sm:ml-2">
           {sorted.length} of {rows.length} matching
         </span>
       </div>
@@ -217,7 +217,7 @@ export default function StudentTable({ rows, cohorts = [] }: Props) {
                       {display}
                     </Link>
                     {display !== r.email && (
-                      <div className="font-mono text-[11px] text-slate-500">{r.email}</div>
+                      <div className="font-mono text-[11px] text-slate-400">{r.email}</div>
                     )}
                   </td>
                   <td className="px-4 py-3">
@@ -258,7 +258,7 @@ export default function StudentTable({ rows, cohorts = [] }: Props) {
                       ({r.math_mastered}/{r.math_total})
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-xs text-slate-500">
+                  <td className="px-4 py-3 text-xs text-slate-400">
                     {r.last_active ? new Date(r.last_active).toLocaleString() : "Never"}
                   </td>
                   <td className="px-4 py-3 text-right">

@@ -239,7 +239,7 @@ export function ChatShell({ cohortChannel, qaChannel, postingAsPreview, selfUuid
                 <p className="text-[11px] font-bold uppercase tracking-widest text-blue-400">
                   Cohort-mates
                 </p>
-                <p className="mt-0.5 text-[11px] text-slate-500">DMs are limited to your cohort.</p>
+                <p className="mt-0.5 text-[11px] text-slate-400">DMs are limited to your cohort.</p>
               </div>
 
               {peers.length === 0 ? (
@@ -249,7 +249,7 @@ export function ChatShell({ cohortChannel, qaChannel, postingAsPreview, selfUuid
               ) : (
                 <div className="py-1">
                   {newPeers.length > 0 && (
-                    <div className="px-3 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+                    <div className="px-3 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
                       Start new
                     </div>
                   )}
@@ -257,7 +257,7 @@ export function ChatShell({ cohortChannel, qaChannel, postingAsPreview, selfUuid
                     <PeerRow key={p.clerkId} peer={p} onPick={openDm} />
                   ))}
                   {existingPeers.length > 0 && (
-                    <div className="px-3 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+                    <div className="px-3 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
                       Already chatting
                     </div>
                   )}
@@ -304,7 +304,7 @@ export function ChatShell({ cohortChannel, qaChannel, postingAsPreview, selfUuid
             </div>
 
             {threads.length === 0 ? (
-              <p className="px-3 py-4 text-[11px] text-slate-500">
+              <p className="px-3 py-4 text-[11px] text-slate-400">
                 No DMs yet. Start one with the “New DM” button.
               </p>
             ) : (
@@ -439,10 +439,10 @@ function SidebarItem({
           : "text-slate-300 hover:bg-white/[0.05] hover:text-white",
       ].join(" ")}
     >
-      <span className={active ? "text-blue-300" : "text-slate-500"}>{icon}</span>
+      <span className={active ? "text-blue-300" : "text-slate-400"}>{icon}</span>
       <span className="min-w-0 flex-1">
         <span className="block truncate text-xs font-semibold">{label}</span>
-        {hint && <span className="block truncate text-[10px] text-slate-500">{hint}</span>}
+        {hint && <span className="block truncate text-[10px] text-slate-400">{hint}</span>}
       </span>
     </button>
   );
@@ -490,7 +490,7 @@ function SidebarThread({
           >
             {thread.displayName}
           </span>
-          <span className="shrink-0 text-[10px] text-slate-500">
+          <span className="shrink-0 text-[10px] text-slate-400">
             {relativeTimeShort(thread.lastMessageAt)}
           </span>
         </div>
@@ -498,7 +498,7 @@ function SidebarThread({
           <span
             className={[
               "truncate text-[11px]",
-              hasUnread ? "text-slate-200" : "text-slate-500",
+              hasUnread ? "text-slate-200" : "text-slate-400",
             ].join(" ")}
           >
             {thread.lastMessagePreview ?? "—"}
@@ -534,7 +534,7 @@ function PeerRow({
       </div>
       <div className="min-w-0 flex-1">
         <p className="truncate text-xs font-semibold text-slate-100">{peer.displayName}</p>
-        <p className="truncate text-[10px] text-slate-500">{peer.realName}</p>
+        <p className="truncate text-[10px] text-slate-400">{peer.realName}</p>
       </div>
       {hasThread && (
         <Check className="h-3.5 w-3.5 shrink-0 text-emerald-400/70" aria-label="Already chatting" />

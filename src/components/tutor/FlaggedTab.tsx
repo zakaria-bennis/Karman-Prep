@@ -35,7 +35,7 @@ export default function FlaggedTab({ studentId, flagged }: Props) {
     return (
       <div className="rounded-lg border border-dashed border-slate-300 p-10 text-center dark:border-slate-700">
         <Check className="mx-auto mb-2 h-7 w-7 text-emerald-500" />
-        <p className="text-sm text-slate-500">This student has no flagged questions.</p>
+        <p className="text-sm text-slate-400">This student has no flagged questions.</p>
       </div>
     );
   }
@@ -54,7 +54,7 @@ export default function FlaggedTab({ studentId, flagged }: Props) {
           >
             <header className="mb-2 flex items-start gap-2">
               <Flag className="mt-0.5 h-3.5 w-3.5 shrink-0 text-rose-500" />
-              <div className="flex-1 text-xs text-slate-500">
+              <div className="flex-1 text-xs text-slate-400">
                 <div className="flex flex-wrap items-center gap-2">
                   <code>{flag.node_id}</code>
                   <span>•</span>
@@ -69,7 +69,7 @@ export default function FlaggedTab({ studentId, flagged }: Props) {
               <div className="flex shrink-0 gap-1">
                 <button
                   onClick={() => setEditingId(isEditing ? null : flag.id)}
-                  className="rounded p-1.5 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-800"
+                  className="rounded p-1.5 text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800"
                   title="Edit question"
                 >
                   <Edit3 className="h-3.5 w-3.5" />
@@ -127,7 +127,7 @@ function InlineEdit({
   const [exp, setExp] = useState(question.explanation_text);
   return (
     <div className="mt-3 space-y-2 rounded border border-blue-200 bg-blue-50/40 p-3 dark:border-blue-900 dark:bg-blue-900/10">
-      <label className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+      <label className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
         Question text
       </label>
       <textarea
@@ -136,7 +136,7 @@ function InlineEdit({
         rows={3}
         className="w-full rounded border border-slate-300 px-2 py-1.5 text-sm dark:border-slate-700 dark:bg-slate-800"
       />
-      <label className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+      <label className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
         Explanation
       </label>
       <textarea
@@ -146,7 +146,7 @@ function InlineEdit({
         className="w-full rounded border border-slate-300 px-2 py-1.5 text-sm dark:border-slate-700 dark:bg-slate-800"
       />
       <div className="flex justify-end gap-2">
-        <button onClick={onDone} className="px-3 py-1 text-xs font-semibold text-slate-500">
+        <button onClick={onDone} className="px-3 py-1 text-xs font-semibold text-slate-400">
           Cancel
         </button>
         <button

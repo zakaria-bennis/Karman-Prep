@@ -62,7 +62,7 @@ export default function ImpersonationMenu() {
               {r}
             </button>
           ))}
-          <div className="border-t border-slate-800 px-3 py-2 text-[10px] text-slate-500">
+          <div className="border-t border-slate-800 px-3 py-2 text-[10px] text-slate-400">
             Real role stays admin.
           </div>
         </div>

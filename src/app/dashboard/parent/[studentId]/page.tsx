@@ -189,7 +189,7 @@ export default async function ParentStudentDetailPage({ params }: PageProps) {
                 </div>
                 {cohort.current_topic && (
                   <div className="border-t border-slate-800 pt-2 text-sm text-slate-300">
-                    <span className="mb-1 block text-xs font-semibold uppercase tracking-wider text-slate-500">
+                    <span className="mb-1 block text-xs font-semibold uppercase tracking-wider text-slate-400">
                       Current topic
                     </span>
                     {cohort.current_topic}
@@ -197,7 +197,7 @@ export default async function ParentStudentDetailPage({ params }: PageProps) {
                 )}
               </div>
             ) : (
-              <p className="text-sm italic text-slate-500">Not in a cohort (private 1:1 tier).</p>
+              <p className="text-sm italic text-slate-400">Not in a cohort (private 1:1 tier).</p>
             )}
           </Card>
 
@@ -208,7 +208,7 @@ export default async function ParentStudentDetailPage({ params }: PageProps) {
                 <div className="font-mono text-2xl font-extrabold text-white">
                   {diagnostic.score_range_low}–{diagnostic.score_range_high}
                 </div>
-                <div className="text-xs text-slate-500">
+                <div className="text-xs text-slate-400">
                   Taken {formatDate(diagnostic.taken_at.slice(0, 10))}
                 </div>
                 {diagnostic.domain_scores && (
@@ -220,7 +220,7 @@ export default async function ParentStudentDetailPage({ params }: PageProps) {
                 )}
               </div>
             ) : (
-              <p className="text-sm italic text-slate-500">No diagnostic taken yet.</p>
+              <p className="text-sm italic text-slate-400">No diagnostic taken yet.</p>
             )}
           </Card>
         </div>
@@ -233,7 +233,7 @@ export default async function ParentStudentDetailPage({ params }: PageProps) {
               Recent assignments
             </h2>
             {homework.length === 0 ? (
-              <p className="rounded-xl border border-dashed border-slate-800 px-6 py-8 text-center text-sm text-slate-500">
+              <p className="rounded-xl border border-dashed border-slate-800 px-6 py-8 text-center text-sm text-slate-400">
                 No assignments posted yet.
               </p>
             ) : (
@@ -260,7 +260,7 @@ export default async function ParentStudentDetailPage({ params }: PageProps) {
           </section>
         )}
 
-        <p className="mt-10 max-w-md text-xs text-slate-600">
+        <p className="mt-10 max-w-md text-xs text-slate-400">
           You&apos;re viewing a read-only summary. Detailed progress (per-concept mastery, chat
           transcripts) is deliberately not shared — your student can still have a private workspace.
         </p>
@@ -282,7 +282,7 @@ function Card({
 }) {
   return (
     <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-5">
-      <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
+      <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-400">
         <Icon className="h-3.5 w-3.5" />
         {title}
       </div>
@@ -298,7 +298,7 @@ function DomainBar({ domain, percentage }: { domain: string; percentage: number 
     <div>
       <div className="mb-0.5 flex justify-between text-xs text-slate-400">
         <span className="capitalize">{label}</span>
-        <span className="font-mono text-slate-500">{pct}%</span>
+        <span className="font-mono text-slate-400">{pct}%</span>
       </div>
       <div className="h-1 overflow-hidden rounded-full bg-slate-800">
         <div

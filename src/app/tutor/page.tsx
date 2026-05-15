@@ -130,7 +130,7 @@ export default async function TutorPage() {
                       <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">
                         {c.current_topic ?? "No current topic set"}
                       </div>
-                      <div className="mt-3 flex items-center justify-between text-xs text-slate-500">
+                      <div className="mt-3 flex items-center justify-between text-xs text-slate-400">
                         <span>
                           <span className="font-mono text-slate-700 dark:text-slate-200">
                             {c.member_count}
@@ -206,7 +206,7 @@ function CalSetupBanner({
       </div>
       <Link
         href="/tutor/settings/booking"
-        className="inline-flex items-center gap-1.5 rounded-md bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-700"
+        className="inline-flex items-center gap-1.5 rounded-md bg-amber-600 px-3 py-1.5 text-xs font-semibold text-slate-900 hover:bg-amber-500"
       >
         <CalendarPlus className="h-3.5 w-3.5" />
         {!connected ? "Connect Cal" : "Pick event-type"}

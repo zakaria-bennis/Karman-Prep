@@ -88,9 +88,9 @@ export function QuestionCard({
           className="-m-2 flex flex-1 items-start gap-2 rounded-lg p-2 text-left transition-colors hover:bg-white/[0.02]"
         >
           {expanded ? (
-            <ChevronDown className="mt-0.5 h-4 w-4 shrink-0 text-slate-500" />
+            <ChevronDown className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
           ) : (
-            <ChevronRight className="mt-0.5 h-4 w-4 shrink-0 text-slate-500" />
+            <ChevronRight className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
           )}
           {isFlagged ? (
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
@@ -118,13 +118,13 @@ export function QuestionCard({
                 <span className="font-mono text-slate-200">{question.source_pdf}</span>
                 {question.source_page != null && (
                   <>
-                    <span className="text-slate-600">›</span>
+                    <span className="text-slate-400">›</span>
                     <span className="font-semibold text-amber-200">
                       page {question.source_page}
                     </span>
                   </>
                 )}
-                <span className="text-slate-600">·</span>
+                <span className="text-slate-400">·</span>
                 <span className="text-slate-400">
                   {question.subject === "math" ? "Math" : "R&W"}
                 </span>
@@ -135,7 +135,7 @@ export function QuestionCard({
               {question.question_text}
             </div>
             {/* Compact meta row */}
-            <div className="mt-1 flex flex-wrap items-center gap-3 text-[11px] text-slate-500">
+            <div className="mt-1 flex flex-wrap items-center gap-3 text-[11px] text-slate-400">
               {/* Source repeats here only when NOT flagged — the
                 flagged badge above already covers it prominently. */}
               {!isFlagged && question.source_pdf && (
@@ -176,13 +176,13 @@ export function QuestionCard({
             <div className="mb-3 grid grid-cols-1 gap-3 md:grid-cols-2">
               {question.passage_a && (
                 <div className="whitespace-pre-wrap rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-2.5 font-serif text-sm text-slate-300">
-                  <div className="mb-1 text-xs uppercase tracking-wide text-slate-500">Text 1</div>
+                  <div className="mb-1 text-xs uppercase tracking-wide text-slate-400">Text 1</div>
                   {question.passage_a}
                 </div>
               )}
               {question.passage_b && (
                 <div className="whitespace-pre-wrap rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-2.5 font-serif text-sm text-slate-300">
-                  <div className="mb-1 text-xs uppercase tracking-wide text-slate-500">Text 2</div>
+                  <div className="mb-1 text-xs uppercase tracking-wide text-slate-400">Text 2</div>
                   {question.passage_b}
                 </div>
               )}
@@ -226,7 +226,7 @@ export function QuestionCard({
                         c.is_correct ? "text-emerald-100" : "text-slate-300"
                       )}
                     >
-                      <span className="shrink-0 font-mono text-xs text-slate-500">{c.letter}.</span>
+                      <span className="shrink-0 font-mono text-xs text-slate-400">{c.letter}.</span>
                       <MathText text={c.choice_text} className="flex-1" />
                       {c.is_correct && (
                         <Check className="inline h-3.5 w-3.5 shrink-0 text-emerald-400" />
@@ -248,7 +248,7 @@ export function QuestionCard({
               </span>
               <MathText text={question.correct_answer} />
               {question.numeric_tolerance != null && (
-                <span className="text-xs text-slate-500">±{question.numeric_tolerance}</span>
+                <span className="text-xs text-slate-400">±{question.numeric_tolerance}</span>
               )}
             </div>
           )}
@@ -256,7 +256,7 @@ export function QuestionCard({
           {/* Right-answer walkthrough */}
           {question.explanation_text && (
             <div className="mb-3 rounded-lg border border-slate-800 bg-slate-950/40 px-3 py-2.5">
-              <div className="mb-1 text-xs uppercase tracking-wide text-slate-500">
+              <div className="mb-1 text-xs uppercase tracking-wide text-slate-400">
                 Right-answer walkthrough
               </div>
               <MathText

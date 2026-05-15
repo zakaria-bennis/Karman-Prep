@@ -169,7 +169,7 @@ export default function SkillsOverviewTab({ statuses }: Props) {
           onChange={setFCluster}
           options={[["all", "All"], ...clusters.map((c) => [c, c] as [string, string])]}
         />
-        <span className="ml-auto self-end text-xs text-slate-500">{sorted.length} rows</span>
+        <span className="ml-auto self-end text-xs text-slate-400">{sorted.length} rows</span>
       </div>
 
       <div className="overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-800">
@@ -212,17 +212,17 @@ export default function SkillsOverviewTab({ statuses }: Props) {
                   className={cn("border-t border-slate-200 dark:border-slate-800", bandBg)}
                 >
                   <td className="px-3 py-2 text-slate-900 dark:text-white">{r.topic}</td>
-                  <td className="px-3 py-2 capitalize text-slate-500">{r.subject}</td>
-                  <td className="px-3 py-2 text-slate-500">{TIER_LABELS[r.tier]}</td>
-                  <td className="max-w-[16rem] truncate px-3 py-2 text-slate-500">
+                  <td className="px-3 py-2 capitalize text-slate-400">{r.subject}</td>
+                  <td className="px-3 py-2 text-slate-400">{TIER_LABELS[r.tier]}</td>
+                  <td className="max-w-[16rem] truncate px-3 py-2 text-slate-400">
                     {r.topic_cluster}
                   </td>
                   <td className="px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300">
                     {r.status.replace(/_/g, " ")}
                   </td>
                   <td className="px-3 py-2 text-right tabular-nums">{r.best_quiz_score ?? "—"}</td>
-                  <td className="px-3 py-2 text-right tabular-nums text-slate-500">{r.attempts}</td>
-                  <td className="px-3 py-2 text-right tabular-nums text-slate-500">
+                  <td className="px-3 py-2 text-right tabular-nums text-slate-400">{r.attempts}</td>
+                  <td className="px-3 py-2 text-right tabular-nums text-slate-400">
                     {r.watch_percentage ?? 0}%
                   </td>
                   <td className="px-3 py-2">
@@ -287,7 +287,7 @@ function Select({
   options: [string, string][];
 }) {
   return (
-    <label className="flex items-center gap-1.5 text-xs text-slate-500">
+    <label className="flex items-center gap-1.5 text-xs text-slate-400">
       <span className="font-semibold uppercase tracking-wide">{label}:</span>
       <select
         value={value}
