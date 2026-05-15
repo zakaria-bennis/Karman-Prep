@@ -955,6 +955,51 @@ export type Database = {
           },
         ];
       };
+      failed_emails: {
+        Row: {
+          attempts: number;
+          booking_id: string | null;
+          created_at: string;
+          dedupe_key: string;
+          given_up_at: string | null;
+          id: string;
+          kind: string;
+          last_attempt_at: string;
+          last_error: string | null;
+          next_attempt_at: string;
+          payload: Json;
+          succeeded_at: string | null;
+        };
+        Insert: {
+          attempts?: number;
+          booking_id?: string | null;
+          created_at?: string;
+          dedupe_key: string;
+          given_up_at?: string | null;
+          id?: string;
+          kind: string;
+          last_attempt_at?: string;
+          last_error?: string | null;
+          next_attempt_at?: string;
+          payload: Json;
+          succeeded_at?: string | null;
+        };
+        Update: {
+          attempts?: number;
+          booking_id?: string | null;
+          created_at?: string;
+          dedupe_key?: string;
+          given_up_at?: string | null;
+          id?: string;
+          kind?: string;
+          last_attempt_at?: string;
+          last_error?: string | null;
+          next_attempt_at?: string;
+          payload?: Json;
+          succeeded_at?: string | null;
+        };
+        Relationships: [];
+      };
       flagged_questions: {
         Row: {
           created_at: string | null;

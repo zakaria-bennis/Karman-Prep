@@ -191,6 +191,11 @@ export function UpcomingSession({ booking, tutorName, rescheduleProps }: Upcomin
             Join
           </a>
         ) : null}
+        {booking.zoom_join_url ? (
+          <span className="basis-full text-[11px] text-slate-500 dark:text-slate-400">
+            You can join from this link directly &mdash; the same details also arrive by email.
+          </span>
+        ) : null}
 
         {canSelfReschedule ? (
           <button
