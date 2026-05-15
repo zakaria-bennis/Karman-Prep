@@ -40,3 +40,20 @@ in `.env.local` to any real Clerk id from the `users` table, then restart
 The bypass is hard-gated on `NODE_ENV !== "production"`; it cannot fire on
 the deployed Cloudflare Worker. Unset / clear the var to go back to real
 Clerk auth. See `src/lib/auth/dev-auth.ts`.
+
+### Dev fixtures: `npm run seed:dev`
+
+Pairs with the auth bypass. Upserts a known set of users (admin, fresh /
+mid / stuck student, tutor, parent linked to mid) into Supabase. Idempotent
+— re-running merges on `clerk_id`, never wipes anything outside the
+`dev_seed_*` prefix.
+
+```
+npm run seed:dev                                 # one-time setup
+echo 'DEV_IMPERSONATE_CLERK_ID=dev_seed_student_mid' >> .env.local
+npm run dev:next                                 # view mid-student dashboard
+```
+
+To clean up: `delete from users where clerk_id like 'dev_seed_%';` (cascades).
+See `scripts/seed-dev.mjs` for the full fixture list + what state each
+persona exercises.
