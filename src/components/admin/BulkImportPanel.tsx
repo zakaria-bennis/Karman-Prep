@@ -17,6 +17,11 @@ import { Upload, Download, Check, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Subject } from "@/data/curriculum";
 import { actionBulkImport, type BulkImportRow, type BulkImportResult } from "@/app/admin/actions";
+import {
+  CSV_HEADERS as SHARED_CSV_HEADERS,
+  parseCsv as sharedParseCsv,
+  toBulkRows as sharedToBulkRows,
+} from "@/lib/question-bank/csv-parser";
 
 interface Props {
   nodeId: string;
@@ -33,40 +38,11 @@ interface Props {
 // cell with the resulting public R2 URL before insert. That keeps
 // the "single CSV in, single CSV upload" workflow intact for the
 // Custom-GPT pipeline that inlines figures into the file.
-export const CSV_HEADERS = [
-  "question_text",
-  "choice_a",
-  "choice_b",
-  "choice_c",
-  "choice_d",
-  "correct_answer",
-  "difficulty",
-  "topic_cluster",
-  "hint",
-  "explanation_text",
-  "explanation_a",
-  "explanation_b",
-  "explanation_c",
-  "explanation_d",
-  "desmos_strategy",
-  "passage_intro",
-  "passage",
-  "passage_a",
-  "passage_b",
-  "question_format",
-  "numeric_tolerance",
-  "domain",
-  "concept_slug",
-  "answer_source",
-  "source_pdf",
-  "source_page",
-  "content_hash",
-  "import_status",
-  "import_flag_type",
-  "import_flag_reason",
-  "image_url",
-  "image_alt",
-] as const;
+// Re-exported from src/lib/question-bank/csv-parser.ts so existing
+// callers (admin actions, template generator) continue to import
+// from here without churn while the single source of truth lives
+// in the shared module (audit #9).
+export const CSV_HEADERS = SHARED_CSV_HEADERS;
 
 function buildCsvTemplate(topicCluster: string): string {
   // Sample row: a foundational MC algebra question with full
@@ -111,100 +87,10 @@ function buildCsvTemplate(topicCluster: string): string {
   ].join("\n");
 }
 
-// Minimal CSV parser — handles quoted fields with commas, doubled
-// quotes inside quoted fields ("" → "), CRLF line endings, blank
-// lines, and trailing whitespace per cell.
-export function parseCsv(text: string): Record<string, string>[] {
-  const rows: string[][] = [];
-  let row: string[] = [];
-  let field = "";
-  let inQuotes = false;
-  for (let i = 0; i < text.length; i++) {
-    const c = text[i];
-    if (inQuotes) {
-      if (c === '"' && text[i + 1] === '"') {
-        field += '"';
-        i++;
-      } else if (c === '"') inQuotes = false;
-      else field += c;
-    } else {
-      if (c === '"') inQuotes = true;
-      else if (c === ",") {
-        row.push(field);
-        field = "";
-      } else if (c === "\n" || c === "\r") {
-        if (c === "\r" && text[i + 1] === "\n") i++;
-        row.push(field);
-        field = "";
-        if (row.some((v) => v.trim() !== "")) rows.push(row);
-        row = [];
-      } else field += c;
-    }
-  }
-  if (field !== "" || row.length) {
-    row.push(field);
-    if (row.some((v) => v.trim() !== "")) rows.push(row);
-  }
-  if (rows.length === 0) return [];
-  const headers = rows[0].map((h) => h.trim());
-  return rows.slice(1).map((r) => {
-    const obj: Record<string, string> = {};
-    headers.forEach((h, i) => {
-      obj[h] = (r[i] ?? "").trim();
-    });
-    return obj;
-  });
-}
-
-export function toBulkRows(parsed: Record<string, string>[]): BulkImportRow[] {
-  return parsed.map((r) => ({
-    question_text: r.question_text ?? "",
-    choice_a: r.choice_a || undefined,
-    choice_b: r.choice_b || undefined,
-    choice_c: r.choice_c || undefined,
-    choice_d: r.choice_d || undefined,
-    correct_answer: (r.correct_answer ?? "").toUpperCase().trim() || (r.correct_answer ?? ""),
-    difficulty: r.difficulty || "4",
-    topic_cluster: r.topic_cluster || undefined,
-    hint: r.hint || undefined,
-    explanation_text: r.explanation_text ?? "",
-    explanation_a: r.explanation_a || undefined,
-    explanation_b: r.explanation_b || undefined,
-    explanation_c: r.explanation_c || undefined,
-    explanation_d: r.explanation_d || undefined,
-    desmos_strategy: r.desmos_strategy || undefined,
-    passage_intro: r.passage_intro || undefined,
-    passage: r.passage || undefined,
-    passage_a: r.passage_a || undefined,
-    passage_b: r.passage_b || undefined,
-    question_format: r.question_format === "numeric_entry" ? "numeric_entry" : "multiple_choice",
-    numeric_tolerance: r.numeric_tolerance || undefined,
-    domain: r.domain || undefined,
-    concept_slug: r.concept_slug || undefined,
-    answer_source:
-      r.answer_source === "inferred" || r.answer_source === "hand_corrected"
-        ? r.answer_source
-        : r.answer_source === "extracted"
-          ? "extracted"
-          : undefined,
-    source_pdf: r.source_pdf || undefined,
-    source_page: r.source_page || undefined,
-    content_hash: r.content_hash || undefined,
-    import_status:
-      r.import_status === "needs_review"
-        ? "needs_review"
-        : r.import_status === "ok"
-          ? "ok"
-          : undefined,
-    import_flag_type:
-      r.import_flag_type === "skip" || r.import_flag_type === "partial_emit"
-        ? r.import_flag_type
-        : undefined,
-    import_flag_reason: r.import_flag_reason || undefined,
-    image_url: r.image_url || undefined,
-    image_alt: r.image_alt || undefined,
-  }));
-}
+// Re-exported from the shared module so consumers that imported
+// `parseCsv` / `toBulkRows` from this file keep working unchanged.
+export const parseCsv = sharedParseCsv;
+export const toBulkRows = sharedToBulkRows;
 
 export default function BulkImportPanel({ nodeId, subject, topicCluster }: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null);
