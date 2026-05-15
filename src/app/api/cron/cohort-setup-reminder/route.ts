@@ -18,9 +18,10 @@
 // `last_setup_reminder_at` column on cohorts later.
 // ============================================================
 
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { listCohortsNeedingSetup } from "@/lib/supabase/queries/cohorts";
 import { resend, FROM } from "@/lib/integrations/resend/client";
+import { withCronInstrumentation } from "@/lib/observability/cron";
 
 export const runtime = "nodejs";
 
@@ -34,7 +35,7 @@ function daysSince(iso: string): number {
   return Math.max(0, Math.floor(elapsedMs / (24 * 60 * 60 * 1000)));
 }
 
-export async function POST(req: NextRequest) {
+export const POST = withCronInstrumentation("cohort-setup-reminder", async (req: Request) => {
   const expected = `Bearer ${process.env.CRON_SECRET ?? ""}`;
   if (!process.env.CRON_SECRET || req.headers.get("authorization") !== expected) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -107,7 +108,7 @@ export async function POST(req: NextRequest) {
   }
 
   return NextResponse.json({ sent: 1, pending: pending.length });
-}
+});
 
 function escapeHtml(s: string): string {
   return s

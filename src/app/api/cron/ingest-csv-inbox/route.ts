@@ -21,7 +21,7 @@
 //   · Manual curl from a developer for testing.
 // ============================================================
 
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
@@ -36,6 +36,7 @@ export const dynamic = "force-dynamic";
 // BulkImportPanel can't drift (audit #9). Both import the same
 // pure functions; React stays out of this server-only route.
 import { parseCsv, toBulkRows } from "@/lib/question-bank/csv-parser";
+import { withCronInstrumentation } from "@/lib/observability/cron";
 
 /** Download a UTF-8 text object from R2. Prefers the native env.R2
  *  binding (works inside Cloudflare Workers) and falls back to the
@@ -90,7 +91,7 @@ interface PerJobResult {
   errors: Array<{ row: number; message: string }>;
 }
 
-export async function POST(req: NextRequest) {
+export const POST = withCronInstrumentation("ingest-csv-inbox", async (req: Request) => {
   // ── Auth ────────────────────────────────────────────────
   const authHeader = req.headers.get("authorization");
   const expected = `Bearer ${process.env.CRON_SECRET ?? ""}`;
@@ -209,4 +210,4 @@ export async function POST(req: NextRequest) {
     processed: results.length,
     jobs: results,
   });
-}
+});
