@@ -6,6 +6,7 @@ import type { Metadata } from "next";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/server";
+import { resolveEffectiveClerkId } from "@/lib/supabase/queries/admin";
 import PredictedSATChart from "@/components/dashboard/PredictedSATChart";
 
 export const metadata: Metadata = { title: "Predicted SAT — Karman" };
@@ -100,8 +101,9 @@ function buildWeeklySeries(
 }
 
 export default async function PredictedSATPage() {
-  const { userId } = await auth();
-  if (!userId) redirect("/auth/sign-in");
+  const { userId: realUserId } = await auth();
+  if (!realUserId) redirect("/auth/sign-in");
+  const { clerkId: userId } = await resolveEffectiveClerkId(realUserId);
 
   const supabase = createAdminClient();
 

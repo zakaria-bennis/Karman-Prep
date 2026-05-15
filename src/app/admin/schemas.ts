@@ -268,6 +268,10 @@ export const setImpersonationInputSchema = z.object({
   role: impersonateRoleSchema,
 });
 
+export const impersonateUserInputSchema = z.object({
+  userId: nonEmptyString,
+});
+
 // ── curriculum/search-actions.ts ──────────────────────────
 export const searchBankQuestionsInputSchema = z.object({
   // 1-char hits are noisy and the action filters them anyway, but

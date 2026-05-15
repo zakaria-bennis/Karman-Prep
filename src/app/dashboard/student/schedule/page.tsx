@@ -17,6 +17,7 @@ import {
   type UpcomingSessionBooking,
 } from "@/components/dashboard/UpcomingSession";
 import { createAdminClient } from "@/lib/supabase/server";
+import { resolveEffectiveClerkId } from "@/lib/supabase/queries/admin";
 import {
   getUpcomingBookingForStudent,
   type BookingPlanTier,
@@ -79,8 +80,9 @@ async function alertAdminAboutMissingTutorSetup(args: {
 }
 
 export default async function StudentSchedulePage() {
-  const { userId } = await auth();
-  if (!userId) redirect("/auth/sign-in");
+  const { userId: realUserId } = await auth();
+  if (!realUserId) redirect("/auth/sign-in");
+  const { clerkId: userId, isImpersonating } = await resolveEffectiveClerkId(realUserId);
 
   const supabase = createAdminClient();
 
@@ -90,12 +92,15 @@ export default async function StudentSchedulePage() {
     .eq("user_id", userId)
     .single();
   const isActive = sub?.status === "active" || sub?.status === "trialing";
-  if (!isActive) redirect("/billing?required=1");
+  if (!isActive && !isImpersonating) redirect("/billing?required=1");
+  // When impersonating an unsubscribed user there's nothing to schedule;
+  // send the admin back to user list rather than render a broken page.
+  if (isImpersonating && !sub) redirect("/admin/users");
 
   const { data: user } = await supabase.from("users").select("id").eq("clerk_id", userId).single();
   if (!user?.id) redirect("/onboarding");
 
-  const planTier = sub.tier as BookingPlanTier;
+  const planTier = sub!.tier as BookingPlanTier;
   const canSelfBook = planTier === "private" || planTier === "elite";
 
   // Student's own name for the admin-alert email (no PII beyond Karman-internal).

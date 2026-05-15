@@ -10,7 +10,8 @@ import { strataClerkAppearance } from "@/lib/clerkAppearance";
 import { ThemeProvider } from "@/components/shared/ThemeProvider";
 import { ConfirmProvider } from "@/components/shared/ConfirmDialog";
 import ImpersonationBanner from "@/components/admin/ImpersonationBanner";
-import { IMPERSONATE_COOKIE } from "@/lib/supabase/queries/admin";
+import { IMPERSONATE_COOKIE, IMPERSONATE_USER_COOKIE } from "@/lib/supabase/queries/admin";
+import { createAdminClient } from "@/lib/supabase/server";
 import "./globals.css";
 
 const geistSans = localFont({
@@ -60,11 +61,24 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  // Check for the admin "View as" cookie — if set, we float a banner
-  // site-wide so the admin can always exit impersonation, even from
-  // inside a portal they don't normally control.
+  // Check for the admin "View as" cookies — if either is set, float
+  // a banner site-wide so the admin can always exit impersonation,
+  // even from inside a portal they don't normally control.
   const cookieStore = await cookies();
   const impersonatedRole = cookieStore.get(IMPERSONATE_COOKIE)?.value ?? null;
+  const impersonatedUserId = cookieStore.get(IMPERSONATE_USER_COOKIE)?.value ?? null;
+  let impersonatedUserName: string | null = null;
+  if (impersonatedUserId) {
+    const { data } = await createAdminClient()
+      .from("users")
+      .select("first_name, last_name, email")
+      .eq("id", impersonatedUserId)
+      .maybeSingle();
+    if (data) {
+      const full = [data.first_name, data.last_name].filter(Boolean).join(" ").trim();
+      impersonatedUserName = full || (data.email as string | null) || null;
+    }
+  }
 
   return (
     <ClerkProvider
@@ -91,7 +105,9 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
           <ThemeProvider>
             <ConfirmProvider>
-              {impersonatedRole && <ImpersonationBanner role={impersonatedRole} />}
+              {impersonatedRole && (
+                <ImpersonationBanner role={impersonatedRole} userName={impersonatedUserName} />
+              )}
               {children}
             </ConfirmProvider>
           </ThemeProvider>

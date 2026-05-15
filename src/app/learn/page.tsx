@@ -7,6 +7,7 @@ import type { Metadata } from "next";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/server";
+import { resolveEffectiveClerkId } from "@/lib/supabase/queries/admin";
 import { RW_NODES, MATH_NODES } from "@/data/curriculum";
 import PortalCards from "@/components/learn/PortalCards";
 
@@ -40,8 +41,9 @@ async function getCompletionStats(userId: string) {
 }
 
 export default async function LearnPage() {
-  const { userId } = await auth();
-  if (!userId) redirect("/auth/sign-in");
+  const { userId: realUserId } = await auth();
+  if (!realUserId) redirect("/auth/sign-in");
+  const { clerkId: userId } = await resolveEffectiveClerkId(realUserId);
 
   const stats = await getCompletionStats(userId);
 

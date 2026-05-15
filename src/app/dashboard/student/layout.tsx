@@ -13,10 +13,12 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/server";
+import { resolveEffectiveClerkId } from "@/lib/supabase/queries/admin";
 
 export default async function StudentDashboardLayout({ children }: { children: React.ReactNode }) {
-  const { userId } = await auth();
-  if (!userId) redirect("/auth/sign-in");
+  const { userId: realUserId } = await auth();
+  if (!realUserId) redirect("/auth/sign-in");
+  const { clerkId: userId, isImpersonating } = await resolveEffectiveClerkId(realUserId);
 
   const supabase = createAdminClient();
   const { data: user } = await supabase
@@ -24,6 +26,13 @@ export default async function StudentDashboardLayout({ children }: { children: R
     .select("onboarding_completed_at")
     .eq("clerk_id", userId)
     .maybeSingle();
+
+  // When impersonating, never bounce the admin to /onboarding — they
+  // already have their own admin account and the target's onboarding
+  // state shouldn't redirect THEM through onboarding.
+  if (isImpersonating) {
+    return <>{children}</>;
+  }
 
   // No row yet (first-time visitor before sync-user fires) — let
   // the page handle that case (it'll likely redirect to /onboarding).

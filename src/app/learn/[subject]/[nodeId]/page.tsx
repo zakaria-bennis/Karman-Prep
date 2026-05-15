@@ -6,6 +6,7 @@ import type { Metadata } from "next";
 import { auth } from "@clerk/nextjs/server";
 import { redirect, notFound } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/server";
+import { resolveEffectiveClerkId } from "@/lib/supabase/queries/admin";
 import { getNode, getNodes, type Subject, type NodeStatus } from "@/data/curriculum";
 import NodeDetail from "@/components/learn/NodeDetail";
 
@@ -30,8 +31,9 @@ export default async function NodePage({ params }: Params) {
   const node = getNode(sub, nodeId);
   if (!node) notFound();
 
-  const { userId } = await auth();
-  if (!userId) redirect("/auth/sign-in");
+  const { userId: realUserId } = await auth();
+  if (!realUserId) redirect("/auth/sign-in");
+  const { clerkId: userId } = await resolveEffectiveClerkId(realUserId);
 
   const supabase = createAdminClient();
 
