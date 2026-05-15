@@ -74,7 +74,7 @@ for (const persona of PERSONAS) {
     for (const viewport of VIEWPORTS) {
       for (const url of persona.pages) {
         const label = url.replace(/^\//, "").replace(/\//g, "_") || "root";
-        test(`${viewport.name} · ${url}`, async ({ page }) => {
+        test(`${viewport.name} · ${url}`, async ({ page }, testInfo) => {
           await page.setViewportSize({ width: viewport.width, height: viewport.height });
 
           if (persona.email) {
@@ -91,7 +91,10 @@ for (const persona of PERSONAS) {
             /* networkidle can hang on long-polling pages; fine */
           });
 
-          const dir = path.join(ROOT, persona.key, viewport.name);
+          // Path includes the project name so mobile-chrome and
+          // mobile-safari don't clobber each other when running
+          // the cross-engine matrix.
+          const dir = path.join(ROOT, testInfo.project.name, persona.key, viewport.name);
           await mkdir(dir, { recursive: true });
           // Viewport-only (not fullPage) — long admin tables and
           // scrollable dashboards otherwise produce 30k+ px tall

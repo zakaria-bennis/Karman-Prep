@@ -118,10 +118,41 @@ What it covers:
 What it does NOT do (deliberate):
 
 - Subjective taste / motion feel / first-time-user intuition — human only.
-- Cross-browser rendering — Chromium only unless you expand the matrix.
-- Real device quirks — emulation, not real iPhones / Androids.
 - Full-page visual regression diffs — would need Chromatic / Percy /
   baseline-on-disk; tracked as a follow-up.
+
+### Cross-browser + mobile emulation
+
+- `npm run test:e2e:all` — runs the e2e flows on Chromium + Firefox + WebKit
+  (Safari engine). Catches CSS-engine + Web-API differences Chromium alone hides.
+- `npm run test:visual:all` — runs the snapshot spec on Chromium + Firefox +
+  WebKit desktop + Pixel 7 + iPhone 14. Snapshots go to
+  `tests/visual/snapshots/<project>/<persona>/<viewport>/<page>.png` so the
+  five engines don't clobber each other.
+- `npm run test:visual:mobile` — just the two mobile-device projects when you
+  only want to check touch-density rendering.
+
+WebKit ≈ Safari's engine, and Playwright's mobile profiles set viewport, DPR,
+touch capability, and user-agent correctly — together they catch the
+overwhelming majority of layout, touch-event, and rendering bugs. They do
+NOT replicate:
+
+- Real iOS Safari scroll-bounce, momentum, or rubber-banding.
+- Real touch latency / GPU performance / battery state.
+- Hardware sensors (camera, accelerometer, biometrics).
+- Real network conditions on cellular.
+
+For changes that affect any of those, the fallback workflow is:
+
+1. Run `npm run dev:next` with `DEV_IMPERSONATE_CLERK_ID=dev_seed_*` set.
+2. Find your laptop's LAN IP (`ipconfig getifaddr en0` on macOS).
+3. Open `http://<that-ip>:3000/dashboard/student` on your phone's actual
+   browser. (Make sure the phone is on the same Wi-Fi.) For external access
+   to share with a teammate, `npx cloudflared tunnel --url http://localhost:3000`
+   prints a public URL — free, ephemeral, no signup.
+
+Treat that 60-second manual check as required for anything visual-heavy
+before merge.
 
 See `docs/design-tokens.md` for the canonical type scale + palette the
 drift-checker compares against.
