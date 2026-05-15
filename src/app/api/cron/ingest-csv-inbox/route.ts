@@ -25,105 +25,17 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { bulkImportRows, type BulkImportRow } from "@/lib/question-bank/bulk-import";
+import { bulkImportRows } from "@/lib/question-bank/bulk-import";
 import type { PdfProcessingJob } from "@/types/pdf-job";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-// Tiny in-route CSV parser (header-row + minimal quote handling).
-// Mirrors the shape of parseCsv in BulkImportPanel — single source of
-// truth not extracted yet because that file is a "use client" module
-// and importing it server-side pulls in React. This duplication is
-// the size of a footnote, not worth a refactor.
-function parseCsv(text: string): Record<string, string>[] {
-  const rows: string[][] = [];
-  let row: string[] = [];
-  let field = "";
-  let inQuotes = false;
-  for (let i = 0; i < text.length; i++) {
-    const c = text[i];
-    if (inQuotes) {
-      if (c === '"' && text[i + 1] === '"') {
-        field += '"';
-        i++;
-      } else if (c === '"') inQuotes = false;
-      else field += c;
-    } else {
-      if (c === '"') inQuotes = true;
-      else if (c === ",") {
-        row.push(field);
-        field = "";
-      } else if (c === "\n" || c === "\r") {
-        if (c === "\r" && text[i + 1] === "\n") i++;
-        row.push(field);
-        field = "";
-        if (row.some((v) => v.trim() !== "")) rows.push(row);
-        row = [];
-      } else field += c;
-    }
-  }
-  if (field !== "" || row.length) {
-    row.push(field);
-    if (row.some((v) => v.trim() !== "")) rows.push(row);
-  }
-  if (rows.length === 0) return [];
-  const headers = rows[0].map((h) => h.trim());
-  return rows.slice(1).map((r) => {
-    const obj: Record<string, string> = {};
-    headers.forEach((h, i) => {
-      obj[h] = (r[i] ?? "").trim();
-    });
-    return obj;
-  });
-}
-
-function rowsFromParsed(parsed: Record<string, string>[]): BulkImportRow[] {
-  return parsed.map((r) => ({
-    question_text: r.question_text ?? "",
-    choice_a: r.choice_a || undefined,
-    choice_b: r.choice_b || undefined,
-    choice_c: r.choice_c || undefined,
-    choice_d: r.choice_d || undefined,
-    correct_answer: (r.correct_answer ?? "").toUpperCase().trim() || (r.correct_answer ?? ""),
-    difficulty: r.difficulty || "4",
-    topic_cluster: r.topic_cluster || undefined,
-    hint: r.hint || undefined,
-    explanation_text: r.explanation_text ?? "",
-    explanation_a: r.explanation_a || undefined,
-    explanation_b: r.explanation_b || undefined,
-    explanation_c: r.explanation_c || undefined,
-    explanation_d: r.explanation_d || undefined,
-    desmos_strategy: r.desmos_strategy || undefined,
-    passage_intro: r.passage_intro || undefined,
-    passage: r.passage || undefined,
-    passage_a: r.passage_a || undefined,
-    passage_b: r.passage_b || undefined,
-    question_format:
-      r.question_format === "numeric_entry" || r.question_format === "multiple_choice"
-        ? r.question_format
-        : undefined,
-    numeric_tolerance: r.numeric_tolerance || undefined,
-    domain: r.domain || undefined,
-    concept_slug: r.concept_slug || undefined,
-    answer_source:
-      r.answer_source === "extracted" ||
-      r.answer_source === "inferred" ||
-      r.answer_source === "hand_corrected"
-        ? r.answer_source
-        : undefined,
-    source_pdf: r.source_pdf || undefined,
-    source_page: r.source_page || undefined,
-    content_hash: r.content_hash || undefined,
-    import_status:
-      r.import_status === "ok" || r.import_status === "needs_review" ? r.import_status : undefined,
-    import_flag_type:
-      r.import_flag_type === "skip" || r.import_flag_type === "partial_emit"
-        ? r.import_flag_type
-        : undefined,
-    import_flag_reason: r.import_flag_reason || undefined,
-  }));
-}
+// Single source of truth for CSV parsing + row-coercion lives in
+// `src/lib/question-bank/csv-parser.ts` so this cron + the admin's
+// BulkImportPanel can't drift (audit #9). Both import the same
+// pure functions; React stays out of this server-only route.
+import { parseCsv, toBulkRows } from "@/lib/question-bank/csv-parser";
 
 /** Download a UTF-8 text object from R2. Prefers the native env.R2
  *  binding (works inside Cloudflare Workers) and falls back to the
@@ -243,7 +155,7 @@ export async function POST(req: NextRequest) {
         if (!r2Path) continue;
         const csvText = await downloadFromR2(r2, bucket, r2Path);
         const parsed = parseCsv(csvText);
-        const rows = rowsFromParsed(parsed);
+        const rows = toBulkRows(parsed);
         if (rows.length === 0) {
           importedCounts[csvKey] = 0;
           continue;
