@@ -92,6 +92,40 @@ For multi-step UI flows that hit real pages (impersonation flow, dashboard
 data), use Playwright instead — those tests get the full app + bypass +
 seeded data.
 
+### Visual perception harness
+
+`npm run test:visual` — captures full-resolution PNGs across personas ×
+pages × viewports, plus a11y / token-drift / animation-timing reports.
+Output lives under `tests/visual/snapshots/` (gitignored) and the PNGs
+can be read at full fidelity rather than the compressed JPEG that
+`preview_screenshot` returns. Pairs with the dev bypass + seed fixtures.
+
+What it covers:
+
+- Visual snapshots — 3 personas × {dashboard, learn, admin pages} × 3
+  viewports (375 / 768 / 1440). Viewport-only by default so admin
+  tables don't produce 30k-px-tall PNGs.
+- Interactive states — `states.spec.ts` snapshots resting / hover /
+  focus separately for select components.
+- Accessibility — `a11y.spec.ts` runs axe-core (WCAG 2 A + AA) per page
+  and writes a JSON violation report. Doesn't fail the suite by design.
+- Token drift — `tokens.spec.ts` diffs computed h1/h2/h3 font-size +
+  line-height against `docs/design-tokens.md`. Flags raw hex codes in
+  inline styles. JSON report, no fail.
+- Animation timing — `timing.spec.ts` measures CSS transitions; warns
+  if a hover state exceeds 500ms.
+
+What it does NOT do (deliberate):
+
+- Subjective taste / motion feel / first-time-user intuition — human only.
+- Cross-browser rendering — Chromium only unless you expand the matrix.
+- Real device quirks — emulation, not real iPhones / Androids.
+- Full-page visual regression diffs — would need Chromatic / Percy /
+  baseline-on-disk; tracked as a follow-up.
+
+See `docs/design-tokens.md` for the canonical type scale + palette the
+drift-checker compares against.
+
 ### Playwright end-to-end tests
 
 `npm run test:e2e` — drives the full browser through multi-step user flows.

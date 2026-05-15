@@ -22,21 +22,30 @@ const PORT = Number(process.env.E2E_PORT ?? 3000);
 const BASE_URL = process.env.E2E_BASE_URL ?? `http://localhost:${PORT}`;
 
 export default defineConfig({
-  testDir: "./tests/e2e",
+  // `tests/visual/` lives alongside `tests/e2e/`. The visual
+  // suite is opt-in via the `visual` project so `npm run test:e2e`
+  // stays fast.
+  testDir: "./tests",
   globalSetup: "./tests/e2e/global-setup.ts",
   fullyParallel: false, // impersonation tests share the same dev server cookie jar
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: 1, // see fullyParallel comment
   reporter: "list",
-  timeout: 30_000,
+  timeout: 60_000,
   use: {
     baseURL: BASE_URL,
     trace: "on-first-retry",
   },
   projects: [
     {
-      name: "chromium",
+      name: "e2e",
+      testDir: "./tests/e2e",
+      use: { ...devices["Desktop Chrome"] },
+    },
+    {
+      name: "visual",
+      testDir: "./tests/visual",
       use: { ...devices["Desktop Chrome"] },
     },
   ],
