@@ -65,3 +65,8 @@ next-env.d.ts
 
 # Visual snapshot harness output
 /tests/visual/snapshots/
+
+# Real-device captures — keep README + .gitkeep, ignore PNGs
+/tests/visual/real-device-captures/*
+!/tests/visual/real-device-captures/README.md
+!/tests/visual/real-device-captures/.gitkeep
