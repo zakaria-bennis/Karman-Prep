@@ -17,7 +17,7 @@
 // ============================================================
 
 import type { Metadata } from "next";
-import { auth } from "@clerk/nextjs/server";
+import { safeAuth } from "@/lib/auth/dev-auth";
 import { redirect } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/server";
 import DiagnosticClient from "@/components/diagnostic/DiagnosticClient";
@@ -26,7 +26,7 @@ import { DIAGNOSTIC_QUESTIONS } from "@/data/diagnostic-questions";
 export const metadata: Metadata = { title: "SAT Diagnostic — 35 Questions" };
 
 export default async function DiagnosticPage() {
-  const { userId } = await auth();
+  const { userId } = await safeAuth();
   if (!userId) redirect("/auth/sign-in?redirect_url=/diagnostic");
 
   const supabase = createAdminClient();

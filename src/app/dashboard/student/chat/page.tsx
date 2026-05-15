@@ -11,7 +11,8 @@
 // ============================================================
 
 import type { Metadata } from "next";
-import { auth, currentUser } from "@clerk/nextjs/server";
+import { currentUser } from "@clerk/nextjs/server";
+import { safeAuth } from "@/lib/auth/dev-auth";
 import { redirect } from "next/navigation";
 import { MessageSquare } from "lucide-react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
@@ -24,7 +25,7 @@ export const metadata: Metadata = { title: "Chat" };
 export const dynamic = "force-dynamic";
 
 export default async function StudentChatPage() {
-  const { userId: realUserId } = await auth();
+  const { userId: realUserId } = await safeAuth();
   if (!realUserId) redirect("/auth/sign-in");
   const { clerkId: userId } = await resolveEffectiveClerkId(realUserId);
 

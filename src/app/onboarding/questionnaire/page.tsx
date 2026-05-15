@@ -9,7 +9,8 @@
 // ============================================================
 
 import type { Metadata } from "next";
-import { auth, currentUser } from "@clerk/nextjs/server";
+import { currentUser } from "@clerk/nextjs/server";
+import { safeAuth } from "@/lib/auth/dev-auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { StrataLogo } from "@/components/shared/StrataLogo";
@@ -22,7 +23,7 @@ export const metadata: Metadata = { title: "Tell us about your prep" };
 export const dynamic = "force-dynamic";
 
 export default async function OnboardingQuestionnairePage() {
-  const { userId } = await auth();
+  const { userId } = await safeAuth();
   if (!userId) redirect("/auth/sign-in");
 
   const sub = await getActiveSubscription(userId);

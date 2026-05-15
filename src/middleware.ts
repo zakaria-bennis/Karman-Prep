@@ -19,6 +19,14 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
+/** Dev-only auth bypass. When NODE_ENV !== "production" and
+ *  DEV_IMPERSONATE_CLERK_ID is set, the entire Clerk gate is
+ *  short-circuited so the developer (or a smoke-test harness)
+ *  can view authenticated pages without going through sign-in.
+ *  See src/lib/auth/dev-auth.ts for the page-level companion. */
+const DEV_AUTH_BYPASS_ACTIVE =
+  process.env.NODE_ENV !== "production" && (process.env.DEV_IMPERSONATE_CLERK_ID ?? "").length > 0;
+
 /** Routes always exempt from the maintenance gate AND auth check.
  *  Used for: the coming-soon page itself, sign-in flows, webhooks,
  *  cron triggers, public APIs that need to keep functioning. */
@@ -59,6 +67,14 @@ const isPublicRoute = createRouteMatcher([
 const LAUNCHED = process.env.NEXT_PUBLIC_KARMAN_LAUNCHED === "true";
 
 export default clerkMiddleware(async (auth, request) => {
+  // ── Dev-only auth bypass ───────────────────────────────────
+  // When DEV_IMPERSONATE_CLERK_ID is set in .env.local, treat
+  // every request as authenticated so the developer can view
+  // any page without going through sign-in. Cannot fire in prod.
+  if (DEV_AUTH_BYPASS_ACTIVE) {
+    return NextResponse.next();
+  }
+
   // ── Pre-launch maintenance gate ────────────────────────────
   if (!LAUNCHED && !isMaintenanceExempt(request)) {
     const { userId } = await auth();

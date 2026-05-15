@@ -4,7 +4,7 @@
 // ============================================================
 
 import type { Metadata } from "next";
-import { auth } from "@clerk/nextjs/server";
+import { safeAuth } from "@/lib/auth/dev-auth";
 import { redirect } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/server";
 import BillingClient from "@/components/dashboard/BillingClient";
@@ -13,7 +13,7 @@ import { PRICING_TIERS } from "@/types";
 export const metadata: Metadata = { title: "Billing & Subscription" };
 
 export default async function BillingPage() {
-  const { userId } = await auth();
+  const { userId } = await safeAuth();
   if (!userId) redirect("/auth/sign-in");
 
   const supabase = createAdminClient();

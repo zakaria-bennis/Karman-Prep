@@ -8,7 +8,7 @@
 
 import type { Metadata } from "next";
 import Link from "next/link";
-import { auth } from "@clerk/nextjs/server";
+import { safeAuth } from "@/lib/auth/dev-auth";
 import { redirect } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
 import { fetchUserRole } from "@/lib/supabase/queries/admin";
@@ -39,7 +39,7 @@ export default async function TutorEarningsDataPage({ searchParams }: PageProps)
     ? (sp.range as TimeRange)
     : "30d";
 
-  const { userId: clerkId } = await auth();
+  const { userId: clerkId } = await safeAuth();
   if (!clerkId) redirect("/auth/sign-in");
 
   const role = await fetchUserRole(clerkId);

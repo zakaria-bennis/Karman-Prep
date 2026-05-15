@@ -2,7 +2,7 @@
 // /admin — Dark-themed role-gated (admin only) layout.
 // ============================================================
 
-import { auth } from "@clerk/nextjs/server";
+import { safeAuth } from "@/lib/auth/dev-auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { UserButton } from "@clerk/nextjs";
@@ -22,7 +22,7 @@ import { StrataLogo } from "@/components/shared/StrataLogo";
 import ImpersonationMenu from "@/components/admin/ImpersonationMenu";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  const { userId } = await auth();
+  const { userId } = await safeAuth();
   if (!userId) redirect("/auth/sign-in");
 
   const role = await fetchUserRole(userId);

@@ -7,7 +7,7 @@
 // ============================================================
 
 import type { Metadata } from "next";
-import { auth } from "@clerk/nextjs/server";
+import { safeAuth } from "@/lib/auth/dev-auth";
 import { redirect } from "next/navigation";
 import { CalendarClock } from "lucide-react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
@@ -80,7 +80,7 @@ async function alertAdminAboutMissingTutorSetup(args: {
 }
 
 export default async function StudentSchedulePage() {
-  const { userId: realUserId } = await auth();
+  const { userId: realUserId } = await safeAuth();
   if (!realUserId) redirect("/auth/sign-in");
   const { clerkId: userId, isImpersonating } = await resolveEffectiveClerkId(realUserId);
 

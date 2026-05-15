@@ -7,7 +7,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { auth } from "@clerk/nextjs/server";
+import { safeAuth } from "@/lib/auth/dev-auth";
 import { ChevronLeft } from "lucide-react";
 import { fetchTutorCohortDetail } from "@/lib/supabase/queries/tutor";
 import { fetchUserRole } from "@/lib/supabase/queries/admin";
@@ -23,7 +23,7 @@ interface PageProps {
 
 export default async function TutorCohortPage({ params }: PageProps) {
   const { id } = await params;
-  const { userId } = await auth();
+  const { userId } = await safeAuth();
   if (!userId) redirect("/auth/sign-in");
 
   // Primary path: tutor accessing their own cohort.

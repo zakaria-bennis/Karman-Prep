@@ -7,7 +7,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { auth } from "@clerk/nextjs/server";
+import { safeAuth } from "@/lib/auth/dev-auth";
 import { Users as UsersIcon } from "lucide-react";
 import { createAdminClient } from "@/lib/supabase/server";
 
@@ -51,7 +51,7 @@ async function fetchLinkedStudents(parentClerkId: string): Promise<LinkedStudent
 }
 
 export default async function ParentDashboardPage() {
-  const { userId } = await auth();
+  const { userId } = await safeAuth();
   if (!userId) return null; // layout already redirects
 
   const students = await fetchLinkedStudents(userId);

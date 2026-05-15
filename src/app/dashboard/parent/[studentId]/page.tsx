@@ -11,7 +11,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { auth } from "@clerk/nextjs/server";
+import { safeAuth } from "@/lib/auth/dev-auth";
 import { ChevronLeft, Calendar, Users as UsersIcon, BookOpen } from "lucide-react";
 import { fetchUserRole } from "@/lib/supabase/queries/admin";
 import { createAdminClient } from "@/lib/supabase/server";
@@ -140,7 +140,7 @@ async function assertParentCanSeeStudent(
 
 export default async function ParentStudentDetailPage({ params }: PageProps) {
   const { studentId } = await params;
-  const { userId } = await auth();
+  const { userId } = await safeAuth();
   if (!userId) redirect("/auth/sign-in");
 
   const allowed = await assertParentCanSeeStudent(userId, studentId);
