@@ -13,10 +13,20 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
-import { ArrowRight, Users as UsersIcon, UserSquare, Wallet, CalendarClock } from "lucide-react";
+import {
+  ArrowRight,
+  Users as UsersIcon,
+  UserSquare,
+  Wallet,
+  CalendarClock,
+  Settings,
+} from "lucide-react";
 import { fetchTutorScope, fetchStudentDashboardRows } from "@/lib/supabase/queries/tutor";
+import { getUserUuidByClerkId } from "@/lib/supabase/queries/bookings";
+import { getCalConnectionStatus } from "@/lib/supabase/queries/cal-oauth";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import StudentTable from "@/components/tutor/StudentTable";
+import { CalendarPlus, AlertCircle } from "lucide-react";
 
 export const metadata: Metadata = { title: "Tutor Portal — Karman" };
 export const dynamic = "force-dynamic";
@@ -28,9 +38,24 @@ export default async function TutorPage() {
   const scope = await fetchTutorScope(userId);
   const rows = await fetchStudentDashboardRows(scope.studentClerkIds);
 
+  // Cal connection status drives the "Connect Cal" banner. We only show it
+  // for tutors that actually have students — a brand-new tutor with no
+  // assigned students doesn't need to act yet.
+  const tutorUuid = await getUserUuidByClerkId(userId);
+  const calStatus = tutorUuid ? await getCalConnectionStatus(tutorUuid) : null;
+  const hasStudents = rows.length > 0;
+  const needsCalSetup =
+    hasStudents && calStatus !== null && (!calStatus.connected || !calStatus.eventTypeId);
+
   return (
     <DashboardLayout>
       <div className="mx-auto max-w-6xl space-y-10 px-4 py-8 sm:px-6">
+        {needsCalSetup ? (
+          <CalSetupBanner
+            connected={calStatus.connected}
+            needsEventTypePick={calStatus.needsEventTypePick}
+          />
+        ) : null}
         <header className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <p className="mb-1 text-xs font-bold uppercase tracking-widest text-blue-500">
@@ -55,6 +80,12 @@ export default async function TutorPage() {
               className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-semibold text-slate-700 hover:border-blue-400 dark:border-slate-700 dark:text-slate-200"
             >
               <Wallet className="h-4 w-4 text-slate-400" /> Earnings
+            </Link>
+            <Link
+              href="/tutor/settings/booking"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-semibold text-slate-700 hover:border-blue-400 dark:border-slate-700 dark:text-slate-200"
+            >
+              <Settings className="h-4 w-4 text-slate-400" /> Booking
             </Link>
           </nav>
         </header>
@@ -150,6 +181,39 @@ export default async function TutorPage() {
 }
 
 // ─── helpers ────────────────────────────────────────────────
+
+function CalSetupBanner({
+  connected,
+  needsEventTypePick,
+}: {
+  connected: boolean;
+  needsEventTypePick: boolean;
+}) {
+  const title = !connected
+    ? "Connect Cal.com to start accepting bookings"
+    : needsEventTypePick
+      ? "Almost done — pick which event-type is the Karman session"
+      : "Finish setting up your booking link";
+  const body = !connected
+    ? "Your students need a way to book sessions with you. Connect your Cal.com account once and we'll point them at the right event-type."
+    : "We connected your Cal account but couldn't auto-pick which of your event-types is for Karman. Pick it once and you're done.";
+  return (
+    <div className="flex flex-wrap items-center gap-4 rounded-xl border border-amber-200 bg-amber-50 px-5 py-4 dark:border-amber-400/30 dark:bg-amber-400/10">
+      <AlertCircle className="h-5 w-5 shrink-0 text-amber-600 dark:text-amber-400" />
+      <div className="min-w-[15rem] flex-1">
+        <p className="text-sm font-semibold text-amber-900 dark:text-amber-200">{title}</p>
+        <p className="mt-0.5 text-xs text-amber-800/80 dark:text-amber-300/80">{body}</p>
+      </div>
+      <Link
+        href="/tutor/settings/booking"
+        className="inline-flex items-center gap-1.5 rounded-md bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-700"
+      >
+        <CalendarPlus className="h-3.5 w-3.5" />
+        {!connected ? "Connect Cal" : "Pick event-type"}
+      </Link>
+    </div>
+  );
+}
 
 function TierPill({ tier }: { tier: "group" | "small_group" }) {
   const label = tier === "small_group" ? "Small Group" : "Seminar";

@@ -23,18 +23,10 @@ import { CalAdapterError } from "./types";
  *  the Cal changelog and verifying response shapes. */
 const CAL_API_VERSION = "2024-08-13";
 
-interface AdapterEnv {
-  apiKey: string;
-  apiUrl: string;
-}
-
-function loadEnv(): AdapterEnv {
-  const apiKey = process.env.CAL_API_KEY;
-  const apiUrl = process.env.CAL_API_URL ?? "https://api.cal.com/v2";
-  if (!apiKey) {
-    throw new CalAdapterError("init", 0, null, "CAL_API_KEY is not set");
-  }
-  return { apiKey, apiUrl };
+/** API base URL alone — for OAuth-as-tutor calls that bring their
+ *  own bearer token and don't need CAL_API_KEY. */
+export function calApiUrl(): string {
+  return process.env.CAL_API_URL ?? "https://api.cal.com/v2";
 }
 
 interface RequestOptions {
@@ -43,10 +35,20 @@ interface RequestOptions {
   path: string;
   query?: Record<string, string | number | undefined>;
   body?: unknown;
+  /** Override the global CAL_API_KEY for this call. Used by per-tutor
+   *  OAuth calls (e.g. listing a tutor's event-types). */
+  bearerToken?: string;
 }
 
 async function callCal<T>(opts: RequestOptions): Promise<T> {
-  const { apiKey, apiUrl } = loadEnv();
+  const apiUrl = calApiUrl();
+  const bearerToken =
+    opts.bearerToken ??
+    (() => {
+      const key = process.env.CAL_API_KEY;
+      if (!key) throw new CalAdapterError("init", 0, null, "CAL_API_KEY is not set");
+      return key;
+    })();
   const { operation, method, path, query, body } = opts;
 
   const search = query
@@ -67,7 +69,7 @@ async function callCal<T>(opts: RequestOptions): Promise<T> {
     res = await fetch(url, {
       method,
       headers: {
-        Authorization: `Bearer ${apiKey}`,
+        Authorization: `Bearer ${bearerToken}`,
         "Content-Type": "application/json",
         "cal-api-version": CAL_API_VERSION,
       },
