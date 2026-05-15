@@ -6,10 +6,20 @@
 // ============================================================
 
 import { useMemo, useState, useTransition } from "react";
-import { Plus, GraduationCap, X, Loader2, Filter, ChevronRight } from "lucide-react";
+import {
+  Plus,
+  GraduationCap,
+  X,
+  Loader2,
+  Filter,
+  ChevronRight,
+  Archive,
+  RotateCcw,
+} from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { actionCreateCohort } from "./actions";
+import { actionCreateCohort, actionUnarchiveCohort } from "./actions";
 import type {
   AdminCohortRow,
   SatDateRow,
@@ -30,9 +40,12 @@ interface Props {
   cohorts: AdminCohortRow[];
   satDates: SatDateRow[];
   tutors: TutorRow[];
+  /** When true, the list also includes auto-archived cohorts (audit #13).
+   *  Driven by `?show=archived` on the URL. */
+  showArchived?: boolean;
 }
 
-export default function CohortsClient({ cohorts, satDates, tutors }: Props) {
+export default function CohortsClient({ cohorts, satDates, tutors, showArchived }: Props) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [tutorFilter, setTutorFilter] = useState<string>(""); // "" = all tutors
 
@@ -93,6 +106,15 @@ export default function CohortsClient({ cohorts, satDates, tutors }: Props) {
           {tutorFilter && visibleCohorts.length === 0 && (
             <span className="text-xs text-slate-500">No cohorts for this tutor.</span>
           )}
+          {/* Toggle between active-only and include-archived views.
+              Drives `?show=archived` on the URL (audit #13). */}
+          <Link
+            href={showArchived ? "/admin/cohorts" : "/admin/cohorts?show=archived"}
+            className="ml-auto inline-flex items-center gap-1 text-xs font-semibold text-slate-400 hover:text-slate-200"
+          >
+            <Archive className="h-3.5 w-3.5" />
+            {showArchived ? "Hide archived" : "Show archived"}
+          </Link>
         </div>
       )}
 
@@ -152,8 +174,14 @@ function CohortTable({ cohorts }: { cohorts: AdminCohortRow[] }) {
             >
               <td className="px-4 py-3 font-medium text-white">
                 <div className="flex items-center gap-2">
-                  <span>{c.name}</span>
+                  <span className={c.archived_at ? "text-slate-400" : undefined}>{c.name}</span>
+                  {c.archived_at ? (
+                    <span className="inline-flex items-center gap-0.5 rounded-md bg-slate-700/40 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-300">
+                      Archived
+                    </span>
+                  ) : null}
                   {c.setup_completed_at === null &&
+                  !c.archived_at &&
                   (c.tier === "group" || c.tier === "small_group") ? (
                     <span className="inline-flex items-center gap-0.5 rounded-md bg-amber-400/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-300">
                       Needs setup
@@ -181,13 +209,49 @@ function CohortTable({ cohorts }: { cohorts: AdminCohortRow[] }) {
                 <StatusBadge status={c.status} />
               </td>
               <td className="px-2 py-3 text-slate-600">
-                <ChevronRight className="h-4 w-4" />
+                {c.archived_at ? (
+                  <UnarchiveButton cohortId={c.id} />
+                ) : (
+                  <ChevronRight className="h-4 w-4" />
+                )}
               </td>
             </tr>
           ))}
         </tbody>
       </table>
     </div>
+  );
+}
+
+// ────────────────────────────────────────────────────────────────
+// Inline unarchive button — manually restores a previously-archived
+// cohort. Stops click propagation so the row's "open detail" handler
+// doesn't fire. Audit #13.
+// ────────────────────────────────────────────────────────────────
+function UnarchiveButton({ cohortId }: { cohortId: string }) {
+  const router = useRouter();
+  const [pending, startTransition] = useTransition();
+  function onClick(e: React.MouseEvent) {
+    e.stopPropagation();
+    startTransition(async () => {
+      try {
+        await actionUnarchiveCohort(cohortId);
+        router.refresh();
+      } catch (err) {
+        console.error("[admin/cohorts] unarchive failed:", err);
+      }
+    });
+  }
+  return (
+    <button
+      onClick={onClick}
+      disabled={pending}
+      className="inline-flex items-center gap-1 rounded border border-slate-700 px-2 py-0.5 text-[10px] font-semibold text-slate-300 hover:border-emerald-500 hover:text-emerald-300 disabled:opacity-50"
+      title="Restore this cohort to active dashboards"
+    >
+      {pending ? <Loader2 className="h-3 w-3 animate-spin" /> : <RotateCcw className="h-3 w-3" />}
+      Unarchive
+    </button>
   );
 }
 

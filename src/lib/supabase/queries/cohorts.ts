@@ -23,6 +23,10 @@ export interface AdminCohortRow {
    *  meaningful for group + small_group tiers (private/elite use
    *  per-tutor Cal OAuth instead). */
   setup_completed_at: string | null;
+  /** Set when the cohort was auto-archived after dropping to zero
+   *  active members (PR #32). Null for active cohorts. Only
+   *  populated when fetchCohorts() is called with includeArchived. */
+  archived_at: string | null;
   tutor: {
     id: string;
     first_name: string | null;
@@ -47,21 +51,33 @@ export interface TutorRow {
 
 // ─────────────────────────────────────────────────────────────
 // All cohorts with tutor info + active member count.
+//
+// `includeArchived` (default false) controls whether the admin's
+// /admin/cohorts list also shows cohorts that hit zero members
+// and were auto-archived (PR #32). When true, the result includes
+// the archived_at timestamp for the row so the UI can render the
+// "Archived" pill + "Unarchive" button (audit #13).
 // ─────────────────────────────────────────────────────────────
-export async function fetchCohorts(): Promise<AdminCohortRow[]> {
+export async function fetchCohorts(
+  options: { includeArchived?: boolean } = {}
+): Promise<AdminCohortRow[]> {
   const supabase = createAdminClient();
 
+  let cohortsQuery = supabase
+    .from("cohorts")
+    .select(
+      `id, name, tier, sat_date, max_size, current_topic, status, created_at, ended_at, setup_completed_at, archived_at,
+       tutor:users!cohorts_tutor_user_id_fkey (id, first_name, last_name, email)`
+    )
+    .order("sat_date", { ascending: true })
+    .order("tier", { ascending: true })
+    .order("name", { ascending: true });
+  if (!options.includeArchived) {
+    cohortsQuery = cohortsQuery.is("archived_at", null);
+  }
+
   const [cohortsRes, membersRes] = await Promise.all([
-    supabase
-      .from("cohorts")
-      .select(
-        `id, name, tier, sat_date, max_size, current_topic, status, created_at, ended_at, setup_completed_at,
-         tutor:users!cohorts_tutor_user_id_fkey (id, first_name, last_name, email)`
-      )
-      .is("archived_at", null)
-      .order("sat_date", { ascending: true })
-      .order("tier", { ascending: true })
-      .order("name", { ascending: true }),
+    cohortsQuery,
     supabase.from("cohort_members").select("cohort_id").is("left_at", null),
   ]);
 
@@ -92,6 +108,7 @@ export async function fetchCohorts(): Promise<AdminCohortRow[]> {
       created_at: r.created_at,
       ended_at: r.ended_at,
       setup_completed_at: r.setup_completed_at,
+      archived_at: (r as { archived_at?: string | null }).archived_at ?? null,
       tutor,
       member_count: counts.get(r.id) ?? 0,
     });
@@ -581,6 +598,7 @@ export async function fetchCohortDetail(cohortId: string): Promise<CohortDetail 
       created_at: rc.created_at,
       ended_at: rc.ended_at,
       setup_completed_at: rc.setup_completed_at,
+      archived_at: (rc as { archived_at?: string | null }).archived_at ?? null,
       tutor,
       member_count: members.length,
     },
