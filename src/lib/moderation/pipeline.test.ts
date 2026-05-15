@@ -17,15 +17,20 @@ import type { ModerationInput } from "./types";
 // vi.mock() is hoisted to the top of the file by Vitest, so the mock
 // fns have to live inside vi.hoisted() (also hoisted) to be in scope
 // at mock-factory time.
-const { callOpenAIModerationMock, callKarmanClassifierMock } = vi.hoisted(() => ({
-  callOpenAIModerationMock: vi.fn(),
-  callKarmanClassifierMock: vi.fn(),
-}));
+const { callOpenAIModerationMock, callKarmanClassifierMock, hasRecentApprovedSendMock } =
+  vi.hoisted(() => ({
+    callOpenAIModerationMock: vi.fn(),
+    callKarmanClassifierMock: vi.fn(),
+    hasRecentApprovedSendMock: vi.fn(),
+  }));
 vi.mock("./providers", () => ({
   callOpenAIModeration: callOpenAIModerationMock,
 }));
 vi.mock("./karman-classifier", () => ({
   callKarmanClassifier: callKarmanClassifierMock,
+}));
+vi.mock("./cache", () => ({
+  hasRecentApprovedSend: hasRecentApprovedSendMock,
 }));
 
 import { moderateMessage } from "./pipeline";
@@ -42,6 +47,7 @@ function baseInput(over: Partial<ModerationInput> = {}): ModerationInput {
     content: "",
     mediaUrls: [],
     senderId: "test-sender",
+    senderUuid: "uuid-test-sender",
     channelId: "channel-1",
     messageType: "cohort_message",
     ...over,
@@ -51,6 +57,10 @@ function baseInput(over: Partial<ModerationInput> = {}): ModerationInput {
 beforeEach(() => {
   callOpenAIModerationMock.mockReset();
   callKarmanClassifierMock.mockReset();
+  hasRecentApprovedSendMock.mockReset();
+  // Default: cache MISS so existing tests still exercise Layer 2 + 2.5.
+  // Cache-hit tests override this per-test.
+  hasRecentApprovedSendMock.mockResolvedValue(false);
   karmanClean();
 });
 
@@ -264,5 +274,73 @@ describe("moderateMessage — Karman bullying classifier (Layer 2.5)", () => {
     expect(r.decision).toBe("approved");
     // Karman classifier should not have been called for an image-only message.
     expect(callKarmanClassifierMock).not.toHaveBeenCalled();
+  });
+});
+
+// ============================================================
+// Recent-pass cache (#2 from the audit).
+//
+// After Layer 1 passes, the pipeline checks the cache: if this sender
+// just had a clean approval (≤5 min ago) we skip Layer 2 + 2.5
+// entirely. Keeps chat usable during OpenAI outages without bypassing
+// the keyword blocklist.
+// ============================================================
+
+describe("moderateMessage — recent-pass cache (#2)", () => {
+  it("cache HIT skips OpenAI + Karman, returns approved", async () => {
+    hasRecentApprovedSendMock.mockResolvedValue(true);
+    const r = await moderateMessage(baseInput({ content: "hello again" }));
+    expect(r.decision).toBe("approved");
+    expect(callOpenAIModerationMock).not.toHaveBeenCalled();
+    expect(callKarmanClassifierMock).not.toHaveBeenCalled();
+  });
+
+  it("cache MISS falls through to Layer 2 + 2.5 normally", async () => {
+    hasRecentApprovedSendMock.mockResolvedValue(false);
+    callOpenAIModerationMock.mockResolvedValue({
+      flagged: false,
+      isHighSeverity: false,
+      worstCategory: null,
+      worstScore: 0,
+    });
+    const r = await moderateMessage(baseInput({ content: "hello" }));
+    expect(r.decision).toBe("approved");
+    expect(callOpenAIModerationMock).toHaveBeenCalledOnce();
+  });
+
+  it("Layer 1 keyword still rejects even when cache would have hit", async () => {
+    // Cache hit would normally short-circuit, but Layer 1 runs first
+    // and the keyword blocklist is always authoritative.
+    hasRecentApprovedSendMock.mockResolvedValue(true);
+    const r = await moderateMessage(baseInput({ content: "you are a bitch" }));
+    expect(r.decision).toBe("rejected");
+    if (r.decision === "rejected") expect(r.layer).toBe("keyword");
+    // The cache should not have been consulted — Layer 1 short-circuits first.
+    expect(hasRecentApprovedSendMock).not.toHaveBeenCalled();
+    expect(callOpenAIModerationMock).not.toHaveBeenCalled();
+  });
+
+  it("empty message (no text, no images) skips the cache and approves", async () => {
+    hasRecentApprovedSendMock.mockResolvedValue(true);
+    const r = await moderateMessage(baseInput());
+    expect(r.decision).toBe("approved");
+    // Empty-message guard runs before cache; cache should not be consulted.
+    expect(hasRecentApprovedSendMock).not.toHaveBeenCalled();
+  });
+
+  it("cache lookup error falls through to the full pipeline (safe default)", async () => {
+    // hasRecentApprovedSend already returns false on internal errors,
+    // so from the pipeline's perspective an error is indistinguishable
+    // from a cache miss — full Layer 2 + 2.5 runs.
+    hasRecentApprovedSendMock.mockResolvedValue(false);
+    callOpenAIModerationMock.mockResolvedValue({
+      flagged: false,
+      isHighSeverity: false,
+      worstCategory: null,
+      worstScore: 0,
+    });
+    const r = await moderateMessage(baseInput({ content: "anything" }));
+    expect(r.decision).toBe("approved");
+    expect(callOpenAIModerationMock).toHaveBeenCalledOnce();
   });
 });

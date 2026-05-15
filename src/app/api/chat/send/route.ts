@@ -105,6 +105,7 @@ export async function POST(req: NextRequest) {
       content: body.content ?? "",
       mediaUrls: body.mediaUrls ?? [],
       senderId: userId,
+      senderUuid,
       channelId: channel.id,
       messageType: body.messageType,
     }),

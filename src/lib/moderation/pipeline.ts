@@ -51,6 +51,7 @@
 // ============================================================
 
 import { scanForBlocked } from "./blocklist";
+import { hasRecentApprovedSend } from "./cache";
 import { callKarmanClassifier } from "./karman-classifier";
 import { callOpenAIModeration } from "./providers";
 import { type ModerationInput, type ModerationOutcome } from "./types";
@@ -100,6 +101,17 @@ export async function moderateMessage(input: ModerationInput): Promise<Moderatio
   const hasContent = !!input.content && input.content.trim().length > 0;
   const hasImages = input.mediaUrls.length > 0;
   if (!hasContent && !hasImages) {
+    return { decision: "approved" };
+  }
+
+  // ─── Recent-pass cache (post Layer 1) ─────────────────────
+  // If this sender just had a clean approval (≤5 min ago) we trust
+  // that result and skip the OpenAI + Karman calls. Layer 1 already
+  // re-ran for the current message — the cache cannot bypass the
+  // keyword blocklist. The cache lookup is fail-safe: on error or
+  // on cache miss we fall through to the full pipeline.
+  if (await hasRecentApprovedSend({ senderUuid: input.senderUuid })) {
+    console.log(`[moderation] cache hit sender=${input.senderId} (skipping Layer 2 + 2.5)`);
     return { decision: "approved" };
   }
 
