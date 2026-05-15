@@ -22,15 +22,61 @@ import {
   type BookingPlanTier,
 } from "@/lib/supabase/queries/bookings";
 import { ensureEliteMonthlyTokens, getAvailableTokenCount } from "@/lib/supabase/queries/tokens";
+import {
+  markAdminAlerted,
+  shouldAlertAdminAboutMissingSetup,
+} from "@/lib/supabase/queries/cal-oauth";
+import { resend, FROM } from "@/lib/integrations/resend/client";
 
 export const metadata: Metadata = { title: "Schedule" };
 export const dynamic = "force-dynamic";
 
-// TEMP: smoke-test wiring — single Cal event type for every
-// self-bookable student. Replace with a per-tutor lookup before
-// launch (likely a `users.cal_event_type_id` column populated when
-// the tutor connects their Cal account).
-const SMOKE_TEST_EVENT_TYPE_ID = 5489022;
+/** Best-effort: fire an admin email when a student lands on the
+ *  schedule page but their tutor hasn't finished Cal setup. Deduped
+ *  per tutor with a 24h backoff so we don't fire on every page load.
+ *  Wrapped in try/catch — failure must not block the page render. */
+async function alertAdminAboutMissingTutorSetup(args: {
+  tutorUuid: string;
+  tutorName: string;
+  studentName: string | null;
+  status: "not_connected" | "needs_event_type";
+}): Promise<void> {
+  const adminEmail = process.env.ADMIN_NOTIFICATION_EMAIL;
+  if (!adminEmail) return; // not configured locally; skip silently
+  try {
+    const should = await shouldAlertAdminAboutMissingSetup(args.tutorUuid);
+    if (!should) return;
+    const headline =
+      args.status === "not_connected"
+        ? `${args.tutorName} hasn't connected Cal yet`
+        : `${args.tutorName} hasn't picked their Karman event-type yet`;
+    const cta =
+      args.status === "not_connected"
+        ? 'Ask them to visit /tutor/settings/booking and click "Connect Cal.com".'
+        : "Ask them to visit /tutor/settings/booking and pick their event-type from the dropdown.";
+    await resend.emails.send({
+      from: FROM,
+      to: adminEmail,
+      subject: `[Karman] Tutor setup needed — ${args.tutorName}`,
+      html: `
+        <div style="font-family: Inter, sans-serif; max-width: 560px; margin: auto; padding: 24px;">
+          <h2 style="color: #0f172a;">${headline}</h2>
+          <p style="color: #334155;">
+            A student${args.studentName ? ` (${args.studentName})` : ""} tried to book a session
+            but their assigned tutor hasn't finished setting up their Cal.com link in Karman.
+          </p>
+          <p style="color: #334155;"><strong>Next step:</strong> ${cta}</p>
+          <p style="color: #94a3b8; font-size: 12px; margin-top: 24px;">
+            You'll only get one of these per tutor every 24 hours.
+          </p>
+        </div>
+      `,
+    });
+    await markAdminAlerted(args.tutorUuid);
+  } catch (err) {
+    console.error("[schedule] admin alert email failed (non-fatal):", err);
+  }
+}
 
 export default async function StudentSchedulePage() {
   const { userId } = await auth();
@@ -52,33 +98,77 @@ export default async function StudentSchedulePage() {
   const planTier = sub.tier as BookingPlanTier;
   const canSelfBook = planTier === "private" || planTier === "elite";
 
-  let assignedTutor: { clerkId: string; name: string } | null = null;
+  // Student's own name for the admin-alert email (no PII beyond Karman-internal).
+  let studentName: string | null = null;
+  {
+    const { data: studentRow } = await supabase
+      .from("users")
+      .select("first_name, last_name, email")
+      .eq("id", user.id)
+      .maybeSingle();
+    if (studentRow) {
+      studentName =
+        [studentRow.first_name, studentRow.last_name].filter(Boolean).join(" ").trim() ||
+        studentRow.email ||
+        null;
+    }
+  }
+
+  interface AssignedTutor {
+    uuid: string;
+    clerkId: string;
+    name: string;
+    /** Cal event-type id the tutor bound on /tutor/settings/booking.
+     *  Null when the tutor either hasn't connected Cal or connected but
+     *  hasn't picked which event-type is the Karman session. */
+    calEventTypeId: number | null;
+    calConnected: boolean;
+  }
+  let assignedTutor: AssignedTutor | null = null;
   if (canSelfBook) {
     const { data: assignment } = await supabase
       .from("tutor_assignments")
       .select(
-        "tutor:users!tutor_assignments_tutor_user_id_fkey ( clerk_id, first_name, last_name, email )"
+        "tutor:users!tutor_assignments_tutor_user_id_fkey ( id, clerk_id, first_name, last_name, email, cal_event_type_id, cal_connected_at )"
       )
       .eq("student_user_id", user.id)
       .is("ended_at", null)
       .maybeSingle();
     type TutorJoin = {
       tutor: {
+        id: string;
         clerk_id: string;
         first_name: string | null;
         last_name: string | null;
         email: string;
+        cal_event_type_id: number | null;
+        cal_connected_at: string | null;
       } | null;
     };
     const tutorRow = (assignment as TutorJoin | null)?.tutor ?? null;
     if (tutorRow) {
       assignedTutor = {
+        uuid: tutorRow.id,
         clerkId: tutorRow.clerk_id,
         name:
           [tutorRow.first_name, tutorRow.last_name].filter(Boolean).join(" ").trim() ||
           tutorRow.email,
+        calEventTypeId:
+          tutorRow.cal_event_type_id === null ? null : Number(tutorRow.cal_event_type_id),
+        calConnected: !!tutorRow.cal_connected_at,
       };
     }
+  }
+
+  // Fire admin alert when self-bookable but tutor isn't ready. Deduped
+  // for 24h per tutor inside alertAdminAboutMissingTutorSetup().
+  if (canSelfBook && assignedTutor && assignedTutor.calEventTypeId === null) {
+    await alertAdminAboutMissingTutorSetup({
+      tutorUuid: assignedTutor.uuid,
+      tutorName: assignedTutor.name,
+      studentName,
+      status: assignedTutor.calConnected ? "needs_event_type" : "not_connected",
+    });
   }
 
   let upcoming: UpcomingSessionBooking | null = null;
@@ -124,21 +214,21 @@ export default async function StudentSchedulePage() {
             booking={upcoming}
             tutorName={assignedTutor?.name ?? "your tutor"}
             rescheduleProps={
-              canSelfBook && assignedTutor
+              canSelfBook && assignedTutor && assignedTutor.calEventTypeId !== null
                 ? {
                     tutorClerkId: assignedTutor.clerkId,
-                    eventTypeId: SMOKE_TEST_EVENT_TYPE_ID,
+                    eventTypeId: assignedTutor.calEventTypeId,
                   }
                 : undefined
             }
           />
         ) : null}
 
-        {canSelfBook && assignedTutor ? (
+        {canSelfBook && assignedTutor && assignedTutor.calEventTypeId !== null ? (
           <BookingWidget
             tutorName={assignedTutor.name}
             tutorClerkId={assignedTutor.clerkId}
-            eventTypeId={SMOKE_TEST_EVENT_TYPE_ID}
+            eventTypeId={assignedTutor.calEventTypeId}
             tokensAvailable={tokensAvailable}
           />
         ) : null}
@@ -147,6 +237,19 @@ export default async function StudentSchedulePage() {
           <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-400/20 dark:bg-amber-400/5">
             <p className="text-sm text-amber-800 dark:text-amber-200">
               No tutor assigned yet. An admin will pair you with a tutor shortly.
+            </p>
+          </div>
+        ) : null}
+
+        {canSelfBook && assignedTutor && assignedTutor.calEventTypeId === null ? (
+          <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-4 dark:border-amber-400/20 dark:bg-amber-400/5">
+            <p className="text-sm font-semibold text-amber-900 dark:text-amber-200">
+              {assignedTutor.name} is finishing their schedule setup
+            </p>
+            <p className="mt-1 text-sm text-amber-800 dark:text-amber-200/80">
+              Your tutor is connecting their Cal.com calendar to Karman. We&rsquo;ve let our team
+              know &mdash; you&rsquo;ll get an email when booking opens. Usually takes less than a
+              business day.
             </p>
           </div>
         ) : null}
