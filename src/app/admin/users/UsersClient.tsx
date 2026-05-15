@@ -109,6 +109,7 @@ export default function UsersClient({ users, cohorts }: Props) {
           <select
             value={cohortFilter}
             onChange={(e) => setCohortFilter(e.target.value)}
+            aria-label="Filter users by cohort"
             className="rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-2 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
           >
             <option value="all">All cohorts ({cohorts.length})</option>
@@ -448,6 +449,7 @@ function ParentLinksDialog({
             <select
               value={studentToAdd}
               onChange={(e) => setStudentToAdd(e.target.value)}
+              aria-label="Add a student to link to this parent"
               className="flex-1 rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-2 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
             >
               <option value="">Select a student…</option>

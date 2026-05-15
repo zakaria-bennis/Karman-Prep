@@ -91,6 +91,7 @@ export default function CohortsClient({ cohorts, satDates, tutors, showArchived 
           <select
             value={tutorFilter}
             onChange={(e) => setTutorFilter(e.target.value)}
+            aria-label="Filter cohorts by tutor"
             className="rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-1.5 text-sm text-slate-200 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
           >
             <option value="">All tutors ({cohorts.length})</option>

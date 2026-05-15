@@ -101,7 +101,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       signUpFallbackRedirectUrl="/onboarding"
       afterSignOutUrl="/"
     >
-      <html lang="en" className="dark" suppressHydrationWarning>
+      <html lang="en" className="dark" data-scroll-behavior="smooth" suppressHydrationWarning>
         <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
           <ThemeProvider>
             <ConfirmProvider>
