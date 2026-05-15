@@ -19,49 +19,52 @@ If you want the high-leverage stuff first, read the **Critical issues** section 
 
 ---
 
-## Critical issues to fix before launch
+## Audit history
 
-Pulled from the audit notes below. Ranked by how much they'd hurt a real user or your business.
+The original 17 audit items have all been triaged. **All shipped fixes are
+listed here for traceability**; "open" means we still need to do something.
+See [`docs/audit-2026-05-15.md`](./audit-2026-05-15.md) for the newer audit
+sweep that surfaced additional findings during testing-infra work.
 
-### Block-the-launch
+### Block-the-launch (✓ all shipped)
 
-1. **The booking page uses a hardcoded smoke-test Cal.com event-type id (`5489022`).** Every Private / Elite student who tries to book would land on the same fake test event. Needs a per-tutor lookup (likely a `users.cal_event_type_id` column) before any real student can book a session. Found in: `src/app/dashboard/student/schedule/`.
+1. ✓ **Per-tutor Cal.com OAuth event-type** — PR #6. Replaced the hardcoded `5489022` with per-tutor `users.cal_event_type_id`.
 
-2. **Chat is fully fail-closed on OpenAI outages.** If OpenAI Moderation hiccups for 60 seconds, the entire chat system rejects every message with "we're having a momentary issue checking your message — try again in a few seconds." That's the right _security_ posture but a brittle _availability_ posture for a school audience. Consider: cache last-known healthy result, allow tutor-and-above to bypass during outage, or surface a banner on the chat page.
+2. ✓ **Chat moderation recent-pass cache for OpenAI outages** — PR #11. 5-minute cache of "approved" results lets chat keep flowing through brief OpenAI hiccups; tutor+admin can still bypass on a longer outage.
 
-3. **The Cal.com booking webhook silently swallows email-send failures.** If Resend is briefly down when a student books, the booking confirms in the database but the email never arrives. The webhook returns 200 so Cal.com doesn't retry. Result: students think their session is unconfirmed and pester support. Add a per-email retry queue or a "failed email" admin alert.
+3. ✓ **Resend email retry queue with exponential backoff** — PR #16. Failed booking emails go into a `failed_emails` queue with 5 retries (1m / 5m / 30m / 2h / 12h) drained by `/api/cron/retry-failed-emails`.
 
-### Fix soon (high priority)
+### Fix soon (high priority — ✓ all shipped)
 
-4. **Seminar-overflow webhook creates orphan cohorts.** When a seminar passes 200 students, the system auto-creates an "Overflow" sibling cohort and emails admins — but doesn't provision the Cal.com event-type or Zoom integration. If the admin forgets, students sit in a cohort with no meetings scheduled. Now mitigated by the new empty-cohort auto-archive (PR #32), but only after students drop. Add a reminder cron or a "needs Cal/Zoom config" admin badge.
+4. ✓ **Seminar-overflow Cal/Zoom config admin alert** — PR #21. Cohorts without Cal setup now surface a setup badge on `/admin/cohorts` so overflows can't sit unprovisioned.
 
-5. **Slack post failures on chat-send leave a race.** If the message moderates as approved but the Slack POST fails (network blip), the route returns a 502 and _doesn't_ insert a database row. The student sees "send failed" and retries. But Slack may have actually received the first one (the failure was after the post, on a slow response). Possible: duplicate messages in Slack.
+5. ✓ **Slack post idempotency** — PR #25. Layers `client_msg_id` dedup + partial unique index `(channel_id, client_msg_id)` so a retry after a network blip can't double-post.
 
-6. **PDF processing jobs have no auto-refresh.** Admins import a PDF, then have to manually F5 the `/admin/jobs` page to watch progress. Add polling or live-status events.
+6. ✓ **PDF jobs auto-refresh** — was already implemented in `JobsClient.tsx` before the audit was written.
 
-7. **Diagnostic is one-and-done with no student retake path.** Students who want to benchmark progress mid-program can't retake without admin intervention. The `/progress` page even hides the retake CTA. Either add an admin-approved retake button or document this clearly.
+7. ✓ **Admin-grant diagnostic retake** — PR #28. `users.diagnostic_retakes_remaining` column + admin "grant retake" button; student consumes one on next diagnostic attempt.
 
-8. **Tutor cannot reschedule or cancel their own sessions.** `/tutor/schedule` shows sessions but only admins can move them. If a tutor gets sick, they have to email/Slack you. Add a tutor reschedule flow with the 24-hour rule.
+8. ✓ **Tutor self-reschedule / cancel** — PR #29. `/tutor/schedule` now has reschedule + cancel actions guarded by the 24h rule and Zod boundary validation.
 
-9. **CSV ingest cron parser is a duplicate of the UI parser.** If the UI parser changes (the one in `BulkImportPanel`), the cron's copy doesn't auto-update. Either extract to a shared module or import directly.
+9. ✓ **Shared CSV parser** — PR #31. Cron + UI now import from one `csv-parser.ts` module so they can't drift.
 
-### Fix when convenient (medium)
+### Fix when convenient (medium — ✓ all shipped)
 
-10. **Blog landing page is shipped but has no content.** `/blog` is publicly linked from the footer and shows "coming soon." Either publish a first article or remove the link.
+10. ✓ **Blog footer link removed** — PR [#44](https://github.com/zakaria-bennis/Karman-Prep/pull/44).
 
-11. **Empty-cohort archive (PR #32) has no admin "undo" button.** Cohorts vanish silently when the last student leaves. Reversed automatically only if someone joins back. Add an admin UI to view + manually un-archive if needed.
+11. ✓ **Admin un-archive UI** — PR [#45](https://github.com/zakaria-bennis/Karman-Prep/pull/45). `/admin/cohorts?show=archived` toggle + per-row un-archive button.
 
-12. **Tutor timezone is hardcoded to `America/New_York`.** `/tutor/schedule` formats times in NY regardless of where the tutor lives.
+12. ✓ **Tutor timezone from `users.time_zone`** — PR [#46](https://github.com/zakaria-bennis/Karman-Prep/pull/46). `/tutor/schedule` reads the column with `America/New_York` as fallback.
 
-13. **The College Board SAT-date scraper will eventually break.** When College Board changes their page layout, the daily cron returns 502 and Sentry pages you. There's no fallback. Consider seeding a static list of confirmed dates 12 months out as a safety net.
+13. ✓ **SAT-date static fallback** — PR [#47](https://github.com/zakaria-bennis/Karman-Prep/pull/47). 14 confirmed dates through 2027 in `STATIC_SAT_DATES`; cron upserts the seed first, then layers scraper data on top.
 
-14. **Stripe Connect payout webhook silently fails on processing errors.** Returns 200 once the raw payload is logged. If the payout-status update fails, the payout request stays "approved" forever. The admin email tells you something failed but there's no retry mechanism.
+14. ✓ **Stripe Connect payout retry** — PR [#48](https://github.com/zakaria-bennis/Karman-Prep/pull/48). Now returns 5xx on processing failure so Stripe's built-in retry kicks in; gives up after 5 attempts with an admin alert.
 
-15. **Admin question-review has no bulk-reject.** Flagged-by-PDF-import questions can only be rejected one at a time. Combined with no retry button on the jobs page, a bad PDF can create hours of single-click work.
+15. ✓ **Bulk-reject flagged questions** — PR [#49](https://github.com/zakaria-bennis/Karman-Prep/pull/49). Checkbox per card + "Reject N selected" on the Flagged tab.
 
-16. **Fireflies transcript matching uses a ±60-min time window fallback.** If two of your sessions are within 60 minutes of each other and only one has Zoom IDs, the transcript could land on the wrong booking. Rare today (low session volume) but real risk at scale.
+16. ✓ **Fireflies transcript matcher tightened** — PR [#50](https://github.com/zakaria-bennis/Karman-Prep/pull/50). Window down to ±30 min, Strategy 3 only considers `zoom_meeting_id IS NULL`, ambiguous-time match raises an error for admin triage.
 
-17. **Admin impersonation lacks granularity.** You can "View as student" but only see a generic student dashboard, not a specific student's actual data. Means you can't reproduce a real student's bug report without temporarily editing their data.
+17. ✓ **Granular admin impersonation** — PR [#51](https://github.com/zakaria-bennis/Karman-Prep/pull/51) (student/learn) + [#64](https://github.com/zakaria-bennis/Karman-Prep/pull/64) (tutor/parent). Impersonate a specific user from `/admin/users`; the dashboard renders **their** data. Read-only — mutations still write to the admin's row.
 
 ---
 
@@ -466,10 +469,10 @@ What an unauthenticated visitor sees before they sign up.
 - **What it is:** Full ToS — subscriptions, billing, session policies, the guarantee, acceptable use, IP, disclaimers, Texas governing law.
 - 🚩 **Red flags:** Session-recording clause says group sessions are recorded by default, private/elite require explicit consent. The consent collection UI doesn't exist yet — ship that before recording anything.
 
-### `/blog` — Blog hub (placeholder)
+### `/blog` — Blog hub (placeholder, footer link removed)
 
 - **What it is:** "Coming soon" landing page with email capture for the launch list.
-- 🚩 **Red flags:** Publicly linked from the footer with no actual content. Either ship a first article or drop the link from the footer.
+- The footer link to `/blog` was removed in PR [#44](https://github.com/zakaria-bennis/Karman-Prep/pull/44); the page still exists at the URL if someone hits it directly, but it's no longer surfaced in navigation.
 
 ### `/coming-soon` — Launch gate
 
@@ -553,7 +556,7 @@ Everything a paying student lives in.
 
 - **What it is:** Detailed progress hub — diagnostic delta, domain heatmap, weak topics by domain, mastery counters.
 - **What the user does:** Compares current vs first diagnostic, scans weak topics, sees cumulative mastery.
-- 🚩 **Red flags:** Hides the "retake diagnostic" CTA because diagnostic is one-and-done. Students hit a wall when they want to verify improvement.
+- 🚩 **Red flags:** Diagnostic is one-and-done by default. Admin can grant retakes via `/admin/users` (PR #28 added `users.diagnostic_retakes_remaining`); the `/progress` page hides the retake CTA until the admin grants one.
 
 ### `/dashboard/student/predicted-sat` — SAT trajectory chart
 
@@ -765,14 +768,16 @@ The most feature-rich surface. Admin-only (real role, not impersonation).
   - **No edit-before-approve.** If a flagged message is borderline but fixable (typo + a word), admin can't tweak it.
   - **No bulk action.** One-by-one only.
 
-### Admin impersonation — "View as" menu
+### Admin impersonation — "View as" menu + per-user
 
-- **What it is:** Header dropdown that lets admin temporarily browse as a student / tutor / parent. Cookie-based (`strata_impersonate_role`, 2-hour TTL).
-- **What the user does:** Clicks View as → picks a role → gets redirected to that role's landing page. To return: refresh or visit `/admin/*` directly.
-- **What "working" looks like:** Full UI access as the chosen role. Real role stays admin in the DB; all actions log under their true identity.
+- **What it is:** Two flavors of admin-only impersonation (PR [#51](https://github.com/zakaria-bennis/Karman-Prep/pull/51) + [#64](https://github.com/zakaria-bennis/Karman-Prep/pull/64)):
+  - **Generic role** — header dropdown lets admin browse as a "student / tutor / parent" with no real data. Sets `strata_impersonate_role` cookie (2-hour TTL).
+  - **Granular per-user** — `/admin/users` has an "Impersonate" button on every non-admin row. Sets both `strata_impersonate_role` and `strata_impersonate_user_id` cookies. The dashboard renders the target user's actual data so the admin can reproduce a bug report without editing the user's row.
+- **What the user does:** Click View as → pick a role, **OR** go to `/admin/users` → click Impersonate on a specific user. The site-wide banner shows who's being viewed; click × to exit.
+- **What "working" looks like:** Full UI access as the chosen role / user. Real role stays admin in the DB; **server actions still use the real admin's auth**, so any mutation while impersonated writes to the admin's row, not the target's — impersonation is read-only by design.
 - 🚩 **Red flags:**
-  - **Generic impersonation only.** Can't impersonate a _specific_ student to reproduce their bug.
-  - Tutor impersonation works only if admin has a tutor record.
+  - Tutor impersonation requires admin to have a tutor record in `users` (rarely an issue — admins can ad-hoc impersonate from the user row regardless).
+  - Mutations stay with the admin — if a bug requires reproducing a click-handler that writes data, you'd still need to temporarily edit the user or sign in as them.
 
 ---
 
