@@ -142,15 +142,20 @@ export default function UsersClient({ users, cohorts }: Props) {
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-slate-800">
+      {/* Table: hides Email/Tier/Links columns on small viewports
+          (audit S1). The remaining Name + Role + Impersonate
+          columns may still be wider than 375px on a very narrow
+          phone, so the wrapper is `overflow-x-auto` — the user
+          can swipe horizontally to reach the action column. */}
+      <div className="overflow-x-auto rounded-xl border border-slate-800">
         <table className="w-full text-sm">
           <thead className="bg-slate-900/60 text-xs uppercase tracking-wider text-slate-400">
             <tr>
               <th className="px-4 py-3 text-left font-semibold">Name</th>
-              <th className="px-4 py-3 text-left font-semibold">Email</th>
+              <th className="hidden px-4 py-3 text-left font-semibold md:table-cell">Email</th>
               <th className="px-4 py-3 text-left font-semibold">Role</th>
-              <th className="px-4 py-3 text-left font-semibold">Tier</th>
-              <th className="px-4 py-3 text-left font-semibold">Links</th>
+              <th className="hidden px-4 py-3 text-left font-semibold lg:table-cell">Tier</th>
+              <th className="hidden px-4 py-3 text-left font-semibold lg:table-cell">Links</th>
               <th aria-hidden="true" className="w-10" />
             </tr>
           </thead>
@@ -201,14 +206,23 @@ function UserRow({ user, onManageLinks }: { user: AdminUserRow; onManageLinks: (
     <tr className="transition-colors hover:bg-slate-900/40">
       <td className="px-4 py-3">
         <div className="font-medium text-white">{fullName}</div>
+        {/* On mobile we hide the Email column entirely; render
+            the email inline below the name as muted text so the
+            admin still has the most important identifier
+            visible. */}
+        <div className="mt-0.5 font-mono text-[11px] text-slate-500 md:hidden">{user.email}</div>
         {err && <div className="mt-0.5 text-xs text-rose-300">{err}</div>}
       </td>
-      <td className="px-4 py-3 font-mono text-xs text-slate-400">{user.email}</td>
-      <td className="px-4 py-3">
-        <div className="flex items-center gap-2">
+      <td className="hidden px-4 py-3 font-mono text-xs text-slate-400 md:table-cell">
+        {user.email}
+      </td>
+      <td className="px-2 py-3 sm:px-4">
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Pill hides on mobile — the select is the source of
+              truth + it's labeled with the role text itself. */}
           <span
             className={cn(
-              "inline-block rounded-md border px-2 py-0.5 text-xs font-semibold",
+              "hidden rounded-md border px-2 py-0.5 text-xs font-semibold sm:inline-block",
               ROLE_COLOR[user.role]
             )}
           >
@@ -230,7 +244,7 @@ function UserRow({ user, onManageLinks }: { user: AdminUserRow; onManageLinks: (
           {pending && <Loader2 className="h-3.5 w-3.5 animate-spin text-slate-500" />}
         </div>
       </td>
-      <td className="px-4 py-3">
+      <td className="hidden px-4 py-3 lg:table-cell">
         {user.tier ? (
           <span
             className={cn(
@@ -244,7 +258,7 @@ function UserRow({ user, onManageLinks }: { user: AdminUserRow; onManageLinks: (
           <span className="text-xs text-slate-600">—</span>
         )}
       </td>
-      <td className="px-4 py-3">
+      <td className="hidden px-4 py-3 lg:table-cell">
         {user.role === "parent" ? (
           <button
             onClick={onManageLinks}
@@ -262,7 +276,7 @@ function UserRow({ user, onManageLinks }: { user: AdminUserRow; onManageLinks: (
           <span className="text-xs text-slate-600">—</span>
         )}
       </td>
-      <td className="px-2 py-3">
+      <td className="px-2 py-3 text-right">
         {user.role !== "admin" && <ImpersonateButton userId={user.id} userName={fullName} />}
       </td>
     </tr>
@@ -291,7 +305,10 @@ function ImpersonateButton({ userId, userName }: { userId: string; userName: str
       className="inline-flex items-center gap-1 rounded-md border border-amber-500/40 px-2 py-1 text-xs font-semibold text-amber-300 hover:bg-amber-500/10 disabled:opacity-50"
     >
       {pending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Eye className="h-3 w-3" />}
-      Impersonate
+      {/* Label hides below sm; the eye icon + aria-label is
+          enough at mobile width to keep the table narrow. */}
+      <span className="hidden sm:inline">Impersonate</span>
+      <span className="sr-only sm:hidden">Impersonate {userName}</span>
     </button>
   );
 }
