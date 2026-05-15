@@ -14,6 +14,7 @@ import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 import { safeAuth } from "@/lib/auth/dev-auth";
+import { resolveEffectiveClerkId } from "@/lib/supabase/queries/admin";
 import { createAdminClient } from "@/lib/supabase/server";
 import { fetchUserRole } from "@/lib/supabase/queries/admin";
 import StatusDraftClient, { type StatusDraftPageData } from "./StatusDraftClient";
@@ -29,8 +30,9 @@ interface PageProps {
 export default async function StatusDraftPage({ params }: PageProps) {
   const { id: bookingId } = await params;
 
-  const { userId: clerkId } = await safeAuth();
-  if (!clerkId) redirect("/auth/sign-in");
+  const { userId: realUserId } = await safeAuth();
+  if (!realUserId) redirect("/auth/sign-in");
+  const { clerkId } = await resolveEffectiveClerkId(realUserId);
 
   const role = await fetchUserRole(clerkId);
   if (role !== "tutor" && role !== "admin") {

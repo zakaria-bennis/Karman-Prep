@@ -12,6 +12,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { safeAuth } from "@/lib/auth/dev-auth";
+import { resolveEffectiveClerkId } from "@/lib/supabase/queries/admin";
 import { redirect } from "next/navigation";
 import { CalendarClock, Video } from "lucide-react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
@@ -134,8 +135,9 @@ export default async function TutorSchedulePage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const { userId } = await safeAuth();
-  if (!userId) redirect("/auth/sign-in");
+  const { userId: realUserId } = await safeAuth();
+  if (!realUserId) redirect("/auth/sign-in");
+  const { clerkId: userId } = await resolveEffectiveClerkId(realUserId);
 
   const tutorUuid = await getUserUuidByClerkId(userId);
   if (!tutorUuid) redirect("/onboarding");

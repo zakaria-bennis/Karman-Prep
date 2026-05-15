@@ -12,6 +12,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { safeAuth } from "@/lib/auth/dev-auth";
+import { resolveEffectiveClerkId } from "@/lib/supabase/queries/admin";
 import { ChevronLeft, Calendar, Users as UsersIcon, BookOpen } from "lucide-react";
 import { fetchUserRole } from "@/lib/supabase/queries/admin";
 import { createAdminClient } from "@/lib/supabase/server";
@@ -140,8 +141,9 @@ async function assertParentCanSeeStudent(
 
 export default async function ParentStudentDetailPage({ params }: PageProps) {
   const { studentId } = await params;
-  const { userId } = await safeAuth();
-  if (!userId) redirect("/auth/sign-in");
+  const { userId: realUserId } = await safeAuth();
+  if (!realUserId) redirect("/auth/sign-in");
+  const { clerkId: userId } = await resolveEffectiveClerkId(realUserId);
 
   const allowed = await assertParentCanSeeStudent(userId, studentId);
   if (!allowed) notFound();

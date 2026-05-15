@@ -138,6 +138,45 @@ async function upsertParentStudentLink(parentUuid, studentUuid) {
   });
 }
 
+/** Upsert a cohort keyed on (name, tutor_user_id). The combination
+ *  is unique enough for fixtures; we'd never seed two cohorts
+ *  with the same name + tutor in practice. */
+async function upsertCohort(row) {
+  const rows = await sb(
+    `cohorts?name=eq.${encodeURIComponent(row.name)}&tutor_user_id=eq.${row.tutor_user_id}`,
+    { method: "GET" }
+  );
+  if (rows.length > 0) return rows[0].id;
+  const inserted = await sb(`cohorts`, {
+    method: "POST",
+    body: JSON.stringify(row),
+  });
+  return inserted[0].id;
+}
+
+async function upsertCohortMember(cohortId, userUuid) {
+  // cohort_members has a "one active per user" partial unique
+  // index, so just delete any existing active row for this user
+  // first; reseeding shouldn't multiply memberships.
+  await sb(`cohort_members?user_id=eq.${userUuid}&left_at=is.null`, { method: "DELETE" });
+  await sb(`cohort_members`, {
+    method: "POST",
+    body: JSON.stringify({ cohort_id: cohortId, user_id: userUuid }),
+  });
+}
+
+async function upsertTutorAssignment(tutorUuid, studentUuid) {
+  // Single active (tutor, student) pair at a time — wipe + insert.
+  await sb(
+    `tutor_assignments?tutor_user_id=eq.${tutorUuid}&student_user_id=eq.${studentUuid}&ended_at=is.null`,
+    { method: "DELETE" }
+  );
+  await sb(`tutor_assignments`, {
+    method: "POST",
+    body: JSON.stringify({ tutor_user_id: tutorUuid, student_user_id: studentUuid }),
+  });
+}
+
 // ── Fixture set ────────────────────────────────────────────
 const NOW = new Date().toISOString();
 const A_WEEK_AGO = new Date(Date.now() - 7 * 24 * 60 * 60_000).toISOString();
@@ -254,9 +293,10 @@ async function main() {
   });
   log("✓ stuck-placement banner should appear on /dashboard/student");
 
-  // 5. Tutor — active with payouts enabled
-  header("dev_seed_tutor (tutor with payouts enabled)");
-  await upsertUser({
+  // 5. Tutor — active with payouts enabled + a real cohort + a
+  //    1:1 student so the /tutor portal isn't a double empty state.
+  header("dev_seed_tutor (tutor with cohort + 1:1 assignment)");
+  const tutorUuid = await upsertUser({
     clerk_id: "dev_seed_tutor",
     email: "dev-seed-tutor@karman.local",
     first_name: "Dev",
@@ -269,7 +309,24 @@ async function main() {
     hourly_rate: 65,
     time_zone: "America/New_York",
   });
-  log("✓ tutor upserted (Cal not configured → schedule page shows setup banner)");
+  log("✓ tutor upserted");
+
+  // Cohort owned by the tutor on a known SAT date. The 2026-11-07
+  // row is from STATIC_SAT_DATES (seeded by sync-sat-dates cron).
+  const cohortId = await upsertCohort({
+    name: "Dev Seed Small Group",
+    tier: "small_group",
+    sat_date: "2026-11-07",
+    tutor_user_id: tutorUuid,
+    max_size: 5,
+    status: "active",
+  });
+  await upsertCohortMember(cohortId, midUuid);
+  log("✓ cohort created + mid student added");
+
+  // 1:1 assignment so /tutor shows a Student row.
+  await upsertTutorAssignment(tutorUuid, midUuid);
+  log("✓ tutor_assignments row → mid student");
 
   // 6. Parent linked to mid student
   header("dev_seed_parent (parent linked to mid student)");

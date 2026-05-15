@@ -17,6 +17,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { safeAuth } from "@/lib/auth/dev-auth";
+import { resolveEffectiveClerkId } from "@/lib/supabase/queries/admin";
 import { CalendarCheck, ChevronRight, ExternalLink } from "lucide-react";
 import { fetchUserRole } from "@/lib/supabase/queries/admin";
 import { getUserUuidByClerkId } from "@/lib/supabase/queries/bookings";
@@ -37,8 +38,9 @@ interface PageProps {
 }
 
 export default async function TutorBookingSettingsPage({ searchParams }: PageProps) {
-  const { userId } = await safeAuth();
-  if (!userId) redirect("/auth/sign-in");
+  const { userId: realUserId } = await safeAuth();
+  if (!realUserId) redirect("/auth/sign-in");
+  const { clerkId: userId } = await resolveEffectiveClerkId(realUserId);
   const role = await fetchUserRole(userId);
   if (role !== "tutor" && role !== "admin") redirect("/dashboard/student");
 

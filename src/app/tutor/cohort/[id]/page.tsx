@@ -8,6 +8,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { safeAuth } from "@/lib/auth/dev-auth";
+import { resolveEffectiveClerkId } from "@/lib/supabase/queries/admin";
 import { ChevronLeft } from "lucide-react";
 import { fetchTutorCohortDetail } from "@/lib/supabase/queries/tutor";
 import { fetchUserRole } from "@/lib/supabase/queries/admin";
@@ -23,8 +24,9 @@ interface PageProps {
 
 export default async function TutorCohortPage({ params }: PageProps) {
   const { id } = await params;
-  const { userId } = await safeAuth();
-  if (!userId) redirect("/auth/sign-in");
+  const { userId: realUserId } = await safeAuth();
+  if (!realUserId) redirect("/auth/sign-in");
+  const { clerkId: userId } = await resolveEffectiveClerkId(realUserId);
 
   // Primary path: tutor accessing their own cohort.
   let detail = await fetchTutorCohortDetail(id, userId);

@@ -5,6 +5,7 @@
 
 import type { Metadata } from "next";
 import { safeAuth } from "@/lib/auth/dev-auth";
+import { resolveEffectiveClerkId } from "@/lib/supabase/queries/admin";
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
@@ -29,8 +30,9 @@ interface Params {
 export default async function StudentDetailPage({ params, searchParams }: Params) {
   const [{ studentId }, { tab: tabParam }] = await Promise.all([params, searchParams]);
 
-  const { userId } = await safeAuth();
-  if (!userId) redirect("/auth/sign-in");
+  const { userId: realUserId } = await safeAuth();
+  if (!realUserId) redirect("/auth/sign-in");
+  const { clerkId: userId } = await resolveEffectiveClerkId(realUserId);
 
   const role = await fetchUserRole(userId);
   if (role !== "tutor" && role !== "admin") redirect("/dashboard/student");

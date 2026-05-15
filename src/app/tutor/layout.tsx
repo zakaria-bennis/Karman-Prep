@@ -7,12 +7,14 @@
 // ============================================================
 
 import { safeAuth } from "@/lib/auth/dev-auth";
+import { resolveEffectiveClerkId } from "@/lib/supabase/queries/admin";
 import { redirect } from "next/navigation";
 import { resolveEffectiveRole } from "@/lib/supabase/queries/admin";
 
 export default async function TutorLayout({ children }: { children: React.ReactNode }) {
-  const { userId } = await safeAuth();
-  if (!userId) redirect("/auth/sign-in");
+  const { userId: realUserId } = await safeAuth();
+  if (!realUserId) redirect("/auth/sign-in");
+  const { clerkId: userId } = await resolveEffectiveClerkId(realUserId);
 
   const role = await resolveEffectiveRole(userId);
   if (role !== "tutor" && role !== "admin") {
