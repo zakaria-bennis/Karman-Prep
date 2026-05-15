@@ -18,8 +18,9 @@
 // protection). Constant-time compare.
 // ============================================================
 
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import crypto from "node:crypto";
+import { withWebhookInstrumentation } from "@/lib/observability/webhook";
 
 export const runtime = "nodejs";
 
@@ -68,7 +69,7 @@ interface SlackEventCallback {
 
 type SlackInbound = SlackUrlVerification | SlackEventCallback;
 
-export async function POST(req: NextRequest) {
+export const POST = withWebhookInstrumentation("slack", async (req: Request) => {
   const secret = process.env.SLACK_SIGNING_SECRET;
   if (!secret) {
     console.error("[slack-webhook] SLACK_SIGNING_SECRET is not set");
@@ -119,4 +120,4 @@ export async function POST(req: NextRequest) {
   }
 
   return NextResponse.json({ received: true });
-}
+});

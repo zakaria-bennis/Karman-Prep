@@ -19,16 +19,17 @@
 // Supabase Dashboard → Database → Webhooks → custom HTTP header.
 // ============================================================
 
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
 import { resend, FROM } from "@/lib/integrations/resend/client";
 import { seminarOverflowBodySchema } from "../schemas";
+import { withWebhookInstrumentation } from "@/lib/observability/webhook";
 
 export const runtime = "nodejs";
 
 const SEMINAR_CAP = 200;
 
-export async function POST(req: NextRequest) {
+export const POST = withWebhookInstrumentation("seminar-overflow", async (req: Request) => {
   const expected = process.env.SUPABASE_DB_WEBHOOK_SECRET;
   if (!expected) {
     console.error("[seminar-overflow] SUPABASE_DB_WEBHOOK_SECRET is not set");
@@ -166,4 +167,4 @@ export async function POST(req: NextRequest) {
     overflowCohortId: newCohort?.id,
     parentCount: count,
   });
-}
+});

@@ -14,9 +14,10 @@
 //                                     each booking to completed/no_show
 // ============================================================
 
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import crypto from "node:crypto";
 import type { ZoomWebhookEnvelope } from "@/lib/integrations/zoom/types";
+import { withWebhookInstrumentation } from "@/lib/observability/webhook";
 import {
   finalizeAttendanceForMeeting,
   findBookingForParticipant,
@@ -46,7 +47,7 @@ function verifyZoomSignature(
   return timingSafeStringEqual(expected, signatureHeader);
 }
 
-export async function POST(req: NextRequest) {
+export const POST = withWebhookInstrumentation("zoom", async (req: Request) => {
   const secret = process.env.ZOOM_WEBHOOK_SECRET;
   if (!secret) {
     console.error("[zoom-webhook] ZOOM_WEBHOOK_SECRET is not set");
@@ -163,4 +164,4 @@ export async function POST(req: NextRequest) {
   }
 
   return NextResponse.json({ received: true });
-}
+});

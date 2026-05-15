@@ -13,7 +13,8 @@
 // or out-of-band tooling.
 // ============================================================
 
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
+import { withWebhookInstrumentation } from "@/lib/observability/webhook";
 import crypto from "node:crypto";
 import { createAdminClient } from "@/lib/supabase/server";
 import {
@@ -134,7 +135,7 @@ function resolveStudentTimeZone(payload: CalBookingPayload, studentEmail: string
   return "America/New_York";
 }
 
-export async function POST(req: NextRequest) {
+export const POST = withWebhookInstrumentation("cal", async (req: Request) => {
   const secret = process.env.CAL_WEBHOOK_SECRET;
   if (!secret) {
     console.error("[cal-webhook] CAL_WEBHOOK_SECRET is not set");
@@ -355,4 +356,4 @@ export async function POST(req: NextRequest) {
   }
 
   return NextResponse.json({ received: true });
-}
+});

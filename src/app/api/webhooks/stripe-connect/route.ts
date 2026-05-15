@@ -35,6 +35,7 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createAdminClient } from "@/lib/supabase/server";
+import { withWebhookInstrumentation } from "@/lib/observability/webhook";
 import { resend, FROM } from "@/lib/integrations/resend/client";
 import {
   decideRetryOutcome,
@@ -56,7 +57,7 @@ function stripe(): Stripe {
   return _stripe;
 }
 
-export async function POST(request: Request) {
+export const POST = withWebhookInstrumentation("stripe-connect", async (request: Request) => {
   const signature = request.headers.get("stripe-signature");
   const secret = process.env.STRIPE_CONNECT_WEBHOOK_SECRET;
   if (!signature || !secret) {
@@ -179,7 +180,7 @@ export async function POST(request: Request) {
     { error: "processing_failed", attempt: nextAttempts },
     { status: outcome.responseStatus }
   );
-}
+});
 
 type Supabase = ReturnType<typeof createAdminClient>;
 
