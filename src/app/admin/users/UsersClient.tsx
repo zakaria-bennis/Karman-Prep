@@ -142,15 +142,27 @@ export default function UsersClient({ users, cohorts }: Props) {
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-slate-800">
+      {/* Mobile (<md): stacked card layout. Each user is a self-
+          contained block — no horizontal scroll, action buttons
+          always reachable on a phone. Audit S1 Phase 2. */}
+      <ul className="space-y-2 md:hidden" aria-label="Users (mobile view)">
+        {filtered.map((u) => (
+          <li key={u.id}>
+            <UserCard user={u} onManageLinks={() => setLinkingParent(u)} />
+          </li>
+        ))}
+      </ul>
+
+      {/* Desktop (md+): full table with all columns. */}
+      <div className="hidden overflow-hidden rounded-xl border border-slate-800 md:block">
         <table className="w-full text-sm">
           <thead className="bg-slate-900/60 text-xs uppercase tracking-wider text-slate-400">
             <tr>
               <th className="px-4 py-3 text-left font-semibold">Name</th>
               <th className="px-4 py-3 text-left font-semibold">Email</th>
               <th className="px-4 py-3 text-left font-semibold">Role</th>
-              <th className="px-4 py-3 text-left font-semibold">Tier</th>
-              <th className="px-4 py-3 text-left font-semibold">Links</th>
+              <th className="hidden px-4 py-3 text-left font-semibold lg:table-cell">Tier</th>
+              <th className="hidden px-4 py-3 text-left font-semibold lg:table-cell">Links</th>
               <th aria-hidden="true" className="w-10" />
             </tr>
           </thead>
@@ -177,9 +189,9 @@ export default function UsersClient({ users, cohorts }: Props) {
   );
 }
 
-// ─── Row ────────────────────────────────────────────────────
+// ─── Shared row logic — used by both UserCard and UserRow ────
 
-function UserRow({ user, onManageLinks }: { user: AdminUserRow; onManageLinks: () => void }) {
+function useUserRowState(user: AdminUserRow) {
   const [pending, startTransition] = useTransition();
   const [err, setErr] = useState<string | null>(null);
 
@@ -196,6 +208,88 @@ function UserRow({ user, onManageLinks }: { user: AdminUserRow; onManageLinks: (
   }
 
   const fullName = [user.first_name, user.last_name].filter(Boolean).join(" ") || "—";
+  return { pending, err, changeRole, fullName };
+}
+
+// ─── Mobile card layout (audit S1 Phase 2) ───────────────────
+
+function UserCard({ user, onManageLinks }: { user: AdminUserRow; onManageLinks: () => void }) {
+  const { pending, err, changeRole, fullName } = useUserRowState(user);
+
+  return (
+    <article className="rounded-xl border border-slate-800 bg-slate-950/40 p-4">
+      {/* Identity */}
+      <div className="mb-3 flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <div className="truncate text-base font-medium text-white">{fullName}</div>
+          <div className="mt-0.5 truncate font-mono text-xs text-slate-400">{user.email}</div>
+          {err && <div className="mt-1 text-xs text-rose-300">{err}</div>}
+        </div>
+        {user.tier && (
+          <span
+            className={cn(
+              "shrink-0 rounded-md border px-2 py-0.5 text-[11px] font-semibold",
+              TIER_COLOR[user.tier]
+            )}
+          >
+            {TIER_LABEL[user.tier]}
+          </span>
+        )}
+      </div>
+
+      {/* Role + Links (if parent/student) */}
+      <div className="mb-3 flex flex-wrap items-center gap-2">
+        <span
+          className={cn(
+            "inline-block rounded-md border px-2 py-0.5 text-xs font-semibold",
+            ROLE_COLOR[user.role]
+          )}
+        >
+          {user.role}
+        </span>
+        <select
+          value={user.role}
+          onChange={(e) => changeRole(e.target.value as AppRole)}
+          disabled={pending}
+          aria-label={`Change role for ${fullName}`}
+          className="rounded-md border border-slate-800 bg-slate-950/60 px-2 py-1 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 disabled:opacity-50"
+        >
+          {ROLE_OPTIONS.map((r) => (
+            <option key={r} value={r}>
+              {r}
+            </option>
+          ))}
+        </select>
+        {pending && <Loader2 className="h-3.5 w-3.5 animate-spin text-slate-500" />}
+        {user.role === "parent" && (
+          <button
+            onClick={onManageLinks}
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-300 hover:text-indigo-200"
+          >
+            <Link2 className="h-3.5 w-3.5" />
+            {user.linked_student_count} linked
+          </button>
+        )}
+        {user.role === "student" && (
+          <DiagnosticRetakeButton
+            userId={user.id}
+            pendingRetakes={user.diagnostic_retakes_remaining}
+          />
+        )}
+      </div>
+
+      {/* Action — Impersonate button at the bottom, full width */}
+      {user.role !== "admin" && (
+        <ImpersonateButton userId={user.id} userName={fullName} fullWidth />
+      )}
+    </article>
+  );
+}
+
+// ─── Desktop table row ──────────────────────────────────────
+
+function UserRow({ user, onManageLinks }: { user: AdminUserRow; onManageLinks: () => void }) {
+  const { pending, err, changeRole, fullName } = useUserRowState(user);
 
   return (
     <tr className="transition-colors hover:bg-slate-900/40">
@@ -230,7 +324,7 @@ function UserRow({ user, onManageLinks }: { user: AdminUserRow; onManageLinks: (
           {pending && <Loader2 className="h-3.5 w-3.5 animate-spin text-slate-500" />}
         </div>
       </td>
-      <td className="px-4 py-3">
+      <td className="hidden px-4 py-3 lg:table-cell">
         {user.tier ? (
           <span
             className={cn(
@@ -244,7 +338,7 @@ function UserRow({ user, onManageLinks }: { user: AdminUserRow; onManageLinks: (
           <span className="text-xs text-slate-600">—</span>
         )}
       </td>
-      <td className="px-4 py-3">
+      <td className="hidden px-4 py-3 lg:table-cell">
         {user.role === "parent" ? (
           <button
             onClick={onManageLinks}
@@ -273,7 +367,17 @@ function UserRow({ user, onManageLinks }: { user: AdminUserRow; onManageLinks: (
 // Server-action call sets the role + user_id cookies and redirects
 // to the target's dashboard. Confirms before navigation since this
 // is a context switch the admin may not expect on a stray click.
-function ImpersonateButton({ userId, userName }: { userId: string; userName: string }) {
+function ImpersonateButton({
+  userId,
+  userName,
+  fullWidth = false,
+}: {
+  userId: string;
+  userName: string;
+  /** Card layout passes true → button stretches to row width
+   *  for a comfortable thumb target on mobile. */
+  fullWidth?: boolean;
+}) {
   const [pending, startTransition] = useTransition();
   return (
     <button
@@ -288,7 +392,10 @@ function ImpersonateButton({ userId, userName }: { userId: string; userName: str
       }}
       disabled={pending}
       title="Impersonate this user — see their dashboard with their data (read-only; mutations go to your admin row)."
-      className="inline-flex items-center gap-1 rounded-md border border-amber-500/40 px-2 py-1 text-xs font-semibold text-amber-300 hover:bg-amber-500/10 disabled:opacity-50"
+      className={cn(
+        "inline-flex items-center justify-center gap-1 rounded-md border border-amber-500/40 px-2 py-1 text-xs font-semibold text-amber-300 hover:bg-amber-500/10 disabled:opacity-50",
+        fullWidth && "w-full py-2 text-sm"
+      )}
     >
       {pending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Eye className="h-3 w-3" />}
       Impersonate
