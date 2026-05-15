@@ -21,6 +21,8 @@ const PAGES_TO_SCAN = [
   { persona: "admin", url: "/admin/cohorts", email: null },
   { persona: "student_mid", url: "/dashboard/student", email: "dev-seed-mid@karman.local" },
   { persona: "student_mid", url: "/learn", email: "dev-seed-mid@karman.local" },
+  { persona: "student_mid", url: "/learn/math", email: "dev-seed-mid@karman.local" },
+  { persona: "student_mid", url: "/learn/reading", email: "dev-seed-mid@karman.local" },
   { persona: "tutor", url: "/tutor", email: "dev-seed-tutor@karman.local" },
 ];
 

@@ -32,8 +32,6 @@ export async function initUserProgress(subject: Subject) {
   await supabase
     .from("learn_node_status")
     .upsert(records, { onConflict: "user_id,node_id", ignoreDuplicates: true });
-
-  revalidatePath(`/learn/${subject}`);
 }
 
 /**
