@@ -54,7 +54,7 @@ export default function Pricing() {
                 </div>
               )}
               {tier.bestValue && (
-                <div className="absolute -top-3.5 left-1/2 flex -translate-x-1/2 items-center gap-1 whitespace-nowrap rounded-full bg-amber-500 px-4 py-1 text-xs font-bold text-white shadow-md shadow-amber-500/30">
+                <div className="absolute -top-3.5 left-1/2 flex -translate-x-1/2 items-center gap-1 whitespace-nowrap rounded-full bg-amber-500 px-4 py-1 text-xs font-bold text-amber-950 shadow-md shadow-amber-500/30">
                   <Gem className="h-3 w-3" /> Best Value
                 </div>
               )}

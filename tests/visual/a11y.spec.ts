@@ -61,7 +61,15 @@ for (const { persona, url, email } of PAGES_TO_SCAN) {
             impact: v.impact,
             help: v.help,
             helpUrl: v.helpUrl,
-            nodes: v.nodes.length,
+            // Per-node detail so when a violation surfaces we don't
+            // need a separate debug spec to find the offending DOM
+            // node — selector + offending HTML + failure summary are
+            // captured here.
+            nodes: v.nodes.map((n) => ({
+              target: n.target,
+              html: n.html.slice(0, 200),
+              failureSummary: n.failureSummary?.split("\n").slice(0, 3).join(" / "),
+            })),
           })),
         },
         null,

@@ -223,7 +223,7 @@ export default function BillingClient({ subscription, currentTier, allTiers }: P
                         </span>
                       )}
                       {tier.bestValue && (
-                        <span className="rounded-full bg-amber-500 px-2.5 py-1 text-xs font-bold text-white">
+                        <span className="rounded-full bg-amber-500 px-2.5 py-1 text-xs font-bold text-amber-950">
                           Best Value
                         </span>
                       )}

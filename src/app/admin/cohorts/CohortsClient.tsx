@@ -84,7 +84,7 @@ export default function CohortsClient({ cohorts, satDates, tutors, showArchived 
       {/* Filter bar — only show once we actually have cohorts to filter through */}
       {cohorts.length > 0 && (
         <div className="mb-4 flex items-center gap-3">
-          <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
+          <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-400">
             <Filter className="h-3.5 w-3.5" />
             Filter
           </div>
@@ -203,7 +203,7 @@ function CohortTable({ cohorts }: { cohorts: AdminCohortRow[] }) {
                 >
                   {c.member_count}
                 </span>
-                <span className="font-mono text-slate-500">/{c.max_size}</span>
+                <span className="font-mono text-slate-400">/{c.max_size}</span>
               </td>
               <td className="px-4 py-3">
                 <StatusBadge status={c.status} />

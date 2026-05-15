@@ -70,8 +70,8 @@ export default function DomainProgress({ statuses }: Props) {
             className={cn(
               "flex items-center gap-1.5 px-3 py-2 font-semibold",
               tab === "reading"
-                ? "text-rose-500"
-                : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+                ? "text-rose-400"
+                : "text-slate-600 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
             )}
             style={tab === "reading" ? { background: "rgba(236, 72, 153, 0.1)" } : undefined}
           >
@@ -82,8 +82,8 @@ export default function DomainProgress({ statuses }: Props) {
             className={cn(
               "flex items-center gap-1.5 border-l border-slate-200 px-3 py-2 font-semibold dark:border-slate-700",
               tab === "math"
-                ? "text-sky-500"
-                : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+                ? "text-sky-400"
+                : "text-slate-600 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
             )}
             style={tab === "math" ? { background: "rgba(56, 189, 248, 0.1)" } : undefined}
           >
@@ -96,10 +96,10 @@ export default function DomainProgress({ statuses }: Props) {
         {/* Overall strip */}
         <div className="mb-5 border-b border-slate-100 pb-4 dark:border-slate-800">
           <div className="mb-1.5 flex items-baseline justify-between">
-            <span className="text-xs font-bold uppercase tracking-widest text-slate-500">
+            <span className="text-xs font-bold uppercase tracking-widest text-slate-400">
               {tab === "reading" ? "Reading & Writing overall" : "Math overall"}
             </span>
-            <span className="text-xs tabular-nums text-slate-500">
+            <span className="text-xs tabular-nums text-slate-400">
               {totalMastered} / {totalNodes}
             </span>
           </div>

@@ -133,10 +133,10 @@ export default function UsersClient({ users, cohorts }: Props) {
               )}
             >
               {r === "all" ? "All" : r.charAt(0).toUpperCase() + r.slice(1)}
-              <span className="ml-1.5 text-[10px] opacity-70">{counts[r]}</span>
+              <span className="ml-1.5 text-[10px] opacity-90">{counts[r]}</span>
             </button>
           ))}
-          <span className="ml-auto self-center text-xs text-slate-500">
+          <span className="ml-auto self-center text-xs text-slate-400">
             {filtered.length} of {users.length} matching
           </span>
         </div>
