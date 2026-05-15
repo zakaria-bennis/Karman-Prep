@@ -16,9 +16,10 @@
 // another persona in real life.
 // ============================================================
 
-import { test, expect, type Page } from "@playwright/test";
+import { test } from "@playwright/test";
 import { mkdir } from "node:fs/promises";
 import path from "node:path";
+import { clearImpersonation, impersonateByEmail } from "./helpers";
 
 const ROOT = path.resolve(process.cwd(), "tests", "visual", "snapshots");
 
@@ -50,22 +51,6 @@ const PERSONAS = [
     pages: ["/tutor", "/tutor/schedule"],
   },
 ] as const;
-
-async function impersonateByEmail(page: Page, email: string) {
-  page.on("dialog", (d) => d.accept());
-  await page.goto("/admin/users");
-  const row = page.locator("tr", { hasText: email });
-  await row.getByRole("button", { name: /Impersonate/i }).click();
-  // Wait for the banner to appear — confirms cookies are set.
-  await expect(page.getByRole("status")).toBeVisible();
-}
-
-async function clearImpersonation(page: Page) {
-  const banner = page.getByRole("status");
-  if (await banner.isVisible().catch(() => false)) {
-    await banner.getByRole("button", { name: /Exit impersonation/i }).click();
-  }
-}
 
 test.describe.configure({ mode: "serial" });
 

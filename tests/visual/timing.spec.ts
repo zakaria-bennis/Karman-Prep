@@ -84,20 +84,25 @@ test("timing · Impersonate button hover transition", async ({ page }) => {
   // delta is `null` only if measureFirstTransition itself failed
   // (selector missing). Treat that the same as the 2-second bail.
   const safeDelta = delta ?? -1;
+  const noTransition = safeDelta === -1;
   await writeFile(
     path.join(REPORT, "impersonate-hover.json"),
     JSON.stringify(
       {
         target: "Impersonate button hover",
         deltaMs: safeDelta,
-        slow: safeDelta > SLOW_THRESHOLD_MS,
+        // Two booleans is more honest than one: `slow` only makes
+        // sense when a transition actually fired. `no_transition`
+        // says we never saw a `transitionrun` event — usually
+        // because the element has no `transition-*` CSS attached.
+        no_transition: noTransition,
+        slow: !noTransition && safeDelta > SLOW_THRESHOLD_MS,
         threshold: SLOW_THRESHOLD_MS,
-        note:
-          safeDelta === -1
-            ? "no transition fired (button has no transition-* CSS, or selector missed)"
-            : safeDelta > SLOW_THRESHOLD_MS
-              ? "exceeds docs/design-tokens.md threshold; reduce duration or simplify easing"
-              : "within expected range",
+        note: noTransition
+          ? "no transition fired (button has no transition-* CSS, or selector missed)"
+          : safeDelta > SLOW_THRESHOLD_MS
+            ? "exceeds docs/design-tokens.md threshold; reduce duration or simplify easing"
+            : "within expected range",
       },
       null,
       2
