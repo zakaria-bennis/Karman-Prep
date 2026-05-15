@@ -7,18 +7,22 @@ import type { Metadata } from "next";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/server";
+import { resolveEffectiveClerkId } from "@/lib/supabase/queries/admin";
 import StudentDashboardClient from "@/components/dashboard/StudentDashboardClient";
 import type { DomainScores } from "@/types";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
 export default async function StudentDashboardPage() {
-  const { userId } = await auth();
-  if (!userId) redirect("/auth/sign-in");
+  const { userId: realUserId } = await auth();
+  if (!realUserId) redirect("/auth/sign-in");
+  const { clerkId: userId, isImpersonating } = await resolveEffectiveClerkId(realUserId);
 
   const supabase = createAdminClient();
 
-  // Check subscription status — redirect to billing if not subscribed
+  // Check subscription status — redirect to billing if not subscribed.
+  // Skip the gate when impersonating: the admin is debugging a student
+  // and should see their dashboard regardless of subscription state.
   const { data: sub } = await supabase
     .from("subscriptions")
     .select("*")
@@ -26,7 +30,7 @@ export default async function StudentDashboardPage() {
     .single();
 
   const isActive = sub?.status === "active" || sub?.status === "trialing";
-  if (!isActive) redirect("/billing?required=1");
+  if (!isActive && !isImpersonating) redirect("/billing?required=1");
 
   // Fetch user info
   const { data: user } = await supabase.from("users").select("*").eq("clerk_id", userId).single();

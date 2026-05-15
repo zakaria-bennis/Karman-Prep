@@ -7,6 +7,7 @@ import type { Metadata } from "next";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/server";
+import { resolveEffectiveClerkId } from "@/lib/supabase/queries/admin";
 import { RW_NODES, MATH_NODES } from "@/data/curriculum";
 import type { NodeStatus } from "@/data/curriculum";
 import ConstellationMap, { type MappedNode } from "@/components/learn/ConstellationMap";
@@ -17,8 +18,9 @@ export const metadata: Metadata = {
 };
 
 export default async function MathPage() {
-  const { userId } = await auth();
-  if (!userId) redirect("/auth/sign-in");
+  const { userId: realUserId } = await auth();
+  if (!realUserId) redirect("/auth/sign-in");
+  const { clerkId: userId } = await resolveEffectiveClerkId(realUserId);
 
   const supabase = createAdminClient();
   const allIds = [...RW_NODES, ...MATH_NODES].map((n) => n.id);

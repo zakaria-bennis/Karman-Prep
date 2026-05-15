@@ -17,14 +17,16 @@ import { MessageSquare } from "lucide-react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { ChatShell } from "@/components/chat/ChatShell";
 import { createAdminClient } from "@/lib/supabase/server";
+import { resolveEffectiveClerkId } from "@/lib/supabase/queries/admin";
 import { getUserUuidByClerkId } from "@/lib/supabase/queries/bookings";
 
 export const metadata: Metadata = { title: "Chat" };
 export const dynamic = "force-dynamic";
 
 export default async function StudentChatPage() {
-  const { userId } = await auth();
-  if (!userId) redirect("/auth/sign-in");
+  const { userId: realUserId } = await auth();
+  if (!realUserId) redirect("/auth/sign-in");
+  const { clerkId: userId } = await resolveEffectiveClerkId(realUserId);
 
   const studentUuid = await getUserUuidByClerkId(userId);
   if (!studentUuid) redirect("/onboarding");

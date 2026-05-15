@@ -4,13 +4,22 @@
 // ImpersonationBanner — floating notice that appears site-wide
 // whenever the admin "View as" cookie is set. Click × to exit
 // back to the real admin role.
+//
+// Shows the target user's name when granular impersonation is
+// active (audit issue #17), otherwise just the role.
 // ============================================================
 
 import { Eye, X, Loader2 } from "lucide-react";
 import { useTransition } from "react";
 import { actionClearImpersonation } from "@/app/admin/impersonation-actions";
 
-export default function ImpersonationBanner({ role }: { role: string }) {
+export default function ImpersonationBanner({
+  role,
+  userName,
+}: {
+  role: string;
+  userName?: string | null;
+}) {
   const [pending, startTransition] = useTransition();
 
   return (
@@ -20,7 +29,16 @@ export default function ImpersonationBanner({ role }: { role: string }) {
     >
       <Eye className="h-3.5 w-3.5" />
       <span className="uppercase tracking-wide">Admin viewing as</span>
-      <span className="font-extrabold">{role}</span>
+      {userName ? (
+        <>
+          <span className="font-extrabold">{userName}</span>
+          <span className="rounded-full bg-amber-950/15 px-1.5 py-0.5 text-[10px] uppercase tracking-wide">
+            {role}
+          </span>
+        </>
+      ) : (
+        <span className="font-extrabold">{role}</span>
+      )}
       <button
         onClick={() => startTransition(() => actionClearImpersonation())}
         disabled={pending}

@@ -6,6 +6,7 @@ import type { Metadata } from "next";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/server";
+import { resolveEffectiveClerkId } from "@/lib/supabase/queries/admin";
 import { RW_NODES, MATH_NODES, type CurriculumNode } from "@/data/curriculum";
 import MasteredNodesList from "@/components/dashboard/MasteredNodesList";
 
@@ -18,8 +19,9 @@ export interface MasteredNodeRow extends CurriculumNode {
 }
 
 export default async function MasteredPage() {
-  const { userId } = await auth();
-  if (!userId) redirect("/auth/sign-in");
+  const { userId: realUserId } = await auth();
+  if (!realUserId) redirect("/auth/sign-in");
+  const { clerkId: userId } = await resolveEffectiveClerkId(realUserId);
 
   const supabase = createAdminClient();
 

@@ -18,6 +18,7 @@ import { redirect } from "next/navigation";
 import { ArrowRight, BarChart3, Sparkles, AlertCircle, RefreshCcw, TrendingUp } from "lucide-react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { createAdminClient } from "@/lib/supabase/server";
+import { resolveEffectiveClerkId } from "@/lib/supabase/queries/admin";
 import { DOMAIN_LABELS, type SATDomain, type DomainScores } from "@/types";
 import { domainFromSlug, labelFromSlug } from "@/lib/question-bank/taxonomy";
 
@@ -46,8 +47,9 @@ interface DiagnosticRow {
 }
 
 export default async function StudentProgressPage() {
-  const { userId } = await auth();
-  if (!userId) redirect("/auth/sign-in");
+  const { userId: realUserId } = await auth();
+  if (!realUserId) redirect("/auth/sign-in");
+  const { clerkId: userId } = await resolveEffectiveClerkId(realUserId);
 
   const supabase = createAdminClient();
 

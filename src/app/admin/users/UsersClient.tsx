@@ -6,7 +6,7 @@
 // ============================================================
 
 import { useEffect, useMemo, useState, useTransition } from "react";
-import { Link2, Loader2, Plus, RefreshCcw, Search, Trash2, X } from "lucide-react";
+import { Eye, Link2, Loader2, Plus, RefreshCcw, Search, Trash2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { AdminCohortLite, AdminUserRow, LinkedStudentRow } from "@/lib/supabase/queries/users";
 import type { AppRole } from "@/lib/supabase/queries/admin";
@@ -16,6 +16,7 @@ import {
   actionLinkParentToStudent,
   actionUnlinkParentFromStudent,
 } from "./actions";
+import { actionImpersonateUser } from "@/app/admin/impersonation-actions";
 
 const ROLE_OPTIONS: AppRole[] = ["student", "tutor", "parent", "admin"];
 
@@ -261,8 +262,37 @@ function UserRow({ user, onManageLinks }: { user: AdminUserRow; onManageLinks: (
           <span className="text-xs text-slate-600">—</span>
         )}
       </td>
-      <td className="px-2 py-3" />
+      <td className="px-2 py-3">
+        {user.role !== "admin" && <ImpersonateButton userId={user.id} userName={fullName} />}
+      </td>
     </tr>
+  );
+}
+
+// ─── Impersonate button — audit issue #17 ───────────────────
+// Server-action call sets the role + user_id cookies and redirects
+// to the target's dashboard. Confirms before navigation since this
+// is a context switch the admin may not expect on a stray click.
+function ImpersonateButton({ userId, userName }: { userId: string; userName: string }) {
+  const [pending, startTransition] = useTransition();
+  return (
+    <button
+      onClick={() => {
+        if (
+          !confirm(
+            `Impersonate ${userName}?\n\nYou'll see their dashboard with their data. Click the banner × to exit.`
+          )
+        )
+          return;
+        startTransition(() => actionImpersonateUser(userId));
+      }}
+      disabled={pending}
+      title="Impersonate this user — see their dashboard with their data (read-only; mutations go to your admin row)."
+      className="inline-flex items-center gap-1 rounded-md border border-amber-500/40 px-2 py-1 text-xs font-semibold text-amber-300 hover:bg-amber-500/10 disabled:opacity-50"
+    >
+      {pending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Eye className="h-3 w-3" />}
+      Impersonate
+    </button>
   );
 }
 
