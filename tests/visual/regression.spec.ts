@@ -71,7 +71,12 @@ const PERSONAS = [
 async function impersonateByEmail(page: Page, email: string) {
   page.on("dialog", (d) => d.accept());
   await page.goto("/admin/users");
-  const row = page.locator("tr", { hasText: email });
+  // PR #73 added a mobile card layout: at < md the rows are <li>
+  // cards, at md+ they're <tr>s. Both copies render in the DOM —
+  // one is `display:none` per breakpoint. `li:visible, tr:visible`
+  // picks whichever copy is actually rendered at the current
+  // viewport.
+  const row = page.locator("li:visible, tr:visible").filter({ hasText: email });
   await row.getByRole("button", { name: /Impersonate/i }).click();
   await expect(page.getByRole("status")).toBeVisible();
 }
