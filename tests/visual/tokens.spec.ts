@@ -8,9 +8,10 @@
 // Tighten with explicit expect()s once the catalog is clean.
 // ============================================================
 
-import { test, type Page } from "@playwright/test";
+import { test } from "@playwright/test";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { impersonateByEmail, clearImpersonation } from "./helpers";
 
 const REPORT = path.resolve(process.cwd(), "tests", "visual", "snapshots", "tokens");
 
@@ -25,21 +26,6 @@ const PAGES_TO_AUDIT = [
   { persona: "admin", url: "/admin/users", email: null },
   { persona: "student_mid", url: "/dashboard/student", email: "dev-seed-mid@karman.local" },
 ];
-
-async function impersonateByEmail(page: Page, email: string) {
-  page.on("dialog", (d) => d.accept());
-  await page.goto("/admin/users");
-  const row = page.locator("tr", { hasText: email });
-  await row.getByRole("button", { name: /Impersonate/i }).click();
-  await page.waitForURL(/dashboard|tutor|learn|admin/);
-}
-
-async function clearImpersonation(page: Page) {
-  const banner = page.getByRole("status");
-  if (await banner.isVisible().catch(() => false)) {
-    await banner.getByRole("button", { name: /Exit impersonation/i }).click();
-  }
-}
 
 test.describe.configure({ mode: "serial" });
 
