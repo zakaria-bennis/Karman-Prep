@@ -2,7 +2,9 @@
 
 > A plain-English walkthrough of every feature in the app, the path a real person clicks to get there, what "working correctly" looks like, and any red flags worth knowing about. Use this as both a reference and a smoke-test checklist.
 
-**Last sync:** 2026-05-16. Covers all merged PRs through **#92** (the previous 2026-05-15 sync covered #33–#59; #60–#92 landed in a follow-up triage + merge batch). Major additions since 2026-05-14: reliability tightenings (Fireflies matcher, Zoom fuzzy names, Stripe Connect retry, SAT-date seed fallback), new admin affordances (cohort unarchive, granular impersonation, bulk-reject), one new tutor surface (`/tutor/schedule` self-serve cancel + reschedule), an opt-in session-recording consent banner for EU/CA visitors (#88), the ESLint v9 + flat config upgrade (#87), and a developer-only test/visual harness (seed-dev personas, Playwright E2E, Vitest+RTL, axe + tokens + timing visual specs, real-device iPhone captures, visual regression baselines). See the **What changed since 2026-05-14** subsection in _Critical issues_ for the per-feature delta.
+**Last sync:** 2026-05-16. Covers all merged PRs through **#97 + #64** (the previous 2026-05-15 sync covered #33–#59; #60–#97 landed in a follow-up triage + merge batch on 2026-05-16). Major additions since 2026-05-14: reliability tightenings (Fireflies matcher, Zoom fuzzy names, Stripe Connect retry, SAT-date seed fallback, Cal-webhook email retry queue, recent-approved-sender moderation cache), new admin affordances (cohort unarchive, granular impersonation Phase 1 + 2, bulk-reject, diagnostic retake grant), one new tutor surface (`/tutor/schedule` self-serve cancel + reschedule), an opt-in session-recording consent banner for EU/CA visitors (#88), the ESLint v9 + flat config upgrade (#87), and a developer-only test/visual harness (seed-dev personas, Playwright E2E in CI via `supabase start`, Vitest+RTL, axe + tokens + timing visual specs, real-device iPhone captures, visual regression baselines).
+
+All 3 launch-blocking critical-issues now resolved — see strikethroughs in _Block-the-launch_ below.
 
 ---
 
@@ -63,9 +65,9 @@ Compact changelog of merged PRs since the previous sync. Use this as the diff ag
 
 1. ~~**The booking page uses a hardcoded smoke-test Cal.com event-type id (`5489022`).**~~ **RESOLVED 2026-05-16** — [src/app/dashboard/student/schedule/page.tsx](src/app/dashboard/student/schedule/page.tsx) now reads `users.cal_event_type_id` per tutor via the `tutor_assignments` join. If the tutor's id is null, the booking widget is gated and `alertAdminAboutMissingTutorSetup()` fires a deduped (24h) admin email so the tutor can be onboarded before any student tries to book.
 
-2. **Chat is fully fail-closed on OpenAI outages.** If OpenAI Moderation hiccups for 60 seconds, the entire chat system rejects every message with "we're having a momentary issue checking your message — try again in a few seconds." That's the right _security_ posture but a brittle _availability_ posture for a school audience. Consider: cache last-known healthy result, allow tutor-and-above to bypass during outage, or surface a banner on the chat page.
+2. ~~**Chat is fully fail-closed on OpenAI outages.**~~ **RESOLVED** — `src/lib/moderation/cache.ts` + `pipeline.ts` add a recent-approved-sender cache. After a sender's message passes the full pipeline, subsequent messages within a 5-min window skip Layer 2 (OpenAI Moderation) + Layer 2.5 (Karman classifier) and rely on the cached approval. Layer 1 (keyword blocklist) still runs on every send, so the cache can't bypass the explicit safety floor. New / occasional senders still hit OpenAI and still fail-closed on outages — the cache only protects active conversations.
 
-3. **The Cal.com booking webhook silently swallows email-send failures.** If Resend is briefly down when a student books, the booking confirms in the database but the email never arrives. The webhook returns 200 so Cal.com doesn't retry. Result: students think their session is unconfirmed and pester support. Add a per-email retry queue or a "failed email" admin alert.
+3. ~~**The Cal.com booking webhook silently swallows email-send failures.**~~ **RESOLVED** — all 3 email-send paths in [src/app/api/webhooks/cal/route.ts](src/app/api/webhooks/cal/route.ts) (confirm / cancel / reschedule) wrap the Resend call in try/catch and route failures to `enqueueFailedEmail()` ([src/lib/integrations/resend/email-queue.ts](src/lib/integrations/resend/email-queue.ts)). The retry cron at `/api/cron/retry-failed-emails` drains the queue with exponential backoff. Webhook still returns 200 so Cal.com doesn't double-fire.
 
 ### Fix soon (high priority)
 
@@ -75,7 +77,7 @@ Compact changelog of merged PRs since the previous sync. Use this as the diff ag
 
 6. **PDF processing jobs have no auto-refresh.** Admins import a PDF, then have to manually F5 the `/admin/jobs` page to watch progress. Add polling or live-status events.
 
-7. **Diagnostic is one-and-done with no student retake path.** Students who want to benchmark progress mid-program can't retake without admin intervention. The `/progress` page even hides the retake CTA. Either add an admin-approved retake button or document this clearly.
+7. ~~**Diagnostic is one-and-done with no student retake path.**~~ **RESOLVED** — `users.diagnostic_retakes_remaining` column added. [src/app/diagnostic/page.tsx](src/app/diagnostic/page.tsx) gates the retake on a positive balance; [src/app/admin/users/actions.ts](src/app/admin/users/actions.ts) `actionGrantDiagnosticRetake` lets admins increment it; the submit route decrements on retake. Admin grants the retake from the user list when a student asks.
 
 8. ~~**Tutor cannot reschedule or cancel their own sessions.**~~ **RESOLVED 2026-05-15 ([PR #40](https://github.com/zakaria-bennis/Karman-Prep/pull/40))** — `/tutor/schedule` now has self-serve cancel + reschedule with the 24-hour rule.
 
@@ -126,7 +128,7 @@ Vocabulary an AI ingesting this doc cold should learn first. Code mappings in `m
 - **Node** — a single concept/topic in the constellation (e.g. "Pronouns", "Linear Equations"). Stored in `learn_nodes`. Has prerequisites that gate access.
 - **Domain** — top-level SAT category. Math has 4 (Algebra, Advanced Math, Geometry, Data Analysis); Reading & Writing has 4 (Info & Ideas, Craft & Structure, Expression of Ideas, Conventions).
 - **Mastery** — per-(user, node) completion state, tracked in `learn_node_status`. States: `locked` / `available` / `in_progress` / `mastered`.
-- **Diagnostic** — one-time 35-question SAT baseline. Stored in `diagnostic_results` with score range (e.g. 1050–1150), domain percentages, and weak-topic tags. Cannot be retaken without admin intervention.
+- **Diagnostic** — 35-question SAT baseline. Stored in `diagnostic_results` with score range (e.g. 1050–1150), domain percentages, and weak-topic tags. First attempt is automatic; retakes require an admin grant via `users.diagnostic_retakes_remaining` (incremented by `actionGrantDiagnosticRetake`, decremented on submit).
 - **Question bank** — `quiz_questions` table. Two flavors: live (live = node_id IS NOT NULL + import_status = `ok`) and bank (un-routed: node_id IS NULL, awaiting triage at `/admin/questions/review`).
 
 ## Chat & moderation
@@ -310,7 +312,7 @@ What happens across the whole stack when a real user takes a real action. Each j
 **External services:** OpenAI Moderation, OpenAI (Karman classifier), Slack (only on approved-clean), Supabase Storage (if mediaUrls were uploaded earlier).
 **Failure modes:**
 
-- OpenAI Moderation outage → entire chat system rejects everything (fail-closed). Critical availability issue.
+- OpenAI Moderation outage → recent-approved senders keep posting via the 5-min cache (`src/lib/moderation/cache.ts`); Layer 1 keyword blocklist still runs. **New / occasional senders still fail-closed during an outage** — that's the safety floor we keep intentionally.
 - Slack POST fails after moderation → route returns 502 and DB row is **not** inserted. Student retries; possible Slack duplicate.
 - Karman classifier error → ignored; Layer 2 result wins alone.
 
@@ -564,7 +566,7 @@ Everything a paying student lives in.
 - **What the user does:** Reads instructions, answers 35 questions, submits, sees a preliminary score and the topics flagged for study.
 - **What "working" looks like:** Diagnostic row appears in the database with score range (e.g. 1050–1150), domain percentages, and weak-topic tags. Student lands on a results screen with CTA to start learning.
 - 🚩 **Red flags:**
-  - **One-and-done.** Once submitted, the student can't retake without an admin reset. There's no UI for that admin reset either.
+  - **Admin-gated retakes.** A student can take the diagnostic once automatically; subsequent takes require an admin to grant via `actionGrantDiagnosticRetake` on `/admin/users` (writes `users.diagnostic_retakes_remaining`). Document this in the student-facing "no retakes available" message so students know to email support.
   - CTA copy branches on subscription status — test both signed-out and signed-in paths.
 
 ### `/learn` — Subject portal (Reading / Math)
@@ -589,7 +591,7 @@ Everything a paying student lives in.
 
 - **What it is:** Detailed progress hub — diagnostic delta, domain heatmap, weak topics by domain, mastery counters.
 - **What the user does:** Compares current vs first diagnostic, scans weak topics, sees cumulative mastery.
-- 🚩 **Red flags:** Hides the "retake diagnostic" CTA because diagnostic is one-and-done. Students hit a wall when they want to verify improvement.
+- **What "working" looks like:** Retake CTA shows when `users.diagnostic_retakes_remaining > 0` (admin-granted); otherwise hidden with copy explaining the gate.
 
 ### `/dashboard/student/predicted-sat` — SAT trajectory chart
 
@@ -917,7 +919,8 @@ This is the system that decides what happens to every chat message and DM.
 ### Decision logic
 
 - Layer 1 hit → **rejected** (blocklist message shown to sender).
-- Layer 2 errors → **rejected** (fail-closed).
+- Recent-approved sender (`hasRecentApprovedSend` within 5 min) → **skip Layer 2 + 2.5**, accept. Layer 1 still ran above, so the cache can't bypass the safety floor. This is the OpenAI-outage uptime path.
+- Layer 2 errors → **rejected** (fail-closed) — for senders without a cache hit.
 - Layer 2 flagged + HIGH category (sexual/self-harm/violence) → **rejected**.
 - Layer 2 flagged + score ≥ 0.5 → **rejected** (school-audience threshold).
 - Layer 2.5 flagged → **rejected** (Karman's specific judgment overrides borderline OpenAI scores).
