@@ -144,82 +144,173 @@ export default function CohortsClient({ cohorts, satDates, tutors, showArchived 
 // ─────────────────────────────────────────────────────────────
 
 function CohortTable({ cohorts }: { cohorts: AdminCohortRow[] }) {
+  return (
+    <>
+      {/* Mobile (<md): stacked cards. Whole card is clickable
+          to the detail page; the inline UnarchiveButton stops
+          propagation so it can be tapped independently.
+          Audit S1 (Phase 2 — cohorts mirror). */}
+      <ul className="space-y-2 md:hidden" aria-label="Cohorts (mobile view)">
+        {cohorts.map((c) => (
+          <li key={c.id}>
+            <CohortCard cohort={c} />
+          </li>
+        ))}
+      </ul>
+
+      {/* Desktop (md+): full table. Status column hides at <lg
+          since it's secondary; SAT date + Tutor + Members stay. */}
+      <div className="hidden overflow-hidden rounded-xl border border-slate-800 md:block">
+        <table className="w-full text-sm">
+          <thead className="bg-slate-900/60 text-xs uppercase tracking-wider text-slate-400">
+            <tr>
+              <th className="px-4 py-3 text-left font-semibold">Name</th>
+              <th className="px-4 py-3 text-left font-semibold">Tier</th>
+              <th className="px-4 py-3 text-left font-semibold">SAT date</th>
+              <th className="px-4 py-3 text-left font-semibold">Tutor</th>
+              <th className="px-4 py-3 text-right font-semibold">Members</th>
+              <th className="hidden px-4 py-3 text-left font-semibold lg:table-cell">Status</th>
+              <th aria-hidden="true" className="w-10"></th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-800">
+            {cohorts.map((c) => (
+              <CohortRow key={c.id} cohort={c} />
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </>
+  );
+}
+
+// ─── Mobile card layout (audit S1 Phase 2 — cohorts) ─────────
+
+function CohortCard({ cohort: c }: { cohort: AdminCohortRow }) {
   const router = useRouter();
   return (
-    <div className="overflow-hidden rounded-xl border border-slate-800">
-      <table className="w-full text-sm">
-        <thead className="bg-slate-900/60 text-xs uppercase tracking-wider text-slate-400">
-          <tr>
-            <th className="px-4 py-3 text-left font-semibold">Name</th>
-            <th className="px-4 py-3 text-left font-semibold">Tier</th>
-            <th className="px-4 py-3 text-left font-semibold">SAT date</th>
-            <th className="px-4 py-3 text-left font-semibold">Tutor</th>
-            <th className="px-4 py-3 text-right font-semibold">Members</th>
-            <th className="px-4 py-3 text-left font-semibold">Status</th>
-            <th aria-hidden="true" className="w-10"></th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-slate-800">
-          {cohorts.map((c) => (
-            <tr
-              key={c.id}
-              onClick={() => router.push(`/admin/cohorts/${c.id}`)}
-              className="cursor-pointer transition-colors hover:bg-slate-900/40 focus:bg-slate-900/60 focus:outline-none"
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") router.push(`/admin/cohorts/${c.id}`);
-              }}
-              role="link"
-              aria-label={`Open ${c.name}`}
-            >
-              <td className="px-4 py-3 font-medium text-white">
-                <div className="flex items-center gap-2">
-                  <span className={c.archived_at ? "text-slate-400" : undefined}>{c.name}</span>
-                  {c.archived_at ? (
-                    <span className="inline-flex items-center gap-0.5 rounded-md bg-slate-700/40 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-300">
-                      Archived
-                    </span>
-                  ) : null}
-                  {c.setup_completed_at === null &&
-                  !c.archived_at &&
-                  (c.tier === "group" || c.tier === "small_group") ? (
-                    <span className="inline-flex items-center gap-0.5 rounded-md bg-amber-400/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-300">
-                      Needs setup
-                    </span>
-                  ) : null}
-                </div>
-              </td>
-              <td className="px-4 py-3">
-                <TierBadge tier={c.tier} />
-              </td>
-              <td className="px-4 py-3 text-slate-300">{formatDate(c.sat_date)}</td>
-              <td className="px-4 py-3 text-slate-300">{tutorDisplay(c.tutor)}</td>
-              <td className="px-4 py-3 text-right">
-                <span
-                  className={cn(
-                    "font-mono",
-                    c.member_count >= c.max_size ? "text-amber-300" : "text-slate-300"
-                  )}
-                >
-                  {c.member_count}
-                </span>
-                <span className="font-mono text-slate-500">/{c.max_size}</span>
-              </td>
-              <td className="px-4 py-3">
-                <StatusBadge status={c.status} />
-              </td>
-              <td className="px-2 py-3 text-slate-600">
-                {c.archived_at ? (
-                  <UnarchiveButton cohortId={c.id} />
-                ) : (
-                  <ChevronRight className="h-4 w-4" />
-                )}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <article
+      onClick={() => router.push(`/admin/cohorts/${c.id}`)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") router.push(`/admin/cohorts/${c.id}`);
+      }}
+      role="link"
+      tabIndex={0}
+      aria-label={`Open ${c.name}`}
+      className="cursor-pointer rounded-xl border border-slate-800 bg-slate-950/40 p-4 transition-colors hover:bg-slate-900/40 focus:bg-slate-900/60 focus:outline-none"
+    >
+      {/* Identity + status badges row */}
+      <div className="mb-2 flex flex-wrap items-start gap-2">
+        <div className="min-w-0 flex-1">
+          <div
+            className={cn("text-base font-medium", c.archived_at ? "text-slate-400" : "text-white")}
+          >
+            {c.name}
+          </div>
+        </div>
+        {c.archived_at ? (
+          <span className="shrink-0 rounded-md bg-slate-700/40 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-300">
+            Archived
+          </span>
+        ) : null}
+        {c.setup_completed_at === null &&
+        !c.archived_at &&
+        (c.tier === "group" || c.tier === "small_group") ? (
+          <span className="shrink-0 rounded-md bg-amber-400/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-300">
+            Needs setup
+          </span>
+        ) : null}
+      </div>
+
+      {/* Tier + Members + Status — wraps on narrow screens */}
+      <div className="mb-2 flex flex-wrap items-center gap-2">
+        <TierBadge tier={c.tier} />
+        <StatusBadge status={c.status} />
+        <span className="ml-auto text-sm">
+          <span
+            className={cn(
+              "font-mono",
+              c.member_count >= c.max_size ? "text-amber-300" : "text-slate-300"
+            )}
+          >
+            {c.member_count}
+          </span>
+          <span className="font-mono text-slate-400">/{c.max_size}</span>
+          <span className="ml-1 text-xs text-slate-500">members</span>
+        </span>
+      </div>
+
+      {/* SAT date + Tutor (muted) */}
+      <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400">
+        <span>SAT {formatDate(c.sat_date)}</span>
+        <span className="truncate">{tutorDisplay(c.tutor)}</span>
+      </div>
+
+      {/* Bottom-right: unarchive (if applicable) or open arrow */}
+      {c.archived_at ? (
+        <div className="mt-3 flex justify-end">
+          <UnarchiveButton cohortId={c.id} />
+        </div>
+      ) : null}
+    </article>
+  );
+}
+
+// ─── Desktop table row ──────────────────────────────────────
+
+function CohortRow({ cohort: c }: { cohort: AdminCohortRow }) {
+  const router = useRouter();
+  return (
+    <tr
+      onClick={() => router.push(`/admin/cohorts/${c.id}`)}
+      className="cursor-pointer transition-colors hover:bg-slate-900/40 focus:bg-slate-900/60 focus:outline-none"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") router.push(`/admin/cohorts/${c.id}`);
+      }}
+      role="link"
+      aria-label={`Open ${c.name}`}
+    >
+      <td className="px-4 py-3 font-medium text-white">
+        <div className="flex items-center gap-2">
+          <span className={c.archived_at ? "text-slate-400" : undefined}>{c.name}</span>
+          {c.archived_at ? (
+            <span className="inline-flex items-center gap-0.5 rounded-md bg-slate-700/40 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-300">
+              Archived
+            </span>
+          ) : null}
+          {c.setup_completed_at === null &&
+          !c.archived_at &&
+          (c.tier === "group" || c.tier === "small_group") ? (
+            <span className="inline-flex items-center gap-0.5 rounded-md bg-amber-400/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-300">
+              Needs setup
+            </span>
+          ) : null}
+        </div>
+      </td>
+      <td className="px-4 py-3">
+        <TierBadge tier={c.tier} />
+      </td>
+      <td className="px-4 py-3 text-slate-300">{formatDate(c.sat_date)}</td>
+      <td className="px-4 py-3 text-slate-300">{tutorDisplay(c.tutor)}</td>
+      <td className="px-4 py-3 text-right">
+        <span
+          className={cn(
+            "font-mono",
+            c.member_count >= c.max_size ? "text-amber-300" : "text-slate-300"
+          )}
+        >
+          {c.member_count}
+        </span>
+        <span className="font-mono text-slate-400">/{c.max_size}</span>
+      </td>
+      <td className="hidden px-4 py-3 lg:table-cell">
+        <StatusBadge status={c.status} />
+      </td>
+      <td className="px-2 py-3 text-slate-600">
+        {c.archived_at ? <UnarchiveButton cohortId={c.id} /> : <ChevronRight className="h-4 w-4" />}
+      </td>
+    </tr>
   );
 }
 
