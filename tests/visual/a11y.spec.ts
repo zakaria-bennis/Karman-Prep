@@ -10,9 +10,10 @@
 // ============================================================
 
 import AxeBuilder from "@axe-core/playwright";
-import { test, type Page } from "@playwright/test";
+import { test } from "@playwright/test";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { impersonateByEmail } from "./helpers";
 
 const ROOT = path.resolve(process.cwd(), "tests", "visual", "snapshots", "a11y");
 
@@ -25,14 +26,6 @@ const PAGES_TO_SCAN = [
   { persona: "student_mid", url: "/learn/reading", email: "dev-seed-mid@karman.local" },
   { persona: "tutor", url: "/tutor", email: "dev-seed-tutor@karman.local" },
 ];
-
-async function impersonateByEmail(page: Page, email: string) {
-  page.on("dialog", (d) => d.accept());
-  await page.goto("/admin/users");
-  const row = page.locator("tr", { hasText: email });
-  await row.getByRole("button", { name: /Impersonate/i }).click();
-  await page.waitForURL(/dashboard|tutor|learn|admin/);
-}
 
 test.describe.configure({ mode: "serial" });
 
