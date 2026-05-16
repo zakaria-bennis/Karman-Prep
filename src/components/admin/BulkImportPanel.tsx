@@ -156,7 +156,7 @@ export default function BulkImportPanel({ nodeId, subject, topicCluster }: Props
           <Download className="h-3.5 w-3.5" /> CSV template
         </button>
       </div>
-      <p className="mb-4 max-w-2xl text-xs text-slate-500">
+      <p className="mb-4 max-w-2xl text-xs text-slate-400">
         Upload a CSV or JSON file. Accepts the legacy 15-column template AND the 30-column routine
         template (PDF-ingestion output). Required:
         <code className="mx-1 rounded bg-slate-800 px-1 py-0.5 text-slate-300">question_text</code>,
@@ -186,7 +186,7 @@ export default function BulkImportPanel({ nodeId, subject, topicCluster }: Props
         >
           <Upload className="h-3.5 w-3.5" /> Choose file
         </button>
-        {preview && <span className="text-xs text-slate-500">{preview.length} rows parsed</span>}
+        {preview && <span className="text-xs text-slate-400">{preview.length} rows parsed</span>}
       </div>
 
       {parseError && (
@@ -219,9 +219,9 @@ export default function BulkImportPanel({ nodeId, subject, topicCluster }: Props
                     <td className="max-w-[24rem] truncate px-3 py-2 text-slate-200">
                       {r.question_text}
                     </td>
-                    <td className="px-3 py-2 text-slate-500">{r.difficulty}</td>
-                    <td className="px-3 py-2 text-slate-500">{r.correct_answer}</td>
-                    <td className="px-3 py-2 text-slate-500">{r.concept_slug ?? "—"}</td>
+                    <td className="px-3 py-2 text-slate-400">{r.difficulty}</td>
+                    <td className="px-3 py-2 text-slate-400">{r.correct_answer}</td>
+                    <td className="px-3 py-2 text-slate-400">{r.concept_slug ?? "—"}</td>
                     <td className="px-3 py-2">
                       <span
                         className={cn(

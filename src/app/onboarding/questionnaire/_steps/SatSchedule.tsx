@@ -52,7 +52,7 @@ export function SatScheduleStep(props: {
           onChange={(e) => props.setGoalSatScore(Number(e.target.value))}
           className="w-full accent-blue-400"
         />
-        <div className="mt-1 flex justify-between text-[11px] text-slate-500">
+        <div className="mt-1 flex justify-between text-[11px] text-slate-400">
           <span>400</span>
           <span>1600</span>
         </div>

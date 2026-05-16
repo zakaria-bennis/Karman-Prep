@@ -108,7 +108,7 @@ export function AnswerChoiceButton({
                 isSelected &&
                 !isCorrect &&
                 "text-red-600 dark:text-red-400",
-              !isCrossed && isAnswered && !isSelected && !isCorrect && "text-slate-500",
+              !isCrossed && isAnswered && !isSelected && !isCorrect && "text-slate-400",
               !isCrossed && !isAnswered && "text-slate-700 dark:text-slate-200"
             )}
           >

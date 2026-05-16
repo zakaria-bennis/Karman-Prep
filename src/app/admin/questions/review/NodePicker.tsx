@@ -59,13 +59,13 @@ export function NodePicker({
     <div className="mt-3 space-y-2 rounded-lg border border-slate-700 bg-slate-950/40 p-3">
       {/* Current selection */}
       <div className="flex items-center gap-2 text-xs">
-        <span className="shrink-0 text-slate-500">Send to:</span>
+        <span className="shrink-0 text-slate-400">Send to:</span>
         {selected ? (
           <>
             <span className="shrink-0 font-mono text-slate-400">{selected.nodeId}</span>
             <span className="truncate text-slate-200">{selected.label}</span>
-            <span className="shrink-0 text-slate-600">·</span>
-            <span className="shrink-0 text-slate-500">{CLUSTER_BY_DOMAIN[selected.domain]}</span>
+            <span className="shrink-0 text-slate-400">·</span>
+            <span className="shrink-0 text-slate-400">{CLUSTER_BY_DOMAIN[selected.domain]}</span>
             {isAutoPick && (
               <span className="ml-auto inline-flex shrink-0 items-center gap-1 text-emerald-400">
                 <Sparkles className="h-3 w-3" /> auto-picked from slug
@@ -73,25 +73,25 @@ export function NodePicker({
             )}
           </>
         ) : (
-          <span className="italic text-slate-500">No node — question stays in bank</span>
+          <span className="italic text-slate-400">No node — question stays in bank</span>
         )}
       </div>
 
       {/* Search input */}
       <div className="flex items-center gap-2 rounded border border-slate-700 bg-slate-900 px-2 py-1">
-        <Search className="h-3 w-3 shrink-0 text-slate-500" />
+        <Search className="h-3 w-3 shrink-0 text-slate-400" />
         <input
           ref={inputRef}
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={selected ? "Search for a different node…" : "Type to search 89 nodes…"}
-          className="flex-1 bg-transparent text-xs text-slate-200 placeholder:text-slate-600 focus:outline-none"
+          className="flex-1 bg-transparent text-xs text-slate-200 placeholder:text-slate-400 focus:outline-none"
         />
         {query && (
           <button
             onClick={() => setQuery("")}
-            className="text-xs text-slate-500 hover:text-slate-300"
+            className="text-xs text-slate-400 hover:text-slate-300"
           >
             ×
           </button>
@@ -115,9 +115,9 @@ export function NodePicker({
                     isCurrent && "bg-emerald-500/10"
                   )}
                 >
-                  <span className="shrink-0 font-mono text-slate-500">{m.nodeId}</span>
+                  <span className="shrink-0 font-mono text-slate-400">{m.nodeId}</span>
                   <span className="flex-1 truncate text-slate-200">{m.label}</span>
-                  <span className="shrink-0 text-slate-600">{CLUSTER_BY_DOMAIN[m.domain]}</span>
+                  <span className="shrink-0 text-slate-400">{CLUSTER_BY_DOMAIN[m.domain]}</span>
                 </button>
               </li>
             );
@@ -125,7 +125,7 @@ export function NodePicker({
         </ul>
       )}
       {query.trim() && matches.length === 0 && (
-        <div className="px-1 text-xs italic text-slate-500">
+        <div className="px-1 text-xs italic text-slate-400">
           No nodes match &ldquo;{query}&rdquo;.
         </div>
       )}
@@ -134,7 +134,7 @@ export function NodePicker({
       <div className="flex items-center gap-2 pt-1">
         <button
           onClick={() => setSelectedNodeId(null)}
-          className="text-xs text-slate-500 hover:text-slate-300"
+          className="text-xs text-slate-400 hover:text-slate-300"
         >
           Keep in bank
         </button>

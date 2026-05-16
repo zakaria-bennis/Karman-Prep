@@ -65,7 +65,7 @@ export default function LearnLayout({ children }: { children: React.ReactNode })
                 "rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-wider transition-colors",
                 pathname.startsWith("/learn/reading")
                   ? "bg-pink-500/20 text-pink-300"
-                  : "text-slate-500 hover:text-slate-200"
+                  : "text-slate-400 hover:text-slate-200"
               )}
             >
               Reading
@@ -76,7 +76,7 @@ export default function LearnLayout({ children }: { children: React.ReactNode })
                 "rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-wider transition-colors",
                 pathname.startsWith("/learn/math")
                   ? "bg-sky-500/20 text-sky-300"
-                  : "text-slate-500 hover:text-slate-200"
+                  : "text-slate-400 hover:text-slate-200"
               )}
             >
               Math

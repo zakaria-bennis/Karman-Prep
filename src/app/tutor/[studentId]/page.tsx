@@ -98,7 +98,7 @@ export default async function StudentDetailPage({ params, searchParams }: Params
       <div className="mx-auto max-w-6xl space-y-6 px-4 py-8 sm:px-6">
         <Link
           href="/tutor"
-          className="mb-2 inline-flex items-center gap-1 text-xs text-slate-500 hover:text-slate-900 dark:hover:text-white"
+          className="mb-2 inline-flex items-center gap-1 text-xs text-slate-400 hover:text-slate-900 dark:hover:text-white"
         >
           <ArrowLeft className="h-3.5 w-3.5" /> All students
         </Link>
@@ -122,7 +122,7 @@ export default async function StudentDetailPage({ params, searchParams }: Params
                   {atmo}
                 </span>
                 {lastActive && (
-                  <span className="text-xs text-slate-500">
+                  <span className="text-xs text-slate-400">
                     Last active: {new Date(lastActive).toLocaleString()}
                   </span>
                 )}
@@ -130,7 +130,7 @@ export default async function StudentDetailPage({ params, searchParams }: Params
             </div>
             {avgScore !== null && (
               <div className="text-right">
-                <div className="text-xs font-bold uppercase tracking-wide text-slate-500">
+                <div className="text-xs font-bold uppercase tracking-wide text-slate-400">
                   Avg quiz score
                 </div>
                 <div className="text-2xl font-extrabold tabular-nums text-slate-900 dark:text-white">
@@ -181,7 +181,7 @@ function ProgressBar({
     <div>
       <div className="mb-1.5 flex justify-between text-xs">
         <span className="font-semibold text-slate-700 dark:text-slate-300">{label}</span>
-        <span className="tabular-nums text-slate-500">
+        <span className="tabular-nums text-slate-400">
           {mastered} / {total} · {pct}%
         </span>
       </div>

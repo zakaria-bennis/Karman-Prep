@@ -234,7 +234,7 @@ export default function QuizEngine({ node, videoUrl, onClose, onGoToNext }: Prop
                 onChange={(e) => setFlagNote(e.target.value)}
                 placeholder="Optional note (e.g. 'answer key seems wrong', 'ambiguous wording')…"
                 rows={3}
-                className="w-full rounded-lg border border-slate-700 bg-slate-800 p-3 text-sm text-slate-100 placeholder:text-slate-500 focus:border-rose-500 focus:outline-none"
+                className="w-full rounded-lg border border-slate-700 bg-slate-800 p-3 text-sm text-slate-100 placeholder:text-slate-400 focus:border-rose-500 focus:outline-none"
               />
               <div className="mt-4 flex justify-end gap-3">
                 <button

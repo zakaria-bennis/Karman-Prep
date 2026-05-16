@@ -50,14 +50,14 @@ export default function ComingSoonForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
       <div className="flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-900/80 px-3 py-2 transition-colors focus-within:border-indigo-500/60">
-        <Mail className="h-3.5 w-3.5 shrink-0 text-slate-500" />
+        <Mail className="h-3.5 w-3.5 shrink-0 text-slate-400" />
         <input
           type="email"
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="you@example.com"
-          className="flex-1 bg-transparent text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none"
+          className="flex-1 bg-transparent text-sm text-slate-100 placeholder:text-slate-400 focus:outline-none"
           aria-label="Email address"
         />
         <button
@@ -70,7 +70,7 @@ export default function ComingSoonForm() {
         </button>
       </div>
       {status === "error" && <p className="text-xs text-rose-300">{message}</p>}
-      {status === "loading" && <p className="text-xs text-slate-500">Submitting…</p>}
+      {status === "loading" && <p className="text-xs text-slate-400">Submitting…</p>}
     </form>
   );
 }

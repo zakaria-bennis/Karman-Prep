@@ -109,19 +109,19 @@ export default function PayoutsClient({
       {/* ── Hero — pending + 2 buttons ─────────────────── */}
       <section className="rounded-xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900/60">
         <div className="flex flex-wrap items-baseline gap-3">
-          <div className="text-xs font-bold uppercase tracking-wider text-slate-500">Pending</div>
+          <div className="text-xs font-bold uppercase tracking-wider text-slate-400">Pending</div>
           <div className="text-4xl font-extrabold tabular-nums text-slate-900 dark:text-white">
             {fmt.format(pendingAmount)}
           </div>
         </div>
-        <div className="mt-1 text-sm text-slate-500">
+        <div className="mt-1 text-sm text-slate-400">
           {eligibleSessions.length} session{eligibleSessions.length === 1 ? "" : "s"} ·{" "}
           {totalHours.toFixed(2)} hours
         </div>
 
         {pendingAmount === 0 ? (
           <div className="mt-5 rounded-lg border border-dashed border-slate-300 p-4 text-center dark:border-slate-700">
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-slate-400">
               No pending earnings. Send recap emails to mark sessions for payout.
             </p>
           </div>
@@ -146,7 +146,7 @@ export default function PayoutsClient({
               </button>
             ) : (
               <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-900/40">
-                <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-500">
+                <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-400">
                   <CreditCard className="h-4 w-4" />
                   Instant — locked
                 </div>
@@ -176,7 +176,7 @@ export default function PayoutsClient({
               <div className="mt-2 text-2xl font-extrabold tabular-nums text-slate-900 dark:text-white">
                 {fmt.format(pendingAmount)}
               </div>
-              <div className="mt-1 text-xs text-slate-500">
+              <div className="mt-1 text-xs text-slate-400">
                 No fee · arrives in 2-3 business days
               </div>
               {isPending ? <Loader2 className="mt-3 h-4 w-4 animate-spin text-slate-400" /> : null}
@@ -249,7 +249,7 @@ export default function PayoutsClient({
                     <div className="font-bold tabular-nums text-slate-900 dark:text-white">
                       {fmt.format(p.net_amount ?? p.total_amount)}
                     </div>
-                    <div className="text-xs text-slate-500">
+                    <div className="text-xs text-slate-400">
                       {p.booking_count ?? 0} session{p.booking_count === 1 ? "" : "s"} ·{" "}
                       {p.total_hours.toFixed(2)}h
                       {p.payout_method && (
@@ -267,7 +267,7 @@ export default function PayoutsClient({
                     </div>
                   </div>
                 </div>
-                <div className="shrink-0 text-right text-xs text-slate-500">
+                <div className="shrink-0 text-right text-xs text-slate-400">
                   {formatDate(p.requested_at)}
                 </div>
               </li>
@@ -340,13 +340,13 @@ function HistoryStatusPill({ status }: { status: string }) {
       label: "Paid",
       cls: "bg-emerald-100 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300",
     },
-    cancelled: { label: "Cancelled", cls: "bg-slate-200 dark:bg-slate-800 text-slate-500" },
+    cancelled: { label: "Cancelled", cls: "bg-slate-200 dark:bg-slate-800 text-slate-400" },
     failed: {
       label: "Failed",
       cls: "bg-rose-100 dark:bg-rose-500/15 text-rose-700 dark:text-rose-300",
     },
   };
-  const m = map[status] ?? { label: status, cls: "bg-slate-100 dark:bg-slate-800 text-slate-500" };
+  const m = map[status] ?? { label: status, cls: "bg-slate-100 dark:bg-slate-800 text-slate-400" };
   return (
     <span
       className={cn(

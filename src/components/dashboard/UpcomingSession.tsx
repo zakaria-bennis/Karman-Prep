@@ -168,7 +168,7 @@ export function UpcomingSession({ booking, tutorName, rescheduleProps }: Upcomin
           <CalendarClock className="h-4 w-4 text-blue-500" />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
             Next session
           </p>
           <p className="mt-0.5 truncate text-sm font-bold text-slate-900 dark:text-white">{date}</p>
@@ -222,7 +222,7 @@ export function UpcomingSession({ booking, tutorName, rescheduleProps }: Upcomin
       </div>
 
       {!canSelfReschedule && booking.reschedule_count >= 1 ? (
-        <p className="mt-2 text-[11px] text-slate-500">
+        <p className="mt-2 text-[11px] text-slate-400">
           Free reschedule already used for this session.
         </p>
       ) : null}

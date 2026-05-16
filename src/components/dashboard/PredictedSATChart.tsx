@@ -63,7 +63,7 @@ export default function PredictedSATChart({ points, diagnosticsCount }: Props) {
       <div className="mx-auto max-w-5xl space-y-6 px-4 py-8 sm:px-6">
         <Link
           href="/dashboard/student"
-          className="inline-flex items-center gap-1 text-xs text-slate-500 hover:text-slate-900 dark:hover:text-white"
+          className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-slate-900 dark:hover:text-white"
         >
           <ArrowLeft className="h-3.5 w-3.5" /> Back to dashboard
         </Link>

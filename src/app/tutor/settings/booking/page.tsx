@@ -77,14 +77,14 @@ export default async function TutorBookingSettingsPage({ searchParams }: PagePro
     <div className="mx-auto max-w-2xl px-5 py-8">
       <Link
         href="/tutor"
-        className="mb-3 inline-flex items-center gap-1 text-xs text-slate-500 hover:text-slate-700"
+        className="mb-3 inline-flex items-center gap-1 text-xs text-slate-400 hover:text-slate-400"
       >
         <ChevronRight className="h-3 w-3 rotate-180" /> Back to tutor home
       </Link>
       <h1 className="flex items-center gap-2 text-2xl font-bold text-slate-900">
         <CalendarCheck className="h-5 w-5 text-blue-500" /> Booking settings
       </h1>
-      <p className="mt-1.5 text-sm text-slate-500">
+      <p className="mt-1.5 text-sm text-slate-400">
         Connect your Cal.com account so your students can book sessions on your real calendar.
       </p>
 
@@ -107,8 +107,8 @@ export default async function TutorBookingSettingsPage({ searchParams }: PagePro
         />
       </div>
 
-      <div className="mt-8 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-xs text-slate-600">
-        <p className="font-semibold text-slate-700">Need a Cal account?</p>
+      <div className="mt-8 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-xs text-slate-400">
+        <p className="font-semibold text-slate-400">Need a Cal account?</p>
         <p className="mt-1">
           Sign up at{" "}
           <a

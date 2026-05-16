@@ -35,7 +35,7 @@ export function TabsView({
 
   if (questions.length === 0) {
     return (
-      <div className="rounded-xl border border-dashed border-slate-700 p-8 text-center text-sm text-slate-500">
+      <div className="rounded-xl border border-dashed border-slate-700 p-8 text-center text-sm text-slate-400">
         No questions at this filter.
       </div>
     );

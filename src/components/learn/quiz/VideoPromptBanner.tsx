@@ -40,7 +40,7 @@ export function VideoPromptBanner({
         {videoUrl ? (
           <video src={videoUrl} controls autoPlay className="h-full w-full" />
         ) : (
-          <div className="flex h-full w-full items-center justify-center text-sm text-slate-500">
+          <div className="flex h-full w-full items-center justify-center text-sm text-slate-400">
             Lesson video will auto-play once uploaded.
           </div>
         )}

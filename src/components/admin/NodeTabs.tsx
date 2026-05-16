@@ -59,13 +59,13 @@ export default function NodeTabs({
               "flex items-center gap-1.5 whitespace-nowrap border-b-2 px-4 pb-3 pt-2 font-semibold transition-colors",
               active === key
                 ? "border-indigo-500 text-indigo-400"
-                : "border-transparent text-slate-500 hover:text-slate-200"
+                : "border-transparent text-slate-400 hover:text-slate-200"
             )}
           >
             <Icon className="h-3.5 w-3.5" />
             {label}
             {key === "questions" && initialQuestions.length > 0 && (
-              <span className="text-xs text-slate-600">({initialQuestions.length})</span>
+              <span className="text-xs text-slate-400">({initialQuestions.length})</span>
             )}
           </button>
         ))}

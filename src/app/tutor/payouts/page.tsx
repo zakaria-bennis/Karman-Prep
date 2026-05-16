@@ -129,7 +129,7 @@ export default async function TutorPayoutsPage() {
       <div className="mx-auto max-w-4xl space-y-6 px-4 py-8 sm:px-6">
         <Link
           href="/tutor/earnings"
-          className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-900 dark:hover:text-white"
+          className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-slate-900 dark:hover:text-white"
         >
           <ChevronLeft className="h-4 w-4" /> My earnings
         </Link>
@@ -158,7 +158,7 @@ export default async function TutorPayoutsPage() {
               </p>
               <Link
                 href="/tutor/settings/payment"
-                className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-amber-600 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-700"
+                className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-amber-600 px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-amber-500"
               >
                 Go to payment settings
               </Link>

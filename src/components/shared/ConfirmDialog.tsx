@@ -115,7 +115,7 @@ function DialogShell({
         <button
           onClick={onCancel}
           disabled={pending}
-          className="absolute right-4 top-4 text-slate-500 hover:text-slate-200 disabled:opacity-50"
+          className="absolute right-4 top-4 text-slate-400 hover:text-slate-200 disabled:opacity-50"
           aria-label="Cancel"
         >
           <X className="h-5 w-5" />

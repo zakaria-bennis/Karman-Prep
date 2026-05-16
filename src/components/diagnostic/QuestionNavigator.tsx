@@ -131,9 +131,9 @@ export function QuestionNavigator({
 
           <p className="mt-2 text-xs text-slate-400">
             <span className="font-semibold text-emerald-300">{answeredCount} answered</span>
-            <span className="mx-1.5 text-slate-600">·</span>
+            <span className="mx-1.5 text-slate-400">·</span>
             <span className="font-semibold text-amber-300">{bookmarkedCount} bookmarked</span>
-            <span className="mx-1.5 text-slate-600">·</span>
+            <span className="mx-1.5 text-slate-400">·</span>
             <span className="font-semibold text-slate-300">{remaining} left</span>
           </p>
         </header>
@@ -248,11 +248,11 @@ function Section({
       >
         {icon}
         {title}
-        <span className="text-[10px] font-semibold normal-case tracking-normal text-slate-500">
+        <span className="text-[10px] font-semibold normal-case tracking-normal text-slate-400">
           · {questions.length} questions
         </span>
         {locked && (
-          <span className="ml-auto inline-flex items-center gap-1 text-[9px] font-semibold uppercase normal-case tracking-normal tracking-wider text-slate-500">
+          <span className="ml-auto inline-flex items-center gap-1 text-[9px] font-semibold uppercase normal-case tracking-normal tracking-wider text-slate-400">
             Locked
           </span>
         )}

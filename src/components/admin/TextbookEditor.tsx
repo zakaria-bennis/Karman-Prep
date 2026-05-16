@@ -120,7 +120,7 @@ export default function TextbookEditor({ nodeId, initial }: Props) {
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-base font-bold text-white">Textbook page</h2>
-          <p className="mt-0.5 text-xs text-slate-500">
+          <p className="mt-0.5 text-xs text-slate-400">
             Markdown + KaTeX. Use{" "}
             <code className="rounded bg-slate-800 px-1 py-0.5 text-slate-300">$…$</code> for inline
             math and <code className="rounded bg-slate-800 px-1 py-0.5 text-slate-300">$$…$$</code>{" "}
@@ -134,7 +134,7 @@ export default function TextbookEditor({ nodeId, initial }: Props) {
               onClick={() => setMobileView("edit")}
               className={cn(
                 "flex items-center gap-1 px-3 py-1.5 font-semibold",
-                mobileView === "edit" ? "bg-slate-800 text-white" : "text-slate-500"
+                mobileView === "edit" ? "bg-slate-800 text-white" : "text-slate-400"
               )}
             >
               <Edit3 className="h-3 w-3" /> Edit
@@ -143,7 +143,7 @@ export default function TextbookEditor({ nodeId, initial }: Props) {
               onClick={() => setMobileView("preview")}
               className={cn(
                 "flex items-center gap-1 px-3 py-1.5 font-semibold",
-                mobileView === "preview" ? "bg-slate-800 text-white" : "text-slate-500"
+                mobileView === "preview" ? "bg-slate-800 text-white" : "text-slate-400"
               )}
             >
               <Eye className="h-3 w-3" /> Preview
@@ -196,7 +196,7 @@ $$\\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$$
 Paste a screenshot anywhere in this editor — it auto-uploads
 and drops a markdown image at your cursor."
           />
-          <div className="mt-2 flex items-center gap-1 text-[11px] text-slate-600">
+          <div className="mt-2 flex items-center gap-1 text-[11px] text-slate-400">
             <Info className="h-3 w-3 shrink-0" />
             <span>
               KaTeX backslashes need to be escaped once: write{" "}
@@ -219,7 +219,7 @@ and drops a markdown image at your cursor."
           )}
           {pastedThisSession.length > 0 && (
             <div className="mt-3">
-              <div className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+              <div className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
                 Pasted this session ({pastedThisSession.length}) — click to re-insert at cursor
               </div>
               <div className="flex flex-wrap gap-2">

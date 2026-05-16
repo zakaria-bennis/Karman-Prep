@@ -84,11 +84,12 @@ export default function CohortsClient({ cohorts, satDates, tutors, showArchived 
       {/* Filter bar — only show once we actually have cohorts to filter through */}
       {cohorts.length > 0 && (
         <div className="mb-4 flex items-center gap-3">
-          <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
+          <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-400">
             <Filter className="h-3.5 w-3.5" />
             Filter
           </div>
           <select
+            aria-label="Filter cohorts by tutor"
             value={tutorFilter}
             onChange={(e) => setTutorFilter(e.target.value)}
             className="rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-1.5 text-sm text-slate-200 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
@@ -104,7 +105,7 @@ export default function CohortsClient({ cohorts, satDates, tutors, showArchived 
             })}
           </select>
           {tutorFilter && visibleCohorts.length === 0 && (
-            <span className="text-xs text-slate-500">No cohorts for this tutor.</span>
+            <span className="text-xs text-slate-400">No cohorts for this tutor.</span>
           )}
           {/* Toggle between active-only and include-archived views.
               Drives `?show=archived` on the URL (audit #13). */}
@@ -236,7 +237,7 @@ function CohortCard({ cohort: c }: { cohort: AdminCohortRow }) {
             {c.member_count}
           </span>
           <span className="font-mono text-slate-400">/{c.max_size}</span>
-          <span className="ml-1 text-xs text-slate-500">members</span>
+          <span className="ml-1 text-xs text-slate-400">members</span>
         </span>
       </div>
 
@@ -307,7 +308,7 @@ function CohortRow({ cohort: c }: { cohort: AdminCohortRow }) {
       <td className="hidden px-4 py-3 lg:table-cell">
         <StatusBadge status={c.status} />
       </td>
-      <td className="px-2 py-3 text-slate-600">
+      <td className="px-2 py-3 text-slate-400">
         {c.archived_at ? <UnarchiveButton cohortId={c.id} /> : <ChevronRight className="h-4 w-4" />}
       </td>
     </tr>
@@ -389,7 +390,7 @@ function EmptyState({
 }) {
   return (
     <div className="rounded-xl border border-dashed border-slate-800 px-8 py-16 text-center">
-      <GraduationCap className="mx-auto mb-3 h-8 w-8 text-slate-600" />
+      <GraduationCap className="mx-auto mb-3 h-8 w-8 text-slate-400" />
       <h2 className="text-base font-semibold text-white">No cohorts yet</h2>
       {canCreate ? (
         <p className="mx-auto mt-2 max-w-sm text-sm text-slate-400">
@@ -477,7 +478,7 @@ function CreateCohortDialog({
       >
         <button
           onClick={onClose}
-          className="absolute right-4 top-4 text-slate-500 hover:text-slate-200"
+          className="absolute right-4 top-4 text-slate-400 hover:text-slate-200"
           aria-label="Close"
         >
           <X className="h-5 w-5" />
@@ -563,7 +564,7 @@ function CreateCohortDialog({
               maxLength={120}
             />
             {!nameOverridden && (
-              <p className="mt-1 text-xs text-slate-500">Auto-generated — edit to override.</p>
+              <p className="mt-1 text-xs text-slate-400">Auto-generated — edit to override.</p>
             )}
           </Field>
 

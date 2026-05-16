@@ -35,7 +35,7 @@ const STATUS_LABELS: Record<string, { label: string; color: string }> = {
   trialing: { label: "Free Trial", color: "text-blue-600" },
   canceled: { label: "Canceled", color: "text-red-500" },
   past_due: { label: "Past Due", color: "text-amber-600" },
-  incomplete: { label: "Incomplete", color: "text-slate-500" },
+  incomplete: { label: "Incomplete", color: "text-slate-400" },
 };
 
 /** Tier-specific gradients used for the giant tier-name display in the Current Plan card. */
@@ -223,7 +223,7 @@ export default function BillingClient({ subscription, currentTier, allTiers }: P
                         </span>
                       )}
                       {tier.bestValue && (
-                        <span className="rounded-full bg-amber-500 px-2.5 py-1 text-xs font-bold text-white">
+                        <span className="rounded-full bg-amber-500 px-2.5 py-1 text-xs font-bold text-slate-900">
                           Best Value
                         </span>
                       )}
@@ -306,7 +306,7 @@ export default function BillingClient({ subscription, currentTier, allTiers }: P
 
             {/* Plan options */}
             <div className="mt-5 space-y-2">
-              <p className="text-xs font-bold uppercase tracking-widest text-slate-500">
+              <p className="text-xs font-bold uppercase tracking-widest text-slate-400">
                 Switch plan
               </p>
               {allTiers
@@ -320,7 +320,7 @@ export default function BillingClient({ subscription, currentTier, allTiers }: P
                   >
                     <span>
                       <span className="font-bold text-slate-900 dark:text-white">{t.name}</span>
-                      <span className="ml-2 text-xs text-slate-500">
+                      <span className="ml-2 text-xs text-slate-400">
                         {t.price}
                         <span className="text-slate-400">{t.period}</span>
                       </span>
@@ -348,7 +348,7 @@ export default function BillingClient({ subscription, currentTier, allTiers }: P
 
             <button
               onClick={() => setFallbackOpen(false)}
-              className="mt-4 w-full text-center text-xs font-semibold text-slate-500 hover:text-slate-900 dark:hover:text-white"
+              className="mt-4 w-full text-center text-xs font-semibold text-slate-400 hover:text-slate-900 dark:hover:text-white"
             >
               Close
             </button>

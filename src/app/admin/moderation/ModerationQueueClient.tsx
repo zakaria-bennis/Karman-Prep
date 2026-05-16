@@ -79,7 +79,7 @@ export default function ModerationQueueClient({ initialItems, tab, initialQuery 
     <>
       <div className="mb-4">
         <div className="relative">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-500" />
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
           <input
             type="search"
             placeholder="Search content..."
@@ -88,7 +88,7 @@ export default function ModerationQueueClient({ initialItems, tab, initialQuery 
             onKeyDown={(e) => {
               if (e.key === "Enter") submitQuery(query);
             }}
-            className="w-full max-w-md rounded-lg border border-slate-800 bg-slate-950/60 py-2 pl-9 pr-9 text-sm text-slate-100 placeholder:text-slate-500 focus:border-slate-700 focus:outline-none"
+            className="w-full max-w-md rounded-lg border border-slate-800 bg-slate-950/60 py-2 pl-9 pr-9 text-sm text-slate-100 placeholder:text-slate-400 focus:border-slate-700 focus:outline-none"
           />
           {query ? (
             <button
@@ -97,7 +97,7 @@ export default function ModerationQueueClient({ initialItems, tab, initialQuery 
                 submitQuery("");
               }}
               aria-label="Clear search"
-              className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-slate-500 hover:text-slate-200"
+              className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-slate-400 hover:text-slate-200"
             >
               <X className="h-3.5 w-3.5" />
             </button>
@@ -144,7 +144,7 @@ export default function ModerationQueueClient({ initialItems, tab, initialQuery 
                 >
                   {it.sender.display_name}
                 </button>
-                <span className="text-xs text-slate-500">{it.sender.email}</span>
+                <span className="text-xs text-slate-400">{it.sender.email}</span>
                 {it.sender.warning_count > 0 ? (
                   <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/15 px-1.5 py-0.5 text-[11px] font-semibold text-amber-300">
                     <AlertTriangle className="h-3 w-3" />
@@ -153,20 +153,20 @@ export default function ModerationQueueClient({ initialItems, tab, initialQuery 
                   </span>
                 ) : null}
                 {it.channel ? (
-                  <span className="text-xs text-slate-500">
+                  <span className="text-xs text-slate-400">
                     in <span className="text-slate-300">#{it.channel.name ?? "channel"}</span>
                   </span>
                 ) : null}
                 {it.recipient ? (
-                  <span className="text-xs text-slate-500">
+                  <span className="text-xs text-slate-400">
                     to <span className="text-slate-300">{it.recipient.display_name}</span>
                   </span>
                 ) : null}
-                <span className="ml-auto text-xs text-slate-500">{fmtDate(it.created_at)}</span>
+                <span className="ml-auto text-xs text-slate-400">{fmtDate(it.created_at)}</span>
               </div>
 
               <div className="mb-3 whitespace-pre-wrap rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-2 text-slate-200">
-                {it.content || <span className="italic text-slate-500">(no text content)</span>}
+                {it.content || <span className="italic text-slate-400">(no text content)</span>}
                 {it.media_urls.length > 0 ? (
                   <div className="mt-2 flex flex-wrap gap-2">
                     {it.media_urls.map((u) => (
@@ -196,7 +196,7 @@ export default function ModerationQueueClient({ initialItems, tab, initialQuery 
                   </span>
                 ) : null}
                 {tab === "history" && it.rejection_message ? (
-                  <span className="italic text-slate-500">
+                  <span className="italic text-slate-400">
                     &ldquo;{it.rejection_message}&rdquo;
                   </span>
                 ) : null}
@@ -309,7 +309,7 @@ function WarnModal({
           <button
             onClick={onClose}
             aria-label="Close"
-            className="ml-auto rounded p-1 text-slate-500 hover:text-slate-200"
+            className="ml-auto rounded p-1 text-slate-400 hover:text-slate-200"
           >
             <X className="h-4 w-4" />
           </button>
@@ -334,7 +334,7 @@ function WarnModal({
             onChange={(e) => setReason(e.target.value)}
             rows={4}
             placeholder="Why is this user being warned? Sender will see this..."
-            className="mt-1 w-full rounded-md border border-slate-700 bg-slate-950 px-2 py-1.5 text-sm text-slate-100 placeholder:text-slate-500"
+            className="mt-1 w-full rounded-md border border-slate-700 bg-slate-950 px-2 py-1.5 text-sm text-slate-100 placeholder:text-slate-400"
           />
         </label>
         {err ? <p className="mb-3 text-xs text-rose-400">{err}</p> : null}
@@ -409,21 +409,21 @@ function SenderDrawer({ item, onClose }: { item: QueueItem; onClose: () => void 
           <button
             onClick={onClose}
             aria-label="Close"
-            className="ml-auto rounded p-1 text-slate-500 hover:text-slate-200"
+            className="ml-auto rounded p-1 text-slate-400 hover:text-slate-200"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
-        <p className="mb-4 text-xs text-slate-500">{item.sender.email}</p>
+        <p className="mb-4 text-xs text-slate-400">{item.sender.email}</p>
 
         {err ? <p className="text-xs text-rose-400">{err}</p> : null}
-        {!history && !err ? <p className="text-xs text-slate-500">Loading...</p> : null}
+        {!history && !err ? <p className="text-xs text-slate-400">Loading...</p> : null}
 
         {history ? (
           <>
             <Section title={`Warnings (${history.warningCount})`}>
               {history.warningCount === 0 ? (
-                <p className="text-xs text-slate-500">No prior warnings.</p>
+                <p className="text-xs text-slate-400">No prior warnings.</p>
               ) : (
                 <p className="text-xs text-amber-300/80">
                   {history.warningCount} prior {history.warningCount === 1 ? "warning" : "warnings"}{" "}
@@ -433,18 +433,18 @@ function SenderDrawer({ item, onClose }: { item: QueueItem; onClose: () => void 
             </Section>
             <Section title="Recent flagged / rejected messages">
               {history.recentFlagged.length === 0 ? (
-                <p className="text-xs text-slate-500">No flagged or rejected messages on record.</p>
+                <p className="text-xs text-slate-400">No flagged or rejected messages on record.</p>
               ) : (
                 <ul className="space-y-2 text-xs">
                   {history.recentFlagged.map((m) => (
                     <li key={`${m.kind}:${m.id}`} className="rounded-md bg-slate-950/60 p-2">
-                      <div className="mb-0.5 flex items-center gap-2 text-[11px] text-slate-500">
+                      <div className="mb-0.5 flex items-center gap-2 text-[11px] text-slate-400">
                         <span className="uppercase">{m.kind}</span>
                         <span>{m.moderation_status}</span>
                         <span className="ml-auto">{fmtDate(m.created_at)}</span>
                       </div>
                       <p className="whitespace-pre-wrap text-slate-300">
-                        {m.content || <em className="text-slate-500">(no text content)</em>}
+                        {m.content || <em className="text-slate-400">(no text content)</em>}
                       </p>
                       {m.ai_flag_reason ? (
                         <p className="mt-1 text-[11px] text-rose-300/80">{m.ai_flag_reason}</p>
@@ -456,15 +456,15 @@ function SenderDrawer({ item, onClose }: { item: QueueItem; onClose: () => void 
             </Section>
             <Section title="Recent admin actions">
               {history.recentActions.length === 0 ? (
-                <p className="text-xs text-slate-500">No prior admin actions.</p>
+                <p className="text-xs text-slate-400">No prior admin actions.</p>
               ) : (
                 <ul className="space-y-1 text-xs">
                   {history.recentActions.map((a) => (
                     <li key={a.id} className="rounded-md bg-slate-950/60 px-2 py-1.5">
                       <div className="flex items-center gap-2 text-[11px]">
                         <span className="font-semibold text-slate-200">{a.action_type}</span>
-                        {a.severity ? <span className="text-slate-500">({a.severity})</span> : null}
-                        <span className="ml-auto text-slate-500">{fmtDate(a.created_at)}</span>
+                        {a.severity ? <span className="text-slate-400">({a.severity})</span> : null}
+                        <span className="ml-auto text-slate-400">{fmtDate(a.created_at)}</span>
                       </div>
                       {a.reason ? <p className="mt-0.5 text-slate-400">{a.reason}</p> : null}
                     </li>

@@ -34,7 +34,7 @@ export function HomeworkTab({ homework }: { homework: HomeworkRow[] }) {
               {h.body}
             </p>
           )}
-          <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-500">
+          <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-400">
             <span>Assigned {formatDateTime(h.assigned_at)}</span>
             {h.due_at && <span>· Due {formatDateTime(h.due_at)}</span>}
             <span>· by {tutorDisplay(h.created_by)}</span>

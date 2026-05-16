@@ -97,16 +97,17 @@ export default function UsersClient({ users, cohorts }: Props) {
       <div className="mb-4 space-y-3">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search by name or email…"
-              className="w-full rounded-lg border border-slate-800 bg-slate-950/60 py-2 pl-9 pr-3 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+              className="w-full rounded-lg border border-slate-800 bg-slate-950/60 py-2 pl-9 pr-3 text-sm text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
             />
           </div>
           <select
+            aria-label="Filter users by cohort"
             value={cohortFilter}
             onChange={(e) => setCohortFilter(e.target.value)}
             className="rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-2 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
@@ -133,10 +134,10 @@ export default function UsersClient({ users, cohorts }: Props) {
               )}
             >
               {r === "all" ? "All" : r.charAt(0).toUpperCase() + r.slice(1)}
-              <span className="ml-1.5 text-[10px] opacity-70">{counts[r]}</span>
+              <span className="ml-1.5 text-[10px]">{counts[r]}</span>
             </button>
           ))}
-          <span className="ml-auto self-center text-xs text-slate-500">
+          <span className="ml-auto self-center text-xs text-slate-400">
             {filtered.length} of {users.length} matching
           </span>
         </div>
@@ -175,7 +176,7 @@ export default function UsersClient({ users, cohorts }: Props) {
       </div>
 
       {filtered.length === 0 && (
-        <p className="mt-4 text-sm text-slate-500">No users match the current filter.</p>
+        <p className="mt-4 text-sm text-slate-400">No users match the current filter.</p>
       )}
 
       {linkingParent && (
@@ -260,7 +261,7 @@ function UserCard({ user, onManageLinks }: { user: AdminUserRow; onManageLinks: 
             </option>
           ))}
         </select>
-        {pending && <Loader2 className="h-3.5 w-3.5 animate-spin text-slate-500" />}
+        {pending && <Loader2 className="h-3.5 w-3.5 animate-spin text-slate-400" />}
         {user.role === "parent" && (
           <button
             onClick={onManageLinks}
@@ -321,7 +322,7 @@ function UserRow({ user, onManageLinks }: { user: AdminUserRow; onManageLinks: (
               </option>
             ))}
           </select>
-          {pending && <Loader2 className="h-3.5 w-3.5 animate-spin text-slate-500" />}
+          {pending && <Loader2 className="h-3.5 w-3.5 animate-spin text-slate-400" />}
         </div>
       </td>
       <td className="hidden px-4 py-3 lg:table-cell">
@@ -335,7 +336,7 @@ function UserRow({ user, onManageLinks }: { user: AdminUserRow; onManageLinks: (
             {TIER_LABEL[user.tier]}
           </span>
         ) : (
-          <span className="text-xs text-slate-600">—</span>
+          <span className="text-xs text-slate-400">—</span>
         )}
       </td>
       <td className="hidden px-4 py-3 lg:table-cell">
@@ -353,7 +354,7 @@ function UserRow({ user, onManageLinks }: { user: AdminUserRow; onManageLinks: (
             pendingRetakes={user.diagnostic_retakes_remaining}
           />
         ) : (
-          <span className="text-xs text-slate-600">—</span>
+          <span className="text-xs text-slate-400">—</span>
         )}
       </td>
       <td className="px-2 py-3">
@@ -503,7 +504,7 @@ function ParentLinksDialog({
       >
         <button
           onClick={onClose}
-          className="absolute right-4 top-4 text-slate-500 hover:text-slate-200"
+          className="absolute right-4 top-4 text-slate-400 hover:text-slate-200"
           aria-label="Close"
         >
           <X className="h-5 w-5" />
@@ -517,9 +518,9 @@ function ParentLinksDialog({
 
         <div className="mt-5">
           {!loaded ? (
-            <div className="text-sm text-slate-500">Loading…</div>
+            <div className="text-sm text-slate-400">Loading…</div>
           ) : linked.length === 0 ? (
-            <p className="text-sm italic text-slate-500">No students linked yet.</p>
+            <p className="text-sm italic text-slate-400">No students linked yet.</p>
           ) : (
             <ul className="space-y-2">
               {linked.map((s) => (
@@ -531,12 +532,12 @@ function ParentLinksDialog({
                     <div className="text-sm text-white">
                       {[s.first_name, s.last_name].filter(Boolean).join(" ") || s.email}
                     </div>
-                    <div className="font-mono text-xs text-slate-500">{s.email}</div>
+                    <div className="font-mono text-xs text-slate-400">{s.email}</div>
                   </div>
                   <button
                     onClick={() => remove(s.id)}
                     disabled={pending}
-                    className="text-slate-500 hover:text-rose-300 disabled:opacity-50"
+                    className="text-slate-400 hover:text-rose-300 disabled:opacity-50"
                     aria-label={`Unlink ${s.email}`}
                   >
                     <Trash2 className="h-4 w-4" />

@@ -61,7 +61,7 @@ export default function StudentDetailTabs({
                 "whitespace-nowrap border-b-2 px-3 pb-3 text-sm font-semibold transition-colors",
                 activeTab === t.key
                   ? "border-blue-600 text-blue-600"
-                  : "border-transparent text-slate-500 hover:text-slate-900 dark:hover:text-white"
+                  : "border-transparent text-slate-400 hover:text-slate-900 dark:hover:text-white"
               )}
             >
               {t.label}

@@ -119,7 +119,7 @@ export default function LessonOverlay({
                 "relative flex h-10 w-10 items-center justify-center rounded-lg transition-colors",
                 active
                   ? "bg-white text-slate-900 dark:bg-slate-800 dark:text-white"
-                  : "text-slate-400 hover:bg-white/50 hover:text-slate-700 dark:hover:bg-slate-800/50 dark:hover:text-slate-200"
+                  : "text-slate-400 hover:bg-white/50 hover:text-slate-400 dark:hover:bg-slate-800/50 dark:hover:text-slate-200"
               )}
               aria-label={label}
             >
@@ -151,7 +151,7 @@ export default function LessonOverlay({
           <header>
             <h1 className="text-3xl font-extrabold leading-tight tracking-tight text-slate-900 dark:text-white md:text-4xl">
               {node.topic}
-              <span className="font-semibold text-slate-400 dark:text-slate-500">
+              <span className="font-semibold text-slate-400 dark:text-slate-400">
                 {" "}
                 — {atmosphere}
               </span>

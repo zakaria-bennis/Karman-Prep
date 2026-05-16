@@ -193,7 +193,7 @@ export default function BankImportClient() {
         <div className="mb-3 flex items-center justify-between">
           <div>
             <h2 className="text-sm font-bold text-white">Routine output → bank</h2>
-            <p className="mt-1 text-xs text-slate-500">
+            <p className="mt-1 text-xs text-slate-400">
               Upload the{" "}
               <code className="rounded bg-slate-800 px-1 py-0.5 text-slate-300">questions.csv</code>{" "}
               and{" "}
@@ -267,7 +267,7 @@ export default function BankImportClient() {
                 <div className="flex flex-col items-center gap-2 text-sm">
                   <FileCheck2 className="h-8 w-8 text-emerald-400" />
                   <div className="font-semibold text-emerald-200">{filename}</div>
-                  <div className="text-xs text-slate-500">
+                  <div className="text-xs text-slate-400">
                     Drop a different file or click to replace
                     {previewBreakdown && (
                       <>
@@ -280,7 +280,7 @@ export default function BankImportClient() {
               ) : (
                 <div className="flex flex-col items-center gap-2 text-sm">
                   <Upload
-                    className={cn("h-8 w-8", dragActive ? "text-indigo-300" : "text-slate-500")}
+                    className={cn("h-8 w-8", dragActive ? "text-indigo-300" : "text-slate-400")}
                   />
                   <div
                     className={cn(
@@ -290,7 +290,7 @@ export default function BankImportClient() {
                   >
                     {dragActive ? "Drop the CSV to upload" : "Drag & drop a CSV here"}
                   </div>
-                  <div className="text-xs text-slate-500">
+                  <div className="text-xs text-slate-400">
                     or click anywhere in this box to choose a file · .csv or .json
                   </div>
                 </div>
@@ -319,13 +319,13 @@ export default function BankImportClient() {
                     setPreview(null);
                     setParseError(null);
                   }}
-                  className="text-xs text-slate-500 hover:text-slate-300"
+                  className="text-xs text-slate-400 hover:text-slate-300"
                 >
                   Clear
                 </button>
               )}
               {previewBreakdown && (
-                <span className="text-xs text-slate-500">
+                <span className="text-xs text-slate-400">
                   · {previewBreakdown.ok} ok / {previewBreakdown.flagged} flagged
                 </span>
               )}
@@ -364,10 +364,10 @@ export default function BankImportClient() {
                       <td className="max-w-[20rem] truncate px-3 py-2 text-slate-200">
                         {r.question_text}
                       </td>
-                      <td className="px-3 py-2 text-slate-500">{r.domain ?? "—"}</td>
-                      <td className="px-3 py-2 text-slate-500">{r.concept_slug ?? "—"}</td>
-                      <td className="px-3 py-2 text-slate-500">{r.difficulty}</td>
-                      <td className="max-w-[12rem] truncate px-3 py-2 text-slate-500">
+                      <td className="px-3 py-2 text-slate-400">{r.domain ?? "—"}</td>
+                      <td className="px-3 py-2 text-slate-400">{r.concept_slug ?? "—"}</td>
+                      <td className="px-3 py-2 text-slate-400">{r.difficulty}</td>
+                      <td className="max-w-[12rem] truncate px-3 py-2 text-slate-400">
                         {r.source_pdf
                           ? `${r.source_pdf}${r.source_page ? `:${r.source_page}` : ""}`
                           : "—"}
@@ -414,7 +414,7 @@ export default function BankImportClient() {
         )}
       </div>
 
-      <div className="mt-4 flex items-start gap-2 rounded-lg border border-slate-800 bg-slate-900/40 px-4 py-3 text-xs text-slate-500">
+      <div className="mt-4 flex items-start gap-2 rounded-lg border border-slate-800 bg-slate-900/40 px-4 py-3 text-xs text-slate-400">
         <FileWarning className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-400" />
         <span>
           Re-uploading the same file is safe — the importer skips rows whose (source_pdf,
@@ -444,7 +444,7 @@ function ModeTab({
         "-mb-px inline-flex items-center gap-1.5 border-b-2 px-3 py-1.5 text-xs font-semibold transition-colors",
         active
           ? "border-indigo-400 text-white"
-          : "border-transparent text-slate-500 hover:text-slate-300"
+          : "border-transparent text-slate-400 hover:text-slate-300"
       )}
     >
       <Icon className="h-3 w-3" />

@@ -466,7 +466,7 @@ function AnnotationEditor({
         className="flex cursor-grab touch-none select-none items-center justify-between border-b border-white/10 px-3 py-2 active:cursor-grabbing"
       >
         <div className="pointer-events-none flex items-center gap-1.5">
-          <GripHorizontal className="h-3.5 w-3.5 text-slate-500" />
+          <GripHorizontal className="h-3.5 w-3.5 text-slate-400" />
           <span className="text-[11px] font-bold uppercase tracking-widest text-blue-400">
             Annotation
           </span>
@@ -496,7 +496,7 @@ function AnnotationEditor({
           }}
           placeholder="Write a note about this highlight…"
           rows={3}
-          className="w-full resize-none rounded-md border border-white/10 bg-white/[0.06] px-2.5 py-2 text-xs text-slate-100 placeholder:text-slate-500 focus:border-blue-400/60 focus:outline-none"
+          className="w-full resize-none rounded-md border border-white/10 bg-white/[0.06] px-2.5 py-2 text-xs text-slate-100 placeholder:text-slate-400 focus:border-blue-400/60 focus:outline-none"
         />
         <div className="flex items-center justify-between gap-2">
           <button
