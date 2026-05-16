@@ -17,13 +17,19 @@
 // ============================================================
 
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 
 /** Dev-only auth bypass. When NODE_ENV !== "production" and
  *  DEV_IMPERSONATE_CLERK_ID is set, the entire Clerk gate is
  *  short-circuited so the developer (or a smoke-test harness)
  *  can view authenticated pages without going through sign-in.
- *  See src/lib/auth/dev-auth.ts for the page-level companion. */
+ *  See src/lib/auth/dev-auth.ts for the page-level companion.
+ *
+ *  IMPORTANT: when this is active we skip `clerkMiddleware()`
+ *  entirely, not just call NextResponse.next() inside it.
+ *  `clerkMiddleware` validates `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`
+ *  on every request even if the handler short-circuits, which
+ *  fails when CI runs with a placeholder key (E2E workflow). */
 const DEV_AUTH_BYPASS_ACTIVE =
   process.env.NODE_ENV !== "production" && (process.env.DEV_IMPERSONATE_CLERK_ID ?? "").length > 0;
 
@@ -66,15 +72,15 @@ const isPublicRoute = createRouteMatcher([
 
 const LAUNCHED = process.env.NEXT_PUBLIC_KARMAN_LAUNCHED === "true";
 
-export default clerkMiddleware(async (auth, request) => {
-  // ── Dev-only auth bypass ───────────────────────────────────
-  // When DEV_IMPERSONATE_CLERK_ID is set in .env.local, treat
-  // every request as authenticated so the developer can view
-  // any page without going through sign-in. Cannot fire in prod.
-  if (DEV_AUTH_BYPASS_ACTIVE) {
-    return NextResponse.next();
-  }
+/** Bypass middleware — used only when DEV_AUTH_BYPASS_ACTIVE.
+ *  Doesn't call any Clerk APIs, so a placeholder publishable key
+ *  in CI doesn't crash the request pipeline. */
+function bypassMiddleware(_request: NextRequest) {
+  return NextResponse.next();
+}
 
+/** Real middleware — Clerk auth + maintenance gate. */
+const realMiddleware = clerkMiddleware(async (auth, request) => {
   // ── Pre-launch maintenance gate ────────────────────────────
   if (!LAUNCHED && !isMaintenanceExempt(request)) {
     const { userId } = await auth();
@@ -97,6 +103,10 @@ export default clerkMiddleware(async (auth, request) => {
   await auth.protect();
   return NextResponse.next();
 });
+
+// Pick at module load — bypass branch skips Clerk's per-request
+// publishable-key check entirely. Cannot fire in production.
+export default DEV_AUTH_BYPASS_ACTIVE ? bypassMiddleware : realMiddleware;
 
 export const config = {
   matcher: [
