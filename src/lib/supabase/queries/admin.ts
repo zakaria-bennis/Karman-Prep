@@ -99,16 +99,58 @@ export interface EffectiveUser {
  * use the real `auth().userId` so writes go to the admin's row
  * and not the impersonated student's.
  */
+/**
+ * Pure decision function for resolveEffectiveClerkId. Extracted from
+ * the I/O wrapper so the branching logic can be unit-tested without
+ * mocking next/headers + Supabase. The wrapper below feeds in
+ * realRole + targetUserId + target row from the actual DB/cookie.
+ *
+ * Returns the EffectiveUser the page should treat the caller as.
+ */
+export function chooseEffectiveClerkId(input: {
+  realClerkId: string;
+  realRole: AppRole | null;
+  targetUserId: string | undefined;
+  target: { clerk_id: string; role: string } | null;
+}): EffectiveUser {
+  const noImpersonation: EffectiveUser = {
+    clerkId: input.realClerkId,
+    isImpersonating: false,
+    realClerkId: null,
+  };
+
+  // Only real admins can impersonate.
+  if (input.realRole !== "admin") return noImpersonation;
+  // No cookie set → real admin viewing their own surfaces.
+  if (!input.targetUserId) return noImpersonation;
+  // Cookie points to a non-existent user OR to another admin
+  // (admins can't impersonate admins — would expose another admin's
+  // mailbox / dashboard surfaces).
+  if (!input.target || input.target.role === "admin") return noImpersonation;
+
+  return {
+    clerkId: input.target.clerk_id,
+    isImpersonating: true,
+    realClerkId: input.realClerkId,
+  };
+}
+
 export async function resolveEffectiveClerkId(realClerkId: string): Promise<EffectiveUser> {
-  const real = await fetchUserRole(realClerkId);
-  if (real !== "admin") {
-    return { clerkId: realClerkId, isImpersonating: false, realClerkId: null };
+  const realRole = await fetchUserRole(realClerkId);
+  // Fast-path: non-admin callers can't impersonate, skip cookie + DB hop.
+  if (realRole !== "admin") {
+    return chooseEffectiveClerkId({
+      realClerkId,
+      realRole,
+      targetUserId: undefined,
+      target: null,
+    });
   }
 
   const cookieStore = await cookies();
   const targetUserId = cookieStore.get(IMPERSONATE_USER_COOKIE)?.value;
   if (!targetUserId) {
-    return { clerkId: realClerkId, isImpersonating: false, realClerkId: null };
+    return chooseEffectiveClerkId({ realClerkId, realRole, targetUserId: undefined, target: null });
   }
 
   const supabase = createAdminClient();
@@ -117,16 +159,11 @@ export async function resolveEffectiveClerkId(realClerkId: string): Promise<Effe
     .select("clerk_id, role")
     .eq("id", targetUserId)
     .maybeSingle();
-  // Refuse to impersonate other admins (would let an admin view
-  // another admin's mailbox / dashboard surfaces) and refuse if
-  // the target is gone.
-  if (!target || target.role === "admin") {
-    return { clerkId: realClerkId, isImpersonating: false, realClerkId: null };
-  }
 
-  return {
-    clerkId: target.clerk_id as string,
-    isImpersonating: true,
+  return chooseEffectiveClerkId({
     realClerkId,
-  };
+    realRole,
+    targetUserId,
+    target: target as { clerk_id: string; role: string } | null,
+  });
 }
