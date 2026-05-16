@@ -12,6 +12,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { safeAuth } from "@/lib/auth/dev-auth";
+import { resolveEffectiveClerkId } from "@/lib/supabase/queries/admin";
 import { redirect } from "next/navigation";
 import { Wallet, Clock, DollarSign, ArrowRight, BarChart3 } from "lucide-react";
 import { fetchUserRole } from "@/lib/supabase/queries/admin";
@@ -27,8 +28,9 @@ const fmt = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" 
 const fmtHours = (n: number) => `${n.toFixed(2)}h`;
 
 export default async function TutorEarningsPage() {
-  const { userId: clerkId } = await safeAuth();
-  if (!clerkId) redirect("/auth/sign-in");
+  const { userId: realUserId } = await safeAuth();
+  if (!realUserId) redirect("/auth/sign-in");
+  const { clerkId } = await resolveEffectiveClerkId(realUserId);
 
   const role = await fetchUserRole(clerkId);
   if (role !== "tutor" && role !== "admin") redirect("/dashboard/student");

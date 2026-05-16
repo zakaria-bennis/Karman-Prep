@@ -138,6 +138,74 @@ async function upsertParentStudentLink(parentUuid, studentUuid) {
   });
 }
 
+/** Upsert the SAT dates the rest of the seed references. Without
+ *  this, `cohorts` inserts fail in CI with a FK violation against
+ *  the empty `sat_dates` table (the sync-sat-dates cron isn't run
+ *  in the ephemeral CI Supabase stack). Mirrors a subset of
+ *  src/lib/sat-dates-static.ts — kept inline so this .mjs script
+ *  doesn't need a TS toolchain. */
+async function upsertSatDatesForSeed() {
+  // `registration_deadline` is NOT NULL in the schema. Real prod
+  // values come from the College Board scraper; for the seed we
+  // use a plausible placeholder (~30 days before test_date) so
+  // the FK + NOT NULL constraints are satisfied without inventing
+  // dates that look authoritative.
+  const dates = [
+    { test_date: "2026-05-02", registration_deadline: "2026-04-17" },
+    { test_date: "2026-06-06", registration_deadline: "2026-05-22" },
+    { test_date: "2026-08-22", registration_deadline: "2026-08-07" },
+    { test_date: "2026-10-03", registration_deadline: "2026-09-18" },
+    { test_date: "2026-11-07", registration_deadline: "2026-10-23" }, // referenced by upsertCohort below
+    { test_date: "2026-12-05", registration_deadline: "2026-11-20" },
+  ];
+  for (const d of dates) {
+    // Avoid 409s on re-seed: probe first, only POST if absent.
+    const existing = await sb(`sat_dates?test_date=eq.${d.test_date}`, { method: "GET" });
+    if (existing.length === 0) {
+      await sb(`sat_dates`, { method: "POST", body: JSON.stringify(d) });
+    }
+  }
+}
+
+/** Upsert a cohort keyed on (name, tutor_user_id). The combination
+ *  is unique enough for fixtures; we'd never seed two cohorts
+ *  with the same name + tutor in practice. */
+async function upsertCohort(row) {
+  const rows = await sb(
+    `cohorts?name=eq.${encodeURIComponent(row.name)}&tutor_user_id=eq.${row.tutor_user_id}`,
+    { method: "GET" }
+  );
+  if (rows.length > 0) return rows[0].id;
+  const inserted = await sb(`cohorts`, {
+    method: "POST",
+    body: JSON.stringify(row),
+  });
+  return inserted[0].id;
+}
+
+async function upsertCohortMember(cohortId, userUuid) {
+  // cohort_members has a "one active per user" partial unique
+  // index, so just delete any existing active row for this user
+  // first; reseeding shouldn't multiply memberships.
+  await sb(`cohort_members?user_id=eq.${userUuid}&left_at=is.null`, { method: "DELETE" });
+  await sb(`cohort_members`, {
+    method: "POST",
+    body: JSON.stringify({ cohort_id: cohortId, user_id: userUuid }),
+  });
+}
+
+async function upsertTutorAssignment(tutorUuid, studentUuid) {
+  // Single active (tutor, student) pair at a time — wipe + insert.
+  await sb(
+    `tutor_assignments?tutor_user_id=eq.${tutorUuid}&student_user_id=eq.${studentUuid}&ended_at=is.null`,
+    { method: "DELETE" }
+  );
+  await sb(`tutor_assignments`, {
+    method: "POST",
+    body: JSON.stringify({ tutor_user_id: tutorUuid, student_user_id: studentUuid }),
+  });
+}
+
 // ── Fixture set ────────────────────────────────────────────
 const NOW = new Date().toISOString();
 const A_WEEK_AGO = new Date(Date.now() - 7 * 24 * 60 * 60_000).toISOString();
@@ -148,6 +216,12 @@ const header = (msg) => console.log(`\n→ ${msg}`);
 
 async function main() {
   console.log("Seeding dev fixtures into", SUPABASE_URL);
+
+  // 0. SAT dates — must exist before any cohort insert (FK constraint).
+  //    In prod these come from the sync-sat-dates cron; in CI the
+  //    table is empty unless we seed it here.
+  await upsertSatDatesForSeed();
+  log("✓ SAT dates seeded");
 
   // 1. Admin ─────────────────────────────────────────────
   header("dev_seed_admin (admin)");
@@ -254,9 +328,10 @@ async function main() {
   });
   log("✓ stuck-placement banner should appear on /dashboard/student");
 
-  // 5. Tutor — active with payouts enabled
-  header("dev_seed_tutor (tutor with payouts enabled)");
-  await upsertUser({
+  // 5. Tutor — active with payouts enabled + a real cohort + a
+  //    1:1 student so the /tutor portal isn't a double empty state.
+  header("dev_seed_tutor (tutor with cohort + 1:1 assignment)");
+  const tutorUuid = await upsertUser({
     clerk_id: "dev_seed_tutor",
     email: "dev-seed-tutor@karman.local",
     first_name: "Dev",
@@ -269,7 +344,24 @@ async function main() {
     hourly_rate: 65,
     time_zone: "America/New_York",
   });
-  log("✓ tutor upserted (Cal not configured → schedule page shows setup banner)");
+  log("✓ tutor upserted");
+
+  // Cohort owned by the tutor on a known SAT date. The 2026-11-07
+  // row is from STATIC_SAT_DATES (seeded by sync-sat-dates cron).
+  const cohortId = await upsertCohort({
+    name: "Dev Seed Small Group",
+    tier: "small_group",
+    sat_date: "2026-11-07",
+    tutor_user_id: tutorUuid,
+    max_size: 5,
+    status: "active",
+  });
+  await upsertCohortMember(cohortId, midUuid);
+  log("✓ cohort created + mid student added");
+
+  // 1:1 assignment so /tutor shows a Student row.
+  await upsertTutorAssignment(tutorUuid, midUuid);
+  log("✓ tutor_assignments row → mid student");
 
   // 6. Parent linked to mid student
   header("dev_seed_parent (parent linked to mid student)");

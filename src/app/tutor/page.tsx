@@ -12,6 +12,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { safeAuth } from "@/lib/auth/dev-auth";
+import { resolveEffectiveClerkId } from "@/lib/supabase/queries/admin";
 import { redirect } from "next/navigation";
 import {
   ArrowRight,
@@ -32,8 +33,9 @@ export const metadata: Metadata = { title: "Tutor Portal — Karman" };
 export const dynamic = "force-dynamic";
 
 export default async function TutorPage() {
-  const { userId } = await safeAuth();
-  if (!userId) redirect("/auth/sign-in");
+  const { userId: realUserId } = await safeAuth();
+  if (!realUserId) redirect("/auth/sign-in");
+  const { clerkId: userId } = await resolveEffectiveClerkId(realUserId);
 
   const scope = await fetchTutorScope(userId);
   const rows = await fetchStudentDashboardRows(scope.studentClerkIds);

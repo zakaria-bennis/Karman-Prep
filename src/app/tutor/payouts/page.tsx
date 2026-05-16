@@ -12,6 +12,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { safeAuth } from "@/lib/auth/dev-auth";
+import { resolveEffectiveClerkId } from "@/lib/supabase/queries/admin";
 import { redirect } from "next/navigation";
 import { ChevronLeft, AlertCircle } from "lucide-react";
 import { fetchUserRole } from "@/lib/supabase/queries/admin";
@@ -30,8 +31,9 @@ export const metadata: Metadata = { title: "Payouts — Karman" };
 export const dynamic = "force-dynamic";
 
 export default async function TutorPayoutsPage() {
-  const { userId: clerkId } = await safeAuth();
-  if (!clerkId) redirect("/auth/sign-in");
+  const { userId: realUserId } = await safeAuth();
+  if (!realUserId) redirect("/auth/sign-in");
+  const { clerkId } = await resolveEffectiveClerkId(realUserId);
 
   const role = await fetchUserRole(clerkId);
   if (role !== "tutor" && role !== "admin") redirect("/dashboard/student");
