@@ -1,0 +1,112 @@
+# ============================================================
+# E2E — Playwright suite against an ephemeral Supabase stack.
+#
+# Each run:
+#   1. Spins up the full local Supabase stack via `supabase start`
+#      (Postgres + PostgREST + GoTrue + Realtime + Storage as
+#      Docker containers on the runner).
+#   2. supabase start auto-applies every migration under
+#      supabase/migrations/.
+#   3. Seeds the dev fixtures (npm run seed:dev) — same personas
+#      the local dev workflow uses, so test selectors stay stable
+#      between local + CI.
+#   4. Launches the Next.js dev server with DEV_IMPERSONATE_CLERK_ID
+#      = dev_seed_admin (per playwright.config.ts) so safeAuth()
+#      returns the seeded admin and Clerk doesn't need a real key.
+#   5. Runs `npm run test:e2e` (Chromium only).
+#
+# Cost: $0/mo. Run time: ~7-9 min cold, ~5 min warm (npm cache hit).
+#
+# Visual regression in CI is a deferred follow-up — the baselines
+# from PR #89 are platform-tagged `-darwin.png`; CI on Linux would
+# need a matching `-linux.png` set. Either re-baseline in CI via a
+# workflow_dispatch trigger or generate the Linux set locally in a
+# Playwright Docker image and commit both. Out of scope here.
+# ============================================================
+
+name: E2E
+
+# Manual-trigger only for now. The workflow itself is ready (see body
+# below), but `supabase start` fails on the initial migration step
+# because `public.users` is created by supabase/schema.sql which was
+# never converted into a numbered migration. Once that bootstrap is
+# moved into a `20230101000000_initial_schema.sql` migration (or
+# similar), flip these triggers back to `push` + `pull_request`.
+#
+# Manual trigger: GitHub UI → Actions → E2E → Run workflow.
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: e2e-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    name: Playwright E2E
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    env:
+      # Clerk is bypassed via DEV_IMPERSONATE_CLERK_ID in CI. The
+      # placeholder keys are enough to satisfy build-time process.env
+      # reads; the dev server never actually hits Clerk.
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: pk_test_placeholder
+      CLERK_SECRET_KEY: sk_test_placeholder
+      # Stripe + Resend are likewise not exercised by the e2e suite,
+      # but the app reads them at boot.
+      STRIPE_SECRET_KEY: sk_test_placeholder
+      RESEND_API_KEY: re_placeholder
+      RESEND_FROM_EMAIL: hello@karmanprep.com
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - run: npm install --no-audit --no-fund
+
+      - name: Start Supabase stack
+        # `supabase start` boots Postgres + the API stack and applies
+        # supabase/migrations/ in order. The first start pulls Docker
+        # images (~60s); subsequent CI runs reuse the Docker cache.
+        run: supabase start --workdir .
+
+      - name: Export Supabase URL + keys to runner env
+        # `supabase status -o json` returns API_URL / ANON_KEY /
+        # SERVICE_ROLE_KEY for the local stack. Push them into
+        # $GITHUB_ENV so the Next.js dev server + seed:dev pick them up.
+        run: |
+          STATUS=$(supabase status -o json)
+          echo "NEXT_PUBLIC_SUPABASE_URL=$(echo "$STATUS" | jq -r .API_URL)" >> $GITHUB_ENV
+          echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=$(echo "$STATUS" | jq -r .ANON_KEY)" >> $GITHUB_ENV
+          echo "SUPABASE_SERVICE_ROLE_KEY=$(echo "$STATUS" | jq -r .SERVICE_ROLE_KEY)" >> $GITHUB_ENV
+
+      - name: Seed dev fixtures
+        run: npm run seed:dev
+
+      - name: Install Playwright browsers (Chromium only)
+        # `--with-deps` installs the system libs Playwright needs on
+        # ubuntu-latest. Chromium-only keeps the install fast (~30s).
+        run: npx playwright install --with-deps chromium
+
+      - name: Run E2E tests
+        run: npm run test:e2e
+
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
