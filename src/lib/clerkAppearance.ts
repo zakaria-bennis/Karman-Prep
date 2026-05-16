@@ -1,6 +1,6 @@
 // ============================================================
 // Clerk theme — Karman brand skin.
-// Applied globally via <ClerkProvider appearance={strataClerkAppearance} />
+// Applied globally via <ClerkProvider appearance={karmanClerkAppearance} />
 // so every Clerk surface (sign-in, sign-up, UserProfile, UserButton
 // dropdown, invitations) inherits the same dark brand look.
 //
@@ -18,7 +18,7 @@ import { dark } from "@clerk/themes";
 // The `Appearance` type from @clerk/types isn't exposed as a separate package
 // dependency, so we let TypeScript infer the shape via the `as const` satisfies
 // pattern. ClerkProvider will validate when this is applied.
-export const strataClerkAppearance = {
+export const karmanClerkAppearance = {
   // Sets every default colour/border/etc. to dark-mode-safe values.
   // Our `variables` and `elements` below override on top.
   baseTheme: dark,

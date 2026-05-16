@@ -1,7 +1,7 @@
 # PDF Ingestion Routine — design + paste-ready prompt
 
 This document captures everything about the routine that processes
-SAT practice PDFs and emits CSVs consumable by Strata's bulk
+SAT practice PDFs and emits CSVs consumable by Karman's bulk
 importer. Read alongside:
 
 - `HANDOFF.md` — overall project state
@@ -10,14 +10,14 @@ importer. Read alongside:
 This file is the source of truth for the **routine side** —
 behaviour, schema, taxonomy, folder conventions, prompts. The
 INGESTION_SPEC document is the source of truth for the
-**Strata side** — migration, importer code changes, admin UI.
+**Karman side** — migration, importer code changes, admin UI.
 
 ---
 
 ## 1 · What the routine does
 
 Processes College Board-style SAT practice PDFs into structured
-CSV rows that the Strata bulk-import endpoint can consume.
+CSV rows that the Karman bulk-import endpoint can consume.
 
 Inputs:
 
@@ -357,7 +357,7 @@ For SPR questions where choices are blank, hash just
 
 ### Re-run behaviour
 
-The Strata importer creates a UNIQUE constraint on
+The Karman importer creates a UNIQUE constraint on
 `(source_pdf, content_hash)`. On INSERT conflict, the importer
 SKIPS SILENTLY (per locked decision in chat). This means
 re-running the routine on the same PDF is safe — no duplicates,
@@ -484,7 +484,7 @@ will run the routine. Do not modify without updating the rest of
 this document.
 
 ````
-You are a question-extraction routine for the Strata SAT prep
+You are a question-extraction routine for the Karman SAT prep
 platform. Your job: read SAT practice PDFs from a folder, extract
 every solvable question, classify each one against a locked
 taxonomy, write per-choice explanations / hints / Desmos tips
@@ -825,12 +825,12 @@ NEVER
 
 ---
 
-## 13 · How this fits with the rest of Strata
+## 13 · How this fits with the rest of Karman
 
 The full pipeline:
 
 ```
-Strata side                                 Routine side
+Karman side                                 Routine side
 ─────────────                               ─────────────
 1. Implement INGESTION_SPEC.md
    (migration 020, importer changes,

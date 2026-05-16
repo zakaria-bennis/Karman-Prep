@@ -23,7 +23,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
-import { StrataLogoMark, StrataWordmark } from "@/components/shared/StrataLogo";
+import { KarmanLogoMark, KarmanWordmark } from "@/components/shared/KarmanLogo";
 import { useUnreadChat } from "@/lib/hooks/useUnreadChat";
 
 interface NavItem {
@@ -105,16 +105,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           {/* Logo row — links back to the marketing landing page
               (the in-dashboard "Dashboard" nav item already covers
               the home jump, so this is the escape hatch). The
-              wordmark uses the brand's gradient — pink → purple →
-              cyan — and only fades in once the sidebar expands. */}
+              wordmark fades in once the sidebar expands. */}
           <Link
             href="/"
             aria-label="Go to the Karman landing page"
             className="relative flex h-12 items-center gap-3 rounded-xl px-3.5 transition-all hover:bg-slate-100 dark:hover:bg-slate-800"
           >
-            <StrataLogoMark size={20} />
+            <KarmanLogoMark size={20} />
             <span className="inline-flex whitespace-nowrap opacity-0 transition-opacity duration-150 lg:group-hover:opacity-100">
-              <StrataWordmark fontSize={14} letterSpacing="0.22em" />
+              <KarmanWordmark fontSize={14} letterSpacing="0.22em" />
             </span>
           </Link>
 
@@ -197,7 +196,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
           <Link href="/" aria-label="Go to the Karman landing page">
-            <StrataLogoMark size={24} />
+            <KarmanLogoMark size={24} />
           </Link>
         </header>
 

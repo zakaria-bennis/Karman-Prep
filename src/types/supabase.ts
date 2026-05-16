@@ -2419,7 +2419,7 @@ export type Database = {
           email_signature: string | null;
           first_name: string | null;
           goal_sat_score: number | null;
-          heard_about_strata: string | null;
+          heard_about_karman: string | null;
           hourly_rate: number | null;
           hs_year: string | null;
           id: string;
@@ -2464,7 +2464,7 @@ export type Database = {
           email_signature?: string | null;
           first_name?: string | null;
           goal_sat_score?: number | null;
-          heard_about_strata?: string | null;
+          heard_about_karman?: string | null;
           hourly_rate?: number | null;
           hs_year?: string | null;
           id?: string;
@@ -2509,7 +2509,7 @@ export type Database = {
           email_signature?: string | null;
           first_name?: string | null;
           goal_sat_score?: number | null;
-          heard_about_strata?: string | null;
+          heard_about_karman?: string | null;
           hourly_rate?: number | null;
           hs_year?: string | null;
           id?: string;

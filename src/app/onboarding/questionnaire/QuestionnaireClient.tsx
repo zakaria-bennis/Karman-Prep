@@ -62,7 +62,7 @@ export default function QuestionnaireClient({ firstName, tier, satDates }: Props
   const [timeZone, setTimeZone] = useState<string>("America/New_York");
   const [parentEmail, setParentEmail] = useState<string>("");
   const [parentPhone, setParentPhone] = useState<string>("");
-  const [heardAboutStrata, setHeardAboutStrata] = useState<string>("");
+  const [heardAboutKarman, setHeardAboutKarman] = useState<string>("");
 
   // Browser-detected default tz
   useEffect(() => {
@@ -148,7 +148,7 @@ export default function QuestionnaireClient({ firstName, tier, satDates }: Props
           timeZone: isOneToOne ? timeZone : undefined,
           parentEmail: parentEmail.trim() || null,
           parentPhone: parentPhone.trim() || null,
-          heardAboutStrata: heardAboutStrata || null,
+          heardAboutKarman: heardAboutKarman || null,
         }),
       });
       const body = (await res.json().catch(() => ({}))) as {
@@ -300,8 +300,8 @@ export default function QuestionnaireClient({ firstName, tier, satDates }: Props
 
         {currentStep.key === "heard" && (
           <HeardStep
-            heardAboutStrata={heardAboutStrata}
-            setHeardAboutStrata={setHeardAboutStrata}
+            heardAboutKarman={heardAboutKarman}
+            setHeardAboutKarman={setHeardAboutKarman}
           />
         )}
 

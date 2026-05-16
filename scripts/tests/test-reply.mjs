@@ -4,7 +4,7 @@
 // Posts two messages into bennisz's cohort chat AS another
 // student in the same cohort: (1) a text reply and (2) an
 // image reply. Both round-trip through Slack so they appear
-// in both the Strata UI and the Slack channel.
+// in both the Karman UI and the Slack channel.
 //
 // Usage:
 //   node --env-file=.env.local scripts/test-reply.mjs
@@ -39,7 +39,7 @@ const textBody =
   process.env.TEST_REPLY_TEXT ??
   "Hey! Just wanted to say I really liked your point on the last reading passage — totally helped me crack the inference question.";
 const imageSourceUrl =
-  process.env.TEST_REPLY_IMAGE_URL ?? "https://picsum.photos/seed/strata-test/600/400.jpg";
+  process.env.TEST_REPLY_IMAGE_URL ?? "https://picsum.photos/seed/karman-test/600/400.jpg";
 const imageCaption = "Here's the diagram from the geometry problem we were stuck on:";
 
 // ─────────────────────────────────────────────────────────────

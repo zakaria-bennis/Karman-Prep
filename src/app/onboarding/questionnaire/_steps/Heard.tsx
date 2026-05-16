@@ -17,8 +17,8 @@ const HEARD_OPTIONS = [
 ];
 
 export function HeardStep(props: {
-  heardAboutStrata: string;
-  setHeardAboutStrata: (v: string) => void;
+  heardAboutKarman: string;
+  setHeardAboutKarman: (v: string) => void;
 }) {
   return (
     <div className="space-y-3">
@@ -28,10 +28,10 @@ export function HeardStep(props: {
           <button
             key={opt}
             type="button"
-            onClick={() => props.setHeardAboutStrata(opt)}
+            onClick={() => props.setHeardAboutKarman(opt)}
             className={cn(
               "rounded-lg border px-3 py-2 text-left text-xs font-semibold transition-colors",
-              props.heardAboutStrata === opt
+              props.heardAboutKarman === opt
                 ? "border-blue-500 bg-blue-500 text-white"
                 : "border-white/10 bg-white/[0.03] text-slate-200 hover:border-white/30"
             )}

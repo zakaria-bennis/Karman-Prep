@@ -4,7 +4,7 @@
 // DSN is the same one used by the server-side init (sentry.server.config.ts).
 //
 // Session-replay consent gating:
-//   - The "strata_replay_consent" cookie is set by the bottom
+//   - The "karman_replay_consent" cookie is set by the bottom
 //     slide-up banner (src/components/consent/ReplayConsentBanner.tsx)
 //     for visitors in EU/EEA/UK + US-CA. Visitors outside those
 //     regions never see the banner and replay sampling is governed
@@ -23,7 +23,7 @@ import * as Sentry from "@sentry/nextjs";
  *  the browser. */
 function hasReplayConsent(): boolean {
   if (typeof document === "undefined") return false;
-  return /(?:^|;\s*)strata_replay_consent=yes(?:;|$)/.test(document.cookie);
+  return /(?:^|;\s*)karman_replay_consent=yes(?:;|$)/.test(document.cookie);
 }
 
 // Currently replay is OFF everywhere. When we flip it on, swap

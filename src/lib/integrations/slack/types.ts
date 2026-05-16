@@ -9,7 +9,7 @@ export type SlackChannelType = "cohort_chat" | "qa";
 export interface CreateChannelInput {
   /** Raw cohort slug to use as channel name basis. Will be sanitized
    *  to Slack's lowercase/hyphen/no-spaces rules and prefixed with
-   *  `strata-`. */
+   *  `karman-`. */
   cohortSlug: string;
   /** Which kind of channel to create — drives the suffix. */
   type: SlackChannelType;

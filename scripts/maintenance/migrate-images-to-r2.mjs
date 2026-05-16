@@ -2,7 +2,7 @@
 // One-off: migrate question_images.image_url values that point at
 // Supabase Storage to Cloudflare R2.
 //
-// Run from /Users/zakariabennis/strata after R2 credentials are
+// Run from /Users/zakariabennis/Karman-Prep after R2 credentials are
 // in .env.local:
 //   node --env-file=.env.local scripts/migrate-images-to-r2.mjs
 //

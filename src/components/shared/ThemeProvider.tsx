@@ -29,7 +29,7 @@ interface ThemeCtx {
 
 const Ctx = createContext<ThemeCtx>({ theme: "dark", setTheme: () => {} });
 
-const STORAGE_KEY = "strata-theme";
+const STORAGE_KEY = "karman-theme";
 
 function applyClass(t: Theme) {
   if (typeof document === "undefined") return;

@@ -4,7 +4,7 @@
 
 import { SignIn } from "@clerk/nextjs";
 import Link from "next/link";
-import { StrataLogo } from "@/components/shared/StrataLogo";
+import { KarmanLogo } from "@/components/shared/KarmanLogo";
 import AuthBackdrop from "@/components/shared/AuthBackdrop";
 
 export default function SignInPage() {
@@ -13,7 +13,7 @@ export default function SignInPage() {
       <AuthBackdrop />
 
       <Link href="/" className="relative z-10 mb-8" aria-label="Karman home">
-        <StrataLogo size={64} variant="stacked" />
+        <KarmanLogo size={64} variant="stacked" />
       </Link>
 
       <SignIn routing="path" path="/auth/sign-in" signUpUrl="/auth/sign-up" />

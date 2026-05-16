@@ -73,26 +73,26 @@ DELETE FROM public.users
 
 -- ─── 4. Tutors (2) ────────────────────────────────────────
 INSERT INTO public.users (clerk_id, email, role, first_name, last_name) VALUES
-  ('test_tutor_zakaria', 'zakaria.test@strata.local', 'tutor', 'Zakaria', 'Bennis'),
-  ('test_tutor_nabil',   'nabil.test@strata.local',   'tutor', 'Nabil',   'Kafil Asrar');
+  ('test_tutor_zakaria', 'zakaria.test@karman.local', 'tutor', 'Zakaria', 'Bennis'),
+  ('test_tutor_nabil',   'nabil.test@karman.local',   'tutor', 'Nabil',   'Kafil Asrar');
 
 
 -- ─── 5. Students (10) + one parent linked to Sofia ────────
 INSERT INTO public.users (clerk_id, email, role, first_name, last_name, sat_test_date) VALUES
-  ('test_student_01', 'elijah.turner.test@strata.local',     'student', 'Elijah',   'Turner',    '2026-05-02'),
-  ('test_student_02', 'sofia.park.test@strata.local',        'student', 'Sofia',    'Park',      '2026-05-02'),
-  ('test_student_03', 'amara.johnson.test@strata.local',     'student', 'Amara',    'Johnson',   '2026-05-02'),
-  ('test_student_04', 'isabella.rodriguez.test@strata.local','student', 'Isabella', 'Rodriguez', '2026-05-02'),
-  ('test_student_05', 'darius.williams.test@strata.local',   'student', 'Darius',   'Williams',  '2026-05-02'),
-  ('test_student_06', 'maya.hernandez.test@strata.local',    'student', 'Maya',     'Hernandez', '2026-05-02'),
-  ('test_student_07', 'jordan.mbeki.test@strata.local',      'student', 'Jordan',   'Mbeki',     '2026-05-02'),
-  ('test_student_08', 'noah.goldberg.test@strata.local',     'student', 'Noah',     'Goldberg',  '2026-05-02'),
-  ('test_student_09', 'priya.krishnan.test@strata.local',    'student', 'Priya',    'Krishnan',  '2026-06-06'),
-  ('test_student_10', 'lucas.chen.test@strata.local',        'student', 'Lucas',    'Chen',      '2026-06-06');
+  ('test_student_01', 'elijah.turner.test@karman.local',     'student', 'Elijah',   'Turner',    '2026-05-02'),
+  ('test_student_02', 'sofia.park.test@karman.local',        'student', 'Sofia',    'Park',      '2026-05-02'),
+  ('test_student_03', 'amara.johnson.test@karman.local',     'student', 'Amara',    'Johnson',   '2026-05-02'),
+  ('test_student_04', 'isabella.rodriguez.test@karman.local','student', 'Isabella', 'Rodriguez', '2026-05-02'),
+  ('test_student_05', 'darius.williams.test@karman.local',   'student', 'Darius',   'Williams',  '2026-05-02'),
+  ('test_student_06', 'maya.hernandez.test@karman.local',    'student', 'Maya',     'Hernandez', '2026-05-02'),
+  ('test_student_07', 'jordan.mbeki.test@karman.local',      'student', 'Jordan',   'Mbeki',     '2026-05-02'),
+  ('test_student_08', 'noah.goldberg.test@karman.local',     'student', 'Noah',     'Goldberg',  '2026-05-02'),
+  ('test_student_09', 'priya.krishnan.test@karman.local',    'student', 'Priya',    'Krishnan',  '2026-06-06'),
+  ('test_student_10', 'lucas.chen.test@karman.local',        'student', 'Lucas',    'Chen',      '2026-06-06');
 
 -- Parent account, linked to Sofia (test_student_02) below in step 9b.
 INSERT INTO public.users (clerk_id, email, role, first_name, last_name) VALUES
-  ('test_parent_01', 'helen.park.test@strata.local', 'parent', 'Helen', 'Park');
+  ('test_parent_01', 'helen.park.test@karman.local', 'parent', 'Helen', 'Park');
 
 
 -- ─── 6. Subscriptions ──────────────────────────────────────

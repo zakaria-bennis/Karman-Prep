@@ -84,7 +84,7 @@ export async function POST(req: NextRequest) {
       time_zone: body.timeZone ?? null,
       parent_email_collected: body.parentEmail ?? null,
       parent_phone_collected: body.parentPhone ?? null,
-      heard_about_strata: body.heardAboutStrata ?? null,
+      heard_about_karman: body.heardAboutKarman ?? null,
     })
     .eq("id", studentUuid);
   if (updErr) {

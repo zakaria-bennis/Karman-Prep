@@ -41,7 +41,7 @@ export function Layout({ preview, children }: LayoutProps) {
                 letterSpacing: "0.08em",
               }}
             >
-              STRATA
+              KARMAN
             </Text>
           </Section>
           {children}

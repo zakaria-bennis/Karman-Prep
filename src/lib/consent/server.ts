@@ -13,7 +13,7 @@ import { cookies, headers } from "next/headers";
 import { requiresOptInConsent, type Region } from "./regions";
 
 /** Cookie name used by the banner. */
-export const CONSENT_COOKIE = "strata_replay_consent";
+export const CONSENT_COOKIE = "karman_replay_consent";
 
 /** Cookie values. */
 export type ConsentValue = "yes" | "no";

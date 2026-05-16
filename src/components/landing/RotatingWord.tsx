@@ -21,7 +21,7 @@ export interface Word {
 
 // Pulls from the 5 subject colors — the teaching palette IS
 // the promise palette. One system, two jobs.
-export const STRATA_PROMISES: Word[] = [
+export const KARMAN_PROMISES: Word[] = [
   { text: "inspire", color: "#C4A7FF" }, // violet (advanced-math, lifted)
   { text: "dream", color: "#7FB3FF" }, // blue (algebra, lifted)
   { text: "achieve", color: "#5EE4C6" }, // teal (geometry, lifted)
@@ -35,7 +35,7 @@ interface Props {
   interval?: number;
 }
 
-export default function RotatingWord({ words = STRATA_PROMISES, interval = 2600 }: Props) {
+export default function RotatingWord({ words = KARMAN_PROMISES, interval = 2600 }: Props) {
   const [i, setI] = useState(0);
   const reduce = useReducedMotion();
 

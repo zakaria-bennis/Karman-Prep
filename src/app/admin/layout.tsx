@@ -18,7 +18,7 @@ import {
   ShieldAlert,
 } from "lucide-react";
 import { fetchUserRole } from "@/lib/supabase/queries/admin";
-import { StrataLogo } from "@/components/shared/StrataLogo";
+import { KarmanLogo } from "@/components/shared/KarmanLogo";
 import ImpersonationMenu from "@/components/admin/ImpersonationMenu";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -32,7 +32,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     <div className="flex min-h-screen flex-col bg-slate-950 text-slate-100">
       <header className="sticky top-0 z-20 flex h-14 shrink-0 items-center gap-4 border-b border-slate-800 bg-slate-900/70 px-5 backdrop-blur-sm">
         <Link href="/" aria-label="Karman home" className="flex items-center">
-          <StrataLogo size={24} />
+          <KarmanLogo size={24} />
         </Link>
         <span className="text-slate-400">/</span>
         <div className="flex items-center gap-1">

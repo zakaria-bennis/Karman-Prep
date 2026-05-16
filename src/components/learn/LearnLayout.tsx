@@ -11,7 +11,7 @@ import { usePathname } from "next/navigation";
 import { UserButton } from "@clerk/nextjs";
 import { ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { StrataLogoMark } from "@/components/shared/StrataLogo";
+import { KarmanLogoMark } from "@/components/shared/KarmanLogo";
 
 const SUBJECT_HREFS = ["/learn/reading", "/learn/math"];
 
@@ -44,7 +44,7 @@ export default function LearnLayout({ children }: { children: React.ReactNode })
             aria-label="Karman home"
             className="opacity-80 transition-opacity hover:opacity-100"
           >
-            <StrataLogoMark size={20} />
+            <KarmanLogoMark size={20} />
           </Link>
           <span className="h-4 w-px bg-white/10" />
           <Link

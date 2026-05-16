@@ -10,7 +10,7 @@ import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/shared/ThemeToggle";
 import { useAuth, UserButton } from "@clerk/nextjs";
-import { StrataLogo } from "@/components/shared/StrataLogo";
+import { KarmanLogo } from "@/components/shared/KarmanLogo";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -29,7 +29,7 @@ export default function Navbar() {
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <Link href="/" aria-label="Karman home">
-            <StrataLogo size={28} />
+            <KarmanLogo size={28} />
           </Link>
 
           {/* Desktop nav */}

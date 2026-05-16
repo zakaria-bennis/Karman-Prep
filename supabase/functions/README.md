@@ -1,4 +1,4 @@
-# Webhook setup for Strata scheduling
+# Webhook setup for Karman scheduling
 
 > Webhook handlers in this app run as **Next.js API routes**, not Supabase Edge Functions. This directory keeps the README in the location the original spec asked for, but the actual code lives under `src/app/api/webhooks/...`. Routes deploy with the rest of the Next app on Vercel — no separate Deno deploy step.
 

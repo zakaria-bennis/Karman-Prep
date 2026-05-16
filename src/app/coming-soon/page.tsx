@@ -13,7 +13,7 @@
 // ============================================================
 
 import type { Metadata } from "next";
-import { StrataLogo } from "@/components/shared/StrataLogo";
+import { KarmanLogo } from "@/components/shared/KarmanLogo";
 import ComingSoonForm from "./ComingSoonForm";
 
 export const metadata: Metadata = {
@@ -29,7 +29,7 @@ export default function ComingSoonPage() {
     <div className="flex min-h-screen items-center justify-center bg-slate-950 px-6 text-slate-100">
       <main className="w-full max-w-md text-center">
         <div className="mb-8 inline-flex items-center justify-center">
-          <StrataLogo size={56} variant="stacked" />
+          <KarmanLogo size={56} variant="stacked" />
         </div>
 
         <h1 className="mb-3 text-3xl font-bold tracking-tight text-white">
