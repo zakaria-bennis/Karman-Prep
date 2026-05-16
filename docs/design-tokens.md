@@ -12,18 +12,23 @@ automatically.
 ## Type scale
 
 The base font stack is `Geist Sans` (variable) for UI and `Geist Mono` for
-monospace. Values below are in pixels for the desktop default; mobile
-tightens via Tailwind's responsive prefixes.
+monospace. The app uses Tailwind utility classes for size; the actual
+rendered pixel value depends on which class a component picks. The token
+checker (`tests/visual/tokens.spec.ts`) only flags headings whose size
+falls **outside a sensible range** — i.e. an h1 at 11px would surface,
+but a 24px vs 32px choice is a design judgment, not a bug.
 
-| Token   | font-size | line-height | letter-spacing | use                            |
-| ------- | --------- | ----------- | -------------- | ------------------------------ |
-| display | 48        | 1.1         | -0.02em        | landing hero only              |
-| h1      | 32        | 1.15        | -0.01em        | page title                     |
-| h2      | 24        | 1.2         | 0              | section heading                |
-| h3      | 18        | 1.25        | 0              | sub-section                    |
-| body    | 14        | 1.5         | 0              | default paragraph              |
-| small   | 12        | 1.45        | 0              | meta / hint / caption          |
-| mono    | 12        | 1.5         | 0              | inline code, ids, fingerprints |
+| Heading | Sensible range | Typical Tailwind classes               |
+| ------- | -------------- | -------------------------------------- |
+| h1      | 20-56px        | `text-2xl` (24px), `text-4xl` (36px)   |
+| h2      | 14-36px        | `text-base` (16px) - `text-2xl` (24px) |
+| h3      | 12-28px        | `text-sm` (14px) - `text-xl` (20px)    |
+| body    | -              | `text-sm` / `text-base`                |
+| small   | -              | `text-xs` / `text-[11px]`              |
+| mono    | -              | `font-mono text-xs`                    |
+
+Landing-hero display copy can go larger via `text-5xl` / `text-6xl` —
+those don't trip the h1 range (still within 20-56px).
 
 ## Palette (Tailwind names)
 
