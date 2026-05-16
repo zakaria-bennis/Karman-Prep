@@ -4,8 +4,9 @@
 // Must be a raw body handler — no JSON.parse middleware.
 // ============================================================
 
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { stripe } from "@/lib/integrations/stripe/client";
+import { withWebhookInstrumentation } from "@/lib/observability/webhook";
 import {
   chargeMetadataSchema,
   subscriptionMetadataSchema,
@@ -30,7 +31,7 @@ const INACTIVE_STATUSES = new Set<Stripe.Subscription.Status>([
 const ACTIVE_STATUSES = new Set<Stripe.Subscription.Status>(["active", "trialing"]);
 
 /** Verifies the Stripe signature and returns the parsed event */
-async function parseWebhookEvent(req: NextRequest): Promise<Stripe.Event> {
+async function parseWebhookEvent(req: Request): Promise<Stripe.Event> {
   const body = await req.text();
   const sig = req.headers.get("stripe-signature");
 
@@ -41,7 +42,7 @@ async function parseWebhookEvent(req: NextRequest): Promise<Stripe.Event> {
   return stripe.webhooks.constructEventAsync(body, sig, process.env.STRIPE_WEBHOOK_SECRET!);
 }
 
-export async function POST(req: NextRequest) {
+export const POST = withWebhookInstrumentation("stripe", async (req: Request) => {
   let event: Stripe.Event;
 
   try {
@@ -256,6 +257,6 @@ export async function POST(req: NextRequest) {
     console.error("[webhook] Handler error:", error);
     return NextResponse.json({ error: "Webhook handler failed" }, { status: 500 });
   }
-}
+});
 
 // Note: Next.js App Router reads the raw body via req.text() — no extra config needed.

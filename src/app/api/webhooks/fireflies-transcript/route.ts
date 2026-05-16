@@ -24,6 +24,7 @@
 // ============================================================
 
 import { NextResponse } from "next/server";
+import { withWebhookInstrumentation } from "@/lib/observability/webhook";
 import { createAdminClient } from "@/lib/supabase/server";
 import {
   fetchFirefliesTranscript,
@@ -66,7 +67,7 @@ const FIREFLIES_TEST_MEETING_ID = "test_00000000";
  *  student-vs-shared recap flow for them. */
 const ONE_ON_ONE_TIERS = new Set(["private", "elite"]);
 
-export async function POST(request: Request) {
+export const POST = withWebhookInstrumentation("fireflies", async (request: Request) => {
   // ── Auth ────────────────────────────────────────────────
   const url = new URL(request.url);
   const token = url.searchParams.get("token");
@@ -180,7 +181,7 @@ export async function POST(request: Request) {
   }
 
   return NextResponse.json({ received: true }, { status: 200 });
-}
+});
 
 type Supabase = ReturnType<typeof createAdminClient>;
 
