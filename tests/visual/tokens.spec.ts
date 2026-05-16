@@ -22,9 +22,32 @@ const EXPECTED_TYPE = {
   h3: { fontSize: "18px", lineHeight: "22.5px" }, // 18 × 1.25
 };
 
+// One page per persona that exercises typography + glassy surfaces +
+// gradient palettes. Skipping dynamic routes that need a seeded
+// resource id — those belong in flow tests, not the drift scan.
 const PAGES_TO_AUDIT = [
+  // Public marketing surfaces — heavy on landing typography + cards.
+  { persona: "public", url: "/", email: null },
+  { persona: "public", url: "/faq", email: null },
+  { persona: "public", url: "/guarantee", email: null },
+  // Admin tools — densest pages, most h2/h3.
   { persona: "admin", url: "/admin/users", email: null },
+  { persona: "admin", url: "/admin/cohorts", email: null },
+  { persona: "admin", url: "/admin/revenue", email: null },
+  { persona: "admin", url: "/admin/curriculum", email: null },
+  // Student surfaces.
   { persona: "student_mid", url: "/dashboard/student", email: "dev-seed-mid@karman.local" },
+  {
+    persona: "student_mid",
+    url: "/dashboard/student/progress",
+    email: "dev-seed-mid@karman.local",
+  },
+  { persona: "student_mid", url: "/learn", email: "dev-seed-mid@karman.local" },
+  // Tutor surfaces.
+  { persona: "tutor", url: "/tutor", email: "dev-seed-tutor@karman.local" },
+  { persona: "tutor", url: "/tutor/earnings", email: "dev-seed-tutor@karman.local" },
+  // Parent surface.
+  { persona: "parent", url: "/dashboard/parent", email: "dev-seed-parent@karman.local" },
 ];
 
 test.describe.configure({ mode: "serial" });
