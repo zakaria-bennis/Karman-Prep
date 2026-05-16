@@ -145,13 +145,18 @@ async function upsertParentStudentLink(parentUuid, studentUuid) {
  *  src/lib/sat-dates-static.ts — kept inline so this .mjs script
  *  doesn't need a TS toolchain. */
 async function upsertSatDatesForSeed() {
+  // `registration_deadline` is NOT NULL in the schema. Real prod
+  // values come from the College Board scraper; for the seed we
+  // use a plausible placeholder (~30 days before test_date) so
+  // the FK + NOT NULL constraints are satisfied without inventing
+  // dates that look authoritative.
   const dates = [
-    { test_date: "2026-05-02" },
-    { test_date: "2026-06-06" },
-    { test_date: "2026-08-22" },
-    { test_date: "2026-10-03" },
-    { test_date: "2026-11-07" }, // referenced by upsertCohort below
-    { test_date: "2026-12-05" },
+    { test_date: "2026-05-02", registration_deadline: "2026-04-17" },
+    { test_date: "2026-06-06", registration_deadline: "2026-05-22" },
+    { test_date: "2026-08-22", registration_deadline: "2026-08-07" },
+    { test_date: "2026-10-03", registration_deadline: "2026-09-18" },
+    { test_date: "2026-11-07", registration_deadline: "2026-10-23" }, // referenced by upsertCohort below
+    { test_date: "2026-12-05", registration_deadline: "2026-11-20" },
   ];
   for (const d of dates) {
     // Avoid 409s on re-seed: probe first, only POST if absent.
