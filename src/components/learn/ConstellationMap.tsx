@@ -223,7 +223,6 @@ function ConstellationMapInner({ activeSubject, readingNodes, mathNodes }: Props
       setSelectedNode(node);
       setNodeBundle(null);
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [activeSubject]
   );
 

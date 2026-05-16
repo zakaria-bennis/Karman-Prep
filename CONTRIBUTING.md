@@ -117,7 +117,7 @@ matches the existing pattern in lib/integrations/stripe/client.ts.
 ### Enforced automatically
 
 - **Prettier** runs on save (configure your editor) + on commit (Husky + lint-staged).
-- **ESLint** runs in CI on every PR.
+- **ESLint** runs in CI on every PR. Config lives in [`eslint.config.mjs`](./eslint.config.mjs) (flat config, ESLint 9). Two project rules are hard errors (`react/no-unescaped-entities`, `@typescript-eslint/no-unused-vars` with `^_` escapes); four `react-hooks` v7 rules (`set-state-in-effect`, `purity`, `immutability`, `refs`) are currently OFF — re-enabling them is queued lint debt and needs per-rule refactor PRs.
 - **TypeScript strict mode** is on. Use `as` casts sparingly; prefer real types.
 
 ### Conventions
