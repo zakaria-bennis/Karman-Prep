@@ -9,7 +9,6 @@ import type {
   QuizAttempt,
   QuestionResponse,
   AdaptiveStep,
-  AnswerLetter,
   ConfidenceBand,
   QuizDifficulty,
 } from "@/types/quiz";
@@ -64,7 +63,9 @@ export async function finalizeQuizAttempt(
 export async function recordQuestionResponse(input: {
   attempt_id: string;
   question_id: string;
-  student_answer: AnswerLetter;
+  /** Free-form text. Letter (A/B/C/D) for multiple-choice; numeric
+   *  string (e.g. "42", "1/2") for SAT math grid-ins. */
+  student_answer: string;
   is_correct: boolean;
   difficulty_at_time: QuizDifficulty;
   response_time_seconds: number;

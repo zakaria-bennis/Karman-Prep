@@ -2,7 +2,7 @@
 
 > A plain-English walkthrough of every feature in the app, the path a real person clicks to get there, what "working correctly" looks like, and any red flags worth knowing about. Use this as both a reference and a smoke-test checklist.
 
-**Last sync:** 2026-05-15. PRs **#33–#59** merged since the previous sync. The product surface didn't change shape; the deltas are reliability tightenings (Fireflies matcher, Zoom fuzzy names, Stripe Connect retry, SAT-date seed fallback), new admin affordances (cohort unarchive, granular impersonation, bulk-reject), one new tutor surface (`/tutor/schedule` self-serve cancel + reschedule), and a developer-only test/visual harness (seed-dev personas, Playwright E2E, Vitest+RTL, axe + tokens + timing visual specs, real-device iPhone captures). See the **What changed since 2026-05-14** subsection in _Critical issues_ for the per-feature delta.
+**Last sync:** 2026-05-16. Covers all merged PRs through **#92** (the previous 2026-05-15 sync covered #33–#59; #60–#92 landed in a follow-up triage + merge batch). Major additions since 2026-05-14: reliability tightenings (Fireflies matcher, Zoom fuzzy names, Stripe Connect retry, SAT-date seed fallback), new admin affordances (cohort unarchive, granular impersonation, bulk-reject), one new tutor surface (`/tutor/schedule` self-serve cancel + reschedule), an opt-in session-recording consent banner for EU/CA visitors (#88), the ESLint v9 + flat config upgrade (#87), and a developer-only test/visual harness (seed-dev personas, Playwright E2E, Vitest+RTL, axe + tokens + timing visual specs, real-device iPhone captures, visual regression baselines). See the **What changed since 2026-05-14** subsection in _Critical issues_ for the per-feature delta.
 
 ---
 

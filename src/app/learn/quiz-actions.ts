@@ -19,7 +19,6 @@ import {
 } from "@/lib/supabase/queries/quiz";
 import type {
   AdaptiveStep,
-  AnswerLetter,
   ConfidenceBand,
   QuizDifficulty,
   QuizQuestionWithChoices,
@@ -55,7 +54,9 @@ export async function actionStartQuiz(nodeId: string): Promise<{
 export async function actionRecordResponse(input: {
   attempt_id: string;
   question_id: string;
-  student_answer: AnswerLetter;
+  /** Free-form text. Letter (A/B/C/D) for multiple-choice; numeric
+   *  string (e.g. "42", "1/2") for SAT math grid-ins. */
+  student_answer: string;
   is_correct: boolean;
   difficulty_at_time: QuizDifficulty;
   response_time_seconds: number;

@@ -32,6 +32,7 @@ import {
 } from "@/app/learn/quiz-actions";
 import type { Subject } from "@/data/curriculum";
 import { playSound } from "@/lib/sounds";
+import * as Sentry from "@sentry/nextjs";
 
 // ── State / events ───────────────────────────────────────────
 
@@ -411,16 +412,25 @@ export function QuizProvider({ children }: { children: ReactNode }) {
     if (isCorrect) playSound("nodeComplete");
     else playSound("error");
 
-    // Fire-and-forget server write — student_answer is stored as free TEXT now
+    // Fire-and-forget server write. student_answer is stored as free
+    // TEXT (letter A/B/C/D for multiple-choice, numeric for math
+    // grid-ins). On failure we report to Sentry with the attempt id
+    // attached so we can investigate without losing other student
+    // answers in the same attempt — better than .catch(console.error)
+    // which silently swallowed everything in audit S4.
     actionRecordResponse({
       attempt_id: state.attemptId,
       question_id: q.id,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      student_answer: state.selectedAnswer as any,
+      student_answer: state.selectedAnswer,
       is_correct: isCorrect,
       difficulty_at_time: q.difficulty,
       response_time_seconds: responseTimeSeconds,
-    }).catch(console.error);
+    }).catch((err) => {
+      Sentry.captureException(err, {
+        tags: { feature: "quiz.record_response" },
+        extra: { attemptId: state.attemptId, questionId: q.id },
+      });
+    });
 
     // 3-consecutive-wrongs video prompt
     if (!isCorrect && state.consecutiveWrong + 1 >= 3) {

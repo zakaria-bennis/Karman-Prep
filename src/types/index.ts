@@ -3,6 +3,8 @@
 // Mirrors the Supabase database schema + app-level types.
 // ============================================================
 
+import { z } from "zod";
+
 // ---- Database Row Types ----------------------------------------
 
 /** A platform user — synced from Clerk on first sign-in */
@@ -65,19 +67,24 @@ export interface DiagnosticResult {
 
 /** Per-domain scores (used in DiagnosticResult and UI).
  *  Mirrors the 8 official Digital SAT domains — 4 Math, 4 R&W.
- *  All values are difficulty-weighted percentages (0-100). */
-export interface DomainScores {
+ *  All values are difficulty-weighted percentages (0-100).
+ *
+ *  Type is DERIVED from `domainScoresSchema` below so a single
+ *  source of truth governs both compile-time + runtime validation
+ *  when reading the `diagnostic_results.domain_scores` jsonb column. */
+export const domainScoresSchema = z.object({
   // Math — College Board's 4 Math domains
-  algebra: number;
-  advanced_math: number;
-  geometry: number; // "Geometry & Trig" on the Bluebook score report
-  data_analysis: number; // "Problem-Solving & Data Analysis"
+  algebra: z.number(),
+  advanced_math: z.number(),
+  geometry: z.number(), // "Geometry & Trig" on the Bluebook score report
+  data_analysis: z.number(), // "Problem-Solving & Data Analysis"
   // Reading & Writing — College Board's 4 R&W domains
-  info_ideas: number; // Information & Ideas
-  craft_structure: number; // Craft & Structure
-  expression_ideas: number; // Expression of Ideas
-  conventions: number; // Standard English Conventions
-}
+  info_ideas: z.number(), // Information & Ideas
+  craft_structure: z.number(), // Craft & Structure
+  expression_ideas: z.number(), // Expression of Ideas
+  conventions: z.number(), // Standard English Conventions
+});
+export type DomainScores = z.infer<typeof domainScoresSchema>;
 
 /** A practice or diagnostic question */
 export interface Question {
