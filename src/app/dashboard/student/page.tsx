@@ -9,7 +9,7 @@ import { redirect } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/server";
 import { resolveEffectiveClerkId } from "@/lib/supabase/queries/admin";
 import StudentDashboardClient from "@/components/dashboard/StudentDashboardClient";
-import type { DomainScores } from "@/types";
+import { domainScoresSchema, type DomainScores } from "@/types";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
@@ -87,17 +87,30 @@ export default async function StudentDashboardPage() {
     })
   );
 
+  // Validate `domain_scores` at the DB → render boundary. The column
+  // is `jsonb` (opaque) in Postgres, so without this parse a schema
+  // drift would leak through compile-time as `unknown as DomainScores`.
+  // `safeParse` so we degrade gracefully — the chart hides itself
+  // when scores are null rather than crashing the whole dashboard.
+  let parsedScores: DomainScores | null = null;
+  if (diagnostic) {
+    const parsed = domainScoresSchema.safeParse(diagnostic.domain_scores);
+    if (parsed.success) {
+      parsedScores = parsed.data;
+    }
+  }
+
   return (
     <StudentDashboardClient
       user={user}
       progress={progress || []}
       nodeStatuses={nodeStatuses as Map<string, import("@/data/curriculum").NodeStatus>}
       diagnostic={
-        diagnostic
+        diagnostic && parsedScores
           ? {
               score_range_low: diagnostic.score_range_low,
               score_range_high: diagnostic.score_range_high,
-              domain_scores: diagnostic.domain_scores as unknown as DomainScores,
+              domain_scores: parsedScores,
             }
           : null
       }

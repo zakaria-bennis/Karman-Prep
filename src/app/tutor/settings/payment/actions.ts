@@ -59,73 +59,33 @@ async function publicBaseUrl(): Promise<string> {
 // Start (or resume) onboarding
 // ──────────────────────────────────────────────────────────
 export async function actionStartOnboarding(): Promise<{ url: string }> {
-  console.log("[onboarding] start");
-
-  let caller, supabase;
-  try {
-    ({ caller, supabase } = await callerRow());
-    console.log(
-      "[onboarding] caller resolved:",
-      caller.id,
-      caller.email,
-      "existing acct:",
-      caller.stripe_connect_account_id ?? "none"
-    );
-  } catch (err) {
-    console.error("[onboarding] callerRow failed:", err instanceof Error ? err.message : err);
-    throw err;
-  }
+  // Info logs intentionally removed — they leaked Stripe account ids
+  // and tutor emails into prod stdout (audit S15). Errors below still
+  // surface via Sentry (server actions auto-capture unhandled throws);
+  // the `[onboarding] *` prefix in error messages is what we filter on
+  // in the Sentry UI.
+  const { caller, supabase } = await callerRow();
 
   let accountId = caller.stripe_connect_account_id as string | null;
 
   if (!accountId) {
-    try {
-      accountId = await createExpressAccount({
-        email: caller.email!,
-        firstName: caller.first_name,
-        lastName: caller.last_name,
-      });
-      console.log("[onboarding] created Stripe account:", accountId);
-    } catch (err) {
-      console.error(
-        "[onboarding] createExpressAccount failed:",
-        err instanceof Error ? err.message : err
-      );
-      throw err;
-    }
+    accountId = await createExpressAccount({
+      email: caller.email!,
+      firstName: caller.first_name,
+      lastName: caller.last_name,
+    });
 
     const { error: dbErr } = await supabase
       .from("users")
       .update({ stripe_connect_account_id: accountId })
       .eq("id", caller.id);
     if (dbErr) {
-      console.error("[onboarding] save_account_failed:", dbErr.message);
-      throw new Error(`save_account_failed: ${dbErr.message}`);
+      throw new Error(`[onboarding] save_account_failed: ${dbErr.message}`);
     }
-    console.log("[onboarding] saved account id to users row");
   }
 
-  let baseUrl: string;
-  try {
-    baseUrl = await publicBaseUrl();
-    console.log("[onboarding] baseUrl:", baseUrl);
-  } catch (err) {
-    console.error("[onboarding] publicBaseUrl failed:", err instanceof Error ? err.message : err);
-    throw err;
-  }
-
-  let url: string;
-  try {
-    url = await createOnboardingLink(accountId, baseUrl);
-    console.log("[onboarding] onboarding link created");
-  } catch (err) {
-    console.error(
-      "[onboarding] createOnboardingLink failed:",
-      err instanceof Error ? err.message : err
-    );
-    throw err;
-  }
-
+  const baseUrl = await publicBaseUrl();
+  const url = await createOnboardingLink(accountId, baseUrl);
   return { url };
 }
 
