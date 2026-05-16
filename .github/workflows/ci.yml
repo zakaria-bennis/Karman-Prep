@@ -15,12 +15,12 @@ name: CI
 
 on:
   push:
-    # Run on whichever branch is the trunk. `develop` is the current
-    # default; `main` listed too so the workflow keeps working if/when
-    # we rename the default branch.
-    branches: [main, develop]
+    # `main` is the trunk. A vestigial `develop` branch exists at
+    # the initial commit but is unused — see docs/audit-2026-05-15.md
+    # finding S5.
+    branches: [main]
   pull_request:
-    branches: [main, develop]
+    branches: [main]
 
 # Cancel in-flight runs when a new commit lands on the same PR/branch.
 # Saves CI minutes; the older run was about to be obsolete anyway.
