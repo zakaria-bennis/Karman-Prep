@@ -12,7 +12,7 @@
 // and read tiny batches).
 // ============================================================
 
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import {
   deserializeEmailArgs,
   listPendingFailedEmails,
@@ -25,12 +25,13 @@ import {
   sendBookingReschedule,
 } from "@/lib/integrations/resend/booking-emails";
 import { updateBooking } from "@/lib/supabase/queries/bookings";
+import { withCronInstrumentation } from "@/lib/observability/cron";
 
 export const runtime = "nodejs";
 
 const BATCH_SIZE = 20;
 
-export async function POST(req: NextRequest) {
+export const POST = withCronInstrumentation("retry-failed-emails", async (req: Request) => {
   const expected = `Bearer ${process.env.CRON_SECRET ?? ""}`;
   if (!process.env.CRON_SECRET || req.headers.get("authorization") !== expected) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -106,4 +107,4 @@ export async function POST(req: NextRequest) {
     failed,
     gaveUp,
   });
-}
+});

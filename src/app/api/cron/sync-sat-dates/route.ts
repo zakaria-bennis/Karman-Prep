@@ -15,10 +15,11 @@
 // .env.local for local dev / curl testing).
 // ============================================================
 
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
 import { fetchSatDatesFromCollegeBoard, SAT_DATES_SOURCE_URL } from "@/lib/sat-dates-source";
 import { STATIC_SAT_DATES } from "@/lib/sat-dates-static";
+import { withCronInstrumentation } from "@/lib/observability/cron";
 
 // Force Node runtime — we use `@supabase/supabase-js` with the
 // service role key, which needs Node APIs (edge runtime would
@@ -27,7 +28,7 @@ export const runtime = "nodejs";
 // Don't cache the cron response.
 export const dynamic = "force-dynamic";
 
-export async function GET(req: NextRequest) {
+export const GET = withCronInstrumentation("sync-sat-dates", async (req: Request) => {
   // Only Vercel Cron (or the dev operator with the secret) can run this.
   const authHeader = req.headers.get("authorization");
   const expected = `Bearer ${process.env.CRON_SECRET ?? ""}`;
@@ -101,4 +102,4 @@ export async function GET(req: NextRequest) {
     used_fallback: false,
     at: now,
   });
-}
+});
