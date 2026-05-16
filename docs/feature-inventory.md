@@ -4,7 +4,7 @@
 
 **Last sync:** 2026-05-16. Covers all merged PRs through **#97 + #64** (the previous 2026-05-15 sync covered #33–#59; #60–#97 landed in a follow-up triage + merge batch on 2026-05-16). Major additions since 2026-05-14: reliability tightenings (Fireflies matcher, Zoom fuzzy names, Stripe Connect retry, SAT-date seed fallback, Cal-webhook email retry queue, recent-approved-sender moderation cache), new admin affordances (cohort unarchive, granular impersonation Phase 1 + 2, bulk-reject, diagnostic retake grant), one new tutor surface (`/tutor/schedule` self-serve cancel + reschedule), an opt-in session-recording consent banner for EU/CA visitors (#88), the ESLint v9 + flat config upgrade (#87), and a developer-only test/visual harness (seed-dev personas, Playwright E2E in CI via `supabase start`, Vitest+RTL, axe + tokens + timing visual specs, real-device iPhone captures, visual regression baselines).
 
-All 3 launch-blocking critical-issues now resolved — see strikethroughs in *Block-the-launch* below.
+All 3 launch-blocking critical-issues now resolved — see strikethroughs in _Block-the-launch_ below.
 
 ---
 
