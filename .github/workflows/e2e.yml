@@ -26,15 +26,17 @@
 
 name: E2E
 
-# Manual-trigger only for now. The workflow itself is ready (see body
-# below), but `supabase start` fails on the initial migration step
-# because `public.users` is created by supabase/schema.sql which was
-# never converted into a numbered migration. Once that bootstrap is
-# moved into a `20230101000000_initial_schema.sql` migration (or
-# similar), flip these triggers back to `push` + `pull_request`.
-#
-# Manual trigger: GitHub UI → Actions → E2E → Run workflow.
+# Runs on every PR to main + every push to main. The foundational
+# tables (users, subscriptions, concepts, etc.) are now created by
+# `supabase/migrations/20230101000000_initial_schema.sql`, so
+# `supabase start` can reproduce the database from scratch.
 on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  # Keep workflow_dispatch as well so anyone can re-run the suite
+  # manually from the Actions UI when investigating a flake.
   workflow_dispatch:
 
 concurrency:
