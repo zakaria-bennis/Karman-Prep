@@ -10,8 +10,10 @@ import { strataClerkAppearance } from "@/lib/clerkAppearance";
 import { ThemeProvider } from "@/components/shared/ThemeProvider";
 import { ConfirmProvider } from "@/components/shared/ConfirmDialog";
 import ImpersonationBanner from "@/components/admin/ImpersonationBanner";
+import ReplayConsentBanner from "@/components/consent/ReplayConsentBanner";
 import { IMPERSONATE_COOKIE, IMPERSONATE_USER_COOKIE } from "@/lib/supabase/queries/admin";
 import { createAdminClient } from "@/lib/supabase/server";
+import { resolveConsentState } from "@/lib/consent/server";
 import "./globals.css";
 
 const geistSans = localFont({
@@ -67,6 +69,8 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   const cookieStore = await cookies();
   const impersonatedRole = cookieStore.get(IMPERSONATE_COOKIE)?.value ?? null;
   const impersonatedUserId = cookieStore.get(IMPERSONATE_USER_COOKIE)?.value ?? null;
+  const consentState = await resolveConsentState();
+
   let impersonatedUserName: string | null = null;
   if (impersonatedUserId) {
     const { data } = await createAdminClient()
@@ -109,6 +113,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
                 <ImpersonationBanner role={impersonatedRole} userName={impersonatedUserName} />
               )}
               {children}
+              <ReplayConsentBanner show={consentState === "banner_show"} />
             </ConfirmProvider>
           </ThemeProvider>
         </body>
