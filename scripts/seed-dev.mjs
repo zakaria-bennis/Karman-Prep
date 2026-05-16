@@ -138,6 +138,30 @@ async function upsertParentStudentLink(parentUuid, studentUuid) {
   });
 }
 
+/** Upsert the SAT dates the rest of the seed references. Without
+ *  this, `cohorts` inserts fail in CI with a FK violation against
+ *  the empty `sat_dates` table (the sync-sat-dates cron isn't run
+ *  in the ephemeral CI Supabase stack). Mirrors a subset of
+ *  src/lib/sat-dates-static.ts — kept inline so this .mjs script
+ *  doesn't need a TS toolchain. */
+async function upsertSatDatesForSeed() {
+  const dates = [
+    { test_date: "2026-05-02" },
+    { test_date: "2026-06-06" },
+    { test_date: "2026-08-22" },
+    { test_date: "2026-10-03" },
+    { test_date: "2026-11-07" }, // referenced by upsertCohort below
+    { test_date: "2026-12-05" },
+  ];
+  for (const d of dates) {
+    // Avoid 409s on re-seed: probe first, only POST if absent.
+    const existing = await sb(`sat_dates?test_date=eq.${d.test_date}`, { method: "GET" });
+    if (existing.length === 0) {
+      await sb(`sat_dates`, { method: "POST", body: JSON.stringify(d) });
+    }
+  }
+}
+
 /** Upsert a cohort keyed on (name, tutor_user_id). The combination
  *  is unique enough for fixtures; we'd never seed two cohorts
  *  with the same name + tutor in practice. */
@@ -187,6 +211,12 @@ const header = (msg) => console.log(`\n→ ${msg}`);
 
 async function main() {
   console.log("Seeding dev fixtures into", SUPABASE_URL);
+
+  // 0. SAT dates — must exist before any cohort insert (FK constraint).
+  //    In prod these come from the sync-sat-dates cron; in CI the
+  //    table is empty unless we seed it here.
+  await upsertSatDatesForSeed();
+  log("✓ SAT dates seeded");
 
   // 1. Admin ─────────────────────────────────────────────
   header("dev_seed_admin (admin)");
