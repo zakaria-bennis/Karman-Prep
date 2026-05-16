@@ -39,6 +39,7 @@ that can answer the question — climb only when needed.
 | Does this pure function return the right value?                     | Vitest (node env)                                     | ~ms        |
 | Does this component render the right text / fire the right handler? | Vitest + RTL (jsdom env)                              | ~10ms/test |
 | Does this multi-step flow still work (click → navigate → assert)?   | Playwright (`test:e2e`)                               | ~5s/test   |
+| Did this PR silently change how a page looks?                       | Visual regression (`test:visual:regression`)          | ~5s/test   |
 | What does this page actually look like with real data?              | Dev bypass + seed fixtures, browse manually           | ~10s       |
 | Is the spacing / color / font _exactly_ right?                      | `mcp__Claude_Preview__preview_inspect` for CSS values | ~1s        |
 
@@ -114,12 +115,18 @@ What it covers:
   inline styles. JSON report, no fail.
 - Animation timing — `timing.spec.ts` measures CSS transitions; warns
   if a hover state exceeds 500ms.
+- **Visual regression — `regression.spec.ts`** diffs the current
+  render against committed baseline PNGs and FAILS on >100px drift.
+  Baselines live in `tests/visual/regression.spec.ts-snapshots/`
+  (committed). 27 baselines across 4 personas × 3 viewports × Chromium.
+  Run with `npm run test:visual:regression`. When a visual change is
+  intentional, update baselines with `npm run test:visual:regression:update`
+  then `git diff --stat tests/visual/regression.spec.ts-snapshots/` and
+  visually review each diff before committing.
 
 What it does NOT do (deliberate):
 
 - Subjective taste / motion feel / first-time-user intuition — human only.
-- Full-page visual regression diffs — would need Chromatic / Percy /
-  baseline-on-disk; tracked as a follow-up.
 
 ### Cross-browser + mobile emulation
 

@@ -18,6 +18,8 @@
     "test:visual": "playwright test --project=visual",
     "test:visual:all": "playwright test --project=visual --project=visual-firefox --project=visual-webkit --project=mobile-chrome --project=mobile-safari",
     "test:visual:mobile": "playwright test --project=mobile-chrome --project=mobile-safari",
+    "test:visual:regression": "playwright test tests/visual/regression.spec.ts --project=visual",
+    "test:visual:regression:update": "playwright test tests/visual/regression.spec.ts --project=visual --update-snapshots",
     "cf:build": "opennextjs-cloudflare build && node scripts/build/patch-cf-worker.mjs",
     "cf:preview": "opennextjs-cloudflare preview",
     "cf:deploy": "opennextjs-cloudflare deploy",
