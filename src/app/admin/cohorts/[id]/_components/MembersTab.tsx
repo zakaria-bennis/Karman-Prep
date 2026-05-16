@@ -156,7 +156,7 @@ function MemberRow({
         <button
           onClick={remove}
           disabled={pending}
-          className="text-slate-500 hover:text-rose-300 disabled:opacity-50"
+          className="text-slate-400 hover:text-rose-300 disabled:opacity-50"
           aria-label={`Remove ${studentDisplay(member)} from cohort`}
         >
           {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
@@ -218,7 +218,7 @@ function AddMemberDialog({
       >
         <button
           onClick={onClose}
-          className="absolute right-4 top-4 text-slate-500 hover:text-slate-200"
+          className="absolute right-4 top-4 text-slate-400 hover:text-slate-200"
           aria-label="Close"
         >
           <X className="h-5 w-5" />

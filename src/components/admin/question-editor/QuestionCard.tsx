@@ -79,7 +79,7 @@ export function QuestionCard({
         {dragDisabled ? (
           <div className="w-4 shrink-0" />
         ) : (
-          <GripVertical className="mt-1 h-4 w-4 shrink-0 cursor-grab text-slate-500 active:cursor-grabbing" />
+          <GripVertical className="mt-1 h-4 w-4 shrink-0 cursor-grab text-slate-400 active:cursor-grabbing" />
         )}
         {/* Question number badge */}
         <span className="mt-0.5 shrink-0 rounded-md bg-slate-800 px-1.5 py-0.5 text-[11px] font-bold tabular-nums text-slate-300">
@@ -114,13 +114,13 @@ export function QuestionCard({
                 numeric
               </span>
             )}
-            <span className="text-slate-500">
+            <span className="text-slate-400">
               Correct: <strong className="text-white">{question.correct_answer}</strong>
               {isNumeric && question.numeric_tolerance !== null && (
-                <span className="text-slate-500"> (± {question.numeric_tolerance})</span>
+                <span className="text-slate-400"> (± {question.numeric_tolerance})</span>
               )}
             </span>
-            <span className="text-slate-600">{question.topic_cluster}</span>
+            <span className="text-slate-400">{question.topic_cluster}</span>
             {question.hint && (
               <span className="inline-flex items-center gap-1 text-amber-400/80">
                 <Lightbulb className="h-3 w-3" /> hint
@@ -161,7 +161,7 @@ export function QuestionCard({
           {!forceExpanded && (
             <button
               onClick={() => setExpanded((v) => !v)}
-              className="rounded p-1.5 text-slate-500 hover:bg-slate-800"
+              className="rounded p-1.5 text-slate-400 hover:bg-slate-800"
             >
               {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
             </button>
@@ -232,14 +232,14 @@ export function QuestionCard({
             </div>
           )}
           <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
               Explanation:
             </span>
             <p className="mt-1 whitespace-pre-wrap text-slate-300">{question.explanation_text}</p>
           </div>
           {question.explanation_per_choice && (
             <div>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                 Per-choice:
               </span>
               {LETTERS.map((l) => {
@@ -255,7 +255,7 @@ export function QuestionCard({
           )}
           {question.desmos_strategy && (
             <div>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                 Desmos strategy:
               </span>
               <p className="mt-1 whitespace-pre-wrap text-slate-300">{question.desmos_strategy}</p>
@@ -317,8 +317,8 @@ function ImageAttachment({
   return (
     <div>
       <div className="mb-1 flex items-center gap-2">
-        <ImageIcon className="h-3 w-3 text-slate-500" />
-        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Image</span>
+        <ImageIcon className="h-3 w-3 text-slate-400" />
+        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Image</span>
       </div>
       <input
         ref={fileRef}

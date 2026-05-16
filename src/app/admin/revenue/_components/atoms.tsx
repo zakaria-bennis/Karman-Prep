@@ -19,7 +19,7 @@ export function Kpi({
 }) {
   return (
     <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-4">
-      <p className="mb-2 inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-500">
+      <p className="mb-2 inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-400">
         <span
           className={cn("flex h-5 w-5 items-center justify-center rounded-md", ACCENT_RING[accent])}
         >
@@ -28,7 +28,7 @@ export function Kpi({
         {label}
       </p>
       <p className="text-xl font-extrabold tabular-nums text-white">{value}</p>
-      {hint && <p className="mt-1 text-[10px] text-slate-500">{hint}</p>}
+      {hint && <p className="mt-1 text-[10px] text-slate-400">{hint}</p>}
     </div>
   );
 }
@@ -49,7 +49,7 @@ export function MomentumCard({
   const Arrow = direction === "up" ? ArrowUpRight : ArrowDownRight;
   return (
     <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-4">
-      <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-slate-500">{label}</p>
+      <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">{label}</p>
       <div
         className={cn(
           "flex items-baseline gap-2",
@@ -63,7 +63,7 @@ export function MomentumCard({
         <span className="text-2xl font-extrabold tabular-nums">{value}</span>
         <Arrow className="h-4 w-4" />
       </div>
-      {hint && <p className="mt-1 text-[10px] text-slate-500">{hint}</p>}
+      {hint && <p className="mt-1 text-[10px] text-slate-400">{hint}</p>}
     </div>
   );
 }
@@ -101,7 +101,7 @@ export function CohortCell({ active, total }: { active: number; total: number })
   return (
     <div className="inline-flex flex-col items-end">
       <span className={cn("font-semibold tabular-nums", color)}>{active}</span>
-      <span className="text-[9px] tabular-nums text-slate-500">{Math.round(pct * 100)}%</span>
+      <span className="text-[9px] tabular-nums text-slate-400">{Math.round(pct * 100)}%</span>
     </div>
   );
 }

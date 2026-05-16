@@ -64,14 +64,14 @@ export default function ConstellationSidebar({
             <span className="flex-1 truncate text-[10px] font-bold uppercase tracking-[0.3em] text-slate-300">
               Skills Index
             </span>
-            <span className="text-[10px] tabular-nums text-slate-500">
+            <span className="text-[10px] tabular-nums text-slate-400">
               {masteredCount}/{nodes.length}
             </span>
           </>
         )}
         <button
           onClick={() => setCollapsed((v) => !v)}
-          className="flex h-6 w-6 shrink-0 items-center justify-center rounded text-slate-500 transition-colors hover:bg-white/5 hover:text-white"
+          className="flex h-6 w-6 shrink-0 items-center justify-center rounded text-slate-400 transition-colors hover:bg-white/5 hover:text-white"
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           <ChevronRight
@@ -102,7 +102,7 @@ export default function ConstellationSidebar({
                     style={{ color: isOpen ? hex : undefined }}
                   />
                   <span className="flex-1 truncate font-semibold">{cluster}</span>
-                  <span className="shrink-0 text-[10px] tabular-nums text-slate-500">
+                  <span className="shrink-0 text-[10px] tabular-nums text-slate-400">
                     {mastered}/{clusterNodes.length}
                   </span>
                 </button>
@@ -117,7 +117,7 @@ export default function ConstellationSidebar({
                         n.status === "mastered" ? (
                           <CheckCircle className="h-3 w-3 shrink-0 text-emerald-400" />
                         ) : isLocked ? (
-                          <Lock className="h-3 w-3 shrink-0 text-slate-600" />
+                          <Lock className="h-3 w-3 shrink-0 text-slate-400" />
                         ) : (
                           <Circle
                             className="h-3 w-3 shrink-0"
@@ -160,7 +160,7 @@ export default function ConstellationSidebar({
 
       {/* Footer */}
       {!collapsed && (
-        <footer className="border-t border-white/10 px-3 py-2 text-[10px] uppercase tracking-wider text-slate-500">
+        <footer className="border-t border-white/10 px-3 py-2 text-[10px] uppercase tracking-wider text-slate-400">
           Click a skill to zoom to its star
         </footer>
       )}

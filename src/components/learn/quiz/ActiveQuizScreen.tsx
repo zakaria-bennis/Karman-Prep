@@ -58,7 +58,7 @@ export function ActiveQuizScreen({
       {/* Top bar */}
       <div className="absolute inset-x-0 top-0 z-10 flex h-14 items-center border-b border-slate-800 bg-slate-950/80 px-6 backdrop-blur-sm">
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">
+          <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">
             {node.subject === "reading" ? "Reading & Writing" : "Math"}
           </p>
           <p className="truncate text-sm font-bold">{node.topic}</p>
@@ -181,7 +181,7 @@ export function ActiveQuizScreen({
                         !isSubmitted && isSelected && "bg-blue-500 text-white",
                         showCorrect && "bg-emerald-500 text-white",
                         showWrong && "bg-rose-500 text-white",
-                        isSubmitted && !isSelected && !isCorrect && "bg-slate-800 text-slate-500"
+                        isSubmitted && !isSelected && !isCorrect && "bg-slate-800 text-slate-400"
                       )}
                     >
                       {showCorrect ? <Check className="h-3.5 w-3.5" /> : letter}
@@ -197,7 +197,7 @@ export function ActiveQuizScreen({
 
         const questionPanel = (
           <div className="mx-auto max-w-xl">
-            <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+            <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
               {q.topic_cluster}
             </p>
             <h2 className="text-[19px] font-medium leading-[1.5] text-slate-100 md:text-[20px]">
@@ -325,13 +325,13 @@ export function ActiveQuizScreen({
             {q.passage_a && q.passage_b ? (
               <>
                 <section className="mb-7">
-                  <div className="mb-2 font-sans text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">
+                  <div className="mb-2 font-sans text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">
                     Text 1
                   </div>
                   <MathText text={q.passage_a} className="block whitespace-pre-wrap" />
                 </section>
                 <section>
-                  <div className="mb-2 font-sans text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">
+                  <div className="mb-2 font-sans text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">
                     Text 2
                   </div>
                   <MathText text={q.passage_b} className="block whitespace-pre-wrap" />
@@ -464,7 +464,7 @@ function NumericAnswerInput({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder="Type a number (e.g. 3.14 or 1/2)"
-          className="w-full border-0 bg-transparent font-mono text-2xl font-bold tabular-nums text-white placeholder:text-slate-600 focus:outline-none md:text-3xl"
+          className="w-full border-0 bg-transparent font-mono text-2xl font-bold tabular-nums text-white placeholder:text-slate-400 focus:outline-none md:text-3xl"
         />
         {showFeedback && !wasCorrect && (
           <p className="mt-3 text-sm text-rose-300">

@@ -98,7 +98,7 @@ export function AddQuestionForm({
   }
 
   const inputClass =
-    "w-full rounded-lg border border-slate-700 bg-slate-900 text-slate-100 px-3 py-2 text-sm placeholder:text-slate-600 focus:outline-none focus:border-indigo-500";
+    "w-full rounded-lg border border-slate-700 bg-slate-900 text-slate-100 px-3 py-2 text-sm placeholder:text-slate-400 focus:outline-none focus:border-indigo-500";
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -466,7 +466,7 @@ function Field({
   return (
     <label className="block">
       <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">{label}</span>
-      {helper && <span className="mb-1 mt-0.5 block text-[10px] text-slate-500">{helper}</span>}
+      {helper && <span className="mb-1 mt-0.5 block text-[10px] text-slate-400">{helper}</span>}
       <div className={helper ? "" : "mt-1"}>{children}</div>
     </label>
   );
@@ -483,7 +483,7 @@ function DifficultyLevelField({
       <div className="flex items-center justify-between">
         <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
           Difficulty level{" "}
-          <span className="ml-1 normal-case tracking-normal text-slate-600">
+          <span className="ml-1 normal-case tracking-normal text-slate-400">
             (1 easiest → 7 hardest)
           </span>
         </span>
@@ -510,7 +510,7 @@ function DifficultyLevelField({
                 "flex-1 rounded-lg border py-2 text-sm font-bold transition-colors",
                 active
                   ? "text-white"
-                  : "border-slate-700 text-slate-500 hover:border-slate-500 hover:text-slate-300"
+                  : "border-slate-700 text-slate-400 hover:border-slate-500 hover:text-slate-300"
               )}
               style={
                 active

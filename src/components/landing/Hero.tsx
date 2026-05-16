@@ -146,7 +146,7 @@ export default function Hero() {
           <div className="flex items-end justify-center gap-4">
             <div className="text-center">
               <div className="type-mono text-2xl font-bold text-slate-400">1235</div>
-              <div className="mt-1 text-xs text-slate-500">Before</div>
+              <div className="mt-1 text-xs text-slate-400">Before</div>
             </div>
             <div className="mb-1 flex items-center gap-2">
               <div className="h-px w-8 bg-gradient-to-r from-slate-600 to-blue-400" />
@@ -155,7 +155,7 @@ export default function Hero() {
             </div>
             <div className="text-center">
               <div className="type-mono text-2xl font-bold text-blue-300">1520</div>
-              <div className="mt-1 text-xs text-slate-500">After</div>
+              <div className="mt-1 text-xs text-slate-400">After</div>
             </div>
           </div>
         </motion.div>

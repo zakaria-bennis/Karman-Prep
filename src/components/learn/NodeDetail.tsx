@@ -48,7 +48,7 @@ const STATUS_CONFIG: Record<
   NodeStatus,
   { label: string; icon: React.ComponentType<{ className?: string }>; color: string }
 > = {
-  locked: { label: "Locked", icon: Lock, color: "text-slate-500" },
+  locked: { label: "Locked", icon: Lock, color: "text-slate-400" },
   available: { label: "Available", icon: Clock, color: "text-amber-400" },
   in_progress: { label: "In Progress", icon: BookOpen, color: "text-blue-400" },
   partially_complete: { label: "Partially Complete", icon: Star, color: "text-teal-400" },
@@ -106,7 +106,7 @@ export default function NodeDetail({
         {/* Back link */}
         <Link
           href={`/learn/${subject}`}
-          className="mb-2 inline-flex items-center gap-1.5 text-sm text-slate-500 transition-colors hover:text-slate-300"
+          className="mb-2 inline-flex items-center gap-1.5 text-sm text-slate-400 transition-colors hover:text-slate-300"
         >
           <ArrowLeft className="h-4 w-4" />
           Back to constellation
@@ -147,7 +147,7 @@ export default function NodeDetail({
               {STATUS_CONFIG[currentStatus].label}
             </span>
             {currentScore !== null && (
-              <span className="ml-2 text-xs text-slate-500">
+              <span className="ml-2 text-xs text-slate-400">
                 · Last score: <span className="font-semibold text-slate-300">{currentScore}%</span>
               </span>
             )}
@@ -187,7 +187,7 @@ export default function NodeDetail({
           <div className="space-y-2">
             {["What to expect on the SAT", "Common traps to avoid", "Strategy and timing tips"].map(
               (item) => (
-                <div key={item} className="flex items-center gap-2 text-sm text-slate-500">
+                <div key={item} className="flex items-center gap-2 text-sm text-slate-400">
                   <div
                     className="h-1.5 w-1.5 rounded-full"
                     style={{ background: subjectColor + "80" }}
@@ -246,7 +246,7 @@ export default function NodeDetail({
             <CheckCircle className="h-5 w-5 shrink-0 text-emerald-400" />
             <div>
               <p className="text-sm font-semibold text-emerald-400">Already mastered</p>
-              <p className="mt-0.5 text-xs text-slate-500">
+              <p className="mt-0.5 text-xs text-slate-400">
                 You&apos;ve completed this node.{" "}
                 <Link
                   href={`/learn/${subject}`}
@@ -295,7 +295,7 @@ export default function NodeDetail({
         {/* Prerequisites */}
         {prereqs.length > 0 && (
           <div>
-            <h2 className="mb-3 text-xs font-bold uppercase tracking-widest text-slate-500">
+            <h2 className="mb-3 text-xs font-bold uppercase tracking-widest text-slate-400">
               Prerequisites
             </h2>
             <div className="space-y-2">
@@ -312,7 +312,7 @@ export default function NodeDetail({
                     <span className="flex-1 truncate text-sm text-slate-300 transition-colors group-hover:text-white">
                       {p.topic}
                     </span>
-                    <ChevronRight className="h-3.5 w-3.5 text-slate-600 group-hover:text-slate-400" />
+                    <ChevronRight className="h-3.5 w-3.5 text-slate-400 group-hover:text-slate-400" />
                   </Link>
                 );
               })}
@@ -323,7 +323,7 @@ export default function NodeDetail({
         {/* Unlocks next */}
         {unlocks.length > 0 && (
           <div>
-            <h2 className="mb-3 text-xs font-bold uppercase tracking-widest text-slate-500">
+            <h2 className="mb-3 text-xs font-bold uppercase tracking-widest text-slate-400">
               Unlocks next
             </h2>
             <div className="space-y-2">

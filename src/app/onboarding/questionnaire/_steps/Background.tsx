@@ -65,7 +65,7 @@ export function BackgroundStep(props: {
               onChange={(e) => props.setRecentSatMath(Number(e.target.value))}
               className="w-full accent-blue-400"
             />
-            <div className="mt-1 flex justify-between text-[11px] text-slate-500">
+            <div className="mt-1 flex justify-between text-[11px] text-slate-400">
               <span>200</span>
               <span>800</span>
             </div>
@@ -84,7 +84,7 @@ export function BackgroundStep(props: {
               onChange={(e) => props.setRecentSatReading(Number(e.target.value))}
               className="w-full accent-blue-400"
             />
-            <div className="mt-1 flex justify-between text-[11px] text-slate-500">
+            <div className="mt-1 flex justify-between text-[11px] text-slate-400">
               <span>200</span>
               <span>800</span>
             </div>
@@ -118,7 +118,7 @@ export function BackgroundStep(props: {
             onChange={(e) => props.setPsatScore(Number(e.target.value))}
             className="w-full accent-blue-400"
           />
-          <div className="mt-1 flex justify-between text-[11px] text-slate-500">
+          <div className="mt-1 flex justify-between text-[11px] text-slate-400">
             <span>320</span>
             <span>1520</span>
           </div>

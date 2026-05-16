@@ -43,7 +43,7 @@ export default function ComingSoonPage() {
 
         <ComingSoonForm />
 
-        <p className="mt-10 text-[11px] text-slate-600">© {new Date().getFullYear()} Karman</p>
+        <p className="mt-10 text-[11px] text-slate-400">© {new Date().getFullYear()} Karman</p>
       </main>
     </div>
   );

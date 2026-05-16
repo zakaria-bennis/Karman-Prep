@@ -284,7 +284,7 @@ export default function ReviewClient({
           {(activeFilters.flag_type || activeFilters.domain || activeFilters.source_pdf) && (
             <button
               onClick={() => router.push("/admin/questions/review")}
-              className="ml-auto text-slate-500 hover:text-slate-300"
+              className="ml-auto text-slate-400 hover:text-slate-300"
             >
               Clear filters
             </button>
@@ -363,7 +363,7 @@ export default function ReviewClient({
                   </label>
                   {selectedCount > 0 && (
                     <>
-                      <span className="text-slate-600">·</span>
+                      <span className="text-slate-400">·</span>
                       <span className="text-slate-300">{selectedCount} selected</span>
                       <button
                         onClick={handleBulkReject}
@@ -381,7 +381,7 @@ export default function ReviewClient({
                       <button
                         onClick={() => setSelectedIds(new Set())}
                         disabled={bulkRejecting}
-                        className="text-slate-500 hover:text-slate-300 disabled:opacity-50"
+                        className="text-slate-400 hover:text-slate-300 disabled:opacity-50"
                       >
                         Clear
                       </button>
@@ -456,11 +456,11 @@ function TabButton({
         "-mb-px border-b-2 px-4 py-2 text-sm font-semibold transition-colors",
         active
           ? "border-white text-white"
-          : "border-transparent text-slate-500 hover:text-slate-300"
+          : "border-transparent text-slate-400 hover:text-slate-300"
       )}
     >
       {label}
-      <span className={cn("ml-2 font-mono text-xs", active ? accent : "text-slate-600")}>
+      <span className={cn("ml-2 font-mono text-xs", active ? accent : "text-slate-400")}>
         {count}
       </span>
     </button>
@@ -478,7 +478,7 @@ function EmptyState({ tab, hasFilters }: { tab: Tab; hasFilters: boolean }) {
       "No questions in the bank. Imported PDF-routine questions land here with no curriculum node assigned — accept one with a node picked to send it live.";
   }
   return (
-    <div className="rounded-xl border border-slate-800 bg-slate-900/40 px-6 py-12 text-center text-sm text-slate-500">
+    <div className="rounded-xl border border-slate-800 bg-slate-900/40 px-6 py-12 text-center text-sm text-slate-400">
       {copy}
     </div>
   );

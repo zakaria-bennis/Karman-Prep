@@ -57,7 +57,7 @@ export default function FlagReviewList({ flagged }: Props) {
             <header className="mb-3 flex items-start gap-3">
               <Flag className="mt-0.5 h-4 w-4 shrink-0 text-rose-500" />
               <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400">
                   <code>{flag.node_id}</code>
                   <span>•</span>
                   <span>
@@ -84,14 +84,14 @@ export default function FlagReviewList({ flagged }: Props) {
               <div className="flex shrink-0 gap-1">
                 <Link
                   href={`/admin/curriculum/${flag.node_id}`}
-                  className="rounded p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
+                  className="rounded p-2 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
                   title="Open node"
                 >
                   <ExternalLink className="h-3.5 w-3.5" />
                 </Link>
                 <button
                   onClick={() => setEditingId(editingId === flag.id ? null : flag.id)}
-                  className="rounded p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
+                  className="rounded p-2 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
                   title="Edit question"
                 >
                   <Edit3 className="h-3.5 w-3.5" />
@@ -161,7 +161,7 @@ function InlineEditor({
   return (
     <div className="mt-3 space-y-3 rounded border border-blue-200 bg-blue-50/40 p-3 dark:border-blue-900 dark:bg-blue-900/10">
       <div>
-        <label className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+        <label className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
           Question text
         </label>
         <textarea
@@ -172,7 +172,7 @@ function InlineEditor({
         />
       </div>
       <div>
-        <label className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+        <label className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
           Explanation
         </label>
         <textarea
@@ -185,7 +185,7 @@ function InlineEditor({
       <div className="flex justify-end gap-2">
         <button
           onClick={onCancel}
-          className="px-3 py-1.5 text-xs font-semibold text-slate-500 hover:text-slate-900 dark:hover:text-white"
+          className="px-3 py-1.5 text-xs font-semibold text-slate-400 hover:text-slate-900 dark:hover:text-white"
         >
           Cancel
         </button>

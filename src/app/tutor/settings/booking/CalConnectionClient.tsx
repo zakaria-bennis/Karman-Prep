@@ -32,7 +32,7 @@ export function CalConnectionClient({ status, eventTypes, eventTypesError }: Pro
       <div className="rounded-xl border border-slate-200 bg-white px-6 py-8 text-center">
         <Link2 className="mx-auto mb-3 h-6 w-6 text-blue-500" />
         <h2 className="text-lg font-semibold text-slate-900">Connect your Cal.com account</h2>
-        <p className="mx-auto mt-1 max-w-md text-sm text-slate-500">
+        <p className="mx-auto mt-1 max-w-md text-sm text-slate-400">
           We&rsquo;ll read your event-types and point your Karman students at the right one. You can
           disconnect anytime.
         </p>
@@ -77,14 +77,14 @@ export function CalConnectionClient({ status, eventTypes, eventTypesError }: Pro
         <CheckCircle2 className="h-4 w-4 text-emerald-500" />
         <span className="font-semibold text-slate-900">Cal.com connected</span>
         {status.connectedAt ? (
-          <span className="text-xs text-slate-500">
+          <span className="text-xs text-slate-400">
             since {new Date(status.connectedAt).toLocaleDateString()}
           </span>
         ) : null}
       </div>
 
       {status.eventTypeTitle ? (
-        <p className="mt-2 text-sm text-slate-600">
+        <p className="mt-2 text-sm text-slate-400">
           Karman students book against{" "}
           <span className="font-semibold text-slate-900">{status.eventTypeTitle}</span>.
         </p>
@@ -97,13 +97,13 @@ export function CalConnectionClient({ status, eventTypes, eventTypesError }: Pro
       {eventTypesError ? (
         <p className="mt-3 text-sm text-rose-600">{eventTypesError}</p>
       ) : eventTypes.length === 0 ? (
-        <p className="mt-3 text-sm text-slate-500">
+        <p className="mt-3 text-sm text-slate-400">
           You don&rsquo;t have any event-types in your Cal account yet. Create one (60 min works
           well) on cal.com and refresh this page.
         </p>
       ) : (
         <div className="mt-4 space-y-2">
-          <label className="block text-xs font-semibold text-slate-600">
+          <label className="block text-xs font-semibold text-slate-400">
             {status.eventTypeId
               ? "Change which event-type is the Karman session"
               : "Pick the Karman session event-type"}

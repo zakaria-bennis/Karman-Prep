@@ -107,13 +107,13 @@ export default async function AdminCurriculumPage({ searchParams }: PageProps) {
       <div className="mb-6 flex items-center gap-1 border-b border-slate-800 text-sm">
         <Link
           href="/admin/curriculum"
-          className={`border-b-2 px-4 pb-3 font-semibold ${activeTab === "nodes" ? "border-indigo-500 text-indigo-400" : "border-transparent text-slate-500 hover:text-slate-200"}`}
+          className={`border-b-2 px-4 pb-3 font-semibold ${activeTab === "nodes" ? "border-indigo-500 text-indigo-400" : "border-transparent text-slate-400 hover:text-slate-200"}`}
         >
           Nodes
         </Link>
         <Link
           href="/admin/curriculum?tab=flagged"
-          className={`inline-flex items-center gap-2 border-b-2 px-4 pb-3 font-semibold ${activeTab === "flagged" ? "border-indigo-500 text-indigo-400" : "border-transparent text-slate-500 hover:text-slate-200"}`}
+          className={`inline-flex items-center gap-2 border-b-2 px-4 pb-3 font-semibold ${activeTab === "flagged" ? "border-indigo-500 text-indigo-400" : "border-transparent text-slate-400 hover:text-slate-200"}`}
         >
           Flagged
           {flaggedCount > 0 && (
@@ -187,14 +187,14 @@ export default async function AdminCurriculumPage({ searchParams }: PageProps) {
                           style={{ background: atmoHex }}
                         />
                         {atmo}
-                        <span className="ml-1 font-normal normal-case tracking-normal text-slate-500">
+                        <span className="ml-1 font-normal normal-case tracking-normal text-slate-400">
                           · {atmoSubtitle}
                         </span>
                       </div>
                       <div className="divide-y divide-slate-800">
                         {Object.entries(clusters).map(([cluster, nodes]) => (
                           <div key={cluster}>
-                            <div className="bg-slate-900/40 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                            <div className="bg-slate-900/40 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
                               {cluster}
                             </div>
                             <ul>
@@ -214,20 +214,20 @@ export default async function AdminCurriculumPage({ searchParams }: PageProps) {
                                       href={`/admin/curriculum/${n.id}`}
                                       className="group flex items-center gap-4 px-4 py-2.5 transition-colors hover:bg-white/5"
                                     >
-                                      <code className="w-14 shrink-0 font-mono text-xs text-slate-500">
+                                      <code className="w-14 shrink-0 font-mono text-xs text-slate-400">
                                         {n.id}
                                       </code>
                                       <span className="flex-1 truncate text-sm font-medium text-slate-200 group-hover:text-white">
                                         {n.topic}
                                       </span>
-                                      <span className="flex items-center gap-3 text-xs text-slate-500">
+                                      <span className="flex items-center gap-3 text-xs text-slate-400">
                                         <span>Diff {n.difficulty}</span>
                                         <span
                                           className={`rounded-full border px-2 py-0.5 text-[11px] font-bold tabular-nums ${countClass}`}
                                         >
                                           {count} / 100
                                         </span>
-                                        <ChevronRight className="h-3.5 w-3.5 text-slate-600 group-hover:text-slate-300" />
+                                        <ChevronRight className="h-3.5 w-3.5 text-slate-400 group-hover:text-slate-300" />
                                       </span>
                                     </Link>
                                   </li>

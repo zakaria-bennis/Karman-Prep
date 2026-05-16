@@ -34,7 +34,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <Link href="/" aria-label="Karman home" className="flex items-center">
           <StrataLogo size={24} />
         </Link>
-        <span className="text-slate-700">/</span>
+        <span className="text-slate-400">/</span>
         <div className="flex items-center gap-1">
           <Settings className="h-4 w-4 text-slate-400" />
           <span className="text-sm font-bold text-white">Admin Console</span>

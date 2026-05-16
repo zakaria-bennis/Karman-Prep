@@ -80,7 +80,7 @@ export function DiagnosticHeader({
             <span className="text-sm font-semibold text-slate-900 dark:text-white">
               Question {sectionPosition} / {sectionLength}
             </span>
-            <span className="ml-2 text-xs text-slate-500">SAT Diagnostic</span>
+            <span className="ml-2 text-xs text-slate-400">SAT Diagnostic</span>
           </div>
         </div>
 

@@ -232,7 +232,7 @@ export default function QuestionnaireClient({ firstName, tier, satDates }: Props
                   ? "border-emerald-400/40 bg-emerald-500/20 text-emerald-200"
                   : i === stepIdx
                     ? "border-transparent bg-gradient-to-br from-blue-500 to-violet-500 text-white"
-                    : "border-white/10 bg-white/[0.03] text-slate-500"
+                    : "border-white/10 bg-white/[0.03] text-slate-400"
               )}
             >
               {i + 1}

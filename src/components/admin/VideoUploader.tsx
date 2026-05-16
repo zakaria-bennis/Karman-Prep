@@ -100,7 +100,7 @@ export default function VideoUploader({
       {/* Current video preview */}
       <section>
         <h2 className="mb-1 text-base font-bold text-white">Current video</h2>
-        <p className="mb-3 text-xs text-slate-500">
+        <p className="mb-3 text-xs text-slate-400">
           Shown to students at the top of the lesson page.
         </p>
 
@@ -135,8 +135,8 @@ export default function VideoUploader({
           </div>
         ) : (
           <div className="rounded-xl border border-dashed border-slate-700 p-10 text-center">
-            <Video className="mx-auto mb-2 h-7 w-7 text-slate-600" />
-            <p className="text-sm text-slate-500">No video yet. Upload one or paste a URL below.</p>
+            <Video className="mx-auto mb-2 h-7 w-7 text-slate-400" />
+            <p className="text-sm text-slate-400">No video yet. Upload one or paste a URL below.</p>
           </div>
         )}
       </section>
@@ -144,7 +144,7 @@ export default function VideoUploader({
       {/* Upload file */}
       <section>
         <h3 className="mb-1 text-sm font-bold text-white">Upload a file</h3>
-        <p className="mb-3 text-xs text-slate-500">
+        <p className="mb-3 text-xs text-slate-400">
           MP4/WebM, up to <strong className="text-slate-300">{MAX_FILE_MB} MB</strong>. Larger files
           should be hosted on Mux or YouTube and pasted as a URL below.
         </p>
@@ -183,18 +183,18 @@ export default function VideoUploader({
       {/* Paste a URL */}
       <section>
         <h3 className="mb-1 text-sm font-bold text-white">Or paste a URL</h3>
-        <p className="mb-3 text-xs text-slate-500">
+        <p className="mb-3 text-xs text-slate-400">
           Mux playback URL, YouTube embed URL, Vimeo direct link, or any public video URL.
         </p>
         <div className="flex flex-col gap-2 sm:flex-row">
           <div className="relative flex-1">
-            <Link2 className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+            <Link2 className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <input
               type="url"
               value={urlInput}
               onChange={(e) => setUrlInput(e.target.value)}
               placeholder="https://…"
-              className="w-full rounded-lg border border-slate-800 bg-slate-900 py-2.5 pl-9 pr-3 text-sm text-slate-100 placeholder:text-slate-600 focus:border-indigo-500 focus:outline-none"
+              className="w-full rounded-lg border border-slate-800 bg-slate-900 py-2.5 pl-9 pr-3 text-sm text-slate-100 placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none"
             />
           </div>
           <input
@@ -203,7 +203,7 @@ export default function VideoUploader({
             value={durationInput}
             onChange={(e) => setDurationInput(e.target.value)}
             placeholder="duration (sec)"
-            className="rounded-lg border border-slate-800 bg-slate-900 px-3 py-2.5 text-sm text-slate-100 placeholder:text-slate-600 focus:border-indigo-500 focus:outline-none sm:w-40"
+            className="rounded-lg border border-slate-800 bg-slate-900 px-3 py-2.5 text-sm text-slate-100 placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none sm:w-40"
           />
           <button
             onClick={handleSaveUrl}

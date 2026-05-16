@@ -130,7 +130,7 @@ export default function PreviewClient({ initial }: { initial: QuizQuestionWithCh
 
           {/* Counter + nav */}
           <div className="ml-auto flex items-center gap-2">
-            <span className="text-xs text-slate-500">
+            <span className="text-xs text-slate-400">
               {filtered.length === 0 ? (
                 "0 questions"
               ) : (
@@ -166,7 +166,7 @@ export default function PreviewClient({ initial }: { initial: QuizQuestionWithCh
         {/* Left: list of filtered questions */}
         <aside className="divide-y divide-slate-800 rounded-xl border border-slate-800 bg-slate-900/30 lg:max-h-[calc(100vh-12rem)] lg:overflow-y-auto">
           {filtered.length === 0 ? (
-            <div className="p-6 text-xs italic text-slate-500">
+            <div className="p-6 text-xs italic text-slate-400">
               No questions match these filters.
             </div>
           ) : (
@@ -179,14 +179,14 @@ export default function PreviewClient({ initial }: { initial: QuizQuestionWithCh
                   i === safeIdx && "bg-slate-800"
                 )}
               >
-                <span className="mt-0.5 w-6 shrink-0 text-right font-mono text-[10px] tabular-nums text-slate-500">
+                <span className="mt-0.5 w-6 shrink-0 text-right font-mono text-[10px] tabular-nums text-slate-400">
                   {i + 1}
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="line-clamp-2 block text-[12px] leading-snug text-slate-200">
                     {q.question_text || "(no question text)"}
                   </span>
-                  <span className="mt-1 flex flex-wrap items-center gap-1.5 text-[10px] text-slate-500">
+                  <span className="mt-1 flex flex-wrap items-center gap-1.5 text-[10px] text-slate-400">
                     <span className="rounded bg-slate-800 px-1.5 text-slate-300">{q.subject}</span>
                     <span className="rounded bg-slate-800 px-1.5 text-slate-300">
                       L{q.difficulty_level ?? "—"}
@@ -210,17 +210,17 @@ export default function PreviewClient({ initial }: { initial: QuizQuestionWithCh
                   admin needs to know about this row but never shown to
                   students. */}
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-slate-800 bg-slate-900/60 px-5 py-2 font-mono text-[11px] text-slate-400">
-                <span className="text-slate-500">id:</span>
+                <span className="text-slate-400">id:</span>
                 <span className="max-w-[14rem] truncate text-slate-300">{current.id}</span>
-                <span className="text-slate-500">pdf:</span>
+                <span className="text-slate-400">pdf:</span>
                 <span className="text-slate-300">
                   {current.source_pdf ?? "—"} p{current.source_page ?? "—"}
                 </span>
-                <span className="text-slate-500">slug:</span>
+                <span className="text-slate-400">slug:</span>
                 <span className="text-slate-300">{current.concept_slug ?? "—"}</span>
-                <span className="text-slate-500">domain:</span>
+                <span className="text-slate-400">domain:</span>
                 <span className="text-slate-300">{current.domain ?? "—"}</span>
-                <span className="text-slate-500">level:</span>
+                <span className="text-slate-400">level:</span>
                 <span className="text-slate-300">{current.difficulty_level ?? "—"}</span>
                 <span
                   className={cn(
@@ -236,7 +236,7 @@ export default function PreviewClient({ initial }: { initial: QuizQuestionWithCh
               <QuestionPreview q={current} />
             </>
           ) : (
-            <div className="px-6 py-10 text-center text-sm text-slate-500">
+            <div className="px-6 py-10 text-center text-sm text-slate-400">
               No question selected.
             </div>
           )}

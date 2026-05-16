@@ -45,7 +45,7 @@ export default function TutorCohortClient({ detail }: Props) {
           <TierBadge tier={cohort.tier} />
           <StatusBadge status={cohort.status} />
           <span className="text-sm text-slate-400">{formatDate(cohort.sat_date)} SAT</span>
-          <span className="text-slate-700">·</span>
+          <span className="text-slate-400">·</span>
           <span className="font-mono text-sm text-slate-400">
             {members.length}/{cohort.max_size} seats
           </span>
@@ -119,13 +119,13 @@ function TabButton({
         "inline-flex items-center gap-2 border-b-2 px-4 pb-3 font-semibold transition-colors",
         active
           ? "border-indigo-500 text-indigo-400"
-          : "border-transparent text-slate-500 hover:text-slate-200"
+          : "border-transparent text-slate-400 hover:text-slate-200"
       )}
     >
       <Icon className="h-4 w-4" />
       {label}
       {count > 0 && (
-        <span className={cn("font-mono text-xs", active ? "text-indigo-300" : "text-slate-500")}>
+        <span className={cn("font-mono text-xs", active ? "text-indigo-300" : "text-slate-400")}>
           {count}
         </span>
       )}
@@ -209,7 +209,7 @@ function NotesTab({ cohortId, initialBody }: { cohortId: string; initialBody: st
       />
       {err && <p className="mt-2 text-xs text-rose-300">{err}</p>}
       <div className="mt-3 flex items-center justify-between">
-        <span className="text-xs text-slate-500">
+        <span className="text-xs text-slate-400">
           {dirty ? "Unsaved changes" : savedBody ? "Saved" : "Empty"}
         </span>
         <button
@@ -316,7 +316,7 @@ function HomeworkComposer({
         <button
           type="button"
           onClick={onCancel}
-          className="text-slate-500 hover:text-slate-200"
+          className="text-slate-400 hover:text-slate-200"
           aria-label="Cancel"
         >
           <X className="h-4 w-4" />
@@ -408,7 +408,7 @@ function HomeworkItem({ cohortId, h }: { cohortId: string; h: TutorHomework }) {
           <button
             onClick={deleteMe}
             disabled={pending}
-            className="text-slate-500 hover:text-rose-300 disabled:opacity-50"
+            className="text-slate-400 hover:text-rose-300 disabled:opacity-50"
             aria-label="Delete homework"
           >
             {pending ? (
@@ -422,7 +422,7 @@ function HomeworkItem({ cohortId, h }: { cohortId: string; h: TutorHomework }) {
       {h.body && (
         <p className="mb-3 whitespace-pre-wrap text-sm leading-relaxed text-slate-400">{h.body}</p>
       )}
-      <div className="text-xs text-slate-500">
+      <div className="text-xs text-slate-400">
         Assigned {formatDateTime(h.assigned_at)}
         {h.due_at && <> · Due {formatDateTime(h.due_at)}</>}
       </div>

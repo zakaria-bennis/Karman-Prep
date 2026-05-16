@@ -41,12 +41,12 @@ export default async function NodeEditorPage({ params, searchParams }: Params) {
       <div className="mb-6">
         <Link
           href="/admin/curriculum"
-          className="mb-3 inline-flex items-center gap-1 text-xs text-slate-500 hover:text-slate-300"
+          className="mb-3 inline-flex items-center gap-1 text-xs text-slate-400 hover:text-slate-300"
         >
           <ArrowLeft className="h-3.5 w-3.5" /> All nodes
         </Link>
         <h1 className="text-2xl font-extrabold text-white">{node.topic}</h1>
-        <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-slate-500">
+        <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-slate-400">
           <span
             className="rounded-full px-2 py-0.5 font-bold uppercase tracking-[0.18em]"
             style={{

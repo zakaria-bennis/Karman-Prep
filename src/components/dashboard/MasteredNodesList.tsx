@@ -46,7 +46,7 @@ export default function MasteredNodesList({ mastered }: Props) {
       <div className="mx-auto max-w-5xl space-y-6 px-4 py-8 sm:px-6">
         <Link
           href="/dashboard/student"
-          className="inline-flex items-center gap-1 text-xs text-slate-500 hover:text-slate-900 dark:hover:text-white"
+          className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-slate-900 dark:hover:text-white"
         >
           <ArrowLeft className="h-3.5 w-3.5" /> Back to dashboard
         </Link>
@@ -72,7 +72,7 @@ export default function MasteredNodesList({ mastered }: Props) {
                 "flex items-center gap-1 px-3 py-2 font-semibold",
                 sort === "chronological"
                   ? "bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-white"
-                  : "text-slate-500 hover:text-slate-900 dark:hover:text-white"
+                  : "text-slate-400 hover:text-slate-900 dark:hover:text-white"
               )}
             >
               <ArrowUpDown className="h-3 w-3" /> Chronological
@@ -83,7 +83,7 @@ export default function MasteredNodesList({ mastered }: Props) {
                 "border-l border-slate-200 px-3 py-2 font-semibold dark:border-slate-700",
                 sort === "alphabetical"
                   ? "bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-white"
-                  : "text-slate-500 hover:text-slate-900 dark:hover:text-white"
+                  : "text-slate-400 hover:text-slate-900 dark:hover:text-white"
               )}
             >
               A → Z
@@ -112,7 +112,7 @@ export default function MasteredNodesList({ mastered }: Props) {
                 "border-b-2 px-4 pb-3 pt-2 text-sm font-semibold transition-colors",
                 subject === t.id
                   ? "text-slate-900 dark:text-white"
-                  : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+                  : "text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
               )}
               style={subject === t.id ? { borderColor: t.color } : { borderColor: "transparent" }}
             >
@@ -125,8 +125,8 @@ export default function MasteredNodesList({ mastered }: Props) {
         {/* List */}
         {filtered.length === 0 ? (
           <div className="rounded-xl border border-dashed border-slate-300 p-12 text-center dark:border-slate-700">
-            <CheckCircle className="mx-auto mb-3 h-8 w-8 text-slate-300 dark:text-slate-700" />
-            <p className="text-sm text-slate-500">
+            <CheckCircle className="mx-auto mb-3 h-8 w-8 text-slate-300 dark:text-slate-400" />
+            <p className="text-sm text-slate-400">
               {subject === "all"
                 ? "No mastered nodes yet. Ace a node's quiz twice in a row to master it."
                 : `No mastered ${subject === "reading" ? "Reading & Writing" : "Math"} nodes yet.`}
@@ -150,7 +150,7 @@ export default function MasteredNodesList({ mastered }: Props) {
                     <p className="truncate text-sm font-semibold text-slate-900 dark:text-white">
                       {n.topic}
                     </p>
-                    <div className="mt-0.5 flex flex-wrap items-center gap-2 text-[11px] text-slate-500">
+                    <div className="mt-0.5 flex flex-wrap items-center gap-2 text-[11px] text-slate-400">
                       <span
                         className="rounded-full px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider"
                         style={{

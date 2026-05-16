@@ -229,11 +229,11 @@ export default function StatusDraftClient({ data }: { data: StatusDraftPageData 
         <h1 className="text-2xl font-extrabold tracking-tight text-white">{data.studentName}</h1>
         <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-slate-400">
           <span>{sessionDateLabel}</span>
-          <span className="text-slate-700">·</span>
+          <span className="text-slate-400">·</span>
           <span>{data.durationMinutes} min</span>
-          <span className="text-slate-700">·</span>
+          <span className="text-slate-400">·</span>
           <PlanTierPill tier={data.planTier} />
-          <span className="text-slate-700">·</span>
+          <span className="text-slate-400">·</span>
           <DraftStatusPill data={data} />
         </div>
       </header>
@@ -315,7 +315,7 @@ export default function StatusDraftClient({ data }: { data: StatusDraftPageData 
                 <Edit3 className="h-4 w-4 text-slate-400" />
                 <h2 className="text-sm font-bold text-white">Edit draft</h2>
                 {savedAt && (
-                  <span className="text-xs text-slate-500">· saved {timeSince(savedAt)} ago</span>
+                  <span className="text-xs text-slate-400">· saved {timeSince(savedAt)} ago</span>
                 )}
               </div>
               <div className="flex items-center gap-2">
@@ -412,7 +412,7 @@ export default function StatusDraftClient({ data }: { data: StatusDraftPageData 
             <h2 className="text-sm font-bold text-white">Recipients</h2>
           </div>
           {allRecipients.length === 0 ? (
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-slate-400">
               No email addresses on file for this student or any linked parents. Add a parent
               linkage in <code>parent_student_links</code> or update the student email before
               sending.
@@ -438,7 +438,7 @@ export default function StatusDraftClient({ data }: { data: StatusDraftPageData 
                     {r.type}
                   </span>
                   <span className="font-medium text-slate-200">{r.label}</span>
-                  <span className="text-slate-500">{r.email}</span>
+                  <span className="text-slate-400">{r.email}</span>
                 </li>
               ))}
             </ul>
@@ -449,7 +449,7 @@ export default function StatusDraftClient({ data }: { data: StatusDraftPageData 
       {/* ── Send button ─────────────────────────────────── */}
       {(data.hasTranscript || data.draft) && (
         <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-slate-400">
             {!allFieldsFilled
               ? `Fill in all ${FIELDS.length} fields to enable sending.`
               : recipientIds.size === 0
@@ -493,9 +493,9 @@ function RecapPreview({
   return (
     <div className="overflow-hidden rounded-md border border-slate-800 bg-slate-950">
       <header className="border-b border-slate-800 bg-slate-900/60 px-4 py-3 text-xs">
-        <div className="text-slate-500">From</div>
+        <div className="text-slate-400">From</div>
         <div className="text-slate-200">{fromName} &lt;noreply@karmanprep.com&gt;</div>
-        <div className="mt-1.5 text-slate-500">Subject</div>
+        <div className="mt-1.5 text-slate-400">Subject</div>
         <div className="font-semibold text-slate-200">{subject}</div>
       </header>
       <div className="space-y-3 px-4 py-4 font-serif text-sm leading-relaxed text-slate-200">
@@ -503,7 +503,7 @@ function RecapPreview({
           <div key={f.key}>
             <div className="font-sans font-semibold not-italic text-slate-300">{f.label}:</div>
             <div className="mt-0.5 whitespace-pre-wrap">
-              {draft[f.key]?.trim() || <span className="italic text-slate-600">— empty —</span>}
+              {draft[f.key]?.trim() || <span className="italic text-slate-400">— empty —</span>}
             </div>
           </div>
         ))}

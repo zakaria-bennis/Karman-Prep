@@ -91,8 +91,8 @@ export default function NodeCard({ node, origin, onWatchLesson, onStartQuiz, onC
         {/* Action buttons */}
         {isLocked ? (
           <div className="flex items-center gap-2 rounded-lg border border-slate-800 bg-slate-900/50 p-3">
-            <Lock className="h-3.5 w-3.5 text-slate-500" />
-            <span className="text-xs text-slate-500">Complete prerequisite nodes to unlock.</span>
+            <Lock className="h-3.5 w-3.5 text-slate-400" />
+            <span className="text-xs text-slate-400">Complete prerequisite nodes to unlock.</span>
           </div>
         ) : (
           <div className="space-y-2">

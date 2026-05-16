@@ -241,7 +241,7 @@ export default function PortalCards({ readingStats, mathStats }: Props) {
                 }}
               >
                 <span className="text-xs font-semibold tabular-nums text-slate-200">
-                  {stats.mastered} <span className="text-slate-500">/</span> {stats.total}
+                  {stats.mastered} <span className="text-slate-400">/</span> {stats.total}
                 </span>
                 <span className="h-4 w-px bg-white/20" />
                 <span className="text-xs font-bold tabular-nums" style={{ color: h.color }}>

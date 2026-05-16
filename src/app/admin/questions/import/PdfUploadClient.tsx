@@ -109,7 +109,7 @@ export default function PdfUploadClient() {
           <h2 className="flex items-center gap-2 text-sm font-bold text-white">
             <Upload className="h-4 w-4 text-indigo-400" /> Upload PDFs for automated processing
           </h2>
-          <p className="mt-1 text-xs text-slate-500">
+          <p className="mt-1 text-xs text-slate-400">
             Drop one or more full-length SAT PDFs here. Each PDF gets queued for extraction; the
             local runner on your Mac processes them module-by-module and the resulting questions
             auto-import into the bank.
@@ -152,20 +152,20 @@ export default function PdfUploadClient() {
             <FileCheck2 className="h-8 w-8 text-emerald-400" />
             <div className="font-semibold text-emerald-200">
               {pendingFiles.length} PDF{pendingFiles.length === 1 ? "" : "s"} ready
-              <span className="font-normal text-slate-500">
+              <span className="font-normal text-slate-400">
                 {" "}
                 · {(totalBytes / 1024 / 1024).toFixed(1)} MB total
               </span>
             </div>
-            <div className="text-xs text-slate-500">Drop more files or click to add</div>
+            <div className="text-xs text-slate-400">Drop more files or click to add</div>
           </div>
         ) : (
           <div className="flex flex-col items-center gap-2 text-sm">
-            <Upload className={cn("h-8 w-8", dragActive ? "text-indigo-300" : "text-slate-500")} />
+            <Upload className={cn("h-8 w-8", dragActive ? "text-indigo-300" : "text-slate-400")} />
             <div className={cn("font-semibold", dragActive ? "text-indigo-200" : "text-slate-300")}>
               {dragActive ? "Drop PDFs to queue them" : "Drag & drop SAT PDFs here"}
             </div>
-            <div className="text-xs text-slate-500">
+            <div className="text-xs text-slate-400">
               or click anywhere in this box · multiple files OK · 50 MB max each
             </div>
           </div>
@@ -180,13 +180,13 @@ export default function PdfUploadClient() {
               className="flex items-center gap-2 rounded border border-slate-800 bg-slate-950/40 px-3 py-1.5 text-xs"
             >
               <span className="flex-1 truncate text-slate-300">{f.name}</span>
-              <span className="shrink-0 text-slate-500">
+              <span className="shrink-0 text-slate-400">
                 {(f.size / 1024 / 1024).toFixed(1)} MB
               </span>
               {!uploading && (
                 <button
                   onClick={() => removeFile(i)}
-                  className="text-slate-500 hover:text-rose-300"
+                  className="text-slate-400 hover:text-rose-300"
                 >
                   ×
                 </button>

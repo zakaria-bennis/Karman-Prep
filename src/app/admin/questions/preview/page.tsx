@@ -48,7 +48,7 @@ export default async function AdminQuestionPreviewPage() {
       <div className="mx-auto max-w-7xl px-5 py-6">
         <Link
           href="/admin/curriculum"
-          className="mb-3 inline-flex items-center gap-1 text-xs text-slate-500 hover:text-slate-300"
+          className="mb-3 inline-flex items-center gap-1 text-xs text-slate-400 hover:text-slate-300"
         >
           <ChevronRight className="h-3 w-3 rotate-180" /> Back to admin
         </Link>

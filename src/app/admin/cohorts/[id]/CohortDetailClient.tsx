@@ -48,9 +48,9 @@ export default function CohortDetailClient({
           <TierBadge tier={cohort.tier} />
           <StatusBadge status={cohort.status} />
           <span className="text-sm text-slate-400">{formatDate(cohort.sat_date)} SAT</span>
-          <span className="text-slate-700">·</span>
+          <span className="text-slate-400">·</span>
           <span className="text-sm text-slate-400">{tutorDisplay(cohort.tutor)}</span>
-          <span className="text-slate-700">·</span>
+          <span className="text-slate-400">·</span>
           <span className="font-mono text-sm text-slate-400">
             {cohort.member_count}/{cohort.max_size} seats
           </span>

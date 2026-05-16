@@ -104,7 +104,7 @@ export function QuestionPreview({ q }: { q: QuizQuestionWithChoices }) {
               <MathText text={q.correct_answer} />
             </span>
             {q.numeric_tolerance ? (
-              <span className="text-slate-500"> (±{q.numeric_tolerance})</span>
+              <span className="text-slate-400"> (±{q.numeric_tolerance})</span>
             ) : null}
           </div>
         )}
@@ -140,7 +140,7 @@ export function QuestionPreview({ q }: { q: QuizQuestionWithChoices }) {
                   !isSubmitted && isSelected && "bg-blue-500 text-white",
                   showCorrect && "bg-emerald-500 text-white",
                   showWrong && "bg-rose-500 text-white",
-                  isSubmitted && !isSelected && !isCorrect && "bg-slate-800 text-slate-500"
+                  isSubmitted && !isSelected && !isCorrect && "bg-slate-800 text-slate-400"
                 )}
               >
                 {showCorrect ? <Check className="h-3.5 w-3.5" /> : letter}
@@ -156,7 +156,7 @@ export function QuestionPreview({ q }: { q: QuizQuestionWithChoices }) {
 
   const questionPanel = (
     <div className="mx-auto max-w-xl">
-      <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+      <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
         {q.topic_cluster}
       </p>
       <h2 className="text-[19px] font-medium leading-[1.5] text-slate-100 md:text-[20px]">
@@ -272,13 +272,13 @@ export function QuestionPreview({ q }: { q: QuizQuestionWithChoices }) {
       {q.passage_a && q.passage_b ? (
         <>
           <section className="mb-7">
-            <div className="mb-2 font-sans text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">
+            <div className="mb-2 font-sans text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">
               Text 1
             </div>
             <MathText text={q.passage_a} className="block whitespace-pre-wrap" />
           </section>
           <section>
-            <div className="mb-2 font-sans text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">
+            <div className="mb-2 font-sans text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">
               Text 2
             </div>
             <MathText text={q.passage_b} className="block whitespace-pre-wrap" />

@@ -43,13 +43,13 @@ export function TabLink({
         "inline-flex items-center gap-2 border-b-2 px-4 pb-3 font-semibold transition-colors",
         active
           ? "border-indigo-500 text-indigo-400"
-          : "border-transparent text-slate-500 hover:text-slate-200"
+          : "border-transparent text-slate-400 hover:text-slate-200"
       )}
     >
       <Icon className="h-4 w-4" />
       {label}
       {count > 0 && (
-        <span className={cn("font-mono text-xs", active ? "text-indigo-300" : "text-slate-500")}>
+        <span className={cn("font-mono text-xs", active ? "text-indigo-300" : "text-slate-400")}>
           {count}
         </span>
       )}

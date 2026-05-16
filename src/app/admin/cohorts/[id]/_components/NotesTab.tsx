@@ -20,7 +20,7 @@ export function NotesTab({ note, tutorName }: { note: string | null; tutorName: 
   }
   return (
     <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-6">
-      <div className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500">
+      <div className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-400">
         Notes by {tutorName}
       </div>
       <div className="whitespace-pre-wrap text-sm leading-relaxed text-slate-200">{note}</div>
