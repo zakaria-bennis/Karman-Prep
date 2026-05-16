@@ -61,7 +61,7 @@ Compact changelog of merged PRs since the previous sync. Use this as the diff ag
 
 ### Block-the-launch
 
-1. **The booking page uses a hardcoded smoke-test Cal.com event-type id (`5489022`).** Every Private / Elite student who tries to book would land on the same fake test event. Needs a per-tutor lookup (likely a `users.cal_event_type_id` column) before any real student can book a session. Found in: `src/app/dashboard/student/schedule/`.
+1. ~~**The booking page uses a hardcoded smoke-test Cal.com event-type id (`5489022`).**~~ **RESOLVED 2026-05-16** — [src/app/dashboard/student/schedule/page.tsx](src/app/dashboard/student/schedule/page.tsx) now reads `users.cal_event_type_id` per tutor via the `tutor_assignments` join. If the tutor's id is null, the booking widget is gated and `alertAdminAboutMissingTutorSetup()` fires a deduped (24h) admin email so the tutor can be onboarded before any student tries to book.
 
 2. **Chat is fully fail-closed on OpenAI outages.** If OpenAI Moderation hiccups for 60 seconds, the entire chat system rejects every message with "we're having a momentary issue checking your message — try again in a few seconds." That's the right _security_ posture but a brittle _availability_ posture for a school audience. Consider: cache last-known healthy result, allow tutor-and-above to bypass during outage, or surface a banner on the chat page.
 
@@ -247,7 +247,7 @@ What happens across the whole stack when a real user takes a real action. Each j
 - Zoom registration error → falls back to Cal's non-unique join URL; booking still succeeds.
 - Persist fails after Cal succeeds → 500 with `calBookingUid` in response so admin can reconcile.
 - Email fails inside Cal webhook → silently swallowed (return 200); student never knows. (Top critical issue.)
-- **Hardcoded `eventTypeId=5489022` smoke-test** in the frontend would route everyone to the same fake event — blocking issue.
+- ~~**Hardcoded `eventTypeId=5489022` smoke-test** in the frontend would route everyone to the same fake event — blocking issue.~~ **RESOLVED 2026-05-16** — now reads `users.cal_event_type_id` per tutor via the `tutor_assignments` join. Booking is gated when null + admin alerted.
 
 ---
 
@@ -603,7 +603,7 @@ Everything a paying student lives in.
 - **What the user does:** Sees the next session's date / time / Zoom link / tutor. Private/Elite: opens the Cal widget, picks a time, books it. Reschedules or cancels with the 24-hour rule.
 - **What "working" looks like:** Upcoming session card always at top; Cal widget shows real availability; booking creates a row + sends a confirmation email.
 - 🚩 **Red flags:**
-  - **Hardcoded Cal event-type id `5489022`.** This is a smoke-test placeholder. Every Private/Elite student would book the same fake event today. Must replace with a per-tutor lookup before any real booking.
+  - ~~**Hardcoded Cal event-type id `5489022`.**~~ **RESOLVED 2026-05-16** — schedule page reads `users.cal_event_type_id` per tutor. Booking widget is gated when the tutor hasn't set theirs; admin gets a 24h-deduped alert email.
   - Elite token count (monthly limit) must be granted on subscription rollover; verify the granting cron exists.
 
 ### `/dashboard/student/chat` — Cohort chat + DMs
@@ -974,7 +974,7 @@ Here's a tight click-through to validate the most important flows. Run `npm run 
 - [ ] `/learn/reading` and `/learn/math` render constellations.
 - [ ] Open a lesson, answer questions, mark mastered. Verify mastery persists.
 - [ ] `/dashboard/student/progress` shows the latest diagnostic + delta.
-- [ ] `/dashboard/student/schedule` loads. **WARNING — booking would hit Cal smoke-test event #5489022; don't actually book.**
+- [ ] `/dashboard/student/schedule` loads. Booking widget shows the tutor's actual `cal_event_type_id` (per-tutor lookup). If your assigned tutor hasn't set theirs yet, the widget is gated and an admin email fires — that's the expected pre-onboarding state.
 - [ ] `/dashboard/student/chat` loads. Send a clean message — should post to Slack. Send a message containing a profanity — should get rejected with the standard "breaches our terms" line.
 - [ ] `/billing` loads. Stripe portal link works (test mode).
 
