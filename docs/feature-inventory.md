@@ -2,7 +2,7 @@
 
 > A plain-English walkthrough of every feature in the app, the path a real person clicks to get there, what "working correctly" looks like, and any red flags worth knowing about. Use this as both a reference and a smoke-test checklist.
 
-**Last sync:** 2026-05-14. Six PR batches merged today (#27–#32) — Zod boundary validation everywhere, the hold-until-approval moderation queue, and empty-cohort auto-archive.
+**Last sync:** 2026-05-15. PRs **#33–#59** merged since the previous sync. The product surface didn't change shape; the deltas are reliability tightenings (Fireflies matcher, Zoom fuzzy names, Stripe Connect retry, SAT-date seed fallback), new admin affordances (cohort unarchive, granular impersonation, bulk-reject), one new tutor surface (`/tutor/schedule` self-serve cancel + reschedule), and a developer-only test/visual harness (seed-dev personas, Playwright E2E, Vitest+RTL, axe + tokens + timing visual specs, real-device iPhone captures). See the **What changed since 2026-05-14** subsection in _Critical issues_ for the per-feature delta.
 
 ---
 
@@ -23,6 +23,42 @@ If you want the high-leverage stuff first, read the **Critical issues** section 
 
 Pulled from the audit notes below. Ranked by how much they'd hurt a real user or your business.
 
+### What changed since 2026-05-14
+
+Compact changelog of merged PRs since the previous sync. Use this as the diff against what the inventory below claims. Most of these are reliability fixes for surfaces already documented; new surfaces are called out explicitly.
+
+| PR                                                           | Title                                                         | Surface                  | Reflected in section      |
+| ------------------------------------------------------------ | ------------------------------------------------------------- | ------------------------ | ------------------------- |
+| [#40](https://github.com/zakaria-bennis/Karman-Prep/pull/40) | Tutor self-serve cancel + reschedule on /tutor/schedule       | **New tutor feature**    | `/tutor/schedule`         |
+| [#41](https://github.com/zakaria-bennis/Karman-Prep/pull/41) | Shared CSV parser between UI + cron                           | internal refactor        | J10 question-import       |
+| [#42](https://github.com/zakaria-bennis/Karman-Prep/pull/42) | Onboarding placement failures → admin alert + student message | reliability              | J1 signup, admin notif    |
+| [#43](https://github.com/zakaria-bennis/Karman-Prep/pull/43) | Zoom attendance: fuzzy name fallback for email mismatches     | reliability              | Zoom webhook              |
+| [#44](https://github.com/zakaria-bennis/Karman-Prep/pull/44) | Hide /blog from public footer until content exists            | visibility               | `/blog`                   |
+| [#45](https://github.com/zakaria-bennis/Karman-Prep/pull/45) | Admin can view + unarchive auto-archived cohorts              | **New admin affordance** | `/admin/cohorts`          |
+| [#46](https://github.com/zakaria-bennis/Karman-Prep/pull/46) | Tutor schedule honors users.time_zone                         | correctness              | `/tutor/schedule`         |
+| [#47](https://github.com/zakaria-bennis/Karman-Prep/pull/47) | SAT-date scraper: static seed fallback                        | reliability              | sync-sat-dates cron       |
+| [#48](https://github.com/zakaria-bennis/Karman-Prep/pull/48) | Retry Stripe Connect webhook processing                       | reliability              | Stripe Connect webhook    |
+| [#49](https://github.com/zakaria-bennis/Karman-Prep/pull/49) | Bulk-reject for flagged questions                             | **New admin affordance** | `/admin/questions/review` |
+| [#50](https://github.com/zakaria-bennis/Karman-Prep/pull/50) | Tighten Fireflies transcript matcher                          | reliability              | Fireflies webhook         |
+| [#51](https://github.com/zakaria-bennis/Karman-Prep/pull/51) | Phase 1 granular admin impersonation                          | **New admin affordance** | Admin impersonation       |
+| [#52](https://github.com/zakaria-bennis/Karman-Prep/pull/52) | Dev-only auth bypass                                          | dev-only                 | n/a (not user-visible)    |
+| [#53](https://github.com/zakaria-bennis/Karman-Prep/pull/53) | Dev fixtures: npm run seed:dev                                | dev-only                 | n/a                       |
+| [#54](https://github.com/zakaria-bennis/Karman-Prep/pull/54) | Playwright E2E + safeAuth in server actions                   | reliability + dev-only   | n/a                       |
+| [#55](https://github.com/zakaria-bennis/Karman-Prep/pull/55) | Component tests via Vitest + RTL                              | dev-only                 | n/a                       |
+| [#56](https://github.com/zakaria-bennis/Karman-Prep/pull/56) | Testing & verification workflow in CLAUDE.md                  | dev-only                 | n/a                       |
+| [#57](https://github.com/zakaria-bennis/Karman-Prep/pull/57) | Visual perception harness (a11y + tokens + timing)            | dev-only                 | n/a                       |
+| [#58](https://github.com/zakaria-bennis/Karman-Prep/pull/58) | Cross-browser + mobile device emulation                       | dev-only                 | n/a                       |
+| [#59](https://github.com/zakaria-bennis/Karman-Prep/pull/59) | Real-device capture workflow for iPhone 17 PM                 | dev-only                 | n/a                       |
+
+**Product-surface deltas worth re-reading in the sections below:**
+
+- `/tutor/schedule` now has self-serve cancel + reschedule (was view-only).
+- `/admin/cohorts` shows archived cohorts and lets admins unarchive them.
+- `/admin/questions/review` has a bulk-reject affordance.
+- Admin impersonation: "View as [user]" is wired through students (Phase 1). Tutors/parents land in Phase 2 (open PR #64 / queued).
+
+**No critical-issue removals** — all "block-the-launch" items below are still open. The new "open PRs queued" list at the bottom of this section tracks 15+ improvement PRs that haven't merged yet.
+
 ### Block-the-launch
 
 1. **The booking page uses a hardcoded smoke-test Cal.com event-type id (`5489022`).** Every Private / Elite student who tries to book would land on the same fake test event. Needs a per-tutor lookup (likely a `users.cal_event_type_id` column) before any real student can book a session. Found in: `src/app/dashboard/student/schedule/`.
@@ -41,27 +77,27 @@ Pulled from the audit notes below. Ranked by how much they'd hurt a real user or
 
 7. **Diagnostic is one-and-done with no student retake path.** Students who want to benchmark progress mid-program can't retake without admin intervention. The `/progress` page even hides the retake CTA. Either add an admin-approved retake button or document this clearly.
 
-8. **Tutor cannot reschedule or cancel their own sessions.** `/tutor/schedule` shows sessions but only admins can move them. If a tutor gets sick, they have to email/Slack you. Add a tutor reschedule flow with the 24-hour rule.
+8. ~~**Tutor cannot reschedule or cancel their own sessions.**~~ **RESOLVED 2026-05-15 ([PR #40](https://github.com/zakaria-bennis/Karman-Prep/pull/40))** — `/tutor/schedule` now has self-serve cancel + reschedule with the 24-hour rule.
 
-9. **CSV ingest cron parser is a duplicate of the UI parser.** If the UI parser changes (the one in `BulkImportPanel`), the cron's copy doesn't auto-update. Either extract to a shared module or import directly.
+9. ~~**CSV ingest cron parser is a duplicate of the UI parser.**~~ **RESOLVED 2026-05-15 ([PR #41](https://github.com/zakaria-bennis/Karman-Prep/pull/41))** — Both sides now import `src/lib/question-bank/csv-parser.ts` (pure functions). No more drift.
 
 ### Fix when convenient (medium)
 
 10. **Blog landing page is shipped but has no content.** `/blog` is publicly linked from the footer and shows "coming soon." Either publish a first article or remove the link.
 
-11. **Empty-cohort archive (PR #32) has no admin "undo" button.** Cohorts vanish silently when the last student leaves. Reversed automatically only if someone joins back. Add an admin UI to view + manually un-archive if needed.
+11. ~~**Empty-cohort archive (PR #32) has no admin "undo" button.**~~ **RESOLVED 2026-05-15 ([PR #45](https://github.com/zakaria-bennis/Karman-Prep/pull/45))** — `/admin/cohorts` includes archived rows; each has an Unarchive button.
 
-12. **Tutor timezone is hardcoded to `America/New_York`.** `/tutor/schedule` formats times in NY regardless of where the tutor lives.
+12. ~~**Tutor timezone is hardcoded to `America/New_York`.**~~ **RESOLVED 2026-05-15 ([PR #46](https://github.com/zakaria-bennis/Karman-Prep/pull/46))** — `/tutor/schedule` now reads `users.time_zone` and formats times in the tutor's local zone.
 
-13. **The College Board SAT-date scraper will eventually break.** When College Board changes their page layout, the daily cron returns 502 and Sentry pages you. There's no fallback. Consider seeding a static list of confirmed dates 12 months out as a safety net.
+13. ~~**The College Board SAT-date scraper will eventually break.**~~ **RESOLVED 2026-05-15 ([PR #47](https://github.com/zakaria-bennis/Karman-Prep/pull/47))** — daily cron seeds from `STATIC_SAT_DATES` first; live scrape upserts over the seed when fresher data arrives.
 
-14. **Stripe Connect payout webhook silently fails on processing errors.** Returns 200 once the raw payload is logged. If the payout-status update fails, the payout request stays "approved" forever. The admin email tells you something failed but there's no retry mechanism.
+14. ~~**Stripe Connect payout webhook silently fails on processing errors.**~~ **RESOLVED 2026-05-15 ([PR #48](https://github.com/zakaria-bennis/Karman-Prep/pull/48))** — webhook now retries via `decideRetryOutcome`; gives up after `MAX_PROCESSING_ATTEMPTS` and emails admin.
 
-15. **Admin question-review has no bulk-reject.** Flagged-by-PDF-import questions can only be rejected one at a time. Combined with no retry button on the jobs page, a bad PDF can create hours of single-click work.
+15. ~~**Admin question-review has no bulk-reject.**~~ **RESOLVED 2026-05-15 ([PR #49](https://github.com/zakaria-bennis/Karman-Prep/pull/49))** — multi-select checkboxes + "Reject N selected" button on `/admin/questions/review`.
 
-16. **Fireflies transcript matching uses a ±60-min time window fallback.** If two of your sessions are within 60 minutes of each other and only one has Zoom IDs, the transcript could land on the wrong booking. Rare today (low session volume) but real risk at scale.
+16. ~~**Fireflies transcript matching uses a ±60-min time window fallback.**~~ **TIGHTENED 2026-05-15 ([PR #50](https://github.com/zakaria-bennis/Karman-Prep/pull/50))** — `pickBookingByTime` now requires uniqueness; ambiguous matches are recorded as `match_failed` with `error_message` set, no longer attached to a random booking. Edge case still exists for two sessions within the window — manual review needed when flagged.
 
-17. **Admin impersonation lacks granularity.** You can "View as student" but only see a generic student dashboard, not a specific student's actual data. Means you can't reproduce a real student's bug report without temporarily editing their data.
+17. **PARTIALLY RESOLVED 2026-05-15 ([PR #51](https://github.com/zakaria-bennis/Karman-Prep/pull/51) — Phase 1 only).** Granular admin impersonation now works for students via the "View as [user]" menu on `/admin/users` — picks specific student data, not a generic dashboard. **Phase 2** (extending to tutor + parent surfaces) is open as PR #64 / queued.
 
 ---
 
@@ -627,11 +663,12 @@ Scoped to "my students / my cohorts only."
 
 ### `/tutor/schedule` — My schedule
 
-- **What it is:** Calendar of upcoming + past sessions, filterable by tab (Upcoming / Seminars / Small Groups).
-- **What the user does:** Sees session time + student/cohort + tier + Zoom join button.
-- 🚩 **Red flags:**
-  - **No tutor reschedule/cancel.** Sick day → tutor has to ask admin (or just no-show). High priority for launch.
-  - Timezone hardcoded to America/New_York.
+- **What it is:** Calendar of upcoming + past sessions, filterable by tab (Upcoming / Seminars / Small Groups). Self-serve cancel + reschedule available.
+- **What the user does:** Sees session time + student/cohort + tier + Zoom join button. Clicks Cancel or Reschedule on an upcoming row to act on it without admin intervention.
+- **What "working" looks like:**
+  - Times display in the tutor's `users.time_zone` (set during onboarding, defaults to `America/New_York` if missing).
+  - Cancel respects the 24-hour rule from product policy (J4): inside 24h the cancel returns a 409 with a clear message.
+  - Reschedule sends a booking-reschedule email to the student.
 
 ### `/tutor/earnings` — Earnings home
 
@@ -699,10 +736,9 @@ The most feature-rich surface. Admin-only (real role, not impersonation).
 
 ### `/admin/questions/review` — Triage queue
 
-- **What it is:** Two tabs: "Flagged" (questions PDF-import marked as needing review) and "Bank" (un-flagged but un-routed). One-click accept, route-to-node, or reject.
-- **What the user does:** Triages questions; bulk-accepts the Bank tab; manually accepts or rejects Flagged tab questions; filters by flag type / domain / source PDF.
+- **What it is:** Two tabs: "Flagged" (questions PDF-import marked as needing review) and "Bank" (un-flagged but un-routed). One-click accept, route-to-node, or reject. **Bulk-reject available** (multi-select checkboxes + "Reject N selected" — PR #49).
+- **What the user does:** Triages questions; bulk-accepts the Bank tab; manually accepts or rejects Flagged tab questions; multi-selects + bulk-rejects bad-import batches; filters by flag type / domain / source PDF.
 - 🚩 **Red flags:**
-  - **No batch reject.** Bad PDF = hours of single-click work.
   - Bulk-accept silently skips slug mismatches.
 
 ### `/admin/questions/preview` — Search + preview
@@ -712,9 +748,9 @@ The most feature-rich surface. Admin-only (real role, not impersonation).
 
 ### `/admin/cohorts` — Cohort list
 
-- **What it is:** Roster of every active cohort. Create / edit / open detail. Empty cohorts auto-archive and disappear.
-- **What the user does:** Reviews active cohorts, creates a new one (name + tier + max size + SAT date + tutor), opens detail to manage members.
-- 🚩 **Red flags:** **Empty cohorts now auto-archive (PR #32)** when the last student leaves. They vanish silently from this list. There's no admin "view archived cohorts" or "un-archive" UI yet. If you need to revive one, an admin manually re-adds a student via the cohort URL (works because the detail page still loads archived cohorts by direct URL).
+- **What it is:** Roster of every cohort (active + archived). Create / edit / open detail. Empty cohorts auto-archive, but archived rows still appear in the list with an Unarchive button.
+- **What the user does:** Reviews active cohorts, creates a new one (name + tier + max size + SAT date + tutor), opens detail to manage members. To revive an auto-archived cohort, clicks **Unarchive** on its row.
+- **What "working" looks like:** Active cohorts render on top; archived ones below (or grouped by a toggle). Unarchiving sets `archived_at = NULL` and the row moves to the active group on the next refresh.
 
 ### `/admin/cohorts/[id]` — Cohort detail
 
@@ -767,12 +803,13 @@ The most feature-rich surface. Admin-only (real role, not impersonation).
 
 ### Admin impersonation — "View as" menu
 
-- **What it is:** Header dropdown that lets admin temporarily browse as a student / tutor / parent. Cookie-based (`strata_impersonate_role`, 2-hour TTL).
-- **What the user does:** Clicks View as → picks a role → gets redirected to that role's landing page. To return: refresh or visit `/admin/*` directly.
-- **What "working" looks like:** Full UI access as the chosen role. Real role stays admin in the DB; all actions log under their true identity.
+- **What it is:** Header dropdown + per-user **Impersonate** button on `/admin/users`. Two cookie layers: `strata_impersonate_role` (which role to render) and `strata_impersonate_user_id` (which specific clerk_id to scope queries to). Both have a 2-hour TTL.
+- **What the user does:**
+  - Generic mode: clicks View as → picks a role → lands on that role's home with seeded data.
+  - **Targeted mode (Phase 1, PR #51):** clicks **Impersonate** on a student row in `/admin/users` → lands on that specific student's actual dashboard / progress / chat. The yellow impersonation banner shows their name + "Exit impersonation".
+- **What "working" looks like:** Full UI access scoped to the targeted user's data. Real role stays admin in the DB; all mutations the admin performs log under their true identity (server actions use `resolveEffectiveClerkId` which returns the impersonated user for reads but the admin for audit fields).
 - 🚩 **Red flags:**
-  - **Generic impersonation only.** Can't impersonate a _specific_ student to reproduce their bug.
-  - Tutor impersonation works only if admin has a tutor record.
+  - **Tutor + parent surfaces** still use generic impersonation. Phase 2 (PR #64, open) migrates them to `resolveEffectiveClerkId` for proper per-user scoping.
 
 ---
 
@@ -797,7 +834,7 @@ What happens when no one is clicking — webhooks, crons, and the moderation pip
 - **What it is:** Tracks tutor payouts (Stripe Connect account events).
 - **What triggers it:** Stripe fires on `account.updated`, `payout.paid`, `payout.failed`.
 - **What it does:** Logs raw payload, dedupes on event ID. `account.updated` refreshes `stripe_payouts_enabled`. `payout.paid` marks request + linked sessions as paid + refreshes earnings view. `payout.failed` marks request as failed + emails admin.
-- 🚩 **Red flags:** Always returns 200 once the raw payload is logged. If processing fails after that, the payout request stays in stale state. No automatic retry — the admin email is the only signal.
+- **Reliability:** Processing failures now retry up to `MAX_PROCESSING_ATTEMPTS` (PR #48). The webhook row tracks `attempts`, `error_message`, and `gave_up_at`. After give-up, the route returns 200 so Stripe stops retrying — admin email is the page.
 
 ### Cal.com booking webhook — `/api/webhooks/cal`
 
@@ -862,9 +899,10 @@ What happens when no one is clicking — webhooks, crons, and the moderation pip
 
 - **What it is:** Daily scrape of College Board's official test-date page to keep `sat_dates` table fresh.
 - **What triggers it:** Cloudflare Worker cron `0 6 * * *` (6am daily).
-- **What it does:** Auth via `CRON_SECRET`. Fetches + parses the page. Upserts on `test_date`. Never deletes past dates.
-- 🚩 **Red flags:**
-  - **Fail-loud by design** — if the page layout changes, returns 502 so Sentry alerts you. No fallback. New SAT date sync stops until you patch the parser. Consider a static-list safety net seeded 12 months out.
+- **What it does:**
+  1. Seeds `sat_dates` from `STATIC_SAT_DATES` (12-month list checked into the repo) with `ignoreDuplicates: true` — guarantees the table is never empty even if the scraper fails.
+  2. Fetches + parses the College Board page. If the scrape returns ≥1 date, upserts on `test_date` (live data overwrites the seed). If it returns 0 (page layout changed), the seed stays in place and the response includes `used_fallback: true` so Sentry surfaces the regression without breaking onboarding.
+- **Why this matters:** Onboarding lists are now resilient to College Board page redesigns — the worst case is "static-seed dates served until the parser is patched", not "no SAT dates available, onboarding broken".
 
 ## 7.3 Moderation pipeline (deep dive)
 
