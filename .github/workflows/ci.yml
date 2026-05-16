@@ -78,6 +78,17 @@ jobs:
       - run: npm install --no-audit --no-fund
       - run: npm run format:check
 
+  filesizes:
+    name: File sizes
+    runs-on: ubuntu-latest
+    # No npm install needed — script uses only Node built-ins.
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - run: node scripts/check-file-sizes.mjs
+
   test:
     name: Unit tests (Vitest)
     runs-on: ubuntu-latest
