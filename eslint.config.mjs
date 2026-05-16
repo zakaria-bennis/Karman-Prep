@@ -56,19 +56,31 @@ export default [
 
   // Ignore generated + vendored output. ESLint 9 doesn't read
   // .eslintignore — ignores live here instead.
+  //
+  // scripts/ is intentionally NOT linted: the old `next lint`
+  // default only covered src/ + app/, and the scripts there
+  // accumulated unused vars + experimental constants over time.
+  // Bringing them under the project's strict no-unused-vars rule
+  // is a separate cleanup; not the scope of the v9 upgrade.
   {
     ignores: [
       ".next/**",
       ".open-next/**",
+      ".claude/**",
+      ".husky/**",
       "out/**",
       "node_modules/**",
       "playwright-report/**",
       "test-results/**",
       "tests/visual/snapshots/**",
       "tests/visual/real-device-captures/**",
+      "tests/visual/regression.spec.ts-snapshots/**",
       "dist/**",
       "build/**",
+      "scripts/**",
+      "supabase/**",
       "*.config.js",
+      "*.config.mjs",
       "next-env.d.ts",
     ],
   },
