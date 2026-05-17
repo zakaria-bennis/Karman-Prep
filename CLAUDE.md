@@ -23,8 +23,10 @@ paying users yet.
 - 5 required CI checks: TypeScript, ESLint, Prettier, Vitest, Cloudflare build.
 - Migrations: `supabase/migrations/<YYYYMMDDHHMMSS>_name.sql`, applied via
   `npm run db:push` or on `main` merges via `.github/workflows/db-deploy.yml`.
-- Dev server: `npm run dev:next`. Deploy: `npm run cf:deploy` (Cloudflare, not
-  Vercel).
+- Dev server: `npm run dev:next`. Deploy: `npm run cf:build && npm run cf:deploy`
+  (Cloudflare, not Vercel). `cf:deploy` only uploads `.open-next/` — it does
+  NOT rebuild. Running it alone re-ships whatever's in the local build cache,
+  which is how stale code gets pushed to prod. Always pair the two commands.
 - No file should exceed ~700 lines — split by concern instead.
 - Server actions validate inputs with Zod schemas; add a schema when adding
   an action.
