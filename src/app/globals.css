@@ -10,16 +10,59 @@
   --background: #ffffff;
   --foreground: #0f172a;
 
-  /* Subject palette — also used as the brand's "promise" colors */
-  --color-algebra: #3B82F6;      /* dream     */
-  --color-advanced-math: #A855F7; /* inspire   */
-  --color-geometry: #14B8A6;     /* achieve   */
-  --color-data-analysis: #F59E0B; /* excel    */
-  --color-reading-writing: #FB7185; /* wonder  */
+  /* ── Observatory palette — docs/brand.md "Color" ──────────────────
+     Source of truth for the post-Strata design language. Surface these
+     through Tailwind via theme.extend.colors (see tailwind.config.ts),
+     and use the named utility classes (bg-night, text-ivory, etc.)
+     rather than referencing the variables directly in components. */
 
-  /* Cloud design — atmospheric depths */
-  --cloud-bg: #070B1C;
-  --cloud-bg-soft: #0B1026;
+  /* Foundation — warm dark canvas */
+  --bg-night: #070605; /*       page background, the deepest layer    */
+  --bg-espresso: #0d0a08; /*    alt sections                          */
+  --bg-charcoal: #12110d; /*    section dividers, floor of card stacks */
+  --surface: #171611; /*        default card                          */
+  --surface-raised: #222018; /* hovered cards, modals, popovers       */
+  --text-primary: #f3ecdd; /*   primary text on dark (ivory)          */
+  --text-muted: #b8b0a1; /*     secondary text (taupe)                */
+  --border: #3b3426; /*         default borders, separators (bronze)   */
+
+  /* Prestige — gold. Used SPARINGLY per the brief; CTAs, mastery,
+     score-guarantee callouts, brand moments themselves. */
+  --accent-gold: #c8ab6a; /*    antique gold                          */
+  --accent-gold-bright: #e4c86a; /* star gold — focus rings, twinkle  */
+
+  /* Constellation accents — subject signals. Used as SIGNAL not
+     theme. Body copy and surfaces stay on the warm-dark canvas. */
+  --subject-rw: #d84f73; /*       R&W rose                            */
+  --subject-rw-glow: #f06a8c; /*  R&W ambient / hover                 */
+  --subject-math: #2fa8ff; /*     Math blue                           */
+  --subject-math-glow: #42d9ff; /* Math ambient / hover               */
+
+  /* ── Motion tokens — docs/brand.md "Motion" ──────────────────────
+     Contemplative direction: short for state changes, long-tailed
+     for settles. Use via `transition-duration: var(--duration-fast)`
+     etc., or via the matching Tailwind utilities (transition-fast,
+     ease-contemplative). */
+  --duration-instant: 100ms;
+  --duration-fast: 200ms;
+  --duration-normal: 400ms;
+  --duration-slow: 800ms;
+  --duration-contemplative: 1600ms;
+  --ease-standard: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-contemplative: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* ── Legacy subject palette + cloud design tokens ────────────────
+     Used by the existing landing + auth surfaces. Kept here so those
+     pages still render correctly. Targeted for removal in roadmap
+     chunk 7 (UI redesign) once every consumer migrates to the
+     constellation accents above. */
+  --color-algebra: #3b82f6; /* dream      */
+  --color-advanced-math: #a855f7; /* inspire    */
+  --color-geometry: #14b8a6; /* achieve    */
+  --color-data-analysis: #f59e0b; /* excel      */
+  --color-reading-writing: #fb7185; /* wonder     */
+  --cloud-bg: #070b1c;
+  --cloud-bg-soft: #0b1026;
   --cloud-fog: rgba(148, 163, 255, 0.04);
 }
 
@@ -77,47 +120,149 @@
   }
 
   /* ------------------------------------------------------------
-     Type scale — single source of truth for the whole site.
-     Use these instead of ad-hoc text-* combinations.
+     Type scale — docs/brand.md "Typography".
+     Headings = Plex Serif. Body/UI = Plex Sans. LMS reading =
+     Atkinson Hyperlegible. Technical labels = Plex Mono.
+     Weights are bounded: never below 300, never above 600.
      ------------------------------------------------------------ */
   .type-display-xl {
-    @apply font-extrabold leading-[0.95] tracking-[-0.04em];
-    font-size: clamp(2.75rem, 6.4vw + 1rem, 6.25rem);
+    font-family: var(--font-plex-serif), Georgia, "Times New Roman", serif;
+    font-weight: 300; /* Plex Serif Light */
+    line-height: 0.95;
+    letter-spacing: -0.04em;
+    font-size: clamp(2.75rem, 6.4vw + 1rem, 6.25rem); /* ~72px target */
   }
-  .type-display-lg {
-    @apply font-bold leading-[1.05] tracking-[-0.03em];
-    font-size: clamp(2rem, 3.2vw + 1rem, 3.75rem);
+  .type-display-lg,
+  .type-display-l {
+    font-family: var(--font-plex-serif), Georgia, "Times New Roman", serif;
+    font-weight: 400;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    font-size: clamp(2rem, 3.2vw + 1rem, 3.75rem); /* ~48px target */
   }
-  .type-display-md {
-    @apply font-bold leading-[1.15] tracking-[-0.02em];
-    font-size: clamp(1.5rem, 1.8vw + 1rem, 2.25rem);
+  .type-display-md,
+  .type-display-m {
+    font-family: var(--font-plex-serif), Georgia, "Times New Roman", serif;
+    font-weight: 400;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    font-size: clamp(1.5rem, 1.8vw + 1rem, 2.25rem); /* ~32px target */
   }
-  .type-body-lg {
-    @apply font-normal leading-[1.55];
-    font-size: clamp(1.0625rem, 0.4vw + 1rem, 1.25rem);
+  .type-h1 {
+    font-family: var(--font-plex-serif), Georgia, "Times New Roman", serif;
+    font-weight: 400;
+    line-height: 1.2;
+    font-size: clamp(1.5rem, 1vw + 1rem, 1.75rem); /* ~28px target */
+  }
+  .type-h2 {
+    font-family: var(--font-plex-serif), Georgia, "Times New Roman", serif;
+    font-weight: 400;
+    line-height: 1.25;
+    font-size: 1.375rem; /* 22px */
+  }
+  .type-h3 {
+    font-family: var(--font-plex-sans), Inter, system-ui, sans-serif;
+    font-weight: 500; /* Plex Sans Medium */
+    line-height: 1.3;
+    font-size: 1.125rem; /* 18px */
+  }
+  .type-body-lg,
+  .type-body-l {
+    font-family: var(--font-plex-sans), Inter, system-ui, sans-serif;
+    font-weight: 400;
+    line-height: 1.55;
+    font-size: clamp(1.0625rem, 0.4vw + 1rem, 1.125rem); /* ~17px target */
   }
   .type-body {
-    @apply text-base font-normal leading-[1.6];
+    font-family: var(--font-plex-sans), Inter, system-ui, sans-serif;
+    font-weight: 400;
+    line-height: 1.6;
+    font-size: 0.9375rem; /* 15px — UI default */
+  }
+  /* Long-form reading inside the LMS. ATKINSON HYPERLEGIBLE only —
+     the brief mandates Plex Sans/Serif do NOT apply to passages, lesson
+     bodies, or textbook entries. Looser leading for late-night studying. */
+  .type-reading {
+    font-family: var(--font-atkinson), Verdana, Geneva, Tahoma, system-ui, sans-serif;
+    font-weight: 400;
+    line-height: 1.7;
+    font-size: 1.0625rem; /* 17px */
   }
   .type-label {
-    @apply text-xs font-semibold uppercase tracking-[0.14em];
+    font-family: var(--font-plex-sans), Inter, system-ui, sans-serif;
+    font-weight: 500; /* Plex Sans Medium */
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-size: 0.8125rem; /* 13px */
   }
   .type-mono {
-    @apply font-mono tabular-nums;
+    font-family: var(--font-plex-mono), ui-monospace, SFMono-Regular, monospace;
+    font-weight: 400;
+    font-variant-numeric: tabular-nums;
+    font-size: 0.8125rem; /* 13px */
   }
 }
 
 @layer utilities {
-  .animate-fade-up { animation: fadeUp 0.6s ease-out both; }
-  .animate-fade-in { animation: fadeIn 0.4s ease-out both; }
+  /* Legacy kinetic primitives — still consumed by cloud-aurora pages.
+     Targeted for retirement in roadmap chunk 7 (UI redesign). */
+  .animate-fade-up {
+    animation: fadeUp 0.6s ease-out both;
+  }
+  .animate-fade-in {
+    animation: fadeIn 0.4s ease-out both;
+  }
+
+  /* ──────────────────────────────────────────────────────────────
+     Observatory motion primitives — docs/brand.md "Motion".
+     Contemplative direction: small rises, long-tail eases, no
+     overshoot. The reduced-motion block below disables animation +
+     transition durations globally so twinkle/settle become static
+     for users who opt out.
+     ────────────────────────────────────────────────────────────── */
+  .animate-settle {
+    animation: settle var(--duration-contemplative) var(--ease-contemplative) both;
+  }
+  .animate-twinkle {
+    animation: twinkle 4s var(--ease-standard) infinite;
+  }
 
   @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(24px); }
-    to   { opacity: 1; transform: translateY(0); }
+    from {
+      opacity: 0;
+      transform: translateY(24px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
   @keyframes fadeIn {
-    from { opacity: 0; }
-    to   { opacity: 1; }
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes settle {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  @keyframes twinkle {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.85;
+    }
   }
 
   .text-balance { text-wrap: balance; }
