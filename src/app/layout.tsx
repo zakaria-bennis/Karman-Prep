@@ -5,6 +5,12 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import localFont from "next/font/local";
+import {
+  IBM_Plex_Serif,
+  IBM_Plex_Sans,
+  IBM_Plex_Mono,
+  Atkinson_Hyperlegible,
+} from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { karmanClerkAppearance } from "@/lib/clerkAppearance";
 import { ThemeProvider } from "@/components/shared/ThemeProvider";
@@ -25,6 +31,43 @@ const geistMono = localFont({
   src: "./fonts/GeistMonoVF.woff",
   variable: "--font-geist-mono",
   weight: "100 900",
+});
+
+// ─── Karman type stack (docs/brand.md) ────────────────────────
+//   Plex Serif    → display + headings
+//   Plex Sans     → body, UI labels, buttons
+//   Plex Mono     → technical labels, code, equations
+//   Atkinson      → LMS long-form reading (lesson text, passages)
+//
+// Each registers a CSS variable on <body>; consumed in components
+// via `font-family: var(--font-plex-serif), Georgia, serif;` etc.
+// Weights below 300 and above 600 are explicitly forbidden by the
+// brand brief — only request what's actually used.
+// `display: swap` shows the fallback immediately and swaps when
+// the webfont loads; LCP-friendly.
+const plexSerif = IBM_Plex_Serif({
+  subsets: ["latin"],
+  variable: "--font-plex-serif",
+  weight: ["300", "400", "500", "600"],
+  display: "swap",
+});
+const plexSans = IBM_Plex_Sans({
+  subsets: ["latin"],
+  variable: "--font-plex-sans",
+  weight: ["300", "400", "500", "600"],
+  display: "swap",
+});
+const plexMono = IBM_Plex_Mono({
+  subsets: ["latin"],
+  variable: "--font-plex-mono",
+  weight: ["400", "500"],
+  display: "swap",
+});
+const atkinson = Atkinson_Hyperlegible({
+  subsets: ["latin"],
+  variable: "--font-atkinson",
+  weight: ["400", "700"], // Atkinson only ships Regular + Bold
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -106,7 +149,9 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       afterSignOutUrl="/"
     >
       <html lang="en" className="dark" suppressHydrationWarning>
-        <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <body
+          className={`${geistSans.variable} ${geistMono.variable} ${plexSerif.variable} ${plexSans.variable} ${plexMono.variable} ${atkinson.variable} antialiased`}
+        >
           <ThemeProvider>
             <ConfirmProvider>
               {impersonatedRole && (
