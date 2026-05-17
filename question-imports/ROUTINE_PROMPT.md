@@ -83,9 +83,15 @@ For each PDF in incoming/:
           doesn't reveal the answer), desmos_strategy (math
           only when graphing is genuinely faster).
        g. Compute content_hash = sha1(lowercase(strip_whitespace(
-          question_text + "|" + choice_a + "|" + choice_b + "|" +
-          choice_c + "|" + choice_d))). For SPR questions where
-          choices are blank, hash just question_text.
+          passage_intro + "|" + passage + "|" + passage_a + "|" +
+          passage_b + "|" + question_text + "|" + choice_a + "|" +
+          choice_b + "|" + choice_c + "|" + choice_d))). Each blank
+          passage field is treated as empty string; the delimiters
+          still get emitted. For SPR (numeric_entry) questions where
+          choices are blank, hash the passages + question_text only.
+          Passages MUST be included so Reading questions sharing
+          canonical stems (cross-text-connection, tone-and-style)
+          don't collide on stems alone.
        h. Determine import_status / import_flag_type /
           import_flag_reason per the FLAGGING rules below.
        i. Append the row to the appropriate CSV in the run dir.

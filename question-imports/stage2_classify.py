@@ -404,27 +404,51 @@ def build_chunk_contents(
 
 
 def compute_content_hash(row: list[str]) -> str:
-    """Per ROUTINE_PROMPT.md spec:
+    """Per ROUTINE_PROMPT.md / routine.md spec:
         sha1(lowercase(strip_whitespace(
-            question_text + "|" + choice_a + "|" + choice_b + "|" +
-            choice_c + "|" + choice_d
+            passage_intro + "|" + passage + "|" + passage_a + "|" + passage_b + "|" +
+            question_text + "|" +
+            choice_a + "|" + choice_b + "|" + choice_c + "|" + choice_d
         )))
     For SPR (numeric_entry) questions where choices are blank, hash
-    just question_text. The DB has a UNIQUE index on
-    (source_pdf, content_hash), so any two rows with the same
-    content_hash from the same PDF collide and the second one is
-    silently skipped. Computing this deterministically (not "TBD")
-    lets every distinct question land in the bank."""
+    the passages + question_text only.
+
+    Passages are part of the hash material because SAT Reading
+    "cross-text connection" / "tone-and-style" / "text-organization"
+    questions all share canonical stem wording. Two such questions
+    with the same stem but different passages must produce different
+    hashes — otherwise the second collides with the first under the
+    (source_pdf, content_hash) UNIQUE index and is silently skipped,
+    losing the second's passages forever. Fixes audit finding CRIT-4
+    (docs/question-bank-audit-2026-05-17.md).
+
+    The DB has a UNIQUE index on (source_pdf, content_hash), so any
+    two rows with the same content_hash from the same PDF collide and
+    the second one is silently skipped. Computing this deterministically
+    (not "TBD") lets every distinct question land in the bank.
+
+    Forward-only change: rows already imported under the old hash
+    keep their old fingerprints. Re-running this routine on a PDF
+    previously imported under the old formula would produce new
+    hashes and therefore NOT collide with existing rows — duplicates
+    would land. If you need to safely re-import old PDFs, rehash the
+    existing rows first (see docs/question-bank-audit-2026-05-17.md
+    CRIT-4 note)."""
     qt = row[SCHEMA_COLUMNS.index("question_text")] or ""
     qf = row[SCHEMA_COLUMNS.index("question_format")] or "multiple_choice"
+    pi = row[SCHEMA_COLUMNS.index("passage_intro")] or ""
+    pp = row[SCHEMA_COLUMNS.index("passage")] or ""
+    pa = row[SCHEMA_COLUMNS.index("passage_a")] or ""
+    pb = row[SCHEMA_COLUMNS.index("passage_b")] or ""
+    passage_material = f"{pi}|{pp}|{pa}|{pb}"
     if qf == "numeric_entry":
-        material = qt
+        material = f"{passage_material}|{qt}"
     else:
         ca = row[SCHEMA_COLUMNS.index("choice_a")] or ""
         cb = row[SCHEMA_COLUMNS.index("choice_b")] or ""
         cc = row[SCHEMA_COLUMNS.index("choice_c")] or ""
         cd = row[SCHEMA_COLUMNS.index("choice_d")] or ""
-        material = f"{qt}|{ca}|{cb}|{cc}|{cd}"
+        material = f"{passage_material}|{qt}|{ca}|{cb}|{cc}|{cd}"
     normalized = "".join(material.lower().split())
     return hashlib.sha1(normalized.encode("utf-8")).hexdigest()
 
