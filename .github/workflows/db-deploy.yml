@@ -12,8 +12,15 @@
 #                            project (Supabase dashboard →
 #                            Project Settings → Database)
 #
-# Safety: `supabase db push` is idempotent. Migrations already
-# tracked in `supabase_migrations.schema_migrations` are skipped.
+# Safety: `supabase db push --include-all` is idempotent. Migrations
+# already tracked in `supabase_migrations.schema_migrations` are
+# skipped. The `--include-all` flag also lets us apply migrations
+# whose timestamps are earlier than the latest tracked migration —
+# necessary for backfilling locally-introduced files (e.g. the
+# bootstrap `20230101000000_initial_schema.sql`) that were originally
+# applied to prod via the SQL Editor and never registered. Every
+# migration in this repo is written idempotently (IF NOT EXISTS,
+# DROP-then-CREATE for policies) so out-of-order application is safe.
 # Concurrency cap below prevents two pushes racing.
 # ============================================================
 
@@ -53,4 +60,4 @@ jobs:
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
-        run: supabase db push
+        run: supabase db push --include-all
