@@ -10,12 +10,12 @@
 //   • <KarmanLogo />                — wordmark; variant="stacked" centers it
 //
 // Color: ivory (--text-primary, #F3ECDD). No gradients, no SVG paths.
-// Font: 'IBM Plex Serif' once wired in the Tailwind/global font pipeline
-// (chunk 2 of the design-language project). Falls back to Georgia until
-// then so this component is safe to ship before fonts land.
+// Font: IBM Plex Serif via the `--font-plex-serif` CSS variable wired
+// in src/app/layout.tsx (next/font/google). Falls back to Georgia if
+// the webfont isn't loaded yet (initial page paint before swap).
 // ============================================================
 
-const SERIF_STACK = "'IBM Plex Serif', Georgia, 'Times New Roman', serif";
+const SERIF_STACK = "var(--font-plex-serif), Georgia, 'Times New Roman', serif";
 const IVORY = "#F3ECDD";
 
 interface MarkProps {
