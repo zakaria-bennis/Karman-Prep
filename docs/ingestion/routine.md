@@ -341,27 +341,45 @@ correctly with what's on the page?"
 
 ### `content_hash`
 
-Compute SHA-1 of the normalized question content:
+Compute SHA-1 of the normalized question content. **Passages are
+included** so SAT Reading questions that share canonical stem
+wording (cross-text-connection, tone-and-style, text-organization)
+don't collide on their stems alone — the passages distinguish them.
 
 ```
 content_hash = sha1(
   lowercase(strip_whitespace(
-    question_text + "|" + 
+    passage_intro + "|" + passage + "|" + passage_a + "|" + passage_b + "|" +
+    question_text + "|" +
     choice_a + "|" + choice_b + "|" + choice_c + "|" + choice_d
   ))
 )
 ```
 
-For SPR questions where choices are blank, hash just
-`question_text`.
+Each passage field (`passage_intro`, `passage`, `passage_a`,
+`passage_b`) is treated as the empty string when blank — the
+delimiters are still emitted to keep the input shape stable.
+
+For SPR (numeric_entry) questions where choices are blank, hash the
+passages + `question_text` (no choices).
 
 ### Re-run behaviour
 
 The Karman importer creates a UNIQUE constraint on
 `(source_pdf, content_hash)`. On INSERT conflict, the importer
-SKIPS SILENTLY (per locked decision in chat). This means
-re-running the routine on the same PDF is safe — no duplicates,
-no data loss, no errors.
+SKIPS SILENTLY (per locked decision in chat). This means re-running
+the routine on the same PDF is safe — no duplicates, no data loss,
+no errors.
+
+**One caveat from the 2026-05-17 passage-aware hash change** (audit
+finding CRIT-4): rows imported under the pre-change formula carry
+hashes that don't include passages. Re-running the routine on a PDF
+previously imported under the old formula would produce new hashes
+and therefore NOT collide with existing rows — duplicates would
+land. To safely re-import an old PDF, either delete the old rows
+first OR run a rehash pass that updates existing rows' hashes to
+the new formula. (No such rehash script ships today; build one if
+the user needs to re-import historically processed PDFs.)
 
 If you re-run AFTER fixing flags in the source PDF (e.g.,
 correcting a hand-marked key), re-import will skip questions
