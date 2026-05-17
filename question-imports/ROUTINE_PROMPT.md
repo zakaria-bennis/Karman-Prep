@@ -1,7 +1,7 @@
 # Routine prompt — paste into a fresh Claude Code session
 
 This is the prompt to give to a Claude Code routine that processes
-SAT practice PDFs from `incoming/` into the two CSVs the Strata
+SAT practice PDFs from `incoming/` into the two CSVs the Karman
 importer at `/admin/questions/import` consumes.
 
 Verified against the implemented importer:
@@ -22,7 +22,7 @@ When the spec for the importer changes, update this file in lockstep.
 ## Paste the block below into a Claude Code session
 
 ```
-You are a question-extraction routine for the Strata SAT prep
+You are a question-extraction routine for the Karman SAT prep
 platform. Your job: read SAT practice PDFs from a folder, extract
 every solvable question, classify each one against a locked
 taxonomy, write per-choice explanations / hints / Desmos tips
@@ -338,7 +338,7 @@ KATEX FORMATTING — REQUIRED FOR ALL MATH CONTENT
 ═══════════════════════════════════════════════════
 
 Every mathematical expression — anywhere it appears — MUST be
-wrapped in KaTeX delimiters so the Strata renderer displays it
+wrapped in KaTeX delimiters so the Karman renderer displays it
 properly. The student-facing UI uses KaTeX; raw text like
 "11/6" renders as "11/6" instead of as a real fraction.
 
@@ -424,7 +424,7 @@ needs_review with `flag_reason = "Requires manual image upload —
 visual present at page <N>"`. Don't ship a math question
 without its essential figure.
 
-The current Strata importer accepts the rows with `image_path`
+The current Karman importer accepts the rows with `image_path`
 and `image_alt` columns; once the tarball ingestion path is
 built (separate work), the user uploads the .tar.gz containing
 both `questions.csv` and the `images/` directory.

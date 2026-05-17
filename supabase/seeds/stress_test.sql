@@ -1,5 +1,5 @@
 -- ============================================================
--- Strata Stress Test Seed — ~500 students with realistic mix
+-- Karman Stress Test Seed — ~500 students with realistic mix
 --
 -- All rows have clerk_id prefix `test_stress_` so cleanup is one
 -- line: DELETE FROM users WHERE clerk_id LIKE 'test_stress_%';
@@ -69,7 +69,7 @@ BEGIN
   FOR i IN 1..500 LOOP
     fn := first_names[1 + (i % array_length(first_names, 1))];
     ln := last_names[1 + ((i * 7 + 13) % array_length(last_names, 1))];
-    email_addr := lower(fn || '.' || ln || i || '@stress.strata.local');
+    email_addr := lower(fn || '.' || ln || i || '@stress.karman.local');
 
     INSERT INTO public.users (clerk_id, email, role, first_name, last_name, created_at)
     VALUES (
@@ -114,7 +114,7 @@ BEGIN
     INSERT INTO public.users (clerk_id, email, role, first_name, last_name, created_at)
     VALUES (
       'test_stress_parent_' || LPAD(i::TEXT, 4, '0'),
-      lower(fn || '.' || ln || i || '.parent@stress.strata.local'),
+      lower(fn || '.' || ln || i || '.parent@stress.karman.local'),
       'parent',
       fn,
       ln,

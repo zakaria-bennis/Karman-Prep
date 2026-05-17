@@ -49,7 +49,7 @@ This design means our Slack workspace cost is **flat** (one bot, one workspace) 
 
 | Function                       | When it's called                                                                                                                                      |
 | ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `createCohortChannel(input)`   | Cohort provisioning route, after Stripe payment clears for a seminar/small-group student. Creates a private channel named `strata-<slug>-{chat\|qa}`. |
+| `createCohortChannel(input)`   | Cohort provisioning route, after Stripe payment clears for a seminar/small-group student. Creates a private channel named `karman-<slug>-{chat\|qa}`. |
 | `postMessage(input)`           | Every successful message send (cohort chat, Q&A question, Q&A answer). The body is `*<displayName>:* <content>` plus image URLs on new lines.         |
 | `deleteMessage(channelId, ts)` | Moderation pipeline when a human reviewer removes a flagged message. Followed by an in-channel "removed for guidelines violation" notice.             |
 | `pinMessage(channelId, ts)`    | Tutor pins an answer — surfaces to top of Karman Q&A board AND of the Slack channel.                                                                  |

@@ -51,8 +51,8 @@ DELETE FROM public.users
 -- 1. Tutors (2)
 -- ─────────────────────────────────────────────────────────────
 INSERT INTO public.users (clerk_id, email, role, first_name, last_name, avatar_url) VALUES
-  ('test_tutor_zakaria', 'zakaria.test@strata.local', 'tutor', 'Zakaria', 'Bennis',       NULL),
-  ('test_tutor_nabil',   'nabil.test@strata.local',   'tutor', 'Nabil',   'Kafil Asrar',  NULL);
+  ('test_tutor_zakaria', 'zakaria.test@karman.local', 'tutor', 'Zakaria', 'Bennis',       NULL),
+  ('test_tutor_nabil',   'nabil.test@karman.local',   'tutor', 'Nabil',   'Kafil Asrar',  NULL);
 
 
 -- ─────────────────────────────────────────────────────────────
@@ -64,18 +64,18 @@ INSERT INTO public.users (clerk_id, email, role, first_name, last_name, avatar_u
 -- ─────────────────────────────────────────────────────────────
 INSERT INTO public.users (clerk_id, email, role, first_name, last_name, sat_test_date, avatar_url) VALUES
   -- Seminar cohort (group tier) — May 2, 2026
-  ('test_student_01', 'elijah.turner.test@strata.local',    'student', 'Elijah',    'Turner',    '2026-05-02', NULL),
-  ('test_student_02', 'sofia.park.test@strata.local',       'student', 'Sofia',     'Park',      '2026-05-02', NULL),
-  ('test_student_03', 'amara.johnson.test@strata.local',    'student', 'Amara',     'Johnson',   '2026-05-02', NULL),
-  ('test_student_04', 'isabella.rodriguez.test@strata.local','student','Isabella',  'Rodriguez', '2026-05-02', NULL),
-  ('test_student_05', 'darius.williams.test@strata.local',  'student', 'Darius',    'Williams',  '2026-05-02', NULL),
+  ('test_student_01', 'elijah.turner.test@karman.local',    'student', 'Elijah',    'Turner',    '2026-05-02', NULL),
+  ('test_student_02', 'sofia.park.test@karman.local',       'student', 'Sofia',     'Park',      '2026-05-02', NULL),
+  ('test_student_03', 'amara.johnson.test@karman.local',    'student', 'Amara',     'Johnson',   '2026-05-02', NULL),
+  ('test_student_04', 'isabella.rodriguez.test@karman.local','student','Isabella',  'Rodriguez', '2026-05-02', NULL),
+  ('test_student_05', 'darius.williams.test@karman.local',  'student', 'Darius',    'Williams',  '2026-05-02', NULL),
   -- Small group cohort — May 2, 2026
-  ('test_student_06', 'maya.hernandez.test@strata.local',   'student', 'Maya',      'Hernandez', '2026-05-02', NULL),
-  ('test_student_07', 'jordan.mbeki.test@strata.local',     'student', 'Jordan',    'Mbeki',     '2026-05-02', NULL),
-  ('test_student_08', 'noah.goldberg.test@strata.local',    'student', 'Noah',      'Goldberg',  '2026-05-02', NULL),
+  ('test_student_06', 'maya.hernandez.test@karman.local',   'student', 'Maya',      'Hernandez', '2026-05-02', NULL),
+  ('test_student_07', 'jordan.mbeki.test@karman.local',     'student', 'Jordan',    'Mbeki',     '2026-05-02', NULL),
+  ('test_student_08', 'noah.goldberg.test@karman.local',    'student', 'Noah',      'Goldberg',  '2026-05-02', NULL),
   -- Private tier (no cohort) — June 6, 2026
-  ('test_student_09', 'priya.krishnan.test@strata.local',   'student', 'Priya',     'Krishnan',  '2026-06-06', NULL),
-  ('test_student_10', 'lucas.chen.test@strata.local',       'student', 'Lucas',     'Chen',      '2026-06-06', NULL);
+  ('test_student_09', 'priya.krishnan.test@karman.local',   'student', 'Priya',     'Krishnan',  '2026-06-06', NULL),
+  ('test_student_10', 'lucas.chen.test@karman.local',       'student', 'Lucas',     'Chen',      '2026-06-06', NULL);
 
 
 -- ─────────────────────────────────────────────────────────────

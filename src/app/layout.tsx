@@ -6,7 +6,7 @@ import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import localFont from "next/font/local";
 import { ClerkProvider } from "@clerk/nextjs";
-import { strataClerkAppearance } from "@/lib/clerkAppearance";
+import { karmanClerkAppearance } from "@/lib/clerkAppearance";
 import { ThemeProvider } from "@/components/shared/ThemeProvider";
 import { ConfirmProvider } from "@/components/shared/ConfirmDialog";
 import ImpersonationBanner from "@/components/admin/ImpersonationBanner";
@@ -86,7 +86,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
 
   return (
     <ClerkProvider
-      appearance={strataClerkAppearance}
+      appearance={karmanClerkAppearance}
       localization={{
         signIn: {
           start: {

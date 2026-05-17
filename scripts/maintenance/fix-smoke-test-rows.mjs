@@ -7,7 +7,7 @@
 //      to use KaTeX `$…$` / `$$…$$` notation so the renderer
 //      shows fractions, exponents, and operators properly.
 //
-// Run from /Users/zakariabennis/strata (where .env.local lives):
+// Run from /Users/zakariabennis/Karman-Prep (where .env.local lives):
 //   node --env-file=.env.local scripts/fix-smoke-test-rows.mjs
 //
 // Idempotent — safe to re-run; UPDATEs match by source_pdf +

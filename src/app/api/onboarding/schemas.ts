@@ -57,7 +57,7 @@ export const onboardingPayloadSchema = z.object({
   // Always collected, never required
   parentEmail: optionalNullableString,
   parentPhone: optionalNullableString,
-  heardAboutStrata: optionalNullableString,
+  heardAboutKarman: optionalNullableString,
 
   // Composite-score back-compat (legacy clients may send this)
   recentSatComposite: optionalCompositeScore,

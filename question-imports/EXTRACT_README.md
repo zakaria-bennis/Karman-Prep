@@ -31,7 +31,7 @@ That's it. No Claude installed required for this path.
 
 ## Running
 
-From the repo root (`/Users/zakariabennis/strata`):
+From the repo root (`/Users/zakariabennis/Karman-Prep`):
 
 ```bash
 # Stage 1 — local, free, ~30s for a 99-page PDF.

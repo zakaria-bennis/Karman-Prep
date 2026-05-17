@@ -61,7 +61,7 @@ export async function fetchSatDatesFromCollegeBoard(): Promise<ParsedSatDate[]> 
     headers: {
       // Identify ourselves so College Board can block us if needed
       // rather than blocking us silently.
-      "User-Agent": "StrataBot/1.0 (+https://strata-sat.com/bot)",
+      "User-Agent": "KarmanBot/1.0 (+https://karmanprep.com/bot)",
       Accept: "text/html",
     },
     // Don't cache at the edge — we want fresh data daily.

@@ -1,6 +1,6 @@
 # Question imports
 
-PDF → CSV → Strata question bank pipeline.
+PDF → CSV → Karman question bank pipeline.
 
 ## How to use it
 

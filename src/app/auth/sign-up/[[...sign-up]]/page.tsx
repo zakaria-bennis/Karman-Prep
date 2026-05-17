@@ -4,7 +4,7 @@
 
 import { SignUp } from "@clerk/nextjs";
 import Link from "next/link";
-import { StrataLogo } from "@/components/shared/StrataLogo";
+import { KarmanLogo } from "@/components/shared/KarmanLogo";
 import AuthBackdrop from "@/components/shared/AuthBackdrop";
 
 export default function SignUpPage() {
@@ -13,7 +13,7 @@ export default function SignUpPage() {
       <AuthBackdrop />
 
       <Link href="/" className="relative z-10 mb-4" aria-label="Karman home">
-        <StrataLogo size={64} variant="stacked" />
+        <KarmanLogo size={64} variant="stacked" />
       </Link>
       <p className="relative z-10 mb-6 text-xs text-slate-400">7-day free trial</p>
 

@@ -13,7 +13,7 @@ import { currentUser } from "@clerk/nextjs/server";
 import { safeAuth } from "@/lib/auth/dev-auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { StrataLogo } from "@/components/shared/StrataLogo";
+import { KarmanLogo } from "@/components/shared/KarmanLogo";
 import AuthBackdrop from "@/components/shared/AuthBackdrop";
 import { createAdminClient } from "@/lib/supabase/server";
 import { getActiveSubscription } from "@/lib/supabase/queries/bookings";
@@ -66,7 +66,7 @@ export default async function OnboardingQuestionnairePage() {
     <div className="relative flex min-h-screen flex-col items-center overflow-hidden px-4 py-10">
       <AuthBackdrop />
       <Link href="/" className="relative z-10 mb-8" aria-label="Karman home">
-        <StrataLogo size={56} variant="stacked" />
+        <KarmanLogo size={56} variant="stacked" />
       </Link>
 
       <QuestionnaireClient

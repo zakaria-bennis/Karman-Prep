@@ -25,11 +25,11 @@ import { createAdminClient } from "@/lib/supabase/server";
 export type AppRole = "student" | "tutor" | "admin" | "parent";
 
 /** Cookie name used by the admin "View as <role>" tool. */
-export const IMPERSONATE_COOKIE = "strata_impersonate_role";
+export const IMPERSONATE_COOKIE = "karman_impersonate_role";
 
 /** Cookie name used by the admin "Impersonate this user" tool —
  *  stores the target users.id (UUID), not their clerk_id. */
-export const IMPERSONATE_USER_COOKIE = "strata_impersonate_user_id";
+export const IMPERSONATE_USER_COOKIE = "karman_impersonate_user_id";
 
 export async function fetchUserRole(clerkId: string): Promise<AppRole | null> {
   const supabase = createAdminClient();

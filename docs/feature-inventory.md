@@ -144,7 +144,7 @@ Vocabulary an AI ingesting this doc cold should learn first. Code mappings in `m
 ## Roles & access
 
 - **Role** — `users.role` enum: `student` / `parent` / `tutor` / `admin`.
-- **Impersonation** — admin-only "View as" mechanic. Sets a `strata_impersonate_role` cookie (2hr TTL) so admin sees the chosen role's UI. Real role stays admin in the DB; all actions log under true identity.
+- **Impersonation** — admin-only "View as" mechanic. Sets a `karman_impersonate_role` cookie (2hr TTL) so admin sees the chosen role's UI. Real role stays admin in the DB; all actions log under true identity.
 - **Parent-student link** — `parent_student_links` table. Parent must have a row per student they can view at `/dashboard/parent/[studentId]`. Created by admin.
 
 ## Technical infra
@@ -805,7 +805,7 @@ The most feature-rich surface. Admin-only (real role, not impersonation).
 
 ### Admin impersonation — "View as" menu
 
-- **What it is:** Header dropdown + per-user **Impersonate** button on `/admin/users`. Two cookie layers: `strata_impersonate_role` (which role to render) and `strata_impersonate_user_id` (which specific clerk_id to scope queries to). Both have a 2-hour TTL.
+- **What it is:** Header dropdown + per-user **Impersonate** button on `/admin/users`. Two cookie layers: `karman_impersonate_role` (which role to render) and `karman_impersonate_user_id` (which specific clerk_id to scope queries to). Both have a 2-hour TTL.
 - **What the user does:**
   - Generic mode: clicks View as → picks a role → lands on that role's home with seeded data.
   - **Targeted mode (Phase 1, PR #51):** clicks **Impersonate** on a student row in `/admin/users` → lands on that specific student's actual dashboard / progress / chat. The yellow impersonation banner shows their name + "Exit impersonation".

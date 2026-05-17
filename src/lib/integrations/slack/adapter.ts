@@ -75,12 +75,12 @@ function sanitizeChannelName(raw: string): string {
 }
 
 /** Compose the actual Slack channel name from a cohort slug + type.
- *  Pattern:  strata-<slug>-{chat|qa}. Karman UI displays the cohort's
+ *  Pattern:  karman-<slug>-{chat|qa}. Karman UI displays the cohort's
  *  human-friendly name (chat_channels.display_name) — never this slug. */
 function composeChannelName(input: CreateChannelInput): string {
   const slug = sanitizeChannelName(input.cohortSlug);
   const suffix = input.type === "qa" ? "qa" : "chat";
-  return sanitizeChannelName(`strata-${slug}-${suffix}`);
+  return sanitizeChannelName(`karman-${slug}-${suffix}`);
 }
 
 // ─────────────────────────────────────────────────────────────
