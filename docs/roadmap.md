@@ -65,6 +65,24 @@ The list is ordered by **recommended start sequence**, not by category or finish
 
 **Continues post-launch:** Iteration only — the system itself is set. New components join the library when needed; tokens rarely change.
 
+### Status — 2026-05-16
+
+The work is split into discrete chunks. Decisions are locked; the remaining work is split between **mechanical** (encoding, integration) and **artwork-blocked** (logo generation, which requires an external image-gen pass) so it's clear what's gated on what.
+
+| Sub-step       | Description                                                                                     | Gate type                                                      | Status    |
+| -------------- | ----------------------------------------------------------------------------------------------- | -------------------------------------------------------------- | --------- |
+| 1. Brand brief | `docs/brand.md` — palette, type, motion, logo system, anti-patterns                             | —                                                              | ✅ Done   |
+| 1.5 Rename     | Strata → Karman across code + DB                                                                | Mechanical                                                     | ✅ Done   |
+| 2.1 Fonts      | next/font wiring (Plex Serif / Sans / Mono + Atkinson)                                          | Mechanical                                                     | ✅ Done   |
+| 2.2 Tokens     | Observatory palette + type scale + motion in `tailwind.config.ts` + `globals.css` + `motion.ts` | Mechanical                                                     | ✅ Done   |
+| 2.3 Library    | Component library scaffold on the new tokens, at a `/storybook` route                           | Mechanical (deprioritized)                                     | ⏸ Paused  |
+| M1 / M2 logo   | Master horizontal lockup + standalone symbol artwork                                            | **External artwork** — prompts in `docs/brand-logo-prompts.md` | ⏸ Pending |
+| 2.4 Variants   | 18 logo derivatives from M1 / M2 + visual baseline reset                                        | Mechanical (downstream of M1/M2)                               | ⏸ Pending |
+
+**Framework set when** — refined definition: the chunks above all complete _and_ a new surface can be built by composing existing tokens + components instead of inventing them. As of 2026-05-16, **chunks 1, 1.5, 2.1, 2.2 are shipped**; the rest is paused pending creative bandwidth or external artwork.
+
+The placeholder Plex Serif wordmark is live on karmanprep.com — there's no public regression to worry about while the chain is paused.
+
 ---
 
 ## 2. Page connectivity / Information architecture
