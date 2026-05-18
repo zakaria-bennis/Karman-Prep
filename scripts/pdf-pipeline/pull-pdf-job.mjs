@@ -427,6 +427,39 @@ async function processWithGemini(job, localPdfPath) {
   }
   console.log(`[gemini] stage 2 done`);
 
+  // Stage 3: figure extraction via Gemini vision. Reads each
+  // page-NNN.png + the two CSVs from stage 2, asks Gemini for
+  // spatial figure bboxes (not figure contents — RECITATION-safe),
+  // crops with Pillow, base64-encodes into image_url. The CSV
+  // grows from 30 → 32 columns. Optional: set SKIP_STAGE3=true
+  // in .env.local to skip (e.g. to ingest fast on PDFs that
+  // contain no figures, like instructions-only docs).
+  if (process.env.SKIP_STAGE3 === "true") {
+    console.log(`[gemini] stage 3 skipped (SKIP_STAGE3=true)`);
+  } else {
+    await setProgress(job.id, "processing", "Stage 3: extracting figures via vision");
+    const stage3 = await runChild("python3", ["question-imports/stage3_figures.py", extractDir], {
+      env: {
+        ...process.env,
+        GEMINI_VISION_MODEL: process.env.GEMINI_VISION_MODEL || "gemini-2.5-flash",
+        BBOX_PADDING_PCT: process.env.BBOX_PADDING_PCT || "0.5",
+      },
+    });
+    if (stage3.code !== 0) {
+      const tail = stage3.stderr.slice(-500) || stage3.stdout.slice(-500);
+      // Non-fatal: the CSVs still have all the text. We just lose
+      // image attachments for this PDF. Operator can re-run stage 3
+      // standalone after fixing whatever broke (usually quota).
+      console.log(`[gemini] stage 3 FAILED (non-fatal): ${tail}`);
+      macNotify(
+        "Karman: figures missing",
+        `Stage 3 failed for ${job.source_pdf}. Text imported; figures not attached.`
+      );
+    } else {
+      console.log(`[gemini] stage 3 done`);
+    }
+  }
+
   await setProgress(job.id, "finalizing", "Uploading CSVs to R2");
 
   // finalize-pdf-job.mjs reads questions.csv and questions_needs_review.csv
