@@ -88,12 +88,29 @@ function subjectFromDomain(domain: SATDomain): "reading" | "math" {
   return MATH_DOMAINS.has(domain) ? "math" : "reading";
 }
 
+/** Per-image size cap on the bulk-import pipeline. Decoded image
+ *  bytes (post base64) that exceed this throw — the surrounding
+ *  catch records the row as an error and processing continues.
+ *
+ *  Why 2 MB: a 200 DPI page screenshot through the polish helper
+ *  (KarmanGPT.txt §14) lands at ~140 KB raw; a math-heavy PDF with
+ *  every question carrying a figure rarely exceeds 5 MB total CSV.
+ *  A single figure at 2 MB is generous — anything larger is almost
+ *  certainly an un-cropped page or accidental high-res asset.
+ *
+ *  Audit MED-5 (docs/question-bank-audit-2026-05-17.md). The
+ *  scheduled-import route runs without a human present, so without
+ *  this cap a malformed (or malicious) CSV could quietly inflate
+ *  R2 storage. */
+export const MAX_IMAGE_BYTES = 2 * 1024 * 1024;
+
 /** If `image_url` is a `data:image/...;base64,...` URL, decode the
- *  bytes, upload to R2 under a deterministic key, and return the
- *  resulting public URL plus storage path. If it's already a regular
- *  URL (https / http), return as-is with no upload. Empty/null
- *  passes through. Errors propagate to the caller, which records
- *  them in `errors[]` and continues with the next row. */
+ *  bytes, check the size against MAX_IMAGE_BYTES, upload to R2
+ *  under a deterministic key, and return the resulting public URL
+ *  plus storage path. If it's already a regular URL (https / http),
+ *  return as-is with no upload. Empty/null passes through. Errors
+ *  propagate to the caller, which records them in `errors[]` and
+ *  continues with the next row. */
 async function materializeImage(
   imageUrl: string | undefined,
   sourcePdf: string | undefined,
@@ -111,6 +128,11 @@ async function materializeImage(
   const mime = m[1];
   const ext = (mime.split("/")[1] || "png").replace("+xml", "").toLowerCase();
   const bytes = Buffer.from(m[2], "base64");
+  if (bytes.length > MAX_IMAGE_BYTES) {
+    throw new Error(
+      `image too large: ${bytes.length} bytes exceeds cap of ${MAX_IMAGE_BYTES} bytes (${Math.round(MAX_IMAGE_BYTES / 1024 / 1024)} MB)`
+    );
+  }
   // Hash the bytes so the same image (e.g. shared whole-page render
   // across questions) dedupes to one R2 object.
   const sha = crypto.createHash("sha256").update(bytes).digest("hex").slice(0, 16);
