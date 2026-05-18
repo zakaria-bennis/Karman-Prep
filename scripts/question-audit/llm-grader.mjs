@@ -68,6 +68,16 @@ if (!apiKey) {
 const FLASH_MODEL = "gemini-2.5-flash";
 const PRO_MODEL = "gemini-2.5-pro";
 
+// Groq fallback — only used when Gemini Flash parse-fails after a
+// retry without image (typically a RECITATION-filter trip on
+// passage-heavy SAT content). Free tier on Groq has generous quota
+// and the Llama models don't have an equivalent recitation filter.
+//
+// Gracefully degrades: if GROQ_API_KEY isn't set, fallback is
+// silently skipped and the row is recorded as error.
+const groqKey = process.env.GROQ_API_KEY;
+const LLAMA_MODEL = "llama-3.3-70b-versatile";
+
 // Call Gemini via REST so we don't pull in a new npm dependency just
 // for this audit script. The python pipeline uses google-genai; here
 // we hit the same generateContent endpoint directly.
@@ -107,6 +117,38 @@ async function geminiGenerate(modelName, parts) {
   const json = await res.json();
   const text = json?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
   return text;
+}
+
+// Groq Llama call via OpenAI-compatible chat completions. Text-only;
+// Llama 3.3 is not vision-capable. The fallback path strips images
+// anyway since RECITATION fires hardest with vision+text combined.
+async function groqGenerate(prompt) {
+  if (!groqKey) return null;
+  const url = "https://api.groq.com/openai/v1/chat/completions";
+  const body = {
+    model: LLAMA_MODEL,
+    messages: [{ role: "user", content: prompt }],
+    temperature: 0.1,
+    max_tokens: 2048,
+    response_format: { type: "json_object" },
+  };
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      authorization: `Bearer ${groqKey}`,
+    },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const errBody = await res.text();
+    if (res.status === 429) {
+      throw new Error(`GROQ QUOTA EXHAUSTED: ${errBody.slice(0, 200)}`);
+    }
+    throw new Error(`Groq HTTP ${res.status}: ${errBody.slice(0, 200)}`);
+  }
+  const json = await res.json();
+  return json?.choices?.[0]?.message?.content ?? "";
 }
 
 // ── CSV parser (mirror audit-csv.mjs) ──
@@ -346,8 +388,66 @@ async function main() {
   console.log(`pass 2 model: ${PRO_MODEL} (disagreements only)`);
   console.log("");
 
+  // ── Pass 1: Blind-grade with cascading fallbacks ──
+  //   Stage A: Flash WITH image
+  //   Stage B: Flash WITHOUT image (RECITATION fires hardest on
+  //            vision+text combined)
+  //   Stage C: Groq Llama 3.3 (no vision) — different model family,
+  //            no RECITATION filter, fills the Gemini blind spot
+  //
+  // Returns { parsed, source } where source ∈ {flash, flash_no_image,
+  // llama}.  Returns null if all three stages fail.
+  async function solveWithFallback(row) {
+    const isSpr = row.question_format === "numeric_entry";
+    const prompt = buildSolvePrompt(row);
+    const imageBytes = row.image_url ? await fetchImageBytes(row.image_url) : null;
+
+    // Stage A — Flash with image
+    if (imageBytes) {
+      try {
+        const raw = await callGemini(FLASH_MODEL, prompt, imageBytes);
+        const parsed = parseSolveResponse(raw);
+        if (parsed && parsed.answer) return { parsed, source: "flash" };
+      } catch (err) {
+        if (String(err).includes("DAILY QUOTA EXHAUSTED")) throw err;
+      }
+    }
+
+    // Stage B — Flash without image
+    try {
+      const raw = await callGemini(FLASH_MODEL, prompt, null);
+      const parsed = parseSolveResponse(raw);
+      if (parsed && parsed.answer) {
+        return {
+          parsed,
+          source: imageBytes ? "flash_no_image" : "flash",
+        };
+      }
+    } catch (err) {
+      if (String(err).includes("DAILY QUOTA EXHAUSTED")) throw err;
+    }
+
+    // Stage C — Llama via Groq (text-only)
+    if (groqKey) {
+      try {
+        const raw = await groqGenerate(prompt);
+        if (raw) {
+          const parsed = parseSolveResponse(raw);
+          if (parsed && parsed.answer) return { parsed, source: "llama" };
+        }
+      } catch (err) {
+        if (String(err).includes("GROQ QUOTA EXHAUSTED")) {
+          console.log("\n  Groq quota exhausted; remaining Llama fallbacks will be skipped.");
+        }
+      }
+    }
+
+    return null;
+    // Note: isSpr is captured by caller; not used inside the helper.
+    void isSpr;
+  }
+
   const results = [];
-  // ── Pass 1: Flash blind-grade ──
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i];
     const isSpr = row.question_format === "numeric_entry";
@@ -355,12 +455,11 @@ async function main() {
       results.push({ row_idx: i + 1, id: row.id, source: row._source, verdict: "skip_no_text" });
       continue;
     }
-    process.stdout.write(`[flash] row ${i + 1}/${rows.length} (p${row.source_page ?? "?"})… `);
+    process.stdout.write(`[grade] row ${i + 1}/${rows.length} (p${row.source_page ?? "?"})… `);
 
-    const imageBytes = row.image_url ? await fetchImageBytes(row.image_url) : null;
-    let raw;
+    let solved;
     try {
-      raw = await callGemini(FLASH_MODEL, buildSolvePrompt(row), imageBytes);
+      solved = await solveWithFallback(row);
     } catch (err) {
       console.log(`ERROR: ${String(err).slice(0, 100)}`);
       results.push({
@@ -370,30 +469,37 @@ async function main() {
         verdict: "error",
         error: String(err).slice(0, 200),
       });
-      // If quota exhausted, stop — no point continuing.
       if (String(err).includes("DAILY QUOTA EXHAUSTED")) {
         console.log("Stopping due to quota exhaustion.");
         break;
       }
       continue;
     }
-    const parsed = parseSolveResponse(raw);
-    if (!parsed) {
-      console.log("parse fail");
+
+    if (!solved) {
+      console.log("all stages failed (Flash+image, Flash text-only, Llama)");
       results.push({
         row_idx: i + 1,
         id: row.id,
         source: row._source,
+        source_pdf: row.source_pdf,
+        source_page: row.source_page,
+        domain: row.domain,
+        question_text_snippet: row.question_text.slice(0, 200),
+        stored: row.correct_answer,
         verdict: "error",
-        error: "json parse",
+        error: "all solver stages failed",
       });
       continue;
     }
+
+    const { parsed, source: solver } = solved;
     const stored = row.correct_answer;
     const judged = parsed.answer || "";
     const agree = answersAgree(stored, judged, isSpr);
     const verdict = agree ? "verified" : "flash_disagree";
-    process.stdout.write(`stored=${stored} flash=${judged} → ${verdict}`);
+    const solverTag = solver === "flash" ? "" : `[${solver}] `;
+    process.stdout.write(`${solverTag}stored=${stored} judged=${judged} → ${verdict}`);
     if (parsed.confidence === "low") process.stdout.write(" (low conf)");
     if (parsed.concerns) process.stdout.write(` ⚠ ${parsed.concerns.slice(0, 60)}`);
     process.stdout.write("\n");
@@ -411,6 +517,7 @@ async function main() {
       flash_reasoning: parsed.reasoning ?? "",
       flash_confidence: parsed.confidence ?? "",
       flash_concerns: parsed.concerns ?? "",
+      pass1_solver: solver, // flash | flash_no_image | llama
       verdict,
     });
   }
@@ -476,7 +583,247 @@ async function main() {
 
   console.log("");
   console.log(`Used ${proCalls} Pro calls (free tier ~25 RPD).`);
+
+  // ── Pass 3: figure-coherence check ────────────────────────
+  // For every row with an attached image_url, ask Flash: "does this
+  // figure depict what the question describes?". Catches:
+  //   · Stage 3 attached the wrong page's figure to this row
+  //   · The figure is partially cropped / missing key elements
+  //   · The figure's content contradicts the question text
+  // Inexpensive — ~1 extra Flash call per figure-bearing row.
+  const figureRows = rows
+    .map((r, i) => ({ i, r, result: results[i] }))
+    .filter(({ r, result }) => r.image_url && result && result.verdict !== "skip_no_text");
+
+  if (figureRows.length > 0) {
+    console.log("");
+    console.log(`Pass 3: figure-coherence check on ${figureRows.length} figure-bearing rows…`);
+    for (const { i, r, result } of figureRows) {
+      const imageBytes = await fetchImageBytes(r.image_url);
+      if (!imageBytes) continue;
+      process.stdout.write(`[fig] row ${i + 1} (p${r.source_page})… `);
+      const prompt = buildFigurePrompt(r);
+      let raw;
+      try {
+        raw = await callGemini(FLASH_MODEL, prompt, imageBytes);
+      } catch (err) {
+        const msg = String(err).slice(0, 100);
+        console.log(`ERROR: ${msg}`);
+        result.figure_check_error = msg;
+        if (msg.includes("DAILY QUOTA EXHAUSTED")) {
+          console.log("Stopping figure check due to quota exhaustion.");
+          break;
+        }
+        continue;
+      }
+      const parsed = parseSolveResponse(raw);
+      if (!parsed) {
+        console.log("parse fail");
+        result.figure_check_error = "json parse";
+        continue;
+      }
+      const matches = (parsed.figure_matches || "").toLowerCase();
+      const crop = (parsed.crop_quality || "").toLowerCase();
+      const issues = parsed.issues || "";
+      result.figure_matches = matches;
+      result.figure_crop_quality = crop;
+      result.figure_issues = issues;
+      if (matches === "no" || crop === "poor") {
+        process.stdout.write(`FAIL matches=${matches} crop=${crop}`);
+        if (issues) process.stdout.write(` ⚠ ${issues.slice(0, 60)}`);
+        process.stdout.write("\n");
+        if (result.verdict === "verified" || result.verdict === "verified_pro") {
+          result.verdict_secondary = "figure_mismatch";
+        }
+      } else if (matches === "partial") {
+        process.stdout.write(`partial`);
+        if (issues) process.stdout.write(` ⚠ ${issues.slice(0, 60)}`);
+        process.stdout.write("\n");
+      } else {
+        process.stdout.write(`ok\n`);
+      }
+    }
+  }
+
+  // ── Pass 4: explanation-consistency check ────────────────
+  // For every row where the answer was verified (Flash agreed
+  // with stored, or Pro confirmed stored), ask: "does the stored
+  // explanation_text actually support the stored answer?". Catches:
+  //   · Explanation walks through wrong work but happens to land
+  //     on the right letter
+  //   · Per-choice references (e.g. "Choice A is correct because…")
+  //     when the answer is actually B
+  //   · Explanations that contradict their own conclusion
+  //
+  // Runs Flash first (free quota). Flagged rows are escalated to
+  // Pro for confirmation only if Pro quota remains. The Pro
+  // confirmation is what marks the row as "explanation_broken".
+  const verifiedRows = rows
+    .map((r, i) => ({ i, r, result: results[i] }))
+    .filter(
+      ({ r, result }) =>
+        result &&
+        (result.verdict === "verified" || result.verdict === "verified_pro") &&
+        r.explanation_text &&
+        r.explanation_text.length > 20
+    );
+
+  if (verifiedRows.length > 0) {
+    console.log("");
+    console.log(
+      `Pass 4: explanation-consistency check on ${verifiedRows.length} verified rows (Flash)…`
+    );
+    const flashFlagged = [];
+    for (const { i, r, result } of verifiedRows) {
+      process.stdout.write(`[expl] row ${i + 1} (p${r.source_page})… `);
+      const prompt = buildExplanationCheckPrompt(r);
+      let raw;
+      try {
+        raw = await callGemini(FLASH_MODEL, prompt, null);
+      } catch (err) {
+        const msg = String(err).slice(0, 100);
+        console.log(`ERROR: ${msg}`);
+        result.explanation_check_error = msg;
+        if (msg.includes("DAILY QUOTA EXHAUSTED")) {
+          console.log("Stopping explanation check due to quota exhaustion.");
+          break;
+        }
+        continue;
+      }
+      const parsed = parseSolveResponse(raw);
+      if (!parsed) {
+        console.log("parse fail");
+        result.explanation_check_error = "json parse";
+        continue;
+      }
+      const supports = (parsed.supports_answer || "").toLowerCase();
+      result.flash_explanation_supports = supports;
+      result.flash_explanation_issues = parsed.issues || "";
+      if (supports === "no" || supports === "partial") {
+        process.stdout.write(`${supports}`);
+        if (parsed.issues) process.stdout.write(` ⚠ ${parsed.issues.slice(0, 60)}`);
+        process.stdout.write("\n");
+        flashFlagged.push({ i, r, result });
+      } else {
+        process.stdout.write(`ok\n`);
+      }
+    }
+
+    // Pro confirmation on Flash-flagged rows
+    if (flashFlagged.length > 0) {
+      console.log("");
+      console.log(
+        `Pass 4b: Pro confirmation on ${flashFlagged.length} explanation-flagged rows (limit ~25/day)…`
+      );
+      for (const { i, r, result } of flashFlagged) {
+        process.stdout.write(`[expl-pro] row ${i + 1} (p${r.source_page})… `);
+        let raw;
+        try {
+          raw = await callGemini(PRO_MODEL, buildExplanationCheckPrompt(r), null);
+        } catch (err) {
+          const msg = String(err).slice(0, 100);
+          console.log(`ERROR: ${msg}`);
+          if (msg.includes("DAILY QUOTA EXHAUSTED")) {
+            console.log("Pro quota exhausted; remaining flags left uncertain.");
+            break;
+          }
+          continue;
+        }
+        const parsed = parseSolveResponse(raw);
+        if (!parsed) {
+          console.log("parse fail");
+          continue;
+        }
+        const supports = (parsed.supports_answer || "").toLowerCase();
+        result.pro_explanation_supports = supports;
+        result.pro_explanation_issues = parsed.issues || "";
+        if (supports === "no") {
+          process.stdout.write(`broken`);
+          if (parsed.issues) process.stdout.write(` ⚠ ${parsed.issues.slice(0, 60)}`);
+          process.stdout.write("\n");
+          // Add secondary verdict — keeps the original verdict so
+          // we know the ANSWER was verified but the EXPLANATION is bad.
+          result.verdict_secondary = result.verdict_secondary
+            ? result.verdict_secondary + "+explanation_broken"
+            : "explanation_broken";
+        } else if (supports === "partial") {
+          process.stdout.write(`partial (Pro)\n`);
+        } else {
+          process.stdout.write(`ok (Pro overruled Flash)\n`);
+        }
+      }
+    }
+  }
+
   await writeReports(results);
+}
+
+// ── Pass 3 (figure coherence) prompt ──
+function buildFigurePrompt(row) {
+  return [
+    "You are reviewing the figure attached to an SAT question for visual quality.",
+    "",
+    "QUESTION TEXT:",
+    row.question_text,
+    "",
+    "The attached image is what the student will see in the figure slot.",
+    "",
+    "Answer these:",
+    "1. Does the figure depict what the question describes?",
+    "2. Is the crop clean (figure fully visible, no other questions' content bleeding in, no UI chrome captured)?",
+    "3. Are key labels (axes, values, names) legible?",
+    "",
+    "Respond in JSON:",
+    "{",
+    '  "figure_matches": "yes" | "partial" | "no",',
+    '  "crop_quality": "good" | "ok" | "poor",',
+    '  "issues": "<specific issues if any, else empty>"',
+    "}",
+  ].join("\n");
+}
+
+// ── Pass 4 (explanation consistency) prompt ──
+function buildExplanationCheckPrompt(row) {
+  const isMc = row.question_format !== "numeric_entry";
+  const lines = [];
+  lines.push(
+    "You are reviewing whether an SAT question's stored explanation correctly supports its stored answer."
+  );
+  lines.push("");
+  if (row.passage_intro) lines.push("PASSAGE INTRO: " + row.passage_intro);
+  if (row.passage) lines.push("PASSAGE: " + row.passage);
+  if (row.passage_a)
+    lines.push("PASSAGE A: " + row.passage_a + "\nPASSAGE B: " + (row.passage_b || ""));
+  lines.push("");
+  lines.push("QUESTION: " + row.question_text);
+  if (isMc) {
+    lines.push("");
+    lines.push("CHOICES:");
+    lines.push(`A) ${row.choice_a}`);
+    lines.push(`B) ${row.choice_b}`);
+    lines.push(`C) ${row.choice_c}`);
+    lines.push(`D) ${row.choice_d}`);
+  }
+  lines.push("");
+  lines.push("STORED CORRECT ANSWER: " + row.correct_answer);
+  lines.push("");
+  lines.push("STORED EXPLANATION:");
+  lines.push(row.explanation_text);
+  lines.push("");
+  lines.push(
+    "Does the explanation correctly support choosing the stored correct answer? Check for:"
+  );
+  lines.push("- The reasoning's conclusion matches the stored answer");
+  lines.push("- The math/logic is correct");
+  lines.push("- Per-choice references (if any) name the right letter");
+  lines.push("- The explanation does not contradict itself");
+  lines.push("");
+  lines.push("Respond in JSON:");
+  lines.push("{");
+  lines.push('  "supports_answer": "yes" | "partial" | "no",');
+  lines.push('  "issues": "<specific issues if any, else empty>"');
+  lines.push("}");
+  return lines.join("\n");
 }
 
 async function writeReports(results) {
@@ -561,6 +908,95 @@ async function writeReports(results) {
       );
     }
     if (concerns.length > 30) md.push(`\n_... and ${concerns.length - 30} more._`);
+  }
+
+  // ── Section: figure-mismatch (Pass 3) ──
+  const figMismatch = results.filter(
+    (r) =>
+      r.figure_matches === "no" ||
+      r.figure_crop_quality === "poor" ||
+      r.verdict_secondary?.includes("figure_mismatch")
+  );
+  if (figMismatch.length) {
+    md.push(`\n## 🖼️ Figure mismatches (${figMismatch.length})\n`);
+    md.push(
+      `Rows where the attached figure doesn't match the question text OR was poorly cropped. Stage 3 may have attached the wrong figure or the crop captured non-figure content.\n`
+    );
+    for (const r of figMismatch) {
+      md.push(
+        `- Row ${r.row_idx} (p${r.source_page}, ${r.domain}): matches=\`${r.figure_matches}\` crop=\`${r.figure_crop_quality}\` — ${r.figure_issues || "(no specific issue text)"}  \n  _q:_ ${r.question_text_snippet.slice(0, 110)}…`
+      );
+    }
+  }
+
+  // ── Section: figure-partial (Pass 3 soft flag) ──
+  const figPartial = results.filter(
+    (r) => r.figure_matches === "partial" && !figMismatch.includes(r)
+  );
+  if (figPartial.length) {
+    md.push(`\n## 🖼️ Figure partial matches (${figPartial.length})\n`);
+    md.push(
+      `Figures that partially match but have minor issues. Probably usable but worth a glance.\n`
+    );
+    for (const r of figPartial.slice(0, 20)) {
+      md.push(`- Row ${r.row_idx} (p${r.source_page}): ${r.figure_issues || "minor mismatch"}`);
+    }
+    if (figPartial.length > 20) md.push(`\n_... and ${figPartial.length - 20} more._`);
+  }
+
+  // ── Section: explanation_broken (Pass 4, Pro-confirmed) ──
+  const explBroken = results.filter((r) => r.pro_explanation_supports === "no");
+  if (explBroken.length) {
+    md.push(`\n## 📝 Broken explanations (${explBroken.length})\n`);
+    md.push(
+      `The stored \`correct_answer\` is verified correct, BUT the stored \`explanation_text\` doesn't actually support that answer. Could be: wrong reasoning leading to right letter, references to wrong choice letters, internal contradictions.\n`
+    );
+    for (const r of explBroken) {
+      md.push(`### Row ${r.row_idx} — \`${r.id ?? r.source}#${r.row_idx}\``);
+      md.push(`**Source:** ${r.source_pdf} p${r.source_page} · ${r.domain}`);
+      md.push(
+        `**Stored answer:** \`${r.stored}\` (verified) **Pro verdict:** explanation does NOT support`
+      );
+      md.push(`**Pro issues:** ${r.pro_explanation_issues || "(unspecified)"}`);
+      md.push(`**Question:** ${r.question_text_snippet}…`);
+      md.push("");
+    }
+  }
+
+  // ── Section: explanation_partial (Flash-only flag, Pro unavailable) ──
+  const explPartial = results.filter(
+    (r) =>
+      r.flash_explanation_supports &&
+      (r.flash_explanation_supports === "no" || r.flash_explanation_supports === "partial") &&
+      !r.pro_explanation_supports
+  );
+  if (explPartial.length) {
+    md.push(`\n## 📝 Explanations Flash flagged but Pro didn't verify (${explPartial.length})\n`);
+    md.push(
+      `Flash thinks the stored explanation doesn't support the stored answer. Pro tiebreak wasn't reached (quota or parse failure). Worth manual review.\n`
+    );
+    for (const r of explPartial.slice(0, 20)) {
+      md.push(
+        `- Row ${r.row_idx} (p${r.source_page}): flash=\`${r.flash_explanation_supports}\` — ${(r.flash_explanation_issues || "").slice(0, 100)}`
+      );
+    }
+    if (explPartial.length > 20) md.push(`\n_... and ${explPartial.length - 20} more._`);
+  }
+
+  // ── Section: solver-source breakdown (Pass 1 fallback transparency) ──
+  const bySolver = {};
+  for (const r of results) {
+    const s = r.pass1_solver || "skipped/error";
+    bySolver[s] = (bySolver[s] || 0) + 1;
+  }
+  md.push(`\n## 🔧 Solver-source breakdown\n`);
+  md.push(
+    `Which solver (Flash with image / Flash text-only / Llama) actually produced each row's answer. Visible into the fallback cascade.\n`
+  );
+  md.push(`| Solver | Count |`);
+  md.push(`|---|---|`);
+  for (const [s, n] of Object.entries(bySolver).sort((a, b) => b[1] - a[1])) {
+    md.push(`| \`${s}\` | ${n} |`);
   }
 
   await writeFile(path.join(outDir, "grader-report.md"), md.join("\n"));
