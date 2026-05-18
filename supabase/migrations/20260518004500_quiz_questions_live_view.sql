@@ -46,9 +46,4 @@ CREATE OR REPLACE VIEW public.quiz_questions_live AS
 
 -- Document the view's role so any DB-level reader (psql, dashboard,
 -- pgAdmin) sees the constraint that the codebase relies on.
-COMMENT ON VIEW public.quiz_questions_live IS
-  'Student-facing view of quiz_questions. Filters on the is_live ' ||
-  'generated column so PDF-imported needs_review rows, inferred ' ||
-  'answers, and other not-yet-accepted content never reach students. ' ||
-  'Admin code reads quiz_questions directly to see everything; ' ||
-  'student-facing code reads this view. Audit finding CRIT-2.';
+COMMENT ON VIEW public.quiz_questions_live IS $$Student-facing view of quiz_questions. Filters on the is_live generated column so PDF-imported needs_review rows, inferred answers, and other not-yet-accepted content never reach students. Admin code reads quiz_questions directly to see everything; student-facing code reads this view. Audit finding CRIT-2.$$;
