@@ -7,7 +7,6 @@ import { createAdminClient } from "@/lib/supabase/server";
 import type { Database } from "@/types/supabase";
 import type { QuizQuestionWithChoices, ImportFlagType } from "@/types/quiz";
 import { isValidNodeId } from "@/lib/question-bank/taxonomy";
-import { LIVE_FILTER } from "./questions";
 
 type QuizQuestionUpdate = Database["public"]["Tables"]["quiz_questions"]["Update"];
 
@@ -59,7 +58,7 @@ export async function selectBankQuestions(): Promise<QuizQuestionWithChoices[]> 
     .from("quiz_questions")
     .select("*, answer_choices(*)")
     .is("node_id", null)
-    .or(LIVE_FILTER)
+    .eq("is_live", true)
     .order("created_at", { ascending: false });
   if (error) throw error;
   return (data ?? []) as QuizQuestionWithChoices[];
