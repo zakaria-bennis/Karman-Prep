@@ -599,6 +599,7 @@ TAXONOMY — locked, never deviate
   expression_ideas → "Expression of Ideas"
   conventions      → "Standard English Conventions"
 
+═════════ AUTOGEN-BEGIN:taxonomy — regen via `npm run sync:taxonomy` ═════════
 89 CONCEPT SLUGS (use as the `concept_slug` field value).
 Pick the SINGLE most-relevant slug. Never invent.
 
@@ -612,9 +613,9 @@ ADVANCED MATH (17, domain: advanced_math):
   evaluating-and-interpreting-functions, introduction-to-polynomials,
   quadratic-equations-factoring, quadratic-equations-quadratic-formula,
   quadratic-functions-vertex-form, polynomial-operations,
-  rational-expressions, radical-expressions, exponential-growth-and-decay,
-  function-transformations, linear-vs-exponential-models,
-  nonlinear-systems-of-equations,
+  rational-expressions, radical-expressions,
+  exponential-growth-and-decay, function-transformations,
+  linear-vs-exponential-models, nonlinear-systems-of-equations,
   algebraic-manipulation-of-complex-expressions,
   multi-step-problem-solving, full-section-strategy
 
@@ -660,7 +661,9 @@ STANDARD ENGLISH CONVENTIONS (14, domain: conventions):
   comma-fanboys, commas-and-dependent-clauses,
   non-essential-information, commas-with-names-and-titles,
   additional-comma-uses-and-misuses, colons-and-dashes,
-  parallel-structure-and-word-pairs, question-marks, modifier-placement
+  parallel-structure-and-word-pairs, question-marks,
+  modifier-placement
+═════════ AUTOGEN-END:taxonomy ═════════
 
 ═══════════════════════════════════════════════════
 DIFFICULTY (integer 1-7)

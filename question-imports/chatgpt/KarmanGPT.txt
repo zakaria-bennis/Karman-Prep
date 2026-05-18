@@ -152,6 +152,7 @@ right-hand string for the row's domain:
   expression_ideas   → Expression of Ideas
   conventions        → Standard English Conventions
 
+═════════ AUTOGEN-BEGIN:taxonomy — regen via `npm run sync:taxonomy` ═════════
 89 CONCEPT SLUGS — use as `concept_slug`, exactly ONE per row, DASHES:
 
 ALGEBRA (6, domain=algebra)
@@ -258,6 +259,7 @@ STANDARD ENGLISH CONVENTIONS (14, domain=conventions)
   parallel-structure-and-word-pairs
   question-marks
   modifier-placement
+═════════ AUTOGEN-END:taxonomy ═════════
 
 If a question doesn't fit cleanly, pick the closest slug and flag
 needs_review with reason "Concept slug uncertain: [your alternative]"
