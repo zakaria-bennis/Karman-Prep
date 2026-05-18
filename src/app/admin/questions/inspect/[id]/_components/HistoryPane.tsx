@@ -18,7 +18,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Clock, RotateCcw, Loader2, ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { actionRestoreQuestionVersion } from "@/app/admin/actions";
+import { actionRestoreQuestionVersion } from "@/app/admin/inspector-edit-actions";
 import type { QuestionHistoryEntry } from "@/lib/supabase/queries/quiz/history";
 
 interface Props {

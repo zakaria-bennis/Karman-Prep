@@ -42,10 +42,10 @@ import {
   actionResolveFinding,
   actionAcceptInspectedQuestion,
   actionFlagInspectedQuestion,
-  actionUpdateInspectedQuestion,
   actionReauditRow,
   actionApplySuggestedFix,
-} from "@/app/admin/actions";
+} from "@/app/admin/inspector-actions";
+import { actionUpdateInspectedQuestion } from "@/app/admin/inspector-edit-actions";
 import ViewMode from "./_components/ViewMode";
 import EditForm from "./_components/EditForm";
 import HistoryPane from "./_components/HistoryPane";

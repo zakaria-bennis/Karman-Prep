@@ -350,20 +350,13 @@ export async function actionAcceptAllBank(): Promise<{
 }
 
 // ── Inspector UI actions ──────────────────────────────────────
-// Powers /admin/questions/inspect (Phase 3+). The implementations
-// live in ./inspector-actions to keep this file under the 700-line
-// repo cap; we re-export so existing imports
-// (`from "@/app/admin/actions"`) keep working without churn.
-export {
-  actionResolveFinding,
-  actionAcceptInspectedQuestion,
-  actionFlagInspectedQuestion,
-  actionUpdateInspectedQuestion,
-  actionRestoreQuestionVersion,
-  actionBulkResolveFindings,
-  actionBulkAcceptQuestions,
-  actionBulkFlagQuestions,
-  actionReauditRow,
-  actionApplySuggestedFix,
-} from "./inspector-actions";
-export type { InspectedQuestionEdit } from "./inspector-actions";
+// All Inspector server actions live in ./inspector-actions and
+// ./inspector-edit-actions (the snapshot/history-touching pair).
+// Both files are `"use server"` modules and consumers import from
+// them directly. We DON'T re-export through this file because
+// Turbopack treats `export { x } from "./mod"` in a use-server
+// file as a non-async-function export and fails the cf:build (the
+// error message — "Only async functions are allowed to be exported
+// in a use-server file" — points at the re-export block, not the
+// underlying symbol). Direct imports keep the bundler happy with
+// no functional change for consumers.

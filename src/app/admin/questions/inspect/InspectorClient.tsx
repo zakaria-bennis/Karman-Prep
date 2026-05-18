@@ -30,7 +30,7 @@ import {
   actionBulkAcceptQuestions,
   actionBulkFlagQuestions,
   actionBulkResolveFindings,
-} from "@/app/admin/actions";
+} from "@/app/admin/inspector-actions";
 import type {
   InspectorRow,
   InspectorSummary,

@@ -125,12 +125,11 @@ export async function actionFlagInspectedQuestion(input: {
 
 // ── Update + Restore live in inspector-edit-actions.ts ──────
 // (Both lean heavily on question_history snapshot helpers — keeping
-// them clustered + extracted keeps this file under the 700-line cap.)
-export {
-  actionUpdateInspectedQuestion,
-  actionRestoreQuestionVersion,
-} from "./inspector-edit-actions";
-export type { InspectedQuestionEdit } from "./inspector-edit-actions";
+// them clustered + extracted keeps this file under the 700-line
+// cap.) Imports go DIRECTLY through actions.ts → inspector-edit-
+// actions; we don't re-export through this file because Turbopack's
+// `"use server"` boundary check rejects cascading re-exports
+// (silent in TS, hard build error in cf:build).
 
 // ── Bulk Inspector actions ───────────────────────────────────
 // Worklist multi-select wires into these. Each does ONE bulk UPDATE
