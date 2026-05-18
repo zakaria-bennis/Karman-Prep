@@ -15,7 +15,7 @@ import { Upload, AlertCircle, FileCheck2, Loader2, ListChecks, ChevronRight } fr
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
-const MAX_FILE_BYTES = 50 * 1024 * 1024;
+const MAX_FILE_BYTES = 100 * 1024 * 1024;
 
 interface UploadedJob {
   id: string;
@@ -40,7 +40,7 @@ export default function PdfUploadClient() {
         continue;
       }
       if (f.size > MAX_FILE_BYTES) {
-        errors.push(`"${f.name}" exceeds 50 MB.`);
+        errors.push(`"${f.name}" exceeds 100 MB.`);
         continue;
       }
       valid.push(f);
@@ -166,7 +166,7 @@ export default function PdfUploadClient() {
               {dragActive ? "Drop PDFs to queue them" : "Drag & drop SAT PDFs here"}
             </div>
             <div className="text-xs text-slate-400">
-              or click anywhere in this box · multiple files OK · 50 MB max each
+              or click anywhere in this box · multiple files OK · 100 MB max each
             </div>
           </div>
         )}

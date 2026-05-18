@@ -24,7 +24,7 @@ import type { PdfProcessingJob } from "@/types/pdf-job";
 
 export const runtime = "nodejs";
 
-const MAX_FILE_BYTES = 50 * 1024 * 1024; // 50 MB per PDF
+const MAX_FILE_BYTES = 100 * 1024 * 1024; // 100 MB per PDF (Cloudflare Workers hard request-body cap)
 
 /** Upload bytes to R2 from a Worker-runtime route. Prefers the
  *  native R2 binding (env.R2) because the AWS S3 SDK pulls in
