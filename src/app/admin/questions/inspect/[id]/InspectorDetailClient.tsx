@@ -36,15 +36,15 @@ import {
 import { cn } from "@/lib/utils";
 import type { QuestionFinding, FindingSeverity } from "@/lib/supabase/queries/quiz/findings";
 import type { QuizQuestionWithChoices } from "@/types/quiz";
-import MathText from "@/components/learn/MathText";
-import QuestionTable from "@/components/learn/QuestionTable";
-import FigureFrame from "@/components/learn/FigureFrame";
 import {
   actionResolveFinding,
   actionAcceptInspectedQuestion,
   actionFlagInspectedQuestion,
   actionUpdateInspectedQuestion,
 } from "@/app/admin/actions";
+import ViewMode from "./_components/ViewMode";
+import EditForm from "./_components/EditForm";
+import { makeInitialForm, type EditFormShape } from "./_components/edit-form-utils";
 
 interface Props {
   question: QuizQuestionWithChoices;
@@ -75,30 +75,6 @@ const SEVERITY_META: Record<
   },
 };
 
-// Initial form state derived from the question + its choices.
-function makeInitialForm(question: QuizQuestionWithChoices) {
-  const byLetter = new Map(question.answer_choices.map((c) => [c.letter, c.choice_text]));
-  return {
-    question_text: question.question_text ?? "",
-    hint: question.hint ?? "",
-    explanation_text: question.explanation_text ?? "",
-    desmos_strategy: question.desmos_strategy ?? "",
-    image_alt: question.image_alt ?? "",
-    passage_intro: question.passage_intro ?? "",
-    passage: question.passage ?? "",
-    passage_a: question.passage_a ?? "",
-    passage_b: question.passage_b ?? "",
-    numeric_tolerance: question.numeric_tolerance != null ? String(question.numeric_tolerance) : "",
-    correct_answer: question.correct_answer ?? "",
-    choice_a: byLetter.get("A") ?? "",
-    choice_b: byLetter.get("B") ?? "",
-    choice_c: byLetter.get("C") ?? "",
-    choice_d: byLetter.get("D") ?? "",
-  };
-}
-
-type EditForm = ReturnType<typeof makeInitialForm>;
-
 export default function InspectorDetailClient({ question, findings }: Props) {
   const router = useRouter();
   const [, startTransition] = useTransition();
@@ -110,11 +86,11 @@ export default function InspectorDetailClient({ question, findings }: Props) {
   } | null>(null);
   const [expandedDetail, setExpandedDetail] = useState<Set<string>>(new Set());
   const [editMode, setEditMode] = useState(false);
-  const [form, setForm] = useState<EditForm>(() => makeInitialForm(question));
+  const [form, setForm] = useState<EditFormShape>(() => makeInitialForm(question));
 
   const isMc = question.answer_format !== "numeric_entry";
 
-  function updateField<K extends keyof EditForm>(key: K, value: EditForm[K]) {
+  function updateField<K extends keyof EditFormShape>(key: K, value: EditFormShape[K]) {
     setForm((f) => ({ ...f, [key]: value }));
   }
 
@@ -162,7 +138,7 @@ export default function InspectorDetailClient({ question, findings }: Props) {
         if (isMc) {
           const choices: Record<string, string> = {};
           (["A", "B", "C", "D"] as const).forEach((letter) => {
-            const k = `choice_${letter.toLowerCase()}` as keyof EditForm;
+            const k = `choice_${letter.toLowerCase()}` as keyof EditFormShape;
             if (form[k] !== original[k]) {
               choices[letter] = form[k];
               changes++;
@@ -502,326 +478,5 @@ export default function InspectorDetailClient({ question, findings }: Props) {
         </div>
       )}
     </div>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────
-// View mode — renders the question exactly as a student would
-// see it. Extracted from the inline JSX so the edit/view
-// conditional stays readable.
-// ─────────────────────────────────────────────────────────────
-function ViewMode({
-  question,
-  hasPassage,
-  choices,
-}: {
-  question: QuizQuestionWithChoices;
-  hasPassage: boolean;
-  choices: QuizQuestionWithChoices["answer_choices"];
-}) {
-  return (
-    <>
-      {hasPassage && (
-        <div className="mb-4 rounded-lg border border-slate-800 bg-slate-950/40 p-4">
-          {question.passage_intro && (
-            <p className="mb-2 text-xs italic text-slate-400">
-              <MathText text={question.passage_intro} />
-            </p>
-          )}
-          {question.passage && (
-            <div className="text-sm leading-relaxed text-slate-300">
-              <MathText text={question.passage} />
-            </div>
-          )}
-          {question.passage_a && (
-            <div className="space-y-3">
-              <div>
-                <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-500">
-                  Passage A
-                </div>
-                <div className="text-sm text-slate-300">
-                  <MathText text={question.passage_a} />
-                </div>
-              </div>
-              {question.passage_b && (
-                <div>
-                  <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-500">
-                    Passage B
-                  </div>
-                  <div className="text-sm text-slate-300">
-                    <MathText text={question.passage_b} />
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      )}
-
-      {question.figure_kind === "table" && question.figure_table_data ? (
-        <div className="mb-4 flex justify-center">
-          <QuestionTable data={question.figure_table_data} />
-        </div>
-      ) : (
-        question.image_url && (
-          <FigureFrame
-            src={question.image_url}
-            alt={question.image_alt ?? "Question figure"}
-            className="mb-4"
-            maxHeightClass="max-h-96"
-          />
-        )
-      )}
-
-      <div className="mb-4 text-base leading-relaxed text-slate-100">
-        <MathText text={question.question_text} />
-      </div>
-
-      {choices.length > 0 ? (
-        <div className="space-y-2">
-          {choices.map((c) => {
-            const isCorrect = c.letter === question.correct_answer;
-            return (
-              <div
-                key={c.id}
-                className={cn(
-                  "flex gap-3 rounded-lg border px-3 py-2.5 text-sm",
-                  isCorrect
-                    ? "border-emerald-500/40 bg-emerald-500/[0.06]"
-                    : "border-slate-700 bg-slate-950/40"
-                )}
-              >
-                <span
-                  className={cn(
-                    "shrink-0 font-semibold",
-                    isCorrect ? "text-emerald-300" : "text-slate-400"
-                  )}
-                >
-                  {c.letter}
-                </span>
-                <span className="text-slate-200">
-                  <MathText text={c.choice_text} />
-                </span>
-              </div>
-            );
-          })}
-        </div>
-      ) : (
-        <div className="rounded-lg border border-slate-700 bg-slate-950/40 px-3 py-2.5 text-sm">
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">
-            SPR answer
-          </span>{" "}
-          <span className="text-emerald-300">{question.correct_answer}</span>
-          {question.numeric_tolerance != null && (
-            <span className="ml-2 text-xs text-slate-400">
-              ± {String(question.numeric_tolerance)}
-            </span>
-          )}
-        </div>
-      )}
-
-      <details className="mt-4 rounded-lg border border-slate-800 bg-slate-950/40">
-        <summary className="cursor-pointer px-3 py-2 text-xs font-semibold text-slate-300">
-          Hint &amp; explanation
-        </summary>
-        <div className="space-y-3 border-t border-slate-800 px-3 py-3 text-xs">
-          {question.hint && (
-            <div>
-              <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-500">
-                Hint
-              </div>
-              <div className="text-slate-300">
-                <MathText text={question.hint} />
-              </div>
-            </div>
-          )}
-          {question.explanation_text && (
-            <div>
-              <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-500">
-                Explanation
-              </div>
-              <div className="leading-relaxed text-slate-300">
-                <MathText text={question.explanation_text} />
-              </div>
-            </div>
-          )}
-        </div>
-      </details>
-    </>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────
-// Edit form — every editable field the MVP covers. Live preview
-// of MathText/KaTeX is intentionally NOT included for v1; admins
-// can save and the page refreshes to the rendered view.
-// ─────────────────────────────────────────────────────────────
-function EditForm({
-  form,
-  isMc,
-  setForm,
-}: {
-  form: EditForm;
-  isMc: boolean;
-  setForm: <K extends keyof EditForm>(key: K, value: EditForm[K]) => void;
-}) {
-  return (
-    <div className="space-y-4">
-      <p className="rounded-md bg-violet-500/[0.06] px-3 py-2 text-[11px] leading-relaxed text-violet-200">
-        Edit any field below and click <b>Save edits</b>. The page rerenders to the student view
-        afterward. Findings stay until you resolve them — fixing the underlying issue doesn&apos;t
-        auto-clear flags, since the audit script needs to re-scan to confirm. Wrap math in{" "}
-        <code className="rounded bg-slate-900 px-1">$…$</code> for KaTeX (e.g.{" "}
-        <code className="rounded bg-slate-900 px-1">$x^2$</code>).
-      </p>
-
-      {/* Passage block — show all four sub-fields for R&W */}
-      <FieldGroup label="Passage intro (R&W literature)" hint="Italic source line, if any">
-        <Textarea
-          value={form.passage_intro}
-          onChange={(v) => setForm("passage_intro", v)}
-          rows={2}
-        />
-      </FieldGroup>
-      <FieldGroup label="Passage" hint="Single-text R&W or math word-problem context">
-        <Textarea value={form.passage} onChange={(v) => setForm("passage", v)} rows={5} />
-      </FieldGroup>
-      <FieldGroup label="Passage A (cross-text)" hint="First text of a paired-passage question">
-        <Textarea value={form.passage_a} onChange={(v) => setForm("passage_a", v)} rows={5} />
-      </FieldGroup>
-      <FieldGroup label="Passage B (cross-text)" hint="Second text of a paired-passage question">
-        <Textarea value={form.passage_b} onChange={(v) => setForm("passage_b", v)} rows={5} />
-      </FieldGroup>
-
-      {/* Image alt (figure replacement deferred to v2) */}
-      <FieldGroup label="Image alt text" hint="Accessibility description for the figure">
-        <Textarea value={form.image_alt} onChange={(v) => setForm("image_alt", v)} rows={2} />
-      </FieldGroup>
-
-      {/* Question stem — the most common fix */}
-      <FieldGroup label="Question text *" hint="The question stem">
-        <Textarea
-          value={form.question_text}
-          onChange={(v) => setForm("question_text", v)}
-          rows={4}
-        />
-      </FieldGroup>
-
-      {isMc ? (
-        <>
-          <FieldGroup label="Answer choices">
-            <div className="space-y-2">
-              {(["A", "B", "C", "D"] as const).map((letter) => {
-                const key = `choice_${letter.toLowerCase()}` as keyof EditForm;
-                const isCorrect = form.correct_answer === letter;
-                return (
-                  <div key={letter} className="flex items-start gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setForm("correct_answer", letter)}
-                      className={cn(
-                        "mt-1 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-xs font-bold transition-colors",
-                        isCorrect
-                          ? "border-emerald-500 bg-emerald-500/20 text-emerald-300"
-                          : "border-slate-700 text-slate-400 hover:border-slate-500 hover:text-slate-200"
-                      )}
-                      title="Mark this as the correct answer"
-                    >
-                      {letter}
-                    </button>
-                    <Textarea
-                      value={form[key] as string}
-                      onChange={(v) => setForm(key, v as EditForm[typeof key])}
-                      rows={2}
-                    />
-                  </div>
-                );
-              })}
-            </div>
-            <p className="mt-1.5 text-[10px] text-slate-500">
-              Click the A/B/C/D circle to mark the correct answer.
-            </p>
-          </FieldGroup>
-        </>
-      ) : (
-        <>
-          <FieldGroup label="Correct answer *" hint="Numeric value or expression (SPR)">
-            <input
-              type="text"
-              value={form.correct_answer}
-              onChange={(e) => setForm("correct_answer", e.target.value)}
-              className="w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-1.5 text-sm text-slate-200 focus:border-violet-500 focus:outline-none"
-            />
-          </FieldGroup>
-          <FieldGroup label="Numeric tolerance" hint="± range (blank = exact match)">
-            <input
-              type="text"
-              inputMode="decimal"
-              value={form.numeric_tolerance}
-              onChange={(e) => setForm("numeric_tolerance", e.target.value)}
-              className="w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-1.5 text-sm text-slate-200 focus:border-violet-500 focus:outline-none"
-              placeholder="e.g. 0.01"
-            />
-          </FieldGroup>
-        </>
-      )}
-
-      <FieldGroup label="Hint" hint="Methodological nudge — never the answer">
-        <Textarea value={form.hint} onChange={(v) => setForm("hint", v)} rows={2} />
-      </FieldGroup>
-      <FieldGroup label="Explanation *" hint="Full walkthrough shown after the student answers">
-        <Textarea
-          value={form.explanation_text}
-          onChange={(v) => setForm("explanation_text", v)}
-          rows={6}
-        />
-      </FieldGroup>
-      <FieldGroup label="Desmos strategy" hint="Calculator hint (optional, math only)">
-        <Textarea
-          value={form.desmos_strategy}
-          onChange={(v) => setForm("desmos_strategy", v)}
-          rows={2}
-        />
-      </FieldGroup>
-    </div>
-  );
-}
-
-function FieldGroup({
-  label,
-  hint,
-  children,
-}: {
-  label: string;
-  hint?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div>
-      <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-slate-300">
-        {label}
-        {hint && <span className="ml-1.5 font-normal normal-case text-slate-500">— {hint}</span>}
-      </label>
-      {children}
-    </div>
-  );
-}
-
-function Textarea({
-  value,
-  onChange,
-  rows = 3,
-}: {
-  value: string;
-  onChange: (v: string) => void;
-  rows?: number;
-}) {
-  return (
-    <textarea
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      rows={rows}
-      className="w-full resize-y rounded-md border border-slate-700 bg-slate-950 px-3 py-2 font-mono text-[12px] leading-snug text-slate-200 focus:border-violet-500 focus:outline-none"
-    />
   );
 }
