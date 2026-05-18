@@ -35,6 +35,7 @@ import {
   deleteVideo,
 } from "@/lib/supabase/queries/content";
 import type { QuizDifficulty, QuizQuestion } from "@/types/quiz";
+import type { Database } from "@/types/supabase";
 import {
   acceptFlaggedQuestionInputSchema,
   bulkImportInputSchema,
@@ -408,6 +409,107 @@ export async function actionAcceptInspectedQuestion(input: { questionId: string 
     .eq("question_id", input.questionId)
     .is("resolved_at", null);
   if (fErr) throw fErr;
+
+  revalidatePath("/admin/questions/inspect");
+  revalidatePath(`/admin/questions/inspect/${input.questionId}`);
+  revalidatePath("/admin/questions/review");
+}
+
+/** Persist edits made in the Inspector's edit mode. Covers every
+ *  text field a typical OCR/transcription fix touches:
+ *    question_text, hint, explanation_text, desmos_strategy,
+ *    image_alt, passage(_intro/_a/_b), numeric_tolerance,
+ *    correct_answer, choice_a/b/c/d.
+ *
+ *  Choices are stored in the answer_choices table, not on
+ *  quiz_questions, so we have to update them separately and
+ *  re-derive `is_correct` from the new `correct_answer`.
+ *
+ *  v1 deferred:
+ *    · figure_table_data (needs a richer editor)
+ *    · image_url (needs an upload UI)
+ *    · concept_slug / domain / difficulty_level (need pickers)
+ *    · per-choice explanations (explanation_per_choice JSONB)
+ */
+export interface InspectedQuestionEdit {
+  questionId: string;
+  question_text?: string;
+  hint?: string | null;
+  explanation_text?: string;
+  desmos_strategy?: string | null;
+  image_alt?: string | null;
+  passage_intro?: string | null;
+  passage?: string | null;
+  passage_a?: string | null;
+  passage_b?: string | null;
+  numeric_tolerance?: number | null;
+  correct_answer?: string;
+  /** Only for MC questions — text per letter. */
+  choices?: { A?: string; B?: string; C?: string; D?: string };
+}
+
+export async function actionUpdateInspectedQuestion(input: InspectedQuestionEdit): Promise<void> {
+  await guardAdmin();
+  const { createAdminClient } = await import("@/lib/supabase/server");
+  const supabase = createAdminClient();
+
+  // ── 1. quiz_questions row update ───────────────────────────
+  // Use the generated Update row type so Supabase TS narrows correctly.
+  type QQUpdate = Database["public"]["Tables"]["quiz_questions"]["Update"];
+  const patch: QQUpdate = { updated_at: new Date().toISOString() };
+  if (input.question_text !== undefined) patch.question_text = input.question_text;
+  if (input.hint !== undefined) patch.hint = input.hint || null;
+  if (input.explanation_text !== undefined) patch.explanation_text = input.explanation_text;
+  if (input.desmos_strategy !== undefined) patch.desmos_strategy = input.desmos_strategy || null;
+  if (input.image_alt !== undefined) patch.image_alt = input.image_alt || null;
+  if (input.passage_intro !== undefined) patch.passage_intro = input.passage_intro || null;
+  if (input.passage !== undefined) patch.passage = input.passage || null;
+  if (input.passage_a !== undefined) patch.passage_a = input.passage_a || null;
+  if (input.passage_b !== undefined) patch.passage_b = input.passage_b || null;
+  if (input.numeric_tolerance !== undefined) patch.numeric_tolerance = input.numeric_tolerance;
+  if (input.correct_answer !== undefined) patch.correct_answer = input.correct_answer;
+
+  const { error: qErr } = await supabase
+    .from("quiz_questions")
+    .update(patch)
+    .eq("id", input.questionId);
+  if (qErr) throw qErr;
+
+  // ── 2. answer_choices updates (MC choice text + is_correct) ─
+  type AnswerLetter = "A" | "B" | "C" | "D";
+  const isAnswerLetter = (s: string | undefined): s is AnswerLetter =>
+    s === "A" || s === "B" || s === "C" || s === "D";
+
+  if (input.choices) {
+    for (const letter of ["A", "B", "C", "D"] as const) {
+      const text = input.choices[letter];
+      if (text === undefined) continue;
+      const { error: cErr } = await supabase
+        .from("answer_choices")
+        .update({
+          choice_text: text,
+          is_correct: input.correct_answer === letter,
+        })
+        .eq("question_id", input.questionId)
+        .eq("letter", letter);
+      if (cErr) throw cErr;
+    }
+  } else if (isAnswerLetter(input.correct_answer)) {
+    // correct_answer changed but choices didn't — still need to flip
+    // is_correct on the matching answer_choice row.
+    // Set all to false, then the correct one to true.
+    const { error: r1 } = await supabase
+      .from("answer_choices")
+      .update({ is_correct: false })
+      .eq("question_id", input.questionId);
+    if (r1) throw r1;
+    const { error: r2 } = await supabase
+      .from("answer_choices")
+      .update({ is_correct: true })
+      .eq("question_id", input.questionId)
+      .eq("letter", input.correct_answer);
+    if (r2) throw r2;
+  }
 
   revalidatePath("/admin/questions/inspect");
   revalidatePath(`/admin/questions/inspect/${input.questionId}`);
