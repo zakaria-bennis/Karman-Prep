@@ -1695,6 +1695,50 @@ export type Database = {
         };
         Relationships: [];
       };
+      question_history: {
+        Row: {
+          id: string;
+          question_id: string;
+          before_state: Json;
+          after_state: Json;
+          changed_fields: string[];
+          edited_by: string;
+          edit_source: "inspector" | "bulk" | "api" | "apply-fix";
+          edit_note: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          question_id: string;
+          before_state: Json;
+          after_state: Json;
+          changed_fields?: string[];
+          edited_by: string;
+          edit_source: "inspector" | "bulk" | "api" | "apply-fix";
+          edit_note?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          question_id?: string;
+          before_state?: Json;
+          after_state?: Json;
+          changed_fields?: string[];
+          edited_by?: string;
+          edit_source?: "inspector" | "bulk" | "api" | "apply-fix";
+          edit_note?: string | null;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "question_history_question_id_fkey";
+            columns: ["question_id"];
+            isOneToOne: false;
+            referencedRelation: "quiz_questions";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       question_findings: {
         Row: {
           id: string;

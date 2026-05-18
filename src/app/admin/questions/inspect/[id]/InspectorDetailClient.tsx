@@ -44,11 +44,14 @@ import {
 } from "@/app/admin/actions";
 import ViewMode from "./_components/ViewMode";
 import EditForm from "./_components/EditForm";
+import HistoryPane from "./_components/HistoryPane";
 import { makeInitialForm, type EditFormShape } from "./_components/edit-form-utils";
+import type { QuestionHistoryEntry } from "@/lib/supabase/queries/quiz/history";
 
 interface Props {
   question: QuizQuestionWithChoices;
   findings: QuestionFinding[];
+  history: QuestionHistoryEntry[];
 }
 
 const SEVERITY_META: Record<
@@ -75,7 +78,7 @@ const SEVERITY_META: Record<
   },
 };
 
-export default function InspectorDetailClient({ question, findings }: Props) {
+export default function InspectorDetailClient({ question, findings, history }: Props) {
   const router = useRouter();
   const [, startTransition] = useTransition();
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -483,6 +486,8 @@ export default function InspectorDetailClient({ question, findings }: Props) {
           )}
         </div>
       </div>
+
+      <HistoryPane questionId={question.id} history={history} />
 
       {/* Source-PDF reference */}
       {question.source_pdf && (

@@ -18,6 +18,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { ChevronRight, Microscope } from "lucide-react";
 import { selectQuestionForInspection } from "@/lib/supabase/queries/quiz/findings";
+import { selectQuestionHistory } from "@/lib/supabase/queries/quiz/history";
 import InspectorDetailClient from "./InspectorDetailClient";
 
 interface PageProps {
@@ -32,6 +33,7 @@ export default async function InspectorDetailPage({ params }: PageProps) {
   if (!data) notFound();
 
   const { question, findings } = data;
+  const history = await selectQuestionHistory(id, 25);
   return (
     <div className="mx-auto max-w-7xl px-5 py-8">
       <div className="mb-6">
@@ -47,11 +49,12 @@ export default async function InspectorDetailPage({ params }: PageProps) {
         <p className="mt-1.5 text-sm text-slate-400">
           {question.source_pdf ?? "(unknown source)"} · page {question.source_page ?? "?"} ·{" "}
           {question.domain ?? "—"} · {question.concept_slug ?? "no concept"} · {findings.length}{" "}
-          active finding{findings.length === 1 ? "" : "s"}
+          active finding{findings.length === 1 ? "" : "s"} · {history.length} previous edit
+          {history.length === 1 ? "" : "s"}
         </p>
       </div>
 
-      <InspectorDetailClient question={question} findings={findings} />
+      <InspectorDetailClient question={question} findings={findings} history={history} />
     </div>
   );
 }
