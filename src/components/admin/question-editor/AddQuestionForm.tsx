@@ -105,7 +105,11 @@ export function AddQuestionForm({
     setSubmitting(true);
     const questionType: QuizQuestionType =
       subject === "reading" ? "evidence_based" : "math_computation";
-    const hasPerChoice = subject === "reading" && Object.values(perChoice).some((v) => v.trim());
+    // Per-choice explanations are available for ANY multiple-choice
+    // question regardless of subject (HIGH-8 audit fix — the previous
+    // `subject === "reading"` gate silently discarded explanations
+    // typed for math distractors).
+    const hasPerChoice = Object.values(perChoice).some((v) => v.trim());
 
     try {
       // Map 1–7 level to legacy enum for back-compat
@@ -399,7 +403,11 @@ export function AddQuestionForm({
         />
       </Field>
 
-      {subject === "reading" && answerFormat === "multiple_choice" && (
+      {/* Per-choice explanations — shown for any MC question,
+          regardless of subject. HIGH-8 audit fix dropped the
+          previous `subject === "reading"` gate; math distractors
+          benefit from explicit trap-pattern explanations too. */}
+      {answerFormat === "multiple_choice" && (
         <div className="grid grid-cols-2 gap-3">
           {LETTERS.map((letter) => (
             <Field

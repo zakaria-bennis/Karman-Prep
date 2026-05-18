@@ -14,6 +14,18 @@
 
 import { z } from "zod";
 
+import { isValidNodeId } from "@/lib/question-bank/taxonomy";
+
+/** A curriculum node id — must match a real node in the curriculum.
+ *  Used by every admin schema where a `nodeId` lands on
+ *  `quiz_questions.node_id` to prevent orphan writes (CRIT-6). */
+const nodeIdSchema = z
+  .string()
+  .min(1)
+  .refine((v) => isValidNodeId(v), {
+    message: "nodeId must match a real curriculum node",
+  });
+
 // ── Primitive enums (kept in sync with @/types/quiz) ────────
 
 export const quizDifficultySchema = z.enum(["foundational", "intermediate", "advanced", "mastery"]);
@@ -207,7 +219,11 @@ export const acceptFlaggedQuestionInputSchema = z.object({
   questionId: nonEmptyString,
   opts: z
     .object({
-      nodeId: nonEmptyString.nullable().optional(),
+      // nodeId is OPTIONAL (undefined = leave node_id untouched),
+      // NULLABLE (explicit null = clear the assignment), and when
+      // provided as a string MUST match a real curriculum node
+      // (CRIT-6 — no orphan writes).
+      nodeId: nodeIdSchema.nullable().optional(),
     })
     .default({}),
 });
