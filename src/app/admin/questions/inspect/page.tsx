@@ -16,7 +16,7 @@
 
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ChevronRight, Microscope } from "lucide-react";
+import { ChevronRight, Microscope, CheckCircle2 } from "lucide-react";
 import {
   selectInspectorWorklist,
   selectInspectorSummary,
@@ -35,6 +35,10 @@ interface PageProps {
     domain?: string;
     q?: string;
     include_resolved?: string;
+    /** When redirected from the detail page after Accept Live, this
+     *  is the id of the just-accepted question so we can show a
+     *  "✓ accepted" banner. */
+    accepted?: string;
   }>;
 }
 
@@ -90,6 +94,13 @@ export default async function InspectorPage({ searchParams }: PageProps) {
           . Re-run after each audit pass to refresh.
         </p>
       </div>
+
+      {params.accepted && (
+        <div className="mb-4 flex items-center gap-2 rounded-xl border border-emerald-500/40 bg-emerald-500/[0.06] px-4 py-3 text-sm text-emerald-200">
+          <CheckCircle2 className="h-4 w-4 shrink-0" />
+          <span>Question accepted as live · all findings auto-resolved.</span>
+        </div>
+      )}
 
       <InspectorClient
         rows={rows}

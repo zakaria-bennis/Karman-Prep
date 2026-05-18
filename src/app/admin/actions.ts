@@ -374,13 +374,17 @@ export async function actionResolveFinding(input: {
 }
 
 /** Flip a question to live (is_live=true via the import_status='ok'
- *  trigger). The Inspector calls this when the admin has decided the
- *  question is good as-is and resolved blocking findings. */
+ *  trigger) AND auto-resolve every open finding on it. The admin
+ *  has decided the question is good as-is, so the findings shouldn't
+ *  keep haunting the worklist. Resolved findings stay in the DB for
+ *  audit-trail purposes (filterable via "Include resolved"). */
 export async function actionAcceptInspectedQuestion(input: { questionId: string }): Promise<void> {
-  await guardAdmin();
+  const userId = await guardAdmin();
   const { createAdminClient } = await import("@/lib/supabase/server");
   const supabase = createAdminClient();
-  const { error } = await supabase
+
+  // 1. Flip the question to live.
+  const { error: qErr } = await supabase
     .from("quiz_questions")
     .update({
       import_status: "ok",
@@ -389,7 +393,22 @@ export async function actionAcceptInspectedQuestion(input: { questionId: string 
       updated_at: new Date().toISOString(),
     })
     .eq("id", input.questionId);
-  if (error) throw error;
+  if (qErr) throw qErr;
+
+  // 2. Auto-resolve every open finding for this question. Without
+  //    this step, the worklist still shows the row even after the
+  //    admin accepted it.
+  const { error: fErr } = await supabase
+    .from("question_findings")
+    .update({
+      resolved_at: new Date().toISOString(),
+      resolved_by: userId,
+      resolved_note: "Auto-resolved on Accept Live",
+    })
+    .eq("question_id", input.questionId)
+    .is("resolved_at", null);
+  if (fErr) throw fErr;
+
   revalidatePath("/admin/questions/inspect");
   revalidatePath(`/admin/questions/inspect/${input.questionId}`);
   revalidatePath("/admin/questions/review");

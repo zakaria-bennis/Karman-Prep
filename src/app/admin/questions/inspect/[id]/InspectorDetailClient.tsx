@@ -16,6 +16,7 @@
 // ============================================================
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import {
   AlertOctagon,
   AlertTriangle,
@@ -25,6 +26,9 @@ import {
   ChevronDown,
   ChevronUp,
   ExternalLink,
+  Loader2,
+  CheckCircle2,
+  XCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { QuestionFinding, FindingSeverity } from "@/lib/supabase/queries/quiz/findings";
@@ -68,8 +72,14 @@ const SEVERITY_META: Record<
 };
 
 export default function InspectorDetailClient({ question, findings }: Props) {
+  const router = useRouter();
   const [, startTransition] = useTransition();
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [topAction, setTopAction] = useState<"idle" | "accepting" | "flagging">("idle");
+  const [feedback, setFeedback] = useState<{
+    kind: "success" | "error";
+    message: string;
+  } | null>(null);
   const [expandedDetail, setExpandedDetail] = useState<Set<string>>(new Set());
 
   function toggleDetail(id: string) {
@@ -83,9 +93,17 @@ export default function InspectorDetailClient({ question, findings }: Props) {
 
   function resolve(f: QuestionFinding) {
     setBusyId(f.id);
+    setFeedback(null);
     startTransition(async () => {
       try {
         await actionResolveFinding({ findingId: f.id, note: "Resolved via Inspector" });
+        setFeedback({ kind: "success", message: `Finding resolved.` });
+        router.refresh();
+      } catch (err) {
+        setFeedback({
+          kind: "error",
+          message: `Resolve failed: ${err instanceof Error ? err.message : String(err)}`,
+        });
       } finally {
         setBusyId(null);
       }
@@ -93,14 +111,44 @@ export default function InspectorDetailClient({ question, findings }: Props) {
   }
 
   function acceptLive() {
+    setTopAction("accepting");
+    setFeedback(null);
     startTransition(async () => {
-      await actionAcceptInspectedQuestion({ questionId: question.id });
+      try {
+        await actionAcceptInspectedQuestion({ questionId: question.id });
+        // After accept, the question is live and its findings auto-resolved.
+        // The row no longer belongs in the worklist, so go back to the list
+        // with a success banner that the next page render will surface.
+        router.push("/admin/questions/inspect?accepted=" + encodeURIComponent(question.id));
+      } catch (err) {
+        setFeedback({
+          kind: "error",
+          message: `Accept failed: ${err instanceof Error ? err.message : String(err)}`,
+        });
+        setTopAction("idle");
+      }
     });
   }
 
   function flagForReview() {
+    setTopAction("flagging");
+    setFeedback(null);
     startTransition(async () => {
-      await actionFlagInspectedQuestion({ questionId: question.id });
+      try {
+        await actionFlagInspectedQuestion({ questionId: question.id });
+        setFeedback({
+          kind: "success",
+          message: "Marked needs-review. The question stays hidden from students until cleared.",
+        });
+        router.refresh();
+      } catch (err) {
+        setFeedback({
+          kind: "error",
+          message: `Flag failed: ${err instanceof Error ? err.message : String(err)}`,
+        });
+      } finally {
+        setTopAction("idle");
+      }
     });
   }
 
@@ -137,19 +185,54 @@ export default function InspectorDetailClient({ question, findings }: Props) {
         </div>
         <button
           onClick={acceptLive}
-          disabled={blocking.length > 0}
+          disabled={blocking.length > 0 || topAction !== "idle"}
           title={blocking.length > 0 ? "Resolve blocking findings first" : "Set live"}
           className="inline-flex items-center gap-1.5 rounded-md bg-emerald-500/15 px-3 py-1.5 text-xs font-semibold text-emerald-300 hover:bg-emerald-500/25 disabled:cursor-not-allowed disabled:opacity-40"
         >
-          <CheckCheck className="h-3.5 w-3.5" /> Accept live
+          {topAction === "accepting" ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          ) : (
+            <CheckCheck className="h-3.5 w-3.5" />
+          )}
+          {topAction === "accepting" ? "Accepting…" : "Accept live"}
         </button>
         <button
           onClick={flagForReview}
-          className="inline-flex items-center gap-1.5 rounded-md bg-amber-500/15 px-3 py-1.5 text-xs font-semibold text-amber-300 hover:bg-amber-500/25"
+          disabled={topAction !== "idle"}
+          className="inline-flex items-center gap-1.5 rounded-md bg-amber-500/15 px-3 py-1.5 text-xs font-semibold text-amber-300 hover:bg-amber-500/25 disabled:cursor-not-allowed disabled:opacity-40"
         >
-          <Flag className="h-3.5 w-3.5" /> Mark needs-review
+          {topAction === "flagging" ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          ) : (
+            <Flag className="h-3.5 w-3.5" />
+          )}
+          {topAction === "flagging" ? "Flagging…" : "Mark needs-review"}
         </button>
       </div>
+
+      {feedback && (
+        <div
+          className={cn(
+            "flex items-center gap-2 rounded-xl border px-4 py-3 text-sm",
+            feedback.kind === "success"
+              ? "border-emerald-500/40 bg-emerald-500/[0.06] text-emerald-200"
+              : "border-rose-500/40 bg-rose-500/[0.06] text-rose-200"
+          )}
+        >
+          {feedback.kind === "success" ? (
+            <CheckCircle2 className="h-4 w-4 shrink-0" />
+          ) : (
+            <XCircle className="h-4 w-4 shrink-0" />
+          )}
+          <span className="flex-1">{feedback.message}</span>
+          <button
+            onClick={() => setFeedback(null)}
+            className="text-xs underline opacity-70 hover:opacity-100"
+          >
+            dismiss
+          </button>
+        </div>
+      )}
 
       {/* Split pane */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.4fr_1fr]">
