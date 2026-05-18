@@ -9,6 +9,7 @@
 
 import { describe, expect, it } from "vitest";
 import {
+  acceptFlaggedQuestionInputSchema,
   bulkImportInputSchema,
   bulkImportRowSchema,
   cohortMemberMutationInputSchema,
@@ -450,6 +451,64 @@ describe("cohortMemberMutationInputSchema", () => {
   it("rejects empty studentUserId", () => {
     expect(
       cohortMemberMutationInputSchema.safeParse({ cohortId: "c1", studentUserId: "" }).success
+    ).toBe(false);
+  });
+});
+
+describe("acceptFlaggedQuestionInputSchema", () => {
+  it("accepts a real curriculum node id (CRIT-6 guard)", () => {
+    expect(
+      acceptFlaggedQuestionInputSchema.safeParse({
+        questionId: "q-1",
+        opts: { nodeId: "ma-00" },
+      }).success
+    ).toBe(true);
+  });
+
+  it("rejects an invented node id (no orphan writes)", () => {
+    expect(
+      acceptFlaggedQuestionInputSchema.safeParse({
+        questionId: "q-1",
+        opts: { nodeId: "rw-99" },
+      }).success
+    ).toBe(false);
+  });
+
+  it("rejects an empty string node id", () => {
+    expect(
+      acceptFlaggedQuestionInputSchema.safeParse({
+        questionId: "q-1",
+        opts: { nodeId: "" },
+      }).success
+    ).toBe(false);
+  });
+
+  it("accepts an explicit null node id (admin intentionally clearing the link)", () => {
+    expect(
+      acceptFlaggedQuestionInputSchema.safeParse({
+        questionId: "q-1",
+        opts: { nodeId: null },
+      }).success
+    ).toBe(true);
+  });
+
+  it("accepts opts with no node id at all (admin leaving the assignment untouched)", () => {
+    expect(
+      acceptFlaggedQuestionInputSchema.safeParse({
+        questionId: "q-1",
+        opts: {},
+      }).success
+    ).toBe(true);
+  });
+
+  it("accepts the input with opts entirely missing (default applies)", () => {
+    expect(acceptFlaggedQuestionInputSchema.safeParse({ questionId: "q-1" }).success).toBe(true);
+  });
+
+  it("rejects an empty questionId", () => {
+    expect(
+      acceptFlaggedQuestionInputSchema.safeParse({ questionId: "", opts: { nodeId: "ma-00" } })
+        .success
     ).toBe(false);
   });
 });

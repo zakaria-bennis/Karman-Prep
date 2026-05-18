@@ -64,6 +64,7 @@ export const CONCEPT_SLUGS: ConceptSlug[] = [...RW_NODES, ...MATH_NODES].map((n)
 
 const SLUG_INDEX = new Map<string, ConceptSlug>(CONCEPT_SLUGS.map((c) => [c.slug, c]));
 const NODE_TO_SLUG = new Map<string, string>(CONCEPT_SLUGS.map((c) => [c.nodeId, c.slug]));
+const NODE_ID_SET = new Set<string>(CONCEPT_SLUGS.map((c) => c.nodeId));
 const DOMAIN_SET = new Set<string>(SAT_DOMAINS);
 
 // ── Helpers ──────────────────────────────────────────────────
@@ -105,6 +106,14 @@ export function isValidSlug(slug: string): slug is ConceptSlug["slug"] {
 
 export function isValidDomain(domain: string): domain is SATDomain {
   return DOMAIN_SET.has(domain);
+}
+
+/** True if `nodeId` matches a real curriculum node. The admin
+ *  accept/assign flows call this to refuse orphan ids like "rw-99"
+ *  or "" before they get written to quiz_questions.node_id (audit
+ *  finding CRIT-6). */
+export function isValidNodeId(nodeId: string): boolean {
+  return NODE_ID_SET.has(nodeId);
 }
 
 /** Case-insensitive substring search across slug, label, AND domain.

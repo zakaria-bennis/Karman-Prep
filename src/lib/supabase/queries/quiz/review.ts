@@ -6,6 +6,7 @@
 import { createAdminClient } from "@/lib/supabase/server";
 import type { Database } from "@/types/supabase";
 import type { QuizQuestionWithChoices, ImportFlagType } from "@/types/quiz";
+import { isValidNodeId } from "@/lib/question-bank/taxonomy";
 import { LIVE_FILTER } from "./questions";
 
 type QuizQuestionUpdate = Database["public"]["Tables"]["quiz_questions"]["Update"];
@@ -65,11 +66,24 @@ export async function selectBankQuestions(): Promise<QuizQuestionWithChoices[]> 
 }
 
 /** Accept a flagged question — flips it to live and clears flag fields.
- *  Optionally assigns a node_id at the same time. */
+ *  Optionally assigns a node_id at the same time.
+ *
+ *  When nodeId is a string, it MUST match a real curriculum node
+ *  (CRIT-6). Otherwise the question gets written tied to a topic
+ *  that doesn't exist — orphan, invisible to students AND admins.
+ *  Passing `null` explicitly clears the node_id (separate intent
+ *  from "skip the assignment"); we let null through. `undefined`
+ *  means "don't touch node_id," same as before. */
 export async function acceptFlaggedQuestion(
   questionId: string,
   opts: { nodeId?: string | null } = {}
 ): Promise<void> {
+  if (typeof opts.nodeId === "string" && !isValidNodeId(opts.nodeId)) {
+    throw new Error(
+      `acceptFlaggedQuestion: nodeId "${opts.nodeId}" is not a curriculum node — ` +
+        "refusing to write an orphan."
+    );
+  }
   const supabase = createAdminClient();
   const patch: QuizQuestionUpdate = {
     import_status: "ok",
