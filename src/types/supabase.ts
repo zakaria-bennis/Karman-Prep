@@ -1695,6 +1695,62 @@ export type Database = {
         };
         Relationships: [];
       };
+      question_findings: {
+        Row: {
+          id: string;
+          question_id: string;
+          source: "auditor" | "grader";
+          severity: "BLOCKING" | "WARNING" | "NOTICE";
+          category: string;
+          code: string;
+          message: string;
+          value: string | null;
+          detail: Json | null;
+          resolved_at: string | null;
+          resolved_by: string | null;
+          resolved_note: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          question_id: string;
+          source: "auditor" | "grader";
+          severity: "BLOCKING" | "WARNING" | "NOTICE";
+          category: string;
+          code: string;
+          message: string;
+          value?: string | null;
+          detail?: Json | null;
+          resolved_at?: string | null;
+          resolved_by?: string | null;
+          resolved_note?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          question_id?: string;
+          source?: "auditor" | "grader";
+          severity?: "BLOCKING" | "WARNING" | "NOTICE";
+          category?: string;
+          code?: string;
+          message?: string;
+          value?: string | null;
+          detail?: Json | null;
+          resolved_at?: string | null;
+          resolved_by?: string | null;
+          resolved_note?: string | null;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "question_findings_question_id_fkey";
+            columns: ["question_id"];
+            isOneToOne: false;
+            referencedRelation: "quiz_questions";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       quiz_questions: {
         Row: {
           answer_format: Database["public"]["Enums"]["question_format"];
