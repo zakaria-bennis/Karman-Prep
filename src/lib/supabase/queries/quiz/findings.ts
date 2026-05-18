@@ -171,12 +171,40 @@ export interface InspectorSummary {
   unique_codes: number;
 }
 
-export async function selectInspectorSummary(): Promise<InspectorSummary> {
+export async function selectInspectorSummary(
+  opts: { sourcePdf?: string } = {}
+): Promise<InspectorSummary> {
   const supabase = createAdminClient();
-  const { data, error } = await supabase
+
+  // When scoped, look up the question ids for that source_pdf first
+  // and `.in()` the findings query. Same pattern as selectRecentActivity.
+  let qidsFilter: string[] | null = null;
+  if (opts.sourcePdf) {
+    const { data: qs, error: qErr } = await supabase
+      .from("quiz_questions")
+      .select("id")
+      .eq("source_pdf", opts.sourcePdf);
+    if (qErr) throw qErr;
+    qidsFilter = (qs ?? []).map((q) => q.id);
+    if (qidsFilter.length === 0) {
+      return {
+        total_findings: 0,
+        questions_with_findings: 0,
+        blocking: 0,
+        warning: 0,
+        notice: 0,
+        unique_codes: 0,
+      };
+    }
+  }
+
+  let q = supabase
     .from("question_findings")
     .select("question_id, severity, code")
     .is("resolved_at", null);
+  if (qidsFilter) q = q.in("question_id", qidsFilter);
+
+  const { data, error } = await q;
   if (error) throw error;
   const rows = data ?? [];
   const qids = new Set<string>();
@@ -222,16 +250,48 @@ export interface RecentActivity {
   net_change: number;
 }
 
-export async function selectRecentActivity(hours: number): Promise<RecentActivity> {
+export async function selectRecentActivity(
+  hours: number,
+  opts: { sourcePdf?: string } = {}
+): Promise<RecentActivity> {
   const supabase = createAdminClient();
   const since = new Date(Date.now() - hours * 3600 * 1000).toISOString();
 
+  // When scoped to a single source_pdf, we first need to know which
+  // question_ids belong to that PDF; the findings table doesn't carry
+  // source_pdf directly (it's on quiz_questions).
+  let qidsFilter: string[] | null = null;
+  if (opts.sourcePdf) {
+    const { data: qs, error: qErr } = await supabase
+      .from("quiz_questions")
+      .select("id")
+      .eq("source_pdf", opts.sourcePdf);
+    if (qErr) throw qErr;
+    qidsFilter = (qs ?? []).map((q) => q.id);
+    // If no questions match the source_pdf, return an empty snapshot
+    // — saves two roundtrips that would return nothing anyway.
+    if (qidsFilter.length === 0) {
+      return {
+        hours,
+        new_findings: 0,
+        new_blocking: 0,
+        new_warning: 0,
+        new_notice: 0,
+        resolved_findings: 0,
+        net_change: 0,
+      };
+    }
+  }
+
   // Two parallel queries — much cheaper than fetching every finding
   // and filtering in app code.
-  const [createdRes, resolvedRes] = await Promise.all([
-    supabase.from("question_findings").select("severity").gte("created_at", since),
-    supabase.from("question_findings").select("id").gte("resolved_at", since),
-  ]);
+  let createdQ = supabase.from("question_findings").select("severity").gte("created_at", since);
+  let resolvedQ = supabase.from("question_findings").select("id").gte("resolved_at", since);
+  if (qidsFilter) {
+    createdQ = createdQ.in("question_id", qidsFilter);
+    resolvedQ = resolvedQ.in("question_id", qidsFilter);
+  }
+  const [createdRes, resolvedRes] = await Promise.all([createdQ, resolvedQ]);
   if (createdRes.error) throw createdRes.error;
   if (resolvedRes.error) throw resolvedRes.error;
 

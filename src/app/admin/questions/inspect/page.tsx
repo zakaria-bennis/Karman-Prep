@@ -69,12 +69,18 @@ export default async function InspectorPage({ searchParams }: PageProps) {
     include_resolved: params.include_resolved === "true",
   };
 
+  // When the worklist is scoped to a single source_pdf, propagate
+  // that scope to the summary header + Recent Activity panel so all
+  // three views agree on what "all findings" means right now. Same
+  // pattern Linear / Notion use when you filter by a project: every
+  // count in the chrome reflects the current scope, not the whole bank.
+  const scopeOpts = filter.source_pdf ? { sourcePdf: filter.source_pdf } : undefined;
   const [rows, summary, filterOpts, activity24h, activity7d] = await Promise.all([
     selectInspectorWorklist(filter),
-    selectInspectorSummary(),
+    selectInspectorSummary(scopeOpts),
     selectInspectorFilterOptions(),
-    selectRecentActivity(24),
-    selectRecentActivity(168),
+    selectRecentActivity(24, scopeOpts),
+    selectRecentActivity(168, scopeOpts),
   ]);
 
   return (
@@ -95,6 +101,20 @@ export default async function InspectorPage({ searchParams }: PageProps) {
           <span className="text-amber-300">{summary.warning} warning</span> ·{" "}
           <span className="text-slate-400">{summary.notice} notice</span>) · {summary.unique_codes}{" "}
           distinct codes
+          {filter.source_pdf && (
+            <>
+              {" · "}
+              <span className="rounded-md border border-violet-500/40 bg-violet-500/[0.08] px-1.5 py-0.5 font-mono text-[10px] text-violet-200">
+                scoped: {filter.source_pdf}
+              </span>{" "}
+              <Link
+                href="/admin/questions/inspect"
+                className="text-[10px] text-slate-400 underline hover:text-slate-200"
+              >
+                clear
+              </Link>
+            </>
+          )}
         </p>
         <p className="mt-1 text-xs text-slate-500">
           Populated by{" "}
