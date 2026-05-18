@@ -70,3 +70,6 @@ next-env.d.ts
 /tests/visual/real-device-captures/*
 !/tests/visual/real-device-captures/README.md
 !/tests/visual/real-device-captures/.gitkeep
+
+# Question audit working output
+audit-out/
