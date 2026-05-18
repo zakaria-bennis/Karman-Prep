@@ -16,7 +16,6 @@
 // ============================================================
 
 import { useState, useTransition } from "react";
-import Image from "next/image";
 import {
   AlertOctagon,
   AlertTriangle,
@@ -31,6 +30,8 @@ import { cn } from "@/lib/utils";
 import type { QuestionFinding, FindingSeverity } from "@/lib/supabase/queries/quiz/findings";
 import type { QuizQuestionWithChoices } from "@/types/quiz";
 import MathText from "@/components/learn/MathText";
+import QuestionTable from "@/components/learn/QuestionTable";
+import FigureFrame from "@/components/learn/FigureFrame";
 import {
   actionResolveFinding,
   actionAcceptInspectedQuestion,
@@ -200,17 +201,19 @@ export default function InspectorDetailClient({ question, findings }: Props) {
           )}
 
           {/* Figure */}
-          {question.image_url && (
-            <div className="mb-4 flex justify-center rounded-lg border border-slate-800 bg-white p-3">
-              <Image
+          {question.figure_kind === "table" && question.figure_table_data ? (
+            <div className="mb-4 flex justify-center">
+              <QuestionTable data={question.figure_table_data} />
+            </div>
+          ) : (
+            question.image_url && (
+              <FigureFrame
                 src={question.image_url}
                 alt={question.image_alt ?? "Question figure"}
-                width={500}
-                height={400}
-                className="max-h-96 w-auto object-contain"
-                unoptimized
+                className="mb-4"
+                maxHeightClass="max-h-96"
               />
-            </div>
+            )
           )}
 
           {/* Question stem */}
