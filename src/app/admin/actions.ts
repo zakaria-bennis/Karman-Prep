@@ -454,9 +454,22 @@ export interface InspectedQuestionEdit {
 }
 
 export async function actionUpdateInspectedQuestion(input: InspectedQuestionEdit): Promise<void> {
-  await guardAdmin();
+  const userId = await guardAdmin();
   const { createAdminClient } = await import("@/lib/supabase/server");
+  const { buildSnapshot, insertHistoryRow } = await import("@/lib/supabase/queries/quiz/history");
   const supabase = createAdminClient();
+
+  // Snapshot BEFORE so we can write to question_history at the end.
+  const { data: beforeRow, error: beforeErr } = await supabase
+    .from("quiz_questions")
+    .select("*, answer_choices(*)")
+    .eq("id", input.questionId)
+    .maybeSingle();
+  if (beforeErr) throw beforeErr;
+  if (!beforeRow) throw new Error(`Question ${input.questionId} not found`);
+  // Cast through unknown — the joined shape isn't statically typed by
+  // Supabase's generated types but matches QuizQuestionWithChoices.
+  const beforeSnapshot = buildSnapshot(beforeRow as unknown as Parameters<typeof buildSnapshot>[0]);
 
   // ── 1. quiz_questions row update ───────────────────────────
   // Use the generated Update row type so Supabase TS narrows correctly.
@@ -525,6 +538,24 @@ export async function actionUpdateInspectedQuestion(input: InspectedQuestionEdit
       .eq("question_id", input.questionId)
       .eq("letter", input.correct_answer);
     if (r2) throw r2;
+  }
+
+  // Snapshot AFTER state and record the history row.
+  const { data: afterRow, error: afterErr } = await supabase
+    .from("quiz_questions")
+    .select("*, answer_choices(*)")
+    .eq("id", input.questionId)
+    .maybeSingle();
+  if (afterErr) throw afterErr;
+  if (afterRow) {
+    const afterSnapshot = buildSnapshot(afterRow as unknown as Parameters<typeof buildSnapshot>[0]);
+    await insertHistoryRow({
+      questionId: input.questionId,
+      beforeState: beforeSnapshot,
+      afterState: afterSnapshot,
+      editedBy: userId,
+      source: "inspector",
+    });
   }
 
   revalidatePath("/admin/questions/inspect");
@@ -627,6 +658,104 @@ export async function actionBulkFlagQuestions(input: {
   revalidatePath("/admin/questions/inspect");
   revalidatePath("/admin/questions/review");
   return { flagged: data?.length ?? 0 };
+}
+/** Restore a question to a previous snapshot from question_history.
+ *  Writes a new history row capturing the restore as an edit (so the
+ *  restore action itself is auditable + further reversible).
+ *
+ *  Restores quiz_questions row fields AND answer_choices in lockstep
+ *  with the snapshot's `choices` array. */
+export async function actionRestoreQuestionVersion(input: {
+  questionId: string;
+  historyId: string;
+}): Promise<void> {
+  const userId = await guardAdmin();
+  const { createAdminClient } = await import("@/lib/supabase/server");
+  const { buildSnapshot, insertHistoryRow } = await import("@/lib/supabase/queries/quiz/history");
+  const supabase = createAdminClient();
+
+  // 1. Look up the target history row to read its before_state.
+  const { data: hist, error: histErr } = await supabase
+    .from("question_history")
+    .select("*")
+    .eq("id", input.historyId)
+    .eq("question_id", input.questionId)
+    .maybeSingle();
+  if (histErr) throw histErr;
+  if (!hist) throw new Error("History entry not found");
+  const target = hist.before_state as unknown as ReturnType<typeof buildSnapshot>;
+
+  // 2. Snapshot current BEFORE state (so the restore is reversible).
+  const { data: currentRow, error: currentErr } = await supabase
+    .from("quiz_questions")
+    .select("*, answer_choices(*)")
+    .eq("id", input.questionId)
+    .maybeSingle();
+  if (currentErr) throw currentErr;
+  if (!currentRow) throw new Error("Question not found");
+  const currentSnapshot = buildSnapshot(
+    currentRow as unknown as Parameters<typeof buildSnapshot>[0]
+  );
+
+  // 3. Apply the target snapshot to quiz_questions.
+  // The generated Update type has some columns as `T | undefined` (no
+  // null) — cast through unknown since our snapshot stores nulls for
+  // those (semantically equivalent for our purposes).
+  type QQUpdate = Database["public"]["Tables"]["quiz_questions"]["Update"];
+  const restore = {
+    question_text: target.question_text,
+    correct_answer: target.correct_answer,
+    difficulty_level: target.difficulty_level ?? undefined,
+    explanation_text: target.explanation_text,
+    explanation_per_choice: target.explanation_per_choice,
+    hint: target.hint,
+    desmos_strategy: target.desmos_strategy,
+    image_alt: target.image_alt,
+    image_url: target.image_url,
+    figure_kind: target.figure_kind,
+    figure_table_data: target.figure_table_data,
+    passage_intro: target.passage_intro,
+    passage: target.passage,
+    passage_a: target.passage_a,
+    passage_b: target.passage_b,
+    numeric_tolerance: target.numeric_tolerance,
+    concept_slug: target.concept_slug,
+    domain: target.domain,
+    topic_cluster: target.topic_cluster ?? undefined,
+    import_status: target.import_status,
+    updated_at: new Date().toISOString(),
+  } as unknown as QQUpdate;
+  const { error: qErr } = await supabase
+    .from("quiz_questions")
+    .update(restore)
+    .eq("id", input.questionId);
+  if (qErr) throw qErr;
+
+  // 4. Restore answer_choices in lockstep — set each row's text +
+  //    is_correct from the snapshot.
+  for (const ch of target.choices) {
+    const { error: cErr } = await supabase
+      .from("answer_choices")
+      .update({ choice_text: ch.choice_text, is_correct: ch.is_correct })
+      .eq("question_id", input.questionId)
+      .eq("letter", ch.letter as "A" | "B" | "C" | "D");
+    if (cErr) throw cErr;
+  }
+
+  // 5. Record the restore as its own history entry (auditable + still
+  //    reversible — admin can restore the pre-restore state from the
+  //    new row).
+  await insertHistoryRow({
+    questionId: input.questionId,
+    beforeState: currentSnapshot,
+    afterState: target,
+    editedBy: userId,
+    source: "inspector",
+    note: `Restored to snapshot ${input.historyId}`,
+  });
+
+  revalidatePath(`/admin/questions/inspect/${input.questionId}`);
+  revalidatePath("/admin/questions/inspect");
 }
 
 /** Reverse of accept — flag a previously-live question for review
