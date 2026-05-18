@@ -309,7 +309,7 @@ export async function actionAcceptAllBank(): Promise<{
     .from("quiz_questions")
     .select("id, concept_slug")
     .is("node_id", null)
-    .or("import_status.is.null,import_status.eq.ok");
+    .eq("is_live", true);
   if (error) throw new Error(`Bank query failed: ${error.message}`);
 
   // ── Classification (pure, unit-tested) ────────────────────

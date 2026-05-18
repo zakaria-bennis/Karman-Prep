@@ -18,11 +18,23 @@ import type {
 
 // ── Live-question filter ─────────────────────────────────────
 // PDF-imported questions land with import_status = 'needs_review'
-// and must be hidden from students until an admin accepts them
-// in /admin/questions/review. Existing rows pre-migration-020 have
+// and must be hidden from students until an admin accepts them in
+// /admin/questions/review. Existing rows pre-migration-020 have
 // import_status = NULL, which also counts as live.
 //
+// As of migration 20260518004500 the database carries an `is_live`
+// generated column equivalent to `import_status IS NULL OR
+// import_status = 'ok'`, plus a partial index. New code should
+// filter `.eq("is_live", true)` instead of the LIVE_FILTER string
+// below — one column, one predicate, robust to future status
+// values (audit findings CRIT-2 + HIGH-14). The string filter
+// stays exported for back-compat with consumers that haven't
+// migrated yet.
+//
 // supabase-js .or() syntax: comma-separated PostgREST clauses.
+/** @deprecated Use `.eq("is_live", true)` instead. Same semantics,
+ *  works through the new generated column + index, and stays
+ *  correct when new import_status values are introduced. */
 export const LIVE_FILTER = "import_status.is.null,import_status.eq.ok";
 
 // ── Question catalog ──────────────────────────────────────────
@@ -37,7 +49,7 @@ export async function fetchQuestionsForNode(
 ): Promise<QuizQuestionWithChoices[]> {
   const supabase = createAdminClient();
   let query = supabase.from("quiz_questions").select("*, answer_choices(*)").eq("node_id", nodeId);
-  if (!opts.includeFlagged) query = query.or(LIVE_FILTER);
+  if (!opts.includeFlagged) query = query.eq("is_live", true);
   const { data, error } = await query
     .order("display_order", { ascending: true })
     .order("difficulty", { ascending: true });

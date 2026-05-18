@@ -1720,6 +1720,7 @@ export type Database = {
           import_flag_type: string | null;
           import_status: string | null;
           is_flagged: boolean | null;
+          is_live: boolean | null;
           node_id: string | null;
           numeric_tolerance: number | null;
           passage: string | null;
@@ -2640,6 +2641,53 @@ export type Database = {
             referencedColumns: ["id"];
           },
         ];
+      };
+      quiz_questions_live: {
+        // Read-only view of quiz_questions filtered to is_live = true.
+        // Student-facing query code reads from this view so flagged /
+        // needs_review / inferred-answer rows can never reach students
+        // (audit finding CRIT-2). Migration 20260518004500.
+        // Columns mirror quiz_questions.Row.
+        Row: {
+          answer_format: Database["public"]["Enums"]["question_format"] | null;
+          answer_source: string | null;
+          concept_slug: string | null;
+          content_hash: string | null;
+          correct_answer: string | null;
+          created_at: string | null;
+          desmos_strategy: string | null;
+          difficulty: Database["public"]["Enums"]["question_difficulty"] | null;
+          difficulty_level: number | null;
+          display_order: number | null;
+          domain: string | null;
+          explanation_per_choice: Json | null;
+          explanation_text: string | null;
+          flag_count: number | null;
+          hint: string | null;
+          id: string | null;
+          image_alt: string | null;
+          image_storage_path: string | null;
+          image_url: string | null;
+          import_flag_reason: string | null;
+          import_flag_type: string | null;
+          import_status: string | null;
+          is_flagged: boolean | null;
+          is_live: boolean | null;
+          node_id: string | null;
+          numeric_tolerance: number | null;
+          passage: string | null;
+          passage_a: string | null;
+          passage_b: string | null;
+          passage_intro: string | null;
+          question_text: string | null;
+          question_type: Database["public"]["Enums"]["question_type"] | null;
+          source_page: number | null;
+          source_pdf: string | null;
+          subject: Database["public"]["Enums"]["quiz_subject"] | null;
+          topic_cluster: string | null;
+          updated_at: string | null;
+        };
+        Relationships: [];
       };
       tutor_earnings_summary: {
         Row: {

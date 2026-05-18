@@ -27,7 +27,7 @@ async function fetchQuestionCounts(): Promise<Map<string, number>> {
     .from("quiz_questions")
     .select("node_id")
     .not("node_id", "is", null)
-    .or("import_status.is.null,import_status.eq.ok");
+    .eq("is_live", true);
   const map = new Map<string, number>();
   for (const r of data ?? []) {
     const n = (r as { node_id: string | null }).node_id;
@@ -43,7 +43,7 @@ async function fetchBankCount(): Promise<number> {
     .from("quiz_questions")
     .select("id", { count: "exact", head: true })
     .is("node_id", null)
-    .or("import_status.is.null,import_status.eq.ok");
+    .eq("is_live", true);
   return count ?? 0;
 }
 
