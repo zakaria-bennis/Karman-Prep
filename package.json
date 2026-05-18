@@ -30,6 +30,7 @@
     "db:push": "npx supabase db push",
     "db:status": "npx supabase migration list --linked",
     "seed:dev": "node scripts/seed-dev.mjs",
+    "sync:taxonomy": "tsx scripts/sync-taxonomy.ts",
     "check:sizes": "node scripts/check-file-sizes.mjs",
     "prepare": "husky"
   },
@@ -85,6 +86,7 @@
     "prettier": "^3.8.3",
     "prettier-plugin-tailwindcss": "^0.8.0",
     "tailwindcss": "^3.4.1",
+    "tsx": "^4.22.1",
     "typescript": "^5",
     "vitest": "^4.1.6"
   },
