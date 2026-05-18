@@ -9,7 +9,7 @@
 // run so a re-trigger is idempotent.
 //
 // Lives under /api/cron/* so Clerk middleware exempts it from the
-// browser-auth gate (see src/middleware.ts isPublicRoute matcher).
+// browser-auth gate (see src/proxy.ts isPublicRoute matcher).
 // Self-auths via Bearer CRON_SECRET.
 //
 // Designed to be poked by:

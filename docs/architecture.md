@@ -176,7 +176,7 @@ src/
 │   └── ...
 ├── data/curriculum.ts  89 concept slugs (the source of truth for taxonomy validators)
 ├── emails/             React Email templates
-└── middleware.ts       Clerk auth gate
+└── proxy.ts            Clerk auth gate (was middleware.ts before Next.js 16 deprecated that filename)
 ```
 
 ## External services + what they cost

@@ -1,7 +1,7 @@
 // ============================================================
 // /coming-soon — public-facing maintenance page.
 //
-// Shown to every visitor who isn't signed in (see middleware.ts).
+// Shown to every visitor who isn't signed in (see src/proxy.ts).
 // Intentionally generic: no team names, no bios, no scoreboard,
 // no admin paths. Just the wordmark, a short tagline, and a
 // passive-voice email-notify form.
