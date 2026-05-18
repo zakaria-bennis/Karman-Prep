@@ -77,10 +77,11 @@ import_status, import_flag_type, import_flag_reason
 
 ---
 
-## 3 · Locked taxonomy (8 domains · 8 clusters · 72 slugs)
+## 3 · Locked taxonomy (8 domains · 8 clusters · 89 slugs)
 
-Identical to `INGESTION_SPEC.md` §3 — duplicated here so the
-routine prompt is self-contained.
+Identical to [`spec.md`](./spec.md) §3 — both reference the same
+canonical sources rather than duplicating the slug list in this
+doc.
 
 ### Domains (8)
 
@@ -102,50 +103,39 @@ expression_ideas  → "Expression of Ideas"
 conventions       → "Standard English Conventions"
 ```
 
-### Concept slugs (72)
+### Concept slugs (89) — canonical sources, not enumerated here
 
-```
-ALGEBRA (8)
-  linear-equations · systems-of-equations · linear-inequalities
-  linear-functions · slope-intercept · systems-of-inequalities
-  absolute-value · linear-word-problems
+> **Don't enumerate the slug list here.** Every duplicate copy is a
+> drift target. Audit finding CRIT-3 traced the previous 72-slug
+> draft to staleness.
 
-ADVANCED MATH (12)
-  quadratics · quadratic-vertex · polynomials · exponential-functions
-  rational-expressions · function-notation · function-transformations
-  radical-equations · exponential-growth-decay · nonlinear-systems
-  equivalent-expressions · complex-numbers
+Single sources of truth:
 
-GEOMETRY & TRIGONOMETRY (11)
-  triangles · circles · coordinate-geometry · trigonometry · volume
-  area-perimeter · lines-and-angles · circle-equations · arc-sector
-  right-triangle-trig · unit-circle
+1. **TypeScript / runtime validator:**
+   [`src/lib/question-bank/taxonomy.ts`](../../src/lib/question-bank/taxonomy.ts).
+   `CONCEPT_SLUGS` is derived at module load from
+   [`src/data/curriculum/math.ts`](../../src/data/curriculum/math.ts)
+   + [`src/data/curriculum/reading-writing.ts`](../../src/data/curriculum/reading-writing.ts).
+2. **Human-readable enumeration grouped by domain:**
+   [`question-imports/chatgpt/taxonomy.txt`](../chatgpt/taxonomy.txt).
+3. **Full extractor prompt embeddings (paste-ready):**
+   [`question-imports/chatgpt/KarmanGPT.txt`](../chatgpt/KarmanGPT.txt) §6
+   for the ChatGPT Code-Interpreter variant; SYSTEM_SPEC in
+   [`question-imports/stage2_classify.py`](../../question-imports/stage2_classify.py)
+   for the Gemini variant.
 
-PROBLEM-SOLVING & DATA ANALYSIS (11)
-  ratios-rates · percentages · statistics-center · statistics-spread
-  statistics-inference · probability · data-interpretation
-  two-way-tables · scatterplots · unit-conversion · proportional-reasoning
+Slugs use **dashes** (`linear-equations-one-variable`,
+`quadratic-equations-factoring`, `cross-text-synthesis`), not the
+short legacy names (`linear-equations`, `quadratics`,
+`cross-text-connections`). Domain values use **underscores**
+(`algebra`, `advanced_math`).
 
-INFORMATION & IDEAS (7)
-  central-idea · command-of-evidence · inference · quantitative-evidence
-  purpose-and-function · summarizing · comparing-texts
+When the curriculum changes, regenerate the downstream prompt copies
+via the `npm run sync:taxonomy` script (or hand-edit if the script
+hasn't shipped yet — see audit finding MED-15).
 
-CRAFT & STRUCTURE (7)
-  words-in-context · rhetorical-purpose · text-structure
-  cross-text-connections · point-of-view · argument-structure
-  tone-and-style
-
-EXPRESSION OF IDEAS (6)
-  transitions · rhetorical-synthesis · precision · sentence-combining
-  relevance · introductions-conclusions
-
-STANDARD ENGLISH CONVENTIONS (10)
-  subject-verb-agreement · punctuation · sentence-boundaries
-  pronoun-agreement · modifier-placement · parallel-structure
-  verb-tense · apostrophes · colons-and-dashes · quotation-marks
-```
-
-Total: 72 slugs.
+Total: **89 slugs**, distributed as 6 + 17 + 8 + 9 + 15 + 14 + 6 + 14
+across the eight domains in order.
 
 ---
 
@@ -472,25 +462,25 @@ already processed, and resumes from the next unprocessed page.
 ### Math MC, ok status
 
 ```csv
-"If 3x + 5 = 26, what is the value of x?","5","6","7","8","C","2","Algebra","Start by isolating the variable term.","Subtract 5 from both sides to get 3x = 21, then divide by 3 to find x = 7.","5 results from forgetting to subtract 5 first.","6 is a small arithmetic slip.","Correct — x = 7.","8 results from dividing 24 by 3 instead of 21.","Type 3x+5=26 into Desmos and read the intersection.",,,,,multiple_choice,,algebra,linear-equations,extracted,"official-sat-practice-test-1.pdf",47,"a3b1c9d4e2f7...",ok,,
+"If 3x + 5 = 26, what is the value of x?","5","6","7","8","C","2","Algebra","Start by isolating the variable term.","Subtract 5 from both sides to get 3x = 21, then divide by 3 to find x = 7.","5 results from forgetting to subtract 5 first.","6 is a small arithmetic slip.","Correct — x = 7.","8 results from dividing 24 by 3 instead of 21.","Type 3x+5=26 into Desmos and read the intersection.",,,,,multiple_choice,,algebra,linear-equations-one-variable,extracted,"official-sat-practice-test-1.pdf",47,"a3b1c9d4e2f7...",ok,,
 ```
 
 ### R&W with passage, needs_review (inferred answer)
 
 ```csv
-"Which choice best states the main idea of the text?","Sea otters compete with seabirds for food.","Kelp forests are vital because they shelter many species.","The recovery of sea otters has driven the recovery of entire kelp-forest ecosystems.","Sea urchins are an invasive species in many coastal regions.",C,3,"Information & Ideas",,"The text traces a chain — otters return → urchins decline → kelp regrows → other species shelter — and (C) names that whole chain.",,,"Captures the full chain described.",,,"The following text is adapted from a 2023 marine biology field report.","Sea otters are voracious eaters of sea urchins. Where otter populations have rebounded, urchin numbers have collapsed and the kelp forests urchins were grazing have regrown — sheltering fish, crabs, and seabirds in the process.",,,multiple_choice,,info_ideas,central-idea,inferred,"ocean-bio-rw-set-3.pdf",12,"b8e2f1c4...",needs_review,partial_emit,"Inferred answer (C) — printed key was unreadable on this page"
+"Which choice best states the main idea of the text?","Sea otters compete with seabirds for food.","Kelp forests are vital because they shelter many species.","The recovery of sea otters has driven the recovery of entire kelp-forest ecosystems.","Sea urchins are an invasive species in many coastal regions.",C,3,"Information & Ideas",,"The text traces a chain — otters return → urchins decline → kelp regrows → other species shelter — and (C) names that whole chain.",,,"Captures the full chain described.",,,"The following text is adapted from a 2023 marine biology field report.","Sea otters are voracious eaters of sea urchins. Where otter populations have rebounded, urchin numbers have collapsed and the kelp forests urchins were grazing have regrown — sheltering fish, crabs, and seabirds in the process.",,,multiple_choice,,info_ideas,main-idea-and-central-claims,inferred,"ocean-bio-rw-set-3.pdf",12,"b8e2f1c4...",needs_review,partial_emit,"Inferred answer (C) — printed key was unreadable on this page"
 ```
 
 ### Math SPR, ok status
 
 ```csv
-"What value of n satisfies 4n − 7 = 5n + 2?",,,,,"-9",4,"Algebra","Move all n terms to one side.","Subtract 4n from both sides: −7 = n + 2. Subtract 2: n = −9.",,,,,"Move terms by hand or graph y₁=4x−7 and y₂=5x+2 in Desmos and read the x-coordinate of the intersection.",,,,,numeric_entry,0,algebra,linear-equations,extracted,"spr-sample-set.pdf",3,"c7d3e1a8...",ok,,
+"What value of n satisfies 4n − 7 = 5n + 2?",,,,,"-9",4,"Algebra","Move all n terms to one side.","Subtract 4n from both sides: −7 = n + 2. Subtract 2: n = −9.",,,,,"Move terms by hand or graph y₁=4x−7 and y₂=5x+2 in Desmos and read the x-coordinate of the intersection.",,,,,numeric_entry,0,algebra,linear-equations-one-variable,extracted,"spr-sample-set.pdf",3,"c7d3e1a8...",ok,,
 ```
 
 ### Cross-text connection, ok status
 
 ```csv
-"Based on the texts, how would the author of Text 2 most likely respond to the claim made in Text 1?","By agreeing with the claim and supplying additional supporting evidence.","By agreeing with the principle but questioning whether current data confirm the predicted effect.","By rejecting the claim outright as unsupported by any evidence.","By arguing that emotional development has nothing to do with outdoor play.",B,5,"Craft & Structure",,"Text 2 doesn't dispute the principle (essential outdoor play) but observes the predicted decline in well-being hasn't shown up in the data — principled agreement plus empirical caution.",,"Captures principled agreement plus empirical skepticism — the exact stance Text 2 takes.",,,,,,"Unstructured outdoor play is essential to children's emotional development.","Recent surveys document that today's children spend less time in unstructured outdoor play than at any point in the past century. So far, however, no measurable population-level decline in emotional well-being among adolescents has been observed.",multiple_choice,,craft_structure,cross-text-connections,extracted,"rw-paired-set-2.pdf",18,"d4f7a2b8...",ok,,
+"Based on the texts, how would the author of Text 2 most likely respond to the claim made in Text 1?","By agreeing with the claim and supplying additional supporting evidence.","By agreeing with the principle but questioning whether current data confirm the predicted effect.","By rejecting the claim outright as unsupported by any evidence.","By arguing that emotional development has nothing to do with outdoor play.",B,5,"Information & Ideas",,"Text 2 doesn't dispute the principle (essential outdoor play) but observes the predicted decline in well-being hasn't shown up in the data — principled agreement plus empirical caution.",,"Captures principled agreement plus empirical skepticism — the exact stance Text 2 takes.",,,,,,"Unstructured outdoor play is essential to children's emotional development.","Recent surveys document that today's children spend less time in unstructured outdoor play than at any point in the past century. So far, however, no measurable population-level decline in emotional well-being among adolescents has been observed.",multiple_choice,,info_ideas,cross-text-synthesis,extracted,"rw-paired-set-2.pdf",18,"d4f7a2b8...",ok,,
 ```
 
 ---
@@ -609,47 +599,68 @@ TAXONOMY — locked, never deviate
   expression_ideas → "Expression of Ideas"
   conventions      → "Standard English Conventions"
 
-72 CONCEPT SLUGS (use as the `concept_slug` field value).
+89 CONCEPT SLUGS (use as the `concept_slug` field value).
 Pick the SINGLE most-relevant slug. Never invent.
 
-ALGEBRA (domain: algebra):
-  linear-equations, systems-of-equations, linear-inequalities,
-  linear-functions, slope-intercept, systems-of-inequalities,
-  absolute-value, linear-word-problems
+ALGEBRA (6, domain: algebra):
+  linear-equations-one-variable, linear-equations-two-variables,
+  linear-inequalities, systems-of-linear-equations,
+  systems-of-linear-inequalities, absolute-value-equations
 
-ADVANCED MATH (domain: advanced_math):
-  quadratics, quadratic-vertex, polynomials, exponential-functions,
-  rational-expressions, function-notation, function-transformations,
-  radical-equations, exponential-growth-decay, nonlinear-systems,
-  equivalent-expressions, complex-numbers
+ADVANCED MATH (17, domain: advanced_math):
+  properties-of-exponents, simplifying-algebraic-expressions,
+  evaluating-and-interpreting-functions, introduction-to-polynomials,
+  quadratic-equations-factoring, quadratic-equations-quadratic-formula,
+  quadratic-functions-vertex-form, polynomial-operations,
+  rational-expressions, radical-expressions, exponential-growth-and-decay,
+  function-transformations, linear-vs-exponential-models,
+  nonlinear-systems-of-equations,
+  algebraic-manipulation-of-complex-expressions,
+  multi-step-problem-solving, full-section-strategy
 
-GEOMETRY & TRIGONOMETRY (domain: geometry):
-  triangles, circles, coordinate-geometry, trigonometry, volume,
-  area-perimeter, lines-and-angles, circle-equations, arc-sector,
-  right-triangle-trig, unit-circle
+GEOMETRY & TRIGONOMETRY (8, domain: geometry):
+  area-perimeter-and-volume, angle-relationships,
+  coordinate-plane-geometry, triangle-congruence-and-similarity,
+  pythagorean-theorem-and-distance-formula, trigonometric-ratios,
+  circle-equations-in-standard-form, arc-length-and-sector-area
 
-PROBLEM-SOLVING & DATA ANALYSIS (domain: data_analysis):
-  ratios-rates, percentages, statistics-center, statistics-spread,
-  statistics-inference, probability, data-interpretation,
-  two-way-tables, scatterplots, unit-conversion, proportional-reasoning
+PROBLEM-SOLVING & DATA ANALYSIS (9, domain: data_analysis):
+  ratios-and-proportions, percentages, unit-rates-and-conversions,
+  scatterplots-and-lines-of-best-fit, statistical-measures,
+  probability-basics, two-way-tables,
+  statistical-inference-and-margin-of-error, interpreting-complex-data
 
-INFORMATION & IDEAS (domain: info_ideas):
-  central-idea, command-of-evidence, inference, quantitative-evidence,
-  purpose-and-function, summarizing, comparing-texts
+INFORMATION & IDEAS (15, domain: info_ideas):
+  main-idea-and-central-claims, supporting-details-and-evidence,
+  inference-and-implicit-meaning, central-idea-vs-theme,
+  citing-textual-evidence, cross-text-synthesis,
+  charts-and-data-in-passages, interpreting-graphs-alongside-text,
+  command-of-evidence-textual, command-of-evidence-quantitative,
+  counterclaims-and-rebuttals, dual-passage-analysis,
+  statistical-claim-evaluation, information-and-ideas-integration,
+  cross-disciplinary-evidence-use
 
-CRAFT & STRUCTURE (domain: craft_structure):
-  words-in-context, rhetorical-purpose, text-structure,
-  cross-text-connections, point-of-view, argument-structure,
-  tone-and-style
+CRAFT & STRUCTURE (14, domain: craft_structure):
+  authors-purpose-and-intent, text-organization-patterns,
+  vocabulary-in-context, word-choice-and-connotation,
+  rhetorical-appeals, tone-and-point-of-view,
+  evaluating-argument-strength, authorial-perspective-and-bias,
+  advanced-argumentation-analysis, literary-authorial-purpose,
+  nuanced-vocabulary-in-context, precise-word-choice-in-context,
+  structural-analysis-of-texts, logical-structure-of-arguments
 
-EXPRESSION OF IDEAS (domain: expression_ideas):
-  transitions, rhetorical-synthesis, precision, sentence-combining,
-  relevance, introductions-conclusions
+EXPRESSION OF IDEAS (6, domain: expression_ideas):
+  transitional-words-and-phrases, redundancy-and-conciseness,
+  sentence-variety-and-combining, multi-paragraph-structure,
+  rhetorical-synthesis, advanced-transitions-and-cohesion
 
-STANDARD ENGLISH CONVENTIONS (domain: conventions):
-  subject-verb-agreement, punctuation, sentence-boundaries,
-  pronoun-agreement, modifier-placement, parallel-structure,
-  verb-tense, apostrophes, colons-and-dashes, quotation-marks
+STANDARD ENGLISH CONVENTIONS (14, domain: conventions):
+  subject-verb-agreement, verb-tense, pronouns-and-nouns,
+  apostrophes-plural-vs-possessive, periods-and-semicolons,
+  comma-fanboys, commas-and-dependent-clauses,
+  non-essential-information, commas-with-names-and-titles,
+  additional-comma-uses-and-misuses, colons-and-dashes,
+  parallel-structure-and-word-pairs, question-marks, modifier-placement
 
 ═══════════════════════════════════════════════════
 DIFFICULTY (integer 1-7)

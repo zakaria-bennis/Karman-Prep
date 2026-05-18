@@ -7,9 +7,12 @@ This document is the source of truth for:
 
 1. The migration that extends `quiz_questions`
 2. The locked CSV column order the routine must emit
-3. The locked 72-slug taxonomy + 8-cluster mapping
+3. The 8-domain / 8-cluster mapping (slug list is canonical in
+   [`src/lib/question-bank/taxonomy.ts`](../../src/lib/question-bank/taxonomy.ts) —
+   currently **89 slugs**, up from the legacy 72-slug draft this
+   doc previously embedded)
 4. The importer code changes
-5. The new admin "Question Review" UI
+5. The admin "Question Review" UI behaviour
 6. The two follow-up search features
 
 Decisions agreed in chat are listed inline — do not re-litigate them.
@@ -169,7 +172,7 @@ import_flag_reason
 | `question_format` | string | yes | `multiple_choice` (default) or `numeric_entry` |
 | `numeric_tolerance` | number | optional, SPR-only | ± range; blank = exact match |
 | `domain` | string | yes | One of 8 domain slugs (see §3) |
-| `concept_slug` | string | yes | One of the 72 locked slugs (see §3) |
+| `concept_slug` | string | yes | One of the 89 locked slugs — canonical list in `src/lib/question-bank/taxonomy.ts` (see §3) |
 | `answer_source` | string | yes | `extracted` / `inferred` / `hand_corrected` |
 | `source_pdf` | string | yes | Filename of source PDF |
 | `source_page` | integer | yes | Page number |
@@ -216,77 +219,47 @@ expression_ideas  → "Expression of Ideas"
 conventions       → "Standard English Conventions"
 ```
 
-### Concept slugs (72) grouped by cluster
+### Concept slugs (89) — canonical list lives elsewhere
 
-```
-ALGEBRA (8)
-  linear-equations · systems-of-equations · linear-inequalities
-  linear-functions · slope-intercept · systems-of-inequalities
-  absolute-value · linear-word-problems
+> **Don't enumerate the slug list in this doc.** Every additional
+> copy is a drift target. Earlier drafts embedded a 72-slug list
+> with shorter names (`linear-equations`, `quadratics`) — that list
+> is **stale**. Audit finding CRIT-3 traced the drift.
 
-ADVANCED MATH (12)
-  quadratics · quadratic-vertex · polynomials · exponential-functions
-  rational-expressions · function-notation · function-transformations
-  radical-equations · exponential-growth-decay · nonlinear-systems
-  equivalent-expressions · complex-numbers
+Single sources of truth (in order of authority):
 
-GEOMETRY & TRIGONOMETRY (11)
-  triangles · circles · coordinate-geometry · trigonometry · volume
-  area-perimeter · lines-and-angles · circle-equations · arc-sector
-  right-triangle-trig · unit-circle
+1. **TypeScript:**
+   [`src/lib/question-bank/taxonomy.ts`](../../src/lib/question-bank/taxonomy.ts)
+   exports `CONCEPT_SLUGS`, derived at module load from
+   [`src/data/curriculum/math.ts`](../../src/data/curriculum/math.ts)
+   and
+   [`src/data/curriculum/reading-writing.ts`](../../src/data/curriculum/reading-writing.ts).
+   Currently **89 slugs**. The importer validates against this.
+2. **Human-readable / paste-into-ChatGPT:**
+   [`question-imports/chatgpt/taxonomy.txt`](../../question-imports/chatgpt/taxonomy.txt)
+   enumerates all 89 slugs grouped by domain.
+3. **Full extractor prompt (paste-into-ChatGPT, Code Interpreter mode):**
+   [`question-imports/chatgpt/KarmanGPT.txt`](../../question-imports/chatgpt/KarmanGPT.txt) §6.
+4. **Gemini-targeted system prompt:**
+   `SYSTEM_SPEC` inside
+   [`question-imports/stage2_classify.py`](../../question-imports/stage2_classify.py).
 
-PROBLEM-SOLVING & DATA ANALYSIS (11)
-  ratios-rates · percentages · statistics-center · statistics-spread
-  statistics-inference · probability · data-interpretation
-  two-way-tables · scatterplots · unit-conversion · proportional-reasoning
+Slugs use **dashes** (`linear-equations-one-variable`,
+`quadratic-equations-factoring`), not the old short names. Domain
+values use **underscores** (`algebra`, `advanced_math`).
 
-INFORMATION & IDEAS (7)
-  central-idea · command-of-evidence · inference · quantitative-evidence
-  purpose-and-function · summarizing · comparing-texts
+The `taxonomy.ts` module also exports these helpers used across the
+codebase:
 
-CRAFT & STRUCTURE (7)
-  words-in-context · rhetorical-purpose · text-structure
-  cross-text-connections · point-of-view · argument-structure
-  tone-and-style
-
-EXPRESSION OF IDEAS (6)
-  transitions · rhetorical-synthesis · precision · sentence-combining
-  relevance · introductions-conclusions
-
-STANDARD ENGLISH CONVENTIONS (10)
-  subject-verb-agreement · punctuation · sentence-boundaries
-  pronoun-agreement · modifier-placement · parallel-structure
-  verb-tense · apostrophes · colons-and-dashes · quotation-marks
-```
-
-### TypeScript constant location
-
-Build `src/lib/question-bank/taxonomy.ts` exporting:
-
-```ts
-export const SAT_DOMAINS = [...] as const;
-export type SATDomain = typeof SAT_DOMAINS[number];
-
-export const CLUSTER_BY_DOMAIN: Record<SATDomain, string> = {...};
-
-export const CONCEPT_SLUGS: Array<{
-  slug: string;
-  label: string;
-  domain: SATDomain;
-}> = [
-  { slug: "linear-equations", label: "Linear equations", domain: "algebra" },
-  // ... 71 more
-];
-
-// Helpers
-export function clusterFromSlug(slug: string): string;
-export function domainFromSlug(slug: string): SATDomain;
-export function isValidSlug(slug: string): boolean;
-export function searchSlugs(query: string): typeof CONCEPT_SLUGS;
-```
-
-The `searchSlugs` helper powers the typeahead; matches against
-`slug`, `label`, AND `domain` substring (case-insensitive).
+- `isValidSlug(slug)` → boolean
+- `isValidDomain(value)` → boolean
+- `clusterFromSlug(slug)` → cluster display label
+- `domainFromSlug(slug)` → domain key
+- `nodeIdFromSlug(slug)` → curriculum node id (drives the auto-pick
+  in the Review UI)
+- `labelFromSlug(slug)` → display label
+- `slugFromNodeId(nodeId)` → inverse of `nodeIdFromSlug`
+- `searchSlugs(query)` → typeahead-friendly filtered list
 
 ---
 
