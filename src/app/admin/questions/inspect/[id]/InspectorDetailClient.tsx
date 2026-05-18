@@ -127,6 +127,7 @@ export default function InspectorDetailClient({ question, findings }: Props) {
           "passage_a",
           "passage_b",
           "correct_answer",
+          "concept_slug",
         ] as const;
         for (const k of stringFields) {
           if (form[k] !== original[k]) {
@@ -145,6 +146,22 @@ export default function InspectorDetailClient({ question, findings }: Props) {
             }
           });
           if (Object.keys(choices).length > 0) patch.choices = choices;
+        }
+        // Per-choice explanations (MC only) — bundle into
+        // `explanations_per_choice` (note the plural — payload field
+        // distinct from the JSONB column name).
+        if (isMc) {
+          const epc: Record<string, string> = {};
+          let epcChanged = false;
+          (["A", "B", "C", "D"] as const).forEach((letter) => {
+            const k = `explanation_${letter.toLowerCase()}` as keyof EditFormShape;
+            if (form[k] !== original[k]) epcChanged = true;
+            if (form[k]) epc[letter] = form[k] as string;
+          });
+          if (epcChanged) {
+            patch.explanations_per_choice = epc;
+            changes++;
+          }
         }
         // numeric_tolerance — parse-to-number-or-null
         if (form.numeric_tolerance !== original.numeric_tolerance) {
