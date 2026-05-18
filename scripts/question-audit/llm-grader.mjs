@@ -755,7 +755,257 @@ async function main() {
     }
   }
 
+  // ── Pass 5: well-formedness check ──────────────────────────
+  // Independent of the answer, ask Flash whether the question itself
+  // is well-formed. Catches OCR errors the answer-letter grader
+  // silently auto-corrected: missing exponents, missing parens,
+  // truncated stems, ambiguous wording.
+  //
+  // Run on every gradable row (not just disagreements). The Flash
+  // quota easily covers 94 extra calls per test.
+  const gradableRows = rows
+    .map((r, i) => ({ i, r, result: results[i] }))
+    .filter(
+      ({ r, result }) =>
+        result &&
+        result.verdict !== "skip_no_text" &&
+        r.question_text &&
+        r.question_text.length > 10
+    );
+
+  if (gradableRows.length > 0) {
+    console.log("");
+    console.log(`Pass 5: well-formedness check on ${gradableRows.length} rows…`);
+    for (const { i, r, result } of gradableRows) {
+      process.stdout.write(`[form] row ${i + 1} (p${r.source_page})… `);
+      let raw;
+      try {
+        raw = await callGemini(FLASH_MODEL, buildWellFormedPrompt(r), null);
+      } catch (err) {
+        const msg = String(err).slice(0, 100);
+        console.log(`ERROR: ${msg}`);
+        if (msg.includes("DAILY QUOTA EXHAUSTED")) {
+          console.log("Stopping well-formedness check due to quota.");
+          break;
+        }
+        result.wellformed_check_error = msg;
+        continue;
+      }
+      const parsed = parseSolveResponse(raw);
+      if (!parsed) {
+        console.log("parse fail");
+        result.wellformed_check_error = "json parse";
+        continue;
+      }
+      const wf = (parsed.well_formed || "").toLowerCase();
+      const issues = parsed.specific_issues || "";
+      result.well_formed = wf;
+      result.well_formed_issues = issues;
+      if (wf === "no") {
+        process.stdout.write(`ILL-FORMED`);
+        if (issues) process.stdout.write(` ⚠ ${issues.slice(0, 60)}`);
+        process.stdout.write("\n");
+        result.verdict_secondary = result.verdict_secondary
+          ? result.verdict_secondary + "+ill_formed"
+          : "ill_formed";
+      } else if (wf === "partial") {
+        process.stdout.write(`partial`);
+        if (issues) process.stdout.write(` ⚠ ${issues.slice(0, 60)}`);
+        process.stdout.write("\n");
+      } else {
+        process.stdout.write(`ok\n`);
+      }
+    }
+  }
+
+  // ── Pass 7: vision cross-check on flagged rows ─────────────
+  // For any row flagged by Pass 5 (ill-formed) OR with an open
+  // disagreement (Flash and Pro both unsure), render the source
+  // PDF page and ask vision LLM to compare. Catches OCR-level
+  // mismatches between what's in the PDF and what was extracted
+  // into the CSV.
+  //
+  // Skipped if running --from-db (page PNGs aren't available);
+  // CSV mode only for v1.
+  const pageRoot = FROM_DB ? null : "question-imports/extract-out";
+  if (pageRoot) {
+    const visionTargets = rows
+      .map((r, i) => ({ i, r, result: results[i] }))
+      .filter(
+        ({ result }) =>
+          result &&
+          (result.well_formed === "no" ||
+            result.well_formed === "partial" ||
+            result.verdict === "likely_wrong" ||
+            result.verdict === "uncertain" ||
+            (result.figure_matches && result.figure_matches !== "yes"))
+      );
+
+    if (visionTargets.length > 0) {
+      console.log("");
+      console.log(
+        `Pass 7: vision cross-check on ${visionTargets.length} flagged rows (compare CSV → source page)…`
+      );
+      for (const { i, r, result } of visionTargets) {
+        if (!r.source_pdf || !r.source_page) continue;
+        const pdfStem = r.source_pdf.replace(/\.pdf$/i, "");
+        const pagePath = `${pageRoot}/${pdfStem}/page-${String(r.source_page).padStart(3, "0")}.png`;
+        const pageBytes = await fetchImageBytesFromPath(pagePath);
+        if (!pageBytes) {
+          // Page PNG not on disk (e.g., extract-out cleaned up).
+          // Mark as un-cross-checked but don't error.
+          result.vision_check_error = "page PNG not found";
+          continue;
+        }
+        process.stdout.write(`[diff] row ${i + 1} (p${r.source_page})… `);
+        let raw;
+        try {
+          raw = await callGemini(FLASH_MODEL, buildVisionDiffPrompt(r), pageBytes);
+        } catch (err) {
+          const msg = String(err).slice(0, 100);
+          console.log(`ERROR: ${msg}`);
+          if (msg.includes("DAILY QUOTA EXHAUSTED")) {
+            console.log("Stopping vision cross-check due to quota.");
+            break;
+          }
+          result.vision_check_error = msg;
+          continue;
+        }
+        const parsed = parseSolveResponse(raw);
+        if (!parsed) {
+          console.log("parse fail");
+          result.vision_check_error = "json parse";
+          continue;
+        }
+        const matches = (parsed.transcription_matches || "").toLowerCase();
+        const diffs = parsed.transcription_diffs || "";
+        result.vision_transcription_matches = matches;
+        result.vision_transcription_diffs = diffs;
+        if (matches === "no") {
+          process.stdout.write(`DIFFERS`);
+          if (diffs) process.stdout.write(` ⚠ ${diffs.slice(0, 60)}`);
+          process.stdout.write("\n");
+          result.verdict_secondary = result.verdict_secondary
+            ? result.verdict_secondary + "+ocr_mismatch"
+            : "ocr_mismatch";
+        } else if (matches === "partial") {
+          process.stdout.write(`partial`);
+          if (diffs) process.stdout.write(` ⚠ ${diffs.slice(0, 60)}`);
+          process.stdout.write("\n");
+        } else {
+          process.stdout.write(`ok\n`);
+        }
+      }
+    }
+  }
+
   await writeReports(results);
+}
+
+// Helper: read a PNG from disk and return {mime, buf} for vision input.
+async function fetchImageBytesFromPath(filepath) {
+  try {
+    const buf = await readFile(filepath);
+    return { mime: "image/png", buf };
+  } catch {
+    return null;
+  }
+}
+
+// ── Pass 5 (well-formedness) prompt ──
+function buildWellFormedPrompt(row) {
+  const isMc = row.question_format !== "numeric_entry";
+  const lines = [];
+  lines.push(
+    "You are reviewing whether an SAT question is WELL-FORMED — independent of the answer."
+  );
+  lines.push("");
+  lines.push(
+    "Look for transcription bugs from the OCR/extraction pipeline that make the question ambiguous, incomplete, or unsolvable as written. Examples of ill-formed:"
+  );
+  lines.push("  · Math expression missing a parenthesis: '3x + 5 = 2x + 8'   (OK)");
+  lines.push("                                          '3x + 5 = 2x +'    (truncated)");
+  lines.push("  · Missing exponent: 'x2 + 5x = 37' instead of 'x^2 + 5x = 37'");
+  lines.push("  · Missing operator: '3x  + = 12'");
+  lines.push(
+    "  · Question references a quantity that is never defined: 'What is the value of b?' when b is not in the equation"
+  );
+  lines.push(
+    "  · Question references a figure that isn't attached AND can't be inferred from text"
+  );
+  lines.push("  · Question stem ends mid-sentence");
+  lines.push("  · Two answer choices have identical text (within the visible part)");
+  lines.push("  · Choices use inconsistent units / formats that obscure the question");
+  lines.push("");
+  if (row.passage_intro) lines.push("PASSAGE INTRO: " + row.passage_intro);
+  if (row.passage) lines.push("PASSAGE: " + row.passage);
+  if (row.passage_a)
+    lines.push("PASSAGE A: " + row.passage_a + "\nPASSAGE B: " + (row.passage_b || ""));
+  lines.push("");
+  lines.push("QUESTION TEXT: " + row.question_text);
+  if (isMc) {
+    lines.push("");
+    lines.push("CHOICES:");
+    lines.push(`A) ${row.choice_a}`);
+    lines.push(`B) ${row.choice_b}`);
+    lines.push(`C) ${row.choice_c}`);
+    lines.push(`D) ${row.choice_d}`);
+  }
+  lines.push("");
+  lines.push(
+    "Is the question well-formed? Could a careful student be confident they're reading what was intended? Do NOT comment on whether the answer is correct — focus on whether the QUESTION makes sense as written."
+  );
+  lines.push("");
+  lines.push("Respond in JSON:");
+  lines.push("{");
+  lines.push('  "well_formed": "yes" | "partial" | "no",');
+  lines.push(
+    '  "specific_issues": "<list any OCR/transcription issues you can identify, or empty>"'
+  );
+  lines.push("}");
+  return lines.join("\n");
+}
+
+// ── Pass 7 (vision cross-check) prompt ──
+// The user message includes BOTH the rendered page PNG AND the
+// extracted question_text. We ask the vision LLM to diff them.
+function buildVisionDiffPrompt(row) {
+  const isMc = row.question_format !== "numeric_entry";
+  const lines = [];
+  lines.push(
+    "Compare the text our pipeline EXTRACTED below against what's actually visible on the attached PDF page image."
+  );
+  lines.push("");
+  lines.push("EXTRACTED QUESTION TEXT:");
+  lines.push(row.question_text);
+  if (isMc) {
+    lines.push("");
+    lines.push("EXTRACTED CHOICES:");
+    lines.push(`A) ${row.choice_a}`);
+    lines.push(`B) ${row.choice_b}`);
+    lines.push(`C) ${row.choice_c}`);
+    lines.push(`D) ${row.choice_d}`);
+  }
+  lines.push("");
+  lines.push(
+    "Look at the attached page image and identify any differences between what you SEE on the page and the EXTRACTED text above. Common issues:"
+  );
+  lines.push("  · Missing exponents (page shows 'x²' but extracted has 'x2')");
+  lines.push("  · Missing parens, commas, or operators");
+  lines.push("  · Truncated text (extracted ends mid-sentence vs full sentence on page)");
+  lines.push("  · Wrong variable names");
+  lines.push("  · Choice ordering reversed");
+  lines.push("");
+  lines.push(
+    "Note: the page may contain OTHER questions besides this one. Identify the question that MATCHES the extracted stem first (usually labeled with a question number), then diff."
+  );
+  lines.push("");
+  lines.push("Respond in JSON:");
+  lines.push("{");
+  lines.push('  "transcription_matches": "yes" | "partial" | "no",');
+  lines.push('  "transcription_diffs": "<list specific differences, or empty if matches>"');
+  lines.push("}");
+  return lines.join("\n");
 }
 
 // ── Pass 3 (figure coherence) prompt ──
@@ -981,6 +1231,54 @@ async function writeReports(results) {
       );
     }
     if (explPartial.length > 20) md.push(`\n_... and ${explPartial.length - 20} more._`);
+  }
+
+  // ── Section: ill-formed questions (Pass 5) ──
+  const illFormed = results.filter((r) => r.well_formed === "no");
+  if (illFormed.length) {
+    md.push(`\n## 🛠️ Ill-formed questions (${illFormed.length})\n`);
+    md.push(
+      `Pass 5 flagged these as having OCR/transcription bugs that make the question ambiguous, incomplete, or unsolvable AS WRITTEN. The stored answer may still be intended-correct, but the visible question doesn't make sense without fixing.\n`
+    );
+    for (const r of illFormed) {
+      md.push(`### Row ${r.row_idx} — \`${r.id ?? r.source}#${r.row_idx}\``);
+      md.push(`**Source:** ${r.source_pdf} p${r.source_page} · ${r.domain}`);
+      md.push(`**Issues:** ${r.well_formed_issues || "(unspecified)"}`);
+      md.push(`**Question:** ${r.question_text_snippet}…`);
+      if (r.vision_transcription_matches === "no" || r.vision_transcription_matches === "partial") {
+        md.push(`**Pass 7 vision diff vs source PDF:** ${r.vision_transcription_diffs}`);
+      }
+      md.push("");
+    }
+  }
+
+  // ── Section: partial well-formedness ──
+  const wfPartial = results.filter((r) => r.well_formed === "partial");
+  if (wfPartial.length) {
+    md.push(`\n## 🛠️ Questions with minor formatting issues (${wfPartial.length})\n`);
+    md.push(`Pass 5 partial — the question is mostly OK but has minor issues worth checking.\n`);
+    for (const r of wfPartial.slice(0, 30)) {
+      md.push(
+        `- Row ${r.row_idx} (p${r.source_page}): ${(r.well_formed_issues || "").slice(0, 120)}`
+      );
+    }
+    if (wfPartial.length > 30) md.push(`\n_... and ${wfPartial.length - 30} more._`);
+  }
+
+  // ── Section: OCR mismatches (Pass 7) ──
+  const ocrMismatch = results.filter((r) => r.vision_transcription_matches === "no");
+  if (ocrMismatch.length) {
+    md.push(`\n## 📷 OCR transcription mismatches (${ocrMismatch.length})\n`);
+    md.push(
+      `Pass 7 compared the extracted CSV text against the source PDF page and found a real diff. These are usually the root cause of ill-formed flags — the OCR/stage-2 extraction lost or mangled characters.\n`
+    );
+    for (const r of ocrMismatch) {
+      md.push(`### Row ${r.row_idx} — \`${r.id ?? r.source}#${r.row_idx}\``);
+      md.push(`**Source:** ${r.source_pdf} p${r.source_page}`);
+      md.push(`**Diffs identified:** ${r.vision_transcription_diffs || "(unspecified)"}`);
+      md.push(`**Extracted question:** ${r.question_text_snippet}…`);
+      md.push("");
+    }
   }
 
   // ── Section: solver-source breakdown (Pass 1 fallback transparency) ──
