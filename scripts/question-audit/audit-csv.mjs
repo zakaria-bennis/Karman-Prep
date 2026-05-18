@@ -739,6 +739,214 @@ function checkRow(rowIdx, sourceFile, r) {
       );
     }
   }
+
+  // ── F. OCR-corruption heuristics (Pass 6) ──
+  // These flag PATTERNS that frequently indicate transcription bugs
+  // from the stage 1 OCR / stage 2 LLM extraction pipeline. They are
+  // heuristics — some false positives are expected. The Inspector UI
+  // and human reviewer ultimately decide.
+  checkOcrPatterns(rowIdx, sourceFile, r);
+}
+
+// Extract substrings inside paired `$...$` delimiters. Used by the
+// OCR-pattern heuristics so we can scrutinize math content without
+// false-flagging plain-English uses of digits and letters.
+function extractMathRegions(s) {
+  const out = [];
+  let i = 0;
+  while (i < s.length) {
+    const start = s.indexOf("$", i);
+    if (start === -1) break;
+    // Skip $$...$$ display math by matching the second $ if present
+    const isDisplay = s[start + 1] === "$";
+    const openLen = isDisplay ? 2 : 1;
+    const closeNeedle = isDisplay ? "$$" : "$";
+    const searchFrom = start + openLen;
+    const end = s.indexOf(closeNeedle, searchFrom);
+    if (end === -1) break;
+    out.push({ start, end, content: s.substring(searchFrom, end) });
+    i = end + closeNeedle.length;
+  }
+  return out;
+}
+
+const _CHECK_FIELDS = [
+  "question_text",
+  "choice_a",
+  "choice_b",
+  "choice_c",
+  "choice_d",
+  "hint",
+  "explanation_text",
+  "explanation_a",
+  "explanation_b",
+  "explanation_c",
+  "explanation_d",
+  "passage_intro",
+  "passage",
+  "passage_a",
+  "passage_b",
+];
+
+function checkOcrPatterns(rowIdx, sourceFile, r) {
+  for (const f of _CHECK_FIELDS) {
+    const v = r[f] || "";
+    if (!v) continue;
+
+    // F7: Unicode replacement character — encoding error, ALWAYS bad.
+    if (/�/.test(v)) {
+      flag(
+        rowIdx,
+        sourceFile,
+        "BLOCKING",
+        "ocr_pattern",
+        "F7_replacement_char",
+        `${f}: contains Unicode replacement char U+FFFD (encoding error)`,
+        v.slice(0, 80)
+      );
+    }
+
+    // F1: bare letter+digit inside `$...$` regions — likely missing
+    // exponent (`x2` should be `x^2`). Restrict to math regions to
+    // avoid false-flagging "Step 1", "Type 2", coordinate labels, etc.
+    const mathRegions = extractMathRegions(v);
+    for (const m of mathRegions) {
+      const math = m.content;
+      // We want patterns like 'x2', 'y3', 'a4' — letter directly
+      // followed by single digit 2-9 — NOT preceded by `^`, `_`,
+      // or another digit. Also exclude common safe contexts.
+      const re = /(?<![\^_0-9\\])([a-zA-Z])([2-9])(?![0-9])/g;
+      let match;
+      while ((match = re.exec(math))) {
+        const letter = match[1];
+        const digit = match[2];
+        // Skip common false positives:
+        //   · `\d N` units like 'cm2' (cm² acceptable but very
+        //     specific — leave it for now; flag if user wants)
+        //   · 'x100', 'y10' caught by lookahead already
+        //   · 'log2' — exponent NOT meant here, but rare in SAT
+        if (
+          /^(cm|km|mm|kg|kn|kw|lb)/.test(
+            math.substring(Math.max(0, match.index - 1), match.index + 1)
+          )
+        ) {
+          continue;
+        }
+        flag(
+          rowIdx,
+          sourceFile,
+          "WARNING",
+          "ocr_pattern",
+          "F1_bare_digit_after_letter",
+          `${f}: math contains '${letter}${digit}' (likely missing exponent ^)`,
+          math.slice(0, 60)
+        );
+        // One flag per math region is enough; don't spam
+        break;
+      }
+    }
+
+    // F2: bare `sqrt(...)` — should be `\sqrt{...}` for KaTeX.
+    // Avoid matching `\sqrt(` (already escaped).
+    if (/(?<!\\)sqrt\s*\(/.test(v)) {
+      flag(
+        rowIdx,
+        sourceFile,
+        "WARNING",
+        "ocr_pattern",
+        "F2_sqrt_not_latex",
+        `${f}: contains plain 'sqrt(' — should be '\\sqrt{...}' for KaTeX`,
+        v.slice(0, 80)
+      );
+    }
+
+    // F3: Unicode math symbols mixed with LaTeX command equivalents
+    // in the same field. Indicates inconsistent encoding pass.
+    const hasUni = /[π√≤≥≠÷×∞∑∏∫°]/.test(v);
+    const hasLatex = /\\(pi|sqrt|leq|geq|neq|div|times|infty|sum|prod|int)\b/.test(v);
+    if (hasUni && hasLatex) {
+      flag(
+        rowIdx,
+        sourceFile,
+        "NOTICE",
+        "ocr_pattern",
+        "F3_unicode_latex_mix",
+        `${f}: mixes Unicode math symbols with \\latex commands`,
+        v.slice(0, 80)
+      );
+    }
+
+    // F4: plain `N/M` outside math mode — likely should be `\frac{N}{M}`
+    // or wrapped in `$...$`. Skip dates (1/2/2020).
+    let textOutsideMath = v;
+    for (const m of mathRegions) textOutsideMath = textOutsideMath.replace(`$${m.content}$`, "");
+    const fracMatch = textOutsideMath.match(/(?<!\d)\b(\d{1,3})\/(\d{1,3})(?!\/\d{2})\b/);
+    if (fracMatch && !/\b\d{1,2}\/\d{1,2}\/\d{2,4}\b/.test(textOutsideMath)) {
+      flag(
+        rowIdx,
+        sourceFile,
+        "NOTICE",
+        "ocr_pattern",
+        "F4_fraction_outside_math",
+        `${f}: contains '${fracMatch[0]}' outside math mode — may need '\\frac' or '$..$'`,
+        v.slice(0, 80)
+      );
+    }
+
+    // F5: question_text doesn't end with sentence terminator —
+    // possible truncation by PDF extraction.
+    if (f === "question_text") {
+      const trimmed = v.trim();
+      const lastChar = trimmed.slice(-1);
+      if (!".?:".includes(lastChar) && trimmed.length > 20) {
+        // Exception: if it ends with `$` (math expression) or a closing
+        // brace `}` or a number, that's often legit ("What is x?", "find $f(x)$").
+        const last2 = trimmed.slice(-2);
+        if (!"$})".includes(lastChar) && !/[\d?]/.test(last2)) {
+          flag(
+            rowIdx,
+            sourceFile,
+            "WARNING",
+            "ocr_pattern",
+            "F5_no_terminal_punct",
+            `${f}: ends mid-sentence without . ? : — possible truncation`,
+            "..." + trimmed.slice(-60)
+          );
+        }
+      }
+    }
+
+    // F6: question contains `___` or `[BLANK]` — verify the blank
+    // position makes sense for fill-in conventions/expression questions.
+    if (/_{3,}|\[BLANK\]/i.test(v)) {
+      flag(
+        rowIdx,
+        sourceFile,
+        "NOTICE",
+        "ocr_pattern",
+        "F6_blank_pattern",
+        `${f}: contains '___' or '[BLANK]' — verify blank position`,
+        v.slice(0, 80)
+      );
+    }
+
+    // F8: adjacent duplicate words (`the the`, `is is`). OCR
+    // sometimes produces these, especially across line breaks.
+    // Skip common legitimate doubles: 'had had', 'that that', 'is is'
+    // (some are real, but most ARE OCR bugs).
+    const dupMatch = v.match(/\b(\w{3,})\s+\1\b/i);
+    if (dupMatch) {
+      flag(
+        rowIdx,
+        sourceFile,
+        "NOTICE",
+        "ocr_pattern",
+        "F8_duplicate_word",
+        `${f}: adjacent duplicate word '${dupMatch[1]}'`,
+        dupMatch[0]
+      );
+    }
+  }
 }
 
 // ── Cross-row checks (run after all rows are parsed) ──
