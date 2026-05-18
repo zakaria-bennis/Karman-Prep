@@ -11,7 +11,13 @@
 // ============================================================
 
 import { cn } from "@/lib/utils";
+import { CONCEPT_SLUGS } from "@/lib/question-bank/taxonomy";
 import type { EditFormShape } from "./edit-form-utils";
+
+// Flat list for the <datalist> autocomplete — keeps the input free-text
+// (admin can paste in something we don't recognize; the server action
+// will still update it) but offers all 89 valid slugs as suggestions.
+const ALL_CONCEPT_SLUGS = CONCEPT_SLUGS.map((c) => c.slug).sort();
 
 interface Props {
   form: EditFormShape;
@@ -129,12 +135,74 @@ export default function EditForm({ form, isMc, setForm }: Props) {
           rows={6}
         />
       </FieldGroup>
+
+      {/* Per-choice explanations (MC only) — feeds the
+          explanation_per_choice JSONB column. Strongly encouraged for
+          ≥60% of MC questions per the question-bank spec; the audit
+          flags rows that are missing all four (D6_no_per_choice_expl). */}
+      {isMc && (
+        <FieldGroup
+          label="Per-choice explanations"
+          hint='Why each choice is right or wrong — name the trap pattern ("sign error", "switched units", "partial completion") for distractors'
+        >
+          <div className="space-y-2">
+            {(["A", "B", "C", "D"] as const).map((letter) => {
+              const key = `explanation_${letter.toLowerCase()}` as keyof EditFormShape;
+              const isCorrect = form.correct_answer === letter;
+              return (
+                <div key={letter} className="flex items-start gap-2">
+                  <span
+                    className={cn(
+                      "mt-1 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-[10px] font-bold",
+                      isCorrect
+                        ? "border-emerald-500/60 bg-emerald-500/15 text-emerald-300"
+                        : "border-slate-700 text-slate-500"
+                    )}
+                    title={isCorrect ? "Correct answer" : `Distractor ${letter}`}
+                  >
+                    {letter}
+                  </span>
+                  <Textarea
+                    value={form[key] as string}
+                    onChange={(v) => setForm(key, v as EditFormShape[typeof key])}
+                    rows={2}
+                  />
+                </div>
+              );
+            })}
+          </div>
+        </FieldGroup>
+      )}
+
       <FieldGroup label="Desmos strategy" hint="Calculator hint (optional, math only)">
         <Textarea
           value={form.desmos_strategy}
           onChange={(v) => setForm("desmos_strategy", v)}
           rows={2}
         />
+      </FieldGroup>
+
+      {/* Concept-slug picker — controls which Learn node the question
+          belongs to. Misclassifications by Gemini end up in the wrong
+          adaptive pool, so this is the single most impactful curation
+          field after correct_answer. */}
+      <FieldGroup
+        label="Concept slug"
+        hint="The 89-slug taxonomy from src/data/curriculum/*.ts. Wrong slug = wrong Learn node."
+      >
+        <input
+          list="concept-slug-options"
+          type="text"
+          value={form.concept_slug}
+          onChange={(e) => setForm("concept_slug", e.target.value)}
+          className="w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-1.5 font-mono text-xs text-slate-200 focus:border-violet-500 focus:outline-none"
+          placeholder="e.g. linear-equations-one-variable"
+        />
+        <datalist id="concept-slug-options">
+          {ALL_CONCEPT_SLUGS.map((s) => (
+            <option key={s} value={s} />
+          ))}
+        </datalist>
       </FieldGroup>
     </div>
   );

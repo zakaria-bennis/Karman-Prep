@@ -7,9 +7,15 @@
 
 import type { QuizQuestionWithChoices } from "@/types/quiz";
 
-/** Initial form state derived from a question + its choices. */
+/** Initial form state derived from a question + its choices.
+ *
+ *  explanation_per_choice lives on quiz_questions as a JSONB column
+ *  shaped `{ A?: string; B?: string; C?: string; D?: string }`. We
+ *  flatten it onto explanation_a/b/c/d strings for the form, and the
+ *  save handler re-builds the JSONB on the way out. */
 export function makeInitialForm(question: QuizQuestionWithChoices) {
   const byLetter = new Map(question.answer_choices.map((c) => [c.letter, c.choice_text]));
+  const epc = (question.explanation_per_choice as Record<string, string> | null | undefined) ?? {};
   return {
     question_text: question.question_text ?? "",
     hint: question.hint ?? "",
@@ -26,6 +32,11 @@ export function makeInitialForm(question: QuizQuestionWithChoices) {
     choice_b: byLetter.get("B") ?? "",
     choice_c: byLetter.get("C") ?? "",
     choice_d: byLetter.get("D") ?? "",
+    concept_slug: question.concept_slug ?? "",
+    explanation_a: epc.A ?? "",
+    explanation_b: epc.B ?? "",
+    explanation_c: epc.C ?? "",
+    explanation_d: epc.D ?? "",
   };
 }
 

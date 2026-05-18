@@ -446,6 +446,11 @@ export interface InspectedQuestionEdit {
   correct_answer?: string;
   /** Only for MC questions — text per letter. */
   choices?: { A?: string; B?: string; C?: string; D?: string };
+  /** Per-choice explanations — packed into the explanation_per_choice
+   *  JSONB column. Each letter optional; pass an explicit "" to clear. */
+  explanations_per_choice?: { A?: string; B?: string; C?: string; D?: string };
+  /** Curriculum concept slug (one of the 89 in src/data/curriculum). */
+  concept_slug?: string;
 }
 
 export async function actionUpdateInspectedQuestion(input: InspectedQuestionEdit): Promise<void> {
@@ -468,6 +473,17 @@ export async function actionUpdateInspectedQuestion(input: InspectedQuestionEdit
   if (input.passage_b !== undefined) patch.passage_b = input.passage_b || null;
   if (input.numeric_tolerance !== undefined) patch.numeric_tolerance = input.numeric_tolerance;
   if (input.correct_answer !== undefined) patch.correct_answer = input.correct_answer;
+  if (input.concept_slug !== undefined) patch.concept_slug = input.concept_slug;
+  if (input.explanations_per_choice !== undefined) {
+    // Drop empty strings so the JSONB stores null per-letter rather
+    // than empty entries (the existing data convention).
+    const epc: Record<string, string> = {};
+    (["A", "B", "C", "D"] as const).forEach((letter) => {
+      const v = input.explanations_per_choice?.[letter];
+      if (v) epc[letter] = v;
+    });
+    patch.explanation_per_choice = Object.keys(epc).length > 0 ? epc : null;
+  }
 
   const { error: qErr } = await supabase
     .from("quiz_questions")
@@ -514,6 +530,103 @@ export async function actionUpdateInspectedQuestion(input: InspectedQuestionEdit
   revalidatePath("/admin/questions/inspect");
   revalidatePath(`/admin/questions/inspect/${input.questionId}`);
   revalidatePath("/admin/questions/review");
+}
+
+// ── Bulk Inspector actions ───────────────────────────────────
+// Worklist multi-select wires into these. Each does ONE bulk UPDATE
+// per call so triaging 50 rows is one round-trip, not 50.
+
+/** Resolve every open finding on each of the given questions. Does
+ *  NOT change question.import_status — use the bulk-accept action if
+ *  you also want to flip those questions live. */
+export async function actionBulkResolveFindings(input: {
+  questionIds: string[];
+  note?: string;
+}): Promise<{ resolved: number }> {
+  const userId = await guardAdmin();
+  const { createAdminClient } = await import("@/lib/supabase/server");
+  const supabase = createAdminClient();
+  if (input.questionIds.length === 0) return { resolved: 0 };
+  const { data, error } = await supabase
+    .from("question_findings")
+    .update({
+      resolved_at: new Date().toISOString(),
+      resolved_by: userId,
+      resolved_note: input.note ?? "Bulk-resolved via Inspector",
+    })
+    .in("question_id", input.questionIds)
+    .is("resolved_at", null)
+    .select("id");
+  if (error) throw error;
+  revalidatePath("/admin/questions/inspect");
+  return { resolved: data?.length ?? 0 };
+}
+
+/** Bulk-accept N questions: flip each to import_status='ok' (live)
+ *  + auto-resolve every open finding on each of them (same pattern
+ *  as actionAcceptInspectedQuestion, batched). */
+export async function actionBulkAcceptQuestions(input: {
+  questionIds: string[];
+}): Promise<{ accepted: number; resolvedFindings: number }> {
+  const userId = await guardAdmin();
+  const { createAdminClient } = await import("@/lib/supabase/server");
+  const supabase = createAdminClient();
+  if (input.questionIds.length === 0) return { accepted: 0, resolvedFindings: 0 };
+  const nowIso = new Date().toISOString();
+  // 1. Flip questions to live
+  const { data: qd, error: qErr } = await supabase
+    .from("quiz_questions")
+    .update({
+      import_status: "ok",
+      import_flag_type: null,
+      import_flag_reason: null,
+      updated_at: nowIso,
+    })
+    .in("id", input.questionIds)
+    .select("id");
+  if (qErr) throw qErr;
+  // 2. Auto-resolve all open findings on those rows
+  const { data: fd, error: fErr } = await supabase
+    .from("question_findings")
+    .update({
+      resolved_at: nowIso,
+      resolved_by: userId,
+      resolved_note: "Auto-resolved on bulk Accept Live",
+    })
+    .in("question_id", input.questionIds)
+    .is("resolved_at", null)
+    .select("id");
+  if (fErr) throw fErr;
+  revalidatePath("/admin/questions/inspect");
+  revalidatePath("/admin/questions/review");
+  return { accepted: qd?.length ?? 0, resolvedFindings: fd?.length ?? 0 };
+}
+
+/** Bulk-flag N questions for review. Does NOT touch findings — those
+ *  stay open since the admin is signalling "this row still needs
+ *  attention." */
+export async function actionBulkFlagQuestions(input: {
+  questionIds: string[];
+  reason?: string;
+}): Promise<{ flagged: number }> {
+  await guardAdmin();
+  const { createAdminClient } = await import("@/lib/supabase/server");
+  const supabase = createAdminClient();
+  if (input.questionIds.length === 0) return { flagged: 0 };
+  const { data, error } = await supabase
+    .from("quiz_questions")
+    .update({
+      import_status: "needs_review",
+      import_flag_type: "partial_emit",
+      import_flag_reason: input.reason ?? "Bulk-flagged via Inspector",
+      updated_at: new Date().toISOString(),
+    })
+    .in("id", input.questionIds)
+    .select("id");
+  if (error) throw error;
+  revalidatePath("/admin/questions/inspect");
+  revalidatePath("/admin/questions/review");
+  return { flagged: data?.length ?? 0 };
 }
 
 /** Reverse of accept — flag a previously-live question for review
