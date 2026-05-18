@@ -343,3 +343,19 @@ export const cohortMemberMutationInputSchema = z.object({
   cohortId: nonEmptyString,
   studentUserId: nonEmptyString,
 });
+
+// ── inspector-actions.ts (re-audit + apply-fix) ─────────────
+// Re-audit takes only a question id; the row is re-fetched + scanned
+// server-side via @/lib/question-bank/audit-rules.
+export const reauditRowInputSchema = z.object({
+  questionId: nonEmptyString,
+});
+
+// Apply-Pro's-answer takes the finding id; the action looks up the
+// question, suggested letter (`detail.pro_answer`), and stored answer
+// itself and rejects anything that doesn't look like a one-click fix
+// (non-MC, non-`likely_wrong`, already resolved, non-A|B|C|D
+// suggestion).
+export const applySuggestedFixInputSchema = z.object({
+  findingId: nonEmptyString,
+});
