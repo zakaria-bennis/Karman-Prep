@@ -10,8 +10,16 @@
 // importing this whole component.
 // ============================================================
 
+import { useRef, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { Upload, Trash2, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CONCEPT_SLUGS } from "@/lib/question-bank/taxonomy";
+import {
+  actionReplaceInspectedQuestionImage,
+  actionRemoveInspectedQuestionImage,
+} from "@/app/admin/actions";
+import FigureFrame from "@/components/learn/FigureFrame";
 import type { EditFormShape } from "./edit-form-utils";
 
 // Flat list for the <datalist> autocomplete — keeps the input free-text
@@ -23,9 +31,24 @@ interface Props {
   form: EditFormShape;
   isMc: boolean;
   setForm: <K extends keyof EditFormShape>(key: K, value: EditFormShape[K]) => void;
+  /** Needed for image replace/remove server actions. */
+  questionId: string;
+  /** Current figure URL (null when no figure attached). */
+  currentImageUrl: string | null;
+  /** Read-only: source PDF + page for the "View on page N" link. */
+  sourcePdf: string | null;
+  sourcePage: number | null;
 }
 
-export default function EditForm({ form, isMc, setForm }: Props) {
+export default function EditForm({
+  form,
+  isMc,
+  setForm,
+  questionId,
+  currentImageUrl,
+  sourcePdf,
+  sourcePage,
+}: Props) {
   return (
     <div className="space-y-4">
       <p className="rounded-md bg-violet-500/[0.06] px-3 py-2 text-[11px] leading-relaxed text-violet-200">
@@ -54,7 +77,22 @@ export default function EditForm({ form, isMc, setForm }: Props) {
         <Textarea value={form.passage_b} onChange={(v) => setForm("passage_b", v)} rows={5} />
       </FieldGroup>
 
-      {/* Image alt (figure replacement deferred to v2) */}
+      {/* Figure replace / remove */}
+      <FieldGroup
+        label="Figure"
+        hint={
+          sourcePdf
+            ? `Source: ${sourcePdf} page ${sourcePage ?? "?"} — open the PDF and screenshot the figure if you need a clean re-upload.`
+            : "Upload a new figure to replace the current one."
+        }
+      >
+        <FigureReplaceBlock
+          questionId={questionId}
+          currentImageUrl={currentImageUrl}
+          currentAlt={form.image_alt}
+        />
+      </FieldGroup>
+
       <FieldGroup label="Image alt text" hint="Accessibility description for the figure">
         <Textarea value={form.image_alt} onChange={(v) => setForm("image_alt", v)} rows={2} />
       </FieldGroup>
@@ -244,5 +282,154 @@ function Textarea({
       rows={rows}
       className="w-full resize-y rounded-md border border-slate-700 bg-slate-950 px-3 py-2 font-mono text-[12px] leading-snug text-slate-200 focus:border-violet-500 focus:outline-none"
     />
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// FigureReplaceBlock — current figure preview + Replace + Remove.
+// Drives actionReplaceInspectedQuestionImage + actionRemoveInspected
+// QuestionImage. Lives next to EditForm because it's only used here.
+// ─────────────────────────────────────────────────────────────
+function FigureReplaceBlock({
+  questionId,
+  currentImageUrl,
+  currentAlt,
+}: {
+  questionId: string;
+  currentImageUrl: string | null;
+  currentAlt: string;
+}) {
+  const router = useRouter();
+  const [, startTransition] = useTransition();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [busy, setBusy] = useState<"uploading" | "removing" | null>(null);
+  const [feedback, setFeedback] = useState<{
+    kind: "success" | "error";
+    message: string;
+  } | null>(null);
+
+  function openFilePicker() {
+    fileInputRef.current?.click();
+  }
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setBusy("uploading");
+    setFeedback(null);
+    startTransition(async () => {
+      try {
+        const fd = new FormData();
+        fd.append("image", file);
+        await actionReplaceInspectedQuestionImage(questionId, fd, currentAlt || null);
+        setFeedback({
+          kind: "success",
+          message: `Replaced figure with ${file.name}. Save the form to keep your other edits.`,
+        });
+        router.refresh();
+      } catch (err) {
+        setFeedback({
+          kind: "error",
+          message: `Replace failed: ${err instanceof Error ? err.message : String(err)}`,
+        });
+      } finally {
+        setBusy(null);
+        if (fileInputRef.current) fileInputRef.current.value = "";
+      }
+    });
+  }
+
+  function handleRemove() {
+    if (!confirm("Remove the figure from this question? This is reversible from History.")) return;
+    setBusy("removing");
+    setFeedback(null);
+    startTransition(async () => {
+      try {
+        await actionRemoveInspectedQuestionImage(questionId);
+        setFeedback({ kind: "success", message: "Figure removed." });
+        router.refresh();
+      } catch (err) {
+        setFeedback({
+          kind: "error",
+          message: `Remove failed: ${err instanceof Error ? err.message : String(err)}`,
+        });
+      } finally {
+        setBusy(null);
+      }
+    });
+  }
+
+  return (
+    <div className="space-y-2">
+      {/* Current figure preview */}
+      {currentImageUrl ? (
+        <FigureFrame
+          src={currentImageUrl}
+          alt={currentAlt || "Current figure"}
+          className="max-w-md"
+          maxHeightClass="max-h-64"
+        />
+      ) : (
+        <div className="rounded-md border border-dashed border-slate-700 bg-slate-950/40 p-6 text-center text-xs text-slate-500">
+          No figure attached
+        </div>
+      )}
+
+      {/* Replace / remove buttons */}
+      <div className="flex items-center gap-2">
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/png,image/jpeg,image/webp"
+          className="hidden"
+          onChange={handleFileChange}
+        />
+        <button
+          type="button"
+          onClick={openFilePicker}
+          disabled={busy !== null}
+          className="inline-flex items-center gap-1.5 rounded-md bg-violet-500/15 px-3 py-1.5 text-xs font-semibold text-violet-300 hover:bg-violet-500/25 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          {busy === "uploading" ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          ) : (
+            <Upload className="h-3.5 w-3.5" />
+          )}
+          {currentImageUrl ? "Replace figure" : "Upload figure"}
+        </button>
+        {currentImageUrl && (
+          <button
+            type="button"
+            onClick={handleRemove}
+            disabled={busy !== null}
+            className="inline-flex items-center gap-1.5 rounded-md bg-rose-500/15 px-3 py-1.5 text-xs font-semibold text-rose-300 hover:bg-rose-500/25 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            {busy === "removing" ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Trash2 className="h-3.5 w-3.5" />
+            )}
+            Remove figure
+          </button>
+        )}
+      </div>
+
+      {feedback && (
+        <div
+          className={cn(
+            "rounded-md border px-3 py-2 text-xs",
+            feedback.kind === "success"
+              ? "border-emerald-500/40 bg-emerald-500/[0.06] text-emerald-200"
+              : "border-rose-500/40 bg-rose-500/[0.06] text-rose-200"
+          )}
+        >
+          {feedback.message}
+        </div>
+      )}
+
+      <p className="text-[10px] text-slate-500">
+        Replacing the figure clears any extracted table data. PNG / JPEG / WebP supported.
+      </p>
+    </div>
   );
 }
