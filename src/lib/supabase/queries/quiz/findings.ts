@@ -201,6 +201,61 @@ export async function selectInspectorSummary(): Promise<InspectorSummary> {
   };
 }
 
+// ── Recent activity (audit diff) ────────────────────────────
+// "What changed since last X?" — counts of findings created or
+// resolved in the past 24h / 7d. Renders as a small bar above the
+// Inspector worklist so the admin can spot a fresh audit run at
+// a glance + measure triage progress (resolutions outpacing new
+// findings = winning).
+
+export interface RecentActivity {
+  /** Hours covered by the snapshot (24 or 168). */
+  hours: number;
+  /** Findings created (any source) within the window. */
+  new_findings: number;
+  new_blocking: number;
+  new_warning: number;
+  new_notice: number;
+  /** Findings resolved within the window. */
+  resolved_findings: number;
+  /** Net change: new - resolved. Positive = backlog growing. */
+  net_change: number;
+}
+
+export async function selectRecentActivity(hours: number): Promise<RecentActivity> {
+  const supabase = createAdminClient();
+  const since = new Date(Date.now() - hours * 3600 * 1000).toISOString();
+
+  // Two parallel queries — much cheaper than fetching every finding
+  // and filtering in app code.
+  const [createdRes, resolvedRes] = await Promise.all([
+    supabase.from("question_findings").select("severity").gte("created_at", since),
+    supabase.from("question_findings").select("id").gte("resolved_at", since),
+  ]);
+  if (createdRes.error) throw createdRes.error;
+  if (resolvedRes.error) throw resolvedRes.error;
+
+  let blocking = 0,
+    warning = 0,
+    notice = 0;
+  for (const f of createdRes.data ?? []) {
+    if (f.severity === "BLOCKING") blocking++;
+    else if (f.severity === "WARNING") warning++;
+    else notice++;
+  }
+  const newTotal = (createdRes.data ?? []).length;
+  const resolvedTotal = (resolvedRes.data ?? []).length;
+  return {
+    hours,
+    new_findings: newTotal,
+    new_blocking: blocking,
+    new_warning: warning,
+    new_notice: notice,
+    resolved_findings: resolvedTotal,
+    net_change: newTotal - resolvedTotal,
+  };
+}
+
 /** A single row + its choices + its findings — for the detail page. */
 export async function selectQuestionForInspection(questionId: string): Promise<{
   question: QuizQuestionWithChoices;
