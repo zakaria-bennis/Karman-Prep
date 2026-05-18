@@ -25,8 +25,11 @@ describe("classifyBankRowsForAccept", () => {
   });
 
   it("queues a row whose slug maps to a node", () => {
-    const rows: BankRow[] = [{ id: "q-1", concept_slug: "linear-equations" }];
-    const r = classifyBankRowsForAccept(rows, makeResolver({ "linear-equations": "ma-00" }));
+    const rows: BankRow[] = [{ id: "q-1", concept_slug: "linear-equations-one-variable" }];
+    const r = classifyBankRowsForAccept(
+      rows,
+      makeResolver({ "linear-equations-one-variable": "ma-00" })
+    );
     expect(r.toAccept).toEqual([{ questionId: "q-1", nodeId: "ma-00" }]);
     expect(r.skippedIds).toEqual([]);
   });
@@ -47,27 +50,33 @@ describe("classifyBankRowsForAccept", () => {
 
   it("preserves input order in the toAccept array", () => {
     const rows: BankRow[] = [
-      { id: "q-3", concept_slug: "linear-equations" },
-      { id: "q-1", concept_slug: "quadratics" },
-      { id: "q-2", concept_slug: "linear-equations" },
+      { id: "q-3", concept_slug: "linear-equations-one-variable" },
+      { id: "q-1", concept_slug: "quadratic-equations-factoring" },
+      { id: "q-2", concept_slug: "linear-equations-one-variable" },
     ];
     const r = classifyBankRowsForAccept(
       rows,
-      makeResolver({ "linear-equations": "ma-00", quadratics: "ma-17" })
+      makeResolver({
+        "linear-equations-one-variable": "ma-00",
+        "quadratic-equations-factoring": "ma-17",
+      })
     );
     expect(r.toAccept.map((x) => x.questionId)).toEqual(["q-3", "q-1", "q-2"]);
   });
 
   it("partitions a mixed batch correctly", () => {
     const rows: BankRow[] = [
-      { id: "q-1", concept_slug: "linear-equations" }, // matches
+      { id: "q-1", concept_slug: "linear-equations-one-variable" }, // matches
       { id: "q-2", concept_slug: null }, // no slug
       { id: "q-3", concept_slug: "made-up" }, // unmatched
-      { id: "q-4", concept_slug: "quadratics" }, // matches
+      { id: "q-4", concept_slug: "quadratic-equations-factoring" }, // matches
     ];
     const r = classifyBankRowsForAccept(
       rows,
-      makeResolver({ "linear-equations": "ma-00", quadratics: "ma-17" })
+      makeResolver({
+        "linear-equations-one-variable": "ma-00",
+        "quadratic-equations-factoring": "ma-17",
+      })
     );
     expect(r.toAccept).toEqual([
       { questionId: "q-1", nodeId: "ma-00" },
