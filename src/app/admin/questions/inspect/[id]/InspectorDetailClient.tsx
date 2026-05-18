@@ -16,6 +16,7 @@
 // ============================================================
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import {
   AlertOctagon,
   AlertTriangle,
@@ -25,18 +26,25 @@ import {
   ChevronDown,
   ChevronUp,
   ExternalLink,
+  Loader2,
+  CheckCircle2,
+  XCircle,
+  Pencil,
+  Save,
+  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { QuestionFinding, FindingSeverity } from "@/lib/supabase/queries/quiz/findings";
 import type { QuizQuestionWithChoices } from "@/types/quiz";
-import MathText from "@/components/learn/MathText";
-import QuestionTable from "@/components/learn/QuestionTable";
-import FigureFrame from "@/components/learn/FigureFrame";
 import {
   actionResolveFinding,
   actionAcceptInspectedQuestion,
   actionFlagInspectedQuestion,
+  actionUpdateInspectedQuestion,
 } from "@/app/admin/actions";
+import ViewMode from "./_components/ViewMode";
+import EditForm from "./_components/EditForm";
+import { makeInitialForm, type EditFormShape } from "./_components/edit-form-utils";
 
 interface Props {
   question: QuizQuestionWithChoices;
@@ -68,9 +76,107 @@ const SEVERITY_META: Record<
 };
 
 export default function InspectorDetailClient({ question, findings }: Props) {
+  const router = useRouter();
   const [, startTransition] = useTransition();
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [topAction, setTopAction] = useState<"idle" | "accepting" | "flagging" | "saving">("idle");
+  const [feedback, setFeedback] = useState<{
+    kind: "success" | "error";
+    message: string;
+  } | null>(null);
   const [expandedDetail, setExpandedDetail] = useState<Set<string>>(new Set());
+  const [editMode, setEditMode] = useState(false);
+  const [form, setForm] = useState<EditFormShape>(() => makeInitialForm(question));
+
+  const isMc = question.answer_format !== "numeric_entry";
+
+  function updateField<K extends keyof EditFormShape>(key: K, value: EditFormShape[K]) {
+    setForm((f) => ({ ...f, [key]: value }));
+  }
+
+  function enterEditMode() {
+    setForm(makeInitialForm(question));
+    setEditMode(true);
+    setFeedback(null);
+  }
+
+  function cancelEdit() {
+    setForm(makeInitialForm(question));
+    setEditMode(false);
+    setFeedback(null);
+  }
+
+  function saveEdits() {
+    setTopAction("saving");
+    setFeedback(null);
+    startTransition(async () => {
+      try {
+        // Build a patch with only changed fields so we don't overwrite
+        // anything we didn't touch.
+        const original = makeInitialForm(question);
+        const patch: Record<string, unknown> = { questionId: question.id };
+        let changes = 0;
+        const stringFields = [
+          "question_text",
+          "hint",
+          "explanation_text",
+          "desmos_strategy",
+          "image_alt",
+          "passage_intro",
+          "passage",
+          "passage_a",
+          "passage_b",
+          "correct_answer",
+        ] as const;
+        for (const k of stringFields) {
+          if (form[k] !== original[k]) {
+            patch[k] = form[k];
+            changes++;
+          }
+        }
+        // Choices (MC only) — bundle into `choices` object
+        if (isMc) {
+          const choices: Record<string, string> = {};
+          (["A", "B", "C", "D"] as const).forEach((letter) => {
+            const k = `choice_${letter.toLowerCase()}` as keyof EditFormShape;
+            if (form[k] !== original[k]) {
+              choices[letter] = form[k];
+              changes++;
+            }
+          });
+          if (Object.keys(choices).length > 0) patch.choices = choices;
+        }
+        // numeric_tolerance — parse-to-number-or-null
+        if (form.numeric_tolerance !== original.numeric_tolerance) {
+          const v = form.numeric_tolerance.trim();
+          patch.numeric_tolerance = v === "" ? null : Number.parseFloat(v);
+          changes++;
+        }
+        if (changes === 0) {
+          setFeedback({ kind: "success", message: "No changes to save." });
+          setEditMode(false);
+          setTopAction("idle");
+          return;
+        }
+        await actionUpdateInspectedQuestion(
+          patch as unknown as Parameters<typeof actionUpdateInspectedQuestion>[0]
+        );
+        setFeedback({
+          kind: "success",
+          message: `Saved ${changes} change${changes === 1 ? "" : "s"}.`,
+        });
+        setEditMode(false);
+        router.refresh();
+      } catch (err) {
+        setFeedback({
+          kind: "error",
+          message: `Save failed: ${err instanceof Error ? err.message : String(err)}`,
+        });
+      } finally {
+        setTopAction("idle");
+      }
+    });
+  }
 
   function toggleDetail(id: string) {
     setExpandedDetail((s) => {
@@ -83,9 +189,17 @@ export default function InspectorDetailClient({ question, findings }: Props) {
 
   function resolve(f: QuestionFinding) {
     setBusyId(f.id);
+    setFeedback(null);
     startTransition(async () => {
       try {
         await actionResolveFinding({ findingId: f.id, note: "Resolved via Inspector" });
+        setFeedback({ kind: "success", message: `Finding resolved.` });
+        router.refresh();
+      } catch (err) {
+        setFeedback({
+          kind: "error",
+          message: `Resolve failed: ${err instanceof Error ? err.message : String(err)}`,
+        });
       } finally {
         setBusyId(null);
       }
@@ -93,14 +207,44 @@ export default function InspectorDetailClient({ question, findings }: Props) {
   }
 
   function acceptLive() {
+    setTopAction("accepting");
+    setFeedback(null);
     startTransition(async () => {
-      await actionAcceptInspectedQuestion({ questionId: question.id });
+      try {
+        await actionAcceptInspectedQuestion({ questionId: question.id });
+        // After accept, the question is live and its findings auto-resolved.
+        // The row no longer belongs in the worklist, so go back to the list
+        // with a success banner that the next page render will surface.
+        router.push("/admin/questions/inspect?accepted=" + encodeURIComponent(question.id));
+      } catch (err) {
+        setFeedback({
+          kind: "error",
+          message: `Accept failed: ${err instanceof Error ? err.message : String(err)}`,
+        });
+        setTopAction("idle");
+      }
     });
   }
 
   function flagForReview() {
+    setTopAction("flagging");
+    setFeedback(null);
     startTransition(async () => {
-      await actionFlagInspectedQuestion({ questionId: question.id });
+      try {
+        await actionFlagInspectedQuestion({ questionId: question.id });
+        setFeedback({
+          kind: "success",
+          message: "Marked needs-review. The question stays hidden from students until cleared.",
+        });
+        router.refresh();
+      } catch (err) {
+        setFeedback({
+          kind: "error",
+          message: `Flag failed: ${err instanceof Error ? err.message : String(err)}`,
+        });
+      } finally {
+        setTopAction("idle");
+      }
     });
   }
 
@@ -135,167 +279,112 @@ export default function InspectorDetailClient({ question, findings }: Props) {
           <span className="text-slate-600">·</span>
           <span>{notice.length} notice</span>
         </div>
-        <button
-          onClick={acceptLive}
-          disabled={blocking.length > 0}
-          title={blocking.length > 0 ? "Resolve blocking findings first" : "Set live"}
-          className="inline-flex items-center gap-1.5 rounded-md bg-emerald-500/15 px-3 py-1.5 text-xs font-semibold text-emerald-300 hover:bg-emerald-500/25 disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          <CheckCheck className="h-3.5 w-3.5" /> Accept live
-        </button>
-        <button
-          onClick={flagForReview}
-          className="inline-flex items-center gap-1.5 rounded-md bg-amber-500/15 px-3 py-1.5 text-xs font-semibold text-amber-300 hover:bg-amber-500/25"
-        >
-          <Flag className="h-3.5 w-3.5" /> Mark needs-review
-        </button>
+        {editMode ? (
+          <>
+            <button
+              onClick={saveEdits}
+              disabled={topAction !== "idle"}
+              className="inline-flex items-center gap-1.5 rounded-md bg-violet-500/15 px-3 py-1.5 text-xs font-semibold text-violet-300 hover:bg-violet-500/25 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              {topAction === "saving" ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Save className="h-3.5 w-3.5" />
+              )}
+              {topAction === "saving" ? "Saving…" : "Save edits"}
+            </button>
+            <button
+              onClick={cancelEdit}
+              disabled={topAction !== "idle"}
+              className="inline-flex items-center gap-1.5 rounded-md border border-slate-700 px-3 py-1.5 text-xs font-semibold text-slate-300 hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              <X className="h-3.5 w-3.5" /> Cancel
+            </button>
+          </>
+        ) : (
+          <>
+            <button
+              onClick={enterEditMode}
+              disabled={topAction !== "idle"}
+              className="inline-flex items-center gap-1.5 rounded-md bg-violet-500/15 px-3 py-1.5 text-xs font-semibold text-violet-300 hover:bg-violet-500/25 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              <Pencil className="h-3.5 w-3.5" /> Edit fields
+            </button>
+            <button
+              onClick={acceptLive}
+              disabled={blocking.length > 0 || topAction !== "idle"}
+              title={blocking.length > 0 ? "Resolve blocking findings first" : "Set live"}
+              className="inline-flex items-center gap-1.5 rounded-md bg-emerald-500/15 px-3 py-1.5 text-xs font-semibold text-emerald-300 hover:bg-emerald-500/25 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              {topAction === "accepting" ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <CheckCheck className="h-3.5 w-3.5" />
+              )}
+              {topAction === "accepting" ? "Accepting…" : "Accept live"}
+            </button>
+            <button
+              onClick={flagForReview}
+              disabled={topAction !== "idle"}
+              className="inline-flex items-center gap-1.5 rounded-md bg-amber-500/15 px-3 py-1.5 text-xs font-semibold text-amber-300 hover:bg-amber-500/25 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              {topAction === "flagging" ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Flag className="h-3.5 w-3.5" />
+              )}
+              {topAction === "flagging" ? "Flagging…" : "Mark needs-review"}
+            </button>
+          </>
+        )}
       </div>
+
+      {feedback && (
+        <div
+          className={cn(
+            "flex items-center gap-2 rounded-xl border px-4 py-3 text-sm",
+            feedback.kind === "success"
+              ? "border-emerald-500/40 bg-emerald-500/[0.06] text-emerald-200"
+              : "border-rose-500/40 bg-rose-500/[0.06] text-rose-200"
+          )}
+        >
+          {feedback.kind === "success" ? (
+            <CheckCircle2 className="h-4 w-4 shrink-0" />
+          ) : (
+            <XCircle className="h-4 w-4 shrink-0" />
+          )}
+          <span className="flex-1">{feedback.message}</span>
+          <button
+            onClick={() => setFeedback(null)}
+            className="text-xs underline opacity-70 hover:opacity-100"
+          >
+            dismiss
+          </button>
+        </div>
+      )}
 
       {/* Split pane */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.4fr_1fr]">
-        {/* LEFT — student preview */}
+        {/* LEFT — student preview (view mode) OR editable form (edit mode) */}
         <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-5">
           <div className="mb-4 flex items-center justify-between border-b border-slate-800 pb-2">
-            <h2 className="text-sm font-semibold text-slate-200">Student preview</h2>
+            <h2 className="text-sm font-semibold text-slate-200">
+              {editMode ? "Edit fields" : "Student preview"}
+            </h2>
             <span className="text-[10px] uppercase tracking-wider text-slate-500">
               difficulty {question.difficulty_level ?? "?"} · {question.subject ?? "—"}
             </span>
           </div>
 
-          {/* Passage */}
-          {hasPassage && (
-            <div className="mb-4 rounded-lg border border-slate-800 bg-slate-950/40 p-4">
-              {question.passage_intro && (
-                <p className="mb-2 text-xs italic text-slate-400">
-                  <MathText text={question.passage_intro} />
-                </p>
-              )}
-              {question.passage && (
-                <div className="text-sm leading-relaxed text-slate-300">
-                  <MathText text={question.passage} />
-                </div>
-              )}
-              {question.passage_a && (
-                <div className="space-y-3">
-                  <div>
-                    <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-500">
-                      Passage A
-                    </div>
-                    <div className="text-sm text-slate-300">
-                      <MathText text={question.passage_a} />
-                    </div>
-                  </div>
-                  {question.passage_b && (
-                    <div>
-                      <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-500">
-                        Passage B
-                      </div>
-                      <div className="text-sm text-slate-300">
-                        <MathText text={question.passage_b} />
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Figure */}
-          {question.figure_kind === "table" && question.figure_table_data ? (
-            <div className="mb-4 flex justify-center">
-              <QuestionTable data={question.figure_table_data} />
-            </div>
+          {editMode ? (
+            <EditForm form={form} isMc={isMc} setForm={updateField} />
           ) : (
-            question.image_url && (
-              <FigureFrame
-                src={question.image_url}
-                alt={question.image_alt ?? "Question figure"}
-                className="mb-4"
-                maxHeightClass="max-h-96"
-              />
-            )
+            <ViewMode question={question} hasPassage={hasPassage} choices={choices} />
           )}
-
-          {/* Question stem */}
-          <div className="mb-4 text-base leading-relaxed text-slate-100">
-            <MathText text={question.question_text} />
-          </div>
-
-          {/* Choices */}
-          {choices.length > 0 ? (
-            <div className="space-y-2">
-              {choices.map((c) => {
-                const isCorrect = c.letter === question.correct_answer;
-                return (
-                  <div
-                    key={c.id}
-                    className={cn(
-                      "flex gap-3 rounded-lg border px-3 py-2.5 text-sm",
-                      isCorrect
-                        ? "border-emerald-500/40 bg-emerald-500/[0.06]"
-                        : "border-slate-700 bg-slate-950/40"
-                    )}
-                  >
-                    <span
-                      className={cn(
-                        "shrink-0 font-semibold",
-                        isCorrect ? "text-emerald-300" : "text-slate-400"
-                      )}
-                    >
-                      {c.letter}
-                    </span>
-                    <span className="text-slate-200">
-                      <MathText text={c.choice_text} />
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="rounded-lg border border-slate-700 bg-slate-950/40 px-3 py-2.5 text-sm">
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">
-                SPR answer
-              </span>{" "}
-              <span className="text-emerald-300">{question.correct_answer}</span>
-              {question.numeric_tolerance != null && (
-                <span className="ml-2 text-xs text-slate-400">
-                  ± {String(question.numeric_tolerance)}
-                </span>
-              )}
-            </div>
-          )}
-
-          {/* Hint + explanation, collapsed */}
-          <details className="mt-4 rounded-lg border border-slate-800 bg-slate-950/40">
-            <summary className="cursor-pointer px-3 py-2 text-xs font-semibold text-slate-300">
-              Hint &amp; explanation
-            </summary>
-            <div className="space-y-3 border-t border-slate-800 px-3 py-3 text-xs">
-              {question.hint && (
-                <div>
-                  <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-500">
-                    Hint
-                  </div>
-                  <div className="text-slate-300">
-                    <MathText text={question.hint} />
-                  </div>
-                </div>
-              )}
-              {question.explanation_text && (
-                <div>
-                  <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-500">
-                    Explanation
-                  </div>
-                  <div className="leading-relaxed text-slate-300">
-                    <MathText text={question.explanation_text} />
-                  </div>
-                </div>
-              )}
-            </div>
-          </details>
         </div>
 
-        {/* RIGHT — findings */}
+        {/* RIGHT — findings (always visible — admin reads the issue
+            while editing the field) */}
         <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-5">
           <div className="mb-4 flex items-center justify-between border-b border-slate-800 pb-2">
             <h2 className="text-sm font-semibold text-slate-200">Findings</h2>
