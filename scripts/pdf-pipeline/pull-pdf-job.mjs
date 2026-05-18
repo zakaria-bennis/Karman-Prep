@@ -7,11 +7,11 @@
 //
 // Modes:
 //   one-shot (default):
-//     node --env-file=.env.local scripts/pull-pdf-job.mjs
+//     node --env-file=.env.local scripts/pdf-pipeline/pull-pdf-job.mjs
 //       → pulls one queued job, prints next-step command, exits.
 //
 //   watch (continuous, Hybrid Full default):
-//     node --env-file=.env.local scripts/pull-pdf-job.mjs --watch [--interval=30]
+//     node --env-file=.env.local scripts/pdf-pipeline/pull-pdf-job.mjs --watch [--interval=30]
 //       → polls Supabase every N seconds (default 30).
 //       → AUTO-PROCESSES end-to-end: pulls queued PDFs, spawns
 //         `claude --print` on each one with the routine prompt,
@@ -38,7 +38,7 @@
 //      and flips the job row to "running".
 //   2. You open Claude Code on this Mac and run the routine in
 //      question-imports/ROUTINE_PROMPT.md against the downloaded PDF.
-//   3. When the routine finishes, you run scripts/finalize-pdf-job.mjs
+//   3. When the routine finishes, you run scripts/pdf-pipeline/finalize-pdf-job.mjs
 //      <jobId> <runs-dir>. That flips "running" → "complete", which
 //      unblocks the watcher to pull the next queued PDF.
 //
@@ -182,7 +182,7 @@ function printNextSteps({ jobId, localPdfPath }) {
   console.log("");
   console.log("2. When the routine finishes, finalize the job:");
   console.log("");
-  console.log(`   node --env-file=.env.local scripts/finalize-pdf-job.mjs \\`);
+  console.log(`   node --env-file=.env.local scripts/pdf-pipeline/finalize-pdf-job.mjs \\`);
   console.log(`     ${jobId} <path-to-runs-dir>`);
   console.log("─".repeat(64));
 }
@@ -435,7 +435,7 @@ async function processWithGemini(job, localPdfPath) {
   // both files, so we pass it directly.
   const finResult = await runChild("node", [
     "--env-file=.env.local",
-    "scripts/finalize-pdf-job.mjs",
+    "scripts/pdf-pipeline/finalize-pdf-job.mjs",
     job.id,
     extractDir,
   ]);

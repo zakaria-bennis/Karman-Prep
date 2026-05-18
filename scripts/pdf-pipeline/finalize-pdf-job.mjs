@@ -2,10 +2,10 @@
 // finalize-pdf-job — local hybrid-runner step 2 of 2.
 //
 // Usage:
-//   node --env-file=.env.local scripts/finalize-pdf-job.mjs <jobId> <runs-dir>
+//   node --env-file=.env.local scripts/pdf-pipeline/finalize-pdf-job.mjs <jobId> <runs-dir>
 //
 // Example:
-//   node --env-file=.env.local scripts/finalize-pdf-job.mjs \
+//   node --env-file=.env.local scripts/pdf-pipeline/finalize-pdf-job.mjs \
 //     7a3b1c9d-2e7f-4a8b-9c1d-abcdef012345 \
 //     question-imports/runs/20260428T210000Z
 //
@@ -33,9 +33,9 @@ import path from "node:path";
 
 const [, , JOB_ID, RUNS_DIR] = process.argv;
 if (!JOB_ID || !RUNS_DIR) {
-  console.error("Usage: node scripts/finalize-pdf-job.mjs <jobId> <runs-dir>");
+  console.error("Usage: node scripts/pdf-pipeline/finalize-pdf-job.mjs <jobId> <runs-dir>");
   console.error(
-    "Example: node scripts/finalize-pdf-job.mjs 7a3b... question-imports/runs/20260428T210000Z"
+    "Example: node scripts/pdf-pipeline/finalize-pdf-job.mjs 7a3b... question-imports/runs/20260428T210000Z"
   );
   process.exit(1);
 }

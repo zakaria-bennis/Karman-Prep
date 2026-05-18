@@ -16,8 +16,9 @@
 //   · The Cloudflare Worker scheduled handler injected by
 //     scripts/patch-cf-worker.mjs (every 5 min via wrangler.toml
 //     [triggers].crons).
-//   · scripts/finalize-pdf-job.mjs after a CSV upload (immediate
-//     ingest without waiting for the next cron tick).
+//   · scripts/pdf-pipeline/finalize-pdf-job.mjs after a CSV
+//     upload (immediate ingest without waiting for the next cron
+//     tick).
 //   · Manual curl from a developer for testing.
 // ============================================================
 

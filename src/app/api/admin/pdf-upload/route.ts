@@ -10,8 +10,8 @@
 // Returns: { jobs: [{ id, source_pdf, pdf_storage_path }, ...] }
 //
 // The local hybrid runner polls this queue separately (see
-// scripts/process-pdf-job.mjs in a follow-up PR) — this route
-// only enqueues; it does not invoke Claude or process anything.
+// scripts/pdf-pipeline/pull-pdf-job.mjs) — this route only
+// enqueues; it does not invoke the runner or process anything.
 // ============================================================
 
 import { NextResponse } from "next/server";

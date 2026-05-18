@@ -144,7 +144,7 @@ async function main() {
     console.log(`\n  5/5  Running finalize-pdf-job.mjs ${job.id} ${extractDir}…`);
     const r5 = await runChild("node", [
       "--env-file=.env.local",
-      "scripts/finalize-pdf-job.mjs",
+      "scripts/pdf-pipeline/finalize-pdf-job.mjs",
       job.id,
       extractDir,
     ]);
