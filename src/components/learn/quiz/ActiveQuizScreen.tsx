@@ -12,6 +12,7 @@ import type { MappedNode } from "../ConstellationMap";
 import { QUIZ_TOTAL_QUESTIONS, useQuiz } from "@/contexts/QuizContext";
 import type { QuizQuestionWithChoices } from "@/types/quiz";
 import MathText from "../MathText";
+import QuestionTable from "../QuestionTable";
 import { ProgressDot } from "./ProgressDot";
 
 export function ActiveQuizScreen({
@@ -307,12 +308,22 @@ export function ActiveQuizScreen({
         // figure a gentle margin off the dark page bg without shouting.
         // Used at the top of the left column whenever the question has
         // an attached image (math graph, R&W chart, geometry diagram).
-        const hasFigure = !!q.image_url;
-        const figureCard = hasFigure ? (
+        //
+        // Phase 4a: when figure_kind='table' + figure_table_data is set,
+        // render a native HTML table (observatory-themed) instead of
+        // the raster crop. The QuestionTable renders inside its own
+        // styled container so we skip the white-background figure card.
+        const isNativeTable = q.figure_kind === "table" && q.figure_table_data;
+        const hasFigure = !!q.image_url || isNativeTable;
+        const figureCard = isNativeTable ? (
+          <div className="mb-6 flex justify-center">
+            <QuestionTable data={q.figure_table_data!} />
+          </div>
+        ) : q.image_url ? (
           <figure className="mb-6 rounded-xl border border-slate-700/50 bg-slate-200 p-3 shadow-md shadow-black/40">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={q.image_url!}
+              src={q.image_url}
               alt={q.image_alt ?? ""}
               className="mx-auto block max-h-[28rem] w-auto rounded object-contain"
             />

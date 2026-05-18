@@ -93,6 +93,20 @@ export interface QuizQuestion {
    *  supabase/migrations/20260518004500_quiz_questions_live_view.sql).
    *  TRUE iff import_status IS NULL OR import_status = 'ok'. */
   is_live: boolean | null;
+  /** Phase 4a — where the figure comes from:
+   *  - 'image' (raster crop in image_url; legacy + non-table figures)
+   *  - 'table' (structured data in figure_table_data; renders as native HTML)
+   *  - 'svg'   (reserved for Phase 4c primitive shapes)
+   *  - null    (no figure) */
+  figure_kind: "image" | "table" | "svg" | null;
+  /** Phase 4a — structured table data when figure_kind='table'.
+   *  See src/components/learn/QuestionTable.tsx for the shape. */
+  figure_table_data: {
+    caption?: string | null;
+    header_row?: string[] | null;
+    rows: string[][];
+    footer_note?: string | null;
+  } | null;
 }
 
 /** Admin-supplied overrides for a node's textbook + video.
