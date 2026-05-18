@@ -155,7 +155,11 @@ function parseCsv(text) {
 }
 
 // ── Finding accumulator ──
+// `currentRow` is set just before each checkRow call so flag() can
+// inline question_id + source_pdf + source_page + snippet onto every
+// finding without threading them through every callsite.
 const findings = [];
+let currentRow = null;
 function flag(rowIdx, sourceFile, severity, category, code, message, value) {
   findings.push({
     row_idx: rowIdx,
@@ -165,6 +169,11 @@ function flag(rowIdx, sourceFile, severity, category, code, message, value) {
     code,
     message,
     value: value === undefined ? null : String(value).slice(0, 300),
+    // Match-keys for ingest-findings.mjs:
+    question_id: currentRow?.id ?? null,
+    source_pdf: currentRow?.source_pdf ?? null,
+    source_page: currentRow?.source_page ?? null,
+    question_text_snippet: (currentRow?.question_text ?? "").slice(0, 160),
   });
 }
 
@@ -1085,7 +1094,11 @@ async function main() {
     }
   }
 
-  for (const { rowIdx, sourceFile, r } of allRows) checkRow(rowIdx, sourceFile, r);
+  for (const { rowIdx, sourceFile, r } of allRows) {
+    currentRow = r;
+    checkRow(rowIdx, sourceFile, r);
+  }
+  currentRow = null;
   checkDuplicates(allRows);
 
   // ── Output ──

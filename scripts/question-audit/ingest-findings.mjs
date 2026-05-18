@@ -363,8 +363,24 @@ async function main() {
     console.log("Nothing to upsert.");
     return;
   }
-  // Strip helper keys before insert
-  const payload = matched.map((r) => ({
+  // Dedupe by (question_id, source, code) — the table's unique
+  // constraint. Multiple findings of the same code on one row
+  // (e.g. F1 firing on question_text AND on choice_b) collapse
+  // into the first occurrence; remaining values get merged into
+  // `detail.also_seen_in` so we don't lose them.
+  const seen = new Map();
+  for (const r of matched) {
+    const k = `${r.question_id}|${r.source}|${r.code}`;
+    if (seen.has(k)) {
+      const existing = seen.get(k);
+      existing.detail = existing.detail || {};
+      existing.detail.also_seen_in = existing.detail.also_seen_in || [];
+      existing.detail.also_seen_in.push({ message: r.message, value: r.value });
+    } else {
+      seen.set(k, { ...r });
+    }
+  }
+  const payload = [...seen.values()].map((r) => ({
     question_id: r.question_id,
     source: r.source,
     severity: r.severity,
@@ -374,6 +390,7 @@ async function main() {
     value: r.value,
     detail: r.detail,
   }));
+  console.log(`Deduped: ${matched.length} → ${payload.length} unique findings`);
 
   console.log(`Upserting ${payload.length} rows…`);
   // Batch in groups of 500 to keep payloads manageable.

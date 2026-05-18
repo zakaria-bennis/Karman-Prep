@@ -89,6 +89,10 @@ export interface QuizQuestion {
   import_status: ImportStatus | null;
   import_flag_type: ImportFlagType | null;
   import_flag_reason: string | null;
+  /** Generated column on quiz_questions (see
+   *  supabase/migrations/20260518004500_quiz_questions_live_view.sql).
+   *  TRUE iff import_status IS NULL OR import_status = 'ok'. */
+  is_live: boolean | null;
 }
 
 /** Admin-supplied overrides for a node's textbook + video.

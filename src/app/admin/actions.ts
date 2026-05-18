@@ -348,3 +348,74 @@ export async function actionAcceptAllBank(): Promise<{
     errors,
   };
 }
+
+// ── Inspector UI actions ──────────────────────────────────────
+// Powers /admin/questions/inspect (Phase 3).
+
+/** Mark a single audit-or-grader finding as resolved (admin reviewed
+ *  and decided it's either fixed, dismissed, or not a real issue). */
+export async function actionResolveFinding(input: {
+  findingId: string;
+  note?: string;
+}): Promise<void> {
+  const userId = await guardAdmin();
+  const { createAdminClient } = await import("@/lib/supabase/server");
+  const supabase = createAdminClient();
+  const { error } = await supabase
+    .from("question_findings")
+    .update({
+      resolved_at: new Date().toISOString(),
+      resolved_by: userId,
+      resolved_note: input.note ?? null,
+    })
+    .eq("id", input.findingId);
+  if (error) throw error;
+  revalidatePath("/admin/questions/inspect");
+}
+
+/** Flip a question to live (is_live=true via the import_status='ok'
+ *  trigger). The Inspector calls this when the admin has decided the
+ *  question is good as-is and resolved blocking findings. */
+export async function actionAcceptInspectedQuestion(input: { questionId: string }): Promise<void> {
+  await guardAdmin();
+  const { createAdminClient } = await import("@/lib/supabase/server");
+  const supabase = createAdminClient();
+  const { error } = await supabase
+    .from("quiz_questions")
+    .update({
+      import_status: "ok",
+      import_flag_type: null,
+      import_flag_reason: null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", input.questionId);
+  if (error) throw error;
+  revalidatePath("/admin/questions/inspect");
+  revalidatePath(`/admin/questions/inspect/${input.questionId}`);
+  revalidatePath("/admin/questions/review");
+}
+
+/** Reverse of accept — flag a previously-live question for review
+ *  (e.g. the admin saw it in the Inspector with WARNING findings and
+ *  decided it shouldn't stay live until fixed). */
+export async function actionFlagInspectedQuestion(input: {
+  questionId: string;
+  reason?: string;
+}): Promise<void> {
+  await guardAdmin();
+  const { createAdminClient } = await import("@/lib/supabase/server");
+  const supabase = createAdminClient();
+  const { error } = await supabase
+    .from("quiz_questions")
+    .update({
+      import_status: "needs_review",
+      import_flag_type: "partial_emit",
+      import_flag_reason: input.reason ?? "Flagged via Inspector",
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", input.questionId);
+  if (error) throw error;
+  revalidatePath("/admin/questions/inspect");
+  revalidatePath(`/admin/questions/inspect/${input.questionId}`);
+  revalidatePath("/admin/questions/review");
+}
