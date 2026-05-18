@@ -21,6 +21,7 @@ import { X } from "lucide-react";
 import type { QuizQuestionWithChoices } from "@/types/quiz";
 import MathText from "@/components/learn/MathText";
 import QuestionTable from "@/components/learn/QuestionTable";
+import FigureFrame from "@/components/learn/FigureFrame";
 
 interface Props {
   question: QuizQuestionWithChoices;
@@ -118,14 +119,12 @@ function LeftColumn({ question }: { question: QuizQuestionWithChoices }) {
         </div>
       ) : (
         question.image_url && (
-          <figure className="mb-6 rounded-xl border border-slate-700/50 bg-slate-200 p-3 shadow-md shadow-black/40">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={question.image_url}
-              alt={question.image_alt ?? "Question figure"}
-              className="mx-auto block max-h-[28rem] w-auto rounded object-contain"
-            />
-          </figure>
+          <FigureFrame
+            src={question.image_url}
+            alt={question.image_alt ?? "Question figure"}
+            className="mb-6"
+            maxHeightClass="max-h-[28rem]"
+          />
         )
       )}
       {hasPassage && (

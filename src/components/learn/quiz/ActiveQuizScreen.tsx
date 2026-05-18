@@ -13,6 +13,7 @@ import { QUIZ_TOTAL_QUESTIONS, useQuiz } from "@/contexts/QuizContext";
 import type { QuizQuestionWithChoices } from "@/types/quiz";
 import MathText from "../MathText";
 import QuestionTable from "../QuestionTable";
+import FigureFrame from "../FigureFrame";
 import { ProgressDot } from "./ProgressDot";
 
 export function ActiveQuizScreen({
@@ -320,14 +321,12 @@ export function ActiveQuizScreen({
             <QuestionTable data={q.figure_table_data!} />
           </div>
         ) : q.image_url ? (
-          <figure className="mb-6 rounded-xl border border-slate-700/50 bg-slate-200 p-3 shadow-md shadow-black/40">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={q.image_url}
-              alt={q.image_alt ?? ""}
-              className="mx-auto block max-h-[28rem] w-auto rounded object-contain"
-            />
-          </figure>
+          <FigureFrame
+            src={q.image_url}
+            alt={q.image_alt ?? ""}
+            className="mb-6"
+            maxHeightClass="max-h-[28rem]"
+          />
         ) : null;
 
         // Passage block (used in left column whenever R&W has passage).
