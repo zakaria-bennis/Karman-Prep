@@ -20,6 +20,7 @@
 import { safeAuth } from "@/lib/auth/dev-auth";
 import { revalidatePath } from "next/cache";
 import { requireRole } from "@/lib/supabase/queries/admin";
+import { uploadQuestionImage } from "@/lib/supabase/queries/quiz";
 import { reauditRowInputSchema, applySuggestedFixInputSchema } from "./schemas";
 import type { Database } from "@/types/supabase";
 import { auditRow, type AuditableRow } from "@/lib/question-bank/audit-rules";
@@ -490,4 +491,148 @@ export async function actionApplySuggestedFix(input: {
   revalidatePath(`/admin/questions/inspect/${questionId}`);
   revalidatePath("/admin/questions/review");
   return { questionId, newCorrect: suggested };
+}
+
+// ── Figure replace / remove (gap-list #16, was PR #123) ─────
+// In-product figure replacement — replaces or removes the image_url
+// on a quiz_questions row WITHOUT making the admin leave the
+// Inspector. Mirrors actionUploadQuestionImage / actionRemoveQuestionImage
+// (which are bound to a curriculum node id) but takes only a
+// questionId since the Inspector deep-view doesn't care about
+// node context.
+//
+// Both actions snapshot before/after to question_history so the
+// change is reversible via the existing Restore button.
+
+/** Upload a new image for an Inspector question, replacing any
+ *  existing figure. Calls the shared uploadQuestionImage helper to
+ *  push to R2 + update image_url/image_storage_path/image_alt, then
+ *  also clears figure_kind/figure_table_data because:
+ *    · figure_kind was probably 'table' (table extraction); the new
+ *      image might not be a table, so don't lie about it.
+ *    · figure_table_data is now stale — admin can re-run the table
+ *      extractor on the new image if it IS a table.
+ */
+export async function actionReplaceInspectedQuestionImage(
+  questionId: string,
+  formData: FormData,
+  alt: string | null
+): Promise<{ publicUrl: string }> {
+  const userId = await guardAdmin();
+  const file = formData.get("image") as File | null;
+  if (!file) throw new Error("No image file in form data");
+
+  const { createAdminClient } = await import("@/lib/supabase/server");
+  const { buildSnapshot, insertHistoryRow } = await import("@/lib/supabase/queries/quiz/history");
+  const supabase = createAdminClient();
+
+  // BEFORE snapshot for history
+  const { data: beforeRow, error: beforeErr } = await supabase
+    .from("quiz_questions")
+    .select("*, answer_choices(*)")
+    .eq("id", questionId)
+    .maybeSingle();
+  if (beforeErr) throw beforeErr;
+  if (!beforeRow) throw new Error(`Question ${questionId} not found`);
+  const beforeSnapshot = buildSnapshot(beforeRow as unknown as Parameters<typeof buildSnapshot>[0]);
+
+  // Upload to R2 (existing helper). Returns public URL + sets
+  // image_url / image_storage_path / image_alt on the row.
+  const bytes = await file.arrayBuffer();
+  const { publicUrl } = await uploadQuestionImage(
+    questionId,
+    file.name,
+    bytes,
+    file.type || "image/png",
+    alt
+  );
+
+  // Clear stale table data + reset figure_kind to 'image'. Admin can
+  // re-classify if the new figure is actually a table.
+  type QQUpdate = Database["public"]["Tables"]["quiz_questions"]["Update"];
+  const patch: QQUpdate = {
+    figure_kind: "image",
+    figure_table_data: null,
+    updated_at: new Date().toISOString(),
+  };
+  const { error: patchErr } = await supabase
+    .from("quiz_questions")
+    .update(patch)
+    .eq("id", questionId);
+  if (patchErr) throw patchErr;
+
+  // AFTER snapshot + history row.
+  const { data: afterRow } = await supabase
+    .from("quiz_questions")
+    .select("*, answer_choices(*)")
+    .eq("id", questionId)
+    .maybeSingle();
+  if (afterRow) {
+    await insertHistoryRow({
+      questionId,
+      beforeState: beforeSnapshot,
+      afterState: buildSnapshot(afterRow as unknown as Parameters<typeof buildSnapshot>[0]),
+      editedBy: userId,
+      source: "inspector",
+      note: `Figure replaced with ${file.name}`,
+    });
+  }
+
+  revalidatePath(`/admin/questions/inspect/${questionId}`);
+  revalidatePath("/admin/questions/inspect");
+  return { publicUrl };
+}
+
+/** Remove the figure from an Inspector question — clears
+ *  image_url + image_alt + image_storage_path + figure_kind +
+ *  figure_table_data. Used when a figure was attached in error or
+ *  its source PDF actually had no figure for this question. */
+export async function actionRemoveInspectedQuestionImage(questionId: string): Promise<void> {
+  const userId = await guardAdmin();
+  const { createAdminClient } = await import("@/lib/supabase/server");
+  const { buildSnapshot, insertHistoryRow } = await import("@/lib/supabase/queries/quiz/history");
+  const supabase = createAdminClient();
+
+  const { data: beforeRow, error: beforeErr } = await supabase
+    .from("quiz_questions")
+    .select("*, answer_choices(*)")
+    .eq("id", questionId)
+    .maybeSingle();
+  if (beforeErr) throw beforeErr;
+  if (!beforeRow) throw new Error(`Question ${questionId} not found`);
+  const beforeSnapshot = buildSnapshot(beforeRow as unknown as Parameters<typeof buildSnapshot>[0]);
+
+  type QQUpdate = Database["public"]["Tables"]["quiz_questions"]["Update"];
+  const patch: QQUpdate = {
+    image_url: null,
+    image_alt: null,
+    image_storage_path: null,
+    figure_kind: null,
+    figure_table_data: null,
+    updated_at: new Date().toISOString(),
+  };
+  const { error: patchErr } = await supabase
+    .from("quiz_questions")
+    .update(patch)
+    .eq("id", questionId);
+  if (patchErr) throw patchErr;
+
+  const { data: afterRow } = await supabase
+    .from("quiz_questions")
+    .select("*, answer_choices(*)")
+    .eq("id", questionId)
+    .maybeSingle();
+  if (afterRow) {
+    await insertHistoryRow({
+      questionId,
+      beforeState: beforeSnapshot,
+      afterState: buildSnapshot(afterRow as unknown as Parameters<typeof buildSnapshot>[0]),
+      editedBy: userId,
+      source: "inspector",
+      note: "Figure removed",
+    });
+  }
+
+  revalidatePath(`/admin/questions/inspect/${questionId}`);
+  revalidatePath("/admin/questions/inspect");
 }

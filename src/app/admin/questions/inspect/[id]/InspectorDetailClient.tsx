@@ -475,7 +475,15 @@ export default function InspectorDetailClient({ question, findings, history }: P
           </div>
 
           {editMode ? (
-            <EditForm form={form} isMc={isMc} setForm={updateField} />
+            <EditForm
+              form={form}
+              isMc={isMc}
+              setForm={updateField}
+              questionId={question.id}
+              currentImageUrl={question.image_url ?? null}
+              sourcePdf={question.source_pdf ?? null}
+              sourcePage={question.source_page ?? null}
+            />
           ) : (
             <ViewMode question={question} hasPassage={hasPassage} choices={choices} />
           )}
