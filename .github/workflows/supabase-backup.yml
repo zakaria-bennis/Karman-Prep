@@ -56,15 +56,32 @@ jobs:
       - name: Run pg_dump
         id: dump
         env:
-          # Supabase connection URL — use the SESSION-mode (port 5432)
-          # connection string from the dashboard, NOT the pooler (port
-          # 6543) which doesn't support pg_dump's transaction mode.
-          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          # Build the Postgres URL at runtime from existing secrets +
+          # a hardcoded region. Avoids a separate SUPABASE_DB_URL
+          # secret bundling password + ref; one source of truth
+          # (SUPABASE_DB_PASSWORD) for password rotation.
+          #
+          # Session-mode pooler (port 5432) — works with pg_dump from
+          # GitHub Actions runners (IPv4-only). Transaction-mode (6543)
+          # doesn't support pg_dump's transaction protocol.
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+          # Region is fixed at project creation time on Supabase. If
+          # you ever migrate the project to a new region, update this.
+          SUPABASE_DB_REGION: aws-1-us-west-2
         run: |
-          if [ -z "$SUPABASE_DB_URL" ]; then
-            echo "::error::SUPABASE_DB_URL secret not set. See PR description."
+          if [ -z "$NEXT_PUBLIC_SUPABASE_URL" ] || [ -z "$SUPABASE_DB_PASSWORD" ]; then
+            echo "::error::NEXT_PUBLIC_SUPABASE_URL or SUPABASE_DB_PASSWORD missing."
             exit 1
           fi
+          # Extract project ref from the public URL.
+          # https://yyocjxvrakuhnvepaevh.supabase.co  →  yyocjxvrakuhnvepaevh
+          REF=$(echo "$NEXT_PUBLIC_SUPABASE_URL" | sed -E 's|https?://([^.]+)\.supabase\.co.*|\1|')
+          if [ -z "$REF" ]; then
+            echo "::error::Could not extract project ref from NEXT_PUBLIC_SUPABASE_URL."
+            exit 1
+          fi
+          SUPABASE_DB_URL="postgresql://postgres.${REF}:${SUPABASE_DB_PASSWORD}@${SUPABASE_DB_REGION}.pooler.supabase.com:5432/postgres"
           STAMP=$(date -u +'%Y-%m-%d-%H%M%S')
           OUT="karmanprep-${STAMP}.sql"
           # --no-owner / --no-privileges drop the ownership + GRANT
