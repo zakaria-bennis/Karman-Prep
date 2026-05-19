@@ -270,6 +270,43 @@ function graderRecordToRows(r) {
     });
   }
 
+  // Pass 8 — concept_slug verification.
+  // The Inspector "Apply suggested slug" button (Batch 3a follow-up)
+  // can use detail.suggested_concept_slug to one-click swap.
+  if (r.concept_slug_matches === "no") {
+    rows.push({
+      source: "grader",
+      severity: "WARNING",
+      category: "taxonomy",
+      code: "concept_slug_mismatch",
+      message: r.suggested_concept_slug
+        ? `Stored slug doesn't fit; suggested replacement: ${r.suggested_concept_slug}`
+        : "Stored concept_slug doesn't match what this question is testing",
+      value: r.concept_slug_reasoning ? r.concept_slug_reasoning.slice(0, 300) : null,
+      detail: {
+        stored_slug: r.concept_slug || null,
+        suggested_concept_slug: r.suggested_concept_slug || null,
+        reasoning: r.concept_slug_reasoning || null,
+      },
+    });
+  } else if (r.concept_slug_matches === "partial") {
+    rows.push({
+      source: "grader",
+      severity: "NOTICE",
+      category: "taxonomy",
+      code: "concept_slug_partial",
+      message: r.suggested_concept_slug
+        ? `Stored slug is borderline; consider: ${r.suggested_concept_slug}`
+        : "Stored concept_slug is borderline for this question",
+      value: r.concept_slug_reasoning ? r.concept_slug_reasoning.slice(0, 300) : null,
+      detail: {
+        stored_slug: r.concept_slug || null,
+        suggested_concept_slug: r.suggested_concept_slug || null,
+        reasoning: r.concept_slug_reasoning || null,
+      },
+    });
+  }
+
   return rows;
 }
 
