@@ -32,6 +32,8 @@ import {
   Pencil,
   Save,
   X,
+  RefreshCw,
+  Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { QuestionFinding, FindingSeverity } from "@/lib/supabase/queries/quiz/findings";
@@ -40,8 +42,10 @@ import {
   actionResolveFinding,
   actionAcceptInspectedQuestion,
   actionFlagInspectedQuestion,
-  actionUpdateInspectedQuestion,
-} from "@/app/admin/actions";
+  actionReauditRow,
+  actionApplySuggestedFix,
+} from "@/app/admin/inspector-actions";
+import { actionUpdateInspectedQuestion } from "@/app/admin/inspector-edit-actions";
 import ViewMode from "./_components/ViewMode";
 import EditForm from "./_components/EditForm";
 import HistoryPane from "./_components/HistoryPane";
@@ -82,7 +86,10 @@ export default function InspectorDetailClient({ question, findings, history }: P
   const router = useRouter();
   const [, startTransition] = useTransition();
   const [busyId, setBusyId] = useState<string | null>(null);
-  const [topAction, setTopAction] = useState<"idle" | "accepting" | "flagging" | "saving">("idle");
+  const [topAction, setTopAction] = useState<
+    "idle" | "accepting" | "flagging" | "saving" | "reauditing"
+  >("idle");
+  const [applyingFindingId, setApplyingFindingId] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<{
     kind: "success" | "error";
     message: string;
@@ -268,6 +275,64 @@ export default function InspectorDetailClient({ question, findings, history }: P
     });
   }
 
+  // Re-run deterministic audit checks on this single row. Calls the
+  // shared @/lib/question-bank/audit-rules (same code as the CLI uses)
+  // — inserts new auditor findings, auto-resolves stale ones, leaves
+  // unchanged codes alone. Surfaces a count summary as a success banner.
+  function reaudit() {
+    setTopAction("reauditing");
+    setFeedback(null);
+    startTransition(async () => {
+      try {
+        const r = await actionReauditRow({ questionId: question.id });
+        const parts: string[] = [];
+        if (r.newFindings > 0)
+          parts.push(`${r.newFindings} new finding${r.newFindings === 1 ? "" : "s"}`);
+        if (r.autoResolvedFindings > 0)
+          parts.push(`${r.autoResolvedFindings} auto-resolved (no longer flagged)`);
+        parts.push(`${r.stillOpenFindings} unchanged`);
+        setFeedback({
+          kind: "success",
+          message: `Re-audit complete: ${parts.join(", ")}.`,
+        });
+        router.refresh();
+      } catch (err) {
+        setFeedback({
+          kind: "error",
+          message: `Re-audit failed: ${err instanceof Error ? err.message : String(err)}`,
+        });
+      } finally {
+        setTopAction("idle");
+      }
+    });
+  }
+
+  // One-click "apply Pro's answer" for likely_wrong findings. The
+  // grader's Gemini-2.5-Pro pass picked a letter — this swaps
+  // correct_answer + flips the matching answer_choice's is_correct,
+  // snapshots history, and resolves the finding. MC only.
+  function applySuggested(f: QuestionFinding) {
+    setApplyingFindingId(f.id);
+    setFeedback(null);
+    startTransition(async () => {
+      try {
+        const r = await actionApplySuggestedFix({ findingId: f.id });
+        setFeedback({
+          kind: "success",
+          message: `Applied Pro's suggested answer (correct_answer → ${r.newCorrect}). History updated.`,
+        });
+        router.refresh();
+      } catch (err) {
+        setFeedback({
+          kind: "error",
+          message: `Apply failed: ${err instanceof Error ? err.message : String(err)}`,
+        });
+      } finally {
+        setApplyingFindingId(null);
+      }
+    });
+  }
+
   // Group findings by severity
   const blocking = findings.filter((f) => f.severity === "BLOCKING");
   const warning = findings.filter((f) => f.severity === "WARNING");
@@ -329,6 +394,19 @@ export default function InspectorDetailClient({ question, findings, history }: P
               className="inline-flex items-center gap-1.5 rounded-md bg-violet-500/15 px-3 py-1.5 text-xs font-semibold text-violet-300 hover:bg-violet-500/25 disabled:cursor-not-allowed disabled:opacity-40"
             >
               <Pencil className="h-3.5 w-3.5" /> Edit fields
+            </button>
+            <button
+              onClick={reaudit}
+              disabled={topAction !== "idle"}
+              title="Re-run deterministic audit checks on this row (same as the CLI auditor)"
+              className="inline-flex items-center gap-1.5 rounded-md border border-slate-700 bg-slate-800/40 px-3 py-1.5 text-xs font-semibold text-slate-200 hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              {topAction === "reauditing" ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <RefreshCw className="h-3.5 w-3.5" />
+              )}
+              {topAction === "reauditing" ? "Re-auditing…" : "Re-run checks"}
             </button>
             <button
               onClick={acceptLive}
@@ -431,6 +509,14 @@ export default function InspectorDetailClient({ question, findings, history }: P
                 const Icon = meta.icon;
                 const isExpanded = expandedDetail.has(f.id);
                 const hasDetail = f.detail && Object.keys(f.detail).length > 0;
+                // `likely_wrong` findings carry detail.pro_answer (A/B/C/D)
+                // — surface a one-click "apply" button so the admin
+                // doesn't have to enter edit mode just to flip a letter.
+                const proAnswer =
+                  f.code === "likely_wrong" && f.detail
+                    ? String((f.detail as Record<string, unknown>).pro_answer ?? "").toUpperCase()
+                    : "";
+                const canApplyFix = /^[A-D]$/.test(proAnswer) && isMc;
                 return (
                   <div key={f.id} className={cn("rounded-lg border p-3 text-xs", meta.rowCls)}>
                     <div className="flex items-start gap-2">
@@ -468,6 +554,25 @@ export default function InspectorDetailClient({ question, findings, history }: P
                           <pre className="mt-2 max-h-64 overflow-auto whitespace-pre-wrap rounded bg-slate-950/80 p-2 font-mono text-[10px] leading-snug text-slate-300">
                             {JSON.stringify(f.detail, null, 2)}
                           </pre>
+                        )}
+                        {canApplyFix && (
+                          <div className="mt-2">
+                            <button
+                              onClick={() => applySuggested(f)}
+                              disabled={applyingFindingId !== null}
+                              title={`Set correct_answer to ${proAnswer} (Pro's suggestion) and resolve this finding`}
+                              className="inline-flex items-center gap-1.5 rounded-md bg-emerald-500/15 px-2 py-1 text-[10px] font-semibold text-emerald-200 hover:bg-emerald-500/25 disabled:cursor-not-allowed disabled:opacity-40"
+                            >
+                              {applyingFindingId === f.id ? (
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                              ) : (
+                                <Sparkles className="h-3 w-3" />
+                              )}
+                              {applyingFindingId === f.id
+                                ? "Applying…"
+                                : `Apply Pro's answer (→ ${proAnswer})`}
+                            </button>
+                          </div>
                         )}
                       </div>
                       <button
