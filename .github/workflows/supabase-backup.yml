@@ -44,14 +44,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Postgres client (matching server version)
-        # Supabase runs Postgres 15.x. Ubuntu 24.04 ships postgresql-
-        # client-16 in its default repos, which is compatible
-        # backward (pg_dump 16 can dump a 15 server). Pin to 16 for
-        # deterministic behavior.
+      - name: Install Postgres client (pg 17, matching Supabase server)
+        # Supabase is on Postgres 17.6+. pg_dump REFUSES to dump a
+        # newer server than its own version, so we install pg_dump
+        # 17 from the official Postgres APT repo (Ubuntu 24.04
+        # ships only up to client-16). The PGDG repo is gpg-signed
+        # and is the canonical source for current Postgres clients.
         run: |
           sudo apt-get update
-          sudo apt-get install -y postgresql-client-16
+          sudo apt-get install -y curl ca-certificates gnupg lsb-release
+          curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc \
+            | sudo gpg --dearmor -o /usr/share/keyrings/pgdg.gpg
+          echo "deb [signed-by=/usr/share/keyrings/pgdg.gpg] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" \
+            | sudo tee /etc/apt/sources.list.d/pgdg.list
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client-17
 
       - name: Run pg_dump
         id: dump
