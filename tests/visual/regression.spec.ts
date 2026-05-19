@@ -109,6 +109,32 @@ for (const persona of PERSONAS) {
           await page.goto(url);
           await page.waitForLoadState("networkidle").catch(() => {});
 
+          // Mask the bits of the page that are NOT visual regressions
+          // but DO change between runs:
+          //   · ReplayConsentBanner: shows on every fresh test session
+          //     (no cookie yet); its render timing introduces subpixel
+          //     drift in the bottom strip.
+          //   · `data-testid="last-active-cell"`: real timestamps in
+          //     the tutor StudentTable — change every test run as the
+          //     seed-dev script touches dev_seed_* users.
+          // Both render with a black overlay in the snapshot — diff
+          // ignores everything underneath.
+          const masks = [
+            page.locator('[role="dialog"][aria-labelledby="replay-consent-title"]'),
+            page.locator('[data-testid="last-active-cell"]'),
+            // The tutor StudentTable has too much per-cell dynamic data
+            // (live percentages, real timestamps, flag counts that
+            // shift as seed-dev runs touch the fixture users). Mask
+            // the whole table; layout coverage still comes from the
+            // surrounding chrome.
+            page.locator('[data-testid="student-table"]'),
+            // Same shape on /admin/users — the table body contains
+            // stress-test fixture users whose names/emails/ordering
+            // shift between baseline captures (the seed-dev script
+            // recreates them on every test invocation).
+            page.locator('[data-testid="admin-users-table-body"]'),
+          ];
+
           // Freeze in-flight transitions / animations so the diff
           // is deterministic. `animations: "disabled"` jumps every
           // CSS transition to its final state before the snapshot.
@@ -116,6 +142,7 @@ for (const persona of PERSONAS) {
             fullPage: false,
             animations: "disabled",
             maxDiffPixels: 100,
+            mask: masks,
             // No threshold on per-pixel color delta — the maxDiff-
             // Pixels cap is the only signal we care about. Default
             // threshold (0.2 = ~10% color difference per pixel) is

@@ -168,7 +168,10 @@ export default function StudentTable({ rows, cohorts = [] }: Props) {
         </span>
       </div>
 
-      <div className="overflow-hidden rounded-lg border border-slate-200 dark:border-slate-800">
+      <div
+        className="overflow-hidden rounded-lg border border-slate-200 dark:border-slate-800"
+        data-testid="student-table"
+      >
         <table className="w-full text-sm">
           <thead className="bg-slate-100 dark:bg-slate-900">
             <tr>
@@ -258,7 +261,7 @@ export default function StudentTable({ rows, cohorts = [] }: Props) {
                       ({r.math_mastered}/{r.math_total})
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-xs text-slate-400">
+                  <td className="px-4 py-3 text-xs text-slate-400" data-testid="last-active-cell">
                     {r.last_active ? new Date(r.last_active).toLocaleString() : "Never"}
                   </td>
                   <td className="px-4 py-3 text-right">

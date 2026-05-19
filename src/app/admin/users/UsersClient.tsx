@@ -167,7 +167,7 @@ export default function UsersClient({ users, cohorts }: Props) {
               <th aria-hidden="true" className="w-10" />
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-800">
+          <tbody className="divide-y divide-slate-800" data-testid="admin-users-table-body">
             {filtered.map((u) => (
               <UserRow key={u.id} user={u} onManageLinks={() => setLinkingParent(u)} />
             ))}
