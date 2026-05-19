@@ -392,6 +392,84 @@ async function main() {
   }));
   console.log(`Deduped: ${matched.length} → ${payload.length} unique findings`);
 
+  // ── Triage-memory auto-reopen ────────────────────────────
+  // Default upsert behavior preserves resolved_at on conflict (since
+  // we don't include it in the payload). That's the right call for
+  // findings the admin RESOLVED MANUALLY — those represent a human
+  // decision and shouldn't churn.
+  //
+  // But for findings AUTO-RESOLVED by the system (e.g. "Auto-resolved
+  // on Accept Live" — written by actionAcceptInspectedQuestion when
+  // the admin flips a question live, or "Auto-resolved on re-audit"
+  // when audit-rules stops producing the code), the implicit promise
+  // was "we don't think this issue exists anymore." If the auditor
+  // OR grader re-emits the same code on a fresh run, that promise is
+  // broken — the issue is back and the admin should see it again.
+  //
+  // Heuristic for auto-resolved: resolved_note starts with
+  // "Auto-resolved" (matches every system-resolution string the
+  // server actions write). Human resolutions use messages like
+  // "Resolved via Inspector" or admin-typed text → safe to leave.
+  //
+  // Lookup is one query: fetch all currently-resolved findings whose
+  // (question_id, source, code) is in our incoming set. Re-opening
+  // is a separate UPDATE before the upsert, so the upsert path
+  // doesn't have to special-case anything.
+  console.log("Checking for auto-resolved findings to re-open…");
+  const keysByQuestion = new Map(); // qid → [{source, code}]
+  for (const p of payload) {
+    if (!keysByQuestion.has(p.question_id)) keysByQuestion.set(p.question_id, []);
+    keysByQuestion.get(p.question_id).push({ source: p.source, code: p.code });
+  }
+  const qids = [...keysByQuestion.keys()];
+  // Supabase doesn't support OR over compound keys gracefully, so
+  // we fetch ALL resolved findings for the affected questions (cheap;
+  // there's only ever a small handful of resolved per question) and
+  // intersect locally.
+  const { data: existingResolved, error: erErr } =
+    qids.length > 0
+      ? await supabase
+          .from("question_findings")
+          .select("id, question_id, source, code, resolved_note")
+          .in("question_id", qids)
+          .not("resolved_at", "is", null)
+      : { data: [], error: null };
+  if (erErr) {
+    console.error("Resolved-finding lookup failed:", erErr.message);
+    process.exit(1);
+  }
+  const incomingKeys = new Set(payload.map((p) => `${p.question_id}|${p.source}|${p.code}`));
+  const toReopen = (existingResolved ?? []).filter(
+    (r) =>
+      incomingKeys.has(`${r.question_id}|${r.source}|${r.code}`) &&
+      typeof r.resolved_note === "string" &&
+      r.resolved_note.startsWith("Auto-resolved")
+  );
+  if (toReopen.length > 0) {
+    console.log(
+      `  Re-opening ${toReopen.length} previously auto-resolved finding${toReopen.length === 1 ? "" : "s"} whose code re-fired…`
+    );
+    const ids = toReopen.map((r) => r.id);
+    const BATCH_REOPEN = 200;
+    for (let i = 0; i < ids.length; i += BATCH_REOPEN) {
+      const slice = ids.slice(i, i + BATCH_REOPEN);
+      const { error: roErr } = await supabase
+        .from("question_findings")
+        .update({
+          resolved_at: null,
+          resolved_by: null,
+          resolved_note: null,
+        })
+        .in("id", slice);
+      if (roErr) {
+        console.error(`Re-open batch failed:`, roErr.message);
+        process.exit(1);
+      }
+    }
+  } else {
+    console.log("  No auto-resolved findings to re-open.");
+  }
+
   console.log(`Upserting ${payload.length} rows…`);
   // Batch in groups of 500 to keep payloads manageable.
   const BATCH = 500;
@@ -416,6 +494,9 @@ async function main() {
   console.log(`  Grader: ${graderFindings.length} input records`);
   console.log(`  Matched to DB: ${matched.length}`);
   console.log(`  Unmatched: ${unmatched.length}`);
+  if (toReopen.length > 0) {
+    console.log(`  Re-opened (auto-resolved → now firing again): ${toReopen.length}`);
+  }
 }
 
 main().catch((err) => {
