@@ -39,6 +39,7 @@ export interface QuestionSnapshot {
   image_url: string | null;
   figure_kind: string | null;
   figure_table_data: unknown;
+  figure_chart_data: unknown;
   passage_intro: string | null;
   passage: string | null;
   passage_a: string | null;
@@ -65,6 +66,7 @@ export function buildSnapshot(q: QuizQuestionWithChoices): QuestionSnapshot {
     image_url: q.image_url ?? null,
     figure_kind: q.figure_kind ?? null,
     figure_table_data: q.figure_table_data ?? null,
+    figure_chart_data: q.figure_chart_data ?? null,
     passage_intro: q.passage_intro ?? null,
     passage: q.passage ?? null,
     passage_a: q.passage_a ?? null,
@@ -98,6 +100,7 @@ export function diffSnapshots(before: QuestionSnapshot, after: QuestionSnapshot)
     "image_url",
     "figure_kind",
     "figure_table_data",
+    "figure_chart_data",
     "passage_intro",
     "passage",
     "passage_a",
