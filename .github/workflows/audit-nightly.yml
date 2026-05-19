@@ -1,0 +1,99 @@
+# ============================================================
+# Audit nightly — deterministic auditor + ingest, no LLM.
+#
+# Runs every night at 09:00 UTC (02:00 PT) against the live
+# question_findings table. Catches regressions in the curriculum
+# without requiring an admin to remember to trigger a manual audit.
+#
+# What it does
+# ============
+#   1. node scripts/question-audit/audit-csv.mjs --from-db
+#      → re-scans every quiz_questions row and writes
+#        audit-out/audit-report.json
+#   2. node scripts/question-audit/ingest-findings.mjs --only=auditor
+#      → upserts new auditor findings into question_findings,
+#        re-opens auto-resolved findings whose codes re-fired
+#        (via the triage-memory logic shipped in #132)
+#
+# What it does NOT do
+# ===================
+#   · No LLM grader — that costs money / hits free-tier limits.
+#     The grader is admin-triggered manually (gap-list item).
+#   · No alerting — that's a separate workflow (audit-alert.yml).
+#
+# Manual trigger
+# ==============
+# Push to a branch that touches src/data/curriculum/** triggers
+# the same workflow (pull_request scope). Also exposed via the
+# Actions tab "Run workflow" button (workflow_dispatch).
+# ============================================================
+
+name: Audit (nightly)
+
+on:
+  schedule:
+    # 09:00 UTC = 01:00 PT (during DST) / 02:00 PT (standard).
+    # Picked an off-peak window so we don't compete with a
+    # daytime ingest-by-hand or grader run.
+    - cron: "0 9 * * *"
+  pull_request:
+    # Also fire on PRs that touch the curriculum or audit scripts.
+    # Catches regressions before they hit main.
+    paths:
+      - "src/data/curriculum/**"
+      - "scripts/question-audit/**"
+      - "src/lib/question-bank/**"
+  workflow_dispatch:
+    # Manual button for ad-hoc runs.
+
+concurrency:
+  group: audit-nightly-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  audit:
+    name: Run audit + ingest
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm install --no-audit --no-fund
+
+      - name: Run deterministic auditor (--from-db)
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          mkdir -p audit-out
+          node scripts/question-audit/audit-csv.mjs --from-db
+
+      - name: Ingest auditor findings
+        # PR-trigger runs in dry-run mode so we don't write to prod
+        # from preview branches. Nightly + manual writes for real.
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "PR mode → dry-run only (no writes to question_findings)."
+            node scripts/question-audit/ingest-findings.mjs --only=auditor --dry-run
+          else
+            node scripts/question-audit/ingest-findings.mjs --only=auditor
+          fi
+
+      - name: Upload audit-report artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: audit-report-${{ github.run_id }}
+          path: |
+            audit-out/audit-report.json
+            audit-out/audit-report.md
+            audit-out/unmatched-findings.json
+          retention-days: 30
+          if-no-files-found: warn
