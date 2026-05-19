@@ -227,12 +227,39 @@ async function loadFromDb() {
       passage_b: row.passage_b ?? "",
       question_format: row.answer_format ?? "multiple_choice",
       domain: row.domain ?? "",
+      concept_slug: row.concept_slug ?? "",
       source_pdf: row.source_pdf ?? "",
       source_page: String(row.source_page ?? ""),
       image_url: row.image_url ?? "",
       image_alt: row.image_alt ?? "",
     };
   });
+}
+
+// ── Concept-slug taxonomy (for Pass 8) ──
+// Source of truth: src/data/curriculum/{math,reading-writing}.ts. Each
+// node literal carries `topic: "..."`, `concept_slug: "..."`,
+// `domain: "..."`. We regex them out (rather than importing the TS
+// module) so this stays node-only with no tsx dep.
+async function loadConceptSlugCatalog() {
+  const out = [];
+  for (const f of ["src/data/curriculum/math.ts", "src/data/curriculum/reading-writing.ts"]) {
+    try {
+      const text = await readFile(f, "utf-8");
+      // Match a triple of `topic / concept_slug / domain` fields on
+      // consecutive lines. Curriculum literals always order them this
+      // way (see CLAUDE.md "Repo defaults" — convention is enforced).
+      const re =
+        /topic:\s*"([^"]+)"[\s\S]{0,200}?concept_slug:\s*"([a-z0-9-]+)"[\s\S]{0,200}?domain:\s*"([a-z_]+)"/g;
+      const matches = text.matchAll(re);
+      for (const m of matches) {
+        out.push({ slug: m[2], label: m[1], domain: m[3] });
+      }
+    } catch {
+      /* file missing — partial coverage is fine */
+    }
+  }
+  return out;
 }
 
 // ── Vision input — fetch image bytes when image_url is set ──
@@ -899,6 +926,96 @@ async function main() {
     }
   }
 
+  // ── Pass 8: concept_slug verification ─────────────────────
+  // For every row that has a stored concept_slug, ask Flash: "given
+  // this question, does this slug fit, or is there a better one in
+  // the canonical 89?" Mis-mapped questions land in the wrong adaptive
+  // pool and the wrong Learn node, so this is the single highest-
+  // impact taxonomy check after answer correctness itself.
+  //
+  // Bound by Flash quota — runs on every row, one call each. The full
+  // 89-slug catalog + per-row context fits comfortably under Flash's
+  // 1M-token context. If the script is mid-run when Flash quota
+  // exhausts, we bail with a clear log line and the partial results
+  // get written.
+  const slugCatalog = await loadConceptSlugCatalog();
+  const slugByName = new Map(slugCatalog.map((s) => [s.slug, s]));
+  const slugCheckTargets = rows
+    .map((r, i) => ({ i, r, result: results[i] }))
+    .filter(
+      ({ r, result }) =>
+        result &&
+        result.verdict !== "skip_no_text" &&
+        r.concept_slug &&
+        slugByName.has(r.concept_slug)
+    );
+
+  if (slugCatalog.length === 0) {
+    console.log("");
+    console.log(
+      "Pass 8: skipped — couldn't load curriculum slug catalog from src/data/curriculum/*.ts"
+    );
+  } else if (slugCheckTargets.length === 0) {
+    console.log("");
+    console.log("Pass 8: skipped — no rows have a valid concept_slug to verify");
+  } else {
+    console.log("");
+    console.log(
+      `Pass 8: concept_slug verification on ${slugCheckTargets.length} rows (catalog: ${slugCatalog.length} slugs)…`
+    );
+    for (const { i, r, result } of slugCheckTargets) {
+      const storedSlug = slugByName.get(r.concept_slug);
+      process.stdout.write(`[slug] row ${i + 1} (p${r.source_page}) stored=${r.concept_slug}… `);
+      let raw;
+      try {
+        raw = await callGemini(FLASH_MODEL, buildSlugCheckPrompt(r, storedSlug, slugCatalog), null);
+      } catch (err) {
+        const msg = String(err).slice(0, 100);
+        console.log(`ERROR: ${msg}`);
+        if (msg.includes("DAILY QUOTA EXHAUSTED")) {
+          console.log("Stopping concept_slug verification due to quota.");
+          break;
+        }
+        result.slug_check_error = msg;
+        continue;
+      }
+      const parsed = parseSolveResponse(raw);
+      if (!parsed) {
+        console.log("parse fail");
+        result.slug_check_error = "json parse";
+        continue;
+      }
+      const matches = (parsed.slug_matches || "").toLowerCase();
+      const suggested = (parsed.suggested_slug || "").trim();
+      const reasoning = parsed.reasoning || "";
+      // Pin the stored slug onto the result record so ingest-findings
+      // can surface it in `detail.stored_slug` without having to
+      // re-join against the source rows.
+      result.concept_slug = r.concept_slug;
+      result.concept_slug_matches = matches;
+      result.suggested_concept_slug = suggested && slugByName.has(suggested) ? suggested : "";
+      result.concept_slug_reasoning = reasoning;
+      if (matches === "no") {
+        process.stdout.write(`MISMATCH`);
+        if (result.suggested_concept_slug)
+          process.stdout.write(` → ${result.suggested_concept_slug}`);
+        if (reasoning) process.stdout.write(` ⚠ ${reasoning.slice(0, 60)}`);
+        process.stdout.write("\n");
+        result.verdict_secondary = result.verdict_secondary
+          ? result.verdict_secondary + "+concept_slug_mismatch"
+          : "concept_slug_mismatch";
+      } else if (matches === "partial") {
+        process.stdout.write(`partial`);
+        if (result.suggested_concept_slug)
+          process.stdout.write(` → ${result.suggested_concept_slug}`);
+        if (reasoning) process.stdout.write(` ⚠ ${reasoning.slice(0, 60)}`);
+        process.stdout.write("\n");
+      } else {
+        process.stdout.write(`ok\n`);
+      }
+    }
+  }
+
   await writeReports(results);
 }
 
@@ -1004,6 +1121,72 @@ function buildVisionDiffPrompt(row) {
   lines.push("{");
   lines.push('  "transcription_matches": "yes" | "partial" | "no",');
   lines.push('  "transcription_diffs": "<list specific differences, or empty if matches>"');
+  lines.push("}");
+  return lines.join("\n");
+}
+
+// ── Pass 8 (concept-slug verification) prompt ──
+// Pass the full catalog so the model can pick a specific replacement
+// rather than just say "no". The catalog is ~89 entries × ~80 chars
+// ≈ 7k tokens — fits well within Flash's context window. Suggestions
+// are validated against the catalog server-side, so the model can't
+// hallucinate a new slug.
+function buildSlugCheckPrompt(row, storedSlug, catalog) {
+  const isMc = row.question_format !== "numeric_entry";
+  const lines = [];
+  lines.push(
+    "You are verifying whether an SAT question is filed under the right curriculum topic."
+  );
+  lines.push("");
+  lines.push("Each question carries a `concept_slug` that maps to a Learn node.");
+  lines.push(
+    "Wrong slug = question lands in the wrong adaptive pool, students drill the wrong topic."
+  );
+  lines.push("");
+  lines.push("CURRENT (stored) slug:");
+  lines.push(`  ${storedSlug.slug}  —  "${storedSlug.label}"  (${storedSlug.domain})`);
+  lines.push("");
+  if (row.passage_intro) lines.push("PASSAGE INTRO: " + row.passage_intro);
+  if (row.passage) lines.push("PASSAGE: " + row.passage);
+  if (row.passage_a)
+    lines.push("PASSAGE A: " + row.passage_a + "\nPASSAGE B: " + (row.passage_b || ""));
+  lines.push("");
+  lines.push("QUESTION TEXT: " + row.question_text);
+  if (isMc) {
+    lines.push("");
+    lines.push("CHOICES:");
+    lines.push(`A) ${row.choice_a}`);
+    lines.push(`B) ${row.choice_b}`);
+    lines.push(`C) ${row.choice_c}`);
+    lines.push(`D) ${row.choice_d}`);
+  }
+  lines.push("");
+  lines.push("CANDIDATE slugs (89 total):");
+  // Group by domain for readability — the model picks much better when
+  // it can see related slugs side-by-side.
+  const byDomain = new Map();
+  for (const s of catalog) {
+    if (!byDomain.has(s.domain)) byDomain.set(s.domain, []);
+    byDomain.get(s.domain).push(s);
+  }
+  for (const [domain, slugs] of byDomain) {
+    lines.push(`  [${domain}]`);
+    for (const s of slugs) {
+      lines.push(`    ${s.slug}  —  ${s.label}`);
+    }
+  }
+  lines.push("");
+  lines.push(
+    "Does the CURRENT slug fit this question? If not, pick the single best replacement from the catalog above. Focus on what skill the question really tests, not surface keywords."
+  );
+  lines.push("");
+  lines.push("Respond in JSON:");
+  lines.push("{");
+  lines.push('  "slug_matches": "yes" | "partial" | "no",');
+  lines.push(
+    '  "suggested_slug": "<one of the slugs above, only if slug_matches is no; else empty>",'
+  );
+  lines.push('  "reasoning": "<one short sentence explaining your call>"');
   lines.push("}");
   return lines.join("\n");
 }

@@ -1,39 +1,55 @@
 // ============================================================
-// apply-grader-fixes — patch CSV rows flagged `likely_wrong`
-// by the LLM grader.
+// apply-grader-fixes — patch rows flagged `likely_wrong` by the
+// LLM grader. Two modes:
 //
-// Reads audit-out/grader-report.json (output of llm-grader.mjs).
-// For every row with verdict="likely_wrong", patches the matching
-// CSV row in-place:
+// CSV mode (default — when grader was run on a CSV):
+//   Patches the matching CSV row in-place:
+//     · correct_answer  ← pro_answer (or flash_answer if pro missing)
+//     · explanation_text ← Pro's reasoning (clean step-by-step)
+//     · explanation_a/b/c/d ← BLANKED (were tied to the wrong answer)
+//     · import_flag_reason ← appends "auto-fix-by-grader: stored=X,
+//                            corrected to Y" for audit trail.
+//   Match strategy: by source_file + question_text snippet (first
+//   60 chars). Robust to row-index shifts.
 //
-//   · correct_answer  ← grader's verified answer (pro, or flash if
-//                       pro missing)
-//   · explanation_text ← Pro's reasoning (clean step-by-step)
-//   · explanation_a/b/c/d ← BLANKED. The stored per-choice
-//     explanations were tied to the wrong answer; leaving them
-//     would actively mislead students. Empty is honest.
-//   · import_flag_reason ← appends "auto-fix-by-grader: stored=X,
-//                          corrected to Y" for audit trail.
-//
-// Match strategy: by source_file + question_text snippet (first
-// 60 chars). Robust to row-index shifts.
+// DB mode (--from-db — when grader was run with --from-db):
+//   Patches quiz_questions + answer_choices DIRECTLY in Supabase:
+//     · UPDATE quiz_questions.correct_answer = pro_answer
+//     · UPDATE quiz_questions.explanation_text = pro_reasoning
+//     · UPDATE quiz_questions.explanation_per_choice = NULL
+//     · UPDATE quiz_questions.import_status = 'needs_review'
+//     · UPDATE quiz_questions.import_flag_reason appended
+//     · Re-derive is_correct on answer_choices for new letter
+//     · INSERT into question_history (edit_source='apply-fix')
+//   Match strategy: direct lookup by grader's `r.id` (--from-db
+//   grader populates the row id when known).
 //
 // USAGE
-//   # Dry run (default) — show what would change, don't write.
+//   # CSV — dry run (default) — show what would change.
 //   node scripts/question-audit/apply-grader-fixes.mjs
 //
-//   # Apply for real.
+//   # CSV — apply for real.
 //   node scripts/question-audit/apply-grader-fixes.mjs --apply
 //
-//   # Limit to a specific source CSV.
+//   # CSV — limit to a specific source CSV.
 //   node scripts/question-audit/apply-grader-fixes.mjs --apply \
 //     --only=questions_needs_review.csv
 //
+//   # DB — dry run.
+//   node --env-file=.env.local \
+//     scripts/question-audit/apply-grader-fixes.mjs --from-db
+//
+//   # DB — apply.
+//   node --env-file=.env.local \
+//     scripts/question-audit/apply-grader-fixes.mjs --from-db --apply
+//
 // SAFETY
-//   · Always copies each CSV to .bak before writing.
-//   · Refuses to overwrite if .bak already exists (manual cleanup
-//     forces explicit acknowledgement of the prior fix).
-//   · Logs every change to audit-out/applied-fixes.json.
+//   CSV: copies each file to .bak before writing; refuses to overwrite
+//        if .bak already exists.
+//   DB:  every UPDATE is reversible via question_history (`Restore`
+//        button in Inspector). The pre-edit state is snapshotted into
+//        before_state JSONB before any write.
+//   Logs every change to audit-out/applied-fixes.json (both modes).
 // ============================================================
 
 import { readFile, writeFile, copyFile, access } from "node:fs/promises";
@@ -42,6 +58,7 @@ import { existsSync } from "node:fs";
 
 const args = process.argv.slice(2);
 const APPLY = args.includes("--apply");
+const FROM_DB = args.includes("--from-db");
 const onlyArg = args.find((a) => a.startsWith("--only="));
 const ONLY_FILE = onlyArg ? onlyArg.split("=")[1] : null;
 
@@ -57,7 +74,8 @@ const targets = report.filter(
     r.verdict === "likely_wrong" &&
     r.flash_answer &&
     r.pro_answer &&
-    (!ONLY_FILE || (r.source && r.source.endsWith(ONLY_FILE)))
+    // DB-mode only operates on rows the grader matched to a DB id.
+    (FROM_DB ? !!r.id : !ONLY_FILE || (r.source && r.source.endsWith(ONLY_FILE)))
 );
 
 if (targets.length === 0) {
@@ -68,8 +86,19 @@ if (targets.length === 0) {
 console.log(
   `Plan: patch ${targets.length} row${targets.length === 1 ? "" : "s"} from grader-report.`
 );
-console.log(APPLY ? "Mode: APPLY (will write to disk)" : "Mode: DRY-RUN (no writes)");
+console.log(
+  `Mode: ${FROM_DB ? "DB" : "CSV"} · ${APPLY ? "APPLY (writes)" : "DRY-RUN (no writes)"}`
+);
 console.log("");
+
+// ── DB-mode fast path ───────────────────────────────────────
+// In DB mode we never touch CSVs — go straight to applyToDb and
+// exit. CSV-mode code below assumes targets carry `source` (CSV
+// file path), which DB-mode targets don't.
+if (FROM_DB) {
+  await applyToDb(targets, APPLY);
+  process.exit(0);
+}
 
 // ── CSV utils (round-trip preserving quoting) ──
 function parseCsv(text) {
@@ -305,4 +334,249 @@ if (APPLY) {
     )
   );
   console.log(`\n  audit log: ${outPath}`);
+}
+
+// ── DB-mode implementation ───────────────────────────────────
+// Mirrors actionApplySuggestedFix from the Inspector (the
+// in-product equivalent), but batch-applies every likely_wrong
+// finding in one CLI sweep. Use when you have N>10 fixes to
+// apply and don't want to click each one in the UI.
+//
+// Edit-trail strategy
+//   Each applied fix writes a question_history row with
+//   edit_source='apply-fix' (the enum value is already in the
+//   migration's CHECK constraint). edited_by carries a sentinel
+//   "system:apply-grader-fixes" so it's distinguishable from
+//   real-user edits when reviewing the history pane.
+async function applyToDb(targets, APPLY) {
+  const SUPA_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const SUPA_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!SUPA_URL || !SUPA_KEY) {
+    console.error(
+      "DB mode requires NEXT_PUBLIC_SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY in .env.local."
+    );
+    process.exit(1);
+  }
+  const { createClient } = await import("@supabase/supabase-js");
+  const supa = createClient(SUPA_URL, SUPA_KEY, { auth: { persistSession: false } });
+
+  const appliedLog = [];
+  let totalApplied = 0;
+  let totalFailed = 0;
+  const nowIso = new Date().toISOString();
+
+  for (const t of targets) {
+    // 1. Load the row + choices BEFORE the edit.
+    const { data: row, error: loadErr } = await supa
+      .from("quiz_questions")
+      .select("*, answer_choices(letter, choice_text, is_correct)")
+      .eq("id", t.id)
+      .maybeSingle();
+    if (loadErr || !row) {
+      console.log(
+        `  ✗ Could not load question ${t.id}: ${loadErr ? loadErr.message : "not found"}`
+      );
+      totalFailed++;
+      continue;
+    }
+    if (row.answer_format !== "multiple_choice") {
+      console.log(`  ✗ Skipping ${t.id} — not MC (answer_format=${row.answer_format})`);
+      totalFailed++;
+      continue;
+    }
+    const newAnswer = t.pro_answer || t.flash_answer;
+    if (!/^[A-D]$/.test(newAnswer)) {
+      console.log(`  ✗ Skipping ${t.id} — suggested answer "${newAnswer}" is not A|B|C|D`);
+      totalFailed++;
+      continue;
+    }
+    if (row.correct_answer === newAnswer) {
+      console.log(
+        `  ⓘ Skipping ${t.id} — stored answer already matches grader's suggestion (${newAnswer})`
+      );
+      continue;
+    }
+
+    const beforeSnap = buildSnapshot(row);
+    const newExplanation = (t.pro_reasoning || t.flash_reasoning || "").trim();
+    const oldFlag = row.import_flag_reason || "";
+    const flagNote = `auto-fix-by-grader: stored=${row.correct_answer || "(empty)"} → ${newAnswer}; per-choice explanations cleared`;
+    const newFlag = oldFlag ? `${oldFlag} | ${flagNote}` : flagNote;
+
+    console.log(`  → ${t.id} (p${t.source_page}, ${t.domain})`);
+    console.log(`      correct_answer: ${row.correct_answer} → ${newAnswer}`);
+    console.log(
+      `      explanation_text: ${(row.explanation_text || "").length} chars → ${newExplanation.length} chars (Pro's reasoning)`
+    );
+    console.log(`      explanation_per_choice: cleared`);
+    console.log(`      import_status: → needs_review (was ${row.import_status})`);
+
+    if (APPLY) {
+      // 2. UPDATE quiz_questions.
+      const { error: upErr } = await supa
+        .from("quiz_questions")
+        .update({
+          correct_answer: newAnswer,
+          explanation_text: newExplanation,
+          explanation_per_choice: null,
+          import_status: "needs_review",
+          import_flag_type: row.import_flag_type || "partial_emit",
+          import_flag_reason: newFlag,
+          updated_at: nowIso,
+        })
+        .eq("id", t.id);
+      if (upErr) {
+        console.log(`      ✗ UPDATE failed: ${upErr.message}`);
+        totalFailed++;
+        continue;
+      }
+      // 3. Re-derive is_correct on answer_choices.
+      const { error: c1 } = await supa
+        .from("answer_choices")
+        .update({ is_correct: false })
+        .eq("question_id", t.id);
+      if (c1) {
+        console.log(`      ✗ Clear is_correct failed: ${c1.message}`);
+        totalFailed++;
+        continue;
+      }
+      const { error: c2 } = await supa
+        .from("answer_choices")
+        .update({ is_correct: true })
+        .eq("question_id", t.id)
+        .eq("letter", newAnswer);
+      if (c2) {
+        console.log(`      ✗ Set is_correct failed: ${c2.message}`);
+        totalFailed++;
+        continue;
+      }
+      // 4. Fetch AFTER + write history.
+      const { data: afterRow } = await supa
+        .from("quiz_questions")
+        .select("*, answer_choices(letter, choice_text, is_correct)")
+        .eq("id", t.id)
+        .maybeSingle();
+      if (afterRow) {
+        const afterSnap = buildSnapshot(afterRow);
+        const changed = diffSnapshots(beforeSnap, afterSnap);
+        if (changed.length > 0) {
+          const { error: hErr } = await supa.from("question_history").insert({
+            question_id: t.id,
+            before_state: beforeSnap,
+            after_state: afterSnap,
+            changed_fields: changed,
+            edited_by: "system:apply-grader-fixes",
+            edit_source: "apply-fix",
+            edit_note: `Auto-applied Pro's answer (${row.correct_answer} → ${newAnswer}) from grader-report.json`,
+          });
+          if (hErr) {
+            console.log(`      ⚠ history insert failed (row still updated): ${hErr.message}`);
+          }
+        }
+      }
+    }
+
+    appliedLog.push({
+      question_id: t.id,
+      source_pdf: t.source_pdf,
+      source_page: t.source_page,
+      domain: t.domain,
+      old_answer: row.correct_answer,
+      new_answer: newAnswer,
+      pro_reasoning_used: !!t.pro_reasoning,
+      applied: APPLY,
+    });
+    totalApplied++;
+  }
+
+  console.log("");
+  console.log("═".repeat(72));
+  console.log(`Plan size: ${targets.length}`);
+  console.log(`Successfully ${APPLY ? "applied" : "planned"}: ${totalApplied}`);
+  if (totalFailed) console.log(`Failed: ${totalFailed}`);
+  if (!APPLY) console.log("\nRe-run with --apply to write changes.");
+
+  if (APPLY) {
+    const outPath = "audit-out/applied-fixes.json";
+    await writeFile(
+      outPath,
+      JSON.stringify(
+        {
+          applied_at: new Date().toISOString(),
+          mode: "db",
+          count: totalApplied,
+          fixes: appliedLog,
+        },
+        null,
+        2
+      )
+    );
+    console.log(`\n  audit log: ${outPath}`);
+  }
+}
+
+// ── Snapshot helpers (mirror src/lib/supabase/queries/quiz/history.ts) ──
+// Replicated here because CLI scripts can't import the TS module
+// directly. The JSON shape MUST match the server-side buildSnapshot
+// for the Inspector's "Restore" button to be able to deserialize
+// these rows and rebuild the pre-fix state.
+function buildSnapshot(q) {
+  return {
+    question_text: q.question_text ?? "",
+    correct_answer: q.correct_answer ?? "",
+    difficulty_level: q.difficulty_level ?? null,
+    explanation_text: q.explanation_text ?? "",
+    explanation_per_choice: q.explanation_per_choice ?? null,
+    hint: q.hint ?? null,
+    desmos_strategy: q.desmos_strategy ?? null,
+    image_alt: q.image_alt ?? null,
+    image_url: q.image_url ?? null,
+    figure_kind: q.figure_kind ?? null,
+    figure_table_data: q.figure_table_data ?? null,
+    passage_intro: q.passage_intro ?? null,
+    passage: q.passage ?? null,
+    passage_a: q.passage_a ?? null,
+    passage_b: q.passage_b ?? null,
+    numeric_tolerance: q.numeric_tolerance ?? null,
+    concept_slug: q.concept_slug ?? null,
+    domain: q.domain ?? null,
+    topic_cluster: q.topic_cluster ?? null,
+    import_status: q.import_status ?? null,
+    choices: (q.answer_choices || []).map((c) => ({
+      letter: c.letter,
+      choice_text: c.choice_text,
+      is_correct: c.is_correct,
+    })),
+  };
+}
+
+function diffSnapshots(before, after) {
+  const fields = [
+    "question_text",
+    "correct_answer",
+    "difficulty_level",
+    "explanation_text",
+    "explanation_per_choice",
+    "hint",
+    "desmos_strategy",
+    "image_alt",
+    "image_url",
+    "figure_kind",
+    "figure_table_data",
+    "passage_intro",
+    "passage",
+    "passage_a",
+    "passage_b",
+    "numeric_tolerance",
+    "concept_slug",
+    "domain",
+    "topic_cluster",
+    "import_status",
+  ];
+  const changed = [];
+  for (const f of fields) {
+    if (JSON.stringify(before[f]) !== JSON.stringify(after[f])) changed.push(f);
+  }
+  if (JSON.stringify(before.choices) !== JSON.stringify(after.choices)) changed.push("choices");
+  return changed;
 }

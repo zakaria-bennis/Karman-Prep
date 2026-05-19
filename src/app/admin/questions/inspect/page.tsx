@@ -20,6 +20,7 @@ import {
   ChevronRight,
   Microscope,
   CheckCircle2,
+  BarChart3,
   Activity,
   TrendingDown,
   TrendingUp,
@@ -86,9 +87,17 @@ export default async function InspectorPage({ searchParams }: PageProps) {
         >
           <ChevronRight className="h-3 w-3 rotate-180" /> Back to admin
         </Link>
-        <h1 className="flex items-center gap-2 text-2xl font-bold text-white">
-          <Microscope className="h-5 w-5 text-violet-400" /> Inspector
-        </h1>
+        <div className="flex items-start justify-between">
+          <h1 className="flex items-center gap-2 text-2xl font-bold text-white">
+            <Microscope className="h-5 w-5 text-violet-400" /> Inspector
+          </h1>
+          <Link
+            href="/admin/questions/dashboard"
+            className="inline-flex items-center gap-1.5 rounded-md border border-slate-700 bg-slate-900/60 px-3 py-1.5 text-xs font-semibold text-slate-200 hover:bg-slate-800"
+          >
+            <BarChart3 className="h-3.5 w-3.5" /> Quality dashboard
+          </Link>
+        </div>
         <p className="mt-1.5 text-sm text-slate-400">
           {summary.questions_with_findings} questions with findings · {summary.total_findings} total
           (<span className="text-rose-400">{summary.blocking} blocking</span> ·{" "}
