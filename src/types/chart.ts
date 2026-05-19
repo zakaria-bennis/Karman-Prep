@@ -1,0 +1,142 @@
+// ============================================================
+// ChartFigure — the JSON shape that drives the SVG renderer for
+// coordinate-plane figures (Phase 4d).
+//
+// Populated by scripts/figure-extraction/extract-chart-data.mjs
+// from the raster image_url crop via Gemini Pro Vision, then
+// stored in quiz_questions.figure_chart_data (JSONB).
+//
+// Consumed by src/components/learn/ChartFigure.tsx to produce
+// clean, theme-aware, scalable SVG instead of the blurry PDF
+// screenshot.
+//
+// Design notes
+// ============
+// · The schema is intentionally lossy: we capture what a STUDENT
+//   needs to solve the question, not pixel-perfect fidelity. A
+//   scatterplot may have 12 dots with axes 0-10 by 2 — that's the
+//   structure. Exact pixel position doesn't matter.
+// · One Figure may carry multiple SERIES (e.g. two lines on the
+//   same axes for "compare the two students' scores"). Subject-
+//   coded coloring is used for single-series; a sequential palette
+//   takes over when series.length > 1.
+// · `confidence` is set by the extractor (0.0 — 1.0). The Inspector
+//   shows a "review" panel when confidence < 0.8.
+// ============================================================
+
+/** Top-level discriminator. Subject-coding lookup uses the
+ *  question's subject; chart_kind is purely visual layout. */
+export type ChartKind = "scatterplot" | "line_graph" | "bar_chart" | "function_plot";
+
+export interface ChartAxis {
+  /** Human-readable label, e.g. "Time (seconds)" or "Score". Empty
+   *  string when unlabeled in the source figure. */
+  label: string;
+  /** Numeric domain. For categorical x-axes on bar charts, leave
+   *  min/max null and use `categories` instead. */
+  min: number | null;
+  max: number | null;
+  /** Distance between major tick marks. Null = let the renderer
+   *  pick a reasonable default from min/max. */
+  tick_step: number | null;
+  /** Categorical labels for bar-chart x-axes. Mutually exclusive
+   *  with numeric min/max/tick_step. */
+  categories: string[] | null;
+}
+
+export interface ScatterSeries {
+  kind: "scatter";
+  /** Optional name shown in a legend when there are 2+ series. */
+  label: string | null;
+  /** [x, y] coordinate pairs. Coordinates are in the axis's
+   *  numeric space (not pixels). */
+  points: Array<[number, number]>;
+}
+
+export interface LineSeries {
+  kind: "line";
+  label: string | null;
+  /** [x, y] coordinates connected in order. */
+  points: Array<[number, number]>;
+}
+
+export interface BarSeries {
+  kind: "bar";
+  label: string | null;
+  /** Each bar's category (matching x-axis categories[]) and value. */
+  bars: Array<{ category: string; value: number }>;
+}
+
+export interface FunctionSeries {
+  kind: "function";
+  label: string | null;
+  /** Family of supported expressions — keeps the extractor + renderer
+   *  honest. Each carries the parameters needed to plot it on the
+   *  current axis range.
+   *
+   *  Why not a freeform expression string? We'd need a sandboxed
+   *  evaluator + an extractor that always emits valid math. This
+   *  enum covers >90% of SAT function plots (linear + quadratic) and
+   *  adds a couple of common ones. Extend as new cases surface. */
+  expression:
+    | { kind: "linear"; m: number; b: number } // y = m·x + b
+    | { kind: "quadratic"; a: number; b: number; c: number } // y = a·x² + b·x + c
+    | { kind: "absolute_value"; a: number; h: number; k: number } // y = a·|x − h| + k
+    | { kind: "exponential"; a: number; b: number }; // y = a · b^x
+  /** Restrict the plotted domain. Null = the full x-axis range. */
+  domain: [number, number] | null;
+}
+
+export type ChartSeries = ScatterSeries | LineSeries | BarSeries | FunctionSeries;
+
+export interface ChartFigure {
+  /** Discriminator for the dominant visual layout. */
+  kind: ChartKind;
+  /** Optional title above the figure. Many SAT figures have none. */
+  title: string | null;
+  x_axis: ChartAxis;
+  y_axis: ChartAxis;
+  /** Show the background grid? Default true. */
+  show_grid: boolean;
+  /** One or more series. Multi-series charts trigger the sequential
+   *  color palette + a legend. */
+  series: ChartSeries[];
+  /** Set by the extractor. 0.0 — 1.0. Surfaced in the Inspector for
+   *  manual review when below the auto-publish threshold (0.8). */
+  confidence: number;
+  /** Model + prompt version used so we can re-extract systematically
+   *  later. e.g. "gemini-2.5-pro@2026-05-19". */
+  extracted_by: string;
+  /** Timestamp of the extraction run (ISO). */
+  extracted_at: string;
+  /** Optional free-form note from the extractor explaining tricky
+   *  judgement calls (e.g. "the x-axis label was illegible — best
+   *  guess: 'Time'"). Surfaces in the Inspector. */
+  extractor_note: string | null;
+}
+
+/** Subject → series color mapping for single-series figures.
+ *  Multi-series (length > 1) uses the SEQUENTIAL_PALETTE below.
+ *
+ *  Values are the Karman brand "constellation accent" colors from
+ *  src/app/globals.css. Math = blue, R&W = rose. */
+export const SUBJECT_CHART_COLOR: Record<string, string> = {
+  math: "#2fa8ff",
+  reading: "#d84f73",
+};
+
+/** Sequential palette for multi-series charts. Picked from the
+ *  brand's accent colors so the palette feels native to Karman.
+ *  Stops after 5 — a 6+-series SAT chart would be visually unreadable
+ *  and the extractor should surface it for manual review.
+ *
+ *  Order: blue → rose → gold → teal → violet. The first two double
+ *  as the subject-coded colors so a math chart with two series
+ *  reads as "primary blue + a contrasting rose." */
+export const SEQUENTIAL_PALETTE = [
+  "#2fa8ff", // math blue
+  "#d84f73", // R&W rose
+  "#e4c86a", // accent gold
+  "#42d9ff", // math glow (lighter blue)
+  "#f06a8c", // rose glow (lighter rose)
+] as const;

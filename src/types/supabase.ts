@@ -1816,8 +1816,9 @@ export type Database = {
           image_alt: string | null;
           image_storage_path: string | null;
           image_url: string | null;
-          figure_kind: "image" | "table" | "svg" | null;
+          figure_kind: "image" | "table" | "chart" | "svg" | null;
           figure_table_data: Json | null;
+          figure_chart_data: Json | null;
           import_flag_reason: string | null;
           import_flag_type: string | null;
           import_status: string | null;
@@ -1857,8 +1858,9 @@ export type Database = {
           image_alt?: string | null;
           image_storage_path?: string | null;
           image_url?: string | null;
-          figure_kind?: "image" | "table" | "svg" | null;
+          figure_kind?: "image" | "table" | "chart" | "svg" | null;
           figure_table_data?: Json | null;
+          figure_chart_data?: Json | null;
           import_flag_reason?: string | null;
           import_flag_type?: string | null;
           import_status?: string | null;
@@ -1897,8 +1899,9 @@ export type Database = {
           image_alt?: string | null;
           image_storage_path?: string | null;
           image_url?: string | null;
-          figure_kind?: "image" | "table" | "svg" | null;
+          figure_kind?: "image" | "table" | "chart" | "svg" | null;
           figure_table_data?: Json | null;
+          figure_chart_data?: Json | null;
           import_flag_reason?: string | null;
           import_flag_type?: string | null;
           import_status?: string | null;
@@ -2774,8 +2777,9 @@ export type Database = {
           image_alt: string | null;
           image_storage_path: string | null;
           image_url: string | null;
-          figure_kind: "image" | "table" | "svg" | null;
+          figure_kind: "image" | "table" | "chart" | "svg" | null;
           figure_table_data: Json | null;
+          figure_chart_data: Json | null;
           import_flag_reason: string | null;
           import_flag_type: string | null;
           import_status: string | null;

@@ -93,12 +93,13 @@ export interface QuizQuestion {
    *  supabase/migrations/20260518004500_quiz_questions_live_view.sql).
    *  TRUE iff import_status IS NULL OR import_status = 'ok'. */
   is_live: boolean | null;
-  /** Phase 4a — where the figure comes from:
-   *  - 'image' (raster crop in image_url; legacy + non-table figures)
-   *  - 'table' (structured data in figure_table_data; renders as native HTML)
-   *  - 'svg'   (reserved for Phase 4c primitive shapes)
+  /** Where the figure comes from:
+   *  - 'image' (raster crop in image_url; legacy + un-classified figures)
+   *  - 'table' (structured data in figure_table_data; renders as native HTML) — Phase 4a
+   *  - 'chart' (structured data in figure_chart_data; renders as SVG) — Phase 4d
+   *  - 'svg'   (reserved for Phase 4c primitive geometry shapes)
    *  - null    (no figure) */
-  figure_kind: "image" | "table" | "svg" | null;
+  figure_kind: "image" | "table" | "chart" | "svg" | null;
   /** Phase 4a — structured table data when figure_kind='table'.
    *  See src/components/learn/QuestionTable.tsx for the shape. */
   figure_table_data: {
@@ -107,6 +108,9 @@ export interface QuizQuestion {
     rows: string[][];
     footer_note?: string | null;
   } | null;
+  /** Phase 4d — structured chart data when figure_kind='chart'.
+   *  See src/types/chart.ts ChartFigure for the full shape. */
+  figure_chart_data: import("./chart").ChartFigure | null;
 }
 
 /** Admin-supplied overrides for a node's textbook + video.

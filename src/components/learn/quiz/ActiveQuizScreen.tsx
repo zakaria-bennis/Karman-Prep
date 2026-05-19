@@ -13,6 +13,7 @@ import { QUIZ_TOTAL_QUESTIONS, useQuiz } from "@/contexts/QuizContext";
 import type { QuizQuestionWithChoices } from "@/types/quiz";
 import MathText from "../MathText";
 import QuestionTable from "../QuestionTable";
+import ChartFigure from "../ChartFigure";
 import FigureFrame from "../FigureFrame";
 import { ProgressDot } from "./ProgressDot";
 
@@ -310,15 +311,28 @@ export function ActiveQuizScreen({
         // Used at the top of the left column whenever the question has
         // an attached image (math graph, R&W chart, geometry diagram).
         //
-        // Phase 4a: when figure_kind='table' + figure_table_data is set,
-        // render a native HTML table (observatory-themed) instead of
-        // the raster crop. The QuestionTable renders inside its own
-        // styled container so we skip the white-background figure card.
+        // Native-figure dispatch:
+        //   Phase 4a — figure_kind='table' uses QuestionTable.
+        //   Phase 4d — figure_kind='chart' uses ChartFigure (SVG).
+        //   Default — raster image_url crop via FigureFrame.
+        // ChartFigure renders inside its own styled SVG box so we
+        // skip the white-bg FigureFrame card for it (same pattern
+        // as the native table).
         const isNativeTable = q.figure_kind === "table" && q.figure_table_data;
-        const hasFigure = !!q.image_url || isNativeTable;
+        const isNativeChart = q.figure_kind === "chart" && q.figure_chart_data;
+        const hasFigure = !!q.image_url || isNativeTable || isNativeChart;
         const figureCard = isNativeTable ? (
           <div className="mb-6 flex justify-center">
             <QuestionTable data={q.figure_table_data!} />
+          </div>
+        ) : isNativeChart ? (
+          <div className="mb-6 flex justify-center">
+            <ChartFigure
+              data={q.figure_chart_data!}
+              subject={q.subject ?? null}
+              alt={q.image_alt ?? undefined}
+              className="max-w-2xl"
+            />
           </div>
         ) : q.image_url ? (
           <FigureFrame
