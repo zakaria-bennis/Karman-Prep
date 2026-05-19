@@ -73,6 +73,21 @@
   }
 }
 
+/* The app forces dark mode via `<html class="dark">` regardless of
+   the OS theme (see src/app/layout.tsx). Make the CSS variables
+   follow the class, not just the prefers-color-scheme media query,
+   so the body itself has a dark background.
+
+   Without this rule axe-core's contrast checker can't see the
+   intended dark background — semi-transparent card backgrounds
+   (bg-slate-900/60 etc.) fall through to the body which would
+   otherwise be #ffffff, producing 111+ false-positive contrast
+   violations on the admin pages. */
+html.dark {
+  --background: #0a0f1e;
+  --foreground: #f8fafc;
+}
+
 @layer base {
   html { scroll-behavior: smooth; }
   body {

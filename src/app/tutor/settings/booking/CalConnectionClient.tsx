@@ -29,10 +29,12 @@ export function CalConnectionClient({ status, eventTypes, eventTypesError }: Pro
 
   if (!status.connected) {
     return (
-      <div className="rounded-xl border border-slate-200 bg-white px-6 py-8 text-center">
+      <div className="rounded-xl border border-slate-200 bg-white px-6 py-8 text-center dark:border-slate-800 dark:bg-slate-900/40">
         <Link2 className="mx-auto mb-3 h-6 w-6 text-blue-500" />
-        <h2 className="text-lg font-semibold text-slate-900">Connect your Cal.com account</h2>
-        <p className="mx-auto mt-1 max-w-md text-sm text-slate-400">
+        <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+          Connect your Cal.com account
+        </h2>
+        <p className="mx-auto mt-1 max-w-md text-sm text-slate-600 dark:text-slate-400">
           We&rsquo;ll read your event-types and point your Karman students at the right one. You can
           disconnect anytime.
         </p>

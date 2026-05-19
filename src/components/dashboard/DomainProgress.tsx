@@ -70,8 +70,8 @@ export default function DomainProgress({ statuses }: Props) {
             className={cn(
               "flex items-center gap-1.5 px-3 py-2 font-semibold",
               tab === "reading"
-                ? "text-rose-500"
-                : "text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
+                ? "text-rose-600 dark:text-rose-400"
+                : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
             )}
             style={tab === "reading" ? { background: "rgba(236, 72, 153, 0.1)" } : undefined}
           >

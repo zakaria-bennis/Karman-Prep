@@ -79,14 +79,14 @@ export default async function TutorBookingSettingsPage({ searchParams }: PagePro
     <div className="mx-auto max-w-2xl px-5 py-8">
       <Link
         href="/tutor"
-        className="mb-3 inline-flex items-center gap-1 text-xs text-slate-400 hover:text-slate-400"
+        className="mb-3 inline-flex items-center gap-1 text-xs text-slate-600 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
       >
         <ChevronRight className="h-3 w-3 rotate-180" /> Back to tutor home
       </Link>
-      <h1 className="flex items-center gap-2 text-2xl font-bold text-slate-900">
+      <h1 className="flex items-center gap-2 text-2xl font-bold text-slate-900 dark:text-slate-100">
         <CalendarCheck className="h-5 w-5 text-blue-500" /> Booking settings
       </h1>
-      <p className="mt-1.5 text-sm text-slate-400">
+      <p className="mt-1.5 text-sm text-slate-600 dark:text-slate-400">
         Connect your Cal.com account so your students can book sessions on your real calendar.
       </p>
 
@@ -109,15 +109,15 @@ export default async function TutorBookingSettingsPage({ searchParams }: PagePro
         />
       </div>
 
-      <div className="mt-8 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-xs text-slate-400">
-        <p className="font-semibold text-slate-400">Need a Cal account?</p>
+      <div className="mt-8 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-xs text-slate-700 dark:border-slate-800 dark:bg-slate-900/40 dark:text-slate-300">
+        <p className="font-semibold text-slate-800 dark:text-slate-200">Need a Cal account?</p>
         <p className="mt-1">
           Sign up at{" "}
           <a
             href="https://cal.com"
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-0.5 text-blue-600 hover:underline"
+            className="inline-flex items-center gap-0.5 text-blue-700 hover:underline dark:text-blue-400"
           >
             cal.com <ExternalLink className="h-3 w-3" />
           </a>{" "}
