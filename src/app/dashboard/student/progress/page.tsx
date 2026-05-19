@@ -219,8 +219,8 @@ function PredictedCard({
               delta > 0
                 ? "font-semibold text-emerald-600 dark:text-emerald-400"
                 : delta < 0
-                  ? "font-semibold text-rose-500"
-                  : "text-slate-400"
+                  ? "font-semibold text-rose-500 dark:text-rose-400"
+                  : "text-slate-400 dark:text-slate-300"
             }
           >
             {delta > 0 ? "+" : ""}

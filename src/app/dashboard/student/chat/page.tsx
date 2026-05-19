@@ -62,9 +62,21 @@ export default async function StudentChatPage() {
     }
   }
 
-  const clerkUser = await currentUser();
-  const first = clerkUser?.firstName ?? "Karman";
-  const lastInitial = clerkUser?.lastName ? clerkUser.lastName[0].toUpperCase() + "." : "";
+  // currentUser() reads Clerk's auth context; under DEV_IMPERSONATE_
+  // CLERK_ID the middleware is skipped (see src/lib/auth/dev-auth.ts)
+  // so the helper throws "Clerk can't detect usage of clerkMiddleware".
+  // Treat that as "no Clerk user info available" and fall back to the
+  // generic posting-as label — the page still renders for visual /
+  // a11y tests under the dev bypass.
+  let first = "Karman";
+  let lastInitial = "";
+  try {
+    const clerkUser = await currentUser();
+    first = clerkUser?.firstName ?? "Karman";
+    lastInitial = clerkUser?.lastName ? clerkUser.lastName[0].toUpperCase() + "." : "";
+  } catch {
+    /* dev-bypass / unauthenticated — keep defaults */
+  }
   const postingAs = lastInitial ? `${first} ${lastInitial}` : first;
 
   return (

@@ -110,6 +110,12 @@ for (const { persona, url, email } of PAGES_TO_SCAN) {
             impact: v.impact,
             help: v.help,
             helpUrl: v.helpUrl,
+            // Compact summary — node count only. To debug a specific
+            // violation, temporarily enrich to capture per-node
+            // target+failureSummary+html, run once, revert. We did
+            // that pass during PR #139's a11y cleanup; the catalog
+            // is clean enough that the count is the steady-state
+            // signal worth tracking long-term.
             nodes: v.nodes.length,
           })),
         },

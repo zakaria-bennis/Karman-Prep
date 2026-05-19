@@ -315,7 +315,7 @@ export function QuestionCard({
               "rounded-lg px-3 py-1.5 text-xs font-bold disabled:opacity-50",
               pickerOpen
                 ? "border border-slate-700 text-slate-300 hover:bg-white/5"
-                : "bg-emerald-500 text-white hover:bg-emerald-400"
+                : "bg-emerald-500 text-emerald-950 hover:bg-emerald-400"
             )}
           >
             <Check className="mr-1 inline h-3 w-3" /> {pickerOpen ? "Close picker" : "Accept…"}

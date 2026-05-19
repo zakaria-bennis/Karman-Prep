@@ -457,7 +457,12 @@ function ConstellationMapInner({ activeSubject, readingNodes, mathNodes }: Props
                     onClick={() => handleNodeClick(node)}
                     onMouseEnter={() => setHovered(node.id)}
                     onMouseLeave={() => setHovered(null)}
-                    role={active && !isLocked ? "button" : undefined}
+                    // role="img" on locked/inactive nodes so the
+                    // aria-label is announced (locked stars are still
+                    // informative — screen readers should read the
+                    // topic name + status). aria-label on a `<g>`
+                    // without a role fails axe-core's a11y check.
+                    role={active && !isLocked ? "button" : "img"}
                     aria-label={`${node.topic} — ${node.status}`}
                     tabIndex={active && !isLocked ? 0 : -1}
                     onKeyDown={(e) => e.key === "Enter" && handleNodeClick(node)}

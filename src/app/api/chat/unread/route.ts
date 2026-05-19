@@ -13,12 +13,16 @@
 // ============================================================
 
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { safeAuth } from "@/lib/auth/dev-auth";
 import { createAdminClient } from "@/lib/supabase/server";
 import { getUserUuidByClerkId } from "@/lib/supabase/queries/bookings";
 
 export async function GET() {
-  const { userId } = await auth();
+  // safeAuth respects the dev impersonation bypass so this route
+  // doesn't throw "Clerk can't detect usage of clerkMiddleware()"
+  // when running under DEV_IMPERSONATE_CLERK_ID (Playwright suite,
+  // local dev). In prod it's a thin wrapper over auth().
+  const { userId } = await safeAuth();
   if (!userId) return NextResponse.json({ total: 0 });
 
   const callerUuid = await getUserUuidByClerkId(userId);

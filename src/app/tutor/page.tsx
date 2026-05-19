@@ -137,7 +137,7 @@ export default async function TutorPage() {
                           <span className="font-mono text-slate-700 dark:text-slate-200">
                             {c.member_count}
                           </span>
-                          <span className="opacity-60">/{c.max_size}</span>
+                          <span className="text-slate-500 dark:text-slate-400">/{c.max_size}</span>
                           {" members"}
                           {" · "}
                           <span className="font-mono text-slate-700 dark:text-slate-200">

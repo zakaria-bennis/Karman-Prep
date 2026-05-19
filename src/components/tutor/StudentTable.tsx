@@ -153,6 +153,7 @@ export default function StudentTable({ rows, cohorts = [] }: Props) {
           <select
             value={cohortFilter}
             onChange={(e) => setCohortFilter(e.target.value)}
+            aria-label="Filter students by cohort"
             className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/40 dark:border-slate-800 dark:bg-slate-900/40 dark:text-slate-100"
           >
             <option value="all">All cohorts ({cohorts.length})</option>
