@@ -97,7 +97,13 @@ jobs:
           # --schema=public scopes to user-data (skips supabase
           # internal schemas like auth, storage which have their own
           # backup story).
-          pg_dump "$SUPABASE_DB_URL" \
+          # Call pg_dump 17 by EXPLICIT PATH — Ubuntu 24.04 ships
+          # postgresql-client-16 as part of its base image, which
+          # owns /usr/bin/pg_dump. Even with postgresql-client-17
+          # installed from PGDG, the older binary stays first on
+          # PATH. The 17 binary lives at the version-specific path
+          # below; this guarantees we use the right one.
+          /usr/lib/postgresql/17/bin/pg_dump "$SUPABASE_DB_URL" \
             --no-owner \
             --no-privileges \
             --schema=public \
