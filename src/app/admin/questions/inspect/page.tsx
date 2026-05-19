@@ -16,11 +16,20 @@
 
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ChevronRight, Microscope, CheckCircle2, BarChart3 } from "lucide-react";
+import {
+  ChevronRight,
+  Microscope,
+  CheckCircle2,
+  BarChart3,
+  Activity,
+  TrendingDown,
+  TrendingUp,
+} from "lucide-react";
 import {
   selectInspectorWorklist,
   selectInspectorSummary,
   selectInspectorFilterOptions,
+  selectRecentActivity,
 } from "@/lib/supabase/queries/quiz/findings";
 import InspectorClient from "./InspectorClient";
 
@@ -61,10 +70,12 @@ export default async function InspectorPage({ searchParams }: PageProps) {
     include_resolved: params.include_resolved === "true",
   };
 
-  const [rows, summary, filterOpts] = await Promise.all([
+  const [rows, summary, filterOpts, activity24h, activity7d] = await Promise.all([
     selectInspectorWorklist(filter),
     selectInspectorSummary(),
     selectInspectorFilterOptions(),
+    selectRecentActivity(24),
+    selectRecentActivity(168),
   ]);
 
   return (
@@ -110,12 +121,98 @@ export default async function InspectorPage({ searchParams }: PageProps) {
         </div>
       )}
 
+      {/* ── Recent activity (audit diff) ──
+          Two side-by-side cards: last 24h + last 7d. Useful for spotting
+          a fresh audit run (sudden burst of new findings) and tracking
+          triage velocity (resolved > new = winning). Net change is
+          color-coded green when shrinking, rose when growing. */}
+      {(activity24h.new_findings > 0 ||
+        activity24h.resolved_findings > 0 ||
+        activity7d.new_findings > 0 ||
+        activity7d.resolved_findings > 0) && (
+        <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <ActivityCard label="Last 24 hours" data={activity24h} />
+          <ActivityCard label="Last 7 days" data={activity7d} />
+        </div>
+      )}
+
       <InspectorClient
         rows={rows}
         filterOptions={filterOpts}
         activeFilters={filter}
         summary={summary}
       />
+    </div>
+  );
+}
+
+// ── Recent-activity panel ─────────────────────────────────
+// Server-rendered side-by-side card. No interactivity — purely
+// informational. Net change colored:
+//   · negative (resolved > new) → emerald, TrendingDown icon (good)
+//   · positive (new > resolved) → rose, TrendingUp icon (backlog growing)
+//   · zero                       → slate, Activity icon (steady)
+function ActivityCard({
+  label,
+  data,
+}: {
+  label: string;
+  data: Awaited<ReturnType<typeof selectRecentActivity>>;
+}) {
+  const isShrinking = data.net_change < 0;
+  const isGrowing = data.net_change > 0;
+  const Icon = isShrinking ? TrendingDown : isGrowing ? TrendingUp : Activity;
+  const netClass = isShrinking
+    ? "text-emerald-300"
+    : isGrowing
+      ? "text-rose-300"
+      : "text-slate-400";
+  const netSign = data.net_change > 0 ? "+" : "";
+  return (
+    <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-4">
+      <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+        <div className="flex items-center gap-2 text-xs font-semibold text-slate-300">
+          <Activity className="h-3.5 w-3.5 text-slate-400" />
+          {label}
+        </div>
+        <div className={`flex items-center gap-1 text-xs font-bold ${netClass}`}>
+          <Icon className="h-3.5 w-3.5" />
+          {netSign}
+          {data.net_change} net
+        </div>
+      </div>
+      <div className="mt-2 grid grid-cols-2 gap-3 text-xs">
+        <div>
+          <div className="text-[10px] uppercase tracking-wider text-slate-500">New findings</div>
+          <div className="mt-0.5 text-lg font-bold text-slate-100">{data.new_findings}</div>
+          {data.new_findings > 0 && (
+            <div className="mt-0.5 flex items-center gap-2 text-[10px]">
+              {data.new_blocking > 0 && (
+                <span className="text-rose-300">{data.new_blocking} blocking</span>
+              )}
+              {data.new_warning > 0 && (
+                <span className="text-amber-300">{data.new_warning} warning</span>
+              )}
+              {data.new_notice > 0 && (
+                <span className="text-slate-400">{data.new_notice} notice</span>
+              )}
+            </div>
+          )}
+        </div>
+        <div>
+          <div className="text-[10px] uppercase tracking-wider text-slate-500">Resolved</div>
+          <div className="mt-0.5 text-lg font-bold text-emerald-300">{data.resolved_findings}</div>
+          <div className="mt-0.5 text-[10px] text-slate-500">
+            {data.new_findings === 0 && data.resolved_findings === 0
+              ? "no activity"
+              : isShrinking
+                ? "backlog shrinking"
+                : isGrowing
+                  ? "backlog growing"
+                  : "steady"}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
