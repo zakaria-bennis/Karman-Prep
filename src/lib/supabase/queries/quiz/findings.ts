@@ -218,6 +218,219 @@ export async function selectQuestionForInspection(questionId: string): Promise<{
   return { question: q as QuizQuestionWithChoices, findings };
 }
 
+// ── Quality Dashboard data ────────────────────────────────
+// Aggregate view of finding counts cut by severity / code /
+// source_pdf / domain. Drives /admin/questions/dashboard.
+//
+// Snapshot-style: one round-trip pulls every open finding (+ joined
+// quiz_questions row metadata) and we aggregate locally. For a
+// question bank of ~5k rows × ~10 findings each that's 50k rows —
+// well within a single Supabase response and roundtrips fast.
+// When the bank grows to 100k+ this should move to a materialized
+// view, but for the current scale local aggregation is the
+// least-moving-parts solution.
+
+export interface QualityDashboardData {
+  /** Top counts to display at the top of the page. */
+  totals: {
+    total_findings: number;
+    open: number;
+    resolved: number;
+    blocking_open: number;
+    warning_open: number;
+    notice_open: number;
+    questions_affected: number;
+    questions_clean: number;
+    unique_codes: number;
+  };
+  /** Top 10 finding codes by open-count, with severity for color. */
+  top_codes: Array<{
+    code: string;
+    category: string;
+    severity: FindingSeverity;
+    open: number;
+    resolved: number;
+  }>;
+  /** Findings grouped by source_pdf (test batch). Ordered by open count. */
+  by_source_pdf: Array<{
+    source_pdf: string;
+    open: number;
+    blocking: number;
+    questions_affected: number;
+    total_questions: number;
+  }>;
+  /** Findings grouped by SAT domain. */
+  by_domain: Array<{
+    domain: string;
+    open: number;
+    blocking: number;
+    questions_affected: number;
+  }>;
+  /** Findings grouped by source (auditor vs grader). */
+  by_source: Array<{
+    source: FindingSource;
+    open: number;
+    resolved: number;
+  }>;
+}
+
+export async function selectQualityDashboardData(): Promise<QualityDashboardData> {
+  const supabase = createAdminClient();
+
+  // 1. Pull every finding (open + resolved). Two columns each side
+  //    so the join stays cheap.
+  const { data: findings, error: fErr } = await supabase
+    .from("question_findings")
+    .select("question_id, source, severity, category, code, resolved_at");
+  if (fErr) throw fErr;
+  const allFindings = findings ?? [];
+
+  // 2. Pull every quiz_questions row that has at least one finding +
+  //    the columns we aggregate on.
+  const qids = [...new Set(allFindings.map((f) => f.question_id))];
+  const { data: questions, error: qErr } =
+    qids.length > 0
+      ? await supabase.from("quiz_questions").select("id, source_pdf, domain").in("id", qids)
+      : { data: [], error: null };
+  if (qErr) throw qErr;
+  const qById = new Map(
+    (questions ?? []).map((q) => [q.id, { source_pdf: q.source_pdf, domain: q.domain }])
+  );
+
+  // 3. Also pull total question count per source_pdf (for the
+  //    "questions affected / total" denominator).
+  const { data: allQuestions, error: aqErr } = await supabase
+    .from("quiz_questions")
+    .select("source_pdf");
+  if (aqErr) throw aqErr;
+  const totalsByPdf = new Map<string, number>();
+  for (const q of allQuestions ?? []) {
+    if (!q.source_pdf) continue;
+    totalsByPdf.set(q.source_pdf, (totalsByPdf.get(q.source_pdf) ?? 0) + 1);
+  }
+
+  // ── Aggregate ──
+  let open = 0,
+    resolved = 0,
+    blockingOpen = 0,
+    warningOpen = 0,
+    noticeOpen = 0;
+  const questionsAffected = new Set<string>();
+  const uniqueCodes = new Set<string>();
+  // (code → {severity, category, open, resolved})
+  type CodeAgg = {
+    code: string;
+    category: string;
+    severity: FindingSeverity;
+    open: number;
+    resolved: number;
+  };
+  const byCode = new Map<string, CodeAgg>();
+  // (source_pdf → {open, blocking, qids})
+  const byPdf = new Map<string, { open: number; blocking: number; qids: Set<string> }>();
+  const byDomain = new Map<string, { open: number; blocking: number; qids: Set<string> }>();
+  const bySource = new Map<FindingSource, { open: number; resolved: number }>();
+
+  for (const f of allFindings) {
+    const isOpen = !f.resolved_at;
+    uniqueCodes.add(f.code);
+    if (isOpen) {
+      open++;
+      questionsAffected.add(f.question_id);
+      if (f.severity === "BLOCKING") blockingOpen++;
+      else if (f.severity === "WARNING") warningOpen++;
+      else noticeOpen++;
+    } else {
+      resolved++;
+    }
+    // by_code
+    if (!byCode.has(f.code)) {
+      byCode.set(f.code, {
+        code: f.code,
+        category: f.category,
+        severity: f.severity as FindingSeverity,
+        open: 0,
+        resolved: 0,
+      });
+    }
+    const c = byCode.get(f.code)!;
+    if (isOpen) c.open++;
+    else c.resolved++;
+
+    // by_source
+    if (!bySource.has(f.source as FindingSource)) {
+      bySource.set(f.source as FindingSource, { open: 0, resolved: 0 });
+    }
+    const s = bySource.get(f.source as FindingSource)!;
+    if (isOpen) s.open++;
+    else s.resolved++;
+
+    // by_source_pdf + by_domain — only for open findings
+    if (isOpen) {
+      const q = qById.get(f.question_id);
+      const pdf = q?.source_pdf ?? "(no source_pdf)";
+      if (!byPdf.has(pdf)) byPdf.set(pdf, { open: 0, blocking: 0, qids: new Set() });
+      const pa = byPdf.get(pdf)!;
+      pa.open++;
+      if (f.severity === "BLOCKING") pa.blocking++;
+      pa.qids.add(f.question_id);
+
+      const domain = q?.domain ?? "(no domain)";
+      if (!byDomain.has(domain)) byDomain.set(domain, { open: 0, blocking: 0, qids: new Set() });
+      const da = byDomain.get(domain)!;
+      da.open++;
+      if (f.severity === "BLOCKING") da.blocking++;
+      da.qids.add(f.question_id);
+    }
+  }
+
+  const topCodes = [...byCode.values()].sort((a, b) => b.open - a.open).slice(0, 10);
+
+  const bySourcePdf = [...byPdf.entries()]
+    .map(([source_pdf, v]) => ({
+      source_pdf,
+      open: v.open,
+      blocking: v.blocking,
+      questions_affected: v.qids.size,
+      total_questions: totalsByPdf.get(source_pdf) ?? v.qids.size,
+    }))
+    .sort((a, b) => b.open - a.open);
+
+  const byDomainArr = [...byDomain.entries()]
+    .map(([domain, v]) => ({
+      domain,
+      open: v.open,
+      blocking: v.blocking,
+      questions_affected: v.qids.size,
+    }))
+    .sort((a, b) => b.open - a.open);
+
+  const bySourceArr: QualityDashboardData["by_source"] = [];
+  for (const [source, v] of bySource.entries()) {
+    bySourceArr.push({ source, open: v.open, resolved: v.resolved });
+  }
+  bySourceArr.sort((a, b) => b.open - a.open);
+
+  const totalQuestions = allQuestions?.length ?? 0;
+  return {
+    totals: {
+      total_findings: allFindings.length,
+      open,
+      resolved,
+      blocking_open: blockingOpen,
+      warning_open: warningOpen,
+      notice_open: noticeOpen,
+      questions_affected: questionsAffected.size,
+      questions_clean: Math.max(0, totalQuestions - questionsAffected.size),
+      unique_codes: uniqueCodes.size,
+    },
+    top_codes: topCodes,
+    by_source_pdf: bySourcePdf,
+    by_domain: byDomainArr,
+    by_source: bySourceArr,
+  };
+}
+
 /** Distinct values for filter dropdowns. */
 export async function selectInspectorFilterOptions(): Promise<{
   source_pdfs: string[];
