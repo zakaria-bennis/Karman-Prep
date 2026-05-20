@@ -25,6 +25,11 @@
 
 const GEMINI_KEY = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
 const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY;
+// DeepSeek is reachable two ways: direct (api.deepseek.com — flaky from US,
+// blocked on TX gov networks) or via OpenRouter (US-hosted aggregator, same
+// price). We prefer OpenRouter when its key is set; falling back to direct
+// only if the user explicitly populates DEEPSEEK_API_KEY.
+const OPENROUTER_KEY = process.env.OPENROUTER_API_KEY;
 const DEEPSEEK_KEY = process.env.DEEPSEEK_API_KEY;
 const GROQ_KEY = process.env.GROQ_API_KEY;
 
@@ -166,24 +171,51 @@ export async function callClaude({
 // DeepSeek V3 is the strong general model; R1 has explicit
 // reasoning chains (slower, costlier — use only for hard math).
 // Default is V3 for the cheap-vote use case.
+//
+// Routing: OpenRouter > direct DeepSeek. OpenRouter is US-hosted,
+// uses the same OpenAI-compatible schema, and prices match within
+// pennies. The model id is namespaced when routing through
+// OpenRouter (`deepseek/deepseek-chat`) vs bare (`deepseek-chat`)
+// when hitting api.deepseek.com directly — we translate here so
+// callers can keep passing the short name.
 export async function callDeepSeek({
   prompt,
   model = "deepseek-chat",
   systemPrompt = null,
   json = true,
 }) {
-  if (!DEEPSEEK_KEY) throw new Error("DEEPSEEK_API_KEY not set");
+  const useOpenRouter = Boolean(OPENROUTER_KEY);
+  const apiKey = useOpenRouter ? OPENROUTER_KEY : DEEPSEEK_KEY;
+  if (!apiKey) throw new Error("Set OPENROUTER_API_KEY (preferred) or DEEPSEEK_API_KEY");
+
+  const url = useOpenRouter
+    ? "https://openrouter.ai/api/v1/chat/completions"
+    : "https://api.deepseek.com/v1/chat/completions";
+  // OpenRouter wants the provider-prefixed model id; pass-through if
+  // the caller already supplied one (e.g. "deepseek/deepseek-r1").
+  const resolvedModel = useOpenRouter && !model.includes("/") ? `deepseek/${model}` : model;
+  const providerName = useOpenRouter ? "openrouter" : "deepseek";
+
   const messages = [];
   if (systemPrompt) messages.push({ role: "system", content: systemPrompt });
   messages.push({ role: "user", content: prompt });
-  const res = await fetch("https://api.deepseek.com/v1/chat/completions", {
+
+  const headers = {
+    "content-type": "application/json",
+    authorization: `Bearer ${apiKey}`,
+  };
+  if (useOpenRouter) {
+    // Optional but recommended by OpenRouter — shows up in their
+    // analytics dashboard so the user can see usage by project.
+    headers["HTTP-Referer"] = "https://karmanprep.com";
+    headers["X-Title"] = "Karman Prep — content pipeline";
+  }
+
+  const res = await fetch(url, {
     method: "POST",
-    headers: {
-      "content-type": "application/json",
-      authorization: `Bearer ${DEEPSEEK_KEY}`,
-    },
+    headers,
     body: JSON.stringify({
-      model,
+      model: resolvedModel,
       messages,
       temperature: 0.1,
       max_tokens: 2048,
@@ -192,10 +224,10 @@ export async function callDeepSeek({
   });
   if (!res.ok) {
     const body = await res.text();
-    if (res.status === 429 || /quota|balance|insufficient/i.test(body)) {
-      throw new QuotaExhaustedError("deepseek", body);
+    if (res.status === 429 || /quota|balance|insufficient|credit/i.test(body)) {
+      throw new QuotaExhaustedError(providerName, body);
     }
-    throw new Error(`DeepSeek HTTP ${res.status}: ${body.slice(0, 200)}`);
+    throw new Error(`${providerName} HTTP ${res.status}: ${body.slice(0, 200)}`);
   }
   const responseJson = await res.json();
   const text = responseJson?.choices?.[0]?.message?.content ?? "";
@@ -203,7 +235,7 @@ export async function callDeepSeek({
   try {
     return JSON.parse(text);
   } catch {
-    throw new ParseError("deepseek", text);
+    throw new ParseError(providerName, text);
   }
 }
 
