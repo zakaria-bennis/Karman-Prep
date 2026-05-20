@@ -114,6 +114,11 @@ export async function callClaude({
   image = null,
   json = true,
   maxTokens = 4096,
+  // Opus 4.7 and later deprecated the `temperature` parameter — the model
+  // picks an optimal value internally. Older Claudes (Sonnet 4.6, Opus 4.5)
+  // still accept it. Pass an explicit number to force-include; leave null
+  // (the default) to omit from the request entirely.
+  temperature = null,
 }) {
   if (!ANTHROPIC_KEY) throw new Error("ANTHROPIC_API_KEY not set");
   const content = [];
@@ -125,13 +130,12 @@ export async function callClaude({
   }
   content.push({ type: "text", text: prompt });
 
-  // When we want JSON, prefill the assistant turn with "{" so
-  // Claude is guaranteed to start the JSON object. We strip the
-  // prefill back off the response before parsing.
+  // Older Claudes accepted assistant-message prefill to force the
+  // response to start with "{". Opus 4.7+ removed that capability;
+  // instead we rely on the prompt instructing strict JSON and
+  // extract the first { … } block from the response below. Net win
+  // — it also tolerates markdown fences and preambles.
   const messages = [{ role: "user", content }];
-  if (json) {
-    messages.push({ role: "assistant", content: "{" });
-  }
 
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
@@ -143,7 +147,7 @@ export async function callClaude({
     body: JSON.stringify({
       model,
       max_tokens: maxTokens,
-      temperature: 0.2,
+      ...(temperature != null ? { temperature } : {}),
       ...(systemPrompt ? { system: systemPrompt } : {}),
       messages,
     }),
@@ -158,8 +162,15 @@ export async function callClaude({
   const responseJson = await res.json();
   const text = responseJson?.content?.[0]?.text ?? "";
   if (!json) return text;
-  // Re-attach the opening "{" we prefilled, then parse.
-  const raw = "{" + text;
+  // Extract the outermost { … } block. Handles markdown-fenced
+  // responses (```json … ```), leading preambles ("Here's the JSON:"),
+  // and trailing commentary.
+  const jsonStart = text.indexOf("{");
+  const jsonEnd = text.lastIndexOf("}");
+  if (jsonStart === -1 || jsonEnd === -1 || jsonEnd < jsonStart) {
+    throw new ParseError("anthropic", text);
+  }
+  const raw = text.slice(jsonStart, jsonEnd + 1);
   try {
     return JSON.parse(raw);
   } catch {
