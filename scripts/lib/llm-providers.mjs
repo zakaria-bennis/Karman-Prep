@@ -113,6 +113,12 @@ export async function callClaude({
   systemPrompt = null,
   image = null,
   json = true,
+  // When set, Claude is forced to respond by calling a tool whose
+  // input_schema is `toolSchema`. Anthropic guarantees the response
+  // input is valid JSON matching the schema — no text-parsing,
+  // no LaTeX-vs-JSON escaping bugs. Use this for any structured
+  // response that might contain math notation or special chars.
+  toolSchema = null,
   maxTokens = 4096,
   // Opus 4.7 and later deprecated the `temperature` parameter — the model
   // picks an optimal value internally. Older Claudes (Sonnet 4.6, Opus 4.5)
@@ -137,6 +143,21 @@ export async function callClaude({
   // — it also tolerates markdown fences and preambles.
   const messages = [{ role: "user", content }];
 
+  // Tool-use mode: forces a structured response. Anthropic validates
+  // the args against `toolSchema` before returning, so LaTeX-in-JSON
+  // escape bugs (e.g. raw `$\Delta x$` breaking JSON.parse) can't happen.
+  const useTool = toolSchema != null;
+  const tools = useTool
+    ? [
+        {
+          name: "respond",
+          description: "Submit the structured response.",
+          input_schema: toolSchema,
+        },
+      ]
+    : undefined;
+  const tool_choice = useTool ? { type: "tool", name: "respond" } : undefined;
+
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
@@ -149,6 +170,7 @@ export async function callClaude({
       max_tokens: maxTokens,
       ...(temperature != null ? { temperature } : {}),
       ...(systemPrompt ? { system: systemPrompt } : {}),
+      ...(useTool ? { tools, tool_choice } : {}),
       messages,
     }),
   });
@@ -160,22 +182,78 @@ export async function callClaude({
     throw new Error(`Anthropic HTTP ${res.status}: ${body.slice(0, 200)}`);
   }
   const responseJson = await res.json();
+  if (useTool) {
+    const block = (responseJson?.content ?? []).find((c) => c.type === "tool_use");
+    if (!block) {
+      throw new ParseError("anthropic", JSON.stringify(responseJson?.content ?? []));
+    }
+    return block.input;
+  }
   const text = responseJson?.content?.[0]?.text ?? "";
   if (!json) return text;
-  // Extract the outermost { … } block. Handles markdown-fenced
-  // responses (```json … ```), leading preambles ("Here's the JSON:"),
-  // and trailing commentary.
-  const jsonStart = text.indexOf("{");
-  const jsonEnd = text.lastIndexOf("}");
-  if (jsonStart === -1 || jsonEnd === -1 || jsonEnd < jsonStart) {
-    throw new ParseError("anthropic", text);
-  }
-  const raw = text.slice(jsonStart, jsonEnd + 1);
+  const parsed = extractJsonObject(text);
+  if (parsed == null) throw new ParseError("anthropic", text);
+  return parsed;
+}
+
+/** Pull a JSON object out of a free-form text response.
+ *
+ *  Why we need this: Claude responses often contain LaTeX (`$\frac{1}{2}$`)
+ *  whose `{` and `}` will confuse any naive substring extractor. The
+ *  approach here:
+ *    1. Try `JSON.parse(text)` directly — Claude usually returns clean JSON.
+ *    2. If that fails, scan for positions where `{` is followed by `"`
+ *       (the start of a JSON object with string keys) and try a
+ *       bracket-balanced scan from each candidate, respecting string
+ *       boundaries so LaTeX braces inside string values don't break us.
+ *    3. Return the first candidate that parses as valid JSON; null if none. */
+function extractJsonObject(text) {
   try {
-    return JSON.parse(raw);
+    return JSON.parse(text);
   } catch {
-    throw new ParseError("anthropic", raw);
+    /* fall through to candidate scan */
   }
+  for (let i = 0; i < text.length; i++) {
+    if (text[i] !== "{") continue;
+    // Must be followed by " (after optional whitespace) to look like a
+    // JSON object start. Skips LaTeX braces like `{1}` whose next char
+    // is a digit.
+    let j = i + 1;
+    while (j < text.length && /\s/.test(text[j])) j++;
+    if (text[j] !== '"') continue;
+    // Bracket-balanced scan from i, ignoring braces inside string literals.
+    let depth = 0;
+    let inString = false;
+    let escape = false;
+    for (let k = i; k < text.length; k++) {
+      const ch = text[k];
+      if (escape) {
+        escape = false;
+        continue;
+      }
+      if (ch === "\\") {
+        escape = true;
+        continue;
+      }
+      if (ch === '"') {
+        inString = !inString;
+        continue;
+      }
+      if (inString) continue;
+      if (ch === "{") depth++;
+      else if (ch === "}") {
+        depth--;
+        if (depth === 0) {
+          try {
+            return JSON.parse(text.slice(i, k + 1));
+          } catch {
+            break; // this candidate didn't parse; try the next `{`
+          }
+        }
+      }
+    }
+  }
+  return null;
 }
 
 // ── DeepSeek (OpenAI-compatible chat completions) ────────────
