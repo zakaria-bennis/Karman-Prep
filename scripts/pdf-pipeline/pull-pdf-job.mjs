@@ -1,4 +1,22 @@
 // ============================================================
+// ⚠️  DEPRECATED (2026-05) — DO NOT USE FOR NEW WORK ⚠️
+//
+// This is the original Claude-API daemon poller. It crashed the
+// founder's Mac with a Turbopack-induced RAM leak (~78 GB), then
+// was preserved-but-deprecated when the ChatGPT Custom GPT route
+// took over (ADR #3, 2026-05-03), then fully superseded when the
+// Gemini local pipeline shipped (2026-05-20).
+//
+// For NEW ingestion, use:    npm run pdf:extract -- <path-to-pdf>
+// See:                       scripts/pdf-pipeline/run-extraction.mjs
+//
+// This file is retained for historical reference + in case any
+// queued jobs in pdf_processing_jobs need to be drained one last
+// time. It is no longer wired to an npm shortcut.
+// ============================================================
+//
+// HISTORICAL DOC FOLLOWS
+//
 // pull-pdf-job — local hybrid-runner step 1 of 2.
 //
 // Run on your Mac to pull the oldest queued PDF from the
