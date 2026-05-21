@@ -56,19 +56,43 @@ export class ParseError extends Error {
   }
 }
 
-// ── Gemini (REST, supports text + image in one call) ────────
+// ── Gemini (REST, supports text + image + PDF in one call) ──
 // Reused from llm-grader.mjs but lifted here so other scripts
 // don't have to duplicate the URL + body shape.
+//
+// Capabilities exposed:
+//   · image input via inline_data (JPEG/PNG)
+//   · PDF input via inline_data (mime application/pdf)
+//   · systemInstruction (Gemini's equivalent of a system prompt)
+//   · responseSchema for guaranteed-shape JSON output
+//     (Gemini's analog to Anthropic's tool_use)
+//   · raw maxOutputTokens override — extraction tasks need more
+//     than the 4K default that the grader uses
 export async function callGemini({
   prompt,
   model = "gemini-2.5-flash",
+  systemPrompt = null,
   image = null,
+  pdf = null,
   json = true,
+  responseSchema = null,
+  maxOutputTokens = 4096,
+  temperature = 0.1,
+  // Gemini 2.5+ uses internal "thinking" tokens that count against
+  // maxOutputTokens. For small structured tasks (bbox detection,
+  // classification) thinking is overkill and can starve the actual
+  // output. Pass 0 to disable; -1 to let the model decide; null to
+  // omit (uses model default).
+  thinkingBudget = null,
 }) {
   if (!GEMINI_KEY) throw new Error("GEMINI_API_KEY not set");
   const parts = [];
   if (image)
     parts.push({ inline_data: { mime_type: image.mime, data: image.buf.toString("base64") } });
+  if (pdf)
+    parts.push({
+      inline_data: { mime_type: "application/pdf", data: pdf.buf.toString("base64") },
+    });
   parts.push({ text: prompt });
   const url =
     `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent` +
@@ -78,10 +102,13 @@ export async function callGemini({
     headers: { "content-type": "application/json" },
     body: JSON.stringify({
       contents: [{ parts }],
+      ...(systemPrompt ? { systemInstruction: { parts: [{ text: systemPrompt }] } } : {}),
       generationConfig: {
-        temperature: 0.1,
-        maxOutputTokens: 4096,
+        temperature,
+        maxOutputTokens,
         ...(json ? { responseMimeType: "application/json" } : {}),
+        ...(responseSchema ? { responseSchema } : {}),
+        ...(thinkingBudget != null ? { thinkingConfig: { thinkingBudget } } : {}),
       },
     }),
   });
@@ -90,16 +117,19 @@ export async function callGemini({
     if (res.status === 429 || /quota|prepayment|deplet/i.test(body)) {
       throw new QuotaExhaustedError("gemini", body);
     }
-    throw new Error(`Gemini HTTP ${res.status}: ${body.slice(0, 200)}`);
+    // Show the full error so schema/argument problems are diagnosable.
+    throw new Error(`Gemini HTTP ${res.status}: ${body}`);
   }
   const responseJson = await res.json();
   const text = responseJson?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
   if (!json) return text;
-  try {
-    return JSON.parse(text);
-  } catch {
-    throw new ParseError("gemini", text);
-  }
+  // Gemini sometimes wraps JSON in markdown fences or adds a
+  // "Here is the JSON:" preamble even when responseMimeType is set
+  // to application/json — particularly noticed on image+schema
+  // combined calls. The bracket-balanced extractor handles both.
+  const parsed = extractJsonObject(text);
+  if (parsed == null) throw new ParseError("gemini", text);
+  return parsed;
 }
 
 // ── Claude (Anthropic Messages API) ──────────────────────────
