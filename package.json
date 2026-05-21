@@ -26,6 +26,8 @@
     "pdf:pull": "node --env-file=.env.local scripts/pdf-pipeline/pull-pdf-job.mjs",
     "pdf:watch": "node --env-file=.env.local scripts/pdf-pipeline/pull-pdf-job.mjs --watch",
     "pdf:finalize": "node --env-file=.env.local scripts/pdf-pipeline/finalize-pdf-job.mjs",
+    "pdf:extract": "node --env-file=.env.local scripts/pdf-pipeline/run-extraction.mjs",
+    "pdf:fill": "node --env-file=.env.local scripts/content-generation/fill-all.mjs",
     "db:types": "npx supabase gen types typescript --project-id yyocjxvrakuhnvepaevh > src/types/supabase.ts",
     "db:push": "npx supabase db push",
     "db:status": "npx supabase migration list --linked",
