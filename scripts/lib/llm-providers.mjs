@@ -327,7 +327,11 @@ export async function callDeepSeek({
     // Optional but recommended by OpenRouter — shows up in their
     // analytics dashboard so the user can see usage by project.
     headers["HTTP-Referer"] = "https://karmanprep.com";
-    headers["X-Title"] = "Karman Prep — content pipeline";
+    // ASCII-only — HTTP headers must be ByteString. The em dash
+    // that previously lived here threw "character > 255" on every
+    // DeepSeek call, silently zeroing out one voter in the multi-vote
+    // grader.
+    headers["X-Title"] = "Karman Prep - content pipeline";
   }
 
   const res = await fetch(url, {
