@@ -1,0 +1,121 @@
+# ============================================================
+# process-pdf — runs the full Gemini PDF ingestion pipeline
+# against a single PDF queued in pdf_processing_jobs.
+#
+# TRIGGERS
+#   repository_dispatch (event_type: process-pdf)
+#     Fired by the Cloudflare Worker when a user uploads a PDF
+#     on /admin/pdf-pipeline/upload. The dispatch payload's
+#     client_payload.job_id is the pdf_processing_jobs row to
+#     process.
+#
+#   workflow_dispatch (manual)
+#     Lets you trigger from the GitHub UI for testing without
+#     going through the website. Takes a job_id input.
+#
+# WHAT IT DOES
+#   1. Checkout repo
+#   2. Install Node 22 + Poppler (for pdftoppm)
+#   3. npm install (sharp + AWS SDK + Supabase client)
+#   4. Run scripts/pdf-pipeline/orchestrate.mjs --from-r2
+#      - downloads PDF from R2 using the job's pdf_storage_path
+#      - runs 6 stages: extract → figures → csv → import → fill → grade
+#      - writes progress updates to pdf_processing_jobs.progress
+#        between stages so the website can show live status
+#   5. On failure, the orchestrator marks the job failed itself;
+#      this workflow's "always" step also marks it failed as a
+#      backstop in case the orchestrator crashed before it could
+#      write status.
+#
+# COST
+#   ~5-10 minutes of Actions runtime per PDF (within free tier).
+#   API costs covered in ADR #4: ~$2.30/PDF all in.
+# ============================================================
+
+name: Process PDF
+
+on:
+  repository_dispatch:
+    types: [process-pdf]
+  workflow_dispatch:
+    inputs:
+      job_id:
+        description: "pdf_processing_jobs.id (UUID) to process"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  process:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    env:
+      # The orchestrator reads JOB_ID; the helper picks up
+      # GITHUB_RUN_ID/URL automatically from Actions' env.
+      JOB_ID: ${{ github.event.inputs.job_id || github.event.client_payload.job_id }}
+      GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+      # All secrets the orchestrator + downstream scripts read.
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+      GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+      R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+      R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+      R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+      R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
+      R2_PUBLIC_URL: ${{ secrets.R2_PUBLIC_URL }}
+
+    steps:
+      - name: Validate JOB_ID
+        run: |
+          if [ -z "$JOB_ID" ]; then
+            echo "::error::JOB_ID is empty. Was the dispatch payload missing client_payload.job_id?"
+            exit 1
+          fi
+          echo "Processing job: $JOB_ID"
+
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Install Poppler (for pdftoppm page rendering)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y poppler-utils
+          pdftoppm -v 2>&1 | head -2
+
+      - name: Setup Node 22
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies
+        # Use ci for reproducibility against package-lock.json.
+        # The `sharp` package fetches platform-specific binaries
+        # automatically; on ubuntu-latest the Linux x64 prebuilt
+        # downloads cleanly.
+        run: npm ci
+
+      - name: Run pipeline
+        run: node scripts/pdf-pipeline/orchestrate.mjs --from-r2
+
+      - name: Mark job failed (backstop)
+        # If the orchestrator crashed before it could write a
+        # failure status, this ensures the job row doesn't get
+        # stuck in "running" forever. The orchestrator's own
+        # `await job.fail()` is the primary path; this is just
+        # safety net.
+        if: failure()
+        run: |
+          curl -X PATCH "$NEXT_PUBLIC_SUPABASE_URL/rest/v1/pdf_processing_jobs?id=eq.$JOB_ID" \
+            -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" \
+            -H "authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
+            -H "content-type: application/json" \
+            -H "prefer: return=minimal" \
+            -d "{\"status\":\"failed\",\"error_message\":\"Workflow crashed before orchestrator could record failure. See run logs: $GITHUB_RUN_URL\",\"completed_at\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}"

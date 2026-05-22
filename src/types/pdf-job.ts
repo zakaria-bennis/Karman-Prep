@@ -21,23 +21,56 @@ export const PDF_MODULE_LABELS: Record<PdfModuleKey, string> = {
   m4: "Math Module 2",
 };
 
-/** Pipeline stages the daemon writes into `progress` (migration 022).
- *  Distinct from the top-level `status` enum: status is "queued/running/
- *  partial/complete/failed" for queue ordering; `progress.stage` is the
- *  fine-grained pipeline phase used by the UI for live tracking. */
+/** Pipeline stages the runner writes into `progress`. Distinct
+ *  from the top-level `status` enum: status is "queued/running/
+ *  partial/complete/failed" for queue ordering; `progress.stage` is
+ *  the fine-grained pipeline phase used by the UI for live tracking.
+ *
+ *  Two generations of stages coexist:
+ *  - v1 (deprecated, dead daemon): pulled, processing, finalizing, ingesting
+ *  - v2 (current, GitHub Actions Gemini pipeline): extracting, figures,
+ *    csv, importing, filling, grading
+ *
+ *  `complete` + `failed` are shared between both. The UI renders
+ *  STAGE_LABEL for whichever stage name a row carries. */
 export type PdfJobStage =
   | "queued"
-  | "pulled" // PDF downloaded to local incoming/, awaiting claude
-  | "processing" // claude --print is running on the PDF
-  | "finalizing" // CSVs being uploaded to R2
-  | "ingesting" // CSVs being imported into quiz_questions
+  // v2 — Gemini pipeline (current)
+  | "extracting" // Gemini Flash → structured JSON
+  | "figures" // page render + bbox + R2 upload
+  | "csv" // JSON → 32-column CSV
+  | "importing" // CSV → quiz_questions + answer_choices
+  | "filling" // Sonnet + Haiku post-import explanations
+  | "grading" // multi-vote answer-key audit
+  // v1 — old Claude daemon (deprecated, present in historical rows only)
+  | "pulled"
+  | "processing"
+  | "finalizing"
+  | "ingesting"
+  // terminal
   | "complete"
-  | "failed";
+  | "failed"
+  | "done"; // v2 alias for "complete"
 
 export interface PdfJobProgress {
   stage: PdfJobStage;
+  /** Human label for the stage, e.g. "Extracting questions". */
+  stage_label?: string;
   message: string | null;
+  /** Overall pipeline progress 0-100. */
+  percent?: number;
+  /** Progress within the current stage 0-100. */
+  stage_percent?: number;
+  /** Per-stage cumulative counters. */
+  stats?: Record<string, number | string>;
+  /** ISO timestamp of when this job was started. */
+  started_at?: string | null;
   updated_at: string | null; // ISO timestamp of last stage transition
+  /** GitHub Actions run id + URL when v2 pipeline ran. */
+  github_run_id?: string | null;
+  github_run_url?: string | null;
+  /** Stage where failure happened (if status=failed). */
+  error_stage?: PdfJobStage | null;
 }
 
 export interface PdfProcessingJob {
@@ -60,22 +93,43 @@ export interface PdfProcessingJob {
 
 export const STAGE_LABEL: Record<PdfJobStage, string> = {
   queued: "Queued",
+  // v2 — Gemini pipeline
+  extracting: "Extracting questions",
+  figures: "Extracting figures",
+  csv: "Generating CSV",
+  importing: "Writing to database",
+  filling: "Generating explanations",
+  grading: "Validating answer keys",
+  done: "Complete",
+  // v1 — old daemon (historical)
   pulled: "Downloaded",
   processing: "Claude processing",
   finalizing: "Uploading CSVs",
   ingesting: "Importing into bank",
+  // terminal
   complete: "Complete",
   failed: "Failed",
 };
 
-/** Stage progression as a percentage for a progress bar.
- *  Hand-tuned to match how long each stage typically takes. */
+/** Stage progression as a percentage for the v1 progress bar.
+ *  v2 progress is computed by the runner and stored in
+ *  progress.percent — UI prefers that when present. */
 export const STAGE_PERCENT: Record<PdfJobStage, number> = {
   queued: 0,
+  // v2
+  extracting: 0,
+  figures: 8,
+  csv: 20,
+  importing: 21,
+  filling: 25,
+  grading: 85,
+  done: 100,
+  // v1
   pulled: 5,
-  processing: 70, // the long pole — 30-90 min of Claude
+  processing: 70,
   finalizing: 90,
   ingesting: 95,
+  // terminal
   complete: 100,
   failed: 100,
 };
