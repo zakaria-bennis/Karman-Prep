@@ -341,10 +341,21 @@ try {
     process.exit(2);
   }
   if (err instanceof ParseError) {
-    console.error(
-      `\nGemini returned unparseable JSON. Raw response saved to /tmp/gemini-raw-error.txt`
-    );
-    writeFileSync("/tmp/gemini-raw-error.txt", err.raw ?? "(no raw available)");
+    const raw = err.raw ?? "(no raw available)";
+    console.error(`\nGemini returned unparseable JSON.`);
+    console.error(`Raw response length: ${raw.length} chars`);
+    console.error("─── First 1500 chars ───");
+    console.error(raw.slice(0, 1500));
+    console.error("─── Last 500 chars ───");
+    console.error(raw.length > 1500 ? raw.slice(-500) : "(already shown above)");
+    console.error("─── end ───");
+    // Also save to the current working directory so the workflow's
+    // upload-artifact step can grab it. /tmp is ephemeral but the
+    // checkout dir persists for post-job steps.
+    try {
+      writeFileSync("./gemini-raw-error.txt", raw);
+      console.error("Full raw response saved to ./gemini-raw-error.txt");
+    } catch {}
     process.exit(3);
   }
   throw err;

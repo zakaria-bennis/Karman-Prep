@@ -116,6 +116,22 @@ jobs:
       - name: Run pipeline
         run: node scripts/pdf-pipeline/orchestrate.mjs --from-r2
 
+      - name: Upload debug artifacts on failure
+        # Captures the Gemini raw response (when JSON-parse fails),
+        # any /tmp JSON outputs, and the figure-extraction work log
+        # so we can diagnose post-mortem.
+        if: failure()
+        uses: actions/upload-artifact@v5
+        with:
+          name: pipeline-debug-${{ github.run_id }}
+          path: |
+            ./gemini-raw-error.txt
+            /tmp/*-gemini-extracted.json
+            /tmp/*-figures-log.json
+            /tmp/*-import.csv
+          retention-days: 14
+          if-no-files-found: ignore
+
       - name: Mark job failed (backstop)
         # If the orchestrator crashed before it could write a
         # failure status, this ensures the job row doesn't get
