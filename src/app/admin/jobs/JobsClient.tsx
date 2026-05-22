@@ -200,22 +200,37 @@ function deriveStage(job: PdfProcessingJob): PdfJobStage {
 }
 
 function StageIcon({ stage }: { stage: PdfJobStage }) {
+  // Map covers BOTH v1 (legacy daemon) and v2 (Gemini pipeline)
+  // stages so this legacy /admin/jobs view renders both row
+  // generations without crashing. The newer /admin/pdf-pipeline/
+  // jobs/[id] view is the preferred surface for v2 jobs.
   const map: Record<
     PdfJobStage,
     { icon: React.ComponentType<{ className?: string }>; className: string; spin?: boolean }
   > = {
     queued: { icon: Clock, className: "text-slate-400" },
+    // v1 — old daemon
     pulled: { icon: Download, className: "text-slate-400" },
     processing: { icon: Sparkles, className: "text-indigo-400", spin: false },
     finalizing: { icon: UploadIcon, className: "text-sky-400" },
     ingesting: { icon: Database, className: "text-violet-400" },
+    // v2 — Gemini pipeline
+    extracting: { icon: Sparkles, className: "text-indigo-400" },
+    figures: { icon: Sparkles, className: "text-sky-400" },
+    csv: { icon: UploadIcon, className: "text-sky-400" },
+    importing: { icon: Database, className: "text-violet-400" },
+    filling: { icon: Sparkles, className: "text-indigo-400" },
+    grading: { icon: Sparkles, className: "text-amber-400" },
+    done: { icon: CheckCircle2, className: "text-emerald-400" },
+    // terminal (shared)
     complete: { icon: CheckCircle2, className: "text-emerald-400" },
     failed: { icon: XCircle, className: "text-rose-400" },
   };
   const entry = map[stage];
   const { icon: Icon, className } = entry;
-  // Active stages get a soft pulse so the eye catches motion at a glance.
-  const active = stage === "processing" || stage === "finalizing" || stage === "ingesting";
+  // Active (non-terminal, non-queued) stages get a soft pulse.
+  const active =
+    stage !== "queued" && stage !== "complete" && stage !== "done" && stage !== "failed";
   return <Icon className={cn("h-3.5 w-3.5 shrink-0", className, active && "animate-pulse")} />;
 }
 
