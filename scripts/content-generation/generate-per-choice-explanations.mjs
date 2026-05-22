@@ -3,10 +3,12 @@
 // quiz_questions.explanation_per_choice JSONB for MC rows whose
 // per-choice text is missing OR looks truncated.
 //
-// Powered by Claude Opus 4.7 — best model for structured
-// pedagogical writing. We pass the question, all four choices,
-// and the correct answer; Claude returns ~50-word explanations
-// for each letter explaining why it's right or wrong.
+// Powered by Claude Sonnet 4.6 — strong enough at structured
+// pedagogical writing (specifically the trap-naming nuance we
+// want) that Opus 4.7 is overkill at ~5x the price. We pass the
+// question, all four choices, and the correct answer; Sonnet
+// returns ~50-word explanations for each letter explaining why
+// it's right or wrong.
 //
 // Policy (per the product owner's design call):
 //   · Fill in EMPTY slots — every NULL or "" entry gets a fresh
@@ -25,9 +27,9 @@
 //   node --env-file=.env.local ... --force      # overwrite EVERY slot
 //
 // COST
-//   ~$0.04-0.06 per question on Opus 4.7. For 1,500 questions
-//   missing per-choice explanations that's ~$75. Budget $100
-//   for headroom + retries.
+//   ~$0.013 per question on Sonnet 4.6 ($3/M input + $15/M output).
+//   For 1,500 questions missing per-choice explanations that's ~$20.
+//   Budget $30 for headroom + retries.
 // ============================================================
 
 import { callClaude, QuotaExhaustedError } from "../lib/llm-providers.mjs";
@@ -156,7 +158,19 @@ async function main() {
       parsed = await callClaude({
         prompt: buildPrompt(row),
         systemPrompt: SYSTEM_PROMPT,
-        json: true,
+        model: "claude-sonnet-4-6",
+        // Tool-use forces Anthropic to validate the response against the
+        // schema, so LaTeX-in-strings (`$\Delta x$`) can't break parsing.
+        toolSchema: {
+          type: "object",
+          properties: {
+            A: { type: "string", description: "Explanation for choice A." },
+            B: { type: "string", description: "Explanation for choice B." },
+            C: { type: "string", description: "Explanation for choice C." },
+            D: { type: "string", description: "Explanation for choice D." },
+          },
+          required: ["A", "B", "C", "D"],
+        },
       });
     } catch (err) {
       if (err instanceof QuotaExhaustedError) {

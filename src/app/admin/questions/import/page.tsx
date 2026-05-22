@@ -1,14 +1,21 @@
 // ============================================================
-// /admin/questions/import — top-level CSV upload for the
-// PDF-routine output. Bank model: questions land with no node
-// assignment, awaiting triage in /admin/questions/review.
+// /admin/questions/import — CSV upload for pre-baked question
+// imports. Bank model: questions land with no node assignment,
+// awaiting triage in /admin/questions/review.
+//
+// HISTORICAL NOTE: this page used to also expose a PdfUploadClient
+// drag-and-drop that enqueued PDFs onto the local Claude-API
+// daemon (`scripts/pdf-pipeline/pull-pdf-job.mjs`). That path was
+// abandoned in favor of ChatGPT Custom GPT (ADR #3) and then
+// the local Gemini pipeline (`npm run pdf:extract`). PDFs are no
+// longer uploaded through the site — they're processed locally
+// by the operator and only the resulting CSV comes here.
 // ============================================================
 
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ChevronRight, Upload } from "lucide-react";
 import BankImportClient from "./BankImportClient";
-import PdfUploadClient from "./PdfUploadClient";
 
 export const metadata: Metadata = { title: "Admin — Question import | Karman" };
 
@@ -26,12 +33,14 @@ export default function QuestionImportPage() {
           <Upload className="h-5 w-5 text-indigo-400" /> Question import
         </h1>
         <p className="mt-1.5 max-w-2xl text-sm text-slate-400">
-          Two paths in: drop PDFs for automated processing, or upload pre-baked CSVs from a manual
-          routine run.
+          Upload a pre-baked CSV from your local PDF pipeline (
+          <code className="rounded bg-slate-800/70 px-1.5 py-0.5 text-[11px] text-slate-200">
+            npm run pdf:extract
+          </code>
+          ). Bank rows land with no node assignment, ready for triage in /admin/questions/review.
         </p>
       </div>
       <div className="space-y-4">
-        <PdfUploadClient />
         <BankImportClient />
       </div>
     </div>

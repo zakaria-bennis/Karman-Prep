@@ -10,8 +10,11 @@
 // is consistently populated and the student UI can show / hide
 // based on the value.
 //
-// Powered by Claude Opus 4.7 — best at concise, helpful strategy
-// advice that doesn't lecture.
+// Powered by Claude Haiku 4.5 — the task is formulaic ("identify
+// the math pattern → produce the matching Desmos instruction"),
+// so Haiku is as good as Sonnet here at ~3x cheaper and ~15x
+// cheaper than Opus. If output quality ever looks bland, bump
+// to Sonnet by changing the `model` arg below.
 //
 // USAGE
 //   node --env-file=.env.local \
@@ -22,8 +25,8 @@
 //                                                 math question's tip
 //
 // COST
-//   ~$0.02 per math question on Opus 4.7. For ~3,000 math questions
-//   that's ~$60. Budget $80 for headroom.
+//   ~$0.002 per math question on Haiku 4.5 ($1/M input + $5/M output).
+//   For ~3,000 math questions that's ~$6. Budget $10 for headroom.
 // ============================================================
 
 import { callClaude, QuotaExhaustedError } from "../lib/llm-providers.mjs";
@@ -131,8 +134,24 @@ async function main() {
       parsed = await callClaude({
         prompt: buildPrompt(row),
         systemPrompt: SYSTEM_PROMPT,
-        json: true,
+        model: "claude-haiku-4-5",
         maxTokens: 512,
+        // Tool-use guarantees valid structured JSON regardless of
+        // what's inside the tip text.
+        toolSchema: {
+          type: "object",
+          properties: {
+            useful: {
+              type: "boolean",
+              description: "Whether Desmos is genuinely useful for this question.",
+            },
+            tip: {
+              type: "string",
+              description: "The Desmos tip text, or a short skip-note when not applicable.",
+            },
+          },
+          required: ["useful", "tip"],
+        },
       });
     } catch (err) {
       if (err instanceof QuotaExhaustedError) {

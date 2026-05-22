@@ -1,7 +1,8 @@
 # 0003 — ChatGPT Custom GPT (not Claude API daemon) for SAT question imports
 
-- **Status**: Accepted
+- **Status**: Superseded by [0004](./0004-gemini-local-pdf-pipeline.md)
 - **Date**: 2026-05-03
+- **Superseded**: 2026-05-21
 - **Deciders**: @zakaria-bennis
 
 ## Context

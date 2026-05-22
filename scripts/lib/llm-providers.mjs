@@ -25,6 +25,11 @@
 
 const GEMINI_KEY = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
 const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY;
+// DeepSeek is reachable two ways: direct (api.deepseek.com — flaky from US,
+// blocked on TX gov networks) or via OpenRouter (US-hosted aggregator, same
+// price). We prefer OpenRouter when its key is set; falling back to direct
+// only if the user explicitly populates DEEPSEEK_API_KEY.
+const OPENROUTER_KEY = process.env.OPENROUTER_API_KEY;
 const DEEPSEEK_KEY = process.env.DEEPSEEK_API_KEY;
 const GROQ_KEY = process.env.GROQ_API_KEY;
 
@@ -51,19 +56,43 @@ export class ParseError extends Error {
   }
 }
 
-// ── Gemini (REST, supports text + image in one call) ────────
+// ── Gemini (REST, supports text + image + PDF in one call) ──
 // Reused from llm-grader.mjs but lifted here so other scripts
 // don't have to duplicate the URL + body shape.
+//
+// Capabilities exposed:
+//   · image input via inline_data (JPEG/PNG)
+//   · PDF input via inline_data (mime application/pdf)
+//   · systemInstruction (Gemini's equivalent of a system prompt)
+//   · responseSchema for guaranteed-shape JSON output
+//     (Gemini's analog to Anthropic's tool_use)
+//   · raw maxOutputTokens override — extraction tasks need more
+//     than the 4K default that the grader uses
 export async function callGemini({
   prompt,
   model = "gemini-2.5-flash",
+  systemPrompt = null,
   image = null,
+  pdf = null,
   json = true,
+  responseSchema = null,
+  maxOutputTokens = 4096,
+  temperature = 0.1,
+  // Gemini 2.5+ uses internal "thinking" tokens that count against
+  // maxOutputTokens. For small structured tasks (bbox detection,
+  // classification) thinking is overkill and can starve the actual
+  // output. Pass 0 to disable; -1 to let the model decide; null to
+  // omit (uses model default).
+  thinkingBudget = null,
 }) {
   if (!GEMINI_KEY) throw new Error("GEMINI_API_KEY not set");
   const parts = [];
   if (image)
     parts.push({ inline_data: { mime_type: image.mime, data: image.buf.toString("base64") } });
+  if (pdf)
+    parts.push({
+      inline_data: { mime_type: "application/pdf", data: pdf.buf.toString("base64") },
+    });
   parts.push({ text: prompt });
   const url =
     `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent` +
@@ -73,10 +102,13 @@ export async function callGemini({
     headers: { "content-type": "application/json" },
     body: JSON.stringify({
       contents: [{ parts }],
+      ...(systemPrompt ? { systemInstruction: { parts: [{ text: systemPrompt }] } } : {}),
       generationConfig: {
-        temperature: 0.1,
-        maxOutputTokens: 4096,
+        temperature,
+        maxOutputTokens,
         ...(json ? { responseMimeType: "application/json" } : {}),
+        ...(responseSchema ? { responseSchema } : {}),
+        ...(thinkingBudget != null ? { thinkingConfig: { thinkingBudget } } : {}),
       },
     }),
   });
@@ -85,16 +117,19 @@ export async function callGemini({
     if (res.status === 429 || /quota|prepayment|deplet/i.test(body)) {
       throw new QuotaExhaustedError("gemini", body);
     }
-    throw new Error(`Gemini HTTP ${res.status}: ${body.slice(0, 200)}`);
+    // Show the full error so schema/argument problems are diagnosable.
+    throw new Error(`Gemini HTTP ${res.status}: ${body}`);
   }
   const responseJson = await res.json();
   const text = responseJson?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
   if (!json) return text;
-  try {
-    return JSON.parse(text);
-  } catch {
-    throw new ParseError("gemini", text);
-  }
+  // Gemini sometimes wraps JSON in markdown fences or adds a
+  // "Here is the JSON:" preamble even when responseMimeType is set
+  // to application/json — particularly noticed on image+schema
+  // combined calls. The bracket-balanced extractor handles both.
+  const parsed = extractJsonObject(text);
+  if (parsed == null) throw new ParseError("gemini", text);
+  return parsed;
 }
 
 // ── Claude (Anthropic Messages API) ──────────────────────────
@@ -108,7 +143,18 @@ export async function callClaude({
   systemPrompt = null,
   image = null,
   json = true,
+  // When set, Claude is forced to respond by calling a tool whose
+  // input_schema is `toolSchema`. Anthropic guarantees the response
+  // input is valid JSON matching the schema — no text-parsing,
+  // no LaTeX-vs-JSON escaping bugs. Use this for any structured
+  // response that might contain math notation or special chars.
+  toolSchema = null,
   maxTokens = 4096,
+  // Opus 4.7 and later deprecated the `temperature` parameter — the model
+  // picks an optimal value internally. Older Claudes (Sonnet 4.6, Opus 4.5)
+  // still accept it. Pass an explicit number to force-include; leave null
+  // (the default) to omit from the request entirely.
+  temperature = null,
 }) {
   if (!ANTHROPIC_KEY) throw new Error("ANTHROPIC_API_KEY not set");
   const content = [];
@@ -120,13 +166,27 @@ export async function callClaude({
   }
   content.push({ type: "text", text: prompt });
 
-  // When we want JSON, prefill the assistant turn with "{" so
-  // Claude is guaranteed to start the JSON object. We strip the
-  // prefill back off the response before parsing.
+  // Older Claudes accepted assistant-message prefill to force the
+  // response to start with "{". Opus 4.7+ removed that capability;
+  // instead we rely on the prompt instructing strict JSON and
+  // extract the first { … } block from the response below. Net win
+  // — it also tolerates markdown fences and preambles.
   const messages = [{ role: "user", content }];
-  if (json) {
-    messages.push({ role: "assistant", content: "{" });
-  }
+
+  // Tool-use mode: forces a structured response. Anthropic validates
+  // the args against `toolSchema` before returning, so LaTeX-in-JSON
+  // escape bugs (e.g. raw `$\Delta x$` breaking JSON.parse) can't happen.
+  const useTool = toolSchema != null;
+  const tools = useTool
+    ? [
+        {
+          name: "respond",
+          description: "Submit the structured response.",
+          input_schema: toolSchema,
+        },
+      ]
+    : undefined;
+  const tool_choice = useTool ? { type: "tool", name: "respond" } : undefined;
 
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
@@ -138,8 +198,9 @@ export async function callClaude({
     body: JSON.stringify({
       model,
       max_tokens: maxTokens,
-      temperature: 0.2,
+      ...(temperature != null ? { temperature } : {}),
       ...(systemPrompt ? { system: systemPrompt } : {}),
+      ...(useTool ? { tools, tool_choice } : {}),
       messages,
     }),
   });
@@ -151,39 +212,133 @@ export async function callClaude({
     throw new Error(`Anthropic HTTP ${res.status}: ${body.slice(0, 200)}`);
   }
   const responseJson = await res.json();
+  if (useTool) {
+    const block = (responseJson?.content ?? []).find((c) => c.type === "tool_use");
+    if (!block) {
+      throw new ParseError("anthropic", JSON.stringify(responseJson?.content ?? []));
+    }
+    return block.input;
+  }
   const text = responseJson?.content?.[0]?.text ?? "";
   if (!json) return text;
-  // Re-attach the opening "{" we prefilled, then parse.
-  const raw = "{" + text;
+  const parsed = extractJsonObject(text);
+  if (parsed == null) throw new ParseError("anthropic", text);
+  return parsed;
+}
+
+/** Pull a JSON object out of a free-form text response.
+ *
+ *  Why we need this: Claude responses often contain LaTeX (`$\frac{1}{2}$`)
+ *  whose `{` and `}` will confuse any naive substring extractor. The
+ *  approach here:
+ *    1. Try `JSON.parse(text)` directly — Claude usually returns clean JSON.
+ *    2. If that fails, scan for positions where `{` is followed by `"`
+ *       (the start of a JSON object with string keys) and try a
+ *       bracket-balanced scan from each candidate, respecting string
+ *       boundaries so LaTeX braces inside string values don't break us.
+ *    3. Return the first candidate that parses as valid JSON; null if none. */
+function extractJsonObject(text) {
   try {
-    return JSON.parse(raw);
+    return JSON.parse(text);
   } catch {
-    throw new ParseError("anthropic", raw);
+    /* fall through to candidate scan */
   }
+  for (let i = 0; i < text.length; i++) {
+    if (text[i] !== "{") continue;
+    // Must be followed by " (after optional whitespace) to look like a
+    // JSON object start. Skips LaTeX braces like `{1}` whose next char
+    // is a digit.
+    let j = i + 1;
+    while (j < text.length && /\s/.test(text[j])) j++;
+    if (text[j] !== '"') continue;
+    // Bracket-balanced scan from i, ignoring braces inside string literals.
+    let depth = 0;
+    let inString = false;
+    let escape = false;
+    for (let k = i; k < text.length; k++) {
+      const ch = text[k];
+      if (escape) {
+        escape = false;
+        continue;
+      }
+      if (ch === "\\") {
+        escape = true;
+        continue;
+      }
+      if (ch === '"') {
+        inString = !inString;
+        continue;
+      }
+      if (inString) continue;
+      if (ch === "{") depth++;
+      else if (ch === "}") {
+        depth--;
+        if (depth === 0) {
+          try {
+            return JSON.parse(text.slice(i, k + 1));
+          } catch {
+            break; // this candidate didn't parse; try the next `{`
+          }
+        }
+      }
+    }
+  }
+  return null;
 }
 
 // ── DeepSeek (OpenAI-compatible chat completions) ────────────
 // DeepSeek V3 is the strong general model; R1 has explicit
 // reasoning chains (slower, costlier — use only for hard math).
 // Default is V3 for the cheap-vote use case.
+//
+// Routing: OpenRouter > direct DeepSeek. OpenRouter is US-hosted,
+// uses the same OpenAI-compatible schema, and prices match within
+// pennies. The model id is namespaced when routing through
+// OpenRouter (`deepseek/deepseek-chat`) vs bare (`deepseek-chat`)
+// when hitting api.deepseek.com directly — we translate here so
+// callers can keep passing the short name.
 export async function callDeepSeek({
   prompt,
   model = "deepseek-chat",
   systemPrompt = null,
   json = true,
 }) {
-  if (!DEEPSEEK_KEY) throw new Error("DEEPSEEK_API_KEY not set");
+  const useOpenRouter = Boolean(OPENROUTER_KEY);
+  const apiKey = useOpenRouter ? OPENROUTER_KEY : DEEPSEEK_KEY;
+  if (!apiKey) throw new Error("Set OPENROUTER_API_KEY (preferred) or DEEPSEEK_API_KEY");
+
+  const url = useOpenRouter
+    ? "https://openrouter.ai/api/v1/chat/completions"
+    : "https://api.deepseek.com/v1/chat/completions";
+  // OpenRouter wants the provider-prefixed model id; pass-through if
+  // the caller already supplied one (e.g. "deepseek/deepseek-r1").
+  const resolvedModel = useOpenRouter && !model.includes("/") ? `deepseek/${model}` : model;
+  const providerName = useOpenRouter ? "openrouter" : "deepseek";
+
   const messages = [];
   if (systemPrompt) messages.push({ role: "system", content: systemPrompt });
   messages.push({ role: "user", content: prompt });
-  const res = await fetch("https://api.deepseek.com/v1/chat/completions", {
+
+  const headers = {
+    "content-type": "application/json",
+    authorization: `Bearer ${apiKey}`,
+  };
+  if (useOpenRouter) {
+    // Optional but recommended by OpenRouter — shows up in their
+    // analytics dashboard so the user can see usage by project.
+    headers["HTTP-Referer"] = "https://karmanprep.com";
+    // ASCII-only — HTTP headers must be ByteString. The em dash
+    // that previously lived here threw "character > 255" on every
+    // DeepSeek call, silently zeroing out one voter in the multi-vote
+    // grader.
+    headers["X-Title"] = "Karman Prep - content pipeline";
+  }
+
+  const res = await fetch(url, {
     method: "POST",
-    headers: {
-      "content-type": "application/json",
-      authorization: `Bearer ${DEEPSEEK_KEY}`,
-    },
+    headers,
     body: JSON.stringify({
-      model,
+      model: resolvedModel,
       messages,
       temperature: 0.1,
       max_tokens: 2048,
@@ -192,10 +347,10 @@ export async function callDeepSeek({
   });
   if (!res.ok) {
     const body = await res.text();
-    if (res.status === 429 || /quota|balance|insufficient/i.test(body)) {
-      throw new QuotaExhaustedError("deepseek", body);
+    if (res.status === 429 || /quota|balance|insufficient|credit/i.test(body)) {
+      throw new QuotaExhaustedError(providerName, body);
     }
-    throw new Error(`DeepSeek HTTP ${res.status}: ${body.slice(0, 200)}`);
+    throw new Error(`${providerName} HTTP ${res.status}: ${body.slice(0, 200)}`);
   }
   const responseJson = await res.json();
   const text = responseJson?.choices?.[0]?.message?.content ?? "";
@@ -203,7 +358,7 @@ export async function callDeepSeek({
   try {
     return JSON.parse(text);
   } catch {
-    throw new ParseError("deepseek", text);
+    throw new ParseError(providerName, text);
   }
 }
 
