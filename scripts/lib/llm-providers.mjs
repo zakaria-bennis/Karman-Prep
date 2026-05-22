@@ -23,6 +23,27 @@
 //   · Llama 4 (via Groq)           — process.env.GROQ_API_KEY
 // ============================================================
 
+// Node's bundled undici client defaults to a 5-minute headersTimeout,
+// which is too aggressive for large structured-output LLM calls.
+// Gemini extracting ~98 questions from a 90-page PDF + emitting
+// 50K+ output tokens can legitimately take 6-8 minutes during
+// busy hours, especially over GitHub Actions networking. We set a
+// 15-minute ceiling so the call doesn't get torn down mid-response.
+//
+// (Local Mac runs finished in 35s on the same workload, but Actions
+// run #26315666375 hung for 5 minutes and then crashed with
+// UND_ERR_HEADERS_TIMEOUT — hence this bump.)
+import { Agent, setGlobalDispatcher } from "undici";
+setGlobalDispatcher(
+  new Agent({
+    headersTimeout: 15 * 60 * 1000, // 15 min — Gemini long-tail
+    bodyTimeout: 15 * 60 * 1000,
+    connectTimeout: 60 * 1000, // 60 s for DNS + TCP handshake
+    keepAliveTimeout: 60 * 1000,
+    keepAliveMaxTimeout: 5 * 60 * 1000,
+  })
+);
+
 const GEMINI_KEY = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
 const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY;
 // DeepSeek is reachable two ways: direct (api.deepseek.com — flaky from US,
