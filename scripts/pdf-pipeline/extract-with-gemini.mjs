@@ -31,7 +31,7 @@
 
 import { readFileSync, writeFileSync } from "node:fs";
 import { basename, resolve } from "node:path";
-import { callGemini, QuotaExhaustedError, ParseError } from "../lib/llm-providers.mjs";
+import { callClaude, QuotaExhaustedError, ParseError } from "../lib/llm-providers.mjs";
 
 const pdfArg = process.argv[2];
 if (!pdfArg) {
@@ -318,43 +318,65 @@ VERIFICATION BEFORE RESPONDING: Count your questions. If under 80, you have miss
 
 Return the result as { "questions": [ ... ] } matching the response schema.`;
 
+// Convert the Gemini-style responseSchema (UPPERCASE OpenAPI types
+// + enum on STRING) to Anthropic tool_use input_schema (lowercase
+// JSON-Schema-ish types). The two are structurally identical except
+// for the case convention and a slightly different keyword set.
+function schemaForAnthropic(s) {
+  if (s == null || typeof s !== "object") return s;
+  if (Array.isArray(s)) return s.map(schemaForAnthropic);
+  const out = {};
+  for (const [k, v] of Object.entries(s)) {
+    if (k === "type" && typeof v === "string") {
+      out.type = v.toLowerCase();
+    } else if (k === "items" || k === "properties") {
+      out[k] = schemaForAnthropic(v);
+    } else {
+      out[k] = schemaForAnthropic(v);
+    }
+  }
+  return out;
+}
+
+const toolSchema = schemaForAnthropic(responseSchema);
+
 const t0 = Date.now();
-console.log(`Calling gemini-3.5-flash with PDF + KarmanGPT schema prompt…`);
+console.log(`Calling claude-sonnet-4-6 with PDF + KarmanGPT schema prompt…`);
 console.log(
   `(System prompt: ${(schemaPrompt.length / 1024).toFixed(1)} KB / ~${Math.round(schemaPrompt.length / 4)} tokens)`
 );
 
 let result;
 try {
-  result = await callGemini({
+  result = await callClaude({
     prompt: USER_PROMPT,
-    model: "gemini-3.5-flash",
+    model: "claude-sonnet-4-6",
     systemPrompt: schemaPrompt,
     pdf: { buf: pdfBuf },
-    responseSchema,
-    maxOutputTokens: 65536,
-    temperature: 0.1,
+    // tool-use guarantees the response shape AND sidesteps Gemini's
+    // non-deterministic RECITATION filter (confirmed on run
+    // #26322250769 — finishReason:RECITATION, text_chars:0). Claude
+    // has no equivalent automated filter for educational SAT content.
+    toolSchema,
+    maxTokens: 32_000,
   });
 } catch (err) {
   if (err instanceof QuotaExhaustedError) {
-    console.error(`\nGemini quota exhausted: ${err.message}`);
+    console.error(`\nAnthropic quota exhausted: ${err.message}`);
     process.exit(2);
   }
   if (err instanceof ParseError) {
     const raw = err.raw ?? "(no raw available)";
-    console.error(`\nGemini returned unparseable JSON.`);
+    console.error(`\nClaude returned unparseable response.`);
     console.error(`Raw response length: ${raw.length} chars`);
     console.error("─── First 1500 chars ───");
     console.error(raw.slice(0, 1500));
     console.error("─── Last 500 chars ───");
     console.error(raw.length > 1500 ? raw.slice(-500) : "(already shown above)");
     console.error("─── end ───");
-    // Also save to the current working directory so the workflow's
-    // upload-artifact step can grab it. /tmp is ephemeral but the
-    // checkout dir persists for post-job steps.
     try {
-      writeFileSync("./gemini-raw-error.txt", raw);
-      console.error("Full raw response saved to ./gemini-raw-error.txt");
+      writeFileSync("./claude-raw-error.txt", raw);
+      console.error("Full raw response saved to ./claude-raw-error.txt");
     } catch {}
     process.exit(3);
   }
@@ -362,7 +384,7 @@ try {
 }
 
 const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
-console.log(`\nGemini returned in ${elapsed}s`);
+console.log(`\nClaude returned in ${elapsed}s`);
 
 // Persist + summarize.
 //

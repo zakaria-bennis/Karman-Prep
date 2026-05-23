@@ -128,9 +128,9 @@ async function main() {
 
   try {
     // Stage 1: extract structure
-    await job.setStage("extracting", { message: `Gemini Flash on ${basename(pdfPath)}` });
+    await job.setStage("extracting", { message: `Claude Sonnet 4.6 on ${basename(pdfPath)}` });
     runStage(
-      "Stage 1/6 — extract structure (Gemini 3.5 Flash)",
+      "Stage 1/6 — extract structure (Claude Sonnet 4.6)",
       "extracting",
       "scripts/pdf-pipeline/extract-with-gemini.mjs",
       [pdfPath]

@@ -196,6 +196,11 @@ export async function callClaude({
   model = "claude-opus-4-7",
   systemPrompt = null,
   image = null,
+  // PDF input via Anthropic's document content block. Pass
+  // `{ buf: Buffer }` and we wrap it as base64 application/pdf.
+  // Used by extract-with-claude.mjs as the RECITATION-free
+  // replacement for Gemini extraction.
+  pdf = null,
   json = true,
   // When set, Claude is forced to respond by calling a tool whose
   // input_schema is `toolSchema`. Anthropic guarantees the response
@@ -216,6 +221,16 @@ export async function callClaude({
     content.push({
       type: "image",
       source: { type: "base64", media_type: image.mime, data: image.buf.toString("base64") },
+    });
+  }
+  if (pdf) {
+    content.push({
+      type: "document",
+      source: {
+        type: "base64",
+        media_type: "application/pdf",
+        data: pdf.buf.toString("base64"),
+      },
     });
   }
   content.push({ type: "text", text: prompt });
