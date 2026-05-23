@@ -358,7 +358,11 @@ try {
     // #26322250769 — finishReason:RECITATION, text_chars:0). Claude
     // has no equivalent automated filter for educational SAT content.
     toolSchema,
-    maxTokens: 32_000,
+    // 64K is Sonnet 4.6's max output budget. 98 questions × ~500
+    // tokens each = ~50K, well within 64K but only barely safe at
+    // 32K — empty tool calls from run #26322982553 likely caused by
+    // mid-stream truncation.
+    maxTokens: 64_000,
   });
 } catch (err) {
   if (err instanceof QuotaExhaustedError) {

@@ -281,6 +281,32 @@ export async function callClaude({
     throw new Error(`Anthropic HTTP ${res.status}: ${body.slice(0, 200)}`);
   }
   const responseJson = await res.json();
+
+  // Diagnostic logging — same pattern as the Gemini side. One stderr
+  // line per call with stop_reason + usage so we can tell apart
+  // max_tokens truncation from refusals from successful completions.
+  // Added after run #26322982553 where Claude returned an empty tool
+  // call after 7.7 minutes with no visibility into why.
+  try {
+    const stopReason = responseJson?.stop_reason ?? "(none)";
+    const usage = responseJson?.usage ?? {};
+    const contentTypes = (responseJson?.content ?? []).map((c) => c.type);
+    const toolBlock = (responseJson?.content ?? []).find((c) => c.type === "tool_use");
+    const summary = {
+      model,
+      stop_reason: stopReason,
+      input_tokens: usage.input_tokens,
+      output_tokens: usage.output_tokens,
+      cache_creation_input_tokens: usage.cache_creation_input_tokens,
+      cache_read_input_tokens: usage.cache_read_input_tokens,
+      content_blocks: contentTypes,
+      tool_input_keys: toolBlock ? Object.keys(toolBlock.input ?? {}) : undefined,
+    };
+    process.stderr.write(`[claude-diag] ${JSON.stringify(summary)}\n`);
+  } catch {
+    /* never let diagnostics break the call */
+  }
+
   if (useTool) {
     const block = (responseJson?.content ?? []).find((c) => c.type === "tool_use");
     if (!block) {
