@@ -149,11 +149,27 @@ async function loadFromDb() {
     process.env.SUPABASE_SERVICE_ROLE_KEY,
     { auth: { persistSession: false } }
   );
-  const { data, error } = await supa
+  // Optional filters via env (works in workflow_dispatch inputs too):
+  //   FILTER_ANSWER_SOURCE=inferred     — only grade AI-guessed answers
+  //   FILTER_IMPORT_STATUS=needs_review — only grade flagged rows
+  //   FILTER_SOURCE_PDF=202405us.pdf    — restrict to one PDF
+  // Used to scope quick spot-check grading runs against a tiny
+  // subset instead of the full 600+ bank.
+  let q = supa
     .from("quiz_questions")
     .select("*, answer_choices(letter, choice_text)")
     .order("source_pdf")
     .order("source_page");
+  if (process.env.FILTER_ANSWER_SOURCE) {
+    q = q.eq("answer_source", process.env.FILTER_ANSWER_SOURCE);
+  }
+  if (process.env.FILTER_IMPORT_STATUS) {
+    q = q.eq("import_status", process.env.FILTER_IMPORT_STATUS);
+  }
+  if (process.env.FILTER_SOURCE_PDF) {
+    q = q.eq("source_pdf", process.env.FILTER_SOURCE_PDF);
+  }
+  const { data, error } = await q;
   if (error) throw error;
   return (data ?? []).map((r) => {
     const cs = r.answer_choices || [];

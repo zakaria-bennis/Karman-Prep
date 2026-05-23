@@ -19,6 +19,21 @@ on:
         required: false
         type: string
         default: ""
+      answer_source:
+        description: "Filter to one answer_source (e.g. 'inferred' to spot-check AI-guessed)"
+        required: false
+        type: string
+        default: ""
+      import_status:
+        description: "Filter to one import_status (e.g. 'needs_review' for flagged-only)"
+        required: false
+        type: string
+        default: ""
+      source_pdf:
+        description: "Filter to questions from a single PDF (e.g. '202405us.pdf')"
+        required: false
+        type: string
+        default: ""
 
 permissions:
   contents: read
@@ -36,6 +51,9 @@ jobs:
       OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
       GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
       GRADE_LIMIT: ${{ github.event.inputs.limit }}
+      FILTER_ANSWER_SOURCE: ${{ github.event.inputs.answer_source }}
+      FILTER_IMPORT_STATUS: ${{ github.event.inputs.import_status }}
+      FILTER_SOURCE_PDF: ${{ github.event.inputs.source_pdf }}
 
     steps:
       - name: Checkout
