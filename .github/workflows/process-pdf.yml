@@ -50,7 +50,13 @@ permissions:
 jobs:
   process:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    # 60 was too tight — run #26324439132 was cancelled at the
+    # 60-minute Actions timeout while grader was at 85/654. Stage 5
+    # (Sonnet+Haiku fill) is the long pole when the bank has many
+    # un-filled rows from prior imports; stage 6 grading is also
+    # linear in bank size. 6 hours of headroom is plenty even for a
+    # full re-grade of a thousand-question bank.
+    timeout-minutes: 360
 
     env:
       # The orchestrator reads JOB_ID; the helper picks up
