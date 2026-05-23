@@ -523,6 +523,62 @@ async function main() {
   }
 
   await writeReports(results);
+
+  // Persist per-question grader_votes into the DB so the admin
+  // review queue can render the per-LLM badges next to each row
+  // without us having to read the JSON file. Only runs when we
+  // queried from the DB (we know each row.id is a real uuid).
+  if (FROM_DB) {
+    await persistGraderVotesToDb(results);
+  }
+}
+
+// ── Persist per-question verdicts back to quiz_questions.grader_votes
+//    JSONB column (migration 20260523090000) ──
+async function persistGraderVotesToDb(results) {
+  const { createClient } = await import("@supabase/supabase-js");
+  const supa = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.SUPABASE_SERVICE_ROLE_KEY,
+    { auth: { persistSession: false } }
+  );
+  console.log("");
+  console.log(`Persisting grader_votes for ${results.length} rows…`);
+  let ok = 0;
+  let errored = 0;
+  const gradedAt = new Date().toISOString();
+  for (const r of results) {
+    if (!r.id || r.verdict === "skip_no_text") continue;
+    const pass1Votes = r.pass1?.votes ?? [];
+    const flash = pass1Votes.find((v) => v.voter === "flash")?.answer ?? null;
+    const deepseek = pass1Votes.find((v) => v.voter === "deepseek")?.answer ?? null;
+    const llama = pass1Votes.find((v) => v.voter === "llama")?.answer ?? null;
+    const votes = {
+      graded_at: gradedAt,
+      stored_answer: r.stored ?? null,
+      verdict: r.verdict,
+      pass1: {
+        ...(flash != null ? { flash } : {}),
+        ...(deepseek != null ? { deepseek } : {}),
+        ...(llama != null ? { llama } : {}),
+        ...(r.pass1?.consensus ? { consensus: r.pass1.consensus } : {}),
+        ...(r.pass1?.majority ? { majority: r.pass1.majority } : {}),
+      },
+      ...(r.pass2?.answer ? { pass2_pro: r.pass2.answer } : {}),
+      ...(r.pass3?.answer ? { pass3_opus: r.pass3.answer } : {}),
+    };
+    const { error } = await supa
+      .from("quiz_questions")
+      .update({ grader_votes: votes })
+      .eq("id", r.id);
+    if (error) {
+      errored++;
+      if (errored <= 3) console.log(`  ✗ ${r.id}: ${error.message}`);
+    } else {
+      ok++;
+    }
+  }
+  console.log(`  → ${ok} rows updated, ${errored} errors.`);
 }
 
 // ── Report writers ──

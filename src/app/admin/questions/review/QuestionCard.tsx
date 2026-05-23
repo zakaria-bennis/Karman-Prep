@@ -23,6 +23,7 @@ import {
 import { cn } from "@/lib/utils";
 import MathText from "@/components/learn/MathText";
 import type { QuizQuestionWithChoices } from "@/types/quiz";
+import { GraderVotesBadge } from "@/components/admin/GraderVotesBadge";
 import { NodePicker } from "./NodePicker";
 
 export function QuestionCard({
@@ -108,6 +109,17 @@ export function QuestionCard({
               {isFlagged
                 ? `${question.import_flag_type === "skip" ? "Unsolvable" : "Needs review"} — ${question.import_flag_reason ?? ""}`
                 : "In bank — pick a curriculum node to send this question live in Learn."}
+            </div>
+            {/* Multi-vote grader badge row — shows each LLM's
+              independent answer + the overall verdict so the
+              admin can spot-check the stored answer without
+              expanding the card. Renders for every question;
+              shows an "Ungraded" hint when grader_votes is null. */}
+            <div className="mt-1.5">
+              <GraderVotesBadge
+                votes={question.grader_votes}
+                storedAnswer={question.correct_answer}
+              />
             </div>
             {/* Source PDF + page — prominent on flagged rows so the
               admin can jump to the source PDF and verify the
