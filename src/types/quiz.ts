@@ -37,6 +37,34 @@ export type ImportStatus = "ok" | "needs_review";
 export type ImportFlagType = "skip" | "partial_emit";
 export type AnswerSource = "extracted" | "inferred" | "hand_corrected";
 
+/** Per-question multi-vote grader output (migration 20260523090000).
+ *  Lives in quiz_questions.grader_votes as JSONB. */
+export type GraderVerdict =
+  | "verified"
+  | "verified_pro"
+  | "verified_opus"
+  | "likely_wrong"
+  | "pass1_split"
+  | "pass1_disagree"
+  | "pass2_disagree"
+  | "uncertain_parse"
+  | "error";
+
+export interface GraderVotes {
+  graded_at: string;
+  stored_answer: string | null;
+  verdict: GraderVerdict;
+  pass1: {
+    flash?: string | null;
+    deepseek?: string | null;
+    llama?: string | null;
+    consensus?: "unanimous" | "majority" | "split";
+    majority?: string | null;
+  };
+  pass2_pro?: string;
+  pass3_opus?: string;
+}
+
 export interface QuizQuestion {
   id: string;
   /** Curriculum node this question is tied to. NULL for PDF-imported
@@ -89,6 +117,12 @@ export interface QuizQuestion {
   import_status: ImportStatus | null;
   import_flag_type: ImportFlagType | null;
   import_flag_reason: string | null;
+  /** Latest multi-vote grader verdict + per-LLM answers. Written by
+   *  scripts/question-audit/multi-vote-grader.mjs. Shape:
+   *  { graded_at, stored_answer, verdict, pass1: { flash, deepseek, llama, ... },
+   *    pass2_pro?, pass3_opus? }
+   *  See migration 20260523090000_quiz_questions_grader_votes.sql. */
+  grader_votes: GraderVotes | null;
   /** Generated column on quiz_questions (see
    *  supabase/migrations/20260518004500_quiz_questions_live_view.sql).
    *  TRUE iff import_status IS NULL OR import_status = 'ok'. */
