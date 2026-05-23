@@ -30,16 +30,18 @@
 //     "According"             — factual recall
 //     "The student"           — rhetorical synthesis
 //
-// SAFETY — rows that DON'T get touched
-//   · subject != "reading" (math rows have legitimate equations
-//     in question_text)
-//   · answer_source = "inferred" — answer key was AI-guessed;
-//     might still be in human reconciliation
-//   · import_flag_reason mentioning a structural issue:
-//     figure / graph / table / image / fallback / key / answer /
-//     missing / partial — these may still be in active review
-//   · Rows flagged with "question_text duplicates passage" — the
-//     fix-this-exact-bug case — DO get fixed (whitelist)
+// SAFETY
+//   · Only math rows are SKIPPED (math has legitimate equations
+//     in question_text, not a passage prefix).
+//   · All R&W rows are processed, INCLUDING ones already flagged
+//     for missing figures, inferred answers, or any other reason.
+//     Rationale: those flags track unrelated issues (a missing
+//     graph doesn't get resolved by splitting the stem). The
+//     script ONLY writes question_text + passage. It never
+//     touches import_status, import_flag_reason, or answer_source
+//     — so flagged rows stay flagged. The operator still gets to
+//     resolve those flags in the review queue, but with cleaner
+//     question_text to work with.
 //
 // USAGE
 //   Dry-run (default — prints first 20 BEFORE/AFTER pairs):
@@ -83,25 +85,6 @@ const STEM_STARTERS = [
   "The student",
 ];
 
-// Skip flag reasons that imply the row is in active review for an
-// unrelated structural problem (not a passage/stem split issue).
-const UNSAFE_FLAG_KEYWORDS = [
-  "figure",
-  "graph",
-  "table",
-  "image",
-  "fallback",
-  "key error",
-  "answer key",
-  "missing",
-  "partial",
-  "inferred",
-];
-
-// Whitelist: flag reasons we DO want to fix (this is literally the
-// bug class this script targets).
-const SAFE_FLAG_PATTERNS = [/duplicates? passage/i, /stem.{0,15}passage/i];
-
 const RW_SUBJECT = "reading";
 
 function isSentenceBoundary(text, pos) {
@@ -144,24 +127,11 @@ function findStemSplit(questionText) {
   return { passageTail, newStem, matchedPhrase: bestPhrase };
 }
 
-function rowIsSafeToFix(row) {
-  if (row.subject !== RW_SUBJECT) return { safe: false, reason: "math row" };
-  if (row.answer_source === "inferred") return { safe: false, reason: "inferred answer" };
-  const flagReason = (row.import_flag_reason ?? "").toLowerCase();
-  if (flagReason) {
-    // Whitelist first: this script's exact target.
-    if (SAFE_FLAG_PATTERNS.some((re) => re.test(flagReason))) {
-      return { safe: true, reason: "flagged for stem/passage split (the target)" };
-    }
-    // Skip if any unsafe keyword matches.
-    for (const kw of UNSAFE_FLAG_KEYWORDS) {
-      if (flagReason.includes(kw)) {
-        return { safe: false, reason: `flagged: ${kw}` };
-      }
-    }
-  }
-  return { safe: true, reason: "ok" };
-}
+// (Math rows are excluded at query time via .eq("subject", "reading"),
+// so no per-row safety predicate is needed. Flagged R&W rows ARE
+// processed — the script only writes question_text + passage and
+// never touches import_status / import_flag_reason / answer_source,
+// so existing flags are preserved.)
 
 function previewLine(label, text, width = 100) {
   const flat = (text ?? "").replace(/\s+/g, " ").trim();
@@ -183,12 +153,10 @@ async function main() {
   const counts = {
     total: rows.length,
     candidates: 0,
-    safe: 0,
-    skipped_unsafe: 0,
+    flagged_candidates: 0, // candidates that have a non-empty flag (informational)
     fixed: 0,
     write_errors: 0,
   };
-  const skipReasons = new Map();
   const previews = [];
 
   let processed = 0;
@@ -197,14 +165,7 @@ async function main() {
     const split = findStemSplit(row.question_text);
     if (!split) continue;
     counts.candidates++;
-
-    const safety = rowIsSafeToFix(row);
-    if (!safety.safe) {
-      counts.skipped_unsafe++;
-      skipReasons.set(safety.reason, (skipReasons.get(safety.reason) ?? 0) + 1);
-      continue;
-    }
-    counts.safe++;
+    if ((row.import_flag_reason ?? "").trim()) counts.flagged_candidates++;
 
     // Plan the new passage value.
     const existingPassage = (row.passage ?? "").trim();
@@ -256,13 +217,8 @@ async function main() {
   console.log("═".repeat(72));
   console.log(`R&W rows scanned:           ${counts.total}`);
   console.log(`Candidates (passage glued): ${counts.candidates}`);
-  console.log(`  Safe to fix:              ${counts.safe}`);
-  console.log(`  Skipped (unsafe flags):   ${counts.skipped_unsafe}`);
-  if (skipReasons.size) {
-    for (const [reason, n] of [...skipReasons.entries()].sort((a, b) => b[1] - a[1])) {
-      console.log(`    · ${reason}: ${n}`);
-    }
-  }
+  console.log(`  ↳ of those, flagged:      ${counts.flagged_candidates}`);
+  console.log(`    (flags preserved — script only writes question_text + passage)`);
   if (COMMIT) {
     console.log(`Fixed in DB:                ${counts.fixed}`);
     console.log(`Write errors:               ${counts.write_errors}`);
