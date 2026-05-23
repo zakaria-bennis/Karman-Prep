@@ -43,8 +43,16 @@
 // ============================================================
 
 import { spawnSync } from "node:child_process";
+import { existsSync } from "node:fs";
 
 const PASS_THROUGH = process.argv.slice(2);
+
+// On a local Mac the user has `.env.local` next to package.json and
+// passes its contents via `node --env-file=.env.local`. On GitHub
+// Actions there's no `.env.local` file — env vars come from secrets
+// and are already in process.env. Conditionally include the flag so
+// the same orchestrator works both places.
+const ENV_FILE_ARGS = existsSync(".env.local") ? ["--env-file=.env.local"] : [];
 
 const STAGES = [
   {
@@ -67,8 +75,9 @@ for (const stage of STAGES) {
   console.log("─".repeat(72));
   console.log(`▶ ${stage.label}`);
   console.log("─".repeat(72));
-  const result = spawnSync("node", ["--env-file=.env.local", stage.script, ...PASS_THROUGH], {
+  const result = spawnSync("node", [...ENV_FILE_ARGS, stage.script, ...PASS_THROUGH], {
     stdio: "inherit",
+    env: process.env,
   });
   if (result.status !== 0) {
     console.error(`\n✗ ${stage.label} failed (exit ${result.status}). Stopping orchestrator.`);
