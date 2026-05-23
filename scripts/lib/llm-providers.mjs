@@ -142,6 +142,39 @@ export async function callGemini({
     throw new Error(`Gemini HTTP ${res.status}: ${body}`);
   }
   const responseJson = await res.json();
+
+  // Diagnostic logging — every Gemini call dumps the response
+  // metadata to stderr so we can see WHY responses come back empty
+  // or wrong. Cheap (~5 lines of stderr per call) and the only way
+  // to tell apart RECITATION vs SAFETY vs MAX_TOKENS vs early-stop
+  // bias without per-call wireshark. Triggered by the 0-questions
+  // mystery in workflow run #26316687585.
+  try {
+    const cand = responseJson?.candidates?.[0];
+    const finishReason = cand?.finishReason ?? "(none)";
+    const safety = cand?.safetyRatings ?? [];
+    const blocked = safety.filter(
+      (r) => r?.blocked === true || r?.probability === "HIGH" || r?.probability === "MEDIUM"
+    );
+    const usage = responseJson?.usageMetadata ?? {};
+    const promptFb = responseJson?.promptFeedback;
+    const textLen = (cand?.content?.parts?.[0]?.text ?? "").length;
+    const summary = {
+      model,
+      finishReason,
+      text_chars: textLen,
+      prompt_tokens: usage.promptTokenCount,
+      candidates_tokens: usage.candidatesTokenCount,
+      thoughts_tokens: usage.thoughtsTokenCount,
+      total_tokens: usage.totalTokenCount,
+      ...(blocked.length ? { blocked_safety: blocked } : {}),
+      ...(promptFb ? { promptFeedback: promptFb } : {}),
+    };
+    process.stderr.write(`[gemini-diag] ${JSON.stringify(summary)}\n`);
+  } catch {
+    /* never let diagnostics break the call */
+  }
+
   const text = responseJson?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
   if (!json) return text;
   // Gemini sometimes wraps JSON in markdown fences or adds a
