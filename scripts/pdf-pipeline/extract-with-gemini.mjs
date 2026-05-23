@@ -274,20 +274,31 @@ EXTRACTION SCOPE — first-pass test, structure only:
 
 R&W STRUCTURE — CRITICAL: separate the passage from the question stem.
 
-Many R&W questions present a passage with a BLANK and a generic question stem. For these:
-  · question_text = the GENERIC STEM ONLY. Examples:
-      "Which choice completes the text with the most logical and precise word or phrase?"
-      "Which choice completes the text so that it conforms to the conventions of Standard English?"
-      "Which choice most logically completes the text?"
-      "As used in the text, what does the word ___ most nearly mean?"
-  · passage = the body of the passage, including any blank (use "______" for the blank if present).
-  · NEVER put the passage inside question_text.
-  · NEVER duplicate the passage in BOTH question_text AND passage — those fields hold different things.
-  · NEVER leave passage empty for R&W questions; every R&W question has its own passage.
+EVERY R&W question_text MUST begin with one of these canonical phrases at a sentence boundary. There are NO exceptions:
 
-For R&W questions where the stem references the passage explicitly (main idea, inference, structure):
-  · question_text = the SPECIFIC stem ("Which choice best states the main idea of the text?", etc.)
-  · passage = the full passage the question references.
+  · "As used in the text"      (vocabulary-in-context)
+  · "Based on the text"        (also "Based on the texts" for cross-text)
+  · "Which"                    ("Which choice", "Which finding", etc.)
+  · "What"                     ("What choice", "What is the main idea", etc.)
+  · "How"                      (inference / comparison)
+  · "According"                (factual recall: "According to the text…")
+  · "The student"              (rhetorical synthesis: "The student wants to…")
+
+If you find yourself writing R&W question_text that begins with any other word — a passage sentence, a data point, a quoted phrase — STOP. That content belongs in the passage field, not question_text. Move it to passage and start question_text with the canonical stem starter.
+
+Common mistakes to avoid:
+  · WRONG: question_text = "Assuming P4 gave equal ratings to impressionist and cubist paintings, the graph reveals that the model predicted ____. Which choice most effectively uses data from the graph to complete the statement?"
+    RIGHT: passage = "...Assuming P4 gave equal ratings to impressionist and cubist paintings, the graph reveals that the model predicted ____."
+           question_text = "Which choice most effectively uses data from the graph to complete the statement?"
+
+  · WRONG: question_text = "The Apollo Moon landings (1969-1972) left charged particle detectors and equipment too heavy for liftoff on the Moon and produced large amounts of data. Researcher Philip Metzger continues to use Apollo's data, demonstrating that the missions' value to science ______. Which choice completes the text with the most logical and precise word or phrase?"
+    RIGHT: passage = the entire bundled prefix above
+           question_text = "Which choice completes the text with the most logical and precise word or phrase?"
+
+Other rules:
+  · passage = the body of the passage, including any blank (use "______" for the blank if present).
+  · NEVER duplicate the passage in BOTH question_text AND passage.
+  · NEVER leave passage empty for R&W questions; every R&W question has its own passage.
 
 For Math questions: passage, passage_a, passage_b, passage_intro are ALL EMPTY.
 
