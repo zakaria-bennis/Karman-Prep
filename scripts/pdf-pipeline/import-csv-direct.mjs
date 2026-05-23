@@ -36,10 +36,17 @@ const supabase = createClient(SUPA_URL, SUPA_KEY, { auth: { persistSession: fals
 
 // ── Build slug → node_id map by regex-parsing curriculum.ts
 //    (faster than running a tsx-compiled module). ─────────────
-const curr = readFileSync("src/data/curriculum.ts", "utf-8");
+//
+// The curriculum was migrated from the source file to the DB
+// at some point. If src/data/curriculum.ts is missing, that's
+// fine — we just leave node_id null on every inserted row, and
+// the question lands in the bank for triage at /admin/questions/review
+// (this is the bank-import model: rows enter unassigned, admin
+// routes them later). Log a warning so the operator knows.
 const SLUG_TO_NODE = new Map();
 const NODE_TO_DOMAIN = new Map();
-{
+try {
+  const curr = readFileSync("src/data/curriculum.ts", "utf-8");
   // Match blocks like:   id: "rw-00", tier: 1, difficulty: 1,
   //                      concept_slug: "main-idea-and-central-claims",
   const re = /id:\s*"([a-z0-9-]+)",[\s\S]*?concept_slug:\s*"([a-z0-9-]+)"/g;
@@ -47,8 +54,16 @@ const NODE_TO_DOMAIN = new Map();
   while ((m = re.exec(curr)) !== null) {
     SLUG_TO_NODE.set(m[2], m[1]);
   }
+  console.log(`loaded ${SLUG_TO_NODE.size} slug→node mappings from curriculum.ts`);
+} catch (err) {
+  if (err?.code === "ENOENT") {
+    console.log(
+      "curriculum.ts not found — inserting all rows with node_id=null (bank-import model). Routes happen in /admin/questions/review."
+    );
+  } else {
+    throw err;
+  }
 }
-console.log(`loaded ${SLUG_TO_NODE.size} slug→node mappings from curriculum.ts`);
 
 const VALID_DOMAINS = new Set([
   "algebra",

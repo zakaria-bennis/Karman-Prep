@@ -364,10 +364,36 @@ try {
 const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
 console.log(`\nGemini returned in ${elapsed}s`);
 
-// Persist + summarize
-const rows = result?.questions ?? [];
+// Persist + summarize.
+//
+// Shape handling: we ASK for { questions: [...] } via responseSchema,
+// but Gemini occasionally returns the bare array [...] directly (the
+// schema's outer object wrapper gets dropped, observed on the
+// 202405us.pdf run #26321947286 — 100 KB of valid extraction data
+// silently discarded because `result?.questions` was undefined).
+// Accept both shapes so the pipeline doesn't throw away good output.
+const rows = Array.isArray(result)
+  ? result
+  : Array.isArray(result?.questions)
+    ? result.questions
+    : [];
 const stem = pdfName.replace(/\.pdf$/i, "");
 const outPath = `/tmp/${stem}-gemini-extracted.json`;
+
+// Fast-fail: if extraction returned nothing, the pipeline should NOT
+// silently continue to write an empty CSV and import zero rows. Throw
+// here so the orchestrator marks the job failed with a clear stage
+// name and we know to debug the extraction step specifically.
+if (rows.length === 0) {
+  console.error(
+    `Extraction returned 0 questions. Raw response was ${
+      typeof result === "object"
+        ? `an object with keys [${Object.keys(result ?? {}).join(", ") || "none"}]`
+        : typeof result
+    }. Aborting before downstream stages.`
+  );
+  process.exit(4);
+}
 
 // Post-validation —
 // 1) concept_slug must be one of the 89 canonical (schema can't enforce
