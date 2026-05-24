@@ -15,12 +15,13 @@
 
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ChevronRight, ClipboardCheck } from "lucide-react";
+import { ChevronRight, ClipboardCheck, Archive } from "lucide-react";
 import {
   selectQuestionsNeedingReview,
   selectNeedsReviewSourcePdfs,
   selectBankQuestions,
 } from "@/lib/supabase/queries/quiz";
+import { selectRejectedQuestionCount } from "@/lib/supabase/queries/quiz/rejected";
 import ReviewClient from "./ReviewClient";
 
 export const metadata: Metadata = { title: "Admin — Question review | Karman" };
@@ -43,7 +44,7 @@ export default async function QuestionReviewPage({ searchParams }: PageProps) {
       ? params.flag_type
       : undefined;
 
-  const [flagged, sourcePdfs, bankAll, allFlagged] = await Promise.all([
+  const [flagged, sourcePdfs, bankAll, allFlagged, rejectedCount] = await Promise.all([
     selectQuestionsNeedingReview({
       flag_type,
       domain: params.domain || undefined,
@@ -52,6 +53,7 @@ export default async function QuestionReviewPage({ searchParams }: PageProps) {
     selectNeedsReviewSourcePdfs(),
     selectBankQuestions(),
     selectQuestionsNeedingReview(), // unfiltered, for header counts
+    selectRejectedQuestionCount(),
   ]);
 
   const counts = {
@@ -70,9 +72,23 @@ export default async function QuestionReviewPage({ searchParams }: PageProps) {
         >
           <ChevronRight className="h-3 w-3 rotate-180" /> Back to admin
         </Link>
-        <h1 className="flex items-center gap-2 text-2xl font-bold text-white">
-          <ClipboardCheck className="h-5 w-5 text-amber-400" /> Question review
-        </h1>
+        <div className="flex items-start justify-between gap-3">
+          <h1 className="flex items-center gap-2 text-2xl font-bold text-white">
+            <ClipboardCheck className="h-5 w-5 text-amber-400" /> Question review
+          </h1>
+          <Link
+            href="/admin/questions/rejected"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 px-3 py-1.5 text-xs text-slate-300 hover:border-slate-600 hover:text-white"
+          >
+            <Archive className="h-3.5 w-3.5" />
+            Rejected
+            {rejectedCount > 0 && (
+              <span className="ml-1 rounded bg-slate-800 px-1.5 py-0.5 font-mono text-[10px] text-slate-300">
+                {rejectedCount}
+              </span>
+            )}
+          </Link>
+        </div>
         <p className="mt-1.5 text-sm text-slate-400">
           {counts.bank} in bank · {counts.flagged} flagged ({counts.partial_emit} partial_emit ·{" "}
           {counts.skip} skip)

@@ -2699,6 +2699,54 @@ export type Database = {
           },
         ];
       };
+      rejected_questions: {
+        Row: {
+          id: string;
+          original_id: string;
+          question_snapshot: Json;
+          choices_snapshot: Json;
+          rejected_at: string;
+          rejected_by_user_id: string | null;
+          rejected_reason: string | null;
+          source_pdf: string | null;
+          source_page: number | null;
+          domain: string | null;
+          subject: string | null;
+          question_preview: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          original_id: string;
+          question_snapshot: Json;
+          choices_snapshot?: Json;
+          rejected_at?: string;
+          rejected_by_user_id?: string | null;
+          rejected_reason?: string | null;
+          source_pdf?: string | null;
+          source_page?: number | null;
+          domain?: string | null;
+          subject?: string | null;
+          question_preview?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          original_id?: string;
+          question_snapshot?: Json;
+          choices_snapshot?: Json;
+          rejected_at?: string;
+          rejected_by_user_id?: string | null;
+          rejected_reason?: string | null;
+          source_pdf?: string | null;
+          source_page?: number | null;
+          domain?: string | null;
+          subject?: string | null;
+          question_preview?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       active_cohort_for_student: {
