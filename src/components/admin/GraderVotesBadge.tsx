@@ -102,7 +102,12 @@ export function GraderVotesBadge({ votes, storedAnswer }: Props) {
       {votes.pass3_opus && <VoterChip name="Opus" answer={votes.pass3_opus} stored={stored} />}
       <span
         className={`ml-1 inline-flex items-center rounded border px-1.5 py-0.5 text-[10px] font-semibold ${verdictTone}`}
-        title={`graded ${new Date(votes.graded_at).toLocaleString()}`}
+        // Stable ISO-ish format ("2026-05-23 14:51 UTC") instead of
+        // toLocaleString(): the latter renders different strings on
+        // the server vs the client, causing a hydration mismatch
+        // that crashes the whole admin tree (broke prod in version
+        // fd3da1df — rolled back via wrangler).
+        title={`graded ${(votes.graded_at ?? "").replace("T", " ").slice(0, 16)} UTC`}
       >
         {verdictLabel}
       </span>
