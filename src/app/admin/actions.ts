@@ -34,6 +34,11 @@ import {
   uploadVideoFile,
   deleteVideo,
 } from "@/lib/supabase/queries/content";
+import {
+  softRejectQuestion,
+  restoreRejectedQuestion,
+  hardDeleteRejectedQuestion,
+} from "@/lib/supabase/queries/quiz/rejected";
 import type { QuizDifficulty, QuizQuestion } from "@/types/quiz";
 import {
   acceptFlaggedQuestionInputSchema,
@@ -347,6 +352,48 @@ export async function actionAcceptAllBank(): Promise<{
     errored: errors.length,
     errors,
   };
+}
+
+// ── Preview-validation actions (rejected_questions recovery bin) ──
+//
+// Used by /admin/questions/preview's Reject button (soft delete)
+// and /admin/questions/rejected (restore + permanent delete).
+// Soft-delete is distinct from the existing actionRejectFlaggedQuestion
+// which HARD-deletes; this path is reversible.
+
+export async function actionSoftRejectQuestion(
+  questionId: string,
+  reason?: string
+): Promise<{ rejected: boolean }> {
+  const userId = await guardAdmin();
+  const result = await softRejectQuestion(questionId, {
+    rejectedByUserId: userId,
+    reason: reason?.trim() || undefined,
+  });
+  revalidatePath("/admin/questions/preview");
+  revalidatePath("/admin/questions/review");
+  revalidatePath("/admin/questions/rejected");
+  return { rejected: result.rejected };
+}
+
+export async function actionRestoreRejectedQuestion(
+  rejectedId: string
+): Promise<{ restored: boolean; restoredQuestionId?: string }> {
+  await guardAdmin();
+  const result = await restoreRejectedQuestion(rejectedId);
+  revalidatePath("/admin/questions/preview");
+  revalidatePath("/admin/questions/review");
+  revalidatePath("/admin/questions/rejected");
+  return result;
+}
+
+export async function actionHardDeleteRejectedQuestion(
+  rejectedId: string
+): Promise<{ deleted: boolean }> {
+  await guardAdmin();
+  const result = await hardDeleteRejectedQuestion(rejectedId);
+  revalidatePath("/admin/questions/rejected");
+  return result;
 }
 
 // ── Inspector UI actions ──────────────────────────────────────
