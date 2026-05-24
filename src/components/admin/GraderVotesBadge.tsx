@@ -80,10 +80,10 @@ function VoterChip({
           ? "border-emerald-800/60 bg-emerald-950/40 text-emerald-200"
           : "border-rose-800/60 bg-rose-950/40 text-rose-200"
       }`}
-      title={`${name} answered ${answer} (stored: ${stored ?? "?"})`}
+      title={`${name} answered ${answerStr} (stored: ${storedStr ?? "?"})`}
     >
       <span className="font-semibold">{name}</span>
-      <span className="font-mono font-bold">{answer.toUpperCase()}</span>
+      <span className="font-mono font-bold">{answerStr.toUpperCase()}</span>
     </span>
   );
 }
