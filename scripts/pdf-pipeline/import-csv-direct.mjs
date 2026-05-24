@@ -264,6 +264,13 @@ async function main() {
       import_status: importStatus,
       import_flag_type: flagType,
       import_flag_reason: flagReason,
+      // Figure URL + alt-text from the extract-figures.mjs stage.
+      // Without these, every figure cropped + uploaded to R2 by
+      // the pipeline was silently dropped during DB insert — the
+      // pre-existing import script was built for the ChatGPT
+      // base64-data-URL flow and never handled the R2-URL case.
+      image_url: get("image_url") || null,
+      image_alt: get("image_alt") || null,
     };
 
     const { data: inserted, error } = await supabase
