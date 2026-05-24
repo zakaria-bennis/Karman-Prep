@@ -1,247 +1,456 @@
 "use client";
 
 // ============================================================
-// PreviewClient — list + filter UI sitting above the QuestionPreview
-// renderer. Filters narrow the question pool; current selection is
-// driven by index into the filtered list, navigated with prev/next or
-// the dropdown.
+// PreviewClient — phase 2 shell.
+//
+// Layout:  [ top toolbar — filters · device · nav ]
+//          [ sidebar | preview pane | side panel?  ]
+//          [ bottom action bar — approve/flag/reject + toggles ]
+//
+// State persistence (localStorage, key = "karman.preview.v2"):
+//   · filters     — subject / status / pdf / domain / hasFigure
+//   · device      — mobile / tablet / desktop / full
+//   · openPanels  — which side-panel chips were last open
+//   · activeId    — last question the admin was looking at, so
+//                   re-opening the page resumes where they were
+//
+// Selection (checkbox state) is NOT persisted — selections are
+// per-session and stale across reloads.
 // ============================================================
 
-import { useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight, Filter, AlertTriangle } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { QuizQuestionWithChoices } from "@/types/quiz";
+import {
+  actionApproveQuestion,
+  actionFlagQuestion,
+  actionSoftRejectQuestion,
+  actionBulkApproveQuestions,
+  actionBulkSoftRejectQuestions,
+} from "@/app/admin/actions";
 import { QuestionPreview } from "./QuestionPreview";
+import { DeviceFrame, type DeviceWidth } from "./DeviceFrame";
+import { PreviewSidebar } from "./PreviewSidebar";
+import { PreviewToolbar, type FilterState } from "./PreviewToolbar";
+import { PreviewActionBar, type PanelKey } from "./PreviewActionBar";
+import { PreviewSidePanel } from "./PreviewSidePanel";
 
-type Subject = "all" | "reading" | "math";
-type Status = "all" | "ok" | "needs_review";
+const LS_KEY = "karman.preview.v2";
+
+interface PersistedState {
+  filters?: Partial<FilterState>;
+  device?: DeviceWidth;
+  openPanels?: PanelKey[];
+  activeId?: string | null;
+}
+
+const DEFAULT_FILTERS: FilterState = {
+  subject: "all",
+  status: "all",
+  pdf: "all",
+  domain: "all",
+  hasFigure: "all",
+};
 
 export default function PreviewClient({ initial }: { initial: QuizQuestionWithChoices[] }) {
-  const [subject, setSubject] = useState<Subject>("all");
-  const [status, setStatus] = useState<Status>("all");
-  const [pdf, setPdf] = useState<string>("all");
-  const [domain, setDomain] = useState<string>("all");
-  const [idx, setIdx] = useState(0);
+  const router = useRouter();
+  const [, startTransition] = useTransition();
 
-  // Distinct PDFs / domains for filter dropdowns.
-  const allPdfs = useMemo(
+  // ── Persisted bits ────────────────────────────────────────
+  const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS);
+  const [device, setDevice] = useState<DeviceWidth>("full");
+  const [openPanels, setOpenPanels] = useState<Set<PanelKey>>(new Set());
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [hydrated, setHydrated] = useState(false);
+
+  // ── Non-persisted bits ────────────────────────────────────
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [pending, setPending] = useState({ approve: false, flag: false, reject: false });
+  const [bulkPending, setBulkPending] = useState({ approving: false, rejecting: false });
+  const [banner, setBanner] = useState<
+    { kind: "ok"; text: string } | { kind: "err"; text: string } | null
+  >(null);
+
+  // ── Hydrate from localStorage on mount ────────────────────
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(LS_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw) as PersistedState;
+        if (parsed.filters) setFilters({ ...DEFAULT_FILTERS, ...parsed.filters });
+        if (parsed.device) setDevice(parsed.device);
+        if (parsed.openPanels) setOpenPanels(new Set(parsed.openPanels));
+        if (parsed.activeId) setActiveId(parsed.activeId);
+      }
+    } catch {
+      // localStorage unavailable / corrupt — fall through to defaults.
+    }
+    setHydrated(true);
+  }, []);
+
+  // ── Persist whenever the persistable state changes ────────
+  useEffect(() => {
+    if (!hydrated) return; // skip first render (still default state)
+    try {
+      const toStore: PersistedState = {
+        filters,
+        device,
+        openPanels: Array.from(openPanels),
+        activeId,
+      };
+      localStorage.setItem(LS_KEY, JSON.stringify(toStore));
+    } catch {
+      // Quota exceeded / private mode — silently drop.
+    }
+  }, [hydrated, filters, device, openPanels, activeId]);
+
+  // ── Derived: filter options + filtered list ───────────────
+  const pdfOptions = useMemo(
     () => Array.from(new Set(initial.map((q) => q.source_pdf || "(unknown)"))).sort(),
     [initial]
   );
-  const allDomains = useMemo(
+  const domainOptions = useMemo(
     () => Array.from(new Set(initial.map((q) => q.domain || "(unknown)"))).sort(),
     [initial]
   );
 
   const filtered = useMemo(() => {
     return initial.filter((q) => {
-      if (subject !== "all" && q.subject !== subject) return false;
-      if (status !== "all" && q.import_status !== status) return false;
-      if (pdf !== "all" && (q.source_pdf || "(unknown)") !== pdf) return false;
-      if (domain !== "all" && (q.domain || "(unknown)") !== domain) return false;
+      if (filters.subject !== "all" && q.subject !== filters.subject) return false;
+      if (filters.status !== "all" && q.import_status !== filters.status) return false;
+      if (filters.pdf !== "all" && (q.source_pdf || "(unknown)") !== filters.pdf) return false;
+      if (filters.domain !== "all" && (q.domain || "(unknown)") !== filters.domain) return false;
+      if (filters.hasFigure === "yes" && !q.image_url) return false;
+      if (filters.hasFigure === "no" && q.image_url) return false;
       return true;
     });
-  }, [initial, subject, status, pdf, domain]);
+  }, [initial, filters]);
 
-  // Keep idx in range when filters change.
-  const safeIdx = filtered.length > 0 ? Math.min(idx, filtered.length - 1) : 0;
-  const current = filtered[safeIdx];
+  // ── Active question lookup ────────────────────────────────
+  // Prefer the persisted activeId if it's still in the filtered set,
+  // else fall back to index 0. This makes filter changes graceful:
+  // if the admin's current question still matches the new filter,
+  // they stay on it; otherwise they jump to the start of the new set.
+  const currentIndex = useMemo(() => {
+    if (activeId) {
+      const i = filtered.findIndex((q) => q.id === activeId);
+      if (i >= 0) return i;
+    }
+    return filtered.length > 0 ? 0 : -1;
+  }, [filtered, activeId]);
+
+  const current = currentIndex >= 0 ? filtered[currentIndex] : null;
+
+  // Keep activeId in sync with the rendered question — important for
+  // the case where the persisted activeId fell out of the filter set
+  // and we silently moved to index 0.
+  useEffect(() => {
+    if (current && current.id !== activeId) setActiveId(current.id);
+    if (!current && activeId !== null) setActiveId(null);
+  }, [current, activeId]);
+
+  // ── Action handlers ───────────────────────────────────────
+  const refresh = useCallback(() => {
+    startTransition(() => router.refresh());
+  }, [router]);
+
+  function selectQuestion(id: string) {
+    setActiveId(id);
+  }
 
   function jump(delta: number) {
-    setIdx((cur) => {
-      const next = cur + delta;
-      if (next < 0) return 0;
-      if (next >= filtered.length) return filtered.length - 1;
+    if (filtered.length === 0) return;
+    const i = currentIndex < 0 ? 0 : currentIndex;
+    const next = Math.max(0, Math.min(filtered.length - 1, i + delta));
+    setActiveId(filtered[next]?.id ?? null);
+  }
+
+  function toggleSelected(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+  function toggleSelectAll() {
+    setSelectedIds((prev) => {
+      const allSelected = filtered.length > 0 && filtered.every((q) => prev.has(q.id));
+      if (allSelected) return new Set();
+      return new Set(filtered.map((q) => q.id));
+    });
+  }
+  function clearSelection() {
+    setSelectedIds(new Set());
+  }
+
+  function togglePanel(key: PanelKey) {
+    setOpenPanels((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
       return next;
     });
   }
 
-  function selectRow(i: number) {
-    setIdx(i);
+  function changeFilter<K extends keyof FilterState>(key: K, value: FilterState[K]) {
+    setFilters((f) => ({ ...f, [key]: value }));
+    // Filter change can render the current activeId off-screen; the
+    // currentIndex memo will fall back to index 0 on the next render.
+    // Selection is cleared so a stale "N selected" badge doesn't lie.
+    setSelectedIds(new Set());
   }
 
+  function clearFilters() {
+    setFilters(DEFAULT_FILTERS);
+    setSelectedIds(new Set());
+  }
+
+  async function handleApprove() {
+    if (!current) return;
+    setPending((p) => ({ ...p, approve: true }));
+    setBanner(null);
+    try {
+      await actionApproveQuestion(current.id);
+      setBanner({ kind: "ok", text: "Approved." });
+      refresh();
+    } catch (err) {
+      setBanner({
+        kind: "err",
+        text: err instanceof Error ? err.message : "Approve failed.",
+      });
+    } finally {
+      setPending((p) => ({ ...p, approve: false }));
+    }
+  }
+
+  async function handleFlag(note: string) {
+    if (!current) return;
+    setPending((p) => ({ ...p, flag: true }));
+    setBanner(null);
+    try {
+      await actionFlagQuestion(current.id, note);
+      setBanner({ kind: "ok", text: `Flagged: "${note.slice(0, 80)}"` });
+      refresh();
+    } catch (err) {
+      setBanner({
+        kind: "err",
+        text: err instanceof Error ? err.message : "Flag failed.",
+      });
+    } finally {
+      setPending((p) => ({ ...p, flag: false }));
+    }
+  }
+
+  async function handleReject(reason: string) {
+    if (!current) return;
+    setPending((p) => ({ ...p, reject: true }));
+    setBanner(null);
+    try {
+      const r = await actionSoftRejectQuestion(current.id, reason || undefined);
+      if (r.rejected) {
+        // Move to the next question before refreshing, so the admin
+        // doesn't see the rejected row flash back in.
+        const nextId = filtered[currentIndex + 1]?.id ?? filtered[currentIndex - 1]?.id ?? null;
+        setActiveId(nextId);
+        setBanner({
+          kind: "ok",
+          text: "Sent to recovery bin — undo via /admin/questions/rejected",
+        });
+        refresh();
+      } else {
+        setBanner({ kind: "err", text: "Reject failed — row not found." });
+      }
+    } catch (err) {
+      setBanner({
+        kind: "err",
+        text: err instanceof Error ? err.message : "Reject failed.",
+      });
+    } finally {
+      setPending((p) => ({ ...p, reject: false }));
+    }
+  }
+
+  async function handleBulkApprove() {
+    const ids = Array.from(selectedIds);
+    if (ids.length === 0) return;
+    if (!confirm(`Approve ${ids.length} question${ids.length === 1 ? "" : "s"}?`)) return;
+    setBulkPending((p) => ({ ...p, approving: true }));
+    setBanner(null);
+    try {
+      const r = await actionBulkApproveQuestions(ids);
+      setBanner({
+        kind: r.errored === 0 ? "ok" : "err",
+        text: `Approved ${r.approved}${r.errored > 0 ? ` · ${r.errored} errored` : ""}`,
+      });
+      clearSelection();
+      refresh();
+    } catch (err) {
+      setBanner({
+        kind: "err",
+        text: err instanceof Error ? err.message : "Bulk approve failed.",
+      });
+    } finally {
+      setBulkPending((p) => ({ ...p, approving: false }));
+    }
+  }
+
+  async function handleBulkReject() {
+    const ids = Array.from(selectedIds);
+    if (ids.length === 0) return;
+    if (
+      !confirm(
+        `Reject ${ids.length} question${ids.length === 1 ? "" : "s"}?\n\n` +
+          `Each is recoverable from /admin/questions/rejected.`
+      )
+    )
+      return;
+    setBulkPending((p) => ({ ...p, rejecting: true }));
+    setBanner(null);
+    try {
+      const r = await actionBulkSoftRejectQuestions(ids);
+      setBanner({
+        kind: r.errored === 0 ? "ok" : "err",
+        text: `Rejected ${r.rejected}${r.errored > 0 ? ` · ${r.errored} errored` : ""}`,
+      });
+      clearSelection();
+      refresh();
+    } catch (err) {
+      setBanner({
+        kind: "err",
+        text: err instanceof Error ? err.message : "Bulk reject failed.",
+      });
+    } finally {
+      setBulkPending((p) => ({ ...p, rejecting: false }));
+    }
+  }
+
+  // ── Render ────────────────────────────────────────────────
+  const hasSidePanel = openPanels.size > 0 && current;
+
   return (
-    <div>
-      {/* Filter + nav toolbar */}
-      <div className="border-y border-slate-800 bg-slate-900/40">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-3 px-5 py-3">
-          <div className="flex items-center gap-2 text-xs text-slate-400">
-            <Filter className="h-3.5 w-3.5" />
-            <span>Filters</span>
-          </div>
+    <div className="flex h-[calc(100vh-9rem)] flex-col">
+      <PreviewToolbar
+        filters={filters}
+        pdfOptions={pdfOptions}
+        domainOptions={domainOptions}
+        device={device}
+        currentIndex={currentIndex < 0 ? 0 : currentIndex}
+        totalCount={filtered.length}
+        onChangeFilter={changeFilter}
+        onChangeDevice={setDevice}
+        onPrev={() => jump(-1)}
+        onNext={() => jump(1)}
+        onClearFilters={clearFilters}
+      />
 
-          <select
-            value={subject}
-            onChange={(e) => {
-              setSubject(e.target.value as Subject);
-              setIdx(0);
-            }}
-            className="rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-1.5 text-xs text-slate-100 focus:border-indigo-500 focus:outline-none"
-          >
-            <option value="all">All subjects</option>
-            <option value="reading">Reading</option>
-            <option value="math">Math</option>
-          </select>
-
-          <select
-            value={status}
-            onChange={(e) => {
-              setStatus(e.target.value as Status);
-              setIdx(0);
-            }}
-            className="rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-1.5 text-xs text-slate-100 focus:border-indigo-500 focus:outline-none"
-          >
-            <option value="all">All statuses</option>
-            <option value="ok">ok</option>
-            <option value="needs_review">needs_review</option>
-          </select>
-
-          <select
-            value={pdf}
-            onChange={(e) => {
-              setPdf(e.target.value);
-              setIdx(0);
-            }}
-            className="max-w-[18rem] rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-1.5 text-xs text-slate-100 focus:border-indigo-500 focus:outline-none"
-          >
-            <option value="all">All PDFs</option>
-            {allPdfs.map((p) => (
-              <option key={p} value={p}>
-                {p}
-              </option>
-            ))}
-          </select>
-
-          <select
-            value={domain}
-            onChange={(e) => {
-              setDomain(e.target.value);
-              setIdx(0);
-            }}
-            className="rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-1.5 text-xs text-slate-100 focus:border-indigo-500 focus:outline-none"
-          >
-            <option value="all">All domains</option>
-            {allDomains.map((d) => (
-              <option key={d} value={d}>
-                {d}
-              </option>
-            ))}
-          </select>
-
-          {/* Counter + nav */}
-          <div className="ml-auto flex items-center gap-2">
-            <span className="text-xs text-slate-400">
-              {filtered.length === 0 ? (
-                "0 questions"
-              ) : (
-                <>
-                  <span className="font-semibold text-slate-300">{safeIdx + 1}</span>
-                  {" of "}
-                  {filtered.length}
-                </>
-              )}
-            </span>
-            <button
-              onClick={() => jump(-1)}
-              disabled={safeIdx === 0 || filtered.length === 0}
-              className="rounded-md border border-slate-700 bg-slate-800 p-1.5 hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-40"
-              aria-label="Previous question"
-            >
-              <ChevronLeft className="h-4 w-4 text-slate-200" />
-            </button>
-            <button
-              onClick={() => jump(1)}
-              disabled={safeIdx >= filtered.length - 1 || filtered.length === 0}
-              className="rounded-md border border-slate-700 bg-slate-800 p-1.5 hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-40"
-              aria-label="Next question"
-            >
-              <ChevronRight className="h-4 w-4 text-slate-200" />
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* 2-pane: list + preview */}
-      <div className="mx-auto grid max-w-7xl grid-cols-1 gap-4 px-5 py-4 lg:grid-cols-[20rem_1fr]">
-        {/* Left: list of filtered questions */}
-        <aside className="divide-y divide-slate-800 rounded-xl border border-slate-800 bg-slate-900/30 lg:max-h-[calc(100vh-12rem)] lg:overflow-y-auto">
-          {filtered.length === 0 ? (
-            <div className="p-6 text-xs italic text-slate-400">
-              No questions match these filters.
-            </div>
-          ) : (
-            filtered.map((q, i) => (
-              <button
-                key={q.id}
-                onClick={() => selectRow(i)}
-                className={cn(
-                  "flex w-full items-start gap-2 px-3.5 py-2.5 text-left transition-colors hover:bg-slate-800/50",
-                  i === safeIdx && "bg-slate-800"
-                )}
-              >
-                <span className="mt-0.5 w-6 shrink-0 text-right font-mono text-[10px] tabular-nums text-slate-400">
-                  {i + 1}
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="line-clamp-2 block text-[12px] leading-snug text-slate-200">
-                    {q.question_text || "(no question text)"}
-                  </span>
-                  <span className="mt-1 flex flex-wrap items-center gap-1.5 text-[10px] text-slate-400">
-                    <span className="rounded bg-slate-800 px-1.5 text-slate-300">{q.subject}</span>
-                    <span className="rounded bg-slate-800 px-1.5 text-slate-300">
-                      L{q.difficulty_level ?? "—"}
-                    </span>
-                    <span className="max-w-[8rem] truncate">{q.concept_slug ?? "(no slug)"}</span>
-                    {q.import_status === "needs_review" && (
-                      <AlertTriangle className="h-3 w-3 text-amber-400" />
-                    )}
-                  </span>
-                </span>
-              </button>
-            ))
+      {banner && (
+        <div
+          className={cn(
+            "flex items-start gap-2 border-b px-4 py-1.5 text-xs",
+            banner.kind === "ok"
+              ? "border-emerald-500/30 bg-emerald-500/[0.06] text-emerald-200"
+              : "border-rose-500/30 bg-rose-500/[0.06] text-rose-200"
           )}
-        </aside>
+        >
+          <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+          <div className="flex-1">{banner.text}</div>
+          <button onClick={() => setBanner(null)} className="text-xs opacity-70 hover:opacity-100">
+            dismiss
+          </button>
+        </div>
+      )}
 
-        {/* Right: live preview */}
-        <main className="overflow-hidden rounded-xl border border-slate-800 bg-slate-950">
+      <div
+        className={cn(
+          "grid min-h-0 flex-1 gap-3 px-4 py-3",
+          // Three-column layout when the side panel is open; two
+          // otherwise. The side panel COMPRESSES the preview pane
+          // (rather than overlaying it) per the design decision in
+          // the planning rounds.
+          hasSidePanel ? "grid-cols-[16rem_minmax(0,1fr)_18rem]" : "grid-cols-[16rem_minmax(0,1fr)]"
+        )}
+      >
+        <PreviewSidebar
+          questions={filtered}
+          activeId={current?.id ?? null}
+          selectedIds={selectedIds}
+          bulkPending={bulkPending}
+          onSelectQuestion={selectQuestion}
+          onToggleSelected={toggleSelected}
+          onToggleSelectAll={toggleSelectAll}
+          onClearSelection={clearSelection}
+          onBulkApprove={handleBulkApprove}
+          onBulkReject={handleBulkReject}
+        />
+
+        <main className="flex h-full min-h-0 flex-col overflow-hidden rounded-xl border border-slate-800 bg-slate-950">
           {current ? (
             <>
-              {/* Metadata strip above the preview, mirrors what the
-                  admin needs to know about this row but never shown to
-                  students. */}
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-slate-800 bg-slate-900/60 px-5 py-2 font-mono text-[11px] text-slate-400">
-                <span className="text-slate-400">id:</span>
-                <span className="max-w-[14rem] truncate text-slate-300">{current.id}</span>
-                <span className="text-slate-400">pdf:</span>
-                <span className="text-slate-300">
-                  {current.source_pdf ?? "—"} p{current.source_page ?? "—"}
-                </span>
-                <span className="text-slate-400">slug:</span>
-                <span className="text-slate-300">{current.concept_slug ?? "—"}</span>
-                <span className="text-slate-400">domain:</span>
-                <span className="text-slate-300">{current.domain ?? "—"}</span>
-                <span className="text-slate-400">level:</span>
-                <span className="text-slate-300">{current.difficulty_level ?? "—"}</span>
-                <span
-                  className={cn(
-                    "ml-auto rounded px-1.5 font-bold",
-                    current.import_status === "needs_review"
-                      ? "bg-amber-500/15 text-amber-300"
-                      : "bg-emerald-500/15 text-emerald-300"
-                  )}
-                >
-                  {current.import_status ?? "ok"}
-                </span>
+              <MetadataStrip question={current} />
+              <div className="min-h-0 flex-1 overflow-hidden">
+                <DeviceFrame width={device}>
+                  <div className="h-full overflow-y-auto">
+                    <QuestionPreview q={current} />
+                  </div>
+                </DeviceFrame>
               </div>
-              <QuestionPreview q={current} />
             </>
           ) : (
-            <div className="px-6 py-10 text-center text-sm text-slate-400">
+            <div className="grid h-full place-items-center px-6 py-10 text-center text-sm text-slate-400">
               No question selected.
             </div>
           )}
         </main>
+
+        {hasSidePanel && current && (
+          <PreviewSidePanel
+            question={current}
+            openPanels={openPanels}
+            onClose={(k) => togglePanel(k)}
+          />
+        )}
       </div>
+
+      <PreviewActionBar
+        pending={pending}
+        openPanels={openPanels}
+        onApprove={handleApprove}
+        onFlag={handleFlag}
+        onReject={handleReject}
+        onTogglePanel={togglePanel}
+      />
+    </div>
+  );
+}
+
+function MetadataStrip({ question: q }: { question: QuizQuestionWithChoices }) {
+  return (
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-slate-800 bg-slate-900/60 px-5 py-2 font-mono text-[11px] text-slate-400">
+      <span className="text-slate-500">id:</span>
+      <span className="max-w-[14rem] truncate text-slate-300">{q.id}</span>
+      <span className="text-slate-500">pdf:</span>
+      <span className="text-slate-300">
+        {q.source_pdf ?? "—"} p{q.source_page ?? "—"}
+      </span>
+      <span className="text-slate-500">slug:</span>
+      <span className="text-slate-300">{q.concept_slug ?? "—"}</span>
+      <span className="text-slate-500">domain:</span>
+      <span className="text-slate-300">{q.domain ?? "—"}</span>
+      <span className="text-slate-500">level:</span>
+      <span className="text-slate-300">{q.difficulty_level ?? "—"}</span>
+      <span
+        className={cn(
+          "ml-auto rounded px-1.5 font-bold",
+          q.import_status === "needs_review"
+            ? "bg-amber-500/15 text-amber-300"
+            : "bg-emerald-500/15 text-emerald-300"
+        )}
+      >
+        {q.import_status ?? "ok"}
+      </span>
     </div>
   );
 }

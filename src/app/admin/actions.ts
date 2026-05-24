@@ -14,6 +14,7 @@
 import { safeAuth } from "@/lib/auth/dev-auth";
 import { revalidatePath } from "next/cache";
 import { requireRole } from "@/lib/supabase/queries/admin";
+import { createAdminClient } from "@/lib/supabase/server";
 import {
   insertQuestion,
   updateQuestion,
@@ -394,6 +395,97 @@ export async function actionHardDeleteRejectedQuestion(
   const result = await hardDeleteRejectedQuestion(rejectedId);
   revalidatePath("/admin/questions/rejected");
   return result;
+}
+
+/** Clear the import flag on a question — used by the preview page's
+ *  Approve button. Thin wrapper around acceptFlaggedQuestion(id, {})
+ *  which leaves node_id alone; if the question was already ok this
+ *  is a no-op write of the same status. */
+export async function actionApproveQuestion(questionId: string): Promise<{ approved: boolean }> {
+  await guardAdmin();
+  await acceptFlaggedQuestion(questionId, {});
+  revalidatePath("/admin/questions/preview");
+  revalidatePath("/admin/questions/review");
+  return { approved: true };
+}
+
+/** Mark a question as needs_review with a manual flag note —
+ *  used by the preview page's Flag button. Distinct from Reject
+ *  (which removes the question via the soft-reject bin); Flag keeps
+ *  the question in the bank but surfaces it on /admin/questions/review
+ *  for someone (or a re-grader) to fix. */
+export async function actionFlagQuestion(
+  questionId: string,
+  note: string
+): Promise<{ flagged: boolean }> {
+  await guardAdmin();
+  const trimmed = note.trim();
+  if (!trimmed) throw new Error("Flag note is required.");
+  const supabase = createAdminClient();
+  const { error } = await supabase
+    .from("quiz_questions")
+    .update({
+      import_status: "needs_review",
+      import_flag_type: "manual",
+      import_flag_reason: trimmed,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", questionId);
+  if (error) throw error;
+  revalidatePath("/admin/questions/preview");
+  revalidatePath("/admin/questions/review");
+  return { flagged: true };
+}
+
+/** Bulk variants of approve / soft-reject — used by the sidebar
+ *  checkbox + bulk-action bar in the preview page. Each is a
+ *  parallel Promise.all over individual writes; per-row failures
+ *  are collected and returned so the UI can show partial success. */
+export async function actionBulkApproveQuestions(questionIds: string[]): Promise<{
+  approved: number;
+  errored: number;
+  errors: Array<{ questionId: string; message: string }>;
+}> {
+  await guardAdmin();
+  let approved = 0;
+  const errors: Array<{ questionId: string; message: string }> = [];
+  await Promise.all(
+    questionIds.map(async (qid) => {
+      try {
+        await acceptFlaggedQuestion(qid, {});
+        approved++;
+      } catch (err) {
+        errors.push({ questionId: qid, message: err instanceof Error ? err.message : String(err) });
+      }
+    })
+  );
+  revalidatePath("/admin/questions/preview");
+  revalidatePath("/admin/questions/review");
+  return { approved, errored: errors.length, errors };
+}
+
+export async function actionBulkSoftRejectQuestions(questionIds: string[]): Promise<{
+  rejected: number;
+  errored: number;
+  errors: Array<{ questionId: string; message: string }>;
+}> {
+  const userId = await guardAdmin();
+  let rejected = 0;
+  const errors: Array<{ questionId: string; message: string }> = [];
+  await Promise.all(
+    questionIds.map(async (qid) => {
+      try {
+        const r = await softRejectQuestion(qid, { rejectedByUserId: userId });
+        if (r.rejected) rejected++;
+      } catch (err) {
+        errors.push({ questionId: qid, message: err instanceof Error ? err.message : String(err) });
+      }
+    })
+  );
+  revalidatePath("/admin/questions/preview");
+  revalidatePath("/admin/questions/review");
+  revalidatePath("/admin/questions/rejected");
+  return { rejected, errored: errors.length, errors };
 }
 
 // ── Inspector UI actions ──────────────────────────────────────
