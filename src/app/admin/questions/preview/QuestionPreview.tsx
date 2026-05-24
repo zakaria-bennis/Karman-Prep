@@ -18,10 +18,27 @@ import { Check } from "lucide-react";
 import MathText from "@/components/learn/MathText";
 import { cn } from "@/lib/utils";
 import type { QuizQuestionWithChoices, AnswerLetter } from "@/types/quiz";
+import { EditableMathText } from "./EditableMathText";
+import { EditedChip } from "@/components/admin/EditedChip";
 
 const LETTERS: AnswerLetter[] = ["A", "B", "C", "D"];
 
-export function QuestionPreview({ q }: { q: QuizQuestionWithChoices }) {
+/** Optional inline-edit hooks. When provided, the question, passage,
+ *  and explanation texts become click-to-edit. The history chip
+ *  appears next to fields listed in `editedFields`. */
+export interface PreviewEditProps {
+  questionId: string;
+  editedFields: Set<string>;
+  onSave: (field: string, value: string) => Promise<void>;
+}
+
+export function QuestionPreview({
+  q,
+  edit,
+}: {
+  q: QuizQuestionWithChoices;
+  edit?: PreviewEditProps;
+}) {
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [showExplanations, setShowExplanations] = useState(false);
@@ -160,7 +177,17 @@ export function QuestionPreview({ q }: { q: QuizQuestionWithChoices }) {
         {q.topic_cluster}
       </p>
       <h2 className="text-[19px] font-medium leading-[1.5] text-slate-100 md:text-[20px]">
-        <MathText text={q.question_text} />
+        {edit ? (
+          <>
+            <EditableMathText
+              value={q.question_text ?? ""}
+              onSave={(v) => edit.onSave("question_text", v)}
+            />
+            <FieldChip edit={edit} field="question_text" />
+          </>
+        ) : (
+          <MathText text={q.question_text} />
+        )}
       </h2>
       {choicesBlock}
       {choicesButtonRow}
@@ -180,9 +207,20 @@ export function QuestionPreview({ q }: { q: QuizQuestionWithChoices }) {
         Explanation
       </h3>
 
-      {q.explanation_text && (
+      {(edit || q.explanation_text) && (
         <div className="mb-6 text-[16px] leading-[1.6] text-slate-100">
-          <MathText text={q.explanation_text} className="block whitespace-pre-wrap" />
+          {edit ? (
+            <>
+              <EditableMathText
+                value={q.explanation_text ?? ""}
+                onSave={(v) => edit.onSave("explanation_text", v)}
+                className="block whitespace-pre-wrap"
+              />
+              <FieldChip edit={edit} field="explanation_text" />
+            </>
+          ) : (
+            <MathText text={q.explanation_text} className="block whitespace-pre-wrap" />
+          )}
         </div>
       )}
 
@@ -232,13 +270,24 @@ export function QuestionPreview({ q }: { q: QuizQuestionWithChoices }) {
         </div>
       )}
 
-      {q.desmos_strategy && (
+      {(edit || q.desmos_strategy) && (
         <div className="mb-6 rounded-xl border border-sky-500/30 bg-sky-500/5 p-4">
-          <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-sky-300">
+          <div className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-sky-300">
             Desmos strategy
+            {edit && <FieldChip edit={edit} field="desmos_strategy" />}
           </div>
           <div className="text-[16px] leading-[1.6] text-sky-100">
-            <MathText text={q.desmos_strategy} className="block whitespace-pre-wrap" />
+            {edit ? (
+              <EditableMathText
+                value={q.desmos_strategy ?? ""}
+                onSave={(v) => edit.onSave("desmos_strategy", v)}
+                className="block whitespace-pre-wrap"
+                allowEmpty
+                placeholder="(no Desmos strategy — click to add)"
+              />
+            ) : (
+              <MathText text={q.desmos_strategy ?? ""} className="block whitespace-pre-wrap" />
+            )}
           </div>
         </div>
       )}
@@ -272,26 +321,68 @@ export function QuestionPreview({ q }: { q: QuizQuestionWithChoices }) {
       {q.passage_a && q.passage_b ? (
         <>
           <section className="mb-7">
-            <div className="mb-2 font-sans text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">
-              Text 1
+            <div className="mb-2 flex items-center gap-2 font-sans text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">
+              Text 1{edit && <FieldChip edit={edit} field="passage_a" />}
             </div>
-            <MathText text={q.passage_a} className="block whitespace-pre-wrap" />
+            {edit ? (
+              <EditableMathText
+                value={q.passage_a ?? ""}
+                onSave={(v) => edit.onSave("passage_a", v)}
+                className="block whitespace-pre-wrap"
+              />
+            ) : (
+              <MathText text={q.passage_a} className="block whitespace-pre-wrap" />
+            )}
           </section>
           <section>
-            <div className="mb-2 font-sans text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">
-              Text 2
+            <div className="mb-2 flex items-center gap-2 font-sans text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">
+              Text 2{edit && <FieldChip edit={edit} field="passage_b" />}
             </div>
-            <MathText text={q.passage_b} className="block whitespace-pre-wrap" />
+            {edit ? (
+              <EditableMathText
+                value={q.passage_b ?? ""}
+                onSave={(v) => edit.onSave("passage_b", v)}
+                className="block whitespace-pre-wrap"
+              />
+            ) : (
+              <MathText text={q.passage_b} className="block whitespace-pre-wrap" />
+            )}
           </section>
         </>
       ) : (
         <>
-          {q.passage_intro && (
+          {(edit || q.passage_intro) && (
             <p className="mb-5">
-              <MathText text={q.passage_intro} />
+              {edit ? (
+                <>
+                  <EditableMathText
+                    value={q.passage_intro ?? ""}
+                    onSave={(v) => edit.onSave("passage_intro", v)}
+                    allowEmpty
+                    placeholder="(no passage intro — click to add)"
+                  />
+                  <FieldChip edit={edit} field="passage_intro" />
+                </>
+              ) : (
+                <MathText text={q.passage_intro ?? ""} />
+              )}
             </p>
           )}
-          {q.passage && <MathText text={q.passage} className="block whitespace-pre-wrap" />}
+          {(edit || q.passage) &&
+            (edit ? (
+              <>
+                <EditableMathText
+                  value={q.passage ?? ""}
+                  onSave={(v) => edit.onSave("passage", v)}
+                  className="block whitespace-pre-wrap"
+                  allowEmpty
+                  placeholder="(no passage — click to add)"
+                />
+                <FieldChip edit={edit} field="passage" />
+              </>
+            ) : (
+              <MathText text={q.passage ?? ""} className="block whitespace-pre-wrap" />
+            ))}
         </>
       )}
     </article>
@@ -345,4 +436,15 @@ export function QuestionPreview({ q }: { q: QuizQuestionWithChoices }) {
   }
 
   return <div className="mx-auto max-w-3xl px-6 py-8">{questionPanel}</div>;
+}
+
+/** Small wrapper so callers don't need to thread questionId / editedFields
+ *  through every chip site — just `<FieldChip edit={edit} field="…" />`. */
+function FieldChip({ edit, field }: { edit: PreviewEditProps; field: string }) {
+  if (!edit.editedFields.has(field)) return null;
+  return (
+    <span className="ml-2 align-middle">
+      <EditedChip questionId={edit.questionId} fieldKey={field} fieldLabel={field} />
+    </span>
+  );
 }

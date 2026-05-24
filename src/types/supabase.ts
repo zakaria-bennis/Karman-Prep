@@ -1703,7 +1703,7 @@ export type Database = {
           after_state: Json;
           changed_fields: string[];
           edited_by: string;
-          edit_source: "inspector" | "bulk" | "api" | "apply-fix";
+          edit_source: "inspector" | "bulk" | "api" | "apply-fix" | "preview";
           edit_note: string | null;
           created_at: string;
         };
@@ -1714,7 +1714,7 @@ export type Database = {
           after_state: Json;
           changed_fields?: string[];
           edited_by: string;
-          edit_source: "inspector" | "bulk" | "api" | "apply-fix";
+          edit_source: "inspector" | "bulk" | "api" | "apply-fix" | "preview";
           edit_note?: string | null;
           created_at?: string;
         };
@@ -1725,7 +1725,7 @@ export type Database = {
           after_state?: Json;
           changed_fields?: string[];
           edited_by?: string;
-          edit_source?: "inspector" | "bulk" | "api" | "apply-fix";
+          edit_source?: "inspector" | "bulk" | "api" | "apply-fix" | "preview";
           edit_note?: string | null;
           created_at?: string;
         };

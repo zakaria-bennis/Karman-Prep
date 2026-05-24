@@ -40,6 +40,7 @@ import {
   restoreRejectedQuestion,
   hardDeleteRejectedQuestion,
 } from "@/lib/supabase/queries/quiz/rejected";
+import { selectFieldHistory, selectChangedFieldsSet } from "@/lib/supabase/queries/quiz/history";
 import type { QuizDifficulty, QuizQuestion } from "@/types/quiz";
 import {
   acceptFlaggedQuestionInputSchema,
@@ -486,6 +487,36 @@ export async function actionBulkSoftRejectQuestions(questionIds: string[]): Prom
   revalidatePath("/admin/questions/review");
   revalidatePath("/admin/questions/rejected");
   return { rejected, errored: errors.length, errors };
+}
+
+/** Get the set of fields that have any history for one question.
+ *  Used by the preview page to know which inline-edit slots should
+ *  render an [edited] chip. Lazy — called when the admin navigates
+ *  to a new question, not on initial page load. */
+export async function actionGetChangedFieldsSet(questionId: string): Promise<string[]> {
+  await guardAdmin();
+  const set = await selectChangedFieldsSet(questionId);
+  return Array.from(set);
+}
+
+/** Read the edit history for one field on one question. Used by the
+ *  EditedChip popover on the preview page. Read-only — no writes,
+ *  no revalidate. */
+export async function actionGetFieldHistory(
+  questionId: string,
+  fieldKey: string
+): Promise<
+  Array<{
+    id: string;
+    createdAt: string;
+    editedBy: string;
+    source: string;
+    before: string;
+    after: string;
+  }>
+> {
+  await guardAdmin();
+  return selectFieldHistory(questionId, fieldKey);
 }
 
 // ── Inspector UI actions ──────────────────────────────────────

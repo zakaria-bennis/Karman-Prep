@@ -68,7 +68,13 @@ export interface InspectedQuestionEdit {
   concept_slug?: string;
 }
 
-export async function actionUpdateInspectedQuestion(input: InspectedQuestionEdit): Promise<void> {
+export async function actionUpdateInspectedQuestion(
+  input: InspectedQuestionEdit,
+  // Audit source is "inspector" by default. The preview page passes
+  // "preview" so /admin/questions/inspect/[id]'s history list can show
+  // where each edit came from.
+  source: "inspector" | "preview" = "inspector"
+): Promise<void> {
   const userId = await guardAdmin();
   const { createAdminClient } = await import("@/lib/supabase/server");
   const { buildSnapshot, insertHistoryRow } = await import("@/lib/supabase/queries/quiz/history");
@@ -165,13 +171,27 @@ export async function actionUpdateInspectedQuestion(input: InspectedQuestionEdit
       beforeState: beforeSnapshot,
       afterState: afterSnapshot,
       editedBy: userId,
-      source: "inspector",
+      source,
     });
   }
 
   revalidatePath("/admin/questions/inspect");
   revalidatePath(`/admin/questions/inspect/${input.questionId}`);
   revalidatePath("/admin/questions/review");
+  if (source === "preview") {
+    revalidatePath("/admin/questions/preview");
+  }
+}
+
+// ── Preview-page wrapper ─────────────────────────────────────
+// Re-exported under a preview-specific name so consumers in the
+// preview client can import without leaking inspector-page
+// vocabulary. Identical semantics; just tags the history row's
+// edit_source = "preview" so the inspect page's edit log can
+// distinguish where each edit came from.
+
+export async function actionUpdatePreviewQuestion(input: InspectedQuestionEdit): Promise<void> {
+  return actionUpdateInspectedQuestion(input, "preview");
 }
 
 // ── Restore — revert a row to a previous history snapshot ────

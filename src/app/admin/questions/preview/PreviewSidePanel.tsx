@@ -22,6 +22,9 @@ import MathText from "@/components/learn/MathText";
 import { cn } from "@/lib/utils";
 import type { QuizQuestionWithChoices, AnswerLetter } from "@/types/quiz";
 import type { PanelKey } from "./PreviewActionBar";
+import { EditableMathText } from "./EditableMathText";
+import { EditedChip } from "@/components/admin/EditedChip";
+import type { PreviewEditProps } from "./QuestionPreview";
 
 const LETTERS: AnswerLetter[] = ["A", "B", "C", "D"];
 
@@ -29,9 +32,10 @@ interface Props {
   question: QuizQuestionWithChoices;
   openPanels: Set<PanelKey>;
   onClose: (key: PanelKey) => void;
+  edit?: PreviewEditProps;
 }
 
-export function PreviewSidePanel({ question: q, openPanels, onClose }: Props) {
+export function PreviewSidePanel({ question: q, openPanels, onClose, edit }: Props) {
   return (
     <aside className="flex h-full w-full flex-col gap-3 overflow-y-auto rounded-xl border border-indigo-500/20 bg-slate-900/40 p-3">
       {openPanels.has("desmos") && (
@@ -40,8 +44,20 @@ export function PreviewSidePanel({ question: q, openPanels, onClose }: Props) {
           Icon={Compass}
           tone="sky"
           onClose={() => onClose("desmos")}
+          edit={edit}
+          fieldKey="desmos_strategy"
         >
-          {q.desmos_strategy ? (
+          {edit ? (
+            <div className="text-[14px] leading-[1.6] text-sky-100">
+              <EditableMathText
+                value={q.desmos_strategy ?? ""}
+                onSave={(v) => edit.onSave("desmos_strategy", v)}
+                className="block whitespace-pre-wrap"
+                allowEmpty
+                placeholder="(no Desmos strategy — click to add)"
+              />
+            </div>
+          ) : q.desmos_strategy ? (
             <div className="text-[14px] leading-[1.6] text-sky-100">
               <MathText text={q.desmos_strategy} className="block whitespace-pre-wrap" />
             </div>
@@ -52,8 +68,25 @@ export function PreviewSidePanel({ question: q, openPanels, onClose }: Props) {
       )}
 
       {openPanels.has("hints") && (
-        <PanelCard title="Hints" Icon={Lightbulb} tone="amber" onClose={() => onClose("hints")}>
-          {q.hint ? (
+        <PanelCard
+          title="Hints"
+          Icon={Lightbulb}
+          tone="amber"
+          onClose={() => onClose("hints")}
+          edit={edit}
+          fieldKey="hint"
+        >
+          {edit ? (
+            <div className="text-[14px] leading-[1.6] text-amber-100">
+              <EditableMathText
+                value={q.hint ?? ""}
+                onSave={(v) => edit.onSave("hint", v)}
+                className="block whitespace-pre-wrap"
+                allowEmpty
+                placeholder="(no hint — click to add)"
+              />
+            </div>
+          ) : q.hint ? (
             <div className="text-[14px] leading-[1.6] text-amber-100">
               <MathText text={q.hint} className="block whitespace-pre-wrap" />
             </div>
@@ -110,14 +143,19 @@ function PanelCard({
   tone,
   onClose,
   children,
+  edit,
+  fieldKey,
 }: {
   title: string;
   Icon: React.ElementType;
   tone: Tone;
   onClose: () => void;
   children: React.ReactNode;
+  edit?: PreviewEditProps;
+  fieldKey?: string;
 }) {
   const t = TONE_CLASSES[tone];
+  const showChip = edit && fieldKey && edit.editedFields.has(fieldKey);
   return (
     <section className={cn("rounded-xl border", t.border, t.bg)}>
       <header className="flex items-center gap-2 border-b border-slate-800/60 px-3 py-2">
@@ -125,6 +163,9 @@ function PanelCard({
         <span className={cn("text-[11px] font-bold uppercase tracking-[0.18em]", t.text)}>
           {title}
         </span>
+        {showChip && edit && fieldKey && (
+          <EditedChip questionId={edit.questionId} fieldKey={fieldKey} fieldLabel={fieldKey} />
+        )}
         <button
           onClick={onClose}
           className="ml-auto text-slate-500 hover:text-slate-200"

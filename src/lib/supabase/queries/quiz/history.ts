@@ -19,7 +19,7 @@ export interface QuestionHistoryEntry {
   after_state: Record<string, unknown>;
   changed_fields: string[];
   edited_by: string;
-  edit_source: "inspector" | "bulk" | "api" | "apply-fix";
+  edit_source: "inspector" | "bulk" | "api" | "apply-fix" | "preview";
   edit_note: string | null;
   created_at: string;
 }
@@ -129,7 +129,7 @@ export async function insertHistoryRow(input: {
   beforeState: QuestionSnapshot;
   afterState: QuestionSnapshot;
   editedBy: string;
-  source: "inspector" | "bulk" | "api" | "apply-fix";
+  source: "inspector" | "bulk" | "api" | "apply-fix" | "preview";
   note?: string;
 }): Promise<void> {
   const supabase = createAdminClient();
@@ -169,4 +169,60 @@ export async function selectQuestionHistory(
     .limit(limit);
   if (error) throw error;
   return (data ?? []) as QuestionHistoryEntry[];
+}
+
+/** Per-field edit history for the EditedChip popover.
+ *
+ *  Returns the most-recent N edits that touched `fieldKey`. We don't
+ *  pre-index changed_fields in the DB (would need a GIN index +
+ *  recurring maintenance); the table is small (~thousands of rows
+ *  per year) so we filter in app code.
+ *
+ *  Each entry's `before` / `after` are the THIS-FIELD values from
+ *  the respective snapshots, stringified for display. */
+export async function selectFieldHistory(
+  questionId: string,
+  fieldKey: string,
+  limit = 10
+): Promise<
+  Array<{
+    id: string;
+    createdAt: string;
+    editedBy: string;
+    source: string;
+    before: string;
+    after: string;
+  }>
+> {
+  const rows = await selectQuestionHistory(questionId, 100);
+  const matching = rows.filter((r) => r.changed_fields.includes(fieldKey)).slice(0, limit);
+  return matching.map((r) => ({
+    id: r.id,
+    createdAt: r.created_at,
+    editedBy: r.edited_by,
+    source: r.edit_source,
+    before: stringifyFieldValue((r.before_state as Record<string, unknown>)[fieldKey]),
+    after: stringifyFieldValue((r.after_state as Record<string, unknown>)[fieldKey]),
+  }));
+}
+
+/** Distinct set of fields that have ANY history for this question.
+ *  Used by the preview page to know which inline-edit slots should
+ *  render an [edited] chip without N round-trips. */
+export async function selectChangedFieldsSet(questionId: string): Promise<Set<string>> {
+  const rows = await selectQuestionHistory(questionId, 100);
+  const set = new Set<string>();
+  for (const r of rows) for (const f of r.changed_fields) set.add(f);
+  return set;
+}
+
+function stringifyFieldValue(v: unknown): string {
+  if (v == null) return "";
+  if (typeof v === "string") return v;
+  if (typeof v === "number" || typeof v === "boolean") return String(v);
+  try {
+    return JSON.stringify(v, null, 2);
+  } catch {
+    return String(v);
+  }
 }
