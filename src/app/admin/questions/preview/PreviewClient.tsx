@@ -29,8 +29,10 @@ import {
   actionSoftRejectQuestion,
   actionBulkApproveQuestions,
   actionBulkSoftRejectQuestions,
+  actionGetChangedFieldsSet,
 } from "@/app/admin/actions";
-import { QuestionPreview } from "./QuestionPreview";
+import { actionUpdatePreviewQuestion } from "@/app/admin/inspector-edit-actions";
+import { QuestionPreview, type PreviewEditProps } from "./QuestionPreview";
 import { DeviceFrame, type DeviceWidth } from "./DeviceFrame";
 import { PreviewSidebar } from "./PreviewSidebar";
 import { PreviewToolbar, type FilterState } from "./PreviewToolbar";
@@ -72,6 +74,10 @@ export default function PreviewClient({ initial }: { initial: QuizQuestionWithCh
   const [banner, setBanner] = useState<
     { kind: "ok"; text: string } | { kind: "err"; text: string } | null
   >(null);
+  // Map of questionId → Set<field> for the [edited] chip render.
+  // Lazy-loaded the first time a question becomes current; cached in
+  // this map so re-visits during the same session don't refetch.
+  const [editedFieldsByQId, setEditedFieldsByQId] = useState<Map<string, Set<string>>>(new Map());
 
   // ── Hydrate from localStorage on mount ────────────────────
   useEffect(() => {
@@ -150,6 +156,32 @@ export default function PreviewClient({ initial }: { initial: QuizQuestionWithCh
     if (current && current.id !== activeId) setActiveId(current.id);
     if (!current && activeId !== null) setActiveId(null);
   }, [current, activeId]);
+
+  // ── Load edited-fields set when the current question changes ──
+  // Cached per-question so revisits don't refetch. Errors are
+  // silent — the [edited] chip just won't appear, which is the
+  // same fallback as "no edits yet" and not user-actionable.
+  useEffect(() => {
+    if (!current) return;
+    if (editedFieldsByQId.has(current.id)) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const fields = await actionGetChangedFieldsSet(current.id);
+        if (cancelled) return;
+        setEditedFieldsByQId((prev) => {
+          const next = new Map(prev);
+          next.set(current.id, new Set(fields));
+          return next;
+        });
+      } catch {
+        // Swallow — chip absence is harmless.
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [current, editedFieldsByQId]);
 
   // ── Action handlers ───────────────────────────────────────
   const refresh = useCallback(() => {
@@ -327,6 +359,55 @@ export default function PreviewClient({ initial }: { initial: QuizQuestionWithCh
     }
   }
 
+  // ── Inline-edit save handler ──────────────────────────────
+  // Translates a (field, value) pair into the inspector-edit
+  // action's input shape. Only handles the text-ish fields wired
+  // in phase 3; categorical fields + choice text come in 3.5.
+  const handleFieldSave = useCallback(
+    async (field: string, value: string) => {
+      if (!current) throw new Error("No current question.");
+      const editPayload: Record<string, unknown> = { questionId: current.id };
+      const TEXT_FIELDS = [
+        "question_text",
+        "explanation_text",
+        "desmos_strategy",
+        "hint",
+        "passage",
+        "passage_intro",
+        "passage_a",
+        "passage_b",
+      ] as const;
+      if (!(TEXT_FIELDS as readonly string[]).includes(field)) {
+        throw new Error(`Field "${field}" not editable in phase 3.`);
+      }
+      editPayload[field] = value;
+      await actionUpdatePreviewQuestion(
+        editPayload as unknown as Parameters<typeof actionUpdatePreviewQuestion>[0]
+      );
+      // Mark this field as edited so the chip shows up without
+      // waiting for a refetch. The actual history list still
+      // loads lazily on chip click.
+      setEditedFieldsByQId((prev) => {
+        const next = new Map(prev);
+        const set = new Set(next.get(current.id) ?? []);
+        set.add(field);
+        next.set(current.id, set);
+        return next;
+      });
+      // Refresh server data so the rendered text reflects the new value.
+      refresh();
+    },
+    [current, refresh]
+  );
+
+  const editProps: PreviewEditProps | undefined = current
+    ? {
+        questionId: current.id,
+        editedFields: editedFieldsByQId.get(current.id) ?? new Set(),
+        onSave: handleFieldSave,
+      }
+    : undefined;
+
   // ── Render ────────────────────────────────────────────────
   const hasSidePanel = openPanels.size > 0 && current;
 
@@ -393,7 +474,7 @@ export default function PreviewClient({ initial }: { initial: QuizQuestionWithCh
               <div className="min-h-0 flex-1 overflow-hidden">
                 <DeviceFrame width={device}>
                   <div className="h-full overflow-y-auto">
-                    <QuestionPreview q={current} />
+                    <QuestionPreview q={current} edit={editProps} />
                   </div>
                 </DeviceFrame>
               </div>
@@ -410,6 +491,7 @@ export default function PreviewClient({ initial }: { initial: QuizQuestionWithCh
             question={current}
             openPanels={openPanels}
             onClose={(k) => togglePanel(k)}
+            edit={editProps}
           />
         )}
       </div>
