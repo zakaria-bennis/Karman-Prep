@@ -1489,18 +1489,704 @@ Phase 2 is complete when:
 
 ---
 
-# Phase 3 Preview — Source Asset Lineage
+# Phase 3 Implementation Spec — Source Asset Lineage (Revised after review)
 
-After Phase 2 is stable, Phase 3 should make source evidence first-class for every question:
+## Objective
+
+Make every question's source evidence first-class so the admin review UI can compare the website-rendered version against the original PDF page at a glance. Phase 1 created the `source_assets` table; Phase 1 + 2 populated `figure_crop` and `answer_key_page` rows. Phase 3 fills in the gap: per-page renders and per-question crops, with explicit completeness + match-confidence metadata so weak source evidence is visible (not silent).
+
+The central promise: for any quiz_questions row, an admin should be able to load `/admin/questions/inspect/<id>` and see:
 
 ```text
-render every page
-→ create page assets
-→ create question crops
-→ create expanded question crops
-→ attach answer-key crop
-→ attach visual crops
-→ show all evidence in manual review
+website render        ←→        source PDF page (full)
+                                source PDF page (zoomed to the question)
+                                source PDF page (expanded context: prev + next question)
+                                figure / table / chart crop (already from Phase 1)
+                                answer-key row crop (already from Phase 2)
 ```
 
-Phase 3 is what makes manual review fast and trustworthy.
+If a question went through the v2 pipeline, every one of those panels should resolve to a real R2 URL — and if any panel is missing or low-confidence, the publish-gate marks the question for human review.
+
+---
+
+## Phase 3 Scope
+
+Implement:
+
+1. Per-page render (`page_image`) — every page of the source PDF rendered once at 200 DPI, uploaded to R2, registered as a `source_assets` row.
+2. Per-question crop (`question_crop`) — tight bbox around each question's stem + choices.
+3. Per-question expanded crop (`expanded_question_crop`) — bbox + max(20% padding, 80 px), clamped to page bounds.
+4. Question bbox detection — single Gemini Flash call per page returning bbox PLUS completeness flags (does the crop contain the stem? passage? choices? visual?).
+5. Strong matching hierarchy — page → visible question number → passage snippet → choice snippets → stem snippet → ordered fallback (only when counts match) → orphan.
+6. Match-metadata columns on `source_assets` — `match_method`, `match_confidence`, `matched_source_question_number`.
+7. Bbox-cache columns on `quiz_questions` — `question_bbox`, `question_bbox_confidence`, `question_bbox_source_asset_id`.
+8. Per-PDF summary output written to stdout AND to `pdf_processing_jobs.progress`.
+9. New publish-gate rules (strict mode) that flag rows with weak source evidence as `needs_human_review` (never block).
+10. New stage in the orchestrator between import and fill.
+11. Admin UI surfacing — Preview-page chips for Crop + Expanded, Inspector-page Source-lineage section.
+12. Backfill script for v1 rows whose source PDF is still in R2.
+
+---
+
+## Phase 3 Non-Goals (explicit)
+
+Phase 3 does NOT:
+
+- Classify repeated Desmos / calculator / sidebar panels as irrelevant (Phase 4).
+- Decide whether a visual is problem-required vs background-UI artifact (Phase 4).
+- Add `calculator_artifact` / `background_ui_artifact` asset_types beyond the existing CHECK constraint (no new rows of those types).
+- Repair math notation (Phase 5).
+- Change extraction prompts (`extract-with-gemini.mjs`).
+- Change answer verification (`multi-vote-grader.mjs` core flow).
+- Replace or modify the existing figure-extraction pipeline (`extract-figures.mjs`).
+- Refactor `extract-figures.mjs` or `extract-answer-key.mjs` to use the new `page-render.mjs` lib (defer until Phase 3 is stable).
+- Provide an admin re-crop / bbox-override UI (Phase 3.5 polish).
+- Cross-PDF asset dedup.
+
+---
+
+## 1. Database Migration
+
+Create:
+
+```text
+supabase/migrations/<YYYYMMDDHHMMSS>_pdf_ingestion_v2_phase3.sql
+```
+
+### 1.1 Compound index for the lineage query
+
+```sql
+create index if not exists source_assets_question_id_type_idx
+on public.source_assets(question_id, asset_type);
+```
+
+Makes "every asset for question X grouped by type" a single index lookup.
+
+### 1.2 Parent-child link
+
+```sql
+alter table public.source_assets
+add column if not exists parent_asset_id uuid references public.source_assets(id) on delete set null;
+
+create index if not exists source_assets_parent_idx
+on public.source_assets(parent_asset_id);
+```
+
+A `question_crop` row's `parent_asset_id` points to the `page_image` it was cut out of. Phase 4's relevance flags can then propagate from a page-level finding down to its child crops.
+
+### 1.3 Match-metadata columns on `source_assets`
+
+```sql
+alter table public.source_assets
+add column if not exists match_method text,
+add column if not exists match_confidence numeric,
+add column if not exists matched_source_question_number int;
+
+create index if not exists source_assets_match_method_idx
+on public.source_assets(match_method);
+```
+
+Allowed `match_method` values (enforced in app code first; promote to CHECK after one PDF's data lands):
+
+```text
+page_question_number    — page + visible question number      conf ~0.95
+page_passage_snippet    — page + passage substring match      conf ~0.90
+page_choice_snippets    — page + answer choices match         conf ~0.85
+page_stem_snippet       — page + question stem prefix         conf ~0.75
+ordered_fallback        — pair by position (counts matched)   conf ~0.60
+orphan                  — no DB row matched                   conf  0.00
+```
+
+### 1.4 Bbox-cache columns on `quiz_questions`
+
+`source_assets` remains the source of truth. These three columns are denormalized cache for the renderer's read path:
+
+```sql
+alter table public.quiz_questions
+add column if not exists question_bbox jsonb,
+add column if not exists question_bbox_confidence numeric,
+add column if not exists question_bbox_source_asset_id uuid references public.source_assets(id) on delete set null;
+
+create index if not exists quiz_questions_bbox_source_asset_idx
+on public.quiz_questions(question_bbox_source_asset_id);
+```
+
+### 1.5 Phase-3 processing marker on `quiz_questions`
+
+```sql
+alter table public.quiz_questions
+add column if not exists source_assets_processed_at timestamptz,
+add column if not exists source_assets_processed_status text;
+
+create index if not exists quiz_questions_source_assets_processed_idx
+on public.quiz_questions(source_assets_processed_at)
+where source_assets_processed_at is not null;
+```
+
+`source_assets_processed_status` allowed values (app-enforced; **no DB CHECK constraint in Phase 3** — app code validates the value before write):
+
+```text
+complete   — page rendered, question detected, matched, crop_complete=true
+partial    — Phase 3 ran but the row has SOME issue (low confidence,
+             ordered_fallback match, crop_incomplete, orphan-on-page, etc.).
+             The specific issue is recorded on the source_assets row;
+             this column just signals "look at it".
+failed     — Phase 3 attempted but failed entirely (pdftoppm crashed,
+             Gemini returned zero detections, DB write errored).
+skipped    — Phase 3 chose not to process this row (e.g. dry-run mode,
+             or row had no source_page).
+```
+
+The richer per-row diagnostic information (what kind of partial, which step failed) lives on the corresponding `source_assets` row's `validation_status` + `raw_metadata.notes`. This column on `quiz_questions` is the coarse signal the publish-gate uses to decide which gates apply.
+
+`source_assets_processed_at` is the SOLE GATE controlling whether the Phase 3 publish-gate rules apply to a row. Rules:
+
+- **`source_assets_processed_at IS NULL`** → row has never been touched by Phase 3. The new gates short-circuit and return null. This is the default state for v1 rows.
+- **`source_assets_processed_at IS NOT NULL`** → row went through Phase 3 (successfully or not). The new gates apply normally and may set `needs_human_review` based on the source-evidence signals.
+
+`extract-question-crops.mjs` sets `source_assets_processed_at = now()` on every row it processes, regardless of outcome (success, partial, fail). The `_status` column reflects WHICH outcome.
+
+The backfill script (`scripts/v2-phase3/backfill-source-assets.mjs`) does the same — running it on an old v1 PDF brings those rows under the new gates' jurisdiction.
+
+JSON shape for `question_bbox`:
+
+```json
+{
+  "y_min": 0,
+  "x_min": 0,
+  "y_max": 1000,
+  "x_max": 1000,
+  "page_width": 1700,
+  "page_height": 2200,
+  "confidence": 0.93
+}
+```
+
+> **Important:** these three columns are denormalized cache. Any code that needs the authoritative bbox should JOIN to `source_assets` via `question_bbox_source_asset_id`.
+
+---
+
+## 2. Page Rendering helper (cautious rollout)
+
+Create `scripts/lib/page-render.mjs`:
+
+```js
+export async function renderPdfPage(pdfPath, pageNumber, opts = {}) {
+  const dpi = opts.dpi ?? 200;
+  const outDir = opts.outDir ?? tmpdir();
+  // pdftoppm wrapper — returns { pngPath, width, height }
+}
+```
+
+**Usage in Phase 3:** `extract-question-crops.mjs` only.
+
+**Out of scope for Phase 3:** do NOT modify `extract-figures.mjs` or `extract-answer-key.mjs` to use this helper. Both currently work; touching them at the same time as Phase 3 multiplies risk. Consolidation lives in Phase 8.
+
+---
+
+## 3. New script: `extract-question-crops.mjs`
+
+```text
+scripts/pdf-pipeline/extract-question-crops.mjs
+```
+
+### CLI
+
+```bash
+node scripts/pdf-pipeline/extract-question-crops.mjs <pdfPath> \
+     --source-pdf <filename> [--job-id <uuid>] \
+     [--out /tmp/<stem>-crops.json] [--no-db] [--force]
+```
+
+### Flow
+
+```text
+1. Load every quiz_questions row WHERE source_pdf = <filename>
+2. Group by source_page
+3. For each page in the group:
+   a. renderPdfPage(pdf, page) → page PNG
+   b. Upload page PNG to R2 → source_assets:page_image
+   c. Call Gemini Flash on the page PNG → detected questions with
+      bbox + completeness flags + confidence
+   d. For each detected question:
+      - Run the matching hierarchy (§3.4) → quiz_questions row + match_method + match_confidence
+      - If matched:
+          · Crop tight    → R2 → source_assets:question_crop (parent=page_image)
+          · Crop expanded → R2 → source_assets:expanded_question_crop (parent=page_image)
+          · Cache bbox + confidence + source_asset_id on quiz_questions
+      - If unmatched:
+          · Still upload tight + expanded crops as ORPHAN rows
+            (question_id=null, validation_status='orphan_unmatched_question_crop',
+            relevance='uncertain')
+4. Write JSON sidecar + write summary JSON to pdf_processing_jobs.progress
+```
+
+### 3.1 Gemini Flash prompt (revised — completeness flags required)
+
+```text
+You are looking at one page of an SAT practice test.
+
+For every QUESTION visible on this page, return its bounding box AND
+report whether the crop is COMPLETE.
+
+A question is:
+- A stem text (with or without a question mark)
+- Optionally followed by answer choices A-D (multiple choice)
+- Optionally with an associated figure or passage
+
+INCLUDE in each bbox:
+- The question number (e.g. "17.")
+- The full stem text
+- All four answer choices (if MC)
+- Inline figures that are part of the question
+- The passage if the question's answer depends on it AND the passage
+  is on this page
+
+EXCLUDE:
+- Page headers and footers
+- Module / section title text ("Module 1: Reading and Writing")
+- Calculator / Desmos sidebars on math pages
+- Other questions on the same page
+
+For each question return:
+- source_question_number: the question number printed on the page (1-based), or null
+- stem_snippet: the first 80 characters of the stem text
+- passage_snippet: the first 80 characters of the relevant passage,
+  or null if no passage on this page
+- choice_snippets: { A, B, C, D } with the first 40 chars of each
+  choice, or null for non-MC questions
+- bbox: [y_min, x_min, y_max, x_max] in 0-1000 normalized space
+  (Y BEFORE X — Gemini standard)
+- confidence: 0.0-1.0 — how confident you are the bbox is correct
+- contains_full_question_stem: boolean
+- contains_passage_if_present: boolean — true if no passage required
+- contains_answer_choices_if_mcq: boolean — true if not MCQ
+- contains_embedded_visual_if_present: boolean — true if no visual required
+- notes: short caveat, e.g. "passage continues onto next page"
+
+Return strictly { "detected_questions": [...] }.
+```
+
+### 3.2 Response schema
+
+```json
+{
+  "type": "OBJECT",
+  "properties": {
+    "detected_questions": {
+      "type": "ARRAY",
+      "items": {
+        "type": "OBJECT",
+        "properties": {
+          "source_question_number": { "type": "INTEGER", "nullable": true },
+          "stem_snippet": { "type": "STRING" },
+          "passage_snippet": { "type": "STRING", "nullable": true },
+          "choice_snippets": {
+            "type": "OBJECT",
+            "nullable": true,
+            "properties": {
+              "A": { "type": "STRING" },
+              "B": { "type": "STRING" },
+              "C": { "type": "STRING" },
+              "D": { "type": "STRING" }
+            }
+          },
+          "bbox": { "type": "ARRAY", "items": { "type": "NUMBER" } },
+          "confidence": { "type": "NUMBER" },
+          "contains_full_question_stem": { "type": "BOOLEAN" },
+          "contains_passage_if_present": { "type": "BOOLEAN" },
+          "contains_answer_choices_if_mcq": { "type": "BOOLEAN" },
+          "contains_embedded_visual_if_present": { "type": "BOOLEAN" },
+          "notes": { "type": "STRING", "nullable": true }
+        },
+        "required": [
+          "bbox", "stem_snippet", "confidence",
+          "contains_full_question_stem",
+          "contains_passage_if_present",
+          "contains_answer_choices_if_mcq",
+          "contains_embedded_visual_if_present"
+        ]
+      }
+    }
+  },
+  "required": ["detected_questions"]
+}
+```
+
+### 3.3 Crop math
+
+```js
+// Tight crop (unchanged)
+const top  = Math.floor((bbox.y_min / 1000) * pageHeight);
+const left = Math.floor((bbox.x_min / 1000) * pageWidth);
+const w    = Math.floor(((bbox.x_max - bbox.x_min) / 1000) * pageWidth);
+const h    = Math.floor(((bbox.y_max - bbox.y_min) / 1000) * pageHeight);
+
+// Expanded crop: 20% padding OR 80px minimum, whichever is larger,
+// clamped to page bounds.
+const MIN_PAD_PX = 80;
+const pad_x = Math.max(w * 0.2, MIN_PAD_PX);
+const pad_y = Math.max(h * 0.2, MIN_PAD_PX);
+
+const expanded = {
+  top:    Math.max(0, top - pad_y),
+  left:   Math.max(0, left - pad_x),
+  width:  Math.min(pageWidth  - Math.max(0, left - pad_x), w + 2 * pad_x),
+  height: Math.min(pageHeight - Math.max(0, top  - pad_y), h + 2 * pad_y),
+};
+```
+
+The 80-px floor is critical for small crops (a 100×100 question block with only 20% padding adds 20 px — far too tight to capture the question number or surrounding context).
+
+### 3.4 Matching hierarchy (replaces the two-tier matcher)
+
+For each detected question on a page, walk this list and stop at the first match:
+
+```text
+Step 1 — Always filter to DB rows with source_page = current page.
+         These are the candidates.
+
+Step 2 — page + visible question number
+         If detected.source_question_number is present AND a candidate
+         row has a matching number stored, pair them.
+         match_method = "page_question_number",  confidence = 0.95
+
+Step 3 — page + passage snippet (R&W only)
+         If detected.passage_snippet is present, compare to the
+         candidate row's passage / passage_a / passage_b.
+         Lowercase + trim + substring (40-char minimum overlap).
+         match_method = "page_passage_snippet",  confidence = 0.90
+
+Step 4 — page + choice snippets (MC only)
+         If detected.choice_snippets is present, compare A+B+C+D
+         to the candidate row's answer_choices. At least 3 of 4
+         must match (40-char overlap).
+         match_method = "page_choice_snippets",  confidence = 0.85
+
+Step 5 — page + stem snippet
+         Lowercase + trim. The detected snippet is a prefix of the
+         row's question_text (or vice versa), >= 40-char overlap.
+         match_method = "page_stem_snippet",  confidence = 0.75
+
+Step 6 — ordered fallback
+         ONLY if the number of detected questions on this page
+         exactly equals the number of unmatched candidate rows for
+         this page. Pair by position (Nth detected → Nth row, both
+         ordered by their position on the page).
+         match_method = "ordered_fallback",  confidence = 0.60
+
+Step 7 — orphan
+         No match found. Write the crops anyway with question_id=null.
+         match_method = "orphan",  confidence = 0.00
+```
+
+`quiz_questions.source_question_number` is not currently a column. Until Phase 2's `answer_key_entries.source_question_number` can be backfilled to a flat column on `quiz_questions`, Step 2 falls through to Step 3.
+
+### 3.5 Orphan-row format
+
+```json
+{
+  "question_id": null,
+  "asset_type": "question_crop",
+  "asset_path": "question-crops/<jobId>/p17-orphan-1.png",
+  "public_url": "https://...",
+  "bbox": { ... },
+  "validation_status": "orphan_unmatched_question_crop",
+  "relevance": "uncertain",
+  "match_method": "orphan",
+  "match_confidence": 0.00,
+  "notes": "Detected question crop could not be matched to a quiz_questions row."
+}
+```
+
+Same for the matching `expanded_question_crop` row.
+
+### 3.6 Crop completeness → `crop_complete` flag
+
+A crop is `crop_complete = true` if and only if all four detector flags are true:
+
+```text
+contains_full_question_stem        AND
+contains_passage_if_present        AND
+contains_answer_choices_if_mcq     AND
+contains_embedded_visual_if_present
+```
+
+Otherwise `crop_complete = false`. Stored on every source_assets row.
+
+### 3.7 R2 keys
+
+```text
+question-crops/<jobId-or-stem>/page-<n>.png             — page_image
+question-crops/<jobId-or-stem>/p<n>-q<num>.png          — question_crop
+question-crops/<jobId-or-stem>/p<n>-q<num>-expanded.png — expanded_question_crop
+question-crops/<jobId-or-stem>/p<n>-orphan-<i>.png      — orphan question_crop
+```
+
+`Cache-Control: public, max-age=31536000, immutable`.
+
+---
+
+## 4. Models for Phase 3
+
+| Task | Model/tool | Why |
+|---|---|---|
+| Page rendering | `pdftoppm` (Poppler) | Free, deterministic. |
+| Question bbox + completeness | `gemini-2.5-flash` | One call per page; same pattern as figure bboxes. Completeness flags add ~200 output tokens; cost still ~$0.001/page. |
+| Image processing | `sharp` (libvips) | Same library used elsewhere. |
+| R2 upload | binding or S3 SDK fallback | Same helper as Phase 2's page upload. |
+
+**Estimated cost per PDF:** ~$0.05/PDF for an 80-page test, well under the $0.50 ceiling.
+
+**Estimated storage per PDF:**
+
+- ~80 page PNGs × 500 KB → 40 MB
+- ~98 question crops × 80 KB → 8 MB
+- ~98 expanded crops × 150 KB → 15 MB
+- **Total: ~63 MB/PDF.**
+
+At Cloudflare R2's $0.015/GB/month, 200 PDFs = ~13 GB = ~$0.20/month.
+
+---
+
+## 5. Per-PDF summary
+
+The script writes a summary block to stdout at the end of every run and to `pdf_processing_jobs.progress.crops_summary`:
+
+```json
+{
+  "source_pdf": "202603asia.pdf",
+  "pages_rendered": 104,
+  "detected_questions": 100,
+  "question_crops_created": 100,
+  "expanded_crops_created": 100,
+  "matched_crops": 94,
+  "orphan_crops": 6,
+  "db_rows_without_crops": 4,
+  "low_confidence_crops": 8,
+  "incomplete_crops": 3,
+  "match_method_distribution": {
+    "page_question_number": 0,
+    "page_passage_snippet": 42,
+    "page_choice_snippets": 18,
+    "page_stem_snippet": 34,
+    "ordered_fallback": 0,
+    "orphan": 6
+  }
+}
+```
+
+Counters:
+
+- **pages_rendered** — distinct source pages walked
+- **detected_questions** — total bbox detections across all pages
+- **question_crops_created** — `source_assets` rows of type `question_crop` written this run
+- **expanded_crops_created** — same for `expanded_question_crop`
+- **matched_crops** — crops with `match_method != 'orphan'`
+- **orphan_crops** — crops with `match_method = 'orphan'`
+- **db_rows_without_crops** — quiz_questions rows that should have a crop but don't (detected count < expected count)
+- **low_confidence_crops** — crops where `confidence < 0.75`
+- **incomplete_crops** — crops where `crop_complete = false`
+
+---
+
+## 6. Orchestrator update
+
+```text
+1 extract structure        Claude Sonnet
+2 extract figures          existing (untouched)
+3 emit CSV
+4 import to database       Phase 1 (rows land as 'draft')
+5 extract answer key       Phase 2
+6 EXTRACT QUESTION CROPS   Phase 3 (NEW — needs question IDs from step 4)
+7 fill explanations
+8 multi-vote grade
+9 validate KaTeX
+10 publish gate
+```
+
+Position rationale: Phase 3's stage runs AFTER import (needs question IDs for the FK on `source_assets.question_id`) and BEFORE fill (so any admin spot-checking during fill sees the lineage).
+
+**Parallelization not attempted in Phase 3.** Stages 2, 5, and 6 all render pages and call Gemini Flash. A future Phase 8 may merge them; for now each remains independent so a failure in one doesn't poison the others.
+
+---
+
+## 7. New publish-gate rules (STRICT mode — OPT-IN per row)
+
+Phase 3 adds source-evidence gates to `scripts/lib/publish-gate-logic.mjs`. None of these BLOCK publishing outright; they all route to `needs_human_review` so the admin can decide.
+
+**CRITICAL: every new gate is OPT-IN per row.** The gate checks `q.source_assets_processed_at` FIRST. If it's `null` (the row has never been through Phase 3 processing), the gate returns `null` (pass) without inspecting anything else. This means:
+
+- Brand-new v2 imports go through Stage 6 → `source_assets_processed_at` gets set → the new gates apply.
+- Old v1 rows already in the bank stay exactly where they are. The new gates are no-ops for them until you explicitly run `backfill-source-assets.mjs`.
+- A v2 import where Stage 6 errored mid-way still gets `source_assets_processed_at = now()` set with `_status = 'page_render_failed'` (or whatever failed) → the gates apply and the row is `needs_human_review`. The admin can re-run the script.
+
+```js
+// Every new gate follows this shape:
+export function gateMissingQuestionCrop(q) {
+  if (!q.source_assets_processed_at) return null;   // ← opt-in guard
+  if (q.has_question_crop) return null;
+  return {
+    reason: "phase3_missing_question_crop",
+    suggestedStatus: "needs_human_review",
+  };
+}
+```
+
+The seven gates:
+
+```js
+// → needs_human_review when:
+gateMissingQuestionCrop      // no question_crop exists for this row
+gateLowCropConfidence        // match_confidence < 0.75
+gateOrderedFallbackMatch     // match_method = 'ordered_fallback'
+gateOrphanCropsOnPage        // an orphan crop exists on this row's source_page
+gateCropCountMismatch        // detected count != DB row count for this page
+gateMissingSourcePage        // source_page is null
+gateIncompleteCrop           // crop_complete = false on the row's question_crop
+```
+
+These are inserted in the gate cascade AFTER the existing Phase 1+2 blocking gates and BEFORE `gateImportStatus` / `gateExplanation`. That way:
+
+- A `correction_disputed` row stays `blocked_answer_dispute` (stronger).
+- A KaTeX-broken row stays `blocked_katex_error` (stronger).
+- A clean row with weak crop evidence becomes `needs_human_review`.
+- A pre-Phase-3 v1 row is unaffected by any of this.
+
+### Gate query requirements
+
+The publish-gate already selects from `quiz_questions`. Phase 3 needs to additionally aggregate over `source_assets` (to know "does this row have a question_crop? what's its match_confidence? are there orphan crops on the same page?"). The simplest approach: a derived per-question view that pre-aggregates the asset signals:
+
+```sql
+create or replace view public.quiz_questions_phase3_signals as
+select
+  q.id as question_id,
+  q.source_pdf,
+  q.source_page,
+  q.source_assets_processed_at,
+  q.source_assets_processed_status,
+  -- Best question_crop for this row (highest confidence)
+  qc.match_method  as question_crop_match_method,
+  qc.match_confidence as question_crop_match_confidence,
+  qc.crop_complete as question_crop_complete,
+  (qc.id is not null) as has_question_crop,
+  -- Orphan crops on the same page
+  exists(
+    select 1 from public.source_assets oc
+    where oc.source_pdf = q.source_pdf
+      and oc.page_number = q.source_page
+      and oc.match_method = 'orphan'
+      and oc.asset_type = 'question_crop'
+  ) as has_orphan_crops_on_page
+from public.quiz_questions q
+left join lateral (
+  select * from public.source_assets sa
+  where sa.question_id = q.id and sa.asset_type = 'question_crop'
+  order by sa.match_confidence desc nulls last
+  limit 1
+) qc on true;
+```
+
+`publish-gate.mjs` reads from this view instead of doing N+1 aggregate queries per row.
+
+---
+
+## 8. v1-Backfill script
+
+`scripts/v2-phase3/backfill-source-assets.mjs --source-pdf <filename>`:
+
+1. Reads `pdf_processing_jobs` for the storage_path matching the filename.
+2. Downloads the PDF from R2.
+3. Runs the same extract-question-crops flow but UPSERTs source_assets rows (idempotent — keyed by `(question_id, asset_type)`).
+4. Optionally takes `--limit N` to throttle.
+
+**Operational, not part of the per-import pipeline.** Existing v1 rows don't need to be automatically backfilled; the admin runs this manually as time permits.
+
+---
+
+## 9. Admin UI surfacing
+
+### Preview page (`/admin/questions/preview`)
+
+The existing PDF chip (preview-overhaul phase 4) gains two siblings:
+
+- **Crop** — renders the `question_crop` image inline using the existing panel pattern.
+- **Expanded** — renders the `expanded_question_crop`.
+
+Each crop's panel header shows the match-confidence badge (e.g. "matched via passage snippet · 0.90") so the admin instantly knows whether to trust the crop.
+
+### Inspector page (`/admin/questions/inspect/[id]`)
+
+New "Source lineage" section above the existing findings/history panes:
+
+```text
++-----------------------------------------------------------------+
+| Source lineage                                                   |
++-----------------------------------------------------------------+
+| 📄 page_image        page-17.png   matched: n/a       [view]    |
+| ✂️ question_crop    p17-q5.png    matched: passage 0.90 [view] |
+| 🔍 expanded_q_crop  p17-q5-exp    matched: passage 0.90 [view] |
+| 📊 figure_crop      figure-1.png  matched: bbox 0.93   [view]   |
+| 📑 answer_key_crop  p142-q5.png   matched: order 0.65  [view]   |
++-----------------------------------------------------------------+
+```
+
+`[view]` opens the R2 URL in a new tab. Inline modal can come in Phase 4.
+
+---
+
+## 10. Acceptance criteria (revised)
+
+Phase 3 is complete when:
+
+- [ ] For a new PDF import, every imported question has at least one `page_image` source asset for its source_page.
+- [ ] Most imported questions have a `question_crop` AND `expanded_question_crop` row.
+- [ ] Every source_asset crop has `asset_path`, a non-null `bbox` (when applicable), `validation_status`, and `raw_metadata`.
+- [ ] Orphan crops are stored and counted in the per-PDF summary.
+- [ ] DB rows without crops are counted and flagged via `gateMissingQuestionCrop`.
+- [ ] Low-confidence crops are counted and flagged via `gateLowCropConfidence`.
+- [ ] The admin Inspector page can show: full page image, question crop, expanded crop, figure crop (if present), answer-key crop (if present).
+- [ ] The admin Preview page exposes Crop + Expanded chips next to the existing PDF chip.
+- [ ] Existing v1 rows do NOT need to be backfilled automatically; the script supports `--source-pdf`.
+- [ ] Phase 3 does NOT change extraction prompts (`extract-with-gemini.mjs`).
+- [ ] Phase 3 does NOT change figure extraction behavior (`extract-figures.mjs`).
+- [ ] Phase 3 does NOT touch `extract-answer-key.mjs`.
+- [ ] Vitest unit tests cover the matching hierarchy (one test per step, plus orphan + count-mismatch cases) and the bbox→pixel math (including the 80-px-floor edge case).
+- [ ] DB verification script asserts: `source_assets_question_id_type_idx` exists; `parent_asset_id` FK works; new `match_method` / `match_confidence` columns accept the documented values; bbox-cache columns on quiz_questions are populated for a successful run.
+
+---
+
+## 11. Rollback
+
+Phase 3 is additive. Rollback steps:
+
+1. Disable Stage 6 in `orchestrate.mjs` (revert one block).
+2. Disable the new gates in `publish-gate-logic.mjs` (comment out the imports).
+3. Schema additions can stay — all columns are nullable and the FKs use `ON DELETE SET NULL`.
+4. The new R2 prefixes (`question-crops/`) can be left in place; no other code reads from them.
+5. Existing v1 + Phase 1/2 behavior is unaffected.
+
+---
+
+## 12. Phase 3 Deliverable Checklist
+
+Phase 3 is complete when:
+
+- [ ] Migration adds `source_assets.parent_asset_id`, `source_assets.match_method`, `source_assets.match_confidence`, `source_assets.matched_source_question_number`, `source_assets_question_id_type_idx`, `source_assets_parent_idx`, `source_assets_match_method_idx`.
+- [ ] Migration adds `quiz_questions.question_bbox`, `question_bbox_confidence`, `question_bbox_source_asset_id`, `quiz_questions_bbox_source_asset_idx`.
+- [ ] `scripts/lib/page-render.mjs` exists and is used ONLY by the new Phase 3 script.
+- [ ] `extract-figures.mjs` and `extract-answer-key.mjs` are NOT modified.
+- [ ] `extract-question-crops.mjs` exists with the revised prompt + schema (completeness flags + passage/choice snippets).
+- [ ] The seven-step matching hierarchy is implemented in `scripts/lib/question-matcher.mjs` and unit-tested.
+- [ ] Per-question `question_crop` + `expanded_question_crop` rows are written with correct `parent_asset_id`, `match_method`, `match_confidence`, and `crop_complete`.
+- [ ] Orphan crops are written with `question_id=null`, `validation_status='orphan_unmatched_question_crop'`, `relevance='uncertain'`.
+- [ ] `quiz_questions.question_bbox` + `_confidence` + `_source_asset_id` are populated for every successful match.
+- [ ] Orchestrator runs the new stage between import and fill.
+- [ ] `publish-gate-logic.mjs` adds the seven new gates and routes weak evidence to `needs_human_review`.
+- [ ] Per-PDF summary is written to stdout AND `pdf_processing_jobs.progress.crops_summary`.
+- [ ] Backfill script exists for v1 rows.
+- [ ] Preview page exposes Crop + Expanded chips with match-confidence badges.
+- [ ] Inspector page exposes a Source-lineage section listing every asset with its match info.
+- [ ] DB verification script asserts the new constraints + FK behavior.
+
+---
