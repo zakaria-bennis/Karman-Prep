@@ -23,11 +23,15 @@
 //   answer_key   v2 phase 2 — detect key pages, extract printed answers +
 //                red-ink corrections, write answer_key_entries +
 //                quiz_questions.selected_official_answer
+//   crops        v2 phase 3 — per-page render, per-question bbox detection
+//                via Gemini Flash, source_assets:page_image + question_crop
+//                + expanded_question_crop with match_method + crop_complete
 //   filling      Sonnet explanation_text + per-choice + Haiku Desmos
 //   grading      Multi-vote audit (uses selected_official_answer when set);
 //                writes grader_runs append-only + answer_verification_status
 //   validating   v2 phase 1 — strict server-side KaTeX validation
-//   publishing   v2 phase 1+2 — publish-gate (now with correction gates)
+//   publishing   v2 phase 1+2+3 — publish-gate (now with phase 3 source-
+//                evidence gates, all opt-in per source_assets_processed_at)
 //   done | failed
 //
 // FAILURES
@@ -188,46 +192,62 @@ async function main() {
       message: "Detecting answer-key pages + extracting corrections",
     });
     runStage(
-      "Stage 5/9 — extract answer key (v2 phase 2)",
+      "Stage 5/10 — extract answer key (v2 phase 2)",
       "answer_key",
       "scripts/pdf-pipeline/extract-answer-key.mjs",
       [pdfPath, "--source-pdf", sourcePdfBasename, ...(job.jobId ? ["--job-id", job.jobId] : [])]
     );
 
-    // Stage 6: fill explanations (Sonnet + Haiku) — scoped to this PDF
+    // v2 phase 3: per-question source-asset extraction. Renders every
+    // page that has a quiz_questions row on it, detects question bboxes
+    // via Gemini Flash, crops tight + expanded per question, writes
+    // source_assets rows with match_method + match_confidence.
+    // Sets quiz_questions.source_assets_processed_at — this is the
+    // opt-in marker for the Phase 3 publish-gate rules below.
+    await job.setStage("crops", {
+      message: "Per-question source-asset extraction",
+    });
+    runStage(
+      "Stage 6/10 — extract question crops (v2 phase 3)",
+      "crops",
+      "scripts/pdf-pipeline/extract-question-crops.mjs",
+      [pdfPath, "--source-pdf", sourcePdfBasename, ...(job.jobId ? ["--job-id", job.jobId] : [])]
+    );
+
+    // Stage 7: fill explanations (Sonnet + Haiku) — scoped to this PDF
     await job.setStage("filling", {
       message: "Sonnet explanation_text + per-choice + Haiku Desmos",
     });
     runStage(
-      "Stage 6/9 — fill explanations",
+      "Stage 7/10 — fill explanations",
       "filling",
       "scripts/content-generation/fill-all.mjs",
       ["--source-pdf", sourcePdfBasename]
     );
 
-    // Stage 7: multi-vote grader — uses selected_official_answer
+    // Stage 8: multi-vote grader — uses selected_official_answer
     await job.setStage("grading", {
       message: "Flash + DeepSeek + Llama → Pro → Opus consensus check",
     });
     runStage(
-      "Stage 7/9 — multi-vote grader",
+      "Stage 8/10 — multi-vote grader",
       "grading",
       "scripts/question-audit/multi-vote-grader.mjs",
       ["--from-db", "--source-pdf", sourcePdfBasename]
     );
 
-    // Stage 8: strict server-side KaTeX validation
+    // Stage 9: strict server-side KaTeX validation
     await job.setStage("validating", {
       message: "Strict server-side KaTeX validation",
     });
     runStage(
-      "Stage 8/9 — validate KaTeX",
+      "Stage 9/10 — validate KaTeX",
       "validating",
       "scripts/question-audit/validate-katex.mjs",
       ["--source-pdf", sourcePdfBasename, "--apply-blocks"]
     );
 
-    // Stage 9: publish-gate — promote rows to publish_ready
+    // Stage 10: publish-gate — promote rows to publish_ready
     // The central enforcement of v2 phase 1. New rows arrived as
     // 'draft' from stage 4; this stage flips them to publish_ready
     // ONLY when every gate passes (KaTeX, grader, slug, required
@@ -235,7 +255,7 @@ async function main() {
     await job.setStage("publishing", {
       message: "Publish-gate evaluation (promote draft → publish_ready)",
     });
-    runStage("Stage 9/9 — publish gate", "publishing", "scripts/pdf-pipeline/publish-gate.mjs", [
+    runStage("Stage 10/10 — publish gate", "publishing", "scripts/pdf-pipeline/publish-gate.mjs", [
       "--source-pdf",
       sourcePdfBasename,
     ]);
