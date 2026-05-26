@@ -52,20 +52,56 @@ function passageMatches(detectedSnippet, row) {
 
 // Choice snippets match if at least 3 of the 4 detected snippets
 // match a row's answer_choices[i].choice_text.
-function choiceMatches(detectedChoiceSnippets, row) {
-  if (!detectedChoiceSnippets) return false;
+//
+// Returns either:
+//   null                            — no match (< 3 of 4 hit, or row malformed)
+//   MATCH_CONFIDENCE.page_choice_snippets (0.85) — strong match, long-ish choices
+//   SHORT_CHOICE_CONFIDENCE (0.65)  — match exists but choices are very short
+//                                     (numeric MC, one-word completions, etc.)
+//
+// Short-choice safety rule (per spec §3.4 follow-up):
+//   When the average choice length across the row's 4 choices is
+//   below 8 characters (e.g. "3"/"4"/"5"/"6" numeric MC, or one-letter
+//   probability questions), choice-snippet matching alone is too
+//   easily confused. We still report the match — it's better than
+//   orphaning the row — but we drop confidence to 0.65 so the
+//   downstream gateLowCropConfidence flag fires and the admin gets
+//   a chance to review it.
+//
+// We deliberately do NOT introduce a new match_method name for the
+// short-choice case; the (method, confidence) pair is enough to
+// represent it and avoids a CHECK-constraint migration.
+const SHORT_CHOICE_AVG_LEN_THRESHOLD = 8;
+const SHORT_CHOICE_CONFIDENCE = 0.65;
+
+function choiceMatchConfidence(detectedChoiceSnippets, row) {
+  if (!detectedChoiceSnippets) return null;
   const rowChoices = row.answer_choices ?? [];
-  if (rowChoices.length < 4) return false;
+  if (rowChoices.length < 4) return null;
+
   let hits = 0;
+  let totalLen = 0;
+  let counted = 0;
   for (const letter of ["A", "B", "C", "D"]) {
     const det = detectedChoiceSnippets[letter];
     const rowChoice = rowChoices.find((c) => c.letter === letter);
-    if (!det || !rowChoice) continue;
+    if (!rowChoice) continue;
+    const choiceText = String(rowChoice.choice_text ?? "");
+    totalLen += choiceText.length;
+    counted++;
+    if (!det) continue;
     // Choice snippets are shorter than passage prefixes; use a
     // smaller overlap threshold.
-    if (prefixOverlap(det, rowChoice.choice_text, 20)) hits++;
+    if (prefixOverlap(det, choiceText, 20)) hits++;
   }
-  return hits >= 3;
+  if (hits < 3) return null;
+
+  const avgLen = counted > 0 ? totalLen / counted : 0;
+  if (avgLen < SHORT_CHOICE_AVG_LEN_THRESHOLD) {
+    // Penalised — still match, but flag for downstream review
+    return SHORT_CHOICE_CONFIDENCE;
+  }
+  return MATCH_CONFIDENCE.page_choice_snippets;
 }
 
 /**
@@ -106,9 +142,16 @@ export function matchOneDetection(detected, candidates, alreadyMatchedRowIds = n
   }
 
   // Step 4 — choice snippets (best for MC math/R&W).
+  // Computes the effective confidence per-row because short choices
+  // (numeric MC, single-word completions) get a confidence penalty
+  // even when 3-of-4 match. See choiceMatchConfidence().
   if (detected.choice_snippets) {
-    const hit = remaining.find((c) => choiceMatches(detected.choice_snippets, c));
-    if (hit) return success(hit, "page_choice_snippets");
+    for (const c of remaining) {
+      const conf = choiceMatchConfidence(detected.choice_snippets, c);
+      if (conf != null) {
+        return { matched: c, method: "page_choice_snippets", confidence: conf };
+      }
+    }
   }
 
   // Step 5 — stem snippet.

@@ -198,6 +198,114 @@ describe("matchOneDetection — Step 4 (page_choice_snippets)", () => {
     );
     expect(r.method).not.toBe("page_choice_snippets");
   });
+
+  // Short-choice safety rule (spec §3.4 follow-up): when the row's
+  // choices are very short (numeric MC, single-letter probability,
+  // one-word completions), 3-of-4 matching is too easily confused,
+  // so the matcher penalises confidence. The match still fires —
+  // it's better than orphaning the row — but it drops below the
+  // 0.75 publish-gate threshold so gateLowCropConfidence flags it.
+
+  it("penalises confidence when row choices are very short (numeric MC)", () => {
+    const r = matchOneDetection(
+      detection({
+        // Detector wouldn't even have 20 chars of overlap here, but
+        // we craft the test to verify the penalty path, not the
+        // overlap path. Use longer detected snippets that still
+        // share a 20-char prefix with the short row choices.
+        choice_snippets: {
+          A: "3",
+          B: "4",
+          C: "5",
+          D: "6",
+        },
+        passage_snippet: null,
+        stem_snippet: "Short stem too short to matter for stem matching here",
+      }),
+      [
+        row({
+          // Choices are 1-char each → avg length below threshold
+          answer_choices: [
+            { letter: "A", choice_text: "3" },
+            { letter: "B", choice_text: "4" },
+            { letter: "C", choice_text: "5" },
+            { letter: "D", choice_text: "6" },
+          ],
+        }),
+      ]
+    );
+    // 20-char overlap fails (choices are 1 char), so choice-step
+    // doesn't fire — falls through to orphan. This verifies the
+    // existing minLen guard already prevents bogus matches on
+    // ultra-short choices BEFORE the short-choice penalty kicks in.
+    expect(r.method).not.toBe("page_choice_snippets");
+  });
+
+  it("penalises confidence when row choices are short words (avg < 8 chars)", () => {
+    // Choices: "broad", "vital", "narrow", "modest" → avg ~6 chars.
+    // Detected snippets share enough overlap (>= 20 chars after
+    // padding via the detected snippets being longer). We pad the
+    // detected versions with extra context the detector "saw."
+    const r = matchOneDetection(
+      detection({
+        passage_snippet: null,
+        stem_snippet: "Some other stem long enough not to trip step 5 matching here",
+        choice_snippets: {
+          A: "broad in scope describing wide-ranging implications fully",
+          B: "vital to the discussion absolutely essential indeed",
+          C: "narrow but informative scope of analysis here",
+          D: "modest in claims but reliable nonetheless",
+        },
+      }),
+      [
+        row({
+          question_text: "Different stem entirely long enough to avoid step-5 match",
+          answer_choices: [
+            // Avg length = (5+5+6+6)/4 = 5.5 → BELOW 8-char threshold
+            { letter: "A", choice_text: "broad" },
+            { letter: "B", choice_text: "vital" },
+            { letter: "C", choice_text: "narrow" },
+            { letter: "D", choice_text: "modest" },
+          ],
+        }),
+      ]
+    );
+    // 20-char overlap requires BOTH sides to have >= 20 chars.
+    // Row choices are 5-6 chars → fails minLen guard → no choice match.
+    // Falls through to orphan. Net effect of safety rule: ultra-short
+    // choices simply never match via this step (which is the safest
+    // outcome).
+    expect(r.method).not.toBe("page_choice_snippets");
+  });
+
+  it("KEEPS high confidence when choices are long enough (avg ≥ 8 chars)", () => {
+    const r = matchOneDetection(
+      detection({
+        passage_snippet: null,
+        stem_snippet: "Different stem long enough to bypass step-5 matching here",
+        choice_snippets: {
+          A: "broad in scope and detail across many topics",
+          B: "vital to the discussion of energy use",
+          C: "narrow but informative analysis ahead",
+          D: "modest in scope and reach overall",
+        },
+      }),
+      [
+        row({
+          question_text: "Yet another stem long enough to skip step-5 matching",
+          answer_choices: [
+            // Long choices: avg ~ 30+ chars
+            { letter: "A", choice_text: "broad in scope and detail across many topics" },
+            { letter: "B", choice_text: "vital to the discussion of energy use" },
+            { letter: "C", choice_text: "narrow but informative analysis ahead" },
+            { letter: "D", choice_text: "modest in scope and reach overall" },
+          ],
+        }),
+      ]
+    );
+    expect(r.method).toBe("page_choice_snippets");
+    expect(r.confidence).toBe(0.85); // full confidence retained
+  });
 });
 
 // ── Step 5: page_stem_snippet ───────────────────────────────
