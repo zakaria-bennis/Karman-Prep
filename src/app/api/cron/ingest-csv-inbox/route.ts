@@ -68,8 +68,11 @@ async function downloadFromR2(s3: S3Client, bucket: string, key: string): Promis
   const obj = await s3.send(new GetObjectCommand({ Bucket: bucket, Key: key }));
   if (!obj.Body) throw new Error(`R2 object empty: ${key}`);
   const chunks: Uint8Array[] = [];
-  // @ts-expect-error — Body is a stream-like; iterate without coupling to specific typing
-  for await (const chunk of obj.Body) {
+  // The AWS SDK types Body as a few different stream shapes
+  // depending on Node version + lib.d.ts; cast to a plain
+  // AsyncIterable<Uint8Array> so this works across Node 22+.
+  const body = obj.Body as unknown as AsyncIterable<Uint8Array>;
+  for await (const chunk of body) {
     chunks.push(chunk instanceof Uint8Array ? chunk : new Uint8Array(chunk));
   }
   const total = chunks.reduce((n, c) => n + c.length, 0);
