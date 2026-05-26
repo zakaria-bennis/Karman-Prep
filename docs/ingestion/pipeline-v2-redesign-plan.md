@@ -1623,17 +1623,21 @@ on public.quiz_questions(source_assets_processed_at)
 where source_assets_processed_at is not null;
 ```
 
-`source_assets_processed_status` allowed values (app-enforced first; CHECK after Phase 3 runs):
+`source_assets_processed_status` allowed values (app-enforced; **no DB CHECK constraint in Phase 3** — app code validates the value before write):
 
 ```text
-matched_crop_complete          — fully matched, crop_complete = true
-matched_crop_incomplete        — matched but some completeness flag is false
-matched_low_confidence         — matched but match_confidence < 0.75
-matched_ordered_fallback       — matched via the ordered-fallback step
-no_match_orphan_crops_only     — detected questions exist but none matched this row
-detection_failed               — Gemini Flash call failed or returned 0 questions
-page_render_failed             — pdftoppm errored
+complete   — page rendered, question detected, matched, crop_complete=true
+partial    — Phase 3 ran but the row has SOME issue (low confidence,
+             ordered_fallback match, crop_incomplete, orphan-on-page, etc.).
+             The specific issue is recorded on the source_assets row;
+             this column just signals "look at it".
+failed     — Phase 3 attempted but failed entirely (pdftoppm crashed,
+             Gemini returned zero detections, DB write errored).
+skipped    — Phase 3 chose not to process this row (e.g. dry-run mode,
+             or row had no source_page).
 ```
+
+The richer per-row diagnostic information (what kind of partial, which step failed) lives on the corresponding `source_assets` row's `validation_status` + `raw_metadata.notes`. This column on `quiz_questions` is the coarse signal the publish-gate uses to decide which gates apply.
 
 `source_assets_processed_at` is the SOLE GATE controlling whether the Phase 3 publish-gate rules apply to a row. Rules:
 

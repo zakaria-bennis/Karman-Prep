@@ -30,7 +30,7 @@ create index if not exists source_assets_match_method_idx
   on public.source_assets(match_method);
 ```
 
-### `quiz_questions` — 5 new columns + 2 indexes
+### `quiz_questions` — 5 new columns + 3 indexes
 
 ```sql
 alter table public.quiz_questions
@@ -46,7 +46,21 @@ create index if not exists quiz_questions_bbox_source_asset_idx
 create index if not exists quiz_questions_source_assets_processed_idx
   on public.quiz_questions(source_assets_processed_at)
   where source_assets_processed_at is not null;
+
+-- Phase 3 matching needs "give me every quiz_questions row for a
+-- given PDF page" as a hot-path query. Pure index, no constraint.
+create index if not exists quiz_questions_source_pdf_page_idx
+  on public.quiz_questions(source_pdf, source_page);
 ```
+
+`source_assets_processed_status` allowed values (**app-enforced; no DB CHECK in Phase 3**):
+
+| Value | Meaning |
+| --- | --- |
+| `complete` | Page rendered, question detected, matched cleanly, crop is complete. |
+| `partial` | Phase 3 ran but the row has some issue (low confidence, ordered fallback, incomplete crop, orphan-on-page, count mismatch). Specific issue lives on the source_assets row. |
+| `failed` | Phase 3 attempted but failed entirely (render error, zero detections, DB write error). |
+| `skipped` | Phase 3 chose not to process (dry-run, no source_page). |
 
 ### Phase-3 signals view
 
@@ -119,7 +133,8 @@ The view collapses the N+1 aggregate query the publish-gate would otherwise need
 ```bash
 node --env-file=.env.local scripts/pdf-pipeline/extract-question-crops.mjs \
      <pdf-path> --source-pdf <filename> [--job-id <uuid>] \
-     [--out /tmp/<stem>-crops.json] [--no-db] [--force]
+     [--out /tmp/<stem>-crops.json] [--no-db] \
+     [--force] [--include-admin-verified]
 ```
 
 Flags:
@@ -129,7 +144,33 @@ Flags:
 - `--job-id <uuid>` (optional) — `pdf_processing_jobs.id`. Used for the R2 prefix and for writing summary to `progress`.
 - `--out <path>` (optional) — JSON sidecar destination. Default `/tmp/<stem>-crops.json`.
 - `--no-db` (optional) — skip every Supabase write (dry-run mode for prompt iteration).
-- `--force` (optional) — re-process rows even if `source_assets_processed_at` is already set. Default behavior: skip rows already processed.
+- `--force` (optional) — re-process rows even if `source_assets_processed_at` is already set. **Preserves admin-verified assets** (see below).
+- `--include-admin-verified` (optional, requires `--force`) — also delete and recreate `source_assets` rows whose `validation_status='admin_verified'`. Without this flag, admin-verified rows are kept as-is.
+
+Force semantics (three tiers, safest first):
+
+```text
+Default (no flags)
+  · For each row in source_pdf:
+      if source_assets_processed_at is NULL  → process
+      if source_assets_processed_at is set   → skip
+  · No deletes. No human work disturbed.
+
+--force
+  · For each row in source_pdf:
+      delete source_assets rows for this row WHERE
+        asset_type IN ('page_image', 'question_crop', 'expanded_question_crop')
+        AND (validation_status IS NULL OR validation_status != 'admin_verified')
+      reset source_assets_processed_at = NULL
+      reprocess the row
+  · Admin-verified rows are NOT deleted. They survive the rerun.
+  · Other asset types (figure_crop, answer_key_page, etc.) untouched.
+
+--force --include-admin-verified
+  · Same as --force, but the WHERE filter drops the admin_verified
+    guard. Every Phase-3 asset for the source_pdf is deleted + rebuilt.
+  · Use sparingly. The flag is verbose on purpose.
+```
 
 Exit codes:
 
@@ -163,6 +204,20 @@ No flags. Inserts a fixture row, asserts every Phase 3 schema/view/gate behaves 
 
 ## 5. How `source_assets` rows are created
 
+Every row written by this stage includes a standard run-metadata block in `raw_metadata`:
+
+```js
+// Built once at script start
+const RUN_ID = crypto.randomUUID();
+const RUN_METADATA = {
+  phase: "phase3_question_crops",
+  run_id: RUN_ID,
+  model: "gemini-2.5-flash",
+};
+```
+
+This block is spread into every `source_assets.raw_metadata` JSONB along with per-asset details (bbox, completeness flags, etc.). Auditing "which run produced this asset?" then becomes a single JSONB query: `WHERE raw_metadata->>'run_id' = '<uuid>'`. The block also lets us spot orphan runs (e.g. a partial run that crashed mid-way).
+
 For each page processed:
 
 ```js
@@ -177,6 +232,11 @@ const pageRow = await supabase.from("source_assets").insert({
   public_url: pageR2Url,
   validation_status: "rendered_at_200dpi",
   relevance: "required",
+  raw_metadata: {
+    ...RUN_METADATA,
+    dpi: 200,
+    page_width, page_height,
+  },
 }).select("id").single();
 
 // 5b — for each detected question on the page:
@@ -215,7 +275,11 @@ for (const det of detected_questions) {
       : "orphan_unmatched_question_crop",
     relevance: matched.row ? "required" : "uncertain",
     notes: det.notes ?? null,
-    raw_metadata: { detection: det, model: "gemini-2.5-flash" },
+    raw_metadata: {
+      ...RUN_METADATA,
+      detection: det,
+      crop_kind: "tight",
+    },
   }).select("id").single();
 
   // 5b-ii — expanded_question_crop row (same pattern, different bbox)
@@ -236,9 +300,22 @@ await supabase.from("quiz_questions").update({
 
 Re-running the script on the same `source_pdf` without `--force` looks up `source_assets_processed_at`. Non-null = skip (already processed). With `--force`, the script:
 
-1. Deletes existing `source_assets` rows for this `source_pdf` of types `page_image`, `question_crop`, `expanded_question_crop` (LEAVES figure_crop, answer_key_page, etc. alone — those are owned by other phases).
-2. Resets `source_assets_processed_at = null` on each `quiz_questions` row.
-3. Runs fresh.
+1. **Deletes machine-generated Phase 3 assets only**:
+   ```sql
+   DELETE FROM source_assets
+   WHERE source_pdf = $1
+     AND asset_type IN ('page_image', 'question_crop', 'expanded_question_crop')
+     AND (validation_status IS NULL OR validation_status != 'admin_verified');
+   ```
+   Admin-verified assets (rows where a human reviewer flipped `validation_status` to `admin_verified` in the inspector UI) survive the rerun.
+
+2. Other asset types (`figure_crop`, `answer_key_page`, etc. — owned by other phases) are NEVER touched.
+
+3. Resets `source_assets_processed_at = null` on every quiz_questions row for the source_pdf.
+
+4. Runs fresh.
+
+With `--force --include-admin-verified`, the WHERE clause drops the `admin_verified` guard so EVERY Phase-3 asset for the source_pdf is rebuilt. Use sparingly; this destroys human review work.
 
 ---
 
