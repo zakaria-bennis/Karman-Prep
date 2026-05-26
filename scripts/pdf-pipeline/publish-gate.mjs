@@ -71,14 +71,14 @@ try {
 
 async function main() {
   console.log("Loading rows for publish-gate evaluation…");
-  let query = supabase
-    .from("quiz_questions")
-    .select(
-      "id, source_pdf, source_page, publish_status, import_status, import_flag_type, " +
-        "import_flag_reason, concept_slug, question_text, correct_answer, answer_format, " +
-        "explanation_text, image_url, grader_votes, " +
-        "answer_choices(letter, choice_text)"
-    );
+  let query = supabase.from("quiz_questions").select(
+    "id, source_pdf, source_page, publish_status, import_status, import_flag_type, " +
+      "import_flag_reason, concept_slug, question_text, correct_answer, answer_format, " +
+      "explanation_text, image_url, grader_votes, " +
+      // v2 phase 2: answer-key + verification status drive new gates
+      "answer_key_status, answer_verification_status, selected_official_answer, " +
+      "answer_choices(letter, choice_text)"
+  );
   if (QUESTION_ID) query = query.eq("id", QUESTION_ID);
   else if (SOURCE_PDF) query = query.eq("source_pdf", SOURCE_PDF);
 

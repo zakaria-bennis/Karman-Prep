@@ -20,10 +20,14 @@
 //   figures      Page render + bbox + R2 upload per figure
 //   csv          JSON → 32-column CSV
 //   importing    CSV → quiz_questions + answer_choices (publish_status='draft')
+//   answer_key   v2 phase 2 — detect key pages, extract printed answers +
+//                red-ink corrections, write answer_key_entries +
+//                quiz_questions.selected_official_answer
 //   filling      Sonnet explanation_text + per-choice + Haiku Desmos
-//   grading      Multi-vote answer-key audit; writes grader_runs (append-only)
+//   grading      Multi-vote audit (uses selected_official_answer when set);
+//                writes grader_runs append-only + answer_verification_status
 //   validating   v2 phase 1 — strict server-side KaTeX validation
-//   publishing   v2 phase 1 — publish-gate computes final publish_status
+//   publishing   v2 phase 1+2 — publish-gate (now with correction gates)
 //   done | failed
 //
 // FAILURES
@@ -132,7 +136,7 @@ async function main() {
     // Stage 1: extract structure
     await job.setStage("extracting", { message: `Claude Sonnet 4.6 on ${basename(pdfPath)}` });
     runStage(
-      "Stage 1/6 — extract structure (Claude Sonnet 4.6)",
+      "Stage 1/9 — extract structure (Claude Sonnet 4.6)",
       "extracting",
       "scripts/pdf-pipeline/extract-with-gemini.mjs",
       [pdfPath]
@@ -144,7 +148,7 @@ async function main() {
 
     // Stage 2: extract figures
     await job.setStage("figures", { message: "Vision-driven bbox crop + R2 upload" });
-    runStage("Stage 2/6 — extract figures", "figures", "scripts/pdf-pipeline/extract-figures.mjs", [
+    runStage("Stage 2/9 — extract figures", "figures", "scripts/pdf-pipeline/extract-figures.mjs", [
       pdfPath,
       jsonOut,
     ]);
@@ -156,7 +160,7 @@ async function main() {
 
     // Stage 3: emit CSV
     await job.setStage("csv", { message: "Generating 32-column import CSV" });
-    runStage("Stage 3/6 — generate CSV", "csv", "scripts/pdf-pipeline/json-to-import-csv.mjs", [
+    runStage("Stage 3/9 — generate CSV", "csv", "scripts/pdf-pipeline/json-to-import-csv.mjs", [
       jsonOut,
       pdfPath,
       csvOut,
@@ -165,7 +169,7 @@ async function main() {
     // Stage 4: import to DB
     await job.setStage("importing", { message: "Writing rows to quiz_questions + answer_choices" });
     runStage(
-      "Stage 4/6 — import to database",
+      "Stage 4/9 — import to database",
       "importing",
       "scripts/pdf-pipeline/import-csv-direct.mjs",
       [csvOut]
@@ -177,44 +181,53 @@ async function main() {
     // cost + wall-time unpredictable.
     const sourcePdfBasename = basename(pdfPath);
 
-    // Stage 5: fill explanations (Sonnet + Haiku) — scoped to this PDF
+    // v2 phase 2: extract answer key (with red-ink correction
+    // awareness) BEFORE the grader runs so the grader compares
+    // against selected_official_answer not raw correct_answer.
+    await job.setStage("answer_key", {
+      message: "Detecting answer-key pages + extracting corrections",
+    });
+    runStage(
+      "Stage 5/9 — extract answer key (v2 phase 2)",
+      "answer_key",
+      "scripts/pdf-pipeline/extract-answer-key.mjs",
+      [pdfPath, "--source-pdf", sourcePdfBasename, ...(job.jobId ? ["--job-id", job.jobId] : [])]
+    );
+
+    // Stage 6: fill explanations (Sonnet + Haiku) — scoped to this PDF
     await job.setStage("filling", {
       message: "Sonnet explanation_text + per-choice + Haiku Desmos",
     });
     runStage(
-      "Stage 5/8 — fill explanations",
+      "Stage 6/9 — fill explanations",
       "filling",
       "scripts/content-generation/fill-all.mjs",
       ["--source-pdf", sourcePdfBasename]
     );
 
-    // Stage 6: multi-vote grader (answer-key audit) — scoped to this PDF
+    // Stage 7: multi-vote grader — uses selected_official_answer
     await job.setStage("grading", {
       message: "Flash + DeepSeek + Llama → Pro → Opus consensus check",
     });
     runStage(
-      "Stage 6/8 — multi-vote grader",
+      "Stage 7/9 — multi-vote grader",
       "grading",
       "scripts/question-audit/multi-vote-grader.mjs",
       ["--from-db", "--source-pdf", sourcePdfBasename]
     );
 
-    // Stage 7: strict server-side KaTeX validation
-    // Pure JS, no LLM. Marks any row whose math doesn't render in
-    // strict mode as publish_status='blocked_katex_error'. Without
-    // this, bad LaTeX silently survived to the renderer where
-    // throwOnError:false swallowed it.
+    // Stage 8: strict server-side KaTeX validation
     await job.setStage("validating", {
       message: "Strict server-side KaTeX validation",
     });
     runStage(
-      "Stage 7/8 — validate KaTeX",
+      "Stage 8/9 — validate KaTeX",
       "validating",
       "scripts/question-audit/validate-katex.mjs",
       ["--source-pdf", sourcePdfBasename, "--apply-blocks"]
     );
 
-    // Stage 8: publish-gate — promote rows to publish_ready
+    // Stage 9: publish-gate — promote rows to publish_ready
     // The central enforcement of v2 phase 1. New rows arrived as
     // 'draft' from stage 4; this stage flips them to publish_ready
     // ONLY when every gate passes (KaTeX, grader, slug, required
@@ -222,7 +235,7 @@ async function main() {
     await job.setStage("publishing", {
       message: "Publish-gate evaluation (promote draft → publish_ready)",
     });
-    runStage("Stage 8/8 — publish gate", "publishing", "scripts/pdf-pipeline/publish-gate.mjs", [
+    runStage("Stage 9/9 — publish gate", "publishing", "scripts/pdf-pipeline/publish-gate.mjs", [
       "--source-pdf",
       sourcePdfBasename,
     ]);

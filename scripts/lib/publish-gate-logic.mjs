@@ -93,13 +93,81 @@ export function gateExplanation(q) {
   return null;
 }
 
+// ── v2 phase 2 gates ───────────────────────────────────────────
+
+/** answer_key_status is the result of Phase 2 extract-answer-key.mjs.
+ *  Some statuses are publish-blocking; others just require review. */
+export function gateAnswerKeyStatus(q) {
+  const s = q.answer_key_status;
+  if (!s) return null; // not yet processed by phase 2
+  if (s === "correction_disputed") {
+    return {
+      reason: "answer_key_status=correction_disputed",
+      suggestedStatus: "blocked_answer_dispute",
+    };
+  }
+  if (s === "missing_answer_key" || s === "unverifiable" || s === "question_unanswerable") {
+    return {
+      reason: `answer_key_status=${s}`,
+      suggestedStatus: "needs_human_review",
+    };
+  }
+  if (s === "correction_unclear") {
+    return {
+      reason: "answer_key_status=correction_unclear",
+      suggestedStatus: "needs_human_review",
+    };
+  }
+  if (s === "probably_wrong" || s === "formatting_error") {
+    return {
+      reason: `answer_key_status=${s}`,
+      suggestedStatus: "needs_human_review",
+    };
+  }
+  // 'printed_key_used_no_correction', 'corrected_key_verified', 'correct' → pass
+  return null;
+}
+
+/** Compares solver's verified answer against selected_official_answer.
+ *  If they disagree, this is a publish-blocking dispute that requires
+ *  human review (the grader thinks the printed key is wrong). */
+export function gateAnswerVerification(q) {
+  if (q.answer_verification_status === "disputed") {
+    return {
+      reason: "solver_consensus_disagrees_with_selected_official_answer",
+      suggestedStatus: "blocked_answer_dispute",
+    };
+  }
+  if (q.answer_verification_status === "unverifiable") {
+    return {
+      reason: "answer_verification_status=unverifiable",
+      suggestedStatus: "needs_human_review",
+    };
+  }
+  return null;
+}
+
+/** A corrected (i.e. red-ink-overridden) answer that passed verification
+ *  gets a more truthful publish_status so admins can see it came from
+ *  a hand correction (and might want to spot-check). Returned only when
+ *  the row is otherwise clean. */
+export function postProcessVerifiedRepair(q) {
+  if (q.answer_key_status === "corrected_key_verified") {
+    return "publish_ready_with_verified_repair";
+  }
+  return "publish_ready";
+}
+
 // Strictness order: first match wins.
-// blocked_* (corrupt > katex > answer > slug > visual) before
-// needs_human_review (import_status > explanation).
+// blocked_* (corrupt > katex > answer disputes > slug > visual) before
+// needs_human_review (answer_key_status > import_status > explanation).
+// v2 phase 2 adds answer_verification + answer_key_status gates.
 export const ALL_GATES = [
   gateRequiredFields, // → corrupt_question on missing q_text
   gateKaTeX, // → blocked_katex_error
-  gateGraderVotes, // → blocked_answer_dispute
+  gateGraderVotes, // → blocked_answer_dispute (grader latest summary)
+  gateAnswerVerification, // → blocked_answer_dispute (v2 phase 2: solver vs key)
+  gateAnswerKeyStatus, // → blocked_answer_dispute or needs_human_review (v2 phase 2)
   (q, slugs) => gateSlug(q, slugs), // → blocked_slug_uncertain
   gateMissingVisual, // → blocked_missing_visual
   gateImportStatus, // → needs_human_review (specific reason)
@@ -111,7 +179,16 @@ export function computePublishStatus(q, validSlugs) {
     const r = gate(q, validSlugs);
     if (r) return r;
   }
-  return { reason: "all_gates_pass", suggestedStatus: "publish_ready" };
+  // All gates pass → publish_ready. v2 phase 2: if the key was
+  // a hand-corrected one that verified, distinguish it visibly.
+  const finalStatus = postProcessVerifiedRepair(q);
+  return {
+    reason:
+      finalStatus === "publish_ready_with_verified_repair"
+        ? "all_gates_pass_with_verified_repair"
+        : "all_gates_pass",
+    suggestedStatus: finalStatus,
+  };
 }
 
 // Also export the KaTeX span extractor for shared use in

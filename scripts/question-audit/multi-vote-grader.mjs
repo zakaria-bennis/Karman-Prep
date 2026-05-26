@@ -168,9 +168,16 @@ async function loadFromDb() {
   //   FILTER_SOURCE_PDF=202405us.pdf    — restrict to one PDF
   // Used to scope quick spot-check grading runs against a tiny
   // subset instead of the full 600+ bank.
+  // v2 phase 2: also select selected_official_answer + answer_key_status
+  // so the grader can compare votes against the corrected key, not just
+  // the raw extracted correct_answer.
   let q = supa
     .from("quiz_questions")
-    .select("*, answer_choices(letter, choice_text)")
+    .select(
+      "id, question_text, correct_answer, selected_official_answer, answer_key_status, " +
+        "answer_format, passage_intro, passage, passage_a, passage_b, source_pdf, " +
+        "source_page, domain, answer_choices(letter, choice_text)"
+    )
     .order("source_pdf")
     .order("source_page");
   if (process.env.FILTER_ANSWER_SOURCE) {
@@ -200,6 +207,13 @@ async function loadFromDb() {
       choice_c: get("C"),
       choice_d: get("D"),
       correct_answer: r.correct_answer ?? "",
+      // v2 phase 2: prefer selected_official_answer (set by
+      // extract-answer-key.mjs after reading red corrections /
+      // cross-outs from the printed key) over correct_answer
+      // (the v1 raw extracted key). Falls back to correct_answer
+      // when phase 2 hasn't run yet.
+      selected_official_answer: r.selected_official_answer ?? null,
+      answer_key_status: r.answer_key_status ?? null,
       question_format: r.answer_format ?? "multiple_choice",
       passage_intro: r.passage_intro ?? "",
       passage: r.passage ?? "",
@@ -412,7 +426,14 @@ async function main() {
 
     const okCount = votes.filter((v) => v.ok).length;
     const { majority, consensus, validCount } = tallyVotes(votes, isSpr);
-    const stored = row.correct_answer;
+    // v2 phase 2: the "stored" answer the grader compares against is
+    // now selected_official_answer when present (set by Phase 2's
+    // extract-answer-key.mjs after reading red corrections from the
+    // printed key). Falls back to correct_answer (v1 raw) when
+    // Phase 2 hasn't run on this row yet.
+    const stored = row.selected_official_answer ?? row.correct_answer;
+    const usingCorrection =
+      !!row.selected_official_answer && row.selected_official_answer !== row.correct_answer;
 
     const baseEntry = {
       idx: i + 1,
@@ -421,6 +442,11 @@ async function main() {
       source_page: row.source_page,
       domain: row.domain,
       stored,
+      // Track WHICH source of truth the grader used so the report
+      // (and admin UI) can show "key came from manual correction".
+      stored_source: row.selected_official_answer ? "selected_official_answer" : "correct_answer",
+      using_correction: usingCorrection,
+      answer_key_status_at_grading: row.answer_key_status ?? null,
       pass1: {
         // Include error text on failed voters so silent failures (auth
         // problems, malformed schemas, header issues) are visible in
@@ -595,6 +621,11 @@ async function persistGraderVotesToDb(results) {
     const votes = {
       graded_at: gradedAt,
       stored_answer: r.stored ?? null,
+      // v2 phase 2: track which source of truth the grader compared
+      // against so the admin UI can show "this question's key came
+      // from a manual red correction" when relevant.
+      stored_source: r.stored_source ?? "correct_answer",
+      using_correction: r.using_correction ?? false,
       verdict: r.verdict,
       pass1: {
         ...(flash != null ? { flash } : {}),
@@ -606,10 +637,26 @@ async function persistGraderVotesToDb(results) {
       ...(r.pass2?.answer ? { pass2_pro: r.pass2.answer } : {}),
       ...(r.pass3?.answer ? { pass3_opus: r.pass3.answer } : {}),
     };
-    const { error } = await supa
-      .from("quiz_questions")
-      .update({ grader_votes: votes })
-      .eq("id", r.id);
+
+    // v2 phase 2: derive answer_verification_status from the verdict
+    // + the grader's final answer. This is the field publish-gate
+    // reads to decide whether the question can publish.
+    const finalSolverAnswer = r.pass3?.answer ?? r.pass2?.answer ?? r.pass1?.majority ?? null;
+    let answerVerificationStatus = null;
+    if (finalSolverAnswer && r.stored) {
+      // Re-use the pure helper from answer-key-logic so the rule
+      // lives in one place.
+      const { answerVerificationStatus: derive } = await import("../lib/answer-key-logic.mjs");
+      answerVerificationStatus = derive({
+        solverVote: finalSolverAnswer,
+        selectedOfficial: r.stored,
+        verdict: r.verdict,
+      });
+    }
+
+    const update = { grader_votes: votes };
+    if (answerVerificationStatus) update.answer_verification_status = answerVerificationStatus;
+    const { error } = await supa.from("quiz_questions").update(update).eq("id", r.id);
     if (error) {
       errored++;
       if (errored <= 3) console.log(`  ✗ ${r.id}: ${error.message}`);
