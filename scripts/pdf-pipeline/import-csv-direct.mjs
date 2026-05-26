@@ -17,6 +17,7 @@
 // ============================================================
 
 import { readFileSync } from "node:fs";
+import { createHash } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 
 const csvPath = process.argv[2];
@@ -160,6 +161,31 @@ function legacyDifficulty(level) {
   return "mastery";
 }
 
+// ── v2 content hash (sha256, includes passage fields) ────────
+// Replaces v1 SHA-1 hash that only covered question_text + 4 choices,
+// causing collisions on cross-text questions where stem + choices
+// were identical but passages differed (audit CRIT-4).
+// Phase 1 writes this alongside v1 content_hash — not yet UNIQUE in
+// the DB until backfill is collision-tested.
+function computeContentHashV2(fields) {
+  const parts = [
+    fields.subject ?? "",
+    fields.domain ?? "",
+    fields.answer_format ?? "",
+    fields.passage_intro ?? "",
+    fields.passage ?? "",
+    fields.passage_a ?? "",
+    fields.passage_b ?? "",
+    fields.question_text ?? "",
+    fields.choice_a ?? "",
+    fields.choice_b ?? "",
+    fields.choice_c ?? "",
+    fields.choice_d ?? "",
+  ];
+  const normalized = parts.map((p) => String(p).trim().toLowerCase()).join("|");
+  return createHash("sha256").update(normalized, "utf-8").digest("hex");
+}
+
 async function main() {
   const text = readFileSync(csvPath, "utf-8");
   const rows = parseCsv(text);
@@ -235,6 +261,29 @@ async function main() {
     const eD = get("explanation_d");
     const explanationPerChoice = eA || eB || eC || eD ? { A: eA, B: eB, C: eC, D: eD } : null;
 
+    // ── v2 phase 1: publish_status gating ────────────────
+    // New rows do NOT become student-facing on import. Only
+    // publish-gate.mjs (run after grading + KaTeX validation)
+    // promotes them to 'publish_ready'. import_status='ok' is
+    // now ingestion metadata only.
+    const publishStatus = isFlagged ? "needs_human_review" : "draft";
+
+    // ── v2 phase 1: content_hash_v2 ──────────────────────
+    const contentHashV2 = computeContentHashV2({
+      subject,
+      domain,
+      answer_format: format,
+      passage_intro: get("passage_intro"),
+      passage: get("passage"),
+      passage_a: get("passage_a"),
+      passage_b: get("passage_b"),
+      question_text: get("question_text"),
+      choice_a: get("choice_a"),
+      choice_b: get("choice_b"),
+      choice_c: get("choice_c"),
+      choice_d: get("choice_d"),
+    });
+
     // Insert quiz_questions
     const insertPayload = {
       node_id,
@@ -261,9 +310,11 @@ async function main() {
       source_pdf: get("source_pdf") || null,
       source_page: Number.isFinite(sourcePage) ? sourcePage : null,
       content_hash: get("content_hash") || null,
+      content_hash_v2: contentHashV2,
       import_status: importStatus,
       import_flag_type: flagType,
       import_flag_reason: flagReason,
+      publish_status: publishStatus,
       // Figure URL + alt-text from the extract-figures.mjs stage.
       // Without these, every figure cropped + uploaded to R2 by
       // the pipeline was silently dropped during DB insert — the
@@ -303,6 +354,63 @@ async function main() {
         result.errored++;
         result.errors.push({ row: idx + 2, msg: `choices: ${ce.message}` });
         continue;
+      }
+    }
+
+    // ── v2 phase 1: seed answer_key_entries ──────────────
+    // For now we mirror the printed correct_answer as the selected
+    // official answer with status 'printed_key_used_no_correction'.
+    // Phase 2 will replace this with correction-aware parsing that
+    // detects crossed-out / hand-corrected key pages.
+    const correctLetter = get("correct_answer");
+    if (correctLetter) {
+      const { error: akeErr } = await supabase.from("answer_key_entries").insert({
+        question_id: inserted.id,
+        printed_answer: correctLetter,
+        printed_answer_crossed_out: false,
+        manual_correction_present: false,
+        selected_official_answer: correctLetter,
+        selection_reason: "phase1_seed_from_printed_correct_answer",
+        status: "printed_key_used_no_correction",
+      });
+      if (akeErr) {
+        // Non-fatal — log but keep the question. The publish-gate
+        // will surface missing answer_key_entries if it cares.
+        console.log(`  row ${idx + 2}: answer_key_entries insert failed: ${akeErr.message}`);
+      }
+
+      // Also mirror to quiz_questions.selected_official_answer +
+      // answer_key_status so the publish-gate can read either source
+      // of truth.
+      await supabase
+        .from("quiz_questions")
+        .update({
+          selected_official_answer: correctLetter,
+          answer_key_status: "printed_key_used_no_correction",
+        })
+        .eq("id", inserted.id);
+    }
+
+    // ── v2 phase 1: register figure as a source_asset ────
+    // The image_url column is the runtime view; source_assets is the
+    // audit/lineage registry. Phase 4 will add page_image, question_crop,
+    // answer_key_crop rows; for now only figure_crop is populated.
+    const imageUrl = get("image_url");
+    if (imageUrl) {
+      const { error: saErr } = await supabase.from("source_assets").insert({
+        question_id: inserted.id,
+        source_pdf: get("source_pdf") || null,
+        page_number: Number.isFinite(sourcePage) ? sourcePage : null,
+        asset_type: "figure_crop",
+        asset_path: imageUrl,
+        public_url: imageUrl,
+        crop_complete: true,
+        relevance: "required",
+        use_in_solving: true,
+        validation_status: "imported_from_v1",
+      });
+      if (saErr) {
+        console.log(`  row ${idx + 2}: source_assets insert failed: ${saErr.message}`);
       }
     }
 

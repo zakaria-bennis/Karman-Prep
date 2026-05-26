@@ -38,6 +38,10 @@ const args = process.argv.slice(2);
 const DRY_RUN = args.includes("--dry-run");
 const FORCE = args.includes("--force");
 const LIMIT = process.env.LIMIT ? parseInt(process.env.LIMIT, 10) : null;
+// v2 phase 1: filter to a single source_pdf (see generate-explanation-text.mjs).
+const SOURCE_PDF_IDX = args.indexOf("--source-pdf");
+const SOURCE_PDF =
+  SOURCE_PDF_IDX >= 0 && args[SOURCE_PDF_IDX + 1] ? args[SOURCE_PDF_IDX + 1] : null;
 
 const SUPA_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const SUPA_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -114,13 +118,18 @@ async function main() {
   console.log("Loading candidate MC questions…");
   // Pull only multiple_choice rows (per-choice doesn't apply to
   // numeric_entry). Filter out empty question_text. Join choices.
-  const { data: rows, error } = await supabase
+  let query = supabase
     .from("quiz_questions")
     .select(
       "id, source_pdf, source_page, question_text, correct_answer, passage, passage_a, passage_b, explanation_per_choice, answer_format, answer_choices(letter, choice_text)"
     )
     .eq("answer_format", "multiple_choice")
     .order("source_pdf", { ascending: true, nullsFirst: false });
+  if (SOURCE_PDF) {
+    query = query.eq("source_pdf", SOURCE_PDF);
+    console.log(`Filtering to source_pdf="${SOURCE_PDF}"`);
+  }
+  const { data: rows, error } = await query;
   if (error) throw error;
   let candidates = (rows ?? []).map((r) => ({
     ...r,

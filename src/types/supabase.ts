@@ -1837,6 +1837,14 @@ export type Database = {
           subject: Database["public"]["Enums"]["quiz_subject"];
           topic_cluster: string;
           updated_at: string | null;
+          // ── v2 phase 1 additions ─────────────────────────
+          publish_status: string;
+          selected_official_answer: string | null;
+          verified_answer: string | null;
+          answer_key_status: string | null;
+          answer_verification_status: string | null;
+          content_hash_v2: string | null;
+          grader_votes: Json | null;
         };
         Insert: {
           answer_format?: Database["public"]["Enums"]["question_format"];
@@ -1878,6 +1886,14 @@ export type Database = {
           subject: Database["public"]["Enums"]["quiz_subject"];
           topic_cluster: string;
           updated_at?: string | null;
+          // ── v2 phase 1 additions ─────────────────────────
+          publish_status?: string;
+          selected_official_answer?: string | null;
+          verified_answer?: string | null;
+          answer_key_status?: string | null;
+          answer_verification_status?: string | null;
+          content_hash_v2?: string | null;
+          grader_votes?: Json | null;
         };
         Update: {
           answer_format?: Database["public"]["Enums"]["question_format"];
@@ -1919,6 +1935,14 @@ export type Database = {
           subject?: Database["public"]["Enums"]["quiz_subject"];
           topic_cluster?: string;
           updated_at?: string | null;
+          // ── v2 phase 1 additions ─────────────────────────
+          publish_status?: string;
+          selected_official_answer?: string | null;
+          verified_answer?: string | null;
+          answer_key_status?: string | null;
+          answer_verification_status?: string | null;
+          content_hash_v2?: string | null;
+          grader_votes?: Json | null;
         };
         Relationships: [];
       };
@@ -2743,6 +2767,203 @@ export type Database = {
           domain?: string | null;
           subject?: string | null;
           question_preview?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      grader_runs: {
+        Row: {
+          id: string;
+          question_id: string;
+          run_group_id: string | null;
+          grader_role: string;
+          provider: string;
+          model: string;
+          selected_answer: string | null;
+          normalized_answer: string | null;
+          confidence: number | null;
+          answer_key_match: boolean | null;
+          is_answerable: boolean | null;
+          suspected_formatting_issue: boolean | null;
+          formatting_flags: Json;
+          visual_flags: Json;
+          reasoning_summary: string | null;
+          choice_analysis_json: Json | null;
+          raw_response_json: Json | null;
+          input_hash: string | null;
+          output_hash: string | null;
+          cost_estimate: number | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          question_id: string;
+          run_group_id?: string | null;
+          grader_role: string;
+          provider: string;
+          model: string;
+          selected_answer?: string | null;
+          normalized_answer?: string | null;
+          confidence?: number | null;
+          answer_key_match?: boolean | null;
+          is_answerable?: boolean | null;
+          suspected_formatting_issue?: boolean | null;
+          formatting_flags?: Json;
+          visual_flags?: Json;
+          reasoning_summary?: string | null;
+          choice_analysis_json?: Json | null;
+          raw_response_json?: Json | null;
+          input_hash?: string | null;
+          output_hash?: string | null;
+          cost_estimate?: number | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          question_id?: string;
+          run_group_id?: string | null;
+          grader_role?: string;
+          provider?: string;
+          model?: string;
+          selected_answer?: string | null;
+          normalized_answer?: string | null;
+          confidence?: number | null;
+          answer_key_match?: boolean | null;
+          is_answerable?: boolean | null;
+          suspected_formatting_issue?: boolean | null;
+          formatting_flags?: Json;
+          visual_flags?: Json;
+          reasoning_summary?: string | null;
+          choice_analysis_json?: Json | null;
+          raw_response_json?: Json | null;
+          input_hash?: string | null;
+          output_hash?: string | null;
+          cost_estimate?: number | null;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "grader_runs_question_id_fkey";
+            columns: ["question_id"];
+            isOneToOne: false;
+            referencedRelation: "quiz_questions";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      source_assets: {
+        Row: {
+          id: string;
+          question_id: string | null;
+          pdf_job_id: string | null;
+          source_pdf: string | null;
+          page_number: number | null;
+          asset_type: string;
+          asset_path: string;
+          public_url: string | null;
+          bbox: Json | null;
+          crop_complete: boolean | null;
+          relevance: string | null;
+          repeated_across_pages: boolean;
+          use_in_solving: boolean;
+          validation_status: string | null;
+          notes: string | null;
+          raw_metadata: Json;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          question_id?: string | null;
+          pdf_job_id?: string | null;
+          source_pdf?: string | null;
+          page_number?: number | null;
+          asset_type: string;
+          asset_path: string;
+          public_url?: string | null;
+          bbox?: Json | null;
+          crop_complete?: boolean | null;
+          relevance?: string | null;
+          repeated_across_pages?: boolean;
+          use_in_solving?: boolean;
+          validation_status?: string | null;
+          notes?: string | null;
+          raw_metadata?: Json;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          question_id?: string | null;
+          pdf_job_id?: string | null;
+          source_pdf?: string | null;
+          page_number?: number | null;
+          asset_type?: string;
+          asset_path?: string;
+          public_url?: string | null;
+          bbox?: Json | null;
+          crop_complete?: boolean | null;
+          relevance?: string | null;
+          repeated_across_pages?: boolean;
+          use_in_solving?: boolean;
+          validation_status?: string | null;
+          notes?: string | null;
+          raw_metadata?: Json;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      answer_key_entries: {
+        Row: {
+          id: string;
+          question_id: string | null;
+          printed_answer: string | null;
+          printed_answer_crossed_out: boolean | null;
+          manual_correction_present: boolean;
+          manual_correction_color: string | null;
+          manual_correction_answer: string | null;
+          manual_correction_confidence: number | null;
+          selected_official_answer: string | null;
+          selection_reason: string | null;
+          answer_key_crop_path: string | null;
+          answer_key_page: number | null;
+          answer_key_bbox: Json | null;
+          status: string | null;
+          raw_model_response: Json | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          question_id?: string | null;
+          printed_answer?: string | null;
+          printed_answer_crossed_out?: boolean | null;
+          manual_correction_present?: boolean;
+          manual_correction_color?: string | null;
+          manual_correction_answer?: string | null;
+          manual_correction_confidence?: number | null;
+          selected_official_answer?: string | null;
+          selection_reason?: string | null;
+          answer_key_crop_path?: string | null;
+          answer_key_page?: number | null;
+          answer_key_bbox?: Json | null;
+          status?: string | null;
+          raw_model_response?: Json | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          question_id?: string | null;
+          printed_answer?: string | null;
+          printed_answer_crossed_out?: boolean | null;
+          manual_correction_present?: boolean;
+          manual_correction_color?: string | null;
+          manual_correction_answer?: string | null;
+          manual_correction_confidence?: number | null;
+          selected_official_answer?: string | null;
+          selection_reason?: string | null;
+          answer_key_crop_path?: string | null;
+          answer_key_page?: number | null;
+          answer_key_bbox?: Json | null;
+          status?: string | null;
+          raw_model_response?: Json | null;
           created_at?: string;
         };
         Relationships: [];
