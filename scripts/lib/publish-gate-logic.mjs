@@ -158,10 +158,97 @@ export function postProcessVerifiedRepair(q) {
   return "publish_ready";
 }
 
+// ── v2 phase 3 gates — source evidence (OPT-IN) ────────────────
+//
+// Every gate below short-circuits on `q.source_assets_processed_at`
+// being null. That column is set by extract-question-crops.mjs (or
+// the backfill) when the row goes through Phase 3 processing.
+// Pre-Phase-3 rows have it null and these gates DO NOT FIRE on them.
+//
+// This was the central design call from the user: "old v1 rows
+// should not all be newly flagged just because Phase 3 exists."
+
+const LOW_CONFIDENCE_THRESHOLD = 0.75;
+
+function isPhase3Active(q) {
+  return q.source_assets_processed_at != null;
+}
+
+export function gateMissingSourcePage(q) {
+  if (!isPhase3Active(q)) return null;
+  if (q.source_page != null) return null;
+  return {
+    reason: "phase3_source_page_missing",
+    suggestedStatus: "needs_human_review",
+  };
+}
+
+export function gateMissingQuestionCrop(q) {
+  if (!isPhase3Active(q)) return null;
+  if (q.has_question_crop) return null;
+  return {
+    reason: "phase3_missing_question_crop",
+    suggestedStatus: "needs_human_review",
+  };
+}
+
+export function gateLowCropConfidence(q) {
+  if (!isPhase3Active(q)) return null;
+  if (q.question_crop_match_confidence == null) return null;
+  if (q.question_crop_match_confidence >= LOW_CONFIDENCE_THRESHOLD) return null;
+  return {
+    reason: `phase3_low_crop_confidence=${q.question_crop_match_confidence}`,
+    suggestedStatus: "needs_human_review",
+  };
+}
+
+export function gateOrderedFallbackMatch(q) {
+  if (!isPhase3Active(q)) return null;
+  if (q.question_crop_match_method !== "ordered_fallback") return null;
+  return {
+    reason: "phase3_match_method=ordered_fallback",
+    suggestedStatus: "needs_human_review",
+  };
+}
+
+export function gateOrphanCropsOnPage(q) {
+  if (!isPhase3Active(q)) return null;
+  if (!q.has_orphan_crops_on_page) return null;
+  return {
+    reason: "phase3_orphan_crops_on_page",
+    suggestedStatus: "needs_human_review",
+  };
+}
+
+export function gateCropCountMismatch(q) {
+  if (!isPhase3Active(q)) return null;
+  // The signal lives on processed_status='partial' with a specific
+  // marker the script sets. For Phase 3 v1 we treat any 'partial'
+  // status that ALSO has orphan crops on the page as a count mismatch.
+  if (q.source_assets_processed_status !== "partial") return null;
+  if (!q.has_orphan_crops_on_page) return null;
+  return {
+    reason: "phase3_crop_count_mismatch",
+    suggestedStatus: "needs_human_review",
+  };
+}
+
+export function gateIncompleteCrop(q) {
+  if (!isPhase3Active(q)) return null;
+  if (q.question_crop_complete !== false) return null; // null or true → pass
+  return {
+    reason: "phase3_crop_complete=false",
+    suggestedStatus: "needs_human_review",
+  };
+}
+
 // Strictness order: first match wins.
 // blocked_* (corrupt > katex > answer disputes > slug > visual) before
-// needs_human_review (answer_key_status > import_status > explanation).
+// needs_human_review (answer_key_status > import_status > phase3 source
+// evidence > explanation).
 // v2 phase 2 adds answer_verification + answer_key_status gates.
+// v2 phase 3 adds 7 source-evidence gates, all OPT-IN (no-op when
+// source_assets_processed_at is null — so old v1 rows aren't affected).
 export const ALL_GATES = [
   gateRequiredFields, // → corrupt_question on missing q_text
   gateKaTeX, // → blocked_katex_error
@@ -171,6 +258,15 @@ export const ALL_GATES = [
   (q, slugs) => gateSlug(q, slugs), // → blocked_slug_uncertain
   gateMissingVisual, // → blocked_missing_visual
   gateImportStatus, // → needs_human_review (specific reason)
+  // ── v2 phase 3 (all opt-in via source_assets_processed_at) ──
+  gateMissingSourcePage,
+  gateMissingQuestionCrop,
+  gateLowCropConfidence,
+  gateOrderedFallbackMatch,
+  gateOrphanCropsOnPage,
+  gateCropCountMismatch,
+  gateIncompleteCrop,
+  // ── softest gate runs last ──
   gateExplanation, // → needs_human_review (softer)
 ];
 

@@ -71,19 +71,45 @@ try {
 
 async function main() {
   console.log("Loading rows for publish-gate evaluation…");
-  let query = supabase.from("quiz_questions").select(
-    "id, source_pdf, source_page, publish_status, import_status, import_flag_type, " +
-      "import_flag_reason, concept_slug, question_text, correct_answer, answer_format, " +
-      "explanation_text, image_url, grader_votes, " +
-      // v2 phase 2: answer-key + verification status drive new gates
-      "answer_key_status, answer_verification_status, selected_official_answer, " +
-      "answer_choices(letter, choice_text)"
-  );
+  // v2 phase 3: also fetch source-evidence signals from the
+  // quiz_questions_phase3_signals view so the new gates can read
+  // has_question_crop, match_confidence, has_orphan_crops_on_page,
+  // etc. without an N+1 join.
+  let query = supabase
+    .from("quiz_questions")
+    .select(
+      "id, source_pdf, source_page, publish_status, import_status, import_flag_type, " +
+        "import_flag_reason, concept_slug, question_text, correct_answer, answer_format, " +
+        "explanation_text, image_url, grader_votes, " +
+        "answer_key_status, answer_verification_status, selected_official_answer, " +
+        "source_assets_processed_at, source_assets_processed_status, " +
+        "answer_choices(letter, choice_text)"
+    );
   if (QUESTION_ID) query = query.eq("id", QUESTION_ID);
   else if (SOURCE_PDF) query = query.eq("source_pdf", SOURCE_PDF);
 
-  const { data: rows, error } = await query;
+  const { data: baseRows, error } = await query;
   if (error) throw error;
+
+  // Hydrate each row with the Phase 3 view's signals. We could fetch
+  // from the view directly, but the view doesn't include answer_choices
+  // or the v1+v2 columns above. Easiest: fetch the view's columns for
+  // the same id set and merge in JS.
+  let signalsByQid = new Map();
+  if (baseRows.length > 0) {
+    const ids = baseRows.map((r) => r.id);
+    const { data: signals } = await supabase
+      .from("quiz_questions_phase3_signals")
+      .select("*")
+      .in("question_id", ids);
+    signalsByQid = new Map((signals ?? []).map((s) => [s.question_id, s]));
+  }
+
+  const rows = baseRows.map((r) => ({
+    ...r,
+    // Merge Phase 3 view signals (have_question_crop, match_method, etc.)
+    ...(signalsByQid.get(r.id) ?? {}),
+  }));
 
   console.log(`Evaluating ${rows.length} rows…`);
   const tally = {};

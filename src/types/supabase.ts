@@ -1845,6 +1845,12 @@ export type Database = {
           answer_verification_status: string | null;
           content_hash_v2: string | null;
           grader_votes: Json | null;
+          // ── v2 phase 3 additions ─────────────────────────
+          question_bbox: Json | null;
+          question_bbox_confidence: number | null;
+          question_bbox_source_asset_id: string | null;
+          source_assets_processed_at: string | null;
+          source_assets_processed_status: string | null;
         };
         Insert: {
           answer_format?: Database["public"]["Enums"]["question_format"];
@@ -1894,6 +1900,12 @@ export type Database = {
           answer_verification_status?: string | null;
           content_hash_v2?: string | null;
           grader_votes?: Json | null;
+          // ── v2 phase 3 additions ─────────────────────────
+          question_bbox?: Json | null;
+          question_bbox_confidence?: number | null;
+          question_bbox_source_asset_id?: string | null;
+          source_assets_processed_at?: string | null;
+          source_assets_processed_status?: string | null;
         };
         Update: {
           answer_format?: Database["public"]["Enums"]["question_format"];
@@ -1943,6 +1955,12 @@ export type Database = {
           answer_verification_status?: string | null;
           content_hash_v2?: string | null;
           grader_votes?: Json | null;
+          // ── v2 phase 3 additions ─────────────────────────
+          question_bbox?: Json | null;
+          question_bbox_confidence?: number | null;
+          question_bbox_source_asset_id?: string | null;
+          source_assets_processed_at?: string | null;
+          source_assets_processed_status?: string | null;
         };
         Relationships: [];
       };
@@ -2870,6 +2888,11 @@ export type Database = {
           notes: string | null;
           raw_metadata: Json;
           created_at: string;
+          // ── v2 phase 3 additions ─────────────────────────
+          parent_asset_id: string | null;
+          match_method: string | null;
+          match_confidence: number | null;
+          matched_source_question_number: number | null;
         };
         Insert: {
           id?: string;
@@ -2889,6 +2912,11 @@ export type Database = {
           notes?: string | null;
           raw_metadata?: Json;
           created_at?: string;
+          // ── v2 phase 3 additions ─────────────────────────
+          parent_asset_id?: string | null;
+          match_method?: string | null;
+          match_confidence?: number | null;
+          matched_source_question_number?: number | null;
         };
         Update: {
           id?: string;
@@ -2908,6 +2936,11 @@ export type Database = {
           notes?: string | null;
           raw_metadata?: Json;
           created_at?: string;
+          // ── v2 phase 3 additions ─────────────────────────
+          parent_asset_id?: string | null;
+          match_method?: string | null;
+          match_confidence?: number | null;
+          matched_source_question_number?: number | null;
         };
         Relationships: [];
       };
@@ -3012,6 +3045,21 @@ export type Database = {
       };
     };
     Views: {
+      quiz_questions_phase3_signals: {
+        Row: {
+          question_id: string;
+          source_pdf: string | null;
+          source_page: number | null;
+          source_assets_processed_at: string | null;
+          source_assets_processed_status: string | null;
+          question_crop_match_method: string | null;
+          question_crop_match_confidence: number | null;
+          question_crop_complete: boolean | null;
+          has_question_crop: boolean | null;
+          has_orphan_crops_on_page: boolean | null;
+        };
+        Relationships: [];
+      };
       active_cohort_for_student: {
         Row: {
           cohort_id: string | null;

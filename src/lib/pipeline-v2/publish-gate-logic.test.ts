@@ -317,3 +317,187 @@ describe("extractMathSpans", () => {
     expect(spans.some((s) => !s.displayMode && s.latex === "y^2")).toBe(true);
   });
 });
+
+// ── v2 phase 3 — opt-in gates ───────────────────────────────
+
+describe("computePublishStatus — v2 phase 3 (opt-in)", () => {
+  it("ALL phase 3 gates short-circuit when source_assets_processed_at is null", () => {
+    // Even with every weak-evidence signal present, a row that
+    // hasn't been through Phase 3 stays publish_ready.
+    const r = computePublishStatus(
+      {
+        ...baseRow,
+        source_assets_processed_at: null,
+        has_question_crop: false,
+        question_crop_match_confidence: 0.1,
+        question_crop_match_method: "ordered_fallback",
+        has_orphan_crops_on_page: true,
+        question_crop_complete: false,
+        source_assets_processed_status: "partial",
+      },
+      slugs
+    );
+    expect(r.suggestedStatus).toBe("publish_ready");
+  });
+});
+
+describe("computePublishStatus — v2 phase 3 gates fire when opted in", () => {
+  const phase3Row = {
+    ...baseRow,
+    source_assets_processed_at: "2026-05-26T03:00:00Z",
+  };
+
+  it("gateMissingSourcePage", () => {
+    const r = computePublishStatus({ ...phase3Row, source_page: null }, slugs);
+    expect(r.suggestedStatus).toBe("needs_human_review");
+    expect(r.reason).toMatch(/source_page_missing/);
+  });
+
+  it("gateMissingQuestionCrop", () => {
+    const r = computePublishStatus(
+      { ...phase3Row, source_page: 17, has_question_crop: false },
+      slugs
+    );
+    expect(r.suggestedStatus).toBe("needs_human_review");
+    expect(r.reason).toMatch(/missing_question_crop/);
+  });
+
+  it("gateLowCropConfidence at 0.5", () => {
+    const r = computePublishStatus(
+      {
+        ...phase3Row,
+        source_page: 17,
+        has_question_crop: true,
+        question_crop_match_confidence: 0.5,
+      },
+      slugs
+    );
+    expect(r.suggestedStatus).toBe("needs_human_review");
+    expect(r.reason).toMatch(/low_crop_confidence/);
+  });
+
+  it("gateLowCropConfidence PASSES at 0.75 boundary", () => {
+    const r = computePublishStatus(
+      {
+        ...phase3Row,
+        source_page: 17,
+        has_question_crop: true,
+        question_crop_match_confidence: 0.75,
+        question_crop_complete: true,
+      },
+      slugs
+    );
+    expect(r.suggestedStatus).toBe("publish_ready");
+  });
+
+  it("gateOrderedFallbackMatch", () => {
+    const r = computePublishStatus(
+      {
+        ...phase3Row,
+        source_page: 17,
+        has_question_crop: true,
+        question_crop_match_confidence: 0.9,
+        question_crop_match_method: "ordered_fallback",
+      },
+      slugs
+    );
+    expect(r.suggestedStatus).toBe("needs_human_review");
+    expect(r.reason).toMatch(/ordered_fallback/);
+  });
+
+  it("gateOrphanCropsOnPage", () => {
+    const r = computePublishStatus(
+      {
+        ...phase3Row,
+        source_page: 17,
+        has_question_crop: true,
+        question_crop_match_confidence: 0.9,
+        question_crop_complete: true,
+        has_orphan_crops_on_page: true,
+      },
+      slugs
+    );
+    expect(r.suggestedStatus).toBe("needs_human_review");
+    expect(r.reason).toMatch(/orphan_crops_on_page/);
+  });
+
+  it("gateIncompleteCrop", () => {
+    const r = computePublishStatus(
+      {
+        ...phase3Row,
+        source_page: 17,
+        has_question_crop: true,
+        question_crop_match_confidence: 0.9,
+        question_crop_complete: false,
+      },
+      slugs
+    );
+    expect(r.suggestedStatus).toBe("needs_human_review");
+    expect(r.reason).toMatch(/crop_complete=false/);
+  });
+});
+
+describe("computePublishStatus — phase 3 ordering vs Phase 1/2", () => {
+  const phase3Row = {
+    ...baseRow,
+    source_assets_processed_at: "2026-05-26T03:00:00Z",
+  };
+
+  it("Phase 1 blocking gate (KaTeX) BEATS Phase 3 weak-evidence", () => {
+    const r = computePublishStatus(
+      {
+        ...phase3Row,
+        publish_status: "blocked_katex_error",
+        has_question_crop: false,
+      },
+      slugs
+    );
+    expect(r.suggestedStatus).toBe("blocked_katex_error");
+  });
+
+  it("Phase 2 blocking gate (correction_disputed) BEATS Phase 3", () => {
+    const r = computePublishStatus(
+      {
+        ...phase3Row,
+        answer_key_status: "correction_disputed",
+        has_question_crop: false,
+      },
+      slugs
+    );
+    expect(r.suggestedStatus).toBe("blocked_answer_dispute");
+  });
+
+  it("Phase 3 missing-crop BEATS Phase 1 missing-explanation", () => {
+    const r = computePublishStatus(
+      {
+        ...phase3Row,
+        source_page: 17, // satisfies gateMissingSourcePage so we test the right gate
+        has_question_crop: false,
+        explanation_text: "",
+      },
+      slugs
+    );
+    expect(r.suggestedStatus).toBe("needs_human_review");
+    expect(r.reason).toMatch(/missing_question_crop/);
+  });
+});
+
+describe("computePublishStatus — clean phase 3 row publishes", () => {
+  it("all signals green, all gates pass", () => {
+    const r = computePublishStatus(
+      {
+        ...baseRow,
+        source_assets_processed_at: "2026-05-26T03:00:00Z",
+        source_assets_processed_status: "complete",
+        source_page: 17,
+        has_question_crop: true,
+        question_crop_match_confidence: 0.95,
+        question_crop_match_method: "page_passage_snippet",
+        question_crop_complete: true,
+        has_orphan_crops_on_page: false,
+      },
+      slugs
+    );
+    expect(r.suggestedStatus).toBe("publish_ready");
+  });
+});

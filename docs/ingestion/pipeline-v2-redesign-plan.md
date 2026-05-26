@@ -2185,8 +2185,203 @@ Phase 3 is complete when:
 - [ ] `publish-gate-logic.mjs` adds the seven new gates and routes weak evidence to `needs_human_review`.
 - [ ] Per-PDF summary is written to stdout AND `pdf_processing_jobs.progress.crops_summary`.
 - [ ] Backfill script exists for v1 rows.
-- [ ] Preview page exposes Crop + Expanded chips with match-confidence badges.
-- [ ] Inspector page exposes a Source-lineage section listing every asset with its match info.
 - [ ] DB verification script asserts the new constraints + FK behavior.
+
+> **DEFERRED to Phase 3.5 (see below):** Preview page Crop + Expanded chips, Inspector page Source-lineage section, match-confidence badges. The DB + script layer ships in Phase 3 (PR #171); the admin UI surfacing is a separate PR so the lineage UI gets the design attention it deserves without holding up the pipeline work.
+
+---
+
+# Phase 3.5 Implementation Spec — Admin UI Source-Lineage Surfacing
+
+## Objective
+
+Make the Phase 3 source-asset lineage visible to admins on the Preview and Inspector pages. Phase 3 wrote rows; Phase 3.5 makes them clickable, scannable, and trustworthy.
+
+The central question this phase answers: **"For this question, what does the original PDF page actually look like, and how confident is the system that the crop is correct?"** Today the admin has to dig into the database or click out to the source PDF. Phase 3.5 surfaces the answer inline.
+
+---
+
+## Phase 3.5 Scope
+
+Implement:
+
+1. **Preview page — two new toggle chips** next to the existing PDF chip:
+   - `Crop` — shows the matched `question_crop` image inline.
+   - `Expanded` — shows the matched `expanded_question_crop`.
+   - Each chip's header displays a match-confidence badge (e.g. "matched via passage · 0.90").
+   - If the row has `has_orphan_crops_on_page = true`, an amber warning banner appears above the figure cards: "⚠ Orphan crops exist on this PDF page — the matcher couldn't pair every detected question with a DB row."
+2. **Inspector page — new "Source lineage" section** above the existing findings + history panes. Lists every `source_assets` row attached to the question, grouped by `asset_type`. Each row shows:
+   - Asset type icon + label.
+   - Filename (last path segment of `asset_path`).
+   - Match confidence badge (when applicable).
+   - `crop_complete` indicator (green check or amber warning).
+   - `[view]` button opening the public URL in a new tab.
+3. **Per-question lineage data layer** — a small server-side helper that loads the asset list + the matching aggregate row from `quiz_questions_phase3_signals` in one round trip.
+4. **Orphan warning surfacing** — anywhere a row with `has_orphan_crops_on_page = true` is rendered (preview sidebar list, inspector header), show a small "⚠ orphan-on-page" pill so the admin knows the page needs re-review.
+
+---
+
+## Phase 3.5 Non-Goals
+
+Defer to later phases:
+
+- **Inline image modal / zoom** — `[view]` opens a new tab for now. Inline modal can come in Phase 4 (when figure relevance UI lands).
+- **Admin re-crop / bbox-override UI** — Phase 3.5 displays the lineage; it does NOT let the admin manually adjust bboxes. That belongs in a dedicated polish PR after Phase 4.
+- **Backfill UI** — running the backfill stays a CLI script. No admin button to backfill a PDF.
+- **Bulk operations on assets** — no "delete all orphans on this PDF" button. Use the `--force` CLI flag.
+- **Side-by-side compare view** — Phase 3 ships chip-per-asset; Phase 4 may layer in a website-vs-source comparison overlay.
+
+---
+
+## 1. Data layer
+
+Add one server helper:
+
+```ts
+// src/lib/supabase/queries/quiz/source-lineage.ts
+
+export interface SourceLineage {
+  signals: {
+    source_assets_processed_at: string | null;
+    source_assets_processed_status: string | null;
+    question_crop_match_method: string | null;
+    question_crop_match_confidence: number | null;
+    question_crop_complete: boolean | null;
+    has_question_crop: boolean | null;
+    has_orphan_crops_on_page: boolean | null;
+  } | null;
+  assets: Array<{
+    id: string;
+    asset_type: string;
+    asset_path: string;
+    public_url: string | null;
+    bbox: Record<string, number> | null;
+    crop_complete: boolean | null;
+    match_method: string | null;
+    match_confidence: number | null;
+    validation_status: string | null;
+    parent_asset_id: string | null;
+    created_at: string;
+  }>;
+}
+
+export async function selectSourceLineageForQuestion(
+  questionId: string
+): Promise<SourceLineage>;
+```
+
+The function does ONE query against `quiz_questions_phase3_signals` (for the aggregate signals) and ONE against `source_assets` filtered by `question_id`. Both ride the indexes shipped in Phase 3.
+
+---
+
+## 2. Preview-page chips (`/admin/questions/preview`)
+
+The PreviewSidePanel component already has chip rendering for `PDF` and the other v1 chips. Phase 3.5 adds:
+
+- `<CropPanel question={current} />` — renders the question_crop image inline, with a header strip showing match_method + confidence.
+- `<ExpandedCropPanel question={current} />` — same shape, expanded crop.
+- Both follow the existing chip lifecycle (collapsed by default, click to expand, persists in the localStorage view-mode key).
+
+A new sub-component `<MatchConfidenceBadge confidence={0.9} method="page_passage_snippet" />`:
+
+```
+[ ✓ passage · 0.90 ]   green for ≥ 0.85
+[ ! choice · 0.65 ]    amber for 0.60-0.84
+[ ⚠ fallback · 0.60 ]  amber, italics
+[ ⚠ orphan ]           red, no confidence
+```
+
+When `has_orphan_crops_on_page` is true, render a `<OrphanWarningBanner />` above the preview pane content. One line, dismissible per-session (sessionStorage), with a link to the inspector page.
+
+---
+
+## 3. Inspector page — Source lineage section (`/admin/questions/inspect/[id]`)
+
+A new collapsible card above the findings + history panes:
+
+```text
++----------------------------------------------------------+
+| 📁 Source lineage                              [collapse] |
++----------------------------------------------------------+
+| Processed: 2026-05-26  status: complete                   |
++----------------------------------------------------------+
+| 📄 page_image                                              |
+|   page-17.png                                              |
+|   No match (page-level)               [view]               |
+|                                                            |
+| ✂️ question_crop                                          |
+|   p17-q5.png                                               |
+|   ✓ passage · 0.90  ·  crop complete    [view]            |
+|                                                            |
+| 🔍 expanded_question_crop                                  |
+|   p17-q5-expanded.png                                      |
+|   ✓ passage · 0.90  ·  crop complete    [view]            |
+|                                                            |
+| 📊 figure_crop                                             |
+|   figure-1.png                                             |
+|   matched via bbox · 0.93              [view]              |
+|                                                            |
+| 📑 answer_key_crop                                         |
+|   p142-q5.png                                              |
+|   matched via ordered · 0.65          [view]              |
++----------------------------------------------------------+
+```
+
+Groups assets by `asset_type` in this order: `page_image` → `question_crop` → `expanded_question_crop` → `figure_crop` → `table_crop` → `chart_crop` → `answer_key_crop` → `answer_key_page` → any unknown types. Within a group, sorted by `created_at` ascending (so the original asset comes before re-runs).
+
+The card header shows the row's `source_assets_processed_at` + `source_assets_processed_status` so admin sees at a glance whether Phase 3 has even run on this row.
+
+---
+
+## 4. Orphan warning surfacing
+
+When `has_orphan_crops_on_page = true`, two places gain visual signaling:
+
+- **Preview-page sidebar row** for that question — small amber `⚠` icon to the right of the question number.
+- **Inspector page header** — banner above the question render: "⚠ This page has orphan crops the matcher couldn't pair. Open the lineage section to see them, or re-run extract-question-crops with --force."
+
+---
+
+## 5. Acceptance criteria
+
+Phase 3.5 is complete when:
+
+- [ ] `selectSourceLineageForQuestion()` server helper exists, returns the documented shape in one round trip, and is unit-tested.
+- [ ] Preview page renders Crop + Expanded chips for any row whose `source_assets_processed_at` is non-null.
+- [ ] Both chips show a `<MatchConfidenceBadge>` with method + numeric confidence.
+- [ ] Preview-page sidebar marks rows with `has_orphan_crops_on_page = true` with an `⚠` icon.
+- [ ] Inspector page renders the Source-lineage section above findings/history.
+- [ ] Lineage section groups assets by type in the documented order.
+- [ ] Each lineage entry shows `crop_complete` status.
+- [ ] Each lineage entry's `[view]` button opens the public URL in a new tab.
+- [ ] Banner appears on both pages when `has_orphan_crops_on_page = true`.
+- [ ] Pre-Phase-3 rows (where `source_assets_processed_at` is null) gracefully hide the lineage section instead of showing empty state confusion.
+
+---
+
+## 6. Phase 3.5 Non-Goals (explicit)
+
+Phase 3.5 does NOT:
+
+- Implement inline image modal / zoom (deferred).
+- Provide admin re-crop or bbox override.
+- Trigger backfills from the UI.
+- Add bulk asset operations.
+- Add side-by-side compare overlays.
+- Modify any Phase 3 backend behavior.
+
+---
+
+## 7. Estimated effort
+
+| Block | Hours |
+| --- | --- |
+| `source-lineage.ts` server helper + Vitest tests | 1 |
+| MatchConfidenceBadge + OrphanWarningBanner components | 1 |
+| Preview-page Crop + Expanded chips | 2 |
+| Inspector-page lineage section | 2 |
+| Orphan warning surfacing (sidebar + inspector banner) | 1 |
+| Visual regression baselines + manual smoke | 1 |
+| **Total** | **~8 hours** |
 
 ---
