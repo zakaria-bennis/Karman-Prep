@@ -24,6 +24,9 @@ import {
   gateMissingVisual,
   gateImportStatus,
   gateExplanation,
+  // v2 phase 2
+  gateAnswerKeyStatus,
+  gateAnswerVerification,
 } from "../../../scripts/lib/publish-gate-logic.mjs";
 
 const baseRow = {
@@ -193,6 +196,84 @@ describe("individual gate functions return shape", () => {
   });
   it("gateExplanation returns null when explanation present", () => {
     expect(gateExplanation(baseRow)).toBeNull();
+  });
+});
+
+// ── v2 phase 2: answer-key + verification gates ──────────────
+
+describe("computePublishStatus — v2 phase 2 answer_key_status gate", () => {
+  it("correction_disputed → blocked_answer_dispute", () => {
+    const r = computePublishStatus({ ...baseRow, answer_key_status: "correction_disputed" }, slugs);
+    expect(r.suggestedStatus).toBe("blocked_answer_dispute");
+  });
+
+  it("missing_answer_key → needs_human_review", () => {
+    const r = computePublishStatus({ ...baseRow, answer_key_status: "missing_answer_key" }, slugs);
+    expect(r.suggestedStatus).toBe("needs_human_review");
+  });
+
+  it("correction_unclear → needs_human_review", () => {
+    const r = computePublishStatus({ ...baseRow, answer_key_status: "correction_unclear" }, slugs);
+    expect(r.suggestedStatus).toBe("needs_human_review");
+  });
+
+  it("unverifiable → needs_human_review", () => {
+    const r = computePublishStatus({ ...baseRow, answer_key_status: "unverifiable" }, slugs);
+    expect(r.suggestedStatus).toBe("needs_human_review");
+  });
+
+  it("printed_key_used_no_correction → pass", () => {
+    const r = computePublishStatus(
+      { ...baseRow, answer_key_status: "printed_key_used_no_correction" },
+      slugs
+    );
+    expect(r.suggestedStatus).toBe("publish_ready");
+  });
+
+  it("corrected_key_verified → publish_ready_with_verified_repair", () => {
+    const r = computePublishStatus(
+      { ...baseRow, answer_key_status: "corrected_key_verified" },
+      slugs
+    );
+    expect(r.suggestedStatus).toBe("publish_ready_with_verified_repair");
+    expect(r.reason).toBe("all_gates_pass_with_verified_repair");
+  });
+});
+
+describe("computePublishStatus — v2 phase 2 answer_verification_status gate", () => {
+  it("disputed → blocked_answer_dispute", () => {
+    const r = computePublishStatus({ ...baseRow, answer_verification_status: "disputed" }, slugs);
+    expect(r.suggestedStatus).toBe("blocked_answer_dispute");
+  });
+
+  it("unverifiable → needs_human_review", () => {
+    const r = computePublishStatus(
+      { ...baseRow, answer_verification_status: "unverifiable" },
+      slugs
+    );
+    expect(r.suggestedStatus).toBe("needs_human_review");
+  });
+
+  it("verified → pass", () => {
+    const r = computePublishStatus({ ...baseRow, answer_verification_status: "verified" }, slugs);
+    expect(r.suggestedStatus).toBe("publish_ready");
+  });
+
+  it("verification disputed BEATS slug uncertain (strictness order)", () => {
+    const r = computePublishStatus(
+      { ...baseRow, answer_verification_status: "disputed", concept_slug: "not-a-slug" },
+      slugs
+    );
+    expect(r.suggestedStatus).toBe("blocked_answer_dispute");
+  });
+});
+
+describe("individual phase-2 gates", () => {
+  it("gateAnswerKeyStatus returns null on undefined", () => {
+    expect(gateAnswerKeyStatus(baseRow)).toBeNull();
+  });
+  it("gateAnswerVerification returns null on undefined", () => {
+    expect(gateAnswerVerification(baseRow)).toBeNull();
   });
 });
 

@@ -2929,6 +2929,20 @@ export type Database = {
           status: string | null;
           raw_model_response: Json | null;
           created_at: string;
+          // ── v2 phase 2 additions ───────────────────────
+          section: string | null;
+          module: string | null;
+          source_question_number: number | null;
+          answer_mode: string | null;
+          correction_detection_model: string | null;
+          correction_detection_provider: string | null;
+          printed_answer_confidence: number | null;
+          printed_answer_crossed_out_confidence: number | null;
+          selected_official_answer_confidence: number | null;
+          acceptable_answers: Json | null;
+          answer_equivalence_status: string | null;
+          review_required: boolean;
+          review_reason: string | null;
         };
         Insert: {
           id?: string;
@@ -2947,6 +2961,20 @@ export type Database = {
           status?: string | null;
           raw_model_response?: Json | null;
           created_at?: string;
+          // ── v2 phase 2 additions ───────────────────────
+          section?: string | null;
+          module?: string | null;
+          source_question_number?: number | null;
+          answer_mode?: string | null;
+          correction_detection_model?: string | null;
+          correction_detection_provider?: string | null;
+          printed_answer_confidence?: number | null;
+          printed_answer_crossed_out_confidence?: number | null;
+          selected_official_answer_confidence?: number | null;
+          acceptable_answers?: Json | null;
+          answer_equivalence_status?: string | null;
+          review_required?: boolean;
+          review_reason?: string | null;
         };
         Update: {
           id?: string;
@@ -2965,6 +2993,20 @@ export type Database = {
           status?: string | null;
           raw_model_response?: Json | null;
           created_at?: string;
+          // ── v2 phase 2 additions ───────────────────────
+          section?: string | null;
+          module?: string | null;
+          source_question_number?: number | null;
+          answer_mode?: string | null;
+          correction_detection_model?: string | null;
+          correction_detection_provider?: string | null;
+          printed_answer_confidence?: number | null;
+          printed_answer_crossed_out_confidence?: number | null;
+          selected_official_answer_confidence?: number | null;
+          acceptable_answers?: Json | null;
+          answer_equivalence_status?: string | null;
+          review_required?: boolean;
+          review_reason?: string | null;
         };
         Relationships: [];
       };
