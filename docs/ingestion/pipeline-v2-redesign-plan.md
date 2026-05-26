@@ -1489,18 +1489,416 @@ Phase 2 is complete when:
 
 ---
 
-# Phase 3 Preview — Source Asset Lineage
+# Phase 3 Implementation Spec — Source Asset Lineage
 
-After Phase 2 is stable, Phase 3 should make source evidence first-class for every question:
+## Objective
+
+Make every question's source evidence first-class so the admin review UI can compare the website-rendered version against the original PDF page at a glance. Phase 1 created the `source_assets` table; Phase 1 + 2 populated `figure_crop` and `answer_key_page` rows. Phase 3 fills in the gap: per-page renders and per-question crops.
+
+The central promise: for any quiz_questions row, an admin should be able to load `/admin/questions/inspect/<id>` and see:
 
 ```text
-render every page
-→ create page assets
-→ create question crops
-→ create expanded question crops
-→ attach answer-key crop
-→ attach visual crops
-→ show all evidence in manual review
+website render        ←→        source PDF page (full)
+                                source PDF page (zoomed to the question)
+                                source PDF page (expanded context: prev + next question)
+                                figure / table / chart crop (already from Phase 1)
+                                answer-key row crop (already from Phase 2)
 ```
 
-Phase 3 is what makes manual review fast and trustworthy.
+If a question went through the v2 pipeline, every one of those panels should resolve to a real R2 URL.
+
+---
+
+## Phase 3 Scope
+
+Implement:
+
+1. Per-page render (`page_image`) — every page of the source PDF rendered once at 200 DPI, uploaded to R2, registered as a `source_assets` row.
+2. Per-question crop (`question_crop`) — tight bbox around each question's stem + choices, cropped from the page render, uploaded as a separate asset.
+3. Per-question expanded crop (`expanded_question_crop`) — same bbox padded ~20% in each direction so the admin has surrounding context (e.g. the prior question's tail, the next question's intro).
+4. Question bbox detection — single Gemini Flash call per page asking "where is each question on this page?".
+5. Orchestrator integration — new stage `crops` between import and answer-key.
+6. Admin UI surfacing — the preview/inspector pages gain a "Lineage" panel that lists every `source_assets` row attached to the active question with a thumbnail + click-to-zoom.
+7. Backfill script for v1-imported rows where the source PDF is still in R2.
+
+---
+
+## Phase 3 Non-Goals
+
+Defer to later phases:
+
+- Calculator/Desmos sidebar artifact detection and `calculator_artifact` / `background_ui_artifact` asset_types (Phase 4).
+- Per-asset relevance classification (`required` / `optional` / `irrelevant` / `uncertain`) beyond the default `required` for required visuals — Phase 4 fills this in via the relevance system.
+- Admin re-cropping / bbox override UI (manual override stays as a Phase 3.5 polish task).
+- Cross-PDF asset dedup (same problem rendered in two prep books = two assets; that's fine).
+
+---
+
+## 1. Database Migration
+
+Create:
+
+```text
+supabase/migrations/<YYYYMMDDHHMMSS>_pdf_ingestion_v2_phase3.sql
+```
+
+### 1.1 Indexes on `source_assets` for the lineage queries
+
+Phase 1 created the table with three indexes. Phase 3 adds one more that the admin UI relies on:
+
+```sql
+create index if not exists source_assets_question_id_type_idx
+on public.source_assets(question_id, asset_type);
+```
+
+This makes "give me every asset for question X grouped by type" a single index lookup.
+
+### 1.2 `source_assets.parent_asset_id`
+
+To express "this question_crop was cut out of THAT page_image":
+
+```sql
+alter table public.source_assets
+add column if not exists parent_asset_id uuid references public.source_assets(id) on delete set null;
+
+create index if not exists source_assets_parent_idx
+on public.source_assets(parent_asset_id);
+```
+
+Used so the admin UI can show the question crop alongside the page it came from, and the page-level relevance/quality flag a Phase 4 classifier emits propagates down to its child crops.
+
+### 1.3 `quiz_questions.question_bbox` (optional in Phase 3, recommended)
+
+Cache the LLM-detected question bbox on `quiz_questions` so the renderer doesn't need to look it up via a separate query:
+
+```sql
+alter table public.quiz_questions
+add column if not exists question_bbox jsonb;
+```
+
+JSON shape: `{ y_min: 0-1000, x_min: 0-1000, y_max: 0-1000, x_max: 0-1000, page_width: int, page_height: int, confidence: 0-1 }`. Same Y-before-X normalized format Gemini uses elsewhere in the pipeline.
+
+---
+
+## 2. Page Rendering
+
+Add a shared helper in `scripts/lib/page-render.mjs` (factored out of the duplicated pdftoppm calls in `extract-figures.mjs` and `extract-answer-key.mjs`):
+
+```js
+export async function renderPdfPage(pdfPath, pageNumber, opts = {}) {
+  const dpi = opts.dpi ?? 200;
+  const outDir = opts.outDir ?? tmpdir();
+  // pdftoppm wrapper — returns { pngPath, width, height }
+}
+```
+
+Both existing scripts switch to importing this helper (low-risk refactor; behavior identical).
+
+---
+
+## 3. New Script: `extract-question-crops.mjs`
+
+```text
+scripts/pdf-pipeline/extract-question-crops.mjs
+```
+
+### CLI
+
+```bash
+node scripts/pdf-pipeline/extract-question-crops.mjs <pdfPath> \
+     --source-pdf <filename> [--job-id <uuid>] \
+     [--out /tmp/<stem>-crops.json] [--no-db] [--force]
+```
+
+### Flow
+
+```text
+1. Load every quiz_questions row WHERE source_pdf = <filename>
+2. Group by source_page
+3. For each page in the group:
+   a. renderPdfPage(pdf, page) → page PNG
+   b. Upload page PNG to R2 → source_assets:page_image
+   c. Call Gemini Flash on the page PNG: "find each question's bbox"
+   d. For each detected question, match to a quiz_questions row by
+      either question_text similarity (first 80 chars) OR position
+   e. For each matched row:
+      - Crop tight → upload → source_assets:question_crop (parent=page_image)
+      - Crop expanded (±20% padding) → upload → source_assets:expanded_question_crop
+      - Cache the bbox on quiz_questions.question_bbox
+4. Write JSON sidecar with every asset's R2 URL for debugging
+```
+
+### Gemini Flash prompt (question bbox detection)
+
+```text
+You are looking at one page of an SAT practice test.
+
+For every QUESTION visible on this page, return its bounding box. A question is:
+- A stem text (with or without a question mark)
+- Optionally followed by answer choices A-D (multiple choice)
+- Optionally with an associated figure
+
+INCLUDE in each bbox:
+- The question number (e.g. "17.")
+- The full stem text
+- All four answer choices (if MC)
+- Inline figures that are part of the question
+
+EXCLUDE:
+- Page headers and footers
+- Module / section title text ("Module 1: Reading and Writing")
+- Calculator / Desmos sidebars on math pages
+- Other questions on the same page
+
+For each question return:
+- source_question_number: the question number printed on the page (1-based)
+- stem_snippet: the first 80 characters of the stem text (for matching back to the DB)
+- bbox: [y_min, x_min, y_max, x_max] in Gemini's 0-1000 normalized space (Y BEFORE X)
+- confidence: 0.0-1.0
+
+Return strictly { "questions": [...] }.
+```
+
+### Response schema
+
+```json
+{
+  "type": "OBJECT",
+  "properties": {
+    "questions": {
+      "type": "ARRAY",
+      "items": {
+        "type": "OBJECT",
+        "properties": {
+          "source_question_number": { "type": "INTEGER" },
+          "stem_snippet": { "type": "STRING" },
+          "bbox": { "type": "ARRAY", "items": { "type": "NUMBER" } },
+          "confidence": { "type": "NUMBER" }
+        },
+        "required": ["bbox", "stem_snippet"]
+      }
+    }
+  },
+  "required": ["questions"]
+}
+```
+
+### Matching detected questions to quiz_questions rows
+
+Two-tier matcher:
+
+1. **Stem-snippet substring match.** Lowercase + trim both sides; if the detected `stem_snippet` is a prefix of a DB row's `question_text` (or vice versa), pair them. Cheap, high-precision.
+2. **Ordered fallback.** If snippet match fails, pair by position: Nth detected question on a page → Nth quiz_questions row on that page (ordered by id for stability).
+
+Unmatched detected questions get logged but written as ORPHAN source_assets rows (with `question_id = null`) so the page-level evidence isn't lost.
+
+### Cropping
+
+```js
+// Tight crop
+const top = Math.floor((bbox.y_min / 1000) * pageHeight);
+const left = Math.floor((bbox.x_min / 1000) * pageWidth);
+const w = Math.floor(((bbox.x_max - bbox.x_min) / 1000) * pageWidth);
+const h = Math.floor(((bbox.y_max - bbox.y_min) / 1000) * pageHeight);
+
+// Expanded crop (±20%, clipped to page bounds)
+const pad_x = w * 0.2, pad_y = h * 0.2;
+const expanded = {
+  top: Math.max(0, top - pad_y),
+  left: Math.max(0, left - pad_x),
+  width: Math.min(pageWidth - Math.max(0, left - pad_x), w + 2 * pad_x),
+  height: Math.min(pageHeight - Math.max(0, top - pad_y), h + 2 * pad_y),
+};
+```
+
+### R2 keys
+
+```text
+question-crops/<jobId-or-stem>/page-<n>.png             — page_image
+question-crops/<jobId-or-stem>/p<n>-q<num>.png          — question_crop
+question-crops/<jobId-or-stem>/p<n>-q<num>-expanded.png — expanded_question_crop
+```
+
+`Cache-Control: public, max-age=31536000, immutable` on every upload (page-image + crops are deterministic).
+
+---
+
+## 4. Models for Phase 3
+
+| Task | Model/tool | Why |
+|---|---|---|
+| Page rendering | `pdftoppm` (Poppler) | Free, deterministic. |
+| Question bbox detection | `gemini-2.5-flash` | One call per page; we already use Flash for figure bboxes and the format mirrors. |
+| Image processing (crop, pad, encode) | `sharp` (libvips) | Same library extract-figures.mjs uses. |
+| R2 upload | binding or S3 SDK fallback | Same helper as Phase 2's page upload. |
+
+**Estimated cost per PDF:** ~$0.05/PDF for ~80-page test, well under the $0.50 ceiling.
+
+**Estimated storage per PDF:**
+
+- ~80 page PNGs at 500 KB → 40 MB
+- ~98 question crops at 80 KB → 8 MB
+- ~98 expanded crops at 150 KB → 15 MB
+- **Total: ~63 MB/PDF.**
+
+At Cloudflare R2's $0.015/GB/month, 200 PDFs = ~13 GB = ~$0.20/month. Negligible.
+
+---
+
+## 5. Orchestrator Update
+
+Phase 3 inserts a new stage in the v2 orchestrator (after Phase 2's order). The current 9-stage pipeline becomes 10:
+
+```text
+1 extract structure        Claude Sonnet
+2 extract figures          existing
+3 extract answer key       Phase 2
+4 generate CSV
+5 import to database       Phase 1 (rows land as 'draft')
+6 EXTRACT QUESTION CROPS   Phase 3 (NEW — needs question IDs from step 5)
+7 fill explanations        Phase 1's --source-pdf scoping
+8 multi-vote grade
+9 validate KaTeX
+10 publish gate
+```
+
+The new stage is positioned AFTER import so question IDs exist for the FK on source_assets.question_id, and BEFORE fill so any admin spot-checking has the lineage already wired.
+
+### Parallelization opportunity (DEFERRED)
+
+Steps 2 (figures), 3 (answer key), and 6 (question crops) all share two characteristics:
+
+- Render pages via pdftoppm
+- Call Gemini Flash for bbox detection
+
+A future optimization could merge them into a single page-walk that emits all three asset types at once, halving the pdftoppm time and reducing Gemini calls by ~2x. Phase 3 does NOT attempt this — keep each stage independent so a failure in one doesn't poison the others. The page renders are written to R2 first time, so subsequent stages just re-download.
+
+---
+
+## 6. v1-Backfill Script
+
+Many existing quiz_questions rows came in via v1 (no `source_assets` lineage). For PDFs whose source file is still in R2, add a one-shot backfill:
+
+```text
+scripts/v2-phase3/backfill-source-assets.mjs --source-pdf <filename>
+```
+
+It:
+
+1. Reads `pdf_processing_jobs` for the storage_path matching the filename
+2. Downloads the PDF from R2
+3. Runs the same extract-question-crops flow but UPSERTs source_assets rows (idempotent)
+4. Optionally takes `--limit N` to backfill a few at a time
+
+This is operational, not part of the pipeline itself. Admin runs it manually post-merge to populate lineage for the existing bank.
+
+---
+
+## 7. Admin UI Surfacing
+
+### Preview page (`/admin/questions/preview`)
+
+The existing PDF chip in the side panel already shows the source PDF (Phase 4 of the preview overhaul). Phase 3 adds two new chips next to it:
+
+- **Crop** — shows the question_crop image inline
+- **Expanded** — shows the expanded_question_crop
+
+Both render via the existing `EditableMathText` panel pattern (use the cropped image as the panel content, with a "Open full page" link to the existing PDF iframe).
+
+### Inspector page (`/admin/questions/inspect/[id]`)
+
+A new "Source lineage" section above the existing findings/history panes. Lists every `source_assets` row for the question:
+
+```text
++-----------------------------------------------------+
+| Source lineage                                       |
++-----------------------------------------------------+
+| 📄 page_image          page-17.png        [view]     |
+| ✂️ question_crop      p17-q5.png         [view]     |
+| 🔍 expanded_q_crop    p17-q5-expanded    [view]     |
+| 📊 figure_crop        figure-1.png       [view]     |
+| 📑 answer_key_crop    p142-q5.png        [view]     |
++-----------------------------------------------------+
+```
+
+Click `[view]` opens the R2 URL in a new tab. Future Phase 4+ can swap this for an inline modal.
+
+### Query
+
+```ts
+const { data } = await supabase
+  .from("source_assets")
+  .select("*")
+  .eq("question_id", questionId)
+  .order("asset_type");
+```
+
+Hits the new `source_assets_question_id_type_idx` index.
+
+---
+
+## 8. Acceptance Tests
+
+### Page-image creation
+
+- A PDF with 5 pages produces exactly 5 source_assets rows with `asset_type='page_image'`.
+- Each row has a non-null `public_url` that returns 200 + `image/png`.
+
+### Question-crop creation
+
+- A page with N questions produces N `question_crop` rows AND N `expanded_question_crop` rows.
+- Each crop's `parent_asset_id` points to its page's `page_image`.
+- The crop dimensions match `bbox` scaled to the page's pixel dimensions.
+
+### Question-bbox cache
+
+- `quiz_questions.question_bbox` is non-null for every row that got a successful detection.
+- The cached bbox matches the bbox stored on the matching `question_crop` row.
+
+### Matching robustness
+
+- Stem-snippet matcher pairs questions correctly when stems are unique (typical case).
+- Fallback ordered matcher fires for pages where two questions have identical first-80-chars (rare; mostly contamination).
+- Unmatched detected questions produce orphan `source_assets` rows (`question_id = null`) without crashing the script.
+
+### Backfill idempotency
+
+- Running `backfill-source-assets.mjs` twice on the same PDF doesn't duplicate rows.
+
+### UI
+
+- Preview page's new "Crop" chip resolves to the question_crop image.
+- Inspector page's lineage section lists every asset.
+
+---
+
+## 9. Rollback
+
+Phase 3 is additive. Rollback steps:
+
+1. Disable the new orchestrator stage (revert orchestrate.mjs).
+2. The `parent_asset_id` column on `source_assets` stays — it's already nullable.
+3. The `question_bbox` column on `quiz_questions` stays — also nullable.
+4. The new R2 prefixes (`question-crops/`) can be left in place; no other code reads from them.
+5. Existing v1 + Phase 1/2 behavior is unaffected.
+
+---
+
+## 10. Phase 3 Deliverable Checklist
+
+Phase 3 is complete when:
+
+- [ ] Migration adds `source_assets.parent_asset_id`, `source_assets_question_id_type_idx`, `quiz_questions.question_bbox`.
+- [ ] `scripts/lib/page-render.mjs` exists; `extract-figures.mjs` and `extract-answer-key.mjs` use it.
+- [ ] `extract-question-crops.mjs` exists and runs end-to-end against a sample PDF.
+- [ ] Per-page `page_image` rows are written to source_assets.
+- [ ] Per-question `question_crop` + `expanded_question_crop` rows are written with correct `parent_asset_id`.
+- [ ] `quiz_questions.question_bbox` is populated.
+- [ ] Orchestrator runs the new stage after import.
+- [ ] Backfill script exists for v1 rows.
+- [ ] Preview page exposes Crop + Expanded chips.
+- [ ] Inspector page exposes a Source-lineage section.
+- [ ] Vitest tests cover the matching logic (stem snippet + ordered fallback) and the bbox→pixel math.
+- [ ] DB verification script asserts parent_asset_id FK and idempotency.
+
+---
