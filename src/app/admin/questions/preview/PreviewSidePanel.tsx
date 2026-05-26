@@ -17,6 +17,7 @@
 // shows an "Ungraded" hint. Same shape, same nullable rules.
 // ============================================================
 
+import { useState } from "react";
 import { X, Compass, Lightbulb, BookOpen, FileText, Vote } from "lucide-react";
 import MathText from "@/components/learn/MathText";
 import { cn } from "@/lib/utils";
@@ -25,6 +26,7 @@ import type { PanelKey } from "./PreviewActionBar";
 import { EditableMathText } from "./EditableMathText";
 import { EditedChip } from "@/components/admin/EditedChip";
 import type { PreviewEditProps } from "./QuestionPreview";
+import { PdfSourceViewer } from "./PdfSourceViewer";
 
 const LETTERS: AnswerLetter[] = ["A", "B", "C", "D"];
 
@@ -109,7 +111,7 @@ export function PreviewSidePanel({ question: q, openPanels, onClose, edit }: Pro
 
       {openPanels.has("pdf") && (
         <PanelCard title="Source PDF" Icon={FileText} tone="slate" onClose={() => onClose("pdf")}>
-          <PdfPlaceholder question={q} />
+          <PdfPanel question={q} />
         </PanelCard>
       )}
 
@@ -231,27 +233,98 @@ function ExplanationsBody({ question: q }: { question: QuizQuestionWithChoices }
   );
 }
 
-function PdfPlaceholder({ question: q }: { question: QuizQuestionWithChoices }) {
-  if (!q.source_pdf) {
-    return <EmptyHint>No source PDF on file.</EmptyHint>;
+function PdfPanel({ question: q }: { question: QuizQuestionWithChoices }) {
+  // Two-mode UI: default shows the cropped figure (what the
+  // student sees on the quiz); expand opens the source PDF page
+  // in an iframe so the admin can compare against the original.
+  // Both modes mounted lazily — heavy iframe only renders when
+  // expanded.
+  const hasFigure = !!q.image_url;
+  const hasSource = !!q.source_pdf;
+  const [view, setView] = useStateForPdfPanel(hasFigure ? "cropped" : "source");
+
+  if (!hasFigure && !hasSource) {
+    return <EmptyHint>No figure or source PDF on file.</EmptyHint>;
   }
+
   return (
-    <div className="space-y-2 text-xs text-slate-300">
-      <div className="flex items-center gap-2">
-        <span className="text-slate-500">file:</span>
-        <span className="font-mono text-slate-200">{q.source_pdf}</span>
-      </div>
-      <div className="flex items-center gap-2">
-        <span className="text-slate-500">page:</span>
-        <span className="font-mono text-slate-200">{q.source_page ?? "—"}</span>
-      </div>
-      <div className="mt-3 rounded-lg border border-dashed border-slate-700 bg-slate-950/40 px-3 py-4 text-center text-[11px] italic text-slate-500">
-        PDF inline rendering ships in phase 4.
-        <br />
-        For now, open the PDF separately at the page above.
+    <div className="space-y-3">
+      {/* Mode toggle — only shown when both modes are available. */}
+      {hasFigure && hasSource && (
+        <div className="inline-flex rounded-lg border border-slate-700 bg-slate-900 p-0.5 text-[11px]">
+          <button
+            onClick={() => setView("cropped")}
+            className={
+              view === "cropped"
+                ? "rounded-md bg-slate-800 px-2.5 py-1 font-semibold text-white"
+                : "rounded-md px-2.5 py-1 text-slate-400 hover:text-slate-200"
+            }
+          >
+            Cropped figure
+          </button>
+          <button
+            onClick={() => setView("source")}
+            className={
+              view === "source"
+                ? "rounded-md bg-slate-800 px-2.5 py-1 font-semibold text-white"
+                : "rounded-md px-2.5 py-1 text-slate-400 hover:text-slate-200"
+            }
+          >
+            Source PDF page
+          </button>
+        </div>
+      )}
+
+      {view === "cropped" && hasFigure && (
+        <div className="overflow-hidden rounded-lg border border-slate-700/50 bg-slate-200 p-2">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={q.image_url ?? ""}
+            alt={q.image_alt ?? ""}
+            className="mx-auto block max-h-[480px] w-auto rounded object-contain"
+          />
+          {q.image_alt && (
+            <p className="mt-2 px-2 text-[10px] italic text-slate-600">{q.image_alt}</p>
+          )}
+        </div>
+      )}
+
+      {view === "source" && hasSource && (
+        <PdfSourceViewer sourcePdf={q.source_pdf!} sourcePage={q.source_page ?? null} />
+      )}
+
+      {/* Metadata footer — always visible so the admin sees what
+          file + page the question came from regardless of mode. */}
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-slate-800/60 pt-2 text-[10px] text-slate-500">
+        {q.source_pdf && (
+          <span>
+            <span className="text-slate-600">file:</span>{" "}
+            <span className="font-mono text-slate-300">{q.source_pdf}</span>
+          </span>
+        )}
+        {q.source_page != null && (
+          <span>
+            <span className="text-slate-600">page:</span>{" "}
+            <span className="font-mono text-slate-300">p{q.source_page}</span>
+          </span>
+        )}
+        {hasFigure && (
+          <span>
+            <span className="text-slate-600">figure:</span>{" "}
+            <span className="font-mono text-slate-300">stored in R2</span>
+          </span>
+        )}
       </div>
     </div>
   );
+}
+
+// Small local hook just to keep React's useState import scoped.
+// Defined inside this file because PdfPanel is the only consumer
+// and inlining the import keeps the side-panel file self-contained.
+function useStateForPdfPanel<T>(initial: T): [T, (next: T) => void] {
+  // Re-export of React.useState with the typed signature we want.
+  return useState<T>(initial);
 }
 
 function GraderBody({ question: q }: { question: QuizQuestionWithChoices }) {
