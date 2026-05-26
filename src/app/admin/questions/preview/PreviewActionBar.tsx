@@ -29,11 +29,12 @@ import {
   Compass,
   BookOpen,
   FileText,
+  ImageIcon,
   Vote,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export type PanelKey = "desmos" | "hints" | "explanations" | "pdf" | "grader";
+export type PanelKey = "desmos" | "hints" | "explanations" | "pdf" | "crop" | "expanded" | "grader";
 
 interface Props {
   pending: { approve: boolean; flag: boolean; reject: boolean };
@@ -42,6 +43,7 @@ interface Props {
   onFlag: (note: string) => void;
   onReject: (reason: string) => void;
   onTogglePanel: (key: PanelKey) => void;
+  showSourceAssetPanels: boolean;
 }
 
 const PANEL_CHIPS: Array<{ key: PanelKey; label: string; Icon: React.ElementType }> = [
@@ -49,6 +51,8 @@ const PANEL_CHIPS: Array<{ key: PanelKey; label: string; Icon: React.ElementType
   { key: "hints", label: "Hints", Icon: Lightbulb },
   { key: "explanations", label: "Explain", Icon: BookOpen },
   { key: "pdf", label: "PDF", Icon: FileText },
+  { key: "crop", label: "Crop", Icon: ImageIcon },
+  { key: "expanded", label: "Expanded", Icon: ImageIcon },
   { key: "grader", label: "Grader", Icon: Vote },
 ];
 
@@ -59,6 +63,7 @@ export function PreviewActionBar({
   onFlag,
   onReject,
   onTogglePanel,
+  showSourceAssetPanels,
 }: Props) {
   const [flagMode, setFlagMode] = useState(false);
   const [rejectMode, setRejectMode] = useState(false);
@@ -190,7 +195,9 @@ export function PreviewActionBar({
 
         {/* Right cluster: side-panel toggle chips */}
         <div className="ml-auto flex flex-wrap items-center gap-1.5">
-          {PANEL_CHIPS.map(({ key, label, Icon }) => {
+          {PANEL_CHIPS.filter(
+            ({ key }) => showSourceAssetPanels || (key !== "crop" && key !== "expanded")
+          ).map(({ key, label, Icon }) => {
             const open = openPanels.has(key);
             return (
               <button

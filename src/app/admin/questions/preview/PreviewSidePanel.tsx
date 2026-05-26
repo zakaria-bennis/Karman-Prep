@@ -18,26 +18,35 @@
 // ============================================================
 
 import { useState } from "react";
-import { X, Compass, Lightbulb, BookOpen, FileText, Vote } from "lucide-react";
+import { X, Compass, Lightbulb, BookOpen, FileText, ImageIcon, Vote } from "lucide-react";
 import MathText from "@/components/learn/MathText";
 import { cn } from "@/lib/utils";
-import type { QuizQuestionWithChoices, AnswerLetter } from "@/types/quiz";
+import type { AnswerLetter } from "@/types/quiz";
 import type { PanelKey } from "./PreviewActionBar";
 import { EditableMathText } from "./EditableMathText";
 import { EditedChip } from "@/components/admin/EditedChip";
 import type { PreviewEditProps } from "./QuestionPreview";
 import { PdfSourceViewer } from "./PdfSourceViewer";
+import { SourceAssetImagePanel } from "@/components/admin/source-lineage/SourceAssetImagePanel";
+import type { PreviewQuestionWithLineage } from "./types";
 
 const LETTERS: AnswerLetter[] = ["A", "B", "C", "D"];
 
 interface Props {
-  question: QuizQuestionWithChoices;
+  question: PreviewQuestionWithLineage;
   openPanels: Set<PanelKey>;
   onClose: (key: PanelKey) => void;
   edit?: PreviewEditProps;
+  showSourceAssetPanels: boolean;
 }
 
-export function PreviewSidePanel({ question: q, openPanels, onClose, edit }: Props) {
+export function PreviewSidePanel({
+  question: q,
+  openPanels,
+  onClose,
+  edit,
+  showSourceAssetPanels,
+}: Props) {
   return (
     <aside className="flex h-full w-full flex-col gap-3 overflow-y-auto rounded-xl border border-indigo-500/20 bg-slate-900/40 p-3">
       {openPanels.has("desmos") && (
@@ -115,6 +124,36 @@ export function PreviewSidePanel({ question: q, openPanels, onClose, edit }: Pro
         </PanelCard>
       )}
 
+      {showSourceAssetPanels && openPanels.has("crop") && (
+        <PanelCard
+          title="Question crop"
+          Icon={ImageIcon}
+          tone="slate"
+          onClose={() => onClose("crop")}
+        >
+          <SourceAssetImagePanel
+            lineage={q.sourceLineage}
+            assetType="question_crop"
+            emptyLabel="Phase 3 ran, but no matched question crop is attached."
+          />
+        </PanelCard>
+      )}
+
+      {showSourceAssetPanels && openPanels.has("expanded") && (
+        <PanelCard
+          title="Expanded crop"
+          Icon={ImageIcon}
+          tone="slate"
+          onClose={() => onClose("expanded")}
+        >
+          <SourceAssetImagePanel
+            lineage={q.sourceLineage}
+            assetType="expanded_question_crop"
+            emptyLabel="Phase 3 ran, but no expanded crop is attached."
+          />
+        </PanelCard>
+      )}
+
       {openPanels.has("grader") && (
         <PanelCard title="Grader votes" Icon={Vote} tone="slate" onClose={() => onClose("grader")}>
           <GraderBody question={q} />
@@ -185,7 +224,7 @@ function EmptyHint({ children }: { children: React.ReactNode }) {
   return <div className="text-xs italic text-slate-500">{children}</div>;
 }
 
-function ExplanationsBody({ question: q }: { question: QuizQuestionWithChoices }) {
+function ExplanationsBody({ question: q }: { question: PreviewQuestionWithLineage }) {
   const perChoiceMap = q.explanation_per_choice as Record<string, string | undefined> | null;
   const hasAnything =
     !!q.explanation_text || (perChoiceMap && Object.keys(perChoiceMap).length > 0);
@@ -233,7 +272,7 @@ function ExplanationsBody({ question: q }: { question: QuizQuestionWithChoices }
   );
 }
 
-function PdfPanel({ question: q }: { question: QuizQuestionWithChoices }) {
+function PdfPanel({ question: q }: { question: PreviewQuestionWithLineage }) {
   // Two-mode UI: default shows the cropped figure (what the
   // student sees on the quiz); expand opens the source PDF page
   // in an iframe so the admin can compare against the original.
@@ -327,7 +366,7 @@ function useStateForPdfPanel<T>(initial: T): [T, (next: T) => void] {
   return useState<T>(initial);
 }
 
-function GraderBody({ question: q }: { question: QuizQuestionWithChoices }) {
+function GraderBody({ question: q }: { question: PreviewQuestionWithLineage }) {
   const votes = (q as unknown as { grader_votes?: unknown }).grader_votes;
   if (!votes || typeof votes !== "object") {
     return <EmptyHint>This question has not been graded yet.</EmptyHint>;

@@ -49,13 +49,17 @@ import { actionUpdateInspectedQuestion } from "@/app/admin/inspector-edit-action
 import ViewMode from "./_components/ViewMode";
 import EditForm from "./_components/EditForm";
 import HistoryPane from "./_components/HistoryPane";
+import { SourceLineageSection } from "./_components/SourceLineageSection";
 import { makeInitialForm, type EditFormShape } from "./_components/edit-form-utils";
 import type { QuestionHistoryEntry } from "@/lib/supabase/queries/quiz/history";
+import { OrphanWarningBanner } from "@/components/admin/source-lineage/OrphanWarningBanner";
+import type { SourceLineage } from "@/lib/source-lineage/types";
 
 interface Props {
   question: QuizQuestionWithChoices;
   findings: QuestionFinding[];
   history: QuestionHistoryEntry[];
+  sourceLineage: SourceLineage | null;
 }
 
 const SEVERITY_META: Record<
@@ -82,7 +86,12 @@ const SEVERITY_META: Record<
   },
 };
 
-export default function InspectorDetailClient({ question, findings, history }: Props) {
+export default function InspectorDetailClient({
+  question,
+  findings,
+  history,
+  sourceLineage,
+}: Props) {
   const router = useRouter();
   const [, startTransition] = useTransition();
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -460,6 +469,14 @@ export default function InspectorDetailClient({ question, findings, history }: P
           </button>
         </div>
       )}
+
+      <OrphanWarningBanner
+        lineage={sourceLineage}
+        questionId={question.id}
+        className="rounded-xl"
+      />
+
+      <SourceLineageSection lineage={sourceLineage} />
 
       {/* Split pane */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.4fr_1fr]">

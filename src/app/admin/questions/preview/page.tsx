@@ -11,9 +11,11 @@ import { ChevronRight, Eye } from "lucide-react";
 import { redirect } from "next/navigation";
 import { safeAuth } from "@/lib/auth/dev-auth";
 import { requireRole } from "@/lib/supabase/queries/admin";
+import { selectSourceLineageForQuestions } from "@/lib/supabase/queries/quiz/source-lineage";
 import { createAdminClient } from "@/lib/supabase/server";
 import type { QuizQuestionWithChoices } from "@/types/quiz";
 import PreviewClient from "./PreviewClient";
+import type { PreviewQuestionWithLineage } from "./types";
 
 export const metadata: Metadata = { title: "Admin — Question Preview | Karman" };
 export const dynamic = "force-dynamic";
@@ -42,6 +44,11 @@ export default async function AdminQuestionPreviewPage() {
     );
   }
   const questions = (data ?? []) as QuizQuestionWithChoices[];
+  const lineageByQuestionId = await selectSourceLineageForQuestions(questions.map((q) => q.id));
+  const questionsWithLineage: PreviewQuestionWithLineage[] = questions.map((q) => ({
+    ...q,
+    sourceLineage: lineageByQuestionId[q.id] ?? null,
+  }));
 
   return (
     <div className="flex min-h-[calc(100vh-3.5rem)] flex-col">
@@ -60,7 +67,7 @@ export default async function AdminQuestionPreviewPage() {
           and prev/next to step through; approve / flag / reject from the bottom toolbar.
         </p>
       </div>
-      <PreviewClient initial={questions} />
+      <PreviewClient initial={questionsWithLineage} />
     </div>
   );
 }

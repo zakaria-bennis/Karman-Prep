@@ -22,7 +22,8 @@ import { useCallback, useEffect, useMemo, useState, useTransition } from "react"
 import { useRouter } from "next/navigation";
 import { AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { QuizQuestionWithChoices } from "@/types/quiz";
+import { hasProcessedSourceLineage } from "@/lib/source-lineage/helpers";
+import { OrphanWarningBanner } from "@/components/admin/source-lineage/OrphanWarningBanner";
 import {
   actionApproveQuestion,
   actionFlagQuestion,
@@ -40,6 +41,8 @@ import { PreviewActionBar, type PanelKey } from "./PreviewActionBar";
 import { PreviewSidePanel } from "./PreviewSidePanel";
 import { useKeyboardShortcuts, type Shortcut } from "./useKeyboardShortcuts";
 import { KeyboardCheatSheet } from "./KeyboardCheatSheet";
+import { MetadataStrip } from "./MetadataStrip";
+import type { PreviewQuestionWithLineage } from "./types";
 
 const LS_KEY = "karman.preview.v2";
 
@@ -58,7 +61,7 @@ const DEFAULT_FILTERS: FilterState = {
   hasFigure: "all",
 };
 
-export default function PreviewClient({ initial }: { initial: QuizQuestionWithChoices[] }) {
+export default function PreviewClient({ initial }: { initial: PreviewQuestionWithLineage[] }) {
   const router = useRouter();
   const [, startTransition] = useTransition();
 
@@ -538,7 +541,12 @@ export default function PreviewClient({ initial }: { initial: QuizQuestionWithCh
   useKeyboardShortcuts(shortcuts);
 
   // ── Render ────────────────────────────────────────────────
-  const hasSidePanel = openPanels.size > 0 && current;
+  const hasSourceLineagePanels = hasProcessedSourceLineage(current?.sourceLineage);
+  const hasSidePanel =
+    current &&
+    Array.from(openPanels).some(
+      (key) => hasSourceLineagePanels || (key !== "crop" && key !== "expanded")
+    );
 
   return (
     <div className="flex h-[calc(100vh-9rem)] flex-col">
@@ -601,6 +609,12 @@ export default function PreviewClient({ initial }: { initial: QuizQuestionWithCh
           {current ? (
             <>
               <MetadataStrip question={current} />
+              <OrphanWarningBanner
+                lineage={current.sourceLineage}
+                questionId={current.id}
+                href={`/admin/questions/inspect/${current.id}`}
+                className="rounded-none border-x-0 border-t-0"
+              />
               <div className="min-h-0 flex-1 overflow-hidden">
                 <DeviceFrame width={device}>
                   <div className="h-full overflow-y-auto">
@@ -622,6 +636,7 @@ export default function PreviewClient({ initial }: { initial: QuizQuestionWithCh
             openPanels={openPanels}
             onClose={(k) => togglePanel(k)}
             edit={editProps}
+            showSourceAssetPanels={hasSourceLineagePanels}
           />
         )}
       </div>
@@ -633,6 +648,7 @@ export default function PreviewClient({ initial }: { initial: QuizQuestionWithCh
         onFlag={handleFlag}
         onReject={handleReject}
         onTogglePanel={togglePanel}
+        showSourceAssetPanels={hasSourceLineagePanels}
       />
 
       <KeyboardCheatSheet
@@ -640,35 +656,6 @@ export default function PreviewClient({ initial }: { initial: QuizQuestionWithCh
         shortcuts={shortcuts}
         onClose={() => setCheatSheetOpen(false)}
       />
-    </div>
-  );
-}
-
-function MetadataStrip({ question: q }: { question: QuizQuestionWithChoices }) {
-  return (
-    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-slate-800 bg-slate-900/60 px-5 py-2 font-mono text-[11px] text-slate-400">
-      <span className="text-slate-500">id:</span>
-      <span className="max-w-[14rem] truncate text-slate-300">{q.id}</span>
-      <span className="text-slate-500">pdf:</span>
-      <span className="text-slate-300">
-        {q.source_pdf ?? "—"} p{q.source_page ?? "—"}
-      </span>
-      <span className="text-slate-500">slug:</span>
-      <span className="text-slate-300">{q.concept_slug ?? "—"}</span>
-      <span className="text-slate-500">domain:</span>
-      <span className="text-slate-300">{q.domain ?? "—"}</span>
-      <span className="text-slate-500">level:</span>
-      <span className="text-slate-300">{q.difficulty_level ?? "—"}</span>
-      <span
-        className={cn(
-          "ml-auto rounded px-1.5 font-bold",
-          q.import_status === "needs_review"
-            ? "bg-amber-500/15 text-amber-300"
-            : "bg-emerald-500/15 text-emerald-300"
-        )}
-      >
-        {q.import_status ?? "ok"}
-      </span>
     </div>
   );
 }

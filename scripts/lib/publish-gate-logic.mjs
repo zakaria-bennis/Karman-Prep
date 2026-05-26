@@ -73,6 +73,45 @@ export function gateMissingVisual(q) {
   return null;
 }
 
+// ── v2 phase 4 gates — visual relevance (OPT-IN) ─────────────
+//
+// IMPORTANT: the fields these gates read off `q` (phase4_visual_relevance_checked,
+// required_visual_asset_count, irrelevant_visual_asset_count,
+// uncertain_visual_asset_count) are NOT columns on quiz_questions.
+// They are HYDRATED AT RUNTIME by publish-gate.mjs:
+// `aggregatePhase4VisualSignals(assets)` walks the question's
+// source_assets rows, reads `raw_metadata.phase4_visual_relevance`
+// (written by classify-visual-relevance.mjs), and spreads the
+// aggregate counts onto `q` before calling computePublishStatus().
+//
+// So no DB migration is needed for phase 4 — the source of truth
+// lives on source_assets.raw_metadata, and these gate fields are
+// per-row aggregates computed by the publish-gate script.
+function isPhase4Active(q) {
+  return q.phase4_visual_relevance_checked === true;
+}
+
+export function gateIrrelevantAttachedVisual(q) {
+  if (!isPhase4Active(q)) return null;
+  if (!q.image_url) return null;
+  if ((q.required_visual_asset_count ?? 0) > 0) return null;
+  if ((q.irrelevant_visual_asset_count ?? 0) === 0) return null;
+  return {
+    reason: "phase4_attached_visual_classified_irrelevant",
+    suggestedStatus: "blocked_missing_visual",
+  };
+}
+
+export function gateUncertainVisualRelevance(q) {
+  if (!isPhase4Active(q)) return null;
+  const count = q.uncertain_visual_asset_count ?? 0;
+  if (count === 0) return null;
+  return {
+    reason: `phase4_uncertain_visual_relevance=${count}`,
+    suggestedStatus: "needs_human_review",
+  };
+}
+
 export function gateImportStatus(q) {
   if (q.import_status === "needs_review") {
     return {
@@ -245,10 +284,12 @@ export function gateIncompleteCrop(q) {
 // Strictness order: first match wins.
 // blocked_* (corrupt > katex > answer disputes > slug > visual) before
 // needs_human_review (answer_key_status > import_status > phase3 source
-// evidence > explanation).
+// evidence > phase4 uncertain visuals > explanation).
 // v2 phase 2 adds answer_verification + answer_key_status gates.
 // v2 phase 3 adds 7 source-evidence gates, all OPT-IN (no-op when
 // source_assets_processed_at is null — so old v1 rows aren't affected).
+// v2 phase 4 adds visual relevance gates, also OPT-IN (requires at
+// least one visual asset carrying phase4_visual_relevance metadata).
 export const ALL_GATES = [
   gateRequiredFields, // → corrupt_question on missing q_text
   gateKaTeX, // → blocked_katex_error
@@ -257,6 +298,7 @@ export const ALL_GATES = [
   gateAnswerKeyStatus, // → blocked_answer_dispute or needs_human_review (v2 phase 2)
   (q, slugs) => gateSlug(q, slugs), // → blocked_slug_uncertain
   gateMissingVisual, // → blocked_missing_visual
+  gateIrrelevantAttachedVisual, // → blocked_missing_visual (v2 phase 4)
   gateImportStatus, // → needs_human_review (specific reason)
   // ── v2 phase 3 (all opt-in via source_assets_processed_at) ──
   gateMissingSourcePage,
@@ -266,6 +308,7 @@ export const ALL_GATES = [
   gateOrphanCropsOnPage,
   gateCropCountMismatch,
   gateIncompleteCrop,
+  gateUncertainVisualRelevance, // → needs_human_review (v2 phase 4)
   // ── softest gate runs last ──
   gateExplanation, // → needs_human_review (softer)
 ];

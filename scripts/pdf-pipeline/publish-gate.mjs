@@ -14,6 +14,7 @@
 //   blocked_answer_dispute    — grader_votes verdict is bad
 //   blocked_slug_uncertain    — concept_slug not in canonical 89
 //   blocked_missing_visual    — has_figure hint but no image_url
+//                              OR Phase 4 says attached visual is an artifact
 //
 // The script never DEMOTES from publish_ready (admins can manually
 // flip a row back to needs_human_review via /admin/questions/preview).
@@ -50,6 +51,51 @@ if (!SUPA_URL || !SUPA_KEY) {
 }
 
 const supabase = createClient(SUPA_URL, SUPA_KEY, { auth: { persistSession: false } });
+const IN_CHUNK_SIZE = 100;
+const VISUAL_ASSET_TYPES = [
+  "figure_crop",
+  "table_crop",
+  "chart_crop",
+  "graph_crop",
+  "calculator_artifact",
+  "background_ui_artifact",
+];
+
+function chunk(items, size = IN_CHUNK_SIZE) {
+  const chunks = [];
+  for (let i = 0; i < items.length; i += size) chunks.push(items.slice(i, i + size));
+  return chunks;
+}
+
+function hasPhase4Metadata(rawMetadata) {
+  return Boolean(
+    rawMetadata &&
+    typeof rawMetadata === "object" &&
+    !Array.isArray(rawMetadata) &&
+    rawMetadata.phase4_visual_relevance
+  );
+}
+
+function aggregatePhase4VisualSignals(assets) {
+  const checked = assets.some((asset) => hasPhase4Metadata(asset.raw_metadata));
+  let required = 0;
+  let irrelevant = 0;
+  let uncertain = 0;
+  let repeated = 0;
+  for (const asset of assets) {
+    if (asset.relevance === "required" && asset.use_in_solving) required++;
+    if (asset.relevance === "irrelevant") irrelevant++;
+    if (asset.relevance === "uncertain") uncertain++;
+    if (asset.repeated_across_pages) repeated++;
+  }
+  return {
+    phase4_visual_relevance_checked: checked,
+    required_visual_asset_count: required,
+    irrelevant_visual_asset_count: irrelevant,
+    uncertain_visual_asset_count: uncertain,
+    repeated_visual_asset_count: repeated,
+  };
+}
 
 // ── Build canonical 89-slug set ───────────────────────────────
 // Regex-parse the curriculum source file so this script doesn't
@@ -98,17 +144,55 @@ async function main() {
   let signalsByQid = new Map();
   if (baseRows.length > 0) {
     const ids = baseRows.map((r) => r.id);
-    const { data: signals } = await supabase
-      .from("quiz_questions_phase3_signals")
-      .select("*")
-      .in("question_id", ids);
+    const signals = [];
+    for (const idChunk of chunk(ids)) {
+      const { data, error: signalErr } = await supabase
+        .from("quiz_questions_phase3_signals")
+        .select("*")
+        .in("question_id", idChunk);
+      if (signalErr) throw signalErr;
+      signals.push(...(data ?? []));
+    }
     signalsByQid = new Map((signals ?? []).map((s) => [s.question_id, s]));
+  }
+
+  // Phase 4 visual relevance signals are stored on source_assets.
+  // Hydrate per-question counts once here so the pure gate can stay
+  // DB-agnostic and testable.
+  let phase4ByQid = new Map();
+  if (baseRows.length > 0) {
+    const ids = baseRows.map((r) => r.id);
+    const assetsByQid = new Map();
+    for (const idChunk of chunk(ids)) {
+      const { data: assets, error: assetErr } = await supabase
+        .from("source_assets")
+        .select(
+          "question_id, asset_type, relevance, repeated_across_pages, use_in_solving, raw_metadata"
+        )
+        .in("question_id", idChunk)
+        .in("asset_type", VISUAL_ASSET_TYPES);
+      if (assetErr) throw assetErr;
+      for (const asset of assets ?? []) {
+        if (!asset.question_id) continue;
+        const list = assetsByQid.get(asset.question_id) ?? [];
+        list.push(asset);
+        assetsByQid.set(asset.question_id, list);
+      }
+    }
+    phase4ByQid = new Map(
+      [...assetsByQid.entries()].map(([questionId, assets]) => [
+        questionId,
+        aggregatePhase4VisualSignals(assets),
+      ])
+    );
   }
 
   const rows = baseRows.map((r) => ({
     ...r,
     // Merge Phase 3 view signals (have_question_crop, match_method, etc.)
     ...(signalsByQid.get(r.id) ?? {}),
+    // Merge Phase 4 source-asset visual relevance counts.
+    ...(phase4ByQid.get(r.id) ?? {}),
   }));
 
   console.log(`Evaluating ${rows.length} rows…`);

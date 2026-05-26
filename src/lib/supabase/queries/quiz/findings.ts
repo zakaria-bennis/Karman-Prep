@@ -62,6 +62,13 @@ export interface InspectorFilter {
 }
 
 const SEVERITY_RANK = { BLOCKING: 3, WARNING: 2, NOTICE: 1 } as const;
+const IN_CHUNK_SIZE = 100;
+
+function chunkIds(ids: string[]): string[][] {
+  const chunks: string[][] = [];
+  for (let i = 0; i < ids.length; i += IN_CHUNK_SIZE) chunks.push(ids.slice(i, i + IN_CHUNK_SIZE));
+  return chunks;
+}
 
 /** The worklist — one row per question that has at least one finding
  *  matching the filter. Sorted by worst severity descending, then
@@ -99,19 +106,34 @@ export async function selectInspectorWorklist(
 
   if (agg.size === 0) return [];
 
-  // Pull matching quiz_questions
-  let qq = supabase
-    .from("quiz_questions")
-    .select(
-      "id, source_pdf, source_page, domain, concept_slug, import_status, is_live, question_text"
-    )
-    .in("id", [...agg.keys()]);
-  if (filter.source_pdf) qq = qq.eq("source_pdf", filter.source_pdf);
-  if (filter.domain) qq = qq.eq("domain", filter.domain);
-  if (filter.q) qq = qq.ilike("question_text", `%${filter.q}%`);
+  // Pull matching quiz_questions. Chunk the ID filter so large
+  // finding backlogs do not produce request URLs over Undici's
+  // header/request limits in local dev or Cloudflare.
+  const questions: Array<{
+    id: string;
+    source_pdf: string | null;
+    source_page: number | null;
+    domain: string | null;
+    concept_slug: string | null;
+    import_status: string | null;
+    is_live: boolean | null;
+    question_text: string;
+  }> = [];
+  for (const idChunk of chunkIds([...agg.keys()])) {
+    let qq = supabase
+      .from("quiz_questions")
+      .select(
+        "id, source_pdf, source_page, domain, concept_slug, import_status, is_live, question_text"
+      )
+      .in("id", idChunk);
+    if (filter.source_pdf) qq = qq.eq("source_pdf", filter.source_pdf);
+    if (filter.domain) qq = qq.eq("domain", filter.domain);
+    if (filter.q) qq = qq.ilike("question_text", `%${filter.q}%`);
 
-  const { data: questions, error: qerr } = await qq;
-  if (qerr) throw qerr;
+    const { data: qData, error: qerr } = await qq;
+    if (qerr) throw qerr;
+    questions.push(...(qData ?? []));
+  }
 
   const rows: InspectorRow[] = (questions ?? []).map((q) => {
     const a = agg.get(q.id)!;
