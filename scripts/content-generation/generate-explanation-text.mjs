@@ -35,6 +35,13 @@ const args = process.argv.slice(2);
 const DRY_RUN = args.includes("--dry-run");
 const FORCE = args.includes("--force");
 const LIMIT = process.env.LIMIT ? parseInt(process.env.LIMIT, 10) : null;
+// v2 phase 1: filter to a single source_pdf so per-job runs from the
+// orchestrator only touch the rows from THAT PDF, not the whole bank.
+// Without this, the fill stage spent 15+ minutes re-checking ~500
+// older rows on every new PDF import.
+const SOURCE_PDF_IDX = args.indexOf("--source-pdf");
+const SOURCE_PDF =
+  SOURCE_PDF_IDX >= 0 && args[SOURCE_PDF_IDX + 1] ? args[SOURCE_PDF_IDX + 1] : null;
 
 const SUPA_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const SUPA_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -130,6 +137,10 @@ async function main() {
     )
     .order("source_pdf", { ascending: true, nullsFirst: false });
   if (!FORCE) query = query.or("explanation_text.is.null,explanation_text.eq.");
+  if (SOURCE_PDF) {
+    query = query.eq("source_pdf", SOURCE_PDF);
+    console.log(`Filtering to source_pdf="${SOURCE_PDF}"`);
+  }
   const { data: rows, error } = await query;
   if (error) throw error;
 
