@@ -16,7 +16,7 @@
 // and the eye is already there when looking at filters.
 // ============================================================
 
-import { ChevronLeft, ChevronRight, Filter } from "lucide-react";
+import { ChevronLeft, ChevronRight, Filter, Keyboard } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DeviceFrameToggle, type DeviceWidth } from "./DeviceFrame";
 
@@ -44,6 +44,7 @@ interface Props {
   onPrev: () => void;
   onNext: () => void;
   onClearFilters: () => void;
+  onOpenCheatSheet: () => void;
 }
 
 export function PreviewToolbar({
@@ -58,6 +59,7 @@ export function PreviewToolbar({
   onPrev,
   onNext,
   onClearFilters,
+  onOpenCheatSheet,
 }: Props) {
   const anyFilterSet =
     filters.subject !== "all" ||
@@ -126,6 +128,15 @@ export function PreviewToolbar({
 
       {/* ── Right side: device frame + nav ────────────────── */}
       <div className="ml-auto flex items-center gap-3">
+        <button
+          onClick={onOpenCheatSheet}
+          className="inline-flex items-center gap-1 rounded-lg border border-slate-700 bg-slate-900 px-2 py-1 text-[11px] text-slate-300 hover:border-slate-600 hover:text-white"
+          title="Keyboard shortcuts (?)"
+          aria-label="Open keyboard shortcuts"
+        >
+          <Keyboard className="h-3 w-3" />
+          <span className="font-mono text-[10px] text-slate-400">?</span>
+        </button>
         <DeviceFrameToggle value={device} onChange={onChangeDevice} />
         <div className="flex items-center gap-2">
           <span className="text-xs text-slate-400">

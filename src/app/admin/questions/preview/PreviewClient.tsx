@@ -38,6 +38,8 @@ import { PreviewSidebar } from "./PreviewSidebar";
 import { PreviewToolbar, type FilterState } from "./PreviewToolbar";
 import { PreviewActionBar, type PanelKey } from "./PreviewActionBar";
 import { PreviewSidePanel } from "./PreviewSidePanel";
+import { useKeyboardShortcuts, type Shortcut } from "./useKeyboardShortcuts";
+import { KeyboardCheatSheet } from "./KeyboardCheatSheet";
 
 const LS_KEY = "karman.preview.v2";
 
@@ -74,6 +76,9 @@ export default function PreviewClient({ initial }: { initial: QuizQuestionWithCh
   const [banner, setBanner] = useState<
     { kind: "ok"; text: string } | { kind: "err"; text: string } | null
   >(null);
+  // Cheat-sheet overlay state. Triggered by `?` or the help
+  // button in the top toolbar; dismissed by Escape or click-out.
+  const [cheatSheetOpen, setCheatSheetOpen] = useState(false);
   // Map of questionId → Set<field> for the [edited] chip render.
   // Lazy-loaded the first time a question becomes current; cached in
   // this map so re-visits during the same session don't refetch.
@@ -408,6 +413,130 @@ export default function PreviewClient({ initial }: { initial: QuizQuestionWithCh
       }
     : undefined;
 
+  // ── Keyboard shortcuts ────────────────────────────────────
+  // Built once per render — useMemo keeps the array stable so
+  // useKeyboardShortcuts' effect doesn't re-register on every
+  // keystroke. Handlers close over current state, which is fine
+  // because the array recomputes when those deps change.
+  //
+  // Flag (S) and Reject (D) intentionally fire WITHOUT a note:
+  // Flag will throw server-side because note is required, but
+  // that surfaces as a banner error which is the right hint to
+  // "click the flag button to type a note." Reject is recoverable
+  // (soft delete) so firing without a reason is fine.
+  const shortcuts: Shortcut[] = useMemo(() => {
+    const list: Shortcut[] = [
+      // Navigation
+      {
+        key: "ArrowLeft",
+        handler: () => jump(-1),
+        description: "Previous question",
+        group: "Navigation",
+      },
+      {
+        key: "ArrowRight",
+        handler: () => jump(1),
+        description: "Next question",
+        group: "Navigation",
+      },
+      // Actions
+      { key: "a", handler: () => handleApprove(), description: "Approve", group: "Actions" },
+      {
+        key: "s",
+        handler: () =>
+          setBanner({
+            kind: "err",
+            text: "Flag needs a note — click the Flag button to type one.",
+          }),
+        description: "Flag (opens note input — use the button to type)",
+        group: "Actions",
+      },
+      {
+        key: "d",
+        handler: () => handleReject(""),
+        description: "Reject (soft, recoverable from /rejected)",
+        group: "Actions",
+      },
+      // Panels
+      {
+        key: "1",
+        handler: () => togglePanel("desmos"),
+        description: "Toggle Desmos panel",
+        group: "Panels",
+      },
+      {
+        key: "2",
+        handler: () => togglePanel("hints"),
+        description: "Toggle Hints panel",
+        group: "Panels",
+      },
+      {
+        key: "3",
+        handler: () => togglePanel("explanations"),
+        description: "Toggle Explanations panel",
+        group: "Panels",
+      },
+      {
+        key: "p",
+        handler: () => togglePanel("pdf"),
+        description: "Toggle PDF panel",
+        group: "Panels",
+      },
+      {
+        key: "g",
+        handler: () => togglePanel("grader"),
+        description: "Toggle Grader panel",
+        group: "Panels",
+      },
+      // View — device frame
+      {
+        key: "Shift+M",
+        handler: () => setDevice("mobile"),
+        description: "Mobile viewport (375px)",
+        group: "View",
+      },
+      {
+        key: "Shift+T",
+        handler: () => setDevice("tablet"),
+        description: "Tablet viewport (768px)",
+        group: "View",
+      },
+      {
+        key: "Shift+K",
+        handler: () => setDevice("desktop"),
+        description: "Desktop viewport (1440px)",
+        group: "View",
+      },
+      {
+        key: "Shift+F",
+        handler: () => setDevice("full"),
+        description: "Full-width (no frame)",
+        group: "View",
+      },
+      // Help
+      {
+        key: "?",
+        handler: () => setCheatSheetOpen((o) => !o),
+        description: "Show / hide this cheat sheet",
+        group: "Help",
+      },
+      {
+        key: "Escape",
+        handler: () => setCheatSheetOpen(false),
+        description: "Close cheat sheet",
+        group: "Help",
+        fireInInputs: true,
+      },
+    ];
+    return list;
+    // Handlers close over the latest state via the function
+    // references themselves — fresh handler instances per render.
+    // No deps array needed beyond the handlers we reference.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useKeyboardShortcuts(shortcuts);
+
   // ── Render ────────────────────────────────────────────────
   const hasSidePanel = openPanels.size > 0 && current;
 
@@ -425,6 +554,7 @@ export default function PreviewClient({ initial }: { initial: QuizQuestionWithCh
         onPrev={() => jump(-1)}
         onNext={() => jump(1)}
         onClearFilters={clearFilters}
+        onOpenCheatSheet={() => setCheatSheetOpen(true)}
       />
 
       {banner && (
@@ -503,6 +633,12 @@ export default function PreviewClient({ initial }: { initial: QuizQuestionWithCh
         onFlag={handleFlag}
         onReject={handleReject}
         onTogglePanel={togglePanel}
+      />
+
+      <KeyboardCheatSheet
+        open={cheatSheetOpen}
+        shortcuts={shortcuts}
+        onClose={() => setCheatSheetOpen(false)}
       />
     </div>
   );
