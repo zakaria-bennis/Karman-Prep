@@ -1611,6 +1611,39 @@ create index if not exists quiz_questions_bbox_source_asset_idx
 on public.quiz_questions(question_bbox_source_asset_id);
 ```
 
+### 1.5 Phase-3 processing marker on `quiz_questions`
+
+```sql
+alter table public.quiz_questions
+add column if not exists source_assets_processed_at timestamptz,
+add column if not exists source_assets_processed_status text;
+
+create index if not exists quiz_questions_source_assets_processed_idx
+on public.quiz_questions(source_assets_processed_at)
+where source_assets_processed_at is not null;
+```
+
+`source_assets_processed_status` allowed values (app-enforced first; CHECK after Phase 3 runs):
+
+```text
+matched_crop_complete          — fully matched, crop_complete = true
+matched_crop_incomplete        — matched but some completeness flag is false
+matched_low_confidence         — matched but match_confidence < 0.75
+matched_ordered_fallback       — matched via the ordered-fallback step
+no_match_orphan_crops_only     — detected questions exist but none matched this row
+detection_failed               — Gemini Flash call failed or returned 0 questions
+page_render_failed             — pdftoppm errored
+```
+
+`source_assets_processed_at` is the SOLE GATE controlling whether the Phase 3 publish-gate rules apply to a row. Rules:
+
+- **`source_assets_processed_at IS NULL`** → row has never been touched by Phase 3. The new gates short-circuit and return null. This is the default state for v1 rows.
+- **`source_assets_processed_at IS NOT NULL`** → row went through Phase 3 (successfully or not). The new gates apply normally and may set `needs_human_review` based on the source-evidence signals.
+
+`extract-question-crops.mjs` sets `source_assets_processed_at = now()` on every row it processes, regardless of outcome (success, partial, fail). The `_status` column reflects WHICH outcome.
+
+The backfill script (`scripts/v2-phase3/backfill-source-assets.mjs`) does the same — running it on an old v1 PDF brings those rows under the new gates' jurisdiction.
+
 JSON shape for `question_bbox`:
 
 ```json
@@ -1974,31 +2007,39 @@ Position rationale: Phase 3's stage runs AFTER import (needs question IDs for th
 
 ---
 
-## 7. New publish-gate rules (STRICT mode)
+## 7. New publish-gate rules (STRICT mode — OPT-IN per row)
 
-Phase 3 adds source-evidence gates to `scripts/lib/publish-gate-logic.mjs`. None of these BLOCK publishing outright; they all route to `needs_human_review` so the admin can decide:
+Phase 3 adds source-evidence gates to `scripts/lib/publish-gate-logic.mjs`. None of these BLOCK publishing outright; they all route to `needs_human_review` so the admin can decide.
+
+**CRITICAL: every new gate is OPT-IN per row.** The gate checks `q.source_assets_processed_at` FIRST. If it's `null` (the row has never been through Phase 3 processing), the gate returns `null` (pass) without inspecting anything else. This means:
+
+- Brand-new v2 imports go through Stage 6 → `source_assets_processed_at` gets set → the new gates apply.
+- Old v1 rows already in the bank stay exactly where they are. The new gates are no-ops for them until you explicitly run `backfill-source-assets.mjs`.
+- A v2 import where Stage 6 errored mid-way still gets `source_assets_processed_at = now()` set with `_status = 'page_render_failed'` (or whatever failed) → the gates apply and the row is `needs_human_review`. The admin can re-run the script.
 
 ```js
-// → needs_human_review with reason 'no question_crop'
-export function gateMissingQuestionCrop(q) { ... }
+// Every new gate follows this shape:
+export function gateMissingQuestionCrop(q) {
+  if (!q.source_assets_processed_at) return null;   // ← opt-in guard
+  if (q.has_question_crop) return null;
+  return {
+    reason: "phase3_missing_question_crop",
+    suggestedStatus: "needs_human_review",
+  };
+}
+```
 
-// → needs_human_review with reason 'crop confidence < 0.75'
-export function gateLowCropConfidence(q) { ... }
+The seven gates:
 
-// → needs_human_review with reason 'ordered fallback match — verify'
-export function gateOrderedFallbackMatch(q) { ... }
-
-// → needs_human_review with reason 'orphan crops on same page'
-export function gateOrphanCropsOnPage(q) { ... }
-
-// → needs_human_review with reason 'detected count != DB count'
-export function gateCropCountMismatch(q) { ... }
-
-// → needs_human_review with reason 'source_page missing'
-export function gateMissingSourcePage(q) { ... }
-
-// → needs_human_review with reason 'crop_complete = false'
-export function gateIncompleteCrop(q) { ... }
+```js
+// → needs_human_review when:
+gateMissingQuestionCrop      // no question_crop exists for this row
+gateLowCropConfidence        // match_confidence < 0.75
+gateOrderedFallbackMatch     // match_method = 'ordered_fallback'
+gateOrphanCropsOnPage        // an orphan crop exists on this row's source_page
+gateCropCountMismatch        // detected count != DB row count for this page
+gateMissingSourcePage        // source_page is null
+gateIncompleteCrop           // crop_complete = false on the row's question_crop
 ```
 
 These are inserted in the gate cascade AFTER the existing Phase 1+2 blocking gates and BEFORE `gateImportStatus` / `gateExplanation`. That way:
@@ -2006,8 +2047,43 @@ These are inserted in the gate cascade AFTER the existing Phase 1+2 blocking gat
 - A `correction_disputed` row stays `blocked_answer_dispute` (stronger).
 - A KaTeX-broken row stays `blocked_katex_error` (stronger).
 - A clean row with weak crop evidence becomes `needs_human_review`.
+- A pre-Phase-3 v1 row is unaffected by any of this.
 
-This requires the publish-gate query to also select the source_assets join. Either add a derived view or do per-row aggregate queries inside the gate (less elegant but additive).
+### Gate query requirements
+
+The publish-gate already selects from `quiz_questions`. Phase 3 needs to additionally aggregate over `source_assets` (to know "does this row have a question_crop? what's its match_confidence? are there orphan crops on the same page?"). The simplest approach: a derived per-question view that pre-aggregates the asset signals:
+
+```sql
+create or replace view public.quiz_questions_phase3_signals as
+select
+  q.id as question_id,
+  q.source_pdf,
+  q.source_page,
+  q.source_assets_processed_at,
+  q.source_assets_processed_status,
+  -- Best question_crop for this row (highest confidence)
+  qc.match_method  as question_crop_match_method,
+  qc.match_confidence as question_crop_match_confidence,
+  qc.crop_complete as question_crop_complete,
+  (qc.id is not null) as has_question_crop,
+  -- Orphan crops on the same page
+  exists(
+    select 1 from public.source_assets oc
+    where oc.source_pdf = q.source_pdf
+      and oc.page_number = q.source_page
+      and oc.match_method = 'orphan'
+      and oc.asset_type = 'question_crop'
+  ) as has_orphan_crops_on_page
+from public.quiz_questions q
+left join lateral (
+  select * from public.source_assets sa
+  where sa.question_id = q.id and sa.asset_type = 'question_crop'
+  order by sa.match_confidence desc nulls last
+  limit 1
+) qc on true;
+```
+
+`publish-gate.mjs` reads from this view instead of doing N+1 aggregate queries per row.
 
 ---
 
