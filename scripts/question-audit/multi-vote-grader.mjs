@@ -1,6 +1,21 @@
 // ============================================================
 // multi-vote-grader — Option 2.5 grader for answer-key audit.
 //
+// ⚠ DEPRECATED (v2 phase 6, kept as fallback)
+//   This script is the original 3-tier grader. v2 phase 6 replaces
+//   it with the typed-role + typed-dispute architecture in
+//   scripts/question-audit/verify-answers.mjs (which the
+//   orchestrator now calls instead). Use verify-answers.mjs going
+//   forward — it carries the same audit-log shape but adds:
+//     · failed voters captured in grader_runs (not silently dropped)
+//     · Gemini Flash as a TRUE visual checker (sees source crops)
+//     · SymPy equivalence for open-ended numeric answers
+//     · typed dispute_category for the publish-gate
+//     · suggested_verified_answer when the panel disagrees with the key
+//   Reusable helpers were factored out to scripts/lib/grader-*.mjs;
+//   this file's inlined versions remain for backward compatibility
+//   with any external runs that still invoke it directly.
+//
 // Three-tier consensus model (per ADR #4 / session decision):
 //
 //   Pass 1 (every question)

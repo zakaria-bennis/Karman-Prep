@@ -1861,6 +1861,11 @@ export type Database = {
           raw_question_text: string;
           math_notation_checked_at: string | null;
           math_notation_status: string | null;
+          // ── v2 phase 6 additions ─────────────────────────
+          suggested_verified_answer: string | null;
+          dispute_category: string | null;
+          answer_verified_at: string | null;
+          answer_verifier_version: string | null;
         };
         Insert: {
           answer_format?: Database["public"]["Enums"]["question_format"];
@@ -1916,6 +1921,15 @@ export type Database = {
           question_bbox_source_asset_id?: string | null;
           source_assets_processed_at?: string | null;
           source_assets_processed_status?: string | null;
+          // ── v2 phase 5 additions ─────────────────────────
+          raw_question_text?: string;
+          math_notation_checked_at?: string | null;
+          math_notation_status?: string | null;
+          // ── v2 phase 6 additions ─────────────────────────
+          suggested_verified_answer?: string | null;
+          dispute_category?: string | null;
+          answer_verified_at?: string | null;
+          answer_verifier_version?: string | null;
         };
         Update: {
           answer_format?: Database["public"]["Enums"]["question_format"];
@@ -1971,6 +1985,15 @@ export type Database = {
           question_bbox_source_asset_id?: string | null;
           source_assets_processed_at?: string | null;
           source_assets_processed_status?: string | null;
+          // ── v2 phase 5 additions ─────────────────────────
+          raw_question_text?: string;
+          math_notation_checked_at?: string | null;
+          math_notation_status?: string | null;
+          // ── v2 phase 6 additions ─────────────────────────
+          suggested_verified_answer?: string | null;
+          dispute_category?: string | null;
+          answer_verified_at?: string | null;
+          answer_verifier_version?: string | null;
         };
         Relationships: [];
       };
@@ -3189,6 +3212,23 @@ export type Database = {
           latest_repair_applied_at: string | null;
           has_unreviewed_repair: boolean | null;
           has_verified_auto_repair: boolean | null;
+        };
+        Relationships: [];
+      };
+      quiz_questions_phase6_signals: {
+        // Per-question aggregate of the most-recent verifier run.
+        // answer_verified_at NULL → Phase 6 hasn't reached a verdict;
+        // the publish-gate verifier rules short-circuit.
+        Row: {
+          question_id: string;
+          answer_verified_at: string | null;
+          answer_verifier_version: string | null;
+          answer_verification_status: string | null;
+          dispute_category: string | null;
+          suggested_verified_answer: string | null;
+          selected_official_answer: string | null;
+          failed_voter_count: number | null;
+          latest_run_group_id: string | null;
         };
         Relationships: [];
       };
