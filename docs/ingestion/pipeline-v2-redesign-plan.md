@@ -615,18 +615,44 @@ delete old paths until replacements are proven by real PDF runs.
   `node_id=null`. The new path uses `nodeIdFromSlug` from the
   canonical `@/lib/question-bank/taxonomy`, fixing this.
 
-#### PR 8.2 — Canonical taxonomy generation (planned next)
+#### PR 8.2 — Canonical taxonomy generation (this PR)
 
-- Keep `src/data/curriculum/` as the canonical TypeScript source.
-- Add a build step (`npm run sync:taxonomy` exists; extend or
-  parallel it) that emits `scripts/lib/taxonomy.generated.mjs` with
-  frozen consts: SUBJECTS, ANSWER_FORMATS, DIFFICULTY_LEVELS,
-  CONCEPT_SLUGS[], DOMAIN_TO_CLUSTER{}.
-- CI stale-check (a vitest in `pre-commit` mode) fails if the
-  generated file is older than the source `.ts` modules.
-- All `.mjs` scripts (extract-with-gemini, fill-explanations-v2,
-  qa-explanations, publish-gate, etc.) replace inlined taxonomy
-  strings with imports from the generated file.
+- `src/data/curriculum/` remains the canonical TypeScript source.
+- `scripts/sync-taxonomy.ts` (invoked via `npm run sync:taxonomy`)
+  now emits **six** generated artifacts from one command:
+  - `question-imports/chatgpt/taxonomy.txt` (pre-existing)
+  - `question-imports/chatgpt/KarmanGPT.txt` §6 (pre-existing)
+  - `question-imports/stage2_classify.py` (pre-existing)
+  - `docs/ingestion/routine.md` §12 (pre-existing)
+  - **NEW** `scripts/lib/taxonomy.generated.mjs` — frozen ESM
+    constants for `.mjs` scripts: SUBJECTS, ANSWER_FORMATS,
+    DIFFICULTY_LEVELS, DOMAINS, READING_DOMAINS, MATH_DOMAINS,
+    CLUSTER_BY_DOMAIN, TOPIC_CLUSTERS, CONCEPT_SLUGS,
+    CONCEPT_SLUG_VALUES, SLUG_TO_NODE_ID, SLUG_TO_DOMAIN,
+    RW_NODE_IDS, MATH_NODE_IDS + helper functions
+    (isValidDomain, isValidSlug, nodeIdFromSlug, subjectFromDomain,
+    clusterFromSlug).
+  - **NEW** `scripts/lib/prompts/taxonomy-fragment.txt` — prompt
+    fragment runtime prompt builders read instead of carrying a
+    hardcoded slug block.
+- **NEW CI stale-check**: `.github/workflows/ci.yml` has a new
+  `taxonomy-stale-check` job that runs `npm run sync:taxonomy` then
+  fails the build if `git status --porcelain` is non-empty —
+  meaning anyone edited the curriculum without regenerating.
+  Local fix: `npm run sync:taxonomy && git add -u`.
+- Active consumer migrated in this PR: `extract-with-gemini.mjs`
+  (the LOCKED_TAXONOMY block + DOMAINS / TOPIC_CLUSTERS /
+  CONCEPT_SLUGS inlined arrays — 124 lines removed, replaced by
+  one import statement).
+- Deprecated consumers (`import-csv-direct.mjs`,
+  `generate-explanation-text.mjs`, `audit-csv.mjs`,
+  `recover-domain-bug.mjs`) keep their inlined arrays for now and
+  get migrated in PR 8.4 cleanup.
+- Vitest at `src/lib/pipeline-v2/taxonomy-generated.test.ts`
+  round-trips the .mjs file against the TS source: every slug,
+  every domain, every node-id, every helper function output is
+  compared. Catches generator bugs that the git-diff stale-check
+  cannot.
 
 #### PR 8.3 — Typed legacy-grader audit modules (planned)
 

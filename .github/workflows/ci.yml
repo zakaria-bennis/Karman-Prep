@@ -89,6 +89,55 @@ jobs:
           node-version-file: .nvmrc
       - run: node scripts/check-file-sizes.mjs
 
+  taxonomy-stale-check:
+    name: Taxonomy codegen up-to-date
+    runs-on: ubuntu-latest
+    # v2 phase 8.2: src/data/curriculum/ is the canonical taxonomy
+    # source. Multiple downstream artifacts are GENERATED from it
+    # (question-imports/chatgpt/taxonomy.txt, KarmanGPT.txt,
+    # stage2_classify.py, docs/ingestion/routine.md,
+    # scripts/lib/taxonomy.generated.mjs, scripts/lib/prompts/
+    # taxonomy-fragment.txt). This job re-runs `npm run sync:taxonomy`
+    # and fails the build if anything changed — meaning someone edited
+    # the curriculum without regenerating the artifacts.
+    #
+    # Local fix when this fails:
+    #   npm run sync:taxonomy && git add -u && git commit --amend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      # Matches the install command other CI jobs use. We can't use
+      # `npm ci` here because the lockfile is known to drift between
+      # npm 10 (CI default) and npm 11 (local dev). The diff check
+      # below is scoped to only the 6 taxonomy files, so a
+      # package-lock churn doesn't false-positive this job.
+      - run: npm install --no-audit --no-fund
+      - name: Regenerate taxonomy artifacts
+        run: npm run sync:taxonomy
+      - name: Fail if any generated taxonomy artifact changed
+        # Scope the diff to ONLY the files the generator writes. An
+        # unrelated working-tree drift (e.g. cached build artifacts)
+        # must not trip this job — it should fire only when curriculum
+        # source changed without a corresponding sync:taxonomy run.
+        run: |
+          PATHS=(
+            "question-imports/chatgpt/taxonomy.txt"
+            "question-imports/chatgpt/KarmanGPT.txt"
+            "question-imports/stage2_classify.py"
+            "docs/ingestion/routine.md"
+            "scripts/lib/taxonomy.generated.mjs"
+            "scripts/lib/prompts/taxonomy-fragment.txt"
+          )
+          if ! git diff --quiet -- "${PATHS[@]}"; then
+            echo "::error::Taxonomy artifacts are stale. Run \`npm run sync:taxonomy\` locally and commit the result."
+            git --no-pager diff -- "${PATHS[@]}"
+            exit 1
+          fi
+          echo "✓ Taxonomy artifacts are up to date."
+
   test:
     name: Unit tests (Vitest)
     runs-on: ubuntu-latest
