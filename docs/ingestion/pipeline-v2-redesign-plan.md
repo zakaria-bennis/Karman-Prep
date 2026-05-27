@@ -585,14 +585,75 @@ Total ≈ **$2/PDF**. Adds ~90s to the orchestrator wall time.
 
 ### Phase 8 — Consolidation
 
-Purpose: reduce drift.
+Purpose: reduce drift between parallel implementations of the same
+logic. **Refactor only — no new features.** Ships as **four small
+sequential PRs** so each consolidation is small, reviewable, and
+independently revertable. Cleanup comes last because we should not
+delete old paths until replacements are proven by real PDF runs.
 
-Consolidate:
+#### PR 8.1 — Shared import core + JSON-direct transport (this PR)
 
-- `import-csv-direct.mjs` + `bulk-import.ts` into shared import core
-- `multi-vote-grader.mjs` + `llm-grader.mjs` into unified grader framework
-- taxonomy prompt copies into generated artifacts from one canonical source
-- CSV as core transport into JSON/DB-first import with CSV as export/debug artifact
+- `src/lib/question-bank/import-core.ts` is the new canonical
+  question-import library. Both admin upload (`bulk-import.ts`) and
+  orchestrator import (`scripts/pdf-pipeline/import-json-direct.ts`)
+  call it.
+- The shared core handles: validation, `content_hash_v2`,
+  `quiz_questions` insert with `raw_question_text` mirror,
+  `answer_choices` insert with `raw_choice_text` mirror,
+  `answer_key_entries` Phase 1 seeding, `selected_official_answer`
+  + `answer_key_status` mirroring, `source_assets` figure_crop
+  registration.
+- Pipeline goes from 14 → **13 stages**: Stages 3 (emit CSV) + 4
+  (import CSV) merge into one Stage 3 (JSON-direct import). The
+  CSV intermediate is gone from the orchestrator.
+- `json-to-import-csv.mjs` demoted to debug-only.
+- `import-csv-direct.mjs` marked deprecated; kept as a one-off CLI
+  for operators who need to import a hand-edited CSV.
+- Drive-by fix: the orchestrator's old path was silently reading
+  `src/data/curriculum.ts` (which no longer exists since the
+  curriculum migration) — so every orchestrator-imported row got
+  `node_id=null`. The new path uses `nodeIdFromSlug` from the
+  canonical `@/lib/question-bank/taxonomy`, fixing this.
+
+#### PR 8.2 — Canonical taxonomy generation (planned next)
+
+- Keep `src/data/curriculum/` as the canonical TypeScript source.
+- Add a build step (`npm run sync:taxonomy` exists; extend or
+  parallel it) that emits `scripts/lib/taxonomy.generated.mjs` with
+  frozen consts: SUBJECTS, ANSWER_FORMATS, DIFFICULTY_LEVELS,
+  CONCEPT_SLUGS[], DOMAIN_TO_CLUSTER{}.
+- CI stale-check (a vitest in `pre-commit` mode) fails if the
+  generated file is older than the source `.ts` modules.
+- All `.mjs` scripts (extract-with-gemini, fill-explanations-v2,
+  qa-explanations, publish-gate, etc.) replace inlined taxonomy
+  strings with imports from the generated file.
+
+#### PR 8.3 — Typed legacy-grader audit modules (planned)
+
+- Keep `verify-answers.mjs` as the Phase 6 canonical answer
+  verifier.
+- Port useful logic from `llm-grader.mjs` into small typed audit
+  modules called by the orchestrator on demand:
+  - `check-figure-coherence.mjs` — does the attached figure match
+    what the question references?
+  - `check-explanation-consistency.mjs` — does the explanation
+    actually support the verified answer?
+  - `check-well-formedness.mjs` — sanity-check structural shape.
+  - `check-slug-alignment.mjs` — independent slug verification.
+- Each module writes structured findings to the shared review /
+  audit surface.
+- **Do not** build a top-level `grader-framework.mjs`. Phase 6's
+  shared modules ARE the framework; we don't want another
+  orchestration layer.
+- `multi-vote-grader.mjs` + `llm-grader.mjs` stay in repo as
+  deprecated fallbacks until parity is confirmed by real PDF runs.
+
+#### PR 8.4 — Final cleanup (planned)
+
+- Remove deprecated scripts, dead workflows, obsolete docs, stale
+  prompt files, and old import/grader paths — but only after one
+  or two real PDF runs confirm the replacements work.
+- This PR introduces NO new behavior. Pure deletion.
 
 ---
 
