@@ -129,6 +129,9 @@ async function main() {
       "source_assets_processed_at, source_assets_processed_status, " +
       // v2 phase 5: opt-in marker + per-question repair status.
       "math_notation_checked_at, math_notation_status, " +
+      // v2 phase 6: opt-in marker + typed verifier verdict.
+      "answer_verified_at, answer_verifier_version, dispute_category, " +
+      "suggested_verified_answer, " +
       "answer_choices(letter, choice_text)"
   );
   if (QUESTION_ID) query = query.eq("id", QUESTION_ID);

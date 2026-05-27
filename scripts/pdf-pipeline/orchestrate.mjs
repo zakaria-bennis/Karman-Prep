@@ -32,8 +32,11 @@
 //                auto-repair only low-risk cases that clear the
 //                8-condition gate; route everything else to review.
 //   filling      Sonnet explanation_text + per-choice + Haiku Desmos
-//   grading      Multi-vote audit (uses selected_official_answer when set);
-//                writes grader_runs append-only + answer_verification_status
+//   grading      v2 phase 6 — typed answer verifier (DeepSeek primary,
+//                Groq independent, Gemini Flash visual; Pro/Opus/SymPy
+//                escalation by typed dispute category). Writes
+//                grader_runs append-only + Phase 6 verdict columns.
+//                Never auto-flips selected_official_answer.
 //   validating   v2 phase 1 — strict server-side KaTeX validation
 //   publishing   v2 phase 1+2+3+5 — publish-gate (now with phase 3 source-
 //                evidence gates + phase 5 math-notation gates, all opt-in
@@ -263,14 +266,25 @@ async function main() {
       ["--source-pdf", sourcePdfBasename]
     );
 
-    // Stage 10: multi-vote grader — uses selected_official_answer
+    // Stage 10: v2 phase 6 — typed answer verifier.
+    //
+    // Replaces the legacy multi-vote-grader.mjs call. Same audit-log
+    // shape (grader_runs + grader_votes JSONB summary), but now with:
+    //   · typed solver roles (deepseek primary / groq independent /
+    //     gemini flash VISUAL)
+    //   · typed dispute routing (R&W → Opus; math+visual → Pro;
+    //     numeric_entry → SymPy first; etc.)
+    //   · failed voters captured in grader_runs (not silently dropped)
+    //   · suggested_verified_answer when the panel disagrees with key
+    // Never auto-flips: human reviews any dispute. Old script stays
+    // in repo as a fallback at scripts/question-audit/multi-vote-grader.mjs.
     await job.setStage("grading", {
-      message: "Flash + DeepSeek + Llama → Pro → Opus consensus check",
+      message: "Typed verifier panel — DeepSeek + Groq + Flash → Pro/Opus/SymPy",
     });
     runStage(
-      "Stage 10/12 — multi-vote grader",
+      "Stage 10/12 — verify answers (v2 phase 6)",
       "grading",
-      "scripts/question-audit/multi-vote-grader.mjs",
+      "scripts/question-audit/verify-answers.mjs",
       ["--from-db", "--source-pdf", sourcePdfBasename]
     );
 
