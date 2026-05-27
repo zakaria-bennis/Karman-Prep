@@ -109,15 +109,29 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: npm
-      - run: npm install --no-audit --no-fund
+      # Use `npm ci` not `npm install` — ci validates the lockfile
+      # instead of mutating it, so this job doesn't false-positive on
+      # an unrelated package-lock.json regeneration.
+      - run: npm ci --no-audit --no-fund
       - name: Regenerate taxonomy artifacts
         run: npm run sync:taxonomy
-      - name: Fail if anything changed
+      - name: Fail if any generated taxonomy artifact changed
+        # Scope the diff to ONLY the files the generator writes. An
+        # unrelated working-tree drift (e.g. cached build artifacts)
+        # must not trip this job — it should fire only when curriculum
+        # source changed without a corresponding sync:taxonomy run.
         run: |
-          if [ -n "$(git status --porcelain)" ]; then
+          PATHS=(
+            "question-imports/chatgpt/taxonomy.txt"
+            "question-imports/chatgpt/KarmanGPT.txt"
+            "question-imports/stage2_classify.py"
+            "docs/ingestion/routine.md"
+            "scripts/lib/taxonomy.generated.mjs"
+            "scripts/lib/prompts/taxonomy-fragment.txt"
+          )
+          if ! git diff --quiet -- "${PATHS[@]}"; then
             echo "::error::Taxonomy artifacts are stale. Run \`npm run sync:taxonomy\` locally and commit the result."
-            git status
-            git --no-pager diff
+            git --no-pager diff -- "${PATHS[@]}"
             exit 1
           fi
           echo "✓ Taxonomy artifacts are up to date."
