@@ -1,5 +1,15 @@
 // ============================================================
-// json-to-import-csv — final step in the Gemini PDF pipeline.
+// json-to-import-csv — debug-only CSV export from Gemini JSON.
+//
+// ⚠ DEMOTED to debug-only as of v2 phase 8.1.
+//   The orchestrator no longer calls this. Stages 3+4 (emit CSV +
+//   import CSV) merged into one Stage 3 (import JSON directly) via
+//   scripts/pdf-pipeline/import-json-direct.ts.
+//
+//   Keep this script for the rare case an operator wants a CSV
+//   snapshot of an extraction — e.g. to spot-check the gemini
+//   output offline, or to hand-edit a row and re-import via the
+//   admin /admin/questions/import UI.
 //
 // Takes a Gemini-extracted JSON (with figure URLs already populated
 // by extract-figures.mjs) and writes the 32-column CSV that the

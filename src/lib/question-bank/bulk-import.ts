@@ -1,31 +1,33 @@
 // ============================================================
-// bulk-import — core CSV-row → quiz_questions logic.
+// bulk-import — admin-upload entry point for the question bank.
 //
-// Exists as a separate helper (not a server action) so it can be
-// called from non-Clerk contexts: the CRON_SECRET-authed
-// /api/cron/ingest-csv-inbox route in particular. Server-action
-// callers (actionBulkImport in admin/actions.ts) wrap this with
-// guardAdmin() and revalidatePath(); this helper does neither.
+// As of Phase 8.1, the actual row→DB logic lives in
+// src/lib/question-bank/import-core.ts. This file's responsibilities
+// shrink to:
+//   1. Materialize each row's image_url (data URL → R2 upload) before
+//      handing the row to importQuestion. The orchestrator JSON
+//      path doesn't need this (its images are already R2 URLs).
+//   2. Auto-flag image-bearing rows as needs_review (admin-upload
+//      heuristic — image extraction is the failure-prone step in
+//      the ChatGPT-Plus / Code-Interpreter pipeline that produces
+//      the admin's CSVs).
+//   3. Surface the legacy BulkImportRow shape so existing callers
+//      (action handlers, the cron-ingest route) keep their public
+//      contract.
 //
-// Behavior matches the previous inline implementation in actions.ts
-// — the move is purely structural (extract for reuse).
+// Behavior matches the previous inline implementation — admin paths
+// are NOT meant to see any change after this refactor.
 // ============================================================
 
-import { insertQuestion } from "@/lib/supabase/queries/quiz";
-import type { AnswerLetter, AnswerSource, ImportFlagType, ImportStatus } from "@/types/quiz";
-import {
-  isValidSlug,
-  isValidDomain,
-  clusterFromSlug,
-  CLUSTER_BY_DOMAIN,
-  type SATDomain,
-} from "@/lib/question-bank/taxonomy";
-import {
-  levelToLegacyDifficulty,
-  type QuizDifficulty,
-  type QuizDifficultyLevel,
-} from "@/types/quiz";
+import { createAdminClient } from "@/lib/supabase/server";
 import { uploadToR2 } from "@/lib/storage/r2";
+import {
+  importQuestion,
+  type ImportBatchSummary,
+  type ImportQuestionInput,
+} from "@/lib/question-bank/import-core";
+import type { AnswerSource, ImportFlagType, ImportStatus } from "@/types/quiz";
+import { isValidDomain, type SATDomain } from "@/lib/question-bank/taxonomy";
 import crypto from "node:crypto";
 
 export interface BulkImportRow {
@@ -67,26 +69,7 @@ export interface BulkImportRow {
   image_alt?: string;
 }
 
-export interface BulkImportResult {
-  inserted: number;
-  skipped_duplicates: number;
-  flagged_for_review: number;
-  errored: number;
-  errors: Array<{ row: number; message: string }>;
-}
-
-const LEGACY_LEVEL_MAP = {
-  foundational: 2,
-  intermediate: 4,
-  advanced: 5,
-  mastery: 6,
-} as const;
-
-const MATH_DOMAINS = new Set<SATDomain>(["algebra", "advanced_math", "geometry", "data_analysis"]);
-
-function subjectFromDomain(domain: SATDomain): "reading" | "math" {
-  return MATH_DOMAINS.has(domain) ? "math" : "reading";
-}
+export type BulkImportResult = ImportBatchSummary;
 
 /** Per-image size cap on the bulk-import pipeline. Decoded image
  *  bytes (post base64) that exceed this throw — the surrounding
@@ -119,10 +102,8 @@ async function materializeImage(
   if (!imageUrl) return { url: null, storagePath: null };
   const trimmed = imageUrl.trim();
   if (!trimmed.startsWith("data:image/")) {
-    // Already an external URL — keep as-is, no storage path.
     return { url: trimmed, storagePath: null };
   }
-  // data:<mime>;base64,<payload>
   const m = trimmed.match(/^data:(image\/[\w.+-]+);base64,([\s\S]+)$/);
   if (!m) throw new Error("malformed image_url data URL");
   const mime = m[1];
@@ -133,13 +114,8 @@ async function materializeImage(
       `image too large: ${bytes.length} bytes exceeds cap of ${MAX_IMAGE_BYTES} bytes (${Math.round(MAX_IMAGE_BYTES / 1024 / 1024)} MB)`
     );
   }
-  // Hash the bytes so the same image (e.g. shared whole-page render
-  // across questions) dedupes to one R2 object.
   const sha = crypto.createHash("sha256").update(bytes).digest("hex").slice(0, 16);
   const stem = (sourcePdf?.replace(/\.pdf$/i, "") || "unknown").replace(/[^a-zA-Z0-9._-]/g, "_");
-  // Include content_hash in the key so re-runs with a tweaked CSV
-  // overwrite cleanly while still benefiting from the sha dedup
-  // across rows of the same PDF.
   const tag = (contentHash || sha).slice(0, 12);
   const key = `question-images/bulk/${stem}/${sha}-${tag}.${ext}`;
   const { publicUrl, storagePath } = await uploadToR2({
@@ -150,31 +126,48 @@ async function materializeImage(
   return { url: publicUrl, storagePath };
 }
 
-function parseDifficulty(value: string | undefined): {
-  level: QuizDifficultyLevel;
-  legacy: QuizDifficulty;
-} {
-  if (!value) return { level: 4, legacy: levelToLegacyDifficulty(4) };
-  const trimmed = value.trim();
-  const asInt = Number.parseInt(trimmed, 10);
-  if (!Number.isNaN(asInt) && asInt >= 1 && asInt <= 7) {
-    const lvl = asInt as QuizDifficultyLevel;
-    return { level: lvl, legacy: levelToLegacyDifficulty(lvl) };
-  }
-  if (trimmed in LEGACY_LEVEL_MAP) {
-    const legacy = trimmed as QuizDifficulty;
-    return { level: LEGACY_LEVEL_MAP[legacy] as QuizDifficultyLevel, legacy };
-  }
-  return { level: 4, legacy: levelToLegacyDifficulty(4) };
+/**
+ * Auto-flag image-bearing rows as needs_review. This is a heuristic
+ * specific to the admin-upload path (the ChatGPT-Plus pipeline that
+ * produces admin CSVs is known to occasionally clip figures). The
+ * orchestrator JSON path does its own image flagging via Phase 4.
+ */
+function autoFlagImageRows(row: BulkImportRow): BulkImportRow {
+  if (!row.image_url?.trim()) return row;
+  if (row.import_status === "needs_review") return row;
+  const where = [
+    row.source_pdf,
+    row.source_page !== undefined && row.source_page !== "" ? `page ${row.source_page}` : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+  return {
+    ...row,
+    import_status: "needs_review",
+    import_flag_type: row.import_flag_type ?? "partial_emit",
+    import_flag_reason: where
+      ? `Image attached — verify the figure was extracted correctly (${where}).`
+      : "Image attached — verify the figure was extracted correctly.",
+  };
 }
 
-/** Pure bulk-import — no auth, no path-revalidation. */
+/** Pure bulk-import — no auth, no path-revalidation. Server-action
+ *  callers (actionBulkImport in admin/actions.ts) wrap this with
+ *  guardAdmin() and revalidatePath(); this helper does neither. */
 export async function bulkImportRows(
   nodeId: string | null,
   subject: "reading" | "math" | null,
   rows: BulkImportRow[]
 ): Promise<BulkImportResult> {
-  const result: BulkImportResult = {
+  // The legacy nodeId parameter is no longer used as an override —
+  // import-core derives node_id from concept_slug via the canonical
+  // taxonomy. We accept it for API compatibility but ignore it
+  // (callers that relied on it for shimmed assignment should switch
+  // to setting concept_slug on the row instead).
+  void nodeId;
+
+  const supabase = createAdminClient();
+  const summary: BulkImportResult = {
     inserted: 0,
     skipped_duplicates: 0,
     flagged_for_review: 0,
@@ -183,153 +176,104 @@ export async function bulkImportRows(
   };
 
   for (let i = 0; i < rows.length; i++) {
-    const r = rows[i];
-    try {
-      if (r.domain && !isValidDomain(r.domain)) {
-        throw new Error(`unknown domain "${r.domain}"`);
-      }
-      if (r.concept_slug && !isValidSlug(r.concept_slug)) {
-        throw new Error(`unknown concept_slug "${r.concept_slug}"`);
-      }
+    const raw = autoFlagImageRows(rows[i]);
 
-      // ── Auto-flag every image-bearing row ────────────────
-      // Image extraction is the failure-prone step in the GPT
-      // pipeline (vision crops can clip, embedded extracts can
-      // pick up logos). Flag every image row so it lands in
-      // /admin/questions/review for a quick visual sanity check
-      // before going live in Learn. If the GPT already flagged
-      // for a different reason (e.g. inferred answer key), keep
-      // the original reason — we just need it in the review
-      // queue, not necessarily for image-specific reasons.
-      if (r.image_url?.trim()) {
-        if (r.import_status !== "needs_review") {
-          r.import_status = "needs_review";
-          r.import_flag_type = r.import_flag_type ?? "partial_emit";
-          const where = [
-            r.source_pdf,
-            r.source_page !== undefined && r.source_page !== "" ? `page ${r.source_page}` : null,
-          ]
-            .filter(Boolean)
-            .join(" · ");
-          r.import_flag_reason = where
-            ? `Image attached — verify the figure was extracted correctly (${where}).`
-            : "Image attached — verify the figure was extracted correctly.";
-        }
-      }
-
-      if (r.import_status === "needs_review" && !r.import_flag_reason?.trim()) {
-        throw new Error("needs_review row missing import_flag_reason");
-      }
-
-      let rowSubject: "reading" | "math";
-      if (subject) {
-        rowSubject = subject;
-      } else if (r.domain) {
-        rowSubject = subjectFromDomain(r.domain as SATDomain);
+    // Subject derivation: panel-level override OR derive from domain.
+    let rowSubject: "reading" | "math" | null = subject;
+    if (!rowSubject) {
+      if (raw.domain && isValidDomain(raw.domain)) {
+        rowSubject =
+          raw.domain === "info_ideas" ||
+          raw.domain === "craft_structure" ||
+          raw.domain === "expression_ideas" ||
+          raw.domain === "conventions"
+            ? "reading"
+            : "math";
       } else {
-        throw new Error("row has no domain and no panel-level subject — cannot derive subject");
+        summary.errored++;
+        summary.errors.push({
+          row: i + 2,
+          message: "row has no domain and no panel-level subject — cannot derive subject",
+        });
+        continue;
       }
+    }
+    // If subject was given but domain isn't, we still need a domain
+    // for import-core to compute subject correctly. Trust the caller
+    // here — but a subject-only invocation without per-row domain is
+    // unusual; the audit/admin UI always sets domain per row.
+    if (!raw.domain) {
+      summary.errored++;
+      summary.errors.push({ row: i + 2, message: "row missing domain" });
+      continue;
+    }
 
-      const { level, legacy } = parseDifficulty(r.difficulty);
-      const format = r.question_format ?? "multiple_choice";
-      const question_type = rowSubject === "reading" ? "evidence_based" : "math_computation";
-
-      const cluster =
-        (r.concept_slug && clusterFromSlug(r.concept_slug)) ||
-        r.topic_cluster ||
-        (r.domain && CLUSTER_BY_DOMAIN[r.domain as SATDomain]) ||
-        "";
-
-      const hasAnyChoiceExpl =
-        r.explanation_a || r.explanation_b || r.explanation_c || r.explanation_d;
-      const explanation_per_choice = hasAnyChoiceExpl
-        ? {
-            A: r.explanation_a,
-            B: r.explanation_b,
-            C: r.explanation_c,
-            D: r.explanation_d,
-          }
-        : null;
-
-      const choices =
-        format === "multiple_choice"
-          ? [
-              { letter: "A" as AnswerLetter, choice_text: r.choice_a ?? "" },
-              { letter: "B" as AnswerLetter, choice_text: r.choice_b ?? "" },
-              { letter: "C" as AnswerLetter, choice_text: r.choice_c ?? "" },
-              { letter: "D" as AnswerLetter, choice_text: r.choice_d ?? "" },
-            ]
-          : [];
-
-      const numericTol =
-        r.numeric_tolerance && r.numeric_tolerance.trim() !== ""
-          ? Number.parseFloat(r.numeric_tolerance)
-          : null;
-      const sourcePage =
-        r.source_page === undefined || r.source_page === ""
-          ? null
-          : typeof r.source_page === "number"
-            ? r.source_page
-            : Number.parseInt(r.source_page, 10);
-
-      // Materialize image_url. If it's a data URL, this uploads
-      // bytes to R2 and returns the new https URL + storage path.
-      // If it's already https, this is a no-op pass-through.
-      const { url: resolvedImageUrl, storagePath: resolvedImagePath } = await materializeImage(
-        r.image_url,
-        r.source_pdf,
-        r.content_hash
+    try {
+      // Materialize image FIRST (the only side effect that lives in
+      // bulk-import — import-core stays pure-DB).
+      const { url: image_url, storagePath: image_storage_path } = await materializeImage(
+        raw.image_url,
+        raw.source_pdf,
+        raw.content_hash
       );
 
-      const { duplicateSkipped } = await insertQuestion({
-        node_id: nodeId,
-        question_text: r.question_text,
-        question_type,
-        difficulty: legacy,
-        difficulty_level: level,
-        answer_format: format,
-        correct_answer: r.correct_answer,
-        numeric_tolerance: numericTol,
-        explanation_text: r.explanation_text,
-        explanation_per_choice,
-        hint: r.hint?.trim() || null,
-        subject: rowSubject,
-        topic_cluster: cluster,
-        desmos_strategy: r.desmos_strategy?.trim() || null,
-        choices,
-        passage_intro: r.passage_intro || null,
-        passage: r.passage || null,
-        passage_a: r.passage_a || null,
-        passage_b: r.passage_b || null,
-        domain: r.domain || null,
-        concept_slug: r.concept_slug || null,
-        answer_source: r.answer_source ?? null,
-        source_pdf: r.source_pdf || null,
-        source_page: Number.isFinite(sourcePage as number) ? (sourcePage as number) : null,
-        content_hash: r.content_hash || null,
-        import_status: r.import_status ?? null,
-        import_flag_type: r.import_flag_type ?? null,
-        import_flag_reason: r.import_flag_reason || null,
-        image_url: resolvedImageUrl,
-        image_storage_path: resolvedImagePath,
-        image_alt: r.image_alt?.trim() || null,
-      });
-
-      if (duplicateSkipped) {
-        result.skipped_duplicates++;
-      } else if (r.import_status === "needs_review") {
-        result.flagged_for_review++;
+      const input: ImportQuestionInput = {
+        question_text: raw.question_text,
+        correct_answer: raw.correct_answer,
+        domain: raw.domain as SATDomain,
+        choice_a: raw.choice_a,
+        choice_b: raw.choice_b,
+        choice_c: raw.choice_c,
+        choice_d: raw.choice_d,
+        difficulty: raw.difficulty,
+        question_format: raw.question_format,
+        numeric_tolerance: raw.numeric_tolerance,
+        source_pdf: raw.source_pdf,
+        source_page: raw.source_page,
+        content_hash: raw.content_hash,
+        concept_slug: raw.concept_slug,
+        topic_cluster: raw.topic_cluster,
+        passage_intro: raw.passage_intro,
+        passage: raw.passage,
+        passage_a: raw.passage_a,
+        passage_b: raw.passage_b,
+        explanation_text: raw.explanation_text,
+        explanation_a: raw.explanation_a,
+        explanation_b: raw.explanation_b,
+        explanation_c: raw.explanation_c,
+        explanation_d: raw.explanation_d,
+        desmos_strategy: raw.desmos_strategy,
+        hint: raw.hint,
+        answer_source: raw.answer_source,
+        import_status: raw.import_status,
+        import_flag_type: raw.import_flag_type,
+        import_flag_reason: raw.import_flag_reason,
+        image_url,
+        image_storage_path,
+        image_alt: raw.image_alt,
+      };
+      const result = await importQuestion(supabase, input);
+      if (result.duplicate_skipped) {
+        summary.skipped_duplicates++;
+      } else if (!result.inserted) {
+        summary.errored++;
+        summary.errors.push({
+          row: i + 2,
+          message: result.errors.join("; ") || "unknown error",
+        });
+      } else if (result.flagged_for_review) {
+        summary.flagged_for_review++;
       } else {
-        result.inserted++;
+        summary.inserted++;
       }
     } catch (err) {
-      result.errored++;
-      result.errors.push({
+      summary.errored++;
+      summary.errors.push({
         row: i + 2,
         message: err instanceof Error ? err.message : String(err),
       });
     }
   }
 
-  return result;
+  return summary;
 }

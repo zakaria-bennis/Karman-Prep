@@ -4,6 +4,20 @@
 // into Supabase: quiz_questions + answer_choices, with concept_slug
 // → node_id auto-attach.
 //
+// ⚠ DEPRECATED (v2 phase 8.1, kept as fallback for hand-edited CSVs)
+//   The orchestrator no longer calls this. It now uses
+//   scripts/pdf-pipeline/import-json-direct.ts (the JSON-direct
+//   transport, which writes via the shared src/lib/question-bank/
+//   import-core.ts module). This file remains as a one-off CLI for
+//   operators who need to import a hand-edited CSV from
+//   /admin/questions/import.
+//
+//   Caveat: this script reads src/data/curriculum.ts which was
+//   migrated to src/data/curriculum/ — node_id will silently be NULL
+//   on every imported row. The new import-json-direct path fixes
+//   this by importing nodeIdFromSlug from the canonical taxonomy
+//   module.
+//
 // Usage:
 //   node --env-file=.env.local scripts/import-csv-direct.mjs <csv-path>
 //

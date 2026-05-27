@@ -18,8 +18,9 @@
 // STAGES (status: stage in pdf_processing_jobs.progress)
 //   extracting   Claude Sonnet → structured JSON
 //   figures      Page render + bbox + R2 upload per figure
-//   csv          JSON → 32-column CSV
-//   importing    CSV → quiz_questions + answer_choices (publish_status='draft')
+//   importing    v2 phase 8.1 — JSON → quiz_questions / answer_choices /
+//                answer_key_entries / source_assets directly, via the
+//                shared import-core module. CSV is now debug-only.
 //   answer_key   v2 phase 2 — detect key pages, extract printed answers +
 //                red-ink corrections, write answer_key_entries +
 //                quiz_questions.selected_official_answer
@@ -134,16 +135,26 @@ async function resolvePdfPath() {
 }
 
 // ── Run a sub-script with stdio inherit; fail the job if it exits non-zero ──
-function runStage(label, stage, script, scriptArgs) {
+//
+// runner: "node" (default) or "tsx" — TypeScript stages (e.g. Phase
+// 8.1's import-json-direct.ts) run via `npx tsx` so they can import
+// from the @/ TS aliases without a separate build step.
+function runStage(label, stage, script, scriptArgs, { runner = "node" } = {}) {
   console.log("");
   console.log("─".repeat(72));
   console.log(`▶ ${label}`);
   console.log("─".repeat(72));
-  const result = spawnSync(
-    "node",
-    [...(existsSync(".env.local") ? ["--env-file=.env.local"] : []), script, ...scriptArgs],
-    { stdio: "inherit", env: process.env }
-  );
+  const cmd = runner === "tsx" ? "npx" : "node";
+  const cmdArgs =
+    runner === "tsx"
+      ? [
+          "tsx",
+          ...(existsSync(".env.local") ? ["--env-file=.env.local"] : []),
+          script,
+          ...scriptArgs,
+        ]
+      : [...(existsSync(".env.local") ? ["--env-file=.env.local"] : []), script, ...scriptArgs];
+  const result = spawnSync(cmd, cmdArgs, { stdio: "inherit", env: process.env });
   if (result.status !== 0) {
     throw Object.assign(new Error(`${label} failed with exit ${result.status}`), {
       stage,
@@ -156,13 +167,12 @@ async function main() {
   const pdfStem = basename(pdfPath).replace(/\.pdf$/i, "");
   const outputDir = process.env.OUTPUT_DIR ?? tmpdir();
   const jsonOut = join(outputDir, `${pdfStem}-gemini-extracted.json`);
-  const csvOut = join(outputDir, `${pdfStem}-import.csv`);
 
   try {
     // Stage 1: extract structure
     await job.setStage("extracting", { message: `Claude Sonnet 4.6 on ${basename(pdfPath)}` });
     runStage(
-      "Stage 1/14 — extract structure (Claude Sonnet 4.6)",
+      "Stage 1/13 — extract structure (Claude Sonnet 4.6)",
       "extracting",
       "scripts/pdf-pipeline/extract-with-gemini.mjs",
       [pdfPath]
@@ -175,7 +185,7 @@ async function main() {
     // Stage 2: extract figures
     await job.setStage("figures", { message: "Vision-driven bbox crop + R2 upload" });
     runStage(
-      "Stage 2/14 — extract figures",
+      "Stage 2/13 — extract figures",
       "figures",
       "scripts/pdf-pipeline/extract-figures.mjs",
       [pdfPath, jsonOut]
@@ -186,21 +196,22 @@ async function main() {
       await job.patchStats({ figures_extracted: figs });
     }
 
-    // Stage 3: emit CSV
-    await job.setStage("csv", { message: "Generating 32-column import CSV" });
-    runStage("Stage 3/14 — generate CSV", "csv", "scripts/pdf-pipeline/json-to-import-csv.mjs", [
-      jsonOut,
-      pdfPath,
-      csvOut,
-    ]);
-
-    // Stage 4: import to DB
-    await job.setStage("importing", { message: "Writing rows to quiz_questions + answer_choices" });
+    // Stage 3: import JSON directly to DB (v2 phase 8.1)
+    //
+    // Replaces the previous Stage 3 (emit CSV) + Stage 4 (import CSV)
+    // combo. JSON output from extract-with-gemini.mjs goes straight
+    // to quiz_questions / answer_choices / answer_key_entries /
+    // source_assets via the shared import-core module. CSV is now a
+    // debug-only export (json-to-import-csv.mjs stays in repo).
+    await job.setStage("importing", {
+      message: "Writing rows to quiz_questions + answer_choices (JSON-direct)",
+    });
     runStage(
-      "Stage 4/14 — import to database",
+      "Stage 3/13 — import JSON to database (v2 phase 8.1)",
       "importing",
-      "scripts/pdf-pipeline/import-csv-direct.mjs",
-      [csvOut]
+      "scripts/pdf-pipeline/import-json-direct.ts",
+      [jsonOut],
+      { runner: "tsx" }
     );
 
     // v2 phase 1: every per-job stage from here on filters to JUST
@@ -216,7 +227,7 @@ async function main() {
       message: "Detecting answer-key pages + extracting corrections",
     });
     runStage(
-      "Stage 5/14 — extract answer key (v2 phase 2)",
+      "Stage 4/13 — extract answer key (v2 phase 2)",
       "answer_key",
       "scripts/pdf-pipeline/extract-answer-key.mjs",
       [pdfPath, "--source-pdf", sourcePdfBasename, ...(job.jobId ? ["--job-id", job.jobId] : [])]
@@ -232,7 +243,7 @@ async function main() {
       message: "Per-question source-asset extraction",
     });
     runStage(
-      "Stage 6/14 — extract question crops (v2 phase 3)",
+      "Stage 5/13 — extract question crops (v2 phase 3)",
       "crops",
       "scripts/pdf-pipeline/extract-question-crops.mjs",
       [pdfPath, "--source-pdf", sourcePdfBasename, ...(job.jobId ? ["--job-id", job.jobId] : [])]
@@ -246,7 +257,7 @@ async function main() {
       message: "Classifying visual relevance",
     });
     runStage(
-      "Stage 7/14 — classify visual relevance (v2 phase 4)",
+      "Stage 6/13 — classify visual relevance (v2 phase 4)",
       "visuals",
       "scripts/pdf-pipeline/classify-visual-relevance.mjs",
       ["--source-pdf", sourcePdfBasename]
@@ -262,7 +273,7 @@ async function main() {
       message: "Detecting OCR-mangled math notation",
     });
     runStage(
-      "Stage 8/14 — repair math notation (v2 phase 5)",
+      "Stage 7/13 — repair math notation (v2 phase 5)",
       "math_repair",
       "scripts/pdf-pipeline/repair-math-notation.mjs",
       ["--source-pdf", sourcePdfBasename]
@@ -277,7 +288,7 @@ async function main() {
       message: "Typed verifier panel — DeepSeek + Groq + Flash → Pro/Opus/SymPy",
     });
     runStage(
-      "Stage 9/14 — verify answers (v2 phase 6)",
+      "Stage 8/13 — verify answers (v2 phase 6)",
       "grading",
       "scripts/question-audit/verify-answers.mjs",
       ["--from-db", "--source-pdf", sourcePdfBasename]
@@ -292,7 +303,7 @@ async function main() {
       message: "Phase 7 pre-fill eligibility gate",
     });
     runStage(
-      "Stage 10/14 — check fill eligibility (v2 phase 7)",
+      "Stage 9/13 — check fill eligibility (v2 phase 7)",
       "fill_gate",
       "scripts/pdf-pipeline/check-fill-eligibility.mjs",
       ["--source-pdf", sourcePdfBasename]
@@ -308,7 +319,7 @@ async function main() {
       message: "Phase 7 explanation_v2 generation (Sonnet/Opus tiered)",
     });
     runStage(
-      "Stage 11/14 — fill explanations v2 (v2 phase 7)",
+      "Stage 10/13 — fill explanations v2 (v2 phase 7)",
       "filling",
       "scripts/pdf-pipeline/fill-explanations-v2.mjs",
       ["--source-pdf", sourcePdfBasename]
@@ -323,7 +334,7 @@ async function main() {
       message: "Phase 7 explanation QA (schema + LLM critic)",
     });
     runStage(
-      "Stage 12/14 — qa explanations (v2 phase 7)",
+      "Stage 11/13 — qa explanations (v2 phase 7)",
       "qa_filling",
       "scripts/pdf-pipeline/qa-explanations.mjs",
       ["--source-pdf", sourcePdfBasename]
@@ -334,7 +345,7 @@ async function main() {
       message: "Strict server-side KaTeX validation",
     });
     runStage(
-      "Stage 13/14 — validate KaTeX",
+      "Stage 12/13 — validate KaTeX",
       "validating",
       "scripts/question-audit/validate-katex.mjs",
       ["--source-pdf", sourcePdfBasename, "--apply-blocks"]
@@ -349,7 +360,7 @@ async function main() {
     await job.setStage("publishing", {
       message: "Publish-gate evaluation (promote draft → publish_ready)",
     });
-    runStage("Stage 14/14 — publish gate", "publishing", "scripts/pdf-pipeline/publish-gate.mjs", [
+    runStage("Stage 13/13 — publish gate", "publishing", "scripts/pdf-pipeline/publish-gate.mjs", [
       "--source-pdf",
       sourcePdfBasename,
     ]);
