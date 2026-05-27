@@ -291,21 +291,132 @@ Total ≈ **$0.01/PDF**. Adds ~30s to the orchestrator wall time.
 ### Phase 6 — Answer Verification and Arbitration
 
 Purpose: treat the answer key as 95% reliable but not authoritative.
+The defining principle of Phase 6 is **never auto-flip** — when the
+model panel disagrees with the stored answer key, the system records
+a suggested answer and routes the row to human review.
 
-Default solver panel:
+#### Typed solver roles (Pass 1 panel, parallel)
 
-- DeepSeek primary solver
-- Groq fast independent solver
-- Gemini Flash visual checker
+| Role identifier                  | Model            | Job                          |
+| -------------------------------- | ---------------- | ---------------------------- |
+| `deepseek_primary_solver`        | DeepSeek V3      | Primary text reasoner        |
+| `groq_independent_solver`        | Llama 3.3 70B    | Independent re-solve         |
+| `gemini_flash_visual_checker`    | Gemini 2.5 Flash | **Visual** checker (sees source crop) |
 
-Escalation:
+#### Typed escalation roles (Pass 2)
 
-- Gemini Pro for visual disputes
-- Claude Opus for reasoning-heavy or Reading/Writing disputes
+| Role identifier                  | Model            | Job                          |
+| -------------------------------- | ---------------- | ---------------------------- |
+| `gemini_pro_visual_escalation`   | Gemini 2.5 Pro   | Visual / math dispute arbiter |
+| `claude_opus_reasoning_arbiter`  | Claude Opus 4.7  | Reasoning + R&W arbiter      |
+| `sympy_equivalence_checker`      | SymPy 1.13       | Open-ended numeric equivalence (CI-only) |
 
-For Reading/Writing, all questions are multiple choice. If answer choices are missing, block as extraction error.
+#### Typed dispute categories
 
-For Math, questions may be multiple choice or open-ended numeric. Open-ended numeric questions require normalization and equivalence checking.
+| Category                       | When it fires                                              |
+| ------------------------------ | ---------------------------------------------------------- |
+| `none`                         | Panel majority agreed with key — happy path                |
+| `answer_key_dispute`           | Phase 2 already flagged the key as disputed                |
+| `visual_dispute`               | Math + has a required visual; Flash often disagrees        |
+| `math_notation_dispute`        | Phase 5 flagged the question's math notation               |
+| `math_equivalence_dispute`     | Pure math; numeric_entry; or post-Pro reasoning disputes   |
+| `rw_reasoning_dispute`         | Reading/Writing — always routed to Opus                    |
+| `unanswerable_question`        | All Pass 1 voters reported `is_answerable=false`           |
+| `extraction_error`             | MC question with <4 answer_choices                         |
+
+#### Visual input fallback chain
+
+Phase 6's visual roles (Flash + Pro escalation) ask Gemini for the
+**expanded_question_crop** by default. The chain:
+
+1. `expanded_question_crop` — primary; preserves a little context.
+2. `question_crop` — tight crop; fallback when expanded isn't present.
+3. `page_image` — full page; last resort for visual-relevance / missing-figure disputes.
+
+For exact math-notation checks (the Phase 5 cross-talk path), the
+order swaps: tight `question_crop` first, expanded second.
+
+#### Evidence-based dispute routing
+
+The router classifies each non-happy-path question:
+
+1. **R&W** → Claude Opus (reasoning-heavy by nature).
+2. **Math numeric_entry** → SymPy first; escalate to Pro on
+   `inconclusive` or `not_equivalent`.
+3. **Math + Phase 5 math notation flag** → SymPy first; escalate
+   to Pro on disagreement.
+4. **Math + visual (image_url, required visual asset, "the graph
+   above" phrasing)** → Gemini Pro.
+5. **Answer-key already disputed (Phase 2)** → run BOTH Pro AND
+   Opus and compare.
+6. **Pure math reasoning, no visual or notation** → Pro first.
+7. **Ambiguous routing** → run BOTH Pro AND Opus.
+
+`escalation_disagrees` is a real terminal state: when both Pro and
+Opus run but produce different answers, the row blocks with that
+status and waits for human review.
+
+#### Cautious never-auto-flip policy
+
+When the full cascade (Pass 1 panel + Pro/Opus/SymPy) agrees on an
+answer that **differs** from the stored `selected_official_answer`:
+
+- `answer_verification_status = 'model_consensus_disagrees_with_key'`
+- `suggested_verified_answer = <panel consensus answer>`
+- `publish_status = 'blocked_answer_dispute'` (set by publish-gate)
+- Admin reviews the row in the preview UI, sees the stored key + all
+  grader votes + the suggested answer, and decides.
+
+Phase 6 v1 **never** mutates `selected_official_answer` automatically.
+A future Phase 6.5 may relax this for narrowly-defined safe cases
+(unanimous panel + high arbiter confidence + no visual / notation
+flags), but the current default is human-in-the-loop.
+
+#### Failed voters captured in grader_runs
+
+Unlike the legacy `multi-vote-grader.mjs`, Phase 6 writes a
+`grader_runs` row for **every** voter — including those that errored.
+Failed voters have `selected_answer=NULL` and the error message in
+`raw_response_json.error`. This makes "the panel was 2/3 because
+Llama was rate-limited" visible at the SELECT level instead of an
+invisible silent drop.
+
+#### Implementation files
+
+| File                                                       | Role                              |
+| ---------------------------------------------------------- | --------------------------------- |
+| `supabase/migrations/…_pdf_ingestion_v2_phase6.sql`        | 4 new columns + signals view      |
+| `scripts/lib/grader-roles.mjs`                             | Typed role / dispute / status enums |
+| `scripts/lib/grader-normalize.mjs`                         | Letter + numeric + SymPy equivalence |
+| `scripts/lib/grader-prompts.mjs`                           | Typed-role prompt builders + asset resolver |
+| `scripts/lib/grader-persistence.mjs`                       | grader_runs + grader_votes + verdict writes |
+| `scripts/lib/verifier-routing.mjs`                         | Typed dispute router + verdict reconciler |
+| `scripts/question-audit/verify-answers.mjs`                | Stage 10 runner                   |
+| `scripts/v2-phase6/verify-answer-flow.mjs`                 | DB-level verifier                 |
+| `src/lib/pipeline-v2/grader-roles.test.ts`                 | Vitest (9 tests)                  |
+| `src/lib/pipeline-v2/grader-normalize.test.ts`             | Vitest (21 tests)                 |
+| `src/lib/pipeline-v2/verifier-routing.test.ts`             | Vitest (21 tests)                 |
+
+#### Cost
+
+Per PDF (~30 questions, ~5 disputes after Pass 1):
+
+- Pass 1 (3 typed voters × 30 q): ~$0.03
+- Pass 2 (Pro/Opus on 5 disputes): ~$0.025
+- SymPy on open-ended:             free (CI)
+
+Total ≈ **$0.06/PDF**. Adds ~45s to the orchestrator wall time.
+
+#### Deferred (Phase 6.5)
+
+- Auto-flip for narrowly-defined low-risk cases (8-condition gate
+  analogous to Phase 5).
+- A 4th typed pass that re-uses the Phase 5 source crop + SymPy bridge
+  to verify whether an `escalation_disagrees` dispute was actually
+  caused by notation OCR.
+- Per-subject confidence calibration for the Pass 1 panel (right now
+  every role weighs equally regardless of whether DeepSeek tends to
+  outperform Groq on math, etc.).
 
 ### Phase 7 — Explanation Generation After Verification
 

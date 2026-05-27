@@ -337,6 +337,93 @@ export function postProcessVerifiedMathRepair(q, baseStatus) {
   return baseStatus;
 }
 
+// ── v2 phase 6 gates — answer verification (OPT-IN) ────────────
+//
+// Every gate below short-circuits on `q.answer_verified_at` being
+// null. That column is set by verify-answers.mjs when the row goes
+// through Phase 6. Pre-Phase-6 rows have it null and these gates
+// DO NOT FIRE on them. Same opt-in pattern as Phase 3 + Phase 5.
+//
+// IMPORTANT: gateAnswerVerification (Phase 2) still fires for legacy
+// rows that have answer_verification_status='disputed' from the old
+// multi-vote-grader. Phase 6 adds richer status values that the
+// new gates below handle separately.
+function isPhase6Active(q) {
+  return q.answer_verified_at != null;
+}
+
+export function gateModelConsensusDispute(q) {
+  if (!isPhase6Active(q)) return null;
+  if (q.answer_verification_status !== "model_consensus_disagrees_with_key") return null;
+  return {
+    reason: `phase6_model_consensus_disagrees_with_key (suggested=${q.suggested_verified_answer ?? "?"})`,
+    suggestedStatus: "blocked_answer_dispute",
+  };
+}
+
+export function gateEscalationDisagrees(q) {
+  if (!isPhase6Active(q)) return null;
+  if (q.answer_verification_status !== "escalation_disagrees") return null;
+  return {
+    reason: "phase6_escalation_disagrees (Pro and Opus disagree)",
+    suggestedStatus: "blocked_answer_dispute",
+  };
+}
+
+export function gatePanelSplit(q) {
+  if (!isPhase6Active(q)) return null;
+  if (q.answer_verification_status !== "panel_split") return null;
+  return {
+    reason: "phase6_panel_split (no Pass 1 majority)",
+    suggestedStatus: "needs_human_review",
+  };
+}
+
+export function gateSympyInconclusive(q) {
+  if (!isPhase6Active(q)) return null;
+  if (q.answer_verification_status !== "sympy_inconclusive") return null;
+  return {
+    reason: "phase6_sympy_inconclusive (open-ended equivalence undecidable)",
+    suggestedStatus: "needs_human_review",
+  };
+}
+
+export function gateUnanswerable(q) {
+  if (!isPhase6Active(q)) return null;
+  if (q.answer_verification_status !== "unanswerable") return null;
+  return {
+    reason: `phase6_unanswerable (${q.dispute_category ?? "unspecified"})`,
+    suggestedStatus: "needs_human_review",
+  };
+}
+
+export function gateVerifierError(q) {
+  if (!isPhase6Active(q)) return null;
+  if (q.answer_verification_status !== "verifier_error") return null;
+  return {
+    reason: "phase6_verifier_error (panel transport failures)",
+    suggestedStatus: "needs_human_review",
+  };
+}
+
+/**
+ * Phase 6 post-processor: a verified-by-Pro/Opus/SymPy answer
+ * surfaces as publish_ready_with_verified_repair so admins can
+ * spot-check, same pattern as Phase 2 + Phase 5.
+ *
+ * Note: VERIFIED_PANEL alone (Pass 1 majority agrees with key) is
+ * the happy path and produces plain publish_ready — no spot-check
+ * surface needed there.
+ */
+export function postProcessVerifiedPhase6(q, baseStatus) {
+  if (!isPhase6Active(q)) return baseStatus;
+  const s = q.answer_verification_status;
+  if (s === "verified_pro" || s === "verified_opus" || s === "verified_sympy") {
+    return "publish_ready_with_verified_repair";
+  }
+  return baseStatus;
+}
+
 // Strictness order: first match wins.
 // blocked_* (corrupt > katex > answer disputes > slug > visual) before
 // needs_human_review (answer_key_status > import_status > phase3 source
@@ -351,6 +438,11 @@ export function postProcessVerifiedMathRepair(q, baseStatus) {
 // to blocked_answer_dispute alongside other answer disputes;
 // gateMathRepairNeedsReview / gateMathRepairUnrepairable route to
 // needs_human_review alongside other Phase 3 review gates.
+// v2 phase 6 adds 6 verifier gates, all OPT-IN via answer_verified_at.
+// gateModelConsensusDispute + gateEscalationDisagrees route to
+// blocked_answer_dispute (the "key is probably wrong" surface);
+// gatePanelSplit / gateSympyInconclusive / gateUnanswerable /
+// gateVerifierError route to needs_human_review.
 export const ALL_GATES = [
   gateRequiredFields, // → corrupt_question on missing q_text
   gateKaTeX, // → blocked_katex_error
@@ -358,6 +450,8 @@ export const ALL_GATES = [
   gateAnswerVerification, // → blocked_answer_dispute (v2 phase 2: solver vs key)
   gateAnswerKeyStatus, // → blocked_answer_dispute or needs_human_review (v2 phase 2)
   gateMathRepairAmbiguous, // → blocked_answer_dispute (v2 phase 5)
+  gateModelConsensusDispute, // → blocked_answer_dispute (v2 phase 6)
+  gateEscalationDisagrees, // → blocked_answer_dispute (v2 phase 6)
   (q, slugs) => gateSlug(q, slugs), // → blocked_slug_uncertain
   gateMissingVisual, // → blocked_missing_visual
   gateIrrelevantAttachedVisual, // → blocked_missing_visual (v2 phase 4)
@@ -374,6 +468,11 @@ export const ALL_GATES = [
   // ── v2 phase 5 (opt-in via math_notation_checked_at) ──
   gateMathRepairNeedsReview, // → needs_human_review
   gateMathRepairUnrepairable, // → needs_human_review
+  // ── v2 phase 6 (opt-in via answer_verified_at) ──
+  gatePanelSplit, // → needs_human_review
+  gateSympyInconclusive, // → needs_human_review
+  gateUnanswerable, // → needs_human_review
+  gateVerifierError, // → needs_human_review
   // ── softest gate runs last ──
   gateExplanation, // → needs_human_review (softer)
 ];
@@ -385,10 +484,12 @@ export function computePublishStatus(q, validSlugs) {
   }
   // All gates pass → publish_ready. v2 phase 2 surfaces hand-corrected
   // answer keys as publish_ready_with_verified_repair; v2 phase 5
-  // surfaces verified math notation repairs the same way (same
-  // downstream status — admins spot-check either flavor identically).
+  // surfaces verified math notation repairs the same way; v2 phase 6
+  // adds verified-by-Pro/Opus/SymPy. Admins spot-check all three
+  // flavors identically (same downstream status name).
   let finalStatus = postProcessVerifiedRepair(q);
   finalStatus = postProcessVerifiedMathRepair(q, finalStatus);
+  finalStatus = postProcessVerifiedPhase6(q, finalStatus);
   return {
     reason:
       finalStatus === "publish_ready_with_verified_repair"
