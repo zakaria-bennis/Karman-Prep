@@ -288,6 +288,10 @@ async function main() {
     const insertPayload = {
       node_id,
       question_text: get("question_text"),
+      // v2 phase 5: at import time, the raw OCR extraction IS the
+      // active text. Phase 5 repair may later diverge question_text
+      // from this; raw_question_text stays immutable.
+      raw_question_text: get("question_text"),
       question_type: questionType,
       difficulty: legacyDifficulty(difficultyLevel),
       difficulty_level: difficultyLevel,
@@ -343,12 +347,17 @@ async function main() {
 
     // For MC, insert 4 answer_choices
     if (format === "multiple_choice") {
-      const choiceRows = ["A", "B", "C", "D"].map((letter) => ({
-        question_id: inserted.id,
-        letter,
-        choice_text: get("choice_" + letter.toLowerCase()),
-        is_correct: get("correct_answer").toUpperCase() === letter,
-      }));
+      const choiceRows = ["A", "B", "C", "D"].map((letter) => {
+        const choiceText = get("choice_" + letter.toLowerCase());
+        return {
+          question_id: inserted.id,
+          letter,
+          choice_text: choiceText,
+          // v2 phase 5: same raw/active duality as quiz_questions.
+          raw_choice_text: choiceText,
+          is_correct: get("correct_answer").toUpperCase() === letter,
+        };
+      });
       const { error: ce } = await supabase.from("answer_choices").insert(choiceRows);
       if (ce) {
         result.errored++;

@@ -15,6 +15,8 @@ export type Database = {
           is_correct: boolean;
           letter: Database["public"]["Enums"]["answer_letter"];
           question_id: string;
+          // ── v2 phase 5 additions ─────────────────────────
+          raw_choice_text: string;
         };
         Insert: {
           choice_text: string;
@@ -22,6 +24,8 @@ export type Database = {
           is_correct?: boolean;
           letter: Database["public"]["Enums"]["answer_letter"];
           question_id: string;
+          // ── v2 phase 5 additions ─────────────────────────
+          raw_choice_text: string;
         };
         Update: {
           choice_text?: string;
@@ -29,6 +33,8 @@ export type Database = {
           is_correct?: boolean;
           letter?: Database["public"]["Enums"]["answer_letter"];
           question_id?: string;
+          // ── v2 phase 5 additions ─────────────────────────
+          raw_choice_text?: string;
         };
         Relationships: [
           {
@@ -1851,6 +1857,10 @@ export type Database = {
           question_bbox_source_asset_id: string | null;
           source_assets_processed_at: string | null;
           source_assets_processed_status: string | null;
+          // ── v2 phase 5 additions ─────────────────────────
+          raw_question_text: string;
+          math_notation_checked_at: string | null;
+          math_notation_status: string | null;
         };
         Insert: {
           answer_format?: Database["public"]["Enums"]["question_format"];
@@ -3043,6 +3053,111 @@ export type Database = {
         };
         Relationships: [];
       };
+      math_repair_records: {
+        // Phase 5 audit trail. Append-only — one row per detected
+        // suspicious pattern. The full evidence the 8-condition
+        // auto-repair gate evaluated is carried on each row so a
+        // human reviewer can replay why we did or didn't repair.
+        Row: {
+          id: string;
+          question_id: string;
+          field: "question_text" | "choice_text";
+          field_index: string | null;
+          raw_text: string;
+          repaired_text: string;
+          risk_tier:
+            | "low_risk_ocr"
+            | "medium_risk_grouping"
+            | "high_risk_answer_changing"
+            | "open_ended_uncertain"
+            | "visual_unclear";
+          detection_pattern: string | null;
+          visual_confirmed: boolean | null;
+          visual_confirmation_confidence: number | null;
+          solver_agreement_count: number | null;
+          changes_verified_answer: boolean | null;
+          creates_answer_key_dispute: boolean | null;
+          is_open_ended_ambiguous: boolean | null;
+          status:
+            | "no_repair_needed"
+            | "verified_auto_repair"
+            | "suggested_repair_needs_review"
+            | "ambiguous_repair"
+            | "unrepairable_from_source";
+          applied_at: string | null;
+          raw_metadata: Json;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          question_id: string;
+          field: "question_text" | "choice_text";
+          field_index?: string | null;
+          raw_text: string;
+          repaired_text: string;
+          risk_tier:
+            | "low_risk_ocr"
+            | "medium_risk_grouping"
+            | "high_risk_answer_changing"
+            | "open_ended_uncertain"
+            | "visual_unclear";
+          detection_pattern?: string | null;
+          visual_confirmed?: boolean | null;
+          visual_confirmation_confidence?: number | null;
+          solver_agreement_count?: number | null;
+          changes_verified_answer?: boolean | null;
+          creates_answer_key_dispute?: boolean | null;
+          is_open_ended_ambiguous?: boolean | null;
+          status:
+            | "no_repair_needed"
+            | "verified_auto_repair"
+            | "suggested_repair_needs_review"
+            | "ambiguous_repair"
+            | "unrepairable_from_source";
+          applied_at?: string | null;
+          raw_metadata?: Json;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          question_id?: string;
+          field?: "question_text" | "choice_text";
+          field_index?: string | null;
+          raw_text?: string;
+          repaired_text?: string;
+          risk_tier?:
+            | "low_risk_ocr"
+            | "medium_risk_grouping"
+            | "high_risk_answer_changing"
+            | "open_ended_uncertain"
+            | "visual_unclear";
+          detection_pattern?: string | null;
+          visual_confirmed?: boolean | null;
+          visual_confirmation_confidence?: number | null;
+          solver_agreement_count?: number | null;
+          changes_verified_answer?: boolean | null;
+          creates_answer_key_dispute?: boolean | null;
+          is_open_ended_ambiguous?: boolean | null;
+          status?:
+            | "no_repair_needed"
+            | "verified_auto_repair"
+            | "suggested_repair_needs_review"
+            | "ambiguous_repair"
+            | "unrepairable_from_source";
+          applied_at?: string | null;
+          raw_metadata?: Json;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "math_repair_records_question_id_fkey";
+            columns: ["question_id"];
+            isOneToOne: false;
+            referencedRelation: "quiz_questions";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
     };
     Views: {
       quiz_questions_phase3_signals: {
@@ -3057,6 +3172,23 @@ export type Database = {
           question_crop_complete: boolean | null;
           has_question_crop: boolean | null;
           has_orphan_crops_on_page: boolean | null;
+        };
+        Relationships: [];
+      };
+      quiz_questions_phase5_signals: {
+        // Per-question aggregate of math_repair_records that
+        // publish-gate.mjs hydrates without an N+1 join.
+        // math_notation_checked_at NULL → Phase 5 hasn't inspected
+        // this row yet; the new math-notation gates short-circuit.
+        Row: {
+          question_id: string;
+          math_notation_checked_at: string | null;
+          math_notation_status: string | null;
+          latest_repair_status: string | null;
+          latest_repair_risk_tier: string | null;
+          latest_repair_applied_at: string | null;
+          has_unreviewed_repair: boolean | null;
+          has_verified_auto_repair: boolean | null;
         };
         Relationships: [];
       };
