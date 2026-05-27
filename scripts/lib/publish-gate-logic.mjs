@@ -424,6 +424,77 @@ export function postProcessVerifiedPhase6(q, baseStatus) {
   return baseStatus;
 }
 
+// ── v2 phase 7 gates — explanation v2 (OPT-IN) ─────────────────
+//
+// Every gate below short-circuits on `q.explanation_v2_filled_at`
+// being null. That column is set by Phase 7's runners (the
+// eligibility gate OR the fill stage). Legacy rows that were
+// filled by the old fill-all.mjs have it null and these gates DO
+// NOT FIRE on them — same opt-in pattern as Phase 3 / 5 / 6.
+//
+// A row that Phase 7 marked skipped_not_eligible carries
+// explanation_v2.admin_diagnostic_note explaining WHY (visible to
+// admins via the preview UI). The student-facing legacy fields
+// remain whatever they were before Phase 7 ran on the row.
+function isPhase7Active(q) {
+  return q.explanation_v2_filled_at != null;
+}
+
+export function gateExplanationSkippedNotEligible(q) {
+  if (!isPhase7Active(q)) return null;
+  if (q.explanation_v2_status !== "skipped_not_eligible") return null;
+  return {
+    reason: "phase7_skipped_not_eligible (pre-fill gate blocked generation)",
+    suggestedStatus: "needs_human_review",
+  };
+}
+
+export function gateExplanationQaFailed(q) {
+  if (!isPhase7Active(q)) return null;
+  if (q.explanation_v2_status !== "qa_failed") return null;
+  return {
+    reason: "phase7_qa_failed (schema or critic rejected the explanation)",
+    suggestedStatus: "needs_human_review",
+  };
+}
+
+export function gateExplanationNeedsHumanReview(q) {
+  if (!isPhase7Active(q)) return null;
+  if (q.explanation_v2_status !== "needs_human_review") return null;
+  return {
+    reason: "phase7_needs_human_review",
+    suggestedStatus: "needs_human_review",
+  };
+}
+
+export function gateExplanationStale(q) {
+  if (!isPhase7Active(q)) return null;
+  if (q.explanation_v2_status !== "stale_answer_changed") return null;
+  return {
+    reason: "phase7_stale_answer_changed (Phase 6 changed the verified answer after fill)",
+    suggestedStatus: "needs_human_review",
+  };
+}
+
+/**
+ * Phase 7 post-processor: a qa_passed explanation on a row that
+ * also has a verified repair (Phase 2 corrected key OR Phase 5
+ * verified math repair OR Phase 6 Pro/Opus/SymPy verification)
+ * keeps that "verified_repair" surface — the explanation just
+ * adds polish on top.
+ *
+ * A qa_passed explanation on a row with NO repair stays plain
+ * publish_ready — no spot-check surface needed.
+ */
+export function postProcessVerifiedPhase7(q, baseStatus) {
+  // Phase 7 doesn't INTRODUCE a new "with_verified_repair" flavor.
+  // It just doesn't FIGHT the upstream phase's verdict. So this
+  // post-processor is intentionally a no-op pass-through, kept
+  // for symmetry with the other phases' post-processors and so
+  // future Phase 7.5 changes have a hook to drop into.
+  return baseStatus;
+}
+
 // Strictness order: first match wins.
 // blocked_* (corrupt > katex > answer disputes > slug > visual) before
 // needs_human_review (answer_key_status > import_status > phase3 source
@@ -443,6 +514,13 @@ export function postProcessVerifiedPhase6(q, baseStatus) {
 // blocked_answer_dispute (the "key is probably wrong" surface);
 // gatePanelSplit / gateSympyInconclusive / gateUnanswerable /
 // gateVerifierError route to needs_human_review.
+// v2 phase 7 adds 4 explanation gates, all OPT-IN via
+// explanation_v2_filled_at. gateExplanationSkippedNotEligible /
+// gateExplanationQaFailed / gateExplanationNeedsHumanReview /
+// gateExplanationStale all route to needs_human_review (Phase 7
+// never blocks publish on its own — it just defers to upstream
+// dispute gates already in this list, OR routes to the soft
+// needs_human_review bucket).
 export const ALL_GATES = [
   gateRequiredFields, // → corrupt_question on missing q_text
   gateKaTeX, // → blocked_katex_error
@@ -473,6 +551,11 @@ export const ALL_GATES = [
   gateSympyInconclusive, // → needs_human_review
   gateUnanswerable, // → needs_human_review
   gateVerifierError, // → needs_human_review
+  // ── v2 phase 7 (opt-in via explanation_v2_filled_at) ──
+  gateExplanationSkippedNotEligible, // → needs_human_review
+  gateExplanationQaFailed, // → needs_human_review
+  gateExplanationNeedsHumanReview, // → needs_human_review
+  gateExplanationStale, // → needs_human_review
   // ── softest gate runs last ──
   gateExplanation, // → needs_human_review (softer)
 ];
@@ -485,11 +568,12 @@ export function computePublishStatus(q, validSlugs) {
   // All gates pass → publish_ready. v2 phase 2 surfaces hand-corrected
   // answer keys as publish_ready_with_verified_repair; v2 phase 5
   // surfaces verified math notation repairs the same way; v2 phase 6
-  // adds verified-by-Pro/Opus/SymPy. Admins spot-check all three
-  // flavors identically (same downstream status name).
+  // adds verified-by-Pro/Opus/SymPy. v2 phase 7's post-processor is
+  // a no-op pass-through (it preserves whatever Phase 2/5/6 set).
   let finalStatus = postProcessVerifiedRepair(q);
   finalStatus = postProcessVerifiedMathRepair(q, finalStatus);
   finalStatus = postProcessVerifiedPhase6(q, finalStatus);
+  finalStatus = postProcessVerifiedPhase7(q, finalStatus);
   return {
     reason:
       finalStatus === "publish_ready_with_verified_repair"

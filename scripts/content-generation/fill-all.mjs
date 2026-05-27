@@ -3,6 +3,20 @@
 // generators in series after the bulk-importer has placed rows in
 // the DB.
 //
+// ⚠ DEPRECATED (v2 phase 7, kept as fallback)
+//   This script is the legacy fill path. v2 phase 7 replaces it
+//   with the eligibility-gated + QA'd flow in
+//   scripts/pdf-pipeline/fill-explanations-v2.mjs (which the
+//   orchestrator now calls instead). Differences in v2:
+//     · explanation_v2 JSONB is the canonical bundle; legacy fields
+//       (explanation_text, explanation_per_choice, desmos_strategy)
+//       are mirrored from it but no longer the source of truth.
+//     · Pre-fill eligibility gate skips broken / disputed rows.
+//     · Schema + LLM critic QA loop with one bounded retry.
+//     · Tiered Sonnet → Opus generator + critic.
+//   This file remains for one-off backfills against rows we
+//   explicitly DO NOT want passed through Phase 7's new schema.
+//
 // PIPELINE (in order)
 //   1. generate-explanation-text.mjs        — Sonnet 4.6, all subjects
 //      Fills the main explanation_text field. R&W gets a synthesis

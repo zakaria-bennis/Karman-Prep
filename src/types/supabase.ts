@@ -1866,6 +1866,10 @@ export type Database = {
           dispute_category: string | null;
           answer_verified_at: string | null;
           answer_verifier_version: string | null;
+          // ── v2 phase 7 additions ─────────────────────────
+          explanation_v2: Json | null;
+          explanation_v2_filled_at: string | null;
+          explanation_v2_status: string | null;
         };
         Insert: {
           answer_format?: Database["public"]["Enums"]["question_format"];
@@ -1930,6 +1934,10 @@ export type Database = {
           dispute_category?: string | null;
           answer_verified_at?: string | null;
           answer_verifier_version?: string | null;
+          // ── v2 phase 7 additions ─────────────────────────
+          explanation_v2?: Json | null;
+          explanation_v2_filled_at?: string | null;
+          explanation_v2_status?: string | null;
         };
         Update: {
           answer_format?: Database["public"]["Enums"]["question_format"];
@@ -1994,6 +2002,10 @@ export type Database = {
           dispute_category?: string | null;
           answer_verified_at?: string | null;
           answer_verifier_version?: string | null;
+          // ── v2 phase 7 additions ─────────────────────────
+          explanation_v2?: Json | null;
+          explanation_v2_filled_at?: string | null;
+          explanation_v2_status?: string | null;
         };
         Relationships: [];
       };
@@ -3181,6 +3193,81 @@ export type Database = {
           },
         ];
       };
+      explanation_qa_records: {
+        // Phase 7 QA audit trail. Append-only — one row per QA
+        // attempt (max 2 per question). Schema verdict + critic
+        // verdict + the explanation_v2 JSONB snapshot at that
+        // attempt. Drives the question's explanation_v2_status.
+        Row: {
+          id: string;
+          question_id: string;
+          attempt_number: number;
+          generator_role: string;
+          generator_model: string;
+          generator_cost_estimate: number | null;
+          schema_result: "pass" | "fail";
+          schema_missing_fields: string[] | null;
+          schema_invalid_fields: string[] | null;
+          critic_role: string | null;
+          critic_model: string | null;
+          critic_result: "pass" | "fail_fixable" | "fail_serious" | null;
+          critic_findings: Json | null;
+          critic_cost_estimate: number | null;
+          outcome: "qa_passed" | "will_retry" | "qa_failed" | "needs_human_review";
+          explanation_snapshot: Json | null;
+          raw_metadata: Json;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          question_id: string;
+          attempt_number: number;
+          generator_role: string;
+          generator_model: string;
+          generator_cost_estimate?: number | null;
+          schema_result: "pass" | "fail";
+          schema_missing_fields?: string[] | null;
+          schema_invalid_fields?: string[] | null;
+          critic_role?: string | null;
+          critic_model?: string | null;
+          critic_result?: "pass" | "fail_fixable" | "fail_serious" | null;
+          critic_findings?: Json | null;
+          critic_cost_estimate?: number | null;
+          outcome: "qa_passed" | "will_retry" | "qa_failed" | "needs_human_review";
+          explanation_snapshot?: Json | null;
+          raw_metadata?: Json;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          question_id?: string;
+          attempt_number?: number;
+          generator_role?: string;
+          generator_model?: string;
+          generator_cost_estimate?: number | null;
+          schema_result?: "pass" | "fail";
+          schema_missing_fields?: string[] | null;
+          schema_invalid_fields?: string[] | null;
+          critic_role?: string | null;
+          critic_model?: string | null;
+          critic_result?: "pass" | "fail_fixable" | "fail_serious" | null;
+          critic_findings?: Json | null;
+          critic_cost_estimate?: number | null;
+          outcome?: "qa_passed" | "will_retry" | "qa_failed" | "needs_human_review";
+          explanation_snapshot?: Json | null;
+          raw_metadata?: Json;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "explanation_qa_records_question_id_fkey";
+            columns: ["question_id"];
+            isOneToOne: false;
+            referencedRelation: "quiz_questions";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
     };
     Views: {
       quiz_questions_phase3_signals: {
@@ -3229,6 +3316,23 @@ export type Database = {
           selected_official_answer: string | null;
           failed_voter_count: number | null;
           latest_run_group_id: string | null;
+        };
+        Relationships: [];
+      };
+      quiz_questions_phase7_signals: {
+        // Per-question aggregate of the most-recent explanation QA
+        // attempt. explanation_v2_filled_at NULL → Phase 7 has never
+        // processed this row; the publish-gate Phase 7 rules
+        // short-circuit. Same opt-in pattern as Phase 3/5/6.
+        Row: {
+          question_id: string;
+          explanation_v2_filled_at: string | null;
+          explanation_v2_status: string | null;
+          latest_qa_attempt_number: number | null;
+          latest_qa_outcome: string | null;
+          latest_schema_result: string | null;
+          latest_critic_result: string | null;
+          latest_qa_created_at: string | null;
         };
         Relationships: [];
       };

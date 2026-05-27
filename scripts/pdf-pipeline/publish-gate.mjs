@@ -132,6 +132,8 @@ async function main() {
       // v2 phase 6: opt-in marker + typed verifier verdict.
       "answer_verified_at, answer_verifier_version, dispute_category, " +
       "suggested_verified_answer, " +
+      // v2 phase 7: opt-in marker + explanation_v2 status.
+      "explanation_v2_filled_at, explanation_v2_status, " +
       "answer_choices(letter, choice_text)"
   );
   if (QUESTION_ID) query = query.eq("id", QUESTION_ID);

@@ -31,16 +31,29 @@
 //   math_repair  v2 phase 5 — detect OCR-mangled math notation,
 //                auto-repair only low-risk cases that clear the
 //                8-condition gate; route everything else to review.
-//   filling      Sonnet explanation_text + per-choice + Haiku Desmos
 //   grading      v2 phase 6 — typed answer verifier (DeepSeek primary,
 //                Groq independent, Gemini Flash visual; Pro/Opus/SymPy
 //                escalation by typed dispute category). Writes
 //                grader_runs append-only + Phase 6 verdict columns.
 //                Never auto-flips selected_official_answer.
+//                MOVED UP in Phase 7 reorder — runs BEFORE explanation
+//                generation so we don't polish broken/disputed rows.
+//   fill_gate    v2 phase 7 — pre-fill eligibility gate. Marks broken,
+//                disputed, or visually-incomplete rows skipped_not_eligible
+//                with an admin-facing diagnostic note. Eligible rows
+//                continue to the next stage.
+//   filling      v2 phase 7 — generates explanation_v2 JSONB (tiered
+//                Sonnet/Opus) for eligible rows. Mirrors compatible
+//                fields back to legacy explanation_text /
+//                explanation_per_choice / desmos_strategy.
+//   qa_filling   v2 phase 7 — schema-validate + LLM critic on each
+//                explanation_v2 bundle. One bounded repair-retry on
+//                fixable critic failures. Writes explanation_qa_records.
 //   validating   v2 phase 1 — strict server-side KaTeX validation
-//   publishing   v2 phase 1+2+3+5 — publish-gate (now with phase 3 source-
-//                evidence gates + phase 5 math-notation gates, all opt-in
-//                per their respective processed_at markers)
+//   publishing   v2 phase 1+2+3+5+6+7 — publish-gate (now with phase
+//                3 source-evidence gates + phase 5 math-notation gates
+//                + phase 6 verifier gates + phase 7 explanation gates,
+//                all opt-in per their respective processed_at markers)
 //   done | failed
 //
 // FAILURES
@@ -149,7 +162,7 @@ async function main() {
     // Stage 1: extract structure
     await job.setStage("extracting", { message: `Claude Sonnet 4.6 on ${basename(pdfPath)}` });
     runStage(
-      "Stage 1/12 — extract structure (Claude Sonnet 4.6)",
+      "Stage 1/14 — extract structure (Claude Sonnet 4.6)",
       "extracting",
       "scripts/pdf-pipeline/extract-with-gemini.mjs",
       [pdfPath]
@@ -162,7 +175,7 @@ async function main() {
     // Stage 2: extract figures
     await job.setStage("figures", { message: "Vision-driven bbox crop + R2 upload" });
     runStage(
-      "Stage 2/12 — extract figures",
+      "Stage 2/14 — extract figures",
       "figures",
       "scripts/pdf-pipeline/extract-figures.mjs",
       [pdfPath, jsonOut]
@@ -175,7 +188,7 @@ async function main() {
 
     // Stage 3: emit CSV
     await job.setStage("csv", { message: "Generating 32-column import CSV" });
-    runStage("Stage 3/12 — generate CSV", "csv", "scripts/pdf-pipeline/json-to-import-csv.mjs", [
+    runStage("Stage 3/14 — generate CSV", "csv", "scripts/pdf-pipeline/json-to-import-csv.mjs", [
       jsonOut,
       pdfPath,
       csvOut,
@@ -184,7 +197,7 @@ async function main() {
     // Stage 4: import to DB
     await job.setStage("importing", { message: "Writing rows to quiz_questions + answer_choices" });
     runStage(
-      "Stage 4/12 — import to database",
+      "Stage 4/14 — import to database",
       "importing",
       "scripts/pdf-pipeline/import-csv-direct.mjs",
       [csvOut]
@@ -203,7 +216,7 @@ async function main() {
       message: "Detecting answer-key pages + extracting corrections",
     });
     runStage(
-      "Stage 5/12 — extract answer key (v2 phase 2)",
+      "Stage 5/14 — extract answer key (v2 phase 2)",
       "answer_key",
       "scripts/pdf-pipeline/extract-answer-key.mjs",
       [pdfPath, "--source-pdf", sourcePdfBasename, ...(job.jobId ? ["--job-id", job.jobId] : [])]
@@ -219,7 +232,7 @@ async function main() {
       message: "Per-question source-asset extraction",
     });
     runStage(
-      "Stage 6/12 — extract question crops (v2 phase 3)",
+      "Stage 6/14 — extract question crops (v2 phase 3)",
       "crops",
       "scripts/pdf-pipeline/extract-question-crops.mjs",
       [pdfPath, "--source-pdf", sourcePdfBasename, ...(job.jobId ? ["--job-id", job.jobId] : [])]
@@ -233,7 +246,7 @@ async function main() {
       message: "Classifying visual relevance",
     });
     runStage(
-      "Stage 7/12 — classify visual relevance (v2 phase 4)",
+      "Stage 7/14 — classify visual relevance (v2 phase 4)",
       "visuals",
       "scripts/pdf-pipeline/classify-visual-relevance.mjs",
       ["--source-pdf", sourcePdfBasename]
@@ -249,66 +262,94 @@ async function main() {
       message: "Detecting OCR-mangled math notation",
     });
     runStage(
-      "Stage 8/12 — repair math notation (v2 phase 5)",
+      "Stage 8/14 — repair math notation (v2 phase 5)",
       "math_repair",
       "scripts/pdf-pipeline/repair-math-notation.mjs",
       ["--source-pdf", sourcePdfBasename]
     );
 
-    // Stage 9: fill explanations (Sonnet + Haiku) — scoped to this PDF
-    await job.setStage("filling", {
-      message: "Sonnet explanation_text + per-choice + Haiku Desmos",
-    });
-    runStage(
-      "Stage 9/12 — fill explanations",
-      "filling",
-      "scripts/content-generation/fill-all.mjs",
-      ["--source-pdf", sourcePdfBasename]
-    );
-
-    // Stage 10: v2 phase 6 — typed answer verifier.
+    // Stage 9: v2 phase 6 — typed answer verifier.
     //
-    // Replaces the legacy multi-vote-grader.mjs call. Same audit-log
-    // shape (grader_runs + grader_votes JSONB summary), but now with:
-    //   · typed solver roles (deepseek primary / groq independent /
-    //     gemini flash VISUAL)
-    //   · typed dispute routing (R&W → Opus; math+visual → Pro;
-    //     numeric_entry → SymPy first; etc.)
-    //   · failed voters captured in grader_runs (not silently dropped)
-    //   · suggested_verified_answer when the panel disagrees with key
-    // Never auto-flips: human reviews any dispute. Old script stays
-    // in repo as a fallback at scripts/question-audit/multi-vote-grader.mjs.
+    // Phase 7 REORDER: verify now runs BEFORE explanation fill so
+    // we don't generate polished explanations for broken/disputed
+    // rows. Same script + same audit-log shape as before.
     await job.setStage("grading", {
       message: "Typed verifier panel — DeepSeek + Groq + Flash → Pro/Opus/SymPy",
     });
     runStage(
-      "Stage 10/12 — verify answers (v2 phase 6)",
+      "Stage 9/14 — verify answers (v2 phase 6)",
       "grading",
       "scripts/question-audit/verify-answers.mjs",
       ["--from-db", "--source-pdf", sourcePdfBasename]
     );
 
-    // Stage 11: strict server-side KaTeX validation
+    // Stage 10: v2 phase 7 — pre-fill eligibility gate.
+    //
+    // Marks rows that are broken / disputed / visually incomplete
+    // as skipped_not_eligible (with an admin-facing diagnostic
+    // note). Eligible rows pass through unchanged.
+    await job.setStage("fill_gate", {
+      message: "Phase 7 pre-fill eligibility gate",
+    });
+    runStage(
+      "Stage 10/14 — check fill eligibility (v2 phase 7)",
+      "fill_gate",
+      "scripts/pdf-pipeline/check-fill-eligibility.mjs",
+      ["--source-pdf", sourcePdfBasename]
+    );
+
+    // Stage 11: v2 phase 7 — generate explanation_v2 for eligible rows.
+    //
+    // Replaces the legacy fill-all.mjs call. Tiered Sonnet → Opus
+    // generator. Produces the canonical explanation_v2 JSONB bundle
+    // and mirrors compatible fields into the legacy explanation_text /
+    // explanation_per_choice / desmos_strategy columns.
+    await job.setStage("filling", {
+      message: "Phase 7 explanation_v2 generation (Sonnet/Opus tiered)",
+    });
+    runStage(
+      "Stage 11/14 — fill explanations v2 (v2 phase 7)",
+      "filling",
+      "scripts/pdf-pipeline/fill-explanations-v2.mjs",
+      ["--source-pdf", sourcePdfBasename]
+    );
+
+    // Stage 12: v2 phase 7 — QA the generated explanations.
+    //
+    // Hybrid: deterministic schema-validate first, then Sonnet
+    // critic. One bounded repair-retry on fixable critic failures
+    // (with Opus generator on the retry). Writes explanation_qa_records.
+    await job.setStage("qa_filling", {
+      message: "Phase 7 explanation QA (schema + LLM critic)",
+    });
+    runStage(
+      "Stage 12/14 — qa explanations (v2 phase 7)",
+      "qa_filling",
+      "scripts/pdf-pipeline/qa-explanations.mjs",
+      ["--source-pdf", sourcePdfBasename]
+    );
+
+    // Stage 13: strict server-side KaTeX validation
     await job.setStage("validating", {
       message: "Strict server-side KaTeX validation",
     });
     runStage(
-      "Stage 11/12 — validate KaTeX",
+      "Stage 13/14 — validate KaTeX",
       "validating",
       "scripts/question-audit/validate-katex.mjs",
       ["--source-pdf", sourcePdfBasename, "--apply-blocks"]
     );
 
-    // Stage 12: publish-gate — promote rows to publish_ready
+    // Stage 14: publish-gate — promote rows to publish_ready
     // The central enforcement of v2 phase 1. New rows arrived as
     // 'draft' from stage 4; this stage flips them to publish_ready
     // ONLY when every gate passes (KaTeX, grader, slug, required
-    // fields, explanation present, import_status ok, phase 5 math-
-    // repair status not needing review).
+    // fields, explanation present, import_status ok, phase 5/6/7
+    // status gates clean).
     await job.setStage("publishing", {
       message: "Publish-gate evaluation (promote draft → publish_ready)",
     });
-    runStage("Stage 12/12 — publish gate", "publishing", "scripts/pdf-pipeline/publish-gate.mjs", [
+    runStage("Stage 14/14 — publish gate", "publishing", "scripts/pdf-pipeline/publish-gate.mjs", [
       "--source-pdf",
       sourcePdfBasename,
     ]);
