@@ -111,6 +111,12 @@ export interface QuizQuestion {
   /** Filename of the source PDF (e.g., "official-sat-practice-test-1.pdf"). */
   source_pdf: string | null;
   source_page: number | null;
+  /** Phase 3 source-lineage cache. Source of truth remains source_assets. */
+  question_bbox: Record<string, number> | null;
+  question_bbox_confidence: number | null;
+  question_bbox_source_asset_id: string | null;
+  source_assets_processed_at: string | null;
+  source_assets_processed_status: string | null;
   /** SHA-1 of normalized question_text + choices — the dedupe key. */
   content_hash: string | null;
   /** "needs_review" hides the question from students until accepted in /admin/questions/review. */

@@ -19,6 +19,7 @@ import type { Metadata } from "next";
 import { ChevronRight, Microscope } from "lucide-react";
 import { selectQuestionForInspection } from "@/lib/supabase/queries/quiz/findings";
 import { selectQuestionHistory } from "@/lib/supabase/queries/quiz/history";
+import { selectSourceLineageForQuestion } from "@/lib/supabase/queries/quiz/source-lineage";
 import InspectorDetailClient from "./InspectorDetailClient";
 
 interface PageProps {
@@ -33,7 +34,10 @@ export default async function InspectorDetailPage({ params }: PageProps) {
   if (!data) notFound();
 
   const { question, findings } = data;
-  const history = await selectQuestionHistory(id, 25);
+  const [history, sourceLineage] = await Promise.all([
+    selectQuestionHistory(id, 25),
+    selectSourceLineageForQuestion(id),
+  ]);
   return (
     <div className="mx-auto max-w-7xl px-5 py-8">
       <div className="mb-6">
@@ -54,7 +58,12 @@ export default async function InspectorDetailPage({ params }: PageProps) {
         </p>
       </div>
 
-      <InspectorDetailClient question={question} findings={findings} history={history} />
+      <InspectorDetailClient
+        question={question}
+        findings={findings}
+        history={history}
+        sourceLineage={sourceLineage}
+      />
     </div>
   );
 }

@@ -22,6 +22,8 @@ import {
   gateGraderVotes,
   gateSlug,
   gateMissingVisual,
+  gateIrrelevantAttachedVisual,
+  gateUncertainVisualRelevance,
   gateImportStatus,
   gateExplanation,
   // v2 phase 2
@@ -125,6 +127,89 @@ describe("computePublishStatus — soft (needs_human_review) gates", () => {
   it("needs_human_review when correct_answer is empty (NOT corrupt)", () => {
     const r = computePublishStatus({ ...baseRow, correct_answer: "" }, slugs);
     expect(r.suggestedStatus).toBe("needs_human_review");
+  });
+});
+
+// ── v2 phase 4 — visual relevance gates ─────────────────────
+
+describe("computePublishStatus — v2 phase 4 visual relevance", () => {
+  it("phase 4 gates short-circuit until relevance metadata is present", () => {
+    const r = computePublishStatus(
+      {
+        ...baseRow,
+        image_url: "https://r2.example/repeated-calculator.png",
+        irrelevant_visual_asset_count: 1,
+        required_visual_asset_count: 0,
+        phase4_visual_relevance_checked: false,
+      },
+      slugs
+    );
+    expect(r.suggestedStatus).toBe("publish_ready");
+  });
+
+  it("blocks when the only attached visual was classified irrelevant", () => {
+    const r = computePublishStatus(
+      {
+        ...baseRow,
+        image_url: "https://r2.example/repeated-calculator.png",
+        phase4_visual_relevance_checked: true,
+        required_visual_asset_count: 0,
+        irrelevant_visual_asset_count: 1,
+        uncertain_visual_asset_count: 0,
+      },
+      slugs
+    );
+    expect(r.suggestedStatus).toBe("blocked_missing_visual");
+    expect(r.reason).toMatch(/phase4_attached_visual_classified_irrelevant/);
+  });
+
+  it("routes uncertain visual relevance to human review", () => {
+    const r = computePublishStatus(
+      {
+        ...baseRow,
+        image_url: "https://r2.example/repeated-but-referenced.png",
+        phase4_visual_relevance_checked: true,
+        required_visual_asset_count: 0,
+        irrelevant_visual_asset_count: 0,
+        uncertain_visual_asset_count: 1,
+      },
+      slugs
+    );
+    expect(r.suggestedStatus).toBe("needs_human_review");
+    expect(r.reason).toMatch(/phase4_uncertain_visual_relevance=1/);
+  });
+
+  it("passes when at least one attached visual is required", () => {
+    const r = computePublishStatus(
+      {
+        ...baseRow,
+        image_url: "https://r2.example/real-graph.png",
+        phase4_visual_relevance_checked: true,
+        required_visual_asset_count: 1,
+        irrelevant_visual_asset_count: 1,
+        uncertain_visual_asset_count: 0,
+      },
+      slugs
+    );
+    expect(r.suggestedStatus).toBe("publish_ready");
+  });
+
+  it("exports direct gate helpers for focused checks", () => {
+    expect(
+      gateIrrelevantAttachedVisual({
+        image_url: "https://r2.example/artifact.png",
+        phase4_visual_relevance_checked: true,
+        required_visual_asset_count: 0,
+        irrelevant_visual_asset_count: 1,
+      })?.suggestedStatus
+    ).toBe("blocked_missing_visual");
+
+    expect(
+      gateUncertainVisualRelevance({
+        phase4_visual_relevance_checked: true,
+        uncertain_visual_asset_count: 2,
+      })?.suggestedStatus
+    ).toBe("needs_human_review");
   });
 });
 

@@ -18,10 +18,11 @@
 import { useMemo } from "react";
 import { AlertTriangle, ImageIcon, Loader2, CheckCheck, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { QuizQuestionWithChoices } from "@/types/quiz";
+import { hasOrphanCropsOnPage } from "@/lib/source-lineage/helpers";
+import type { PreviewQuestionWithLineage } from "./types";
 
 interface Props {
-  questions: QuizQuestionWithChoices[];
+  questions: PreviewQuestionWithLineage[];
   activeId: string | null;
   selectedIds: Set<string>;
   bulkPending: { approving: boolean; rejecting: boolean };
@@ -156,7 +157,7 @@ function SidebarRow({
   onClick,
   onToggleSelected,
 }: {
-  question: QuizQuestionWithChoices;
+  question: PreviewQuestionWithLineage;
   index: number;
   active: boolean;
   selected: boolean;
@@ -164,6 +165,7 @@ function SidebarRow({
   onToggleSelected: () => void;
 }) {
   const q = question;
+  const hasOrphans = hasOrphanCropsOnPage(q.sourceLineage);
   return (
     <li className={cn("flex items-start gap-2 px-2.5 py-2", active && "bg-slate-800/70")}>
       {/* Checkbox sits OUTSIDE the click-to-select button so toggling
@@ -200,6 +202,14 @@ function SidebarRow({
                 <span
                   title="Flagged for review"
                   className="inline-flex items-center text-amber-400"
+                >
+                  <AlertTriangle className="h-3 w-3" />
+                </span>
+              )}
+              {hasOrphans && (
+                <span
+                  title="Orphan crops exist on this PDF page"
+                  className="inline-flex items-center text-amber-300"
                 >
                   <AlertTriangle className="h-3 w-3" />
                 </span>
