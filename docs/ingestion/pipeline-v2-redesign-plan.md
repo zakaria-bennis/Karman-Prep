@@ -420,36 +420,168 @@ Total ≈ **$0.06/PDF**. Adds ~45s to the orchestrator wall time.
 
 ### Phase 7 — Explanation Generation After Verification
 
-Purpose: prevent polished explanations for broken or unverified questions.
+Purpose: prevent polished explanations for broken or unverified
+questions. The defining principle of Phase 7 is **gate before fill**
+— Phase 6 must reach a verdict, the pre-fill eligibility gate must
+pass, and only THEN does Phase 7 generate a polished student-facing
+explanation.
 
-New order:
+#### New 14-stage pipeline
 
 ```text
-reconstruct question
-→ verify answer
-→ validate visuals/math/slug
-→ generate explanation
-→ QA explanation
-→ validate KaTeX
-→ publish gate
+ 1. extract structure              (Claude Sonnet → JSON)
+ 2. extract figures                (Page render + bbox + R2)
+ 3. generate CSV                   (JSON → 32-column CSV)
+ 4. import to database             (publish_status='draft')
+ 5. extract answer key             (Phase 2)
+ 6. extract question crops         (Phase 3)
+ 7. classify visual relevance      (Phase 4)
+ 8. repair math notation           (Phase 5)
+ 9. verify answers                 (Phase 6) ← MOVED UP from old Stage 10
+10. check fill eligibility         (Phase 7 NEW)
+11. fill explanations v2           (Phase 7 NEW — replaces fill-all.mjs)
+12. qa explanations                (Phase 7 NEW)
+13. validate KaTeX
+14. publish gate
 ```
 
-Reading/Writing explanations should be thorough and include:
+#### Pre-fill eligibility gate (Stage 10)
 
-- correct-answer reasoning
-- explanation for each wrong answer
-- passage evidence or grammar/logical rule
-- trap label
-- normal tip
-- slug alignment
+Blocks fill for any row meeting one of these conditions. Blocked
+rows get an admin-facing diagnostic note (visible in the preview
+UI, NOT shown to students); their legacy explanation fields stay
+empty.
 
-Math explanations should include:
+| Category        | Condition |
+| --------------- | --------- |
+| STRUCTURAL      | corrupt_question, duplicate_detected, empty question_text, MC <4 choices |
+| ANSWER KEY      | missing_answer_key, correction_unclear, correction_disputed, missing_answer_key, unverifiable, question_unanswerable, probably_wrong, formatting_error |
+| SOURCE          | references visual but no required asset (only fires after Phase 3 ran) |
+| MATH NOTATION   | math_notation_status ∈ {suggested_repair_needs_review, ambiguous_repair, unrepairable_from_source} |
+| VERIFICATION    | publish_status=blocked_answer_dispute; answer_verification_status ∈ {model_consensus_disagrees_with_key, escalation_disagrees, unanswerable, verifier_error} |
+| KATEX / SLUG    | blocked_katex_error, blocked_slug_uncertain |
 
-- step-by-step solution
-- normal tip
-- Desmos tip when useful
-- common trap
-- acceptable forms for open-ended answers
+#### explanation_v2 JSONB (canonical bundle)
+
+```json
+{
+  "version": "explanation_v2_v1",
+  "generated_at": "2026-05-27T20:00:00Z",
+  "generator_role": "explanation_v2_generator_sonnet",
+  "generator_model": "claude-sonnet-4-6",
+  "status": "qa_passed",
+  "correct_reasoning": "…why the verified answer is correct…",
+  "choices": {
+    "A": {
+      "explanation": "…",
+      "evidence": "…",                // required for R&W; "" OK for math
+      "misconception_note": null,     // OPTIONAL — null when no genuine trap
+      "internal_category": null       // OPTIONAL admin-only analytics label
+    },
+    "B": { … }, "C": { … }, "D": { … }
+  },
+  "normal_tip": "…" | null,
+  "desmos_tip": "…" | null,           // Math only
+  "acceptable_forms": ["0.5", "1/2"], // Math numeric_entry only
+  "slug_alignment": {                  // R&W only
+    "slug": "transitions",
+    "confidence": 0.9,
+    "reason": "…"
+  },
+  "qa_notes": { … } | null
+}
+```
+
+Legacy fields are MIRRORED from this for back-compat:
+
+- `explanation_text` ← `explanation_v2.correct_reasoning`
+- `explanation_per_choice` ← `{A,B,C,D}` choice explanations
+- `desmos_strategy` ← `explanation_v2.desmos_tip` (math only)
+
+The JSONB is the source of truth going forward.
+
+#### Tiered Sonnet → Opus policy
+
+| Tier | Default model | Escalation triggers |
+| ---- | ------------- | ------------------- |
+| Generator | Sonnet 4.6 | R&W dispute; Phase 6 used Opus arbitration; dual passage (a + b); passage >800 chars; retry after attempt-1 QA fail |
+| Critic    | Sonnet 4.6 | Opus-generated explanation on a disputed R&W row; caller explicitly escalates after Sonnet critic was inconclusive |
+
+#### Schema + LLM critic QA (Stage 12)
+
+Hybrid: **deterministic schema validation runs first**. If schema
+fails, the LLM critic is skipped and the row goes to needs_human_
+review. If schema passes, the Sonnet critic evaluates the
+explanation against:
+
+- Does correct_reasoning actually support the verified answer?
+- Does each wrong-choice explanation match the actual choice text?
+- For R&W: does cited evidence exist in the passage?
+- For Math: are reasoning steps correct?
+- Is `misconception_note` (when present) genuine vs. forced?
+- Is `normal_tip` durable + useful?
+- Does `slug_alignment.slug` match the question's actual concept?
+- Is student-facing language natural / tutor-like?
+
+Critic verdicts:
+
+| Verdict | Action |
+| ------- | ------ |
+| `pass` | status='qa_passed'. Done. |
+| `fail_fixable` (attempt 1) | One repair-retry with Opus generator + critic's findings in prompt. |
+| `fail_fixable` (attempt 2) | status='qa_failed'. |
+| `fail_serious` | No retry — status='qa_failed'. Common cases: explanation contradicts the verified answer; cited evidence doesn't exist; question itself appears broken. |
+
+Cost cap: **max 2 generation calls per question** (1 initial + 1 repair).
+
+#### Statuses (explanation_v2_status)
+
+| Status | Meaning |
+| ------ | ------- |
+| `not_started` | Phase 7 has never touched this row (legacy). |
+| `skipped_not_eligible` | Pre-fill gate blocked. Admin diagnostic note recorded. |
+| `generated` | Generator ran; QA not yet complete (transient). |
+| `qa_passed` | Schema + critic both passed. Eligible for publish. |
+| `qa_failed` | Schema fail OR critic fail_serious OR 2nd-attempt fail. |
+| `needs_human_review` | Operator-flagged for review. |
+| `stale_answer_changed` | Phase 6 changed the verified answer after fill. Existing explanation may be wrong; regenerate after dispute resolves. |
+
+#### Opt-in publish-gate (4 new gates)
+
+`explanation_v2_filled_at IS NULL` → all 4 Phase 7 gates
+short-circuit. Same opt-in pattern as Phase 3 / 5 / 6 markers.
+Legacy rows are never newly flagged just because the migration ran.
+
+#### Failed voters captured (append-only audit)
+
+`explanation_qa_records` table — one row per QA attempt (max 2).
+Captures the schema verdict + critic verdict + the explanation_v2
+snapshot at that attempt. Lets a reviewer see what attempt 1
+produced even after attempt 2 overwrote the live column.
+
+#### Cost
+
+Per PDF (~30 questions, ~5 retries):
+
+- Stage 11 gen × 30 (Sonnet default, Opus on ~20%): ~$0.90
+- Stage 12 critic × 30 (Sonnet): ~$0.60
+- Stage 12 retry × ~5 (Opus): ~$0.50
+
+Total ≈ **$2/PDF**. Adds ~90s to the orchestrator wall time.
+
+#### Deferred (Phase 7.5)
+
+- Auto-retry on critic `fail_serious` cases that match
+  recoverable failure patterns (e.g. cited-evidence-not-found
+  might just be a misquote that a fresh attempt can fix).
+- Backfill mode: a CLI flag that targets legacy rows by
+  `source_pdf` or `question_id` and runs Phase 7 against them
+  with explicit operator consent.
+- Optional Gemini Flash critic for cheap consistency checks
+  alongside the Sonnet critic.
+- Internal-category normalization: post-pass that maps free-text
+  `misconception_note` into the optional `internal_category` enum
+  for analytics dashboards.
 
 ### Phase 8 — Consolidation
 
