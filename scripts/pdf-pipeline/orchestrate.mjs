@@ -28,12 +28,16 @@
 //                + expanded_question_crop with match_method + crop_complete
 //   visuals      v2 phase 4 — classify problem-required visuals vs
 //                repeated calculator/sidebar/background artifacts
+//   math_repair  v2 phase 5 — detect OCR-mangled math notation,
+//                auto-repair only low-risk cases that clear the
+//                8-condition gate; route everything else to review.
 //   filling      Sonnet explanation_text + per-choice + Haiku Desmos
 //   grading      Multi-vote audit (uses selected_official_answer when set);
 //                writes grader_runs append-only + answer_verification_status
 //   validating   v2 phase 1 — strict server-side KaTeX validation
-//   publishing   v2 phase 1+2+3 — publish-gate (now with phase 3 source-
-//                evidence gates, all opt-in per source_assets_processed_at)
+//   publishing   v2 phase 1+2+3+5 — publish-gate (now with phase 3 source-
+//                evidence gates + phase 5 math-notation gates, all opt-in
+//                per their respective processed_at markers)
 //   done | failed
 //
 // FAILURES
@@ -142,7 +146,7 @@ async function main() {
     // Stage 1: extract structure
     await job.setStage("extracting", { message: `Claude Sonnet 4.6 on ${basename(pdfPath)}` });
     runStage(
-      "Stage 1/11 — extract structure (Claude Sonnet 4.6)",
+      "Stage 1/12 — extract structure (Claude Sonnet 4.6)",
       "extracting",
       "scripts/pdf-pipeline/extract-with-gemini.mjs",
       [pdfPath]
@@ -155,7 +159,7 @@ async function main() {
     // Stage 2: extract figures
     await job.setStage("figures", { message: "Vision-driven bbox crop + R2 upload" });
     runStage(
-      "Stage 2/11 — extract figures",
+      "Stage 2/12 — extract figures",
       "figures",
       "scripts/pdf-pipeline/extract-figures.mjs",
       [pdfPath, jsonOut]
@@ -168,7 +172,7 @@ async function main() {
 
     // Stage 3: emit CSV
     await job.setStage("csv", { message: "Generating 32-column import CSV" });
-    runStage("Stage 3/11 — generate CSV", "csv", "scripts/pdf-pipeline/json-to-import-csv.mjs", [
+    runStage("Stage 3/12 — generate CSV", "csv", "scripts/pdf-pipeline/json-to-import-csv.mjs", [
       jsonOut,
       pdfPath,
       csvOut,
@@ -177,7 +181,7 @@ async function main() {
     // Stage 4: import to DB
     await job.setStage("importing", { message: "Writing rows to quiz_questions + answer_choices" });
     runStage(
-      "Stage 4/11 — import to database",
+      "Stage 4/12 — import to database",
       "importing",
       "scripts/pdf-pipeline/import-csv-direct.mjs",
       [csvOut]
@@ -196,7 +200,7 @@ async function main() {
       message: "Detecting answer-key pages + extracting corrections",
     });
     runStage(
-      "Stage 5/11 — extract answer key (v2 phase 2)",
+      "Stage 5/12 — extract answer key (v2 phase 2)",
       "answer_key",
       "scripts/pdf-pipeline/extract-answer-key.mjs",
       [pdfPath, "--source-pdf", sourcePdfBasename, ...(job.jobId ? ["--job-id", job.jobId] : [])]
@@ -212,7 +216,7 @@ async function main() {
       message: "Per-question source-asset extraction",
     });
     runStage(
-      "Stage 6/11 — extract question crops (v2 phase 3)",
+      "Stage 6/12 — extract question crops (v2 phase 3)",
       "crops",
       "scripts/pdf-pipeline/extract-question-crops.mjs",
       [pdfPath, "--source-pdf", sourcePdfBasename, ...(job.jobId ? ["--job-id", job.jobId] : [])]
@@ -226,54 +230,71 @@ async function main() {
       message: "Classifying visual relevance",
     });
     runStage(
-      "Stage 7/11 — classify visual relevance (v2 phase 4)",
+      "Stage 7/12 — classify visual relevance (v2 phase 4)",
       "visuals",
       "scripts/pdf-pipeline/classify-visual-relevance.mjs",
       ["--source-pdf", sourcePdfBasename]
     );
 
-    // Stage 8: fill explanations (Sonnet + Haiku) — scoped to this PDF
+    // v2 phase 5: math notation repair. Runs AFTER phase 3 (because the
+    // 8-condition gate checks the question_crop visually) and BEFORE
+    // grading (so the grader scores the repaired text, not the OCR-
+    // mangled raw). Cautious by design — only low-risk repairs that
+    // clear ALL 8 conditions auto-apply; everything else routes to
+    // human review via math_notation_status.
+    await job.setStage("math_repair", {
+      message: "Detecting OCR-mangled math notation",
+    });
+    runStage(
+      "Stage 8/12 — repair math notation (v2 phase 5)",
+      "math_repair",
+      "scripts/pdf-pipeline/repair-math-notation.mjs",
+      ["--source-pdf", sourcePdfBasename]
+    );
+
+    // Stage 9: fill explanations (Sonnet + Haiku) — scoped to this PDF
     await job.setStage("filling", {
       message: "Sonnet explanation_text + per-choice + Haiku Desmos",
     });
     runStage(
-      "Stage 8/11 — fill explanations",
+      "Stage 9/12 — fill explanations",
       "filling",
       "scripts/content-generation/fill-all.mjs",
       ["--source-pdf", sourcePdfBasename]
     );
 
-    // Stage 9: multi-vote grader — uses selected_official_answer
+    // Stage 10: multi-vote grader — uses selected_official_answer
     await job.setStage("grading", {
       message: "Flash + DeepSeek + Llama → Pro → Opus consensus check",
     });
     runStage(
-      "Stage 9/11 — multi-vote grader",
+      "Stage 10/12 — multi-vote grader",
       "grading",
       "scripts/question-audit/multi-vote-grader.mjs",
       ["--from-db", "--source-pdf", sourcePdfBasename]
     );
 
-    // Stage 10: strict server-side KaTeX validation
+    // Stage 11: strict server-side KaTeX validation
     await job.setStage("validating", {
       message: "Strict server-side KaTeX validation",
     });
     runStage(
-      "Stage 10/11 — validate KaTeX",
+      "Stage 11/12 — validate KaTeX",
       "validating",
       "scripts/question-audit/validate-katex.mjs",
       ["--source-pdf", sourcePdfBasename, "--apply-blocks"]
     );
 
-    // Stage 11: publish-gate — promote rows to publish_ready
+    // Stage 12: publish-gate — promote rows to publish_ready
     // The central enforcement of v2 phase 1. New rows arrived as
     // 'draft' from stage 4; this stage flips them to publish_ready
     // ONLY when every gate passes (KaTeX, grader, slug, required
-    // fields, explanation present, import_status ok).
+    // fields, explanation present, import_status ok, phase 5 math-
+    // repair status not needing review).
     await job.setStage("publishing", {
       message: "Publish-gate evaluation (promote draft → publish_ready)",
     });
-    runStage("Stage 11/11 — publish gate", "publishing", "scripts/pdf-pipeline/publish-gate.mjs", [
+    runStage("Stage 12/12 — publish gate", "publishing", "scripts/pdf-pipeline/publish-gate.mjs", [
       "--source-pdf",
       sourcePdfBasename,
     ]);

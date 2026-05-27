@@ -146,30 +146,147 @@ If a visual is repeated across multiple math questions, appears in the left side
 
 ### Phase 5 — Math Notation Repair
 
-Purpose: convert suspicious OCR/math notation into verified repairs or review flags.
+Purpose: convert suspicious OCR/math notation into verified repairs or
+review flags. The defining principle of Phase 5 is **caution over
+coverage**: the goal is not to auto-fix every suspicious math expression,
+but to auto-fix only obvious OCR notation errors and preserve a full
+audit trail for everything else.
 
-Detect:
+#### Storage model
 
-- `x2`, `y2`, `n2`
-- missing exponents
-- missing parentheses
-- ambiguous fractions such as `1/2x`
-- ambiguous rational expressions such as `x+1/x-1`
-- missing radicals
-- sign ambiguity such as `-x^2` versus `(-x)^2`
+Two text fields per repairable column. The active website value can
+diverge from the original extraction once Phase 5 fires, but the
+original is always recoverable.
 
-Repair process:
+| Table          | Active column    | Immutable snapshot         |
+| -------------- | ---------------- | -------------------------- |
+| quiz_questions | `question_text`  | `raw_question_text`        |
+| answer_choices | `choice_text`    | `raw_choice_text`          |
+
+`raw_*_text` is NOT NULL and backfilled to the current active value on
+existing rows during the migration. New imports set it in
+`import-csv-direct.mjs`. Phase 5 may overwrite the active column for
+verified low-risk repairs only; the raw column is never mutated.
+
+#### Detection (pure regex, scripts/lib/math-notation-patterns.mjs)
+
+| Pattern                          | Example         | Default risk tier      |
+| -------------------------------- | --------------- | ---------------------- |
+| `bare_digit_after_letter`        | `x2` → `x^2`    | low_risk_ocr           |
+| `ambiguous_fraction`             | `1/2x`          | medium_risk_grouping   |
+| `ambiguous_rational`             | `x+1/x-1`       | medium_risk_grouping   |
+| `sqrt_without_parens`            | `sqrt x+1`      | medium_risk_grouping   |
+
+The detector deliberately excludes chemistry subscripts (`CO2`, `H2O`),
+multi-digit suffixes (`x12`), and already-parenthesized forms.
+
+#### Risk tiers (5 values, mirror DB CHECK)
+
+1. **low_risk_ocr** — single canonical interpretation; eligible for
+   auto-repair if all 8 conditions pass.
+2. **medium_risk_grouping** — parenthesization ambiguous; ALWAYS
+   routes to human review.
+3. **high_risk_answer_changing** — repair would change the verified
+   answer; routes to `blocked_answer_dispute`.
+4. **open_ended_uncertain** — `numeric_entry` questions; bumped here
+   by `refineRiskTier` so they never auto-repair.
+5. **visual_unclear** — Gemini Vision flagged the source crop as
+   unclear; routes to `unrepairable_from_source`.
+
+#### 8-condition auto-repair gate
+
+A low-risk repair auto-applies ONLY when all 8 are true:
+
+1. Pattern is `low_risk_ocr` (single canonical candidate).
+2. Phase 3 source crop visually supports the repair.
+3. Vision confidence ≥ 0.95.
+4. ≥ 2 independent solvers agree on the post-repair answer.
+5. Repair does NOT change the already-verified answer.  
+   (Per user policy: "a model could choose a repair just because it
+   makes the key work" — answer-key agreement is necessary but not
+   sufficient.)
+6. Repair does not create an answer-key dispute.
+7. Question is not open-ended with ambiguous notation.
+8. `repaired_text !== raw_text` (sanity).
+
+Any failure → `suggested_repair_needs_review`. Eight green → 
+`verified_auto_repair`, which surfaces in `publish_status` as
+`publish_ready_with_verified_repair` so admins can spot-check.
+
+#### Repair process
 
 ```text
-suspicious raw expression
-→ generate repair candidates
-→ visually confirm with crop
-→ solve candidates
-→ compare to answer choices/key
-→ select verified repair or block
+detect patterns       (math-notation-patterns.mjs — pure regex)
+↓
+refine risk tier      (math-notation-logic.mjs — pure)
+↓
+vision confirmation   (Gemini Flash on Phase 3 question crop)
+↓
+solver vote × 2       (Gemini + DeepSeek on raw + repaired)
+↓
+sympy equivalence     (Python subprocess; CI-only)
+↓
+evaluate 8-cond gate  (math-notation-logic.mjs — pure)
+↓
+INSERT math_repair_records (append-only audit trail)
+↓
+if verified_auto_repair → UPDATE quiz_questions.question_text
+                         or answer_choices.choice_text
+↓
+roll up question status → math_notation_status
+                          math_notation_checked_at = NOW()
 ```
 
-Use SymPy for math equivalence when possible. Use Mathpix selectively for math crops where visual notation is the bottleneck.
+#### Status outputs (5 values, mirror DB CHECK)
+
+| Status                          | Publish-gate effect            |
+| ------------------------------- | ------------------------------ |
+| `no_repair_needed`              | passes (no Phase 5 gate fires) |
+| `verified_auto_repair`          | `publish_ready_with_verified_repair` |
+| `suggested_repair_needs_review` | `needs_human_review`           |
+| `ambiguous_repair`              | `blocked_answer_dispute`       |
+| `unrepairable_from_source`      | `needs_human_review`           |
+
+#### Opt-in publish-gate
+
+`math_notation_checked_at IS NULL` → Phase 5 gates short-circuit, same
+pattern as Phase 3's `source_assets_processed_at`. Pre-Phase-5 rows are
+never newly flagged by the migration alone.
+
+#### Implementation files
+
+| File                                                      | Role                              |
+| --------------------------------------------------------- | --------------------------------- |
+| `supabase/migrations/…_pdf_ingestion_v2_phase5.sql`       | Schema + view + indexes           |
+| `scripts/lib/math-notation-patterns.mjs`                  | Pure regex detection              |
+| `scripts/lib/math-notation-logic.mjs`                     | Pure risk-tier + 8-cond gate      |
+| `scripts/lib/math-equivalence.mjs`                        | Python subprocess wrapper         |
+| `scripts/python/sympy-check.py`                           | SymPy equivalence script (CI)     |
+| `scripts/pdf-pipeline/repair-math-notation.mjs`           | Stage 8 runner (orchestrate.mjs)  |
+| `scripts/v2-phase5/verify-math-repair-flow.mjs`           | DB-level verifier                 |
+| `src/lib/pipeline-v2/math-notation-patterns.test.ts`      | Vitest (24 tests)                 |
+| `src/lib/pipeline-v2/math-notation-logic.test.ts`         | Vitest (30 tests)                 |
+
+#### Cost
+
+Per PDF (~30 questions, ~10 detections after filtering):
+
+- Gemini Flash vision confirmation: ~10 × $0.0002 = $0.002
+- Gemini Flash + DeepSeek solver vote: ~10 × 2 × $0.0003 = $0.006
+- SymPy: free (runs in CI compute)
+
+Total ≈ **$0.01/PDF**. Adds ~30s to the orchestrator wall time.
+
+#### Deferred (Phase 5.5)
+
+- `passage` and `explanation_text` repair (scope-limited to
+  `question_text` + `choice_text` per user decision).
+- Mathpix integration — currently substituting Gemini Vision on
+  Phase 3 crops to avoid a paid third-party dependency.
+- Digit-between-letters cases like `e2x` (too ambiguous for one
+  canonical repair; deferred until LLM-driven detection lands).
+- Sign ambiguity `-x^2` vs `(-x)^2` (no clean regex signature; will
+  surface via solver disagreement instead).
 
 ### Phase 6 — Answer Verification and Arbitration
 

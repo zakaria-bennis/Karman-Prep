@@ -185,6 +185,10 @@ export async function insertQuestion(input: NewQuestionInput): Promise<InsertQue
       question_id: question.id,
       letter: c.letter,
       choice_text: c.choice_text,
+      // v2 phase 5: at creation time the user-entered text IS the raw
+      // text. Phase 5 may later diverge choice_text from raw_choice_text
+      // for verified auto-repairs.
+      raw_choice_text: c.choice_text,
       is_correct: c.letter === input.correct_answer,
     }));
 

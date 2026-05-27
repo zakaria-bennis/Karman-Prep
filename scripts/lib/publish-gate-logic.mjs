@@ -281,6 +281,62 @@ export function gateIncompleteCrop(q) {
   };
 }
 
+// ── v2 phase 5 gates — math-notation repair (OPT-IN) ───────────
+//
+// Every gate below short-circuits on `q.math_notation_checked_at`
+// being null. That column is set by repair-math-notation.mjs when
+// the row has been inspected. Pre-Phase-5 rows have it null and
+// these gates DO NOT FIRE on them — same opt-in pattern as Phase 3.
+//
+// The Phase 5 publish-gate logic distinguishes verified_auto_repair
+// (which still publishes, just with a more truthful publish_status
+// suffix) from anything that needs human review.
+function isPhase5Active(q) {
+  return q.math_notation_checked_at != null;
+}
+
+export function gateMathRepairNeedsReview(q) {
+  if (!isPhase5Active(q)) return null;
+  if (q.math_notation_status !== "suggested_repair_needs_review") return null;
+  return {
+    reason: "phase5_math_repair_suggested_needs_review",
+    suggestedStatus: "needs_human_review",
+  };
+}
+
+export function gateMathRepairAmbiguous(q) {
+  if (!isPhase5Active(q)) return null;
+  if (q.math_notation_status !== "ambiguous_repair") return null;
+  return {
+    reason: "phase5_math_repair_ambiguous",
+    suggestedStatus: "blocked_answer_dispute",
+  };
+}
+
+export function gateMathRepairUnrepairable(q) {
+  if (!isPhase5Active(q)) return null;
+  if (q.math_notation_status !== "unrepairable_from_source") return null;
+  return {
+    reason: "phase5_math_repair_unrepairable_from_source",
+    suggestedStatus: "needs_human_review",
+  };
+}
+
+/**
+ * Phase 5 post-processor: when all gates pass AND a verified
+ * auto-repair was applied, surface that visibly in publish_status
+ * so admins can spot-check. Mirrors postProcessVerifiedRepair's
+ * pattern for Phase 2 corrected answer keys — same downstream
+ * publish_status name.
+ */
+export function postProcessVerifiedMathRepair(q, baseStatus) {
+  if (!isPhase5Active(q)) return baseStatus;
+  if (q.math_notation_status === "verified_auto_repair") {
+    return "publish_ready_with_verified_repair";
+  }
+  return baseStatus;
+}
+
 // Strictness order: first match wins.
 // blocked_* (corrupt > katex > answer disputes > slug > visual) before
 // needs_human_review (answer_key_status > import_status > phase3 source
@@ -290,12 +346,18 @@ export function gateIncompleteCrop(q) {
 // source_assets_processed_at is null — so old v1 rows aren't affected).
 // v2 phase 4 adds visual relevance gates, also OPT-IN (requires at
 // least one visual asset carrying phase4_visual_relevance metadata).
+// v2 phase 5 adds 3 math-notation gates, also OPT-IN (no-op when
+// math_notation_checked_at is null). gateMathRepairAmbiguous routes
+// to blocked_answer_dispute alongside other answer disputes;
+// gateMathRepairNeedsReview / gateMathRepairUnrepairable route to
+// needs_human_review alongside other Phase 3 review gates.
 export const ALL_GATES = [
   gateRequiredFields, // → corrupt_question on missing q_text
   gateKaTeX, // → blocked_katex_error
   gateGraderVotes, // → blocked_answer_dispute (grader latest summary)
   gateAnswerVerification, // → blocked_answer_dispute (v2 phase 2: solver vs key)
   gateAnswerKeyStatus, // → blocked_answer_dispute or needs_human_review (v2 phase 2)
+  gateMathRepairAmbiguous, // → blocked_answer_dispute (v2 phase 5)
   (q, slugs) => gateSlug(q, slugs), // → blocked_slug_uncertain
   gateMissingVisual, // → blocked_missing_visual
   gateIrrelevantAttachedVisual, // → blocked_missing_visual (v2 phase 4)
@@ -309,6 +371,9 @@ export const ALL_GATES = [
   gateCropCountMismatch,
   gateIncompleteCrop,
   gateUncertainVisualRelevance, // → needs_human_review (v2 phase 4)
+  // ── v2 phase 5 (opt-in via math_notation_checked_at) ──
+  gateMathRepairNeedsReview, // → needs_human_review
+  gateMathRepairUnrepairable, // → needs_human_review
   // ── softest gate runs last ──
   gateExplanation, // → needs_human_review (softer)
 ];
@@ -318,9 +383,12 @@ export function computePublishStatus(q, validSlugs) {
     const r = gate(q, validSlugs);
     if (r) return r;
   }
-  // All gates pass → publish_ready. v2 phase 2: if the key was
-  // a hand-corrected one that verified, distinguish it visibly.
-  const finalStatus = postProcessVerifiedRepair(q);
+  // All gates pass → publish_ready. v2 phase 2 surfaces hand-corrected
+  // answer keys as publish_ready_with_verified_repair; v2 phase 5
+  // surfaces verified math notation repairs the same way (same
+  // downstream status — admins spot-check either flavor identically).
+  let finalStatus = postProcessVerifiedRepair(q);
+  finalStatus = postProcessVerifiedMathRepair(q, finalStatus);
   return {
     reason:
       finalStatus === "publish_ready_with_verified_repair"

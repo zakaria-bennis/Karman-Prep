@@ -95,6 +95,22 @@ jobs:
           sudo apt-get install -y poppler-utils
           pdftoppm -v 2>&1 | head -2
 
+      - name: Setup Python 3.12 (for SymPy in Phase 5)
+        # v2 phase 5 — repair-math-notation.mjs spawns python3 with
+        # scripts/python/sympy-check.py to verify symbolic equivalence
+        # between raw + repaired math expressions. SymPy is the only
+        # Python dependency the pipeline needs; we pin the version to
+        # stay reproducible across Actions runners.
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install SymPy
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install "sympy==1.13.3"
+          python3 -c "import sympy; print('sympy', sympy.__version__)"
+
       - name: Setup Node 22
         uses: actions/setup-node@v6
         with:

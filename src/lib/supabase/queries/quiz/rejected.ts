@@ -161,6 +161,11 @@ export async function restoreRejectedQuestion(
       question_id: rejected.original_id,
       letter: c.letter as "A" | "B" | "C" | "D",
       choice_text: c.choice_text,
+      // v2 phase 5: snapshot doesn't carry raw_choice_text (rejected
+      // before Phase 5 existed). Re-seed it from the active text — the
+      // restore returns the question to the state it had pre-rejection,
+      // so raw == active is the right default.
+      raw_choice_text: c.choice_text,
     }));
     const { error: cErr } = await supabase.from("answer_choices").insert(choiceRows);
     if (cErr) {
