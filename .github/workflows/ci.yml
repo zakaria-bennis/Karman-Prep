@@ -109,10 +109,12 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: npm
-      # Use `npm ci` not `npm install` — ci validates the lockfile
-      # instead of mutating it, so this job doesn't false-positive on
-      # an unrelated package-lock.json regeneration.
-      - run: npm ci --no-audit --no-fund
+      # Matches the install command other CI jobs use. We can't use
+      # `npm ci` here because the lockfile is known to drift between
+      # npm 10 (CI default) and npm 11 (local dev). The diff check
+      # below is scoped to only the 6 taxonomy files, so a
+      # package-lock churn doesn't false-positive this job.
+      - run: npm install --no-audit --no-fund
       - name: Regenerate taxonomy artifacts
         run: npm run sync:taxonomy
       - name: Fail if any generated taxonomy artifact changed
