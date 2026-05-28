@@ -460,24 +460,64 @@ export async function callDeepSeek({
 // ── Groq Llama (OpenAI-compatible chat completions) ──────────
 // Workhorse fallback. Free tier has generous limits. No vision —
 // strictly text-only.
+// Native Groq model names vs OpenRouter model names. Groq uses
+// short names ("llama-3.3-70b-versatile"); OpenRouter uses
+// vendor-qualified ones ("meta-llama/llama-3.3-70b-instruct").
+// We accept the GROQ-style name everywhere and translate at call
+// time so callers don't need to know which provider they're hitting.
+const GROQ_TO_OPENROUTER_MODEL = {
+  "llama-3.3-70b-versatile": "meta-llama/llama-3.3-70b-instruct",
+  "llama-3.1-70b-versatile": "meta-llama/llama-3.1-70b-instruct",
+  "llama-3.1-8b-instant": "meta-llama/llama-3.1-8b-instruct",
+};
+
 export async function callGroq({
   prompt,
   model = "llama-3.3-70b-versatile",
   systemPrompt = null,
   json = true,
 }) {
-  if (!GROQ_KEY) throw new Error("GROQ_API_KEY not set");
+  // Provider routing (mirrors callDeepSeek's two-path approach):
+  //
+  //   OpenRouter when OPENROUTER_API_KEY set (user hit Groq free
+  //   tier on 2026-05-28 — we route Llama calls through OpenRouter
+  //   from then on rather than dual-billing). OpenRouter charges
+  //   per-token same as Groq paid tier for Llama 3.3 70B.
+  //
+  //   Direct Groq when only GROQ_API_KEY is set (matches the old
+  //   behavior for users who haven't set up OpenRouter).
+  const useOpenRouter = OPENROUTER_KEY != null;
+  if (!useOpenRouter && !GROQ_KEY) {
+    throw new Error("Set OPENROUTER_API_KEY (preferred) or GROQ_API_KEY");
+  }
+
+  const providerName = useOpenRouter ? "groq_via_openrouter" : "groq";
+  const url = useOpenRouter
+    ? "https://openrouter.ai/api/v1/chat/completions"
+    : "https://api.groq.com/openai/v1/chat/completions";
+  const apiKey = useOpenRouter ? OPENROUTER_KEY : GROQ_KEY;
+  const actualModel = useOpenRouter ? (GROQ_TO_OPENROUTER_MODEL[model] ?? model) : model;
+
   const messages = [];
   if (systemPrompt) messages.push({ role: "system", content: systemPrompt });
   messages.push({ role: "user", content: prompt });
-  const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+
+  const res = await fetch(url, {
     method: "POST",
     headers: {
       "content-type": "application/json",
-      authorization: `Bearer ${GROQ_KEY}`,
+      authorization: `Bearer ${apiKey}`,
+      // OpenRouter recommends an HTTP-Referer + X-Title for
+      // attribution on their dashboard. Harmless when missing.
+      ...(useOpenRouter
+        ? {
+            "http-referer": "https://karmanprep.com",
+            "x-title": "Karman Prep — grader Llama role",
+          }
+        : {}),
     },
     body: JSON.stringify({
-      model,
+      model: actualModel,
       messages,
       temperature: 0.1,
       max_tokens: 2048,
@@ -487,9 +527,9 @@ export async function callGroq({
   if (!res.ok) {
     const body = await res.text();
     if (res.status === 429 || /quota|credit|deplet/i.test(body)) {
-      throw new QuotaExhaustedError("groq", body);
+      throw new QuotaExhaustedError(providerName, body);
     }
-    throw new Error(`Groq HTTP ${res.status}: ${body.slice(0, 200)}`);
+    throw new Error(`${providerName} HTTP ${res.status}: ${body.slice(0, 200)}`);
   }
   const responseJson = await res.json();
   const text = responseJson?.choices?.[0]?.message?.content ?? "";
@@ -497,7 +537,7 @@ export async function callGroq({
   try {
     return JSON.parse(text);
   } catch {
-    throw new ParseError("groq", text);
+    throw new ParseError(providerName, text);
   }
 }
 
