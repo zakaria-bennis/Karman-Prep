@@ -373,7 +373,7 @@ async function main() {
 
     // Stage 11: v2 phase 7 — generate explanation_v2 for eligible rows.
     //
-    // Replaces the legacy fill-all.mjs call. Tiered Sonnet → Opus
+    // Tiered Sonnet → Opus (the legacy fill-all.mjs was removed in 8.4)
     // generator. Produces the canonical explanation_v2 JSONB bundle
     // and mirrors compatible fields into the legacy explanation_text /
     // explanation_per_choice / desmos_strategy columns.
