@@ -191,15 +191,161 @@ export async function callGemini({
 // writing (per-choice explanations, Desmos tips) + nuanced
 // reading comprehension. Use sonnet for cheaper bulk operations
 // where the per-call quality matters less.
+// ── Anthropic Files API ────────────────────────────────────────
+//
+// Used by callClaude when a PDF is provided. Two reasons:
+//   1. Anthropic's inline document block caps at ~20 MB total
+//      request body (including system prompt + base64 PDF). We
+//      had a hard 18 MB ceiling in extract-with-gemini.mjs that
+//      blocked any PDF larger than ~13 MB raw.
+//   2. Files API supports up to 500 MB per file, expires after
+//      30 days, and is part of standard API pricing (no premium).
+//
+// Per-call flow:
+//   · Upload PDF to /v1/files (multipart) → get file_id
+//   · Reference file_id in the /v1/messages document block
+//   · Anthropic charges the same input tokens as inline upload
+//
+// We deliberately do NOT delete the file after the call — they
+// expire on their own and reuse across multiple calls (e.g. the
+// answer-key parser hitting the same PDF) avoids re-uploading.
+export async function uploadAnthropicFile(
+  buf,
+  { mimeType = "application/pdf", filename = "upload.pdf" } = {}
+) {
+  if (!ANTHROPIC_KEY) throw new Error("ANTHROPIC_API_KEY not set");
+  const form = new FormData();
+  // Node 18+ Blob is fine; sharp + buffer→Blob handoff is well-tested.
+  const blob = new Blob([buf], { type: mimeType });
+  form.append("file", blob, filename);
+  const res = await fetch("https://api.anthropic.com/v1/files", {
+    method: "POST",
+    headers: {
+      "x-api-key": ANTHROPIC_KEY,
+      "anthropic-version": "2023-06-01",
+      "anthropic-beta": "files-api-2025-04-14",
+    },
+    body: form,
+  });
+  if (!res.ok) {
+    const body = await res.text();
+    if (res.status === 429 || /credit|balance|quota/i.test(body)) {
+      throw new QuotaExhaustedError("anthropic", body);
+    }
+    throw new Error(`Anthropic Files HTTP ${res.status}: ${body.slice(0, 200)}`);
+  }
+  const json = await res.json();
+  if (!json?.id) {
+    throw new ParseError("anthropic_files", JSON.stringify(json));
+  }
+  return { fileId: json.id, sizeBytes: json.size_bytes, mimeType: json.mime_type };
+}
+
+// ── SSE parser for streaming Claude responses ──────────────────
+//
+// Reads the streaming body and accumulates the final response shape
+// the non-streaming path would have produced. We MUST stream when
+// expected output is > ~8K tokens or expected duration > 60 sec —
+// otherwise Anthropic's server-side closes non-streaming connections
+// at the 10-minute mark mid-response.
+//
+// Event types we care about:
+//   · content_block_start  — opens a text or tool_use block
+//   · content_block_delta  — text_delta or input_json_delta chunks
+//   · content_block_stop   — closes the block
+//   · message_delta        — stop_reason + usage at end
+//   · message_stop         — final event
+//
+// We accumulate into the same `content` array shape that the
+// non-streaming endpoint returns, so the downstream block-finding
+// code at the bottom of callClaude doesn't need to know which
+// transport was used.
+export async function parseClaudeSSE(response) {
+  if (!response.body) throw new Error("response has no body to stream from");
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  const content = []; // accumulated content blocks
+  let stopReason = null;
+  let usage = {};
+  // Track which block index is open + accumulating into which slot of `content`
+  // (tool_use blocks accumulate partial_json strings; text blocks accumulate text)
+  const openBlocks = new Map();
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    // SSE messages are separated by \n\n
+    let idx;
+    while ((idx = buffer.indexOf("\n\n")) !== -1) {
+      const chunk = buffer.slice(0, idx);
+      buffer = buffer.slice(idx + 2);
+      // Each chunk is one or more "field: value" lines.
+      let data = null;
+      for (const line of chunk.split("\n")) {
+        if (line.startsWith("data: ")) data = line.slice(6);
+      }
+      if (!data) continue;
+      let evt;
+      try {
+        evt = JSON.parse(data);
+      } catch {
+        continue; // malformed line, skip
+      }
+      if (evt.type === "content_block_start") {
+        const block = evt.content_block;
+        // Initialize the accumulator. For tool_use, input is built
+        // up from input_json_delta strings; for text, text is built
+        // up from text_delta strings.
+        const slot = { ...block };
+        if (block.type === "tool_use") slot._partial = "";
+        if (block.type === "text") slot.text = "";
+        content[evt.index] = slot;
+        openBlocks.set(evt.index, slot);
+      } else if (evt.type === "content_block_delta") {
+        const slot = openBlocks.get(evt.index);
+        if (!slot) continue;
+        if (evt.delta?.type === "text_delta") {
+          slot.text = (slot.text ?? "") + (evt.delta.text ?? "");
+        } else if (evt.delta?.type === "input_json_delta") {
+          slot._partial = (slot._partial ?? "") + (evt.delta.partial_json ?? "");
+        }
+      } else if (evt.type === "content_block_stop") {
+        const slot = openBlocks.get(evt.index);
+        if (!slot) continue;
+        // For tool_use, finalize input by parsing the accumulated JSON.
+        if (slot.type === "tool_use") {
+          try {
+            slot.input = JSON.parse(slot._partial || "{}");
+          } catch {
+            slot.input = {};
+          }
+          delete slot._partial;
+        }
+        openBlocks.delete(evt.index);
+      } else if (evt.type === "message_delta") {
+        if (evt.delta?.stop_reason) stopReason = evt.delta.stop_reason;
+        if (evt.usage) usage = { ...usage, ...evt.usage };
+      } else if (evt.type === "message_start") {
+        usage = { ...usage, ...(evt.message?.usage ?? {}) };
+      }
+      // message_stop: nothing to do; loop will exit when reader.done
+    }
+  }
+  return { content, stop_reason: stopReason, usage };
+}
+
 export async function callClaude({
   prompt,
   model = "claude-opus-4-7",
   systemPrompt = null,
   image = null,
-  // PDF input via Anthropic's document content block. Pass
-  // `{ buf: Buffer }` and we wrap it as base64 application/pdf.
-  // Used by extract-with-claude.mjs as the RECITATION-free
-  // replacement for Gemini extraction.
+  // PDF input. Now ALWAYS goes through Anthropic's Files API
+  // (regardless of size) so the inline 20 MB request-body cap never
+  // bites. Pass `{ buf: Buffer, filename? }`. If you have a Files
+  // API id already (e.g. from a prior call against the same PDF),
+  // pass `{ fileId: "file_xxx" }` instead to skip re-upload.
   pdf = null,
   json = true,
   // When set, Claude is forced to respond by calling a tool whose
@@ -214,6 +360,11 @@ export async function callClaude({
   // still accept it. Pass an explicit number to force-include; leave null
   // (the default) to omit from the request entirely.
   temperature = null,
+  // Set to true for any call where output is expected to be > ~8K
+  // tokens OR duration > 60 sec. Non-streaming requests get killed
+  // by Anthropic's server at the 10-minute mark. The PDF extractor
+  // and the explanation generator both ride this edge.
+  stream = false,
 }) {
   if (!ANTHROPIC_KEY) throw new Error("ANTHROPIC_API_KEY not set");
   const content = [];
@@ -224,13 +375,23 @@ export async function callClaude({
     });
   }
   if (pdf) {
+    // Two intake shapes:
+    //   { buf: Buffer, filename? }  → upload via Files API
+    //   { fileId: "file_xxx" }      → reuse an already-uploaded file
+    let fileId = pdf.fileId;
+    if (!fileId && pdf.buf) {
+      const uploaded = await uploadAnthropicFile(pdf.buf, {
+        mimeType: "application/pdf",
+        filename: pdf.filename ?? "input.pdf",
+      });
+      fileId = uploaded.fileId;
+    }
+    if (!fileId) {
+      throw new Error("callClaude({pdf}) requires either { buf } or { fileId }");
+    }
     content.push({
       type: "document",
-      source: {
-        type: "base64",
-        media_type: "application/pdf",
-        data: pdf.buf.toString("base64"),
-      },
+      source: { type: "file", file_id: fileId },
     });
   }
   content.push({ type: "text", text: prompt });
@@ -263,6 +424,10 @@ export async function callClaude({
       "content-type": "application/json",
       "x-api-key": ANTHROPIC_KEY,
       "anthropic-version": "2023-06-01",
+      // Files API beta header — required whenever a content block
+      // references a file_id. No-op for messages that don't use one.
+      "anthropic-beta": "files-api-2025-04-14",
+      ...(stream ? { accept: "text/event-stream" } : {}),
     },
     body: JSON.stringify({
       model,
@@ -270,6 +435,7 @@ export async function callClaude({
       ...(temperature != null ? { temperature } : {}),
       ...(systemPrompt ? { system: systemPrompt } : {}),
       ...(useTool ? { tools, tool_choice } : {}),
+      ...(stream ? { stream: true } : {}),
       messages,
     }),
   });
@@ -280,7 +446,7 @@ export async function callClaude({
     }
     throw new Error(`Anthropic HTTP ${res.status}: ${body.slice(0, 200)}`);
   }
-  const responseJson = await res.json();
+  const responseJson = stream ? await parseClaudeSSE(res) : await res.json();
 
   // Diagnostic logging — same pattern as the Gemini side. One stderr
   // line per call with stop_reason + usage so we can tell apart
