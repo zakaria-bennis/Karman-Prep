@@ -19,7 +19,9 @@
 // 11 and Stage 12 QA). The QA stage flips it to qa_passed / qa_failed.
 //
 // REPLACES scripts/content-generation/fill-all.mjs in the
-// orchestrator. fill-all.mjs stays in repo as a deprecated fallback.
+// orchestrator (Phase 7). fill-all.mjs was removed in v2 phase 8.4
+// once Phase 7's eligibility-gated + QA'd flow proved out
+// end-to-end on real PDFs (smoke #1 on 202406asiav2.pdf).
 // ============================================================
 
 import { createClient } from "@supabase/supabase-js";

@@ -1,8 +1,11 @@
 // ============================================================
 // backfill-figure-urls — patches image_url + image_alt onto
 // quiz_questions rows whose figures already live in R2 but
-// whose DB image_url was dropped by the buggy version of
-// import-csv-direct.mjs (which never wrote those fields).
+// whose DB image_url was dropped by the buggy v1 import path
+// (the now-deleted import-csv-direct.mjs never wrote those
+// fields). Kept as a one-off backfill tool — Phase 8.1's
+// import-json-direct.ts always writes image_url + image_alt
+// for new imports.
 //
 // HOW IT WORKS
 //   1. Lists objects in the R2 bucket under "question-figures/"

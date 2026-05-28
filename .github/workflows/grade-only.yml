@@ -1,12 +1,19 @@
 # ============================================================
-# grade-only — runs ONLY the multi-vote answer-key grader against
+# grade-only — runs ONLY the typed answer-key verifier against
 # the live database. No PDF extraction, no fill, no R2 reads.
+#
 # Use this when:
 #   · A prior process-pdf run got cancelled mid-grading (the 60-min
 #     Actions timeout on run #26324439132 was the trigger for this
 #     workflow's existence).
 #   · You want to re-grade the bank without re-running the whole
 #     pipeline.
+#
+# Calls scripts/question-audit/verify-answers.mjs (the Phase 6
+# typed-verifier panel: DeepSeek + Llama-via-OpenRouter +
+# Gemini Flash → escalates to Pro / Opus / SymPy on disputes).
+# This replaced multi-vote-grader.mjs in Phase 6; the old script
+# was removed in the v2 phase 8.4 cleanup.
 # ============================================================
 
 name: Grade only
@@ -72,12 +79,11 @@ jobs:
         run: npm ci
 
       - name: Run grader
-        # multi-vote-grader.mjs reads LIMIT from env if set; otherwise
-        # grades every question that hasn't been graded yet. Already-
-        # graded questions are skipped automatically (idempotent).
+        # verify-answers.mjs accepts --limit; otherwise grades every
+        # eligible row. Already-verified questions are skipped
+        # automatically via Phase 6's opt-in marker.
         run: |
-          if [ -n "$GRADE_LIMIT" ]; then
-            LIMIT="$GRADE_LIMIT" node scripts/question-audit/multi-vote-grader.mjs --from-db
-          else
-            node scripts/question-audit/multi-vote-grader.mjs --from-db
-          fi
+          BASE_ARGS="--from-db"
+          [ -n "$GRADE_LIMIT" ] && BASE_ARGS="$BASE_ARGS --limit $GRADE_LIMIT"
+          [ -n "$FILTER_SOURCE_PDF" ] && BASE_ARGS="$BASE_ARGS --source-pdf $FILTER_SOURCE_PDF"
+          node scripts/question-audit/verify-answers.mjs $BASE_ARGS

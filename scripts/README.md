@@ -66,10 +66,21 @@ npm run pdf:watch      # run as foreground daemon
 npm run pdf:finalize   # finalize a specific job after a CSV upload
 ```
 
-For one-off CSV → bank imports outside the admin UI:
+For one-off JSON-direct imports outside the admin UI (e.g. re-importing
+a previously-extracted Gemini JSON without re-running Stage 1):
 
 ```bash
-node --env-file=.env.local scripts/pdf-pipeline/import-csv-direct.mjs <path/to/file.csv>
+# Args: <gemini-json> <source-pdf-path>
+npx tsx scripts/pdf-pipeline/import-json-direct.ts \
+  /tmp/202603asiav1-gemini-extracted.json \
+  question-imports/done/202603asiav1.pdf
+```
+
+For a CSV snapshot of an extraction (debug-only):
+
+```bash
+node --env-file=.env.local scripts/pdf-pipeline/json-to-import-csv.mjs \
+  /tmp/<stem>-gemini-extracted.json <source-pdf-path> <out-csv>
 ```
 
 ### Build (called automatically by `cf:build`)
