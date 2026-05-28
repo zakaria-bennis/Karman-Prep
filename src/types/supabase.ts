@@ -1843,6 +1843,8 @@ export type Database = {
           subject: Database["public"]["Enums"]["quiz_subject"];
           topic_cluster: string;
           updated_at: string | null;
+          // ── archive boundary (20260528 migration) ────────
+          archived_at: string | null;
           // ── v2 phase 1 additions ─────────────────────────
           publish_status: string;
           selected_official_answer: string | null;
@@ -1911,6 +1913,8 @@ export type Database = {
           subject: Database["public"]["Enums"]["quiz_subject"];
           topic_cluster: string;
           updated_at?: string | null;
+          // ── archive boundary (20260528 migration) ────────
+          archived_at?: string | null;
           // ── v2 phase 1 additions ─────────────────────────
           publish_status?: string;
           selected_official_answer?: string | null;
@@ -1979,6 +1983,8 @@ export type Database = {
           subject?: Database["public"]["Enums"]["quiz_subject"];
           topic_cluster?: string;
           updated_at?: string | null;
+          // ── archive boundary (20260528 migration) ────────
+          archived_at?: string | null;
           // ── v2 phase 1 additions ─────────────────────────
           publish_status?: string;
           selected_official_answer?: string | null;
