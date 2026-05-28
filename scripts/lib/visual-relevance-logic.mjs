@@ -7,6 +7,50 @@
 // reason from the images.
 // ============================================================
 
+// NOT NULL columns on source_assets that must be passed through any
+// .upsert() payload. supabase-js .upsert() runs the Postgres INSERT
+// branch first and validates NOT NULL BEFORE the ON CONFLICT clause
+// kicks in — so an UPDATE-only intent can still fail with 23502 if
+// these columns aren't in the payload. Caught when Stage 6
+// classify-visual-relevance.mjs crashed on 2026-05-28 with:
+//   23502: null value in column "asset_type" of relation
+//   "source_assets" violates not-null constraint
+export const SOURCE_ASSETS_NOT_NULL_COLUMNS = Object.freeze([
+  "asset_type",
+  "question_id",
+  "source_pdf",
+  "page_number",
+  "asset_path",
+]);
+
+/**
+ * Build the upsert payload for a Phase 4 classify-visual-relevance
+ * row. Includes both the fields this stage updates AND the NOT NULL
+ * columns we need to pass through (preserved as-is from the existing
+ * row's values).
+ *
+ * @param {object} input
+ * @param {object} input.asset       - the source_assets row as
+ *   loaded by classify-visual-relevance.mjs loadAssets() (must
+ *   include all SOURCE_ASSETS_NOT_NULL_COLUMNS fields populated).
+ * @param {object} input.classification - output of classifyVisualAsset.
+ * @param {object} input.phase4Metadata - merged raw_metadata blob.
+ */
+export function buildVisualRelevanceUpsertPayload({ asset, classification, phase4Metadata }) {
+  if (!asset?.id) {
+    throw new Error("buildVisualRelevanceUpsertPayload: asset.id required");
+  }
+  const payload = { id: asset.id };
+  for (const col of SOURCE_ASSETS_NOT_NULL_COLUMNS) {
+    payload[col] = asset[col] ?? null;
+  }
+  payload.relevance = classification.relevance;
+  payload.repeated_across_pages = classification.repeated_across_pages;
+  payload.use_in_solving = classification.use_in_solving;
+  payload.raw_metadata = phase4Metadata;
+  return payload;
+}
+
 export const VISUAL_ASSET_TYPES = new Set([
   "figure_crop",
   "table_crop",

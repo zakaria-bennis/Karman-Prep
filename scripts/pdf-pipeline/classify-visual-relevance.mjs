@@ -16,6 +16,7 @@ import {
   MIN_REPEAT_COUNT,
   VISUAL_ASSET_TYPES,
   buildPhase4Metadata,
+  buildVisualRelevanceUpsertPayload,
   classifyVisualAsset,
   groupByVisualSignature,
 } from "../lib/visual-relevance-logic.mjs";
@@ -238,13 +239,16 @@ async function main() {
 
     if (DRY_RUN) continue;
 
-    pendingUpdates.push({
-      id: asset.id,
-      relevance: classification.relevance,
-      repeated_across_pages: classification.repeated_across_pages,
-      use_in_solving: classification.use_in_solving,
-      raw_metadata: mergeRawMetadata(asset.raw_metadata, phase4),
-    });
+    // Build payload via shared helper so the NOT NULL passthroughs
+    // are unit-tested in one place. See SOURCE_ASSETS_NOT_NULL_COLUMNS
+    // in visual-relevance-logic.mjs for the locked contract.
+    pendingUpdates.push(
+      buildVisualRelevanceUpsertPayload({
+        asset,
+        classification,
+        phase4Metadata: mergeRawMetadata(asset.raw_metadata, phase4),
+      })
+    );
   }
 
   // Write in batches of 100. We do an upsert keyed on `id`
