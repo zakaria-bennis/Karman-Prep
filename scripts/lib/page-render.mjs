@@ -55,12 +55,32 @@ export async function renderPdfPage(pdfPath, pageNumber, opts = {}) {
     );
   }
 
-  // pdftoppm emits page-<N>-<page>.png on some versions,
-  // page-<N>.png on others. Try both.
+  // pdftoppm's output filename is annoyingly version + PDF-size dependent:
+  //   · Some versions emit `${stem}-${page}-${page}.png`, others
+  //     `${stem}-${page}.png`.
+  //   · pdftoppm zero-pads the page suffix based on the TOTAL page
+  //     count of the PDF, not the page number alone. A 100-page PDF
+  //     writes page 4 as `${stem}-${page}-004.png` (3-digit pad);
+  //     a 12-page PDF writes it as `${stem}-${page}-04.png`.
+  //
+  // extract-figures.mjs already encountered this and tries unpadded +
+  // 2-digit + 3-digit. We mirror that here. The previous 2-variant
+  // check silently broke every render on PDFs with 10+ pages — caught
+  // by the Phase 8.3 smoke test on a 98-page SAT booklet (Stage 5
+  // crops failed for every page; downstream stages had no source
+  // assets to work with).
+  const padded2 = String(pageNumber).padStart(2, "0");
+  const padded3 = String(pageNumber).padStart(3, "0");
   let pngPath = null;
   for (const name of [
+    // Two-token output (`<stem>-<page>-<padded>.png`)
     `${fileStem}-${pageNumber}-${pageNumber}.png`,
+    `${fileStem}-${pageNumber}-${padded2}.png`,
+    `${fileStem}-${pageNumber}-${padded3}.png`,
+    // Single-token output (`<stem>-<padded>.png`)
     `${fileStem}-${pageNumber}.png`,
+    `${fileStem}-${padded2}.png`,
+    `${fileStem}-${padded3}.png`,
   ]) {
     const p = join(outDir, name);
     if (existsSync(p)) {
