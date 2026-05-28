@@ -116,12 +116,23 @@ async function main() {
 
   let agreeCount = 0,
     warnCount = 0,
-    blockCount = 0;
+    blockCount = 0,
+    errorCount = 0;
+  const errorSamples = [];
   for (const q of rows) {
     if (NO_LLM) continue;
     let result = await callTier(q, "claude-sonnet-4-6");
     let resp = result.ok ? result.raw : null;
     let escalated = false;
+    if (!result.ok) {
+      // Track LLM-call failures distinctly from "model returned but
+      // answered 'agrees'". Without this, a totally-broken Claude
+      // key (or transient API outage) silently reports "0/0/0" with
+      // no warning — caught by smoke #1 where my Claude sandbox
+      // pre-set ANTHROPIC_API_KEY="" and every call errored.
+      errorCount++;
+      if (errorSamples.length < 3) errorSamples.push(result.error ?? "(no detail)");
+    }
 
     // Escalate to Opus on low confidence or slug mismatch.
     if (
@@ -175,6 +186,17 @@ async function main() {
   }
 
   console.log(`Agree: ${agreeCount}  Warnings: ${warnCount}  Blocking: ${blockCount}`);
+  if (errorCount > 0) {
+    console.log(
+      `⚠ ${errorCount}/${rows.length} LLM calls FAILED — slug-alignment tally is incomplete.`
+    );
+    for (const s of errorSamples) console.log(`    sample error: ${s}`);
+    // Non-zero exit so the orchestrator's retry layer can see this
+    // is not "everything's clean" — it's "we couldn't evaluate".
+    // Threshold at >50% failure to avoid being trigger-happy on
+    // isolated provider hiccups.
+    if (errorCount > rows.length / 2) process.exitCode = 1;
+  }
 }
 
 main().catch((err) => {
