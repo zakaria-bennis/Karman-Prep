@@ -29,18 +29,28 @@
 // ============================================================
 
 import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { basename, resolve } from "node:path";
 import { createClient } from "@supabase/supabase-js";
-import { importQuestion, type ImportQuestionInput } from "@/lib/question-bank/import-core";
-import { isValidDomain, type SATDomain } from "@/lib/question-bank/taxonomy";
-import type { AnswerSource, ImportFlagType, ImportStatus } from "@/types/quiz";
+import { rowToImportInput, importQuestion } from "./import-json-direct-row";
 import type { Database } from "@/types/supabase";
 
 const jsonArg = process.argv[2];
-if (!jsonArg) {
-  console.error("usage: tsx scripts/pdf-pipeline/import-json-direct.ts <json-path>");
+const pdfArg = process.argv[3];
+if (!jsonArg || !pdfArg) {
+  // pdfArg is REQUIRED — without it, source_pdf would be NULL on every
+  // inserted row, which silently breaks Stages 4-14 (they all filter by
+  // source_pdf to scope work to the current PDF). Mirrors the v1 path's
+  // requirement in json-to-import-csv.mjs.
+  console.error(
+    "usage: tsx scripts/pdf-pipeline/import-json-direct.ts <json-path> <source-pdf-path>"
+  );
   process.exit(1);
 }
+
+// Mirrors v1 json-to-import-csv.mjs:
+//   source_pdf = basename(pdfArg)
+// e.g. "/tmp/pdf-job-xyz/202406asiav2.pdf" → "202406asiav2.pdf"
+const sourcePdfName = basename(pdfArg);
 
 const SUPA_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const SUPA_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -77,58 +87,9 @@ if (rows.length === 0) {
 
 console.log(`Loaded ${rows.length} questions from ${jsonPath}`);
 
-// ── Normalize a JSON row to ImportQuestionInput ───────────────
-//
-// The extractor's JSON shape is intentionally close to what
-// import-core expects. The only normalization needed:
-//   · domain enum validation (extractor sometimes emits unknown
-//     domain on rare extraction errors — we error those rows)
-//   · explanation fields default to empty (extractor doesn't set
-//     them; Phase 7 fills explanation_v2 later)
-//   · numeric_tolerance is a string here; import-core handles parse
-
-function rowToImportInput(row: Record<string, any>): ImportQuestionInput | { error: string } {
-  if (!row.domain || !isValidDomain(String(row.domain))) {
-    return { error: `unknown or missing domain "${row.domain}"` };
-  }
-  return {
-    question_text: String(row.question_text ?? ""),
-    correct_answer: String(row.correct_answer ?? ""),
-    domain: row.domain as SATDomain,
-    choice_a: row.choice_a,
-    choice_b: row.choice_b,
-    choice_c: row.choice_c,
-    choice_d: row.choice_d,
-    difficulty: row.difficulty,
-    question_format: row.question_format,
-    numeric_tolerance: row.numeric_tolerance,
-    source_pdf: row.source_pdf,
-    source_page: row.source_page,
-    content_hash: row.content_hash,
-    concept_slug: row.concept_slug,
-    topic_cluster: row.topic_cluster,
-    passage_intro: row.passage_intro,
-    passage: row.passage,
-    passage_a: row.passage_a,
-    passage_b: row.passage_b,
-    explanation_text: row.explanation_text,
-    explanation_a: row.explanation_a,
-    explanation_b: row.explanation_b,
-    explanation_c: row.explanation_c,
-    explanation_d: row.explanation_d,
-    desmos_strategy: row.desmos_strategy,
-    hint: row.hint,
-    answer_source: row.answer_source as AnswerSource | undefined,
-    import_status: row.import_status as ImportStatus | undefined,
-    import_flag_type: row.import_flag_type as ImportFlagType | undefined,
-    import_flag_reason: row.import_flag_reason,
-    // The orchestrator pre-uploads images to R2 via extract-figures.mjs,
-    // so image_url is already a public R2 URL by the time we get here.
-    // No data-URL materialization needed (that's bulk-import's job).
-    image_url: row.image_url ?? null,
-    image_alt: row.image_alt,
-  };
-}
+// Note: rowToImportInput is exported from ./import-json-direct-row
+// so vitest can exercise it without pulling in the CLI side-effects
+// of this file (env-var checks, process.exit, Supabase client).
 
 // ── Drive the import ──────────────────────────────────────────
 
@@ -143,7 +104,7 @@ async function main() {
 
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i];
-    const normalized = rowToImportInput(row);
+    const normalized = rowToImportInput(row, sourcePdfName);
     if ("error" in normalized) {
       summary.errored++;
       summary.errors.push({ row: i + 1, message: normalized.error });

@@ -211,11 +211,15 @@ async function main() {
     await job.setStage("importing", {
       message: "Writing rows to quiz_questions + answer_choices (JSON-direct)",
     });
+    // The import script REQUIRES pdfPath so it can inject
+    // source_pdf = basename(pdfPath) into every row. Without that,
+    // every downstream stage (4-14) would silently no-op because
+    // they all filter by source_pdf. Caught by the 8.3 smoke test.
     runStage(
       "Stage 3/14 — import JSON to database (v2 phase 8.1)",
       "importing",
       "scripts/pdf-pipeline/import-json-direct.ts",
-      [jsonOut],
+      [jsonOut, pdfPath],
       { runner: "tsx" }
     );
 
