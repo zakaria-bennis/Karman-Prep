@@ -509,10 +509,14 @@ export async function callGroq({
       authorization: `Bearer ${apiKey}`,
       // OpenRouter recommends an HTTP-Referer + X-Title for
       // attribution on their dashboard. Harmless when missing.
+      // HTTP headers must be ASCII (or ISO-8859-1). An em dash
+      // here threw "Cannot convert argument to a ByteString" at
+      // fetch() time, killing every Groq call in tonight's smoke
+      // resume. Plain hyphen-only label avoids the issue.
       ...(useOpenRouter
         ? {
             "http-referer": "https://karmanprep.com",
-            "x-title": "Karman Prep — grader Llama role",
+            "x-title": "Karman Prep - grader Llama role",
           }
         : {}),
     },
