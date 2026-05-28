@@ -59,8 +59,16 @@ const pdfBuf = readFileSync(pdfPath);
 const pdfSizeMB = (pdfBuf.length / 1024 / 1024).toFixed(2);
 console.log(`PDF size: ${pdfSizeMB} MB`);
 
-if (pdfBuf.length > 18 * 1024 * 1024) {
-  console.error("PDF exceeds 18MB — too large for Gemini inline upload. Use Files API instead.");
+// Hard cap aligned with the upload pipeline + Anthropic Files API
+// max (500 MB per file). Earlier we had a 18 MB cap from the inline-
+// upload era; switched to Files API in the large-PDF support PR
+// (callClaude({ pdf }) now always uploads via /v1/files).
+const MAX_PDF_BYTES = 250 * 1024 * 1024;
+if (pdfBuf.length > MAX_PDF_BYTES) {
+  console.error(
+    `PDF size ${pdfSizeMB} MB exceeds ${MAX_PDF_BYTES / 1024 / 1024} MB cap. ` +
+      `Split with pdftk or contact admin to raise the cap.`
+  );
   process.exit(1);
 }
 
@@ -251,7 +259,10 @@ try {
     prompt: USER_PROMPT,
     model: "claude-sonnet-4-6",
     systemPrompt: schemaPrompt,
-    pdf: { buf: pdfBuf },
+    // pdf.buf flows through callClaude → Files API → message
+    // references file_id. Pass filename for nicer telemetry; not
+    // required.
+    pdf: { buf: pdfBuf, filename: pdfName },
     // tool-use guarantees the response shape AND sidesteps Gemini's
     // non-deterministic RECITATION filter (confirmed on run
     // #26322250769 — finishReason:RECITATION, text_chars:0). Claude
@@ -262,6 +273,11 @@ try {
     // 32K — empty tool calls from run #26322982553 likely caused by
     // mid-stream truncation.
     maxTokens: 64_000,
+    // REQUIRED for this call: with 64K maxTokens + a 30+ page PDF,
+    // expected wall-clock is 4-9 minutes, right on top of Anthropic's
+    // 10-minute non-streaming timeout. Streaming keeps the connection
+    // alive via incremental tokens and bypasses the cliff entirely.
+    stream: true,
   });
 } catch (err) {
   if (err instanceof QuotaExhaustedError) {
