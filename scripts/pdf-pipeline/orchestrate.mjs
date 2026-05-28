@@ -139,12 +139,23 @@ async function resolvePdfPath() {
   return pdfPath;
 }
 
-// ── Run a sub-script with stdio inherit; fail the job if it exits non-zero ──
+// ── Run a sub-script with stdio inherit; retry on transient infra
+//    failures (fetch failed, ECONNRESET, HTTP 5xx, etc.); fail the
+//    job only when retries are exhausted OR a terminal signature
+//    appears (quota, missing API key, PDF too large).
+//
+//    Added after run #26553926910: Supabase had a brief fetch
+//    failure between Stage 5 and Stage 6 which deterministically
+//    killed Stage 6 on its first network call. The whole pipeline
+//    crashed 38 min in. With this retry, a 5-second hiccup wouldn't
+//    take down the pipeline.
 //
 // runner: "node" (default) or "tsx" — TypeScript stages (e.g. Phase
 // 8.1's import-json-direct.ts) run via `npx tsx` so they can import
 // from the @/ TS aliases without a separate build step.
-function runStage(label, stage, script, scriptArgs, { runner = "node" } = {}) {
+import { decideRetry } from "../lib/retry-decision.mjs";
+
+function runStage(label, stage, script, scriptArgs, { runner = "node", maxAttempts = 3 } = {}) {
   console.log("");
   console.log("─".repeat(72));
   console.log(`▶ ${label}`);
@@ -159,12 +170,54 @@ function runStage(label, stage, script, scriptArgs, { runner = "node" } = {}) {
           ...scriptArgs,
         ]
       : [...(existsSync(".env.local") ? ["--env-file=.env.local"] : []), script, ...scriptArgs];
-  const result = spawnSync(cmd, cmdArgs, { stdio: "inherit", env: process.env });
-  if (result.status !== 0) {
-    throw Object.assign(new Error(`${label} failed with exit ${result.status}`), {
-      stage,
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    // We capture stderr separately so we can inspect it for the
+    // retry decision, then echo it through to the parent stderr
+    // after exit so GH Actions logs still show it in context.
+    // stdin: inherit (sub-scripts don't read stdin), stdout:
+    // inherit (live progress visible), stderr: pipe (captured).
+    const result = spawnSync(cmd, cmdArgs, {
+      stdio: ["inherit", "inherit", "pipe"],
+      env: process.env,
     });
+    const stderrText = result.stderr?.toString() ?? "";
+    if (stderrText) process.stderr.write(stderrText);
+
+    if (result.status === 0) {
+      if (attempt > 1) console.log(`  ✓ ${label} succeeded on attempt ${attempt}`);
+      return;
+    }
+
+    // Last few thousand chars of stderr is enough for pattern matching.
+    const tail = stderrText.slice(-4000);
+    const decision = decideRetry({
+      exitCode: result.status,
+      signal: result.signal ?? null,
+      stderr: tail,
+      attemptNumber: attempt,
+      maxAttempts,
+    });
+
+    if (!decision.retry) {
+      console.error(`  ✗ ${label} failed (attempt ${attempt}/${maxAttempts}): ${decision.reason}`);
+      throw Object.assign(new Error(`${label} failed with exit ${result.status}`), {
+        stage,
+      });
+    }
+
+    const delayMs = decision.delayMs ?? 5000;
+    console.log(
+      `  ⟳ ${label} attempt ${attempt} failed (${decision.reason}); retrying in ${delayMs / 1000}s…`
+    );
+    // Synchronous sleep — spawnSync is also synchronous, so the
+    // orchestrator doesn't await anything anyway. Atomics on a
+    // tiny SharedArrayBuffer is the standard sync-sleep trick.
+    Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, delayMs);
   }
+  // Should never reach here — the for-loop's last iteration would
+  // throw via the !decision.retry path. Belt-and-suspenders.
+  throw Object.assign(new Error(`${label} exhausted all ${maxAttempts} attempts`), { stage });
 }
 
 async function main() {
