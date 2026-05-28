@@ -50,6 +50,11 @@
 //   qa_filling   v2 phase 7 — schema-validate + LLM critic on each
 //                explanation_v2 bundle. One bounded repair-retry on
 //                fixable critic failures. Writes explanation_qa_records.
+//   auditing     v2 phase 8.3 — run four typed audit modules
+//                (well-formedness, slug-alignment, figure-coherence,
+//                explanation-consistency). Findings land in
+//                question_findings. Publish-gate reads BLOCKING
+//                findings and routes affected rows to review.
 //   validating   v2 phase 1 — strict server-side KaTeX validation
 //   publishing   v2 phase 1+2+3+5+6+7 — publish-gate (now with phase
 //                3 source-evidence gates + phase 5 math-notation gates
@@ -172,7 +177,7 @@ async function main() {
     // Stage 1: extract structure
     await job.setStage("extracting", { message: `Claude Sonnet 4.6 on ${basename(pdfPath)}` });
     runStage(
-      "Stage 1/13 — extract structure (Claude Sonnet 4.6)",
+      "Stage 1/14 — extract structure (Claude Sonnet 4.6)",
       "extracting",
       "scripts/pdf-pipeline/extract-with-gemini.mjs",
       [pdfPath]
@@ -185,7 +190,7 @@ async function main() {
     // Stage 2: extract figures
     await job.setStage("figures", { message: "Vision-driven bbox crop + R2 upload" });
     runStage(
-      "Stage 2/13 — extract figures",
+      "Stage 2/14 — extract figures",
       "figures",
       "scripts/pdf-pipeline/extract-figures.mjs",
       [pdfPath, jsonOut]
@@ -207,7 +212,7 @@ async function main() {
       message: "Writing rows to quiz_questions + answer_choices (JSON-direct)",
     });
     runStage(
-      "Stage 3/13 — import JSON to database (v2 phase 8.1)",
+      "Stage 3/14 — import JSON to database (v2 phase 8.1)",
       "importing",
       "scripts/pdf-pipeline/import-json-direct.ts",
       [jsonOut],
@@ -227,7 +232,7 @@ async function main() {
       message: "Detecting answer-key pages + extracting corrections",
     });
     runStage(
-      "Stage 4/13 — extract answer key (v2 phase 2)",
+      "Stage 4/14 — extract answer key (v2 phase 2)",
       "answer_key",
       "scripts/pdf-pipeline/extract-answer-key.mjs",
       [pdfPath, "--source-pdf", sourcePdfBasename, ...(job.jobId ? ["--job-id", job.jobId] : [])]
@@ -243,7 +248,7 @@ async function main() {
       message: "Per-question source-asset extraction",
     });
     runStage(
-      "Stage 5/13 — extract question crops (v2 phase 3)",
+      "Stage 5/14 — extract question crops (v2 phase 3)",
       "crops",
       "scripts/pdf-pipeline/extract-question-crops.mjs",
       [pdfPath, "--source-pdf", sourcePdfBasename, ...(job.jobId ? ["--job-id", job.jobId] : [])]
@@ -257,7 +262,7 @@ async function main() {
       message: "Classifying visual relevance",
     });
     runStage(
-      "Stage 6/13 — classify visual relevance (v2 phase 4)",
+      "Stage 6/14 — classify visual relevance (v2 phase 4)",
       "visuals",
       "scripts/pdf-pipeline/classify-visual-relevance.mjs",
       ["--source-pdf", sourcePdfBasename]
@@ -273,7 +278,7 @@ async function main() {
       message: "Detecting OCR-mangled math notation",
     });
     runStage(
-      "Stage 7/13 — repair math notation (v2 phase 5)",
+      "Stage 7/14 — repair math notation (v2 phase 5)",
       "math_repair",
       "scripts/pdf-pipeline/repair-math-notation.mjs",
       ["--source-pdf", sourcePdfBasename]
@@ -288,7 +293,7 @@ async function main() {
       message: "Typed verifier panel — DeepSeek + Groq + Flash → Pro/Opus/SymPy",
     });
     runStage(
-      "Stage 8/13 — verify answers (v2 phase 6)",
+      "Stage 8/14 — verify answers (v2 phase 6)",
       "grading",
       "scripts/question-audit/verify-answers.mjs",
       ["--from-db", "--source-pdf", sourcePdfBasename]
@@ -303,7 +308,7 @@ async function main() {
       message: "Phase 7 pre-fill eligibility gate",
     });
     runStage(
-      "Stage 9/13 — check fill eligibility (v2 phase 7)",
+      "Stage 9/14 — check fill eligibility (v2 phase 7)",
       "fill_gate",
       "scripts/pdf-pipeline/check-fill-eligibility.mjs",
       ["--source-pdf", sourcePdfBasename]
@@ -319,7 +324,7 @@ async function main() {
       message: "Phase 7 explanation_v2 generation (Sonnet/Opus tiered)",
     });
     runStage(
-      "Stage 10/13 — fill explanations v2 (v2 phase 7)",
+      "Stage 10/14 — fill explanations v2 (v2 phase 7)",
       "filling",
       "scripts/pdf-pipeline/fill-explanations-v2.mjs",
       ["--source-pdf", sourcePdfBasename]
@@ -334,9 +339,28 @@ async function main() {
       message: "Phase 7 explanation QA (schema + LLM critic)",
     });
     runStage(
-      "Stage 11/13 — qa explanations (v2 phase 7)",
+      "Stage 11/14 — qa explanations (v2 phase 7)",
       "qa_filling",
       "scripts/pdf-pipeline/qa-explanations.mjs",
+      ["--source-pdf", sourcePdfBasename]
+    );
+
+    // Stage 12: v2 phase 8.3 — audit explanations & alignment.
+    //
+    // Runs four typed audit modules in sequence (well-formedness,
+    // slug-alignment, figure-coherence, explanation-consistency)
+    // with per-module eligibility guards. Findings land in
+    // question_findings; the publish-gate at Stage 14 reads
+    // unresolved BLOCKING findings and routes the affected rows
+    // to needs_human_review (or the suggested_publish_status the
+    // finding's detail carries).
+    await job.setStage("auditing", {
+      message: "Phase 8.3 audit — well-formedness + slug + figure + explanation",
+    });
+    runStage(
+      "Stage 12/14 — audit explanations & alignment (v2 phase 8.3)",
+      "auditing",
+      "scripts/pdf-pipeline/audit/run-audits.mjs",
       ["--source-pdf", sourcePdfBasename]
     );
 
@@ -345,7 +369,7 @@ async function main() {
       message: "Strict server-side KaTeX validation",
     });
     runStage(
-      "Stage 12/13 — validate KaTeX",
+      "Stage 13/14 — validate KaTeX",
       "validating",
       "scripts/question-audit/validate-katex.mjs",
       ["--source-pdf", sourcePdfBasename, "--apply-blocks"]
@@ -360,7 +384,7 @@ async function main() {
     await job.setStage("publishing", {
       message: "Publish-gate evaluation (promote draft → publish_ready)",
     });
-    runStage("Stage 13/13 — publish gate", "publishing", "scripts/pdf-pipeline/publish-gate.mjs", [
+    runStage("Stage 14/14 — publish gate", "publishing", "scripts/pdf-pipeline/publish-gate.mjs", [
       "--source-pdf",
       sourcePdfBasename,
     ]);

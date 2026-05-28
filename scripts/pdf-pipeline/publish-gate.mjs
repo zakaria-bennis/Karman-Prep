@@ -33,6 +33,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { readFileSync } from "node:fs";
 import { computePublishStatus } from "../lib/publish-gate-logic.mjs";
+import { hydrateBlockingFindings } from "../lib/findings.mjs";
 
 const args = process.argv.slice(2);
 const DRY_RUN = args.includes("--dry-run");
@@ -192,13 +193,31 @@ async function main() {
     );
   }
 
-  const rows = baseRows.map((r) => ({
-    ...r,
-    // Merge Phase 3 view signals (have_question_crop, match_method, etc.)
-    ...(signalsByQid.get(r.id) ?? {}),
-    // Merge Phase 4 source-asset visual relevance counts.
-    ...(phase4ByQid.get(r.id) ?? {}),
-  }));
+  // v2 phase 8.3: hydrate unresolved BLOCKING audit findings so
+  // gateUnresolvedBlockingFinding can fire without an N+1 lookup.
+  const blockingFindings =
+    baseRows.length > 0
+      ? await hydrateBlockingFindings(
+          supabase,
+          baseRows.map((r) => r.id)
+        )
+      : new Map();
+
+  const rows = baseRows.map((r) => {
+    const blocking = blockingFindings.get(r.id);
+    return {
+      ...r,
+      // Merge Phase 3 view signals (have_question_crop, match_method, etc.)
+      ...(signalsByQid.get(r.id) ?? {}),
+      // Merge Phase 4 source-asset visual relevance counts.
+      ...(phase4ByQid.get(r.id) ?? {}),
+      // Merge Phase 8.3 audit-finding signals for the new gate.
+      unresolved_blocking_findings_count: blocking?.count ?? 0,
+      first_blocking_finding_suggested_status: blocking?.firstSuggestedStatus ?? null,
+      first_blocking_finding_message: blocking?.firstMessage ?? null,
+      first_blocking_finding_category: blocking?.firstCategory ?? null,
+    };
+  });
 
   console.log(`Evaluating ${rows.length} rows…`);
   const tally = {};

@@ -654,25 +654,62 @@ delete old paths until replacements are proven by real PDF runs.
   compared. Catches generator bugs that the git-diff stale-check
   cannot.
 
-#### PR 8.3 — Typed legacy-grader audit modules (planned)
+#### PR 8.3 — Typed legacy-grader audit modules (this PR)
 
-- Keep `verify-answers.mjs` as the Phase 6 canonical answer
-  verifier.
-- Port useful logic from `llm-grader.mjs` into small typed audit
-  modules called by the orchestrator on demand:
-  - `check-figure-coherence.mjs` — does the attached figure match
-    what the question references?
-  - `check-explanation-consistency.mjs` — does the explanation
-    actually support the verified answer?
-  - `check-well-formedness.mjs` — sanity-check structural shape.
-  - `check-slug-alignment.mjs` — independent slug verification.
-- Each module writes structured findings to the shared review /
-  audit surface.
-- **Do not** build a top-level `grader-framework.mjs`. Phase 6's
-  shared modules ARE the framework; we don't want another
-  orchestration layer.
+- `verify-answers.mjs` remains the Phase 6 canonical answer
+  verifier. **No new grader-framework.mjs.** Phase 6's shared
+  modules are the framework.
+- Four typed audit modules added in `scripts/pdf-pipeline/audit/`:
+  - `check-well-formedness.mjs` — deterministic-first sanity
+    checks (empty stems, missing choices, duplicate choice texts,
+    invalid correct_answer letters, non-numeric numeric_entry
+    answers, question_text duplicating passage, overly-long
+    choices). No LLM call when deterministic checks pass.
+  - `check-slug-alignment.mjs` — Sonnet asks if the assigned
+    `concept_slug` matches the tested skill. Escalates to Opus
+    on low confidence or slug mismatch. BLOCKING when model
+    confidently suggests a different slug at ≥0.85 confidence.
+  - `check-figure-coherence.mjs` — Gemini Flash compares the
+    attached figure to what the question text references.
+    Escalates to Gemini Pro on low confidence or BLOCKING-severity
+    finding. Three finding types: question_mismatch (BLOCKING),
+    low_visibility (WARNING), unreferenced (NOTICE).
+  - `check-explanation-consistency.mjs` — Sonnet cross-checks
+    `explanation_v2.correct_reasoning` against the verified
+    answer + evidence + per-choice naturalness. Escalates to
+    Opus on serious_drift. Distinct from Phase 7's QA critic:
+    that one gates publish; this one persists findings for
+    admin spot-check after publish.
+- All four modules write findings to the existing
+  `question_findings` table (no migration needed — the table has
+  the right CHECK constraints + UNIQUE on (question_id, source,
+  code) so re-runs UPSERT cleanly).
+- Stage 12 wrapper `scripts/pdf-pipeline/audit/run-audits.mjs`
+  runs all four in sequence with per-module eligibility guards.
+  Inserted into orchestrator BETWEEN qa_explanations (Stage 11)
+  and validate-KaTeX (now Stage 13). Pipeline grows 13 → 14 stages.
+- New publish-gate `gateUnresolvedBlockingFinding` (opt-in via
+  `answer_verified_at` OR `explanation_v2_filled_at` non-null)
+  reads unresolved BLOCKING findings and routes affected rows to
+  `needs_human_review` (or the suggested_publish_status the
+  finding's detail JSONB carries).
 - `multi-vote-grader.mjs` + `llm-grader.mjs` stay in repo as
-  deprecated fallbacks until parity is confirmed by real PDF runs.
+  deprecated fallbacks. Deletion deferred to PR 8.4 once real
+  PDF runs confirm parity.
+- 33 new vitests at `src/lib/pipeline-v2/findings.test.ts` +
+  `check-well-formedness.test.ts`.
+
+#### Cost (Phase 8.3)
+
+Per PDF (~30 questions, eligibility-gated):
+
+- well-formedness: ~0 (deterministic by default; LLM only on suspect rows)
+- slug-alignment: 30 Sonnet calls ≈ $0.45
+- figure-coherence: ~10 Flash calls ≈ $0.002 (most rows have no figure)
+- explanation-consistency: 30 Sonnet calls ≈ $0.45
+
+Total ≈ **$0.90/PDF**; +~30s wall time. Escalations to Opus/Pro
+add ~$0.05/PDF on disputed rows.
 
 #### PR 8.4 — Final cleanup (planned)
 

@@ -495,6 +495,37 @@ export function postProcessVerifiedPhase7(q, baseStatus) {
   return baseStatus;
 }
 
+// ── v2 phase 8.3 — typed audit findings (OPT-IN) ──────────────
+//
+// `q.unresolved_blocking_findings_count` + `q.first_blocking_finding_*`
+// are NOT columns on quiz_questions. They are HYDRATED AT RUNTIME by
+// scripts/lib/findings.mjs::hydrateBlockingFindings() before
+// publish-gate.mjs calls computePublishStatus().
+//
+// Opt-in is the union of Phase 6 + Phase 7 markers: an audit only
+// fires after a row has been through verification (answer_verified_at)
+// or explanation generation (explanation_v2_filled_at). Legacy rows
+// that predate Phase 6+7 are NEVER newly flagged by Phase 8.3 alone.
+function isPhase8AuditActive(q) {
+  return q?.answer_verified_at != null || q?.explanation_v2_filled_at != null;
+}
+
+export function gateUnresolvedBlockingFinding(q) {
+  if (!isPhase8AuditActive(q)) return null;
+  if ((q.unresolved_blocking_findings_count ?? 0) === 0) return null;
+  const suggested = q.first_blocking_finding_suggested_status;
+  const category = q.first_blocking_finding_category ?? "audit";
+  const msg = q.first_blocking_finding_message ?? "Unresolved BLOCKING audit finding.";
+  return {
+    reason: `phase8_audit_blocking[${category}]: ${msg}`,
+    // Honor the finding's suggested_publish_status when it carries
+    // one (e.g. slug-alignment → blocked_slug_uncertain;
+    // figure-coherence → blocked_missing_visual). Default fallback
+    // = needs_human_review.
+    suggestedStatus: suggested || "needs_human_review",
+  };
+}
+
 // Strictness order: first match wins.
 // blocked_* (corrupt > katex > answer disputes > slug > visual) before
 // needs_human_review (answer_key_status > import_status > phase3 source
@@ -556,6 +587,12 @@ export const ALL_GATES = [
   gateExplanationQaFailed, // → needs_human_review
   gateExplanationNeedsHumanReview, // → needs_human_review
   gateExplanationStale, // → needs_human_review
+  // ── v2 phase 8.3 (opt-in via answer_verified_at OR explanation_v2_filled_at) ──
+  // Honors finding.detail.suggested_publish_status when set; falls back
+  // to needs_human_review. This gate runs BEFORE the softest explanation
+  // gate so a blocking audit finding always wins over generic
+  // "missing explanation_text" complaints.
+  gateUnresolvedBlockingFinding,
   // ── softest gate runs last ──
   gateExplanation, // → needs_human_review (softer)
 ];
