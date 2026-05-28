@@ -22,7 +22,37 @@
 // ============================================================
 
 import { spawnSync } from "node:child_process";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
+
+// ── Build a child env that overrides empty-string parent vars with
+//    .env.local values.
+//
+// Why this exists: Node's --env-file flag is documented to NOT
+// override existing process.env entries — even if the parent has
+// them set to empty string. Claude Code's bash sandbox pre-sets
+// ANTHROPIC_API_KEY="" for safety, which silently broke every
+// Anthropic call in tonight's smoke #1 resume. The pipeline scripts
+// can't tell apart "key missing" from "key empty" without explicit
+// pre-loading. So we read .env.local ourselves and override.
+function buildChildEnv() {
+  const env = { ...process.env };
+  if (!existsSync(".env.local")) return env;
+  const text = readFileSync(".env.local", "utf-8");
+  for (const rawLine of text.split("\n")) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith("#")) continue;
+    const m = line.match(/^([A-Za-z_][A-Za-z0-9_]*)=(.*)$/);
+    if (!m) continue;
+    const [, key, value] = m;
+    // Strip surrounding double or single quotes so .env values like
+    // KEY="value" land as `value`, not `"value"`.
+    const stripped = value.replace(/^"(.*)"$/, "$1").replace(/^'(.*)'$/, "$1");
+    // Override empty-string parent vars; leave already-populated
+    // parent vars alone (caller's choice wins over .env.local).
+    if (!env[key] && stripped) env[key] = stripped;
+  }
+  return env;
+}
 
 const sourcePdf = process.argv[2];
 const startStage = parseInt(process.argv[3] ?? "1", 10);
@@ -90,6 +120,15 @@ const STAGES = [
   },
 ];
 
+const childEnv = buildChildEnv();
+// Print diagnostic so the operator sees whether we recovered any keys.
+const recoveredKeys = ["ANTHROPIC_API_KEY", "GEMINI_API_KEY", "GROQ_API_KEY", "OPENROUTER_API_KEY"]
+  .filter((k) => childEnv[k] && (!process.env[k] || process.env[k] === ""))
+  .map((k) => k);
+if (recoveredKeys.length > 0) {
+  console.log(`(env: recovered empty/missing keys from .env.local: ${recoveredKeys.join(", ")})`);
+}
+
 const t0 = Date.now();
 console.log(`Resuming pipeline for ${sourcePdf} from Stage ${startStage}…`);
 
@@ -105,7 +144,7 @@ for (const stage of STAGES) {
     ...stage.args,
   ];
   const stageT0 = Date.now();
-  const result = spawnSync("node", cmdArgs, { stdio: "inherit", env: process.env });
+  const result = spawnSync("node", cmdArgs, { stdio: "inherit", env: childEnv });
   const stageDur = ((Date.now() - stageT0) / 1000).toFixed(1);
   if (result.status !== 0) {
     console.warn(
