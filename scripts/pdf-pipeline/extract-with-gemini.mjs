@@ -42,6 +42,7 @@ import {
   TOPIC_CLUSTERS,
   CONCEPT_SLUG_VALUES as CONCEPT_SLUGS,
 } from "../lib/taxonomy.generated.mjs";
+import { analyzeCoverage, MATH_DOMAINS } from "../lib/extraction-coverage.mjs";
 
 const pdfArg = process.argv[2];
 if (!pdfArg) {
@@ -213,6 +214,28 @@ FIGURE DETECTION — for every question, set has_figure:
       - "Table showing 4 columns (Year, Population, Births, Deaths) and 5 rows."
   · When has_figure = false, leave figure_alt empty.
 
+CONTINUATION PAGES — questions that span two pages (CRITICAL — do not skip these):
+
+  Some SAT questions span TWO pages because the figure plus four answer choices don't fit on one page. The pattern looks like this:
+
+    · Page N: question stem + figure + choices A, B, C   (no choice D yet)
+    · Page N+1: SAME figure + choices B, C, D            (looks like a duplicate of page N)
+
+  Page N+1 is NOT a true duplicate — it carries the missing choice D you need. AND it almost always has OTHER, unrelated questions below the duplicate section. The most common failure mode in this extractor is throwing away an entire continuation page because the TOP looked like a repeat.
+
+  When you see this pattern:
+
+  1. Merge the choices across both pages into ONE question. Source_page = the earlier page (N). All four choices A/B/C/D get filled in.
+  2. CONTINUE scanning page N+1 below the repeated figure. Every question you find there is a NEW question — emit it with source_page = N+1.
+  3. Never silently skip a page because its top half repeats the previous page.
+
+  CONCRETE EXAMPLE (this exact bug shipped in production):
+    Page 78: "The graph gives the estimated population…" + graph + choices A, B, C.
+    Page 79: same graph + choices B, C, D + Question 7 + Question 8 + Question 9.
+
+    WRONG: extract page 78 with A/B/C, treat page 79 as duplicate, skip it entirely. Result: 1 question with 3 choices, 3 other questions silently lost.
+    RIGHT: extract page 78 with all four choices A/B/C/D (D copied from page 79). Then ALSO emit Q7, Q8, Q9 from page 79 as separate questions.
+
   · The answer-key page is at the end of the PDF. Cross-reference each question's correct_answer against it per §11 of the spec.
 
   · Use the schema enums (domain, topic_cluster, question_format, answer_source, import_status) — every value MUST be one of the listed strings.
@@ -221,7 +244,11 @@ FIGURE DETECTION — for every question, set has_figure:
 
   · For each question, record the source_page (1-indexed PDF page number where the question appears).
 
-VERIFICATION BEFORE RESPONDING: Count your questions. If under 80, you have missed pages — extract them now.
+VERIFICATION BEFORE RESPONDING:
+  · Count total questions. Expected ~98. If under 95, you missed pages — go back and extract.
+  · Count math (algebra + advanced_math + geometry + data_analysis). Expected ~44. If under 42, look specifically for continuation pages you may have skipped.
+  · Count R&W (info_ideas + craft_structure + expression_ideas + conventions). Expected ~54. If under 52, look for missed pages.
+  · For every page in the question-bearing range, ask: did I extract every question on this page? Continuation pages almost always have new questions below the duplicate section.
 
 Return the result as { "questions": [ ... ] } matching the response schema.`;
 
@@ -392,13 +419,14 @@ if (dupPassageCount > 0) {
   }
 }
 
-// Sanity-check distribution
+// Sanity-check distribution. MATH_DOMAINS comes from
+// extraction-coverage.mjs so the math/RW split here uses the same
+// classification as the under-extraction guard below.
 const byDomain = {};
 const byCluster = {};
 const byDifficulty = {};
 const byFormat = {};
 const flagged = [];
-const mathDomains = new Set(["algebra", "advanced_math", "geometry", "data_analysis"]);
 let math = 0;
 let rw = 0;
 for (const r of rows) {
@@ -406,7 +434,7 @@ for (const r of rows) {
   byCluster[r.topic_cluster] = (byCluster[r.topic_cluster] ?? 0) + 1;
   byDifficulty[r.difficulty] = (byDifficulty[r.difficulty] ?? 0) + 1;
   byFormat[r.question_format] = (byFormat[r.question_format] ?? 0) + 1;
-  if (mathDomains.has(r.domain)) math++;
+  if (MATH_DOMAINS.has(r.domain)) math++;
   else rw++;
   if (r.import_status === "needs_review") {
     flagged.push({ page: r.source_page, reason: r.import_flag_reason ?? "(no reason given)" });
@@ -440,5 +468,34 @@ for (const f of flagged.slice(0, 10)) {
   console.log(`  p${f.page}: ${f.reason}`);
 }
 if (flagged.length > 10) console.log(`  … and ${flagged.length - 10} more`);
+
+// Under-extraction guard — catches the continuation-page bug that
+// shipped on 202406asiav2.pdf (page 79 was a duplicate-graph
+// continuation with 3 new questions below; the LLM skipped the entire
+// page, losing 3 math questions). The prompt now warns about this
+// pattern, but we also enforce it here so it can't slip past silently
+// if the LLM ignores the guidance. Logic lives in
+// scripts/lib/extraction-coverage.mjs so it's unit-tested.
+const coverage = analyzeCoverage(rows);
+if (coverage.reasons.length || coverage.gaps.length) {
+  console.log("");
+  console.log("⚠ UNDER-EXTRACTION GUARD".padEnd(72, "─"));
+  for (const r of coverage.reasons) console.log(`  · ${r}`);
+  if (coverage.gaps.length) {
+    console.log(
+      `  · ${coverage.gaps.length} page${coverage.gaps.length === 1 ? "" : "s"} skipped inside the extracted range — likely missed continuations:`
+    );
+    for (const g of coverage.gaps.slice(0, 10)) {
+      console.log(
+        `      ${g.subject} p.${g.page} (between p.${g.between[0]} and p.${g.between[1]})`
+      );
+    }
+    if (coverage.gaps.length > 10) console.log(`      … and ${coverage.gaps.length - 10} more`);
+  }
+  console.log(
+    "  Re-extract or manually inspect the missing pages — these would be silently lost otherwise."
+  );
+}
+
 console.log("");
 console.log(`Inspect: cat ${outPath} | jq '.[0]'`);
