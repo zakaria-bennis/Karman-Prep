@@ -54,15 +54,47 @@ export interface GraderVotes {
   graded_at: string;
   stored_answer: string | null;
   verdict: GraderVerdict;
+  /**
+   * Per-voter answers. The key names changed when the v2 typed
+   * verifier (verify-answers.mjs, Phase 6) replaced the v1
+   * multi-vote-grader.mjs (removed in PR #189):
+   *
+   *   v1 keys: flash, deepseek, llama
+   *   v2 keys: gemini, deepseek, groq
+   *
+   * Both sets are allowed here so historical rows still type-check
+   * and the GraderVotesBadge can read whichever one is populated.
+   * The model behind "Flash" is still Gemini 2.5 Flash; "Llama" is
+   * still Llama 3.3 70B (now via OpenRouter — PR #186).
+   */
   pass1: {
+    // v1 keys
     flash?: string | null;
-    deepseek?: string | null;
     llama?: string | null;
-    consensus?: "unanimous" | "majority" | "split";
+    // v2 keys (Phase 6)
+    gemini?: string | null;
+    groq?: string | null;
+    // Shared between schemas
+    deepseek?: string | null;
+    consensus?: "unanimous" | "majority" | "split" | string | null;
     majority?: string | null;
+    total_valid?: number;
   };
   pass2_pro?: string;
   pass3_opus?: string;
+  /**
+   * Phase 6 verdict envelope mirrored from grader_runs. Always
+   * present on rows written by verify-answers.mjs; absent on
+   * legacy v1 rows.
+   */
+  phase6?: {
+    verifier_status: string;
+    dispute_category: string;
+    escalation_path: string;
+    reason: string;
+    suggested_verified_answer: string | null;
+  };
+  stored_source?: string;
 }
 
 export interface QuizQuestion {

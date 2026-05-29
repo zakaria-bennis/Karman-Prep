@@ -107,11 +107,31 @@ export function GraderVotesBadge({ votes, storedAnswer }: Props) {
   const verdictLabel = VERDICT_LABEL[votes.verdict as GraderVerdict] ?? votes.verdict ?? "?";
   const stored = votes.stored_answer ?? storedAnswer;
 
+  // Per-voter answer lookup with v1 → v2 key aliasing.
+  //
+  // v1 (multi-vote-grader.mjs, removed in PR #189) wrote:
+  //   pass1: { flash, deepseek, llama }
+  //
+  // v2 (verify-answers.mjs, Phase 6) writes:
+  //   pass1: { gemini, deepseek, groq }
+  //
+  // The model behind "Flash" is still Gemini 2.5 Flash; "Llama"
+  // is still Llama 3.3 70B (now via OpenRouter — PR #186). Just
+  // the JSONB key names changed. Read whichever one exists so the
+  // badge keeps working across the schema transition.
+  const flashAnswer = votes.pass1?.flash ?? (votes.pass1 as Record<string, unknown>)?.gemini;
+  const llamaAnswer = votes.pass1?.llama ?? (votes.pass1 as Record<string, unknown>)?.groq;
+  const deepseekAnswer = votes.pass1?.deepseek;
+
   return (
     <div className="flex flex-wrap items-center gap-1.5">
-      <VoterChip name="Flash" answer={votes.pass1?.flash} stored={stored} />
-      <VoterChip name="DeepSeek" answer={votes.pass1?.deepseek} stored={stored} />
-      <VoterChip name="Llama" answer={votes.pass1?.llama} stored={stored} />
+      <VoterChip name="Flash" answer={flashAnswer as string | null | undefined} stored={stored} />
+      <VoterChip
+        name="DeepSeek"
+        answer={deepseekAnswer as string | null | undefined}
+        stored={stored}
+      />
+      <VoterChip name="Llama" answer={llamaAnswer as string | null | undefined} stored={stored} />
       {votes.pass2_pro && <VoterChip name="Pro" answer={votes.pass2_pro} stored={stored} />}
       {votes.pass3_opus && <VoterChip name="Opus" answer={votes.pass3_opus} stored={stored} />}
       <span
