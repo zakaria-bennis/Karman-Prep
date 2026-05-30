@@ -17,7 +17,15 @@ export interface QuestionReviewFilter {
 }
 
 /** All questions whose import_status = 'needs_review', filterable by
- *  flag_type / domain / source_pdf. Powers /admin/questions/review. */
+ *  flag_type / domain / source_pdf. Powers /admin/questions/review.
+ *
+ *  Archive filter: pre-Phase-8.3 archived rows (set by migration
+ *  20260528093631) should not appear in the review queue. Without
+ *  the `archived_at IS NULL` predicate the page was showing 72
+ *  partial_emit rows from 202408usv2.pdf + 202405us.pdf — both
+ *  archived in PR #184 — alongside the genuinely-new audit findings.
+ *  Caught by the product owner on 2026-05-29 when the queue showed
+ *  73 instead of the expected 1. */
 export async function selectQuestionsNeedingReview(
   filter: QuestionReviewFilter = {}
 ): Promise<QuizQuestionWithChoices[]> {
@@ -25,7 +33,8 @@ export async function selectQuestionsNeedingReview(
   let q = supabase
     .from("quiz_questions")
     .select("*, answer_choices(*)")
-    .eq("import_status", "needs_review");
+    .eq("import_status", "needs_review")
+    .is("archived_at", null);
   if (filter.flag_type) q = q.eq("import_flag_type", filter.flag_type);
   if (filter.domain) q = q.eq("domain", filter.domain);
   if (filter.source_pdf) q = q.eq("source_pdf", filter.source_pdf);
@@ -35,13 +44,15 @@ export async function selectQuestionsNeedingReview(
 }
 
 /** Distinct list of source_pdf values currently in needs_review.
- *  Powers the PDF dropdown in /admin/questions/review. */
+ *  Powers the PDF dropdown in /admin/questions/review.
+ *  Same archive filter as above — see selectQuestionsNeedingReview. */
 export async function selectNeedsReviewSourcePdfs(): Promise<string[]> {
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("quiz_questions")
     .select("source_pdf")
     .eq("import_status", "needs_review")
+    .is("archived_at", null)
     .not("source_pdf", "is", null);
   if (error) throw error;
   const set = new Set<string>();
