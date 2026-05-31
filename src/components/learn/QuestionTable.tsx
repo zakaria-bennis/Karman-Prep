@@ -41,26 +41,37 @@ export default function QuestionTable({ data, renderMath = true, className }: Pr
     <span key={key}>{renderMath ? <MathText text={text} /> : text}</span>
   );
 
+  // When there's a multi-column header, the first body cell of each row is
+  // a row label — render it as <th scope="row"> so screen readers announce
+  // it as the heading for the rest of the row (and the bronze-accent style).
+  const hasRowHeaders = Boolean(header_row && header_row.length > 1);
+  const rowLabelClass =
+    "border-b border-[#3B3426]/40 px-3 py-2 text-left font-sans text-[13px] font-normal text-[#B8B0A1]";
+  const cellClass =
+    "border-b border-[#3B3426]/40 px-3 py-2 text-center font-sans text-[13px] text-[#F3ECDD]";
+
   return (
     <figure
+      aria-label={caption ? undefined : "Question data table"}
       className={cn(
         // Container: card surface, bronze frame, generous breathing room
         "my-4 inline-block max-w-full rounded-lg border border-[#3B3426] bg-[#171611] px-5 py-4 shadow-[0_1px_0_0_rgba(195,171,106,0.08)_inset]",
         className
       )}
     >
-      {caption && (
-        <figcaption className="mb-3 text-center font-serif text-[15px] italic leading-snug text-[#F3ECDD]">
-          {renderCell(caption, "caption")}
-        </figcaption>
-      )}
       <table className="w-full border-collapse text-sm">
+        {caption && (
+          <caption className="mb-3 caption-top text-center font-serif text-[15px] italic leading-snug text-[#F3ECDD]">
+            {renderCell(caption, "caption")}
+          </caption>
+        )}
         {header_row && header_row.length > 0 && (
           <thead>
             <tr>
               {header_row.map((h, i) => (
                 <th
                   key={`h-${i}`}
+                  scope="col"
                   className={cn(
                     "border-b border-[#3B3426] px-3 py-2 text-center font-serif text-[13px] font-normal leading-tight text-[#F3ECDD]",
                     i > 0 && "border-l border-[#3B3426]/60"
@@ -75,28 +86,36 @@ export default function QuestionTable({ data, renderMath = true, className }: Pr
         <tbody>
           {rows.map((row, ri) => (
             <tr key={`r-${ri}`}>
-              {row.map((cell, ci) => (
-                <td
-                  key={`r-${ri}-c-${ci}`}
-                  className={cn(
-                    "border-b border-[#3B3426]/40 px-3 py-2 text-center font-sans text-[13px] text-[#F3ECDD]",
-                    // First column is often a row label — bias it left + bronze accent
-                    ci === 0 && header_row && header_row.length > 1 && "text-left text-[#B8B0A1]",
-                    ci > 0 && "border-l border-[#3B3426]/40"
-                  )}
-                >
-                  {renderCell(cell, `r-${ri}-c-${ci}`)}
-                </td>
-              ))}
+              {row.map((cell, ci) =>
+                hasRowHeaders && ci === 0 ? (
+                  <th key={`r-${ri}-c-${ci}`} scope="row" className={rowLabelClass}>
+                    {renderCell(cell, `r-${ri}-c-${ci}`)}
+                  </th>
+                ) : (
+                  <td
+                    key={`r-${ri}-c-${ci}`}
+                    className={cn(cellClass, ci > 0 && "border-l border-[#3B3426]/40")}
+                  >
+                    {renderCell(cell, `r-${ri}-c-${ci}`)}
+                  </td>
+                )
+              )}
             </tr>
           ))}
         </tbody>
+        {footer_note && (
+          <tfoot>
+            <tr>
+              <td
+                colSpan={header_row?.length || rows[0]?.length || 1}
+                className="pt-3 text-center text-[11px] italic text-[#B8B0A1]"
+              >
+                {renderCell(footer_note, "footer")}
+              </td>
+            </tr>
+          </tfoot>
+        )}
       </table>
-      {footer_note && (
-        <div className="mt-3 text-center text-[11px] italic text-[#B8B0A1]">
-          {renderCell(footer_note, "footer")}
-        </div>
-      )}
     </figure>
   );
 }

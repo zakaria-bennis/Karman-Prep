@@ -29,6 +29,11 @@
 //                + expanded_question_crop with match_method + crop_complete
 //   visuals      v2 phase 4 — classify problem-required visuals vs
 //                repeated calculator/sidebar/background artifacts
+//   figure_structure  v2 phase 9A — classify each figure crop; extract
+//                + structurally validate data tables → figure_table_data
+//                (accessible HTML). Non-tables / failures keep the
+//                screenshot; figure_quality records the outcome. Pure
+//                enrichment — never blocks a question.
 //   math_repair  v2 phase 5 — detect OCR-mangled math notation,
 //                auto-repair only low-risk cases that clear the
 //                8-condition gate; route everything else to review.
@@ -322,6 +327,26 @@ async function main() {
       "Stage 6/14 — classify visual relevance (v2 phase 4)",
       "visuals",
       "scripts/pdf-pipeline/classify-visual-relevance.mjs",
+      ["--source-pdf", sourcePdfBasename]
+    );
+
+    // Stage 6.5: v2 phase 9A — figure-structure enrichment.
+    //
+    // Runs AFTER visual relevance (so we only spend on real problem
+    // figures) and BEFORE math repair. Classifies each figure crop and,
+    // for tables, extracts + structurally validates
+    // { caption, header_row, rows } → figure_table_data so the student
+    // sees an accessible HTML table instead of a screenshot. Non-tables
+    // and failed validations keep the screenshot; figure_quality records
+    // the outcome. Pure enrichment: a failed extraction never blocks the
+    // question (it already has a screenshot fallback).
+    await job.setStage("figure_structure", {
+      message: "Phase 9A — classify figures + extract tables to accessible HTML",
+    });
+    runStage(
+      "Stage 6.5/14 — figure structure (v2 phase 9A)",
+      "figure_structure",
+      "scripts/pdf-pipeline/extract-figure-structure.mjs",
       ["--source-pdf", sourcePdfBasename]
     );
 
