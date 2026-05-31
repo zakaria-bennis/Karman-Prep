@@ -20,8 +20,11 @@
 //      gates (graphs use a stricter gate, being math-sensitive). Pass →
 //      figure_chart_data + figure_kind='chart' (ChartFigure.tsx SVG); below
 //      → save the data but keep the screenshot + a review finding.
-//   3. For every OTHER kind (geometric/3d_shape): keeps the screenshot;
-//      records the classification so 9D-9E reuse it.
+//   3. For GEOMETRY (9D) / 3D SHAPES (9E): extracts structure into
+//      figure_geometry_data for ADMIN review, but NEVER flips figure_kind —
+//      the student keeps the screenshot in v1 (clean-looking wrong geometry
+//      is more dangerous than a real screenshot). 'other' kinds just keep
+//      the screenshot.
 //
 // Why this is post-import enrichment, not a pre-import gate: a failed
 // structured extraction must never block question existence — the row
@@ -60,6 +63,13 @@ import {
   CHART_AUTO_PUBLISH_THRESHOLD,
   GRAPH_AUTO_PUBLISH_THRESHOLD,
 } from "../lib/figure-chart-logic.mjs";
+import {
+  GEOMETRY_EXTRACT_PROMPT,
+  SHAPE_3D_EXTRACT_PROMPT,
+  validateGeometryData,
+  stampGeometryProvenance,
+  geometryAltText,
+} from "../lib/figure-geometry-logic.mjs";
 import { fetchImageBuffer, FETCH_OUTCOME } from "../lib/fetch-image.mjs";
 
 const args = process.argv.slice(2);
@@ -77,6 +87,7 @@ const MODEL = flagVal("model") ?? "gemini-2.5-flash";
 // (classification stays on the cheap Flash MODEL). Overridable via --chart-model.
 const CHART_MODEL = flagVal("chart-model") ?? "gemini-2.5-pro";
 const CHART_EXTRACTOR_VERSION = `${CHART_MODEL}@2026-05-31`;
+const GEOMETRY_EXTRACTOR_VERSION = `${CHART_MODEL}@2026-05-31-geo`;
 
 if (!SOURCE_PDF && !QUESTION_ID) {
   console.error("Usage: extract-figure-structure.mjs --source-pdf <name> [--limit N] [--dry-run]");
@@ -307,9 +318,73 @@ async function enrichChart(row, image, classification) {
   return autoPublish ? kind : `${kind}_review`;
 }
 
+async function enrichGeometry(row, image, classification) {
+  // 9D (2D geometry) + 9E (3D shapes): extract structure for ADMIN tooling,
+  // but NEVER flip figure_kind — the student keeps the screenshot in v1
+  // ("clean-looking wrong geometry is more dangerous than a real
+  // screenshot"). Pro for the spatial reasoning; same empty-response guard
+  // as charts.
+  const kind = classification.figure_kind; // "geometric" | "3d_shape"
+  const prompt = kind === "3d_shape" ? SHAPE_3D_EXTRACT_PROMPT : GEOMETRY_EXTRACT_PROMPT;
+  let parsed;
+  try {
+    parsed = asObject(await visionJson(prompt, image, CHART_MODEL, 8192));
+  } catch (err) {
+    await writeRow(row.id, {
+      figure_extraction_model: CHART_MODEL,
+      figure_quality: buildFigureQuality({
+        validationStatus: VALIDATION_STATUS.EXTRACTION_FAILED,
+        usedFallbackLevel: FALLBACK_LEVEL.SCREENSHOT,
+        schemaErrors: [`extract_error: ${String(err?.message ?? err).slice(0, 120)}`],
+        classifiedAs: kind,
+        modelCalledItA: classification.model_called_it_a ?? null,
+      }),
+    });
+    return `${kind}_fallback`;
+  }
+
+  const result = validateGeometryData(parsed, kind);
+  if (!result.ok) {
+    // No usable structure extracted → screenshot stays, record why.
+    await writeRow(row.id, {
+      figure_extraction_model: CHART_MODEL,
+      figure_quality: buildFigureQuality({
+        validationStatus: VALIDATION_STATUS.FALLBACK_USED,
+        usedFallbackLevel: FALLBACK_LEVEL.SCREENSHOT,
+        schemaErrors: result.errors,
+        classifiedAs: kind,
+        modelCalledItA: classification.model_called_it_a ?? null,
+      }),
+    });
+    return `${kind}_fallback`;
+  }
+
+  const geoData = stampGeometryProvenance(result.data, {
+    extractedBy: GEOMETRY_EXTRACTOR_VERSION,
+    extractedAt: new Date().toISOString(),
+  });
+  // Store the structured data for admin review. figure_kind stays as the
+  // screenshot — students do NOT get a structured geometry/3D render in v1.
+  // validation_status='validated' (extraction succeeded) + fallback_level=
+  // SCREENSHOT (renders as screenshot BY DESIGN, not from failure).
+  await writeRow(row.id, {
+    figure_geometry_data: geoData,
+    figure_extraction_model: CHART_MODEL,
+    figure_quality: buildFigureQuality({
+      validationStatus: VALIDATION_STATUS.VALIDATED,
+      usedFallbackLevel: FALLBACK_LEVEL.SCREENSHOT,
+      altText: geometryAltText(geoData),
+      classifiedAs: kind,
+      modelCalledItA: classification.model_called_it_a ?? null,
+    }),
+  });
+  return kind;
+}
+
 async function enrichDeferred(row, classification) {
-  // 9A renders only tables. Record the classification so 9B-9E have a
-  // head start and the row is marked processed; rendering stays screenshot.
+  // Only 'other' reaches here now (table/chart/graph/geometric/3d_shape all
+  // have handlers). Record the classification + keep the screenshot so the
+  // row is marked processed and an admin can see what the model called it.
   await writeRow(row.id, {
     figure_extraction_model: MODEL,
     figure_quality: buildFigureQuality({
@@ -326,7 +401,7 @@ async function enrichDeferred(row, classification) {
 
 async function main() {
   console.log(
-    `Phase 9A/9B/9C — extract-figure-structure (classify+table: ${MODEL}, chart/graph: ${CHART_MODEL}${DRY_RUN ? ", dry-run" : ""})`
+    `Phase 9A–9E — extract-figure-structure (classify+table: ${MODEL}, chart/graph/geo: ${CHART_MODEL}${DRY_RUN ? ", dry-run" : ""})`
   );
   const rows = await selectRows();
   console.log(`  ${rows.length} figure-bearing row(s) pending structure enrichment`);
@@ -345,6 +420,10 @@ async function main() {
     graph: 0,
     graph_review: 0,
     graph_fallback: 0,
+    geometric: 0,
+    geometric_fallback: 0,
+    "3d_shape": 0,
+    "3d_shape_fallback": 0,
     deferred: 0,
     extract_failed: 0,
     crop_missing: 0,
@@ -405,7 +484,10 @@ async function main() {
           ? await enrichTable(row, image, classification)
           : classification.figure_kind === "chart" || classification.figure_kind === "graph"
             ? await enrichChart(row, image, classification)
-            : await enrichDeferred(row, classification);
+            : classification.figure_kind === "geometric" ||
+                classification.figure_kind === "3d_shape"
+              ? await enrichGeometry(row, image, classification)
+              : await enrichDeferred(row, classification);
     } catch (err) {
       console.log(`${tag}: enrich error (${String(err?.message ?? err).slice(0, 80)}) — skipping`);
       tally.skipped++;
@@ -423,8 +505,13 @@ async function main() {
       graph: "GRAPH → SVG",
       graph_review: "graph extracted (below strict gate) → screenshot + review",
       graph_fallback: "graph validation failed → screenshot",
+      geometric: "GEOMETRY → extracted for admin, screenshot kept",
+      geometric_fallback: "geometry extraction failed → screenshot",
+      "3d_shape": "3D SHAPE → extracted for admin, screenshot kept",
+      "3d_shape_fallback": "3D extraction failed → screenshot",
     };
-    const label = LABELS[outcome] ?? `${classification.figure_kind} → screenshot (deferred to 9D+)`;
+    const label =
+      LABELS[outcome] ?? `${classification.figure_kind} → screenshot (no structured handler)`;
     console.log(`${tag}: ${label}`);
   }
 
@@ -433,8 +520,9 @@ async function main() {
     `Done. tables: ${tally.table + tally.table_warn} (${tally.table_warn} w/ warnings), ` +
       `charts: ${tally.chart} published + ${tally.chart_review} review, ` +
       `graphs: ${tally.graph} published + ${tally.graph_review} review, ` +
+      `geometry: ${tally.geometric} + 3D: ${tally["3d_shape"]} extracted (admin-only), ` +
       `deferred: ${tally.deferred}, ` +
-      `fallbacks: ${tally.fallback + tally.chart_fallback + tally.graph_fallback}, ` +
+      `fallbacks: ${tally.fallback + tally.chart_fallback + tally.graph_fallback + tally.geometric_fallback + tally["3d_shape_fallback"]}, ` +
       `extract-failed: ${tally.extract_failed}, crop-missing: ${tally.crop_missing}, ` +
       `skipped (transient, will retry): ${tally.skipped}.`
   );
