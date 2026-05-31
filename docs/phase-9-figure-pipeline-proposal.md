@@ -32,7 +32,28 @@
     ivory-on-dark HTML table can't hash-match a black-on-white PDF crop.
     Perceptual validation is for 9B/9C SVG geometry. The classification 9A
     records for non-table figures is reused by 9B-9E (classify-once).
-- **9B-9E:** not started. 9B (simple charts → SVG) is next.
+- **9B — Charts (#196): ✅ SHIPPED.** Integrated chart extraction into the
+  Stage 6.5 pass, reusing the Phase 4d `ChartFigure` renderer + `chart.ts`
+  contract. `figure-chart-logic.mjs` (shared with the legacy backfill, no
+  prompt drift) extracts scatter/line/bar with Gemini Pro, confidence-gates
+  at 0.8 → `figure_kind='chart'`. 15 unit tests.
+- **9C — Coordinate graphs (#197): ✅ SHIPPED.** Routes the classifier's
+  `graph` kind through the same ChartFigure extractor (it already renders
+  `function_plot`), with a **stricter 0.9 gate** (math-sensitive). Also
+  hardened the Pro path: 8192-token budget + empty-response fallback.
+- **9D + 9E — Geometry & 3D: ✅ SHIPPED.** `figure-geometry-logic.mjs`
+  extracts 2D geometry + 3D solids/nets into `figure_geometry_data` for
+  **admin review only** — `figure_kind` never flips, students keep the
+  screenshot in v1 (clean-looking wrong geometry is more dangerous than a
+  real screenshot). 10 unit tests. Promotion to a student-facing renderer
+  is a v2 decision.
+- **Resilience (#195):** shared `fetchImageBuffer` (retry transient, classify
+  permanent) across all figure stages, after a Pro-empty / transient-blip
+  false-skip surfaced during 9A.
+
+**Phase 9 is complete (9A–9E).** Remaining v2 ideas: boxplot/pie renderers,
+promoting geometry/3D to student-facing SVG, the perceptual-hash visual
+validation deferred from v1.
 
 ---
 
