@@ -50,6 +50,7 @@ import {
   VALIDATION_STATUS,
   FALLBACK_LEVEL,
 } from "../lib/figure-extraction-logic.mjs";
+import { fetchImageBuffer, FETCH_OUTCOME } from "../lib/fetch-image.mjs";
 
 const args = process.argv.slice(2);
 const DRY_RUN = args.includes("--dry-run");
@@ -75,20 +76,8 @@ const supabase = createClient(
 );
 
 // ── helpers ──────────────────────────────────────────────────
-
-async function fetchImage(url) {
-  if (!url) return null;
-  try {
-    const res = await fetch(url);
-    if (!res.ok) return null;
-    return {
-      mime: res.headers.get("content-type") ?? "image/png",
-      buf: Buffer.from(await res.arrayBuffer()),
-    };
-  } catch {
-    return null;
-  }
-}
+// (image fetch is the shared resilient fetchImageBuffer — see
+//  scripts/lib/fetch-image.mjs.)
 
 // callGemini returns a parsed object in json mode, but be defensive in
 // case a provider tweak ever returns the raw string.
@@ -244,19 +233,40 @@ async function main() {
     fallback: 0,
     deferred: 0,
     extract_failed: 0,
+    crop_missing: 0,
     skipped: 0,
   };
 
   for (const [i, row] of rows.entries()) {
     const tag = `[${i + 1}/${rows.length}] ${row.source_pdf ?? "?"} p${row.source_page ?? "?"}`;
-    const image = await fetchImage(row.image_url);
-    if (!image) {
-      // Transient (R2 blip) — skip without poisoning figure_quality so the
-      // next run retries.
-      console.log(`${tag}: image unfetchable — skipping (will retry)`);
+    const fetched = await fetchImageBuffer(row.image_url);
+    if (!fetched.ok) {
+      if (fetched.outcome === FETCH_OUTCOME.PERMANENT) {
+        // Crop is genuinely gone (404 / bad URL) — mark the row done so we
+        // don't re-attempt forever; the screenshot stays as the fallback.
+        await writeRow(row.id, {
+          figure_extraction_model: MODEL,
+          figure_quality: buildFigureQuality({
+            validationStatus: VALIDATION_STATUS.EXTRACTION_FAILED,
+            usedFallbackLevel: FALLBACK_LEVEL.SCREENSHOT,
+            schemaErrors: [`crop_unfetchable: ${fetched.error}`],
+          }),
+        });
+        console.log(
+          `${tag}: crop permanently unfetchable (${fetched.error}) — marked, screenshot kept`
+        );
+        tally.crop_missing++;
+        continue;
+      }
+      // Transient (network blip / 5xx / timeout survived retries) — leave
+      // figure_quality NULL so the next run retries.
+      console.log(
+        `${tag}: transient fetch failure after ${fetched.attempts} attempt(s) (${fetched.error}) — skipping, will retry`
+      );
       tally.skipped++;
       continue;
     }
+    const image = { mime: fetched.mime, buf: fetched.buf };
 
     let classification;
     try {
@@ -301,7 +311,8 @@ async function main() {
   console.log(
     `Done. tables: ${tally.table + tally.table_warn} (${tally.table_warn} w/ warnings), ` +
       `deferred non-tables: ${tally.deferred}, validation-fallbacks: ${tally.fallback}, ` +
-      `extract-failed: ${tally.extract_failed}, skipped: ${tally.skipped}.`
+      `extract-failed: ${tally.extract_failed}, crop-missing: ${tally.crop_missing}, ` +
+      `skipped (transient, will retry): ${tally.skipped}.`
   );
   if (DRY_RUN) console.log("(dry-run — no writes)");
 }
