@@ -15,6 +15,7 @@ import { describe, it, expect } from "vitest";
 import {
   CHART_KINDS,
   CHART_AUTO_PUBLISH_THRESHOLD,
+  GRAPH_AUTO_PUBLISH_THRESHOLD,
   CHART_EXTRACT_PROMPT,
   normalizeAxis,
   validateChartData,
@@ -198,9 +199,11 @@ describe("deriveChartComplexity + chartAltText", () => {
 });
 
 describe("constants + prompt", () => {
-  it("exposes the four renderer-supported kinds + the publish threshold", () => {
+  it("exposes the four renderer-supported kinds + the publish thresholds", () => {
     expect(CHART_KINDS).toEqual(["scatterplot", "line_graph", "bar_chart", "function_plot"]);
     expect(CHART_AUTO_PUBLISH_THRESHOLD).toBe(0.8);
+    // Coordinate graphs (9C) are math-sensitive → a stricter gate.
+    expect(GRAPH_AUTO_PUBLISH_THRESHOLD).toBeGreaterThan(CHART_AUTO_PUBLISH_THRESHOLD);
   });
   it("CHART_EXTRACT_PROMPT covers the kinds + the do-not-invent guard", () => {
     for (const k of CHART_KINDS) expect(CHART_EXTRACT_PROMPT).toContain(k);
