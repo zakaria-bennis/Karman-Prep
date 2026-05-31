@@ -1,5 +1,5 @@
 // ============================================================
-// extract-chart-data — Phase 4d backfill.
+// extract-chart-data — Phase 4d backfill (manual).
 //
 // For every quiz_question with image_url set AND figure_chart_data
 // still null AND figure_kind in {null, image}, call Gemini Pro
@@ -9,15 +9,20 @@
 // If yes, extract a ChartFigure JSON (src/types/chart.ts) and:
 //   · confidence >= 0.8  → write figure_chart_data + set
 //                          figure_kind='chart' (auto-publish to
-//                          students, the new ChartFigure renderer
-//                          replaces the raster screenshot)
+//                          students; ChartFigure renderer replaces
+//                          the raster screenshot)
 //   · confidence <  0.8  → write figure_chart_data BUT leave
-//                          figure_kind='image' (Inspector flags
-//                          the row for manual review; renderer
-//                          keeps showing the screenshot)
+//                          figure_kind='image' (Inspector flags the
+//                          row for review; screenshot keeps showing)
 //
 // If not a chart, set figure_kind='image' so we don't re-call on
 // re-runs (mirrors extract-table-data.mjs's pattern).
+//
+// NOTE: for NEW imports this is now done inline by the Stage 6.5
+// pass (scripts/pdf-pipeline/extract-figure-structure.mjs, Phase 9B)
+// — both share the prompt + validator from
+// scripts/lib/figure-chart-logic.mjs so they can't drift. This script
+// remains the manual backfill for the existing bank.
 //
 // USAGE
 //   node --env-file=.env.local scripts/figure-extraction/extract-chart-data.mjs
@@ -25,16 +30,16 @@
 //   node --env-file=.env.local ... --dry-run   # don't write, just print
 //
 // COST
-//   Gemini Pro free tier: 25 RPD. With ~150 figure-bearing rows
-//   in the bank, the run takes 6+ days at the free quota OR uses
-//   paid quota. Cheaper alternative: use Gemini Flash for the
-//   first pass and only escalate to Pro on flagged rows. v1 uses
-//   Pro directly because chart extraction needs spatial reasoning
-//   that Flash often misses.
+//   Gemini Pro free tier: 25 RPD. Chart extraction needs spatial
+//   reasoning that Flash often misses, so this uses Pro directly.
 // ============================================================
 
-import { existsSync } from "node:fs";
-import { readFile } from "node:fs/promises";
+import { fetchImageBuffer } from "../lib/fetch-image.mjs";
+import {
+  CHART_EXTRACT_PROMPT,
+  validateChartData,
+  stampChartProvenance,
+} from "../lib/figure-chart-logic.mjs";
 
 const args = process.argv.slice(2);
 const DRY_RUN = args.includes("--dry-run");
@@ -83,128 +88,6 @@ async function geminiVision(parts) {
   return json?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
 }
 
-// Prompt is intentionally exhaustive: the schema lives in
-// src/types/chart.ts but the model only sees this prompt.
-const PROMPT = `You are looking at a figure extracted from an SAT practice test PDF. Decide whether it is a COORDINATE-PLANE CHART of one of these four types:
-
-  · "scatterplot"   — a collection of dots, no lines connecting them
-  · "line_graph"    — dots connected by line segments (possibly multiple series)
-  · "bar_chart"     — vertical or horizontal bars with categorical x-axis
-                       (treat histograms as bar_chart with numeric categories)
-  · "function_plot" — a smooth curve representing y = f(x) (e.g. parabola, line)
-
-If it is NOT one of these (geometry diagram, 3D solid, table, photo, raw equation, etc.), return {"is_chart": false}.
-
-If it IS a chart, extract structured data. Coordinate values are in the AXIS'S NUMERIC SPACE, NOT pixel positions — read off the axes and report the data as a student would record it. Be honest about uncertainty: if a dot looks like it sits between (3, 5.5) and (3, 6), pick the closer one.
-
-Return strict JSON matching this exact shape:
-
-{
-  "is_chart": true,
-  "kind": "scatterplot" | "line_graph" | "bar_chart" | "function_plot",
-  "title": "<title above the chart, or null>",
-  "x_axis": {
-    "label": "<x-axis label, or empty string>",
-    "min": <number or null>,
-    "max": <number or null>,
-    "tick_step": <number or null>,
-    "categories": ["A", "B", "C"] | null   // only for bar_chart; mutually exclusive with min/max
-  },
-  "y_axis": { ...same shape... },
-  "show_grid": true | false,
-  "series": [
-    // SCATTER:
-    { "kind": "scatter", "label": "<name or null>",
-      "points": [[x1, y1], [x2, y2], ...] },
-    // LINE:
-    { "kind": "line", "label": "<name or null>",
-      "points": [[x1, y1], [x2, y2], ...] },
-    // BAR:
-    { "kind": "bar", "label": "<name or null>",
-      "bars": [{"category": "A", "value": 5}, ...] },
-    // FUNCTION (must match one of the supported families):
-    { "kind": "function", "label": "<name or null>",
-      "expression": { "kind": "linear",   "m": <num>, "b": <num> }
-                   | { "kind": "quadratic", "a": <num>, "b": <num>, "c": <num> }
-                   | { "kind": "absolute_value", "a": <num>, "h": <num>, "k": <num> }
-                   | { "kind": "exponential", "a": <num>, "b": <num> },
-      "domain": [<xLo>, <xHi>] | null }
-  ],
-  "confidence": <0.0 — 1.0>,
-  "extractor_note": "<short note explaining any judgement calls, or null>"
-}
-
-CONFIDENCE GUIDE:
-  · 1.0   — every value is read directly from clearly-labeled axes
-  · 0.8+  — high confidence; ready to auto-publish to students
-  · 0.5-0.8 — best guess; needs human review
-  · <0.5  — significant ambiguity (illegible labels, weird crop, etc.)
-
-CRITICAL:
-  · Do NOT invent data points if the image is unclear — set lower confidence instead.
-  · For function_plot, only emit if the curve clearly matches one of the 4 supported expression families. Otherwise treat as scatterplot (sample 8-12 points along the curve).
-  · For bar_chart, set categories[] on x_axis AND make sure every bar's "category" matches one entry.
-  · Don't transcribe the question text or answer choices into the chart data.`;
-
-async function fetchImageBytes(url) {
-  if (!url) return null;
-  if (url.startsWith("data:image/")) {
-    const m = url.match(/^data:(image\/[a-z+]+);base64,(.+)$/);
-    if (!m) return null;
-    return { mime: m[1], buf: Buffer.from(m[2], "base64") };
-  }
-  if (url.startsWith("https://") || url.startsWith("http://")) {
-    try {
-      const res = await fetch(url);
-      if (!res.ok) return null;
-      const mime = res.headers.get("content-type") || "image/png";
-      const buf = Buffer.from(await res.arrayBuffer());
-      return { mime, buf };
-    } catch {
-      return null;
-    }
-  }
-  if (existsSync(url)) return { mime: "image/png", buf: await readFile(url) };
-  return null;
-}
-
-// Light validation — fail fast on responses that won't deserialize
-// into the ChartFigure TypeScript type. We catch the obvious shape
-// errors here; the renderer is defensive about missing optional
-// fields anyway.
-function validateChart(p) {
-  if (!p || p.is_chart !== true) return null;
-  if (!["scatterplot", "line_graph", "bar_chart", "function_plot"].includes(p.kind)) {
-    return null;
-  }
-  if (!p.x_axis || !p.y_axis || !Array.isArray(p.series) || p.series.length === 0) {
-    return null;
-  }
-  if (typeof p.confidence !== "number") return null;
-  return {
-    kind: p.kind,
-    title: p.title ?? null,
-    x_axis: normalizeAxis(p.x_axis),
-    y_axis: normalizeAxis(p.y_axis),
-    show_grid: p.show_grid !== false,
-    series: p.series,
-    confidence: Math.max(0, Math.min(1, p.confidence)),
-    extracted_by: EXTRACTOR_VERSION,
-    extracted_at: new Date().toISOString(),
-    extractor_note: p.extractor_note ?? null,
-  };
-}
-
-function normalizeAxis(a) {
-  return {
-    label: typeof a?.label === "string" ? a.label : "",
-    min: typeof a?.min === "number" ? a.min : null,
-    max: typeof a?.max === "number" ? a.max : null,
-    tick_step: typeof a?.tick_step === "number" ? a.tick_step : null,
-    categories: Array.isArray(a?.categories) ? a.categories : null,
-  };
-}
-
 const { createClient } = await import("@supabase/supabase-js");
 const supabase = createClient(SUPA_URL, SUPA_KEY, { auth: { persistSession: false } });
 
@@ -243,17 +126,18 @@ async function main() {
     process.stdout.write(
       `[${i + 1}/${rows.length}] ${row.source_pdf ?? "(?)"} p${row.source_page ?? "?"}… `
     );
-    const img = await fetchImageBytes(row.image_url);
-    if (!img) {
+    const fetched = await fetchImageBuffer(row.image_url);
+    if (!fetched.ok) {
       console.log("could not fetch image");
       errors++;
       continue;
     }
+    const img = { mime: fetched.mime, buf: fetched.buf };
     let raw;
     try {
       raw = await geminiVision([
         { inline_data: { mime_type: img.mime, data: img.buf.toString("base64") } },
-        { text: PROMPT },
+        { text: CHART_EXTRACT_PROMPT },
       ]);
     } catch (err) {
       const msg = String(err).slice(0, 100);
@@ -278,17 +162,21 @@ async function main() {
       nonCharts++;
       if (!DRY_RUN) {
         // Mark as 'image' so we don't waste another Pro call on
-        // re-run. Phase 4c (geometry) can pick up these later.
+        // re-run. Geometry (9D) can pick up these later.
         await supabase.from("quiz_questions").update({ figure_kind: "image" }).eq("id", row.id);
       }
       continue;
     }
-    const chartData = validateChart(parsed);
-    if (!chartData) {
-      console.log("validation fail");
+    const vr = validateChartData(parsed);
+    if (!vr.ok) {
+      console.log(`validation fail (${vr.errors.join(", ")})`);
       errors++;
       continue;
     }
+    const chartData = stampChartProvenance(vr.data, {
+      extractedBy: EXTRACTOR_VERSION,
+      extractedAt: new Date().toISOString(),
+    });
     const autoPublishable = chartData.confidence >= AUTO_PUBLISH_THRESHOLD;
     const tag = autoPublishable ? "AUTO" : "REVIEW";
     console.log(

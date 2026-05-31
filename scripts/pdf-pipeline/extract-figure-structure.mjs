@@ -9,17 +9,18 @@
 //
 //   1. CLASSIFIES the figure crop (image_url) — table / chart / graph /
 //      geometric / 3d_shape / other (cheap Gemini Flash call).
-//   2. For a TABLE: extracts { caption, header_row, rows, footer_note }
-//      and STRUCTURALLY validates it (rectangular rows, header/width
-//      match, non-empty cells).
-//        · valid  → writes figure_table_data + figure_kind='table' so
+//   2. For a TABLE (9A): extracts { caption, header_row, rows } and
+//      STRUCTURALLY validates it (rectangular rows, header/width match).
+//        · valid  → figure_table_data + figure_kind='table' so
 //                   QuestionTable.tsx renders an accessible HTML table.
-//        · broken → keeps the screenshot (figure_kind unchanged), records
-//                   the schema errors in figure_quality, and writes a
-//                   NOTICE figure_coherence finding. Failure is explicit.
-//   3. For every OTHER kind: 9A only RENDERS tables, so the row keeps its
-//      screenshot. We still record the classification in figure_quality
-//      (cheap) so 9B-9E start with a head-start + the row is marked done.
+//        · broken → keeps the screenshot, records the schema errors in
+//                   figure_quality + a NOTICE finding. Failure is explicit.
+//   2b. For a CHART (9B — scatter/line/bar): extracts a ChartFigure with
+//      Gemini Pro (spatial reasoning) + confidence-gates. confidence ≥ 0.8
+//      → figure_chart_data + figure_kind='chart' (ChartFigure.tsx SVG);
+//      below → save the data but keep the screenshot + a review finding.
+//   3. For every OTHER kind (graph/geometric/3d_shape): keeps the
+//      screenshot; records the classification so 9C-9E reuse it.
 //
 // Why this is post-import enrichment, not a pre-import gate: a failed
 // structured extraction must never block question existence — the row
@@ -50,6 +51,13 @@ import {
   VALIDATION_STATUS,
   FALLBACK_LEVEL,
 } from "../lib/figure-extraction-logic.mjs";
+import {
+  CHART_EXTRACT_PROMPT,
+  validateChartData,
+  stampChartProvenance,
+  chartAltText,
+  CHART_AUTO_PUBLISH_THRESHOLD,
+} from "../lib/figure-chart-logic.mjs";
 import { fetchImageBuffer, FETCH_OUTCOME } from "../lib/fetch-image.mjs";
 
 const args = process.argv.slice(2);
@@ -63,6 +71,10 @@ const SOURCE_PDF = flagVal("source-pdf");
 const QUESTION_ID = flagVal("question-id");
 const LIMIT = flagVal("limit") ? Number(flagVal("limit")) : null;
 const MODEL = flagVal("model") ?? "gemini-2.5-flash";
+// Charts need spatial reasoning Flash often misses, so extract them with Pro
+// (classification stays on the cheap Flash MODEL). Overridable via --chart-model.
+const CHART_MODEL = flagVal("chart-model") ?? "gemini-2.5-pro";
+const CHART_EXTRACTOR_VERSION = `${CHART_MODEL}@2026-05-31`;
 
 if (!SOURCE_PDF && !QUESTION_ID) {
   console.error("Usage: extract-figure-structure.mjs --source-pdf <name> [--limit N] [--dry-run]");
@@ -93,14 +105,14 @@ function asObject(resp) {
   return null;
 }
 
-async function visionJson(prompt, image) {
+async function visionJson(prompt, image, model = MODEL) {
   const resp = await callGemini({
     prompt,
     image,
-    model: MODEL,
+    model,
     json: true,
     maxOutputTokens: 4096,
-    ...(MODEL.includes("flash") ? { thinkingBudget: 0 } : {}),
+    ...(model.includes("flash") ? { thinkingBudget: 0 } : {}),
   });
   return asObject(resp);
 }
@@ -201,6 +213,71 @@ async function enrichTable(row, image, classification) {
   return result.warnings.length > 0 ? "table_warn" : "table";
 }
 
+async function enrichChart(row, image, classification) {
+  // Charts need spatial reasoning → extract with Pro (the classifier ran on
+  // Flash). The model emits a ChartFigure JSON; ChartFigure.tsx renders the
+  // SVG. The figure_chart_data column + renderer shipped in Phase 4d.
+  const parsed = asObject(await visionJson(CHART_EXTRACT_PROMPT, image, CHART_MODEL));
+  const result = validateChartData(parsed);
+
+  if (!result.ok) {
+    // Not actually a chart, or a shape ChartFigure can't render → screenshot
+    // stays, record why.
+    await writeRow(row.id, {
+      figure_extraction_model: CHART_MODEL,
+      figure_quality: buildFigureQuality({
+        validationStatus: VALIDATION_STATUS.FALLBACK_USED,
+        usedFallbackLevel: FALLBACK_LEVEL.SCREENSHOT,
+        schemaErrors: result.errors,
+        modelConfidence: result.confidence,
+        classifiedAs: "chart",
+        modelCalledItA: classification.model_called_it_a ?? null,
+      }),
+    });
+    return "chart_fallback";
+  }
+
+  const chartData = stampChartProvenance(result.data, {
+    extractedBy: CHART_EXTRACTOR_VERSION,
+    extractedAt: new Date().toISOString(),
+  });
+  const autoPublish = result.confidence >= CHART_AUTO_PUBLISH_THRESHOLD;
+
+  // Always save the structured data; only FLIP figure_kind='chart'
+  // (student-facing SVG) when confident — otherwise keep the screenshot and
+  // flag for review, the same gate Phase 4d used.
+  await writeRow(row.id, {
+    ...(autoPublish ? { figure_kind: "chart" } : {}),
+    figure_chart_data: chartData,
+    figure_extraction_model: CHART_MODEL,
+    figure_quality: buildFigureQuality({
+      validationStatus: autoPublish
+        ? VALIDATION_STATUS.VALIDATED
+        : VALIDATION_STATUS.VALIDATED_WITH_WARNINGS,
+      usedFallbackLevel: autoPublish ? FALLBACK_LEVEL.STRUCTURED : FALLBACK_LEVEL.SCREENSHOT,
+      modelConfidence: result.confidence,
+      altText: chartAltText(chartData),
+      classifiedAs: "chart",
+      modelCalledItA: classification.model_called_it_a ?? null,
+    }),
+  });
+
+  if (!autoPublish) {
+    await upsertFinding({
+      supabase,
+      questionId: row.id,
+      category: AUDIT_MODULES.FIGURE_COHERENCE,
+      code: "chart_low_confidence",
+      severity: SEVERITY.NOTICE,
+      message: `Chart extracted at confidence ${result.confidence.toFixed(2)} (< ${CHART_AUTO_PUBLISH_THRESHOLD}); saved for review, screenshot kept.`,
+      value: row.image_url,
+      detail: { kind: chartData.kind, confidence: result.confidence, model: CHART_MODEL },
+      dryRun: DRY_RUN,
+    });
+  }
+  return autoPublish ? "chart" : "chart_review";
+}
+
 async function enrichDeferred(row, classification) {
   // 9A renders only tables. Record the classification so 9B-9E have a
   // head start and the row is marked processed; rendering stays screenshot.
@@ -219,7 +296,9 @@ async function enrichDeferred(row, classification) {
 }
 
 async function main() {
-  console.log(`Phase 9A — extract-figure-structure (model: ${MODEL}${DRY_RUN ? ", dry-run" : ""})`);
+  console.log(
+    `Phase 9A/9B — extract-figure-structure (classify+table: ${MODEL}, chart: ${CHART_MODEL}${DRY_RUN ? ", dry-run" : ""})`
+  );
   const rows = await selectRows();
   console.log(`  ${rows.length} figure-bearing row(s) pending structure enrichment`);
   if (rows.length === 0 || NO_LLM) {
@@ -231,6 +310,9 @@ async function main() {
     table: 0,
     table_warn: 0,
     fallback: 0,
+    chart: 0,
+    chart_review: 0,
+    chart_fallback: 0,
     deferred: 0,
     extract_failed: 0,
     crop_missing: 0,
@@ -289,28 +371,33 @@ async function main() {
       outcome =
         classification.figure_kind === "table"
           ? await enrichTable(row, image, classification)
-          : await enrichDeferred(row, classification);
+          : classification.figure_kind === "chart"
+            ? await enrichChart(row, image, classification)
+            : await enrichDeferred(row, classification);
     } catch (err) {
       console.log(`${tag}: enrich error (${String(err?.message ?? err).slice(0, 80)}) — skipping`);
       tally.skipped++;
       continue;
     }
     tally[outcome] = (tally[outcome] ?? 0) + 1;
-    const label =
-      outcome === "table" || outcome === "table_warn"
-        ? `TABLE → HTML${outcome === "table_warn" ? " (warnings)" : ""}`
-        : outcome === "fallback"
-          ? "table validation failed → screenshot"
-          : outcome === "extract_failed"
-            ? "table extract unparseable → screenshot"
-            : `${classification.figure_kind} → screenshot (deferred to 9B+)`;
+    const LABELS = {
+      table: "TABLE → HTML",
+      table_warn: "TABLE → HTML (warnings)",
+      fallback: "table validation failed → screenshot",
+      extract_failed: "table extract unparseable → screenshot",
+      chart: "CHART → SVG",
+      chart_review: "chart extracted (low confidence) → screenshot + review",
+      chart_fallback: "chart validation failed → screenshot",
+    };
+    const label = LABELS[outcome] ?? `${classification.figure_kind} → screenshot (deferred to 9C+)`;
     console.log(`${tag}: ${label}`);
   }
 
   console.log("");
   console.log(
     `Done. tables: ${tally.table + tally.table_warn} (${tally.table_warn} w/ warnings), ` +
-      `deferred non-tables: ${tally.deferred}, validation-fallbacks: ${tally.fallback}, ` +
+      `charts: ${tally.chart} published + ${tally.chart_review} for review, ` +
+      `deferred: ${tally.deferred}, fallbacks: ${tally.fallback + tally.chart_fallback}, ` +
       `extract-failed: ${tally.extract_failed}, crop-missing: ${tally.crop_missing}, ` +
       `skipped (transient, will retry): ${tally.skipped}.`
   );
