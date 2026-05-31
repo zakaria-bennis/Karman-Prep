@@ -15,12 +15,13 @@
 //                   QuestionTable.tsx renders an accessible HTML table.
 //        · broken → keeps the screenshot, records the schema errors in
 //                   figure_quality + a NOTICE finding. Failure is explicit.
-//   2b. For a CHART (9B — scatter/line/bar): extracts a ChartFigure with
-//      Gemini Pro (spatial reasoning) + confidence-gates. confidence ≥ 0.8
-//      → figure_chart_data + figure_kind='chart' (ChartFigure.tsx SVG);
-//      below → save the data but keep the screenshot + a review finding.
-//   3. For every OTHER kind (graph/geometric/3d_shape): keeps the
-//      screenshot; records the classification so 9C-9E reuse it.
+//   2b. For a CHART (9B) or COORDINATE GRAPH (9C — scatter/line/bar/
+//      function-plot): extracts a ChartFigure with Gemini Pro + confidence-
+//      gates (graphs use a stricter gate, being math-sensitive). Pass →
+//      figure_chart_data + figure_kind='chart' (ChartFigure.tsx SVG); below
+//      → save the data but keep the screenshot + a review finding.
+//   3. For every OTHER kind (geometric/3d_shape): keeps the screenshot;
+//      records the classification so 9D-9E reuse it.
 //
 // Why this is post-import enrichment, not a pre-import gate: a failed
 // structured extraction must never block question existence — the row
@@ -57,6 +58,7 @@ import {
   stampChartProvenance,
   chartAltText,
   CHART_AUTO_PUBLISH_THRESHOLD,
+  GRAPH_AUTO_PUBLISH_THRESHOLD,
 } from "../lib/figure-chart-logic.mjs";
 import { fetchImageBuffer, FETCH_OUTCOME } from "../lib/fetch-image.mjs";
 
@@ -105,13 +107,13 @@ function asObject(resp) {
   return null;
 }
 
-async function visionJson(prompt, image, model = MODEL) {
+async function visionJson(prompt, image, model = MODEL, maxOutputTokens = 4096) {
   const resp = await callGemini({
     prompt,
     image,
     model,
     json: true,
-    maxOutputTokens: 4096,
+    maxOutputTokens,
     ...(model.includes("flash") ? { thinkingBudget: 0 } : {}),
   });
   return asObject(resp);
@@ -214,10 +216,37 @@ async function enrichTable(row, image, classification) {
 }
 
 async function enrichChart(row, image, classification) {
-  // Charts need spatial reasoning → extract with Pro (the classifier ran on
-  // Flash). The model emits a ChartFigure JSON; ChartFigure.tsx renders the
-  // SVG. The figure_chart_data column + renderer shipped in Phase 4d.
-  const parsed = asObject(await visionJson(CHART_EXTRACT_PROMPT, image, CHART_MODEL));
+  // Charts (9B) AND coordinate graphs (9C) share the ChartFigure renderer +
+  // extractor; both need spatial reasoning, so extract with Pro (the
+  // classifier ran on Flash). Graphs are math-sensitive (a misread
+  // intercept/scale changes the answer) → a stricter auto-publish gate. The
+  // model emits a ChartFigure JSON; ChartFigure.tsx renders the SVG
+  // (figure_chart_data + renderer shipped in Phase 4d) — both kinds render
+  // as figure_kind='chart'.
+  const kind = classification.figure_kind; // "chart" | "graph"
+  const threshold = kind === "graph" ? GRAPH_AUTO_PUBLISH_THRESHOLD : CHART_AUTO_PUBLISH_THRESHOLD;
+  let parsed;
+  try {
+    // Bigger output budget than tables — a dense ChartFigure (many points)
+    // can exceed 4096 with Pro's thinking and truncate to invalid JSON.
+    parsed = asObject(await visionJson(CHART_EXTRACT_PROMPT, image, CHART_MODEL, 8192));
+  } catch (err) {
+    // Pro sometimes returns empty/unparseable content (RECITATION / safety /
+    // token exhaustion), especially on dense graphs. Keep the screenshot,
+    // mark the row done, and record why — don't let it bubble up as a
+    // generic skip-and-retry-forever.
+    await writeRow(row.id, {
+      figure_extraction_model: CHART_MODEL,
+      figure_quality: buildFigureQuality({
+        validationStatus: VALIDATION_STATUS.EXTRACTION_FAILED,
+        usedFallbackLevel: FALLBACK_LEVEL.SCREENSHOT,
+        schemaErrors: [`extract_error: ${String(err?.message ?? err).slice(0, 120)}`],
+        classifiedAs: kind,
+        modelCalledItA: classification.model_called_it_a ?? null,
+      }),
+    });
+    return `${kind}_fallback`;
+  }
   const result = validateChartData(parsed);
 
   if (!result.ok) {
@@ -230,18 +259,18 @@ async function enrichChart(row, image, classification) {
         usedFallbackLevel: FALLBACK_LEVEL.SCREENSHOT,
         schemaErrors: result.errors,
         modelConfidence: result.confidence,
-        classifiedAs: "chart",
+        classifiedAs: kind,
         modelCalledItA: classification.model_called_it_a ?? null,
       }),
     });
-    return "chart_fallback";
+    return `${kind}_fallback`;
   }
 
   const chartData = stampChartProvenance(result.data, {
     extractedBy: CHART_EXTRACTOR_VERSION,
     extractedAt: new Date().toISOString(),
   });
-  const autoPublish = result.confidence >= CHART_AUTO_PUBLISH_THRESHOLD;
+  const autoPublish = result.confidence >= threshold;
 
   // Always save the structured data; only FLIP figure_kind='chart'
   // (student-facing SVG) when confident — otherwise keep the screenshot and
@@ -257,7 +286,7 @@ async function enrichChart(row, image, classification) {
       usedFallbackLevel: autoPublish ? FALLBACK_LEVEL.STRUCTURED : FALLBACK_LEVEL.SCREENSHOT,
       modelConfidence: result.confidence,
       altText: chartAltText(chartData),
-      classifiedAs: "chart",
+      classifiedAs: kind,
       modelCalledItA: classification.model_called_it_a ?? null,
     }),
   });
@@ -267,15 +296,15 @@ async function enrichChart(row, image, classification) {
       supabase,
       questionId: row.id,
       category: AUDIT_MODULES.FIGURE_COHERENCE,
-      code: "chart_low_confidence",
+      code: `${kind}_low_confidence`,
       severity: SEVERITY.NOTICE,
-      message: `Chart extracted at confidence ${result.confidence.toFixed(2)} (< ${CHART_AUTO_PUBLISH_THRESHOLD}); saved for review, screenshot kept.`,
+      message: `${kind === "graph" ? "Graph" : "Chart"} extracted at confidence ${result.confidence.toFixed(2)} (< ${threshold}); saved for review, screenshot kept.`,
       value: row.image_url,
       detail: { kind: chartData.kind, confidence: result.confidence, model: CHART_MODEL },
       dryRun: DRY_RUN,
     });
   }
-  return autoPublish ? "chart" : "chart_review";
+  return autoPublish ? kind : `${kind}_review`;
 }
 
 async function enrichDeferred(row, classification) {
@@ -297,7 +326,7 @@ async function enrichDeferred(row, classification) {
 
 async function main() {
   console.log(
-    `Phase 9A/9B — extract-figure-structure (classify+table: ${MODEL}, chart: ${CHART_MODEL}${DRY_RUN ? ", dry-run" : ""})`
+    `Phase 9A/9B/9C — extract-figure-structure (classify+table: ${MODEL}, chart/graph: ${CHART_MODEL}${DRY_RUN ? ", dry-run" : ""})`
   );
   const rows = await selectRows();
   console.log(`  ${rows.length} figure-bearing row(s) pending structure enrichment`);
@@ -313,6 +342,9 @@ async function main() {
     chart: 0,
     chart_review: 0,
     chart_fallback: 0,
+    graph: 0,
+    graph_review: 0,
+    graph_fallback: 0,
     deferred: 0,
     extract_failed: 0,
     crop_missing: 0,
@@ -371,7 +403,7 @@ async function main() {
       outcome =
         classification.figure_kind === "table"
           ? await enrichTable(row, image, classification)
-          : classification.figure_kind === "chart"
+          : classification.figure_kind === "chart" || classification.figure_kind === "graph"
             ? await enrichChart(row, image, classification)
             : await enrichDeferred(row, classification);
     } catch (err) {
@@ -388,16 +420,21 @@ async function main() {
       chart: "CHART → SVG",
       chart_review: "chart extracted (low confidence) → screenshot + review",
       chart_fallback: "chart validation failed → screenshot",
+      graph: "GRAPH → SVG",
+      graph_review: "graph extracted (below strict gate) → screenshot + review",
+      graph_fallback: "graph validation failed → screenshot",
     };
-    const label = LABELS[outcome] ?? `${classification.figure_kind} → screenshot (deferred to 9C+)`;
+    const label = LABELS[outcome] ?? `${classification.figure_kind} → screenshot (deferred to 9D+)`;
     console.log(`${tag}: ${label}`);
   }
 
   console.log("");
   console.log(
     `Done. tables: ${tally.table + tally.table_warn} (${tally.table_warn} w/ warnings), ` +
-      `charts: ${tally.chart} published + ${tally.chart_review} for review, ` +
-      `deferred: ${tally.deferred}, fallbacks: ${tally.fallback + tally.chart_fallback}, ` +
+      `charts: ${tally.chart} published + ${tally.chart_review} review, ` +
+      `graphs: ${tally.graph} published + ${tally.graph_review} review, ` +
+      `deferred: ${tally.deferred}, ` +
+      `fallbacks: ${tally.fallback + tally.chart_fallback + tally.graph_fallback}, ` +
       `extract-failed: ${tally.extract_failed}, crop-missing: ${tally.crop_missing}, ` +
       `skipped (transient, will retry): ${tally.skipped}.`
   );

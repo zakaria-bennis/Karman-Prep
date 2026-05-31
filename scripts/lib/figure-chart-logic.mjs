@@ -28,6 +28,13 @@ export const CHART_KINDS = Object.freeze([
  *  human accepts it — same gate Phase 4d used. */
 export const CHART_AUTO_PUBLISH_THRESHOLD = 0.8;
 
+/** Stricter gate for COORDINATE GRAPHS (9C — function plots, plotted
+ *  points). The same ChartFigure renderer + extractor cover these, but
+ *  they're math-sensitive (a misread intercept/scale changes the answer),
+ *  so the bar to auto-publish is higher; below it, save + screenshot +
+ *  review. (proposal §"9C — stricter validation because math-sensitive") */
+export const GRAPH_AUTO_PUBLISH_THRESHOLD = 0.9;
+
 /** Supported function-plot expression families (must match
  *  src/types/chart.ts FunctionSeries). */
 const FUNCTION_EXPRESSION_KINDS = Object.freeze([
