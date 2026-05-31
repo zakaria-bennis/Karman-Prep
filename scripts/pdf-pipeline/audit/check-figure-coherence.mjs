@@ -24,6 +24,7 @@ import {
   AUDIT_MODULES,
   isEligibleForFigureCoherence,
 } from "../../lib/findings.mjs";
+import { fetchImageBuffer } from "../../lib/fetch-image.mjs";
 
 const args = process.argv.slice(2);
 const DRY_RUN = args.includes("--dry-run");
@@ -72,20 +73,6 @@ Decide:
 - stem_references_figure: does the question text actually mention the image / graph / table / etc.?
 - confidence: 0-1.
 - rationale: 1-2 sentences.`;
-}
-
-async function fetchImage(url) {
-  if (!url) return null;
-  try {
-    const res = await fetch(url);
-    if (!res.ok) return null;
-    return {
-      mime: res.headers.get("content-type") ?? "image/png",
-      buf: Buffer.from(await res.arrayBuffer()),
-    };
-  } catch {
-    return null;
-  }
 }
 
 async function callTier(q, image, model) {
@@ -153,11 +140,13 @@ async function main() {
     cleanCount = 0;
   for (const q of rows) {
     if (NO_LLM) continue;
-    const image = await fetchImage(q.image_url);
-    if (!image) {
-      // Can't audit without the image; skip silently.
+    const fetched = await fetchImageBuffer(q.image_url);
+    if (!fetched.ok) {
+      // Can't audit without the image. fetchImageBuffer already retried
+      // transient failures, so a miss here means the crop is truly absent.
       continue;
     }
+    const image = { mime: fetched.mime, buf: fetched.buf };
     let result = await callTier(q, image, "gemini-2.5-flash");
     let resp = result.ok ? result.raw : null;
     let escalated = false;

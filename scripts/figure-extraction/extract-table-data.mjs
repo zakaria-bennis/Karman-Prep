@@ -23,8 +23,7 @@
 //   figure_table_data already set).
 // ============================================================
 
-import { existsSync } from "node:fs";
-import { readFile } from "node:fs/promises";
+import { fetchImageBuffer } from "../lib/fetch-image.mjs";
 
 const args = process.argv.slice(2);
 const DRY_RUN = args.includes("--dry-run");
@@ -88,31 +87,6 @@ If is_table=false, return only { "is_table": false } — leave the other fields 
 
 CRITICAL: do not embed answer choices or question stem text in the table. Only transcribe what's clearly part of the table itself (caption + headers + body + footer note).`;
 
-async function fetchImageBytes(url) {
-  if (!url) return null;
-  if (url.startsWith("data:image/")) {
-    const m = url.match(/^data:(image\/[a-z+]+);base64,(.+)$/);
-    if (!m) return null;
-    return { mime: m[1], buf: Buffer.from(m[2], "base64") };
-  }
-  if (url.startsWith("https://") || url.startsWith("http://")) {
-    try {
-      const res = await fetch(url);
-      if (!res.ok) return null;
-      const mime = res.headers.get("content-type") || "image/png";
-      const buf = Buffer.from(await res.arrayBuffer());
-      return { mime, buf };
-    } catch {
-      return null;
-    }
-  }
-  // Maybe a local file path
-  if (existsSync(url)) {
-    return { mime: "image/png", buf: await readFile(url) };
-  }
-  return null;
-}
-
 const { createClient } = await import("@supabase/supabase-js");
 const supabase = createClient(SUPA_URL, SUPA_KEY, { auth: { persistSession: false } });
 
@@ -145,12 +119,13 @@ async function main() {
     process.stdout.write(
       `[${i + 1}/${rows.length}] ${row.source_pdf ?? "(?)"} p${row.source_page ?? "?"}… `
     );
-    const img = await fetchImageBytes(row.image_url);
-    if (!img) {
+    const fetched = await fetchImageBuffer(row.image_url);
+    if (!fetched.ok) {
       console.log("could not fetch image");
       errors++;
       continue;
     }
+    const img = { mime: fetched.mime, buf: fetched.buf };
     let raw;
     try {
       raw = await geminiVision([
