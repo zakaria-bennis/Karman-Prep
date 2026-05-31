@@ -170,8 +170,20 @@ export interface QuizQuestion {
    *  - 'table' (structured data in figure_table_data; renders as native HTML) — Phase 4a
    *  - 'chart' (structured data in figure_chart_data; renders as SVG) — Phase 4d
    *  - 'svg'   (reserved for Phase 4c primitive geometry shapes)
+   *  - 'graph' | 'geometric' | '3d_shape' | 'other' (Phase 9A — classified
+   *    by the figure-structure pass; renders screenshot until 9B-9E ship
+   *    their structured renderers)
    *  - null    (no figure) */
-  figure_kind: "image" | "table" | "chart" | "svg" | null;
+  figure_kind:
+    | "image"
+    | "table"
+    | "chart"
+    | "svg"
+    | "graph"
+    | "geometric"
+    | "3d_shape"
+    | "other"
+    | null;
   /** Phase 4a — structured table data when figure_kind='table'.
    *  See src/components/learn/QuestionTable.tsx for the shape. */
   figure_table_data: {

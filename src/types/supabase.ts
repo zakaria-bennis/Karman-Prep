@@ -1822,9 +1822,23 @@ export type Database = {
           image_alt: string | null;
           image_storage_path: string | null;
           image_url: string | null;
-          figure_kind: "image" | "table" | "chart" | "svg" | null;
+          figure_kind:
+            | "image"
+            | "table"
+            | "chart"
+            | "svg"
+            | "graph"
+            | "geometric"
+            | "3d_shape"
+            | "other"
+            | null;
           figure_table_data: Json | null;
           figure_chart_data: Json | null;
+          figure_graph_data: Json | null;
+          figure_geometry_data: Json | null;
+          figure_svg: string | null;
+          figure_quality: Json | null;
+          figure_extraction_model: string | null;
           import_flag_reason: string | null;
           import_flag_type: string | null;
           import_status: string | null;
@@ -1893,9 +1907,23 @@ export type Database = {
           image_alt?: string | null;
           image_storage_path?: string | null;
           image_url?: string | null;
-          figure_kind?: "image" | "table" | "chart" | "svg" | null;
+          figure_kind?:
+            | "image"
+            | "table"
+            | "chart"
+            | "svg"
+            | "graph"
+            | "geometric"
+            | "3d_shape"
+            | "other"
+            | null;
           figure_table_data?: Json | null;
           figure_chart_data?: Json | null;
+          figure_graph_data?: Json | null;
+          figure_geometry_data?: Json | null;
+          figure_svg?: string | null;
+          figure_quality?: Json | null;
+          figure_extraction_model?: string | null;
           import_flag_reason?: string | null;
           import_flag_type?: string | null;
           import_status?: string | null;
@@ -1963,9 +1991,23 @@ export type Database = {
           image_alt?: string | null;
           image_storage_path?: string | null;
           image_url?: string | null;
-          figure_kind?: "image" | "table" | "chart" | "svg" | null;
+          figure_kind?:
+            | "image"
+            | "table"
+            | "chart"
+            | "svg"
+            | "graph"
+            | "geometric"
+            | "3d_shape"
+            | "other"
+            | null;
           figure_table_data?: Json | null;
           figure_chart_data?: Json | null;
+          figure_graph_data?: Json | null;
+          figure_geometry_data?: Json | null;
+          figure_svg?: string | null;
+          figure_quality?: Json | null;
+          figure_extraction_model?: string | null;
           import_flag_reason?: string | null;
           import_flag_type?: string | null;
           import_status?: string | null;
@@ -3418,9 +3460,23 @@ export type Database = {
           image_alt: string | null;
           image_storage_path: string | null;
           image_url: string | null;
-          figure_kind: "image" | "table" | "chart" | "svg" | null;
+          figure_kind:
+            | "image"
+            | "table"
+            | "chart"
+            | "svg"
+            | "graph"
+            | "geometric"
+            | "3d_shape"
+            | "other"
+            | null;
           figure_table_data: Json | null;
           figure_chart_data: Json | null;
+          figure_graph_data: Json | null;
+          figure_geometry_data: Json | null;
+          figure_svg: string | null;
+          figure_quality: Json | null;
+          figure_extraction_model: string | null;
           import_flag_reason: string | null;
           import_flag_type: string | null;
           import_status: string | null;
