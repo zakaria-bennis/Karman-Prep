@@ -6,6 +6,36 @@
 
 ---
 
+## Implementation status
+
+- **Pre-9A benchmark (#112):** _skipped for 9A._ The 1-figure sanity test
+  showed all three models agree on tables and favored Gemini Flash for
+  cost; the extractor is model-agnostic (`--model` flag), so a later
+  benchmark can still refine the 9B/9C model choice without reworking 9A.
+- **9A — Tables (#113 migration + #114 impl): ✅ SHIPPED.**
+  - Migration `20260531000000_phase9a_figure_columns.sql` — adds
+    `figure_graph_data`, `figure_geometry_data`, `figure_svg`,
+    `figure_quality`, `figure_extraction_model`; widens the `figure_kind`
+    CHECK to `+ graph | geometric | 3d_shape | other`. Apply with
+    `npm run db:push`.
+  - `scripts/lib/figure-extraction-logic.mjs` — pure classify/extract
+    prompts + structural table validation + `figure_quality` builder
+    (17 unit tests).
+  - `scripts/pdf-pipeline/extract-figure-structure.mjs` — the Stage 6.5
+    runner (classify → extract table → validate → write `figure_table_data`
+    or screenshot-fallback diagnostics + a `figure_coherence` finding).
+    Wired into `orchestrate.mjs` after visual-relevance.
+  - `QuestionTable.tsx` — a11y upgrade (`<th scope>`, semantic `<caption>`,
+    `aria-label`); 6 RTL tests.
+  - **Decision recorded:** 9A tables validate _structurally_ (rectangular
+    rows + header/width match), **not** by perceptual hash — an
+    ivory-on-dark HTML table can't hash-match a black-on-white PDF crop.
+    Perceptual validation is for 9B/9C SVG geometry. The classification 9A
+    records for non-table figures is reused by 9B-9E (classify-once).
+- **9B-9E:** not started. 9B (simple charts → SVG) is next.
+
+---
+
 ## Project context
 
 Karman Prep is a pre-launch SAT prep platform. The pipeline ingests official SAT practice PDFs, extracts every question, verifies the answer key with a multi-vote AI panel, generates detailed explanations, and publishes the question to students.
