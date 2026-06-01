@@ -1,19 +1,13 @@
 // ============================================================
-// Clerk middleware — protects platform routes AND enforces
-// pre-launch maintenance gating.
+// Clerk middleware — protects platform routes.
 //
-// Maintenance mode (default while NEXT_PUBLIC_KARMAN_LAUNCHED !== "true"):
-//   · Every non-essential URL is rewritten to /coming-soon for
-//     visitors who aren't signed in.
-//   · Sign-in/sign-up routes stay reachable so the operator can
-//     log in. Once authenticated, all routes work normally.
-//   · Webhooks, cron handlers, and Clerk's own auth APIs stay
-//     reachable so external integrations don't break.
+// Public marketing / auth / webhook routes pass through; every other
+// route requires a signed-in user (auth.protect()).
 //
-// To go live publicly: set NEXT_PUBLIC_KARMAN_LAUNCHED="true" in
-// the Cloudflare Worker env (Settings → Variables and Secrets) and
-// redeploy. The gate switches off; the homepage + marketing pages
-// become public again.
+// NOTE: the pre-launch "coming soon" maintenance gate was removed —
+// the site is openly accessible now. NEXT_PUBLIC_KARMAN_LAUNCHED is no
+// longer consulted. (To re-introduce a launch gate later, restore the
+// rewrite-to-/coming-soon branch from git history.)
 // ============================================================
 
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
@@ -33,22 +27,9 @@ import { NextResponse, type NextRequest } from "next/server";
 const DEV_AUTH_BYPASS_ACTIVE =
   process.env.NODE_ENV !== "production" && (process.env.DEV_IMPERSONATE_CLERK_ID ?? "").length > 0;
 
-/** Routes always exempt from the maintenance gate AND auth check.
- *  Used for: the coming-soon page itself, sign-in flows, webhooks,
- *  cron triggers, public APIs that need to keep functioning. */
-const isMaintenanceExempt = createRouteMatcher([
-  "/coming-soon",
-  "/auth/sign-in(.*)",
-  "/auth/sign-up(.*)",
-  "/api/stripe/webhook", // Stripe webhooks
-  "/api/cal(.*)", // Cal.com webhooks
-  "/api/webhooks(.*)", // Slack/Zoom/etc.
-  "/api/cron(.*)", // CF cron triggers (self-auth via CRON_SECRET)
-  "/api/email/subscribe", // Coming-soon notify form posts here
-]);
-
-/** Routes that don't require auth in normal (post-launch) operation.
- *  Used only when NEXT_PUBLIC_KARMAN_LAUNCHED === "true". */
+/** Routes that don't require auth (marketing pages, auth flows,
+ *  webhooks, cron triggers, public APIs). Everything else is
+ *  protected. */
 const isPublicRoute = createRouteMatcher([
   "/",
   "/faq",
@@ -58,7 +39,6 @@ const isPublicRoute = createRouteMatcher([
   "/privacy",
   "/terms",
   "/refunds",
-  "/coming-soon",
   "/auth/sign-in(.*)",
   "/auth/sign-up(.*)",
   "/onboarding(.*)",
@@ -70,8 +50,6 @@ const isPublicRoute = createRouteMatcher([
   "/api/cron(.*)",
 ]);
 
-const LAUNCHED = process.env.NEXT_PUBLIC_KARMAN_LAUNCHED === "true";
-
 /** Bypass middleware — used only when DEV_AUTH_BYPASS_ACTIVE.
  *  Doesn't call any Clerk APIs, so a placeholder publishable key
  *  in CI doesn't crash the request pipeline. */
@@ -79,24 +57,8 @@ function bypassMiddleware(_request: NextRequest) {
   return NextResponse.next();
 }
 
-/** Real middleware — Clerk auth + maintenance gate. */
+/** Real middleware — Clerk auth. */
 const realMiddleware = clerkMiddleware(async (auth, request) => {
-  // ── Pre-launch maintenance gate ────────────────────────────
-  if (!LAUNCHED && !isMaintenanceExempt(request)) {
-    const { userId } = await auth();
-    if (!userId) {
-      // Show the coming-soon page in place of the requested URL,
-      // preserving the URL bar (rewrite, not redirect) so direct
-      // links don't bounce away.
-      const url = request.nextUrl.clone();
-      url.pathname = "/coming-soon";
-      url.search = "";
-      return NextResponse.rewrite(url);
-    }
-    // Signed in → fall through to the normal auth checks below.
-  }
-
-  // ── Normal auth flow ───────────────────────────────────────
   if (isPublicRoute(request)) {
     return NextResponse.next();
   }
