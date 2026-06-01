@@ -108,8 +108,11 @@ function JobRow({ job }: { job: PdfProcessingJob }) {
   // Derive the visible stage. `progress` arrives populated for jobs
   // run by the new daemon; older rows fall back to the status enum.
   const stage = deriveStage(job);
-  const stagePercent = STAGE_PERCENT[stage];
-  const isActive = stage !== "complete" && stage !== "failed" && stage !== "queued";
+  // Prefer the runner-computed overall percent (v2 jobs always set it);
+  // fall back to the static per-stage map, then 0 for any unknown stage.
+  const stagePercent = job.progress?.percent ?? STAGE_PERCENT[stage] ?? 0;
+  const isActive =
+    stage !== "complete" && stage !== "failed" && stage !== "queued" && stage !== "done";
 
   return (
     <article className="rounded-lg border border-slate-800 bg-slate-900/60 px-4 py-3">
@@ -142,7 +145,9 @@ function JobRow({ job }: { job: PdfProcessingJob }) {
           <div className="mt-2.5">
             <div className="mb-1 flex items-center gap-2 text-[11px]">
               <StageIcon stage={stage} />
-              <span className="font-medium text-slate-300">{STAGE_LABEL[stage]}</span>
+              <span className="font-medium text-slate-300">
+                {STAGE_LABEL[stage] ?? job.progress?.stage_label ?? stage}
+              </span>
               {isActive && job.started_at && <ElapsedTime startedAt={job.started_at} />}
               {job.progress?.message && (
                 <span className="truncate text-slate-400">— {job.progress.message}</span>
@@ -204,9 +209,14 @@ function StageIcon({ stage }: { stage: PdfJobStage }) {
   // stages so this legacy /admin/jobs view renders both row
   // generations without crashing. The newer /admin/pdf-pipeline/
   // jobs/[id] view is the preferred surface for v2 jobs.
-  const map: Record<
-    PdfJobStage,
-    { icon: React.ComponentType<{ className?: string }>; className: string; spin?: boolean }
+  // Partial — only the stages we give bespoke icons. Any stage not listed
+  // (incl. newer v2 orchestrator stages + future ones) falls back below
+  // instead of crashing the page on an undefined destructure.
+  const map: Partial<
+    Record<
+      PdfJobStage,
+      { icon: React.ComponentType<{ className?: string }>; className: string; spin?: boolean }
+    >
   > = {
     queued: { icon: Clock, className: "text-slate-400" },
     // v1 — old daemon
@@ -214,19 +224,31 @@ function StageIcon({ stage }: { stage: PdfJobStage }) {
     processing: { icon: Sparkles, className: "text-indigo-400", spin: false },
     finalizing: { icon: UploadIcon, className: "text-sky-400" },
     ingesting: { icon: Database, className: "text-violet-400" },
-    // v2 — Gemini pipeline
+    // v2 — Gemini pipeline (full 14-stage orchestrator)
     extracting: { icon: Sparkles, className: "text-indigo-400" },
     figures: { icon: Sparkles, className: "text-sky-400" },
     csv: { icon: UploadIcon, className: "text-sky-400" },
     importing: { icon: Database, className: "text-violet-400" },
+    answer_key: { icon: Download, className: "text-teal-400" },
+    crops: { icon: FileText, className: "text-sky-400" },
+    visuals: { icon: Sparkles, className: "text-violet-400" },
+    figure_structure: { icon: Sparkles, className: "text-cyan-400" },
+    math_repair: { icon: Sparkles, className: "text-amber-400" },
+    fill_gate: { icon: Clock, className: "text-slate-400" },
     filling: { icon: Sparkles, className: "text-indigo-400" },
+    qa_filling: { icon: Sparkles, className: "text-indigo-400" },
     grading: { icon: Sparkles, className: "text-amber-400" },
+    auditing: { icon: AlertTriangle, className: "text-amber-400" },
+    validating: { icon: CheckCircle2, className: "text-sky-400" },
+    publishing: { icon: UploadIcon, className: "text-emerald-400" },
     done: { icon: CheckCircle2, className: "text-emerald-400" },
     // terminal (shared)
     complete: { icon: CheckCircle2, className: "text-emerald-400" },
     failed: { icon: XCircle, className: "text-rose-400" },
   };
-  const entry = map[stage];
+  // Fallback for any stage without a bespoke icon (keeps the page from
+  // crashing on an unmapped/new stage — the original bug).
+  const entry = map[stage] ?? { icon: Sparkles, className: "text-slate-400" };
   const { icon: Icon, className } = entry;
   // Active (non-terminal, non-queued) stages get a soft pulse.
   const active =

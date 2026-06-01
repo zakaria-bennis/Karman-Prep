@@ -42,6 +42,19 @@ export type PdfJobStage =
   | "importing" // CSV → quiz_questions + answer_choices
   | "filling" // Sonnet + Haiku post-import explanations
   | "grading" // multi-vote answer-key audit
+  // v2 — full orchestrator stages (the 14-stage GitHub Actions pipeline
+  // emits all of these via job.setStage; they MUST be listed here or the
+  // admin/jobs view crashes on an unmapped stage).
+  | "answer_key"
+  | "crops"
+  | "visuals"
+  | "figure_structure"
+  | "math_repair"
+  | "fill_gate"
+  | "qa_filling"
+  | "auditing"
+  | "validating"
+  | "publishing"
   // v1 — old Claude daemon (deprecated, present in historical rows only)
   | "pulled"
   | "processing"
@@ -99,7 +112,17 @@ export const STAGE_LABEL: Record<PdfJobStage, string> = {
   csv: "Generating CSV",
   importing: "Writing to database",
   filling: "Generating explanations",
-  grading: "Validating answer keys",
+  grading: "Verifying answers",
+  answer_key: "Extracting answer key",
+  crops: "Cropping question images",
+  visuals: "Classifying visuals",
+  figure_structure: "Structuring figures",
+  math_repair: "Repairing math notation",
+  fill_gate: "Checking fill eligibility",
+  qa_filling: "QA-ing explanations",
+  auditing: "Auditing content",
+  validating: "Validating KaTeX",
+  publishing: "Publish gate",
   done: "Complete",
   // v1 — old daemon (historical)
   pulled: "Downloaded",
@@ -121,8 +144,18 @@ export const STAGE_PERCENT: Record<PdfJobStage, number> = {
   figures: 8,
   csv: 20,
   importing: 21,
-  filling: 25,
-  grading: 85,
+  filling: 65,
+  grading: 58,
+  answer_key: 16,
+  crops: 28,
+  visuals: 38,
+  figure_structure: 44,
+  math_repair: 50,
+  fill_gate: 62,
+  qa_filling: 82,
+  auditing: 88,
+  validating: 92,
+  publishing: 96,
   done: 100,
   // v1
   pulled: 5,
