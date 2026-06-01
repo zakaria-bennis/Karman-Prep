@@ -22,6 +22,7 @@ import {
   CheckCircle2,
   BarChart3,
   LineChart,
+  Shapes,
   Activity,
   TrendingDown,
   TrendingUp,
@@ -104,6 +105,12 @@ export default async function InspectorPage({ searchParams }: PageProps) {
               className="inline-flex items-center gap-1.5 rounded-md border border-slate-700 bg-slate-900/60 px-3 py-1.5 text-xs font-semibold text-slate-200 hover:bg-slate-800"
             >
               <LineChart className="h-3.5 w-3.5" /> Chart review
+            </Link>
+            <Link
+              href="/admin/questions/geometry-review"
+              className="inline-flex items-center gap-1.5 rounded-md border border-slate-700 bg-slate-900/60 px-3 py-1.5 text-xs font-semibold text-slate-200 hover:bg-slate-800"
+            >
+              <Shapes className="h-3.5 w-3.5" /> Geometry review
             </Link>
             <Link
               href="/admin/questions/dashboard"
