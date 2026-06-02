@@ -49,6 +49,7 @@ export type PdfJobStage =
   | "crops"
   | "visuals"
   | "figure_structure"
+  | "geometry_gate"
   | "math_repair"
   | "fill_gate"
   | "qa_filling"
@@ -117,6 +118,7 @@ export const STAGE_LABEL: Record<PdfJobStage, string> = {
   crops: "Cropping question images",
   visuals: "Classifying visuals",
   figure_structure: "Structuring figures",
+  geometry_gate: "Geometry render gate",
   math_repair: "Repairing math notation",
   fill_gate: "Checking fill eligibility",
   qa_filling: "QA-ing explanations",
@@ -150,6 +152,7 @@ export const STAGE_PERCENT: Record<PdfJobStage, number> = {
   crops: 28,
   visuals: 38,
   figure_structure: 44,
+  geometry_gate: 46,
   math_repair: 50,
   fill_gate: 62,
   qa_filling: 82,

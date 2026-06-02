@@ -195,6 +195,10 @@ export interface QuizQuestion {
   /** Phase 4d — structured chart data when figure_kind='chart'.
    *  See src/types/chart.ts ChartFigure for the full shape. */
   figure_chart_data: import("./chart").ChartFigure | null;
+  /** Phase 9D — structured 2D-geometry data. Rendered to students
+   *  (GeometryFigure) only when figure_kind='geometric', i.e. after the
+   *  Stage-6.6 gate confirmed the SVG render matches the screenshot. */
+  figure_geometry_data: import("@/lib/figures/geometry-svg").GeometryFigureData | null;
 }
 
 /** Admin-supplied overrides for a node's textbook + video.

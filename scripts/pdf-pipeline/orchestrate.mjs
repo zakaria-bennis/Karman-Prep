@@ -350,6 +350,26 @@ async function main() {
       ["--source-pdf", sourcePdfBasename]
     );
 
+    // Stage 6.6: v2 phase 9D — geometry render gate.
+    //
+    // For each 2D-geometry extraction from 6.5, deterministically render
+    // figure_geometry_data → SVG, rasterize it (sharp), and ask a vision
+    // model whether it's FUNCTIONALLY identical to the screenshot. Only a
+    // confident match flips figure_kind='geometric' (student sees the SVG);
+    // anything else keeps the screenshot. The vision judge is the safety
+    // net — no clean-but-wrong geometry reaches a student. tsx runner so it
+    // can import the TS renderer from @/lib.
+    await job.setStage("geometry_gate", {
+      message: "Phase 9D — promote geometry renders that match the screenshot",
+    });
+    runStage(
+      "Stage 6.6/14 — geometry render gate (v2 phase 9D)",
+      "geometry_gate",
+      "scripts/pdf-pipeline/promote-geometry.ts",
+      ["--source-pdf", sourcePdfBasename],
+      { runner: "tsx" }
+    );
+
     // v2 phase 5: math notation repair. Runs AFTER phase 3 (because the
     // 8-condition gate checks the question_crop visually) and BEFORE
     // grading (so the grader scores the repaired text, not the OCR-
