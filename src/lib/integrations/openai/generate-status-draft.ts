@@ -2,19 +2,28 @@
 // generateStatusDraft — turn a Zoom transcript into the eight
 // structured fields a recap email needs.
 //
-// Uses OpenAI gpt-4o-mini with a strict JSON schema response
-// format so we get guaranteed-valid output. Model choice:
-//   - gpt-4o-mini: ~$0.001 per recap, fast (3-8 sec). Plenty
-//     capable for this task. Upgrade to gpt-4o if quality
-//     drops on edge cases.
+// Uses DeepSeek V4 Flash (deepseek-v4-flash) via its OpenAI-compatible
+// API. DeepSeek is reached through the OpenAI SDK by overriding baseURL +
+// apiKey (DEEPSEEK_API_KEY). Cheap + fast, and well within capability for
+// a structured extraction task.
 //
-// Failure mode: if OpenAI returns garbage or the call errors,
-// the caller saves the transcript anyway and stores an error
-// marker on `bookings.status_draft`. The tutor can still write
-// the draft manually.
+// IMPORTANT — why this isn't a pure key swap: DeepSeek does NOT support
+// OpenAI's strict `response_format: { type: "json_schema" }`. It supports
+// `{ type: "json_object" }` (JSON mode), which guarantees *valid JSON* but
+// NOT that the keys match our schema. So we (a) spell the exact output
+// shape out in the prompt, and (b) coerce/validate the parsed result into
+// StatusDraft after the call (STATUS_KEYS below). Same pattern as the
+// pipeline's Kimi/DeepSeek JSON-object callers.
+//
+// Failure mode: if DeepSeek returns garbage or the call errors, the caller
+// saves the transcript anyway and stores an error marker on
+// `bookings.status_draft`. The tutor can still write the draft manually.
 // ============================================================
 
 import OpenAI from "openai";
+
+const DEEPSEEK_BASE_URL = "https://api.deepseek.com/v1";
+const DEEPSEEK_MODEL = "deepseek-v4-flash";
 
 export interface StatusDraft {
   date_and_time_of_session: string;
@@ -104,8 +113,24 @@ For "date_and_time_of_session", restate the metadata verbatim. For "date_and_tim
 
 Tone: professional, parent-facing, concise. No greetings. Direct content only.`;
 
+// DeepSeek json_object mode needs the exact shape in the prompt (it doesn't
+// take a schema like OpenAI strict mode) — and the word "JSON" must appear.
+const SCHEMA_INSTRUCTION = `
+
+Return ONLY a single JSON object with EXACTLY these eight string keys, and no others (no markdown, no commentary outside the JSON):
+{
+  "date_and_time_of_session": "",
+  "student_performance_progress": "",
+  "subjects_covered_during_session": "",
+  "specific_weak_points_or_mistakes": "",
+  "next_steps_homework_assigned": "",
+  "subjects_to_cover_next_session": "",
+  "homework_practice_before_next_session": "",
+  "date_and_time_of_next_session": ""
+}`;
+
 const SYSTEM_PROMPT = (ctx: SessionContext) =>
-  ctx.sessionType === "group" ? GROUP_PROMPT(ctx) : INDIVIDUAL_PROMPT(ctx);
+  (ctx.sessionType === "group" ? GROUP_PROMPT(ctx) : INDIVIDUAL_PROMPT(ctx)) + SCHEMA_INSTRUCTION;
 
 const USER_PROMPT = (ctx: SessionContext, transcript: string) => {
   const meta = [
@@ -123,7 +148,9 @@ const USER_PROMPT = (ctx: SessionContext, transcript: string) => {
   return `Session metadata:\n${meta}\n\nTranscript:\n${transcript}`;
 };
 
-/** Strict JSON schema — gpt-4o-mini guarantees output matches. */
+/** The output shape. Documents the contract + drives the prompt's
+ *  SCHEMA_INSTRUCTION and the post-call validation (DeepSeek json_object
+ *  mode doesn't enforce it the way OpenAI strict mode did). */
 const RESPONSE_SCHEMA = {
   type: "object",
   additionalProperties: false,
@@ -149,12 +176,17 @@ const RESPONSE_SCHEMA = {
   },
 } as const;
 
+/** The eight required keys, in order — drives post-call validation. */
+const STATUS_KEYS = RESPONSE_SCHEMA.required;
+
 let _client: OpenAI | null = null;
 function client(): OpenAI {
   if (_client) return _client;
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) throw new Error("OPENAI_API_KEY missing");
-  _client = new OpenAI({ apiKey });
+  const apiKey = process.env.DEEPSEEK_API_KEY;
+  if (!apiKey) throw new Error("DEEPSEEK_API_KEY missing");
+  // DeepSeek speaks the OpenAI chat-completions protocol — point the SDK
+  // at its base URL and use the DeepSeek key.
+  _client = new OpenAI({ apiKey, baseURL: DEEPSEEK_BASE_URL });
   return _client;
 }
 
@@ -163,25 +195,49 @@ export async function generateStatusDraft(
   context: SessionContext
 ): Promise<StatusDraft> {
   const response = await client().chat.completions.create({
-    model: "gpt-4o-mini",
+    model: DEEPSEEK_MODEL,
     messages: [
       { role: "system", content: SYSTEM_PROMPT(context) },
       { role: "user", content: USER_PROMPT(context, transcript) },
     ],
     temperature: 0.3,
-    max_tokens: 1500,
-    response_format: {
-      type: "json_schema",
-      json_schema: {
-        name: "StatusDraft",
-        strict: true,
-        schema: RESPONSE_SCHEMA,
-      },
-    },
+    // V4 Flash spends part of the budget on internal reasoning before
+    // emitting the JSON, so give it more room than gpt-4o-mini needed.
+    max_tokens: 4096,
+    response_format: { type: "json_object" },
   });
 
   const content = response.choices[0]?.message?.content;
-  if (!content) throw new Error("OpenAI returned empty response");
+  if (!content) throw new Error("DeepSeek returned empty response");
 
-  return JSON.parse(content) as StatusDraft;
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(content);
+  } catch {
+    throw new Error("DeepSeek returned non-JSON status draft");
+  }
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+    throw new Error("DeepSeek status draft was not a JSON object");
+  }
+
+  // json_object guarantees valid JSON but NOT our exact schema. Coerce each
+  // field to a trimmed string; if the model returned a fundamentally wrong
+  // shape (fewer than half the keys present), fail so the caller stores an
+  // error marker and the tutor writes the recap manually — rather than
+  // surfacing a draft that's silently mostly "TBD".
+  const obj = parsed as Record<string, unknown>;
+  const present = STATUS_KEYS.filter(
+    (k) => typeof obj[k] === "string" && (obj[k] as string).trim() !== ""
+  ).length;
+  if (present < STATUS_KEYS.length / 2) {
+    throw new Error(`DeepSeek status draft incomplete (${present}/${STATUS_KEYS.length} fields)`);
+  }
+
+  const draft = {} as Record<string, string>;
+  for (const key of STATUS_KEYS) {
+    const v = obj[key];
+    const s = typeof v === "string" ? v.trim() : v == null ? "" : String(v);
+    draft[key] = s || "TBD — confirm with tutor";
+  }
+  return draft as unknown as StatusDraft;
 }
