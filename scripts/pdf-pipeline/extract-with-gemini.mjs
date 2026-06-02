@@ -1,22 +1,48 @@
 // ============================================================
-// extract-with-gemini — first-pass replacement for the ChatGPT
-// Custom-GPT extraction step. Takes an SAT PDF, sends it to
-// Gemini 3.5 Flash with the KarmanGPT.txt schema as the system
-// prompt + a structural responseSchema enforcing the 32-column
-// shape, and writes the result to /tmp for inspection.
+// extract-with-gemini — Phase 1 question extractor.
+// (Filename is historical — the model under the hood is now Kimi
+// K2.5 via Moonshot's direct API. Kept the filename to avoid breaking
+// orchestrator references; the runner is model-agnostic underneath.)
 //
-// SCOPE — this is a FIRST-PASS TEST script, not the final
-// pipeline. It deliberately:
+// Takes an SAT PDF, uploads it to Moonshot's Files API, fetches the
+// parsed text, then streams a Kimi K2.5 completion with the dedicated
+// Stage 1 extraction system prompt (extraction-prompt.mjs →
+// loadStage1SystemPrompt: extraction-only role + canonical taxonomy) and
+// a JSON-object response_format, and writes the result to /tmp for the
+// import stage to pick up.
+//
+// MODEL HISTORY
+//   · Gemini 1.5 Flash (2024) → tripped Google's RECITATION filter
+//     on educational SAT content (finishReason:RECITATION,
+//     text_chars:0, observed on run #26322250769).
+//   · Claude Sonnet 4.6 (2025) → worked reliably but cost ~$0.79/PDF.
+//   · Gemini 3.5 Flash (May 2026) → re-tried after 2 years thinking
+//     Google fixed RECITATION. Verified empirically that it
+//     DIDN'T — same filter, with 8 citation URLs pointing at
+//     Scribd / Chinese SAT forum copies of the source PDF. 100%
+//     block rate on real SAT content. NOT VIABLE.
+//   · Kimi K2.5 via OpenRouter (May 2026) → no RECITATION block, but
+//     OpenRouter's opaque PDF-to-text layer stripped math notation
+//     and figure context. Result: math questions hallucinated as
+//     generic SAT-style filler ("In the figure above, what is x?")
+//     instead of the real PDF content. NOT VIABLE.
+//   · Kimi K2.5 via Moonshot direct API (current) → ~$0.14/PDF.
+//     Same model, different transport: Moonshot exposes the parser
+//     as a separate step (uploadMoonshotFile → fetchMoonshotFileContent),
+//     which preserves enough structure that Kimi extracts faithful
+//     content. Verified on 202406asiav2.pdf: extraction_order=57
+//     returned the real p.57 polynomial question matching what
+//     Sonnet produced. Streaming required (~15 min wall-clock).
+//
+// SCOPE
 //   · Extracts STRUCTURE ONLY (question_text, choices, correct
 //     answer, taxonomy, difficulty, passages, source metadata).
 //   · SKIPS explanations entirely — those are generated downstream
-//     by generate-per-choice-explanations.mjs (Sonnet) and the
-//     math walkthroughs by a future script.
-//   · SKIPS image extraction — figures get handled by a separate
-//     PyMuPDF pass once we've validated text/structure quality.
-//   · Writes JSON to /tmp, not CSV and not the database. The
-//     user inspects the output and decides whether to invest in
-//     building the full pipeline.
+//     by fill-explanations-v2 (Stage 10) and qa-explanations
+//     (Stage 11).
+//   · SKIPS figure rendering — Stage 2 (extract-figures.mjs)
+//     handles visual extraction.
+//   · Writes JSON to /tmp; import-json-direct (Stage 3) picks it up.
 //
 // USAGE
 //   node --env-file=.env.local \
@@ -24,14 +50,21 @@
 //     question-imports/done/202603asiav1.pdf
 //
 // COST
-//   ~$0.03 per PDF on gemini-3.5-flash (PDF tokenization is 258
-//   tokens/page; output is ~50K tokens for 98 questions sans
-//   explanations). For 100 PDFs: ~$3 total.
+//   ~$0.14 per PDF on Moonshot direct kimi-k2.5 ($0.40/M input,
+//   $1.90/M output; typical request is ~30K input — schema prompt +
+//   parsed PDF text — and ~50K output for the questions array).
+//   For 100 PDFs: ~$14 total vs ~$79 on Sonnet 4.6.
 // ============================================================
 
 import { readFileSync, writeFileSync } from "node:fs";
 import { basename, resolve } from "node:path";
-import { callClaude, QuotaExhaustedError, ParseError } from "../lib/llm-providers.mjs";
+import {
+  callMoonshot,
+  uploadMoonshotFile,
+  fetchMoonshotFileContent,
+  QuotaExhaustedError,
+  ParseError,
+} from "../lib/llm-providers.mjs";
 // Phase 8.2: canonical taxonomy comes from the generated constants
 // file. Edit src/data/curriculum/*.ts to add/rename slugs, then run
 // `npm run sync:taxonomy`. CI verifies the generated file is fresh.
@@ -43,6 +76,13 @@ import {
   CONCEPT_SLUG_VALUES as CONCEPT_SLUGS,
 } from "../lib/taxonomy.generated.mjs";
 import { analyzeCoverage, MATH_DOMAINS } from "../lib/extraction-coverage.mjs";
+import { buildUserPrompt, loadStage1SystemPrompt } from "../lib/extraction-prompt.mjs";
+import {
+  validateExtraction,
+  flagRowsNeedingReview,
+  formatValidationReport,
+  deriveTopicClusters,
+} from "../lib/extraction-validation.mjs";
 
 const pdfArg = process.argv[2];
 if (!pdfArg) {
@@ -52,8 +92,11 @@ if (!pdfArg) {
 const pdfPath = resolve(pdfArg);
 const pdfName = basename(pdfPath);
 
-const SCHEMA_PROMPT_PATH = resolve("question-imports/chatgpt/KarmanGPT.txt");
-const schemaPrompt = readFileSync(SCHEMA_PROMPT_PATH, "utf-8");
+// Active Stage 1 system prompt = the dedicated extraction-only prompt +
+// canonical taxonomy fragment (see extraction-prompt.mjs). The old
+// all-in-one question-imports/chatgpt/KarmanGPT.txt is kept on disk as a
+// legacy/manual reference but is no longer sent to the model.
+const systemPrompt = loadStage1SystemPrompt();
 
 console.log(`Reading PDF: ${pdfPath}`);
 const pdfBuf = readFileSync(pdfPath);
@@ -146,174 +189,85 @@ const responseSchema = {
   required: ["questions"],
 };
 
-const USER_PROMPT = `TASK: EXHAUSTIVELY extract EVERY solvable question from this SAT PDF.
+const USER_PROMPT = buildUserPrompt(pdfName);
 
-FILENAME: ${pdfName}
+// Model + caps:
+//   · kimi-k2.5 (Moonshot direct API, NOT via OpenRouter — see MODEL
+//     HISTORY comment above for why OpenRouter route was abandoned).
+//   · 65536 output tokens — Kimi K2.5's full output budget. The smoke
+//     PDF needs ~50K to fit 98 questions; the skip-metadata suffix
+//     below saves another ~10K by telling the model NOT to emit
+//     extraction_summary / page_coverage (we don't consume them).
+//   · Overridable via EXTRACTION_MODEL env var (e.g. kimi-k2.6).
+//     For rollback to Sonnet, set EXTRACTION_MODEL=claude-sonnet-4-6
+//     AND swap callMoonshot for callClaude (manual revert — no
+//     auto-fallback in this code path since the request shapes differ).
+const MODEL = process.env.EXTRACTION_MODEL ?? "kimi-k2.5";
+const MAX_OUTPUT_TOKENS = 65_536;
 
-EXPECTED OUTPUT SIZE: ~98 questions total. A typical SAT PDF contains 4 modules:
-  · Reading & Writing Module 1: ~27 questions
-  · Reading & Writing Module 2: ~27 questions
-  · Math Module 1: ~22 questions
-  · Math Module 2: ~22 questions
-You are NOT done until you have processed every question across all 4 modules. If your output has fewer than 80 questions, you have skipped pages — go back and extract the missed questions.
+// responseSchema (Gemini-style OpenAPI types) is kept above for any
+// future model that supports schema enforcement, but Moonshot's chat
+// completions only support response_format: { type: "json_object" }
+// — looser. Post-extraction validation (concept_slug whitelist, R&W
+// passage dedup, under-extraction guard) catches violations and flips
+// import_status to needs_review, same safety net as before.
 
-CRITICAL — DO NOT STOP EARLY:
-  · This is NOT a "give me a sample" task. Extract EVERY question.
-  · Process pages 1 through (last question page) in order. The answer-key pages are at the END of the PDF — those are the only pages to skip.
-  · Do NOT abridge, summarize, or sample. Emit one JSON object per question.
-  · You have a maxOutputTokens budget of 65536 — use what you need to be exhaustive.
-
-EXTRACTION SCOPE — first-pass test, structure only:
-
-  · DO extract per question: question_text, choice_a..d (for MC), correct_answer, difficulty (1-7), topic_cluster, passage fields (R&W only), question_format, numeric_tolerance, domain, concept_slug, answer_source, source_page, import_status, import_flag_reason.
-
-  · DO NOT extract or generate: explanation_text, explanation_a..d, hint, desmos_strategy, image_url, image_alt, content_hash. Those fields are filled by separate downstream pipelines — leave them OUT of the response entirely.
-
-R&W STRUCTURE — CRITICAL: separate the passage from the question stem.
-
-EVERY R&W question_text MUST begin with one of these canonical phrases at a sentence boundary. There are NO exceptions:
-
-  · "As used in the text"      (vocabulary-in-context)
-  · "Based on the text"        (also "Based on the texts" for cross-text)
-  · "Which"                    ("Which choice", "Which finding", etc.)
-  · "What"                     ("What choice", "What is the main idea", etc.)
-  · "How"                      (inference / comparison)
-  · "According"                (factual recall: "According to the text…")
-  · "The student"              (rhetorical synthesis: "The student wants to…")
-
-If you find yourself writing R&W question_text that begins with any other word — a passage sentence, a data point, a quoted phrase — STOP. That content belongs in the passage field, not question_text. Move it to passage and start question_text with the canonical stem starter.
-
-Common mistakes to avoid:
-  · WRONG: question_text = "Assuming P4 gave equal ratings to impressionist and cubist paintings, the graph reveals that the model predicted ____. Which choice most effectively uses data from the graph to complete the statement?"
-    RIGHT: passage = "...Assuming P4 gave equal ratings to impressionist and cubist paintings, the graph reveals that the model predicted ____."
-           question_text = "Which choice most effectively uses data from the graph to complete the statement?"
-
-  · WRONG: question_text = "The Apollo Moon landings (1969-1972) left charged particle detectors and equipment too heavy for liftoff on the Moon and produced large amounts of data. Researcher Philip Metzger continues to use Apollo's data, demonstrating that the missions' value to science ______. Which choice completes the text with the most logical and precise word or phrase?"
-    RIGHT: passage = the entire bundled prefix above
-           question_text = "Which choice completes the text with the most logical and precise word or phrase?"
-
-Other rules:
-  · passage = the body of the passage, including any blank (use "______" for the blank if present).
-  · NEVER duplicate the passage in BOTH question_text AND passage.
-  · NEVER leave passage empty for R&W questions; every R&W question has its own passage.
-
-For Math questions: passage, passage_a, passage_b, passage_intro are ALL EMPTY.
-
-For Cross-Text R&W (when the PDF shows "Text 1" + "Text 2"):
-  · passage = empty, passage_a = Text 1 body, passage_b = Text 2 body.
-
-FIGURE DETECTION — for every question, set has_figure:
-  · has_figure = true if the question's MEANING DEPENDS on a visual element you can see in the PDF:
-      - Math: graph, scatterplot, geometry diagram, coordinate plane, table of values, bar chart, histogram, function plot, regular polygon, circle diagram
-      - R&W: any chart/table embedded in the passage (info_ideas questions asking to read data from a figure, command-of-evidence-quantitative)
-      - Any question whose stem says "the figure shown", "based on the graph", "the table above", "shown in the diagram"
-  · has_figure = false if the question is solvable from text alone, even if the PDF page has decorative elements around it.
-  · When has_figure = true, ALSO set figure_alt to a 1-2 sentence description of what the figure shows (for accessibility + as a seed for downstream alt-text). Examples:
-      - "Scatterplot of 12 data points with x-axis 0–10 and y-axis 0–50; a line of best fit slopes upward."
-      - "Right triangle ABC with right angle at B, AB=3, BC=4."
-      - "Table showing 4 columns (Year, Population, Births, Deaths) and 5 rows."
-  · When has_figure = false, leave figure_alt empty.
-
-CONTINUATION PAGES — questions that span two pages (CRITICAL — do not skip these):
-
-  Some SAT questions span TWO pages because the figure plus four answer choices don't fit on one page. The pattern looks like this:
-
-    · Page N: question stem + figure + choices A, B, C   (no choice D yet)
-    · Page N+1: SAME figure + choices B, C, D            (looks like a duplicate of page N)
-
-  Page N+1 is NOT a true duplicate — it carries the missing choice D you need. AND it almost always has OTHER, unrelated questions below the duplicate section. The most common failure mode in this extractor is throwing away an entire continuation page because the TOP looked like a repeat.
-
-  When you see this pattern:
-
-  1. Merge the choices across both pages into ONE question. Source_page = the earlier page (N). All four choices A/B/C/D get filled in.
-  2. CONTINUE scanning page N+1 below the repeated figure. Every question you find there is a NEW question — emit it with source_page = N+1.
-  3. Never silently skip a page because its top half repeats the previous page.
-
-  CONCRETE EXAMPLE (this exact bug shipped in production):
-    Page 78: "The graph gives the estimated population…" + graph + choices A, B, C.
-    Page 79: same graph + choices B, C, D + Question 7 + Question 8 + Question 9.
-
-    WRONG: extract page 78 with A/B/C, treat page 79 as duplicate, skip it entirely. Result: 1 question with 3 choices, 3 other questions silently lost.
-    RIGHT: extract page 78 with all four choices A/B/C/D (D copied from page 79). Then ALSO emit Q7, Q8, Q9 from page 79 as separate questions.
-
-  · The answer-key page is at the end of the PDF. Cross-reference each question's correct_answer against it per §11 of the spec.
-
-  · Use the schema enums (domain, topic_cluster, question_format, answer_source, import_status) — every value MUST be one of the listed strings.
-
-  · concept_slug: pick from the 89 slugs listed in your system instructions §6. The schema doesn't enforce this — but every slug you emit MUST match one of the 89 exactly (we validate after).
-
-  · For each question, record the source_page (1-indexed PDF page number where the question appears).
-
-VERIFICATION BEFORE RESPONDING:
-  · Count total questions. Expected ~98. If under 95, you missed pages — go back and extract.
-  · Count math (algebra + advanced_math + geometry + data_analysis). Expected ~44. If under 42, look specifically for continuation pages you may have skipped.
-  · Count R&W (info_ideas + craft_structure + expression_ideas + conventions). Expected ~54. If under 52, look for missed pages.
-  · For every page in the question-bearing range, ask: did I extract every question on this page? Continuation pages almost always have new questions below the duplicate section.
-
-Return the result as { "questions": [ ... ] } matching the response schema.`;
-
-// Convert the Gemini-style responseSchema (UPPERCASE OpenAPI types
-// + enum on STRING) to Anthropic tool_use input_schema (lowercase
-// JSON-Schema-ish types). The two are structurally identical except
-// for the case convention and a slightly different keyword set.
-function schemaForAnthropic(s) {
-  if (s == null || typeof s !== "object") return s;
-  if (Array.isArray(s)) return s.map(schemaForAnthropic);
-  const out = {};
-  for (const [k, v] of Object.entries(s)) {
-    if (k === "type" && typeof v === "string") {
-      out.type = v.toLowerCase();
-    } else if (k === "items" || k === "properties") {
-      out[k] = schemaForAnthropic(v);
-    } else {
-      out[k] = schemaForAnthropic(v);
-    }
-  }
-  return out;
-}
-
-const toolSchema = schemaForAnthropic(responseSchema);
+// Final-guard suffix appended to the user prompt. Moonshot's
+// response_format is just "json_object" (any JSON), not a strict schema,
+// so this reinforces the single { "questions": [...] } output contract
+// the base prompt already specifies — belt-and-suspenders against stray
+// top-level keys (extraction_summary, page_coverage, etc.).
+const STAGE1_JSON_OBJECT_SUFFIX =
+  "\n\nFINAL OUTPUT REQUIREMENT FOR THIS CALL:\n" +
+  'Emit exactly one top-level JSON object:\n{ "questions": [ ... ] }\n' +
+  "Do not emit extraction_summary, page_coverage, metadata, markdown, comments, " +
+  "prose, or any other top-level keys.";
 
 const t0 = Date.now();
-console.log(`Calling claude-sonnet-4-6 with PDF + KarmanGPT schema prompt…`);
+console.log(`Uploading PDF to Moonshot Files API…`);
+let uploaded;
+try {
+  uploaded = await uploadMoonshotFile(pdfBuf, {
+    mimeType: "application/pdf",
+    filename: pdfName,
+  });
+  console.log(`  uploaded as ${uploaded.fileId} (${uploaded.bytes} bytes)`);
+} catch (err) {
+  if (err instanceof QuotaExhaustedError) {
+    console.error(`\nMoonshot quota exhausted on upload: ${err.message}`);
+    process.exit(2);
+  }
+  throw err;
+}
+
+console.log(`Fetching parsed file content…`);
+const fileText = await fetchMoonshotFileContent(uploaded.fileId);
+console.log(`  parsed text: ${(fileText.length / 1024).toFixed(1)} KB`);
+
+console.log(`Calling ${MODEL} via Moonshot direct + Stage 1 extraction prompt (streaming)…`);
 console.log(
-  `(System prompt: ${(schemaPrompt.length / 1024).toFixed(1)} KB / ~${Math.round(schemaPrompt.length / 4)} tokens)`
+  `(System prompt: ${(systemPrompt.length / 1024).toFixed(1)} KB / ~${Math.round(systemPrompt.length / 4)} tokens)`
 );
+console.log(`(Expected wall-clock: 10-20 min for streaming a ~50K-token response)`);
 
 let result;
 try {
-  result = await callClaude({
-    prompt: USER_PROMPT,
-    model: "claude-sonnet-4-6",
-    systemPrompt: schemaPrompt,
-    // pdf.buf flows through callClaude → Files API → message
-    // references file_id. Pass filename for nicer telemetry; not
-    // required.
-    pdf: { buf: pdfBuf, filename: pdfName },
-    // tool-use guarantees the response shape AND sidesteps Gemini's
-    // non-deterministic RECITATION filter (confirmed on run
-    // #26322250769 — finishReason:RECITATION, text_chars:0). Claude
-    // has no equivalent automated filter for educational SAT content.
-    toolSchema,
-    // 64K is Sonnet 4.6's max output budget. 98 questions × ~500
-    // tokens each = ~50K, well within 64K but only barely safe at
-    // 32K — empty tool calls from run #26322982553 likely caused by
-    // mid-stream truncation.
-    maxTokens: 64_000,
-    // REQUIRED for this call: with 64K maxTokens + a 30+ page PDF,
-    // expected wall-clock is 4-9 minutes, right on top of Anthropic's
-    // 10-minute non-streaming timeout. Streaming keeps the connection
-    // alive via incremental tokens and bypasses the cliff entirely.
-    stream: true,
+  result = await callMoonshot({
+    prompt: USER_PROMPT + STAGE1_JSON_OBJECT_SUFFIX,
+    model: MODEL,
+    systemPrompt,
+    fileText,
+    maxOutputTokens: MAX_OUTPUT_TOKENS,
+    // temperature: 1 (default — K2.5 rejects other values).
   });
 } catch (err) {
   if (err instanceof QuotaExhaustedError) {
-    console.error(`\nAnthropic quota exhausted: ${err.message}`);
+    console.error(`\nMoonshot quota exhausted: ${err.message}`);
     process.exit(2);
   }
   if (err instanceof ParseError) {
     const raw = err.raw ?? "(no raw available)";
-    console.error(`\nClaude returned unparseable response.`);
+    console.error(`\nMoonshot returned unparseable response.`);
     console.error(`Raw response length: ${raw.length} chars`);
     console.error("─── First 1500 chars ───");
     console.error(raw.slice(0, 1500));
@@ -321,8 +275,8 @@ try {
     console.error(raw.length > 1500 ? raw.slice(-500) : "(already shown above)");
     console.error("─── end ───");
     try {
-      writeFileSync("./claude-raw-error.txt", raw);
-      console.error("Full raw response saved to ./claude-raw-error.txt");
+      writeFileSync("./moonshot-raw-error.txt", raw);
+      console.error("Full raw response saved to ./moonshot-raw-error.txt");
     } catch {}
     process.exit(3);
   }
@@ -330,7 +284,7 @@ try {
 }
 
 const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
-console.log(`\nClaude returned in ${elapsed}s`);
+console.log(`\n${MODEL} returned in ${elapsed}s`);
 
 // Persist + summarize.
 //
@@ -363,60 +317,34 @@ if (rows.length === 0) {
   process.exit(4);
 }
 
-// Post-validation —
-// 1) concept_slug must be one of the 89 canonical (schema can't enforce
-//    because Gemini caps enums around 50 items).
-// 2) For R&W rows: question_text and passage must NOT be the same text
-//    (Flash sometimes duplicates the passage into question_text instead
-//    of using the generic stem like "Which choice completes the text...").
-const validSlugs = new Set(CONCEPT_SLUGS);
-const rwDomains = new Set(["info_ideas", "craft_structure", "expression_ideas", "conventions"]);
-let invalidSlugCount = 0;
-const invalidSlugSamples = [];
-let dupPassageCount = 0;
-const dupPassageSamples = [];
-for (const r of rows) {
-  if (!validSlugs.has(r.concept_slug)) {
-    invalidSlugCount++;
-    if (invalidSlugSamples.length < 5) {
-      invalidSlugSamples.push({ page: r.source_page, invalid_slug: r.concept_slug });
-    }
-    if (r.import_status === "ok") {
-      r.import_status = "needs_review";
-      r.import_flag_reason = `Invalid concept_slug "${r.concept_slug}" — not in 89-slug taxonomy`;
-    }
-  }
-  // R&W: detect passage/question duplication
-  const qt = (r.question_text ?? "").trim();
-  const passage = (r.passage ?? "").trim();
-  if (rwDomains.has(r.domain) && qt.length > 80 && qt.startsWith(passage.slice(0, 80))) {
-    dupPassageCount++;
-    if (dupPassageSamples.length < 5) {
-      dupPassageSamples.push({ page: r.source_page, qt_preview: qt.slice(0, 80) });
-    }
-    if (r.import_status === "ok") {
-      r.import_status = "needs_review";
-      r.import_flag_reason =
-        "question_text duplicates passage — likely R&W stem/passage split failure";
-    }
-  }
+// Normalize topic_cluster from domain first. It is 1:1 with domain, so
+// it is fully derivable — Kimi occasionally emits granular skill names
+// ("Vocabulary in Context") instead of one of the 8 canonical clusters,
+// and there is no reason to trust the model for a derivable field.
+const topicClustersFixed = deriveTopicClusters(rows);
+if (topicClustersFixed > 0) {
+  console.log(`Normalized topic_cluster from domain on ${topicClustersFixed} row(s).`);
 }
+
+// Post-extraction validation. Kimi JSON-object mode does NOT enforce
+// enums / schema / taxonomy, so we validate every row in code. Issues
+// that map obviously to a single row (invalid enum or concept_slug,
+// malformed choices, missing answer, R&W/Math passage rules, passage
+// duplicated into question_text) flip that row to needs_review;
+// aggregate problems (low counts, missing question numbers, non-
+// sequential extraction_order) surface as warnings for a human. Never
+// fabricates or deletes rows. Logic + tests live in
+// scripts/lib/extraction-validation.mjs.
+const validation = validateExtraction(rows);
+const newlyFlagged = flagRowsNeedingReview(rows, validation);
 
 writeFileSync(outPath, JSON.stringify(rows, null, 2));
 console.log(`Wrote ${rows.length} questions to ${outPath}`);
-if (invalidSlugCount > 0) {
-  console.log(`⚠ ${invalidSlugCount} rows had invalid concept_slug (auto-flagged for review):`);
-  for (const s of invalidSlugSamples) {
-    console.log(`    p${s.page}: "${s.invalid_slug}"`);
-  }
-}
-if (dupPassageCount > 0) {
-  console.log(
-    `⚠ ${dupPassageCount} R&W rows had question_text duplicating passage (auto-flagged):`
-  );
-  for (const s of dupPassageSamples) {
-    console.log(`    p${s.page}: "${s.qt_preview}..."`);
-  }
+console.log("");
+console.log("VALIDATION".padEnd(72, "─"));
+console.log(formatValidationReport(validation));
+if (newlyFlagged > 0) {
+  console.log(`  → flagged ${newlyFlagged} additional row(s) needs_review from validation`);
 }
 
 // Sanity-check distribution. MATH_DOMAINS comes from
