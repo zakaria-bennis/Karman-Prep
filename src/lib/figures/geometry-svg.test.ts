@@ -44,6 +44,24 @@ describe("buildGeometrySvg", () => {
     expect(svg).toContain(">12<"); // length marking
   });
 
+  it("renders angle-measure labels (the part the gate cares about)", () => {
+    const { svg } = buildGeometrySvg({
+      kind: "geometric",
+      shapes: [
+        {
+          kind: "triangle",
+          vertices_or_points: [
+            { label: "A", x: 0, y: 0 },
+            { label: "B", x: 100, y: 0 },
+            { label: "C", x: 0, y: 100 },
+          ],
+        },
+      ],
+      angle_markings: [{ at_vertex: "A", measure: "30°" }],
+    });
+    expect(svg).toContain("30°");
+  });
+
   it("renders a lone line segment as a polyline, not a polygon", () => {
     const { svg } = buildGeometrySvg({
       kind: "geometric",

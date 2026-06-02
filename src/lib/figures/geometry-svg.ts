@@ -161,17 +161,31 @@ export function buildGeometrySvg(data: GeometryFigureData): GeometrySvgResult {
     );
   }
 
-  // ── Right-angle markers (small square at the vertex) ──
+  // ── Angle markings: the measure label (e.g. "30°", "x°") inside the
+  //    angle, plus a right-angle square where marked. The measure text is
+  //    the part the gate cares about most — a render missing it reads as
+  //    functionally different from the screenshot. ──
   for (const am of data.angle_markings ?? []) {
-    if (!am.right_angle || !am.at_vertex) continue;
+    if (!am.at_vertex) continue;
     const v = byLabel.get(am.at_vertex);
     if (!v) continue;
-    const s = fs * 0.7;
-    const ox = v.x < cx ? s : -s;
-    const oy = v.y < cy ? s : -s;
-    parts.push(
-      `<path d="M ${v.x + ox} ${v.y} L ${v.x + ox} ${v.y + oy} L ${v.x} ${v.y + oy}" fill="none" stroke="${STROKE}" stroke-width="${sw * 0.8}" />`
-    );
+    // measure label nudged from the vertex toward the figure centre (angle
+    // labels live inside the angle).
+    if (am.measure) {
+      const tx = v.x + (cx - v.x) * 0.22;
+      const ty = v.y + (cy - v.y) * 0.22;
+      parts.push(
+        `<text x="${tx}" y="${ty}" ${FONT} font-size="${fs * 0.8}" fill="${LABEL_FILL}" text-anchor="middle" dominant-baseline="middle">${esc(am.measure)}</text>`
+      );
+    }
+    if (am.right_angle) {
+      const s = fs * 0.7;
+      const ox = v.x < cx ? s : -s;
+      const oy = v.y < cy ? s : -s;
+      parts.push(
+        `<path d="M ${v.x + ox} ${v.y} L ${v.x + ox} ${v.y + oy} L ${v.x} ${v.y + oy}" fill="none" stroke="${STROKE}" stroke-width="${sw * 0.8}" />`
+      );
+    }
   }
 
   // ── Vertex labels (offset outward from the centroid) ──
