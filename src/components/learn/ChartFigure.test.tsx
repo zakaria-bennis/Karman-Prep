@@ -177,4 +177,72 @@ describe("ChartFigure", () => {
     const desc = container.querySelector("desc");
     expect(desc?.textContent ?? "").toContain("Scatterplot");
   });
+
+  it("renders a pie chart with one path per slice and percentage labels", () => {
+    const fig = baseFigure({
+      kind: "pie",
+      x_axis: baseAxis({ label: "", min: null, max: null, tick_step: null }),
+      y_axis: baseAxis({ label: "", min: null, max: null, tick_step: null }),
+      series: [
+        {
+          kind: "pie",
+          label: null,
+          slices: [
+            { label: "Red", value: 50 },
+            { label: "Blue", value: 30 },
+            { label: "Green", value: 20 },
+          ],
+        },
+      ],
+    });
+    const { container } = render(<ChartFigure data={fig} />);
+    // One <path> per slice (pie has no axes/series paths).
+    expect(container.querySelectorAll("path").length).toBe(3);
+    expect(container.textContent).toContain("Red (50%)");
+    expect(container.textContent).toContain("Blue (30%)");
+    expect(container.querySelector("desc")?.textContent ?? "").toContain("Pie chart");
+  });
+
+  it("renders a boxplot with a q1–q3 rect, whisker/median lines, and the value axis", () => {
+    const fig = baseFigure({
+      kind: "boxplot",
+      x_axis: baseAxis({ label: "Score", min: 0, max: 100, tick_step: 20 }),
+      y_axis: baseAxis({ label: "", min: null, max: null, tick_step: null }),
+      series: [
+        {
+          kind: "boxplot",
+          label: null,
+          boxes: [{ category: null, min: 10, q1: 30, median: 50, q3: 70, max: 90 }],
+        },
+      ],
+    });
+    const { container } = render(<ChartFigure data={fig} />);
+    // Exactly one box rect (q1–q3).
+    expect(container.querySelectorAll("rect").length).toBe(1);
+    // whisker + 2 caps + median + axis line + ticks → several <line>s.
+    expect(container.querySelectorAll("line").length).toBeGreaterThanOrEqual(5);
+    expect(container.textContent).toContain("Score");
+    expect(container.querySelector("desc")?.textContent ?? "").toContain("Box-and-whisker");
+  });
+
+  it("renders one box rect per group for a multi-box boxplot", () => {
+    const fig = baseFigure({
+      kind: "boxplot",
+      x_axis: baseAxis({ label: "Score", min: 0, max: 100, tick_step: 20 }),
+      series: [
+        {
+          kind: "boxplot",
+          label: null,
+          boxes: [
+            { category: "Class A", min: 10, q1: 30, median: 50, q3: 70, max: 90 },
+            { category: "Class B", min: 20, q1: 40, median: 55, q3: 75, max: 95 },
+          ],
+        },
+      ],
+    });
+    const { container } = render(<ChartFigure data={fig} />);
+    expect(container.querySelectorAll("rect").length).toBe(2);
+    expect(container.textContent).toContain("Class A");
+    expect(container.textContent).toContain("Class B");
+  });
 });

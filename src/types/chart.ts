@@ -26,7 +26,13 @@
 
 /** Top-level discriminator. Subject-coding lookup uses the
  *  question's subject; chart_kind is purely visual layout. */
-export type ChartKind = "scatterplot" | "line_graph" | "bar_chart" | "function_plot";
+export type ChartKind =
+  | "scatterplot"
+  | "line_graph"
+  | "bar_chart"
+  | "function_plot"
+  | "boxplot"
+  | "pie";
 
 export interface ChartAxis {
   /** Human-readable label, e.g. "Time (seconds)" or "Score". Empty
@@ -87,7 +93,38 @@ export interface FunctionSeries {
   domain: [number, number] | null;
 }
 
-export type ChartSeries = ScatterSeries | LineSeries | BarSeries | FunctionSeries;
+export interface BoxplotSeries {
+  kind: "boxplot";
+  label: string | null;
+  /** One box per group. Five-number summary in the value-axis numeric
+   *  space. Most SAT boxplots have a single box on a number line; multiple
+   *  boxes compare groups (drawn as stacked horizontal rows). */
+  boxes: Array<{
+    /** Group label shown beside the box, or null for a lone number-line box. */
+    category: string | null;
+    min: number;
+    q1: number;
+    median: number;
+    q3: number;
+    max: number;
+  }>;
+}
+
+export interface PieSeries {
+  kind: "pie";
+  label: string | null;
+  /** Slices; the renderer derives each angle from the slice's share of the
+   *  total, so `value` can be a raw count or a percentage. */
+  slices: Array<{ label: string; value: number }>;
+}
+
+export type ChartSeries =
+  | ScatterSeries
+  | LineSeries
+  | BarSeries
+  | FunctionSeries
+  | BoxplotSeries
+  | PieSeries;
 
 export interface ChartFigure {
   /** Discriminator for the dominant visual layout. */

@@ -91,6 +91,49 @@ describe("validateChartData — accepts valid charts", () => {
     expect(r.ok).toBe(true);
   });
 
+  it("accepts a boxplot with a five-number-summary box", () => {
+    const r = validateChartData({
+      is_chart: true,
+      kind: "boxplot",
+      x_axis: { label: "Score", min: 0, max: 100, tick_step: 20 },
+      y_axis: { label: "", min: null, max: null, tick_step: null },
+      show_grid: true,
+      series: [
+        {
+          kind: "boxplot",
+          label: null,
+          boxes: [{ category: null, min: 10, q1: 30, median: 50, q3: 70, max: 90 }],
+        },
+      ],
+      confidence: 0.9,
+    });
+    expect(r.ok).toBe(true);
+    expect(r.data?.kind).toBe("boxplot");
+  });
+
+  it("accepts a pie chart with slices", () => {
+    const r = validateChartData({
+      is_chart: true,
+      kind: "pie",
+      x_axis: { label: "", min: null, max: null, tick_step: null, categories: null },
+      y_axis: { label: "", min: null, max: null, tick_step: null, categories: null },
+      show_grid: false,
+      series: [
+        {
+          kind: "pie",
+          label: null,
+          slices: [
+            { label: "A", value: 60 },
+            { label: "B", value: 40 },
+          ],
+        },
+      ],
+      confidence: 0.92,
+    });
+    expect(r.ok).toBe(true);
+    expect(r.data?.kind).toBe("pie");
+  });
+
   it("clamps an out-of-range confidence", () => {
     const r = validateChartData({ ...scatter, confidence: 1.5 });
     expect(r.ok).toBe(true);
@@ -106,7 +149,7 @@ describe("validateChartData — rejects broken charts", () => {
   });
 
   it("rejects an unknown kind", () => {
-    const r = validateChartData({ ...scatter, kind: "pie" });
+    const r = validateChartData({ ...scatter, kind: "donut" });
     expect(r.ok).toBe(false);
     expect(r.errors.some((e) => e.startsWith("invalid_kind"))).toBe(true);
   });
@@ -143,6 +186,26 @@ describe("validateChartData — rejects broken charts", () => {
       confidence: 0.9,
     });
     expect(badFn.errors).toContain("function_series_bad_expression");
+
+    const badBox = validateChartData({
+      is_chart: true,
+      kind: "boxplot",
+      x_axis: { min: 0, max: 100 },
+      y_axis: { label: "" },
+      series: [{ kind: "boxplot", boxes: [] }], // no boxes
+      confidence: 0.9,
+    });
+    expect(badBox.errors).toContain("boxplot_series_missing_boxes");
+
+    const badPie = validateChartData({
+      is_chart: true,
+      kind: "pie",
+      x_axis: { label: "" },
+      y_axis: { label: "" },
+      series: [{ kind: "pie" }], // no slices
+      confidence: 0.9,
+    });
+    expect(badPie.errors).toContain("pie_series_missing_slices");
   });
 });
 
@@ -199,8 +262,15 @@ describe("deriveChartComplexity + chartAltText", () => {
 });
 
 describe("constants + prompt", () => {
-  it("exposes the four renderer-supported kinds + the publish thresholds", () => {
-    expect(CHART_KINDS).toEqual(["scatterplot", "line_graph", "bar_chart", "function_plot"]);
+  it("exposes the renderer-supported kinds + the publish thresholds", () => {
+    expect(CHART_KINDS).toEqual([
+      "scatterplot",
+      "line_graph",
+      "bar_chart",
+      "function_plot",
+      "boxplot",
+      "pie",
+    ]);
     expect(CHART_AUTO_PUBLISH_THRESHOLD).toBe(0.8);
     // Coordinate graphs (9C) are math-sensitive → a stricter gate.
     expect(GRAPH_AUTO_PUBLISH_THRESHOLD).toBeGreaterThan(CHART_AUTO_PUBLISH_THRESHOLD);

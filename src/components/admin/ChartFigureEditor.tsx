@@ -379,8 +379,13 @@ function SeriesEditor({
           xAxisCategories={xAxisCategories}
           onChange={(bars) => onChange({ ...series, bars })}
         />
-      ) : (
+      ) : series.kind === "function" ? (
         <EquationInput series={series} onChange={(next) => onChange(next)} />
+      ) : (
+        <p className="mt-1.5 text-[11px] text-slate-400">
+          {series.kind === "boxplot" ? "Box-and-whisker" : "Pie"} data isn&apos;t editable in this
+          form yet — edit the underlying JSON directly.
+        </p>
       )}
       {/* Show a hint when chart_kind and series kind don't align —
           the editor coerces on kind change but a manually-added
@@ -532,6 +537,10 @@ function blankSeriesFor(kind: ChartKind): ChartSeries {
         expression: { kind: "linear", m: 1, b: 0 },
         domain: null,
       };
+    case "boxplot":
+      return { kind: "boxplot", label: null, boxes: [] };
+    case "pie":
+      return { kind: "pie", label: null, slices: [] };
   }
 }
 
