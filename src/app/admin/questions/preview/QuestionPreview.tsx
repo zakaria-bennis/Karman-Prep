@@ -16,6 +16,9 @@ import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Check } from "lucide-react";
 import MathText from "@/components/learn/MathText";
+import QuestionTable from "@/components/learn/QuestionTable";
+import ChartFigure from "@/components/learn/ChartFigure";
+import GeometryFigure from "@/components/learn/GeometryFigure";
 import { cn } from "@/lib/utils";
 import type { QuizQuestionWithChoices, AnswerLetter } from "@/types/quiz";
 import { EditableMathText } from "./EditableMathText";
@@ -303,13 +306,38 @@ export function QuestionPreview({
     </motion.div>
   );
 
-  // Quiet tinted card matching the QuizEngine treatment.
-  const hasFigure = !!q.image_url;
-  const figureCard = hasFigure ? (
+  // Figure card — mirror the student QuizEngine's native-figure dispatch
+  // exactly so preview shows what a student actually sees:
+  //   figure_kind='table'     → QuestionTable (HTML)
+  //   figure_kind='chart'     → ChartFigure (SVG)
+  //   figure_kind='geometric' → GeometryFigure (SVG, post-gate)
+  //   else                    → the raster image_url screenshot.
+  const isNativeTable = q.figure_kind === "table" && q.figure_table_data;
+  const isNativeChart = q.figure_kind === "chart" && q.figure_chart_data;
+  const isNativeGeometry = q.figure_kind === "geometric" && q.figure_geometry_data;
+  const hasFigure = !!q.image_url || isNativeTable || isNativeChart || isNativeGeometry;
+  const figureCard = isNativeTable ? (
+    <div className="mb-6 flex justify-center">
+      <QuestionTable data={q.figure_table_data!} />
+    </div>
+  ) : isNativeChart ? (
+    <div className="mb-6 flex justify-center">
+      <ChartFigure
+        data={q.figure_chart_data!}
+        subject={q.subject ?? null}
+        alt={q.image_alt ?? undefined}
+        className="max-w-2xl"
+      />
+    </div>
+  ) : isNativeGeometry ? (
+    <div className="mb-6 flex justify-center">
+      <GeometryFigure data={q.figure_geometry_data!} className="max-w-2xl" />
+    </div>
+  ) : q.image_url ? (
     <figure className="mb-6 rounded-xl border border-slate-700/50 bg-slate-200 p-3 shadow-md shadow-black/40">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src={q.image_url!}
+        src={q.image_url}
         alt={q.image_alt ?? ""}
         className="mx-auto block max-h-[28rem] w-auto rounded object-contain"
       />

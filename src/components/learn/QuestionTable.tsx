@@ -46,22 +46,22 @@ export default function QuestionTable({ data, renderMath = true, className }: Pr
   // it as the heading for the rest of the row (and the bronze-accent style).
   const hasRowHeaders = Boolean(header_row && header_row.length > 1);
   const rowLabelClass =
-    "border-b border-[#3B3426]/40 px-3 py-2 text-left font-sans text-[13px] font-normal text-[#B8B0A1]";
+    "border-b border-slate-800 px-3 py-2 text-left font-sans text-[13px] font-normal text-sky-300";
   const cellClass =
-    "border-b border-[#3B3426]/40 px-3 py-2 text-center font-sans text-[13px] text-[#F3ECDD]";
+    "border-b border-slate-800 px-3 py-2 text-center font-sans text-[13px] text-sky-100";
 
   return (
     <figure
       aria-label={caption ? undefined : "Question data table"}
       className={cn(
-        // Container: card surface, bronze frame, generous breathing room
-        "my-4 inline-block max-w-full rounded-lg border border-[#3B3426] bg-[#171611] px-5 py-4 shadow-[0_1px_0_0_rgba(195,171,106,0.08)_inset]",
+        // Container: navy surface matching the app bg, slate frame.
+        "my-4 inline-block max-w-full rounded-lg border border-slate-800 bg-[#0a0f1e] px-5 py-4 shadow-[0_4px_16px_-8px_rgba(0,0,0,0.5)]",
         className
       )}
     >
       <table className="w-full border-collapse text-sm">
         {caption && (
-          <caption className="mb-3 caption-top text-center font-serif text-[15px] italic leading-snug text-[#F3ECDD]">
+          <caption className="mb-3 caption-top text-center font-serif text-[15px] italic leading-snug text-sky-200">
             {renderCell(caption, "caption")}
           </caption>
         )}
@@ -73,8 +73,8 @@ export default function QuestionTable({ data, renderMath = true, className }: Pr
                   key={`h-${i}`}
                   scope="col"
                   className={cn(
-                    "border-b border-[#3B3426] px-3 py-2 text-center font-serif text-[13px] font-normal leading-tight text-[#F3ECDD]",
-                    i > 0 && "border-l border-[#3B3426]/60"
+                    "border-b border-slate-700 px-3 py-2 text-center font-serif text-[13px] font-normal leading-tight text-sky-200",
+                    i > 0 && "border-l border-slate-800"
                   )}
                 >
                   {renderCell(h, `head-${i}`)}
@@ -94,7 +94,7 @@ export default function QuestionTable({ data, renderMath = true, className }: Pr
                 ) : (
                   <td
                     key={`r-${ri}-c-${ci}`}
-                    className={cn(cellClass, ci > 0 && "border-l border-[#3B3426]/40")}
+                    className={cn(cellClass, ci > 0 && "border-l border-slate-800")}
                   >
                     {renderCell(cell, `r-${ri}-c-${ci}`)}
                   </td>
@@ -108,7 +108,7 @@ export default function QuestionTable({ data, renderMath = true, className }: Pr
             <tr>
               <td
                 colSpan={header_row?.length || rows[0]?.length || 1}
-                className="pt-3 text-center text-[11px] italic text-[#B8B0A1]"
+                className="pt-3 text-center text-[11px] italic text-sky-300"
               >
                 {renderCell(footer_note, "footer")}
               </td>

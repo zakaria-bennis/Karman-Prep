@@ -32,11 +32,13 @@
 //
 // Idempotent: only touches rows where figure_quality IS NULL (the
 // migration's idx_quiz_questions_figure_pending_structure predicate).
+// Pass --force to RE-process rows that already have figure_quality (used
+// after a prompt improvement, to re-extract figures that under-performed).
 //
 // USAGE
 //   node --env-file=.env.local scripts/pdf-pipeline/extract-figure-structure.mjs \
 //     --source-pdf 202605asiav1.pdf [--limit N] [--dry-run] [--no-llm] \
-//     [--question-id <uuid>] [--model gemini-2.5-flash]
+//     [--question-id <uuid>] [--model gemini-2.5-flash] [--force]
 //
 // COST  ~1 classify + (tables only) 1 extract Gemini Flash call per
 //       figure row. ~$0.26 / PDF (proposal §"Cost").
@@ -75,6 +77,9 @@ import { fetchImageBuffer, FETCH_OUTCOME } from "../lib/fetch-image.mjs";
 const args = process.argv.slice(2);
 const DRY_RUN = args.includes("--dry-run");
 const NO_LLM = args.includes("--no-llm");
+// --force re-processes rows that already carry figure_quality (otherwise the
+// run is idempotent and skips them). Use after a prompt/renderer change.
+const FORCE = args.includes("--force");
 const flagVal = (name) => {
   const i = args.indexOf(`--${name}`);
   return i >= 0 && args[i + 1] ? args[i + 1] : null;
@@ -118,14 +123,22 @@ function asObject(resp) {
   return null;
 }
 
-async function visionJson(prompt, image, model = MODEL, maxOutputTokens = 4096) {
+// thinkingBudget: Pro's internal "thinking" tokens count against
+// maxOutputTokens, and on a demanding prompt Pro will think right up to the
+// cap and emit ZERO output (finishReason MAX_TOKENS, text_chars 0). Pass an
+// explicit budget BELOW maxOutputTokens so output always has room. Flash
+// defaults to 0 (thinking off); Pro defaults to model-decides (null) unless
+// the caller passes a cap.
+async function visionJson(prompt, image, model = MODEL, maxOutputTokens = 4096, thinkingBudget) {
+  const resolvedThinking =
+    thinkingBudget !== undefined ? thinkingBudget : model.includes("flash") ? 0 : null;
   const resp = await callGemini({
     prompt,
     image,
     model,
     json: true,
     maxOutputTokens,
-    ...(model.includes("flash") ? { thinkingBudget: 0 } : {}),
+    ...(resolvedThinking != null ? { thinkingBudget: resolvedThinking } : {}),
   });
   return asObject(resp);
 }
@@ -136,8 +149,9 @@ async function selectRows() {
   let q = supabase.from("quiz_questions").select(SELECT).not("image_url", "is", null);
   if (QUESTION_ID) q = q.eq("id", QUESTION_ID);
   else if (SOURCE_PDF) q = q.eq("source_pdf", SOURCE_PDF);
-  // Idempotent: skip rows already structure-enriched.
-  q = q.is("figure_quality", null);
+  // Idempotent: skip rows already structure-enriched — unless --force, which
+  // re-runs them (e.g. to pick up an improved extraction prompt).
+  if (!FORCE) q = q.is("figure_quality", null);
   if (LIMIT) q = q.limit(LIMIT);
   const { data, error } = await q;
   if (error) throw error;
@@ -239,8 +253,11 @@ async function enrichChart(row, image, classification) {
   let parsed;
   try {
     // Bigger output budget than tables — a dense ChartFigure (many points)
-    // can exceed 4096 with Pro's thinking and truncate to invalid JSON.
-    parsed = asObject(await visionJson(CHART_EXTRACT_PROMPT, image, CHART_MODEL, 8192));
+    // can exceed 4096 with Pro's thinking and truncate to invalid JSON. A
+    // generous output cap (18432, billed on actual usage) with an 8192
+    // thinking hint stops Pro starving the JSON (MAX_TOKENS / 0 chars), the
+    // same failure the geometry path hit.
+    parsed = asObject(await visionJson(CHART_EXTRACT_PROMPT, image, CHART_MODEL, 18432, 8192));
   } catch (err) {
     // Pro sometimes returns empty/unparseable content (RECITATION / safety /
     // token exhaustion), especially on dense graphs. Keep the screenshot,
@@ -328,7 +345,12 @@ async function enrichGeometry(row, image, classification) {
   const prompt = kind === "3d_shape" ? SHAPE_3D_EXTRACT_PROMPT : GEOMETRY_EXTRACT_PROMPT;
   let parsed;
   try {
-    parsed = asObject(await visionJson(prompt, image, CHART_MODEL, 8192));
+    // The improved geometry prompt makes Pro think hard — observed ~10.5K
+    // thinking tokens — and it overshoots the budget HINT, so the real
+    // protection is a generous output cap above it. maxOutputTokens is a cap
+    // (billed on actual usage), so the headroom is free; 18432 eliminates the
+    // MAX_TOKENS / 0-char starvation the 8192 cap caused.
+    parsed = asObject(await visionJson(prompt, image, CHART_MODEL, 18432, 8192));
   } catch (err) {
     await writeRow(row.id, {
       figure_extraction_model: CHART_MODEL,
@@ -401,10 +423,12 @@ async function enrichDeferred(row, classification) {
 
 async function main() {
   console.log(
-    `Phase 9A–9E — extract-figure-structure (classify+table: ${MODEL}, chart/graph/geo: ${CHART_MODEL}${DRY_RUN ? ", dry-run" : ""})`
+    `Phase 9A–9E — extract-figure-structure (classify+table: ${MODEL}, chart/graph/geo: ${CHART_MODEL}${DRY_RUN ? ", dry-run" : ""}${FORCE ? ", FORCE re-process" : ""})`
   );
   const rows = await selectRows();
-  console.log(`  ${rows.length} figure-bearing row(s) pending structure enrichment`);
+  console.log(
+    `  ${rows.length} figure-bearing row(s) ${FORCE ? "to re-process" : "pending structure enrichment"}`
+  );
   if (rows.length === 0 || NO_LLM) {
     if (NO_LLM) console.log("  --no-llm: not calling the model.");
     return;

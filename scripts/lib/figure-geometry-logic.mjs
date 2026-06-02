@@ -50,14 +50,24 @@ export const GEOMETRY_EXTRACT_PROMPT = `You are looking at a figure cropped from
 
 If it is NOT 2D geometry (a data table, a coordinate-plane chart/graph, a 3D solid, a photo, etc.), return {"is_geometry": false}.
 
-If it IS, extract its structure. Read labels and markings faithfully; do NOT invent measures that aren't shown. Use KaTeX for any math in values (e.g. $30^\\circ$, $5\\sqrt{2}$). Return strict JSON only:
+If it IS, extract its structure so it can be RE-DRAWN faithfully. Follow these rules exactly:
+
+COORDINATES (required): give every vertex/point estimated pixel coordinates (x, y) read off the image — treat the crop as roughly 500 wide by its visible height, origin top-left, y increasing downward. NEVER use null for x or y; estimate the position even if approximate. A faithful re-drawing is impossible without coordinates.
+
+SHAPES, not loose points: emit the actual CONNECTED shapes — triangle / quadrilateral / polygon / line_segment / circle — each with its vertices in drawing order. Do NOT dump isolated "point" shapes when the figure has lines. Example: two parallel lines cut by a transversal = THREE "line_segment" shapes (each spanning its two visible endpoints), not a scatter of points.
+
+LABELS — only what is printed: use ONLY vertex/point labels that actually appear in the figure. If a point is unlabeled, set its label to null. NEVER invent labels (no "V1", "V2", "P1") — an invented label is worse than none.
+
+MARKINGS — capture every one: include EVERY angle measure and EVERY length shown. If two angles are both marked (e.g. both "x°"), include BOTH entries. Do NOT invent measures that aren't shown. Use KaTeX for math in values (e.g. $30^\\circ$, $5\\sqrt{2}$).
+
+Return strict JSON only:
 
 {
   "is_geometry": true,
   "shapes": [
     { "kind": "triangle" | "quadrilateral" | "circle" | "line_segment" | "polygon" | "arc" | "point" | "other",
       "label": "<e.g. 'ABC' or null>",
-      "vertices_or_points": [ { "label": "A", "x": <num or null>, "y": <num or null> }, ... ] }
+      "vertices_or_points": [ { "label": "A" or null, "x": <number>, "y": <number> }, ... ] }
   ],
   "angle_markings": [ { "at_vertex": "A", "measure": "<e.g. '30°' or null>", "right_angle": true | false } ],
   "length_markings": [ { "on_segment": ["A", "B"], "value": "<e.g. '5' or null>" } ],

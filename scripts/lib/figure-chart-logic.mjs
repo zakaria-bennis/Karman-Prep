@@ -14,13 +14,14 @@
 // extracted_by / extracted_at — the caller stamps provenance (the model +
 // timestamp) so this stays a pure function (no Date.now in the lib).
 
-/** The four chart kinds ChartFigure.tsx renders. (Boxplot / pie have no
- *  renderer yet — proposal defers them.) */
+/** The chart kinds ChartFigure.tsx renders. */
 export const CHART_KINDS = Object.freeze([
   "scatterplot",
   "line_graph",
   "bar_chart",
   "function_plot",
+  "boxplot",
+  "pie",
 ]);
 
 /** Confidence at/above which a chart auto-publishes (figure_kind='chart').
@@ -46,13 +47,16 @@ const FUNCTION_EXPRESSION_KINDS = Object.freeze([
 
 // Ported verbatim from extract-chart-data.mjs (Phase 4d) — the schema
 // lives in src/types/chart.ts but the model only sees this prompt.
-export const CHART_EXTRACT_PROMPT = `You are looking at a figure extracted from an SAT practice test PDF. Decide whether it is a COORDINATE-PLANE CHART of one of these four types:
+export const CHART_EXTRACT_PROMPT = `You are looking at a figure extracted from an SAT practice test PDF. Decide whether it is a DATA CHART of one of these types:
 
   · "scatterplot"   — a collection of dots, no lines connecting them
   · "line_graph"    — dots connected by line segments (possibly multiple series)
   · "bar_chart"     — vertical or horizontal bars with categorical x-axis
                        (treat histograms as bar_chart with numeric categories)
   · "function_plot" — a smooth curve representing y = f(x) (e.g. parabola, line)
+  · "boxplot"       — a box-and-whisker plot on a number line (one or more boxes,
+                       each with min, quartile 1, median, quartile 3, max)
+  · "pie"           — a circle split into proportional slices (pie / circle graph)
 
 If it is NOT one of these (geometry diagram, 3D solid, table, photo, raw equation, etc.), return {"is_chart": false}.
 
@@ -62,7 +66,7 @@ Return strict JSON matching this exact shape:
 
 {
   "is_chart": true,
-  "kind": "scatterplot" | "line_graph" | "bar_chart" | "function_plot",
+  "kind": "scatterplot" | "line_graph" | "bar_chart" | "function_plot" | "boxplot" | "pie",
   "title": "<title above the chart, or null>",
   "x_axis": {
     "label": "<x-axis label, or empty string>",
@@ -72,6 +76,8 @@ Return strict JSON matching this exact shape:
     "categories": ["A", "B", "C"] | null   // only for bar_chart; mutually exclusive with min/max
   },
   "y_axis": { ...same shape... },
+  // boxplot: put the value-axis range (min/max/tick_step) on x_axis; leave y_axis empty.
+  // pie: leave both axes empty ({"label":"","min":null,"max":null,"tick_step":null,"categories":null}).
   "show_grid": true | false,
   "series": [
     // SCATTER:
@@ -89,7 +95,14 @@ Return strict JSON matching this exact shape:
                    | { "kind": "quadratic", "a": <num>, "b": <num>, "c": <num> }
                    | { "kind": "absolute_value", "a": <num>, "h": <num>, "k": <num> }
                    | { "kind": "exponential", "a": <num>, "b": <num> },
-      "domain": [<xLo>, <xHi>] | null }
+      "domain": [<xLo>, <xHi>] | null },
+    // BOXPLOT (five-number summary per box, in value-axis units):
+    { "kind": "boxplot", "label": "<name or null>",
+      "boxes": [{ "category": "<group label or null>",
+                  "min": <num>, "q1": <num>, "median": <num>, "q3": <num>, "max": <num> }] },
+    // PIE (each slice's share of the whole; value can be a count or a percent):
+    { "kind": "pie", "label": "<name or null>",
+      "slices": [{ "label": "Category A", "value": <num> }] }
   ],
   "confidence": <0.0 — 1.0>,
   "extractor_note": "<short note explaining any judgement calls, or null>"
@@ -105,6 +118,8 @@ CRITICAL:
   · Do NOT invent data points if the image is unclear — set lower confidence instead.
   · For function_plot, only emit if the curve clearly matches one of the 4 supported expression families. Otherwise treat as scatterplot (sample 8-12 points along the curve).
   · For bar_chart, set categories[] on x_axis AND make sure every bar's "category" matches one entry.
+  · For boxplot, report values in ascending order per box (min ≤ q1 ≤ median ≤ q3 ≤ max), read off the number line; put that number line's range on x_axis.
+  · For pie, read each slice's value or percentage; positive values only (the renderer converts to proportions). Put the slice text in "label".
   · Don't transcribe the question text or answer choices into the chart data.`;
 
 /**
@@ -168,6 +183,12 @@ export function validateChartData(parsed) {
       if (s?.kind === "function" && !FUNCTION_EXPRESSION_KINDS.includes(s?.expression?.kind)) {
         errors.push("function_series_bad_expression");
       }
+      if (s?.kind === "boxplot" && (!Array.isArray(s.boxes) || s.boxes.length === 0)) {
+        errors.push("boxplot_series_missing_boxes");
+      }
+      if (s?.kind === "pie" && (!Array.isArray(s.slices) || s.slices.length === 0)) {
+        errors.push("pie_series_missing_slices");
+      }
     }
   }
 
@@ -218,6 +239,9 @@ export function deriveChartComplexity(data) {
   for (const s of series) {
     if (Array.isArray(s?.points)) elements += s.points.length;
     else if (Array.isArray(s?.bars)) elements += s.bars.length;
+    else if (Array.isArray(s?.slices)) elements += s.slices.length;
+    else if (Array.isArray(s?.boxes))
+      elements += s.boxes.length * 5; // five-number summary
     else if (s?.kind === "function") elements += 3; // a curve ≈ a few key points
   }
   if (elements < 8) return "simple";
@@ -238,9 +262,19 @@ export function chartAltText(data) {
   const series = Array.isArray(data?.series) ? data.series : [];
   const count = series.reduce(
     (n, s) =>
-      n + (Array.isArray(s?.points) ? s.points.length : Array.isArray(s?.bars) ? s.bars.length : 0),
+      n +
+      (Array.isArray(s?.points)
+        ? s.points.length
+        : Array.isArray(s?.bars)
+          ? s.bars.length
+          : Array.isArray(s?.slices)
+            ? s.slices.length
+            : Array.isArray(s?.boxes)
+              ? s.boxes.length
+              : 0),
     0
   );
-  const dataNote = count > 0 ? `, ${count} data point${count === 1 ? "" : "s"}` : "";
+  const unit = data?.kind === "pie" ? "slice" : data?.kind === "boxplot" ? "box" : "data point";
+  const dataNote = count > 0 ? `, ${count} ${unit}${count === 1 ? "" : "s"}` : "";
   return `${lead}A ${kindWord}${xl}${yl}${dataNote}.`;
 }

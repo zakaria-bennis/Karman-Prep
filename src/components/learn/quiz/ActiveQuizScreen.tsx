@@ -14,6 +14,7 @@ import type { QuizQuestionWithChoices } from "@/types/quiz";
 import MathText from "../MathText";
 import QuestionTable from "../QuestionTable";
 import ChartFigure from "../ChartFigure";
+import GeometryFigure from "../GeometryFigure";
 import FigureFrame from "../FigureFrame";
 import { ProgressDot } from "./ProgressDot";
 
@@ -314,13 +315,16 @@ export function ActiveQuizScreen({
         // Native-figure dispatch:
         //   Phase 4a — figure_kind='table' uses QuestionTable.
         //   Phase 4d — figure_kind='chart' uses ChartFigure (SVG).
+        //   Phase 9D — figure_kind='geometric' uses GeometryFigure (SVG),
+        //     reached only after the Stage-6.6 gate confirmed the render
+        //     matches the screenshot.
         //   Default — raster image_url crop via FigureFrame.
-        // ChartFigure renders inside its own styled SVG box so we
-        // skip the white-bg FigureFrame card for it (same pattern
-        // as the native table).
+        // ChartFigure/GeometryFigure render inside their own styled boxes
+        // so we skip the white-bg FigureFrame card for them.
         const isNativeTable = q.figure_kind === "table" && q.figure_table_data;
         const isNativeChart = q.figure_kind === "chart" && q.figure_chart_data;
-        const hasFigure = !!q.image_url || isNativeTable || isNativeChart;
+        const isNativeGeometry = q.figure_kind === "geometric" && q.figure_geometry_data;
+        const hasFigure = !!q.image_url || isNativeTable || isNativeChart || isNativeGeometry;
         const figureCard = isNativeTable ? (
           <div className="mb-6 flex justify-center">
             <QuestionTable data={q.figure_table_data!} />
@@ -333,6 +337,10 @@ export function ActiveQuizScreen({
               alt={q.image_alt ?? undefined}
               className="max-w-2xl"
             />
+          </div>
+        ) : isNativeGeometry ? (
+          <div className="mb-6 flex justify-center">
+            <GeometryFigure data={q.figure_geometry_data!} className="max-w-2xl" />
           </div>
         ) : q.image_url ? (
           <FigureFrame
