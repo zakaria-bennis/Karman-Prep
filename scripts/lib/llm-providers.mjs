@@ -36,8 +36,11 @@
 import { Agent, setGlobalDispatcher } from "undici";
 setGlobalDispatcher(
   new Agent({
-    headersTimeout: 15 * 60 * 1000, // 15 min — Gemini long-tail
-    bodyTimeout: 15 * 60 * 1000,
+    // 30 min — covers Moonshot Kimi K2.5 streaming, which takes
+    // 13-15 min for ~30K output tokens on the SAT extraction
+    // workload. Headroom for slower runs / GitHub Actions latency.
+    headersTimeout: 30 * 60 * 1000,
+    bodyTimeout: 30 * 60 * 1000,
     connectTimeout: 60 * 1000, // 60 s for DNS + TCP handshake
     keepAliveTimeout: 60 * 1000,
     keepAliveMaxTimeout: 5 * 60 * 1000,
@@ -83,7 +86,9 @@ export class ParseError extends Error {
 //
 // Capabilities exposed:
 //   · image input via inline_data (JPEG/PNG)
-//   · PDF input via inline_data (mime application/pdf)
+//   · PDF input via inline_data (mime application/pdf) OR file_data
+//     (a caller-supplied pre-uploaded file URI, for PDFs over the
+//     ~14 MB inline-body cap)
 //   · systemInstruction (Gemini's equivalent of a system prompt)
 //   · responseSchema for guaranteed-shape JSON output
 //     (Gemini's analog to Anthropic's tool_use)
@@ -110,10 +115,22 @@ export async function callGemini({
   const parts = [];
   if (image)
     parts.push({ inline_data: { mime_type: image.mime, data: image.buf.toString("base64") } });
-  if (pdf)
-    parts.push({
-      inline_data: { mime_type: "application/pdf", data: pdf.buf.toString("base64") },
-    });
+  if (pdf) {
+    // Two PDF paths: inline base64 (small PDFs, simple) vs file_data
+    // referencing a caller-supplied pre-uploaded file URI (large
+    // PDFs). Caller picks based on size.
+    if (pdf.fileUri) {
+      parts.push({
+        file_data: { mime_type: pdf.mimeType ?? "application/pdf", file_uri: pdf.fileUri },
+      });
+    } else if (pdf.buf) {
+      parts.push({
+        inline_data: { mime_type: "application/pdf", data: pdf.buf.toString("base64") },
+      });
+    } else {
+      throw new Error("callGemini({pdf}) requires either { buf } or { fileUri }");
+    }
+  }
   parts.push({ text: prompt });
   const url =
     `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent` +
@@ -709,6 +726,392 @@ export async function callGroq({
   } catch {
     throw new ParseError(providerName, text);
   }
+}
+
+// ── Moonshot AI direct (Kimi K2.5 / K2.6) ─────────────────────
+//
+// The OpenRouter path above is convenient but reroutes PDFs through
+// an opaque text-parsing layer that strips math notation + figure
+// context. Verified empirically (2026-05-30) on 202406asiav2.pdf:
+// OpenRouter's Kimi got 98 rows back but the math questions were
+// generic SAT-style hallucinations ("In the figure above, what is
+// the value of x?") instead of the real PDF content.
+//
+// Moonshot's own platform exposes the parser as a separate step,
+// which gives the model a much higher-fidelity view of the PDF.
+// Same K2.5 model, different transport, materially better output.
+// Verified on the same smoke PDF: extraction_order=57 returned the
+// real polynomial question "Which expression is equivalent to
+// (x^3 + 4x^2 - 3x) + 5(x^2 + 8)?" with the correct answer choices,
+// matching what Sonnet produced.
+//
+// Per-call flow:
+//   1. uploadMoonshotFile(buf, "x.pdf") → returns { fileId }
+//   2. fetchMoonshotFileContent(fileId) → returns parsed text body
+//   3. callMoonshot({ prompt, fileText, systemPrompt, ... })
+//      injects fileText as a second system message, then runs the
+//      chat completion (streaming required for long extractions).
+//
+// We DON'T delete files after use — Moonshot expires them on their
+// own and reusing across stages avoids re-uploading.
+
+const MOONSHOT_KEY = process.env.MOONSHOT_API_KEY;
+const MOONSHOT_BASE = "https://api.moonshot.ai/v1";
+
+const OPENAI_KEY = process.env.OPENAI_API_KEY;
+const OPENAI_BASE = "https://api.openai.com/v1";
+
+/**
+ * Upload a PDF (or any extractable file) to Moonshot's Files API
+ * with purpose="file-extract". Returns the file id used to fetch
+ * the parsed content in a subsequent call.
+ */
+export async function uploadMoonshotFile(
+  buf,
+  { mimeType = "application/pdf", filename = "upload.pdf" } = {}
+) {
+  if (!MOONSHOT_KEY) throw new Error("MOONSHOT_API_KEY not set");
+  const form = new FormData();
+  form.append("file", new Blob([buf], { type: mimeType }), filename);
+  form.append("purpose", "file-extract");
+  const res = await fetch(`${MOONSHOT_BASE}/files`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${MOONSHOT_KEY}` },
+    body: form,
+  });
+  if (!res.ok) {
+    const body = await res.text();
+    if (res.status === 429 || /quota|balance|insufficient|recharge/i.test(body)) {
+      throw new QuotaExhaustedError("moonshot_files", body);
+    }
+    throw new Error(`Moonshot Files HTTP ${res.status}: ${body.slice(0, 300)}`);
+  }
+  const json = await res.json();
+  if (!json?.id) throw new ParseError("moonshot_files", JSON.stringify(json));
+  return { fileId: json.id, bytes: json.bytes, filename: json.filename };
+}
+
+/**
+ * Retrieve the parsed text content of a previously uploaded file.
+ * Moonshot's parser returns a JSON envelope; callers usually pass
+ * the raw response body straight through to the chat completion as
+ * a system message — Kimi knows how to interpret it.
+ */
+export async function fetchMoonshotFileContent(fileId) {
+  if (!MOONSHOT_KEY) throw new Error("MOONSHOT_API_KEY not set");
+  const res = await fetch(`${MOONSHOT_BASE}/files/${encodeURIComponent(fileId)}/content`, {
+    headers: { Authorization: `Bearer ${MOONSHOT_KEY}` },
+  });
+  if (!res.ok) {
+    throw new Error(
+      `Moonshot file content HTTP ${res.status}: ${(await res.text()).slice(0, 300)}`
+    );
+  }
+  return await res.text();
+}
+
+/**
+ * Call Kimi via Moonshot's direct chat completions endpoint.
+ * Mandatory streaming — long extractions (~13 min for the smoke
+ * PDF) blow past non-streaming timeouts.
+ *
+ * fileText, when provided, is injected as a second system message
+ * per Moonshot's documented pattern for file-based Q&A. systemPrompt
+ * (the instruction prompt) goes first.
+ *
+ * temperature defaults to 1 because K2.5 rejects any other value
+ * ("only 1 is allowed for this model").
+ *
+ * Returns the parsed JSON object when json=true (the default),
+ * otherwise the raw text body.
+ */
+export async function callMoonshot({
+  prompt,
+  model = "kimi-k2.5",
+  systemPrompt = null,
+  fileText = null,
+  json = true,
+  maxOutputTokens = 32768,
+  temperature = 1,
+}) {
+  if (!MOONSHOT_KEY) throw new Error("MOONSHOT_API_KEY not set");
+
+  const messages = [];
+  if (systemPrompt) messages.push({ role: "system", content: systemPrompt });
+  if (fileText) messages.push({ role: "system", content: fileText });
+  messages.push({ role: "user", content: prompt });
+
+  const res = await fetch(`${MOONSHOT_BASE}/chat/completions`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${MOONSHOT_KEY}`,
+    },
+    body: JSON.stringify({
+      model,
+      messages,
+      temperature,
+      max_tokens: maxOutputTokens,
+      ...(json ? { response_format: { type: "json_object" } } : {}),
+      stream: true,
+    }),
+  });
+  if (!res.ok) {
+    const body = await res.text();
+    if (res.status === 429 || /quota|balance|insufficient|recharge/i.test(body)) {
+      throw new QuotaExhaustedError("moonshot", body);
+    }
+    throw new Error(`Moonshot HTTP ${res.status}: ${body.slice(0, 400)}`);
+  }
+  if (!res.body) throw new Error("Moonshot streaming response had no body");
+
+  // SSE parse — accumulate delta.content from each event. Moonshot
+  // uses the same OpenAI-compatible event shape as DeepSeek/Groq.
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let accumulated = "";
+  let finishReason = null;
+  let usage = null;
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const events = buffer.split("\n\n");
+    buffer = events.pop() ?? "";
+    for (const event of events) {
+      if (!event.startsWith("data: ")) continue;
+      const data = event.slice(6);
+      if (data === "[DONE]") continue;
+      try {
+        const obj = JSON.parse(data);
+        const delta = obj.choices?.[0]?.delta?.content ?? "";
+        accumulated += delta;
+        if (obj.choices?.[0]?.finish_reason) finishReason = obj.choices[0].finish_reason;
+        if (obj.usage) usage = obj.usage;
+      } catch {
+        /* malformed SSE chunk — skip; the final parse will tell us if we lost important data */
+      }
+    }
+  }
+
+  // Stderr diagnostic — every Moonshot call dumps finish reason + usage
+  // so the operator can see truncation / quota issues without tailing
+  // the raw stream. Mirrors the [gemini-diag] / [kimi-diag] pattern.
+  try {
+    process.stderr.write(
+      `[moonshot-diag] ${JSON.stringify({ model, finish_reason: finishReason, content_chars: accumulated.length, prompt_tokens: usage?.prompt_tokens, completion_tokens: usage?.completion_tokens, total_tokens: usage?.total_tokens })}\n`
+    );
+  } catch {
+    /* never let diagnostics break the call */
+  }
+
+  if (!json) return accumulated;
+  const parsed = extractJsonObject(accumulated);
+  if (parsed == null) throw new ParseError("moonshot", accumulated);
+  return parsed;
+}
+
+// ── Moonshot vision (Kimi K2.5 multimodal / MoonViT) ─────────
+//
+// Unlike callMoonshot (which feeds Moonshot's file-extract TEXT), this
+// sends rendered page IMAGES directly. That bypasses every PDF/text
+// parser in the chain — which matters when the source PDF has a damaged
+// xref and the text parser silently drops pages. Same streaming SSE
+// shape as callMoonshot; the user message carries one text block + N
+// image_url blocks (OpenAI-compatible data URLs).
+//
+// images: array of { buffer: Buffer, mimeType?: string } (defaults to
+// image/png). Verified empirically (2026-05-30) that kimi-k2.5 accepts
+// images and OCRs SAT Bluebook page screenshots faithfully (~4.2K
+// prompt tokens per full-page PNG).
+export async function callMoonshotVision({
+  prompt,
+  images,
+  model = "kimi-k2.5",
+  systemPrompt = null,
+  json = true,
+  maxOutputTokens = 32768,
+  temperature = 1,
+}) {
+  if (!MOONSHOT_KEY) throw new Error("MOONSHOT_API_KEY not set");
+  if (!Array.isArray(images) || images.length === 0) {
+    throw new Error("callMoonshotVision requires a non-empty images array");
+  }
+
+  const userContent = [{ type: "text", text: prompt }];
+  for (const img of images) {
+    const b64 = Buffer.isBuffer(img?.buffer) ? img.buffer.toString("base64") : img?.base64;
+    if (!b64) throw new Error("callMoonshotVision: each image needs { buffer } or { base64 }");
+    const mime = img?.mimeType ?? "image/png";
+    userContent.push({ type: "image_url", image_url: { url: `data:${mime};base64,${b64}` } });
+  }
+
+  const messages = [];
+  if (systemPrompt) messages.push({ role: "system", content: systemPrompt });
+  messages.push({ role: "user", content: userContent });
+
+  const res = await fetch(`${MOONSHOT_BASE}/chat/completions`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${MOONSHOT_KEY}`,
+    },
+    body: JSON.stringify({
+      model,
+      messages,
+      temperature,
+      max_tokens: maxOutputTokens,
+      ...(json ? { response_format: { type: "json_object" } } : {}),
+      stream: true,
+    }),
+  });
+  if (!res.ok) {
+    const body = await res.text();
+    if (res.status === 429 || /quota|balance|insufficient|recharge/i.test(body)) {
+      throw new QuotaExhaustedError("moonshot", body);
+    }
+    throw new Error(`Moonshot vision HTTP ${res.status}: ${body.slice(0, 400)}`);
+  }
+  if (!res.body) throw new Error("Moonshot vision streaming response had no body");
+
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let accumulated = "";
+  let finishReason = null;
+  let usage = null;
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const events = buffer.split("\n\n");
+    buffer = events.pop() ?? "";
+    for (const event of events) {
+      if (!event.startsWith("data: ")) continue;
+      const data = event.slice(6);
+      if (data === "[DONE]") continue;
+      try {
+        const obj = JSON.parse(data);
+        accumulated += obj.choices?.[0]?.delta?.content ?? "";
+        if (obj.choices?.[0]?.finish_reason) finishReason = obj.choices[0].finish_reason;
+        if (obj.usage) usage = obj.usage;
+      } catch {
+        /* malformed SSE chunk — skip */
+      }
+    }
+  }
+
+  try {
+    process.stderr.write(
+      `[moonshot-vision-diag] ${JSON.stringify({ model, images: images.length, finish_reason: finishReason, content_chars: accumulated.length, prompt_tokens: usage?.prompt_tokens, completion_tokens: usage?.completion_tokens })}\n`
+    );
+  } catch {
+    /* never let diagnostics break the call */
+  }
+
+  if (!json) return accumulated;
+  const parsed = extractJsonObject(accumulated);
+  if (parsed == null) throw new ParseError("moonshot_vision", accumulated);
+  return parsed;
+}
+
+// ── OpenAI vision (gpt-5.x multimodal) ───────────────────────
+//
+// Same shape as callMoonshotVision (page images as image_url blocks),
+// but the OpenAI Chat Completions API: uses max_completion_tokens (not
+// max_tokens) and omits temperature (the gpt-5 reasoning models reject
+// non-default values). Verified (2026-05-31) that gpt-5.5 OCRs SAT
+// Bluebook screenshots faithfully (~9.9K prompt tokens per full page +
+// some reasoning tokens — materially pricier than Kimi).
+export async function callOpenAIVision({
+  prompt,
+  images,
+  model = "gpt-5.5",
+  systemPrompt = null,
+  json = true,
+  maxOutputTokens = 32768,
+}) {
+  if (!OPENAI_KEY) throw new Error("OPENAI_API_KEY not set");
+  if (!Array.isArray(images) || images.length === 0) {
+    throw new Error("callOpenAIVision requires a non-empty images array");
+  }
+
+  const userContent = [{ type: "text", text: prompt }];
+  for (const img of images) {
+    const b64 = Buffer.isBuffer(img?.buffer) ? img.buffer.toString("base64") : img?.base64;
+    if (!b64) throw new Error("callOpenAIVision: each image needs { buffer } or { base64 }");
+    const mime = img?.mimeType ?? "image/png";
+    userContent.push({ type: "image_url", image_url: { url: `data:${mime};base64,${b64}` } });
+  }
+
+  const messages = [];
+  if (systemPrompt) messages.push({ role: "system", content: systemPrompt });
+  messages.push({ role: "user", content: userContent });
+
+  const res = await fetch(`${OPENAI_BASE}/chat/completions`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${OPENAI_KEY}`,
+    },
+    body: JSON.stringify({
+      model,
+      messages,
+      max_completion_tokens: maxOutputTokens,
+      ...(json ? { response_format: { type: "json_object" } } : {}),
+      stream: true,
+      stream_options: { include_usage: true },
+    }),
+  });
+  if (!res.ok) {
+    const body = await res.text();
+    if (res.status === 429 || /quota|insufficient_quota|rate.?limit/i.test(body)) {
+      throw new QuotaExhaustedError("openai", body);
+    }
+    throw new Error(`OpenAI vision HTTP ${res.status}: ${body.slice(0, 400)}`);
+  }
+  if (!res.body) throw new Error("OpenAI vision streaming response had no body");
+
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let accumulated = "";
+  let finishReason = null;
+  let usage = null;
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const events = buffer.split("\n\n");
+    buffer = events.pop() ?? "";
+    for (const event of events) {
+      if (!event.startsWith("data: ")) continue;
+      const data = event.slice(6);
+      if (data === "[DONE]") continue;
+      try {
+        const obj = JSON.parse(data);
+        accumulated += obj.choices?.[0]?.delta?.content ?? "";
+        if (obj.choices?.[0]?.finish_reason) finishReason = obj.choices[0].finish_reason;
+        if (obj.usage) usage = obj.usage;
+      } catch {
+        /* malformed SSE chunk — skip */
+      }
+    }
+  }
+
+  try {
+    process.stderr.write(
+      `[openai-vision-diag] ${JSON.stringify({ model, images: images.length, finish_reason: finishReason, content_chars: accumulated.length, prompt_tokens: usage?.prompt_tokens, completion_tokens: usage?.completion_tokens })}\n`
+    );
+  } catch {
+    /* never let diagnostics break the call */
+  }
+
+  if (!json) return accumulated;
+  const parsed = extractJsonObject(accumulated);
+  if (parsed == null) throw new ParseError("openai_vision", accumulated);
+  return parsed;
 }
 
 // ── Multi-provider voting helper ─────────────────────────────
