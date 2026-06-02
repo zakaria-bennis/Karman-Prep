@@ -1,7 +1,8 @@
 // ============================================================
 // GeometryFigure — renders a 2D-geometry figure from structured
-// figure_geometry_data as a clean SVG, on the same warm ivory plaque
-// the raster FigureFrame uses (SAT figures are black ink on white).
+// figure_geometry_data as a clean SVG on a navy plaque that matches the
+// app background, drawn in sky-blue (a "blueprint" look that belongs to
+// the cool-navy quiz UI rather than fighting it).
 //
 // Only used when figure_kind='geometric' — i.e. the Stage-6.6 gate
 // already rasterized this exact SVG and a vision model confirmed it
@@ -34,8 +35,9 @@ export default function GeometryFigure({
   return (
     <figure
       className={cn(
-        "my-4 rounded-lg border border-[#3B3426] bg-[#F3ECDD] p-4",
-        "shadow-[0_1px_0_0_rgba(195,171,106,0.18)_inset,0_4px_16px_-8px_rgba(0,0,0,0.45)]",
+        // Navy plaque matching the app background; sky-blue figure inside.
+        "my-4 rounded-lg border border-slate-800 bg-[#0a0f1e] p-4",
+        "shadow-[0_4px_16px_-8px_rgba(0,0,0,0.5)]",
         className
       )}
     >
@@ -50,7 +52,7 @@ export default function GeometryFigure({
         dangerouslySetInnerHTML={{ __html: svg }}
       />
       {data.notes ? (
-        <figcaption className="mt-2 text-center text-[11px] italic text-[#6B6453]">
+        <figcaption className="mt-2 text-center text-[11px] italic text-sky-300/80">
           {data.notes}
         </figcaption>
       ) : null}

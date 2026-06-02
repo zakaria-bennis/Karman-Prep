@@ -118,25 +118,23 @@ export interface ChartFigure {
 /** Subject → series color mapping for single-series figures.
  *  Multi-series (length > 1) uses the SEQUENTIAL_PALETTE below.
  *
- *  Values are the Karman brand "constellation accent" colors from
- *  src/app/globals.css. Math = blue, R&W = rose. */
+ *  Cool light-blue (sky) family from the app tokens (docs/design-tokens.md)
+ *  so series sit in the same "blueprint" theme as the axes and labels.
+ *  Both subjects stay light-blue, slightly varied for any mixed context. */
 export const SUBJECT_CHART_COLOR: Record<string, string> = {
-  math: "#2fa8ff",
-  reading: "#d84f73",
+  math: "#38bdf8", // sky-400
+  reading: "#7dd3fc", // sky-300
 };
 
-/** Sequential palette for multi-series charts. Picked from the
- *  brand's accent colors so the palette feels native to Karman.
- *  Stops after 5 — a 6+-series SAT chart would be visually unreadable
- *  and the extractor should surface it for manual review.
- *
- *  Order: blue → rose → gold → teal → violet. The first two double
- *  as the subject-coded colors so a math chart with two series
- *  reads as "primary blue + a contrasting rose." */
+/** Sequential palette for multi-series charts — a cool blue→cyan→indigo
+ *  ramp so the palette feels native to the navy quiz app. Stops after 6;
+ *  a 7+-series SAT chart would be visually unreadable and the extractor
+ *  should surface it for manual review. */
 export const SEQUENTIAL_PALETTE = [
-  "#2fa8ff", // math blue
-  "#d84f73", // R&W rose
-  "#e4c86a", // accent gold
-  "#42d9ff", // math glow (lighter blue)
-  "#f06a8c", // rose glow (lighter rose)
+  "#38bdf8", // sky-400
+  "#22d3ee", // cyan-400
+  "#818cf8", // indigo-400
+  "#5eead4", // teal-300
+  "#7dd3fc", // sky-300
+  "#a78bfa", // violet-400
 ] as const;

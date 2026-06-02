@@ -5,11 +5,10 @@
 // ChartFigure in src/types/chart.ts).
 //
 // Phase 4d. Replaces raster PDF crops with clean, theme-aware,
-// scalable SVG. Theme matches the Karman observatory brand:
-//   · bg-night / surface ground
-//   · ivory text + bronze axes
-//   · math blue + R&W rose for subject-coded series
-//   · sequential palette when there are multiple series
+// scalable SVG. Cool "blueprint" theme matching the navy quiz app:
+//   · navy ground (matches the page background)
+//   · sky-blue text + axes
+//   · light-blue series fills, cool sequential palette for multi-series
 //
 // The component is pure: given a ChartFigure + a subject, it
 // renders a deterministic SVG. No client-side state, no
@@ -51,14 +50,16 @@ const PAD = { top: 28, right: 24, bottom: 56, left: 64 };
 const PLOT_W = VIEW_W - PAD.left - PAD.right;
 const PLOT_H = VIEW_H - PAD.top - PAD.bottom;
 
-// Karman observatory palette (mirrors CSS vars from globals.css).
+// Cool "blueprint" palette — figures follow the navy quiz-app tokens
+// (sky on navy, per docs/design-tokens.md), not the warm observatory
+// brand. Keys kept for minimal churn; values are the new cool set.
 const COLOR = {
-  bgNight: "#070605",
-  surface: "#171611",
-  ivory: "#f3ecdd",
-  taupe: "#b8b0a1",
-  bronze: "#3b3426",
-  bronzeMuted: "#2a2519",
+  bgNight: "#0a0f1e", // app background (navy) — figure sits flush on the page
+  surface: "#0f172a", // slate-900 (legend inset)
+  ivory: "#bae6fd", // sky-200 (primary text: title + axis labels)
+  taupe: "#7dd3fc", // sky-300 (tick labels)
+  bronze: "#38bdf8", // sky-400 (axis lines + tick marks)
+  bronzeMuted: "#1e293b", // slate-800 (grid lines + border)
 } as const;
 
 export default function ChartFigure({ data, subject, className, alt }: Props) {
@@ -68,7 +69,7 @@ export default function ChartFigure({ data, subject, className, alt }: Props) {
   // Multi series: walk the sequential palette in order.
   const colors: string[] =
     data.series.length === 1
-      ? [SUBJECT_CHART_COLOR[subject ?? ""] ?? SEQUENTIAL_PALETTE[2]]
+      ? [SUBJECT_CHART_COLOR[subject ?? ""] ?? SEQUENTIAL_PALETTE[0]]
       : data.series.map((_, i) => SEQUENTIAL_PALETTE[i % SEQUENTIAL_PALETTE.length]);
 
   const describedBy = `chart-desc-${Math.random().toString(36).slice(2, 9)}`;
@@ -80,7 +81,7 @@ export default function ChartFigure({ data, subject, className, alt }: Props) {
         viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
         role="img"
         aria-describedby={describedBy}
-        className="block h-auto w-full rounded-lg border border-[#2a2519] bg-[#070605]"
+        className="block h-auto w-full rounded-lg border border-slate-800 bg-[#0a0f1e]"
       >
         <desc id={describedBy}>{accessibleSummary}</desc>
 

@@ -32,10 +32,10 @@
 
 import { createClient } from "@supabase/supabase-js";
 import sharp from "sharp";
-import { buildGeometrySvg, type GeometryFigureData } from "@/lib/figures/geometry-svg";
+import { buildGeometrySvg, MONO_THEME, type GeometryFigureData } from "@/lib/figures/geometry-svg";
 import { callGemini as callGeminiRaw } from "../lib/llm-providers.mjs";
 import { fetchImageBuffer } from "../lib/fetch-image.mjs";
-import { upsertFinding, SEVERITY, AUDIT_MODULES } from "../lib/findings.mjs";
+import { upsertFinding, clearFinding, SEVERITY, AUDIT_MODULES } from "../lib/findings.mjs";
 
 /** Re-type the JSDoc-typed .mjs callGemini for the options we pass — its
  *  `image = null` default makes TS infer image as null otherwise. */
@@ -45,6 +45,7 @@ const callGemini = callGeminiRaw as (opts: {
   model?: string;
   json?: boolean;
   maxOutputTokens?: number;
+  thinkingBudget?: number;
 }) => Promise<{ is_match?: boolean; confidence?: number; differences?: string } | string>;
 
 const args = process.argv.slice(2);
@@ -161,7 +162,10 @@ async function main() {
 
   for (const [i, row] of rows.entries()) {
     const tag = `[${i + 1}/${rows.length}] ${row.source_pdf ?? "?"} p${row.source_page ?? "?"}`;
-    const { svg, renderable, reason } = buildGeometrySvg(row.figure_geometry_data);
+    // MONO_THEME (black ink): this SVG is rasterized onto a white canvas and
+    // compared to the black-on-white screenshot. The student render uses the
+    // sky DISPLAY_THEME — decoupled on purpose (see geometry-svg.ts).
+    const { svg, renderable, reason } = buildGeometrySvg(row.figure_geometry_data, MONO_THEME);
     if (!renderable || !svg) {
       console.log(`${tag}: not renderable (${reason}) — screenshot kept`);
       tally.unrenderable++;
@@ -198,9 +202,12 @@ async function main() {
         image: { mime: "image/png", buf: comparison },
         model: COMPARE_MODEL,
         json: true,
-        // Pro spends thinking tokens against this budget before the JSON;
-        // 600 starved it (empty output). Give it room.
-        maxOutputTokens: 8192,
+        // Pro spends thinking tokens against this budget before the JSON, and
+        // can overshoot a hint and consume the whole cap (MAX_TOKENS, empty
+        // output). A generous cap (billed on actual usage) + an 8192 thinking
+        // hint guarantees room for the verdict JSON.
+        maxOutputTokens: 18432,
+        thinkingBudget: 8192,
       });
       verdict = typeof resp === "object" ? resp : JSON.parse(resp);
     } catch (err) {
@@ -224,14 +231,28 @@ async function main() {
     const figure_quality = { ...(row.figure_quality ?? {}), visual_validation };
 
     if (pass) {
+      // Store the student-facing (sky DISPLAY_THEME) SVG, not the black
+      // comparison render used above. Display rebuilds from data, so this is
+      // belt-and-suspenders, but figure_svg should reflect what students see.
+      const displaySvg = buildGeometrySvg(row.figure_geometry_data).svg ?? svg;
       await writeRow(row.id, {
         figure_kind: "geometric",
-        figure_svg: svg,
+        figure_svg: displaySvg,
         figure_quality: {
           ...figure_quality,
           validation_status: "validated",
           used_fallback_level: 0,
         },
+      });
+      // A prior gate run may have left an open geometry_render_mismatch
+      // finding; this row now passes, so resolve it (preserve audit history).
+      await clearFinding({
+        supabase,
+        questionId: row.id,
+        category: AUDIT_MODULES.FIGURE_COHERENCE,
+        code: "geometry_render_mismatch",
+        resolvedNote: `promoted on re-gate (conf ${conf.toFixed(2)})`,
+        dryRun: DRY_RUN,
       });
       console.log(`${tag}: GEOMETRY → SVG promoted (match, conf ${conf.toFixed(2)})`);
       tally.promoted++;
