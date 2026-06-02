@@ -10,9 +10,15 @@
 //   to R2 over that URL. The Worker only sees a small JSON
 //   "I'm done, here's the key" call afterwards.
 //
-//   R2 is S3-compatible at the API level, so we use the same
-//   `@aws-sdk/s3-request-presigner` package the AWS SDK uses for
-//   real S3 buckets.
+// Why aws4fetch (NOT @aws-sdk):
+//   The AWS SDK's *Node* runtime config eagerly wires up fs-based
+//   config loaders (shared ini files, defaultsMode, etc.). On the
+//   Cloudflare Workers runtime those throw
+//   "[unenv] fs.readFile is not implemented yet!" the moment you
+//   call getSignedUrl / client.send(). aws4fetch is a ~5 KB SigV4
+//   signer built on fetch + WebCrypto with ZERO Node dependencies,
+//   so it signs cleanly on the Worker. R2 is S3-compatible, so the
+//   same SigV4 query-signing works against it unchanged.
 //
 // Browser-side flow:
 //   1. POST /api/admin/pdf-pipeline/init-upload (small JSON)
@@ -27,27 +33,21 @@
 // that we already pre-allocated for this job.
 // ============================================================
 
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { AwsClient } from "aws4fetch";
 
-let _client: S3Client | null = null;
+let _aws: AwsClient | null = null;
 
-function client(): S3Client {
-  if (_client) return _client;
-  const accountId = process.env.R2_ACCOUNT_ID;
+/** Lazily-built SigV4 signer for R2. region "auto" + service "s3" are the
+ *  R2 conventions. Credentials come from the Cloudflare Worker env. */
+function aws(): AwsClient {
+  if (_aws) return _aws;
   const accessKeyId = process.env.R2_ACCESS_KEY_ID;
   const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY;
-  if (!accountId || !accessKeyId || !secretAccessKey) {
-    throw new Error(
-      "R2 credentials missing — set R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY."
-    );
+  if (!accessKeyId || !secretAccessKey) {
+    throw new Error("R2 credentials missing — set R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY.");
   }
-  _client = new S3Client({
-    region: "auto",
-    endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
-    credentials: { accessKeyId, secretAccessKey },
-  });
-  return _client;
+  _aws = new AwsClient({ accessKeyId, secretAccessKey, service: "s3", region: "auto" });
+  return _aws;
 }
 
 function bucket(): string {
@@ -56,10 +56,24 @@ function bucket(): string {
   return b;
 }
 
+/** Path-style R2 object URL:
+ *  https://<account>.r2.cloudflarestorage.com/<bucket>/<key> */
+function objectUrl(key: string): URL {
+  const accountId = process.env.R2_ACCOUNT_ID;
+  if (!accountId) throw new Error("R2_ACCOUNT_ID missing in env.");
+  const u = new URL(`https://${accountId}.r2.cloudflarestorage.com`);
+  // Assigning pathname percent-encodes each segment while keeping the key's
+  // own slashes as path separators.
+  u.pathname = `/${bucket()}/${key}`;
+  return u;
+}
+
 export interface PresignedPutOptions {
   /** Object key (path within bucket) to allow PUT to. */
   key: string;
-  /** Content-Type the browser MUST send in its PUT. Locked at sign time. */
+  /** Advisory Content-Type the browser is expected to send. Not bound into
+   *  the signature (host-only signing), so the browser may send it as an
+   *  unsigned header and R2 stores it — avoids SigV4 header-mismatch 403s. */
   contentType: string;
   /** How long the presigned URL is valid for. Default 900 (15 min). */
   expiresInSeconds?: number;
@@ -75,26 +89,17 @@ export async function createPresignedPutUrl(
   opts: PresignedPutOptions
 ): Promise<PresignedPutResult> {
   const expiresInSeconds = opts.expiresInSeconds ?? 900;
-  const cmd = new PutObjectCommand({
-    Bucket: bucket(),
-    Key: opts.key,
-    ContentType: opts.contentType,
+  const url = objectUrl(opts.key);
+  url.searchParams.set("X-Amz-Expires", String(expiresInSeconds));
+  // Query-signed (presigned) PUT URL. Host-only signing: the browser's
+  // Content-Type rides along as an unsigned header, which R2 accepts and
+  // stores. The key is pre-allocated, so a leaked URL can only overwrite
+  // this one object.
+  const signed = await aws().sign(new Request(url, { method: "PUT" }), {
+    aws: { signQuery: true },
   });
-  // getSignedUrl has a known type-mismatch with S3Client when the
-  // installed @aws-sdk/client-s3 and @aws-sdk/s3-request-presigner
-  // versions resolve different copies of the shared smithy types
-  // (npm dedupe should help but doesn't fully on Cloudflare's
-  // override resolutions). Cast is safe — at runtime the methods are
-  // structurally compatible.
-  const uploadUrl = await getSignedUrl(
-    client() as unknown as Parameters<typeof getSignedUrl>[0],
-    cmd,
-    {
-      expiresIn: expiresInSeconds,
-    }
-  );
   const expiresAt = new Date(Date.now() + expiresInSeconds * 1000).toISOString();
-  return { uploadUrl, expiresAt, expiresInSeconds };
+  return { uploadUrl: signed.url, expiresAt, expiresInSeconds };
 }
 
 /**
@@ -106,19 +111,15 @@ export async function createPresignedPutUrl(
 export async function r2ObjectExists(
   key: string
 ): Promise<{ exists: boolean; sizeBytes?: number; contentType?: string }> {
-  try {
-    const { HeadObjectCommand } = await import("@aws-sdk/client-s3");
-    const out = await client().send(new HeadObjectCommand({ Bucket: bucket(), Key: key }));
-    return {
-      exists: true,
-      sizeBytes: out.ContentLength,
-      contentType: out.ContentType,
-    };
-  } catch (err) {
-    if (err && typeof err === "object" && "$metadata" in err) {
-      const meta = (err as { $metadata?: { httpStatusCode?: number } }).$metadata;
-      if (meta?.httpStatusCode === 404) return { exists: false };
-    }
-    throw err;
-  }
+  const signed = await aws().sign(new Request(objectUrl(key), { method: "HEAD" }));
+  const res = await fetch(signed);
+  // R2 returns 404 for a missing key (403 in some bucket policies).
+  if (res.status === 404 || res.status === 403) return { exists: false };
+  if (!res.ok) throw new Error(`R2 HEAD ${key} failed: HTTP ${res.status}`);
+  const len = res.headers.get("content-length");
+  return {
+    exists: true,
+    sizeBytes: len ? Number(len) : undefined,
+    contentType: res.headers.get("content-type") ?? undefined,
+  };
 }
