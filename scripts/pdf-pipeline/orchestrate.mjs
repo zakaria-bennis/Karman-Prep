@@ -16,7 +16,7 @@
 //              path.
 //
 // STAGES (status: stage in pdf_processing_jobs.progress)
-//   extracting   Claude Sonnet → structured JSON
+//   extracting   Kimi K2.5 (Moonshot) → structured JSON
 //   figures      Page render + bbox + R2 upload per figure
 //   importing    v2 phase 8.1 — JSON → quiz_questions / answer_choices /
 //                answer_key_entries / source_assets directly, via the
@@ -230,12 +230,18 @@ async function main() {
   const pdfStem = basename(pdfPath).replace(/\.pdf$/i, "");
   const outputDir = process.env.OUTPUT_DIR ?? tmpdir();
   const jsonOut = join(outputDir, `${pdfStem}-gemini-extracted.json`);
+  // Label the extraction stage with the model that actually runs (Kimi K2.5
+  // by default, overridable). Derived from the same env var
+  // extract-with-gemini.mjs reads so the progress label can't drift from the
+  // real model again — it previously said "Claude Sonnet 4.6" long after the
+  // swap to Kimi (#203).
+  const extractionModel = process.env.EXTRACTION_MODEL ?? "kimi-k2.5";
 
   try {
     // Stage 1: extract structure
-    await job.setStage("extracting", { message: `Claude Sonnet 4.6 on ${basename(pdfPath)}` });
+    await job.setStage("extracting", { message: `${extractionModel} on ${basename(pdfPath)}` });
     runStage(
-      "Stage 1/14 — extract structure (Claude Sonnet 4.6)",
+      `Stage 1/14 — extract structure (${extractionModel})`,
       "extracting",
       "scripts/pdf-pipeline/extract-with-gemini.mjs",
       [pdfPath]
