@@ -25,9 +25,9 @@ interface Props {
 }
 
 function ringColor(score: number): string {
-  if (score >= 80) return "#10b981";
-  if (score >= 60) return "#f59e0b";
-  return "#ef4444";
+  if (score >= 80) return "#8BA86A";
+  if (score >= 60) return "#E0A24A";
+  return "#D84F73";
 }
 
 function encouragement(score: number, band: ConfidenceBand): string {
@@ -90,15 +90,15 @@ export default function QuizResults({
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
-      className="fixed inset-0 z-[65] flex items-center justify-center overflow-y-auto bg-slate-950 p-6"
+      className="fixed inset-0 z-[65] flex items-center justify-center overflow-y-auto bg-night p-6"
     >
-      <div className="w-full max-w-4xl rounded-2xl border border-slate-800 bg-slate-900 p-8 shadow-2xl md:p-12">
+      <div className="w-full max-w-4xl rounded-2xl border border-bronze bg-surface p-8 shadow-2xl md:p-12">
         <div className="grid items-center gap-10 md:grid-cols-2">
           {/* Circular progress */}
           <div className="flex items-center justify-center">
             <div className="relative" style={{ width: 220, height: 220 }}>
               <svg width={220} height={220} className="-rotate-90">
-                <circle cx={110} cy={110} r={R} stroke="#1e293b" strokeWidth={12} fill="none" />
+                <circle cx={110} cy={110} r={R} stroke="#171611" strokeWidth={12} fill="none" />
                 <motion.circle
                   cx={110}
                   cy={110}
@@ -115,10 +115,10 @@ export default function QuizResults({
                 />
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-5xl font-extrabold tabular-nums text-white">
+                <span className="text-5xl font-extrabold tabular-nums text-ivory">
                   {animatedScore}%
                 </span>
-                <span className="mt-1 text-xs uppercase tracking-widest text-slate-400">
+                <span className="mt-1 text-xs uppercase tracking-widest text-taupe">
                   Final Score
                 </span>
               </div>
@@ -129,11 +129,11 @@ export default function QuizResults({
           <div>
             <div className="mb-2 flex items-center gap-2">
               <Trophy className="h-4 w-4" style={{ color: ringHex }} />
-              <span className="text-xs font-bold uppercase tracking-widest text-slate-400">
+              <span className="text-xs font-bold uppercase tracking-widest text-taupe">
                 Performance
               </span>
             </div>
-            <h2 className="mb-1 text-2xl font-extrabold text-white">
+            <h2 className="mb-1 text-2xl font-extrabold text-ivory">
               {correct} / {total} correct
             </h2>
             <span
@@ -146,27 +146,23 @@ export default function QuizResults({
               {bandStyle.label}
             </span>
 
-            <p className="mt-4 text-sm leading-relaxed text-slate-300">
+            <p className="mt-4 text-sm leading-relaxed text-ivory/80">
               {encouragement(score, band)}
             </p>
 
             {/* Topic breakdown */}
             {clusterStats.length > 0 && (
               <div className="mt-6 space-y-2">
-                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400">
+                <h3 className="text-xs font-bold uppercase tracking-widest text-taupe">
                   Topic breakdown
                 </h3>
                 {clusterStats.map((c) => (
                   <div key={c.cluster} className="flex items-center gap-3 text-sm">
-                    <span className="flex-1 truncate text-slate-300">{c.cluster}</span>
+                    <span className="flex-1 truncate text-ivory/80">{c.cluster}</span>
                     <span
                       className={cn(
                         "font-bold tabular-nums",
-                        c.pct >= 80
-                          ? "text-emerald-400"
-                          : c.pct >= 60
-                            ? "text-amber-400"
-                            : "text-rose-400"
+                        c.pct >= 80 ? "text-success" : c.pct >= 60 ? "text-warning" : "text-error"
                       )}
                     >
                       {c.correct}/{c.total}
@@ -183,14 +179,14 @@ export default function QuizResults({
           {onGoToNext && (
             <button
               onClick={onGoToNext}
-              className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-blue-600 px-8 py-4 text-sm font-bold text-white transition-colors hover:bg-blue-700 sm:flex-none"
+              className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-info px-8 py-4 text-sm font-bold text-ivory transition-colors hover:bg-info-bright sm:flex-none"
             >
               Go to Next Node <ArrowRight className="h-4 w-4" />
             </button>
           )}
           <button
             onClick={onRetake}
-            className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-slate-700 px-8 py-4 text-sm font-semibold text-slate-200 transition-colors hover:bg-slate-800 sm:flex-none"
+            className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-bronze px-8 py-4 text-sm font-semibold text-ivory/90 transition-colors hover:bg-surface-raised sm:flex-none"
           >
             <RotateCcw className="h-4 w-4" /> Retake Quiz
           </button>

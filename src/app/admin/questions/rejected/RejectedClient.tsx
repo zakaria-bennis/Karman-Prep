@@ -109,7 +109,7 @@ export default function RejectedClient({ rows }: Props) {
 
   if (rows.length === 0) {
     return (
-      <div className="rounded-xl border border-slate-800 bg-slate-900/40 px-6 py-12 text-center text-sm text-slate-400">
+      <div className="rounded-xl border border-bronze bg-surface/40 px-6 py-12 text-center text-sm text-taupe">
         Nothing rejected yet. Questions removed via the preview page land here for safekeeping.
       </div>
     );
@@ -122,8 +122,8 @@ export default function RejectedClient({ rows }: Props) {
           className={cn(
             "mb-3 flex items-start gap-2 rounded-lg border px-3 py-2 text-xs",
             banner.kind === "ok"
-              ? "border-emerald-500/30 bg-emerald-500/[0.06] text-emerald-200"
-              : "border-rose-500/30 bg-rose-500/[0.06] text-rose-200"
+              ? "border-success/30 bg-success/[0.06] text-success-bright"
+              : "border-error/30 bg-error/[0.06] text-error-bright"
           )}
         >
           <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
@@ -132,7 +132,7 @@ export default function RejectedClient({ rows }: Props) {
             onClick={() => setBanner(null)}
             className={cn(
               "text-xs hover:opacity-100",
-              banner.kind === "ok" ? "text-emerald-300/70" : "text-rose-300/70"
+              banner.kind === "ok" ? "text-success-bright/70" : "text-error-bright/70"
             )}
           >
             dismiss
@@ -180,17 +180,17 @@ function RejectedCard({
   const passage = snapshot.passage as string | null | undefined;
 
   return (
-    <div className="rounded-xl border border-slate-800 bg-slate-900/40">
+    <div className="rounded-xl border border-bronze bg-surface/40">
       {/* ── Collapsed header (always visible) ─────────────── */}
       <button
         onClick={onToggleExpanded}
-        className="flex w-full items-start gap-3 px-4 py-3 text-left hover:bg-slate-900/60"
+        className="flex w-full items-start gap-3 px-4 py-3 text-left hover:bg-surface/60"
       >
-        <div className="mt-0.5 text-slate-500">
+        <div className="mt-0.5 text-taupe">
           {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
         </div>
         <div className="min-w-0 flex-1">
-          <div className="line-clamp-2 text-sm text-slate-200">
+          <div className="line-clamp-2 text-sm text-ivory">
             {row.question_preview || "(no preview captured)"}
           </div>
           <MetaRow row={row} />
@@ -199,32 +199,32 @@ function RejectedCard({
 
       {/* ── Expanded body ─────────────────────────────────── */}
       {expanded && (
-        <div className="border-t border-slate-800 px-4 py-3">
+        <div className="border-t border-bronze px-4 py-3">
           {passage && (
             <div className="mb-3">
-              <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+              <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-taupe">
                 Passage
               </div>
-              <div className="whitespace-pre-wrap rounded border border-slate-800/60 bg-slate-950/40 px-3 py-2 text-xs text-slate-300">
+              <div className="whitespace-pre-wrap rounded border border-bronze/60 bg-night/40 px-3 py-2 text-xs text-ivory">
                 {passage}
               </div>
             </div>
           )}
           <div className="mb-3">
-            <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+            <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-taupe">
               Question
             </div>
-            <div className="whitespace-pre-wrap text-sm text-slate-100">{questionText}</div>
+            <div className="whitespace-pre-wrap text-sm text-ivory">{questionText}</div>
           </div>
           {row.choices_snapshot.length > 0 && (
             <div className="mb-3">
-              <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+              <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-taupe">
                 Choices
               </div>
-              <ol className="space-y-1 text-xs text-slate-300">
+              <ol className="space-y-1 text-xs text-ivory">
                 {row.choices_snapshot.map((c) => (
                   <li key={c.letter}>
-                    <span className="font-mono font-bold text-slate-400">{c.letter}.</span>{" "}
+                    <span className="font-mono font-bold text-taupe">{c.letter}.</span>{" "}
                     {c.choice_text}
                   </li>
                 ))}
@@ -233,10 +233,10 @@ function RejectedCard({
           )}
           {row.rejected_reason && (
             <div className="mb-3">
-              <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+              <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-taupe">
                 Reason given at reject time
               </div>
-              <div className="rounded border border-amber-500/20 bg-amber-500/[0.04] px-3 py-2 text-xs text-amber-200">
+              <div className="rounded border border-warning/20 bg-warning/[0.04] px-3 py-2 text-xs text-warning-bright">
                 {row.rejected_reason}
               </div>
             </div>
@@ -252,32 +252,32 @@ function RejectedCard({
 function MetaRow({ row }: { row: RejectedQuestionRow }) {
   const when = (row.rejected_at ?? "").replace("T", " ").slice(0, 16);
   return (
-    <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-500">
+    <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-taupe">
       <span className="inline-flex items-center gap-1">
-        <span className="text-slate-600">rejected</span>
-        <span className="font-mono text-slate-400">{when} UTC</span>
+        <span className="text-taupe">rejected</span>
+        <span className="font-mono text-taupe">{when} UTC</span>
       </span>
       {row.source_pdf && (
         <span className="inline-flex items-center gap-1">
           <FileText className="h-3 w-3" />
-          <span className="font-mono text-slate-400">
+          <span className="font-mono text-taupe">
             {row.source_pdf}
             {row.source_page != null ? ` p${row.source_page}` : ""}
           </span>
         </span>
       )}
       {row.domain && (
-        <span className="rounded bg-slate-800 px-1.5 py-0.5 font-mono text-[10px] text-slate-300">
+        <span className="rounded bg-surface-raised px-1.5 py-0.5 font-mono text-[10px] text-ivory">
           {row.domain}
         </span>
       )}
       {row.subject && (
-        <span className="rounded bg-slate-800 px-1.5 py-0.5 font-mono text-[10px] text-slate-300">
+        <span className="rounded bg-surface-raised px-1.5 py-0.5 font-mono text-[10px] text-ivory">
           {row.subject}
         </span>
       )}
       {row.rejected_reason && (
-        <span className="inline-flex items-center gap-1 text-amber-400/80">
+        <span className="inline-flex items-center gap-1 text-warning/80">
           <AlertCircle className="h-3 w-3" />
           <span className="italic">reason on file</span>
         </span>
@@ -302,7 +302,7 @@ function ActionRow({
         disabled={busy}
         className={cn(
           "inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold disabled:opacity-50",
-          "bg-emerald-500 text-white hover:bg-emerald-400 disabled:hover:bg-emerald-500"
+          "bg-success text-night hover:bg-success-bright disabled:hover:bg-success-bright"
         )}
       >
         {busy ? <Loader2 className="h-3 w-3 animate-spin" /> : <RotateCcw className="h-3 w-3" />}
@@ -313,7 +313,7 @@ function ActionRow({
         disabled={busy}
         className={cn(
           "inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold disabled:opacity-50",
-          "bg-rose-600 text-white hover:bg-rose-500 disabled:hover:bg-rose-600"
+          "bg-error text-ivory hover:bg-error-bright disabled:hover:bg-error-bright"
         )}
       >
         {busy ? <Loader2 className="h-3 w-3 animate-spin" /> : <Trash2 className="h-3 w-3" />}

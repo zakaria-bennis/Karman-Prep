@@ -124,7 +124,7 @@ export default function DesmosWindow({ onClose, constraintsRef }: Props) {
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.5 }}
           transition={{ type: "spring", stiffness: 400, damping: 26 }}
-          className="absolute bottom-4 right-4 z-[70] flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-[0_8px_24px_rgba(59,130,246,0.45)] transition-transform hover:scale-105"
+          className="absolute bottom-4 right-4 z-[70] flex h-12 w-12 items-center justify-center rounded-full bg-math text-night shadow-[0_8px_24px_rgba(47,168,255,0.35)] transition-opacity hover:opacity-90"
           aria-label="Open Desmos calculator"
           title="Desmos calculator"
         >
@@ -148,25 +148,25 @@ export default function DesmosWindow({ onClose, constraintsRef }: Props) {
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.9 }}
         transition={{ type: "spring", stiffness: 350, damping: 28 }}
-        className="absolute z-[70] resize overflow-hidden rounded-2xl border border-white/10 bg-[#0B1026] shadow-2xl"
+        className="absolute z-[70] resize overflow-hidden rounded-2xl border border-ivory/10 bg-[#070605] shadow-2xl"
         style={{ width: 600, height: 460, minWidth: 360, minHeight: 280 }}
       >
         {/* Title bar — drag handle. Mirrors the chat shell aesthetic
             so the calculator reads as part of the same surface. */}
         <div
           onPointerDown={(e) => controls.start(e)}
-          className="flex cursor-grab touch-none select-none items-center justify-between border-b border-white/10 bg-white/[0.04] px-3 py-2 backdrop-blur-md active:cursor-grabbing"
+          className="flex cursor-grab touch-none select-none items-center justify-between border-b border-ivory/10 bg-surface/[0.04] px-3 py-2 backdrop-blur-md active:cursor-grabbing"
         >
           <div className="pointer-events-none flex items-center gap-2">
-            <GripHorizontal className="h-4 w-4 text-slate-400" />
-            <Calculator className="h-3.5 w-3.5 text-blue-400" />
-            <span className="text-xs font-semibold text-slate-200">Desmos</span>
+            <GripHorizontal className="h-4 w-4 text-taupe" />
+            <Calculator className="h-3.5 w-3.5 text-info" />
+            <span className="text-xs font-semibold text-ivory/90">Desmos</span>
           </div>
 
           <div className="flex items-center gap-1">
             {/* Mode toggle — Graphing / Scientific */}
             <div
-              className="inline-flex items-center gap-0.5 rounded-md border border-white/10 bg-black/30 p-0.5"
+              className="inline-flex items-center gap-0.5 rounded-md border border-ivory/10 bg-night/30 p-0.5"
               onPointerDown={(e) => e.stopPropagation()}
             >
               {(Object.keys(MODE_LABEL) as CalcMode[]).map((m) => (
@@ -177,8 +177,8 @@ export default function DesmosWindow({ onClose, constraintsRef }: Props) {
                   className={[
                     "rounded px-2 py-0.5 text-[10px] font-semibold transition-colors",
                     mode === m
-                      ? "bg-gradient-to-br from-blue-500 to-indigo-600 text-white"
-                      : "text-slate-400 hover:bg-white/[0.06] hover:text-white",
+                      ? "bg-math text-night"
+                      : "text-taupe hover:bg-surface/[0.06] hover:text-ivory",
                   ].join(" ")}
                 >
                   {MODE_LABEL[m]}
@@ -190,7 +190,7 @@ export default function DesmosWindow({ onClose, constraintsRef }: Props) {
               type="button"
               onClick={() => setMinimized(true)}
               onPointerDown={(e) => e.stopPropagation()}
-              className="flex h-6 w-6 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-white/[0.08] hover:text-white"
+              className="flex h-6 w-6 items-center justify-center rounded-full text-taupe transition-colors hover:bg-surface/[0.08] hover:text-ivory"
               aria-label="Minimize Desmos"
               title="Minimize"
             >
@@ -201,7 +201,7 @@ export default function DesmosWindow({ onClose, constraintsRef }: Props) {
               type="button"
               onClick={onClose}
               onPointerDown={(e) => e.stopPropagation()}
-              className="flex h-6 w-6 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-white/[0.08] hover:text-white"
+              className="flex h-6 w-6 items-center justify-center rounded-full text-taupe transition-colors hover:bg-surface/[0.08] hover:text-ivory"
               aria-label="Close Desmos"
             >
               <X className="h-3.5 w-3.5" />
@@ -213,14 +213,14 @@ export default function DesmosWindow({ onClose, constraintsRef }: Props) {
             Desmos paints into this div via the JS API. */}
         <div
           ref={mountRef}
-          className="w-full bg-[#0B1026]"
+          className="w-full bg-[#070605]"
           style={{ height: "calc(100% - 36px)" }}
         />
 
         {/* Loading shim — only visible until the Desmos script
             has initialised the calculator into the mount div. */}
         {!scriptReady && (
-          <div className="pointer-events-none absolute inset-0 top-9 flex items-center justify-center text-xs text-slate-400">
+          <div className="pointer-events-none absolute inset-0 top-9 flex items-center justify-center text-xs text-taupe">
             Loading calculator…
           </div>
         )}

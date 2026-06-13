@@ -90,7 +90,7 @@ export function PreviewActionBar({
   }
 
   return (
-    <div className="border-t border-slate-800 bg-slate-900/40 px-4 py-2.5">
+    <div className="border-t border-bronze bg-surface/40 px-4 py-2.5">
       {/* ── Note input (shown when Flag or Reject is armed) ── */}
       {(flagMode || rejectMode) && (
         <div className="mb-2.5 flex items-center gap-2">
@@ -111,21 +111,21 @@ export function PreviewActionBar({
                 ? "Why is this flagged? (required)"
                 : "Why are you rejecting this? (optional — recoverable)"
             }
-            className="flex-1 rounded-lg border border-slate-700 bg-slate-950 px-3 py-1.5 text-sm text-slate-100 placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none"
+            className="flex-1 rounded-lg border border-bronze bg-night px-3 py-1.5 text-sm text-ivory placeholder:text-taupe focus:border-gold/40 focus:outline-none"
           />
           <button
             onClick={flagMode ? submitFlag : submitReject}
             disabled={anyBusy || (flagMode && !note.trim())}
             className={cn(
-              "rounded-lg px-3 py-1.5 text-xs font-bold text-white disabled:opacity-50",
-              flagMode ? "bg-amber-500 hover:bg-amber-400" : "bg-rose-600 hover:bg-rose-500"
+              "rounded-lg px-3 py-1.5 text-xs font-bold text-ivory disabled:opacity-50",
+              flagMode ? "bg-warning hover:bg-warning-bright" : "bg-error hover:bg-error-bright"
             )}
           >
             {flagMode ? "Flag" : "Reject"}
           </button>
           <button
             onClick={cancelNote}
-            className="rounded-lg border border-slate-700 px-3 py-1.5 text-xs text-slate-300 hover:bg-slate-800"
+            className="rounded-lg border border-bronze px-3 py-1.5 text-xs text-ivory hover:bg-surface-raised"
           >
             Cancel
           </button>
@@ -140,8 +140,8 @@ export function PreviewActionBar({
             onClick={onApprove}
             disabled={anyBusy || flagMode || rejectMode}
             className={cn(
-              "inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold text-white disabled:opacity-50",
-              "bg-emerald-500 hover:bg-emerald-400"
+              "inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold text-ivory disabled:opacity-50",
+              "bg-success hover:bg-success-bright"
             )}
           >
             {pending.approve ? (
@@ -160,8 +160,8 @@ export function PreviewActionBar({
             className={cn(
               "inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-bold disabled:opacity-50",
               flagMode
-                ? "border-amber-400 bg-amber-500/15 text-amber-200"
-                : "border-amber-500/40 bg-transparent text-amber-300 hover:bg-amber-500/10"
+                ? "border-warning/40 bg-warning/15 text-warning-bright"
+                : "border-warning/40 bg-transparent text-warning-bright hover:bg-warning/10"
             )}
           >
             {pending.flag ? (
@@ -180,8 +180,8 @@ export function PreviewActionBar({
             className={cn(
               "inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-bold disabled:opacity-50",
               rejectMode
-                ? "border-rose-400 bg-rose-500/15 text-rose-200"
-                : "border-rose-500/40 bg-transparent text-rose-300 hover:bg-rose-500/10"
+                ? "border-error/40 bg-error/15 text-error-bright"
+                : "border-error/40 bg-transparent text-error-bright hover:bg-error/10"
             )}
           >
             {pending.reject ? (
@@ -207,8 +207,8 @@ export function PreviewActionBar({
                 className={cn(
                   "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold transition-colors",
                   open
-                    ? "border-indigo-400 bg-indigo-500/20 text-indigo-100"
-                    : "border-slate-700 bg-slate-900 text-slate-400 hover:border-slate-600 hover:text-slate-200"
+                    ? "border-gold/40 bg-gold/20 text-gold-bright"
+                    : "border-bronze bg-surface text-taupe hover:border-bronze hover:text-ivory"
                 )}
               >
                 <Icon className="h-3 w-3" />

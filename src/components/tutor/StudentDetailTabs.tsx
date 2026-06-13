@@ -49,7 +49,7 @@ export default function StudentDetailTabs({
 
   return (
     <div>
-      <div className="mb-5 flex gap-1 overflow-x-auto border-b border-slate-200 dark:border-slate-800">
+      <div className="mb-5 flex gap-1 overflow-x-auto border-b border-bronze dark:border-bronze">
         {TABS.map((t) => {
           const count =
             t.key === "flagged" ? flagged.length : t.key === "quiz" ? attempts.length : null;
@@ -60,8 +60,8 @@ export default function StudentDetailTabs({
               className={cn(
                 "whitespace-nowrap border-b-2 px-3 pb-3 text-sm font-semibold transition-colors",
                 activeTab === t.key
-                  ? "border-blue-600 text-blue-600"
-                  : "border-transparent text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                  ? "border-info/40 text-info"
+                  : "border-transparent text-taupe hover:text-ivory dark:hover:text-ivory"
               )}
             >
               {t.label}

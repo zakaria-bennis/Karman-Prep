@@ -43,10 +43,10 @@ const TIER_ECONOMICS: Record<
   TierBreakdown["tier"],
   { label: string; price: number; model: "subscription" | "per_session"; color: string }
 > = {
-  group: { label: "Seminar", price: 40, model: "subscription", color: "#3B82F6" },
-  small_group: { label: "Small Group", price: 60, model: "per_session", color: "#F59E0B" },
-  private: { label: "Private", price: 135, model: "per_session", color: "#A855F7" },
-  elite: { label: "Elite", price: 800, model: "subscription", color: "#10B981" },
+  group: { label: "Seminar", price: 40, model: "subscription", color: "#2FA8FF" },
+  small_group: { label: "Small Group", price: 60, model: "per_session", color: "#E0A24A" },
+  private: { label: "Private", price: 135, model: "per_session", color: "#C8AB6A" },
+  elite: { label: "Elite", price: 800, model: "subscription", color: "#8BA86A" },
 };
 
 const ESTIMATED_SESSIONS_PER_MONTH = 4;

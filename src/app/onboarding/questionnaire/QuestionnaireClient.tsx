@@ -188,13 +188,13 @@ export default function QuestionnaireClient({ firstName, tier, satDates }: Props
   // ─── Done state ──────────────────────────────────────────
   if (done) {
     return (
-      <div className="relative z-10 w-full max-w-xl rounded-3xl border border-white/10 bg-white/[0.04] p-8 text-center shadow-2xl backdrop-blur-md">
-        <CheckCircle2 className="mx-auto mb-4 h-14 w-14 text-emerald-400" />
-        <h2 className="mb-2 text-2xl font-extrabold text-white">You&apos;re all set</h2>
+      <div className="relative z-10 w-full max-w-xl rounded-3xl border border-ivory/10 bg-surface/[0.04] p-8 text-center shadow-2xl backdrop-blur-md">
+        <CheckCircle2 className="mx-auto mb-4 h-14 w-14 text-success" />
+        <h2 className="mb-2 text-2xl font-extrabold text-ivory">You&apos;re all set</h2>
         <DoneSummary tier={done.tier} placement={done.placement} />
         <button
           onClick={() => router.push("/dashboard/student")}
-          className="mt-6 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-500 to-violet-500 px-6 py-3 font-bold text-white transition-all hover:from-blue-500 hover:via-indigo-400 hover:to-violet-400"
+          className="mt-6 rounded-xl bg-gradient-to-r from-info via-gold to-gold px-6 py-3 font-bold text-ivory transition-all hover:from-info hover:via-gold hover:to-gold"
         >
           Go to your dashboard
         </button>
@@ -207,16 +207,16 @@ export default function QuestionnaireClient({ firstName, tier, satDates }: Props
     <div className="relative z-10 w-full max-w-xl">
       {/* Header */}
       <div className="mb-6 text-center">
-        <p className="mb-1 text-xs font-bold uppercase tracking-widest text-blue-300">
+        <p className="mb-1 text-xs font-bold uppercase tracking-widest text-info-bright">
           Welcome, {firstName}
         </p>
-        <h1 className="text-2xl font-extrabold text-white sm:text-3xl">
+        <h1 className="text-2xl font-extrabold text-ivory sm:text-3xl">
           Let&apos;s get you{" "}
-          <span className="bg-gradient-to-r from-blue-400 via-indigo-300 to-violet-300 bg-clip-text font-extrabold italic text-transparent">
+          <span className="bg-gradient-to-r from-info via-gold/10 to-gold/10 bg-clip-text font-extrabold italic text-transparent">
             placed
           </span>
         </h1>
-        <p className="mt-2 text-sm text-slate-300">
+        <p className="mt-2 text-sm text-ivory">
           A few questions so we can match you with the right cohort and tutor.
         </p>
       </div>
@@ -229,22 +229,22 @@ export default function QuestionnaireClient({ firstName, tier, satDates }: Props
               className={cn(
                 "flex h-7 w-7 items-center justify-center rounded-full border text-[11px] font-bold transition-colors",
                 i < stepIdx
-                  ? "border-emerald-400/40 bg-emerald-500/20 text-emerald-200"
+                  ? "border-success/40 bg-success/20 text-success-bright"
                   : i === stepIdx
-                    ? "border-transparent bg-gradient-to-br from-blue-500 to-violet-500 text-white"
-                    : "border-white/10 bg-white/[0.03] text-slate-400"
+                    ? "border-transparent bg-gradient-to-br from-info to-gold text-ivory"
+                    : "border-ivory/10 bg-surface/[0.03] text-taupe"
               )}
             >
               {i + 1}
             </span>
-            {i < steps.length - 1 && <span className="h-px w-4 bg-white/10" />}
+            {i < steps.length - 1 && <span className="h-px w-4 bg-surface/10" />}
           </li>
         ))}
       </ol>
 
       {/* Card */}
-      <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-6 shadow-2xl backdrop-blur-md sm:p-8">
-        <div className="mb-4 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-400">
+      <div className="rounded-3xl border border-ivory/10 bg-surface/[0.04] p-6 shadow-2xl backdrop-blur-md sm:p-8">
+        <div className="mb-4 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-taupe">
           <currentStep.icon className="h-3.5 w-3.5" />
           Step {stepIdx + 1} of {steps.length} — {currentStep.label}
         </div>
@@ -305,8 +305,8 @@ export default function QuestionnaireClient({ firstName, tier, satDates }: Props
           />
         )}
 
-        {validationErr && <p className="mt-4 text-sm text-rose-300">{validationErr}</p>}
-        {submitErr && <p className="mt-4 text-sm text-rose-300">{submitErr}</p>}
+        {validationErr && <p className="mt-4 text-sm text-error-bright">{validationErr}</p>}
+        {submitErr && <p className="mt-4 text-sm text-error-bright">{submitErr}</p>}
 
         {/* Footer buttons */}
         <div className="mt-6 flex items-center justify-between">
@@ -314,7 +314,7 @@ export default function QuestionnaireClient({ firstName, tier, satDates }: Props
             type="button"
             onClick={prev}
             disabled={stepIdx === 0 || submitting}
-            className="inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold text-slate-300 hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
+            className="inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold text-ivory hover:text-ivory disabled:cursor-not-allowed disabled:opacity-30"
           >
             <ArrowLeft className="h-4 w-4" />
             Previous
@@ -323,7 +323,7 @@ export default function QuestionnaireClient({ firstName, tier, satDates }: Props
             type="button"
             onClick={next}
             disabled={submitting}
-            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-500 to-violet-500 px-5 py-2.5 text-sm font-bold text-white transition-all hover:from-blue-500 hover:via-indigo-400 hover:to-violet-400 disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-info via-gold to-gold px-5 py-2.5 text-sm font-bold text-ivory transition-all hover:from-info hover:via-gold hover:to-gold disabled:opacity-50"
           >
             {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
             {stepIdx === steps.length - 1 ? "Finish & place me" : "Next"}

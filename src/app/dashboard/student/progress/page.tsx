@@ -32,9 +32,9 @@ export const dynamic = "force-dynamic";
 const topicLabel = labelFromSlug;
 
 function domainHeatColor(score: number): string {
-  if (score >= 70) return "#22C55E";
-  if (score >= 50) return "#F59E0B";
-  return "#EF4444";
+  if (score >= 70) return "#8BA86A";
+  if (score >= 50) return "#E0A24A";
+  return "#D84F73";
 }
 
 interface DiagnosticRow {
@@ -116,12 +116,12 @@ export default async function StudentProgressPage() {
     <DashboardLayout>
       <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6">
         <header className="mb-6">
-          <p className="mb-1 text-xs font-bold uppercase tracking-widest text-blue-500">Progress</p>
-          <h1 className="flex items-center gap-2 text-2xl font-extrabold text-slate-900 dark:text-white">
-            <BarChart3 className="h-6 w-6 text-slate-400" />
+          <p className="mb-1 text-xs font-bold uppercase tracking-widest text-info">Progress</p>
+          <h1 className="flex items-center gap-2 text-2xl font-extrabold text-ivory dark:text-ivory">
+            <BarChart3 className="h-6 w-6 text-taupe" />
             Your progress
           </h1>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+          <p className="mt-1 text-sm text-taupe dark:text-taupe">
             Diagnostic snapshots, weak-topic focus areas, and constellation mastery — all in one
             place.
           </p>
@@ -168,20 +168,18 @@ export default async function StudentProgressPage() {
 
 function EmptyState() {
   return (
-    <div className="rounded-2xl border border-dashed border-slate-300 px-8 py-12 text-center dark:border-slate-700">
-      <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600">
-        <TrendingUp className="h-7 w-7 text-white" />
+    <div className="rounded-2xl border border-dashed border-bronze px-8 py-12 text-center dark:border-bronze">
+      <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-info to-gold">
+        <TrendingUp className="h-7 w-7 text-ivory" />
       </div>
-      <h2 className="text-lg font-bold text-slate-900 dark:text-white">
-        No diagnostic on file yet
-      </h2>
-      <p className="mx-auto mt-1 max-w-md text-sm text-slate-500 dark:text-slate-400">
+      <h2 className="text-lg font-bold text-ivory dark:text-ivory">No diagnostic on file yet</h2>
+      <p className="mx-auto mt-1 max-w-md text-sm text-taupe dark:text-taupe">
         Take your first diagnostic — 35 questions, ~35 minutes — and your predicted SAT range,
         domain breakdown, and weak topics will all show up here.
       </p>
       <Link
         href="/diagnostic"
-        className="mt-5 inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-[0_4px_14px_rgba(59,130,246,0.35)] hover:from-blue-400 hover:to-indigo-500"
+        className="mt-5 inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-br from-info to-gold px-4 py-2 text-sm font-semibold text-ivory shadow-[0_4px_14px_rgba(59,130,246,0.35)] hover:from-info hover:to-gold"
       >
         Take the diagnostic
         <ArrowRight className="h-4 w-4" />
@@ -204,23 +202,23 @@ function PredictedCard({
   const mid = Math.round((low + high) / 2);
   const tookAgo = formatDaysAgo(takenAt);
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900/40">
-      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+    <div className="rounded-2xl border border-bronze bg-surface p-5 dark:border-bronze dark:bg-surface/40">
+      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-taupe dark:text-taupe">
         Predicted SAT
       </p>
-      <p className="text-3xl font-extrabold text-slate-900 dark:text-white">
+      <p className="text-3xl font-extrabold text-ivory dark:text-ivory">
         {low}–{high}
       </p>
-      <div className="mt-2 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
+      <div className="mt-2 flex items-center justify-between text-[11px] text-taupe dark:text-taupe">
         <span>Midpoint {mid}</span>
         {delta !== null && (
           <span
             className={
               delta > 0
-                ? "font-semibold text-emerald-600 dark:text-emerald-400"
+                ? "font-semibold text-success dark:text-success"
                 : delta < 0
-                  ? "font-semibold text-rose-500 dark:text-rose-400"
-                  : "text-slate-400 dark:text-slate-300"
+                  ? "font-semibold text-error dark:text-error"
+                  : "text-taupe dark:text-ivory"
             }
           >
             {delta > 0 ? "+" : ""}
@@ -228,7 +226,7 @@ function PredictedCard({
           </span>
         )}
       </div>
-      <p className="mt-1 text-[10px] text-slate-400">Taken {tookAgo}</p>
+      <p className="mt-1 text-[10px] text-taupe">Taken {tookAgo}</p>
     </div>
   );
 }
@@ -245,13 +243,13 @@ function CounterCard({
   hint: string;
 }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900/40">
-      <p className="mb-2 inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-        <span className="text-blue-500 dark:text-blue-400">{icon}</span>
+    <div className="rounded-2xl border border-bronze bg-surface p-5 dark:border-bronze dark:bg-surface/40">
+      <p className="mb-2 inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-taupe dark:text-taupe">
+        <span className="text-info dark:text-info">{icon}</span>
         {label}
       </p>
-      <p className="text-3xl font-extrabold text-slate-900 dark:text-white">{value}</p>
-      <p className="mt-2 text-[11px] text-slate-500 dark:text-slate-400">{hint}</p>
+      <p className="text-3xl font-extrabold text-ivory dark:text-ivory">{value}</p>
+      <p className="mt-2 text-[11px] text-taupe dark:text-taupe">{hint}</p>
     </div>
   );
 }
@@ -266,14 +264,14 @@ const RW_DOMAINS: SATDomain[] = [
 
 function DomainBreakdown({ scores }: { scores: DomainScores }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900/40">
-      <h2 className="mb-4 flex items-center gap-2 font-bold text-slate-900 dark:text-white">
+    <div className="rounded-2xl border border-bronze bg-surface p-5 dark:border-bronze dark:bg-surface/40">
+      <h2 className="mb-4 flex items-center gap-2 font-bold text-ivory dark:text-ivory">
         Domain breakdown
-        <span className="text-xs font-normal text-slate-400">(latest diagnostic)</span>
+        <span className="text-xs font-normal text-taupe">(latest diagnostic)</span>
       </h2>
 
       <DomainSubsection title="Math" domains={MATH_DOMAINS} scores={scores} />
-      <div className="mt-5 border-t border-slate-200 pt-5 dark:border-slate-800">
+      <div className="mt-5 border-t border-bronze pt-5 dark:border-bronze">
         <DomainSubsection title="Reading & Writing" domains={RW_DOMAINS} scores={scores} />
       </div>
     </div>
@@ -294,21 +292,21 @@ function DomainSubsection({
     .sort((a, b) => a[1] - b[1]);
   return (
     <div>
-      <p className="mb-3 text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+      <p className="mb-3 text-xs font-bold uppercase tracking-wide text-taupe dark:text-taupe">
         {title}
       </p>
       <div className="space-y-3">
         {entries.map(([domain, score]) => (
           <div key={domain}>
             <div className="mb-1 flex items-center justify-between">
-              <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
+              <span className="text-sm font-medium text-ivory dark:text-ivory">
                 {DOMAIN_LABELS[domain]}
               </span>
               <span className="text-sm font-bold" style={{ color: domainHeatColor(score) }}>
                 {score}%
               </span>
             </div>
-            <div className="h-2.5 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+            <div className="h-2.5 overflow-hidden rounded-full bg-surface dark:bg-surface-raised">
               <div
                 className="h-full rounded-full transition-all duration-700"
                 style={{ width: `${score}%`, backgroundColor: domainHeatColor(score) }}
@@ -327,12 +325,12 @@ function WeakTopics({ weakByDomain }: { weakByDomain: Record<SATDomain, string[]
   );
   if (domains.length === 0) {
     return (
-      <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 dark:border-emerald-700/40 dark:bg-emerald-900/10">
-        <p className="inline-flex items-center gap-1.5 text-sm font-bold text-emerald-700 dark:text-emerald-300">
+      <div className="rounded-2xl border border-success/40 bg-success/10 px-5 py-4 dark:border-success/40 dark:bg-success/10">
+        <p className="inline-flex items-center gap-1.5 text-sm font-bold text-success dark:text-success-bright">
           <Sparkles className="h-4 w-4" />
           No weak topics flagged
         </p>
-        <p className="mt-1 text-xs text-emerald-700/80 dark:text-emerald-300/80">
+        <p className="mt-1 text-xs text-success/80 dark:text-success-bright/80">
           You answered every question correctly on the diagnostic. Strong starting point — your
           learning path will push the harder material.
         </p>
@@ -340,30 +338,30 @@ function WeakTopics({ weakByDomain }: { weakByDomain: Record<SATDomain, string[]
     );
   }
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900/40">
-      <h2 className="mb-3 inline-flex items-center gap-2 font-bold text-slate-900 dark:text-white">
-        <AlertCircle className="h-4 w-4 text-amber-500" />
+    <div className="rounded-2xl border border-bronze bg-surface p-5 dark:border-bronze dark:bg-surface/40">
+      <h2 className="mb-3 inline-flex items-center gap-2 font-bold text-ivory dark:text-ivory">
+        <AlertCircle className="h-4 w-4 text-warning" />
         Topics to focus on
       </h2>
-      <p className="mb-4 text-xs text-slate-500 dark:text-slate-400">
+      <p className="mb-4 text-xs text-taupe dark:text-taupe">
         Pulled from the topics you missed on your latest diagnostic, grouped by domain.
       </p>
       <div className="grid gap-3 sm:grid-cols-2">
         {domains.map((d) => (
           <div
             key={d}
-            className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 dark:border-slate-800 dark:bg-slate-900/60"
+            className="rounded-xl border border-bronze bg-surface px-4 py-3 dark:border-bronze dark:bg-surface/60"
           >
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-taupe dark:text-taupe">
               {DOMAIN_LABELS[d]}
             </p>
             <ul className="space-y-1">
               {weakByDomain[d].map((slug) => (
                 <li
                   key={slug}
-                  className="flex items-center gap-1.5 text-sm text-slate-700 dark:text-slate-200"
+                  className="flex items-center gap-1.5 text-sm text-ivory dark:text-ivory"
                 >
-                  <span className="h-1 w-1 rounded-full bg-amber-500" />
+                  <span className="h-1 w-1 rounded-full bg-warning" />
                   {topicLabel(slug)}
                 </li>
               ))}
@@ -394,17 +392,17 @@ function formatDaysAgo(iso: string): string {
 // Visible only when admin has granted a retake (users.diagnostic_retakes_remaining > 0).
 function RetakeCta() {
   return (
-    <div className="mt-6 rounded-xl border border-emerald-300/40 bg-emerald-50 px-5 py-4 dark:border-emerald-400/30 dark:bg-emerald-400/10">
-      <p className="text-sm font-semibold text-emerald-900 dark:text-emerald-200">
+    <div className="mt-6 rounded-xl border border-success/40 bg-success/10 px-5 py-4 dark:border-success/30 dark:bg-success/10">
+      <p className="text-sm font-semibold text-success dark:text-success-bright">
         A diagnostic retake is available
       </p>
-      <p className="mt-0.5 text-xs text-emerald-800/80 dark:text-emerald-200/80">
+      <p className="mt-0.5 text-xs text-success/80 dark:text-success-bright/80">
         Your admin granted a retake so you can benchmark your progress. Submitting will add a fresh
         diagnostic_results row alongside your prior one &mdash; both show up on your trend chart.
       </p>
       <Link
         href="/diagnostic"
-        className="mt-3 inline-flex items-center gap-1.5 rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700"
+        className="mt-3 inline-flex items-center gap-1.5 rounded-md bg-success px-3 py-1.5 text-xs font-semibold text-night hover:bg-success-bright"
       >
         <RefreshCcw className="h-3.5 w-3.5" /> Retake diagnostic
       </Link>

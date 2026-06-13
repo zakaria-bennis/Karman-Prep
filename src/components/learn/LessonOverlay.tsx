@@ -105,10 +105,10 @@ export default function LessonOverlay({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ type: "spring", stiffness: 300, damping: 32, duration: 0.4 }}
-      className="fixed inset-0 z-50 flex bg-white dark:bg-slate-950"
+      className="fixed inset-0 z-50 flex bg-surface dark:bg-night"
     >
       {/* ── Icon sidebar ──────────────────────────────── */}
-      <aside className="flex w-14 shrink-0 flex-col items-center gap-3 border-r border-slate-200 bg-slate-50 py-6 dark:border-slate-800 dark:bg-slate-900">
+      <aside className="flex w-14 shrink-0 flex-col items-center gap-3 border-r border-bronze bg-surface py-6 dark:border-bronze dark:bg-surface">
         {SIDEBAR_ICONS.map(({ key, Icon, label }) => {
           const active = activeSection === key;
           return (
@@ -118,8 +118,8 @@ export default function LessonOverlay({
               className={cn(
                 "relative flex h-10 w-10 items-center justify-center rounded-lg transition-colors",
                 active
-                  ? "bg-white text-slate-900 dark:bg-slate-800 dark:text-white"
-                  : "text-slate-400 hover:bg-white/50 hover:text-slate-400 dark:hover:bg-slate-800/50 dark:hover:text-slate-200"
+                  ? "bg-surface text-night dark:bg-surface-raised dark:text-ivory"
+                  : "text-taupe hover:bg-surface/50 hover:text-taupe dark:hover:bg-surface-raised/50 dark:hover:text-ivory/90"
               )}
               aria-label={label}
             >
@@ -140,7 +140,7 @@ export default function LessonOverlay({
         {/* Close button — always visible top right */}
         <button
           onClick={onClose}
-          className="fixed right-4 top-4 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-slate-900/90 text-white shadow-lg backdrop-blur-sm transition-colors hover:bg-slate-900 dark:bg-white/10 dark:hover:bg-white/20"
+          className="fixed right-4 top-4 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-surface/90 text-ivory shadow-lg backdrop-blur-sm transition-colors hover:bg-surface dark:bg-surface/10 dark:hover:bg-surface/20"
           aria-label="Close lesson"
         >
           <X className="h-5 w-5" />
@@ -149,14 +149,11 @@ export default function LessonOverlay({
         <div className="mx-auto max-w-3xl space-y-10 px-6 py-10 md:px-12">
           {/* ── Section 1 — Header ─────────────────────── */}
           <header>
-            <h1 className="text-3xl font-extrabold leading-tight tracking-tight text-slate-900 dark:text-white md:text-4xl">
+            <h1 className="text-3xl font-extrabold leading-tight tracking-tight text-night dark:text-ivory md:text-4xl">
               {node.topic}
-              <span className="font-semibold text-slate-400 dark:text-slate-400">
-                {" "}
-                — {atmosphere}
-              </span>
+              <span className="font-semibold text-taupe dark:text-taupe"> — {atmosphere}</span>
             </h1>
-            <p className="mt-2 text-base text-slate-600 dark:text-slate-400">{node.description}</p>
+            <p className="mt-2 text-base text-taupe/70 dark:text-taupe">{node.description}</p>
             <div className="mt-5 flex flex-wrap items-center gap-3">
               <span
                 className={cn(
@@ -168,15 +165,15 @@ export default function LessonOverlay({
               >
                 {diffKey[0].toUpperCase() + diffKey.slice(1)}
               </span>
-              <span className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+              <span className="flex items-center gap-1.5 text-xs text-taupe/80 dark:text-taupe">
                 <Clock className="h-3.5 w-3.5" />
                 {vmin}:{vsec.toString().padStart(2, "0")}
               </span>
-              <span className="text-xs text-slate-500 dark:text-slate-400">
+              <span className="text-xs text-taupe/80 dark:text-taupe">
                 Tier {node.tier} · {TIER_LABELS[node.tier]}
               </span>
               {bestScore !== null && (
-                <span className="flex items-center gap-1.5 text-xs font-semibold text-amber-500">
+                <span className="flex items-center gap-1.5 text-xs font-semibold text-warning">
                   <Trophy className="h-3.5 w-3.5" />
                   Personal best: {bestScore}%
                 </span>
@@ -186,7 +183,7 @@ export default function LessonOverlay({
 
           {/* ── Section 2 — Video ──────────────────────── */}
           <section ref={videoRef} data-section="video">
-            <h2 className="mb-3 text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">
+            <h2 className="mb-3 text-xs font-bold uppercase tracking-widest text-taupe/80 dark:text-taupe">
               Lesson Video
             </h2>
             <VideoPlayer
@@ -202,19 +199,19 @@ export default function LessonOverlay({
           <section
             ref={textbookRef}
             data-section="textbook"
-            className="border-t border-slate-200 pt-8 dark:border-slate-800"
+            className="border-t border-bronze pt-8 dark:border-bronze"
           >
             <div className="mb-5 flex items-center gap-2">
-              <BookOpen className="h-3.5 w-3.5 text-slate-400" />
-              <span className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">
+              <BookOpen className="h-3.5 w-3.5 text-taupe" />
+              <span className="text-xs font-bold uppercase tracking-widest text-taupe/80 dark:text-taupe">
                 Lesson Notes
               </span>
             </div>
             <div className="mx-auto max-w-[62ch]">
               <TextbookContent markdown={node.textbook_content ?? node.description} />
               {node.subject === "math" && node.desmos_strategy && (
-                <div className="mt-10 rounded-xl border border-indigo-200 bg-indigo-50/50 p-5 dark:border-indigo-900 dark:bg-indigo-900/10">
-                  <h3 className="mb-3 text-xs font-bold uppercase tracking-widest text-indigo-600 dark:text-indigo-400">
+                <div className="mt-10 rounded-xl border border-gold/30 bg-gold/[0.06] p-5">
+                  <h3 className="mb-3 text-xs font-bold uppercase tracking-widest text-gold-bright">
                     Desmos Strategy
                   </h3>
                   <TextbookContent markdown={node.desmos_strategy} />
@@ -227,11 +224,11 @@ export default function LessonOverlay({
           <section
             ref={quizRef}
             data-section="quiz"
-            className="border-t border-slate-200 pt-8 dark:border-slate-800"
+            className="border-t border-bronze pt-8 dark:border-bronze"
           >
             <div className="mb-5 flex items-center gap-2">
-              <Zap className="h-3.5 w-3.5 text-slate-400" />
-              <span className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">
+              <Zap className="h-3.5 w-3.5 text-taupe" />
+              <span className="text-xs font-bold uppercase tracking-widest text-taupe/80 dark:text-taupe">
                 Practice
               </span>
             </div>

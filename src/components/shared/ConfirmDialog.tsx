@@ -103,7 +103,7 @@ function DialogShell({
 
   return (
     <div
-      className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-[200] flex items-center justify-center bg-night/60 p-4 backdrop-blur-sm"
       role="dialog"
       aria-modal="true"
       aria-labelledby="confirm-title"
@@ -111,27 +111,27 @@ function DialogShell({
         if (e.target === e.currentTarget) onCancel();
       }}
     >
-      <div className="relative w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl">
+      <div className="relative w-full max-w-md rounded-2xl border border-bronze bg-surface p-6 shadow-2xl">
         <button
           onClick={onCancel}
           disabled={pending}
-          className="absolute right-4 top-4 text-slate-400 hover:text-slate-200 disabled:opacity-50"
+          className="absolute right-4 top-4 text-taupe hover:text-ivory disabled:opacity-50"
           aria-label="Cancel"
         >
           <X className="h-5 w-5" />
         </button>
-        <h2 id="confirm-title" className="pr-6 text-lg font-bold text-white">
+        <h2 id="confirm-title" className="pr-6 text-lg font-bold text-ivory">
           {opts.title}
         </h2>
         {opts.description && (
-          <p className="mt-2 text-sm leading-relaxed text-slate-400">{opts.description}</p>
+          <p className="mt-2 text-sm leading-relaxed text-taupe">{opts.description}</p>
         )}
         <div className="mt-6 flex justify-end gap-2">
           <button
             type="button"
             onClick={onCancel}
             disabled={pending}
-            className="rounded-lg border border-slate-700 px-4 py-2 text-sm font-semibold text-slate-300 hover:bg-slate-800 disabled:opacity-50"
+            className="rounded-lg border border-bronze px-4 py-2 text-sm font-semibold text-ivory hover:bg-surface-raised disabled:opacity-50"
           >
             {cancelLabel}
           </button>
@@ -141,8 +141,10 @@ function DialogShell({
             disabled={pending}
             autoFocus
             className={cn(
-              "inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-white disabled:opacity-50",
-              opts.danger ? "bg-rose-600 hover:bg-rose-500" : "bg-indigo-600 hover:bg-indigo-500"
+              "inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold disabled:opacity-50",
+              opts.danger
+                ? "bg-error text-ivory hover:bg-error-bright"
+                : "bg-gold text-night hover:bg-gold-bright"
             )}
           >
             {pending && <Loader2 className="h-4 w-4 animate-spin" />}

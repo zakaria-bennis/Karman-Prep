@@ -3,6 +3,9 @@
 // ============================================================
 // Email capture form — for visitors not ready to subscribe.
 // Sends email to Resend audience via /api/email/subscribe.
+//
+// Observatory treatment: a quiet espresso interlude with a gold
+// hairline above — not a loud color band.
 // ============================================================
 
 import { useState } from "react";
@@ -42,22 +45,23 @@ export default function EmailCapture() {
   }
 
   return (
-    <section className="bg-gradient-to-b from-blue-600 to-blue-700 py-20 dark:from-blue-800 dark:to-blue-900">
+    <section className="relative bg-espresso py-20">
+      <div className="rule-gold absolute inset-x-0 top-0" aria-hidden="true" />
       <div className="mx-auto max-w-2xl px-4 text-center sm:px-6">
-        <div className="mx-auto mb-6 flex h-12 w-12 items-center justify-center rounded-2xl bg-white/20">
-          <Mail className="h-6 w-6 text-white" />
+        <div className="mx-auto mb-6 flex h-12 w-12 items-center justify-center rounded-2xl border border-bronze bg-surface">
+          <Mail className="h-6 w-6 text-gold" />
         </div>
 
-        <h2 className="mb-3 text-3xl font-bold text-white">Not ready to start yet?</h2>
-        <p className="mb-8 text-blue-100">
+        <h2 className="type-display-md mb-3 text-ivory">Not ready to start yet?</h2>
+        <p className="type-body mb-8 text-taupe">
           Get free SAT tips, strategy guides, and exclusive study resources delivered to your inbox.
           No spam — unsubscribe anytime.
         </p>
 
         {status === "success" ? (
-          <div className="flex items-center justify-center gap-3 rounded-2xl bg-white/20 px-6 py-4 text-white">
-            <CheckCircle className="h-5 w-5 text-emerald-300" />
-            <p className="font-medium">{message}</p>
+          <div className="card-surface flex items-center justify-center gap-3 px-6 py-4">
+            <CheckCircle className="h-5 w-5 text-gold-bright" />
+            <p className="font-medium text-ivory">{message}</p>
           </div>
         ) : (
           <form
@@ -70,12 +74,12 @@ export default function EmailCapture() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="your@email.com"
               required
-              className="flex-1 rounded-xl border border-white/20 bg-white/10 px-4 py-3.5 text-sm text-white placeholder-blue-200 focus:outline-none focus:ring-2 focus:ring-white/50"
+              className="flex-1 rounded-xl border border-bronze bg-surface px-4 py-3.5 text-sm text-ivory placeholder-taupe/70 transition-colors duration-fast focus:border-gold focus:outline-none"
             />
             <button
               type="submit"
               disabled={status === "loading"}
-              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-white px-6 py-3.5 text-sm font-semibold text-blue-700 transition-colors hover:bg-blue-50 disabled:opacity-70"
+              className="btn-primary shrink-0 px-6 py-3.5 text-sm disabled:opacity-70"
             >
               {status === "loading" ? "Sending..." : "Get Free Tips"}
               <ArrowRight className="h-4 w-4" />
@@ -83,7 +87,7 @@ export default function EmailCapture() {
           </form>
         )}
 
-        {status === "error" && <p className="mt-3 text-sm text-red-300">{message}</p>}
+        {status === "error" && <p className="mt-3 text-sm text-rw-glow">{message}</p>}
       </div>
     </section>
   );

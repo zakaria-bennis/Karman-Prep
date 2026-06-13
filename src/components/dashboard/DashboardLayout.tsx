@@ -82,7 +82,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   })();
 
   return (
-    <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950">
+    <div className="flex min-h-screen bg-surface dark:bg-night">
       {/* Layout spacer — reserves the collapsed sidebar width on
           lg+ so the main content never shifts when the sidebar
           expands on hover. */}
@@ -94,7 +94,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <aside
         className={cn(
           "group fixed inset-y-0 left-0 z-40 w-16 lg:hover:w-56",
-          "border-r border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900",
+          "border-r border-bronze bg-surface dark:border-bronze dark:bg-surface",
           "flex flex-col overflow-hidden",
           "transition-[width,transform] duration-200 ease-out",
           "lg:translate-x-0",
@@ -109,7 +109,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <Link
             href="/"
             aria-label="Go to the Karman landing page"
-            className="relative flex h-12 items-center gap-3 rounded-xl px-3.5 transition-all hover:bg-slate-100 dark:hover:bg-slate-800"
+            className="relative flex h-12 items-center gap-3 rounded-xl px-3.5 transition-all hover:bg-surface dark:hover:bg-surface-raised"
           >
             <KarmanLogoMark size={20} />
             <span className="inline-flex whitespace-nowrap opacity-0 transition-opacity duration-150 lg:group-hover:opacity-100">
@@ -130,8 +130,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 className={cn(
                   "relative flex h-12 items-center gap-3 rounded-xl px-3.5 transition-all",
                   active
-                    ? "bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
-                    : "text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
+                    ? "bg-info/10 text-info dark:bg-info/30 dark:text-info"
+                    : "text-taupe hover:bg-surface hover:text-ivory dark:text-taupe dark:hover:bg-surface-raised dark:hover:text-ivory"
                 )}
               >
                 <Icon className="h-5 w-5 shrink-0" />
@@ -144,10 +144,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   <span
                     aria-label={`${badge} unread message${badge === 1 ? "" : "s"}`}
                     className={cn(
-                      "absolute inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-blue-500 px-1 text-[10px] font-bold text-white shadow-[0_2px_6px_rgba(59,130,246,0.5)] transition-all",
+                      "absolute inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-info px-1 text-[10px] font-bold text-ivory shadow-[0_2px_6px_rgba(59,130,246,0.5)] transition-all",
                       // Corner pip while collapsed; slides to the
                       // right edge of the row when expanded.
-                      "right-1 top-1 ring-2 ring-white dark:ring-slate-900",
+                      "right-1 top-1 ring-2 ring-white dark:ring-bronze",
                       "lg:group-hover:right-3 lg:group-hover:top-1/2 lg:group-hover:-translate-y-1/2 lg:group-hover:ring-0"
                     )}
                   >
@@ -167,7 +167,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             onClick={() => clerk.openUserProfile()}
             title="Profile"
             aria-label="Profile"
-            className="relative flex h-12 w-full items-center gap-3 rounded-xl px-3.5 text-left text-slate-500 transition-all hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
+            className="relative flex h-12 w-full items-center gap-3 rounded-xl px-3.5 text-left text-taupe transition-all hover:bg-surface hover:text-ivory dark:text-taupe dark:hover:bg-surface-raised dark:hover:text-ivory"
           >
             <UserCircle className="h-5 w-5 shrink-0" />
             <span className="whitespace-nowrap text-sm font-medium opacity-0 transition-opacity duration-150 lg:group-hover:opacity-100">
@@ -180,7 +180,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 z-30 bg-black/30 lg:hidden"
+          className="fixed inset-0 z-30 bg-night/30 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
@@ -188,10 +188,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* Main content */}
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Top bar (mobile) */}
-        <header className="flex h-14 items-center gap-3 border-b border-slate-200 bg-white px-4 dark:border-slate-800 dark:bg-slate-900 lg:hidden">
+        <header className="flex h-14 items-center gap-3 border-b border-bronze bg-surface px-4 dark:border-bronze dark:bg-surface lg:hidden">
           <button
             onClick={() => setSidebarOpen(true)}
-            className="rounded-lg p-2 transition-colors hover:bg-slate-100 dark:hover:bg-slate-800"
+            className="rounded-lg p-2 transition-colors hover:bg-surface dark:hover:bg-surface-raised"
           >
             {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>

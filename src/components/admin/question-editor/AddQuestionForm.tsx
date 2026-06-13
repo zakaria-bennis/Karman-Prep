@@ -98,7 +98,7 @@ export function AddQuestionForm({
   }
 
   const inputClass =
-    "w-full rounded-lg border border-slate-700 bg-slate-900 text-slate-100 px-3 py-2 text-sm placeholder:text-slate-400 focus:outline-none focus:border-indigo-500";
+    "w-full rounded-lg border border-bronze bg-surface text-ivory px-3 py-2 text-sm placeholder:text-taupe focus:outline-none focus:border-gold/40";
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -186,9 +186,9 @@ export function AddQuestionForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="mb-5 space-y-4 rounded-xl border border-indigo-500/30 bg-indigo-500/5 p-5"
+      className="mb-5 space-y-4 rounded-xl border border-gold/30 bg-gold/5 p-5"
     >
-      <h3 className="text-sm font-bold text-white">New question</h3>
+      <h3 className="text-sm font-bold text-ivory">New question</h3>
 
       {/* Answer format toggle (MC vs numeric) */}
       {subject === "math" && (
@@ -196,15 +196,15 @@ export function AddQuestionForm({
           label="Answer format"
           helper="Numeric entry is typed in by the student — no A/B/C/D choices."
         >
-          <div className="inline-flex overflow-hidden rounded-lg border border-slate-700 bg-slate-900">
+          <div className="inline-flex overflow-hidden rounded-lg border border-bronze bg-surface">
             <button
               type="button"
               onClick={() => setAnswerFormat("multiple_choice")}
               className={cn(
                 "px-4 py-1.5 text-xs font-semibold",
                 answerFormat === "multiple_choice"
-                  ? "bg-indigo-500 text-white"
-                  : "text-slate-400 hover:text-slate-200"
+                  ? "bg-gold text-night"
+                  : "text-taupe hover:text-ivory"
               )}
             >
               Multiple choice
@@ -213,10 +213,10 @@ export function AddQuestionForm({
               type="button"
               onClick={() => setAnswerFormat("numeric_entry")}
               className={cn(
-                "border-l border-slate-700 px-4 py-1.5 text-xs font-semibold",
+                "border-l border-bronze px-4 py-1.5 text-xs font-semibold",
                 answerFormat === "numeric_entry"
-                  ? "bg-indigo-500 text-white"
-                  : "text-slate-400 hover:text-slate-200"
+                  ? "bg-gold text-night"
+                  : "text-taupe hover:text-ivory"
               )}
             >
               Numeric entry
@@ -256,13 +256,13 @@ export function AddQuestionForm({
           <button
             type="button"
             onClick={() => imageInputRef.current?.click()}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-100 hover:bg-slate-700"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-bronze bg-surface-raised px-3 py-1.5 text-xs font-semibold text-ivory hover:bg-surface-raised"
           >
             <ImageIcon className="h-3.5 w-3.5" /> {imageFile ? "Change image" : "Choose image"}
           </button>
           {imageFile && (
             <>
-              <span className="max-w-xs truncate text-xs text-slate-400">
+              <span className="max-w-xs truncate text-xs text-taupe">
                 {imageFile.name || "Pasted image"}
               </span>
               <button
@@ -271,7 +271,7 @@ export function AddQuestionForm({
                   setImageFromFile(null);
                   if (imageInputRef.current) imageInputRef.current.value = "";
                 }}
-                className="text-xs text-rose-400 hover:text-rose-300"
+                className="text-xs text-error hover:text-error-bright"
               >
                 remove
               </button>
@@ -289,7 +289,7 @@ export function AddQuestionForm({
           <img
             src={imagePreviewUrl}
             alt={imageAlt || "Attached image preview"}
-            className="mt-2 max-h-48 rounded-lg border border-slate-700 bg-slate-950"
+            className="mt-2 max-h-48 rounded-lg border border-bronze bg-night"
           />
         )}
         {imageFile && (
@@ -322,7 +322,7 @@ export function AddQuestionForm({
               {LETTERS.map((l) => (
                 <label
                   key={l}
-                  className="flex cursor-pointer items-center gap-1 text-sm text-slate-200"
+                  className="flex cursor-pointer items-center gap-1 text-sm text-ivory"
                 >
                   <input
                     type="radio"
@@ -443,7 +443,7 @@ export function AddQuestionForm({
         <button
           type="button"
           onClick={onCancel}
-          className="rounded-lg px-4 py-2 text-sm font-semibold text-slate-400 hover:bg-slate-800"
+          className="rounded-lg px-4 py-2 text-sm font-semibold text-taupe hover:bg-surface-raised"
         >
           Cancel
         </button>
@@ -451,8 +451,8 @@ export function AddQuestionForm({
           type="submit"
           disabled={!valid || submitting}
           className={cn(
-            "rounded-lg bg-indigo-500 px-5 py-2 text-sm font-bold text-white",
-            !valid || submitting ? "cursor-not-allowed opacity-50" : "hover:bg-indigo-400"
+            "rounded-lg bg-gold px-5 py-2 text-sm font-bold text-night",
+            !valid || submitting ? "cursor-not-allowed opacity-50" : "hover:bg-gold-bright"
           )}
         >
           {submitting ? "Adding…" : "Add question"}
@@ -473,8 +473,8 @@ function Field({
 }) {
   return (
     <label className="block">
-      <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">{label}</span>
-      {helper && <span className="mb-1 mt-0.5 block text-[10px] text-slate-400">{helper}</span>}
+      <span className="text-[11px] font-bold uppercase tracking-wider text-taupe">{label}</span>
+      {helper && <span className="mb-1 mt-0.5 block text-[10px] text-taupe">{helper}</span>}
       <div className={helper ? "" : "mt-1"}>{children}</div>
     </label>
   );
@@ -489,9 +489,9 @@ function DifficultyLevelField({
   return (
     <div>
       <div className="flex items-center justify-between">
-        <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+        <span className="text-[11px] font-bold uppercase tracking-wider text-taupe">
           Difficulty level{" "}
-          <span className="ml-1 normal-case tracking-normal text-slate-400">
+          <span className="ml-1 normal-case tracking-normal text-taupe">
             (1 easiest → 7 hardest)
           </span>
         </span>
@@ -517,8 +517,8 @@ function DifficultyLevelField({
               className={cn(
                 "flex-1 rounded-lg border py-2 text-sm font-bold transition-colors",
                 active
-                  ? "text-white"
-                  : "border-slate-700 text-slate-400 hover:border-slate-500 hover:text-slate-300"
+                  ? "text-ivory"
+                  : "border-bronze text-taupe hover:border-bronze hover:text-ivory"
               )}
               style={
                 active

@@ -173,18 +173,18 @@ export default function PrivacyPage() {
   return (
     <>
       <Navbar />
-      <main className="min-h-screen bg-white dark:bg-slate-950">
+      <main className="min-h-screen bg-surface dark:bg-night">
         {/* Header */}
-        <section className="bg-gradient-to-b from-slate-50 to-white px-4 pb-12 pt-20 text-center dark:from-slate-900 dark:to-slate-950">
+        <section className="bg-gradient-to-b from-surface to-white px-4 pb-12 pt-20 text-center dark:from-surface dark:to-night">
           <div className="mx-auto max-w-2xl">
-            <h1 className="mb-4 text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+            <h1 className="mb-4 text-4xl font-extrabold tracking-tight text-ivory dark:text-ivory">
               Privacy Policy
             </h1>
-            <p className="text-base text-slate-500 dark:text-slate-400">
+            <p className="text-base text-taupe dark:text-taupe">
               Effective April 2025 · Questions:{" "}
               <a
                 href="mailto:privacy@karmanprep.com"
-                className="text-blue-600 underline dark:text-blue-400"
+                className="text-info underline dark:text-info"
               >
                 privacy@karmanprep.com
               </a>
@@ -197,7 +197,7 @@ export default function PrivacyPage() {
           {/* TOC sidebar */}
           <aside className="hidden w-52 shrink-0 lg:block">
             <div className="sticky top-24">
-              <p className="mb-3 text-xs font-bold uppercase tracking-widest text-slate-400">
+              <p className="mb-3 text-xs font-bold uppercase tracking-widest text-taupe">
                 Contents
               </p>
               <nav className="space-y-1">
@@ -205,7 +205,7 @@ export default function PrivacyPage() {
                   <a
                     key={s.id}
                     href={`#${s.id}`}
-                    className="block py-0.5 text-sm text-slate-500 transition-colors hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400"
+                    className="block py-0.5 text-sm text-taupe transition-colors hover:text-info dark:text-taupe dark:hover:text-info-bright"
                   >
                     {s.title}
                   </a>
@@ -218,12 +218,12 @@ export default function PrivacyPage() {
           <div className="flex-1 space-y-10">
             {SECTIONS.map((section) => (
               <section key={section.id} id={section.id} className="scroll-mt-24">
-                <h2 className="mb-3 text-lg font-bold text-slate-900 dark:text-white">
+                <h2 className="mb-3 text-lg font-bold text-ivory dark:text-ivory">
                   {section.title}
                 </h2>
 
                 {section.content && (
-                  <p className="mb-3 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
+                  <p className="mb-3 text-sm leading-relaxed text-taupe dark:text-ivory">
                     {section.content}
                   </p>
                 )}
@@ -233,16 +233,16 @@ export default function PrivacyPage() {
                   <div className="space-y-5">
                     {section.subsections.map((sub) => (
                       <div key={sub.subtitle}>
-                        <p className="mb-2 text-sm font-semibold text-slate-700 dark:text-slate-200">
+                        <p className="mb-2 text-sm font-semibold text-ivory dark:text-ivory">
                           {sub.subtitle}
                         </p>
                         <ul className="space-y-1.5">
                           {sub.items.map((item, i) => (
                             <li
                               key={i}
-                              className="flex items-start gap-2.5 text-sm leading-relaxed text-slate-600 dark:text-slate-300"
+                              className="flex items-start gap-2.5 text-sm leading-relaxed text-taupe dark:text-ivory"
                             >
-                              <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-blue-500" />
+                              <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-info" />
                               {item}
                             </li>
                           ))}
@@ -258,9 +258,9 @@ export default function PrivacyPage() {
                     {section.list.map((item, i) => (
                       <li
                         key={i}
-                        className="flex items-start gap-2.5 text-sm leading-relaxed text-slate-600 dark:text-slate-300"
+                        className="flex items-start gap-2.5 text-sm leading-relaxed text-taupe dark:text-ivory"
                       >
-                        <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-blue-500" />
+                        <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-info" />
                         {item}
                       </li>
                     ))}
@@ -272,11 +272,11 @@ export default function PrivacyPage() {
                   <div className="overflow-x-auto">
                     <table className="w-full border-collapse text-sm">
                       <thead>
-                        <tr className="border-b border-slate-200 dark:border-slate-700">
-                          <th className="w-28 py-2 pr-4 text-left font-semibold text-slate-700 dark:text-slate-200">
+                        <tr className="border-b border-bronze dark:border-bronze">
+                          <th className="w-28 py-2 pr-4 text-left font-semibold text-ivory dark:text-ivory">
                             Service
                           </th>
-                          <th className="py-2 text-left font-semibold text-slate-700 dark:text-slate-200">
+                          <th className="py-2 text-left font-semibold text-ivory dark:text-ivory">
                             Purpose
                           </th>
                         </tr>
@@ -285,19 +285,19 @@ export default function PrivacyPage() {
                         {section.table.map((row) => (
                           <tr
                             key={row.service}
-                            className="border-b border-slate-100 dark:border-slate-800"
+                            className="border-b border-bronze dark:border-bronze"
                           >
-                            <td className="py-3 pr-4 align-top font-medium text-slate-900 dark:text-white">
+                            <td className="py-3 pr-4 align-top font-medium text-ivory dark:text-ivory">
                               <a
                                 href={row.link}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-blue-600 hover:underline dark:text-blue-400"
+                                className="text-info hover:underline dark:text-info"
                               >
                                 {row.service}
                               </a>
                             </td>
-                            <td className="py-3 leading-relaxed text-slate-600 dark:text-slate-300">
+                            <td className="py-3 leading-relaxed text-taupe dark:text-ivory">
                               {row.purpose}
                             </td>
                           </tr>
@@ -309,14 +309,14 @@ export default function PrivacyPage() {
               </section>
             ))}
 
-            <div className="flex flex-wrap gap-4 border-t border-slate-200 pt-8 text-sm dark:border-slate-700">
-              <Link href="/terms" className="text-blue-600 hover:underline dark:text-blue-400">
+            <div className="flex flex-wrap gap-4 border-t border-bronze pt-8 text-sm dark:border-bronze">
+              <Link href="/terms" className="text-info hover:underline dark:text-info">
                 Terms of Service
               </Link>
-              <Link href="/refunds" className="text-blue-600 hover:underline dark:text-blue-400">
+              <Link href="/refunds" className="text-info hover:underline dark:text-info">
                 Refund Policy
               </Link>
-              <Link href="/guarantee" className="text-blue-600 hover:underline dark:text-blue-400">
+              <Link href="/guarantee" className="text-info hover:underline dark:text-info">
                 Score Guarantee
               </Link>
             </div>

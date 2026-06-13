@@ -106,17 +106,17 @@ export interface GeometryRenderTheme {
   label: string;
 }
 
-// Cool "blueprint" palette — figures live in the navy quiz app, so they
-// follow the APP tokens (sky on navy, per docs/design-tokens.md), not the
-// old black-ink-on-ivory look. sky-400 strokes, sky-200 text.
-export const DISPLAY_THEME: GeometryRenderTheme = { stroke: "#38bdf8", label: "#bae6fd" };
+// Observatory display palette (docs/brand.md) — geometry is a math
+// figure, so it carries the Math-blue subject signal on the warm night
+// canvas, with ivory labels for late-night legibility.
+export const DISPLAY_THEME: GeometryRenderTheme = { stroke: "#2FA8FF", label: "#F3ECDD" };
 
 // Black ink for the Stage-6.6 gate: it rasterizes this SVG onto a WHITE
 // canvas and compares it to the original (black-on-white) screenshot, so
 // the comparison render must be black — the sky display colors would be
 // near-invisible on white and tank the visual match. Display colors and
 // comparison colors are deliberately decoupled.
-export const MONO_THEME: GeometryRenderTheme = { stroke: "#1A1A1A", label: "#1A1A1A" };
+export const MONO_THEME: GeometryRenderTheme = { stroke: "#171611", label: "#171611" };
 
 const FONT = 'font-family="ui-serif, Georgia, serif"';
 

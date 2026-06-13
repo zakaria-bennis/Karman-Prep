@@ -7,6 +7,10 @@
 //
 // Uses Framer Motion `layoutId` so the card can morph into the
 // full-screen LessonOverlay when "Watch Lesson" is clicked.
+//
+// Observatory chrome: warm surface, bronze hairline, the subject
+// accent confined to the tier badge, top rule, and lesson CTA.
+// Settle-style entry — no spring, no pop (docs/brand.md "Motion").
 // ============================================================
 
 import { motion } from "framer-motion";
@@ -40,30 +44,29 @@ export default function NodeCard({ node, origin, onWatchLesson, onStartQuiz, onC
   return (
     <motion.div
       layoutId={`lesson-overlay-${node.id}`}
-      initial={{ opacity: 0, scale: 0.3 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.3 }}
-      transition={{ type: "spring", stiffness: 380, damping: 30 }}
-      className="fixed z-40 overflow-hidden rounded-2xl border shadow-2xl"
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 8 }}
+      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+      className="fixed z-40 overflow-hidden rounded-2xl border border-bronze shadow-2xl"
       style={{
         left: clampedX,
         top: clampedY,
         width: CARD_WIDTH,
-        background: "rgba(9, 14, 28, 0.96)",
+        background: "rgba(23, 22, 17, 0.97)",
         backdropFilter: "blur(12px)",
-        borderColor: subjectColor + "40",
       }}
     >
-      {/* Gradient accent bar */}
+      {/* Subject accent rule */}
       <div
-        className="absolute inset-x-0 top-0 h-1"
+        className="absolute inset-x-0 top-0 h-px"
         style={{ background: `linear-gradient(90deg, transparent, ${subjectColor}, transparent)` }}
       />
 
       {/* Close */}
       <button
         onClick={onClose}
-        className="absolute right-2 top-2 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-white/5 text-slate-400 transition-colors hover:bg-white/10 hover:text-white"
+        className="absolute right-2 top-2 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-surface-raised text-taupe transition-colors duration-fast hover:text-ivory"
         aria-label="Close"
       >
         <X className="h-4 w-4" />
@@ -73,7 +76,7 @@ export default function NodeCard({ node, origin, onWatchLesson, onStartQuiz, onC
         {/* Tier badge */}
         <div className="mb-2 flex items-center gap-2">
           <span
-            className="rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest"
+            className="rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest"
             style={{
               color: subjectColor,
               background: subjectColor + "15",
@@ -85,21 +88,23 @@ export default function NodeCard({ node, origin, onWatchLesson, onStartQuiz, onC
         </div>
 
         {/* Title */}
-        <h3 className="mb-1 text-base font-bold leading-snug text-white">{node.topic}</h3>
-        <p className="mb-4 line-clamp-2 text-xs text-slate-400">{node.description}</p>
+        <h3 className="mb-1 font-plex-serif text-base font-medium leading-snug text-ivory">
+          {node.topic}
+        </h3>
+        <p className="mb-4 line-clamp-2 text-xs text-taupe">{node.description}</p>
 
         {/* Action buttons */}
         {isLocked ? (
-          <div className="flex items-center gap-2 rounded-lg border border-slate-800 bg-slate-900/50 p-3">
-            <Lock className="h-3.5 w-3.5 text-slate-400" />
-            <span className="text-xs text-slate-400">Complete prerequisite nodes to unlock.</span>
+          <div className="flex items-center gap-2 rounded-lg border border-bronze bg-charcoal p-3">
+            <Lock className="h-3.5 w-3.5 text-taupe" />
+            <span className="text-xs text-taupe">Complete prerequisite nodes to unlock.</span>
           </div>
         ) : (
           <div className="space-y-2">
             <button
               onClick={onWatchLesson}
-              className="flex w-full items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-semibold transition-transform hover:scale-[1.02] active:scale-[0.98]"
-              style={{ background: subjectColor, color: "#fff" }}
+              className="flex w-full items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-semibold transition-opacity duration-fast hover:opacity-90"
+              style={{ background: subjectColor, color: "#070605" }}
             >
               <Play className="h-4 w-4" /> Watch Lesson
             </button>
@@ -107,7 +112,7 @@ export default function NodeCard({ node, origin, onWatchLesson, onStartQuiz, onC
               onClick={onStartQuiz}
               className={cn(
                 "flex w-full items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-semibold",
-                "border border-white/10 bg-white/5 text-white transition-colors hover:bg-white/10"
+                "border border-bronze bg-surface-raised text-ivory transition-colors duration-fast hover:border-taupe/50"
               )}
             >
               <Zap className="h-4 w-4" /> Start Quiz

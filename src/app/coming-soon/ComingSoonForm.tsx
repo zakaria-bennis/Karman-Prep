@@ -40,7 +40,7 @@ export default function ComingSoonForm() {
 
   if (status === "success") {
     return (
-      <div className="flex items-center justify-center gap-2 py-3 text-sm text-emerald-300">
+      <div className="flex items-center justify-center gap-2 py-3 text-sm text-success-bright">
         <CheckCircle className="h-4 w-4" />
         {message}
       </div>
@@ -49,28 +49,28 @@ export default function ComingSoonForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
-      <div className="flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-900/80 px-3 py-2 transition-colors focus-within:border-indigo-500/60">
-        <Mail className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+      <div className="flex items-center gap-2 rounded-lg border border-bronze bg-surface/80 px-3 py-2 transition-colors focus-within:border-gold/60">
+        <Mail className="h-3.5 w-3.5 shrink-0 text-taupe" />
         <input
           type="email"
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="you@example.com"
-          className="flex-1 bg-transparent text-sm text-slate-100 placeholder:text-slate-400 focus:outline-none"
+          className="flex-1 bg-transparent text-sm text-ivory placeholder:text-taupe focus:outline-none"
           aria-label="Email address"
         />
         <button
           type="submit"
           disabled={status === "loading" || !email.trim()}
-          className="text-slate-400 hover:text-white disabled:opacity-50"
+          className="text-taupe hover:text-ivory disabled:opacity-50"
           aria-label="Subscribe"
         >
           <ArrowRight className="h-4 w-4" />
         </button>
       </div>
-      {status === "error" && <p className="text-xs text-rose-300">{message}</p>}
-      {status === "loading" && <p className="text-xs text-slate-400">Submitting…</p>}
+      {status === "error" && <p className="text-xs text-error-bright">{message}</p>}
+      {status === "loading" && <p className="text-xs text-taupe">Submitting…</p>}
     </form>
   );
 }

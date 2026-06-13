@@ -51,11 +51,9 @@ export default async function TutorEarningsPage() {
       <div className="mx-auto max-w-4xl space-y-8 px-4 py-8 sm:px-6">
         {/* ── Header ────────────────────────────────── */}
         <header>
-          <p className="mb-1 text-xs font-bold uppercase tracking-widest text-blue-500">
-            Tutor Portal
-          </p>
-          <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white">My earnings</h1>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+          <p className="mb-1 text-xs font-bold uppercase tracking-widest text-info">Tutor Portal</p>
+          <h1 className="text-2xl font-extrabold text-ivory dark:text-ivory">My earnings</h1>
+          <p className="mt-1 text-sm text-taupe dark:text-taupe">
             Refreshed {timeSince(summary.last_refreshed_at)} ago
           </p>
         </header>
@@ -92,8 +90,8 @@ export default async function TutorEarningsPage() {
             className={cn(
               "flex items-start justify-between gap-3 rounded-xl border-2 p-5 transition",
               canRequestPayout
-                ? "border-blue-500 bg-blue-600 text-white hover:bg-blue-700"
-                : "pointer-events-none cursor-not-allowed border-slate-200 bg-slate-50 text-slate-400 dark:border-slate-800 dark:bg-slate-900/40"
+                ? "border-info/40 bg-info text-ivory hover:bg-info-bright"
+                : "pointer-events-none cursor-not-allowed border-bronze bg-surface text-taupe dark:border-bronze dark:bg-surface/40"
             )}
           >
             <div>
@@ -114,26 +112,26 @@ export default async function TutorEarningsPage() {
 
           <Link
             href="/tutor/earnings/data"
-            className="group flex items-start justify-between gap-3 rounded-xl border-2 border-slate-200 bg-white p-5 transition hover:border-blue-400 dark:border-slate-800 dark:bg-slate-900/60 dark:hover:border-blue-500/40"
+            className="group flex items-start justify-between gap-3 rounded-xl border-2 border-bronze bg-surface p-5 transition hover:border-info/40 dark:border-bronze dark:bg-surface/60 dark:hover:border-info/40"
           >
             <div>
-              <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-400">
+              <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-taupe">
                 <BarChart3 className="h-4 w-4" /> View earning data
               </div>
-              <div className="mt-1 text-lg font-bold text-slate-900 dark:text-white">
+              <div className="mt-1 text-lg font-bold text-ivory dark:text-ivory">
                 Sessions, history, trends
               </div>
-              <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+              <div className="mt-1 text-xs text-taupe dark:text-taupe">
                 Filter by today, week, month, or any range. See per-session earnings + a 12-week
                 chart.
               </div>
             </div>
-            <ArrowRight className="mt-1 h-5 w-5 shrink-0 text-slate-400 transition group-hover:text-blue-500" />
+            <ArrowRight className="mt-1 h-5 w-5 shrink-0 text-taupe transition group-hover:text-info" />
           </Link>
         </section>
 
         {/* ── Light footer guidance ──────────────────── */}
-        <p className="text-center text-xs text-slate-500 dark:text-slate-400">
+        <p className="text-center text-xs text-taupe dark:text-taupe">
           Pay = $35/hour, rounded down to 15-min increments. Same rate for 1:1 and group sessions.
         </p>
       </div>
@@ -158,20 +156,20 @@ function MetricCard({
   footer?: string;
 }) {
   const tones = {
-    slate: "border-slate-200 dark:border-slate-800",
-    blue: "border-blue-300 dark:border-blue-500/40 bg-blue-50/40 dark:bg-blue-500/5",
-    emerald: "border-emerald-300 dark:border-emerald-500/40 bg-emerald-50/40 dark:bg-emerald-500/5",
+    slate: "border-bronze dark:border-bronze",
+    blue: "border-info/40 dark:border-info/40 bg-info/40 dark:bg-info/5",
+    emerald: "border-success/40 dark:border-success/40 bg-success/40 dark:bg-success/5",
   };
   return (
-    <div className={cn("rounded-xl border bg-white px-4 py-4 dark:bg-slate-900/60", tones[tone])}>
-      <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+    <div className={cn("rounded-xl border bg-surface px-4 py-4 dark:bg-surface/60", tones[tone])}>
+      <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-taupe dark:text-taupe">
         {icon}
         {label}
       </div>
-      <div className="mt-1.5 text-xl font-extrabold tabular-nums text-slate-900 dark:text-white sm:text-2xl">
+      <div className="mt-1.5 text-xl font-extrabold tabular-nums text-ivory dark:text-ivory sm:text-2xl">
         {value}
       </div>
-      {footer && <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">{footer}</div>}
+      {footer && <div className="mt-1 text-xs text-taupe dark:text-taupe">{footer}</div>}
     </div>
   );
 }

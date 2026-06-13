@@ -146,27 +146,30 @@ export default function BulkImportPanel({ nodeId, subject, topicCluster }: Props
   }
 
   return (
-    <section className="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
+    <section className="rounded-xl border border-bronze bg-surface/60 p-5">
       <div className="mb-3 flex items-center justify-between">
-        <h3 className="text-sm font-bold text-white">Bulk import</h3>
+        <h3 className="text-sm font-bold text-ivory">Bulk import</h3>
         <button
           onClick={handleDownloadTemplate}
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-400 hover:text-indigo-300"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-gold hover:text-gold-bright"
         >
           <Download className="h-3.5 w-3.5" /> CSV template
         </button>
       </div>
-      <p className="mb-4 max-w-2xl text-xs text-slate-400">
+      <p className="mb-4 max-w-2xl text-xs text-taupe">
         Upload a CSV or JSON file. Accepts the legacy 15-column template AND the 30-column routine
         template (PDF-ingestion output). Required:
-        <code className="mx-1 rounded bg-slate-800 px-1 py-0.5 text-slate-300">question_text</code>,
-        <code className="mx-1 rounded bg-slate-800 px-1 py-0.5 text-slate-300">correct_answer</code>
+        <code className="mx-1 rounded bg-surface-raised px-1 py-0.5 text-ivory">question_text</code>
         ,
-        <code className="mx-1 rounded bg-slate-800 px-1 py-0.5 text-slate-300">
+        <code className="mx-1 rounded bg-surface-raised px-1 py-0.5 text-ivory">
+          correct_answer
+        </code>
+        ,
+        <code className="mx-1 rounded bg-surface-raised px-1 py-0.5 text-ivory">
           explanation_text
         </code>
         . Choices are required for multiple-choice rows; SPR rows leave them blank and set{" "}
-        <code className="mx-0.5 rounded bg-slate-800 px-1 py-0.5 text-slate-300">
+        <code className="mx-0.5 rounded bg-surface-raised px-1 py-0.5 text-ivory">
           question_format=numeric_entry
         </code>
         .
@@ -182,15 +185,15 @@ export default function BulkImportPanel({ nodeId, subject, topicCluster }: Props
         />
         <button
           onClick={() => fileInputRef.current?.click()}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 px-3 py-1.5 text-sm font-semibold text-slate-100 hover:bg-slate-700"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-bronze bg-surface-raised px-3 py-1.5 text-sm font-semibold text-ivory hover:bg-surface-raised"
         >
           <Upload className="h-3.5 w-3.5" /> Choose file
         </button>
-        {preview && <span className="text-xs text-slate-400">{preview.length} rows parsed</span>}
+        {preview && <span className="text-xs text-taupe">{preview.length} rows parsed</span>}
       </div>
 
       {parseError && (
-        <div className="mt-3 flex items-center gap-2 rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-xs text-rose-300">
+        <div className="mt-3 flex items-center gap-2 rounded-lg border border-error/30 bg-error/10 px-3 py-2 text-xs text-error-bright">
           <AlertCircle className="h-3.5 w-3.5" /> {parseError}
         </div>
       )}
@@ -199,12 +202,10 @@ export default function BulkImportPanel({ nodeId, subject, topicCluster }: Props
 
       {preview && (
         <div className="mt-4">
-          <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
-            Preview
-          </h4>
-          <div className="max-h-80 overflow-y-auto rounded-lg border border-slate-800 text-xs">
+          <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-taupe">Preview</h4>
+          <div className="max-h-80 overflow-y-auto rounded-lg border border-bronze text-xs">
             <table className="w-full">
-              <thead className="sticky top-0 bg-slate-800 text-slate-400">
+              <thead className="sticky top-0 bg-surface-raised text-taupe">
                 <tr>
                   <th className="px-3 py-2 text-left font-semibold">Question</th>
                   <th className="px-3 py-2 text-left font-semibold">Difficulty</th>
@@ -215,20 +216,20 @@ export default function BulkImportPanel({ nodeId, subject, topicCluster }: Props
               </thead>
               <tbody>
                 {preview.map((r, i) => (
-                  <tr key={i} className="border-t border-slate-800">
-                    <td className="max-w-[24rem] truncate px-3 py-2 text-slate-200">
+                  <tr key={i} className="border-t border-bronze">
+                    <td className="max-w-[24rem] truncate px-3 py-2 text-ivory">
                       {r.question_text}
                     </td>
-                    <td className="px-3 py-2 text-slate-400">{r.difficulty}</td>
-                    <td className="px-3 py-2 text-slate-400">{r.correct_answer}</td>
-                    <td className="px-3 py-2 text-slate-400">{r.concept_slug ?? "—"}</td>
+                    <td className="px-3 py-2 text-taupe">{r.difficulty}</td>
+                    <td className="px-3 py-2 text-taupe">{r.correct_answer}</td>
+                    <td className="px-3 py-2 text-taupe">{r.concept_slug ?? "—"}</td>
                     <td className="px-3 py-2">
                       <span
                         className={cn(
                           "inline-block rounded px-1.5 py-0.5 text-[10px] uppercase tracking-wide",
                           r.import_status === "needs_review"
-                            ? "bg-amber-500/15 text-amber-300"
-                            : "bg-emerald-500/15 text-emerald-300"
+                            ? "bg-warning/15 text-warning-bright"
+                            : "bg-success/15 text-success-bright"
                         )}
                       >
                         {r.import_status ?? "ok"}
@@ -242,7 +243,7 @@ export default function BulkImportPanel({ nodeId, subject, topicCluster }: Props
           <div className="mt-3 flex justify-end gap-2">
             <button
               onClick={() => setPreview(null)}
-              className="rounded-lg px-3 py-1.5 text-sm font-semibold text-slate-400 hover:bg-slate-800"
+              className="rounded-lg px-3 py-1.5 text-sm font-semibold text-taupe hover:bg-surface-raised"
             >
               Cancel
             </button>
@@ -250,8 +251,8 @@ export default function BulkImportPanel({ nodeId, subject, topicCluster }: Props
               onClick={handleConfirm}
               disabled={importing}
               className={cn(
-                "rounded-lg bg-indigo-500 px-4 py-1.5 text-sm font-bold text-white",
-                importing ? "cursor-not-allowed opacity-50" : "hover:bg-indigo-400"
+                "rounded-lg bg-gold px-4 py-1.5 text-sm font-bold text-night",
+                importing ? "cursor-not-allowed opacity-50" : "hover:bg-gold-bright"
               )}
             >
               {importing ? "Importing…" : `Import ${preview.length} questions`}
@@ -267,18 +268,18 @@ export function ImportResultBanner({ result }: { result: BulkImportResult }) {
   const total =
     result.inserted + result.skipped_duplicates + result.flagged_for_review + result.errored;
   return (
-    <div className="mt-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-300">
+    <div className="mt-3 rounded-lg border border-success/30 bg-success/10 px-3 py-2 text-xs text-success-bright">
       <div className="flex items-center gap-2 font-semibold">
         <Check className="h-3.5 w-3.5" /> Imported {total} rows
       </div>
-      <ul className="mt-1.5 space-y-0.5 text-emerald-200/80">
+      <ul className="mt-1.5 space-y-0.5 text-success-bright/80">
         <li>· {result.inserted} live</li>
         <li>· {result.flagged_for_review} flagged for review</li>
         <li>· {result.skipped_duplicates} skipped (duplicate)</li>
-        {result.errored > 0 && <li className="text-rose-300">· {result.errored} errored</li>}
+        {result.errored > 0 && <li className="text-error-bright">· {result.errored} errored</li>}
       </ul>
       {result.errors.length > 0 && (
-        <details className="mt-2 cursor-pointer text-rose-300">
+        <details className="mt-2 cursor-pointer text-error-bright">
           <summary className="font-semibold">
             Show {result.errors.length} error{result.errors.length === 1 ? "" : "s"}
           </summary>

@@ -60,7 +60,7 @@ export function DiagnosticHeader({
   onToggleBookmark: () => void;
 }) {
   return (
-    <div className="border-b border-slate-200 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-900">
+    <div className="border-b border-bronze bg-surface px-4 py-3 dark:border-bronze dark:bg-surface">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           {/* Exit — opens a confirmation modal because the
@@ -69,7 +69,7 @@ export function DiagnosticHeader({
           <button
             type="button"
             onClick={onOpenExit}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-semibold text-slate-600 transition-colors hover:border-rose-400 hover:text-rose-600 dark:border-slate-700 dark:text-slate-300 dark:hover:text-rose-300"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-bronze px-2.5 py-1.5 text-xs font-semibold text-taupe transition-colors hover:border-error/40 hover:text-error dark:border-bronze dark:text-ivory dark:hover:text-error-bright"
             aria-label="Exit diagnostic"
             title="Exit diagnostic (progress will be lost)"
           >
@@ -77,10 +77,10 @@ export function DiagnosticHeader({
             Exit
           </button>
           <div>
-            <span className="text-sm font-semibold text-slate-900 dark:text-white">
+            <span className="text-sm font-semibold text-ivory dark:text-ivory">
               Question {sectionPosition} / {sectionLength}
             </span>
-            <span className="ml-2 text-xs text-slate-400">SAT Diagnostic</span>
+            <span className="ml-2 text-xs text-taupe">SAT Diagnostic</span>
           </div>
         </div>
 
@@ -93,8 +93,8 @@ export function DiagnosticHeader({
               className={cn(
                 "inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-semibold transition-colors",
                 desmosOpen
-                  ? "border-rose-500 bg-rose-500 text-white"
-                  : "border-slate-200 text-slate-600 hover:border-rose-400 hover:text-rose-600 dark:border-slate-700 dark:text-rose-200 dark:hover:text-rose-300"
+                  ? "border-error/40 bg-error text-ivory"
+                  : "border-bronze text-taupe hover:border-error/40 hover:text-error dark:border-bronze dark:text-error-bright dark:hover:text-error-bright"
               )}
               aria-pressed={desmosOpen}
               aria-label="Toggle Desmos calculator"
@@ -112,8 +112,8 @@ export function DiagnosticHeader({
               className={cn(
                 "inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-semibold transition-colors",
                 scratchpadOpen
-                  ? "border-white bg-white text-slate-900"
-                  : "border-slate-200 text-slate-600 hover:border-white hover:bg-white/90 hover:text-slate-900 dark:border-slate-700 dark:text-white dark:hover:bg-white dark:hover:text-slate-900"
+                  ? "border-ivory bg-surface text-ivory"
+                  : "border-bronze text-taupe hover:border-ivory hover:bg-surface/90 hover:text-ivory dark:border-bronze dark:text-ivory dark:hover:bg-surface dark:hover:text-ivory"
               )}
               aria-pressed={scratchpadOpen}
               aria-label="Toggle scratchpad"
@@ -128,7 +128,7 @@ export function DiagnosticHeader({
           <button
             type="button"
             onClick={onOpenNavigator}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-semibold text-slate-600 transition-colors hover:border-blue-400 hover:text-blue-600 dark:border-slate-700 dark:text-slate-300 dark:hover:text-blue-400"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-bronze px-2.5 py-1.5 text-xs font-semibold text-taupe transition-colors hover:border-info/40 hover:text-info dark:border-bronze dark:text-ivory dark:hover:text-info-bright"
             aria-label="Open question navigator"
             title="All questions"
           >
@@ -145,8 +145,8 @@ export function DiagnosticHeader({
             className={cn(
               "inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-semibold transition-colors",
               isBookmarked
-                ? "border-white bg-white text-slate-900"
-                : "border-slate-200 text-slate-600 hover:border-white hover:bg-white/90 hover:text-slate-900 dark:border-slate-700 dark:text-white dark:hover:bg-white dark:hover:text-slate-900"
+                ? "border-ivory bg-surface text-ivory"
+                : "border-bronze text-taupe hover:border-ivory hover:bg-surface/90 hover:text-ivory dark:border-bronze dark:text-ivory dark:hover:bg-surface dark:hover:text-ivory"
             )}
             aria-pressed={isBookmarked}
             aria-label={isBookmarked ? "Remove bookmark" : "Bookmark for review"}
@@ -164,7 +164,7 @@ export function DiagnosticHeader({
               Shows "Math 31:42" or "Reading & Writing 17:08", with
               a circular progress ring that turns amber under 5
               minutes and red under 1 minute. */}
-          <div className="ml-1 flex items-center gap-2 border-l border-slate-200 pl-1.5 pl-3 dark:border-slate-800">
+          <div className="ml-1 flex items-center gap-2 border-l border-bronze pl-1.5 pl-3 dark:border-bronze">
             <svg width="32" height="32" className="-rotate-90">
               <circle
                 cx="16"
@@ -172,7 +172,7 @@ export function DiagnosticHeader({
                 r="12"
                 strokeWidth="3"
                 fill="none"
-                className="stroke-slate-200 dark:stroke-slate-700"
+                className="stroke-ivory dark:stroke-ivory"
               />
               <circle
                 cx="16"
@@ -188,7 +188,7 @@ export function DiagnosticHeader({
               />
             </svg>
             <div className="flex flex-col leading-none">
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-taupe dark:text-taupe">
                 {SECTION_LABELS[currentSection]}
               </span>
               <span className="font-mono text-sm font-bold" style={{ color: timerColor }}>
@@ -204,9 +204,9 @@ export function DiagnosticHeader({
 
       {/* Progress bar */}
       <div className="mx-auto mt-2 max-w-6xl">
-        <div className="h-1.5 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+        <div className="h-1.5 overflow-hidden rounded-full bg-surface dark:bg-surface-raised">
           <div
-            className="h-full rounded-full bg-blue-500 transition-all duration-300"
+            className="h-full rounded-full bg-info transition-all duration-300"
             style={{ width: `${(sectionPosition / sectionLength) * 100}%` }}
           />
         </div>

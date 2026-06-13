@@ -34,7 +34,7 @@ export function BottomToolbar({
   });
 
   return (
-    <div className="absolute inset-x-0 bottom-0 z-10 flex h-16 items-center border-t border-slate-800 bg-slate-950/80 px-6 backdrop-blur-sm">
+    <div className="absolute inset-x-0 bottom-0 z-10 flex h-16 items-center border-t border-bronze bg-night/80 px-6 backdrop-blur-sm">
       <div className="flex items-center gap-2">
         {subject === "math" && (
           <button
@@ -42,8 +42,8 @@ export function BottomToolbar({
             className={cn(
               "flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold transition-colors",
               state.isDesmosOpen
-                ? "border-indigo-400 bg-indigo-500 text-white"
-                : "border-slate-700 text-slate-300 hover:border-indigo-500 hover:text-white"
+                ? "border-gold bg-gold text-night"
+                : "border-bronze text-ivory/80 hover:border-gold/60 hover:text-ivory"
             )}
           >
             <Calculator className="h-4 w-4" /> Desmos
@@ -54,8 +54,8 @@ export function BottomToolbar({
           className={cn(
             "flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold transition-colors",
             state.isScratchpadOpen
-              ? "border-slate-100 bg-slate-200 text-slate-900"
-              : "border-slate-700 text-slate-300 hover:border-slate-400 hover:text-white"
+              ? "border-bronze bg-surface text-night"
+              : "border-bronze text-ivory/80 hover:border-taupe/60 hover:text-ivory"
           )}
         >
           <PencilLine className="h-4 w-4" /> Scratchpad
@@ -70,7 +70,7 @@ export function BottomToolbar({
 
       <button
         onClick={onFlag}
-        className="flex items-center gap-2 rounded-lg border border-slate-700 px-3 py-2 text-sm font-semibold text-slate-300 transition-colors hover:border-rose-500 hover:text-rose-400"
+        className="flex items-center gap-2 rounded-lg border border-bronze px-3 py-2 text-sm font-semibold text-ivory/80 transition-colors hover:border-error/40 hover:text-error"
       >
         <Flag className="h-4 w-4" /> Flag
       </button>

@@ -131,36 +131,34 @@ export default async function TutorPayoutsPage() {
       <div className="mx-auto max-w-4xl space-y-6 px-4 py-8 sm:px-6">
         <Link
           href="/tutor/earnings"
-          className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-slate-900 dark:hover:text-white"
+          className="inline-flex items-center gap-1.5 text-sm text-taupe hover:text-ivory dark:hover:text-ivory"
         >
           <ChevronLeft className="h-4 w-4" /> My earnings
         </Link>
 
         <header>
-          <p className="mb-1 text-xs font-bold uppercase tracking-widest text-blue-500">
-            Tutor Portal
-          </p>
-          <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white">Get paid</h1>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+          <p className="mb-1 text-xs font-bold uppercase tracking-widest text-info">Tutor Portal</p>
+          <h1 className="text-2xl font-extrabold text-ivory dark:text-ivory">Get paid</h1>
+          <p className="mt-1 text-sm text-taupe dark:text-taupe">
             Pick instant or ACH. Money moves from KarmanPrep to your Stripe account, then to your
             bank or debit card.
           </p>
         </header>
 
         {!caller.stripe_connect_account_id || !caller.stripe_payouts_enabled ? (
-          <div className="flex items-start gap-3 rounded-xl border border-amber-300 bg-amber-50 p-5 dark:border-amber-500/40 dark:bg-amber-500/10">
-            <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600 dark:text-amber-300" />
+          <div className="flex items-start gap-3 rounded-xl border border-warning/40 bg-warning/10 p-5 dark:border-warning/40 dark:bg-warning/10">
+            <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-warning dark:text-warning-bright" />
             <div className="flex-1">
-              <h2 className="text-sm font-bold text-amber-800 dark:text-amber-200">
+              <h2 className="text-sm font-bold text-warning dark:text-warning-bright">
                 Set up payments first
               </h2>
-              <p className="mt-1 text-sm text-amber-700 dark:text-amber-300/90">
+              <p className="mt-1 text-sm text-warning dark:text-warning-bright/90">
                 Before you can request a payout, finish Stripe onboarding so we know where to send
                 the money.
               </p>
               <Link
                 href="/tutor/settings/payment"
-                className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-amber-600 px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-amber-500"
+                className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-warning px-4 py-2 text-sm font-semibold text-night hover:bg-warning-bright"
               >
                 Go to payment settings
               </Link>

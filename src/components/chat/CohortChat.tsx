@@ -283,7 +283,7 @@ export function CohortChat({
   }, [messages]);
 
   return (
-    <div className="relative flex h-full max-h-[calc(100vh-9rem)] flex-col overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-md">
+    <div className="relative flex h-full max-h-[calc(100vh-9rem)] flex-col overflow-hidden rounded-2xl border border-ivory/10 bg-surface/[0.04] backdrop-blur-md">
       {/* Faint cloud-aura background — radial blue glow in the
           center of the scroll surface. Pointer-events none so it
           never intercepts clicks. */}
@@ -297,9 +297,9 @@ export function CohortChat({
       />
 
       {/* Header */}
-      <header className="relative border-b border-white/10 px-5 py-3">
-        <h3 className="text-sm font-bold text-white">{channelDisplayName}</h3>
-        <p className="text-[11px] text-slate-400">{subtitle}</p>
+      <header className="relative border-b border-ivory/10 px-5 py-3">
+        <h3 className="text-sm font-bold text-ivory">{channelDisplayName}</h3>
+        <p className="text-[11px] text-taupe">{subtitle}</p>
       </header>
 
       {/* Messages */}
@@ -313,12 +313,12 @@ export function CohortChat({
         }}
       >
         {loadingInitial ? (
-          <div className="flex items-center justify-center gap-2 py-8 text-sm text-slate-400">
+          <div className="flex items-center justify-center gap-2 py-8 text-sm text-taupe">
             <Loader2 className="h-4 w-4 animate-spin" />
             Loading…
           </div>
         ) : orderedMessages.length === 0 ? (
-          <p className="py-8 text-center text-sm text-slate-400">
+          <p className="py-8 text-center text-sm text-taupe">
             No messages yet. Start the conversation.
           </p>
         ) : (
@@ -326,13 +326,13 @@ export function CohortChat({
             {hasMore && !loadingMore && (
               <button
                 onClick={loadOlder}
-                className="mx-auto mb-2 block text-xs text-blue-300 hover:text-blue-200"
+                className="mx-auto mb-2 block text-xs text-info-bright hover:text-info-bright"
               >
                 Load older
               </button>
             )}
             {loadingMore && (
-              <div className="flex justify-center py-2 text-xs text-slate-400">
+              <div className="flex justify-center py-2 text-xs text-taupe">
                 <Loader2 className="h-3 w-3 animate-spin" />
               </div>
             )}
@@ -344,7 +344,7 @@ export function CohortChat({
       </div>
 
       {/* Input */}
-      <div className="relative space-y-2 border-t border-white/10 bg-white/[0.02] px-4 py-3">
+      <div className="relative space-y-2 border-t border-ivory/10 bg-surface/[0.02] px-4 py-3">
         {pendingImages.length > 0 && (
           <div className="flex flex-wrap gap-2">
             {pendingImages.map((img, idx) => (
@@ -353,11 +353,11 @@ export function CohortChat({
                 <img
                   src={img.preview}
                   alt=""
-                  className="h-16 w-16 rounded-md border border-white/15 object-cover"
+                  className="h-16 w-16 rounded-md border border-ivory/15 object-cover"
                 />
                 <button
                   onClick={() => removePendingImage(idx)}
-                  className="absolute -right-1 -top-1 rounded-full bg-rose-500 p-0.5 text-white"
+                  className="absolute -right-1 -top-1 rounded-full bg-error p-0.5 text-ivory"
                   aria-label="Remove image"
                 >
                   <X className="h-3 w-3" />
@@ -366,8 +366,8 @@ export function CohortChat({
             ))}
           </div>
         )}
-        {sendError && <p className="text-xs text-rose-300">{sendError}</p>}
-        {imageError && <p className="text-xs text-rose-300">{imageError}</p>}
+        {sendError && <p className="text-xs text-error-bright">{sendError}</p>}
+        {imageError && <p className="text-xs text-error-bright">{imageError}</p>}
         <div className="flex items-end gap-2">
           <textarea
             value={draft}
@@ -384,7 +384,7 @@ export function CohortChat({
             }
             rows={1}
             disabled={sending}
-            className="flex-1 resize-none rounded-xl border border-white/10 bg-white/[0.06] px-3 py-2 text-sm text-slate-100 placeholder:text-slate-400 focus:border-blue-400/60 focus:bg-white/[0.08] focus:outline-none disabled:opacity-50"
+            className="flex-1 resize-none rounded-xl border border-ivory/10 bg-surface/[0.06] px-3 py-2 text-sm text-ivory placeholder:text-taupe focus:border-info/60 focus:bg-surface/[0.08] focus:outline-none disabled:opacity-50"
           />
           <input
             ref={fileInputRef}
@@ -398,7 +398,7 @@ export function CohortChat({
             onClick={() => fileInputRef.current?.click()}
             disabled={sending}
             aria-label="Attach image"
-            className="rounded-xl p-2 text-slate-400 hover:bg-white/[0.06] hover:text-slate-200 disabled:opacity-50"
+            className="rounded-xl p-2 text-taupe hover:bg-surface/[0.06] hover:text-ivory disabled:opacity-50"
           >
             <ImageIcon className="w-4.5 h-4.5" />
           </button>
@@ -406,17 +406,17 @@ export function CohortChat({
             type="button"
             onClick={handleSend}
             disabled={sending || (!draft.trim() && pendingImages.length === 0)}
-            className="rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 px-3.5 py-2 text-sm font-semibold text-white shadow-[0_4px_14px_rgba(59,130,246,0.35)] hover:from-blue-400 hover:to-indigo-500 disabled:opacity-50 disabled:shadow-none"
+            className="rounded-xl bg-gradient-to-br from-info to-gold px-3.5 py-2 text-sm font-semibold text-ivory shadow-[0_4px_14px_rgba(59,130,246,0.35)] hover:from-info hover:to-gold disabled:opacity-50 disabled:shadow-none"
           >
             {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
           </button>
         </div>
-        <label className="flex cursor-pointer items-center gap-2 text-xs text-slate-400">
+        <label className="flex cursor-pointer items-center gap-2 text-xs text-taupe">
           <input
             type="checkbox"
             checked={isAnonymous}
             onChange={(e) => setIsAnonymous(e.target.checked)}
-            className="rounded border-white/20 bg-white/5"
+            className="rounded border-ivory/20 bg-surface/5"
           />
           Post anonymously {isAnonymous ? "(shown as Anonymous)" : `(shown as ${postingAsPreview})`}
         </label>
@@ -441,12 +441,12 @@ function MessageBubble({ message }: { message: Message }) {
   const flaggedForOthers = flagged && !self;
 
   const bubbleColor = rejected
-    ? "bg-amber-400/15 text-amber-100 border border-amber-400/30"
+    ? "bg-warning/15 text-warning-bright border border-warning/30"
     : flaggedForOthers
-      ? "bg-amber-400/10 text-amber-100/90 border border-amber-400/20"
+      ? "bg-warning/10 text-warning-bright/90 border border-warning/20"
       : self
-        ? "bg-gradient-to-br from-blue-500 to-indigo-600 text-white"
-        : "bg-white/[0.06] text-slate-100 border border-white/10 backdrop-blur-sm";
+        ? "bg-gradient-to-br from-info to-gold text-ivory"
+        : "bg-surface/[0.06] text-ivory border border-ivory/10 backdrop-blur-sm";
 
   const bubbleShape = self ? "rounded-2xl rounded-br-md" : "rounded-2xl rounded-bl-md";
 
@@ -462,11 +462,11 @@ function MessageBubble({ message }: { message: Message }) {
             messages, like iMessage in a group chat. */}
         {!self && (
           <div className="mb-0.5 flex items-center gap-1.5 px-2 text-[11px]">
-            <span className="font-semibold text-slate-300">{message.display_name}</span>
+            <span className="font-semibold text-ivory">{message.display_name}</span>
             {message.real_name && message.real_name !== message.display_name && (
-              <span className="text-slate-400">({message.real_name})</span>
+              <span className="text-taupe">({message.real_name})</span>
             )}
-            {message.is_pinned && <Pin className="h-3 w-3 text-blue-300" aria-label="Pinned" />}
+            {message.is_pinned && <Pin className="h-3 w-3 text-info-bright" aria-label="Pinned" />}
           </div>
         )}
 
@@ -476,7 +476,7 @@ function MessageBubble({ message }: { message: Message }) {
             bubbleColor,
             bubbleShape,
             bubbleShadow,
-            message.is_pinned ? "ring-1 ring-blue-300/40" : "",
+            message.is_pinned ? "ring-1 ring-info/40" : "",
           ].join(" ")}
         >
           {/* Subtle inner highlight on self bubbles — top-edge
@@ -504,7 +504,7 @@ function MessageBubble({ message }: { message: Message }) {
           ) : (
             <div className="relative">
               {flagged && self ? (
-                <p className="mb-1 text-[11px] uppercase tracking-wide text-amber-300/80">
+                <p className="mb-1 text-[11px] uppercase tracking-wide text-warning-bright/80">
                   Pending admin review — only you can see this
                 </p>
               ) : null}
@@ -528,13 +528,13 @@ function MessageBubble({ message }: { message: Message }) {
         {/* Timestamp under bubble — small, muted, side-aligned. */}
         <div
           className={[
-            "mt-0.5 flex items-center gap-1 px-2 text-[10px] text-slate-400",
+            "mt-0.5 flex items-center gap-1 px-2 text-[10px] text-taupe",
             self ? "flex-row-reverse" : "",
           ].join(" ")}
         >
           <span>{formatTime(message.created_at)}</span>
           {self && message.is_pinned && (
-            <Pin className="h-2.5 w-2.5 text-blue-400" aria-label="Pinned" />
+            <Pin className="h-2.5 w-2.5 text-info" aria-label="Pinned" />
           )}
         </div>
       </div>

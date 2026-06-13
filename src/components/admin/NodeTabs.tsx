@@ -50,7 +50,7 @@ export default function NodeTabs({
 
   return (
     <div>
-      <div className="mb-6 flex gap-0.5 overflow-x-auto border-b border-slate-800 text-sm">
+      <div className="mb-6 flex gap-0.5 overflow-x-auto border-b border-bronze text-sm">
         {TABS.map(({ key, label, Icon }) => (
           <button
             key={key}
@@ -58,14 +58,14 @@ export default function NodeTabs({
             className={cn(
               "flex items-center gap-1.5 whitespace-nowrap border-b-2 px-4 pb-3 pt-2 font-semibold transition-colors",
               active === key
-                ? "border-indigo-500 text-indigo-400"
-                : "border-transparent text-slate-400 hover:text-slate-200"
+                ? "border-gold/40 text-gold"
+                : "border-transparent text-taupe hover:text-ivory"
             )}
           >
             <Icon className="h-3.5 w-3.5" />
             {label}
             {key === "questions" && initialQuestions.length > 0 && (
-              <span className="text-xs text-slate-400">({initialQuestions.length})</span>
+              <span className="text-xs text-taupe">({initialQuestions.length})</span>
             )}
           </button>
         ))}

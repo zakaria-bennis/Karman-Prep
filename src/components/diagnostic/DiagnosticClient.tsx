@@ -63,13 +63,10 @@ export default function DiagnosticClient({ questions, isSubscribed, isRetake }: 
   const timerPct = (s.sectionTimeLeft / totalSectionSec) * 100;
   const minutesLeft = Math.floor(s.sectionTimeLeft / 60);
   const timerColor =
-    s.sectionTimeLeft > 5 * 60 ? "#3B82F6" : s.sectionTimeLeft > 60 ? "#F59E0B" : "#EF4444";
+    s.sectionTimeLeft > 5 * 60 ? "#2FA8FF" : s.sectionTimeLeft > 60 ? "#E0A24A" : "#D84F73";
 
   return (
-    <div
-      ref={s.shellRef}
-      className="relative flex min-h-screen flex-col bg-slate-50 dark:bg-slate-950"
-    >
+    <div ref={s.shellRef} className="relative flex min-h-screen flex-col bg-surface dark:bg-night">
       <DiagnosticHeader
         sectionPosition={s.sectionPosition}
         sectionLength={s.sectionLength}
@@ -92,9 +89,9 @@ export default function DiagnosticClient({ questions, isSubscribed, isRetake }: 
       {/* Retake notice — shown for admin-granted retakes so the
           student knows this submission will replace their baseline. */}
       {isRetake && s.currentIdx === 0 && !s.isAnswered ? (
-        <div className="mx-auto mt-4 w-full max-w-2xl rounded-lg border border-amber-300/40 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-200">
+        <div className="mx-auto mt-4 w-full max-w-2xl rounded-lg border border-warning/40 bg-warning/10 px-4 py-3 text-sm text-warning dark:border-warning/30 dark:bg-warning/10 dark:text-warning-bright">
           <p className="font-semibold">You&rsquo;re retaking the diagnostic</p>
-          <p className="mt-0.5 text-xs text-amber-800/80 dark:text-amber-200/80">
+          <p className="mt-0.5 text-xs text-warning/80 dark:text-warning-bright/80">
             Your tutor / admin granted a retake. Submitting will create a fresh diagnostic_results
             row alongside your prior one &mdash; the progress chart will show both so you can
             measure improvement.
@@ -118,7 +115,7 @@ export default function DiagnosticClient({ questions, isSubscribed, isRetake }: 
             >
               {DOMAIN_LABELS[question.domain as SATDomain] || question.domain}
             </span>
-            <span className="text-xs text-slate-400">
+            <span className="text-xs text-taupe">
               {"★".repeat(question.difficulty)}
               {"☆".repeat(3 - question.difficulty)}
             </span>
@@ -140,7 +137,7 @@ export default function DiagnosticClient({ questions, isSubscribed, isRetake }: 
 
             {/* Prompt + answer choices column */}
             <div>
-              <h2 className="mb-6 font-sans text-lg font-semibold leading-relaxed text-slate-900 dark:text-white sm:text-xl">
+              <h2 className="mb-6 font-sans text-lg font-semibold leading-relaxed text-ivory dark:text-ivory sm:text-xl">
                 <MathText text={question.text} />
               </h2>
 
@@ -168,10 +165,10 @@ export default function DiagnosticClient({ questions, isSubscribed, isRetake }: 
                   on this question. Renders the question's explanation
                   before they've answered, framed as a study tip. */}
               {s.hintShownThisQuestion && !s.showExplanation && (
-                <div className="mt-4 rounded-xl border border-amber-400/40 bg-amber-400/[0.08] p-4 text-sm text-amber-100">
+                <div className="mt-4 rounded-xl border border-warning/40 bg-warning/[0.08] p-4 text-sm text-warning-bright">
                   <div className="mb-1 flex items-center gap-2">
-                    <Lightbulb className="h-4 w-4 text-amber-300" />
-                    <span className="text-xs font-bold uppercase tracking-widest text-amber-300">
+                    <Lightbulb className="h-4 w-4 text-warning-bright" />
+                    <span className="text-xs font-bold uppercase tracking-widest text-warning-bright">
                       Hint
                     </span>
                   </div>
@@ -187,8 +184,8 @@ export default function DiagnosticClient({ questions, isSubscribed, isRetake }: 
                   className={cn(
                     "mt-4 rounded-xl border p-4 text-sm",
                     s.selected === question.correct
-                      ? "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-300"
-                      : "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-700 dark:bg-amber-900/20 dark:text-amber-300"
+                      ? "border-success/40 bg-success/10 text-success dark:border-success/40 dark:bg-success/20 dark:text-success-bright"
+                      : "border-warning/40 bg-warning/10 text-warning dark:border-warning/40 dark:bg-warning/20 dark:text-warning-bright"
                   )}
                 >
                   {s.selected !== question.correct && (
@@ -231,7 +228,7 @@ export default function DiagnosticClient({ questions, isSubscribed, isRetake }: 
                 {!s.isAnswered && (
                   <button
                     onClick={s.handleNext}
-                    className="flex items-center gap-1.5 py-2 text-sm text-slate-400 transition-colors hover:text-slate-400 dark:hover:text-slate-300"
+                    className="flex items-center gap-1.5 py-2 text-sm text-taupe transition-colors hover:text-taupe dark:hover:text-ivory"
                   >
                     Skip this question
                     <ArrowRight className="h-3.5 w-3.5" />

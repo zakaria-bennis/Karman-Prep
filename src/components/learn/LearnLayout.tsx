@@ -20,7 +20,7 @@ export default function LearnLayout({ children }: { children: React.ReactNode })
   const onConstellation = SUBJECT_HREFS.some((h) => pathname.startsWith(h));
 
   return (
-    <div className="relative min-h-screen bg-[#02040a]">
+    <div className="relative min-h-screen bg-[#070605]">
       {/* ── Content (full 100vh) ────────────────────────── */}
       <main className="relative z-0 min-h-screen">{children}</main>
 
@@ -36,7 +36,7 @@ export default function LearnLayout({ children }: { children: React.ReactNode })
         <div
           className={cn(
             "pointer-events-auto inline-flex items-center gap-3 rounded-full px-3 py-1.5",
-            "border border-white/10 bg-black/35 shadow-lg backdrop-blur-md"
+            "border border-ivory/10 bg-night/35 shadow-lg backdrop-blur-md"
           )}
         >
           <Link
@@ -46,10 +46,10 @@ export default function LearnLayout({ children }: { children: React.ReactNode })
           >
             <KarmanLogoMark size={20} />
           </Link>
-          <span className="h-4 w-px bg-white/10" />
+          <span className="h-4 w-px bg-surface/10" />
           <Link
             href="/dashboard/student"
-            className="flex items-center gap-1 text-[11px] font-semibold uppercase tracking-widest text-slate-300 transition-colors hover:text-white"
+            className="flex items-center gap-1 text-[11px] font-semibold uppercase tracking-widest text-ivory/80 transition-colors hover:text-ivory"
           >
             <ArrowLeft className="h-3 w-3" />
             Dashboard
@@ -58,14 +58,14 @@ export default function LearnLayout({ children }: { children: React.ReactNode })
 
         {/* Subject switch (only on constellation pages) — a tiny floating pill */}
         {onConstellation && (
-          <div className="pointer-events-auto ml-auto mr-12 hidden items-center gap-1 rounded-full border border-white/10 bg-black/35 p-1 shadow-lg backdrop-blur-md sm:inline-flex">
+          <div className="pointer-events-auto ml-auto mr-12 hidden items-center gap-1 rounded-full border border-ivory/10 bg-night/35 p-1 shadow-lg backdrop-blur-md sm:inline-flex">
             <Link
               href="/learn/reading"
               className={cn(
                 "rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-wider transition-colors",
                 pathname.startsWith("/learn/reading")
-                  ? "bg-pink-500/20 text-pink-300"
-                  : "text-slate-400 hover:text-slate-200"
+                  ? "bg-error/20 text-error-bright"
+                  : "text-taupe hover:text-ivory/90"
               )}
             >
               Reading
@@ -75,8 +75,8 @@ export default function LearnLayout({ children }: { children: React.ReactNode })
               className={cn(
                 "rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-wider transition-colors",
                 pathname.startsWith("/learn/math")
-                  ? "bg-sky-500/20 text-sky-300"
-                  : "text-slate-400 hover:text-slate-200"
+                  ? "bg-info/20 text-info-bright"
+                  : "text-taupe hover:text-ivory/90"
               )}
             >
               Math
@@ -87,7 +87,7 @@ export default function LearnLayout({ children }: { children: React.ReactNode })
         {/* User button — floats top-right, translucent */}
         <div
           className={cn(
-            "pointer-events-auto rounded-full border border-white/10 bg-black/35 p-1 shadow-lg backdrop-blur-md",
+            "pointer-events-auto rounded-full border border-ivory/10 bg-night/35 p-1 shadow-lg backdrop-blur-md",
             !onConstellation && "ml-auto"
           )}
         >

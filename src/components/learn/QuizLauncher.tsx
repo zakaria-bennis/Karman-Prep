@@ -28,18 +28,18 @@ export default function QuizLauncher({ attempts, onStartQuiz, onGoToNext, disabl
       {hasAttempts && (
         <div>
           <div className="mb-3 flex items-center justify-between">
-            <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">
+            <h3 className="text-xs font-bold uppercase tracking-widest text-taupe/80 dark:text-taupe">
               Your quiz history
             </h3>
             {bestScore > 0 && (
-              <span className="flex items-center gap-1 text-xs font-semibold text-amber-500">
+              <span className="flex items-center gap-1 text-xs font-semibold text-warning">
                 <Flame className="h-3.5 w-3.5" /> Best: {bestScore}%
               </span>
             )}
           </div>
-          <div className="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800">
+          <div className="overflow-hidden rounded-xl border border-bronze dark:border-bronze">
             <table className="w-full text-sm">
-              <thead className="bg-slate-50 text-[11px] uppercase tracking-wider text-slate-400 dark:bg-slate-900/50">
+              <thead className="bg-surface text-[11px] uppercase tracking-wider text-taupe dark:bg-surface/50">
                 <tr>
                   <th className="px-3 py-2 text-left font-semibold">Attempt</th>
                   <th className="px-3 py-2 text-left font-semibold">Score</th>
@@ -52,7 +52,7 @@ export default function QuizLauncher({ attempts, onStartQuiz, onGoToNext, disabl
                   const band = a.confidence_band as ConfidenceBand | null;
                   const bandStyle = band ? CONFIDENCE_COLORS[band] : null;
                   return (
-                    <tr key={a.id} className="border-t border-slate-200 dark:border-slate-800">
+                    <tr key={a.id} className="border-t border-bronze dark:border-bronze">
                       <td className="px-3 py-2 font-semibold">#{a.attempt_number}</td>
                       <td className="px-3 py-2">
                         {a.score !== null ? (
@@ -60,16 +60,16 @@ export default function QuizLauncher({ attempts, onStartQuiz, onGoToNext, disabl
                             className={cn(
                               "font-bold",
                               (a.score ?? 0) >= 80
-                                ? "text-emerald-500"
+                                ? "text-success"
                                 : (a.score ?? 0) >= 60
-                                  ? "text-amber-500"
-                                  : "text-red-500"
+                                  ? "text-warning"
+                                  : "text-error"
                             )}
                           >
                             {a.score}%
                           </span>
                         ) : (
-                          <span className="text-xs text-slate-400">Incomplete</span>
+                          <span className="text-xs text-taupe">Incomplete</span>
                         )}
                       </td>
                       <td className="px-3 py-2">
@@ -84,10 +84,10 @@ export default function QuizLauncher({ attempts, onStartQuiz, onGoToNext, disabl
                             {bandStyle.label}
                           </span>
                         ) : (
-                          <span className="text-xs text-slate-400">—</span>
+                          <span className="text-xs text-taupe">—</span>
                         )}
                       </td>
-                      <td className="px-3 py-2 text-xs text-slate-400">
+                      <td className="px-3 py-2 text-xs text-taupe">
                         {a.completed_at ? new Date(a.completed_at).toLocaleDateString() : "—"}
                       </td>
                     </tr>
@@ -107,7 +107,7 @@ export default function QuizLauncher({ attempts, onStartQuiz, onGoToNext, disabl
           className={cn(
             "flex-1 rounded-xl py-4 text-sm font-bold transition-all",
             "flex items-center justify-center gap-2",
-            "bg-blue-600 text-white hover:bg-blue-700",
+            "bg-info text-ivory hover:bg-info-bright",
             "hover:scale-[1.01] active:scale-[0.99]",
             disabled && "cursor-not-allowed opacity-50 hover:scale-100"
           )}
@@ -126,7 +126,7 @@ export default function QuizLauncher({ attempts, onStartQuiz, onGoToNext, disabl
         {hasPassed && onGoToNext && (
           <button
             onClick={onGoToNext}
-            className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-emerald-300 bg-emerald-50 py-4 text-sm font-semibold text-emerald-700 transition-all hover:bg-emerald-100 dark:border-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400 dark:hover:bg-emerald-900/40"
+            className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-success/40 bg-success/10 py-4 text-sm font-semibold text-success transition-all hover:bg-success/10 dark:border-success/40 dark:bg-success/20 dark:text-success dark:hover:bg-success/40"
           >
             <CheckCircle2 className="h-4 w-4" />
             Go to Next Node

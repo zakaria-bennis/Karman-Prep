@@ -24,12 +24,12 @@ export default async function PdfJobDetailPage({ params }: { params: Promise<{ i
       <div className="mb-6">
         <Link
           href="/admin/pdf-pipeline/jobs"
-          className="mb-3 inline-flex items-center gap-1 text-xs text-slate-400 hover:text-slate-300"
+          className="mb-3 inline-flex items-center gap-1 text-xs text-taupe hover:text-ivory"
         >
           <ChevronRight className="h-3 w-3 rotate-180" /> All jobs
         </Link>
-        <h1 className="text-2xl font-bold text-white">{job.source_pdf}</h1>
-        <p className="mt-1 text-xs text-slate-500">Job ID: {job.id}</p>
+        <h1 className="text-2xl font-bold text-ivory">{job.source_pdf}</h1>
+        <p className="mt-1 text-xs text-taupe">Job ID: {job.id}</p>
       </div>
       <JobDetailClient initialJob={job} />
     </div>

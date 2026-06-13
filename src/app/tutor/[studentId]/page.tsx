@@ -100,16 +100,16 @@ export default async function StudentDetailPage({ params, searchParams }: Params
       <div className="mx-auto max-w-6xl space-y-6 px-4 py-8 sm:px-6">
         <Link
           href="/tutor"
-          className="mb-2 inline-flex items-center gap-1 text-xs text-slate-400 hover:text-slate-900 dark:hover:text-white"
+          className="mb-2 inline-flex items-center gap-1 text-xs text-taupe hover:text-ivory dark:hover:text-ivory"
         >
           <ArrowLeft className="h-3.5 w-3.5" /> All students
         </Link>
 
         {/* Summary bar */}
-        <div className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+        <div className="rounded-xl border border-bronze bg-surface p-5 dark:border-bronze dark:bg-surface">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white">
+              <h1 className="text-2xl font-extrabold text-ivory dark:text-ivory">
                 {student.email}
               </h1>
               <div className="mt-2 flex flex-wrap items-center gap-2">
@@ -124,7 +124,7 @@ export default async function StudentDetailPage({ params, searchParams }: Params
                   {atmo}
                 </span>
                 {lastActive && (
-                  <span className="text-xs text-slate-400">
+                  <span className="text-xs text-taupe">
                     Last active: {new Date(lastActive).toLocaleString()}
                   </span>
                 )}
@@ -132,10 +132,10 @@ export default async function StudentDetailPage({ params, searchParams }: Params
             </div>
             {avgScore !== null && (
               <div className="text-right">
-                <div className="text-xs font-bold uppercase tracking-wide text-slate-400">
+                <div className="text-xs font-bold uppercase tracking-wide text-taupe">
                   Avg quiz score
                 </div>
-                <div className="text-2xl font-extrabold tabular-nums text-slate-900 dark:text-white">
+                <div className="text-2xl font-extrabold tabular-nums text-ivory dark:text-ivory">
                   {avgScore}%
                 </div>
               </div>
@@ -148,9 +148,9 @@ export default async function StudentDetailPage({ params, searchParams }: Params
               label="Reading & Writing"
               mastered={readingMastered}
               total={50}
-              color="#FB7185"
+              color="#F06A8C"
             />
-            <ProgressBar label="Math" mastered={mathMastered} total={50} color="#818CF8" />
+            <ProgressBar label="Math" mastered={mathMastered} total={50} color="#42D9FF" />
           </div>
         </div>
 
@@ -182,12 +182,12 @@ function ProgressBar({
   return (
     <div>
       <div className="mb-1.5 flex justify-between text-xs">
-        <span className="font-semibold text-slate-700 dark:text-slate-300">{label}</span>
-        <span className="tabular-nums text-slate-400">
+        <span className="font-semibold text-ivory dark:text-ivory">{label}</span>
+        <span className="tabular-nums text-taupe">
           {mastered} / {total} · {pct}%
         </span>
       </div>
-      <div className="h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+      <div className="h-2 overflow-hidden rounded-full bg-surface dark:bg-surface-raised">
         <div
           className="h-full rounded-full transition-all"
           style={{ width: `${pct}%`, background: color }}

@@ -1,5 +1,6 @@
 // ============================================================
-// Footer — nav links, social icons (FB, IG, YT, TikTok), legal
+// Footer — nav links, social icons (FB, IG, YT, TikTok), legal.
+// Observatory treatment: the charcoal floor of the page.
 // ============================================================
 
 import Link from "next/link";
@@ -38,7 +39,7 @@ const SOCIAL_LINKS = [
 
 export default function Footer() {
   return (
-    <footer className="bg-slate-900 py-12 text-slate-400 dark:bg-slate-950">
+    <footer className="bg-charcoal py-12 text-taupe">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-10 grid grid-cols-2 gap-8 md:grid-cols-4">
           {/* Brand + social */}
@@ -57,7 +58,7 @@ export default function Footer() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={label}
-                  className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-800 text-slate-400 transition-colors hover:bg-slate-700 hover:text-white"
+                  className="flex h-9 w-9 items-center justify-center rounded-lg border border-bronze/70 bg-surface text-taupe transition-colors duration-fast hover:border-gold/50 hover:text-ivory"
                 >
                   <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
                     {svg}
@@ -69,7 +70,7 @@ export default function Footer() {
 
           {/* Product */}
           <div>
-            <h4 className="mb-4 text-sm font-semibold text-white">Product</h4>
+            <h4 className="type-label mb-4 text-ivory">Product</h4>
             <ul className="space-y-2 text-sm">
               {[
                 ["How It Works", "/#how-it-works"],
@@ -79,7 +80,7 @@ export default function Footer() {
                 ["FAQ", "/faq"],
               ].map(([label, href]) => (
                 <li key={label}>
-                  <Link href={href} className="transition-colors hover:text-white">
+                  <Link href={href} className="transition-colors duration-fast hover:text-ivory">
                     {label}
                   </Link>
                 </li>
@@ -89,7 +90,7 @@ export default function Footer() {
 
           {/* Company */}
           <div>
-            <h4 className="mb-4 text-sm font-semibold text-white">Company</h4>
+            <h4 className="type-label mb-4 text-ivory">Company</h4>
             <ul className="space-y-2 text-sm">
               {[
                 ["About", "/about"],
@@ -99,7 +100,7 @@ export default function Footer() {
                 // re-add this entry when content lands.
               ].map(([label, href]) => (
                 <li key={label}>
-                  <Link href={href} className="transition-colors hover:text-white">
+                  <Link href={href} className="transition-colors duration-fast hover:text-ivory">
                     {label}
                   </Link>
                 </li>
@@ -109,7 +110,7 @@ export default function Footer() {
 
           {/* Legal */}
           <div>
-            <h4 className="mb-4 text-sm font-semibold text-white">Legal</h4>
+            <h4 className="type-label mb-4 text-ivory">Legal</h4>
             <ul className="space-y-2 text-sm">
               {[
                 ["Privacy Policy", "/privacy"],
@@ -117,7 +118,7 @@ export default function Footer() {
                 ["Refund Policy", "/refunds"],
               ].map(([label, href]) => (
                 <li key={label}>
-                  <Link href={href} className="transition-colors hover:text-white">
+                  <Link href={href} className="transition-colors duration-fast hover:text-ivory">
                     {label}
                   </Link>
                 </li>
@@ -126,9 +127,9 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="flex flex-col items-center justify-between gap-3 border-t border-slate-800 pt-8 sm:flex-row">
+        <div className="flex flex-col items-center justify-between gap-3 border-t border-bronze/60 pt-8 sm:flex-row">
           <p className="text-sm">© {new Date().getFullYear()} Karman. All rights reserved.</p>
-          <p className="text-xs">
+          <p className="text-xs text-taupe/80">
             SAT® is a registered trademark of College Board, which is not affiliated with Karman.
           </p>
         </div>

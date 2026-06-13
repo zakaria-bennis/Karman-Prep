@@ -3,13 +3,14 @@
 // ============================================================
 // Reveal — the site-wide "enter" primitive.
 //
-// Wraps any element and fades + rises it as it enters the
-// viewport. Use directly, or set `as="stagger"` on a parent
-// to orchestrate a stagger of child <Reveal> elements.
+// Settle, per docs/brand.md "Motion": content fades in with a
+// small 8px rise on a long-tailed ease — it arrives, it doesn't
+// spring. Use directly, or set `as="stagger"` on a parent to
+// orchestrate a stagger of child <Reveal> elements.
 // ============================================================
 
 import { motion, type HTMLMotionProps } from "framer-motion";
-import { fadeUp, stagger, revealTransition, viewportOnce } from "@/lib/motion";
+import { settle, settleTransition, stagger, viewportContemplative } from "@/lib/motion";
 
 type Props = Omit<HTMLMotionProps<"div">, "variants" | "initial" | "whileInView" | "viewport"> & {
   as?: "item" | "stagger";
@@ -33,7 +34,7 @@ export default function Reveal({
         variants={stagger(gap)}
         initial="hidden"
         whileInView="show"
-        viewport={viewportOnce}
+        viewport={viewportContemplative}
         {...rest}
       >
         {children}
@@ -43,11 +44,11 @@ export default function Reveal({
 
   return (
     <motion.div
-      variants={fadeUp}
+      variants={settle}
       initial="hidden"
       whileInView="show"
-      viewport={viewportOnce}
-      transition={{ ...revealTransition, delay, ...(transition ?? {}) }}
+      viewport={viewportContemplative}
+      transition={{ ...settleTransition, delay, ...(transition ?? {}) }}
       {...rest}
     >
       {children}

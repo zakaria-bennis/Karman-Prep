@@ -50,10 +50,10 @@ export function MatchConfidenceBadge({ method, confidence, className }: Props) {
     <span
       className={cn(
         "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 font-mono text-[10px] font-semibold",
-        tone === "good" && "border-emerald-500/35 bg-emerald-500/10 text-emerald-200",
-        tone === "warn" && "border-amber-500/35 bg-amber-500/10 text-amber-200",
-        tone === "bad" && "border-rose-500/35 bg-rose-500/10 text-rose-200",
-        tone === "neutral" && "border-slate-500/35 bg-slate-500/10 text-slate-300",
+        tone === "good" && "border-success/35 bg-success/10 text-success-bright",
+        tone === "warn" && "border-warning/35 bg-warning/10 text-warning-bright",
+        tone === "bad" && "border-error/35 bg-error/10 text-error-bright",
+        tone === "neutral" && "border-bronze/35 bg-surface-raised/10 text-ivory",
         className
       )}
       title={score ? `Matched via ${label} with confidence ${score}` : label}

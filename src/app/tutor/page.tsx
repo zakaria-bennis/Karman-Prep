@@ -60,11 +60,11 @@ export default async function TutorPage() {
         ) : null}
         <header className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <p className="mb-1 text-xs font-bold uppercase tracking-widest text-blue-500">
+            <p className="mb-1 text-xs font-bold uppercase tracking-widest text-info">
               Tutor Portal
             </p>
-            <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white">My students</h1>
-            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+            <h1 className="text-2xl font-extrabold text-ivory dark:text-ivory">My students</h1>
+            <p className="mt-1 text-sm text-taupe dark:text-taupe">
               {scope.cohorts.length} cohort{scope.cohorts.length !== 1 ? "s" : ""}
               {" · "}
               {rows.length} student{rows.length !== 1 ? "s" : ""} across cohorts + 1:1
@@ -73,21 +73,21 @@ export default async function TutorPage() {
           <nav className="flex items-center gap-2">
             <Link
               href="/tutor/schedule"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-semibold text-slate-700 hover:border-blue-400 dark:border-slate-700 dark:text-slate-200"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-bronze px-3 py-1.5 text-sm font-semibold text-ivory hover:border-info/40 dark:border-bronze dark:text-ivory"
             >
-              <CalendarClock className="h-4 w-4 text-slate-400" /> Schedule
+              <CalendarClock className="h-4 w-4 text-taupe" /> Schedule
             </Link>
             <Link
               href="/tutor/earnings"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-semibold text-slate-700 hover:border-blue-400 dark:border-slate-700 dark:text-slate-200"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-bronze px-3 py-1.5 text-sm font-semibold text-ivory hover:border-info/40 dark:border-bronze dark:text-ivory"
             >
-              <Wallet className="h-4 w-4 text-slate-400" /> Earnings
+              <Wallet className="h-4 w-4 text-taupe" /> Earnings
             </Link>
             <Link
               href="/tutor/settings/booking"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-semibold text-slate-700 hover:border-blue-400 dark:border-slate-700 dark:text-slate-200"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-bronze px-3 py-1.5 text-sm font-semibold text-ivory hover:border-info/40 dark:border-bronze dark:text-ivory"
             >
-              <Settings className="h-4 w-4 text-slate-400" /> Booking
+              <Settings className="h-4 w-4 text-taupe" /> Booking
             </Link>
           </nav>
         </header>
@@ -95,20 +95,17 @@ export default async function TutorPage() {
         {/* ── My Cohorts ───────────────────────────────────── */}
         <section>
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
-              <UsersIcon className="h-5 w-5 text-slate-400" />
+            <h2 className="flex items-center gap-2 text-lg font-bold text-ivory dark:text-ivory">
+              <UsersIcon className="h-5 w-5 text-taupe" />
               My cohorts
             </h2>
           </div>
 
           {scope.cohorts.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-slate-200 px-6 py-10 text-center dark:border-slate-800">
-              <p className="text-sm text-slate-500 dark:text-slate-400">
+            <div className="rounded-xl border border-dashed border-bronze px-6 py-10 text-center dark:border-bronze">
+              <p className="text-sm text-taupe dark:text-taupe">
                 No cohorts yet. An admin assigns cohorts to tutors from{" "}
-                <span className="font-semibold text-slate-700 dark:text-slate-200">
-                  Admin → Cohorts
-                </span>
-                .
+                <span className="font-semibold text-ivory dark:text-ivory">Admin → Cohorts</span>.
               </p>
             </div>
           ) : (
@@ -119,33 +116,33 @@ export default async function TutorPage() {
                   <li key={c.id}>
                     <Link
                       href={`/tutor/cohort/${c.id}`}
-                      className="block rounded-xl border border-slate-200 bg-white p-4 transition hover:border-blue-400 hover:shadow-sm dark:border-slate-800 dark:bg-slate-900/40"
+                      className="block rounded-xl border border-bronze bg-surface p-4 transition hover:border-info/40 hover:shadow-sm dark:border-bronze dark:bg-surface/40"
                     >
                       <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider">
                         <TierPill tier={c.tier} />
                         <StatusPill status={c.status} />
-                        <span className="text-slate-400">{satDate} SAT</span>
+                        <span className="text-taupe">{satDate} SAT</span>
                       </div>
-                      <div className="mt-2 text-base font-bold text-slate-900 dark:text-white">
+                      <div className="mt-2 text-base font-bold text-ivory dark:text-ivory">
                         {c.name}
                       </div>
-                      <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                      <div className="mt-1 text-xs text-taupe dark:text-taupe">
                         {c.current_topic ?? "No current topic set"}
                       </div>
-                      <div className="mt-3 flex items-center justify-between text-xs text-slate-400">
+                      <div className="mt-3 flex items-center justify-between text-xs text-taupe">
                         <span>
-                          <span className="font-mono text-slate-700 dark:text-slate-200">
+                          <span className="font-mono text-ivory dark:text-ivory">
                             {c.member_count}
                           </span>
-                          <span className="text-slate-500 dark:text-slate-400">/{c.max_size}</span>
+                          <span className="text-taupe dark:text-taupe">/{c.max_size}</span>
                           {" members"}
                           {" · "}
-                          <span className="font-mono text-slate-700 dark:text-slate-200">
+                          <span className="font-mono text-ivory dark:text-ivory">
                             {c.homework_count}
                           </span>
                           {" homework"}
                         </span>
-                        <span className="inline-flex items-center gap-1 font-semibold text-blue-500">
+                        <span className="inline-flex items-center gap-1 font-semibold text-info">
                           Open <ArrowRight className="h-3 w-3" />
                         </span>
                       </div>
@@ -159,13 +156,13 @@ export default async function TutorPage() {
 
         {/* ── Student roster (scoped) ─────────────────────── */}
         <section>
-          <h2 className="mb-3 flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
-            <UserSquare className="h-5 w-5 text-slate-400" />
+          <h2 className="mb-3 flex items-center gap-2 text-lg font-bold text-ivory dark:text-ivory">
+            <UserSquare className="h-5 w-5 text-taupe" />
             Students ({rows.length})
           </h2>
           {rows.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-slate-200 px-6 py-10 text-center dark:border-slate-800">
-              <p className="text-sm text-slate-500 dark:text-slate-400">
+            <div className="rounded-xl border border-dashed border-bronze px-6 py-10 text-center dark:border-bronze">
+              <p className="text-sm text-taupe dark:text-taupe">
                 No students assigned yet. You&apos;ll see them here once admin places students in
                 one of your cohorts or assigns a 1:1.
               </p>
@@ -200,15 +197,15 @@ function CalSetupBanner({
     ? "Your students need a way to book sessions with you. Connect your Cal.com account once and we'll point them at the right event-type."
     : "We connected your Cal account but couldn't auto-pick which of your event-types is for Karman. Pick it once and you're done.";
   return (
-    <div className="flex flex-wrap items-center gap-4 rounded-xl border border-amber-200 bg-amber-50 px-5 py-4 dark:border-amber-400/30 dark:bg-amber-400/10">
-      <AlertCircle className="h-5 w-5 shrink-0 text-amber-600 dark:text-amber-400" />
+    <div className="flex flex-wrap items-center gap-4 rounded-xl border border-warning/40 bg-warning/10 px-5 py-4 dark:border-warning/30 dark:bg-warning/10">
+      <AlertCircle className="h-5 w-5 shrink-0 text-warning dark:text-warning" />
       <div className="min-w-[15rem] flex-1">
-        <p className="text-sm font-semibold text-amber-900 dark:text-amber-200">{title}</p>
-        <p className="mt-0.5 text-xs text-amber-800/80 dark:text-amber-300/80">{body}</p>
+        <p className="text-sm font-semibold text-warning dark:text-warning-bright">{title}</p>
+        <p className="mt-0.5 text-xs text-warning/80 dark:text-warning-bright/80">{body}</p>
       </div>
       <Link
         href="/tutor/settings/booking"
-        className="inline-flex items-center gap-1.5 rounded-md bg-amber-600 px-3 py-1.5 text-xs font-semibold text-slate-900 hover:bg-amber-500"
+        className="inline-flex items-center gap-1.5 rounded-md bg-warning px-3 py-1.5 text-xs font-semibold text-night hover:bg-warning-bright"
       >
         <CalendarPlus className="h-3.5 w-3.5" />
         {!connected ? "Connect Cal" : "Pick event-type"}
@@ -221,18 +218,18 @@ function TierPill({ tier }: { tier: "group" | "small_group" }) {
   const label = tier === "small_group" ? "Small Group" : "Seminar";
   const cls =
     tier === "small_group"
-      ? "bg-teal-50 text-teal-700 dark:bg-teal-400/10 dark:text-teal-300 border border-teal-200 dark:border-teal-400/20"
-      : "bg-indigo-50 text-indigo-700 dark:bg-indigo-400/10 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-400/20";
+      ? "bg-success/10 text-success dark:bg-success/10 dark:text-success-bright border border-success/40 dark:border-success/20"
+      : "bg-gold/10 text-gold dark:bg-gold/10 dark:text-gold-bright border border-gold/40 dark:border-gold/20";
   return <span className={`rounded-md px-2 py-0.5 ${cls}`}>{label}</span>;
 }
 
 function StatusPill({ status }: { status: "forming" | "active" | "completed" }) {
   const cls =
     status === "active"
-      ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-400/10 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-400/20"
+      ? "bg-success/10 text-success dark:bg-success/10 dark:text-success-bright border border-success/40 dark:border-success/20"
       : status === "completed"
-        ? "bg-slate-100 text-slate-500 dark:bg-slate-600/20 dark:text-slate-400 border border-slate-300 dark:border-slate-600/30"
-        : "bg-slate-50 text-slate-500 dark:bg-slate-400/10 dark:text-slate-300 border border-slate-200 dark:border-slate-400/20";
+        ? "bg-surface text-taupe dark:bg-surface-raised/20 dark:text-taupe border border-bronze dark:border-bronze/30"
+        : "bg-surface text-taupe dark:bg-surface-raised/10 dark:text-ivory border border-bronze dark:border-bronze/20";
   return <span className={`rounded-md px-2 py-0.5 ${cls}`}>{status}</span>;
 }
 

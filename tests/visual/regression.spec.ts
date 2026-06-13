@@ -100,6 +100,18 @@ for (const persona of PERSONAS) {
         test(`${viewport.name} · ${url}`, async ({ page }) => {
           await page.setViewportSize({ width: viewport.width, height: viewport.height });
 
+          // Pre-set the replay-consent cookie so the fixed bottom consent
+          // banner never renders. It (a) drifts by render timing and
+          // (b) rasterizes as a magenta block under headless Chromium's
+          // software backdrop-filter (`backdrop-blur-md`). Suppressing it
+          // server-side keeps the bottom strip clean + deterministic —
+          // more reliable than masking the blur region post-hoc.
+          await page
+            .context()
+            .addCookies([
+              { name: "karman_replay_consent", value: "yes", url: "http://localhost:3000" },
+            ]);
+
           if (persona.email) {
             await impersonateByEmail(page, persona.email);
           } else {
@@ -117,8 +129,10 @@ for (const persona of PERSONAS) {
           //   · `data-testid="last-active-cell"`: real timestamps in
           //     the tutor StudentTable — change every test run as the
           //     seed-dev script touches dev_seed_* users.
-          // Both render with a black overlay in the snapshot — diff
-          // ignores everything underneath.
+          // Both render with a dark espresso overlay in the snapshot
+          // (see `maskColor` below) — diff ignores everything underneath.
+          // Without maskColor, Playwright paints masks bright magenta
+          // (#FF00FF) by default, which looks like a rendering bug.
           const masks = [
             page.locator('[role="dialog"][aria-labelledby="replay-consent-title"]'),
             page.locator('[data-testid="last-active-cell"]'),
@@ -143,6 +157,10 @@ for (const persona of PERSONAS) {
             animations: "disabled",
             maxDiffPixels: 100,
             mask: masks,
+            // Blend masked regions into the observatory canvas instead of
+            // Playwright's default magenta, so masks read as "intentionally
+            // hidden" rather than a broken render.
+            maskColor: "#0D0A08",
             // No threshold on per-pixel color delta — the maxDiff-
             // Pixels cap is the only signal we care about. Default
             // threshold (0.2 = ~10% color difference per pixel) is

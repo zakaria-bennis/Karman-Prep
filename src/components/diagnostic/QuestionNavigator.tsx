@@ -99,7 +99,7 @@ export function QuestionNavigator({
         exit={{ opacity: 0 }}
         transition={{ duration: 0.18 }}
         onClick={onClose}
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+        className="absolute inset-0 bg-night/40 backdrop-blur-sm"
       />
 
       {/* Slide-in panel. */}
@@ -108,33 +108,33 @@ export function QuestionNavigator({
         animate={{ x: 0, opacity: 1 }}
         exit={{ x: 400, opacity: 0 }}
         transition={{ type: "spring", stiffness: 320, damping: 30 }}
-        className="absolute right-0 top-0 flex h-full w-full max-w-md flex-col border-l border-white/10 bg-[#0B1026] shadow-2xl"
+        className="absolute right-0 top-0 flex h-full w-full max-w-md flex-col border-l border-ivory/10 bg-[#070605] shadow-2xl"
       >
         {/* Header */}
-        <header className="border-b border-white/10 px-5 py-4">
+        <header className="border-b border-ivory/10 px-5 py-4">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="text-[11px] font-bold uppercase tracking-widest text-blue-400">
+              <p className="text-[11px] font-bold uppercase tracking-widest text-info">
                 Navigation
               </p>
-              <h2 className="text-lg font-extrabold text-white">All questions</h2>
+              <h2 className="text-lg font-extrabold text-ivory">All questions</h2>
             </div>
             <button
               type="button"
               onClick={onClose}
-              className="flex h-8 w-8 items-center justify-center rounded-full text-slate-400 hover:bg-white/[0.08] hover:text-white"
+              className="flex h-8 w-8 items-center justify-center rounded-full text-taupe hover:bg-surface/[0.08] hover:text-ivory"
               aria-label="Close navigator"
             >
               <X className="h-4 w-4" />
             </button>
           </div>
 
-          <p className="mt-2 text-xs text-slate-400">
-            <span className="font-semibold text-emerald-300">{answeredCount} answered</span>
-            <span className="mx-1.5 text-slate-400">·</span>
-            <span className="font-semibold text-amber-300">{bookmarkedCount} bookmarked</span>
-            <span className="mx-1.5 text-slate-400">·</span>
-            <span className="font-semibold text-slate-300">{remaining} left</span>
+          <p className="mt-2 text-xs text-taupe">
+            <span className="font-semibold text-success-bright">{answeredCount} answered</span>
+            <span className="mx-1.5 text-taupe">·</span>
+            <span className="font-semibold text-warning-bright">{bookmarkedCount} bookmarked</span>
+            <span className="mx-1.5 text-taupe">·</span>
+            <span className="font-semibold text-ivory">{remaining} left</span>
           </p>
         </header>
 
@@ -148,7 +148,7 @@ export function QuestionNavigator({
           <Section
             title="Reading & Writing"
             icon={<HelpCircle className="h-3.5 w-3.5" />}
-            color="text-rose-300"
+            color="text-error-bright"
             questions={rwQs}
             currentIdx={currentIdx}
             answers={answers}
@@ -163,7 +163,7 @@ export function QuestionNavigator({
           <Section
             title="Math"
             icon={<Hash className="h-3.5 w-3.5" />}
-            color="text-blue-400"
+            color="text-info"
             questions={mathQs}
             currentIdx={currentIdx}
             answers={answers}
@@ -178,31 +178,29 @@ export function QuestionNavigator({
         </div>
 
         {/* Footer legend */}
-        <footer className="grid grid-cols-2 gap-2 border-t border-white/10 px-5 py-3 text-[10px] text-slate-400">
+        <footer className="grid grid-cols-2 gap-2 border-t border-ivory/10 px-5 py-3 text-[10px] text-taupe">
           <LegendItem
-            swatch={<div className="h-3 w-3 rounded border border-white/15 bg-white/[0.04]" />}
+            swatch={<div className="h-3 w-3 rounded border border-ivory/15 bg-surface/[0.04]" />}
             label="Unanswered"
           />
           <LegendItem
-            swatch={
-              <div className="h-3 w-3 rounded border border-emerald-400/50 bg-emerald-500/30" />
-            }
+            swatch={<div className="h-3 w-3 rounded border border-success/50 bg-success/30" />}
             label="Correct"
           />
           <LegendItem
-            swatch={<div className="h-3 w-3 rounded border border-rose-400/50 bg-rose-500/30" />}
+            swatch={<div className="h-3 w-3 rounded border border-error/50 bg-error/30" />}
             label="Wrong"
           />
           <LegendItem
-            swatch={<div className="h-3 w-3 rounded border border-amber-400/50 bg-amber-400/30" />}
+            swatch={<div className="h-3 w-3 rounded border border-warning/50 bg-warning/30" />}
             label="Hint used"
           />
           <LegendItem
-            swatch={<Bookmark className="h-3 w-3 fill-white text-white" />}
+            swatch={<Bookmark className="h-3 w-3 fill-white text-ivory" />}
             label="Bookmarked"
           />
           <LegendItem
-            swatch={<div className="h-3 w-3 rounded bg-white/[0.04] ring-2 ring-blue-400" />}
+            swatch={<div className="h-3 w-3 rounded bg-surface/[0.04] ring-2 ring-info/50" />}
             label="Current"
           />
         </footer>
@@ -248,11 +246,11 @@ function Section({
       >
         {icon}
         {title}
-        <span className="text-[10px] font-semibold normal-case tracking-normal text-slate-400">
+        <span className="text-[10px] font-semibold normal-case tracking-normal text-taupe">
           · {questions.length} questions
         </span>
         {locked && (
-          <span className="ml-auto inline-flex items-center gap-1 text-[9px] font-semibold uppercase normal-case tracking-normal tracking-wider text-slate-400">
+          <span className="ml-auto inline-flex items-center gap-1 text-[9px] font-semibold uppercase normal-case tracking-normal tracking-wider text-taupe">
             Locked
           </span>
         )}
@@ -280,22 +278,22 @@ function Section({
           if (isHinted) {
             if (correct) {
               palette =
-                "bg-amber-400/20 border-2 border-emerald-400 text-amber-100 hover:bg-amber-400/30";
+                "bg-warning/20 border-2 border-success/40 text-warning-bright hover:bg-warning/30";
             } else if (wrong) {
               palette =
-                "bg-amber-400/20 border-2 border-rose-400 text-amber-100 hover:bg-amber-400/30";
+                "bg-warning/20 border-2 border-error/40 text-warning-bright hover:bg-warning/30";
             } else {
               palette =
-                "bg-amber-400/20 border border-amber-400/40 text-amber-100 hover:bg-amber-400/30";
+                "bg-warning/20 border border-warning/40 text-warning-bright hover:bg-warning/30";
             }
           } else if (correct) {
             palette =
-              "bg-emerald-500/20 border border-emerald-400/40 text-emerald-100 hover:bg-emerald-500/30";
+              "bg-success/20 border border-success/40 text-success-bright hover:bg-success/30";
           } else if (wrong) {
-            palette = "bg-rose-500/20 border border-rose-400/40 text-rose-100 hover:bg-rose-500/30";
+            palette = "bg-error/20 border border-error/40 text-error-bright hover:bg-error/30";
           } else {
             palette =
-              "bg-white/[0.04] border border-white/10 text-slate-200 hover:bg-white/[0.08] hover:border-white/20";
+              "bg-surface/[0.04] border border-ivory/10 text-ivory hover:bg-surface/[0.08] hover:border-ivory/20";
           }
 
           return (
@@ -316,7 +314,7 @@ function Section({
                 "relative flex aspect-square items-center justify-center overflow-visible rounded-lg text-base font-extrabold transition-all",
                 palette,
                 isCurrent &&
-                  "shadow-[0_0_18px_rgba(59,130,246,0.45)] ring-2 ring-blue-400 ring-offset-2 ring-offset-[#0B1026]",
+                  "shadow-[0_0_18px_rgba(59,130,246,0.45)] ring-2 ring-info/50 ring-offset-2 ring-offset-[#070605]",
                 locked && "cursor-not-allowed opacity-40 grayscale"
               )}
             >
@@ -332,7 +330,7 @@ function Section({
               {isBookmarked && (
                 <span
                   aria-hidden
-                  className="absolute -top-1 left-1.5 h-4 w-2.5 bg-white shadow-[0_2px_6px_rgba(255,255,255,0.25)]"
+                  className="absolute -top-1 left-1.5 h-4 w-2.5 bg-surface shadow-[0_2px_6px_rgba(255,255,255,0.25)]"
                   style={{
                     clipPath: "polygon(0 0, 100% 0, 100% 100%, 50% 70%, 0 100%)",
                   }}

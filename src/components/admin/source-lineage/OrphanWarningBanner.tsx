@@ -43,17 +43,17 @@ export function OrphanWarningBanner({ lineage, questionId, href, className }: Pr
   return (
     <div
       className={cn(
-        "flex items-start gap-2 border border-amber-500/35 bg-amber-500/[0.08] px-3 py-2 text-xs text-amber-100",
+        "flex items-start gap-2 border border-warning/35 bg-warning/[0.08] px-3 py-2 text-xs text-warning-bright",
         className
       )}
     >
-      <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-300" />
+      <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-warning-bright" />
       <div className="min-w-0 flex-1">
         This PDF page has orphan crops the matcher could not pair with a database row.
         {href && (
           <>
             {" "}
-            <Link href={href} className="font-semibold underline decoration-amber-300/50">
+            <Link href={href} className="font-semibold underline decoration-warning-bright/50">
               Open inspector
             </Link>
             .
@@ -63,7 +63,7 @@ export function OrphanWarningBanner({ lineage, questionId, href, className }: Pr
       <button
         type="button"
         onClick={dismiss}
-        className="shrink-0 rounded p-0.5 text-amber-200/70 hover:bg-amber-500/10 hover:text-amber-100"
+        className="shrink-0 rounded p-0.5 text-warning-bright/70 hover:bg-warning/10 hover:text-warning-bright"
         aria-label="Dismiss orphan crop warning"
       >
         <X className="h-3.5 w-3.5" />

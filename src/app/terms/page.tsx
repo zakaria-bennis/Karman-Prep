@@ -107,14 +107,14 @@ export default function TermsPage() {
   return (
     <>
       <Navbar />
-      <main className="min-h-screen bg-white dark:bg-slate-950">
+      <main className="min-h-screen bg-surface dark:bg-night">
         {/* Header */}
-        <section className="bg-gradient-to-b from-slate-50 to-white px-4 pb-12 pt-20 text-center dark:from-slate-900 dark:to-slate-950">
+        <section className="bg-gradient-to-b from-surface to-white px-4 pb-12 pt-20 text-center dark:from-surface dark:to-night">
           <div className="mx-auto max-w-2xl">
-            <h1 className="mb-4 text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+            <h1 className="mb-4 text-4xl font-extrabold tracking-tight text-ivory dark:text-ivory">
               Terms of Service
             </h1>
-            <p className="text-base text-slate-500 dark:text-slate-400">
+            <p className="text-base text-taupe dark:text-taupe">
               Effective April 2025 · Governing law: Texas, United States
             </p>
           </div>
@@ -125,7 +125,7 @@ export default function TermsPage() {
           {/* TOC sidebar — hidden on mobile */}
           <aside className="hidden w-52 shrink-0 lg:block">
             <div className="sticky top-24">
-              <p className="mb-3 text-xs font-bold uppercase tracking-widest text-slate-400">
+              <p className="mb-3 text-xs font-bold uppercase tracking-widest text-taupe">
                 Contents
               </p>
               <nav className="space-y-1">
@@ -133,7 +133,7 @@ export default function TermsPage() {
                   <a
                     key={s.id}
                     href={`#${s.id}`}
-                    className="block py-0.5 text-sm text-slate-500 transition-colors hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400"
+                    className="block py-0.5 text-sm text-taupe transition-colors hover:text-info dark:text-taupe dark:hover:text-info-bright"
                   >
                     {s.title}
                   </a>
@@ -146,11 +146,11 @@ export default function TermsPage() {
           <div className="flex-1 space-y-10">
             {SECTIONS.map((section) => (
               <section key={section.id} id={section.id} className="scroll-mt-24">
-                <h2 className="mb-3 text-lg font-bold text-slate-900 dark:text-white">
+                <h2 className="mb-3 text-lg font-bold text-ivory dark:text-ivory">
                   {section.title}
                 </h2>
                 {section.content && (
-                  <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-300">
+                  <p className="text-sm leading-relaxed text-taupe dark:text-ivory">
                     {section.content}
                   </p>
                 )}
@@ -159,9 +159,9 @@ export default function TermsPage() {
                     {section.list.map((item, i) => (
                       <li
                         key={i}
-                        className="flex items-start gap-2.5 text-sm leading-relaxed text-slate-600 dark:text-slate-300"
+                        className="flex items-start gap-2.5 text-sm leading-relaxed text-taupe dark:text-ivory"
                       >
-                        <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-blue-500" />
+                        <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-info" />
                         {item}
                       </li>
                     ))}
@@ -170,14 +170,14 @@ export default function TermsPage() {
               </section>
             ))}
 
-            <div className="flex flex-wrap gap-4 border-t border-slate-200 pt-8 text-sm dark:border-slate-700">
-              <Link href="/privacy" className="text-blue-600 hover:underline dark:text-blue-400">
+            <div className="flex flex-wrap gap-4 border-t border-bronze pt-8 text-sm dark:border-bronze">
+              <Link href="/privacy" className="text-info hover:underline dark:text-info">
                 Privacy Policy
               </Link>
-              <Link href="/refunds" className="text-blue-600 hover:underline dark:text-blue-400">
+              <Link href="/refunds" className="text-info hover:underline dark:text-info">
                 Refund Policy
               </Link>
-              <Link href="/guarantee" className="text-blue-600 hover:underline dark:text-blue-400">
+              <Link href="/guarantee" className="text-info hover:underline dark:text-info">
                 Score Guarantee
               </Link>
             </div>

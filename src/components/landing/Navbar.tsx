@@ -1,14 +1,17 @@
 "use client";
 
 // ============================================================
-// Navbar — sticky top bar with theme toggle, FAQ link, auth CTAs
+// Navbar — sticky top bar on the warm night canvas.
+//
+// Observatory system (docs/brand.md): night ground, bronze
+// hairline, ivory/taupe text, a single gold CTA. The product is
+// dark-only by design, so there is no theme toggle here.
 // ============================================================
 
 import Link from "next/link";
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { ThemeToggle } from "@/components/shared/ThemeToggle";
 import { useAuth, UserButton } from "@clerk/nextjs";
 import { KarmanLogo } from "@/components/shared/KarmanLogo";
 
@@ -24,7 +27,7 @@ export default function Navbar() {
   ];
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-slate-200/60 bg-white/90 backdrop-blur-md dark:border-slate-800/60 dark:bg-slate-950/90">
+    <nav className="sticky top-0 z-50 border-b border-bronze/60 bg-night/90 backdrop-blur-md">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
@@ -33,26 +36,25 @@ export default function Navbar() {
           </Link>
 
           {/* Desktop nav */}
-          <div className="hidden items-center gap-6 md:flex">
+          <div className="hidden items-center gap-7 md:flex">
             {navLinks.map((link) => (
               <Link
                 key={link.label}
                 href={link.href}
-                className="text-sm font-medium text-slate-600 transition-colors hover:text-blue-600 dark:text-slate-300 dark:hover:text-blue-400"
+                className="text-sm font-medium text-taupe transition-colors duration-fast hover:text-ivory"
               >
                 {link.label}
               </Link>
             ))}
           </div>
 
-          {/* Right side: theme toggle + auth buttons */}
-          <div className="hidden items-center gap-2 md:flex">
-            <ThemeToggle />
+          {/* Right side: auth */}
+          <div className="hidden items-center gap-3 md:flex">
             {!isSignedIn && (
               <>
                 <Link
                   href="/auth/sign-in"
-                  className="px-3 py-2 text-sm font-semibold text-slate-700 transition-colors hover:text-blue-600 dark:text-slate-200 dark:hover:text-blue-400"
+                  className="px-3 py-2 text-sm font-medium text-taupe transition-colors duration-fast hover:text-ivory"
                 >
                   Sign In
                 </Link>
@@ -71,11 +73,10 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* Mobile: theme toggle + hamburger */}
-          <div className="flex items-center gap-1 md:hidden">
-            <ThemeToggle />
+          {/* Mobile: hamburger */}
+          <div className="flex items-center md:hidden">
             <button
-              className="rounded-lg p-2 text-slate-600 transition-colors hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+              className="rounded-lg p-2 text-taupe transition-colors duration-fast hover:bg-surface hover:text-ivory"
               onClick={() => setIsOpen(!isOpen)}
               aria-label="Toggle menu"
             >
@@ -87,7 +88,7 @@ export default function Navbar() {
         {/* Mobile menu */}
         <div
           className={cn(
-            "overflow-hidden transition-all duration-300 md:hidden",
+            "overflow-hidden transition-all duration-normal md:hidden",
             isOpen ? "max-h-96 pb-4" : "max-h-0"
           )}
         >
@@ -97,7 +98,7 @@ export default function Navbar() {
                 key={link.label}
                 href={link.href}
                 onClick={() => setIsOpen(false)}
-                className="rounded-lg px-4 py-2.5 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                className="rounded-lg px-4 py-2.5 text-sm font-medium text-taupe transition-colors duration-fast hover:bg-surface hover:text-ivory"
               >
                 {link.label}
               </Link>

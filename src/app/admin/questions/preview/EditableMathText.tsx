@@ -119,12 +119,12 @@ export function EditableMathText({
         className={cn(
           className,
           !readOnly &&
-            "cursor-text rounded-sm hover:bg-slate-700/20 focus:bg-slate-700/30 focus:outline-none"
+            "cursor-text rounded-sm hover:bg-surface-raised/20 focus:bg-surface-raised/30 focus:outline-none"
         )}
         aria-label={readOnly ? undefined : "Edit text"}
       >
         {empty ? (
-          <span className="italic text-slate-500">{placeholder}</span>
+          <span className="italic text-taupe">{placeholder}</span>
         ) : (
           <MathText text={value} />
         )}
@@ -154,23 +154,23 @@ export function EditableMathText({
         rows={1}
         className={cn(
           className,
-          "block w-full resize-none overflow-hidden rounded-md border border-indigo-500/60 bg-slate-950 px-2 py-1 font-mono text-[14px] text-slate-100",
-          error && "border-rose-500"
+          "block w-full resize-none overflow-hidden rounded-md border border-gold/60 bg-night px-2 py-1 font-mono text-[14px] text-ivory",
+          error && "border-error/40"
         )}
       />
-      <span className="mt-1 flex items-center gap-2 text-[10px] text-slate-500">
+      <span className="mt-1 flex items-center gap-2 text-[10px] text-taupe">
         {saving ? (
-          <span className="inline-flex items-center gap-1 text-indigo-300">
+          <span className="inline-flex items-center gap-1 text-gold-bright">
             <Loader2 className="h-3 w-3 animate-spin" /> saving…
           </span>
         ) : (
           <span>
-            <kbd className="rounded bg-slate-800 px-1 font-mono">⌘↵</kbd> save ·{" "}
-            <kbd className="rounded bg-slate-800 px-1 font-mono">Esc</kbd> cancel · raw markup
+            <kbd className="rounded bg-surface-raised px-1 font-mono">⌘↵</kbd> save ·{" "}
+            <kbd className="rounded bg-surface-raised px-1 font-mono">Esc</kbd> cancel · raw markup
             (LaTeX renders on save)
           </span>
         )}
-        {error && <span className="text-rose-300">{error}</span>}
+        {error && <span className="text-error-bright">{error}</span>}
       </span>
     </span>
   );

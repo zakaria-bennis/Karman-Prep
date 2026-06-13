@@ -60,23 +60,23 @@ export function ActiveQuizScreen({
   return (
     <>
       {/* Top bar */}
-      <div className="absolute inset-x-0 top-0 z-10 flex h-14 items-center border-b border-slate-800 bg-slate-950/80 px-6 backdrop-blur-sm">
+      <div className="absolute inset-x-0 top-0 z-10 flex h-14 items-center border-b border-bronze bg-night/80 px-6 backdrop-blur-sm">
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">
+          <p className="text-xs font-semibold uppercase tracking-widest text-taupe">
             {node.subject === "reading" ? "Reading & Writing" : "Math"}
           </p>
           <p className="truncate text-sm font-bold">{node.topic}</p>
         </div>
         <div className="flex-1 text-center">
-          <span className="text-sm font-semibold text-slate-300">
-            Question <span className="text-white">{state.currentIndex + 1}</span> of{" "}
+          <span className="text-sm font-semibold text-ivory/80">
+            Question <span className="text-ivory">{state.currentIndex + 1}</span> of{" "}
             {QUIZ_TOTAL_QUESTIONS}
           </span>
         </div>
         <div className="flex flex-1 justify-end">
           <button
             onClick={onClose}
-            className="flex h-9 w-9 items-center justify-center rounded-full text-slate-400 hover:bg-slate-800 hover:text-white"
+            className="flex h-9 w-9 items-center justify-center rounded-full text-taupe hover:bg-surface-raised hover:text-ivory"
             aria-label="Close quiz"
           >
             <X className="h-4 w-4" />
@@ -85,7 +85,7 @@ export function ActiveQuizScreen({
       </div>
 
       {/* Progress dots row (top) */}
-      <div className="absolute inset-x-0 top-14 z-10 flex h-10 items-center justify-center gap-2 border-b border-slate-800 bg-slate-950/60">
+      <div className="absolute inset-x-0 top-14 z-10 flex h-10 items-center justify-center gap-2 border-b border-bronze bg-night/60">
         {dots.map((d) => (
           <ProgressDot key={d.i} {...d} />
         ))}
@@ -115,7 +115,7 @@ export function ActiveQuizScreen({
             >
               <button
                 onClick={onSubmit}
-                className="rounded-xl bg-blue-600 px-8 py-3 text-sm font-bold text-white transition-colors hover:bg-blue-700"
+                className="rounded-xl bg-info px-8 py-3 text-sm font-bold text-ivory transition-colors hover:bg-info-bright"
               >
                 Submit Answer
               </button>
@@ -129,13 +129,13 @@ export function ActiveQuizScreen({
           >
             <button
               onClick={() => onToggleExplanations(true)}
-              className="rounded-xl border border-slate-700 bg-slate-800 px-6 py-3 text-sm font-semibold text-slate-100 transition-colors hover:bg-slate-700"
+              className="rounded-xl border border-bronze bg-surface-raised px-6 py-3 text-sm font-semibold text-ivory transition-colors hover:bg-surface-raised"
             >
               Show explanations
             </button>
             <button
               onClick={onNext}
-              className="rounded-xl bg-blue-600 px-8 py-3 text-sm font-bold text-white transition-colors hover:bg-blue-700"
+              className="rounded-xl bg-info px-8 py-3 text-sm font-bold text-ivory transition-colors hover:bg-info-bright"
             >
               Next question →
             </button>
@@ -170,27 +170,27 @@ export function ActiveQuizScreen({
                     className={cn(
                       "w-full rounded-xl border px-5 py-3.5 text-left transition-all",
                       "flex items-start gap-4",
-                      !isSubmitted && "cursor-pointer hover:border-blue-500 hover:bg-blue-500/5",
-                      isSelected && !isSubmitted && "border-blue-500 bg-blue-500/10",
-                      !isSelected && !isSubmitted && "border-slate-700 bg-slate-900",
-                      showCorrect && "border-emerald-500 bg-emerald-500/15",
-                      showWrong && "border-rose-500 bg-rose-500/15",
-                      isSubmitted && !isSelected && !isCorrect && "border-slate-800 opacity-50"
+                      !isSubmitted && "cursor-pointer hover:border-info/40 hover:bg-info/5",
+                      isSelected && !isSubmitted && "border-info/40 bg-info/10",
+                      !isSelected && !isSubmitted && "border-bronze bg-surface",
+                      showCorrect && "border-success/40 bg-success/15",
+                      showWrong && "border-error/40 bg-error/15",
+                      isSubmitted && !isSelected && !isCorrect && "border-bronze opacity-50"
                     )}
                   >
                     <span
                       className={cn(
                         "mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[13px] font-bold",
-                        !isSubmitted && !isSelected && "bg-slate-800 text-slate-300",
-                        !isSubmitted && isSelected && "bg-blue-500 text-white",
-                        showCorrect && "bg-emerald-500 text-white",
-                        showWrong && "bg-rose-500 text-white",
-                        isSubmitted && !isSelected && !isCorrect && "bg-slate-800 text-slate-400"
+                        !isSubmitted && !isSelected && "bg-surface-raised text-ivory/80",
+                        !isSubmitted && isSelected && "bg-info text-ivory",
+                        showCorrect && "bg-success text-night",
+                        showWrong && "bg-error text-ivory",
+                        isSubmitted && !isSelected && !isCorrect && "bg-surface-raised text-taupe"
                       )}
                     >
                       {showCorrect ? <Check className="h-3.5 w-3.5" /> : letter}
                     </span>
-                    <span className="flex-1 text-[16px] leading-[1.5] text-slate-100">
+                    <span className="flex-1 text-[16px] leading-[1.5] text-ivory">
                       <MathText text={choice.choice_text} />
                     </span>
                   </button>
@@ -201,10 +201,10 @@ export function ActiveQuizScreen({
 
         const questionPanel = (
           <div className="mx-auto max-w-xl">
-            <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+            <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-taupe">
               {q.topic_cluster}
             </p>
-            <h2 className="text-[19px] font-medium leading-[1.5] text-slate-100 md:text-[20px]">
+            <h2 className="text-[19px] font-medium leading-[1.5] text-ivory md:text-[20px]">
               <MathText text={q.question_text} />
             </h2>
             {choicesBlock}
@@ -223,12 +223,12 @@ export function ActiveQuizScreen({
             transition={{ duration: 0.2 }}
             className="mx-auto max-w-xl"
           >
-            <h3 className="mb-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+            <h3 className="mb-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-taupe">
               Explanation
             </h3>
 
             {q.explanation_text && (
-              <div className="mb-6 text-[16px] leading-[1.6] text-slate-100">
+              <div className="mb-6 text-[16px] leading-[1.6] text-ivory">
                 <MathText text={q.explanation_text} className="block whitespace-pre-wrap" />
               </div>
             )}
@@ -245,27 +245,27 @@ export function ActiveQuizScreen({
                       key={letter}
                       className={cn(
                         "flex items-start gap-3 rounded-xl border px-4 py-3",
-                        isCorrect && "border-emerald-500/40 bg-emerald-500/5",
-                        !isCorrect && isStudentChoice && "border-rose-500/40 bg-rose-500/5",
-                        !isCorrect && !isStudentChoice && "border-slate-800 bg-slate-900/40"
+                        isCorrect && "border-success/40 bg-success/5",
+                        !isCorrect && isStudentChoice && "border-error/40 bg-error/5",
+                        !isCorrect && !isStudentChoice && "border-bronze bg-surface/40"
                       )}
                     >
                       <span
                         className={cn(
                           "mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[13px] font-bold",
-                          isCorrect && "bg-emerald-500 text-white",
-                          !isCorrect && isStudentChoice && "bg-rose-500 text-white",
-                          !isCorrect && !isStudentChoice && "bg-slate-800 text-slate-300"
+                          isCorrect && "bg-success text-night",
+                          !isCorrect && isStudentChoice && "bg-error text-ivory",
+                          !isCorrect && !isStudentChoice && "bg-surface-raised text-ivory/80"
                         )}
                       >
                         {letter}
                       </span>
-                      <div className="flex-1 text-[16px] leading-[1.5] text-slate-100">
+                      <div className="flex-1 text-[16px] leading-[1.5] text-ivory">
                         {(isCorrect || isStudentChoice) && (
                           <span
                             className={cn(
                               "mr-2 inline-block align-middle text-[10px] font-bold uppercase tracking-wider",
-                              isCorrect ? "text-emerald-300" : "text-rose-300"
+                              isCorrect ? "text-success-bright" : "text-error-bright"
                             )}
                           >
                             {isCorrect ? "Correct" : "Your answer"}
@@ -280,26 +280,26 @@ export function ActiveQuizScreen({
             )}
 
             {q.desmos_strategy && (
-              <div className="mb-6 rounded-xl border border-sky-500/30 bg-sky-500/5 p-4">
-                <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-sky-300">
+              <div className="mb-6 rounded-xl border border-info/30 bg-info/5 p-4">
+                <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-info-bright">
                   Desmos strategy
                 </div>
-                <div className="text-[16px] leading-[1.6] text-sky-100">
+                <div className="text-[16px] leading-[1.6] text-info-bright">
                   <MathText text={q.desmos_strategy} className="block whitespace-pre-wrap" />
                 </div>
               </div>
             )}
 
-            <div className="mt-6 flex flex-wrap justify-end gap-3 border-t border-slate-800/60 pt-2">
+            <div className="mt-6 flex flex-wrap justify-end gap-3 border-t border-bronze/60 pt-2">
               <button
                 onClick={() => onToggleExplanations(false)}
-                className="rounded-xl border border-slate-700 bg-slate-800 px-6 py-3 text-sm font-semibold text-slate-100 transition-colors hover:bg-slate-700"
+                className="rounded-xl border border-bronze bg-surface-raised px-6 py-3 text-sm font-semibold text-ivory transition-colors hover:bg-surface-raised"
               >
                 Hide explanations
               </button>
               <button
                 onClick={onNext}
-                className="rounded-xl bg-blue-600 px-8 py-3 text-sm font-bold text-white transition-colors hover:bg-blue-700"
+                className="rounded-xl bg-info px-8 py-3 text-sm font-bold text-ivory transition-colors hover:bg-info-bright"
               >
                 Next question →
               </button>
@@ -353,17 +353,17 @@ export function ActiveQuizScreen({
 
         // Passage block (used in left column whenever R&W has passage).
         const passageBlock = (
-          <article className="mx-auto max-w-prose font-serif text-[17px] leading-[1.7] text-slate-100">
+          <article className="mx-auto max-w-prose font-serif text-[17px] leading-[1.7] text-ivory">
             {q.passage_a && q.passage_b ? (
               <>
                 <section className="mb-7">
-                  <div className="mb-2 font-sans text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">
+                  <div className="mb-2 font-sans text-[10px] font-bold uppercase tracking-[0.2em] text-taupe">
                     Text 1
                   </div>
                   <MathText text={q.passage_a} className="block whitespace-pre-wrap" />
                 </section>
                 <section>
-                  <div className="mb-2 font-sans text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">
+                  <div className="mb-2 font-sans text-[10px] font-bold uppercase tracking-[0.2em] text-taupe">
                     Text 2
                   </div>
                   <MathText text={q.passage_b} className="block whitespace-pre-wrap" />
@@ -391,13 +391,13 @@ export function ActiveQuizScreen({
         if (hasPassage || hasFigure) {
           return (
             <div className="absolute inset-x-0 bottom-20 top-24 overflow-hidden">
-              <div className="grid h-full divide-y divide-slate-800 md:grid-cols-2 md:divide-x md:divide-y-0">
+              <div className="grid h-full divide-y divide-bronze md:grid-cols-2 md:divide-x md:divide-y-0">
                 {/* LEFT */}
                 <div className="overflow-y-auto px-6 py-8 md:px-10">
                   {figureCard}
                   {hasPassage && passageBlock}
                   {inExplanationMode && (
-                    <div className="mt-10 border-t border-slate-700/50 pt-6">{questionPanel}</div>
+                    <div className="mt-10 border-t border-bronze/50 pt-6">{questionPanel}</div>
                   )}
                 </div>
                 {/* RIGHT */}
@@ -429,7 +429,7 @@ export function ActiveQuizScreen({
         if (inExplanationMode) {
           return (
             <div className="absolute inset-x-0 bottom-20 top-24 overflow-hidden">
-              <div className="grid h-full divide-y divide-slate-800 md:grid-cols-2 md:divide-x md:divide-y-0">
+              <div className="grid h-full divide-y divide-bronze md:grid-cols-2 md:divide-x md:divide-y-0">
                 <div className="overflow-y-auto px-6 py-8 md:px-10">{questionPanel}</div>
                 <div className="overflow-y-auto px-6 py-8 md:px-10">{explanationsPanel}</div>
               </div>
@@ -475,16 +475,16 @@ function NumericAnswerInput({
   const showFeedback = isSubmitted && studentAnswer !== null;
   const feedbackClass = showFeedback
     ? wasCorrect
-      ? "border-emerald-500 bg-emerald-500/15"
-      : "border-rose-500 bg-rose-500/15"
+      ? "border-success/40 bg-success/15"
+      : "border-error/40 bg-error/15"
     : value
-      ? "border-blue-500 bg-blue-500/10"
-      : "border-slate-700 bg-slate-900";
+      ? "border-info/40 bg-info/10"
+      : "border-bronze bg-surface";
 
   return (
     <div className="mt-8 space-y-3">
       <div className={cn("rounded-xl border px-5 py-4", feedbackClass)}>
-        <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-400">
+        <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-taupe">
           Your answer
         </label>
         <input
@@ -496,13 +496,13 @@ function NumericAnswerInput({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder="Type a number (e.g. 3.14 or 1/2)"
-          className="w-full border-0 bg-transparent font-mono text-2xl font-bold tabular-nums text-white placeholder:text-slate-400 focus:outline-none md:text-3xl"
+          className="w-full border-0 bg-transparent font-mono text-2xl font-bold tabular-nums text-ivory placeholder:text-taupe focus:outline-none md:text-3xl"
         />
         {showFeedback && !wasCorrect && (
-          <p className="mt-3 text-sm text-rose-300">
+          <p className="mt-3 text-sm text-error-bright">
             Your answer: <span className="font-bold">{studentAnswer}</span> · Correct:{" "}
-            <span className="font-bold text-emerald-300">{correctAnswer}</span>
-            {tolerance ? <span className="text-slate-400"> (± {tolerance})</span> : null}
+            <span className="font-bold text-success-bright">{correctAnswer}</span>
+            {tolerance ? <span className="text-taupe"> (± {tolerance})</span> : null}
           </p>
         )}
       </div>

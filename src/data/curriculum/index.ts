@@ -329,9 +329,11 @@ export const SUBJECT_LABELS: Record<Subject, string> = {
   math: "Math",
 };
 
+// Constellation accents from docs/brand.md — subject SIGNALS on the
+// warm-dark canvas (R&W rose, Math blue), never full-page themes.
 export const SUBJECT_COLORS: Record<Subject, { hex: string; glow: string; dim: string }> = {
-  reading: { hex: "#EC4899", glow: "#ec489980", dim: "#ec489930" }, // magenta-pink
-  math: { hex: "#38BDF8", glow: "#38bdf880", dim: "#38bdf830" }, // sky cyan
+  reading: { hex: "#D84F73", glow: "#F06A8C80", dim: "#D84F7330" }, // R&W rose
+  math: { hex: "#2FA8FF", glow: "#42D9FF80", dim: "#2FA8FF30" }, // Math blue
 };
 
 // ── Atmospheric tier naming ──────────────────────────────────
@@ -369,10 +371,10 @@ export const ATMOSPHERE_CONTEXT: Record<AtmosphereTier, string> = {
 };
 
 export const ATMOSPHERE_COLORS: Record<AtmosphereTier, { hex: string; glow: string }> = {
-  Troposphere: { hex: "#38bdf8", glow: "#38bdf860" }, // sky
-  Mesosphere: { hex: "#a78bfa", glow: "#a78bfa60" }, // violet
-  Stratosphere: { hex: "#fbbf24", glow: "#fbbf2460" }, // gold
-  "Kármán Line": { hex: "#f472b6", glow: "#f472b660" }, // pink
+  Troposphere: { hex: "#2FA8FF", glow: "#2FA8FF60" }, // sky
+  Mesosphere: { hex: "#C8AB6A", glow: "#C8AB6A60" }, // violet
+  Stratosphere: { hex: "#F0BE72", glow: "#F0BE7260" }, // gold
+  "Kármán Line": { hex: "#D84F73", glow: "#D84F7360" }, // pink
 };
 
 // ── Navigation helpers ───────────────────────────────────────

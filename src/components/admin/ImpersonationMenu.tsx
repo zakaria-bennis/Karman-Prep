@@ -37,7 +37,7 @@ export default function ImpersonationMenu() {
       <button
         onClick={() => setOpen((o) => !o)}
         disabled={pending}
-        className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800/60 px-2.5 py-1 text-xs font-semibold text-slate-200 hover:bg-slate-700 disabled:opacity-50"
+        className="inline-flex items-center gap-1.5 rounded-lg border border-bronze bg-surface-raised/60 px-2.5 py-1 text-xs font-semibold text-ivory hover:bg-surface-raised disabled:opacity-50"
       >
         {pending ? (
           <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -50,19 +50,19 @@ export default function ImpersonationMenu() {
       {open && (
         <div
           role="menu"
-          className="absolute right-0 z-30 mt-1 w-44 overflow-hidden rounded-lg border border-slate-700 bg-slate-900 shadow-2xl"
+          className="absolute right-0 z-30 mt-1 w-44 overflow-hidden rounded-lg border border-bronze bg-surface shadow-2xl"
         >
           {(["student", "tutor", "parent"] as const).map((r) => (
             <button
               key={r}
               role="menuitem"
               onClick={() => viewAs(r)}
-              className="block w-full px-3 py-2 text-left text-xs capitalize text-slate-200 hover:bg-white/5"
+              className="block w-full px-3 py-2 text-left text-xs capitalize text-ivory hover:bg-surface/5"
             >
               {r}
             </button>
           ))}
-          <div className="border-t border-slate-800 px-3 py-2 text-[10px] text-slate-400">
+          <div className="border-t border-bronze px-3 py-2 text-[10px] text-taupe">
             Real role stays admin.
           </div>
         </div>

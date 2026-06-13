@@ -22,15 +22,15 @@ interface Props {
 }
 
 const VERDICT_TONE: Record<GraderVerdict, string> = {
-  verified: "border-emerald-700/60 bg-emerald-950/50 text-emerald-200",
-  verified_pro: "border-emerald-700/60 bg-emerald-950/50 text-emerald-200",
-  verified_opus: "border-emerald-700/60 bg-emerald-950/50 text-emerald-200",
-  likely_wrong: "border-rose-700/60 bg-rose-950/50 text-rose-200",
-  pass1_split: "border-amber-700/60 bg-amber-950/50 text-amber-200",
-  pass1_disagree: "border-amber-700/60 bg-amber-950/50 text-amber-200",
-  pass2_disagree: "border-amber-700/60 bg-amber-950/50 text-amber-200",
-  uncertain_parse: "border-slate-700 bg-slate-800/40 text-slate-400",
-  error: "border-slate-700 bg-slate-800/40 text-slate-400",
+  verified: "border-success/60 bg-success/50 text-success-bright",
+  verified_pro: "border-success/60 bg-success/50 text-success-bright",
+  verified_opus: "border-success/60 bg-success/50 text-success-bright",
+  likely_wrong: "border-error/60 bg-error/50 text-error-bright",
+  pass1_split: "border-warning/60 bg-warning/50 text-warning-bright",
+  pass1_disagree: "border-warning/60 bg-warning/50 text-warning-bright",
+  pass2_disagree: "border-warning/60 bg-warning/50 text-warning-bright",
+  uncertain_parse: "border-bronze bg-surface-raised/40 text-taupe",
+  error: "border-bronze bg-surface-raised/40 text-taupe",
 };
 
 const VERDICT_LABEL: Record<GraderVerdict, string> = {
@@ -64,7 +64,7 @@ function VoterChip({
   if (!answerStr) {
     return (
       <span
-        className="inline-flex items-center gap-1 rounded border border-slate-800 bg-slate-900/40 px-1.5 py-0.5 text-[10px] text-slate-500"
+        className="inline-flex items-center gap-1 rounded border border-bronze bg-surface/40 px-1.5 py-0.5 text-[10px] text-taupe"
         title={`${name} did not vote`}
       >
         <span className="font-semibold">{name}</span>
@@ -77,8 +77,8 @@ function VoterChip({
     <span
       className={`inline-flex items-center gap-1 rounded border px-1.5 py-0.5 text-[10px] ${
         agrees
-          ? "border-emerald-800/60 bg-emerald-950/40 text-emerald-200"
-          : "border-rose-800/60 bg-rose-950/40 text-rose-200"
+          ? "border-success/60 bg-success/40 text-success-bright"
+          : "border-error/60 bg-error/40 text-error-bright"
       }`}
       title={`${name} answered ${answerStr} (stored: ${storedStr ?? "?"})`}
     >
@@ -95,7 +95,7 @@ export function GraderVotesBadge({ votes, storedAnswer }: Props) {
   // "Ungraded" hint instead of crashing the whole review page.
   if (!votes || typeof votes !== "object") {
     return (
-      <span className="text-[10px] italic text-slate-500">
+      <span className="text-[10px] italic text-taupe">
         Ungraded — run the multi-vote grader to populate per-LLM votes
       </span>
     );

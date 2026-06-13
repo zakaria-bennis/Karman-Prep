@@ -47,10 +47,10 @@ export function HintButton({ used, alreadyOpenedOnThisQuestion, onUse }: Props) 
       className={cn(
         "inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold transition-all",
         exhausted
-          ? "cursor-not-allowed border-slate-700/50 bg-transparent text-slate-400 opacity-60"
+          ? "cursor-not-allowed border-bronze/50 bg-transparent text-taupe opacity-60"
           : alreadyOpenedOnThisQuestion
-            ? "cursor-default border-emerald-400/50 bg-emerald-400/10 text-emerald-300"
-            : "border-amber-400/40 bg-amber-400/[0.06] text-amber-300 hover:border-amber-400/60 hover:bg-amber-400/15"
+            ? "cursor-default border-success/50 bg-success/10 text-success-bright"
+            : "border-warning/40 bg-warning/[0.06] text-warning-bright hover:border-warning/60 hover:bg-warning/15"
       )}
     >
       {alreadyOpenedOnThisQuestion ? (
@@ -63,10 +63,10 @@ export function HintButton({ used, alreadyOpenedOnThisQuestion, onUse }: Props) 
         className={cn(
           "ml-0.5 rounded px-1.5 py-0.5 text-[10px] font-bold",
           exhausted
-            ? "bg-slate-800/60 text-slate-400"
+            ? "bg-surface-raised/60 text-taupe"
             : alreadyOpenedOnThisQuestion
-              ? "bg-emerald-400/20 text-emerald-200"
-              : "bg-amber-400/20 text-amber-200"
+              ? "bg-success/20 text-success-bright"
+              : "bg-warning/20 text-warning-bright"
         )}
       >
         {used} of {MAX_HINTS}

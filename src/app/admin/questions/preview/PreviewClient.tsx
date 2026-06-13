@@ -570,8 +570,8 @@ export default function PreviewClient({ initial }: { initial: PreviewQuestionWit
           className={cn(
             "flex items-start gap-2 border-b px-4 py-1.5 text-xs",
             banner.kind === "ok"
-              ? "border-emerald-500/30 bg-emerald-500/[0.06] text-emerald-200"
-              : "border-rose-500/30 bg-rose-500/[0.06] text-rose-200"
+              ? "border-success/30 bg-success/[0.06] text-success-bright"
+              : "border-error/30 bg-error/[0.06] text-error-bright"
           )}
         >
           <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
@@ -605,7 +605,7 @@ export default function PreviewClient({ initial }: { initial: PreviewQuestionWit
           onBulkReject={handleBulkReject}
         />
 
-        <main className="flex h-full min-h-0 flex-col overflow-hidden rounded-xl border border-slate-800 bg-slate-950">
+        <main className="flex h-full min-h-0 flex-col overflow-hidden rounded-xl border border-bronze bg-night">
           {current ? (
             <>
               <MetadataStrip question={current} />
@@ -624,7 +624,7 @@ export default function PreviewClient({ initial }: { initial: PreviewQuestionWit
               </div>
             </>
           ) : (
-            <div className="grid h-full place-items-center px-6 py-10 text-center text-sm text-slate-400">
+            <div className="grid h-full place-items-center px-6 py-10 text-center text-sm text-taupe">
               No question selected.
             </div>
           )}

@@ -28,17 +28,17 @@ export default function QuestionImportPage() {
       <div className="mb-6">
         <Link
           href="/admin/curriculum"
-          className="mb-3 inline-flex items-center gap-1 text-xs text-slate-400 hover:text-slate-300"
+          className="mb-3 inline-flex items-center gap-1 text-xs text-taupe hover:text-ivory"
         >
           <ChevronRight className="h-3 w-3 rotate-180" /> Back to admin
         </Link>
-        <h1 className="flex items-center gap-2 text-2xl font-bold text-white">
-          <Upload className="h-5 w-5 text-indigo-400" /> Question import
+        <h1 className="flex items-center gap-2 text-2xl font-bold text-ivory">
+          <Upload className="h-5 w-5 text-gold" /> Question import
         </h1>
-        <p className="mt-1.5 max-w-2xl text-sm text-slate-400">
+        <p className="mt-1.5 max-w-2xl text-sm text-taupe">
           Two ways in: drop a PDF for the automated pipeline, or upload a pre-baked CSV. Either way,
           rows land in the bank for triage at{" "}
-          <code className="rounded bg-slate-800/70 px-1.5 py-0.5 text-[11px] text-slate-200">
+          <code className="rounded bg-surface-raised/70 px-1.5 py-0.5 text-[11px] text-ivory">
             /admin/questions/review
           </code>
           .

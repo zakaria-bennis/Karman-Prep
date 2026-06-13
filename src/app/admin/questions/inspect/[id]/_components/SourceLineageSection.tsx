@@ -38,37 +38,37 @@ export function SourceLineageSection({ lineage }: Props) {
   const groups = groupSourceAssets(assets);
 
   return (
-    <section className="rounded-xl border border-slate-800 bg-slate-900/40">
+    <section className="rounded-xl border border-bronze bg-surface/40">
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}
-        className="flex w-full items-center gap-2 border-b border-slate-800 px-4 py-3 text-left"
+        className="flex w-full items-center gap-2 border-b border-bronze px-4 py-3 text-left"
       >
-        <ImageIcon className="h-4 w-4 text-indigo-300" />
+        <ImageIcon className="h-4 w-4 text-gold-bright" />
         <div className="min-w-0 flex-1">
-          <h2 className="text-sm font-semibold text-slate-200">Source lineage</h2>
-          <p className="mt-0.5 text-[11px] text-slate-500">
-            Processed: <span className="font-mono text-slate-300">{processedAt}</span> - status:{" "}
-            <span className="font-mono text-slate-300">{status}</span>
+          <h2 className="text-sm font-semibold text-ivory">Source lineage</h2>
+          <p className="mt-0.5 text-[11px] text-taupe">
+            Processed: <span className="font-mono text-ivory">{processedAt}</span> - status:{" "}
+            <span className="font-mono text-ivory">{status}</span>
           </p>
         </div>
         {open ? (
-          <ChevronUp className="h-4 w-4 text-slate-500" />
+          <ChevronUp className="h-4 w-4 text-taupe" />
         ) : (
-          <ChevronDown className="h-4 w-4 text-slate-500" />
+          <ChevronDown className="h-4 w-4 text-taupe" />
         )}
       </button>
 
       {open && (
         <div className="space-y-3 px-4 py-4">
           {groups.length === 0 ? (
-            <div className="rounded-lg border border-slate-800 bg-slate-950/40 px-3 py-3 text-xs text-slate-500">
+            <div className="rounded-lg border border-bronze bg-night/40 px-3 py-3 text-xs text-taupe">
               Phase 3 marked this row as processed, but no source assets are attached.
             </div>
           ) : (
             groups.map((group) => (
               <div key={group.assetType} className="space-y-2">
-                <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500">
+                <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.16em] text-taupe">
                   <AssetTypeIcon assetType={group.assetType} />
                   {sourceAssetLabel(group.assetType)}
                 </div>
@@ -89,9 +89,9 @@ export function SourceLineageSection({ lineage }: Props) {
 function SourceAssetRow({ asset }: { asset: SourceLineageAsset }) {
   const isCrop = asset.asset_type.includes("crop");
   return (
-    <div className="rounded-lg border border-slate-800 bg-slate-950/35 px-3 py-2">
+    <div className="rounded-lg border border-bronze bg-night/35 px-3 py-2">
       <div className="flex flex-wrap items-center gap-2">
-        <span className="min-w-0 flex-1 truncate font-mono text-[11px] text-slate-300">
+        <span className="min-w-0 flex-1 truncate font-mono text-[11px] text-ivory">
           {sourceAssetFilename(asset.asset_path)}
         </span>
         {asset.match_method && (
@@ -110,22 +110,21 @@ function SourceAssetRow({ asset }: { asset: SourceLineageAsset }) {
             href={asset.public_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 rounded-md border border-slate-700 bg-slate-800 px-2 py-1 text-[10px] font-semibold text-slate-300 hover:bg-slate-700"
+            className="inline-flex items-center gap-1 rounded-md border border-bronze bg-surface-raised px-2 py-1 text-[10px] font-semibold text-ivory hover:bg-surface-raised"
           >
             <ExternalLink className="h-2.5 w-2.5" /> view
           </a>
         ) : (
-          <span className="rounded-md border border-slate-800 px-2 py-1 text-[10px] text-slate-600">
+          <span className="rounded-md border border-bronze px-2 py-1 text-[10px] text-taupe">
             no URL
           </span>
         )}
       </div>
       {(asset.validation_status || asset.notes) && (
-        <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-slate-500">
+        <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-taupe">
           {asset.validation_status && (
             <span>
-              validation:{" "}
-              <span className="font-mono text-slate-400">{asset.validation_status}</span>
+              validation: <span className="font-mono text-taupe">{asset.validation_status}</span>
             </span>
           )}
           {asset.notes && <span className="truncate">notes: {asset.notes}</span>}
@@ -148,10 +147,10 @@ function RelevancePill({
     <span
       className={cn(
         "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold",
-        relevance === "required" && "border-emerald-500/30 bg-emerald-500/10 text-emerald-200",
-        relevance === "irrelevant" && "border-slate-600 bg-slate-800/70 text-slate-300",
-        relevance === "uncertain" && "border-amber-500/30 bg-amber-500/10 text-amber-200",
-        relevance === "optional" && "border-sky-500/30 bg-sky-500/10 text-sky-200"
+        relevance === "required" && "border-success/30 bg-success/10 text-success-bright",
+        relevance === "irrelevant" && "border-bronze bg-surface-raised/70 text-ivory",
+        relevance === "uncertain" && "border-warning/30 bg-warning/10 text-warning-bright",
+        relevance === "optional" && "border-info/30 bg-info/10 text-info-bright"
       )}
       title={[
         `relevance=${relevance}`,
@@ -175,8 +174,8 @@ function CropCompletePill({ complete }: { complete: boolean | null }) {
       className={cn(
         "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold",
         ok
-          ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-200"
-          : "border-amber-500/30 bg-amber-500/10 text-amber-200"
+          ? "border-success/30 bg-success/10 text-success-bright"
+          : "border-warning/30 bg-warning/10 text-warning-bright"
       )}
     >
       {ok ? <CheckCircle2 className="h-3 w-3" /> : <AlertTriangle className="h-3 w-3" />}
@@ -186,6 +185,6 @@ function CropCompletePill({ complete }: { complete: boolean | null }) {
 }
 
 function AssetTypeIcon({ assetType }: { assetType: string }) {
-  if (assetType.includes("crop")) return <ImageIcon className="h-3.5 w-3.5 text-indigo-300" />;
-  return <FileText className="h-3.5 w-3.5 text-slate-400" />;
+  if (assetType.includes("crop")) return <ImageIcon className="h-3.5 w-3.5 text-gold-bright" />;
+  return <FileText className="h-3.5 w-3.5 text-taupe" />;
 }

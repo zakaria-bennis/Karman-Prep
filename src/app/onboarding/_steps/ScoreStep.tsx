@@ -13,12 +13,12 @@ export function ScoreStep({
 }) {
   return (
     <div>
-      <h2 className="inline-flex items-center gap-2 text-2xl font-extrabold text-slate-900 dark:text-white">
+      <h2 className="inline-flex items-center gap-2 text-2xl font-extrabold text-ivory dark:text-ivory">
         {icon} {prompt}
       </h2>
-      <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">SAT scores run 400-1600.</p>
+      <p className="mt-2 text-sm text-taupe dark:text-taupe">SAT scores run 400-1600.</p>
       <div className="mt-8">
-        <div className="mb-3 text-center text-5xl font-extrabold tabular-nums text-slate-900 dark:text-white">
+        <div className="mb-3 text-center text-5xl font-extrabold tabular-nums text-ivory dark:text-ivory">
           {value}
         </div>
         <input
@@ -28,9 +28,9 @@ export function ScoreStep({
           step={10}
           value={value}
           onChange={(e) => onChange(Number(e.target.value))}
-          className="w-full accent-blue-500"
+          className="w-full accent-info"
         />
-        <div className="mt-2 flex justify-between text-xs tabular-nums text-slate-400">
+        <div className="mt-2 flex justify-between text-xs tabular-nums text-taupe">
           <span>400</span>
           <span>800</span>
           <span>1200</span>

@@ -80,13 +80,13 @@ export default function EarningsDataClient({
   return (
     <div className="space-y-8">
       {/* ── Time-range selector + period summary ─────────── */}
-      <section className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900/60">
+      <section className="rounded-xl border border-bronze bg-surface p-5 dark:border-bronze dark:bg-surface/60">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+            <div className="text-[10px] font-bold uppercase tracking-wider text-taupe dark:text-taupe">
               Time range
             </div>
-            <div className="mt-1 text-base font-bold text-slate-900 dark:text-white">
+            <div className="mt-1 text-base font-bold text-ivory dark:text-ivory">
               {TIME_RANGE_LABELS[range]}
             </div>
           </div>
@@ -94,7 +94,7 @@ export default function EarningsDataClient({
             value={range}
             disabled={isPending}
             onChange={(e) => changeRange(e.target.value as TimeRange)}
-            className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+            className="rounded-md border border-bronze bg-surface px-3 py-2 text-sm text-ivory focus:border-info/40 focus:outline-none dark:border-bronze dark:bg-surface dark:text-ivory"
           >
             {RANGE_ORDER.map((r) => (
               <option key={r} value={r}>
@@ -132,21 +132,21 @@ export default function EarningsDataClient({
       </section>
 
       {/* ── Always-visible analytics chart ────────────────── */}
-      <section className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900/60">
+      <section className="rounded-xl border border-bronze bg-surface p-5 dark:border-bronze dark:bg-surface/60">
         <div className="mb-3 flex items-center gap-2">
-          <BarChart3 className="h-5 w-5 text-blue-400" />
-          <h2 className="text-lg font-bold text-slate-900 dark:text-white">Earnings trend</h2>
-          <span className="text-xs text-slate-400">last 12 weeks</span>
+          <BarChart3 className="h-5 w-5 text-info" />
+          <h2 className="text-lg font-bold text-ivory dark:text-ivory">Earnings trend</h2>
+          <span className="text-xs text-taupe">last 12 weeks</span>
         </div>
         <WeeklyChart points={weekly} />
       </section>
 
       {/* ── Sessions table ───────────────────────────────── */}
       <section>
-        <h2 className="mb-3 flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
-          <CalendarClock className="h-5 w-5 text-slate-400" />
+        <h2 className="mb-3 flex items-center gap-2 text-lg font-bold text-ivory dark:text-ivory">
+          <CalendarClock className="h-5 w-5 text-taupe" />
           Sessions in this period
-          <span className="text-xs font-normal text-slate-400">({sessions.length})</span>
+          <span className="text-xs font-normal text-taupe">({sessions.length})</span>
         </h2>
 
         {sessions.length === 0 ? (
@@ -154,10 +154,10 @@ export default function EarningsDataClient({
             text={`No sessions in this range (${TIME_RANGE_LABELS[range]}). Try a wider window.`}
           />
         ) : (
-          <div className="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800">
+          <div className="overflow-hidden rounded-xl border border-bronze dark:border-bronze">
             <table className="w-full text-sm">
-              <thead className="bg-slate-100 dark:bg-slate-900">
-                <tr className="text-left text-[11px] font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-400">
+              <thead className="bg-surface dark:bg-surface">
+                <tr className="text-left text-[11px] font-semibold uppercase tracking-wide text-taupe dark:text-taupe">
                   <th className="px-4 py-2.5">Date</th>
                   <th className="px-4 py-2.5">For</th>
                   <th className="px-4 py-2.5">Tier</th>
@@ -167,7 +167,7 @@ export default function EarningsDataClient({
                   <th className="px-4 py-2.5">Payout</th>
                 </tr>
               </thead>
-              <tbody className="bg-white dark:bg-slate-950">
+              <tbody className="bg-surface dark:bg-night">
                 {sessions.map((s) => (
                   <SessionRow key={s.id} session={s} counts={studentSessionCounts} />
                 ))}
@@ -179,8 +179,8 @@ export default function EarningsDataClient({
 
       {/* ── Recent payouts ─────────────────────────────── */}
       <section>
-        <h2 className="mb-3 flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
-          <Wallet className="h-5 w-5 text-slate-400" />
+        <h2 className="mb-3 flex items-center gap-2 text-lg font-bold text-ivory dark:text-ivory">
+          <Wallet className="h-5 w-5 text-taupe" />
           Recent payouts ({payouts.length})
         </h2>
 
@@ -191,21 +191,21 @@ export default function EarningsDataClient({
             {payouts.map((p) => (
               <li
                 key={p.id}
-                className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-900/60"
+                className="flex items-center justify-between gap-3 rounded-lg border border-bronze bg-surface px-4 py-3 dark:border-bronze dark:bg-surface/60"
               >
                 <div className="flex min-w-0 items-center gap-3">
                   <PayoutStatusPill status={p.status} />
                   <div className="min-w-0">
-                    <div className="font-bold tabular-nums text-slate-900 dark:text-white">
+                    <div className="font-bold tabular-nums text-ivory dark:text-ivory">
                       {fmt.format(p.net_amount ?? p.total_amount)}
                     </div>
-                    <div className="truncate text-xs text-slate-400">
+                    <div className="truncate text-xs text-taupe">
                       {p.booking_count ?? 0} session{p.booking_count === 1 ? "" : "s"} ·{" "}
                       {fmtHours(p.total_hours)}
                       {p.payout_method && (
                         <>
                           <span className="mx-1.5">·</span>
-                          <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400">
+                          <span className="text-[10px] font-semibold uppercase tracking-wider text-taupe dark:text-taupe">
                             {p.payout_method === "instant"
                               ? "Instant"
                               : p.payout_method === "standard"
@@ -217,11 +217,9 @@ export default function EarningsDataClient({
                     </div>
                   </div>
                 </div>
-                <div className="shrink-0 text-right text-xs text-slate-400">
+                <div className="shrink-0 text-right text-xs text-taupe">
                   Requested {timeSince(p.requested_at)} ago
-                  {p.paid_at && (
-                    <div className="text-emerald-500">Paid {timeSince(p.paid_at)} ago</div>
-                  )}
+                  {p.paid_at && <div className="text-success">Paid {timeSince(p.paid_at)} ago</div>}
                 </div>
               </li>
             ))}
@@ -247,8 +245,8 @@ function PeriodCard({
   tone?: "slate" | "emerald";
 }) {
   const tones = {
-    slate: "bg-slate-50 dark:bg-slate-800/40 text-slate-900 dark:text-white",
-    emerald: "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-900 dark:text-emerald-100",
+    slate: "bg-surface dark:bg-surface-raised/40 text-ivory dark:text-ivory",
+    emerald: "bg-success/10 dark:bg-success/10 text-success dark:text-success-bright",
   };
   return (
     <div className={cn("rounded-lg px-3 py-2.5", tones[tone])}>
@@ -283,40 +281,40 @@ function SessionRow({
   const forCol = isGroup ? (
     <div>
       <div className="flex items-center gap-1.5">
-        <UsersIcon className="h-3.5 w-3.5 text-slate-400" />
-        <span className="max-w-[18rem] truncate font-medium text-slate-900 dark:text-white">
+        <UsersIcon className="h-3.5 w-3.5 text-taupe" />
+        <span className="max-w-[18rem] truncate font-medium text-ivory dark:text-ivory">
           {s.cohort?.name ?? "(cohort missing)"}
         </span>
-        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+        <span className="text-[10px] font-bold uppercase tracking-wider text-taupe">
           {enrolled.length} enrolled
         </span>
       </div>
       {enrolled.length > 0 && (
-        <div className="mt-0.5 max-w-[18rem] truncate text-[11px] text-slate-400">
+        <div className="mt-0.5 max-w-[18rem] truncate text-[11px] text-taupe">
           {enrolled.slice(0, 3).map(nameWithCount).join(", ")}
           {enrolled.length > 3 ? ` +${enrolled.length - 3}` : ""}
         </div>
       )}
     </div>
   ) : (
-    <span className="max-w-[16rem] truncate font-medium text-slate-900 dark:text-white">
+    <span className="max-w-[16rem] truncate font-medium text-ivory dark:text-ivory">
       {enrolled.length > 0 ? nameWithCount(enrolled[0]) : "—"}
     </span>
   );
 
   return (
-    <tr className="border-t border-slate-200 dark:border-slate-800">
-      <td className="whitespace-nowrap px-4 py-2.5 align-top text-slate-700 dark:text-slate-300">
+    <tr className="border-t border-bronze dark:border-bronze">
+      <td className="whitespace-nowrap px-4 py-2.5 align-top text-ivory dark:text-ivory">
         {formatDate(s.scheduled_start)}
       </td>
       <td className="px-4 py-2.5 align-top">{forCol}</td>
       <td className="px-4 py-2.5 align-top">
         <PlanTierBadge tier={s.tier} />
       </td>
-      <td className="px-4 py-2.5 text-right align-top tabular-nums text-slate-600 dark:text-slate-400">
+      <td className="px-4 py-2.5 text-right align-top tabular-nums text-taupe dark:text-taupe">
         {s.tutor_hours != null ? fmtHours(s.tutor_hours) : "—"}
       </td>
-      <td className="px-4 py-2.5 text-right align-top font-semibold tabular-nums text-slate-900 dark:text-white">
+      <td className="px-4 py-2.5 text-right align-top font-semibold tabular-nums text-ivory dark:text-ivory">
         {s.payout_amount != null ? fmt.format(s.payout_amount) : "—"}
       </td>
       <td className="px-4 py-2.5 align-top">
@@ -333,24 +331,24 @@ function PlanTierBadge({ tier }: { tier: string }) {
   const map: Record<string, { label: string; cls: string }> = {
     private: {
       label: "Private",
-      cls: "bg-amber-100 dark:bg-amber-400/15 text-amber-700 dark:text-amber-300",
+      cls: "bg-warning/10 dark:bg-warning/15 text-warning dark:text-warning-bright",
     },
     elite: {
       label: "Elite",
-      cls: "bg-violet-100 dark:bg-violet-400/15 text-violet-700 dark:text-violet-300",
+      cls: "bg-gold/10 dark:bg-gold/15 text-gold dark:text-gold-bright",
     },
     small_group: {
       label: "Small Group",
-      cls: "bg-teal-100 dark:bg-teal-400/15 text-teal-700 dark:text-teal-300",
+      cls: "bg-success/10 dark:bg-success/15 text-success dark:text-success-bright",
     },
     group: {
       label: "Seminar",
-      cls: "bg-indigo-100 dark:bg-indigo-400/15 text-indigo-700 dark:text-indigo-300",
+      cls: "bg-gold/10 dark:bg-gold/15 text-gold dark:text-gold-bright",
     },
   };
   const m = map[tier] ?? {
     label: tier,
-    cls: "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300",
+    cls: "bg-surface dark:bg-surface-raised text-taupe dark:text-ivory",
   };
   return (
     <span
@@ -367,13 +365,13 @@ function PlanTierBadge({ tier }: { tier: string }) {
 function RecapPill({ sent }: { sent: boolean }) {
   if (sent) {
     return (
-      <span className="inline-flex items-center gap-1 rounded bg-emerald-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300">
+      <span className="inline-flex items-center gap-1 rounded bg-success/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-success dark:bg-success/15 dark:text-success-bright">
         <Mail className="h-3 w-3" /> Sent
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 rounded bg-slate-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-600 dark:bg-slate-800 dark:text-slate-400">
+    <span className="inline-flex items-center gap-1 rounded bg-surface px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-taupe dark:bg-surface-raised dark:text-taupe">
       <AlertCircle className="h-3 w-3" /> Not sent
     </span>
   );
@@ -383,35 +381,35 @@ function PayoutStatusPill({ status, compact }: { status: string; compact?: boole
   const map: Record<string, { label: string; cls: string }> = {
     not_eligible: {
       label: "—",
-      cls: "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400",
+      cls: "bg-surface dark:bg-surface-raised text-taupe dark:text-taupe",
     },
     pending: {
       label: "Pending",
-      cls: "bg-amber-100 dark:bg-amber-400/15 text-amber-700 dark:text-amber-300",
+      cls: "bg-warning/10 dark:bg-warning/15 text-warning dark:text-warning-bright",
     },
     requested: {
       label: "Requested",
-      cls: "bg-blue-100 dark:bg-blue-400/15 text-blue-700 dark:text-blue-300",
+      cls: "bg-info/10 dark:bg-info/15 text-info dark:text-info-bright",
     },
     pending_approval: {
       label: "Awaiting review",
-      cls: "bg-blue-100 dark:bg-blue-400/15 text-blue-700 dark:text-blue-300",
+      cls: "bg-info/10 dark:bg-info/15 text-info dark:text-info-bright",
     },
     approved: {
       label: "Payment in flight",
-      cls: "bg-purple-100 dark:bg-purple-400/15 text-purple-700 dark:text-purple-300",
+      cls: "bg-gold/10 dark:bg-gold/15 text-gold dark:text-gold-bright",
     },
     paid: {
       label: "Paid",
-      cls: "bg-emerald-100 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300",
+      cls: "bg-success/10 dark:bg-success/15 text-success dark:text-success-bright",
     },
-    cancelled: { label: "Cancelled", cls: "bg-slate-200 dark:bg-slate-800 text-slate-400" },
+    cancelled: { label: "Cancelled", cls: "bg-surface dark:bg-surface-raised text-taupe" },
     failed: {
       label: "Failed",
-      cls: "bg-rose-100 dark:bg-rose-500/15 text-rose-700 dark:text-rose-300",
+      cls: "bg-error/10 dark:bg-error/15 text-error dark:text-error-bright",
     },
   };
-  const m = map[status] ?? { label: status, cls: "bg-slate-100 dark:bg-slate-800 text-slate-400" };
+  const m = map[status] ?? { label: status, cls: "bg-surface dark:bg-surface-raised text-taupe" };
   return (
     <span
       className={cn(
@@ -427,8 +425,8 @@ function PayoutStatusPill({ status, compact }: { status: string; compact?: boole
 
 function EmptyCard({ text }: { text: string }) {
   return (
-    <div className="rounded-xl border border-dashed border-slate-200 px-6 py-8 text-center dark:border-slate-800">
-      <p className="text-sm text-slate-500 dark:text-slate-400">{text}</p>
+    <div className="rounded-xl border border-dashed border-bronze px-6 py-8 text-center dark:border-bronze">
+      <p className="text-sm text-taupe dark:text-taupe">{text}</p>
     </div>
   );
 }
@@ -454,13 +452,11 @@ function WeeklyChart({ points }: { points: WeeklyEarningsPoint[] }) {
   return (
     <div>
       <div className="mb-3 flex flex-wrap items-baseline gap-3">
-        <div className="text-xs font-bold uppercase tracking-wider text-slate-400">
-          12-week total
-        </div>
-        <div className="text-lg font-extrabold tabular-nums text-slate-900 dark:text-white">
+        <div className="text-xs font-bold uppercase tracking-wider text-taupe">12-week total</div>
+        <div className="text-lg font-extrabold tabular-nums text-ivory dark:text-ivory">
           {fmt.format(total)}
         </div>
-        <div className="text-xs text-slate-400">· {fmtHours(totalHours)}</div>
+        <div className="text-xs text-taupe">· {fmtHours(totalHours)}</div>
       </div>
 
       <div className="overflow-x-auto">
@@ -476,7 +472,7 @@ function WeeklyChart({ points }: { points: WeeklyEarningsPoint[] }) {
                   y1={y}
                   y2={y}
                   stroke="currentColor"
-                  className="text-slate-200 dark:text-slate-800"
+                  className="text-ivory dark:text-ivory"
                   strokeWidth="1"
                   strokeDasharray={frac === 0 ? "none" : "2,3"}
                 />
@@ -484,7 +480,7 @@ function WeeklyChart({ points }: { points: WeeklyEarningsPoint[] }) {
                   x={PAD.left - 8}
                   y={y + 4}
                   textAnchor="end"
-                  className="fill-slate-500 text-[10px]"
+                  className="fill-taupe text-[10px]"
                   fontFamily="system-ui"
                 >
                   {fmt.format(frac * niceMax)}
@@ -507,8 +503,8 @@ function WeeklyChart({ points }: { points: WeeklyEarningsPoint[] }) {
                   width={barW * 0.7}
                   height={h}
                   className={cn(
-                    "fill-blue-500 dark:fill-blue-400",
-                    p.amount === 0 && "fill-slate-200 dark:fill-slate-800"
+                    "fill-info dark:fill-info",
+                    p.amount === 0 && "fill-ivory dark:fill-ivory"
                   )}
                   rx="2"
                 >
@@ -519,7 +515,7 @@ function WeeklyChart({ points }: { points: WeeklyEarningsPoint[] }) {
                     x={x + barW / 2}
                     y={H - 14}
                     textAnchor="middle"
-                    className="fill-slate-500 text-[10px]"
+                    className="fill-taupe text-[10px]"
                     fontFamily="system-ui"
                   >
                     {shortWeek(p.weekStart)}
@@ -531,7 +527,7 @@ function WeeklyChart({ points }: { points: WeeklyEarningsPoint[] }) {
         </svg>
       </div>
 
-      <div className="mt-3 text-xs text-slate-400">
+      <div className="mt-3 text-xs text-taupe">
         Hover bars for week details. Bars represent gross earnings (pre-fee).
       </div>
     </div>

@@ -325,10 +325,10 @@ export function HighlightablePassage({ passage, passageIntro, highlights, onChan
   return (
     <div
       ref={containerRef}
-      className="relative rounded-xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900/40 lg:max-h-[calc(100vh-14rem)] lg:overflow-y-auto"
+      className="relative rounded-xl border border-bronze bg-surface p-6 dark:border-bronze dark:bg-surface/40 lg:max-h-[calc(100vh-14rem)] lg:overflow-y-auto"
     >
       {passageIntro && (
-        <p className="mb-4 font-serif text-sm italic leading-relaxed text-slate-500 dark:text-slate-400">
+        <p className="mb-4 font-serif text-sm italic leading-relaxed text-taupe dark:text-taupe">
           {passageIntro}
         </p>
       )}
@@ -336,7 +336,7 @@ export function HighlightablePassage({ passage, passageIntro, highlights, onChan
       <div
         ref={passageRef}
         onMouseUp={handleMouseUp}
-        className="select-text whitespace-pre-line font-serif text-[17px] leading-[1.7] text-slate-800 dark:text-slate-100"
+        className="select-text whitespace-pre-line font-serif text-[17px] leading-[1.7] text-ivory dark:text-ivory"
       >
         {segments.map((seg, idx) =>
           seg.kind === "text" ? (
@@ -359,7 +359,7 @@ export function HighlightablePassage({ passage, passageIntro, highlights, onChan
                   onMouseLeave={onHighlightLeave}
                   className={[
                     "cursor-pointer rounded-sm px-0.5 transition-colors",
-                    "text-slate-900 dark:text-white",
+                    "text-ivory dark:text-ivory",
                     seg.hl.annotation
                       ? "underline decoration-white/70 decoration-dotted underline-offset-4"
                       : "",
@@ -457,17 +457,17 @@ function AnnotationEditor({
       animate={{ opacity: 1, scale: 1 }}
       transition={{ type: "spring", stiffness: 400, damping: 30 }}
       style={{ position: "fixed", top: initialPos.top, left: initialPos.left, width }}
-      className="z-[80] rounded-xl border border-white/10 bg-[#0B1026]/95 shadow-2xl backdrop-blur-xl"
+      className="z-[80] rounded-xl border border-ivory/10 bg-[#070605]/95 shadow-2xl backdrop-blur-xl"
       onMouseDown={(e) => e.stopPropagation()}
     >
       {/* Title bar — drag handle. */}
       <div
         onPointerDown={(e) => controls.start(e)}
-        className="flex cursor-grab touch-none select-none items-center justify-between border-b border-white/10 px-3 py-2 active:cursor-grabbing"
+        className="flex cursor-grab touch-none select-none items-center justify-between border-b border-ivory/10 px-3 py-2 active:cursor-grabbing"
       >
         <div className="pointer-events-none flex items-center gap-1.5">
-          <GripHorizontal className="h-3.5 w-3.5 text-slate-400" />
-          <span className="text-[11px] font-bold uppercase tracking-widest text-blue-400">
+          <GripHorizontal className="h-3.5 w-3.5 text-taupe" />
+          <span className="text-[11px] font-bold uppercase tracking-widest text-info">
             Annotation
           </span>
         </div>
@@ -475,7 +475,7 @@ function AnnotationEditor({
           type="button"
           onClick={onClose}
           onPointerDown={(e) => e.stopPropagation()}
-          className="flex h-5 w-5 items-center justify-center rounded text-slate-400 hover:bg-white/[0.08] hover:text-white"
+          className="flex h-5 w-5 items-center justify-center rounded text-taupe hover:bg-surface/[0.08] hover:text-ivory"
           aria-label="Close annotation"
         >
           <X className="h-3 w-3" />
@@ -496,13 +496,13 @@ function AnnotationEditor({
           }}
           placeholder="Write a note about this highlight…"
           rows={3}
-          className="w-full resize-none rounded-md border border-white/10 bg-white/[0.06] px-2.5 py-2 text-xs text-slate-100 placeholder:text-slate-400 focus:border-blue-400/60 focus:outline-none"
+          className="w-full resize-none rounded-md border border-ivory/10 bg-surface/[0.06] px-2.5 py-2 text-xs text-ivory placeholder:text-taupe focus:border-info/60 focus:outline-none"
         />
         <div className="flex items-center justify-between gap-2">
           <button
             type="button"
             onClick={onRemove}
-            className="inline-flex items-center gap-1 px-2 py-1 text-[11px] font-semibold text-rose-300 hover:text-rose-200"
+            className="inline-flex items-center gap-1 px-2 py-1 text-[11px] font-semibold text-error-bright hover:text-error-bright"
           >
             <Trash2 className="h-3 w-3" />
             Remove
@@ -510,7 +510,7 @@ function AnnotationEditor({
           <button
             type="button"
             onClick={onSave}
-            className="inline-flex items-center gap-1 rounded-md bg-gradient-to-br from-blue-500 to-indigo-600 px-3 py-1 text-[11px] font-semibold text-white"
+            className="inline-flex items-center gap-1 rounded-md bg-gradient-to-br from-info to-gold px-3 py-1 text-[11px] font-semibold text-ivory"
           >
             <Save className="h-3 w-3" />
             Save
@@ -552,22 +552,22 @@ function AnnotationViewer({
       transition={{ duration: 0.15 }}
       style={{ position: "fixed", top: initialPos.top, left: initialPos.left, width }}
       // Translucent so the passage text underneath remains visible.
-      className="z-[70] rounded-xl border border-white/15 bg-[#0B1026]/70 shadow-xl backdrop-blur-md"
+      className="z-[70] rounded-xl border border-ivory/15 bg-[#070605]/70 shadow-xl backdrop-blur-md"
       onMouseLeave={onClose}
     >
       <div
         onPointerDown={(e) => controls.start(e)}
-        className="flex cursor-grab touch-none select-none items-center justify-between border-b border-white/10 px-3 py-1.5 active:cursor-grabbing"
+        className="flex cursor-grab touch-none select-none items-center justify-between border-b border-ivory/10 px-3 py-1.5 active:cursor-grabbing"
       >
         <div className="pointer-events-none flex items-center gap-1.5">
-          <GripHorizontal className="h-3 w-3 text-slate-400/80" />
-          <MessageSquarePlus className="h-3 w-3 text-blue-300" />
-          <span className="text-[10px] font-bold uppercase tracking-widest text-blue-300">
+          <GripHorizontal className="h-3 w-3 text-taupe/80" />
+          <MessageSquarePlus className="h-3 w-3 text-info-bright" />
+          <span className="text-[10px] font-bold uppercase tracking-widest text-info-bright">
             Annotation
           </span>
         </div>
       </div>
-      <p className="px-3 py-2 text-xs leading-relaxed text-slate-100">{annotation}</p>
+      <p className="px-3 py-2 text-xs leading-relaxed text-ivory">{annotation}</p>
     </motion.div>
   );
 }

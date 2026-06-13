@@ -18,8 +18,8 @@ export function Kpi({
   hint?: string;
 }) {
   return (
-    <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-4">
-      <p className="mb-2 inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+    <div className="rounded-xl border border-bronze bg-surface/40 p-4">
+      <p className="mb-2 inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-taupe">
         <span
           className={cn("flex h-5 w-5 items-center justify-center rounded-md", ACCENT_RING[accent])}
         >
@@ -27,8 +27,8 @@ export function Kpi({
         </span>
         {label}
       </p>
-      <p className="text-xl font-extrabold tabular-nums text-white">{value}</p>
-      {hint && <p className="mt-1 text-[10px] text-slate-400">{hint}</p>}
+      <p className="text-xl font-extrabold tabular-nums text-ivory">{value}</p>
+      {hint && <p className="mt-1 text-[10px] text-taupe">{hint}</p>}
     </div>
   );
 }
@@ -48,31 +48,31 @@ export function MomentumCard({
 }) {
   const Arrow = direction === "up" ? ArrowUpRight : ArrowDownRight;
   return (
-    <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-4">
-      <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">{label}</p>
+    <div className="rounded-xl border border-bronze bg-surface/40 p-4">
+      <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-taupe">{label}</p>
       <div
         className={cn(
           "flex items-baseline gap-2",
           color === "emerald"
-            ? "text-emerald-300"
+            ? "text-success-bright"
             : color === "rose"
-              ? "text-rose-300"
-              : "text-amber-300"
+              ? "text-error-bright"
+              : "text-warning-bright"
         )}
       >
         <span className="text-2xl font-extrabold tabular-nums">{value}</span>
         <Arrow className="h-4 w-4" />
       </div>
-      {hint && <p className="mt-1 text-[10px] text-slate-400">{hint}</p>}
+      {hint && <p className="mt-1 text-[10px] text-taupe">{hint}</p>}
     </div>
   );
 }
 
 export function ForecastTile({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-xl border border-blue-400/20 bg-blue-400/5 p-4 text-center">
-      <p className="text-[10px] font-bold uppercase tracking-widest text-blue-300">{label}</p>
-      <p className="mt-1 text-xl font-extrabold tabular-nums text-white">{fmtMoney(value)}</p>
+    <div className="rounded-xl border border-info/20 bg-info/5 p-4 text-center">
+      <p className="text-[10px] font-bold uppercase tracking-widest text-info-bright">{label}</p>
+      <p className="mt-1 text-xl font-extrabold tabular-nums text-ivory">{fmtMoney(value)}</p>
     </div>
   );
 }
@@ -97,11 +97,12 @@ export function StatusPill({
 export function CohortCell({ active, total }: { active: number; total: number }) {
   const pct = total > 0 ? active / total : 0;
   // Color band: deep green when ≥80% retained, amber 50-80%, rose <50%.
-  const color = pct >= 0.8 ? "text-emerald-300" : pct >= 0.5 ? "text-amber-300" : "text-rose-300";
+  const color =
+    pct >= 0.8 ? "text-success-bright" : pct >= 0.5 ? "text-warning-bright" : "text-error-bright";
   return (
     <div className="inline-flex flex-col items-end">
       <span className={cn("font-semibold tabular-nums", color)}>{active}</span>
-      <span className="text-[9px] tabular-nums text-slate-400">{Math.round(pct * 100)}%</span>
+      <span className="text-[9px] tabular-nums text-taupe">{Math.round(pct * 100)}%</span>
     </div>
   );
 }

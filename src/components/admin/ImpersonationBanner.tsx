@@ -25,14 +25,14 @@ export default function ImpersonationBanner({
   return (
     <div
       role="status"
-      className="fixed left-1/2 top-2 z-[100] inline-flex -translate-x-1/2 items-center gap-2 rounded-full bg-amber-400 px-3 py-1.5 text-xs font-bold text-amber-950 shadow-lg ring-1 ring-amber-950/10"
+      className="fixed left-1/2 top-2 z-[100] inline-flex -translate-x-1/2 items-center gap-2 rounded-full bg-warning px-3 py-1.5 text-xs font-bold text-night shadow-lg ring-1 ring-warning/10"
     >
       <Eye className="h-3.5 w-3.5" />
       <span className="uppercase tracking-wide">Admin viewing as</span>
       {userName ? (
         <>
           <span className="font-extrabold">{userName}</span>
-          <span className="rounded-full bg-amber-950/15 px-1.5 py-0.5 text-[10px] uppercase tracking-wide">
+          <span className="rounded-full bg-warning/15 px-1.5 py-0.5 text-[10px] uppercase tracking-wide">
             {role}
           </span>
         </>
@@ -42,7 +42,7 @@ export default function ImpersonationBanner({
       <button
         onClick={() => startTransition(() => actionClearImpersonation())}
         disabled={pending}
-        className="ml-1 rounded-full bg-amber-950/20 p-0.5 hover:bg-amber-950/40 disabled:opacity-50"
+        className="ml-1 rounded-full bg-warning/20 p-0.5 hover:bg-warning/40 disabled:opacity-50"
         aria-label="Exit impersonation and return to admin"
       >
         {pending ? <Loader2 className="h-3 w-3 animate-spin" /> : <X className="h-3 w-3" />}

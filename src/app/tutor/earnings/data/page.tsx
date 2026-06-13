@@ -74,17 +74,15 @@ export default async function TutorEarningsDataPage({ searchParams }: PageProps)
       <div className="mx-auto max-w-6xl space-y-8 px-4 py-8 sm:px-6">
         <Link
           href="/tutor/earnings"
-          className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-slate-900 dark:hover:text-white"
+          className="inline-flex items-center gap-1.5 text-sm text-taupe hover:text-ivory dark:hover:text-ivory"
         >
           <ChevronLeft className="h-4 w-4" /> My earnings
         </Link>
 
         <header>
-          <p className="mb-1 text-xs font-bold uppercase tracking-widest text-blue-500">
-            Tutor Portal
-          </p>
-          <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white">Earning data</h1>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+          <p className="mb-1 text-xs font-bold uppercase tracking-widest text-info">Tutor Portal</p>
+          <h1 className="text-2xl font-extrabold text-ivory dark:text-ivory">Earning data</h1>
+          <p className="mt-1 text-sm text-taupe dark:text-taupe">
             Filter sessions by time range. Bottom chart shows trends across the last 12 weeks.
           </p>
         </header>

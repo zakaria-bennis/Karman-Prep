@@ -51,27 +51,27 @@ export default function ConstellationSidebar({
     <aside
       className={cn(
         "absolute bottom-4 left-4 top-16 z-20 flex flex-col",
-        "rounded-2xl border border-white/10 bg-black/55 shadow-2xl backdrop-blur-md",
+        "rounded-2xl border border-bronze bg-night/80 shadow-2xl backdrop-blur-md",
         "transition-all duration-300",
         collapsed ? "w-12" : "w-64"
       )}
     >
       {/* Header */}
-      <header className="flex shrink-0 items-center gap-2 border-b border-white/10 px-3 py-3">
+      <header className="flex shrink-0 items-center gap-2 border-b border-bronze/70 px-3 py-3">
         <Sparkles className="h-3.5 w-3.5 shrink-0" style={{ color: hex }} />
         {!collapsed && (
           <>
-            <span className="flex-1 truncate text-[10px] font-bold uppercase tracking-[0.3em] text-slate-300">
+            <span className="flex-1 truncate text-[10px] font-bold uppercase tracking-[0.3em] text-taupe">
               Skills Index
             </span>
-            <span className="text-[10px] tabular-nums text-slate-400">
+            <span className="text-[10px] tabular-nums text-taupe">
               {masteredCount}/{nodes.length}
             </span>
           </>
         )}
         <button
           onClick={() => setCollapsed((v) => !v)}
-          className="flex h-6 w-6 shrink-0 items-center justify-center rounded text-slate-400 transition-colors hover:bg-white/5 hover:text-white"
+          className="flex h-6 w-6 shrink-0 items-center justify-center rounded text-taupe transition-colors hover:bg-surface hover:text-ivory"
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           <ChevronRight
@@ -93,8 +93,8 @@ export default function ConstellationSidebar({
                   className={cn(
                     "flex w-full items-center gap-1.5 rounded-lg px-2.5 py-2 text-left text-xs transition-colors",
                     isOpen
-                      ? "bg-white/10 text-white"
-                      : "text-slate-400 hover:bg-white/5 hover:text-slate-200"
+                      ? "bg-surface-raised text-ivory"
+                      : "text-taupe hover:bg-surface hover:text-ivory"
                   )}
                 >
                   <ChevronRight
@@ -102,22 +102,22 @@ export default function ConstellationSidebar({
                     style={{ color: isOpen ? hex : undefined }}
                   />
                   <span className="flex-1 truncate font-semibold">{cluster}</span>
-                  <span className="shrink-0 text-[10px] tabular-nums text-slate-400">
+                  <span className="shrink-0 text-[10px] tabular-nums text-taupe">
                     {mastered}/{clusterNodes.length}
                   </span>
                 </button>
 
                 {/* Expanded node list */}
                 {isOpen && (
-                  <ul className="mb-1 ml-2 mt-0.5 space-y-0.5 border-l border-white/5 pl-5 pr-1">
+                  <ul className="mb-1 ml-2 mt-0.5 space-y-0.5 border-l border-bronze/50 pl-5 pr-1">
                     {clusterNodes.map((n) => {
                       const isSelected = selectedNodeId === n.id;
                       const isLocked = n.status === "locked";
                       const statusIcon =
                         n.status === "mastered" ? (
-                          <CheckCircle className="h-3 w-3 shrink-0 text-emerald-400" />
+                          <CheckCircle className="h-3 w-3 shrink-0 text-gold-bright" />
                         ) : isLocked ? (
-                          <Lock className="h-3 w-3 shrink-0 text-slate-400" />
+                          <Lock className="h-3 w-3 shrink-0 text-taupe" />
                         ) : (
                           <Circle
                             className="h-3 w-3 shrink-0"
@@ -133,10 +133,12 @@ export default function ConstellationSidebar({
                             className={cn(
                               "flex w-full items-start gap-1.5 rounded px-2 py-1.5 text-left text-[11px] leading-tight transition-colors",
                               isLocked && "cursor-not-allowed opacity-40",
-                              !isLocked && isSelected && "bg-white/15 font-semibold text-white",
+                              !isLocked &&
+                                isSelected &&
+                                "bg-surface-raised font-semibold text-ivory",
                               !isLocked &&
                                 !isSelected &&
-                                "text-slate-400 hover:bg-white/5 hover:text-slate-200"
+                                "text-taupe hover:bg-surface hover:text-ivory"
                             )}
                             style={
                               !isLocked && isSelected
@@ -160,7 +162,7 @@ export default function ConstellationSidebar({
 
       {/* Footer */}
       {!collapsed && (
-        <footer className="border-t border-white/10 px-3 py-2 text-[10px] uppercase tracking-wider text-slate-400">
+        <footer className="border-t border-bronze/70 px-3 py-2 text-[10px] uppercase tracking-wider text-taupe">
           Click a skill to zoom to its star
         </footer>
       )}

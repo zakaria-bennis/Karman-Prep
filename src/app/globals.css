@@ -38,6 +38,19 @@
   --subject-math: #2fa8ff; /*     Math blue                           */
   --subject-math-glow: #42d9ff; /* Math ambient / hover               */
 
+  /* ── Semantic status — docs/brand.md "Status colors" ─────────────
+     Warm-compatible status hues, surfaced through Tailwind as
+     success / warning / error / info (+ -bright). error and info reuse
+     the rose / math-blue signals; success is moss, warning is amber. */
+  --status-success: #8ba86a;
+  --status-success-bright: #a6c486;
+  --status-warning: #e0a24a;
+  --status-warning-bright: #f0be72;
+  --status-error: #d84f73;
+  --status-error-bright: #f06a8c;
+  --status-info: #2fa8ff;
+  --status-info-bright: #42d9ff;
+
   /* ── Motion tokens — docs/brand.md "Motion" ──────────────────────
      Contemplative direction: short for state changes, long-tailed
      for settles. Use via `transition-duration: var(--duration-fast)`
@@ -51,25 +64,21 @@
   --ease-standard: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-contemplative: cubic-bezier(0.16, 1, 0.3, 1);
 
-  /* ── Legacy subject palette + cloud design tokens ────────────────
-     Used by the existing landing + auth surfaces. Kept here so those
-     pages still render correctly. Targeted for removal in roadmap
-     chunk 7 (UI redesign) once every consumer migrates to the
-     constellation accents above. */
-  --color-algebra: #3b82f6; /* dream      */
-  --color-advanced-math: #a855f7; /* inspire    */
-  --color-geometry: #14b8a6; /* achieve    */
-  --color-data-analysis: #f59e0b; /* excel      */
-  --color-reading-writing: #fb7185; /* wonder     */
-  --cloud-bg: #070b1c;
-  --cloud-bg-soft: #0b1026;
-  --cloud-fog: rgba(148, 163, 255, 0.04);
+  /* ── SAT domain palette — warm subject signals ───────────────────
+     Domain-breakdown charts read these. Math sub-domains carry
+     distinguishable blue shades; reading carries the rose signal
+     (docs/brand.md — two subjects, Math blue + R&W rose). */
+  --color-algebra: #2fa8ff; /*        Math — Algebra        */
+  --color-advanced-math: #42d9ff; /*  Math — Advanced        */
+  --color-geometry: #7fc4ff; /*       Math — Geometry / Trig */
+  --color-data-analysis: #2b7fc4; /*  Math — Data / Stats     */
+  --color-reading-writing: #d84f73; /* Reading & Writing     */
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0f1e;
-    --foreground: #f8fafc;
+    --background: var(--bg-night);
+    --foreground: var(--text-primary);
   }
 }
 
@@ -80,58 +89,71 @@
 
    Without this rule axe-core's contrast checker can't see the
    intended dark background — semi-transparent card backgrounds
-   (bg-slate-900/60 etc.) fall through to the body which would
-   otherwise be #ffffff, producing 111+ false-positive contrast
-   violations on the admin pages. */
+   fall through to the body which would otherwise be #ffffff,
+   producing 111+ false-positive contrast violations on admin pages. */
 html.dark {
-  --background: #0a0f1e;
-  --foreground: #f8fafc;
+  --background: var(--bg-night);
+  --foreground: var(--text-primary);
 }
 
 @layer base {
-  html { scroll-behavior: smooth; }
+  html {
+    scroll-behavior: smooth;
+  }
   body {
     color: var(--foreground);
     background: var(--background);
-    font-family: var(--font-geist-sans), Inter, system-ui, sans-serif;
-    font-feature-settings: "ss01", "ss02", "cv11";
+    font-family: var(--font-plex-sans), Inter, system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
+  /* Focus is a brand moment — star-gold ring on the warm night. */
   :focus-visible {
-    @apply outline-none ring-2 ring-blue-500 ring-offset-2;
+    @apply outline-none ring-2 ring-gold-bright ring-offset-2 ring-offset-night;
   }
 }
 
 @layer components {
-  .badge-algebra   { @apply bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300; }
-  .badge-advanced  { @apply bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300; }
-  .badge-geometry  { @apply bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-300; }
-  .badge-data      { @apply bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300; }
-  .badge-reading   { @apply bg-rose-100 text-rose-600 dark:bg-rose-900/40 dark:text-rose-300; }
-
-  .glass-card {
-    @apply bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border border-white/20 dark:border-slate-700/50 rounded-2xl shadow-lg;
+  /* Domain badges — warm chips carrying the subject signal. The four
+     Math sub-domains share the Math-blue signal; Reading carries rose.
+     Subtle tint fill + signal-colored text on the warm canvas. */
+  .badge-algebra,
+  .badge-advanced,
+  .badge-geometry,
+  .badge-data {
+    @apply bg-math/10 text-math-glow;
+  }
+  .badge-reading {
+    @apply bg-rw/10 text-rw-glow;
   }
 
-  /* Cloud-design glass surface — floats on dark atmospheric bg */
-  .glass-cloud {
-    @apply bg-white/[0.04] backdrop-blur-md border border-white/10 rounded-2xl shadow-2xl;
-  }
-  .glass-cloud-strong {
-    @apply bg-white/[0.06] backdrop-blur-md border border-white/15 rounded-2xl shadow-2xl;
+  /* Card surface — the default panel of the observatory system.
+     Kept under the legacy `.glass-card` name so the marketing pages
+     (faq/about/guarantee/blog/refunds) and dashboards retheme without
+     edits. Flat warm surface, bronze hairline; no glass, no blur. */
+  .glass-card,
+  .card-surface {
+    @apply rounded-2xl border border-bronze bg-surface;
+    box-shadow:
+      0 1px 0 0 rgb(243 236 221 / 0.03) inset,
+      0 8px 24px -16px rgb(0 0 0 / 0.8);
   }
 
-  .gradient-text {
-    @apply bg-gradient-to-r from-blue-600 via-purple-500 to-teal-500 bg-clip-text text-transparent;
-  }
-
+  /* Primary CTA — antique gold. Gold marks earned moments; the CTA is
+     the one standing invitation. Respond-only feedback (tone shift,
+     no scale, no shadow burst) per docs/brand.md "Motion". */
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-3 text-base font-semibold text-white shadow-md transition-all hover:bg-blue-700 hover:shadow-lg active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-gold px-6 py-3 text-base font-semibold text-night transition-colors duration-fast hover:bg-gold-bright disabled:cursor-not-allowed disabled:opacity-50;
   }
 
+  /* Secondary — quiet bronze-bordered surface. */
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-6 py-3 text-base font-semibold text-slate-900 dark:text-white shadow-sm transition-all hover:bg-slate-50 dark:hover:bg-slate-700 active:scale-95;
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-bronze bg-surface px-6 py-3 text-base font-semibold text-ivory transition-colors duration-fast hover:border-taupe/50 hover:bg-surface-raised;
+  }
+
+  /* Tertiary — text-only, for low-emphasis actions beside a primary. */
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-6 py-3 text-base font-medium text-taupe transition-colors duration-fast hover:text-ivory;
   }
 
   /* ------------------------------------------------------------
@@ -280,39 +302,40 @@ html.dark {
     }
   }
 
-  .text-balance { text-wrap: balance; }
-
-  /* ------------------------------------------------------------
-     Cloud design utilities
-     ------------------------------------------------------------ */
-
-  /* Deep navy base — the "sky" behind the clouds */
-  .bg-cloud-night {
-    background:
-      radial-gradient(ellipse 120% 80% at 50% 0%, #0E1438 0%, transparent 60%),
-      radial-gradient(ellipse 100% 60% at 50% 100%, #070A1C 0%, transparent 55%),
-      linear-gradient(180deg, #070B1C 0%, #08091A 100%);
+  .text-balance {
+    text-wrap: balance;
   }
 
-  /* Film grain — SVG fractal noise, CSS-only, no image asset */
+  /* ------------------------------------------------------------
+     Observatory canvas utilities — docs/brand.md "warm night".
+     ------------------------------------------------------------ */
+
+  /* The night canvas — a near-flat warm dark with the faintest
+     lamp-warmth rising from the horizon. Quiet by design: no color
+     washes, no beams. Sections alternate bg-night / bg-espresso. */
+  .bg-observatory {
+    background:
+      radial-gradient(ellipse 140% 50% at 50% 108%, rgb(200 171 106 / 0.05) 0%, transparent 60%),
+      linear-gradient(180deg, var(--bg-night) 0%, var(--bg-espresso) 100%);
+  }
+
+  /* Film grain — SVG fractal noise, CSS-only, no image asset.
+     Kept from the previous system; on the warm canvas it reads as
+     paper tooth rather than digital noise. */
   .bg-grain::after {
     content: "";
     position: absolute;
     inset: 0;
     pointer-events: none;
-    opacity: 0.12;
+    opacity: 0.1;
     mix-blend-mode: overlay;
     background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0.9 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
   }
 
-  /* God-ray — soft beam behind the headline */
-  .cloud-godray {
-    background: radial-gradient(
-      ellipse 60% 80% at 50% 40%,
-      rgba(168, 140, 255, 0.12) 0%,
-      rgba(99, 120, 255, 0.06) 35%,
-      transparent 70%
-    );
+  /* Hairline rule with a gold heart — section dividers. */
+  .rule-gold {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgb(200 171 106 / 0.35) 50%, transparent);
   }
 
   /* Reduced motion — disable every non-essential animation site-wide */
