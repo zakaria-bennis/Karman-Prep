@@ -83,23 +83,23 @@ export default async function StudentChatPage() {
     <DashboardLayout>
       <div className="mx-auto flex h-[calc(100vh-4rem)] max-w-6xl flex-col px-4 py-6 sm:px-6">
         <header className="mb-4">
-          <p className="mb-1 text-xs font-bold uppercase tracking-widest text-blue-500">Chat</p>
-          <h1 className="flex items-center gap-2 text-2xl font-extrabold text-slate-900 dark:text-white">
-            <MessageSquare className="h-6 w-6 text-slate-400" />
+          <p className="mb-1 text-xs font-bold uppercase tracking-widest text-info">Chat</p>
+          <h1 className="flex items-center gap-2 text-2xl font-extrabold text-ivory dark:text-ivory">
+            <MessageSquare className="h-6 w-6 text-taupe" />
             Conversations
           </h1>
         </header>
 
         {!membership?.cohort_id ? (
-          <div className="rounded-xl border border-dashed border-slate-200 px-6 py-10 text-center dark:border-slate-800">
-            <p className="text-sm text-slate-500 dark:text-slate-400">
+          <div className="rounded-xl border border-dashed border-bronze px-6 py-10 text-center dark:border-bronze">
+            <p className="text-sm text-taupe dark:text-taupe">
               You&apos;re not in a cohort yet. Cohort chat unlocks once you&apos;re placed (admin
               assigns you after signup).
             </p>
           </div>
         ) : !cohortChannel && !qaChannel ? (
-          <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-400/20 dark:bg-amber-400/5">
-            <p className="text-sm text-amber-800 dark:text-amber-200">
+          <div className="rounded-xl border border-warning/40 bg-warning/10 px-4 py-3 dark:border-warning/20 dark:bg-warning/5">
+            <p className="text-sm text-warning dark:text-warning-bright">
               Your cohort chat hasn&apos;t been set up yet. Ask your tutor or admin to provision it
               from the cohort detail page.
             </p>

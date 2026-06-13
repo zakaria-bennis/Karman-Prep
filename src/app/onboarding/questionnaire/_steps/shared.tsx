@@ -20,7 +20,7 @@ export const COMMON_TZ = [
 
 export function Label({ children }: { children: React.ReactNode }) {
   return (
-    <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-400">
+    <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-taupe">
       {children}
     </label>
   );
@@ -43,8 +43,8 @@ export function YesNoChoice({
           className={cn(
             "rounded-lg border px-3 py-2 text-xs font-semibold capitalize transition-colors",
             value === opt
-              ? "border-blue-500 bg-blue-500 text-white"
-              : "border-white/10 bg-white/[0.03] text-slate-200 hover:border-white/30"
+              ? "border-info/40 bg-info text-ivory"
+              : "border-ivory/10 bg-surface/[0.03] text-ivory hover:border-ivory/30"
           )}
         >
           {opt}

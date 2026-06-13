@@ -33,9 +33,9 @@ import { cn } from "@/lib/utils";
 export const metadata: Metadata = { title: "Admin — Quality Dashboard | Karman" };
 
 const SEVERITY_CLASSES = {
-  BLOCKING: "border-rose-500/40 bg-rose-500/[0.08] text-rose-200",
-  WARNING: "border-amber-500/40 bg-amber-500/[0.08] text-amber-200",
-  NOTICE: "border-slate-700 bg-slate-800/40 text-slate-300",
+  BLOCKING: "border-error/40 bg-error/[0.08] text-error-bright",
+  WARNING: "border-warning/40 bg-warning/[0.08] text-warning-bright",
+  NOTICE: "border-bronze bg-surface-raised/40 text-ivory",
 } as const;
 
 export default async function QualityDashboardPage() {
@@ -56,19 +56,19 @@ export default async function QualityDashboardPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-8">
-      <div className="mb-6 flex items-center justify-between border-b border-slate-800 pb-4">
+      <div className="mb-6 flex items-center justify-between border-b border-bronze pb-4">
         <div>
-          <h1 className="flex items-center gap-2 text-xl font-semibold text-slate-100">
-            <BarChart3 className="h-5 w-5 text-violet-400" />
+          <h1 className="flex items-center gap-2 text-xl font-semibold text-ivory">
+            <BarChart3 className="h-5 w-5 text-gold" />
             Quality dashboard
           </h1>
-          <p className="mt-1 text-xs text-slate-400">
+          <p className="mt-1 text-xs text-taupe">
             Aggregate view of every open audit + grader finding across the question bank.
           </p>
         </div>
         <Link
           href="/admin/questions/inspect"
-          className="inline-flex items-center gap-1.5 rounded-md border border-slate-700 bg-slate-900/60 px-3 py-1.5 text-xs font-semibold text-slate-200 hover:bg-slate-800"
+          className="inline-flex items-center gap-1.5 rounded-md border border-bronze bg-surface/60 px-3 py-1.5 text-xs font-semibold text-ivory hover:bg-surface-raised"
         >
           <Microscope className="h-3.5 w-3.5" /> Open inspector worklist
         </Link>
@@ -120,15 +120,15 @@ export default async function QualityDashboardPage() {
                 >
                   <div className="flex min-w-0 flex-1 items-center gap-2">
                     <SeverityIcon severity={c.severity} />
-                    <code className="rounded bg-slate-950/60 px-1.5 py-0.5 font-mono text-[10px] text-slate-200">
+                    <code className="rounded bg-night/60 px-1.5 py-0.5 font-mono text-[10px] text-ivory">
                       {c.code}
                     </code>
-                    <span className="truncate text-[10px] text-slate-400">{c.category}</span>
+                    <span className="truncate text-[10px] text-taupe">{c.category}</span>
                   </div>
                   <div className="ml-2 flex items-center gap-3">
                     <span className="font-semibold">{c.open}</span>
                     {c.resolved > 0 && (
-                      <span className="text-[10px] text-slate-500">+{c.resolved} resolved</span>
+                      <span className="text-[10px] text-taupe">+{c.resolved} resolved</span>
                     )}
                   </div>
                 </li>
@@ -146,21 +146,19 @@ export default async function QualityDashboardPage() {
               {data.by_source.map((s) => (
                 <li
                   key={s.source}
-                  className="flex items-center justify-between rounded-lg border border-slate-800 bg-slate-900/40 px-3 py-2 text-xs"
+                  className="flex items-center justify-between rounded-lg border border-bronze bg-surface/40 px-3 py-2 text-xs"
                 >
                   <div className="flex items-center gap-2">
                     <Link
                       href={`/admin/questions/inspect?source=${s.source}`}
-                      className="font-semibold text-slate-200 hover:underline"
+                      className="font-semibold text-ivory hover:underline"
                     >
                       {s.source === "auditor" ? "Deterministic auditor" : "LLM grader"}
                     </Link>
                   </div>
                   <div className="flex items-center gap-3 text-[11px]">
-                    <span className="text-slate-200">{s.open} open</span>
-                    {s.resolved > 0 && (
-                      <span className="text-slate-500">+{s.resolved} resolved</span>
-                    )}
+                    <span className="text-ivory">{s.open} open</span>
+                    {s.resolved > 0 && <span className="text-taupe">+{s.resolved} resolved</span>}
                   </div>
                 </li>
               ))}
@@ -184,19 +182,19 @@ export default async function QualityDashboardPage() {
                 return (
                   <li
                     key={p.source_pdf}
-                    className="rounded-lg border border-slate-800 bg-slate-900/40 px-3 py-2 text-xs"
+                    className="rounded-lg border border-bronze bg-surface/40 px-3 py-2 text-xs"
                   >
                     <div className="flex items-center justify-between">
                       <Link
                         href={`/admin/questions/inspect?source_pdf=${encodeURIComponent(p.source_pdf)}`}
-                        className="truncate font-mono text-[11px] text-slate-200 hover:underline"
+                        className="truncate font-mono text-[11px] text-ivory hover:underline"
                         title={p.source_pdf}
                       >
                         {p.source_pdf}
                       </Link>
-                      <span className="ml-2 shrink-0 font-semibold text-slate-200">{p.open}</span>
+                      <span className="ml-2 shrink-0 font-semibold text-ivory">{p.open}</span>
                     </div>
-                    <div className="mt-1 flex items-center gap-3 text-[10px] text-slate-500">
+                    <div className="mt-1 flex items-center gap-3 text-[10px] text-taupe">
                       <span>{p.questions_affected} questions affected</span>
                       <span>·</span>
                       <span>{p.total_questions} total</span>
@@ -205,7 +203,9 @@ export default async function QualityDashboardPage() {
                       {p.blocking > 0 && (
                         <>
                           <span>·</span>
-                          <span className="font-semibold text-rose-300">{p.blocking} blocking</span>
+                          <span className="font-semibold text-error-bright">
+                            {p.blocking} blocking
+                          </span>
                         </>
                       )}
                     </div>
@@ -225,23 +225,25 @@ export default async function QualityDashboardPage() {
               {data.by_domain.map((d) => (
                 <li
                   key={d.domain}
-                  className="rounded-lg border border-slate-800 bg-slate-900/40 px-3 py-2 text-xs"
+                  className="rounded-lg border border-bronze bg-surface/40 px-3 py-2 text-xs"
                 >
                   <div className="flex items-center justify-between">
                     <Link
                       href={`/admin/questions/inspect?domain=${encodeURIComponent(d.domain)}`}
-                      className="font-semibold text-slate-200 hover:underline"
+                      className="font-semibold text-ivory hover:underline"
                     >
                       {d.domain}
                     </Link>
-                    <span className="ml-2 font-semibold text-slate-200">{d.open}</span>
+                    <span className="ml-2 font-semibold text-ivory">{d.open}</span>
                   </div>
-                  <div className="mt-1 flex items-center gap-3 text-[10px] text-slate-500">
+                  <div className="mt-1 flex items-center gap-3 text-[10px] text-taupe">
                     <span>{d.questions_affected} questions affected</span>
                     {d.blocking > 0 && (
                       <>
                         <span>·</span>
-                        <span className="font-semibold text-rose-300">{d.blocking} blocking</span>
+                        <span className="font-semibold text-error-bright">
+                          {d.blocking} blocking
+                        </span>
                       </>
                     )}
                   </div>
@@ -253,8 +255,8 @@ export default async function QualityDashboardPage() {
       </div>
 
       {data.totals.open === 0 && (
-        <div className="mt-6 rounded-xl border border-emerald-500/40 bg-emerald-500/[0.06] p-5 text-center text-sm text-emerald-200">
-          <CheckCircle2 className="mx-auto mb-2 h-6 w-6 text-emerald-400" />
+        <div className="mt-6 rounded-xl border border-success/40 bg-success/[0.06] p-5 text-center text-sm text-success-bright">
+          <CheckCircle2 className="mx-auto mb-2 h-6 w-6 text-success" />
           No open findings. The bank is clean.
         </div>
       )}
@@ -274,10 +276,10 @@ function StatCard({
   tone: "default" | "rose" | "amber" | "violet";
 }) {
   const tones: Record<typeof tone, string> = {
-    default: "border-slate-700 bg-slate-900/50 text-slate-200",
-    rose: "border-rose-500/30 bg-rose-500/[0.06] text-rose-200",
-    amber: "border-amber-500/30 bg-amber-500/[0.06] text-amber-200",
-    violet: "border-violet-500/30 bg-violet-500/[0.06] text-violet-200",
+    default: "border-bronze bg-surface/50 text-ivory",
+    rose: "border-error/30 bg-error/[0.06] text-error-bright",
+    amber: "border-warning/30 bg-warning/[0.06] text-warning-bright",
+    violet: "border-gold/30 bg-gold/[0.06] text-gold-bright",
   };
   return (
     <div className={cn("rounded-xl border p-4", tones[tone])}>
@@ -298,9 +300,9 @@ function Card({
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-xl border border-slate-800 bg-slate-900/30 p-5">
-      <div className="mb-3 flex items-center gap-2 border-b border-slate-800 pb-2 text-sm font-semibold text-slate-200">
-        <Icon className="h-4 w-4 text-slate-400" />
+    <div className="rounded-xl border border-bronze bg-surface/30 p-5">
+      <div className="mb-3 flex items-center gap-2 border-b border-bronze pb-2 text-sm font-semibold text-ivory">
+        <Icon className="h-4 w-4 text-taupe" />
         {title}
       </div>
       {children}
@@ -309,13 +311,13 @@ function Card({
 }
 
 function EmptyState({ message }: { message: string }) {
-  return <p className="py-6 text-center text-xs text-slate-500">{message}</p>;
+  return <p className="py-6 text-center text-xs text-taupe">{message}</p>;
 }
 
 function SeverityIcon({ severity }: { severity: "BLOCKING" | "WARNING" | "NOTICE" }) {
   if (severity === "BLOCKING")
-    return <AlertOctagon className="h-3.5 w-3.5 shrink-0 text-rose-300" />;
+    return <AlertOctagon className="h-3.5 w-3.5 shrink-0 text-error-bright" />;
   if (severity === "WARNING")
-    return <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-amber-300" />;
-  return <Info className="h-3.5 w-3.5 shrink-0 text-slate-400" />;
+    return <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-warning-bright" />;
+  return <Info className="h-3.5 w-3.5 shrink-0 text-taupe" />;
 }

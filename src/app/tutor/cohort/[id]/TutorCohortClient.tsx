@@ -44,23 +44,22 @@ export default function TutorCohortClient({ detail }: Props) {
         <div className="mb-2 flex flex-wrap items-center gap-3">
           <TierBadge tier={cohort.tier} />
           <StatusBadge status={cohort.status} />
-          <span className="text-sm text-slate-400">{formatDate(cohort.sat_date)} SAT</span>
-          <span className="text-slate-400">·</span>
-          <span className="font-mono text-sm text-slate-400">
+          <span className="text-sm text-taupe">{formatDate(cohort.sat_date)} SAT</span>
+          <span className="text-taupe">·</span>
+          <span className="font-mono text-sm text-taupe">
             {members.length}/{cohort.max_size} seats
           </span>
         </div>
-        <h1 className="text-2xl font-extrabold tracking-tight text-white">{cohort.name}</h1>
+        <h1 className="text-2xl font-extrabold tracking-tight text-ivory">{cohort.name}</h1>
         {cohort.current_topic && (
-          <p className="mt-2 text-sm text-slate-400">
-            <span className="font-semibold text-slate-300">Current topic —</span>{" "}
-            {cohort.current_topic}
+          <p className="mt-2 text-sm text-taupe">
+            <span className="font-semibold text-ivory">Current topic —</span> {cohort.current_topic}
           </p>
         )}
       </header>
 
       {/* Tabs */}
-      <div className="mb-6 flex gap-1 border-b border-slate-800 text-sm">
+      <div className="mb-6 flex gap-1 border-b border-bronze text-sm">
         <TabButton
           tab="members"
           activeTab={activeTab}
@@ -117,15 +116,13 @@ function TabButton({
       onClick={() => onClick(tab)}
       className={cn(
         "inline-flex items-center gap-2 border-b-2 px-4 pb-3 font-semibold transition-colors",
-        active
-          ? "border-indigo-500 text-indigo-400"
-          : "border-transparent text-slate-400 hover:text-slate-200"
+        active ? "border-gold/40 text-gold" : "border-transparent text-taupe hover:text-ivory"
       )}
     >
       <Icon className="h-4 w-4" />
       {label}
       {count > 0 && (
-        <span className={cn("font-mono text-xs", active ? "text-indigo-300" : "text-slate-400")}>
+        <span className={cn("font-mono text-xs", active ? "text-gold-bright" : "text-taupe")}>
           {count}
         </span>
       )}
@@ -145,26 +142,26 @@ function MembersTab({ members }: { members: TutorCohortMember[] }) {
     );
   }
   return (
-    <div className="overflow-hidden rounded-xl border border-slate-800">
+    <div className="overflow-hidden rounded-xl border border-bronze">
       <table className="w-full text-sm">
-        <thead className="bg-slate-900/60 text-xs uppercase tracking-wider text-slate-400">
+        <thead className="bg-surface/60 text-xs uppercase tracking-wider text-taupe">
           <tr>
             <th className="px-4 py-3 text-left font-semibold">Name</th>
             <th className="px-4 py-3 text-left font-semibold">Email</th>
             <th className="px-4 py-3 text-left font-semibold">Joined</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-800">
+        <tbody className="divide-y divide-bronze">
           {members.map((m) => (
-            <tr key={m.user_id} className="transition-colors hover:bg-slate-900/40">
+            <tr key={m.user_id} className="transition-colors hover:bg-surface/40">
               <td className="px-4 py-3">
                 <div className="flex items-center gap-3">
                   <Avatar name={fullName(m) || m.email} avatarUrl={m.avatar_url} />
-                  <span className="font-medium text-white">{fullName(m) || m.email}</span>
+                  <span className="font-medium text-ivory">{fullName(m) || m.email}</span>
                 </div>
               </td>
-              <td className="px-4 py-3 font-mono text-xs text-slate-400">{m.email}</td>
-              <td className="px-4 py-3 text-xs text-slate-400">{formatDateTime(m.joined_at)}</td>
+              <td className="px-4 py-3 font-mono text-xs text-taupe">{m.email}</td>
+              <td className="px-4 py-3 text-xs text-taupe">{formatDateTime(m.joined_at)}</td>
             </tr>
           ))}
         </tbody>
@@ -196,8 +193,8 @@ function NotesTab({ cohortId, initialBody }: { cohortId: string; initialBody: st
   }
 
   return (
-    <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-5">
-      <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-400">
+    <div className="rounded-xl border border-bronze bg-surface/40 p-5">
+      <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-taupe">
         Progress notes — only you and admin see these
       </label>
       <textarea
@@ -205,17 +202,17 @@ function NotesTab({ cohortId, initialBody }: { cohortId: string; initialBody: st
         onChange={(e) => setBody(e.target.value)}
         rows={10}
         placeholder="How is the cohort doing? What are you focused on this week?"
-        className="w-full resize-y rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-2 text-sm text-slate-100 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+        className="w-full resize-y rounded-lg border border-bronze bg-night/60 px-3 py-2 text-sm text-ivory focus:border-gold/40 focus:outline-none focus:ring-2 focus:ring-gold/40"
       />
-      {err && <p className="mt-2 text-xs text-rose-300">{err}</p>}
+      {err && <p className="mt-2 text-xs text-error-bright">{err}</p>}
       <div className="mt-3 flex items-center justify-between">
-        <span className="text-xs text-slate-400">
+        <span className="text-xs text-taupe">
           {dirty ? "Unsaved changes" : savedBody ? "Saved" : "Empty"}
         </span>
         <button
           onClick={save}
           disabled={!dirty || pending}
-          className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex items-center gap-2 rounded-lg bg-gold px-4 py-2 text-sm font-semibold text-night hover:bg-gold-bright disabled:cursor-not-allowed disabled:opacity-50"
         >
           {pending && <Loader2 className="h-4 w-4 animate-spin" />}
           Save notes
@@ -233,13 +230,13 @@ function HomeworkTab({ cohortId, homework }: { cohortId: string; homework: Tutor
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <p className="text-sm text-slate-400">
+        <p className="text-sm text-taupe">
           Assignments you post here appear in each student&apos;s cohort page and on the admin view.
         </p>
         {!composerOpen && (
           <button
             onClick={() => setComposerOpen(true)}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-500"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-gold px-3 py-1.5 text-sm font-semibold text-night hover:bg-gold-bright"
           >
             <Plus className="h-4 w-4" />
             Post homework
@@ -307,16 +304,13 @@ function HomeworkComposer({
   }
 
   return (
-    <form
-      onSubmit={submit}
-      className="space-y-3 rounded-xl border border-slate-800 bg-slate-900/40 p-5"
-    >
+    <form onSubmit={submit} className="space-y-3 rounded-xl border border-bronze bg-surface/40 p-5">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-white">Post new homework</h3>
+        <h3 className="text-sm font-semibold text-ivory">Post new homework</h3>
         <button
           type="button"
           onClick={onCancel}
-          className="text-slate-400 hover:text-slate-200"
+          className="text-taupe hover:text-ivory"
           aria-label="Cancel"
         >
           <X className="h-4 w-4" />
@@ -330,40 +324,40 @@ function HomeworkComposer({
         placeholder="Title (e.g. Linear Functions — Practice Set B)"
         required
         maxLength={140}
-        className="w-full rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-2 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+        className="w-full rounded-lg border border-bronze bg-night/60 px-3 py-2 text-sm text-ivory focus:outline-none focus:ring-2 focus:ring-gold/40"
       />
       <textarea
         value={body}
         onChange={(e) => setBody(e.target.value)}
         rows={4}
         placeholder="Instructions (optional) — describe the task, link to resources, etc."
-        className="w-full resize-y rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-2 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+        className="w-full resize-y rounded-lg border border-bronze bg-night/60 px-3 py-2 text-sm text-ivory focus:outline-none focus:ring-2 focus:ring-gold/40"
       />
       <div>
-        <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-slate-400">
+        <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-taupe">
           Due date (optional)
         </label>
         <input
           type="datetime-local"
           value={dueAt}
           onChange={(e) => setDueAt(e.target.value)}
-          className="rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-2 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+          className="rounded-lg border border-bronze bg-night/60 px-3 py-2 text-sm text-ivory focus:outline-none focus:ring-2 focus:ring-gold/40"
         />
       </div>
-      {err && <p className="text-xs text-rose-300">{err}</p>}
+      {err && <p className="text-xs text-error-bright">{err}</p>}
       <div className="flex justify-end gap-2">
         <button
           type="button"
           onClick={onCancel}
           disabled={pending}
-          className="rounded-lg border border-slate-700 px-3 py-1.5 text-sm text-slate-300 hover:bg-slate-800"
+          className="rounded-lg border border-bronze px-3 py-1.5 text-sm text-ivory hover:bg-surface-raised"
         >
           Cancel
         </button>
         <button
           type="submit"
           disabled={pending || !title.trim()}
-          className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-500 disabled:opacity-50"
+          className="inline-flex items-center gap-2 rounded-lg bg-gold px-3 py-1.5 text-sm font-semibold text-night hover:bg-gold-bright disabled:opacity-50"
         >
           {pending && <Loader2 className="h-4 w-4 animate-spin" />}
           Post
@@ -400,15 +394,15 @@ function HomeworkItem({ cohortId, h }: { cohortId: string; h: TutorHomework }) {
   }
 
   return (
-    <li className="rounded-xl border border-slate-800 bg-slate-900/40 p-5">
+    <li className="rounded-xl border border-bronze bg-surface/40 p-5">
       <div className="mb-2 flex items-start justify-between gap-4">
-        <h3 className="font-semibold text-white">{h.title}</h3>
+        <h3 className="font-semibold text-ivory">{h.title}</h3>
         <div className="flex items-center gap-2">
           <DueBadge dueAt={h.due_at} />
           <button
             onClick={deleteMe}
             disabled={pending}
-            className="text-slate-400 hover:text-rose-300 disabled:opacity-50"
+            className="text-taupe hover:text-error-bright disabled:opacity-50"
             aria-label="Delete homework"
           >
             {pending ? (
@@ -420,13 +414,13 @@ function HomeworkItem({ cohortId, h }: { cohortId: string; h: TutorHomework }) {
         </div>
       </div>
       {h.body && (
-        <p className="mb-3 whitespace-pre-wrap text-sm leading-relaxed text-slate-400">{h.body}</p>
+        <p className="mb-3 whitespace-pre-wrap text-sm leading-relaxed text-taupe">{h.body}</p>
       )}
-      <div className="text-xs text-slate-400">
+      <div className="text-xs text-taupe">
         Assigned {formatDateTime(h.assigned_at)}
         {h.due_at && <> · Due {formatDateTime(h.due_at)}</>}
       </div>
-      {err && <p className="mt-2 text-xs text-rose-300">{err}</p>}
+      {err && <p className="mt-2 text-xs text-error-bright">{err}</p>}
     </li>
   );
 }
@@ -443,16 +437,16 @@ function DueBadge({ dueAt }: { dueAt: string | null }) {
   let classes: string;
   if (ms < 0) {
     label = days <= -1 ? `${Math.abs(days)}d overdue` : "due earlier";
-    classes = "bg-slate-700/20 text-slate-400 border-slate-600/30";
+    classes = "bg-surface-raised/20 text-taupe border-bronze/30";
   } else if (days <= 1) {
     label = days === 0 ? "due today" : "due tomorrow";
-    classes = "bg-rose-400/10 text-rose-300 border-rose-400/20";
+    classes = "bg-error/10 text-error-bright border-error/20";
   } else if (days <= 3) {
     label = `due in ${days}d`;
-    classes = "bg-amber-400/10 text-amber-300 border-amber-400/20";
+    classes = "bg-warning/10 text-warning-bright border-warning/20";
   } else {
     label = `due in ${days}d`;
-    classes = "bg-emerald-400/10 text-emerald-300 border-emerald-400/20";
+    classes = "bg-success/10 text-success-bright border-success/20";
   }
   return (
     <span
@@ -465,9 +459,9 @@ function DueBadge({ dueAt }: { dueAt: string | null }) {
 
 function EmptyBlock({ title, subtitle }: { title: string; subtitle: string }) {
   return (
-    <div className="rounded-xl border border-dashed border-slate-800 px-8 py-10 text-center">
-      <h3 className="text-base font-semibold text-white">{title}</h3>
-      <p className="mx-auto mt-2 max-w-md text-sm text-slate-400">{subtitle}</p>
+    <div className="rounded-xl border border-dashed border-bronze px-8 py-10 text-center">
+      <h3 className="text-base font-semibold text-ivory">{title}</h3>
+      <p className="mx-auto mt-2 max-w-md text-sm text-taupe">{subtitle}</p>
     </div>
   );
 }
@@ -480,7 +474,7 @@ function Avatar({ name, avatarUrl }: { name: string; avatarUrl: string | null })
         alt={name}
         width={28}
         height={28}
-        className="h-7 w-7 rounded-full border border-slate-700 object-cover"
+        className="h-7 w-7 rounded-full border border-bronze object-cover"
         unoptimized
       />
     );
@@ -495,7 +489,7 @@ function Avatar({ name, avatarUrl }: { name: string; avatarUrl: string | null })
   return (
     <div
       aria-hidden="true"
-      className="flex h-7 w-7 items-center justify-center rounded-full border border-slate-700 bg-slate-800 text-xs font-semibold text-slate-300"
+      className="flex h-7 w-7 items-center justify-center rounded-full border border-bronze bg-surface-raised text-xs font-semibold text-ivory"
     >
       {initials || "?"}
     </div>
@@ -505,8 +499,8 @@ function Avatar({ name, avatarUrl }: { name: string; avatarUrl: string | null })
 function TierBadge({ tier }: { tier: CohortTier }) {
   const classes =
     tier === "small_group"
-      ? "bg-teal-400/10 text-teal-300 border-teal-400/20"
-      : "bg-indigo-400/10 text-indigo-300 border-indigo-400/20";
+      ? "bg-success/10 text-success-bright border-success/20"
+      : "bg-gold/10 text-gold-bright border-gold/20";
   return (
     <span
       className={cn("inline-block rounded-md border px-2 py-0.5 text-xs font-semibold", classes)}
@@ -518,9 +512,9 @@ function TierBadge({ tier }: { tier: CohortTier }) {
 
 function StatusBadge({ status }: { status: CohortStatus }) {
   const map: Record<CohortStatus, string> = {
-    forming: "bg-slate-400/10 text-slate-300 border-slate-400/20",
-    active: "bg-emerald-400/10 text-emerald-300 border-emerald-400/20",
-    completed: "bg-slate-600/20 text-slate-400 border-slate-600/30",
+    forming: "bg-surface-raised/10 text-ivory border-bronze/20",
+    active: "bg-success/10 text-success-bright border-success/20",
+    completed: "bg-surface-raised/20 text-taupe border-bronze/30",
   };
   return (
     <span

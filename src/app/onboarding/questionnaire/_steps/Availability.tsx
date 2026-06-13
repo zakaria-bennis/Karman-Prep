@@ -51,8 +51,8 @@ export function AvailabilityStep(props: {
                 className={cn(
                   "rounded-lg border px-2 py-2 text-[11px] font-semibold capitalize transition-colors",
                   on
-                    ? "border-blue-500 bg-blue-500 text-white"
-                    : "border-white/10 bg-white/[0.03] text-slate-200 hover:border-white/30"
+                    ? "border-info/40 bg-info text-ivory"
+                    : "border-ivory/10 bg-surface/[0.03] text-ivory hover:border-ivory/30"
                 )}
               >
                 {d.slice(0, 3)}
@@ -75,8 +75,8 @@ export function AvailabilityStep(props: {
                 className={cn(
                   "rounded-lg border px-3 py-2.5 text-xs font-semibold capitalize transition-colors",
                   on
-                    ? "border-blue-500 bg-blue-500 text-white"
-                    : "border-white/10 bg-white/[0.03] text-slate-200 hover:border-white/30"
+                    ? "border-info/40 bg-info text-ivory"
+                    : "border-ivory/10 bg-surface/[0.03] text-ivory hover:border-ivory/30"
                 )}
               >
                 <div>{t}</div>
@@ -94,15 +94,15 @@ export function AvailabilityStep(props: {
         <select
           value={props.timeZone}
           onChange={(e) => props.setTimeZone(e.target.value)}
-          className="w-full rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-slate-100 focus:border-blue-400 focus:outline-none"
+          className="w-full rounded-lg border border-ivory/10 bg-surface/[0.03] px-3 py-2 text-sm text-ivory focus:border-info/40 focus:outline-none"
         >
           {COMMON_TZ.map((tz) => (
-            <option key={tz} value={tz} className="bg-slate-900">
+            <option key={tz} value={tz} className="bg-surface">
               {tz}
             </option>
           ))}
           {!COMMON_TZ.includes(props.timeZone) && (
-            <option value={props.timeZone} className="bg-slate-900">
+            <option value={props.timeZone} className="bg-surface">
               {props.timeZone}
             </option>
           )}

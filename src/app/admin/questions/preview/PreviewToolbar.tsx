@@ -69,8 +69,8 @@ export function PreviewToolbar({
     filters.hasFigure !== "all";
 
   return (
-    <div className="flex flex-wrap items-center gap-3 border-b border-slate-800 bg-slate-900/40 px-4 py-2.5">
-      <div className="flex items-center gap-1.5 text-xs text-slate-400">
+    <div className="flex flex-wrap items-center gap-3 border-b border-bronze bg-surface/40 px-4 py-2.5">
+      <div className="flex items-center gap-1.5 text-xs text-taupe">
         <Filter className="h-3.5 w-3.5" />
         <span>Filters</span>
       </div>
@@ -121,7 +121,7 @@ export function PreviewToolbar({
       />
 
       {anyFilterSet && (
-        <button onClick={onClearFilters} className="text-xs text-slate-400 hover:text-slate-200">
+        <button onClick={onClearFilters} className="text-xs text-taupe hover:text-ivory">
           Clear filters
         </button>
       )}
@@ -130,40 +130,40 @@ export function PreviewToolbar({
       <div className="ml-auto flex items-center gap-3">
         <button
           onClick={onOpenCheatSheet}
-          className="inline-flex items-center gap-1 rounded-lg border border-slate-700 bg-slate-900 px-2 py-1 text-[11px] text-slate-300 hover:border-slate-600 hover:text-white"
+          className="inline-flex items-center gap-1 rounded-lg border border-bronze bg-surface px-2 py-1 text-[11px] text-ivory hover:border-bronze hover:text-ivory"
           title="Keyboard shortcuts (?)"
           aria-label="Open keyboard shortcuts"
         >
           <Keyboard className="h-3 w-3" />
-          <span className="font-mono text-[10px] text-slate-400">?</span>
+          <span className="font-mono text-[10px] text-taupe">?</span>
         </button>
         <DeviceFrameToggle value={device} onChange={onChangeDevice} />
         <div className="flex items-center gap-2">
-          <span className="text-xs text-slate-400">
+          <span className="text-xs text-taupe">
             {totalCount === 0 ? (
               "0 questions"
             ) : (
               <>
-                <span className="font-semibold text-slate-200">{currentIndex + 1}</span>
-                <span className="text-slate-500"> of {totalCount}</span>
+                <span className="font-semibold text-ivory">{currentIndex + 1}</span>
+                <span className="text-taupe"> of {totalCount}</span>
               </>
             )}
           </span>
           <button
             onClick={onPrev}
             disabled={currentIndex === 0 || totalCount === 0}
-            className="rounded-md border border-slate-700 bg-slate-800 p-1.5 hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-40"
+            className="rounded-md border border-bronze bg-surface-raised p-1.5 hover:bg-surface-raised disabled:cursor-not-allowed disabled:opacity-40"
             aria-label="Previous question"
           >
-            <ChevronLeft className="h-4 w-4 text-slate-200" />
+            <ChevronLeft className="h-4 w-4 text-ivory" />
           </button>
           <button
             onClick={onNext}
             disabled={currentIndex >= totalCount - 1 || totalCount === 0}
-            className="rounded-md border border-slate-700 bg-slate-800 p-1.5 hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-40"
+            className="rounded-md border border-bronze bg-surface-raised p-1.5 hover:bg-surface-raised disabled:cursor-not-allowed disabled:opacity-40"
             aria-label="Next question"
           >
-            <ChevronRight className="h-4 w-4 text-slate-200" />
+            <ChevronRight className="h-4 w-4 text-ivory" />
           </button>
         </div>
       </div>
@@ -187,8 +187,8 @@ function Select({
       value={value}
       onChange={(e) => onChange(e.target.value)}
       className={cn(
-        "rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-1 text-xs text-slate-100",
-        "focus:border-indigo-500 focus:outline-none",
+        "rounded-lg border border-bronze bg-surface px-2.5 py-1 text-xs text-ivory",
+        "focus:border-gold/40 focus:outline-none",
         className
       )}
     >

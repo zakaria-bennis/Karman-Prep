@@ -73,3 +73,9 @@ next-env.d.ts
 
 # Question audit working output
 audit-out/
+
+# Scratch dir — one-off migration scripts, never commit
+/tmp/
+
+# Loose source PDFs — raw imports go through incoming/done, never commit raw
+/question-imports/*.pdf

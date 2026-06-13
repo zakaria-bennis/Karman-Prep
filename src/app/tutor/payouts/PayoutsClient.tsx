@@ -80,18 +80,18 @@ export default function PayoutsClient({
   // ── Already-succeeded confirmation ──────────────────
   if (result) {
     return (
-      <div className="rounded-xl border border-emerald-300 bg-emerald-50 p-6 dark:border-emerald-500/40 dark:bg-emerald-500/10">
+      <div className="rounded-xl border border-success/40 bg-success/10 p-6 dark:border-success/40 dark:bg-success/10">
         <div className="flex items-start gap-3">
-          <CheckCircle2 className="h-6 w-6 shrink-0 text-emerald-600 dark:text-emerald-400" />
+          <CheckCircle2 className="h-6 w-6 shrink-0 text-success dark:text-success" />
           <div className="flex-1">
-            <h2 className="text-lg font-bold text-emerald-800 dark:text-emerald-200">
+            <h2 className="text-lg font-bold text-success dark:text-success-bright">
               Payout {result.method === "instant" ? "sent instantly" : "scheduled"}
             </h2>
-            <p className="mt-1 text-sm text-emerald-700 dark:text-emerald-300/90">
+            <p className="mt-1 text-sm text-success dark:text-success-bright/90">
               {fmt.format(result.net_amount)} {result.arrival_estimate}.
               {result.fee_amount > 0 && <> A 2.5% fee was applied.</>}
             </p>
-            <ul className="mt-3 space-y-0.5 text-xs text-emerald-700 dark:text-emerald-300/80">
+            <ul className="mt-3 space-y-0.5 text-xs text-success dark:text-success-bright/80">
               <li>
                 {result.booking_count} session{result.booking_count === 1 ? "" : "s"}
               </li>
@@ -107,21 +107,21 @@ export default function PayoutsClient({
   return (
     <div className="space-y-6">
       {/* ── Hero — pending + 2 buttons ─────────────────── */}
-      <section className="rounded-xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900/60">
+      <section className="rounded-xl border border-bronze bg-surface p-6 dark:border-bronze dark:bg-surface/60">
         <div className="flex flex-wrap items-baseline gap-3">
-          <div className="text-xs font-bold uppercase tracking-wider text-slate-400">Pending</div>
-          <div className="text-4xl font-extrabold tabular-nums text-slate-900 dark:text-white">
+          <div className="text-xs font-bold uppercase tracking-wider text-taupe">Pending</div>
+          <div className="text-4xl font-extrabold tabular-nums text-ivory dark:text-ivory">
             {fmt.format(pendingAmount)}
           </div>
         </div>
-        <div className="mt-1 text-sm text-slate-400">
+        <div className="mt-1 text-sm text-taupe">
           {eligibleSessions.length} session{eligibleSessions.length === 1 ? "" : "s"} ·{" "}
           {totalHours.toFixed(2)} hours
         </div>
 
         {pendingAmount === 0 ? (
-          <div className="mt-5 rounded-lg border border-dashed border-slate-300 p-4 text-center dark:border-slate-700">
-            <p className="text-sm text-slate-400">
+          <div className="mt-5 rounded-lg border border-dashed border-bronze p-4 text-center dark:border-bronze">
+            <p className="text-sm text-taupe">
               No pending earnings. Send recap emails to mark sessions for payout.
             </p>
           </div>
@@ -132,7 +132,7 @@ export default function PayoutsClient({
               <button
                 onClick={() => request("instant")}
                 disabled={isPending}
-                className="group rounded-xl border-2 border-blue-500 bg-blue-600 p-4 text-left text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
+                className="group rounded-xl border-2 border-info/40 bg-info p-4 text-left text-ivory transition hover:bg-info-bright disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider opacity-80">
                   <CreditCard className="h-4 w-4" />
@@ -145,18 +145,18 @@ export default function PayoutsClient({
                 {isPending ? <Loader2 className="mt-3 h-4 w-4 animate-spin" /> : null}
               </button>
             ) : (
-              <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-900/40">
-                <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-400">
+              <div className="rounded-xl border border-dashed border-bronze bg-surface p-4 dark:border-bronze dark:bg-surface/40">
+                <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-taupe">
                   <CreditCard className="h-4 w-4" />
                   Instant — locked
                 </div>
-                <div className="mt-2 text-sm leading-snug text-slate-600 dark:text-slate-400">
+                <div className="mt-2 text-sm leading-snug text-taupe dark:text-taupe">
                   Instant payouts require a debit card on file. Add one in Payment Settings to
                   unlock.
                 </div>
                 <Link
                   href="/tutor/settings/payment"
-                  className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-blue-600 hover:underline dark:text-blue-400"
+                  className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-info hover:underline dark:text-info"
                 >
                   Add debit card →
                 </Link>
@@ -167,25 +167,23 @@ export default function PayoutsClient({
             <button
               onClick={() => request("standard")}
               disabled={isPending}
-              className="group rounded-xl border border-slate-300 bg-white p-4 text-left transition hover:border-emerald-400 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700 dark:bg-slate-900"
+              className="group rounded-xl border border-bronze bg-surface p-4 text-left transition hover:border-success/40 disabled:cursor-not-allowed disabled:opacity-40 dark:border-bronze dark:bg-surface"
             >
-              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-success dark:text-success">
                 <Banknote className="h-4 w-4" />
                 ACH — to bank account
               </div>
-              <div className="mt-2 text-2xl font-extrabold tabular-nums text-slate-900 dark:text-white">
+              <div className="mt-2 text-2xl font-extrabold tabular-nums text-ivory dark:text-ivory">
                 {fmt.format(pendingAmount)}
               </div>
-              <div className="mt-1 text-xs text-slate-400">
-                No fee · arrives in 2-3 business days
-              </div>
-              {isPending ? <Loader2 className="mt-3 h-4 w-4 animate-spin text-slate-400" /> : null}
+              <div className="mt-1 text-xs text-taupe">No fee · arrives in 2-3 business days</div>
+              {isPending ? <Loader2 className="mt-3 h-4 w-4 animate-spin text-taupe" /> : null}
             </button>
           </div>
         )}
 
         {error && (
-          <div className="mt-4 flex items-start gap-2 rounded-lg border border-rose-300 bg-rose-50 px-4 py-3 text-sm text-rose-800 dark:border-rose-500/40 dark:bg-rose-500/10 dark:text-rose-200">
+          <div className="mt-4 flex items-start gap-2 rounded-lg border border-error/40 bg-error/10 px-4 py-3 text-sm text-error dark:border-error/40 dark:bg-error/10 dark:text-error-bright">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
             {error}
           </div>
@@ -195,34 +193,34 @@ export default function PayoutsClient({
       {/* ── Eligible sessions ─────────────────────────── */}
       {eligibleSessions.length > 0 && (
         <section>
-          <h2 className="mb-3 text-sm font-bold text-slate-900 dark:text-white">
+          <h2 className="mb-3 text-sm font-bold text-ivory dark:text-ivory">
             Sessions in this payout ({eligibleSessions.length})
           </h2>
-          <div className="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800">
+          <div className="overflow-hidden rounded-xl border border-bronze dark:border-bronze">
             <table className="w-full text-sm">
-              <thead className="bg-slate-100 dark:bg-slate-900">
-                <tr className="text-left text-[11px] font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-400">
+              <thead className="bg-surface dark:bg-surface">
+                <tr className="text-left text-[11px] font-semibold uppercase tracking-wide text-taupe dark:text-taupe">
                   <th className="px-4 py-2.5">Date</th>
                   <th className="px-4 py-2.5">Student</th>
                   <th className="px-4 py-2.5 text-right">Hours</th>
                   <th className="px-4 py-2.5 text-right">Amount</th>
                 </tr>
               </thead>
-              <tbody className="bg-white dark:bg-slate-950">
+              <tbody className="bg-surface dark:bg-night">
                 {eligibleSessions.map((s) => (
-                  <tr key={s.id} className="border-t border-slate-200 dark:border-slate-800">
-                    <td className="whitespace-nowrap px-4 py-2.5 text-slate-700 dark:text-slate-300">
-                      <Calendar className="mr-1.5 inline h-3 w-3 text-slate-400" />
+                  <tr key={s.id} className="border-t border-bronze dark:border-bronze">
+                    <td className="whitespace-nowrap px-4 py-2.5 text-ivory dark:text-ivory">
+                      <Calendar className="mr-1.5 inline h-3 w-3 text-taupe" />
                       {formatDate(s.scheduled_start)}
                     </td>
-                    <td className="max-w-[16rem] truncate px-4 py-2.5 font-medium text-slate-900 dark:text-white">
+                    <td className="max-w-[16rem] truncate px-4 py-2.5 font-medium text-ivory dark:text-ivory">
                       {studentName(s, studentSessionCounts)}
                     </td>
-                    <td className="px-4 py-2.5 text-right tabular-nums text-slate-600 dark:text-slate-400">
-                      <Clock className="mr-1 inline h-3 w-3 text-slate-400" />
+                    <td className="px-4 py-2.5 text-right tabular-nums text-taupe dark:text-taupe">
+                      <Clock className="mr-1 inline h-3 w-3 text-taupe" />
                       {s.tutor_hours?.toFixed(2) ?? "—"}h
                     </td>
-                    <td className="px-4 py-2.5 text-right font-semibold tabular-nums text-slate-900 dark:text-white">
+                    <td className="px-4 py-2.5 text-right font-semibold tabular-nums text-ivory dark:text-ivory">
                       {s.payout_amount != null ? fmt.format(s.payout_amount) : "—"}
                     </td>
                   </tr>
@@ -236,20 +234,20 @@ export default function PayoutsClient({
       {/* ── History ───────────────────────────────────── */}
       {history.length > 0 && (
         <section>
-          <h2 className="mb-3 text-sm font-bold text-slate-900 dark:text-white">Payout history</h2>
+          <h2 className="mb-3 text-sm font-bold text-ivory dark:text-ivory">Payout history</h2>
           <ul className="space-y-2">
             {history.map((p) => (
               <li
                 key={p.id}
-                className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-900/60"
+                className="flex items-center justify-between gap-3 rounded-lg border border-bronze bg-surface px-4 py-3 dark:border-bronze dark:bg-surface/60"
               >
                 <div className="flex min-w-0 items-center gap-3">
                   <HistoryStatusPill status={p.status} />
                   <div className="min-w-0">
-                    <div className="font-bold tabular-nums text-slate-900 dark:text-white">
+                    <div className="font-bold tabular-nums text-ivory dark:text-ivory">
                       {fmt.format(p.net_amount ?? p.total_amount)}
                     </div>
-                    <div className="text-xs text-slate-400">
+                    <div className="text-xs text-taupe">
                       {p.booking_count ?? 0} session{p.booking_count === 1 ? "" : "s"} ·{" "}
                       {p.total_hours.toFixed(2)}h
                       {p.payout_method && (
@@ -267,7 +265,7 @@ export default function PayoutsClient({
                     </div>
                   </div>
                 </div>
-                <div className="shrink-0 text-right text-xs text-slate-400">
+                <div className="shrink-0 text-right text-xs text-taupe">
                   {formatDate(p.requested_at)}
                 </div>
               </li>
@@ -330,23 +328,23 @@ function HistoryStatusPill({ status }: { status: string }) {
   const map: Record<string, { label: string; cls: string }> = {
     pending_approval: {
       label: "In progress",
-      cls: "bg-blue-100 dark:bg-blue-400/15 text-blue-700 dark:text-blue-300",
+      cls: "bg-info/10 dark:bg-info/15 text-info dark:text-info-bright",
     },
     approved: {
       label: "Payment in flight",
-      cls: "bg-purple-100 dark:bg-purple-400/15 text-purple-700 dark:text-purple-300",
+      cls: "bg-gold/10 dark:bg-gold/15 text-gold dark:text-gold-bright",
     },
     paid: {
       label: "Paid",
-      cls: "bg-emerald-100 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300",
+      cls: "bg-success/10 dark:bg-success/15 text-success dark:text-success-bright",
     },
-    cancelled: { label: "Cancelled", cls: "bg-slate-200 dark:bg-slate-800 text-slate-400" },
+    cancelled: { label: "Cancelled", cls: "bg-surface dark:bg-surface-raised text-taupe" },
     failed: {
       label: "Failed",
-      cls: "bg-rose-100 dark:bg-rose-500/15 text-rose-700 dark:text-rose-300",
+      cls: "bg-error/10 dark:bg-error/15 text-error dark:text-error-bright",
     },
   };
-  const m = map[status] ?? { label: status, cls: "bg-slate-100 dark:bg-slate-800 text-slate-400" };
+  const m = map[status] ?? { label: status, cls: "bg-surface dark:bg-surface-raised text-taupe" };
   return (
     <span
       className={cn(

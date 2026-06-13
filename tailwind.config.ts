@@ -14,37 +14,54 @@ const config: Config = {
         foreground: "var(--foreground)",
 
         // ── Observatory palette (docs/brand.md) ───────────────────────
-        // Sourced from CSS variables in globals.css :root so any future
-        // theme override (e.g. high-contrast mode) flows through a single
-        // place. Tailwind class names are short descriptive nouns that
-        // match the "Brand name" column in docs/brand.md.
+        // Hex literals (NOT the CSS vars from globals.css) so Tailwind can
+        // generate opacity modifiers — `border-bronze/60`, `text-taupe/70`
+        // etc. don't work against `var(...)` colors in Tailwind v3. The
+        // :root variables remain for plain-CSS consumers; keep both in
+        // sync with the "Brand name" table in docs/brand.md.
         //
         // Foundation — warm dark canvas
-        night: "var(--bg-night)", //              #070605  page background
-        espresso: "var(--bg-espresso)", //        #0D0A08  alt sections
-        charcoal: "var(--bg-charcoal)", //        #12110D  section dividers
-        surface: "var(--surface)", //             #171611  default card
-        "surface-raised": "var(--surface-raised)", // #222018 elevated card/modal
-        ivory: "var(--text-primary)", //          #F3ECDD  primary text on dark
-        taupe: "var(--text-muted)", //            #B8B0A1  secondary text
-        bronze: "var(--border)", //               #3B3426  default border
+        night: "#070605", //          page background
+        espresso: "#0D0A08", //       alt sections
+        charcoal: "#12110D", //       section dividers
+        surface: "#171611", //        default card
+        "surface-raised": "#222018", // elevated card/modal
+        ivory: "#F3ECDD", //          primary text on dark
+        taupe: "#B8B0A1", //          secondary text
+        bronze: "#3B3426", //         default border
         // Prestige — gold (used SPARINGLY per brand brief)
-        gold: "var(--accent-gold)", //            #C8AB6A  CTAs, mastery, brand moments
-        "gold-bright": "var(--accent-gold-bright)", // #E4C86A focus rings, twinkle
+        gold: "#C8AB6A", //           CTAs, mastery, brand moments
+        "gold-bright": "#E4C86A", //  focus rings, twinkle
         // Constellation accents — subject signals (not full-page themes)
-        rw: "var(--subject-rw)", //               #D84F73  R&W signal
-        "rw-glow": "var(--subject-rw-glow)", //   #F06A8C  R&W ambient/hover
-        math: "var(--subject-math)", //           #2FA8FF  Math signal
-        "math-glow": "var(--subject-math-glow)", // #42D9FF Math ambient/hover
+        rw: "#D84F73", //             R&W signal
+        "rw-glow": "#F06A8C", //      R&W ambient/hover
+        math: "#2FA8FF", //           Math signal
+        "math-glow": "#42D9FF", //    Math ambient/hover
 
-        // ── Legacy SAT domain colors (old cloud palette) ──────────────
-        // Kept until every consumer migrates to the constellation accents
-        // above. Targeted for removal in roadmap chunk 7 (UI redesign).
-        algebra: "#3B82F6",
-        "adv-math": "#A855F7",
-        geometry: "#14B8A6",
-        "data-analy": "#F59E0B",
-        "read-write": "#FB7185",
+        // ── Semantic status palette (docs/brand.md "Status colors") ───
+        // Warm-compatible so status reads on the espresso canvas without
+        // the cool-green / cool-amber clash. error→rose and info→blue are
+        // the same hues as the constellation signals, named semantically
+        // so dashboard code reads intent (text-error) not signal (text-rw).
+        success: "#8BA86A", //        moss — pass, mastered, paid, on-track
+        "success-bright": "#A6C486", // emphasis / icons on dark
+        warning: "#E0A24A", //        amber — pending, due soon, caution
+        "warning-bright": "#F0BE72",
+        error: "#D84F73", //          rose — fail, reject, overdue, error
+        "error-bright": "#F06A8C",
+        info: "#2FA8FF", //           blue — neutral info, hints
+        "info-bright": "#42D9FF",
+
+        // ── SAT domain colors — warm subject signals ──────────────────
+        // The five SAT domains collapse to two subject signals (Math blue,
+        // R&W rose) per docs/brand.md. The four math sub-domains keep
+        // distinguishable blue shades so domain-breakdown charts stay
+        // legible; reading carries the rose signal.
+        algebra: "#2FA8FF", //        Math — Algebra
+        "adv-math": "#42D9FF", //     Math — Advanced
+        geometry: "#7FC4FF", //       Math — Geometry / Trig
+        "data-analy": "#2B7FC4", //   Math — Data / Stats
+        "read-write": "#D84F73", //   Reading & Writing
       },
       fontFamily: {
         // ── Observatory type stack (docs/brand.md) ────────────────────

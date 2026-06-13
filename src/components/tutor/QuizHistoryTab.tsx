@@ -27,8 +27,8 @@ export default function QuizHistoryTab({ attempts, responsesByAttempt }: Props) 
 
   if (sorted.length === 0) {
     return (
-      <div className="rounded-lg border border-dashed border-slate-300 p-10 text-center dark:border-slate-700">
-        <p className="text-sm text-slate-400">No quiz attempts yet.</p>
+      <div className="rounded-lg border border-dashed border-bronze p-10 text-center dark:border-bronze">
+        <p className="text-sm text-taupe">No quiz attempts yet.</p>
       </div>
     );
   }
@@ -57,20 +57,18 @@ export default function QuizHistoryTab({ attempts, responsesByAttempt }: Props) 
         return (
           <article
             key={a.id}
-            className="rounded-lg border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900"
+            className="rounded-lg border border-bronze bg-surface dark:border-bronze dark:bg-surface"
           >
             <header
-              className="flex cursor-pointer items-center gap-4 p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+              className="flex cursor-pointer items-center gap-4 p-4 hover:bg-surface dark:hover:bg-surface-raised/50"
               onClick={() => setOpenId(isOpen ? null : a.id)}
             >
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <h3 className="truncate font-semibold text-slate-900 dark:text-white">
-                    {nodeTopic}
-                  </h3>
-                  <span className="text-xs text-slate-400">#{a.attempt_number}</span>
+                  <h3 className="truncate font-semibold text-ivory dark:text-ivory">{nodeTopic}</h3>
+                  <span className="text-xs text-taupe">#{a.attempt_number}</span>
                 </div>
-                <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-400">
+                <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-taupe">
                   <span>{new Date(a.started_at).toLocaleString()}</span>
                   {timeTaken !== null && (
                     <>
@@ -91,10 +89,10 @@ export default function QuizHistoryTab({ attempts, responsesByAttempt }: Props) 
                       className={cn(
                         "text-2xl font-extrabold tabular-nums",
                         (a.score ?? 0) >= 80
-                          ? "text-emerald-500"
+                          ? "text-success"
                           : (a.score ?? 0) >= 60
-                            ? "text-amber-500"
-                            : "text-red-500"
+                            ? "text-warning"
+                            : "text-error"
                       )}
                     >
                       {a.score}%
@@ -112,38 +110,36 @@ export default function QuizHistoryTab({ attempts, responsesByAttempt }: Props) 
                     )}
                   </>
                 ) : (
-                  <span className="text-xs text-slate-400">Incomplete</span>
+                  <span className="text-xs text-taupe">Incomplete</span>
                 )}
               </div>
               {isOpen ? (
-                <ChevronUp className="h-4 w-4 text-slate-400" />
+                <ChevronUp className="h-4 w-4 text-taupe" />
               ) : (
-                <ChevronDown className="h-4 w-4 text-slate-400" />
+                <ChevronDown className="h-4 w-4 text-taupe" />
               )}
             </header>
 
             {isOpen && (
-              <div className="border-t border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900/50">
-                <h4 className="mb-2 text-xs font-bold uppercase tracking-widest text-slate-400">
+              <div className="border-t border-bronze bg-surface p-4 dark:border-bronze dark:bg-surface/50">
+                <h4 className="mb-2 text-xs font-bold uppercase tracking-widest text-taupe">
                   Adaptive path
                 </h4>
                 {a.adaptive_path.length === 0 ? (
-                  <p className="text-xs text-slate-400">No steps recorded.</p>
+                  <p className="text-xs text-taupe">No steps recorded.</p>
                 ) : (
                   <ol className="space-y-1.5">
                     {a.adaptive_path.map((step, i) => {
                       const r = responses.find((x) => x.question_id === step.question_id);
                       return (
                         <li key={i} className="flex items-center gap-3 text-xs">
-                          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-200 text-[10px] font-bold text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-surface text-[10px] font-bold text-taupe dark:bg-surface-raised dark:text-ivory">
                             {i + 1}
                           </span>
                           <span
                             className={cn(
                               "flex h-5 w-5 items-center justify-center rounded",
-                              step.was_correct
-                                ? "bg-emerald-500 text-white"
-                                : "bg-rose-500 text-white"
+                              step.was_correct ? "bg-success text-night" : "bg-error text-ivory"
                             )}
                           >
                             {step.was_correct ? (
@@ -152,11 +148,11 @@ export default function QuizHistoryTab({ attempts, responsesByAttempt }: Props) 
                               <XIcon className="h-3 w-3" />
                             )}
                           </span>
-                          <span className="font-semibold text-slate-700 dark:text-slate-300">
+                          <span className="font-semibold text-ivory dark:text-ivory">
                             {step.difficulty}
                           </span>
                           {r && (
-                            <span className="text-slate-400">
+                            <span className="text-taupe">
                               — chose {r.student_answer} in {r.response_time_seconds}s
                             </span>
                           )}

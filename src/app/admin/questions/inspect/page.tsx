@@ -91,59 +91,59 @@ export default async function InspectorPage({ searchParams }: PageProps) {
       <div className="mb-6">
         <Link
           href="/admin/curriculum"
-          className="mb-3 inline-flex items-center gap-1 text-xs text-slate-400 hover:text-slate-300"
+          className="mb-3 inline-flex items-center gap-1 text-xs text-taupe hover:text-ivory"
         >
           <ChevronRight className="h-3 w-3 rotate-180" /> Back to admin
         </Link>
         <div className="flex items-start justify-between gap-2">
-          <h1 className="flex items-center gap-2 text-2xl font-bold text-white">
-            <Microscope className="h-5 w-5 text-violet-400" /> Inspector
+          <h1 className="flex items-center gap-2 text-2xl font-bold text-ivory">
+            <Microscope className="h-5 w-5 text-gold" /> Inspector
           </h1>
           <div className="flex items-center gap-2">
             <Link
               href="/admin/questions/chart-review"
-              className="inline-flex items-center gap-1.5 rounded-md border border-slate-700 bg-slate-900/60 px-3 py-1.5 text-xs font-semibold text-slate-200 hover:bg-slate-800"
+              className="inline-flex items-center gap-1.5 rounded-md border border-bronze bg-surface/60 px-3 py-1.5 text-xs font-semibold text-ivory hover:bg-surface-raised"
             >
               <LineChart className="h-3.5 w-3.5" /> Chart review
             </Link>
             <Link
               href="/admin/questions/geometry-review"
-              className="inline-flex items-center gap-1.5 rounded-md border border-slate-700 bg-slate-900/60 px-3 py-1.5 text-xs font-semibold text-slate-200 hover:bg-slate-800"
+              className="inline-flex items-center gap-1.5 rounded-md border border-bronze bg-surface/60 px-3 py-1.5 text-xs font-semibold text-ivory hover:bg-surface-raised"
             >
               <Shapes className="h-3.5 w-3.5" /> Geometry review
             </Link>
             <Link
               href="/admin/questions/dashboard"
-              className="inline-flex items-center gap-1.5 rounded-md border border-slate-700 bg-slate-900/60 px-3 py-1.5 text-xs font-semibold text-slate-200 hover:bg-slate-800"
+              className="inline-flex items-center gap-1.5 rounded-md border border-bronze bg-surface/60 px-3 py-1.5 text-xs font-semibold text-ivory hover:bg-surface-raised"
             >
               <BarChart3 className="h-3.5 w-3.5" /> Quality dashboard
             </Link>
           </div>
         </div>
-        <p className="mt-1.5 text-sm text-slate-400">
+        <p className="mt-1.5 text-sm text-taupe">
           {summary.questions_with_findings} questions with findings · {summary.total_findings} total
-          (<span className="text-rose-400">{summary.blocking} blocking</span> ·{" "}
-          <span className="text-amber-300">{summary.warning} warning</span> ·{" "}
-          <span className="text-slate-400">{summary.notice} notice</span>) · {summary.unique_codes}{" "}
+          (<span className="text-error">{summary.blocking} blocking</span> ·{" "}
+          <span className="text-warning-bright">{summary.warning} warning</span> ·{" "}
+          <span className="text-taupe">{summary.notice} notice</span>) · {summary.unique_codes}{" "}
           distinct codes
           {filter.source_pdf && (
             <>
               {" · "}
-              <span className="rounded-md border border-violet-500/40 bg-violet-500/[0.08] px-1.5 py-0.5 font-mono text-[10px] text-violet-200">
+              <span className="rounded-md border border-gold/40 bg-gold/[0.08] px-1.5 py-0.5 font-mono text-[10px] text-gold-bright">
                 scoped: {filter.source_pdf}
               </span>{" "}
               <Link
                 href="/admin/questions/inspect"
-                className="text-[10px] text-slate-400 underline hover:text-slate-200"
+                className="text-[10px] text-taupe underline hover:text-ivory"
               >
                 clear
               </Link>
             </>
           )}
         </p>
-        <p className="mt-1 text-xs text-slate-500">
+        <p className="mt-1 text-xs text-taupe">
           Populated by{" "}
-          <code className="rounded bg-slate-800 px-1 py-0.5">
+          <code className="rounded bg-surface-raised px-1 py-0.5">
             scripts/question-audit/ingest-findings.mjs
           </code>
           . Re-run after each audit pass to refresh.
@@ -151,7 +151,7 @@ export default async function InspectorPage({ searchParams }: PageProps) {
       </div>
 
       {params.accepted && (
-        <div className="mb-4 flex items-center gap-2 rounded-xl border border-emerald-500/40 bg-emerald-500/[0.06] px-4 py-3 text-sm text-emerald-200">
+        <div className="mb-4 flex items-center gap-2 rounded-xl border border-success/40 bg-success/[0.06] px-4 py-3 text-sm text-success-bright">
           <CheckCircle2 className="h-4 w-4 shrink-0" />
           <span>Question accepted as live · all findings auto-resolved.</span>
         </div>
@@ -199,16 +199,16 @@ function ActivityCard({
   const isGrowing = data.net_change > 0;
   const Icon = isShrinking ? TrendingDown : isGrowing ? TrendingUp : Activity;
   const netClass = isShrinking
-    ? "text-emerald-300"
+    ? "text-success-bright"
     : isGrowing
-      ? "text-rose-300"
-      : "text-slate-400";
+      ? "text-error-bright"
+      : "text-taupe";
   const netSign = data.net_change > 0 ? "+" : "";
   return (
-    <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-4">
-      <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-        <div className="flex items-center gap-2 text-xs font-semibold text-slate-300">
-          <Activity className="h-3.5 w-3.5 text-slate-400" />
+    <div className="rounded-xl border border-bronze bg-surface/40 p-4">
+      <div className="flex items-center justify-between border-b border-bronze pb-2">
+        <div className="flex items-center gap-2 text-xs font-semibold text-ivory">
+          <Activity className="h-3.5 w-3.5 text-taupe" />
           {label}
         </div>
         <div className={`flex items-center gap-1 text-xs font-bold ${netClass}`}>
@@ -219,26 +219,26 @@ function ActivityCard({
       </div>
       <div className="mt-2 grid grid-cols-2 gap-3 text-xs">
         <div>
-          <div className="text-[10px] uppercase tracking-wider text-slate-500">New findings</div>
-          <div className="mt-0.5 text-lg font-bold text-slate-100">{data.new_findings}</div>
+          <div className="text-[10px] uppercase tracking-wider text-taupe">New findings</div>
+          <div className="mt-0.5 text-lg font-bold text-ivory">{data.new_findings}</div>
           {data.new_findings > 0 && (
             <div className="mt-0.5 flex items-center gap-2 text-[10px]">
               {data.new_blocking > 0 && (
-                <span className="text-rose-300">{data.new_blocking} blocking</span>
+                <span className="text-error-bright">{data.new_blocking} blocking</span>
               )}
               {data.new_warning > 0 && (
-                <span className="text-amber-300">{data.new_warning} warning</span>
+                <span className="text-warning-bright">{data.new_warning} warning</span>
               )}
-              {data.new_notice > 0 && (
-                <span className="text-slate-400">{data.new_notice} notice</span>
-              )}
+              {data.new_notice > 0 && <span className="text-taupe">{data.new_notice} notice</span>}
             </div>
           )}
         </div>
         <div>
-          <div className="text-[10px] uppercase tracking-wider text-slate-500">Resolved</div>
-          <div className="mt-0.5 text-lg font-bold text-emerald-300">{data.resolved_findings}</div>
-          <div className="mt-0.5 text-[10px] text-slate-500">
+          <div className="text-[10px] uppercase tracking-wider text-taupe">Resolved</div>
+          <div className="mt-0.5 text-lg font-bold text-success-bright">
+            {data.resolved_findings}
+          </div>
+          <div className="mt-0.5 text-[10px] text-taupe">
             {data.new_findings === 0 && data.resolved_findings === 0
               ? "no activity"
               : isShrinking

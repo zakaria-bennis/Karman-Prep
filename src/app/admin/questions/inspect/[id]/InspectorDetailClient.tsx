@@ -69,20 +69,20 @@ const SEVERITY_META: Record<
   BLOCKING: {
     label: "Blocking",
     icon: AlertOctagon,
-    cls: "text-rose-300",
-    rowCls: "border-rose-500/40 bg-rose-500/[0.06]",
+    cls: "text-error-bright",
+    rowCls: "border-error/40 bg-error/[0.06]",
   },
   WARNING: {
     label: "Warning",
     icon: AlertTriangle,
-    cls: "text-amber-300",
-    rowCls: "border-amber-500/40 bg-amber-500/[0.05]",
+    cls: "text-warning-bright",
+    rowCls: "border-warning/40 bg-warning/[0.05]",
   },
   NOTICE: {
     label: "Notice",
     icon: Info,
-    cls: "text-slate-400",
-    rowCls: "border-slate-700 bg-slate-800/30",
+    cls: "text-taupe",
+    rowCls: "border-bronze bg-surface-raised/30",
   },
 };
 
@@ -354,23 +354,23 @@ export default function InspectorDetailClient({
   return (
     <div className="space-y-4">
       {/* Top action bar */}
-      <div className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-800 bg-slate-900/50 px-4 py-3">
-        <div className="flex flex-1 items-center gap-2 text-xs text-slate-400">
+      <div className="flex flex-wrap items-center gap-2 rounded-xl border border-bronze bg-surface/50 px-4 py-3">
+        <div className="flex flex-1 items-center gap-2 text-xs text-taupe">
           <span>Status:</span>
           {question.is_live ? (
-            <span className="rounded bg-emerald-500/15 px-2 py-0.5 text-xs font-semibold text-emerald-300">
+            <span className="rounded bg-success/15 px-2 py-0.5 text-xs font-semibold text-success-bright">
               live
             </span>
           ) : (
-            <span className="rounded bg-amber-500/15 px-2 py-0.5 text-xs font-semibold text-amber-300">
+            <span className="rounded bg-warning/15 px-2 py-0.5 text-xs font-semibold text-warning-bright">
               {question.import_status ?? "draft"}
             </span>
           )}
-          <span className="text-slate-600">·</span>
+          <span className="text-taupe">·</span>
           <span>{blocking.length} blocking</span>
-          <span className="text-slate-600">·</span>
+          <span className="text-taupe">·</span>
           <span>{warning.length} warning</span>
-          <span className="text-slate-600">·</span>
+          <span className="text-taupe">·</span>
           <span>{notice.length} notice</span>
         </div>
         {editMode ? (
@@ -378,7 +378,7 @@ export default function InspectorDetailClient({
             <button
               onClick={saveEdits}
               disabled={topAction !== "idle"}
-              className="inline-flex items-center gap-1.5 rounded-md bg-violet-500/15 px-3 py-1.5 text-xs font-semibold text-violet-300 hover:bg-violet-500/25 disabled:cursor-not-allowed disabled:opacity-40"
+              className="inline-flex items-center gap-1.5 rounded-md bg-gold/15 px-3 py-1.5 text-xs font-semibold text-gold-bright hover:bg-gold/25 disabled:cursor-not-allowed disabled:opacity-40"
             >
               {topAction === "saving" ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -390,7 +390,7 @@ export default function InspectorDetailClient({
             <button
               onClick={cancelEdit}
               disabled={topAction !== "idle"}
-              className="inline-flex items-center gap-1.5 rounded-md border border-slate-700 px-3 py-1.5 text-xs font-semibold text-slate-300 hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-40"
+              className="inline-flex items-center gap-1.5 rounded-md border border-bronze px-3 py-1.5 text-xs font-semibold text-ivory hover:bg-surface-raised disabled:cursor-not-allowed disabled:opacity-40"
             >
               <X className="h-3.5 w-3.5" /> Cancel
             </button>
@@ -400,7 +400,7 @@ export default function InspectorDetailClient({
             <button
               onClick={enterEditMode}
               disabled={topAction !== "idle"}
-              className="inline-flex items-center gap-1.5 rounded-md bg-violet-500/15 px-3 py-1.5 text-xs font-semibold text-violet-300 hover:bg-violet-500/25 disabled:cursor-not-allowed disabled:opacity-40"
+              className="inline-flex items-center gap-1.5 rounded-md bg-gold/15 px-3 py-1.5 text-xs font-semibold text-gold-bright hover:bg-gold/25 disabled:cursor-not-allowed disabled:opacity-40"
             >
               <Pencil className="h-3.5 w-3.5" /> Edit fields
             </button>
@@ -408,7 +408,7 @@ export default function InspectorDetailClient({
               onClick={reaudit}
               disabled={topAction !== "idle"}
               title="Re-run deterministic audit checks on this row (same as the CLI auditor)"
-              className="inline-flex items-center gap-1.5 rounded-md border border-slate-700 bg-slate-800/40 px-3 py-1.5 text-xs font-semibold text-slate-200 hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-40"
+              className="inline-flex items-center gap-1.5 rounded-md border border-bronze bg-surface-raised/40 px-3 py-1.5 text-xs font-semibold text-ivory hover:bg-surface-raised disabled:cursor-not-allowed disabled:opacity-40"
             >
               {topAction === "reauditing" ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -421,7 +421,7 @@ export default function InspectorDetailClient({
               onClick={acceptLive}
               disabled={blocking.length > 0 || topAction !== "idle"}
               title={blocking.length > 0 ? "Resolve blocking findings first" : "Set live"}
-              className="inline-flex items-center gap-1.5 rounded-md bg-emerald-500/15 px-3 py-1.5 text-xs font-semibold text-emerald-300 hover:bg-emerald-500/25 disabled:cursor-not-allowed disabled:opacity-40"
+              className="inline-flex items-center gap-1.5 rounded-md bg-success/15 px-3 py-1.5 text-xs font-semibold text-success-bright hover:bg-success/25 disabled:cursor-not-allowed disabled:opacity-40"
             >
               {topAction === "accepting" ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -433,7 +433,7 @@ export default function InspectorDetailClient({
             <button
               onClick={flagForReview}
               disabled={topAction !== "idle"}
-              className="inline-flex items-center gap-1.5 rounded-md bg-amber-500/15 px-3 py-1.5 text-xs font-semibold text-amber-300 hover:bg-amber-500/25 disabled:cursor-not-allowed disabled:opacity-40"
+              className="inline-flex items-center gap-1.5 rounded-md bg-warning/15 px-3 py-1.5 text-xs font-semibold text-warning-bright hover:bg-warning/25 disabled:cursor-not-allowed disabled:opacity-40"
             >
               {topAction === "flagging" ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -451,8 +451,8 @@ export default function InspectorDetailClient({
           className={cn(
             "flex items-center gap-2 rounded-xl border px-4 py-3 text-sm",
             feedback.kind === "success"
-              ? "border-emerald-500/40 bg-emerald-500/[0.06] text-emerald-200"
-              : "border-rose-500/40 bg-rose-500/[0.06] text-rose-200"
+              ? "border-success/40 bg-success/[0.06] text-success-bright"
+              : "border-error/40 bg-error/[0.06] text-error-bright"
           )}
         >
           {feedback.kind === "success" ? (
@@ -481,12 +481,12 @@ export default function InspectorDetailClient({
       {/* Split pane */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.4fr_1fr]">
         {/* LEFT — student preview (view mode) OR editable form (edit mode) */}
-        <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-5">
-          <div className="mb-4 flex items-center justify-between border-b border-slate-800 pb-2">
-            <h2 className="text-sm font-semibold text-slate-200">
+        <div className="rounded-xl border border-bronze bg-surface/40 p-5">
+          <div className="mb-4 flex items-center justify-between border-b border-bronze pb-2">
+            <h2 className="text-sm font-semibold text-ivory">
               {editMode ? "Edit fields" : "Student preview"}
             </h2>
-            <span className="text-[10px] uppercase tracking-wider text-slate-500">
+            <span className="text-[10px] uppercase tracking-wider text-taupe">
               difficulty {question.difficulty_level ?? "?"} · {question.subject ?? "—"}
             </span>
           </div>
@@ -508,18 +508,18 @@ export default function InspectorDetailClient({
 
         {/* RIGHT — findings (always visible — admin reads the issue
             while editing the field) */}
-        <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-5">
-          <div className="mb-4 flex items-center justify-between border-b border-slate-800 pb-2">
-            <h2 className="text-sm font-semibold text-slate-200">Findings</h2>
-            <span className="text-[10px] uppercase tracking-wider text-slate-500">
+        <div className="rounded-xl border border-bronze bg-surface/40 p-5">
+          <div className="mb-4 flex items-center justify-between border-b border-bronze pb-2">
+            <h2 className="text-sm font-semibold text-ivory">Findings</h2>
+            <span className="text-[10px] uppercase tracking-wider text-taupe">
               {findings.length} active
             </span>
           </div>
 
           {findings.length === 0 ? (
             <div className="py-10 text-center">
-              <p className="text-sm text-slate-400">No active findings — looks clean.</p>
-              <p className="mt-1 text-xs text-slate-500">
+              <p className="text-sm text-taupe">No active findings — looks clean.</p>
+              <p className="mt-1 text-xs text-taupe">
                 Either none flagged, or all have been resolved.
               </p>
             </div>
@@ -551,21 +551,21 @@ export default function InspectorDetailClient({
                           <span className={cn("text-[10px] font-bold uppercase", meta.cls)}>
                             {meta.label}
                           </span>
-                          <code className="rounded bg-slate-800/60 px-1.5 py-0.5 font-mono text-[10px] text-slate-300">
+                          <code className="rounded bg-surface-raised/60 px-1.5 py-0.5 font-mono text-[10px] text-ivory">
                             {f.source}:{f.code}
                           </code>
-                          <span className="text-[10px] text-slate-500">{f.category}</span>
+                          <span className="text-[10px] text-taupe">{f.category}</span>
                         </div>
-                        <div className="mt-1 leading-relaxed text-slate-200">{f.message}</div>
+                        <div className="mt-1 leading-relaxed text-ivory">{f.message}</div>
                         {f.value && (
-                          <div className="mt-1 rounded bg-slate-950/60 px-2 py-1 font-mono text-[11px] text-slate-300">
+                          <div className="mt-1 rounded bg-night/60 px-2 py-1 font-mono text-[11px] text-ivory">
                             {f.value}
                           </div>
                         )}
                         {hasDetail && (
                           <button
                             onClick={() => toggleDetail(f.id)}
-                            className="mt-1.5 inline-flex items-center gap-0.5 text-[10px] font-semibold text-slate-400 hover:text-slate-200"
+                            className="mt-1.5 inline-flex items-center gap-0.5 text-[10px] font-semibold text-taupe hover:text-ivory"
                           >
                             {isExpanded ? (
                               <ChevronUp className="h-3 w-3" />
@@ -576,7 +576,7 @@ export default function InspectorDetailClient({
                           </button>
                         )}
                         {isExpanded && hasDetail && (
-                          <pre className="mt-2 max-h-64 overflow-auto whitespace-pre-wrap rounded bg-slate-950/80 p-2 font-mono text-[10px] leading-snug text-slate-300">
+                          <pre className="mt-2 max-h-64 overflow-auto whitespace-pre-wrap rounded bg-night/80 p-2 font-mono text-[10px] leading-snug text-ivory">
                             {JSON.stringify(f.detail, null, 2)}
                           </pre>
                         )}
@@ -586,7 +586,7 @@ export default function InspectorDetailClient({
                               onClick={() => applySuggested(f)}
                               disabled={applyingFindingId !== null}
                               title={`Set correct_answer to ${proAnswer} (Pro's suggestion) and resolve this finding`}
-                              className="inline-flex items-center gap-1.5 rounded-md bg-emerald-500/15 px-2 py-1 text-[10px] font-semibold text-emerald-200 hover:bg-emerald-500/25 disabled:cursor-not-allowed disabled:opacity-40"
+                              className="inline-flex items-center gap-1.5 rounded-md bg-success/15 px-2 py-1 text-[10px] font-semibold text-success-bright hover:bg-success/25 disabled:cursor-not-allowed disabled:opacity-40"
                             >
                               {applyingFindingId === f.id ? (
                                 <Loader2 className="h-3 w-3 animate-spin" />
@@ -604,7 +604,7 @@ export default function InspectorDetailClient({
                         onClick={() => resolve(f)}
                         disabled={busyId === f.id}
                         title="Resolve this finding"
-                        className="shrink-0 rounded-md border border-slate-700 px-2 py-1 text-[10px] font-semibold text-slate-300 hover:bg-slate-800 disabled:opacity-40"
+                        className="shrink-0 rounded-md border border-bronze px-2 py-1 text-[10px] font-semibold text-ivory hover:bg-surface-raised disabled:opacity-40"
                       >
                         {busyId === f.id ? "…" : "Resolve"}
                       </button>
@@ -621,12 +621,12 @@ export default function InspectorDetailClient({
 
       {/* Source-PDF reference */}
       {question.source_pdf && (
-        <div className="rounded-xl border border-slate-800 bg-slate-900/40 px-4 py-3 text-xs text-slate-400">
+        <div className="rounded-xl border border-bronze bg-surface/40 px-4 py-3 text-xs text-taupe">
           <ExternalLink className="mr-1.5 inline-block h-3.5 w-3.5" /> Source:{" "}
-          <span className="font-mono text-slate-300">{question.source_pdf}</span>, page{" "}
-          <span className="font-mono text-slate-300">{question.source_page}</span>. Original PDFs
-          live in R2 (<code>pdf-inbox/&lt;job-id&gt;/</code>); ask backend to render the page if
-          needed for manual diff.
+          <span className="font-mono text-ivory">{question.source_pdf}</span>, page{" "}
+          <span className="font-mono text-ivory">{question.source_page}</span>. Original PDFs live
+          in R2 (<code>pdf-inbox/&lt;job-id&gt;/</code>); ask backend to render the page if needed
+          for manual diff.
         </div>
       )}
     </div>

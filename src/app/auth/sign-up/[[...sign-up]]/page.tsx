@@ -15,7 +15,7 @@ export default function SignUpPage() {
       <Link href="/" className="relative z-10 mb-4" aria-label="Karman home">
         <KarmanLogo size={64} variant="stacked" />
       </Link>
-      <p className="relative z-10 mb-6 text-xs text-slate-400">7-day free trial</p>
+      <p className="relative z-10 mb-6 text-xs text-taupe">7-day free trial</p>
 
       <SignUp routing="path" path="/auth/sign-up" signInUrl="/auth/sign-in" />
     </div>

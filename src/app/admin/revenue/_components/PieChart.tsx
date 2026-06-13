@@ -40,7 +40,7 @@ export function PieChart({
           y={cy}
           textAnchor="middle"
           dominantBaseline="middle"
-          fill="#64748b"
+          fill="#B8B0A1"
           fontSize="12"
           fontWeight={600}
         >
@@ -78,8 +78,8 @@ export function PieChart({
             />
           );
         })}
-      <circle cx={cx} cy={cy} r={50} fill="#0f172a" />
-      <text x={cx} y={cy - 6} textAnchor="middle" fill="#94a3b8" fontSize="10" fontWeight={700}>
+      <circle cx={cx} cy={cy} r={50} fill="#070605" />
+      <text x={cx} y={cy - 6} textAnchor="middle" fill="#B8B0A1" fontSize="10" fontWeight={700}>
         MONTHLY
       </text>
       <text x={cx} y={cy + 12} textAnchor="middle" fill="#fff" fontSize="18" fontWeight={800}>

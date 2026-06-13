@@ -143,8 +143,8 @@ export function InlineTextEdit({
         className={cn(
           viewClassName,
           !readOnly &&
-            "cursor-text rounded-sm decoration-dotted underline-offset-2 hover:bg-slate-700/30 focus:bg-slate-700/40 focus:outline-none",
-          empty && !readOnly && "italic text-slate-500"
+            "cursor-text rounded-sm decoration-dotted underline-offset-2 hover:bg-surface-raised/30 focus:bg-surface-raised/40 focus:outline-none",
+          empty && !readOnly && "italic text-taupe"
         )}
         aria-label={readOnly ? undefined : ariaLabel}
       >
@@ -176,8 +176,8 @@ export function InlineTextEdit({
           placeholder={placeholder}
           aria-label={ariaLabel}
           className={cn(
-            "w-full rounded-md border border-indigo-500/60 bg-slate-950 px-2 py-1 text-inherit",
-            error && "border-rose-500",
+            "w-full rounded-md border border-gold/60 bg-night px-2 py-1 text-inherit",
+            error && "border-error/40",
             editClassName
           )}
         />
@@ -202,27 +202,27 @@ export function InlineTextEdit({
           aria-label={ariaLabel}
           rows={1}
           className={cn(
-            "w-full resize-none overflow-hidden rounded-md border border-indigo-500/60 bg-slate-950 px-2 py-1 text-inherit",
-            error && "border-rose-500",
+            "w-full resize-none overflow-hidden rounded-md border border-gold/60 bg-night px-2 py-1 text-inherit",
+            error && "border-error/40",
             editClassName
           )}
         />
       )}
-      <span className="mt-1 flex items-center gap-2 text-[10px] text-slate-500">
+      <span className="mt-1 flex items-center gap-2 text-[10px] text-taupe">
         {saving && (
-          <span className="inline-flex items-center gap-1 text-indigo-300">
+          <span className="inline-flex items-center gap-1 text-gold-bright">
             <Loader2 className="h-3 w-3 animate-spin" /> saving…
           </span>
         )}
         {!saving && (
           <span>
-            <kbd className="rounded bg-slate-800 px-1 font-mono">
+            <kbd className="rounded bg-surface-raised px-1 font-mono">
               {mode === "line" ? "Enter" : "⌘↵"}
             </kbd>{" "}
-            save · <kbd className="rounded bg-slate-800 px-1 font-mono">Esc</kbd> cancel
+            save · <kbd className="rounded bg-surface-raised px-1 font-mono">Esc</kbd> cancel
           </span>
         )}
-        {error && <span className="text-rose-300">{error}</span>}
+        {error && <span className="text-error-bright">{error}</span>}
       </span>
     </span>
   );

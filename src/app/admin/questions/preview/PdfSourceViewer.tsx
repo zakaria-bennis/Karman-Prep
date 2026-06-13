@@ -49,33 +49,31 @@ export function PdfSourceViewer({ sourcePdf, sourcePage }: Props) {
     <div className="flex flex-col">
       {/* ── Controls bar ───────────────────────────────────── */}
       <div className="mb-2 flex items-center gap-2 text-xs">
-        <span className="inline-flex items-center gap-1 text-slate-500">
+        <span className="inline-flex items-center gap-1 text-taupe">
           <FileText className="h-3 w-3" />
-          <span className="font-mono text-slate-300">{sourcePdf}</span>
+          <span className="font-mono text-ivory">{sourcePdf}</span>
         </span>
         <span className="ml-auto inline-flex items-center gap-1">
           <button
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={page <= 1}
-            className="rounded border border-slate-700 bg-slate-800 p-1 hover:bg-slate-700 disabled:opacity-40"
+            className="rounded border border-bronze bg-surface-raised p-1 hover:bg-surface-raised disabled:opacity-40"
             aria-label="Previous page"
           >
-            <ChevronLeft className="h-3 w-3 text-slate-300" />
+            <ChevronLeft className="h-3 w-3 text-ivory" />
           </button>
-          <span className="min-w-[3rem] text-center font-mono text-[11px] text-slate-300">
-            p{page}
-          </span>
+          <span className="min-w-[3rem] text-center font-mono text-[11px] text-ivory">p{page}</span>
           <button
             onClick={() => setPage((p) => p + 1)}
-            className="rounded border border-slate-700 bg-slate-800 p-1 hover:bg-slate-700"
+            className="rounded border border-bronze bg-surface-raised p-1 hover:bg-surface-raised"
             aria-label="Next page"
           >
-            <ChevronRight className="h-3 w-3 text-slate-300" />
+            <ChevronRight className="h-3 w-3 text-ivory" />
           </button>
           {page !== initialPage && (
             <button
               onClick={() => setPage(initialPage)}
-              className="ml-1 text-[10px] text-slate-400 hover:text-slate-200"
+              className="ml-1 text-[10px] text-taupe hover:text-ivory"
               title={`Jump back to the question's page (${initialPage})`}
             >
               reset
@@ -86,7 +84,7 @@ export function PdfSourceViewer({ sourcePdf, sourcePage }: Props) {
           href={iframeSrc}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 rounded border border-slate-700 bg-slate-800 px-2 py-1 text-[10px] text-slate-300 hover:bg-slate-700"
+          className="inline-flex items-center gap-1 rounded border border-bronze bg-surface-raised px-2 py-1 text-[10px] text-ivory hover:bg-surface-raised"
           title="Open in new tab"
         >
           <ExternalLink className="h-2.5 w-2.5" /> open
@@ -96,19 +94,19 @@ export function PdfSourceViewer({ sourcePdf, sourcePage }: Props) {
       {/* ── PDF viewer iframe ──────────────────────────────── */}
       <div
         className={cn(
-          "relative h-[600px] w-full overflow-hidden rounded-lg border border-slate-700 bg-slate-950"
+          "relative h-[600px] w-full overflow-hidden rounded-lg border border-bronze bg-night"
         )}
       >
         {loading && !error && (
-          <div className="absolute inset-0 flex items-center justify-center gap-2 text-xs text-slate-500">
+          <div className="absolute inset-0 flex items-center justify-center gap-2 text-xs text-taupe">
             <Loader2 className="h-3 w-3 animate-spin" /> loading PDF…
           </div>
         )}
         {error && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 px-4 text-center text-xs text-rose-300">
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 px-4 text-center text-xs text-error-bright">
             <div className="font-semibold">Failed to load PDF</div>
-            <div className="text-[11px] text-rose-300/70">{error}</div>
-            <div className="mt-1 text-[10px] italic text-slate-500">
+            <div className="text-[11px] text-error-bright/70">{error}</div>
+            <div className="mt-1 text-[10px] italic text-taupe">
               The PDF may have been imported via the older CSV path, which doesn&rsquo;t store
               source PDFs in R2.
             </div>
@@ -131,7 +129,7 @@ export function PdfSourceViewer({ sourcePdf, sourcePage }: Props) {
           }}
         />
       </div>
-      <div className="mt-1 text-[10px] italic text-slate-500">
+      <div className="mt-1 text-[10px] italic text-taupe">
         Built-in browser viewer · #page jumping works on Chrome / Edge / Firefox; Safari ignores
         fragments.
       </div>

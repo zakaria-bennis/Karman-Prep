@@ -153,7 +153,7 @@ export function UpcomingSession({ booking, tutorName, rescheduleProps }: Upcomin
         />
         <button
           onClick={() => setMode("view")}
-          className="mt-3 text-sm text-slate-400 hover:text-slate-200"
+          className="mt-3 text-sm text-taupe hover:text-ivory"
         >
           Cancel reschedule
         </button>
@@ -162,19 +162,19 @@ export function UpcomingSession({ booking, tutorName, rescheduleProps }: Upcomin
   }
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900/40">
+    <div className="rounded-xl border border-bronze bg-surface p-4 dark:border-bronze dark:bg-surface/40">
       <div className="flex items-start gap-3">
-        <div className="shrink-0 rounded-lg border border-blue-500/20 bg-blue-500/10 p-1.5">
-          <CalendarClock className="h-4 w-4 text-blue-500" />
+        <div className="shrink-0 rounded-lg border border-info/20 bg-info/10 p-1.5">
+          <CalendarClock className="h-4 w-4 text-info" />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-taupe">
             Next session
           </p>
-          <p className="mt-0.5 truncate text-sm font-bold text-slate-900 dark:text-white">{date}</p>
-          <p className="text-xs text-slate-600 dark:text-slate-400">
+          <p className="mt-0.5 truncate text-sm font-bold text-ivory dark:text-ivory">{date}</p>
+          <p className="text-xs text-taupe dark:text-taupe">
             {range} · with{" "}
-            <span className="font-semibold text-slate-800 dark:text-slate-200">{tutorName}</span>
+            <span className="font-semibold text-ivory dark:text-ivory">{tutorName}</span>
           </p>
         </div>
       </div>
@@ -185,14 +185,14 @@ export function UpcomingSession({ booking, tutorName, rescheduleProps }: Upcomin
             href={booking.zoom_join_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 rounded-md bg-blue-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-400"
+            className="inline-flex items-center gap-1.5 rounded-md bg-info px-3 py-1.5 text-xs font-semibold text-ivory hover:bg-info-bright"
           >
             <Video className="h-3.5 w-3.5" />
             Join
           </a>
         ) : null}
         {booking.zoom_join_url ? (
-          <span className="basis-full text-[11px] text-slate-500 dark:text-slate-400">
+          <span className="basis-full text-[11px] text-taupe dark:text-taupe">
             You can join from this link directly &mdash; the same details also arrive by email.
           </span>
         ) : null}
@@ -204,7 +204,7 @@ export function UpcomingSession({ booking, tutorName, rescheduleProps }: Upcomin
               setError(null);
               setMode("rescheduling");
             }}
-            className="inline-flex items-center gap-1.5 rounded-md border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 disabled:opacity-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+            className="inline-flex items-center gap-1.5 rounded-md border border-bronze px-3 py-1.5 text-xs font-semibold text-ivory hover:bg-surface disabled:opacity-50 dark:border-bronze dark:text-ivory dark:hover:bg-surface-raised"
           >
             <RotateCcw className="h-3.5 w-3.5" />
             Reschedule
@@ -214,7 +214,7 @@ export function UpcomingSession({ booking, tutorName, rescheduleProps }: Upcomin
         <button
           disabled={isPending}
           onClick={onCancel}
-          className="inline-flex items-center gap-1.5 rounded-md border border-rose-300 px-3 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50 disabled:opacity-50 dark:border-rose-400/30 dark:text-rose-300 dark:hover:bg-rose-400/10"
+          className="inline-flex items-center gap-1.5 rounded-md border border-error/40 px-3 py-1.5 text-xs font-semibold text-error hover:bg-error/10 disabled:opacity-50 dark:border-error/30 dark:text-error-bright dark:hover:bg-error/10"
         >
           <X className="h-3.5 w-3.5" />
           {within ? "Cancel (24h)" : "Cancel"}
@@ -222,12 +222,12 @@ export function UpcomingSession({ booking, tutorName, rescheduleProps }: Upcomin
       </div>
 
       {!canSelfReschedule && booking.reschedule_count >= 1 ? (
-        <p className="mt-2 text-[11px] text-slate-400">
+        <p className="mt-2 text-[11px] text-taupe">
           Free reschedule already used for this session.
         </p>
       ) : null}
 
-      {error ? <p className="mt-2 text-xs text-rose-600 dark:text-rose-400">{error}</p> : null}
+      {error ? <p className="mt-2 text-xs text-error dark:text-error">{error}</p> : null}
     </div>
   );
 }

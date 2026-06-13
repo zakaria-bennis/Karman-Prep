@@ -41,12 +41,12 @@ export default async function NodeEditorPage({ params, searchParams }: Params) {
       <div className="mb-6">
         <Link
           href="/admin/curriculum"
-          className="mb-3 inline-flex items-center gap-1 text-xs text-slate-400 hover:text-slate-300"
+          className="mb-3 inline-flex items-center gap-1 text-xs text-taupe hover:text-ivory"
         >
           <ArrowLeft className="h-3.5 w-3.5" /> All nodes
         </Link>
-        <h1 className="text-2xl font-extrabold text-white">{node.topic}</h1>
-        <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-slate-400">
+        <h1 className="text-2xl font-extrabold text-ivory">{node.topic}</h1>
+        <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-taupe">
           <span
             className="rounded-full px-2 py-0.5 font-bold uppercase tracking-[0.18em]"
             style={{
@@ -57,15 +57,15 @@ export default async function NodeEditorPage({ params, searchParams }: Params) {
           >
             {nodeAtmosphere(node.tier)}
           </span>
-          <code className="font-mono text-slate-400">{node.id}</code>
+          <code className="font-mono text-taupe">{node.id}</code>
           <span>·</span>
           <span>{node.subject === "reading" ? "Reading & Writing" : "Math"}</span>
           <span>·</span>
           <span>
-            Topic: <span className="text-slate-300">{node.topic_cluster}</span>
+            Topic: <span className="text-ivory">{node.topic_cluster}</span>
           </span>
         </div>
-        <p className="mt-3 max-w-2xl text-sm text-slate-400">{node.description}</p>
+        <p className="mt-3 max-w-2xl text-sm text-taupe">{node.description}</p>
       </div>
 
       <NodeTabs

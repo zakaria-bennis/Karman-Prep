@@ -61,17 +61,17 @@ export default function DomainProgress({ statuses }: Props) {
   return (
     <section>
       <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-lg font-bold text-slate-900 dark:text-white">Domain progress</h2>
+        <h2 className="text-lg font-bold text-ivory dark:text-ivory">Domain progress</h2>
 
         {/* Subject tabs */}
-        <div className="inline-flex overflow-hidden rounded-lg border border-slate-200 bg-white text-xs dark:border-slate-700 dark:bg-slate-900">
+        <div className="inline-flex overflow-hidden rounded-lg border border-bronze bg-surface text-xs dark:border-bronze dark:bg-surface">
           <button
             onClick={() => setTab("reading")}
             className={cn(
               "flex items-center gap-1.5 px-3 py-2 font-semibold",
               tab === "reading"
-                ? "text-rose-600 dark:text-rose-400"
-                : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
+                ? "text-error dark:text-error"
+                : "text-taupe hover:text-ivory dark:text-taupe dark:hover:text-ivory"
             )}
             style={tab === "reading" ? { background: "rgba(236, 72, 153, 0.1)" } : undefined}
           >
@@ -80,10 +80,8 @@ export default function DomainProgress({ statuses }: Props) {
           <button
             onClick={() => setTab("math")}
             className={cn(
-              "flex items-center gap-1.5 border-l border-slate-200 px-3 py-2 font-semibold dark:border-slate-700",
-              tab === "math"
-                ? "text-sky-500"
-                : "text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
+              "flex items-center gap-1.5 border-l border-bronze px-3 py-2 font-semibold dark:border-bronze",
+              tab === "math" ? "text-info" : "text-taupe hover:text-ivory dark:hover:text-ivory"
             )}
             style={tab === "math" ? { background: "rgba(56, 189, 248, 0.1)" } : undefined}
           >
@@ -94,16 +92,16 @@ export default function DomainProgress({ statuses }: Props) {
 
       <div className="glass-card p-5">
         {/* Overall strip */}
-        <div className="mb-5 border-b border-slate-100 pb-4 dark:border-slate-800">
+        <div className="mb-5 border-b border-bronze pb-4 dark:border-bronze">
           <div className="mb-1.5 flex items-baseline justify-between">
-            <span className="text-xs font-bold uppercase tracking-widest text-slate-400">
+            <span className="text-xs font-bold uppercase tracking-widest text-taupe">
               {tab === "reading" ? "Reading & Writing overall" : "Math overall"}
             </span>
-            <span className="text-xs tabular-nums text-slate-400">
+            <span className="text-xs tabular-nums text-taupe">
               {totalMastered} / {totalNodes}
             </span>
           </div>
-          <div className="h-2.5 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+          <div className="h-2.5 overflow-hidden rounded-full bg-surface dark:bg-surface-raised">
             <div
               className="h-full rounded-full transition-all"
               style={{
@@ -121,19 +119,19 @@ export default function DomainProgress({ statuses }: Props) {
             return (
               <div key={d.cluster}>
                 <div className="mb-1 flex items-baseline justify-between">
-                  <span className="truncate text-sm font-medium text-slate-700 dark:text-slate-200">
+                  <span className="truncate text-sm font-medium text-ivory dark:text-ivory">
                     {d.cluster}
                   </span>
-                  <div className="ml-2 flex shrink-0 items-center gap-2 text-xs tabular-nums text-slate-400">
+                  <div className="ml-2 flex shrink-0 items-center gap-2 text-xs tabular-nums text-taupe">
                     {d.inProgress > 0 && (
-                      <span className="text-blue-500">{d.inProgress} in progress</span>
+                      <span className="text-info">{d.inProgress} in progress</span>
                     )}
                     <span className="font-bold" style={{ color: hex }}>
                       {pct}%
                     </span>
                   </div>
                 </div>
-                <div className="h-1.5 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+                <div className="h-1.5 overflow-hidden rounded-full bg-surface dark:bg-surface-raised">
                   <div
                     className="h-full rounded-full transition-all duration-700"
                     style={{ width: `${pct}%`, background: hex }}

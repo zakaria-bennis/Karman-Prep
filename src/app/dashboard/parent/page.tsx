@@ -59,24 +59,24 @@ export default async function ParentDashboardPage() {
   const students = await fetchLinkedStudents(userId);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100">
+    <div className="min-h-screen bg-night text-ivory">
       <div className="mx-auto max-w-4xl px-5 py-10">
         <header className="mb-8">
-          <p className="mb-1 text-xs font-bold uppercase tracking-widest text-blue-400">
+          <p className="mb-1 text-xs font-bold uppercase tracking-widest text-info">
             Parent Portal
           </p>
-          <h1 className="text-2xl font-extrabold text-white">Your students</h1>
-          <p className="mt-1 text-sm text-slate-400">
+          <h1 className="text-2xl font-extrabold text-ivory">Your students</h1>
+          <p className="mt-1 text-sm text-taupe">
             You can see progress for the student(s) linked to your account. If someone is missing,
             ask a Karman admin to add the link.
           </p>
         </header>
 
         {students.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-slate-800 px-8 py-12 text-center">
-            <UsersIcon className="mx-auto mb-3 h-8 w-8 text-slate-400" />
-            <h2 className="text-base font-semibold text-white">No students linked yet</h2>
-            <p className="mx-auto mt-2 max-w-md text-sm text-slate-400">
+          <div className="rounded-xl border border-dashed border-bronze px-8 py-12 text-center">
+            <UsersIcon className="mx-auto mb-3 h-8 w-8 text-taupe" />
+            <h2 className="text-base font-semibold text-ivory">No students linked yet</h2>
+            <p className="mx-auto mt-2 max-w-md text-sm text-taupe">
               A Karman admin will link your account to your student(s) shortly. Check back soon, or
               reach out to support if it&apos;s been more than a day.
             </p>
@@ -87,7 +87,7 @@ export default async function ParentDashboardPage() {
               <li key={s.id}>
                 <Link
                   href={`/dashboard/parent/${s.id}`}
-                  className="block rounded-xl border border-slate-800 bg-slate-900/40 p-5 transition-colors hover:bg-slate-900/70"
+                  className="block rounded-xl border border-bronze bg-surface/40 p-5 transition-colors hover:bg-surface/70"
                 >
                   <div className="flex items-center gap-4">
                     <Avatar
@@ -95,16 +95,16 @@ export default async function ParentDashboardPage() {
                       avatarUrl={s.avatar_url}
                     />
                     <div className="flex-1">
-                      <div className="font-semibold text-white">
+                      <div className="font-semibold text-ivory">
                         {[s.first_name, s.last_name].filter(Boolean).join(" ") || s.email}
                       </div>
-                      <div className="mt-0.5 text-xs text-slate-400">
+                      <div className="mt-0.5 text-xs text-taupe">
                         {s.sat_test_date
                           ? `Target SAT · ${formatDate(s.sat_test_date)}`
                           : "Target SAT date not set"}
                       </div>
                     </div>
-                    <span className="text-sm text-slate-400">View →</span>
+                    <span className="text-sm text-taupe">View →</span>
                   </div>
                 </Link>
               </li>
@@ -112,7 +112,7 @@ export default async function ParentDashboardPage() {
           </ul>
         )}
 
-        <p className="mt-8 max-w-md text-xs text-slate-400">
+        <p className="mt-8 max-w-md text-xs text-taupe">
           Per-student detail view (progress, cohort, recent activity) is coming shortly. This
           landing page is the access point — your linked students will appear above.
         </p>
@@ -129,7 +129,7 @@ function Avatar({ name, avatarUrl }: { name: string; avatarUrl: string | null })
         alt={name}
         width={40}
         height={40}
-        className="h-10 w-10 rounded-full border border-slate-700 object-cover"
+        className="h-10 w-10 rounded-full border border-bronze object-cover"
         unoptimized
       />
     );
@@ -144,7 +144,7 @@ function Avatar({ name, avatarUrl }: { name: string; avatarUrl: string | null })
   return (
     <div
       aria-hidden="true"
-      className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-700 bg-slate-800 text-sm font-bold text-slate-300"
+      className="flex h-10 w-10 items-center justify-center rounded-full border border-bronze bg-surface-raised text-sm font-bold text-ivory"
     >
       {initials || "?"}
     </div>

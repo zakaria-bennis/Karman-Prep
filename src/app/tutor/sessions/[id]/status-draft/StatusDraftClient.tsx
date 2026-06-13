@@ -223,42 +223,42 @@ export default function StatusDraftClient({ data }: { data: StatusDraftPageData 
     <div className="space-y-6">
       {/* ── Header ──────────────────────────────────────── */}
       <header>
-        <p className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-blue-400">
+        <p className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-info">
           Session Recap Draft
         </p>
-        <h1 className="text-2xl font-extrabold tracking-tight text-white">{data.studentName}</h1>
-        <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-slate-400">
+        <h1 className="text-2xl font-extrabold tracking-tight text-ivory">{data.studentName}</h1>
+        <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-taupe">
           <span>{sessionDateLabel}</span>
-          <span className="text-slate-400">·</span>
+          <span className="text-taupe">·</span>
           <span>{data.durationMinutes} min</span>
-          <span className="text-slate-400">·</span>
+          <span className="text-taupe">·</span>
           <PlanTierPill tier={data.planTier} />
-          <span className="text-slate-400">·</span>
+          <span className="text-taupe">·</span>
           <DraftStatusPill data={data} />
         </div>
       </header>
 
       {/* Group/Seminar gate — Phase 4 ships 1:1 only */}
       {!isOneOnOne && (
-        <div className="flex items-start gap-2 rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-sm text-amber-200">
+        <div className="flex items-start gap-2 rounded-xl border border-warning/30 bg-warning/5 px-4 py-3 text-sm text-warning-bright">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
           <div>
             <strong>Group session — auto-recap deferred.</strong> v1 ships recaps for{" "}
-            <code className="text-amber-100">private</code> and{" "}
-            <code className="text-amber-100">elite</code> tier sessions only. Group + small group
-            recaps are tracked for v2.
+            <code className="text-warning-bright">private</code> and{" "}
+            <code className="text-warning-bright">elite</code> tier sessions only. Group + small
+            group recaps are tracked for v2.
           </div>
         </div>
       )}
 
       {/* ── No transcript yet — manual paste form ──────── */}
       {!data.hasTranscript && (
-        <section className="rounded-xl border border-slate-800 bg-slate-900/40 p-5">
+        <section className="rounded-xl border border-bronze bg-surface/40 p-5">
           <div className="mb-3 flex items-center gap-2">
-            <FileText className="h-4 w-4 text-slate-400" />
-            <h2 className="text-sm font-bold text-white">No transcript yet</h2>
+            <FileText className="h-4 w-4 text-taupe" />
+            <h2 className="text-sm font-bold text-ivory">No transcript yet</h2>
           </div>
-          <p className="mb-3 text-sm text-slate-400">
+          <p className="mb-3 text-sm text-taupe">
             If Fireflies has a transcript for this session, the draft will appear here
             automatically. Otherwise, paste the transcript below and we&apos;ll generate the draft.
           </p>
@@ -267,13 +267,13 @@ export default function StatusDraftClient({ data }: { data: StatusDraftPageData 
             onChange={(e) => setPendingTranscript(e.target.value)}
             placeholder={`Paste transcript here. Format like:\n\nZakaria: Today we covered linear equations…\nMaya: I'm still confused about negative coefficients.\n…`}
             rows={8}
-            className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 font-mono text-sm leading-relaxed text-slate-100 focus:border-blue-500 focus:outline-none"
+            className="w-full rounded-lg border border-bronze bg-night px-3 py-2 font-mono text-sm leading-relaxed text-ivory focus:border-info/40 focus:outline-none"
           />
           <div className="mt-3 flex justify-end">
             <button
               onClick={handleManualTranscript}
               disabled={isPending || !pendingTranscript.trim()}
-              className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
+              className="inline-flex items-center gap-2 rounded-lg bg-info px-4 py-2 text-sm font-semibold text-ivory hover:bg-info-bright disabled:cursor-not-allowed disabled:opacity-40"
             >
               {isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -288,19 +288,19 @@ export default function StatusDraftClient({ data }: { data: StatusDraftPageData 
 
       {/* ── Draft generation failed ─────────────────────── */}
       {data.draftError && (
-        <div className="flex items-start gap-2 rounded-xl border border-rose-500/30 bg-rose-500/5 px-4 py-3 text-sm text-rose-200">
+        <div className="flex items-start gap-2 rounded-xl border border-error/30 bg-error/5 px-4 py-3 text-sm text-error-bright">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
           <div>
             <strong>Draft generation failed.</strong> The transcript is saved. You can write the
             recap manually in the form below or regenerate.
-            <div className="mt-1 font-mono text-xs text-rose-300/80">{data.draftError}</div>
+            <div className="mt-1 font-mono text-xs text-error-bright/80">{data.draftError}</div>
           </div>
         </div>
       )}
 
       {/* ── Action error ────────────────────────────────── */}
       {error && (
-        <div className="rounded-xl border border-rose-500/30 bg-rose-500/5 px-4 py-3 text-sm text-rose-200">
+        <div className="rounded-xl border border-error/30 bg-error/5 px-4 py-3 text-sm text-error-bright">
           {error}
         </div>
       )}
@@ -309,20 +309,20 @@ export default function StatusDraftClient({ data }: { data: StatusDraftPageData 
       {(data.hasTranscript || data.draft || data.draftError) && (
         <div className="grid gap-6 lg:grid-cols-12">
           {/* LEFT — editable fields */}
-          <section className="rounded-xl border border-slate-800 bg-slate-900/40 p-5 lg:col-span-7">
+          <section className="rounded-xl border border-bronze bg-surface/40 p-5 lg:col-span-7">
             <div className="mb-4 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Edit3 className="h-4 w-4 text-slate-400" />
-                <h2 className="text-sm font-bold text-white">Edit draft</h2>
+                <Edit3 className="h-4 w-4 text-taupe" />
+                <h2 className="text-sm font-bold text-ivory">Edit draft</h2>
                 {savedAt && (
-                  <span className="text-xs text-slate-400">· saved {timeSince(savedAt)} ago</span>
+                  <span className="text-xs text-taupe">· saved {timeSince(savedAt)} ago</span>
                 )}
               </div>
               <div className="flex items-center gap-2">
                 {!editMode ? (
                   <button
                     onClick={() => setEditMode(true)}
-                    className="rounded-md border border-slate-700 px-3 py-1.5 text-xs font-semibold text-slate-200 hover:bg-slate-800"
+                    className="rounded-md border border-bronze px-3 py-1.5 text-xs font-semibold text-ivory hover:bg-surface-raised"
                   >
                     Edit
                   </button>
@@ -330,7 +330,7 @@ export default function StatusDraftClient({ data }: { data: StatusDraftPageData 
                   <button
                     onClick={handleSaveDraft}
                     disabled={isPending}
-                    className="inline-flex items-center gap-1.5 rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-40"
+                    className="inline-flex items-center gap-1.5 rounded-md bg-success px-3 py-1.5 text-xs font-semibold text-night hover:bg-success-bright disabled:opacity-40"
                   >
                     {isPending ? (
                       <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -344,7 +344,7 @@ export default function StatusDraftClient({ data }: { data: StatusDraftPageData 
                   <button
                     onClick={handleRegenerate}
                     disabled={isPending}
-                    className="inline-flex items-center gap-1.5 rounded-md border border-slate-700 px-3 py-1.5 text-xs font-semibold text-slate-300 hover:bg-slate-800 disabled:opacity-40"
+                    className="inline-flex items-center gap-1.5 rounded-md border border-bronze px-3 py-1.5 text-xs font-semibold text-ivory hover:bg-surface-raised disabled:opacity-40"
                     title="Re-run OpenAI on the stored transcript"
                   >
                     {isPending ? (
@@ -361,7 +361,7 @@ export default function StatusDraftClient({ data }: { data: StatusDraftPageData 
             <div className="space-y-4">
               {FIELDS.map((f) => (
                 <div key={f.key}>
-                  <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                  <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-taupe">
                     {f.label}
                   </label>
                   <textarea
@@ -377,8 +377,8 @@ export default function StatusDraftClient({ data }: { data: StatusDraftPageData 
                     className={cn(
                       "w-full resize-y rounded-md border px-3 py-2 text-sm leading-relaxed",
                       editMode
-                        ? "border-slate-700 bg-slate-950 text-slate-100 focus:border-blue-500 focus:outline-none"
-                        : "cursor-default border-slate-800 bg-slate-900 text-slate-200"
+                        ? "border-bronze bg-night text-ivory focus:border-info/40 focus:outline-none"
+                        : "cursor-default border-bronze bg-surface text-ivory"
                     )}
                   />
                 </div>
@@ -388,10 +388,10 @@ export default function StatusDraftClient({ data }: { data: StatusDraftPageData 
 
           {/* RIGHT — preview */}
           <aside className="lg:col-span-5">
-            <div className="sticky top-6 rounded-xl border border-slate-800 bg-slate-900/40 p-5">
+            <div className="sticky top-6 rounded-xl border border-bronze bg-surface/40 p-5">
               <div className="mb-3 flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-blue-400" />
-                <h2 className="text-sm font-bold text-white">Preview — what the parent sees</h2>
+                <Sparkles className="h-4 w-4 text-info" />
+                <h2 className="text-sm font-bold text-ivory">Preview — what the parent sees</h2>
               </div>
               <RecapPreview
                 draft={draft}
@@ -406,13 +406,13 @@ export default function StatusDraftClient({ data }: { data: StatusDraftPageData 
 
       {/* ── Recipients ──────────────────────────────────── */}
       {(data.hasTranscript || data.draft) && (
-        <section className="rounded-xl border border-slate-800 bg-slate-900/40 p-5">
+        <section className="rounded-xl border border-bronze bg-surface/40 p-5">
           <div className="mb-3 flex items-center gap-2">
-            <UsersIcon className="h-4 w-4 text-slate-400" />
-            <h2 className="text-sm font-bold text-white">Recipients</h2>
+            <UsersIcon className="h-4 w-4 text-taupe" />
+            <h2 className="text-sm font-bold text-ivory">Recipients</h2>
           </div>
           {allRecipients.length === 0 ? (
-            <p className="text-sm text-slate-400">
+            <p className="text-sm text-taupe">
               No email addresses on file for this student or any linked parents. Add a parent
               linkage in <code>parent_student_links</code> or update the student email before
               sending.
@@ -425,20 +425,20 @@ export default function StatusDraftClient({ data }: { data: StatusDraftPageData 
                     type="checkbox"
                     checked={recipientIds.has(r.id)}
                     onChange={() => toggleRecipient(r.id)}
-                    className="h-4 w-4 accent-blue-500"
+                    className="h-4 w-4 accent-info"
                   />
                   <span
                     className={cn(
                       "rounded px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider",
                       r.type === "student"
-                        ? "bg-emerald-500/20 text-emerald-300"
-                        : "bg-purple-500/20 text-purple-300"
+                        ? "bg-success/20 text-success-bright"
+                        : "bg-gold/20 text-gold-bright"
                     )}
                   >
                     {r.type}
                   </span>
-                  <span className="font-medium text-slate-200">{r.label}</span>
-                  <span className="text-slate-400">{r.email}</span>
+                  <span className="font-medium text-ivory">{r.label}</span>
+                  <span className="text-taupe">{r.email}</span>
                 </li>
               ))}
             </ul>
@@ -449,7 +449,7 @@ export default function StatusDraftClient({ data }: { data: StatusDraftPageData 
       {/* ── Send button ─────────────────────────────────── */}
       {(data.hasTranscript || data.draft) && (
         <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-taupe">
             {!allFieldsFilled
               ? `Fill in all ${FIELDS.length} fields to enable sending.`
               : recipientIds.size === 0
@@ -461,7 +461,7 @@ export default function StatusDraftClient({ data }: { data: StatusDraftPageData 
           <button
             onClick={handleSend}
             disabled={isPending || !allFieldsFilled || recipientIds.size === 0 || !isOneOnOne}
-            className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-6 py-3 text-sm font-bold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
+            className="inline-flex items-center gap-2 rounded-xl bg-info px-6 py-3 text-sm font-bold text-ivory hover:bg-info-bright disabled:cursor-not-allowed disabled:opacity-40"
           >
             {isPending ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -491,23 +491,23 @@ function RecapPreview({
   fromName: string;
 }) {
   return (
-    <div className="overflow-hidden rounded-md border border-slate-800 bg-slate-950">
-      <header className="border-b border-slate-800 bg-slate-900/60 px-4 py-3 text-xs">
-        <div className="text-slate-400">From</div>
-        <div className="text-slate-200">{fromName} &lt;noreply@karmanprep.com&gt;</div>
-        <div className="mt-1.5 text-slate-400">Subject</div>
-        <div className="font-semibold text-slate-200">{subject}</div>
+    <div className="overflow-hidden rounded-md border border-bronze bg-night">
+      <header className="border-b border-bronze bg-surface/60 px-4 py-3 text-xs">
+        <div className="text-taupe">From</div>
+        <div className="text-ivory">{fromName} &lt;noreply@karmanprep.com&gt;</div>
+        <div className="mt-1.5 text-taupe">Subject</div>
+        <div className="font-semibold text-ivory">{subject}</div>
       </header>
-      <div className="space-y-3 px-4 py-4 font-serif text-sm leading-relaxed text-slate-200">
+      <div className="space-y-3 px-4 py-4 font-serif text-sm leading-relaxed text-ivory">
         {FIELDS.map((f) => (
           <div key={f.key}>
-            <div className="font-sans font-semibold not-italic text-slate-300">{f.label}:</div>
+            <div className="font-sans font-semibold not-italic text-ivory">{f.label}:</div>
             <div className="mt-0.5 whitespace-pre-wrap">
-              {draft[f.key]?.trim() || <span className="italic text-slate-400">— empty —</span>}
+              {draft[f.key]?.trim() || <span className="italic text-taupe">— empty —</span>}
             </div>
           </div>
         ))}
-        <div className="mt-3 whitespace-pre-wrap border-t border-slate-800 pt-3 text-slate-300">
+        <div className="mt-3 whitespace-pre-wrap border-t border-bronze pt-3 text-ivory">
           {signature}
         </div>
       </div>
@@ -532,17 +532,17 @@ function RecapAlreadySent({
   return (
     <div className="space-y-6">
       <header>
-        <p className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-emerald-400">
+        <p className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-success">
           Recap sent
         </p>
-        <h1 className="text-2xl font-extrabold tracking-tight text-white">{data.studentName}</h1>
-        <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-slate-400">
-          <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+        <h1 className="text-2xl font-extrabold tracking-tight text-ivory">{data.studentName}</h1>
+        <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-taupe">
+          <CheckCircle2 className="h-4 w-4 text-success" />
           <span>Sent {data.recapSentAt ? new Date(data.recapSentAt).toLocaleString() : "—"}</span>
         </div>
       </header>
-      <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-5">
-        <p className="text-sm text-emerald-200">
+      <div className="rounded-xl border border-success/30 bg-success/5 p-5">
+        <p className="text-sm text-success-bright">
           This recap has already been sent. The fields below are read-only.
         </p>
       </div>
@@ -561,10 +561,10 @@ function RecapAlreadySent({
 // ──────────────────────────────────────────────────────────
 function PlanTierPill({ tier }: { tier: string }) {
   const map: Record<string, string> = {
-    private: "bg-amber-500/20 text-amber-300",
-    elite: "bg-violet-500/20 text-violet-300",
-    small_group: "bg-teal-500/20 text-teal-300",
-    group: "bg-indigo-500/20 text-indigo-300",
+    private: "bg-warning/20 text-warning-bright",
+    elite: "bg-gold/20 text-gold-bright",
+    small_group: "bg-success/20 text-success-bright",
+    group: "bg-gold/20 text-gold-bright",
   };
   const label =
     (
@@ -579,7 +579,7 @@ function PlanTierPill({ tier }: { tier: string }) {
     <span
       className={cn(
         "rounded px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider",
-        map[tier] ?? "bg-slate-800 text-slate-300"
+        map[tier] ?? "bg-surface-raised text-ivory"
       )}
     >
       {label}
@@ -611,11 +611,11 @@ function Pill({
   children: React.ReactNode;
 }) {
   const map = {
-    emerald: "bg-emerald-500/20 text-emerald-300",
-    slate: "bg-slate-700 text-slate-300",
-    rose: "bg-rose-500/20 text-rose-300",
-    blue: "bg-blue-500/20 text-blue-300",
-    amber: "bg-amber-500/20 text-amber-300",
+    emerald: "bg-success/20 text-success-bright",
+    slate: "bg-surface-raised text-ivory",
+    rose: "bg-error/20 text-error-bright",
+    blue: "bg-info/20 text-info-bright",
+    amber: "bg-warning/20 text-warning-bright",
   };
   return (
     <span

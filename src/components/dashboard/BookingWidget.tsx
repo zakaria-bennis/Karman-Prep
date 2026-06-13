@@ -182,19 +182,19 @@ export function BookingWidget(props: BookingWidgetProps) {
 
   // ─────────── Render ───────────
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900/40">
+    <div className="rounded-xl border border-bronze bg-surface p-4 dark:border-bronze dark:bg-surface/40">
       <header className="mb-4 flex items-baseline justify-between">
         <div className="min-w-0">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-taupe">
             {props.rescheduleBookingId ? "Reschedule with" : "Book with"}
           </p>
-          <h3 className="mt-0.5 truncate text-sm font-bold text-slate-900 dark:text-white">
+          <h3 className="mt-0.5 truncate text-sm font-bold text-ivory dark:text-ivory">
             {props.tutorName}
           </h3>
         </div>
         {!props.rescheduleBookingId && typeof props.tokensAvailable === "number" ? (
-          <span className="ml-3 inline-flex shrink-0 items-baseline gap-1 text-xs text-slate-400">
-            <span className="text-base font-extrabold leading-none text-slate-900 dark:text-white">
+          <span className="ml-3 inline-flex shrink-0 items-baseline gap-1 text-xs text-taupe">
+            <span className="text-base font-extrabold leading-none text-ivory dark:text-ivory">
               {props.tokensAvailable}
             </span>
             <span>token{props.tokensAvailable === 1 ? "" : "s"}</span>
@@ -203,30 +203,30 @@ export function BookingWidget(props: BookingWidgetProps) {
       </header>
 
       {load.kind === "loading" ? (
-        <div className="flex items-center justify-center gap-2 py-6 text-xs text-slate-400">
+        <div className="flex items-center justify-center gap-2 py-6 text-xs text-taupe">
           <Loader2 className="h-3.5 w-3.5 animate-spin" />
           Loading available times…
         </div>
       ) : load.kind === "error" ? (
-        <p className="py-6 text-center text-xs text-rose-600 dark:text-rose-400">{load.message}</p>
+        <p className="py-6 text-center text-xs text-error dark:text-error">{load.message}</p>
       ) : orderedDays.length === 0 ? (
-        <div className="flex flex-col items-center py-6 text-slate-400">
+        <div className="flex flex-col items-center py-6 text-taupe">
           <Calendar className="mb-1.5 h-5 w-5 opacity-60" />
           <p className="text-xs">No openings in the next two weeks.</p>
         </div>
       ) : submit.kind === "success" ? (
         <div className="flex flex-col items-center py-5 text-center">
-          <CheckCircle2 className="mb-2 h-6 w-6 text-emerald-500" />
-          <p className="mb-0.5 text-sm font-semibold text-slate-900 dark:text-white">
+          <CheckCircle2 className="mb-2 h-6 w-6 text-success" />
+          <p className="mb-0.5 text-sm font-semibold text-ivory dark:text-ivory">
             {props.rescheduleBookingId ? "Session rescheduled" : "Session booked"}
           </p>
-          <p className="mb-3 text-xs text-slate-400">Calendar invite is on its way.</p>
+          <p className="mb-3 text-xs text-taupe">Calendar invite is on its way.</p>
           {submit.joinUrl ? (
             <a
               href={submit.joinUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center rounded-md bg-blue-500 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-blue-400"
+              className="inline-flex items-center rounded-md bg-info px-3.5 py-1.5 text-xs font-semibold text-ivory hover:bg-info-bright"
             >
               Open Zoom link
             </a>
@@ -240,7 +240,7 @@ export function BookingWidget(props: BookingWidgetProps) {
               const sample = new Date(slots[0]!.start);
               return (
                 <div key={dk}>
-                  <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                  <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-taupe">
                     {formatDay(sample, tz)}
                   </p>
                   <div className="grid grid-cols-4 gap-1.5 sm:grid-cols-5">
@@ -253,8 +253,8 @@ export function BookingWidget(props: BookingWidgetProps) {
                           className={[
                             "rounded-md border px-2 py-1.5 text-xs font-medium transition-colors",
                             active
-                              ? "border-blue-500 bg-blue-500 text-white"
-                              : "border-slate-200 bg-slate-50 text-slate-700 hover:border-blue-400 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-200",
+                              ? "border-info/40 bg-info text-ivory"
+                              : "border-bronze bg-surface text-ivory hover:border-info/40 dark:border-bronze dark:bg-surface-raised/60 dark:text-ivory",
                           ].join(" ")}
                         >
                           {formatTime(new Date(slot.start), tz)}
@@ -268,22 +268,22 @@ export function BookingWidget(props: BookingWidgetProps) {
           </div>
 
           {selected ? (
-            <div className="mt-4 border-t border-slate-200 pt-4 dark:border-slate-800">
-              <p className="mb-2 text-xs text-slate-600 dark:text-slate-300">
-                <span className="text-slate-400">Selected:</span>{" "}
-                <span className="font-semibold text-slate-900 dark:text-white">
+            <div className="mt-4 border-t border-bronze pt-4 dark:border-bronze">
+              <p className="mb-2 text-xs text-taupe dark:text-ivory">
+                <span className="text-taupe">Selected:</span>{" "}
+                <span className="font-semibold text-ivory dark:text-ivory">
                   {formatDay(new Date(selected.start), tz)},{" "}
                   {formatTime(new Date(selected.start), tz)}
                 </span>
               </p>
               {submit.kind === "error" ? (
-                <p className="mb-2 text-xs text-rose-600 dark:text-rose-400">{submit.message}</p>
+                <p className="mb-2 text-xs text-error dark:text-error">{submit.message}</p>
               ) : null}
               <div className="flex gap-2">
                 <button
                   disabled={submit.kind === "submitting"}
                   onClick={onConfirm}
-                  className="flex-1 rounded-md bg-blue-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-400 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="flex-1 rounded-md bg-info px-3 py-1.5 text-xs font-semibold text-ivory hover:bg-info-bright disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {submit.kind === "submitting"
                     ? "Submitting…"
@@ -297,7 +297,7 @@ export function BookingWidget(props: BookingWidgetProps) {
                     setSelected(null);
                     setSubmit({ kind: "idle" });
                   }}
-                  className="rounded-md border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                  className="rounded-md border border-bronze px-3 py-1.5 text-xs font-semibold text-taupe hover:bg-surface dark:border-bronze dark:text-ivory dark:hover:bg-surface-raised"
                 >
                   Cancel
                 </button>

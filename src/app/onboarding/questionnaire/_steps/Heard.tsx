@@ -32,8 +32,8 @@ export function HeardStep(props: {
             className={cn(
               "rounded-lg border px-3 py-2 text-left text-xs font-semibold transition-colors",
               props.heardAboutKarman === opt
-                ? "border-blue-500 bg-blue-500 text-white"
-                : "border-white/10 bg-white/[0.03] text-slate-200 hover:border-white/30"
+                ? "border-info/40 bg-info text-ivory"
+                : "border-ivory/10 bg-surface/[0.03] text-ivory hover:border-ivory/30"
             )}
           >
             {opt}

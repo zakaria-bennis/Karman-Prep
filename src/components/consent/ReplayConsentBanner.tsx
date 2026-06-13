@@ -59,19 +59,19 @@ export default function ReplayConsentBanner({ show, privacyHref = "/privacy" }: 
       role="dialog"
       aria-labelledby="replay-consent-title"
       aria-describedby="replay-consent-body"
-      className="fixed inset-x-0 bottom-0 z-[100] border-t border-white/10 bg-slate-950/95 backdrop-blur-md"
+      className="fixed inset-x-0 bottom-0 z-[100] border-t border-ivory/10 bg-night/95 backdrop-blur-md"
     >
       <div className="mx-auto flex max-w-5xl flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:gap-4">
-        <Shield className="h-5 w-5 shrink-0 text-blue-300" aria-hidden="true" />
+        <Shield className="h-5 w-5 shrink-0 text-info-bright" aria-hidden="true" />
         <div className="flex-1">
-          <p id="replay-consent-title" className="text-sm font-bold text-white">
+          <p id="replay-consent-title" className="text-sm font-bold text-ivory">
             Help us debug your experience?
           </p>
-          <p id="replay-consent-body" className="mt-0.5 text-xs text-slate-400">
+          <p id="replay-consent-body" className="mt-0.5 text-xs text-taupe">
             With your permission, Karman records anonymized session activity (clicks, navigation,
             page text) so we can reproduce bugs. Sensitive fields are masked and never sent. You can
             change this anytime from{" "}
-            <a href={privacyHref} className="underline hover:text-blue-300">
+            <a href={privacyHref} className="underline hover:text-info-bright">
               Privacy
             </a>
             .
@@ -82,7 +82,7 @@ export default function ReplayConsentBanner({ show, privacyHref = "/privacy" }: 
             type="button"
             onClick={() => submit("no")}
             disabled={submitting}
-            className="rounded-lg border border-white/15 bg-white/[0.04] px-3 py-1.5 text-xs font-semibold text-slate-200 hover:bg-white/[0.08] disabled:opacity-50"
+            className="rounded-lg border border-ivory/15 bg-surface/[0.04] px-3 py-1.5 text-xs font-semibold text-ivory hover:bg-surface/[0.08] disabled:opacity-50"
           >
             Decline
           </button>
@@ -90,7 +90,7 @@ export default function ReplayConsentBanner({ show, privacyHref = "/privacy" }: 
             type="button"
             onClick={() => submit("yes")}
             disabled={submitting}
-            className="rounded-lg bg-blue-600 px-4 py-1.5 text-xs font-semibold text-white hover:bg-blue-500 disabled:opacity-50"
+            className="rounded-lg bg-info px-4 py-1.5 text-xs font-semibold text-ivory hover:bg-info-bright disabled:opacity-50"
           >
             Allow
           </button>
@@ -98,7 +98,7 @@ export default function ReplayConsentBanner({ show, privacyHref = "/privacy" }: 
             type="button"
             aria-label="Dismiss without choosing"
             onClick={() => setDismissed(true)}
-            className="rounded-lg p-1 text-slate-400 hover:bg-white/[0.05] hover:text-slate-200"
+            className="rounded-lg p-1 text-taupe hover:bg-surface/[0.05] hover:text-ivory"
           >
             <X className="h-4 w-4" />
           </button>

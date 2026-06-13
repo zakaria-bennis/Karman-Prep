@@ -2,9 +2,11 @@
 
 // ============================================================
 // ConstellationBackground — animated canvas node-graph backdrop.
-// Dots drift slowly, each fading independently (breathing pattern).
-// Nearby nodes connect with faint lines. Deep navy + purple tones.
-// Lives behind hero content via absolute positioning.
+//
+// Observatory treatment: a sparse field of ivory stars breathing
+// on a 3–6s twinkle cycle (docs/brand.md "Twinkle"), joined by
+// hairline bronze links. It floats over the static hero sky and
+// gives the night gentle life without competing with the copy.
 // ============================================================
 
 import { useEffect, useRef } from "react";
@@ -22,27 +24,26 @@ interface Node {
   opacityAmp: number; // amplitude of oscillation
 }
 
-// Tuned to a supporting role under CloudAurora — fewer, dimmer, smaller.
-// The aurora is the star now; the constellation adds texture and motion
-// without competing for attention.
-const NODE_COUNT = 38;
-const MAX_LINK_DIST = 140;
-const NODE_COLOR = "180, 200, 255"; // cool pale blue
-const LINK_COLOR = "140, 170, 255"; // pale blue link
+// Quiet by design — few, dim, slow. The static sky carries the scene;
+// this layer only breathes.
+const NODE_COUNT = 26;
+const MAX_LINK_DIST = 150;
+const NODE_COLOR = "243, 236, 221"; // ivory
+const LINK_COLOR = "200, 171, 106"; // antique gold
 
 function createNode(w: number, h: number): Node {
-  const speed = 0.05 + Math.random() * 0.09;
+  const speed = 0.025 + Math.random() * 0.05;
   const angle = Math.random() * Math.PI * 2;
   return {
     x: Math.random() * w,
     y: Math.random() * h,
     vx: Math.cos(angle) * speed,
     vy: Math.sin(angle) * speed,
-    radius: 1.0 + Math.random() * 1.4,
-    baseOpacity: 0.3 + Math.random() * 0.2,
+    radius: 0.9 + Math.random() * 1.2,
+    baseOpacity: 0.22 + Math.random() * 0.18,
     opacityPhase: Math.random() * Math.PI * 2,
-    opacitySpeed: 0.0003 + Math.random() * 0.0005,
-    opacityAmp: 0.12 + Math.random() * 0.14,
+    opacitySpeed: 0.00018 + Math.random() * 0.00035, // ~3–6s cycle
+    opacityAmp: 0.1 + Math.random() * 0.12,
   };
 }
 
@@ -92,7 +93,7 @@ export default function ConstellationBackground() {
         n.opacityPhase += n.opacitySpeed * 16; // ~60fps tick
       }
 
-      // Draw links first (under nodes)
+      // Draw links first (under nodes) — bronze hairlines
       for (let i = 0; i < nodes.length; i++) {
         for (let j = i + 1; j < nodes.length; j++) {
           const a = nodes[i];
@@ -105,30 +106,30 @@ export default function ConstellationBackground() {
           const proximity = 1 - dist / MAX_LINK_DIST;
           const opA = a.baseOpacity + Math.sin(a.opacityPhase) * a.opacityAmp;
           const opB = b.baseOpacity + Math.sin(b.opacityPhase) * b.opacityAmp;
-          const lineOp = proximity * Math.min(opA, opB) * 0.35;
+          const lineOp = proximity * Math.min(opA, opB) * 0.28;
 
           ctx.beginPath();
           ctx.moveTo(a.x, a.y);
           ctx.lineTo(b.x, b.y);
           ctx.strokeStyle = `rgba(${LINK_COLOR}, ${lineOp.toFixed(3)})`;
-          ctx.lineWidth = 0.6;
+          ctx.lineWidth = 0.5;
           ctx.stroke();
         }
       }
 
-      // Draw nodes — with a soft glow halo for presence
+      // Draw nodes — soft ivory stars
       for (const n of nodes) {
         const op = Math.max(
-          0.15,
-          Math.min(1.0, n.baseOpacity + Math.sin(n.opacityPhase) * n.opacityAmp)
+          0.1,
+          Math.min(0.85, n.baseOpacity + Math.sin(n.opacityPhase) * n.opacityAmp)
         );
 
-        // Outer glow
-        const glow = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.radius * 2.8);
-        glow.addColorStop(0, `rgba(${NODE_COLOR}, ${(op * 0.35).toFixed(3)})`);
+        // Outer halo
+        const glow = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.radius * 2.6);
+        glow.addColorStop(0, `rgba(${NODE_COLOR}, ${(op * 0.3).toFixed(3)})`);
         glow.addColorStop(1, `rgba(${NODE_COLOR}, 0)`);
         ctx.beginPath();
-        ctx.arc(n.x, n.y, n.radius * 2.8, 0, Math.PI * 2);
+        ctx.arc(n.x, n.y, n.radius * 2.6, 0, Math.PI * 2);
         ctx.fillStyle = glow;
         ctx.fill();
 

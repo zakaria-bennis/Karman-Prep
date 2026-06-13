@@ -25,16 +25,16 @@ type Tool = "pen" | "eraser";
 // the swatches read as a balanced row.
 const PEN_COLORS: { hex: string; label: string }[] = [
   { hex: "#FFFFFF", label: "White" },
-  { hex: "#C4B5FD", label: "Lavender" },
-  { hex: "#86EFAC", label: "Pastel green" },
-  { hex: "#93C5FD", label: "Pastel blue" },
-  { hex: "#FDBA74", label: "Pastel orange" },
+  { hex: "#E4C86A", label: "Lavender" },
+  { hex: "#A6C486", label: "Pastel green" },
+  { hex: "#7FC4FF", label: "Pastel blue" },
+  { hex: "#F0BE72", label: "Pastel orange" },
 ];
 
 // Karman aubergine — almost black, slight purple. Tuned to read
 // as a distinct surface against the navy diagnostic shell while
 // still feeling part of the same family.
-const SCRATCHPAD_BG = "#150C24";
+const SCRATCHPAD_BG = "#12110D";
 
 export default function Scratchpad({ onClose, constraintsRef }: Props) {
   const controls = useDragControls();
@@ -176,7 +176,7 @@ export default function Scratchpad({ onClose, constraintsRef }: Props) {
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.9 }}
       transition={{ type: "spring", stiffness: 350, damping: 28 }}
-      className="absolute z-[70] resize overflow-hidden rounded-2xl border border-white/10 shadow-2xl"
+      className="absolute z-[70] resize overflow-hidden rounded-2xl border border-ivory/10 shadow-2xl"
       style={{
         width: 520,
         height: 400,
@@ -188,12 +188,12 @@ export default function Scratchpad({ onClose, constraintsRef }: Props) {
       {/* Title bar */}
       <div
         onPointerDown={(e) => controls.start(e)}
-        className="flex cursor-grab select-none items-center justify-between border-b border-white/10 bg-white/[0.04] px-3 py-2 backdrop-blur-md active:cursor-grabbing"
+        className="flex cursor-grab select-none items-center justify-between border-b border-ivory/10 bg-surface/[0.04] px-3 py-2 backdrop-blur-md active:cursor-grabbing"
       >
         <div className="pointer-events-none flex items-center gap-2">
-          <GripHorizontal className="h-4 w-4 text-slate-400" />
+          <GripHorizontal className="h-4 w-4 text-taupe" />
           <Pen className="h-3.5 w-3.5" style={{ color: penColor }} />
-          <span className="text-xs font-semibold text-slate-200">Scratchpad</span>
+          <span className="text-xs font-semibold text-ivory/90">Scratchpad</span>
         </div>
 
         <div className="flex items-center gap-1" onPointerDown={(e) => e.stopPropagation()}>
@@ -208,22 +208,22 @@ export default function Scratchpad({ onClose, constraintsRef }: Props) {
               className={cn(
                 "flex h-7 items-center gap-1 rounded-md px-2 transition-colors",
                 tool === "pen"
-                  ? "bg-white/[0.08] text-white"
-                  : "text-slate-400 hover:bg-white/[0.05] hover:text-white"
+                  ? "bg-surface/[0.08] text-ivory"
+                  : "text-taupe hover:bg-surface/[0.05] hover:text-ivory"
               )}
               aria-label="Pen color"
               title="Pen color"
             >
               <Pen className="h-3.5 w-3.5" />
               <span
-                className="h-3 w-3 rounded-full border border-white/30"
+                className="h-3 w-3 rounded-full border border-ivory/30"
                 style={{ background: penColor }}
               />
               <ChevronDown className="h-3 w-3 opacity-70" />
             </button>
 
             {paletteOpen && (
-              <div className="absolute right-0 top-9 z-30 rounded-xl border border-white/10 bg-[#0B1026]/95 px-3 py-2.5 shadow-2xl backdrop-blur-xl">
+              <div className="absolute right-0 top-9 z-30 rounded-xl border border-ivory/10 bg-[#070605]/95 px-3 py-2.5 shadow-2xl backdrop-blur-xl">
                 <div className="flex items-center gap-3">
                   {PEN_COLORS.map((c) => (
                     <button
@@ -238,8 +238,8 @@ export default function Scratchpad({ onClose, constraintsRef }: Props) {
                       className={cn(
                         "h-7 w-7 rounded-full border transition-transform",
                         penColor === c.hex
-                          ? "scale-110 border-white ring-2 ring-blue-400/50"
-                          : "border-white/20 hover:scale-105"
+                          ? "scale-110 border-ivory ring-2 ring-info/50"
+                          : "border-ivory/20 hover:scale-105"
                       )}
                       style={{ background: c.hex }}
                     />
@@ -255,8 +255,8 @@ export default function Scratchpad({ onClose, constraintsRef }: Props) {
             className={cn(
               "flex h-7 w-7 items-center justify-center rounded-md transition-colors",
               tool === "eraser"
-                ? "bg-white/[0.08] text-white"
-                : "text-slate-400 hover:bg-white/[0.05] hover:text-white"
+                ? "bg-surface/[0.08] text-ivory"
+                : "text-taupe hover:bg-surface/[0.05] hover:text-ivory"
             )}
             aria-label="Eraser"
             title="Eraser"
@@ -267,7 +267,7 @@ export default function Scratchpad({ onClose, constraintsRef }: Props) {
           <button
             type="button"
             onClick={clearCanvas}
-            className="h-7 px-1.5 text-[11px] font-semibold text-slate-400 hover:text-white"
+            className="h-7 px-1.5 text-[11px] font-semibold text-taupe hover:text-ivory"
           >
             Clear
           </button>
@@ -275,7 +275,7 @@ export default function Scratchpad({ onClose, constraintsRef }: Props) {
           <button
             type="button"
             onClick={onClose}
-            className="flex h-7 w-7 items-center justify-center rounded-full text-slate-400 hover:bg-white/[0.08] hover:text-white"
+            className="flex h-7 w-7 items-center justify-center rounded-full text-taupe hover:bg-surface/[0.08] hover:text-ivory"
             aria-label="Close scratchpad"
           >
             <X className="h-3.5 w-3.5" />

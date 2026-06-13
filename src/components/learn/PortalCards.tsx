@@ -49,8 +49,8 @@ const HALVES = [
     href: "/learn/reading",
     description: "The shape of argument. The weight of evidence. The geometry of language.",
     Icon: BookOpen,
-    color: "#EC4899",
-    glowFrom: "#EC4899",
+    color: "#D84F73",
+    glowFrom: "#D84F73",
     glowTo: "#9F1239",
     stars: READING_STARS,
     cta: "Into the constellation",
@@ -60,9 +60,9 @@ const HALVES = [
     href: "/learn/math",
     description: "Functions, curves, proofs. The quiet grammar underneath the world.",
     Icon: Calculator,
-    color: "#38BDF8",
-    glowFrom: "#38BDF8",
-    glowTo: "#075985",
+    color: "#2FA8FF",
+    glowFrom: "#2FA8FF",
+    glowTo: "#2B7FC4",
     stars: MATH_STARS,
     cta: "Into the constellation",
   },
@@ -101,7 +101,7 @@ export default function PortalCards({ readingStats, mathStats }: Props) {
   }, []);
 
   return (
-    <div onMouseMove={handleMouseMove} className="fixed inset-0 flex overflow-hidden bg-[#02040a]">
+    <div onMouseMove={handleMouseMove} className="fixed inset-0 flex overflow-hidden bg-[#070605]">
       {HALVES.map((h) => {
         const stats = statsMap[h.subject];
         const pct = stats.total > 0 ? Math.round((stats.mastered / stats.total) * 100) : 0;
@@ -136,7 +136,7 @@ export default function PortalCards({ readingStats, mathStats }: Props) {
               <div
                 className="absolute inset-0"
                 style={{
-                  background: `radial-gradient(ellipse at ${h.subject === "reading" ? "80%" : "20%"} 55%, ${h.glowFrom}28 0%, ${h.glowTo}10 45%, #02040a 80%)`,
+                  background: `radial-gradient(ellipse at ${h.subject === "reading" ? "80%" : "20%"} 55%, ${h.glowFrom}28 0%, ${h.glowTo}10 45%, #070605 80%)`,
                 }}
               />
 
@@ -157,7 +157,7 @@ export default function PortalCards({ readingStats, mathStats }: Props) {
                   return (
                     <motion.span
                       key={i}
-                      className="absolute rounded-full bg-white"
+                      className="absolute rounded-full bg-surface"
                       style={{
                         top: `${s.top}%`,
                         left: `${s.left}%`,
@@ -220,13 +220,13 @@ export default function PortalCards({ readingStats, mathStats }: Props) {
               </motion.div>
 
               <h2
-                className="mb-6 text-5xl font-extrabold tracking-tight text-white sm:text-6xl"
+                className="mb-6 text-5xl font-extrabold tracking-tight text-ivory sm:text-6xl"
                 style={{ textShadow: `0 0 40px ${h.color}50` }}
               >
                 {h.subject === "reading" ? "Reading & Writing" : "Math"}
               </h2>
               <p
-                className="mb-10 max-w-sm text-base italic leading-relaxed text-slate-300/90"
+                className="text-ivory/80/90 mb-10 max-w-sm text-base italic leading-relaxed"
                 style={{ fontFamily: "Georgia, serif" }}
               >
                 {h.description}
@@ -240,10 +240,10 @@ export default function PortalCards({ readingStats, mathStats }: Props) {
                   borderColor: `${h.color}40`,
                 }}
               >
-                <span className="text-xs font-semibold tabular-nums text-slate-200">
-                  {stats.mastered} <span className="text-slate-400">/</span> {stats.total}
+                <span className="text-xs font-semibold tabular-nums text-ivory/90">
+                  {stats.mastered} <span className="text-taupe">/</span> {stats.total}
                 </span>
-                <span className="h-4 w-px bg-white/20" />
+                <span className="h-4 w-px bg-surface/20" />
                 <span className="text-xs font-bold tabular-nums" style={{ color: h.color }}>
                   {pct}% mastered
                 </span>
@@ -299,7 +299,7 @@ export default function PortalCards({ readingStats, mathStats }: Props) {
               transition={{ duration: 1.6, ease: [0.22, 1, 0.36, 1], delay: 0.3 }}
               style={{
                 background:
-                  "linear-gradient(180deg, transparent 0%, transparent 55%, #02040a 75%, #000 100%)",
+                  "linear-gradient(180deg, transparent 0%, transparent 55%, #070605 75%, #000 100%)",
               }}
             />
 
@@ -315,7 +315,7 @@ export default function PortalCards({ readingStats, mathStats }: Props) {
               <div
                 className="absolute inset-0"
                 style={{
-                  background: `radial-gradient(ellipse at 50% 40%, ${transitioning === "reading" ? "#ec489930" : "#38bdf830"} 0%, #02040a 55%, #000 100%)`,
+                  background: `radial-gradient(ellipse at 50% 40%, ${transitioning === "reading" ? "#D84F7330" : "#2FA8FF30"} 0%, #070605 55%, #000 100%)`,
                 }}
               />
 
@@ -329,7 +329,7 @@ export default function PortalCards({ readingStats, mathStats }: Props) {
                 return (
                   <motion.span
                     key={i}
-                    className="absolute rounded-full bg-white"
+                    className="absolute rounded-full bg-surface"
                     style={{
                       top: `${top}%`,
                       left: `${left}%`,
@@ -355,15 +355,15 @@ export default function PortalCards({ readingStats, mathStats }: Props) {
                 animate={{ top: "-20%", opacity: 0 }}
                 transition={{ duration: 1.8, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
                 style={{
-                  background: `linear-gradient(90deg, transparent, ${transitioning === "reading" ? "#ec4899" : "#38bdf8"}, transparent)`,
-                  boxShadow: `0 0 40px ${transitioning === "reading" ? "#ec4899" : "#38bdf8"}80`,
+                  background: `linear-gradient(90deg, transparent, ${transitioning === "reading" ? "#D84F73" : "#2FA8FF"}, transparent)`,
+                  boxShadow: `0 0 40px ${transitioning === "reading" ? "#D84F73" : "#2FA8FF"}80`,
                 }}
               />
             </motion.div>
 
             {/* Final dark fade at the end so the constellation page can take over */}
             <motion.div
-              className="absolute inset-0 bg-[#02040a]"
+              className="absolute inset-0 bg-[#070605]"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.4, delay: 1.9 }}

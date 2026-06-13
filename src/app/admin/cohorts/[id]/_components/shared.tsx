@@ -41,15 +41,13 @@ export function TabLink({
       href={href}
       className={cn(
         "inline-flex items-center gap-2 border-b-2 px-4 pb-3 font-semibold transition-colors",
-        active
-          ? "border-indigo-500 text-indigo-400"
-          : "border-transparent text-slate-400 hover:text-slate-200"
+        active ? "border-gold/40 text-gold" : "border-transparent text-taupe hover:text-ivory"
       )}
     >
       <Icon className="h-4 w-4" />
       {label}
       {count > 0 && (
-        <span className={cn("font-mono text-xs", active ? "text-indigo-300" : "text-slate-400")}>
+        <span className={cn("font-mono text-xs", active ? "text-gold-bright" : "text-taupe")}>
           {count}
         </span>
       )}
@@ -59,9 +57,9 @@ export function TabLink({
 
 export function EmptyBlock({ title, subtitle }: { title: string; subtitle: string }) {
   return (
-    <div className="rounded-xl border border-dashed border-slate-800 px-8 py-12 text-center">
-      <h3 className="text-base font-semibold text-white">{title}</h3>
-      <p className="mx-auto mt-2 max-w-md text-sm text-slate-400">{subtitle}</p>
+    <div className="rounded-xl border border-dashed border-bronze px-8 py-12 text-center">
+      <h3 className="text-base font-semibold text-ivory">{title}</h3>
+      <p className="mx-auto mt-2 max-w-md text-sm text-taupe">{subtitle}</p>
     </div>
   );
 }
@@ -74,7 +72,7 @@ export function Avatar({ name, avatarUrl }: { name: string; avatarUrl: string | 
         alt={name}
         width={28}
         height={28}
-        className="h-7 w-7 rounded-full border border-slate-700 object-cover"
+        className="h-7 w-7 rounded-full border border-bronze object-cover"
         unoptimized
       />
     );
@@ -88,7 +86,7 @@ export function Avatar({ name, avatarUrl }: { name: string; avatarUrl: string | 
     .toUpperCase();
   return (
     <div
-      className="flex h-7 w-7 items-center justify-center rounded-full border border-slate-700 bg-slate-800 text-xs font-semibold text-slate-300"
+      className="flex h-7 w-7 items-center justify-center rounded-full border border-bronze bg-surface-raised text-xs font-semibold text-ivory"
       aria-hidden="true"
     >
       {initials || "?"}
@@ -99,8 +97,8 @@ export function Avatar({ name, avatarUrl }: { name: string; avatarUrl: string | 
 export function TierBadge({ tier }: { tier: CohortTier }) {
   const classes =
     tier === "small_group"
-      ? "bg-teal-400/10 text-teal-300 border-teal-400/20"
-      : "bg-indigo-400/10 text-indigo-300 border-indigo-400/20";
+      ? "bg-success/10 text-success-bright border-success/20"
+      : "bg-gold/10 text-gold-bright border-gold/20";
   return (
     <span
       className={cn("inline-block rounded-md border px-2 py-0.5 text-xs font-semibold", classes)}
@@ -112,9 +110,9 @@ export function TierBadge({ tier }: { tier: CohortTier }) {
 
 export function StatusBadge({ status }: { status: CohortStatus }) {
   const map: Record<CohortStatus, string> = {
-    forming: "bg-slate-400/10 text-slate-300 border-slate-400/20",
-    active: "bg-emerald-400/10 text-emerald-300 border-emerald-400/20",
-    completed: "bg-slate-600/20 text-slate-400 border-slate-600/30",
+    forming: "bg-surface-raised/10 text-ivory border-bronze/20",
+    active: "bg-success/10 text-success-bright border-success/20",
+    completed: "bg-surface-raised/20 text-taupe border-bronze/30",
   };
   return (
     <span

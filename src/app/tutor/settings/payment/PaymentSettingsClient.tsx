@@ -87,24 +87,24 @@ export default function PaymentSettingsClient({ state }: { state: State }) {
       )}
 
       {/* ── Status card ─────────────────────────────── */}
-      <section className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900/60">
+      <section className="rounded-xl border border-bronze bg-surface p-5 dark:border-bronze dark:bg-surface/60">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h2 className="text-sm font-bold text-slate-900 dark:text-white">Payment account</h2>
+            <h2 className="text-sm font-bold text-ivory dark:text-ivory">Payment account</h2>
           </div>
           <StatusPill status={status} />
         </div>
 
         {status === "not_started" && (
           <div className="mt-5 space-y-3">
-            <p className="text-sm text-slate-600 dark:text-slate-300">
+            <p className="text-sm text-taupe dark:text-ivory">
               You haven&apos;t set up payouts yet. Stripe will ask for your name, address, date of
               birth, and a bank account (or debit card for instant payouts). Takes about 3 minutes.
             </p>
             <button
               onClick={() => call(actionStartOnboarding, (r) => go(r.url))}
               disabled={isPending}
-              className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-blue-700 disabled:opacity-40"
+              className="inline-flex items-center gap-2 rounded-lg bg-info px-5 py-2.5 text-sm font-bold text-ivory hover:bg-info-bright disabled:opacity-40"
             >
               {isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -118,13 +118,13 @@ export default function PaymentSettingsClient({ state }: { state: State }) {
 
         {status === "incomplete" && (
           <div className="mt-5 space-y-3">
-            <p className="text-sm text-slate-600 dark:text-slate-300">
+            <p className="text-sm text-taupe dark:text-ivory">
               Stripe still needs more information before you can receive payouts. Click below to
               finish onboarding.
             </p>
             {state.requirements.length > 0 && (
-              <details className="text-xs text-slate-400">
-                <summary className="cursor-pointer hover:text-slate-400 dark:hover:text-slate-300">
+              <details className="text-xs text-taupe">
+                <summary className="cursor-pointer hover:text-taupe dark:hover:text-ivory">
                   What does Stripe need? ({state.requirements.length})
                 </summary>
                 <ul className="ml-4 mt-1 list-disc">
@@ -140,7 +140,7 @@ export default function PaymentSettingsClient({ state }: { state: State }) {
               <button
                 onClick={() => call(actionStartOnboarding, (r) => go(r.url))}
                 disabled={isPending}
-                className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-blue-700 disabled:opacity-40"
+                className="inline-flex items-center gap-2 rounded-lg bg-info px-5 py-2.5 text-sm font-bold text-ivory hover:bg-info-bright disabled:opacity-40"
               >
                 {isPending ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -152,7 +152,7 @@ export default function PaymentSettingsClient({ state }: { state: State }) {
               <button
                 onClick={() => call(actionRefreshAccountStatus, () => router.refresh())}
                 disabled={isPending}
-                className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-100 disabled:opacity-40 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                className="inline-flex items-center gap-2 rounded-lg border border-bronze px-4 py-2.5 text-sm font-semibold text-ivory hover:bg-surface disabled:opacity-40 dark:border-bronze dark:text-ivory dark:hover:bg-surface-raised"
               >
                 {isPending ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -186,7 +186,7 @@ export default function PaymentSettingsClient({ state }: { state: State }) {
               <button
                 onClick={() => call(actionUpdatePaymentDetails, (r) => go(r.url))}
                 disabled={isPending}
-                className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 disabled:opacity-40 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                className="inline-flex items-center gap-2 rounded-lg border border-bronze px-4 py-2 text-sm font-semibold text-ivory hover:bg-surface disabled:opacity-40 dark:border-bronze dark:text-ivory dark:hover:bg-surface-raised"
               >
                 {isPending ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -198,7 +198,7 @@ export default function PaymentSettingsClient({ state }: { state: State }) {
               <button
                 onClick={() => call(actionGetExpressDashboardLink, (r) => go(r.url))}
                 disabled={isPending}
-                className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 disabled:opacity-40 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                className="inline-flex items-center gap-2 rounded-lg border border-bronze px-4 py-2 text-sm font-semibold text-ivory hover:bg-surface disabled:opacity-40 dark:border-bronze dark:text-ivory dark:hover:bg-surface-raised"
               >
                 {isPending ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -213,33 +213,33 @@ export default function PaymentSettingsClient({ state }: { state: State }) {
       </section>
 
       {/* ── Fee breakdown ───────────────────────────── */}
-      <section className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900/60">
-        <h2 className="mb-3 text-sm font-bold text-slate-900 dark:text-white">How payouts work</h2>
+      <section className="rounded-xl border border-bronze bg-surface p-5 dark:border-bronze dark:bg-surface/60">
+        <h2 className="mb-3 text-sm font-bold text-ivory dark:text-ivory">How payouts work</h2>
         <div className="grid gap-3 text-sm sm:grid-cols-2">
-          <div className="rounded-lg border border-slate-200 p-3 dark:border-slate-800">
-            <div className="flex items-center gap-2 font-bold text-slate-800 dark:text-slate-100">
-              <Banknote className="h-4 w-4 text-emerald-500" />
+          <div className="rounded-lg border border-bronze p-3 dark:border-bronze">
+            <div className="flex items-center gap-2 font-bold text-ivory dark:text-ivory">
+              <Banknote className="h-4 w-4 text-success" />
               ACH (Standard)
             </div>
-            <ul className="mt-2 list-inside list-disc space-y-1 text-xs text-slate-600 dark:text-slate-400">
+            <ul className="mt-2 list-inside list-disc space-y-1 text-xs text-taupe dark:text-taupe">
               <li>Free — you receive 100% of your earnings</li>
               <li>Arrives in 2–5 business days</li>
               <li>Goes to your bank account</li>
             </ul>
           </div>
-          <div className="rounded-lg border border-slate-200 p-3 dark:border-slate-800">
-            <div className="flex items-center gap-2 font-bold text-slate-800 dark:text-slate-100">
-              <CreditCard className="h-4 w-4 text-blue-500" />
+          <div className="rounded-lg border border-bronze p-3 dark:border-bronze">
+            <div className="flex items-center gap-2 font-bold text-ivory dark:text-ivory">
+              <CreditCard className="h-4 w-4 text-info" />
               Instant
             </div>
-            <ul className="mt-2 list-inside list-disc space-y-1 text-xs text-slate-600 dark:text-slate-400">
+            <ul className="mt-2 list-inside list-disc space-y-1 text-xs text-taupe dark:text-taupe">
               <li>2.5% fee — you receive 97.5%</li>
               <li>Arrives in seconds</li>
               <li>Goes to your linked debit card</li>
             </ul>
           </div>
         </div>
-        <p className="mt-3 text-xs text-slate-400">
+        <p className="mt-3 text-xs text-taupe">
           You pick the method when requesting a payout. No hidden fees, no minimum.
         </p>
       </section>
@@ -254,15 +254,15 @@ function StatusPill({ status }: { status: "not_started" | "incomplete" | "ready"
   const map = {
     not_started: {
       label: "Not set up",
-      cls: "bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300",
+      cls: "bg-surface dark:bg-surface-raised text-taupe dark:text-ivory",
     },
     incomplete: {
       label: "Incomplete",
-      cls: "bg-amber-100 dark:bg-amber-400/15 text-amber-700 dark:text-amber-300",
+      cls: "bg-warning/10 dark:bg-warning/15 text-warning dark:text-warning-bright",
     },
     ready: {
       label: "Ready",
-      cls: "bg-emerald-100 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300",
+      cls: "bg-success/10 dark:bg-success/15 text-success dark:text-success-bright",
     },
   } as const;
   const m = map[status];
@@ -291,16 +291,16 @@ function Capability({
       className={cn(
         "rounded-lg border p-3",
         active
-          ? "border-emerald-300 bg-emerald-50/40 dark:border-emerald-500/40 dark:bg-emerald-500/5"
-          : "border-slate-200 dark:border-slate-800"
+          ? "border-success/40 bg-success/40 dark:border-success/40 dark:bg-success/5"
+          : "border-bronze dark:border-bronze"
       )}
     >
-      <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+      <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-ivory dark:text-ivory">
         {icon}
         {label}
-        {active && <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />}
+        {active && <CheckCircle2 className="h-3.5 w-3.5 text-success" />}
       </div>
-      {hint && <div className="mt-1 text-[11px] text-slate-400">{hint}</div>}
+      {hint && <div className="mt-1 text-[11px] text-taupe">{hint}</div>}
     </div>
   );
 }
@@ -316,10 +316,10 @@ function Banner({
 }) {
   const map = {
     emerald:
-      "border-emerald-300 dark:border-emerald-500/40 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-800 dark:text-emerald-200",
+      "border-success/40 dark:border-success/40 bg-success/10 dark:bg-success/10 text-success dark:text-success-bright",
     amber:
-      "border-amber-300 dark:border-amber-500/40 bg-amber-50 dark:bg-amber-500/10 text-amber-800 dark:text-amber-200",
-    rose: "border-rose-300 dark:border-rose-500/40 bg-rose-50 dark:bg-rose-500/10 text-rose-800 dark:text-rose-200",
+      "border-warning/40 dark:border-warning/40 bg-warning/10 dark:bg-warning/10 text-warning dark:text-warning-bright",
+    rose: "border-error/40 dark:border-error/40 bg-error/10 dark:bg-error/10 text-error dark:text-error-bright",
   };
   return (
     <div className={cn("flex items-start gap-2 rounded-lg border px-4 py-3 text-sm", map[color])}>

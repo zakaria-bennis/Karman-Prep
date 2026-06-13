@@ -53,11 +53,11 @@ export default async function TutorCohortPage({ params }: PageProps) {
   if (!detail) notFound();
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100">
+    <div className="min-h-screen bg-night text-ivory">
       <div className="mx-auto max-w-5xl px-5 py-8">
         <Link
           href="/tutor"
-          className="mb-4 inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-slate-200"
+          className="mb-4 inline-flex items-center gap-1.5 text-sm text-taupe hover:text-ivory"
         >
           <ChevronLeft className="h-4 w-4" />
           My cohorts

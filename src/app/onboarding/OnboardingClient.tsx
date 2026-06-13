@@ -179,24 +179,24 @@ export default function OnboardingClient() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 px-4 py-10 dark:from-slate-950 dark:to-slate-900">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-info/10 to-gold/10 px-4 py-10 dark:from-night dark:to-surface">
       <div className="w-full max-w-xl">
         <div className="mb-6">
-          <div className="mb-2 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+          <div className="mb-2 flex items-center justify-between text-xs text-taupe dark:text-taupe">
             <span>
               Step {Math.min(step + 1, totalSteps)} of {totalSteps}
             </span>
             <span>{role === "student" ? "Student intake" : "Parent intake"}</span>
           </div>
-          <div className="h-1 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
+          <div className="h-1 overflow-hidden rounded-full bg-surface dark:bg-surface-raised">
             <div
-              className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 transition-all duration-300"
+              className="h-full bg-gradient-to-r from-info to-gold transition-all duration-300"
               style={{ width: `${((step + 1) / totalSteps) * 100}%` }}
             />
           </div>
         </div>
 
-        <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 shadow-2xl backdrop-blur-md dark:bg-slate-900/40 sm:p-8">
+        <div className="rounded-2xl border border-ivory/10 bg-surface/[0.04] p-6 shadow-2xl backdrop-blur-md dark:bg-surface/40 sm:p-8">
           {currentStep === "role" && <RoleStep role={role} onPick={setRole} />}
 
           {currentStep === "sat" && (
@@ -208,7 +208,7 @@ export default function OnboardingClient() {
               prompt={copy.goal}
               value={goalScore}
               onChange={setGoalScore}
-              icon={<Target className="h-5 w-5 text-blue-400" />}
+              icon={<Target className="h-5 w-5 text-info" />}
             />
           )}
 
@@ -230,7 +230,7 @@ export default function OnboardingClient() {
 
           {currentStep === "independence" && (
             <ChoiceStep
-              icon={<Compass className="h-5 w-5 text-blue-400" />}
+              icon={<Compass className="h-5 w-5 text-info" />}
               prompt={copy.indeQ}
               options={[
                 { id: "on_my_own", label: copy.indeOnOwn },
@@ -244,7 +244,7 @@ export default function OnboardingClient() {
 
           {currentStep === "pace" && (
             <ChoiceStep
-              icon={<Gauge className="h-5 w-5 text-blue-400" />}
+              icon={<Gauge className="h-5 w-5 text-info" />}
               prompt={copy.paceQ}
               options={[
                 { id: "quick", label: copy.paceQuick },
@@ -258,7 +258,7 @@ export default function OnboardingClient() {
 
           {currentStep === "prior" && (
             <ChoiceStep
-              icon={<History className="h-5 w-5 text-blue-400" />}
+              icon={<History className="h-5 w-5 text-info" />}
               prompt={copy.priorQ}
               options={[
                 { id: "first_time", label: copy.priorFirst },
@@ -272,7 +272,7 @@ export default function OnboardingClient() {
 
           {currentStep === "billing" && (
             <ChoiceStep
-              icon={<CreditCard className="h-5 w-5 text-blue-400" />}
+              icon={<CreditCard className="h-5 w-5 text-info" />}
               prompt="How would you prefer to pay?"
               hint="All plans come with live tutoring — this just changes how billing works."
               options={[
@@ -309,7 +309,7 @@ export default function OnboardingClient() {
                 type="button"
                 onClick={back}
                 disabled={step === 0}
-                className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-slate-500 hover:text-slate-700 disabled:opacity-40 dark:text-slate-400 dark:hover:text-slate-200"
+                className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-taupe hover:text-ivory disabled:opacity-40 dark:text-taupe dark:hover:text-ivory"
               >
                 <ArrowLeft className="h-4 w-4" />
                 Back

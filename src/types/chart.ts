@@ -155,23 +155,22 @@ export interface ChartFigure {
 /** Subject → series color mapping for single-series figures.
  *  Multi-series (length > 1) uses the SEQUENTIAL_PALETTE below.
  *
- *  Cool light-blue (sky) family from the app tokens (docs/design-tokens.md)
- *  so series sit in the same "blueprint" theme as the axes and labels.
- *  Both subjects stay light-blue, slightly varied for any mixed context. */
+ *  Constellation accents from docs/brand.md — subject SIGNALS on the
+ *  warm-dark canvas. Math = Math blue, R&W = R&W rose. */
 export const SUBJECT_CHART_COLOR: Record<string, string> = {
-  math: "#38bdf8", // sky-400
-  reading: "#7dd3fc", // sky-300
+  math: "#2FA8FF", // --subject-math
+  reading: "#D84F73", // --subject-rw
 };
 
-/** Sequential palette for multi-series charts — a cool blue→cyan→indigo
- *  ramp so the palette feels native to the navy quiz app. Stops after 6;
- *  a 7+-series SAT chart would be visually unreadable and the extractor
- *  should surface it for manual review. */
+/** Sequential palette for multi-series charts — the brand accents in
+ *  order: math blue → R&W rose → antique gold → the two glow variants →
+ *  star gold. Stops after 6; a 7+-series SAT chart would be visually
+ *  unreadable and the extractor should surface it for manual review. */
 export const SEQUENTIAL_PALETTE = [
-  "#38bdf8", // sky-400
-  "#22d3ee", // cyan-400
-  "#818cf8", // indigo-400
-  "#5eead4", // teal-300
-  "#7dd3fc", // sky-300
-  "#a78bfa", // violet-400
+  "#2FA8FF", // math blue
+  "#D84F73", // R&W rose
+  "#C8AB6A", // antique gold
+  "#42D9FF", // math glow
+  "#F06A8C", // R&W glow
+  "#E4C86A", // star gold
 ] as const;

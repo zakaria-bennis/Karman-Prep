@@ -7,10 +7,10 @@ import type { Role } from "./shared";
 export function RoleStep({ role, onPick }: { role: Role; onPick: (r: Role) => void }) {
   return (
     <div>
-      <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white">
+      <h1 className="text-2xl font-extrabold text-ivory dark:text-ivory">
         Who&apos;s filling this out?
       </h1>
-      <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+      <p className="mt-2 text-sm text-taupe dark:text-taupe">
         We&apos;ll word the rest of the questions accordingly.
       </p>
       <div className="mt-6 space-y-3">
@@ -53,23 +53,23 @@ function RoleOption({
       className={cn(
         "flex w-full items-center gap-4 rounded-2xl border-2 p-4 text-left transition-all",
         active
-          ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
-          : "border-slate-200 bg-white hover:border-blue-300 dark:border-slate-700 dark:bg-slate-800/40"
+          ? "border-info/40 bg-info/10 dark:bg-info/20"
+          : "border-bronze bg-surface hover:border-info/40 dark:border-bronze dark:bg-surface-raised/40"
       )}
     >
       <div
         className={cn(
           "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl",
           active
-            ? "bg-blue-500 text-white"
-            : "bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300"
+            ? "bg-info text-ivory"
+            : "bg-surface text-taupe dark:bg-surface-raised dark:text-ivory"
         )}
       >
         {icon}
       </div>
       <div>
-        <p className="text-sm font-semibold text-slate-900 dark:text-white">{label}</p>
-        <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{desc}</p>
+        <p className="text-sm font-semibold text-ivory dark:text-ivory">{label}</p>
+        <p className="mt-0.5 text-xs text-taupe dark:text-taupe">{desc}</p>
       </div>
     </button>
   );

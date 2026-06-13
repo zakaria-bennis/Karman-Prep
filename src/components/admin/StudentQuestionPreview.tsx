@@ -45,36 +45,36 @@ export default function StudentQuestionPreview({ question, onClose }: Props) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-6 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-night/70 p-6 backdrop-blur-sm"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
       aria-label="Student preview"
     >
       <div
-        className="relative flex max-h-[90vh] w-full max-w-6xl flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#0B1026] shadow-2xl"
+        className="relative flex max-h-[90vh] w-full max-w-6xl flex-col overflow-hidden rounded-2xl border border-ivory/10 bg-[#070605] shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         {/* ── Header ─────────────────────────────────────── */}
-        <div className="flex shrink-0 items-center justify-between border-b border-white/10 bg-white/[0.03] px-6 py-3">
+        <div className="flex shrink-0 items-center justify-between border-b border-ivory/10 bg-surface/[0.03] px-6 py-3">
           <div className="flex items-center gap-3 text-xs">
-            <span className="font-semibold text-slate-300">Student preview</span>
-            <span className="text-slate-400">·</span>
-            <span className="text-slate-400">
+            <span className="font-semibold text-ivory">Student preview</span>
+            <span className="text-taupe">·</span>
+            <span className="text-taupe">
               {question.subject === "math" ? "Math" : "Reading & Writing"}
             </span>
             {question.concept_slug && (
               <>
-                <span className="text-slate-400">·</span>
-                <span className="text-slate-400">{question.concept_slug}</span>
+                <span className="text-taupe">·</span>
+                <span className="text-taupe">{question.concept_slug}</span>
               </>
             )}
-            <span className="text-slate-400">·</span>
-            <span className="text-slate-400">difficulty {question.difficulty_level}</span>
+            <span className="text-taupe">·</span>
+            <span className="text-taupe">difficulty {question.difficulty_level}</span>
           </div>
           <button
             onClick={onClose}
-            className="text-slate-400 transition-colors hover:text-white"
+            className="text-taupe transition-colors hover:text-ivory"
             aria-label="Close preview"
           >
             <X className="h-4 w-4" />
@@ -99,7 +99,7 @@ export default function StudentQuestionPreview({ question, onClose }: Props) {
         </div>
 
         {/* ── Footer hint ────────────────────────────────── */}
-        <div className="shrink-0 border-t border-white/10 bg-white/[0.02] px-6 py-2 text-[11px] text-slate-400">
+        <div className="shrink-0 border-t border-ivory/10 bg-surface/[0.02] px-6 py-2 text-[11px] text-taupe">
           Read-only preview · the correct answer is highlighted for the admin · students see no
           highlighting until they submit
         </div>
@@ -112,7 +112,7 @@ function LeftColumn({ question }: { question: QuizQuestionWithChoices }) {
   const hasPassage = !!question.passage || !!question.passage_a || !!question.passage_b;
   const isNativeTable = question.figure_kind === "table" && question.figure_table_data;
   return (
-    <div className="font-serif text-[15px] leading-relaxed text-slate-200">
+    <div className="font-serif text-[15px] leading-relaxed text-ivory">
       {isNativeTable ? (
         <div className="mb-6 flex justify-center">
           <QuestionTable data={question.figure_table_data!} />
@@ -130,14 +130,14 @@ function LeftColumn({ question }: { question: QuizQuestionWithChoices }) {
       {hasPassage && (
         <>
           {question.passage_intro && (
-            <p className="mb-4 text-sm italic text-slate-400">{question.passage_intro}</p>
+            <p className="mb-4 text-sm italic text-taupe">{question.passage_intro}</p>
           )}
           {question.passage && <MathText text={question.passage} className="whitespace-pre-wrap" />}
           {(question.passage_a || question.passage_b) && (
             <div className="space-y-5">
               {question.passage_a && (
                 <div>
-                  <div className="mb-2 font-sans text-xs uppercase not-italic tracking-wide text-slate-400">
+                  <div className="mb-2 font-sans text-xs uppercase not-italic tracking-wide text-taupe">
                     Text 1
                   </div>
                   <MathText text={question.passage_a} className="whitespace-pre-wrap" />
@@ -145,7 +145,7 @@ function LeftColumn({ question }: { question: QuizQuestionWithChoices }) {
               )}
               {question.passage_b && (
                 <div>
-                  <div className="mb-2 font-sans text-xs uppercase not-italic tracking-wide text-slate-400">
+                  <div className="mb-2 font-sans text-xs uppercase not-italic tracking-wide text-taupe">
                     Text 2
                   </div>
                   <MathText text={question.passage_b} className="whitespace-pre-wrap" />
@@ -170,7 +170,7 @@ function PromptColumn({
     <div>
       <MathText
         text={question.question_text}
-        className="mb-5 block whitespace-pre-wrap text-[15px] leading-relaxed text-slate-100"
+        className="mb-5 block whitespace-pre-wrap text-[15px] leading-relaxed text-ivory"
       />
 
       {question.answer_format === "multiple_choice" ? (
@@ -180,11 +180,11 @@ function PromptColumn({
               key={c.id}
               className={
                 c.is_correct
-                  ? "flex items-start gap-3 rounded-xl border border-emerald-400/40 bg-emerald-500/[0.06] px-4 py-3 text-[15px] text-emerald-50"
-                  : "flex items-start gap-3 rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3 text-[15px] text-slate-200 transition-colors hover:bg-white/[0.04]"
+                  ? "flex items-start gap-3 rounded-xl border border-success/40 bg-success/[0.06] px-4 py-3 text-[15px] text-success-bright"
+                  : "flex items-start gap-3 rounded-xl border border-ivory/10 bg-surface/[0.02] px-4 py-3 text-[15px] text-ivory transition-colors hover:bg-surface/[0.04]"
               }
             >
-              <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-white/20 font-mono text-xs">
+              <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-ivory/20 font-mono text-xs">
                 {c.letter}
               </span>
               <MathText text={c.choice_text} className="whitespace-pre-wrap" />
@@ -192,8 +192,8 @@ function PromptColumn({
           ))}
         </ul>
       ) : (
-        <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
-          <label className="mb-2 block text-xs uppercase tracking-wide text-slate-400">
+        <div className="rounded-xl border border-ivory/10 bg-surface/[0.02] p-4">
+          <label className="mb-2 block text-xs uppercase tracking-wide text-taupe">
             Numeric entry
           </label>
           <div className="flex items-center gap-3">
@@ -201,12 +201,12 @@ function PromptColumn({
               type="text"
               disabled
               placeholder="Student types answer here"
-              className="flex-1 rounded-lg border border-white/10 bg-slate-950/60 px-3 py-2 text-[15px] text-slate-300 placeholder:text-slate-400"
+              className="flex-1 rounded-lg border border-ivory/10 bg-night/60 px-3 py-2 text-[15px] text-ivory placeholder:text-taupe"
             />
-            <span className="text-xs text-emerald-300">
+            <span className="text-xs text-success-bright">
               answer: <span className="font-mono">{question.correct_answer}</span>
               {question.numeric_tolerance != null && (
-                <span className="ml-1 text-slate-400">±{question.numeric_tolerance}</span>
+                <span className="ml-1 text-taupe">±{question.numeric_tolerance}</span>
               )}
             </span>
           </div>
@@ -214,9 +214,9 @@ function PromptColumn({
       )}
 
       {question.hint && (
-        <details className="mt-4 text-xs text-slate-400">
-          <summary className="cursor-pointer hover:text-slate-300">Hint</summary>
-          <MathText text={question.hint} className="mt-1.5 block text-slate-400" />
+        <details className="mt-4 text-xs text-taupe">
+          <summary className="cursor-pointer hover:text-ivory">Hint</summary>
+          <MathText text={question.hint} className="mt-1.5 block text-taupe" />
         </details>
       )}
     </div>

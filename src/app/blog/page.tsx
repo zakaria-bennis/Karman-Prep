@@ -19,22 +19,22 @@ export const metadata: Metadata = {
 const UPCOMING_TOPICS = [
   {
     icon: TrendingUp,
-    color: "text-blue-500",
-    bg: "bg-blue-50 dark:bg-blue-900/20",
+    color: "text-info",
+    bg: "bg-info/10 dark:bg-info/20",
     title: "Score improvement guides",
     desc: "Step-by-step plans for going from 1100 to 1350, 1200 to 1400, and more — based on what actually worked for our students.",
   },
   {
     icon: BookOpen,
-    color: "text-purple-500",
-    bg: "bg-purple-50 dark:bg-purple-900/20",
+    color: "text-gold",
+    bg: "bg-gold/10 dark:bg-gold/20",
     title: "Concept breakdowns",
     desc: "Deep dives into the highest-yield SAT topics — algebra, advanced math, data analysis, and reading & writing.",
   },
   {
     icon: ClipboardList,
-    color: "text-teal-500",
-    bg: "bg-teal-50 dark:bg-teal-900/20",
+    color: "text-success",
+    bg: "bg-success/10 dark:bg-success/20",
     title: "Test strategy",
     desc: "Pacing strategies, elimination techniques, and the mental frameworks that separate 1200 from 1400 students.",
   },
@@ -44,18 +44,18 @@ export default function BlogPage() {
   return (
     <>
       <Navbar />
-      <main className="min-h-screen bg-white dark:bg-slate-950">
+      <main className="min-h-screen bg-surface dark:bg-night">
         {/* Hero */}
-        <section className="bg-gradient-to-b from-blue-50/80 to-white px-4 pb-16 pt-20 text-center dark:from-slate-900 dark:to-slate-950">
+        <section className="bg-gradient-to-b from-info/80 to-white px-4 pb-16 pt-20 text-center dark:from-surface dark:to-night">
           <div className="mx-auto max-w-2xl">
-            <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-amber-200/60 bg-amber-100 px-4 py-1.5 text-sm font-semibold text-amber-700 dark:border-amber-700/40 dark:bg-amber-900/30 dark:text-amber-300">
+            <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-warning/60 bg-warning/10 px-4 py-1.5 text-sm font-semibold text-warning dark:border-warning/40 dark:bg-warning/30 dark:text-warning-bright">
               <Mail className="h-3.5 w-3.5" />
               Coming soon
             </div>
-            <h1 className="mb-5 text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-5xl">
-              SAT Tips & <span className="text-blue-600 dark:text-blue-400">Strategy</span>
+            <h1 className="mb-5 text-4xl font-extrabold tracking-tight text-ivory dark:text-ivory sm:text-5xl">
+              SAT Tips & <span className="text-info dark:text-info">Strategy</span>
             </h1>
-            <p className="text-lg leading-relaxed text-slate-600 dark:text-slate-300">
+            <p className="text-lg leading-relaxed text-taupe dark:text-ivory">
               Free SAT study guides, score improvement breakdowns, test-taking strategies, and
               expert advice — straight from the tutors behind Karman.
             </p>
@@ -64,7 +64,7 @@ export default function BlogPage() {
 
         {/* Upcoming content */}
         <section className="mx-auto max-w-4xl px-4 py-14 sm:px-6">
-          <p className="mb-8 text-center text-sm font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400">
+          <p className="mb-8 text-center text-sm font-semibold uppercase tracking-widest text-taupe dark:text-taupe">
             What&apos;s coming
           </p>
           <div className="grid gap-6 sm:grid-cols-3">
@@ -76,20 +76,20 @@ export default function BlogPage() {
                 <div className={`h-14 w-14 rounded-2xl ${bg} flex items-center justify-center`}>
                   <Icon className={`h-7 w-7 ${color}`} />
                 </div>
-                <h3 className="font-bold text-slate-900 dark:text-white">{title}</h3>
-                <p className="text-sm leading-relaxed text-slate-500 dark:text-slate-400">{desc}</p>
+                <h3 className="font-bold text-ivory dark:text-ivory">{title}</h3>
+                <p className="text-sm leading-relaxed text-taupe dark:text-taupe">{desc}</p>
               </div>
             ))}
           </div>
         </section>
 
         {/* Free resources in the meantime */}
-        <section className="bg-slate-50 px-4 py-14 dark:bg-slate-900/50">
+        <section className="bg-surface px-4 py-14 dark:bg-surface/50">
           <div className="mx-auto max-w-2xl text-center">
-            <h2 className="mb-3 text-2xl font-bold text-slate-900 dark:text-white">
+            <h2 className="mb-3 text-2xl font-bold text-ivory dark:text-ivory">
               Free resources available now
             </h2>
-            <p className="mb-8 text-sm text-slate-500 dark:text-slate-400">
+            <p className="mb-8 text-sm text-taupe dark:text-taupe">
               While the blog is being built, these are the best free ways to start improving your
               score today.
             </p>

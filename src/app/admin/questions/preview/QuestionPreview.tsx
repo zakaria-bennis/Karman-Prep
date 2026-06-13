@@ -72,7 +72,7 @@ export function QuestionPreview({
       >
         <button
           onClick={() => setIsSubmitted(true)}
-          className="rounded-xl bg-blue-600 px-8 py-3 text-sm font-bold text-white transition-colors hover:bg-blue-700"
+          className="rounded-xl bg-info px-8 py-3 text-sm font-bold text-ivory transition-colors hover:bg-info-bright"
         >
           Simulate submit
         </button>
@@ -89,13 +89,13 @@ export function QuestionPreview({
           setIsSubmitted(false);
           setSelectedAnswer(null);
         }}
-        className="rounded-xl border border-slate-700 bg-slate-800 px-6 py-3 text-sm font-semibold text-slate-100 transition-colors hover:bg-slate-700"
+        className="rounded-xl border border-bronze bg-surface-raised px-6 py-3 text-sm font-semibold text-ivory transition-colors hover:bg-surface-raised"
       >
         Reset
       </button>
       <button
         onClick={() => setShowExplanations(true)}
-        className="rounded-xl bg-blue-600 px-8 py-3 text-sm font-bold text-white transition-colors hover:bg-blue-700"
+        className="rounded-xl bg-info px-8 py-3 text-sm font-bold text-ivory transition-colors hover:bg-info-bright"
       >
         Show explanations
       </button>
@@ -113,18 +113,18 @@ export function QuestionPreview({
           onChange={(e) => !isSubmitted && setSelectedAnswer(e.target.value)}
           disabled={isSubmitted}
           className={cn(
-            "w-full rounded-xl border border-slate-700 bg-slate-900 px-5 py-4 text-[16px] text-slate-100",
-            "focus:border-blue-500 focus:outline-none"
+            "w-full rounded-xl border border-bronze bg-surface px-5 py-4 text-[16px] text-ivory",
+            "focus:border-info/40 focus:outline-none"
           )}
         />
         {isSubmitted && (
           <div className="mt-3 text-sm">
-            <span className="text-slate-400">Correct answer: </span>
-            <span className="font-semibold text-emerald-300">
+            <span className="text-taupe">Correct answer: </span>
+            <span className="font-semibold text-success-bright">
               <MathText text={q.correct_answer} />
             </span>
             {q.numeric_tolerance ? (
-              <span className="text-slate-400"> (±{q.numeric_tolerance})</span>
+              <span className="text-taupe"> (±{q.numeric_tolerance})</span>
             ) : null}
           </div>
         )}
@@ -145,27 +145,27 @@ export function QuestionPreview({
               className={cn(
                 "w-full rounded-xl border px-5 py-3.5 text-left transition-all",
                 "flex items-start gap-4",
-                !isSubmitted && "cursor-pointer hover:border-blue-500 hover:bg-blue-500/5",
-                isSelected && !isSubmitted && "border-blue-500 bg-blue-500/10",
-                !isSelected && !isSubmitted && "border-slate-700 bg-slate-900",
-                showCorrect && "border-emerald-500 bg-emerald-500/15",
-                showWrong && "border-rose-500 bg-rose-500/15",
-                isSubmitted && !isSelected && !isCorrect && "border-slate-800 opacity-50"
+                !isSubmitted && "cursor-pointer hover:border-info/40 hover:bg-info/5",
+                isSelected && !isSubmitted && "border-info/40 bg-info/10",
+                !isSelected && !isSubmitted && "border-bronze bg-surface",
+                showCorrect && "border-success/40 bg-success/15",
+                showWrong && "border-error/40 bg-error/15",
+                isSubmitted && !isSelected && !isCorrect && "border-bronze opacity-50"
               )}
             >
               <span
                 className={cn(
                   "mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[13px] font-bold",
-                  !isSubmitted && !isSelected && "bg-slate-800 text-slate-300",
-                  !isSubmitted && isSelected && "bg-blue-500 text-white",
-                  showCorrect && "bg-emerald-500 text-white",
-                  showWrong && "bg-rose-500 text-white",
-                  isSubmitted && !isSelected && !isCorrect && "bg-slate-800 text-slate-400"
+                  !isSubmitted && !isSelected && "bg-surface-raised text-ivory",
+                  !isSubmitted && isSelected && "bg-info text-ivory",
+                  showCorrect && "bg-success text-night",
+                  showWrong && "bg-error text-ivory",
+                  isSubmitted && !isSelected && !isCorrect && "bg-surface-raised text-taupe"
                 )}
               >
                 {showCorrect ? <Check className="h-3.5 w-3.5" /> : letter}
               </span>
-              <span className="flex-1 text-[16px] leading-[1.5] text-slate-100">
+              <span className="flex-1 text-[16px] leading-[1.5] text-ivory">
                 <MathText text={choice.choice_text} />
               </span>
             </button>
@@ -176,10 +176,10 @@ export function QuestionPreview({
 
   const questionPanel = (
     <div className="mx-auto max-w-xl">
-      <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+      <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-taupe">
         {q.topic_cluster}
       </p>
-      <h2 className="text-[19px] font-medium leading-[1.5] text-slate-100 md:text-[20px]">
+      <h2 className="text-[19px] font-medium leading-[1.5] text-ivory md:text-[20px]">
         {edit ? (
           <>
             <EditableMathText
@@ -206,12 +206,12 @@ export function QuestionPreview({
       transition={{ duration: 0.2 }}
       className="mx-auto max-w-xl"
     >
-      <h3 className="mb-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+      <h3 className="mb-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-taupe">
         Explanation
       </h3>
 
       {(edit || q.explanation_text) && (
-        <div className="mb-6 text-[16px] leading-[1.6] text-slate-100">
+        <div className="mb-6 text-[16px] leading-[1.6] text-ivory">
           {edit ? (
             <>
               <EditableMathText
@@ -239,27 +239,27 @@ export function QuestionPreview({
                 key={letter}
                 className={cn(
                   "flex items-start gap-3 rounded-xl border px-4 py-3",
-                  isCorrect && "border-emerald-500/40 bg-emerald-500/5",
-                  !isCorrect && isStudentChoice && "border-rose-500/40 bg-rose-500/5",
-                  !isCorrect && !isStudentChoice && "border-slate-800 bg-slate-900/40"
+                  isCorrect && "border-success/40 bg-success/5",
+                  !isCorrect && isStudentChoice && "border-error/40 bg-error/5",
+                  !isCorrect && !isStudentChoice && "border-bronze bg-surface/40"
                 )}
               >
                 <span
                   className={cn(
                     "mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[13px] font-bold",
-                    isCorrect && "bg-emerald-500 text-white",
-                    !isCorrect && isStudentChoice && "bg-rose-500 text-white",
-                    !isCorrect && !isStudentChoice && "bg-slate-800 text-slate-300"
+                    isCorrect && "bg-success text-night",
+                    !isCorrect && isStudentChoice && "bg-error text-ivory",
+                    !isCorrect && !isStudentChoice && "bg-surface-raised text-ivory"
                   )}
                 >
                   {letter}
                 </span>
-                <div className="flex-1 text-[16px] leading-[1.5] text-slate-100">
+                <div className="flex-1 text-[16px] leading-[1.5] text-ivory">
                   {(isCorrect || isStudentChoice) && (
                     <span
                       className={cn(
                         "mr-2 inline-block align-middle text-[10px] font-bold uppercase tracking-wider",
-                        isCorrect ? "text-emerald-300" : "text-rose-300"
+                        isCorrect ? "text-success-bright" : "text-error-bright"
                       )}
                     >
                       {isCorrect ? "Correct" : "Your answer"}
@@ -274,12 +274,12 @@ export function QuestionPreview({
       )}
 
       {(edit || q.desmos_strategy) && (
-        <div className="mb-6 rounded-xl border border-sky-500/30 bg-sky-500/5 p-4">
-          <div className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-sky-300">
+        <div className="mb-6 rounded-xl border border-info/30 bg-info/5 p-4">
+          <div className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-info-bright">
             Desmos strategy
             {edit && <FieldChip edit={edit} field="desmos_strategy" />}
           </div>
-          <div className="text-[16px] leading-[1.6] text-sky-100">
+          <div className="text-[16px] leading-[1.6] text-info-bright">
             {edit ? (
               <EditableMathText
                 value={q.desmos_strategy ?? ""}
@@ -295,10 +295,10 @@ export function QuestionPreview({
         </div>
       )}
 
-      <div className="mt-6 flex justify-end gap-3 border-t border-slate-800/60 pt-2">
+      <div className="mt-6 flex justify-end gap-3 border-t border-bronze/60 pt-2">
         <button
           onClick={() => setShowExplanations(false)}
-          className="rounded-xl border border-slate-700 bg-slate-800 px-6 py-3 text-sm font-semibold text-slate-100 transition-colors hover:bg-slate-700"
+          className="rounded-xl border border-bronze bg-surface-raised px-6 py-3 text-sm font-semibold text-ivory transition-colors hover:bg-surface-raised"
         >
           Hide explanations
         </button>
@@ -334,7 +334,7 @@ export function QuestionPreview({
       <GeometryFigure data={q.figure_geometry_data!} className="max-w-2xl" />
     </div>
   ) : q.image_url ? (
-    <figure className="mb-6 rounded-xl border border-slate-700/50 bg-slate-200 p-3 shadow-md shadow-black/40">
+    <figure className="mb-6 rounded-xl border border-bronze/50 bg-surface p-3 shadow-md shadow-black/40">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={q.image_url}
@@ -345,11 +345,11 @@ export function QuestionPreview({
   ) : null;
 
   const passageBlock = (
-    <article className="mx-auto max-w-prose font-serif text-[17px] leading-[1.7] text-slate-100">
+    <article className="mx-auto max-w-prose font-serif text-[17px] leading-[1.7] text-ivory">
       {q.passage_a && q.passage_b ? (
         <>
           <section className="mb-7">
-            <div className="mb-2 flex items-center gap-2 font-sans text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">
+            <div className="mb-2 flex items-center gap-2 font-sans text-[10px] font-bold uppercase tracking-[0.2em] text-taupe">
               Text 1{edit && <FieldChip edit={edit} field="passage_a" />}
             </div>
             {edit ? (
@@ -363,7 +363,7 @@ export function QuestionPreview({
             )}
           </section>
           <section>
-            <div className="mb-2 flex items-center gap-2 font-sans text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">
+            <div className="mb-2 flex items-center gap-2 font-sans text-[10px] font-bold uppercase tracking-[0.2em] text-taupe">
               Text 2{edit && <FieldChip edit={edit} field="passage_b" />}
             </div>
             {edit ? (
@@ -419,13 +419,13 @@ export function QuestionPreview({
   // ── Layout ───────────────────────────────────────────────────
   if (hasPassage || hasFigure) {
     return (
-      <div className="grid min-h-[640px] divide-y divide-slate-800 md:grid-cols-2 md:divide-x md:divide-y-0">
+      <div className="grid min-h-[640px] divide-y divide-bronze md:grid-cols-2 md:divide-x md:divide-y-0">
         {/* LEFT */}
         <div className="max-h-[calc(100vh-13rem)] overflow-y-auto px-6 py-8 md:px-10">
           {figureCard}
           {hasPassage && passageBlock}
           {inExplanationMode && (
-            <div className="mt-10 border-t border-slate-700/50 pt-6">{questionPanel}</div>
+            <div className="mt-10 border-t border-bronze/50 pt-6">{questionPanel}</div>
           )}
         </div>
         {/* RIGHT */}
@@ -452,7 +452,7 @@ export function QuestionPreview({
 
   if (inExplanationMode) {
     return (
-      <div className="grid min-h-[640px] divide-y divide-slate-800 md:grid-cols-2 md:divide-x md:divide-y-0">
+      <div className="grid min-h-[640px] divide-y divide-bronze md:grid-cols-2 md:divide-x md:divide-y-0">
         <div className="max-h-[calc(100vh-13rem)] overflow-y-auto px-6 py-8 md:px-10">
           {questionPanel}
         </div>

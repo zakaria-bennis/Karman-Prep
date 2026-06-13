@@ -82,11 +82,11 @@ export default function StudentDashboardClient({
             cohort after an onboarding placement failure. Self-clears
             once the cohort_members / tutor_assignments row exists. */}
         {showPlacementBanner && (
-          <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm dark:border-blue-700 dark:bg-blue-900/20">
-            <p className="font-semibold text-blue-900 dark:text-blue-100">
+          <div className="rounded-xl border border-info/40 bg-info/10 px-4 py-3 text-sm dark:border-info/40 dark:bg-info/20">
+            <p className="font-semibold text-info dark:text-info-bright">
               We&rsquo;re matching you with a tutor
             </p>
-            <p className="mt-0.5 text-xs text-blue-800/80 dark:text-blue-200/80">
+            <p className="mt-0.5 text-xs text-info/80 dark:text-info-bright/80">
               Your answers are saved. Our team is pairing you with the right tutor / cohort &mdash;
               you&rsquo;ll hear from us within 24 hours. In the meantime you can take the diagnostic
               and start exploring the curriculum.
@@ -96,13 +96,13 @@ export default function StudentDashboardClient({
 
         {/* Trial banner */}
         {subscription?.status === "trialing" && trialEndsLabel && (
-          <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-700 dark:bg-amber-900/20">
-            <p className="text-sm font-medium text-amber-700 dark:text-amber-300">
+          <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-warning/40 bg-warning/10 px-4 py-3 dark:border-warning/40 dark:bg-warning/20">
+            <p className="text-sm font-medium text-warning dark:text-warning-bright">
               {trialEndsLabel} — your card will be charged automatically.
             </p>
             <Link
               href="/billing"
-              className="flex items-center gap-1 text-sm font-semibold text-amber-700 hover:underline dark:text-amber-400"
+              className="flex items-center gap-1 text-sm font-semibold text-warning hover:underline dark:text-warning"
             >
               Manage plan <ArrowRight className="h-3.5 w-3.5" />
             </Link>
@@ -113,15 +113,15 @@ export default function StudentDashboardClient({
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
           {/* Streak */}
           <div className="glass-card flex flex-col items-center gap-1 p-4">
-            <Flame className="h-6 w-6 text-orange-500" />
-            <span className="text-3xl font-extrabold text-slate-900 dark:text-white">{streak}</span>
-            <span className="text-xs text-slate-500 dark:text-slate-400">day streak</span>
+            <Flame className="h-6 w-6 text-warning" />
+            <span className="text-3xl font-extrabold text-ivory dark:text-ivory">{streak}</span>
+            <span className="text-xs text-taupe dark:text-taupe">day streak</span>
           </div>
 
           {/* Progress ring */}
           <div className="glass-card flex flex-col items-center gap-1 p-4">
             <ProgressRing pct={overallPct} size={56} />
-            <span className="mt-1 text-xs text-slate-500 dark:text-slate-400">overall</span>
+            <span className="mt-1 text-xs text-taupe dark:text-taupe">overall</span>
           </div>
 
           {/* Mastered concepts → /dashboard/student/mastered */}
@@ -129,11 +129,11 @@ export default function StudentDashboardClient({
             href="/dashboard/student/mastered"
             className="glass-card group flex cursor-pointer flex-col items-center gap-1 p-4 transition-shadow hover:shadow-xl"
           >
-            <CheckCircle className="h-6 w-6 text-emerald-500 transition-transform group-hover:scale-110" />
-            <span className="text-3xl font-extrabold text-slate-900 dark:text-white">
+            <CheckCircle className="h-6 w-6 text-success transition-transform group-hover:scale-110" />
+            <span className="text-3xl font-extrabold text-ivory dark:text-ivory">
               {masteredCount}
             </span>
-            <span className="text-xs text-slate-500 transition-colors group-hover:text-emerald-500 dark:text-slate-400">
+            <span className="text-xs text-taupe transition-colors group-hover:text-success dark:text-taupe">
               mastered →
             </span>
           </Link>
@@ -143,11 +143,11 @@ export default function StudentDashboardClient({
             href="/dashboard/student/predicted-sat"
             className="glass-card group flex cursor-pointer flex-col items-center gap-1 p-4 transition-shadow hover:shadow-xl"
           >
-            <TrendingUp className="h-6 w-6 text-blue-500 transition-transform group-hover:scale-110" />
-            <span className="text-2xl font-extrabold text-slate-900 dark:text-white">
+            <TrendingUp className="h-6 w-6 text-info transition-transform group-hover:scale-110" />
+            <span className="text-2xl font-extrabold text-ivory dark:text-ivory">
               {diagnostic ? `${diagnostic.score_range_low}–${diagnostic.score_range_high}` : "—"}
             </span>
-            <span className="text-xs text-slate-500 transition-colors group-hover:text-blue-500 dark:text-slate-400">
+            <span className="text-xs text-taupe transition-colors group-hover:text-info dark:text-taupe">
               predicted SAT →
             </span>
           </Link>
@@ -155,9 +155,7 @@ export default function StudentDashboardClient({
 
         {/* Next lesson */}
         <div>
-          <h2 className="mb-3 text-lg font-bold text-slate-900 dark:text-white">
-            Continue Learning
-          </h2>
+          <h2 className="mb-3 text-lg font-bold text-ivory dark:text-ivory">Continue Learning</h2>
           {nextLesson ? (
             <Link
               href={`/dashboard/student/lesson/${nextLesson.concept_id}`}
@@ -179,10 +177,10 @@ export default function StudentDashboardClient({
                 />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="truncate font-semibold text-slate-900 dark:text-white">
+                <p className="truncate font-semibold text-ivory dark:text-ivory">
                   {nextLesson.concepts?.title || "Next Lesson"}
                 </p>
-                <p className="mt-0.5 flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400">
+                <p className="mt-0.5 flex items-center gap-1.5 text-sm text-taupe dark:text-taupe">
                   <span>
                     {DOMAIN_LABELS[nextLesson.concepts?.domain as SATDomain] || "SAT Math"}
                   </span>
@@ -196,15 +194,15 @@ export default function StudentDashboardClient({
                   )}
                 </p>
               </div>
-              <ArrowRight className="h-5 w-5 text-slate-400 transition-colors group-hover:text-blue-500" />
+              <ArrowRight className="h-5 w-5 text-taupe transition-colors group-hover:text-info" />
             </Link>
           ) : (
             <div className="glass-card p-5 text-center">
-              <p className="text-sm text-slate-500 dark:text-slate-400">
+              <p className="text-sm text-taupe dark:text-taupe">
                 No lessons unlocked yet — head to your{" "}
                 <Link
                   href="/dashboard/student/progress"
-                  className="font-medium text-blue-600 hover:underline dark:text-blue-400"
+                  className="font-medium text-info hover:underline dark:text-info"
                 >
                   progress page
                 </Link>{" "}
@@ -220,36 +218,32 @@ export default function StudentDashboardClient({
         {/* Recent activity */}
         {progress.length > 0 && (
           <div>
-            <h2 className="mb-3 text-lg font-bold text-slate-900 dark:text-white">
-              Recent Activity
-            </h2>
+            <h2 className="mb-3 text-lg font-bold text-ivory dark:text-ivory">Recent Activity</h2>
             <div className="space-y-2">
               {progress.slice(0, 5).map((p) => (
                 <div
                   key={p.id}
-                  className="flex items-center gap-3 rounded-xl border border-slate-100 bg-white px-4 py-3 dark:border-slate-700 dark:bg-slate-800/50"
+                  className="flex items-center gap-3 rounded-xl border border-bronze bg-surface px-4 py-3 dark:border-bronze dark:bg-surface-raised/50"
                 >
                   <div
                     className={cn(
                       "h-2 w-2 rounded-full",
                       p.status === "mastered"
-                        ? "bg-emerald-500"
+                        ? "bg-success"
                         : p.status === "in_progress"
-                          ? "bg-blue-500"
+                          ? "bg-info"
                           : p.status === "available"
-                            ? "bg-amber-400"
-                            : "bg-slate-300"
+                            ? "bg-warning"
+                            : "bg-surface"
                     )}
                   />
-                  <span className="flex-1 truncate text-sm text-slate-700 dark:text-slate-200">
+                  <span className="flex-1 truncate text-sm text-ivory dark:text-ivory">
                     {p.concepts?.title || "Concept"}
                   </span>
-                  {p.status === "locked" && <Lock className="h-3.5 w-3.5 text-slate-400" />}
-                  {p.status === "mastered" && (
-                    <CheckCircle className="h-3.5 w-3.5 text-emerald-500" />
-                  )}
+                  {p.status === "locked" && <Lock className="h-3.5 w-3.5 text-taupe" />}
+                  {p.status === "mastered" && <CheckCircle className="h-3.5 w-3.5 text-success" />}
                   {p.quiz_score !== null && (
-                    <span className="text-xs text-slate-400">{p.quiz_score}%</span>
+                    <span className="text-xs text-taupe">{p.quiz_score}%</span>
                   )}
                 </div>
               ))}
@@ -274,7 +268,7 @@ function ProgressRing({ pct, size = 64 }: { pct: number; size?: number }) {
         cy={size / 2}
         r={r}
         strokeWidth={6}
-        className="stroke-slate-200 dark:stroke-slate-700"
+        className="stroke-ivory dark:stroke-ivory"
         fill="none"
       />
       <circle
@@ -283,7 +277,7 @@ function ProgressRing({ pct, size = 64 }: { pct: number; size?: number }) {
         r={r}
         strokeWidth={6}
         fill="none"
-        stroke="#3B82F6"
+        stroke="#2FA8FF"
         strokeLinecap="round"
         strokeDasharray={circumference}
         strokeDashoffset={offset}
@@ -294,7 +288,7 @@ function ProgressRing({ pct, size = 64 }: { pct: number; size?: number }) {
         y="50%"
         dominantBaseline="middle"
         textAnchor="middle"
-        className="rotate-90 fill-slate-900 text-[11px] font-bold dark:fill-white"
+        className="rotate-90 fill-ivory text-[11px] font-bold dark:fill-white"
         transform={`rotate(90 ${size / 2} ${size / 2})`}
       >
         {pct}%

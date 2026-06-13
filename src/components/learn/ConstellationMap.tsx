@@ -3,12 +3,14 @@
 // ============================================================
 // ConstellationMap — full-screen "brain constellation" star map.
 //
-//   • Left lobe = Reading & Writing (pink)
-//   • Right lobe = Math (cyan)
-//   • Active subject's nodes are fully lit + clickable
-//   • The other subject's nodes remain visible but dimmed
-//   • Background is a deep-space vertical gradient (lighter near
-//     the Troposphere at the bottom, near-black at the Stratosphere top)
+// Observatory system (docs/brand.md): the warm night sky seen from
+// the lamp-lit study.
+//   • Left lobe = Reading & Writing (R&W rose), right lobe = Math
+//     (Math blue) — constellation accents as subject SIGNALS
+//   • Mastered stars earn GOLD — halo + core dot (gold marks
+//     earned moments; mastery is the canonical one)
+//   • Background is a warm-dark vertical gradient, lamp-warmth near
+//     the Troposphere at the bottom, near-black at the top
 //   • Nodes are real stars: bright core + four diffraction rays + halo
 //   • Prereq lines are the brain's "convolutions"
 // ============================================================
@@ -33,104 +35,15 @@ import LessonOverlay from "./LessonOverlay";
 import QuizEngine from "./QuizEngine";
 import ConstellationSidebar from "./ConstellationSidebar";
 import type { QuizAttempt, ConfidenceBand } from "@/types/quiz";
-
-// ── SVG viewport ────────────────────────────────────────────
-const W = 1000;
-const H = 640;
-
-// ── Deterministic pseudo-random ─────────────────────────────
-function pr(seed: number) {
-  const x = Math.sin(seed + 1) * 10000;
-  return x - Math.floor(x);
-}
-
-// ── Background star field (larger + varied size/brightness) ──
-const BG_STARS = Array.from({ length: 320 }, (_, i) => ({
-  x: pr(i * 2.111) * W,
-  y: pr(i * 2.111 + 1.3) * H,
-  r: 0.35 + pr(i * 3.77) * 1.3,
-  o: 0.18 + pr(i * 4.29) * 0.55,
-  tw: pr(i * 5.71), // twinkle phase offset
-}));
-
-// ── Nebula blobs — two very soft colored gradients as atmosphere ──
-const NEBULAE = [
-  { cx: 0.22 * W, cy: 0.62 * H, rx: 260, ry: 180, fill: "#ec489920" },
-  { cx: 0.78 * W, cy: 0.62 * H, rx: 260, ry: 180, fill: "#38bdf820" },
-];
-
-// ── Node sizing by difficulty ───────────────────────────────
-const DIFF_R: Record<1 | 2 | 3, number> = { 1: 3.5, 2: 4.5, 3: 5.5 };
-
-// ── Status-driven visual config ─────────────────────────────
-interface StarConfig {
-  coreOpacity: number;
-  haloOpacity: number;
-  rayOpacity: number;
-  rayLen: number; // multiplier on base radius
-  glow: number; // halo radius multiplier
-  pulse: boolean;
-}
-
-function starConfig(status: NodeStatus): StarConfig {
-  switch (status) {
-    case "locked":
-      return {
-        coreOpacity: 0.25,
-        haloOpacity: 0.0,
-        rayOpacity: 0.0,
-        rayLen: 0,
-        glow: 0,
-        pulse: false,
-      };
-    case "available":
-      return {
-        coreOpacity: 0.95,
-        haloOpacity: 0.4,
-        rayOpacity: 0.7,
-        rayLen: 2.4,
-        glow: 3.0,
-        pulse: true,
-      };
-    case "in_progress":
-      return {
-        coreOpacity: 1.0,
-        haloOpacity: 0.55,
-        rayOpacity: 0.9,
-        rayLen: 2.8,
-        glow: 3.6,
-        pulse: false,
-      };
-    case "partially_complete":
-      return {
-        coreOpacity: 1.0,
-        haloOpacity: 0.7,
-        rayOpacity: 1.0,
-        rayLen: 3.0,
-        glow: 4.0,
-        pulse: false,
-      };
-    case "mastered":
-      return {
-        coreOpacity: 1.0,
-        haloOpacity: 0.9,
-        rayOpacity: 1.0,
-        rayLen: 3.6,
-        glow: 4.6,
-        pulse: false,
-      };
-  }
-}
-
-// ── Edge brightness ──────────────────────────────────────────
-function edgeOpacity(from: NodeStatus, to: NodeStatus, active: boolean): number {
-  if (!active) return 0.06; // inactive lobe — very faint
-  if (from === "mastered" && to === "mastered") return 0.65;
-  if (from === "mastered") return 0.45;
-  if (from === "in_progress" || to === "in_progress") return 0.28;
-  if (from === "available" || to === "available") return 0.22;
-  return 0.09;
-}
+import {
+  W,
+  H,
+  BG_STARS,
+  NEBULAE,
+  DIFF_R,
+  starConfig,
+  edgeOpacity,
+} from "./ConstellationMapHelpers";
 
 // ── Types ────────────────────────────────────────────────────
 export interface MappedNode extends CurriculumNode {
@@ -276,9 +189,9 @@ function ConstellationMapInner({ activeSubject, readingNodes, mathNodes }: Props
       ref={mapRef}
       className="relative w-full"
       style={{ height: "100vh" }}
-      initial={{ opacity: 0, scale: 1.04 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 1.6, ease: [0.16, 1, 0.3, 1] }}
       onMouseMove={(e) => {
         const rect = e.currentTarget.getBoundingClientRect();
         parallaxMx.set(((e.clientX - rect.left) / rect.width) * 2 - 1);
@@ -301,34 +214,42 @@ function ConstellationMapInner({ activeSubject, readingNodes, mathNodes }: Props
           aria-label="Karman constellation map"
         >
           <defs>
-            {/* Deep-space vertical gradient: lighter near Troposphere (bottom) */}
+            {/* Warm-night vertical gradient: lamp-warmth near the
+                Troposphere (bottom), near-black at the top */}
             <linearGradient id="space-gradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#02040a" />
-              <stop offset="40%" stopColor="#050913" />
-              <stop offset="75%" stopColor="#0a1426" />
-              <stop offset="100%" stopColor="#142244" />
+              <stop offset="0%" stopColor="#040302" />
+              <stop offset="40%" stopColor="#070605" />
+              <stop offset="75%" stopColor="#0d0a08" />
+              <stop offset="100%" stopColor="#1a1610" />
             </linearGradient>
 
-            {/* Soft nebulae (extremely faint color washes) */}
+            {/* Soft nebulae (extremely faint subject washes) */}
             <radialGradient id="nebula-pink" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor="#ec4899" stopOpacity="0.18" />
-              <stop offset="100%" stopColor="#ec4899" stopOpacity="0" />
+              <stop offset="0%" stopColor="#d84f73" stopOpacity="0.14" />
+              <stop offset="100%" stopColor="#d84f73" stopOpacity="0" />
             </radialGradient>
             <radialGradient id="nebula-cyan" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.18" />
-              <stop offset="100%" stopColor="#38bdf8" stopOpacity="0" />
+              <stop offset="0%" stopColor="#2fa8ff" stopOpacity="0.14" />
+              <stop offset="100%" stopColor="#2fa8ff" stopOpacity="0" />
             </radialGradient>
 
             {/* Star halos per subject */}
             <radialGradient id="halo-reading" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor="#ec4899" stopOpacity="0.8" />
-              <stop offset="40%" stopColor="#ec4899" stopOpacity="0.3" />
-              <stop offset="100%" stopColor="#ec4899" stopOpacity="0" />
+              <stop offset="0%" stopColor="#d84f73" stopOpacity="0.8" />
+              <stop offset="40%" stopColor="#d84f73" stopOpacity="0.3" />
+              <stop offset="100%" stopColor="#d84f73" stopOpacity="0" />
             </radialGradient>
             <radialGradient id="halo-math" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.8" />
-              <stop offset="40%" stopColor="#38bdf8" stopOpacity="0.3" />
-              <stop offset="100%" stopColor="#38bdf8" stopOpacity="0" />
+              <stop offset="0%" stopColor="#2fa8ff" stopOpacity="0.8" />
+              <stop offset="40%" stopColor="#2fa8ff" stopOpacity="0.3" />
+              <stop offset="100%" stopColor="#2fa8ff" stopOpacity="0" />
+            </radialGradient>
+
+            {/* Gold halo — mastered stars only. Gold is earned. */}
+            <radialGradient id="halo-mastered" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="#e4c86a" stopOpacity="0.85" />
+              <stop offset="40%" stopColor="#c8ab6a" stopOpacity="0.3" />
+              <stop offset="100%" stopColor="#c8ab6a" stopOpacity="0" />
             </radialGradient>
 
             {/* Glow filter */}
@@ -360,10 +281,10 @@ function ConstellationMapInner({ activeSubject, readingNodes, mathNodes }: Props
             fill="url(#nebula-cyan)"
           />
 
-          {/* Background star field — parallaxes subtly with the cursor */}
+          {/* Background star field — ivory, parallaxes subtly with the cursor */}
           <motion.g style={{ x: parallaxTransformX, y: parallaxTransformY }}>
             {BG_STARS.map((s, i) => (
-              <circle key={i} cx={s.x} cy={s.y} r={s.r} fill="#ffffff" opacity={s.o} />
+              <circle key={i} cx={s.x} cy={s.y} r={s.r} fill="#f3ecdd" opacity={s.o} />
             ))}
           </motion.g>
 
@@ -378,12 +299,12 @@ function ConstellationMapInner({ activeSubject, readingNodes, mathNodes }: Props
               x={W - 18}
               y={y}
               textAnchor="end"
-              fill="#ffffff"
-              fillOpacity={0.14}
+              fill="#b8b0a1"
+              fillOpacity={0.3}
               fontSize={10}
-              fontWeight={700}
+              fontWeight={500}
               letterSpacing={2.5}
-              fontFamily="inherit"
+              fontFamily="var(--font-plex-mono), ui-monospace, monospace"
             >
               {label}
             </text>
@@ -397,8 +318,8 @@ function ConstellationMapInner({ activeSubject, readingNodes, mathNodes }: Props
               x2={W - 40}
               y1={H * fy}
               y2={H * fy}
-              stroke="#ffffff"
-              strokeOpacity={0.04}
+              stroke="#b8b0a1"
+              strokeOpacity={0.06}
               strokeDasharray="2 8"
             />
           ))}
@@ -437,7 +358,14 @@ function ConstellationMapInner({ activeSubject, readingNodes, mathNodes }: Props
                 const cy = node.y * H;
                 const active = node.subject === activeSubject;
                 const subjectHex = active ? activeHex : otherHex;
-                const haloId = node.subject === "reading" ? "halo-reading" : "halo-math";
+                // Mastery is the earned moment — it trades the subject halo
+                // for gold (docs/brand.md "Prestige — gold").
+                const haloId =
+                  node.status === "mastered"
+                    ? "halo-mastered"
+                    : node.subject === "reading"
+                      ? "halo-reading"
+                      : "halo-math";
                 const r = DIFF_R[node.difficulty];
                 const cfg = starConfig(node.status);
                 const isHovered = hovered === node.id;
@@ -517,7 +445,7 @@ function ConstellationMapInner({ activeSubject, readingNodes, mathNodes }: Props
                           y1={-r * cfg.rayLen * 0.55}
                           x2={r * cfg.rayLen * 0.55}
                           y2={r * cfg.rayLen * 0.55}
-                          stroke="#ffffff"
+                          stroke="#f3ecdd"
                           strokeWidth={0.35}
                           strokeOpacity={0.55}
                           strokeLinecap="round"
@@ -527,7 +455,7 @@ function ConstellationMapInner({ activeSubject, readingNodes, mathNodes }: Props
                           y1={r * cfg.rayLen * 0.55}
                           x2={r * cfg.rayLen * 0.55}
                           y2={-r * cfg.rayLen * 0.55}
-                          stroke="#ffffff"
+                          stroke="#f3ecdd"
                           strokeWidth={0.35}
                           strokeOpacity={0.55}
                           strokeLinecap="round"
@@ -535,17 +463,17 @@ function ConstellationMapInner({ activeSubject, readingNodes, mathNodes }: Props
                       </g>
                     )}
 
-                    {/* Bright white core */}
+                    {/* Bright ivory core */}
                     <circle
                       r={r * 0.55}
-                      fill="#ffffff"
+                      fill="#f3ecdd"
                       opacity={coreO}
                       filter={node.status === "mastered" && active ? "url(#star-glow)" : undefined}
                     />
 
-                    {/* Tiny colored inner dot on mastered stars */}
+                    {/* Gold heart on mastered stars — the earned mark */}
                     {node.status === "mastered" && active && (
-                      <circle r={r * 0.25} fill={subjectHex} opacity={0.9} />
+                      <circle r={r * 0.28} fill="#e4c86a" opacity={0.95} />
                     )}
                   </g>
                 );
@@ -614,43 +542,45 @@ function ConstellationMapInner({ activeSubject, readingNodes, mathNodes }: Props
           className={cn(
             "pointer-events-none absolute bottom-6 left-1/2 -translate-x-1/2",
             "flex items-center gap-3 rounded-xl px-4 py-2.5",
-            "border border-white/10 bg-slate-900/95 shadow-2xl backdrop-blur-sm",
-            "z-30 max-w-xs text-sm text-white"
+            "border border-bronze bg-surface/95 shadow-2xl backdrop-blur-sm",
+            "z-30 max-w-xs text-sm text-ivory"
           )}
         >
           <div
             className="h-2.5 w-2.5 shrink-0 rounded-full"
             style={{
               backgroundColor:
-                hoveredNode.status === "locked"
-                  ? "#475569"
-                  : hoveredNode.subject === "reading"
-                    ? "#EC4899"
-                    : "#38BDF8",
+                hoveredNode.status === "mastered"
+                  ? "#E4C86A"
+                  : hoveredNode.status === "locked"
+                    ? "#3B3426"
+                    : hoveredNode.subject === "reading"
+                      ? "#D84F73"
+                      : "#2FA8FF",
             }}
           />
           <div className="min-w-0">
             <p className="truncate font-semibold">
               {hoveredNode.topic}{" "}
               {hoveredNode.subject !== activeSubject && (
-                <span className="text-xs text-slate-400">
+                <span className="text-xs text-taupe">
                   ({hoveredNode.subject === "math" ? "Math" : "R&W"} — not active)
                 </span>
               )}
             </p>
-            <p className="text-xs capitalize text-slate-400">
+            <p className="text-xs capitalize text-taupe">
               {TIER_LABELS[hoveredNode.tier]} · Difficulty {hoveredNode.difficulty} ·{" "}
               <span
                 className={cn(
                   hoveredNode.status === "locked"
-                    ? "text-slate-400"
+                    ? "text-taupe/70"
                     : hoveredNode.status === "mastered"
-                      ? "text-emerald-400"
+                      ? "text-gold-bright"
                       : hoveredNode.status === "partially_complete"
-                        ? "text-teal-400"
+                        ? "text-gold/80"
                         : hoveredNode.status === "available"
-                          ? "text-amber-400"
-                          : "text-blue-400"
+                          ? "text-ivory/85"
+                          : "text-ivory"
                 )}
               >
                 {hoveredNode.status === "in_progress"
@@ -663,9 +593,10 @@ function ConstellationMapInner({ activeSubject, readingNodes, mathNodes }: Props
       )}
 
       {/* ── Legend ───────────────────────────────────────────── */}
-      <div className="pointer-events-none absolute bottom-4 right-4 z-10 flex flex-col gap-1.5 rounded-xl border border-white/10 bg-black/35 px-3 py-2 backdrop-blur-md">
+      <div className="pointer-events-none absolute bottom-4 right-4 z-10 flex flex-col gap-1.5 rounded-xl border border-bronze bg-night/70 px-3 py-2 backdrop-blur-md">
         {[
-          { status: "mastered" as NodeStatus, label: "Mastered", color: activeHex },
+          // Mastered is gold — the earned mark — regardless of subject.
+          { status: "mastered" as NodeStatus, label: "Mastered", color: "#E4C86A" },
           {
             status: "partially_complete" as NodeStatus,
             label: "Partial pass",
@@ -673,14 +604,14 @@ function ConstellationMapInner({ activeSubject, readingNodes, mathNodes }: Props
           },
           { status: "in_progress" as NodeStatus, label: "In progress", color: activeHex + "99" },
           { status: "available" as NodeStatus, label: "Available", color: activeHex + "66" },
-          { status: "locked" as NodeStatus, label: "Locked", color: "#475569" },
+          { status: "locked" as NodeStatus, label: "Locked", color: "#3B3426" },
         ].map(({ status, label, color }) => (
           <div key={status} className="flex items-center gap-2">
             <div
-              className="h-2.5 w-2.5 rounded-full border border-white/10"
+              className="h-2.5 w-2.5 rounded-full border border-bronze/60"
               style={{ backgroundColor: color }}
             />
-            <span className="text-xs text-slate-400">{label}</span>
+            <span className="text-xs text-taupe">{label}</span>
           </div>
         ))}
       </div>

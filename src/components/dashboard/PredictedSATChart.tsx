@@ -63,24 +63,24 @@ export default function PredictedSATChart({ points, diagnosticsCount }: Props) {
       <div className="mx-auto max-w-5xl space-y-6 px-4 py-8 sm:px-6">
         <Link
           href="/dashboard/student"
-          className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-slate-900 dark:hover:text-white"
+          className="inline-flex items-center gap-1 text-xs text-taupe hover:text-ivory dark:hover:text-ivory"
         >
           <ArrowLeft className="h-3.5 w-3.5" /> Back to dashboard
         </Link>
 
         {/* Header summary */}
         <div>
-          <div className="mb-1 flex items-center gap-2 text-blue-500">
+          <div className="mb-1 flex items-center gap-2 text-info">
             <Target className="h-5 w-5" />
             <span className="text-xs font-bold uppercase tracking-widest">Predicted SAT</span>
           </div>
           <div className="flex flex-wrap items-baseline gap-4">
-            <h1 className="text-4xl font-extrabold tabular-nums text-slate-900 dark:text-white">
+            <h1 className="text-4xl font-extrabold tabular-nums text-ivory dark:text-ivory">
               {latest ? `${latest.scoreLow}–${latest.scoreHigh}` : "—"}
             </h1>
             {delta !== 0 && latest && (
               <span
-                className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-sm font-bold ${delta > 0 ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400" : "bg-rose-500/15 text-rose-600 dark:text-rose-400"}`}
+                className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-sm font-bold ${delta > 0 ? "bg-success/15 text-success dark:text-success" : "bg-error/15 text-error dark:text-error"}`}
               >
                 <TrendingUp className="h-3.5 w-3.5" />
                 {delta > 0 ? "+" : ""}
@@ -88,7 +88,7 @@ export default function PredictedSATChart({ points, diagnosticsCount }: Props) {
               </span>
             )}
           </div>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+          <p className="mt-1 text-sm text-taupe dark:text-taupe">
             {hasData
               ? `${points.length} ${points.length === 1 ? "week" : "weeks"} of learning history, projected from ${diagnosticsCount > 0 ? "your diagnostic baseline" : "your mastery progress"}.`
               : "Take the diagnostic or master your first node to see your trajectory."}
@@ -101,13 +101,13 @@ export default function PredictedSATChart({ points, diagnosticsCount }: Props) {
             <svg viewBox={`0 0 ${W} ${H}`} className="h-auto w-full" style={{ minWidth: 600 }}>
               <defs>
                 <linearGradient id="predicted-band" x1="0" x2="0" y1="0" y2="1">
-                  <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.35" />
-                  <stop offset="100%" stopColor="#ec4899" stopOpacity="0.10" />
+                  <stop offset="0%" stopColor="#2FA8FF" stopOpacity="0.35" />
+                  <stop offset="100%" stopColor="#D84F73" stopOpacity="0.10" />
                 </linearGradient>
                 <linearGradient id="predicted-line" x1="0" x2="1" y1="0" y2="0">
-                  <stop offset="0%" stopColor="#EC4899" />
-                  <stop offset="50%" stopColor="#A855F7" />
-                  <stop offset="100%" stopColor="#38BDF8" />
+                  <stop offset="0%" stopColor="#D84F73" />
+                  <stop offset="50%" stopColor="#C8AB6A" />
+                  <stop offset="100%" stopColor="#2FA8FF" />
                 </linearGradient>
               </defs>
 
@@ -130,7 +130,7 @@ export default function PredictedSATChart({ points, diagnosticsCount }: Props) {
                       dy={3}
                       textAnchor="end"
                       fontSize="11"
-                      className="fill-slate-400 tabular-nums dark:fill-slate-500"
+                      className="fill-taupe tabular-nums dark:fill-taupe"
                     >
                       {v}
                     </text>
@@ -145,7 +145,7 @@ export default function PredictedSATChart({ points, diagnosticsCount }: Props) {
                     y={innerH + 22}
                     textAnchor="middle"
                     fontSize="11"
-                    className="fill-slate-400 dark:fill-slate-500"
+                    className="fill-taupe dark:fill-taupe"
                   >
                     {p.weekLabel}
                   </text>
@@ -173,8 +173,8 @@ export default function PredictedSATChart({ points, diagnosticsCount }: Props) {
                       cx={x(p.weekIndex)}
                       cy={y(p.scoreMid)}
                       r={p.source === "diagnostic" ? 6 : 4}
-                      fill={p.source === "diagnostic" ? "#38bdf8" : "#a855f7"}
-                      stroke="#0f172a"
+                      fill={p.source === "diagnostic" ? "#2FA8FF" : "#C8AB6A"}
+                      stroke="#070605"
                       strokeWidth={2}
                     />
                     {/* Tooltip hover-area */}
@@ -200,31 +200,31 @@ export default function PredictedSATChart({ points, diagnosticsCount }: Props) {
           </div>
 
           {/* Legend */}
-          <div className="mt-4 flex flex-wrap items-center gap-5 border-t border-slate-100 pt-4 text-xs text-slate-500 dark:border-slate-800 dark:text-slate-400">
+          <div className="mt-4 flex flex-wrap items-center gap-5 border-t border-bronze pt-4 text-xs text-taupe dark:border-bronze dark:text-taupe">
             <span className="flex items-center gap-1.5">
-              <span className="h-2.5 w-2.5 rounded-full bg-sky-400" />
+              <span className="h-2.5 w-2.5 rounded-full bg-info" />
               Diagnostic
             </span>
             <span className="flex items-center gap-1.5">
-              <span className="h-2.5 w-2.5 rounded-full bg-purple-500" />
+              <span className="h-2.5 w-2.5 rounded-full bg-gold" />
               Weekly projection
             </span>
             <span className="flex items-center gap-1.5">
-              <span className="h-2 w-4 rounded bg-gradient-to-r from-sky-400/30 to-pink-400/20" />
+              <span className="h-2 w-4 rounded bg-gradient-to-r from-info/30 to-error/20" />
               Confidence range
             </span>
           </div>
         </div>
 
         {/* Methodology */}
-        <div className="flex items-start gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4 text-xs text-slate-500 dark:border-slate-800 dark:bg-slate-900/50 dark:text-slate-400">
+        <div className="flex items-start gap-3 rounded-xl border border-bronze bg-surface p-4 text-xs text-taupe dark:border-bronze dark:bg-surface/50 dark:text-taupe">
           <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
           <div>
-            <strong className="text-slate-700 dark:text-slate-300">How this is calculated:</strong>{" "}
-            your Karman diagnostic sets a baseline score range. Each node you master between then
-            and now adds approximately +8 points to both the low and high ends of your projected
-            range. A refreshed diagnostic re-anchors the line. Real SAT prediction will get more
-            precise as Karman collects more usage data.
+            <strong className="text-ivory dark:text-ivory">How this is calculated:</strong> your
+            Karman diagnostic sets a baseline score range. Each node you master between then and now
+            adds approximately +8 points to both the low and high ends of your projected range. A
+            refreshed diagnostic re-anchors the line. Real SAT prediction will get more precise as
+            Karman collects more usage data.
           </div>
         </div>
       </div>

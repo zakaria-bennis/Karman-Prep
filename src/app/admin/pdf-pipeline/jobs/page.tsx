@@ -13,11 +13,11 @@ export const metadata: Metadata = { title: "Admin — PDF jobs | Karman" };
 export const dynamic = "force-dynamic";
 
 const STATUS_TONE = {
-  queued: "border-slate-700 bg-slate-800/40 text-slate-300",
-  running: "border-indigo-700 bg-indigo-950/40 text-indigo-200",
-  partial: "border-amber-800 bg-amber-950/40 text-amber-200",
-  complete: "border-emerald-800 bg-emerald-950/40 text-emerald-200",
-  failed: "border-rose-800 bg-rose-950/40 text-rose-200",
+  queued: "border-bronze bg-surface-raised/40 text-ivory",
+  running: "border-gold/40 bg-gold/40 text-gold-bright",
+  partial: "border-warning/40 bg-warning/40 text-warning-bright",
+  complete: "border-success/40 bg-success/40 text-success-bright",
+  failed: "border-error/40 bg-error/40 text-error-bright",
 } as const;
 
 function statusIcon(status: string) {
@@ -53,18 +53,18 @@ export default async function PdfJobsPage() {
         <div>
           <Link
             href="/admin/curriculum"
-            className="mb-3 inline-flex items-center gap-1 text-xs text-slate-400 hover:text-slate-300"
+            className="mb-3 inline-flex items-center gap-1 text-xs text-taupe hover:text-ivory"
           >
             <ChevronRight className="h-3 w-3 rotate-180" /> Back to admin
           </Link>
-          <h1 className="text-2xl font-bold text-white">PDF processing jobs</h1>
-          <p className="mt-1 text-sm text-slate-400">
+          <h1 className="text-2xl font-bold text-ivory">PDF processing jobs</h1>
+          <p className="mt-1 text-sm text-taupe">
             Every PDF uploaded for the automated pipeline. Click a row for live progress.
           </p>
         </div>
         <Link
           href="/admin/questions/import"
-          className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-500"
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-gold px-3 py-2 text-sm font-semibold text-night hover:bg-gold-bright"
         >
           <Upload className="h-4 w-4" /> Upload PDF
         </Link>
@@ -80,16 +80,16 @@ export default async function PdfJobsPage() {
             ["total", counts.total],
           ] as const
         ).map(([k, n]) => (
-          <div key={k} className="rounded-lg border border-slate-800 bg-slate-900/60 px-3 py-2">
-            <div className="text-[11px] uppercase tracking-wide text-slate-500">{k}</div>
-            <div className="text-lg font-bold text-white">{n}</div>
+          <div key={k} className="rounded-lg border border-bronze bg-surface/60 px-3 py-2">
+            <div className="text-[11px] uppercase tracking-wide text-taupe">{k}</div>
+            <div className="text-lg font-bold text-ivory">{n}</div>
           </div>
         ))}
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-slate-800 bg-slate-900/40">
+      <div className="overflow-hidden rounded-xl border border-bronze bg-surface/40">
         <table className="w-full text-sm">
-          <thead className="border-b border-slate-800 bg-slate-950/40 text-left text-xs uppercase tracking-wide text-slate-500">
+          <thead className="border-b border-bronze bg-night/40 text-left text-xs uppercase tracking-wide text-taupe">
             <tr>
               <th className="px-4 py-2 font-medium">PDF</th>
               <th className="px-4 py-2 font-medium">Status</th>
@@ -102,12 +102,9 @@ export default async function PdfJobsPage() {
           <tbody>
             {jobs.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-6 text-center text-slate-500">
+                <td colSpan={6} className="px-4 py-6 text-center text-taupe">
                   No PDF jobs yet. Upload one at{" "}
-                  <Link
-                    href="/admin/questions/import"
-                    className="text-indigo-400 hover:text-indigo-300"
-                  >
+                  <Link href="/admin/questions/import" className="text-gold hover:text-gold-bright">
                     /admin/questions/import
                   </Link>
                   .
@@ -123,12 +120,12 @@ export default async function PdfJobsPage() {
               return (
                 <tr
                   key={job.id}
-                  className="border-b border-slate-900 last:border-b-0 hover:bg-slate-900/60"
+                  className="border-b border-bronze last:border-b-0 hover:bg-surface/60"
                 >
                   <td className="px-4 py-2.5">
                     <Link
                       href={`/admin/pdf-pipeline/jobs/${job.id}`}
-                      className="font-medium text-slate-200 hover:text-white"
+                      className="font-medium text-ivory hover:text-ivory"
                     >
                       {job.source_pdf}
                     </Link>
@@ -141,30 +138,28 @@ export default async function PdfJobsPage() {
                       {job.status}
                     </span>
                   </td>
-                  <td className="px-4 py-2.5 text-xs text-slate-400">{stageLabel}</td>
+                  <td className="px-4 py-2.5 text-xs text-taupe">{stageLabel}</td>
                   <td className="px-4 py-2.5">
                     <div className="flex items-center gap-2">
-                      <div className="h-1.5 w-32 overflow-hidden rounded-full bg-slate-800">
+                      <div className="h-1.5 w-32 overflow-hidden rounded-full bg-surface-raised">
                         <div
                           className={`h-full rounded-full transition-all ${
                             job.status === "failed"
-                              ? "bg-rose-500"
+                              ? "bg-error"
                               : job.status === "complete"
-                                ? "bg-emerald-500"
-                                : "bg-indigo-500"
+                                ? "bg-success"
+                                : "bg-gold"
                           }`}
                           style={{ width: `${Math.max(0, Math.min(100, percent))}%` }}
                         />
                       </div>
-                      <span className="text-xs tabular-nums text-slate-400">{percent}%</span>
+                      <span className="text-xs tabular-nums text-taupe">{percent}%</span>
                     </div>
                   </td>
-                  <td className="px-4 py-2.5 text-xs text-slate-400">
+                  <td className="px-4 py-2.5 text-xs text-taupe">
                     {formatBytes(job.pdf_size_bytes)}
                   </td>
-                  <td className="px-4 py-2.5 text-xs text-slate-400">
-                    {formatAgo(job.uploaded_at)}
-                  </td>
+                  <td className="px-4 py-2.5 text-xs text-taupe">{formatAgo(job.uploaded_at)}</td>
                 </tr>
               );
             })}

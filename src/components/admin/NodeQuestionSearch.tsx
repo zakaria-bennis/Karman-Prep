@@ -166,8 +166,8 @@ export default function NodeQuestionSearch() {
 
   return (
     <div ref={containerRef} className="relative w-full max-w-md">
-      <div className="flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 transition-colors focus-within:border-indigo-500/60 focus-within:bg-slate-900/90">
-        <Search className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+      <div className="flex items-center gap-2 rounded-lg border border-bronze bg-surface px-3 py-1.5 transition-colors focus-within:border-gold/60 focus-within:bg-surface/90">
+        <Search className="h-3.5 w-3.5 shrink-0 text-taupe" />
         <input
           ref={inputRef}
           type="search"
@@ -176,7 +176,7 @@ export default function NodeQuestionSearch() {
           onFocus={() => setOpen(query.trim().length >= 2)}
           onKeyDown={onKeyDown}
           placeholder="Search nodes, questions, slugs…"
-          className="flex-1 bg-transparent text-sm text-slate-100 placeholder:text-slate-400 focus:outline-none"
+          className="flex-1 bg-transparent text-sm text-ivory placeholder:text-taupe focus:outline-none"
           aria-label="Search nodes and questions"
         />
         {query && (
@@ -185,7 +185,7 @@ export default function NodeQuestionSearch() {
               setQuery("");
               inputRef.current?.focus();
             }}
-            className="text-slate-400 hover:text-slate-300"
+            className="text-taupe hover:text-ivory"
             aria-label="Clear search"
           >
             <X className="h-3.5 w-3.5" />
@@ -194,15 +194,15 @@ export default function NodeQuestionSearch() {
       </div>
 
       {open && (
-        <div className="absolute right-0 z-30 mt-1.5 w-[28rem] max-w-[90vw] overflow-hidden rounded-lg border border-slate-700 bg-slate-950/95 shadow-xl shadow-black/50 backdrop-blur-sm">
+        <div className="absolute right-0 z-30 mt-1.5 w-[28rem] max-w-[90vw] overflow-hidden rounded-lg border border-bronze bg-night/95 shadow-xl shadow-black/50 backdrop-blur-sm">
           {results.length === 0 ? (
-            <div className="px-3 py-3 text-xs text-slate-400">
+            <div className="px-3 py-3 text-xs text-taupe">
               {loading ? "Searching…" : `No results for "${query.trim()}".`}
             </div>
           ) : (
-            <ul className="max-h-[28rem] divide-y divide-slate-800/60 overflow-y-auto">
+            <ul className="max-h-[28rem] divide-y divide-bronze/60 overflow-y-auto">
               {nodeResults.length > 0 && (
-                <li className="bg-slate-900/50 px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-slate-400">
+                <li className="bg-surface/50 px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-taupe">
                   Nodes ({nodeResults.length})
                 </li>
               )}
@@ -212,14 +212,14 @@ export default function NodeQuestionSearch() {
                   active={activeIndex === i}
                   onMouseEnter={() => setActiveIndex(i)}
                   onClick={() => navigateTo(r)}
-                  icon={<GraduationCap className="h-3.5 w-3.5 text-indigo-400" />}
+                  icon={<GraduationCap className="h-3.5 w-3.5 text-gold" />}
                   primary={r.node.topic}
                   secondary={`${r.node.id} · ${r.node.concept_slug}`}
                   tertiary={r.node.description}
                 />
               ))}
               {questionResults.length > 0 && (
-                <li className="bg-slate-900/50 px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-slate-400">
+                <li className="bg-surface/50 px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-taupe">
                   Questions ({questionResults.length})
                 </li>
               )}
@@ -234,9 +234,9 @@ export default function NodeQuestionSearch() {
                     onClick={() => navigateTo({ kind: "question", q })}
                     icon={
                       isBank ? (
-                        <Inbox className="h-3.5 w-3.5 text-amber-400" />
+                        <Inbox className="h-3.5 w-3.5 text-warning" />
                       ) : (
-                        <FileQuestion className="h-3.5 w-3.5 text-emerald-400" />
+                        <FileQuestion className="h-3.5 w-3.5 text-success" />
                       )
                     }
                     primary={
@@ -256,11 +256,11 @@ export default function NodeQuestionSearch() {
               })}
             </ul>
           )}
-          <div className="flex items-center gap-3 border-t border-slate-800/60 px-3 py-1.5 text-[10px] text-slate-400">
-            <kbd className="text-slate-400">↑↓</kbd> navigate
-            <kbd className="text-slate-400">↵</kbd> open
-            <kbd className="text-slate-400">esc</kbd> close
-            {loading && <span className="ml-auto text-indigo-400">searching…</span>}
+          <div className="flex items-center gap-3 border-t border-bronze/60 px-3 py-1.5 text-[10px] text-taupe">
+            <kbd className="text-taupe">↑↓</kbd> navigate
+            <kbd className="text-taupe">↵</kbd> open
+            <kbd className="text-taupe">esc</kbd> close
+            {loading && <span className="ml-auto text-gold">searching…</span>}
           </div>
         </div>
       )}
@@ -291,16 +291,14 @@ function ResultRow({
       onClick={onClick}
       className={cn(
         "flex cursor-pointer items-start gap-2 px-3 py-2 text-sm",
-        active ? "bg-indigo-500/10" : "hover:bg-slate-800/60"
+        active ? "bg-gold/10" : "hover:bg-surface-raised/60"
       )}
     >
       <span className="mt-0.5 shrink-0">{icon}</span>
       <span className="min-w-0 flex-1">
-        <div className="truncate text-slate-100">{primary}</div>
-        {secondary && (
-          <div className="truncate font-mono text-[11px] text-slate-400">{secondary}</div>
-        )}
-        {tertiary && <div className="truncate text-[11px] text-slate-400">{tertiary}</div>}
+        <div className="truncate text-ivory">{primary}</div>
+        {secondary && <div className="truncate font-mono text-[11px] text-taupe">{secondary}</div>}
+        {tertiary && <div className="truncate text-[11px] text-taupe">{tertiary}</div>}
       </span>
     </li>
   );

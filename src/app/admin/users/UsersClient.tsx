@@ -21,10 +21,10 @@ import { actionImpersonateUser } from "@/app/admin/impersonation-actions";
 const ROLE_OPTIONS: AppRole[] = ["student", "tutor", "parent", "admin"];
 
 const ROLE_COLOR: Record<AppRole, string> = {
-  student: "bg-slate-400/10 text-slate-300 border-slate-400/20",
-  tutor: "bg-indigo-400/10 text-indigo-300 border-indigo-400/20",
-  parent: "bg-rose-400/10 text-rose-300 border-rose-400/20",
-  admin: "bg-amber-400/10 text-amber-300 border-amber-400/20",
+  student: "bg-surface-raised/10 text-ivory border-bronze/20",
+  tutor: "bg-gold/10 text-gold-bright border-gold/20",
+  parent: "bg-error/10 text-error-bright border-error/20",
+  admin: "bg-warning/10 text-warning-bright border-warning/20",
 };
 
 type SubTier = NonNullable<AdminUserRow["tier"]>;
@@ -36,11 +36,11 @@ const TIER_LABEL: Record<SubTier, string> = {
   annual: "Annual",
 };
 const TIER_COLOR: Record<SubTier, string> = {
-  group: "bg-indigo-400/10 text-indigo-300 border-indigo-400/20",
-  small_group: "bg-teal-400/10 text-teal-300 border-teal-400/20",
-  private: "bg-amber-400/10 text-amber-300 border-amber-400/20",
-  elite: "bg-violet-400/10 text-violet-300 border-violet-400/20",
-  annual: "bg-emerald-400/10 text-emerald-300 border-emerald-400/20",
+  group: "bg-gold/10 text-gold-bright border-gold/20",
+  small_group: "bg-success/10 text-success-bright border-success/20",
+  private: "bg-warning/10 text-warning-bright border-warning/20",
+  elite: "bg-gold/10 text-gold-bright border-gold/20",
+  annual: "bg-success/10 text-success-bright border-success/20",
 };
 
 interface Props {
@@ -85,8 +85,8 @@ export default function UsersClient({ users, cohorts }: Props) {
     <div>
       <header className="mb-6 flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-white">Users</h1>
-          <p className="mt-1 text-sm text-slate-400">
+          <h1 className="text-2xl font-extrabold tracking-tight text-ivory">Users</h1>
+          <p className="mt-1 text-sm text-taupe">
             Change role or link a parent to a student. Roles are enforced by the layout gate on each
             portal.
           </p>
@@ -97,20 +97,20 @@ export default function UsersClient({ users, cohorts }: Props) {
       <div className="mb-4 space-y-3">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-taupe" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search by name or email…"
-              className="w-full rounded-lg border border-slate-800 bg-slate-950/60 py-2 pl-9 pr-3 text-sm text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+              className="w-full rounded-lg border border-bronze bg-night/60 py-2 pl-9 pr-3 text-sm text-ivory placeholder:text-taupe focus:outline-none focus:ring-2 focus:ring-gold/40"
             />
           </div>
           <select
             aria-label="Filter users by cohort"
             value={cohortFilter}
             onChange={(e) => setCohortFilter(e.target.value)}
-            className="rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-2 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+            className="rounded-lg border border-bronze bg-night/60 px-3 py-2 text-sm text-ivory focus:outline-none focus:ring-2 focus:ring-gold/40"
           >
             <option value="all">All cohorts ({cohorts.length})</option>
             {cohorts.map((c) => (
@@ -129,15 +129,15 @@ export default function UsersClient({ users, cohorts }: Props) {
               className={cn(
                 "rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors",
                 roleFilter === r
-                  ? "border-indigo-500 bg-indigo-600 text-white"
-                  : "border-slate-800 bg-slate-950/40 text-slate-300 hover:bg-slate-800"
+                  ? "border-gold/40 bg-gold text-night"
+                  : "border-bronze bg-night/40 text-ivory hover:bg-surface-raised"
               )}
             >
               {r === "all" ? "All" : r.charAt(0).toUpperCase() + r.slice(1)}
               <span className="ml-1.5 text-[10px]">{counts[r]}</span>
             </button>
           ))}
-          <span className="ml-auto self-center text-xs text-slate-400">
+          <span className="ml-auto self-center text-xs text-taupe">
             {filtered.length} of {users.length} matching
           </span>
         </div>
@@ -155,9 +155,9 @@ export default function UsersClient({ users, cohorts }: Props) {
       </ul>
 
       {/* Desktop (md+): full table with all columns. */}
-      <div className="hidden overflow-hidden rounded-xl border border-slate-800 md:block">
+      <div className="hidden overflow-hidden rounded-xl border border-bronze md:block">
         <table className="w-full text-sm">
-          <thead className="bg-slate-900/60 text-xs uppercase tracking-wider text-slate-400">
+          <thead className="bg-surface/60 text-xs uppercase tracking-wider text-taupe">
             <tr>
               <th className="px-4 py-3 text-left font-semibold">Name</th>
               <th className="px-4 py-3 text-left font-semibold">Email</th>
@@ -167,7 +167,7 @@ export default function UsersClient({ users, cohorts }: Props) {
               <th aria-hidden="true" className="w-10" />
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-800" data-testid="admin-users-table-body">
+          <tbody className="divide-y divide-bronze" data-testid="admin-users-table-body">
             {filtered.map((u) => (
               <UserRow key={u.id} user={u} onManageLinks={() => setLinkingParent(u)} />
             ))}
@@ -176,7 +176,7 @@ export default function UsersClient({ users, cohorts }: Props) {
       </div>
 
       {filtered.length === 0 && (
-        <p className="mt-4 text-sm text-slate-400">No users match the current filter.</p>
+        <p className="mt-4 text-sm text-taupe">No users match the current filter.</p>
       )}
 
       {linkingParent && (
@@ -218,13 +218,13 @@ function UserCard({ user, onManageLinks }: { user: AdminUserRow; onManageLinks: 
   const { pending, err, changeRole, fullName } = useUserRowState(user);
 
   return (
-    <article className="rounded-xl border border-slate-800 bg-slate-950/40 p-4">
+    <article className="rounded-xl border border-bronze bg-night/40 p-4">
       {/* Identity */}
       <div className="mb-3 flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <div className="truncate text-base font-medium text-white">{fullName}</div>
-          <div className="mt-0.5 truncate font-mono text-xs text-slate-400">{user.email}</div>
-          {err && <div className="mt-1 text-xs text-rose-300">{err}</div>}
+          <div className="truncate text-base font-medium text-ivory">{fullName}</div>
+          <div className="mt-0.5 truncate font-mono text-xs text-taupe">{user.email}</div>
+          {err && <div className="mt-1 text-xs text-error-bright">{err}</div>}
         </div>
         {user.tier && (
           <span
@@ -253,7 +253,7 @@ function UserCard({ user, onManageLinks }: { user: AdminUserRow; onManageLinks: 
           onChange={(e) => changeRole(e.target.value as AppRole)}
           disabled={pending}
           aria-label={`Change role for ${fullName}`}
-          className="rounded-md border border-slate-800 bg-slate-950/60 px-2 py-1 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 disabled:opacity-50"
+          className="rounded-md border border-bronze bg-night/60 px-2 py-1 text-xs text-ivory focus:outline-none focus:ring-2 focus:ring-gold/40 disabled:opacity-50"
         >
           {ROLE_OPTIONS.map((r) => (
             <option key={r} value={r}>
@@ -261,11 +261,11 @@ function UserCard({ user, onManageLinks }: { user: AdminUserRow; onManageLinks: 
             </option>
           ))}
         </select>
-        {pending && <Loader2 className="h-3.5 w-3.5 animate-spin text-slate-400" />}
+        {pending && <Loader2 className="h-3.5 w-3.5 animate-spin text-taupe" />}
         {user.role === "parent" && (
           <button
             onClick={onManageLinks}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-300 hover:text-indigo-200"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-gold-bright hover:text-gold-bright"
           >
             <Link2 className="h-3.5 w-3.5" />
             {user.linked_student_count} linked
@@ -293,12 +293,12 @@ function UserRow({ user, onManageLinks }: { user: AdminUserRow; onManageLinks: (
   const { pending, err, changeRole, fullName } = useUserRowState(user);
 
   return (
-    <tr className="transition-colors hover:bg-slate-900/40">
+    <tr className="transition-colors hover:bg-surface/40">
       <td className="px-4 py-3">
-        <div className="font-medium text-white">{fullName}</div>
-        {err && <div className="mt-0.5 text-xs text-rose-300">{err}</div>}
+        <div className="font-medium text-ivory">{fullName}</div>
+        {err && <div className="mt-0.5 text-xs text-error-bright">{err}</div>}
       </td>
-      <td className="px-4 py-3 font-mono text-xs text-slate-400">{user.email}</td>
+      <td className="px-4 py-3 font-mono text-xs text-taupe">{user.email}</td>
       <td className="px-4 py-3">
         <div className="flex items-center gap-2">
           <span
@@ -313,7 +313,7 @@ function UserRow({ user, onManageLinks }: { user: AdminUserRow; onManageLinks: (
             value={user.role}
             onChange={(e) => changeRole(e.target.value as AppRole)}
             disabled={pending}
-            className="rounded-md border border-slate-800 bg-slate-950/60 px-2 py-1 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 disabled:opacity-50"
+            className="rounded-md border border-bronze bg-night/60 px-2 py-1 text-xs text-ivory focus:outline-none focus:ring-2 focus:ring-gold/40 disabled:opacity-50"
             aria-label={`Change role for ${fullName}`}
           >
             {ROLE_OPTIONS.map((r) => (
@@ -322,7 +322,7 @@ function UserRow({ user, onManageLinks }: { user: AdminUserRow; onManageLinks: (
               </option>
             ))}
           </select>
-          {pending && <Loader2 className="h-3.5 w-3.5 animate-spin text-slate-400" />}
+          {pending && <Loader2 className="h-3.5 w-3.5 animate-spin text-taupe" />}
         </div>
       </td>
       <td className="hidden px-4 py-3 lg:table-cell">
@@ -336,14 +336,14 @@ function UserRow({ user, onManageLinks }: { user: AdminUserRow; onManageLinks: (
             {TIER_LABEL[user.tier]}
           </span>
         ) : (
-          <span className="text-xs text-slate-400">—</span>
+          <span className="text-xs text-taupe">—</span>
         )}
       </td>
       <td className="hidden px-4 py-3 lg:table-cell">
         {user.role === "parent" ? (
           <button
             onClick={onManageLinks}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-300 hover:text-indigo-200"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-gold-bright hover:text-gold-bright"
           >
             <Link2 className="h-3.5 w-3.5" />
             {user.linked_student_count} linked · manage
@@ -354,7 +354,7 @@ function UserRow({ user, onManageLinks }: { user: AdminUserRow; onManageLinks: (
             pendingRetakes={user.diagnostic_retakes_remaining}
           />
         ) : (
-          <span className="text-xs text-slate-400">—</span>
+          <span className="text-xs text-taupe">—</span>
         )}
       </td>
       <td className="px-2 py-3">
@@ -394,7 +394,7 @@ function ImpersonateButton({
       disabled={pending}
       title="Impersonate this user — see their dashboard with their data (read-only; mutations go to your admin row)."
       className={cn(
-        "inline-flex items-center justify-center gap-1 rounded-md border border-amber-500/40 px-2 py-1 text-xs font-semibold text-amber-300 hover:bg-amber-500/10 disabled:opacity-50",
+        "inline-flex items-center justify-center gap-1 rounded-md border border-warning/40 px-2 py-1 text-xs font-semibold text-warning-bright hover:bg-warning/10 disabled:opacity-50",
         fullWidth && "w-full py-2 text-sm"
       )}
     >
@@ -495,49 +495,49 @@ function ParentLinksDialog({
 
   return (
     <div
-      className="fixed inset-0 z-40 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-40 flex items-center justify-center bg-night/60 p-4 backdrop-blur-sm"
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-lg rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl"
+        className="relative w-full max-w-lg rounded-2xl border border-bronze bg-surface p-6 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <button
           onClick={onClose}
-          className="absolute right-4 top-4 text-slate-400 hover:text-slate-200"
+          className="absolute right-4 top-4 text-taupe hover:text-ivory"
           aria-label="Close"
         >
           <X className="h-5 w-5" />
         </button>
 
-        <h2 className="text-lg font-bold text-white">Linked students</h2>
-        <p className="mt-1 text-sm text-slate-400">
-          Choose which students <span className="font-semibold text-white">{parentName}</span> can
+        <h2 className="text-lg font-bold text-ivory">Linked students</h2>
+        <p className="mt-1 text-sm text-taupe">
+          Choose which students <span className="font-semibold text-ivory">{parentName}</span> can
           see in their parent portal.
         </p>
 
         <div className="mt-5">
           {!loaded ? (
-            <div className="text-sm text-slate-400">Loading…</div>
+            <div className="text-sm text-taupe">Loading…</div>
           ) : linked.length === 0 ? (
-            <p className="text-sm italic text-slate-400">No students linked yet.</p>
+            <p className="text-sm italic text-taupe">No students linked yet.</p>
           ) : (
             <ul className="space-y-2">
               {linked.map((s) => (
                 <li
                   key={s.id}
-                  className="flex items-center justify-between gap-3 rounded-lg border border-slate-800 bg-slate-950/50 px-3 py-2"
+                  className="flex items-center justify-between gap-3 rounded-lg border border-bronze bg-night/50 px-3 py-2"
                 >
                   <div>
-                    <div className="text-sm text-white">
+                    <div className="text-sm text-ivory">
                       {[s.first_name, s.last_name].filter(Boolean).join(" ") || s.email}
                     </div>
-                    <div className="font-mono text-xs text-slate-400">{s.email}</div>
+                    <div className="font-mono text-xs text-taupe">{s.email}</div>
                   </div>
                   <button
                     onClick={() => remove(s.id)}
                     disabled={pending}
-                    className="text-slate-400 hover:text-rose-300 disabled:opacity-50"
+                    className="text-taupe hover:text-error-bright disabled:opacity-50"
                     aria-label={`Unlink ${s.email}`}
                   >
                     <Trash2 className="h-4 w-4" />
@@ -549,14 +549,14 @@ function ParentLinksDialog({
         </div>
 
         <div className="mt-5">
-          <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-400">
+          <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-taupe">
             Add a student
           </label>
           <div className="flex gap-2">
             <select
               value={studentToAdd}
               onChange={(e) => setStudentToAdd(e.target.value)}
-              className="flex-1 rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-2 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+              className="flex-1 rounded-lg border border-bronze bg-night/60 px-3 py-2 text-sm text-ivory focus:outline-none focus:ring-2 focus:ring-gold/40"
             >
               <option value="">Select a student…</option>
               {eligible.map((s) => {
@@ -571,7 +571,7 @@ function ParentLinksDialog({
             <button
               onClick={add}
               disabled={!studentToAdd || pending}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-500 disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-gold px-3 py-2 text-sm font-semibold text-night hover:bg-gold-bright disabled:opacity-50"
             >
               {pending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -581,7 +581,7 @@ function ParentLinksDialog({
               Link
             </button>
           </div>
-          {err && <p className="mt-2 text-xs text-rose-300">{err}</p>}
+          {err && <p className="mt-2 text-xs text-error-bright">{err}</p>}
         </div>
       </div>
     </div>
@@ -620,7 +620,7 @@ function DiagnosticRetakeButton({
       <button
         onClick={onGrant}
         disabled={pending}
-        className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-300 hover:text-emerald-200 disabled:opacity-50"
+        className="inline-flex items-center gap-1.5 text-xs font-semibold text-success-bright hover:text-success-bright disabled:opacity-50"
         title="Grant this student one diagnostic retake"
       >
         {pending ? (
@@ -631,11 +631,11 @@ function DiagnosticRetakeButton({
         Allow retake
       </button>
       {pendingRetakes > 0 ? (
-        <span className="text-[10px] text-emerald-400/80">
+        <span className="text-[10px] text-success/80">
           {pendingRetakes} pending grant{pendingRetakes === 1 ? "" : "s"}
         </span>
       ) : null}
-      {err ? <span className="text-[11px] text-rose-300">{err}</span> : null}
+      {err ? <span className="text-[11px] text-error-bright">{err}</span> : null}
     </div>
   );
 }

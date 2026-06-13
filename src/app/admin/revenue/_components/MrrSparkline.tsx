@@ -6,10 +6,10 @@ import type { MrrSnapshot } from "../_types";
 export function MrrSparkline({ snapshots }: { snapshots: MrrSnapshot[] }) {
   if (snapshots.length < 2) {
     return (
-      <div className="py-12 text-center text-xs text-slate-400">
+      <div className="py-12 text-center text-xs text-taupe">
         Need at least 2 snapshots to draw a trend.
         <br />
-        <span className="text-slate-400">
+        <span className="text-taupe">
           Hit &ldquo;Snapshot now&rdquo; to capture today&apos;s MRR.
         </span>
       </div>
@@ -34,23 +34,23 @@ export function MrrSparkline({ snapshots }: { snapshots: MrrSnapshot[] }) {
       <svg width="100%" viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none">
         <defs>
           <linearGradient id="spark-area" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#10b981" stopOpacity={0.3} />
-            <stop offset="100%" stopColor="#10b981" stopOpacity={0} />
+            <stop offset="0%" stopColor="#8BA86A" stopOpacity={0.3} />
+            <stop offset="100%" stopColor="#8BA86A" stopOpacity={0} />
           </linearGradient>
         </defs>
         <path d={area} fill="url(#spark-area)" />
-        <path d={path} stroke="#34d399" strokeWidth={1.5} fill="none" />
+        <path d={path} stroke="#A6C486" strokeWidth={1.5} fill="none" />
         {snapshots.map((s, i) => (
-          <circle key={i} cx={xScale(i)} cy={yScale(s.mrr)} r={2.5} fill="#34d399">
+          <circle key={i} cx={xScale(i)} cy={yScale(s.mrr)} r={2.5} fill="#A6C486">
             <title>{`${new Date(s.capturedAt).toLocaleDateString()} — ${fmtMoney(s.mrr)}`}</title>
           </circle>
         ))}
       </svg>
-      <div className="mt-2 flex items-center justify-between text-[10px] text-slate-400">
+      <div className="mt-2 flex items-center justify-between text-[10px] text-taupe">
         <span>{new Date(snapshots[0].capturedAt).toLocaleDateString()}</span>
         <span>
           Latest:{" "}
-          <span className="font-semibold tabular-nums text-slate-300">{fmtMoney(last.mrr)}</span>
+          <span className="font-semibold tabular-nums text-ivory">{fmtMoney(last.mrr)}</span>
         </span>
         <span>{new Date(last.capturedAt).toLocaleDateString()}</span>
       </div>

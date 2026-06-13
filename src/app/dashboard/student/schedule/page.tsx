@@ -61,13 +61,13 @@ async function alertAdminAboutMissingTutorSetup(args: {
       subject: `[Karman] Tutor setup needed — ${args.tutorName}`,
       html: `
         <div style="font-family: Inter, sans-serif; max-width: 560px; margin: auto; padding: 24px;">
-          <h2 style="color: #0f172a;">${headline}</h2>
-          <p style="color: #334155;">
+          <h2 style="color: #070605;">${headline}</h2>
+          <p style="color: #222018;">
             A student${args.studentName ? ` (${args.studentName})` : ""} tried to book a session
             but their assigned tutor hasn't finished setting up their Cal.com link in Karman.
           </p>
-          <p style="color: #334155;"><strong>Next step:</strong> ${cta}</p>
-          <p style="color: #94a3b8; font-size: 12px; margin-top: 24px;">
+          <p style="color: #222018;"><strong>Next step:</strong> ${cta}</p>
+          <p style="color: #B8B0A1; font-size: 12px; margin-top: 24px;">
             You'll only get one of these per tutor every 24 hours.
           </p>
         </div>
@@ -200,13 +200,13 @@ export default async function StudentSchedulePage() {
     <DashboardLayout>
       <div className="mx-auto max-w-4xl space-y-6 px-4 py-8 sm:px-6">
         <header>
-          <p className="mb-1 text-xs font-bold uppercase tracking-widest text-blue-500">Schedule</p>
-          <h1 className="flex items-center gap-2 text-2xl font-extrabold text-slate-900 dark:text-white">
-            <CalendarClock className="h-6 w-6 text-slate-400" />
+          <p className="mb-1 text-xs font-bold uppercase tracking-widest text-info">Schedule</p>
+          <h1 className="flex items-center gap-2 text-2xl font-extrabold text-ivory dark:text-ivory">
+            <CalendarClock className="h-6 w-6 text-taupe" />
             Your sessions
           </h1>
           {!upcoming ? (
-            <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+            <p className="mt-2 text-sm text-taupe dark:text-taupe">
               {canSelfBook
                 ? "You have no upcoming sessions yet. Pick a time below to book one with your tutor."
                 : "You have no upcoming sessions yet. Your tutor will post seminar / small-group sessions here as they're scheduled."}
@@ -239,19 +239,19 @@ export default async function StudentSchedulePage() {
         ) : null}
 
         {canSelfBook && !assignedTutor ? (
-          <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-400/20 dark:bg-amber-400/5">
-            <p className="text-sm text-amber-800 dark:text-amber-200">
+          <div className="rounded-xl border border-warning/40 bg-warning/10 px-4 py-3 dark:border-warning/20 dark:bg-warning/5">
+            <p className="text-sm text-warning dark:text-warning-bright">
               No tutor assigned yet. An admin will pair you with a tutor shortly.
             </p>
           </div>
         ) : null}
 
         {canSelfBook && assignedTutor && assignedTutor.calEventTypeId === null ? (
-          <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-4 dark:border-amber-400/20 dark:bg-amber-400/5">
-            <p className="text-sm font-semibold text-amber-900 dark:text-amber-200">
+          <div className="rounded-xl border border-warning/40 bg-warning/10 px-4 py-4 dark:border-warning/20 dark:bg-warning/5">
+            <p className="text-sm font-semibold text-warning dark:text-warning-bright">
               {assignedTutor.name} is finishing their schedule setup
             </p>
-            <p className="mt-1 text-sm text-amber-800 dark:text-amber-200/80">
+            <p className="mt-1 text-sm text-warning dark:text-warning-bright/80">
               Your tutor is connecting their Cal.com calendar to Karman. We&rsquo;ve let our team
               know &mdash; you&rsquo;ll get an email when booking opens. Usually takes less than a
               business day.

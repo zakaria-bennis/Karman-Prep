@@ -68,28 +68,28 @@ export default async function QuestionReviewPage({ searchParams }: PageProps) {
       <div className="mb-6">
         <Link
           href="/admin/curriculum"
-          className="mb-3 inline-flex items-center gap-1 text-xs text-slate-400 hover:text-slate-300"
+          className="mb-3 inline-flex items-center gap-1 text-xs text-taupe hover:text-ivory"
         >
           <ChevronRight className="h-3 w-3 rotate-180" /> Back to admin
         </Link>
         <div className="flex items-start justify-between gap-3">
-          <h1 className="flex items-center gap-2 text-2xl font-bold text-white">
-            <ClipboardCheck className="h-5 w-5 text-amber-400" /> Question review
+          <h1 className="flex items-center gap-2 text-2xl font-bold text-ivory">
+            <ClipboardCheck className="h-5 w-5 text-warning" /> Question review
           </h1>
           <Link
             href="/admin/questions/rejected"
-            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 px-3 py-1.5 text-xs text-slate-300 hover:border-slate-600 hover:text-white"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-bronze px-3 py-1.5 text-xs text-ivory hover:border-bronze hover:text-ivory"
           >
             <Archive className="h-3.5 w-3.5" />
             Rejected
             {rejectedCount > 0 && (
-              <span className="ml-1 rounded bg-slate-800 px-1.5 py-0.5 font-mono text-[10px] text-slate-300">
+              <span className="ml-1 rounded bg-surface-raised px-1.5 py-0.5 font-mono text-[10px] text-ivory">
                 {rejectedCount}
               </span>
             )}
           </Link>
         </div>
-        <p className="mt-1.5 text-sm text-slate-400">
+        <p className="mt-1.5 text-sm text-taupe">
           {counts.bank} in bank · {counts.flagged} flagged ({counts.partial_emit} partial_emit ·{" "}
           {counts.skip} skip)
         </p>

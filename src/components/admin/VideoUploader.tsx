@@ -99,23 +99,21 @@ export default function VideoUploader({
     <div className="space-y-8">
       {/* Current video preview */}
       <section>
-        <h2 className="mb-1 text-base font-bold text-white">Current video</h2>
-        <p className="mb-3 text-xs text-slate-400">
-          Shown to students at the top of the lesson page.
-        </p>
+        <h2 className="mb-1 text-base font-bold text-ivory">Current video</h2>
+        <p className="mb-3 text-xs text-taupe">Shown to students at the top of the lesson page.</p>
 
         {currentUrl ? (
-          <div className="overflow-hidden rounded-xl border border-slate-800 bg-slate-900/60">
-            <div className="aspect-video bg-black">
+          <div className="overflow-hidden rounded-xl border border-bronze bg-surface/60">
+            <div className="aspect-video bg-night">
               <video controls src={currentUrl} className="h-full w-full" preload="metadata" />
             </div>
             <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
-              <div className="min-w-0 truncate text-xs text-slate-400">
+              <div className="min-w-0 truncate text-xs text-taupe">
                 <a
                   href={currentUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center gap-1 hover:text-indigo-300"
+                  className="inline-flex items-center gap-1 hover:text-gold-bright"
                 >
                   <ExternalLink className="h-3 w-3" /> Open full URL
                 </a>
@@ -127,25 +125,25 @@ export default function VideoUploader({
               </div>
               <button
                 onClick={handleDelete}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-rose-500/15 px-3 py-1.5 text-xs font-semibold text-rose-300 hover:bg-rose-500/25"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-error/15 px-3 py-1.5 text-xs font-semibold text-error-bright hover:bg-error/25"
               >
                 <Trash2 className="h-3 w-3" /> Remove
               </button>
             </div>
           </div>
         ) : (
-          <div className="rounded-xl border border-dashed border-slate-700 p-10 text-center">
-            <Video className="mx-auto mb-2 h-7 w-7 text-slate-400" />
-            <p className="text-sm text-slate-400">No video yet. Upload one or paste a URL below.</p>
+          <div className="rounded-xl border border-dashed border-bronze p-10 text-center">
+            <Video className="mx-auto mb-2 h-7 w-7 text-taupe" />
+            <p className="text-sm text-taupe">No video yet. Upload one or paste a URL below.</p>
           </div>
         )}
       </section>
 
       {/* Upload file */}
       <section>
-        <h3 className="mb-1 text-sm font-bold text-white">Upload a file</h3>
-        <p className="mb-3 text-xs text-slate-400">
-          MP4/WebM, up to <strong className="text-slate-300">{MAX_FILE_MB} MB</strong>. Larger files
+        <h3 className="mb-1 text-sm font-bold text-ivory">Upload a file</h3>
+        <p className="mb-3 text-xs text-taupe">
+          MP4/WebM, up to <strong className="text-ivory">{MAX_FILE_MB} MB</strong>. Larger files
           should be hosted on Mux or YouTube and pasted as a URL below.
         </p>
 
@@ -161,7 +159,7 @@ export default function VideoUploader({
           disabled={uploading}
           className={cn(
             "inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold",
-            "border border-slate-700 bg-slate-800 text-slate-100 hover:bg-slate-700",
+            "border border-bronze bg-surface-raised text-ivory hover:bg-surface-raised",
             uploading && "cursor-wait opacity-60"
           )}
         >
@@ -174,7 +172,7 @@ export default function VideoUploader({
         </button>
 
         {uploadError && (
-          <p className="mt-2 flex items-center gap-1 text-xs text-rose-300">
+          <p className="mt-2 flex items-center gap-1 text-xs text-error-bright">
             <Info className="h-3 w-3" /> {uploadError}
           </p>
         )}
@@ -182,19 +180,19 @@ export default function VideoUploader({
 
       {/* Paste a URL */}
       <section>
-        <h3 className="mb-1 text-sm font-bold text-white">Or paste a URL</h3>
-        <p className="mb-3 text-xs text-slate-400">
+        <h3 className="mb-1 text-sm font-bold text-ivory">Or paste a URL</h3>
+        <p className="mb-3 text-xs text-taupe">
           Mux playback URL, YouTube embed URL, Vimeo direct link, or any public video URL.
         </p>
         <div className="flex flex-col gap-2 sm:flex-row">
           <div className="relative flex-1">
-            <Link2 className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <Link2 className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-taupe" />
             <input
               type="url"
               value={urlInput}
               onChange={(e) => setUrlInput(e.target.value)}
               placeholder="https://…"
-              className="w-full rounded-lg border border-slate-800 bg-slate-900 py-2.5 pl-9 pr-3 text-sm text-slate-100 placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none"
+              className="w-full rounded-lg border border-bronze bg-surface py-2.5 pl-9 pr-3 text-sm text-ivory placeholder:text-taupe focus:border-gold/40 focus:outline-none"
             />
           </div>
           <input
@@ -203,12 +201,12 @@ export default function VideoUploader({
             value={durationInput}
             onChange={(e) => setDurationInput(e.target.value)}
             placeholder="duration (sec)"
-            className="rounded-lg border border-slate-800 bg-slate-900 px-3 py-2.5 text-sm text-slate-100 placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none sm:w-40"
+            className="rounded-lg border border-bronze bg-surface px-3 py-2.5 text-sm text-ivory placeholder:text-taupe focus:border-gold/40 focus:outline-none sm:w-40"
           />
           <button
             onClick={handleSaveUrl}
             disabled={pending}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-400 disabled:opacity-60"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-gold px-4 py-2.5 text-sm font-semibold text-night hover:bg-gold-bright disabled:opacity-60"
           >
             {pending ? "Saving…" : "Save URL"}
           </button>

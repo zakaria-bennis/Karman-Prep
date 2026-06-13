@@ -48,29 +48,29 @@ export function AnswerChoiceButton({
         className={cn(
           "w-full rounded-xl border-2 py-4 pl-4 pr-20 text-left text-sm font-medium transition-all",
           isCrossed &&
-            "cursor-not-allowed border-slate-200 bg-slate-100/60 opacity-50 dark:border-slate-700 dark:bg-slate-800/40",
+            "cursor-not-allowed border-bronze bg-surface/60 opacity-50 dark:border-bronze dark:bg-surface-raised/40",
           !isCrossed &&
             isHighlighted &&
             !isAnswered &&
-            "border-amber-400/60 bg-amber-400/[0.06] hover:border-amber-400 hover:bg-amber-400/[0.12] dark:bg-amber-400/[0.08]",
+            "border-warning/60 bg-warning/[0.06] hover:border-warning/40 hover:bg-warning/[0.12] dark:bg-warning/[0.08]",
           !isCrossed &&
             !isHighlighted &&
             !isAnswered &&
-            "border-slate-200 bg-white hover:border-blue-400 hover:bg-blue-50 dark:border-slate-700 dark:bg-slate-800 dark:hover:bg-blue-900/20",
+            "border-bronze bg-surface hover:border-info/40 hover:bg-info/10 dark:border-bronze dark:bg-surface-raised dark:hover:bg-info/20",
           !isCrossed &&
             isAnswered &&
             isCorrect &&
-            "border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20",
+            "border-success/40 bg-success/10 dark:bg-success/20",
           !isCrossed &&
             isAnswered &&
             isSelected &&
             !isCorrect &&
-            "border-red-400 bg-red-50 dark:bg-red-900/20",
+            "border-error/40 bg-error/10 dark:bg-error/20",
           !isCrossed &&
             isAnswered &&
             !isSelected &&
             !isCorrect &&
-            "border-slate-200 opacity-50 dark:border-slate-700"
+            "border-bronze opacity-50 dark:border-bronze"
         )}
       >
         <div className="flex items-center gap-3">
@@ -80,14 +80,14 @@ export function AnswerChoiceButton({
               !isAnswered &&
                 !isCrossed &&
                 !isHighlighted &&
-                "bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300",
+                "bg-surface text-taupe dark:bg-surface-raised dark:text-ivory",
               !isAnswered &&
                 !isCrossed &&
                 isHighlighted &&
-                "bg-amber-400/30 text-amber-700 dark:text-amber-200",
-              isCrossed && "bg-slate-200 text-slate-400 line-through dark:bg-slate-700/60",
-              !isCrossed && isAnswered && isCorrect && "bg-emerald-500 text-white",
-              !isCrossed && isAnswered && isSelected && !isCorrect && "bg-red-400 text-white"
+                "bg-warning/30 text-warning dark:text-warning-bright",
+              isCrossed && "bg-surface text-taupe line-through dark:bg-surface-raised/60",
+              !isCrossed && isAnswered && isCorrect && "bg-success text-night",
+              !isCrossed && isAnswered && isSelected && !isCorrect && "bg-error text-ivory"
             )}
           >
             {!isCrossed && isAnswered && isCorrect ? (
@@ -101,15 +101,11 @@ export function AnswerChoiceButton({
           <span
             className={cn(
               "flex-1",
-              isCrossed && "text-slate-400 line-through",
-              !isCrossed && isAnswered && isCorrect && "text-emerald-700 dark:text-emerald-300",
-              !isCrossed &&
-                isAnswered &&
-                isSelected &&
-                !isCorrect &&
-                "text-red-600 dark:text-red-400",
-              !isCrossed && isAnswered && !isSelected && !isCorrect && "text-slate-400",
-              !isCrossed && !isAnswered && "text-slate-700 dark:text-slate-200"
+              isCrossed && "text-taupe line-through",
+              !isCrossed && isAnswered && isCorrect && "text-success dark:text-success-bright",
+              !isCrossed && isAnswered && isSelected && !isCorrect && "text-error dark:text-error",
+              !isCrossed && isAnswered && !isSelected && !isCorrect && "text-taupe",
+              !isCrossed && !isAnswered && "text-ivory dark:text-ivory"
             )}
           >
             <MathText text={choiceBody} />
@@ -142,8 +138,8 @@ export function AnswerChoiceButton({
           className={cn(
             "flex h-8 w-8 items-center justify-center rounded-lg transition-colors",
             isHighlighted
-              ? "bg-amber-400/20 text-amber-300"
-              : "text-slate-400 hover:bg-amber-400/15 hover:text-amber-300"
+              ? "bg-warning/20 text-warning-bright"
+              : "text-taupe hover:bg-warning/15 hover:text-warning-bright"
           )}
         >
           <Highlighter className="h-4 w-4" />
@@ -159,8 +155,8 @@ export function AnswerChoiceButton({
           className={cn(
             "flex h-8 w-8 items-center justify-center rounded-lg transition-colors",
             isCrossed
-              ? "bg-rose-400/20 text-rose-300"
-              : "text-slate-400 hover:bg-rose-400/15 hover:text-rose-300"
+              ? "bg-error/20 text-error-bright"
+              : "text-taupe hover:bg-error/15 hover:text-error-bright"
           )}
         >
           <Ban className="h-4 w-4" />

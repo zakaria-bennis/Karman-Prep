@@ -97,7 +97,7 @@ export default function VideoPlayer({
   return (
     <div className="w-full">
       {/* Aspect-ratio video frame */}
-      <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-slate-800 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+      <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-bronze bg-gradient-to-br from-charcoal via-surface to-charcoal">
         {videoUrl ? (
           <video
             className="h-full w-full"
@@ -110,16 +110,16 @@ export default function VideoPlayer({
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 text-center">
             <button
               onClick={() => setIsPlaying((p) => !p)}
-              className="flex h-16 w-16 items-center justify-center rounded-full bg-white/10 transition-colors hover:bg-white/20"
+              className="flex h-16 w-16 items-center justify-center rounded-full bg-surface/10 transition-colors hover:bg-surface/20"
               aria-label={isPlaying ? "Pause" : "Play"}
             >
               {isPlaying ? (
-                <Pause className="h-7 w-7 text-white" />
+                <Pause className="h-7 w-7 text-ivory" />
               ) : (
-                <Play className="h-7 w-7 translate-x-0.5 text-white" />
+                <Play className="h-7 w-7 translate-x-0.5 text-ivory" />
               )}
             </button>
-            <p className="max-w-sm text-xs text-slate-400">
+            <p className="max-w-sm text-xs text-taupe">
               Video placeholder. The Mux player will be wired in once the lesson recordings are
               uploaded. Playback is simulated for now.
             </p>
@@ -129,16 +129,16 @@ export default function VideoPlayer({
 
       {/* Scrubber */}
       <div className="mt-3">
-        <div className="relative h-1.5 rounded-full bg-slate-200 dark:bg-slate-800">
+        <div className="relative h-1.5 rounded-full bg-surface dark:bg-surface-raised">
           <div
-            className="absolute left-0 top-0 h-full rounded-full bg-blue-500 transition-all"
+            className="absolute left-0 top-0 h-full rounded-full bg-info transition-all"
             style={{ width: `${pct}%` }}
           />
           {CHAPTERS.map((c) => (
             <button
               key={c.label}
               onClick={() => jumpToChapter(c.fraction)}
-              className="absolute top-1/2 h-2.5 w-2.5 -translate-y-1/2 rounded-full border border-slate-400 bg-white transition-transform hover:scale-125 dark:border-slate-600 dark:bg-slate-300"
+              className="absolute top-1/2 h-2.5 w-2.5 -translate-y-1/2 rounded-full border border-taupe/50 bg-ivory transition-transform hover:scale-125 dark:border-bronze dark:bg-ivory"
               style={{ left: `calc(${c.fraction * 100}% - 5px)` }}
               aria-label={`Jump to ${c.label}`}
               title={c.label}
@@ -147,7 +147,7 @@ export default function VideoPlayer({
         </div>
 
         {/* Time + chapters legend */}
-        <div className="mt-2 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+        <div className="mt-2 flex items-center justify-between text-xs text-taupe/80 dark:text-taupe">
           <span className="font-mono">
             {mm(seconds)} / {mm(durationSeconds)}
           </span>
@@ -157,8 +157,8 @@ export default function VideoPlayer({
                 key={c.label}
                 onClick={() => jumpToChapter(c.fraction)}
                 className={cn(
-                  "flex items-center gap-1 transition-colors hover:text-slate-900 dark:hover:text-white",
-                  pct >= c.fraction * 100 && "text-blue-500"
+                  "flex items-center gap-1 transition-colors hover:text-night dark:hover:text-ivory",
+                  pct >= c.fraction * 100 && "text-info"
                 )}
               >
                 <SkipForward className="h-3 w-3" />

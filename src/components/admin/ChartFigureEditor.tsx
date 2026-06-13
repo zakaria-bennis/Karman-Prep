@@ -101,7 +101,7 @@ export default function ChartFigureEditor({
             value={draft.title ?? ""}
             onChange={(e) => update("title", e.target.value || null)}
             placeholder="e.g. Hours studied vs. test score (optional)"
-            className="w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-1.5 text-sm text-slate-200 focus:border-violet-500 focus:outline-none"
+            className="w-full rounded-md border border-bronze bg-night px-3 py-1.5 text-sm text-ivory focus:border-gold/40 focus:outline-none"
           />
         </Section>
 
@@ -115,8 +115,8 @@ export default function ChartFigureEditor({
                 className={cn(
                   "rounded-md border px-3 py-1.5 text-xs font-semibold capitalize",
                   draft.kind === k
-                    ? "border-violet-500 bg-violet-500/20 text-violet-200"
-                    : "border-slate-700 text-slate-300 hover:bg-slate-800"
+                    ? "border-gold/40 bg-gold/20 text-gold-bright"
+                    : "border-bronze text-ivory hover:bg-surface-raised"
                 )}
               >
                 {k.replace("_", " ")}
@@ -146,7 +146,7 @@ export default function ChartFigureEditor({
             <button
               type="button"
               onClick={addSeries}
-              className="inline-flex items-center gap-1 rounded-md border border-slate-700 px-2 py-1 text-[11px] font-semibold text-slate-300 hover:bg-slate-800"
+              className="inline-flex items-center gap-1 rounded-md border border-bronze px-2 py-1 text-[11px] font-semibold text-ivory hover:bg-surface-raised"
             >
               <Plus className="h-3 w-3" /> Add series
             </button>
@@ -168,7 +168,7 @@ export default function ChartFigureEditor({
           </div>
         </Section>
 
-        <label className="flex items-center gap-2 text-xs text-slate-300">
+        <label className="flex items-center gap-2 text-xs text-ivory">
           <input
             type="checkbox"
             checked={draft.show_grid}
@@ -178,12 +178,12 @@ export default function ChartFigureEditor({
           Show grid lines
         </label>
 
-        <div className="flex items-center justify-end gap-2 border-t border-slate-800 pt-3">
+        <div className="flex items-center justify-end gap-2 border-t border-bronze pt-3">
           <button
             type="button"
             onClick={onCancel}
             disabled={saving}
-            className="inline-flex items-center gap-1.5 rounded-md border border-slate-700 px-3 py-1.5 text-xs font-semibold text-slate-300 hover:bg-slate-800 disabled:opacity-40"
+            className="inline-flex items-center gap-1.5 rounded-md border border-bronze px-3 py-1.5 text-xs font-semibold text-ivory hover:bg-surface-raised disabled:opacity-40"
           >
             <X className="h-3.5 w-3.5" /> Cancel
           </button>
@@ -191,7 +191,7 @@ export default function ChartFigureEditor({
             type="button"
             onClick={() => onSave(draft)}
             disabled={saving}
-            className="inline-flex items-center gap-1.5 rounded-md bg-emerald-500/15 px-3 py-1.5 text-xs font-semibold text-emerald-300 hover:bg-emerald-500/25 disabled:opacity-40"
+            className="inline-flex items-center gap-1.5 rounded-md bg-success/15 px-3 py-1.5 text-xs font-semibold text-success-bright hover:bg-success/25 disabled:opacity-40"
           >
             <Save className="h-3.5 w-3.5" /> {saving ? "Saving…" : "Save chart"}
           </button>
@@ -200,7 +200,7 @@ export default function ChartFigureEditor({
 
       {/* RIGHT — live preview */}
       <div className="sticky top-4 self-start">
-        <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+        <div className="text-[10px] font-semibold uppercase tracking-wider text-taupe">
           Live preview
         </div>
         <div className="mt-2">
@@ -225,7 +225,7 @@ function Section({
   return (
     <div>
       <div className="mb-1.5 flex items-center justify-between">
-        <label className="text-[11px] font-semibold uppercase tracking-wider text-slate-300">
+        <label className="text-[11px] font-semibold uppercase tracking-wider text-ivory">
           {label}
         </label>
         {action}
@@ -248,8 +248,8 @@ function AxisFieldset({
 }) {
   const isCategorical = !!axis.categories;
   return (
-    <fieldset className="space-y-1.5 rounded-lg border border-slate-800 bg-slate-900/40 p-3">
-      <legend className="px-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+    <fieldset className="space-y-1.5 rounded-lg border border-bronze bg-surface/40 p-3">
+      <legend className="px-1 text-[10px] font-semibold uppercase tracking-wider text-taupe">
         {label}
       </legend>
       <input
@@ -257,10 +257,10 @@ function AxisFieldset({
         value={axis.label}
         onChange={(e) => onChange({ label: e.target.value })}
         placeholder="Label (e.g. Time)"
-        className="w-full rounded border border-slate-700 bg-slate-950 px-2 py-1 text-xs text-slate-200 focus:border-violet-500 focus:outline-none"
+        className="w-full rounded border border-bronze bg-night px-2 py-1 text-xs text-ivory focus:border-gold/40 focus:outline-none"
       />
       {allowCategories && (
-        <div className="flex items-center gap-1.5 text-[10px] text-slate-400">
+        <div className="flex items-center gap-1.5 text-[10px] text-taupe">
           <input
             type="checkbox"
             checked={isCategorical}
@@ -289,7 +289,7 @@ function AxisFieldset({
             })
           }
           placeholder="A, B, C"
-          className="w-full rounded border border-slate-700 bg-slate-950 px-2 py-1 text-xs text-slate-200 focus:border-violet-500 focus:outline-none"
+          className="w-full rounded border border-bronze bg-night px-2 py-1 text-xs text-ivory focus:border-gold/40 focus:outline-none"
         />
       ) : (
         <div className="grid grid-cols-3 gap-1.5">
@@ -327,7 +327,7 @@ function NumberInput({
         if (Number.isFinite(n)) onChange(n);
       }}
       placeholder={placeholder}
-      className="rounded border border-slate-700 bg-slate-950 px-2 py-1 text-center text-xs text-slate-200 focus:border-violet-500 focus:outline-none"
+      className="rounded border border-bronze bg-night px-2 py-1 text-center text-xs text-ivory focus:border-gold/40 focus:outline-none"
     />
   );
 }
@@ -351,20 +351,20 @@ function SeriesEditor({
   onDelete: () => void;
 }) {
   return (
-    <div className="rounded-lg border border-slate-800 bg-slate-900/30 p-3">
+    <div className="rounded-lg border border-bronze bg-surface/30 p-3">
       <div className="mb-2 flex items-center gap-2">
         <input
           type="text"
           value={series.label ?? ""}
           onChange={(e) => onChange({ ...series, label: e.target.value || null })}
           placeholder="Series name (optional)"
-          className="flex-1 rounded border border-slate-700 bg-slate-950 px-2 py-1 text-xs text-slate-200 focus:border-violet-500 focus:outline-none"
+          className="flex-1 rounded border border-bronze bg-night px-2 py-1 text-xs text-ivory focus:border-gold/40 focus:outline-none"
         />
         {canDelete && (
           <button
             type="button"
             onClick={onDelete}
-            className="rounded-md border border-rose-500/40 px-2 py-1 text-[10px] font-semibold text-rose-300 hover:bg-rose-500/15"
+            className="rounded-md border border-error/40 px-2 py-1 text-[10px] font-semibold text-error-bright hover:bg-error/15"
             title="Remove this series"
           >
             <Trash2 className="h-3 w-3" />
@@ -382,7 +382,7 @@ function SeriesEditor({
       ) : series.kind === "function" ? (
         <EquationInput series={series} onChange={(next) => onChange(next)} />
       ) : (
-        <p className="mt-1.5 text-[11px] text-slate-400">
+        <p className="mt-1.5 text-[11px] text-taupe">
           {series.kind === "boxplot" ? "Box-and-whisker" : "Pie"} data isn&apos;t editable in this
           form yet — edit the underlying JSON directly.
         </p>
@@ -392,7 +392,7 @@ function SeriesEditor({
           series might mismatch (e.g. a function plot with a scatter
           series). */}
       {!seriesMatchesChartKind(series, chartKind) && (
-        <p className="mt-1.5 text-[10px] text-amber-300">
+        <p className="mt-1.5 text-[10px] text-warning-bright">
           ⚠ Series kind ({series.kind}) doesn&apos;t match chart kind ({chartKind}). Switching the
           chart kind above will normalize.
         </p>
@@ -422,15 +422,15 @@ function PointsInput({
         }}
         rows={3}
         placeholder="(1, 2), (3, 4), (5, 6)"
-        className="w-full resize-y rounded border border-slate-700 bg-slate-950 px-2 py-1.5 font-mono text-xs text-slate-200 focus:border-violet-500 focus:outline-none"
+        className="w-full resize-y rounded border border-bronze bg-night px-2 py-1.5 font-mono text-xs text-ivory focus:border-gold/40 focus:outline-none"
       />
       {!result.ok && raw.trim() !== "" && (
-        <p className="mt-1 flex items-center gap-1 text-[10px] text-rose-300">
+        <p className="mt-1 flex items-center gap-1 text-[10px] text-error-bright">
           <AlertCircle className="h-3 w-3" /> {result.error}
         </p>
       )}
       {result.ok && (
-        <p className="mt-1 text-[10px] text-slate-500">
+        <p className="mt-1 text-[10px] text-taupe">
           {result.value.length} point{result.value.length === 1 ? "" : "s"}
         </p>
       )}
@@ -467,15 +467,15 @@ function BarsInput({
         }}
         rows={3}
         placeholder="A: 5, B: 3, C: 8"
-        className="w-full resize-y rounded border border-slate-700 bg-slate-950 px-2 py-1.5 font-mono text-xs text-slate-200 focus:border-violet-500 focus:outline-none"
+        className="w-full resize-y rounded border border-bronze bg-night px-2 py-1.5 font-mono text-xs text-ivory focus:border-gold/40 focus:outline-none"
       />
       {!result.ok && raw.trim() !== "" && (
-        <p className="mt-1 flex items-center gap-1 text-[10px] text-rose-300">
+        <p className="mt-1 flex items-center gap-1 text-[10px] text-error-bright">
           <AlertCircle className="h-3 w-3" /> {result.error}
         </p>
       )}
       {mismatched.length > 0 && (
-        <p className="mt-1 text-[10px] text-amber-300">
+        <p className="mt-1 text-[10px] text-warning-bright">
           ⚠ These bar categories aren&apos;t on the x-axis: {mismatched.join(", ")}.
         </p>
       )}
@@ -504,16 +504,16 @@ function EquationInput({
           if (parsed.ok) onChange({ ...series, expression: parsed.value });
         }}
         placeholder="y = x^2 - 4x + 3"
-        className="w-full rounded border border-slate-700 bg-slate-950 px-2 py-1.5 font-mono text-xs text-slate-200 focus:border-violet-500 focus:outline-none"
+        className="w-full rounded border border-bronze bg-night px-2 py-1.5 font-mono text-xs text-ivory focus:border-gold/40 focus:outline-none"
       />
       {!result.ok && raw.trim() !== "" && (
-        <p className="mt-1 flex items-center gap-1 text-[10px] text-rose-300">
+        <p className="mt-1 flex items-center gap-1 text-[10px] text-error-bright">
           <AlertCircle className="h-3 w-3" /> {result.error}
         </p>
       )}
       {result.ok && (
-        <p className="mt-1 text-[10px] text-slate-500">
-          Matched: <span className="font-mono text-slate-400">{result.value.kind}</span>
+        <p className="mt-1 text-[10px] text-taupe">
+          Matched: <span className="font-mono text-taupe">{result.value.kind}</span>
         </p>
       )}
     </div>

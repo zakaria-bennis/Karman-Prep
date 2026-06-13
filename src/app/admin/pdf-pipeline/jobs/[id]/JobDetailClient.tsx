@@ -73,12 +73,12 @@ function StageRow({
   const Icon = stage.icon;
   const tone =
     s === "complete"
-      ? "border-emerald-700 bg-emerald-950/30 text-emerald-300"
+      ? "border-success/40 bg-success/30 text-success-bright"
       : s === "active"
-        ? "border-indigo-700 bg-indigo-950/30 text-indigo-200"
+        ? "border-gold/40 bg-gold/30 text-gold-bright"
         : s === "failed"
-          ? "border-rose-700 bg-rose-950/30 text-rose-200"
-          : "border-slate-800 bg-slate-900/30 text-slate-500";
+          ? "border-error/40 bg-error/30 text-error-bright"
+          : "border-bronze bg-surface/30 text-taupe";
   const dot =
     s === "complete" ? (
       <CheckCircle2 className="h-4 w-4" />
@@ -144,16 +144,16 @@ export default function JobDetailClient({ initialJob }: { initialJob: PdfProcess
   return (
     <div className="space-y-5">
       {/* Top: status badge + progress bar */}
-      <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
+      <div className="rounded-xl border border-bronze bg-surface/60 p-5">
         <div className="mb-3 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <span
               className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-semibold ${
                 job.status === "complete"
-                  ? "border-emerald-800 bg-emerald-950/40 text-emerald-200"
+                  ? "border-success/40 bg-success/40 text-success-bright"
                   : job.status === "failed"
-                    ? "border-rose-800 bg-rose-950/40 text-rose-200"
-                    : "border-indigo-800 bg-indigo-950/40 text-indigo-200"
+                    ? "border-error/40 bg-error/40 text-error-bright"
+                    : "border-gold/40 bg-gold/40 text-gold-bright"
               }`}
             >
               {job.status === "complete" ? (
@@ -165,37 +165,37 @@ export default function JobDetailClient({ initialJob }: { initialJob: PdfProcess
               )}
               {job.status}
             </span>
-            <span className="text-xs text-slate-400">{STAGE_LABEL[rowStage] ?? rowStage}</span>
+            <span className="text-xs text-taupe">{STAGE_LABEL[rowStage] ?? rowStage}</span>
           </div>
-          <div className="text-xl font-bold tabular-nums text-white">{percent}%</div>
+          <div className="text-xl font-bold tabular-nums text-ivory">{percent}%</div>
         </div>
-        <div className="h-2 overflow-hidden rounded-full bg-slate-800">
+        <div className="h-2 overflow-hidden rounded-full bg-surface-raised">
           <div
             className={`h-full transition-all duration-500 ${
               job.status === "failed"
-                ? "bg-rose-500"
+                ? "bg-error"
                 : job.status === "complete"
-                  ? "bg-emerald-500"
-                  : "bg-indigo-500"
+                  ? "bg-success"
+                  : "bg-gold"
             }`}
             style={{ width: `${Math.max(0, Math.min(100, percent))}%` }}
           />
         </div>
         {job.progress?.message && (
-          <div className="mt-2 text-xs text-slate-400">{job.progress.message}</div>
+          <div className="mt-2 text-xs text-taupe">{job.progress.message}</div>
         )}
       </div>
 
       {/* Error panel */}
       {job.status === "failed" && job.error_message && (
-        <div className="rounded-xl border border-rose-900/60 bg-rose-950/30 p-4 text-sm text-rose-200">
+        <div className="rounded-xl border border-error/60 bg-error/30 p-4 text-sm text-error-bright">
           <div className="mb-1 flex items-center gap-2 font-semibold">
             <AlertCircle className="h-4 w-4" /> Failed at stage:{" "}
-            <code className="rounded bg-rose-950 px-1.5 py-0.5 text-xs">
+            <code className="rounded bg-error/15 px-1.5 py-0.5 text-xs">
               {job.progress?.error_stage ?? job.progress?.stage ?? "unknown"}
             </code>
           </div>
-          <div className="whitespace-pre-wrap font-mono text-xs text-rose-100/90">
+          <div className="whitespace-pre-wrap font-mono text-xs text-error-bright/90">
             {job.error_message}
           </div>
           {job.progress?.github_run_url && (
@@ -203,7 +203,7 @@ export default function JobDetailClient({ initialJob }: { initialJob: PdfProcess
               href={job.progress.github_run_url}
               target="_blank"
               rel="noreferrer"
-              className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-rose-300 hover:text-rose-100"
+              className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-error-bright hover:text-error-bright"
             >
               View full logs on GitHub Actions <ExternalLink className="h-3 w-3" />
             </a>
@@ -220,11 +220,11 @@ export default function JobDetailClient({ initialJob }: { initialJob: PdfProcess
 
       {/* Footer: result links when complete */}
       {job.status === "complete" && (
-        <div className="rounded-xl border border-emerald-900/40 bg-emerald-950/20 p-4 text-sm">
-          <div className="mb-2 flex items-center gap-2 font-semibold text-emerald-200">
+        <div className="rounded-xl border border-success/40 bg-success/20 p-4 text-sm">
+          <div className="mb-2 flex items-center gap-2 font-semibold text-success-bright">
             <CheckCircle2 className="h-4 w-4" /> Pipeline complete
           </div>
-          <div className="space-y-1 text-xs text-emerald-100/90">
+          <div className="space-y-1 text-xs text-success-bright/90">
             {typeof job.progress?.stats?.questions_extracted === "number" && (
               <div>
                 {job.progress.stats.questions_extracted} questions extracted,{" "}
@@ -233,7 +233,7 @@ export default function JobDetailClient({ initialJob }: { initialJob: PdfProcess
             )}
             <Link
               href={`/admin/questions/review?source_pdf=${encodeURIComponent(job.source_pdf)}`}
-              className="inline-flex items-center gap-1 font-semibold text-emerald-300 hover:text-emerald-100"
+              className="inline-flex items-center gap-1 font-semibold text-success-bright hover:text-success-bright"
             >
               View extracted questions in review queue →
             </Link>
@@ -243,12 +243,12 @@ export default function JobDetailClient({ initialJob }: { initialJob: PdfProcess
 
       {/* Footer: live run link */}
       {polling && job.progress?.github_run_url && (
-        <div className="text-center text-xs text-slate-500">
+        <div className="text-center text-xs text-taupe">
           <a
             href={job.progress.github_run_url}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-1 hover:text-slate-300"
+            className="inline-flex items-center gap-1 hover:text-ivory"
           >
             Watching GitHub Actions run <ExternalLink className="h-3 w-3" />
           </a>

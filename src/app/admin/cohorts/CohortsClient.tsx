@@ -59,15 +59,15 @@ export default function CohortsClient({ cohorts, satDates, tutors, showArchived 
     <div>
       <header className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-white">Cohorts</h1>
-          <p className="mt-1 text-sm text-slate-400">
+          <h1 className="text-2xl font-extrabold tracking-tight text-ivory">Cohorts</h1>
+          <p className="mt-1 text-sm text-taupe">
             Seminar (≤ 200 students) and small group (≤ 5) cohorts, grouped by SAT date.
           </p>
         </div>
         <button
           onClick={() => setDialogOpen(true)}
           disabled={satDates.length === 0 || tutors.length === 0}
-          className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex items-center gap-2 rounded-lg bg-gold px-4 py-2 text-sm font-semibold text-night transition-colors hover:bg-gold-bright disabled:cursor-not-allowed disabled:opacity-50"
           title={
             satDates.length === 0
               ? "No upcoming SAT dates in the database yet"
@@ -84,7 +84,7 @@ export default function CohortsClient({ cohorts, satDates, tutors, showArchived 
       {/* Filter bar — only show once we actually have cohorts to filter through */}
       {cohorts.length > 0 && (
         <div className="mb-4 flex items-center gap-3">
-          <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-400">
+          <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-taupe">
             <Filter className="h-3.5 w-3.5" />
             Filter
           </div>
@@ -92,7 +92,7 @@ export default function CohortsClient({ cohorts, satDates, tutors, showArchived 
             aria-label="Filter cohorts by tutor"
             value={tutorFilter}
             onChange={(e) => setTutorFilter(e.target.value)}
-            className="rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-1.5 text-sm text-slate-200 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+            className="rounded-lg border border-bronze bg-night/60 px-3 py-1.5 text-sm text-ivory focus:border-gold/40 focus:outline-none focus:ring-2 focus:ring-gold/40"
           >
             <option value="">All tutors ({cohorts.length})</option>
             {tutors.map((t) => {
@@ -105,13 +105,13 @@ export default function CohortsClient({ cohorts, satDates, tutors, showArchived 
             })}
           </select>
           {tutorFilter && visibleCohorts.length === 0 && (
-            <span className="text-xs text-slate-400">No cohorts for this tutor.</span>
+            <span className="text-xs text-taupe">No cohorts for this tutor.</span>
           )}
           {/* Toggle between active-only and include-archived views.
               Drives `?show=archived` on the URL (audit #13). */}
           <Link
             href={showArchived ? "/admin/cohorts" : "/admin/cohorts?show=archived"}
-            className="ml-auto inline-flex items-center gap-1 text-xs font-semibold text-slate-400 hover:text-slate-200"
+            className="ml-auto inline-flex items-center gap-1 text-xs font-semibold text-taupe hover:text-ivory"
           >
             <Archive className="h-3.5 w-3.5" />
             {showArchived ? "Hide archived" : "Show archived"}
@@ -161,9 +161,9 @@ function CohortTable({ cohorts }: { cohorts: AdminCohortRow[] }) {
 
       {/* Desktop (md+): full table. Status column hides at <lg
           since it's secondary; SAT date + Tutor + Members stay. */}
-      <div className="hidden overflow-hidden rounded-xl border border-slate-800 md:block">
+      <div className="hidden overflow-hidden rounded-xl border border-bronze md:block">
         <table className="w-full text-sm">
-          <thead className="bg-slate-900/60 text-xs uppercase tracking-wider text-slate-400">
+          <thead className="bg-surface/60 text-xs uppercase tracking-wider text-taupe">
             <tr>
               <th className="px-4 py-3 text-left font-semibold">Name</th>
               <th className="px-4 py-3 text-left font-semibold">Tier</th>
@@ -174,7 +174,7 @@ function CohortTable({ cohorts }: { cohorts: AdminCohortRow[] }) {
               <th aria-hidden="true" className="w-10"></th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-800">
+          <tbody className="divide-y divide-bronze">
             {cohorts.map((c) => (
               <CohortRow key={c.id} cohort={c} />
             ))}
@@ -198,26 +198,24 @@ function CohortCard({ cohort: c }: { cohort: AdminCohortRow }) {
       role="link"
       tabIndex={0}
       aria-label={`Open ${c.name}`}
-      className="cursor-pointer rounded-xl border border-slate-800 bg-slate-950/40 p-4 transition-colors hover:bg-slate-900/40 focus:bg-slate-900/60 focus:outline-none"
+      className="cursor-pointer rounded-xl border border-bronze bg-night/40 p-4 transition-colors hover:bg-surface/40 focus:bg-surface/60 focus:outline-none"
     >
       {/* Identity + status badges row */}
       <div className="mb-2 flex flex-wrap items-start gap-2">
         <div className="min-w-0 flex-1">
-          <div
-            className={cn("text-base font-medium", c.archived_at ? "text-slate-400" : "text-white")}
-          >
+          <div className={cn("text-base font-medium", c.archived_at ? "text-taupe" : "text-ivory")}>
             {c.name}
           </div>
         </div>
         {c.archived_at ? (
-          <span className="shrink-0 rounded-md bg-slate-700/40 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-300">
+          <span className="shrink-0 rounded-md bg-surface-raised/40 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-ivory">
             Archived
           </span>
         ) : null}
         {c.setup_completed_at === null &&
         !c.archived_at &&
         (c.tier === "group" || c.tier === "small_group") ? (
-          <span className="shrink-0 rounded-md bg-amber-400/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-300">
+          <span className="shrink-0 rounded-md bg-warning/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-warning-bright">
             Needs setup
           </span>
         ) : null}
@@ -231,18 +229,18 @@ function CohortCard({ cohort: c }: { cohort: AdminCohortRow }) {
           <span
             className={cn(
               "font-mono",
-              c.member_count >= c.max_size ? "text-amber-300" : "text-slate-300"
+              c.member_count >= c.max_size ? "text-warning-bright" : "text-ivory"
             )}
           >
             {c.member_count}
           </span>
-          <span className="font-mono text-slate-400">/{c.max_size}</span>
-          <span className="ml-1 text-xs text-slate-400">members</span>
+          <span className="font-mono text-taupe">/{c.max_size}</span>
+          <span className="ml-1 text-xs text-taupe">members</span>
         </span>
       </div>
 
       {/* SAT date + Tutor (muted) */}
-      <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400">
+      <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-taupe">
         <span>SAT {formatDate(c.sat_date)}</span>
         <span className="truncate">{tutorDisplay(c.tutor)}</span>
       </div>
@@ -264,7 +262,7 @@ function CohortRow({ cohort: c }: { cohort: AdminCohortRow }) {
   return (
     <tr
       onClick={() => router.push(`/admin/cohorts/${c.id}`)}
-      className="cursor-pointer transition-colors hover:bg-slate-900/40 focus:bg-slate-900/60 focus:outline-none"
+      className="cursor-pointer transition-colors hover:bg-surface/40 focus:bg-surface/60 focus:outline-none"
       tabIndex={0}
       onKeyDown={(e) => {
         if (e.key === "Enter") router.push(`/admin/cohorts/${c.id}`);
@@ -272,18 +270,18 @@ function CohortRow({ cohort: c }: { cohort: AdminCohortRow }) {
       role="link"
       aria-label={`Open ${c.name}`}
     >
-      <td className="px-4 py-3 font-medium text-white">
+      <td className="px-4 py-3 font-medium text-ivory">
         <div className="flex items-center gap-2">
-          <span className={c.archived_at ? "text-slate-400" : undefined}>{c.name}</span>
+          <span className={c.archived_at ? "text-taupe" : undefined}>{c.name}</span>
           {c.archived_at ? (
-            <span className="inline-flex items-center gap-0.5 rounded-md bg-slate-700/40 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-300">
+            <span className="inline-flex items-center gap-0.5 rounded-md bg-surface-raised/40 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-ivory">
               Archived
             </span>
           ) : null}
           {c.setup_completed_at === null &&
           !c.archived_at &&
           (c.tier === "group" || c.tier === "small_group") ? (
-            <span className="inline-flex items-center gap-0.5 rounded-md bg-amber-400/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-300">
+            <span className="inline-flex items-center gap-0.5 rounded-md bg-warning/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-warning-bright">
               Needs setup
             </span>
           ) : null}
@@ -292,23 +290,23 @@ function CohortRow({ cohort: c }: { cohort: AdminCohortRow }) {
       <td className="px-4 py-3">
         <TierBadge tier={c.tier} />
       </td>
-      <td className="px-4 py-3 text-slate-300">{formatDate(c.sat_date)}</td>
-      <td className="px-4 py-3 text-slate-300">{tutorDisplay(c.tutor)}</td>
+      <td className="px-4 py-3 text-ivory">{formatDate(c.sat_date)}</td>
+      <td className="px-4 py-3 text-ivory">{tutorDisplay(c.tutor)}</td>
       <td className="px-4 py-3 text-right">
         <span
           className={cn(
             "font-mono",
-            c.member_count >= c.max_size ? "text-amber-300" : "text-slate-300"
+            c.member_count >= c.max_size ? "text-warning-bright" : "text-ivory"
           )}
         >
           {c.member_count}
         </span>
-        <span className="font-mono text-slate-400">/{c.max_size}</span>
+        <span className="font-mono text-taupe">/{c.max_size}</span>
       </td>
       <td className="hidden px-4 py-3 lg:table-cell">
         <StatusBadge status={c.status} />
       </td>
-      <td className="px-2 py-3 text-slate-400">
+      <td className="px-2 py-3 text-taupe">
         {c.archived_at ? <UnarchiveButton cohortId={c.id} /> : <ChevronRight className="h-4 w-4" />}
       </td>
     </tr>
@@ -338,7 +336,7 @@ function UnarchiveButton({ cohortId }: { cohortId: string }) {
     <button
       onClick={onClick}
       disabled={pending}
-      className="inline-flex items-center gap-1 rounded border border-slate-700 px-2 py-0.5 text-[10px] font-semibold text-slate-300 hover:border-emerald-500 hover:text-emerald-300 disabled:opacity-50"
+      className="inline-flex items-center gap-1 rounded border border-bronze px-2 py-0.5 text-[10px] font-semibold text-ivory hover:border-success/40 hover:text-success-bright disabled:opacity-50"
       title="Restore this cohort to active dashboards"
     >
       {pending ? <Loader2 className="h-3 w-3 animate-spin" /> : <RotateCcw className="h-3 w-3" />}
@@ -350,8 +348,8 @@ function UnarchiveButton({ cohortId }: { cohortId: string }) {
 function TierBadge({ tier }: { tier: CohortTier }) {
   const classes =
     tier === "small_group"
-      ? "bg-teal-400/10 text-teal-300 border-teal-400/20"
-      : "bg-indigo-400/10 text-indigo-300 border-indigo-400/20";
+      ? "bg-success/10 text-success-bright border-success/20"
+      : "bg-gold/10 text-gold-bright border-gold/20";
   return (
     <span
       className={cn("inline-block rounded-md border px-2 py-0.5 text-xs font-semibold", classes)}
@@ -363,9 +361,9 @@ function TierBadge({ tier }: { tier: CohortTier }) {
 
 function StatusBadge({ status }: { status: CohortStatus }) {
   const map: Record<CohortStatus, string> = {
-    forming: "bg-slate-400/10 text-slate-300 border-slate-400/20",
-    active: "bg-emerald-400/10 text-emerald-300 border-emerald-400/20",
-    completed: "bg-slate-600/20 text-slate-400 border-slate-600/30",
+    forming: "bg-surface-raised/10 text-ivory border-bronze/20",
+    active: "bg-success/10 text-success-bright border-success/20",
+    completed: "bg-surface-raised/20 text-taupe border-bronze/30",
   };
   return (
     <span
@@ -389,16 +387,16 @@ function EmptyState({
   missingTutors: boolean;
 }) {
   return (
-    <div className="rounded-xl border border-dashed border-slate-800 px-8 py-16 text-center">
-      <GraduationCap className="mx-auto mb-3 h-8 w-8 text-slate-400" />
-      <h2 className="text-base font-semibold text-white">No cohorts yet</h2>
+    <div className="rounded-xl border border-dashed border-bronze px-8 py-16 text-center">
+      <GraduationCap className="mx-auto mb-3 h-8 w-8 text-taupe" />
+      <h2 className="text-base font-semibold text-ivory">No cohorts yet</h2>
       {canCreate ? (
-        <p className="mx-auto mt-2 max-w-sm text-sm text-slate-400">
-          Click <span className="font-semibold text-white">Create cohort</span> to spin up the first
+        <p className="mx-auto mt-2 max-w-sm text-sm text-taupe">
+          Click <span className="font-semibold text-ivory">Create cohort</span> to spin up the first
           one.
         </p>
       ) : (
-        <ul className="mt-3 space-y-1 text-sm text-amber-300">
+        <ul className="mt-3 space-y-1 text-sm text-warning-bright">
           {missingSatDates && <li>· No SAT dates seeded — paste the seed SQL first.</li>}
           {missingTutors && <li>· No users with role=&apos;tutor&apos; yet.</li>}
         </ul>
@@ -469,30 +467,30 @@ function CreateCohortDialog({
 
   return (
     <div
-      className="fixed inset-0 z-40 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-40 flex items-center justify-center bg-night/60 p-4 backdrop-blur-sm"
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-lg rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl"
+        className="relative w-full max-w-lg rounded-2xl border border-bronze bg-surface p-6 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <button
           onClick={onClose}
-          className="absolute right-4 top-4 text-slate-400 hover:text-slate-200"
+          className="absolute right-4 top-4 text-taupe hover:text-ivory"
           aria-label="Close"
         >
           <X className="h-5 w-5" />
         </button>
 
-        <h2 className="text-lg font-bold text-white">Create cohort</h2>
-        <p className="mt-1 text-sm text-slate-400">
+        <h2 className="text-lg font-bold text-ivory">Create cohort</h2>
+        <p className="mt-1 text-sm text-taupe">
           One cohort per (tier × SAT date × tutor). Students join via onboarding or admin.
         </p>
 
         <form onSubmit={onSubmit} className="mt-5 space-y-4">
           {/* Tier */}
           <div>
-            <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-400">
+            <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-taupe">
               Tier
             </label>
             <div className="grid grid-cols-2 gap-2">
@@ -504,8 +502,8 @@ function CreateCohortDialog({
                   className={cn(
                     "rounded-lg border px-3 py-2 text-sm font-semibold transition-colors",
                     tier === t
-                      ? "border-indigo-500 bg-indigo-600 text-white"
-                      : "border-slate-800 bg-slate-950/40 text-slate-300 hover:bg-slate-800"
+                      ? "border-gold/40 bg-gold text-night"
+                      : "border-bronze bg-night/40 text-ivory hover:bg-surface-raised"
                   )}
                 >
                   {TIER_LABEL[t]}
@@ -564,7 +562,7 @@ function CreateCohortDialog({
               maxLength={120}
             />
             {!nameOverridden && (
-              <p className="mt-1 text-xs text-slate-400">Auto-generated — edit to override.</p>
+              <p className="mt-1 text-xs text-taupe">Auto-generated — edit to override.</p>
             )}
           </Field>
 
@@ -594,7 +592,7 @@ function CreateCohortDialog({
           </Field>
 
           {error && (
-            <p className="rounded-lg border border-rose-400/20 bg-rose-500/10 px-3 py-2 text-sm text-rose-300">
+            <p className="rounded-lg border border-error/20 bg-error/10 px-3 py-2 text-sm text-error-bright">
               {error}
             </p>
           )}
@@ -604,14 +602,14 @@ function CreateCohortDialog({
               type="button"
               onClick={onClose}
               disabled={isPending}
-              className="rounded-lg border border-slate-700 px-4 py-2 text-sm font-semibold text-slate-300 transition-colors hover:bg-slate-800 disabled:opacity-50"
+              className="rounded-lg border border-bronze px-4 py-2 text-sm font-semibold text-ivory transition-colors hover:bg-surface-raised disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isPending}
-              className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-500 disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-lg bg-gold px-4 py-2 text-sm font-semibold text-night transition-colors hover:bg-gold-bright disabled:opacity-50"
             >
               {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
               Create cohort
@@ -628,13 +626,13 @@ function CreateCohortDialog({
 // ─────────────────────────────────────────────────────────────
 
 const selectCls =
-  "w-full rounded-lg bg-slate-950/60 border border-slate-800 text-slate-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500";
+  "w-full rounded-lg bg-night/60 border border-bronze text-ivory px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gold/40 focus:border-gold/40";
 const inputCls = selectCls;
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-400">
+      <span className="mb-2 block text-xs font-semibold uppercase tracking-wider text-taupe">
         {label}
       </span>
       {children}

@@ -79,24 +79,24 @@ export default async function TutorBookingSettingsPage({ searchParams }: PagePro
     <div className="mx-auto max-w-2xl px-5 py-8">
       <Link
         href="/tutor"
-        className="mb-3 inline-flex items-center gap-1 text-xs text-slate-600 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
+        className="mb-3 inline-flex items-center gap-1 text-xs text-taupe hover:text-ivory dark:text-taupe dark:hover:text-ivory"
       >
         <ChevronRight className="h-3 w-3 rotate-180" /> Back to tutor home
       </Link>
-      <h1 className="flex items-center gap-2 text-2xl font-bold text-slate-900 dark:text-slate-100">
-        <CalendarCheck className="h-5 w-5 text-blue-500" /> Booking settings
+      <h1 className="flex items-center gap-2 text-2xl font-bold text-ivory dark:text-ivory">
+        <CalendarCheck className="h-5 w-5 text-info" /> Booking settings
       </h1>
-      <p className="mt-1.5 text-sm text-slate-600 dark:text-slate-400">
+      <p className="mt-1.5 text-sm text-taupe dark:text-taupe">
         Connect your Cal.com account so your students can book sessions on your real calendar.
       </p>
 
       {errorMessage ? (
-        <div className="mt-5 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+        <div className="mt-5 rounded-lg border border-error/40 bg-error/10 px-4 py-3 text-sm text-error">
           {errorMessage}
         </div>
       ) : null}
       {successMessage ? (
-        <div className="mt-5 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+        <div className="mt-5 rounded-lg border border-success/40 bg-success/10 px-4 py-3 text-sm text-success">
           {successMessage}
         </div>
       ) : null}
@@ -109,15 +109,15 @@ export default async function TutorBookingSettingsPage({ searchParams }: PagePro
         />
       </div>
 
-      <div className="mt-8 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-xs text-slate-700 dark:border-slate-800 dark:bg-slate-900/40 dark:text-slate-300">
-        <p className="font-semibold text-slate-800 dark:text-slate-200">Need a Cal account?</p>
+      <div className="mt-8 rounded-lg border border-bronze bg-surface px-4 py-3 text-xs text-ivory dark:border-bronze dark:bg-surface/40 dark:text-ivory">
+        <p className="font-semibold text-ivory dark:text-ivory">Need a Cal account?</p>
         <p className="mt-1">
           Sign up at{" "}
           <a
             href="https://cal.com"
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-0.5 text-blue-700 hover:underline dark:text-blue-400"
+            className="inline-flex items-center gap-0.5 text-info hover:underline dark:text-info"
           >
             cal.com <ExternalLink className="h-3 w-3" />
           </a>{" "}

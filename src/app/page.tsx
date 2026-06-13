@@ -28,7 +28,7 @@ export default function HomePage() {
   // wrapper (Tailwind darkMode: 'class' matches any ancestor .dark).
   return (
     <div className="dark">
-      <main className="min-h-screen">
+      <main className="min-h-screen bg-night">
         <Navbar />
         <Hero />
         <DiagnosticTeaser />

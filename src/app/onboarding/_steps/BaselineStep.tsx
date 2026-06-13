@@ -21,7 +21,7 @@ export function BaselineStep({
 }) {
   return (
     <div>
-      <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white">{prompt}</h2>
+      <h2 className="text-2xl font-extrabold text-ivory dark:text-ivory">{prompt}</h2>
       <div className="mt-6 grid grid-cols-2 gap-2">
         <button
           type="button"
@@ -29,8 +29,8 @@ export function BaselineStep({
           className={cn(
             "rounded-xl border-2 px-4 py-3 text-sm font-semibold transition-all",
             has === "no"
-              ? "border-blue-500 bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-200"
-              : "border-slate-200 bg-white text-slate-700 hover:border-blue-300 dark:border-slate-700 dark:bg-slate-800/40 dark:text-slate-200"
+              ? "border-info/40 bg-info/10 text-info dark:bg-info/20 dark:text-info-bright"
+              : "border-bronze bg-surface text-ivory hover:border-info/40 dark:border-bronze dark:bg-surface-raised/40 dark:text-ivory"
           )}
         >
           {noLabel}
@@ -41,8 +41,8 @@ export function BaselineStep({
           className={cn(
             "rounded-xl border-2 px-4 py-3 text-sm font-semibold transition-all",
             has === "yes"
-              ? "border-blue-500 bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-200"
-              : "border-slate-200 bg-white text-slate-700 hover:border-blue-300 dark:border-slate-700 dark:bg-slate-800/40 dark:text-slate-200"
+              ? "border-info/40 bg-info/10 text-info dark:bg-info/20 dark:text-info-bright"
+              : "border-bronze bg-surface text-ivory hover:border-info/40 dark:border-bronze dark:bg-surface-raised/40 dark:text-ivory"
           )}
         >
           {yesLabel}
@@ -50,10 +50,10 @@ export function BaselineStep({
       </div>
       {has === "yes" && (
         <div className="mt-8">
-          <p className="mb-3 text-center text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+          <p className="mb-3 text-center text-xs font-semibold uppercase tracking-wider text-taupe dark:text-taupe">
             Most recent total
           </p>
-          <div className="mb-3 text-center text-5xl font-extrabold tabular-nums text-slate-900 dark:text-white">
+          <div className="mb-3 text-center text-5xl font-extrabold tabular-nums text-ivory dark:text-ivory">
             {score}
           </div>
           <input
@@ -63,9 +63,9 @@ export function BaselineStep({
             step={10}
             value={score}
             onChange={(e) => onScoreChange(Number(e.target.value))}
-            className="w-full accent-blue-500"
+            className="w-full accent-info"
           />
-          <div className="mt-2 flex justify-between text-xs tabular-nums text-slate-400">
+          <div className="mt-2 flex justify-between text-xs tabular-nums text-taupe">
             <span>400</span>
             <span>800</span>
             <span>1200</span>

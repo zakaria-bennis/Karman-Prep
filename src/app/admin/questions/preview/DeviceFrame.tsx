@@ -44,10 +44,10 @@ export function DeviceFrame({
     return <div className="h-full">{children}</div>;
   }
   return (
-    <div className="flex h-full w-full justify-center overflow-auto bg-slate-950/40 p-4">
+    <div className="flex h-full w-full justify-center overflow-auto bg-night/40 p-4">
       <div
         className={cn(
-          "w-full overflow-hidden rounded-2xl border border-slate-700/70 bg-slate-950 shadow-2xl shadow-black/40",
+          "w-full overflow-hidden rounded-2xl border border-bronze/70 bg-night shadow-2xl shadow-black/40",
           WIDTHS[width]
         )}
       >
@@ -72,7 +72,7 @@ export function DeviceFrameToggle({
     { value: "full", label: "Full", px: "—" },
   ];
   return (
-    <div className="inline-flex items-center rounded-lg border border-slate-700 bg-slate-900 p-0.5">
+    <div className="inline-flex items-center rounded-lg border border-bronze bg-surface p-0.5">
       {opts.map((o) => {
         const active = value === o.value;
         return (
@@ -81,7 +81,7 @@ export function DeviceFrameToggle({
             onClick={() => onChange(o.value)}
             className={cn(
               "rounded-md px-2.5 py-1 text-[11px] font-semibold transition-colors",
-              active ? "bg-slate-800 text-white" : "text-slate-400 hover:text-slate-200"
+              active ? "bg-surface-raised text-ivory" : "text-taupe hover:text-ivory"
             )}
             title={`${o.label} (${o.px}px)`}
           >

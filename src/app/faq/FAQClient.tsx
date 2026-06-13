@@ -165,15 +165,15 @@ function AccordionItem({
   onToggle: () => void;
 }) {
   return (
-    <div className="border-b border-slate-200 last:border-0 dark:border-slate-700">
+    <div className="border-b border-bronze last:border-0 dark:border-bronze">
       <button
         onClick={onToggle}
-        className="flex w-full items-center justify-between gap-4 py-5 text-left text-sm font-semibold text-slate-900 transition-colors hover:text-blue-600 dark:text-white dark:hover:text-blue-400"
+        className="flex w-full items-center justify-between gap-4 py-5 text-left text-sm font-semibold text-ivory transition-colors hover:text-info dark:text-ivory dark:hover:text-info-bright"
       >
         <span>{item.q}</span>
         <ChevronDown
           className={cn(
-            "h-4 w-4 shrink-0 text-slate-400 transition-transform duration-200",
+            "h-4 w-4 shrink-0 text-taupe transition-transform duration-200",
             isOpen && "rotate-180"
           )}
         />
@@ -184,7 +184,7 @@ function AccordionItem({
           isOpen ? "max-h-96 pb-5" : "max-h-0"
         )}
       >
-        <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-300">{item.a}</p>
+        <p className="text-sm leading-relaxed text-taupe dark:text-ivory">{item.a}</p>
       </div>
     </div>
   );
@@ -196,17 +196,17 @@ export default function FAQClient() {
   const toggle = (key: string) => setOpenItem(openItem === key ? null : key);
 
   return (
-    <main className="min-h-screen bg-white dark:bg-slate-950">
+    <main className="min-h-screen bg-surface dark:bg-night">
       {/* Hero */}
-      <div className="bg-gradient-to-b from-blue-50 to-white px-4 py-16 text-center dark:from-slate-900 dark:to-slate-950">
-        <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-blue-100 px-4 py-1.5 text-sm font-semibold text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
+      <div className="bg-gradient-to-b from-info/10 to-white px-4 py-16 text-center dark:from-surface dark:to-night">
+        <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-info/10 px-4 py-1.5 text-sm font-semibold text-info dark:bg-info/30 dark:text-info-bright">
           <TrendingUp className="h-3.5 w-3.5" />
           Frequently Asked Questions
         </div>
-        <h1 className="mb-4 text-4xl font-extrabold text-slate-900 dark:text-white sm:text-5xl">
+        <h1 className="mb-4 text-4xl font-extrabold text-ivory dark:text-ivory sm:text-5xl">
           Got questions? We&apos;ve got answers.
         </h1>
-        <p className="mx-auto max-w-xl text-slate-500 dark:text-slate-400">
+        <p className="mx-auto max-w-xl text-taupe dark:text-taupe">
           Everything you need to know about Karman, our tutors, pricing, and the score improvement
           guarantee.
         </p>
@@ -216,7 +216,7 @@ export default function FAQClient() {
       <div className="mx-auto max-w-3xl space-y-12 px-4 py-16 sm:px-6">
         {FAQ_SECTIONS.map((section) => (
           <div key={section.title}>
-            <h2 className="mb-2 border-b-2 border-blue-500 pb-3 text-lg font-bold text-slate-900 dark:text-white">
+            <h2 className="mb-2 border-b-2 border-info/40 pb-3 text-lg font-bold text-ivory dark:text-ivory">
               {section.title}
             </h2>
             <div>
@@ -237,10 +237,10 @@ export default function FAQClient() {
 
         {/* Still have questions CTA */}
         <div className="glass-card p-8 text-center">
-          <h3 className="mb-2 text-xl font-bold text-slate-900 dark:text-white">
+          <h3 className="mb-2 text-xl font-bold text-ivory dark:text-ivory">
             Still have questions?
           </h3>
-          <p className="mb-6 text-sm text-slate-500 dark:text-slate-400">
+          <p className="mb-6 text-sm text-taupe dark:text-taupe">
             Our team is happy to help. Reach out and we&apos;ll get back to you within a few hours.
           </p>
           <div className="flex flex-col justify-center gap-3 sm:flex-row">

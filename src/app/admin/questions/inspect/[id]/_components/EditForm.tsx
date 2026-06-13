@@ -51,12 +51,12 @@ export default function EditForm({
 }: Props) {
   return (
     <div className="space-y-4">
-      <p className="rounded-md bg-violet-500/[0.06] px-3 py-2 text-[11px] leading-relaxed text-violet-200">
+      <p className="rounded-md bg-gold/[0.06] px-3 py-2 text-[11px] leading-relaxed text-gold-bright">
         Edit any field below and click <b>Save edits</b>. The page rerenders to the student view
         afterward. Findings stay until you resolve them — fixing the underlying issue doesn&apos;t
         auto-clear flags, since the audit script needs to re-scan to confirm. Wrap math in{" "}
-        <code className="rounded bg-slate-900 px-1">$…$</code> for KaTeX (e.g.{" "}
-        <code className="rounded bg-slate-900 px-1">$x^2$</code>).
+        <code className="rounded bg-surface px-1">$…$</code> for KaTeX (e.g.{" "}
+        <code className="rounded bg-surface px-1">$x^2$</code>).
       </p>
 
       {/* Passage block — show all four sub-fields for R&W */}
@@ -122,8 +122,8 @@ export default function EditForm({
                     className={cn(
                       "mt-1 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-xs font-bold transition-colors",
                       isCorrect
-                        ? "border-emerald-500 bg-emerald-500/20 text-emerald-300"
-                        : "border-slate-700 text-slate-400 hover:border-slate-500 hover:text-slate-200"
+                        ? "border-success/40 bg-success/20 text-success-bright"
+                        : "border-bronze text-taupe hover:border-bronze hover:text-ivory"
                     )}
                     title="Mark this as the correct answer"
                   >
@@ -138,7 +138,7 @@ export default function EditForm({
               );
             })}
           </div>
-          <p className="mt-1.5 text-[10px] text-slate-500">
+          <p className="mt-1.5 text-[10px] text-taupe">
             Click the A/B/C/D circle to mark the correct answer.
           </p>
         </FieldGroup>
@@ -149,7 +149,7 @@ export default function EditForm({
               type="text"
               value={form.correct_answer}
               onChange={(e) => setForm("correct_answer", e.target.value)}
-              className="w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-1.5 text-sm text-slate-200 focus:border-violet-500 focus:outline-none"
+              className="w-full rounded-md border border-bronze bg-night px-3 py-1.5 text-sm text-ivory focus:border-gold/40 focus:outline-none"
             />
           </FieldGroup>
           <FieldGroup label="Numeric tolerance" hint="± range (blank = exact match)">
@@ -158,7 +158,7 @@ export default function EditForm({
               inputMode="decimal"
               value={form.numeric_tolerance}
               onChange={(e) => setForm("numeric_tolerance", e.target.value)}
-              className="w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-1.5 text-sm text-slate-200 focus:border-violet-500 focus:outline-none"
+              className="w-full rounded-md border border-bronze bg-night px-3 py-1.5 text-sm text-ivory focus:border-gold/40 focus:outline-none"
               placeholder="e.g. 0.01"
             />
           </FieldGroup>
@@ -195,8 +195,8 @@ export default function EditForm({
                     className={cn(
                       "mt-1 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-[10px] font-bold",
                       isCorrect
-                        ? "border-emerald-500/60 bg-emerald-500/15 text-emerald-300"
-                        : "border-slate-700 text-slate-500"
+                        ? "border-success/60 bg-success/15 text-success-bright"
+                        : "border-bronze text-taupe"
                     )}
                     title={isCorrect ? "Correct answer" : `Distractor ${letter}`}
                   >
@@ -235,7 +235,7 @@ export default function EditForm({
           type="text"
           value={form.concept_slug}
           onChange={(e) => setForm("concept_slug", e.target.value)}
-          className="w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-1.5 font-mono text-xs text-slate-200 focus:border-violet-500 focus:outline-none"
+          className="w-full rounded-md border border-bronze bg-night px-3 py-1.5 font-mono text-xs text-ivory focus:border-gold/40 focus:outline-none"
           placeholder="e.g. linear-equations-one-variable"
         />
         <datalist id="concept-slug-options">
@@ -259,9 +259,9 @@ function FieldGroup({
 }) {
   return (
     <div>
-      <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-slate-300">
+      <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-ivory">
         {label}
-        {hint && <span className="ml-1.5 font-normal normal-case text-slate-500">— {hint}</span>}
+        {hint && <span className="ml-1.5 font-normal normal-case text-taupe">— {hint}</span>}
       </label>
       {children}
     </div>
@@ -282,7 +282,7 @@ function Textarea({
       value={value}
       onChange={(e) => onChange(e.target.value)}
       rows={rows}
-      className="w-full resize-y rounded-md border border-slate-700 bg-slate-950 px-3 py-2 font-mono text-[12px] leading-snug text-slate-200 focus:border-violet-500 focus:outline-none"
+      className="w-full resize-y rounded-md border border-bronze bg-night px-3 py-2 font-mono text-[12px] leading-snug text-ivory focus:border-gold/40 focus:outline-none"
     />
   );
 }
@@ -376,7 +376,7 @@ function FigureReplaceBlock({
           maxHeightClass="max-h-64"
         />
       ) : (
-        <div className="rounded-md border border-dashed border-slate-700 bg-slate-950/40 p-6 text-center text-xs text-slate-500">
+        <div className="rounded-md border border-dashed border-bronze bg-night/40 p-6 text-center text-xs text-taupe">
           No figure attached
         </div>
       )}
@@ -394,7 +394,7 @@ function FigureReplaceBlock({
           type="button"
           onClick={openFilePicker}
           disabled={busy !== null}
-          className="inline-flex items-center gap-1.5 rounded-md bg-violet-500/15 px-3 py-1.5 text-xs font-semibold text-violet-300 hover:bg-violet-500/25 disabled:cursor-not-allowed disabled:opacity-40"
+          className="inline-flex items-center gap-1.5 rounded-md bg-gold/15 px-3 py-1.5 text-xs font-semibold text-gold-bright hover:bg-gold/25 disabled:cursor-not-allowed disabled:opacity-40"
         >
           {busy === "uploading" ? (
             <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -408,7 +408,7 @@ function FigureReplaceBlock({
             type="button"
             onClick={handleRemove}
             disabled={busy !== null}
-            className="inline-flex items-center gap-1.5 rounded-md bg-rose-500/15 px-3 py-1.5 text-xs font-semibold text-rose-300 hover:bg-rose-500/25 disabled:cursor-not-allowed disabled:opacity-40"
+            className="inline-flex items-center gap-1.5 rounded-md bg-error/15 px-3 py-1.5 text-xs font-semibold text-error-bright hover:bg-error/25 disabled:cursor-not-allowed disabled:opacity-40"
           >
             {busy === "removing" ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -425,15 +425,15 @@ function FigureReplaceBlock({
           className={cn(
             "rounded-md border px-3 py-2 text-xs",
             feedback.kind === "success"
-              ? "border-emerald-500/40 bg-emerald-500/[0.06] text-emerald-200"
-              : "border-rose-500/40 bg-rose-500/[0.06] text-rose-200"
+              ? "border-success/40 bg-success/[0.06] text-success-bright"
+              : "border-error/40 bg-error/[0.06] text-error-bright"
           )}
         >
           {feedback.message}
         </div>
       )}
 
-      <p className="text-[10px] text-slate-500">
+      <p className="text-[10px] text-taupe">
         Replacing the figure clears any extracted table data. PNG / JPEG / WebP supported.
       </p>
     </div>

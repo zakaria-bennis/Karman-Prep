@@ -40,14 +40,14 @@ export default async function RejectedQuestionsPage() {
       <div className="mb-6">
         <Link
           href="/admin/questions/review"
-          className="mb-3 inline-flex items-center gap-1 text-xs text-slate-400 hover:text-slate-300"
+          className="mb-3 inline-flex items-center gap-1 text-xs text-taupe hover:text-ivory"
         >
           <ChevronRight className="h-3 w-3 rotate-180" /> Back to review
         </Link>
-        <h1 className="flex items-center gap-2 text-2xl font-bold text-white">
-          <Archive className="h-5 w-5 text-slate-400" /> Rejected questions
+        <h1 className="flex items-center gap-2 text-2xl font-bold text-ivory">
+          <Archive className="h-5 w-5 text-taupe" /> Rejected questions
         </h1>
-        <p className="mt-1.5 text-sm text-slate-400">
+        <p className="mt-1.5 text-sm text-taupe">
           {total === 0
             ? "Nothing in the recovery bin."
             : `${total} rejected question${total === 1 ? "" : "s"} · showing most recent ${Math.min(

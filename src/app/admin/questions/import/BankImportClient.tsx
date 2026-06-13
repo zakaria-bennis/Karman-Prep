@@ -189,25 +189,27 @@ export default function BankImportClient() {
 
   return (
     <div>
-      <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
+      <div className="rounded-xl border border-bronze bg-surface/60 p-5">
         <div className="mb-3 flex items-center justify-between">
           <div>
-            <h2 className="text-sm font-bold text-white">Routine output → bank</h2>
-            <p className="mt-1 text-xs text-slate-400">
+            <h2 className="text-sm font-bold text-ivory">Routine output → bank</h2>
+            <p className="mt-1 text-xs text-taupe">
               Upload the{" "}
-              <code className="rounded bg-slate-800 px-1 py-0.5 text-slate-300">questions.csv</code>{" "}
+              <code className="rounded bg-surface-raised px-1 py-0.5 text-ivory">
+                questions.csv
+              </code>{" "}
               and{" "}
-              <code className="rounded bg-slate-800 px-1 py-0.5 text-slate-300">
+              <code className="rounded bg-surface-raised px-1 py-0.5 text-ivory">
                 questions_needs_review.csv
               </code>{" "}
               the PDF-ingestion routine writes to{" "}
-              <code className="rounded bg-slate-800 px-1 py-0.5 text-slate-300">
+              <code className="rounded bg-surface-raised px-1 py-0.5 text-ivory">
                 question-imports/runs/&lt;timestamp&gt;/
               </code>
               . Rows land in the bank with no node assigned. Use{" "}
               <a
                 href="/admin/questions/review"
-                className="text-indigo-300 underline hover:text-indigo-200"
+                className="text-gold-bright underline hover:text-gold-bright"
               >
                 /admin/questions/review
               </a>{" "}
@@ -217,14 +219,14 @@ export default function BankImportClient() {
           </div>
           <button
             onClick={handleDownloadTemplate}
-            className="inline-flex shrink-0 items-center gap-1.5 text-xs font-semibold text-indigo-400 hover:text-indigo-300"
+            className="inline-flex shrink-0 items-center gap-1.5 text-xs font-semibold text-gold hover:text-gold-bright"
           >
             CSV template
           </button>
         </div>
 
         {/* ── Mode toggle: file vs paste ───────────────── */}
-        <div className="-mx-1 mb-3 flex border-b border-slate-800">
+        <div className="-mx-1 mb-3 flex border-b border-bronze">
           <ModeTab
             active={mode === "file"}
             onClick={() => setMode("file")}
@@ -257,17 +259,17 @@ export default function BankImportClient() {
               className={cn(
                 "cursor-pointer rounded-lg border-2 border-dashed px-6 py-10 text-center transition-colors",
                 dragActive
-                  ? "border-indigo-400 bg-indigo-500/10"
+                  ? "border-gold/40 bg-gold/10"
                   : filename
-                    ? "border-emerald-500/40 bg-emerald-500/5 hover:bg-emerald-500/10"
-                    : "border-slate-700 bg-slate-950/40 hover:border-slate-500 hover:bg-slate-900/60"
+                    ? "border-success/40 bg-success/5 hover:bg-success/10"
+                    : "border-bronze bg-night/40 hover:border-bronze hover:bg-surface/60"
               )}
             >
               {filename ? (
                 <div className="flex flex-col items-center gap-2 text-sm">
-                  <FileCheck2 className="h-8 w-8 text-emerald-400" />
-                  <div className="font-semibold text-emerald-200">{filename}</div>
-                  <div className="text-xs text-slate-400">
+                  <FileCheck2 className="h-8 w-8 text-success" />
+                  <div className="font-semibold text-success-bright">{filename}</div>
+                  <div className="text-xs text-taupe">
                     Drop a different file or click to replace
                     {previewBreakdown && (
                       <>
@@ -280,17 +282,14 @@ export default function BankImportClient() {
               ) : (
                 <div className="flex flex-col items-center gap-2 text-sm">
                   <Upload
-                    className={cn("h-8 w-8", dragActive ? "text-indigo-300" : "text-slate-400")}
+                    className={cn("h-8 w-8", dragActive ? "text-gold-bright" : "text-taupe")}
                   />
                   <div
-                    className={cn(
-                      "font-semibold",
-                      dragActive ? "text-indigo-200" : "text-slate-300"
-                    )}
+                    className={cn("font-semibold", dragActive ? "text-gold-bright" : "text-ivory")}
                   >
                     {dragActive ? "Drop the CSV to upload" : "Drag & drop a CSV here"}
                   </div>
-                  <div className="text-xs text-slate-400">
+                  <div className="text-xs text-taupe">
                     or click anywhere in this box to choose a file · .csv or .json
                   </div>
                 </div>
@@ -303,12 +302,12 @@ export default function BankImportClient() {
               value={pastedText}
               onChange={(e) => setPastedText(e.target.value)}
               placeholder="Paste the CSV here — header row first, then data rows. Or paste a JSON array of question objects."
-              className="max-h-[24rem] min-h-[12rem] w-full resize-y rounded-lg border border-slate-700 bg-slate-950/60 px-3 py-2 font-mono text-xs text-slate-100 focus:border-indigo-400/60 focus:outline-none"
+              className="max-h-[24rem] min-h-[12rem] w-full resize-y rounded-lg border border-bronze bg-night/60 px-3 py-2 font-mono text-xs text-ivory focus:border-gold/60 focus:outline-none"
             />
             <div className="mt-2 flex items-center gap-3">
               <button
                 onClick={handleParsePasted}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 px-3 py-1.5 text-sm font-semibold text-slate-100 hover:bg-slate-700"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-bronze bg-surface-raised px-3 py-1.5 text-sm font-semibold text-ivory hover:bg-surface-raised"
               >
                 <Clipboard className="h-3.5 w-3.5" /> Parse pasted CSV
               </button>
@@ -319,13 +318,13 @@ export default function BankImportClient() {
                     setPreview(null);
                     setParseError(null);
                   }}
-                  className="text-xs text-slate-400 hover:text-slate-300"
+                  className="text-xs text-taupe hover:text-ivory"
                 >
                   Clear
                 </button>
               )}
               {previewBreakdown && (
-                <span className="text-xs text-slate-400">
+                <span className="text-xs text-taupe">
                   · {previewBreakdown.ok} ok / {previewBreakdown.flagged} flagged
                 </span>
               )}
@@ -334,7 +333,7 @@ export default function BankImportClient() {
         )}
 
         {parseError && (
-          <div className="mt-3 flex items-start gap-2 rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-xs text-rose-300">
+          <div className="mt-3 flex items-start gap-2 rounded-lg border border-error/30 bg-error/10 px-3 py-2 text-xs text-error-bright">
             <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" /> {parseError}
           </div>
         )}
@@ -343,12 +342,12 @@ export default function BankImportClient() {
 
         {preview && (
           <div className="mt-4">
-            <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
+            <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-taupe">
               Preview
             </h4>
-            <div className="max-h-[28rem] overflow-y-auto rounded-lg border border-slate-800 text-xs">
+            <div className="max-h-[28rem] overflow-y-auto rounded-lg border border-bronze text-xs">
               <table className="w-full">
-                <thead className="sticky top-0 bg-slate-800 text-slate-400">
+                <thead className="sticky top-0 bg-surface-raised text-taupe">
                   <tr>
                     <th className="px-3 py-2 text-left font-semibold">Question</th>
                     <th className="px-3 py-2 text-left font-semibold">Domain</th>
@@ -360,14 +359,14 @@ export default function BankImportClient() {
                 </thead>
                 <tbody>
                   {preview.map((r, i) => (
-                    <tr key={i} className="border-t border-slate-800">
-                      <td className="max-w-[20rem] truncate px-3 py-2 text-slate-200">
+                    <tr key={i} className="border-t border-bronze">
+                      <td className="max-w-[20rem] truncate px-3 py-2 text-ivory">
                         {r.question_text}
                       </td>
-                      <td className="px-3 py-2 text-slate-400">{r.domain ?? "—"}</td>
-                      <td className="px-3 py-2 text-slate-400">{r.concept_slug ?? "—"}</td>
-                      <td className="px-3 py-2 text-slate-400">{r.difficulty}</td>
-                      <td className="max-w-[12rem] truncate px-3 py-2 text-slate-400">
+                      <td className="px-3 py-2 text-taupe">{r.domain ?? "—"}</td>
+                      <td className="px-3 py-2 text-taupe">{r.concept_slug ?? "—"}</td>
+                      <td className="px-3 py-2 text-taupe">{r.difficulty}</td>
+                      <td className="max-w-[12rem] truncate px-3 py-2 text-taupe">
                         {r.source_pdf
                           ? `${r.source_pdf}${r.source_page ? `:${r.source_page}` : ""}`
                           : "—"}
@@ -377,8 +376,8 @@ export default function BankImportClient() {
                           className={cn(
                             "inline-block rounded px-1.5 py-0.5 text-[10px] uppercase tracking-wide",
                             r.import_status === "needs_review"
-                              ? "bg-amber-500/15 text-amber-300"
-                              : "bg-emerald-500/15 text-emerald-300"
+                              ? "bg-warning/15 text-warning-bright"
+                              : "bg-success/15 text-success-bright"
                           )}
                         >
                           {r.import_status ?? "ok"}
@@ -395,7 +394,7 @@ export default function BankImportClient() {
                   setPreview(null);
                   setFilename(null);
                 }}
-                className="rounded-lg px-3 py-1.5 text-sm font-semibold text-slate-400 hover:bg-slate-800"
+                className="rounded-lg px-3 py-1.5 text-sm font-semibold text-taupe hover:bg-surface-raised"
               >
                 Cancel
               </button>
@@ -403,8 +402,8 @@ export default function BankImportClient() {
                 onClick={handleConfirm}
                 disabled={importing}
                 className={cn(
-                  "rounded-lg bg-indigo-500 px-4 py-1.5 text-sm font-bold text-white",
-                  importing ? "cursor-not-allowed opacity-50" : "hover:bg-indigo-400"
+                  "rounded-lg bg-gold px-4 py-1.5 text-sm font-bold text-night",
+                  importing ? "cursor-not-allowed opacity-50" : "hover:bg-gold-bright"
                 )}
               >
                 {importing ? "Importing…" : `Import ${preview.length} questions`}
@@ -414,8 +413,8 @@ export default function BankImportClient() {
         )}
       </div>
 
-      <div className="mt-4 flex items-start gap-2 rounded-lg border border-slate-800 bg-slate-900/40 px-4 py-3 text-xs text-slate-400">
-        <FileWarning className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-400" />
+      <div className="mt-4 flex items-start gap-2 rounded-lg border border-bronze bg-surface/40 px-4 py-3 text-xs text-taupe">
+        <FileWarning className="mt-0.5 h-3.5 w-3.5 shrink-0 text-warning" />
         <span>
           Re-uploading the same file is safe — the importer skips rows whose (source_pdf,
           content_hash) pair is already in the database. To force a re-import after editing the
@@ -442,9 +441,7 @@ function ModeTab({
       onClick={onClick}
       className={cn(
         "-mb-px inline-flex items-center gap-1.5 border-b-2 px-3 py-1.5 text-xs font-semibold transition-colors",
-        active
-          ? "border-indigo-400 text-white"
-          : "border-transparent text-slate-400 hover:text-slate-300"
+        active ? "border-gold/40 text-ivory" : "border-transparent text-taupe hover:text-ivory"
       )}
     >
       <Icon className="h-3 w-3" />

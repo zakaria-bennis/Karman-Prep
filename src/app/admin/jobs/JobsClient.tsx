@@ -58,12 +58,12 @@ export default function JobsClient({ initialJobs }: { initialJobs: PdfProcessing
 
   if (initialJobs.length === 0) {
     return (
-      <div className="rounded-xl border border-slate-800 bg-slate-900/40 px-6 py-12 text-center text-sm text-slate-400">
-        <FileText className="mx-auto mb-2 h-6 w-6 text-slate-400" />
+      <div className="rounded-xl border border-bronze bg-surface/40 px-6 py-12 text-center text-sm text-taupe">
+        <FileText className="mx-auto mb-2 h-6 w-6 text-taupe" />
         No PDFs uploaded yet. Upload one from{" "}
         <a
           href="/admin/questions/import"
-          className="text-indigo-300 underline hover:text-indigo-200"
+          className="text-gold-bright underline hover:text-gold-bright"
         >
           /admin/questions/import
         </a>
@@ -78,16 +78,16 @@ export default function JobsClient({ initialJobs }: { initialJobs: PdfProcessing
       <div className="mb-3 flex items-center gap-3 text-xs">
         <button
           onClick={() => startTransition(() => router.refresh())}
-          className="inline-flex items-center gap-1 text-slate-400 hover:text-slate-200"
+          className="inline-flex items-center gap-1 text-taupe hover:text-ivory"
         >
           <RefreshCw className="h-3 w-3" /> Refresh
         </button>
-        <label className="ml-auto inline-flex cursor-pointer items-center gap-1.5 text-slate-400">
+        <label className="ml-auto inline-flex cursor-pointer items-center gap-1.5 text-taupe">
           <input
             type="checkbox"
             checked={autoRefresh}
             onChange={(e) => setAutoRefresh(e.target.checked)}
-            className="accent-indigo-500"
+            className="accent-gold"
           />
           Auto-refresh while jobs are running
         </label>
@@ -115,29 +115,27 @@ function JobRow({ job }: { job: PdfProcessingJob }) {
     stage !== "complete" && stage !== "failed" && stage !== "queued" && stage !== "done";
 
   return (
-    <article className="rounded-lg border border-slate-800 bg-slate-900/60 px-4 py-3">
+    <article className="rounded-lg border border-bronze bg-surface/60 px-4 py-3">
       <div className="flex items-start gap-3">
-        <FileText className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
+        <FileText className="mt-0.5 h-4 w-4 shrink-0 text-taupe" />
         <div className="min-w-0 flex-1">
           {/* ── Title row ───────────────────────────────────── */}
           <div className="flex flex-wrap items-center gap-2">
-            <span className="truncate text-sm font-semibold text-slate-100">{job.source_pdf}</span>
+            <span className="truncate text-sm font-semibold text-ivory">{job.source_pdf}</span>
             <JobStatusBadge status={job.status} />
-            <span className="text-[11px] text-slate-400">
+            <span className="text-[11px] text-taupe">
               {new Date(job.uploaded_at).toLocaleString()}
             </span>
             {job.pdf_size_bytes != null && (
-              <span className="text-[11px] text-slate-400">
+              <span className="text-[11px] text-taupe">
                 {(job.pdf_size_bytes / 1024 / 1024).toFixed(1)} MB
               </span>
             )}
             {job.pdf_page_count != null && (
-              <span className="text-[11px] text-slate-400">{job.pdf_page_count} pages</span>
+              <span className="text-[11px] text-taupe">{job.pdf_page_count} pages</span>
             )}
             {totalImported > 0 && (
-              <span className="text-[11px] text-emerald-400">
-                {totalImported} questions imported
-              </span>
+              <span className="text-[11px] text-success">{totalImported} questions imported</span>
             )}
           </div>
 
@@ -145,15 +143,15 @@ function JobRow({ job }: { job: PdfProcessingJob }) {
           <div className="mt-2.5">
             <div className="mb-1 flex items-center gap-2 text-[11px]">
               <StageIcon stage={stage} />
-              <span className="font-medium text-slate-300">
+              <span className="font-medium text-ivory">
                 {STAGE_LABEL[stage] ?? job.progress?.stage_label ?? stage}
               </span>
               {isActive && job.started_at && <ElapsedTime startedAt={job.started_at} />}
               {job.progress?.message && (
-                <span className="truncate text-slate-400">— {job.progress.message}</span>
+                <span className="truncate text-taupe">— {job.progress.message}</span>
               )}
               {job.progress?.updated_at && (
-                <span className="ml-auto shrink-0 text-slate-400">
+                <span className="ml-auto shrink-0 text-taupe">
                   updated {timeAgo(job.progress.updated_at)}
                 </span>
               )}
@@ -175,7 +173,7 @@ function JobRow({ job }: { job: PdfProcessingJob }) {
           </div>
 
           {job.error_message && (
-            <div className="mt-2 flex items-start gap-1.5 text-xs text-rose-300">
+            <div className="mt-2 flex items-start gap-1.5 text-xs text-error-bright">
               <AlertTriangle className="mt-0.5 h-3 w-3 shrink-0" />
               {job.error_message}
             </div>
@@ -218,37 +216,37 @@ function StageIcon({ stage }: { stage: PdfJobStage }) {
       { icon: React.ComponentType<{ className?: string }>; className: string; spin?: boolean }
     >
   > = {
-    queued: { icon: Clock, className: "text-slate-400" },
+    queued: { icon: Clock, className: "text-taupe" },
     // v1 — old daemon
-    pulled: { icon: Download, className: "text-slate-400" },
-    processing: { icon: Sparkles, className: "text-indigo-400", spin: false },
-    finalizing: { icon: UploadIcon, className: "text-sky-400" },
-    ingesting: { icon: Database, className: "text-violet-400" },
+    pulled: { icon: Download, className: "text-taupe" },
+    processing: { icon: Sparkles, className: "text-gold", spin: false },
+    finalizing: { icon: UploadIcon, className: "text-info" },
+    ingesting: { icon: Database, className: "text-gold" },
     // v2 — Gemini pipeline (full 14-stage orchestrator)
-    extracting: { icon: Sparkles, className: "text-indigo-400" },
-    figures: { icon: Sparkles, className: "text-sky-400" },
-    csv: { icon: UploadIcon, className: "text-sky-400" },
-    importing: { icon: Database, className: "text-violet-400" },
-    answer_key: { icon: Download, className: "text-teal-400" },
-    crops: { icon: FileText, className: "text-sky-400" },
-    visuals: { icon: Sparkles, className: "text-violet-400" },
-    figure_structure: { icon: Sparkles, className: "text-cyan-400" },
-    math_repair: { icon: Sparkles, className: "text-amber-400" },
-    fill_gate: { icon: Clock, className: "text-slate-400" },
-    filling: { icon: Sparkles, className: "text-indigo-400" },
-    qa_filling: { icon: Sparkles, className: "text-indigo-400" },
-    grading: { icon: Sparkles, className: "text-amber-400" },
-    auditing: { icon: AlertTriangle, className: "text-amber-400" },
-    validating: { icon: CheckCircle2, className: "text-sky-400" },
-    publishing: { icon: UploadIcon, className: "text-emerald-400" },
-    done: { icon: CheckCircle2, className: "text-emerald-400" },
+    extracting: { icon: Sparkles, className: "text-gold" },
+    figures: { icon: Sparkles, className: "text-info" },
+    csv: { icon: UploadIcon, className: "text-info" },
+    importing: { icon: Database, className: "text-gold" },
+    answer_key: { icon: Download, className: "text-success" },
+    crops: { icon: FileText, className: "text-info" },
+    visuals: { icon: Sparkles, className: "text-gold" },
+    figure_structure: { icon: Sparkles, className: "text-info" },
+    math_repair: { icon: Sparkles, className: "text-warning" },
+    fill_gate: { icon: Clock, className: "text-taupe" },
+    filling: { icon: Sparkles, className: "text-gold" },
+    qa_filling: { icon: Sparkles, className: "text-gold" },
+    grading: { icon: Sparkles, className: "text-warning" },
+    auditing: { icon: AlertTriangle, className: "text-warning" },
+    validating: { icon: CheckCircle2, className: "text-info" },
+    publishing: { icon: UploadIcon, className: "text-success" },
+    done: { icon: CheckCircle2, className: "text-success" },
     // terminal (shared)
-    complete: { icon: CheckCircle2, className: "text-emerald-400" },
-    failed: { icon: XCircle, className: "text-rose-400" },
+    complete: { icon: CheckCircle2, className: "text-success" },
+    failed: { icon: XCircle, className: "text-error" },
   };
   // Fallback for any stage without a bespoke icon (keeps the page from
   // crashing on an unmapped/new stage — the original bug).
-  const entry = map[stage] ?? { icon: Sparkles, className: "text-slate-400" };
+  const entry = map[stage] ?? { icon: Sparkles, className: "text-taupe" };
   const { icon: Icon, className } = entry;
   // Active (non-terminal, non-queued) stages get a soft pulse.
   const active =
@@ -259,14 +257,14 @@ function StageIcon({ stage }: { stage: PdfJobStage }) {
 function ProgressBar({ percent, stage }: { percent: number; stage: PdfJobStage }) {
   const barColor =
     stage === "failed"
-      ? "bg-rose-500/70"
+      ? "bg-error/70"
       : stage === "complete"
-        ? "bg-emerald-500/70"
+        ? "bg-success/70"
         : stage === "queued"
-          ? "bg-slate-700"
-          : "bg-indigo-500/70";
+          ? "bg-surface-raised"
+          : "bg-gold/70";
   return (
-    <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-800">
+    <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-raised">
       <div
         className={cn("h-full transition-all duration-700 ease-out", barColor)}
         style={{ width: `${percent}%` }}
@@ -283,7 +281,7 @@ function ElapsedTime({ startedAt }: { startedAt: string }) {
     return () => clearInterval(t);
   }, []);
   const elapsedSec = Math.max(0, Math.floor((now - new Date(startedAt).getTime()) / 1000));
-  return <span className="font-mono text-slate-400">({formatDuration(elapsedSec)})</span>;
+  return <span className="font-mono text-taupe">({formatDuration(elapsedSec)})</span>;
 }
 
 function formatDuration(sec: number): string {
@@ -311,15 +309,19 @@ function JobStatusBadge({ status }: { status: PdfJobStatus }) {
     PdfJobStatus,
     { label: string; className: string; icon: React.ComponentType<{ className?: string }> }
   > = {
-    queued: { label: "Queued", className: "bg-slate-800 text-slate-300", icon: Clock },
-    running: { label: "Running", className: "bg-indigo-500/20 text-indigo-200", icon: Loader2 },
-    partial: { label: "Partial", className: "bg-amber-500/20 text-amber-200", icon: AlertTriangle },
+    queued: { label: "Queued", className: "bg-surface-raised text-ivory", icon: Clock },
+    running: { label: "Running", className: "bg-gold/20 text-gold-bright", icon: Loader2 },
+    partial: {
+      label: "Partial",
+      className: "bg-warning/20 text-warning-bright",
+      icon: AlertTriangle,
+    },
     complete: {
       label: "Complete",
-      className: "bg-emerald-500/20 text-emerald-200",
+      className: "bg-success/20 text-success-bright",
       icon: CheckCircle2,
     },
-    failed: { label: "Failed", className: "bg-rose-500/20 text-rose-200", icon: XCircle },
+    failed: { label: "Failed", className: "bg-error/20 text-error-bright", icon: XCircle },
   };
   const { label, className, icon: Icon } = map[status];
   const isAnimated = status === "running";
@@ -345,10 +347,10 @@ function ModulePill({
   imported?: number;
 }) {
   const cls = {
-    pending: "border-slate-700 text-slate-400",
-    in_progress: "border-indigo-500/50 text-indigo-200 bg-indigo-500/10",
-    complete: "border-emerald-500/40 text-emerald-200 bg-emerald-500/10",
-    failed: "border-rose-500/40 text-rose-200 bg-rose-500/10",
+    pending: "border-bronze text-taupe",
+    in_progress: "border-gold/50 text-gold-bright bg-gold/10",
+    complete: "border-success/40 text-success-bright bg-success/10",
+    failed: "border-error/40 text-error-bright bg-error/10",
   }[status];
   return (
     <span
@@ -359,7 +361,7 @@ function ModulePill({
     >
       {label}
       {imported != null && status === "complete" && (
-        <span className="text-emerald-400/80">· {imported}</span>
+        <span className="text-success/80">· {imported}</span>
       )}
     </span>
   );

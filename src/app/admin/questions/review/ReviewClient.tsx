@@ -233,7 +233,7 @@ export default function ReviewClient({
   return (
     <>
       {/* ── Tab toggle ─────────────────────────────────────── */}
-      <div className="mb-5 flex border-b border-slate-800">
+      <div className="mb-5 flex border-b border-bronze">
         <TabButton
           active={activeTab === "flagged"}
           onClick={() => setTab("flagged")}
@@ -284,7 +284,7 @@ export default function ReviewClient({
           {(activeFilters.flag_type || activeFilters.domain || activeFilters.source_pdf) && (
             <button
               onClick={() => router.push("/admin/questions/review")}
-              className="ml-auto text-slate-400 hover:text-slate-300"
+              className="ml-auto text-taupe hover:text-ivory"
             >
               Clear filters
             </button>
@@ -294,7 +294,7 @@ export default function ReviewClient({
 
       {/* ── Bulk-accept result banner (Bank tab only, after a run) ─ */}
       {bulkResult && activeTab === "bank" && (
-        <div className="mb-3 flex items-start gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/[0.06] px-3 py-2 text-xs text-emerald-200">
+        <div className="mb-3 flex items-start gap-2 rounded-lg border border-success/30 bg-success/[0.06] px-3 py-2 text-xs text-success-bright">
           <CheckCheck className="mt-0.5 h-3.5 w-3.5 shrink-0" />
           <div className="flex-1">
             Auto-accepted <span className="font-semibold">{bulkResult.accepted}</span> question
@@ -302,20 +302,21 @@ export default function ReviewClient({
             {bulkResult.skipped > 0 && (
               <>
                 {" "}
-                <span className="text-amber-300">{bulkResult.skipped} skipped</span> (no slug match
-                — assign manually).
+                <span className="text-warning-bright">{bulkResult.skipped} skipped</span> (no slug
+                match — assign manually).
               </>
             )}
             {bulkResult.errored > 0 && (
               <>
                 {" "}
-                <span className="text-rose-300">{bulkResult.errored} errored</span> (see console).
+                <span className="text-error-bright">{bulkResult.errored} errored</span> (see
+                console).
               </>
             )}
           </div>
           <button
             onClick={() => setBulkResult(null)}
-            className="text-emerald-300/70 hover:text-emerald-100"
+            className="text-success-bright/70 hover:text-success-bright"
           >
             <X className="h-3 w-3" />
           </button>
@@ -341,7 +342,7 @@ export default function ReviewClient({
                   disabled={bulkAccepting || bank.length === 0}
                   className={cn(
                     "inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold disabled:opacity-50",
-                    "bg-emerald-500 text-white hover:bg-emerald-400 disabled:hover:bg-emerald-500"
+                    "bg-success text-night hover:bg-success-bright disabled:hover:bg-success-bright"
                   )}
                 >
                   <CheckCheck className="h-3 w-3" />
@@ -351,26 +352,26 @@ export default function ReviewClient({
               {/* Flagged tab — bulk-reject controls (audit issue #15) */}
               {showBulkSelect && (
                 <>
-                  <label className="inline-flex cursor-pointer items-center gap-1.5 text-slate-400 hover:text-slate-200">
+                  <label className="inline-flex cursor-pointer items-center gap-1.5 text-taupe hover:text-ivory">
                     <input
                       type="checkbox"
                       checked={allVisibleSelected}
                       onChange={toggleSelectAllVisible}
-                      className="h-3.5 w-3.5 cursor-pointer accent-rose-500"
+                      className="h-3.5 w-3.5 cursor-pointer accent-error"
                     />
                     Select all{" "}
                     {visibleQuestions.length > 0 && <span>({visibleQuestions.length})</span>}
                   </label>
                   {selectedCount > 0 && (
                     <>
-                      <span className="text-slate-400">·</span>
-                      <span className="text-slate-300">{selectedCount} selected</span>
+                      <span className="text-taupe">·</span>
+                      <span className="text-ivory">{selectedCount} selected</span>
                       <button
                         onClick={handleBulkReject}
                         disabled={bulkRejecting}
                         className={cn(
                           "inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold disabled:opacity-50",
-                          "bg-rose-600 text-white hover:bg-rose-500 disabled:hover:bg-rose-600"
+                          "bg-error text-ivory hover:bg-error-bright disabled:hover:bg-error-bright"
                         )}
                       >
                         <Trash2 className="h-3 w-3" />
@@ -381,7 +382,7 @@ export default function ReviewClient({
                       <button
                         onClick={() => setSelectedIds(new Set())}
                         disabled={bulkRejecting}
-                        className="text-slate-400 hover:text-slate-300 disabled:opacity-50"
+                        className="text-taupe hover:text-ivory disabled:opacity-50"
                       >
                         Clear
                       </button>
@@ -392,7 +393,7 @@ export default function ReviewClient({
             </div>
             <button
               onClick={toggleAllExpanded}
-              className="inline-flex items-center gap-1 text-slate-400 hover:text-slate-200"
+              className="inline-flex items-center gap-1 text-taupe hover:text-ivory"
             >
               {allExpanded ? (
                 <>
@@ -448,21 +449,17 @@ function TabButton({
   count: number;
   tone: "amber" | "indigo";
 }) {
-  const accent = tone === "amber" ? "text-amber-300" : "text-indigo-300";
+  const accent = tone === "amber" ? "text-warning-bright" : "text-gold-bright";
   return (
     <button
       onClick={onClick}
       className={cn(
         "-mb-px border-b-2 px-4 py-2 text-sm font-semibold transition-colors",
-        active
-          ? "border-white text-white"
-          : "border-transparent text-slate-400 hover:text-slate-300"
+        active ? "border-ivory text-ivory" : "border-transparent text-taupe hover:text-ivory"
       )}
     >
       {label}
-      <span className={cn("ml-2 font-mono text-xs", active ? accent : "text-slate-400")}>
-        {count}
-      </span>
+      <span className={cn("ml-2 font-mono text-xs", active ? accent : "text-taupe")}>{count}</span>
     </button>
   );
 }
@@ -478,7 +475,7 @@ function EmptyState({ tab, hasFilters }: { tab: Tab; hasFilters: boolean }) {
       "No questions in the bank. Imported PDF-routine questions land here with no curriculum node assigned — accept one with a node picked to send it live.";
   }
   return (
-    <div className="rounded-xl border border-slate-800 bg-slate-900/40 px-6 py-12 text-center text-sm text-slate-400">
+    <div className="rounded-xl border border-bronze bg-surface/40 px-6 py-12 text-center text-sm text-taupe">
       {copy}
     </div>
   );
@@ -496,12 +493,12 @@ function FilterSelect({
   onChange: (v: string) => void;
 }) {
   return (
-    <label className="inline-flex items-center gap-1.5 text-slate-400">
+    <label className="inline-flex items-center gap-1.5 text-taupe">
       <span>{label}:</span>
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="rounded border border-slate-700 bg-slate-900 px-2 py-1 text-xs text-slate-200"
+        className="rounded border border-bronze bg-surface px-2 py-1 text-xs text-ivory"
       >
         {options.map((o) => (
           <option key={o.value} value={o.value}>

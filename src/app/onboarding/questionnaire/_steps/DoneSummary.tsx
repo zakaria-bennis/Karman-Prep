@@ -11,9 +11,9 @@ export function DoneSummary({
     const name = placement.cohortName as string | undefined;
     const created = placement.cohortCreated as boolean | undefined;
     return (
-      <p className="text-sm text-slate-300">
+      <p className="text-sm text-ivory">
         You&apos;ve been placed in{" "}
-        <span className="font-semibold text-white">{name ?? "your cohort"}</span>.
+        <span className="font-semibold text-ivory">{name ?? "your cohort"}</span>.
         {created ? " (Brand-new cohort created for your SAT date.)" : ""}
       </p>
     );
@@ -21,7 +21,7 @@ export function DoneSummary({
   if (tier === "private" || tier === "elite") {
     const matched = placement.matchedAvailability as boolean | undefined;
     return (
-      <p className="text-sm text-slate-300">
+      <p className="text-sm text-ivory">
         You&apos;ve been paired with a tutor.{" "}
         {matched
           ? "Their availability matches yours."
@@ -29,5 +29,5 @@ export function DoneSummary({
       </p>
     );
   }
-  return <p className="text-sm text-slate-300">You&apos;re all set.</p>;
+  return <p className="text-sm text-ivory">You&apos;re all set.</p>;
 }

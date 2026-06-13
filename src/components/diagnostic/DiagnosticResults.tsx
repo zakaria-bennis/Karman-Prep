@@ -52,9 +52,9 @@ function getScoreLabel(total: number): string {
 }
 
 function domainHeatColor(score: number): string {
-  if (score >= 70) return "#22C55E";
-  if (score >= 50) return "#F59E0B";
-  return "#EF4444";
+  if (score >= 70) return "#8BA86A";
+  if (score >= 50) return "#E0A24A";
+  return "#D84F73";
 }
 
 const MATH_DOMAINS: SATDomain[] = ["algebra", "advanced_math", "geometry", "data_analysis"];
@@ -88,30 +88,30 @@ export default function DiagnosticResults({
   const ctaLabel = isSubscribed ? "Go to my learning path" : "Begin your journey";
 
   return (
-    <div className="min-h-screen bg-slate-50 px-4 py-10 dark:bg-slate-950">
+    <div className="min-h-screen bg-surface px-4 py-10 dark:bg-night">
       <div className="mx-auto max-w-2xl space-y-6">
         {/* Header */}
         <div className="text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-purple-600">
-            <TrendingUp className="h-8 w-8 text-white" />
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-info to-gold">
+            <TrendingUp className="h-8 w-8 text-ivory" />
           </div>
-          <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white">
+          <h1 className="text-3xl font-extrabold text-ivory dark:text-ivory">
             Your Diagnostic Results
           </h1>
-          <p className="mt-2 text-slate-500 dark:text-slate-400">
+          <p className="mt-2 text-taupe dark:text-taupe">
             {correctCount}/{totalQuestions} correct · {accuracy}% accuracy
           </p>
         </div>
 
         {/* Predicted score card — total + section subscores */}
         <div className="glass-card p-6">
-          <p className="mb-2 text-center text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+          <p className="mb-2 text-center text-sm font-semibold uppercase tracking-wide text-taupe dark:text-taupe">
             Predicted SAT Score Range
           </p>
-          <div className="mb-1 text-center text-5xl font-extrabold text-slate-900 dark:text-white">
+          <div className="mb-1 text-center text-5xl font-extrabold text-ivory dark:text-ivory">
             {scoring.totalLow}–{scoring.totalHigh}
           </div>
-          <p className="text-center text-sm text-slate-500 dark:text-slate-400">{scoreLabel}</p>
+          <p className="text-center text-sm text-taupe dark:text-taupe">{scoreLabel}</p>
 
           {/* Score-range bar (400-1600).
               The range itself is the marker — a glowing white
@@ -130,31 +130,31 @@ export default function DiagnosticResults({
                 {/* Endpoint labels — small Karman-blue numerals
                     sitting just above each end of the range. */}
                 <div
-                  className="pointer-events-none absolute -top-5 text-[10px] font-bold tabular-nums text-blue-300"
+                  className="pointer-events-none absolute -top-5 text-[10px] font-bold tabular-nums text-info-bright"
                   style={{ left: `${lowPct}%`, transform: "translateX(-50%)" }}
                 >
                   {scoring.totalLow}
                 </div>
                 <div
-                  className="pointer-events-none absolute -top-5 text-[10px] font-bold tabular-nums text-blue-300"
+                  className="pointer-events-none absolute -top-5 text-[10px] font-bold tabular-nums text-info-bright"
                   style={{ left: `${highPct}%`, transform: "translateX(-50%)" }}
                 >
                   {scoring.totalHigh}
                 </div>
 
                 {/* Gradient bar — red → amber → green heat map. */}
-                <div className="relative h-2.5 rounded-full bg-gradient-to-r from-rose-400 via-amber-400 to-emerald-500 shadow-[inset_0_1px_2px_rgba(0,0,0,0.25)]">
+                <div className="relative h-2.5 rounded-full bg-gradient-to-r from-error via-warning to-success shadow-[inset_0_1px_2px_rgba(0,0,0,0.25)]">
                   {/* Range capsule — sits ON the bar, slightly
                       taller so it reads as raised, with a soft
                       Karman glow. Width literally is the range. */}
                   <div
-                    className="absolute top-1/2 h-4 -translate-y-1/2 rounded-full border border-blue-300/60 bg-white shadow-[0_0_14px_rgba(59,130,246,0.55)]"
+                    className="absolute top-1/2 h-4 -translate-y-1/2 rounded-full border border-info/60 bg-surface shadow-[0_0_14px_rgba(59,130,246,0.55)]"
                     style={{ left: `${lowPct}%`, width: `${widthPct}%` }}
                     aria-hidden
                   />
                 </div>
 
-                <div className="mt-2 flex justify-between text-xs tabular-nums text-slate-400">
+                <div className="mt-2 flex justify-between text-xs tabular-nums text-taupe">
                   <span>400</span>
                   <span>800</span>
                   <span>1200</span>
@@ -165,20 +165,20 @@ export default function DiagnosticResults({
           })()}
 
           {/* Section subscores */}
-          <div className="mt-5 grid grid-cols-2 gap-3 border-t border-slate-200 pt-5 dark:border-slate-800">
+          <div className="mt-5 grid grid-cols-2 gap-3 border-t border-bronze pt-5 dark:border-bronze">
             <div className="text-center">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-taupe dark:text-taupe">
                 Math
               </p>
-              <p className="mt-0.5 text-2xl font-extrabold text-slate-900 dark:text-white">
+              <p className="mt-0.5 text-2xl font-extrabold text-ivory dark:text-ivory">
                 {scoring.math.low}–{scoring.math.high}
               </p>
             </div>
             <div className="text-center">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-taupe dark:text-taupe">
                 Reading & Writing
               </p>
-              <p className="mt-0.5 text-2xl font-extrabold text-slate-900 dark:text-white">
+              <p className="mt-0.5 text-2xl font-extrabold text-ivory dark:text-ivory">
                 {scoring.rw.low}–{scoring.rw.high}
               </p>
             </div>
@@ -201,38 +201,36 @@ export default function DiagnosticResults({
 
         {/* Insights — focus area + strongest */}
         <div className="grid gap-4 sm:grid-cols-2">
-          <div className="glass-card border-l-4 border-amber-400 p-5">
+          <div className="glass-card border-l-4 border-warning/40 p-5">
             <div className="mb-2 flex items-center gap-2">
-              <AlertCircle className="h-4 w-4 text-amber-400" />
-              <span className="text-sm font-bold text-slate-900 dark:text-white">Focus Area</span>
+              <AlertCircle className="h-4 w-4 text-warning" />
+              <span className="text-sm font-bold text-ivory dark:text-ivory">Focus Area</span>
             </div>
-            <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+            <p className="text-sm font-semibold text-ivory dark:text-ivory">
               {scoring.focusArea.label}
             </p>
-            <p className="mt-1 text-xs leading-relaxed text-slate-600 dark:text-slate-400">
+            <p className="mt-1 text-xs leading-relaxed text-taupe dark:text-taupe">
               {scoring.focusArea.detail}
             </p>
           </div>
 
-          <div className="glass-card border-l-4 border-emerald-400 p-5">
+          <div className="glass-card border-l-4 border-success/40 p-5">
             <div className="mb-2 flex items-center gap-2">
               {scoring.strongest ? (
-                <CheckCircle className="h-4 w-4 text-emerald-400" />
+                <CheckCircle className="h-4 w-4 text-success" />
               ) : (
-                <Sparkles className="h-4 w-4 text-slate-400" />
+                <Sparkles className="h-4 w-4 text-taupe" />
               )}
-              <span className="text-sm font-bold text-slate-900 dark:text-white">
-                Strongest Domain
-              </span>
+              <span className="text-sm font-bold text-ivory dark:text-ivory">Strongest Domain</span>
             </div>
             {scoring.strongest ? (
               <>
-                <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                <p className="text-sm font-semibold text-ivory dark:text-ivory">
                   <span style={{ color: DOMAIN_COLORS[scoring.strongest.domain].hex }}>
                     {DOMAIN_LABELS[scoring.strongest.domain]}
                   </span>
                 </p>
-                <p className="mt-1 text-xs leading-relaxed text-slate-600 dark:text-slate-400">
+                <p className="mt-1 text-xs leading-relaxed text-taupe dark:text-taupe">
                   {scoring.strongest.score}% difficulty-weighted accuracy
                   {" · "}
                   {scoring.strongest.correctCount} correct in this domain. Keep the momentum.
@@ -240,10 +238,10 @@ export default function DiagnosticResults({
               </>
             ) : (
               <>
-                <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                <p className="text-sm font-semibold text-ivory dark:text-ivory">
                   No clear strength yet
                 </p>
-                <p className="mt-1 text-xs leading-relaxed text-slate-600 dark:text-slate-400">
+                <p className="mt-1 text-xs leading-relaxed text-taupe dark:text-taupe">
                   You haven&apos;t scored consistently high in any single domain. As you work
                   through your learning path, your strongest domain will start to surface here.
                 </p>
@@ -255,14 +253,12 @@ export default function DiagnosticResults({
         {/* Bookmarked questions — only when the student saved any. */}
         {bookmarkedQuestions.length > 0 && (
           <div className="glass-card p-6">
-            <h2 className="mb-2 flex items-center gap-2 font-bold text-slate-900 dark:text-white">
-              <BookmarkCheck className="h-4 w-4 text-amber-400" />
+            <h2 className="mb-2 flex items-center gap-2 font-bold text-ivory dark:text-ivory">
+              <BookmarkCheck className="h-4 w-4 text-warning" />
               Bookmarked for review
-              <span className="text-xs font-normal text-slate-400">
-                ({bookmarkedQuestions.length})
-              </span>
+              <span className="text-xs font-normal text-taupe">({bookmarkedQuestions.length})</span>
             </h2>
-            <p className="mb-4 text-xs text-slate-500 dark:text-slate-400">
+            <p className="mb-4 text-xs text-taupe dark:text-taupe">
               You flagged these during the diagnostic. They&apos;ll come up first when you start
               your learning path.
             </p>
@@ -273,11 +269,11 @@ export default function DiagnosticResults({
                 return (
                   <li
                     key={q.id}
-                    className="rounded-xl border border-slate-200 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-900/40"
+                    className="rounded-xl border border-bronze bg-surface px-4 py-3 dark:border-bronze dark:bg-surface/40"
                   >
                     <div className="mb-1 flex items-center justify-between gap-3">
                       <div className="flex min-w-0 items-center gap-2">
-                        <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-taupe dark:text-taupe">
                           Q{q.index + 1}
                         </span>
                         {q.domain && (
@@ -295,8 +291,8 @@ export default function DiagnosticResults({
                       <span
                         className={
                           correct
-                            ? "text-[11px] font-bold text-emerald-600 dark:text-emerald-400"
-                            : "text-[11px] font-bold text-rose-600 dark:text-rose-400"
+                            ? "text-[11px] font-bold text-success dark:text-success"
+                            : "text-[11px] font-bold text-error dark:text-error"
                         }
                       >
                         {userAnswer
@@ -307,9 +303,7 @@ export default function DiagnosticResults({
                       </span>
                     </div>
                     {q.text && (
-                      <p className="line-clamp-2 text-xs text-slate-600 dark:text-slate-300">
-                        {q.text}
-                      </p>
+                      <p className="line-clamp-2 text-xs text-taupe dark:text-ivory">{q.text}</p>
                     )}
                   </li>
                 );
@@ -319,7 +313,7 @@ export default function DiagnosticResults({
         )}
 
         {/* Score guarantee */}
-        <div className="rounded-2xl border border-blue-200 bg-blue-50 p-5 text-sm text-blue-700 dark:border-blue-700 dark:bg-blue-900/20 dark:text-blue-300">
+        <div className="rounded-2xl border border-info/40 bg-info/10 p-5 text-sm text-info dark:border-info/40 dark:bg-info/20 dark:text-info-bright">
           <p className="mb-1 font-bold">Score Improvement Guarantee</p>
           <p>
             Follow your personalized learning path for 8 weeks. If you don&apos;t improve by at
@@ -353,19 +347,19 @@ function DomainSectionCard({
 
   return (
     <div className="glass-card p-6">
-      <h2 className="mb-4 font-bold text-slate-900 dark:text-white">{title}</h2>
+      <h2 className="mb-4 font-bold text-ivory dark:text-ivory">{title}</h2>
       <div className="space-y-3">
         {entries.map(([domain, score]) => (
           <div key={domain}>
             <div className="mb-1 flex items-center justify-between">
-              <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
+              <span className="text-sm font-medium text-ivory dark:text-ivory">
                 {DOMAIN_LABELS[domain]}
               </span>
               <span className="text-sm font-bold" style={{ color: domainHeatColor(score) }}>
                 {score}%
               </span>
             </div>
-            <div className="h-2.5 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+            <div className="h-2.5 overflow-hidden rounded-full bg-surface dark:bg-surface-raised">
               <div
                 className="h-full rounded-full transition-all duration-700"
                 style={{ width: `${score}%`, backgroundColor: domainHeatColor(score) }}

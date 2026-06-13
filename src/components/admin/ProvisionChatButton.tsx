@@ -62,7 +62,7 @@ export function ProvisionChatButton({ cohortId, alreadyProvisioned }: Props) {
 
   if (state === "ok") {
     return (
-      <span className="inline-flex items-center gap-1.5 rounded-md border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700 dark:border-emerald-400/30 dark:bg-emerald-400/10 dark:text-emerald-300">
+      <span className="inline-flex items-center gap-1.5 rounded-md border border-success/40 bg-success/10 px-2 py-0.5 text-xs font-semibold text-success dark:border-success/30 dark:bg-success/10 dark:text-success-bright">
         <CheckCircle2 className="h-3.5 w-3.5" />
         Slack channels provisioned
         {createdCount !== null && createdCount > 0 ? ` (created ${createdCount} now)` : ""}
@@ -76,7 +76,7 @@ export function ProvisionChatButton({ cohortId, alreadyProvisioned }: Props) {
         type="button"
         onClick={provision}
         disabled={state === "running"}
-        className="inline-flex items-center gap-1.5 rounded-md bg-blue-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-400 disabled:opacity-50"
+        className="inline-flex items-center gap-1.5 rounded-md bg-info px-3 py-1.5 text-xs font-semibold text-ivory hover:bg-info-bright disabled:opacity-50"
       >
         {state === "running" ? (
           <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -86,7 +86,7 @@ export function ProvisionChatButton({ cohortId, alreadyProvisioned }: Props) {
         {state === "running" ? "Provisioning…" : "Provision Slack channels"}
       </button>
       {state === "error" && errMsg && (
-        <span className="inline-flex items-center gap-1 text-xs text-rose-600 dark:text-rose-300">
+        <span className="inline-flex items-center gap-1 text-xs text-error dark:text-error-bright">
           <AlertTriangle className="h-3.5 w-3.5" />
           {errMsg}
         </span>

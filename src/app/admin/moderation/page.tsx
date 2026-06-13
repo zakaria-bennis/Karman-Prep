@@ -187,20 +187,20 @@ export default async function ModerationQueuePage({ searchParams }: PageProps) {
       <div className="mb-6">
         <Link
           href="/admin/curriculum"
-          className="mb-3 inline-flex items-center gap-1 text-xs text-slate-400 hover:text-slate-300"
+          className="mb-3 inline-flex items-center gap-1 text-xs text-taupe hover:text-ivory"
         >
           <ChevronRight className="h-3 w-3 rotate-180" /> Back to admin
         </Link>
-        <h1 className="flex items-center gap-2 text-2xl font-bold text-white">
-          <ShieldAlert className="h-5 w-5 text-rose-400" /> Moderation queue
+        <h1 className="flex items-center gap-2 text-2xl font-bold text-ivory">
+          <ShieldAlert className="h-5 w-5 text-error" /> Moderation queue
         </h1>
-        <p className="mt-1.5 text-sm text-slate-400">
+        <p className="mt-1.5 text-sm text-taupe">
           Flagged chat messages and DMs are held back until you approve or reject them. Senders see
           their own message marked &ldquo;pending review&rdquo;; recipients see a placeholder.
         </p>
       </div>
 
-      <div className="mb-5 flex gap-2 border-b border-slate-800">
+      <div className="mb-5 flex gap-2 border-b border-bronze">
         <TabLink href="?tab=pending" active={tab === "pending"} count={pendingCount}>
           Pending review
         </TabLink>
@@ -230,14 +230,12 @@ function TabLink({
       href={href}
       className={
         "relative -mb-px border-b-2 px-3 py-2.5 text-sm transition-colors " +
-        (active
-          ? "border-rose-400 text-white"
-          : "border-transparent text-slate-400 hover:text-slate-200")
+        (active ? "border-error/40 text-ivory" : "border-transparent text-taupe hover:text-ivory")
       }
     >
       {children}
       {typeof count === "number" && count > 0 ? (
-        <span className="ml-2 rounded-full bg-rose-500/15 px-1.5 py-0.5 text-[11px] font-semibold text-rose-300">
+        <span className="ml-2 rounded-full bg-error/15 px-1.5 py-0.5 text-[11px] font-semibold text-error-bright">
           {count}
         </span>
       ) : null}

@@ -180,13 +180,13 @@ export default function PdfPipelineUploadClient() {
   }
 
   return (
-    <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
+    <div className="rounded-xl border border-bronze bg-surface/60 p-5">
       <div className="mb-3 flex items-start justify-between gap-4">
         <div>
-          <h2 className="flex items-center gap-2 text-sm font-bold text-white">
-            <Sparkles className="h-4 w-4 text-indigo-400" /> Process a PDF end-to-end
+          <h2 className="flex items-center gap-2 text-sm font-bold text-ivory">
+            <Sparkles className="h-4 w-4 text-gold" /> Process a PDF end-to-end
           </h2>
-          <p className="mt-1 max-w-2xl text-xs text-slate-400">
+          <p className="mt-1 max-w-2xl text-xs text-taupe">
             Drop a single SAT PDF. The whole pipeline runs on GitHub Actions: extract questions,
             crop figures, write to the bank, fill explanations, audit answer keys. Live progress on
             the job detail page; nothing for you to babysit.
@@ -194,7 +194,7 @@ export default function PdfPipelineUploadClient() {
         </div>
         <Link
           href="/admin/pdf-pipeline/jobs"
-          className="inline-flex shrink-0 items-center gap-1.5 text-xs font-semibold text-indigo-400 hover:text-indigo-300"
+          className="inline-flex shrink-0 items-center gap-1.5 text-xs font-semibold text-gold hover:text-gold-bright"
         >
           <ListChecks className="h-3.5 w-3.5" /> All jobs
           <ChevronRight className="h-3 w-3" />
@@ -208,16 +208,14 @@ export default function PdfPipelineUploadClient() {
         onClick={() => fileInputRef.current?.click()}
         className={cn(
           "flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed py-7 transition-colors",
-          dragActive
-            ? "border-indigo-400 bg-indigo-500/5"
-            : "border-slate-700 bg-slate-950/50 hover:border-slate-600"
+          dragActive ? "border-gold/40 bg-gold/5" : "border-bronze bg-night/50 hover:border-bronze"
         )}
       >
-        <Cloud className="mb-2 h-7 w-7 text-slate-500" />
-        <div className="text-sm font-semibold text-slate-200">
+        <Cloud className="mb-2 h-7 w-7 text-taupe" />
+        <div className="text-sm font-semibold text-ivory">
           {file ? file.name : "Drop a PDF here or click to choose"}
         </div>
-        <div className="mt-1 text-xs text-slate-500">
+        <div className="mt-1 text-xs text-taupe">
           {file
             ? `${(file.size / 1024 / 1024).toFixed(1)} MB`
             : `Up to ${(MAX_FILE_BYTES / 1024 / 1024).toFixed(0)} MB. One PDF per upload.`}
@@ -234,7 +232,7 @@ export default function PdfPipelineUploadClient() {
       </div>
 
       {error && (
-        <div className="mt-3 flex items-start gap-2 rounded-md border border-rose-900/60 bg-rose-950/30 p-3 text-xs text-rose-200">
+        <div className="mt-3 flex items-start gap-2 rounded-md border border-error/60 bg-error/30 p-3 text-xs text-error-bright">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
           <div>{error}</div>
         </div>
@@ -243,13 +241,13 @@ export default function PdfPipelineUploadClient() {
       {/* Upload progress bar — visible only during the R2 PUT phase. */}
       {phase === "uploading" && (
         <div className="mt-3">
-          <div className="flex items-center justify-between text-xs text-slate-400">
+          <div className="flex items-center justify-between text-xs text-taupe">
             <span>Uploading to R2 (direct, no Worker proxy)…</span>
             <span className="font-mono">{uploadPercent}%</span>
           </div>
-          <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-slate-800">
+          <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-surface-raised">
             <div
-              className="h-full bg-indigo-500 transition-[width] duration-150"
+              className="h-full bg-gold transition-[width] duration-150"
               style={{ width: `${uploadPercent}%` }}
             />
           </div>
@@ -264,7 +262,7 @@ export default function PdfPipelineUploadClient() {
               setFile(null);
               setError(null);
             }}
-            className="rounded-md border border-slate-700 px-3 py-1.5 text-xs font-semibold text-slate-300 hover:bg-slate-800"
+            className="rounded-md border border-bronze px-3 py-1.5 text-xs font-semibold text-ivory hover:bg-surface-raised"
           >
             Clear
           </button>
@@ -273,7 +271,7 @@ export default function PdfPipelineUploadClient() {
           type="button"
           disabled={!file || uploading}
           onClick={handleUpload}
-          className="inline-flex items-center gap-1.5 rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-500 disabled:cursor-not-allowed disabled:bg-slate-800 disabled:text-slate-500"
+          className="inline-flex items-center gap-1.5 rounded-md bg-gold px-3 py-1.5 text-xs font-semibold text-night hover:bg-gold-bright disabled:cursor-not-allowed disabled:bg-surface-raised disabled:text-taupe"
         >
           {phase === "initializing" && (
             <>

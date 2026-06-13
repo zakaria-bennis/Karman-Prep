@@ -25,11 +25,11 @@ export function fmtMonth(yyyymm: string): string {
 }
 
 export const ACCENT_RING: Record<string, string> = {
-  emerald: "border-emerald-400/40 text-emerald-300 bg-emerald-400/10",
-  blue: "border-blue-400/40 text-blue-300 bg-blue-400/10",
-  violet: "border-violet-400/40 text-violet-300 bg-violet-400/10",
-  amber: "border-amber-400/40 text-amber-300 bg-amber-400/10",
-  rose: "border-rose-400/40 text-rose-300 bg-rose-400/10",
-  slate: "border-slate-600/40 text-slate-300 bg-slate-600/10",
-  teal: "border-teal-400/40 text-teal-300 bg-teal-400/10",
+  emerald: "border-success/40 text-success-bright bg-success/10",
+  blue: "border-info/40 text-info-bright bg-info/10",
+  violet: "border-gold/40 text-gold-bright bg-gold/10",
+  amber: "border-warning/40 text-warning-bright bg-warning/10",
+  rose: "border-error/40 text-error-bright bg-error/10",
+  slate: "border-bronze/40 text-ivory bg-surface-raised/10",
+  teal: "border-success/40 text-success-bright bg-success/10",
 };

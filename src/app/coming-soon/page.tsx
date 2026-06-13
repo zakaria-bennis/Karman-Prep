@@ -26,24 +26,24 @@ export const metadata: Metadata = {
 
 export default function ComingSoonPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-950 px-6 text-slate-100">
+    <div className="flex min-h-screen items-center justify-center bg-night px-6 text-ivory">
       <main className="w-full max-w-md text-center">
         <div className="mb-8 inline-flex items-center justify-center">
           <KarmanLogo size={56} variant="stacked" />
         </div>
 
-        <h1 className="mb-3 text-3xl font-bold tracking-tight text-white">
-          Coming <span className="font-light italic text-slate-400">soon</span>
+        <h1 className="mb-3 text-3xl font-bold tracking-tight text-ivory">
+          Coming <span className="font-light italic text-taupe">soon</span>
         </h1>
 
-        <p className="mb-8 text-sm leading-relaxed text-slate-400">
+        <p className="mb-8 text-sm leading-relaxed text-taupe">
           We&apos;re finalizing something we&apos;ve been working on for a long time. Drop your
           email and we&apos;ll let you know the moment it&apos;s ready.
         </p>
 
         <ComingSoonForm />
 
-        <p className="mt-10 text-[11px] text-slate-400">© {new Date().getFullYear()} Karman</p>
+        <p className="mt-10 text-[11px] text-taupe">© {new Date().getFullYear()} Karman</p>
       </main>
     </div>
   );

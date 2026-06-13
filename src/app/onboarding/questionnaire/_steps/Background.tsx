@@ -34,8 +34,8 @@ export function BackgroundStep(props: {
               className={cn(
                 "rounded-lg border px-3 py-2 text-xs font-semibold capitalize transition-colors",
                 props.hsYear === y
-                  ? "border-blue-500 bg-blue-500 text-white"
-                  : "border-white/10 bg-white/[0.03] text-slate-200 hover:border-white/30"
+                  ? "border-info/40 bg-info text-ivory"
+                  : "border-ivory/10 bg-surface/[0.03] text-ivory hover:border-ivory/30"
               )}
             >
               {y}
@@ -53,7 +53,7 @@ export function BackgroundStep(props: {
         <>
           <div>
             <Label>Most recent Math score</Label>
-            <div className="mb-1 text-center text-2xl font-extrabold text-white">
+            <div className="mb-1 text-center text-2xl font-extrabold text-ivory">
               {props.recentSatMath}
             </div>
             <input
@@ -63,16 +63,16 @@ export function BackgroundStep(props: {
               step={5}
               value={props.recentSatMath}
               onChange={(e) => props.setRecentSatMath(Number(e.target.value))}
-              className="w-full accent-blue-400"
+              className="w-full accent-info"
             />
-            <div className="mt-1 flex justify-between text-[11px] text-slate-400">
+            <div className="mt-1 flex justify-between text-[11px] text-taupe">
               <span>200</span>
               <span>800</span>
             </div>
           </div>
           <div>
             <Label>Most recent Reading & Writing score</Label>
-            <div className="mb-1 text-center text-2xl font-extrabold text-white">
+            <div className="mb-1 text-center text-2xl font-extrabold text-ivory">
               {props.recentSatReading}
             </div>
             <input
@@ -82,9 +82,9 @@ export function BackgroundStep(props: {
               step={5}
               value={props.recentSatReading}
               onChange={(e) => props.setRecentSatReading(Number(e.target.value))}
-              className="w-full accent-blue-400"
+              className="w-full accent-info"
             />
-            <div className="mt-1 flex justify-between text-[11px] text-slate-400">
+            <div className="mt-1 flex justify-between text-[11px] text-taupe">
               <span>200</span>
               <span>800</span>
             </div>
@@ -106,7 +106,7 @@ export function BackgroundStep(props: {
       {props.psatTaken === "yes" && (
         <div>
           <Label>PSAT total score</Label>
-          <div className="mb-1 text-center text-2xl font-extrabold text-white">
+          <div className="mb-1 text-center text-2xl font-extrabold text-ivory">
             {props.psatScore}
           </div>
           <input
@@ -116,9 +116,9 @@ export function BackgroundStep(props: {
             step={10}
             value={props.psatScore}
             onChange={(e) => props.setPsatScore(Number(e.target.value))}
-            className="w-full accent-blue-400"
+            className="w-full accent-info"
           />
-          <div className="mt-1 flex justify-between text-[11px] text-slate-400">
+          <div className="mt-1 flex justify-between text-[11px] text-taupe">
             <span>320</span>
             <span>1520</span>
           </div>

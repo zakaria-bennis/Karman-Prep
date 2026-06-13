@@ -22,33 +22,33 @@ export default function ViewMode({ question, hasPassage, choices }: Props) {
   return (
     <>
       {hasPassage && (
-        <div className="mb-4 rounded-lg border border-slate-800 bg-slate-950/40 p-4">
+        <div className="mb-4 rounded-lg border border-bronze bg-night/40 p-4">
           {question.passage_intro && (
-            <p className="mb-2 text-xs italic text-slate-400">
+            <p className="mb-2 text-xs italic text-taupe">
               <MathText text={question.passage_intro} />
             </p>
           )}
           {question.passage && (
-            <div className="text-sm leading-relaxed text-slate-300">
+            <div className="text-sm leading-relaxed text-ivory">
               <MathText text={question.passage} />
             </div>
           )}
           {question.passage_a && (
             <div className="space-y-3">
               <div>
-                <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+                <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-taupe">
                   Passage A
                 </div>
-                <div className="text-sm text-slate-300">
+                <div className="text-sm text-ivory">
                   <MathText text={question.passage_a} />
                 </div>
               </div>
               {question.passage_b && (
                 <div>
-                  <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+                  <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-taupe">
                     Passage B
                   </div>
-                  <div className="text-sm text-slate-300">
+                  <div className="text-sm text-ivory">
                     <MathText text={question.passage_b} />
                   </div>
                 </div>
@@ -73,7 +73,7 @@ export default function ViewMode({ question, hasPassage, choices }: Props) {
         )
       )}
 
-      <div className="mb-4 text-base leading-relaxed text-slate-100">
+      <div className="mb-4 text-base leading-relaxed text-ivory">
         <MathText text={question.question_text} />
       </div>
 
@@ -86,20 +86,18 @@ export default function ViewMode({ question, hasPassage, choices }: Props) {
                 key={c.id}
                 className={cn(
                   "flex gap-3 rounded-lg border px-3 py-2.5 text-sm",
-                  isCorrect
-                    ? "border-emerald-500/40 bg-emerald-500/[0.06]"
-                    : "border-slate-700 bg-slate-950/40"
+                  isCorrect ? "border-success/40 bg-success/[0.06]" : "border-bronze bg-night/40"
                 )}
               >
                 <span
                   className={cn(
                     "shrink-0 font-semibold",
-                    isCorrect ? "text-emerald-300" : "text-slate-400"
+                    isCorrect ? "text-success-bright" : "text-taupe"
                   )}
                 >
                   {c.letter}
                 </span>
-                <span className="text-slate-200">
+                <span className="text-ivory">
                   <MathText text={c.choice_text} />
                 </span>
               </div>
@@ -107,40 +105,38 @@ export default function ViewMode({ question, hasPassage, choices }: Props) {
           })}
         </div>
       ) : (
-        <div className="rounded-lg border border-slate-700 bg-slate-950/40 px-3 py-2.5 text-sm">
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+        <div className="rounded-lg border border-bronze bg-night/40 px-3 py-2.5 text-sm">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-taupe">
             SPR answer
           </span>{" "}
-          <span className="text-emerald-300">{question.correct_answer}</span>
+          <span className="text-success-bright">{question.correct_answer}</span>
           {question.numeric_tolerance != null && (
-            <span className="ml-2 text-xs text-slate-400">
-              ± {String(question.numeric_tolerance)}
-            </span>
+            <span className="ml-2 text-xs text-taupe">± {String(question.numeric_tolerance)}</span>
           )}
         </div>
       )}
 
-      <details className="mt-4 rounded-lg border border-slate-800 bg-slate-950/40">
-        <summary className="cursor-pointer px-3 py-2 text-xs font-semibold text-slate-300">
+      <details className="mt-4 rounded-lg border border-bronze bg-night/40">
+        <summary className="cursor-pointer px-3 py-2 text-xs font-semibold text-ivory">
           Hint &amp; explanation
         </summary>
-        <div className="space-y-3 border-t border-slate-800 px-3 py-3 text-xs">
+        <div className="space-y-3 border-t border-bronze px-3 py-3 text-xs">
           {question.hint && (
             <div>
-              <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+              <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-taupe">
                 Hint
               </div>
-              <div className="text-slate-300">
+              <div className="text-ivory">
                 <MathText text={question.hint} />
               </div>
             </div>
           )}
           {question.explanation_text && (
             <div>
-              <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+              <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-taupe">
                 Explanation
               </div>
-              <div className="leading-relaxed text-slate-300">
+              <div className="leading-relaxed text-ivory">
                 <MathText text={question.explanation_text} />
               </div>
             </div>

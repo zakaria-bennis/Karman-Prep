@@ -5,10 +5,10 @@
 // ChartFigure in src/types/chart.ts).
 //
 // Phase 4d. Replaces raster PDF crops with clean, theme-aware,
-// scalable SVG. Cool "blueprint" theme matching the navy quiz app:
-//   · navy ground (matches the page background)
-//   · sky-blue text + axes
-//   · light-blue series fills, cool sequential palette for multi-series
+// scalable SVG. Observatory theme (docs/brand.md):
+//   · warm night ground (matches the page background)
+//   · ivory text, taupe structure, bronze grid
+//   · subject-signal series colors, brand sequential palette
 //
 // The component is pure: given a ChartFigure + a subject, it
 // renders a deterministic SVG. No client-side state, no
@@ -53,16 +53,16 @@ const PAD = { top: 28, right: 24, bottom: 56, left: 64 };
 const PLOT_W = VIEW_W - PAD.left - PAD.right;
 const PLOT_H = VIEW_H - PAD.top - PAD.bottom;
 
-// Cool "blueprint" palette — figures follow the navy quiz-app tokens
-// (sky on navy, per docs/design-tokens.md), not the warm observatory
-// brand. Keys kept for minimal churn; values are the new cool set.
+// Karman observatory palette (docs/brand.md) — the figure sits flush
+// on the warm night canvas: ivory text, taupe structure, bronze grid.
+// Data series carry the subject signal (SUBJECT_CHART_COLOR).
 const COLOR = {
-  bgNight: "#0a0f1e", // app background (navy) — figure sits flush on the page
-  surface: "#0f172a", // slate-900 (legend inset)
-  ivory: "#bae6fd", // sky-200 (primary text: title + axis labels)
-  taupe: "#7dd3fc", // sky-300 (tick labels)
-  bronze: "#38bdf8", // sky-400 (axis lines + tick marks)
-  bronzeMuted: "#1e293b", // slate-800 (grid lines + border)
+  bgNight: "#070605", // app background (warm night) — figure sits flush
+  surface: "#171611", // card surface (legend inset)
+  ivory: "#f3ecdd", // primary text: title + axis labels
+  taupe: "#b8b0a1", // tick labels + axis lines (legible structure)
+  bronze: "#b8b0a1", // axis lines + tick marks (key kept for minimal churn)
+  bronzeMuted: "#3b3426", // grid lines + border (bronze proper)
 } as const;
 
 export default function ChartFigure({ data, subject, className, alt }: Props) {
@@ -84,7 +84,7 @@ export default function ChartFigure({ data, subject, className, alt }: Props) {
         viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
         role="img"
         aria-describedby={describedBy}
-        className="block h-auto w-full rounded-lg border border-slate-800 bg-[#0a0f1e]"
+        className="block h-auto w-full rounded-lg border border-bronze bg-night"
       >
         <desc id={describedBy}>{accessibleSummary}</desc>
 

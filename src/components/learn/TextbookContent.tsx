@@ -111,7 +111,7 @@ function renderInline(text: string): string {
   text = text.replace(/CODE(\d+)/g, (_m, i) => {
     const c = codePlaceholders[Number(i)] ?? "";
     const safe = c.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    return `<code class="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-xs font-mono">${safe}</code>`;
+    return `<code class="px-1 py-0.5 rounded bg-surface dark:bg-surface-raised text-xs font-mono">${safe}</code>`;
   });
 
   // ── 7. Put math back ─────────────────────────────────────
@@ -236,7 +236,7 @@ export default function TextbookContent({ markdown, className = "" }: Props) {
           return (
             <h2
               key={idx}
-              className="mb-3 mt-8 text-xl font-bold text-slate-900 dark:text-white"
+              className="mb-3 mt-8 text-xl font-bold text-night dark:text-ivory"
               dangerouslySetInnerHTML={{ __html: renderInline(t.text) }}
             />
           );
@@ -245,7 +245,7 @@ export default function TextbookContent({ markdown, className = "" }: Props) {
           return (
             <h3
               key={idx}
-              className="mb-2 mt-6 text-base font-semibold text-slate-900 dark:text-white"
+              className="mb-2 mt-6 text-base font-semibold text-night dark:text-ivory"
               dangerouslySetInnerHTML={{ __html: renderInline(t.text) }}
             />
           );

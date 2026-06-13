@@ -155,11 +155,11 @@ export default async function ParentStudentDetailPage({ params }: PageProps) {
     [student.first_name, student.last_name].filter(Boolean).join(" ") || student.email;
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100">
+    <div className="min-h-screen bg-night text-ivory">
       <div className="mx-auto max-w-4xl px-5 py-10">
         <Link
           href="/dashboard/parent"
-          className="mb-4 inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-slate-200"
+          className="mb-4 inline-flex items-center gap-1.5 text-sm text-taupe hover:text-ivory"
         >
           <ChevronLeft className="h-4 w-4" />
           All students
@@ -169,8 +169,8 @@ export default async function ParentStudentDetailPage({ params }: PageProps) {
         <header className="mb-8 flex items-center gap-4">
           <Avatar name={fullName} avatarUrl={student.avatar_url} size="lg" />
           <div>
-            <h1 className="text-2xl font-extrabold text-white">{fullName}</h1>
-            <p className="mt-0.5 text-sm text-slate-400">
+            <h1 className="text-2xl font-extrabold text-ivory">{fullName}</h1>
+            <p className="mt-0.5 text-sm text-taupe">
               {student.sat_test_date ? (
                 <>Target SAT — {formatDate(student.sat_test_date)}</>
               ) : (
@@ -185,13 +185,13 @@ export default async function ParentStudentDetailPage({ params }: PageProps) {
           <Card icon={UsersIcon} title="Cohort">
             {cohort ? (
               <div className="space-y-2">
-                <div className="font-semibold text-white">{cohort.name}</div>
-                <div className="text-xs text-slate-400">
+                <div className="font-semibold text-ivory">{cohort.name}</div>
+                <div className="text-xs text-taupe">
                   {cohort.tier === "small_group" ? "Small Group" : "Seminar"} · {cohort.status}
                 </div>
                 {cohort.current_topic && (
-                  <div className="border-t border-slate-800 pt-2 text-sm text-slate-300">
-                    <span className="mb-1 block text-xs font-semibold uppercase tracking-wider text-slate-400">
+                  <div className="border-t border-bronze pt-2 text-sm text-ivory">
+                    <span className="mb-1 block text-xs font-semibold uppercase tracking-wider text-taupe">
                       Current topic
                     </span>
                     {cohort.current_topic}
@@ -199,7 +199,7 @@ export default async function ParentStudentDetailPage({ params }: PageProps) {
                 )}
               </div>
             ) : (
-              <p className="text-sm italic text-slate-400">Not in a cohort (private 1:1 tier).</p>
+              <p className="text-sm italic text-taupe">Not in a cohort (private 1:1 tier).</p>
             )}
           </Card>
 
@@ -207,14 +207,14 @@ export default async function ParentStudentDetailPage({ params }: PageProps) {
           <Card icon={Calendar} title="Most recent diagnostic">
             {diagnostic ? (
               <div className="space-y-2">
-                <div className="font-mono text-2xl font-extrabold text-white">
+                <div className="font-mono text-2xl font-extrabold text-ivory">
                   {diagnostic.score_range_low}–{diagnostic.score_range_high}
                 </div>
-                <div className="text-xs text-slate-400">
+                <div className="text-xs text-taupe">
                   Taken {formatDate(diagnostic.taken_at.slice(0, 10))}
                 </div>
                 {diagnostic.domain_scores && (
-                  <div className="space-y-1.5 border-t border-slate-800 pt-3">
+                  <div className="space-y-1.5 border-t border-bronze pt-3">
                     {Object.entries(diagnostic.domain_scores).map(([domain, pct]) => (
                       <DomainBar key={domain} domain={domain} percentage={pct} />
                     ))}
@@ -222,7 +222,7 @@ export default async function ParentStudentDetailPage({ params }: PageProps) {
                 )}
               </div>
             ) : (
-              <p className="text-sm italic text-slate-400">No diagnostic taken yet.</p>
+              <p className="text-sm italic text-taupe">No diagnostic taken yet.</p>
             )}
           </Card>
         </div>
@@ -230,28 +230,28 @@ export default async function ParentStudentDetailPage({ params }: PageProps) {
         {/* Homework */}
         {cohort && (
           <section className="mt-8">
-            <h2 className="mb-3 flex items-center gap-2 text-lg font-bold text-white">
-              <BookOpen className="h-5 w-5 text-slate-400" />
+            <h2 className="mb-3 flex items-center gap-2 text-lg font-bold text-ivory">
+              <BookOpen className="h-5 w-5 text-taupe" />
               Recent assignments
             </h2>
             {homework.length === 0 ? (
-              <p className="rounded-xl border border-dashed border-slate-800 px-6 py-8 text-center text-sm text-slate-400">
+              <p className="rounded-xl border border-dashed border-bronze px-6 py-8 text-center text-sm text-taupe">
                 No assignments posted yet.
               </p>
             ) : (
               <ul className="space-y-3">
                 {homework.map((h) => (
-                  <li key={h.id} className="rounded-xl border border-slate-800 bg-slate-900/40 p-5">
+                  <li key={h.id} className="rounded-xl border border-bronze bg-surface/40 p-5">
                     <div className="mb-1 flex items-start justify-between gap-4">
-                      <h3 className="font-semibold text-white">{h.title}</h3>
+                      <h3 className="font-semibold text-ivory">{h.title}</h3>
                       {h.due_at && (
-                        <span className="shrink-0 text-xs text-slate-400">
+                        <span className="shrink-0 text-xs text-taupe">
                           Due {formatDate(h.due_at.slice(0, 10))}
                         </span>
                       )}
                     </div>
                     {h.body && (
-                      <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-400">
+                      <p className="whitespace-pre-wrap text-sm leading-relaxed text-taupe">
                         {h.body}
                       </p>
                     )}
@@ -262,7 +262,7 @@ export default async function ParentStudentDetailPage({ params }: PageProps) {
           </section>
         )}
 
-        <p className="mt-10 max-w-md text-xs text-slate-400">
+        <p className="mt-10 max-w-md text-xs text-taupe">
           You&apos;re viewing a read-only summary. Detailed progress (per-concept mastery, chat
           transcripts) is deliberately not shared — your student can still have a private workspace.
         </p>
@@ -283,8 +283,8 @@ function Card({
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-5">
-      <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-400">
+    <div className="rounded-xl border border-bronze bg-surface/40 p-5">
+      <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-taupe">
         <Icon className="h-3.5 w-3.5" />
         {title}
       </div>
@@ -298,13 +298,13 @@ function DomainBar({ domain, percentage }: { domain: string; percentage: number 
   const pct = Math.max(0, Math.min(100, percentage));
   return (
     <div>
-      <div className="mb-0.5 flex justify-between text-xs text-slate-400">
+      <div className="mb-0.5 flex justify-between text-xs text-taupe">
         <span className="capitalize">{label}</span>
-        <span className="font-mono text-slate-400">{pct}%</span>
+        <span className="font-mono text-taupe">{pct}%</span>
       </div>
-      <div className="h-1 overflow-hidden rounded-full bg-slate-800">
+      <div className="h-1 overflow-hidden rounded-full bg-surface-raised">
         <div
-          className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-teal-400"
+          className="h-full rounded-full bg-gradient-to-r from-gold to-success"
           style={{ width: `${pct}%` }}
         />
       </div>
@@ -330,7 +330,7 @@ function Avatar({
         alt={name}
         width={px}
         height={px}
-        className={`${cls} rounded-full border border-slate-700 object-cover`}
+        className={`${cls} rounded-full border border-bronze object-cover`}
         unoptimized
       />
     );
@@ -345,7 +345,7 @@ function Avatar({
   return (
     <div
       aria-hidden="true"
-      className={`${cls} flex items-center justify-center rounded-full border border-slate-700 bg-slate-800 font-bold text-slate-300`}
+      className={`${cls} flex items-center justify-center rounded-full border border-bronze bg-surface-raised font-bold text-ivory`}
     >
       {initials || "?"}
     </div>

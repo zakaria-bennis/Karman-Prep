@@ -1,8 +1,12 @@
 "use client";
 
 // ============================================================
-// RotatingWord — cycles through the brand promise words, each
-// colored from Karman's subject palette. Width animates so the
+// RotatingWord — cycles through the brand promise words.
+//
+// Observatory treatment: every word speaks in the same voice —
+// star-gold italic serif. Gold marks the promise (an earned
+// moment, per docs/brand.md); the old five-color pastel cycle is
+// retired with the cloud palette. Width animates so the
 // surrounding sentence never jumps.
 //
 // Accessibility: the entire rotation is announced once via an
@@ -13,29 +17,17 @@
 
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { useEffect, useState } from "react";
+import { easeStandard } from "@/lib/motion";
 
-export interface Word {
-  text: string;
-  color: string; // any CSS color
-}
-
-// Pulls from the 5 subject colors — the teaching palette IS
-// the promise palette. One system, two jobs.
-export const KARMAN_PROMISES: Word[] = [
-  { text: "inspire", color: "#C4A7FF" }, // violet (advanced-math, lifted)
-  { text: "dream", color: "#7FB3FF" }, // blue (algebra, lifted)
-  { text: "achieve", color: "#5EE4C6" }, // teal (geometry, lifted)
-  { text: "excel", color: "#FFC574" }, // amber (data-analysis, lifted)
-  { text: "wonder", color: "#FF9AA8" }, // rose (reading-writing, lifted)
-];
+export const KARMAN_PROMISES = ["inspire", "dream", "achieve", "excel", "wonder"] as const;
 
 interface Props {
-  words?: Word[];
+  words?: readonly string[];
   /** ms per word */
   interval?: number;
 }
 
-export default function RotatingWord({ words = KARMAN_PROMISES, interval = 2600 }: Props) {
+export default function RotatingWord({ words = KARMAN_PROMISES, interval = 3200 }: Props) {
   const [i, setI] = useState(0);
   const reduce = useReducedMotion();
 
@@ -51,43 +43,35 @@ export default function RotatingWord({ words = KARMAN_PROMISES, interval = 2600 
 
   // Static fallback under reduced motion — show first word only.
   if (reduce) {
-    return (
-      <span style={{ color: current.color }} className="italic">
-        {current.text}
-      </span>
-    );
+    return <span className="italic text-gold-bright">{current}</span>;
   }
 
   return (
     <>
       {/* Screen reader gets the full idea — read once */}
-      <span className="sr-only">Built to {words.map((w) => w.text).join(", to ")}.</span>
+      <span className="sr-only">Built to {words.join(", to ")}.</span>
 
       <motion.span
         className="relative inline-flex items-baseline align-baseline"
         layout
-        transition={{ layout: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } }}
+        transition={{ layout: { duration: 0.5, ease: easeStandard } }}
         aria-hidden="true"
       >
         <AnimatePresence mode="popLayout" initial={false}>
           <motion.span
-            key={current.text}
+            key={current}
             layout
-            initial={{ y: "0.6em", opacity: 0, filter: "blur(10px)" }}
+            initial={{ y: "0.5em", opacity: 0, filter: "blur(8px)" }}
             animate={{ y: 0, opacity: 1, filter: "blur(0px)" }}
-            exit={{ y: "-0.6em", opacity: 0, filter: "blur(10px)" }}
+            exit={{ y: "-0.5em", opacity: 0, filter: "blur(8px)" }}
             transition={{
-              y: { duration: 0.55, ease: [0.22, 1, 0.36, 1] },
-              opacity: { duration: 0.4 },
-              filter: { duration: 0.45 },
+              y: { duration: 0.65, ease: easeStandard },
+              opacity: { duration: 0.5 },
+              filter: { duration: 0.55 },
             }}
-            style={{
-              color: current.color,
-              textShadow: `0 0 40px ${current.color}55, 0 0 80px ${current.color}22`,
-            }}
-            className="inline-block font-[650] italic will-change-transform"
+            className="inline-block font-medium italic text-gold-bright will-change-transform"
           >
-            {current.text}
+            {current}
           </motion.span>
         </AnimatePresence>
       </motion.span>

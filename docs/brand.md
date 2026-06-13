@@ -84,13 +84,30 @@ surfaces stay on the warm-dark canvas regardless of subject.
 | `--subject-math`      | `#2FA8FF` | Math blue  | Math primary signal              |
 | `--subject-math-glow` | `#42D9FF` | Math glow  | Math ambient/hover/highlight     |
 
-### Semantic colors — TBD
+### Status colors — semantic palette
 
-Success / warning / error / info colors are not yet defined. Open question
-for the implementation phase: define new tokens that sit outside the
-observatory palette (sage green, dust amber, rust red), or lean on the
-existing palette (gold for success, taupe for info, R&W rose for error).
-Deferred until at least one form/banner surface needs real states.
+Resolved 2026-06-12 when the dashboard / tutor / admin surfaces were
+rethemed. Status hues are **warm-compatible** so they read on the espresso
+canvas without the cool-green / cool-amber clash. `error` and `info` reuse
+the constellation signals (so the system stays tight — six accent hues, not
+ten), named semantically so application code reads intent, not signal.
+
+| Token            | Hex       | Brand name    | Use                              |
+| ---------------- | --------- | ------------- | -------------------------------- |
+| `success`        | `#8BA86A` | Moss          | pass, mastered, paid, on-track   |
+| `success-bright` | `#A6C486` | Moss light    | success icons / emphasis on dark |
+| `warning`        | `#E0A24A` | Amber         | pending, due-soon, caution       |
+| `warning-bright` | `#F0BE72` | Amber light   | warning icons / emphasis         |
+| `error`          | `#D84F73` | Rose (= R&W)  | fail, reject, overdue, error     |
+| `error-bright`   | `#F06A8C` | Rose light    | error icons / emphasis           |
+| `info`           | `#2FA8FF` | Blue (= Math) | neutral info, hints              |
+| `info-bright`    | `#42D9FF` | Blue light    | info icons / emphasis            |
+
+Usage: solid hue for icons / text / thin borders; a low-opacity tint
+(`bg-success/10`, `border-warning/30`) for status surfaces. Warning amber is
+deliberately more saturated/orange than the gold CTA (`#C8AB6A`) so a caution
+state never reads as a brand moment. Keep gold for earned/brand moments, not
+for generic "success."
 
 ## Typography
 

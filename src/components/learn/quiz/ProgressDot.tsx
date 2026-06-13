@@ -25,13 +25,13 @@ export function ProgressDot({
       <div
         className={cn(
           "h-2 w-2 rounded-full transition-colors",
-          !isAnswered && !isCurrent && "bg-slate-700",
-          isCurrent && "animate-pulse bg-blue-400",
-          isAnswered && isCorrect && "bg-emerald-500",
-          isAnswered && !isCorrect && "bg-rose-500"
+          !isAnswered && !isCurrent && "bg-surface-raised",
+          isCurrent && "animate-pulse bg-info",
+          isAnswered && isCorrect && "bg-success",
+          isAnswered && !isCorrect && "bg-error"
         )}
       />
-      {isFlagged && <Flag className="absolute -right-1 -top-1 h-2 w-2 text-amber-400" />}
+      {isFlagged && <Flag className="absolute -right-1 -top-1 h-2 w-2 text-warning" />}
     </div>
   );
 }

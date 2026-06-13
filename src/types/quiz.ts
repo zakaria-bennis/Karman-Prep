@@ -292,28 +292,28 @@ export const DIFFICULTY_COLORS: Record<
   { bg: string; text: string; border: string; hex: string }
 > = {
   foundational: {
-    bg: "bg-emerald-100 dark:bg-emerald-900/30",
-    text: "text-emerald-700 dark:text-emerald-300",
-    border: "border-emerald-300 dark:border-emerald-700",
-    hex: "#10b981",
+    bg: "bg-success/10 dark:bg-success/30",
+    text: "text-success dark:text-success-bright",
+    border: "border-success/40 dark:border-success/40",
+    hex: "#8BA86A",
   },
   intermediate: {
-    bg: "bg-amber-100 dark:bg-amber-900/30",
-    text: "text-amber-700 dark:text-amber-300",
-    border: "border-amber-300 dark:border-amber-700",
-    hex: "#f59e0b",
+    bg: "bg-warning/10 dark:bg-warning/30",
+    text: "text-warning dark:text-warning-bright",
+    border: "border-warning/40 dark:border-warning/40",
+    hex: "#E0A24A",
   },
   advanced: {
-    bg: "bg-orange-100 dark:bg-orange-900/30",
-    text: "text-orange-700 dark:text-orange-300",
-    border: "border-orange-300 dark:border-orange-700",
-    hex: "#f97316",
+    bg: "bg-warning/10 dark:bg-warning/30",
+    text: "text-warning dark:text-warning-bright",
+    border: "border-warning/40 dark:border-warning/40",
+    hex: "#E0A24A",
   },
   mastery: {
-    bg: "bg-rose-100 dark:bg-rose-900/30",
-    text: "text-rose-700 dark:text-rose-300",
-    border: "border-rose-300 dark:border-rose-700",
-    hex: "#e11d48",
+    bg: "bg-error/10 dark:bg-error/30",
+    text: "text-error dark:text-error-bright",
+    border: "border-error/40 dark:border-error/40",
+    hex: "#B83A5C",
   },
 };
 
@@ -322,27 +322,27 @@ export const CONFIDENCE_COLORS: Record<
   { bg: string; text: string; hex: string; label: string }
 > = {
   struggling: {
-    bg: "bg-red-100 dark:bg-red-900/30",
-    text: "text-red-700 dark:text-red-300",
-    hex: "#ef4444",
+    bg: "bg-error/10 dark:bg-error/30",
+    text: "text-error dark:text-error-bright",
+    hex: "#D84F73",
     label: "Struggling",
   },
   developing: {
-    bg: "bg-yellow-100 dark:bg-yellow-900/30",
-    text: "text-yellow-700 dark:text-yellow-300",
-    hex: "#eab308",
+    bg: "bg-warning/10 dark:bg-warning/30",
+    text: "text-warning dark:text-warning-bright",
+    hex: "#C8AB6A",
     label: "Developing",
   },
   proficient: {
-    bg: "bg-green-100 dark:bg-green-900/30",
-    text: "text-green-700 dark:text-green-300",
-    hex: "#22c55e",
+    bg: "bg-success/10 dark:bg-success/30",
+    text: "text-success dark:text-success-bright",
+    hex: "#8BA86A",
     label: "Proficient",
   },
   mastered: {
-    bg: "bg-teal-100 dark:bg-teal-900/30",
-    text: "text-teal-700 dark:text-teal-300",
-    hex: "#14b8a6",
+    bg: "bg-success/10 dark:bg-success/30",
+    text: "text-success dark:text-success-bright",
+    hex: "#2FA8FF",
     label: "Mastered",
   },
 };
@@ -376,13 +376,13 @@ export const DIFFICULTY_LEVEL_LABELS: Record<QuizDifficultyLevel, string> = {
 
 /** Color for each 1-7 level — gradient from green (easy) to deep rose (hard). */
 export const DIFFICULTY_LEVEL_HEX: Record<QuizDifficultyLevel, string> = {
-  1: "#10b981", // emerald
-  2: "#22c55e", // green
-  3: "#84cc16", // lime
-  4: "#eab308", // yellow
-  5: "#f97316", // orange
-  6: "#ef4444", // red
-  7: "#be123c", // rose-700
+  1: "#8BA86A", // emerald
+  2: "#8BA86A", // green
+  3: "#8BA86A", // lime
+  4: "#C8AB6A", // yellow
+  5: "#E0A24A", // orange
+  6: "#D84F73", // red
+  7: "#B83A5C", // rose-700
 };
 
 export function stepDifficultyLevel(

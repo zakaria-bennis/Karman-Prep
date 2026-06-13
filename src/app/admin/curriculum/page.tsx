@@ -76,17 +76,17 @@ export default async function AdminCurriculumPage({ searchParams }: PageProps) {
     <div className="mx-auto max-w-6xl px-5 py-8">
       {/* Page header — total counts at a glance */}
       <header className="mb-6">
-        <h1 className="text-2xl font-bold text-white">Curriculum</h1>
-        <div className="mt-1.5 flex flex-wrap items-baseline gap-x-4 gap-y-1 text-xs text-slate-400">
+        <h1 className="text-2xl font-bold text-ivory">Curriculum</h1>
+        <div className="mt-1.5 flex flex-wrap items-baseline gap-x-4 gap-y-1 text-xs text-taupe">
           <span>
-            <span className="text-base font-bold text-white">{totalAttached.toLocaleString()}</span>
+            <span className="text-base font-bold text-ivory">{totalAttached.toLocaleString()}</span>
             <span className="ml-1.5">
               question{totalAttached === 1 ? "" : "s"} across all nodes
             </span>
           </span>
           {bankCount > 0 && (
             <span>
-              <span className="text-sm font-semibold text-indigo-300">
+              <span className="text-sm font-semibold text-gold-bright">
                 {bankCount.toLocaleString()}
               </span>
               <span className="ml-1.5">in bank</span>
@@ -94,7 +94,7 @@ export default async function AdminCurriculumPage({ searchParams }: PageProps) {
           )}
           {flaggedCount > 0 && (
             <span>
-              <span className="text-sm font-semibold text-amber-300">
+              <span className="text-sm font-semibold text-warning-bright">
                 {flaggedCount.toLocaleString()}
               </span>
               <span className="ml-1.5">flagged</span>
@@ -104,22 +104,22 @@ export default async function AdminCurriculumPage({ searchParams }: PageProps) {
       </header>
 
       {/* Tabs row + search bar (top-right) */}
-      <div className="mb-6 flex items-center gap-1 border-b border-slate-800 text-sm">
+      <div className="mb-6 flex items-center gap-1 border-b border-bronze text-sm">
         <Link
           href="/admin/curriculum"
-          className={`border-b-2 px-4 pb-3 font-semibold ${activeTab === "nodes" ? "border-indigo-500 text-indigo-400" : "border-transparent text-slate-400 hover:text-slate-200"}`}
+          className={`border-b-2 px-4 pb-3 font-semibold ${activeTab === "nodes" ? "border-gold/40 text-gold" : "border-transparent text-taupe hover:text-ivory"}`}
         >
           Nodes
         </Link>
         <Link
           href="/admin/curriculum?tab=flagged"
-          className={`inline-flex items-center gap-2 border-b-2 px-4 pb-3 font-semibold ${activeTab === "flagged" ? "border-indigo-500 text-indigo-400" : "border-transparent text-slate-400 hover:text-slate-200"}`}
+          className={`inline-flex items-center gap-2 border-b-2 px-4 pb-3 font-semibold ${activeTab === "flagged" ? "border-gold/40 text-gold" : "border-transparent text-taupe hover:text-ivory"}`}
         >
           Flagged
           {flaggedCount > 0 && (
             <span
               aria-label={`${flaggedCount} unresolved flag${flaggedCount === 1 ? "" : "s"}`}
-              className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-blue-500 px-1.5 text-[11px] font-bold leading-none text-white"
+              className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-info px-1.5 text-[11px] font-bold leading-none text-ivory"
             >
               {flaggedCount}
             </span>
@@ -135,14 +135,14 @@ export default async function AdminCurriculumPage({ searchParams }: PageProps) {
       {bankCount > 0 && activeTab === "nodes" && (
         <Link
           href="/admin/questions/review?tab=bank"
-          className="mb-5 inline-flex items-center gap-2 rounded-lg border border-indigo-500/30 bg-indigo-500/[0.06] px-3 py-2 text-xs text-indigo-200 transition-colors hover:bg-indigo-500/[0.12]"
+          className="mb-5 inline-flex items-center gap-2 rounded-lg border border-gold/30 bg-gold/[0.06] px-3 py-2 text-xs text-gold-bright transition-colors hover:bg-gold/[0.12]"
         >
           <Inbox className="h-3.5 w-3.5" />
           <span>
             <span className="font-semibold">
               {bankCount} question{bankCount === 1 ? "" : "s"} in bank
             </span>
-            <span className="text-indigo-300/70">
+            <span className="text-gold-bright/70">
               {" "}
               — click to triage and assign curriculum nodes
             </span>
@@ -154,7 +154,7 @@ export default async function AdminCurriculumPage({ searchParams }: PageProps) {
         <div className="space-y-10">
           {(["reading", "math"] as const).map((subject) => (
             <section key={subject}>
-              <h2 className="mb-4 text-xs font-bold uppercase tracking-[0.25em] text-slate-400">
+              <h2 className="mb-4 text-xs font-bold uppercase tracking-[0.25em] text-taupe">
                 {SUBJECT_LABELS[subject]}
               </h2>
               <div className="space-y-4">
@@ -172,7 +172,7 @@ export default async function AdminCurriculumPage({ searchParams }: PageProps) {
                   return (
                     <div
                       key={tier}
-                      className="overflow-hidden rounded-xl border border-slate-800 bg-slate-900/40"
+                      className="overflow-hidden rounded-xl border border-bronze bg-surface/40"
                     >
                       <div
                         className="flex items-center gap-2 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.25em]"
@@ -187,14 +187,14 @@ export default async function AdminCurriculumPage({ searchParams }: PageProps) {
                           style={{ background: atmoHex }}
                         />
                         {atmo}
-                        <span className="ml-1 font-normal normal-case tracking-normal text-slate-400">
+                        <span className="ml-1 font-normal normal-case tracking-normal text-taupe">
                           · {atmoSubtitle}
                         </span>
                       </div>
-                      <div className="divide-y divide-slate-800">
+                      <div className="divide-y divide-bronze">
                         {Object.entries(clusters).map(([cluster, nodes]) => (
                           <div key={cluster}>
-                            <div className="bg-slate-900/40 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                            <div className="bg-surface/40 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-taupe">
                               {cluster}
                             </div>
                             <ul>
@@ -202,32 +202,32 @@ export default async function AdminCurriculumPage({ searchParams }: PageProps) {
                                 const count = counts.get(n.id) ?? 0;
                                 const countClass =
                                   count === 0
-                                    ? "bg-red-500/10 text-red-300 border-red-500/30"
+                                    ? "bg-error/10 text-error-bright border-error/30"
                                     : count < 10
-                                      ? "bg-amber-500/10 text-amber-300 border-amber-500/30"
+                                      ? "bg-warning/10 text-warning-bright border-warning/30"
                                       : count >= 100
-                                        ? "bg-emerald-500/10 text-emerald-300 border-emerald-500/30"
-                                        : "bg-indigo-500/10 text-indigo-300 border-indigo-500/30";
+                                        ? "bg-success/10 text-success-bright border-success/30"
+                                        : "bg-gold/10 text-gold-bright border-gold/30";
                                 return (
                                   <li key={n.id}>
                                     <Link
                                       href={`/admin/curriculum/${n.id}`}
-                                      className="group flex items-center gap-4 px-4 py-2.5 transition-colors hover:bg-white/5"
+                                      className="group flex items-center gap-4 px-4 py-2.5 transition-colors hover:bg-surface/5"
                                     >
-                                      <code className="w-14 shrink-0 font-mono text-xs text-slate-400">
+                                      <code className="w-14 shrink-0 font-mono text-xs text-taupe">
                                         {n.id}
                                       </code>
-                                      <span className="flex-1 truncate text-sm font-medium text-slate-200 group-hover:text-white">
+                                      <span className="flex-1 truncate text-sm font-medium text-ivory group-hover:text-ivory">
                                         {n.topic}
                                       </span>
-                                      <span className="flex items-center gap-3 text-xs text-slate-400">
+                                      <span className="flex items-center gap-3 text-xs text-taupe">
                                         <span>Diff {n.difficulty}</span>
                                         <span
                                           className={`rounded-full border px-2 py-0.5 text-[11px] font-bold tabular-nums ${countClass}`}
                                         >
                                           {count} / 100
                                         </span>
-                                        <ChevronRight className="h-3.5 w-3.5 text-slate-400 group-hover:text-slate-300" />
+                                        <ChevronRight className="h-3.5 w-3.5 text-taupe group-hover:text-ivory" />
                                       </span>
                                     </Link>
                                   </li>

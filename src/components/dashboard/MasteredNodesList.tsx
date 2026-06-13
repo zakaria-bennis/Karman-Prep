@@ -46,7 +46,7 @@ export default function MasteredNodesList({ mastered }: Props) {
       <div className="mx-auto max-w-5xl space-y-6 px-4 py-8 sm:px-6">
         <Link
           href="/dashboard/student"
-          className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-slate-900 dark:hover:text-white"
+          className="inline-flex items-center gap-1 text-xs text-taupe hover:text-ivory dark:hover:text-ivory"
         >
           <ArrowLeft className="h-3.5 w-3.5" /> Back to dashboard
         </Link>
@@ -54,25 +54,25 @@ export default function MasteredNodesList({ mastered }: Props) {
         {/* Header */}
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <div className="mb-1 flex items-center gap-2 text-emerald-500">
+            <div className="mb-1 flex items-center gap-2 text-success">
               <CheckCircle className="h-5 w-5" />
               <span className="text-xs font-bold uppercase tracking-widest">Mastered Nodes</span>
             </div>
-            <h1 className="text-3xl font-extrabold tabular-nums text-slate-900 dark:text-white">
+            <h1 className="text-3xl font-extrabold tabular-nums text-ivory dark:text-ivory">
               {counts.all}
-              <span className="ml-2 text-base font-normal text-slate-400">of 100 mastered</span>
+              <span className="ml-2 text-base font-normal text-taupe">of 100 mastered</span>
             </h1>
           </div>
 
           {/* Sort control */}
-          <div className="inline-flex overflow-hidden rounded-lg border border-slate-200 bg-white text-xs dark:border-slate-700 dark:bg-slate-900">
+          <div className="inline-flex overflow-hidden rounded-lg border border-bronze bg-surface text-xs dark:border-bronze dark:bg-surface">
             <button
               onClick={() => setSort("chronological")}
               className={cn(
                 "flex items-center gap-1 px-3 py-2 font-semibold",
                 sort === "chronological"
-                  ? "bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-white"
-                  : "text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                  ? "bg-surface text-ivory dark:bg-surface-raised dark:text-ivory"
+                  : "text-taupe hover:text-ivory dark:hover:text-ivory"
               )}
             >
               <ArrowUpDown className="h-3 w-3" /> Chronological
@@ -80,10 +80,10 @@ export default function MasteredNodesList({ mastered }: Props) {
             <button
               onClick={() => setSort("alphabetical")}
               className={cn(
-                "border-l border-slate-200 px-3 py-2 font-semibold dark:border-slate-700",
+                "border-l border-bronze px-3 py-2 font-semibold dark:border-bronze",
                 sort === "alphabetical"
-                  ? "bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-white"
-                  : "text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                  ? "bg-surface text-ivory dark:bg-surface-raised dark:text-ivory"
+                  : "text-taupe hover:text-ivory dark:hover:text-ivory"
               )}
             >
               A → Z
@@ -92,10 +92,10 @@ export default function MasteredNodesList({ mastered }: Props) {
         </div>
 
         {/* Subject tabs */}
-        <div className="flex gap-1 border-b border-slate-200 dark:border-slate-800">
+        <div className="flex gap-1 border-b border-bronze dark:border-bronze">
           {(
             [
-              { id: "all", label: "All", count: counts.all, color: "#64748b" },
+              { id: "all", label: "All", count: counts.all, color: "#B8B0A1" },
               {
                 id: "reading",
                 label: "Reading & Writing",
@@ -111,22 +111,21 @@ export default function MasteredNodesList({ mastered }: Props) {
               className={cn(
                 "border-b-2 px-4 pb-3 pt-2 text-sm font-semibold transition-colors",
                 subject === t.id
-                  ? "text-slate-900 dark:text-white"
-                  : "text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
+                  ? "text-ivory dark:text-ivory"
+                  : "text-taupe hover:text-ivory dark:hover:text-ivory"
               )}
               style={subject === t.id ? { borderColor: t.color } : { borderColor: "transparent" }}
             >
-              {t.label}{" "}
-              <span className="ml-1 text-xs tabular-nums text-slate-400">({t.count})</span>
+              {t.label} <span className="ml-1 text-xs tabular-nums text-taupe">({t.count})</span>
             </button>
           ))}
         </div>
 
         {/* List */}
         {filtered.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-slate-300 p-12 text-center dark:border-slate-700">
-            <CheckCircle className="mx-auto mb-3 h-8 w-8 text-slate-300 dark:text-slate-400" />
-            <p className="text-sm text-slate-400">
+          <div className="rounded-xl border border-dashed border-bronze p-12 text-center dark:border-bronze">
+            <CheckCircle className="mx-auto mb-3 h-8 w-8 text-ivory dark:text-taupe" />
+            <p className="text-sm text-taupe">
               {subject === "all"
                 ? "No mastered nodes yet. Ace a node's quiz twice in a row to master it."
                 : `No mastered ${subject === "reading" ? "Reading & Writing" : "Math"} nodes yet.`}
@@ -143,14 +142,14 @@ export default function MasteredNodesList({ mastered }: Props) {
                 <Link
                   key={n.id}
                   href={`/learn/${n.subject}/${n.id}`}
-                  className="flex items-center gap-4 rounded-xl border border-slate-200 bg-white px-4 py-3 transition-colors hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900/50 dark:hover:bg-slate-800/50"
+                  className="flex items-center gap-4 rounded-xl border border-bronze bg-surface px-4 py-3 transition-colors hover:bg-surface dark:border-bronze dark:bg-surface/50 dark:hover:bg-surface-raised/50"
                 >
                   <SubjectIcon className="h-4 w-4 shrink-0" style={{ color: subjectHex }} />
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold text-slate-900 dark:text-white">
+                    <p className="truncate text-sm font-semibold text-ivory dark:text-ivory">
                       {n.topic}
                     </p>
-                    <div className="mt-0.5 flex flex-wrap items-center gap-2 text-[11px] text-slate-400">
+                    <div className="mt-0.5 flex flex-wrap items-center gap-2 text-[11px] text-taupe">
                       <span
                         className="rounded-full px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider"
                         style={{
@@ -164,7 +163,7 @@ export default function MasteredNodesList({ mastered }: Props) {
                       <span>{n.topic_cluster}</span>
                       {n.attempts > 0 && (
                         <span className="flex items-center gap-0.5">
-                          <Flame className="h-2.5 w-2.5 text-amber-400" />
+                          <Flame className="h-2.5 w-2.5 text-warning" />
                           {n.attempts} {n.attempts === 1 ? "attempt" : "attempts"}
                         </span>
                       )}
@@ -172,11 +171,11 @@ export default function MasteredNodesList({ mastered }: Props) {
                   </div>
                   <div className="shrink-0 text-right text-xs">
                     {n.best_quiz_score !== null && (
-                      <span className="font-bold tabular-nums text-emerald-500">
+                      <span className="font-bold tabular-nums text-success">
                         {n.best_quiz_score}%
                       </span>
                     )}
-                    <p className="mt-0.5 text-slate-400">
+                    <p className="mt-0.5 text-taupe">
                       {new Date(n.mastered_at).toLocaleDateString(undefined, {
                         month: "short",
                         day: "numeric",

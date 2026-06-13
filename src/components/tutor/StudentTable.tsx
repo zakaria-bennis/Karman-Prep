@@ -57,15 +57,15 @@ const PLAN_LABEL: Record<Plan, string> = {
 };
 const PLAN_COLOR: Record<Plan, string> = {
   group:
-    "bg-indigo-50 text-indigo-700 dark:bg-indigo-400/10 dark:text-indigo-300 border-indigo-200 dark:border-indigo-400/20",
+    "bg-gold/10 text-gold dark:bg-gold/10 dark:text-gold-bright border-gold/40 dark:border-gold/20",
   small_group:
-    "bg-teal-50 text-teal-700 dark:bg-teal-400/10 dark:text-teal-300 border-teal-200 dark:border-teal-400/20",
+    "bg-success/10 text-success dark:bg-success/10 dark:text-success-bright border-success/40 dark:border-success/20",
   private:
-    "bg-amber-50 text-amber-700 dark:bg-amber-400/10 dark:text-amber-300 border-amber-200 dark:border-amber-400/20",
+    "bg-warning/10 text-warning dark:bg-warning/10 dark:text-warning-bright border-warning/40 dark:border-warning/20",
   elite:
-    "bg-violet-50 text-violet-700 dark:bg-violet-400/10 dark:text-violet-300 border-violet-200 dark:border-violet-400/20",
+    "bg-gold/10 text-gold dark:bg-gold/10 dark:text-gold-bright border-gold/40 dark:border-gold/20",
   annual:
-    "bg-emerald-50 text-emerald-700 dark:bg-emerald-400/10 dark:text-emerald-300 border-emerald-200 dark:border-emerald-400/20",
+    "bg-success/10 text-success dark:bg-success/10 dark:text-success-bright border-success/40 dark:border-success/20",
 };
 
 function fullName(r: StudentDashboardRow): string {
@@ -128,9 +128,9 @@ export default function StudentTable({ rows, cohorts = [] }: Props) {
 
   if (rows.length === 0) {
     return (
-      <div className="rounded-lg border border-dashed border-slate-300 p-12 text-center dark:border-slate-700">
-        <AlertCircle className="mx-auto mb-3 h-8 w-8 text-slate-400" />
-        <p className="text-sm text-slate-400">No students assigned yet.</p>
+      <div className="rounded-lg border border-dashed border-bronze p-12 text-center dark:border-bronze">
+        <AlertCircle className="mx-auto mb-3 h-8 w-8 text-taupe" />
+        <p className="text-sm text-taupe">No students assigned yet.</p>
       </div>
     );
   }
@@ -140,13 +140,13 @@ export default function StudentTable({ rows, cohorts = [] }: Props) {
       {/* Search + cohort filter bar */}
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-taupe" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search students by name or email…"
-            className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 dark:border-slate-800 dark:bg-slate-900/40 dark:text-slate-100"
+            className="w-full rounded-lg border border-bronze bg-surface py-2 pl-9 pr-3 text-sm text-ivory placeholder:text-taupe focus:outline-none focus:ring-2 focus:ring-info/40 dark:border-bronze dark:bg-surface/40 dark:text-ivory"
           />
         </div>
         {cohorts.length > 0 ? (
@@ -154,7 +154,7 @@ export default function StudentTable({ rows, cohorts = [] }: Props) {
             value={cohortFilter}
             onChange={(e) => setCohortFilter(e.target.value)}
             aria-label="Filter students by cohort"
-            className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/40 dark:border-slate-800 dark:bg-slate-900/40 dark:text-slate-100"
+            className="rounded-lg border border-bronze bg-surface px-3 py-2 text-sm text-ivory focus:outline-none focus:ring-2 focus:ring-info/40 dark:border-bronze dark:bg-surface/40 dark:text-ivory"
           >
             <option value="all">All cohorts ({cohorts.length})</option>
             {cohorts.map((c) => (
@@ -164,23 +164,23 @@ export default function StudentTable({ rows, cohorts = [] }: Props) {
             ))}
           </select>
         ) : null}
-        <span className="shrink-0 self-center text-xs text-slate-400 sm:ml-2">
+        <span className="shrink-0 self-center text-xs text-taupe sm:ml-2">
           {sorted.length} of {rows.length} matching
         </span>
       </div>
 
       <div
-        className="overflow-hidden rounded-lg border border-slate-200 dark:border-slate-800"
+        className="overflow-hidden rounded-lg border border-bronze dark:border-bronze"
         data-testid="student-table"
       >
         <table className="w-full text-sm">
-          <thead className="bg-slate-100 dark:bg-slate-900">
+          <thead className="bg-surface dark:bg-surface">
             <tr>
               {COLS.map((c) => (
                 <th
                   key={c.key}
                   className={cn(
-                    "cursor-pointer px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-600 hover:bg-slate-200 dark:text-slate-400 dark:hover:bg-slate-800",
+                    "cursor-pointer px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-taupe hover:bg-surface dark:text-taupe dark:hover:bg-surface-raised",
                     c.className
                   )}
                   onClick={() => toggleSort(c.key)}
@@ -211,17 +211,17 @@ export default function StudentTable({ rows, cohorts = [] }: Props) {
               return (
                 <tr
                   key={r.clerk_id}
-                  className="border-t border-slate-200 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-900/50"
+                  className="border-t border-bronze hover:bg-surface dark:border-bronze dark:hover:bg-surface/50"
                 >
                   <td className="px-4 py-3">
                     <Link
                       href={`/tutor/${r.clerk_id}`}
-                      className="font-semibold text-slate-900 hover:text-blue-600 dark:text-white"
+                      className="font-semibold text-ivory hover:text-info dark:text-ivory"
                     >
                       {display}
                     </Link>
                     {display !== r.email && (
-                      <div className="font-mono text-[11px] text-slate-400">{r.email}</div>
+                      <div className="font-mono text-[11px] text-taupe">{r.email}</div>
                     )}
                   </td>
                   <td className="px-4 py-3">
@@ -235,7 +235,7 @@ export default function StudentTable({ rows, cohorts = [] }: Props) {
                         {PLAN_LABEL[r.plan_tier]}
                       </span>
                     ) : (
-                      <span className="text-xs text-slate-400">—</span>
+                      <span className="text-xs text-taupe">—</span>
                     )}
                   </td>
                   <td className="px-4 py-3">
@@ -250,37 +250,37 @@ export default function StudentTable({ rows, cohorts = [] }: Props) {
                       {atmo}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-right tabular-nums text-slate-700 dark:text-slate-300">
+                  <td className="px-4 py-3 text-right tabular-nums text-ivory dark:text-ivory">
                     {readingPct}%{" "}
-                    <span className="text-xs text-slate-400">
+                    <span className="text-xs text-taupe">
                       ({r.reading_mastered}/{r.reading_total})
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-right tabular-nums text-slate-700 dark:text-slate-300">
+                  <td className="px-4 py-3 text-right tabular-nums text-ivory dark:text-ivory">
                     {mathPct}%{" "}
-                    <span className="text-xs text-slate-400">
+                    <span className="text-xs text-taupe">
                       ({r.math_mastered}/{r.math_total})
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-xs text-slate-400" data-testid="last-active-cell">
+                  <td className="px-4 py-3 text-xs text-taupe" data-testid="last-active-cell">
                     {r.last_active ? new Date(r.last_active).toLocaleString() : "Never"}
                   </td>
                   <td className="px-4 py-3 text-right">
                     {r.flagged_open > 0 ? (
-                      <span className="inline-flex items-center gap-1 font-semibold text-rose-600 dark:text-rose-400">
+                      <span className="inline-flex items-center gap-1 font-semibold text-error dark:text-error">
                         <Flag className="h-3 w-3" /> {r.flagged_open}
                       </span>
                     ) : (
-                      <span className="text-slate-400">0</span>
+                      <span className="text-taupe">0</span>
                     )}
                   </td>
                   <td className="px-4 py-3 text-right">
                     {r.struggling_count > 0 ? (
-                      <span className="font-semibold tabular-nums text-red-600 dark:text-red-400">
+                      <span className="font-semibold tabular-nums text-error dark:text-error">
                         {r.struggling_count}
                       </span>
                     ) : (
-                      <span className="text-slate-400">0</span>
+                      <span className="text-taupe">0</span>
                     )}
                   </td>
                 </tr>
