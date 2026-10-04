@@ -35,8 +35,43 @@ export async function createQuizAttempt(studentId: string, nodeId: string): Prom
   return data as unknown as QuizAttempt;
 }
 
+export async function fetchIncompleteQuizAttempt(
+  studentId: string,
+  nodeId: string
+): Promise<QuizAttempt | null> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("quiz_attempts")
+    .select("*")
+    .eq("student_id", studentId)
+    .eq("node_id", nodeId)
+    .is("completed_at", null)
+    .order("started_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+  return (data as QuizAttempt | null) ?? null;
+}
+
+export async function fetchQuizAttemptForStudent(
+  attemptId: string,
+  studentId: string
+): Promise<QuizAttempt | null> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("quiz_attempts")
+    .select("*")
+    .eq("id", attemptId)
+    .eq("student_id", studentId)
+    .maybeSingle();
+  if (error) throw error;
+  return (data as QuizAttempt | null) ?? null;
+}
+
 export async function finalizeQuizAttempt(
   attemptId: string,
+  studentId: string,
+  nodeId: string,
   input: {
     score: number;
     questions_answered: number;
@@ -44,9 +79,9 @@ export async function finalizeQuizAttempt(
     confidence_band: ConfidenceBand;
     adaptive_path: AdaptiveStep[];
   }
-): Promise<void> {
+): Promise<boolean> {
   const supabase = createAdminClient();
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("quiz_attempts")
     .update({
       score: input.score,
@@ -56,8 +91,13 @@ export async function finalizeQuizAttempt(
       adaptive_path: input.adaptive_path as unknown as Json,
       completed_at: new Date().toISOString(),
     })
-    .eq("id", attemptId);
+    .eq("id", attemptId)
+    .eq("student_id", studentId)
+    .eq("node_id", nodeId)
+    .is("completed_at", null)
+    .select("id");
   if (error) throw error;
+  return (data?.length ?? 0) === 1;
 }
 
 export async function recordQuestionResponse(input: {
@@ -71,6 +111,15 @@ export async function recordQuestionResponse(input: {
   response_time_seconds: number;
 }): Promise<QuestionResponse> {
   const supabase = createAdminClient();
+  const { data: prior, error: priorError } = await supabase
+    .from("question_responses")
+    .select("*")
+    .eq("attempt_id", input.attempt_id)
+    .eq("question_id", input.question_id)
+    .order("answered_at", { ascending: true })
+    .limit(1);
+  if (priorError) throw priorError;
+  if (prior?.[0]) return prior[0] as QuestionResponse;
   const { data, error } = await supabase.from("question_responses").insert(input).select().single();
   if (error || !data) throw error ?? new Error("Failed to record response");
   return data as QuestionResponse;

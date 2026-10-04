@@ -29,10 +29,11 @@
 
 import { createHash } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database } from "@/types/supabase";
+import type { Database, Json } from "@/types/supabase";
 import {
   isValidSlug,
   isValidDomain,
+  domainFromSlug,
   clusterFromSlug,
   nodeIdFromSlug,
   CLUSTER_BY_DOMAIN,
@@ -78,6 +79,16 @@ export interface ImportQuestionInput {
   source_pdf?: string;
   source_page?: number | string;
   content_hash?: string; // v1 hash kept for back-compat; v2 is computed here
+  source_provider?: string;
+  source_identity_required?: boolean;
+  source_document_id?: string;
+  source_provider_version_id?: string;
+  source_version?: string;
+  source_section?: "reading" | "math";
+  source_module?: "M1" | "M2";
+  source_question_number?: number;
+  source_occurrence?: number;
+  source_regions?: Json;
 
   // ── Curriculum routing ──
   concept_slug?: string;
@@ -238,8 +249,27 @@ export function validateImportRow(row: ImportQuestionInput): {
   } else if (!isValidDomain(row.domain)) {
     errors.push(`unknown domain "${row.domain}"`);
   }
-  if (row.concept_slug && !isValidSlug(row.concept_slug)) {
-    errors.push(`unknown concept_slug "${row.concept_slug}"`);
+  if (row.concept_slug) {
+    if (!isValidSlug(row.concept_slug)) {
+      errors.push(`unknown concept_slug "${row.concept_slug}"`);
+    } else if (isValidDomain(row.domain) && domainFromSlug(row.concept_slug) !== row.domain) {
+      errors.push(
+        `concept_slug "${row.concept_slug}" belongs to domain "${domainFromSlug(row.concept_slug)}", not "${row.domain}"`
+      );
+    }
+  }
+  if (row.source_version) {
+    if (!/^[a-f0-9]{64}$/.test(row.source_version)) errors.push("invalid source_version");
+    if (
+      !row.source_section ||
+      !row.source_module ||
+      !row.source_question_number ||
+      !row.source_occurrence
+    ) {
+      errors.push("incomplete source question identity");
+    } else if (isValidDomain(row.domain) && row.source_section !== subjectFromDomain(row.domain)) {
+      errors.push(`source_section "${row.source_section}" does not match domain "${row.domain}"`);
+    }
   }
 
   const fmt = row.question_format ?? "multiple_choice";
@@ -390,6 +420,16 @@ export async function importQuestion(
     answer_source: row.answer_source ?? null,
     source_pdf: row.source_pdf || null,
     source_page: Number.isFinite(source_page as number) ? (source_page as number) : null,
+    source_provider: row.source_provider || null,
+    source_identity_required: row.source_identity_required ?? false,
+    source_document_id: row.source_document_id || null,
+    source_provider_version_id: row.source_provider_version_id || null,
+    source_version: row.source_version || null,
+    source_section: row.source_section || null,
+    source_module: row.source_module || null,
+    source_question_number: row.source_question_number ?? null,
+    source_occurrence: row.source_occurrence ?? null,
+    source_regions: row.source_regions ?? null,
     content_hash: row.content_hash || null,
     content_hash_v2,
     import_status: row.import_status ?? null,
@@ -408,9 +448,38 @@ export async function importQuestion(
     .single();
 
   if (qErr) {
-    // Postgres UNIQUE violation on (source_pdf, content_hash) →
-    // duplicate_skipped (not an error).
+    // A versioned retry is a duplicate only when the stored content,
+    // answer, and topic agree. Never silently discard a changed answer
+    // or remapped topic under the same source identity.
     if (qErr.code === "23505" || /duplicate/i.test(qErr.message)) {
+      if (row.source_version && row.source_section && row.source_module) {
+        const { data: existing, error: lookupErr } = await supabase
+          .from("quiz_questions")
+          .select("content_hash_v2, correct_answer, concept_slug")
+          .eq("source_version", row.source_version)
+          .eq("source_section", row.source_section)
+          .eq("source_module", row.source_module)
+          .eq("source_question_number", row.source_question_number!)
+          .eq("source_occurrence", row.source_occurrence!)
+          .maybeSingle();
+        if (
+          lookupErr ||
+          !existing ||
+          existing.content_hash_v2 !== content_hash_v2 ||
+          existing.correct_answer !== row.correct_answer ||
+          existing.concept_slug !== (row.concept_slug || null)
+        ) {
+          return {
+            inserted: false,
+            question_id: null,
+            duplicate_skipped: false,
+            flagged_for_review: false,
+            errors: [
+              "source identity conflict: existing question differs in content, answer, or topic",
+            ],
+          };
+        }
+      }
       return {
         inserted: false,
         question_id: null,

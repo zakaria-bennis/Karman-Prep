@@ -78,12 +78,13 @@ WHICH PAGES ARE QUESTIONS:
 - If a page shows only PART of a question that continues from / onto an adjacent visible page (e.g. a repeated figure + the remaining choices), MERGE it into the one question; do not emit a duplicate.
 
 FIELDS (emit exactly these; the system instructions list the canonical enums + 89 concept slugs):
-extraction_order, section, module_number, question_number, question_number_visible, question_text, choice_a, choice_b, choice_c, choice_d, correct_answer, difficulty, topic_cluster, passage, passage_intro, passage_a, passage_b, question_format, numeric_tolerance, domain, concept_slug, answer_source, source_page, has_figure, figure_alt, import_status, import_flag_reason.
+extraction_order, section, module_number, question_number, question_number_visible, occurrence_index, question_text, choice_a, choice_b, choice_c, choice_d, correct_answer, difficulty, topic_cluster, passage, passage_intro, passage_a, passage_b, question_format, numeric_tolerance, domain, concept_slug, answer_source, source_page, has_figure, figure_alt, import_status, import_flag_reason.
 
 KEY RULES:
 - source_page: the PDF page the question is on — one of ${list}. Use the page order (image 1 = page ${pages[0]}).
 - section + module_number: read the page header — "Section 1, Module 1: Reading and Writing" → section="reading_writing", module_number=1; "Section 2, Module 2: Math" → section="math", module_number=2.
 - question_number: the per-module number printed on the page ("Question 8 of 27" → 8). It RESTARTS at 1 each module. question_number_visible = the same number as a string. Never use a global running count.
+- occurrence_index: 1 for a unique question number within the section/module; if genuinely repeated, number occurrences in page order and flag them for review.
 - extraction_order: 1, 2, 3, … in page order WITHIN this batch (a global order is reassigned after merge).
 - READING & WRITING: stimulus goes in passage (or passage_a / passage_b for Text 1 / Text 2); question_text holds ONLY the stem. Never duplicate the passage into question_text.
 - MATH: passage / passage_intro / passage_a / passage_b all "". Student-produced-response questions have NO A-D choices — set question_format="numeric_entry", leave choices "", and still extract them.

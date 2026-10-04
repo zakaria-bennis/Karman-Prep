@@ -9,7 +9,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Check, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { MappedNode } from "../ConstellationMap";
-import { QUIZ_TOTAL_QUESTIONS, useQuiz } from "@/contexts/QuizContext";
+import { useQuiz } from "@/contexts/QuizContext";
 import type { QuizQuestionWithChoices } from "@/types/quiz";
 import MathText from "../MathText";
 import QuestionTable from "../QuestionTable";
@@ -48,7 +48,7 @@ export function ActiveQuizScreen({
   const correctLetter = q.correct_answer;
 
   // Progress dots
-  const dots = Array.from({ length: QUIZ_TOTAL_QUESTIONS }, (_, i) => {
+  const dots = Array.from({ length: state.targetLength }, (_, i) => {
     const rec = state.records[i];
     const isCurrent = i === state.currentIndex;
     const isAnswered = !!rec?.isCorrect || rec?.isCorrect === false;
@@ -70,7 +70,7 @@ export function ActiveQuizScreen({
         <div className="flex-1 text-center">
           <span className="text-sm font-semibold text-ivory/80">
             Question <span className="text-ivory">{state.currentIndex + 1}</span> of{" "}
-            {QUIZ_TOTAL_QUESTIONS}
+            {state.targetLength}
           </span>
         </div>
         <div className="flex flex-1 justify-end">
@@ -137,7 +137,7 @@ export function ActiveQuizScreen({
               onClick={onNext}
               className="rounded-xl bg-info px-8 py-3 text-sm font-bold text-ivory transition-colors hover:bg-info-bright"
             >
-              Next question →
+              {state.currentIndex + 1 >= state.targetLength ? "See results →" : "Next question →"}
             </button>
           </motion.div>
         ) : null;
@@ -301,7 +301,7 @@ export function ActiveQuizScreen({
                 onClick={onNext}
                 className="rounded-xl bg-info px-8 py-3 text-sm font-bold text-ivory transition-colors hover:bg-info-bright"
               >
-                Next question →
+                {state.currentIndex + 1 >= state.targetLength ? "See results →" : "Next question →"}
               </button>
             </div>
           </motion.div>

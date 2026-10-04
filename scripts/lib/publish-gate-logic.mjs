@@ -18,9 +18,17 @@ export function gateRequiredFields(q) {
     return { reason: "empty_correct_answer", suggestedStatus: "needs_human_review" };
   }
   if (q.answer_format === "multiple_choice") {
-    const letters = new Set((q.answer_choices ?? []).map((c) => c.letter));
+    const choices = q.answer_choices ?? [];
+    const letters = new Set(choices.map((c) => c.letter));
     if (!(letters.has("A") && letters.has("B") && letters.has("C") && letters.has("D"))) {
       return { reason: "mc_missing_choices", suggestedStatus: "corrupt_question" };
+    }
+    if (
+      ["A", "B", "C", "D"].some(
+        (letter) => !choices.some((c) => c.letter === letter && String(c.choice_text ?? "").trim())
+      )
+    ) {
+      return { reason: "mc_empty_choice_text", suggestedStatus: "corrupt_question" };
     }
   }
   return null;
@@ -56,6 +64,32 @@ export function gateSlug(q, validSlugs) {
       reason: `unknown_slug=${q.concept_slug}`,
       suggestedStatus: "blocked_slug_uncertain",
     };
+  }
+  return null;
+}
+
+/** New versioned imports require a reviewable source locator. Legacy
+ * rows are unaffected, but an operator flipping import_status to ok
+ * cannot bypass a missing identity on a new batch. */
+export function gateSourceIdentity(q) {
+  if (q.source_identity_required !== true) return null;
+  const complete =
+    /^[a-f0-9]{64}$/.test(q.source_version ?? "") &&
+    ["reading", "math"].includes(q.source_section) &&
+    ["M1", "M2"].includes(q.source_module) &&
+    Number.isInteger(q.source_question_number) &&
+    q.source_question_number > 0 &&
+    Number.isInteger(q.source_occurrence) &&
+    q.source_occurrence > 0 &&
+    Boolean(q.concept_slug);
+  if (!complete) {
+    return {
+      reason: "missing_versioned_source_identity_or_topic",
+      suggestedStatus: "needs_human_review",
+    };
+  }
+  if (q.source_provider === "box" && (!q.source_document_id || !q.source_provider_version_id)) {
+    return { reason: "missing_box_source_provenance", suggestedStatus: "needs_human_review" };
   }
   return null;
 }
@@ -562,6 +596,7 @@ export const ALL_GATES = [
   gateModelConsensusDispute, // → blocked_answer_dispute (v2 phase 6)
   gateEscalationDisagrees, // → blocked_answer_dispute (v2 phase 6)
   (q, slugs) => gateSlug(q, slugs), // → blocked_slug_uncertain
+  gateSourceIdentity, // → needs_human_review for incomplete new batches
   gateMissingVisual, // → blocked_missing_visual
   gateIrrelevantAttachedVisual, // → blocked_missing_visual (v2 phase 4)
   gateImportStatus, // → needs_human_review (specific reason)

@@ -6,7 +6,7 @@
 
 import { Calculator, Flag, PencilLine } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { QUIZ_TOTAL_QUESTIONS, useQuiz } from "@/contexts/QuizContext";
+import { useQuiz } from "@/contexts/QuizContext";
 import { ProgressDot } from "./ProgressDot";
 
 export function BottomToolbar({
@@ -22,7 +22,7 @@ export function BottomToolbar({
   onFlag: () => void;
   state: ReturnType<typeof useQuiz>["state"];
 }) {
-  const dots = Array.from({ length: QUIZ_TOTAL_QUESTIONS }, (_, i) => {
+  const dots = Array.from({ length: state.targetLength }, (_, i) => {
     const rec = state.records[i];
     return {
       i,

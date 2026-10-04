@@ -17,11 +17,11 @@
 // ============================================================
 
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { safeAuth } from "@/lib/auth/dev-auth";
 import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/server";
-import { scoreDiagnostic, type AnswerInput } from "@/lib/diagnostic-scoring";
-import { SAT_DOMAINS } from "@/lib/question-bank/taxonomy";
+import { scoreDiagnostic } from "@/lib/diagnostic-scoring";
+import { canonicalDiagnosticAnswers } from "@/lib/diagnostic-submission";
 import type { Json } from "@/types/supabase";
 
 // Zod schema = source of truth. The TypeScript type is derived,
@@ -29,10 +29,6 @@ import type { Json } from "@/types/supabase";
 const AnswerSchema = z.object({
   questionId: z.string().min(1),
   selectedAnswer: z.string(),
-  domain: z.enum(SAT_DOMAINS),
-  difficulty: z.union([z.literal(1), z.literal(2), z.literal(3)]),
-  conceptId: z.string().optional(),
-  correct: z.boolean(),
 });
 
 const SubmitDiagnosticSchema = z.object({
@@ -41,7 +37,7 @@ const SubmitDiagnosticSchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
-    const { userId } = await auth();
+    const { userId } = await safeAuth();
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -58,16 +54,13 @@ export async function POST(req: NextRequest) {
     }
     const { answers } = parsed.data;
 
-    // Normalize to the engine's input shape. We trust the client's
-    // `correct` flag — it's already validated against the question
-    // bank during the quiz, and the question bank lives in code.
-    const inputs: AnswerInput[] = answers.map((a) => ({
-      questionId: a.questionId,
-      domain: a.domain,
-      difficulty: a.difficulty,
-      conceptId: a.conceptId,
-      correct: a.correct,
-    }));
+    const inputs = canonicalDiagnosticAnswers(answers);
+    if (!inputs) {
+      return NextResponse.json(
+        { error: "Diagnostic questions are incomplete or duplicated" },
+        { status: 400 }
+      );
+    }
 
     const result = scoreDiagnostic(inputs);
 

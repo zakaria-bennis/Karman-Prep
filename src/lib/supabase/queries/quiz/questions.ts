@@ -40,7 +40,8 @@ export const LIVE_FILTER = "import_status.is.null,import_status.eq.ok";
 // ── Question catalog ──────────────────────────────────────────
 
 /** Fetch questions for a curriculum node.
- *  Defaults to live-only (hides `needs_review` flagged questions).
+ *  Defaults to student-visible only. Both the legacy archive/review
+ *  filter and the v2 publication gate must allow a question through.
  *  Pass `{ includeFlagged: true }` from admin contexts that need
  *  to see everything. */
 export async function fetchQuestionsForNode(
@@ -49,7 +50,11 @@ export async function fetchQuestionsForNode(
 ): Promise<QuizQuestionWithChoices[]> {
   const supabase = createAdminClient();
   let query = supabase.from("quiz_questions").select("*, answer_choices(*)").eq("node_id", nodeId);
-  if (!opts.includeFlagged) query = query.eq("is_live", true);
+  if (!opts.includeFlagged) {
+    query = query
+      .eq("is_live", true)
+      .in("publish_status", ["publish_ready", "publish_ready_with_verified_repair"]);
+  }
   const { data, error } = await query
     .order("display_order", { ascending: true })
     .order("difficulty", { ascending: true });

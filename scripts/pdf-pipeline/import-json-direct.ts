@@ -30,8 +30,9 @@
 
 import { readFileSync } from "node:fs";
 import { basename, resolve } from "node:path";
+import { createHash } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
-import { rowToImportInput, importQuestion } from "./import-json-direct-row";
+import { preflightImportRows, importQuestion } from "./import-json-direct-row";
 import type { Database } from "@/types/supabase";
 
 const jsonArg = process.argv[2];
@@ -51,6 +52,7 @@ if (!jsonArg || !pdfArg) {
 //   source_pdf = basename(pdfArg)
 // e.g. "/tmp/pdf-job-xyz/202406asiav2.pdf" → "202406asiav2.pdf"
 const sourcePdfName = basename(pdfArg);
+const sourceVersion = createHash("sha256").update(readFileSync(pdfArg)).digest("hex");
 
 const SUPA_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const SUPA_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -86,6 +88,16 @@ if (rows.length === 0) {
 }
 
 console.log(`Loaded ${rows.length} questions from ${jsonPath}`);
+const preflight = preflightImportRows(
+  rows,
+  sourcePdfName,
+  sourceVersion,
+  process.argv.includes("--require-source-identity")
+);
+if (preflight.errors.length > 0) {
+  console.error(`Import preflight failed before database writes:\n${preflight.errors.join("\n")}`);
+  process.exit(2);
+}
 
 // Note: rowToImportInput is exported from ./import-json-direct-row
 // so vitest can exercise it without pulling in the CLI side-effects
@@ -102,14 +114,8 @@ async function main() {
     errors: [] as Array<{ row: number; message: string }>,
   };
 
-  for (let i = 0; i < rows.length; i++) {
-    const row = rows[i];
-    const normalized = rowToImportInput(row, sourcePdfName);
-    if ("error" in normalized) {
-      summary.errored++;
-      summary.errors.push({ row: i + 1, message: normalized.error });
-      continue;
-    }
+  for (let i = 0; i < preflight.inputs.length; i++) {
+    const normalized = preflight.inputs[i];
     try {
       const result = await importQuestion(supabase, normalized);
       if (result.duplicate_skipped) {

@@ -203,10 +203,6 @@ export function useDiagnosticState({ questions, isSubscribed }: DiagnosticStateA
     const payload = questions.map((q) => ({
       questionId: q.id,
       selectedAnswer: answers[q.id] || "",
-      domain: q.domain,
-      difficulty: q.difficulty,
-      conceptId: q.conceptId,
-      correct: answers[q.id] === q.correct,
     }));
 
     try {

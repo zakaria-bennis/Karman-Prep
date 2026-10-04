@@ -161,6 +161,10 @@ const responseSchema = {
             enum: ["extracted", "inferred", "hand_corrected"],
           },
           source_page: { type: "INTEGER" },
+          section: { type: "STRING" },
+          module_number: { type: "INTEGER" },
+          question_number: { type: "INTEGER" },
+          occurrence_index: { type: "INTEGER" },
           import_status: { type: "STRING", enum: ["ok", "needs_review"] },
           import_flag_reason: { type: "STRING" },
           // Figure detection — Gemini flags questions whose meaning

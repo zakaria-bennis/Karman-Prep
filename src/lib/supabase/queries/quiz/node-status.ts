@@ -17,7 +17,7 @@ export async function updateNodeAfterQuiz(
 
   const { data: existing } = await supabase
     .from("learn_node_status")
-    .select("status, best_quiz_score, consecutive_passes")
+    .select("status, best_quiz_score, consecutive_passes, attempts")
     .eq("user_id", studentId)
     .eq("node_id", nodeId)
     .single();
@@ -38,18 +38,22 @@ export async function updateNodeAfterQuiz(
     newStatus = "in_progress";
   }
 
-  await supabase.from("learn_node_status").upsert({
-    user_id: studentId,
-    node_id: nodeId,
-    status: newStatus,
-    last_quiz_score: score,
-    best_quiz_score: Math.max(bestBefore, score),
-    consecutive_passes: consecutive,
-    confidence_band: band,
-    attempts: ((existing as { attempts?: number } | null)?.attempts ?? 0) + 1,
-    updated_at: new Date().toISOString(),
-    completed_at: newStatus === "mastered" ? new Date().toISOString() : null,
-  });
+  const { error } = await supabase.from("learn_node_status").upsert(
+    {
+      user_id: studentId,
+      node_id: nodeId,
+      status: newStatus,
+      last_quiz_score: score,
+      best_quiz_score: Math.max(bestBefore, score),
+      consecutive_passes: consecutive,
+      confidence_band: band,
+      attempts: ((existing as { attempts?: number } | null)?.attempts ?? 0) + 1,
+      updated_at: new Date().toISOString(),
+      completed_at: newStatus === "mastered" ? new Date().toISOString() : null,
+    },
+    { onConflict: "user_id,node_id" }
+  );
+  if (error) throw error;
 
   // Placeholder hook for Prompt 3 (spaced repetition decay reset)
   await maybeResetNodeDecay(studentId, nodeId, newStatus);
@@ -75,12 +79,16 @@ export async function updateWatchPercentage(
   percentage: number
 ): Promise<void> {
   const supabase = createAdminClient();
-  await supabase.from("learn_node_status").upsert({
-    user_id: studentId,
-    node_id: nodeId,
-    watch_percentage: Math.max(0, Math.min(100, Math.round(percentage))),
-    updated_at: new Date().toISOString(),
-  });
+  const { error } = await supabase.from("learn_node_status").upsert(
+    {
+      user_id: studentId,
+      node_id: nodeId,
+      watch_percentage: Math.max(0, Math.min(100, Math.round(percentage))),
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "user_id,node_id" }
+  );
+  if (error) throw error;
 }
 
 export async function fetchNodeStatusBundle(

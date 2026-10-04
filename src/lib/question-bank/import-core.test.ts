@@ -176,6 +176,22 @@ describe("validateImportRow — required-field rejections", () => {
     expect(r.ok).toBe(false);
     expect(r.errors.some((e) => /concept_slug/.test(e))).toBe(true);
   });
+
+  it("rejects a known concept_slug from another domain", () => {
+    const r = validateImportRow(
+      validRow({ domain: "algebra", concept_slug: "triangle-congruence-and-similarity" })
+    );
+    expect(r.ok).toBe(false);
+    expect(r.errors).toContain(
+      'concept_slug "triangle-congruence-and-similarity" belongs to domain "geometry", not "algebra"'
+    );
+  });
+
+  it("accepts a concept_slug in the row's domain", () => {
+    expect(validateImportRow(validRow({ concept_slug: "linear-equations-one-variable" })).ok).toBe(
+      true
+    );
+  });
 });
 
 describe("validateImportRow — MC-specific rules", () => {
@@ -253,10 +269,26 @@ describe("validateImportRow — needs_review flag rule", () => {
   });
 });
 
+describe("validateImportRow — versioned source identity", () => {
+  it("rejects a source section that disagrees with the question domain", () => {
+    const r = validateImportRow(
+      validRow({
+        source_version: "a".repeat(64),
+        source_section: "reading",
+        source_module: "M1",
+        source_question_number: 1,
+        source_occurrence: 1,
+      })
+    );
+    expect(r.errors).toContain('source_section "reading" does not match domain "algebra"');
+  });
+});
+
 // ── importQuestion (mocked Supabase) ─────────────────────────
 
 function mockSupabase(
-  inserts: Record<string, { data?: unknown; error?: { code?: string; message: string } | null }>
+  inserts: Record<string, { data?: unknown; error?: { code?: string; message: string } | null }>,
+  lookup?: Record<string, unknown>
 ) {
   const calls: Array<{ table: string; payload: unknown; method: string }> = [];
   function make(table: string) {
@@ -266,6 +298,7 @@ function mockSupabase(
       eq: (...args: unknown[]) => typeof builder;
       select: () => typeof builder;
       single: () => unknown;
+      maybeSingle: () => unknown;
       then: (cb: (r: unknown) => unknown) => unknown;
     } = {
       insert(payload: unknown) {
@@ -285,6 +318,9 @@ function mockSupabase(
       single() {
         const result = inserts[table] ?? { data: { id: `mock-${table}-id` }, error: null };
         return Promise.resolve(result);
+      },
+      maybeSingle() {
+        return Promise.resolve({ data: lookup?.[table] ?? null, error: null });
       },
       then(cb: (r: unknown) => unknown) {
         const result = inserts[table] ?? { data: null, error: null };
@@ -425,6 +461,76 @@ describe("importQuestion — DB write shape", () => {
     expect(result.duplicate_skipped).toBe(true);
     expect(result.inserted).toBe(false);
     expect(result.errors).toEqual([]);
+  });
+
+  it("skips an identical retry with a versioned source identity", async () => {
+    const row = validRow({
+      source_version: "a".repeat(64),
+      source_section: "math",
+      source_module: "M1",
+      source_question_number: 1,
+      source_occurrence: 1,
+      concept_slug: "linear-equations-one-variable",
+    });
+    const { client } = mockSupabase(
+      {
+        quiz_questions: {
+          data: null,
+          error: { code: "23505", message: "duplicate key value" },
+        },
+      },
+      {
+        quiz_questions: {
+          content_hash_v2: computeContentHashV2({
+            subject: "math",
+            domain: "algebra",
+            answer_format: "multiple_choice",
+            question_text: row.question_text,
+            choice_a: row.choice_a,
+            choice_b: row.choice_b,
+            choice_c: row.choice_c,
+            choice_d: row.choice_d,
+          }),
+          correct_answer: "B",
+          concept_slug: row.concept_slug,
+        },
+      }
+    );
+    const result = await importQuestion(client, row);
+    expect(result.duplicate_skipped).toBe(true);
+    expect(result.errors).toEqual([]);
+  });
+
+  it("reports changed answers under the same source identity as a conflict", async () => {
+    const { client } = mockSupabase(
+      {
+        quiz_questions: {
+          data: null,
+          error: { code: "23505", message: "duplicate key value" },
+        },
+      },
+      {
+        quiz_questions: {
+          content_hash_v2: "a".repeat(64),
+          correct_answer: "A",
+          concept_slug: null,
+        },
+      }
+    );
+    const result = await importQuestion(
+      client,
+      validRow({
+        source_version: "a".repeat(64),
+        source_section: "math",
+        source_module: "M1",
+        source_question_number: 1,
+        source_occurrence: 1,
+      })
+    );
+    expect(result.duplicate_skipped).toBe(false);
+    expect(result.errors).toEqual([
+      "source identity conflict: existing question differs in content, answer, or topic",
+    ]);
   });
 
   it("returns errors[] when validation fails (no DB call made)", async () => {

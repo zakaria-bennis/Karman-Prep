@@ -9,7 +9,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { Flag, Loader2 } from "lucide-react";
 import type { MappedNode } from "./ConstellationMap";
-import { QUIZ_TOTAL_QUESTIONS, useQuiz } from "@/contexts/QuizContext";
+import { useQuiz } from "@/contexts/QuizContext";
 import type { QuizQuestionWithChoices } from "@/types/quiz";
 import DesmosWindow from "./DesmosWindow";
 import Scratchpad from "./Scratchpad";
@@ -261,7 +261,7 @@ export default function QuizEngine({ node, videoUrl, onClose, onGoToNext }: Prop
           <QuizResults
             score={state.score}
             correct={state.correctCount}
-            total={QUIZ_TOTAL_QUESTIONS}
+            total={state.targetLength}
             band={state.confidenceBand}
             records={state.records}
             questions={state.selectedQuestions}

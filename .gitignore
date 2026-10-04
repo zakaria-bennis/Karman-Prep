@@ -79,3 +79,6 @@ audit-out/
 
 # Loose source PDFs — raw imports go through incoming/done, never commit raw
 /question-imports/*.pdf
+
+# clerk configuration (can include secrets)
+/.clerk/

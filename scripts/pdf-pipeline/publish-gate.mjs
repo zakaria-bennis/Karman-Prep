@@ -31,9 +31,9 @@
 // ============================================================
 
 import { createClient } from "@supabase/supabase-js";
-import { readFileSync } from "node:fs";
 import { computePublishStatus } from "../lib/publish-gate-logic.mjs";
 import { hydrateBlockingFindings } from "../lib/findings.mjs";
+import { CONCEPT_SLUG_VALUES } from "../lib/taxonomy.generated.mjs";
 
 const args = process.argv.slice(2);
 const DRY_RUN = args.includes("--dry-run");
@@ -98,18 +98,12 @@ function aggregatePhase4VisualSignals(assets) {
   };
 }
 
-// ── Build canonical 89-slug set ───────────────────────────────
-// Regex-parse the curriculum source file so this script doesn't
-// need tsx. Mirrors what import-csv-direct.mjs does. If the file
-// is missing (lean CI), we skip the slug check.
-const VALID_SLUGS = new Set();
-try {
-  const curr = readFileSync("src/data/curriculum.ts", "utf-8");
-  const re = /concept_slug:\s*"([a-z0-9-]+)"/g;
-  let m;
-  while ((m = re.exec(curr)) !== null) VALID_SLUGS.add(m[1]);
-} catch {
-  // ENOENT — leave VALID_SLUGS empty; slug gate becomes a no-op.
+// Use the generated taxonomy shared by the .mjs pipeline. The old
+// curriculum.ts path no longer exists, so its catch silently disabled
+// slug validation. CI checks that this generated file stays in sync.
+const VALID_SLUGS = new Set(CONCEPT_SLUG_VALUES);
+if (VALID_SLUGS.size === 0) {
+  throw new Error("Publish gate cannot run with an empty concept taxonomy");
 }
 
 // Gate functions live in scripts/lib/publish-gate-logic.mjs so they
@@ -125,6 +119,8 @@ async function main() {
   let query = supabase.from("quiz_questions").select(
     "id, source_pdf, source_page, publish_status, import_status, import_flag_type, " +
       "import_flag_reason, concept_slug, question_text, correct_answer, answer_format, " +
+      "source_identity_required, source_version, source_section, source_module, " +
+      "source_question_number, source_occurrence, source_provider, source_document_id, source_provider_version_id, " +
       "explanation_text, image_url, grader_votes, " +
       "answer_key_status, answer_verification_status, selected_official_answer, " +
       "source_assets_processed_at, source_assets_processed_status, " +

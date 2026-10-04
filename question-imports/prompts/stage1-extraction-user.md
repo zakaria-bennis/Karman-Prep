@@ -56,6 +56,7 @@ QUESTION NUMBERING:
   - Math Module 1: 1 to about 22
   - Math Module 2: 1 to about 22 (restarts at 1)
 - question_number must equal question_number_visible (the same number printed next to the question, written as a string). They always match.
+- occurrence_index is 1 for a unique printed number within a section and module. If the same number genuinely occurs twice there, use 1 then 2 in page order; flag both for human review.
 - Do NOT use a running or global count across modules for question_number.
 - extraction_order is the ONLY field that counts continuously across the whole PDF: 1, 2, 3, … in extraction order, spanning all modules.
 
@@ -77,6 +78,7 @@ It shows the field SHAPE only. Emit REAL values for every question — never the
 "module_number": 1,
 "question_number": 1,
 "question_number_visible": "1",
+"occurrence_index": 1,
 "question_text": "<exact question stem from the PDF>",
 "choice_a": "<choice A text from the PDF>",
 "choice_b": "<choice B text from the PDF>",
@@ -138,6 +140,7 @@ For each question, extract exactly these fields:
 - module_number
 - question_number
 - question_number_visible
+- occurrence_index
 - question_text
 - choice_a, choice_b, choice_c, choice_d for multiple choice
 - correct_answer

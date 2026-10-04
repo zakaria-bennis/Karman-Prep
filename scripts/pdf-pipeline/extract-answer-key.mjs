@@ -38,6 +38,7 @@
 import { spawnSync } from "node:child_process";
 import { readFileSync, writeFileSync, mkdirSync, existsSync, unlinkSync } from "node:fs";
 import { basename, join } from "node:path";
+import { createHash } from "node:crypto";
 import { tmpdir } from "node:os";
 import { createClient } from "@supabase/supabase-js";
 import { callGemini, QuotaExhaustedError } from "../lib/llm-providers.mjs";
@@ -45,6 +46,7 @@ import {
   selectOfficialAnswerFromEntry,
   CORRECTION_CONFIDENCE_THRESHOLDS,
 } from "../lib/answer-key-logic.mjs";
+import { answerKeyEntryId, matchAnswerEntries } from "../lib/source-question-identity.mjs";
 
 const args = process.argv.slice(2);
 const pdfArg = args.find((a) => !a.startsWith("--") && a.endsWith(".pdf"));
@@ -191,6 +193,7 @@ For EACH entry you must record:
 - section: one of "reading", "math", or null if you cannot tell
 - module: "M1", "M2", "1", "2", or null if not labeled
 - source_question_number: the question number (1-based)
+- occurrence_index: 1 for a unique number in this section/module; if repeated, 1 then 2 in page order
 - printed_answer: the answer that's PRINTED on the page (uppercase letter for MC, the numeric value as a string for Math student-produced response). null if unreadable.
 - printed_answer_confidence: 0.0-1.0
 - answer_mode: "multiple_choice" if A/B/C/D, "numeric_entry" if a numeric value
@@ -226,6 +229,7 @@ const EXTRACT_ENTRIES_SCHEMA = {
           section: { type: "STRING", nullable: true },
           module: { type: "STRING", nullable: true },
           source_question_number: { type: "INTEGER", nullable: true },
+          occurrence_index: { type: "INTEGER", nullable: true },
           printed_answer: { type: "STRING", nullable: true },
           printed_answer_confidence: { type: "NUMBER" },
           answer_mode: { type: "STRING" },
@@ -371,56 +375,22 @@ async function cropRow(pagePngPath, bbox) {
 }
 
 // ── Stage 6: match entries to quiz_questions ──────────────────
-// Strategy: for each (section, source_question_number) pair, find
-// the corresponding quiz_questions row by ordering. Questions are
-// loaded sorted by (subject, source_page, then natural order); the
-// Nth entry in the key for a section corresponds to the Nth question
-// in that section.
-//
-// If counts don't match between key entries and quiz rows for a
-// section, mark all entries as answer_key_row_unmatched.
-async function matchEntriesToQuestions(entries) {
+// A key row can attach only when source file version, section, module,
+// visible question number, and occurrence identify exactly one row.
+// Older imported questions without this identity remain unmatched.
+async function matchEntriesToQuestions(entries, sourceVersion) {
   if (!supabase) return new Map();
   const { data: rows, error } = await supabase
     .from("quiz_questions")
-    .select("id, subject, source_pdf, source_page")
-    .eq("source_pdf", SOURCE_PDF)
-    .order("subject")
-    .order("source_page")
-    .order("id");
+    .select(
+      "id, source_pdf, source_version, source_section, source_module, source_question_number, source_occurrence"
+    )
+    .eq("source_version", sourceVersion);
   if (error) throw error;
-  const bySection = { reading: [], math: [] };
-  for (const r of rows ?? []) {
-    if (r.subject === "reading") bySection.reading.push(r.id);
-    else if (r.subject === "math") bySection.math.push(r.id);
-  }
-
-  // Group entries by section, ordered by source_question_number.
-  const entriesBySection = { reading: [], math: [] };
-  for (const e of entries) {
-    const s = e.section === "math" || e.section === "reading" ? e.section : null;
-    if (s) entriesBySection[s].push(e);
-  }
-  for (const s of ["reading", "math"]) {
-    entriesBySection[s].sort(
-      (a, b) => (a.source_question_number ?? 9999) - (b.source_question_number ?? 9999)
-    );
-  }
-
-  const out = new Map();
-  for (const section of ["reading", "math"]) {
-    const entryList = entriesBySection[section];
-    const qIds = bySection[section];
-    if (entryList.length !== qIds.length) {
-      console.log(
-        `  matching mismatch in section=${section}: ${entryList.length} entries vs ${qIds.length} questions. Marking all entries unmatched.`
-      );
-      for (const e of entryList) out.set(e, null);
-      continue;
-    }
-    entryList.forEach((e, i) => out.set(e, qIds[i]));
-  }
-  return out;
+  return matchAnswerEntries(
+    entries.map((e) => Object.assign(e, { source_pdf: SOURCE_PDF, source_version: sourceVersion })),
+    rows ?? []
+  );
 }
 
 // ── Main ──────────────────────────────────────────────────────
@@ -444,6 +414,7 @@ async function main() {
   }
 
   const pdfBuf = readFileSync(pdfArg);
+  const sourceVersion = createHash("sha256").update(pdfBuf).digest("hex");
   if (pdfBuf.length > 18 * 1024 * 1024) {
     throw new Error(`PDF too large (${pdfBuf.length} bytes) for Gemini inline upload (18MB cap)`);
   }
@@ -565,7 +536,7 @@ async function main() {
 
   // Stage 6: match to questions
   console.log("\nMatching entries to quiz_questions…");
-  const matchMap = await matchEntriesToQuestions(allEntries);
+  const matchMap = await matchEntriesToQuestions(allEntries, sourceVersion);
 
   // Stage 7: register source_assets for page images
   for (const pa of pageAssets) {
@@ -597,43 +568,46 @@ async function main() {
       ? `matching failed — ${e.section ?? "?"} q${e.source_question_number ?? "?"}`
       : verdict.review_reason;
 
-    // INSERT into answer_key_entries (we don't upsert because the
-    // shell from Phase 1 used a "phase1_seed_*" selection_reason;
-    // Phase 2 entries are independent rows that supersede the seed
-    // logically. Admin UI should display the latest one.)
-    const insErr = await supabase
-      .from("answer_key_entries")
-      .insert({
-        question_id: matchedQuestionId,
-        section: e.section,
-        module: e.module,
-        source_question_number: e.source_question_number,
-        answer_mode: e.answer_mode,
-        printed_answer: e.printed_answer,
-        printed_answer_confidence: e.printed_answer_confidence,
-        printed_answer_crossed_out: e.printed_answer_crossed_out,
-        printed_answer_crossed_out_confidence: e.printed_answer_crossed_out_confidence,
-        manual_correction_present: e.manual_correction_present,
-        manual_correction_color: e.manual_correction_color,
-        manual_correction_answer: e.manual_correction_answer,
-        manual_correction_confidence: e.manual_correction_confidence,
-        selected_official_answer: verdict.selected_official_answer,
-        selected_official_answer_confidence: verdict.selected_confidence,
-        selection_reason: `phase2_extract_${verdict.status}`,
-        status: finalStatus,
-        answer_key_crop_path: e._page_r2_key,
-        answer_key_page: e._answer_key_page,
-        answer_key_bbox: e.bbox ?? null,
-        correction_detection_model: e._escalated ? "gemini-2.5-pro" : "gemini-2.5-flash",
-        correction_detection_provider: "google",
-        review_required: reviewRequired,
-        review_reason: reviewReason,
-        raw_model_response: {
-          flash: { ...e },
-          escalation_reasoning: e._escalation_reasoning ?? null,
-        },
-      })
-      .then((r) => r.error);
+    // A matched Phase 2 entry has a deterministic id, so retrying this
+    // source version updates its correction evidence rather than adding
+    // duplicate rows. Phase 1 seeds have unrelated random IDs.
+    const entryPayload = {
+      ...(matchedQuestionId ? { id: answerKeyEntryId(e) } : {}),
+      question_id: matchedQuestionId,
+      section: e.section,
+      module: e.module,
+      source_question_number: e.source_question_number,
+      source_version: sourceVersion,
+      source_occurrence: e.occurrence_index ?? 1,
+      answer_mode: e.answer_mode,
+      printed_answer: e.printed_answer,
+      printed_answer_confidence: e.printed_answer_confidence,
+      printed_answer_crossed_out: e.printed_answer_crossed_out,
+      printed_answer_crossed_out_confidence: e.printed_answer_crossed_out_confidence,
+      manual_correction_present: e.manual_correction_present,
+      manual_correction_color: e.manual_correction_color,
+      manual_correction_answer: e.manual_correction_answer,
+      manual_correction_confidence: e.manual_correction_confidence,
+      selected_official_answer: verdict.selected_official_answer,
+      selected_official_answer_confidence: verdict.selected_confidence,
+      selection_reason: `phase2_extract_${verdict.status}`,
+      status: finalStatus,
+      answer_key_crop_path: e._page_r2_key,
+      answer_key_page: e._answer_key_page,
+      answer_key_bbox: e.bbox ?? null,
+      correction_detection_model: e._escalated ? "gemini-2.5-pro" : "gemini-2.5-flash",
+      correction_detection_provider: "google",
+      review_required: reviewRequired,
+      review_reason: reviewReason,
+      raw_model_response: {
+        flash: { ...e },
+        escalation_reasoning: e._escalation_reasoning ?? null,
+      },
+    };
+    const entryWrite = matchedQuestionId
+      ? supabase.from("answer_key_entries").upsert(entryPayload, { onConflict: "id" })
+      : supabase.from("answer_key_entries").insert(entryPayload);
+    const insErr = await entryWrite.then((r) => r.error);
     if (insErr) {
       dbErrors++;
       if (dbErrors <= 3) console.log(`  ✗ ake insert: ${insErr.message}`);
