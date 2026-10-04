@@ -48,7 +48,7 @@ export default function FigureFrame({
       <img
         src={src}
         alt={alt}
-        className={cn("mx-auto block w-auto rounded object-contain", maxHeightClass)}
+        className={cn("mx-auto block h-auto max-w-full rounded object-contain", maxHeightClass)}
       />
     </figure>
   );
