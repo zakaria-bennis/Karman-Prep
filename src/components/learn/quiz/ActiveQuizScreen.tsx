@@ -17,6 +17,7 @@ import ChartFigure from "../ChartFigure";
 import GeometryFigure from "../GeometryFigure";
 import FigureFrame from "../FigureFrame";
 import { ProgressDot } from "./ProgressDot";
+import { TableChoiceOption } from "./TableChoiceOption";
 
 export function ActiveQuizScreen({
   node,
@@ -163,6 +164,21 @@ export function ActiveQuizScreen({
                 const isCorrect = letter === correctLetter;
                 const showCorrect = isSubmitted && isCorrect;
                 const showWrong = isSubmitted && isSelected && !isCorrect;
+                if (choice.choice_table_data) {
+                  return (
+                    <TableChoiceOption
+                      key={letter}
+                      id={`quiz-${q.id}-choice-${letter}`}
+                      groupName={`quiz-${q.id}-choice`}
+                      letter={letter}
+                      table={choice.choice_table_data}
+                      selected={isSelected}
+                      submitted={isSubmitted}
+                      correct={isCorrect}
+                      onSelect={onSelectAnswer}
+                    />
+                  );
+                }
                 return (
                   <button
                     key={letter}

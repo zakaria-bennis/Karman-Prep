@@ -20,6 +20,10 @@ import { safeAuth } from "@/lib/auth/dev-auth";
 import { revalidatePath } from "next/cache";
 import { requireRole } from "@/lib/supabase/queries/admin";
 import type { Database } from "@/types/supabase";
+import type { Json } from "@/types/supabase";
+import type { QuestionTableData } from "@/types/question-table";
+import { isValidChoiceTableData } from "@/lib/question-bank/choice-table";
+import { inspectedQuestionEditSchema } from "./schemas";
 
 async function guardAdmin(): Promise<string> {
   const { userId } = await safeAuth();
@@ -61,6 +65,8 @@ export interface InspectedQuestionEdit {
   correct_answer?: string;
   /** Only for MC questions — text per letter. */
   choices?: { A?: string; B?: string; C?: string; D?: string };
+  /** Null removes the optional visual, leaving the accessible text choice. */
+  choice_tables?: Partial<Record<"A" | "B" | "C" | "D", QuestionTableData | null>>;
   /** Per-choice explanations — packed into the explanation_per_choice
    *  JSONB column. Each letter optional; pass an explicit "" to clear. */
   explanations_per_choice?: { A?: string; B?: string; C?: string; D?: string };
@@ -75,10 +81,15 @@ export async function actionUpdateInspectedQuestion(
   // where each edit came from.
   source: "inspector" | "preview" = "inspector"
 ): Promise<void> {
+  inspectedQuestionEditSchema.parse(input);
   const userId = await guardAdmin();
   const { createAdminClient } = await import("@/lib/supabase/server");
   const { buildSnapshot, insertHistoryRow } = await import("@/lib/supabase/queries/quiz/history");
   const supabase = createAdminClient();
+  for (const [letter, table] of Object.entries(input.choice_tables ?? {})) {
+    if (table != null && !isValidChoiceTableData(table))
+      throw new Error(`Choice ${letter} has invalid table data`);
+  }
 
   // Snapshot BEFORE so we can write to question_history at the end.
   const { data: beforeRow, error: beforeErr } = await supabase
@@ -127,16 +138,20 @@ export async function actionUpdateInspectedQuestion(
   const isAnswerLetter = (s: string | undefined): s is AnswerLetter =>
     s === "A" || s === "B" || s === "C" || s === "D";
 
-  if (input.choices) {
+  if (input.choices || input.choice_tables) {
+    const answer = input.correct_answer ?? beforeRow.correct_answer;
     for (const letter of ["A", "B", "C", "D"] as const) {
-      const text = input.choices[letter];
-      if (text === undefined) continue;
+      const text = input.choices?.[letter];
+      const table = input.choice_tables?.[letter];
+      if (text === undefined && table === undefined && input.correct_answer === undefined) continue;
+      const choicePatch: Database["public"]["Tables"]["answer_choices"]["Update"] = {
+        is_correct: answer === letter,
+      };
+      if (text !== undefined) choicePatch.choice_text = text;
+      if (table !== undefined) choicePatch.choice_table_data = (table as unknown as Json) ?? null;
       const { error: cErr } = await supabase
         .from("answer_choices")
-        .update({
-          choice_text: text,
-          is_correct: input.correct_answer === letter,
-        })
+        .update(choicePatch)
         .eq("question_id", input.questionId)
         .eq("letter", letter);
       if (cErr) throw cErr;
@@ -270,7 +285,11 @@ export async function actionRestoreQuestionVersion(input: {
   for (const ch of target.choices) {
     const { error: cErr } = await supabase
       .from("answer_choices")
-      .update({ choice_text: ch.choice_text, is_correct: ch.is_correct })
+      .update({
+        choice_text: ch.choice_text,
+        choice_table_data: (ch.choice_table_data as unknown as Json) ?? null,
+        is_correct: ch.is_correct,
+      })
       .eq("question_id", input.questionId)
       .eq("letter", ch.letter as "A" | "B" | "C" | "D");
     if (cErr) throw cErr;

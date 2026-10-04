@@ -12,12 +12,19 @@
 
 import { createAdminClient } from "@/lib/supabase/server";
 import type { Json, Database } from "@/types/supabase";
+import type { QuestionTableData } from "@/types/question-table";
 
 export interface RejectedQuestionRow {
   id: string;
   original_id: string;
   question_snapshot: Record<string, unknown>;
-  choices_snapshot: Array<{ letter: string; choice_text: string }>;
+  choices_snapshot: Array<{
+    letter: string;
+    choice_text: string;
+    raw_choice_text?: string | null;
+    choice_table_data?: QuestionTableData | null;
+    is_correct?: boolean;
+  }>;
   rejected_at: string;
   rejected_by_user_id: string | null;
   rejected_reason: string | null;
@@ -62,14 +69,22 @@ export async function softRejectQuestion(
   // Fetch the full row + its choices.
   const { data: q, error: qErr } = await supabase
     .from("quiz_questions")
-    .select("*, answer_choices(letter, choice_text)")
+    .select(
+      "*, answer_choices(letter, choice_text, raw_choice_text, choice_table_data, is_correct)"
+    )
     .eq("id", questionId)
     .maybeSingle();
   if (qErr) throw qErr;
   if (!q) return { rejected: false };
 
   const { answer_choices: choices, ...questionRow } = q as Record<string, unknown> & {
-    answer_choices?: Array<{ letter: string; choice_text: string }>;
+    answer_choices?: Array<{
+      letter: string;
+      choice_text: string;
+      raw_choice_text?: string | null;
+      choice_table_data?: QuestionTableData | null;
+      is_correct?: boolean;
+    }>;
   };
 
   // Insert into rejected_questions FIRST (so we never end up in a
@@ -131,7 +146,7 @@ export async function restoreRejectedQuestion(
 
   const snapshot = rejected.question_snapshot as Record<string, unknown>;
   const choicesSnapshot =
-    (rejected.choices_snapshot as Array<{ letter: string; choice_text: string }>) ?? [];
+    (rejected.choices_snapshot as RejectedQuestionRow["choices_snapshot"]) ?? [];
 
   // Carry the original UUID back so external references survive.
   // The snapshot was a full quiz_questions row at reject time, so we
@@ -161,11 +176,11 @@ export async function restoreRejectedQuestion(
       question_id: rejected.original_id,
       letter: c.letter as "A" | "B" | "C" | "D",
       choice_text: c.choice_text,
-      // v2 phase 5: snapshot doesn't carry raw_choice_text (rejected
-      // before Phase 5 existed). Re-seed it from the active text — the
-      // restore returns the question to the state it had pre-rejection,
-      // so raw == active is the right default.
-      raw_choice_text: c.choice_text,
+      choice_table_data: (c.choice_table_data as unknown as Json) ?? null,
+      // Older snapshots predate raw_choice_text and is_correct. Recover
+      // those from the display text and saved question key only then.
+      raw_choice_text: c.raw_choice_text ?? c.choice_text,
+      is_correct: c.is_correct ?? snapshot.correct_answer === c.letter,
     }));
     const { error: cErr } = await supabase.from("answer_choices").insert(choiceRows);
     if (cErr) {

@@ -17,6 +17,7 @@ import {
   impersonateRoleSchema,
   linkParentStudentInputSchema,
   newQuestionInputSchema,
+  inspectedQuestionEditSchema,
   quizDifficultyLevelSchema,
   quizDifficultySchema,
   reorderQuestionsInputSchema,
@@ -118,6 +119,48 @@ describe("newQuestionInputSchema", () => {
       choices: [{ letter: "E", choice_text: "x" }],
     });
     expect(r.success).toBe(false);
+  });
+
+  it("accepts a complete table on a choice and rejects a missing table cell", () => {
+    const table = {
+      header_row: ["x", "y"],
+      rows: [
+        ["1", "69/10"],
+        ["2", "63/10"],
+      ],
+    };
+    const choices = goodChoices.map((choice) =>
+      choice.letter === "D" ? { ...choice, choice_table_data: table } : choice
+    );
+    expect(newQuestionInputSchema.safeParse({ ...goodQuestion(), choices }).success).toBe(true);
+    const badChoices = goodChoices.map((choice) =>
+      choice.letter === "D"
+        ? {
+            ...choice,
+            choice_table_data: { header_row: ["x", "y"], rows: [["1", ""]] },
+          }
+        : choice
+    );
+    expect(
+      newQuestionInputSchema.safeParse({ ...goodQuestion(), choices: badChoices }).success
+    ).toBe(false);
+  });
+});
+
+describe("inspectedQuestionEditSchema", () => {
+  it("accepts a single reviewed table repair and rejects incomplete data", () => {
+    expect(
+      inspectedQuestionEditSchema.safeParse({
+        questionId: "q-1",
+        choice_tables: { D: { header_row: ["x", "y"], rows: [["1", "69/10"]] } },
+      }).success
+    ).toBe(true);
+    expect(
+      inspectedQuestionEditSchema.safeParse({
+        questionId: "q-1",
+        choice_tables: { D: { header_row: ["x", "y"], rows: [["1"]] } },
+      }).success
+    ).toBe(false);
   });
 });
 

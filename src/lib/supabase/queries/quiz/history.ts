@@ -11,6 +11,7 @@
 
 import { createAdminClient } from "@/lib/supabase/server";
 import type { QuizQuestionWithChoices } from "@/types/quiz";
+import type { QuestionTableData } from "@/types/question-table";
 
 export interface QuestionHistoryEntry {
   id: string;
@@ -49,7 +50,12 @@ export interface QuestionSnapshot {
   domain: string | null;
   topic_cluster: string | null;
   import_status: string | null;
-  choices: Array<{ letter: string; choice_text: string; is_correct: boolean }>;
+  choices: Array<{
+    letter: string;
+    choice_text: string;
+    choice_table_data?: QuestionTableData | null;
+    is_correct: boolean;
+  }>;
 }
 
 /** Build a snapshot object from a fetched question + its choices. */
@@ -79,6 +85,7 @@ export function buildSnapshot(q: QuizQuestionWithChoices): QuestionSnapshot {
     choices: q.answer_choices.map((c) => ({
       letter: c.letter,
       choice_text: c.choice_text,
+      choice_table_data: c.choice_table_data ?? null,
       is_correct: c.is_correct,
     })),
   };

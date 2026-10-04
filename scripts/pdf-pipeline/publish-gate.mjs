@@ -131,7 +131,7 @@ async function main() {
       "suggested_verified_answer, " +
       // v2 phase 7: opt-in marker + explanation_v2 status.
       "explanation_v2_filled_at, explanation_v2_status, " +
-      "answer_choices(letter, choice_text)"
+      "answer_choices(letter, choice_text, choice_table_data)"
   );
   if (QUESTION_ID) query = query.eq("id", QUESTION_ID);
   else if (SOURCE_PDF) query = query.eq("source_pdf", SOURCE_PDF);

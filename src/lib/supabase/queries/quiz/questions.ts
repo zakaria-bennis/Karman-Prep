@@ -15,6 +15,9 @@ import type {
   ImportStatus,
   QuizDifficulty,
 } from "@/types/quiz";
+import type { QuestionTableData } from "@/types/question-table";
+import type { Json } from "@/types/supabase";
+import { isValidChoiceTableData } from "@/lib/question-bank/choice-table";
 
 // ── Live-question filter ─────────────────────────────────────
 // PDF-imported questions land with import_status = 'needs_review'
@@ -90,7 +93,11 @@ export interface NewQuestionInput {
   subject: QuizQuestion["subject"];
   topic_cluster: string;
   desmos_strategy: string | null;
-  choices: { letter: AnswerLetter; choice_text: string }[]; // ignored when answer_format = 'numeric_entry'
+  choices: {
+    letter: AnswerLetter;
+    choice_text: string;
+    choice_table_data?: QuestionTableData | null;
+  }[]; // ignored when answer_format = 'numeric_entry'
   display_order?: number;
 
   // ── Ingestion fields (migration 020) ───────────────────────
@@ -123,6 +130,14 @@ export interface InsertQuestionResult {
 }
 
 export async function insertQuestion(input: NewQuestionInput): Promise<InsertQuestionResult> {
+  // Validate before the question row is written, so a malformed choice
+  // cannot leave behind a question without its answers.
+  if (input.answer_format === "multiple_choice") {
+    for (const choice of input.choices) {
+      if (choice.choice_table_data != null && !isValidChoiceTableData(choice.choice_table_data))
+        throw new Error(`Choice ${choice.letter} has invalid table data`);
+    }
+  }
   const supabase = createAdminClient();
 
   // ── Idempotent re-import: when both source_pdf and content_hash
@@ -190,6 +205,7 @@ export async function insertQuestion(input: NewQuestionInput): Promise<InsertQue
       question_id: question.id,
       letter: c.letter,
       choice_text: c.choice_text,
+      choice_table_data: (c.choice_table_data as unknown as Json) ?? null,
       // v2 phase 5: at creation time the user-entered text IS the raw
       // text. Phase 5 may later diverge choice_text from raw_choice_text
       // for verified auto-repairs.

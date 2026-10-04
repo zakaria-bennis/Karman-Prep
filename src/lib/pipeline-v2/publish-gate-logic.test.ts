@@ -121,6 +121,24 @@ describe("computePublishStatus — blocking gates", () => {
     );
     expect(r).toEqual({ reason: "mc_empty_choice_text", suggestedStatus: "corrupt_question" });
   });
+
+  it("blocks a malformed table attached to an otherwise complete choice", () => {
+    const r = computePublishStatus(
+      {
+        ...baseRow,
+        answer_choices: baseRow.answer_choices.map((choice) =>
+          choice.letter === "B"
+            ? { ...choice, choice_table_data: { header_row: ["x", "y"], rows: [["1"]] } }
+            : choice
+        ),
+      },
+      slugs
+    );
+    expect(r).toEqual({
+      reason: "choice_B_invalid_table",
+      suggestedStatus: "corrupt_question",
+    });
+  });
 });
 
 describe("computePublishStatus — soft (needs_human_review) gates", () => {

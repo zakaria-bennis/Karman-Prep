@@ -23,6 +23,7 @@ import { cn } from "@/lib/utils";
 import type { QuizQuestionWithChoices, AnswerLetter } from "@/types/quiz";
 import { EditableMathText } from "./EditableMathText";
 import { EditedChip } from "@/components/admin/EditedChip";
+import { TableChoiceOption } from "@/components/learn/quiz/TableChoiceOption";
 
 const LETTERS: AnswerLetter[] = ["A", "B", "C", "D"];
 
@@ -137,6 +138,21 @@ export function QuestionPreview({
           const isCorrect = letter === correctLetter;
           const showCorrect = isSubmitted && isCorrect;
           const showWrong = isSubmitted && isSelected && !isCorrect;
+          if (choice.choice_table_data) {
+            return (
+              <TableChoiceOption
+                key={letter}
+                id={`preview-${q.id}-choice-${letter}`}
+                groupName={`preview-${q.id}-choice`}
+                letter={letter}
+                table={choice.choice_table_data}
+                selected={isSelected}
+                submitted={isSubmitted}
+                correct={isCorrect}
+                onSelect={setSelectedAnswer}
+              />
+            );
+          }
           return (
             <button
               key={letter}

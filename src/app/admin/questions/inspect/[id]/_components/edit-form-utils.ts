@@ -15,6 +15,9 @@ import type { QuizQuestionWithChoices } from "@/types/quiz";
  *  save handler re-builds the JSONB on the way out. */
 export function makeInitialForm(question: QuizQuestionWithChoices) {
   const byLetter = new Map(question.answer_choices.map((c) => [c.letter, c.choice_text]));
+  const tableByLetter = new Map(
+    question.answer_choices.map((c) => [c.letter, c.choice_table_data ?? null])
+  );
   const epc = (question.explanation_per_choice as Record<string, string> | null | undefined) ?? {};
   return {
     question_text: question.question_text ?? "",
@@ -32,6 +35,10 @@ export function makeInitialForm(question: QuizQuestionWithChoices) {
     choice_b: byLetter.get("B") ?? "",
     choice_c: byLetter.get("C") ?? "",
     choice_d: byLetter.get("D") ?? "",
+    choice_table_a: tableByLetter.get("A") ?? null,
+    choice_table_b: tableByLetter.get("B") ?? null,
+    choice_table_c: tableByLetter.get("C") ?? null,
+    choice_table_d: tableByLetter.get("D") ?? null,
     concept_slug: question.concept_slug ?? "",
     explanation_a: epc.A ?? "",
     explanation_b: epc.B ?? "",

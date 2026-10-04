@@ -111,6 +111,19 @@ function validateQuestion(q) {
       if (!r.ok)
         fails.push({ field: `choice_${choice.letter}`, latex: span.latex, error: r.error });
     }
+    if (choice.choice_table_data) {
+      walkStrings(choice.choice_table_data, (text, path) => {
+        for (const span of extractMathSpans(text)) {
+          const r = validateLatex(span.latex, span.displayMode);
+          if (!r.ok)
+            fails.push({
+              field: `choice_${choice.letter}.choice_table_data.${path}`,
+              latex: span.latex,
+              error: r.error,
+            });
+        }
+      });
+    }
   }
 
   // figure_table_data and figure_chart_data can carry KaTeX in
@@ -154,7 +167,7 @@ async function main() {
         "question_text, passage, passage_intro, passage_a, passage_b, " +
         "explanation_text, desmos_strategy, hint, explanation_per_choice, " +
         "figure_table_data, figure_chart_data, " +
-        "answer_choices(letter, choice_text)"
+        "answer_choices(letter, choice_text, choice_table_data)"
     );
   if (QUESTION_ID) query = query.eq("id", QUESTION_ID);
   else if (SOURCE_PDF) query = query.eq("source_pdf", SOURCE_PDF);

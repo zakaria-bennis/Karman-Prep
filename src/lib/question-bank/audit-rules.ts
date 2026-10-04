@@ -14,6 +14,7 @@
 // ============================================================
 
 import { isValidSlug } from "@/lib/question-bank/taxonomy";
+import { isValidChoiceTableData } from "@/lib/question-bank/choice-table";
 
 export type Severity = "BLOCKING" | "WARNING" | "NOTICE";
 
@@ -46,7 +47,12 @@ export interface AuditableRow {
   image_url: string | null;
   image_alt: string | null;
   numeric_tolerance: number | null;
-  choices: { letter: string; choice_text: string; is_correct: boolean }[];
+  choices: {
+    letter: string;
+    choice_text: string;
+    is_correct: boolean;
+    choice_table_data?: unknown;
+  }[];
 }
 
 // ── Regex helpers (mirror audit-csv.mjs) ─────────────────────
@@ -153,6 +159,16 @@ export function auditRow(row: AuditableRow): RuleFinding[] {
       });
     }
     const choiceTexts = row.choices.map((c) => c.choice_text.trim());
+    for (const choice of row.choices) {
+      if (choice.choice_table_data != null && !isValidChoiceTableData(choice.choice_table_data)) {
+        push({
+          code: "A17b_invalid_choice_table",
+          severity: "BLOCKING",
+          category: "schema",
+          message: `Choice ${choice.letter} has an incomplete or malformed table`,
+        });
+      }
+    }
     if (choiceTexts.some((t) => !t)) {
       push({
         code: "A17_mc_missing_choice",

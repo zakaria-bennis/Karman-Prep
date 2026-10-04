@@ -4,6 +4,7 @@
 // ============================================================
 
 import type { Subject } from "@/data/curriculum";
+import type { QuestionTableData } from "@/types/question-table";
 
 export type QuizDifficulty = "foundational" | "intermediate" | "advanced" | "mastery";
 /** Numeric 1 (easiest) through 7 (hardest) — new source of truth for adaptive algorithm. */
@@ -30,6 +31,8 @@ export interface AnswerChoice {
   question_id: string;
   letter: AnswerLetter;
   choice_text: string;
+  /** A source-faithful native table belonging to this answer letter only. */
+  choice_table_data?: QuestionTableData | null;
   is_correct: boolean;
 }
 
@@ -236,7 +239,10 @@ export type StudentQuizQuestion = Pick<
   | "figure_chart_data"
   | "figure_geometry_data"
 > & {
-  answer_choices: Pick<AnswerChoice, "id" | "question_id" | "letter" | "choice_text">[];
+  answer_choices: Pick<
+    AnswerChoice,
+    "id" | "question_id" | "letter" | "choice_text" | "choice_table_data"
+  >[];
 };
 
 export type StudentQuizReview = Pick<

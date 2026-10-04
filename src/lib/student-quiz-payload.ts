@@ -28,6 +28,7 @@ export function toStudentQuizQuestion(question: QuizQuestionWithChoices): Studen
       question_id: choice.question_id,
       letter: choice.letter,
       choice_text: choice.choice_text,
+      choice_table_data: choice.choice_table_data ?? null,
     })),
   };
 }

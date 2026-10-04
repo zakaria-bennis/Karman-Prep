@@ -187,7 +187,17 @@ function PromptColumn({
               <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-ivory/20 font-mono text-xs">
                 {c.letter}
               </span>
-              <MathText text={c.choice_text} className="whitespace-pre-wrap" />
+              <div className="min-w-0 flex-1">
+                {c.choice_table_data ? (
+                  <QuestionTable
+                    data={c.choice_table_data}
+                    ariaLabel={`Choice ${c.letter} data table`}
+                    className="my-0 max-w-full p-2"
+                  />
+                ) : (
+                  <MathText text={c.choice_text} className="whitespace-pre-wrap" />
+                )}
+              </div>
             </li>
           ))}
         </ul>

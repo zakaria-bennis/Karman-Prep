@@ -11,6 +11,7 @@ export type Database = {
       answer_choices: {
         Row: {
           choice_text: string;
+          choice_table_data: Json | null;
           id: string;
           is_correct: boolean;
           letter: Database["public"]["Enums"]["answer_letter"];
@@ -20,6 +21,7 @@ export type Database = {
         };
         Insert: {
           choice_text: string;
+          choice_table_data?: Json | null;
           id?: string;
           is_correct?: boolean;
           letter: Database["public"]["Enums"]["answer_letter"];
@@ -29,6 +31,7 @@ export type Database = {
         };
         Update: {
           choice_text?: string;
+          choice_table_data?: Json | null;
           id?: string;
           is_correct?: boolean;
           letter?: Database["public"]["Enums"]["answer_letter"];

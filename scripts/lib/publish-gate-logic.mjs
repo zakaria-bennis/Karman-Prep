@@ -30,8 +30,37 @@ export function gateRequiredFields(q) {
     ) {
       return { reason: "mc_empty_choice_text", suggestedStatus: "corrupt_question" };
     }
+    for (const choice of choices) {
+      if (choice.choice_table_data != null && !validChoiceTable(choice.choice_table_data)) {
+        return {
+          reason: `choice_${choice.letter}_invalid_table`,
+          suggestedStatus: "corrupt_question",
+        };
+      }
+    }
   }
   return null;
+}
+
+function validChoiceTable(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const rows = value.rows;
+  if (!Array.isArray(rows) || rows.length < 1 || rows.length > 30) return false;
+  const width = rows[0]?.length;
+  if (!Number.isInteger(width) || width < 1 || width > 8) return false;
+  const validCell = (cell) => typeof cell === "string" && cell.trim() && cell.length <= 1000;
+  if (!rows.every((row) => Array.isArray(row) && row.length === width && row.every(validCell)))
+    return false;
+  if (
+    value.header_row != null &&
+    (!Array.isArray(value.header_row) ||
+      value.header_row.length !== width ||
+      !value.header_row.every(validCell))
+  )
+    return false;
+  return ["caption", "footer_note"].every(
+    (field) => value[field] == null || validCell(value[field])
+  );
 }
 
 export function gateKaTeX(q) {

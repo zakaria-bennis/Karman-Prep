@@ -262,7 +262,7 @@ export async function actionReauditRow(input: { questionId: string }): Promise<{
        hint, explanation_text, explanation_per_choice,
        passage, passage_intro, passage_a, passage_b,
        domain, concept_slug, image_url, image_alt, numeric_tolerance,
-       answer_choices(letter, choice_text, is_correct)`
+       answer_choices(letter, choice_text, choice_table_data, is_correct)`
     )
     .eq("id", input.questionId)
     .maybeSingle();
@@ -290,6 +290,7 @@ export async function actionReauditRow(input: { questionId: string }): Promise<{
     choices: (row.answer_choices ?? []).map((c) => ({
       letter: c.letter,
       choice_text: c.choice_text,
+      choice_table_data: c.choice_table_data,
       is_correct: c.is_correct,
     })),
   };

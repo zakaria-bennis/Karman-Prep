@@ -21,6 +21,7 @@ import {
 } from "@/app/admin/inspector-actions";
 import FigureFrame from "@/components/learn/FigureFrame";
 import type { EditFormShape } from "./edit-form-utils";
+import { ChoiceTableEditor } from "@/components/admin/question-editor/ChoiceTableEditor";
 
 // Flat list for the <datalist> autocomplete — keeps the input free-text
 // (admin can paste in something we don't recognize; the server action
@@ -115,25 +116,66 @@ export default function EditForm({
               const key = `choice_${letter.toLowerCase()}` as keyof EditFormShape;
               const isCorrect = form.correct_answer === letter;
               return (
-                <div key={letter} className="flex items-start gap-2">
+                <div key={letter} className="rounded-lg border border-bronze/60 p-2">
+                  <div className="flex items-start gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setForm("correct_answer", letter)}
+                      className={cn(
+                        "mt-1 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-xs font-bold transition-colors",
+                        isCorrect
+                          ? "border-success/40 bg-success/20 text-success-bright"
+                          : "border-bronze text-taupe hover:border-bronze hover:text-ivory"
+                      )}
+                      title="Mark this as the correct answer"
+                    >
+                      {letter}
+                    </button>
+                    <Textarea
+                      value={form[key] as string}
+                      onChange={(v) => setForm(key, v as EditFormShape[typeof key])}
+                      rows={2}
+                    />
+                  </div>
                   <button
                     type="button"
-                    onClick={() => setForm("correct_answer", letter)}
-                    className={cn(
-                      "mt-1 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-xs font-bold transition-colors",
-                      isCorrect
-                        ? "border-success/40 bg-success/20 text-success-bright"
-                        : "border-bronze text-taupe hover:border-bronze hover:text-ivory"
-                    )}
-                    title="Mark this as the correct answer"
+                    onClick={() => {
+                      const tableKey =
+                        `choice_table_${letter.toLowerCase()}` as keyof EditFormShape;
+                      setForm(
+                        tableKey,
+                        (form[tableKey]
+                          ? null
+                          : {
+                              header_row: ["x", "y"],
+                              rows: [
+                                ["", ""],
+                                ["", ""],
+                                ["", ""],
+                              ],
+                            }) as EditFormShape[typeof tableKey]
+                      );
+                    }}
+                    className="mt-2 text-xs font-semibold text-gold-bright"
                   >
-                    {letter}
+                    {form[`choice_table_${letter.toLowerCase()}` as keyof EditFormShape]
+                      ? "Remove table"
+                      : "Add source table"}
                   </button>
-                  <Textarea
-                    value={form[key] as string}
-                    onChange={(v) => setForm(key, v as EditFormShape[typeof key])}
-                    rows={2}
-                  />
+                  {(() => {
+                    const tableKey = `choice_table_${letter.toLowerCase()}` as keyof EditFormShape;
+                    const table = form[tableKey] as
+                      | import("@/types/question-table").QuestionTableData
+                      | null;
+                    return table ? (
+                      <ChoiceTableEditor
+                        value={table}
+                        onChange={(next) =>
+                          setForm(tableKey, next as EditFormShape[typeof tableKey])
+                        }
+                      />
+                    ) : null;
+                  })()}
                 </div>
               );
             })}
