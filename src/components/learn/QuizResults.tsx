@@ -9,7 +9,7 @@ import { motion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
 import { ArrowRight, RotateCcw, Trophy } from "lucide-react";
 import type { PerQuestionRecord } from "@/contexts/QuizContext";
-import type { ConfidenceBand, QuizQuestionWithChoices } from "@/types/quiz";
+import type { ConfidenceBand, StudentQuizQuestion } from "@/types/quiz";
 import { CONFIDENCE_COLORS } from "@/types/quiz";
 import { cn } from "@/lib/utils";
 
@@ -19,7 +19,7 @@ interface Props {
   total: number;
   band: ConfidenceBand;
   records: PerQuestionRecord[];
-  questions: QuizQuestionWithChoices[];
+  questions: StudentQuizQuestion[];
   onGoToNext: (() => void) | null;
   onRetake: () => void;
 }

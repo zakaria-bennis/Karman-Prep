@@ -3550,6 +3550,36 @@ export type Database = {
       };
     };
     Functions: {
+      start_quiz_attempt_atomic: {
+        Args: { p_student_id: string; p_node_id: string };
+        Returns: Database["public"]["Tables"]["quiz_attempts"]["Row"];
+      };
+      record_quiz_response_once: {
+        Args: {
+          p_attempt_id: string;
+          p_student_id: string;
+          p_question_id: string;
+          p_answer: string;
+          p_correct: boolean;
+          p_difficulty: Database["public"]["Enums"]["question_difficulty"];
+          p_seconds: number;
+        };
+        Returns: Database["public"]["Tables"]["question_responses"]["Row"];
+      };
+      complete_quiz_attempt_atomic: {
+        Args: {
+          p_attempt_id: string;
+          p_student_id: string;
+          p_node_id: string;
+          p_expected_count: number;
+          p_adaptive_path: Json;
+        };
+        Returns: {
+          result_score: number;
+          result_status: string;
+          result_band: Database["public"]["Enums"]["confidence_band"];
+        }[];
+      };
       refresh_tutor_earnings_summary: { Args: never; Returns: undefined };
     };
     Enums: {

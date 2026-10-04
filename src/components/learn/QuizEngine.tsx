@@ -10,7 +10,7 @@ import { useEffect, useRef, useState } from "react";
 import { Flag, Loader2 } from "lucide-react";
 import type { MappedNode } from "./ConstellationMap";
 import { useQuiz } from "@/contexts/QuizContext";
-import type { QuizQuestionWithChoices } from "@/types/quiz";
+import type { StudentQuizQuestion } from "@/types/quiz";
 import DesmosWindow from "./DesmosWindow";
 import Scratchpad from "./Scratchpad";
 import QuizResults from "./QuizResults";
@@ -103,7 +103,7 @@ export default function QuizEngine({ node, videoUrl, onClose, onGoToNext }: Prop
     setFlagNote("");
   }
 
-  const currentQuestion: QuizQuestionWithChoices | null =
+  const currentQuestion: StudentQuizQuestion | null =
     state.phase !== "idle" && state.phase !== "loading" && state.selectedQuestions.length > 0
       ? state.selectedQuestions[state.currentIndex]
       : null;

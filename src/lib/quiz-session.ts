@@ -1,5 +1,12 @@
 import { stepDifficultyLevel } from "@/types/quiz";
-import type { QuestionResponse, QuizDifficultyLevel, QuizQuestionWithChoices } from "@/types/quiz";
+import type {
+  QuestionResponse,
+  QuizDifficultyLevel,
+  QuizQuestionWithChoices,
+  StudentQuizQuestion,
+} from "@/types/quiz";
+
+type SessionQuestion = QuizQuestionWithChoices | StudentQuizQuestion;
 
 export const QUIZ_LENGTH = 10;
 
@@ -29,9 +36,7 @@ export function evaluateQuizAnswer(
 }
 
 /** Keep the first occurrence of each question; duplicate rows must not extend a quiz. */
-export function uniqueQuizQuestions(
-  questions: QuizQuestionWithChoices[]
-): QuizQuestionWithChoices[] {
+export function uniqueQuizQuestions<T extends SessionQuestion>(questions: T[]): T[] {
   const seen = new Set<string>();
   return questions.filter((question) => {
     if (seen.has(question.id)) return false;
@@ -40,11 +45,11 @@ export function uniqueQuizQuestions(
   });
 }
 
-export function selectNextQuestion(
-  all: QuizQuestionWithChoices[],
+export function selectNextQuestion<T extends SessionQuestion>(
+  all: T[],
   targetLevel: QuizDifficultyLevel,
   used: Set<string>
-): QuizQuestionWithChoices | null {
+): T | null {
   for (let offset = 0; offset < 7; offset++) {
     for (const sign of offset === 0 ? [0] : [-1, 1]) {
       const level = targetLevel + offset * sign;
@@ -59,8 +64,8 @@ export function selectNextQuestion(
     : null;
 }
 
-export function prepareQuizSession(
-  rawQuestions: QuizQuestionWithChoices[],
+export function prepareQuizSession<T extends SessionQuestion>(
+  rawQuestions: T[],
   rawResponses: QuestionResponse[]
 ) {
   const questions = uniqueQuizQuestions(rawQuestions);

@@ -21,7 +21,8 @@ import type {
   ConfidenceBand,
   QuizDifficulty,
   QuizDifficultyLevel,
-  QuizQuestionWithChoices,
+  StudentQuizQuestion,
+  StudentQuizReview,
   QuestionResponse,
 } from "@/types/quiz";
 import { stepDifficultyLevel, levelToLegacyDifficulty } from "@/types/quiz";
@@ -66,8 +67,9 @@ export interface QuizState {
   subject: Subject | null;
   attemptId: string | null;
 
-  allQuestions: QuizQuestionWithChoices[];
-  selectedQuestions: QuizQuestionWithChoices[];
+  allQuestions: StudentQuizQuestion[];
+  selectedQuestions: StudentQuizQuestion[];
+  reviews: Record<string, StudentQuizReview>;
   usedQuestionIds: Set<string>;
 
   currentIndex: number;
@@ -96,6 +98,7 @@ const initialState: QuizState = {
   attemptId: null,
   allQuestions: [],
   selectedQuestions: [],
+  reviews: {},
   usedQuestionIds: new Set<string>(),
   currentIndex: 0,
   currentLevel: 1,
@@ -119,18 +122,19 @@ type Action =
   | {
       type: "QUIZ_LOADED";
       attemptId: string;
-      allQuestions: QuizQuestionWithChoices[];
+      allQuestions: StudentQuizQuestion[];
       responses: QuestionResponse[];
+      reviews: Record<string, StudentQuizReview>;
     }
   | { type: "SELECT_ANSWER"; answer: string }
   | {
       type: "SUBMIT_ANSWER";
-      isCorrect: boolean;
+      review: StudentQuizReview;
       responseTimeSeconds: number;
     }
   | {
       type: "ADVANCE_TO_NEXT";
-      next: QuizQuestionWithChoices | null;
+      next: StudentQuizQuestion | null;
       nextLevel: QuizDifficultyLevel;
     }
   | { type: "SHOW_VIDEO_PROMPT" }
@@ -183,6 +187,7 @@ function reducer(state: QuizState, action: Action): QuizState {
         attemptId: action.attemptId,
         allQuestions: plan.questions,
         selectedQuestions,
+        reviews: action.reviews,
         usedQuestionIds: used,
         currentIndex: plan.next ? plan.responses.length : Math.max(0, plan.responses.length - 1),
         currentLevel: plan.next
@@ -211,8 +216,8 @@ function reducer(state: QuizState, action: Action): QuizState {
       const level = (q.difficulty_level ?? 1) as QuizDifficultyLevel;
       const record: PerQuestionRecord = {
         questionId: q.id,
-        studentAnswer: state.selectedAnswer,
-        isCorrect: action.isCorrect,
+        studentAnswer: action.review.studentAnswer,
+        isCorrect: action.review.isCorrect,
         difficulty: q.difficulty,
         difficultyLevel: level,
         responseTimeSeconds: action.responseTimeSeconds,
@@ -228,19 +233,21 @@ function reducer(state: QuizState, action: Action): QuizState {
         {
           question_id: q.id,
           difficulty: q.difficulty,
-          was_correct: action.isCorrect,
+          was_correct: action.review.isCorrect,
         },
       ];
 
-      const consecutiveWrong = action.isCorrect ? 0 : state.consecutiveWrong + 1;
+      const consecutiveWrong = action.review.isCorrect ? 0 : state.consecutiveWrong + 1;
 
       return {
         ...state,
-        phase: action.isCorrect ? "submitted_correct" : "submitted_wrong",
+        phase: action.review.isCorrect ? "submitted_correct" : "submitted_wrong",
         records,
+        reviews: { ...state.reviews, [q.id]: action.review },
+        selectedAnswer: action.review.studentAnswer,
         adaptivePath,
         consecutiveWrong,
-        correctCount: state.correctCount + (action.isCorrect ? 1 : 0),
+        correctCount: state.correctCount + (action.review.isCorrect ? 1 : 0),
       };
     }
 
@@ -355,6 +362,7 @@ export function QuizProvider({ children }: { children: ReactNode }) {
       attemptId: loaded.attemptId,
       allQuestions: loaded.questions,
       responses: loaded.responses,
+      reviews: loaded.reviews,
     });
   }, []);
 
@@ -376,16 +384,16 @@ export function QuizProvider({ children }: { children: ReactNode }) {
     const responseTimeSeconds = Math.round((Date.now() - state.questionStartedAt) / 1000);
 
     try {
-      const { isCorrect } = await actionRecordResponse({
+      const review = await actionRecordResponse({
         attempt_id: state.attemptId,
         question_id: q.id,
         student_answer: state.selectedAnswer,
         response_time_seconds: responseTimeSeconds,
       });
-      dispatch({ type: "SUBMIT_ANSWER", isCorrect, responseTimeSeconds });
-      if (isCorrect) playSound("nodeComplete");
+      dispatch({ type: "SUBMIT_ANSWER", review, responseTimeSeconds });
+      if (review.isCorrect) playSound("nodeComplete");
       else playSound("error");
-      if (!isCorrect && state.consecutiveWrong + 1 >= 3) {
+      if (!review.isCorrect && state.consecutiveWrong + 1 >= 3) {
         setTimeout(() => dispatch({ type: "SHOW_VIDEO_PROMPT" }), 600);
       }
     } catch (err) {

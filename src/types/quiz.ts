@@ -211,6 +211,43 @@ export interface QuizQuestionWithChoices extends QuizQuestion {
   answer_choices: AnswerChoice[];
 }
 
+/** Explicit student payload: answer keys and explanations arrive after a saved response. */
+export type StudentQuizQuestion = Pick<
+  QuizQuestion,
+  | "id"
+  | "node_id"
+  | "question_text"
+  | "question_type"
+  | "difficulty"
+  | "difficulty_level"
+  | "answer_format"
+  | "hint"
+  | "image_url"
+  | "image_alt"
+  | "subject"
+  | "topic_cluster"
+  | "display_order"
+  | "passage_intro"
+  | "passage"
+  | "passage_a"
+  | "passage_b"
+  | "figure_kind"
+  | "figure_table_data"
+  | "figure_chart_data"
+  | "figure_geometry_data"
+> & {
+  answer_choices: Pick<AnswerChoice, "id" | "question_id" | "letter" | "choice_text">[];
+};
+
+export type StudentQuizReview = Pick<
+  QuizQuestion,
+  | "correct_answer"
+  | "numeric_tolerance"
+  | "explanation_text"
+  | "explanation_per_choice"
+  | "desmos_strategy"
+> & { isCorrect: boolean; studentAnswer: string };
+
 export interface AdaptiveStep {
   question_id: string;
   difficulty: QuizDifficulty;
@@ -235,7 +272,7 @@ export interface QuestionResponse {
   id: string;
   attempt_id: string;
   question_id: string;
-  student_answer: AnswerLetter;
+  student_answer: string;
   is_correct: boolean;
   difficulty_at_time: QuizDifficulty;
   response_time_seconds: number;

@@ -3,12 +3,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   fetchQuestionsForNode: vi.fn(),
   createQuizAttempt: vi.fn(),
-  fetchIncompleteQuizAttempt: vi.fn(),
   fetchResponsesForAttempt: vi.fn(),
   fetchQuizAttemptForStudent: vi.fn(),
-  finalizeQuizAttempt: vi.fn(),
-  updateNodeAfterQuiz: vi.fn(),
-  fetchNodeStatusBundle: vi.fn(),
+  completeQuizAttemptAtomic: vi.fn(),
   recordQuestionResponse: vi.fn(),
 }));
 
@@ -20,11 +17,41 @@ vi.mock("@/lib/supabase/queries/quiz", () => ({
   ...mocks,
   flagQuestion: vi.fn(),
   updateWatchPercentage: vi.fn(),
+  fetchNodeStatusBundle: vi.fn(),
 }));
 
 import { actionCompleteQuiz, actionRecordResponse, actionStartQuiz } from "./quiz-actions";
 
-beforeEach(() => vi.clearAllMocks());
+const question = {
+  id: "q1",
+  node_id: "ma-00",
+  question_text: "What is 2 + 2?",
+  correct_answer: "B",
+  answer_format: "multiple_choice",
+  difficulty: "foundational",
+  difficulty_level: 1,
+  display_order: 1,
+  explanation_text: "2 + 2 = 4",
+  explanation_per_choice: null,
+  numeric_tolerance: null,
+  desmos_strategy: "Use a calculator",
+  answer_choices: [
+    { id: "c1", question_id: "q1", letter: "A", choice_text: "3", is_correct: false },
+    { id: "c2", question_id: "q1", letter: "B", choice_text: "4", is_correct: true },
+  ],
+};
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  mocks.fetchQuestionsForNode.mockResolvedValue([question]);
+  mocks.createQuizAttempt.mockResolvedValue({ id: "a1" });
+  mocks.fetchResponsesForAttempt.mockResolvedValue([]);
+  mocks.fetchQuizAttemptForStudent.mockResolvedValue({
+    id: "a1",
+    node_id: "ma-00",
+    completed_at: null,
+  });
+});
 
 describe("quiz actions", () => {
   it("does not create an orphan attempt for a node with no approved questions", async () => {
@@ -33,40 +60,86 @@ describe("quiz actions", () => {
     expect(mocks.createQuizAttempt).not.toHaveBeenCalled();
   });
 
-  it("resumes a prior incomplete attempt without creating a second one", async () => {
-    mocks.fetchQuestionsForNode.mockResolvedValue([{ id: "q1" }]);
-    mocks.fetchIncompleteQuizAttempt.mockResolvedValue({ id: "a1" });
-    mocks.fetchResponsesForAttempt.mockResolvedValue([{ question_id: "q1" }]);
-    await expect(actionStartQuiz("ma-00")).resolves.toMatchObject({
-      attemptId: "a1",
-      responses: [{ question_id: "q1" }],
-    });
-    expect(mocks.createQuizAttempt).not.toHaveBeenCalled();
+  it("sends no key or explanation before answering, and restores review only for saved answers", async () => {
+    const fresh = await actionStartQuiz("ma-00");
+    expect(JSON.stringify(fresh)).not.toMatch(
+      /correct_answer|is_correct|explanation|desmos_strategy/
+    );
+    mocks.fetchResponsesForAttempt.mockResolvedValue([
+      { question_id: "q1", student_answer: "A", is_correct: false },
+    ]);
+    const resumed = await actionStartQuiz("ma-00");
+    expect(resumed.reviews.q1).toMatchObject({ correct_answer: "B", studentAnswer: "A" });
+    expect(resumed.questions[0].answer_choices[1]).not.toHaveProperty("is_correct");
   });
 
-  it("applies node progress once when completion is retried", async () => {
-    mocks.fetchQuizAttemptForStudent.mockResolvedValue({ node_id: "ma-00", completed_at: null });
-    mocks.fetchQuestionsForNode.mockResolvedValue([
-      { id: "q1", difficulty: "foundational", difficulty_level: 1, display_order: 1 },
-    ]);
+  it("returns the stored first answer's review on retry", async () => {
+    mocks.recordQuestionResponse.mockResolvedValue({ student_answer: "B", is_correct: true });
+    const review = await actionRecordResponse({
+      attempt_id: "a1",
+      question_id: "q1",
+      student_answer: "A",
+      response_time_seconds: 3,
+    });
+    expect(review).toMatchObject({ isCorrect: true, studentAnswer: "B", correct_answer: "B" });
+    expect(mocks.recordQuestionResponse).toHaveBeenCalledWith(
+      expect.objectContaining({ student_id: "dev_seed_student_stuck" })
+    );
+  });
+
+  it("uses one atomic completion call for progress", async () => {
     mocks.fetchResponsesForAttempt.mockResolvedValue([{ question_id: "q1", is_correct: true }]);
-    mocks.finalizeQuizAttempt.mockResolvedValueOnce(true).mockResolvedValueOnce(false);
-    mocks.updateNodeAfterQuiz.mockResolvedValue({ newStatus: "partially_complete" });
-    mocks.fetchNodeStatusBundle.mockResolvedValue({ status: "partially_complete" });
-    const input = {
-      attemptId: "a1",
-      nodeId: "ma-00",
-      subject: "math" as const,
-    };
-    await actionCompleteQuiz(input);
-    await actionCompleteQuiz(input);
-    expect(mocks.finalizeQuizAttempt).toHaveBeenCalledTimes(2);
-    expect(mocks.updateNodeAfterQuiz).toHaveBeenCalledTimes(1);
+    mocks.completeQuizAttemptAtomic.mockResolvedValue({
+      score: 100,
+      newStatus: "partially_complete",
+      confidenceBand: "mastered",
+    });
+    await expect(
+      actionCompleteQuiz({ attemptId: "a1", nodeId: "ma-00", subject: "math" })
+    ).resolves.toMatchObject({ score: 100 });
+    expect(mocks.completeQuizAttemptAtomic).toHaveBeenCalledWith(
+      "a1",
+      "dev_seed_student_stuck",
+      "ma-00",
+      expect.objectContaining({ expectedCount: 1 })
+    );
+  });
+
+  it("replays a completed attempt without depending on the current question pool", async () => {
+    mocks.fetchQuizAttemptForStudent.mockResolvedValue({
+      id: "a1",
+      node_id: "ma-00",
+      completed_at: "2026-10-04T00:00:00Z",
+    });
+    mocks.fetchQuestionsForNode.mockResolvedValue([]);
+    mocks.completeQuizAttemptAtomic.mockResolvedValue({
+      score: 100,
+      newStatus: "partially_complete",
+      confidenceBand: "mastered",
+    });
+    await expect(
+      actionCompleteQuiz({ attemptId: "a1", nodeId: "ma-00", subject: "math" })
+    ).resolves.toMatchObject({ score: 100 });
+    expect(mocks.fetchQuestionsForNode).not.toHaveBeenCalled();
+  });
+
+  it("rejects a future approved question until it is next", async () => {
+    mocks.fetchQuestionsForNode.mockResolvedValue([
+      question,
+      { ...question, id: "q2", display_order: 2 },
+    ]);
+    await expect(
+      actionRecordResponse({
+        attempt_id: "a1",
+        question_id: "q2",
+        student_answer: "A",
+        response_time_seconds: 3,
+      })
+    ).rejects.toThrow("not next");
+    expect(mocks.recordQuestionResponse).not.toHaveBeenCalled();
   });
 
   it("rejects a question outside the approved pool before recording", async () => {
-    mocks.fetchQuizAttemptForStudent.mockResolvedValue({ node_id: "ma-00", completed_at: null });
-    mocks.fetchQuestionsForNode.mockResolvedValue([{ id: "approved" }]);
     await expect(
       actionRecordResponse({
         attempt_id: "a1",

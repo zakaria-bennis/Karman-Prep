@@ -10,7 +10,7 @@ import { Check, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { MappedNode } from "../ConstellationMap";
 import { useQuiz } from "@/contexts/QuizContext";
-import type { QuizQuestionWithChoices } from "@/types/quiz";
+import type { StudentQuizQuestion } from "@/types/quiz";
 import MathText from "../MathText";
 import QuestionTable from "../QuestionTable";
 import ChartFigure from "../ChartFigure";
@@ -30,7 +30,7 @@ export function ActiveQuizScreen({
   onNext,
 }: {
   node: MappedNode;
-  q: QuizQuestionWithChoices;
+  q: StudentQuizQuestion;
   onClose: () => void;
   onSelectAnswer: (l: string) => void;
   onSubmit: () => void;
@@ -45,7 +45,8 @@ export function ActiveQuizScreen({
     [q]
   );
   const isSubmitted = state.phase === "submitted_correct" || state.phase === "submitted_wrong";
-  const correctLetter = q.correct_answer;
+  const review = isSubmitted ? state.reviews[q.id] : undefined;
+  const correctLetter = review?.correct_answer;
 
   // Progress dots
   const dots = Array.from({ length: state.targetLength }, (_, i) => {
@@ -150,8 +151,8 @@ export function ActiveQuizScreen({
               onChange={onSelectAnswer}
               isSubmitted={isSubmitted}
               studentAnswer={state.selectedAnswer}
-              correctAnswer={q.correct_answer}
-              tolerance={q.numeric_tolerance}
+              correctAnswer={review?.correct_answer ?? ""}
+              tolerance={review?.numeric_tolerance ?? null}
               wasCorrect={state.phase === "submitted_correct"}
             />
           ) : (
@@ -213,7 +214,10 @@ export function ActiveQuizScreen({
         );
 
         // ── Explanations panel (right side when showExplanations) ──
-        const perChoiceMap = q.explanation_per_choice as Record<string, string | undefined> | null;
+        const perChoiceMap = review?.explanation_per_choice as
+          | Record<string, string | undefined>
+          | null
+          | undefined;
         const explanationsPanel = (
           <motion.div
             key="explanations"
@@ -227,9 +231,9 @@ export function ActiveQuizScreen({
               Explanation
             </h3>
 
-            {q.explanation_text && (
+            {review?.explanation_text && (
               <div className="mb-6 text-[16px] leading-[1.6] text-ivory">
-                <MathText text={q.explanation_text} className="block whitespace-pre-wrap" />
+                <MathText text={review.explanation_text} className="block whitespace-pre-wrap" />
               </div>
             )}
 
@@ -279,13 +283,13 @@ export function ActiveQuizScreen({
               </div>
             )}
 
-            {q.desmos_strategy && (
+            {review?.desmos_strategy && (
               <div className="mb-6 rounded-xl border border-info/30 bg-info/5 p-4">
                 <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-info-bright">
                   Desmos strategy
                 </div>
                 <div className="text-[16px] leading-[1.6] text-info-bright">
-                  <MathText text={q.desmos_strategy} className="block whitespace-pre-wrap" />
+                  <MathText text={review.desmos_strategy} className="block whitespace-pre-wrap" />
                 </div>
               </div>
             )}
