@@ -120,6 +120,7 @@ async function assertParentCanSeeStudent(
 ): Promise<boolean> {
   const role = await fetchUserRole(parentClerkId);
   if (role === "admin") return true; // admins can open anyone's view
+  if (role !== "parent") return false;
 
   const supabase = createAdminClient();
   const { data: parent } = await supabase

@@ -7,7 +7,13 @@
 
 import { safeAuth } from "@/lib/auth/dev-auth";
 import { revalidatePath } from "next/cache";
-import { requireRole } from "@/lib/supabase/queries/admin";
+import { canTutorAccessStudent, assertStudentFlag } from "@/lib/auth/tutor-access";
+import {
+  nodeOverrideSchema,
+  checkpointSchema,
+  flagTargetSchema,
+  questionTargetSchema,
+} from "./action-schemas";
 import {
   applyTutorNodeOverride,
   assignCheckpointRetake,
@@ -16,11 +22,11 @@ import {
 import { resolveFlaggedQuestion, updateQuestion } from "@/lib/supabase/queries/quiz";
 import type { OverrideStatus, QuizQuestion } from "@/types/quiz";
 
-async function guardTutor(): Promise<string> {
+async function guardTutor(studentId: string): Promise<string> {
   const { userId } = await safeAuth();
   if (!userId) throw new Error("Not authenticated");
-  const ok = await requireRole(userId, ["tutor", "admin"]);
-  if (!ok) throw new Error("Tutor or admin role required");
+  const ok = await canTutorAccessStudent(userId, studentId);
+  if (!ok) throw new Error("Access to this student is required");
   return userId;
 }
 
@@ -31,10 +37,11 @@ export async function actionApplyNodeOverride(input: {
   locked_pathway: boolean;
   reason?: string;
 }) {
-  const tutorId = await guardTutor();
+  const parsed = nodeOverrideSchema.parse(input);
+  const tutorId = await guardTutor(parsed.student_id);
   await applyTutorNodeOverride({
+    ...parsed,
     tutor_id: tutorId,
-    ...input,
   });
   revalidatePath(`/tutor/${input.student_id}`);
 }
@@ -44,20 +51,24 @@ export async function actionAssignCheckpointRetake(input: {
   checkpoint_id: string;
   reason?: string;
 }) {
-  const tutorId = await guardTutor();
-  await assignCheckpointRetake({ tutor_id: tutorId, ...input });
+  const parsed = checkpointSchema.parse(input);
+  const tutorId = await guardTutor(parsed.student_id);
+  await assignCheckpointRetake({ ...parsed, tutor_id: tutorId });
   revalidatePath(`/tutor/${input.student_id}`);
 }
 
 export async function actionOverrideCooldown(input: { student_id: string; checkpoint_id: string }) {
-  const tutorId = await guardTutor();
-  await overrideCheckpointCooldown({ tutor_id: tutorId, ...input });
+  const parsed = checkpointSchema.parse(input);
+  const tutorId = await guardTutor(parsed.student_id);
+  await overrideCheckpointCooldown({ ...parsed, tutor_id: tutorId });
   revalidatePath(`/tutor/${input.student_id}`);
 }
 
 export async function actionResolveFlag(flagId: string, studentId: string) {
-  const tutorId = await guardTutor();
-  await resolveFlaggedQuestion(flagId, tutorId);
+  const parsed = flagTargetSchema.parse({ flagId, studentId });
+  const tutorId = await guardTutor(parsed.studentId);
+  await assertStudentFlag(parsed.studentId, { flagId: parsed.flagId });
+  await resolveFlaggedQuestion(parsed.flagId, tutorId);
   revalidatePath(`/tutor/${studentId}`);
 }
 
@@ -77,7 +88,9 @@ export async function actionEditFlaggedQuestion(
   >,
   studentId: string
 ) {
-  await guardTutor();
-  await updateQuestion(questionId, patch);
+  const parsed = questionTargetSchema.parse({ questionId, patch, studentId });
+  await guardTutor(parsed.studentId);
+  await assertStudentFlag(parsed.studentId, { questionId: parsed.questionId });
+  await updateQuestion(parsed.questionId, parsed.patch);
   revalidatePath(`/tutor/${studentId}`);
 }
