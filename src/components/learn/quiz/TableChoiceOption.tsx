@@ -62,7 +62,7 @@ export function TableChoiceOption({
         {describeChoiceTable(table)}
       </span>
       <div
-        className={cn("min-w-0 pl-8", !submitted && "cursor-pointer")}
+        className={cn("flex min-w-0 justify-center", !submitted && "cursor-pointer")}
         onClick={() => !submitted && onSelect(letter)}
       >
         <QuestionTable

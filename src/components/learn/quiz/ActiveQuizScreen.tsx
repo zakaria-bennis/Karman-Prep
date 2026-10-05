@@ -45,6 +45,8 @@ export function ActiveQuizScreen({
     () => [...q.answer_choices].sort((a, b) => (a.letter > b.letter ? 1 : -1)),
     [q]
   );
+  const allChoicesAreTables =
+    sortedChoices.length > 0 && sortedChoices.every((choice) => choice.choice_table_data);
   const isSubmitted = state.phase === "submitted_correct" || state.phase === "submitted_wrong";
   const review = isSubmitted ? state.reviews[q.id] : undefined;
   const correctLetter = review?.correct_answer;
@@ -157,7 +159,12 @@ export function ActiveQuizScreen({
               wasCorrect={state.phase === "submitted_correct"}
             />
           ) : (
-            <div className="mt-7 space-y-3">
+            <div
+              className={cn(
+                "mt-7",
+                allChoicesAreTables ? "grid grid-cols-1 gap-3 sm:grid-cols-2" : "space-y-3"
+              )}
+            >
               {sortedChoices.map((choice) => {
                 const letter = choice.letter;
                 const isSelected = state.selectedAnswer === letter;
@@ -410,10 +417,10 @@ export function ActiveQuizScreen({
         // column, mirroring College Board Bluebook behavior.
         if (hasPassage || hasFigure) {
           return (
-            <div className="absolute inset-x-0 bottom-20 top-24 overflow-hidden">
-              <div className="grid h-full divide-y divide-bronze md:grid-cols-2 md:divide-x md:divide-y-0">
+            <div className="absolute inset-x-0 bottom-20 top-24 overflow-y-auto md:overflow-hidden">
+              <div className="grid min-h-full divide-y divide-bronze md:h-full md:grid-cols-2 md:divide-x md:divide-y-0">
                 {/* LEFT */}
-                <div className="overflow-y-auto px-6 py-8 md:px-10">
+                <div className="px-6 py-8 md:overflow-y-auto md:px-10">
                   {figureCard}
                   {hasPassage && passageBlock}
                   {inExplanationMode && (
@@ -421,7 +428,7 @@ export function ActiveQuizScreen({
                   )}
                 </div>
                 {/* RIGHT */}
-                <div className="overflow-y-auto px-6 py-8 md:px-10">
+                <div className="px-6 py-8 md:overflow-y-auto md:px-10">
                   <AnimatePresence mode="wait" initial={false}>
                     {inExplanationMode ? (
                       explanationsPanel
@@ -448,10 +455,10 @@ export function ActiveQuizScreen({
         // on the RIGHT — same shape as R&W in explanation mode.
         if (inExplanationMode) {
           return (
-            <div className="absolute inset-x-0 bottom-20 top-24 overflow-hidden">
-              <div className="grid h-full divide-y divide-bronze md:grid-cols-2 md:divide-x md:divide-y-0">
-                <div className="overflow-y-auto px-6 py-8 md:px-10">{questionPanel}</div>
-                <div className="overflow-y-auto px-6 py-8 md:px-10">{explanationsPanel}</div>
+            <div className="absolute inset-x-0 bottom-20 top-24 overflow-y-auto md:overflow-hidden">
+              <div className="grid min-h-full divide-y divide-bronze md:h-full md:grid-cols-2 md:divide-x md:divide-y-0">
+                <div className="px-6 py-8 md:overflow-y-auto md:px-10">{questionPanel}</div>
+                <div className="px-6 py-8 md:overflow-y-auto md:px-10">{explanationsPanel}</div>
               </div>
             </div>
           );
@@ -504,19 +511,23 @@ function NumericAnswerInput({
   return (
     <div className="mt-8 space-y-3">
       <div className={cn("rounded-xl border px-5 py-4", feedbackClass)}>
-        <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-taupe">
+        <label
+          htmlFor="quiz-numeric-answer"
+          className="mb-2 block text-xs font-semibold uppercase tracking-wider text-taupe"
+        >
           Your answer
         </label>
         <input
+          id="quiz-numeric-answer"
           type="text"
-          inputMode="decimal"
+          inputMode="text"
           autoComplete="off"
           autoFocus
           disabled={isSubmitted}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          placeholder="Type a number (e.g. 3.14 or 1/2)"
-          className="w-full border-0 bg-transparent font-mono text-2xl font-bold tabular-nums text-ivory placeholder:text-taupe focus:outline-none md:text-3xl"
+          placeholder="Number or fraction"
+          className="w-full border-0 bg-transparent font-mono text-2xl font-bold tabular-nums text-ivory placeholder:text-base placeholder:text-taupe focus:outline-none md:text-3xl md:placeholder:text-lg"
         />
         {showFeedback && !wasCorrect && (
           <p className="mt-3 text-sm text-error-bright">
