@@ -26,10 +26,14 @@ import { motion, useDragControls } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import Script from "next/script";
 import { X, GripHorizontal, Minimize2, Calculator } from "lucide-react";
+import type { StudentQuizQuestion } from "@/types/quiz";
+import { getDesmosTransfers, type DesmosExpression } from "@/lib/desmos-transfers";
 
 interface Props {
   onClose: () => void;
   constraintsRef: React.RefObject<HTMLDivElement | null>;
+  question?: StudentQuizQuestion | null;
+  transfersEnabled?: boolean;
 }
 
 type CalcMode = "graphing" | "scientific";
@@ -48,6 +52,9 @@ const MODE_LABEL: Record<CalcMode, string> = {
 // Keeps us off `any` everywhere.
 interface DesmosCalculatorInstance {
   destroy(): void;
+  getState?(): unknown;
+  setState?(state: unknown): void;
+  setExpressions?(expressions: DesmosExpression[]): void;
 }
 interface DesmosOptions {
   invertedColors?: boolean;
@@ -67,7 +74,12 @@ declare global {
   }
 }
 
-export default function DesmosWindow({ onClose, constraintsRef }: Props) {
+export default function DesmosWindow({
+  onClose,
+  constraintsRef,
+  question = null,
+  transfersEnabled = false,
+}: Props) {
   const controls = useDragControls();
   const [mode, setMode] = useState<CalcMode>("graphing");
   const [minimized, setMinimized] = useState(false);
@@ -75,6 +87,10 @@ export default function DesmosWindow({ onClose, constraintsRef }: Props) {
 
   const mountRef = useRef<HTMLDivElement>(null);
   const calcRef = useRef<DesmosCalculatorInstance | null>(null);
+  const savedStates = useRef<Partial<Record<CalcMode, unknown>>>({});
+  const [transferNotice, setTransferNotice] = useState("");
+  const transfers = transfersEnabled ? getDesmosTransfers(question) : [];
+  useEffect(() => setTransferNotice(""), [question?.id]);
 
   // (Re)create the calculator any time the mode flips, the
   // script becomes available, or we restore from minimized.
@@ -100,12 +116,14 @@ export default function DesmosWindow({ onClose, constraintsRef }: Props) {
       mode === "graphing"
         ? Desmos.GraphingCalculator(elt, opts)
         : Desmos.ScientificCalculator(elt, opts);
+    const calculator = calcRef.current;
+    const states = savedStates.current;
+    if (states[mode] !== undefined) calculator.setState?.(states[mode]);
 
     return () => {
-      if (calcRef.current) {
-        calcRef.current.destroy();
-        calcRef.current = null;
-      }
+      if (calculator.getState) states[mode] = calculator.getState();
+      calculator.destroy();
+      if (calcRef.current === calculator) calcRef.current = null;
     };
   }, [mode, scriptReady, minimized]);
 
@@ -144,18 +162,25 @@ export default function DesmosWindow({ onClose, constraintsRef }: Props) {
         dragConstraints={constraintsRef}
         dragMomentum={false}
         dragElastic={0.05}
-        initial={{ opacity: 0, scale: 0.9, x: 60, y: 80 }}
+        initial={{ opacity: 0, scale: 0.9, x: 0, y: 0 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.9 }}
         transition={{ type: "spring", stiffness: 350, damping: 28 }}
-        className="absolute z-[70] resize overflow-hidden rounded-2xl border border-ivory/10 bg-[#070605] shadow-2xl"
-        style={{ width: 600, height: 460, minWidth: 360, minHeight: 280 }}
+        className="absolute left-3 top-16 z-[70] flex resize flex-col overflow-hidden rounded-2xl border border-ivory/10 bg-[#070605] shadow-2xl"
+        style={{
+          width: "min(600px, calc(100vw - 24px))",
+          height: "min(560px, calc(100dvh - 104px))",
+          minWidth: 280,
+          minHeight: 280,
+          maxWidth: "calc(100vw - 24px)",
+          maxHeight: "calc(100dvh - 104px)",
+        }}
       >
         {/* Title bar — drag handle. Mirrors the chat shell aesthetic
             so the calculator reads as part of the same surface. */}
         <div
           onPointerDown={(e) => controls.start(e)}
-          className="flex cursor-grab touch-none select-none items-center justify-between border-b border-ivory/10 bg-surface/[0.04] px-3 py-2 backdrop-blur-md active:cursor-grabbing"
+          className="flex shrink-0 cursor-grab touch-none select-none items-center justify-between gap-1 border-b border-ivory/10 bg-surface/[0.04] px-2 py-2 backdrop-blur-md active:cursor-grabbing"
         >
           <div className="pointer-events-none flex items-center gap-2">
             <GripHorizontal className="h-4 w-4 text-taupe" />
@@ -209,13 +234,35 @@ export default function DesmosWindow({ onClose, constraintsRef }: Props) {
           </div>
         </div>
 
+        {transfers.length > 0 && (
+          <div className="max-h-32 shrink-0 overflow-y-auto border-b border-bronze bg-night px-3 py-2">
+            <p className="mb-2 text-xs text-taupe">Given in this question</p>
+            <div className="flex flex-wrap gap-2">
+              {transfers.map((transfer) => (
+                <button
+                  key={transfer.id}
+                  type="button"
+                  disabled={!scriptReady || mode !== "graphing"}
+                  className="rounded-md border border-bronze px-2 py-1 text-xs text-ivory hover:border-info disabled:opacity-50"
+                  onClick={() => {
+                    if (!calcRef.current?.setExpressions) return;
+                    calcRef.current.setExpressions([transfer.expression]);
+                    setTransferNotice("Added to Desmos.");
+                  }}
+                >
+                  {transfer.label}
+                </button>
+              ))}
+            </div>
+            <p aria-live="polite" className="mt-1 text-xs text-taupe">
+              {mode === "scientific" ? "Choose Graphing to transfer these givens." : transferNotice}
+            </p>
+          </div>
+        )}
+
         {/* Calculator mount — fills below the title bar.
             Desmos paints into this div via the JS API. */}
-        <div
-          ref={mountRef}
-          className="w-full bg-[#070605]"
-          style={{ height: "calc(100% - 36px)" }}
-        />
+        <div ref={mountRef} className="min-h-0 w-full flex-1 bg-[#070605]" />
 
         {/* Loading shim — only visible until the Desmos script
             has initialised the calculator into the mount div. */}

@@ -43,6 +43,33 @@ const base = {
 } as unknown as StudentQuizQuestion;
 
 describe("student answer presentation", () => {
+  it("falls back to the source image when reviewed geometry cannot resolve its angle", () => {
+    showQuestion({
+      ...base,
+      answer_format: "numeric_entry",
+      figure_kind: "geometric",
+      figure_geometry_data: {
+        layout_version: "balanced-v1",
+        shapes: [
+          {
+            kind: "triangle",
+            vertices_or_points: [
+              { id: "A", x: 0, y: 0 },
+              { id: "B", x: 0, y: 10 },
+              { id: "C", x: 10, y: 10 },
+            ],
+          },
+        ],
+        angle_markings: [{ at_vertex: "A", measure: "x°" }],
+      },
+      image_url: "/source-figure.svg",
+      image_alt: "Source triangle",
+    });
+    expect(screen.getByRole("img", { name: "Source triangle" })).toHaveAttribute(
+      "src",
+      "/source-figure.svg"
+    );
+  });
   it("labels the numeric input and allows a fraction without exposing an answer", () => {
     const onSelect = showQuestion({ ...base, answer_format: "numeric_entry" });
     const input = screen.getByRole("textbox", { name: "Your answer" }) as HTMLInputElement;

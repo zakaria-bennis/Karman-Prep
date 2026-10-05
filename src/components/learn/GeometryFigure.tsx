@@ -31,6 +31,7 @@ export default function GeometryFigure({
 }: Props) {
   const { svg, renderable } = buildGeometrySvg(data);
   if (!renderable || !svg) return null;
+  const balanced = data.layout_version === "balanced-v1";
 
   return (
     <figure
@@ -39,12 +40,15 @@ export default function GeometryFigure({
         // with ivory labels inside (observatory system, docs/brand.md).
         "my-4 rounded-lg border border-bronze bg-night p-4",
         "shadow-[0_4px_16px_-8px_rgba(0,0,0,0.5)]",
+        balanced && "w-full max-w-md",
         className
       )}
     >
       <div
         className={cn(
-          "mx-auto block w-auto [&>svg]:mx-auto [&>svg]:h-auto [&>svg]:w-auto",
+          balanced
+            ? "mx-auto block w-full [&>svg]:mx-auto [&>svg]:h-auto [&>svg]:w-full"
+            : "mx-auto block w-auto [&>svg]:mx-auto [&>svg]:h-auto [&>svg]:w-auto",
           `[&>svg]:${maxHeightClass}`,
           maxHeightClass
         )}

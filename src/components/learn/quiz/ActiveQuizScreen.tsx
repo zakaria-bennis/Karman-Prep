@@ -4,7 +4,7 @@
 // question, choice grid (or numeric input), explanations, and
 // inline progression controls. Driven by QuizContext.
 
-import { useMemo } from "react";
+import { useMemo, type ReactNode } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Check, X } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -18,6 +18,7 @@ import GeometryFigure from "../GeometryFigure";
 import FigureFrame from "../FigureFrame";
 import { ProgressDot } from "./ProgressDot";
 import { TableChoiceOption } from "./TableChoiceOption";
+import { buildGeometrySvg } from "@/lib/figures/geometry-svg";
 
 export function ActiveQuizScreen({
   node,
@@ -29,6 +30,7 @@ export function ActiveQuizScreen({
   showExplanations,
   onToggleExplanations,
   onNext,
+  menu,
 }: {
   node: MappedNode;
   q: StudentQuizQuestion;
@@ -39,8 +41,16 @@ export function ActiveQuizScreen({
   showExplanations: boolean;
   onToggleExplanations: (v: boolean) => void;
   onNext: () => void;
+  menu?: ReactNode;
 }) {
   const { state } = useQuiz();
+  const nativeGeometryRenderable = useMemo(
+    () =>
+      q.figure_kind === "geometric" &&
+      !!q.figure_geometry_data &&
+      buildGeometrySvg(q.figure_geometry_data).renderable,
+    [q.figure_kind, q.figure_geometry_data]
+  );
   const sortedChoices = useMemo(
     () => [...q.answer_choices].sort((a, b) => (a.letter > b.letter ? 1 : -1)),
     [q]
@@ -64,7 +74,7 @@ export function ActiveQuizScreen({
   return (
     <>
       {/* Top bar */}
-      <div className="absolute inset-x-0 top-0 z-10 flex h-14 items-center border-b border-bronze bg-night/80 px-6 backdrop-blur-sm">
+      <div className="absolute inset-x-0 top-0 z-[72] flex h-14 items-center border-b border-bronze bg-night/80 px-3 backdrop-blur-sm sm:px-6">
         <div className="min-w-0 flex-1">
           <p className="text-xs font-semibold uppercase tracking-widest text-taupe">
             {node.subject === "reading" ? "Reading & Writing" : "Math"}
@@ -78,6 +88,7 @@ export function ActiveQuizScreen({
           </span>
         </div>
         <div className="flex flex-1 justify-end">
+          {menu}
           <button
             onClick={onClose}
             className="flex h-9 w-9 items-center justify-center rounded-full text-taupe hover:bg-surface-raised hover:text-ivory"
@@ -350,7 +361,7 @@ export function ActiveQuizScreen({
         // so we skip the white-bg FigureFrame card for them.
         const isNativeTable = q.figure_kind === "table" && q.figure_table_data;
         const isNativeChart = q.figure_kind === "chart" && q.figure_chart_data;
-        const isNativeGeometry = q.figure_kind === "geometric" && q.figure_geometry_data;
+        const isNativeGeometry = nativeGeometryRenderable;
         const hasFigure = !!q.image_url || isNativeTable || isNativeChart || isNativeGeometry;
         const figureCard = isNativeTable ? (
           <div className="mb-6 flex justify-center">

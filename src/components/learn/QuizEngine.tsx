@@ -17,15 +17,23 @@ import QuizResults from "./QuizResults";
 import { ActiveQuizScreen } from "./quiz/ActiveQuizScreen";
 import { BottomToolbar } from "./quiz/BottomToolbar";
 import { VideoPromptBanner } from "./quiz/VideoPromptBanner";
+import { QuizMenu } from "./quiz/QuizMenu";
 
 interface Props {
   node: MappedNode;
   videoUrl?: string | null;
   onClose: () => void;
   onGoToNext: (() => void) | null;
+  sessionMode?: "practice" | "realistic";
 }
 
-export default function QuizEngine({ node, videoUrl, onClose, onGoToNext }: Props) {
+export default function QuizEngine({
+  node,
+  videoUrl,
+  onClose,
+  onGoToNext,
+  sessionMode = "practice",
+}: Props) {
   const {
     state,
     startQuiz,
@@ -49,6 +57,22 @@ export default function QuizEngine({ node, videoUrl, onClose, onGoToNext }: Prop
   // student has opened the explanations panel — otherwise we'd
   // yank them to the next question mid-read.
   const [showExplanations, setShowExplanations] = useState(false);
+  const [desmosTransfersEnabled, setDesmosTransfersEnabled] = useState(true);
+  useEffect(() => {
+    try {
+      setDesmosTransfersEnabled(localStorage.getItem("karman.desmos-transfers") !== "off");
+    } catch {
+      // Practice still works when browser storage is unavailable.
+    }
+  }, []);
+  function changeDesmosTransfers(enabled: boolean) {
+    setDesmosTransfersEnabled(enabled);
+    try {
+      localStorage.setItem("karman.desmos-transfers", enabled ? "on" : "off");
+    } catch {
+      // Keep the setting for this session.
+    }
+  }
 
   // Kick off the quiz when the engine mounts
   useEffect(() => {
@@ -148,6 +172,15 @@ export default function QuizEngine({ node, videoUrl, onClose, onGoToNext }: Prop
           showExplanations={showExplanations}
           onToggleExplanations={setShowExplanations}
           onNext={() => nextQuestion()}
+          menu={
+            node.subject === "math" ? (
+              <QuizMenu
+                transfersEnabled={desmosTransfersEnabled}
+                onTransfersChange={changeDesmosTransfers}
+                realistic={sessionMode === "realistic"}
+              />
+            ) : undefined
+          }
         />
       )}
 
@@ -184,7 +217,12 @@ export default function QuizEngine({ node, videoUrl, onClose, onGoToNext }: Prop
               exit={{ opacity: 0 }}
               className="pointer-events-none absolute inset-0 z-[65] bg-night"
             />
-            <DesmosWindow onClose={toggleDesmos} constraintsRef={containerRef} />
+            <DesmosWindow
+              onClose={toggleDesmos}
+              constraintsRef={containerRef}
+              question={currentQuestion}
+              transfersEnabled={desmosTransfersEnabled && sessionMode === "practice"}
+            />
           </>
         )}
       </AnimatePresence>
