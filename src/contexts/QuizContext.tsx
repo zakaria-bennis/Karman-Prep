@@ -21,9 +21,12 @@ import type {
   ConfidenceBand,
   QuizDifficulty,
   QuizDifficultyLevel,
-  QuizQuestionWithChoices,
+  StudentQuizQuestion,
+  StudentQuizReview,
+  QuestionResponse,
 } from "@/types/quiz";
-import { getConfidenceBand, stepDifficultyLevel, levelToLegacyDifficulty } from "@/types/quiz";
+import { stepDifficultyLevel, levelToLegacyDifficulty } from "@/types/quiz";
+import { prepareQuizSession, selectNextQuestion, QUIZ_LENGTH } from "@/lib/quiz-session";
 import {
   actionStartQuiz,
   actionRecordResponse,
@@ -64,8 +67,9 @@ export interface QuizState {
   subject: Subject | null;
   attemptId: string | null;
 
-  allQuestions: QuizQuestionWithChoices[];
-  selectedQuestions: QuizQuestionWithChoices[];
+  allQuestions: StudentQuizQuestion[];
+  selectedQuestions: StudentQuizQuestion[];
+  reviews: Record<string, StudentQuizReview>;
   usedQuestionIds: Set<string>;
 
   currentIndex: number;
@@ -82,11 +86,10 @@ export interface QuizState {
 
   score: number | null;
   correctCount: number;
+  targetLength: number;
   confidenceBand: ConfidenceBand | null;
   newStatus: string | null;
 }
-
-const QUIZ_LENGTH = 10;
 
 const initialState: QuizState = {
   phase: "idle",
@@ -95,6 +98,7 @@ const initialState: QuizState = {
   attemptId: null,
   allQuestions: [],
   selectedQuestions: [],
+  reviews: {},
   usedQuestionIds: new Set<string>(),
   currentIndex: 0,
   currentLevel: 1,
@@ -107,6 +111,7 @@ const initialState: QuizState = {
   isScratchpadOpen: false,
   score: null,
   correctCount: 0,
+  targetLength: QUIZ_LENGTH,
   confidenceBand: null,
   newStatus: null,
 };
@@ -117,18 +122,19 @@ type Action =
   | {
       type: "QUIZ_LOADED";
       attemptId: string;
-      allQuestions: QuizQuestionWithChoices[];
-      first: QuizQuestionWithChoices;
+      allQuestions: StudentQuizQuestion[];
+      responses: QuestionResponse[];
+      reviews: Record<string, StudentQuizReview>;
     }
   | { type: "SELECT_ANSWER"; answer: string }
   | {
       type: "SUBMIT_ANSWER";
-      isCorrect: boolean;
+      review: StudentQuizReview;
       responseTimeSeconds: number;
     }
   | {
       type: "ADVANCE_TO_NEXT";
-      next: QuizQuestionWithChoices | null;
+      next: StudentQuizQuestion | null;
       nextLevel: QuizDifficultyLevel;
     }
   | { type: "SHOW_VIDEO_PROMPT" }
@@ -158,20 +164,45 @@ function reducer(state: QuizState, action: Action): QuizState {
       };
 
     case "QUIZ_LOADED": {
-      const used = new Set<string>();
-      used.add(action.first.id);
+      const plan = prepareQuizSession(action.allQuestions, action.responses);
+      const selectedQuestions = plan.next
+        ? [...plan.answeredQuestions, plan.next]
+        : plan.answeredQuestions;
+      const last = plan.responses.at(-1);
+      const records: PerQuestionRecord[] = plan.responses.map((response, index) => ({
+        questionId: response.question_id,
+        studentAnswer: response.student_answer,
+        isCorrect: response.is_correct,
+        difficulty: plan.answeredQuestions[index].difficulty,
+        difficultyLevel: plan.answeredQuestions[index].difficulty_level,
+        responseTimeSeconds: response.response_time_seconds,
+        flagged: response.flagged,
+        flagNote: response.flag_note,
+      }));
+      const used = new Set(plan.used);
+      if (plan.next) used.add(plan.next.id);
       return {
         ...state,
-        phase: "answering",
+        phase: plan.next ? "answering" : last?.is_correct ? "submitted_correct" : "submitted_wrong",
         attemptId: action.attemptId,
-        allQuestions: action.allQuestions,
-        selectedQuestions: [action.first],
+        allQuestions: plan.questions,
+        selectedQuestions,
+        reviews: action.reviews,
         usedQuestionIds: used,
-        currentIndex: 0,
-        currentLevel: (action.first.difficulty_level ?? 1) as QuizDifficultyLevel,
+        currentIndex: plan.next ? plan.responses.length : Math.max(0, plan.responses.length - 1),
+        currentLevel: plan.next
+          ? plan.next.difficulty_level
+          : (plan.answeredQuestions.at(-1)?.difficulty_level ?? 1),
+        selectedAnswer: plan.next ? null : (last?.student_answer ?? null),
         questionStartedAt: Date.now(),
-        records: [],
-        adaptivePath: [],
+        records,
+        adaptivePath: plan.responses.map((response, index) => ({
+          question_id: response.question_id,
+          difficulty: plan.answeredQuestions[index].difficulty,
+          was_correct: response.is_correct,
+        })),
+        correctCount: plan.responses.filter((response) => response.is_correct).length,
+        targetLength: plan.targetLength,
       };
     }
 
@@ -185,8 +216,8 @@ function reducer(state: QuizState, action: Action): QuizState {
       const level = (q.difficulty_level ?? 1) as QuizDifficultyLevel;
       const record: PerQuestionRecord = {
         questionId: q.id,
-        studentAnswer: state.selectedAnswer,
-        isCorrect: action.isCorrect,
+        studentAnswer: action.review.studentAnswer,
+        isCorrect: action.review.isCorrect,
         difficulty: q.difficulty,
         difficultyLevel: level,
         responseTimeSeconds: action.responseTimeSeconds,
@@ -202,19 +233,21 @@ function reducer(state: QuizState, action: Action): QuizState {
         {
           question_id: q.id,
           difficulty: q.difficulty,
-          was_correct: action.isCorrect,
+          was_correct: action.review.isCorrect,
         },
       ];
 
-      const consecutiveWrong = action.isCorrect ? 0 : state.consecutiveWrong + 1;
+      const consecutiveWrong = action.review.isCorrect ? 0 : state.consecutiveWrong + 1;
 
       return {
         ...state,
-        phase: action.isCorrect ? "submitted_correct" : "submitted_wrong",
+        phase: action.review.isCorrect ? "submitted_correct" : "submitted_wrong",
         records,
+        reviews: { ...state.reviews, [q.id]: action.review },
+        selectedAnswer: action.review.studentAnswer,
         adaptivePath,
         consecutiveWrong,
-        correctCount: state.correctCount + (action.isCorrect ? 1 : 0),
+        correctCount: state.correctCount + (action.review.isCorrect ? 1 : 0),
       };
     }
 
@@ -282,67 +315,6 @@ function reducer(state: QuizState, action: Action): QuizState {
   }
 }
 
-// ── Answer evaluation (MC or numeric) ──────────────────────
-
-export function evaluateAnswer(studentAnswer: string, q: QuizQuestionWithChoices): boolean {
-  if (q.answer_format === "numeric_entry") {
-    return evaluateNumeric(studentAnswer, q.correct_answer, q.numeric_tolerance);
-  }
-  // Multiple choice — trimmed string compare
-  return studentAnswer.trim().toUpperCase() === q.correct_answer.trim().toUpperCase();
-}
-
-function evaluateNumeric(student: string, correct: string, tolerance: number | null): boolean {
-  const parseNum = (s: string): number | null => {
-    const trimmed = s.trim();
-    // Support simple fractions like "1/2"
-    if (/^-?\d+\s*\/\s*\d+$/.test(trimmed)) {
-      const [a, b] = trimmed.split("/").map((x) => parseFloat(x.trim()));
-      if (!Number.isFinite(a) || !Number.isFinite(b) || b === 0) return null;
-      return a / b;
-    }
-    const n = parseFloat(trimmed);
-    return Number.isFinite(n) ? n : null;
-  };
-
-  const a = parseNum(student);
-  const b = parseNum(correct);
-  if (a === null || b === null) {
-    // Fall back to string equality for weird inputs (π, etc.)
-    return student.trim() === correct.trim();
-  }
-  const tol = tolerance ?? 0;
-  return Math.abs(a - b) <= tol + 1e-9;
-}
-
-// ── Adaptive selection helper ───────────────────────────────
-
-/**
- * Find a question at or near the target difficulty level (1–7), searching
- * outward from the target until a usable question is found.
- */
-export function selectNextQuestion(
-  all: QuizQuestionWithChoices[],
-  targetLevel: QuizDifficultyLevel,
-  used: Set<string>
-): QuizQuestionWithChoices | null {
-  for (let offset = 0; offset < 7; offset++) {
-    for (const sign of offset === 0 ? [0] : [-1, 1]) {
-      const level = targetLevel + offset * sign;
-      if (level < 1 || level > 7) continue;
-      const pool = all.filter((q) => (q.difficulty_level ?? 1) === level && !used.has(q.id));
-      if (pool.length > 0) {
-        return pool.sort((a, b) => a.display_order - b.display_order)[0];
-      }
-    }
-  }
-  // Absolute last resort — return any unused question
-  const anyUnused = all.filter((q) => !used.has(q.id));
-  return anyUnused.length > 0
-    ? anyUnused.sort((a, b) => a.display_order - b.display_order)[0]
-    : null;
-}
-
 // ── Context shape ────────────────────────────────────────────
 
 interface QuizContextValue {
@@ -372,27 +344,25 @@ export function useQuiz(): QuizContextValue {
 export function QuizProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(reducer, initialState);
   const completionInFlightRef = useRef(false);
+  const submissionInFlightRef = useRef(false);
 
   const startQuiz = useCallback(async (nodeId: string, subject: Subject) => {
     dispatch({ type: "START_LOADING", nodeId, subject });
     completionInFlightRef.current = false;
 
-    const { attemptId, questions } = await actionStartQuiz(nodeId);
-
-    // Pick a foundational question to start with (or the easiest available).
-    // Start at the easiest level available for this node (typically 1)
-    const first = selectNextQuestion(questions, 1, new Set());
-    if (!first) {
-      // No questions exist — fail gracefully.
+    let loaded: Awaited<ReturnType<typeof actionStartQuiz>>;
+    try {
+      loaded = await actionStartQuiz(nodeId);
+    } catch (error) {
       dispatch({ type: "RESET" });
-      throw new Error("This node has no questions yet.");
+      throw error;
     }
-
     dispatch({
       type: "QUIZ_LOADED",
-      attemptId,
-      allQuestions: questions,
-      first,
+      attemptId: loaded.attemptId,
+      allQuestions: loaded.questions,
+      responses: loaded.responses,
+      reviews: loaded.reviews,
     });
   }, []);
 
@@ -401,40 +371,39 @@ export function QuizProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const submitAnswer = useCallback(async () => {
-    if (state.phase !== "answering" || !state.selectedAnswer || !state.attemptId) return;
+    if (
+      state.phase !== "answering" ||
+      !state.selectedAnswer ||
+      !state.attemptId ||
+      submissionInFlightRef.current
+    )
+      return;
+    submissionInFlightRef.current = true;
 
     const q = state.selectedQuestions[state.currentIndex];
-    const isCorrect = evaluateAnswer(state.selectedAnswer, q);
     const responseTimeSeconds = Math.round((Date.now() - state.questionStartedAt) / 1000);
 
-    dispatch({ type: "SUBMIT_ANSWER", isCorrect, responseTimeSeconds });
-
-    if (isCorrect) playSound("nodeComplete");
-    else playSound("error");
-
-    // Fire-and-forget server write. student_answer is stored as free
-    // TEXT (letter A/B/C/D for multiple-choice, numeric for math
-    // grid-ins). On failure we report to Sentry with the attempt id
-    // attached so we can investigate without losing other student
-    // answers in the same attempt — better than .catch(console.error)
-    // which silently swallowed everything in audit S4.
-    actionRecordResponse({
-      attempt_id: state.attemptId,
-      question_id: q.id,
-      student_answer: state.selectedAnswer,
-      is_correct: isCorrect,
-      difficulty_at_time: q.difficulty,
-      response_time_seconds: responseTimeSeconds,
-    }).catch((err) => {
+    try {
+      const review = await actionRecordResponse({
+        attempt_id: state.attemptId,
+        question_id: q.id,
+        student_answer: state.selectedAnswer,
+        response_time_seconds: responseTimeSeconds,
+      });
+      dispatch({ type: "SUBMIT_ANSWER", review, responseTimeSeconds });
+      if (review.isCorrect) playSound("nodeComplete");
+      else playSound("error");
+      if (!review.isCorrect && state.consecutiveWrong + 1 >= 3) {
+        setTimeout(() => dispatch({ type: "SHOW_VIDEO_PROMPT" }), 600);
+      }
+    } catch (err) {
       Sentry.captureException(err, {
         tags: { feature: "quiz.record_response" },
         extra: { attemptId: state.attemptId, questionId: q.id },
       });
-    });
-
-    // 3-consecutive-wrongs video prompt
-    if (!isCorrect && state.consecutiveWrong + 1 >= 3) {
-      setTimeout(() => dispatch({ type: "SHOW_VIDEO_PROMPT" }), 600);
+      throw err;
+    } finally {
+      submissionInFlightRef.current = false;
     }
   }, [state]);
 
@@ -445,35 +414,27 @@ export function QuizProvider({ children }: { children: ReactNode }) {
     const wasCorrect = !!lastRecord?.isCorrect;
 
     // Reached end of quiz?
-    if (state.currentIndex + 1 >= QUIZ_LENGTH) {
+    const nextLevel = stepDifficultyLevel(state.currentLevel, wasCorrect);
+    const next = selectNextQuestion(state.allQuestions, nextLevel, state.usedQuestionIds);
+    if (state.currentIndex + 1 >= state.targetLength || !next) {
       if (completionInFlightRef.current) return;
       completionInFlightRef.current = true;
 
-      const answered = state.currentIndex + 1;
-      const correct = state.correctCount;
-      const score = Math.round((correct / QUIZ_LENGTH) * 100);
       try {
-        const { newStatus, confidenceBand } = await actionCompleteQuiz({
+        const { score, newStatus, confidenceBand } = await actionCompleteQuiz({
           attemptId: state.attemptId!,
           nodeId: state.nodeId!,
           subject: state.subject!,
-          score,
-          questions_answered: answered,
-          questions_correct: correct,
-          adaptive_path: state.adaptivePath,
         });
         dispatch({ type: "COMPLETE", score, confidenceBand, newStatus });
       } catch (err) {
-        console.error(err);
-        const band = getConfidenceBand(score);
-        dispatch({ type: "COMPLETE", score, confidenceBand: band, newStatus: "in_progress" });
+        Sentry.captureException(err, { tags: { feature: "quiz.complete" } });
+        completionInFlightRef.current = false;
       }
       return;
     }
 
     // Pick the next question adaptively
-    const nextLevel = stepDifficultyLevel(state.currentLevel, wasCorrect);
-    const next = selectNextQuestion(state.allQuestions, nextLevel, state.usedQuestionIds);
     dispatch({ type: "ADVANCE_TO_NEXT", next, nextLevel });
   }, [state]);
 
@@ -549,5 +510,3 @@ export function QuizProvider({ children }: { children: ReactNode }) {
 
   return <QuizContext.Provider value={value}>{children}</QuizContext.Provider>;
 }
-
-export const QUIZ_TOTAL_QUESTIONS = QUIZ_LENGTH;

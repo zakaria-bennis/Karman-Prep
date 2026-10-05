@@ -10,45 +10,75 @@ import { revalidatePath } from "next/cache";
 import {
   fetchQuestionsForNode,
   createQuizAttempt,
-  finalizeQuizAttempt,
+  fetchResponsesForAttempt,
+  fetchQuizAttemptForStudent,
+  completeQuizAttemptAtomic,
   recordQuestionResponse,
   flagQuestion,
-  updateNodeAfterQuiz,
   updateWatchPercentage,
   fetchNodeStatusBundle,
 } from "@/lib/supabase/queries/quiz";
 import type {
-  AdaptiveStep,
   ConfidenceBand,
-  QuizDifficulty,
-  QuizQuestionWithChoices,
+  StudentQuizQuestion,
+  StudentQuizReview,
+  QuestionResponse,
 } from "@/types/quiz";
-import { getConfidenceBand } from "@/types/quiz";
+import { toStudentQuizQuestion, toStudentQuizReview } from "@/lib/student-quiz-payload";
+import { evaluateQuizAnswer, prepareQuizSession } from "@/lib/quiz-session";
 import type { Subject } from "@/data/curriculum";
-
-export async function actionFetchQuestions(nodeId: string): Promise<QuizQuestionWithChoices[]> {
-  return fetchQuestionsForNode(nodeId);
-}
+import {
+  quizNodeIdSchema,
+  recordQuizResponseSchema,
+  completeQuizSchema,
+  flagQuizQuestionSchema,
+  watchPercentageSchema,
+} from "./quiz-action-schemas";
 
 export async function actionFetchNodeBundle(nodeId: string) {
   const { userId } = await safeAuth();
   if (!userId) throw new Error("Not authenticated");
-  return fetchNodeStatusBundle(userId, nodeId);
+  return fetchNodeStatusBundle(userId, quizNodeIdSchema.parse(nodeId));
 }
 
 export async function actionStartQuiz(nodeId: string): Promise<{
   attemptId: string;
-  questions: QuizQuestionWithChoices[];
+  questions: StudentQuizQuestion[];
+  responses: QuestionResponse[];
+  reviews: Record<string, StudentQuizReview>;
 }> {
   const { userId } = await safeAuth();
   if (!userId) throw new Error("Not authenticated");
 
-  const [attempt, questions] = await Promise.all([
-    createQuizAttempt(userId, nodeId),
-    fetchQuestionsForNode(nodeId),
-  ]);
+  nodeId = quizNodeIdSchema.parse(nodeId);
+  const questions = await fetchQuestionsForNode(nodeId);
+  if (questions.length === 0) throw new Error("This node has no questions yet.");
 
-  return { attemptId: attempt.id, questions };
+  const attempt = await createQuizAttempt(userId, nodeId);
+  const responses = await fetchResponsesForAttempt(attempt.id);
+  const availableIds = new Set(questions.map((q) => q.id));
+  if (responses.some((response) => !availableIds.has(response.question_id))) {
+    throw new Error(
+      "This quiz changed while you were away. Please contact support to reset the attempt."
+    );
+  }
+  const byId = new Map(questions.map((question) => [question.id, question]));
+  const reviews = Object.fromEntries(
+    responses.map((response) => [
+      response.question_id,
+      toStudentQuizReview(
+        byId.get(response.question_id)!,
+        response.is_correct,
+        response.student_answer
+      ),
+    ])
+  );
+  return {
+    attemptId: attempt.id,
+    questions: questions.map(toStudentQuizQuestion),
+    responses,
+    reviews,
+  };
 }
 
 export async function actionRecordResponse(input: {
@@ -57,46 +87,70 @@ export async function actionRecordResponse(input: {
   /** Free-form text. Letter (A/B/C/D) for multiple-choice; numeric
    *  string (e.g. "42", "1/2") for SAT math grid-ins. */
   student_answer: string;
-  is_correct: boolean;
-  difficulty_at_time: QuizDifficulty;
   response_time_seconds: number;
-}) {
+}): Promise<StudentQuizReview> {
   const { userId } = await safeAuth();
   if (!userId) throw new Error("Not authenticated");
-  await recordQuestionResponse(input);
+  input = recordQuizResponseSchema.parse(input);
+  const attempt = await fetchQuizAttemptForStudent(input.attempt_id, userId);
+  if (!attempt) throw new Error("Quiz attempt is unavailable");
+  const questions = await fetchQuestionsForNode(attempt.node_id);
+  const question = questions.find((q) => q.id === input.question_id);
+  if (!question) throw new Error("Question is not in the approved node pool");
+  const responses = await fetchResponsesForAttempt(input.attempt_id);
+  if (!responses.some((response) => response.question_id === input.question_id)) {
+    const plan = prepareQuizSession(questions, responses);
+    if (plan.next?.id !== input.question_id) throw new Error("Question is not next in this quiz");
+  }
+  const stored = await recordQuestionResponse({
+    ...input,
+    student_id: userId,
+    is_correct: evaluateQuizAnswer(input.student_answer, question),
+    difficulty_at_time: question.difficulty,
+  });
+  return toStudentQuizReview(question, stored.is_correct, stored.student_answer);
 }
 
 export async function actionCompleteQuiz(input: {
   attemptId: string;
   nodeId: string;
   subject: Subject;
-  score: number;
-  questions_answered: number;
-  questions_correct: number;
-  adaptive_path: AdaptiveStep[];
-}): Promise<{ newStatus: string; confidenceBand: ConfidenceBand }> {
+}): Promise<{ score: number; newStatus: string; confidenceBand: ConfidenceBand }> {
   const { userId } = await safeAuth();
   if (!userId) throw new Error("Not authenticated");
 
-  const confidence_band = getConfidenceBand(input.score);
-
-  await finalizeQuizAttempt(input.attemptId, {
-    score: input.score,
-    questions_answered: input.questions_answered,
-    questions_correct: input.questions_correct,
-    confidence_band,
-    adaptive_path: input.adaptive_path,
+  input = completeQuizSchema.parse(input);
+  if (input.subject !== (input.nodeId.startsWith("ma-") ? "math" : "reading"))
+    throw new Error("Subject does not match node");
+  const attempt = await fetchQuizAttemptForStudent(input.attemptId, userId);
+  if (!attempt || attempt.node_id !== input.nodeId) throw new Error("Quiz attempt is unavailable");
+  if (attempt.completed_at) {
+    const completed = await completeQuizAttemptAtomic(input.attemptId, userId, input.nodeId, {
+      expectedCount: 1,
+      adaptive_path: [],
+    });
+    revalidatePath(`/learn/${input.subject}`);
+    return completed;
+  }
+  const [questions, responses] = await Promise.all([
+    fetchQuestionsForNode(input.nodeId),
+    fetchResponsesForAttempt(input.attemptId),
+  ]);
+  const plan = prepareQuizSession(questions, responses);
+  if (plan.targetLength === 0 || plan.responses.length < plan.targetLength) {
+    throw new Error("Quiz is not complete yet");
+  }
+  const result = await completeQuizAttemptAtomic(input.attemptId, userId, input.nodeId, {
+    expectedCount: plan.targetLength,
+    adaptive_path: plan.responses.map((response, index) => ({
+      question_id: response.question_id,
+      difficulty: plan.answeredQuestions[index].difficulty,
+      was_correct: response.is_correct,
+    })),
   });
 
-  const { newStatus } = await updateNodeAfterQuiz(
-    userId,
-    input.nodeId,
-    input.score,
-    confidence_band
-  );
-
   revalidatePath(`/learn/${input.subject}`);
-  return { newStatus, confidenceBand: confidence_band };
+  return result;
 }
 
 export async function actionFlagQuestion(input: {
@@ -106,6 +160,7 @@ export async function actionFlagQuestion(input: {
 }) {
   const { userId } = await safeAuth();
   if (!userId) throw new Error("Not authenticated");
+  input = flagQuizQuestionSchema.parse(input);
   await flagQuestion({
     question_id: input.question_id,
     student_id: userId,
@@ -117,5 +172,9 @@ export async function actionFlagQuestion(input: {
 export async function actionUpdateWatchPercentage(nodeId: string, percentage: number) {
   const { userId } = await safeAuth();
   if (!userId) return;
-  await updateWatchPercentage(userId, nodeId, percentage);
+  await updateWatchPercentage(
+    userId,
+    quizNodeIdSchema.parse(nodeId),
+    watchPercentageSchema.parse(percentage)
+  );
 }

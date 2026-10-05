@@ -9,14 +9,15 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Check, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { MappedNode } from "../ConstellationMap";
-import { QUIZ_TOTAL_QUESTIONS, useQuiz } from "@/contexts/QuizContext";
-import type { QuizQuestionWithChoices } from "@/types/quiz";
+import { useQuiz } from "@/contexts/QuizContext";
+import type { StudentQuizQuestion } from "@/types/quiz";
 import MathText from "../MathText";
 import QuestionTable from "../QuestionTable";
 import ChartFigure from "../ChartFigure";
 import GeometryFigure from "../GeometryFigure";
 import FigureFrame from "../FigureFrame";
 import { ProgressDot } from "./ProgressDot";
+import { TableChoiceOption } from "./TableChoiceOption";
 
 export function ActiveQuizScreen({
   node,
@@ -30,7 +31,7 @@ export function ActiveQuizScreen({
   onNext,
 }: {
   node: MappedNode;
-  q: QuizQuestionWithChoices;
+  q: StudentQuizQuestion;
   onClose: () => void;
   onSelectAnswer: (l: string) => void;
   onSubmit: () => void;
@@ -45,10 +46,11 @@ export function ActiveQuizScreen({
     [q]
   );
   const isSubmitted = state.phase === "submitted_correct" || state.phase === "submitted_wrong";
-  const correctLetter = q.correct_answer;
+  const review = isSubmitted ? state.reviews[q.id] : undefined;
+  const correctLetter = review?.correct_answer;
 
   // Progress dots
-  const dots = Array.from({ length: QUIZ_TOTAL_QUESTIONS }, (_, i) => {
+  const dots = Array.from({ length: state.targetLength }, (_, i) => {
     const rec = state.records[i];
     const isCurrent = i === state.currentIndex;
     const isAnswered = !!rec?.isCorrect || rec?.isCorrect === false;
@@ -70,7 +72,7 @@ export function ActiveQuizScreen({
         <div className="flex-1 text-center">
           <span className="text-sm font-semibold text-ivory/80">
             Question <span className="text-ivory">{state.currentIndex + 1}</span> of{" "}
-            {QUIZ_TOTAL_QUESTIONS}
+            {state.targetLength}
           </span>
         </div>
         <div className="flex flex-1 justify-end">
@@ -137,7 +139,7 @@ export function ActiveQuizScreen({
               onClick={onNext}
               className="rounded-xl bg-info px-8 py-3 text-sm font-bold text-ivory transition-colors hover:bg-info-bright"
             >
-              Next question →
+              {state.currentIndex + 1 >= state.targetLength ? "See results →" : "Next question →"}
             </button>
           </motion.div>
         ) : null;
@@ -150,8 +152,8 @@ export function ActiveQuizScreen({
               onChange={onSelectAnswer}
               isSubmitted={isSubmitted}
               studentAnswer={state.selectedAnswer}
-              correctAnswer={q.correct_answer}
-              tolerance={q.numeric_tolerance}
+              correctAnswer={review?.correct_answer ?? ""}
+              tolerance={review?.numeric_tolerance ?? null}
               wasCorrect={state.phase === "submitted_correct"}
             />
           ) : (
@@ -162,6 +164,21 @@ export function ActiveQuizScreen({
                 const isCorrect = letter === correctLetter;
                 const showCorrect = isSubmitted && isCorrect;
                 const showWrong = isSubmitted && isSelected && !isCorrect;
+                if (choice.choice_table_data) {
+                  return (
+                    <TableChoiceOption
+                      key={letter}
+                      id={`choice-${q.id}-${letter}`}
+                      groupName={`choices-${q.id}`}
+                      letter={letter}
+                      table={choice.choice_table_data}
+                      selected={isSelected}
+                      submitted={isSubmitted}
+                      correct={isCorrect}
+                      onSelect={onSelectAnswer}
+                    />
+                  );
+                }
                 return (
                   <button
                     key={letter}
@@ -204,7 +221,7 @@ export function ActiveQuizScreen({
             <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-taupe">
               {q.topic_cluster}
             </p>
-            <h2 className="text-[19px] font-medium leading-[1.5] text-ivory md:text-[20px]">
+            <h2 className="whitespace-pre-line text-[19px] font-medium leading-[1.5] text-ivory md:text-[20px]">
               <MathText text={q.question_text} />
             </h2>
             {choicesBlock}
@@ -213,7 +230,10 @@ export function ActiveQuizScreen({
         );
 
         // ── Explanations panel (right side when showExplanations) ──
-        const perChoiceMap = q.explanation_per_choice as Record<string, string | undefined> | null;
+        const perChoiceMap = review?.explanation_per_choice as Record<
+          string,
+          string | undefined
+        > | null;
         const explanationsPanel = (
           <motion.div
             key="explanations"
@@ -227,9 +247,9 @@ export function ActiveQuizScreen({
               Explanation
             </h3>
 
-            {q.explanation_text && (
+            {review?.explanation_text && (
               <div className="mb-6 text-[16px] leading-[1.6] text-ivory">
-                <MathText text={q.explanation_text} className="block whitespace-pre-wrap" />
+                <MathText text={review?.explanation_text} className="block whitespace-pre-wrap" />
               </div>
             )}
 
@@ -279,13 +299,13 @@ export function ActiveQuizScreen({
               </div>
             )}
 
-            {q.desmos_strategy && (
+            {review?.desmos_strategy && (
               <div className="mb-6 rounded-xl border border-info/30 bg-info/5 p-4">
                 <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-info-bright">
                   Desmos strategy
                 </div>
                 <div className="text-[16px] leading-[1.6] text-info-bright">
-                  <MathText text={q.desmos_strategy} className="block whitespace-pre-wrap" />
+                  <MathText text={review?.desmos_strategy} className="block whitespace-pre-wrap" />
                 </div>
               </div>
             )}
@@ -301,7 +321,7 @@ export function ActiveQuizScreen({
                 onClick={onNext}
                 className="rounded-xl bg-info px-8 py-3 text-sm font-bold text-ivory transition-colors hover:bg-info-bright"
               >
-                Next question →
+                {state.currentIndex + 1 >= state.targetLength ? "See results →" : "Next question →"}
               </button>
             </div>
           </motion.div>
