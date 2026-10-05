@@ -28,6 +28,8 @@
 // ============================================================
 
 import { createHash } from "node:crypto";
+import type { QuestionTableData } from "@/types/question-table";
+import { isValidChoiceTableData } from "./choice-table";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, Json } from "@/types/supabase";
 import {
@@ -69,6 +71,10 @@ export interface ImportQuestionInput {
   choice_b?: string;
   choice_c?: string;
   choice_d?: string;
+
+  choice_tables?: Partial<Record<AnswerLetter, QuestionTableData>> | null;
+  figure_kind?: "table" | null;
+  figure_table_data?: QuestionTableData | null;
 
   // ── Difficulty + format ──
   difficulty?: string | number; // 1-7 or legacy label; defaults to 4 / "intermediate"
@@ -202,6 +208,8 @@ export function computeContentHashV2(fields: {
   choice_b?: string;
   choice_c?: string;
   choice_d?: string;
+  choice_tables?: Partial<Record<AnswerLetter, QuestionTableData>> | null;
+  figure_table_data?: QuestionTableData | null;
 }): string {
   const normalized = [
     fields.subject,
@@ -219,7 +227,22 @@ export function computeContentHashV2(fields: {
   ]
     .map((p) => String(p).trim().toLowerCase())
     .join("|");
-  return createHash("sha256").update(normalized, "utf-8").digest("hex");
+  // Preserve legacy text-only hashes; include all meaningful table cells for
+  // new native-table questions so different datasets are not skipped as retries.
+  const canonicalTable = (table: QuestionTableData | null | undefined) =>
+    table == null
+      ? null
+      : [table.caption ?? null, table.header_row ?? null, table.rows, table.footer_note ?? null];
+  const tables = [
+    canonicalTable(fields.figure_table_data),
+    ...(["A", "B", "C", "D"] as const).map((letter) =>
+      canonicalTable(fields.choice_tables?.[letter])
+    ),
+  ];
+  const payload = tables.some((table) => table !== null)
+    ? normalized + "|native-tables:" + JSON.stringify(tables)
+    : normalized;
+  return createHash("sha256").update(payload, "utf-8").digest("hex");
 }
 
 /**
@@ -272,6 +295,23 @@ export function validateImportRow(row: ImportQuestionInput): {
     }
   }
 
+  if (row.figure_table_data != null && !isValidChoiceTableData(row.figure_table_data))
+    errors.push("invalid figure_table_data");
+  if (row.figure_kind === "table" && row.figure_table_data == null)
+    errors.push("table figure requires figure_table_data");
+  if (row.figure_table_data != null && row.figure_kind !== "table")
+    errors.push("figure_table_data requires figure_kind=table");
+  if (row.choice_tables != null) {
+    if (typeof row.choice_tables !== "object" || Array.isArray(row.choice_tables))
+      errors.push("invalid choice_tables");
+    else
+      for (const [letter, table] of Object.entries(row.choice_tables)) {
+        if (!/^[A-D]$/.test(letter) || !isValidChoiceTableData(table))
+          errors.push(`invalid choice table ${letter}`);
+      }
+    if (row.question_format === "numeric_entry")
+      errors.push("numeric entry cannot have choice tables");
+  }
   const fmt = row.question_format ?? "multiple_choice";
   if (fmt === "multiple_choice") {
     // Empty strings are OK for individual choice texts (the rare
@@ -389,6 +429,8 @@ export async function importQuestion(
     choice_b: row.choice_b,
     choice_c: row.choice_c,
     choice_d: row.choice_d,
+    choice_tables: row.choice_tables,
+    figure_table_data: row.figure_table_data,
   });
 
   // ── 1. Insert quiz_questions ──
@@ -436,6 +478,8 @@ export async function importQuestion(
     import_flag_type: row.import_flag_type ?? null,
     import_flag_reason: row.import_flag_reason || null,
     publish_status,
+    figure_kind: row.figure_kind ?? null,
+    figure_table_data: (row.figure_table_data as unknown as Json) ?? null,
     image_url: row.image_url ?? null,
     image_storage_path: row.image_storage_path ?? null,
     image_alt: row.image_alt?.trim() || null,
@@ -518,6 +562,7 @@ export async function importQuestion(
         choice_text,
         // v2 phase 5: mirror raw_choice_text.
         raw_choice_text: choice_text,
+        choice_table_data: (row.choice_tables?.[letter] as unknown as Json) ?? null,
         is_correct: letter === correctLetter,
       };
     });
