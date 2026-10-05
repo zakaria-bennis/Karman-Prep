@@ -28,6 +28,14 @@ correct categorization or a correct answer. Keep the original figure, source
 identity, page/region and recreation review record with the import evidence.
 Never infer mathematical values from a not-to-scale drawing.
 
+PDF annotations can cover original questions and relabel their numbers while the
+text layer and original answer key remain unchanged. Preserve both the original
+base rendering (for example, `pdftoppm -hide-annotations`) and the default annotated
+rendering when they disagree. Record the rendering mode in source review and
+reconcile original module/question identities with the key before import. A text
+match or a default screenshot alone cannot resolve this difference. Keep useful
+editorial annotations as evidence; do not change annotations in Box.
+
 ## Desmos transfers
 
 The setting lives in the math quiz **Menu**, on by default during practice. A
