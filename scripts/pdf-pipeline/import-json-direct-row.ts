@@ -68,6 +68,9 @@ export function rowToImportInput(
   const missingIdentity = Boolean(sourceVersion && !hasIdentity);
   return {
     question_text: String(row.question_text ?? ""),
+    raw_question_text: row.raw_question_text,
+    raw_choice_texts: row.raw_choice_texts,
+    reviewed_answer: row.reviewed_answer,
     correct_answer: String(row.correct_answer ?? ""),
     domain: row.domain as SATDomain,
     choice_a: row.choice_a,

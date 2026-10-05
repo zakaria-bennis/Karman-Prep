@@ -30,6 +30,7 @@
 import { createHash } from "node:crypto";
 import type { QuestionTableData } from "@/types/question-table";
 import { isValidChoiceTableData } from "./choice-table";
+import { writeImportAnswerProvenance, type ReviewedAnswerProvenance } from "./import-provenance";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, Json } from "@/types/supabase";
 import {
@@ -63,6 +64,9 @@ import {
 export interface ImportQuestionInput {
   // ── Required ──
   question_text: string;
+  raw_question_text?: string;
+  raw_choice_texts?: Partial<Record<AnswerLetter, string>>;
+  reviewed_answer?: ReviewedAnswerProvenance;
   correct_answer: string;
   domain: SATDomain;
 
@@ -260,6 +264,18 @@ export function validateImportRow(row: ImportQuestionInput): {
   errors: string[];
 } {
   const errors: string[] = [];
+  if (row.reviewed_answer) {
+    if (!row.reviewed_answer.printed_answer?.trim())
+      errors.push("reviewed answer missing printed key");
+    if (row.reviewed_answer.independently_verified_answer !== row.correct_answer)
+      errors.push("reviewed solver answer must match active correct_answer");
+    if (!row.reviewed_answer.evidence) errors.push("reviewed answer missing evidence");
+    if (
+      row.reviewed_answer.printed_answer !== row.correct_answer &&
+      row.import_status !== "needs_review"
+    )
+      errors.push("printed key disagreement must remain needs_review");
+  }
 
   if (!row.question_text || !row.question_text.trim()) {
     errors.push("missing question_text");
@@ -440,7 +456,8 @@ export async function importQuestion(
     // v2 phase 5: raw_question_text mirrors question_text at import.
     // Phase 5 math repair may later diverge them; this column is
     // the immutable original.
-    raw_question_text: row.question_text,
+    raw_question_text: row.raw_question_text ?? row.question_text,
+    verified_answer: row.reviewed_answer?.independently_verified_answer ?? null,
     question_type,
     difficulty: legacy,
     difficulty_level: level,
@@ -499,7 +516,9 @@ export async function importQuestion(
       if (row.source_version && row.source_section && row.source_module) {
         const { data: existing, error: lookupErr } = await supabase
           .from("quiz_questions")
-          .select("content_hash_v2, correct_answer, concept_slug")
+          .select(
+            "content_hash_v2, correct_answer, concept_slug, raw_question_text, selected_official_answer, verified_answer"
+          )
           .eq("source_version", row.source_version)
           .eq("source_section", row.source_section)
           .eq("source_module", row.source_module)
@@ -511,6 +530,10 @@ export async function importQuestion(
           !existing ||
           existing.content_hash_v2 !== content_hash_v2 ||
           existing.correct_answer !== row.correct_answer ||
+          (row.raw_question_text != null && existing.raw_question_text !== row.raw_question_text) ||
+          (row.reviewed_answer != null &&
+            (existing.selected_official_answer !== row.reviewed_answer.printed_answer ||
+              existing.verified_answer !== row.reviewed_answer.independently_verified_answer)) ||
           existing.concept_slug !== (row.concept_slug || null)
         ) {
           return {
@@ -561,7 +584,7 @@ export async function importQuestion(
         letter: letter as AnswerLetter,
         choice_text,
         // v2 phase 5: mirror raw_choice_text.
-        raw_choice_text: choice_text,
+        raw_choice_text: row.raw_choice_texts?.[letter] ?? choice_text,
         choice_table_data: (row.choice_tables?.[letter] as unknown as Json) ?? null,
         is_correct: letter === correctLetter,
       };
@@ -570,32 +593,8 @@ export async function importQuestion(
     if (cErr) errors.push(`answer_choices insert: ${cErr.message}`);
   }
 
-  // ── 3. Seed answer_key_entries (Phase 1) ──
-  const correctLetter = row.correct_answer.trim();
-  if (correctLetter) {
-    const { error: akeErr } = await supabase.from("answer_key_entries").insert({
-      question_id,
-      printed_answer: correctLetter,
-      printed_answer_crossed_out: false,
-      manual_correction_present: false,
-      selected_official_answer: correctLetter,
-      selection_reason: "phase1_seed_from_printed_correct_answer",
-      status: "printed_key_used_no_correction",
-    });
-    // Non-fatal: a missing answer_key_entries row just means the
-    // publish-gate's Phase 2 check will flag it.
-    if (akeErr) errors.push(`answer_key_entries insert (non-fatal): ${akeErr.message}`);
-
-    // ── 4. Mirror selected_official_answer + answer_key_status ──
-    const { error: mirrorErr } = await supabase
-      .from("quiz_questions")
-      .update({
-        selected_official_answer: correctLetter,
-        answer_key_status: "printed_key_used_no_correction",
-      })
-      .eq("id", question_id);
-    if (mirrorErr) errors.push(`answer_key mirror (non-fatal): ${mirrorErr.message}`);
-  }
+  // Preserve printed key, independent solve and source identity separately.
+  errors.push(...(await writeImportAnswerProvenance(supabase, question_id, row)));
 
   // ── 5. Register figure as source_asset (Phase 1) ──
   if (row.image_url) {
