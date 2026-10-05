@@ -14,6 +14,7 @@
 import { Fragment, useMemo, type ReactNode } from "react";
 import katex from "katex";
 import "katex/dist/katex.min.css";
+import { parseSourceUnderlining } from "./source-underlining";
 
 interface Props {
   text: string;
@@ -152,33 +153,52 @@ export default function MathText({
   blockClassName = "",
   treatBlankWord = false,
 }: Props) {
-  const segs = useMemo(() => parse(text), [text]);
+  const runs = useMemo(
+    () => parseSourceUnderlining(text).map((run) => ({ ...run, segments: parse(run.text) })),
+    [text]
+  );
 
-  return (
-    <span className={className} style={{ whiteSpace: "pre-wrap" }}>
-      {segs.map((s, i) => {
-        if (s.kind === "text")
-          return <span key={i}>{renderTextWithBlanks(s.value, i, treatBlankWord)}</span>;
-        if (s.kind === "inline") {
-          // Baseline alignment + inheriting color/size keeps the
-          // math inline with prose. The CSS override on .katex in
-          // globals.css does the heavy lifting here.
-          return (
-            <span
-              key={i}
-              className="align-baseline"
-              dangerouslySetInnerHTML={{ __html: renderKaTeX(s.latex, false) }}
-            />
-          );
-        }
+  function renderSegments(segs: Seg[]) {
+    return segs.map((s, i) => {
+      if (s.kind === "text")
+        return <span key={i}>{renderTextWithBlanks(s.value, i, treatBlankWord)}</span>;
+      if (s.kind === "inline") {
+        // Baseline alignment + inheriting color/size keeps the
+        // math inline with prose. The CSS override on .katex in
+        // globals.css does the heavy lifting here.
         return (
           <span
             key={i}
-            className={`my-3 block text-center ${blockClassName}`}
-            dangerouslySetInnerHTML={{ __html: renderKaTeX(s.latex, true) }}
+            className="align-baseline"
+            dangerouslySetInnerHTML={{ __html: renderKaTeX(s.latex, false) }}
           />
         );
-      })}
+      }
+      return (
+        <span
+          key={i}
+          className={`my-3 block text-center ${blockClassName}`}
+          dangerouslySetInnerHTML={{ __html: renderKaTeX(s.latex, true) }}
+        />
+      );
+    });
+  }
+
+  return (
+    <span className={className} style={{ whiteSpace: "pre-wrap" }}>
+      {runs.map((run, index) =>
+        run.underlined ? (
+          <Fragment key={index}>
+            <span className="sr-only">Start of underlined text. </span>
+            <u style={{ textUnderlineOffset: "0.16em", textDecorationThickness: "0.075em" }}>
+              {renderSegments(run.segments)}
+            </u>
+            <span className="sr-only"> End of underlined text.</span>
+          </Fragment>
+        ) : (
+          <Fragment key={index}>{renderSegments(run.segments)}</Fragment>
+        )
+      )}
     </span>
   );
 }
