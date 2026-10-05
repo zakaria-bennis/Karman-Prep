@@ -4,14 +4,11 @@
 // bar/line graphs — anything that isn't yet a native table or SVG).
 //
 // Goal: stop figures looking like "pasted-in JPEGs on a dark page".
-// The frame puts the figure on a warm ivory plaque with a bronze
-// rule + soft inset shadow — reads as "page from your textbook on
-// your desk under a lamp" rather than "screenshot somebody dropped
-// in."
+// The frame uses the same dark surface and bronze rule as quiz cards.
 //
-// The figure itself is NOT recolored — SAT figures are black ink on
-// white, and our extracted crops preserve that. We just wrap them
-// in the observatory-themed frame.
+// Assets are not blindly filtered here. Reviewed monochrome source crops
+// can be converted by theme-monochrome-figure.ts without moving any pixel.
+// Colored or unreviewed source images retain their original semantics.
 //
 // Designed to live alongside QuestionTable (Phase 4a) and the
 // eventual SVG geometry renderer (Phase 4c). Once those land, the
@@ -39,7 +36,7 @@ export default function FigureFrame({
   return (
     <figure
       className={cn(
-        "my-4 rounded-lg border border-[#3B3426] bg-[#F3ECDD] p-3",
+        "my-4 rounded-lg border border-bronze bg-surface p-3",
         "shadow-[0_1px_0_0_rgba(195,171,106,0.18)_inset,0_4px_16px_-8px_rgba(0,0,0,0.45)]",
         className
       )}
