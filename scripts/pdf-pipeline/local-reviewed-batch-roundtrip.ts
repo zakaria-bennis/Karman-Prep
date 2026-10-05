@@ -147,8 +147,8 @@ async function main() {
     retained_in_disposable_volume: true,
     limitations: [
       "Exact local content-hash comparison only; production and semantic deduplication pending",
-      "Database-loaded browser visuals and publication/source-asset gates pending",
-      "P08 presentation hold retained",
+      "Publication/source-asset gates and production schema/security pending",
+      "See per-item current_presentation_decision for local visual status; physical phone/Safari not certified",
     ],
   };
   writeFileSync(outputPath, JSON.stringify(report, null, 2) + "\n");
