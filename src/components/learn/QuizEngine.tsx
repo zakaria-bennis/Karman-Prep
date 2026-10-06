@@ -94,7 +94,9 @@ export default function QuizEngine({ node, videoUrl, onClose, onGoToNext }: Prop
   }, [state.phase, inactivityResetKey, reset, onClose]);
 
   function registerActivity() {
-    setInactivityResetKey((k) => k + 1);
+    // Only results have an inactivity timer. Updating while answering can
+    // replace KaTeX's HTML between pointerdown and pointerup, losing the click.
+    if (state.phase === "complete") setInactivityResetKey((k) => k + 1);
   }
 
   async function handleFlagSubmit() {
