@@ -1,6 +1,7 @@
 "use client";
 
 import QuestionTable from "@/components/learn/QuestionTable";
+import MathText from "@/components/learn/MathText";
 import { describeChoiceTable } from "@/lib/question-bank/choice-table";
 import { cn } from "@/lib/utils";
 import type { AnswerLetter } from "@/types/quiz";
@@ -59,7 +60,7 @@ export function TableChoiceOption({
         </label>
       </div>
       <span id={summaryId} className="sr-only">
-        {describeChoiceTable(table)}
+        <MathText text={describeChoiceTable(table)} />
       </span>
       <div
         className={cn("flex min-w-0 justify-center", !submitted && "cursor-pointer")}

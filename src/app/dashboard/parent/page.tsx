@@ -9,6 +9,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { safeAuth } from "@/lib/auth/dev-auth";
 import { resolveEffectiveClerkId } from "@/lib/supabase/queries/admin";
+import { fetchUserRole } from "@/lib/supabase/queries/admin";
+import { redirect } from "next/navigation";
 import { Users as UsersIcon } from "lucide-react";
 import { createAdminClient } from "@/lib/supabase/server";
 
@@ -55,6 +57,9 @@ export default async function ParentDashboardPage() {
   const { userId: realUserId } = await safeAuth();
   if (!realUserId) return null; // layout already redirects
   const { clerkId: userId } = await resolveEffectiveClerkId(realUserId);
+
+  const role = await fetchUserRole(userId);
+  if (role !== "parent" && role !== "admin") redirect("/dashboard/student");
 
   const students = await fetchLinkedStudents(userId);
 

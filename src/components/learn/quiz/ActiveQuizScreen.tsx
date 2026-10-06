@@ -239,7 +239,7 @@ export function ActiveQuizScreen({
             <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-taupe">
               {q.topic_cluster}
             </p>
-            <h2 className="text-[19px] font-medium leading-[1.5] text-ivory md:text-[20px]">
+            <h2 className="whitespace-pre-line text-[19px] font-medium leading-[1.5] text-ivory md:text-[20px]">
               <MathText text={q.question_text} />
             </h2>
             {choicesBlock}

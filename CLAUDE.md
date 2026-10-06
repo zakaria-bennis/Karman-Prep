@@ -28,6 +28,11 @@ paying users yet.
   NOT rebuild. Running it alone re-ships whatever's in the local build cache,
   which is how stale code gets pushed to prod. Always pair the two commands.
 - No file should exceed ~700 lines — split by concern instead.
+- Reviewed exam underlining uses explicit `[[u]]...[[/u]]` display markers in
+  `MathText`, never HTML. Preserve original exam text separately, verify each
+  marked span against original page pixels, and keep surrounding context outside
+  the markers. Malformed markers render literally. Existing KaTeX and blank
+  rendering still applies inside each span.
 - Server actions validate inputs with Zod schemas; add a schema when adding
   an action.
 

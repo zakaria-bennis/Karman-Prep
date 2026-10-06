@@ -27,11 +27,18 @@ import type {
 import { toStudentQuizQuestion, toStudentQuizReview } from "@/lib/student-quiz-payload";
 import { evaluateQuizAnswer, prepareQuizSession } from "@/lib/quiz-session";
 import type { Subject } from "@/data/curriculum";
+import {
+  quizNodeIdSchema,
+  recordQuizResponseSchema,
+  completeQuizSchema,
+  flagQuizQuestionSchema,
+  watchPercentageSchema,
+} from "./quiz-action-schemas";
 
 export async function actionFetchNodeBundle(nodeId: string) {
   const { userId } = await safeAuth();
   if (!userId) throw new Error("Not authenticated");
-  return fetchNodeStatusBundle(userId, nodeId);
+  return fetchNodeStatusBundle(userId, quizNodeIdSchema.parse(nodeId));
 }
 
 export async function actionStartQuiz(nodeId: string): Promise<{
@@ -43,6 +50,7 @@ export async function actionStartQuiz(nodeId: string): Promise<{
   const { userId } = await safeAuth();
   if (!userId) throw new Error("Not authenticated");
 
+  nodeId = quizNodeIdSchema.parse(nodeId);
   const questions = await fetchQuestionsForNode(nodeId);
   if (questions.length === 0) throw new Error("This node has no questions yet.");
 
@@ -83,6 +91,7 @@ export async function actionRecordResponse(input: {
 }): Promise<StudentQuizReview> {
   const { userId } = await safeAuth();
   if (!userId) throw new Error("Not authenticated");
+  input = recordQuizResponseSchema.parse(input);
   const attempt = await fetchQuizAttemptForStudent(input.attempt_id, userId);
   if (!attempt) throw new Error("Quiz attempt is unavailable");
   const questions = await fetchQuestionsForNode(attempt.node_id);
@@ -110,6 +119,9 @@ export async function actionCompleteQuiz(input: {
   const { userId } = await safeAuth();
   if (!userId) throw new Error("Not authenticated");
 
+  input = completeQuizSchema.parse(input);
+  if (input.subject !== (input.nodeId.startsWith("ma-") ? "math" : "reading"))
+    throw new Error("Subject does not match node");
   const attempt = await fetchQuizAttemptForStudent(input.attemptId, userId);
   if (!attempt || attempt.node_id !== input.nodeId) throw new Error("Quiz attempt is unavailable");
   if (attempt.completed_at) {
@@ -148,6 +160,7 @@ export async function actionFlagQuestion(input: {
 }) {
   const { userId } = await safeAuth();
   if (!userId) throw new Error("Not authenticated");
+  input = flagQuizQuestionSchema.parse(input);
   await flagQuestion({
     question_id: input.question_id,
     student_id: userId,
@@ -159,5 +172,9 @@ export async function actionFlagQuestion(input: {
 export async function actionUpdateWatchPercentage(nodeId: string, percentage: number) {
   const { userId } = await safeAuth();
   if (!userId) return;
-  await updateWatchPercentage(userId, nodeId, percentage);
+  await updateWatchPercentage(
+    userId,
+    quizNodeIdSchema.parse(nodeId),
+    watchPercentageSchema.parse(percentage)
+  );
 }

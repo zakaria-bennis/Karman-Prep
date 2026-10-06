@@ -10,6 +10,7 @@ import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { fetchUserRole } from "@/lib/supabase/queries/admin";
+import { canTutorAccessStudent } from "@/lib/auth/tutor-access";
 import { fetchStudentById, fetchNodeStatuses } from "@/lib/supabase/queries/tutor";
 import {
   fetchAllAttemptsForStudent,
@@ -36,6 +37,8 @@ export default async function StudentDetailPage({ params, searchParams }: Params
 
   const role = await fetchUserRole(userId);
   if (role !== "tutor" && role !== "admin") redirect("/dashboard/student");
+
+  if (!(await canTutorAccessStudent(userId, studentId))) notFound();
 
   const student = await fetchStudentById(studentId);
   if (!student) notFound();
