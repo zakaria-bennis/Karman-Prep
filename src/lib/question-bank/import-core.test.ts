@@ -13,6 +13,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   computeContentHashV2,
   parseDifficulty,
+  parseReviewedDifficulty,
   subjectFromDomain,
   validateImportRow,
   importQuestion,
@@ -39,7 +40,47 @@ describe("subjectFromDomain", () => {
 
 // ── parseDifficulty ──────────────────────────────────────────
 
+describe("parseReviewedDifficulty", () => {
+  it.each([1, 2, 3, 4, 5, 6, 7])("preserves level %i without a legacy roundtrip", (level) => {
+    expect(parseReviewedDifficulty(level).level).toBe(level);
+    expect(parseReviewedDifficulty(String(level)).level).toBe(level);
+  });
+
+  it.each([
+    undefined,
+    null,
+    "",
+    " ",
+    0,
+    8,
+    -1,
+    3.9,
+    "3.9",
+    "3abc",
+    "03",
+    "1e0",
+    NaN,
+    Infinity,
+    true,
+    {},
+    "foundational",
+    "intermediate",
+    "advanced",
+    "mastery",
+  ])("requires review for %s", (value) => {
+    expect(() => parseReviewedDifficulty(value)).toThrow(/needs review/);
+  });
+});
+
 describe("parseDifficulty", () => {
+  it.each([
+    ["foundational", 2],
+    ["intermediate", 4],
+    ["advanced", 5],
+    ["mastery", 6],
+  ] as const)("preserves legacy compatibility for %s", (legacy, level) => {
+    expect(parseDifficulty(legacy)).toEqual({ level, legacy });
+  });
   it("accepts integer 1-7 inputs", () => {
     expect(parseDifficulty(1).level).toBe(1);
     expect(parseDifficulty(7).level).toBe(7);
@@ -336,6 +377,66 @@ function mockSupabase(
 }
 
 describe("importQuestion — DB write shape", () => {
+  it.each([1, 2, 3, 4, 5, 6, 7])(
+    "stores reviewed level %i exactly and leaves student history alone",
+    async (level) => {
+      const { client, calls } = mockSupabase({
+        quiz_questions: { data: { id: "q-1" }, error: null },
+      });
+      const result = await importQuestion(client, validRow({ difficulty: level }), {
+        difficultyPolicy: "reviewed",
+      });
+      expect(result.inserted).toBe(true);
+      const inserted = calls.find(
+        (call) => call.table === "quiz_questions" && call.method === "insert"
+      )!.payload as Record<string, unknown>;
+      expect(inserted.difficulty_level).toBe(level);
+      expect(inserted.difficulty).toBe(
+        level <= 2
+          ? "foundational"
+          : level <= 4
+            ? "intermediate"
+            : level <= 6
+              ? "advanced"
+              : "mastery"
+      );
+      expect(inserted.publish_status).toBe("draft");
+      expect(inserted.node_id).toBeNull();
+      expect(
+        calls.every((call) =>
+          ["quiz_questions", "answer_choices", "answer_key_entries", "source_assets"].includes(
+            call.table
+          )
+        )
+      ).toBe(true);
+    }
+  );
+
+  it.each([undefined, 0, 8, 3.5, "3abc", "mastery"])(
+    "rejects reviewed %s before any DB access",
+    async (difficulty) => {
+      const from = vi.fn();
+      const client = { from } as never;
+      const result = await importQuestion(client, validRow({ difficulty }), {
+        difficultyPolicy: "reviewed",
+      });
+      expect(result.inserted).toBe(false);
+      expect(result.errors.join(" ")).toMatch(/needs review/);
+      expect(from).not.toHaveBeenCalled();
+    }
+  );
+
+  it("does not overwrite an existing duplicate or its historical records", async () => {
+    const { client, calls } = mockSupabase({
+      quiz_questions: { error: { code: "23505", message: "duplicate" } },
+    });
+    const result = await importQuestion(client, validRow({ difficulty: 7 }), {
+      difficultyPolicy: "reviewed",
+    });
+    expect(result.duplicate_skipped).toBe(true);
+    expect(calls.map((call) => [call.table, call.method])).toEqual([["quiz_questions", "insert"]]);
+  });
+
   it("writes raw_question_text mirror on insert (Phase 5 invariant)", async () => {
     const { client, calls } = mockSupabase({
       quiz_questions: { data: { id: "q-1" }, error: null },

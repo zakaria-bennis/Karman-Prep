@@ -139,6 +139,11 @@ export interface ImportQuestionResult {
   errors: string[];
 }
 
+/** Reviewed imports require an explicit numeric rating; legacy callers stay compatible. */
+export interface ImportQuestionOptions {
+  difficultyPolicy?: "legacy" | "reviewed";
+}
+
 export interface ImportBatchSummary {
   inserted: number;
   skipped_duplicates: number;
@@ -189,6 +194,22 @@ export function parseDifficulty(value: string | number | undefined | null): {
     return { level: LEGACY_LEVEL_MAP[legacy], legacy };
   }
   return { level: 4, legacy: levelToLegacyDifficulty(4) };
+}
+
+/** Never default, truncate, or infer a seven-level rating from a legacy band. */
+export function parseReviewedDifficulty(value: unknown): {
+  level: QuizDifficultyLevel;
+  legacy: QuizDifficulty;
+} {
+  const numeric =
+    typeof value === "string" && /^[1-7]$/.test(value.trim()) ? Number(value.trim()) : value;
+  if (typeof numeric !== "number" || !Number.isInteger(numeric) || numeric < 1 || numeric > 7) {
+    throw new Error(
+      "difficulty needs review: provide an explicit integer 1-7; legacy bands cannot recover the exact rating"
+    );
+  }
+  const level = numeric as QuizDifficultyLevel;
+  return { level, legacy: levelToLegacyDifficulty(level) };
 }
 
 /**
@@ -259,7 +280,10 @@ export function computeContentHashV2(fields: {
  * pass the publish-gate later). This gate only rejects rows that
  * would corrupt the DB.
  */
-export function validateImportRow(row: ImportQuestionInput): {
+export function validateImportRow(
+  row: ImportQuestionInput,
+  options: ImportQuestionOptions = {}
+): {
   ok: boolean;
   errors: string[];
 } {
@@ -275,6 +299,14 @@ export function validateImportRow(row: ImportQuestionInput): {
       row.import_status !== "needs_review"
     )
       errors.push("printed key disagreement must remain needs_review");
+  }
+
+  if (options.difficultyPolicy === "reviewed") {
+    try {
+      parseReviewedDifficulty(row.difficulty);
+    } catch (error) {
+      errors.push((error as Error).message);
+    }
   }
 
   if (!row.question_text || !row.question_text.trim()) {
@@ -381,9 +413,10 @@ export function validateImportRow(row: ImportQuestionInput): {
  */
 export async function importQuestion(
   supabase: SupabaseClient<Database>,
-  row: ImportQuestionInput
+  row: ImportQuestionInput,
+  options: ImportQuestionOptions = {}
 ): Promise<ImportQuestionResult> {
-  const validation = validateImportRow(row);
+  const validation = validateImportRow(row, options);
   if (!validation.ok) {
     return {
       inserted: false,
@@ -395,7 +428,10 @@ export async function importQuestion(
   }
 
   const subject = subjectFromDomain(row.domain);
-  const { level, legacy } = parseDifficulty(row.difficulty);
+  const { level, legacy } =
+    options.difficultyPolicy === "reviewed"
+      ? parseReviewedDifficulty(row.difficulty)
+      : parseDifficulty(row.difficulty);
   const format = row.question_format ?? "multiple_choice";
   const question_type = subject === "reading" ? "evidence_based" : "math_computation";
   const cluster =

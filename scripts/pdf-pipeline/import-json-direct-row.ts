@@ -17,8 +17,35 @@
 import { importQuestion, type ImportQuestionInput } from "@/lib/question-bank/import-core";
 import { isValidDomain, type SATDomain } from "@/lib/question-bank/taxonomy";
 import type { AnswerSource, ImportFlagType, ImportStatus } from "@/types/quiz";
+import {
+  validateReviewedDifficulty,
+  type ReviewedDifficulty,
+} from "@/lib/question-bank/reviewed-difficulty";
+import { validateImportRow } from "@/lib/question-bank/import-core";
 
 export { importQuestion };
+
+/** Reviewed website export: numeric D rating wins over any legacy/source band. */
+export function rowToReviewedImportInput(
+  row: Record<string, unknown>,
+  defaultSourcePdf: string,
+  options: { allowPreview?: boolean; sourceVersion?: string } = {}
+): { input: ImportQuestionInput; assessment: ReviewedDifficulty } | { error: string } {
+  const rating = validateReviewedDifficulty(row);
+  if (!rating.ok) return { error: rating.error };
+  if (!rating.assessment.website_import_ready && !options.allowPreview) {
+    return { error: "Final website gates are incomplete; assessment metadata is preview-only" };
+  }
+  const input = rowToImportInput(
+    { ...row, difficulty: rating.assessment.difficulty_level },
+    defaultSourcePdf,
+    options.sourceVersion
+  );
+  if ("error" in input) return input;
+  const validated = validateImportRow(input, { difficultyPolicy: "reviewed" });
+  if (!validated.ok) return { error: validated.errors.join("; ") };
+  return { input, assessment: rating.assessment };
+}
 
 export function rowToImportInput(
   row: Record<string, any>,

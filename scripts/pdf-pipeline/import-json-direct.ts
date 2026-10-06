@@ -32,18 +32,25 @@ import { readFileSync } from "node:fs";
 import { basename, resolve } from "node:path";
 import { createHash } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
-import { preflightImportRows, importQuestion } from "./import-json-direct-row";
+import { preflightImportRows, rowToReviewedImportInput, importQuestion } from "./import-json-direct-row";
 import type { Database } from "@/types/supabase";
+import { REVIEWED_DIFFICULTY_IMPORT_POLICY } from "@/lib/question-bank/reviewed-difficulty";
 
 const jsonArg = process.argv[2];
 const pdfArg = process.argv[3];
+let reviewedDifficulty = process.argv.slice(4).includes("--reviewed-difficulty");
+const dryRun = process.argv.slice(4).includes("--dry-run");
+if (process.argv.slice(4).some((flag) => !["--reviewed-difficulty", "--dry-run", "--require-source-identity"].includes(flag))) {
+  console.error("Unknown flag. Aborting.");
+  process.exit(1);
+}
 if (!jsonArg || !pdfArg) {
   // pdfArg is REQUIRED — without it, source_pdf would be NULL on every
   // inserted row, which silently breaks Stages 4-14 (they all filter by
   // source_pdf to scope work to the current PDF). Mirrors the v1 path's
   // requirement in json-to-import-csv.mjs.
   console.error(
-    "usage: tsx scripts/pdf-pipeline/import-json-direct.ts <json-path> <source-pdf-path>"
+    "usage: tsx scripts/pdf-pipeline/import-json-direct.ts <json-path> <source-pdf-path> [--reviewed-difficulty [--dry-run]]"
   );
   process.exit(1);
 }
@@ -54,17 +61,6 @@ if (!jsonArg || !pdfArg) {
 const sourcePdfName = basename(pdfArg);
 const sourceVersion = createHash("sha256").update(readFileSync(pdfArg)).digest("hex");
 
-const SUPA_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const SUPA_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-if (!SUPA_URL || !SUPA_KEY) {
-  console.error("Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY.");
-  process.exit(1);
-}
-
-const supabase = createClient<Database>(SUPA_URL, SUPA_KEY, {
-  auth: { persistSession: false },
-});
-
 // ── Read JSON ─────────────────────────────────────────────────
 
 const jsonPath = resolve(jsonArg);
@@ -74,6 +70,24 @@ try {
   parsed = JSON.parse(raw);
 } catch (err) {
   console.error(`Failed to parse JSON at ${jsonPath}: ${(err as Error).message}`);
+  process.exit(1);
+}
+// A reviewed export cannot silently fall back to the legacy importer if a flag is omitted.
+if (
+  (parsed as { import_policy?: unknown } | null)?.import_policy ===
+  REVIEWED_DIFFICULTY_IMPORT_POLICY
+) {
+  reviewedDifficulty = true;
+}
+if (
+  (parsed as { import_policy?: unknown } | null)?.import_policy != null &&
+  (parsed as { import_policy?: unknown }).import_policy !== REVIEWED_DIFFICULTY_IMPORT_POLICY
+) {
+  console.error("Unknown import policy marker. No questions were written.");
+  process.exit(2);
+}
+if (dryRun && !reviewedDifficulty) {
+  console.error("--dry-run requires reviewed mode or a reviewed export marker.");
   process.exit(1);
 }
 const rows: Array<Record<string, any>> = Array.isArray(parsed)
@@ -99,6 +113,48 @@ if (preflight.errors.length > 0) {
   process.exit(2);
 }
 
+// Validate every reviewed row before any insert. Keep the source JSON immutable:
+// it is the durable assessment/provenance artifact, not a student history rewrite.
+const reviewedRows = reviewedDifficulty
+  ? rows.map((row) => rowToReviewedImportInput(row, sourcePdfName, { allowPreview: dryRun, sourceVersion }))
+  : null;
+if (reviewedRows?.some((row) => "error" in row)) {
+  reviewedRows.forEach((row, index) => {
+    if ("error" in row) console.error(`row ${index + 1}: ${row.error}`);
+  });
+  console.error("Reviewed batch requires review. No questions were written.");
+  process.exit(2);
+}
+if (dryRun) {
+  console.log(
+    JSON.stringify(
+      {
+        mode: "reviewed-difficulty-dry-run",
+        validated_rows: reviewedRows?.length,
+        assessments: reviewedRows?.map((row, index) => ({
+          row: index + 1,
+          ...("assessment" in row ? row.assessment : {}),
+        })),
+        database_accessed: false,
+      },
+      null,
+      2
+    )
+  );
+  process.exit(0);
+}
+
+// Construction happens only after reviewed preflight; dry runs need no DB credentials.
+const SUPA_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const SUPA_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+if (!SUPA_URL || !SUPA_KEY) {
+  console.error("Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY.");
+  process.exit(1);
+}
+const supabase = createClient<Database>(SUPA_URL, SUPA_KEY, {
+  auth: { persistSession: false },
+});
+
 // Note: rowToImportInput is exported from ./import-json-direct-row
 // so vitest can exercise it without pulling in the CLI side-effects
 // of this file (env-var checks, process.exit, Supabase client).
@@ -114,10 +170,13 @@ async function main() {
     errors: [] as Array<{ row: number; message: string }>,
   };
 
-  for (let i = 0; i < preflight.inputs.length; i++) {
-    const normalized = preflight.inputs[i];
+  for (let i = 0; i < rows.length; i++) {
+    const reviewedRow = reviewedRows?.[i];
+    const normalized = reviewedRow && "input" in reviewedRow ? reviewedRow.input : preflight.inputs[i];
     try {
-      const result = await importQuestion(supabase, normalized);
+      const result = await importQuestion(supabase, normalized, {
+        difficultyPolicy: reviewedDifficulty ? "reviewed" : "legacy",
+      });
       if (result.duplicate_skipped) {
         summary.skipped_duplicates++;
       } else if (!result.inserted) {
