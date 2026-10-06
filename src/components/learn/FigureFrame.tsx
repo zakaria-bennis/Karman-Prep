@@ -1,23 +1,7 @@
-// ============================================================
-// FigureFrame — themed wrapper for raster question figures
-// (scatterplots, geometry diagrams, coordinate planes, 3-D solids,
-// bar/line graphs — anything that isn't yet a native table or SVG).
-//
-// Goal: stop figures looking like "pasted-in JPEGs on a dark page".
-// The frame puts the figure on a warm ivory plaque with a bronze
-// rule + soft inset shadow — reads as "page from your textbook on
-// your desk under a lamp" rather than "screenshot somebody dropped
-// in."
-//
-// The figure itself is NOT recolored — SAT figures are black ink on
-// white, and our extracted crops preserve that. We just wrap them
-// in the observatory-themed frame.
-//
-// Designed to live alongside QuestionTable (Phase 4a) and the
-// eventual SVG geometry renderer (Phase 4c). Once those land, the
-// raster path only handles scatterplots / function graphs / 3-D
-// solids.
-// ============================================================
+// Source raster crops retain their ivory frame. Reviewed SVG assets carry
+// a dark canvas and crisp labels, so their frame uses the same dark surface.
+// Keep images inside the available width and fit reviewed vectors into the
+// initial mobile quiz pane while retaining the desktop height cap.
 
 import { cn } from "@/lib/utils";
 
@@ -36,10 +20,14 @@ export default function FigureFrame({
   maxHeightClass = "max-h-[28rem]",
   className,
 }: Props) {
+  // Reviewed SVG assets carry their own dark canvas and crisp labels.
+  const isVector = /\.svg(?:[?#].*)?$/i.test(src);
+  const heightClass = isVector ? "max-h-[32vh] md:max-h-[28rem]" : maxHeightClass;
   return (
     <figure
       className={cn(
-        "my-4 rounded-lg border border-[#3B3426] bg-[#F3ECDD] p-3",
+        "my-4 rounded-lg border border-[#3B3426] p-3",
+        isVector ? "bg-[#171611]" : "bg-[#F3ECDD]",
         "shadow-[0_1px_0_0_rgba(195,171,106,0.18)_inset,0_4px_16px_-8px_rgba(0,0,0,0.45)]",
         className
       )}
@@ -48,7 +36,7 @@ export default function FigureFrame({
       <img
         src={src}
         alt={alt}
-        className={cn("mx-auto block w-auto rounded object-contain", maxHeightClass)}
+        className={cn("mx-auto block w-auto max-w-full rounded object-contain", heightClass)}
       />
     </figure>
   );
