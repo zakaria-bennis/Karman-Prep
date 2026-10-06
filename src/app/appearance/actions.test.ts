@@ -15,18 +15,23 @@ beforeEach(() => {
   mocks.client.mockResolvedValue({ users: { updateUserMetadata: mocks.update } });
 });
 describe("own-account appearance writes", () => {
-  it.each(["student", "parent"])("merges one cosmetic ID for the signed-in %s", async (role) => {
-    mocks.role.mockResolvedValue(role);
-    await saveThemePreference("sage");
-    expect(mocks.update).toHaveBeenCalledWith("owner", { unsafeMetadata: { karmanTheme: "sage" } });
-  });
+  it.each(["student", "parent", "tutor"])(
+    "merges one cosmetic ID for the signed-in %s",
+    async (role) => {
+      mocks.role.mockResolvedValue(role);
+      await saveThemePreference("sage");
+      expect(mocks.update).toHaveBeenCalledWith("owner", {
+        unsafeMetadata: { karmanTheme: "sage" },
+      });
+    }
+  );
   it("rejects unsigned requests before looking up roles or creating a client", async () => {
     mocks.auth.mockResolvedValue({ userId: null });
     await expect(saveThemePreference("sage")).rejects.toThrow("Unauthorized");
     expect(mocks.role).not.toHaveBeenCalled();
     expect(mocks.client).not.toHaveBeenCalled();
   });
-  it.each(["admin", "tutor", null])(
+  it.each(["admin", null])(
     "does not treat impersonation or a %s role as a student's account",
     async (role) => {
       mocks.role.mockResolvedValue(role);

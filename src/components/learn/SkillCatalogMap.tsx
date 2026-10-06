@@ -55,6 +55,9 @@ export default function SkillCatalogMap({ subject, history }: Props) {
           </p>
         </div>
         <nav aria-label="Learning navigation" className="flex items-center gap-3 text-xs">
+          <Link href={`/learn/earlier/${subject}`} className="text-taupe hover:text-ivory">
+            Earlier practice
+          </Link>
           <Link
             href={`/learn/${subject === "reading" ? "math" : "reading"}`}
             className="text-taupe hover:text-ivory"

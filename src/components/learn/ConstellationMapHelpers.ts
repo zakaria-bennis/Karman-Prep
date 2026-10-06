@@ -7,7 +7,9 @@ export const H = 640;
 // ── Deterministic pseudo-random ─────────────────────────────
 function pr(seed: number) {
   const x = Math.sin(seed + 1) * 10000;
-  return x - Math.floor(x);
+  // Decorative coordinates need stable SSR/browser precision: Math.sin
+  // can differ in the last bits between their JavaScript engines.
+  return Number((x - Math.floor(x)).toFixed(8));
 }
 
 // ── Background star field (larger + varied size/brightness) ──

@@ -99,8 +99,8 @@ function mount(onClose = vi.fn()) {
 
 describe("quiz activity and math answer selection", () => {
   it("preserves the pressed equation element until its choice click completes", () => {
-    const { container } = mount();
-    const target = container.querySelector("button .katex-html .mrel")!;
+    const { baseElement } = mount();
+    const target = baseElement.querySelector("button .katex-html .mrel")!;
     expect(target).toBeTruthy();
     fireEvent.pointerDown(target);
     // Native browsers suppress click if its pointer-down target is detached.
@@ -111,8 +111,8 @@ describe("quiz activity and math answer selection", () => {
   });
 
   it("keeps non-pointer activation of the answer choice", () => {
-    const { container } = mount();
-    const button = container.querySelector("button .katex")!.closest("button")!;
+    const { baseElement } = mount();
+    const button = baseElement.querySelector("button .katex")!.closest("button")!;
     button.focus();
     fireEvent.click(button, { detail: 0 });
     expect(quiz.selectAnswer).toHaveBeenCalledExactlyOnceWith("A");

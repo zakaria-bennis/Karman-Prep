@@ -178,10 +178,7 @@ export default function PredictedSATChart({ points, diagnosticsCount }: Props) {
                       strokeWidth={2}
                     />
                     {/* Tooltip hover-area */}
-                    <title>
-                      {p.weekLabel}: {p.scoreLow}–{p.scoreHigh} · {p.masteredSoFar} mastered ·{" "}
-                      {p.source}
-                    </title>
+                    <title>{`${p.weekLabel}: ${p.scoreLow}–${p.scoreHigh} · ${p.masteredSoFar} mastered · ${p.source}`}</title>
                   </g>
                 ))}
 

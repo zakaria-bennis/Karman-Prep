@@ -285,24 +285,24 @@ async function main() {
   ]);
   log("✓ 4 mastered + 3 in-progress nodes");
   await upsertDiagnostic(midUuid, A_MONTH_AGO, 1050, 1150, {
-    algebra: 0.55,
-    advanced_math: 0.4,
-    geometry: 0.5,
-    data_analysis: 0.45,
-    info_ideas: 0.6,
-    craft_structure: 0.55,
-    expression_ideas: 0.5,
-    conventions: 0.65,
+    algebra: 55,
+    advanced_math: 40,
+    geometry: 50,
+    data_analysis: 45,
+    info_ideas: 60,
+    craft_structure: 55,
+    expression_ideas: 50,
+    conventions: 65,
   });
   await upsertDiagnostic(midUuid, A_WEEK_AGO, 1200, 1300, {
-    algebra: 0.72,
-    advanced_math: 0.6,
-    geometry: 0.68,
-    data_analysis: 0.65,
-    info_ideas: 0.75,
-    craft_structure: 0.72,
-    expression_ideas: 0.68,
-    conventions: 0.82,
+    algebra: 72,
+    advanced_math: 60,
+    geometry: 68,
+    data_analysis: 65,
+    info_ideas: 75,
+    craft_structure: 72,
+    expression_ideas: 68,
+    conventions: 82,
   });
   log("✓ 2 diagnostics (showing 150-pt improvement over the month)");
 

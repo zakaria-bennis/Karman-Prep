@@ -59,16 +59,16 @@ node --env-file=.env.local scripts/admin/grant-admin.mjs you@example.com
 
 ## Day-to-day commands
 
-| Command              | What it does                                                 |
-| -------------------- | ------------------------------------------------------------ |
-| `npm run dev`        | Next.js + Stripe webhook listener                            |
-| `npm run dev:next`   | Just Next.js                                                 |
-| `npm run lint`       | ESLint check                                                 |
-| `npx tsc --noEmit`   | TypeScript check (no emit)                                   |
-| `npm run cf:build`   | Build for Cloudflare Workers via OpenNext                    |
-| `npm run cf:preview` | Run the built worker locally                                 |
-| `npm run cf:deploy`  | Push to production at karmanprep.com                         |
-| `npm run pdf:pull`   | One-shot poll of the (mostly deprecated) PDF ingestion queue |
+| Command                       | What it does                                |
+| ----------------------------- | ------------------------------------------- |
+| `npm run dev`                 | Next.js + Stripe webhook listener           |
+| `npm run dev:next`            | Just Next.js                                |
+| `npm run lint`                | ESLint check                                |
+| `npx tsc --noEmit`            | TypeScript check (no emit)                  |
+| `npm run cf:build`            | Build for Cloudflare Workers via OpenNext   |
+| `npm run cf:preview`          | Run the built worker locally                |
+| `npm run cf:deploy`           | Push to production at karmanprep.com        |
+| `npm run questions:preflight` | Offline reviewed-question source validation |
 
 Maintenance + admin scripts live in [`scripts/`](./scripts/) — see [scripts/README.md](./scripts/README.md) for a full inventory + when-to-use guide.
 

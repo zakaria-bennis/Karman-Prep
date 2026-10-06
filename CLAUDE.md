@@ -20,7 +20,8 @@ paying users yet.
 - Default branch `main`. Feature branches `zakaria/<short-kebab-description>`.
 - Lint rules `@typescript-eslint/no-unused-vars` and `react/no-unescaped-entities`
   are **error**, not warn — CI fails on either.
-- 5 required CI checks: TypeScript, ESLint, Prettier, Vitest, Cloudflare build.
+- Required CI checks: TypeScript, ESLint, Prettier, Vitest, Cloudflare build,
+  file-size limits, and taxonomy regeneration stability.
 - Migrations: `supabase/migrations/<YYYYMMDDHHMMSS>_name.sql`, applied via
   `npm run db:push` or on `main` merges via `.github/workflows/db-deploy.yml`.
 - Dev server: `npm run dev:next`. Deploy: `npm run cf:build && npm run cf:deploy`
@@ -35,6 +36,18 @@ paying users yet.
   rendering still applies inside each span.
 - Server actions validate inputs with Zod schemas; add a schema when adding
   an action.
+
+## Released-exam ingestion
+
+The old paid AI extraction, grading, figure interpretation and orchestration
+entry points are retired. Use reviewed OpenAI content and the retained local
+source/duplicate/schema/format checks; do not restore provider calls implicitly.
+`npm run questions:import-reviewed -- <reviewed.json> <source.pdf> --dry-run`
+validates source identity and explicit numeric difficulty without DB access.
+An import remains draft until final source, answer, category, figure, duplicate
+and current-version gates pass. See
+[`docs/ingestion/paid-processing-retirement.md`](./docs/ingestion/paid-processing-retirement.md).
+Essential app APIs and the separate tutor recap integration remain intact.
 
 ## Testing & verification workflow
 

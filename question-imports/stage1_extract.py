@@ -164,95 +164,6 @@ def ocr_empty_pages_with_tesseract(out_dir: Path) -> int:
     return len(empty)
 
 
-def extract_answer_key_via_vision(
-    out_dir: Path, total_pages: int
-) -> dict[str, str] | None:
-    """Send the last 9 page PNGs to Gemini Flash and extract any
-    visible question→answer mapping. Returns a flat dict
-    {question_id: answer} or None if no key was found / no API key set.
-
-    Earlier version asked Gemini to JUDGE whether a page is an answer
-    key (returning is_answer_key true/false) — this was overcautious.
-    On 202603usv2.pdf, page 99 was an obvious answer key (numeric SPR
-    answers + question numbers) but the model returned is_answer_key=false
-    because the layout differed from the canonical multi-column key.
-    The permissive prompt here just asks "extract any visible Q→A
-    mapping" — far more reliable, occasional false positives easily
-    weed out at merge time (we keep the union across pages).
-
-    Answer-key pages are also the only place vision is safe against
-    SAT content — they contain just letters and numeric expressions,
-    not question prose, so Gemini's RECITATION filter doesn't trip.
-    """
-    api_key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
-    if not api_key:
-        print("  [skip] GEMINI_API_KEY not set — answer-key extraction skipped")
-        print("        (rerun stage 1 with the key exported to populate summary.answer_key)")
-        return None
-    try:
-        from google import genai  # type: ignore
-        from google.genai import types  # type: ignore
-    except ImportError:
-        print("  [skip] google-genai not installed — answer-key extraction skipped")
-        return None
-
-    prompt = (
-        "Look at this page image. If it shows ANY mapping of question numbers to "
-        "answers (letters A/B/C/D for multiple choice, OR numeric values/expressions "
-        "for student-produced response questions), extract every entry as JSON: "
-        "{\"answers\": {\"q1\": \"A\", \"q22\": \"32\", ...}}. "
-        "If the page indicates which module each question belongs to (e.g. headers like "
-        "'Reading and Writing Module 1', 'Math Module 2'), use module-prefixed keys: "
-        "rw1_1, rw1_2, ..., math2_22. If you can't tell which module, just use q<num>. "
-        "If there's no answer mapping visible at all (e.g. it's a regular question page "
-        "or a passage), return {\"answers\": {}}. Always return valid JSON."
-    )
-    client = genai.Client(api_key=api_key)
-
-    # Scan the last 9 pages, collecting answers from any page that has them.
-    # Take the union — a real key may span multiple pages and false positives
-    # are fine (a wrong q→a mapping is corrected by the actual question's
-    # page text disagreeing in stage 2).
-    merged: dict[str, str] = {}
-    pages_to_scan = list(range(total_pages, max(0, total_pages - 9), -1))
-    for n in pages_to_scan:
-        png = out_dir / f"page-{n:03d}.png"
-        if not png.exists():
-            continue
-        try:
-            resp = client.models.generate_content(
-                model="gemini-2.5-flash",
-                contents=[
-                    types.Part.from_bytes(data=png.read_bytes(), mime_type="image/png"),
-                    prompt,
-                ],
-                config=types.GenerateContentConfig(
-                    temperature=0.0,
-                    max_output_tokens=4096,
-                    thinking_config=types.ThinkingConfig(thinking_budget=0),
-                    response_mime_type="application/json",
-                ),
-            )
-        except Exception as exc:
-            print(f"    page {n}: API error: {str(exc)[:120]}")
-            continue
-        try:
-            data = json.loads(resp.text or "{}")
-        except json.JSONDecodeError:
-            continue
-        ans = data.get("answers") if isinstance(data, dict) else None
-        if isinstance(ans, dict) and ans:
-            n_added = 0
-            for k, v in ans.items():
-                key = str(k)
-                if key not in merged:
-                    merged[key] = str(v)
-                    n_added += 1
-            if n_added:
-                print(f"    page {n}: +{n_added} entries (total {len(merged)})")
-    return merged or None
-
-
 def main() -> None:
     if len(sys.argv) != 2:
         sys.exit("usage: python3 stage1_extract.py <path-to-pdf>")
@@ -273,7 +184,7 @@ def main() -> None:
     render_pages_to_png(pdf_path, out_dir)
     ocr_empty_pages_with_tesseract(out_dir)
     answer_key_pages = guess_answer_key_pages(out_dir, total)
-    answer_key = extract_answer_key_via_vision(out_dir, total)
+    answer_key = None  # Reviewed manually; no model API is called.
 
     summary = {
         "pdf_source_path": str(pdf_path),
@@ -288,10 +199,10 @@ def main() -> None:
     print()
     print(f"  wrote {total} text files + {total} PNGs")
     print(f"  answer-key pages (heuristic): {answer_key_pages or 'none found'}")
-    print(f"  answer-key entries (vision) : {len(answer_key) if answer_key else 0}")
+    print(f"  answer-key entries (manual review required) : {len(answer_key) if answer_key else 0}")
     print()
     print("Next:")
-    print(f"    python3 {script_dir}/stage2_classify.py {out_dir}")
+    print("    Review the local pages in OpenAI; use the reviewed JSON preflight before import.")
 
 
 if __name__ == "__main__":

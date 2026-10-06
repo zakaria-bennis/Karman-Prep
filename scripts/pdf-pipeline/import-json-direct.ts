@@ -1,38 +1,21 @@
 #!/usr/bin/env -S npx tsx
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-// ============================================================
-// import-json-direct — v2 Phase 8.1 orchestrator import stage.
-//
-// Reads the JSON output produced by extract-with-gemini.mjs (already
-// merged with extract-figures.mjs's image_url additions) and inserts
-// each row directly into Supabase via the shared import-core module.
-//
-// REPLACES the orchestrator's previous Stage 3 (json-to-import-csv)
-// + Stage 4 (import-csv-direct) combo. The CSV intermediate is no
-// longer the transport — JSON goes straight to DB.
-//
-// json-to-import-csv.mjs remains as a debug-only CLI tool for
-// operators who want a CSV snapshot of an extraction.
-// import-csv-direct.mjs remains as a deprecated fallback CLI for
-// operators who still want to import a hand-edited CSV.
-//
-// USAGE
-//   tsx --env-file=.env.local \
-//     scripts/pdf-pipeline/import-json-direct.ts \
-//     /tmp/<stem>-gemini-extracted.json
-//
-// Or from the orchestrator (which adds --env-file automatically):
-//   runStage("Stage 3 — import JSON", "importing",
-//            "scripts/pdf-pipeline/import-json-direct.ts",
-//            [jsonOut], { runner: "tsx" });
-// ============================================================
+// Import reviewed JSON through the shared importer. The legacy adapter
+// remains compatible; new released-exam batches must use the reviewed
+// wrapper, which requires numeric difficulty and stable source identity.
+// Usage: npm run questions:import-reviewed -- <reviewed.json> <source.pdf> [--dry-run]
+// Dry runs validate the full batch without database credentials or writes.
 
 import { readFileSync } from "node:fs";
 import { basename, resolve } from "node:path";
 import { createHash } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
-import { preflightImportRows, rowToReviewedImportInput, importQuestion } from "./import-json-direct-row";
+import {
+  preflightImportRows,
+  rowToReviewedImportInput,
+  importQuestion,
+} from "./import-json-direct-row";
 import type { Database } from "@/types/supabase";
 import { REVIEWED_DIFFICULTY_IMPORT_POLICY } from "@/lib/question-bank/reviewed-difficulty";
 
@@ -40,7 +23,13 @@ const jsonArg = process.argv[2];
 const pdfArg = process.argv[3];
 let reviewedDifficulty = process.argv.slice(4).includes("--reviewed-difficulty");
 const dryRun = process.argv.slice(4).includes("--dry-run");
-if (process.argv.slice(4).some((flag) => !["--reviewed-difficulty", "--dry-run", "--require-source-identity"].includes(flag))) {
+if (
+  process.argv
+    .slice(4)
+    .some(
+      (flag) => !["--reviewed-difficulty", "--dry-run", "--require-source-identity"].includes(flag)
+    )
+) {
   console.error("Unknown flag. Aborting.");
   process.exit(1);
 }
@@ -116,7 +105,9 @@ if (preflight.errors.length > 0) {
 // Validate every reviewed row before any insert. Keep the source JSON immutable:
 // it is the durable assessment/provenance artifact, not a student history rewrite.
 const reviewedRows = reviewedDifficulty
-  ? rows.map((row) => rowToReviewedImportInput(row, sourcePdfName, { allowPreview: dryRun, sourceVersion }))
+  ? rows.map((row) =>
+      rowToReviewedImportInput(row, sourcePdfName, { allowPreview: dryRun, sourceVersion })
+    )
   : null;
 if (reviewedRows?.some((row) => "error" in row)) {
   reviewedRows.forEach((row, index) => {
@@ -172,7 +163,8 @@ async function main() {
 
   for (let i = 0; i < rows.length; i++) {
     const reviewedRow = reviewedRows?.[i];
-    const normalized = reviewedRow && "input" in reviewedRow ? reviewedRow.input : preflight.inputs[i];
+    const normalized =
+      reviewedRow && "input" in reviewedRow ? reviewedRow.input : preflight.inputs[i];
     try {
       const result = await importQuestion(supabase, normalized, {
         difficultyPolicy: reviewedDifficulty ? "reviewed" : "legacy",

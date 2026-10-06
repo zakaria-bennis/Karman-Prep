@@ -5,15 +5,15 @@ maintenance, and one-off pipeline tooling. Most are `node --env-file=.env.local 
 
 ## Layout
 
-| Folder                                 | Purpose                                                                          | Safety                                                     |
-| -------------------------------------- | -------------------------------------------------------------------------------- | ---------------------------------------------------------- |
-| **[`admin/`](./admin/)**               | User / role management (one-shot, run as needed)                                 | Safe — narrow scope                                        |
-| **[`seed/`](./seed/)**                 | Seed test data into the dev database                                             | Safe — but use `--reset` carefully                         |
-| **[`maintenance/`](./maintenance/)**   | Wipe / recover / requeue / migrate                                               | **Destructive** — read each script's header before running |
-| **[`pdf-pipeline/`](./pdf-pipeline/)** | Old SAT PDF ingestion daemon (mostly deprecated; replaced by ChatGPT Custom GPT) | Read-mostly                                                |
-| **[`build/`](./build/)**               | Build-time helpers invoked by `npm run cf:build`                                 | Don't run by hand                                          |
-| **[`tests/`](./tests/)**               | Manual smoke-test scripts                                                        | Safe — exercise specific paths                             |
-| **[`launchd/`](./launchd/)**           | macOS launchd plist + installer for the now-paused PDF-watch daemon              | Don't reinstall unless you also restart the daemon         |
+| Folder                                 | Purpose                                                                                   | Safety                                                     |
+| -------------------------------------- | ----------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| **[`admin/`](./admin/)**               | User / role management (one-shot, run as needed)                                          | Safe — narrow scope                                        |
+| **[`seed/`](./seed/)**                 | Seed test data into the dev database                                                      | Safe — but use `--reset` carefully                         |
+| **[`maintenance/`](./maintenance/)**   | Wipe / recover / requeue / migrate                                                        | **Destructive** — read each script's header before running |
+| **[`pdf-pipeline/`](./pdf-pipeline/)** | Reviewed import/preflight adapters and deterministic validation (paid processing retired) | Read-mostly                                                |
+| **[`build/`](./build/)**               | Build-time helpers invoked by `npm run cf:build`                                          | Don't run by hand                                          |
+| **[`tests/`](./tests/)**               | Manual smoke-test scripts                                                                 | Safe — exercise specific paths                             |
+| **[`launchd/`](./launchd/)**           | macOS launchd plist + installer for the now-paused PDF-watch daemon                       | Don't reinstall unless you also restart the daemon         |
 
 ---
 
@@ -46,42 +46,24 @@ node --env-file=.env.local scripts/seed/seed-test-payout-data.mjs [--reset]
 
 ### Maintenance — recovery (very rarely needed)
 
-| Command                                        | When                                                                                                    |
-| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| `scripts/maintenance/recover-answerkeys.mjs`   | A batch of CSVs imported with bad answer keys — re-runs answer-key extraction against the original PDFs |
-| `scripts/maintenance/recover-domain-bug.mjs`   | Older bug where 48 rows got domain-normalized incorrectly                                               |
-| `scripts/maintenance/requeue-failed-jobs.mjs`  | Reset failed `pdf_processing_jobs` rows back to queued status                                           |
-| `scripts/maintenance/fix-smoke-test-rows.mjs`  | One-off fixup from an earlier smoke test                                                                |
-| `scripts/maintenance/migrate-images-to-r2.mjs` | One-off migration of inline-base64 images to R2 storage                                                 |
+| Command                                        | When                                                      |
+| ---------------------------------------------- | --------------------------------------------------------- |
+| `scripts/maintenance/recover-domain-bug.mjs`   | Older bug where 48 rows got domain-normalized incorrectly |
+| `scripts/maintenance/fix-smoke-test-rows.mjs`  | One-off fixup from an earlier smoke test                  |
+| `scripts/maintenance/migrate-images-to-r2.mjs` | One-off migration of inline-base64 images to R2 storage   |
 
-### PDF pipeline (mostly deprecated)
+### Reviewed question workflow
 
-The old PDF → CSV pipeline used `scripts/pdf-pipeline/pull-pdf-job.mjs` (running as a launchd daemon) to invoke Claude on each PDF. **This flow is now superseded by the ChatGPT Custom GPT** — see [`/question-imports/chatgpt/KarmanGPT.txt`](../question-imports/chatgpt/KarmanGPT.txt).
-
-The scripts below still work but are not part of the day-to-day flow:
+Paid extraction and grading launchers have been removed. Keep reviewed question records and source files outside Box; Box remains read-only. No script replaces source, key, figure, category or duplicate review.
 
 ```bash
-npm run pdf:pull       # poll once
-npm run pdf:watch      # run as foreground daemon
-npm run pdf:finalize   # finalize a specific job after a CSV upload
+# No writes or network access:
+npm run questions:preflight -- <reviewed.json> <source.pdf>
+# Strict reviewed mode; dry-run does not construct a DB client:
+npm run questions:import-reviewed -- <reviewed.json> <source.pdf> --dry-run
 ```
 
-For one-off JSON-direct imports outside the admin UI (e.g. re-importing
-a previously-extracted Gemini JSON without re-running Stage 1):
-
-```bash
-# Args: <gemini-json> <source-pdf-path>
-npx tsx scripts/pdf-pipeline/import-json-direct.ts \
-  /tmp/202603asiav1-gemini-extracted.json \
-  question-imports/done/202603asiav1.pdf
-```
-
-For a CSV snapshot of an extraction (debug-only):
-
-```bash
-node --env-file=.env.local scripts/pdf-pipeline/json-to-import-csv.mjs \
-  /tmp/<stem>-gemini-extracted.json <source-pdf-path> <out-csv>
-```
+A real import requires complete current source identities and final website gates. Held previews cannot be written. Shared importer/dedup/provenance, schemas, taxonomy, local PDF rendering and pure validation remain. Historical jobs stay readable. See [paid processing retirement](../docs/ingestion/paid-processing-retirement.md).
 
 ### Build (called automatically by `cf:build`)
 

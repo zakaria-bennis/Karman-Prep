@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { saveThemePreference } from "@/app/appearance/actions";
 import { useUser } from "@clerk/nextjs";
+import { MotionConfig } from "framer-motion";
 import { applyTheme, findTheme, SITE_THEMES, type SiteTheme } from "@/lib/themes/palettes";
 
 interface ThemeCtx {
@@ -88,7 +89,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   };
   return (
     <Ctx.Provider value={{ theme: palette.id, palette, setTheme, saving, notice }}>
-      {children}
+      <MotionConfig reducedMotion="user">{children}</MotionConfig>
     </Ctx.Provider>
   );
 }

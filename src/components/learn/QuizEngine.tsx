@@ -5,6 +5,7 @@
 // Driven by QuizContext. Launches over the LessonOverlay.
 // ============================================================
 
+import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { Flag, Loader2 } from "lucide-react";
@@ -134,7 +135,8 @@ export default function QuizEngine({
       ? state.selectedQuestions[state.currentIndex]
       : null;
 
-  return (
+  if (typeof document === "undefined") return null;
+  return createPortal(
     <motion.div
       ref={containerRef}
       initial={{ opacity: 0 }}
@@ -309,6 +311,7 @@ export default function QuizEngine({
           />
         )}
       </AnimatePresence>
-    </motion.div>
+    </motion.div>,
+    document.body
   );
 }

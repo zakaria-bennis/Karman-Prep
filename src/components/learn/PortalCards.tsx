@@ -6,7 +6,14 @@
 // the stars" transition before routing to that constellation.
 // ============================================================
 
-import { AnimatePresence, motion, useMotionValue, useTransform } from "framer-motion";
+import {
+  AnimatePresence,
+  motion,
+  useMotionValue,
+  useReducedMotion,
+  useTransform,
+} from "framer-motion";
+import { useTheme } from "@/components/shared/ThemeProvider";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { ArrowRight, BookOpen, Calculator, Sparkles } from "lucide-react";
@@ -69,6 +76,8 @@ const HALVES = [
 
 export default function PortalCards({ readingStats, mathStats }: Props) {
   const router = useRouter();
+  const reduceMotion = useReducedMotion();
+  const { palette } = useTheme();
   const [hovered, setHovered] = useState<"reading" | "math" | null>(null);
   const [transitioning, setTransitioning] = useState<"reading" | "math" | null>(null);
   const statsMap = { reading: readingStats, math: mathStats };
@@ -80,6 +89,7 @@ export default function PortalCards({ readingStats, mathStats }: Props) {
   const parallaxY = useTransform(my, [-1, 1], [-8, 8]);
 
   function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
+    if (reduceMotion) return;
     const rect = e.currentTarget.getBoundingClientRect();
     mx.set(((e.clientX - rect.left) / rect.width) * 2 - 1);
     my.set(((e.clientY - rect.top) / rect.height) * 2 - 1);
@@ -87,6 +97,10 @@ export default function PortalCards({ readingStats, mathStats }: Props) {
 
   function handleEnter(subject: "reading" | "math", href: string) {
     if (transitioning) return;
+    if (reduceMotion) {
+      router.push(href);
+      return;
+    }
     setTransitioning(subject);
     // Let the full tilt-up pan play before routing (~2.2s total)
     setTimeout(() => router.push(href), 2200);
@@ -100,8 +114,10 @@ export default function PortalCards({ readingStats, mathStats }: Props) {
   }, []);
 
   return (
-    <div onMouseMove={handleMouseMove} className="fixed inset-0 flex overflow-hidden bg-[#070605]">
-      {HALVES.map((h) => {
+    <div onMouseMove={handleMouseMove} className="fixed inset-0 flex overflow-hidden bg-night">
+      {HALVES.map((half) => {
+        const color = half.subject === "reading" ? palette.reading : palette.math;
+        const h = { ...half, color, glowFrom: color, glowTo: color };
         const stats = statsMap[h.subject];
         const isHovered = hovered === h.subject;
         const isOther = hovered !== null && hovered !== h.subject;
@@ -134,7 +150,7 @@ export default function PortalCards({ readingStats, mathStats }: Props) {
               <div
                 className="absolute inset-0"
                 style={{
-                  background: `radial-gradient(ellipse at ${h.subject === "reading" ? "80%" : "20%"} 55%, ${h.glowFrom}28 0%, ${h.glowTo}10 45%, #070605 80%)`,
+                  background: `radial-gradient(ellipse at ${h.subject === "reading" ? "80%" : "20%"} 55%, ${h.glowFrom}28 0%, ${h.glowTo}10 45%, ${palette.canvas} 80%)`,
                 }}
               />
 
@@ -149,7 +165,10 @@ export default function PortalCards({ readingStats, mathStats }: Props) {
               />
 
               {/* Parallax starfield — 3 depth layers that drift with the cursor */}
-              <motion.div className="absolute inset-0" style={{ x: parallaxX, y: parallaxY }}>
+              <motion.div
+                className="absolute inset-0"
+                style={{ x: reduceMotion ? 0 : parallaxX, y: reduceMotion ? 0 : parallaxY }}
+              >
                 {h.stars.map((s, i) => {
                   const depthMul = s.depth;
                   return (
@@ -164,7 +183,7 @@ export default function PortalCards({ readingStats, mathStats }: Props) {
                         opacity: s.o,
                       }}
                       animate={
-                        isHovered
+                        isHovered && !reduceMotion
                           ? {
                               opacity: [s.o, Math.min(1, s.o * 1.6), s.o],
                             }
@@ -252,7 +271,7 @@ export default function PortalCards({ readingStats, mathStats }: Props) {
                 className="inline-flex items-center gap-2 rounded-full px-7 py-3 text-sm font-bold tracking-wide"
                 style={{
                   background: isHovered ? h.color : `${h.color}20`,
-                  color: isHovered ? "#ffffff" : h.color,
+                  color: isHovered ? palette.canvas : h.color,
                   border: `1px solid ${h.color}`,
                 }}
                 animate={{
@@ -273,8 +292,7 @@ export default function PortalCards({ readingStats, mathStats }: Props) {
       <div
         className="pointer-events-none absolute left-1/2 top-1/2 h-2/3 w-px -translate-x-1/2 -translate-y-1/2"
         style={{
-          background:
-            "linear-gradient(180deg, transparent, rgba(255,255,255,0.2) 50%, transparent)",
+          background: `linear-gradient(180deg, transparent, ${palette.border} 50%, transparent)`,
         }}
       />
 
@@ -296,8 +314,7 @@ export default function PortalCards({ readingStats, mathStats }: Props) {
               animate={{ opacity: 0 }}
               transition={{ duration: 1.6, ease: [0.22, 1, 0.36, 1], delay: 0.3 }}
               style={{
-                background:
-                  "linear-gradient(180deg, transparent 0%, transparent 55%, #070605 75%, #000 100%)",
+                background: `linear-gradient(180deg, transparent 0%, transparent 55%, ${palette.canvas} 75%, ${palette.canvas} 100%)`,
               }}
             />
 
@@ -313,7 +330,7 @@ export default function PortalCards({ readingStats, mathStats }: Props) {
               <div
                 className="absolute inset-0"
                 style={{
-                  background: `radial-gradient(ellipse at 50% 40%, ${transitioning === "reading" ? "#D84F7330" : "#2FA8FF30"} 0%, #070605 55%, #000 100%)`,
+                  background: `radial-gradient(ellipse at 50% 40%, ${transitioning === "reading" ? palette.reading : palette.math}30 0%, ${palette.canvas} 55%, ${palette.canvas} 100%)`,
                 }}
               />
 
@@ -353,15 +370,15 @@ export default function PortalCards({ readingStats, mathStats }: Props) {
                 animate={{ top: "-20%", opacity: 0 }}
                 transition={{ duration: 1.8, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
                 style={{
-                  background: `linear-gradient(90deg, transparent, ${transitioning === "reading" ? "#D84F73" : "#2FA8FF"}, transparent)`,
-                  boxShadow: `0 0 40px ${transitioning === "reading" ? "#D84F73" : "#2FA8FF"}80`,
+                  background: `linear-gradient(90deg, transparent, ${transitioning === "reading" ? palette.reading : palette.math}, transparent)`,
+                  boxShadow: `0 0 40px ${transitioning === "reading" ? palette.reading : palette.math}80`,
                 }}
               />
             </motion.div>
 
             {/* Final dark fade at the end so the constellation page can take over */}
             <motion.div
-              className="absolute inset-0 bg-[#070605]"
+              className="absolute inset-0 bg-night"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.4, delay: 1.9 }}

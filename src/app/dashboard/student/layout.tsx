@@ -6,8 +6,8 @@
 // them to /onboarding/questionnaire. They land back here once
 // the submit endpoint sets the flag.
 //
-// Existing page-level subscription/auth checks remain — this
-// layout only adds the onboarding redirect on top.
+// Parents and tutors return to their own portals before student
+// onboarding or subscription checks run. Admin previews remain available.
 // ============================================================
 
 import { safeAuth } from "@/lib/auth/dev-auth";
@@ -23,9 +23,12 @@ export default async function StudentDashboardLayout({ children }: { children: R
   const supabase = createAdminClient();
   const { data: user } = await supabase
     .from("users")
-    .select("onboarding_completed_at")
+    .select("role, onboarding_completed_at")
     .eq("clerk_id", userId)
     .maybeSingle();
+
+  if (user?.role === "parent") redirect("/dashboard/parent");
+  if (user?.role === "tutor") redirect("/tutor");
 
   // When impersonating, never bounce the admin to /onboarding — they
   // already have their own admin account and the target's onboarding

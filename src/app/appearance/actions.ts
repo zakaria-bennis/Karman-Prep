@@ -14,7 +14,7 @@ export async function saveThemePreference(input: string): Promise<void> {
   const { userId } = await auth();
   if (!userId) throw new Error("Unauthorized");
   const role = await fetchUserRole(userId);
-  if (role !== "student" && role !== "parent") throw new Error("Forbidden");
+  if (role !== "student" && role !== "parent" && role !== "tutor") throw new Error("Forbidden");
   const client = await clerkClient();
   await client.users.updateUserMetadata(userId, { unsafeMetadata: { karmanTheme: id } });
 }

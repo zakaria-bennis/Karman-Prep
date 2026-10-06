@@ -34,6 +34,38 @@ function row(overrides: Record<string, unknown> = {}) {
 }
 
 describe("reviewed D-to-import contract", () => {
+  it("retains numeric difficulty and source lineage together after integration", () => {
+    const sourceVersion = "c".repeat(64);
+    const result = rowToReviewedImportInput(
+      row({
+        difficulty_level: 7,
+        source_provider: "box",
+        source_document_id: "synthetic-document",
+        source_provider_version_id: "synthetic-provider-version",
+        section: "math",
+        module_number: 2,
+        question_number: 4,
+        occurrence_index: 1,
+      }),
+      "released.pdf",
+      { sourceVersion }
+    );
+    expect("error" in result).toBe(false);
+    if ("error" in result) throw new Error(result.error);
+    expect(result.input).toMatchObject({
+      difficulty: 7,
+      source_version: sourceVersion,
+      source_provider: "box",
+      source_document_id: "synthetic-document",
+      source_provider_version_id: "synthetic-provider-version",
+      source_section: "math",
+      source_module: "M2",
+      source_question_number: 4,
+      source_occurrence: 1,
+      source_identity_required: true,
+    });
+  });
+
   it.each([1, 2, 3, 4, 5, 6, 7])(
     "retains D level %i and evidence without rewriting source/history",
     (level) => {

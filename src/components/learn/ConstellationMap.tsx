@@ -16,7 +16,13 @@
 // ============================================================
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { AnimatePresence, motion, useMotionValue, useTransform } from "framer-motion";
+import {
+  AnimatePresence,
+  motion,
+  useMotionValue,
+  useReducedMotion,
+  useTransform,
+} from "framer-motion";
 import { cn } from "@/lib/utils";
 import {
   type CurriculumNode,
@@ -70,6 +76,7 @@ export default function ConstellationMap(props: Props) {
 
 // ── Inner component ──────────────────────────────────────────
 function ConstellationMapInner({ activeSubject, readingNodes, mathNodes }: Props) {
+  const reduceMotion = useReducedMotion();
   const [hovered, setHovered] = useState<string | null>(null);
   const [selectedNode, setSelectedNode] = useState<MappedNode | null>(null);
   const [cardOrigin, setCardOrigin] = useState<{ x: number; y: number } | null>(null);
@@ -193,6 +200,7 @@ function ConstellationMapInner({ activeSubject, readingNodes, mathNodes }: Props
       animate={{ opacity: 1 }}
       transition={{ duration: 1.6, ease: [0.16, 1, 0.3, 1] }}
       onMouseMove={(e) => {
+        if (reduceMotion) return;
         const rect = e.currentTarget.getBoundingClientRect();
         parallaxMx.set(((e.clientX - rect.left) / rect.width) * 2 - 1);
         parallaxMy.set(((e.clientY - rect.top) / rect.height) * 2 - 1);
@@ -282,7 +290,12 @@ function ConstellationMapInner({ activeSubject, readingNodes, mathNodes }: Props
           />
 
           {/* Background star field — ivory, parallaxes subtly with the cursor */}
-          <motion.g style={{ x: parallaxTransformX, y: parallaxTransformY }}>
+          <motion.g
+            style={{
+              x: reduceMotion ? 0 : parallaxTransformX,
+              y: reduceMotion ? 0 : parallaxTransformY,
+            }}
+          >
             {BG_STARS.map((s, i) => (
               <circle key={i} cx={s.x} cy={s.y} r={s.r} fill="#f3ecdd" opacity={s.o} />
             ))}

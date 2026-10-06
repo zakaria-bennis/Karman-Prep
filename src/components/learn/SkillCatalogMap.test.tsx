@@ -48,6 +48,10 @@ describe("39-skill menu and preserved lesson history", () => {
       screen.getByRole("link", { name: "Linear equations (one variable)" }).getAttribute("href")
     ).toBe("/learn/math/ma-00");
     expect(screen.queryByText(/% mastered/)).toBeNull();
+    expect(screen.getByRole("link", { name: "Earlier practice" })).toHaveAttribute(
+      "href",
+      "/learn/earlier/math"
+    );
   });
 
   it("keeps ambiguous old verb-tense results out of both new selectable practice paths", () => {

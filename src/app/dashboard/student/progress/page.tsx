@@ -32,9 +32,9 @@ export const dynamic = "force-dynamic";
 const topicLabel = labelFromSlug;
 
 function domainHeatColor(score: number): string {
-  if (score >= 70) return "#8BA86A";
-  if (score >= 50) return "#E0A24A";
-  return "#D84F73";
+  if (score >= 70) return "var(--status-success)";
+  if (score >= 50) return "var(--status-warning)";
+  return "var(--status-error)";
 }
 
 interface DiagnosticRow {
@@ -331,8 +331,8 @@ function WeakTopics({ weakByDomain }: { weakByDomain: Record<SATDomain, string[]
           No weak topics flagged
         </p>
         <p className="mt-1 text-xs text-success/80 dark:text-success-bright/80">
-          You answered every question correctly on the diagnostic. Strong starting point — your
-          learning path will push the harder material.
+          No weak topics are recorded for your latest diagnostic. Continue practicing to build on
+          your progress.
         </p>
       </div>
     );

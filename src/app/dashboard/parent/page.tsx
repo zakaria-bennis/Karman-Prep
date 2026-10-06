@@ -118,8 +118,7 @@ export default async function ParentDashboardPage() {
         )}
 
         <p className="mt-8 max-w-md text-xs text-taupe">
-          Per-student detail view (progress, cohort, recent activity) is coming shortly. This
-          landing page is the access point — your linked students will appear above.
+          Select a linked student to view their progress, cohort, and recent activity.
         </p>
       </div>
     </div>
