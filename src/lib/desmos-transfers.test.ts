@@ -39,8 +39,8 @@ describe("Desmos transfers from question givens", () => {
       id: "karman_q-1_table",
       type: "table",
       columns: [
-        { latex: "x", values: ["-1", "2"] },
-        { latex: "y", values: ["\\frac{1}{2}", "\\frac{3}{4}"], points: true, lines: false },
+        { latex: "x_1", values: ["-1", "2"] },
+        { latex: "y_1", values: ["0.5", "0.75"], points: true, lines: false },
       ],
     });
   });
@@ -77,4 +77,31 @@ describe("Desmos transfers from question givens", () => {
       getDesmosTransfers({ ...given, question_text: "The interval (1,2) and the numbers (3,4)." })
     ).toEqual([]);
   });
+});
+
+describe("extended explicit givens", () => {
+  it("offers functions and expressions in addition to equations", () => {
+    expect(
+      getDesmosTransfers({ ...given, question_text: "$f(t)=2t+1$ and $x^2+2x+1$" }).map(
+        (item) => item.label
+      )
+    ).toEqual(["Send function 1", "Send expression 2"]);
+  });
+  it("explains unsupported table values rather than guessing units", async () => {
+    const { getDesmosTransferReport } = await import("./desmos-transfers");
+    const result = getDesmosTransferReport({
+      ...given,
+      figure_kind: "table",
+      figure_table_data: { header_row: ["x", "y"], rows: [["1", "2 cm"]] },
+    });
+    expect(result.transfers).toEqual([]);
+    expect(result.notices[0]).toMatch(/ambiguous or unsupported/);
+  });
+});
+
+it("accepts subtraction expressions without treating bare negatives or pairs as expressions", () => {
+  const transfers = getDesmosTransfers({ ...given, question_text: "$x-1$ $-4$ $(-1,2)$" });
+  expect(transfers.map((item) => item.expression)).toEqual([
+    { id: "karman_q-1_equation_0", latex: "x-1" },
+  ]);
 });

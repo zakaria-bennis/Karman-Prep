@@ -296,6 +296,11 @@ function reducer(state: QuizState, action: Action): QuizState {
     }
 
     case "TOGGLE_DESMOS":
+      if (
+        state.subject !== "math" ||
+        state.selectedQuestions[state.currentIndex]?.subject !== "math"
+      )
+        return { ...state, isDesmosOpen: false };
       return { ...state, isDesmosOpen: !state.isDesmosOpen, isScratchpadOpen: false };
 
     case "TOGGLE_SCRATCHPAD":

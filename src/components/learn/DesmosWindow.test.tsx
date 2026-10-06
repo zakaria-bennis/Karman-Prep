@@ -19,6 +19,16 @@ const createCalculator = () => ({
   getState: vi.fn(() => givenState),
   setState: vi.fn(),
   setExpressions: vi.fn(),
+  getExpressions: vi.fn(
+    () =>
+      [] as {
+        id: string;
+        type?: string;
+        latex?: string;
+        columns?: { latex: string; values?: string[] }[];
+      }[]
+  ),
+  updateSettings: vi.fn(),
 });
 let calculators: ReturnType<typeof createCalculator>[];
 type CalculatorFactory = (
@@ -82,4 +92,65 @@ describe("Desmos source transfer integration", () => {
     fireEvent.click(screen.getByRole("button", { name: "Graphing" }));
     expect(calculators[3].setState).toHaveBeenCalledWith(givenState);
   });
+});
+
+describe("section boundaries and manual variable protection", () => {
+  it("does not render or initialize Desmos for a reading question, even with Math props", () => {
+    render(
+      <DesmosWindow
+        subject="math"
+        question={{ ...question, subject: "reading" }}
+        onClose={() => {}}
+        constraintsRef={createRef<HTMLDivElement>()}
+        transfersEnabled
+      />
+    );
+    expect(graphing).not.toHaveBeenCalled();
+    expect(screen.queryByText("Desmos")).not.toBeInTheDocument();
+  });
+  it("fails closed without any current Math context", () => {
+    render(<DesmosWindow onClose={() => {}} constraintsRef={createRef<HTMLDivElement>()} />);
+    expect(graphing).not.toHaveBeenCalled();
+  });
+  it("does not overwrite a student's x₁ or y₁ table", () => {
+    render(
+      <DesmosWindow
+        question={{
+          ...question,
+          figure_kind: "table",
+          figure_table_data: { header_row: ["x", "y"], rows: [["1", "2"]] },
+        }}
+        onClose={() => {}}
+        constraintsRef={createRef<HTMLDivElement>()}
+        transfersEnabled
+      />
+    );
+    calculators[0].getExpressions.mockReturnValue([
+      { id: "manual-table", type: "table", columns: [{ latex: "x_1", values: ["99"] }] },
+    ]);
+    fireEvent.click(screen.getByRole("button", { name: "Send x–y table" }));
+    expect(calculators[0].setExpressions).not.toHaveBeenCalled();
+    expect(screen.getByText(/already in use/)).toBeInTheDocument();
+  });
+});
+
+it("accepts native API expression rows without confusing them with tables", () => {
+  render(
+    <DesmosWindow
+      question={{
+        ...question,
+        figure_kind: "table",
+        figure_table_data: { header_row: ["x", "y"], rows: [["1", "2"]] },
+      }}
+      onClose={() => {}}
+      constraintsRef={createRef<HTMLDivElement>()}
+      transfersEnabled
+    />
+  );
+  calculators[0].getExpressions.mockReturnValue([
+    { id: "manual-equation", type: "expression", latex: "y=x^2" },
+    { id: "note", type: "text" },
+  ]);
+  fireEvent.click(screen.getByRole("button", { name: "Send x–y table" }));
+  expect(calculators[0].setExpressions).toHaveBeenCalledTimes(1);
 });

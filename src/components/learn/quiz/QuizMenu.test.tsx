@@ -6,7 +6,9 @@ import { QuizMenu } from "./QuizMenu";
 describe("practice menu Desmos setting", () => {
   it("puts the setting in the menu and lets the student turn it off", () => {
     const onChange = vi.fn();
-    render(<QuizMenu transfersEnabled onTransfersChange={onChange} realistic={false} />);
+    render(
+      <QuizMenu subject="math" transfersEnabled onTransfersChange={onChange} realistic={false} />
+    );
     fireEvent.click(screen.getByText("Menu"));
     const toggle = screen.getByRole("checkbox", { name: "Desmos transfers" });
     expect(toggle).toBeChecked();
@@ -15,7 +17,7 @@ describe("practice menu Desmos setting", () => {
   });
   it("locks transfers off in realistic exams even when practice preference is on", () => {
     const onChange = vi.fn();
-    render(<QuizMenu transfersEnabled onTransfersChange={onChange} realistic />);
+    render(<QuizMenu subject="math" transfersEnabled onTransfersChange={onChange} realistic />);
     fireEvent.click(screen.getByText("Menu"));
     const toggle = screen.getByRole("checkbox", { name: "Desmos transfers" });
     expect(toggle).not.toBeChecked();
@@ -23,4 +25,12 @@ describe("practice menu Desmos setting", () => {
     expect(screen.getByText("Disabled during realistic timed exams.")).toBeVisible();
     expect(onChange).not.toHaveBeenCalled();
   });
+});
+
+it("keeps appearance available in Reading/Writing without a calculator-transfer entry", () => {
+  render(
+    <QuizMenu subject="reading" transfersEnabled onTransfersChange={() => {}} realistic={false} />
+  );
+  expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
+  expect(screen.getByLabelText("Appearance menu", { exact: true })).toBeInTheDocument();
 });

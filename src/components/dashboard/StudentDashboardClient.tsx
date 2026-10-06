@@ -9,7 +9,7 @@
 import Link from "next/link";
 import { Flame, BookOpen, TrendingUp, ArrowRight, Lock, CheckCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { DOMAIN_COLORS, DOMAIN_LABELS, type SATDomain, type DomainScores } from "@/types";
+import { DOMAIN_LABELS, type SATDomain, type DomainScores } from "@/types";
 import DashboardLayout from "./DashboardLayout";
 import DomainProgress from "./DomainProgress";
 import type { NodeStatus } from "@/data/curriculum";
@@ -161,20 +161,8 @@ export default function StudentDashboardClient({
               href={`/dashboard/student/lesson/${nextLesson.concept_id}`}
               className="glass-card group flex items-center gap-4 p-5 transition-all hover:shadow-xl"
             >
-              <div
-                className={cn(
-                  "flex h-12 w-12 shrink-0 items-center justify-center rounded-xl",
-                  `bg-[${DOMAIN_COLORS[nextLesson.concepts?.domain as SATDomain]?.hex}]/10`
-                )}
-                style={{
-                  backgroundColor:
-                    DOMAIN_COLORS[nextLesson.concepts?.domain as SATDomain]?.hex + "20",
-                }}
-              >
-                <BookOpen
-                  className="h-5 w-5"
-                  style={{ color: DOMAIN_COLORS[nextLesson.concepts?.domain as SATDomain]?.hex }}
-                />
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-info/10">
+                <BookOpen className="h-5 w-5 text-info" />
               </div>
               <div className="min-w-0 flex-1">
                 <p className="truncate font-semibold text-ivory dark:text-ivory">
@@ -277,7 +265,7 @@ function ProgressRing({ pct, size = 64 }: { pct: number; size?: number }) {
         r={r}
         strokeWidth={6}
         fill="none"
-        stroke="#2FA8FF"
+        stroke="rgb(var(--k-math))"
         strokeLinecap="round"
         strokeDasharray={circumference}
         strokeDashoffset={offset}
@@ -288,7 +276,7 @@ function ProgressRing({ pct, size = 64 }: { pct: number; size?: number }) {
         y="50%"
         dominantBaseline="middle"
         textAnchor="middle"
-        className="rotate-90 fill-ivory text-[11px] font-bold dark:fill-white"
+        className="rotate-90 fill-ivory text-[11px] font-bold dark:fill-ivory"
         transform={`rotate(90 ${size / 2} ${size / 2})`}
       >
         {pct}%

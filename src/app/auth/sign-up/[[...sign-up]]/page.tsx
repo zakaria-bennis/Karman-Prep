@@ -2,7 +2,7 @@
 // Clerk-powered Sign Up — branded backdrop
 // ============================================================
 
-import { SignUp } from "@clerk/nextjs";
+import { ThemedSignUp as SignUp } from "@/components/shared/ThemedClerkWidgets";
 import Link from "next/link";
 import { KarmanLogo } from "@/components/shared/KarmanLogo";
 import AuthBackdrop from "@/components/shared/AuthBackdrop";

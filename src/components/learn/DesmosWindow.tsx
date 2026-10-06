@@ -22,14 +22,17 @@
 //   · Bottom-right resize grip (CSS-native).
 // ============================================================
 
+import { useTheme } from "@/components/shared/ThemeProvider";
 import { motion, useDragControls } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import Script from "next/script";
 import { X, GripHorizontal, Minimize2, Calculator } from "lucide-react";
 import type { StudentQuizQuestion } from "@/types/quiz";
-import { getDesmosTransfers, type DesmosExpression } from "@/lib/desmos-transfers";
+import { getDesmosTransferReport, type DesmosExpression } from "@/lib/desmos-transfers";
 
 interface Props {
+  /** Fail closed when the current section is not Math. */
+  subject?: string | null;
   onClose: () => void;
   constraintsRef: React.RefObject<HTMLDivElement | null>;
   question?: StudentQuizQuestion | null;
@@ -55,6 +58,8 @@ interface DesmosCalculatorInstance {
   getState?(): unknown;
   setState?(state: unknown): void;
   setExpressions?(expressions: DesmosExpression[]): void;
+  getExpressions?(): { id: string; type?: string; latex?: string; columns?: { latex: string }[] }[];
+  updateSettings?(settings: { invertedColors: boolean }): void;
 }
 interface DesmosOptions {
   invertedColors?: boolean;
@@ -74,12 +79,21 @@ declare global {
   }
 }
 
-export default function DesmosWindow({
+export default function DesmosWindow(props: Props) {
+  const subject = props.subject ?? props.question?.subject;
+  if (subject !== "math" || (props.question && props.question.subject !== "math")) return null;
+  return <MathDesmosWindow {...props} />;
+}
+
+function MathDesmosWindow({
   onClose,
   constraintsRef,
   question = null,
   transfersEnabled = false,
 }: Props) {
+  const { palette } = useTheme();
+  const darkRef = useRef(palette.dark);
+  darkRef.current = palette.dark;
   const controls = useDragControls();
   const [mode, setMode] = useState<CalcMode>("graphing");
   const [minimized, setMinimized] = useState(false);
@@ -89,8 +103,14 @@ export default function DesmosWindow({
   const calcRef = useRef<DesmosCalculatorInstance | null>(null);
   const savedStates = useRef<Partial<Record<CalcMode, unknown>>>({});
   const [transferNotice, setTransferNotice] = useState("");
-  const transfers = transfersEnabled ? getDesmosTransfers(question) : [];
+  const { transfers, notices } = transfersEnabled
+    ? getDesmosTransferReport(question)
+    : { transfers: [], notices: [] };
   useEffect(() => setTransferNotice(""), [question?.id]);
+
+  useEffect(() => {
+    calcRef.current?.updateSettings?.({ invertedColors: palette.dark });
+  }, [palette.dark]);
 
   // (Re)create the calculator any time the mode flips, the
   // script becomes available, or we restore from minimized.
@@ -107,7 +127,7 @@ export default function DesmosWindow({
     }
 
     const opts: DesmosOptions = {
-      invertedColors: true, // dark mode — matches Karman
+      invertedColors: darkRef.current, // dark mode — matches Karman
       border: false, // we draw our own chrome
       fontSize: 14,
     };
@@ -119,6 +139,7 @@ export default function DesmosWindow({
     const calculator = calcRef.current;
     const states = savedStates.current;
     if (states[mode] !== undefined) calculator.setState?.(states[mode]);
+    calculator.updateSettings?.({ invertedColors: darkRef.current });
 
     return () => {
       if (calculator.getState) states[mode] = calculator.getState();
@@ -166,7 +187,7 @@ export default function DesmosWindow({
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.9 }}
         transition={{ type: "spring", stiffness: 350, damping: 28 }}
-        className="absolute left-3 top-16 z-[70] flex resize flex-col overflow-hidden rounded-2xl border border-ivory/10 bg-[#070605] shadow-2xl"
+        className="absolute left-3 top-16 z-[70] flex resize flex-col overflow-hidden rounded-2xl border border-ivory/10 bg-night shadow-2xl"
         style={{
           width: "min(600px, calc(100vw - 24px))",
           height: "min(560px, calc(100dvh - 104px))",
@@ -234,7 +255,7 @@ export default function DesmosWindow({
           </div>
         </div>
 
-        {transfers.length > 0 && (
+        {(transfers.length > 0 || notices.length > 0) && (
           <div className="max-h-32 shrink-0 overflow-y-auto border-b border-bronze bg-night px-3 py-2">
             <p className="mb-2 text-xs text-taupe">Given in this question</p>
             <div className="flex flex-wrap gap-2">
@@ -246,6 +267,25 @@ export default function DesmosWindow({
                   className="rounded-md border border-bronze px-2 py-1 text-xs text-ivory hover:border-info disabled:opacity-50"
                   onClick={() => {
                     if (!calcRef.current?.setExpressions) return;
+                    const existing = calcRef.current.getExpressions?.() ?? [];
+                    if (
+                      "type" in transfer.expression &&
+                      transfer.expression.type === "table" &&
+                      existing.some(
+                        (item) =>
+                          item.id !== transfer.id &&
+                          (item.type === "table"
+                            ? (item.columns ?? []).some((column) =>
+                                /^[xy]_(?:1|\{1\})$/.test(column.latex)
+                              )
+                            : /^\s*[xy]_\{?1\}?\s*=/.test(item.latex ?? ""))
+                      )
+                    ) {
+                      setTransferNotice(
+                        "x₁ or y₁ is already in use. Keep your work and enter this table manually, or rename the existing variables first."
+                      );
+                      return;
+                    }
                     calcRef.current.setExpressions([transfer.expression]);
                     setTransferNotice("Added to Desmos.");
                   }}
@@ -254,6 +294,11 @@ export default function DesmosWindow({
                 </button>
               ))}
             </div>
+            {notices.map((notice) => (
+              <p key={notice} className="mt-1 text-xs text-taupe">
+                {notice}
+              </p>
+            ))}
             <p aria-live="polite" className="mt-1 text-xs text-taupe">
               {mode === "scientific" ? "Choose Graphing to transfer these givens." : transferNotice}
             </p>
@@ -262,7 +307,7 @@ export default function DesmosWindow({
 
         {/* Calculator mount — fills below the title bar.
             Desmos paints into this div via the JS API. */}
-        <div ref={mountRef} className="min-h-0 w-full flex-1 bg-[#070605]" />
+        <div ref={mountRef} className="min-h-0 w-full flex-1 bg-night" />
 
         {/* Loading shim — only visible until the Desmos script
             has initialised the calculator into the mount div. */}

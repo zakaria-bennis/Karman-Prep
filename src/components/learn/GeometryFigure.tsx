@@ -29,7 +29,10 @@ export default function GeometryFigure({
   className,
   maxHeightClass = "max-h-[28rem]",
 }: Props) {
-  const { svg, renderable } = buildGeometrySvg(data);
+  const { svg, renderable } = buildGeometrySvg(data, {
+    stroke: "var(--figure-math, #2fa8ff)",
+    label: "var(--figure-text, #f3ecdd)",
+  });
   if (!renderable || !svg) return null;
   const balanced = data.layout_version === "balanced-v1";
 
@@ -38,7 +41,7 @@ export default function GeometryFigure({
       className={cn(
         // Warm night plaque matching the app background; Math-blue figure
         // with ivory labels inside (observatory system, docs/brand.md).
-        "my-4 rounded-lg border border-bronze bg-night p-4",
+        "themed-question-figure my-4 rounded-lg border border-bronze bg-night p-4",
         "shadow-[0_4px_16px_-8px_rgba(0,0,0,0.5)]",
         balanced && "w-full max-w-md",
         className

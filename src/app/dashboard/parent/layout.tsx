@@ -5,6 +5,7 @@
 // own dashboard.
 // ============================================================
 
+import { ThemeSelector } from "@/components/shared/ThemeSelector";
 import { safeAuth } from "@/lib/auth/dev-auth";
 import { resolveEffectiveClerkId } from "@/lib/supabase/queries/admin";
 import { redirect } from "next/navigation";
@@ -20,5 +21,12 @@ export default async function ParentDashboardLayout({ children }: { children: Re
     redirect("/dashboard/student");
   }
 
-  return <>{children}</>;
+  return (
+    <>
+      <div className="flex justify-end border-b border-bronze bg-surface px-4 py-1">
+        <ThemeSelector />
+      </div>
+      {children}
+    </>
+  );
 }

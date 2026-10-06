@@ -317,7 +317,7 @@ export function ActiveQuizScreen({
               </div>
             )}
 
-            {review?.desmos_strategy && (
+            {q.subject === "math" && review?.desmos_strategy && (
               <div className="mb-6 rounded-xl border border-info/30 bg-info/5 p-4">
                 <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-info-bright">
                   Desmos strategy

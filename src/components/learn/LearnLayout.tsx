@@ -8,7 +8,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { UserButton } from "@clerk/nextjs";
+import { ThemeSelector } from "@/components/shared/ThemeSelector";
+import { ThemedUserButton as UserButton } from "@/components/shared/ThemedClerkWidgets";
 import { ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { KarmanLogoMark } from "@/components/shared/KarmanLogo";
@@ -87,10 +88,11 @@ export default function LearnLayout({ children }: { children: React.ReactNode })
         {/* User button — floats top-right, translucent */}
         <div
           className={cn(
-            "pointer-events-auto rounded-full border border-ivory/10 bg-night/35 p-1 shadow-lg backdrop-blur-md",
+            "pointer-events-auto flex items-center gap-1 rounded-full border border-ivory/10 bg-night/35 p-1 shadow-lg backdrop-blur-md",
             !onConstellation && "ml-auto"
           )}
         >
+          <ThemeSelector compact />
           <UserButton />
         </div>
       </header>

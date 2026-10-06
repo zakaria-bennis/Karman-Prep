@@ -16,7 +16,7 @@
 // ============================================================
 
 const SERIF_STACK = "var(--font-plex-serif), Georgia, 'Times New Roman', serif";
-const IVORY = "#F3ECDD";
+const IVORY = "var(--text-primary, #f3ecdd)";
 
 interface MarkProps {
   size?: number;

@@ -175,13 +175,12 @@ export default function QuizEngine({
           onToggleExplanations={setShowExplanations}
           onNext={() => nextQuestion()}
           menu={
-            node.subject === "math" ? (
-              <QuizMenu
-                transfersEnabled={desmosTransfersEnabled}
-                onTransfersChange={changeDesmosTransfers}
-                realistic={sessionMode === "realistic"}
-              />
-            ) : undefined
+            <QuizMenu
+              subject={node.subject}
+              transfersEnabled={desmosTransfersEnabled}
+              onTransfersChange={changeDesmosTransfers}
+              realistic={sessionMode === "realistic"}
+            />
           }
         />
       )}

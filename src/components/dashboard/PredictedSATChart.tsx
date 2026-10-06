@@ -101,13 +101,13 @@ export default function PredictedSATChart({ points, diagnosticsCount }: Props) {
             <svg viewBox={`0 0 ${W} ${H}`} className="h-auto w-full" style={{ minWidth: 600 }}>
               <defs>
                 <linearGradient id="predicted-band" x1="0" x2="0" y1="0" y2="1">
-                  <stop offset="0%" stopColor="#2FA8FF" stopOpacity="0.35" />
-                  <stop offset="100%" stopColor="#D84F73" stopOpacity="0.10" />
+                  <stop offset="0%" stopColor="rgb(var(--k-math))" stopOpacity="0.35" />
+                  <stop offset="100%" stopColor="rgb(var(--k-rw))" stopOpacity="0.10" />
                 </linearGradient>
                 <linearGradient id="predicted-line" x1="0" x2="1" y1="0" y2="0">
-                  <stop offset="0%" stopColor="#D84F73" />
-                  <stop offset="50%" stopColor="#C8AB6A" />
-                  <stop offset="100%" stopColor="#2FA8FF" />
+                  <stop offset="0%" stopColor="rgb(var(--k-rw))" />
+                  <stop offset="50%" stopColor="rgb(var(--k-gold))" />
+                  <stop offset="100%" stopColor="rgb(var(--k-math))" />
                 </linearGradient>
               </defs>
 
@@ -173,8 +173,8 @@ export default function PredictedSATChart({ points, diagnosticsCount }: Props) {
                       cx={x(p.weekIndex)}
                       cy={y(p.scoreMid)}
                       r={p.source === "diagnostic" ? 6 : 4}
-                      fill={p.source === "diagnostic" ? "#2FA8FF" : "#C8AB6A"}
-                      stroke="#070605"
+                      fill={p.source === "diagnostic" ? "rgb(var(--k-math))" : "rgb(var(--k-gold))"}
+                      stroke="rgb(var(--k-night))"
                       strokeWidth={2}
                     />
                     {/* Tooltip hover-area */}

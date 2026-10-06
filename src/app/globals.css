@@ -7,6 +7,33 @@
    ============================================================ */
 
 :root {
+  --k-night: 7 6 5;
+  --k-espresso: 13 10 8;
+  --k-charcoal: 18 17 13;
+  --k-surface: 23 22 17;
+  --k-surface-raised: 34 32 24;
+  --k-ivory: 243 236 221;
+  --k-taupe: 184 176 161;
+  --k-bronze: 59 52 38;
+  --k-gold: 200 171 106;
+  --k-gold-bright: 228 200 106;
+  --k-math: 47 168 255;
+  --k-math-glow: 66 217 255;
+  --k-rw: 216 79 115;
+  --k-rw-glow: 240 106 140;
+  --k-success: 139 168 106;
+  --k-success-bright: 166 196 134;
+  --k-warning: 224 162 74;
+  --k-warning-bright: 240 190 114;
+  --k-error: 216 79 115;
+  --k-error-bright: 240 106 140;
+  --k-info: 47 168 255;
+  --k-info-bright: 66 217 255;
+  --k-algebra: 47 168 255;
+  --k-adv-math: 66 217 255;
+  --k-geometry: 127 196 255;
+  --k-data-analy: 43 127 196;
+  --k-read-write: 216 79 115;
   --background: #ffffff;
   --foreground: #0f172a;
 
@@ -365,4 +392,47 @@ html.dark {
   .katex-html {
     vertical-align: baseline;
   }
+}
+
+/* Figures share the account palette, including the SVG's internal paint. */
+:root {
+  --figure-background: rgb(var(--k-night));
+  --figure-surface: rgb(var(--k-surface));
+  --figure-shade: rgb(var(--k-surface-raised));
+  --figure-cf-grid: var(--figure-axis);
+  --figure-text: rgb(var(--k-ivory));
+  --figure-axis: rgb(var(--k-taupe));
+  --figure-grid: rgb(var(--k-bronze));
+  --figure-math: rgb(var(--k-math));
+  --figure-reading: rgb(var(--k-rw));
+  --figure-gold: rgb(var(--k-gold));
+  --figure-grid-opacity: 0.72;
+}
+.themed-question-figure {
+  background: var(--figure-background);
+  border-color: var(--figure-grid);
+  color: var(--figure-text);
+}
+.themed-question-figure svg {
+  max-width: 100%;
+  height: auto;
+}
+
+:root {
+  --figure-series-1: var(--figure-math);
+  --figure-series-2: var(--figure-reading);
+  --figure-series-3: var(--figure-gold);
+  --figure-series-4: rgb(var(--k-success));
+  --figure-series-5: #8761bc;
+  --figure-series-6: var(--figure-axis);
+}
+html.dark {
+  --figure-series-5: #c6adf0;
+}
+
+html[data-theme="observatory"] {
+  --figure-cf-grid: #d7be89;
+}
+.themed-question-table {
+  background: var(--figure-surface);
 }

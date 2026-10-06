@@ -12,7 +12,8 @@ import Link from "next/link";
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useAuth, UserButton } from "@clerk/nextjs";
+import { useAuth } from "@clerk/nextjs";
+import { ThemedUserButton as UserButton } from "@/components/shared/ThemedClerkWidgets";
 import { KarmanLogo } from "@/components/shared/KarmanLogo";
 
 export default function Navbar() {

@@ -5,7 +5,7 @@
 import { safeAuth } from "@/lib/auth/dev-auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { UserButton } from "@clerk/nextjs";
+import { ThemedUserButton as UserButton } from "@/components/shared/ThemedClerkWidgets";
 import {
   Settings,
   BookOpen,

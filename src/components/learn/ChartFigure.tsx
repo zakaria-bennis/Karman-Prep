@@ -28,7 +28,11 @@ import type {
   PieSeries,
   ChartAxis,
 } from "@/types/chart";
-import { SUBJECT_CHART_COLOR, SEQUENTIAL_PALETTE } from "@/types/chart";
+const SEQUENTIAL_PALETTE = Array.from({ length: 6 }, (_, i) => `var(--figure-series-${i + 1})`);
+const SUBJECT_CHART_COLOR: Record<string, string> = {
+  math: "var(--figure-math)",
+  reading: "var(--figure-reading)",
+};
 import { numericTicks, formatTickLabel, generateAltText } from "./chart-figure-helpers";
 
 interface Props {
@@ -57,12 +61,12 @@ const PLOT_H = VIEW_H - PAD.top - PAD.bottom;
 // on the warm night canvas: ivory text, taupe structure, bronze grid.
 // Data series carry the subject signal (SUBJECT_CHART_COLOR).
 const COLOR = {
-  bgNight: "#070605", // app background (warm night) — figure sits flush
-  surface: "#171611", // card surface (legend inset)
-  ivory: "#f3ecdd", // primary text: title + axis labels
-  taupe: "#b8b0a1", // tick labels + axis lines (legible structure)
-  bronze: "#b8b0a1", // axis lines + tick marks (key kept for minimal churn)
-  bronzeMuted: "#3b3426", // grid lines + border (bronze proper)
+  bgNight: "var(--figure-background)", // app background (warm night) — figure sits flush
+  surface: "var(--figure-background)", // card surface (legend inset)
+  ivory: "var(--figure-text)", // primary text: title + axis labels
+  taupe: "var(--figure-axis)", // tick labels + axis lines (legible structure)
+  bronze: "var(--figure-axis)", // axis lines + tick marks (key kept for minimal churn)
+  bronzeMuted: "var(--figure-grid)", // grid lines + border (bronze proper)
 } as const;
 
 export default function ChartFigure({ data, subject, className, alt }: Props) {
@@ -79,7 +83,7 @@ export default function ChartFigure({ data, subject, className, alt }: Props) {
   const accessibleSummary = alt ?? generateAltText(data);
 
   return (
-    <figure className={cn("inline-block max-w-full", className)}>
+    <figure className={cn("themed-question-figure inline-block max-w-full", className)}>
       <svg
         viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
         role="img"
@@ -182,7 +186,7 @@ function Axes({
     <g>
       {/* Grid lines */}
       {showGrid && (
-        <g stroke={COLOR.bronzeMuted} strokeWidth={0.5}>
+        <g stroke={COLOR.bronzeMuted} strokeWidth={0.5} opacity="var(--figure-grid-opacity)">
           {yTicks.map((v, i) => (
             <line key={`gy-${i}`} x1={PAD.left} x2={PAD.left + PLOT_W} y1={yMap(v)} y2={yMap(v)} />
           ))}
@@ -556,7 +560,7 @@ function BoxplotGlyph({
   return (
     <g>
       {showGrid && (
-        <g stroke={COLOR.bronzeMuted} strokeWidth={0.5}>
+        <g stroke={COLOR.bronzeMuted} strokeWidth={0.5} opacity="var(--figure-grid-opacity)">
           {xTicks.map((v, i) => (
             <line key={`g-${i}`} x1={xMap(v)} x2={xMap(v)} y1={PAD.top} y2={baseY} />
           ))}

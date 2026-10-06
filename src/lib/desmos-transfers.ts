@@ -1,3 +1,4 @@
+import { numericDesmosCell, unwrapMath, validatedDesmosMath } from "./desmos-math";
 import type { StudentQuizQuestion } from "@/types/quiz";
 
 export type DesmosExpression =
@@ -19,22 +20,13 @@ type GivenQuestion = Pick<
   "id" | "subject" | "question_text" | "figure_kind" | "figure_table_data"
 >;
 
-function numericCell(raw: string): string | null {
-  const value = raw
-    .trim()
-    .replace(/^\$|\$$/g, "")
-    .replace(/−/g, "-");
-  if (/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(value)) return value;
-  const fraction = value.match(/^([+-]?\d+)\s*\/\s*([+-]?\d+)$/);
-  if (fraction && Number(fraction[2]) !== 0) return `\\frac{${fraction[1]}}{${fraction[2]}}`;
-  if (/^[+-]?\\frac\{[+-]?\d+\}\{[+-]?\d+\}$/.test(value) && !/\{[+-]?0+\}$/.test(value))
-    return value;
-  return null;
-}
-
 /** Only explicit givens. Never inspect answer choices, keys, explanations or inferred chart pixels. */
-export function getDesmosTransfers(question: GivenQuestion | null): DesmosTransfer[] {
-  if (!question || question.subject !== "math") return [];
+export function getDesmosTransferReport(question: GivenQuestion | null): {
+  transfers: DesmosTransfer[];
+  notices: string[];
+} {
+  if (!question || question.subject !== "math") return { transfers: [], notices: [] };
+  const notices: string[] = [];
   const transfers: DesmosTransfer[] = [];
   const prefix = `karman_${question.id.replace(/[^a-zA-Z0-9_-]/g, "_")}`;
   const seen = new Set<string>();
@@ -42,45 +34,28 @@ export function getDesmosTransfers(question: GivenQuestion | null): DesmosTransf
     /\$\$?([^$]+)\$\$?|\\\(([\s\S]*?)\\\)|\\\[([\s\S]*?)\\\]/g
   );
   for (const match of math) {
-    const latex = (match[1] ?? match[2] ?? match[3]).trim().replace(/−/g, "-");
-    const commands = latex.match(/\\[a-zA-Z]+/g) ?? [];
-    const allowed = new Set([
-      "\\frac",
-      "\\sqrt",
-      "\\left",
-      "\\right",
-      "\\cdot",
-      "\\times",
-      "\\pi",
-      "\\sin",
-      "\\cos",
-      "\\tan",
-      "\\log",
-      "\\ln",
-      "\\abs",
-    ]);
+    const latex = validatedDesmosMath(match[0]);
     if (
-      !latex.includes("=") ||
-      !/[xy]/.test(latex) ||
-      /[;<>]|\\\\/.test(latex) ||
-      commands.some((command) => !allowed.has(command))
-    )
-      continue;
-    const plain = latex.replace(/\\[a-zA-Z]+/g, "");
-    if (
-      /[^a-zA-Z0-9\s=+\-*/^().{},|\[\]]/.test(plain) ||
-      /[a-zA-Z]{3,}/.test(plain) ||
+      !latex ||
+      !/[=+*/^\-]|\\(?:frac|sqrt|sin|cos|tan|log|ln)/.test(latex) ||
+      /^[a-zA-Z](?:_\{?\d+\}?)?$/.test(latex) ||
+      /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(latex) ||
+      /^\(\s*[+-]?[\d.]+\s*,\s*[+-]?[\d.]+\s*\)$/.test(latex) ||
       seen.has(latex)
     )
       continue;
     seen.add(latex);
     const id = `${prefix}_equation_${transfers.length}`;
-    transfers.push({ id, label: `Send equation ${seen.size}`, expression: { id, latex } });
+    transfers.push({
+      id,
+      label: `Send ${latex.includes("=") ? (/^[a-zA-Z]\(/.test(latex) ? "function" : "equation") : "expression"} ${seen.size}`,
+      expression: { id, latex },
+    });
   }
 
   const table = question.figure_kind === "table" ? question.figure_table_data : null;
   const headers = table?.header_row?.map((header) =>
-    header.replace(/\$/g, "").replace(/\s/g, "").toLowerCase()
+    (unwrapMath(header) ?? "").replace(/\s/g, "").toLowerCase()
   );
   if (
     table &&
@@ -90,10 +65,12 @@ export function getDesmosTransfers(question: GivenQuestion | null): DesmosTransf
     table.rows.length > 0
   ) {
     const values = table.rows.map((row) =>
-      row.length === 2 ? row.map(numericCell) : [null, null]
+      row.length === 2 ? row.map(numericDesmosCell) : [null, null]
     );
     if (values.every((row) => row.every((value) => value !== null))) {
       const id = `${prefix}_table`;
+      if (values.some((row) => row.some((value) => value?.repeating)))
+        notices.push("Repeating decimals stay as exact fractions so no value is rounded.");
       transfers.push({
         id,
         label: "Send x–y table",
@@ -101,12 +78,20 @@ export function getDesmosTransfers(question: GivenQuestion | null): DesmosTransf
           id,
           type: "table",
           columns: [
-            { latex: "x", values: values.map((row) => row[0]!) },
-            { latex: "y", values: values.map((row) => row[1]!), points: true, lines: false },
+            { latex: "x_1", values: values.map((row) => row[0]!.latex) },
+            {
+              latex: "y_1",
+              values: values.map((row) => row[1]!.latex),
+              points: true,
+              lines: false,
+            },
           ],
         },
       });
-    }
+    } else
+      notices.push(
+        "This table has an ambiguous or unsupported value. Enter it manually after checking its meaning."
+      );
   }
 
   const number = "[+-]?(?:\\d+(?:\\.\\d*)?|\\.\\d+)";
@@ -127,5 +112,9 @@ export function getDesmosTransfers(question: GivenQuestion | null): DesmosTransf
     const id = `${prefix}_point_${points.size}`;
     transfers.push({ id, label: `Send point ${latex}`, expression: { id, latex } });
   }
-  return transfers;
+  return { transfers, notices };
+}
+
+export function getDesmosTransfers(question: GivenQuestion | null): DesmosTransfer[] {
+  return getDesmosTransferReport(question).transfers;
 }

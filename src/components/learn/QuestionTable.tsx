@@ -52,7 +52,7 @@ export default function QuestionTable({ data, renderMath = true, ariaLabel, clas
       aria-label={ariaLabel ?? (caption ? undefined : "Question data table")}
       className={cn(
         // Container: warm card surface, bronze frame (observatory system).
-        "my-4 inline-block max-w-full overflow-x-auto rounded-lg border border-bronze bg-surface px-5 py-4 shadow-[0_4px_16px_-8px_rgba(0,0,0,0.5)]",
+        "themed-question-figure themed-question-table my-4 inline-block max-w-full overflow-x-auto rounded-lg border border-bronze bg-surface px-5 py-4 shadow-[0_4px_16px_-8px_rgba(0,0,0,0.5)]",
         className
       )}
     >

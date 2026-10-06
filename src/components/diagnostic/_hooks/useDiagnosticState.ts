@@ -84,6 +84,9 @@ export function useDiagnosticState({ questions, isSubscribed }: DiagnosticStateA
   const isAnswered = selected !== null;
   const currentSection = DOMAIN_SECTION[question.domain];
   const isMathQuestion = currentSection === "math";
+  useEffect(() => {
+    if (!isMathQuestion) setDesmosOpen(false);
+  }, [isMathQuestion]);
   const questionCrossed = crossedOut[question.id] ?? new Set<string>();
   const questionHighlightedChoices = highlightedChoices[question.id] ?? new Set<string>();
   const questionHighlights = highlights[question.id] ?? [];
@@ -298,7 +301,7 @@ export function useDiagnosticState({ questions, isSubscribed }: DiagnosticStateA
     showExplanation,
     isSubmitting,
     scoring,
-    desmosOpen,
+    desmosOpen: isMathQuestion && desmosOpen,
     scratchpadOpen,
     navigatorOpen,
     exitConfirmOpen,
@@ -321,7 +324,10 @@ export function useDiagnosticState({ questions, isSubscribed }: DiagnosticStateA
     questionHighlightedChoices,
     questionHighlights,
     // Setters callers need
-    setDesmosOpen,
+    setDesmosOpen: (open: boolean | ((previous: boolean) => boolean)) =>
+      setDesmosOpen(
+        (previous) => isMathQuestion && (typeof open === "function" ? open(previous) : open)
+      ),
     setScratchpadOpen,
     setNavigatorOpen,
     setExitConfirmOpen,

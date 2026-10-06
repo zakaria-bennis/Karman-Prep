@@ -5,6 +5,9 @@
 // Used by student, tutor, and parent dashboards.
 // ============================================================
 
+import { useTheme } from "@/components/shared/ThemeProvider";
+import { clerkAppearanceForTheme } from "@/lib/clerkAppearance";
+import { ThemeSelector } from "@/components/shared/ThemeSelector";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useClerk } from "@clerk/nextjs";
@@ -64,6 +67,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   // perfectly with the other nav rows (Clerk's UserButton has
   // its own internal padding/centering that breaks the layout).
   const clerk = useClerk();
+  const { palette } = useTheme();
 
   // Active item = longest href that's an exact match or a path prefix.
   // Without this, /tutor/schedule lights up *both* "My Students" (/tutor)
@@ -164,7 +168,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               above on both collapsed and expanded states. */}
           <button
             type="button"
-            onClick={() => clerk.openUserProfile()}
+            onClick={() => clerk.openUserProfile({ appearance: clerkAppearanceForTheme(palette) })}
             title="Profile"
             aria-label="Profile"
             className="relative flex h-12 w-full items-center gap-3 rounded-xl px-3.5 text-left text-taupe transition-all hover:bg-surface hover:text-ivory dark:text-taupe dark:hover:bg-surface-raised dark:hover:text-ivory"
@@ -200,6 +204,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </Link>
         </header>
 
+        {pathname.startsWith("/dashboard/student") && (
+          <div className="flex justify-end border-b border-bronze bg-surface px-4 py-1">
+            <ThemeSelector />
+          </div>
+        )}
         <main className="flex-1 overflow-y-auto">{children}</main>
       </div>
     </div>

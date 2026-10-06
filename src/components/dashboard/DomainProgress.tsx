@@ -12,13 +12,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { BookOpen, Calculator, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import {
-  RW_NODES,
-  MATH_NODES,
-  SUBJECT_COLORS,
-  type Subject,
-  type NodeStatus,
-} from "@/data/curriculum";
+import { RW_NODES, MATH_NODES, type Subject, type NodeStatus } from "@/data/curriculum";
 
 interface Props {
   statuses: Map<string, NodeStatus>;
@@ -53,7 +47,7 @@ export default function DomainProgress({ statuses }: Props) {
   const mathDomains = useMemo(() => buildDomains(MATH_NODES, statuses), [statuses]);
 
   const domains = tab === "reading" ? readingDomains : mathDomains;
-  const hex = SUBJECT_COLORS[tab].hex;
+  const hex = tab === "math" ? "rgb(var(--k-math))" : "rgb(var(--k-rw))";
 
   const totalMastered = domains.reduce((a, d) => a + d.mastered, 0);
   const totalNodes = domains.reduce((a, d) => a + d.total, 0);
@@ -73,7 +67,7 @@ export default function DomainProgress({ statuses }: Props) {
                 ? "text-error dark:text-error"
                 : "text-taupe hover:text-ivory dark:text-taupe dark:hover:text-ivory"
             )}
-            style={tab === "reading" ? { background: "rgba(236, 72, 153, 0.1)" } : undefined}
+            style={tab === "reading" ? { background: "rgb(var(--k-rw) / 0.1)" } : undefined}
           >
             <BookOpen className="h-3 w-3" /> Reading
           </button>

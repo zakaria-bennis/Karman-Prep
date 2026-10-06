@@ -246,7 +246,11 @@ export default function DiagnosticClient({ questions, isSubscribed, isRetake }: 
           close toggles within the same question. */}
       {s.isMathQuestion && (
         <div key={`desmos-host-${question.id}`} className={s.desmosOpen ? "" : "hidden"}>
-          <DesmosWindow onClose={() => s.setDesmosOpen(false)} constraintsRef={s.shellRef} />
+          <DesmosWindow
+            subject="math"
+            onClose={() => s.setDesmosOpen(false)}
+            constraintsRef={s.shellRef}
+          />
         </div>
       )}
 
