@@ -21,6 +21,12 @@ export default async function LearningHistoryPage() {
       <Link href="/learn" className="mt-4 inline-block text-sm underline underline-offset-4">
         Back to skills
       </Link>
+      <Link
+        href="/dashboard/student/quizzes"
+        className="ml-6 mt-4 inline-block text-sm underline underline-offset-4"
+      >
+        Review past quizzes
+      </Link>
       {history.length === 0 && <p className="mt-6 text-taupe">No earlier learning results yet.</p>}
       <ul className="mt-6 space-y-3">
         {history.map((row) => {

@@ -22,6 +22,7 @@ import {
   Users as UsersIcon,
   MessageSquare,
   UserCircle,
+  History,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -44,6 +45,7 @@ const STUDENT_NAV: NavItem[] = [
   { href: "/dashboard/student/chat", icon: MessageSquare, label: "Chat", showUnreadBadge: true },
   { href: "/learn", icon: BookOpen, label: "Learn" },
   { href: "/dashboard/student/progress", icon: BarChart3, label: "Progress" },
+  { href: "/dashboard/student/quizzes", icon: History, label: "Quiz history" },
   { href: "/billing", icon: CreditCard, label: "Billing" },
 ];
 
@@ -195,7 +197,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <header className="flex h-14 items-center gap-3 border-b border-bronze bg-surface px-4 dark:border-bronze dark:bg-surface lg:hidden">
           <button
             onClick={() => setSidebarOpen(true)}
-            className="rounded-lg p-2 transition-colors hover:bg-surface dark:hover:bg-surface-raised"
+            aria-label="Open navigation"
+            className="flex min-h-11 min-w-11 items-center justify-center rounded-lg p-2 transition-colors hover:bg-surface dark:hover:bg-surface-raised"
           >
             {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
