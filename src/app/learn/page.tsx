@@ -1,52 +1,20 @@
-// ============================================================
-// /learn — Mode selection screen
-// Two Framer-Motion portal cards (Reading & Writing / Math)
-// ============================================================
-
 import type { Metadata } from "next";
 import { safeAuth } from "@/lib/auth/dev-auth";
 import { redirect } from "next/navigation";
-import { createAdminClient } from "@/lib/supabase/server";
-import { resolveEffectiveClerkId } from "@/lib/supabase/queries/admin";
-import { RW_NODES, MATH_NODES } from "@/data/curriculum";
+import { getCatalogSkills, SKILL_DOMAINS } from "@/data/curriculum/skill-catalog";
 import PortalCards from "@/components/learn/PortalCards";
 
 export const metadata: Metadata = {
   title: "Learn — Karman",
-  description: "Choose your constellation and start mastering the SAT.",
+  description: "Explore 39 SAT skills across eight domains.",
 };
 
-async function getCompletionStats(userId: string) {
-  const supabase = createAdminClient();
-
-  const { data } = await supabase
-    .from("learn_node_status")
-    .select("node_id, status")
-    .eq("user_id", userId);
-
-  const statuses = new Map(data?.map((r) => [r.node_id, r.status]) ?? []);
-
-  const count = (nodes: typeof RW_NODES) => ({
-    total: nodes.length,
-    mastered: nodes.filter((n) => statuses.get(n.id) === "mastered").length,
-    available: nodes.filter(
-      (n) => statuses.get(n.id) === "available" || statuses.get(n.id) === "in_progress"
-    ).length,
-  });
-
-  return {
-    reading: count(RW_NODES),
-    math: count(MATH_NODES),
-  };
-}
-
 export default async function LearnPage() {
-  const { userId: realUserId } = await safeAuth();
-  if (!realUserId) redirect("/auth/sign-in");
-  const { clerkId: userId } = await resolveEffectiveClerkId(realUserId);
-
-  const stats = await getCompletionStats(userId);
-
-  // Full-screen hero — the PortalCards component is now itself a fixed two-pane hero.
-  return <PortalCards readingStats={stats.reading} mathStats={stats.math} />;
+  const { userId } = await safeAuth();
+  if (!userId) redirect("/auth/sign-in");
+  const count = (subject: "reading" | "math") => ({
+    total: getCatalogSkills(subject).length,
+    domainCount: SKILL_DOMAINS.filter((domain) => domain.subject === subject).length,
+  });
+  return <PortalCards readingStats={count("reading")} mathStats={count("math")} />;
 }

@@ -13,8 +13,7 @@ import { ArrowRight, BookOpen, Calculator, Sparkles } from "lucide-react";
 
 interface SubjectStats {
   total: number;
-  mastered: number;
-  available: number;
+  domainCount: number;
 }
 
 interface Props {
@@ -104,7 +103,6 @@ export default function PortalCards({ readingStats, mathStats }: Props) {
     <div onMouseMove={handleMouseMove} className="fixed inset-0 flex overflow-hidden bg-[#070605]">
       {HALVES.map((h) => {
         const stats = statsMap[h.subject];
-        const pct = stats.total > 0 ? Math.round((stats.mastered / stats.total) * 100) : 0;
         const isHovered = hovered === h.subject;
         const isOther = hovered !== null && hovered !== h.subject;
         const isLeaving = transitioning === h.subject;
@@ -232,7 +230,7 @@ export default function PortalCards({ readingStats, mathStats }: Props) {
                 {h.description}
               </p>
 
-              {/* Progress pill */}
+              {/* Approved skill/domain counts; legacy mastery is not recomputed. */}
               <div
                 className="mb-10 flex items-center gap-4 rounded-full border px-5 py-2.5 backdrop-blur-sm"
                 style={{
@@ -241,11 +239,11 @@ export default function PortalCards({ readingStats, mathStats }: Props) {
                 }}
               >
                 <span className="text-xs font-semibold tabular-nums text-ivory/90">
-                  {stats.mastered} <span className="text-taupe">/</span> {stats.total}
+                  {stats.total} skills
                 </span>
                 <span className="h-4 w-px bg-surface/20" />
                 <span className="text-xs font-bold tabular-nums" style={{ color: h.color }}>
-                  {pct}% mastered
+                  {stats.domainCount} domains
                 </span>
               </div>
 
