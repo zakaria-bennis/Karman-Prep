@@ -58,7 +58,10 @@ export default function QuizReviewQuestion({ question: q }: { question: QuizRevi
                     className="max-w-full"
                   />
                 ) : (
-                  <MathText text={choice.choice_text} />
+                  <MathText
+                    text={choice.choice_text}
+                    serializedFunctionLines={q.subject === "math"}
+                  />
                 )}
               </li>
             ))}

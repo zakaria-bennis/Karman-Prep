@@ -226,7 +226,10 @@ export function ActiveQuizScreen({
                       {showCorrect ? <Check className="h-3.5 w-3.5" /> : letter}
                     </span>
                     <span className="flex-1 text-[16px] leading-[1.5] text-ivory">
-                      <MathText text={choice.choice_text} />
+                      <MathText
+                        text={choice.choice_text}
+                        serializedFunctionLines={q.subject === "math"}
+                      />
                     </span>
                   </button>
                 );

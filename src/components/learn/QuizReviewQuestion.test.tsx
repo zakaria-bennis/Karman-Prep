@@ -20,6 +20,23 @@ const base = {
 } as unknown as QuizQuestionWithChoices;
 afterEach(cleanup);
 describe("completed quiz question rendering", () => {
+  it.each(["math", "reading"] as const)(
+    "limits serialized choice formatting to math reviews: %s",
+    (subject) => {
+      const q = {
+        ...base,
+        subject,
+        answer_choices: [{ ...base.answer_choices[0], choice_text: "f(x) = −3^x + 1" }],
+      };
+      const { container } = render(<QuizReviewQuestion question={toQuizReviewContent(q)} />);
+      const annotations = Array.from(
+        container.querySelectorAll(".source-function-math annotation"),
+        (e) => e.textContent
+      );
+      expect(annotations).toEqual(subject === "math" ? ["f(x) = -3^{x} + 1"] : []);
+      if (subject === "reading") expect(container.textContent).toContain("f(x) = −3^x + 1");
+    }
+  );
   it("renders crisp math and reviewed explanations while omitting internal metadata", () => {
     const content = toQuizReviewContent(base);
     expect(JSON.stringify(content)).not.toContain("internal-");

@@ -9,6 +9,26 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 describe("source-formatting rendering", () => {
+  it.each([
+    ["f(x) = −26(2)^(x/6)", String.raw`f(x) = -26(2)^{\frac{x}{6}}`],
+    ["Shown, where f(x) = ab^x + c, and constants follow.", "f(x) = ab^{x} + c"],
+    ...[1, 3, 4, 5].map((c) => [`f(x) = −3^x + ${c}`, `f(x) = -3^{x} + ${c}`]),
+  ])("renders reviewed exponent notation with preserved scope: %s", (text, latex) => {
+    const { container, rerender } = render(<MathText text={text} />);
+    expect(container.textContent).toBe(text);
+    expect(container.querySelector(".katex")).toBeNull();
+    rerender(<MathText text={text} serializedFunctionLines />);
+    expect(container.querySelector("annotation")?.textContent).toBe(latex);
+    expect(container.querySelectorAll(".source-function-math .msupsub")).toHaveLength(1);
+    expect(container.querySelector(".katex-error")).toBeNull();
+  });
+  it.each(["$y$f(x) = −3^x + 1", "f(x) = −3^x + 1$y$", "where f(x) = ab^x + <u>c</u>,"])(
+    "does not infer a function across explicit math or underline boundaries: %s",
+    (text) => {
+      const { container } = render(<MathText text={text} serializedFunctionLines />);
+      expect(container.querySelector(".source-function-math")).toBeNull();
+    }
+  );
   it("renders the exact serialized Q16 exponent only when explicitly enabled", () => {
     const text = "f(x) = 24(2)^(x/6)\n\nWhich table?";
     const { container, rerender } = render(<MathText text={text} />);

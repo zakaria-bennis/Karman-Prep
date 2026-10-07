@@ -98,6 +98,31 @@ function mount(onClose = vi.fn()) {
 }
 
 describe("quiz activity and math answer selection", () => {
+  it.each(["pointer", "keyboard"])(
+    "keeps reviewed serialized exponential choices selectable by %s",
+    (input) => {
+      const q = {
+        ...question,
+        answer_choices: [{ ...question.answer_choices[0], choice_text: "f(x) = −3^x + 1" }],
+      };
+      quiz.state = { ...quiz.state, selectedQuestions: [q], allQuestions: [q] };
+      const { baseElement } = mount();
+      const target = baseElement.querySelector("button .source-function-math .msupsub")!;
+      expect(target).toBeTruthy();
+      expect(baseElement.querySelector("button annotation")?.textContent).toBe("f(x) = -3^{x} + 1");
+      if (input === "pointer") {
+        fireEvent.pointerDown(target);
+        expect(target.isConnected).toBe(true);
+        fireEvent.pointerUp(target);
+        fireEvent.click(target);
+      } else {
+        const button = target.closest("button")!;
+        button.focus();
+        fireEvent.click(button, { detail: 0 });
+      }
+      expect(quiz.selectAnswer).toHaveBeenCalledExactlyOnceWith("A");
+    }
+  );
   it("preserves the pressed equation element until its choice click completes", () => {
     const { baseElement } = mount();
     const target = baseElement.querySelector("button .katex-html .mrel")!;
