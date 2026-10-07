@@ -1,6 +1,6 @@
 // ============================================================
 // Student Dashboard Home
-// Shows streak, progress ring, domain bars, and next lesson.
+// Gives students one place to continue lessons and practice.
 // ============================================================
 
 import type { Metadata } from "next";
@@ -9,7 +9,9 @@ import { redirect } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/server";
 import { resolveEffectiveClerkId } from "@/lib/supabase/queries/admin";
 import StudentDashboardClient from "@/components/dashboard/StudentDashboardClient";
-import { domainScoresSchema, type DomainScores } from "@/types";
+import { fetchLegacyLearningHistory } from "@/lib/supabase/queries/skill-catalog";
+import { fetchAllAttemptsForStudent } from "@/lib/supabase/queries/quiz/attempts";
+import { buildLearnDashboard } from "@/lib/learn/dashboard";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
@@ -58,62 +60,22 @@ export default async function StudentDashboardPage() {
     showPlacementBanner = (cohortCount ?? 0) === 0 && (tutorCount ?? 0) === 0;
   }
 
-  // Fetch progress across all concepts
-  const { data: progress } = await supabase
-    .from("progress")
-    .select("*, concepts(*)")
-    .eq("user_id", user?.id || "")
-    .order("last_visited", { ascending: false });
-
-  // Fetch latest diagnostic result
-  const { data: diagnostic } = await supabase
-    .from("diagnostic_results")
-    .select("*")
-    .eq("user_id", user?.id || "")
-    .order("taken_at", { ascending: false })
-    .limit(1)
-    .single();
-
-  // Fetch learn_node_status — keyed by Clerk userId (the string) directly
-  const { data: nodeStatusRows } = await supabase
-    .from("learn_node_status")
-    .select("node_id, status")
-    .eq("user_id", userId);
-
-  const nodeStatuses = new Map(
-    (nodeStatusRows ?? []).map((r) => {
-      const row = r as { node_id: string; status: string };
-      return [row.node_id, row.status] as const;
-    })
-  );
-
-  // Validate `domain_scores` at the DB → render boundary. The column
-  // is `jsonb` (opaque) in Postgres, so without this parse a schema
-  // drift would leak through compile-time as `unknown as DomainScores`.
-  // `safeParse` so we degrade gracefully — the chart hides itself
-  // when scores are null rather than crashing the whole dashboard.
-  let parsedScores: DomainScores | null = null;
-  if (diagnostic) {
-    const parsed = domainScoresSchema.safeParse(diagnostic.domain_scores);
-    if (parsed.success) {
-      parsedScores = parsed.data;
-    }
-  }
+  const [history, attempts, diagnosticResult] = await Promise.all([
+    fetchLegacyLearningHistory(userId),
+    fetchAllAttemptsForStudent(userId),
+    supabase
+      .from("diagnostic_results")
+      .select("score_range_low, score_range_high")
+      .eq("user_id", user?.id || "")
+      .order("taken_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+  ]);
 
   return (
     <StudentDashboardClient
-      user={user}
-      progress={progress || []}
-      nodeStatuses={nodeStatuses as Map<string, import("@/data/curriculum").NodeStatus>}
-      diagnostic={
-        diagnostic && parsedScores
-          ? {
-              score_range_low: diagnostic.score_range_low,
-              score_range_high: diagnostic.score_range_high,
-              domain_scores: parsedScores,
-            }
-          : null
-      }
+      dashboard={buildLearnDashboard(history, attempts)}
+      diagnostic={diagnosticResult.data}
       subscription={sub}
       showPlacementBanner={showPlacementBanner}
     />

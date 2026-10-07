@@ -1,20 +1,24 @@
 import type { Metadata } from "next";
 import { safeAuth } from "@/lib/auth/dev-auth";
 import { redirect } from "next/navigation";
-import { getCatalogSkills, SKILL_DOMAINS } from "@/data/curriculum/skill-catalog";
-import PortalCards from "@/components/learn/PortalCards";
+import { resolveEffectiveClerkId } from "@/lib/supabase/queries/admin";
+import { fetchLegacyLearningHistory } from "@/lib/supabase/queries/skill-catalog";
+import { fetchAllAttemptsForStudent } from "@/lib/supabase/queries/quiz/attempts";
+import { buildLearnDashboard } from "@/lib/learn/dashboard";
+import LearnDashboard from "@/components/learn/LearnDashboard";
 
 export const metadata: Metadata = {
   title: "Learn — Karman",
-  description: "Explore 39 SAT skills across eight domains.",
+  description: "Continue SAT practice, review answers, and explore skills.",
 };
 
 export default async function LearnPage() {
-  const { userId } = await safeAuth();
-  if (!userId) redirect("/auth/sign-in");
-  const count = (subject: "reading" | "math") => ({
-    total: getCatalogSkills(subject).length,
-    domainCount: SKILL_DOMAINS.filter((domain) => domain.subject === subject).length,
-  });
-  return <PortalCards readingStats={count("reading")} mathStats={count("math")} />;
+  const { userId: realUserId } = await safeAuth();
+  if (!realUserId) redirect("/auth/sign-in");
+  const { clerkId } = await resolveEffectiveClerkId(realUserId);
+  const [history, attempts] = await Promise.all([
+    fetchLegacyLearningHistory(clerkId),
+    fetchAllAttemptsForStudent(clerkId),
+  ]);
+  return <LearnDashboard dashboard={buildLearnDashboard(history, attempts)} />;
 }
