@@ -18,20 +18,39 @@ import {
 } from "./import-json-direct-row";
 import type { Database } from "@/types/supabase";
 import { REVIEWED_DIFFICULTY_IMPORT_POLICY } from "@/lib/question-bank/reviewed-difficulty";
+import { sha256Hex, verifyFrozenReviewedInput } from "./frozen-reviewed-input";
 
 const jsonArg = process.argv[2];
 const pdfArg = process.argv[3];
-let reviewedDifficulty = process.argv.slice(4).includes("--reviewed-difficulty");
-const dryRun = process.argv.slice(4).includes("--dry-run");
-if (
-  process.argv
-    .slice(4)
-    .some(
-      (flag) => !["--reviewed-difficulty", "--dry-run", "--require-source-identity"].includes(flag)
-    )
-) {
-  console.error("Unknown flag. Aborting.");
-  process.exit(1);
+const flags = process.argv.slice(4);
+let reviewedDifficulty = false;
+let dryRun = false;
+let requireSourceIdentity = false;
+let frozenInputsPath: string | undefined;
+let frozenInputsSha256: string | undefined;
+const seen = new Set<string>();
+for (let i = 0; i < flags.length; i++) {
+  const flag = flags[i];
+  if (seen.has(flag)) {
+    console.error(`Repeated flag ${flag}. Aborting.`);
+    process.exit(1);
+  }
+  seen.add(flag);
+  if (flag === "--reviewed-difficulty") reviewedDifficulty = true;
+  else if (flag === "--dry-run") dryRun = true;
+  else if (flag === "--require-source-identity") requireSourceIdentity = true;
+  else if (flag === "--frozen-inputs" || flag === "--frozen-inputs-sha256") {
+    const value = flags[++i];
+    if (!value || value.startsWith("--")) {
+      console.error(`Missing value for ${flag}. Aborting.`);
+      process.exit(1);
+    }
+    if (flag === "--frozen-inputs") frozenInputsPath = value;
+    else frozenInputsSha256 = value;
+  } else {
+    console.error(`Unknown flag ${flag}. Aborting.`);
+    process.exit(1);
+  }
 }
 if (!jsonArg || !pdfArg) {
   // pdfArg is REQUIRED — without it, source_pdf would be NULL on every
@@ -48,12 +67,14 @@ if (!jsonArg || !pdfArg) {
 //   source_pdf = basename(pdfArg)
 // e.g. "/tmp/pdf-job-xyz/202406asiav2.pdf" → "202406asiav2.pdf"
 const sourcePdfName = basename(pdfArg);
-const sourceVersion = createHash("sha256").update(readFileSync(pdfArg)).digest("hex");
+const pdfBytes = readFileSync(pdfArg);
+const sourceVersion = createHash("sha256").update(pdfBytes).digest("hex");
 
 // ── Read JSON ─────────────────────────────────────────────────
 
 const jsonPath = resolve(jsonArg);
-const raw = readFileSync(jsonPath, "utf-8");
+const jsonBytes = readFileSync(jsonPath);
+const raw = jsonBytes.toString("utf-8");
 let parsed: unknown;
 try {
   parsed = JSON.parse(raw);
@@ -91,12 +112,7 @@ if (rows.length === 0) {
 }
 
 console.log(`Loaded ${rows.length} questions from ${jsonPath}`);
-const preflight = preflightImportRows(
-  rows,
-  sourcePdfName,
-  sourceVersion,
-  process.argv.includes("--require-source-identity")
-);
+const preflight = preflightImportRows(rows, sourcePdfName, sourceVersion, requireSourceIdentity);
 if (preflight.errors.length > 0) {
   console.error(`Import preflight failed before database writes:\n${preflight.errors.join("\n")}`);
   process.exit(2);
@@ -116,12 +132,41 @@ if (reviewedRows?.some((row) => "error" in row)) {
   console.error("Reviewed batch requires review. No questions were written.");
   process.exit(2);
 }
+if (frozenInputsPath || frozenInputsSha256 || (reviewedDifficulty && !dryRun)) {
+  if (!reviewedDifficulty || !frozenInputsPath || !frozenInputsSha256) {
+    console.error(
+      "Reviewed writes require a frozen input manifest and its separately supplied SHA-256. No questions were written."
+    );
+    process.exit(2);
+  }
+  let manifestBytes: Buffer;
+  try {
+    manifestBytes = readFileSync(resolve(frozenInputsPath));
+  } catch {
+    console.error("Frozen input manifest could not be read. No questions were written.");
+    process.exit(2);
+  }
+  const frozen = verifyFrozenReviewedInput({
+    manifestBytes,
+    expectedManifestSha256: frozenInputsSha256,
+    jsonBytes,
+    pdfBytes,
+    rows,
+  });
+  if (!frozen.ok) {
+    console.error(`${frozen.error}. No questions were written.`);
+    process.exit(2);
+  }
+}
 if (dryRun) {
   console.log(
     JSON.stringify(
       {
         mode: "reviewed-difficulty-dry-run",
         validated_rows: reviewedRows?.length,
+        reviewed_json_sha256: sha256Hex(jsonBytes),
+        source_pdf_sha256: sourceVersion,
+        frozen_input_verified: Boolean(frozenInputsPath),
         assessments: reviewedRows?.map((row, index) => ({
           row: index + 1,
           ...("assessment" in row ? row.assessment : {}),
