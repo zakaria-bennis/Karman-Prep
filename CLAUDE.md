@@ -73,6 +73,20 @@ and current-version gates pass. See
 [`docs/ingestion/paid-processing-retirement.md`](./docs/ingestion/paid-processing-retirement.md).
 Essential app APIs and the separate tutor recap integration remain intact.
 
+Reviewed independent generated answers use `kind=independently_confirmed_generated`,
+`printed_answer=null`, the frozen generated-key artifact hash and at least two
+distinct independent review hashes. Never label them printed/official keys.
+The existing `missing_answer_key` status represents unavailable usable official
+mapping, while `verified_answer` and private evidence preserve the independent
+answer. Publication remains held; this does not restore paid processing.
+The shared writer's opt-in `privateDraft` mode requires reviewed numeric
+difficulty, explicit answer provenance and complete stable source identity,
+sets `is_live=false`, and rejects replays targeting live/published rows. Legacy
+callers retain their previous behavior. This internal option does not make a
+preview eligible: exact canonical/legacy bindings and complete dependent-write
+checks are required before a disposable local batch. The reviewed CLI still
+has no private-draft flag; `--dry-run` does not access the database.
+
 ## Testing & verification workflow
 
 Five tools, picked by the question being asked. Start at the cheapest layer

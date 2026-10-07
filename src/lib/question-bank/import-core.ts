@@ -33,6 +33,7 @@ export { parseDifficulty, parseReviewedDifficulty } from "./import-difficulty";
 import type { QuestionTableData } from "@/types/question-table";
 import { isValidChoiceTableData } from "./choice-table";
 import { writeImportAnswerProvenance, type ReviewedAnswerProvenance } from "./import-provenance";
+import { validateReviewedAnswer } from "./reviewed-answer";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, Json } from "@/types/supabase";
 import {
@@ -141,6 +142,8 @@ export interface ImportQuestionResult {
 /** Reviewed imports require an explicit numeric rating; legacy callers stay compatible. */
 export interface ImportQuestionOptions {
   difficultyPolicy?: "legacy" | "reviewed";
+  /** Opt-in local private drafts remain invisible even to legacy is_live selectors. */
+  privateDraft?: boolean;
 }
 
 export interface ImportBatchSummary {
@@ -240,18 +243,28 @@ export function validateImportRow(
   errors: string[];
 } {
   const errors: string[] = [];
-  if (row.reviewed_answer) {
-    if (!row.reviewed_answer.printed_answer?.trim())
-      errors.push("reviewed answer missing printed key");
-    if (row.reviewed_answer.independently_verified_answer !== row.correct_answer)
-      errors.push("reviewed solver answer must match active correct_answer");
-    if (!row.reviewed_answer.evidence) errors.push("reviewed answer missing evidence");
-    if (
-      row.reviewed_answer.printed_answer !== row.correct_answer &&
-      row.import_status !== "needs_review"
-    )
-      errors.push("printed key disagreement must remain needs_review");
-  }
+  if (row.reviewed_answer)
+    errors.push(
+      ...validateReviewedAnswer(
+        row.reviewed_answer,
+        row.correct_answer,
+        row.import_status === "needs_review"
+      )
+    );
+  if (options.privateDraft && (options.difficultyPolicy !== "reviewed" || !row.reviewed_answer))
+    errors.push("private draft requires reviewed difficulty and explicit answer provenance");
+  if (
+    options.privateDraft &&
+    (!row.source_version ||
+      row.source_identity_required !== true ||
+      !row.source_section ||
+      !row.source_module ||
+      !Number.isInteger(row.source_question_number) ||
+      (row.source_question_number ?? 0) < 1 ||
+      !Number.isInteger(row.source_occurrence) ||
+      (row.source_occurrence ?? 0) < 1)
+  )
+    errors.push("private draft requires complete stable source identity");
 
   if (options.difficultyPolicy === "reviewed") {
     try {
@@ -464,7 +477,10 @@ export async function importQuestion(
     passage_b: row.passage_b || null,
     domain: row.domain,
     concept_slug: row.concept_slug || null,
-    answer_source: row.answer_source ?? null,
+    answer_source:
+      row.reviewed_answer?.kind === "independently_confirmed_generated"
+        ? "inferred"
+        : (row.answer_source ?? null),
     source_pdf: row.source_pdf || null,
     source_page: Number.isFinite(source_page as number) ? (source_page as number) : null,
     source_provider: row.source_provider || null,
@@ -483,6 +499,7 @@ export async function importQuestion(
     import_flag_type: row.import_flag_type ?? null,
     import_flag_reason: row.import_flag_reason || null,
     publish_status,
+    ...(options.privateDraft ? { is_live: false } : {}),
     figure_kind: row.figure_kind ?? null,
     figure_table_data: (row.figure_table_data as unknown as Json) ?? null,
     image_url: row.image_url ?? null,
@@ -505,7 +522,7 @@ export async function importQuestion(
         const { data: existing, error: lookupErr } = await supabase
           .from("quiz_questions")
           .select(
-            "content_hash_v2, correct_answer, concept_slug, raw_question_text, selected_official_answer, verified_answer"
+            "content_hash_v2, correct_answer, concept_slug, raw_question_text, selected_official_answer, verified_answer, is_live, publish_status"
           )
           .eq("source_version", row.source_version)
           .eq("source_section", row.source_section)
@@ -516,6 +533,9 @@ export async function importQuestion(
         if (
           lookupErr ||
           !existing ||
+          (options.privateDraft &&
+            (existing.is_live !== false ||
+              !["draft", "needs_human_review"].includes(existing.publish_status ?? ""))) ||
           existing.content_hash_v2 !== content_hash_v2 ||
           existing.correct_answer !== row.correct_answer ||
           (row.raw_question_text != null && existing.raw_question_text !== row.raw_question_text) ||
