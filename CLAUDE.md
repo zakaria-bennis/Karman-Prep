@@ -40,6 +40,10 @@ paying users yet.
   `MathText`; display math uses `$$...$$`. Preserve approved source bytes and
   expressions. Do not strip commands, guess bare math or rewrite source packages
   to accommodate a renderer limitation.
+- Math question stems opt into display support for complete serialized function
+  lines of the form `f(x) = a(b)^(x/n)`, with matching variables and a positive
+  integer denominator. This changes display only; approved source bytes remain
+  intact. Other prose, bare notation and existing explicit math remain unchanged.
 - Server actions validate inputs with Zod schemas; add a schema when adding
   an action.
 

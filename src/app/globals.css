@@ -436,3 +436,10 @@ html[data-theme="observatory"] {
 .themed-question-table {
   background: var(--figure-surface);
 }
+
+/* Supported serialized function stems always use the question text palette.
+   Explicit token colors avoid stale inherited script colors after WebKit theme changes. */
+.source-function-math .katex-html,
+.source-function-math .katex-html span {
+  color: rgb(var(--k-ivory));
+}

@@ -15,11 +15,14 @@ import { Fragment, useMemo, type ReactNode } from "react";
 import katex from "katex";
 import "katex/dist/katex.min.css";
 import { parseSourceUnderlining } from "./source-underlining";
+import { parseSerializedFunctionLines } from "./serialized-function-math";
 
 interface Props {
   text: string;
   className?: string;
   blockClassName?: string;
+  /** Math stems only: display complete supported ASCII exponential function lines. */
+  serializedFunctionLines?: boolean;
   /** When true, also treat the literal word "blank" (alone or wrapped
    *  in `_` / `-` chars) as a fill-in-the-blank marker. Default false
    *  — the word "blank" is a perfectly normal English word in question
@@ -30,10 +33,15 @@ interface Props {
 
 type Seg =
   | { kind: "text"; value: string }
-  | { kind: "inline"; latex: string }
+  | { kind: "inline"; latex: string; sourceFunction?: true }
   | { kind: "block"; latex: string };
 
-function parse(text: string): Seg[] {
+function parse(
+  text: string,
+  serializedFunctionLines: boolean,
+  atLineStart: boolean,
+  atLineEnd: boolean
+): Seg[] {
   // Extract $$…$$ first (greedy block), then remaining $…$ inline.
   //
   // Both regexes accept `\$` (escaped dollar) inside the math span
@@ -77,7 +85,16 @@ function parse(text: string): Seg[] {
     if (remaining) out.push({ kind: "text", value: remaining });
   }
 
-  return out;
+  return serializedFunctionLines
+    ? out.flatMap<Seg>((seg, index) =>
+        seg.kind === "text"
+          ? parseSerializedFunctionLines(seg.value, {
+              atLineStart: index === 0 && atLineStart,
+              atLineEnd: index === out.length - 1 && atLineEnd,
+            })
+          : [seg]
+      )
+    : out;
 }
 
 /** Patterns for fill-in-the-blank markers:
@@ -154,10 +171,20 @@ export default function MathText({
   className = "",
   blockClassName = "",
   treatBlankWord = false,
+  serializedFunctionLines = false,
 }: Props) {
   const runs = useMemo(
-    () => parseSourceUnderlining(text).map((run) => ({ ...run, segments: parse(run.text) })),
-    [text]
+    () =>
+      parseSourceUnderlining(text).map((run, index, sourceRuns) => ({
+        ...run,
+        segments: parse(
+          run.text,
+          serializedFunctionLines,
+          index === 0 || sourceRuns[index - 1].text.endsWith("\n"),
+          index === sourceRuns.length - 1 || sourceRuns[index + 1].text.startsWith("\n")
+        ),
+      })),
+    [text, serializedFunctionLines]
   );
 
   function renderSegments(segs: Seg[]) {
@@ -171,7 +198,7 @@ export default function MathText({
         return (
           <span
             key={i}
-            className="align-baseline"
+            className={s.sourceFunction ? "source-function-math align-baseline" : "align-baseline"}
             dangerouslySetInnerHTML={{ __html: renderKaTeX(s.latex, false) }}
           />
         );

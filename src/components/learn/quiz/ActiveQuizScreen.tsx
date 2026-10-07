@@ -240,7 +240,7 @@ export function ActiveQuizScreen({
               {q.topic_cluster}
             </p>
             <h2 className="whitespace-pre-line text-[19px] font-medium leading-[1.5] text-ivory md:text-[20px]">
-              <MathText text={q.question_text} />
+              <MathText text={q.question_text} serializedFunctionLines={q.subject === "math"} />
             </h2>
             {choicesBlock}
             {choicesButtonRow}

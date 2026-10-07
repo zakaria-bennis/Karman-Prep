@@ -9,6 +9,37 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 describe("source-formatting rendering", () => {
+  it("renders the exact serialized Q16 exponent only when explicitly enabled", () => {
+    const text = "f(x) = 24(2)^(x/6)\n\nWhich table?";
+    const { container, rerender } = render(<MathText text={text} />);
+    expect(container.querySelector(".katex")).toBeNull();
+    expect(container.textContent).toBe(text);
+    rerender(<MathText text={text} serializedFunctionLines />);
+    expect(container.querySelector(".source-function-math .msupsub .mfrac")).toBeTruthy();
+    expect(container.querySelector("annotation")?.textContent).toBe(
+      String.raw`f(x) = 24(2)^{\frac{x}{6}}`
+    );
+    expect(container.textContent).toContain("Which table?");
+    expect(container.querySelector(".katex-error")).toBeNull();
+  });
+  it("does not reinterpret existing explicit math or inline prose when enabled", () => {
+    const latex = "f(x) = 24(2)^{x/6}";
+    const { container } = render(
+      <MathText text={`$${latex}$\nExplain f(x) = 24(2)^(x/6).`} serializedFunctionLines />
+    );
+    expect(container.querySelectorAll(".katex")).toHaveLength(1);
+    expect(container.querySelector(".source-function-math")).toBeNull();
+    expect(container.querySelector("annotation")?.textContent).toBe(latex);
+    expect(container.textContent).toContain("Explain f(x) = 24(2)^(x/6).");
+  });
+  it.each(["$y$f(x) = 24(2)^(x/6)", "f(x) = 24(2)^(x/6)$y$", "Before <u>f(x) = 24(2)^(x/6)</u>"])(
+    "does not mistake a partial prose line for a complete function: %s",
+    (text) => {
+      const { container } = render(<MathText text={text} serializedFunctionLines />);
+      expect(container.querySelector(".mfrac")).toBeNull();
+      expect(container.textContent).toContain("f(x) = 24(2)^(x/6)");
+    }
+  );
   it("underlines only the supplied source span and removes formatting markers", () => {
     const { container } = render(<MathText text="Before [[u]]the selected clause[[/u]] after." />);
     expect(container.querySelector("u")?.textContent).toBe("the selected clause");
