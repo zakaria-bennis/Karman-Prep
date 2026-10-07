@@ -34,7 +34,7 @@ describe("learn dashboard navigation", () => {
   it("opens the saved lesson and exact quiz review", () => {
     const attempts = [
       {
-        id: "open",
+        id: "00000000-0000-4000-8000-000000000010",
         node_id: "ma-00",
         completed_at: null,
         questions_answered: 2,
@@ -51,7 +51,7 @@ describe("learn dashboard navigation", () => {
     render(<LearnDashboard dashboard={buildLearnDashboard([], attempts)} />);
     expect(screen.getByRole("link", { name: "Continue practice" })).toHaveAttribute(
       "href",
-      "/learn/math/ma-00"
+      "/learn/earlier/math?resume=00000000-0000-4000-8000-000000000010"
     );
     expect(screen.getByRole("link", { name: "Review saved answers" })).toHaveAttribute(
       "href",
