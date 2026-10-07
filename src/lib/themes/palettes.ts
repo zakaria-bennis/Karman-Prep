@@ -235,14 +235,10 @@ export function themeTokens(theme: SiteTheme): Record<string, string> {
 export function rgbChannels(hex: string): string {
   return [1, 3, 5].map((start) => parseInt(hex.slice(start, start + 2), 16)).join(" ");
 }
-export function applyTheme(theme: SiteTheme) {
-  const root = document.documentElement;
-  root.classList.toggle("dark", theme.dark);
-  root.dataset.theme = theme.id;
-  root.style.colorScheme = theme.dark ? "dark" : "light";
-  for (const [name, value] of Object.entries(themeTokens(theme)))
-    root.style.setProperty(`--k-${name}`, rgbChannels(value));
+export function themeCssVariables(theme: SiteTheme): Record<string, string> {
   const tokens = themeTokens(theme);
+  const variables: Record<string, string> = {};
+  for (const [name, value] of Object.entries(tokens)) variables[`--k-${name}`] = rgbChannels(value);
   for (const [alias, key] of Object.entries({
     "status-success": "success",
     "status-success-bright": "success-bright",
@@ -258,7 +254,7 @@ export function applyTheme(theme: SiteTheme) {
     "color-data-analysis": "data-analy",
     "color-reading-writing": "read-write",
   }))
-    root.style.setProperty(`--${alias}`, tokens[key]);
+    variables[`--${alias}`] = tokens[key];
   for (const [name, value] of Object.entries({
     "bg-night": theme.canvas,
     "bg-espresso": theme.canvas,
@@ -277,5 +273,27 @@ export function applyTheme(theme: SiteTheme) {
     background: theme.canvas,
     foreground: theme.text,
   }))
-    root.style.setProperty(`--${name}`, value);
+    variables[`--${name}`] = value;
+  return variables;
+}
+
+/** CSS is in the document before paint; the bootstrap only selects an allowlisted ID. */
+export function themeStyleSheet(): string {
+  return SITE_THEMES.map((theme) => {
+    const declarations = Object.entries(themeCssVariables(theme))
+      .map(([name, value]) => `${name}:${value}`)
+      .join(";");
+    return `html[data-theme="${theme.id}"]{${declarations};color-scheme:${theme.dark ? "dark" : "light"}}`;
+  }).join("\n");
+}
+
+export function themeBootstrapScript(): string {
+  const modes = Object.fromEntries(SITE_THEMES.map(({ id, dark }) => [id, dark]));
+  return `(()=>{try{const modes=${JSON.stringify(modes)};const stored=localStorage.getItem("karman-theme:active")||localStorage.getItem("karman-theme:visitor")||localStorage.getItem("karman-theme");const id=stored==="dark"?"observatory":stored==="light"?"ivory":stored;if(Object.prototype.hasOwnProperty.call(modes,id)){const root=document.documentElement;root.dataset.theme=id;root.classList.toggle("dark",modes[id]);}}catch{}})();`;
+}
+
+export function applyTheme(theme: SiteTheme) {
+  const root = document.documentElement;
+  root.classList.toggle("dark", theme.dark);
+  root.dataset.theme = theme.id;
 }

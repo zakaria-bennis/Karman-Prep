@@ -14,6 +14,8 @@ import {
 import { ClerkProvider } from "@clerk/nextjs";
 import { karmanClerkAppearance } from "@/lib/clerkAppearance";
 import { ThemeProvider } from "@/components/shared/ThemeProvider";
+import { ThemeToggle } from "@/components/shared/ThemeToggle";
+import { themeBootstrapScript, themeStyleSheet } from "@/lib/themes/palettes";
 import { ConfirmProvider } from "@/components/shared/ConfirmDialog";
 import ImpersonationBanner from "@/components/admin/ImpersonationBanner";
 import ReplayConsentBanner from "@/components/consent/ReplayConsentBanner";
@@ -148,7 +150,14 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       signUpFallbackRedirectUrl="/onboarding"
       afterSignOutUrl="/"
     >
-      <html lang="en" className="dark" suppressHydrationWarning>
+      <html lang="en" className="dark" data-theme="observatory" suppressHydrationWarning>
+        <head>
+          <style
+            id="karman-account-themes"
+            dangerouslySetInnerHTML={{ __html: themeStyleSheet() }}
+          />
+          <script dangerouslySetInnerHTML={{ __html: themeBootstrapScript() }} />
+        </head>
         <body
           className={`${geistSans.variable} ${geistMono.variable} ${plexSerif.variable} ${plexSans.variable} ${plexMono.variable} ${atkinson.variable} antialiased`}
         >
@@ -158,6 +167,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
                 <ImpersonationBanner role={impersonatedRole} userName={impersonatedUserName} />
               )}
               {children}
+              <ThemeToggle floating />
               <ReplayConsentBanner show={consentState === "banner_show"} />
             </ConfirmProvider>
           </ThemeProvider>

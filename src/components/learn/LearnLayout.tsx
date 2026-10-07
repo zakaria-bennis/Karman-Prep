@@ -21,7 +21,7 @@ export default function LearnLayout({ children }: { children: React.ReactNode })
   const onConstellation = SUBJECT_HREFS.some((h) => pathname.startsWith(h));
 
   return (
-    <div className="relative min-h-screen bg-[#070605]">
+    <div className="relative min-h-screen bg-night">
       {/* ── Content (full 100vh) ────────────────────────── */}
       <main className="relative z-0 min-h-screen">{children}</main>
 
