@@ -89,7 +89,13 @@ async function loadStudentData(studentUuid: string) {
 
   const studentRow = (student.data as StudentRow | null) ?? null;
   if (!studentRow)
-    return { student: null, cohort: null, diagnostic: null, homework: [] as HomeworkItem[] };
+    return {
+      student: null,
+      cohort: null,
+      diagnostic: null,
+      homework: [] as HomeworkItem[],
+      nextHomework: null as HomeworkItem | null,
+    };
 
   type MemberRow = {
     cohort_id: string;
@@ -100,19 +106,32 @@ async function loadStudentData(studentUuid: string) {
 
   // Upcoming + recent homework (if they're in a cohort)
   let homework: HomeworkItem[] = [];
+  let nextHomework: HomeworkItem | null = null;
   if (cohortJoined) {
-    const { data: hw } = await supabase
-      .from("cohort_homework")
-      .select("id, title, body, assigned_at, due_at")
-      .eq("cohort_id", cohortJoined.id)
-      .order("assigned_at", { ascending: false })
-      .limit(5);
-    homework = (hw ?? []) as HomeworkItem[];
+    const today = new Date().toISOString().slice(0, 10);
+    const [recentResult, nextResult] = await Promise.all([
+      supabase
+        .from("cohort_homework")
+        .select("id, title, body, assigned_at, due_at")
+        .eq("cohort_id", cohortJoined.id)
+        .order("assigned_at", { ascending: false })
+        .limit(5),
+      supabase
+        .from("cohort_homework")
+        .select("id, title, body, assigned_at, due_at")
+        .eq("cohort_id", cohortJoined.id)
+        .gte("due_at", today)
+        .order("due_at", { ascending: true })
+        .limit(1)
+        .maybeSingle(),
+    ]);
+    homework = (recentResult.data ?? []) as HomeworkItem[];
+    nextHomework = (nextResult.data as HomeworkItem | null) ?? null;
   }
 
   const diag = ((diagRows.data ?? []) as DiagnosticRow[])[0] ?? null;
 
-  return { student: studentRow, cohort: cohortJoined, diagnostic: diag, homework };
+  return { student: studentRow, cohort: cohortJoined, diagnostic: diag, homework, nextHomework };
 }
 
 async function assertParentCanSeeStudent(
@@ -150,13 +169,19 @@ export default async function ParentStudentDetailPage({ params }: PageProps) {
   const allowed = await assertParentCanSeeStudent(userId, studentId);
   if (!allowed) notFound();
 
-  const { student, cohort, diagnostic, homework } = await loadStudentData(studentId);
+  const { student, cohort, diagnostic, homework, nextHomework } = await loadStudentData(studentId);
   if (!student) notFound();
 
   const fullName =
     [student.first_name, student.last_name].filter(Boolean).join(" ") || student.email;
   const today = new Date().toISOString().slice(0, 10);
-  const summary = buildParentFocusSummary(cohort?.current_topic ?? null, homework, today);
+  const summary = buildParentFocusSummary(
+    cohort?.current_topic ?? null,
+    cohort?.status ?? null,
+    homework,
+    nextHomework,
+    today
+  );
 
   return (
     <div className="min-h-screen bg-night text-ivory">
@@ -193,7 +218,7 @@ export default async function ParentStudentDetailPage({ params }: PageProps) {
           </h2>
           <p className="mt-3 text-sm text-ivory">
             <span className="font-semibold">Current focus: </span>
-            {summary.focus ?? "No current topic has been posted yet."}
+            {summary.focus ?? "No active cohort topic is posted."}
           </p>
           <p className="mt-2 text-sm text-ivory">
             <span className="font-semibold">Upcoming assignment: </span>
@@ -225,7 +250,7 @@ export default async function ParentStudentDetailPage({ params }: PageProps) {
                 <div className="text-xs text-taupe">
                   {cohort.tier === "small_group" ? "Small Group" : "Seminar"} · {cohort.status}
                 </div>
-                {cohort.current_topic && (
+                {cohort.status === "active" && cohort.current_topic && (
                   <div className="border-t border-bronze pt-2 text-sm text-ivory">
                     <span className="mb-1 block text-xs font-semibold uppercase tracking-wider text-taupe">
                       Current topic

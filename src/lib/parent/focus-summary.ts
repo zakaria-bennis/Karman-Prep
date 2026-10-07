@@ -15,14 +15,15 @@ export interface ParentFocusSummary {
 // Assignment presence does not establish completion or improvement.
 export function buildParentFocusSummary(
   currentTopic: string | null,
-  homework: ParentFocusHomework[],
+  cohortStatus: string | null,
+  recentHomework: ParentFocusHomework[],
+  nextHomework: ParentFocusHomework | null,
   today: string
 ): ParentFocusSummary {
-  const focus = currentTopic?.trim() || null;
-  const upcoming = homework
-    .filter((item) => item.due_at && item.due_at.slice(0, 10) >= today)
-    .sort((a, b) => a.due_at!.localeCompare(b.due_at!))[0];
-  const recent = [...homework].sort((a, b) => b.assigned_at.localeCompare(a.assigned_at))[0];
+  const focus = cohortStatus === "active" ? currentTopic?.trim() || null : null;
+  const upcoming =
+    nextHomework?.due_at && nextHomework.due_at.slice(0, 10) >= today ? nextHomework : null;
+  const recent = [...recentHomework].sort((a, b) => b.assigned_at.localeCompare(a.assigned_at))[0];
 
   return {
     focus,
