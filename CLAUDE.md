@@ -53,6 +53,14 @@ paying users yet.
 - Server actions validate inputs with Zod schemas; add a schema when adding
   an action.
 
+## Calculator launch policy
+
+Student Math practice and diagnostic entrypoints open the official SAT calculator
+at `https://www.desmos.com/testing/collegeboard/graphing` in a new tab. Keep the
+current question and answers in their original tab. Do not embed the public
+calculator, activate a paid API integration, or imply automatic transfer of
+equations/tables. A custom calculator is a separate post-launch decision.
+
 ## Released-exam ingestion
 
 The old paid AI extraction, grading, figure interpretation and orchestration

@@ -12,7 +12,6 @@ import { Flag, Loader2 } from "lucide-react";
 import type { MappedNode } from "./ConstellationMap";
 import { useQuiz } from "@/contexts/QuizContext";
 import type { StudentQuizQuestion } from "@/types/quiz";
-import DesmosWindow from "./DesmosWindow";
 import Scratchpad from "./Scratchpad";
 import QuizResults from "./QuizResults";
 import { ActiveQuizScreen } from "./quiz/ActiveQuizScreen";
@@ -43,7 +42,6 @@ export default function QuizEngine({
     nextQuestion,
     dismissVideoPrompt,
     flagCurrent,
-    toggleDesmos,
     toggleScratchpad,
     retakeQuiz,
     reset,
@@ -58,23 +56,6 @@ export default function QuizEngine({
   // student has opened the explanations panel — otherwise we'd
   // yank them to the next question mid-read.
   const [showExplanations, setShowExplanations] = useState(false);
-  const [desmosTransfersEnabled, setDesmosTransfersEnabled] = useState(true);
-  useEffect(() => {
-    try {
-      setDesmosTransfersEnabled(localStorage.getItem("karman.desmos-transfers") !== "off");
-    } catch {
-      // Practice still works when browser storage is unavailable.
-    }
-  }, []);
-  function changeDesmosTransfers(enabled: boolean) {
-    setDesmosTransfersEnabled(enabled);
-    try {
-      localStorage.setItem("karman.desmos-transfers", enabled ? "on" : "off");
-    } catch {
-      // Keep the setting for this session.
-    }
-  }
-
   // Kick off the quiz when the engine mounts
   useEffect(() => {
     if (state.phase === "idle") {
@@ -176,14 +157,7 @@ export default function QuizEngine({
           showExplanations={showExplanations}
           onToggleExplanations={setShowExplanations}
           onNext={() => nextQuestion()}
-          menu={
-            <QuizMenu
-              subject={node.subject}
-              transfersEnabled={desmosTransfersEnabled}
-              onTransfersChange={changeDesmosTransfers}
-              realistic={sessionMode === "realistic"}
-            />
-          }
+          menu={<QuizMenu subject={node.subject} realistic={sessionMode === "realistic"} />}
         />
       )}
 
@@ -193,7 +167,6 @@ export default function QuizEngine({
         state.phase === "submitted_wrong") && (
         <BottomToolbar
           subject={node.subject}
-          onDesmos={toggleDesmos}
           onScratchpad={toggleScratchpad}
           onFlag={() => setFlagOpen(true)}
           state={state}
@@ -207,26 +180,6 @@ export default function QuizEngine({
             videoUrl={videoUrl ?? node.video_url ?? null}
             onDismiss={() => dismissVideoPrompt()}
           />
-        )}
-      </AnimatePresence>
-
-      {/* Desmos floating window */}
-      <AnimatePresence>
-        {state.isDesmosOpen && node.subject === "math" && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 0.7 }}
-              exit={{ opacity: 0 }}
-              className="pointer-events-none absolute inset-0 z-[65] bg-night"
-            />
-            <DesmosWindow
-              onClose={toggleDesmos}
-              constraintsRef={containerRef}
-              question={currentQuestion}
-              transfersEnabled={desmosTransfersEnabled && sessionMode === "practice"}
-            />
-          </>
         )}
       </AnimatePresence>
 

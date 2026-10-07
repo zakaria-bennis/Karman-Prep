@@ -15,7 +15,6 @@
 import { ArrowRight, Lightbulb } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DOMAIN_COLORS, DOMAIN_LABELS, type SATDomain } from "@/types";
-import DesmosWindow from "@/components/learn/DesmosWindow";
 import Scratchpad from "@/components/learn/Scratchpad";
 import MathText from "@/components/learn/MathText";
 import DiagnosticResults from "./DiagnosticResults";
@@ -71,7 +70,6 @@ export default function DiagnosticClient({ questions, isSubscribed, isRetake }: 
         sectionPosition={s.sectionPosition}
         sectionLength={s.sectionLength}
         isMathQuestion={s.isMathQuestion}
-        desmosOpen={s.desmosOpen}
         scratchpadOpen={s.scratchpadOpen}
         isBookmarked={s.isBookmarked}
         currentSection={s.currentSection}
@@ -81,7 +79,6 @@ export default function DiagnosticClient({ questions, isSubscribed, isRetake }: 
         minutesLeft={minutesLeft}
         onOpenExit={() => s.setExitConfirmOpen(true)}
         onOpenNavigator={() => s.setNavigatorOpen(true)}
-        onToggleDesmos={() => s.setDesmosOpen((o) => !o)}
         onToggleScratchpad={() => s.setScratchpadOpen((o) => !o)}
         onToggleBookmark={s.toggleBookmark}
       />
@@ -239,20 +236,6 @@ export default function DiagnosticClient({ questions, isSubscribed, isRetake }: 
           </div>
         </div>
       </div>
-
-      {/* Desmos floating window — drag-constrained to the shell.
-          Keyed on question.id so the calculator state resets when
-          you advance to a new question, but PERSISTS across open/
-          close toggles within the same question. */}
-      {s.isMathQuestion && (
-        <div key={`desmos-host-${question.id}`} className={s.desmosOpen ? "" : "hidden"}>
-          <DesmosWindow
-            subject="math"
-            onClose={() => s.setDesmosOpen(false)}
-            constraintsRef={s.shellRef}
-          />
-        </div>
-      )}
 
       {s.isMathQuestion && (
         <div key={`scratch-host-${question.id}`} className={s.scratchpadOpen ? "" : "hidden"}>

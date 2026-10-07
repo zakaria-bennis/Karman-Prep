@@ -10,7 +10,8 @@
 //
 // Used by DiagnosticClient only.
 
-import { Bookmark, BookmarkCheck, Calculator, LayoutGrid, PencilLine, X } from "lucide-react";
+import { Bookmark, BookmarkCheck, LayoutGrid, PencilLine, X } from "lucide-react";
+import ExternalCalculatorLink from "@/components/learn/ExternalCalculatorLink";
 import { cn } from "@/lib/utils";
 
 const SECTION_LABELS: Record<"math" | "rw", string> = {
@@ -28,7 +29,6 @@ export function DiagnosticHeader({
   sectionPosition,
   sectionLength,
   isMathQuestion,
-  desmosOpen,
   scratchpadOpen,
   isBookmarked,
   currentSection,
@@ -38,14 +38,12 @@ export function DiagnosticHeader({
   minutesLeft,
   onOpenExit,
   onOpenNavigator,
-  onToggleDesmos,
   onToggleScratchpad,
   onToggleBookmark,
 }: {
   sectionPosition: number;
   sectionLength: number;
   isMathQuestion: boolean;
-  desmosOpen: boolean;
   scratchpadOpen: boolean;
   isBookmarked: boolean;
   currentSection: "math" | "rw";
@@ -55,13 +53,12 @@ export function DiagnosticHeader({
   minutesLeft: number;
   onOpenExit: () => void;
   onOpenNavigator: () => void;
-  onToggleDesmos: () => void;
   onToggleScratchpad: () => void;
   onToggleBookmark: () => void;
 }) {
   return (
     <div className="border-b border-bronze bg-surface px-4 py-3 dark:border-bronze dark:bg-surface">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
+      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           {/* Exit — opens a confirmation modal because the
               diagnostic must be completed in one session and any
@@ -84,25 +81,8 @@ export function DiagnosticHeader({
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          {/* Calculator (Desmos) — math questions only. */}
-          {isMathQuestion && (
-            <button
-              type="button"
-              onClick={onToggleDesmos}
-              className={cn(
-                "inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-semibold transition-colors",
-                desmosOpen
-                  ? "border-error/40 bg-error text-ivory"
-                  : "border-bronze text-taupe hover:border-error/40 hover:text-error dark:border-bronze dark:text-error-bright dark:hover:text-error-bright"
-              )}
-              aria-pressed={desmosOpen}
-              aria-label="Toggle Desmos calculator"
-            >
-              <Calculator className="h-3.5 w-3.5" />
-              Calculator
-            </button>
-          )}
+        <div className="flex max-w-full flex-wrap items-center gap-2">
+          <ExternalCalculatorLink subject={isMathQuestion ? "math" : "reading"} />
 
           {/* Scratchpad — pristine white accent. */}
           {isMathQuestion && (
