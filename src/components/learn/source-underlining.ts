@@ -1,4 +1,4 @@
-// Explicit source formatting, never an HTML parser. Raw exam text stays separate.
+// Recognize only exact, attribute-free source underline tokens, never general HTML.
 export interface SourceTextRun {
   text: string;
   underlined: boolean;
@@ -6,20 +6,27 @@ export interface SourceTextRun {
 
 export function parseSourceUnderlining(text: string): SourceTextRun[] {
   const plain = [{ text, underlined: false }];
-  const markers = [...text.matchAll(/\[\[\/?u\]\]/g)];
+  const markers = [...text.matchAll(/\[\[\/?u\]\]|<\/?u>/g)];
   if (markers.length === 0) return plain;
   const runs: SourceTextRun[] = [];
   let cursor = 0;
-  let underlined = false;
+  let activeOpening: string | null = null;
   for (const marker of markers) {
     const index = marker.index!;
-    const opening = marker[0] === "[[u]]";
-    if (opening === underlined || (!opening && index === cursor)) return plain;
-    if (index > cursor) runs.push({ text: text.slice(cursor, index), underlined });
-    underlined = opening;
+    const token = marker[0];
+    const opening = token === "[[u]]" || token === "<u>";
+    if (opening) {
+      if (activeOpening !== null) return plain;
+    } else {
+      const matchingOpening = token === "[[/u]]" ? "[[u]]" : "<u>";
+      if (activeOpening !== matchingOpening || index === cursor) return plain;
+    }
+    if (index > cursor)
+      runs.push({ text: text.slice(cursor, index), underlined: activeOpening !== null });
+    activeOpening = opening ? token : null;
     cursor = index + marker[0].length;
   }
-  if (underlined) return plain;
+  if (activeOpening !== null) return plain;
   if (cursor < text.length) runs.push({ text: text.slice(cursor), underlined: false });
   return runs;
 }
