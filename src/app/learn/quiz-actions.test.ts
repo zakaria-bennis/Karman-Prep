@@ -126,6 +126,43 @@ describe("quiz actions", () => {
     expect(mocks.createQuizAttempt).not.toHaveBeenCalled();
   });
 
+  it("restores the exact saved attempt and its answered questions", async () => {
+    const attemptId = "00000000-0000-4000-8000-000000000010";
+    const response = { question_id: question.id, student_answer: "A", is_correct: false };
+    mocks.fetchResponsesForAttempt.mockResolvedValue([response]);
+    const resumed = await actionStartQuiz("ma-00", attemptId);
+    expect(mocks.fetchQuizAttemptForStudent).toHaveBeenCalledExactlyOnceWith(
+      attemptId,
+      "dev_seed_student_stuck"
+    );
+    expect(mocks.createQuizAttempt).toHaveBeenCalledExactlyOnceWith(
+      "dev_seed_student_stuck",
+      "ma-00"
+    );
+    expect(resumed.attemptId).toBe(attemptId);
+    expect(resumed.responses).toEqual([response]);
+  });
+
+  it("refuses a different attempt instead of silently starting another quiz", async () => {
+    const attemptId = "00000000-0000-4000-8000-000000000010";
+    mocks.createQuizAttempt.mockResolvedValue({ id: "00000000-0000-4000-8000-000000000011" });
+    await expect(actionStartQuiz("ma-00", attemptId)).rejects.toThrow("no longer available");
+    expect(mocks.fetchResponsesForAttempt).not.toHaveBeenCalled();
+  });
+
+  it("refuses an unowned or mismatched resume before creating an attempt", async () => {
+    const attemptId = "00000000-0000-4000-8000-000000000010";
+    mocks.fetchQuizAttemptForStudent.mockResolvedValue(null);
+    await expect(actionStartQuiz("ma-00", attemptId)).rejects.toThrow("unavailable");
+    mocks.fetchQuizAttemptForStudent.mockResolvedValue({
+      id: attemptId,
+      node_id: "rw-00",
+      completed_at: null,
+    });
+    await expect(actionStartQuiz("ma-00", attemptId)).rejects.toThrow("unavailable");
+    expect(mocks.createQuizAttempt).not.toHaveBeenCalled();
+  });
+
   it("sends no key or explanation before answering, and restores review only for saved answers", async () => {
     const fresh = await actionStartQuiz("ma-00");
     expect(JSON.stringify(fresh)).not.toMatch(

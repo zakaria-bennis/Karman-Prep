@@ -25,6 +25,7 @@ interface Props {
   onClose: () => void;
   onGoToNext: (() => void) | null;
   sessionMode?: "practice" | "realistic";
+  resumeAttemptId?: string;
 }
 
 export default function QuizEngine({
@@ -33,6 +34,7 @@ export default function QuizEngine({
   onClose,
   onGoToNext,
   sessionMode = "practice",
+  resumeAttemptId,
 }: Props) {
   const {
     state,
@@ -59,7 +61,7 @@ export default function QuizEngine({
   // Kick off the quiz when the engine mounts
   useEffect(() => {
     if (state.phase === "idle") {
-      startQuiz(node.id, node.subject).catch((err) => {
+      startQuiz(node.id, node.subject, resumeAttemptId).catch((err) => {
         console.error(err);
         alert(err.message ?? "Failed to start quiz");
         onClose();

@@ -98,6 +98,22 @@ function mount(onClose = vi.fn()) {
 }
 
 describe("quiz activity and math answer selection", () => {
+  it("passes the saved attempt through when the engine starts", async () => {
+    quiz.state = { ...quiz.state, phase: "idle" };
+    render(
+      <QuizEngine
+        node={{ ...MATH_NODES[0], status: "available" }}
+        resumeAttemptId="00000000-0000-4000-8000-000000000010"
+        onClose={vi.fn()}
+        onGoToNext={null}
+      />
+    );
+    expect(quiz.startQuiz).toHaveBeenCalledExactlyOnceWith(
+      "ma-00",
+      "math",
+      "00000000-0000-4000-8000-000000000010"
+    );
+  });
   it.each(["pointer", "keyboard"])(
     "keeps reviewed serialized exponential choices selectable by %s",
     (input) => {

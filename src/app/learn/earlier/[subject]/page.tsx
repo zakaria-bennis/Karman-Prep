@@ -6,15 +6,21 @@ import { createAdminClient } from "@/lib/supabase/server";
 import { RW_NODES, MATH_NODES, type NodeStatus } from "@/data/curriculum";
 import ConstellationMap, { type MappedNode } from "@/components/learn/ConstellationMap";
 import { initUserProgress } from "@/app/learn/actions";
+import { fetchQuizAttemptForStudent } from "@/lib/supabase/queries/quiz/attempts";
+import { quizNodeIdSchema, quizAttemptIdSchema } from "@/app/learn/quiz-action-schemas";
 
 /** Keep existing node quizzes reachable without inventing new skill mastery. */
 export default async function EarlierPracticePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ subject: string }>;
+  searchParams?: Promise<{ resume?: string; lesson?: string }>;
 }) {
   const { subject } = await params;
+  const { resume, lesson } = (await searchParams) ?? {};
   if (subject !== "reading" && subject !== "math") notFound();
+  if (resume && lesson) notFound();
   const { userId: realUserId } = await safeAuth();
   if (!realUserId) redirect("/auth/sign-in");
   const { clerkId: userId, isImpersonating } = await resolveEffectiveClerkId(realUserId);
@@ -22,6 +28,21 @@ export default async function EarlierPracticePage({
   if (role === "parent") redirect("/dashboard/parent");
   if (role === "tutor") redirect("/tutor");
   if (role !== "student" && role !== "admin") redirect("/onboarding");
+
+  let resumeNodeId: string | undefined;
+  if (resume) {
+    if (!quizAttemptIdSchema.safeParse(resume).success) notFound();
+    const attempt = await fetchQuizAttemptForStudent(resume, userId);
+    if (!attempt || attempt.completed_at) notFound();
+    const subjectNodes = subject === "reading" ? RW_NODES : MATH_NODES;
+    if (!subjectNodes.some((node) => node.id === attempt.node_id)) notFound();
+    resumeNodeId = attempt.node_id;
+  }
+  if (lesson) {
+    if (!quizNodeIdSchema.safeParse(lesson).success) notFound();
+    const subjectNodes = subject === "reading" ? RW_NODES : MATH_NODES;
+    if (!subjectNodes.some((node) => node.id === lesson)) notFound();
+  }
 
   const supabase = createAdminClient();
   const ids = [...RW_NODES, ...MATH_NODES].map((node) => node.id);
@@ -51,6 +72,7 @@ export default async function EarlierPracticePage({
   }
   if (initialized) rows = await readStatuses();
   const status = new Map(rows.map((row) => [row.node_id, row.status as NodeStatus]));
+  if (lesson && status.get(lesson) === "locked") notFound();
   const mapped = (nodes: typeof RW_NODES): MappedNode[] =>
     nodes.map((node) => ({
       ...node,
@@ -62,6 +84,9 @@ export default async function EarlierPracticePage({
         activeSubject={subject}
         readingNodes={mapped(RW_NODES)}
         mathNodes={mapped(MATH_NODES)}
+        initialQuizNodeId={resumeNodeId}
+        resumeAttemptId={resume ? resume : undefined}
+        initialLessonNodeId={lesson}
       />
       <Link
         href={`/learn/${subject}`}

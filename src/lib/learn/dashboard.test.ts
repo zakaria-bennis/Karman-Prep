@@ -12,7 +12,7 @@ const lesson = (node_id: string, status: string): LegacyLearningRecord => ({
 });
 
 const quiz = (changes: Partial<QuizAttempt>): QuizAttempt => ({
-  id: "attempt-1",
+  id: "00000000-0000-4000-8000-000000000010",
   student_id: "student-1",
   node_id: "ma-00",
   attempt_number: 1,
@@ -43,7 +43,7 @@ describe("learn dashboard from saved history", () => {
       [quiz({ node_id: "ma-00", questions_answered: 2 })]
     );
     expect(result.next).toMatchObject({
-      href: "/learn/math/ma-00",
+      href: "/learn/earlier/math?resume=00000000-0000-4000-8000-000000000010",
       label: "Continue practice",
     });
     expect(result.review).toBeNull();
@@ -76,6 +76,17 @@ describe("learn dashboard from saved history", () => {
       markedMastered: 1,
       underway: 1,
     });
-    expect(result.next).toMatchObject({ href: "/learn/reading/rw-01", label: "Continue lesson" });
+    expect(result.next).toMatchObject({
+      href: "/learn/earlier/reading?lesson=rw-01",
+      label: "Continue lesson",
+    });
+  });
+
+  it("opens an available lesson in the working earlier practice experience", () => {
+    const result = buildLearnDashboard([lesson("ma-00", "available")], []);
+    expect(result.next).toMatchObject({
+      href: "/learn/earlier/math?lesson=ma-00",
+      label: "Open lesson",
+    });
   });
 });

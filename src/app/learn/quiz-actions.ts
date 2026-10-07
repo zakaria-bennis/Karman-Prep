@@ -29,6 +29,7 @@ import { evaluateQuizAnswer, prepareQuizSession } from "@/lib/quiz-session";
 import type { Subject } from "@/data/curriculum";
 import {
   quizNodeIdSchema,
+  quizAttemptIdSchema,
   recordQuizResponseSchema,
   completeQuizSchema,
   flagQuizQuestionSchema,
@@ -41,7 +42,10 @@ export async function actionFetchNodeBundle(nodeId: string) {
   return fetchNodeStatusBundle(userId, quizNodeIdSchema.parse(nodeId));
 }
 
-export async function actionStartQuiz(nodeId: string): Promise<{
+export async function actionStartQuiz(
+  nodeId: string,
+  resumeAttemptId?: string
+): Promise<{
   attemptId: string;
   questions: StudentQuizQuestion[];
   responses: QuestionResponse[];
@@ -51,10 +55,20 @@ export async function actionStartQuiz(nodeId: string): Promise<{
   if (!userId) throw new Error("Not authenticated");
 
   nodeId = quizNodeIdSchema.parse(nodeId);
+  if (resumeAttemptId) {
+    resumeAttemptId = quizAttemptIdSchema.parse(resumeAttemptId);
+    const saved = await fetchQuizAttemptForStudent(resumeAttemptId, userId);
+    if (!saved || saved.completed_at || saved.node_id !== nodeId) {
+      throw new Error("Quiz attempt is unavailable");
+    }
+  }
   const questions = await fetchQuestionsForNode(nodeId);
   if (questions.length === 0) throw new Error("This node has no questions yet.");
 
   const attempt = await createQuizAttempt(userId, nodeId);
+  if (resumeAttemptId && attempt.id !== resumeAttemptId) {
+    throw new Error("The saved quiz is no longer available to resume");
+  }
   const responses = await fetchResponsesForAttempt(attempt.id);
   const availableIds = new Set(questions.map((q) => q.id));
   if (responses.some((response) => !availableIds.has(response.question_id))) {

@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 export const quizNodeIdSchema = z.string().regex(/^(rw|ma)-\d{2}$/);
+export const quizAttemptIdSchema = z.string().uuid();
 
 export const recordQuizResponseSchema = z
   .object({

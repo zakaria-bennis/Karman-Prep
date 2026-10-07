@@ -324,7 +324,7 @@ function reducer(state: QuizState, action: Action): QuizState {
 
 interface QuizContextValue {
   state: QuizState;
-  startQuiz: (nodeId: string, subject: Subject) => Promise<void>;
+  startQuiz: (nodeId: string, subject: Subject, resumeAttemptId?: string) => Promise<void>;
   selectAnswer: (answer: string) => void;
   submitAnswer: () => Promise<void>;
   nextQuestion: () => Promise<void>;
@@ -352,26 +352,29 @@ export function QuizProvider({ children }: { children: ReactNode }) {
   const submissionInFlightRef = useRef(false);
   const advancedQuestionRef = useRef<string | null>(null);
 
-  const startQuiz = useCallback(async (nodeId: string, subject: Subject) => {
-    dispatch({ type: "START_LOADING", nodeId, subject });
-    completionInFlightRef.current = false;
-    advancedQuestionRef.current = null;
+  const startQuiz = useCallback(
+    async (nodeId: string, subject: Subject, resumeAttemptId?: string) => {
+      dispatch({ type: "START_LOADING", nodeId, subject });
+      completionInFlightRef.current = false;
+      advancedQuestionRef.current = null;
 
-    let loaded: Awaited<ReturnType<typeof actionStartQuiz>>;
-    try {
-      loaded = await actionStartQuiz(nodeId);
-    } catch (error) {
-      dispatch({ type: "RESET" });
-      throw error;
-    }
-    dispatch({
-      type: "QUIZ_LOADED",
-      attemptId: loaded.attemptId,
-      allQuestions: loaded.questions,
-      responses: loaded.responses,
-      reviews: loaded.reviews,
-    });
-  }, []);
+      let loaded: Awaited<ReturnType<typeof actionStartQuiz>>;
+      try {
+        loaded = await actionStartQuiz(nodeId, resumeAttemptId);
+      } catch (error) {
+        dispatch({ type: "RESET" });
+        throw error;
+      }
+      dispatch({
+        type: "QUIZ_LOADED",
+        attemptId: loaded.attemptId,
+        allQuestions: loaded.questions,
+        responses: loaded.responses,
+        reviews: loaded.reviews,
+      });
+    },
+    []
+  );
 
   const selectAnswer = useCallback((answer: string) => {
     dispatch({ type: "SELECT_ANSWER", answer });

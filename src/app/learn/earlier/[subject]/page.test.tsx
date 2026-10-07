@@ -7,6 +7,8 @@ const mock = vi.hoisted(() => ({
   read: vi.fn(),
   init: vi.fn(),
   owner: vi.fn(),
+  attempt: vi.fn(),
+  map: vi.fn(),
 }));
 vi.mock("@/lib/auth/dev-auth", () => ({ safeAuth: mock.auth }));
 vi.mock("@/lib/supabase/queries/admin", () => ({
@@ -26,7 +28,15 @@ vi.mock("@/lib/supabase/server", () => ({
   }),
 }));
 vi.mock("@/app/learn/actions", () => ({ initUserProgress: mock.init }));
-vi.mock("@/components/learn/ConstellationMap", () => ({ default: () => null }));
+vi.mock("@/lib/supabase/queries/quiz/attempts", () => ({
+  fetchQuizAttemptForStudent: mock.attempt,
+}));
+vi.mock("@/components/learn/ConstellationMap", () => ({
+  default: (props: unknown) => {
+    mock.map(props);
+    return null;
+  },
+}));
 vi.mock("next/navigation", () => ({
   redirect: (path: string) => {
     throw new Error(`redirect:${path}`);
@@ -50,6 +60,7 @@ beforeEach(() => {
     error: null,
   });
   mock.init.mockResolvedValue(undefined);
+  mock.attempt.mockResolvedValue(null);
 });
 describe("earlier practice route", () => {
   it.each([
@@ -82,5 +93,35 @@ describe("earlier practice route", () => {
     mock.read.mockResolvedValue({ data: null, error: new Error("Local fixture DB unavailable") });
     await expect(EarlierPracticePage(input)).rejects.toThrow("DB unavailable");
     expect(mock.init).not.toHaveBeenCalled();
+  });
+  it("opens only the student's unfinished attempt in the quiz engine", async () => {
+    const attemptId = "00000000-0000-4000-8000-000000000010";
+    mock.attempt.mockResolvedValue({ id: attemptId, node_id: "ma-00", completed_at: null });
+    const page = await EarlierPracticePage({
+      ...input,
+      searchParams: Promise.resolve({ resume: attemptId }),
+    });
+    expect(mock.attempt).toHaveBeenCalledExactlyOnceWith(attemptId, "real-owner");
+    // The server page hands the validated attempt to the real map and quiz engine.
+    expect(page.props.children[0].props).toMatchObject({
+      initialQuizNodeId: "ma-00",
+      resumeAttemptId: attemptId,
+    });
+  });
+  it("rejects a completed or wrong-subject saved attempt", async () => {
+    const searchParams = Promise.resolve({ resume: "00000000-0000-4000-8000-000000000010" });
+    mock.attempt.mockResolvedValue({ node_id: "ma-00", completed_at: "2026-10-07" });
+    await expect(EarlierPracticePage({ ...input, searchParams })).rejects.toThrow("not-found");
+    mock.attempt.mockResolvedValue({ node_id: "rw-00", completed_at: null });
+    await expect(EarlierPracticePage({ ...input, searchParams })).rejects.toThrow("not-found");
+    mock.attempt.mockResolvedValue(null);
+    await expect(EarlierPracticePage({ ...input, searchParams })).rejects.toThrow("not-found");
+  });
+  it("opens a valid lesson on the real earlier route", async () => {
+    const page = await EarlierPracticePage({
+      ...input,
+      searchParams: Promise.resolve({ lesson: "ma-00" }),
+    });
+    expect(page.props.children[0].props.initialLessonNodeId).toBe("ma-00");
   });
 });

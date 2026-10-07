@@ -45,7 +45,10 @@ export function buildLearnDashboard(
   let next: StudyAction | null = null;
   if (incomplete) {
     const node = nodesById.get(incomplete.node_id)!;
-    next = actionForNode(node, "Continue practice", "An unfinished quiz is saved for this lesson.");
+    next = {
+      ...actionForNode(node, "Continue practice", "An unfinished quiz is saved for this lesson."),
+      href: `/learn/earlier/${node.subject}?resume=${encodeURIComponent(incomplete.id)}`,
+    };
   } else if (inProgress) {
     next = actionForNode(inProgress, "Continue lesson", "This earlier lesson is underway.");
   } else if (available) {
@@ -93,7 +96,7 @@ function actionForNode(node: CurriculumNode, label: string, detail: string): Stu
   return {
     title: node.topic,
     detail,
-    href: `/learn/${node.subject}/${node.id}`,
+    href: `/learn/earlier/${node.subject}?lesson=${node.id}`,
     label,
   };
 }
