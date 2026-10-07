@@ -10,7 +10,6 @@ import { useEffect, useMemo, useState } from "react";
 import { ArrowRight, RotateCcw, Trophy } from "lucide-react";
 import type { PerQuestionRecord } from "@/contexts/QuizContext";
 import type { ConfidenceBand, StudentQuizQuestion } from "@/types/quiz";
-import { CONFIDENCE_COLORS } from "@/types/quiz";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -30,19 +29,15 @@ function ringColor(score: number): string {
   return "#D84F73";
 }
 
-function encouragement(score: number, band: ConfidenceBand): string {
-  if (score === 100) return "Perfect run. Time to push into harder material.";
-  if (band === "mastered") return "You've mastered this concept — press on to the next node.";
-  if (band === "proficient") return "Solid work. Another pass will lock this in for good.";
-  if (band === "developing") return "You've got the core idea. Review your misses, then retake.";
-  return "Rewatch the lesson — the questions get clearer once the fundamentals settle.";
+function encouragement(correct: number, total: number): string {
+  if (correct === total) return "Review your reasoning before your next practice set.";
+  return "Review the questions you missed before your next practice set.";
 }
 
 export default function QuizResults({
   score,
   correct,
   total,
-  band,
   records,
   questions,
   onGoToNext,
@@ -80,7 +75,6 @@ export default function QuizResults({
       .sort((a, b) => b.pct - a.pct);
   }, [records, questions]);
 
-  const bandStyle = CONFIDENCE_COLORS[band];
   const ringHex = ringColor(score);
   const R = 90;
   const C = 2 * Math.PI * R;
@@ -136,18 +130,16 @@ export default function QuizResults({
             <h2 className="mb-1 text-2xl font-extrabold text-ivory">
               {correct} / {total} correct
             </h2>
-            <span
-              className={cn(
-                "mt-2 inline-block rounded-full px-2.5 py-1 text-xs font-semibold",
-                bandStyle.bg,
-                bandStyle.text
-              )}
-            >
-              {bandStyle.label}
+            <span className="mt-2 inline-block rounded-full border border-bronze px-2.5 py-1 text-xs font-semibold text-ivory">
+              This quiz only
             </span>
 
             <p className="mt-4 text-sm leading-relaxed text-ivory/80">
-              {encouragement(score, band)}
+              {encouragement(correct, total)}
+            </p>
+            <p className="mt-2 text-sm leading-relaxed text-ivory/80">
+              This score describes this quiz only. Repeating the same questions does not show
+              whether you can solve a new one.
             </p>
 
             {/* Topic breakdown */}
