@@ -8,6 +8,7 @@
 import { useState, useTransition } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { learningPlanCopy } from "@/lib/learning-plan/copy";
 import {
   BookOpen,
   ClipboardList,
@@ -239,7 +240,7 @@ function HomeworkTab({ cohortId, homework }: { cohortId: string; homework: Tutor
             className="inline-flex items-center gap-1.5 rounded-lg bg-gold px-3 py-1.5 text-sm font-semibold text-night hover:bg-gold-bright"
           >
             <Plus className="h-4 w-4" />
-            Post homework
+            {learningPlanCopy.cohortPostButton}
           </button>
         )}
       </div>
@@ -255,7 +256,7 @@ function HomeworkTab({ cohortId, homework }: { cohortId: string; homework: Tutor
       {homework.length === 0 && !composerOpen ? (
         <EmptyBlock
           title="No homework yet"
-          subtitle='Click "Post homework" to assign the cohort their first task.'
+          subtitle="Post planned practice to give this cohort its first task."
         />
       ) : (
         <ul className="space-y-3">

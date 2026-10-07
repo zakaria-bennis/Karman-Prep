@@ -17,6 +17,7 @@ import { ChevronLeft, Calendar, Users as UsersIcon, BookOpen } from "lucide-reac
 import { fetchUserRole } from "@/lib/supabase/queries/admin";
 import { createAdminClient } from "@/lib/supabase/server";
 import { buildParentFocusSummary } from "@/lib/parent/focus-summary";
+import { learningPlanCopy } from "@/lib/learning-plan/copy";
 
 export const metadata: Metadata = { title: "Student — Parent Portal | Karman" };
 export const dynamic = "force-dynamic";
@@ -214,14 +215,14 @@ export default async function ParentStudentDetailPage({ params }: PageProps) {
           aria-labelledby="parent-focus-title"
         >
           <h2 id="parent-focus-title" className="text-lg font-bold text-ivory">
-            Current focus and next step
+            {learningPlanCopy.parentHeading}
           </h2>
           <p className="mt-3 text-sm text-ivory">
             <span className="font-semibold">Current focus: </span>
             {summary.focus ?? "No active cohort topic is posted."}
           </p>
           <p className="mt-2 text-sm text-ivory">
-            <span className="font-semibold">Upcoming assignment: </span>
+            <span className="font-semibold">{learningPlanCopy.parentUpcomingLabel}</span>
             {summary.nextAction ? (
               <>
                 {summary.nextAction}
@@ -236,9 +237,7 @@ export default async function ParentStudentDetailPage({ params }: PageProps) {
               Most recently posted: {summary.recentAssignment}
             </p>
           )}
-          <p className="mt-3 text-xs text-taupe">
-            This view shows posted plans, not assignment completion or a score prediction.
-          </p>
+          <p className="mt-3 text-xs text-taupe">{learningPlanCopy.parentEvidenceNote}</p>
         </section>
 
         <div className="grid gap-6 md:grid-cols-2">

@@ -13,6 +13,7 @@ import { DOMAIN_LABELS, type SATDomain, type DomainScores } from "@/types";
 import DashboardLayout from "./DashboardLayout";
 import DomainProgress from "./DomainProgress";
 import type { NodeStatus } from "@/data/curriculum";
+import { learningPlanCopy, studentLessonLabel } from "@/lib/learning-plan/copy";
 
 interface Props {
   user: { email: string; role: string } | null;
@@ -155,7 +156,9 @@ export default function StudentDashboardClient({
 
         {/* Next lesson */}
         <div>
-          <h2 className="mb-3 text-lg font-bold text-ivory dark:text-ivory">Continue Learning</h2>
+          <h2 className="mb-3 text-lg font-bold text-ivory dark:text-ivory">
+            {learningPlanCopy.studentHeading}
+          </h2>
           {nextLesson ? (
             <Link
               href={`/dashboard/student/lesson/${nextLesson.concept_id}`}
@@ -173,7 +176,7 @@ export default function StudentDashboardClient({
                     {DOMAIN_LABELS[nextLesson.concepts?.domain as SATDomain] || "SAT Math"}
                   </span>
                   <span>·</span>
-                  <span>{nextLesson.status === "in_progress" ? "In progress" : "Ready"}</span>
+                  <span>{studentLessonLabel(nextLesson.status)}</span>
                   {nextLesson.quiz_score !== null && (
                     <>
                       <span>·</span>
