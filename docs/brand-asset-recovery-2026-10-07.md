@@ -21,11 +21,11 @@ The recovered GIF and still retain their original solid black background. They w
 
 ## Assets
 
-| File | Use | Provenance |
-| --- | --- | --- |
-| `public/brand/logos/karman-horizon-original.gif` | Original animated reference; optional motion only if desired | Byte-for-byte Library GIF |
-| `public/brand/logos/karman-horizon-still.png` | Static lockup preview and dark-surface candidate | Pixel-faithful final GIF frame |
-| `public/images/study-desk-editorial.png` | Secondary atmospheric crop, not product proof | New generated editorial image; Library `libfile_d737133fb52c819192cb6068b06ff3e8` |
+| File                                             | Use                                                          | Provenance                                                                        |
+| ------------------------------------------------ | ------------------------------------------------------------ | --------------------------------------------------------------------------------- |
+| `public/brand/logos/karman-horizon-original.gif` | Original animated reference; optional motion only if desired | Byte-for-byte Library GIF                                                         |
+| `public/brand/logos/karman-horizon-still.png`    | Static lockup preview and dark-surface candidate             | Pixel-faithful final GIF frame                                                    |
+| `public/images/study-desk-editorial.png`         | Secondary atmospheric crop, not product proof                | New generated editorial image; Library `libfile_d737133fb52c819192cb6068b06ff3e8` |
 
 The editorial generation prompt was: “A quiet evening study desk: an open cream notebook with blank ruled pages, graphite pencil, neutral index cards, warm desk lamp outside frame; restrained natural photography, tactile paper, dark negative space at left, ivory/espresso/antique-gold palette; no people, logos, words, legible questions, scores, UI, or space imagery.” It depicts a staged scene, not a student or product outcome.
 
