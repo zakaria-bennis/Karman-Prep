@@ -350,10 +350,12 @@ export function QuizProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(reducer, initialState);
   const completionInFlightRef = useRef(false);
   const submissionInFlightRef = useRef(false);
+  const advancedQuestionRef = useRef<string | null>(null);
 
   const startQuiz = useCallback(async (nodeId: string, subject: Subject) => {
     dispatch({ type: "START_LOADING", nodeId, subject });
     completionInFlightRef.current = false;
+    advancedQuestionRef.current = null;
 
     let loaded: Awaited<ReturnType<typeof actionStartQuiz>>;
     try {
@@ -414,6 +416,9 @@ export function QuizProvider({ children }: { children: ReactNode }) {
 
   const nextQuestion = useCallback(async () => {
     if (state.phase !== "submitted_correct" && state.phase !== "submitted_wrong") return;
+    const questionKey = `${state.attemptId}:${state.currentIndex}`;
+    if (advancedQuestionRef.current === questionKey) return;
+    advancedQuestionRef.current = questionKey;
 
     const lastRecord = state.records[state.currentIndex];
     const wasCorrect = !!lastRecord?.isCorrect;
@@ -435,6 +440,7 @@ export function QuizProvider({ children }: { children: ReactNode }) {
       } catch (err) {
         Sentry.captureException(err, { tags: { feature: "quiz.complete" } });
         completionInFlightRef.current = false;
+        advancedQuestionRef.current = null;
       }
       return;
     }
@@ -467,7 +473,10 @@ export function QuizProvider({ children }: { children: ReactNode }) {
 
   const toggleDesmos = useCallback(() => dispatch({ type: "TOGGLE_DESMOS" }), []);
   const toggleScratchpad = useCallback(() => dispatch({ type: "TOGGLE_SCRATCHPAD" }), []);
-  const reset = useCallback(() => dispatch({ type: "RESET" }), []);
+  const reset = useCallback(() => {
+    advancedQuestionRef.current = null;
+    dispatch({ type: "RESET" });
+  }, []);
 
   const retakeQuiz = useCallback(async () => {
     if (!state.nodeId || !state.subject) return;
