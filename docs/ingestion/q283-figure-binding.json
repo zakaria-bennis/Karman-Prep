@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "F_candidate_sha256": "0c018a22d044dbf979af7fc9f9849ca9626671368aa9d1971c737df51720af9d",
+  "F_helper_sha256": "689c8a2c2fee11babb13f313ba4d291dbe99eeb3eea97dbfd78ca08e39da12c0",
+  "F_source_paint_receipt_sha256": "5346d31c5464e58b267fedca640d57c5e48e7917ebab517fc1c58a770f825b4a",
+  "verified_CF_manifest_path": "/Users/zakariabennis/Documents/Codex/2026-10-06/task-4/cf-continuation/partial-additions-A125/2025-03_ASIA_V6/B-PARTIAL-A-20261006-060-2025-03_ASIA_V6-7f28e2119221/CF-notation-rebind02/manifest.json",
+  "exact_binding": {
+    "question_id": "2025-03_ASIA_V6_MATH_M2_Q283",
+    "question_version_sha256": "7b12795a4cfbf5a1be948091dfd5e804bf93cb208989034314ed658d3929d616",
+    "B_output_version": "B-PARTIAL-A-20261006-060-2025-03_ASIA_V6-7f28e2119221",
+    "B_manifest_sha256": "b84a8c8a892ce482dfad7c48c3d592813f6e4229bc9ba5ba8fff1b527aea5e08",
+    "CF_output_version": "CF-B-PARTIAL-A-20261006-060-2025-03_ASIA_V6-7f28e2119221-f9a256afc524",
+    "CF_manifest_sha256": "7abe8746e11f8474389307f1de5502129fc2dfdcd9eea28c39822c1e47bced8b",
+    "student_record_sha256": "aaf5a8bb1e5de7f0b5d13150623856d78bff6e9c9f4e0957688df6132e4d378f",
+    "source_png_sha256": "81bf850a186929703704fc5069417e318e25a6ab9667b7beb3b7bd6ca3cd798e",
+    "CF_review": {
+      "path": "/Users/zakariabennis/Documents/Codex/2026-10-06/task-4/cf-continuation/partial-additions-A125/2025-03_ASIA_V6/B-PARTIAL-A-20261006-060-2025-03_ASIA_V6-7f28e2119221/reviews/2025-03_ASIA_V6_MATH_M2_Q283/7b12795a4cfbf5a1be948091dfd5e804bf93cb208989034314ed658d3929d616/review.json",
+      "sha256": "d054ba1326558cf7c170cc29908a42cb3bdeda19d17e5028ce8134a8bd98ab12"
+    },
+    "source_PNG": {
+      "path": "/Users/zakariabennis/Documents/Codex/2026-10-05/task-3/agent-b-output/partial-releases/2025-03_ASIA_V6/B-PARTIAL-A-20261006-060-2025-03_ASIA_V6-7f28e2119221/Problems that passed/2025-03_ASIA_V6_MATH_M2_Q283/original.png",
+      "sha256": "81bf850a186929703704fc5069417e318e25a6ab9667b7beb3b7bd6ca3cd798e"
+    }
+  },
+  "changed_question_ids": [
+    "2025-03_ASIA_V6_MATH_M2_Q283"
+  ],
+  "changed_fields": [
+    "image_url",
+    "image_alt",
+    "figure_kind"
+  ],
+  "all_other_fields_equal": true,
+  "production_import": false,
+  "publication": false,
+  "asset": {
+    "same_origin_image_url": "/question-figures/released-exams/q283-9ece3a55595c6bd330032fce1b72a935f8a5a33e0c2a03316bb5b9e665028e45.svg",
+    "sha256": "9ece3a55595c6bd330032fce1b72a935f8a5a33e0c2a03316bb5b9e665028e45",
+    "bytes": 11291
+  },
+  "derivative_batch_sha256": "a7c874e719c5bf911bff2d512da535261c9089f88ab849bc231be3791f9417f8",
+  "verification": "Hash-bound local app asset and frozen import-row figure fields; fresh all24 actual-renderer acceptance recorded separately. No production delivery or import is claimed."
+}

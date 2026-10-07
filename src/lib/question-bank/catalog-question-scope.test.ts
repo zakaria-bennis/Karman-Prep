@@ -1,6 +1,16 @@
 import { describe, expect, it } from "vitest";
-import { approvedCatalogEvidence, catalogSkillId } from "../../../tests/fixtures/approved-catalog";
-import { catalogPoolInputSchema, readCatalogQuestionScope } from "./catalog-question-scope";
+import type { QuizQuestionWithChoices } from "@/types/quiz";
+import { toStudentQuizQuestion } from "@/lib/student-quiz-payload";
+import {
+  approvedCatalogEvidence,
+  catalogQuestion,
+  catalogSkillId,
+} from "../../../tests/fixtures/approved-catalog";
+import {
+  catalogPoolInputSchema,
+  readCatalogQuestionScope,
+  catalogQuestionPayloadHash,
+} from "./catalog-question-scope";
 
 describe("canonical skill evidence read contract", () => {
   it("reads both official and generated envelopes and retains the private-publication hold", () => {
@@ -47,5 +57,86 @@ describe("canonical skill evidence read contract", () => {
         maximumDifficulty: 2,
       }).success
     ).toBe(false);
+  });
+});
+
+describe("source formatting in canonical delivery", () => {
+  const formatted = () => ({
+    ...catalogQuestion(),
+    question_text: "Use [[u]]the marked sentence[[/u]] and $x^2$; retain the figure note.",
+    passage_intro: "Source attribution retained separately.",
+    passage: "<u>Source sentence.</u>\nEssential note: values are in cm².",
+    figure_kind: "table" as const,
+    figure_table_data: {
+      caption: "Distance (cm)",
+      header_row: ["Time (s)", "Distance (cm)"],
+      rows: [["1", "2"]],
+      footer_note: "Values rounded to the nearest tenth.",
+    },
+    answer_choices: [
+      {
+        id: "choice-1",
+        question_id: "question-1",
+        letter: "A" as const,
+        choice_text: "<u>Marked option.</u>",
+        choice_table_data: {
+          header_row: ["x", "y"],
+          rows: [["1", "2"]],
+          footer_note: "x in seconds",
+        },
+      },
+    ],
+  });
+
+  it("passes explicit text markers and structured notes to students without stripping them", () => {
+    const question = formatted() as unknown as QuizQuestionWithChoices;
+    const student = toStudentQuizQuestion(question);
+    expect(student.question_text).toBe(question.question_text);
+    expect(student.passage).toBe(question.passage);
+    expect(student.passage_intro).toBe(question.passage_intro);
+    expect(student.figure_table_data).toEqual(question.figure_table_data);
+    expect(student.answer_choices[0].choice_text).toBe(question.answer_choices[0].choice_text);
+    expect(student.answer_choices[0].choice_table_data).toEqual(
+      question.answer_choices[0].choice_table_data
+    );
+    expect(student).not.toHaveProperty("correct_answer");
+  });
+
+  it("changes the delivery seal when formatting, essential notes or structured units are lost", () => {
+    const original = formatted();
+    const seal = catalogQuestionPayloadHash(original as unknown as QuizQuestionWithChoices);
+    const mutations = [
+      {
+        ...original,
+        question_text: original.question_text.replace("[[u]]", "").replace("[[/u]]", ""),
+      },
+      { ...original, passage: "Source sentence." },
+      { ...original, figure_table_data: { ...original.figure_table_data, footer_note: null } },
+      {
+        ...original,
+        figure_table_data: { ...original.figure_table_data, header_row: ["Time", "Distance"] },
+      },
+      {
+        ...original,
+        answer_choices: [{ ...original.answer_choices[0], choice_text: "Marked option." }],
+      },
+      {
+        ...original,
+        answer_choices: [
+          {
+            ...original.answer_choices[0],
+            choice_table_data: {
+              ...original.answer_choices[0].choice_table_data,
+              footer_note: null,
+            },
+          },
+        ],
+      },
+    ];
+    for (const mutation of mutations) {
+      expect(catalogQuestionPayloadHash(mutation as unknown as QuizQuestionWithChoices)).not.toBe(
+        seal
+      );
+    }
   });
 });
