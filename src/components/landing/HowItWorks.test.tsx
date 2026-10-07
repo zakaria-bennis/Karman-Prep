@@ -25,8 +25,10 @@ describe("public signup journey", () => {
 
     expect(screen.getByRole("heading", { name: "Tell us your starting point" })).toBeTruthy();
     expect(screen.getByRole("heading", { name: "Review your options" })).toBeTruthy();
-    expect(screen.getByRole("heading", { name: "Find a place to begin" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Explore your starting skills" })).toBeTruthy();
     expect(screen.getByText(/35-question diagnostic/)).toBeTruthy();
+    expect(screen.getByText(/Choosing a plan starts checkout/)).toBeTruthy();
+    expect(screen.getByText(/You can also take the 35-question diagnostic/)).toBeTruthy();
     expect(document.body.textContent).not.toMatch(
       /predicted score|proven three-step|exact weaknesses/i
     );

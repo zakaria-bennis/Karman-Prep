@@ -43,14 +43,14 @@ const STEPS: Step[] = [
     animation: bookmark,
     title: "Review your options",
     description:
-      "See a suggested plan based on your answers. Review its terms before deciding whether to continue.",
+      "See a suggested plan and why it was selected from your answers. Choosing a plan starts checkout.",
   },
   {
     step: "03",
     animation: arrowUpCircle,
-    title: "Find a place to begin",
+    title: "Explore your starting skills",
     description:
-      "Take the 35-question diagnostic to see how you did on its covered skills, then use your results to choose what to practice next.",
+      "You can also take the 35-question diagnostic after signing in. It shows how you did on the skills covered by those questions.",
   },
 ];
 
