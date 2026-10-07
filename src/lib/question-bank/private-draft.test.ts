@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { computeContentHashV2, importQuestion, type ImportQuestionInput } from "./import-core";
+import { importAnswerEvidence } from "./import-provenance";
 
 const row: ImportQuestionInput = {
   question_text: "What is 2 + 2?",
@@ -54,7 +55,13 @@ function client(duplicate = false, existing?: Record<string, unknown>) {
             });
           },
           maybeSingle() {
-            return Promise.resolve({ data: existing, error: null });
+            return Promise.resolve({
+              data:
+                table === "answer_key_entries"
+                  ? { raw_model_response: importAnswerEvidence(row) }
+                  : existing,
+              error: null,
+            });
           },
           then(resolve: (v: unknown) => unknown) {
             return Promise.resolve(resolve({ error: null }));
@@ -72,11 +79,12 @@ describe("private draft write boundary", () => {
     expect(result.inserted).toBe(true);
     expect(result.errors).toEqual([]);
     expect(c.writes[0].payload).toMatchObject({
-      is_live: false,
-      publish_status: "draft",
+      import_status: "needs_review",
+      publish_status: "needs_human_review",
       verified_answer: "B",
       answer_source: "inferred",
     });
+    expect((c.writes[0].payload as Record<string, unknown>).is_live).toBeUndefined();
     expect(c.writes.find((w) => w.table === "answer_key_entries")?.payload).toMatchObject({
       printed_answer: null,
       selected_official_answer: null,
@@ -112,6 +120,8 @@ describe("private draft write boundary", () => {
     expect(from).not.toHaveBeenCalled();
   });
   const existing = {
+    id: "test-question",
+    difficulty_level: 2,
     content_hash_v2: computeContentHashV2({
       ...row,
       subject: "math",
@@ -137,6 +147,7 @@ describe("private draft write boundary", () => {
     { correct_answer: "A" },
     { verified_answer: "A" },
     { selected_official_answer: "B" },
+    { difficulty_level: 3 },
   ])("rejects visible/published or changed source-identity replay: %j", async (change) => {
     const c = client(true, { ...existing, ...change });
     const result = await importQuestion(c.db as never, row, options);
@@ -144,5 +155,15 @@ describe("private draft write boundary", () => {
     expect(result.duplicate_skipped).toBe(false);
     expect(result.errors.join()).toMatch(/source identity conflict/);
     expect(c.writes).toHaveLength(1);
+  });
+  it("rejects changed independent review evidence under the same source identity", async () => {
+    const c = client(true, existing);
+    const changed = {
+      ...row,
+      reviewed_answer: { ...row.reviewed_answer!, evidence: { source: "changed" } },
+    };
+    const result = await importQuestion(c.db as never, changed, options);
+    expect(result.duplicate_skipped).toBe(false);
+    expect(result.errors.join()).toMatch(/answer evidence differs/);
   });
 });

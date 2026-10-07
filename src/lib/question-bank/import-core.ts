@@ -32,8 +32,14 @@ import { parseDifficulty, parseReviewedDifficulty } from "./import-difficulty";
 export { parseDifficulty, parseReviewedDifficulty } from "./import-difficulty";
 import type { QuestionTableData } from "@/types/question-table";
 import { isValidChoiceTableData } from "./choice-table";
-import { writeImportAnswerProvenance, type ReviewedAnswerProvenance } from "./import-provenance";
+import {
+  writeImportAnswerProvenance,
+  importAnswerEvidence,
+  canonicalEvidence,
+  type ReviewedAnswerProvenance,
+} from "./import-provenance";
 import { validateReviewedAnswer } from "./reviewed-answer";
+import { validatePrivateDraftInput } from "./private-draft";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, Json } from "@/types/supabase";
 import {
@@ -251,20 +257,7 @@ export function validateImportRow(
         row.import_status === "needs_review"
       )
     );
-  if (options.privateDraft && (options.difficultyPolicy !== "reviewed" || !row.reviewed_answer))
-    errors.push("private draft requires reviewed difficulty and explicit answer provenance");
-  if (
-    options.privateDraft &&
-    (!row.source_version ||
-      row.source_identity_required !== true ||
-      !row.source_section ||
-      !row.source_module ||
-      !Number.isInteger(row.source_question_number) ||
-      (row.source_question_number ?? 0) < 1 ||
-      !Number.isInteger(row.source_occurrence) ||
-      (row.source_occurrence ?? 0) < 1)
-  )
-    errors.push("private draft requires complete stable source identity");
+  errors.push(...validatePrivateDraftInput(row, options));
 
   if (options.difficultyPolicy === "reviewed") {
     try {
@@ -409,7 +402,8 @@ export async function importQuestion(
   // Phase 1 publish_status: new rows land as 'draft' (or
   // 'needs_human_review' if pre-flagged). Only the publish-gate
   // promotes to publish_ready.
-  const publish_status = row.import_status === "needs_review" ? "needs_human_review" : "draft";
+  const publish_status =
+    options.privateDraft || row.import_status === "needs_review" ? "needs_human_review" : "draft";
 
   const hasAnyChoiceExpl =
     row.explanation_a || row.explanation_b || row.explanation_c || row.explanation_d;
@@ -495,11 +489,12 @@ export async function importQuestion(
     source_regions: row.source_regions ?? null,
     content_hash: row.content_hash || null,
     content_hash_v2,
-    import_status: row.import_status ?? null,
+    import_status: options.privateDraft ? "needs_review" : (row.import_status ?? null),
     import_flag_type: row.import_flag_type ?? null,
-    import_flag_reason: row.import_flag_reason || null,
+    import_flag_reason:
+      row.import_flag_reason ||
+      (options.privateDraft ? "private_draft_not_for_student_selection" : null),
     publish_status,
-    ...(options.privateDraft ? { is_live: false } : {}),
     figure_kind: row.figure_kind ?? null,
     figure_table_data: (row.figure_table_data as unknown as Json) ?? null,
     image_url: row.image_url ?? null,
@@ -522,7 +517,7 @@ export async function importQuestion(
         const { data: existing, error: lookupErr } = await supabase
           .from("quiz_questions")
           .select(
-            "content_hash_v2, correct_answer, concept_slug, raw_question_text, selected_official_answer, verified_answer, is_live, publish_status"
+            "id, content_hash_v2, correct_answer, concept_slug, raw_question_text, selected_official_answer, verified_answer, is_live, publish_status, difficulty_level"
           )
           .eq("source_version", row.source_version)
           .eq("source_section", row.source_section)
@@ -535,6 +530,7 @@ export async function importQuestion(
           !existing ||
           (options.privateDraft &&
             (existing.is_live !== false ||
+              existing.difficulty_level !== level ||
               !["draft", "needs_human_review"].includes(existing.publish_status ?? ""))) ||
           existing.content_hash_v2 !== content_hash_v2 ||
           existing.correct_answer !== row.correct_answer ||
@@ -553,6 +549,28 @@ export async function importQuestion(
               "source identity conflict: existing question differs in content, answer, or topic",
             ],
           };
+        }
+        if (options.privateDraft) {
+          const { data: key, error } = await supabase
+            .from("answer_key_entries")
+            .select("raw_model_response")
+            .eq("question_id", existing.id)
+            .maybeSingle();
+          if (
+            error ||
+            !key ||
+            canonicalEvidence(key.raw_model_response) !==
+              canonicalEvidence(importAnswerEvidence(row))
+          )
+            return {
+              inserted: false,
+              question_id: null,
+              duplicate_skipped: false,
+              flagged_for_review: false,
+              errors: [
+                "source identity conflict: private answer evidence differs or is incomplete",
+              ],
+            };
         }
       }
       return {
@@ -625,7 +643,7 @@ export async function importQuestion(
     inserted: true,
     question_id,
     duplicate_skipped: false,
-    flagged_for_review: row.import_status === "needs_review",
+    flagged_for_review: Boolean(options.privateDraft) || row.import_status === "needs_review",
     errors,
   };
 }

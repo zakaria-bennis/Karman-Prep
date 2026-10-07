@@ -4,6 +4,24 @@ import type { ImportQuestionInput } from "./import-core";
 import { validateReviewedAnswer } from "./reviewed-answer";
 export type { ReviewedAnswerProvenance } from "./reviewed-answer";
 
+export function importAnswerEvidence(row: ImportQuestionInput) {
+  const answer = row.reviewed_answer;
+  return answer?.kind === "independently_confirmed_generated"
+    ? { ...answer, official_answer_available: false }
+    : (answer?.evidence ?? null);
+}
+
+export function canonicalEvidence(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(canonicalEvidence).join(",")}]`;
+  if (value && typeof value === "object")
+    return `{${Object.entries(value)
+      .filter(([, item]) => item !== undefined)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([key, item]) => `${JSON.stringify(key)}:${canonicalEvidence(item)}`)
+      .join(",")}}`;
+  return JSON.stringify(value) ?? "null";
+}
+
 /** Keep the printed key distinct from the independently solved active answer. */
 export async function writeImportAnswerProvenance(
   supabase: SupabaseClient<Database>,
@@ -42,9 +60,7 @@ export async function writeImportAnswerProvenance(
     source_question_number: row.source_question_number ?? null,
     source_version: row.source_version ?? null,
     source_occurrence: row.source_occurrence ?? null,
-    raw_model_response: generated
-      ? { ...row.reviewed_answer, official_answer_available: false }
-      : (row.reviewed_answer?.evidence ?? null),
+    raw_model_response: importAnswerEvidence(row),
     review_required: disputed,
     review_reason: generated
       ? "Independent reviews agree; official answer mapping remains unavailable"

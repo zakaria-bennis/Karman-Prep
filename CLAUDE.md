@@ -81,7 +81,8 @@ mapping, while `verified_answer` and private evidence preserve the independent
 answer. Publication remains held; this does not restore paid processing.
 The shared writer's opt-in `privateDraft` mode requires reviewed numeric
 difficulty, explicit answer provenance and complete stable source identity,
-sets `is_live=false`, and rejects replays targeting live/published rows. Legacy
+forces `needs_review` so the database computes `is_live=false`, and rejects
+replays targeting live/published rows. Legacy
 callers retain their previous behavior. This internal option does not make a
 preview eligible: exact canonical/legacy bindings and complete dependent-write
 checks are required before a disposable local batch. The reviewed CLI still
