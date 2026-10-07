@@ -1,7 +1,7 @@
 "use client";
 
 // ============================================================
-// MathText — lightweight inline renderer that handles $…$ and $$…$$
+// MathText — lightweight renderer for $…$, $$…$$ and source \(…\)
 // KaTeX math inside a plain text string. Preserves line breaks.
 // Use for short bodies (question text, choice labels, one-liner prompts).
 //
@@ -58,7 +58,8 @@ function parse(text: string): Seg[] {
   }
   if (rest) segmentsAfterBlock.push({ kind: "text", value: rest });
 
-  // Inline pass — same fix for `\$`.
+  // Explicit source \(…\) delimiters and $…$ use the same KaTeX path.
+  // Preserve prose and unmatched delimiters rather than guessing bare commands.
   for (const seg of segmentsAfterBlock) {
     if (seg.kind !== "text") {
       out.push(seg);
@@ -66,11 +67,11 @@ function parse(text: string): Seg[] {
     }
     let remaining = seg.value;
     while (true) {
-      const m = remaining.match(/\$((?:\\\$|[^$\n])+?)\$/);
+      const m = remaining.match(/\$((?:\\\$|[^$\n])+?)\$|\\\(([\s\S]+?)\\\)/);
       if (!m) break;
       const before = remaining.slice(0, m.index!);
       if (before) out.push({ kind: "text", value: before });
-      out.push({ kind: "inline", latex: m[1].trim() });
+      out.push({ kind: "inline", latex: (m[1] ?? m[2]).trim() });
       remaining = remaining.slice((m.index ?? 0) + m[0].length);
     }
     if (remaining) out.push({ kind: "text", value: remaining });
@@ -143,7 +144,8 @@ function renderKaTeX(latex: string, displayMode: boolean): string {
       output: "htmlAndMathml",
     });
   } catch {
-    return displayMode ? `<pre>${latex}</pre>` : latex;
+    const escaped = latex.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+    return displayMode ? `<pre>${escaped}</pre>` : escaped;
   }
 }
 

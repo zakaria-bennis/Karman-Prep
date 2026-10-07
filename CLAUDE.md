@@ -36,6 +36,10 @@ paying users yet.
   marked span against original page pixels, and keep surrounding context outside
   the markers. Malformed markers render literally. Existing KaTeX and blank
   rendering still applies inside each span.
+- Reviewed source inline math supports both `$...$` and `\(...\)` in
+  `MathText`; display math uses `$$...$$`. Preserve approved source bytes and
+  expressions. Do not strip commands, guess bare math or rewrite source packages
+  to accommodate a renderer limitation.
 - Server actions validate inputs with Zod schemas; add a schema when adding
   an action.
 
