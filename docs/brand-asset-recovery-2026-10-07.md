@@ -1,5 +1,11 @@
 # Recovered KARMAN mark and landing assets
 
+## Current user direction — supersedes the horizon proposal below
+
+The user explicitly rejected the horizon/star candidate and identified the intended historical mark as a **monocolor rocketship**. The horizon GIF/still were removed from the current tree; `LandingLogo` uses a temporary text-only KARMAN wordmark while the exact rocket asset is recovered. Do not restore the horizon or treat the historical candidate descriptions below as brand approval. The source/rejected-candidate inventory is retained for provenance, and generated desk imagery remains editorial rather than product proof.
+
+The public preview now contains a labeled synthetic study-desk screenshot. Updated theme-integrated app/font/chrome previews are available from the dashboard owner for a later reviewed replacement. They do not demonstrate real student outcomes.
+
 ## Source and status
 
 The prior simplified mark is preserved in ChatGPT Library as two animations:
