@@ -36,7 +36,7 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1038.0",
     "@aws-sdk/s3-request-presigner": "^3.1055.0",
-    "@clerk/nextjs": "^7.2.3",
+    "@clerk/nextjs": "7.9.11",
     "@clerk/themes": "^2.4.57",
     "@opennextjs/cloudflare": "^1.19.4",
     "@react-email/components": "^1.0.12",
@@ -52,16 +52,16 @@
     "framer-motion": "^12.38.0",
     "howler": "^2.2.4",
     "ical-generator": "^10.2.0",
-    "katex": "^0.16.45",
+    "katex": "0.18.2",
     "lucide-react": "^1.8.0",
-    "next": "^16.2.4",
+    "next": "16.3.8",
     "next-themes": "^0.4.6",
     "openai": "^6.37.0",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "react-useanimations": "^2.10.0",
     "resend": "^6.12.2",
-    "sharp": "^0.34.5",
+    "sharp": "0.35.5",
     "stripe": "^22.0.2",
     "tailwind-merge": "^3.5.0",
     "zod": "^4.4.3"
@@ -75,10 +75,10 @@
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
-    "@vitest/ui": "^4.1.6",
+    "@vitest/ui": "4.1.11",
     "concurrently": "^9.2.1",
     "eslint": "^9.39.4",
-    "eslint-config-next": "^16.2.6",
+    "eslint-config-next": "16.3.8",
     "eslint-config-prettier": "^10.1.8",
     "husky": "^9.1.7",
     "jsdom": "^29.1.1",
@@ -89,7 +89,7 @@
     "tailwindcss": "^3.4.1",
     "tsx": "^4.22.1",
     "typescript": "^5",
-    "vitest": "^4.1.6"
+    "vitest": "4.1.11"
   },
   "lint-staged": {
     "*.{ts,tsx}": [
@@ -99,5 +99,10 @@
     "*.{js,mjs,json,md}": [
       "prettier --write"
     ]
+  },
+  "overrides": {
+    "sharp": "$sharp",
+    "postcss-selector-parser": "7.1.6",
+    "shell-quote": "1.11.0"
   }
 }

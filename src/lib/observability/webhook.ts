@@ -22,7 +22,8 @@
 //     webhooks return 200 even on partial failure).
 //   - Catches handler throws and returns 200 to the provider so
 //     it doesn't retry-loop on a broken handler — the Sentry
-//     capture is the paging signal.
+//     capture is the paging signal. Handlers with retry-safe persistence
+//     opt into retryOnError so unexpected throws return 500 instead.
 //
 // Alerting rules live in the Sentry UI (e.g. "page when more
 // than 5 webhook.name:stripe errors in 15min"). The code only
@@ -43,7 +44,11 @@ export type WebhookHandler = (request: Request) => Promise<Response>;
  *  failures still flow through unmodified; we don't want Sentry
  *  pages for invalid-signature attempts (those are noise — providers
  *  occasionally fire with stale secrets after key rotation). */
-export function withWebhookInstrumentation(name: string, handler: WebhookHandler): WebhookHandler {
+export function withWebhookInstrumentation(
+  name: string,
+  handler: WebhookHandler,
+  options: { retryOnError?: boolean } = {}
+): WebhookHandler {
   return async (request: Request) => {
     const start = performance.now();
     Sentry.setTag("webhook.name", name);
@@ -74,10 +79,14 @@ export function withWebhookInstrumentation(name: string, handler: WebhookHandler
         extra: { durationMs },
       });
       // Return 200 so the provider doesn't retry-loop on a
-      // broken handler. Stripe / Cal / Zoom all retry on
+      // broken legacy handler. Retry-safe Stripe handlers opt into 500.
+      // Stripe / Cal / Zoom all retry on
       // non-2xx, and for non-idempotent events a retry could
       // double-process. The Sentry capture above is the page.
-      return NextResponse.json({ error: "webhook_threw", name, durationMs }, { status: 200 });
+      return NextResponse.json(
+        { error: "webhook_threw", name, durationMs },
+        { status: options.retryOnError ? 500 : 200 }
+      );
     }
   };
 }

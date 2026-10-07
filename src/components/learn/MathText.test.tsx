@@ -126,7 +126,12 @@ describe("source-formatting rendering", () => {
     const text = String.raw`In triangles \(RST\) and \(XYZ\) shown, \(\overline{XY}\) is parallel to \(\overline{TS}\) and \(\tan R=\frac{180}{299}\). What is the value of \(\sin X\) in triangle \(XYZ\)?`;
     const { container } = render(<MathText text={text} />);
     expect(container.querySelectorAll(".katex")).toHaveLength(7);
-    expect(container.querySelectorAll(".katex-html .overline")).toHaveLength(2);
+    // Assert visible bars rather than KaTeX's renamed wrapper class.
+    const overlines = container.querySelectorAll<HTMLElement>(".katex-html .overline-line");
+    expect(overlines).toHaveLength(2);
+    expect(Array.from(overlines, (el) => parseFloat(el.style.borderBottomWidth))).toEqual([
+      0.04, 0.04,
+    ]);
     expect(container.querySelectorAll(".katex-html .mfrac")).toHaveLength(1);
     expect(Array.from(container.querySelectorAll("annotation"), (el) => el.textContent)).toEqual([
       "RST",

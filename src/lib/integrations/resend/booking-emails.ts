@@ -13,6 +13,7 @@
 
 import { render } from "@react-email/components";
 import { resend, FROM } from "./client";
+import { sendCheckedEmail } from "./send-checked-email";
 import { buildBookingIcs } from "@/lib/ics/builder";
 import { BookingConfirmation, type BookingConfirmationProps } from "@/emails/BookingConfirmation";
 import { BookingCancellation, type BookingCancellationProps } from "@/emails/BookingCancellation";
@@ -92,7 +93,7 @@ export async function sendBookingConfirmation(ctx: BaseCtx) {
   };
   const html = await render(BookingConfirmation(props));
 
-  return resend.emails.send({
+  return sendCheckedEmail(resend, {
     from: FROM,
     to: recipients(ctx),
     subject: "Your Karman Session is Confirmed",
@@ -135,7 +136,7 @@ export async function sendBookingCancellation(
   };
   const html = await render(BookingCancellation(props));
 
-  return resend.emails.send({
+  return sendCheckedEmail(resend, {
     from: FROM,
     to: recipients(ctx),
     subject: "Your Karman Session Has Been Cancelled",
@@ -175,7 +176,7 @@ export async function sendBookingReschedule(ctx: BaseCtx & { oldStart: Date }) {
   };
   const html = await render(BookingReschedule(props));
 
-  return resend.emails.send({
+  return sendCheckedEmail(resend, {
     from: FROM,
     to: recipients(ctx),
     subject: "Your Karman Session Has Been Rescheduled",
