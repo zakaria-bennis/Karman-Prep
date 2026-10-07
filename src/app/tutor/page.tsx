@@ -27,6 +27,10 @@ import { getUserUuidByClerkId } from "@/lib/supabase/queries/bookings";
 import { getCalConnectionStatus } from "@/lib/supabase/queries/cal-oauth";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import StudentTable from "@/components/tutor/StudentTable";
+import {
+  cohortTopicEmptyMessage,
+  cohortTopicPresentation,
+} from "@/lib/learning-plan/cohort-presentation";
 import { CalendarPlus, AlertCircle } from "lucide-react";
 
 export const metadata: Metadata = { title: "Tutor Portal — Karman" };
@@ -112,6 +116,7 @@ export default async function TutorPage() {
             <ul className="grid gap-3 sm:grid-cols-2">
               {scope.cohorts.map((c) => {
                 const satDate = formatDate(c.sat_date);
+                const topic = cohortTopicPresentation(c.status, c.current_topic);
                 return (
                   <li key={c.id}>
                     <Link
@@ -127,7 +132,9 @@ export default async function TutorPage() {
                         {c.name}
                       </div>
                       <div className="mt-1 text-xs text-taupe dark:text-taupe">
-                        {c.current_topic ?? "No current topic set"}
+                        {topic
+                          ? `${topic.label}: ${topic.topic}`
+                          : cohortTopicEmptyMessage(c.status)}
                       </div>
                       <div className="mt-3 flex items-center justify-between text-xs text-taupe">
                         <span>

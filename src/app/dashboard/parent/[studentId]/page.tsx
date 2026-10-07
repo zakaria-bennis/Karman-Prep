@@ -18,6 +18,7 @@ import { fetchUserRole } from "@/lib/supabase/queries/admin";
 import { createAdminClient } from "@/lib/supabase/server";
 import { buildParentFocusSummary } from "@/lib/parent/focus-summary";
 import { learningPlanCopy } from "@/lib/learning-plan/copy";
+import { cohortPlacementTitle } from "@/lib/learning-plan/cohort-presentation";
 
 export const metadata: Metadata = { title: "Student — Parent Portal | Karman" };
 export const dynamic = "force-dynamic";
@@ -242,7 +243,7 @@ export default async function ParentStudentDetailPage({ params }: PageProps) {
 
         <div className="grid gap-6 md:grid-cols-2">
           {/* Cohort */}
-          <Card icon={UsersIcon} title="Cohort">
+          <Card icon={UsersIcon} title={cohort ? cohortPlacementTitle(cohort.status) : "Cohort"}>
             {cohort ? (
               <div className="space-y-2">
                 <div className="font-semibold text-ivory">{cohort.name}</div>
