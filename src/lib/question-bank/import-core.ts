@@ -40,6 +40,7 @@ import {
 } from "./import-provenance";
 import { validateReviewedAnswer } from "./reviewed-answer";
 import { validatePrivateDraftInput } from "./private-draft";
+import { validateNumericImport } from "./numeric-answer-set";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, Json } from "@/types/supabase";
 import {
@@ -332,17 +333,8 @@ export function validateImportRow(
     if (row.correct_answer && !/^[A-Da-d]$/.test(row.correct_answer.trim())) {
       errors.push(`correct_answer "${row.correct_answer}" is not A/B/C/D`);
     }
-  } else if (fmt === "numeric_entry") {
-    if (row.numeric_tolerance != null && row.numeric_tolerance !== "") {
-      const t =
-        typeof row.numeric_tolerance === "number"
-          ? row.numeric_tolerance
-          : Number.parseFloat(String(row.numeric_tolerance));
-      if (!Number.isFinite(t)) {
-        errors.push(`numeric_tolerance "${row.numeric_tolerance}" is not numeric`);
-      }
-    }
   }
+  errors.push(...validateNumericImport(row));
 
   if (row.import_status === "needs_review" && !row.import_flag_reason?.trim()) {
     errors.push("needs_review row missing import_flag_reason");

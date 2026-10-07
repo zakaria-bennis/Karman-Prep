@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/supabase";
 import type { ImportQuestionInput } from "./import-core";
 import { validateReviewedAnswer } from "./reviewed-answer";
+import { validateNumericImport } from "./numeric-answer-set";
 export type { ReviewedAnswerProvenance } from "./reviewed-answer";
 
 export function importAnswerEvidence(row: ImportQuestionInput) {
@@ -34,6 +35,7 @@ export async function writeImportAnswerProvenance(
       row.correct_answer,
       row.import_status === "needs_review"
     );
+    invalid.push(...validateNumericImport(row));
     if (invalid.length) return invalid;
   }
   const generated = row.reviewed_answer?.kind === "independently_confirmed_generated";

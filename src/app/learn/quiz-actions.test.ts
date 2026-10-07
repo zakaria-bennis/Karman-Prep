@@ -66,6 +66,60 @@ beforeEach(() => {
 });
 
 describe("quiz actions", () => {
+  it.each([
+    ["6", true],
+    ["10", true],
+    ["8", false],
+  ])("grades reviewed numeric answer %s on the server", async (answer, correct) => {
+    mocks.fetchQuestionsForNode.mockResolvedValue([
+      {
+        ...question,
+        answer_format: "numeric_entry",
+        correct_answer: "6",
+        reviewed_numeric_answers: ["6", "10"],
+      },
+    ]);
+    mocks.recordQuestionResponse.mockImplementation(async (input) => ({
+      student_answer: input.student_answer,
+      is_correct: input.is_correct,
+    }));
+    const review = await actionRecordResponse({
+      attempt_id: "00000000-0000-4000-8000-000000000010",
+      question_id: question.id,
+      student_answer: answer as string,
+      response_time_seconds: 3,
+    });
+    expect(review.isCorrect).toBe(correct);
+    expect(mocks.recordQuestionResponse).toHaveBeenCalledWith(
+      expect.objectContaining({ is_correct: correct })
+    );
+  });
+  it("does not regrade a historical first answer after a numeric set is reviewed", async () => {
+    mocks.fetchQuestionsForNode.mockResolvedValue([
+      {
+        ...question,
+        answer_format: "numeric_entry",
+        correct_answer: "6",
+        reviewed_numeric_answers: ["6", "10"],
+      },
+    ]);
+    mocks.fetchResponsesForAttempt.mockResolvedValue([
+      { question_id: question.id, student_answer: "10", is_correct: false },
+    ]);
+    mocks.recordQuestionResponse.mockResolvedValue({ student_answer: "10", is_correct: false });
+    const resumed = await actionStartQuiz("ma-00");
+    expect(resumed.reviews[question.id].isCorrect).toBe(false);
+    expect(JSON.stringify(resumed.questions)).not.toMatch(
+      /reviewed_numeric_answers|correct_answer/
+    );
+    const retry = await actionRecordResponse({
+      attempt_id: "00000000-0000-4000-8000-000000000010",
+      question_id: question.id,
+      student_answer: "6",
+      response_time_seconds: 2,
+    });
+    expect(retry).toMatchObject({ studentAnswer: "10", isCorrect: false });
+  });
   it("does not create an orphan attempt for a node with no approved questions", async () => {
     mocks.fetchQuestionsForNode.mockResolvedValue([]);
     await expect(actionStartQuiz("ma-89")).rejects.toThrow("no questions");

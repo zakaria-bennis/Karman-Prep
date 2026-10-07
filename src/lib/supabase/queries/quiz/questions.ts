@@ -18,6 +18,10 @@ import type {
 import type { QuestionTableData } from "@/types/question-table";
 import type { Json } from "@/types/supabase";
 import { isValidChoiceTableData } from "@/lib/question-bank/choice-table";
+import {
+  numericAnswerSetFromEvidence,
+  reviewedNumericAnswers,
+} from "@/lib/question-bank/numeric-answer-set";
 
 // ── Live-question filter ─────────────────────────────────────
 // PDF-imported questions land with import_status = 'needs_review'
@@ -62,7 +66,32 @@ export async function fetchQuestionsForNode(
     .order("display_order", { ascending: true })
     .order("difficulty", { ascending: true });
   if (error) throw error;
-  return (data ?? []) as QuizQuestionWithChoices[];
+  const questions = data ?? [];
+  const numericIds = questions.filter((q) => q.answer_format === "numeric_entry").map((q) => q.id);
+  if (numericIds.length) {
+    const { data: keys, error: keyError } = await supabase
+      .from("answer_key_entries")
+      .select("question_id, raw_model_response")
+      .in("question_id", numericIds);
+    if (keyError) throw keyError;
+    for (const id of numericIds) {
+      const entries = (keys ?? []).filter((key) => key.question_id === id);
+      if (
+        entries.length > 1 &&
+        entries.some((key) => numericAnswerSetFromEvidence(key.raw_model_response) !== undefined)
+      )
+        throw new Error("Ambiguous reviewed numeric answer evidence");
+    }
+    const evidence = new Map((keys ?? []).map((key) => [key.question_id, key.raw_model_response]));
+    return questions.map((q) => ({
+      ...q,
+      reviewed_numeric_answers: reviewedNumericAnswers(
+        q,
+        numericAnswerSetFromEvidence(evidence.get(q.id))
+      ),
+    })) as QuizQuestionWithChoices[];
+  }
+  return questions as QuizQuestionWithChoices[];
 }
 
 export async function fetchAllQuestionsForAdmin(): Promise<QuizQuestionWithChoices[]> {

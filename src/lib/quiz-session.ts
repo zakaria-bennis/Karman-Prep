@@ -1,4 +1,5 @@
 import { stepDifficultyLevel } from "@/types/quiz";
+import { parseNumericAnswer } from "./numeric-answer";
 import type {
   QuestionResponse,
   QuizDifficultyLevel,
@@ -17,22 +18,15 @@ export function evaluateQuizAnswer(
   if (question.answer_format !== "numeric_entry") {
     return studentAnswer.trim().toUpperCase() === question.correct_answer.trim().toUpperCase();
   }
-  const parse = (value: string): number | null => {
-    const trimmed = value.trim();
-    if (!trimmed) return null;
-    if (/^-?\d+\s*\/\s*\d+$/.test(trimmed)) {
-      const [top, bottom] = trimmed.split("/").map((part) => Number(part.trim()));
-      return bottom === 0 ? null : top / bottom;
-    }
-    const number = Number(trimmed);
-    return Number.isFinite(number) ? number : null;
-  };
-  const answer = parse(studentAnswer);
-  const correct = parse(question.correct_answer);
-  if (answer === null || correct === null) {
-    return studentAnswer.trim() === question.correct_answer.trim();
-  }
-  return Math.abs(answer - correct) <= (question.numeric_tolerance ?? 0) + 1e-9;
+  const answer = parseNumericAnswer(studentAnswer);
+  if (answer === null) return false;
+  const tolerance = question.numeric_tolerance ?? 0;
+  if (!Number.isFinite(tolerance) || tolerance < 0) return false;
+  const accepted = question.reviewed_numeric_answers ?? [question.correct_answer];
+  return accepted.some((value) => {
+    const correct = parseNumericAnswer(value);
+    return correct !== null && Math.abs(answer - correct) <= tolerance + 1e-9;
+  });
 }
 
 /** Keep the first occurrence of each question; duplicate rows must not extend a quiz. */

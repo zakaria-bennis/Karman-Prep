@@ -113,6 +113,8 @@ export interface QuizQuestion {
   answer_format: QuizAnswerFormat; // 'multiple_choice' or 'numeric_entry'
   correct_answer: string; // letter A/B/C/D (MC) OR numeric string (numeric_entry)
   numeric_tolerance: number | null; // ± range for numeric answers; null = exact match
+  /** Server-only, hydrated from source-bound reviewed key evidence; never an input from students. */
+  reviewed_numeric_answers?: string[];
   explanation_text: string;
   explanation_per_choice: Partial<Record<AnswerLetter, string>> | null;
   hint: string | null; // shown to students while answering (optional)

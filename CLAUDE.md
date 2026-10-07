@@ -88,6 +88,14 @@ preview eligible: exact canonical/legacy bindings and complete dependent-write
 checks are required before a disposable local batch. The reviewed CLI still
 has no private-draft flag; `--dry-run` does not access the database.
 
+Numeric questions may store an explicitly reviewed `numeric_answer_set` in
+answer provenance evidence. Version 1 contains distinct numeric answer strings,
+the unchanged stored key, exact displayed/raw question hashes and stable source
+identity, key artifact hash, two distinct review hashes and a rationale. The
+server validates the binding before grading and keeps the set out of unanswered
+student payloads. Missing sets keep single-key grading; malformed/stale sets
+fail closed. No automatic solving, tolerance expansion or history regrading.
+
 ## Testing & verification workflow
 
 Five tools, picked by the question being asked. Start at the cheapest layer
