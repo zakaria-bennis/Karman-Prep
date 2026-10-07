@@ -34,23 +34,23 @@ const STEPS: Step[] = [
   {
     step: "01",
     animation: checkmark,
-    title: "Take the diagnostic",
+    title: "Tell us your starting point",
     description:
-      "Our adaptive 35-question assessment identifies your exact weaknesses across every SAT domain. Takes 35 minutes.",
+      "Create an account and answer questions about your test date, goal, and study time. You can say if you do not have a recent score.",
   },
   {
     step: "02",
     animation: bookmark,
-    title: "Follow your path",
+    title: "Review your options",
     description:
-      "A personalized sequence of lessons, videos, and practice problems targeting your specific gaps. Concepts unlock as you master them.",
+      "See a suggested plan based on your answers. Review its terms before deciding whether to continue.",
   },
   {
     step: "03",
     animation: arrowUpCircle,
-    title: "Track your rise",
+    title: "Find a place to begin",
     description:
-      "See your predicted score climb in real time. Weekly check-ins with your tutor keep momentum high all the way to test day.",
+      "Take the 35-question diagnostic to see how you did on its covered skills, then use your results to choose what to practice next.",
   },
 ];
 
@@ -63,7 +63,7 @@ export default function HowItWorks() {
           <span className="type-label text-taupe">The method</span>
           <h2 className="type-display-lg mt-4 text-ivory">How Karman works.</h2>
           <p className="type-body-lg mx-auto mt-5 max-w-xl text-balance text-taupe">
-            A proven three-step system that takes you from your current score to your target score.
+            Here is what happens after you create an account.
           </p>
         </Reveal>
 
