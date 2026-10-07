@@ -16,6 +16,7 @@ import { resolveEffectiveClerkId } from "@/lib/supabase/queries/admin";
 import { ChevronLeft, Calendar, Users as UsersIcon, BookOpen } from "lucide-react";
 import { fetchUserRole } from "@/lib/supabase/queries/admin";
 import { createAdminClient } from "@/lib/supabase/server";
+import { buildParentFocusSummary } from "@/lib/parent/focus-summary";
 
 export const metadata: Metadata = { title: "Student — Parent Portal | Karman" };
 export const dynamic = "force-dynamic";
@@ -154,6 +155,8 @@ export default async function ParentStudentDetailPage({ params }: PageProps) {
 
   const fullName =
     [student.first_name, student.last_name].filter(Boolean).join(" ") || student.email;
+  const today = new Date().toISOString().slice(0, 10);
+  const summary = buildParentFocusSummary(cohort?.current_topic ?? null, homework, today);
 
   return (
     <div className="min-h-screen bg-night text-ivory">
@@ -180,6 +183,38 @@ export default async function ParentStudentDetailPage({ params }: PageProps) {
             </p>
           </div>
         </header>
+
+        <section
+          className="mb-8 rounded-xl border border-bronze bg-surface/40 p-5"
+          aria-labelledby="parent-focus-title"
+        >
+          <h2 id="parent-focus-title" className="text-lg font-bold text-ivory">
+            Current focus and next step
+          </h2>
+          <p className="mt-3 text-sm text-ivory">
+            <span className="font-semibold">Current focus: </span>
+            {summary.focus ?? "No current topic has been posted yet."}
+          </p>
+          <p className="mt-2 text-sm text-ivory">
+            <span className="font-semibold">Upcoming assignment: </span>
+            {summary.nextAction ? (
+              <>
+                {summary.nextAction}
+                {summary.nextDueAt && <> · Due {formatDate(summary.nextDueAt.slice(0, 10))}</>}
+              </>
+            ) : (
+              "No assignment with an upcoming due date is posted."
+            )}
+          </p>
+          {summary.recentAssignment && !summary.nextAction && (
+            <p className="mt-2 text-sm text-taupe">
+              Most recently posted: {summary.recentAssignment}
+            </p>
+          )}
+          <p className="mt-3 text-xs text-taupe">
+            This view shows posted plans, not assignment completion or a score prediction.
+          </p>
+        </section>
 
         <div className="grid gap-6 md:grid-cols-2">
           {/* Cohort */}
