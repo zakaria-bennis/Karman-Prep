@@ -42,6 +42,20 @@ export function parseSerializedFunctionLines(
   for (const match of text.matchAll(/\bwhere (f\(x\) *= *ab\^x *\+ *c)(?=,)/g)) {
     matches.push({ index: match.index! + 6, length: match[1].length, latex: "f(x) = ab^{x} + c" });
   }
+  // Reviewed numeric equation in prose, with an explicit introducer and a full
+  // stop after the complete expression. Keep the coefficient and offset outside
+  // the exponent, retaining the source's parenthesized positive base.
+  const inlineEquationPattern =
+    /\bequation ([A-Za-z]) *= *([-−]?\d+(?:\.\d+)?)\((\d+(?:\.\d+)?)\)\^([A-Za-z]) *\+ *(\d+(?:\.\d+)?)(?=\.(?:\s|$))/g;
+  for (const match of text.matchAll(inlineEquationPattern)) {
+    const [, dependent, coefficient, base, variable, constant] = match;
+    if (Number(base) <= 0) continue;
+    matches.push({
+      index: match.index! + 9,
+      length: match[0].length - 9,
+      latex: `${dependent} = ${coefficient.replace("−", "-")}(${base})^{${variable}} + ${constant}`,
+    });
+  }
   const runs: SerializedFunctionRun[] = [];
   let cursor = 0;
   for (const { index, length, latex } of matches.sort((a, b) => a.index - b.index)) {

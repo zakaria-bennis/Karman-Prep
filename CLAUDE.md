@@ -43,7 +43,9 @@ paying users yet.
 - Math question stems and choices opt into narrowly specified exponential
   display support: complete `f(x) = a(b)^(x/n)` lines with matching variables and
   a positive integer denominator, complete numeric `f(x) = −b^x + c` lines,
-  and the exact comma-delimited inline clause `where f(x) = ab^x + c,`.
+  the exact comma-delimited inline clause `where f(x) = ab^x + c,`, and
+  complete numeric exponential expressions introduced by `equation ` and
+  followed by a sentence-ending period, such as `equation y = 5(2)^x + 9.`.
   Numeric bases must be positive. ASCII and Unicode minus signs are supported;
   unary minus stays outside the power, and additive constants stay outside the
   exponent. This changes display only; approved source bytes remain intact.

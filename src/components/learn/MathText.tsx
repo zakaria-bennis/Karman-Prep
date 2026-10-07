@@ -21,7 +21,7 @@ interface Props {
   text: string;
   className?: string;
   blockClassName?: string;
-  /** Math stems only: display complete supported ASCII exponential function lines. */
+  /** Math stems/choices only: display narrowly specified reviewed exponential notation. */
   serializedFunctionLines?: boolean;
   /** When true, also treat the literal word "blank" (alone or wrapped
    *  in `_` / `-` chars) as a fill-in-the-blank marker. Default false

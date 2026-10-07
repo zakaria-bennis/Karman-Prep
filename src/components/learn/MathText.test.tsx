@@ -9,6 +9,28 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 describe("source-formatting rendering", () => {
+  it("raises only the source x in the complete December Q13 inline equation", () => {
+    const text =
+      "The table shows three values of x and their corresponding values of y for the equation y = 5(2)^x + 9. In the table, a is a constant. What is the value of a?";
+    const { container, rerender } = render(<MathText text={text} />);
+    expect(container.textContent).toBe(text);
+    expect(container.querySelector(".katex")).toBeNull();
+    rerender(<MathText text={text} serializedFunctionLines />);
+    expect(container.querySelector("annotation")?.textContent).toBe("y = 5(2)^{x} + 9");
+    expect(container.querySelectorAll(".source-function-math .msupsub")).toHaveLength(1);
+    expect(container.querySelector(".msupsub")?.textContent).toBe("x");
+    container.querySelectorAll(".katex").forEach((e) => e.remove());
+    expect(container.textContent).toBe(text.replace("y = 5(2)^x + 9", ""));
+  });
+  it.each([
+    "equation y = 5(2)^<u>x</u> + 9.",
+    "equation y = 5(2)^x + $9$.",
+    "equation $y$ = 5(2)^x + 9.",
+    String.raw`equation \(y = 5(2)^{x} + 9\).`,
+  ])("does not reinterpret an equation across explicit formatting boundaries: %s", (text) => {
+    const { container } = render(<MathText text={text} serializedFunctionLines />);
+    expect(container.querySelector(".source-function-math")).toBeNull();
+  });
   it.each([
     ["f(x) = −26(2)^(x/6)", String.raw`f(x) = -26(2)^{\frac{x}{6}}`],
     ["Shown, where f(x) = ab^x + c, and constants follow.", "f(x) = ab^{x} + c"],

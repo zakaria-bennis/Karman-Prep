@@ -2,6 +2,28 @@ import { describe, expect, it } from "vitest";
 import { parseSerializedFunctionLines } from "./serialized-function-math";
 
 describe("supported serialized exponential function lines", () => {
+  it("renders the exact December Q13 inline equation while preserving its prose", () => {
+    const before =
+      "The table shows three values of x and their corresponding values of y for the equation ";
+    const after = ". In the table, a is a constant. What is the value of a?";
+    expect(parseSerializedFunctionLines(before + "y = 5(2)^x + 9" + after)).toEqual([
+      { kind: "text", value: before },
+      { kind: "inline", sourceFunction: true, latex: "y = 5(2)^{x} + 9" },
+      { kind: "text", value: after },
+    ]);
+  });
+  it.each([
+    "y = 5(2)^x + 9",
+    "equation y = 5(2)^x + 9,",
+    "equation y = 5(2)^(x+1) + 9.",
+    "equation y = 5(2)^xy + 9.",
+    "equation y = 5(2)^x + 9 + 1.",
+    "equation y = 5(-2)^x + 9.",
+    "equation y = 5(0)^x + 9.",
+    "equation y = 5(2)^x + 9.5x.",
+  ])("does not guess unsupported inline equation syntax: %s", (text) => {
+    expect(parseSerializedFunctionLines(text)).toEqual([{ kind: "text", value: text }]);
+  });
   it("preserves the Unicode-negative coefficient and fractional exponent from March Q14", () => {
     expect(parseSerializedFunctionLines("f(x) = −26(2)^(x/6)\n\nWhich table?")).toEqual([
       { kind: "inline", sourceFunction: true, latex: String.raw`f(x) = -26(2)^{\frac{x}{6}}` },
