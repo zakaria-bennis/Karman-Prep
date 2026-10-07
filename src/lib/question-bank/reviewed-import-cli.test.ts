@@ -24,8 +24,30 @@ function run(
       question_text: "Solve x + 2 = 5.",
       correct_answer: "3",
       domain: "algebra",
+      topic_cluster: "Algebra",
       question_format: "numeric_entry",
-      concept_slug: "linear-equations-one-variable",
+      concept_slug: null,
+      reviewed_answer: {
+        kind: "official",
+        printed_answer: "3",
+        independently_verified_answer: "3",
+        evidence: {
+          B_package_sha256: "c".repeat(64),
+          B_student_sha256: "b".repeat(64),
+          approved_tags: {
+            schema_version: 1,
+            stable_question_id: "synthetic-math-m2-q4",
+            catalog_skill_id: "ma-skill-linear-equations-in-one-variable",
+            catalog_domain_id: "algebra",
+            domain_label: "Algebra",
+            skill_label: "Linear equations in one variable",
+            tag_binding_manifest_sha256: "d".repeat(64),
+            pilot_row_sha256: "e".repeat(64),
+            content_sha256: "c".repeat(64),
+            student_content_sha256: "b".repeat(64),
+          },
+        },
+      },
       difficulty_level: 7,
       difficulty_rationale: "Synthetic boundary test, not a real assessment.",
       difficulty_confidence: 0.95,
@@ -149,10 +171,20 @@ describe("reviewed import CLI boundary", () => {
     expect(missing.stderr).toContain("frozen input manifest");
     expect(missing.stderr).not.toContain("Missing NEXT_PUBLIC_SUPABASE_URL");
   });
-  it("holds a pinned write with no approved concept tag", () => {
-    const result = run({ concept_slug: null }, false);
+  it("holds a pinned write with no approved catalog tag", () => {
+    const result = run(
+      {
+        reviewed_answer: {
+          kind: "official",
+          printed_answer: "3",
+          independently_verified_answer: "3",
+          evidence: {},
+        },
+      },
+      false
+    );
     expect(result.status).toBe(2);
-    expect(result.stderr).toContain("concept tag");
+    expect(result.stderr).toContain("approved tag evidence");
     expect(result.stderr).not.toContain("Missing NEXT_PUBLIC_SUPABASE_URL");
   });
   it.each(["stale-json", "stale-pdf", "stale-manifest"] as const)(

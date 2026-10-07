@@ -1,6 +1,8 @@
-import { createHash } from "node:crypto";
 import { z } from "zod";
-import { clusterFromSlug, isValidSlug } from "@/lib/question-bank/taxonomy";
+import { verifyApprovedTagRow } from "./approved-tag-binding";
+import { canonicalJson, sha256Hex } from "./reviewed-input-hash";
+
+export { canonicalJson, sha256Hex } from "./reviewed-input-hash";
 
 const sha256 = z.string().regex(/^[a-f0-9]{64}$/);
 const rowPin = z
@@ -21,24 +23,6 @@ const frozenInputManifest = z
   .strict();
 
 export type FrozenInputManifest = z.infer<typeof frozenInputManifest>;
-
-export function sha256Hex(bytes: Uint8Array | string): string {
-  return createHash("sha256").update(bytes).digest("hex");
-}
-
-/** Hash parsed JSON without depending on property order in one serializer. */
-export function canonicalJson(value: unknown): string {
-  if (value === null || typeof value !== "object") {
-    if (["string", "number", "boolean"].includes(typeof value)) return JSON.stringify(value);
-    if (value === null) return "null";
-    throw new Error("Frozen row contains a non-JSON value");
-  }
-  if (Array.isArray(value)) return `[${value.map(canonicalJson).join(",")}]`;
-  return `{${Object.entries(value)
-    .sort(([left], [right]) => (left < right ? -1 : left > right ? 1 : 0))
-    .map(([key, item]) => `${JSON.stringify(key)}:${canonicalJson(item)}`)
-    .join(",")}}`;
-}
 
 export function verifyFrozenReviewedInput(args: {
   manifestBytes: Uint8Array;
@@ -81,11 +65,10 @@ export function verifyFrozenReviewedInput(args: {
     }
     const row = value as Record<string, unknown>;
     const pin = manifest.rows[index];
-    if (typeof row.concept_slug !== "string" || !isValidSlug(row.concept_slug)) {
-      return { ok: false, error: `Row ${index + 1} lacks an approved concept tag` };
-    }
-    if (row.topic_cluster != null && row.topic_cluster !== clusterFromSlug(row.concept_slug)) {
-      return { ok: false, error: `Row ${index + 1} topic tag differs from the reviewed concept` };
+    try {
+      verifyApprovedTagRow(row);
+    } catch (error) {
+      return { ok: false, error: `Row ${index + 1} ${String((error as Error).message)}` };
     }
     if (row.stable_question_id !== pin.stable_question_id || seen.has(pin.stable_question_id)) {
       return { ok: false, error: `Row ${index + 1} identity differs or repeats` };

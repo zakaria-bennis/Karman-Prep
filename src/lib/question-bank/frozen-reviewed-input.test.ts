@@ -12,12 +12,30 @@ const row = {
   choice_a: "$-3$",
   choice_b: "$3$",
   correct_answer: "B",
-  concept_slug: "linear-equations-one-variable",
+  domain: "algebra",
+  topic_cluster: "Algebra",
+  concept_slug: null,
   difficulty_content_sha256: "b".repeat(64),
   reviewed_answer: {
     kind: "official",
     printed_answer: "B",
     independently_verified_answer: "B",
+    evidence: {
+      B_package_sha256: "a".repeat(64),
+      B_student_sha256: "b".repeat(64),
+      approved_tags: {
+        schema_version: 1,
+        stable_question_id: "synthetic-math-m1-q1",
+        catalog_skill_id: "ma-skill-linear-equations-in-one-variable",
+        catalog_domain_id: "algebra",
+        domain_label: "Algebra",
+        skill_label: "Linear equations in one variable",
+        tag_binding_manifest_sha256: "c".repeat(64),
+        pilot_row_sha256: "d".repeat(64),
+        content_sha256: "a".repeat(64),
+        student_content_sha256: "b".repeat(64),
+      },
+    },
   },
   source_version: {
     content_sha256: "a".repeat(64),
@@ -104,17 +122,34 @@ describe("frozen reviewed import input", () => {
     });
   });
 
-  it("holds absent concept tags and stale D content bindings", () => {
-    expect(verifyFrozenReviewedInput(fixture([{ ...row, concept_slug: "" }]))).toMatchObject({
+  it("holds absent or conflicting approved tags and stale D content bindings", () => {
+    expect(
+      verifyFrozenReviewedInput(
+        fixture([{ ...row, reviewed_answer: { ...row.reviewed_answer, evidence: {} } }])
+      )
+    ).toMatchObject({
       ok: false,
-      error: expect.stringContaining("concept tag"),
+      error: expect.stringContaining("approved tag evidence"),
     });
     expect(verifyFrozenReviewedInput(fixture([{ ...row, topic_cluster: "Wrong" }]))).toMatchObject({
       ok: false,
-      error: expect.stringContaining("topic tag"),
+      error: expect.stringContaining("catalog skill/domain/topic"),
+    });
+    expect(
+      verifyFrozenReviewedInput(
+        fixture([{ ...row, concept_slug: "linear-equations-one-variable" }])
+      )
+    ).toMatchObject({
+      ok: true,
+    });
+    expect(
+      verifyFrozenReviewedInput(fixture([{ ...row, concept_slug: "rhetorical-synthesis" }]))
+    ).toMatchObject({
+      ok: false,
+      error: expect.stringContaining("legacy concept link"),
     });
     expect(
       verifyFrozenReviewedInput(fixture([{ ...row, difficulty_content_sha256: "c".repeat(64) }]))
-    ).toMatchObject({ ok: false, error: expect.stringContaining("difficulty rates") });
+    ).toMatchObject({ ok: false, error: expect.stringContaining("approved tag evidence differs") });
   });
 });
