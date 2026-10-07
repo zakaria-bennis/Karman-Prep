@@ -20,7 +20,7 @@ const FAQ_SECTIONS: { title: string; items: FAQItem[] }[] = [
     items: [
       {
         q: "What is Karman?",
-        a: "Karman is a personalized SAT tutoring platform built around two expert tutors — Zakaria and Nabil. We combine adaptive diagnostic assessments, structured lesson plans, and 1-on-1 coaching to help students improve their SAT scores by an average of 285 points.",
+        a: "Karman brings digital SAT skill practice, a signed-in diagnostic, and tutoring support into one place. The diagnostic shows performance on its covered questions; it is not an official score prediction.",
       },
       {
         q: "How does the free trial work?",
@@ -28,15 +28,15 @@ const FAQ_SECTIONS: { title: string; items: FAQItem[] }[] = [
       },
       {
         q: "Who are the tutors?",
-        a: "Zakaria and Nabil are the core tutors at Karman. Both scored in the 99th percentile on the SAT and have collectively tutored over 2,400 students. They specialize in SAT math and have developed a teaching methodology that consistently produces 200–300+ point improvements. Students regularly credit them by name for their success.",
+        a: "Tutor availability depends on the current plan and schedule. Email support@karmanprep.com if you want to confirm who would teach your sessions before choosing a plan.",
       },
       {
         q: "What's the first thing I should do after signing up?",
-        a: "Take the free 20-question diagnostic assessment. It covers all four SAT math domains and gives you a predicted score range, a domain-by-domain breakdown, and an auto-generated learning path. The whole thing takes about 35 minutes and immediately tells you where to focus.",
+        a: "Answer the onboarding questions to see a suggested plan and why it was selected. Choosing a plan starts checkout. You can also take the signed-in 35-question diagnostic to review performance on the skills it covers.",
       },
       {
         q: "Is Karman just for math, or does it cover Reading & Writing too?",
-        a: "Our current curriculum is focused on SAT Math, which is where the largest score improvements come from for most students. Reading & Writing content is on our roadmap and will be available soon.",
+        a: "The current diagnostic includes Math and Reading & Writing questions. Lesson and practice coverage varies by skill; check what is available in the product before choosing a plan.",
       },
     ],
   },
@@ -103,7 +103,7 @@ const FAQ_SECTIONS: { title: string; items: FAQItem[] }[] = [
       },
       {
         q: "Does the guarantee apply to all plans?",
-        a: "Yes — the 50-point improvement guarantee applies to all active subscribers across all plans. Elite students typically see even higher improvements (our average is +285 pts), but the guarantee is 50 points minimum.",
+        a: "The published guarantee page lists the eligible plans and all requirements. Review those terms, including the diagnostic, paid duration, participation, official test, and claim deadline, before choosing a plan.",
       },
       {
         q: "How do I claim the guarantee?",
@@ -116,7 +116,7 @@ const FAQ_SECTIONS: { title: string; items: FAQItem[] }[] = [
     items: [
       {
         q: "How does the diagnostic work?",
-        a: "The diagnostic is a 20-question adaptive assessment timed at 90 seconds per question. It covers Algebra, Advanced Math, Geometry, and Data Analysis. After you finish, you instantly see your predicted score range, a color-coded domain breakdown, and a personalized concept map of what to study first.",
+        a: "The signed-in diagnostic has 35 Math and Reading & Writing questions. Its results describe performance on the skills sampled by those questions, not a predicted official SAT score. It is normally taken once; another attempt requires an approved reset.",
       },
       {
         q: "How are concepts unlocked?",
@@ -124,11 +124,11 @@ const FAQ_SECTIONS: { title: string; items: FAQItem[] }[] = [
       },
       {
         q: "How many lessons are in the curriculum?",
-        a: "The current library has 15 core SAT math concepts with associated lessons, videos, and practice questions. We're adding 10–15 new concepts per month, aiming for 100+ concepts by end of year.",
+        a: "Available lessons and questions vary by skill. Open the learning area to see current coverage; Karman does not promise a fixed number of new lessons on a schedule.",
       },
       {
         q: "Can parents track their child's progress?",
-        a: "Yes — parents who sign up with the Parent role get a dedicated dashboard showing their child's streak, mastered concepts, domain progress, and predicted score trend. Weekly progress emails are also sent automatically.",
+        a: "A linked parent can see a permitted progress summary and upcoming commitments in the parent dashboard. Access depends on the student-parent relationship recorded for the account.",
       },
     ],
   },
