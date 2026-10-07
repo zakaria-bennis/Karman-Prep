@@ -25,7 +25,7 @@ describe("public landing entry", () => {
     render(<HomePage />);
 
     expect(
-      screen.getByRole("heading", { level: 1, name: /SAT prep with a clear next step/i })
+      screen.getByRole("heading", { level: 1, name: /Know what to practice next/i })
     ).toBeTruthy();
     expect(screen.getByRole("link", { name: /Create an account/i }).getAttribute("href")).toBe(
       "/auth/sign-up"
@@ -34,7 +34,9 @@ describe("public landing entry", () => {
       "#sample-quiz"
     );
     expect(screen.getByText(/The diagnostic requires sign-in/)).toBeTruthy();
-    expect(screen.getByText(/not a predicted official SAT score/)).toBeTruthy();
+    expect(
+      screen.getByRole("heading", { name: /A starting point, not a score prediction/i })
+    ).toBeTruthy();
     expect(document.body.textContent).not.toMatch(
       /2,400|\+285|4\.9\/5|real students|sample lesson/i
     );

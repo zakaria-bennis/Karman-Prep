@@ -8,8 +8,8 @@ import Navbar from "@/components/landing/Navbar";
 import Hero from "@/components/landing/Hero";
 import DiagnosticTeaser from "@/components/landing/DiagnosticTeaser";
 import HowItWorks from "@/components/landing/HowItWorks";
+import ProductPreview from "@/components/landing/ProductPreview";
 import Pricing from "@/components/landing/Pricing";
-import EmailCapture from "@/components/landing/EmailCapture";
 import Footer from "@/components/landing/Footer";
 
 export const metadata: Metadata = {
@@ -19,21 +19,17 @@ export const metadata: Metadata = {
 };
 
 export default function HomePage() {
-  // Landing is always rendered in dark mode — this is a designed,
-  // branded experience that ignores the visitor's theme preference.
-  // All `dark:` variants inside landing sections activate via this
-  // wrapper (Tailwind darkMode: 'class' matches any ancestor .dark).
   return (
-    <div className="dark">
+    <>
+      <Navbar />
       <main className="min-h-screen bg-night">
-        <Navbar />
         <Hero />
         <DiagnosticTeaser />
         <HowItWorks />
+        <ProductPreview />
         <Pricing />
-        <EmailCapture />
-        <Footer />
       </main>
-    </div>
+      <Footer />
+    </>
   );
 }
