@@ -75,7 +75,6 @@ export default function Footer() {
               {[
                 ["How It Works", "/#how-it-works"],
                 ["Pricing", "/#pricing"],
-                ["Sample Lesson", "/#sample-lesson"],
                 ["Diagnostic", "/diagnostic"],
                 ["FAQ", "/faq"],
               ].map(([label, href]) => (

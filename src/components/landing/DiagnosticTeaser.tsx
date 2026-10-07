@@ -16,13 +16,13 @@ export default function DiagnosticTeaser() {
       <div className="relative mx-auto max-w-3xl px-4 sm:px-6">
         {/* Headline */}
         <div className="mb-10 text-center">
-          <span className="type-label text-taupe">Your free diagnostic</span>
+          <span className="type-label text-taupe">Signed-in diagnostic</span>
           <h2 className="type-display-lg mt-4 text-ivory">
-            Find your SAT <span className="italic text-gold-bright">baseline</span>.
+            See where to <span className="italic text-gold-bright">begin</span>.
           </h2>
           <p className="type-body-lg mt-4 text-balance text-taupe">
-            35 questions across all eight Digital SAT domains. Get a difficulty-weighted score
-            range, a per-domain breakdown, and the exact topics you need to start with.
+            Answer 35 Math and Reading &amp; Writing questions. Your results show how you did on the
+            skills covered here, not a predicted official SAT score.
           </p>
         </div>
 
@@ -32,7 +32,7 @@ export default function DiagnosticTeaser() {
             <StatCard
               icon={<Clock className="h-5 w-5" />}
               value="~35 min"
-              label="One sitting, untimed retakes never offered"
+              label="Allow time to finish in one sitting"
             />
             <StatCard
               icon={<ClipboardCheck className="h-5 w-5" />}
@@ -41,14 +41,14 @@ export default function DiagnosticTeaser() {
             />
             <StatCard
               icon={<Sparkles className="h-5 w-5" />}
-              value="Foundation-aware"
-              label="Tells you what to start with — not just what's lowest"
+              value="Skill breakdown"
+              label="Review your results across the covered skills"
             />
           </div>
 
           {/* CTA */}
           <Link href="/diagnostic" className="btn-primary w-full justify-center py-4 text-base">
-            Begin the diagnostic
+            Open the diagnostic
             <ArrowRight className="h-5 w-5" />
           </Link>
           <p className="mt-3 text-center text-xs text-taupe/80">

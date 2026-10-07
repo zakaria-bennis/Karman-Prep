@@ -99,8 +99,9 @@ export default function GuaranteePage() {
               The 50-Point <span className="text-info dark:text-info">Score Guarantee</span>
             </h1>
             <p className="mx-auto max-w-xl text-lg text-taupe dark:text-ivory">
-              If you follow the Karman program and your SAT score doesn&apos;t improve by at least
-              50 points, we will refund every dollar you paid. No fine print. No runaround.
+              A refund is available if you meet the eligibility requirements below and your score
+              improvement is less than 50 points. Review the required diagnostic, 16 paid weeks,
+              participation, official test, and claim steps before joining.
             </p>
           </div>
         </section>

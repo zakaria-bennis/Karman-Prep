@@ -23,7 +23,7 @@ export default function Navbar() {
   const navLinks = [
     { label: "How It Works", href: "/#how-it-works" },
     { label: "Pricing", href: "/#pricing" },
-    { label: "Results", href: "/#results" },
+    { label: "Diagnostic", href: "/#sample-quiz" },
     { label: "FAQ", href: "/faq" },
   ];
 
@@ -60,7 +60,7 @@ export default function Navbar() {
                   Sign In
                 </Link>
                 <Link href="/auth/sign-up" className="btn-primary px-5 py-2.5 text-sm">
-                  Start Free Trial
+                  Create an account
                 </Link>
               </>
             )}
@@ -111,7 +111,7 @@ export default function Navbar() {
                     Sign In
                   </Link>
                   <Link href="/auth/sign-up" className="btn-primary py-2.5 text-center text-sm">
-                    Start Free Trial
+                    Create an account
                   </Link>
                 </>
               )}

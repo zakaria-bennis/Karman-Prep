@@ -8,17 +8,14 @@ import Navbar from "@/components/landing/Navbar";
 import Hero from "@/components/landing/Hero";
 import DiagnosticTeaser from "@/components/landing/DiagnosticTeaser";
 import HowItWorks from "@/components/landing/HowItWorks";
-import SocialProof from "@/components/landing/SocialProof";
-import SampleLesson from "@/components/landing/SampleLesson";
-import FounderSection from "@/components/landing/FounderSection";
 import Pricing from "@/components/landing/Pricing";
 import EmailCapture from "@/components/landing/EmailCapture";
 import Footer from "@/components/landing/Footer";
 
 export const metadata: Metadata = {
-  title: "Karman — SAT Tutoring That Gets Results",
+  title: "Karman — Digital SAT Practice and Tutoring",
   description:
-    "Personalized SAT prep with expert tutors, adaptive diagnostics, and a 50-point score improvement guarantee. Start free today.",
+    "Digital SAT practice and tutoring support. Explore the diagnostic, create an account, and see a suggested plan based on your starting point.",
 };
 
 export default function HomePage() {
@@ -33,9 +30,6 @@ export default function HomePage() {
         <Hero />
         <DiagnosticTeaser />
         <HowItWorks />
-        <SocialProof />
-        <FounderSection />
-        <SampleLesson />
         <Pricing />
         <EmailCapture />
         <Footer />

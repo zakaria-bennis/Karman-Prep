@@ -10,16 +10,14 @@
 // it; film grain gives the canvas paper tooth. Copy settles in
 // (fade + 8px rise) — nothing springs, nothing chases the cursor.
 //
-// The headline is "Built to ___" where the last word rotates
-// through the brand promises in star-gold italic serif.
+// The first screen names the learner's job and the next action.
 // ============================================================
 
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight, Star, Shield, Zap } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
 import ConstellationBackground from "./ConstellationBackground";
-import RotatingWord from "./RotatingWord";
 import { settle, settleTransition, stagger } from "@/lib/motion";
 import heroBg from "@/assets/hero-bg.png";
 
@@ -51,25 +49,13 @@ export default function Hero() {
         initial="hidden"
         animate="show"
       >
-        {/* Eyebrow */}
-        <motion.div variants={settle} transition={settleTransition}>
-          <div className="type-label inline-flex items-center gap-2 rounded-full border border-bronze bg-surface/70 px-4 py-1.5 text-taupe backdrop-blur-sm">
-            <Star className="h-3.5 w-3.5 fill-gold text-gold" />
-            <span>2,400+ students improved their scores</span>
-          </div>
-        </motion.div>
-
-        {/* Headline — "Built to [rotating word]." */}
+        {/* Clear first-screen purpose on desktop and mobile. */}
         <motion.h1
           variants={settle}
           transition={settleTransition}
           className="type-display-xl mt-8 text-balance text-ivory"
         >
-          <span className="block">Built to</span>
-          <span className="mt-1 block sm:mt-2">
-            <RotatingWord />
-            <span className="text-ivory">.</span>
-          </span>
+          SAT prep with a clear next step.
         </motion.h1>
 
         {/* Subtext */}
@@ -78,9 +64,8 @@ export default function Hero() {
           transition={settleTransition}
           className="type-body-lg mx-auto mt-8 max-w-2xl text-balance text-taupe"
         >
-          Personalized SAT prep with expert tutors, adaptive diagnostics, and a{" "}
-          <span className="font-medium text-ivory">50-point score improvement guarantee</span>
-          —or your money back.
+          For students preparing for the digital SAT: answer a few starting questions, see a
+          suggested plan, and use focused practice and tutoring support.
         </motion.p>
 
         {/* CTAs — gold invitation + quiet secondary. No magnetism. */}
@@ -90,11 +75,11 @@ export default function Hero() {
           className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row"
         >
           <Link href="/auth/sign-up" className="btn-primary group w-full px-8 py-4 sm:w-auto">
-            Start Free Trial
+            Create an account
             <ArrowRight className="h-5 w-5 transition-transform duration-fast group-hover:translate-x-0.5" />
           </Link>
           <a href="#sample-quiz" className="btn-secondary w-full px-8 py-4 sm:w-auto">
-            Take the Free Quiz
+            Explore the diagnostic
           </a>
         </motion.div>
 
@@ -103,50 +88,8 @@ export default function Hero() {
           transition={settleTransition}
           className="mt-4 text-sm text-taupe/80"
         >
-          Cancel anytime · No card required
+          The diagnostic requires sign-in and covers a limited set of questions.
         </motion.p>
-
-        {/* Trust line */}
-        <motion.div
-          variants={settle}
-          transition={settleTransition}
-          className="mt-14 flex flex-wrap justify-center gap-x-10 gap-y-4"
-        >
-          {[
-            { icon: Shield, label: "Score Guarantee" },
-            { icon: Zap, label: "Adaptive Learning" },
-            { icon: Star, label: "4.9/5 Rating" },
-          ].map(({ icon: Icon, label }) => (
-            <div key={label} className="flex items-center gap-2 text-sm font-medium text-taupe">
-              <Icon className="h-4 w-4 text-gold" />
-              {label}
-            </div>
-          ))}
-        </motion.div>
-
-        {/* Score improvement card — the earned moment gets the gold. */}
-        <motion.div
-          variants={settle}
-          transition={settleTransition}
-          className="card-surface mx-auto mt-14 max-w-sm p-6"
-        >
-          <p className="type-label mb-4 text-taupe">Average score improvement</p>
-          <div className="flex items-end justify-center gap-4">
-            <div className="text-center">
-              <div className="type-mono text-2xl font-medium text-taupe">1235</div>
-              <div className="mt-1 text-xs text-taupe/80">Before</div>
-            </div>
-            <div className="mb-1 flex items-center gap-2">
-              <div className="h-px w-8 bg-gradient-to-r from-bronze to-gold" />
-              <span className="type-mono text-sm font-medium text-gold-bright">+285</span>
-              <div className="h-px w-8 bg-gradient-to-r from-gold to-bronze" />
-            </div>
-            <div className="text-center">
-              <div className="type-mono text-2xl font-medium text-ivory">1520</div>
-              <div className="mt-1 text-xs text-taupe/80">After</div>
-            </div>
-          </div>
-        </motion.div>
       </motion.div>
     </section>
   );
