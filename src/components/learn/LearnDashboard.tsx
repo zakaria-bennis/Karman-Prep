@@ -2,15 +2,23 @@ import Link from "next/link";
 import { ArrowRight, BookOpen, Calculator, CalendarDays, MessageSquare } from "lucide-react";
 import type { LearnDashboardData, SubjectProgress } from "@/lib/learn/dashboard";
 import { learningPlanCopy } from "@/lib/learning-plan/copy";
+import StudentWeekCalendar from "./StudentWeekCalendar";
+import type { StudentCalendarData } from "@/lib/learn/week-calendar";
 
 export default function LearnDashboard({
   dashboard,
   embedded = false,
   diagnostic = null,
+  calendar,
+  calendarAsOf,
+  preferredTimeZone = null,
 }: {
   dashboard: LearnDashboardData;
   embedded?: boolean;
   diagnostic?: { score_range_low: number; score_range_high: number } | null;
+  calendar?: StudentCalendarData;
+  calendarAsOf?: string;
+  preferredTimeZone?: string | null;
 }) {
   return (
     <div className="min-h-screen bg-night text-ivory">
@@ -20,45 +28,60 @@ export default function LearnDashboard({
         <header className="max-w-2xl">
           <h1 className="type-display-m">Your study desk</h1>
           <p className="mt-3 text-base leading-relaxed text-taupe">
-            Pick up a lesson, practice a subject, or look back at your answers.
+            {calendar
+              ? "See your scheduled sessions, educator-posted work, and practice you can pick up anytime."
+              : "Pick up a lesson, practice a subject, or look back at your answers."}
           </p>
         </header>
 
-        <div className="mt-10 grid gap-10 border-t border-bronze pt-8 lg:grid-cols-[minmax(0,1.55fr)_minmax(16rem,1fr)] lg:gap-16">
-          <section aria-labelledby="next-heading">
-            <h2 id="next-heading" className="type-h2">
-              {learningPlanCopy.studentHeading}
-            </h2>
-            {dashboard.next ? (
-              <div className="mt-5 border-l-4 border-gold bg-surface px-5 py-7 sm:px-7">
-                <p className="text-sm text-gold">Earlier lesson</p>
-                <h3 className="mt-2 font-plex-serif text-2xl leading-snug text-ivory sm:text-3xl">
-                  {dashboard.next.title}
-                </h3>
-                <p className="mt-3 text-sm leading-relaxed text-taupe">{dashboard.next.detail}</p>
-                <Link
-                  href={dashboard.next.href}
-                  className="mt-7 inline-flex min-h-11 items-center gap-2 rounded-lg bg-gold px-5 py-2.5 text-sm font-semibold text-night hover:bg-gold-bright focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-bright"
-                >
-                  {dashboard.next.label} <ArrowRight aria-hidden className="h-4 w-4" />
-                </Link>
-              </div>
-            ) : (
-              <div className="mt-5 border-l-4 border-gold bg-surface px-5 py-7 sm:px-7">
-                <h3 className="font-plex-serif text-2xl text-ivory sm:text-3xl">
-                  Choose a subject to begin
-                </h3>
-                <p className="mt-3 max-w-lg text-sm leading-relaxed text-taupe">
-                  Explore the skill catalog, then open an earlier lesson when you are ready to
-                  practice. Your saved results will appear here.
-                </p>
-                <div className="mt-6 flex flex-wrap gap-3">
-                  <ActionLink href="/learn/reading">Reading &amp; Writing</ActionLink>
-                  <ActionLink href="/learn/math">Math</ActionLink>
+        {calendar && calendarAsOf && (
+          <StudentWeekCalendar
+            data={calendar}
+            asOf={calendarAsOf}
+            preferredTimeZone={preferredTimeZone}
+            next={dashboard.next}
+          />
+        )}
+
+        <div
+          className={`mt-10 grid gap-10 border-t border-bronze pt-8 lg:gap-16 ${calendar ? "" : "lg:grid-cols-[minmax(0,1.55fr)_minmax(16rem,1fr)]"}`}
+        >
+          {!calendar && (
+            <section aria-labelledby="next-heading">
+              <h2 id="next-heading" className="type-h2">
+                {learningPlanCopy.studentHeading}
+              </h2>
+              {dashboard.next ? (
+                <div className="mt-5 border-l-4 border-gold bg-surface px-5 py-7 sm:px-7">
+                  <p className="text-sm text-gold">Earlier lesson</p>
+                  <h3 className="mt-2 font-plex-serif text-2xl leading-snug text-ivory sm:text-3xl">
+                    {dashboard.next.title}
+                  </h3>
+                  <p className="mt-3 text-sm leading-relaxed text-taupe">{dashboard.next.detail}</p>
+                  <Link
+                    href={dashboard.next.href}
+                    className="mt-7 inline-flex min-h-11 items-center gap-2 rounded-lg bg-gold px-5 py-2.5 text-sm font-semibold text-night hover:bg-gold-bright focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-bright"
+                  >
+                    {dashboard.next.label} <ArrowRight aria-hidden className="h-4 w-4" />
+                  </Link>
                 </div>
-              </div>
-            )}
-          </section>
+              ) : (
+                <div className="mt-5 border-l-4 border-gold bg-surface px-5 py-7 sm:px-7">
+                  <h3 className="font-plex-serif text-2xl text-ivory sm:text-3xl">
+                    Choose a subject to begin
+                  </h3>
+                  <p className="mt-3 max-w-lg text-sm leading-relaxed text-taupe">
+                    Explore the skill catalog, then open an earlier lesson when you are ready to
+                    practice. Your saved results will appear here.
+                  </p>
+                  <div className="mt-6 flex flex-wrap gap-3">
+                    <ActionLink href="/learn/reading">Reading &amp; Writing</ActionLink>
+                    <ActionLink href="/learn/math">Math</ActionLink>
+                  </div>
+                </div>
+              )}
+            </section>
+          )}
 
           <section aria-labelledby="practice-heading">
             <h2 id="practice-heading" className="type-h2">
