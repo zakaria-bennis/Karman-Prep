@@ -67,7 +67,11 @@ describe("39-skill menu and preserved lesson history", () => {
     fireEvent.click(
       within(index).getByRole("button", { name: "Finite versus nonfinite verb forms" })
     );
-    expect(screen.getByText(/Practice for this skill is being organized/)).toBeTruthy();
+    expect(screen.getByText(/No earlier lessons are linked/)).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Practice this skill" })).toHaveAttribute(
+      "href",
+      "/learn/practice/rw-skill-finite-versus-nonfinite-verb-forms"
+    );
     expect(screen.queryByRole("link", { name: "Verb tense" })).toBeNull();
     expect(
       screen.getByRole("link", { name: "All earlier learning history" }).getAttribute("href")

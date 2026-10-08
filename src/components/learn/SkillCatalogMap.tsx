@@ -158,6 +158,12 @@ export default function SkillCatalogMap({ subject, history }: Props) {
                 Close
               </button>
             </div>
+            <Link
+              href={`/learn/practice/${selected.id}`}
+              className="mb-5 block min-h-11 rounded-xl bg-gold px-4 py-3 text-center text-sm font-semibold text-night"
+            >
+              Practice this skill
+            </Link>
             {priorLessons.length > 0 ? (
               <>
                 <h3 className="mb-2 text-sm font-semibold">Earlier lessons</h3>
@@ -193,7 +199,7 @@ export default function SkillCatalogMap({ subject, history }: Props) {
               </>
             ) : (
               <p className="text-sm leading-relaxed text-taupe">
-                Practice for this skill is being organized. Your existing learning history is
+                No earlier lessons are linked to this skill. Your existing learning history is
                 preserved.
               </p>
             )}
