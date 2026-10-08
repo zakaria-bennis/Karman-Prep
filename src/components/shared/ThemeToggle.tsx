@@ -1,10 +1,13 @@
 "use client";
 
 import { Sun, Moon } from "lucide-react";
+import { usePathname } from "next/navigation";
 import { useTheme } from "@/components/shared/ThemeProvider";
 
 export function ThemeToggle({ floating = false }: { floating?: boolean }) {
+  const pathname = usePathname();
   const { toggleMode, saving } = useTheme();
+  if (floating && pathname === "/dashboard/parent") return null;
   return (
     <button
       type="button"
