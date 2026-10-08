@@ -1,0 +1,13 @@
+# Vocabulary starter content review
+
+Reviewed 2026-10-08. This is a bounded starter collection, not a claim that any selected word appeared on an SAT exam. The daily game practices meaning in context, consistent with the Reading and Writing skill of interpreting words and phrases in context. Sentences and explanations were written for KARMAN and checked against the linked dictionary senses.
+
+## Coverage
+
+- 12 daily answer words: 3 five-letter, 8 seven-letter, and 1 eight-letter word. Each has an original context sentence, a concise meaning paraphrase, and a direct [Merriam-Webster dictionary](https://www.merriam-webster.com/) entry linked from the content record.
+- 18 word-part cards: 6 prefixes, 6 suffixes, and 6 roots. Meanings and examples were checked against [Reading Rockets' root and affix guide](https://www.readingrockets.org/topics/spelling-and-word-study/articles/root-words-suffixes-and-prefixes). The guide itself identifies its adapted literacy reference. The front of each card is the word part; the back gives its meaning and one example.
+- 70,587 allowed five- to eight-letter lowercase spellings, drawn from the local `/usr/share/dict/words` Webster's Second International (web2) list. The system list's `/usr/share/dict/README` describes the source and its public-domain status according to its supplier. The checked-in lists exclude capitalized forms, digits, punctuation, and other lengths. They determine whether a guess is a dictionary spelling, not whether it is suitable as a daily answer. Some accepted guesses are uncommon historical words. All daily answers are in the list.
+
+The twelve daily word records link individually to their reference entries: [abate](https://www.merriam-webster.com/dictionary/abate), [austere](https://www.merriam-webster.com/dictionary/austere), [tacit](https://www.merriam-webster.com/dictionary/tacit), [oblique](https://www.merriam-webster.com/dictionary/oblique), [erudite](https://www.merriam-webster.com/dictionary/erudite), [laconic](https://www.merriam-webster.com/dictionary/laconic), [mitigate](https://www.merriam-webster.com/dictionary/mitigate), [tenuous](https://www.merriam-webster.com/dictionary/tenuous), [salient](https://www.merriam-webster.com/dictionary/salient), [assuage](https://www.merriam-webster.com/dictionary/assuage), [pliable](https://www.merriam-webster.com/dictionary/pliable), and [lucid](https://www.merriam-webster.com/dictionary/lucid).
+
+The current content is deliberately small. A larger online-researched inventory can be added after independent content review, without changing the game or card components. Word-part meanings are deliberately simple and do not claim a part always has only one meaning in every derived word.
