@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import { createHash } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import { dailyWords, wordPartCards } from "@/data/vocabulary/content";
 import {
@@ -61,7 +62,6 @@ describe("reviewed starter coverage", () => {
     expect(new Set(dailyWords.map((entry) => entry.word.length)).size).toBeGreaterThan(1);
     for (const entry of dailyWords) {
       expect(entry.word).toMatch(/^[A-Z]{5,8}$/);
-      expect(entry.context).toContain("_____");
       expect(entry.meaning.length).toBeGreaterThan(10);
       expect(entry.sourceUrl).toBe(
         `https://www.merriam-webster.com/dictionary/${entry.word.toLowerCase()}`
@@ -71,13 +71,36 @@ describe("reviewed starter coverage", () => {
     }
   });
 
-  it("has six sourced entries in each literal word-part group", () => {
-    for (const group of ["prefix", "suffix", "root"]) {
-      expect(wordPartCards.filter((card) => card.group === group)).toHaveLength(6);
-    }
+  it("includes all 415 reviewed word-part senses with distinct IDs and linked source metadata", () => {
+    const raw = readFileSync("public/vocabulary/reviewed-word-parts.json");
+    const source = JSON.parse(raw.toString("utf8"));
+    expect(createHash("sha256").update(raw).digest("hex")).toBe(
+      "f9ec3e8686a005da389099baed13d765350ccf079cb5f23dd6bcbe66454f1c1e"
+    );
+    expect(wordPartCards).toHaveLength(415);
+    expect(wordPartCards.filter((card) => card.group === "prefix")).toHaveLength(83);
+    expect(wordPartCards.filter((card) => card.group === "suffix")).toHaveLength(50);
+    expect(wordPartCards.filter((card) => card.group === "root")).toHaveLength(282);
     expect(new Set(wordPartCards.map((card) => card.id)).size).toBe(wordPartCards.length);
-    expect(
-      wordPartCards.every((card) => card.sourceUrl.startsWith("https://www.readingrockets.org/"))
-    ).toBe(true);
+    expect(new Set(wordPartCards.map((card) => `${card.group}:${card.front}`)).size).toBe(401);
+    const inCards = wordPartCards.filter((card) => card.group === "prefix" && card.front === "in-");
+    expect(inCards.map((card) => card.id).sort()).toEqual(["prefix-in-into", "prefix-in-negative"]);
+    expect(new Set(inCards.map((card) => card.meaning)).size).toBe(2);
+    expect(inCards[0].sameFrontCardIds).toContain(inCards[1].id);
+    const erCards = wordPartCards.filter((card) => card.group === "suffix" && card.front === "-er");
+    expect(new Set(erCards.map((card) => card.meaning)).size).toBe(2);
+    for (const [index, card] of wordPartCards.entries()) {
+      expect(card.id).toBe(source[index].id);
+      expect(card.meaning).toBe(source[index].back);
+      expect(source[index].back).toBe(source[index].meaning);
+      expect(source[index].evidence.status).toBe("source_checked");
+      expect(source[index].relevance.official_sat_list).toBe(false);
+      expect(card.sourceUrls).toEqual(
+        source[index].evidence.sources.map((item: { url: string }) => item.url)
+      );
+      expect(card.sourceUrls.every((url) => url.startsWith("https://"))).toBe(true);
+      expect(card.sameFrontCardIds).toEqual(source[index].same_front_card_ids);
+      expect(card).not.toHaveProperty("examples");
+    }
   });
 });

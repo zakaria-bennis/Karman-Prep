@@ -176,7 +176,7 @@ export default function DailyWordLab() {
 
   if (!session || !word)
     return (
-      <section className="card-surface p-6 text-taupe" aria-label="Daily Word Lab">
+      <section className="card-surface min-w-0 p-6 text-taupe" aria-label="Daily Word Lab">
         Loading today&apos;s word…
       </section>
     );
@@ -218,7 +218,7 @@ export default function DailyWordLab() {
 
   return (
     <section
-      className="card-surface max-w-2xl p-4 text-ivory sm:p-7"
+      className="card-surface min-w-0 max-w-2xl p-4 text-ivory sm:p-7"
       aria-labelledby="word-lab-heading"
     >
       <div className="border-b border-bronze pb-5">
@@ -226,15 +226,12 @@ export default function DailyWordLab() {
           Daily Word Lab
         </h2>
         <p className="mt-2 text-sm leading-relaxed text-taupe">
-          Read the sentence, then find the missing word in six tries.
+          Find today&apos;s word in six tries. Each guess must be a dictionary word.
         </p>
         <p className="mt-3 text-xs text-taupe">
           {session.day} UTC · {word.word.length} letters · New word at 00:00 UTC
         </p>
       </div>
-      <p className="mt-6 max-w-prose font-atkinson text-base leading-relaxed sm:text-lg">
-        {word.context}
-      </p>
       <div
         className="mx-auto mt-6 flex w-full max-w-sm flex-col gap-1.5"
         aria-label="Letter guesses"

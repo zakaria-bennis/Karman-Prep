@@ -22,6 +22,7 @@ describe("DailyWordLab", () => {
     render(<DailyWordLab />);
     const input = await screen.findByLabelText("Your next guess");
     await waitFor(() => expect(input).toBeEnabled());
+    expect(screen.queryByText(/_____/)).toBeNull();
     expect(
       screen.queryByText(dailyWords.find((item) => item.word === answer())!.meaning)
     ).toBeNull();

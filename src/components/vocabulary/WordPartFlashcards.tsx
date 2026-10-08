@@ -29,7 +29,7 @@ export default function WordPartFlashcards() {
 
   return (
     <section
-      className="card-surface max-w-2xl self-start p-4 text-ivory sm:p-7"
+      className="card-surface min-w-0 max-w-2xl self-start p-4 text-ivory sm:p-7"
       aria-labelledby="word-parts-heading"
     >
       <h2 id="word-parts-heading" className="type-h2">
@@ -65,28 +65,41 @@ export default function WordPartFlashcards() {
         className="mt-3 flex min-h-56 w-full flex-col items-center justify-center rounded-2xl border border-bronze bg-night p-6 text-center transition-colors duration-fast hover:border-gold focus-visible:border-gold sm:min-h-64"
       >
         {flipped ? (
-          <>
-            <span className="font-atkinson text-xl leading-relaxed text-ivory sm:text-2xl">
-              {card.meaning}
-            </span>
-            <span className="mt-4 text-sm text-taupe">As in {card.example}</span>
-          </>
+          <span className="font-atkinson text-xl leading-relaxed text-ivory sm:text-2xl">
+            {card.meaning}
+          </span>
         ) : (
           <span className="font-plex-serif text-4xl text-ivory sm:text-5xl">{card.front}</span>
         )}
-        <span className="mt-6 text-xs text-gold-bright">
-          {flipped ? "Tap to see the word part" : "Tap to reveal meaning"}
-        </span>
       </button>
+      <p className="mt-3 text-xs text-taupe">
+        {flipped ? "Flip to see the word part" : "Flip to reveal meaning"}
+      </p>
       {flipped && (
-        <a
-          href={card.sourceUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-3 inline-block text-xs text-gold underline underline-offset-2"
-        >
-          Word-part source
-        </a>
+        <details className="mt-4 rounded-lg border border-bronze bg-night p-4 text-sm text-taupe">
+          <summary className="cursor-pointer text-ivory">Notes and sources</summary>
+          {card.variants.length > 0 && (
+            <p className="mt-3">Related forms: {card.variants.join(", ")}</p>
+          )}
+          {card.caution && <p className="mt-3 leading-relaxed">{card.caution}</p>}
+          {card.sameFrontCardIds.length > 0 && (
+            <p className="mt-3">Another card covers a different meaning of this spelling.</p>
+          )}
+          <ul className="mt-3 flex flex-wrap gap-3">
+            {card.sourceUrls.map((url, sourceIndex) => (
+              <li key={url}>
+                <a
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gold underline underline-offset-2"
+                >
+                  Source {sourceIndex + 1}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </details>
       )}
       <div className="mt-6 flex justify-between gap-3">
         <button

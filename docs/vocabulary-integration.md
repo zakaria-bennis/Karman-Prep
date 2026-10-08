@@ -4,8 +4,8 @@ This branch adds two self-contained client components for KARMAN Prep. The route
 
 ## Components
 
-- `@/components/vocabulary/DailyWordLab`: a daily context clue, six letter guesses, positional feedback, and a meaning reveal after a win or loss.
-- `@/components/vocabulary/WordPartFlashcards`: literal word-part front and meaning back, filtered to prefixes, suffixes, or roots.
+- `@/components/vocabulary/DailyWordLab`: unprompted daily letter guessing, positional feedback, and a meaning reveal after a win or loss.
+- `@/components/vocabulary/WordPartFlashcards`: literal word-part front and meaning-only back, filtered to prefixes, suffixes, or roots. An optional disclosure after flipping contains notes and sources.
 
 Both components fit inside the existing `LearnLayout` and use the current Tailwind theme tokens and typefaces. They need no props, action, database table, grant, credential, or paid service. They can be mounted together or separately. Example route body for the router owner:
 
@@ -31,6 +31,6 @@ If mounted under `/learn`, its existing layout supplies the auth guard and navig
 
 The puzzle day is the UTC calendar date; it rolls over at 00:00 UTC. The component schedules the next UTC midnight and refreshes on window focus or visibility return. Guesses are saved to `localStorage` under `karman:vocabulary:daily:v1:YYYY-MM-DD`. A storage event refreshes another open tab. The display explicitly says guesses stay on the current device. There is no account mastery or cross-device sync. The twelve reviewed starter answers rotate every twelve days until a larger reviewed collection is accepted. The exact answer is present in the client bundle, so the feature is practice rather than a secure competition.
 
-`src/data/vocabulary/content.ts` exports `DailyWord { word, context, meaning, sourceUrl }` and `WordPartCard { id, group, front, meaning, example, sourceUrl }`. Answer words are uppercase English letters, five to eight characters. The context uses one `_____` blank. The corpus is a bounded starter collection; expansion can preserve these types. Word guesses are checked against same-origin `/public/vocabulary/guesses-{length}.txt`, loaded only for the current answer length. A missing list blocks submission and offers retry; it never silently accepts a nonword.
+`src/data/vocabulary/content.ts` exports `DailyWord { word, meaning, sourceUrl }` and `WordPartCard { id, group, front, meaning, variants, caution, sameFrontCardIds, sourceUrls }`. The daily answers are a bounded 12-word starter; the word-part deck has 415 reviewed sense-specific records with stable IDs. The full source and its provenance are in `public/vocabulary/reviewed-word-parts.json`; `node scripts/vocabulary/build-word-part-deck.mjs` regenerates the smaller client deck. Word guesses are checked against same-origin `/vocabulary/guesses-{length}.txt`, loaded only for the current answer length. A missing list blocks submission and offers retry; it never silently accepts a nonword. Accepted guesses include dictionary spellings beyond the daily answer set; see `docs/vocabulary-content.md` for coverage and limitations.
 
 No grammar game is included in this slice.
