@@ -432,7 +432,12 @@ export function ActiveQuizScreen({
             <div className="absolute inset-x-0 bottom-20 top-24 overflow-y-auto md:overflow-hidden">
               <div className="grid min-h-full divide-y divide-bronze md:h-full md:grid-cols-2 md:divide-x md:divide-y-0">
                 {/* LEFT */}
-                <div className="px-6 py-8 md:overflow-y-auto md:px-10">
+                <div
+                  className={cn(
+                    "px-6 py-8 md:overflow-y-auto md:px-10",
+                    isNativeTable && "min-w-0"
+                  )}
+                >
                   {figureCard}
                   {hasPassage && passageBlock}
                   {inExplanationMode && (
