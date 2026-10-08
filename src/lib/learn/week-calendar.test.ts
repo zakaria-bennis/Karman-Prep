@@ -108,6 +108,7 @@ describe("student calendar projection", () => {
     expect(week.days[0].items).toMatchObject([
       {
         id: "practice:assignment-1",
+        sourceLabel: "Practice posted by your educator",
         href: "/learn/practice/algebra-linear-equations?assignment=assignment-1",
       },
     ]);

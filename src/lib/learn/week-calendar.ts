@@ -146,7 +146,7 @@ export function buildCalendarWeek(
     ...data.practiceAssignments.items.map((row) => ({
       id: `practice:${row.id}`,
       source: "practice" as const,
-      sourceLabel: "Educator-assigned practice",
+      sourceLabel: "Practice posted by your educator",
       title: row.title,
       description: null,
       at: row.due_at,
