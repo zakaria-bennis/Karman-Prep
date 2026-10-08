@@ -245,6 +245,18 @@ export default function StudentWeekCalendar({ data, asOf, preferredTimeZone, nex
           )}
         </section>
       </div>
+      <section
+        aria-labelledby="session-homework-heading"
+        className="mt-12 border-t border-bronze pt-8"
+      >
+        <h3 id="session-homework-heading" className="font-plex-serif text-xl text-ivory">
+          Homework for booked sessions
+        </h3>
+        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-taupe">
+          When your educator assigns homework for a booked session, its due time and your saved
+          attempts will appear here. Practice posted separately stays in the calendar above.
+        </p>
+      </section>
     </section>
   );
 }

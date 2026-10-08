@@ -55,6 +55,8 @@ describe("student study week", () => {
     );
     expect(screen.getByText("Seminar session")).toBeTruthy();
     expect(screen.getByText("Reading questions")).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Homework for booked sessions" })).toBeTruthy();
+    expect(screen.getByText(/Practice posted separately stays in the calendar above/)).toBeTruthy();
     expect(screen.getByText(/America\/Chicago/)).toBeTruthy();
     expect(screen.getByRole("link", { name: /Continue practice/ }).getAttribute("href")).toBe(
       "/learn/earlier/math?resume=saved-id"
