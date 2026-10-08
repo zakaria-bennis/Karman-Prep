@@ -3,7 +3,7 @@
 export default function StudentDashboardError({ reset }: { reset: () => void }) {
   return (
     <div role="alert" className="mx-auto max-w-6xl px-5 py-28 text-ivory sm:px-8">
-      <h1 className="font-plex-serif text-2xl">Your study desk could not load</h1>
+      <h1 className="font-plex-serif text-2xl">Your SAT week could not load</h1>
       <p className="mt-2 max-w-lg text-sm leading-relaxed text-taupe">
         Your saved work is still there. Try loading the page again.
       </p>

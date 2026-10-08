@@ -26,10 +26,10 @@ export default function LearnDashboard({
         className={`mx-auto max-w-6xl px-5 pb-20 sm:px-8 ${embedded ? "pt-10" : "pt-28 sm:pt-32"}`}
       >
         <header className="max-w-2xl">
-          <h1 className="type-display-m">Your study desk</h1>
+          <h1 className="type-display-m">{calendar ? "Your SAT week" : "Learn and practice"}</h1>
           <p className="mt-3 text-base leading-relaxed text-taupe">
             {calendar
-              ? "See your scheduled sessions, educator-posted work, and practice you can pick up anytime."
+              ? "See your booked sessions, work from your educator, and SAT practice you can start or continue."
               : "Pick up a lesson, practice a subject, or look back at your answers."}
           </p>
         </header>
@@ -71,8 +71,8 @@ export default function LearnDashboard({
                     Choose a subject to begin
                   </h3>
                   <p className="mt-3 max-w-lg text-sm leading-relaxed text-taupe">
-                    Explore the skill catalog, then open an earlier lesson when you are ready to
-                    practice. Your saved results will appear here.
+                    Choose a subject to explore skills or open an earlier lesson for a quiz. Your
+                    saved work will appear here.
                   </p>
                   <div className="mt-6 flex flex-wrap gap-3">
                     <ActionLink href="/learn/reading">Reading &amp; Writing</ActionLink>
@@ -88,7 +88,7 @@ export default function LearnDashboard({
               Continue practice
             </h2>
             <p className="mt-2 text-sm leading-relaxed text-taupe">
-              Open the earlier lesson paths where quizzes are available.
+              Return to earlier lessons with quizzes.
             </p>
             <div className="mt-5 divide-y divide-bronze border-y border-bronze">
               <PracticeLink
@@ -133,15 +133,15 @@ export default function LearnDashboard({
               Skill areas
             </h2>
             <p className="mt-2 text-sm leading-relaxed text-taupe">
-              Earlier lesson results are saved separately from the 39-skill catalog. They do not
-              measure mastery of these new skill areas.
+              The counts below come from earlier lessons. They do not show progress through these
+              skills.
             </p>
             <div className="mt-5 divide-y divide-bronze border-y border-bronze">
               {dashboard.subjects.map((subject) => (
                 <SkillArea key={subject.subject} subject={subject} />
               ))}
             </div>
-            <TextLink href="/learn/history">View earlier learning history</TextLink>
+            <TextLink href="/learn/history">View saved lesson history</TextLink>
             {diagnostic && (
               <div className="mt-5 border-t border-bronze pt-4 text-sm text-taupe">
                 <p>
@@ -159,8 +159,7 @@ export default function LearnDashboard({
             Tutor support
           </h2>
           <p className="mt-2 max-w-xl text-sm leading-relaxed text-taupe">
-            Check your schedule or open your student chat. These pages show your current access and
-            placement.
+            See your sessions or open student chat.
           </p>
           <div className="mt-5 flex flex-wrap gap-x-8 gap-y-2">
             <TextLink href="/dashboard/student/schedule">
@@ -215,13 +214,13 @@ function SkillArea({ subject }: { subject: SubjectProgress }) {
       <div className="flex items-baseline justify-between gap-4">
         <h3 className="text-sm font-semibold text-ivory">{name}</h3>
         <span className="shrink-0 text-xs tabular-nums text-taupe">
-          {subject.skillCount} catalog skills
+          {subject.skillCount} skills to explore
         </span>
       </div>
       <p className="mt-2 text-sm leading-relaxed text-taupe">
         {subject.savedLessons === 0
-          ? "No earlier lesson work saved"
-          : `Earlier lessons: ${subject.savedLessons} with saved work; ${subject.markedMastered} marked mastered; ${subject.underway} underway`}
+          ? "No saved work from earlier lessons"
+          : `Earlier lessons: ${subject.savedLessons} with saved work; ${subject.markedMastered} marked mastered; ${subject.underway} in progress`}
       </p>
       <TextLink href={`/learn/${subject.subject}`}>Explore skills</TextLink>
     </div>
