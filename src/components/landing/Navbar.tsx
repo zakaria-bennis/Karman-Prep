@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Menu, X } from "lucide-react";
 import { useAuth } from "@clerk/nextjs";
 import { ThemedUserButton as UserButton } from "@/components/shared/ThemedClerkWidgets";
@@ -9,21 +9,21 @@ import LandingLogo from "./LandingLogo";
 import { ThemeToggle } from "@/components/shared/ThemeToggle";
 
 const NAV_LINKS = [
-  { label: "How it works", href: "/#how-it-works" },
-  { label: "Diagnostic", href: "/#sample-quiz" },
-  { label: "Plans", href: "/#pricing" },
-  { label: "Questions", href: "/faq" },
+  { label: "Diagnostic", href: "/free-diagnostic" },
+  { label: "Plans", href: "/plans" },
+  { label: "Questions", href: "/questions" },
 ];
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const { isSignedIn } = useAuth();
+  const menuButton = useRef<HTMLButtonElement>(null);
 
   return (
     <header className="sticky top-0 z-40 border-b border-bronze/35 bg-night/95 text-ivory backdrop-blur-md">
       <nav aria-label="Main navigation" className="mx-auto max-w-7xl px-5 md:px-8">
         <div className="flex min-h-20 items-center justify-between gap-5">
-          <Link href="/" aria-label="Karman home" className="shrink-0">
+          <Link href="/" aria-label="Karman Prep home" className="shrink-0">
             <LandingLogo />
           </Link>
 
@@ -59,8 +59,14 @@ export default function Navbar() {
                 >
                   Sign in
                 </Link>
-                <Link href="/auth/sign-up" className="btn-primary px-5 py-2.5 text-sm">
+                <Link
+                  href="/auth/sign-up"
+                  className="px-2 py-2 text-sm font-medium text-taupe hover:text-ivory"
+                >
                   Create account
+                </Link>
+                <Link href="/free-diagnostic" className="btn-primary px-5 py-2.5 text-sm">
+                  Free diagnostic
                 </Link>
               </>
             )}
@@ -69,6 +75,7 @@ export default function Navbar() {
           <div className="ml-auto flex items-center gap-2 lg:hidden">
             <ThemeToggle />
             <button
+              ref={menuButton}
               type="button"
               aria-label={isOpen ? "Close menu" : "Open menu"}
               aria-controls="mobile-navigation"
@@ -86,7 +93,16 @@ export default function Navbar() {
         </div>
 
         {isOpen && (
-          <div id="mobile-navigation" className="border-t border-bronze py-4 lg:hidden">
+          <div
+            id="mobile-navigation"
+            onKeyDown={(event) => {
+              if (event.key === "Escape") {
+                setIsOpen(false);
+                menuButton.current?.focus();
+              }
+            }}
+            className="border-t border-bronze py-4 lg:hidden"
+          >
             <div className="flex flex-col gap-1">
               {NAV_LINKS.map((link) => (
                 <Link
@@ -118,7 +134,7 @@ export default function Navbar() {
                   <Link
                     href="/auth/sign-up"
                     onClick={() => setIsOpen(false)}
-                    className="btn-primary text-center text-sm"
+                    className="btn-secondary text-center text-sm"
                   >
                     Create account
                   </Link>

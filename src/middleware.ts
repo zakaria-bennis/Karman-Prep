@@ -51,6 +51,9 @@ const isMaintenanceExempt = createRouteMatcher([
  *  Used only when NEXT_PUBLIC_KARMAN_LAUNCHED === "true". */
 const isPublicRoute = createRouteMatcher([
   "/",
+  "/free-diagnostic",
+  "/plans",
+  "/questions",
   "/faq",
   "/about",
   "/blog(.*)",

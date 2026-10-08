@@ -1,69 +1,55 @@
 import Link from "next/link";
-import { ArrowUpRight, Check } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import { PRICING_TIERS } from "@/types";
-import { GUARANTEE_POLICY } from "@/lib/guarantee/policy";
+import styles from "./landing.module.css";
+
+export function PlanCards({ onPlansPage = false }: { onPlansPage?: boolean }) {
+  return (
+    <div
+      className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-5"
+      aria-label="Compare all four plans"
+    >
+      {PRICING_TIERS.map((tier) => (
+        <Link
+          key={tier.id}
+          href={`${onPlansPage ? "" : "/plans"}#${tier.id}`}
+          className={`${styles.planCard} flex min-w-0 flex-col rounded-2xl border border-bronze bg-surface p-4 text-ivory sm:p-6`}
+        >
+          <h3 className="font-plex-serif text-xl sm:text-2xl">{tier.name}</h3>
+          <p className="mt-4 font-plex-sans text-3xl font-semibold tracking-tight sm:text-4xl">
+            {tier.price}
+          </p>
+          <p className="mt-1 text-xs leading-relaxed text-taupe sm:text-sm">{tier.period}</p>
+          <span className="mt-5 flex min-h-7 items-center justify-between gap-2 text-sm font-medium">
+            Plan details <ArrowUpRight className="h-4 w-4 shrink-0" aria-hidden="true" />
+          </span>
+        </Link>
+      ))}
+    </div>
+  );
+}
 
 export default function Pricing() {
   return (
-    <section id="pricing" className="bg-night py-20 text-ivory sm:py-28">
-      <div className="mx-auto max-w-6xl px-5 md:px-8">
-        <div className="grid gap-6 md:grid-cols-[minmax(0,1fr)_minmax(16rem,0.55fr)] md:items-end">
-          <h2 className="max-w-2xl font-plex-serif text-4xl leading-tight sm:text-5xl">
-            Compare what each plan includes.
-          </h2>
-          <p className="max-w-sm leading-relaxed text-taupe">
-            Review the current plan details and checkout terms before choosing. A{" "}
-            {GUARANTEE_POLICY.trial.days}-day trial is currently offered only on Seminar. Other
-            tiers start without a trial; checkout displays any applicable charge timing.
-          </p>
+    <section id="pricing" className="scroll-mt-24 bg-night px-5 py-16 text-ivory md:px-8 md:py-20">
+      <div className="mx-auto max-w-7xl">
+        <div className="mb-7 flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <p className="text-sm font-medium text-gold">Room for your kind of prep</p>
+            <h2 className="mt-3 font-plex-serif text-4xl leading-tight sm:text-5xl">
+              Find your fit.
+            </h2>
+          </div>
+          <Link
+            href="/plans"
+            className="inline-flex min-h-11 items-center gap-2 font-semibold underline underline-offset-4"
+          >
+            Compare plans <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+          </Link>
         </div>
-
-        <div className="mt-10 border-t border-bronze">
-          {PRICING_TIERS.map((tier) => (
-            <article
-              key={tier.id}
-              className="grid gap-6 border-b border-bronze py-8 lg:grid-cols-[minmax(13rem,0.7fr)_minmax(0,1.3fr)_minmax(11rem,0.6fr)] lg:gap-10"
-            >
-              <div>
-                <h3 className="font-plex-serif text-2xl sm:text-3xl">{tier.name}</h3>
-                <p className="mt-2 max-w-xs text-sm leading-relaxed text-taupe">
-                  {tier.description}
-                </p>
-              </div>
-              <ul className="grid content-start gap-3 sm:grid-cols-2 sm:gap-x-8">
-                {tier.features.map((feature) => (
-                  <li
-                    key={feature}
-                    className="flex items-start gap-2 text-sm leading-relaxed text-taupe"
-                  >
-                    <Check className="mt-1 h-4 w-4 shrink-0 text-gold" aria-hidden="true" />
-                    <span>{feature}</span>
-                  </li>
-                ))}
-              </ul>
-              <div className="flex flex-wrap items-center justify-between gap-4 lg:block lg:text-right">
-                <p>
-                  <span className="font-plex-serif text-3xl">{tier.price}</span>
-                  <span className="ml-1 text-sm text-taupe">{tier.period}</span>
-                </p>
-                <Link
-                  href={`/auth/sign-up?tier=${tier.id}`}
-                  className="inline-flex min-h-11 items-center gap-1 border-b border-gold py-2 font-semibold text-ivory transition-colors hover:text-gold-bright"
-                >
-                  {tier.cta}
-                  <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
-                </Link>
-              </div>
-            </article>
-          ))}
-        </div>
-
-        <p className="mt-8 max-w-3xl text-sm leading-relaxed text-taupe">
-          No current standard plan is configured for course-fee protection. Read the{" "}
-          <Link href="/guarantee" className="font-semibold text-ivory underline underline-offset-4">
-            full guarantee terms
-          </Link>{" "}
-          before choosing a plan.
+        <PlanCards />
+        <p className="mt-5 text-sm text-taupe">
+          Seminar includes a 7-day trial. See each plan’s details and charge timing before choosing.
         </p>
       </div>
     </section>

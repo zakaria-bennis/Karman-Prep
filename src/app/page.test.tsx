@@ -21,22 +21,18 @@ import HomePage, { metadata } from "./page";
 import GuaranteePage from "./guarantee/page";
 
 describe("public landing entry", () => {
-  it("names the SAT audience and sends visitors to real account and diagnostic paths", () => {
+  it("puts the free diagnostic before account entry and keeps truthful public destinations", () => {
     render(<HomePage />);
-
-    expect(
-      screen.getByRole("heading", { level: 1, name: /Know what to practice next/i })
-    ).toBeTruthy();
-    expect(screen.getByRole("link", { name: /Create an account/i }).getAttribute("href")).toBe(
-      "/auth/sign-up"
+    expect(screen.getByRole("heading", { level: 1 })).toBeTruthy();
+    for (const link of screen.getAllByRole("link", { name: /Explore the free diagnostic/i })) {
+      expect(link).toHaveAttribute("href", "/free-diagnostic");
+    }
+    expect(screen.getByRole("link", { name: "Inferences" })).toHaveAttribute(
+      "href",
+      "/learn/practice/rw-skill-inferences"
     );
-    expect(screen.getByRole("link", { name: /Explore the diagnostic/i }).getAttribute("href")).toBe(
-      "#sample-quiz"
-    );
-    expect(screen.getByText(/The diagnostic requires sign-in/)).toBeTruthy();
-    expect(
-      screen.getByRole("heading", { name: /A starting point, not a score prediction/i })
-    ).toBeTruthy();
+    expect(screen.queryByRole("link", { name: /Create an account/i })).toBeNull();
+    expect(screen.queryByText(/A starting point, not a score prediction/i)).toBeNull();
     expect(document.body.textContent).not.toMatch(
       /2,400|\+285|4\.9\/5|real students|sample lesson/i
     );

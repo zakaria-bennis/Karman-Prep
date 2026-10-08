@@ -5,9 +5,9 @@ import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
 
 export const metadata: Metadata = {
-  title: "About Karman — Digital SAT Practice and Tutoring",
+  title: "About Karman Prep — Digital SAT Practice and Tutoring",
   description:
-    "Learn how Karman connects a signed-in SAT diagnostic, focused practice, and tutoring support.",
+    "Learn how Karman Prep connects a signed-in SAT diagnostic, focused practice, and tutoring support.",
 };
 
 const PATHS = [
@@ -30,7 +30,7 @@ const PATHS = [
     description:
       "Questions about the current offer, lesson coverage, or tutoring availability deserve a direct answer before you choose a plan.",
     href: "mailto:billing@karmanprep.com",
-    action: "Email Karman support",
+    action: "Email Karman Support!",
   },
 ];
 
@@ -45,9 +45,9 @@ export default function AboutPage() {
               SAT practice with a clearer reason for every next step.
             </h1>
             <p className="mt-8 max-w-2xl text-lg leading-relaxed text-taupe">
-              Karman brings a limited-scope diagnostic, skill practice, and tutoring support into
-              one place. We want students to understand what a result shows, what to practice, and
-              where to ask for help.
+              Karman Prep brings a limited-scope diagnostic, skill practice, and tutoring support
+              into one place. We want students to understand what a result shows, what to practice,
+              and where to ask for help.
             </p>
           </div>
           <aside className="self-end border-l-2 border-gold pl-6 text-base leading-relaxed text-taupe">

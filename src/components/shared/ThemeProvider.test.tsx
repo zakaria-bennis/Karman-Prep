@@ -152,3 +152,32 @@ describe("account theme persistence", () => {
     expect(localStorage.getItem("karman-theme:a")).toBe("ivory");
   });
 });
+
+// Public route changes must not reset a deliberate visitor choice.
+it("defaults to dark and restores the visitor choice after a provider remount", () => {
+  mock.account = { user: null, isLoaded: true };
+  const first = render(
+    <ThemeProvider>
+      <ThemeToggle />
+    </ThemeProvider>
+  );
+  expect(document.documentElement.dataset.theme).toBe("observatory");
+  fireEvent.click(screen.getByRole("button", { name: "Toggle light and dark mode" }));
+  expect(document.documentElement.dataset.theme).toBe("ivory");
+  first.unmount();
+  const second = render(
+    <ThemeProvider>
+      <ThemeToggle />
+    </ThemeProvider>
+  );
+  expect(document.documentElement.dataset.theme).toBe("ivory");
+  fireEvent.click(screen.getByRole("button", { name: "Toggle light and dark mode" }));
+  expect(document.documentElement.dataset.theme).toBe("observatory");
+  second.unmount();
+  render(
+    <ThemeProvider>
+      <ThemeToggle />
+    </ThemeProvider>
+  );
+  expect(document.documentElement.dataset.theme).toBe("observatory");
+});

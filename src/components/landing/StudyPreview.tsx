@@ -1,65 +1,97 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import Link from "next/link";
-import { ArrowUpRight, BookOpen, Calculator, Compass } from "lucide-react";
-import { getCatalogSkills } from "@/data/curriculum/skill-catalog";
+import { ArrowUpRight } from "lucide-react";
+import { getCatalogSkills, SKILL_DOMAINS } from "@/data/curriculum/skill-catalog";
+import styles from "./landing.module.css";
 
-/** A real catalogue explorer, not a fabricated student's progress or question. */
+/** Public navigation uses the approved catalogue; question access stays gated. */
 export default function StudyPreview() {
   const [subject, setSubject] = useState<"reading" | "math">("reading");
-  const skills = getCatalogSkills(subject).slice(0, 3);
+  const [expanded, setExpanded] = useState<string | null>("info_ideas");
+  const id = useId();
+  const skills = getCatalogSkills(subject);
+  const domains = SKILL_DOMAINS.filter((domain) => domain.subject === subject);
   return (
-    <div className="study-preview relative rounded-[2rem] border border-bronze/35 bg-surface p-5 text-ivory shadow-[0_24px_64px_-40px_rgba(0,0,0,0.45)] sm:p-8">
-      <div className="flex items-center justify-between gap-3">
-        <p className="text-sm font-medium text-taupe">A little direction goes a long way</p>
-        <Compass className="h-6 w-6 shrink-0 text-gold" aria-hidden="true" />
-      </div>
-      <h2 className="mt-6 font-plex-serif text-3xl leading-tight sm:text-4xl">Find your focus.</h2>
+    <div className="text-ivory">
       <div
-        className="mt-7 grid grid-cols-2 gap-2 rounded-2xl bg-night p-1.5"
+        className={`${styles.subjectSwitch} grid grid-cols-2 rounded-2xl border border-bronze bg-surface p-1.5`}
+        data-subject={subject}
+        role="group"
         aria-label="Explore a SAT subject"
       >
-        {(["reading", "math"] as const).map((value) => {
-          const Icon = value === "reading" ? BookOpen : Calculator;
-          return (
-            <button
-              key={value}
-              type="button"
-              aria-pressed={subject === value}
-              onClick={() => setSubject(value)}
-              className={`flex min-h-14 items-center justify-center gap-2 rounded-xl px-2 text-sm font-medium transition-colors ${subject === value ? "bg-surface text-ivory shadow-sm ring-1 ring-bronze/30" : "text-taupe hover:text-ivory"}`}
-            >
-              <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
-              <span>{value === "reading" ? "Reading & Writing" : "Math"}</span>
-            </button>
-          );
-        })}
+        <span className={styles.subjectIndicator} aria-hidden="true" />
+        {(["reading", "math"] as const).map((value) => (
+          <button
+            key={value}
+            type="button"
+            aria-pressed={subject === value}
+            aria-controls={`${id}-domains`}
+            onClick={() => {
+              setSubject(value);
+              setExpanded(value === "reading" ? "info_ideas" : "algebra");
+            }}
+            className={`min-h-12 rounded-xl px-2 py-3 text-sm font-semibold sm:text-base ${subject === value ? "text-night" : "text-ivory hover:underline"}`}
+          >
+            {value === "reading" ? "Reading & Writing" : "Math"}
+          </button>
+        ))}
       </div>
-      <div className="mt-5 min-h-[15rem]" aria-live="polite" aria-atomic="true">
-        <p className="text-xs text-taupe">
-          From the {subject === "reading" ? "Reading & Writing" : "Math"} skill guide
-        </p>
-        <ul className="mt-3 divide-y divide-bronze/25">
-          {skills.map((skill) => (
-            <li key={skill.id} className="flex min-h-14 items-center gap-3 py-3 text-base">
-              <span
-                className={`h-2 w-2 shrink-0 rounded-full ${subject === "reading" ? "bg-rw" : "bg-math"}`}
-                aria-hidden="true"
-              />
-              {skill.label}
-            </li>
-          ))}
-        </ul>
-        <Link
-          href={`/learn/${subject}`}
-          className="mt-4 inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-gold underline underline-offset-4"
-        >
-          Explore the skill guide <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
-        </Link>
-      </div>
-      <div className="mt-4 border-t border-bronze/30 pt-5 text-sm leading-relaxed text-taupe">
-        A skill guide helps you find your way. Sign in to see the practice currently available.
+      <div id={`${id}-domains`} className="mt-6">
+        <div key={subject} data-subject={subject} className={styles.subjectContent}>
+          <h3 className="sr-only">
+            {subject === "reading" ? "Reading & Writing" : "Math"} domains
+          </h3>
+          <div className="grid gap-x-8 md:grid-cols-2">
+            {domains.map((domain, index) => {
+              const open = expanded === domain.id;
+              return (
+                <section key={domain.id} className="border-t border-bronze py-1">
+                  <h4>
+                    <button
+                      type="button"
+                      aria-expanded={open}
+                      aria-controls={`${id}-${domain.id}`}
+                      onClick={() => setExpanded(open ? null : domain.id)}
+                      className="flex min-h-16 w-full items-center gap-4 py-4 text-left font-medium"
+                    >
+                      <span className="font-plex-mono text-xs text-taupe" aria-hidden="true">
+                        0{index + 1}
+                      </span>
+                      <span className="flex-1">{domain.label}</span>
+                      <span className="text-xl" aria-hidden="true">
+                        {open ? "−" : "+"}
+                      </span>
+                    </button>
+                  </h4>
+                  <ul id={`${id}-${domain.id}`} hidden={!open} className="mb-4 pl-8">
+                    {skills
+                      .filter((skill) => skill.domainId === domain.id)
+                      .map((skill) => (
+                        <li key={skill.id}>
+                          <Link
+                            href={`/learn/practice/${skill.id}`}
+                            className="flex min-h-11 items-center justify-between gap-3 rounded-lg px-2 py-2 text-sm text-taupe hover:bg-surface hover:text-ivory hover:underline"
+                          >
+                            {skill.label}
+                            <ArrowUpRight className="h-4 w-4 shrink-0" aria-hidden="true" />
+                          </Link>
+                        </li>
+                      ))}
+                  </ul>
+                </section>
+              );
+            })}
+          </div>
+          <Link
+            href={`/learn/${subject}`}
+            className="mt-5 inline-flex min-h-11 items-center gap-2 font-semibold underline underline-offset-4"
+          >
+            Open {subject === "reading" ? "Reading & Writing" : "Math"} practice{" "}
+            <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+          </Link>
+        </div>
       </div>
     </div>
   );

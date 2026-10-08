@@ -23,6 +23,9 @@ it("opens marketing pages while protecting parent, tutor, admin and student rout
   for (const path of [
     "/",
     "/about",
+    "/free-diagnostic",
+    "/plans",
+    "/questions",
     "/faq",
     "/blog",
     "/privacy",
@@ -43,10 +46,14 @@ it("opens marketing pages while protecting parent, tutor, admin and student rout
     "/tutor/payouts",
     "/admin/users",
     "/learn/math",
+    "/diagnostic",
+    "/learn/daily",
+    "/learn/practice/rw-skill-inferences",
+    "/questions/private",
   ]) {
     await run(auth, new NextRequest("https://karmanprep.com" + path));
   }
-  expect(protect).toHaveBeenCalledTimes(7);
+  expect(protect).toHaveBeenCalledTimes(11);
 });
 it("retains an explicit maintenance rollback without hiding the sign-in flow", async () => {
   vi.stubEnv("NEXT_PUBLIC_KARMAN_LAUNCHED", "false");

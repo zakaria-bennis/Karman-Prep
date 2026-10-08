@@ -2,11 +2,11 @@ import Link from "next/link";
 import LandingLogo from "./LandingLogo";
 
 const LINKS = [
-  { label: "How it works", href: "/#how-it-works" },
-  { label: "Diagnostic", href: "/#sample-quiz" },
-  { label: "Plans", href: "/#pricing" },
+  { label: "Diagnostic", href: "/free-diagnostic" },
+  { label: "Plans", href: "/plans" },
   { label: "About", href: "/about" },
-  { label: "Questions", href: "/faq" },
+  { label: "Questions", href: "/questions" },
+  { label: "Help & FAQ", href: "/faq" },
 ];
 
 export default function Footer() {
@@ -14,17 +14,17 @@ export default function Footer() {
     <footer className="border-t border-bronze bg-charcoal text-ivory">
       <div className="mx-auto grid max-w-6xl gap-10 px-5 py-14 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] md:px-8">
         <div>
-          <Link href="/" aria-label="Karman home" className="inline-flex">
+          <Link href="/" aria-label="Karman Prep home" className="inline-flex">
             <LandingLogo />
           </Link>
           <p className="mt-5 max-w-sm leading-relaxed text-taupe">
-            Digital SAT practice, a signed-in diagnostic, and tutoring support in one place.
+            Your SAT practice, people, and next steps. Together at Karman Prep.
           </p>
           <a
             href="mailto:billing@karmanprep.com"
             className="mt-5 inline-block font-semibold text-ivory underline underline-offset-4 hover:text-gold-bright"
           >
-            Email Karman billing
+            Email Karman Support!
           </a>
         </div>
         <div className="grid grid-cols-2 gap-8 sm:grid-cols-3">
@@ -67,9 +67,10 @@ export default function Footer() {
       </div>
       <div className="border-t border-bronze px-5 py-5 text-xs leading-relaxed text-taupe md:px-8">
         <div className="mx-auto flex max-w-6xl flex-col justify-between gap-2 sm:flex-row">
-          <p>© {new Date().getFullYear()} Karman</p>
+          <p>© {new Date().getFullYear()} Karman Prep</p>
           <p>
-            SAT® is a registered trademark of College Board, which is not affiliated with Karman.
+            SAT® is a registered trademark of College Board, which is not affiliated with Karman
+            Prep.
           </p>
         </div>
       </div>
