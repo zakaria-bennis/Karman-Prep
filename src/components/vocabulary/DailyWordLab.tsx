@@ -7,6 +7,7 @@ import {
   keyboardFeedback,
   MAX_GUESSES,
   millisecondsUntilNextUtcDay,
+  parseAcceptedGuesses,
   restoreDailySession,
   scoreGuess,
   utcDay,
@@ -107,8 +108,7 @@ export default function DailyWordLab() {
         return response.text();
       })
       .then((text) => {
-        if (!cancelled)
-          setWordList({ length, words: new Set(text.trim().toUpperCase().split(",")) });
+        if (!cancelled) setWordList({ length, words: parseAcceptedGuesses(text, length) });
       })
       .catch(() => {
         if (!cancelled) setListError(true);
@@ -437,6 +437,13 @@ export default function DailyWordLab() {
         This game saves guesses on this device only. The {dailyWords.length}-word pool repeats after{" "}
         {dailyWords.length} UTC days. Practice-test sources show answer-choice appearances, not
         administered-test frequency or College Board endorsement.
+      </p>
+      <p className="mt-2 text-xs text-taupe">
+        Accepted spellings: SCOWLv2.{" "}
+        <a href="/vocabulary/NOTICE.txt" className="underline underline-offset-2">
+          Word-list source and license
+        </a>
+        .
       </p>
     </section>
   );

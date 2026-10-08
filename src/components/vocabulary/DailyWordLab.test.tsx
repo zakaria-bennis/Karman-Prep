@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 
+import { readFileSync } from "node:fs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { dailyWords } from "@/data/vocabulary/content";
@@ -13,9 +14,9 @@ beforeEach(() => {
   localStorage.clear();
   vi.stubGlobal(
     "fetch",
-    vi.fn(async () => ({
+    vi.fn(async (url: string) => ({
       ok: true,
-      text: async () => `${answer().toLowerCase()},synchronization,other\n`,
+      text: async () => readFileSync(`public${url}`, "utf8"),
     }))
   );
 });

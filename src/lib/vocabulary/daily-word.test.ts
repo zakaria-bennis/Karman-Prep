@@ -7,6 +7,7 @@ import {
   keyboardFeedback,
   legacyPuzzleForDay,
   millisecondsUntilNextUtcDay,
+  parseAcceptedGuesses,
   puzzleForDay,
   restoreDailySession,
   savedGuesses,
@@ -15,6 +16,18 @@ import {
 } from "./daily-word";
 
 describe("daily word rules", () => {
+  it("parses the attributed guess-list format and rejects malformed spellings", () => {
+    expect(
+      parseAcceptedGuesses(
+        "# Copyright 2000-2026 by Kevin Atkinson\n# See /vocabulary/NOTICE.txt\nlevel,lever\n",
+        5
+      )
+    ).toEqual(new Set(["LEVEL", "LEVER"]));
+    expect(() =>
+      parseAcceptedGuesses("# Copyright 2000-2026 by Kevin Atkinson\nlevel,le-\n", 5)
+    ).toThrow("Invalid accepted-guess list");
+  });
+
   it("uses one UTC day regardless of local timezone", () => {
     expect(utcDay(new Date("2026-10-08T23:59:59.000Z"))).toBe("2026-10-08");
     expect(utcDay(new Date("2026-10-09T00:00:00.000Z"))).toBe("2026-10-09");
@@ -150,12 +163,30 @@ describe("reviewed daily answer coverage", () => {
         `https://www.merriam-webster.com/dictionary/${entry.word.toLowerCase()}`
       );
       const list = readFileSync(`public/vocabulary/guesses-${entry.word.length}.txt`, "utf8");
-      expect(list.trim().split(",")).toContain(entry.word.toLowerCase());
+      expect(parseAcceptedGuesses(list, entry.word.length).has(entry.word)).toBe(true);
     }
-    for (let length = 9; length <= 15; length++) {
+    let totalAccepted = 0;
+    for (let length = 5; length <= 15; length++) {
       const list = readFileSync(`public/vocabulary/guesses-${length}.txt`, "utf8");
-      expect(list.trim().split(",").length).toBeGreaterThan(5000);
+      expect(list).toMatch(/^# Copyright 2000-2026 by Kevin Atkinson\n/);
+      const words = parseAcceptedGuesses(list, length);
+      expect(words.size).toBeGreaterThan(1500);
+      totalAccepted += words.size;
     }
+    expect(totalAccepted).toBe(120327);
+    const notice = readFileSync("public/vocabulary/NOTICE.txt", "utf8");
+    expect(notice).toContain("Permission to use, copy, modify, distribute, and sell");
+    expect(notice).toContain("fa1f9a1382df724be887d3a5d2d743095e6f33fc0949ebb22415c1554bb42fa7");
+    expect(
+      createHash("sha256")
+        .update(notice.slice(notice.indexOf("Copyright 2000-2026")))
+        .digest("hex")
+    ).toBe("090575a131b4260926c7a6b30a90aca0f5db5fbb5c46778e0c5855227bf6ebc3");
+    expect(
+      parseAcceptedGuesses(readFileSync("public/vocabulary/guesses-15.txt", "utf8"), 15).has(
+        "STRAIGHTFORWARD"
+      )
+    ).toBe(true);
   });
 
   it("includes all 415 reviewed word-part senses with distinct IDs and linked source metadata", () => {

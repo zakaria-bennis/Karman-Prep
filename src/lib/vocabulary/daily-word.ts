@@ -7,6 +7,17 @@ const FIRST_EXPANDED_DAY = Date.UTC(2026, 9, 9);
 export type LetterResult = "correct" | "present" | "absent";
 export type GameOutcome = "playing" | "won" | "lost";
 
+export function parseAcceptedGuesses(raw: string, length: number): Set<string> {
+  const words = raw
+    .split(/\r?\n/)
+    .filter((line) => line && !line.startsWith("#"))
+    .join(",")
+    .split(",");
+  const spelling = new RegExp(`^[a-z]{${length}}$`);
+  if (words.some((word) => !spelling.test(word))) throw new Error("Invalid accepted-guess list");
+  return new Set(words.map((word) => word.toUpperCase()));
+}
+
 export function utcDay(now: Date): string {
   return now.toISOString().slice(0, 10);
 }

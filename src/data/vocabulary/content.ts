@@ -1,4 +1,5 @@
 import cardData from "./word-part-cards.json";
+import starterWordData from "./starter-daily-words.json";
 import verifiedWordData from "./verified-daily-words.json";
 
 // Original KARMAN concise paraphrases. See docs/vocabulary-content.md.
@@ -28,73 +29,8 @@ export type WordPartCard = {
   sourceUrls: readonly string[];
 };
 
-const dictionary = (word: string) => `https://www.merriam-webster.com/dictionary/${word}`;
-
-const legacyContent = [
-  {
-    word: "ABATE",
-    meaning: "To become less intense or forceful.",
-    sourceUrl: dictionary("abate"),
-  },
-  {
-    word: "AUSTERE",
-    meaning: "Plain and without unnecessary comforts or decoration.",
-    sourceUrl: dictionary("austere"),
-  },
-  {
-    word: "TACIT",
-    meaning: "Understood or accepted without being stated directly.",
-    sourceUrl: dictionary("tacit"),
-  },
-  {
-    word: "OBLIQUE",
-    meaning: "Indirect rather than plainly expressed.",
-    sourceUrl: dictionary("oblique"),
-  },
-  {
-    word: "ERUDITE",
-    meaning: "Showing knowledge gained through extensive study.",
-    sourceUrl: dictionary("erudite"),
-  },
-  {
-    word: "LACONIC",
-    meaning: "Using very few words, sometimes seeming abrupt.",
-    sourceUrl: dictionary("laconic"),
-  },
-  {
-    word: "MITIGATE",
-    meaning: "To make something harmful or severe less so.",
-    sourceUrl: dictionary("mitigate"),
-  },
-  {
-    word: "TENUOUS",
-    meaning: "Weak, slight, or lacking a firm basis.",
-    sourceUrl: dictionary("tenuous"),
-  },
-  {
-    word: "SALIENT",
-    meaning: "Especially noticeable or relevant.",
-    sourceUrl: dictionary("salient"),
-  },
-  {
-    word: "ASSUAGE",
-    meaning: "To ease an unpleasant feeling, such as worry or fear.",
-    sourceUrl: dictionary("assuage"),
-  },
-  {
-    word: "PLIABLE",
-    meaning: "Easy to bend or shape without breaking.",
-    sourceUrl: dictionary("pliable"),
-  },
-  {
-    word: "LUCID",
-    meaning: "Clear and easy to understand.",
-    sourceUrl: dictionary("lucid"),
-  },
-];
-
 // Preserve the original twelve-word schedule for previously saved v1 games.
-export const legacyDailyWords: readonly DailyWord[] = legacyContent.map((entry) => ({
+export const legacyDailyWords: readonly DailyWord[] = starterWordData.map((entry) => ({
   ...entry,
   id: `starter-${entry.word.toLowerCase()}`,
 }));
