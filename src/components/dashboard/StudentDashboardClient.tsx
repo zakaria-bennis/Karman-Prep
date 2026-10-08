@@ -1,8 +1,9 @@
 import Link from "next/link";
 import DashboardLayout from "./DashboardLayout";
 import LearnDashboard from "@/components/learn/LearnDashboard";
+import type { LinkedSessionHomework } from "@/components/learn/StudentWeekCalendar";
 import type { LearnDashboardData } from "@/lib/learn/dashboard";
-import type { StudentCalendarData } from "@/lib/learn/week-calendar";
+import type { CalendarSource, StudentCalendarData } from "@/lib/learn/week-calendar";
 
 interface Props {
   dashboard: LearnDashboardData;
@@ -12,6 +13,8 @@ interface Props {
   calendar: StudentCalendarData;
   calendarAsOf: string;
   preferredTimeZone: string | null;
+  /** Supply only after the session link schema and signed-in reader are approved and live. */
+  linkedHomework?: CalendarSource<LinkedSessionHomework>;
 }
 
 export default function StudentDashboardClient({
@@ -22,6 +25,7 @@ export default function StudentDashboardClient({
   calendar,
   calendarAsOf,
   preferredTimeZone,
+  linkedHomework,
 }: Props) {
   const trialEndsLabel = subscription?.trial_end
     ? `Trial ends ${new Date(subscription.trial_end).toLocaleDateString()}`
@@ -61,6 +65,7 @@ export default function StudentDashboardClient({
         calendar={calendar}
         calendarAsOf={calendarAsOf}
         preferredTimeZone={preferredTimeZone}
+        linkedHomework={linkedHomework}
         embedded
       />
     </DashboardLayout>

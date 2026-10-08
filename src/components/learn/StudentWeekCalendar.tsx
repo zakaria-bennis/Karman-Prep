@@ -7,16 +7,35 @@ import { ArrowRight, RotateCw } from "lucide-react";
 import type { StudyAction } from "@/lib/learn/dashboard";
 import {
   buildCalendarWeek,
+  dateKeyAt,
   resolveCalendarTimeZone,
   type CalendarItem,
+  type CalendarSource,
   type StudentCalendarData,
 } from "@/lib/learn/week-calendar";
+
+/** Safe signed-in-student summary returned by the linked homework reader. */
+export interface LinkedSessionHomework {
+  id: string;
+  skillId: string;
+  title: string;
+  dueAt: string;
+  dueLocalDate: string;
+  studentTimeZone: string;
+  sessionStartAtAssignment: string;
+  currentSessionStart: string;
+  sessionState: "scheduled" | "rescheduled" | "cancelled";
+  completedAttempts: number;
+  inProgressAttempts: number;
+  lateAnswers: number;
+}
 
 interface Props {
   data: StudentCalendarData;
   asOf: string;
   preferredTimeZone: string | null;
   next: StudyAction | null;
+  linkedHomework?: CalendarSource<LinkedSessionHomework>;
 }
 
 function dateFromKey(key: string) {
@@ -38,6 +57,14 @@ function hourLabel(instant: string, timeZone: string) {
     hour: "numeric",
     minute: "2-digit",
     timeZoneName: "short",
+  }).format(new Date(instant));
+}
+
+function localClock(instant: string, timeZone: string) {
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    hour: "numeric",
+    minute: "2-digit",
   }).format(new Date(instant));
 }
 
@@ -72,7 +99,13 @@ function AgendaItem({ item, timeZone }: { item: CalendarItem; timeZone: string }
   );
 }
 
-export default function StudentWeekCalendar({ data, asOf, preferredTimeZone, next }: Props) {
+export default function StudentWeekCalendar({
+  data,
+  asOf,
+  preferredTimeZone,
+  next,
+  linkedHomework,
+}: Props) {
   const router = useRouter();
   const [timeZone, setTimeZone] = useState(() => resolveCalendarTimeZone(preferredTimeZone));
   useEffect(() => {
@@ -252,10 +285,72 @@ export default function StudentWeekCalendar({ data, asOf, preferredTimeZone, nex
         <h3 id="session-homework-heading" className="font-plex-serif text-xl text-ivory">
           Homework for booked sessions
         </h3>
-        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-taupe">
-          When your educator assigns homework for a booked session, its due time and your saved
-          attempts will appear here. Practice posted separately stays in the calendar above.
-        </p>
+        {!linkedHomework ? (
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-taupe">
+            Homework for booked sessions is not available here yet. Practice posted separately
+            appears in the calendar above.
+          </p>
+        ) : linkedHomework.state === "unavailable" ? (
+          <p role="status" className="mt-2 max-w-2xl text-sm leading-relaxed text-taupe">
+            Homework for booked sessions could not load. Refresh the week to try again.
+          </p>
+        ) : linkedHomework.items.length === 0 ? (
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-taupe">
+            No homework is linked to a booked session yet. Practice posted separately appears in the
+            calendar above.
+          </p>
+        ) : (
+          <ol className="mt-4 divide-y divide-bronze border-y border-bronze">
+            {[...linkedHomework.items]
+              .sort((a, b) => a.dueAt.localeCompare(b.dueAt))
+              .map((item) => (
+                <li key={item.id} className="py-5">
+                  <div className="flex flex-wrap items-start justify-between gap-x-8 gap-y-3">
+                    <div>
+                      <h4 className="text-base font-semibold text-ivory">{item.title}</h4>
+                      <p className="mt-1 text-sm text-taupe">
+                        Due {dayLabel(item.dueLocalDate, "long")},{" "}
+                        {localClock(item.dueAt, item.studentTimeZone)} {item.studentTimeZone}
+                      </p>
+                      {item.sessionState === "rescheduled" && (
+                        <p className="mt-1 text-sm text-taupe">
+                          Session rescheduled to{" "}
+                          {dayLabel(
+                            dateKeyAt(item.currentSessionStart, item.studentTimeZone),
+                            "long"
+                          )}{" "}
+                          at {hourLabel(item.currentSessionStart, item.studentTimeZone)}. The
+                          original homework due time is shown above.
+                        </p>
+                      )}
+                      {item.sessionState === "cancelled" && (
+                        <p className="mt-1 text-sm font-semibold text-warning">
+                          Booked session cancelled. The original homework due time is shown above.
+                        </p>
+                      )}
+                    </div>
+                    <Link
+                      href={`/learn/practice/${encodeURIComponent(item.skillId)}?assignment=${encodeURIComponent(item.id)}`}
+                      className="inline-flex min-h-11 items-center gap-1 text-sm font-semibold text-gold underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold"
+                    >
+                      Open assigned practice{" "}
+                      <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+                    </Link>
+                  </div>
+                  {(item.completedAttempts > 0 ||
+                    item.inProgressAttempts > 0 ||
+                    item.lateAnswers > 0) && (
+                    <p className="mt-3 text-xs leading-relaxed text-taupe">
+                      {item.completedAttempts} completed{" "}
+                      {item.completedAttempts === 1 ? "attempt" : "attempts"} ·{" "}
+                      {item.inProgressAttempts} in progress · {item.lateAnswers} late{" "}
+                      {item.lateAnswers === 1 ? "answer" : "answers"} saved
+                    </p>
+                  )}
+                </li>
+              ))}
+          </ol>
+        )}
       </section>
     </section>
   );
