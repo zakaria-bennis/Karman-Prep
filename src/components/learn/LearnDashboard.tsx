@@ -2,8 +2,8 @@ import Link from "next/link";
 import { ArrowRight, BookOpen, Calculator, CalendarDays, MessageSquare } from "lucide-react";
 import type { LearnDashboardData, SubjectProgress } from "@/lib/learn/dashboard";
 import { learningPlanCopy } from "@/lib/learning-plan/copy";
-import StudentWeekCalendar from "./StudentWeekCalendar";
-import type { StudentCalendarData } from "@/lib/learn/week-calendar";
+import StudentWeekCalendar, { type LinkedSessionHomework } from "./StudentWeekCalendar";
+import type { CalendarSource, StudentCalendarData } from "@/lib/learn/week-calendar";
 
 export default function LearnDashboard({
   dashboard,
@@ -12,6 +12,7 @@ export default function LearnDashboard({
   calendar,
   calendarAsOf,
   preferredTimeZone = null,
+  linkedHomework,
 }: {
   dashboard: LearnDashboardData;
   embedded?: boolean;
@@ -19,6 +20,7 @@ export default function LearnDashboard({
   calendar?: StudentCalendarData;
   calendarAsOf?: string;
   preferredTimeZone?: string | null;
+  linkedHomework?: CalendarSource<LinkedSessionHomework>;
 }) {
   return (
     <div className="min-h-screen bg-night text-ivory">
@@ -40,6 +42,7 @@ export default function LearnDashboard({
             asOf={calendarAsOf}
             preferredTimeZone={preferredTimeZone}
             next={dashboard.next}
+            linkedHomework={linkedHomework}
           />
         )}
 

@@ -3,7 +3,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { StudentCalendarData } from "@/lib/learn/week-calendar";
-import StudentWeekCalendar from "./StudentWeekCalendar";
+import StudentWeekCalendar, { type LinkedSessionHomework } from "./StudentWeekCalendar";
 
 const mock = vi.hoisted(() => ({ refresh: vi.fn() }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: mock.refresh }) }));
@@ -35,6 +35,21 @@ const data: StudentCalendarData = {
   practiceAssignments: { state: "ready", items: [] },
 };
 
+const linked: LinkedSessionHomework = {
+  id: "assignment-1",
+  skillId: "linear-equations",
+  title: "Linear equations before your session",
+  dueAt: "2026-10-08T04:59:00.000Z",
+  dueLocalDate: "2026-10-07",
+  studentTimeZone: "America/Chicago",
+  sessionStartAtAssignment: "2026-10-08T15:00:00.000Z",
+  currentSessionStart: "2026-10-08T15:00:00.000Z",
+  sessionState: "scheduled",
+  completedAttempts: 1,
+  inProgressAttempts: 1,
+  lateAnswers: 2,
+};
+
 beforeEach(() => vi.clearAllMocks());
 
 describe("student study week", () => {
@@ -56,7 +71,7 @@ describe("student study week", () => {
     expect(screen.getByText("Seminar session")).toBeTruthy();
     expect(screen.getByText("Reading questions")).toBeTruthy();
     expect(screen.getByRole("heading", { name: "Homework for booked sessions" })).toBeTruthy();
-    expect(screen.getByText(/Practice posted separately stays in the calendar above/)).toBeTruthy();
+    expect(screen.getByText(/Homework for booked sessions is not available here yet/)).toBeTruthy();
     expect(screen.getByText(/America\/Chicago/)).toBeTruthy();
     expect(screen.getByRole("link", { name: /Continue practice/ }).getAttribute("href")).toBe(
       "/learn/earlier/math?resume=saved-id"
@@ -89,5 +104,84 @@ describe("student study week", () => {
       "/learn"
     );
     expect(screen.queryByText("Nothing scheduled or due today.")).toBeNull();
+  });
+
+  it("distinguishes a verified empty homework list from an unavailable reader", () => {
+    render(
+      <StudentWeekCalendar
+        data={data}
+        asOf="2026-10-08T14:00:00Z"
+        preferredTimeZone="America/Chicago"
+        next={null}
+        linkedHomework={{ state: "ready", items: [] }}
+      />
+    );
+    expect(screen.getByText(/No homework is linked to a booked session yet/)).toBeTruthy();
+    expect(screen.queryByText(/not available here yet/)).toBeNull();
+  });
+
+  it("shows only verified linked homework fields with its pinned due time and saved attempt counts", () => {
+    render(
+      <StudentWeekCalendar
+        data={data}
+        asOf="2026-10-08T14:00:00Z"
+        preferredTimeZone="America/Chicago"
+        next={null}
+        linkedHomework={{ state: "ready", items: [linked] }}
+      />
+    );
+    expect(screen.getByText("Linear equations before your session")).toBeTruthy();
+    expect(screen.getByText(/Due Wednesday, Oct 7, 11:59 PM America\/Chicago/)).toBeTruthy();
+    expect(
+      screen.getByText(/1 completed attempt · 1 in progress · 2 late answers saved/)
+    ).toBeTruthy();
+    expect(screen.getByRole("link", { name: /Open assigned practice/ }).getAttribute("href")).toBe(
+      "/learn/practice/linear-equations?assignment=assignment-1"
+    );
+    expect(screen.queryByText(/not available here yet/)).toBeNull();
+  });
+
+  it("keeps the pinned deadline visible when a session changes or the reader fails", () => {
+    const { rerender } = render(
+      <StudentWeekCalendar
+        data={data}
+        asOf="2026-10-08T14:00:00Z"
+        preferredTimeZone="America/Chicago"
+        next={null}
+        linkedHomework={{
+          state: "ready",
+          items: [
+            {
+              ...linked,
+              currentSessionStart: "2026-10-09T15:00:00.000Z",
+              sessionState: "rescheduled",
+            },
+          ],
+        }}
+      />
+    );
+    expect(screen.getByText(/Session rescheduled to Friday, Oct 9/)).toBeTruthy();
+    expect(screen.getByText(/Due Wednesday, Oct 7, 11:59 PM America\/Chicago/)).toBeTruthy();
+    rerender(
+      <StudentWeekCalendar
+        data={data}
+        asOf="2026-10-08T14:00:00Z"
+        preferredTimeZone="America/Chicago"
+        next={null}
+        linkedHomework={{ state: "ready", items: [{ ...linked, sessionState: "cancelled" }] }}
+      />
+    );
+    expect(screen.getByText(/Booked session cancelled/)).toBeTruthy();
+    rerender(
+      <StudentWeekCalendar
+        data={data}
+        asOf="2026-10-08T14:00:00Z"
+        preferredTimeZone="America/Chicago"
+        next={null}
+        linkedHomework={{ state: "unavailable", items: [] }}
+      />
+    );
+    expect(screen.getByRole("status").textContent).toMatch(/could not load/i);
+    expect(screen.queryByText("Linear equations before your session")).toBeNull();
   });
 });
