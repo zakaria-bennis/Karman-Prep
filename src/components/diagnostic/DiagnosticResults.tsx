@@ -4,14 +4,14 @@
 // Diagnostic Results Screen
 //
 // Renders the ScoredDiagnostic returned by /api/diagnostic/submit:
-//   · Predicted total SAT range + Math + R&W subscores
+//   · Diagnostic performance summary + Math + R&W subscores
 //   · Domain breakdown across all 8 official SAT domains,
 //     grouped Math vs R&W
 //   · Foundation-aware focus area (vs the old "lowest %" bug)
 //   · Strongest domain ONLY when the student got ≥3 correct in
 //     that domain — otherwise honestly says "no clear strength yet"
 //   · Dynamic CTA: paying users → learning path; non-payers →
-//     Start free trial
+//     Begin their account journey
 // ============================================================
 
 import Link from "next/link";
@@ -83,7 +83,7 @@ export default function DiagnosticResults({
   const scoreLabel = getScoreLabel(midScore);
 
   // CTA: non-subscribers go to /billing to pick a tier + start the
-  // free trial. Paying subscribers head straight to their dashboard.
+  // eligible checkout offer. Paying subscribers head straight to their dashboard.
   const ctaHref = isSubscribed ? "/dashboard/student" : "/billing";
   const ctaLabel = isSubscribed ? "Go to my learning path" : "Begin your journey";
 
@@ -312,13 +312,17 @@ export default function DiagnosticResults({
           </div>
         )}
 
-        {/* Score guarantee */}
+        {/* Diagnostic and purchase-policy clarification */}
         <div className="rounded-2xl border border-info/40 bg-info/10 p-5 text-sm text-info dark:border-info/40 dark:bg-info/20 dark:text-info-bright">
-          <p className="mb-1 font-bold">Score Improvement Guarantee</p>
+          <p className="mb-1 font-bold">A diagnostic snapshot, not a score prediction</p>
           <p>
-            Follow your personalized learning path for 8 weeks. If you don&apos;t improve by at
-            least 50 points on your next official SAT, we&apos;ll refund your subscription — no
-            questions asked.
+            These results describe your answers on the questions and skills sampled. They are not an
+            official SAT score or a promised score outcome. No current standard checkout plan is
+            configured for the prospective course-fee protection; see the{" "}
+            <Link href="/guarantee" className="underline">
+              full policy
+            </Link>{" "}
+            for its limits.
           </p>
         </div>
 

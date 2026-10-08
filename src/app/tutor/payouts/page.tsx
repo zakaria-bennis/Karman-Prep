@@ -24,7 +24,6 @@ import {
   type TutorEarningsSession,
 } from "@/lib/supabase/queries/earnings";
 import { fetchAccountStatus } from "@/lib/integrations/stripe/connect";
-import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import PayoutsClient from "./PayoutsClient";
 
 export const metadata: Metadata = { title: "Payouts — Karman" };
@@ -127,7 +126,7 @@ export default async function TutorPayoutsPage() {
   }
 
   return (
-    <DashboardLayout>
+    <>
       <div className="mx-auto max-w-4xl space-y-6 px-4 py-8 sm:px-6">
         <Link
           href="/tutor/earnings"
@@ -174,6 +173,6 @@ export default async function TutorPayoutsPage() {
           />
         )}
       </div>
-    </DashboardLayout>
+    </>
   );
 }

@@ -100,13 +100,14 @@ function parse(
 
 /** Patterns for fill-in-the-blank markers:
  *    Underscores-only:  `__`, `_____`           (universal — always replaced)
+ *    Composite marker: `_____blank`, `__blank__` (one blank, not visible prose)
  *    Word "blank":      `blank`, `_blank_`,
  *                       `-blank-`, `__blank__`  (passage-only — opt-in)
  *
  *  The lookarounds `(?<!\w) / (?!\w)` prevent matching inside larger
  *  words: "blanket", "unblanked", "var_name" stay untouched. */
-const UNDERSCORE_PATTERN = /_{2,}/g;
-const BLANK_OR_UNDERSCORE_PATTERN = /_{2,}|(?<!\w)[_-]*blank[_-]*(?!\w)/gi;
+const UNDERSCORE_PATTERN = /(?<!\w)_{2,}blank_*(?!\w)|_{2,}/gi;
+const BLANK_OR_UNDERSCORE_PATTERN = /(?<!\w)[_-]*blank[_-]*(?!\w)|_{2,}/gi;
 
 /** Replace each blank marker with one fixed-width continuous underline
  *  at the baseline. Width is uniform — what matters is that the blank
@@ -137,7 +138,7 @@ function renderTextWithBlanks(text: string, segKey: number, treatBlankWord: bool
             <span
               key={key}
               aria-label="blank"
-              role="presentation"
+              role="img"
               style={{
                 display: "inline-block",
                 width: "4em",

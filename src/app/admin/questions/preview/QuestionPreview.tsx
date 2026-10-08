@@ -39,9 +39,11 @@ export interface PreviewEditProps {
 export function QuestionPreview({
   q,
   edit,
+  readOnly = false,
 }: {
   q: QuizQuestionWithChoices;
   edit?: PreviewEditProps;
+  readOnly?: boolean;
 }) {
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -64,7 +66,7 @@ export function QuestionPreview({
   const perChoiceMap = q.explanation_per_choice as Record<string, string | undefined> | null;
 
   // ── Buttons row at the bottom of the choices ─────────────────
-  const choicesButtonRow = !isSubmitted ? (
+  const choicesButtonRow = readOnly ? null : !isSubmitted ? (
     selectedAnswer ? (
       <motion.div
         initial={{ opacity: 0, y: 10 }}
@@ -149,15 +151,15 @@ export function QuestionPreview({
                 selected={isSelected}
                 submitted={isSubmitted}
                 correct={isCorrect}
-                onSelect={setSelectedAnswer}
+                onSelect={readOnly ? () => undefined : setSelectedAnswer}
               />
             );
           }
           return (
             <button
               key={letter}
-              onClick={() => !isSubmitted && setSelectedAnswer(letter)}
-              disabled={isSubmitted}
+              onClick={() => !readOnly && !isSubmitted && setSelectedAnswer(letter)}
+              disabled={readOnly || isSubmitted}
               className={cn(
                 "w-full rounded-xl border px-5 py-3.5 text-left transition-all",
                 "flex items-start gap-4",

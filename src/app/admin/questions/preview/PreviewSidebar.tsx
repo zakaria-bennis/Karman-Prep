@@ -53,7 +53,7 @@ export function PreviewSidebar({
   const selectedCount = selectedIds.size;
 
   return (
-    <aside className="flex h-full flex-col rounded-xl border border-bronze bg-surface/30">
+    <aside className="flex h-full min-h-0 min-w-0 flex-col rounded-xl border border-bronze bg-surface/30">
       {/* ── Header: select-all + count ────────────────────── */}
       <header className="flex items-center gap-2 border-b border-bronze px-3 py-2 text-xs">
         <label className="inline-flex cursor-pointer items-center gap-1.5 text-taupe hover:text-ivory">
@@ -85,7 +85,7 @@ export function PreviewSidebar({
       </header>
 
       {/* ── Scrollable list ───────────────────────────────── */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="min-h-0 flex-1 overflow-y-auto">
         {questions.length === 0 ? (
           <div className="p-6 text-xs italic text-taupe">No questions match these filters.</div>
         ) : (
@@ -180,7 +180,8 @@ function SidebarRow({
       />
       <button
         onClick={onClick}
-        className="min-w-0 flex-1 text-left hover:bg-surface-raised/40 focus:outline-none"
+        aria-current={active ? "true" : undefined}
+        className="min-h-11 min-w-0 flex-1 rounded-md text-left hover:bg-surface-raised/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold"
       >
         <div className="flex items-start gap-2">
           <span className="mt-0.5 w-6 shrink-0 text-right font-mono text-[10px] tabular-nums text-taupe">

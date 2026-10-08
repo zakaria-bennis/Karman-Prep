@@ -18,7 +18,6 @@ import {
   fetchResponsesForAttempt,
 } from "@/lib/supabase/queries/quiz";
 import { RW_NODES, MATH_NODES, currentAtmosphere, ATMOSPHERE_COLORS } from "@/data/curriculum";
-import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import StudentDetailTabs from "@/components/tutor/StudentDetailTabs";
 
 export const metadata: Metadata = { title: "Student — Tutor Portal" };
@@ -99,7 +98,7 @@ export default async function StudentDetailPage({ params, searchParams }: Params
   const activeTab = (tabParam ?? "skills") as "skills" | "controls" | "flagged" | "quiz";
 
   return (
-    <DashboardLayout>
+    <>
       <div className="mx-auto max-w-6xl space-y-6 px-4 py-8 sm:px-6">
         <Link
           href="/tutor"
@@ -166,7 +165,7 @@ export default async function StudentDetailPage({ params, searchParams }: Params
           activeTab={activeTab}
         />
       </div>
-    </DashboardLayout>
+    </>
   );
 }
 

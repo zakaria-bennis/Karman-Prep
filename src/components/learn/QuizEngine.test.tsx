@@ -7,7 +7,10 @@ import type { StudentQuizQuestion } from "@/types/quiz";
 import QuizEngine from "./QuizEngine";
 
 let quiz: ReturnType<typeof useQuiz>;
-vi.mock("@/contexts/QuizContext", () => ({ useQuiz: () => quiz }));
+vi.mock("@/contexts/QuizContext", () => ({
+  useQuiz: () => quiz,
+  useOptionalQuizState: () => quiz.state,
+}));
 vi.mock("./DesmosWindow", () => ({ default: () => null }));
 vi.mock("./Scratchpad", () => ({ default: () => null }));
 vi.mock("./QuizResults", () => ({ default: () => <div>Results</div> }));

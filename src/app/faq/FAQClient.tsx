@@ -8,6 +8,7 @@ import { useState } from "react";
 import { ChevronDown, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { GUARANTEE_POLICY } from "@/lib/guarantee/policy";
 
 interface FAQItem {
   q: string;
@@ -24,11 +25,11 @@ const FAQ_SECTIONS: { title: string; items: FAQItem[] }[] = [
       },
       {
         q: "How does the free trial work?",
-        a: "Every subscription plan includes a 7-day free trial. You'll enter your card details upfront, but you won't be charged until day 8. You can cancel anytime before then with no fee. If you cancel, you keep access through the end of your trial period.",
+        a: `A ${GUARANTEE_POLICY.trial.days}-day trial is available only on the Seminar (Group) tier for new checkouts. Other tiers do not receive a trial. Checkout shows any applicable trial and charge timing before purchase; existing subscriptions are unchanged.`,
       },
       {
         q: "Who are the tutors?",
-        a: "Tutor availability depends on the current plan and schedule. Email support@karmanprep.com if you want to confirm who would teach your sessions before choosing a plan.",
+        a: `Tutor availability depends on the current plan and schedule. For billing or plan questions, use ${GUARANTEE_POLICY.supportEmail}.`,
       },
       {
         q: "What's the first thing I should do after signing up?",
@@ -91,23 +92,23 @@ const FAQ_SECTIONS: { title: string; items: FAQItem[] }[] = [
     ],
   },
   {
-    title: "Score Improvement Guarantee",
+    title: "Course-Fee Protection",
     items: [
       {
-        q: "What is the score improvement guarantee?",
-        a: "If you follow your personalized learning path consistently for 16 weeks and don't improve by at least 50 points on your next official SAT, we'll give you a full refund — no questions asked.",
+        q: "What is the course-fee protection?",
+        a: `It is a prospective policy for specifically identified 12-week one-to-one SAT offers with a positive online-course fee separately disclosed and paid. If the first qualifying official SAT total after plan completion is equal to or below the qualifying baseline, the eligible course fee may be refunded. It is not a fixed-point promise. Current standard checkout plans are not configured as eligible. Read the full terms before purchase.`,
       },
       {
-        q: "What does 'following the learning path' mean?",
-        a: "It means completing at least 80% of the recommended lessons each week, taking all scheduled practice quizzes, and attending your scheduled tutoring sessions. We track this automatically in your dashboard.",
+        q: "What participation is required on a qualifying offer?",
+        a: "The written plan must be provided before teaching and include the agreed one-to-one hours, required homework, and specified full-length tests. The policy requires completing the plan, at least 90% of required homework in good faith by agreed deadlines, and all specified full-length tests. Optional work is excluded; requirements are not added retroactively.",
       },
       {
         q: "Does the guarantee apply to all plans?",
-        a: "The published guarantee page lists the eligible plans and all requirements. Review those terms, including the diagnostic, paid duration, participation, official test, and claim deadline, before choosing a plan.",
+        a: "No current standard checkout offer is configured as eligible. Only a specific offer that identifies the qualifying 12-week one-to-one SAT plan and separately itemizes a positive course fee can qualify. Check the offer and full policy before purchase.",
       },
       {
         q: "How do I claim the guarantee?",
-        a: "Email us at support@karmanprep.com with your official SAT score report (before and after). We'll review your completion record in the dashboard and process your refund within 5 business days if you qualify.",
+        a: `Contact ${GUARANTEE_POLICY.supportEmail} within 30 calendar days after the qualifying score becomes available, with official before-and-after score reports. Karman acknowledges within 5 business days and decides or requests specifically missing information within 10 business days after a complete claim. Human review is available for disputes and exceptions.`,
       },
     ],
   },
@@ -207,8 +208,8 @@ export default function FAQClient() {
           Got questions? We&apos;ve got answers.
         </h1>
         <p className="mx-auto max-w-xl text-taupe dark:text-taupe">
-          Everything you need to know about Karman, our tutors, pricing, and the score improvement
-          guarantee.
+          Information about Karman, current plans, and the terms for prospective course-fee
+          protection.
         </p>
       </div>
 
@@ -241,14 +242,14 @@ export default function FAQClient() {
             Still have questions?
           </h3>
           <p className="mb-6 text-sm text-taupe dark:text-taupe">
-            Our team is happy to help. Reach out and we&apos;ll get back to you within a few hours.
+            For billing or plan questions, use our verified billing contact.
           </p>
           <div className="flex flex-col justify-center gap-3 sm:flex-row">
-            <a href="mailto:support@karmanprep.com" className="btn-secondary text-sm">
-              Email support@karmanprep.com
+            <a href={`mailto:${GUARANTEE_POLICY.supportEmail}`} className="btn-secondary text-sm">
+              Email {GUARANTEE_POLICY.supportEmail}
             </a>
-            <Link href="/auth/sign-up" className="btn-primary text-sm">
-              Start Free Trial
+            <Link href="/#pricing" className="btn-primary text-sm">
+              View current plans
             </Link>
           </div>
         </div>

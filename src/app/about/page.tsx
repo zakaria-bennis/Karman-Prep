@@ -29,7 +29,7 @@ const PATHS = [
     title: "Ask for support",
     description:
       "Questions about the current offer, lesson coverage, or tutoring availability deserve a direct answer before you choose a plan.",
-    href: "mailto:support@karmanprep.com",
+    href: "mailto:billing@karmanprep.com",
     action: "Email Karman support",
   },
 ];

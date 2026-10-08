@@ -8,6 +8,33 @@ afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
 });
+describe("source composite blank markers", () => {
+  it.each([
+    "the counterintuitive effect of _____blank demand: buyers",
+    "courtly life _____blank readers a thousand years later.",
+    "consumers. _____blank the European Union established DOP status,",
+  ])("renders the reviewed placeholder as one accessible underline: %s", (text) => {
+    const { container } = render(<MathText text={text} />);
+    const blank = screen.getByRole("img", { name: "blank" });
+    expect(container.querySelectorAll('[aria-label="blank"]')).toHaveLength(1);
+    expect(blank).toHaveStyle({ width: "4em" });
+    expect(blank.style.borderBottomWidth).toBe("0.12em");
+    expect(blank.style.borderBottomStyle).toBe("solid");
+    expect(blank.textContent).toBe("");
+    expect(container.textContent).toBe(text.replace("_____blank", ""));
+  });
+  it("consumes a composite marker once when blank-word handling is enabled", () => {
+    const { container } = render(<MathText text="Before __blank__ after" treatBlankWord />);
+    expect(container.querySelectorAll('[aria-label="blank"]')).toHaveLength(1);
+    expect(container.textContent).toBe("Before  after");
+  });
+  it("preserves ordinary blank prose and words after an underscore marker", () => {
+    const text = "Leave the blank page beside a blanket. _____blanket _____ blank.";
+    const { container } = render(<MathText text={text} />);
+    expect(container.textContent).toBe("Leave the blank page beside a blanket. blanket  blank.");
+    expect(container.querySelectorAll('[aria-label="blank"]')).toHaveLength(2);
+  });
+});
 describe("source-formatting rendering", () => {
   it("renders a source-backed title without italicizing its possessive or punctuation", () => {
     const text = "from Sei Shōnagon’s <i>Pillow Book</i>, the author delights";

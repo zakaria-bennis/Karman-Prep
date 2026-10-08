@@ -44,7 +44,7 @@ export function DeviceFrame({
     return <div className="h-full">{children}</div>;
   }
   return (
-    <div className="flex h-full w-full justify-center overflow-auto bg-night/40 p-4">
+    <div className="flex h-full w-full justify-center overflow-auto bg-night/40 p-2 sm:p-4">
       <div
         className={cn(
           "w-full overflow-hidden rounded-2xl border border-bronze/70 bg-night shadow-2xl shadow-black/40",
@@ -80,9 +80,10 @@ export function DeviceFrameToggle({
             key={o.value}
             onClick={() => onChange(o.value)}
             className={cn(
-              "rounded-md px-2.5 py-1 text-[11px] font-semibold transition-colors",
+              "min-h-11 rounded-md px-2.5 py-1 text-xs font-semibold transition-colors",
               active ? "bg-surface-raised text-ivory" : "text-taupe hover:text-ivory"
             )}
+            aria-pressed={active}
             title={`${o.label} (${o.px}px)`}
           >
             {o.label}

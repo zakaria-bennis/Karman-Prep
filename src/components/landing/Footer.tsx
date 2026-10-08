@@ -21,10 +21,10 @@ export default function Footer() {
             Digital SAT practice, a signed-in diagnostic, and tutoring support in one place.
           </p>
           <a
-            href="mailto:support@karmanprep.com"
+            href="mailto:billing@karmanprep.com"
             className="mt-5 inline-block font-semibold text-ivory underline underline-offset-4 hover:text-gold-bright"
           >
-            Email Karman support
+            Email Karman billing
           </a>
         </div>
         <div className="grid grid-cols-2 gap-8 sm:grid-cols-3">

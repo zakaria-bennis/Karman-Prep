@@ -4,6 +4,7 @@ import { useId } from "react";
 import { Palette } from "lucide-react";
 import { useTheme } from "./ThemeProvider";
 import { SITE_THEMES } from "@/lib/themes/palettes";
+import SoundControl from "./SoundControl";
 
 export function ThemeSelector({ compact = false }: { compact?: boolean }) {
   const { theme, setTheme, saving, notice } = useTheme();
@@ -21,7 +22,7 @@ export function ThemeSelector({ compact = false }: { compact?: boolean }) {
     >
       <summary
         aria-label="Appearance menu"
-        className="flex min-h-10 cursor-pointer list-none items-center gap-2 rounded-lg px-3 text-sm text-taupe hover:bg-surface-raised hover:text-ivory [&::-webkit-details-marker]:hidden"
+        className="flex min-h-11 min-w-11 cursor-pointer list-none items-center justify-center gap-2 rounded-lg px-3 text-sm text-taupe hover:bg-surface-raised hover:text-ivory [&::-webkit-details-marker]:hidden"
       >
         <Palette className="h-5 w-5 shrink-0" aria-hidden="true" />
         {!compact && "Appearance"}
@@ -35,7 +36,7 @@ export function ThemeSelector({ compact = false }: { compact?: boolean }) {
             details?.removeAttribute("open");
             details?.querySelector("summary")?.focus();
           }}
-          className="float-right flex h-9 w-9 items-center justify-center rounded-lg text-ivory hover:bg-surface-raised"
+          className="float-right flex h-11 w-11 items-center justify-center rounded-lg text-ivory hover:bg-surface-raised"
         >
           ×
         </button>
@@ -65,6 +66,7 @@ export function ThemeSelector({ compact = false }: { compact?: boolean }) {
         <p role="status" className="mt-2 text-xs text-taupe">
           {notice}
         </p>
+        <SoundControl />
       </div>
     </details>
   );

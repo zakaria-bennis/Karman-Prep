@@ -18,7 +18,7 @@ describe("About page", () => {
       "/diagnostic"
     );
     expect(screen.getByRole("link", { name: /Email Karman support/i }).getAttribute("href")).toBe(
-      "mailto:support@karmanprep.com"
+      "mailto:billing@karmanprep.com"
     );
     expect(document.body.textContent).not.toMatch(/\+285|2,400|94%|1,200|Nabil|predicted score/i);
   });

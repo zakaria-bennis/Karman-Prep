@@ -15,7 +15,6 @@ import { safeAuth } from "@/lib/auth/dev-auth";
 import { resolveEffectiveClerkId } from "@/lib/supabase/queries/admin";
 import { redirect } from "next/navigation";
 import { CalendarClock, Video } from "lucide-react";
-import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { createAdminClient } from "@/lib/supabase/server";
 import { TutorBookingActions } from "./TutorBookingActions";
 import {
@@ -199,7 +198,7 @@ export default async function TutorSchedulePage({
   }
 
   return (
-    <DashboardLayout>
+    <>
       <div className="mx-auto max-w-4xl space-y-6 px-4 py-8 sm:px-6">
         <header>
           <p className="mb-1 text-xs font-bold uppercase tracking-widest text-info">Tutor Portal</p>
@@ -268,7 +267,7 @@ export default async function TutorSchedulePage({
           />
         )}
       </div>
-    </DashboardLayout>
+    </>
   );
 }
 

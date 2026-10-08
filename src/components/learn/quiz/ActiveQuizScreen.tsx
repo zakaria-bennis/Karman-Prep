@@ -9,7 +9,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Check, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { MappedNode } from "../ConstellationMap";
-import { useQuiz } from "@/contexts/QuizContext";
+import { useOptionalQuizState, type QuizState } from "@/contexts/QuizContext";
 import type { StudentQuizQuestion } from "@/types/quiz";
 import MathText from "../MathText";
 import ReviewedSinglePassage from "../ReviewedSinglePassage";
@@ -32,6 +32,8 @@ export function ActiveQuizScreen({
   onToggleExplanations,
   onNext,
   menu,
+  readOnly = false,
+  stateOverride,
 }: {
   node: MappedNode;
   q: StudentQuizQuestion;
@@ -43,8 +45,15 @@ export function ActiveQuizScreen({
   onToggleExplanations: (v: boolean) => void;
   onNext: () => void;
   menu?: ReactNode;
+  readOnly?: boolean;
+  stateOverride?: Pick<
+    QuizState,
+    "phase" | "reviews" | "records" | "targetLength" | "currentIndex" | "selectedAnswer"
+  >;
 }) {
-  const { state } = useQuiz();
+  const contextState = useOptionalQuizState();
+  const state = stateOverride ?? contextState;
+  if (!state) throw new Error("ActiveQuizScreen requires a quiz session or read-only state.");
   const nativeGeometryRenderable = useMemo(
     () =>
       q.figure_kind === "geometric" &&
@@ -90,13 +99,15 @@ export function ActiveQuizScreen({
         </div>
         <div className="flex flex-1 justify-end">
           {menu}
-          <button
-            onClick={onClose}
-            className="flex h-9 w-9 items-center justify-center rounded-full text-taupe hover:bg-surface-raised hover:text-ivory"
-            aria-label="Close quiz"
-          >
-            <X className="h-4 w-4" />
-          </button>
+          {!readOnly && (
+            <button
+              onClick={onClose}
+              className="flex h-9 w-9 items-center justify-center rounded-full text-taupe hover:bg-surface-raised hover:text-ivory"
+              aria-label="Close quiz"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
         </div>
       </div>
 
@@ -122,7 +133,7 @@ export function ActiveQuizScreen({
         const LETTERS: ("A" | "B" | "C" | "D")[] = ["A", "B", "C", "D"];
 
         // ── Buttons row that lives at the bottom of the choices ──
-        const choicesButtonRow = !isSubmitted ? (
+        const choicesButtonRow = readOnly ? null : !isSubmitted ? (
           state.selectedAnswer ? (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
@@ -169,6 +180,7 @@ export function ActiveQuizScreen({
               correctAnswer={review?.correct_answer ?? ""}
               tolerance={review?.numeric_tolerance ?? null}
               wasCorrect={state.phase === "submitted_correct"}
+              readOnly={readOnly}
             />
           ) : (
             <div
@@ -194,15 +206,15 @@ export function ActiveQuizScreen({
                       selected={isSelected}
                       submitted={isSubmitted}
                       correct={isCorrect}
-                      onSelect={onSelectAnswer}
+                      onSelect={readOnly ? () => undefined : onSelectAnswer}
                     />
                   );
                 }
                 return (
                   <button
                     key={letter}
-                    onClick={() => !isSubmitted && onSelectAnswer(letter)}
-                    disabled={isSubmitted}
+                    onClick={() => !readOnly && !isSubmitted && onSelectAnswer(letter)}
+                    disabled={readOnly || isSubmitted}
                     className={cn(
                       "w-full rounded-xl border px-5 py-3.5 text-left transition-all",
                       "flex items-start gap-4",
@@ -432,7 +444,12 @@ export function ActiveQuizScreen({
             <div className="absolute inset-x-0 bottom-20 top-24 overflow-y-auto md:overflow-hidden">
               <div className="grid min-h-full divide-y divide-bronze md:h-full md:grid-cols-2 md:divide-x md:divide-y-0">
                 {/* LEFT */}
-                <div className="px-6 py-8 md:overflow-y-auto md:px-10">
+                <div
+                  className={cn(
+                    "px-6 py-8 md:overflow-y-auto md:px-10",
+                    isNativeTable && "min-w-0"
+                  )}
+                >
                   {figureCard}
                   {hasPassage && passageBlock}
                   {inExplanationMode && (
@@ -502,6 +519,7 @@ function NumericAnswerInput({
   correctAnswer,
   tolerance,
   wasCorrect,
+  readOnly,
 }: {
   value: string;
   onChange: (v: string) => void;
@@ -510,6 +528,7 @@ function NumericAnswerInput({
   correctAnswer: string;
   tolerance: number | null;
   wasCorrect: boolean;
+  readOnly: boolean;
 }) {
   const showFeedback = isSubmitted && studentAnswer !== null;
   const feedbackClass = showFeedback
@@ -535,7 +554,7 @@ function NumericAnswerInput({
           inputMode="text"
           autoComplete="off"
           autoFocus
-          disabled={isSubmitted}
+          disabled={isSubmitted || readOnly}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder="Number or fraction"

@@ -77,11 +77,11 @@ export const metadata: Metadata = {
   // domain so social-share previews work in dev and prod.
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? "https://karmanprep.com"),
   title: {
-    default: "Karman — SAT Tutoring That Gets Results",
+    default: "Karman Prep — SAT Practice and Tutoring",
     template: "%s | Karman",
   },
   description:
-    "Personalized SAT prep with expert tutors, adaptive diagnostics, and a score improvement guarantee. Group, private, and elite plans starting at $40/month.",
+    "SAT practice, a starting-point diagnostic, and tutoring support. Find a useful next step for your Math and Reading & Writing preparation.",
   keywords: [
     "SAT tutoring",
     "SAT prep",
@@ -95,14 +95,13 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: process.env.NEXT_PUBLIC_APP_URL,
     siteName: "Karman",
-    title: "Karman — SAT Tutoring That Gets Results",
-    description:
-      "Personalized SAT prep with expert tutors, adaptive diagnostics, and a score improvement guarantee.",
+    title: "Karman Prep — SAT Practice and Tutoring",
+    description: "SAT practice, a starting-point diagnostic, and tutoring support.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Karman — SAT Tutoring That Gets Results",
-    description: "Personalized SAT prep. Score improvement guarantee.",
+    title: "Karman Prep — SAT Practice and Tutoring",
+    description: "A clearer next step for your SAT preparation.",
   },
   robots: { index: true, follow: true },
 };
@@ -142,7 +141,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         signUp: {
           start: {
             title: "Create your Karman account",
-            subtitle: "Start your free trial",
+            subtitle: "Build your SAT routine",
           },
         },
       }}

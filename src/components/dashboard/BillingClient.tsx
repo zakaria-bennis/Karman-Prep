@@ -261,7 +261,7 @@ export default function BillingClient({ subscription, currentTier, allTiers }: P
           {[
             [
               "When will I be charged?",
-              "Your card is charged on day 8 of your free trial, or immediately if you skip the trial.",
+              "For new checkouts, only Seminar includes a seven-day trial. Other tiers start without a trial; your checkout confirmation shows the charge timing for your offer.",
             ],
             [
               "Can I cancel anytime?",
@@ -269,7 +269,7 @@ export default function BillingClient({ subscription, currentTier, allTiers }: P
             ],
             [
               "What's the refund policy?",
-              "We offer a 50-point score guarantee. If your score doesn't improve by 50 points after 16 weeks, contact us for a full refund.",
+              "Current standard plans are not configured for course-fee protection. See the Refund Policy and Guarantee terms for prospective eligible offers.",
             ],
           ].map(([q, a]) => (
             <div key={q}>

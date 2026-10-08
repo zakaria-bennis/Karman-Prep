@@ -443,3 +443,18 @@ html[data-theme="observatory"] {
 .source-function-math .katex-html span {
   color: rgb(var(--k-ivory));
 }
+
+/* October study-studio motion: one entry, then respond to a deliberate action. */
+@keyframes studio-arrive {
+  from { opacity: 0; transform: translateY(12px) rotate(-1deg); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes navigation-arrive {
+  from { transform: translateX(-24px); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .study-preview { animation: studio-arrive 550ms var(--ease-standard) both; }
+  .portal-shell dialog[open] { animation: navigation-arrive 220ms var(--ease-standard) both; }
+}
+html:has(.portal-shell dialog[open]) { overflow: hidden; }

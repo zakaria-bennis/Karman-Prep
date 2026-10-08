@@ -21,11 +21,11 @@ const STEPS = [
 
 export default function HowItWorks() {
   return (
-    <section id="how-it-works" className="bg-night py-20 text-ivory sm:py-28">
-      <div className="mx-auto max-w-6xl px-5 md:px-8">
+    <section id="how-it-works" className="scroll-mt-24 bg-night py-16 text-ivory sm:py-24">
+      <div className="mx-auto max-w-7xl px-5 md:px-8">
         <div className="grid gap-8 border-t border-bronze pt-6 md:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] md:gap-16">
           <div>
-            <h2 className="max-w-md font-plex-serif text-4xl leading-tight sm:text-5xl">
+            <h2 className="max-w-md font-plex-sans text-3xl font-medium leading-tight tracking-tight sm:text-5xl">
               Start with what you know. Leave with a next move.
             </h2>
             <p className="mt-5 max-w-sm leading-relaxed text-taupe">
@@ -39,7 +39,7 @@ export default function HowItWorks() {
                 key={step.number}
                 className="grid grid-cols-[3rem_minmax(0,1fr)] gap-5 border-b border-bronze py-6 sm:gap-8"
               >
-                <span className="pt-1 font-plex-mono text-sm text-gold" aria-hidden="true">
+                <span className="pt-1 font-plex-sans text-base text-gold" aria-hidden="true">
                   {step.number}
                 </span>
                 <div>

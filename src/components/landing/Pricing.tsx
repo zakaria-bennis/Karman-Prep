@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowUpRight, Check } from "lucide-react";
 import { PRICING_TIERS } from "@/types";
+import { GUARANTEE_POLICY } from "@/lib/guarantee/policy";
 
 export default function Pricing() {
   return (
@@ -11,8 +12,9 @@ export default function Pricing() {
             Compare what each plan includes.
           </h2>
           <p className="max-w-sm leading-relaxed text-taupe">
-            Review the current plan details and checkout terms before choosing. All plans include a
-            7-day free trial, cancel any time.
+            Review the current plan details and checkout terms before choosing. A{" "}
+            {GUARANTEE_POLICY.trial.days}-day trial is currently offered only on Seminar. Other
+            tiers start without a trial; checkout displays any applicable charge timing.
           </p>
         </div>
 
@@ -57,7 +59,7 @@ export default function Pricing() {
         </div>
 
         <p className="mt-8 max-w-3xl text-sm leading-relaxed text-taupe">
-          The 50-point score improvement guarantee has eligibility requirements. Read the{" "}
+          No current standard plan is configured for course-fee protection. Read the{" "}
           <Link href="/guarantee" className="font-semibold text-ivory underline underline-offset-4">
             full guarantee terms
           </Link>{" "}

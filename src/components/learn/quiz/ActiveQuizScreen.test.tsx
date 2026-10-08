@@ -8,17 +8,18 @@ import type { StudentQuizQuestion } from "@/types/quiz";
 import type { MappedNode } from "../ConstellationMap";
 import { ActiveQuizScreen } from "./ActiveQuizScreen";
 
+const mockQuizState = {
+  phase: "answering",
+  targetLength: 1,
+  records: [],
+  currentIndex: 0,
+  selectedAnswer: null,
+  reviews: {},
+};
+
 vi.mock("@/contexts/QuizContext", () => ({
-  useQuiz: () => ({
-    state: {
-      phase: "answering",
-      targetLength: 1,
-      records: [],
-      currentIndex: 0,
-      selectedAnswer: null,
-      reviews: {},
-    },
-  }),
+  useQuiz: () => ({ state: mockQuizState }),
+  useOptionalQuizState: () => mockQuizState,
 }));
 afterEach(cleanup);
 

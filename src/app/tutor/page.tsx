@@ -25,7 +25,6 @@ import {
 import { fetchTutorScope, fetchStudentDashboardRows } from "@/lib/supabase/queries/tutor";
 import { getUserUuidByClerkId } from "@/lib/supabase/queries/bookings";
 import { getCalConnectionStatus } from "@/lib/supabase/queries/cal-oauth";
-import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import StudentTable from "@/components/tutor/StudentTable";
 import {
   cohortTopicEmptyMessage,
@@ -54,7 +53,7 @@ export default async function TutorPage() {
     hasStudents && calStatus !== null && (!calStatus.connected || !calStatus.eventTypeId);
 
   return (
-    <DashboardLayout>
+    <>
       <div className="mx-auto max-w-6xl space-y-10 px-4 py-8 sm:px-6">
         {needsCalSetup ? (
           <CalSetupBanner
@@ -182,7 +181,7 @@ export default async function TutorPage() {
           )}
         </section>
       </div>
-    </DashboardLayout>
+    </>
   );
 }
 

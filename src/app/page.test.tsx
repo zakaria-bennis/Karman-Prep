@@ -47,9 +47,13 @@ describe("public landing entry", () => {
     expect(metadata.description).not.toMatch(/guarantee|score improvement|predicted/i);
   });
 
-  it("shows material guarantee conditions instead of promising no fine print", () => {
+  it("states current eligibility and separates prospective course-fee protection from existing terms", () => {
     render(<GuaranteePage />);
-    expect(screen.getByText(/required diagnostic, 16 paid weeks/)).toBeTruthy();
+    expect(
+      screen.getByText(/No current standard checkout offer is configured as eligible/)
+    ).toBeTruthy();
+    expect(screen.getByText(/Existing purchases keep their purchase-time terms/)).toBeTruthy();
+    expect(screen.getByRole("heading", { name: /12-Week Course-Fee Protection/ })).toBeTruthy();
     expect(document.body.textContent).not.toMatch(/No fine print/i);
   });
 });

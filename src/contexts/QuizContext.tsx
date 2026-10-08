@@ -344,6 +344,11 @@ export function useQuiz(): QuizContextValue {
   return ctx;
 }
 
+/** Read-only context access for question surfaces that can render without a live session. */
+export function useOptionalQuizState(): QuizState | null {
+  return useContext(QuizContext)?.state ?? null;
+}
+
 // ── Provider ─────────────────────────────────────────────────
 
 export function QuizProvider({ children }: { children: ReactNode }) {

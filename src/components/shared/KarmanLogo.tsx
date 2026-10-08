@@ -1,112 +1,74 @@
-// ============================================================
-// KarmanLogo — typographic placeholder for the Karman wordmark.
-//
-// This is a placeholder. The real Karman logo + variant set (see
-// docs/brand.md "Logo system") is commissioned externally; until those
-// assets land, every logo placement renders as Plex Serif text in ivory.
-//
-//   • <KarmanLogoMark />            — single letter "K" for compact / icon contexts
-//   • <KarmanWordmark />            — full "KARMAN" wordmark
-//   • <KarmanLogo />                — wordmark; variant="stacked" centers it
-//
-// Color: ivory (--text-primary, #F3ECDD). No gradients, no SVG paths.
-// Font: IBM Plex Serif via the `--font-plex-serif` CSS variable wired
-// in src/app/layout.tsx (next/font/google). Falls back to Georgia if
-// the webfont isn't loaded yet (initial page paint before swap).
-// ============================================================
-
-const SERIF_STACK = "var(--font-plex-serif), Georgia, 'Times New Roman', serif";
-const IVORY = "var(--text-primary, #f3ecdd)";
-
-interface MarkProps {
+/** Original monochrome Karman rocket. Uses currentColor in every theme. */
+export function KarmanLogoMark({
+  size = 32,
+  className = "",
+}: {
   size?: number;
   className?: string;
-}
-
-/** Single-letter "K" placeholder for the symbol-only mark.
- *  Used in compact contexts (collapsed sidebar, dense rails) where
- *  the full wordmark won't fit. */
-export function KarmanLogoMark({ size = 32, className }: MarkProps) {
+}) {
   return (
-    <span
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 32 32"
+      fill="none"
       aria-hidden="true"
-      className={`inline-flex select-none items-center justify-center ${className ?? ""}`}
-      style={{
-        fontFamily: SERIF_STACK,
-        fontSize: size,
-        fontWeight: 400,
-        lineHeight: 1,
-        color: IVORY,
-        width: size,
-        height: size,
-      }}
+      className={`shrink-0 text-ivory ${className}`}
     >
-      K
-    </span>
+      <path
+        fill="currentColor"
+        fillRule="evenodd"
+        d="M16 2C10.8 6.8 8.8 13.3 9.2 21.2L13.2 19.4H18.8L22.8 21.2C23.2 13.3 21.2 6.8 16 2ZM16 9.1A2.6 2.6 0 1 0 16 14.3A2.6 2.6 0 0 0 16 9.1Z"
+        clipRule="evenodd"
+      />
+      <path
+        d="M7.8 16.3L3.8 22.4V26.1L10.2 22.7M24.2 16.3L28.2 22.4V26.1L21.8 22.7M13.5 23.4L16 30L18.5 23.4"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }
 
-interface WordmarkProps {
+export function KarmanWordmark({
+  fontSize,
+  letterSpacing = "-0.045em",
+}: {
   fontSize: number;
   letterSpacing?: string;
-}
-
-/** Full "KARMAN" wordmark in Plex Serif, uppercase via CSS so screen
- *  readers still see the title-case brand name in the DOM. */
-export function KarmanWordmark({ fontSize, letterSpacing = "0.2em" }: WordmarkProps) {
+}) {
   return (
     <span
-      className="select-none"
-      style={{
-        fontFamily: SERIF_STACK,
-        fontSize,
-        letterSpacing,
-        fontWeight: 400,
-        lineHeight: 1,
-        color: IVORY,
-        textTransform: "uppercase",
-      }}
+      className="select-none font-plex-sans font-semibold leading-none text-ivory"
+      style={{ fontSize, letterSpacing }}
     >
       Karman
+      <span className="ml-1.5 align-baseline text-[0.52em] font-normal tracking-normal">Prep</span>
     </span>
   );
-}
-
-interface FullLogoProps {
-  size?: number;
-  /** Deprecated — kept for API stability while call sites pass it.
-   *  The placeholder has no theme variation; real artwork will. */
-  theme?: "dark" | "light" | "auto";
-  /** Deprecated — kept for API stability. Prefer <KarmanLogoMark /> directly. */
-  markOnly?: boolean;
-  /** "inline" — wordmark on a single line, default for nav bars / footers.
-   *  "stacked" — wordmark centered, for hero / auth pages. */
-  variant?: "inline" | "stacked";
-  className?: string;
 }
 
 export function KarmanLogo({
   size = 32,
-  theme = "auto",
   markOnly = false,
   variant = "inline",
-  className,
-}: FullLogoProps) {
-  void theme;
-
+  className = "",
+}: {
+  size?: number;
+  theme?: "dark" | "light" | "auto";
+  markOnly?: boolean;
+  variant?: "inline" | "stacked";
+  className?: string;
+}) {
   if (markOnly) return <KarmanLogoMark size={size} className={className} />;
-
-  if (variant === "stacked") {
-    return (
-      <div className={`inline-flex flex-col items-center ${className ?? ""}`}>
-        <KarmanWordmark fontSize={size * 0.6} letterSpacing="0.28em" />
-      </div>
-    );
-  }
-
   return (
-    <span className={`inline-flex items-center ${className ?? ""}`}>
-      <KarmanWordmark fontSize={size * 0.7} letterSpacing="0.18em" />
+    <span
+      className={`inline-flex items-center gap-2.5 ${variant === "stacked" ? "flex-col gap-4" : ""} ${className}`}
+    >
+      <KarmanLogoMark size={size} />
+      <KarmanWordmark fontSize={size * 0.78} />
     </span>
   );
 }

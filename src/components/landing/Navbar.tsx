@@ -6,6 +6,7 @@ import { Menu, X } from "lucide-react";
 import { useAuth } from "@clerk/nextjs";
 import { ThemedUserButton as UserButton } from "@/components/shared/ThemedClerkWidgets";
 import LandingLogo from "./LandingLogo";
+import { ThemeToggle } from "@/components/shared/ThemeToggle";
 
 const NAV_LINKS = [
   { label: "How it works", href: "/#how-it-works" },
@@ -19,14 +20,14 @@ export default function Navbar() {
   const { isSignedIn } = useAuth();
 
   return (
-    <header className="sticky top-0 z-40 border-b border-bronze bg-night/95 text-ivory backdrop-blur-md">
-      <nav aria-label="Main navigation" className="mx-auto max-w-6xl px-5 md:px-8">
-        <div className="flex min-h-16 items-center justify-between gap-5">
+    <header className="sticky top-0 z-40 border-b border-bronze/35 bg-night/95 text-ivory backdrop-blur-md">
+      <nav aria-label="Main navigation" className="mx-auto max-w-7xl px-5 md:px-8">
+        <div className="flex min-h-20 items-center justify-between gap-5">
           <Link href="/" aria-label="Karman home" className="shrink-0">
             <LandingLogo />
           </Link>
 
-          <div className="hidden items-center gap-7 md:flex">
+          <div className="hidden items-center gap-7 lg:flex">
             {NAV_LINKS.map((link) => (
               <Link
                 key={link.href}
@@ -38,7 +39,8 @@ export default function Navbar() {
             ))}
           </div>
 
-          <div className="hidden items-center gap-3 md:flex">
+          <div className="hidden items-center gap-3 lg:flex">
+            <ThemeToggle />
             {isSignedIn ? (
               <>
                 <Link
@@ -64,24 +66,27 @@ export default function Navbar() {
             )}
           </div>
 
-          <button
-            type="button"
-            aria-label={isOpen ? "Close menu" : "Open menu"}
-            aria-controls="mobile-navigation"
-            aria-expanded={isOpen}
-            onClick={() => setIsOpen((open) => !open)}
-            className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg border border-bronze text-ivory md:hidden"
-          >
-            {isOpen ? (
-              <X className="h-5 w-5" aria-hidden="true" />
-            ) : (
-              <Menu className="h-5 w-5" aria-hidden="true" />
-            )}
-          </button>
+          <div className="ml-auto flex items-center gap-2 lg:hidden">
+            <ThemeToggle />
+            <button
+              type="button"
+              aria-label={isOpen ? "Close menu" : "Open menu"}
+              aria-controls="mobile-navigation"
+              aria-expanded={isOpen}
+              onClick={() => setIsOpen((open) => !open)}
+              className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg border border-bronze text-ivory lg:hidden"
+            >
+              {isOpen ? (
+                <X className="h-5 w-5" aria-hidden="true" />
+              ) : (
+                <Menu className="h-5 w-5" aria-hidden="true" />
+              )}
+            </button>
+          </div>
         </div>
 
         {isOpen && (
-          <div id="mobile-navigation" className="border-t border-bronze py-4 md:hidden">
+          <div id="mobile-navigation" className="border-t border-bronze py-4 lg:hidden">
             <div className="flex flex-col gap-1">
               {NAV_LINKS.map((link) => (
                 <Link

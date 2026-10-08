@@ -1,37 +1,61 @@
-import Image from "next/image";
+import Link from "next/link";
+import { ArrowUpRight, CalendarDays, History, Sparkles } from "lucide-react";
 
+const PATHS = [
+  {
+    icon: CalendarDays,
+    title: "Keep your week in view",
+    body: "See booked sessions and work posted by your educator together. Choose practice around the commitments already in your calendar.",
+    href: "/dashboard/student",
+    action: "Open your week",
+  },
+  {
+    icon: Sparkles,
+    title: "Make room for a daily habit",
+    body: "Explore a daily SAT challenge, verified vocabulary, and word-part cards. Small sessions give you a reason to keep showing up.",
+    href: "/learn/daily",
+    action: "Explore daily practice",
+  },
+  {
+    icon: History,
+    title: "Learn from your last attempt",
+    body: "Return to saved quizzes, see your answers, and review the questions you missed. Your next session can build on the last one.",
+    href: "/dashboard/student/quizzes",
+    action: "See quiz history",
+  },
+];
 export default function ProductPreview() {
   return (
-    <section className="border-t border-bronze bg-surface px-5 py-20 text-ivory md:px-8 md:py-28">
-      <div className="mx-auto max-w-6xl">
-        <div className="mb-9 max-w-2xl">
-          <p className="mb-4 text-sm font-semibold uppercase tracking-[0.18em] text-gold">
-            Inside Karman
-          </p>
-          <h2 className="font-plex-serif text-4xl leading-tight sm:text-5xl">
-            A clear place to pick up your practice.
+    <section className="bg-surface px-5 py-16 text-ivory md:px-8 md:py-24">
+      <div className="mx-auto max-w-7xl">
+        <div className="max-w-2xl">
+          <h2 className="font-plex-sans text-3xl font-medium leading-tight tracking-tight sm:text-5xl">
+            Less searching. More studying.
           </h2>
           <p className="mt-5 text-lg leading-relaxed text-taupe">
-            The study desk brings lessons, saved answers, and support links together. What appears
-            depends on your access and saved work.
+            One place to pick up your work and see what comes next.
           </p>
         </div>
-        <figure>
-          <div className="overflow-hidden border border-bronze bg-night p-2 shadow-[0_24px_50px_-36px_rgba(0,0,0,0.35)] sm:p-4">
-            <Image
-              src="/images/study-desk-local-preview.png"
-              alt="Local preview of the Karman study desk showing a new student's lesson links, skill areas, and support links"
-              width={1440}
-              height={1414}
-              sizes="(max-width: 768px) 100vw, 1152px"
-              className="h-auto w-full"
-            />
-          </div>
-          <figcaption className="mt-4 text-sm leading-relaxed text-taupe">
-            Local product preview using sample saved status. Your study desk will reflect your own
-            access and work.
-          </figcaption>
-        </figure>
+        <div className="mt-10 grid gap-8 md:grid-cols-3 md:gap-12">
+          {PATHS.map(({ icon: Icon, title, body, href, action }) => (
+            <article key={href} className="border-t border-bronze/40 pt-6">
+              <Icon className="h-7 w-7 text-gold" aria-hidden="true" />
+              <h3 className="mt-5 font-plex-serif text-2xl leading-tight">{title}</h3>
+              <p className="mt-4 leading-relaxed text-taupe">{body}</p>
+              <Link
+                href={href}
+                className="mt-5 inline-flex min-h-11 items-center gap-2 font-medium underline underline-offset-4"
+              >
+                {action}
+                <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+              </Link>
+            </article>
+          ))}
+        </div>
+        <p className="mt-10 text-sm text-taupe">
+          Sign in to open your workspace. Practice availability depends on your access and reviewed
+          content.
+        </p>
       </div>
     </section>
   );
