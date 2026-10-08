@@ -12,9 +12,19 @@ export function ThemeToggle({ floating = false }: { floating?: boolean }) {
     ["/dashboard/student", "/dashboard/parent", "/tutor", "/admin", "/learn"].some(
       (prefix) => pathname === prefix || pathname?.startsWith(prefix + "/")
     ) ||
-    ["/", "/about", "/faq", "/blog", "/privacy", "/terms", "/refunds", "/guarantee"].includes(
-      pathname ?? ""
-    );
+    [
+      "/",
+      "/free-diagnostic",
+      "/plans",
+      "/questions",
+      "/about",
+      "/faq",
+      "/blog",
+      "/privacy",
+      "/terms",
+      "/refunds",
+      "/guarantee",
+    ].includes(pathname ?? "");
   if (floating && portalHasThemeControl) return null;
   return (
     <button
