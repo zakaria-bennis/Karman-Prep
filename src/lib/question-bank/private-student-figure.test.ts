@@ -114,6 +114,11 @@ describe("protected immutable question figure transport", () => {
     { query: "payload_sha256=malformed" },
     { query: "" },
     { query: `payload_sha256=${"a".repeat(64)}&payload_sha256=${"b".repeat(64)}` },
+    { query: `payload_sha256=${seal()}&extra=value` },
+    { query: `extra=value&payload_sha256=${seal()}` },
+    { query: `payload_sha256=${seal()}&payload_sha256=${seal()}` },
+    { query: `payload_sha256=${seal()}&` },
+    { query: `%70ayload_sha256=${seal()}` },
   ])("denies malformed, duplicated, missing or unknown bindings: %j", async (params) => {
     const response = await get(params);
     expect(response.status).toBe(404);

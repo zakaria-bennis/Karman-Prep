@@ -18,12 +18,12 @@ export async function GET(
   context: { params: Promise<{ id: string; sha256: string }> }
 ) {
   const { id, sha256 } = await context.params;
-  const seals = new URL(request.url).searchParams.getAll("payload_sha256");
+  const seal = new URL(request.url).search.match(/^\?payload_sha256=([a-f0-9]{64})$/)?.[1];
   try {
     const figure = await readPrivateStudentFigure({
       questionId: id,
       assetSha256: sha256,
-      payloadSha256: seals.length === 1 ? seals[0] : undefined,
+      payloadSha256: seal,
     });
     return new Response(figure.svg, {
       headers: {
