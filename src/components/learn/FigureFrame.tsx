@@ -20,6 +20,7 @@
 
 import { useEffect, useState } from "react";
 import { sanitizeThemedSvg } from "@/lib/figures/inline-svg";
+import { figureFetchPolicy } from "@/lib/figures/figure-fetch-policy";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -40,8 +41,9 @@ export default function FigureFrame({
   const [inline, setInline] = useState<{ src: string; alt: string; svg: string } | null>(null);
   useEffect(() => {
     const controller = new AbortController();
-    if (!/\.svg(?:[?#]|$)/i.test(src)) return;
-    void fetch(src, { signal: controller.signal, credentials: "omit" })
+    const policy = figureFetchPolicy(src, window.location.origin);
+    if (!policy.inlineSvg) return;
+    void fetch(src, { signal: controller.signal, credentials: policy.credentials })
       .then(async (response) => {
         if (!response.ok || Number(response.headers.get("content-length") ?? 0) > 400_000) return;
         const source = await response.text();
