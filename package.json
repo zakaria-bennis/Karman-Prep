@@ -21,6 +21,7 @@
     "test:visual:regression": "playwright test tests/visual/regression.spec.ts --project=visual",
     "test:visual:regression:update": "playwright test tests/visual/regression.spec.ts --project=visual --update-snapshots",
     "cf:build": "opennextjs-cloudflare build && node scripts/build/patch-cf-worker.mjs",
+    "cf:build:release": "node scripts/build/check-release-env.mjs && npm run cf:build",
     "cf:preview": "opennextjs-cloudflare preview",
     "cf:deploy": "opennextjs-cloudflare deploy",
     "db:types": "npx supabase gen types typescript --project-id yyocjxvrakuhnvepaevh > src/types/supabase.ts",

@@ -24,10 +24,17 @@ paying users yet.
   file-size limits, and taxonomy regeneration stability.
 - Migrations: `supabase/migrations/<YYYYMMDDHHMMSS>_name.sql`, applied via
   `npm run db:push` or on `main` merges via `.github/workflows/db-deploy.yml`.
-- Dev server: `npm run dev:next`. Deploy: `npm run cf:build && npm run cf:deploy`
+- Dev server: `npm run dev:next`. Public release: `npm run cf:build:release && npm run cf:deploy`
   (Cloudflare, not Vercel). `cf:deploy` only uploads `.open-next/` — it does
   NOT rebuild. Running it alone re-ships whatever's in the local build cache,
   which is how stale code gets pushed to prod. Always pair the two commands.
+- Public release builds require the existing production `NEXT_PUBLIC_*` values
+  in the build process, including `NEXT_PUBLIC_KARMAN_LAUNCHED=true`. Next.js
+  embeds them during compilation; runtime secret bindings cannot supply missing
+  public values afterward. The release build preflight rejects missing inputs,
+  placeholders, maintenance mode, and private/mismatched Supabase keys without
+  printing values. Keep CI fixture builds on `cf:build`. Verify the exact built
+  Worker before deployment and retain the previous version for rollback.
 - No file should exceed ~700 lines — split by concern instead.
 - Reviewed exam underlining uses explicit `[[u]]...[[/u]]` display markers or
   exact attribute-free `<u>...</u>` source tokens in `MathText`. These are parsed
