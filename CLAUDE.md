@@ -36,6 +36,13 @@ paying users yet.
   marked span against original page pixels, and keep surrounding context outside
   the markers. Malformed markers render literally. Existing KaTeX and blank
   rendering still applies inside each span.
+- Reviewed prose italics use explicit `[[i]]...[[/i]]` or exact attribute-free
+  `<i>...</i>` display tokens in `MathText`. Verify every span against original
+  source pixels; preserve raw source text and answer provenance separately.
+  Only balanced, nonempty tokens are structured React italics. Attributes,
+  arbitrary HTML, malformed/nested markers and unmatched delimiters stay literal.
+  Existing blanks, explicit math and underlined spans remain supported; this
+  renderer support does not approve a question version or infer emphasis.
 - Reviewed source inline math supports both `$...$` and `\(...\)` in
   `MathText`; display math uses `$$...$$`. Preserve approved source bytes and
   expressions. Do not strip commands, guess bare math or rewrite source packages

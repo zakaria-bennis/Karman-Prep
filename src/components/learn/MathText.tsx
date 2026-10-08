@@ -15,6 +15,7 @@ import { Fragment, useMemo, type ReactNode } from "react";
 import katex from "katex";
 import "katex/dist/katex.min.css";
 import { parseSourceUnderlining } from "./source-underlining";
+import { parseSourceItalics } from "./source-italics";
 import { parseSerializedFunctionLines } from "./serialized-function-math";
 
 interface Props {
@@ -177,12 +178,19 @@ export default function MathText({
     () =>
       parseSourceUnderlining(text).map((run, index, sourceRuns) => ({
         ...run,
-        segments: parse(
-          run.text,
-          serializedFunctionLines,
-          index === 0 || sourceRuns[index - 1].text.endsWith("\n"),
-          index === sourceRuns.length - 1 || sourceRuns[index + 1].text.startsWith("\n")
-        ),
+        italicRuns: parseSourceItalics(run.text).map((italicRun, italicIndex, italicRuns) => ({
+          ...italicRun,
+          segments: parse(
+            italicRun.text,
+            serializedFunctionLines,
+            italicIndex === 0
+              ? index === 0 || sourceRuns[index - 1].text.endsWith("\n")
+              : italicRuns[italicIndex - 1].text.endsWith("\n"),
+            italicIndex === italicRuns.length - 1
+              ? index === sourceRuns.length - 1 || sourceRuns[index + 1].text.startsWith("\n")
+              : italicRuns[italicIndex + 1].text.startsWith("\n")
+          ),
+        })),
       })),
     [text, serializedFunctionLines]
   );
@@ -213,6 +221,18 @@ export default function MathText({
     });
   }
 
+  function renderSourceRun(run: (typeof runs)[number]) {
+    return run.italicRuns.map((italicRun, index) =>
+      italicRun.italic ? (
+        <i key={index} style={{ fontStyle: "italic" }}>
+          {renderSegments(italicRun.segments)}
+        </i>
+      ) : (
+        <Fragment key={index}>{renderSegments(italicRun.segments)}</Fragment>
+      )
+    );
+  }
+
   return (
     <span className={className} style={{ whiteSpace: "pre-wrap" }}>
       {runs.map((run, index) =>
@@ -220,12 +240,12 @@ export default function MathText({
           <Fragment key={index}>
             <span className="sr-only">Start of underlined text. </span>
             <u style={{ textUnderlineOffset: "0.16em", textDecorationThickness: "0.075em" }}>
-              {renderSegments(run.segments)}
+              {renderSourceRun(run)}
             </u>
             <span className="sr-only"> End of underlined text.</span>
           </Fragment>
         ) : (
-          <Fragment key={index}>{renderSegments(run.segments)}</Fragment>
+          <Fragment key={index}>{renderSourceRun(run)}</Fragment>
         )
       )}
     </span>

@@ -9,6 +9,64 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 describe("source-formatting rendering", () => {
+  it("renders a source-backed title without italicizing its possessive or punctuation", () => {
+    const text = "from Sei Shōnagon’s <i>Pillow Book</i>, the author delights";
+    const { container } = render(<MathText text={text} />);
+    expect(container.querySelector("i")?.textContent).toBe("Pillow Book");
+    expect(container.querySelector("i")?.style.fontStyle).toBe("italic");
+    expect(container.textContent).toBe("from Sei Shōnagon’s Pillow Book, the author delights");
+  });
+  it("keeps organism names italic and the rest of a source choice upright", () => {
+    const { container } = render(
+      <MathText text="Whereas <i>Halococcus</i> live in one portion, <i>Bacillus</i> live elsewhere." />
+    );
+    expect(Array.from(container.querySelectorAll("i"), (el) => el.textContent)).toEqual([
+      "Halococcus",
+      "Bacillus",
+    ]);
+    expect(container.textContent).toBe(
+      "Whereas Halococcus live in one portion, Bacillus live elsewhere."
+    );
+  });
+  it("preserves one accessible underline boundary when source italics are inside it", () => {
+    const { container } = render(<MathText text="Before <u>the <i>title</i> clause</u> after" />);
+    expect(container.querySelectorAll("u")).toHaveLength(1);
+    expect(container.querySelector("u i")?.textContent).toBe("title");
+    expect(container.querySelectorAll(".sr-only")).toHaveLength(2);
+    expect(container.querySelector("u")?.textContent).toBe("the title clause");
+  });
+  it("keeps explicit fractions, newlines and blanks inside an italic source span", () => {
+    const { container } = render(
+      <MathText
+        text={String.raw`[[i]]\(\frac{3}{4}\)
+______[[/i]]`}
+      />
+    );
+    expect(container.querySelector("i .katex-html .mfrac")).toBeTruthy();
+    expect(container.querySelector('i [aria-label="blank"]')).toBeTruthy();
+    expect(container.querySelector("annotation")?.textContent).toBe(String.raw`\frac{3}{4}`);
+  });
+  it.each(["<i>unclosed", '<i onclick="alert(1)">unsafe</i>'])(
+    "does not execute malformed source emphasis: %s",
+    (text) => {
+      const { container } = render(<MathText text={text} />);
+      expect(container.querySelector("i")).toBeNull();
+      expect(container.textContent).toBe(text);
+    }
+  );
+  it("renders general HTML inside a supported italic span as harmless source text", () => {
+    const text = '<i><img src="x" onerror="alert(1)"></i>';
+    const { container } = render(<MathText text={text} />);
+    expect(container.querySelector("img")).toBeNull();
+    expect(container.querySelector("i")?.textContent).toBe('<img src="x" onerror="alert(1)">');
+  });
+  it("does not infer serialized functions across a source italic boundary", () => {
+    const { container } = render(
+      <MathText text="equation y = 5(2)^<i>x</i> + 9." serializedFunctionLines />
+    );
+    expect(container.querySelector(".source-function-math")).toBeNull();
+    expect(container.querySelector("i")?.textContent).toBe("x");
+  });
   it("raises only the source x in the complete December Q13 inline equation", () => {
     const text =
       "The table shows three values of x and their corresponding values of y for the equation y = 5(2)^x + 9. In the table, a is a constant. What is the value of a?";
