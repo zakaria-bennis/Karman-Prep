@@ -10,6 +10,10 @@ export function utcDay(now: Date): string {
   return now.toISOString().slice(0, 10);
 }
 
+export function millisecondsUntilNextUtcDay(now: Date): number {
+  return Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1) - now.getTime();
+}
+
 export function puzzleForDay(day: string): DailyWord {
   const dayNumber = Math.floor((Date.parse(`${day}T00:00:00.000Z`) - FIRST_DAY) / 86_400_000);
   if (!Number.isInteger(dayNumber)) throw new Error("Invalid UTC puzzle day");

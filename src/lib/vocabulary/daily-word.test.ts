@@ -4,6 +4,7 @@ import { dailyWords, wordPartCards } from "@/data/vocabulary/content";
 import {
   gameOutcome,
   keyboardFeedback,
+  millisecondsUntilNextUtcDay,
   puzzleForDay,
   savedGuesses,
   scoreGuess,
@@ -14,6 +15,7 @@ describe("daily word rules", () => {
   it("uses one UTC day regardless of local timezone", () => {
     expect(utcDay(new Date("2026-10-08T23:59:59.000Z"))).toBe("2026-10-08");
     expect(utcDay(new Date("2026-10-09T00:00:00.000Z"))).toBe("2026-10-09");
+    expect(millisecondsUntilNextUtcDay(new Date("2026-10-08T23:59:59.500Z"))).toBe(500);
     expect(puzzleForDay("2026-10-08").word).toBe(dailyWords[0].word);
     expect(puzzleForDay("2026-10-09").word).toBe(dailyWords[1].word);
     expect(puzzleForDay("2026-10-20").word).toBe(dailyWords[0].word);

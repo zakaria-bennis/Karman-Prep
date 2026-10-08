@@ -6,6 +6,7 @@ import {
   gameOutcome,
   keyboardFeedback,
   MAX_GUESSES,
+  millisecondsUntilNextUtcDay,
   puzzleForDay,
   savedGuesses,
   scoreGuess,
@@ -50,21 +51,29 @@ export default function DailyWordLab() {
   const [message, setMessage] = useState("");
 
   useEffect(() => {
+    let rolloverTimer: number;
     const refresh = () => {
-      const nextDay = utcDay(new Date());
+      const now = new Date();
+      const nextDay = utcDay(now);
       setSession((current) => (current?.day === nextDay ? current : readSession(nextDay)));
+      window.clearTimeout(rolloverTimer);
+      rolloverTimer = window.setTimeout(refresh, millisecondsUntilNextUtcDay(now));
     };
     refresh();
-    const timer = window.setInterval(refresh, 30_000);
     window.addEventListener("focus", refresh);
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") refresh();
+    };
+    document.addEventListener("visibilitychange", onVisibility);
     const onStorage = (event: StorageEvent) => {
       if (event.key === storageKey(utcDay(new Date()))) refreshFromStorage();
     };
     const refreshFromStorage = () => setSession(readSession(utcDay(new Date())));
     window.addEventListener("storage", onStorage);
     return () => {
-      window.clearInterval(timer);
+      window.clearTimeout(rolloverTimer);
       window.removeEventListener("focus", refresh);
+      document.removeEventListener("visibilitychange", onVisibility);
       window.removeEventListener("storage", onStorage);
     };
   }, []);
