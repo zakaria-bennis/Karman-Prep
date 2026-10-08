@@ -7,7 +7,14 @@ import { useTheme } from "@/components/shared/ThemeProvider";
 export function ThemeToggle({ floating = false }: { floating?: boolean }) {
   const pathname = usePathname();
   const { toggleMode, saving } = useTheme();
-  if (floating && pathname === "/dashboard/parent") return null;
+  // Both portal shells already have an in-flow theme control. The floating
+  // control can cover their content at narrow widths and browser zoom.
+  const portalHasThemeControl =
+    pathname === "/dashboard/student" ||
+    pathname?.startsWith("/dashboard/student/") ||
+    pathname === "/dashboard/parent" ||
+    pathname?.startsWith("/dashboard/parent/");
+  if (floating && portalHasThemeControl) return null;
   return (
     <button
       type="button"
