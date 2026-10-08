@@ -44,6 +44,7 @@ const STUDENT_NAV: NavItem[] = [
   { href: "/dashboard/student/schedule", icon: CalendarClock, label: "Schedule" },
   { href: "/dashboard/student/chat", icon: MessageSquare, label: "Chat", showUnreadBadge: true },
   { href: "/learn", icon: BookOpen, label: "Learn" },
+  { href: "/learn/daily", icon: BookOpen, label: "Daily practice" },
   { href: "/dashboard/student/progress", icon: BarChart3, label: "Progress" },
   { href: "/dashboard/student/quizzes", icon: History, label: "Quiz history" },
   { href: "/billing", icon: CreditCard, label: "Billing" },
