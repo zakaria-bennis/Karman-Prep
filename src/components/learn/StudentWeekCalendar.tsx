@@ -92,7 +92,9 @@ export default function StudentWeekCalendar({ data, asOf, preferredTimeZone, nex
     <section aria-labelledby="study-week-heading" className="mt-10 border-t border-bronze pt-8">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">Study week</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">
+            Your calendar
+          </p>
           <h2
             id="study-week-heading"
             className="mt-2 font-plex-serif text-2xl text-ivory sm:text-3xl"
@@ -100,8 +102,7 @@ export default function StudentWeekCalendar({ data, asOf, preferredTimeZone, nex
             Today and the next six days
           </h2>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-taupe">
-            Scheduled sessions and work posted by your educator. A personal daily study plan has not
-            been created yet.
+            Booked sessions and work posted by your educator. You can choose practice any time.
           </p>
         </div>
         <button
@@ -114,7 +115,8 @@ export default function StudentWeekCalendar({ data, asOf, preferredTimeZone, nex
       </div>
       <p className="mt-4 text-xs text-taupe">
         Times shown in {timeZone}
-        {usingDeviceTimeZone ? " (your device)" : ""}. Posted work has no completion status here.
+        {usingDeviceTimeZone ? " (your device)" : ""}. This view does not show whether posted work
+        is finished.
       </p>
       {incompleteView && (
         <p
@@ -166,8 +168,8 @@ export default function StudentWeekCalendar({ data, asOf, preferredTimeZone, nex
           ) : (
             <p className="mt-4 border-t border-bronze pt-4 text-sm text-taupe">
               {incompleteView
-                ? "No dated items are visible for today."
-                : "No sessions or posted work are dated for today."}
+                ? "Nothing scheduled or due today is available to show."
+                : "Nothing scheduled or due today."}
             </p>
           )}
           <div className="mt-6 border-l-4 border-gold bg-surface px-5 py-5">
@@ -178,7 +180,7 @@ export default function StudentWeekCalendar({ data, asOf, preferredTimeZone, nex
               {next?.title ?? "Choose a subject to begin"}
             </h4>
             <p className="mt-2 text-sm leading-relaxed text-taupe">
-              {next?.detail ?? "Explore the skill catalog and start when you are ready."}
+              {next?.detail ?? "Choose a subject and start practicing when you are ready."}
             </p>
             <Link
               href={next?.href ?? "/learn"}
@@ -214,13 +216,13 @@ export default function StudentWeekCalendar({ data, asOf, preferredTimeZone, nex
           ) : (
             <p className="mt-4 border-t border-bronze pt-4 text-sm text-taupe">
               {incompleteView
-                ? "No later dated items are visible."
-                : "No other sessions or posted due dates in the next six days."}
+                ? "Nothing else scheduled or due is available to show."
+                : "Nothing else scheduled or due in the next six days."}
             </p>
           )}
           {week.undated.length > 0 && (
             <div className="mt-7">
-              <h4 className="text-sm font-semibold text-ivory">Posted without a due date</h4>
+              <h4 className="text-sm font-semibold text-ivory">Work without a due date</h4>
               <ol className="mt-2 border-t border-bronze">
                 {week.undated.map((item) => (
                   <AgendaItem key={item.id} item={item} timeZone={timeZone} />
@@ -230,9 +232,9 @@ export default function StudentWeekCalendar({ data, asOf, preferredTimeZone, nex
           )}
           {week.earlierDue.length > 0 && (
             <div className="mt-7">
-              <h4 className="text-sm font-semibold text-ivory">Earlier due dates</h4>
+              <h4 className="text-sm font-semibold text-ivory">Past due dates</h4>
               <p className="mt-1 text-xs text-taupe">
-                These dates have passed; completion is not tracked here.
+                This page does not show whether this work was finished.
               </p>
               <ol className="mt-2 border-t border-bronze">
                 {week.earlierDue.map((item) => (

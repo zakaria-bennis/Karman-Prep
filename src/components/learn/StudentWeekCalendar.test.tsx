@@ -82,10 +82,10 @@ describe("student study week", () => {
       />
     );
     expect(screen.getByRole("status").textContent).toMatch(/assigned practice could not load/i);
-    expect(screen.getByText("No dated items are visible for today.")).toBeTruthy();
+    expect(screen.getByText("Nothing scheduled or due today is available to show.")).toBeTruthy();
     expect(screen.getByRole("link", { name: /Explore practice/ }).getAttribute("href")).toBe(
       "/learn"
     );
-    expect(screen.queryByText("No sessions or posted work are dated for today.")).toBeNull();
+    expect(screen.queryByText("Nothing scheduled or due today.")).toBeNull();
   });
 });
