@@ -241,6 +241,7 @@ export type StudentQuizQuestion = Pick<
   | "figure_chart_data"
   | "figure_geometry_data"
 > & {
+  reviewed_passage?: import("@/lib/question-bank/reviewed-passage").ReviewedPassageDisplay;
   answer_choices: Pick<
     AnswerChoice,
     "id" | "question_id" | "letter" | "choice_text" | "choice_table_data"

@@ -1,3 +1,4 @@
+import { reviewedPassageForQuestion } from "@/lib/question-bank/reviewed-passage";
 import type { QuizQuestionWithChoices, StudentQuizQuestion, StudentQuizReview } from "@/types/quiz";
 
 export function toStudentQuizQuestion(question: QuizQuestionWithChoices): StudentQuizQuestion {
@@ -17,6 +18,7 @@ export function toStudentQuizQuestion(question: QuizQuestionWithChoices): Studen
     display_order: question.display_order,
     passage_intro: question.passage_intro,
     passage: question.passage,
+    reviewed_passage: reviewedPassageForQuestion(question),
     passage_a: question.passage_a,
     passage_b: question.passage_b,
     figure_kind: question.figure_kind,

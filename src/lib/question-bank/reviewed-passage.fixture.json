@@ -1,0 +1,67 @@
+{
+  "id": "8c530273-c1c7-5ee1-8848-296022b0a7f4",
+  "node_id": "rw-00",
+  "question_text": "Which choice best describes what is happening in the text?",
+  "passage_intro": null,
+  "passage": "The following text is adapted from Ann Petry's 1946 novel The Street. Lutie lives in an apartment in Harlem, New York. The glow from the sunset was making the street radiant. The street is nice in this light, [Lutie] thought. It was swarming with children who were playing ball and darting back and forth across the sidewalk in complicated games of tag. Girls were skipping double dutch rope, going tirelessly through the exact center of a pair of ropes, jumping first on one foot and then the other. \u00a91946 by Ann Petry",
+  "correct_answer": "A",
+  "source_pdf": "202506asiav3.pdf",
+  "source_page": 12,
+  "source_provider": "box",
+  "source_document_id": "1892236064593",
+  "source_provider_version_id": "2087157735793",
+  "source_version": "80beb6e8dc44170657fabcd2b557af1c22b4432290cf8b6af29928af7ced937c",
+  "source_section": "reading",
+  "source_module": "M2",
+  "source_question_number": 7,
+  "source_occurrence": 1,
+  "source_regions": [
+    {
+      "page_number": 12,
+      "region_status": "page_locator_only_no_bbox_claimed"
+    }
+  ],
+  "source_identity_required": true,
+  "created_at": "2026-10-06 00:00:12.644954+00",
+  "updated_at": "2026-10-06 00:00:12.644954+00",
+  "is_live": true,
+  "publish_status": "publish_ready",
+  "import_status": "ok",
+  "answer_source": "extracted",
+  "answer_key_status": "printed_key_used_no_correction",
+  "raw_question_text": "The following text is adapted from Ann Petry's 1946 novel The Street. Lutie lives in an apartment in Harlem, New York. The glow from the sunset was making the street radiant. The street is nice in this light, [Lutie] thought. It was swarming with children who were playing ball and darting back and forth across the sidewalk in complicated games of tag. Girls were skipping double dutch rope, going tirelessly through the exact center of a pair of ropes, jumping first on one foot and then the other. \u00a91946 by Ann Petry Which choice best describes what is happening in the text?",
+  "content_hash": null,
+  "content_hash_v2": "01adcb530f9c49e4419cabe1883b93c936c9f19beee1d972f2b6b7102b9aaff6",
+  "passage_a": null,
+  "passage_b": null,
+  "answer_choices": [
+    {
+      "id": "A",
+      "question_id": "8c530273-c1c7-5ee1-8848-296022b0a7f4",
+      "letter": "A",
+      "choice_text": "Lutie is observing the appearance of the street at a particular time of day and the events occurring on it.",
+      "raw_choice_text": "Lutie is observing the appearance of the street at a particular time of day and the events occurring on it."
+    },
+    {
+      "id": "B",
+      "question_id": "8c530273-c1c7-5ee1-8848-296022b0a7f4",
+      "letter": "B",
+      "choice_text": "Lutie is annoyed by the noise of children playing games on her street.",
+      "raw_choice_text": "Lutie is annoyed by the noise of children playing games on her street."
+    },
+    {
+      "id": "C",
+      "question_id": "8c530273-c1c7-5ee1-8848-296022b0a7f4",
+      "letter": "C",
+      "choice_text": "Lutie is puzzled by the rules of certain children's games.",
+      "raw_choice_text": "Lutie is puzzled by the rules of certain children's games."
+    },
+    {
+      "id": "D",
+      "question_id": "8c530273-c1c7-5ee1-8848-296022b0a7f4",
+      "letter": "D",
+      "choice_text": "Lutie is spending time alone in her apartment because she doesn't want to interact with her neighbors.",
+      "raw_choice_text": "Lutie is spending time alone in her apartment because she doesn't want to interact with her neighbors."
+    }
+  ]
+}

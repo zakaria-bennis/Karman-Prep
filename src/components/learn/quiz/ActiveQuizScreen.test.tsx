@@ -1,6 +1,9 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import petry from "@/lib/question-bank/reviewed-passage.fixture.json";
+import { toStudentQuizQuestion } from "@/lib/student-quiz-payload";
+import type { QuizQuestionWithChoices } from "@/types/quiz";
 import type { StudentQuizQuestion } from "@/types/quiz";
 import type { MappedNode } from "../ConstellationMap";
 import { ActiveQuizScreen } from "./ActiveQuizScreen";
@@ -43,6 +46,15 @@ const base = {
 } as unknown as StudentQuizQuestion;
 
 describe("student answer presentation", () => {
+  it("uses reviewed source structure in the actual unanswered screen", () => {
+    showQuestion(toStudentQuizQuestion(petry as unknown as QuizQuestionWithChoices));
+    expect(document.querySelectorAll("[data-passage-part]")).toHaveLength(3);
+    expect(document.querySelector("[data-passage-part=introduction] i")).toHaveTextContent(
+      "The Street"
+    );
+    expect(screen.getAllByRole("button", { name: /^[ABCD]\s*Lutie/ })).toHaveLength(4);
+    expect(screen.queryByText("Current correct answer")).toBeNull();
+  });
   it("falls back to the source image when reviewed geometry cannot resolve its angle", () => {
     showQuestion({
       ...base,

@@ -1,3 +1,4 @@
+import { reviewedPassageForQuestion } from "@/lib/question-bank/reviewed-passage";
 import type { QuizQuestionWithChoices } from "@/types/quiz";
 
 /** Only student display fields cross the completed-review client boundary. */
@@ -6,6 +7,7 @@ export function toQuizReviewContent(q: QuizQuestionWithChoices) {
     question_text: q.question_text,
     passage_intro: q.passage_intro,
     passage: q.passage,
+    reviewed_passage: reviewedPassageForQuestion(q),
     passage_a: q.passage_a,
     passage_b: q.passage_b,
     subject: q.subject,

@@ -2,6 +2,7 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import { toQuizReviewContent } from "@/lib/quiz-review-content";
+import petry from "@/lib/question-bank/reviewed-passage.fixture.json";
 import type { QuizQuestionWithChoices } from "@/types/quiz";
 import QuizReviewQuestion from "./QuizReviewQuestion";
 
@@ -20,6 +21,17 @@ const base = {
 } as unknown as QuizQuestionWithChoices;
 afterEach(cleanup);
 describe("completed quiz question rendering", () => {
+  it("uses the same reviewed semantic passage in completed review", () => {
+    render(
+      <QuizReviewQuestion
+        question={toQuizReviewContent(petry as unknown as QuizQuestionWithChoices)}
+      />
+    );
+    expect(document.querySelectorAll("[data-passage-part]")).toHaveLength(3);
+    expect(document.querySelector("[data-passage-part=introduction] i")).toHaveTextContent(
+      "The Street"
+    );
+  });
   it.each(["math", "reading"] as const)(
     "limits serialized choice formatting to math reviews: %s",
     (subject) => {

@@ -1,6 +1,7 @@
 "use client";
 
 import MathText from "./MathText";
+import ReviewedSinglePassage from "./ReviewedSinglePassage";
 import QuestionTable from "./QuestionTable";
 import ChartFigure from "./ChartFigure";
 import GeometryFigure from "./GeometryFigure";
@@ -16,8 +17,12 @@ export default function QuizReviewQuestion({ question: q }: { question: QuizRevi
     buildGeometrySvg(q.figure_geometry_data).renderable;
   return (
     <div className="mt-4 min-w-0 space-y-4 text-ivory">
-      {q.passage_intro && <MathText text={q.passage_intro} />}
-      {q.passage && <MathText text={q.passage} treatBlankWord />}
+      <ReviewedSinglePassage
+        intro={q.passage_intro}
+        passage={q.passage}
+        display={q.reviewed_passage}
+        treatBlankWord
+      />
       {q.passage_a && (
         <div>
           <p className="mb-2 text-sm font-semibold">Text 1</p>

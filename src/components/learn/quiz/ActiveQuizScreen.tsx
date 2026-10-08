@@ -12,6 +12,7 @@ import type { MappedNode } from "../ConstellationMap";
 import { useQuiz } from "@/contexts/QuizContext";
 import type { StudentQuizQuestion } from "@/types/quiz";
 import MathText from "../MathText";
+import ReviewedSinglePassage from "../ReviewedSinglePassage";
 import QuestionTable from "../QuestionTable";
 import ChartFigure from "../ChartFigure";
 import GeometryFigure from "../GeometryFigure";
@@ -411,14 +412,11 @@ export function ActiveQuizScreen({
                 </section>
               </>
             ) : (
-              <>
-                {q.passage_intro && (
-                  <p className="mb-5">
-                    <MathText text={q.passage_intro} />
-                  </p>
-                )}
-                {q.passage && <MathText text={q.passage} className="block whitespace-pre-wrap" />}
-              </>
+              <ReviewedSinglePassage
+                intro={q.passage_intro}
+                passage={q.passage}
+                display={q.reviewed_passage}
+              />
             )}
           </article>
         );
