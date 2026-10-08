@@ -2,12 +2,16 @@ import Link from "next/link";
 import DashboardLayout from "./DashboardLayout";
 import LearnDashboard from "@/components/learn/LearnDashboard";
 import type { LearnDashboardData } from "@/lib/learn/dashboard";
+import type { StudentCalendarData } from "@/lib/learn/week-calendar";
 
 interface Props {
   dashboard: LearnDashboardData;
   diagnostic: { score_range_low: number; score_range_high: number } | null;
   subscription: { status: string; trial_end: string | null } | null;
   showPlacementBanner?: boolean;
+  calendar: StudentCalendarData;
+  calendarAsOf: string;
+  preferredTimeZone: string | null;
 }
 
 export default function StudentDashboardClient({
@@ -15,6 +19,9 @@ export default function StudentDashboardClient({
   diagnostic,
   subscription,
   showPlacementBanner,
+  calendar,
+  calendarAsOf,
+  preferredTimeZone,
 }: Props) {
   const trialEndsLabel = subscription?.trial_end
     ? `Trial ends ${new Date(subscription.trial_end).toLocaleDateString()}`
@@ -48,7 +55,14 @@ export default function StudentDashboardClient({
           )}
         </div>
       )}
-      <LearnDashboard dashboard={dashboard} diagnostic={diagnostic} embedded />
+      <LearnDashboard
+        dashboard={dashboard}
+        diagnostic={diagnostic}
+        calendar={calendar}
+        calendarAsOf={calendarAsOf}
+        preferredTimeZone={preferredTimeZone}
+        embedded
+      />
     </DashboardLayout>
   );
 }

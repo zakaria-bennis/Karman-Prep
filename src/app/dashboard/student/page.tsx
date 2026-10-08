@@ -12,8 +12,10 @@ import StudentDashboardClient from "@/components/dashboard/StudentDashboardClien
 import { fetchLegacyLearningHistory } from "@/lib/supabase/queries/skill-catalog";
 import { fetchAllAttemptsForStudent } from "@/lib/supabase/queries/quiz/attempts";
 import { buildLearnDashboard } from "@/lib/learn/dashboard";
+import { loadStudentCalendarData } from "@/lib/learn/student-week-data";
 
 export const metadata: Metadata = { title: "Dashboard" };
+export const dynamic = "force-dynamic";
 
 export default async function StudentDashboardPage() {
   const { userId: realUserId } = await safeAuth();
@@ -25,17 +27,24 @@ export default async function StudentDashboardPage() {
   // Check subscription status — redirect to billing if not subscribed.
   // Skip the gate when impersonating: the admin is debugging a student
   // and should see their dashboard regardless of subscription state.
-  const { data: sub } = await supabase
+  const { data: sub, error: subscriptionError } = await supabase
     .from("subscriptions")
     .select("*")
     .eq("user_id", userId)
-    .single();
+    .maybeSingle();
+  if (subscriptionError) throw subscriptionError;
 
   const isActive = sub?.status === "active" || sub?.status === "trialing";
   if (!isActive && !isImpersonating) redirect("/billing?required=1");
 
   // Fetch user info
-  const { data: user } = await supabase.from("users").select("*").eq("clerk_id", userId).single();
+  const { data: user, error: userError } = await supabase
+    .from("users")
+    .select("*")
+    .eq("clerk_id", userId)
+    .maybeSingle();
+  if (userError) throw userError;
+  if (!user?.id) redirect("/onboarding");
 
   // Placement-failure banner check (audit #10):
   //   show "we're matching you with a tutor" when the user's
@@ -60,7 +69,8 @@ export default async function StudentDashboardPage() {
     showPlacementBanner = (cohortCount ?? 0) === 0 && (tutorCount ?? 0) === 0;
   }
 
-  const [history, attempts, diagnosticResult] = await Promise.all([
+  const asOf = new Date().toISOString();
+  const [history, attempts, diagnosticResult, calendar] = await Promise.all([
     fetchLegacyLearningHistory(userId),
     fetchAllAttemptsForStudent(userId),
     supabase
@@ -70,6 +80,7 @@ export default async function StudentDashboardPage() {
       .order("taken_at", { ascending: false })
       .limit(1)
       .maybeSingle(),
+    loadStudentCalendarData(user.id, userId, asOf),
   ]);
 
   return (
@@ -78,6 +89,9 @@ export default async function StudentDashboardPage() {
       diagnostic={diagnosticResult.data}
       subscription={sub}
       showPlacementBanner={showPlacementBanner}
+      calendar={calendar}
+      calendarAsOf={asOf}
+      preferredTimeZone={user.time_zone}
     />
   );
 }
