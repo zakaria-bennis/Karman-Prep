@@ -1,0 +1,2871 @@
+[
+  {
+    "id": "karman-daily-infallible",
+    "word": "infallible",
+    "length": 10,
+    "partOfSpeech": "adjective",
+    "definition": "incapable of being wrong or failing",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/infallible",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-4-digital.pdf#page=19",
+    "satEvidence": {
+      "test": 4,
+      "pdfPage": 19,
+      "observedForm": "infallible",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "A"
+    },
+    "evidenceLevel": "official_exact_form",
+    "ambiguityCaution": "The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08"
+    },
+    "educatorSignal": null,
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  },
+  {
+    "id": "karman-daily-atypical",
+    "word": "atypical",
+    "length": 8,
+    "partOfSpeech": "adjective",
+    "definition": "different from what is usual for its kind",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/atypical",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-4-digital.pdf#page=19",
+    "satEvidence": {
+      "test": 4,
+      "pdfPage": 19,
+      "observedForm": "atypical",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "B"
+    },
+    "evidenceLevel": "official_exact_form",
+    "ambiguityCaution": "The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08"
+    },
+    "educatorSignal": null,
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  },
+  {
+    "id": "karman-daily-lucrative",
+    "word": "lucrative",
+    "length": 9,
+    "partOfSpeech": "adjective",
+    "definition": "producing substantial financial gain",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/lucrative",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-4-digital.pdf#page=19",
+    "satEvidence": {
+      "test": 4,
+      "pdfPage": 19,
+      "observedForm": "lucrative",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "C"
+    },
+    "evidenceLevel": "official_exact_form",
+    "ambiguityCaution": "The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08"
+    },
+    "educatorSignal": null,
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  },
+  {
+    "id": "karman-daily-tedious",
+    "word": "tedious",
+    "length": 7,
+    "partOfSpeech": "adjective",
+    "definition": "wearisome because it is slow or repetitive",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/tedious",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-4-digital.pdf#page=19",
+    "satEvidence": {
+      "test": 4,
+      "pdfPage": 19,
+      "observedForm": "tedious",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "D"
+    },
+    "evidenceLevel": "official_exact_form",
+    "ambiguityCaution": "The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08"
+    },
+    "educatorSignal": null,
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  },
+  {
+    "id": "karman-daily-proponent",
+    "word": "proponent",
+    "length": 9,
+    "partOfSpeech": "noun",
+    "definition": "a person who actively supports an idea or proposal",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/proponent",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-4-digital.pdf#page=20",
+    "satEvidence": {
+      "test": 4,
+      "pdfPage": 20,
+      "observedForm": "proponent",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "A"
+    },
+    "evidenceLevel": "official_exact_form",
+    "ambiguityCaution": "The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08"
+    },
+    "educatorSignal": {
+      "publisher": "PrepScholar",
+      "url": "https://blog.prepscholar.com/sat-vocabulary-words",
+      "level": "educator_list_overlap_only",
+      "note": "Headword or observed inflection appears in educator list; not frequency evidence or official endorsement."
+    },
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  },
+  {
+    "id": "karman-daily-beneficiary",
+    "word": "beneficiary",
+    "length": 11,
+    "partOfSpeech": "noun",
+    "definition": "a person or group receiving an advantage or benefit",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/beneficiary",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-4-digital.pdf#page=20",
+    "satEvidence": {
+      "test": 4,
+      "pdfPage": 20,
+      "observedForm": "beneficiary",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "C"
+    },
+    "evidenceLevel": "official_exact_form",
+    "ambiguityCaution": "The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08"
+    },
+    "educatorSignal": null,
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  },
+  {
+    "id": "karman-daily-reciprocate",
+    "word": "reciprocate",
+    "length": 11,
+    "partOfSpeech": "verb",
+    "definition": "to respond with a corresponding action or feeling",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/reciprocate",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-4-digital.pdf#page=20",
+    "satEvidence": {
+      "test": 4,
+      "pdfPage": 20,
+      "observedForm": "reciprocate",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "A"
+    },
+    "evidenceLevel": "official_exact_form",
+    "ambiguityCaution": "The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08"
+    },
+    "educatorSignal": {
+      "publisher": "PrepScholar",
+      "url": "https://blog.prepscholar.com/sat-vocabulary-words",
+      "level": "educator_list_overlap_only",
+      "note": "Headword or observed inflection appears in educator list; not frequency evidence or official endorsement."
+    },
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  },
+  {
+    "id": "karman-daily-annotate",
+    "word": "annotate",
+    "length": 8,
+    "partOfSpeech": "verb",
+    "definition": "to add explanatory notes to a text",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/annotate",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-4-digital.pdf#page=20",
+    "satEvidence": {
+      "test": 4,
+      "pdfPage": 20,
+      "observedForm": "annotate",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "B"
+    },
+    "evidenceLevel": "official_exact_form",
+    "ambiguityCaution": "The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08"
+    },
+    "educatorSignal": {
+      "publisher": "PrepScholar",
+      "url": "https://blog.prepscholar.com/sat-vocabulary-words",
+      "level": "educator_list_overlap_only",
+      "note": "Headword or observed inflection appears in educator list; not frequency evidence or official endorsement."
+    },
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  },
+  {
+    "id": "karman-daily-buttress",
+    "word": "buttress",
+    "length": 8,
+    "partOfSpeech": "verb",
+    "definition": "to strengthen or support something",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/buttress",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-4-digital.pdf#page=20",
+    "satEvidence": {
+      "test": 4,
+      "pdfPage": 20,
+      "observedForm": "buttress",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "C"
+    },
+    "evidenceLevel": "official_exact_form",
+    "ambiguityCaution": "Selected verb sense; also a noun for a supporting structure.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08"
+    },
+    "educatorSignal": {
+      "publisher": "PrepScholar",
+      "url": "https://blog.prepscholar.com/sat-vocabulary-words",
+      "level": "educator_list_overlap_only",
+      "note": "Headword or observed inflection appears in educator list; not frequency evidence or official endorsement."
+    },
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  },
+  {
+    "id": "karman-daily-disengage",
+    "word": "disengage",
+    "length": 9,
+    "partOfSpeech": "verb",
+    "definition": "to separate or withdraw from an involvement",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/disengage",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-4-digital.pdf#page=20",
+    "satEvidence": {
+      "test": 4,
+      "pdfPage": 20,
+      "observedForm": "disengage",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "D"
+    },
+    "evidenceLevel": "official_exact_form",
+    "ambiguityCaution": "The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08"
+    },
+    "educatorSignal": {
+      "publisher": "PrepScholar",
+      "url": "https://blog.prepscholar.com/sat-vocabulary-words",
+      "level": "educator_list_overlap_only",
+      "note": "Headword or observed inflection appears in educator list; not frequency evidence or official endorsement."
+    },
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  },
+  {
+    "id": "karman-daily-conceptualize",
+    "word": "conceptualize",
+    "length": 13,
+    "partOfSpeech": "verb",
+    "definition": "to form an idea or model of something",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/conceptualize",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-4-digital.pdf#page=18",
+    "satEvidence": {
+      "test": 4,
+      "pdfPage": 18,
+      "observedForm": "conceptualize",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "A"
+    },
+    "evidenceLevel": "official_exact_form",
+    "ambiguityCaution": "The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08"
+    },
+    "educatorSignal": {
+      "publisher": "PrepScholar",
+      "url": "https://blog.prepscholar.com/sat-vocabulary-words",
+      "level": "educator_list_overlap_only",
+      "note": "Headword or observed inflection appears in educator list; not frequency evidence or official endorsement."
+    },
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  },
+  {
+    "id": "karman-daily-antecedent",
+    "word": "antecedent",
+    "length": 10,
+    "partOfSpeech": "adjective",
+    "definition": "existing or occurring before something else",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/antecedent",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-5-digital.pdf#page=5",
+    "satEvidence": {
+      "test": 5,
+      "pdfPage": 5,
+      "observedForm": "antecedent",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "A"
+    },
+    "evidenceLevel": "official_exact_form",
+    "ambiguityCaution": "Selected adjective sense; also a noun for an earlier event or a grammatical referent.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08"
+    },
+    "educatorSignal": {
+      "publisher": "PrepScholar",
+      "url": "https://blog.prepscholar.com/sat-vocabulary-words",
+      "level": "educator_list_overlap_only",
+      "note": "Headword or observed inflection appears in educator list; not frequency evidence or official endorsement."
+    },
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  },
+  {
+    "id": "karman-daily-impending",
+    "word": "impending",
+    "length": 9,
+    "partOfSpeech": "adjective",
+    "definition": "likely to happen very soon",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/impending",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-5-digital.pdf#page=5",
+    "satEvidence": {
+      "test": 5,
+      "pdfPage": 5,
+      "observedForm": "impending",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "B"
+    },
+    "evidenceLevel": "official_exact_form",
+    "ambiguityCaution": "The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08"
+    },
+    "educatorSignal": {
+      "publisher": "PrepScholar",
+      "url": "https://blog.prepscholar.com/sat-vocabulary-words",
+      "level": "educator_list_overlap_only",
+      "note": "Headword or observed inflection appears in educator list; not frequency evidence or official endorsement."
+    },
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  },
+  {
+    "id": "karman-daily-innocuous",
+    "word": "innocuous",
+    "length": 9,
+    "partOfSpeech": "adjective",
+    "definition": "unlikely to cause harm or give offense",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/innocuous",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-5-digital.pdf#page=5",
+    "satEvidence": {
+      "test": 5,
+      "pdfPage": 5,
+      "observedForm": "innocuous",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "C"
+    },
+    "evidenceLevel": "official_exact_form",
+    "ambiguityCaution": "The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08"
+    },
+    "educatorSignal": {
+      "publisher": "PrepScholar",
+      "url": "https://blog.prepscholar.com/sat-vocabulary-words",
+      "level": "educator_list_overlap_only",
+      "note": "Headword or observed inflection appears in educator list; not frequency evidence or official endorsement."
+    },
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  },
+  {
+    "id": "karman-daily-perpetual",
+    "word": "perpetual",
+    "length": 9,
+    "partOfSpeech": "adjective",
+    "definition": "continuing without an expected end",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/perpetual",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-5-digital.pdf#page=5",
+    "satEvidence": {
+      "test": 5,
+      "pdfPage": 5,
+      "observedForm": "perpetual",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "D"
+    },
+    "evidenceLevel": "official_exact_form",
+    "ambiguityCaution": "The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08"
+    },
+    "educatorSignal": {
+      "publisher": "PrepScholar",
+      "url": "https://blog.prepscholar.com/sat-vocabulary-words",
+      "level": "educator_list_overlap_only",
+      "note": "Headword or observed inflection appears in educator list; not frequency evidence or official endorsement."
+    },
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  },
+  {
+    "id": "karman-daily-sanction",
+    "word": "sanction",
+    "length": 8,
+    "partOfSpeech": "verb",
+    "definition": "to formally approve or authorize",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/sanction",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-5-digital.pdf#page=5",
+    "satEvidence": {
+      "test": 5,
+      "pdfPage": 5,
+      "observedForm": "sanction",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "A"
+    },
+    "evidenceLevel": "official_exact_form",
+    "ambiguityCaution": "Contronym: can mean authorize or penalize. The reveal must label the selected approval sense.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08"
+    },
+    "educatorSignal": {
+      "publisher": "PrepScholar",
+      "url": "https://blog.prepscholar.com/sat-vocabulary-words",
+      "level": "educator_list_overlap_only",
+      "note": "Headword or observed inflection appears in educator list; not frequency evidence or official endorsement."
+    },
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  },
+  {
+    "id": "karman-daily-ameliorate",
+    "word": "ameliorate",
+    "length": 10,
+    "partOfSpeech": "verb",
+    "definition": "to make an unfavorable situation better",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/ameliorate",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-5-digital.pdf#page=5",
+    "satEvidence": {
+      "test": 5,
+      "pdfPage": 5,
+      "observedForm": "ameliorate",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "B"
+    },
+    "evidenceLevel": "official_exact_form",
+    "ambiguityCaution": "The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08"
+    },
+    "educatorSignal": {
+      "publisher": "PrepScholar",
+      "url": "https://blog.prepscholar.com/sat-vocabulary-words",
+      "level": "educator_list_overlap_only",
+      "note": "Headword or observed inflection appears in educator list; not frequency evidence or official endorsement."
+    },
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  },
+  {
+    "id": "karman-daily-rationalize",
+    "word": "rationalize",
+    "length": 11,
+    "partOfSpeech": "verb",
+    "definition": "to give a seemingly reasonable explanation for something",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/rationalize",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-5-digital.pdf#page=5",
+    "satEvidence": {
+      "test": 5,
+      "pdfPage": 5,
+      "observedForm": "rationalize",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "C"
+    },
+    "evidenceLevel": "official_exact_form",
+    "ambiguityCaution": "Selected explanatory sense; can suggest an excuse rather than a sound justification. Other technical senses exist.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08"
+    },
+    "educatorSignal": {
+      "publisher": "PrepScholar",
+      "url": "https://blog.prepscholar.com/sat-vocabulary-words",
+      "level": "educator_list_overlap_only",
+      "note": "Headword or observed inflection appears in educator list; not frequency evidence or official endorsement."
+    },
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  },
+  {
+    "id": "karman-daily-postulate",
+    "word": "postulate",
+    "length": 9,
+    "partOfSpeech": "verb",
+    "definition": "to propose an assumption as a basis for reasoning",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/postulate",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-5-digital.pdf#page=5",
+    "satEvidence": {
+      "test": 5,
+      "pdfPage": 5,
+      "observedForm": "postulate",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "D"
+    },
+    "evidenceLevel": "official_exact_form",
+    "ambiguityCaution": "Selected verb sense; the same spelling is also a noun, with a different final-syllable pronunciation.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08"
+    },
+    "educatorSignal": {
+      "publisher": "PrepScholar",
+      "url": "https://blog.prepscholar.com/sat-vocabulary-words",
+      "level": "educator_list_overlap_only",
+      "note": "Headword or observed inflection appears in educator list; not frequency evidence or official endorsement."
+    },
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  },
+  {
+    "id": "karman-daily-tenuous",
+    "word": "tenuous",
+    "length": 7,
+    "partOfSpeech": "adjective",
+    "definition": "weak or insufficiently supported",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/tenuous",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-5-digital.pdf#page=19",
+    "satEvidence": {
+      "test": 5,
+      "pdfPage": 19,
+      "observedForm": "tenuous",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "A"
+    },
+    "evidenceLevel": "official_exact_form",
+    "ambiguityCaution": "The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08"
+    },
+    "educatorSignal": {
+      "publisher": "PrepScholar",
+      "url": "https://blog.prepscholar.com/sat-vocabulary-words",
+      "level": "educator_list_overlap_only",
+      "note": "Headword or observed inflection appears in educator list; not frequency evidence or official endorsement."
+    },
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  },
+  {
+    "id": "karman-daily-contentious",
+    "word": "contentious",
+    "length": 11,
+    "partOfSpeech": "adjective",
+    "definition": "likely to provoke disagreement or argument",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/contentious",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-5-digital.pdf#page=19",
+    "satEvidence": {
+      "test": 5,
+      "pdfPage": 19,
+      "observedForm": "contentious",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "C"
+    },
+    "evidenceLevel": "official_exact_form",
+    "ambiguityCaution": "The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08"
+    },
+    "educatorSignal": {
+      "publisher": "PrepScholar",
+      "url": "https://blog.prepscholar.com/sat-vocabulary-words",
+      "level": "educator_list_overlap_only",
+      "note": "Headword or observed inflection appears in educator list; not frequency evidence or official endorsement."
+    },
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  },
+  {
+    "id": "karman-daily-conspicuous",
+    "word": "conspicuous",
+    "length": 11,
+    "partOfSpeech": "adjective",
+    "definition": "easy to notice because it stands out",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/conspicuous",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-5-digital.pdf#page=19",
+    "satEvidence": {
+      "test": 5,
+      "pdfPage": 19,
+      "observedForm": "conspicuous",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "D"
+    },
+    "evidenceLevel": "official_exact_form",
+    "ambiguityCaution": "The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08"
+    },
+    "educatorSignal": {
+      "publisher": "PrepScholar",
+      "url": "https://blog.prepscholar.com/sat-vocabulary-words",
+      "level": "educator_list_overlap_only",
+      "note": "Headword or observed inflection appears in educator list; not frequency evidence or official endorsement."
+    },
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  },
+  {
+    "id": "karman-daily-prudently",
+    "word": "prudently",
+    "length": 9,
+    "partOfSpeech": "adverb",
+    "definition": "with careful judgment about possible consequences",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/prudently",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-6-digital.pdf#page=4",
+    "satEvidence": {
+      "test": 6,
+      "pdfPage": 4,
+      "observedForm": "prudently",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "A"
+    },
+    "evidenceLevel": "official_exact_form",
+    "ambiguityCaution": "The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08",
+      "supportingEntryUrl": "https://www.merriam-webster.com/dictionary/prudent"
+    },
+    "educatorSignal": {
+      "publisher": "PrepScholar",
+      "url": "https://blog.prepscholar.com/sat-vocabulary-words",
+      "level": "educator_list_overlap_only",
+      "note": "Headword or observed inflection appears in educator list; not frequency evidence or official endorsement."
+    },
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  },
+  {
+    "id": "karman-daily-overtly",
+    "word": "overtly",
+    "length": 7,
+    "partOfSpeech": "adverb",
+    "definition": "in an open and clearly apparent way",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/overtly",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-6-digital.pdf#page=4",
+    "satEvidence": {
+      "test": 6,
+      "pdfPage": 4,
+      "observedForm": "overtly",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "B"
+    },
+    "evidenceLevel": "official_exact_form",
+    "ambiguityCaution": "The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08"
+    },
+    "educatorSignal": {
+      "publisher": "PrepScholar",
+      "url": "https://blog.prepscholar.com/sat-vocabulary-words",
+      "level": "educator_list_overlap_only",
+      "note": "Headword or observed inflection appears in educator list; not frequency evidence or official endorsement."
+    },
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  },
+  {
+    "id": "karman-daily-cordially",
+    "word": "cordially",
+    "length": 9,
+    "partOfSpeech": "adverb",
+    "definition": "in a warm and friendly manner",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/cordially",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-6-digital.pdf#page=4",
+    "satEvidence": {
+      "test": 6,
+      "pdfPage": 4,
+      "observedForm": "cordially",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "C"
+    },
+    "evidenceLevel": "official_exact_form",
+    "ambiguityCaution": "Selected friendly sense; can also intensify an attitude in phrases such as cordially disliked.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08"
+    },
+    "educatorSignal": {
+      "publisher": "PrepScholar",
+      "url": "https://blog.prepscholar.com/sat-vocabulary-words",
+      "level": "educator_list_overlap_only",
+      "note": "Headword or observed inflection appears in educator list; not frequency evidence or official endorsement."
+    },
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  },
+  {
+    "id": "karman-daily-inadvertently",
+    "word": "inadvertently",
+    "length": 13,
+    "partOfSpeech": "adverb",
+    "definition": "without intending or realizing it",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/inadvertently",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-6-digital.pdf#page=4",
+    "satEvidence": {
+      "test": 6,
+      "pdfPage": 4,
+      "observedForm": "inadvertently",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "D"
+    },
+    "evidenceLevel": "official_exact_form",
+    "ambiguityCaution": "Dictionary lists this adverb as a derived form under inadvertent, rather than an independent definition.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08"
+    },
+    "educatorSignal": {
+      "publisher": "PrepScholar",
+      "url": "https://blog.prepscholar.com/sat-vocabulary-words",
+      "level": "educator_list_overlap_only",
+      "note": "Headword or observed inflection appears in educator list; not frequency evidence or official endorsement."
+    },
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  },
+  {
+    "id": "karman-daily-exacerbate",
+    "word": "exacerbate",
+    "length": 10,
+    "partOfSpeech": "verb",
+    "definition": "to make a problem or harmful condition worse",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/exacerbate",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-6-digital.pdf#page=5",
+    "satEvidence": {
+      "test": 6,
+      "pdfPage": 5,
+      "observedForm": "Exacerbating",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "A"
+    },
+    "evidenceLevel": "official_inflected_form_lemma_normalized",
+    "ambiguityCaution": "The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry. Official item uses Exacerbating; game uses the dictionary base form.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08"
+    },
+    "educatorSignal": {
+      "publisher": "PrepScholar",
+      "url": "https://blog.prepscholar.com/sat-vocabulary-words",
+      "level": "educator_list_overlap_only",
+      "note": "Headword or observed inflection appears in educator list; not frequency evidence or official endorsement."
+    },
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  },
+  {
+    "id": "karman-daily-redress",
+    "word": "redress",
+    "length": 7,
+    "partOfSpeech": "verb",
+    "definition": "to correct a wrong or an unfair imbalance",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/redress",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-6-digital.pdf#page=5",
+    "satEvidence": {
+      "test": 6,
+      "pdfPage": 5,
+      "observedForm": "Redressing",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "B"
+    },
+    "evidenceLevel": "official_inflected_form_lemma_normalized",
+    "ambiguityCaution": "Selected verb sense of remedy; also a noun meaning remedy or compensation. Official item uses Redressing; game uses the dictionary base form.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08"
+    },
+    "educatorSignal": {
+      "publisher": "PrepScholar",
+      "url": "https://blog.prepscholar.com/sat-vocabulary-words",
+      "level": "educator_list_overlap_only",
+      "note": "Headword or observed inflection appears in educator list; not frequency evidence or official endorsement."
+    },
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  },
+  {
+    "id": "karman-daily-epitomize",
+    "word": "epitomize",
+    "length": 9,
+    "partOfSpeech": "verb",
+    "definition": "to be a particularly clear example of something",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/epitomize",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-6-digital.pdf#page=5",
+    "satEvidence": {
+      "test": 6,
+      "pdfPage": 5,
+      "observedForm": "Epitomizing",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "C"
+    },
+    "evidenceLevel": "official_inflected_form_lemma_normalized",
+    "ambiguityCaution": "The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry. Official item uses Epitomizing; game uses the dictionary base form.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08"
+    },
+    "educatorSignal": null,
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  },
+  {
+    "id": "karman-daily-preclude",
+    "word": "preclude",
+    "length": 8,
+    "partOfSpeech": "verb",
+    "definition": "to prevent or rule out a possibility",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/preclude",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-6-digital.pdf#page=5",
+    "satEvidence": {
+      "test": 6,
+      "pdfPage": 5,
+      "observedForm": "Precluding",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "D"
+    },
+    "evidenceLevel": "official_inflected_form_lemma_normalized",
+    "ambiguityCaution": "The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry. Official item uses Precluding; game uses the dictionary base form.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08"
+    },
+    "educatorSignal": {
+      "publisher": "PrepScholar",
+      "url": "https://blog.prepscholar.com/sat-vocabulary-words",
+      "level": "educator_list_overlap_only",
+      "note": "Headword or observed inflection appears in educator list; not frequency evidence or official endorsement."
+    },
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  },
+  {
+    "id": "karman-daily-antagonistic",
+    "word": "antagonistic",
+    "length": 12,
+    "partOfSpeech": "adjective",
+    "definition": "actively opposed or hostile",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/antagonistic",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-6-digital.pdf#page=5",
+    "satEvidence": {
+      "test": 6,
+      "pdfPage": 5,
+      "observedForm": "antagonistic",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "B"
+    },
+    "evidenceLevel": "official_exact_form",
+    "ambiguityCaution": "The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08"
+    },
+    "educatorSignal": {
+      "publisher": "PrepScholar",
+      "url": "https://blog.prepscholar.com/sat-vocabulary-words",
+      "level": "educator_list_overlap_only",
+      "note": "Headword or observed inflection appears in educator list; not frequency evidence or official endorsement."
+    },
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  },
+  {
+    "id": "karman-daily-inconsequential",
+    "word": "inconsequential",
+    "length": 15,
+    "partOfSpeech": "adjective",
+    "definition": "having little importance or effect",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/inconsequential",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-6-digital.pdf#page=5",
+    "satEvidence": {
+      "test": 6,
+      "pdfPage": 5,
+      "observedForm": "inconsequential",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "D"
+    },
+    "evidenceLevel": "official_exact_form",
+    "ambiguityCaution": "The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08"
+    },
+    "educatorSignal": null,
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  },
+  {
+    "id": "karman-daily-insensible",
+    "word": "insensible",
+    "length": 10,
+    "partOfSpeech": "adjective",
+    "definition": "unaware of or unable to perceive something",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/insensible",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-6-digital.pdf#page=19",
+    "satEvidence": {
+      "test": 6,
+      "pdfPage": 19,
+      "observedForm": "insensible",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "A"
+    },
+    "evidenceLevel": "official_exact_form",
+    "ambiguityCaution": "Selected unawareness sense; can also mean unconscious or imperceptible. It does not simply mean unreasonable.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08"
+    },
+    "educatorSignal": {
+      "publisher": "PrepScholar",
+      "url": "https://blog.prepscholar.com/sat-vocabulary-words",
+      "level": "educator_list_overlap_only",
+      "note": "Headword or observed inflection appears in educator list; not frequency evidence or official endorsement."
+    },
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  },
+  {
+    "id": "karman-daily-manifest",
+    "word": "manifest",
+    "length": 8,
+    "partOfSpeech": "adjective",
+    "definition": "clearly visible or readily apparent",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/manifest",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-6-digital.pdf#page=19",
+    "satEvidence": {
+      "test": 6,
+      "pdfPage": 19,
+      "observedForm": "manifest",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "B"
+    },
+    "evidenceLevel": "official_exact_form",
+    "ambiguityCaution": "Selected adjective sense; also a verb meaning make evident and a noun for a cargo or passenger list.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08"
+    },
+    "educatorSignal": null,
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  },
+  {
+    "id": "karman-daily-tentative",
+    "word": "tentative",
+    "length": 9,
+    "partOfSpeech": "adjective",
+    "definition": "provisional and open to later change",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/tentative",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-6-digital.pdf#page=19",
+    "satEvidence": {
+      "test": 6,
+      "pdfPage": 19,
+      "observedForm": "tentative",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "B"
+    },
+    "evidenceLevel": "official_exact_form",
+    "ambiguityCaution": "The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08"
+    },
+    "educatorSignal": {
+      "publisher": "PrepScholar",
+      "url": "https://blog.prepscholar.com/sat-vocabulary-words",
+      "level": "educator_list_overlap_only",
+      "note": "Headword or observed inflection appears in educator list; not frequency evidence or official endorsement."
+    },
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  },
+  {
+    "id": "karman-daily-rectify",
+    "word": "rectify",
+    "length": 7,
+    "partOfSpeech": "verb",
+    "definition": "to correct something that is wrong",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/rectify",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-7-digital.pdf#page=5",
+    "satEvidence": {
+      "test": 7,
+      "pdfPage": 5,
+      "observedForm": "rectify",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "B"
+    },
+    "evidenceLevel": "official_exact_form",
+    "ambiguityCaution": "The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08"
+    },
+    "educatorSignal": {
+      "publisher": "PrepScholar",
+      "url": "https://blog.prepscholar.com/sat-vocabulary-words",
+      "level": "educator_list_overlap_only",
+      "note": "Headword or observed inflection appears in educator list; not frequency evidence or official endorsement."
+    },
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  },
+  {
+    "id": "karman-daily-circumvent",
+    "word": "circumvent",
+    "length": 10,
+    "partOfSpeech": "verb",
+    "definition": "to find a way around an obstacle or restriction",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/circumvent",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-7-digital.pdf#page=5",
+    "satEvidence": {
+      "test": 7,
+      "pdfPage": 5,
+      "observedForm": "circumvent",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "A"
+    },
+    "evidenceLevel": "official_exact_form",
+    "ambiguityCaution": "The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08"
+    },
+    "educatorSignal": {
+      "publisher": "PrepScholar",
+      "url": "https://blog.prepscholar.com/sat-vocabulary-words",
+      "level": "educator_list_overlap_only",
+      "note": "Headword or observed inflection appears in educator list; not frequency evidence or official endorsement."
+    },
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  },
+  {
+    "id": "karman-daily-corroborate",
+    "word": "corroborate",
+    "length": 11,
+    "partOfSpeech": "verb",
+    "definition": "to support a claim with additional evidence",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/corroborate",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-7-digital.pdf#page=5",
+    "satEvidence": {
+      "test": 7,
+      "pdfPage": 5,
+      "observedForm": "corroborate",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "B"
+    },
+    "evidenceLevel": "official_exact_form",
+    "ambiguityCaution": "The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08"
+    },
+    "educatorSignal": {
+      "publisher": "PrepScholar",
+      "url": "https://blog.prepscholar.com/sat-vocabulary-words",
+      "level": "educator_list_overlap_only",
+      "note": "Headword or observed inflection appears in educator list; not frequency evidence or official endorsement."
+    },
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  },
+  {
+    "id": "karman-daily-disseminate",
+    "word": "disseminate",
+    "length": 11,
+    "partOfSpeech": "verb",
+    "definition": "to spread information or ideas widely",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/disseminate",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-7-digital.pdf#page=5",
+    "satEvidence": {
+      "test": 7,
+      "pdfPage": 5,
+      "observedForm": "disseminate",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "C"
+    },
+    "evidenceLevel": "official_exact_form",
+    "ambiguityCaution": "The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08"
+    },
+    "educatorSignal": null,
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  },
+  {
+    "id": "karman-daily-implement",
+    "word": "implement",
+    "length": 9,
+    "partOfSpeech": "verb",
+    "definition": "to put a plan or decision into effect",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/implement",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-7-digital.pdf#page=5",
+    "satEvidence": {
+      "test": 7,
+      "pdfPage": 5,
+      "observedForm": "implement",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "D"
+    },
+    "evidenceLevel": "official_exact_form",
+    "ambiguityCaution": "Selected verb sense; also a noun for a tool, with a different stress/pronunciation pattern.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08"
+    },
+    "educatorSignal": {
+      "publisher": "PrepScholar",
+      "url": "https://blog.prepscholar.com/sat-vocabulary-words",
+      "level": "educator_list_overlap_only",
+      "note": "Headword or observed inflection appears in educator list; not frequency evidence or official endorsement."
+    },
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  },
+  {
+    "id": "karman-daily-demarcate",
+    "word": "demarcate",
+    "length": 9,
+    "partOfSpeech": "verb",
+    "definition": "to establish or mark a boundary or distinction",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/demarcate",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-7-digital.pdf#page=5",
+    "satEvidence": {
+      "test": 7,
+      "pdfPage": 5,
+      "observedForm": "demarcated",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "A"
+    },
+    "evidenceLevel": "official_inflected_form_lemma_normalized",
+    "ambiguityCaution": "The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry. Official item uses demarcated; game uses the dictionary base form.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08"
+    },
+    "educatorSignal": {
+      "publisher": "PrepScholar",
+      "url": "https://blog.prepscholar.com/sat-vocabulary-words",
+      "level": "educator_list_overlap_only",
+      "note": "Headword or observed inflection appears in educator list; not frequency evidence or official endorsement."
+    },
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  },
+  {
+    "id": "karman-daily-reconstitute",
+    "word": "reconstitute",
+    "length": 12,
+    "partOfSpeech": "verb",
+    "definition": "to form again by assembling or restoring parts",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/reconstitute",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-7-digital.pdf#page=5",
+    "satEvidence": {
+      "test": 7,
+      "pdfPage": 5,
+      "observedForm": "reconstituted",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "B"
+    },
+    "evidenceLevel": "official_inflected_form_lemma_normalized",
+    "ambiguityCaution": "Selected broad rebuilding sense; can also mean restore by adding liquid. Official item uses reconstituted; game uses the dictionary base form.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08"
+    },
+    "educatorSignal": null,
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  },
+  {
+    "id": "karman-daily-conflate",
+    "word": "conflate",
+    "length": 8,
+    "partOfSpeech": "verb",
+    "definition": "to combine distinct things as if they were one",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/conflate",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-7-digital.pdf#page=5",
+    "satEvidence": {
+      "test": 7,
+      "pdfPage": 5,
+      "observedForm": "conflated",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "C"
+    },
+    "evidenceLevel": "official_inflected_form_lemma_normalized",
+    "ambiguityCaution": "Selected sense of treating distinct things together; can also refer to merging versions of a text. Official item uses conflated; game uses the dictionary base form.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08"
+    },
+    "educatorSignal": {
+      "publisher": "PrepScholar",
+      "url": "https://blog.prepscholar.com/sat-vocabulary-words",
+      "level": "educator_list_overlap_only",
+      "note": "Headword or observed inflection appears in educator list; not frequency evidence or official endorsement."
+    },
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  },
+  {
+    "id": "karman-daily-reprieve",
+    "word": "reprieve",
+    "length": 8,
+    "partOfSpeech": "noun",
+    "definition": "a temporary relief from something unpleasant",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/reprieve",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-7-digital.pdf#page=21",
+    "satEvidence": {
+      "test": 7,
+      "pdfPage": 21,
+      "observedForm": "reprieve",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "B"
+    },
+    "evidenceLevel": "official_exact_form",
+    "ambiguityCaution": "Selected noun sense of temporary relief; also used as a verb and in legal contexts.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08"
+    },
+    "educatorSignal": {
+      "publisher": "PrepScholar",
+      "url": "https://blog.prepscholar.com/sat-vocabulary-words",
+      "level": "educator_list_overlap_only",
+      "note": "Headword or observed inflection appears in educator list; not frequency evidence or official endorsement."
+    },
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  },
+  {
+    "id": "karman-daily-esteem",
+    "word": "esteem",
+    "length": 6,
+    "partOfSpeech": "noun",
+    "definition": "a high degree of respect or regard",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/esteem",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-7-digital.pdf#page=21",
+    "satEvidence": {
+      "test": 7,
+      "pdfPage": 21,
+      "observedForm": "esteem",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "B"
+    },
+    "evidenceLevel": "official_exact_form",
+    "ambiguityCaution": "Selected noun sense; also a verb meaning regard highly.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08"
+    },
+    "educatorSignal": null,
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  },
+  {
+    "id": "karman-daily-disconcerting",
+    "word": "disconcerting",
+    "length": 13,
+    "partOfSpeech": "adjective",
+    "definition": "causing someone to feel unsettled or confused",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/disconcerting",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-8-digital.pdf#page=4",
+    "satEvidence": {
+      "test": 8,
+      "pdfPage": 4,
+      "observedForm": "disconcerting",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "A"
+    },
+    "evidenceLevel": "official_exact_form",
+    "ambiguityCaution": "The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08"
+    },
+    "educatorSignal": {
+      "publisher": "PrepScholar",
+      "url": "https://blog.prepscholar.com/sat-vocabulary-words",
+      "level": "educator_list_overlap_only",
+      "note": "Headword or observed inflection appears in educator list; not frequency evidence or official endorsement."
+    },
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  },
+  {
+    "id": "karman-daily-imperceptible",
+    "word": "imperceptible",
+    "length": 13,
+    "partOfSpeech": "adjective",
+    "definition": "too slight to be detected or noticed",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/imperceptible",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-8-digital.pdf#page=4",
+    "satEvidence": {
+      "test": 8,
+      "pdfPage": 4,
+      "observedForm": "imperceptible",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "C"
+    },
+    "evidenceLevel": "official_exact_form",
+    "ambiguityCaution": "The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08"
+    },
+    "educatorSignal": {
+      "publisher": "PrepScholar",
+      "url": "https://blog.prepscholar.com/sat-vocabulary-words",
+      "level": "educator_list_overlap_only",
+      "note": "Headword or observed inflection appears in educator list; not frequency evidence or official endorsement."
+    },
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  },
+  {
+    "id": "karman-daily-tranquil",
+    "word": "tranquil",
+    "length": 8,
+    "partOfSpeech": "adjective",
+    "definition": "calm and free from disturbance",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/tranquil",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-8-digital.pdf#page=5",
+    "satEvidence": {
+      "test": 8,
+      "pdfPage": 5,
+      "observedForm": "tranquil",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "A"
+    },
+    "evidenceLevel": "official_exact_form",
+    "ambiguityCaution": "The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08"
+    },
+    "educatorSignal": {
+      "publisher": "PrepScholar",
+      "url": "https://blog.prepscholar.com/sat-vocabulary-words",
+      "level": "educator_list_overlap_only",
+      "note": "Headword or observed inflection appears in educator list; not frequency evidence or official endorsement."
+    },
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  },
+  {
+    "id": "karman-daily-pragmatic",
+    "word": "pragmatic",
+    "length": 9,
+    "partOfSpeech": "adjective",
+    "definition": "focused on workable solutions and practical results",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/pragmatic",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-8-digital.pdf#page=5",
+    "satEvidence": {
+      "test": 8,
+      "pdfPage": 5,
+      "observedForm": "pragmatic",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "A"
+    },
+    "evidenceLevel": "official_exact_form",
+    "ambiguityCaution": "The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08"
+    },
+    "educatorSignal": {
+      "publisher": "PrepScholar",
+      "url": "https://blog.prepscholar.com/sat-vocabulary-words",
+      "level": "educator_list_overlap_only",
+      "note": "Headword or observed inflection appears in educator list; not frequency evidence or official endorsement."
+    },
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  },
+  {
+    "id": "karman-daily-resilient",
+    "word": "resilient",
+    "length": 9,
+    "partOfSpeech": "adjective",
+    "definition": "able to recover after difficulty or disruption",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/resilient",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-8-digital.pdf#page=18",
+    "satEvidence": {
+      "test": 8,
+      "pdfPage": 18,
+      "observedForm": "resilient",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "A"
+    },
+    "evidenceLevel": "official_exact_form",
+    "ambiguityCaution": "The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08"
+    },
+    "educatorSignal": {
+      "publisher": "PrepScholar",
+      "url": "https://blog.prepscholar.com/sat-vocabulary-words",
+      "level": "educator_list_overlap_only",
+      "note": "Headword or observed inflection appears in educator list; not frequency evidence or official endorsement."
+    },
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  },
+  {
+    "id": "karman-daily-intricate",
+    "word": "intricate",
+    "length": 9,
+    "partOfSpeech": "adjective",
+    "definition": "containing many closely connected details or parts",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/intricate",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-8-digital.pdf#page=19",
+    "satEvidence": {
+      "test": 8,
+      "pdfPage": 19,
+      "observedForm": "intricate",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "D"
+    },
+    "evidenceLevel": "official_exact_form",
+    "ambiguityCaution": "The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08"
+    },
+    "educatorSignal": {
+      "publisher": "PrepScholar",
+      "url": "https://blog.prepscholar.com/sat-vocabulary-words",
+      "level": "educator_list_overlap_only",
+      "note": "Headword or observed inflection appears in educator list; not frequency evidence or official endorsement."
+    },
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  },
+  {
+    "id": "karman-daily-replicable",
+    "word": "replicable",
+    "length": 10,
+    "partOfSpeech": "adjective",
+    "definition": "able to be repeated or reproduced",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/replicable",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-8-digital.pdf#page=19",
+    "satEvidence": {
+      "test": 8,
+      "pdfPage": 19,
+      "observedForm": "replicable",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "A"
+    },
+    "evidenceLevel": "official_exact_form",
+    "ambiguityCaution": "The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08",
+      "supportingEntryUrl": "https://www.merriam-webster.com/dictionary/replication"
+    },
+    "educatorSignal": {
+      "publisher": "PrepScholar",
+      "url": "https://blog.prepscholar.com/sat-vocabulary-words",
+      "level": "educator_list_overlap_only",
+      "note": "Headword or observed inflection appears in educator list; not frequency evidence or official endorsement."
+    },
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  },
+  {
+    "id": "karman-daily-operative",
+    "word": "operative",
+    "length": 9,
+    "partOfSpeech": "adjective",
+    "definition": "currently functioning or producing an effect",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/operative",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-8-digital.pdf#page=19",
+    "satEvidence": {
+      "test": 8,
+      "pdfPage": 19,
+      "observedForm": "operative",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "C"
+    },
+    "evidenceLevel": "official_exact_form",
+    "ambiguityCaution": "Selected adjective sense; also a noun for an agent or worker.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08"
+    },
+    "educatorSignal": {
+      "publisher": "PrepScholar",
+      "url": "https://blog.prepscholar.com/sat-vocabulary-words",
+      "level": "educator_list_overlap_only",
+      "note": "Headword or observed inflection appears in educator list; not frequency evidence or official endorsement."
+    },
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  },
+  {
+    "id": "karman-daily-latent",
+    "word": "latent",
+    "length": 6,
+    "partOfSpeech": "adjective",
+    "definition": "present but not yet active or apparent",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/latent",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-8-digital.pdf#page=19",
+    "satEvidence": {
+      "test": 8,
+      "pdfPage": 19,
+      "observedForm": "latent",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "D"
+    },
+    "evidenceLevel": "official_exact_form",
+    "ambiguityCaution": "Means present but not manifest, not absent or nonexistent.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08"
+    },
+    "educatorSignal": {
+      "publisher": "PrepScholar",
+      "url": "https://blog.prepscholar.com/sat-vocabulary-words",
+      "level": "educator_list_overlap_only",
+      "note": "Headword or observed inflection appears in educator list; not frequency evidence or official endorsement."
+    },
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  },
+  {
+    "id": "karman-daily-renounce",
+    "word": "renounce",
+    "length": 8,
+    "partOfSpeech": "verb",
+    "definition": "to formally give up or reject something",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/renounce",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-9-digital.pdf#page=4",
+    "satEvidence": {
+      "test": 9,
+      "pdfPage": 4,
+      "observedForm": "renounce",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "D"
+    },
+    "evidenceLevel": "official_exact_form",
+    "ambiguityCaution": "The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08"
+    },
+    "educatorSignal": {
+      "publisher": "PrepScholar",
+      "url": "https://blog.prepscholar.com/sat-vocabulary-words",
+      "level": "educator_list_overlap_only",
+      "note": "Headword or observed inflection appears in educator list; not frequency evidence or official endorsement."
+    },
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  },
+  {
+    "id": "karman-daily-impenetrable",
+    "word": "impenetrable",
+    "length": 12,
+    "partOfSpeech": "adjective",
+    "definition": "impossible or very difficult to enter or pass through",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/impenetrable",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-9-digital.pdf#page=5",
+    "satEvidence": {
+      "test": 9,
+      "pdfPage": 5,
+      "observedForm": "impenetrable",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "B"
+    },
+    "evidenceLevel": "official_exact_form",
+    "ambiguityCaution": "Selected entry/barrier sense; can also describe something impossible to understand.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08"
+    },
+    "educatorSignal": {
+      "publisher": "PrepScholar",
+      "url": "https://blog.prepscholar.com/sat-vocabulary-words",
+      "level": "educator_list_overlap_only",
+      "note": "Headword or observed inflection appears in educator list; not frequency evidence or official endorsement."
+    },
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  },
+  {
+    "id": "karman-daily-indecipherable",
+    "word": "indecipherable",
+    "length": 14,
+    "partOfSpeech": "adjective",
+    "definition": "impossible or very difficult to read or understand",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/indecipherable",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-9-digital.pdf#page=5",
+    "satEvidence": {
+      "test": 9,
+      "pdfPage": 5,
+      "observedForm": "indecipherable",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "D"
+    },
+    "evidenceLevel": "official_exact_form",
+    "ambiguityCaution": "The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08",
+      "supportingEntryUrl": "https://www.merriam-webster.com/dictionary/decipher"
+    },
+    "educatorSignal": {
+      "publisher": "PrepScholar",
+      "url": "https://blog.prepscholar.com/sat-vocabulary-words",
+      "level": "educator_list_overlap_only",
+      "note": "Headword or observed inflection appears in educator list; not frequency evidence or official endorsement."
+    },
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  },
+  {
+    "id": "karman-daily-impartial",
+    "word": "impartial",
+    "length": 9,
+    "partOfSpeech": "adjective",
+    "definition": "not favoring one side over another",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/impartial",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-9-digital.pdf#page=19",
+    "satEvidence": {
+      "test": 9,
+      "pdfPage": 19,
+      "observedForm": "impartial",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "A"
+    },
+    "evidenceLevel": "official_exact_form",
+    "ambiguityCaution": "The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08"
+    },
+    "educatorSignal": {
+      "publisher": "PrepScholar",
+      "url": "https://blog.prepscholar.com/sat-vocabulary-words",
+      "level": "educator_list_overlap_only",
+      "note": "Headword or observed inflection appears in educator list; not frequency evidence or official endorsement."
+    },
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  },
+  {
+    "id": "karman-daily-skeptical",
+    "word": "skeptical",
+    "length": 9,
+    "partOfSpeech": "adjective",
+    "definition": "inclined to question whether a claim is true",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/skeptical",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-10-digital.pdf#page=4",
+    "satEvidence": {
+      "test": 10,
+      "pdfPage": 4,
+      "observedForm": "skeptical",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "A"
+    },
+    "evidenceLevel": "official_exact_form",
+    "ambiguityCaution": "American spelling selected; sceptical is an established British variant.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08"
+    },
+    "educatorSignal": {
+      "publisher": "PrepScholar",
+      "url": "https://blog.prepscholar.com/sat-vocabulary-words",
+      "level": "educator_list_overlap_only",
+      "note": "Headword or observed inflection appears in educator list; not frequency evidence or official endorsement."
+    },
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  },
+  {
+    "id": "karman-daily-speculate",
+    "word": "speculate",
+    "length": 9,
+    "partOfSpeech": "verb",
+    "definition": "to form a possible explanation without sufficient proof",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/speculate",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-10-digital.pdf#page=5",
+    "satEvidence": {
+      "test": 10,
+      "pdfPage": 5,
+      "observedForm": "speculates",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "B"
+    },
+    "evidenceLevel": "official_inflected_form_lemma_normalized",
+    "ambiguityCaution": "Selected reasoning sense; the word also has an investing sense. Official item uses speculates; game uses the dictionary base form.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08"
+    },
+    "educatorSignal": {
+      "publisher": "PrepScholar",
+      "url": "https://blog.prepscholar.com/sat-vocabulary-words",
+      "level": "educator_list_overlap_only",
+      "note": "Headword or observed inflection appears in educator list; not frequency evidence or official endorsement."
+    },
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  },
+  {
+    "id": "karman-daily-synchronization",
+    "word": "synchronization",
+    "length": 15,
+    "partOfSpeech": "noun",
+    "definition": "the coordination of events so they occur together",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/synchronization",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-10-digital.pdf#page=5",
+    "satEvidence": {
+      "test": 10,
+      "pdfPage": 5,
+      "observedForm": "synchronization",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "A"
+    },
+    "evidenceLevel": "official_exact_form",
+    "ambiguityCaution": "American -ization spelling selected; synchronization concerns coordinated timing, not mere similarity.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08",
+      "supportingEntryUrl": "https://www.merriam-webster.com/dictionary/synchronize"
+    },
+    "educatorSignal": {
+      "publisher": "PrepScholar",
+      "url": "https://blog.prepscholar.com/sat-vocabulary-words",
+      "level": "educator_list_overlap_only",
+      "note": "Headword or observed inflection appears in educator list; not frequency evidence or official endorsement."
+    },
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  },
+  {
+    "id": "karman-daily-superficial",
+    "word": "superficial",
+    "length": 11,
+    "partOfSpeech": "adjective",
+    "definition": "concerned with surface features rather than deeper substance",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/superficial",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-10-digital.pdf#page=5",
+    "satEvidence": {
+      "test": 10,
+      "pdfPage": 5,
+      "observedForm": "superficial",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "B"
+    },
+    "evidenceLevel": "official_exact_form",
+    "ambiguityCaution": "Selected figurative sense; can also mean physically near a surface.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08"
+    },
+    "educatorSignal": {
+      "publisher": "PrepScholar",
+      "url": "https://blog.prepscholar.com/sat-vocabulary-words",
+      "level": "educator_list_overlap_only",
+      "note": "Headword or observed inflection appears in educator list; not frequency evidence or official endorsement."
+    },
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  },
+  {
+    "id": "karman-daily-exhaustive",
+    "word": "exhaustive",
+    "length": 10,
+    "partOfSpeech": "adjective",
+    "definition": "covering every relevant detail or possibility",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/exhaustive",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-10-digital.pdf#page=5",
+    "satEvidence": {
+      "test": 10,
+      "pdfPage": 5,
+      "observedForm": "exhaustive",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "C"
+    },
+    "evidenceLevel": "official_exact_form",
+    "ambiguityCaution": "The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08"
+    },
+    "educatorSignal": {
+      "publisher": "PrepScholar",
+      "url": "https://blog.prepscholar.com/sat-vocabulary-words",
+      "level": "educator_list_overlap_only",
+      "note": "Headword or observed inflection appears in educator list; not frequency evidence or official endorsement."
+    },
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  },
+  {
+    "id": "karman-daily-peripheral",
+    "word": "peripheral",
+    "length": 10,
+    "partOfSpeech": "adjective",
+    "definition": "located at an outer edge or away from the center",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/peripheral",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-10-digital.pdf#page=19",
+    "satEvidence": {
+      "test": 10,
+      "pdfPage": 19,
+      "observedForm": "peripheral",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "D"
+    },
+    "evidenceLevel": "official_exact_form",
+    "ambiguityCaution": "Selected outer-position sense; also means secondary in importance and is a computing noun.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08"
+    },
+    "educatorSignal": {
+      "publisher": "PrepScholar",
+      "url": "https://blog.prepscholar.com/sat-vocabulary-words",
+      "level": "educator_list_overlap_only",
+      "note": "Headword or observed inflection appears in educator list; not frequency evidence or official endorsement."
+    },
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  },
+  {
+    "id": "karman-daily-unobtrusive",
+    "word": "unobtrusive",
+    "length": 11,
+    "partOfSpeech": "adjective",
+    "definition": "not drawing attention or getting in the way",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/unobtrusive",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-10-digital.pdf#page=19",
+    "satEvidence": {
+      "test": 10,
+      "pdfPage": 19,
+      "observedForm": "unobtrusive",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "A"
+    },
+    "evidenceLevel": "official_exact_form",
+    "ambiguityCaution": "The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08"
+    },
+    "educatorSignal": {
+      "publisher": "PrepScholar",
+      "url": "https://blog.prepscholar.com/sat-vocabulary-words",
+      "level": "educator_list_overlap_only",
+      "note": "Headword or observed inflection appears in educator list; not frequency evidence or official endorsement."
+    },
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  },
+  {
+    "id": "karman-daily-stymie",
+    "word": "stymie",
+    "length": 6,
+    "partOfSpeech": "verb",
+    "definition": "to obstruct progress or prevent success",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/stymie",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-10-digital.pdf#page=19",
+    "satEvidence": {
+      "test": 10,
+      "pdfPage": 19,
+      "observedForm": "stymie",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "A"
+    },
+    "evidenceLevel": "official_exact_form",
+    "ambiguityCaution": "The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08"
+    },
+    "educatorSignal": {
+      "publisher": "PrepScholar",
+      "url": "https://blog.prepscholar.com/sat-vocabulary-words",
+      "level": "educator_list_overlap_only",
+      "note": "Headword or observed inflection appears in educator list; not frequency evidence or official endorsement."
+    },
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  },
+  {
+    "id": "karman-daily-compound",
+    "word": "compound",
+    "length": 8,
+    "partOfSpeech": "verb",
+    "definition": "to make a difficulty worse by adding to it",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/compound",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-10-digital.pdf#page=19",
+    "satEvidence": {
+      "test": 10,
+      "pdfPage": 19,
+      "observedForm": "compound",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "B"
+    },
+    "evidenceLevel": "official_exact_form",
+    "ambiguityCaution": "Selected verb sense of worsening by addition; several unrelated noun/adjective senses and pronunciations exist.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08"
+    },
+    "educatorSignal": {
+      "publisher": "PrepScholar",
+      "url": "https://blog.prepscholar.com/sat-vocabulary-words",
+      "level": "educator_list_overlap_only",
+      "note": "Headword or observed inflection appears in educator list; not frequency evidence or official endorsement."
+    },
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  },
+  {
+    "id": "karman-daily-disparage",
+    "word": "disparage",
+    "length": 9,
+    "partOfSpeech": "verb",
+    "definition": "to speak of someone or something as having little worth",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/disparage",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-10-digital.pdf#page=19",
+    "satEvidence": {
+      "test": 10,
+      "pdfPage": 19,
+      "observedForm": "disparage",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "C"
+    },
+    "evidenceLevel": "official_exact_form",
+    "ambiguityCaution": "The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08"
+    },
+    "educatorSignal": {
+      "publisher": "PrepScholar",
+      "url": "https://blog.prepscholar.com/sat-vocabulary-words",
+      "level": "educator_list_overlap_only",
+      "note": "Headword or observed inflection appears in educator list; not frequency evidence or official endorsement."
+    },
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  },
+  {
+    "id": "karman-daily-outstrip",
+    "word": "outstrip",
+    "length": 8,
+    "partOfSpeech": "verb",
+    "definition": "to surpass in amount, performance, or development",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/outstrip",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-10-digital.pdf#page=19",
+    "satEvidence": {
+      "test": 10,
+      "pdfPage": 19,
+      "observedForm": "outstrip",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "D"
+    },
+    "evidenceLevel": "official_exact_form",
+    "ambiguityCaution": "The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08"
+    },
+    "educatorSignal": {
+      "publisher": "PrepScholar",
+      "url": "https://blog.prepscholar.com/sat-vocabulary-words",
+      "level": "educator_list_overlap_only",
+      "note": "Headword or observed inflection appears in educator list; not frequency evidence or official endorsement."
+    },
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  },
+  {
+    "id": "karman-daily-sanguine",
+    "word": "sanguine",
+    "length": 8,
+    "partOfSpeech": "adjective",
+    "definition": "confident that things will turn out well",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/sanguine",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-10-digital.pdf#page=19",
+    "satEvidence": {
+      "test": 10,
+      "pdfPage": 19,
+      "observedForm": "sanguine",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "A"
+    },
+    "evidenceLevel": "official_exact_form",
+    "ambiguityCaution": "Selected optimistic sense; other historical and color-related meanings exist.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08"
+    },
+    "educatorSignal": {
+      "publisher": "PrepScholar",
+      "url": "https://blog.prepscholar.com/sat-vocabulary-words",
+      "level": "educator_list_overlap_only",
+      "note": "Headword or observed inflection appears in educator list; not frequency evidence or official endorsement."
+    },
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  },
+  {
+    "id": "karman-daily-recalcitrant",
+    "word": "recalcitrant",
+    "length": 12,
+    "partOfSpeech": "adjective",
+    "definition": "stubbornly unwilling to accept authority or guidance",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/recalcitrant",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-10-digital.pdf#page=19",
+    "satEvidence": {
+      "test": 10,
+      "pdfPage": 19,
+      "observedForm": "recalcitrant",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "B"
+    },
+    "evidenceLevel": "official_exact_form",
+    "ambiguityCaution": "Selected resistance-to-authority sense; also describes things that resist change or treatment.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08"
+    },
+    "educatorSignal": {
+      "publisher": "PrepScholar",
+      "url": "https://blog.prepscholar.com/sat-vocabulary-words",
+      "level": "educator_list_overlap_only",
+      "note": "Headword or observed inflection appears in educator list; not frequency evidence or official endorsement."
+    },
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  },
+  {
+    "id": "karman-daily-misanthropic",
+    "word": "misanthropic",
+    "length": 12,
+    "partOfSpeech": "adjective",
+    "definition": "showing a general dislike or distrust of people",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/misanthropic",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-10-digital.pdf#page=19",
+    "satEvidence": {
+      "test": 10,
+      "pdfPage": 19,
+      "observedForm": "misanthropic",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "C"
+    },
+    "evidenceLevel": "official_exact_form",
+    "ambiguityCaution": "Negative attitude word, not a slur; describes dislike of people generally, not a protected group.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08"
+    },
+    "educatorSignal": {
+      "publisher": "PrepScholar",
+      "url": "https://blog.prepscholar.com/sat-vocabulary-words",
+      "level": "educator_list_overlap_only",
+      "note": "Headword or observed inflection appears in educator list; not frequency evidence or official endorsement."
+    },
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  },
+  {
+    "id": "karman-daily-earnest",
+    "word": "earnest",
+    "length": 7,
+    "partOfSpeech": "adjective",
+    "definition": "showing sincere and serious commitment",
+    "dictionaryUrl": "https://www.merriam-webster.com/dictionary/earnest",
+    "satRelevance": "Answer-choice vocabulary in an official SAT logical-and-precise word-choice item; not necessarily the correct answer.",
+    "satSourceUrl": "https://satsuite.collegeboard.org/media/pdf/sat-practice-test-10-digital.pdf#page=19",
+    "satEvidence": {
+      "test": 10,
+      "pdfPage": 19,
+      "observedForm": "earnest",
+      "location": "answer choice",
+      "correctAnswerClaimed": false,
+      "choiceLabel": "D"
+    },
+    "evidenceLevel": "official_exact_form",
+    "ambiguityCaution": "Selected adjective sense; also a noun with financial and idiomatic meanings. Lowercase distinguishes it from the personal name.",
+    "reviewedStatus": "source_and_editorial_review_complete",
+    "reviewedBy": "AI-assisted editorial review; not College Board approval or an independent human review",
+    "reviewedDate": "2026-10-08",
+    "difficulty": "editorially_challenging_general_academic; not psychometrically calibrated",
+    "dictionaryVerification": {
+      "publisher": "Merriam-Webster",
+      "status": "live_entry_read_spelling_pos_and_selected_meaning_checked",
+      "retrievedDate": "2026-10-08"
+    },
+    "educatorSignal": {
+      "publisher": "PrepScholar",
+      "url": "https://blog.prepscholar.com/sat-vocabulary-words",
+      "level": "educator_list_overlap_only",
+      "note": "Headword or observed inflection appears in educator list; not frequency evidence or official endorsement."
+    },
+    "gamePolicy": {
+      "openingClue": null,
+      "revealDefinitionAfterCompletion": true,
+      "letterGuessing": true
+    }
+  }
+]

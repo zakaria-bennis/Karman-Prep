@@ -1,12 +1,14 @@
 import { readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { describe, expect, it } from "vitest";
-import { dailyWords, wordPartCards } from "@/data/vocabulary/content";
+import { dailyWords, legacyDailyWords, wordPartCards } from "@/data/vocabulary/content";
 import {
   gameOutcome,
   keyboardFeedback,
+  legacyPuzzleForDay,
   millisecondsUntilNextUtcDay,
   puzzleForDay,
+  restoreDailySession,
   savedGuesses,
   scoreGuess,
   utcDay,
@@ -17,9 +19,45 @@ describe("daily word rules", () => {
     expect(utcDay(new Date("2026-10-08T23:59:59.000Z"))).toBe("2026-10-08");
     expect(utcDay(new Date("2026-10-09T00:00:00.000Z"))).toBe("2026-10-09");
     expect(millisecondsUntilNextUtcDay(new Date("2026-10-08T23:59:59.500Z"))).toBe(500);
-    expect(puzzleForDay("2026-10-08").word).toBe(dailyWords[0].word);
-    expect(puzzleForDay("2026-10-09").word).toBe(dailyWords[1].word);
-    expect(puzzleForDay("2026-10-20").word).toBe(dailyWords[0].word);
+    expect(puzzleForDay("2026-10-08").word).toBe("ABATE");
+    expect(legacyPuzzleForDay("2026-10-09").word).toBe("AUSTERE");
+    const cycle = Array.from(
+      { length: dailyWords.length + 1 },
+      (_, offset) =>
+        puzzleForDay(new Date(Date.UTC(2026, 9, 9 + offset)).toISOString().slice(0, 10)).id
+    );
+    expect(new Set(cycle.slice(0, dailyWords.length)).size).toBe(dailyWords.length);
+    expect(cycle.at(-1)).toBe(cycle[0]);
+  });
+
+  it("pins old guesses to the legacy answer and new guesses to a stable word ID", () => {
+    const day = "2026-10-09";
+    const expanded = puzzleForDay(day);
+    const old = restoreDailySession(day, '["OBLIQUE"]', null);
+    expect(old).toEqual({
+      word: legacyPuzzleForDay(day),
+      guesses: ["OBLIQUE"],
+      storageVersion: "v1",
+    });
+    expect(
+      restoreDailySession(
+        day,
+        '["OBLIQUE"]',
+        JSON.stringify({
+          wordId: expanded.id,
+          guesses: ["Z".repeat(expanded.word.length)],
+        })
+      ).storageVersion
+    ).toBe("v1");
+    const pinned = dailyWords.find((word) => word.word === "SYNCHRONIZATION")!;
+    expect(
+      restoreDailySession(
+        day,
+        null,
+        JSON.stringify({ wordId: pinned.id, guesses: ["Z".repeat(pinned.word.length)] })
+      )
+    ).toEqual({ word: pinned, guesses: ["Z".repeat(15)], storageVersion: "v2" });
+    expect(restoreDailySession(day, null, '{"wordId":"removed","guesses":[]}').word).toBe(expanded);
   });
 
   it("scores duplicate letters only as often as the answer contains them", () => {
@@ -37,6 +75,9 @@ describe("daily word rules", () => {
       "absent",
       "absent",
     ]);
+    expect(
+      scoreGuess("RRRRRRRRRRR", "CORROBORATE").filter((result) => result !== "absent")
+    ).toHaveLength(3);
   });
 
   it("keeps the strongest keyboard feedback for repeated letters", () => {
@@ -55,19 +96,65 @@ describe("daily word rules", () => {
   });
 });
 
-describe("reviewed starter coverage", () => {
-  it("has distinct sourced words of varying lengths, with each answer in the valid-guess dictionary", () => {
-    expect(dailyWords).toHaveLength(12);
-    expect(new Set(dailyWords.map((entry) => entry.word)).size).toBe(dailyWords.length);
-    expect(new Set(dailyWords.map((entry) => entry.word.length)).size).toBeGreaterThan(1);
+describe("reviewed daily answer coverage", () => {
+  it("has 73 verified practice choices plus 11 distinct starter answers and separate broad guess lists", () => {
+    const raw = readFileSync("docs/vocabulary-source/reviewed-daily-words.json");
+    const reviewed = JSON.parse(raw.toString("utf8"));
+    expect(createHash("sha256").update(raw).digest("hex")).toBe(
+      "0aca436362791691921fcf0ff90256787889630690ba0d00bb0313bc57ae325a"
+    );
+    expect(reviewed).toHaveLength(73);
+    expect(
+      reviewed.filter(
+        (entry: { evidenceLevel: string }) => entry.evidenceLevel === "official_exact_form"
+      )
+    ).toHaveLength(65);
+    expect(
+      reviewed.filter(
+        (entry: { evidenceLevel: string }) =>
+          entry.evidenceLevel === "official_inflected_form_lemma_normalized"
+      )
+    ).toHaveLength(8);
+    expect(legacyDailyWords).toHaveLength(12);
+    expect(dailyWords).toHaveLength(84);
+    expect(new Set(dailyWords.map((entry) => entry.word.toLowerCase())).size).toBe(84);
+    expect(dailyWords.filter((entry) => entry.satSourceUrl)).toHaveLength(73);
+    expect(dailyWords.find((entry) => entry.word === "TENUOUS")?.satSourceUrl).toContain(
+      "collegeboard.org"
+    );
+    expect(Math.min(...dailyWords.map((entry) => entry.word.length))).toBe(5);
+    expect(Math.max(...dailyWords.map((entry) => entry.word.length))).toBe(15);
+    for (const source of reviewed) {
+      const entry = dailyWords.find((word) => word.id === source.id);
+      expect(entry?.word).toBe(source.word.toUpperCase());
+      expect(entry?.meaning).toBe(source.definition);
+      expect(entry?.partOfSpeech).toBe(source.partOfSpeech);
+      expect(entry?.caution).toBe(source.ambiguityCaution);
+      expect(entry?.satSourceUrl).toBe(source.satSourceUrl);
+      expect(source.satEvidence.location).toBe("answer choice");
+      expect(source.satEvidence.correctAnswerClaimed).toBe(false);
+      expect(source.dictionaryVerification.status).toBe(
+        "live_entry_read_spelling_pos_and_selected_meaning_checked"
+      );
+    }
+    expect(dailyWords.find((entry) => entry.word === "SANCTION")?.meaning).toBe(
+      "to formally approve or authorize"
+    );
+    expect(dailyWords.find((entry) => entry.word === "SANCTION")?.caution).toMatch(
+      /authorize or penalize/
+    );
     for (const entry of dailyWords) {
-      expect(entry.word).toMatch(/^[A-Z]{5,8}$/);
+      expect(entry.word).toMatch(/^[A-Z]{5,15}$/);
       expect(entry.meaning.length).toBeGreaterThan(10);
       expect(entry.sourceUrl).toBe(
         `https://www.merriam-webster.com/dictionary/${entry.word.toLowerCase()}`
       );
       const list = readFileSync(`public/vocabulary/guesses-${entry.word.length}.txt`, "utf8");
       expect(list.trim().split(",")).toContain(entry.word.toLowerCase());
+    }
+    for (let length = 9; length <= 15; length++) {
+      const list = readFileSync(`public/vocabulary/guesses-${length}.txt`, "utf8");
+      expect(list.trim().split(",").length).toBeGreaterThan(5000);
     }
   });
 

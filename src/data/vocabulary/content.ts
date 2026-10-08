@@ -1,11 +1,18 @@
 import cardData from "./word-part-cards.json";
+import verifiedWordData from "./verified-daily-words.json";
 
 // Original KARMAN concise paraphrases. See docs/vocabulary-content.md.
-// These are general academic vocabulary, not claims about past SAT exam items.
+// Only records with official practice-test evidence carry satSourceUrl.
 export type DailyWord = {
+  id: string;
   word: string;
   meaning: string;
   sourceUrl: string;
+  partOfSpeech?: string;
+  caution?: string;
+  satSourceUrl?: string;
+  observedForm?: string;
+  evidenceLevel?: "official_exact_form" | "official_inflected_form_lemma_normalized";
 };
 
 export type WordPartGroup = "prefix" | "suffix" | "root";
@@ -23,7 +30,7 @@ export type WordPartCard = {
 
 const dictionary = (word: string) => `https://www.merriam-webster.com/dictionary/${word}`;
 
-export const dailyWords: readonly DailyWord[] = [
+const legacyContent = [
   {
     word: "ABATE",
     meaning: "To become less intense or forceful.",
@@ -84,6 +91,24 @@ export const dailyWords: readonly DailyWord[] = [
     meaning: "Clear and easy to understand.",
     sourceUrl: dictionary("lucid"),
   },
+];
+
+// Preserve the original twelve-word schedule for previously saved v1 games.
+export const legacyDailyWords: readonly DailyWord[] = legacyContent.map((entry) => ({
+  ...entry,
+  id: `starter-${entry.word.toLowerCase()}`,
+}));
+
+const verifiedDailyWords: readonly DailyWord[] = verifiedWordData.map((entry) => ({
+  ...entry,
+  evidenceLevel: entry.evidenceLevel as DailyWord["evidenceLevel"],
+}));
+const verifiedSpellings = new Set(verifiedDailyWords.map((entry) => entry.word.toLowerCase()));
+
+// The official-practice record wins when a starter has the same spelling.
+export const dailyWords: readonly DailyWord[] = [
+  ...verifiedDailyWords,
+  ...legacyDailyWords.filter((entry) => !verifiedSpellings.has(entry.word.toLowerCase())),
 ];
 
 export const wordPartCards: readonly WordPartCard[] = cardData.map((card) => {
