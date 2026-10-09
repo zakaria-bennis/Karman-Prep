@@ -13,6 +13,7 @@ import {
 } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { karmanClerkAppearance } from "@/lib/clerkAppearance";
+import { KARMAN_AUTH_ROUTES } from "@/lib/auth/routes";
 import { ThemeProvider } from "@/components/shared/ThemeProvider";
 import { ThemeToggle } from "@/components/shared/ThemeToggle";
 import { themeBootstrapScript, themeStyleSheet } from "@/lib/themes/palettes";
@@ -130,6 +131,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
 
   return (
     <ClerkProvider
+      {...KARMAN_AUTH_ROUTES}
       appearance={karmanClerkAppearance}
       localization={{
         signIn: {

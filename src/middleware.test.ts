@@ -1,10 +1,19 @@
 import { afterEach, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
+import { KARMAN_AUTH_ROUTES } from "@/lib/auth/routes";
+
+const captured = vi.hoisted(() => ({ middlewareOptions: undefined as unknown }));
 
 // Keep Clerk's actual route matcher; replace only its external session wrapper.
 vi.mock("@clerk/nextjs/server", async (original) => {
   const actual = await original<typeof import("@clerk/nextjs/server")>();
-  return { ...actual, clerkMiddleware: (handler: unknown) => handler };
+  return {
+    ...actual,
+    clerkMiddleware: (handler: unknown, options: unknown) => {
+      captured.middlewareOptions = options;
+      return handler;
+    },
+  };
 });
 afterEach(() => {
   vi.unstubAllEnvs();
@@ -17,6 +26,7 @@ it("opens marketing pages while protecting parent, tutor, admin and student rout
   // An accidentally configured development bypass must not remove protection.
   vi.stubEnv("DEV_IMPERSONATE_CLERK_ID", "dev_seed_admin");
   const { default: middleware } = await import("./middleware");
+  expect(captured.middlewareOptions).toEqual(KARMAN_AUTH_ROUTES);
   const protect = vi.fn().mockResolvedValue(undefined);
   const auth = Object.assign(vi.fn().mockResolvedValue({ userId: null }), { protect });
   const run = middleware as unknown as (a: typeof auth, request: NextRequest) => Promise<Response>;
@@ -54,6 +64,7 @@ it("opens marketing pages while protecting parent, tutor, admin and student rout
     await run(auth, new NextRequest("https://karmanprep.com" + path));
   }
   expect(protect).toHaveBeenCalledTimes(11);
+  expect(protect.mock.calls.every((args) => args.length === 0)).toBe(true);
 });
 it("retains an explicit maintenance rollback without hiding the sign-in flow", async () => {
   vi.stubEnv("NEXT_PUBLIC_KARMAN_LAUNCHED", "false");
