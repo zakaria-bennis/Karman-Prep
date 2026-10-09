@@ -268,9 +268,10 @@ export default async function ParentStudentDetailPage({ params }: PageProps) {
           <Card icon={Calendar} title="Most recent diagnostic">
             {diagnostic ? (
               <div className="space-y-2">
-                <div className="font-mono text-2xl font-extrabold text-ivory">
-                  {diagnostic.score_range_low}–{diagnostic.score_range_high}
-                </div>
+                <p className="text-sm leading-relaxed text-taupe">
+                  Performance on the sampled diagnostic domains. These are not official SAT scores
+                  or predictions.
+                </p>
                 <div className="text-xs text-taupe">
                   Taken {formatDate(diagnostic.taken_at.slice(0, 10))}
                 </div>

@@ -121,10 +121,7 @@ export default function LearnDashboard({
             <TextLink href="/learn/history">View earlier learning history</TextLink>
             {diagnostic && (
               <div className="mt-5 border-t border-bronze pt-4 text-sm text-taupe">
-                <p>
-                  Latest diagnostic estimate: {diagnostic.score_range_low}–
-                  {diagnostic.score_range_high}
-                </p>
+                <p>Your diagnostic breakdown is saved.</p>
                 <TextLink href="/dashboard/student/progress">See diagnostic details</TextLink>
               </div>
             )}
