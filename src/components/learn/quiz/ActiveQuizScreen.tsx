@@ -409,7 +409,12 @@ export function ActiveQuizScreen({
         // Practice follows one reading order on desktop and phone. No source rewriting.
         if (hasPassage) {
           return (
-            <div className="absolute inset-x-0 bottom-20 top-14 overflow-y-auto px-4 py-6 sm:px-8">
+            <div
+              role="region"
+              aria-label="Question content"
+              tabIndex={0}
+              className="absolute inset-x-0 bottom-20 top-14 overflow-y-auto px-4 py-6 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-info sm:px-8"
+            >
               <div className="mx-auto max-w-2xl space-y-8">
                 {readOnly ? (
                   passageBlock
