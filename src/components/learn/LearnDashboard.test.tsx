@@ -59,6 +59,36 @@ describe("learn dashboard navigation", () => {
     expect(screen.getByRole("status")).toHaveTextContent("Saved skill practice could not load");
     expect(screen.queryByText(/No missed answers/)).toBeNull();
   });
+  it("labels an unknown completed result and retains its exact saved review link", () => {
+    const skill = getCatalogSkills("reading")[0];
+    const id = "00000000-0000-4000-8000-000000000020";
+    const href = `/learn/practice/${skill.id}?session=${id}`;
+    render(
+      <LearnDashboard
+        dashboard={buildLearnDashboard([], [], {
+          status: "ready",
+          sessions: [
+            {
+              id,
+              skillId: skill.id,
+              title: skill.label,
+              href,
+              startedAt: "2026-10-09T08:00:00Z",
+              completedAt: "2026-10-09T08:10:00Z",
+              score: null,
+            },
+          ],
+        })}
+      />
+    );
+    expect(screen.getByText("Saved result unavailable")).toBeVisible();
+    expect(screen.queryByText(/No missed answers/)).toBeNull();
+    expect(screen.getByRole("link", { name: "Review saved answers" })).toHaveAttribute(
+      "href",
+      href
+    );
+    expect(screen.getByRole("link", { name: "View quiz history" })).toBeVisible();
+  });
   it("gives a new student a subject choice and real practice, review, and support routes", () => {
     render(<LearnDashboard dashboard={buildLearnDashboard([], [])} />);
     expect(screen.getByRole("heading", { name: "Choose a subject to begin" })).toBeTruthy();

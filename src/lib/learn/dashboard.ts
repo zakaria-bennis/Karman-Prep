@@ -27,6 +27,7 @@ export interface LearnDashboardData {
     href: string;
     incorrect: number | null;
     kind?: "skill" | "earlier";
+    resultUnavailable?: boolean;
   } | null;
   subjects: SubjectProgress[];
   skillHistoryStatus?: CatalogPracticeHistory["status"];
@@ -92,15 +93,21 @@ export function buildLearnDashboard(
         incorrect: reviewAttempt.questions_answered - reviewAttempt.questions_correct,
       }
     : null;
-  const latestMissed = skillHistory?.sessions
-    .filter((session) => session.completedAt && session.score !== null && session.score < 100)
+  const latestReview = skillHistory?.sessions
+    .filter((session) => session.completedAt && (session.score === null || session.score < 100))
     .sort((a, b) => Date.parse(b.completedAt!) - Date.parse(a.completedAt!))[0];
   if (
-    latestMissed &&
+    latestReview &&
     (!reviewAttempt ||
-      Date.parse(latestMissed.completedAt!) >= Date.parse(reviewAttempt.completed_at!))
+      Date.parse(latestReview.completedAt!) >= Date.parse(reviewAttempt.completed_at!))
   ) {
-    review = { title: latestMissed.title, href: latestMissed.href, incorrect: null, kind: "skill" };
+    review = {
+      title: latestReview.title,
+      href: latestReview.href,
+      incorrect: null,
+      kind: "skill",
+      ...(latestReview.score === null ? { resultUnavailable: true } : {}),
+    };
   }
 
   const subjects: SubjectProgress[] = (["reading", "math"] as const).map((subject) => {

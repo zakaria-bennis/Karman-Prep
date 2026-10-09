@@ -42,10 +42,17 @@ export async function loadOwnCatalogPracticeHistory(): Promise<CatalogPracticeHi
         .from("catalog_practice_sessions")
         .select("id,student_id,skill_id,started_at,completed_at,score")
         .eq("student_id", userId);
-    const results = await Promise.all([
-      owned().is("completed_at", null).order("started_at", { ascending: false }).limit(50),
-      owned().not("completed_at", "is", null).order("completed_at", { ascending: false }).limit(50),
-    ]);
+    // Read open sessions first. A completion can then appear in either or both reads,
+    // but cannot fall between an earlier completed snapshot and a later open snapshot.
+    const unfinished = await owned()
+      .is("completed_at", null)
+      .order("started_at", { ascending: false })
+      .limit(50);
+    const completed = await owned()
+      .not("completed_at", "is", null)
+      .order("completed_at", { ascending: false })
+      .limit(50);
+    const results = [unfinished, completed];
     if (results.some((result) => result.error)) throw new Error("History unavailable");
     const rows = rowSchema.array().parse(results.flatMap((result) => result.data ?? []));
     if (rows.some((row) => row.student_id !== userId)) throw new Error("History unavailable");

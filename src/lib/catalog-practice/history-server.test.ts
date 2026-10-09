@@ -130,4 +130,45 @@ describe("own saved skill practice metadata", () => {
     expect(history.sessions).toHaveLength(1);
     expect(history.sessions[0]).toMatchObject({ completedAt: "2026-10-09T08:10:00Z", score: 70 });
   });
+  it("cannot lose a completion between opposing query snapshots", async () => {
+    let stored = { ...row, completed_at: null as string | null, score: null as number | null };
+    const events: string[] = [];
+    mocks.from.mockImplementation(() => {
+      let completed = false;
+      const query = {
+        select: () => query,
+        eq: () => query,
+        order: () => query,
+        is: () => {
+          completed = false;
+          return query;
+        },
+        not: () => {
+          completed = true;
+          return query;
+        },
+        limit: (count: number) => {
+          expect(count).toBe(50);
+          if (completed) {
+            const data = stored.completed_at ? [{ ...stored }] : [];
+            events.push("completed snapshot");
+            stored = { ...stored, completed_at: "2026-10-09T08:10:00Z", score: 70 };
+            events.push("completion commits");
+            return Promise.resolve({ data, error: null });
+          }
+          return Promise.resolve().then(() => {
+            const data = stored.completed_at ? [] : [{ ...stored }];
+            events.push("unfinished snapshot");
+            return { data, error: null };
+          });
+        },
+      };
+      return query;
+    });
+    const history = await loadOwnCatalogPracticeHistory();
+    expect(events).toEqual(["unfinished snapshot", "completed snapshot", "completion commits"]);
+    expect(history.status).toBe("ready");
+    expect(history.sessions.map((session) => session.id)).toContain(id);
+    expect(stored.completed_at).not.toBeNull();
+  });
 });

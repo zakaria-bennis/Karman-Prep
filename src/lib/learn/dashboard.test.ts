@@ -71,6 +71,20 @@ describe("learn dashboard from saved history", () => {
     expect(result.next?.href).toContain("/learn/earlier/math?resume=");
     expect(result.skillHistoryStatus).toBe("unavailable");
   });
+  it("keeps completed practice reviewable when its score is unknown", () => {
+    const result = buildLearnDashboard([], [], {
+      status: "ready",
+      sessions: [{ ...savedSkill, completedAt: "2026-10-09T08:10:00Z", score: null }],
+    });
+    expect(result.next).toBeNull();
+    expect(result.review).toEqual({
+      title: savedSkill.title,
+      href: savedSkill.href,
+      incorrect: null,
+      kind: "skill",
+      resultUnavailable: true,
+    });
+  });
   it("offers a subject choice with no invented progress for a new student", () => {
     const result = buildLearnDashboard([], []);
     expect(result.next).toBeNull();

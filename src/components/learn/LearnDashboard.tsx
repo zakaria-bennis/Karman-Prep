@@ -101,9 +101,11 @@ export default function LearnDashboard({
             {dashboard.review ? (
               <>
                 <p className="mt-5 text-sm font-medium text-ivory">
-                  {dashboard.review.incorrect === null
-                    ? "Saved skill practice to review"
-                    : `${dashboard.review.incorrect} saved ${dashboard.review.incorrect === 1 ? "answer" : "answers"} to review`}
+                  {dashboard.review.resultUnavailable
+                    ? "Saved result unavailable"
+                    : dashboard.review.incorrect === null
+                      ? "Saved skill practice to review"
+                      : `${dashboard.review.incorrect} saved ${dashboard.review.incorrect === 1 ? "answer" : "answers"} to review`}
                 </p>
                 <h3 className="mt-2 break-words text-lg font-semibold leading-snug">
                   {dashboard.review.title}
