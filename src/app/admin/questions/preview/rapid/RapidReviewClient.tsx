@@ -103,6 +103,8 @@ export default function RapidReviewClient({ questions }: { questions: QuizQuesti
         .rapid-preview-light [class~="text-ivory"] { color: #242321 !important; }
         .rapid-preview-light [class~="text-taupe"] { color: #66615a !important; }
         .rapid-preview-light [class~="border-bronze"] { border-color: #c8c0b3 !important; }
+        .rapid-preview-light .source-function-math .katex-html,
+        .rapid-preview-light .source-function-math .katex-html span { color: #242321; }
       `}</style>
       <header className="flex flex-wrap items-center gap-3 border-b border-bronze bg-surface px-5 py-4">
         <Link

@@ -443,6 +443,11 @@ html[data-theme="observatory"] {
 .source-function-math .katex-html span {
   color: rgb(var(--k-ivory));
 }
+/* KaTeX's inline 0.04em rule can round below one CSS pixel at browser zoom.
+   A 1.25px floor retains a visible rule even at fractional browser scales. */
+.source-function-math .katex .mfrac .frac-line {
+  border-bottom-width: max(0.04em, 1.25px) !important;
+}
 
 /* October study-studio motion: one entry, then respond to a deliberate action. */
 @keyframes studio-arrive {
