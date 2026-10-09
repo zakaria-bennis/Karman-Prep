@@ -4,13 +4,15 @@ import { PRICING_TIERS } from "@/types";
 import styles from "./landing.module.css";
 
 export function PlanCards({ onPlansPage = false }: { onPlansPage?: boolean }) {
+  // Same-page details use native anchors so repeated jumps do not race the app router.
+  const CardLink = onPlansPage ? "a" : Link;
   return (
     <div
       className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-5"
       aria-label="Compare all four plans"
     >
       {PRICING_TIERS.map((tier) => (
-        <Link
+        <CardLink
           key={tier.id}
           href={`${onPlansPage ? "" : "/plans"}#${tier.id}`}
           className={`${styles.planCard} flex min-w-0 flex-col rounded-2xl border border-bronze bg-surface p-4 text-ivory sm:p-6`}
@@ -23,7 +25,7 @@ export function PlanCards({ onPlansPage = false }: { onPlansPage?: boolean }) {
           <span className="mt-5 flex min-h-7 items-center justify-between gap-2 text-sm font-medium">
             Plan details <ArrowUpRight className="h-4 w-4 shrink-0" aria-hidden="true" />
           </span>
-        </Link>
+        </CardLink>
       ))}
     </div>
   );
