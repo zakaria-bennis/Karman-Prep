@@ -3,11 +3,13 @@
 export function currencyDollarDelimiters(text: string): Set<number> {
   const offsets = new Set<number>();
   // Lookahead permits adjacent pairs to share the middle currency amount.
-  // Require a numeric amount, an English word, prose ending in whitespace,
-  // and another numeric amount. LaTeX commands remain explicit math.
-  const pairs = /(?=(?<!\\)\$(\d[\d,]*(?:\.\d+)?)\s+([A-Za-z]{2,}\b[^$\n]*?\s)\$(?=\d))/g;
+  // A narrow price phrase is required: "for the/a/an/each ...". A variable
+  // or function name (such as xy or sin) is not evidence of currency prose.
+  // Commands and symbolic operators retain the explicit-math path.
+  const pairs =
+    /(?=(?<!\\)\$(\d[\d,]*(?:\.\d+)?)\s+(for\s+(?:the|a|an|each)\b[^$\n]*?\s)\$(?=\d))/gi;
   for (const match of text.matchAll(pairs)) {
-    if (match[2].includes("\\")) continue;
+    if (/[\\^_={}<>+*/≤≥×÷]/.test(match[2])) continue;
     offsets.add(match.index);
     const closing = text.indexOf("$", match.index + 1);
     offsets.add(closing);

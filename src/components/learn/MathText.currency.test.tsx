@@ -33,6 +33,12 @@ describe("currency prose stays outside math", () => {
   it.each([
     ["$2 + 3$4", "2 + 3"],
     ["$3 sin x$4", "3 sin x"],
+    ["$3 sin x $4", "3 sin x"],
+    ["$2 ab + cd $3", "2 ab + cd"],
+    ["$3 xy^2 $4", "3 xy^2"],
+    ["$3 sin x\t$4", "3 sin x"],
+    ["$3 for x $4", "3 for x"],
+    ["$3 for the + x $4", "3 for the + x"],
     [String.raw`$260 \text{for the repair}$400`, String.raw`260 \text{for the repair}`],
     [String.raw`$\$80$ is on sale for $25\%$ off`, String.raw`\$80`],
     [String.raw`\(\$260\) and \(\$400\)`, String.raw`\$260`],
