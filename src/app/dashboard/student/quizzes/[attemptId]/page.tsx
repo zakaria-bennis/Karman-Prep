@@ -52,13 +52,13 @@ export default async function StudentQuizReviewPage({
           </p>
         )}
         <ol className="mt-6 space-y-4">
-          {items.map(({ response, question }, index) => (
+          {items.map(({ response, question }) => (
             <li
               key={response.id}
               className="min-w-0 rounded-xl border border-bronze bg-surface p-4 sm:p-6"
             >
               <h2 className="font-semibold text-ivory">
-                Question {index + 1} —{" "}
+                Saved response —{" "}
                 {response.is_correct ? "Correct when answered" : "Incorrect when answered"}
               </h2>
               <div className="mt-2 text-sm text-taupe">

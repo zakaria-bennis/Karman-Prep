@@ -1,39 +1,17 @@
 "use client";
 
-// ============================================================
-// HighlightablePassage — select-to-highlight + annotate UI for
-// the diagnostic's R&W passages.
-//
-// How it works:
-//   1. The passage is rendered as a sequence of plain-text
-//      segments, split by the current set of highlight ranges.
-//   2. User selects text → on mouseup we read the selection,
-//      compute its character offsets within the passage, and
-//      surface a small "Highlight" floating action button next
-//      to the selection.
-//   3. Click "Highlight" → range is added to local state and
-//      the passage re-renders with that span wrapped in a
-//      <mark> element using a Karman-themed semi-transparent
-//      blue (readable, low-saturation, dark-mode safe).
-//   4. Click an existing highlight → opens a popover with
-//      "Annotate", "Remove" and (if annotated) the saved note.
-//      Hover an annotated highlight → tooltip with the note.
-//   5. All popovers (action button, edit popover, hover
-//      tooltip) auto-flip to the side that doesn't cover the
-//      passage or the answer-choices column.
-//
-// State is owned by the parent (DiagnosticClient) so it
-// persists across re-renders within a question. Highlights
-// reset when the question changes — the parent passes a fresh
-// value/onChange pair per question.
-// ============================================================
+// Controlled, per-question highlights, underlines and notes for diagnostic prose.
+// Native text selection and the keyboard phrase path use the same exact offsets.
+// No source text or answer content is rewritten.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion, useDragControls } from "framer-motion";
 import { MessageSquarePlus, Trash2, Save, X, GripHorizontal } from "lucide-react";
+import { PassageMarkTools, type PassageMarkKind } from "./parts/PassageMarkTools";
 
 export interface PassageHighlight {
   id: string;
+  kind?: PassageMarkKind;
   /** Character offset within the passage where this highlight
    *  starts (inclusive). */
   start: number;
@@ -46,21 +24,6 @@ export interface PassageHighlight {
    *  the palette so neighbours are visually distinguishable. */
   colorIdx?: number;
 }
-
-// Karman-friendly highlight palette — saturated enough to pop on
-// the dark surface but transparent enough to keep the prose
-// underneath legible. Each entry pairs a fill (rgba) with a
-// hover variant (slightly punchier).
-const HIGHLIGHT_PALETTE: { fill: string; hover: string; label: string }[] = [
-  { fill: "rgba(96, 165, 250, 0.55)", hover: "rgba(96, 165, 250, 0.70)", label: "Blue" }, // sky-400
-  { fill: "rgba(251, 191, 36, 0.55)", hover: "rgba(251, 191, 36, 0.70)", label: "Amber" }, // amber-400
-  { fill: "rgba(52, 211, 153, 0.55)", hover: "rgba(52, 211, 153, 0.70)", label: "Emerald" }, // emerald-400
-  { fill: "rgba(244, 114, 182, 0.55)", hover: "rgba(244, 114, 182, 0.70)", label: "Pink" }, // pink-400
-  { fill: "rgba(168, 85, 247, 0.55)", hover: "rgba(168, 85, 247, 0.70)", label: "Violet" }, // purple-500
-  { fill: "rgba(34, 211, 238, 0.55)", hover: "rgba(34, 211, 238, 0.70)", label: "Cyan" }, // cyan-400
-  { fill: "rgba(251, 113, 133, 0.55)", hover: "rgba(251, 113, 133, 0.70)", label: "Rose" }, // rose-400
-  { fill: "rgba(163, 230, 53, 0.55)", hover: "rgba(163, 230, 53, 0.70)", label: "Lime" }, // lime-400
-];
 
 interface Props {
   /** The full passage text. */
@@ -81,30 +44,38 @@ interface Props {
  *  highlights are merged (union) for safe rendering. */
 type Seg =
   | { kind: "text"; text: string; offset: number }
-  | { kind: "hl"; text: string; offset: number; hl: PassageHighlight };
+  | {
+      kind: "hl";
+      text: string;
+      offset: number;
+      hl: PassageHighlight;
+      highlighted: boolean;
+      underlined: boolean;
+    };
 
 function segmentPassage(passage: string, highlights: PassageHighlight[]): Seg[] {
-  if (highlights.length === 0) {
-    return [{ kind: "text", text: passage, offset: 0 }];
-  }
-  const sorted = [...highlights].sort((a, b) => a.start - b.start);
-  const segs: Seg[] = [];
-  let cursor = 0;
-  for (const h of sorted) {
-    const start = Math.max(cursor, h.start);
-    const end = Math.min(passage.length, h.end);
-    if (start > cursor) {
-      segs.push({ kind: "text", text: passage.slice(cursor, start), offset: cursor });
-    }
-    if (end > start) {
-      segs.push({ kind: "hl", text: passage.slice(start, end), offset: start, hl: h });
-      cursor = end;
-    }
-  }
-  if (cursor < passage.length) {
-    segs.push({ kind: "text", text: passage.slice(cursor), offset: cursor });
-  }
-  return segs;
+  const boundaries = [
+    ...new Set([
+      0,
+      passage.length,
+      ...highlights.flatMap((h) => [Math.max(0, h.start), Math.min(passage.length, h.end)]),
+    ]),
+  ].sort((a, b) => a - b);
+  return boundaries.slice(0, -1).map((start, i) => {
+    const end = boundaries[i + 1];
+    const active = highlights.filter((h) => h.start <= start && h.end >= end);
+    const text = passage.slice(start, end);
+    return active.length
+      ? {
+          kind: "hl",
+          text,
+          offset: start,
+          hl: active[0],
+          highlighted: active.some((h) => h.kind !== "underline"),
+          underlined: active.some((h) => h.kind === "underline"),
+        }
+      : { kind: "text", text, offset: start };
+  });
 }
 
 /** Given a Selection within the passage container, walk the
@@ -214,6 +185,8 @@ function placeAnnotationEditor(
 export function HighlightablePassage({ passage, passageIntro, highlights, onChange }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const passageRef = useRef<HTMLDivElement>(null);
+  const [markKind, setMarkKind] = useState<PassageMarkKind>("highlight");
+  const editorOpener = useRef<HTMLElement | null>(null);
 
   // Active highlight (for the edit popover).
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -226,33 +199,37 @@ export function HighlightablePassage({ passage, passageIntro, highlights, onChan
 
   const segments = useMemo(() => segmentPassage(passage, highlights), [passage, highlights]);
 
-  // ─── Auto-commit highlight on mouseup ─────────────────────
-  // No floating "Highlight" button — releasing a selection inside
-  // the passage immediately wraps it in a highlight using the
-  // next palette color (cycling through HIGHLIGHT_PALETTE so each
-  // new highlight is visually distinct from its neighbours).
+  const addMark = useCallback(
+    (start: number, end: number) => {
+      const id = `h-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+      onChange([
+        ...highlights,
+        { id, start, end, kind: markKind, colorIdx: highlights.length % 8 },
+      ]);
+    },
+    [highlights, markKind, onChange]
+  );
+
   const handleMouseUp = useCallback(() => {
     const passageEl = passageRef.current;
-    if (!passageEl) return;
-    const sel = window.getSelection();
-    if (!sel || sel.isCollapsed) return;
-    const offsets = selectionToOffsets(passageEl, sel);
+    const selection = window.getSelection();
+    if (!passageEl || !selection || selection.isCollapsed) return;
+    const offsets = selectionToOffsets(passageEl, selection);
     if (!offsets) return;
-    const id = `h-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
-    const colorIdx = highlights.length % HIGHLIGHT_PALETTE.length;
-    onChange([...highlights, { id, ...offsets, colorIdx }]);
-    sel.removeAllRanges();
-  }, [highlights, onChange]);
+    addMark(offsets.start, offsets.end);
+    selection.removeAllRanges();
+  }, [addMark]);
 
   // ─── Highlight click → edit popover ───────────────────────
   // Width/height tuned so the whole panel (including Save) sits
   // on screen without scrolling on every viewport >=320px tall.
-  const EDITOR_W = 300;
-  const EDITOR_H = 210;
+  const EDITOR_W = typeof window === "undefined" ? 300 : Math.min(300, window.innerWidth - 24);
+  const EDITOR_H = 260;
 
   function openEditor(hl: PassageHighlight, target: HTMLElement) {
     const passage = containerRef.current;
     if (!passage) return;
+    editorOpener.current = target;
     const rect = target.getBoundingClientRect();
     const passageRect = passage.getBoundingClientRect();
     const pos = placeAnnotationEditor(passageRect, rect, EDITOR_W, EDITOR_H);
@@ -265,6 +242,7 @@ export function HighlightablePassage({ passage, passageIntro, highlights, onChan
     setActiveId(null);
     setEditorPos(null);
     setDraftAnnotation("");
+    editorOpener.current?.focus();
   }
 
   function saveAnnotation() {
@@ -325,8 +303,15 @@ export function HighlightablePassage({ passage, passageIntro, highlights, onChan
   return (
     <div
       ref={containerRef}
-      className="relative rounded-xl border border-bronze bg-surface p-6 dark:border-bronze dark:bg-surface/40 lg:max-h-[calc(100vh-14rem)] lg:overflow-y-auto"
+      className="relative rounded-xl border border-bronze bg-surface p-6 dark:border-bronze dark:bg-surface/40"
     >
+      <PassageMarkTools
+        passage={passage}
+        kind={markKind}
+        onKind={setMarkKind}
+        onMarkSelection={handleMouseUp}
+        onMarkPhrase={addMark}
+      />
       {passageIntro && (
         <p className="mb-4 font-serif text-sm italic leading-relaxed text-taupe dark:text-taupe">
           {passageIntro}
@@ -335,6 +320,7 @@ export function HighlightablePassage({ passage, passageIntro, highlights, onChan
 
       <div
         ref={passageRef}
+        data-diagnostic-passage
         onMouseUp={handleMouseUp}
         className="select-text whitespace-pre-line font-serif text-[17px] leading-[1.7] text-ivory dark:text-ivory"
       >
@@ -343,14 +329,19 @@ export function HighlightablePassage({ passage, passageIntro, highlights, onChan
             <span key={`t-${idx}-${seg.offset}`}>{seg.text}</span>
           ) : (
             (() => {
-              // Per-highlight color from the palette — fall back to
-              // the first entry if colorIdx is missing (older state
-              // before this feature shipped).
-              const palette = HIGHLIGHT_PALETTE[seg.hl.colorIdx ?? 0] ?? HIGHLIGHT_PALETTE[0];
               return (
                 <mark
                   key={`h-${seg.hl.id}-${seg.offset}`}
                   data-highlight-id={seg.hl.id}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Edit ${seg.hl.kind ?? "highlight"}: ${seg.text}`}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      openEditor(seg.hl, event.currentTarget);
+                    }
+                  }}
                   onClick={(e) => {
                     e.stopPropagation();
                     openEditor(seg.hl, e.currentTarget);
@@ -360,13 +351,16 @@ export function HighlightablePassage({ passage, passageIntro, highlights, onChan
                   className={[
                     "cursor-pointer rounded-sm px-0.5 transition-colors",
                     "text-ivory dark:text-ivory",
-                    seg.hl.annotation
-                      ? "underline decoration-white/70 decoration-dotted underline-offset-4"
-                      : "",
+                    seg.underlined
+                      ? "underline decoration-2 underline-offset-4"
+                      : seg.hl.annotation
+                        ? "underline decoration-dotted underline-offset-4"
+                        : "",
                   ].join(" ")}
-                  style={{ backgroundColor: palette.fill }}
-                  onMouseOver={(e) => (e.currentTarget.style.backgroundColor = palette.hover)}
-                  onMouseOut={(e) => (e.currentTarget.style.backgroundColor = palette.fill)}
+                  style={{
+                    backgroundColor: seg.highlighted ? "rgb(var(--k-gold))" : "transparent",
+                    color: seg.highlighted ? "rgb(var(--k-night))" : "inherit",
+                  }}
                 >
                   {seg.text}
                 </mark>
@@ -375,6 +369,31 @@ export function HighlightablePassage({ passage, passageIntro, highlights, onChan
           )
         )}
       </div>
+
+      {!!highlights.length && (
+        <details className="mt-4 font-sans text-sm">
+          <summary className="min-h-11 cursor-pointer py-3 font-semibold text-ivory">
+            Notes and markings
+          </summary>
+          <ul className="space-y-2">
+            {highlights.map((mark) => (
+              <li key={mark.id}>
+                <button
+                  type="button"
+                  className="min-h-11 w-full rounded-lg border border-bronze p-3 text-left text-ivory focus-visible:outline focus-visible:outline-2 focus-visible:outline-info"
+                  onClick={(event) => openEditor(mark, event.currentTarget)}
+                >
+                  {mark.kind === "underline" ? "Underline" : "Highlight"}:{" "}
+                  {passage.slice(mark.start, mark.end)}
+                  {mark.annotation && (
+                    <span className="mt-1 block text-taupe">{mark.annotation}</span>
+                  )}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
 
       {/* Edit popover — `position: fixed` (top-level via Portal-
           like absolute escape) so it never gets clipped by the
@@ -457,7 +476,7 @@ function AnnotationEditor({
       animate={{ opacity: 1, scale: 1 }}
       transition={{ type: "spring", stiffness: 400, damping: 30 }}
       style={{ position: "fixed", top: initialPos.top, left: initialPos.left, width }}
-      className="z-[80] rounded-xl border border-ivory/10 bg-[#070605]/95 shadow-2xl backdrop-blur-xl"
+      className="z-[80] rounded-xl border border-bronze bg-surface-raised shadow-2xl backdrop-blur-xl"
       onMouseDown={(e) => e.stopPropagation()}
     >
       {/* Title bar — drag handle. */}
@@ -475,7 +494,7 @@ function AnnotationEditor({
           type="button"
           onClick={onClose}
           onPointerDown={(e) => e.stopPropagation()}
-          className="flex h-5 w-5 items-center justify-center rounded text-taupe hover:bg-surface/[0.08] hover:text-ivory"
+          className="flex min-h-11 min-w-11 items-center justify-center rounded text-taupe hover:bg-surface/[0.08] hover:text-ivory"
           aria-label="Close annotation"
         >
           <X className="h-3 w-3" />
@@ -502,7 +521,7 @@ function AnnotationEditor({
           <button
             type="button"
             onClick={onRemove}
-            className="inline-flex items-center gap-1 px-2 py-1 text-[11px] font-semibold text-error-bright hover:text-error-bright"
+            className="inline-flex min-h-11 items-center gap-1 px-2 py-1 text-[11px] font-semibold text-error-bright hover:text-error-bright"
           >
             <Trash2 className="h-3 w-3" />
             Remove
@@ -510,7 +529,7 @@ function AnnotationEditor({
           <button
             type="button"
             onClick={onSave}
-            className="inline-flex items-center gap-1 rounded-md bg-gradient-to-br from-info to-gold px-3 py-1 text-[11px] font-semibold text-ivory"
+            className="inline-flex items-center gap-1 rounded-md bg-ivory px-3 py-2 text-sm font-semibold text-night"
           >
             <Save className="h-3 w-3" />
             Save
@@ -552,7 +571,7 @@ function AnnotationViewer({
       transition={{ duration: 0.15 }}
       style={{ position: "fixed", top: initialPos.top, left: initialPos.left, width }}
       // Translucent so the passage text underneath remains visible.
-      className="z-[70] rounded-xl border border-ivory/15 bg-[#070605]/70 shadow-xl backdrop-blur-md"
+      className="z-[70] rounded-xl border border-bronze bg-surface-raised shadow-xl backdrop-blur-md"
       onMouseLeave={onClose}
     >
       <div

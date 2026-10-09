@@ -17,8 +17,8 @@ import QuestionTable from "../QuestionTable";
 import ChartFigure from "../ChartFigure";
 import GeometryFigure from "../GeometryFigure";
 import FigureFrame from "../FigureFrame";
-import { ProgressDot } from "./ProgressDot";
 import { TableChoiceOption } from "./TableChoiceOption";
+import PassageAnnotations from "./PassageAnnotations";
 import { buildGeometrySvg } from "@/lib/figures/geometry-svg";
 
 export function ActiveQuizScreen({
@@ -71,16 +71,6 @@ export function ActiveQuizScreen({
   const review = isSubmitted ? state.reviews[q.id] : undefined;
   const correctLetter = review?.correct_answer;
 
-  // Progress dots
-  const dots = Array.from({ length: state.targetLength }, (_, i) => {
-    const rec = state.records[i];
-    const isCurrent = i === state.currentIndex;
-    const isAnswered = !!rec?.isCorrect || rec?.isCorrect === false;
-    const isCorrect = rec?.isCorrect === true;
-    const isFlagged = rec?.flagged === true;
-    return { i, isCurrent, isAnswered, isCorrect, isFlagged };
-  });
-
   return (
     <>
       {/* Top bar */}
@@ -90,12 +80,6 @@ export function ActiveQuizScreen({
             {node.subject === "reading" ? "Reading & Writing" : "Math"}
           </p>
           <p className="truncate text-sm font-bold">{node.topic}</p>
-        </div>
-        <div className="flex-1 text-center">
-          <span className="text-sm font-semibold text-ivory/80">
-            Question <span className="text-ivory">{state.currentIndex + 1}</span> of{" "}
-            {state.targetLength}
-          </span>
         </div>
         <div className="flex flex-1 justify-end">
           {menu}
@@ -111,22 +95,7 @@ export function ActiveQuizScreen({
         </div>
       </div>
 
-      {/* Progress dots row (top) */}
-      <div className="absolute inset-x-0 top-14 z-10 flex h-10 items-center justify-center gap-2 border-b border-bronze bg-night/60">
-        {dots.map((d) => (
-          <ProgressDot key={d.i} {...d} />
-        ))}
-      </div>
-
-      {/* Question area — College Board Bluebook-style split view, with
-          an in-place explanation toggle.
-            · Pre-submit / submitted-no-explanations: passage on left
-              (R&W), question + choices + Submit/Show on right.
-            · Submitted + Show explanations clicked: question + choices
-              slide under the passage on the left; right panel becomes
-              the explanations + Hide button. Math (no passage) uses
-              the same 2-column shape with question on left.
-          Each panel scrolls independently. */}
+      {/* Passage precedes prompt in every existing practice mode. */}
       {(() => {
         const hasPassage = !!(q.passage_intro || q.passage || q.passage_a || q.passage_b);
         const inExplanationMode = isSubmitted && showExplanations;
@@ -142,7 +111,7 @@ export function ActiveQuizScreen({
             >
               <button
                 onClick={onSubmit}
-                className="rounded-xl bg-info px-8 py-3 text-sm font-bold text-ivory transition-colors hover:bg-info-bright"
+                className="rounded-xl bg-ivory px-8 py-3 text-sm font-bold text-night transition-colors hover:bg-ivory/90"
               >
                 Submit Answer
               </button>
@@ -162,7 +131,7 @@ export function ActiveQuizScreen({
             </button>
             <button
               onClick={onNext}
-              className="rounded-xl bg-info px-8 py-3 text-sm font-bold text-ivory transition-colors hover:bg-info-bright"
+              className="rounded-xl bg-ivory px-8 py-3 text-sm font-bold text-night transition-colors hover:bg-ivory/90"
             >
               {state.currentIndex + 1 >= state.targetLength ? "See results →" : "Next question →"}
             </button>
@@ -230,7 +199,7 @@ export function ActiveQuizScreen({
                       className={cn(
                         "mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[13px] font-bold",
                         !isSubmitted && !isSelected && "bg-surface-raised text-ivory/80",
-                        !isSubmitted && isSelected && "bg-info text-ivory",
+                        !isSubmitted && isSelected && "bg-ivory text-night",
                         showCorrect && "bg-success text-night",
                         showWrong && "bg-error text-ivory",
                         isSubmitted && !isSelected && !isCorrect && "bg-surface-raised text-taupe"
@@ -353,7 +322,7 @@ export function ActiveQuizScreen({
               </button>
               <button
                 onClick={onNext}
-                className="rounded-xl bg-info px-8 py-3 text-sm font-bold text-ivory transition-colors hover:bg-info-bright"
+                className="rounded-xl bg-ivory px-8 py-3 text-sm font-bold text-night transition-colors hover:bg-ivory/90"
               >
                 {state.currentIndex + 1 >= state.targetLength ? "See results →" : "Next question →"}
               </button>
@@ -408,20 +377,24 @@ export function ActiveQuizScreen({
         // Passage block (used in left column whenever R&W has passage).
         const passageBlock = (
           <article className="mx-auto max-w-prose font-serif text-[17px] leading-[1.7] text-ivory">
-            {q.passage_a && q.passage_b ? (
+            {q.passage_a || q.passage_b ? (
               <>
-                <section className="mb-7">
-                  <div className="mb-2 font-sans text-[10px] font-bold uppercase tracking-[0.2em] text-taupe">
-                    Text 1
-                  </div>
-                  <MathText text={q.passage_a} className="block whitespace-pre-wrap" />
-                </section>
-                <section>
-                  <div className="mb-2 font-sans text-[10px] font-bold uppercase tracking-[0.2em] text-taupe">
-                    Text 2
-                  </div>
-                  <MathText text={q.passage_b} className="block whitespace-pre-wrap" />
-                </section>
+                {q.passage_a && (
+                  <section className="mb-7">
+                    <div className="mb-2 font-sans text-[10px] font-bold uppercase tracking-[0.2em] text-taupe">
+                      Text 1
+                    </div>
+                    <MathText text={q.passage_a} className="block whitespace-pre-wrap" />
+                  </section>
+                )}
+                {q.passage_b && (
+                  <section>
+                    <div className="mb-2 font-sans text-[10px] font-bold uppercase tracking-[0.2em] text-taupe">
+                      Text 2
+                    </div>
+                    <MathText text={q.passage_b} className="block whitespace-pre-wrap" />
+                  </section>
+                )}
               </>
             ) : (
               <ReviewedSinglePassage
@@ -433,6 +406,35 @@ export function ActiveQuizScreen({
           </article>
         );
 
+        // Practice follows one reading order on desktop and phone. No source rewriting.
+        if (hasPassage) {
+          return (
+            <div className="absolute inset-x-0 bottom-20 top-14 overflow-y-auto px-4 py-6 sm:px-8">
+              <div className="mx-auto max-w-2xl space-y-8">
+                {readOnly ? (
+                  passageBlock
+                ) : (
+                  <PassageAnnotations
+                    questionId={q.id}
+                    sourceKey={JSON.stringify([
+                      q.passage_intro,
+                      q.passage,
+                      q.passage_a,
+                      q.passage_b,
+                      q.reviewed_passage,
+                    ])}
+                  >
+                    {passageBlock}
+                  </PassageAnnotations>
+                )}
+                {figureCard}
+                {questionPanel}
+                {inExplanationMode && explanationsPanel}
+              </div>
+            </div>
+          );
+        }
+
         // ── Layout selection ──────────────────────────────────────
         // Anything with a passage OR a figure uses the split view.
         // Left column stacks [figure?, passage?] in that order; right
@@ -441,7 +443,11 @@ export function ActiveQuizScreen({
         // column, mirroring College Board Bluebook behavior.
         if (hasPassage || hasFigure) {
           return (
-            <div className="absolute inset-x-0 bottom-20 top-24 overflow-y-auto md:overflow-hidden">
+            <div
+              className={cn(
+                "absolute inset-x-0 bottom-20 top-14 overflow-y-auto md:overflow-hidden"
+              )}
+            >
               <div className="grid min-h-full divide-y divide-bronze md:h-full md:grid-cols-2 md:divide-x md:divide-y-0">
                 {/* LEFT */}
                 <div
@@ -484,7 +490,11 @@ export function ActiveQuizScreen({
         // on the RIGHT — same shape as R&W in explanation mode.
         if (inExplanationMode) {
           return (
-            <div className="absolute inset-x-0 bottom-20 top-24 overflow-y-auto md:overflow-hidden">
+            <div
+              className={cn(
+                "absolute inset-x-0 bottom-20 top-14 overflow-y-auto md:overflow-hidden"
+              )}
+            >
               <div className="grid min-h-full divide-y divide-bronze md:h-full md:grid-cols-2 md:divide-x md:divide-y-0">
                 <div className="px-6 py-8 md:overflow-y-auto md:px-10">{questionPanel}</div>
                 <div className="px-6 py-8 md:overflow-y-auto md:px-10">{explanationsPanel}</div>
@@ -495,7 +505,7 @@ export function ActiveQuizScreen({
 
         // Math, default: single centered column.
         return (
-          <div className="absolute inset-x-0 bottom-20 top-24 overflow-y-auto px-6 py-8">
+          <div className={cn("absolute inset-x-0 bottom-20 top-14 overflow-y-auto px-6 py-8")}>
             {questionPanel}
           </div>
         );

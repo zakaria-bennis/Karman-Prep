@@ -2,6 +2,7 @@
 
 import type { StudentQuizQuestion } from "@/types/quiz";
 import MathText from "../MathText";
+import PassageAnnotations from "../quiz/PassageAnnotations";
 import ReviewedSinglePassage from "../ReviewedSinglePassage";
 import QuestionTable from "../QuestionTable";
 import ChartFigure from "../ChartFigure";
@@ -29,25 +30,36 @@ export default function CatalogQuestion({
   return (
     <div data-catalog-question-id={q.id} className="min-w-0 space-y-6">
       {hasPassage && (
-        <article className="space-y-5 font-serif text-lg leading-relaxed">
-          {q.passage_a || q.passage_b ? (
-            [q.passage_a, q.passage_b].map((passage, index) =>
-              passage ? (
-                <section key={index}>
-                  <h2 className="mb-2 font-sans text-sm font-semibold">Text {index + 1}</h2>
-                  <MathText text={passage} className="block whitespace-pre-wrap" treatBlankWord />
-                </section>
-              ) : null
-            )
-          ) : (
-            <ReviewedSinglePassage
-              intro={q.passage_intro}
-              passage={q.passage}
-              display={q.reviewed_passage}
-              treatBlankWord
-            />
-          )}
-        </article>
+        <PassageAnnotations
+          questionId={q.id}
+          sourceKey={JSON.stringify([
+            q.passage_intro,
+            q.passage,
+            q.passage_a,
+            q.passage_b,
+            q.reviewed_passage,
+          ])}
+        >
+          <article className="space-y-5 font-serif text-lg leading-relaxed">
+            {q.passage_a || q.passage_b ? (
+              [q.passage_a, q.passage_b].map((passage, index) =>
+                passage ? (
+                  <section key={index}>
+                    <h2 className="mb-2 font-sans text-sm font-semibold">Text {index + 1}</h2>
+                    <MathText text={passage} className="block whitespace-pre-wrap" treatBlankWord />
+                  </section>
+                ) : null
+              )
+            ) : (
+              <ReviewedSinglePassage
+                intro={q.passage_intro}
+                passage={q.passage}
+                display={q.reviewed_passage}
+                treatBlankWord
+              />
+            )}
+          </article>
+        </PassageAnnotations>
       )}
       {q.figure_kind === "table" && q.figure_table_data ? (
         <QuestionTable data={q.figure_table_data} />

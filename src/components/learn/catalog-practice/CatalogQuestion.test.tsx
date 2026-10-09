@@ -80,3 +80,26 @@ describe("canonical immutable question rendering", () => {
     expect(screen.queryByRole("radio")).toBeNull();
   });
 });
+
+it("keeps the source passage before the figure, prompt and answer choices", () => {
+  const q = {
+    ...base,
+    subject: "reading" as const,
+    passage: "Original passage with 2/11 and 17 samples.",
+    question_text: "Which choice most logically completes the text?",
+    figure_kind: "table" as const,
+    figure_table_data: { rows: [["2025", "17"]] },
+  };
+  const original = JSON.stringify(q);
+  render(<CatalogQuestion question={q} answer="" disabled={false} onAnswer={vi.fn()} />);
+  const passage = screen.getByText(q.passage);
+  const table = screen.getByRole("table");
+  const prompt = screen.getByText(q.question_text);
+  expect(passage.compareDocumentPosition(table) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  expect(table.compareDocumentPosition(prompt) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  expect(
+    prompt.compareDocumentPosition(screen.getAllByRole("radio")[0]) &
+      Node.DOCUMENT_POSITION_FOLLOWING
+  ).toBeTruthy();
+  expect(JSON.stringify(q)).toBe(original);
+});

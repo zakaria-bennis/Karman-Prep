@@ -46,7 +46,7 @@ export function AnswerChoiceButton({
         onClick={() => !isCrossed && onSelect()}
         disabled={choiceDisabled}
         className={cn(
-          "w-full rounded-xl border-2 py-4 pl-4 pr-20 text-left text-sm font-medium transition-all",
+          "w-full rounded-xl border-2 py-4 pl-4 pr-28 text-left text-sm font-medium transition-all",
           isCrossed &&
             "cursor-not-allowed border-bronze bg-surface/60 opacity-50 dark:border-bronze dark:bg-surface-raised/40",
           !isCrossed &&
@@ -122,7 +122,7 @@ export function AnswerChoiceButton({
           "absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-1 transition-opacity",
           isCrossed || isHighlighted
             ? "opacity-100"
-            : "opacity-0 focus-within:opacity-100 group-hover:opacity-100"
+            : "opacity-100 sm:opacity-0 sm:focus-within:opacity-100 sm:group-hover:opacity-100"
         )}
       >
         <button
@@ -136,7 +136,7 @@ export function AnswerChoiceButton({
           }
           title={isHighlighted ? "Remove highlight" : "Highlight"}
           className={cn(
-            "flex h-8 w-8 items-center justify-center rounded-lg transition-colors",
+            "flex h-11 w-11 items-center justify-center rounded-lg transition-colors",
             isHighlighted
               ? "bg-warning/20 text-warning-bright"
               : "text-taupe hover:bg-warning/15 hover:text-warning-bright"
@@ -153,7 +153,7 @@ export function AnswerChoiceButton({
           aria-label={isCrossed ? `Restore choice ${letter}` : `Cross out choice ${letter}`}
           title={isCrossed ? "Restore choice" : "Cross out"}
           className={cn(
-            "flex h-8 w-8 items-center justify-center rounded-lg transition-colors",
+            "flex h-11 w-11 items-center justify-center rounded-lg transition-colors",
             isCrossed
               ? "bg-error/20 text-error-bright"
               : "text-taupe hover:bg-error/15 hover:text-error-bright"

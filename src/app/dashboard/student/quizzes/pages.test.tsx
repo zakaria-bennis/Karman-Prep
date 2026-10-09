@@ -138,6 +138,7 @@ describe("student quiz history pages", () => {
     });
     render(await ReviewPage(input));
     expect(screen.getByText(/Correct when answered/)).toBeTruthy();
+    expect(screen.queryByText(/Question\s+\d+/)).toBeNull();
     expect(screen.getByText(/no longer available/)).toBeTruthy();
     expect(screen.getByText(/may have changed/)).toBeTruthy();
     expect(screen.queryByText("Reviewed question content")).toBeNull();

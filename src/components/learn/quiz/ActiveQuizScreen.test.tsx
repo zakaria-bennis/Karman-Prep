@@ -114,3 +114,64 @@ describe("student answer presentation", () => {
     expect(document.querySelector("button table")).toBeNull();
   });
 });
+
+describe("practice identity and reading order", () => {
+  it("keeps content numbers intact without question numbering", () => {
+    mockQuizState.currentIndex = 1;
+    mockQuizState.targetLength = 11;
+    const q = {
+      ...base,
+      subject: "math",
+      question_text: "The fraction 2/11 is between 0 and 1.",
+      source_pdf: "Original-Test-17.pdf",
+      source_page: 42,
+    } as StudentQuizQuestion;
+    const original = JSON.stringify(q);
+    showQuestion(q, vi.fn());
+    expect(screen.getByText("The fraction 2/11 is between 0 and 1.")).toBeTruthy();
+    const counter = screen.queryByText(
+      (_, element) => element?.tagName === "SPAN" && element.textContent === "Question 2 of 11"
+    );
+    expect(counter).toBeNull();
+    expect(screen.queryByText(/Original-Test-17|page 42/)).toBeNull();
+    expect(JSON.stringify(q)).toBe(original);
+    mockQuizState.currentIndex = 0;
+    mockQuizState.targetLength = 1;
+  });
+  it("renders passage, source table, prompt and choices in that order", () => {
+    showQuestion({
+      ...base,
+      subject: "reading",
+      answer_format: "multiple_choice",
+      passage: "A study recorded 17 birds.",
+      question_text: "Which choice most logically completes the text?",
+      figure_kind: "table",
+      figure_table_data: { header_row: ["Year", "Birds"], rows: [["2025", "17"]] },
+      answer_choices: [
+        {
+          id: "a",
+          question_id: base.id,
+          letter: "A",
+          choice_text: "The population remained stable.",
+        },
+      ],
+    } as StudentQuizQuestion);
+    const passage = screen.getByText("A study recorded 17 birds.");
+    const table = screen.getByRole("table");
+    const prompt = screen.getByText("Which choice most logically completes the text?");
+    const choice = screen.getByRole("button", { name: /A\s*The population/ });
+    expect(passage.compareDocumentPosition(table) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(table.compareDocumentPosition(prompt) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(prompt.compareDocumentPosition(choice) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+  it("preserves a lone second source passage rather than silently dropping it", () => {
+    showQuestion({
+      ...base,
+      subject: "reading",
+      passage_b: "The second source passage.",
+      question_text: "What does Text 2 suggest?",
+    } as StudentQuizQuestion);
+    expect(screen.getByText("Text 2")).toBeTruthy();
+    expect(screen.getByText("The second source passage.")).toBeTruthy();
+  });
+});

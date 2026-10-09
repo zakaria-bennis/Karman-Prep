@@ -1,12 +1,11 @@
 "use client";
 
 // DiagnosticHeader — top bar for the active diagnostic:
-//   · Exit button + question counter
+//   · Exit button + diagnostic label
 //   · Calculator (Desmos) + Scratchpad toggles (math only)
 //   · Question navigator opener
 //   · Bookmark toggle
 //   · Section timer (circular ring + clock)
-//   · Per-section progress bar
 //
 // Used by DiagnosticClient only.
 
@@ -26,8 +25,6 @@ function fmtClock(sec: number): string {
 }
 
 export function DiagnosticHeader({
-  sectionPosition,
-  sectionLength,
   isMathQuestion,
   scratchpadOpen,
   isBookmarked,
@@ -41,8 +38,6 @@ export function DiagnosticHeader({
   onToggleScratchpad,
   onToggleBookmark,
 }: {
-  sectionPosition: number;
-  sectionLength: number;
   isMathQuestion: boolean;
   scratchpadOpen: boolean;
   isBookmarked: boolean;
@@ -73,12 +68,7 @@ export function DiagnosticHeader({
             <X className="h-3.5 w-3.5" />
             Exit
           </button>
-          <div>
-            <span className="text-sm font-semibold text-ivory dark:text-ivory">
-              Question {sectionPosition} / {sectionLength}
-            </span>
-            <span className="ml-2 text-xs text-taupe">SAT Diagnostic</span>
-          </div>
+          <span className="text-sm font-semibold text-ivory">SAT Diagnostic</span>
         </div>
 
         <div className="flex max-w-full flex-wrap items-center gap-2">
@@ -103,8 +93,8 @@ export function DiagnosticHeader({
             </button>
           )}
 
-          {/* Question navigator — opens a slide-in grid of all
-              35 questions with status pips for jump navigation. */}
+          {/* Question navigator — prompt labels preserve jump navigation
+              without showing ordinals or source identifiers. */}
           <button
             type="button"
             onClick={onOpenNavigator}
@@ -179,16 +169,6 @@ export function DiagnosticHeader({
               <span className="sr-only">Less than a minute remaining</span>
             )}
           </div>
-        </div>
-      </div>
-
-      {/* Progress bar */}
-      <div className="mx-auto mt-2 max-w-6xl">
-        <div className="h-1.5 overflow-hidden rounded-full bg-surface dark:bg-surface-raised">
-          <div
-            className="h-full rounded-full bg-info transition-all duration-300"
-            style={{ width: `${(sectionPosition / sectionLength) * 100}%` }}
-          />
         </div>
       </div>
     </div>

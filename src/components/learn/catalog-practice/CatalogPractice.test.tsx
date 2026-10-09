@@ -196,3 +196,10 @@ describe("canonical student practice", () => {
     expect(mocks.start).not.toHaveBeenCalled();
   });
 });
+
+it("does not number an active randomized session", () => {
+  mount(session({ answered: 1, total: 11 }));
+  expect(screen.queryByText(/Question 2 of 11|2\/11/)).toBeNull();
+  expect(screen.getByText("Skill practice")).toBeTruthy();
+  expect(screen.getByRole("button", { name: "Scratchpad" })).toBeTruthy();
+});

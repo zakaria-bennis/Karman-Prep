@@ -10,9 +10,9 @@ describe("external calculator menu guidance", () => {
     expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
     expect(screen.queryByText(/timed exam/)).not.toBeInTheDocument();
   });
-  it("gives realistic-exam guidance without claiming transfers", () => {
+  it("keeps legacy realistic practice guidance accurate without claiming a full exam", () => {
     render(<QuizMenu subject="math" realistic />);
-    expect(screen.getByText(/Use this calculator alongside your timed exam/)).toBeInTheDocument();
+    expect(screen.queryByText(/timed exam/)).not.toBeInTheDocument();
     expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
   });
   it("keeps appearance available in Reading/Writing without calculator guidance", () => {

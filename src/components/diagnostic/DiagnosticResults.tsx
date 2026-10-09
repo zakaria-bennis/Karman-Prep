@@ -205,9 +205,6 @@ export default function DiagnosticResults({
                   >
                     <div className="mb-1 flex items-center justify-between gap-3">
                       <div className="flex min-w-0 items-center gap-2">
-                        <span className="text-[11px] font-bold uppercase tracking-wider text-taupe dark:text-taupe">
-                          Q{q.index + 1}
-                        </span>
                         {q.domain && (
                           <span className="rounded px-1.5 py-0.5 text-[10px] font-semibold">
                             {DOMAIN_LABELS[q.domain]}

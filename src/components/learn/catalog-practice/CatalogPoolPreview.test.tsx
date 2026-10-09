@@ -20,6 +20,7 @@ describe("read-only admitted question previews", () => {
     expect(screen.getByRole("radio", { name: "Choice A" })).toBeDisabled();
     fireEvent.click(screen.getByRole("button", { name: "Next preview" }));
     expect(screen.getByText("Preview question 2")).toBeTruthy();
+    expect(screen.queryByText(/Preview [0-9]+ of/)).toBeNull();
     expect(screen.getByRole("button", { name: "Next preview" })).toBeDisabled();
     expect(screen.queryByText(/Correct answer:/)).toBeNull();
     expect(screen.queryByText(/explanation/i)).toBeNull();

@@ -24,6 +24,7 @@ it("uses one external link only for Math while retaining diagnostic controls and
   expect(screen.getAllByRole("link")).toHaveLength(1);
   expect(screen.getByRole("link")).toHaveAttribute("target", "_blank");
   expect(screen.getByText("10:00")).toBeInTheDocument();
+  expect(container.textContent).not.toMatch(/Question\s*\d+|2\s*\/\s*20/);
   expect(screen.getByRole("button", { name: "Exit diagnostic" })).toBeInTheDocument();
   expect(container.querySelector("script, iframe")).toBeNull();
   rerender(<DiagnosticHeader {...props} isMathQuestion={false} currentSection="rw" />);

@@ -67,8 +67,6 @@ export default function DiagnosticClient({ questions, isSubscribed, isRetake }: 
   return (
     <div ref={s.shellRef} className="relative flex min-h-screen flex-col bg-surface dark:bg-night">
       <DiagnosticHeader
-        sectionPosition={s.sectionPosition}
-        sectionLength={s.sectionLength}
         isMathQuestion={s.isMathQuestion}
         scratchpadOpen={s.scratchpadOpen}
         isBookmarked={s.isBookmarked}
@@ -96,11 +94,9 @@ export default function DiagnosticClient({ questions, isSubscribed, isRetake }: 
         </div>
       ) : null}
 
-      {/* Question — switches to split-pane when a passage is present
-          (R&W convention from Bluebook: passage on the left, prompt
-          + choices on the right). */}
+      {/* Read passage, then prompt, then choices on every viewport. */}
       <div className="flex flex-1 items-start justify-center p-4 pt-8">
-        <div className={cn("w-full", question.passage ? "max-w-6xl" : "max-w-2xl")}>
+        <div className="w-full max-w-2xl">
           {/* Domain tag */}
           <div className="mb-4 flex items-center gap-2">
             <span
@@ -118,13 +114,10 @@ export default function DiagnosticClient({ questions, isSubscribed, isRetake }: 
             </span>
           </div>
 
-          <div
-            className={cn(
-              question.passage ? "grid items-start gap-6 lg:grid-cols-2 lg:gap-10" : ""
-            )}
-          >
+          <div className="space-y-6">
             {question.passage && (
               <HighlightablePassage
+                key={question.id}
                 passage={question.passage}
                 passageIntro={question.passageIntro}
                 highlights={s.questionHighlights}
@@ -237,11 +230,12 @@ export default function DiagnosticClient({ questions, isSubscribed, isRetake }: 
         </div>
       </div>
 
-      {s.isMathQuestion && (
-        <div key={`scratch-host-${question.id}`} className={s.scratchpadOpen ? "" : "hidden"}>
-          <Scratchpad onClose={() => s.setScratchpadOpen(false)} constraintsRef={s.shellRef} />
-        </div>
-      )}
+      <Scratchpad
+        pageKey={question.id}
+        open={s.scratchpadOpen}
+        onClose={() => s.setScratchpadOpen(false)}
+        constraintsRef={s.shellRef}
+      />
 
       <ExitConfirmModal
         open={s.exitConfirmOpen}

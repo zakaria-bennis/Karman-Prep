@@ -33,7 +33,7 @@ export default function CatalogPoolPreview({
         Browse a preview below. Choose Start practice to answer questions and save your work.
       </p>
       <div aria-live="polite" className="mb-4 text-sm font-semibold">
-        Preview {current + 1} of {questions.length}
+        Question preview
       </div>
       <CatalogQuestion question={questions[current]} answer="" disabled onAnswer={() => {}} />
       {questions.length > 1 && (

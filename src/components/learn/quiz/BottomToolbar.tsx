@@ -1,14 +1,12 @@
 "use client";
 
 // BottomToolbar — persistent footer for the quiz: flag question,
-// open Desmos / Scratchpad (math only), progress dots across the
-// whole quiz run.
+// open the Math-only external calculator and the local scratchpad.
 
 import { Flag, PencilLine } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useQuiz } from "@/contexts/QuizContext";
 import ExternalCalculatorLink from "../ExternalCalculatorLink";
-import { ProgressDot } from "./ProgressDot";
 
 export function BottomToolbar({
   subject,
@@ -21,17 +19,6 @@ export function BottomToolbar({
   onFlag: () => void;
   state: ReturnType<typeof useQuiz>["state"];
 }) {
-  const dots = Array.from({ length: state.targetLength }, (_, i) => {
-    const rec = state.records[i];
-    return {
-      i,
-      isCurrent: i === state.currentIndex,
-      isAnswered: rec?.isCorrect === true || rec?.isCorrect === false,
-      isCorrect: rec?.isCorrect === true,
-      isFlagged: rec?.flagged === true,
-    };
-  });
-
   return (
     <div className="absolute inset-x-0 bottom-0 z-10 flex h-16 items-center border-t border-bronze bg-night/80 px-2 backdrop-blur-sm sm:px-6">
       <div className="flex items-center gap-2">
@@ -49,12 +36,6 @@ export function BottomToolbar({
           <PencilLine className="h-4 w-4" aria-hidden="true" />
           <span className="hidden sm:inline">Scratchpad</span>
         </button>
-      </div>
-
-      <div className="hidden flex-1 items-center justify-center gap-2 md:flex">
-        {dots.map((d) => (
-          <ProgressDot key={d.i} {...d} />
-        ))}
       </div>
 
       <button

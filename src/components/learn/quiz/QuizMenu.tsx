@@ -4,7 +4,7 @@ import { ThemeSelector } from "@/components/shared/ThemeSelector";
 import { ThemeToggle } from "@/components/shared/ThemeToggle";
 import { Menu } from "lucide-react";
 
-export function QuizMenu({ realistic, subject }: { realistic: boolean; subject?: string | null }) {
+export function QuizMenu({ subject }: { realistic?: boolean; subject?: string | null }) {
   return (
     <div className="flex items-center gap-1">
       <ThemeToggle />
@@ -17,8 +17,7 @@ export function QuizMenu({ realistic, subject }: { realistic: boolean; subject?:
           {subject === "math" && (
             <p className="mt-3 text-xs leading-relaxed text-taupe">
               The official SAT calculator opens in a new tab. Your question and answers stay here.
-              {realistic && " Use this calculator alongside your timed exam."} Enter equations and
-              tables directly in the calculator.
+              Enter equations and tables directly in the calculator.
             </p>
           )}
         </div>
