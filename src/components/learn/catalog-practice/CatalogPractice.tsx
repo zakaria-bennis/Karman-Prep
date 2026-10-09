@@ -43,6 +43,9 @@ export default function CatalogPractice({
   const router = useRouter();
   const shellRef = useRef<HTMLDivElement>(null);
   const [scratchpadOpen, setScratchpadOpen] = useState(false);
+  const [previewIndex, setPreviewIndex] = useState(0);
+  const previewQuestion =
+    availableQuestions?.[Math.min(previewIndex, availableQuestions.length - 1)];
   const [session, setSession] = useState(initialSession);
   const [answer, setAnswer] = useState("");
   const [feedback, setFeedback] = useState<CatalogSavedReview | null>(null);
@@ -189,6 +192,7 @@ export default function CatalogPractice({
                 <CatalogPoolPreview
                   questions={availableQuestions}
                   onReload={() => router.refresh()}
+                  navigation={{ index: previewIndex, onChange: setPreviewIndex }}
                 />
               )}
             </section>
@@ -285,7 +289,7 @@ export default function CatalogPractice({
           )}
         </div>
         <Scratchpad
-          pageKey={session?.question?.id ?? "preview"}
+          pageKey={session?.question?.id ?? previewQuestion?.id ?? "empty-preview"}
           open={scratchpadOpen}
           onClose={() => setScratchpadOpen(false)}
           constraintsRef={shellRef}

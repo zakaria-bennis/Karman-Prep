@@ -8,9 +8,11 @@ import CatalogQuestion from "./CatalogQuestion";
 export default function CatalogPoolPreview({
   questions,
   onReload,
+  navigation,
 }: {
   questions: StudentQuizQuestion[];
   onReload: () => void;
+  navigation?: { index: number; onChange: (index: number) => void };
 }) {
   const [index, setIndex] = useState(0);
   if (!questions.length) {
@@ -23,7 +25,8 @@ export default function CatalogPoolPreview({
       </div>
     );
   }
-  const current = Math.min(index, questions.length - 1);
+  const current = Math.min(navigation?.index ?? index, questions.length - 1);
+  const changeIndex = navigation?.onChange ?? setIndex;
   return (
     <section aria-label="Available questions" className="mt-8 min-w-0 border-t border-bronze pt-6">
       <p className="mb-3 text-sm text-taupe">
@@ -41,7 +44,7 @@ export default function CatalogPoolPreview({
           <button
             type="button"
             disabled={current === 0}
-            onClick={() => setIndex(current - 1)}
+            onClick={() => changeIndex(current - 1)}
             className="min-h-11 rounded-xl border border-bronze px-4 py-2 disabled:opacity-40"
           >
             Previous preview
@@ -49,7 +52,7 @@ export default function CatalogPoolPreview({
           <button
             type="button"
             disabled={current === questions.length - 1}
-            onClick={() => setIndex(current + 1)}
+            onClick={() => changeIndex(current + 1)}
             className="min-h-11 rounded-xl border border-bronze px-4 py-2 disabled:opacity-40"
           >
             Next preview

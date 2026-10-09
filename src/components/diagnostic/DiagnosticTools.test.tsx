@@ -58,6 +58,7 @@ it("overlays independent highlight and underline without changing text and remov
   fireEvent.click(screen.getByText("Notes and markings"));
   fireEvent.click(screen.getByRole("button", { name: "Underline: beta" }));
   fireEvent.click(screen.getByRole("button", { name: "Remove" }));
+  expect(screen.getByRole("button", { name: "Underline" })).toHaveFocus();
   expect(container.querySelector("mark")?.className).not.toContain("decoration-2");
   expect(container.querySelector("mark")?.textContent).toBe("beta");
 });
@@ -88,6 +89,16 @@ it("does not advance an answered question when Enter activates a marking control
   expect(result.current.question.id).toBe("a");
   fireEvent.keyDown(document.body, { key: "Enter" });
   expect(result.current.question.id).toBe("b");
+});
+it("returns focus to the selected tool when the final diagnostic mark is removed", () => {
+  const { container } = render(<MarkHarness />);
+  markPhrase("beta");
+  const mark = screen.getByRole("button", { name: "Edit highlight: beta" });
+  mark.focus();
+  fireEvent.keyDown(mark, { key: "Enter" });
+  fireEvent.click(screen.getByRole("button", { name: "Remove" }));
+  expect(container.querySelector("mark")).toBeNull();
+  expect(screen.getByRole("button", { name: "Highlight" })).toHaveFocus();
 });
 it("uses prompt labels, traps keyboard focus and restores the opener without numbered tiles", () => {
   function Navigation() {

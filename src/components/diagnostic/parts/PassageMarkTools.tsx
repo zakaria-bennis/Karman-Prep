@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type Ref } from "react";
 export type PassageMarkKind = "highlight" | "underline";
 const buttonClass =
   "min-h-11 rounded-lg border border-bronze px-3 py-2 text-sm font-semibold text-ivory focus-visible:outline focus-visible:outline-2 focus-visible:outline-info";
@@ -11,12 +11,14 @@ export function PassageMarkTools({
   onKind,
   onMarkSelection,
   onMarkPhrase,
+  selectedToolRef,
 }: {
   passage: string;
   kind: PassageMarkKind;
   onKind: (kind: PassageMarkKind) => void;
   onMarkSelection: () => void;
   onMarkPhrase: (start: number, end: number) => void;
+  selectedToolRef?: Ref<HTMLButtonElement>;
 }) {
   const [phrase, setPhrase] = useState("");
   const [message, setMessage] = useState("");
@@ -41,6 +43,7 @@ export function PassageMarkTools({
         {(["highlight", "underline"] as const).map((tool) => (
           <button
             key={tool}
+            ref={kind === tool ? selectedToolRef : undefined}
             type="button"
             aria-pressed={kind === tool}
             onClick={() => onKind(tool)}

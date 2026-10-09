@@ -14,7 +14,7 @@
 
 import { ArrowRight, Lightbulb } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { DOMAIN_COLORS, DOMAIN_LABELS, type SATDomain } from "@/types";
+import { DOMAIN_LABELS, type SATDomain } from "@/types";
 import Scratchpad from "@/components/learn/Scratchpad";
 import MathText from "@/components/learn/MathText";
 import DiagnosticResults from "./DiagnosticResults";
@@ -62,7 +62,11 @@ export default function DiagnosticClient({ questions, isSubscribed, isRetake }: 
   const timerPct = (s.sectionTimeLeft / totalSectionSec) * 100;
   const minutesLeft = Math.floor(s.sectionTimeLeft / 60);
   const timerColor =
-    s.sectionTimeLeft > 5 * 60 ? "#2FA8FF" : s.sectionTimeLeft > 60 ? "#E0A24A" : "#D84F73";
+    s.sectionTimeLeft > 5 * 60
+      ? "rgb(var(--k-info))"
+      : s.sectionTimeLeft > 60
+        ? "rgb(var(--k-warning))"
+        : "rgb(var(--k-error))";
 
   return (
     <div ref={s.shellRef} className="relative flex min-h-screen flex-col bg-surface dark:bg-night">
@@ -100,11 +104,10 @@ export default function DiagnosticClient({ questions, isSubscribed, isRetake }: 
           {/* Domain tag */}
           <div className="mb-4 flex items-center gap-2">
             <span
-              className="rounded-md px-2.5 py-1 text-xs font-semibold"
-              style={{
-                backgroundColor: DOMAIN_COLORS[question.domain as SATDomain]?.hex + "20",
-                color: DOMAIN_COLORS[question.domain as SATDomain]?.hex,
-              }}
+              className={cn(
+                "rounded-md border border-bronze bg-surface px-2.5 py-1 text-xs font-semibold",
+                s.isMathQuestion ? "text-math" : "text-rw"
+              )}
             >
               {DOMAIN_LABELS[question.domain as SATDomain] || question.domain}
             </span>

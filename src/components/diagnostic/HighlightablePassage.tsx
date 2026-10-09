@@ -187,6 +187,7 @@ export function HighlightablePassage({ passage, passageIntro, highlights, onChan
   const passageRef = useRef<HTMLDivElement>(null);
   const [markKind, setMarkKind] = useState<PassageMarkKind>("highlight");
   const editorOpener = useRef<HTMLElement | null>(null);
+  const selectedToolRef = useRef<HTMLButtonElement>(null);
 
   // Active highlight (for the edit popover).
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -258,6 +259,9 @@ export function HighlightablePassage({ passage, passageIntro, highlights, onChan
   function removeHighlight() {
     if (!activeId) return;
     onChange(highlights.filter((h) => h.id !== activeId));
+    // The edited mark (and its list entry) is about to disappear.
+    // Return to the selected tool, which survives even when no marks remain.
+    editorOpener.current = selectedToolRef.current;
     closeEditor();
   }
 
@@ -311,6 +315,7 @@ export function HighlightablePassage({ passage, passageIntro, highlights, onChan
         onKind={setMarkKind}
         onMarkSelection={handleMouseUp}
         onMarkPhrase={addMark}
+        selectedToolRef={selectedToolRef}
       />
       {passageIntro && (
         <p className="mb-4 font-serif text-sm italic leading-relaxed text-taupe dark:text-taupe">
