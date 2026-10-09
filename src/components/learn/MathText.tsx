@@ -16,6 +16,7 @@ import katex from "katex";
 import "katex/dist/katex.min.css";
 import { parseSourceUnderlining } from "./source-underlining";
 import { parseSourceItalics } from "./source-italics";
+import { currencyDollarDelimiters } from "./currency-dollar-delimiters";
 import { parseSerializedFunctionLines } from "./serialized-function-math";
 
 interface Props {
@@ -74,14 +75,30 @@ function parse(
       out.push(seg);
       continue;
     }
+    const currencyOffsets = currencyDollarDelimiters(seg.value);
+    let offset = 0;
     let remaining = seg.value;
     while (true) {
       const m = remaining.match(/\$((?:\\\$|[^$\n])+?)\$|\\\(([\s\S]+?)\\\)/);
       if (!m) break;
+      if (
+        m[1] !== undefined &&
+        (currencyOffsets.has(offset + m.index!) ||
+          currencyOffsets.has(offset + m.index! + m[0].length - 1))
+      ) {
+        // Keep the currency symbol and rescan, so later explicit math survives.
+        const consumed = m.index! + 1;
+        out.push({ kind: "text", value: remaining.slice(0, consumed) });
+        remaining = remaining.slice(consumed);
+        offset += consumed;
+        continue;
+      }
       const before = remaining.slice(0, m.index!);
       if (before) out.push({ kind: "text", value: before });
       out.push({ kind: "inline", latex: (m[1] ?? m[2]).trim() });
-      remaining = remaining.slice((m.index ?? 0) + m[0].length);
+      const consumed = (m.index ?? 0) + m[0].length;
+      remaining = remaining.slice(consumed);
+      offset += consumed;
     }
     if (remaining) out.push({ kind: "text", value: remaining });
   }
