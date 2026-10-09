@@ -6,6 +6,7 @@ import Footer from "@/components/landing/Footer";
 import { PlanCards } from "@/components/landing/Pricing";
 import { PRICING_TIERS } from "@/types";
 import { GUARANTEE_POLICY } from "@/lib/guarantee/policy";
+import styles from "./plans.module.css";
 
 export const metadata: Metadata = {
   title: "SAT Prep Plans | Karman Prep",
@@ -24,7 +25,9 @@ export default function PlansPage() {
     <>
       <Navbar />
       <main className="min-h-screen bg-night text-ivory">
-        <section className="mx-auto max-w-7xl px-5 pb-12 pt-8 md:px-8 md:pb-16 md:pt-14">
+        <section
+          className={`${styles.overview} mx-auto max-w-7xl px-5 pb-12 pt-8 md:px-8 md:pb-16 md:pt-14`}
+        >
           <h1 className="font-plex-serif text-4xl leading-tight tracking-tight sm:text-6xl">
             Find your fit.
           </h1>
