@@ -107,6 +107,13 @@ export default async function StudentDetailPage({ params, searchParams }: Params
           <ArrowLeft className="h-3.5 w-3.5" /> All students
         </Link>
 
+        <Link
+          href={`/tutor/${encodeURIComponent(studentId)}/briefing`}
+          className="inline-flex min-h-11 items-center text-sm font-semibold text-info underline underline-offset-4"
+        >
+          Saved practice briefing
+        </Link>
+
         {/* Summary bar */}
         <div className="rounded-xl border border-bronze bg-surface p-5 dark:border-bronze dark:bg-surface">
           <div className="flex flex-wrap items-start justify-between gap-4">

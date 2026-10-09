@@ -73,7 +73,13 @@ export default async function TutorPage() {
               {rows.length} student{rows.length !== 1 ? "s" : ""} across cohorts + 1:1
             </p>
           </div>
-          <nav className="flex items-center gap-2">
+          <nav className="flex flex-wrap items-center gap-2">
+            <Link
+              href="/tutor/briefing"
+              className="inline-flex min-h-11 items-center rounded-lg border border-bronze px-3 py-1.5 text-sm font-semibold text-info hover:border-info/40"
+            >
+              Daily briefing
+            </Link>
             <Link
               href="/tutor/schedule"
               className="inline-flex items-center gap-1.5 rounded-lg border border-bronze px-3 py-1.5 text-sm font-semibold text-ivory hover:border-info/40 dark:border-bronze dark:text-ivory"
