@@ -1,12 +1,17 @@
 "use client";
 
 import { Sun, Moon } from "lucide-react";
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useTheme } from "@/components/shared/ThemeProvider";
 
 export function ThemeToggle({ floating = false }: { floating?: boolean }) {
   const pathname = usePathname();
   const { toggleMode, saving } = useTheme();
+  const [ready, setReady] = useState(false);
+  // Server-rendered buttons must not accept clicks before React attaches the handler.
+  // This waits for this control to hydrate, independently of Clerk loading.
+  useEffect(() => setReady(true), []);
   // Shells and public navigation provide an in-flow control, clear of content.
   const portalHasThemeControl =
     ["/dashboard/student", "/dashboard/parent", "/tutor", "/admin", "/learn"].some(
@@ -30,7 +35,7 @@ export function ThemeToggle({ floating = false }: { floating?: boolean }) {
     <button
       type="button"
       onClick={toggleMode}
-      disabled={saving}
+      disabled={!ready || saving}
       aria-label="Toggle light and dark mode"
       title="Toggle light and dark mode"
       className={
