@@ -15,6 +15,50 @@ vi.mock("next/link", () => ({
 afterEach(cleanup);
 
 describe("learn dashboard navigation", () => {
+  it("resumes current skill work and reviews a saved result without calling it an earlier lesson", () => {
+    const skill = getCatalogSkills("reading")[0];
+    const href = `/learn/practice/${skill.id}?session=00000000-0000-4000-8000-000000000020`;
+    const session = {
+      id: "00000000-0000-4000-8000-000000000020",
+      skillId: skill.id,
+      title: skill.label,
+      href,
+      startedAt: "2026-10-09T08:00:00Z",
+      completedAt: null,
+      score: null,
+    };
+    const dashboard = buildLearnDashboard([], [], {
+      status: "ready",
+      sessions: [
+        session,
+        {
+          ...session,
+          id: "completed",
+          href: href.replace("020", "021"),
+          completedAt: "2026-10-09T08:10:00Z",
+          score: 50,
+        },
+      ],
+    });
+    render(<LearnDashboard dashboard={dashboard} />);
+    expect(screen.getByRole("link", { name: "Continue practice" })).toHaveAttribute("href", href);
+    expect(screen.getByText("Skill practice")).toBeTruthy();
+    expect(screen.queryByText("Earlier lesson")).toBeNull();
+    expect(screen.getByText("Saved skill practice to review")).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Review saved answers" })).toHaveAttribute(
+      "href",
+      href.replace("020", "021")
+    );
+  });
+  it("does not say there are no missed answers when skill history failed to load", () => {
+    render(
+      <LearnDashboard
+        dashboard={buildLearnDashboard([], [], { status: "unavailable", sessions: [] })}
+      />
+    );
+    expect(screen.getByRole("status")).toHaveTextContent("Saved skill practice could not load");
+    expect(screen.queryByText(/No missed answers/)).toBeNull();
+  });
   it("gives a new student a subject choice and real practice, review, and support routes", () => {
     render(<LearnDashboard dashboard={buildLearnDashboard([], [])} />);
     expect(screen.getByRole("heading", { name: "Choose a subject to begin" })).toBeTruthy();

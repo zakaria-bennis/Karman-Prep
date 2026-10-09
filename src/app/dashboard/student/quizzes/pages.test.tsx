@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => ({
   effective: vi.fn(),
   attempts: vi.fn(),
   review: vi.fn(),
+  catalog: vi.fn(),
 }));
 vi.mock("@/lib/auth/dev-auth", () => ({ safeAuth: mocks.auth }));
 vi.mock("@/lib/supabase/queries/admin", () => ({ resolveEffectiveClerkId: mocks.effective }));
@@ -13,6 +14,9 @@ vi.mock("@/lib/supabase/queries/quiz/attempts", () => ({
   fetchAllAttemptsForStudent: mocks.attempts,
 }));
 vi.mock("@/lib/quiz-review", () => ({ fetchCompletedQuizReview: mocks.review }));
+vi.mock("@/lib/catalog-practice/history-server", () => ({
+  loadOwnCatalogPracticeHistory: mocks.catalog,
+}));
 vi.mock("@/components/dashboard/DashboardLayout", () => ({
   default: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
@@ -48,6 +52,7 @@ beforeEach(() => {
   mocks.effective.mockResolvedValue({ clerkId: "student-owner" });
   mocks.attempts.mockResolvedValue([]);
   mocks.review.mockResolvedValue(null);
+  mocks.catalog.mockResolvedValue({ status: "ready", sessions: [] });
 });
 describe("student quiz history pages", () => {
   it("offers practice instead of fabricated history for a new student", async () => {
@@ -65,8 +70,62 @@ describe("student quiz history pages", () => {
       `/dashboard/student/quizzes/${id}`
     );
     expect(screen.getByRole("link", { name: "Continue in practice" }).getAttribute("href")).toBe(
-      "/learn/earlier/math"
+      "/learn/earlier/math?resume=active"
     );
+  });
+  it("lists saved current skill practice when earlier quiz history is empty", async () => {
+    const href = `/learn/practice/rw-skill-central-ideas-and-details?session=${id}`;
+    mocks.catalog.mockResolvedValue({
+      status: "ready",
+      sessions: [
+        {
+          id,
+          skillId: "rw-skill-central-ideas-and-details",
+          title: "Central Ideas and Details",
+          href,
+          startedAt: attempt.started_at,
+          completedAt: null,
+          score: null,
+        },
+      ],
+    });
+    render(await HistoryPage());
+    expect(screen.getByRole("link", { name: "Continue skill practice" })).toHaveAttribute(
+      "href",
+      href
+    );
+    expect(screen.queryByText(/No quizzes yet/)).toBeNull();
+  });
+  it("shows saved current-session scores and the existing guarded review destination", async () => {
+    const href = `/learn/practice/rw-skill-central-ideas-and-details?session=${id}`;
+    mocks.catalog.mockResolvedValue({
+      status: "ready",
+      sessions: [
+        {
+          id,
+          skillId: "rw-skill-central-ideas-and-details",
+          title: "Central Ideas and Details",
+          href,
+          startedAt: attempt.started_at,
+          completedAt: attempt.completed_at,
+          score: 50,
+        },
+      ],
+    });
+    render(await HistoryPage());
+    expect(screen.getByText("50% · this practice only")).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Review skill practice" })).toHaveAttribute(
+      "href",
+      href
+    );
+  });
+  it("shows an honest failure state while keeping earlier quiz history available", async () => {
+    mocks.catalog.mockResolvedValue({ status: "unavailable", sessions: [] });
+    mocks.attempts.mockResolvedValue([attempt]);
+    render(await HistoryPage());
+    expect(screen.getByRole("status")).toHaveTextContent("could not load");
+    expect(screen.getByRole("link", { name: "Review answers" })).toBeTruthy();
+    expect(screen.queryByText(/No quizzes yet/)).toBeNull();
   });
   it("returns 404 for unavailable reviews without rendering answer content", async () => {
     await expect(ReviewPage(input)).rejects.toThrow("not-found");
@@ -92,6 +151,7 @@ describe("student quiz history pages", () => {
       );
       expect(mocks.attempts).not.toHaveBeenCalled();
       expect(mocks.review).not.toHaveBeenCalled();
+      expect(mocks.catalog).not.toHaveBeenCalled();
     }
   );
 });

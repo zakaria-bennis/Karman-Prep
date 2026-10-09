@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { buildLearnDashboard } from "./dashboard";
 import type { LegacyLearningRecord } from "@/lib/supabase/queries/skill-catalog";
 import type { QuizAttempt } from "@/types/quiz";
+import type { CatalogPracticeHistoryEntry } from "@/lib/catalog-practice/history";
 
 const lesson = (node_id: string, status: string): LegacyLearningRecord => ({
   node_id,
@@ -27,6 +28,49 @@ const quiz = (changes: Partial<QuizAttempt>): QuizAttempt => ({
 });
 
 describe("learn dashboard from saved history", () => {
+  const savedSkill: CatalogPracticeHistoryEntry = {
+    id: "00000000-0000-4000-8000-000000000020",
+    skillId: "rw-skill-central-ideas-and-details",
+    title: "Central Ideas and Details",
+    startedAt: "2026-10-09T08:00:00Z",
+    completedAt: null,
+    score: null,
+    href: "/learn/practice/rw-skill-central-ideas-and-details?session=00000000-0000-4000-8000-000000000020",
+  };
+  it("finds a current skill session even when earlier lesson history is empty", () => {
+    const result = buildLearnDashboard([], [], { status: "ready", sessions: [savedSkill] });
+    expect(result.next).toMatchObject({
+      href: savedSkill.href,
+      kind: "skill",
+      label: "Continue practice",
+    });
+    expect(result.subjects.every((s) => s.savedLessons === 0)).toBe(true);
+  });
+  it("keeps the more recent unfinished session across both practice lanes", () => {
+    const current = { status: "ready" as const, sessions: [savedSkill] };
+    expect(buildLearnDashboard([], [quiz({})], current).next?.href).toBe(savedSkill.href);
+    expect(
+      buildLearnDashboard([], [quiz({ started_at: "2026-10-10T08:00:00Z" })], current).next?.href
+    ).toContain("/learn/earlier/math?resume=");
+  });
+  it("links completed skill review without inventing a wrong-answer count", () => {
+    const result = buildLearnDashboard([], [], {
+      status: "ready",
+      sessions: [{ ...savedSkill, completedAt: "2026-10-09T08:10:00Z", score: 70 }],
+    });
+    expect(result.next).toBeNull();
+    expect(result.review).toEqual({
+      title: savedSkill.title,
+      href: savedSkill.href,
+      incorrect: null,
+      kind: "skill",
+    });
+  });
+  it("preserves earlier work when current skill history is unavailable", () => {
+    const result = buildLearnDashboard([], [quiz({})], { status: "unavailable", sessions: [] });
+    expect(result.next?.href).toContain("/learn/earlier/math?resume=");
+    expect(result.skillHistoryStatus).toBe("unavailable");
+  });
   it("offers a subject choice with no invented progress for a new student", () => {
     const result = buildLearnDashboard([], []);
     expect(result.next).toBeNull();

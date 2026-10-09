@@ -12,6 +12,7 @@ import StudentDashboardClient from "@/components/dashboard/StudentDashboardClien
 import { fetchLegacyLearningHistory } from "@/lib/supabase/queries/skill-catalog";
 import { fetchAllAttemptsForStudent } from "@/lib/supabase/queries/quiz/attempts";
 import { buildLearnDashboard } from "@/lib/learn/dashboard";
+import { loadOwnCatalogPracticeHistory } from "@/lib/catalog-practice/history-server";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
@@ -60,7 +61,7 @@ export default async function StudentDashboardPage() {
     showPlacementBanner = (cohortCount ?? 0) === 0 && (tutorCount ?? 0) === 0;
   }
 
-  const [history, attempts, diagnosticResult] = await Promise.all([
+  const [history, attempts, diagnosticResult, skillHistory] = await Promise.all([
     fetchLegacyLearningHistory(userId),
     fetchAllAttemptsForStudent(userId),
     supabase
@@ -70,11 +71,12 @@ export default async function StudentDashboardPage() {
       .order("taken_at", { ascending: false })
       .limit(1)
       .maybeSingle(),
+    loadOwnCatalogPracticeHistory(),
   ]);
 
   return (
     <StudentDashboardClient
-      dashboard={buildLearnDashboard(history, attempts)}
+      dashboard={buildLearnDashboard(history, attempts, skillHistory)}
       diagnostic={diagnosticResult.data}
       subscription={sub}
       showPlacementBanner={showPlacementBanner}

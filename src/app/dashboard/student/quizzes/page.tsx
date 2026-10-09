@@ -6,6 +6,8 @@ import { resolveEffectiveClerkId } from "@/lib/supabase/queries/admin";
 import { fetchAllAttemptsForStudent } from "@/lib/supabase/queries/quiz/attempts";
 import { MATH_NODES, RW_NODES } from "@/data/curriculum";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
+import { loadOwnCatalogPracticeHistory } from "@/lib/catalog-practice/history-server";
+import SavedPracticeHistory from "@/components/learn/catalog-practice/SavedPracticeHistory";
 
 export const metadata: Metadata = { title: "Quiz history" };
 export const dynamic = "force-dynamic";
@@ -14,7 +16,10 @@ export default async function StudentQuizHistoryPage() {
   const { userId } = await safeAuth();
   if (!userId) redirect("/auth/sign-in");
   const { clerkId } = await resolveEffectiveClerkId(userId);
-  const attempts = await fetchAllAttemptsForStudent(clerkId);
+  const [attempts, skillHistory] = await Promise.all([
+    fetchAllAttemptsForStudent(clerkId),
+    loadOwnCatalogPracticeHistory(),
+  ]);
   const nodes = new Map([...RW_NODES, ...MATH_NODES].map((node) => [node.id, node]));
   return (
     <DashboardLayout>
@@ -23,15 +28,22 @@ export default async function StudentQuizHistoryPage() {
         <p className="mt-2 text-sm text-taupe">
           Revisit completed practice and see your saved results.
         </p>
+        {attempts.length === 0 &&
+          skillHistory.status === "ready" &&
+          skillHistory.sessions.length === 0 && (
+            <p className="mt-6 rounded-xl border border-bronze bg-surface p-5 text-taupe">
+              No quizzes yet.{" "}
+              <Link href="/learn" className="underline">
+                Choose a skill to start practicing.
+              </Link>
+            </p>
+          )}
+        <SavedPracticeHistory history={skillHistory} />
+        <h2 className="mt-8 text-lg font-semibold text-ivory">Earlier quizzes</h2>
         {attempts.length === 0 && (
-          <p className="mt-6 rounded-xl border border-bronze bg-surface p-5 text-taupe">
-            No quizzes yet.{" "}
-            <Link href="/learn" className="underline">
-              Choose a skill to start practicing.
-            </Link>
-          </p>
+          <p className="mt-3 text-sm text-taupe">No earlier quizzes saved.</p>
         )}
-        <ul className="mt-6 space-y-3">
+        <ul className="mt-4 space-y-3">
           {attempts.map((attempt) => {
             const node = nodes.get(attempt.node_id);
             return (
@@ -64,7 +76,7 @@ export default async function StudentQuizHistoryPage() {
                     </p>
                     {node && (
                       <Link
-                        href={`/learn/earlier/${node.subject}`}
+                        href={`/learn/earlier/${node.subject}?resume=${encodeURIComponent(attempt.id)}`}
                         className="mt-3 inline-flex min-h-11 items-center text-sm text-info underline underline-offset-4"
                       >
                         Continue in practice

@@ -2,12 +2,14 @@ import { MATH_NODES, RW_NODES, type CurriculumNode, type Subject } from "@/data/
 import { getCatalogSkills } from "@/data/curriculum/skill-catalog";
 import type { LegacyLearningRecord } from "@/lib/supabase/queries/skill-catalog";
 import type { QuizAttempt } from "@/types/quiz";
+import type { CatalogPracticeHistory } from "@/lib/catalog-practice/history";
 
 export interface StudyAction {
   title: string;
   detail: string;
   href: string;
   label: string;
+  kind?: "skill" | "earlier";
 }
 
 export interface SubjectProgress {
@@ -20,17 +22,24 @@ export interface SubjectProgress {
 
 export interface LearnDashboardData {
   next: StudyAction | null;
-  review: { title: string; href: string; incorrect: number } | null;
+  review: {
+    title: string;
+    href: string;
+    incorrect: number | null;
+    kind?: "skill" | "earlier";
+  } | null;
   subjects: SubjectProgress[];
+  skillHistoryStatus?: CatalogPracticeHistory["status"];
 }
 
 const allNodes = [...RW_NODES, ...MATH_NODES];
 const nodesById = new Map(allNodes.map((node) => [node.id, node]));
 
-/** A read-only view of saved earlier lessons and quizzes; no new mastery is inferred. */
+/** A read-only view of saved practice and earlier lessons; no new mastery is inferred. */
 export function buildLearnDashboard(
   history: LegacyLearningRecord[],
-  attempts: QuizAttempt[]
+  attempts: QuizAttempt[],
+  skillHistory?: CatalogPracticeHistory
 ): LearnDashboardData {
   const saved = new Map(history.map((row) => [row.node_id, row]));
   const incomplete = attempts.find(
@@ -54,6 +63,21 @@ export function buildLearnDashboard(
   } else if (available) {
     next = actionForNode(available, "Open lesson", "This earlier lesson is available to start.");
   }
+  const latestUnfinished = skillHistory?.sessions
+    .filter((session) => !session.completedAt)
+    .sort((a, b) => Date.parse(b.startedAt) - Date.parse(a.startedAt))[0];
+  if (
+    latestUnfinished &&
+    (!incomplete || Date.parse(latestUnfinished.startedAt) >= Date.parse(incomplete.started_at))
+  ) {
+    next = {
+      title: latestUnfinished.title,
+      detail: "Your answers are saved. Continue where you left off.",
+      href: latestUnfinished.href,
+      label: "Continue practice",
+      kind: "skill",
+    };
+  }
 
   const reviewAttempt = attempts.find(
     (attempt) =>
@@ -61,13 +85,23 @@ export function buildLearnDashboard(
       attempt.questions_answered > 0 &&
       attempt.questions_correct < attempt.questions_answered
   );
-  const review = reviewAttempt
+  let review: LearnDashboardData["review"] = reviewAttempt
     ? {
         title: nodesById.get(reviewAttempt.node_id)?.topic ?? "Earlier practice",
         href: `/dashboard/student/quizzes/${reviewAttempt.id}`,
         incorrect: reviewAttempt.questions_answered - reviewAttempt.questions_correct,
       }
     : null;
+  const latestMissed = skillHistory?.sessions
+    .filter((session) => session.completedAt && session.score !== null && session.score < 100)
+    .sort((a, b) => Date.parse(b.completedAt!) - Date.parse(a.completedAt!))[0];
+  if (
+    latestMissed &&
+    (!reviewAttempt ||
+      Date.parse(latestMissed.completedAt!) >= Date.parse(reviewAttempt.completed_at!))
+  ) {
+    review = { title: latestMissed.title, href: latestMissed.href, incorrect: null, kind: "skill" };
+  }
 
   const subjects: SubjectProgress[] = (["reading", "math"] as const).map((subject) => {
     const rows = (subject === "reading" ? RW_NODES : MATH_NODES)
@@ -89,7 +123,7 @@ export function buildLearnDashboard(
     };
   });
 
-  return { next, review, subjects };
+  return { next, review, subjects, skillHistoryStatus: skillHistory?.status };
 }
 
 function actionForNode(node: CurriculumNode, label: string, detail: string): StudyAction {

@@ -31,6 +31,16 @@ export default function LearnDashboard({
             <TextLink href="/dashboard/student/progress">See diagnostic details</TextLink>
           )}
         </header>
+        {dashboard.skillHistoryStatus === "unavailable" && (
+          <p role="status" className="mt-5 text-sm text-taupe">
+            Saved skill practice could not load. Your answers are still saved; refresh to try again.
+          </p>
+        )}
+        {dashboard.skillHistoryStatus === "preview" && (
+          <p role="status" className="mt-5 text-sm text-taupe">
+            Saved skill practice is available in the student’s own account.
+          </p>
+        )}
 
         <div className="mt-8 grid items-start gap-8 lg:grid-cols-[minmax(0,1.45fr)_minmax(0,1fr)] lg:gap-12">
           <section
@@ -55,7 +65,9 @@ export default function LearnDashboard({
                   {dashboard.next.label}
                   <ArrowUpRight aria-hidden="true" className="h-4 w-4 shrink-0" />
                 </Link>
-                <p className="mt-4 text-xs leading-relaxed text-taupe">Earlier lesson</p>
+                <p className="mt-4 text-xs leading-relaxed text-taupe">
+                  {dashboard.next.kind === "skill" ? "Skill practice" : "Earlier lesson"}
+                </p>
               </>
             ) : (
               <>
@@ -89,21 +101,25 @@ export default function LearnDashboard({
             {dashboard.review ? (
               <>
                 <p className="mt-5 text-sm font-medium text-ivory">
-                  {dashboard.review.incorrect} saved{" "}
-                  {dashboard.review.incorrect === 1 ? "answer" : "answers"} to review
+                  {dashboard.review.incorrect === null
+                    ? "Saved skill practice to review"
+                    : `${dashboard.review.incorrect} saved ${dashboard.review.incorrect === 1 ? "answer" : "answers"} to review`}
                 </p>
                 <h3 className="mt-2 break-words text-lg font-semibold leading-snug">
                   {dashboard.review.title}
                 </h3>
                 <p className="mt-2 max-w-md text-sm leading-relaxed text-taupe">
-                  Revisit the questions you missed in this earlier quiz.
+                  Revisit your saved answers from this{" "}
+                  {dashboard.review.kind === "skill" ? "practice session" : "earlier quiz"}.
                 </p>
                 <TextLink href={dashboard.review.href}>Review saved answers</TextLink>
               </>
             ) : (
               <p className="mt-4 max-w-md text-sm leading-relaxed text-taupe">
-                No missed answers to review yet. After a quiz, come back to work through any
-                questions that caught you out.
+                {dashboard.skillHistoryStatus === "unavailable" ||
+                dashboard.skillHistoryStatus === "preview"
+                  ? "Open quiz history to see the saved work available in this view."
+                  : "No missed answers to review yet. After a quiz, come back to work through any questions that caught you out."}
               </p>
             )}
             <div className="mt-3">
