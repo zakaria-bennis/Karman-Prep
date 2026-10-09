@@ -64,6 +64,14 @@ paying users yet.
   unary minus stays outside the power, and additive constants stay outside the
   exponent. This changes display only; approved source bytes remain intact.
   Other prose, bare notation and existing explicit math remain unchanged.
+- The same Math-only display opt-in supports complete `√(x²) = 24 − 5x`
+  equation lines (matching single variable, integer terms) and the complete
+  sentence-delimited defining clause `The function f is defined by
+f(x) = (1/2)(x + 11).` (matching function/variable, positive integer
+  denominator). The radical covers the square only; the stacked coefficient
+  fraction leaves the following sum outside it. Source bytes, ordinary prose,
+  explicit math and unsupported forms stay intact. Require source-pixel review
+  for affected questions on the exact renderer before accepting display.
 - Server actions validate inputs with Zod schemas; add a schema when adding
   an action.
 

@@ -8,6 +8,50 @@ afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
 });
+describe("reviewed Next22 math display", () => {
+  it("renders a radical over x squared only, with the right side outside the root", () => {
+    const text = "√(x²) = 24 − 5x\nWhat is the solution to the given equation?";
+    const { container, rerender } = render(<MathText text={text} />);
+    expect(container.querySelector(".katex")).toBeNull();
+    expect(container.textContent).toBe(text);
+    rerender(<MathText text={text} serializedFunctionLines />);
+    expect(container.querySelector("annotation")?.textContent).toBe(
+      String.raw`\sqrt{x^{2}} = 24 - 5x`
+    );
+    expect(container.querySelector("math msqrt msup")?.textContent).toBe("x2");
+    expect(container.querySelector("math msqrt")?.textContent).toBe("x2");
+    expect(container.querySelector(".katex-html .sqrt svg")).toBeTruthy();
+    expect(container.querySelector(".katex-error")).toBeNull();
+    container.querySelectorAll(".katex").forEach((e) => e.remove());
+    expect(container.textContent).toBe("\nWhat is the solution to the given equation?");
+  });
+  it("renders a stacked coefficient fraction and preserves the surrounding source prose", () => {
+    const text = "5. The function f is defined by f(x) = (1/2)(x + 11). What is the value of f(3)?";
+    const { container, rerender } = render(<MathText text={text} />);
+    expect(container.querySelector(".katex")).toBeNull();
+    expect(container.textContent).toBe(text);
+    rerender(<MathText text={text} serializedFunctionLines />);
+    expect(container.querySelector("annotation")?.textContent).toBe(
+      String.raw`f(x) = \dfrac{1}{2}(x + 11)`
+    );
+    expect(container.querySelector("math mfrac")?.textContent).toBe("12");
+    expect(container.querySelector(".katex-html .mfrac .frac-line")).toBeTruthy();
+    expect(container.querySelector(".katex-error")).toBeNull();
+    container.querySelectorAll(".katex").forEach((e) => e.remove());
+    expect(container.textContent).toBe(
+      "5. The function f is defined by . What is the value of f(3)?"
+    );
+  });
+  it.each([
+    "√(<i>x</i>²) = 24 − 5x",
+    "√(x²) = 24 − 5<i>x</i>",
+    "The function f is defined by f(x) = (1/2)(x + <u>11</u>).",
+    "The function f is defined by f(x) = $1/2$(x + 11).",
+  ])("keeps the existing explicit-formatting boundaries: %s", (text) => {
+    const { container } = render(<MathText text={text} serializedFunctionLines />);
+    expect(container.querySelector(".source-function-math")).toBeNull();
+  });
+});
 describe("source composite blank markers", () => {
   it.each([
     "the counterintuitive effect of _____blank demand: buyers",

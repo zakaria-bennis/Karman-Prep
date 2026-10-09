@@ -1,6 +1,51 @@
 import { describe, expect, it } from "vitest";
 import { parseSerializedFunctionLines } from "./serialized-function-math";
 
+describe("reviewed Next22 radical and rational notation", () => {
+  it("retains the exact US Q06 radical scope without evaluating its square", () => {
+    expect(
+      parseSerializedFunctionLines("√(x²) = 24 − 5x\nWhat is the solution to the given equation?")
+    ).toEqual([
+      { kind: "inline", sourceFunction: true, latex: String.raw`\sqrt{x^{2}} = 24 - 5x` },
+      { kind: "text", value: "\nWhat is the solution to the given equation?" },
+    ]);
+  });
+  it("stacks the exact Asia Q05 coefficient and retains all prose and sum scope", () => {
+    const before = "5. The function f is defined by ";
+    const after = ". What is the value of f(3)?";
+    expect(parseSerializedFunctionLines(before + "f(x) = (1/2)(x + 11)" + after)).toEqual([
+      { kind: "text", value: before },
+      { kind: "inline", sourceFunction: true, latex: String.raw`f(x) = \dfrac{1}{2}(x + 11)` },
+      { kind: "text", value: after },
+    ]);
+  });
+  it.each([
+    "√(x²) = 24 − 5y",
+    "√(x² + 1) = 24 − 5x",
+    "√(x²) = 24 − 5x + 1",
+    "Explain √(x²) = 24 − 5x.",
+    "√(x²) = 24 − 5x²",
+    "f(x) = (1/2)(x + 11)",
+    "The function g is defined by f(x) = (1/2)(x + 11).",
+    "The function f is defined by f(x) = (1/2)(y + 11).",
+    "The function f is defined by f(x) = (1/0)(x + 11).",
+    "The function f is defined by f(x) = (1/2)(x + 11) + 1.",
+    "The function f is defined by f(x) = (1/2)(x + 11),",
+    "The function f is defined by f(x) = (1/2)(x + 11).5",
+  ])("does not infer unsupported or incomplete notation: %s", (text) => {
+    expect(parseSerializedFunctionLines(text)).toEqual([{ kind: "text", value: text }]);
+  });
+  it.each([{ atLineStart: false }, { atLineEnd: false }])(
+    "does not reinterpret a radical line split by source formatting: %j",
+    (boundaries) => {
+      const text = "√(x²) = 24 − 5x";
+      expect(parseSerializedFunctionLines(text, boundaries)).toEqual([
+        { kind: "text", value: text },
+      ]);
+    }
+  );
+});
+
 describe("supported serialized exponential function lines", () => {
   it("renders the exact December Q13 inline equation while preserving its prose", () => {
     const before =

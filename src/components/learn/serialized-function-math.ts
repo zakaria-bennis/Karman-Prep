@@ -2,8 +2,8 @@ export type SerializedFunctionRun =
   | { kind: "text"; value: string }
   | { kind: "inline"; latex: string; sourceFunction: true };
 
-/** Opt-in display support for narrowly specified reviewed exponential notation.
- * Complete numeric function lines and the contextual symbolic expression below
+/** Opt-in display support for narrowly specified reviewed serialized math.
+ * Complete equation lines and the contextual function expressions below
  * are supported. Stored source text and other notation stay untouched. */
 export function parseSerializedFunctionLines(
   text: string,
@@ -16,6 +16,30 @@ export function parseSerializedFunctionLines(
       return;
     matches.push({ index, length: match[0].length, latex });
   };
+  // Reviewed square-root equation: the square alone is under the radical.
+  // Do not evaluate sqrt(x²) to x or extend its overbar onto the right side.
+  const radicalPattern = /^√\(([A-Za-z])²\) *= *(\d+) *([-−+]) *(\d+)\1$/gm;
+  for (const match of text.matchAll(radicalPattern)) {
+    const [, variable, constant, sign, coefficient] = match;
+    addLine(
+      match,
+      `\\sqrt{${variable}^{2}} = ${constant} ${sign.replace("−", "-")} ${coefficient}${variable}`
+    );
+  }
+  // Reviewed rational linear function in prose. Require the defining clause,
+  // matching function/variable, nonzero denominator, and sentence boundary.
+  // Parentheses around the serialized coefficient group the fraction only;
+  // the following parenthesized sum remains outside the fraction.
+  const rationalPattern =
+    /\bThe function ([A-Za-z]) is defined by (\1\(([A-Za-z])\) *= *\((\d+)\/([1-9]\d*)\)\(\3 *([+−-]) *(\d+)\))(?=\.(?:\s|$))/g;
+  for (const match of text.matchAll(rationalPattern)) {
+    const [, fn, expression, variable, numerator, denominator, sign, constant] = match;
+    matches.push({
+      index: match.index! + match[0].length - expression.length,
+      length: expression.length,
+      latex: `${fn}(${variable}) = \\dfrac{${numerator}}{${denominator}}(${variable} ${sign.replace("−", "-")} ${constant})`,
+    });
+  }
   const fractionPattern =
     /^([A-Za-z])\(([A-Za-z])\) *= *([-−]?\d+(?:\.\d+)?)\((\d+(?:\.\d+)?)\)\^\(\2\/([1-9]\d*)\)$/gm;
   for (const match of text.matchAll(fractionPattern)) {
