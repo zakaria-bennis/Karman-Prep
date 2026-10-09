@@ -9,7 +9,7 @@ export function currencyDollarDelimiters(text: string): Set<number> {
   const pairs =
     /(?=(?<!\\)\$(\d[\d,]*(?:\.\d+)?)\s+(for\s+(?:the|a|an|each)\b[^$\n]*?\s)\$(?=\d))/gi;
   for (const match of text.matchAll(pairs)) {
-    if (/[\\^_={}<>+*/≤≥×÷]/.test(match[2])) continue;
+    if (/[\\^_={}<>+*/≤≥×÷−-]/.test(match[2])) continue;
     offsets.add(match.index);
     const closing = text.indexOf("$", match.index + 1);
     offsets.add(closing);

@@ -39,6 +39,8 @@ describe("currency prose stays outside math", () => {
     ["$3 sin x\t$4", "3 sin x"],
     ["$3 for x $4", "3 for x"],
     ["$3 for the + x $4", "3 for the + x"],
+    ["$3 for the - x $4", "3 for the - x"],
+    ["$3 for the − x $4", "3 for the − x"],
     [String.raw`$260 \text{for the repair}$400`, String.raw`260 \text{for the repair}`],
     [String.raw`$\$80$ is on sale for $25\%$ off`, String.raw`\$80`],
     [String.raw`\(\$260\) and \(\$400\)`, String.raw`\$260`],
