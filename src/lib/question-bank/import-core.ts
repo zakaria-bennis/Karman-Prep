@@ -28,6 +28,7 @@
 // ============================================================
 
 import { createHash } from "node:crypto";
+import { reconcileImport } from "./reconcile-import";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/supabase";
 import {
@@ -282,16 +283,16 @@ export function validateImportRow(row: ImportQuestionInput): {
  * writes — the caller is responsible for image materialization (R2
  * upload for data URLs) before calling.
  *
- * Side effects (all idempotent or scoped to this row):
+ * Side effects (reconciled on retry under the one-writer rule):
  *   1. Insert quiz_questions (with content_hash_v2 + raw_question_text mirror)
  *   2. If MC: insert 4 answer_choices (with raw_choice_text mirror)
  *   3. Seed answer_key_entries from correct_answer (Phase 1)
  *   4. Mirror selected_official_answer + answer_key_status onto quiz_questions
  *   5. If image_url is set: insert one source_assets row (asset_type='figure_crop')
  *
- * Duplicate detection: relies on the (source_pdf, content_hash) UNIQUE
- * index. Postgres returns 23505 which we translate to
- * `duplicate_skipped: true` (NOT an error).
+ * Duplicate detection relies on the (source_pdf, content_hash) UNIQUE
+ * index. A duplicate is skipped only after its required dependents are
+ * present and consistent; incomplete rows are repaired or held as errors.
  */
 export async function importQuestion(
   supabase: SupabaseClient<Database>,
@@ -390,7 +391,9 @@ export async function importQuestion(
     answer_source: row.answer_source ?? null,
     source_pdf: row.source_pdf || null,
     source_page: Number.isFinite(source_page as number) ? (source_page as number) : null,
-    content_hash: row.content_hash || null,
+    // The unique (source_pdf, content_hash) index only protects non-null
+    // hashes. Use the canonical v2 hash when extractors omit the old one.
+    content_hash: row.content_hash || content_hash_v2,
     content_hash_v2,
     import_status: row.import_status ?? null,
     import_flag_type: row.import_flag_type ?? null,
@@ -408,15 +411,40 @@ export async function importQuestion(
     .single();
 
   if (qErr) {
-    // Postgres UNIQUE violation on (source_pdf, content_hash) →
-    // duplicate_skipped (not an error).
+    // A prior attempt may have inserted the parent row but stopped before
+    // choices/key/asset writes. Reconcile dependents before skipping it.
     if (qErr.code === "23505" || /duplicate/i.test(qErr.message)) {
+      if (!row.source_pdf) {
+        return {
+          inserted: false,
+          question_id: null,
+          duplicate_skipped: false,
+          flagged_for_review: false,
+          errors: ["duplicate without source_pdf cannot be reconciled"],
+        };
+      }
+      const { data: existing, error: lookupError } = await supabase
+        .from("quiz_questions")
+        .select("id")
+        .eq("source_pdf", row.source_pdf)
+        .eq("content_hash", row.content_hash || content_hash_v2)
+        .single();
+      if (lookupError || !existing) {
+        return {
+          inserted: false,
+          question_id: null,
+          duplicate_skipped: false,
+          flagged_for_review: false,
+          errors: [`duplicate lookup: ${lookupError?.message ?? "row missing"}`],
+        };
+      }
+      const repairErrors = await reconcileImport(supabase, existing.id, row, content_hash_v2);
       return {
         inserted: false,
-        question_id: null,
-        duplicate_skipped: true,
-        flagged_for_review: false,
-        errors: [],
+        question_id: existing.id,
+        duplicate_skipped: repairErrors.length === 0,
+        flagged_for_review: row.import_status === "needs_review",
+        errors: repairErrors,
       };
     }
     return {
@@ -468,8 +496,8 @@ export async function importQuestion(
       selection_reason: "phase1_seed_from_printed_correct_answer",
       status: "printed_key_used_no_correction",
     });
-    // Non-fatal: a missing answer_key_entries row just means the
-    // publish-gate's Phase 2 check will flag it.
+    // A failed write is retried by reconcileImport below. It is returned
+    // as an error if the required evidence still cannot be completed.
     if (akeErr) errors.push(`answer_key_entries insert (non-fatal): ${akeErr.message}`);
 
     // ── 4. Mirror selected_official_answer + answer_key_status ──
@@ -500,12 +528,15 @@ export async function importQuestion(
     if (saErr) errors.push(`source_assets insert (non-fatal): ${saErr.message}`);
   }
 
+  const unresolved = errors.length
+    ? await reconcileImport(supabase, question_id, row, content_hash_v2)
+    : [];
   return {
-    inserted: true,
+    inserted: unresolved.length === 0,
     question_id,
     duplicate_skipped: false,
     flagged_for_review: row.import_status === "needs_review",
-    errors,
+    errors: unresolved,
   };
 }
 

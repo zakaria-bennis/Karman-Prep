@@ -32,6 +32,14 @@ import { readFileSync } from "node:fs";
 import { basename, resolve } from "node:path";
 import { createClient } from "@supabase/supabase-js";
 import { rowToImportInput, importQuestion } from "./import-json-direct-row";
+import {
+  fingerprint,
+  openQueue,
+  queueCounts,
+  recordRow,
+  remainingRows,
+  saveQueue,
+} from "../lib/import-queue.mjs";
 import type { Database } from "@/types/supabase";
 
 const jsonArg = process.argv[2];
@@ -51,6 +59,12 @@ if (!jsonArg || !pdfArg) {
 //   source_pdf = basename(pdfArg)
 // e.g. "/tmp/pdf-job-xyz/202406asiav2.pdf" → "202406asiav2.pdf"
 const sourcePdfName = basename(pdfArg);
+const checkpointFlag = process.argv.indexOf("--checkpoint");
+const checkpointPath = checkpointFlag >= 0 ? process.argv[checkpointFlag + 1] : null;
+if (checkpointFlag >= 0 && (!checkpointPath || checkpointPath.startsWith("--"))) {
+  console.error("--checkpoint requires a path");
+  process.exit(1);
+}
 
 const SUPA_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const SUPA_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -86,6 +100,7 @@ if (rows.length === 0) {
 }
 
 console.log(`Loaded ${rows.length} questions from ${jsonPath}`);
+const queue = openQueue(checkpointPath, fingerprint(raw, sourcePdfName), rows.length);
 
 // Note: rowToImportInput is exported from ./import-json-direct-row
 // so vitest can exercise it without pulling in the CLI side-effects
@@ -102,31 +117,37 @@ async function main() {
     errors: [] as Array<{ row: number; message: string }>,
   };
 
-  for (let i = 0; i < rows.length; i++) {
+  for (const i of remainingRows(queue)) {
     const row = rows[i];
     const normalized = rowToImportInput(row, sourcePdfName);
     if ("error" in normalized) {
       summary.errored++;
       summary.errors.push({ row: i + 1, message: normalized.error });
+      recordRow(queue, i, "error", normalized.error);
+      saveQueue(checkpointPath, queue);
       continue;
     }
     try {
       const result = await importQuestion(supabase, normalized);
       if (result.duplicate_skipped) {
         summary.skipped_duplicates++;
+        recordRow(queue, i, result.flagged_for_review ? "review_held" : "duplicate_verified");
       } else if (!result.inserted) {
         summary.errored++;
         summary.errors.push({
           row: i + 1,
           message: result.errors.join("; ") || "unknown error",
         });
+        recordRow(queue, i, "error", result.errors.join("; ") || "unknown error");
       } else if (result.flagged_for_review) {
         summary.flagged_for_review++;
+        recordRow(queue, i, "review_held");
       } else {
         summary.inserted++;
+        recordRow(queue, i, "inserted");
       }
-      // Non-fatal warnings (answer_key_entries / source_assets) still
-      // get logged but don't bump the error count.
+      saveQueue(checkpointPath, queue);
+      // Keep any informational notes from a completed import visible.
       if (result.errors.length > 0 && result.inserted) {
         for (const e of result.errors) {
           console.log(`  row ${i + 1} non-fatal: ${e}`);
@@ -138,6 +159,8 @@ async function main() {
         row: i + 1,
         message: err instanceof Error ? err.message : String(err),
       });
+      recordRow(queue, i, "error", err instanceof Error ? err.message : String(err));
+      saveQueue(checkpointPath, queue);
     }
   }
 
@@ -147,6 +170,13 @@ async function main() {
   console.log(`flagged (review):    ${summary.flagged_for_review}`);
   console.log(`skipped (duplicate): ${summary.skipped_duplicates}`);
   console.log(`errored:             ${summary.errored}`);
+  if (checkpointPath) {
+    const counts = queueCounts(queue);
+    console.log(`checkpoint: ${checkpointPath}`);
+    console.log(
+      `queue: ${counts.pending} pending, ${counts.error} retryable errors, ${counts.review_held} review holds`
+    );
+  }
   if (summary.errors.length) {
     console.log("\nerrors:");
     for (const e of summary.errors.slice(0, 10)) console.log(`  row ${e.row}: ${e.message}`);
@@ -161,6 +191,11 @@ async function main() {
     .from("answer_choices")
     .select("id", { count: "exact", head: true });
   console.log(`\nbank now: ${qCount} questions, ${cCount} choices`);
+  const { count: approved, error: liveError } = await supabase
+    .from("quiz_questions_live")
+    .select("id", { count: "exact", head: true });
+  if (liveError) throw liveError;
+  console.log(`approved student view: ${approved}; imported rows are not publication proof`);
 
   // Exit non-zero if any row errored so the orchestrator can fail
   // the stage with a clear reason. Duplicates and flagged-for-review

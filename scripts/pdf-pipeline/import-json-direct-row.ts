@@ -44,7 +44,7 @@ export function rowToImportInput(
     // row.source_pdf check preserves any explicit override the caller
     // may have set (e.g. hand-edited JSON), but in the orchestrator
     // path that field is always absent.
-    source_pdf: row.source_pdf ?? defaultSourcePdf,
+    source_pdf: row.source_pdf || defaultSourcePdf,
     source_page: row.source_page,
     content_hash: row.content_hash,
     concept_slug: row.concept_slug,

@@ -321,6 +321,7 @@ describe("importQuestion — DB write shape", () => {
     const qInsert = calls.find((c) => c.table === "quiz_questions" && c.method === "insert");
     const payload = qInsert!.payload as Record<string, unknown>;
     expect(payload.content_hash_v2).toMatch(/^[a-f0-9]{64}$/);
+    expect(payload.content_hash).toBe(payload.content_hash_v2);
   });
 
   it("sets publish_status=draft for ok rows", async () => {
@@ -414,7 +415,7 @@ describe("importQuestion — DB write shape", () => {
     expect(sa).toBeUndefined();
   });
 
-  it("returns duplicate_skipped on 23505", async () => {
+  it("holds a duplicate when the existing row cannot be reconciled", async () => {
     const { client } = mockSupabase({
       quiz_questions: {
         data: null,
@@ -422,9 +423,9 @@ describe("importQuestion — DB write shape", () => {
       },
     });
     const result = await importQuestion(client, validRow());
-    expect(result.duplicate_skipped).toBe(true);
+    expect(result.duplicate_skipped).toBe(false);
     expect(result.inserted).toBe(false);
-    expect(result.errors).toEqual([]);
+    expect(result.errors.length).toBeGreaterThan(0);
   });
 
   it("returns errors[] when validation fails (no DB call made)", async () => {

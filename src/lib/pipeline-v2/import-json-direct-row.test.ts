@@ -50,18 +50,9 @@ describe("rowToImportInput — source_pdf injection (Phase 8.1 hotfix)", () => {
   });
 
   it("injects defaultSourcePdf when row.source_pdf is empty string", () => {
-    // Empty string is falsy in the ?? fallback path we expect:
-    // `row.source_pdf ?? defaultSourcePdf` would PASS empty string through
-    // (?? only catches null/undefined). We document the current behavior:
-    // the explicit-override semantics are preserved, even if "" is silly.
-    // The orchestrator never produces empty source_pdf, so this case is
-    // only relevant if someone hand-edits the JSON.
     const out = rowToImportInput(validRow({ source_pdf: "" }), "202406asiav2.pdf");
     if (!("error" in out)) {
-      // An empty string IS truthy enough to bypass ??, so we surface it.
-      // If we ever want to coerce empty → default, change the operator
-      // to || in import-json-direct.ts.
-      expect(out.source_pdf).toBe("");
+      expect(out.source_pdf).toBe("202406asiav2.pdf");
     }
   });
 
