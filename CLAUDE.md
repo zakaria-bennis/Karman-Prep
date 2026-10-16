@@ -77,11 +77,11 @@ f(x) = (1/2)(x + 11).` (matching function/variable, positive integer
 
 ## Calculator launch policy
 
-Student Math practice and diagnostic entrypoints open the official SAT calculator
-at `https://www.desmos.com/testing/collegeboard/graphing` in a new tab. Keep the
-current question and answers in their original tab. Do not embed the public
-calculator, activate a paid API integration, or imply automatic transfer of
-equations/tables. A custom calculator is a separate post-launch decision.
+The user authorized the original Karman calculator release on 2026-10-15.
+Use the local calculator in Math practice and diagnostics. Never load a Desmos
+API, SDK, or proprietary component. Mathjs is Apache-2.0. Question changes clear
+calculator and scratch work. Physical-phone review is optional and must not
+block this release; automated mobile, keyboard and theme checks remain required.
 
 ## Released-exam ingestion
 
@@ -247,7 +247,7 @@ For changes that affect any of those, the fallback workflow is:
    to share with a teammate, `npx cloudflared tunnel --url http://localhost:3000`
    prints a public URL — free, ephemeral, no signup.
 
-Treat that 60-second manual check as required for anything visual-heavy
+For this release, physical-phone review is optional (user override on 2026-10-15); retain automated mobile checks for anything visual-heavy
 before merge.
 
 ### Real-device capture workflow (iPhone wired to Mac)
@@ -295,9 +295,7 @@ Recording → camera dropdown → choose the iPhone. Records the phone's
 screen at full quality to a .mov file. I can't watch video but a human
 review still beats emulation for "does this animation feel snappy."
 
-I'll prompt you to do a real-device check whenever a change is visual-
-heavy or touches mobile-specific code (touch handlers, viewport meta,
-scroll behavior, hover-vs-touch states).
+A real-device check may be offered later, but must not block this user-authorized release.
 
 See `docs/design-tokens.md` for the canonical type scale + palette the
 drift-checker compares against.

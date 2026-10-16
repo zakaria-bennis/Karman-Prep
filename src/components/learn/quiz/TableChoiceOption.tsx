@@ -1,5 +1,8 @@
 "use client";
 
+import { CalculatorTableAction } from "@/components/calculator/CalculatorSourceAction";
+import { Ban } from "lucide-react";
+import { useState } from "react";
 import QuestionTable from "@/components/learn/QuestionTable";
 import MathText from "@/components/learn/MathText";
 import { describeChoiceTable } from "@/lib/question-bank/choice-table";
@@ -17,6 +20,7 @@ export function TableChoiceOption({
   submitted,
   correct,
   onSelect,
+  readOnly = false,
 }: {
   id: string;
   groupName: string;
@@ -25,14 +29,17 @@ export function TableChoiceOption({
   selected: boolean;
   submitted: boolean;
   correct: boolean;
+  readOnly?: boolean;
   onSelect: (letter: AnswerLetter) => void;
 }) {
+  const [crossed, setCrossed] = useState(false);
   const summaryId = `${id}-table-summary`;
   const showCorrect = submitted && correct;
   const showWrong = submitted && selected && !correct;
   return (
     <div
       className={cn(
+        crossed && "line-through opacity-50",
         "w-full min-w-0 rounded-xl border px-4 py-3 text-left transition-colors focus-within:ring-2 focus-within:ring-info",
         !submitted && "border-bronze bg-surface hover:border-info/40",
         selected && !submitted && "border-info/40 bg-info/10",
@@ -48,7 +55,7 @@ export function TableChoiceOption({
           name={groupName}
           value={letter}
           checked={selected}
-          disabled={submitted}
+          disabled={readOnly || submitted || crossed}
           onChange={() => onSelect(letter)}
           aria-label={`Choice ${letter}`}
           aria-describedby={summaryId}
@@ -58,13 +65,23 @@ export function TableChoiceOption({
           {letter}
           {showCorrect ? " — correct" : showWrong ? " — incorrect" : ""}
         </label>
+        <button
+          type="button"
+          className="ml-auto min-h-11 min-w-11"
+          aria-label={crossed ? `Restore choice ${letter}` : `Cross out choice ${letter}`}
+          aria-pressed={crossed}
+          disabled={readOnly}
+          onClick={() => setCrossed(!crossed)}
+        >
+          <Ban size={18} />
+        </button>
       </div>
       <span id={summaryId} className="sr-only">
         <MathText text={describeChoiceTable(table)} />
       </span>
       <div
         className={cn("flex min-w-0 justify-center", !submitted && "cursor-pointer")}
-        onClick={() => !submitted && onSelect(letter)}
+        onClick={() => !submitted && !crossed && onSelect(letter)}
       >
         <QuestionTable
           data={table}
@@ -72,6 +89,7 @@ export function TableChoiceOption({
           className="my-2 w-auto max-w-full p-2 shadow-none"
         />
       </div>
+      <CalculatorTableAction rows={table.rows} />
     </div>
   );
 }

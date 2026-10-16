@@ -12,6 +12,7 @@
 // ============================================================
 
 import { Fragment, useMemo, type ReactNode } from "react";
+import { CalculatorSourceAction } from "@/components/calculator/CalculatorSourceAction";
 import katex from "katex";
 import "katex/dist/katex.min.css";
 import { parseSourceUnderlining } from "./source-underlining";
@@ -21,6 +22,7 @@ import { parseSerializedFunctionLines } from "./serialized-function-math";
 
 interface Props {
   text: string;
+  calculator?: boolean;
   className?: string;
   blockClassName?: string;
   /** Math stems/choices only: display narrowly specified reviewed serialized math. */
@@ -191,6 +193,7 @@ export default function MathText({
   blockClassName = "",
   treatBlankWord = false,
   serializedFunctionLines = false,
+  calculator = false,
 }: Props) {
   const runs = useMemo(
     () =>
@@ -222,19 +225,25 @@ export default function MathText({
         // math inline with prose. The CSS override on .katex in
         // globals.css does the heavy lifting here.
         return (
-          <span
-            key={i}
-            className={s.sourceFunction ? "source-function-math align-baseline" : "align-baseline"}
-            dangerouslySetInnerHTML={{ __html: renderKaTeX(s.latex, false) }}
-          />
+          <Fragment key={i}>
+            <span
+              className={
+                s.sourceFunction ? "source-function-math align-baseline" : "align-baseline"
+              }
+              dangerouslySetInnerHTML={{ __html: renderKaTeX(s.latex, false) }}
+            />
+            {calculator && <CalculatorSourceAction latex={s.latex} />}
+          </Fragment>
         );
       }
       return (
-        <span
-          key={i}
-          className={`my-3 block text-center ${blockClassName}`}
-          dangerouslySetInnerHTML={{ __html: renderKaTeX(s.latex, true) }}
-        />
+        <Fragment key={i}>
+          <span
+            className={`my-3 block text-center ${blockClassName}`}
+            dangerouslySetInnerHTML={{ __html: renderKaTeX(s.latex, true) }}
+          />
+          {calculator && <CalculatorSourceAction latex={s.latex} />}
+        </Fragment>
       );
     });
   }

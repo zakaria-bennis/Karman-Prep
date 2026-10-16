@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { render, screen } from "@testing-library/react";
 import { expect, it, vi } from "vitest";
+import { CalculatorScope } from "@/components/calculator/CalculatorScope";
 import { DiagnosticHeader } from "./DiagnosticHeader";
 
 it("uses one external link only for Math while retaining diagnostic controls and time", () => {
@@ -20,9 +21,13 @@ it("uses one external link only for Math while retaining diagnostic controls and
     onToggleScratchpad: vi.fn(),
     onToggleBookmark: vi.fn(),
   };
-  const { rerender, container } = render(<DiagnosticHeader {...props} />);
-  expect(screen.getAllByRole("link")).toHaveLength(1);
-  expect(screen.getByRole("link")).toHaveAttribute("target", "_blank");
+  const { rerender, container } = render(
+    <CalculatorScope enabled open={false} onOpenChange={() => {}}>
+      <DiagnosticHeader {...props} />
+    </CalculatorScope>
+  );
+  expect(screen.getByRole("button", { name: "Toggle Karman calculator" })).toBeInTheDocument();
+  expect(screen.queryByRole("link")).not.toBeInTheDocument();
   expect(screen.getByText("10:00")).toBeInTheDocument();
   expect(container.textContent).not.toMatch(/Question\s*\d+|2\s*\/\s*20/);
   expect(screen.getByRole("button", { name: "Exit diagnostic" })).toBeInTheDocument();

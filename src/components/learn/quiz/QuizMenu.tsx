@@ -2,12 +2,14 @@
 
 import { ThemeSelector } from "@/components/shared/ThemeSelector";
 import { ThemeToggle } from "@/components/shared/ThemeToggle";
+import { QuizSettings } from "./QuizTools";
 import { Menu } from "lucide-react";
 
 export function QuizMenu({ subject }: { realistic?: boolean; subject?: string | null }) {
   return (
     <div className="flex items-center gap-1">
       <ThemeToggle />
+      <QuizSettings />
       <details className="relative">
         <summary className="flex h-9 cursor-pointer list-none items-center gap-1 rounded-lg px-2 text-xs text-taupe hover:bg-surface-raised hover:text-ivory [&::-webkit-details-marker]:hidden">
           <Menu className="h-4 w-4" aria-hidden="true" /> Menu
@@ -16,8 +18,8 @@ export function QuizMenu({ subject }: { realistic?: boolean; subject?: string | 
           <ThemeSelector />
           {subject === "math" && (
             <p className="mt-3 text-xs leading-relaxed text-taupe">
-              The official SAT calculator opens in a new tab. Your question and answers stay here.
-              Enter equations and tables directly in the calculator.
+              Karman’s original calculator works here. Export math or enter it directly. Calculator
+              and scratch work clear on every question change.
             </p>
           )}
         </div>

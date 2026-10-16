@@ -4,13 +4,15 @@
 // question, choice grid (or numeric input), explanations, and
 // inline progression controls. Driven by QuizContext.
 
-import { useMemo, type ReactNode } from "react";
+import { useMemo, useState, useRef, useEffect, type ReactNode } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Check, X } from "lucide-react";
+import { Check, X, Ban } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { MappedNode } from "../ConstellationMap";
 import { useOptionalQuizState, type QuizState } from "@/contexts/QuizContext";
 import type { StudentQuizQuestion } from "@/types/quiz";
+import { CalculatorChoiceAction } from "@/components/calculator/CalculatorSourceAction";
+import styles from "./workspace.module.css";
 import MathText from "../MathText";
 import ReviewedSinglePassage from "../ReviewedSinglePassage";
 import QuestionTable from "../QuestionTable";
@@ -51,6 +53,23 @@ export function ActiveQuizScreen({
     "phase" | "reviews" | "records" | "targetLength" | "currentIndex" | "selectedAnswer"
   >;
 }) {
+  const headerRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const header = headerRef.current;
+    if (!header || typeof ResizeObserver === "undefined") return;
+    const measure = () =>
+      header.parentElement?.style.setProperty(
+        "--quiz-header-height",
+        `${header.getBoundingClientRect().height}px`
+      );
+    const observer = new ResizeObserver(measure);
+    observer.observe(header);
+    measure();
+    return () => observer.disconnect();
+  }, []);
+  const [crossed, setCrossed] = useState<Record<string, boolean>>({});
+  const toggleCrossed = (letter: string) =>
+    setCrossed((old) => ({ ...old, [`${q.id}:${letter}`]: !old[`${q.id}:${letter}`] }));
   const contextState = useOptionalQuizState();
   const state = stateOverride ?? contextState;
   if (!state) throw new Error("ActiveQuizScreen requires a quiz session or read-only state.");
@@ -74,14 +93,17 @@ export function ActiveQuizScreen({
   return (
     <>
       {/* Top bar */}
-      <div className="absolute inset-x-0 top-0 z-[72] flex h-14 items-center border-b border-bronze bg-night/80 px-3 backdrop-blur-sm sm:px-6">
+      <div
+        ref={headerRef}
+        className="absolute inset-x-0 top-0 z-[72] flex min-h-14 flex-wrap items-center border-b border-bronze bg-night/80 px-3 backdrop-blur-sm sm:px-6"
+      >
         <div className="min-w-0 flex-1">
           <p className="text-xs font-semibold uppercase tracking-widest text-taupe">
             {node.subject === "reading" ? "Reading & Writing" : "Math"}
           </p>
           <p className="truncate text-sm font-bold">{node.topic}</p>
         </div>
-        <div className="flex flex-1 justify-end">
+        <div className="flex flex-wrap items-center justify-end gap-1">
           {menu}
           {!readOnly && (
             <button
@@ -172,6 +194,7 @@ export function ActiveQuizScreen({
                       groupName={`quiz-${q.id}-choice`}
                       letter={letter}
                       table={choice.choice_table_data}
+                      readOnly={readOnly}
                       selected={isSelected}
                       submitted={isSubmitted}
                       correct={isCorrect}
@@ -180,40 +203,61 @@ export function ActiveQuizScreen({
                   );
                 }
                 return (
-                  <button
-                    key={letter}
-                    onClick={() => !readOnly && !isSubmitted && onSelectAnswer(letter)}
-                    disabled={readOnly || isSubmitted}
-                    className={cn(
-                      "w-full rounded-xl border px-5 py-3.5 text-left transition-all",
-                      "flex items-start gap-4",
-                      !isSubmitted && "cursor-pointer hover:border-info/40 hover:bg-info/5",
-                      isSelected && !isSubmitted && "border-info/40 bg-info/10",
-                      !isSelected && !isSubmitted && "border-bronze bg-surface",
-                      showCorrect && "border-success/40 bg-success/15",
-                      showWrong && "border-error/40 bg-error/15",
-                      isSubmitted && !isSelected && !isCorrect && "border-bronze opacity-50"
-                    )}
-                  >
-                    <span
+                  <div key={letter} className="group relative">
+                    <button
+                      onClick={() => !readOnly && !isSubmitted && onSelectAnswer(letter)}
+                      disabled={readOnly || isSubmitted || crossed[`${q.id}:${letter}`]}
                       className={cn(
-                        "mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[13px] font-bold",
-                        !isSubmitted && !isSelected && "bg-surface-raised text-ivory/80",
-                        !isSubmitted && isSelected && "bg-ivory text-night",
-                        showCorrect && "bg-success text-night",
-                        showWrong && "bg-error text-ivory",
-                        isSubmitted && !isSelected && !isCorrect && "bg-surface-raised text-taupe"
+                        "w-full rounded-xl border py-3.5 pl-5 pr-14 text-left transition-all",
+                        crossed[`${q.id}:${letter}`] && "line-through opacity-50",
+                        "flex items-start gap-4",
+                        !isSubmitted && "cursor-pointer hover:border-info/40 hover:bg-info/5",
+                        isSelected && !isSubmitted && "border-info/40 bg-info/10",
+                        !isSelected && !isSubmitted && "border-bronze bg-surface",
+                        showCorrect && "border-success/40 bg-success/15",
+                        showWrong && "border-error/40 bg-error/15",
+                        isSubmitted && !isSelected && !isCorrect && "border-bronze opacity-50"
                       )}
                     >
-                      {showCorrect ? <Check className="h-3.5 w-3.5" /> : letter}
-                    </span>
-                    <span className="flex-1 text-[16px] leading-[1.5] text-ivory">
-                      <MathText
-                        text={choice.choice_text}
-                        serializedFunctionLines={q.subject === "math"}
-                      />
-                    </span>
-                  </button>
+                      <span
+                        className={cn(
+                          "mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[13px] font-bold",
+                          !isSubmitted && !isSelected && "bg-surface-raised text-ivory/80",
+                          !isSubmitted && isSelected && "bg-ivory text-night",
+                          showCorrect && "bg-success text-night",
+                          showWrong && "bg-error text-ivory",
+                          isSubmitted && !isSelected && !isCorrect && "bg-surface-raised text-taupe"
+                        )}
+                      >
+                        {showCorrect ? <Check className="h-3.5 w-3.5" /> : letter}
+                      </span>
+                      <span className="flex-1 text-[16px] leading-[1.5] text-ivory">
+                        <MathText
+                          text={choice.choice_text}
+                          serializedFunctionLines={q.subject === "math"}
+                        />
+                      </span>
+                    </button>
+                    {!readOnly && (
+                      <div className={`${styles.choiceTools} absolute right-1 top-1`}>
+                        <button
+                          type="button"
+                          aria-label={
+                            crossed[`${q.id}:${letter}`]
+                              ? `Restore choice ${letter}`
+                              : `Cross out choice ${letter}`
+                          }
+                          aria-pressed={!!crossed[`${q.id}:${letter}`]}
+                          onClick={() => toggleCrossed(letter)}
+                        >
+                          <Ban size={18} />
+                        </button>
+                      </div>
+                    )}
+                    {!readOnly && q.subject === "math" && (
+                      <CalculatorChoiceAction text={choice.choice_text} letter={letter} />
+                    )}
+                  </div>
                 );
               })}
             </div>
@@ -225,7 +269,11 @@ export function ActiveQuizScreen({
               {q.topic_cluster}
             </p>
             <h2 className="whitespace-pre-line text-[19px] font-medium leading-[1.5] text-ivory md:text-[20px]">
-              <MathText text={q.question_text} serializedFunctionLines={q.subject === "math"} />
+              <MathText
+                text={q.question_text}
+                serializedFunctionLines={q.subject === "math"}
+                calculator={!readOnly && q.subject === "math"}
+              />
             </h2>
             {choicesBlock}
             {choicesButtonRow}
@@ -350,7 +398,10 @@ export function ActiveQuizScreen({
         const hasFigure = !!q.image_url || isNativeTable || isNativeChart || isNativeGeometry;
         const figureCard = isNativeTable ? (
           <div className="mb-6 flex justify-center">
-            <QuestionTable data={q.figure_table_data!} />
+            <QuestionTable
+              data={q.figure_table_data!}
+              calculator={!readOnly && q.subject === "math"}
+            />
           </div>
         ) : isNativeChart ? (
           <div className="mb-6 flex justify-center">
@@ -406,40 +457,6 @@ export function ActiveQuizScreen({
           </article>
         );
 
-        // Practice follows one reading order on desktop and phone. No source rewriting.
-        if (hasPassage) {
-          return (
-            <div
-              role="region"
-              aria-label="Question content"
-              tabIndex={0}
-              className="absolute inset-x-0 bottom-20 top-14 overflow-y-auto px-4 py-6 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-info sm:px-8"
-            >
-              <div className="mx-auto max-w-2xl space-y-8">
-                {readOnly ? (
-                  passageBlock
-                ) : (
-                  <PassageAnnotations
-                    questionId={q.id}
-                    sourceKey={JSON.stringify([
-                      q.passage_intro,
-                      q.passage,
-                      q.passage_a,
-                      q.passage_b,
-                      q.reviewed_passage,
-                    ])}
-                  >
-                    {passageBlock}
-                  </PassageAnnotations>
-                )}
-                {figureCard}
-                {questionPanel}
-                {inExplanationMode && explanationsPanel}
-              </div>
-            </div>
-          );
-        }
-
         // ── Layout selection ──────────────────────────────────────
         // Anything with a passage OR a figure uses the split view.
         // Left column stacks [figure?, passage?] in that order; right
@@ -449,11 +466,15 @@ export function ActiveQuizScreen({
         if (hasPassage || hasFigure) {
           return (
             <div
+              data-question-content
               className={cn(
-                "absolute inset-x-0 bottom-20 top-14 overflow-y-auto md:overflow-hidden"
+                "absolute inset-x-0 bottom-20 top-28 overflow-y-auto md:top-20 md:overflow-hidden"
               )}
             >
-              <div className="grid min-h-full divide-y divide-bronze md:h-full md:grid-cols-2 md:divide-x md:divide-y-0">
+              <div
+                data-question-layout
+                className="grid min-h-full divide-y divide-bronze md:h-full md:grid-cols-2 md:divide-x md:divide-y-0"
+              >
                 {/* LEFT */}
                 <div
                   className={cn(
@@ -461,8 +482,24 @@ export function ActiveQuizScreen({
                     isNativeTable && "min-w-0"
                   )}
                 >
+                  {hasPassage &&
+                    (readOnly ? (
+                      passageBlock
+                    ) : (
+                      <PassageAnnotations
+                        questionId={q.id}
+                        sourceKey={JSON.stringify([
+                          q.passage_intro,
+                          q.passage,
+                          q.passage_a,
+                          q.passage_b,
+                          q.reviewed_passage,
+                        ])}
+                      >
+                        {passageBlock}
+                      </PassageAnnotations>
+                    ))}
                   {figureCard}
-                  {hasPassage && passageBlock}
                   {inExplanationMode && (
                     <div className="mt-10 border-t border-bronze/50 pt-6">{questionPanel}</div>
                   )}
@@ -496,11 +533,15 @@ export function ActiveQuizScreen({
         if (inExplanationMode) {
           return (
             <div
+              data-question-content
               className={cn(
-                "absolute inset-x-0 bottom-20 top-14 overflow-y-auto md:overflow-hidden"
+                "absolute inset-x-0 bottom-20 top-28 overflow-y-auto md:top-20 md:overflow-hidden"
               )}
             >
-              <div className="grid min-h-full divide-y divide-bronze md:h-full md:grid-cols-2 md:divide-x md:divide-y-0">
+              <div
+                data-question-layout
+                className="grid min-h-full divide-y divide-bronze md:h-full md:grid-cols-2 md:divide-x md:divide-y-0"
+              >
                 <div className="px-6 py-8 md:overflow-y-auto md:px-10">{questionPanel}</div>
                 <div className="px-6 py-8 md:overflow-y-auto md:px-10">{explanationsPanel}</div>
               </div>
@@ -510,7 +551,12 @@ export function ActiveQuizScreen({
 
         // Math, default: single centered column.
         return (
-          <div className={cn("absolute inset-x-0 bottom-20 top-14 overflow-y-auto px-6 py-8")}>
+          <div
+            data-question-content
+            className={cn(
+              "absolute inset-x-0 bottom-20 top-28 overflow-y-auto px-6 py-8 md:top-20"
+            )}
+          >
             {questionPanel}
           </div>
         );
