@@ -25,6 +25,7 @@ Major technical choices and why we made them. Read these before deciding to do s
 
 ## Subject-matter docs
 
+- **[Karman Calculator design](./karman-calculator-design.md)** — Desmos parity, quiz integration, responsive UI, paste policy, and implementation acceptance plan
 - **[Ingestion / routine](./ingestion/routine.md)** — production routine for the SAT question-import pipeline
 - **[Ingestion / spec](./ingestion/spec.md)** — full schema + behavior spec for question imports
 - **[Recaps & payouts / phase-0 audit](./recaps-payouts/phase-0-audit.md)** — codebase audit + decisions made before building the recap-email + tutor-payout system
@@ -44,3 +45,5 @@ Major technical choices and why we made them. Read these before deciding to do s
 - **[`/scripts/`](../scripts/)** — admin / maintenance / seed scripts you run from the command line
 - **[`/tools/question-imports/`](../tools/question-imports/)** _(planned)_ — Python pipeline + ChatGPT knowledge files for the SAT question import tooling
 - **[`/src/`](../src/)** — application code (Next.js app, components, lib helpers)
+
+- [Enhanced quiz engine functional specification](enhanced-quiz-engine.md) — shared workspace, exports, scratch pad, navigation, and SAT regression metrics.

@@ -72,6 +72,7 @@ export default [
       "node_modules/**",
       "playwright-report/**",
       "test-results/**",
+      "tmp/**",
       "tests/visual/snapshots/**",
       "tests/visual/real-device-captures/**",
       "tests/visual/regression.spec.ts-snapshots/**",

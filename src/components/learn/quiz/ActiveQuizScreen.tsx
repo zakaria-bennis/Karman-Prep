@@ -4,22 +4,38 @@
 // question, choice grid (or numeric input), explanations, and
 // inline progression controls. Driven by QuizContext.
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Check, X } from "lucide-react";
+import { Ban, Bookmark, PencilLine, Check, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { MappedNode } from "../ConstellationMap";
 import { QUIZ_TOTAL_QUESTIONS, useQuiz } from "@/contexts/QuizContext";
 import type { QuizQuestionWithChoices } from "@/types/quiz";
+import { CalculatorChoiceAction } from "@/components/calculator/CalculatorSourceAction";
 import MathText from "../MathText";
 import QuestionTable from "../QuestionTable";
 import ChartFigure from "../ChartFigure";
 import GeometryFigure from "../GeometryFigure";
 import FigureFrame from "../FigureFrame";
-import { ProgressDot } from "./ProgressDot";
+import { CalculatorTrigger } from "@/components/calculator/CalculatorScope";
+import {
+  HighlightablePassage,
+  type PassageHighlight,
+} from "@/components/diagnostic/HighlightablePassage";
+import {
+  HighlightTool,
+  PracticeTimer,
+  QuestionTransition,
+  QuizSettings,
+  useQuizAnimations,
+} from "./QuizTools";
+import styles from "./workspace.module.css";
 
 export function ActiveQuizScreen({
   node,
+  bookmarked,
+  onBookmark,
+  onScratchpad,
   q,
   onClose,
   onSelectAnswer,
@@ -30,6 +46,9 @@ export function ActiveQuizScreen({
   onNext,
 }: {
   node: MappedNode;
+  bookmarked: boolean;
+  onBookmark(): void;
+  onScratchpad(): void;
   q: QuizQuestionWithChoices;
   onClose: () => void;
   onSelectAnswer: (l: string) => void;
@@ -40,6 +59,8 @@ export function ActiveQuizScreen({
   onNext: () => void;
 }) {
   const { state } = useQuiz();
+  const animations = useQuizAnimations();
+  const [crossed, setCrossed] = useState<Set<string>>(new Set());
   const sortedChoices = useMemo(
     () => [...q.answer_choices].sort((a, b) => (a.letter > b.letter ? 1 : -1)),
     [q]
@@ -47,18 +68,8 @@ export function ActiveQuizScreen({
   const isSubmitted = state.phase === "submitted_correct" || state.phase === "submitted_wrong";
   const correctLetter = q.correct_answer;
 
-  // Progress dots
-  const dots = Array.from({ length: QUIZ_TOTAL_QUESTIONS }, (_, i) => {
-    const rec = state.records[i];
-    const isCurrent = i === state.currentIndex;
-    const isAnswered = !!rec?.isCorrect || rec?.isCorrect === false;
-    const isCorrect = rec?.isCorrect === true;
-    const isFlagged = rec?.flagged === true;
-    return { i, isCurrent, isAnswered, isCorrect, isFlagged };
-  });
-
   return (
-    <>
+    <QuestionTransition index={state.currentIndex} direction={state.direction}>
       {/* Top bar */}
       <div className="absolute inset-x-0 top-0 z-10 flex h-14 items-center border-b border-bronze bg-night/80 px-6 backdrop-blur-sm">
         <div className="min-w-0 flex-1">
@@ -75,6 +86,15 @@ export function ActiveQuizScreen({
         </div>
         <div className="flex flex-1 justify-end">
           <button
+            type="button"
+            className={styles.tool}
+            aria-label="Bookmark for review"
+            aria-pressed={bookmarked}
+            onClick={onBookmark}
+          >
+            <Bookmark size={18} fill={bookmarked ? "currentColor" : "none"} />
+          </button>
+          <button
             onClick={onClose}
             className="flex h-9 w-9 items-center justify-center rounded-full text-taupe hover:bg-surface-raised hover:text-ivory"
             aria-label="Close quiz"
@@ -84,11 +104,14 @@ export function ActiveQuizScreen({
         </div>
       </div>
 
-      {/* Progress dots row (top) */}
-      <div className="absolute inset-x-0 top-14 z-10 flex h-10 items-center justify-center gap-2 border-b border-bronze bg-night/60">
-        {dots.map((d) => (
-          <ProgressDot key={d.i} {...d} />
-        ))}
+      <div className="absolute inset-x-0 top-14 z-20 flex h-14 items-center gap-2 overflow-x-auto border-b border-bronze bg-night px-3">
+        <CalculatorTrigger />
+        <button type="button" className={styles.tool} onClick={onScratchpad}>
+          <PencilLine size={16} /> Scratchpad
+        </button>
+        <HighlightTool />
+        <PracticeTimer startedAt={state.moduleStartedAt} />
+        <QuizSettings />
       </div>
 
       {/* Question area — College Board Bluebook-style split view, with
@@ -137,7 +160,7 @@ export function ActiveQuizScreen({
               onClick={onNext}
               className="rounded-xl bg-info px-8 py-3 text-sm font-bold text-ivory transition-colors hover:bg-info-bright"
             >
-              Next question →
+              Next
             </button>
           </motion.div>
         ) : null;
@@ -163,37 +186,59 @@ export function ActiveQuizScreen({
                 const showCorrect = isSubmitted && isCorrect;
                 const showWrong = isSubmitted && isSelected && !isCorrect;
                 return (
-                  <button
-                    key={letter}
-                    onClick={() => !isSubmitted && onSelectAnswer(letter)}
-                    disabled={isSubmitted}
-                    className={cn(
-                      "w-full rounded-xl border px-5 py-3.5 text-left transition-all",
-                      "flex items-start gap-4",
-                      !isSubmitted && "cursor-pointer hover:border-info/40 hover:bg-info/5",
-                      isSelected && !isSubmitted && "border-info/40 bg-info/10",
-                      !isSelected && !isSubmitted && "border-bronze bg-surface",
-                      showCorrect && "border-success/40 bg-success/15",
-                      showWrong && "border-error/40 bg-error/15",
-                      isSubmitted && !isSelected && !isCorrect && "border-bronze opacity-50"
-                    )}
-                  >
-                    <span
+                  <div key={letter} className="group flex flex-wrap items-center gap-1">
+                    <button
+                      onClick={() => !isSubmitted && onSelectAnswer(letter)}
+                      disabled={isSubmitted || crossed.has(letter)}
                       className={cn(
-                        "mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[13px] font-bold",
-                        !isSubmitted && !isSelected && "bg-surface-raised text-ivory/80",
-                        !isSubmitted && isSelected && "bg-info text-ivory",
-                        showCorrect && "bg-success text-night",
-                        showWrong && "bg-error text-ivory",
-                        isSubmitted && !isSelected && !isCorrect && "bg-surface-raised text-taupe"
+                        "min-w-0 flex-1 rounded-xl border px-5 py-3.5 text-left transition-all",
+                        crossed.has(letter) && "line-through opacity-50",
+                        "flex items-start gap-4",
+                        !isSubmitted && "cursor-pointer hover:border-info/40 hover:bg-info/5",
+                        isSelected && !isSubmitted && "border-info/40 bg-info/10",
+                        !isSelected && !isSubmitted && "border-bronze bg-surface",
+                        showCorrect && "border-success/40 bg-success/15",
+                        showWrong && "border-error/40 bg-error/15",
+                        isSubmitted && !isSelected && !isCorrect && "border-bronze opacity-50"
                       )}
                     >
-                      {showCorrect ? <Check className="h-3.5 w-3.5" /> : letter}
+                      <span
+                        className={cn(
+                          "mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[13px] font-bold",
+                          !isSubmitted && !isSelected && "bg-surface-raised text-ivory/80",
+                          !isSubmitted && isSelected && "bg-info text-ivory",
+                          showCorrect && "bg-success text-night",
+                          showWrong && "bg-error text-ivory",
+                          isSubmitted && !isSelected && !isCorrect && "bg-surface-raised text-taupe"
+                        )}
+                      >
+                        {showCorrect ? <Check className="h-3.5 w-3.5" /> : letter}
+                      </span>
+                      <span className="flex-1 text-[16px] leading-[1.5] text-ivory">
+                        <MathText text={choice.choice_text} />
+                      </span>
+                    </button>
+                    <span className={styles.choiceTools}>
+                      <button
+                        type="button"
+                        aria-pressed={crossed.has(letter)}
+                        aria-label={`${crossed.has(letter) ? "Restore" : "Cross out"} choice ${letter}`}
+                        onClick={() =>
+                          setCrossed((old) => {
+                            const next = new Set(old);
+                            if (next.has(letter)) next.delete(letter);
+                            else next.add(letter);
+                            return next;
+                          })
+                        }
+                      >
+                        <Ban size={18} />
+                      </button>
                     </span>
-                    <span className="flex-1 text-[16px] leading-[1.5] text-ivory">
-                      <MathText text={choice.choice_text} />
-                    </span>
-                  </button>
+                    <div className="w-full">
+                      <CalculatorChoiceAction text={choice.choice_text} letter={letter} />
+                    </div>
+                  </div>
                 );
               })}
             </div>
@@ -205,7 +250,7 @@ export function ActiveQuizScreen({
               {q.topic_cluster}
             </p>
             <h2 className="text-[19px] font-medium leading-[1.5] text-ivory md:text-[20px]">
-              <MathText text={q.question_text} />
+              <MathText text={q.question_text} calculator />
             </h2>
             {choicesBlock}
             {choicesButtonRow}
@@ -220,7 +265,7 @@ export function ActiveQuizScreen({
             initial={{ opacity: 0, x: 16 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 16 }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: animations ? 0.15 : 0 }}
             className="mx-auto max-w-xl"
           >
             <h3 className="mb-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-taupe">
@@ -301,7 +346,7 @@ export function ActiveQuizScreen({
                 onClick={onNext}
                 className="rounded-xl bg-info px-8 py-3 text-sm font-bold text-ivory transition-colors hover:bg-info-bright"
               >
-                Next question →
+                Next
               </button>
             </div>
           </motion.div>
@@ -327,7 +372,7 @@ export function ActiveQuizScreen({
         const hasFigure = !!q.image_url || isNativeTable || isNativeChart || isNativeGeometry;
         const figureCard = isNativeTable ? (
           <div className="mb-6 flex justify-center">
-            <QuestionTable data={q.figure_table_data!} />
+            <QuestionTable data={q.figure_table_data!} calculator />
           </div>
         ) : isNativeChart ? (
           <div className="mb-6 flex justify-center">
@@ -360,23 +405,23 @@ export function ActiveQuizScreen({
                   <div className="mb-2 font-sans text-[10px] font-bold uppercase tracking-[0.2em] text-taupe">
                     Text 1
                   </div>
-                  <MathText text={q.passage_a} className="block whitespace-pre-wrap" />
+                  <PracticePassage text={q.passage_a} />
                 </section>
                 <section>
                   <div className="mb-2 font-sans text-[10px] font-bold uppercase tracking-[0.2em] text-taupe">
                     Text 2
                   </div>
-                  <MathText text={q.passage_b} className="block whitespace-pre-wrap" />
+                  <PracticePassage text={q.passage_b} />
                 </section>
               </>
             ) : (
               <>
                 {q.passage_intro && (
                   <p className="mb-5">
-                    <MathText text={q.passage_intro} />
+                    <MathText calculator text={q.passage_intro} />
                   </p>
                 )}
-                {q.passage && <MathText text={q.passage} className="block whitespace-pre-wrap" />}
+                {q.passage && <PracticePassage text={q.passage} />}
               </>
             )}
           </article>
@@ -390,8 +435,14 @@ export function ActiveQuizScreen({
         // column, mirroring College Board Bluebook behavior.
         if (hasPassage || hasFigure) {
           return (
-            <div className="absolute inset-x-0 bottom-20 top-24 overflow-hidden">
-              <div className="grid h-full divide-y divide-bronze md:grid-cols-2 md:divide-x md:divide-y-0">
+            <div
+              data-question-content
+              className="absolute inset-x-0 bottom-20 top-28 overflow-hidden"
+            >
+              <div
+                data-question-layout
+                className="grid h-full divide-y divide-bronze md:grid-cols-2 md:divide-x md:divide-y-0"
+              >
                 {/* LEFT */}
                 <div className="overflow-y-auto px-6 py-8 md:px-10">
                   {figureCard}
@@ -411,7 +462,7 @@ export function ActiveQuizScreen({
                         initial={{ opacity: 0, x: -12 }}
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: -12 }}
-                        transition={{ duration: 0.2 }}
+                        transition={{ duration: animations ? 0.15 : 0 }}
                       >
                         {questionPanel}
                       </motion.div>
@@ -428,8 +479,14 @@ export function ActiveQuizScreen({
         // on the RIGHT — same shape as R&W in explanation mode.
         if (inExplanationMode) {
           return (
-            <div className="absolute inset-x-0 bottom-20 top-24 overflow-hidden">
-              <div className="grid h-full divide-y divide-bronze md:grid-cols-2 md:divide-x md:divide-y-0">
+            <div
+              data-question-content
+              className="absolute inset-x-0 bottom-20 top-28 overflow-hidden"
+            >
+              <div
+                data-question-layout
+                className="grid h-full divide-y divide-bronze md:grid-cols-2 md:divide-x md:divide-y-0"
+              >
                 <div className="overflow-y-auto px-6 py-8 md:px-10">{questionPanel}</div>
                 <div className="overflow-y-auto px-6 py-8 md:px-10">{explanationsPanel}</div>
               </div>
@@ -439,12 +496,15 @@ export function ActiveQuizScreen({
 
         // Math, default: single centered column.
         return (
-          <div className="absolute inset-x-0 bottom-20 top-24 overflow-y-auto px-6 py-8">
+          <div
+            data-question-content
+            className="absolute inset-x-0 bottom-20 top-28 overflow-y-auto px-6 py-8"
+          >
             {questionPanel}
           </div>
         );
       })()}
-    </>
+    </QuestionTransition>
   );
 
   // Re-inject the unused flag click binding to silence the lint for onFlagClick
@@ -508,4 +568,11 @@ function NumericAnswerInput({
       </div>
     </div>
   );
+}
+
+function PracticePassage({ text }: { text: string }) {
+  const [highlights, setHighlights] = useState<PassageHighlight[]>([]);
+  if (text.includes("$"))
+    return <MathText text={text} calculator className="block whitespace-pre-wrap" />;
+  return <HighlightablePassage passage={text} highlights={highlights} onChange={setHighlights} />;
 }

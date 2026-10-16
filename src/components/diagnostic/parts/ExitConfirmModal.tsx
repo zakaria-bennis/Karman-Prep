@@ -28,7 +28,7 @@ export function ExitConfirmModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="exit-diag-title"
-        className="relative w-full max-w-md rounded-2xl border border-ivory/10 bg-[#070605] p-6 shadow-2xl"
+        className="relative w-full max-w-md rounded-2xl border border-ivory/10 bg-surface p-6 shadow-2xl"
       >
         <div className="mb-2 flex items-center gap-2">
           <AlertTriangle className="h-5 w-5 text-warning-bright" />

@@ -69,15 +69,19 @@ export interface QuizState {
   usedQuestionIds: Set<string>;
 
   currentIndex: number;
+  moduleStartedAt: number;
+  direction: "next" | "previous";
+  reviewing: boolean;
   currentLevel: QuizDifficultyLevel;
   selectedAnswer: string | null; // letter or numeric string
   questionStartedAt: number;
 
   records: PerQuestionRecord[];
+  drafts: Record<number, string>;
   adaptivePath: AdaptiveStep[];
   consecutiveWrong: number;
 
-  isDesmosOpen: boolean;
+  isCalculatorOpen: boolean;
   isScratchpadOpen: boolean;
 
   score: number | null;
@@ -97,13 +101,17 @@ const initialState: QuizState = {
   selectedQuestions: [],
   usedQuestionIds: new Set<string>(),
   currentIndex: 0,
+  moduleStartedAt: Date.now(),
+  direction: "next",
+  reviewing: false,
   currentLevel: 1,
   selectedAnswer: null,
   questionStartedAt: 0,
   records: [],
+  drafts: {},
   adaptivePath: [],
   consecutiveWrong: 0,
-  isDesmosOpen: false,
+  isCalculatorOpen: false,
   isScratchpadOpen: false,
   score: null,
   correctCount: 0,
@@ -131,10 +139,11 @@ type Action =
       next: QuizQuestionWithChoices | null;
       nextLevel: QuizDifficultyLevel;
     }
+  | { type: "NAVIGATE"; index: number }
   | { type: "SHOW_VIDEO_PROMPT" }
   | { type: "DISMISS_VIDEO_PROMPT" }
   | { type: "FLAG_CURRENT"; note?: string }
-  | { type: "TOGGLE_DESMOS" }
+  | { type: "TOGGLE_CALCULATOR" }
   | { type: "TOGGLE_SCRATCHPAD" }
   | {
       type: "COMPLETE";
@@ -168,16 +177,24 @@ function reducer(state: QuizState, action: Action): QuizState {
         selectedQuestions: [action.first],
         usedQuestionIds: used,
         currentIndex: 0,
+        moduleStartedAt: Date.now(),
+        direction: "next",
+        reviewing: false,
         currentLevel: (action.first.difficulty_level ?? 1) as QuizDifficultyLevel,
         questionStartedAt: Date.now(),
         records: [],
+        drafts: {},
         adaptivePath: [],
       };
     }
 
     case "SELECT_ANSWER":
       if (state.phase !== "answering") return state;
-      return { ...state, selectedAnswer: action.answer };
+      return {
+        ...state,
+        selectedAnswer: action.answer,
+        drafts: { ...state.drafts, [state.currentIndex]: action.answer },
+      };
 
     case "SUBMIT_ANSWER": {
       if (state.phase !== "answering" || !state.selectedAnswer) return state;
@@ -229,11 +246,39 @@ function reducer(state: QuizState, action: Action): QuizState {
         ...state,
         phase: "answering",
         currentIndex: nextIndex,
+        direction: "next",
+        reviewing: false,
         currentLevel: action.nextLevel,
         selectedAnswer: null,
         questionStartedAt: Date.now(),
         selectedQuestions: [...state.selectedQuestions, action.next],
         usedQuestionIds: used,
+      };
+    }
+
+    case "NAVIGATE": {
+      if (
+        !["answering", "submitted_correct", "submitted_wrong"].includes(state.phase) ||
+        !Number.isInteger(action.index) ||
+        action.index < 0 ||
+        action.index >= state.selectedQuestions.length
+      )
+        return state;
+      const record = state.records[action.index];
+      return {
+        ...state,
+        currentIndex: action.index,
+        direction: action.index < state.currentIndex ? "previous" : "next",
+        reviewing: true,
+        selectedAnswer: record?.studentAnswer ?? state.drafts[action.index] ?? null,
+        phase:
+          record?.isCorrect == null
+            ? "answering"
+            : record.isCorrect
+              ? "submitted_correct"
+              : "submitted_wrong",
+        isScratchpadOpen: false,
+        isCalculatorOpen: false,
       };
     }
 
@@ -262,16 +307,25 @@ function reducer(state: QuizState, action: Action): QuizState {
       return { ...state, records };
     }
 
-    case "TOGGLE_DESMOS":
-      return { ...state, isDesmosOpen: !state.isDesmosOpen, isScratchpadOpen: false };
+    case "TOGGLE_CALCULATOR":
+      if (
+        !state.isCalculatorOpen &&
+        (state.subject !== "math" ||
+          state.selectedQuestions[state.currentIndex]?.subject !== "math" ||
+          !["answering", "submitted_correct", "submitted_wrong"].includes(state.phase))
+      )
+        return state;
+      return { ...state, isCalculatorOpen: !state.isCalculatorOpen, isScratchpadOpen: false };
 
     case "TOGGLE_SCRATCHPAD":
-      return { ...state, isScratchpadOpen: !state.isScratchpadOpen, isDesmosOpen: false };
+      return { ...state, isScratchpadOpen: !state.isScratchpadOpen, isCalculatorOpen: false };
 
     case "COMPLETE":
       return {
         ...state,
         phase: "complete",
+        isCalculatorOpen: false,
+        isScratchpadOpen: false,
         score: action.score,
         confidenceBand: action.confidenceBand,
         newStatus: action.newStatus,
@@ -351,9 +405,10 @@ interface QuizContextValue {
   selectAnswer: (answer: string) => void;
   submitAnswer: () => Promise<void>;
   nextQuestion: () => Promise<void>;
+  navigate: (index: number) => void;
   dismissVideoPrompt: () => void;
   flagCurrent: (note?: string) => Promise<void>;
-  toggleDesmos: () => void;
+  toggleCalculator: () => void;
   toggleScratchpad: () => void;
   reset: () => void;
   retakeQuiz: () => Promise<void>;
@@ -441,6 +496,10 @@ export function QuizProvider({ children }: { children: ReactNode }) {
   const nextQuestion = useCallback(async () => {
     if (state.phase !== "submitted_correct" && state.phase !== "submitted_wrong") return;
 
+    if (state.currentIndex < state.selectedQuestions.length - 1) {
+      dispatch({ type: "NAVIGATE", index: state.currentIndex + 1 });
+      return;
+    }
     const lastRecord = state.records[state.currentIndex];
     const wasCorrect = !!lastRecord?.isCorrect;
 
@@ -477,6 +536,8 @@ export function QuizProvider({ children }: { children: ReactNode }) {
     dispatch({ type: "ADVANCE_TO_NEXT", next, nextLevel });
   }, [state]);
 
+  const navigate = useCallback((index: number) => dispatch({ type: "NAVIGATE", index }), []);
+
   const dismissVideoPrompt = useCallback(() => {
     dispatch({ type: "DISMISS_VIDEO_PROMPT" });
   }, []);
@@ -499,7 +560,7 @@ export function QuizProvider({ children }: { children: ReactNode }) {
     [state]
   );
 
-  const toggleDesmos = useCallback(() => dispatch({ type: "TOGGLE_DESMOS" }), []);
+  const toggleCalculator = useCallback(() => dispatch({ type: "TOGGLE_CALCULATOR" }), []);
   const toggleScratchpad = useCallback(() => dispatch({ type: "TOGGLE_SCRATCHPAD" }), []);
   const reset = useCallback(() => dispatch({ type: "RESET" }), []);
 
@@ -525,9 +586,10 @@ export function QuizProvider({ children }: { children: ReactNode }) {
       selectAnswer,
       submitAnswer,
       nextQuestion,
+      navigate,
       dismissVideoPrompt,
       flagCurrent,
-      toggleDesmos,
+      toggleCalculator,
       toggleScratchpad,
       reset,
       retakeQuiz,
@@ -538,9 +600,10 @@ export function QuizProvider({ children }: { children: ReactNode }) {
       selectAnswer,
       submitAnswer,
       nextQuestion,
+      navigate,
       dismissVideoPrompt,
       flagCurrent,
-      toggleDesmos,
+      toggleCalculator,
       toggleScratchpad,
       reset,
       retakeQuiz,

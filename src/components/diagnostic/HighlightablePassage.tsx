@@ -224,6 +224,7 @@ export function HighlightablePassage({ passage, passageIntro, highlights, onChan
   const [hoverId, setHoverId] = useState<string | null>(null);
   const [hoverPos, setHoverPos] = useState<{ top: number; left: number } | null>(null);
 
+  const colorCounter = useRef(highlights.length);
   const segments = useMemo(() => segmentPassage(passage, highlights), [passage, highlights]);
 
   // ─── Auto-commit highlight on mouseup ─────────────────────
@@ -239,10 +240,15 @@ export function HighlightablePassage({ passage, passageIntro, highlights, onChan
     const offsets = selectionToOffsets(passageEl, sel);
     if (!offsets) return;
     const id = `h-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
-    const colorIdx = highlights.length % HIGHLIGHT_PALETTE.length;
+    const colorIdx = colorCounter.current++ % HIGHLIGHT_PALETTE.length;
     onChange([...highlights, { id, ...offsets, colorIdx }]);
     sel.removeAllRanges();
   }, [highlights, onChange]);
+
+  useEffect(() => {
+    window.addEventListener("quiz-highlight-selection", handleMouseUp);
+    return () => window.removeEventListener("quiz-highlight-selection", handleMouseUp);
+  }, [handleMouseUp]);
 
   // ─── Highlight click → edit popover ───────────────────────
   // Width/height tuned so the whole panel (including Save) sits
@@ -336,6 +342,9 @@ export function HighlightablePassage({ passage, passageIntro, highlights, onChan
       <div
         ref={passageRef}
         onMouseUp={handleMouseUp}
+        onKeyUp={(e) => {
+          if (e.key === "h" && e.altKey) handleMouseUp();
+        }}
         className="select-text whitespace-pre-line font-serif text-[17px] leading-[1.7] text-ivory dark:text-ivory"
       >
         {segments.map((seg, idx) =>
@@ -457,7 +466,7 @@ function AnnotationEditor({
       animate={{ opacity: 1, scale: 1 }}
       transition={{ type: "spring", stiffness: 400, damping: 30 }}
       style={{ position: "fixed", top: initialPos.top, left: initialPos.left, width }}
-      className="z-[80] rounded-xl border border-ivory/10 bg-[#070605]/95 shadow-2xl backdrop-blur-xl"
+      className="z-[80] rounded-xl border border-ivory/10 bg-surface/95 shadow-2xl backdrop-blur-xl"
       onMouseDown={(e) => e.stopPropagation()}
     >
       {/* Title bar — drag handle. */}
@@ -552,7 +561,7 @@ function AnnotationViewer({
       transition={{ duration: 0.15 }}
       style={{ position: "fixed", top: initialPos.top, left: initialPos.left, width }}
       // Translucent so the passage text underneath remains visible.
-      className="z-[70] rounded-xl border border-ivory/15 bg-[#070605]/70 shadow-xl backdrop-blur-md"
+      className="z-[70] rounded-xl border border-ivory/15 bg-surface/95 shadow-xl backdrop-blur-md"
       onMouseLeave={onClose}
     >
       <div

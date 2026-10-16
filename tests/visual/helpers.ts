@@ -26,6 +26,18 @@ export async function impersonateByEmail(page: Page, email: string): Promise<voi
   // Firefox is strict about this; Chromium tolerates late handlers.
   page.on("dialog", (d) => void d.accept());
   await page.goto("/admin/users");
+  // Find the fixture user through the UI. Scrolling hundreds of mobile cards
+  // can put the target under the sticky header and make pointer clicks fail.
+  const search = page.getByPlaceholder("Search by name or email…", { exact: true });
+  // Server-rendered inputs may accept text before hydration attaches onChange.
+  // Re-entering this harmless filter checks readiness without replaying an action.
+  await expect(async () => {
+    await search.fill("");
+    await search.fill(email);
+    await expect(page.getByRole("button", { name: /^Impersonate$/i })).toHaveCount(1, {
+      timeout: 1_000,
+    });
+  }).toPass({ timeout: 15_000 });
   // PR #73 added a mobile card layout: at < md the rows are <li>
   // cards, at md+ they're <tr>s in a table. BOTH copies render in
   // the DOM — one is `display:none` per the breakpoint. The

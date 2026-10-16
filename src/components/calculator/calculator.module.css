@@ -1,0 +1,295 @@
+.shell {
+  --calc-surface: #fff;
+  --calc-text: #171611;
+  --calc-border: #b8b0a1;
+  position: fixed;
+  z-index: 72;
+  width: min(880px, calc(100vw - 32px));
+  height: min(600px, calc(100dvh - 80px));
+  min-width: 360px;
+  min-height: 280px;
+  max-width: 100vw;
+  max-height: 100dvh;
+  resize: both;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: var(--calc-surface);
+  color: var(--calc-text);
+  border: 1px solid var(--calc-border);
+  border-radius: 12px;
+  box-shadow: 0 12px 45px #0005;
+  font:
+    14px Arial,
+    sans-serif;
+  animation: enter 160ms ease-out;
+}
+.shell[data-theme="dark"] {
+  --calc-surface: #171611;
+  --calc-text: #f3ecdd;
+  --calc-border: #3b3426;
+}
+.shell[hidden],
+.surface[hidden] {
+  display: none;
+}
+.mobile,
+.maximized {
+  inset: 0;
+  width: 100%;
+  height: 100dvh;
+  min-width: 0;
+  resize: none;
+  border-radius: 0;
+}
+.mobile {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.titlebar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--calc-border);
+  cursor: grab;
+  touch-action: none;
+}
+.titlebar > span {
+  flex: 1;
+  font-weight: 600;
+}
+.titlebar button,
+.footer button,
+.pasteForm button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 36px;
+  min-width: 36px;
+  border-radius: 4px;
+  padding: 4px;
+}
+.shell button:hover {
+  background: #8882;
+}
+.shell select {
+  color: inherit;
+  background: var(--calc-surface);
+  border: 1px solid var(--calc-border);
+  border-radius: 4px;
+  padding: 4px;
+}
+.surfaces {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+.surface,
+.mount {
+  width: 100%;
+  height: 100%;
+  font:
+    16px Arial,
+    sans-serif;
+}
+.loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  padding: 20px;
+}
+.loading button {
+  text-decoration: underline;
+}
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 11px;
+  padding: 4px 8px;
+  border-top: 1px solid var(--calc-border);
+}
+.footer > span {
+  max-width: 130px;
+}
+.mobile .titlebar button,
+.mobile .footer button,
+.mobile select {
+  min-height: 44px;
+  min-width: 44px;
+}
+.mobile .titlebar > span {
+  font-size: 12px;
+}
+.message {
+  padding: 8px;
+  font-size: 13px;
+  color: var(--calc-text);
+  border-bottom: 1px solid var(--calc-border);
+}
+.pasteForm {
+  display: flex;
+  gap: 4px;
+  padding: 8px;
+}
+.pasteForm textarea {
+  min-width: 0;
+  flex: 1;
+  color: var(--calc-text);
+  background: var(--calc-surface);
+  border: 1px solid var(--calc-border);
+}
+.trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--border);
+  padding: 8px 12px;
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 13px;
+}
+.trigger[aria-expanded="true"] {
+  outline: 2px solid var(--accent-gold);
+}
+.sideToggle {
+  position: fixed;
+  z-index: 69;
+  right: 0;
+  top: 45%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 44px;
+  min-height: 60px;
+  padding: 8px 4px;
+  border-radius: 8px 0 0 8px;
+  background: var(--surface);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  font-size: 10px;
+}
+/* Deliberately prominent export actions, as requested for the quiz workspace. */
+.exportWrap {
+  display: inline-block;
+  position: relative;
+  vertical-align: middle;
+  margin: 10px 4px;
+  max-width: 100%;
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.4;
+}
+.exportButtons {
+  display: flex;
+  border: 2px solid var(--accent-gold);
+  border-radius: 10px;
+  background: var(--surface-raised);
+  color: var(--text-primary);
+  overflow: hidden;
+}
+.source {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 60px;
+  padding: 14px 18px;
+  font-size: 17px;
+  font-weight: 700;
+}
+.exportToggle {
+  min-width: 44px;
+  padding: 8px;
+  border-left: 1px solid var(--border);
+}
+.exportMenu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: min(285px, 80vw);
+  background: var(--surface);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  box-shadow: 0 8px 20px #0004;
+  padding: 8px;
+  border-radius: 8px;
+  z-index: 60;
+}
+.exportWrap:hover .exportMenu,
+.exportWrap:focus-within .exportMenu,
+.exportMenu[data-open="true"] {
+  display: grid;
+  gap: 4px;
+}
+.exportMenu button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
+  min-height: 44px;
+  padding: 8px;
+}
+.exportMenu button:hover {
+  background: var(--surface-raised);
+}
+.exportMenu [role="status"] {
+  font-size: 12px;
+  padding: 8px;
+}
+.docked {
+  left: 12px !important;
+  top: 120px !important;
+  width: calc(48vw - 24px);
+  height: calc(100dvh - 140px);
+  min-width: 360px;
+  resize: none;
+}
+@media (max-width: 767px), (max-height: 500px) {
+  .source {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .shell {
+    animation: none;
+  }
+}
+@keyframes enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.shell :focus-visible,
+.trigger:focus-visible,
+.source:focus-visible,
+.sideToggle:focus-visible {
+  outline: 2px solid #2f72dc;
+  outline-offset: 2px;
+}
+
+.workspace[data-calculator-docked="true"] [data-question-layout] {
+  display: block;
+  overflow-y: auto;
+}
+.workspace[data-calculator-docked="true"] [data-question-layout] > div {
+  overflow: visible;
+  border: 0;
+}

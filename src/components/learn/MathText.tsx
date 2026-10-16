@@ -12,11 +12,13 @@
 // ============================================================
 
 import { Fragment, useMemo, type ReactNode } from "react";
+import { CalculatorSourceAction } from "@/components/calculator/CalculatorSourceAction";
 import katex from "katex";
 import "katex/dist/katex.min.css";
 
 interface Props {
   text: string;
+  calculator?: boolean;
   className?: string;
   blockClassName?: string;
   /** When true, also treat the literal word "blank" (alone or wrapped
@@ -151,6 +153,7 @@ export default function MathText({
   className = "",
   blockClassName = "",
   treatBlankWord = false,
+  calculator = false,
 }: Props) {
   const segs = useMemo(() => parse(text), [text]);
 
@@ -164,19 +167,17 @@ export default function MathText({
           // math inline with prose. The CSS override on .katex in
           // globals.css does the heavy lifting here.
           return (
-            <span
-              key={i}
-              className="align-baseline"
-              dangerouslySetInnerHTML={{ __html: renderKaTeX(s.latex, false) }}
-            />
+            <span key={i} className="align-baseline">
+              <span dangerouslySetInnerHTML={{ __html: renderKaTeX(s.latex, false) }} />
+              {calculator && <CalculatorSourceAction latex={s.latex} />}
+            </span>
           );
         }
         return (
-          <span
-            key={i}
-            className={`my-3 block text-center ${blockClassName}`}
-            dangerouslySetInnerHTML={{ __html: renderKaTeX(s.latex, true) }}
-          />
+          <span key={i} className={`my-3 block text-center ${blockClassName}`}>
+            <span dangerouslySetInnerHTML={{ __html: renderKaTeX(s.latex, true) }} />
+            {calculator && <CalculatorSourceAction latex={s.latex} />}
+          </span>
         );
       })}
     </span>

@@ -12,11 +12,15 @@
 // to ./parts/AnswerChoiceButton. Audit M1 split.
 // ============================================================
 
+import { QuestionTransition } from "@/components/learn/quiz/QuizTools";
 import { ArrowRight, Lightbulb } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DOMAIN_COLORS, DOMAIN_LABELS, type SATDomain } from "@/types";
-import DesmosWindow from "@/components/learn/DesmosWindow";
+import { CalculatorScope } from "@/components/calculator/CalculatorScope";
+import { canUseCalculator } from "@/lib/calculator/eligibility";
 import Scratchpad from "@/components/learn/Scratchpad";
+import FigureFrame from "@/components/learn/FigureFrame";
+import QuestionTable from "@/components/learn/QuestionTable";
 import MathText from "@/components/learn/MathText";
 import DiagnosticResults from "./DiagnosticResults";
 import { HighlightablePassage } from "./HighlightablePassage";
@@ -59,6 +63,7 @@ export default function DiagnosticClient({ questions, isSubscribed, isRetake }: 
   }
 
   const { question } = s;
+  const hasStimulus = !!(question.passage || question.table || question.imageUrl);
   const totalSectionSec = SECTION_SECONDS[s.currentSection];
   const timerPct = (s.sectionTimeLeft / totalSectionSec) * 100;
   const minutesLeft = Math.floor(s.sectionTimeLeft / 60);
@@ -67,212 +72,230 @@ export default function DiagnosticClient({ questions, isSubscribed, isRetake }: 
 
   return (
     <div ref={s.shellRef} className="relative flex min-h-screen flex-col bg-surface dark:bg-night">
-      <DiagnosticHeader
-        sectionPosition={s.sectionPosition}
-        sectionLength={s.sectionLength}
-        isMathQuestion={s.isMathQuestion}
-        desmosOpen={s.desmosOpen}
-        scratchpadOpen={s.scratchpadOpen}
-        isBookmarked={s.isBookmarked}
-        currentSection={s.currentSection}
-        sectionTimeLeft={s.sectionTimeLeft}
-        timerColor={timerColor}
-        timerPct={timerPct}
-        minutesLeft={minutesLeft}
-        onOpenExit={() => s.setExitConfirmOpen(true)}
-        onOpenNavigator={() => s.setNavigatorOpen(true)}
-        onToggleDesmos={() => s.setDesmosOpen((o) => !o)}
-        onToggleScratchpad={() => s.setScratchpadOpen((o) => !o)}
-        onToggleBookmark={s.toggleBookmark}
-      />
+      <CalculatorScope
+        key={question.id}
+        enabled={canUseCalculator(
+          s.currentSection,
+          s.isMathQuestion ? "math" : "reading",
+          !s.isSubmitting
+        )}
+        open={s.calculatorOpen}
+        onOpenChange={(open) => {
+          s.setCalculatorOpen(open);
+          if (open) s.setScratchpadOpen(false);
+        }}
+      >
+        <DiagnosticHeader
+          sectionPosition={s.sectionPosition}
+          sectionLength={s.sectionLength}
+          isMathQuestion={s.isMathQuestion}
+          scratchpadOpen={s.scratchpadOpen}
+          isBookmarked={s.isBookmarked}
+          currentSection={s.currentSection}
+          sectionTimeLeft={s.sectionTimeLeft}
+          timerColor={timerColor}
+          timerPct={timerPct}
+          minutesLeft={minutesLeft}
+          onOpenExit={() => s.setExitConfirmOpen(true)}
+          onOpenNavigator={() => s.setNavigatorOpen(true)}
+          onToggleScratchpad={() => {
+            s.setCalculatorOpen(false);
+            s.setScratchpadOpen((o) => !o);
+          }}
+          onToggleBookmark={s.toggleBookmark}
+        />
 
-      {/* Retake notice — shown for admin-granted retakes so the
+        {/* Retake notice — shown for admin-granted retakes so the
           student knows this submission will replace their baseline. */}
-      {isRetake && s.currentIdx === 0 && !s.isAnswered ? (
-        <div className="mx-auto mt-4 w-full max-w-2xl rounded-lg border border-warning/40 bg-warning/10 px-4 py-3 text-sm text-warning dark:border-warning/30 dark:bg-warning/10 dark:text-warning-bright">
-          <p className="font-semibold">You&rsquo;re retaking the diagnostic</p>
-          <p className="mt-0.5 text-xs text-warning/80 dark:text-warning-bright/80">
-            Your tutor / admin granted a retake. Submitting will create a fresh diagnostic_results
-            row alongside your prior one &mdash; the progress chart will show both so you can
-            measure improvement.
-          </p>
-        </div>
-      ) : null}
+        {isRetake && s.currentIdx === 0 && !s.isAnswered ? (
+          <div className="mx-auto mt-4 w-full max-w-2xl rounded-lg border border-warning/40 bg-warning/10 px-4 py-3 text-sm text-warning dark:border-warning/30 dark:bg-warning/10 dark:text-warning-bright">
+            <p className="font-semibold">You&rsquo;re retaking the diagnostic</p>
+            <p className="mt-0.5 text-xs text-warning/80 dark:text-warning-bright/80">
+              Your tutor / admin granted a retake. Submitting will create a fresh diagnostic_results
+              row alongside your prior one &mdash; the progress chart will show both so you can
+              measure improvement.
+            </p>
+          </div>
+        ) : null}
 
-      {/* Question — switches to split-pane when a passage is present
+        {/* Question — switches to split-pane when a passage is present
           (R&W convention from Bluebook: passage on the left, prompt
           + choices on the right). */}
-      <div className="flex flex-1 items-start justify-center p-4 pt-8">
-        <div className={cn("w-full", question.passage ? "max-w-6xl" : "max-w-2xl")}>
-          {/* Domain tag */}
-          <div className="mb-4 flex items-center gap-2">
-            <span
-              className="rounded-md px-2.5 py-1 text-xs font-semibold"
-              style={{
-                backgroundColor: DOMAIN_COLORS[question.domain as SATDomain]?.hex + "20",
-                color: DOMAIN_COLORS[question.domain as SATDomain]?.hex,
-              }}
-            >
-              {DOMAIN_LABELS[question.domain as SATDomain] || question.domain}
-            </span>
-            <span className="text-xs text-taupe">
-              {"★".repeat(question.difficulty)}
-              {"☆".repeat(3 - question.difficulty)}
-            </span>
-          </div>
-
-          <div
-            className={cn(
-              question.passage ? "grid items-start gap-6 lg:grid-cols-2 lg:gap-10" : ""
-            )}
-          >
-            {question.passage && (
-              <HighlightablePassage
-                passage={question.passage}
-                passageIntro={question.passageIntro}
-                highlights={s.questionHighlights}
-                onChange={s.setHighlightsForQuestion}
-              />
-            )}
-
-            {/* Prompt + answer choices column */}
-            <div>
-              <h2 className="mb-6 font-sans text-lg font-semibold leading-relaxed text-ivory dark:text-ivory sm:text-xl">
-                <MathText text={question.text} />
-              </h2>
-
-              <div className="space-y-3">
-                {question.options.map((option) => {
-                  const letter = option.charAt(0);
-                  return (
-                    <AnswerChoiceButton
-                      key={option}
-                      option={option}
-                      correctLetter={question.correct}
-                      isAnswered={s.isAnswered}
-                      isSelected={s.selected === letter}
-                      isCrossed={s.questionCrossed.has(letter)}
-                      isHighlighted={s.questionHighlightedChoices.has(letter)}
-                      onSelect={() => s.handleSelect(option)}
-                      onToggleCrossOut={() => s.toggleCrossOut(letter)}
-                      onToggleHighlight={() => s.toggleHighlightChoice(letter)}
-                    />
-                  );
-                })}
+        <QuestionTransition index={s.currentIdx} direction={s.direction}>
+          <div data-question-content className="flex flex-1 items-start justify-center p-4 pt-8">
+            <div className={cn("w-full", hasStimulus ? "max-w-6xl" : "max-w-2xl")}>
+              {/* Domain tag */}
+              <div className="mb-4 flex items-center gap-2">
+                <span
+                  className="rounded-md px-2.5 py-1 text-xs font-semibold"
+                  style={{
+                    backgroundColor: DOMAIN_COLORS[question.domain as SATDomain]?.hex + "20",
+                    color: DOMAIN_COLORS[question.domain as SATDomain]?.hex,
+                  }}
+                >
+                  {DOMAIN_LABELS[question.domain as SATDomain] || question.domain}
+                </span>
+                <span className="text-xs text-taupe">
+                  {"★".repeat(question.difficulty)}
+                  {"☆".repeat(3 - question.difficulty)}
+                </span>
               </div>
 
-              {/* Hint reveal — shown when the student has spent a hint
+              <div
+                className={cn(hasStimulus ? "grid items-start gap-6 lg:grid-cols-2 lg:gap-10" : "")}
+              >
+                {hasStimulus && (
+                  <div>
+                    {question.table && <QuestionTable data={question.table} calculator />}
+                    {question.imageUrl && (
+                      <FigureFrame
+                        src={question.imageUrl}
+                        alt={question.imageAlt ?? "Question figure"}
+                      />
+                    )}
+                    {question.passage && (
+                      <HighlightablePassage
+                        passage={question.passage}
+                        passageIntro={question.passageIntro}
+                        highlights={s.questionHighlights}
+                        onChange={s.setHighlightsForQuestion}
+                      />
+                    )}
+                  </div>
+                )}
+                {/* Prompt + answer choices column */}
+                <div>
+                  <h2 className="mb-6 font-sans text-lg font-semibold leading-relaxed text-ivory dark:text-ivory sm:text-xl">
+                    <MathText text={question.text} calculator />
+                  </h2>
+
+                  <div className="space-y-3">
+                    {question.options.map((option) => {
+                      const letter = option.charAt(0);
+                      return (
+                        <AnswerChoiceButton
+                          key={option}
+                          option={option}
+                          correctLetter={question.correct}
+                          isAnswered={s.isAnswered}
+                          isSelected={s.selected === letter}
+                          isCrossed={s.questionCrossed.has(letter)}
+                          isHighlighted={s.questionHighlightedChoices.has(letter)}
+                          onSelect={() => s.handleSelect(option)}
+                          onToggleCrossOut={() => s.toggleCrossOut(letter)}
+                          onToggleHighlight={() => s.toggleHighlightChoice(letter)}
+                        />
+                      );
+                    })}
+                  </div>
+
+                  {/* Hint reveal — shown when the student has spent a hint
                   on this question. Renders the question's explanation
                   before they've answered, framed as a study tip. */}
-              {s.hintShownThisQuestion && !s.showExplanation && (
-                <div className="mt-4 rounded-xl border border-warning/40 bg-warning/[0.08] p-4 text-sm text-warning-bright">
-                  <div className="mb-1 flex items-center gap-2">
-                    <Lightbulb className="h-4 w-4 text-warning-bright" />
-                    <span className="text-xs font-bold uppercase tracking-widest text-warning-bright">
-                      Hint
-                    </span>
-                  </div>
-                  <div className="leading-relaxed">
-                    <MathText text={question.explanation} />
-                  </div>
-                </div>
-              )}
-
-              {/* Explanation (post-answer) */}
-              {s.showExplanation && (
-                <div
-                  className={cn(
-                    "mt-4 rounded-xl border p-4 text-sm",
-                    s.selected === question.correct
-                      ? "border-success/40 bg-success/10 text-success dark:border-success/40 dark:bg-success/20 dark:text-success-bright"
-                      : "border-warning/40 bg-warning/10 text-warning dark:border-warning/40 dark:bg-warning/20 dark:text-warning-bright"
+                  {s.hintShownThisQuestion && !s.showExplanation && (
+                    <div className="mt-4 rounded-xl border border-warning/40 bg-warning/[0.08] p-4 text-sm text-warning-bright">
+                      <div className="mb-1 flex items-center gap-2">
+                        <Lightbulb className="h-4 w-4 text-warning-bright" />
+                        <span className="text-xs font-bold uppercase tracking-widest text-warning-bright">
+                          Hint
+                        </span>
+                      </div>
+                      <div className="leading-relaxed">
+                        <MathText text={question.explanation} />
+                      </div>
+                    </div>
                   )}
-                >
-                  {s.selected !== question.correct && (
-                    <span className="font-bold">Correct answer: {question.correct}. </span>
+
+                  {/* Explanation (post-answer) */}
+                  {s.showExplanation && (
+                    <div
+                      className={cn(
+                        "mt-4 rounded-xl border p-4 text-sm",
+                        s.selected === question.correct
+                          ? "border-success/40 bg-success/10 text-success dark:border-success/40 dark:bg-success/20 dark:text-success-bright"
+                          : "border-warning/40 bg-warning/10 text-warning dark:border-warning/40 dark:bg-warning/20 dark:text-warning-bright"
+                      )}
+                    >
+                      {s.selected !== question.correct && (
+                        <span className="font-bold">Correct answer: {question.correct}. </span>
+                      )}
+                      <MathText text={question.explanation} />
+                    </div>
                   )}
-                  <MathText text={question.explanation} />
-                </div>
-              )}
 
-              {/* Next / Submit */}
-              {s.isAnswered && (
-                <button
-                  onClick={s.handleNext}
-                  disabled={s.isSubmitting}
-                  className="btn-primary mt-5 w-full"
-                >
-                  {s.isSubmitting
-                    ? "Saving results..."
-                    : s.isLast
-                      ? "See My Results"
-                      : "Next Question"}
-                  <ArrowRight className="h-4 w-4" />
-                </button>
-              )}
+                  <button
+                    type="button"
+                    className="mt-5 rounded-lg border border-bronze px-5 py-3 disabled:opacity-40"
+                    disabled={s.currentIdx <= s.sectionStartIdx || s.isSubmitting}
+                    onClick={() => s.jumpTo(s.currentIdx - 1)}
+                  >
+                    Previous
+                  </button>
+                  {/* Next / Submit */}
+                  {s.isAnswered && (
+                    <button
+                      onClick={s.handleNext}
+                      disabled={s.isSubmitting}
+                      className="btn-primary mt-5 w-full"
+                    >
+                      {s.isSubmitting ? "Saving results..." : s.isLast ? "See My Results" : "Next"}
+                      <ArrowRight className="h-4 w-4" />
+                    </button>
+                  )}
 
-              {/* Bottom row — Hint on the left, Skip on the right
+                  {/* Bottom row — Hint on the left, Skip on the right
                   (when no answer chosen yet) or just Hint when
                   answered. */}
-              <div
-                className={cn(
-                  "mt-3 flex items-center gap-3",
-                  s.isAnswered ? "justify-start" : "justify-between"
-                )}
-              >
-                <HintButton
-                  used={s.hintsUsed}
-                  alreadyOpenedOnThisQuestion={s.hintShownThisQuestion}
-                  onUse={s.useHint}
-                />
-                {!s.isAnswered && (
-                  <button
-                    onClick={s.handleNext}
-                    className="flex items-center gap-1.5 py-2 text-sm text-taupe transition-colors hover:text-taupe dark:hover:text-ivory"
+                  <div
+                    className={cn(
+                      "mt-3 flex items-center gap-3",
+                      s.isAnswered ? "justify-start" : "justify-between"
+                    )}
                   >
-                    Skip this question
-                    <ArrowRight className="h-3.5 w-3.5" />
-                  </button>
-                )}
+                    <HintButton
+                      used={s.hintsUsed}
+                      alreadyOpenedOnThisQuestion={s.hintShownThisQuestion}
+                      onUse={s.useHint}
+                    />
+                    {!s.isAnswered && (
+                      <button
+                        onClick={s.handleNext}
+                        className="flex items-center gap-1.5 py-2 text-sm text-taupe transition-colors hover:text-taupe dark:hover:text-ivory"
+                      >
+                        Skip this question
+                        <ArrowRight className="h-3.5 w-3.5" />
+                      </button>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </div>
+        </QuestionTransition>
+        {
+          <div key={`scratch-host-${question.id}`} className={s.scratchpadOpen ? "" : "hidden"}>
+            <Scratchpad onClose={() => s.setScratchpadOpen(false)} constraintsRef={s.shellRef} />
+          </div>
+        }
 
-      {/* Desmos floating window — drag-constrained to the shell.
-          Keyed on question.id so the calculator state resets when
-          you advance to a new question, but PERSISTS across open/
-          close toggles within the same question. */}
-      {s.isMathQuestion && (
-        <div key={`desmos-host-${question.id}`} className={s.desmosOpen ? "" : "hidden"}>
-          <DesmosWindow onClose={() => s.setDesmosOpen(false)} constraintsRef={s.shellRef} />
-        </div>
-      )}
+        <ExitConfirmModal
+          open={s.exitConfirmOpen}
+          onKeepGoing={() => s.setExitConfirmOpen(false)}
+          onExit={s.exitDiagnostic}
+        />
 
-      {s.isMathQuestion && (
-        <div key={`scratch-host-${question.id}`} className={s.scratchpadOpen ? "" : "hidden"}>
-          <Scratchpad onClose={() => s.setScratchpadOpen(false)} constraintsRef={s.shellRef} />
-        </div>
-      )}
-
-      <ExitConfirmModal
-        open={s.exitConfirmOpen}
-        onKeepGoing={() => s.setExitConfirmOpen(false)}
-        onExit={s.exitDiagnostic}
-      />
-
-      <QuestionNavigator
-        open={s.navigatorOpen}
-        questions={questions}
-        currentIdx={s.currentIdx}
-        answers={s.answers}
-        bookmarkedIds={s.bookmarked}
-        hintedIds={s.hintedQuestionIds}
-        currentSection={s.currentSection}
-        onClose={() => s.setNavigatorOpen(false)}
-        onJump={s.jumpTo}
-      />
+        <QuestionNavigator
+          open={s.navigatorOpen}
+          questions={questions}
+          currentIdx={s.currentIdx}
+          answers={s.answers}
+          bookmarkedIds={s.bookmarked}
+          hintedIds={s.hintedQuestionIds}
+          currentSection={s.currentSection}
+          onClose={() => s.setNavigatorOpen(false)}
+          onJump={s.jumpTo}
+        />
+      </CalculatorScope>
     </div>
   );
 }

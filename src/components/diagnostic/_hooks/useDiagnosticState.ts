@@ -31,6 +31,9 @@ export interface DiagnosticQuestion {
   domain: SATDomain;
   difficulty: 1 | 2 | 3;
   conceptId: string;
+  imageUrl?: string;
+  imageAlt?: string;
+  table?: import("@/components/learn/QuestionTable").QuestionTableData;
   passageIntro?: string;
   passage?: string;
   text: string;
@@ -45,18 +48,19 @@ export interface DiagnosticStateArgs {
 }
 
 export function useDiagnosticState({ questions, isSubscribed }: DiagnosticStateArgs) {
+  const [direction, setDirection] = useState<"next" | "previous">("next");
   const [currentIdx, setCurrentIdx] = useState(0);
   const [selected, setSelected] = useState<string | null>(null);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [showExplanation, setShowExplanation] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [scoring, setScoring] = useState<ScoredDiagnostic | null>(null);
-  const [desmosOpen, setDesmosOpen] = useState(false);
+  const [calculatorOpen, setCalculatorOpen] = useState(false);
   const [scratchpadOpen, setScratchpadOpen] = useState(false);
   const [navigatorOpen, setNavigatorOpen] = useState(false);
   const [exitConfirmOpen, setExitConfirmOpen] = useState(false);
   const router = useRouter();
-  // Constrain Desmos / Scratchpad drag to the diagnostic shell.
+  // Constrain Calculator / Scratchpad drag to the diagnostic shell.
   const shellRef = useRef<HTMLDivElement>(null);
 
   // Per-question UI state — keyed by question id so it survives
@@ -84,6 +88,9 @@ export function useDiagnosticState({ questions, isSubscribed }: DiagnosticStateA
   const isAnswered = selected !== null;
   const currentSection = DOMAIN_SECTION[question.domain];
   const isMathQuestion = currentSection === "math";
+  useEffect(() => {
+    if (!isMathQuestion) setCalculatorOpen(false);
+  }, [isMathQuestion]);
   const questionCrossed = crossedOut[question.id] ?? new Set<string>();
   const questionHighlightedChoices = highlightedChoices[question.id] ?? new Set<string>();
   const questionHighlights = highlights[question.id] ?? [];
@@ -231,14 +238,16 @@ export function useDiagnosticState({ questions, isSubscribed }: DiagnosticStateA
   }, [questions, answers]);
 
   const handleNext = useCallback(() => {
+    if (isSubmitting) return;
+    setDirection("next");
     if (isLast) {
       handleSubmit();
     } else {
-      setCurrentIdx((i) => i + 1);
-      setSelected(null);
+      setCurrentIdx(currentIdx + 1);
+      setSelected(answers[questions[currentIdx + 1].id] ?? null);
       setShowExplanation(false);
     }
-  }, [isLast, handleSubmit]);
+  }, [isLast, handleSubmit, isSubmitting, currentIdx, answers, questions]);
 
   // Keyboard shortcuts:
   //   Escape — close calculator / scratchpad (whichever is open).
@@ -247,6 +256,11 @@ export function useDiagnosticState({ questions, isSubscribed }: DiagnosticStateA
     if (scoring) return;
     function onKey(e: KeyboardEvent) {
       const target = e.target as HTMLElement | null;
+      if (
+        e.defaultPrevented ||
+        target?.closest("[data-calculator-shell], button, summary, select, [role=dialog]")
+      )
+        return;
       const isEditable =
         target?.tagName === "INPUT" ||
         target?.tagName === "TEXTAREA" ||
@@ -254,16 +268,16 @@ export function useDiagnosticState({ questions, isSubscribed }: DiagnosticStateA
       if (isEditable) return;
 
       if (e.key === "Escape") {
-        if (desmosOpen || scratchpadOpen) {
+        if (calculatorOpen || scratchpadOpen) {
           e.preventDefault();
-          if (desmosOpen) setDesmosOpen(false);
+          if (calculatorOpen) setCalculatorOpen(false);
           if (scratchpadOpen) setScratchpadOpen(false);
         }
         return;
       }
 
       if (e.key === "Enter") {
-        if (exitConfirmOpen || navigatorOpen || desmosOpen || scratchpadOpen) return;
+        if (exitConfirmOpen || navigatorOpen || calculatorOpen || scratchpadOpen) return;
         if (!isAnswered || isSubmitting) return;
         e.preventDefault();
         handleNext();
@@ -273,7 +287,7 @@ export function useDiagnosticState({ questions, isSubscribed }: DiagnosticStateA
     return () => window.removeEventListener("keydown", onKey);
   }, [
     scoring,
-    desmosOpen,
+    calculatorOpen,
     scratchpadOpen,
     exitConfirmOpen,
     navigatorOpen,
@@ -285,7 +299,14 @@ export function useDiagnosticState({ questions, isSubscribed }: DiagnosticStateA
   function jumpTo(idx: number) {
     // Cross-section jumps are blocked at the navigator level,
     // but defend in depth.
-    if (DOMAIN_SECTION[questions[idx].domain] !== currentSection) return;
+    if (
+      isSubmitting ||
+      !Number.isInteger(idx) ||
+      !questions[idx] ||
+      DOMAIN_SECTION[questions[idx].domain] !== currentSection
+    )
+      return;
+    setDirection(idx < currentIdx ? "previous" : "next");
     setCurrentIdx(idx);
     setSelected(answers[questions[idx].id] ?? null);
     setShowExplanation(false);
@@ -297,12 +318,13 @@ export function useDiagnosticState({ questions, isSubscribed }: DiagnosticStateA
     // State
     question,
     currentIdx,
+    direction,
     selected,
     answers,
     showExplanation,
     isSubmitting,
     scoring,
-    desmosOpen,
+    calculatorOpen,
     scratchpadOpen,
     navigatorOpen,
     exitConfirmOpen,
@@ -325,7 +347,7 @@ export function useDiagnosticState({ questions, isSubscribed }: DiagnosticStateA
     questionHighlightedChoices,
     questionHighlights,
     // Setters callers need
-    setDesmosOpen,
+    setCalculatorOpen,
     setScratchpadOpen,
     setNavigatorOpen,
     setExitConfirmOpen,

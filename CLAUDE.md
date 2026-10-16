@@ -160,8 +160,10 @@ For changes that affect any of those, the fallback workflow is:
    to share with a teammate, `npx cloudflared tunnel --url http://localhost:3000`
    prints a public URL — free, ephemeral, no signup.
 
-Treat that 60-second manual check as required for anything visual-heavy
-before merge.
+Physical-phone review is optional. The user explicitly removed this requirement
+for the calculator and enhanced quiz workspace release (2026-10-15). Automated
+mobile, keyboard, theme, and integration checks remain required; do not block
+implementation or deployment on a physical-phone check.
 
 ### Real-device capture workflow (iPhone wired to Mac)
 
@@ -214,6 +216,29 @@ scroll behavior, hover-vs-touch states).
 
 See `docs/design-tokens.md` for the canonical type scale + palette the
 drift-checker compares against.
+
+### Karman calculator checks
+
+The Karman calculator is locally implemented. Do not add a hosted calculator
+API, proprietary SDK, or calculator license key. The parser/arithmetic library
+is mathjs (Apache-2.0); the editor, renderer, regression layer and controls are
+in this repository. Notices are in `public/calculator-notices.txt`.
+
+Use `npx vitest run src/lib/calculator` for focused math/import checks and
+`npm run test:calculator -- --project=calculator-chrome --project=calculator-ios`
+for a quick desktop/mobile integration pass. Other configured projects remain
+available. These tests use actual quiz components and stub only persistence,
+navigation, sounds and error reporting. They do not submit student answers.
+Artifacts are written to ignored `tmp/calculator/`. Never carry forward the
+old remote calculator's test results as verification of the local engine.
+
+`npm run dev:calculator` serves the credential-free synthetic preview at
+`http://127.0.0.1:4317/?flow=practice` and `?flow=diagnostic`.
+For a phone on the same Wi-Fi, set `CALCULATOR_FIXTURE_HOST=0.0.0.0` and use
+the Mac's LAN address. HTTP supports source paste/manual paste; system
+clipboard reading requires HTTPS or localhost. The calculator keeps scoped
+Arial/KaTeX typography and light/dark colors. See
+`docs/karman-calculator-design.md` for setup and known numerical limits.
 
 ### Playwright end-to-end tests
 

@@ -9,7 +9,9 @@
 // ============================================================
 
 import { Ban, CheckCircle, Highlighter, XCircle } from "lucide-react";
+import styles from "@/components/learn/quiz/workspace.module.css";
 import { cn } from "@/lib/utils";
+import { CalculatorChoiceAction } from "@/components/calculator/CalculatorSourceAction";
 import MathText from "@/components/learn/MathText";
 
 interface Props {
@@ -113,13 +115,16 @@ export function AnswerChoiceButton({
         </div>
       </button>
 
+      <CalculatorChoiceAction text={choiceBody} letter={letter} />
+
       {/* Hover-revealed action icons — appear on the right edge
           when the user hovers the choice (or whenever a state
           is already active so the indicator doesn't disappear).
           Two big tap targets: highlight + cross-out. */}
       <div
         className={cn(
-          "absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-1 transition-opacity",
+          "absolute right-2 top-1 flex items-center gap-1 transition-opacity",
+          styles.choiceTools,
           isCrossed || isHighlighted
             ? "opacity-100"
             : "opacity-0 focus-within:opacity-100 group-hover:opacity-100"
