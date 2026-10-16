@@ -19,14 +19,25 @@ test("graph controls, slider, draggable point, responsive layout and keyboard is
   await page.getByRole("textbox", { name: "Expression 2", exact: true }).fill("y=a*x^2");
   await page.getByRole("button", { name: "Add expression", exact: true }).click();
   await page.getByRole("textbox", { name: "Expression 3", exact: true }).fill("(2,3)");
-  const graph = page.getByRole("img", { name: /^Graph\./ });
+  const graph = page.getByRole("img", { name: /^Graph from/ });
   await expect(graph).toHaveAttribute("aria-label", /2 plots/);
   const label = await graph.getAttribute("aria-label");
   await graph.focus();
   await graph.press("+");
   await expect(graph).not.toHaveAttribute("aria-label", label!);
   await graph.press("Home");
-  await expect(graph).toHaveAttribute("aria-label", label!);
+  await expect(graph).toHaveAttribute("aria-label", /^Graph from x=-10 to 10,/);
+  const aspectError = await graph.evaluate((canvas) => {
+    const e = window.KarmanEngineInstance as unknown as {
+      xMin: number;
+      xMax: number;
+      yMin: number;
+      yMax: number;
+    };
+    const bounds = canvas.getBoundingClientRect();
+    return Math.abs((e.xMax - e.xMin) / bounds.width - (e.yMax - e.yMin) / bounds.height);
+  });
+  expect(aspectError).toBeLessThan(1e-7);
   if (!isMobile) {
     const box = (await graph.boundingBox())!;
     const point = { x: box.x + box.width * 0.6, y: box.y + box.height / 2 - (3 * box.width) / 20 };
@@ -38,9 +49,9 @@ test("graph controls, slider, draggable point, responsive layout and keyboard is
       "(2,3)"
     );
   }
-  await page.getByRole("button", { name: "Hide expression list" }).click();
-  await expect(row).toHaveCount(0);
-  await page.getByRole("button", { name: "Show expression list" }).click();
+  await page.getByRole("button", { name: "Hide expressions" }).click();
+  await expect(row).toBeHidden();
+  await page.getByRole("button", { name: "Show expressions" }).click();
   await expect(row).toHaveValue("a=4");
   const dialog = page.getByRole("dialog", { name: "Karman calculator", exact: true });
   const sizes = isMobile
@@ -56,9 +67,9 @@ test("graph controls, slider, draggable point, responsive layout and keyboard is
     ).toBeInViewport();
     await page.getByRole("button", { name: "Show calculator keypad" }).click();
     await expect(page.getByRole("button", { name: "7", exact: true })).toBeInViewport();
-    await expect(
-      page.getByRole("button", { name: "Default viewport", exact: true })
-    ).toBeInViewport({ ratio: 1 });
+    await expect(page.getByRole("button", { name: "Recenter graph", exact: true })).toBeInViewport({
+      ratio: 1,
+    });
     await info.attach(`layout-${size.width}`, {
       body: await dialog.screenshot(),
       contentType: "image/png",
@@ -73,7 +84,7 @@ test("graph controls, slider, draggable point, responsive layout and keyboard is
   }
   await page.getByRole("button", { name: "Clear all expressions" }).click();
   await page.getByRole("button", { name: "Show calculator keypad" }).click();
-  for (const name of ["7", "+", "2"]) {
+  for (const name of ["7", "Plus", "2"]) {
     await page.getByRole("button", { name, exact: true }).click();
   }
   await expect(page.getByLabel("Result 1", { exact: true })).toHaveText("9");

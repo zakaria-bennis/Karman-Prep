@@ -79,7 +79,9 @@ f(x) = (1/2)(x + 11).` (matching function/variable, positive integer
 
 The user authorized the original Karman calculator release on 2026-10-15.
 Use the local calculator in Math practice and diagnostics. Never load a Desmos
-API, SDK, or proprietary component. Mathjs is Apache-2.0. Question changes clear
+API, SDK, or proprietary component. The standalone runtime has no third-party
+dependencies; run `npm run calculator:build` after editing its `lib/` modules.
+Question changes clear
 calculator and scratch work. Physical-phone review is optional and must not
 block this release; automated mobile, keyboard and theme checks remain required.
 

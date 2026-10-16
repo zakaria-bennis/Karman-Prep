@@ -5,7 +5,7 @@ import {
   readCatalogQuestionScope,
   catalogQuestionPayloadHash,
 } from "@/lib/question-bank/catalog-question-scope";
-import { CLUSTER_BY_DOMAIN } from "@/lib/question-bank/taxonomy";
+import { clusterLabelsForDomain, type SATDomain } from "@/lib/question-bank/taxonomy";
 import {
   numericAnswerSetFromEvidence,
   reviewedNumericAnswers,
@@ -55,7 +55,7 @@ export async function fetchCatalogQuestionPool(input: unknown): Promise<QuizQues
       .in("publish_status", ["publish_ready", "publish_ready_with_verified_repair"])
       .eq("subject", skill.subject)
       .eq("domain", skill.domainId)
-      .eq("topic_cluster", CLUSTER_BY_DOMAIN[skill.domainId as keyof typeof CLUSTER_BY_DOMAIN])
+      .in("topic_cluster", clusterLabelsForDomain(skill.domainId as SATDomain))
       .gte("difficulty_level", scope.minimumDifficulty)
       .lte("difficulty_level", scope.maximumDifficulty)
       .order("id", { ascending: true });

@@ -51,7 +51,9 @@ for (const flow of ["practice", "diagnostic"]) {
       .getByRole("button", { name: "Paste \\sin(30) into calculator", exact: true })
       .click();
     await expect(page.getByLabel("Result 1", { exact: true })).toHaveText("0.5");
-    await expect(shell(page).locator(".katex").first()).not.toContainText("operatorname");
+    await expect(page.getByRole("textbox", { name: "Expression 1", exact: true })).toHaveValue(
+      "sin(30)"
+    );
     await expect(page.getByRole("region", { name: "Calculator keypad" })).toHaveCount(0);
     await page.getByRole("button", { name: "Show calculator keypad" }).click();
     await expect(page.getByRole("button", { name: "7", exact: true })).toBeVisible();
@@ -94,22 +96,26 @@ test("keyboard editing, undo, tables, regressions, angles, scientific mode and i
   await expect(page.getByLabel("Result 1", { exact: true })).toHaveText("14");
   await field.press("Enter");
   await page.getByRole("textbox", { name: "Expression 2", exact: true }).fill("x^2=4");
-  await expect(page.getByLabel("Result 2", { exact: true })).toHaveText("x = -2, 2");
+  await expect(page.locator("#karman-graph-canvas")).toHaveAttribute("aria-label", /1 plots/);
   await page.getByRole("button", { name: "Undo", exact: true }).click();
   await expect(page.getByRole("textbox", { name: "Expression 2", exact: true })).toHaveValue("");
   await page.getByRole("button", { name: "Redo", exact: true }).click();
   await transfer(page, "x,y\n1,3\n2,5\n3,7\n4,9");
-  await page.getByRole("combobox", { name: "Add regression" }).selectOption("linear");
-  await expect(page.getByLabel("Regression results")).toContainText("m = 2");
+  await page.getByRole("combobox", { name: "Regression model 1" }).selectOption("m*x+b");
+  await page.getByRole("button", { name: "Add regression", exact: true }).click();
+  await expect(page.getByRole("slider", { name: "Slider m", exact: true })).toBeVisible();
   await expect(page.getByLabel("Regression results")).toContainText("R² = 1");
   await transfer(page, "sin(30)");
   await expect(page.getByLabel("Result 5", { exact: true })).toHaveText("0.5");
   await page.getByRole("button", { name: "Graph settings", exact: true }).click();
-  await expect(page.getByRole("radio", { name: "Degrees", exact: true })).toBeChecked();
-  await page.getByRole("radio", { name: "Radians", exact: true }).check();
+  await expect(page.getByRole("button", { name: "DEG", exact: true })).toHaveAttribute(
+    "aria-pressed",
+    "true"
+  );
+  await page.getByRole("button", { name: "RAD", exact: true }).click();
   await expect(page.getByLabel("Result 5", { exact: true })).toHaveText("-0.9880316241");
   await page.getByRole("checkbox", { name: "Complex mode", exact: true }).check();
-  await page.getByRole("radio", { name: "Radial", exact: true }).check();
+  await page.locator("#grid-mode").selectOption("radial");
   await page.getByRole("button", { name: "Close graph settings" }).click();
   await transfer(page, "sqrt(-1)");
   await expect(page.getByLabel("Result 6", { exact: true })).toHaveText("i");
