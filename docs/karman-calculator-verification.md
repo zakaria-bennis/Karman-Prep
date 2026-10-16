@@ -59,9 +59,9 @@ those tests without changes to application or test behavior. The full
 database-backed E2E and historical whole-site visual baseline suites are not
 part of this run; calculator/workspace coverage uses the scoped browser harness.
 
-All **30 desktop Chromium and iPhone WebKit browser cases pass**, including
-a targeted rerun of the layout case after replacing an overly exact viewport
-string assertion with a numerical aspect-ratio check. Separate standalone
+All **30 desktop Chromium and iPhone WebKit browser cases passed together**
+on the final calculator bundle. The layout check verifies numerical aspect
+ratio after Home rather than requiring identical floating-point text. Separate standalone
 checks pass over file URLs and a strict CSP that forbids dynamic compilation;
 these verify painted implicit-curve pixels, arithmetic, theme changes and reset.
 TypeScript, ESLint, Prettier, file-size checks, taxonomy regeneration stability
@@ -74,6 +74,35 @@ WebKit iPhone emulation is not physical-iPhone testing. No approved Blue Book
 screenshot was supplied; this is an original implementation with a familiar
 layout, not a claim of pixel-identical or complete Desmos parity. Audio/Braille
 and undocumented advanced inference panels are intentionally omitted.
+
+## Standalone release result — October 16, 2026
+
+Runtime commit: `b835b1dddcd83c6a816e158166945a9931070278` (calculator implementation
+in `67a933d`, followed by the diagnostic landing-copy correction).
+Cloudflare activated Worker `92891358-12c4-4ea0-b55b-d7a1b3f3d264` at
+`2026-10-16T08:09:36.510534Z`, serving 100% of production traffic.
+Review: [PR #209](https://github.com/zakaria-bennis/Karman-Prep/pull/209).
+
+Post-deploy checks:
+
+- The three live static files exactly match the verified local build.
+- Desktop Chromium and iPhone WebKit both passed degree-default arithmetic,
+  numeric subscripts, implicit plotting, regression sliders/refitting, theme
+  switching and cleanup on the [public calculator](https://karmanprep.com/karman-calculator/).
+- The homepage and free-diagnostic landing page return HTTP 200. The latter now
+  describes the built-in Karman calculator accurately.
+- In the signed-in live scatterplot skill preview, the new calculator opens
+  inside the quiz, plots `x^2+y^2=25`, fits a two-point table with R²=1 and r=1,
+  updates the fit and metrics when the slope slider moves by keyboard, and
+  restores the fitted coefficients with **Refit data**. Table and regression
+  variable suffixes render as x₁/y₁. No graded attempt was started or submitted.
+- The standalone browser sessions made no Desmos requests; the source and
+  built-artifact audit found no proprietary API/components. The signed-in
+  diagnostic flow is covered by the shared-component browser harness, not a
+  new graded production diagnostic attempt.
+
+The previous Worker `9138e50d-7f22-4f0a-82e8-6366274d9041` is retained as the
+rollback target. No question data, scoring rules, secrets or migrations changed.
 
 ## Previous release result (retained for rollback provenance)
 
