@@ -141,6 +141,30 @@ describe("canonical skill pool query", () => {
     );
   });
 
+  it("filters the cluster by every accepted spelling of its label, not one exact string", async () => {
+    fixture.keys = [{ question_id: "q1", raw_model_response: approvedCatalogEvidence() }];
+    fixture.questions = [catalogQuestion("q1")];
+    await fetchCatalogQuestionPool({ skillId: catalogSkillId });
+    expect(fixture.calls).toContainEqual(["in", "topic_cluster", ["Algebra"]]);
+    expect(fixture.calls.some((call) => call[0] === "eq" && call[1] === "topic_cluster")).toBe(
+      false
+    );
+  });
+
+  it("serves a later-batch approval named by stable_question_id and sealed only by payload", async () => {
+    const { question_id, ...evidence } = approvedCatalogEvidence();
+    const { pilot_row_sha256: _p, ...tags } = evidence.approved_tags;
+    void _p;
+    fixture.keys = [
+      {
+        question_id: "q1",
+        raw_model_response: { ...evidence, stable_question_id: question_id, approved_tags: tags },
+      },
+    ];
+    fixture.questions = [catalogQuestion("q1")];
+    expect(await fetchCatalogQuestionPool({ skillId: catalogSkillId })).toHaveLength(1);
+  });
+
   it("paginates private key metadata without truncating a pool at the API default", async () => {
     fixture.keys = Array.from({ length: 501 }, (_, index) => ({
       question_id: `q${index}`,

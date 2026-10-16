@@ -34,7 +34,8 @@ export type CatalogDeliverySnapshot = {
     sourceVersion: string | null;
     contentSha256: string;
     studentContentSha256: string;
-    pilotRowSha256: string;
+    /** Null for later reviewed batches, which are sealed by the delivered payload instead. */
+    pilotRowSha256: string | null;
     tagBindingManifestSha256: string;
   };
 };
@@ -76,7 +77,7 @@ export function buildCatalogDeliverySnapshot(
         null,
       contentSha256: scope.tags.content_sha256,
       studentContentSha256: scope.tags.student_content_sha256,
-      pilotRowSha256: scope.tags.pilot_row_sha256,
+      pilotRowSha256: scope.tags.pilot_row_sha256 ?? null,
       tagBindingManifestSha256: scope.tags.tag_binding_manifest_sha256,
     },
   };

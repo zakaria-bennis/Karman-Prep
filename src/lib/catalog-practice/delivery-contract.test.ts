@@ -11,6 +11,18 @@ function fixture() {
   return buildCatalogDeliverySnapshot(q, evidence);
 }
 
+describe("delivery provenance for payload-sealed approvals", () => {
+  it("records an absent pilot-row hash as null and keeps the pilot hash when present", () => {
+    const q = catalogQuestion() as unknown as QuizQuestionWithChoices;
+    const { question_id, ...evidence } = approvedCatalogEvidence();
+    const { pilot_row_sha256: _p, ...tags } = evidence.approved_tags;
+    void _p;
+    const sealedOnly = { ...evidence, stable_question_id: question_id, approved_tags: tags };
+    expect(buildCatalogDeliverySnapshot(q, sealedOnly).evidence.pilotRowSha256).toBeNull();
+    expect(fixture().evidence.pilotRowSha256).toBe("d".repeat(64));
+  });
+});
+
 describe("frozen answer-free source display projection", () => {
   it("preserves exactly the three reviewed display strings without re-deriving from omitted source metadata", () => {
     const snapshot = fixture();
