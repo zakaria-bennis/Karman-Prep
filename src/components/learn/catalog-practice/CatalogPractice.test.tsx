@@ -21,7 +21,10 @@ vi.mock("@/app/learn/catalog-quiz-actions", () => ({
   actionSubmitCatalogPractice: mocks.submit,
   actionCompleteCatalogPractice: mocks.complete,
 }));
-vi.mock("next/navigation", () => ({ useRouter: () => ({ replace: mocks.replace }) }));
+vi.mock("next/navigation", () => ({
+  usePathname: () => "/learn/math",
+  useRouter: () => ({ replace: mocks.replace }),
+}));
 vi.mock("next/link", () => ({
   default: ({ children, ...props }: React.AnchorHTMLAttributes<HTMLAnchorElement>) => (
     <a {...props}>{children}</a>

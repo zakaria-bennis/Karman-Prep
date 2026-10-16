@@ -10,29 +10,18 @@
 // Used by DiagnosticClient only.
 
 import { Bookmark, BookmarkCheck, LayoutGrid, PencilLine, X } from "lucide-react";
-import ExternalCalculatorLink from "@/components/learn/ExternalCalculatorLink";
+import { CalculatorTrigger } from "@/components/calculator/CalculatorScope";
+import { TimerToggle, HighlightTool } from "@/components/learn/quiz/QuizTools";
+import { QuizMenu } from "@/components/learn/quiz/QuizMenu";
 import { cn } from "@/lib/utils";
-
-const SECTION_LABELS: Record<"math" | "rw", string> = {
-  math: "Math",
-  rw: "Reading & Writing",
-};
-
-function fmtClock(sec: number): string {
-  const m = Math.floor(sec / 60);
-  const s = sec % 60;
-  return `${m}:${s.toString().padStart(2, "0")}`;
-}
 
 export function DiagnosticHeader({
   isMathQuestion,
   scratchpadOpen,
   isBookmarked,
-  currentSection,
   sectionTimeLeft,
-  timerColor,
-  timerPct,
   minutesLeft,
+  timerColor,
   onOpenExit,
   onOpenNavigator,
   onToggleScratchpad,
@@ -72,10 +61,12 @@ export function DiagnosticHeader({
         </div>
 
         <div className="flex max-w-full flex-wrap items-center gap-2">
-          <ExternalCalculatorLink subject={isMathQuestion ? "math" : "reading"} />
+          {isMathQuestion && <CalculatorTrigger />}
+          <HighlightTool />
+          <QuizMenu subject={isMathQuestion ? "math" : "reading"} />
 
           {/* Scratchpad — pristine white accent. */}
-          {isMathQuestion && (
+          {
             <button
               type="button"
               onClick={onToggleScratchpad}
@@ -91,7 +82,7 @@ export function DiagnosticHeader({
               <PencilLine className="h-3.5 w-3.5" />
               Scratchpad
             </button>
-          )}
+          }
 
           {/* Question navigator — prompt labels preserve jump navigation
               without showing ordinals or source identifiers. */}
@@ -130,45 +121,10 @@ export function DiagnosticHeader({
             {isBookmarked ? "Saved" : "Bookmark"}
           </button>
 
-          {/* Section timer — clock for the active SAT section.
-              Shows "Math 31:42" or "Reading & Writing 17:08", with
-              a circular progress ring that turns amber under 5
-              minutes and red under 1 minute. */}
-          <div className="ml-1 flex items-center gap-2 border-l border-bronze pl-1.5 pl-3 dark:border-bronze">
-            <svg width="32" height="32" className="-rotate-90">
-              <circle
-                cx="16"
-                cy="16"
-                r="12"
-                strokeWidth="3"
-                fill="none"
-                className="stroke-ivory dark:stroke-ivory"
-              />
-              <circle
-                cx="16"
-                cy="16"
-                r="12"
-                strokeWidth="3"
-                fill="none"
-                stroke={timerColor}
-                strokeLinecap="round"
-                strokeDasharray={75.4}
-                strokeDashoffset={75.4 - (timerPct / 100) * 75.4}
-                className="transition-all duration-1000"
-              />
-            </svg>
-            <div className="flex flex-col leading-none">
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-taupe dark:text-taupe">
-                {SECTION_LABELS[currentSection]}
-              </span>
-              <span className="font-mono text-sm font-bold" style={{ color: timerColor }}>
-                {fmtClock(sectionTimeLeft)}
-              </span>
-            </div>
-            {minutesLeft <= 0 && sectionTimeLeft > 0 && (
-              <span className="sr-only">Less than a minute remaining</span>
-            )}
-          </div>
+          <TimerToggle seconds={sectionTimeLeft} countdown color={timerColor} />
+          {minutesLeft <= 0 && sectionTimeLeft > 0 && (
+            <span className="sr-only">Less than a minute remaining</span>
+          )}
         </div>
       </div>
     </div>

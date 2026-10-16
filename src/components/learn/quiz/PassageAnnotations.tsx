@@ -18,6 +18,7 @@ interface Mark extends TextRange {
   id: string;
   kind: "highlight" | "underline";
   note: string;
+  color?: number;
 }
 type Markings = Record<string, Mark[]>;
 const AnnotationContext = createContext<{
@@ -35,6 +36,7 @@ export function AnnotationProvider({ children }: { children: ReactNode }) {
   );
 }
 
+const highlightColors = ["#ffe08a", "#9de1ed", "#dab6f5", "#aee4b7", "#ffc4ae", "#c6d7ff"];
 const buttonClass =
   "min-h-11 rounded-lg border border-bronze px-3 py-2 text-sm font-semibold text-ivory focus-visible:outline focus-visible:outline-2 focus-visible:outline-info disabled:opacity-40";
 
@@ -77,9 +79,17 @@ export default function PassageAnnotations({
   useLayoutEffect(() => {
     if (!root.current || typeof Highlight === "undefined" || !CSS.highlights) return;
     const registry = CSS.highlights;
-    for (const kind of ["highlight", "underline"] as const) {
+    for (const kind of [
+      "highlight",
+      "underline",
+      ...highlightColors.map((_, i) => `highlight-${i}`),
+    ]) {
       const ranges = (marks ?? [])
-        .filter((mark) => mark.kind === kind)
+        .filter((mark) =>
+          kind === "underline"
+            ? mark.kind === "underline"
+            : kind === `highlight-${mark.color ?? 0}` && mark.kind === "highlight"
+        )
         .map((mark) => restoreRange(root.current!, mark))
         .filter((range): range is Range => !!range);
       registry.set(`${id}-${kind}`, new Highlight(...ranges));
@@ -87,17 +97,31 @@ export default function PassageAnnotations({
     return () => {
       registry.delete(`${id}-highlight`);
       registry.delete(`${id}-underline`);
+      highlightColors.forEach((_, i) => registry.delete(`${id}-highlight-${i}`));
     };
   }, [marks, id, questionId, children]);
 
   function add(kind: Mark["kind"]) {
     if (!selected || !root.current || !restoreRange(root.current, selected)) return;
-    const mark: Mark = { ...selected, id: crypto.randomUUID(), kind, note: "" };
+    const mark: Mark = {
+      ...selected,
+      id: crypto.randomUUID(),
+      kind,
+      note: "",
+      color: (marks ?? []).filter((m) => m.kind === "highlight").length % highlightColors.length,
+    };
     setMarkings((old) => ({ ...old, [questionId]: [...(old[questionId] ?? []), mark] }));
     setMessage(kind === "highlight" ? "Highlight added." : "Underline added.");
     window.getSelection()?.removeAllRanges();
   }
 
+  const highlightAction = useRef(() => add("highlight"));
+  highlightAction.current = () => add("highlight");
+  useEffect(() => {
+    const handle = () => highlightAction.current();
+    window.addEventListener("quiz-highlight-selection", handle);
+    return () => window.removeEventListener("quiz-highlight-selection", handle);
+  }, []);
   function findPhrase() {
     const start = root.current?.textContent?.indexOf(phrase) ?? -1;
     if (!phrase.trim() || start < 0) {
@@ -111,6 +135,14 @@ export default function PassageAnnotations({
 
   return (
     <section aria-label="Passage tools" className="min-w-0 space-y-4">
+      <style>
+        {highlightColors
+          .map(
+            (color, i) =>
+              `::highlight(${id}-highlight-${i}) { background-color: ${color}; color: #1d2420; }`
+          )
+          .join("\n")}
+      </style>
       <style>{`::highlight(${id}-highlight) { background-color: rgb(var(--k-gold)); color: rgb(var(--k-night)); }
         ::highlight(${id}-underline) { text-decoration: underline; text-decoration-thickness: 2px; text-decoration-color: currentColor; }`}</style>
       <div className="font-sans text-sm leading-relaxed">
@@ -180,9 +212,13 @@ export default function PassageAnnotations({
                 <p className="break-words">
                   <strong>{mark.kind === "highlight" ? "Highlight" : "Underline"}:</strong>{" "}
                   <span
-                    className={
-                      mark.kind === "highlight" ? "bg-gold text-night" : "underline decoration-2"
+                    data-highlight-color={mark.kind === "highlight" ? (mark.color ?? 0) : undefined}
+                    style={
+                      mark.kind === "highlight"
+                        ? { backgroundColor: highlightColors[mark.color ?? 0], color: "#1d2420" }
+                        : undefined
                     }
+                    className={mark.kind === "underline" ? "underline decoration-2" : ""}
                   >
                     {mark.quote}
                   </span>

@@ -6,7 +6,10 @@ import { HighlightablePassage, type PassageHighlight } from "./HighlightablePass
 import { useDiagnosticState, type DiagnosticQuestion } from "./_hooks/useDiagnosticState";
 import { QuestionNavigator } from "./QuestionNavigator";
 import DiagnosticClient from "./DiagnosticClient";
-vi.mock("next/navigation", () => ({ useRouter: () => ({ replace: vi.fn() }) }));
+vi.mock("next/navigation", () => ({
+  usePathname: () => "/free-diagnostic",
+  useRouter: () => ({ replace: vi.fn() }),
+}));
 afterEach(cleanup);
 const questions: DiagnosticQuestion[] = [
   {
@@ -123,7 +126,7 @@ it("uses prompt labels, traps keyboard focus and restores the opener without num
   render(<Navigation />);
   screen.getByRole("button", { name: "Browse" }).focus();
   fireEvent.click(screen.getByRole("button", { name: "Browse" }));
-  const close = screen.getByRole("button", { name: "Close navigator" });
+  const close = screen.getByRole("button", { name: "Close question guide" });
   expect(close).toHaveFocus();
   expect(
     screen.getByRole("button", { name: "Current prompt: What does alpha mean?" })

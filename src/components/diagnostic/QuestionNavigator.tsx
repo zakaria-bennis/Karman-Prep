@@ -84,13 +84,13 @@ export function QuestionNavigator({
         <header className="border-b border-bronze px-5 py-4">
           <div className="flex items-center justify-between gap-3">
             <h2 id="diagnostic-navigation-title" className="text-lg font-bold">
-              All questions
+              Question guide
             </h2>
             <button
               ref={close}
               type="button"
               onClick={onClose}
-              aria-label="Close navigator"
+              aria-label="Close question guide"
               className="flex min-h-11 min-w-11 items-center justify-center rounded-lg border border-bronze focus-visible:outline focus-visible:outline-2 focus-visible:outline-info"
             >
               <X className="h-4 w-4" aria-hidden="true" />

@@ -46,7 +46,7 @@ describe("local passage marking without source mutation", () => {
     mark("Underline", "source emphasis");
     expect(
       [...registry.values()].flatMap((ranges) => [...ranges].map((r) => r.toString()))
-    ).toEqual(["source words", "source emphasis"]);
+    ).toEqual(expect.arrayContaining(["source words", "source emphasis"]));
     expect(view.container.querySelector("[data-annotation-text]")!.innerHTML).toBe(before);
     view.rerender(passage("second"));
     expect(screen.queryByText("Notes and markings")).toBeNull();

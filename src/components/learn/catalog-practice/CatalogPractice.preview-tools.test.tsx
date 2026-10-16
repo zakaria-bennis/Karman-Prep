@@ -19,7 +19,10 @@ vi.mock("@/app/learn/catalog-quiz-actions", () => ({
   actionSubmitCatalogPractice: actions.submit,
   actionCompleteCatalogPractice: actions.complete,
 }));
-vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
+vi.mock("next/navigation", () => ({
+  usePathname: () => "/learn/math",
+  useRouter: () => ({ refresh: vi.fn() }),
+}));
 vi.mock("../Scratchpad", () => ({
   default: ({ pageKey }: { pageKey: string }) => <div data-testid="scratch-key">{pageKey}</div>,
 }));

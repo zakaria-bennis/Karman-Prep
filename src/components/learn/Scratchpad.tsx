@@ -1,379 +1,302 @@
 "use client";
 
-// ============================================================
-// Scratchpad — floating draggable canvas for freehand scratch work.
-//
-// Karman-themed: deep aubergine background (almost-black with a
-// purple tint), white default pen, plus a 10-color palette that
-// pops out of the pen button. Pointer events; no pressure.
-// ============================================================
-
-import { motion, useDragControls, useMotionValue } from "framer-motion";
-import { X, GripHorizontal, Eraser, Pen, ChevronDown } from "lucide-react";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { cn } from "@/lib/utils";
+import { useEffect, useRef, useState } from "react";
+import { GripHorizontal, X } from "lucide-react";
+import { eraseInk, type InkPoint, type InkStroke } from "@/lib/quiz/ink";
+import styles from "./quiz/scratchpad.module.css";
 
 interface Props {
-  onClose: () => void;
+  onClose(): void;
   open?: boolean;
   pageKey?: string;
-  constraintsRef: React.RefObject<HTMLDivElement | null>;
+  constraintsRef?: React.RefObject<HTMLDivElement | null>;
 }
-
-type Tool = "pen" | "eraser";
-
-// 5-color palette — soft pastels tuned for the aubergine canvas.
-// White anchors the set; the four pastels carry equal weight so
-// the swatches read as a balanced row.
-const PEN_COLORS: { hex: string; label: string }[] = [
-  { hex: "#FFFFFF", label: "White" },
-  { hex: "#E4C86A", label: "Lavender" },
-  { hex: "#A6C486", label: "Pastel green" },
-  { hex: "#7FC4FF", label: "Pastel blue" },
-  { hex: "#F0BE72", label: "Pastel orange" },
+type Tool = "pen" | "stroke" | "precision";
+const colors = [
+  "#d94645",
+  "#e57b29",
+  "#c29b17",
+  "#278044",
+  "#2574d9",
+  "#8355cd",
+  "#c73b8d",
+  "#333333",
+  "#ffffff",
 ];
 
-// Karman aubergine — almost black, slight purple. Tuned to read
-// as a distinct surface against the navy diagnostic shell while
-// still feeling part of the same family.
-const SCRATCHPAD_BG = "#12110D";
+function constrain(next: { x: number; y: number; width: number; height: number }) {
+  const vw = window.innerWidth,
+    vh = window.visualViewport?.height ?? window.innerHeight;
+  const width = Math.min(Math.max(260, next.width), vw - 24);
+  // Always leave at least 38% of the screen available for the question.
+  const height = Math.min(Math.max(200, next.height), vh * 0.62);
+  return {
+    width,
+    height,
+    x: Math.max(12, Math.min(next.x, vw - width - 12)),
+    y: Math.max(12, Math.min(next.y, vh - height - 12)),
+  };
+}
 
 export default function Scratchpad({ onClose, open = true, pageKey = "session" }: Props) {
-  const closeRef = useRef(onClose);
+  const [mode, setMode] = useState<"drawing" | "typing">("drawing");
+  const [tool, setTool] = useState<Tool>("pen");
+  const [color, setColor] = useState("currentColor");
+  const [text, setText] = useState("");
+  const [strokes, setStrokes] = useState<InkStroke[]>([]);
+  const [box, setBox] = useState({ x: 16, y: 120, width: 470, height: 350 });
+  const nextId = useRef(0);
+  const ink = useRef(false);
+  const move = useRef<{ x: number; y: number; start: typeof box; resize: boolean } | null>(null);
+
   useEffect(() => {
-    closeRef.current = onClose;
-  }, [onClose]);
-  const viewportRef = useRef<HTMLDivElement>(null);
-  const panelRef = useRef<HTMLDivElement>(null);
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
+    const update = () => setBox((b) => constrain(b));
+    update();
+    window.addEventListener("resize", update);
+    window.visualViewport?.addEventListener("resize", update);
+    return () => {
+      window.removeEventListener("resize", update);
+      window.visualViewport?.removeEventListener("resize", update);
+    };
+  }, []);
+  useEffect(() => {
+    setText("");
+    setStrokes([]);
+  }, [pageKey]);
+  const panelRef = useRef<HTMLElement>(null);
   useEffect(() => {
     if (!open) return;
     const previous = document.activeElement as HTMLElement | null;
-    x.set(0);
-    y.set(0);
-    panelRef.current?.querySelector<HTMLButtonElement>("button")?.focus();
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        event.preventDefault();
-        closeRef.current();
-      }
-    };
-    window.addEventListener("keydown", onKey);
+    panelRef.current?.focus();
     return () => {
-      window.removeEventListener("keydown", onKey);
-      previous?.focus();
+      if (previous?.isConnected) previous.focus();
     };
-  }, [open, x, y]);
-  const controls = useDragControls();
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const savedPages = useRef(new Map<string, HTMLCanvasElement>());
-  const initialized = useRef(false);
-  useLayoutEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const pages = savedPages.current;
-    if (initialized.current) {
-      const ctx = canvas.getContext("2d");
-      if (ctx) {
-        ctx.save();
-        ctx.setTransform(1, 0, 0, 1, 0, 0);
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        const saved = pages.get(pageKey);
-        if (saved) ctx.drawImage(saved, 0, 0, canvas.width, canvas.height);
-        ctx.restore();
-      }
-    }
-    return () => {
-      if (!initialized.current) return;
-      const saved = document.createElement("canvas");
-      saved.width = canvas.width;
-      saved.height = canvas.height;
-      saved.getContext("2d")?.drawImage(canvas, 0, 0);
-      pages.set(pageKey, saved);
-    };
-  }, [pageKey]);
-  useEffect(() => {
-    const resetPosition = () => {
-      x.set(0);
-      y.set(0);
-    };
-    window.addEventListener("resize", resetPosition);
-    return () => window.removeEventListener("resize", resetPosition);
-  }, [x, y]);
-  const drawingRef = useRef(false);
-  const lastPointRef = useRef<{ x: number; y: number } | null>(null);
-
-  const [tool, setTool] = useState<Tool>("pen");
-  const [penColor, setPenColor] = useState<string>(PEN_COLORS[0].hex);
-  const [paletteOpen, setPaletteOpen] = useState(false);
-  const paletteRef = useRef<HTMLDivElement>(null);
-
-  // Sync the canvas bitmap to the layout size at HiDPI. Runs on
-  // every layout change via ResizeObserver — the parent in
-  // DiagnosticClient toggles display:none for persistence, so the
-  // canvas may mount at 0x0 (clientWidth/Height are 0 while
-  // hidden). A one-shot useEffect would lock in a 0x0 bitmap and
-  // strokes would silently no-op. Existing drawing is preserved
-  // across resizes by blitting through an offscreen canvas.
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const sync = () => {
-      const dpr = window.devicePixelRatio || 1;
-      const cssW = canvas.clientWidth;
-      const cssH = canvas.clientHeight;
-      if (cssW === 0 || cssH === 0) return;
-      initialized.current = true;
-      const targetW = Math.round(cssW * dpr);
-      const targetH = Math.round(cssH * dpr);
-      if (canvas.width === targetW && canvas.height === targetH) return;
-
-      // Snapshot the current bitmap so resize doesn't wipe strokes.
-      let snapshot: HTMLCanvasElement | null = null;
-      if (canvas.width > 0 && canvas.height > 0) {
-        snapshot = document.createElement("canvas");
-        snapshot.width = canvas.width;
-        snapshot.height = canvas.height;
-        snapshot.getContext("2d")?.drawImage(canvas, 0, 0);
-      }
-
-      canvas.width = targetW;
-      canvas.height = targetH;
-      const ctx = canvas.getContext("2d");
-      if (!ctx) return;
-      ctx.scale(dpr, dpr);
-      if (snapshot) ctx.drawImage(snapshot, 0, 0, cssW, cssH);
-    };
-
-    sync();
-    if (typeof ResizeObserver === "undefined") return;
-    const ro = new ResizeObserver(sync);
-    ro.observe(canvas);
-    return () => ro.disconnect();
-  }, []);
-
-  // Click-outside to close the color palette.
-  useEffect(() => {
-    if (!paletteOpen) return;
-    function onDocClick(e: MouseEvent) {
-      if (paletteRef.current && !paletteRef.current.contains(e.target as Node)) {
-        setPaletteOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", onDocClick);
-    return () => document.removeEventListener("mousedown", onDocClick);
-  }, [paletteOpen]);
-
-  function getCtx() {
-    return canvasRef.current?.getContext("2d") ?? null;
+  }, [open]);
+  function startMove(e: React.PointerEvent, resize = false) {
+    e.currentTarget.setPointerCapture(e.pointerId);
+    move.current = { x: e.clientX, y: e.clientY, start: box, resize };
   }
-
-  function handlePointerDown(e: React.PointerEvent<HTMLCanvasElement>) {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    canvas.setPointerCapture(e.pointerId);
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    drawingRef.current = true;
-    lastPointRef.current = { x, y };
-    const ctx = getCtx();
-    if (!ctx) return;
-    ctx.beginPath();
-    ctx.moveTo(x, y);
+  function moving(e: React.PointerEvent) {
+    const m = move.current;
+    if (!m) return;
+    const dx = e.clientX - m.x,
+      dy = e.clientY - m.y;
+    setBox(
+      constrain(
+        m.resize
+          ? { ...m.start, width: m.start.width + dx, height: m.start.height + dy }
+          : { ...m.start, x: m.start.x + dx, y: m.start.y + dy }
+      )
+    );
   }
-
-  function handlePointerMove(e: React.PointerEvent<HTMLCanvasElement>) {
-    if (!drawingRef.current) return;
-    const canvas = canvasRef.current;
-    const ctx = getCtx();
-    if (!canvas || !ctx) return;
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-
-    if (tool === "eraser") {
-      ctx.lineWidth = 22;
-      ctx.lineCap = "round";
-      ctx.globalCompositeOperation = "destination-out";
-      // strokeStyle is irrelevant under destination-out, but set
-      // to avoid lingering values.
-      ctx.strokeStyle = "rgba(0,0,0,1)";
+  function point(e: React.PointerEvent<SVGSVGElement>): InkPoint {
+    const rect = e.currentTarget.getBoundingClientRect();
+    return {
+      x: ((e.clientX - rect.left) / rect.width) * 1000,
+      y: ((e.clientY - rect.top) / rect.height) * 600,
+    };
+  }
+  function draw(e: React.PointerEvent<SVGSVGElement>, start = false) {
+    const p = point(e);
+    if (tool !== "pen") {
+      setStrokes((old) => eraseInk(old, p, 28, tool === "stroke"));
+    } else if (start) {
+      nextId.current++;
+      setStrokes((old) =>
+        [...old, { id: nextId.current, color, points: [p, { x: p.x + 0.1, y: p.y }] }].slice(-500)
+      );
     } else {
-      ctx.lineWidth = 2.2;
-      ctx.lineCap = "round";
-      ctx.lineJoin = "round";
-      ctx.globalCompositeOperation = "source-over";
-      ctx.strokeStyle = penColor;
+      setStrokes((old) =>
+        old.map((s, i) =>
+          i === old.length - 1 && s.points.length < 5000 ? { ...s, points: [...s.points, p] } : s
+        )
+      );
     }
-
-    ctx.lineTo(x, y);
-    ctx.stroke();
-    lastPointRef.current = { x, y };
   }
-
-  function handlePointerUp() {
-    drawingRef.current = false;
-    lastPointRef.current = null;
-    const ctx = getCtx();
-    if (ctx) ctx.globalCompositeOperation = "source-over";
-  }
-
-  function clearCanvas() {
-    const canvas = canvasRef.current;
-    const ctx = getCtx();
-    if (!canvas || !ctx) return;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-  }
-
+  if (!open) return null;
   return (
-    <div
-      ref={viewportRef}
-      className="pointer-events-none fixed inset-2 z-[80]"
-      style={{ display: open ? undefined : "none" }}
+    <section
+      ref={panelRef}
+      tabIndex={-1}
+      role="region"
+      aria-label="Scratchpad"
+      className={styles.pad}
+      style={{ left: box.x, top: box.y, width: box.width, height: box.height }}
+      onKeyDown={(e) => {
+        if (e.key === "Escape") {
+          e.stopPropagation();
+          onClose();
+        }
+      }}
     >
-      <motion.div
-        ref={panelRef}
-        role="dialog"
-        aria-label="Scratchpad"
-        drag
-        dragListener={false}
-        dragControls={controls}
-        dragConstraints={viewportRef}
-        dragMomentum={false}
-        dragElastic={0.05}
-        initial={false}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.9 }}
-        transition={{ type: "spring", stiffness: 350, damping: 28 }}
-        className="pointer-events-auto absolute left-0 top-0 flex resize flex-col overflow-hidden rounded-2xl border border-white/20 text-white shadow-2xl"
-        style={{
-          x,
-          y,
-          width: "min(520px, 100%)",
-          height: "min(400px, 100%)",
-          maxWidth: "100%",
-          maxHeight: "100%",
-          minWidth: "min(280px, 100%)",
-          minHeight: "min(240px, 100%)",
-          background: SCRATCHPAD_BG,
+      <header>
+        <button
+          type="button"
+          aria-label="Move scratchpad"
+          className={styles.drag}
+          onPointerDown={(e) => startMove(e)}
+          onPointerMove={moving}
+          onPointerUp={() => {
+            move.current = null;
+          }}
+          onPointerCancel={() => {
+            move.current = null;
+          }}
+          onKeyDown={(e) => {
+            const d = (
+              {
+                ArrowLeft: [-12, 0],
+                ArrowRight: [12, 0],
+                ArrowUp: [0, -12],
+                ArrowDown: [0, 12],
+              } as Record<string, number[]>
+            )[e.key];
+            if (d) {
+              e.preventDefault();
+              setBox(constrain({ ...box, x: box.x + d[0], y: box.y + d[1] }));
+            }
+          }}
+        >
+          <GripHorizontal size={16} /> Scratchpad
+        </button>
+        <button type="button" aria-label="Close scratchpad" onClick={onClose}>
+          <X size={18} />
+        </button>
+      </header>
+      <div className={styles.toolbar}>
+        <button type="button" aria-pressed={mode === "typing"} onClick={() => setMode("typing")}>
+          Typing
+        </button>
+        <button type="button" aria-pressed={mode === "drawing"} onClick={() => setMode("drawing")}>
+          Drawing
+        </button>
+        {mode === "drawing" && (
+          <>
+            <select
+              aria-label="Drawing tool"
+              value={tool}
+              onChange={(e) => setTool(e.target.value as Tool)}
+            >
+              <option value="pen">Pen</option>
+              <option value="stroke">Stroke eraser</option>
+              <option value="precision">Precision eraser</option>
+            </select>
+            <details className={styles.palette}>
+              <summary>Color</summary>
+              <div>
+                <button type="button" onClick={() => setColor("currentColor")}>
+                  Theme ink
+                </button>
+                {colors.map((c) => (
+                  <button
+                    type="button"
+                    key={c}
+                    aria-label={`Ink ${c}`}
+                    style={{ background: c }}
+                    onClick={() => {
+                      setColor(c);
+                      setTool("pen");
+                    }}
+                  />
+                ))}
+                <input
+                  type="color"
+                  aria-label="Custom ink color"
+                  value={color === "currentColor" ? "#2574d9" : color}
+                  onChange={(e) => setColor(e.target.value)}
+                />
+              </div>
+            </details>
+            <button
+              type="button"
+              disabled={!strokes.length}
+              onClick={() => setStrokes((s) => s.slice(0, -1))}
+            >
+              Undo stroke
+            </button>
+          </>
+        )}
+        <button
+          type="button"
+          onClick={() => {
+            setStrokes([]);
+            setText("");
+          }}
+        >
+          Clear All
+        </button>
+      </div>
+      <div className={styles.paper}>
+        {mode === "typing" ? (
+          <textarea
+            aria-label="Scratchpad notes"
+            placeholder="Type your working here…"
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+          />
+        ) : (
+          <svg
+            viewBox="0 0 1000 600"
+            preserveAspectRatio="none"
+            role="img"
+            aria-label="Scratchpad drawing"
+            onPointerDown={(e) => {
+              e.currentTarget.setPointerCapture(e.pointerId);
+              ink.current = true;
+              draw(e, true);
+            }}
+            onPointerMove={(e) => {
+              if (ink.current) draw(e);
+            }}
+            onPointerUp={() => {
+              ink.current = false;
+            }}
+            onPointerCancel={() => {
+              ink.current = false;
+            }}
+          >
+            {strokes.map((s, i) => (
+              <path
+                key={`${s.id}-${i}`}
+                d={s.points.map((p, index) => `${index ? "L" : "M"}${p.x},${p.y}`).join(" ")}
+                fill="none"
+                stroke={s.color}
+                strokeWidth="2.5"
+                vectorEffect="non-scaling-stroke"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            ))}
+          </svg>
+        )}
+      </div>
+      <button
+        type="button"
+        className={styles.resize}
+        aria-label="Resize scratchpad"
+        onPointerDown={(e) => startMove(e, true)}
+        onPointerMove={moving}
+        onPointerUp={() => {
+          move.current = null;
+        }}
+        onPointerCancel={() => {
+          move.current = null;
+        }}
+        onKeyDown={(e) => {
+          if (e.key.startsWith("Arrow")) {
+            e.preventDefault();
+            setBox(
+              constrain({
+                ...box,
+                width: box.width + (e.key === "ArrowRight" ? 20 : e.key === "ArrowLeft" ? -20 : 0),
+                height: box.height + (e.key === "ArrowDown" ? 20 : e.key === "ArrowUp" ? -20 : 0),
+              })
+            );
+          }
         }}
       >
-        {/* Title bar */}
-        <div
-          onPointerDown={(e) => controls.start(e)}
-          className="relative flex shrink-0 cursor-grab select-none flex-wrap items-center justify-between border-b border-white/10 bg-surface/[0.04] px-3 py-2 backdrop-blur-md active:cursor-grabbing"
-        >
-          <div className="pointer-events-none flex items-center gap-2">
-            <GripHorizontal className="h-4 w-4 text-white/80" />
-            <Pen className="h-3.5 w-3.5" style={{ color: penColor }} />
-            <span className="text-xs font-semibold text-white">Scratchpad</span>
-          </div>
-
-          <div className="flex items-center gap-1" onPointerDown={(e) => e.stopPropagation()}>
-            {/* Pen + color picker */}
-            <div className="static" ref={paletteRef}>
-              <button
-                type="button"
-                onClick={() => {
-                  setTool("pen");
-                  setPaletteOpen((o) => !o);
-                }}
-                className={cn(
-                  "flex min-h-11 items-center gap-1 rounded-md px-2 transition-colors",
-                  tool === "pen"
-                    ? "bg-surface/[0.08] text-white"
-                    : "text-white/80 hover:bg-surface/[0.05] hover:text-white"
-                )}
-                aria-label="Pen color"
-                title="Pen color"
-              >
-                <Pen className="h-3.5 w-3.5" />
-                <span
-                  className="h-3 w-3 rounded-full border border-white/30"
-                  style={{ background: penColor }}
-                />
-                <ChevronDown className="h-3 w-3 opacity-70" />
-              </button>
-
-              {paletteOpen && (
-                <div className="absolute inset-x-2 top-full z-30 rounded-xl border border-white/10 bg-[#070605]/95 px-3 py-2.5 shadow-2xl backdrop-blur-xl">
-                  <div className="flex flex-wrap items-center justify-center gap-3">
-                    {PEN_COLORS.map((c) => (
-                      <button
-                        key={c.hex}
-                        type="button"
-                        onClick={() => {
-                          setPenColor(c.hex);
-                          setPaletteOpen(false);
-                        }}
-                        title={c.label}
-                        aria-label={`${c.label} pen`}
-                        className={cn(
-                          "h-9 w-9 rounded-full border transition-transform",
-                          penColor === c.hex
-                            ? "scale-110 border-white ring-2 ring-info/50"
-                            : "border-white/20 hover:scale-105"
-                        )}
-                        style={{ background: c.hex }}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setTool("eraser")}
-              className={cn(
-                "flex h-11 w-11 items-center justify-center rounded-md transition-colors",
-                tool === "eraser"
-                  ? "bg-surface/[0.08] text-white"
-                  : "text-white/80 hover:bg-surface/[0.05] hover:text-white"
-              )}
-              aria-label="Eraser"
-              title="Eraser"
-            >
-              <Eraser className="h-3.5 w-3.5" />
-            </button>
-
-            <button
-              type="button"
-              onClick={clearCanvas}
-              className="h-11 px-1.5 text-[11px] font-semibold text-white/80 hover:text-white"
-            >
-              Clear
-            </button>
-
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex h-11 w-11 items-center justify-center rounded-full text-white/80 hover:bg-surface/[0.08] hover:text-white"
-              aria-label="Close scratchpad"
-            >
-              <X className="h-3.5 w-3.5" />
-            </button>
-          </div>
-        </div>
-
-        {/* Canvas */}
-        <canvas
-          ref={canvasRef}
-          onPointerDown={handlePointerDown}
-          onPointerMove={handlePointerMove}
-          onPointerUp={handlePointerUp}
-          onPointerCancel={handlePointerUp}
-          aria-label="Scratch work drawing canvas"
-          className="min-h-0 w-full flex-1 touch-none"
-          style={{
-            cursor: tool === "pen" ? "crosshair" : "cell",
-            background: SCRATCHPAD_BG,
-          }}
-        />
-      </motion.div>
-    </div>
+        ↘
+      </button>
+    </section>
   );
 }

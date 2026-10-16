@@ -1,20 +1,15 @@
 // @vitest-environment jsdom
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import ExternalCalculatorLink, { OFFICIAL_SAT_CALCULATOR } from "./ExternalCalculatorLink";
-
-describe("official external calculator", () => {
-  it("uses a normal new-tab link without an embed or source-question transfer", () => {
+import ExternalCalculatorLink from "./ExternalCalculatorLink";
+describe("local calculator entry", () => {
+  it("opens locally without an external link or embed", () => {
     const { container } = render(<ExternalCalculatorLink subject="math" />);
-    const link = screen.getByRole("link", { name: "Open official SAT calculator in a new tab" });
-    expect(link).toHaveAttribute("href", OFFICIAL_SAT_CALCULATOR);
-    expect(link).toHaveAttribute("target", "_blank");
-    expect(link).toHaveAttribute("rel", "noopener noreferrer");
-    expect(screen.getByText("New tab")).toBeVisible();
-    expect(container.querySelector("script, iframe")).toBeNull();
+    expect(screen.getByRole("button", { name: "Toggle Karman calculator" })).toBeVisible();
+    expect(container.querySelector("script, iframe, a")).toBeNull();
   });
-  it.each(["reading", "rw", null, undefined])("fails closed for non-Math context %s", (subject) => {
+  it.each(["reading", "rw", null, undefined])("fails closed outside Math: %s", (subject) => {
     render(<ExternalCalculatorLink subject={subject} />);
-    expect(screen.queryByRole("link")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button")).not.toBeInTheDocument();
   });
 });

@@ -6,7 +6,10 @@ import { SITE_THEMES, themeTokens } from "@/lib/themes/palettes";
 import DiagnosticClient from "./DiagnosticClient";
 import type { DiagnosticQuestion } from "./_hooks/useDiagnosticState";
 
-vi.mock("next/navigation", () => ({ useRouter: () => ({ replace: vi.fn() }) }));
+vi.mock("next/navigation", () => ({
+  usePathname: () => "/free-diagnostic",
+  useRouter: () => ({ replace: vi.fn() }),
+}));
 afterEach(() => vi.useRealTimers());
 function question(domain: SATDomain): DiagnosticQuestion {
   return {

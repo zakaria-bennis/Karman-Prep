@@ -145,7 +145,7 @@ export function useDiagnosticState({ questions, isSubscribed }: DiagnosticStateA
       handleSubmit();
     } else {
       setCurrentIdx(nextSectionStart);
-      setSelected(null);
+      setSelected(answers[questions[currentIdx + 1]?.id] ?? null);
       setShowExplanation(false);
     }
   }
@@ -232,10 +232,10 @@ export function useDiagnosticState({ questions, isSubscribed }: DiagnosticStateA
       handleSubmit();
     } else {
       setCurrentIdx((i) => i + 1);
-      setSelected(null);
+      setSelected(answers[questions[currentIdx + 1]?.id] ?? null);
       setShowExplanation(false);
     }
-  }, [isLast, handleSubmit]);
+  }, [isLast, handleSubmit, answers, questions, currentIdx]);
 
   // Keyboard shortcuts:
   //   Escape — close calculator / scratchpad (whichever is open).
@@ -285,7 +285,12 @@ export function useDiagnosticState({ questions, isSubscribed }: DiagnosticStateA
   function jumpTo(idx: number) {
     // Cross-section jumps are blocked at the navigator level,
     // but defend in depth.
-    if (DOMAIN_SECTION[questions[idx].domain] !== currentSection) return;
+    if (
+      !Number.isInteger(idx) ||
+      !questions[idx] ||
+      DOMAIN_SECTION[questions[idx].domain] !== currentSection
+    )
+      return;
     setCurrentIdx(idx);
     setSelected(answers[questions[idx].id] ?? null);
     setShowExplanation(false);

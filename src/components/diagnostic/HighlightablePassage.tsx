@@ -221,6 +221,10 @@ export function HighlightablePassage({ passage, passageIntro, highlights, onChan
     selection.removeAllRanges();
   }, [addMark]);
 
+  useEffect(() => {
+    window.addEventListener("quiz-highlight-selection", handleMouseUp);
+    return () => window.removeEventListener("quiz-highlight-selection", handleMouseUp);
+  }, [handleMouseUp]);
   // ─── Highlight click → edit popover ───────────────────────
   // Width/height tuned so the whole panel (including Save) sits
   // on screen without scrolling on every viewport >=320px tall.
@@ -363,8 +367,19 @@ export function HighlightablePassage({ passage, passageIntro, highlights, onChan
                         : "",
                   ].join(" ")}
                   style={{
-                    backgroundColor: seg.highlighted ? "rgb(var(--k-gold))" : "transparent",
-                    color: seg.highlighted ? "rgb(var(--k-night))" : "inherit",
+                    backgroundColor: seg.highlighted
+                      ? [
+                          "#ffe08a",
+                          "#9de1ed",
+                          "#dab6f5",
+                          "#aee4b7",
+                          "#ffc4ae",
+                          "#c6d7ff",
+                          "#f8bfdc",
+                          "#e6e9a9",
+                        ][seg.hl.colorIdx ?? 0]
+                      : "transparent",
+                    color: seg.highlighted ? "#1d2420" : "inherit",
                   }}
                 >
                   {seg.text}

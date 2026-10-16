@@ -16,7 +16,7 @@ it("reuses the existing Math calculator entrypoint and leaves answer state untou
   const { rerender } = render(
     <BottomToolbar subject="math" onScratchpad={vi.fn()} onFlag={vi.fn()} state={state} />
   );
-  expect(screen.getAllByRole("link")).toHaveLength(1);
+  expect(screen.getByRole("button", { name: "Toggle Karman calculator" })).toBeInTheDocument();
   expect(state).toEqual(before);
   expect(screen.getByRole("button", { name: "Scratchpad" })).toBeInTheDocument();
   rerender(

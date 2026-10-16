@@ -17,6 +17,7 @@
 // so KaTeX renders correctly in headers + body.
 // ============================================================
 
+import { CalculatorTableAction } from "@/components/calculator/CalculatorSourceAction";
 import MathText from "@/components/learn/MathText";
 import { cn } from "@/lib/utils";
 import type { QuestionTableData } from "@/types/question-table";
@@ -24,6 +25,7 @@ export type { QuestionTableData } from "@/types/question-table";
 
 interface Props {
   data: QuestionTableData;
+  calculator?: boolean;
   /** Inline math? Pass `false` to skip KaTeX wrapping for plain-text-only tables. */
   renderMath?: boolean;
   /** Distinguishes multiple tables used as separate answer choices. */
@@ -32,7 +34,13 @@ interface Props {
   className?: string;
 }
 
-export default function QuestionTable({ data, renderMath = true, ariaLabel, className }: Props) {
+export default function QuestionTable({
+  data,
+  renderMath = true,
+  ariaLabel,
+  className,
+  calculator = false,
+}: Props) {
   const { caption, header_row, rows, footer_note } = data;
   const renderCell = (text: string, key: string) => (
     <span key={key}>{renderMath ? <MathText text={text} /> : text}</span>
@@ -113,6 +121,7 @@ export default function QuestionTable({ data, renderMath = true, ariaLabel, clas
           </tfoot>
         )}
       </table>
+      {calculator && <CalculatorTableAction rows={rows} />}
     </figure>
   );
 }

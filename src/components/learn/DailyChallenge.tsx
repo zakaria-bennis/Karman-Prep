@@ -13,7 +13,7 @@ import QuestionTable from "./QuestionTable";
 import ChartFigure from "./ChartFigure";
 import GeometryFigure from "./GeometryFigure";
 import FigureFrame from "./FigureFrame";
-import ExternalCalculatorLink from "./ExternalCalculatorLink";
+import { CalculatorScope, CalculatorTrigger } from "@/components/calculator/CalculatorScope";
 import { buildGeometrySvg } from "@/lib/figures/geometry-svg";
 
 const subjectName: Record<DailySubject, string> = {
@@ -86,6 +86,7 @@ function DailySlotCard({ subject, slot }: { subject: DailySubject; slot: DailySl
 
 function DailyQuestion({ value }: { value: Extract<DailySlot, { state: "ready" }>["value"] }) {
   const { question: q, subject, day } = value;
+  const [calculatorOpen, setCalculatorOpen] = useState(false);
   const [answer, setAnswer] = useState("");
   const [review, setReview] = useState<StudentQuizReview | null>(null);
   const [pending, setPending] = useState(false);
@@ -114,109 +115,115 @@ function DailyQuestion({ value }: { value: Extract<DailySlot, { state: "ready" }
   }
 
   return (
-    <div className="mt-6 border-t border-bronze pt-5">
-      <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-taupe">
-        <span>{q.topic_cluster}</span>
-        <span>Difficulty {q.difficulty_level} of 7</span>
-      </div>
-      <QuestionContent question={q} />
-      <div className="mt-6">
-        {q.answer_format === "numeric_entry" ? (
-          <label className="block text-sm font-medium text-ivory">
-            Your answer
-            <input
-              type="text"
-              inputMode="decimal"
-              autoComplete="off"
-              value={answer}
-              disabled={!!review || pending}
-              onChange={(event) => setAnswer(event.target.value)}
-              className="mt-2 min-h-11 w-full rounded-lg border border-bronze bg-night px-3 py-2 text-ivory focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold"
-            />
-          </label>
-        ) : (
-          <fieldset disabled={!!review || pending}>
-            <legend className="sr-only">Choose an answer</legend>
-            <div className="space-y-2">
-              {[...q.answer_choices]
-                .sort((left, right) => left.letter.localeCompare(right.letter))
-                .map((choice) => (
-                  <label
-                    key={choice.id}
-                    className={`block cursor-pointer rounded-lg border p-3 focus-within:ring-2 focus-within:ring-gold ${answer === choice.letter ? "border-gold bg-gold/10" : "border-bronze bg-night"}`}
-                  >
-                    <span className="flex items-start gap-3">
-                      <input
-                        type="radio"
-                        name={`daily-${subject}-${q.id}`}
-                        value={choice.letter}
-                        checked={answer === choice.letter}
-                        onChange={() => setAnswer(choice.letter)}
-                        className="mt-1 accent-gold"
-                      />
-                      <span className="min-w-0 flex-1 text-sm leading-relaxed text-ivory">
-                        <span className="mr-2 font-semibold">{choice.letter}.</span>
-                        {choice.choice_table_data ? (
-                          <QuestionTable
-                            data={choice.choice_table_data}
-                            ariaLabel={`Choice ${choice.letter} data table`}
-                            className="mt-2 max-w-full"
-                          />
-                        ) : (
-                          <MathText
-                            text={choice.choice_text}
-                            serializedFunctionLines={subject === "math"}
-                          />
-                        )}
+    <CalculatorScope
+      enabled={subject === "math"}
+      open={calculatorOpen}
+      onOpenChange={setCalculatorOpen}
+    >
+      <div className="mt-6 border-t border-bronze pt-5">
+        <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-taupe">
+          <span>{q.topic_cluster}</span>
+          <span>Difficulty {q.difficulty_level} of 7</span>
+        </div>
+        <QuestionContent question={q} />
+        <div className="mt-6">
+          {q.answer_format === "numeric_entry" ? (
+            <label className="block text-sm font-medium text-ivory">
+              Your answer
+              <input
+                type="text"
+                inputMode="decimal"
+                autoComplete="off"
+                value={answer}
+                disabled={!!review || pending}
+                onChange={(event) => setAnswer(event.target.value)}
+                className="mt-2 min-h-11 w-full rounded-lg border border-bronze bg-night px-3 py-2 text-ivory focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold"
+              />
+            </label>
+          ) : (
+            <fieldset disabled={!!review || pending}>
+              <legend className="sr-only">Choose an answer</legend>
+              <div className="space-y-2">
+                {[...q.answer_choices]
+                  .sort((left, right) => left.letter.localeCompare(right.letter))
+                  .map((choice) => (
+                    <label
+                      key={choice.id}
+                      className={`block cursor-pointer rounded-lg border p-3 focus-within:ring-2 focus-within:ring-gold ${answer === choice.letter ? "border-gold bg-gold/10" : "border-bronze bg-night"}`}
+                    >
+                      <span className="flex items-start gap-3">
+                        <input
+                          type="radio"
+                          name={`daily-${subject}-${q.id}`}
+                          value={choice.letter}
+                          checked={answer === choice.letter}
+                          onChange={() => setAnswer(choice.letter)}
+                          className="mt-1 accent-gold"
+                        />
+                        <span className="min-w-0 flex-1 text-sm leading-relaxed text-ivory">
+                          <span className="mr-2 font-semibold">{choice.letter}.</span>
+                          {choice.choice_table_data ? (
+                            <QuestionTable
+                              data={choice.choice_table_data}
+                              ariaLabel={`Choice ${choice.letter} data table`}
+                              className="mt-2 max-w-full"
+                            />
+                          ) : (
+                            <MathText
+                              text={choice.choice_text}
+                              serializedFunctionLines={subject === "math"}
+                            />
+                          )}
+                        </span>
                       </span>
-                    </span>
-                  </label>
-                ))}
-            </div>
-          </fieldset>
-        )}
-      </div>
-      {subject === "math" && <ExternalCalculatorLink subject="math" className="mt-5" />}
-      <div className="mt-6">
-        <button
-          type="button"
-          onClick={submitAnswer}
-          disabled={!answer.trim() || pending || !!review}
-          className="min-h-11 rounded-xl bg-gold px-5 py-2.5 text-sm font-semibold text-night hover:bg-gold-bright focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-bright disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {pending ? "Checking answer…" : review ? "Answer checked" : "Check answer"}
-        </button>
-      </div>
-      {error && (
-        <p role="alert" className="mt-3 text-sm text-error-bright">
-          {error}
-        </p>
-      )}
-      {review && (
-        <div className="mt-6 border-t border-bronze pt-5" aria-live="polite">
-          <p
-            className={`font-semibold ${review.isCorrect ? "text-success-bright" : "text-error-bright"}`}
-          >
-            {review.isCorrect ? "Correct" : "Not quite"}
-          </p>
-          <p className="mt-2 text-sm text-ivory">
-            Correct answer: <MathText text={review.correct_answer} />
-          </p>
+                    </label>
+                  ))}
+              </div>
+            </fieldset>
+          )}
+        </div>
+        {subject === "math" && <CalculatorTrigger />}
+        <div className="mt-6">
           <button
             type="button"
-            onClick={() => setShowExplanation((current) => !current)}
-            aria-expanded={showExplanation}
-            className="mt-4 min-h-11 text-sm font-semibold text-gold underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-bright"
+            onClick={submitAnswer}
+            disabled={!answer.trim() || pending || !!review}
+            className="min-h-11 rounded-xl bg-gold px-5 py-2.5 text-sm font-semibold text-night hover:bg-gold-bright focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-bright disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {showExplanation ? "Hide explanation" : "Show explanation"}
+            {pending ? "Checking answer…" : review ? "Answer checked" : "Check answer"}
           </button>
-          {showExplanation && <DailyExplanation review={review} subject={subject} />}
-          <p className="mt-5 text-xs leading-relaxed text-taupe">
-            This daily check does not save practice history or change skill progress.
-          </p>
         </div>
-      )}
-    </div>
+        {error && (
+          <p role="alert" className="mt-3 text-sm text-error-bright">
+            {error}
+          </p>
+        )}
+        {review && (
+          <div className="mt-6 border-t border-bronze pt-5" aria-live="polite">
+            <p
+              className={`font-semibold ${review.isCorrect ? "text-success-bright" : "text-error-bright"}`}
+            >
+              {review.isCorrect ? "Correct" : "Not quite"}
+            </p>
+            <p className="mt-2 text-sm text-ivory">
+              Correct answer: <MathText text={review.correct_answer} />
+            </p>
+            <button
+              type="button"
+              onClick={() => setShowExplanation((current) => !current)}
+              aria-expanded={showExplanation}
+              className="mt-4 min-h-11 text-sm font-semibold text-gold underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-bright"
+            >
+              {showExplanation ? "Hide explanation" : "Show explanation"}
+            </button>
+            {showExplanation && <DailyExplanation review={review} subject={subject} />}
+            <p className="mt-5 text-xs leading-relaxed text-taupe">
+              This daily check does not save practice history or change skill progress.
+            </p>
+          </div>
+        )}
+      </div>
+    </CalculatorScope>
   );
 }
 
@@ -246,7 +253,7 @@ function QuestionContent({ question: q }: { question: StudentQuizQuestion }) {
         </div>
       )}
       {q.figure_kind === "table" && q.figure_table_data ? (
-        <QuestionTable data={q.figure_table_data} />
+        <QuestionTable calculator={q.subject === "math"} data={q.figure_table_data} />
       ) : q.figure_kind === "chart" && q.figure_chart_data ? (
         <ChartFigure
           data={q.figure_chart_data}
@@ -259,7 +266,11 @@ function QuestionContent({ question: q }: { question: StudentQuizQuestion }) {
         <FigureFrame src={q.image_url} alt={q.image_alt ?? "Question figure"} />
       ) : null}
       <div className="font-atkinson text-base leading-relaxed">
-        <MathText text={q.question_text} serializedFunctionLines={q.subject === "math"} />
+        <MathText
+          calculator={q.subject === "math"}
+          text={q.question_text}
+          serializedFunctionLines={q.subject === "math"}
+        />
       </div>
     </div>
   );
