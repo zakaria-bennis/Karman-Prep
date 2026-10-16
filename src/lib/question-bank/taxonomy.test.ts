@@ -12,7 +12,26 @@ import {
   domainFromSlug,
   labelFromSlug,
   CLUSTER_BY_DOMAIN,
+  clusterLabelsForDomain,
 } from "./taxonomy";
+
+describe("clusterLabelsForDomain", () => {
+  it("accepts the 'and' spelling that older import batches wrote for '&' cluster labels", () => {
+    expect(clusterLabelsForDomain("data_analysis")).toEqual([
+      "Problem-Solving & Data Analysis",
+      "Problem-Solving and Data Analysis",
+    ]);
+    expect(clusterLabelsForDomain("craft_structure")).toEqual([
+      "Craft & Structure",
+      "Craft and Structure",
+    ]);
+  });
+
+  it("returns only the canonical label when it has no '&'", () => {
+    expect(clusterLabelsForDomain("algebra")).toEqual(["Algebra"]);
+    expect(clusterLabelsForDomain("expression_ideas")).toEqual(["Expression of Ideas"]);
+  });
+});
 
 describe("isValidDomain", () => {
   it("accepts the 4 math domains", () => {
