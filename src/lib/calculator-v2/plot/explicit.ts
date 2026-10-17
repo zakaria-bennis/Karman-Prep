@@ -25,6 +25,15 @@ export const GUARD_FRACTION = 0.5;
 export const BAND_EXTREMA_PX = 2;
 export const EXTREMUM_ROUNDS = 5;
 export const BAND_SAMPLES_PER_COLUMN = 64;
+/**
+ * Deviation from Task 3's turn rule, which counts any sign change of Δv: a function that is
+ * constant up to rounding (sin²x + cos²x, 2^x·2^−x) turns at almost every sample. Two turns band
+ * their columns only when v swings at least BAND_SWING_PX between them, so a band is never thinner
+ * than a pixel, and a turn whose two pairs both move less than TURN_NOISE_PX is not refined, as no
+ * refinement can move it a visible amount.
+ */
+const BAND_SWING_PX = 1;
+const TURN_NOISE_PX = 1e-6;
 
 /**
  * A local extremum: sample `k` inside a finite run, `prev` the sample before it when found (an
@@ -245,8 +254,8 @@ class ExplicitSampler {
   ];
 
   /**
-   * After phase 2 (G-12): for consecutive turns p, q of one run less than BAND_EXTREMA_PX apart,
-   * every column meeting [t_p, t_q] becomes a band.
+   * After phase 2 (G-12): for consecutive turns p, q of one run less than BAND_EXTREMA_PX apart
+   * whose values differ by at least BAND_SWING_PX, every column meeting [t_p, t_q] becomes a band.
    */
   oscillation(): void {
     const turns = this.turns();
@@ -254,6 +263,7 @@ class ExplicitSampler {
     for (let i = 1; i < turns.length; i++) {
       const [p, q] = [turns[i - 1], turns[i]];
       if (p.run !== q.run || !((this.t[q.k] - this.t[p.k]) * pxPerT < BAND_EXTREMA_PX)) continue;
+      if (!(Math.abs(this.v[q.k] - this.v[p.k]) * this.vScale >= BAND_SWING_PX)) continue;
       this.band.fill(1, this.col[p.prev], this.col[q.k] + 1);
     }
   }
@@ -267,13 +277,15 @@ class ExplicitSampler {
   }
 
   /**
-   * After phase 3: each turn in a non-band column whose two pairs are not both off-view gets
-   * EXTREMUM_ROUNDS rounds; phase 4 applies.
+   * After phase 3: each turn in a non-band column whose two pairs are not both off-view and not
+   * both under TURN_NOISE_PX gets EXTREMUM_ROUNDS rounds; phase 4 applies.
    */
   extrema(): void {
     const turns = this.turns().filter(
       ({ k, prev }) =>
-        !this.offView(this.v[prev], this.v[k]) || !this.offView(this.v[k], this.v[this.next[k]])
+        (!this.offView(this.v[prev], this.v[k]) ||
+          !this.offView(this.v[k], this.v[this.next[k]])) &&
+        Math.max(this.jumpPx(prev), this.jumpPx(k)) >= TURN_NOISE_PX
     );
     this.refineAll(turns, (turn) => this.refineTurn(turn), this.turnColumns);
   }

@@ -1,6 +1,13 @@
 import { expect, it } from "vitest";
 import { NO_DEADLINE } from "../core/deadline";
-import { columnCoverage, runsOf, segmentsOf, VIEW_800, type Skip } from "./__fixtures__/measure";
+import {
+  at,
+  columnCoverage,
+  runsOf,
+  segmentsOf,
+  VIEW_800,
+  type Skip,
+} from "./__fixtures__/measure";
 import { EvaluationBudget } from "./budget";
 import { explicitFrame, plotExplicit, sampleExplicit } from "./explicit";
 import type { RealFn1 } from "./geometry";
@@ -52,4 +59,28 @@ it("G-15 an exhausted explicit budget falls back to bands built from real sample
   expect(out.bands.length).toBeGreaterThan(0);
   const vertices = runsOf(Float64Array.from(out.polyline)).flat(); // guard lines: v = ±15
   for (const [t, v] of vertices) expect(v === f(t) || Math.abs(v) === 15).toBe(true);
+});
+// Deviation from Task 3's literal turn rule (see explicit.ts): rounding noise in a constant
+// function turns at almost every sample, which must not band the row or spend the budget.
+it("G-12 an identity that is constant up to rounding draws as one curve, never as bands", () => {
+  const identities: RealFn1[] = [
+    (x) => Math.sin(x) ** 2 + Math.cos(x) ** 2,
+    (x) => Math.sin(2 * x) - 2 * Math.sin(x) * Math.cos(x),
+    (x) => 2 ** x * 2 ** -x,
+    (x) => (x + 1) ** 2 - x * x - 2 * x,
+    (x) => Math.tan(x) * Math.cos(x) - Math.sin(x),
+  ];
+  for (const view of [VIEW_800, at({ width: 3840, height: 2160 })]) {
+    for (const f of identities) {
+      const g = plotExplicit("r", "x", f, view, NO_DEADLINE);
+      expect(g.bands).toHaveLength(0);
+      const runs = runsOf(g.polylines);
+      expect(runs).toHaveLength(1);
+      expect([runs[0][0][0], runs[0].at(-1)![0]]).toEqual([
+        view.viewport.left,
+        view.viewport.right,
+      ]);
+      expect(g.evaluations).toBe(2 * view.size.width + 1); // the base grid only
+    }
+  }
 });
