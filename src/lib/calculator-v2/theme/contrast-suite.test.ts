@@ -1,7 +1,9 @@
 // The 12-skin contrast suite: measures the generated table against the 10.3 role targets (TH-1),
-// the TH-7 colour-blind distance, the TH-8 fill alphas and the TH-8 capped shading.
+// the TH-7 colour-blind distance, the TH-8 fill alphas and the TH-8 capped shading, and the
+// TH-11 explicit row colours over that shading.
 import { expect, it } from "vitest";
 import { compositeOver, compositeShading, contrastRatio, deltaEOk, simulateCvd } from "./contrast";
+import { resolveRowColor } from "./roles";
 import { SKIN_COLORS } from "./skin-colors.generated";
 import { CURVE_SLOTS, SKIN_IDS, type SkinId, type SkinPalette } from "./skins";
 import { ROLE_TARGETS } from "./targets";
@@ -154,4 +156,26 @@ it("TH-8 no fills give the paper, one fill under the cap gives that fill over th
   const over = compositeShading("#fffdf7", [{ color: "#285b79", alpha: 0.25 }]);
   expect(over).toBe("#dae2e2");
   expect(contrastRatio(over, "#fffdf7")).toBeLessThanOrEqual(1.3);
+});
+
+it("TH-11 explicit colours meet 5.85:1 on the paper and 4.5:1 over capped shading in all 12 skins", () => {
+  for (const s of SKIN_IDS) {
+    const paper = pal(s).roles.paper;
+    for (const hex of ["#757575", "#2e7d32", "#ffd400", "#1f3fbf"]) {
+      const r = resolveRowColor(hex, s);
+      const own = { color: r.hex, alpha: r.fillAlpha };
+      const label = `${s}: ${hex} as ${r.hex}`;
+      expect(contrastRatio(r.hex, paper), `${label} on paper`).toBeGreaterThanOrEqual(5.85);
+      expect(
+        contrastRatio(r.hex, compositeShading(paper, [own])),
+        `${label} over its own fill`
+      ).toBeGreaterThanOrEqual(4.5);
+      fills(s).forEach((f, i) => {
+        expect(
+          contrastRatio(r.hex, compositeShading(paper, [own, f])),
+          `${label} over its own and the ${CURVE_SLOTS[i]} fill`
+        ).toBeGreaterThanOrEqual(4.5);
+      });
+    }
+  }
 });
