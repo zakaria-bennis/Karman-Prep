@@ -2,7 +2,7 @@
 // pixel distances to a reference graph. Never imported by production code.
 
 import { expect } from "vitest";
-import type { CurveGeometry, RealFn1 } from "../geometry";
+import type { CurveGeometry, RealFn1, RegionGeometry } from "../geometry";
 import {
   defaultViewport,
   worldToPx,
@@ -189,6 +189,27 @@ export function columnCoverage(view: ViewSpec, g: CurveGeometry, f: RealFn1, ski
     ratios.push(Math.max(0, hi - lo) / (refHi - refLo));
   }
   return ratios;
+}
+
+/**
+ * G-17: a row-major mask of `size`'s pixels, 1 where the pixel centre (i + 0.5, j + 0.5) lies in
+ * a span [yTop, yBottom, x0, x1] of `g` (yTop ≤ centre < yBottom and x0 ≤ centre < x1), else 0.
+ */
+export function shadedMask(g: RegionGeometry, size: PixelSize): Uint8Array {
+  const width = Math.max(0, Math.ceil(size.width));
+  const height = Math.max(0, Math.ceil(size.height));
+  const mask = new Uint8Array(width * height);
+  // The first pixel whose centre is at or past the px coordinate c, kept within [0, n].
+  const firstFrom = (c: number, n: number) => Math.min(n, Math.max(0, Math.ceil(c - 0.5)));
+  const { spans } = g;
+  for (let s = 0; s + 3 < spans.length; s += 4) {
+    const [j0, j1] = [firstFrom(spans[s], height), firstFrom(spans[s + 1], height)];
+    const [i0, i1] = [firstFrom(spans[s + 2], width), firstFrom(spans[s + 3], width)];
+    for (let j = j0; j < j1; j++) {
+      if (i0 < i1) mask.fill(1, j * width + i0, j * width + i1);
+    }
+  }
+  return mask;
 }
 
 /** Wraps `fn` so a test can count its calls. */
