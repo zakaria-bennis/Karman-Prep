@@ -1,0 +1,314 @@
+// The calculator v2 facade (01-interfaces-integration.md section 12). It validates the options by
+// creating the engine first (API-1), then owns an open shadow root on `element` that holds the one
+// generated stylesheet, the React UI and a polite status region, so nothing lands in the light DOM
+// (AR-35). It forwards every public CalculatorEngine member and none of the internal UI surface,
+// adds DOM focus to API-12's focus calls, and contains render errors behind ErrorBoundary
+// (AR-52) while reporting them once to options.onError, whose own failures are swallowed (AR-57).
+
+import { createElement } from "react";
+import { createRoot, type Root } from "react-dom/client";
+import { createEngine, type CalculatorEngine } from "@/lib/calculator-v2/core/api/engine";
+import type {
+  CalculatorOptions,
+  CalculatorSettings,
+  ExpressionAnalysis,
+  GraphpaperBounds,
+} from "@/lib/calculator-v2/core/api/types";
+import { bumpDevCounter } from "@/lib/calculator-v2/dev-counters";
+import { hostThemeCss, resolveSkinId } from "@/lib/calculator-v2/theme/roles";
+import { CALCULATOR_V2_BUILD, CALCULATOR_V2_CSS } from "./styles/generated";
+import { App } from "./ui/App";
+import { ErrorBoundary, type ErrorBoundaryProps } from "./ui/ErrorBoundary";
+import { createAnnouncer, type Announcer } from "./ui/a11y/announcer";
+import { focusBoundary as focusShadowBoundary } from "./ui/controller/focusables";
+import { watchMediaQuery, watchPointer } from "./ui/controller/media";
+import { createShellStore, type ShellStore } from "./ui/controller/shell-store";
+import { installStyles, type ShadowStyles } from "./ui/controller/stylesheet";
+import { whenFieldReady } from "./ui/controller/when-field-ready";
+import { createEscapeStack, type EscapeStack } from "./ui/focus/escape-stack";
+import { createFocusController, type FocusController } from "./ui/focus/focus-controller";
+import { layoutFor, observeHostSize } from "./ui/layout/layout-size";
+
+/** AR-32: the scan string that marks the lazy chunk; written to the host at runtime. */
+export const KARMAN_CALCULATOR_SENTINEL = "karman-calculator-v2:lazy-chunk";
+
+/** A11Y-2, OI-3: announced when a calculator that stayed open is reset for a new question. */
+export const RESET_ANNOUNCEMENT = "Calculator cleared for this question.";
+
+export interface HostHooks {
+  chromeSlot?: HTMLElement; // light-DOM title-bar slot (L-12); filled by 13-paste-standalone
+  announceResetOnMount?: boolean; // OI-3
+}
+
+type Method = {
+  [K in keyof CalculatorEngine]: CalculatorEngine[K] extends (...args: never[]) => unknown
+    ? K
+    : never;
+}[keyof CalculatorEngine];
+type Args<K extends Method> = Parameters<CalculatorEngine[K]>;
+type Result<K extends Method> = ReturnType<CalculatorEngine[K]>;
+
+const DARK_QUERY = "(prefers-color-scheme: dark)";
+const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
+
+interface Internals {
+  focus: FocusController;
+}
+
+/** 10 Decision 6: the quiz host's channel to the KB-4 reopen row, kept off the public surface. */
+const internals = new WeakMap<KarmanCalculator, Internals>();
+let hostCount = 0;
+
+function prefersDark(): boolean {
+  return typeof window.matchMedia === "function" && window.matchMedia(DARK_QUERY).matches;
+}
+
+export class KarmanCalculator {
+  static readonly version: string = CALCULATOR_V2_BUILD;
+  static readonly apiVersion = 1 as const;
+
+  /** @internal */ readonly engine: CalculatorEngine;
+
+  readonly #element: HTMLElement;
+  readonly #shadow: ShadowRoot;
+  readonly #styles: ShadowStyles;
+  readonly #announcer: Announcer;
+  readonly #focus: FocusController;
+  readonly #escape: EscapeStack;
+  readonly #store: ShellStore;
+  readonly #root: Root;
+  readonly #chromeSlot: HTMLElement | null;
+  readonly #report: (error: Error) => void;
+  readonly #measure: () => void;
+  readonly #disposers: (() => void)[] = [];
+  #reducedMotion: boolean;
+  #cancelFieldWait: () => void = () => {};
+
+  constructor(element: HTMLElement, options?: CalculatorOptions, hooks?: HostHooks) {
+    // 1. Validate by creating the engine (API-1) before the element is touched.
+    const report = (error: Error) => {
+      try {
+        options?.onError?.(error);
+      } catch {
+        // AR-57: a failing reporter must not take the calculator down with it.
+      }
+    };
+    this.#report = report;
+    this.engine = createEngine({ ...options, onError: report });
+    this.#reducedMotion = options?.reducedMotion ?? false;
+    this.#element = element;
+    this.#chromeSlot = hooks?.chromeSlot ?? null;
+
+    // 2. AR-32 sentinel; A11Y-7 needs an id on the host.
+    element.dataset.karmanCalculator = KARMAN_CALCULATOR_SENTINEL;
+    element.id ||= `karman-calculator-host-${++hostCount}`;
+
+    // 3–5. Shadow root, styles, React container and the one polite status region.
+    const shadow = element.shadowRoot ?? element.attachShadow({ mode: "open" });
+    shadow.replaceChildren();
+    this.#shadow = shadow;
+    this.#styles = installStyles(shadow, CALCULATOR_V2_CSS);
+    const skin = resolveSkinId(document.documentElement.dataset.theme ?? null, prefersDark());
+    this.#styles.setSkinCss(hostThemeCss(skin));
+    const container = document.createElement("div");
+    container.className = "kc-root";
+    const region = document.createElement("div");
+    region.className = "kc-sr-only";
+    region.setAttribute("role", "status");
+    region.setAttribute("aria-live", "polite");
+    shadow.append(container, region);
+    this.#announcer = createAnnouncer(region);
+
+    // 6. Controllers and the shell store.
+    this.#focus = createFocusController(this.engine);
+    this.#escape = createEscapeStack();
+    this.#store = createShellStore({
+      size: { width: 0, height: 0 },
+      layout: "stacked",
+      skin,
+      themeRevision: 0,
+      reducedMotionMedia: false,
+      pointer: "fine",
+    });
+
+    // 7. Browser watchers feed the store.
+    const size = observeHostSize(element, (next) =>
+      this.#store.set({ size: next, layout: layoutFor(next.width) })
+    );
+    this.#disposers.push(size.dispose);
+    this.#measure = size.measure;
+    size.measure();
+    const motion = watchMediaQuery(window, REDUCED_MOTION_QUERY, (matches) =>
+      this.#store.set({ reducedMotionMedia: matches })
+    );
+    this.#disposers.push(motion.dispose);
+    const pointer = watchPointer(window, shadow, (next) => this.#store.set({ pointer: next }));
+    this.#disposers.push(pointer.dispose);
+    this.#store.set({ reducedMotionMedia: motion.initial, pointer: pointer.initial });
+
+    // 8. React root; caught errors reach onError through ErrorBoundary.componentDidCatch.
+    this.#root = createRoot(container, {
+      onCaughtError: () => {},
+      onUncaughtError: (error) => report(error instanceof Error ? error : new Error(String(error))),
+    });
+    this.#render();
+
+    // 9. Dev counter and the internal channel.
+    bumpDevCounter("calculators", 1);
+    internals.set(this, { focus: this.#focus });
+  }
+
+  #render(): void {
+    const app = createElement(App, {
+      engine: this.engine,
+      host: this.#element,
+      store: this.#store,
+      focus: this.#focus,
+      escape: this.#escape,
+      announcer: this.#announcer,
+      chromeSlot: this.#chromeSlot,
+    });
+    const boundary: Omit<ErrorBoundaryProps, "children"> = {
+      host: this.#element,
+      onError: this.#report,
+      onReset: () => this.#resetFromBoundary(),
+    };
+    // createElement's third argument supplies the required children prop.
+    this.#root.render(createElement(ErrorBoundary, boundary as ErrorBoundaryProps, app));
+  }
+
+  /** AR-52 Reset: this question's calculator only, keeping the reduced-motion setting. */
+  #resetFromBoundary(): void {
+    this.engine.setBlank();
+    this.engine.updateSettings({ reducedMotion: this.#reducedMotion });
+  }
+
+  /** Runs `run` on the row's field once it mounts; a newer request cancels the pending one. */
+  #whenField(id: string, run: () => void): void {
+    this.#cancelFieldWait();
+    this.#cancelFieldWait = whenFieldReady(this.#focus, id, run);
+  }
+
+  // ── public API: forwarded to the engine (API-2 to API-13), every argument passed through ──
+
+  setExpression(...args: Args<"setExpression">): Result<"setExpression"> {
+    return this.engine.setExpression(...args);
+  }
+  setExpressions(...args: Args<"setExpressions">): Result<"setExpressions"> {
+    return this.engine.setExpressions(...args);
+  }
+  removeExpression(...args: Args<"removeExpression">): Result<"removeExpression"> {
+    return this.engine.removeExpression(...args);
+  }
+  removeExpressions(...args: Args<"removeExpressions">): Result<"removeExpressions"> {
+    return this.engine.removeExpressions(...args);
+  }
+  getExpressions(...args: Args<"getExpressions">): Result<"getExpressions"> {
+    return this.engine.getExpressions(...args);
+  }
+  getState(...args: Args<"getState">): Result<"getState"> {
+    return this.engine.getState(...args);
+  }
+  setState(...args: Args<"setState">): Result<"setState"> {
+    return this.engine.setState(...args);
+  }
+  setBlank(...args: Args<"setBlank">): Result<"setBlank"> {
+    return this.engine.setBlank(...args);
+  }
+  setMathBounds(...args: Args<"setMathBounds">): Result<"setMathBounds"> {
+    return this.engine.setMathBounds(...args);
+  }
+  updateSettings(...args: Args<"updateSettings">): Result<"updateSettings"> {
+    const result = this.engine.updateSettings(...args);
+    const reducedMotion = args[0]?.reducedMotion;
+    if (typeof reducedMotion === "boolean") this.#reducedMotion = reducedMotion;
+    return result;
+  }
+  observe(...args: Args<"observe">): Result<"observe"> {
+    return this.engine.observe(...args);
+  }
+  unobserve(...args: Args<"unobserve">): Result<"unobserve"> {
+    return this.engine.unobserve(...args);
+  }
+  observeEvent(...args: Args<"observeEvent">): Result<"observeEvent"> {
+    return this.engine.observeEvent(...args);
+  }
+  unobserveEvent(...args: Args<"unobserveEvent">): Result<"unobserveEvent"> {
+    return this.engine.unobserveEvent(...args);
+  }
+  HelperExpression(...args: Args<"HelperExpression">): Result<"HelperExpression"> {
+    return this.engine.HelperExpression(...args);
+  }
+  undo(...args: Args<"undo">): Result<"undo"> {
+    return this.engine.undo(...args);
+  }
+  redo(...args: Args<"redo">): Result<"redo"> {
+    return this.engine.redo(...args);
+  }
+  clearHistory(...args: Args<"clearHistory">): Result<"clearHistory"> {
+    return this.engine.clearHistory(...args);
+  }
+  canUndo(...args: Args<"canUndo">): Result<"canUndo"> {
+    return this.engine.canUndo(...args);
+  }
+  canRedo(...args: Args<"canRedo">): Result<"canRedo"> {
+    return this.engine.canRedo(...args);
+  }
+  get expressionAnalysis(): Readonly<Record<string, ExpressionAnalysis>> {
+    return this.engine.expressionAnalysis;
+  }
+  get graphpaperBounds(): GraphpaperBounds {
+    return this.engine.graphpaperBounds;
+  }
+  get settings(): CalculatorSettings {
+    return this.engine.settings;
+  }
+  get focusedExpression(): string | null {
+    return this.engine.focusedExpression;
+  }
+  get mode(): "graphing" {
+    return this.engine.mode;
+  }
+
+  // ── API-12: engine state plus DOM focus ──
+
+  /** Makes the row active and puts DOM focus into its MathField once the field has mounted. */
+  focusExpression(id: string): void {
+    this.engine.focusExpression(id);
+    this.#whenField(id, () => this.#focus.focusRow(id, "end"));
+  }
+
+  /** focusExpression for the first row. */
+  focusFirstExpression(): void {
+    this.engine.focusFirstExpression();
+    const id = this.engine.getExpressions()[0]?.id;
+    if (typeof id === "string") this.#whenField(id, () => this.#focus.focusRow(id, "end"));
+  }
+
+  /** Makes the row active; DOM focus stays out of its MathField. */
+  activateExpression(id: string): void {
+    this.engine.activateExpression(id);
+    this.#whenField(id, () => this.#focus.activateRow(id));
+  }
+
+  /** Re-measures the host at once (the layout follows its width, AR-29). */
+  resize(): void {
+    this.#measure();
+  }
+
+  /** @internal AR-28 sentinels: focus the first or last tabbable element of the calculator. */
+  focusBoundary(edge: "first" | "last"): void {
+    focusShadowBoundary(this.#shadow, edge);
+  }
+
+  /** @internal AR-41: reflow every MathField, then redraw the canvas. */
+  reflow(): void {
+    for (const field of this.#focus.fields()) field.reflow();
+    this.#store.set({ themeRevision: this.#store.get().themeRevision + 1 });
+  }
+}
+
+/** @internal FocusController.lastFocusedRowId() of `calculator` (KB-4's reopen row, Decision 6). */
+export function lastFocusedRow(calculator: KarmanCalculator): string | null {
+  return internals.get(calculator)?.focus.lastFocusedRowId() ?? null;
+}
