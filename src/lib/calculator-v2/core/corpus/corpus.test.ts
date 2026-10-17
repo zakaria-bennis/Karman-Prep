@@ -114,3 +114,14 @@ describe("golden corpus parse runner", () => {
         else expect(r.ok ? toSExpr(r.tree) : `${r.error.code}: ${r.error.detail}`).toBe(c.tree);
       });
 });
+
+it("PR-42 sat-forms holds cases 1 to 38 and every typed SAT form parses", () => {
+  const cases = CORPUS_FILES["sat-forms"],
+    typed = cases.filter((c) => "latex" in c.input);
+  expect([new Set(cases.map((c) => c.id)), typed.length]).toEqual([
+    new Set(Array.from({ length: 38 }, (_, k) => `sat-forms-${k + 1}`)),
+    35,
+  ]);
+  for (const c of typed)
+    expect(parseLatex(latexOf(c), { userFunctions: userFunctionsFor(c) }).ok, c.id).toBe(true);
+});
