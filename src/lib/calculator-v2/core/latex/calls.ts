@@ -51,7 +51,7 @@ export function isBuiltinCommand(token: Token): token is CommandToken {
  * read. After the name come an optional `_` base (`log` only) and `^` power, each once, in either
  * order; then a `(` argument list, or else the PR-24 run. A `^{-1}` power on a trig name renames
  * the call to its inverse; any other power raises the call to it (PR-26). `log`'s base is its last
- * argument (PR-27).
+ * argument (PR-27). A prime on the name (`\sin'(x)`, like `f'(x)`) is `unsupported` (PR-9).
  */
 export function parseBuiltinCall(state: ParserState, name: CommandToken): Node {
   if (!isShippedBuiltin(name.name)) {
@@ -72,6 +72,7 @@ export function parseBuiltinCall(state: ParserState, name: CommandToken): Node {
     }
   }
   const open = peek(state);
+  if (isSymbol(open, "'")) return fail("unsupported", open.span, `"'" is not supported`);
   if (open.t === "open" && open.ch === "(") {
     const args = parseArgumentList(state);
     const call = callNode(name, args, base, previousEnd(state));

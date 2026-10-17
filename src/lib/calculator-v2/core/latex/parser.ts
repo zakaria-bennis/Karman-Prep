@@ -7,6 +7,7 @@ import type { Node, RelOp, SourceSpan } from "./ast";
 import { parseFactor } from "./atoms";
 import type { ParseError, ParseErrorCode } from "./errors";
 import type { ParseOptions } from "./index";
+import { MAX_NESTING_DEPTH } from "./limits";
 import type { Token } from "./tokens";
 
 export interface ParserState {
@@ -61,8 +62,14 @@ export function take(state: ParserState): Token {
   return token;
 }
 
-/** Runs `body` one nesting level deeper (G13); `opener` is the token that opened the level. */
+/**
+ * Runs `body` one nesting level deeper (G13); `opener` is the token that opened the level. Opening
+ * level MAX_NESTING_DEPTH + 1 is `too-deep` at that opener.
+ */
 export function enter<T>(state: ParserState, opener: Token, body: () => T): T {
+  if (state.depth >= MAX_NESTING_DEPTH) {
+    fail("too-deep", opener.span, `more than ${MAX_NESTING_DEPTH} nesting levels`);
+  }
   state.depth += 1;
   try {
     return body();

@@ -23,6 +23,11 @@ type OpenToken = Extract<Token, { t: "open" }>;
 /** An argument and the end of its text: a braced argument ends at its closing brace. */
 type Argument = { node: Node; end: number };
 
+/** Postfix and operator signs PR-9 reports as `unsupported`: factorial, prime and tilde. */
+const UNSUPPORTED_POSTFIX: ReadonlySet<string> = new Set(["!", "'", "~"]);
+/** Text-style wrappers: an empty group is half-typed `syntax`, any other use `unsupported` (G15). */
+const NAME_WRAPPERS: ReadonlySet<string> = new Set(["operatorname", "text", "mathrm"]);
+
 /** Lowercase Greek letter commands that are identifiers (G6, PR-11); `\pi` and `\tau` are constants. */
 export const GREEK_IDENTIFIERS: ReadonlySet<string> = new Set([
   "alpha",
@@ -66,13 +71,19 @@ export function parsePostfix(state: ParserState): Node {
 
 /**
  * The postfix loop after `atom` (G2), each sign applying to everything before it (PR-20). An
- * exponent directly after another is `syntax` (G5, PR-19); `!`, `'`, `.` and `~` end the loop. A
- * built-in call with a `(` argument list is an atom too (PR-25).
+ * exponent directly after another is `syntax` (G5, PR-19). Every operator position follows this
+ * loop, so it reports PR-9's notation there: `!` (factorial), `'` (prime) and `~` (tilde) are
+ * `unsupported`, as is a `.` after an identifier or a call (member access); any other `.` ends the
+ * loop and is `syntax` where the caller meets it. A built-in call with a `(` argument list is an
+ * atom too (PR-25).
  */
 export function takePostfix(state: ParserState, atom: Node): Node {
   let node = atom;
   let afterExponent = false;
   for (let token = peek(state); token.t === "symbol"; token = peek(state)) {
+    if (UNSUPPORTED_POSTFIX.has(token.ch) || (token.ch === "." && isMemberBase(node))) {
+      fail("unsupported", token.span, `"${token.ch}" is not supported`);
+    }
     if (token.ch === "%") {
       take(state);
       node = { kind: "pct", arg: node, span: { start: node.span.start, end: token.span.end } };
@@ -230,13 +241,35 @@ function parseBars(state: ParserState, open: Token, bar: "raw" | "lvert"): Node 
   return { kind: "abs", arg, span: { start: open.span.start, end: close.span.end } };
 }
 
-/** `\frac` with two G4 arguments: `div`. */
+/**
+ * `\frac` with two G4 arguments: `div`. The derivative operator `\frac{d}{dx}` (numerator the letter
+ * d, denominator d then one letter) is `unsupported` at the `\frac` (PR-9).
+ */
 function parseFraction(state: ParserState, frac: Token): Node {
   take(state);
   const numerator = takeArgument(state);
   const denominator = takeArgument(state);
+  if (isDerivative(numerator.node, denominator.node)) {
+    return fail("unsupported", frac.span, '"\\frac{d}{d…}" (derivative) is not supported');
+  }
   const span = { start: frac.span.start, end: denominator.end };
   return { kind: "div", left: numerator.node, right: denominator.node, span };
+}
+
+/** True for `\frac{d}{dx}`'s arguments: the letter d over d times one letter. */
+function isDerivative(numerator: Node, denominator: Node): boolean {
+  return (
+    isOneLetter(numerator, "d") &&
+    denominator.kind === "mul" &&
+    isOneLetter(denominator.left, "d") &&
+    isOneLetter(denominator.right, null)
+  );
+}
+
+/** True for a node made from one Latin letter (`e` is the constant), `name` when given. */
+function isOneLetter(node: Node, name: string | null): boolean {
+  if (node.kind !== "id" && !(node.kind === "const" && node.name === "e")) return false;
+  return name === null ? /^[A-Za-z]$/.test(node.name) : node.name === name;
 }
 
 /**
@@ -278,7 +311,8 @@ function parseLetter(state: ParserState, letter: LetterToken): Node {
 /**
  * `\pi` and `\tau` are constants and Greek letters are identifiers (G6). G3's operator and closer
  * commands (`\cdot`, `\le`, `\ge`, `\rvert`, `\operatorname{of}`) start no factor, so they are
- * `syntax` wherever an atom is due; any other command is unsupported.
+ * `syntax` wherever an atom is due. `\operatorname{}`, `\text{}` and `\mathrm{}` with an empty group
+ * are half-typed `syntax` at the closing brace (G15); any other command is unsupported (PR-9).
  */
 function parseCommandAtom(state: ParserState, subscripts: boolean): Node {
   if (!startsFactor(state)) return unexpected(state, peek(state));
@@ -293,6 +327,12 @@ function parseCommandAtom(state: ParserState, subscripts: boolean): Node {
       return parseSubscript(state, name, token.span.start);
     }
     return { kind: "id", name, span: token.span };
+  }
+  const [open, close] = [peek(state), peek(state, 1)];
+  const emptyGroup =
+    open.t === "open" && open.ch === "{" && close.t === "close" && close.ch === "}";
+  if (NAME_WRAPPERS.has(token.name) && emptyGroup) {
+    return fail("syntax", close.span, `"\\${token.name}{}" is empty`);
   }
   return fail("unsupported", token.span, `"\\${token.name}" is not supported`);
 }
@@ -368,6 +408,11 @@ function takeFirstDigit(
  */
 function isLetterRun(state: ParserState, command: Token): boolean {
   return state.normalized[command.span.start] !== "\\";
+}
+
+/** A name or a call: a `.` after one is member access (PR-45), `unsupported` until Phase 3 (PR-9). */
+function isMemberBase(node: Node): boolean {
+  return node.kind === "id" || node.kind === "call";
 }
 
 /** Digits with no decimal point and no inner whitespace (PR-14). */
