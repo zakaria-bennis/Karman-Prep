@@ -1,4 +1,8 @@
 import { expect, test, type Page } from "@playwright/test";
+import CORPUS_KEYS from "../../../src/lib/calculator-v2/core/corpus/cases/keys";
+import { CORPUS } from "../../../src/lib/calculator-v2/core/corpus";
+import { runnerFor } from "../../../src/lib/calculator-v2/core/corpus/runners";
+import { parseLatex, toSExpr } from "../../../src/lib/calculator-v2/core/latex";
 
 async function open(page: Page, query = "") {
   await page.goto(`/v2/math-field.html${query}`);
@@ -199,3 +203,46 @@ test("T-11 the hidden textarea has the typing attributes and inputmode follows s
   await page.evaluate(() => window.__mathFieldHarness!.fields[0].setInputMode("text"));
   expect(await attributes()).toEqual(["off", "off", "false", "text"]);
 });
+
+const RUNNER = "tests/calculator/v2/math-field.spec.ts";
+const KEY_NAMES: Record<string, string> = {
+  Left: "ArrowLeft",
+  Right: "ArrowRight",
+  Up: "ArrowUp",
+  Down: "ArrowDown",
+  Backspace: "Backspace",
+  Del: "Delete",
+  Home: "Home",
+  End: "End",
+  "Shift-Left": "Shift+ArrowLeft",
+  "Shift-Right": "Shift+ArrowRight",
+};
+async function typeKeys(page: Page, keys: readonly string[]) {
+  for (const key of keys) {
+    if (key.length === 1) await page.keyboard.type(key);
+    else if (KEY_NAMES[key]) await page.keyboard.press(KEY_NAMES[key]);
+    else throw new Error(`unknown key name ${key}`);
+  }
+}
+const keyCases = CORPUS.filter((c) => runnerFor(c, "latex")?.file === RUNNER);
+
+test("PR-36 this runner owns every keys.ts case", () => {
+  expect(keyCases).toEqual([...CORPUS_KEYS]);
+  expect(keyCases).toHaveLength(56);
+});
+for (const c of keyCases) {
+  const keys = (c.input as { keys: string[] }).keys;
+  test(`${c.rules.join(", ")} ${c.id} typing ${keys.join(" ")} gives ${c.latex}`, async ({
+    page,
+  }) => {
+    await open(page, "?fields=1");
+    await textarea(page).focus();
+    await typeKeys(page, keys);
+    const latex = await latexOf(page);
+    expect(latex).toBe(c.latex);
+    if (c.tree !== undefined) {
+      const parsed = parseLatex(latex);
+      expect(parsed.ok ? toSExpr(parsed.tree) : parsed.error.code).toBe(c.tree);
+    }
+  });
+}
