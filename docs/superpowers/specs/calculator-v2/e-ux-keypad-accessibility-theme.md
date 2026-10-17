@@ -354,19 +354,19 @@ Background roles:
 
 Foreground roles:
 
-| Role                                                                             | Source                             | Target and background                                             |
-| -------------------------------------------------------------------------------- | ---------------------------------- | ----------------------------------------------------------------- |
-| Primary text: math, values, key and menu labels                                  | `text`                             | 7:1 on every background role                                      |
-| Secondary text: row numbers, hints, placeholders, slider bounds, disabled labels | `muted`, adjusted                  | 7:1 on the background it sits on                                  |
-| Error message and marker                                                         | `reading`, adjusted                | 7:1 on the list                                                   |
-| Axes, axis numbers, point labels                                                 | `text`                             | 7:1 on graph paper                                                |
-| Major gridlines                                                                  | `border`, adjusted                 | 3:1 on graph paper (reverse: 7:1, TH-13)                          |
-| Minor gridlines                                                                  | `border` mixed toward paper        | 1.4:1 to 1.6:1, always below major (reverse: 3:1 to 3.5:1, TH-13) |
-| Curves c1 to c6                                                                  | generated (TH-6)                   | 5.85:1 on paper, so 4.5:1 over any shading                        |
-| Focus ring, focused-row outline                                                  | `math`                             | 3:1 on the adjacent background                                    |
-| Focused-row bar (holds the row number)                                           | `math`, adjusted                   | row number 7:1 on the bar                                         |
-| Enter key label                                                                  | `surface` (light), `canvas` (dark) | 7:1 on the accent                                                 |
-| Text-field and table-cell boundaries                                             | `border`, adjusted                 | 3:1 on the background it sits on                                  |
+| Role                                                                             | Source                             | Target and background                                                                     |
+| -------------------------------------------------------------------------------- | ---------------------------------- | ----------------------------------------------------------------------------------------- |
+| Primary text: math, values, key and menu labels                                  | `text`                             | 7:1 on every background role except the accent, whose labels use the Enter key label role |
+| Secondary text: row numbers, hints, placeholders, slider bounds, disabled labels | `muted`, adjusted                  | 7:1 on the background it sits on                                                          |
+| Error message and marker                                                         | `reading`, adjusted                | 7:1 on the list                                                                           |
+| Axes, axis numbers, point labels                                                 | `text`                             | 7:1 on graph paper                                                                        |
+| Major gridlines                                                                  | `border`, adjusted                 | 3:1 on graph paper (reverse: 7:1, TH-13)                                                  |
+| Minor gridlines                                                                  | `border` mixed toward paper        | 1.4:1 to 1.6:1, always below major (reverse: 3:1 to 3.5:1, TH-13)                         |
+| Curves c1 to c6                                                                  | generated (TH-6)                   | 5.85:1 on paper, so 4.5:1 over any shading                                                |
+| Focus ring, focused-row outline                                                  | `math`                             | 3:1 on the adjacent background                                                            |
+| Focused-row bar (holds the row number)                                           | `math`, adjusted                   | row number 7:1 on the bar                                                                 |
+| Enter key label                                                                  | `surface` (light), `canvas` (dark) | 7:1 on the accent                                                                         |
+| Text-field and table-cell boundaries                                             | `border`, adjusted                 | 3:1 on the background it sits on                                                          |
 
 ### 10.4 Checklist
 

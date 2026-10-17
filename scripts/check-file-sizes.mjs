@@ -35,7 +35,11 @@ const KNOWN_OFFENDERS = {
 };
 
 /** Files exempt because they're machine-generated. */
-const GENERATED = ["src/types/supabase.ts"];
+const GENERATED = [
+  "src/types/supabase.ts",
+  "src/lib/calculator-v2/theme/skin-colors.generated.ts",
+  "src/components/calculator-v2/styles/generated.ts",
+];
 
 const GROWTH_GRACE = 50;
 
