@@ -4,10 +4,13 @@
 // (AR-35). It forwards every public CalculatorEngine member and none of the internal UI surface,
 // adds DOM focus to API-12's focus calls, and contains render errors behind ErrorBoundary
 // (AR-52) while reporting them once to options.onError, whose own failures are swallowed (AR-57).
+// destroy() releases everything the calculator holds (AR-60); afterwards every public member throws
+// KarmanCalculatorError "destroyed", and the internal focusBoundary and reflow do nothing.
 
 import { createElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { createEngine, type CalculatorEngine } from "@/lib/calculator-v2/core/api/engine";
+import { KarmanCalculatorError } from "@/lib/calculator-v2/core/api/errors";
 import type {
   CalculatorOptions,
   CalculatorSettings,
@@ -83,6 +86,7 @@ export class KarmanCalculator {
   readonly #disposers: (() => void)[] = [];
   #reducedMotion: boolean;
   #cancelFieldWait: () => void = () => {};
+  #destroyed = false;
 
   constructor(element: HTMLElement, options?: CalculatorOptions, hooks?: HostHooks) {
     // 1. Validate by creating the engine (API-1) before the element is touched.
@@ -183,6 +187,14 @@ export class KarmanCalculator {
     this.engine.updateSettings({ reducedMotion: this.#reducedMotion });
   }
 
+  /** The engine, or a "destroyed" error once destroy() has run (AR-60). */
+  #live(): CalculatorEngine {
+    if (this.#destroyed) {
+      throw new KarmanCalculatorError("destroyed", "The calculator was destroyed.");
+    }
+    return this.engine;
+  }
+
   /** Runs `run` on the row's field once it mounts; a newer request cancels the pending one. */
   #whenField(id: string, run: () => void): void {
     this.#cancelFieldWait();
@@ -192,119 +204,138 @@ export class KarmanCalculator {
   // ── public API: forwarded to the engine (API-2 to API-13), every argument passed through ──
 
   setExpression(...args: Args<"setExpression">): Result<"setExpression"> {
-    return this.engine.setExpression(...args);
+    return this.#live().setExpression(...args);
   }
   setExpressions(...args: Args<"setExpressions">): Result<"setExpressions"> {
-    return this.engine.setExpressions(...args);
+    return this.#live().setExpressions(...args);
   }
   removeExpression(...args: Args<"removeExpression">): Result<"removeExpression"> {
-    return this.engine.removeExpression(...args);
+    return this.#live().removeExpression(...args);
   }
   removeExpressions(...args: Args<"removeExpressions">): Result<"removeExpressions"> {
-    return this.engine.removeExpressions(...args);
+    return this.#live().removeExpressions(...args);
   }
   getExpressions(...args: Args<"getExpressions">): Result<"getExpressions"> {
-    return this.engine.getExpressions(...args);
+    return this.#live().getExpressions(...args);
   }
   getState(...args: Args<"getState">): Result<"getState"> {
-    return this.engine.getState(...args);
+    return this.#live().getState(...args);
   }
   setState(...args: Args<"setState">): Result<"setState"> {
-    return this.engine.setState(...args);
+    return this.#live().setState(...args);
   }
   setBlank(...args: Args<"setBlank">): Result<"setBlank"> {
-    return this.engine.setBlank(...args);
+    return this.#live().setBlank(...args);
   }
   setMathBounds(...args: Args<"setMathBounds">): Result<"setMathBounds"> {
-    return this.engine.setMathBounds(...args);
+    return this.#live().setMathBounds(...args);
   }
   updateSettings(...args: Args<"updateSettings">): Result<"updateSettings"> {
-    const result = this.engine.updateSettings(...args);
+    const result = this.#live().updateSettings(...args);
     const reducedMotion = args[0]?.reducedMotion;
     if (typeof reducedMotion === "boolean") this.#reducedMotion = reducedMotion;
     return result;
   }
   observe(...args: Args<"observe">): Result<"observe"> {
-    return this.engine.observe(...args);
+    return this.#live().observe(...args);
   }
   unobserve(...args: Args<"unobserve">): Result<"unobserve"> {
-    return this.engine.unobserve(...args);
+    return this.#live().unobserve(...args);
   }
   observeEvent(...args: Args<"observeEvent">): Result<"observeEvent"> {
-    return this.engine.observeEvent(...args);
+    return this.#live().observeEvent(...args);
   }
   unobserveEvent(...args: Args<"unobserveEvent">): Result<"unobserveEvent"> {
-    return this.engine.unobserveEvent(...args);
+    return this.#live().unobserveEvent(...args);
   }
   HelperExpression(...args: Args<"HelperExpression">): Result<"HelperExpression"> {
-    return this.engine.HelperExpression(...args);
+    return this.#live().HelperExpression(...args);
   }
   undo(...args: Args<"undo">): Result<"undo"> {
-    return this.engine.undo(...args);
+    return this.#live().undo(...args);
   }
   redo(...args: Args<"redo">): Result<"redo"> {
-    return this.engine.redo(...args);
+    return this.#live().redo(...args);
   }
   clearHistory(...args: Args<"clearHistory">): Result<"clearHistory"> {
-    return this.engine.clearHistory(...args);
+    return this.#live().clearHistory(...args);
   }
   canUndo(...args: Args<"canUndo">): Result<"canUndo"> {
-    return this.engine.canUndo(...args);
+    return this.#live().canUndo(...args);
   }
   canRedo(...args: Args<"canRedo">): Result<"canRedo"> {
-    return this.engine.canRedo(...args);
+    return this.#live().canRedo(...args);
   }
   get expressionAnalysis(): Readonly<Record<string, ExpressionAnalysis>> {
-    return this.engine.expressionAnalysis;
+    return this.#live().expressionAnalysis;
   }
   get graphpaperBounds(): GraphpaperBounds {
-    return this.engine.graphpaperBounds;
+    return this.#live().graphpaperBounds;
   }
   get settings(): CalculatorSettings {
-    return this.engine.settings;
+    return this.#live().settings;
   }
   get focusedExpression(): string | null {
-    return this.engine.focusedExpression;
+    return this.#live().focusedExpression;
   }
   get mode(): "graphing" {
-    return this.engine.mode;
+    return this.#live().mode;
   }
 
   // ── API-12: engine state plus DOM focus ──
 
   /** Makes the row active and puts DOM focus into its MathField once the field has mounted. */
   focusExpression(id: string): void {
-    this.engine.focusExpression(id);
+    this.#live().focusExpression(id);
     this.#whenField(id, () => this.#focus.focusRow(id, "end"));
   }
 
   /** focusExpression for the first row. */
   focusFirstExpression(): void {
-    this.engine.focusFirstExpression();
+    this.#live().focusFirstExpression();
     const id = this.engine.getExpressions()[0]?.id;
     if (typeof id === "string") this.#whenField(id, () => this.#focus.focusRow(id, "end"));
   }
 
   /** Makes the row active; DOM focus stays out of its MathField. */
   activateExpression(id: string): void {
-    this.engine.activateExpression(id);
+    this.#live().activateExpression(id);
     this.#whenField(id, () => this.#focus.activateRow(id));
   }
 
   /** Re-measures the host at once (the layout follows its width, AR-29). */
   resize(): void {
+    this.#live();
     this.#measure();
   }
 
   /** @internal AR-28 sentinels: focus the first or last tabbable element of the calculator. */
   focusBoundary(edge: "first" | "last"): void {
+    if (this.#destroyed) return;
     focusShadowBoundary(this.#shadow, edge);
   }
 
   /** @internal AR-41: reflow every MathField, then redraw the canvas. */
   reflow(): void {
+    if (this.#destroyed) return;
     for (const field of this.#focus.fields()) field.reflow();
     this.#store.set({ themeRevision: this.#store.get().themeRevision + 1 });
+  }
+
+  /** AR-60: releases the React root, watchers, announcer, styles and engine; idempotent. */
+  destroy(): void {
+    if (this.#destroyed) return;
+    this.#destroyed = true;
+    this.#cancelFieldWait();
+    this.#root.unmount();
+    for (const dispose of [...this.#disposers].reverse()) dispose();
+    this.#disposers.length = 0;
+    this.#announcer.destroy();
+    this.#styles.dispose();
+    this.engine.destroy();
+    this.#shadow.replaceChildren();
+    delete this.#element.dataset.reducedMotion;
+    bumpDevCounter("calculators", -1);
   }
 }
 
