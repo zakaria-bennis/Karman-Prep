@@ -29,7 +29,6 @@
 .kc-list-tool,
 .kc-edit-action {
   border-radius: 4px;
-  background: transparent;
   color: var(--kc-text);
   font-family: var(--kc-font-ui);
   font-size: var(--kc-size-ui);
@@ -177,7 +176,6 @@
   padding: 0 8px;
   border: 1px solid var(--kc-boundary);
   border-radius: 4px;
-  background: transparent;
   color: var(--kc-text);
   font: inherit;
   cursor: pointer;
@@ -198,7 +196,6 @@
   padding: 0;
   border: none;
   border-radius: 4px;
-  background: transparent;
   cursor: pointer;
 }
 
@@ -241,6 +238,26 @@
 
 .kc-list-panel[data-pointer="coarse"] .kc-edit-action {
   min-height: 44px;
+}
+
+/* AN-11: every list-panel button rests on the list role and presses to chrome over 100 ms, with no
+   scale or shadow (package Decisions, "Press tone is a 10.3 role"). The tab's swatch is its glyph,
+   so its background is free for the tone. */
+.kc-list-tool,
+.kc-edit-action,
+.kc-row-tab,
+.kc-row-delete,
+.kc-row-hint-action {
+  background-color: var(--kc-list);
+  transition: background-color var(--kc-duration-instant) var(--kc-ease-standard);
+}
+
+.kc-list-tool:active,
+.kc-edit-action:active,
+.kc-row-tab:active,
+.kc-row-delete:active,
+.kc-row-hint-action:active {
+  background-color: var(--kc-chrome);
 }
 
 .kc-list-tool:focus-visible,

@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
 
 const open = (page: Page, rows: string[], query = "") =>
   page.goto(`/v2/editor.html?rows=${encodeURIComponent(JSON.stringify(rows))}${query}`);
@@ -12,6 +12,13 @@ const rgb = (hex: string) => {
   const n = parseInt(hex.slice(1), 16);
   return `rgb(${n >> 16}, ${(n >> 8) & 255}, ${n & 255})`;
 };
+const transitions = (target: Locator) =>
+  target.evaluate((el) =>
+    el.getAnimations().map((a) => ({
+      property: (a as CSSTransition).transitionProperty,
+      duration: a.effect!.getTiming().duration,
+    }))
+  );
 
 test("R-3 each row has Delete; Enter inserts a row below and focuses it; Up and Down leave a row only at its edge", async ({
   page,
@@ -138,4 +145,176 @@ test("K-5 Functions templates land in the row with the caret inside", async ({ p
   await keypad.getByRole("group", { name: "Calculus" }).getByRole("button").nth(3).click();
   await page.keyboard.type("2");
   await expect.poll(async () => (await latexes(page))[0]).toContain("\\log_{2}");
+});
+
+const keyBoxes = async (keypad: Locator) =>
+  Promise.all((await keypad.getByRole("button").all()).map(async (b) => (await b.boundingBox())!));
+const fromValue = (target: Locator, property: string) =>
+  target.evaluate((el, p) => {
+    const a = el.getAnimations().find((x) => (x as CSSTransition).transitionProperty === p);
+    return a ? String((a.effect as KeyframeEffect).getKeyframes()[0][p]) : null;
+  }, property);
+
+test("K-1 fine-pointer tray keys and the Hide keypad control are at least 32 x 32 px", async ({
+  page,
+}) => {
+  await open(page, [""], "&keypad=open&pointer=fine&width=900");
+  const keypad = page.getByRole("region", { name: "Keypad" });
+  await expect(keypad).toHaveAttribute("data-layout", "tray");
+  await expect(keypad.getByRole("button", { name: "Hide keypad" })).toBeVisible();
+  for (const box of await keyBoxes(keypad))
+    expect(Math.min(box.width, box.height)).toBeGreaterThanOrEqual(32);
+});
+
+test("K-6 containers under 600 px use the 7 x 6 keypad with 44 px keys whatever the pointer, and wider ones the tray, every key at least 44 px on coarse pointers", async ({
+  page,
+}) => {
+  const cases = [
+    [320, "phone", "coarse", 390, 844],
+    [599, "phone", "coarse", 640, 844],
+    [599, "phone", "fine", 640, 844], // a narrow floating window on a desktop
+    [600, "tray", "coarse", 640, 844],
+    [844, "tray", "coarse", 844, 390],
+  ] as const;
+  for (const [width, layout, pointer, vw, vh] of cases) {
+    await page.setViewportSize({ width: vw, height: vh });
+    await open(page, [""], `&keypad=open&pointer=${pointer}&width=${width}`);
+    const keypad = page.getByRole("region", { name: "Keypad" });
+    await expect(keypad).toHaveAttribute("data-layout", layout);
+    await expect(keypad.getByRole("button", { name: "Tilde", exact: true })).toBeVisible();
+    for (const box of await keyBoxes(keypad))
+      expect(Math.min(box.width, box.height)).toBeGreaterThanOrEqual(44);
+    await keypad.getByRole("button", { name: "ABC", exact: true }).click();
+    for (const box of await keyBoxes(keypad))
+      expect(Math.min(box.width, box.height)).toBeGreaterThanOrEqual(44);
+  }
+});
+
+test("K-4 the Functions panel scrolls directly above the keypad from 560 px and covers the keypad area below 560 px", async ({
+  page,
+}) => {
+  const cases = [
+    [900, "above", 1280, 800],
+    [390, "cover", 390, 844],
+  ] as const;
+  for (const [width, placement, vw, vh] of cases) {
+    await page.setViewportSize({ width: vw, height: vh });
+    await open(page, [""], `&keypad=open&pointer=coarse&width=${width}`);
+    await field(page, 1).focus();
+    const keypad = page.getByRole("region", { name: "Keypad" });
+    await keypad.getByRole("button", { name: "Functions", exact: true }).click();
+    const panel = page.locator(".kc-functions-panel");
+    await expect(panel).toHaveAttribute("data-placement", placement);
+    await expect.poll(() => transitions(panel), { intervals: [16] }).toEqual([]); // AN-2 ended
+    await expect(panel).toHaveCSS("overflow-y", "auto");
+    const p = (await panel.boundingBox())!;
+    const k = (await keypad.boundingBox())!;
+    if (placement === "above") {
+      await expect(panel).toHaveCSS("max-height", "240px");
+      expect(Math.abs(p.y + p.height - k.y)).toBeLessThanOrEqual(1);
+    } else {
+      for (const d of [p.x - k.x, p.y - k.y, p.width - k.width, p.height - k.height])
+        expect(Math.abs(d)).toBeLessThanOrEqual(1);
+    }
+  }
+});
+
+test("K-7 double-tapping the keypad = gives one ~ in one undo step, announces tilde; hardware == stays", async ({
+  page,
+  isMobile,
+}) => {
+  await open(page, [""], "&keypad=open");
+  await field(page, 1).focus();
+  const keypad = page.getByRole("region", { name: "Keypad" });
+  const equals = keypad.getByRole("button", { name: "Equals", exact: true });
+  await expect(equals).toHaveCSS("touch-action", "manipulation");
+  await keypad.getByRole("button", { name: "y", exact: true }).click();
+  if (isMobile) {
+    await equals.tap();
+    await equals.tap();
+  } else await equals.dblclick();
+  await expect.poll(async () => (await latexes(page))[0]).toMatch(/^y\\sim\s*$/);
+  await expect(page.getByRole("status")).toHaveText("tilde");
+  await expect(page.locator('li[data-row-id="1"] .kc-row-error')).toHaveText(
+    "This calculator doesn't support that notation."
+  );
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
+  await expect.poll(() => latexes(page)).toEqual(["y="]);
+  await field(page, 1).focus();
+  await page.keyboard.press("End");
+  await page.keyboard.type("==");
+  await expect.poll(async () => (await latexes(page))[0]).not.toContain("\\sim");
+});
+
+test("AN-1 the keypad slides on translateY over 200 ms with ease-standard and is visibility:hidden once hidden", async ({
+  page,
+}) => {
+  await open(page, [""]);
+  const tray = page.locator(".kc-keypad");
+  await expect(tray).toHaveCSS("visibility", "hidden");
+  await page.getByRole("button", { name: "Show keypad" }).click();
+  await expect
+    .poll(() => transitions(tray), { intervals: [16] })
+    .toContainEqual({ property: "transform", duration: 200 });
+  await expect(tray).toHaveCSS("transition-timing-function", /cubic-bezier\(0\.22, 1, 0\.36, 1\)/);
+  await page.getByRole("button", { name: "Hide keypad" }).click();
+  await expect
+    .poll(() => transitions(tray), { intervals: [16] })
+    .toContainEqual({ property: "transform", duration: 200 });
+  await expect(tray).toHaveCSS("visibility", "hidden");
+});
+
+test("AN-2 the Functions panel fades in rising 8 px over 200 ms and fades out over 100 ms", async ({
+  page,
+}) => {
+  await open(page, [""], "&keypad=open");
+  await field(page, 1).focus();
+  const functions = page.getByRole("button", { name: "Functions", exact: true });
+  const panel = page.locator(".kc-functions-panel");
+  await functions.click();
+  await expect
+    .poll(() => transitions(panel), { intervals: [16] })
+    .toEqual(
+      expect.arrayContaining([
+        { property: "opacity", duration: 200 },
+        { property: "transform", duration: 200 },
+      ])
+    );
+  expect(await fromValue(panel, "transform")).toMatch(
+    /translateY\(8px\)|matrix\(1, 0, 0, 1, 0, 8\)/
+  );
+  // The opening ends first: a fade-out that reverses a running fade-in is shortened by the browser.
+  await expect.poll(() => transitions(panel), { intervals: [16] }).toEqual([]);
+  await functions.click();
+  await expect(panel).toHaveAttribute("inert"); // a fading panel takes no second tap
+  await expect
+    .poll(() => transitions(panel), { intervals: [16] })
+    .toEqual([{ property: "opacity", duration: 100 }]);
+  await expect(panel).toHaveCount(0);
+});
+
+test("AN-11 keys and toolbar buttons change background tone over 100 ms on press, with no scale or shadow", async ({
+  page,
+}) => {
+  await open(page, [""], "&keypad=open&pointer=fine");
+  const roleOf = (target: Locator, name: string) =>
+    target.evaluate((el, n) => getComputedStyle(el).getPropertyValue(n).trim(), name);
+  const cases = [
+    [page.getByRole("button", { name: "7", exact: true }), "--kc-key", "--kc-key-operator"],
+    [page.getByRole("button", { name: "Divide", exact: true }), "--kc-key-operator", "--kc-key"],
+    [page.getByRole("button", { name: "Add item" }), "--kc-list", "--kc-chrome"],
+  ] as const;
+  for (const [target, restRole, pressedRole] of cases) {
+    await expect(target).toHaveCSS("transition-property", "background-color");
+    await expect(target).toHaveCSS("transition-duration", "0.1s");
+    const rest = await target.evaluate((el) => getComputedStyle(el).backgroundColor);
+    expect(rest).toBe(rgb(await roleOf(target, restRole)));
+    await target.hover();
+    await page.mouse.down();
+    await expect(target).toHaveCSS("transform", "none");
+    await expect(target).toHaveCSS("box-shadow", "none");
+    await expect(target).not.toHaveCSS("background-color", rest);
+    await expect(target).toHaveCSS("background-color", rgb(await roleOf(target, pressedRole)));
+    await page.mouse.up();
+  }
 });
