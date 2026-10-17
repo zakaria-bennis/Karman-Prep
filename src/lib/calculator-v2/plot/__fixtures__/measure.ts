@@ -2,7 +2,7 @@
 // pixel distances to a reference graph. Never imported by production code.
 
 import { expect } from "vitest";
-import type { CurveGeometry, RealFn1, RegionGeometry } from "../geometry";
+import type { CurveGeometry, RealFn1, RealFn2, RegionGeometry } from "../geometry";
 import {
   defaultViewport,
   worldToPx,
@@ -35,6 +35,44 @@ export const UP_TO_1080: ViewSpec[] = [
   VIEW_800,
   at({ width: 1440, height: 900 }),
   at({ width: 1920, height: 1080 }),
+];
+
+/** An explicit y = f(x) row without its f, for `{ ...EXPLICIT_ROW, f }`. */
+export const EXPLICIT_ROW = { rowId: "e", kind: "explicit", independent: "x" } as const;
+/** G-15: the view sizes the evaluation budgets are checked at. */
+export const SIZES: PixelSize[] = [
+  { width: 800, height: 600 },
+  { width: 1920, height: 1080 },
+  { width: 3840, height: 2160 },
+];
+/** G-15 explicit stress functions: steep, oscillating, poles and domain edges. */
+export const STRESS_1: RealFn1[] = [
+  (x) => x * x,
+  (x) => Math.sin(100 * x),
+  (x) => Math.sin(1 / x),
+  Math.tan,
+  (x) => Math.tan(200 * x),
+  (x) => 1 / x,
+  (x) => Math.sqrt(Math.sin(1000 * x)),
+  Math.exp,
+  (x) => x ** 10,
+];
+/** G-15 implicit stress functions F(x, y) = 0. */
+export const STRESS_2: RealFn2[] = [
+  (x, y) => x * x + y * y - 25,
+  (x, y) => x * y - 6,
+  (x, y) => Math.sin(300 * x) * Math.sin(300 * y),
+  (x, y) => {
+    let s = 0;
+    for (let k = 1; k <= 40; k++) s += Math.sin(k * x) * Math.cos(k * y);
+    return s;
+  },
+];
+/** G-15 region stress terms, each chained with `<`. */
+export const STRESS_REGIONS: RealFn2[][] = [
+  [(x, y) => y, (x) => 2 * x + 1],
+  [() => 1, (x, y) => y, () => 3],
+  [(x) => Math.sin(300 * x), (x, y) => Math.sin(300 * y)],
 ];
 
 /** Splits world polylines into runs at each NaN, NaN pair. */
