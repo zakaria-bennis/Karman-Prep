@@ -1,0 +1,47 @@
+/* Light-DOM calculator window surfaces (AR-37): colours come only from the --kcc-* tokens of
+   calculator-chrome.generated.css, which CalculatorScope imports. */
+
+/* The shadow host the v2 calculator mounts into (CalculatorLoader). It keeps its layout while
+   loading, so the calculator measures its real size, but stays invisible until ready. */
+.host {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+
+.host[data-loading] {
+  visibility: hidden;
+}
+
+/* The AR-31 loading, reload and Retry panel, laid over the window body. */
+.panel {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 16px;
+  text-align: center;
+  font-size: 0.9375rem;
+  background: var(--kcc-chrome);
+  color: var(--kcc-text);
+}
+
+.panel button {
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid var(--kcc-boundary);
+  border-radius: 6px;
+  background: var(--kcc-accent);
+  color: var(--kcc-accent-label);
+  font: inherit;
+  cursor: pointer;
+}
+
+.panel button:focus-visible {
+  outline: 2px solid var(--kcc-focus);
+  outline-offset: 2px;
+}

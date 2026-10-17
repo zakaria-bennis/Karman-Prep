@@ -7,6 +7,9 @@ import type { PastePayload } from "@/lib/calculator/paste";
 import { CalculatorShell } from "./CalculatorShell";
 import styles from "./calculator.module.css";
 
+export type CalculatorLoadStatus = "idle" | "loading" | "ready" | "failed";
+export type CalculatorLoadFailure = "load" | "mount"; // OI-28: import() rejected, or mount/API threw
+
 interface Bridge {
   paste(payload: PastePayload): void;
   toggle(): void;
