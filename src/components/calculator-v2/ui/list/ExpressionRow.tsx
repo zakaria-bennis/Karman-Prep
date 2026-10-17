@@ -6,7 +6,10 @@
 // and the complex-mode hint (FN-16, OI-4), the TH-11 colour note, and the Delete control. The
 // field's inputmode follows the on-screen keypad (T-11). Enter, the arrow edges, Backspace or
 // Delete in an empty row and the Delete control go through row-actions (R-3, R-9); a typed edit
-// past the T-13 limit is refused, restored and announced.
+// past the T-13 limit is refused, restored and announced. AN-5: the row carries its presence
+// motion; an exiting row leaves the focus controller, is aria-hidden and inert with no number, and
+// reports onExitDone once its own exit transition-duration has passed (09 Decisions, "Motion
+// lifecycles read CSS").
 
 import { TriangleAlert, X } from "lucide-react";
 import {
@@ -32,6 +35,7 @@ import { useSkin } from "../hooks/skin";
 import { useEngine, useEngineSnapshot } from "../hooks/use-engine";
 import { MathFieldFactoryContext } from "./math-field-factory";
 import { EDITOR_MESSAGES } from "./messages";
+import { MotionContext } from "./motion";
 import {
   deleteFromEmptyRow,
   deleteRowByControl,
@@ -40,12 +44,15 @@ import {
   leaveRow,
 } from "./row-actions";
 import { fieldTextbox, rowDomIds, rowTab } from "./row-model";
+import type { RowMotion } from "./row-presence";
 
 export interface ExpressionRowProps {
   row: RowView;
-  number: number; // 1-based
+  number: number; // 1-based; an exiting row shows none
   keypadOpen: boolean;
   onTouchFocus(rowId: string): void;
+  motion: RowMotion; // AN-5, from useRowPresence
+  onExitDone(rowId: string): void; // after the exit transition; the panel then drops the row
 }
 
 /** Writes the snapshot's latex into the field with `syncing` set, so the row's onEdit ignores it. */
@@ -65,12 +72,14 @@ function useFocusController(): FocusController {
 }
 
 export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
-  const { row, number, keypadOpen } = props;
+  const { row, number, keypadOpen, motion } = props;
+  const exiting = motion === "exit";
   const engine = useEngine();
   const { focusedRowId, activeRowId } = useEngineSnapshot(engine);
   const focus = useFocusController();
   const announcer = useAnnouncer();
   const createField = useContext(MathFieldFactoryContext);
+  const readDuration = useContext(MotionContext);
   const color = resolveRowColor(row.color, useSkin());
   const ids = useMemo(() => rowDomIds(row.id), [row.id]);
   const speech = useMemo(() => latexToSpeech(row.latex), [row.latex]);
@@ -87,18 +96,29 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
     .filter((id) => id !== null)
     .join(" ");
 
+  const itemRef = useRef<HTMLLIElement>(null);
   const hostRef = useRef<HTMLDivElement>(null);
   const fieldRef = useRef<MathField | null>(null);
   /** True while the row writes the snapshot's latex into the field, so onEdit ignores it. */
   const syncingRef = useRef(false);
   /** Whether the last pointerdown on the field was a touch; a focus consumes it (K-2). */
   const touchRef = useRef(false);
-  const latest = useRef({ latex: row.latex, number, onTouchFocus: props.onTouchFocus });
+  const latest = useRef({
+    latex: row.latex,
+    number,
+    onTouchFocus: props.onTouchFocus,
+    onExitDone: props.onExitDone,
+  });
   useLayoutEffect(() => {
-    latest.current = { latex: row.latex, number, onTouchFocus: props.onTouchFocus };
+    latest.current = {
+      latex: row.latex,
+      number,
+      onTouchFocus: props.onTouchFocus,
+      onExitDone: props.onExitDone,
+    };
   });
 
-  // The field is created once, filled with the row's latex, then registered for focus requests.
+  // The field is created once and filled with the row's latex; the next effect registers it.
   useLayoutEffect(() => {
     const rowId = row.id;
     const field = createField(hostRef.current!, {
@@ -136,13 +156,44 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
     });
     fieldRef.current = field;
     writeLatex(field, latest.current.latex, syncingRef);
-    const unregister = focus.registerField(rowId, field);
     return () => {
-      unregister();
       fieldRef.current = null;
       field.destroy();
     };
   }, [announcer, createField, engine, focus, row.id]);
+
+  // Focus requests reach the field while the row is in the list; an exiting row has left it
+  // (AN-5). The field's own deps rerun this for a new field.
+  useLayoutEffect(() => {
+    const field = fieldRef.current;
+    if (field === null || exiting) return;
+    return focus.registerField(row.id, field);
+  }, [exiting, announcer, createField, engine, focus, row.id]);
+
+  // AN-5: the entering row's collapsed height is computed before it turns idle, so it grows.
+  useLayoutEffect(() => {
+    if (motion === "enter") void itemRef.current?.offsetHeight;
+  }, [motion]);
+
+  // AN-5: an exiting row takes no input and leaves after its own exit transition-duration, read
+  // once data-motion="exit" is committed; 0 (reduced motion, jsdom) leaves here, before paint.
+  useLayoutEffect(() => {
+    const li = itemRef.current;
+    if (li === null || !exiting) return;
+    li.setAttribute("inert", "");
+    const rowId = row.id;
+    const done = () => latest.current.onExitDone(rowId);
+    const ms = readDuration(li);
+    if (ms <= 0) {
+      done();
+      return () => li.removeAttribute("inert");
+    }
+    const timer = setTimeout(done, ms);
+    return () => {
+      clearTimeout(timer);
+      li.removeAttribute("inert");
+    };
+  }, [exiting, readDuration, row.id]);
 
   useLayoutEffect(() => {
     const field = fieldRef.current;
@@ -178,14 +229,17 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
 
   return (
     <li
+      ref={itemRef}
       className="kc-row"
       data-row-id={row.id}
       data-focused={focusedRowId === row.id ? "true" : undefined}
       data-active={activeRowId === row.id ? "true" : undefined}
+      data-motion={motion}
+      aria-hidden={exiting ? "true" : undefined}
     >
       <div className="kc-row-inner">
         <div className="kc-row-gutter">
-          <span className="kc-row-number">{number}</span>
+          <span className="kc-row-number">{exiting ? null : number}</span>
           {tab !== null && (
             <button
               type="button"
