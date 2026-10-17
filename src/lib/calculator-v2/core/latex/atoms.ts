@@ -1,13 +1,26 @@
-// Factors and atoms, precedence levels 9 to 11 (grammar contract of the 02-parser plan): numbers,
-// identifiers and constants (G6, PR-10, PR-11, PR-14, PR-15) and single-token arguments (G4).
-// Built-in calls (Task 9), the postfix loop and groups (Task 8) join here.
+// Factors and atoms, precedence levels 9 to 11 (grammar contract of the 02-parser plan): the postfix
+// loop (G5, PR-8, PR-19, PR-20); numbers, identifiers and constants (G6, PR-10, PR-11, PR-14,
+// PR-15); groups and points (G10, PR-22); fractions and roots (G9, PR-27); absolute-value bars
+// (G11, PR-21); and single-token arguments (G4). Built-in calls (Task 9) join here.
 
 import type { Node, SourceSpan } from "./ast";
-import { enter, fail, parseSum, peek, take, unexpected, type ParserState } from "./parser";
+import {
+  enter,
+  fail,
+  parseSum,
+  peek,
+  startsFactor,
+  take,
+  unexpected,
+  type ParserState,
+} from "./parser";
 import type { Token } from "./tokens";
 
 type DigitsToken = Extract<Token, { t: "digits" }>;
 type LetterToken = Extract<Token, { t: "letter" }>;
+type OpenToken = Extract<Token, { t: "open" }>;
+/** An argument and the end of its text: a braced argument ends at its closing brace. */
+type Argument = { node: Node; end: number };
 
 /** Lowercase Greek letter commands that are identifiers (G6, PR-11); `\pi` and `\tau` are constants. */
 export const GREEK_IDENTIFIERS: ReadonlySet<string> = new Set([
@@ -44,12 +57,42 @@ export function parseFactor(state: ParserState): Node {
   return parsePostfix(state);
 }
 
-/** `postfix := atom ("^" exponent | "\%" | "^{\circ}")*` (G2); the postfix loop joins in Task 8. */
+/**
+ * `postfix := atom ("^" exponent | "\%" | "^{\circ}")*` (G2), each sign applying to everything
+ * before it (PR-20). An exponent directly after another is `syntax` (G5, PR-19); `!`, `'`, `.` and
+ * `~` end the loop.
+ */
 export function parsePostfix(state: ParserState): Node {
-  return parseAtom(state);
+  let node = parseAtom(state);
+  let afterExponent = false;
+  for (let token = peek(state); token.t === "symbol"; token = peek(state)) {
+    if (token.ch === "%") {
+      take(state);
+      node = { kind: "pct", arg: node, span: { start: node.span.start, end: token.span.end } };
+      afterExponent = false;
+    } else if (token.ch === "^" && isDegreeSign(state)) {
+      for (let i = 0; i < 3; i++) take(state);
+      const close = take(state);
+      node = { kind: "deg", arg: node, span: { start: node.span.start, end: close.span.end } };
+      afterExponent = false;
+    } else if (token.ch === "^") {
+      if (afterExponent) unexpected(state, token);
+      take(state);
+      const exponent = takeArgument(state);
+      const span = { start: node.span.start, end: exponent.end };
+      node = { kind: "pow", left: node, right: exponent.node, span };
+      afterExponent = true;
+    } else {
+      break;
+    }
+  }
+  return node;
 }
 
-/** A number, a Latin or Greek identifier or a constant (G6); any other token fails (G14). */
+/**
+ * An atom (level 11): a number, a Latin or Greek identifier or a constant (G6), a `(` or `{` group
+ * (G10), a fraction or root (G9) or absolute-value bars (G11); any other token fails (G14).
+ */
 export function parseAtom(state: ParserState): Node {
   const token = peek(state);
   switch (token.t) {
@@ -58,7 +101,15 @@ export function parseAtom(state: ParserState): Node {
       return { kind: "num", value: Number(token.text), span: token.span };
     case "letter":
       return parseLetter(state, token);
+    case "open":
+      if (token.ch === "[") return fail("unsupported", token.span, '"[" is not supported');
+      return parseGroup(state, token);
+    case "symbol":
+      return token.ch === "|" ? parseBars(state, token, "raw") : unexpected(state, token);
     case "command":
+      if (token.name === "frac") return parseFraction(state, token);
+      if (token.name === "sqrt") return parseRoot(state, token);
+      if (token.name === "lvert") return parseBars(state, token, "lvert");
       return parseCommandAtom(state, true);
     default:
       return unexpected(state, token);
@@ -71,14 +122,7 @@ export function parseAtom(state: ParserState): Node {
  */
 export function takeSingleArgument(state: ParserState): Node {
   const token = peek(state);
-  if (token.t === "open" && token.ch === "{") {
-    take(state);
-    const arg = enter(state, token, () => parseSum(state));
-    const close = peek(state);
-    if (close.t !== "close" || close.ch !== "}") unexpected(state, close);
-    take(state);
-    return arg;
-  }
+  if (token.t === "open" && token.ch === "{") return takeDelimited(state, token, "}").node;
   if (token.t === "digits") {
     const digit = takeFirstDigit(state, token);
     return { kind: "num", value: Number(digit.text), span: digit.span };
@@ -91,6 +135,112 @@ export function takeSingleArgument(state: ParserState): Node {
   }
   if (token.t === "command") return parseCommandAtom(state, false);
   return unexpected(state, token);
+}
+
+/** takeSingleArgument with the end of the argument's text, so a node can span it (G14). */
+function takeArgument(state: ParserState): Argument {
+  const token = peek(state);
+  if (token.t === "open" && token.ch === "{") return takeDelimited(state, token, "}");
+  const node = takeSingleArgument(state);
+  return { node, end: node.span.end };
+}
+
+/** The opener at the cursor, a sum one nesting level deeper (G13), then `closer`. */
+function takeDelimited(state: ParserState, open: OpenToken, closer: ")" | "]" | "}"): Argument {
+  take(state);
+  const node = enter(state, open, () => parseSum(state));
+  const close = peek(state);
+  if (close.t !== "close" || close.ch !== closer) unexpected(state, close);
+  take(state);
+  return { node, end: close.span.end };
+}
+
+/** True when the `^` at the cursor starts `^{\circ}`, the postfix degree sign (G5, PR-8). */
+function isDegreeSign(state: ParserState): boolean {
+  const [open, circ, close] = [peek(state, 1), peek(state, 2), peek(state, 3)];
+  return (
+    open.t === "open" &&
+    open.ch === "{" &&
+    circ.t === "command" &&
+    circ.name === "circ" &&
+    close.t === "close" &&
+    close.ch === "}"
+  );
+}
+
+/**
+ * A `(` or `{` group in atom position (G10, PR-22): comma-separated sums, an empty part being
+ * `syntax`. One part is that sum, spanning the brackets; a `(` group with two parts is a point and
+ * with more is `point-arity` over the group; a `{` group fails at its first top-level comma.
+ */
+function parseGroup(state: ParserState, open: OpenToken): Node {
+  take(state);
+  const parts = enter(state, open, () => {
+    const found = [parseSum(state)];
+    for (let comma = peek(state); comma.t === "symbol" && comma.ch === ","; comma = peek(state)) {
+      if (open.ch === "{") unexpected(state, comma);
+      take(state);
+      found.push(parseSum(state));
+    }
+    return found;
+  });
+  const close = peek(state);
+  if (close.t !== "close" || close.ch !== (open.ch === "(" ? ")" : "}")) unexpected(state, close);
+  take(state);
+  const span = { start: open.span.start, end: close.span.end };
+  if (parts.length > 2) {
+    return fail("point-arity", span, `a point has 2 coordinates, not ${parts.length}`);
+  }
+  if (parts.length === 2) return { kind: "point", x: parts[0], y: parts[1], span };
+  return { ...parts[0], span };
+}
+
+/**
+ * `\lvert … \rvert` or raw `| … |` (G11, PR-21): `abs`. The bar stays on `state.bars` while its
+ * content is read, so a raw `|` there closes it instead of starting a factor (G3).
+ */
+function parseBars(state: ParserState, open: Token, bar: "raw" | "lvert"): Node {
+  take(state);
+  const arg = enter(state, open, () => {
+    state.bars.push(bar);
+    try {
+      return parseSum(state);
+    } finally {
+      state.bars.pop();
+    }
+  });
+  const close = peek(state);
+  const closes =
+    bar === "raw"
+      ? close.t === "symbol" && close.ch === "|"
+      : close.t === "command" && close.name === "rvert";
+  if (!closes) unexpected(state, close);
+  take(state);
+  return { kind: "abs", arg, span: { start: open.span.start, end: close.span.end } };
+}
+
+/** `\frac` with two G4 arguments: `div`. */
+function parseFraction(state: ParserState, frac: Token): Node {
+  take(state);
+  const numerator = takeArgument(state);
+  const denominator = takeArgument(state);
+  const span = { start: frac.span.start, end: denominator.end };
+  return { kind: "div", left: numerator.node, right: denominator.node, span };
+}
+
+/**
+ * `\sqrt` (G9, PR-27): an optional `[index]` sum, then a braced group, a `(` group (pasted
+ * `sqrt(x)`) or a G4 token.
+ */
+function parseRoot(state: ParserState, sqrt: Token): Node {
+  take(state);
+  const bracket = peek(state);
+  const index =
+    bracket.t === "open" && bracket.ch === "[" ? takeDelimited(state, bracket, "]").node : null;
+  const paren = peek(state);
+  const arg =
+    paren.t === "open" && paren.ch === "(" ? takeDelimited(state, paren, ")") : takeArgument(state);
+  return { kind: "root", arg: arg.node, index, span: { start: sqrt.span.start, end: arg.end } };
 }
 
 /**
@@ -112,8 +262,13 @@ function parseLetter(state: ParserState, letter: LetterToken): Node {
   return { kind: "id", name: letter.ch, span: letter.span };
 }
 
-/** `\pi` and `\tau` are constants and Greek letters are identifiers; other commands are unsupported. */
+/**
+ * `\pi` and `\tau` are constants and Greek letters are identifiers (G6). G3's operator and closer
+ * commands (`\cdot`, `\le`, `\ge`, `\rvert`, `\operatorname{of}`) start no factor, so they are
+ * `syntax` wherever an atom is due; any other command is unsupported.
+ */
 function parseCommandAtom(state: ParserState, subscripts: boolean): Node {
+  if (!startsFactor(state)) return unexpected(state, peek(state));
   const token = take(state) as Extract<Token, { t: "command" }>;
   if (token.name === "pi" || token.name === "tau") {
     return { kind: "const", name: token.name, span: token.span };
