@@ -1,5 +1,13 @@
 // @vitest-environment jsdom
-import { act, cleanup, render, screen } from "@testing-library/react";
+import {
+  act,
+  cleanup,
+  createEvent,
+  fireEvent,
+  render,
+  screen,
+  within,
+} from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi, type MockInstance } from "vitest";
 import { createEngine, type CalculatorEngine } from "@/lib/calculator-v2/core/api/engine";
 import type { Geometry, RegionGeometry } from "@/lib/calculator-v2/plot/geometry";
@@ -282,4 +290,118 @@ it("A11Y-1 a continuous pan renames the graph within 500 ms, before the pan stop
   }
   await advance(250);
   expect(graphName()).toBe("Graph from x=-8 to 12, y=-7.5 to 7.5, 0 plots");
+});
+
+const graph = (): HTMLElement => screen.getByRole("img");
+const panel = (): HTMLElement => document.querySelector<HTMLElement>("[data-graph-panel]")!;
+const button = (name: string): HTMLElement => screen.getByRole("button", { name });
+const click = (name: string) => run(() => fireEvent.click(button(name)));
+const WHEEL = { deltaY: -100, deltaMode: 0, clientX: 400, clientY: 300 };
+
+it("G-5 graph controls: Zoom in and out by 2 about the centre, Home restores the default", async () => {
+  const onOpenSettings = vi.fn();
+  await mountSized({ settingsOpen: true, onOpenSettings });
+  const group = screen.getByRole("group", { name: "Graph controls" });
+  expect(
+    within(group)
+      .getAllByRole("button")
+      .map((b) => b.getAttribute("aria-label"))
+  ).toEqual(["Graph settings", "Zoom in", "Zoom out"]);
+
+  const settings = button("Graph settings");
+  expect(settings).toHaveAttribute("aria-expanded", "true");
+  await click("Graph settings");
+  expect(onOpenSettings).toHaveBeenCalledWith(settings);
+
+  await click("Zoom in");
+  expect(engine.getSnapshot().viewport).toEqual(vp(-5, 5, -3.75, 3.75));
+  await click("Zoom out");
+  await click("Zoom out");
+  expectViewport(engine.getSnapshot().viewport, vp(-20, 20, -15, 15));
+
+  await run(() => engine.setMathBounds(P));
+  await click("Zoom in");
+  expectViewport(engine.getSnapshot().viewport, vp(-3, 7, -3.75, 3.75));
+
+  await click("Home");
+  expectViewport(engine.getSnapshot().viewport, DEFAULT);
+});
+
+it("AN-8 Home shows only off the default view and hands focus to the graph as it leaves", async () => {
+  await mountSized({ reducedMotion: true });
+  expect(screen.queryByRole("button", { name: "Home" })).toBeNull();
+
+  await run(() => fireEvent.keyDown(graph(), { key: "ArrowRight" }));
+  const home = button("Home");
+
+  await run(() => {
+    home.focus();
+    fireEvent.click(home);
+  });
+  expect(screen.queryByRole("button", { name: "Home" })).toBeNull();
+  expect(document.activeElement).toBe(graph());
+
+  await run(() => fireEvent.keyDown(graph(), { key: "ArrowRight" }));
+  await run(() => button("Home").focus());
+  await run(() => engine.setMathBounds(DEFAULT));
+  expect(screen.queryByRole("button", { name: "Home" })).toBeNull();
+  expect(document.activeElement).toBe(graph());
+});
+
+it("KB-8 the graph surface is the panel's one focusable graph element and handles the graph keys", async () => {
+  await mountSized();
+  expect(graph()).toHaveAttribute("tabindex", "0");
+  expect(document.querySelectorAll("[data-graph-panel] [tabindex]:not(button)")).toHaveLength(1);
+
+  const right = createEvent.keyDown(graph(), { key: "ArrowRight" });
+  await run(() => fireEvent(graph(), right));
+  expect(right.defaultPrevented).toBe(true);
+  expectViewport(engine.getSnapshot().viewport, P);
+
+  const zoom = createEvent.keyDown(graph(), { key: "=", ctrlKey: true });
+  await run(() => fireEvent(graph(), zoom));
+  expect(zoom.defaultPrevented).toBe(false);
+  expect(engine.getSnapshot().viewport.left).toBeCloseTo(-8, 9);
+
+  const home = createEvent.keyDown(graph(), { key: "Home" });
+  await run(() => fireEvent(graph(), home));
+  expect(home.defaultPrevented).toBe(true);
+  expectViewport(engine.getSnapshot().viewport, DEFAULT);
+});
+
+it("G-5 unmounting GraphPanel destroys the renderer and leaves no timer or frame", async () => {
+  const destroySpy = vi.spyOn(GraphRenderer.prototype, "destroy");
+  const { unmount } = await mountSized();
+  await run(() => engine.setMathBounds(P));
+  unmount();
+  expect(destroySpy).toHaveBeenCalledTimes(1);
+  engine.destroy();
+  expect(vi.getTimerCount()).toBe(0);
+});
+
+it("G-5 wheel events within one frame accumulate", async () => {
+  await mountSized();
+  await act(async () => {
+    expect(fireEvent.wheel(panel(), WHEEL)).toBe(false);
+    expect(fireEvent.wheel(panel(), WHEEL)).toBe(false);
+    expectViewport(engine.getSnapshot().viewport, DEFAULT);
+  });
+  await nextFrame();
+  const k = Math.exp(0.4);
+  const { viewport } = engine.getSnapshot();
+  expectViewport(viewport, vp(-10 / k, 10 / k, -7.5 / k, 7.5 / k));
+  expect(viewport.right - viewport.left).toBeCloseTo(20 / Math.exp(0.4), 9);
+});
+
+it("G-5 a graph key while a wheel frame is pending keeps both changes", async () => {
+  await mountSized();
+  await run(() => {
+    fireEvent.wheel(panel(), WHEEL);
+  });
+  await run(() => fireEvent.keyDown(graph(), { key: "ArrowRight" }));
+  const k = Math.exp(0.2);
+  const expected = vp(-8 / k, 12 / k, -7.5 / k, 7.5 / k);
+  expectViewport(engine.getSnapshot().viewport, expected);
+  await nextFrame();
+  expectViewport(engine.getSnapshot().viewport, expected);
 });

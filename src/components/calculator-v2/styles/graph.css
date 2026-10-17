@@ -32,3 +32,63 @@
   outline: 2px solid var(--kc-focus-ring);
   outline-offset: 2px;
 }
+
+.kc-graph-surface[data-dragging] {
+  cursor: grabbing;
+}
+
+/* Graph settings, Zoom in, Zoom out and Home (G-5, L-1), at the inline end. */
+.kc-graph-controls {
+  position: absolute;
+  top: 8px;
+  inset-inline-end: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.kc-graph-controls button {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid var(--kc-boundary);
+  border-radius: 6px;
+  background: var(--kc-chrome);
+  color: var(--kc-text);
+  transition: background-color var(--kc-duration-instant) var(--kc-ease-standard);
+}
+
+@media (pointer: coarse) {
+  .kc-graph-controls button {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+/* AN-11 */
+.kc-graph-controls button:active {
+  background: var(--kc-key-operator);
+}
+
+.kc-graph-controls button:focus-visible {
+  outline: 2px solid var(--kc-focus-ring);
+  outline-offset: 2px;
+}
+
+/* AN-8: Home fades in and out with the same duration and easing. */
+.kc-graph-controls [data-graph-home] {
+  transition:
+    background-color var(--kc-duration-instant) var(--kc-ease-standard),
+    opacity var(--kc-duration-instant) var(--kc-ease-standard);
+}
+
+.kc-graph-controls [data-graph-home][data-phase="entering"],
+.kc-graph-controls [data-graph-home][data-phase="leaving"] {
+  opacity: 0;
+}
+
+.kc-graph-controls [data-graph-home][data-phase="leaving"] {
+  pointer-events: none;
+}
