@@ -16,6 +16,64 @@
   overflow-y: auto;
 }
 
+/* L-1, L-2: the list toolbar, first in the list body; Tab follows this DOM order (KB-13). */
+.kc-list-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border-bottom: 1px solid var(--kc-boundary);
+}
+
+.kc-list-tool,
+.kc-edit-action {
+  border-radius: 4px;
+  background: transparent;
+  color: var(--kc-text);
+  font-family: var(--kc-font-ui);
+  font-size: var(--kc-size-ui);
+  cursor: pointer;
+}
+
+.kc-list-tool {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+}
+
+/* Edit list and the stacked Keypad toggle while on. */
+.kc-list-tool[aria-pressed="true"] {
+  background: var(--kc-chrome);
+}
+
+/* KB-2: Undo and Redo at the ends of the stack; they stay in the Tab order (KB-13). */
+.kc-list-tool[aria-disabled="true"] {
+  color: var(--kc-text-secondary);
+  cursor: default;
+}
+
+/* KB-5: Edit list mode, between the toolbar and the list. */
+.kc-edit-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 8px;
+  padding: 4px;
+  border-bottom: 1px solid var(--kc-boundary);
+}
+
+.kc-edit-action {
+  min-height: 32px;
+  padding: 0 8px;
+  border: 1px solid var(--kc-boundary);
+}
+
 .kc-list {
   margin: 0;
   padding: 0;
@@ -176,6 +234,17 @@
   min-height: 44px;
 }
 
+.kc-list-panel[data-pointer="coarse"] .kc-list-tool {
+  width: 44px;
+  height: 44px;
+}
+
+.kc-list-panel[data-pointer="coarse"] .kc-edit-action {
+  min-height: 44px;
+}
+
+.kc-list-tool:focus-visible,
+.kc-edit-action:focus-visible,
 .kc-row-tab:focus-visible,
 .kc-row-delete:focus-visible,
 .kc-row-hint-action:focus-visible {

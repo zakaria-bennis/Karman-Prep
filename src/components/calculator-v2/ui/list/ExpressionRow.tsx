@@ -4,7 +4,9 @@
 // (A11Y-3, 09 Decisions "Textbox naming survives renumbering") and described by the row's T-5
 // speech text (A11Y-4), its value (R-5), its error with the gutter marker and aria-invalid (R-2)
 // and the complex-mode hint (FN-16, OI-4), the TH-11 colour note, and the Delete control. The
-// field's inputmode follows the on-screen keypad (T-11).
+// field's inputmode follows the on-screen keypad (T-11). Enter, the arrow edges, Backspace or
+// Delete in an empty row and the Delete control go through row-actions (R-3, R-9); a typed edit
+// past the T-13 limit is refused, restored and announced.
 
 import { TriangleAlert, X } from "lucide-react";
 import {
@@ -24,10 +26,19 @@ import { LineStyleGlyph, PointStyleGlyph } from "../../icons";
 import { groupIntegerDigits } from "../../math-field/digit-groups";
 import type { MathField } from "../../math-field/MathField";
 import { latexToSpeech } from "../../math-field/speech";
+import { useAnnouncer } from "../a11y/announcer";
 import { FocusContext, type FocusController } from "../focus/focus-controller";
 import { useSkin } from "../hooks/skin";
 import { useEngine, useEngineSnapshot } from "../hooks/use-engine";
 import { MathFieldFactoryContext } from "./math-field-factory";
+import { EDITOR_MESSAGES } from "./messages";
+import {
+  deleteFromEmptyRow,
+  deleteRowByControl,
+  insertRowBelow,
+  isKeypadBatch,
+  leaveRow,
+} from "./row-actions";
 import { fieldTextbox, rowDomIds, rowTab } from "./row-model";
 
 export interface ExpressionRowProps {
@@ -58,6 +69,7 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
   const engine = useEngine();
   const { focusedRowId, activeRowId } = useEngineSnapshot(engine);
   const focus = useFocusController();
+  const announcer = useAnnouncer();
   const createField = useContext(MathFieldFactoryContext);
   const color = resolveRowColor(row.color, useSkin());
   const ids = useMemo(() => rowDomIds(row.id), [row.id]);
@@ -93,11 +105,19 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
       ariaLabel: `Expression ${latest.current.number}`,
       maxLength: MAX_ROW_CHARACTERS,
       onEdit(latex) {
-        if (!syncingRef.current) engine.editRow(rowId, latex, "typing");
+        const current = fieldRef.current;
+        // Snapshot writes are not edits; editThroughKeypad makes a keypad batch's one editRow.
+        if (syncingRef.current || current === null || isKeypadBatch(current)) return;
+        if (engine.editRow(rowId, latex, "typing") === "char-limit") {
+          writeLatex(current, latest.current.latex, syncingRef); // T-13: the row stays unchanged
+          announcer.announce(EDITOR_MESSAGES.charLimit);
+        }
       },
-      onEnter: () => undefined,
-      onArrowOut: () => undefined,
-      onDeleteOutOf: () => undefined,
+      onEnter: () => insertRowBelow(engine, focus, announcer, rowId, "focus"),
+      onArrowOut: (direction) => leaveRow(engine, focus, rowId, direction),
+      onDeleteOutOf(direction) {
+        if (fieldRef.current?.latex() === "") deleteFromEmptyRow(engine, focus, rowId, direction);
+      },
       onFocus() {
         const touch = touchRef.current;
         touchRef.current = false;
@@ -110,7 +130,9 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
         engine.setFocusedRow(null);
         engine.endEditGroup(); // KB-2: a focus change ends the typing group
       },
-      onRefused: () => undefined,
+      onRefused(reason) {
+        if (reason === "char-limit") announcer.announce(EDITOR_MESSAGES.charLimit); // T-13
+      },
     });
     fieldRef.current = field;
     writeLatex(field, latest.current.latex, syncingRef);
@@ -120,7 +142,7 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
       fieldRef.current = null;
       field.destroy();
     };
-  }, [createField, engine, focus, row.id]);
+  }, [announcer, createField, engine, focus, row.id]);
 
   useLayoutEffect(() => {
     const field = fieldRef.current;
@@ -130,7 +152,7 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
   // T-11: no phone keyboard over the open keypad. The field's own deps rerun this for a new field.
   useLayoutEffect(() => {
     fieldRef.current?.setInputMode(keypadOpen ? "none" : "text");
-  }, [keypadOpen, createField, engine, focus, row.id]);
+  }, [keypadOpen, announcer, createField, engine, focus, row.id]);
 
   // After every render, so the name, description and error state follow renumbering, edits and
   // results (A11Y-3, A11Y-4, R-2). Rows without an error carry no aria-invalid attribute.
@@ -214,7 +236,12 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
           )}
           {color.adjusted && <p className="kc-row-note">{EXPLICIT_COLOUR_NOTE}</p>}
         </div>
-        <button type="button" className="kc-row-delete" aria-label={`Delete expression ${number}`}>
+        <button
+          type="button"
+          className="kc-row-delete"
+          aria-label={`Delete expression ${number}`}
+          onClick={() => deleteRowByControl(engine, focus, row.id)}
+        >
           <X aria-hidden="true" focusable="false" size={16} />
         </button>
       </div>
