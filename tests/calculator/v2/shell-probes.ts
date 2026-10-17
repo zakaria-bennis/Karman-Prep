@@ -55,3 +55,40 @@ export function popoverCoversRow1(): boolean {
   if (a.width === 0 || a.height === 0) return false;
   return a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
 }
+
+/** TH-17 init script: records the canvas font of every fillText in globalThis.__fonts. */
+export function recordCanvasFonts(): void {
+  const store = globalThis as unknown as { __fonts: string[] };
+  store.__fonts = [];
+  const fillText = CanvasRenderingContext2D.prototype.fillText;
+  CanvasRenderingContext2D.prototype.fillText = function (
+    this: CanvasRenderingContext2D,
+    ...args: Parameters<CanvasRenderingContext2D["fillText"]>
+  ) {
+    store.__fonts.push(this.font);
+    return fillText.apply(this, args);
+  };
+}
+
+/** AR-40: a KaTeX_Math face exists in document.fonts and has loaded (check() is true with none). */
+export function katexMathLoaded(): boolean {
+  for (const face of document.fonts) {
+    if (face.family.replace(/^["']|["']$/g, "") === "KaTeX_Math" && face.status === "loaded") {
+      return true;
+    }
+  }
+  return false;
+}
+
+/** AR-40: whether any stylesheet of the shadow root holds an @font-face rule. */
+export function shadowHasFontFace(): boolean {
+  const root = document.querySelector("#calc")!.shadowRoot!;
+  const sheets = [...root.adoptedStyleSheets, ...root.styleSheets];
+  const hasFace = (rules: CSSRuleList): boolean =>
+    [...rules].some(
+      (rule) =>
+        rule instanceof CSSFontFaceRule ||
+        ("cssRules" in rule && hasFace((rule as CSSGroupingRule).cssRules))
+    );
+  return sheets.some((sheet) => hasFace(sheet.cssRules));
+}

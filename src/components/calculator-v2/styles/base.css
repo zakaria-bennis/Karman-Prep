@@ -92,3 +92,9 @@ textarea {
 [data-row-id] {
   scroll-margin-block: 8px;
 }
+
+/* TH-17 (10 Task 7): math at --kc-size-math; this comes after MathQuill's 115% rule, so it wins. */
+.mq-math-mode,
+.mq-editable-field {
+  font-size: var(--kc-size-math);
+}

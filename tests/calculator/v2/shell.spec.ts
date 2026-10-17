@@ -6,15 +6,26 @@ import { expect, test } from "@playwright/test";
 import {
   api,
   box,
+  cs,
   enc,
   expectOrder,
+  focusedRow,
   frames,
+  keypadOpen,
   names,
   openShell,
+  platformFonts,
+  rowField,
   rows,
   useConsoleGuard,
 } from "./shell-helpers";
-import { measureL14, popoverCoversRow1 } from "./shell-probes";
+import {
+  katexMathLoaded,
+  measureL14,
+  popoverCoversRow1,
+  recordCanvasFonts,
+  shadowHasFontFace,
+} from "./shell-probes";
 
 // eslint-disable-next-line react-hooks/rules-of-hooks -- registers Playwright hooks; not a React hook
 useConsoleGuard();
@@ -128,3 +139,73 @@ test("L-14 no horizontal scroll from 320×568 to 1920×1080; keypad and toolbar 
   await api(page, 'c.focusExpression("1")');
   await expect.poll(() => page.evaluate(popoverCoversRow1)).toBe(false);
 }); // .kc-settings[role=dialog] rect vs row 1
+test("AR-40 KaTeX fonts reach the shadow root: KaTeX_Math loads, check() is true, no font request fails, no @font-face inside", async ({
+  page,
+}) => {
+  const failed: string[] = [];
+  page.on("requestfailed", (r) => {
+    if (/\.(woff2?|ttf)\b/.test(r.url())) failed.push(r.url());
+  });
+  await openShell(page);
+  await rowField(page, "1").click();
+  await page.keyboard.type("y=x");
+  await page.waitForFunction(katexMathLoaded, undefined, { timeout: 5000 });
+  expect(await page.evaluate(() => document.fonts.check("16px KaTeX_Math"))).toBe(true);
+  expect(await page.evaluate(shadowHasFontFace)).toBe(false);
+  expect(failed).toEqual([]);
+});
+test("AR-40 CDP reports KaTeX_Math as the platform font of a MathQuill variable", async ({
+  page,
+  browserName,
+}) => {
+  test.skip(browserName !== "chromium", "CDP is Chromium-only");
+  await openShell(page);
+  await rowField(page, "1").click();
+  await page.keyboard.type("y=x");
+  await expect.poll(() => platformFonts(page, ".mq-root-block var")).toContain("KaTeX_Math");
+});
+test("TH-17 UI text Arial 14px, math KaTeX 18px, keys in KaTeX, axis numbers 13px Arial", async ({
+  page,
+}) => {
+  await page.addInitScript(recordCanvasFonts);
+  await openShell(page, `?w=800&h=600&rows=${enc(["y=x"])}`);
+  await api(page, "c.updateSettings({ keypad: true })");
+  expect(await cs(page, ".kc-list-region button")).toEqual([
+    expect.stringMatching(/^Arial\b/),
+    "14px",
+  ]);
+  expect(await cs(page, ".mq-root-block")).toEqual([
+    expect.stringMatching(/^"?KaTeX_Main/),
+    "18px",
+  ]);
+  expect((await cs(page, ".mq-root-block var"))[0]).toMatch(/^"?KaTeX_Math/);
+  expect((await cs(page, '[aria-label="Keypad"] button', "7"))[0]).toMatch(/^"?KaTeX_Main/);
+  const fonts = () => page.evaluate(() => (globalThis as unknown as { __fonts: string[] }).__fonts);
+  await expect.poll(fonts).toContainEqual(expect.stringMatching(/^13px Arial/));
+  expect((await fonts()).filter((f) => !f.startsWith("13px"))).toEqual([]);
+});
+test("KB-4 opens by mouse, keyboard and touch (OI-7) and reopen restores the last row", async ({
+  page,
+}) => {
+  await openShell(page, `?rows=${enc(["1", "2"])}`);
+  const open = (t: string) => api(page, `globalThis.__shell.handle.focusOnOpen("${t}")`);
+  await open("mouse");
+  await expect.poll(() => focusedRow(page)).toBe("1");
+  await api(page, 'c.focusExpression("2")');
+  await page.locator("#outside").focus();
+  await open("keyboard");
+  await expect.poll(() => focusedRow(page)).toBe("2");
+  await page.locator("#outside").focus();
+  await open("touch");
+  await expect.poll(() => page.evaluate(() => document.activeElement?.id)).toBe("frame");
+  await expect(page.locator('#calc [data-row-id="2"]')).toHaveAttribute("data-active", "true");
+  expect([await keypadOpen(page), await focusedRow(page)]).toEqual([false, null]);
+});
+test("R-10 after setBlank() a keyboard reopen focuses Expression 1", async ({ page }) => {
+  await openShell(page, `?rows=${enc(["1", "2"])}`);
+  await api(page, 'c.focusExpression("2")');
+  await api(page, "c.setBlank()");
+  await page.locator("#outside").focus();
+  await api(page, 'globalThis.__shell.handle.focusOnOpen("keyboard")');
+  await expect.poll(() => focusedRow(page)).toBe("1");
+});
