@@ -64,7 +64,8 @@ const DEFINING_KINDS: ReadonlySet<RowKind> = new Set([
 
 /**
  * Analyses every row: one parse each after the PR-23 function pre-scan, definitions resolved
- * across all rows in any order (RC-9), then RC-2's classification of each row.
+ * across all rows in any order (RC-9), then RC-2's classification of each row. `valueOrder` keeps
+ * the resolution's dependency order for the defining rows that end up without an error.
  */
 export function analyzeRows(
   rows: readonly RowSource[],
@@ -73,12 +74,12 @@ export function analyzeRows(
   const parsed = parseRows(rows, settings),
     resolution = resolveDefinitions(parsed);
   const analysed = parsed.map((row) => classifyRow(row, resolution, settings));
-  const valueOrder: string[] = [],
+  const defining = new Set<string>(),
     functions = new Map<string, FunctionDefinition>();
   parsed.forEach(({ head }, k) => {
     const { id, kind, error } = analysed[k];
     if (head === null || error !== null || !DEFINING_KINDS.has(kind)) return;
-    valueOrder.push(id);
+    defining.add(id);
     if (kind === "definition" || functions.has(head.name)) return;
     const params = kind === "function-definition" ? head.params : [];
     functions.set(head.name, { name: head.name, params, body: head.body, rowId: id });
@@ -86,7 +87,7 @@ export function analyzeRows(
   return {
     rows: analysed,
     byId: new Map(analysed.map((row) => [row.id, row])),
-    valueOrder,
+    valueOrder: resolution.valueOrder.filter((id) => defining.has(id)),
     functions,
   };
 }
