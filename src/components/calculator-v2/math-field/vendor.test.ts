@@ -27,6 +27,7 @@ const PATCH_FILES = [
   "0008-katex-fonts.patch",
   "0009-autocommand-yields-to-operator-name.patch",
   "0011-subscript-breaks-out-on-operator.patch",
+  "0012-revert-releases-focus-blur.patch",
 ];
 // files in vendor/mathquill/ that are not upstream build output, so have no sha256 row
 const UNHASHED = ["PATCHES.md", "README.md", "mathquill.d.ts", "patches"];
