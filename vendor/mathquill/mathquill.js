@@ -2184,6 +2184,9 @@ var MathQuillModule = (function () {
                 NodeBase.linkElementByBlockNode(root.domFrag().oneElement(), root);
                 this.latex(contents.text());
                 this.revert = function () {
+                    ctrlr.removeTextareaEventListener('focus');
+                    ctrlr.removeTextareaEventListener('blur');
+                    ctrlr.releaseFocusBlur();
                     ctrlr.removeMouseEventListener();
                     domFrag(el)
                         .removeClass('mq-editable-field mq-math-mode mq-text-mode')
@@ -3161,6 +3164,14 @@ var MathQuillModule = (function () {
                     _this_1.root.domFrag().removeClass('mq-suppress-grouping');
                 }, seconds * 1000);
             }
+        };
+        /** Clear the pending blur and selection timers, remove the window `blur` listener and stop the cursor blink the cancelled blur would have stopped, so a reverted field leaves none behind. */
+        Controller_focusBlur.prototype.releaseFocusBlur = function () {
+            clearTimeout(this.blurTimeout);
+            clearTimeout(this.textareaSelectionTimeout);
+            this.textareaSelectionTimeout = 0;
+            window.removeEventListener('blur', this.handleWindowBlur);
+            this.cursor.hide();
         };
         Controller_focusBlur.prototype.blur = function () {
             // not directly in the textarea blur handler so as to be
