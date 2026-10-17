@@ -45,3 +45,159 @@
   outline: 2px solid var(--kcc-focus);
   outline-offset: 2px;
 }
+
+/* The window frame (CalculatorWindow): one element in every mode. Floating and docked geometry is
+   inline; maximized and full screen fill the viewport (AR-22). */
+.frame {
+  position: fixed;
+  z-index: 72;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  min-width: 0;
+  min-height: 0;
+  border: 1px solid var(--kcc-boundary);
+  border-radius: 8px;
+  background: var(--kcc-chrome);
+  color: var(--kcc-text);
+  outline: none;
+}
+
+.frame[data-mode="maximized"],
+.frame[data-mode="fullscreen"] {
+  inset: 0;
+  border-radius: 0;
+}
+
+.frame[data-mode="fullscreen"] {
+  border: 0;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
+    env(safe-area-inset-left);
+}
+
+/* L-12: the label, the chrome slot, then the window controls and Close. */
+.titlebar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  min-width: 0;
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--kcc-boundary);
+  color: var(--kcc-text);
+}
+
+.moveHandle {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-weight: 600;
+  font-size: 0.875rem;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.frame[data-mode="floating"] .titlebar {
+  cursor: grab;
+  touch-action: none;
+}
+
+.titleSlot,
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.controls > button,
+.titleSlot > button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 36px;
+  min-height: 36px;
+  padding: 4px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--kcc-text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.controls > button:hover,
+.titleSlot > button:hover {
+  border-color: var(--kcc-boundary);
+}
+
+/* The window body: the containing block for the loader's absolutely placed panel. */
+.body {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+}
+
+/* AR-22: a 24 × 24 px resize grip in the floating window's bottom-right corner. */
+.grip {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 24px;
+  height: 24px;
+  cursor: nwse-resize;
+  touch-action: none;
+  background: linear-gradient(
+    135deg,
+    transparent 0 55%,
+    var(--kcc-boundary) 55% 62%,
+    transparent 62% 72%,
+    var(--kcc-boundary) 72% 79%,
+    transparent 79%
+  );
+}
+
+/* AR-23: a 24 px splitter hit area centred on the dock's right edge. */
+.splitter {
+  position: absolute;
+  top: 0;
+  right: -12px;
+  bottom: 0;
+  width: 24px;
+  cursor: col-resize;
+  touch-action: none;
+}
+
+.splitter::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 10px;
+  width: 4px;
+  height: 40px;
+  border-radius: 2px;
+  background: var(--kcc-boundary);
+  transform: translateY(-50%);
+}
+
+/* AR-28: focusable but invisible ends of the full-screen frame. */
+.sentinel {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+/* TH-14: one focus ring for every window control. */
+.moveHandle:focus-visible,
+.controls > button:focus-visible,
+.titleSlot > button:focus-visible,
+.grip:focus-visible,
+.splitter:focus-visible,
+.sentinel:focus-visible {
+  outline: 2px solid var(--kcc-focus);
+  outline-offset: 2px;
+}
