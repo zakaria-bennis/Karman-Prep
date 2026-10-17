@@ -4,8 +4,9 @@
 // while closed. A closed keypad stays mounted, hidden from assistive technology and inert, so the
 // AN-1 slide has something to move. The audio key is drawn but disabled (K-9). Insert and Enter
 // keys act through pressKey without taking focus from the row (K-10); arrows and Backspace repeat
-// while held (K-11); a pressed key carries data-pressed for its tone (AN-11). The Functions panel
-// comes in Task 10.
+// while held (K-11); a pressed key carries data-pressed for its tone (AN-11). The Functions key
+// opens the Functions panel (K-4, K-5): a panel button inserts its template into the keypad's row
+// in one run call, closes the panel and returns focus to the row.
 
 import {
   ArrowBigUp,
@@ -30,12 +31,16 @@ import {
   type JSX,
   type PointerEvent,
 } from "react";
+import type { PanelEntry } from "@/lib/calculator-v2/core/latex/operator-names";
 import { AnnouncerContext } from "../a11y/announcer";
 import { EscapeContext, type EscapeStack } from "../focus/escape-stack";
 import { FocusContext } from "../focus/focus-controller";
 import { useEngine } from "../hooks/use-engine";
-import { pressKey, type KeyContext } from "./apply-key";
+import { editThroughKeypad } from "../list/row-actions";
+import { MotionContext } from "../list/motion";
+import { keypadTarget, pressKey, type KeyContext } from "./apply-key";
 import { createDoubleTapTracker } from "./double-tap";
+import { FunctionsPanel, functionsPlacement } from "./FunctionsPanel";
 import { createKeyRepeat } from "./key-repeat";
 import { keypadLayout, type KeyDef, type KeyIcon, type KeypadLayout } from "./keys";
 
@@ -81,12 +86,16 @@ function useEscapeLayer(
   }, [escape, id, active]);
 }
 
+/** The Functions panel's lifecycle: only "open" pushes its escape layer and expands the key. */
+type FunctionsState = "closed" | "open" | "closing";
+
 /** The ARIA state each key with a behaviour of its own carries. */
 function keyState(
   key: KeyDef,
   page: KeypadLayout["page"],
   shift: boolean,
-  functionsPanelId: string
+  functionsPanelId: string,
+  functionsOpen: boolean
 ): ButtonHTMLAttributes<HTMLButtonElement> {
   switch (key.behaviour.type) {
     case "letters":
@@ -94,7 +103,7 @@ function keyState(
     case "shift":
       return { "aria-pressed": shift };
     case "functions":
-      return { "aria-expanded": false, "aria-controls": functionsPanelId };
+      return { "aria-expanded": functionsOpen, "aria-controls": functionsPanelId };
     case "audio":
       return { "aria-disabled": true, title: key.name };
     default:
@@ -108,6 +117,7 @@ export function Keypad(props: KeypadProps): JSX.Element {
   const focus = useContext(FocusContext);
   const announcer = useContext(AnnouncerContext);
   const escape = useContext(EscapeContext);
+  const readDuration = useContext(MotionContext);
   const [page, setPage] = useState<KeypadLayout["page"]>("main");
   const [shift, setShift] = useState(false);
   /** The key held by a pointer, drawn with its press tone (AN-11). */
@@ -118,6 +128,8 @@ export function Keypad(props: KeypadProps): JSX.Element {
   /** Repeat keys whose pointer press already acted: the click that follows it is ignored. */
   const pointerPressed = useRef(new Set<string>());
   const functionsPanelId = useId();
+  const [functionsState, setFunctionsState] = useState<FunctionsState>("closed");
+  const sectionRef = useRef<HTMLElement>(null);
 
   // Closing the keypad resets the page and Shift, so it always reopens on the main page, and ends
   // a held key, whose pointerup an inert keypad never receives.
@@ -128,16 +140,52 @@ export function Keypad(props: KeypadProps): JSX.Element {
     setPressed(null);
     setPage("main");
     setShift(false);
+    setFunctionsState("closed");
   }, [open, repeat]);
   useEffect(() => () => repeat.stop(), [repeat]);
   // KB-3: Escape closes the ABC page before the keypad (ESCAPE_RANK).
   useEscapeLayer(escape, "keypad", open, () => onOpenChange(false, "student"));
   useEscapeLayer(escape, "letters", open && page === "letters", () => setPage("main"));
+  // KB-3: Escape closes the Functions panel first. Focus inside the panel moves to the Functions
+  // key, checked before "closing" makes the panel inert (a browser drops focus from it).
+  useEscapeLayer(escape, "functions", open && functionsState === "open", () => {
+    const section = sectionRef.current;
+    const panel = section?.querySelector(".kc-functions-panel") ?? null;
+    if (panel !== null && panel.contains(panel.ownerDocument.activeElement)) {
+      section?.querySelector<HTMLElement>('[data-key="functions"]')?.focus();
+    }
+    setFunctionsState("closing");
+  });
+  // AN-2: a closing panel waits its own closing duration, read once "closing" is committed; 0
+  // (reduced motion, jsdom) unmounts it here, before paint. A reopen clears the timeout.
+  useLayoutEffect(() => {
+    if (functionsState !== "closing") return;
+    const panel = sectionRef.current?.querySelector(".kc-functions-panel") ?? null;
+    const ms = panel === null ? 0 : readDuration(panel);
+    if (ms <= 0) {
+      setFunctionsState("closed");
+      return;
+    }
+    const timer = setTimeout(() => setFunctionsState("closed"), ms);
+    return () => clearTimeout(timer);
+  }, [functionsState, readDuration]);
   if (escape === null) throw new Error("Keypad must be used inside EscapeContext");
   if (focus === null) throw new Error("Keypad must be used inside FocusContext");
 
   const layout = keypadLayout(page, containerWidth, pointer, shift);
   const ctx: KeyContext = { engine, focus, announcer, doubleTap };
+
+  /** K-5: one run call into the keypad's row, close the panel, then focus the row's field. */
+  const insertFunction = (entry: PanelEntry) => {
+    doubleTap.clear();
+    const target = keypadTarget(focus, engine.getSnapshot());
+    if (target !== null) {
+      const { rowId, field } = target;
+      editThroughKeypad(engine, announcer, rowId, field, (f) => f.run(entry.actions));
+    }
+    setFunctionsState("closing");
+    target?.field.focus(); // the caret stays where the template put it
+  };
 
   /** A key's action on click (mouse, touch and keyboard). The audio key has none (K-9). */
   const activate = (key: KeyDef) => {
@@ -153,7 +201,10 @@ export function Keypad(props: KeypadProps): JSX.Element {
         pressKey(ctx, key);
         if (LETTER_KEY.test(key.id)) setShift(false); // Shift capitalises the next letter only
         return;
-      default: // audio: no action until Phase 4 (K-9); functions: the panel comes in Task 10
+      case "functions":
+        setFunctionsState((state) => (state === "open" ? "closing" : "open"));
+        return;
+      default: // audio: no action until Phase 4 (K-9)
         return;
     }
   };
@@ -176,6 +227,7 @@ export function Keypad(props: KeypadProps): JSX.Element {
   return (
     <>
       <section
+        ref={sectionRef}
         className="kc-keypad"
         role="region"
         aria-label="Keypad"
@@ -214,7 +266,7 @@ export function Keypad(props: KeypadProps): JSX.Element {
                   data-tone={key.tone}
                   data-pressed={pressed === key.id ? "true" : undefined}
                   style={{ gridColumn: `span ${key.span}` }}
-                  {...keyState(key, page, shift, functionsPanelId)}
+                  {...keyState(key, page, shift, functionsPanelId, functionsState === "open")}
                   onMouseDown={keepFocus}
                   onPointerDown={(event) => startPress(event, key)}
                   onPointerUp={() => endPress(key)}
@@ -234,6 +286,14 @@ export function Keypad(props: KeypadProps): JSX.Element {
             })}
           </div>
         ))}
+        {functionsState !== "closed" && (
+          <FunctionsPanel
+            id={functionsPanelId}
+            placement={functionsPlacement(containerWidth)}
+            state={functionsState}
+            onInsert={insertFunction}
+          />
+        )}
       </section>
       {!open && (
         <button

@@ -14,6 +14,7 @@
 
 /* The bar takes the first line; the groups share the next one, in proportion to their columns. */
 .kc-keypad {
+  position: relative;
   display: flex;
   flex-wrap: wrap;
   align-items: start;
@@ -108,6 +109,60 @@
   bottom: 8px;
   border: 1px solid var(--kc-boundary);
   background-color: var(--kc-chrome);
+}
+
+/* K-4: the Functions panel sits directly above the keypad from 560 px, scrolling when its
+   categories are taller, and covers the keypad area in the stacked layout below 560 px. */
+.kc-functions-panel {
+  position: absolute;
+  z-index: 1;
+  box-sizing: border-box;
+  overflow-y: auto;
+  padding: 8px;
+  background: var(--kc-chrome);
+  color: var(--kc-text);
+  font-family: var(--kc-font-ui);
+  font-size: var(--kc-size-ui);
+}
+
+.kc-functions-panel[data-placement="above"] {
+  inset-inline: 0;
+  bottom: 100%;
+  max-height: 240px;
+}
+
+.kc-functions-panel[data-placement="cover"] {
+  inset: 0;
+}
+
+.kc-functions-panel h3 {
+  margin: 8px 0 4px;
+  color: var(--kc-text-secondary);
+  font-size: var(--kc-size-ui);
+  font-weight: normal;
+}
+
+.kc-functions-category > [role="group"] {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(calc(2 * var(--kc-key-size)), 1fr));
+  gap: 4px;
+}
+
+.kc-function {
+  min-height: var(--kc-key-size);
+  padding: 0 4px;
+  border: none;
+  border-radius: 4px;
+  background-color: var(--kc-key);
+  color: var(--kc-text);
+  font-family: var(--kc-font-math);
+  font-size: var(--kc-size-math);
+  cursor: pointer;
+}
+
+.kc-function:focus-visible {
+  outline: 2px solid var(--kc-focus-ring);
+  outline-offset: 2px;
 }
 
 /* K-6: 7 columns of 44 px keys fit 320 px; each key's transparent border draws the gap. */
