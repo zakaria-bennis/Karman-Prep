@@ -1,11 +1,16 @@
-// Value-level arithmetic (NM-10 to NM-14, NM-18, NM-19; FN-12 to FN-14). Two numbers use the real
-// rules; a non-real operand uses the complex functions; a point, list or undefined operand gives
-// UNDEFINED (decision 7). Every result passes through numberValue or complexValue, so a
-// non-finite result is UNDEFINED. Pure TypeScript: no DOM (AR-44).
+// Value-level arithmetic (NM-10 to NM-14, NM-18, NM-19; FN-12 to FN-14), plot numbers (NM-21) and
+// relations (NM-22). Two numbers use the real rules; a non-real operand uses the complex
+// functions; a point, list or undefined operand gives UNDEFINED (decision 7). Every result passes
+// through numberValue or complexValue, so a non-finite result is UNDEFINED. Pure TypeScript: no
+// DOM (AR-44).
 
+import type { RelOp } from "../latex/ast";
 import { cadd, cdiv, cmul, cpow, csqrt, csub } from "./complex";
 import { realPow, realRoot, type Rational } from "./real-pow";
 import { complexValue, numberValue, UNDEFINED, type Complex, type Value } from "./values";
+
+/** NM-21: an imaginary part at most this times max(1, |Re|) is negligible for plotting. */
+const PLOT_IMAGINARY_TOLERANCE = 1e-12;
 
 /** A number or complex operand as a Complex; null for a point, list or undefined. */
 function scalar(v: Value): Complex | null {
@@ -110,4 +115,47 @@ function complexRoot(z: Complex, n: Value | null): Value {
   if (n === null) return fromComplex(csqrt(z));
   const index = scalar(n);
   return index ? fromComplex(cpow(z, cdiv({ re: 1, im: 0 }, index))) : UNDEFINED;
+}
+
+/**
+ * NM-21, FN-17: the number a curve plots for a value. A number is itself (-0 kept); a complex
+ * value is its real part when |Im| ≤ 1e-12·max(1, |Re|), else NaN; anything else is NaN.
+ */
+export function toPlotNumber(v: Value): number {
+  if (v.type === "number") return v.value;
+  if (v.type !== "complex") return NaN;
+  const { re, im } = v.value;
+  return Math.abs(im) <= PLOT_IMAGINARY_TOLERANCE * Math.max(1, Math.abs(re)) ? re : NaN;
+}
+
+/** One link `a op b` of a relation, compared on the full doubles (NM-9). */
+export function linkHolds(a: number, op: RelOp, b: number): boolean {
+  switch (op) {
+    case "=":
+      return a === b;
+    case "<":
+      return a < b;
+    case ">":
+      return a > b;
+    case "<=":
+      return a <= b;
+    case ">=":
+      return a >= b;
+  }
+}
+
+/**
+ * NM-22, 04 decision 6: a relation holds when every operand is a finite number and every link
+ * holds. A non-real, undefined, point or list operand makes it false.
+ */
+export function relationHolds(values: readonly Value[], ops: readonly RelOp[]): boolean {
+  if (values.length !== ops.length + 1) return false;
+  let previous = NaN;
+  for (let k = 0; k < values.length; k++) {
+    const v = values[k];
+    if (v.type !== "number" || !Number.isFinite(v.value)) return false;
+    if (k > 0 && !linkHolds(previous, ops[k - 1], v.value)) return false;
+    previous = v.value;
+  }
+  return true;
 }
