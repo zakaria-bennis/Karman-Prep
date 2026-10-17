@@ -7793,7 +7793,15 @@ var MathQuillModule = (function () {
         SupSub.prototype.finalizeTree = function () {
             var endsL = this.getEnd(L);
             endsL.write = function (cursor, ch) {
-                if (cursor.options.autoSubscriptNumerals &&
+                // An operator typed at the end of a non-empty block leaves it, even a
+                // subscript under autoSubscriptNumerals (`a_2+1` gives a_{2}+1); an empty
+                // subscript still keeps its first character.
+                var breaksOut = cursor[L] &&
+                    !cursor[R] &&
+                    !cursor.selection &&
+                    cursor.options.charsThatBreakOutOfSupSub.indexOf(ch) > -1;
+                if (!breaksOut &&
+                    cursor.options.autoSubscriptNumerals &&
                     this === this.parent.sub) {
                     if (ch === '_')
                         return;
@@ -7808,10 +7816,7 @@ var MathQuillModule = (function () {
                         .alert(cmd.mathspeak({ createdLeftOf: cursor }));
                     return;
                 }
-                if (cursor[L] &&
-                    !cursor[R] &&
-                    !cursor.selection &&
-                    cursor.options.charsThatBreakOutOfSupSub.indexOf(ch) > -1) {
+                if (breaksOut) {
                     cursor.insRightOf(this.parent);
                     cursor.controller.aria.queue('Baseline');
                 }

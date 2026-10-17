@@ -26,6 +26,7 @@ const PATCH_FILES = [
   "0007-ellipsis-in-square-brackets.patch",
   "0008-katex-fonts.patch",
   "0009-autocommand-yields-to-operator-name.patch",
+  "0011-subscript-breaks-out-on-operator.patch",
 ];
 // files in vendor/mathquill/ that are not upstream build output, so have no sha256 row
 const UNHASHED = ["PATCHES.md", "README.md", "mathquill.d.ts", "patches"];
@@ -78,6 +79,7 @@ it("AR-5 the vendored output carries the patches", () => {
   expect(js).not.toMatch(/window\.MathQuill|noConflict/);
   expect(js).toContain("selectionLatex");
   expect(js).toContain("endsLongerOperatorName"); // patches/0009
+  expect(js).toMatch(/var breaksOut =/); // patches/0011
   expect(css).not.toMatch(/@font-face|url\(/);
   expect(css).not.toMatch(/font(-family)?\s*:[^;}]*Symbola/);
   expect(declarationsFor(css, ".mq-math-mode").join(";")).toMatch(
