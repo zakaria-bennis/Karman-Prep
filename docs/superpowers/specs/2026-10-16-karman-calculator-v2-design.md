@@ -119,8 +119,8 @@ Notes on the decisions:
   theme (12 skins). Calculator UI uses system Arial; math uses KaTeX fonts. Motion respects
   `prefers-reduced-motion`.
 - **Existing contracts kept:** math-only availability, hidden in Reading and Writing, fresh state per
-  question, question export entry points, scoring and persistence untouched. The two v2 settings v1
-  lacks, display size and reverse contrast, persist for the page session across questions (section
+  question, question export entry points, scoring and persistence untouched. Display size and
+  reverse contrast, two settings v1 lacks, persist for the page session across questions (section
   10.3 item 6); everything else is fresh per question.
 
 The existing contracts are Phase 1 entry conditions, because admins use v2 in real quizzes from
@@ -372,12 +372,12 @@ Every ID was checked against the IDs it relies on. Two rules settle what the che
 
 **Shipped-part IDs.** Each of these IDs also names behaviour that a later-phase ID delivers, and
 each resolves by the shipped-part rule: V1-7, V1-39; PR-9, PR-12, PR-16, PR-17, PR-20, PR-26,
-PR-41; RC-2, RC-3, RC-6, RC-7, RC-19, RC-21; NM-9, NM-18, NM-22, NM-25, NM-42; G-4, G-15; POI-2;
-FN-1, FN-4, FN-6, FN-11, FN-17; TR-20, TR-28, TR-32, TR-35, TR-38, TR-40, TR-42, TR-46, TR-47,
-TR-48, TR-49, TR-50, TR-52, TR-53, TR-55, TR-56, TR-59, TR-67, TR-70, TR-72, TR-73, TR-79; AR-14,
-AR-16, AR-25, AR-37, AR-48, AR-58; API-1, API-5, API-6, API-7, API-9, API-10; L-9; T-3, T-12;
-S-9; KB-1, KB-5; SC-2, SC-13; AN-4, AN-13; A11Y-2, A11Y-5, A11Y-6, A11Y-11; TH-2, TH-10, TH-15,
-TH-17.
+PR-41, PR-44; RC-2, RC-3, RC-6, RC-7, RC-17, RC-19, RC-21; NM-9, NM-18, NM-22, NM-25, NM-42; G-4,
+G-15; POI-2; FN-1, FN-4, FN-6, FN-11, FN-17; TR-20, TR-28, TR-32, TR-35, TR-38, TR-40, TR-42,
+TR-46, TR-47, TR-48, TR-49, TR-50, TR-52, TR-53, TR-55, TR-56, TR-59, TR-67, TR-70, TR-72, TR-73,
+TR-79; AR-10, AR-14, AR-16, AR-25, AR-37, AR-45, AR-48, AR-58, AR-60; API-1, API-5, API-6, API-7,
+API-8, API-9, API-10; L-9; T-3, T-12; S-9; KB-1, KB-5; SC-2, SC-13; AN-4, AN-13; A11Y-2, A11Y-5,
+A11Y-6, A11Y-11; TH-2, TH-8, TH-10, TH-15, TH-17.
 
 ## 8. Release and switch-over
 
