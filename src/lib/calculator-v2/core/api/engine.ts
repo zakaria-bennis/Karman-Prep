@@ -1,15 +1,12 @@
 // The headless calculator engine (01-interfaces-runtime.md section 8; 07 Decision 14): the public
-// API that KarmanCalculator forwards and the internal surface the React UI drives. Rows, ids and
-// history live in document.ts; settings, wire and whole-state conversion in state.ts. This facade
-// validates, runs the commit pipeline and posts to the compute backend. No DOM, no React (AR-44).
+// API that KarmanCalculator forwards and the internal surface the React UI drives, as a facade over
+// document.ts (rows, history), state.ts (settings, wire, whole state), inbox.ts (worker results),
+// results.ts (views) and observers.ts (API-8). No DOM, no React (AR-44).
 
-import type { Geometry } from "../../plot/geometry";
 import { clampViewport, defaultViewport, type Viewport, type ViewSpec } from "../../plot/viewport";
 import { nextSlot } from "../../theme/roles";
 import type { ComputeBackend } from "../../worker/backend";
-import { analyzeRows, type AnalysisResult, type RowError } from "../analysis";
-import type { RowKind } from "../corpus/types";
-import type { Value } from "../eval/values";
+import { analyzeRows, type AnalysisResult } from "../analysis";
 import { MAX_ROW_CHARACTERS, MAX_ROWS } from "../latex";
 import {
   INITIAL_GRAPH_SIZE,
@@ -19,6 +16,9 @@ import {
   type StoredRow,
 } from "./document";
 import { KarmanCalculatorError } from "./errors";
+import { ResultInbox, sentRows } from "./inbox";
+import { EngineObservers } from "./observers";
+import { buildRowView, snapshotAnalysis, type EngineSnapshot } from "./results";
 import {
   acceptView,
   blankSettings,
@@ -34,12 +34,17 @@ import {
   viewMessage,
   type GraphSize,
 } from "./state";
-import type {
-  CalculatorOptions,
-  CalculatorSettings,
-  CalculatorStateV1,
-  ExpressionState,
-  SettingsUpdate,
+import {
+  DEFAULT_SETTINGS,
+  type CalculatorOptions,
+  type CalculatorSettings,
+  type CalculatorStateV1,
+  type ChangeEvent,
+  type ExpressionAnalysis,
+  type ExpressionState,
+  type GraphpaperBounds,
+  type ObservableName,
+  type SettingsUpdate,
 } from "./types";
 import {
   validateAllowUndo,
@@ -57,36 +62,10 @@ export interface EngineDeps {
   now: () => number;
   randomSeed: () => number; // crypto.getRandomValues; replaced by options.seed (API-1)
 }
-export interface RowView {
-  id: string;
-  latex: string;
-  hidden: boolean;
-  color: string; // stored slot id or hex; the UI resolves it with resolveRowColor(color, skin)
-  kind: RowKind;
-  error: RowError | null;
-  chips: string[];
-  complexHint: boolean;
-  value: Value | null; // null until the worker reports
-  valueText: string | null; // formatValue, only when the row shows a value (R-5)
-  overrun: boolean; // AR-48/AR-49 message showing
-}
-export interface EngineSnapshot {
-  revision: number;
-  rows: readonly RowView[];
-  settings: CalculatorSettings;
-  viewport: Viewport;
-  view: ViewSpec | null; // null until the graph reports its size
-  geometry: ReadonlyMap<string, Geometry>; // each row's latest accepted plot; dropped at once when the row is deleted, edited, hidden or no longer graphable; region geometry dropped on every view send; at done only rows plotted in that generation are kept
-  focusedRowId: string | null; // DOM-focused row (KB-4)
-  activeRowId: string | null; // API-12 active row (L-3 styling, keypad target)
-  canUndo: boolean;
-  canRedo: boolean;
-  backendKind: "worker" | "main-thread";
-}
+export type { EngineSnapshot, RowView } from "./results"; // the views, built in results.ts
 export type EditSource = "typing" | "keypad" | "paste" | "api";
 export type EditRefusal = "row-limit" | "char-limit";
 
-const NO_GEOMETRY: ReadonlyMap<string, Geometry> = new Map();
 const STEP: HistoryStep = { kind: "step" };
 const BLANK_ROWS: readonly StoredRow[] = [{ id: "1", latex: "", color: "c1", hidden: false }];
 
@@ -94,9 +73,13 @@ export class CalculatorEngine {
   private readonly deps: EngineDeps;
   private readonly options: CalculatorOptions;
   private readonly doc = new RowDocument();
-  private readonly listeners = new Set<() => void>();
-  // settings, viewport and analysis are set by resetDocument in the constructor
-  private currentSettings!: CalculatorSettings;
+  private readonly observers: EngineObservers;
+  private readonly inbox = new ResultInbox({
+    onFault: (message) => this.options.onError?.(new Error(`Calculator worker fault: ${message}`)),
+    onHelperValue: () => undefined, // no helper job is live before API-10's HelperExpression
+  });
+  // resetDocument in the constructor merges the options into the settings and sets the rest
+  private currentSettings = DEFAULT_SETTINGS;
   private viewport!: Viewport;
   private analysis!: AnalysisResult;
   /** The graph's last usable setView size and dpr; null until it reports one (Decision 9). */
@@ -111,6 +94,12 @@ export class CalculatorEngine {
   constructor(options: CalculatorOptions | undefined, deps: EngineDeps) {
     this.options = validateOptions(options);
     this.deps = deps;
+    this.observers = new EngineObservers(deps.scheduleFrame, () => this.revision);
+    deps.backend.onMessage((message) => {
+      if (!this.inbox.receive(message)) return; // Decision 3
+      this.snapshot = null; // subscribers see an accepted result in the next frame (Decision 13)
+      this.observers.workerChanged(message.type);
+    });
     this.resetDocument(settingsFromOptions(this.options), false);
   }
 
@@ -160,11 +149,11 @@ export class CalculatorEngine {
       this.doc.commit(rows, { kind: "none" });
       this.doc.clearHistory();
     } else if (!sameRows(rows, this.doc.rows)) this.doc.commit(rows, STEP);
-    this.currentSettings = mergeSettings(this.currentSettings, valid.settings).settings;
+    this.storeSettings(valid.settings);
     const viewport = clampViewport(valid.viewport);
     const moved = !sameViewport(viewport, this.viewport);
     this.viewport = Object.freeze(viewport);
-    this.analysis = this.analyze();
+    this.analyze();
     this.revision++;
     this.postState();
     if (moved) this.postView();
@@ -186,13 +175,12 @@ export class CalculatorEngine {
 
   /** API-7: validates first; only angleMode and complex re-analyse and post state (NM-29). */
   updateSettings(partial: SettingsUpdate): void {
-    const update = validateSettingsUpdate(partial);
-    const { settings, wireChanged } = mergeSettings(this.currentSettings, update);
-    if (settings === this.currentSettings) return;
-    this.currentSettings = settings;
+    const before = this.currentSettings;
+    const wireChanged = this.storeSettings(validateSettingsUpdate(partial));
+    if (this.currentSettings === before) return;
     this.revision++;
     if (wireChanged) {
-      this.analysis = this.analyze();
+      this.analyze();
       this.postState();
     }
     this.changed();
@@ -205,6 +193,35 @@ export class CalculatorEngine {
   /** API-14's scientific mode ships in Phase 2; until then validation keeps the mode "graphing". */
   get mode(): "graphing" {
     return "graphing";
+  }
+
+  /** API-8: `callback` runs once a frame after the named value changes; returns an unsubscribe. */
+  observe(name: ObservableName, callback: () => void): () => void {
+    return this.observers.observe(name, callback);
+  }
+
+  unobserve(name: ObservableName, callback?: () => void): void {
+    this.observers.unobserve(name, callback);
+  }
+
+  /** API-8: once a frame after commits, with the revision and isUserInitiated (Decision 10). */
+  observeEvent(name: "change", callback: (event: ChangeEvent) => void): () => void {
+    return this.observers.observeEvent(name, callback);
+  }
+
+  unobserveEvent(name: "change", callback?: (event: ChangeEvent) => void): void {
+    this.observers.unobserveEvent(name, callback);
+  }
+
+  /** API-9: built once per snapshot, so the same object until the snapshot changes (results.ts). */
+  get expressionAnalysis(): Readonly<Record<string, ExpressionAnalysis>> {
+    return snapshotAnalysis(this.getSnapshot(), this.analysis);
+  }
+
+  /** API-8: the viewport and the graph's size (INITIAL_GRAPH_SIZE before its first setView). */
+  get graphpaperBounds(): GraphpaperBounds {
+    const { width, height } = this.graph?.size ?? INITIAL_GRAPH_SIZE;
+    return { mathCoordinates: { ...this.viewport }, pixelCoordinates: { width, height } };
   }
 
   /** API-11: one history stack shared by the API, the toolbar and the KB- shortcuts. */
@@ -232,12 +249,9 @@ export class CalculatorEngine {
 
   // ── internal UI surface (not forwarded by KarmanCalculator) ──
 
-  /** Listeners run synchronously after every commit made by a method call (Decision 13). */
+  /** Runs after each method call's commit and once a frame after worker results (Decision 13). */
   subscribe(listener: () => void): () => void {
-    this.listeners.add(listener);
-    return () => {
-      this.listeners.delete(listener);
-    };
+    return this.observers.subscribe(listener);
   }
 
   /** The same object until something changes, so useSyncExternalStore sees no spurious change. */
@@ -260,7 +274,7 @@ export class CalculatorEngine {
       source === "typing" || source === "keypad"
         ? { kind: "group", rowId: id, at: this.deps.now() }
         : STEP;
-    this.commitRows(this.withRow(id, { latex }), step);
+    this.commitRows(this.withRow(id, { latex }), step, true);
     return null;
   }
 
@@ -279,7 +293,7 @@ export class CalculatorEngine {
     const index = after < 0 ? rows.length : after + 1;
     const color = nextSlot(index);
     const row: StoredRow = { id: this.doc.nextId(), latex: "", color, hidden: false };
-    this.commitRows([...rows.slice(0, index), row, ...rows.slice(index)], STEP);
+    this.commitRows([...rows.slice(0, index), row, ...rows.slice(index)], STEP, true);
     return { id: row.id };
   }
 
@@ -288,16 +302,16 @@ export class CalculatorEngine {
     const rows = this.doc.rows;
     if (!rows.some((r) => r.id === id)) return;
     const next = rows.length === 1 ? [{ ...rows[0], latex: "" }] : rows.filter((r) => r.id !== id);
-    this.commitRows(next, STEP);
+    this.commitRows(next, STEP, true);
   }
 
   /** KB-5: one undo step that leaves one empty row and keeps the settings and the viewport. */
   clearAll(): void {
-    this.commitRows([], STEP);
+    this.commitRows([], STEP, true);
   }
 
   setRowHidden(id: string, hidden: boolean): void {
-    this.commitRows(this.withRow(id, { hidden }), STEP);
+    this.commitRows(this.withRow(id, { hidden }), STEP, true);
   }
 
   /** Decision 9: stores the size and viewport as given (no undo step); unusable views are ignored. */
@@ -305,33 +319,43 @@ export class CalculatorEngine {
     const graph = acceptView(this.graph, this.viewport, view);
     if (graph === null) return;
     this.graph = graph;
-    this.moveViewport({ ...view.viewport });
+    this.moveViewport({ ...view.viewport }, true);
   }
 
   // ── commit pipeline ──
 
   /**
    * API-6, Decision 8: row "1" alone (history cleared, or one undo step with allowUndo), `settings`
-   * and the default viewport; then hello with the reset seed (API-1), state, and view once sized.
+   * and the default viewport, with every worker result forgotten; then hello with the reset seed
+   * (API-1), state, and view once sized.
    */
   private resetDocument(settings: CalculatorSettings, allowUndo: boolean): void {
     if (!allowUndo) this.doc.reset();
     else if (!sameRows(BLANK_ROWS, this.doc.rows)) this.doc.commit(BLANK_ROWS, STEP);
-    this.currentSettings = settings;
+    this.storeSettings(settings);
     this.viewport = Object.freeze(defaultViewport(this.graph?.size ?? INITIAL_GRAPH_SIZE));
-    this.analysis = this.analyze();
+    this.analyze();
     const seed = this.options.seed ?? this.deps.randomSeed();
     this.deps.backend.post({ v: 1, type: "hello", seed });
+    this.inbox.reset();
     this.postState();
     this.postView();
   }
 
+  /** Applies a settings update; API-8's settings observer fires when any value changed. */
+  private storeSettings(update: SettingsUpdate): boolean {
+    const { settings, wireChanged } = mergeSettings(this.currentSettings, update);
+    if (settings !== this.currentSettings) this.observers.markDirty("settings");
+    this.currentSettings = settings;
+    return wireChanged;
+  }
+
   /** Stores a new viewport, then bumps the revision, posts view and notifies (not an undo step). */
-  private moveViewport(viewport: Viewport): void {
+  private moveViewport(viewport: Viewport, userInitiated = false): void {
     this.viewport = Object.freeze(viewport);
     this.revision++;
     this.postView();
-    this.changed();
+    this.changed(userInitiated);
   }
 
   /** API-2, NM-42, API-13: over MAX_ROWS the call throws invalid-argument and changes nothing. */
@@ -353,83 +377,68 @@ export class CalculatorEngine {
   }
 
   /** Commits `rows` unless they equal the current list, so a no-op adds no undo step or send. */
-  private commitRows(rows: readonly StoredRow[], step: HistoryStep): void {
+  private commitRows(rows: readonly StoredRow[], step: HistoryStep, userInitiated = false): void {
     if (sameRows(rows, this.doc.rows)) return;
     this.doc.commit(rows, step);
-    this.afterCommit();
+    this.afterCommit(userInitiated);
   }
 
   /**
-   * After every row commit (undo and redo included): analyse on the main thread (AR-51), bump the
-   * revision, post state with the next generation (AR-46), then notify subscribers. No worker
-   * result is read yet, so there are no per-row results to clear (Decision 5).
+   * After every row commit, undo and redo included: analyse on the main thread (AR-51), bump the
+   * revision, post state (AR-46; edited rows lose their results, Decision 5), then notify.
    */
-  private afterCommit(): void {
-    this.analysis = this.analyze();
+  private afterCommit(userInitiated = false): void {
+    this.analyze();
     this.revision++;
     this.postState();
-    this.changed();
+    this.changed(userInitiated);
   }
 
-  private analyze(): AnalysisResult {
+  /** AR-51: analyses the rows on the main thread; API-8's expressionAnalysis follows. */
+  private analyze(): void {
     const sources = this.doc.rows.map(({ id, latex, hidden }) => ({ id, latex, hidden }));
-    return analyzeRows(sources, toWireSettings(this.currentSettings));
+    this.analysis = analyzeRows(sources, toWireSettings(this.currentSettings));
+    this.observers.markDirty("expressionAnalysis");
   }
 
-  /** AR-45, AR-46: posts `state` with the next generation. */
+  /** AR-45, AR-46: posts `state` with the next generation and notes its rows in the inbox. */
   private postState(): void {
     this.generation++;
     this.deps.backend.post(stateMessage(this.generation, this.doc.rows, this.currentSettings));
+    this.inbox.noteState(this.generation, sentRows(this.doc.rows, this.analysis));
   }
 
-  /** AR-46: posts `view` with the next generation of the same counter, once the size is known. */
+  /** Notes the bounds (API-8), then posts view with the next generation once sized (AR-46). */
   private postView(): void {
+    this.observers.noteBounds(this.viewport, this.graph?.size ?? INITIAL_GRAPH_SIZE);
     const g = this.graph;
     if (g === null) return;
     this.generation++;
     this.deps.backend.post(viewMessage(this.generation, this.viewport, g.size, g.dpr));
+    this.inbox.noteView(this.generation);
   }
 
-  /** Marks the snapshot stale and runs the subscribers synchronously (Decision 13). */
-  private changed(): void {
+  /** Marks the snapshot stale, runs the subscribers, queues API-8's change event (Decision 13). */
+  private changed(userInitiated = false): void {
     this.snapshot = null;
-    for (const listener of [...this.listeners]) listener();
+    this.observers.committed(userInitiated);
   }
 
   private buildSnapshot(): EngineSnapshot {
     return {
       revision: this.revision,
-      rows: this.doc.rows.map((row) => this.rowView(row)),
+      rows: this.doc.rows.map((row) =>
+        buildRowView(row, this.analysis.byId.get(row.id)!, this.inbox.result(row.id))
+      ),
       settings: this.currentSettings,
       viewport: this.viewport,
       view: this.graph && { viewport: this.viewport, size: this.graph.size, dpr: this.graph.dpr },
-      geometry: NO_GEOMETRY,
+      geometry: this.inbox.geometry,
       focusedRowId: null,
       activeRowId: null,
       canUndo: this.doc.canUndo(),
       canRedo: this.doc.canRedo(),
       backendKind: this.deps.backend.kind,
-    };
-  }
-
-  /**
-   * A row's view: kind, error, chips and complex hint from the main-thread analysis (AR-51). No
-   * worker result is read yet, so value and valueText are null and overrun is false.
-   */
-  private rowView(row: StoredRow): RowView {
-    const analysis = this.analysis.byId.get(row.id)!;
-    return {
-      id: row.id,
-      latex: row.latex,
-      hidden: row.hidden,
-      color: row.color,
-      kind: analysis.kind,
-      error: analysis.error,
-      chips: [...analysis.chips],
-      complexHint: analysis.complexHint,
-      value: null,
-      valueText: null,
-      overrun: false,
     };
   }
 }

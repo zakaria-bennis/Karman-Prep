@@ -1,9 +1,12 @@
 import { beforeEach, expect, it } from "vitest";
+import { formatValue } from "../eval/format";
 import { createTestEngine, type TestEngine } from "./__fixtures__/test-engine";
 
+let m: TestEngine;
 let t: TestEngine;
 let e: TestEngine["engine"];
 beforeEach(() => {
+  m = createTestEngine(undefined, { backend: "main-thread" });
   t = createTestEngine();
   e = t.engine;
 });
@@ -75,3 +78,21 @@ it("NM-42 setState over the row or character limit throws invalid-argument and c
     expect(e.getState()).toEqual(s);
   }
 });
+it("NM-42 100 rows of up to 2,048 characters analyse and settle without freezing or crashing", async () => {
+  // odd rows: 2,048 characters, 2,047 nodes (over the 2,000-node cap); even rows: 1,815 characters, 227 sin(1) terms
+  m.engine.setExpressions(
+    Array.from({ length: 99 }, (_, i) => ({
+      id: `r${i}`,
+      latex: i % 2 ? "1+".repeat(1023) + "11" : "\\sin(1)+".repeat(226) + "\\sin(1)",
+    }))
+  );
+  await m.settled();
+  const rows = m.engine.getSnapshot().rows.slice(1); // row "1" comes first
+  expect(rows).toHaveLength(99);
+  expect(rows.filter((_, i) => i % 2 === 1).map((r) => r.error?.code)).toEqual(
+    Array(49).fill("too-many-nodes")
+  );
+  expect(rows.filter((_, i) => i % 2 === 0).map((r) => r.valueText)).toEqual(
+    Array(50).fill(formatValue({ type: "number", value: 227 * Math.sin(1) }))
+  );
+}, 30_000);
