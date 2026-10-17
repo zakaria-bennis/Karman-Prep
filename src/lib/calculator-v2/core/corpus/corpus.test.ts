@@ -1,7 +1,8 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import { parseLatex, toSExpr } from "../latex/index";
 import { CORPUS_FILES } from "./cases/index";
-import { CORPUS } from "./index";
+import { CORPUS, casesFor } from "./index";
 import { CORPUS_RUNNERS, isParseOnly, runnerFor } from "./runners";
 import {
   EXPECTED_FIELDS,
@@ -84,4 +85,24 @@ describe("golden corpus registry", () => {
     for (const [c, field, owner] of routes) expect(runnerFor(c, field)?.owner ?? null).toBe(owner);
     expect(isParseOnly({ ...base, settings: { complex: true }, error: "syntax" })).toBe(false);
   });
+});
+
+const RUNNER = "src/lib/calculator-v2/core/corpus/corpus.test.ts",
+  latexOf = (c: CorpusCase) => (c.input as { latex: string }).latex;
+describe("golden corpus parse runner", () => {
+  it("PR-39 casesFor returns exactly the cases whose rules name the ID", () => {
+    const cases = casesFor("PR-10");
+    expect(
+      cases.length >= 8 &&
+        cases.every((c) => c.rules.includes("PR-10")) &&
+        !casesFor("PR-1").includes(cases[0])
+    ).toBe(true);
+  });
+  for (const field of ["tree", "error"] as const)
+    for (const c of CORPUS.filter((k) => runnerFor(k, field)?.file === RUNNER))
+      it(`${c.rules.join(", ")} ${c.id} ${field}`, () => {
+        const r = parseLatex(latexOf(c));
+        if (field === "error") expect(r.ok ? "parsed" : r.error.code).toBe(c.error);
+        else expect(r.ok ? toSExpr(r.tree) : `${r.error.code}: ${r.error.detail}`).toBe(c.tree);
+      });
 });

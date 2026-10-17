@@ -1,0 +1,52 @@
+// Public parser API (01-interfaces.md section 1). Parser modules import limits.ts, never this file,
+// at run time.
+
+import type { Node } from "./ast";
+import type { ParseError } from "./errors";
+import { normalizeLatex } from "./normalize";
+import { createParserState, ParseFailure, parseRow } from "./parser";
+import { tokenize } from "./tokens";
+
+export {
+  MAX_FUNCTION_PARAMS,
+  MAX_NESTING_DEPTH,
+  MAX_ROW_CHARACTERS,
+  MAX_ROWS,
+  MAX_TREE_NODES,
+} from "./limits";
+export { countNodes, toSExpr, treesEqual } from "./ast";
+export { normalizeLatex } from "./normalize";
+
+export interface ParseOptions {
+  userFunctions?: ReadonlySet<string>;
+} // names some row defines as functions (PR-23)
+export type ParseResult =
+  | { ok: true; tree: Node; normalized: string }
+  | { ok: false; error: ParseError; normalized: string };
+
+/**
+ * Parses one row of LaTeX. Never throws (PR-38): empty or blank input, tokenizer errors and parse
+ * failures all come back as `{ ok: false }` with a span into the normalized text.
+ */
+export function parseLatex(input: string, options: ParseOptions = {}): ParseResult {
+  let normalized = "";
+  try {
+    normalized = normalizeLatex(input);
+    if (normalized.trim() === "") {
+      return failed({ code: "syntax", span: { start: 0, end: 0 }, detail: "empty" }, normalized);
+    }
+    const tokens = tokenize(normalized);
+    if (!Array.isArray(tokens)) return failed(tokens, normalized);
+    const tree = parseRow(createParserState(tokens, normalized, options));
+    return { ok: true, tree, normalized };
+  } catch (thrown) {
+    if (thrown instanceof ParseFailure) return failed(thrown.error, normalized);
+    const name = thrown instanceof Error ? thrown.name : typeof thrown;
+    const span = { start: 0, end: normalized.length };
+    return failed({ code: "syntax", span, detail: `internal: ${name}` }, normalized);
+  }
+}
+
+function failed(error: ParseError, normalized: string): ParseResult {
+  return { ok: false, error, normalized };
+}
