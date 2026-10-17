@@ -1,13 +1,14 @@
 // The headless calculator engine (01-interfaces-runtime.md section 8; 07 Decision 14): the public
 // API that KarmanCalculator forwards and the internal surface the React UI drives, as a facade over
-// document.ts (rows, history), state.ts (settings, wire, whole state), inbox.ts (worker results),
-// results.ts (views) and observers.ts (API-8). No DOM, no React (AR-44).
+// document.ts, state.ts, inbox.ts, results.ts, observers.ts, helper-expression.ts (API-10) and
+// default-deps.ts (createEngine's defaults). No DOM, no React (AR-44).
 
 import { clampViewport, defaultViewport, type Viewport, type ViewSpec } from "../../plot/viewport";
 import { nextSlot } from "../../theme/roles";
 import type { ComputeBackend } from "../../worker/backend";
 import { analyzeRows, type AnalysisResult } from "../analysis";
 import { MAX_ROW_CHARACTERS, MAX_ROWS } from "../latex";
+import { defaultBackend, defaultRandomSeed, defaultScheduleFrame } from "./default-deps";
 import {
   INITIAL_GRAPH_SIZE,
   RowDocument,
@@ -16,6 +17,7 @@ import {
   type StoredRow,
 } from "./document";
 import { KarmanCalculatorError } from "./errors";
+import { HelperRegistry, type HelperExpression } from "./helper-expression";
 import { ResultInbox, sentRows } from "./inbox";
 import { EngineObservers } from "./observers";
 import { buildRowView, snapshotAnalysis, type EngineSnapshot } from "./results";
@@ -76,7 +78,11 @@ export class CalculatorEngine {
   private readonly observers: EngineObservers;
   private readonly inbox = new ResultInbox({
     onFault: (message) => this.options.onError?.(new Error(`Calculator worker fault: ${message}`)),
-    onHelperValue: () => undefined, // no helper job is live before API-10's HelperExpression
+    onHelperValue: (jobId, value) => this.helpers.receive(jobId, value),
+  });
+  private readonly helpers = new HelperRegistry({
+    post: (message) => this.deps.backend.post(message),
+    generation: () => this.generation,
   });
   // resetDocument in the constructor merges the options into the settings and sets the rest
   private currentSettings = DEFAULT_SETTINGS;
@@ -89,6 +95,10 @@ export class CalculatorEngine {
   private generation = 0;
   /** The current snapshot; null once a change makes it stale, rebuilt by getSnapshot(). */
   private snapshot: EngineSnapshot | null = null;
+  /** KB-4's DOM-focused row and API-12's active row (OI-10); neither is an undo step. */
+  private focusedRowId: string | null = null;
+  private activeRowId: string | null = null;
+  private destroyed = false;
 
   /** Validates the options (API-1) before anything is posted, then resets as setBlank() does. */
   constructor(options: CalculatorOptions | undefined, deps: EngineDeps) {
@@ -96,45 +106,47 @@ export class CalculatorEngine {
     this.deps = deps;
     this.observers = new EngineObservers(deps.scheduleFrame, () => this.revision);
     deps.backend.onMessage((message) => {
-      if (!this.inbox.receive(message)) return; // Decision 3
+      if (this.destroyed || !this.inbox.receive(message)) return; // API-13, Decision 3
       this.snapshot = null; // subscribers see an accepted result in the next frame (Decision 13)
       this.observers.workerChanged(message.type);
     });
     this.resetDocument(settingsFromOptions(this.options), false);
   }
 
-  // ── public API (API-2 to API-13) ──
+  // ── public API (API-2 to API-13); after destroy() every member throws "destroyed" (live()) ──
 
   /** API-2: upserts one row by id; a new row takes nextSlot(rowIndex) (TH-10). */
   setExpression(state: ExpressionState): void {
-    this.upsert("setExpression", [validateExpressionState(state)]);
+    this.live().upsert("setExpression", [validateExpressionState(state)]);
   }
 
   /** API-2: upserts several rows as one undo step; every state is validated before any change. */
   setExpressions(list: ExpressionState[]): void {
+    this.live();
     if (!Array.isArray(list)) invalid("setExpressions: list must be an array");
     const states = list.map((state) => validateExpressionState(state));
     this.upsert("setExpressions", states);
   }
 
-  /** API-4: deletes one row as an undo step; an unknown id changes nothing. */
+  /** API-4: deletes rows as one undo step; unknown ids change nothing; one empty row stays. */
   removeExpression(ref: { id: string }): void {
-    this.remove(validateRowRefs([ref]));
+    this.removeExpressions([ref]);
   }
-
-  /** API-4: deletes rows as one undo step; removing every row leaves one empty row. */
   removeExpressions(list: { id: string }[]): void {
-    this.remove(validateRowRefs(list));
+    this.live();
+    const ids = new Set(validateRowRefs(list).map((ref) => ref.id));
+    const rows = this.doc.rows.filter((row) => !ids.has(row.id));
+    this.commitRows(rows, STEP);
   }
 
   /** API-4: deep copies of the rows in list order. */
   getExpressions(): ExpressionState[] {
-    return this.doc.rows.map((row) => toExpressionState(row));
+    return this.live().doc.rows.map((row) => toExpressionState(row));
   }
 
   /** API-5: versioned JSON made of copies, so changing it changes nothing here. */
   getState(): CalculatorStateV1 {
-    return buildState(this.doc.rows, this.currentSettings, this.viewport);
+    return buildState(this.live().doc.rows, this.currentSettings, this.viewport);
   }
 
   /**
@@ -142,6 +154,7 @@ export class CalculatorEngine {
    * history cleared), the settings and clampViewport(viewport) (Decision 11).
    */
   setState(state: CalculatorStateV1, options?: { allowUndo?: boolean }): void {
+    this.live();
     const valid = validateState(state);
     const allowUndo = validateAllowUndo(options, "setState");
     const rows = rowsFromState(valid.expressions);
@@ -155,13 +168,13 @@ export class CalculatorEngine {
     this.viewport = Object.freeze(viewport);
     this.analyze();
     this.revision++;
-    this.postState();
-    if (moved) this.postView();
+    this.postState(moved);
     this.changed();
   }
 
   /** API-6, Decision 8: the default rows, settings (blankSettings) and viewport; see resetDocument. */
   setBlank(options?: { allowUndo?: boolean }): void {
+    this.live();
     this.resetDocument(blankSettings(this.currentSettings), validateAllowUndo(options, "setBlank"));
     this.revision++;
     this.changed();
@@ -169,13 +182,14 @@ export class CalculatorEngine {
 
   /** API-7: finite bounds with left < right and bottom < top, stored as clampViewport(bounds). */
   setMathBounds(bounds: Viewport): void {
+    this.live();
     const viewport = clampViewport(validateBounds(bounds));
     if (!sameViewport(viewport, this.viewport)) this.moveViewport(viewport);
   }
 
   /** API-7: validates first; only angleMode and complex re-analyse and post state (NM-29). */
   updateSettings(partial: SettingsUpdate): void {
-    const before = this.currentSettings;
+    const before = this.live().currentSettings;
     const wireChanged = this.storeSettings(validateSettingsUpdate(partial));
     if (this.currentSettings === before) return;
     this.revision++;
@@ -187,67 +201,95 @@ export class CalculatorEngine {
   }
 
   get settings(): CalculatorSettings {
-    return this.currentSettings;
+    return this.live().currentSettings;
   }
 
   /** API-14's scientific mode ships in Phase 2; until then validation keeps the mode "graphing". */
   get mode(): "graphing" {
+    this.live();
     return "graphing";
   }
 
   /** API-8: `callback` runs once a frame after the named value changes; returns an unsubscribe. */
   observe(name: ObservableName, callback: () => void): () => void {
-    return this.observers.observe(name, callback);
+    return this.live().observers.observe(name, callback);
   }
-
   unobserve(name: ObservableName, callback?: () => void): void {
-    this.observers.unobserve(name, callback);
+    this.live().observers.unobserve(name, callback);
   }
 
   /** API-8: once a frame after commits, with the revision and isUserInitiated (Decision 10). */
   observeEvent(name: "change", callback: (event: ChangeEvent) => void): () => void {
-    return this.observers.observeEvent(name, callback);
+    return this.live().observers.observeEvent(name, callback);
+  }
+  unobserveEvent(name: "change", callback?: (event: ChangeEvent) => void): void {
+    this.live().observers.unobserveEvent(name, callback);
   }
 
-  unobserveEvent(name: "change", callback?: (event: ChangeEvent) => void): void {
-    this.observers.unobserveEvent(name, callback);
+  /** API-10: evaluated by the backend with the rows' definitions; adds no row. */
+  HelperExpression(spec: { latex: string }): HelperExpression {
+    return this.live().helpers.create(spec);
   }
 
   /** API-9: built once per snapshot, so the same object until the snapshot changes (results.ts). */
   get expressionAnalysis(): Readonly<Record<string, ExpressionAnalysis>> {
-    return snapshotAnalysis(this.getSnapshot(), this.analysis);
+    return snapshotAnalysis(this.live().getSnapshot(), this.analysis);
   }
 
   /** API-8: the viewport and the graph's size (INITIAL_GRAPH_SIZE before its first setView). */
   get graphpaperBounds(): GraphpaperBounds {
-    const { width, height } = this.graph?.size ?? INITIAL_GRAPH_SIZE;
+    const { width, height } = this.live().graph?.size ?? INITIAL_GRAPH_SIZE;
     return { mathCoordinates: { ...this.viewport }, pixelCoordinates: { width, height } };
   }
 
   /** API-11: one history stack shared by the API, the toolbar and the KB- shortcuts. */
   undo(): void {
-    if (this.doc.undo()) this.afterCommit();
+    if (this.live().doc.undo()) this.afterCommit();
   }
-
   redo(): void {
-    if (this.doc.redo()) this.afterCommit();
+    if (this.live().doc.redo()) this.afterCommit();
   }
-
   clearHistory(): void {
-    const had = this.doc.canUndo() || this.doc.canRedo();
+    const had = this.live().doc.canUndo() || this.doc.canRedo();
     this.doc.clearHistory();
     if (had) this.changed();
   }
-
   canUndo(): boolean {
-    return this.doc.canUndo();
+    return this.live().doc.canUndo();
   }
-
   canRedo(): boolean {
-    return this.doc.canRedo();
+    return this.live().doc.canRedo();
   }
 
-  // ── internal UI surface (not forwarded by KarmanCalculator) ──
+  /**
+   * API-12, OI-10: each makes a row the active row and fires focusedExpression. KarmanCalculator's
+   * versions also focus the row's MathField (focus*) or keep DOM focus out of it (activate*).
+   */
+  focusExpression(id: string): void {
+    this.live().activate(id, "focusExpression");
+  }
+  focusFirstExpression(): void {
+    this.live().activate(this.doc.rows[0].id, "focusFirstExpression");
+  }
+  activateExpression(id: string): void {
+    this.live().activate(id, "activateExpression");
+  }
+
+  /** API-8: the active row's id (OI-10); null when no row is active. */
+  get focusedExpression(): string | null {
+    return this.live().activeRowId;
+  }
+
+  /** API-13: idempotent. Stops the helpers, observers and backend; getSnapshot keeps the last one. */
+  destroy(): void {
+    if (this.destroyed) return;
+    this.destroyed = true;
+    this.helpers.dispose();
+    this.observers.dispose();
+    this.deps.backend.dispose();
+  }
+
+  // ── internal UI surface (not forwarded by KarmanCalculator); its mutators no-op after destroy ──
 
   /** Runs after each method call's commit and once a frame after worker results (Decision 13). */
   subscribe(listener: () => void): () => void {
@@ -284,11 +326,12 @@ export class CalculatorEngine {
 
   /**
    * A new empty row after `afterId` (at the end for null or an unknown id) with the next decimal
-   * id and nextSlot(its index) (Decision 7); refused with "row-limit" at MAX_ROWS (NM-42).
+   * id and nextSlot(its index) (Decision 7); refused with "row-limit" at MAX_ROWS (NM-42) and,
+   * as nothing is inserted, after destroy().
    */
   insertRowAfter(afterId: string | null): { id: string } | EditRefusal {
     const rows = this.doc.rows;
-    if (rows.length >= MAX_ROWS) return "row-limit";
+    if (this.destroyed || rows.length >= MAX_ROWS) return "row-limit";
     const after = afterId === null ? -1 : rows.findIndex((r) => r.id === afterId);
     const index = after < 0 ? rows.length : after + 1;
     const color = nextSlot(index);
@@ -316,18 +359,44 @@ export class CalculatorEngine {
 
   /** Decision 9: stores the size and viewport as given (no undo step); unusable views are ignored. */
   setView(view: ViewSpec): void {
-    const graph = acceptView(this.graph, this.viewport, view);
+    const graph = this.destroyed ? null : acceptView(this.graph, this.viewport, view);
     if (graph === null) return;
     this.graph = graph;
     this.moveViewport({ ...view.viewport }, true);
   }
 
+  /** KB-4: the DOM-focused row (null when none), which also becomes active; ends the KB-2 group. */
+  setFocusedRow(id: string | null): void {
+    this.doc.endGroup();
+    this.setFocus(id, id ?? this.activeRowId);
+  }
+
   // ── commit pipeline ──
+
+  /** API-13: this engine, or the "destroyed" error once destroy() has run. */
+  private live(): this {
+    if (this.destroyed) throw new KarmanCalculatorError("destroyed", "the calculator is destroyed");
+    return this;
+  }
+
+  /** API-12, API-13: makes row `id` active; an unknown id throws invalid-argument. */
+  private activate(id: string, method: string): void {
+    if (!this.doc.rows.some((r) => r.id === id)) invalid(`${method}: no row has id ${String(id)}`);
+    this.setFocus(this.focusedRowId, id);
+  }
+
+  /** Stores the focused and active rows; focusedExpression fires when the active row changes. */
+  private setFocus(focused: string | null, active: string | null): void {
+    if (this.destroyed || (focused === this.focusedRowId && active === this.activeRowId)) return;
+    if (active !== this.activeRowId) this.observers.markDirty("focusedExpression");
+    [this.focusedRowId, this.activeRowId] = [focused, active];
+    this.changed();
+  }
 
   /**
    * API-6, Decision 8: row "1" alone (history cleared, or one undo step with allowUndo), `settings`
    * and the default viewport, with every worker result forgotten; then hello with the reset seed
-   * (API-1), state, and view once sized.
+   * (API-1), state, view once sized, and a new job for each live helper.
    */
   private resetDocument(settings: CalculatorSettings, allowUndo: boolean): void {
     if (!allowUndo) this.doc.reset();
@@ -338,8 +407,7 @@ export class CalculatorEngine {
     const seed = this.options.seed ?? this.deps.randomSeed();
     this.deps.backend.post({ v: 1, type: "hello", seed });
     this.inbox.reset();
-    this.postState();
-    this.postView();
+    this.postState(true);
   }
 
   /** Applies a settings update; API-8's settings observer fires when any value changed. */
@@ -365,20 +433,14 @@ export class CalculatorEngine {
     this.commitRows(rows, STEP);
   }
 
-  private remove(refs: readonly { id: string }[]): void {
-    const ids = new Set(refs.map((ref) => ref.id));
-    const rows = this.doc.rows.filter((row) => !ids.has(row.id));
-    this.commitRows(rows, STEP);
-  }
-
   /** The rows with row `id` replaced by a changed copy; every other row keeps its object. */
   private withRow(id: string, change: Partial<StoredRow>): StoredRow[] {
     return this.doc.rows.map((row) => (row.id === id ? { ...row, ...change } : row));
   }
 
-  /** Commits `rows` unless they equal the current list, so a no-op adds no undo step or send. */
+  /** Commits `rows` unless they equal the current list or the engine is destroyed. */
   private commitRows(rows: readonly StoredRow[], step: HistoryStep, userInitiated = false): void {
-    if (sameRows(rows, this.doc.rows)) return;
+    if (this.destroyed || sameRows(rows, this.doc.rows)) return;
     this.doc.commit(rows, step);
     this.afterCommit(userInitiated);
   }
@@ -394,18 +456,23 @@ export class CalculatorEngine {
     this.changed(userInitiated);
   }
 
-  /** AR-51: analyses the rows on the main thread; API-8's expressionAnalysis follows. */
+  /** AR-51: analyses on the main thread; a focused or active row that left the list is dropped. */
   private analyze(): void {
     const sources = this.doc.rows.map(({ id, latex, hidden }) => ({ id, latex, hidden }));
     this.analysis = analyzeRows(sources, toWireSettings(this.currentSettings));
     this.observers.markDirty("expressionAnalysis");
+    const kept = (id: string | null) => (id !== null && this.analysis.byId.has(id) ? id : null);
+    if (kept(this.activeRowId) !== this.activeRowId) this.observers.markDirty("focusedExpression");
+    [this.focusedRowId, this.activeRowId] = [kept(this.focusedRowId), kept(this.activeRowId)];
   }
 
-  /** AR-45, AR-46: posts `state` with the next generation and notes its rows in the inbox. */
-  private postState(): void {
+  /** AR-45, AR-46: posts state (then view when asked) and re-issues every live helper (API-6). */
+  private postState(withView = false): void {
     this.generation++;
     this.deps.backend.post(stateMessage(this.generation, this.doc.rows, this.currentSettings));
     this.inbox.noteState(this.generation, sentRows(this.doc.rows, this.analysis));
+    if (withView) this.postView();
+    this.helpers.reissue();
   }
 
   /** Notes the bounds (API-8), then posts view with the next generation once sized (AR-46). */
@@ -434,8 +501,8 @@ export class CalculatorEngine {
       viewport: this.viewport,
       view: this.graph && { viewport: this.viewport, size: this.graph.size, dpr: this.graph.dpr },
       geometry: this.inbox.geometry,
-      focusedRowId: null,
-      activeRowId: null,
+      focusedRowId: this.focusedRowId,
+      activeRowId: this.activeRowId,
       canUndo: this.doc.canUndo(),
       canRedo: this.doc.canRedo(),
       backendKind: this.deps.backend.kind,
@@ -445,4 +512,18 @@ export class CalculatorEngine {
 
 function invalid(message: string): never {
   throw new KarmanCalculatorError("invalid-argument", message);
+}
+
+/** API-1: validates the options before creating anything, then fills in the default deps. */
+export function createEngine(
+  options?: CalculatorOptions,
+  deps?: Partial<EngineDeps>
+): CalculatorEngine {
+  validateOptions(options);
+  return new CalculatorEngine(options, {
+    backend: deps?.backend ?? defaultBackend(),
+    scheduleFrame: deps?.scheduleFrame ?? defaultScheduleFrame,
+    now: deps?.now ?? (() => performance.now()),
+    randomSeed: deps?.randomSeed ?? defaultRandomSeed,
+  });
 }

@@ -293,8 +293,13 @@ synchronous for state; computed values arrive asynchronously through observers. 
 go through the API surface: the quiz host converts a `TransferPayload` with `transfer/apply.ts`,
 which uses only public methods. The headless `CalculatorEngine` in `core/api/` validates the API-1
 options and implements every other API- method and observer; `KarmanCalculator` adds the element,
-shadow root, React UI, `resize()`, the focus methods and `focusBoundary()` and forwards every other
-method to it. API- IDs verified by unit test run against `CalculatorEngine` in node, TR-79's apply
+shadow root, React UI, `resize()` and `focusBoundary()` and forwards every other method to it.
+`CalculatorEngine` implements `focusExpression(id)`, `focusFirstExpression()` and
+`activateExpression(id)` as active-row state changes that fire the `focusedExpression` observer.
+KarmanCalculator's versions also move DOM focus into the row's MathField (`focusExpression`,
+`focusFirstExpression`) or keep it out of the MathField (`activateExpression`). As a result,
+`transfer/apply.ts` runs unchanged on the headless engine in TR-79.
+API- IDs verified by unit test run against `CalculatorEngine` in node, TR-79's apply
 step uses the same engine, and one component test (jsdom) checks that each `KarmanCalculator`
 method forwards to the engine. `transferTarget` from the original spec is removed.
 
