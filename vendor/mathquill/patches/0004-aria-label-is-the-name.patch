@@ -1,0 +1,18 @@
+diff --git a/src/services/textarea.ts b/src/services/textarea.ts
+index 52a99873..e71b38f0 100644
+--- a/src/services/textarea.ts
++++ b/src/services/textarea.ts
+@@ -209,11 +209,8 @@ class Controller extends Controller_scrollHoriz {
+         ' ' +
+         mathspeak
+       ).trim();
+-    } else {
+-      textarea.setAttribute(
+-        'aria-label',
+-        (labelWithSuffix + ' ' + mathspeak + ' ' + ctrlr.ariaPostLabel).trim()
+-      );
+     }
++    // Editable math: the textarea's aria-label is not written here. The embedding
++    // adapter owns aria-label and sets it once (Karman calculator v2, patch 0004).
+   }
+ }

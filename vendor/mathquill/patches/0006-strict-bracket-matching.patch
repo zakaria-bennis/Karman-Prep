@@ -1,0 +1,14 @@
+diff --git a/src/commands/math/commands.ts b/src/commands/math/commands.ts
+index 28142afa..fa99807a 100644
+--- a/src/commands/math/commands.ts
++++ b/src/commands/math/commands.ts
+@@ -1194,8 +1194,7 @@ class Bracket extends DelimsNode {
+       (!opts.restrictMismatchedBrackets ||
+         OPP_BRACKS[
+           this.sides[this.side as Direction].ch as keyof typeof BRACKET_NAMES
+-        ] === node.sides[node.side].ch ||
+-        { '(': ']', '[': ')' }[this.sides[L].ch] === node.sides[R].ch) &&
++        ] === node.sides[node.side].ch) &&
+       node
+     );
+   }

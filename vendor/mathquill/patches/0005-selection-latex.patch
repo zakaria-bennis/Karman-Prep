@@ -1,0 +1,17 @@
+diff --git a/src/publicapi.ts b/src/publicapi.ts
+index bfd236f2..93c47707 100644
+--- a/src/publicapi.ts
++++ b/src/publicapi.ts
+@@ -409,6 +409,12 @@ function getInterface(v: number): MathQuill.v3.API | MathQuill.v1.API {
+       this.__controller.cursor.clearSelection();
+       return this;
+     }
++    selectionLatex(): string | null {
++      const selection = this.__controller.cursor.selection;
++      return selection
++        ? this.__controller.cleanLatex(selection.join('latex'))
++        : null;
++    }
+ 
+     moveToDirEnd(dir: Direction) {
+       this.__controller
