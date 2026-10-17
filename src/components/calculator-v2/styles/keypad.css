@@ -1,0 +1,132 @@
+/* The keypad (09 editor-ui; Row DOM in 09-editor-ui.md): the K-1 tray, the K-3 letters pages and
+   the K-6 phone keypad. Colours come only from role variables (TH-3); keys are at least 32 px, and
+   44 px on coarse pointers and on the phone keypad (K-1, K-6). */
+
+.kc-keypad,
+.kc-show-keypad {
+  --kc-key-size: 32px;
+}
+
+.kc-keypad:is([data-pointer="coarse"], [data-layout="phone"]),
+.kc-show-keypad:is([data-pointer="coarse"], [data-layout="phone"]) {
+  --kc-key-size: 44px;
+}
+
+/* The bar takes the first line; the groups share the next one, in proportion to their columns. */
+.kc-keypad {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: start;
+  gap: 8px;
+  padding: 4px;
+  background-color: var(--kc-chrome);
+  color: var(--kc-text);
+  font-family: var(--kc-font-ui);
+  font-size: var(--kc-size-ui);
+}
+
+/* AN-1: Task 14 adds the slide; hidden, the keypad stays mounted below its open position. */
+.kc-keypad[data-open="false"] {
+  transform: translateY(100%);
+  visibility: hidden;
+}
+
+.kc-keypad-bar {
+  display: flex;
+  flex: 1 0 100%;
+  justify-content: flex-end;
+}
+
+/* The inline --kc-columns of each group overrides this default (TH-3 needs a declaration). */
+.kc-keypad [data-group] {
+  --kc-columns: 4;
+}
+
+.kc-keypad [data-group] {
+  display: grid;
+  flex-grow: var(--kc-columns);
+  flex-basis: 0;
+  grid-template-columns: repeat(var(--kc-columns), minmax(var(--kc-key-size), 1fr));
+  gap: 4px;
+}
+
+.kc-key,
+.kc-keypad-bar button,
+.kc-show-keypad {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--kc-key-size);
+  min-height: var(--kc-key-size);
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  color: var(--kc-text);
+  cursor: pointer;
+}
+
+/* Keypad glyphs are text in the math font (TH-18); the two word keys use the UI font. */
+.kc-key {
+  font-family: var(--kc-font-math);
+  font-size: var(--kc-size-math);
+  line-height: 1;
+}
+
+.kc-key:is([data-key="functions"], [data-key="letters"]) {
+  font-family: var(--kc-font-ui);
+  font-size: var(--kc-size-ui);
+}
+
+/* TH-3 roles key, keyOperator and accent. */
+.kc-key[data-tone="key"] {
+  background-color: var(--kc-key);
+}
+
+.kc-key[data-tone="operator"] {
+  background-color: var(--kc-key-operator);
+}
+
+.kc-key[data-tone="accent"] {
+  background-color: var(--kc-accent);
+  color: var(--kc-accent-label);
+}
+
+/* K-9: the audio key until Phase 4. */
+.kc-key[aria-disabled="true"] {
+  color: var(--kc-text-secondary);
+  cursor: default;
+}
+
+.kc-keypad-bar button {
+  background-color: transparent;
+}
+
+/* K-2: at the bottom left of the calculator while the keypad is closed. */
+.kc-show-keypad {
+  position: absolute;
+  inset-inline-start: 8px;
+  bottom: 8px;
+  border: 1px solid var(--kc-boundary);
+  background-color: var(--kc-chrome);
+}
+
+/* K-6: 7 columns of 44 px keys fit 320 px; each key's transparent border draws the gap. */
+.kc-keypad[data-layout="phone"] {
+  padding-inline: 2px;
+}
+
+.kc-keypad[data-layout="phone"] [data-group] {
+  column-gap: 0;
+}
+
+.kc-keypad[data-layout="phone"] .kc-key {
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.kc-key:focus-visible,
+.kc-keypad-bar button:focus-visible,
+.kc-show-keypad:focus-visible {
+  outline: 2px solid var(--kc-focus-ring);
+  outline-offset: 2px;
+}
