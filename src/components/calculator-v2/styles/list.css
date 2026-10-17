@@ -1,0 +1,149 @@
+/* The expression list and its rows (09 editor-ui; Row DOM in 09-editor-ui.md). Colours come only
+   from role variables and --kc-row-color (TH-3). */
+
+.kc-list-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  background: var(--kc-list);
+  color: var(--kc-text);
+}
+
+.kc-list-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.kc-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.kc-row {
+  border-bottom: 1px solid var(--kc-boundary);
+}
+
+/* The li's only child, so Task 6 can animate the li around it. */
+.kc-row-inner {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  column-gap: 4px;
+  padding: 4px;
+}
+
+/* The number fills the gutter's height on the left, so it is the L-3 focus bar. */
+.kc-row-gutter {
+  display: grid;
+  grid-template-columns: minmax(24px, auto) 32px;
+  grid-template-rows: auto 1fr;
+  align-self: stretch;
+  column-gap: 2px;
+  row-gap: 2px;
+}
+
+.kc-row-number {
+  grid-column: 1;
+  grid-row: 1 / 3;
+  display: flex;
+  justify-content: center;
+  padding: 6px 4px 0;
+  border-radius: 2px;
+  color: var(--kc-text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* L-3: the focused row and the active row. */
+.kc-row:is([data-focused="true"], [data-active="true"]) {
+  outline: 2px solid var(--kc-focus-ring);
+  outline-offset: -2px;
+}
+
+.kc-row:is([data-focused="true"], [data-active="true"]) .kc-row-number {
+  background: var(--kc-focus-bar);
+  color: var(--kc-focus-bar-label);
+}
+
+.kc-row-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.kc-row-field {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  min-height: 32px;
+}
+
+.kc-row-note {
+  margin: 0;
+  color: var(--kc-text-secondary);
+}
+
+/* The inline --kc-row-color of each tab overrides this default (TH-3 needs a declaration). */
+.kc-row-tab {
+  --kc-row-color: var(--kc-curve-1);
+}
+
+.kc-row-tab,
+.kc-row-delete {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
+}
+
+/* R-1: the swatch is the glyph, drawn in currentColor. */
+.kc-row-tab {
+  grid-column: 2;
+  grid-row: 1;
+  color: var(--kc-row-color);
+}
+
+.kc-row-tab[aria-pressed="false"] {
+  color: var(--kc-text-secondary);
+}
+
+.kc-row-delete {
+  color: var(--kc-text-secondary);
+}
+
+.kc-list-panel[data-pointer="coarse"] .kc-row-gutter {
+  grid-template-columns: minmax(24px, auto) 44px;
+}
+
+.kc-list-panel[data-pointer="coarse"] :is(.kc-row-tab, .kc-row-delete) {
+  width: 44px;
+  height: 44px;
+}
+
+.kc-row-tab:focus-visible,
+.kc-row-delete:focus-visible {
+  outline: 2px solid var(--kc-focus-ring);
+  outline-offset: 2px;
+}
+
+.kc-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

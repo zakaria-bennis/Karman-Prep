@@ -4,7 +4,7 @@
 
 import { render, screen } from "@testing-library/react";
 import { createRef, type ReactNode } from "react";
-import { onTestFinished } from "vitest";
+import { onTestFinished, vi } from "vitest";
 import { createEngine, type CalculatorEngine } from "@/lib/calculator-v2/core/api/engine";
 import type { SkinId } from "@/lib/calculator-v2/theme/skins";
 import { createMainThreadBackend } from "@/lib/calculator-v2/worker/backend";
@@ -20,6 +20,7 @@ import { SkinContext } from "../../hooks/skin";
 import { EngineContext } from "../../hooks/use-engine";
 import { MathFieldFactoryContext } from "../math-field-factory";
 import { MotionContext } from "../motion";
+import type { ExpressionPanelProps } from "../ExpressionPanel";
 import { createFakeFieldFactory, type FakeFieldFactory } from "./fake-math-field";
 
 export interface RecordingAnnouncer extends Announcer {
@@ -115,6 +116,18 @@ export function renderEditor(
     </EngineContext.Provider>
   );
   return kit;
+}
+
+/** ExpressionPanel props for a desktop, fine-pointer list with the keypad closed; vi.fn() handlers. */
+export function panelProps(overrides: Partial<ExpressionPanelProps> = {}): ExpressionPanelProps {
+  return {
+    layout: "desktop",
+    pointer: "fine",
+    keypadOpen: false,
+    onToggleKeypad: vi.fn(),
+    onTouchFocusRow: vi.fn(),
+    ...overrides,
+  };
 }
 
 /**
