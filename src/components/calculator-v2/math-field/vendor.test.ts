@@ -87,3 +87,62 @@ it("AR-5 the vendored output carries the patches", () => {
     /font-family: KaTeX_Math, "Times New Roman", serif/
   );
 });
+
+// entry rules are exactly 60 "=" (the MPL-2.0 text has its own shorter "===" underline)
+const RULE = /^={60}$/;
+const norm = (s: string) => s.replace(/\s+/g, " ").trim();
+const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+// the entry from its header line up to the next header (a line followed by a "====" line)
+function noticeBlock(text: string, header: RegExp): string | null {
+  const lines = text.split("\n");
+  const start = lines.findIndex((l) => header.test(l));
+  if (start < 0) return null;
+  let end = start + 2;
+  while (end < lines.length && !(lines[end + 1] !== undefined && RULE.test(lines[end + 1]))) end++;
+  return lines.slice(start, end).join("\n");
+}
+function katexFontFiles(): string[] {
+  const css = readFileSync("node_modules/katex/dist/katex.min.css", "utf8");
+  return [...new Set([...css.matchAll(/url\(fonts\/([^)]+)\)/g)].map((m) => m[1]))].sort();
+}
+const katexVersion = (): string =>
+  JSON.parse(readFileSync("node_modules/katex/package.json", "utf8")).version;
+function missingNotices(text: string): string[] {
+  const missing: string[] = [];
+  const katex = katexVersion();
+  const katexLicence = norm(readFileSync("node_modules/katex/LICENSE", "utf8"));
+  const mq = noticeBlock(text, /^mathquill 0\.10\.1 \(MPL-2\.0\)$/);
+  if (
+    !mq ||
+    !mq.includes("https://github.com/mathquill/mathquill") ||
+    !mq.includes(FULL_SHA) ||
+    !norm(mq).includes(norm(read("LICENSE")))
+  )
+    missing.push("mathquill");
+  const kb = noticeBlock(text, new RegExp(`^katex ${escapeRe(katex)} \\(MIT\\)$`));
+  if (!kb || !norm(kb).includes(katexLicence)) missing.push("katex");
+  const fonts = noticeBlock(text, new RegExp(`^KaTeX fonts \\(katex ${escapeRe(katex)}, MIT\\)$`));
+  if (!fonts || !norm(fonts).includes(katexLicence)) missing.push("KaTeX fonts");
+  for (const file of katexFontFiles()) if (!fonts?.split("\n").includes(file)) missing.push(file);
+  return missing;
+}
+const NOTICES = "public/calculator-notices.txt";
+
+it("AR-5 calculator-notices.txt has MathQuill, KaTeX and every KaTeX font file the calculator serves", () => {
+  const text = readFileSync(NOTICES, "utf8");
+  expect(katexFontFiles()).toHaveLength(60);
+  expect(missingNotices(text)).toEqual([]);
+  // exactly one KaTeX entry, at the installed version (the stale v1 entry was replaced)
+  expect(text.split("\n").filter((l) => /^katex \S+ \(MIT\)$/.test(l))).toEqual([
+    `katex ${katexVersion()} (MIT)`,
+  ]);
+});
+it("AR-5 the notices check fails when an entry is missing", () => {
+  const text = readFileSync(NOTICES, "utf8");
+  expect(missingNotices(text.replace(/^mathquill 0\.10\.1 \(MPL-2\.0\)$/m, "x"))).toContain(
+    "mathquill"
+  );
+  expect(missingNotices(text.replaceAll("KaTeX_Main-Regular.woff2", "x"))).toContain(
+    "KaTeX_Main-Regular.woff2"
+  );
+});
