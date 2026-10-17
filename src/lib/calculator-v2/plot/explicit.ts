@@ -1,7 +1,9 @@
 // Explicit curves y = f(x) and x = f(y) (G-9 to G-13, G-15). The independent axis t is sampled
-// every half pixel; pairs that jump are bisected to find poles, pairs that meet an undefined sample
-// are bisected to find the domain edge, and the rest join into polylines clipped to a guard band
-// half a view beyond each edge. Pure TypeScript, no DOM (AR-44).
+// every half pixel; pairs that jump are bisected to find poles, extrema closer than
+// BAND_EXTREMA_PX turn their columns into filled bands, pairs that meet an undefined sample are
+// bisected to find the domain edge, the remaining extrema are refined, band columns are sampled
+// across their width, and the rest join into polylines clipped to a guard band half a view beyond
+// each edge. Pure TypeScript, no DOM (AR-44).
 
 import type { Deadline } from "../core/deadline";
 import { EvaluationBudget, EXPLICIT_BUDGET } from "./budget";
@@ -20,6 +22,15 @@ export const MAX_COLUMNS = 4096;
 export const POLE_BISECTIONS = 30;
 export const EDGE_BISECTIONS = 12;
 export const GUARD_FRACTION = 0.5;
+export const BAND_EXTREMA_PX = 2;
+export const EXTREMUM_ROUNDS = 5;
+export const BAND_SAMPLES_PER_COLUMN = 64;
+
+/**
+ * A local extremum: sample `k` inside a finite run, `prev` the sample before it when found (an
+ * earlier refinement may insert samples between them), `run` its finite run's ordinal.
+ */
+type Turn = { k: number; prev: number; max: boolean; run: number };
 
 /** The sampling frame of an explicit curve whose independent variable is `independent`. */
 export function explicitFrame(view: ViewSpec, independent: "x" | "y"): ExplicitFrame {
@@ -118,15 +129,27 @@ class ExplicitSampler {
     }
   }
 
+  /** The column of the pair starting at `a`, as the one-column range [first, last]. */
+  private readonly pairColumn = (a: number): [number, number] => [this.col[a], this.col[a]];
+
   /**
-   * Phase 4 for one phase: refines `items` in t order, skipping those in band columns. When the
-   * budget refuses, the columns of the item in progress and of every later item become bands.
+   * Phase 4 for one phase: refines `items` in t order, skipping those whose columns
+   * (`columns(item)` gives the first and last) are all bands. When the budget refuses, the columns
+   * of the item in progress and of every later item become bands.
    */
-  private refineAll(items: number[], refine: (a: number) => boolean): void {
+  private refineAll<T>(
+    items: T[],
+    refine: (item: T) => boolean,
+    columns: (item: T) => [number, number]
+  ): void {
     for (let k = 0; k < items.length; k++) {
-      if (this.band[this.col[items[k]]] === 1) continue;
+      const [first, last] = columns(items[k]);
+      if (this.band.subarray(first, last + 1).every((b) => b === 1)) continue;
       if (!refine(items[k])) {
-        for (let r = k; r < items.length; r++) this.band[this.col[items[r]]] = 1;
+        for (let r = k; r < items.length; r++) {
+          const [from, to] = columns(items[r]);
+          this.band.fill(1, from, to + 1);
+        }
         return;
       }
     }
@@ -142,7 +165,7 @@ class ExplicitSampler {
       const jump = this.jumpPx(a);
       if (jump > this.frame.vPx || (va * vb < 0 && jump > 1)) candidates.push(a);
     }
-    this.refineAll(candidates, (a) => this.bisectPole(a));
+    this.refineAll(candidates, (a) => this.bisectPole(a), this.pairColumn);
   }
 
   /**
@@ -174,7 +197,7 @@ class ExplicitSampler {
     for (let a = 0; this.next[a] >= 0; a = this.next[a]) {
       if (Number.isNaN(this.v[a]) !== Number.isNaN(this.v[this.next[a]])) mixed.push(a);
     }
-    this.refineAll(mixed, (a) => this.bisectEdge(a));
+    this.refineAll(mixed, (a) => this.bisectEdge(a), this.pairColumn);
   }
 
   /** Halves a mixed pair EDGE_BISECTIONS times, keeping the half that is still mixed. */
@@ -189,6 +212,131 @@ class ExplicitSampler {
       if (Number.isNaN(vm) === Number.isNaN(this.v[a])) a = m;
     }
     return true;
+  }
+
+  /** True when the pair starting at `a` ends a finite run: a value is NaN or it is a pole break. */
+  private breaks(a: number): boolean {
+    return Number.isNaN(this.v[a]) || Number.isNaN(this.v[this.next[a]]) || this.poleBreak[a] === 1;
+  }
+
+  /**
+   * The turns in t order: samples k inside a finite run with v_k − v_{k−1} > 0 and
+   * v_{k+1} − v_k ≤ 0 (a maximum) or < 0 and ≥ 0 (a minimum).
+   */
+  private turns(): Turn[] {
+    const turns: Turn[] = [];
+    let run = 0;
+    for (let p = -1, k = 0; this.next[k] >= 0; p = k, k = this.next[k]) {
+      if (this.breaks(k)) run++;
+      if (p < 0 || this.breaks(p) || this.breaks(k)) continue;
+      const before = this.v[k] - this.v[p];
+      const after = this.v[this.next[k]] - this.v[k];
+      if ((before > 0 && after <= 0) || (before < 0 && after >= 0)) {
+        turns.push({ k, prev: p, max: before > 0, run });
+      }
+    }
+    return turns;
+  }
+
+  /** The columns of a turn's two pairs, the one ending at it and the one starting at it. */
+  private readonly turnColumns = (turn: Turn): [number, number] => [
+    this.col[turn.prev],
+    this.col[turn.k],
+  ];
+
+  /**
+   * After phase 2 (G-12): for consecutive turns p, q of one run less than BAND_EXTREMA_PX apart,
+   * every column meeting [t_p, t_q] becomes a band.
+   */
+  oscillation(): void {
+    const turns = this.turns();
+    const pxPerT = this.frame.tPx / (this.frame.t1 - this.frame.t0);
+    for (let i = 1; i < turns.length; i++) {
+      const [p, q] = [turns[i - 1], turns[i]];
+      if (p.run !== q.run || !((this.t[q.k] - this.t[p.k]) * pxPerT < BAND_EXTREMA_PX)) continue;
+      this.band.fill(1, this.col[p.prev], this.col[q.k] + 1);
+    }
+  }
+
+  /** Inserts the midpoint of the pair starting at `a`: its index, -1 when none, undefined when refused. */
+  private split(a: number): number | undefined {
+    const tm = this.midpoint(a, this.next[a]);
+    if (Number.isNaN(tm)) return -1;
+    const vm = this.evaluate(tm);
+    return vm === undefined ? undefined : this.insertAfter(a, tm, vm);
+  }
+
+  /**
+   * After phase 3: each turn in a non-band column whose two pairs are not both off-view gets
+   * EXTREMUM_ROUNDS rounds; phase 4 applies.
+   */
+  extrema(): void {
+    const turns = this.turns().filter(
+      ({ k, prev }) =>
+        !this.offView(this.v[prev], this.v[k]) || !this.offView(this.v[k], this.v[this.next[k]])
+    );
+    this.refineAll(turns, (turn) => this.refineTurn(turn), this.turnColumns);
+  }
+
+  /**
+   * A round samples the midpoints between the turn and its neighbours and moves the turn to the
+   * most extreme of the three (an undefined midpoint never wins). False when the budget refuses.
+   */
+  private refineTurn(turn: Turn): boolean {
+    let k = turn.k;
+    let a = turn.prev;
+    while (this.next[a] !== k) a = this.next[a]; // an earlier turn may have split this pair
+    const beats = (m: number, than: number) =>
+      m >= 0 && (turn.max ? this.v[m] > this.v[than] : this.v[m] < this.v[than]);
+    for (let round = 0; round < EXTREMUM_ROUNDS; round++) {
+      const left = this.split(a);
+      if (left === undefined) return false;
+      const right = this.split(k);
+      if (right === undefined) return false;
+      if (left < 0 && right < 0) break; // too narrow to halve (deep zoom)
+      if (beats(left, k) && !beats(right, left)) {
+        k = left;
+      } else if (beats(right, k)) {
+        [a, k] = [k, right];
+      } else if (left >= 0) {
+        a = left;
+      }
+    }
+    return true;
+  }
+
+  /** True when column c holds a pair that is not off-view. */
+  private holdsVisiblePair(c: number): boolean {
+    for (let a = 2 * c; a !== 2 * c + 2; a = this.next[a]) {
+      if (!this.offView(this.v[a], this.v[this.next[a]])) return true;
+    }
+    return false;
+  }
+
+  /**
+   * Before assembly (G-12, G-15): with B band columns holding a pair that is not off-view, each
+   * samples tStart + (k + 0.5)·w/n for k < n = min(BAND_SAMPLES_PER_COLUMN, floor(remaining/B)).
+   */
+  bandSamples(): void {
+    const sampled: number[] = [];
+    for (let c = 0; c < this.columns; c++) {
+      if (this.band[c] === 1 && this.holdsVisiblePair(c)) sampled.push(c);
+    }
+    if (sampled.length === 0) return;
+    const n = Math.min(BAND_SAMPLES_PER_COLUMN, Math.floor(this.budget.remaining / sampled.length));
+    const w = (this.frame.t1 - this.frame.t0) / this.columns;
+    for (const c of sampled) {
+      const end = 2 * c + 2;
+      let a = 2 * c;
+      for (let k = 0; k < n; k++) {
+        const t = this.t[2 * c] + ((k + 0.5) * w) / n;
+        while (this.next[a] !== end && this.t[this.next[a]] <= t) a = this.next[a];
+        if (!(t > this.t[a] && t < this.t[this.next[a]])) continue; // already sampled
+        const v = this.evaluate(t);
+        if (v === undefined) return;
+        a = this.insertAfter(a, t, v);
+      }
+    }
   }
 
   /** The point of segment (a, b) where v reaches `target`. */
@@ -256,7 +404,10 @@ export function sampleExplicit(
   const sampler = new ExplicitSampler(f, frame, budget);
   sampler.grid();
   sampler.poles();
+  sampler.oscillation();
   sampler.edges();
+  sampler.extrema();
+  sampler.bandSamples();
   return sampler.assemble();
 }
 
