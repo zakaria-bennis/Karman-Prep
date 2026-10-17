@@ -1,36 +1,97 @@
 "use client";
 
-import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
+// The quiz calculator seam (AR-7, AR-9): the page's version picks v1's CalculatorShell or v2's
+// CalculatorWindow with its once-per-page CalculatorLoader; the v2 window's mode and geometry live
+// in the page-session store (AR-25). Eager module: v2 code only via import() and types (AR-1).
+
+import {
+  Component,
+  createContext,
+  useContext,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type JSX,
+  type PointerEvent,
+  type ReactNode,
+} from "react";
 import { Calculator } from "lucide-react";
 import { useTheme } from "@/components/shared/ThemeProvider";
+import { useQuizAnimations } from "@/components/learn/quiz/QuizTools";
+import type { OpenTrigger, QuizCalculatorHandle } from "@/components/calculator-v2/host/quiz-host"; // type-only (AR-1)
 import type { PastePayload } from "@/lib/calculator/paste";
+import { PHONE_QUERY } from "./breakpoints";
+import {
+  CalculatorHostIdContext,
+  CalculatorLoader,
+  MOUNT_FAILED_COPY,
+  getCalculatorModule,
+} from "./CalculatorLoader";
 import { CalculatorShell } from "./CalculatorShell";
+import { useCalculatorVersion } from "./CalculatorVersion";
+import { CalculatorWindow } from "./CalculatorWindow";
+import {
+  calculatorWindowStore,
+  defaultDockWidth,
+  defaultFloatingRect,
+  windowModeFor,
+  type ViewportSize,
+} from "./calculator-window-store";
+import { warmCalculatorFonts } from "./font-warmup";
+import { reportCalculatorError } from "./report-error";
+import "./calculator-chrome.generated.css"; // AR-37: the --kcc-* tokens of the window chrome
 import styles from "./calculator.module.css";
+import windowStyles from "./CalculatorWindow.module.css";
 
 export type CalculatorLoadStatus = "idle" | "loading" | "ready" | "failed";
 export type CalculatorLoadFailure = "load" | "mount"; // OI-28: import() rejected, or mount/API threw
 
-interface Bridge {
-  paste(payload: PastePayload): void;
-  toggle(): void;
-  open: boolean;
-}
-const Context = createContext<Bridge | null>(null);
-export const useCalculator = () => useContext(Context);
-
-/** Key this scope by attempt + active question. Closing keeps this scope alive;
- * navigating destroys it, including pending clipboard work and native history. */
-export function CalculatorScope({
-  enabled,
-  open,
-  onOpenChange,
-  children,
-}: {
+export interface CalculatorScopeProps {
   enabled: boolean;
   open: boolean;
   onOpenChange(open: boolean): void;
+  questionKey: string; // required: the value the host keys the scope by (makeQuestionKey in quiz hosts)
+  dockTop?: number; // AR-24, default 12
   children: ReactNode;
-}) {
+}
+
+export interface V1Bridge {
+  version: "v1";
+  open: boolean;
+  toggle(): void;
+  paste(payload: PastePayload): void;
+}
+
+export interface V2Bridge {
+  version: "v2";
+  open: boolean;
+  status: CalculatorLoadStatus;
+  failure: CalculatorLoadFailure | null; // non-null only while status is "failed"
+  questionKey: string;
+  toggle(trigger?: OpenTrigger): void;
+  prefetch(): void; // getCalculatorModule() and warmCalculatorFonts()
+}
+
+export type CalculatorBridge = V1Bridge | V2Bridge;
+
+const Context = createContext<CalculatorBridge | null>(null);
+
+export function useCalculator(): CalculatorBridge | null {
+  return useContext(Context);
+}
+
+/** Key this scope by attempt + active question. Closing keeps this scope alive;
+ * navigating destroys it, including pending clipboard work and native history. */
+export function CalculatorScope(props: CalculatorScopeProps): JSX.Element {
+  // AR-7: "v1" when no provider is mounted.
+  return useCalculatorVersion() === "v2" ? <V2Scope {...props} /> : <V1Scope {...props} />;
+}
+
+/** Today's v1 scope; its bridge gains `version: "v1"` (AR-8). */
+function V1Scope({ enabled, open, onOpenChange, children }: CalculatorScopeProps) {
   const { palette } = useTheme();
   const [mobile, setMobile] = useState(false);
   const [docked, setDocked] = useState(false);
@@ -85,8 +146,9 @@ export function CalculatorScope({
       document.body.style.overflow = previous;
     };
   }, [enabled, open, mobile]);
-  const bridge: Bridge | null = enabled
+  const bridge: V1Bridge | null = enabled
     ? {
+        version: "v1",
         open,
         toggle: () => changeOpen(!open),
         paste: (payload) => {
@@ -144,9 +206,214 @@ export function CalculatorScope({
   );
 }
 
-export function CalculatorTrigger() {
+/** AR-53: a render error in the window keeps the question mounted and offers Retry, which
+ * calls `onRetry`; the scope then remounts the window and loader under a new key. */
+class WindowBoundary extends Component<
+  { onRetry(): void; children: ReactNode },
+  { failed: boolean }
+> {
+  state = { failed: false };
+
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+
+  componentDidCatch(error: unknown) {
+    reportCalculatorError(error, null);
+  }
+
+  render() {
+    if (!this.state.failed) return this.props.children;
+    return (
+      <div className={windowStyles.panel} role="status">
+        <p>{MOUNT_FAILED_COPY}</p>
+        <button
+          type="button"
+          onClick={() => {
+            this.setState({ failed: false });
+            this.props.onRetry();
+          }}
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+}
+
+/** The pointer type of the press that leads to a click; a keyboard activation has none (OI-7). */
+function useOpenTriggerHandlers(toggle: (trigger?: OpenTrigger) => void) {
+  const recorded = useRef<OpenTrigger | null>(null);
+  return {
+    onPointerDown(event: PointerEvent<HTMLButtonElement>) {
+      const type = event.pointerType;
+      recorded.current =
+        type === "touch" || type === "pen" ? "touch" : type === "mouse" ? "mouse" : null;
+    },
+    onKeyDown() {
+      recorded.current = null;
+    },
+    onClick() {
+      const trigger = recorded.current ?? "keyboard";
+      recorded.current = null;
+      toggle(trigger);
+    },
+  };
+}
+
+/** The viewport the window's default geometry is measured in. */
+function viewportSize(): ViewportSize {
+  return typeof window === "undefined"
+    ? { width: 0, height: 0 }
+    : { width: window.innerWidth, height: window.innerHeight };
+}
+
+function usePhone(): boolean {
+  const [phone, setPhone] = useState(false);
+  useEffect(() => {
+    if (typeof window.matchMedia !== "function") return;
+    const query = window.matchMedia(PHONE_QUERY);
+    const update = () => setPhone(query.matches);
+    update();
+    query.addEventListener("change", update);
+    return () => query.removeEventListener("change", update);
+  }, []);
+  return phone;
+}
+
+function V2Scope({
+  enabled,
+  open,
+  onOpenChange,
+  questionKey,
+  dockTop = 12,
+  children,
+}: CalculatorScopeProps) {
+  const hostId = `karman-calculator-${useId().replace(/[^A-Za-z0-9_-]/g, "")}`;
+  const reducedMotion = !useQuizAnimations();
+  const phone = usePhone();
+  const windowState = useSyncExternalStore(
+    calculatorWindowStore.subscribe,
+    calculatorWindowStore.get,
+    calculatorWindowStore.get
+  );
+  const [activated, setActivated] = useState(open);
+  const [status, setStatus] = useState<CalculatorLoadStatus>("idle");
+  const [failure, setFailure] = useState<CalculatorLoadFailure | null>(null);
+  const [handle, setHandle] = useState<QuizCalculatorHandle | null>(null);
+  const [frame, setFrame] = useState<HTMLDivElement | null>(null);
+  const [chromeSlot, setChromeSlot] = useState<HTMLDivElement | null>(null);
+  const [windowAttempt, setWindowAttempt] = useState(0);
+  const frameRef = useRef<HTMLDivElement | null>(null);
+  const chromeSlotRef = useRef<HTMLDivElement | null>(null);
+  // The trigger of an open from closed; a scope mounted already open remembers none (AR-25).
+  const remembered = useRef<OpenTrigger | null>(null);
+
+  useEffect(() => {
+    if (open) setActivated(true);
+  }, [open]);
+
+  // The window's frame and chrome slot for the loader, read again after a window Retry remount.
+  const shown = activated || open;
+  useLayoutEffect(() => {
+    setFrame(frameRef.current);
+    setChromeSlot(chromeSlotRef.current);
+  }, [enabled, shown, windowAttempt]);
+
+  // Once per open: the calculator places focus for the trigger that opened it (OI-7).
+  useEffect(() => {
+    const trigger = remembered.current;
+    if (!open || handle === null || trigger === null) return;
+    remembered.current = null;
+    handle.focusOnOpen(trigger);
+  }, [open, handle]);
+
+  const toggle = (trigger?: OpenTrigger) => {
+    if (open) {
+      onOpenChange(false);
+      return;
+    }
+    remembered.current = trigger ?? "keyboard";
+    calculatorWindowStore.set({ mode: "floating" });
+    onOpenChange(true);
+  };
+  const prefetch = () => {
+    void getCalculatorModule().catch(() => {});
+    void warmCalculatorFonts();
+  };
+  const sideHandlers = useOpenTriggerHandlers(toggle);
+
+  const bridge: V2Bridge | null = enabled
+    ? { version: "v2", open, status, failure, questionKey, toggle, prefetch }
+    : null;
+  const viewport = viewportSize();
+
+  return (
+    <Context.Provider value={bridge}>
+      <CalculatorHostIdContext.Provider value={hostId}>
+        <div
+          className={styles.workspace}
+          data-calculator-workspace=""
+          style={{ display: "contents" }}
+        >
+          {children}
+        </div>
+        {enabled && phone && !open && (
+          <button
+            type="button"
+            className={styles.sideToggle}
+            aria-label="Open Karman calculator"
+            aria-expanded={open}
+            aria-controls={hostId}
+            {...sideHandlers}
+          >
+            <Calculator size={20} />
+            <span>Calculator</span>
+          </button>
+        )}
+        {enabled && shown && (
+          <div data-calculator-v2="" hidden={!open} data-reduced-motion={String(reducedMotion)}>
+            <WindowBoundary onRetry={() => setWindowAttempt((count) => count + 1)}>
+              <CalculatorWindow
+                key={windowAttempt}
+                mode={windowModeFor(windowState, false)}
+                dockTop={dockTop}
+                dockWidth={windowState.dockWidth ?? defaultDockWidth(viewport.width)}
+                floatingRect={windowState.floatingRect ?? defaultFloatingRect(viewport)}
+                onModeChange={(mode) => calculatorWindowStore.set({ mode })}
+                onFloatingRectChange={(floatingRect) => calculatorWindowStore.set({ floatingRect })}
+                onDockWidthChange={(dockWidth) => calculatorWindowStore.set({ dockWidth })}
+                onClose={() => onOpenChange(false)}
+                onMinimize={() => onOpenChange(false)}
+                onFocusBoundary={(edge) => handle?.focusBoundary(edge)}
+                frameRef={frameRef}
+                chromeSlotRef={chromeSlotRef}
+              >
+                <CalculatorLoader
+                  active
+                  frame={frame}
+                  chromeSlot={chromeSlot}
+                  reducedMotion={reducedMotion}
+                  announceReset={false}
+                  onStatus={(nextStatus, nextFailure) => {
+                    setStatus(nextStatus);
+                    setFailure(nextFailure);
+                  }}
+                  onHandle={setHandle}
+                />
+              </CalculatorWindow>
+            </WindowBoundary>
+          </div>
+        )}
+      </CalculatorHostIdContext.Provider>
+    </Context.Provider>
+  );
+}
+
+export function CalculatorTrigger(): JSX.Element | null {
   const bridge = useCalculator();
   if (!bridge) return null;
+  if (bridge.version === "v2") return <V2Trigger bridge={bridge} />;
   return (
     <button
       type="button"
@@ -154,6 +421,27 @@ export function CalculatorTrigger() {
       onClick={bridge.toggle}
       aria-label="Toggle Karman calculator"
       aria-expanded={bridge.open}
+    >
+      <Calculator size={16} /> Calculator
+    </button>
+  );
+}
+
+/** A11Y-7: names the shadow host it controls; hover and focus prefetch the module (AR-30). */
+function V2Trigger({ bridge }: { bridge: V2Bridge }) {
+  const hostId = useContext(CalculatorHostIdContext);
+  const handlers = useOpenTriggerHandlers(bridge.toggle);
+  return (
+    <button
+      type="button"
+      className={styles.trigger}
+      aria-label="Toggle Karman calculator"
+      aria-expanded={bridge.open}
+      aria-controls={hostId}
+      data-calculator-trigger=""
+      onPointerEnter={bridge.prefetch}
+      onFocus={bridge.prefetch}
+      {...handlers}
     >
       <Calculator size={16} /> Calculator
     </button>
