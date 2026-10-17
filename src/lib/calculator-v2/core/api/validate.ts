@@ -1,0 +1,319 @@
+// Hand-written validation of public API input (API-1, API-7, API-13; 07 Decision 11). No Zod in
+// core/api, so AR-44's guard sees no code-generation probe. Objects are strict: an unknown key
+// throws invalid-argument. A key whose value is undefined counts as omitted. Every message names
+// the method and the field, for example "setExpression: latex is longer than 2048 characters".
+// Package-internal: the engine calls these before it changes anything.
+
+import type { Viewport } from "../../plot/viewport";
+import { CURVE_SLOTS } from "../../theme/skins";
+import { MAX_ROW_CHARACTERS } from "../latex";
+import { KarmanCalculatorError } from "./errors";
+import type {
+  AxisSettings,
+  CalculatorOptions,
+  CalculatorSettings,
+  ExpressionState,
+  SettingsUpdate,
+} from "./types";
+
+type Check<T> = (value: unknown, method: string, field: string) => T;
+type Fields = Record<string, unknown>;
+
+/** API-7: the settings updateSettings accepts, in API-7 order. */
+export const SETTINGS_KEYS: readonly (keyof CalculatorSettings)[] = Object.freeze([
+  "angleMode",
+  "complex",
+  "showGrid",
+  "polarGrid",
+  "minorGridlines",
+  "arrows",
+  "axisNumbers",
+  "xAxis",
+  "yAxis",
+  "lockViewport",
+  "piAxisLabels",
+  "displaySize",
+  "reverseContrast",
+  "keypad",
+  "expressionsCollapsed",
+  "mode",
+  "reducedMotion",
+] as const);
+
+function invalid(method: string, text: string): never {
+  throw new KarmanCalculatorError("invalid-argument", `${method}: ${text}`);
+}
+
+function unsupported(method: string, text: string): never {
+  throw new KarmanCalculatorError("unsupported", `${method}: ${text}`);
+}
+
+/** A plain object (not null, an array, a Map or a Date) whose own keys are all in `keys`. */
+function strictObject(
+  value: unknown,
+  method: string,
+  field: string,
+  keys: readonly string[]
+): Fields {
+  if (Object.prototype.toString.call(value) !== "[object Object]") {
+    invalid(method, `${field} must be an object`);
+  }
+  const fields = value as Fields;
+  for (const key of Object.keys(fields)) {
+    if (!keys.includes(key)) invalid(method, `${field} has an unknown key "${key}"`);
+  }
+  return fields;
+}
+
+/** An own property, so nothing inherited from a prototype is read as input. */
+function own(fields: Fields, key: string): unknown {
+  return Object.prototype.hasOwnProperty.call(fields, key) ? fields[key] : undefined;
+}
+
+const bool: Check<boolean> = (value, method, field) =>
+  typeof value === "boolean" ? value : invalid(method, `${field} must be true or false`);
+
+const text: Check<string> = (value, method, field) =>
+  typeof value === "string" ? value : invalid(method, `${field} must be a string`);
+
+function oneOf<T extends string>(allowed: readonly T[]): Check<T> {
+  return (value, method, field) =>
+    typeof value === "string" && (allowed as readonly string[]).includes(value)
+      ? (value as T)
+      : invalid(method, `${field} must be ${allowed.map((a) => `"${a}"`).join(" or ")}`);
+}
+
+/** API-7's phase rule: a well-formed value other than `only` throws unsupported. */
+function phaseOne<T>(check: Check<T>, only: T): Check<T> {
+  return (value, method, field) => {
+    const checked = check(value, method, field);
+    if (checked !== only) {
+      unsupported(method, `${field} accepts only ${JSON.stringify(only)} for now`);
+    }
+    return checked;
+  };
+}
+
+const AXIS_KEYS = ["show", "label", "step"] as const;
+
+/** `{ show, label, step }`, all three required; step is null (automatic) or a finite number > 0. */
+const axis: Check<AxisSettings> = (value, method, field) => {
+  const fields = strictObject(value, method, field, AXIS_KEYS);
+  const step = own(fields, "step");
+  if (step !== null && !(typeof step === "number" && Number.isFinite(step) && step > 0)) {
+    invalid(method, `${field}.step must be null or a finite number greater than 0`);
+  }
+  return {
+    show: bool(own(fields, "show"), method, `${field}.show`),
+    label: text(own(fields, "label"), method, `${field}.label`),
+    step,
+  };
+};
+
+const SETTING_CHECKS: { [K in keyof CalculatorSettings]: Check<CalculatorSettings[K]> } = {
+  angleMode: oneOf(["radians", "degrees"]),
+  complex: bool,
+  showGrid: bool,
+  polarGrid: bool,
+  minorGridlines: bool,
+  arrows: bool,
+  axisNumbers: bool,
+  xAxis: axis,
+  yAxis: axis,
+  lockViewport: phaseOne(bool, false),
+  piAxisLabels: phaseOne(bool, false),
+  displaySize: phaseOne(oneOf(["default", "large"]), "default"),
+  reverseContrast: phaseOne(bool, false),
+  keypad: bool,
+  expressionsCollapsed: bool,
+  mode: phaseOne(oneOf(["graphing", "scientific"]), "graphing"),
+  reducedMotion: bool,
+};
+
+const seed: Check<number> = (value, method, field) =>
+  typeof value === "number" && Number.isFinite(value)
+    ? value
+    : invalid(method, `${field} must be a finite number`);
+
+const onError: Check<(error: Error) => void> = (value, method, field) =>
+  typeof value === "function"
+    ? (value as (error: Error) => void)
+    : invalid(method, `${field} must be a function`);
+
+const OPTION_CHECKS: {
+  [K in keyof CalculatorOptions]-?: Check<NonNullable<CalculatorOptions[K]>>;
+} = {
+  mode: SETTING_CHECKS.mode,
+  angleMode: SETTING_CHECKS.angleMode,
+  keypad: bool,
+  expressionsCollapsed: bool,
+  onError,
+  seed,
+  reducedMotion: bool,
+  displaySize: SETTING_CHECKS.displaySize,
+  reverseContrast: SETTING_CHECKS.reverseContrast,
+};
+const OPTION_KEYS = Object.keys(OPTION_CHECKS);
+
+/** API-1: the constructor options; undefined means no options. */
+export function validateOptions(options: unknown): CalculatorOptions {
+  if (options === undefined) return {};
+  const method = "KarmanCalculator";
+  const fields = strictObject(options, method, "options", OPTION_KEYS);
+  const out: Fields = {};
+  for (const key of OPTION_KEYS) {
+    const value = own(fields, key);
+    if (value === undefined) continue;
+    out[key] = OPTION_CHECKS[key as keyof CalculatorOptions](value, method, `options.${key}`);
+  }
+  return out as CalculatorOptions;
+}
+
+/** API-7: a partial settings object for updateSettings. */
+export function validateSettingsUpdate(partial: unknown): SettingsUpdate {
+  return settingsFields(partial, "updateSettings", "settings", false);
+}
+
+/** A whole settings object (setState): all 17 keys required. */
+export function validateSettings(settings: unknown): CalculatorSettings {
+  return settingsFields(settings, "setState", "settings", true) as CalculatorSettings;
+}
+
+function settingsFields(
+  value: unknown,
+  method: string,
+  field: string,
+  complete: boolean
+): SettingsUpdate {
+  const fields = strictObject(value, method, field, SETTINGS_KEYS);
+  const out: Fields = {};
+  for (const key of SETTINGS_KEYS) {
+    const name = complete ? `${field}.${key}` : key;
+    const setting = own(fields, key);
+    if (setting === undefined) {
+      if (complete) invalid(method, `${name} is missing`);
+      continue;
+    }
+    out[key] = SETTING_CHECKS[key](setting, method, name);
+  }
+  return out as SettingsUpdate;
+}
+
+const BOUND_KEYS = ["left", "right", "bottom", "top"] as const;
+
+/** API-7: exactly left, right, bottom and top, finite, left < right and bottom < top. The G-23
+ * limits are not checked here: setMathBounds and setState clamp (Decision 11). */
+export function validateBounds(bounds: unknown): Viewport {
+  const method = "setMathBounds";
+  const fields = strictObject(bounds, method, "bounds", BOUND_KEYS);
+  const [left, right, bottom, top] = BOUND_KEYS.map((key) => {
+    const value = own(fields, key);
+    return typeof value === "number" && Number.isFinite(value)
+      ? value
+      : invalid(method, `${key} must be a finite number`);
+  });
+  if (!(left < right)) invalid(method, "left must be less than right");
+  if (!(bottom < top)) invalid(method, "bottom must be less than top");
+  return { left, right, bottom, top };
+}
+
+const EXPRESSION_KEYS = [
+  "id",
+  "type",
+  "latex",
+  "color",
+  "hidden",
+  "lineStyle",
+  "pointStyle",
+  "sliderBounds",
+  "columns",
+] as const;
+// API-2 and OI-23: other item types are rejected as unsupported; tables until Phase 3 (API-3)
+const UNSUPPORTED_TYPES: readonly string[] = ["table", "note", "folder", "image", "text"];
+const HEX_COLOUR = /^#[0-9a-f]{6}$/i;
+const SLIDER_KEYS = ["min", "max", "step"] as const;
+
+const id: Check<string> = (value, method, field) =>
+  typeof value === "string" && value !== ""
+    ? value
+    : invalid(method, `${field} must be a non-empty string`);
+
+const latex: Check<string> = (value, method, field) => {
+  const checked = text(value, method, field);
+  if (checked.length > MAX_ROW_CHARACTERS) {
+    invalid(method, `${field} is longer than ${MAX_ROW_CHARACTERS} characters`); // NM-42
+  }
+  return checked;
+};
+
+/** A skin slot "c1".."c6" (TH-10) or "#rrggbb" (TH-11), returned lower-cased. */
+const colour: Check<string> = (value, method, field) => {
+  if (typeof value === "string") {
+    if ((CURVE_SLOTS as readonly string[]).includes(value)) return value;
+    if (HEX_COLOUR.test(value)) return value.toLowerCase();
+  }
+  return invalid(method, `${field} must be "c1" to "c6" or "#rrggbb"`);
+};
+
+const sliderBounds: Check<NonNullable<ExpressionState["sliderBounds"]>> = (
+  value,
+  method,
+  field
+) => {
+  const fields = strictObject(value, method, field, SLIDER_KEYS);
+  return {
+    min: text(own(fields, "min"), method, `${field}.min`),
+    max: text(own(fields, "max"), method, `${field}.max`),
+    step: text(own(fields, "step"), method, `${field}.step`),
+  };
+};
+
+/** API-2, API-13: one expression state for setExpression; omitted fields stay omitted. */
+export function validateExpressionState(state: unknown): ExpressionState {
+  const method = "setExpression";
+  if (Object.prototype.toString.call(state) === "[object Object]") {
+    const type = own(state as Fields, "type");
+    if (typeof type === "string" && UNSUPPORTED_TYPES.includes(type)) {
+      unsupported(method, `type "${type}" is not supported`);
+    }
+  }
+  const fields = strictObject(state, method, "state", EXPRESSION_KEYS);
+  const out: ExpressionState = { id: id(own(fields, "id"), method, "id") };
+  const type = own(fields, "type");
+  if (type !== undefined) out.type = oneOf(["expression"] as const)(type, method, "type");
+  const value = (key: (typeof EXPRESSION_KEYS)[number]) => own(fields, key);
+  if (value("latex") !== undefined) out.latex = latex(value("latex"), method, "latex");
+  if (value("color") !== undefined) out.color = colour(value("color"), method, "color");
+  if (value("hidden") !== undefined) out.hidden = bool(value("hidden"), method, "hidden");
+  if (value("lineStyle") !== undefined) {
+    out.lineStyle = oneOf(["solid", "dashed", "dotted"] as const)(
+      value("lineStyle"),
+      method,
+      "lineStyle"
+    );
+  }
+  if (value("pointStyle") !== undefined) {
+    out.pointStyle = oneOf(["filled", "open", "cross"] as const)(
+      value("pointStyle"),
+      method,
+      "pointStyle"
+    );
+  }
+  if (value("sliderBounds") !== undefined) {
+    out.sliderBounds = sliderBounds(value("sliderBounds"), method, "sliderBounds");
+  }
+  if (value("columns") !== undefined) invalid(method, 'columns needs type "table"');
+  return out;
+}
+
+/** API-4: the `{ id }` list of removeExpressions. */
+export function validateRowRefs(list: unknown): { id: string }[] {
+  const method = "removeExpressions";
+  if (!Array.isArray(list)) invalid(method, "list must be an array");
+  const refs: { id: string }[] = [];
+  for (let i = 0; i < list.length; i++) {
+    const fields = strictObject(list[i], method, `list[${i}]`, ["id"]);
+    refs.push({ id: id(own(fields, "id"), method, `list[${i}].id`) });
+  }
+  return refs;
+}
