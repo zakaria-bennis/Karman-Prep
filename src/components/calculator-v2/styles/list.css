@@ -29,7 +29,6 @@
 .kc-list-tool,
 .kc-edit-action {
   border-radius: 4px;
-  background: transparent;
   color: var(--kc-text);
   font-family: var(--kc-font-ui);
   font-size: var(--kc-size-ui);
@@ -177,7 +176,6 @@
   padding: 0 8px;
   border: 1px solid var(--kc-boundary);
   border-radius: 4px;
-  background: transparent;
   color: var(--kc-text);
   font: inherit;
   cursor: pointer;
@@ -198,7 +196,6 @@
   padding: 0;
   border: none;
   border-radius: 4px;
-  background: transparent;
   cursor: pointer;
 }
 
@@ -243,6 +240,26 @@
   min-height: 44px;
 }
 
+/* AN-11: every list-panel button rests on the list role and presses to chrome over 100 ms, with no
+   scale or shadow (package Decisions, "Press tone is a 10.3 role"). The tab's swatch is its glyph,
+   so its background is free for the tone. */
+.kc-list-tool,
+.kc-edit-action,
+.kc-row-tab,
+.kc-row-delete,
+.kc-row-hint-action {
+  background-color: var(--kc-list);
+  transition: background-color var(--kc-duration-instant) var(--kc-ease-standard);
+}
+
+.kc-list-tool:active,
+.kc-edit-action:active,
+.kc-row-tab:active,
+.kc-row-delete:active,
+.kc-row-hint-action:active {
+  background-color: var(--kc-chrome);
+}
+
 .kc-list-tool:focus-visible,
 .kc-edit-action:focus-visible,
 .kc-row-tab:focus-visible,
@@ -250,6 +267,44 @@
 .kc-row-hint-action:focus-visible {
   outline: 2px solid var(--kc-focus-ring);
   outline-offset: 2px;
+}
+
+/* AN-3: Collapse and Expand list slide the list body on transform over 200 ms; the collapsed
+   transform also applies to the first `expanding` commit (data-enter="true"), so expanding slides
+   back in from it. A stacked layout slides down instead of left. */
+.kc-list-body {
+  transition: transform var(--kc-duration-fast) var(--kc-ease-standard);
+}
+
+.kc-list-panel[data-list-state="collapsing"] .kc-list-body,
+.kc-list-body[data-enter="true"] {
+  transform: translateX(-100%);
+}
+
+.kc-list-panel[data-layout="stacked"][data-list-state="collapsing"] .kc-list-body,
+.kc-list-panel[data-layout="stacked"] .kc-list-body[data-enter="true"] {
+  transform: translateY(100%);
+}
+
+/* AN-5: a row grows in over 200 ms and collapses out over 100 ms on grid-template-rows; the li's
+   one track wraps .kc-row-inner. */
+.kc-row {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows var(--kc-duration-fast) var(--kc-ease-standard);
+}
+
+.kc-row:is([data-motion="enter"], [data-motion="exit"]) {
+  grid-template-rows: 0fr;
+}
+
+.kc-row[data-motion="exit"] {
+  transition-duration: var(--kc-duration-instant);
+}
+
+.kc-row-inner {
+  min-height: 0;
+  overflow: hidden; /* its 4 px padding (Task 2) keeps inner focus outlines inside the clip */
 }
 
 .kc-visually-hidden {
