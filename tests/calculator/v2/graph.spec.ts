@@ -4,7 +4,11 @@
 // globalThis.__calculatorHarness.
 import { expect, test, type Page } from "@playwright/test";
 import { pxToWorld, type Viewport } from "@/lib/calculator-v2/plot/viewport";
-import type { SkinId } from "@/lib/calculator-v2/theme/skins";
+import { compositeShading, contrastRatio } from "@/lib/calculator-v2/theme/contrast";
+import { resolveRowColor } from "@/lib/calculator-v2/theme/roles";
+import { SKIN_COLORS } from "@/lib/calculator-v2/theme/skin-colors.generated";
+import { SKIN_IDS, type SkinId } from "@/lib/calculator-v2/theme/skins";
+import { inkCentroid, inkRow, layerColors, pixel, px } from "./graph-pixels";
 
 const vp = (l: number, r: number, b: number, t: number): Viewport => ({
   left: l,
@@ -40,7 +44,8 @@ const sizeFor = (isMobile: boolean) => (isMobile ? { w: 360, h: 270 } : { w: 800
 
 /**
  * Opens the harness at `sizeFor(isMobile)` and resolves once the canvases show the snapshot's
- * revision, `plots` rows have geometry and every row has a value or an error.
+ * revision, `plots` rows have geometry and every row has a value or an error, plus two animation
+ * frames so the frame drawing the last plot has run.
  */
 async function openGraph(
   page: Page,
@@ -70,6 +75,14 @@ async function openGraph(
       { timeout: 15_000 }
     )
     .toBe(true);
+  // Plots arrive without a new revision, so the frame that draws the last one may still be
+  // pending: two animation frames let it run before any canvas is read.
+  await page.evaluate(
+    () =>
+      new Promise<void>((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
+      )
+  );
   return { w, h };
 }
 
@@ -363,4 +376,115 @@ test("A11Y-1 the graph's name gives the bounds and plot count and follows pan, z
   await expect(graph(page)).toHaveAttribute("aria-label", /, 5 plots$/, within);
   await page.evaluate(() => globalThis.__calculatorHarness!.engine.setRowHidden("1", true));
   await expect(graph(page)).toHaveAttribute("aria-label", /, 4 plots$/, within);
+});
+
+// G-1, G-7, G-17 and TH-8 contributions (08 Task 9): canvas pixels in all 12 skins.
+
+/** The RGB distance between two `#rrggbb` colours. */
+const rgbDistance = (a: string, b: string) => {
+  const ch = (hex: string) => [1, 3, 5].map((k) => parseInt(hex.slice(k, k + 2), 16));
+  const [p, q] = [ch(a), ch(b)];
+  return Math.hypot(p[0] - q[0], p[1] - q[1], p[2] - q[2]);
+};
+
+/** Columns 8 to w − 8 of `inkRow` at y = 1, in the row's c1. */
+async function boundaryRow(page: Page, w: number, h: number, c1: string): Promise<boolean[]> {
+  return (await inkRow(page, px(0, 1, w, h)[1], c1, 48)).slice(8, w - 8);
+}
+
+test("G-1 strict inequality boundary is dashed and non-strict solid on canvas", async ({
+  page,
+  isMobile,
+}) => {
+  test.setTimeout(180_000);
+  for (const skin of SKIN_IDS) {
+    const c1 = resolveRowColor("c1", skin).hex;
+    const { w, h } = await openGraph(page, isMobile, { rows: ["y<1"], skin, plots: 1 });
+    const dashed = await boundaryRow(page, w, h, c1);
+    const share = dashed.filter(Boolean).length / dashed.length;
+    const edges = dashed.filter((ink, i) => i > 0 && ink !== dashed[i - 1]).length;
+    expect(share, skin).toBeGreaterThanOrEqual(0.45);
+    expect(share, skin).toBeLessThanOrEqual(0.85);
+    expect(edges, skin).toBeGreaterThanOrEqual(w / 40);
+
+    await openGraph(page, isMobile, { rows: ["y\\le1"], skin, plots: 1 });
+    const solid = await boundaryRow(page, w, h, c1);
+    expect(solid.filter(Boolean).length / solid.length, skin).toBeGreaterThanOrEqual(0.97);
+  }
+});
+
+test("G-7 a point paints within 0.5 px", async ({ page, isMobile }) => {
+  test.setTimeout(180_000);
+  for (const skin of SKIN_IDS) {
+    const c1 = resolveRowColor("c1", skin).hex;
+    const { w, h } = await openGraph(page, isMobile, { rows: ["(2,3)"], skin, plots: 1 });
+    const at = px(2, 3, w, h);
+    const centroid = await inkCentroid(page, at, 8, c1, 60);
+    expect(centroid, skin).not.toBeNull();
+    expect(Math.hypot(centroid![0] - at[0], centroid![1] - at[1]), skin).toBeLessThanOrEqual(0.5);
+
+    await openGraph(page, isMobile, { rows: ["(2,\\sqrt{-1})"], skin, plots: 0 });
+    expect((await layerColors(page, "points")).opaque, skin).toEqual([]);
+  }
+});
+
+test("G-17 overlap of two regions has higher contrast than either and curves stay ≥4.5:1 over shading", async ({
+  page,
+  isMobile,
+}) => {
+  test.setTimeout(180_000);
+  for (const skin of SKIN_IDS) {
+    const rows = ["y>0", "x>0", "y=x"];
+    const { w, h } = await openGraph(page, isMobile, { rows, skin, plots: 3 });
+    const at = (x: number, y: number) => pixel(page, "composite", ...px(x, y, w, h));
+    const a = await at(-5.75, 2.25);
+    const b = await at(5.75, -2.25);
+    const ab = await at(5.75, 2.25);
+    const paper = await at(-5.75, -2.25);
+    const cr = (p: string) => contrastRatio(p, paper);
+    expect(cr(ab), skin).toBeGreaterThan(cr(a));
+    expect(cr(ab), skin).toBeGreaterThan(cr(b));
+
+    const c3 = resolveRowColor("c3", skin).hex;
+    const [cx, cy] = px(3.25, 3.25, w, h);
+    const around: string[] = [];
+    for (const dy of [-1, 0, 1]) {
+      for (const dx of [-1, 0, 1]) around.push(await pixel(page, "composite", cx + dx, cy + dy));
+    }
+    const nearest = Math.min(...around.map((p) => rgbDistance(p, c3)));
+    expect(nearest, skin).toBeLessThanOrEqual(8);
+    expect(contrastRatio(c3, ab), skin).toBeGreaterThanOrEqual(4.5);
+  }
+});
+
+test("TH-8 combined canvas shading never exceeds 1.3:1 in all 12 skins", async ({
+  page,
+  isMobile,
+}) => {
+  test.setTimeout(180_000);
+  for (const skin of SKIN_IDS) {
+    const rows = ["y>0", "x>0", "y>x", "y>-x"];
+    await openGraph(page, isMobile, { rows, skin, plots: 4 });
+    const paper = SKIN_COLORS[skin].normal.roles.paper;
+    const fills = (["c1", "c2", "c3", "c4"] as const).map((slot) => {
+      const { hex, fillAlpha } = resolveRowColor(slot, skin);
+      return { color: hex, alpha: fillAlpha };
+    });
+    const allowed = new Set<string>();
+    for (let mask = 1; mask < 16; mask++) {
+      allowed.add(
+        compositeShading(
+          paper,
+          fills.filter((_, i) => (mask >> i) & 1)
+        )
+      );
+    }
+    const { opaque, partial } = await layerColors(page, "shading");
+    expect(partial, skin).toBe(0);
+    for (const colour of opaque) {
+      expect(allowed.has(colour), `${skin} ${colour}`).toBe(true);
+      expect(contrastRatio(colour, paper), skin).toBeLessThanOrEqual(1.3 + 1e-9);
+    }
+    expect(opaque, skin).toContain(compositeShading(paper, fills));
+  }
 });
