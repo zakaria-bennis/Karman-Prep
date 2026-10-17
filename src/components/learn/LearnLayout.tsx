@@ -14,6 +14,8 @@ import { ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { KarmanLogoMark } from "@/components/shared/KarmanLogo";
 
+export { LEARN_HEADER_CLEARANCE } from "./learn-header";
+
 const SUBJECT_HREFS = ["/learn/reading", "/learn/math"];
 
 export default function LearnLayout({ children }: { children: React.ReactNode }) {
