@@ -2,7 +2,13 @@ import { expect, test, type Page } from "@playwright/test";
 import CORPUS_KEYS from "../../../src/lib/calculator-v2/core/corpus/cases/keys";
 import { CORPUS } from "../../../src/lib/calculator-v2/core/corpus";
 import { runnerFor } from "../../../src/lib/calculator-v2/core/corpus/runners";
-import { parseLatex, toSExpr } from "../../../src/lib/calculator-v2/core/latex";
+import { inputKind } from "../../../src/lib/calculator-v2/core/corpus/types";
+import {
+  functionDefinitionHead,
+  parseLatex,
+  toSExpr,
+  treesEqual,
+} from "../../../src/lib/calculator-v2/core/latex";
 
 async function open(page: Page, query = "") {
   await page.goto(`/v2/math-field.html${query}`);
@@ -246,3 +252,34 @@ for (const c of keyCases) {
     }
   });
 }
+
+test("PR-2 every latex corpus case parses to the same tree after a MathField round trip", async ({
+  page,
+}) => {
+  await open(page, "?fields=1&maxLength=1000000");
+  const cases = CORPUS.filter((c) => inputKind(c.input) === "latex");
+  const inputs = cases.map((c) => (c.input as { latex: string }).latex);
+  const outputs = await page.evaluate((list) => {
+    const f = window.__mathFieldHarness!.fields[0];
+    return list.map((latex) => {
+      f.latex(latex);
+      return f.latex();
+    });
+  }, inputs);
+  const failures: string[] = [];
+  let compared = 0;
+  cases.forEach((c, i) => {
+    const names = [...(c.rows ?? []), inputs[i]].flatMap(
+      (r) => functionDefinitionHead(r)?.name ?? []
+    );
+    const options = { userFunctions: new Set(names) };
+    const before = parseLatex(inputs[i], options);
+    if (!before.ok) return; // error cases have no tree to compare
+    compared++;
+    const after = parseLatex(outputs[i], options);
+    if (!after.ok || !treesEqual(before.tree, after.tree))
+      failures.push(`${c.id}: ${inputs[i]} -> ${outputs[i]}`);
+  });
+  expect(failures).toEqual([]);
+  expect(compared).toBeGreaterThanOrEqual(cases.filter((c) => c.tree !== undefined).length);
+});
