@@ -132,7 +132,7 @@ through a provider, so every calculator host follows it without new props.
 | Removal  | not applicable          | v1 code and folders removed two weeks after a stable switch |
 
 The variable is a runtime Worker variable, not a `NEXT_PUBLIC_` build input, so OpenNext reads it
-per request. Locally it goes in `.env.local`; the e2e suite already runs as `dev_seed_admin`
+per request. In production it is a Worker secret (`wrangler secret put CALCULATOR_V2_ROLLOUT`), read only from the Worker binding; locally it is set in the shell or a Playwright `webServer.env`, never in a `.env*` file, and the release build fails when a `.env*` file defines it; the e2e suite already runs as `dev_seed_admin`
 (`playwright.config.ts`), so `admins` exercises v2 there. The calculator fixture
 (`tests/calculator/fixture/main.tsx`) wraps its flows in the provider and picks v2 with `?calc=v2`.
 
