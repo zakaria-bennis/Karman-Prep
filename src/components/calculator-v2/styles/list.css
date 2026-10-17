@@ -138,6 +138,13 @@
   min-height: 32px;
 }
 
+/* A long row keeps to its column so MathQuill's root block scrolls to the caret. */
+.kc-row-field > .kc-math-field {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 100%;
+}
+
 .kc-row-note {
   margin: 0;
   color: var(--kc-text-secondary);

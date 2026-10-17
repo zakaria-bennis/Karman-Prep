@@ -412,3 +412,24 @@ test("AN-5 rows grow in over 200 ms and collapse out over 100 ms without moving 
   await page.keyboard.type("2");
   await expect.poll(() => latexes(page)).toEqual(["y=2x", "b=3", "y=3"]);
 });
+
+test("L-14 a long row scrolls inside its column and keeps the caret in view", async ({ page }) => {
+  await open(page, [""], "&width=900");
+  await field(page, 1).focus();
+  await page.keyboard.type("1234567890".repeat(8));
+  await expect.poll(async () => (await latexes(page))[0].length).toBe(80);
+  const row = page.locator('li[data-row-id="1"]');
+  // MathQuill scrolls its root block to the caret over a short animation, so poll the end state.
+  const caretInView = () =>
+    row.evaluate((li) => {
+      const root = li.querySelector(".mq-root-block")!;
+      const caret = li.querySelector(".mq-cursor")!.getBoundingClientRect();
+      const inner = li.querySelector(".kc-row-inner")!.getBoundingClientRect();
+      return {
+        overflows: root.scrollWidth > root.clientWidth,
+        scrolled: root.scrollLeft > 0,
+        caretInside: caret.left >= inner.left && caret.right <= inner.right,
+      };
+    });
+  await expect.poll(caretInView).toEqual({ overflows: true, scrolled: true, caretInside: true });
+});
