@@ -64,5 +64,8 @@ const cases: CorpusCase[] = [
   x(33, ["RC-17"], "2\\pi r", "unsupported"),
   x(34, ["RC-17"], "\\sin\\theta", "unsupported"),
   k(35, ["RC-10", "RC-17"], "a(x-h)^{2}+k", "curve-y", ["a", "h", "k"]),
+  k(36, ["NM-21"], "y=\\sqrt{x}", "curve-y", [], { settings: CX }),
+  k(37, ["NM-16"], "y=x^{2/3}", "curve-y"),
+  { ...k(38, ["RC-21", "NM-19"], "\\sqrt{-4}", "value"), display: "undefined" },
 ];
 export default cases;

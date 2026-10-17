@@ -12,6 +12,8 @@ import { analyzeRows, type RowGraph } from "../analysis/index";
 import { numberValue, UNDEFINED, type Value } from "./values";
 import { DeadlineExceeded, NO_DEADLINE, type Deadline } from "../deadline";
 import { parseLatex } from "../latex/index";
+import { toPlotNumber } from "./ops";
+import { CORPUS_FILES } from "../corpus/cases/index";
 
 const REAL = { angleMode: "radians", complex: false } as const;
 const DEG = { ...REAL, angleMode: "degrees" } as const;
@@ -153,4 +155,17 @@ it("FN-17 complex mode uses principal branches, keeps real-mode values and plots
     ["(-8)^{\\frac{1}{3}}", "\\ln(-1)", "2+3"].map((l) => evaluateLatex(l, { settings: CX }))
   ).toEqual([n(-2), { type: "complex", value: { re: 0, im: P } }, n(5)]);
   expect(compileRealFunction1(tree("\\ln(x)"), "x", empty(CX))(-1)).toBeNaN();
+});
+// toBe is Object.is: both paths keep -0 (Conventions), and NaN equals NaN
+it("NM-21 the real plotting path agrees with compileExpression on every real-mode display case", () => {
+  for (const c of ["display-numbers", "domain-real", "domain-functions"].flatMap(
+    (file) => CORPUS_FILES[file]
+  )) {
+    if (c.rows || c.settings?.complex || !("latex" in c.input)) continue;
+    const s: EvalSettings = { angleMode: c.settings?.angleMode ?? "radians", complex: false },
+      t = tree(c.input.latex);
+    expect(compileRealFunction1(t, "x", empty(s))(0), c.id).toBe(
+      toPlotNumber(compileExpression(t, empty(s))({}, NO_DEADLINE))
+    );
+  }
 });

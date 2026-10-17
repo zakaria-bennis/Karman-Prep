@@ -1,8 +1,11 @@
 // Golden corpus runner for 04-semantics (01-interfaces.md section 2.2): compares `kind`, `chips`
-// and the non-parse-only `error` of every latex case through analyzeRows. Relative imports only.
+// and the non-parse-only `error` of every latex case through analyzeRows, and `display` through
+// evaluateLatex and formatValue. Relative imports only.
 
 import { expect, it } from "vitest";
 import { analyzeRows, type RowAnalysis } from "../analysis/index";
+import { evaluateLatex } from "../eval/compile";
+import { formatValue } from "../eval/format";
 import { CORPUS } from "./index";
 import { runnerFor } from "./runners";
 import type { CorpusCase, ExpectedField } from "./types";
@@ -34,3 +37,9 @@ for (const c of casesFor("chips"))
   it(title(c, "chips"), () => expect(analyseCase(c).chips).toEqual(c.chips));
 for (const c of casesFor("error"))
   it(title(c, "error"), () => expect(analyseCase(c).error?.code ?? null).toBe(c.error));
+for (const c of casesFor("display"))
+  it(title(c, "display"), () =>
+    expect(formatValue(evaluateLatex(latexOf(c), { rows: c.rows, settings: c.settings }))).toBe(
+      c.display
+    )
+  );
