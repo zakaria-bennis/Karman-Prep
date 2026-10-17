@@ -3,6 +3,7 @@
 
 import type { Node } from "./ast";
 import type { ParseError } from "./errors";
+import { splitLetterRuns } from "./letters";
 import { normalizeLatex } from "./normalize";
 import { createParserState, ParseFailure, parseRow } from "./parser";
 import { tokenize } from "./tokens";
@@ -15,6 +16,7 @@ export {
   MAX_TREE_NODES,
 } from "./limits";
 export { countNodes, toSExpr, treesEqual } from "./ast";
+export { functionDefinitionHead } from "./function-head";
 export { normalizeLatex } from "./normalize";
 
 export interface ParseOptions {
@@ -37,7 +39,7 @@ export function parseLatex(input: string, options: ParseOptions = {}): ParseResu
     }
     const tokens = tokenize(normalized);
     if (!Array.isArray(tokens)) return failed(tokens, normalized);
-    const tree = parseRow(createParserState(tokens, normalized, options));
+    const tree = parseRow(createParserState(splitLetterRuns(tokens), normalized, options));
     return { ok: true, tree, normalized };
   } catch (thrown) {
     if (thrown instanceof ParseFailure) return failed(thrown.error, normalized);

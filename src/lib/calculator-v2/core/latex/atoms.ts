@@ -1,9 +1,10 @@
 // Factors and atoms, precedence levels 9 to 11 (grammar contract of the 02-parser plan): the postfix
 // loop (G5, PR-8, PR-19, PR-20); numbers, identifiers and constants (G6, PR-10, PR-11, PR-14,
 // PR-15); groups and points (G10, PR-22); fractions and roots (G9, PR-27); absolute-value bars
-// (G11, PR-21); and single-token arguments (G4). Built-in calls (Task 9) join here.
+// (G11, PR-21); and single-token arguments (G4). Built-in and user calls are in calls.ts (G8).
 
 import type { Node, SourceSpan } from "./ast";
+import { isBuiltinCommand, parseBuiltinCall, parseUserCall } from "./calls";
 import {
   enter,
   fail,
@@ -52,18 +53,24 @@ export const GREEK_IDENTIFIERS: ReadonlySet<string> = new Set([
   "omega",
 ]);
 
-/** `factor := builtinCall | postfix` (G2); built-in calls join in Task 9. */
+/** `factor := builtinCall | postfix` (G2): a built-in command starts a call (G8). */
 export function parseFactor(state: ParserState): Node {
-  return parsePostfix(state);
+  const token = peek(state);
+  return isBuiltinCommand(token) ? parseBuiltinCall(state, token) : parsePostfix(state);
+}
+
+/** `postfix := atom ("^" exponent | "\%" | "^{\circ}")*` (G2). */
+export function parsePostfix(state: ParserState): Node {
+  return takePostfix(state, parseAtom(state));
 }
 
 /**
- * `postfix := atom ("^" exponent | "\%" | "^{\circ}")*` (G2), each sign applying to everything
- * before it (PR-20). An exponent directly after another is `syntax` (G5, PR-19); `!`, `'`, `.` and
- * `~` end the loop.
+ * The postfix loop after `atom` (G2), each sign applying to everything before it (PR-20). An
+ * exponent directly after another is `syntax` (G5, PR-19); `!`, `'`, `.` and `~` end the loop. A
+ * built-in call with a `(` argument list is an atom too (PR-25).
  */
-export function parsePostfix(state: ParserState): Node {
-  let node = parseAtom(state);
+export function takePostfix(state: ParserState, atom: Node): Node {
+  let node = atom;
   let afterExponent = false;
   for (let token = peek(state); token.t === "symbol"; token = peek(state)) {
     if (token.ch === "%") {
@@ -90,8 +97,9 @@ export function parsePostfix(state: ParserState): Node {
 }
 
 /**
- * An atom (level 11): a number, a Latin or Greek identifier or a constant (G6), a `(` or `{` group
- * (G10), a fraction or root (G9) or absolute-value bars (G11); any other token fails (G14).
+ * An atom (level 11): a number, a Latin or Greek identifier or a constant (G6), an identifier's
+ * user-function call (PR-23), a `(` or `{` group (G10), a fraction or root (G9) or absolute-value
+ * bars (G11); any other token fails (G14).
  */
 export function parseAtom(state: ParserState): Node {
   const token = peek(state);
@@ -100,7 +108,7 @@ export function parseAtom(state: ParserState): Node {
       take(state);
       return { kind: "num", value: Number(token.text), span: token.span };
     case "letter":
-      return parseLetter(state, token);
+      return parseUserCall(state, parseLetter(state, token));
     case "open":
       if (token.ch === "[") return fail("unsupported", token.span, '"[" is not supported');
       return parseGroup(state, token);
@@ -108,9 +116,12 @@ export function parseAtom(state: ParserState): Node {
       return token.ch === "|" ? parseBars(state, token, "raw") : unexpected(state, token);
     case "command":
       if (token.name === "frac") return parseFraction(state, token);
-      if (token.name === "sqrt") return parseRoot(state, token);
+      if (token.name === "sqrt") return parseRoot(state, token, null);
+      if (token.name === "cbrt" && isLetterRun(state, token)) {
+        return parseRoot(state, token, { kind: "num", value: 3, span: token.span });
+      }
       if (token.name === "lvert") return parseBars(state, token, "lvert");
-      return parseCommandAtom(state, true);
+      return parseUserCall(state, parseCommandAtom(state, true));
     default:
       return unexpected(state, token);
   }
@@ -138,7 +149,7 @@ export function takeSingleArgument(state: ParserState): Node {
 }
 
 /** takeSingleArgument with the end of the argument's text, so a node can span it (G14). */
-function takeArgument(state: ParserState): Argument {
+export function takeArgument(state: ParserState): Argument {
   const token = peek(state);
   if (token.t === "open" && token.ch === "{") return takeDelimited(state, token, "}");
   const node = takeSingleArgument(state);
@@ -156,7 +167,7 @@ function takeDelimited(state: ParserState, open: OpenToken, closer: ")" | "]" | 
 }
 
 /** True when the `^` at the cursor starts `^{\circ}`, the postfix degree sign (G5, PR-8). */
-function isDegreeSign(state: ParserState): boolean {
+export function isDegreeSign(state: ParserState): boolean {
   const [open, circ, close] = [peek(state, 1), peek(state, 2), peek(state, 3)];
   return (
     open.t === "open" &&
@@ -230,13 +241,15 @@ function parseFraction(state: ParserState, frac: Token): Node {
 
 /**
  * `\sqrt` (G9, PR-27): an optional `[index]` sum, then a braced group, a `(` group (pasted
- * `sqrt(x)`) or a G4 token.
+ * `sqrt(x)`) or a G4 token. A typed `cbrt` (G7) passes its fixed index 3 and reads no `[index]`.
  */
-function parseRoot(state: ParserState, sqrt: Token): Node {
+function parseRoot(state: ParserState, sqrt: Token, fixedIndex: Node | null): Node {
   take(state);
   const bracket = peek(state);
-  const index =
-    bracket.t === "open" && bracket.ch === "[" ? takeDelimited(state, bracket, "]").node : null;
+  let index = fixedIndex;
+  if (index === null && bracket.t === "open" && bracket.ch === "[") {
+    index = takeDelimited(state, bracket, "]").node;
+  }
   const paren = peek(state);
   const arg =
     paren.t === "open" && paren.ch === "(" ? takeDelimited(state, paren, ")") : takeArgument(state);
@@ -347,6 +360,14 @@ function takeFirstDigit(
       ? { t: "symbol", ch: ".", span: restSpan }
       : { t: "digits", text: rest, span: restSpan };
   return { text, span };
+}
+
+/**
+ * True for a command splitLetterRuns made from typed letters (G7): its text has no backslash. Only
+ * the typed `cbrt` is a cube root; `\cbrt` is an unknown command like any other (G6).
+ */
+function isLetterRun(state: ParserState, command: Token): boolean {
+  return state.normalized[command.span.start] !== "\\";
 }
 
 /** Digits with no decimal point and no inner whitespace (PR-14). */

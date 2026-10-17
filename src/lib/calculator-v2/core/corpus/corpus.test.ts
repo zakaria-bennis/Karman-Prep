@@ -1,5 +1,6 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import { functionDefinitionHead } from "../latex/function-head";
 import { parseLatex, toSExpr } from "../latex/index";
 import { CORPUS_FILES } from "./cases/index";
 import { CORPUS, casesFor } from "./index";
@@ -89,6 +90,10 @@ describe("golden corpus registry", () => {
 
 const RUNNER = "src/lib/calculator-v2/core/corpus/corpus.test.ts",
   latexOf = (c: CorpusCase) => (c.input as { latex: string }).latex;
+const userFunctionsFor = (c: CorpusCase) =>
+  new Set(
+    [...(c.rows ?? []), latexOf(c)].flatMap((row) => functionDefinitionHead(row)?.name ?? [])
+  );
 describe("golden corpus parse runner", () => {
   it("PR-39 casesFor returns exactly the cases whose rules name the ID", () => {
     const cases = casesFor("PR-10");
@@ -101,7 +106,7 @@ describe("golden corpus parse runner", () => {
   for (const field of ["tree", "error"] as const)
     for (const c of CORPUS.filter((k) => runnerFor(k, field)?.file === RUNNER))
       it(`${c.rules.join(", ")} ${c.id} ${field}`, () => {
-        const r = parseLatex(latexOf(c));
+        const r = parseLatex(latexOf(c), { userFunctions: userFunctionsFor(c) });
         if (field === "error") expect(r.ok ? "parsed" : r.error.code).toBe(c.error);
         else expect(r.ok ? toSExpr(r.tree) : `${r.error.code}: ${r.error.detail}`).toBe(c.tree);
       });
