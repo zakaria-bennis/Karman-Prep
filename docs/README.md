@@ -27,6 +27,9 @@ Major technical choices and why we made them. Read these before deciding to do s
 
 - **[Ingestion / routine](./ingestion/routine.md)** — production routine for the SAT question-import pipeline
 - **[Ingestion / spec](./ingestion/spec.md)** — full schema + behavior spec for question imports
+- **[Ingestion / question import process (2026-10-17)](./ingestion/question-import-process-2026-10-17.md)** — baseline released-exam import process: occurrence → review → dedup → private stage → seal → guarded publish → readback → ledger
+- **[Ingestion / released-exam import — optimized workflow](./ingestion/released-exam-import-optimized-workflow.md)** — revised workflow: source registry, early corpus dedup, risk-tiered validation, difficulty 1–7 categorization, preflight lint, single-writer release loop
+- **[Ingestion / released-exam import — current-state analysis](./ingestion/released-exam-import-current-state-analysis.md)** — evidence behind the optimized workflow: value stream, waste, GitHub main vs. `karman-release` drift, services matrix, yield math
 - **[Recaps & payouts / phase-0 audit](./recaps-payouts/phase-0-audit.md)** — codebase audit + decisions made before building the recap-email + tutor-payout system
 
 ## Reference (non-markdown)
