@@ -146,3 +146,23 @@ it("AR-5 the notices check fails when an entry is missing", () => {
     "KaTeX_Main-Regular.woff2"
   );
 });
+it("AR-5 mathquill.d.ts declares only members MathField.ts calls", () => {
+  const dts = read("mathquill.d.ts");
+  const body = /interface EditableMathQuill \{([^}]*)\}/.exec(dts)![1];
+  const members = [...new Set([...body.matchAll(/^\s+(\w+)\(/gm)].map((m) => m[1]))];
+  const adapter = readFileSync("src/components/calculator-v2/math-field/MathField.ts", "utf8");
+  for (const name of [...members, "getInterface", "MathField"])
+    expect(adapter, name).toMatch(new RegExp(`\\.${name}\\(`));
+});
+it("MathField.ts is the only module under src/ that imports vendor/mathquill, types included", () => {
+  // static `from "…"`, side-effect `import "…"` and dynamic `import("…")` specifiers.
+  // Test files and __fixtures__/ are skipped (03's scan rules): 03's seam-boundaries.test.ts
+  // and 07's worker/import-graph.test.ts hold vendor/mathquill import strings as synthetic input.
+  const SPECIFIER = /(\bfrom|\bimport)\s*\(?\s*["'][^"']*vendor\/mathquill/;
+  const importers = (readdirSync("src", { recursive: true }) as string[])
+    .filter((f) => /\.(ts|tsx)$/.test(f))
+    .filter((f) => !/\.test\.tsx?$/.test(f) && !f.includes("__fixtures__"))
+    .map((f) => path.join("src", f))
+    .filter((f) => SPECIFIER.test(readFileSync(f, "utf8")));
+  expect(importers).toEqual(["src/components/calculator-v2/math-field/MathField.ts"]);
+});
