@@ -1,0 +1,40 @@
+diff --git a/src/commands/math/basicSymbols.ts b/src/commands/math/basicSymbols.ts
+index 0128c4a8..09b0f52f 100644
+--- a/src/commands/math/basicSymbols.ts
++++ b/src/commands/math/basicSymbols.ts
+@@ -737,12 +737,29 @@ LatexCmds.f = class extends Letter {
+ LatexCmds[' '] = LatexCmds.space = () =>
+   new DigitGroupingChar('\\ ', h('span', {}, [h.text(U_NO_BREAK_SPACE)]), ' ');
+ 
+-LatexCmds['.'] = () =>
+-  new DigitGroupingChar(
+-    '.',
+-    h('span', { class: 'mq-digit' }, [h.text('.')]),
+-    '.'
+-  );
++class Dot extends DigitGroupingChar {
++  constructor() {
++    super('.', h('span', { class: 'mq-digit' }, [h.text('.')]), '.');
++  }
++  createLeftOf(cursor: Cursor) {
++    const l1 = cursor[L];
++    const l2 = l1 && l1[L];
++    const bracket = cursor.parent && cursor.parent.parent;
++    if (
++      l1 instanceof Dot &&
++      l2 instanceof Dot &&
++      bracket instanceof Bracket &&
++      bracket.sides[L].ch === '['
++    ) {
++      cursor[L] = l2[L];
++      new Fragment(l2, l1).remove();
++      (LatexCmds as LatexCmdsAny).ldots('\\ldots').createLeftOf(cursor);
++      return;
++    }
++    super.createLeftOf(cursor);
++  }
++}
++LatexCmds['.'] = () => new Dot();
+ 
+ LatexCmds["'"] = LatexCmds.prime = bindVanillaSymbol("'", '&prime;', 'prime');
+ LatexCmds['″'] = LatexCmds.dprime = bindVanillaSymbol(

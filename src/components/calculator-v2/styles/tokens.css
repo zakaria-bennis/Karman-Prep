@@ -1,0 +1,23 @@
+:host {
+  --kc-duration-instant: 100ms;
+  --kc-duration-fast: 200ms;
+  --kc-duration-normal: 400ms;
+  --kc-ease-standard: cubic-bezier(0.22, 1, 0.36, 1);
+  --kc-font-ui: Arial, sans-serif;
+  --kc-font-math: KaTeX_Main, "Times New Roman", serif;
+  --kc-size-ui: 14px;
+  --kc-size-math: 18px;
+  --kc-size-axis: 13px;
+}
+@media (prefers-reduced-motion: reduce) {
+  :host {
+    --kc-duration-instant: 0ms;
+    --kc-duration-fast: 0ms;
+    --kc-duration-normal: 0ms;
+  }
+}
+:host([data-reduced-motion="true"]) {
+  --kc-duration-instant: 0ms;
+  --kc-duration-fast: 0ms;
+  --kc-duration-normal: 0ms;
+}
