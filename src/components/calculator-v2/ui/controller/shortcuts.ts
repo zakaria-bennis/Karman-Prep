@@ -1,0 +1,51 @@
+// Shell keyboard shortcuts (KB-7) and the Escape hand-off (KB-3, 10 Decision 4). Shortcuts match on
+// `event.code`, so Option-modified keys on macOS (Option+K types "˚") still work, and never fire
+// while an IME is composing. KB-7 also lists KeyC and KeyT; those arrive with KB-11 (Phase 2) and
+// A11Y-13 (Phase 4), which extend matchShortcut, so Phase 1 matches KeyK, KeyZ and KeyY (KB-1).
+
+export type ShortcutAction = "undo" | "redo" | "toggle-keypad" | "add-row-end";
+export type ShortcutKey = Pick<
+  KeyboardEvent,
+  "code" | "key" | "ctrlKey" | "metaKey" | "altKey" | "shiftKey" | "isComposing"
+>;
+export interface ShellKeyboardHandlers {
+  onShortcut(action: ShortcutAction): void;
+  onEscape(): boolean; // true when a layer closed
+}
+
+export function matchShortcut(event: ShortcutKey): ShortcutAction | null {
+  if (event.isComposing) return null;
+  const { code, ctrlKey, metaKey, altKey, shiftKey } = event;
+  const command = (ctrlKey || metaKey) && !altKey;
+  if (command && code === "KeyZ") return shiftKey ? "redo" : "undo";
+  if (ctrlKey && !altKey && code === "KeyY") return "redo";
+  if ((ctrlKey || altKey) && !metaKey && code === "KeyK") return "toggle-keypad";
+  if (altKey && (code === "Enter" || code === "NumpadEnter")) return "add-row-end";
+  return null;
+}
+
+/**
+ * One capture-phase `keydown` listener on `root`. A shortcut gets preventDefault() and
+ * stopPropagation() (so MathQuill never sees it), then `onShortcut`. Escape is matched on the key
+ * and gets preventDefault() only when `onEscape()` closed a layer; it is never stopped, so the
+ * light-DOM frame closes the calculator only when `defaultPrevented` is false (KB-3's last layer).
+ * Returns the function that removes the listener.
+ */
+export function installShellKeyboard(
+  root: HTMLElement,
+  handlers: ShellKeyboardHandlers
+): () => void {
+  const onKeyDown = (event: KeyboardEvent) => {
+    if (event.key === "Escape" && !event.isComposing) {
+      if (handlers.onEscape()) event.preventDefault();
+      return;
+    }
+    const action = matchShortcut(event);
+    if (action === null) return;
+    event.preventDefault();
+    event.stopPropagation();
+    handlers.onShortcut(action);
+  };
+  root.addEventListener("keydown", onKeyDown, { capture: true });
+  return () => root.removeEventListener("keydown", onKeyDown, { capture: true });
+}
