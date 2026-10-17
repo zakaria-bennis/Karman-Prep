@@ -1,0 +1,36 @@
+// The graph renderer's and graph panel's constants (08 Constants). Values with no named source are
+// package decisions. Pixel quantities are CSS px.
+
+/** Line widths. */
+export const CURVE_LINE_PX = 2.5;
+export const GRID_LINE_PX = 1;
+export const AXIS_LINE_PX = 2;
+
+/** Marks: G-1 fixes no dash pattern and G-7 only the 0.5 px position tolerance (package decisions). */
+export const DASH_PX = [10, 6] as const;
+export const POINT_RADIUS_PX = 4;
+
+/** Labels: system Arial (TH-17) and the TH-9 halo technique. */
+export const AXIS_FONT = "13px Arial, sans-serif";
+export const LABEL_GAP_PX = 4;
+export const LABEL_HALO_PX = 3;
+
+/** Grid decorations. v1 drew 12 spokes every 30°, which stay the major spokes. */
+export const ARROW_LENGTH_PX = 8;
+export const ARROW_HALF_WIDTH_PX = 4;
+export const POLAR_SPOKE_DEG = 15;
+
+/**
+ * Wheel: the rate and the clamp of the raw deltaY are v1's (karman-calculator/lib/ui.js:102).
+ * WHEEL_LINE_PX and the deltaMode conversion (lines × 16 px, pages × the graph height) are package
+ * decisions; v1 has neither.
+ */
+export const WHEEL_ZOOM_RATE = 0.002;
+export const WHEEL_DELTA_LIMIT = 100;
+export const WHEEL_LINE_PX = 16;
+
+/** Tolerances and timing. */
+export const CUSTOM_STEP_MIN_PX = 8;
+export const JOIN_TOLERANCE_PX = 0.5;
+export const NAME_DEBOUNCE_MS = 250;
+export const NAME_MAX_WAIT_MS = 400;
