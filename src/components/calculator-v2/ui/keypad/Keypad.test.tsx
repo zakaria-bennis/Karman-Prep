@@ -1,8 +1,9 @@
 // @vitest-environment jsdom
 // Testing Library's ByRoleOptions has no `exact` (that option is Playwright's): a string `name`
 // already matches the whole accessible name, so `ABC` never finds a longer name.
-import { cleanup, screen, within } from "@testing-library/react";
+import { act, cleanup, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { useState } from "react";
 import { expect, it, vi } from "vitest";
 import { renderEditor } from "../list/__fixtures__/render-editor";
 import { Keypad, type KeypadProps } from "./Keypad";
@@ -11,6 +12,11 @@ import { keypadLayout } from "./keys";
 const keypad = (props: Partial<KeypadProps> = {}) => (
   <Keypad containerWidth={900} pointer="fine" open onOpenChange={vi.fn()} {...props} />
 );
+/** A keypad whose open state follows its own onOpenChange, as the shell's does. */
+function StatefulKeypad(props: { initialOpen: boolean }) {
+  const [open, setOpen] = useState(props.initialOpen);
+  return <Keypad containerWidth={900} pointer="fine" open={open} onOpenChange={setOpen} />;
+}
 const groupIds = () =>
   [...document.querySelectorAll("[data-group]")].map((g) => g.getAttribute("data-group"));
 
@@ -93,4 +99,21 @@ it("A11Y-5 the keypad is a region named Keypad whose keys are named in words; AB
     "aria-expanded",
     "false"
   );
+});
+
+it("KB-13 Show and Hide keypad from the keyboard keep focus on the control that takes their place", async () => {
+  renderEditor(<StatefulKeypad initialOpen={false} />, { rows: [""] });
+  const user = userEvent.setup();
+  screen.getByRole("button", { name: "Show keypad" }).focus();
+  await user.keyboard("{Enter}");
+  expect(screen.getByRole("button", { name: "Hide keypad" })).toHaveFocus();
+  await user.keyboard("{Enter}");
+  expect(screen.getByRole("button", { name: "Show keypad" })).toHaveFocus();
+});
+
+it("KB-13 Escape with focus on a key closes the keypad and focuses Show keypad", () => {
+  const kit = renderEditor(<StatefulKeypad initialOpen />, { rows: [""] });
+  screen.getByRole("button", { name: "Pi" }).focus();
+  act(() => kit.pressEscape());
+  expect(screen.getByRole("button", { name: "Show keypad" })).toHaveFocus();
 });
