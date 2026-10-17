@@ -2,10 +2,11 @@
 // and the focused or active row marks (L-3), the gutter tab that hides or shows the row's graph
 // (R-1), the MathField textbox named "Expression n" through a hidden label the row keeps current
 // (A11Y-3, 09 Decisions "Textbox naming survives renumbering") and described by the row's T-5
-// speech text (A11Y-4), the TH-11 colour note, and the Delete control. The field's inputmode
-// follows the on-screen keypad (T-11).
+// speech text (A11Y-4), its value (R-5), its error with the gutter marker and aria-invalid (R-2)
+// and the complex-mode hint (FN-16, OI-4), the TH-11 colour note, and the Delete control. The
+// field's inputmode follows the on-screen keypad (T-11).
 
-import { X } from "lucide-react";
+import { TriangleAlert, X } from "lucide-react";
 import {
   useContext,
   useLayoutEffect,
@@ -15,10 +16,12 @@ import {
   type JSX,
   type PointerEvent,
 } from "react";
+import { COMPLEX_HINT } from "@/lib/calculator-v2/core/analysis";
 import type { RowView } from "@/lib/calculator-v2/core/api/engine";
 import { MAX_ROW_CHARACTERS } from "@/lib/calculator-v2/core/latex/limits";
 import { EXPLICIT_COLOUR_NOTE, resolveRowColor } from "@/lib/calculator-v2/theme/roles";
 import { LineStyleGlyph, PointStyleGlyph } from "../../icons";
+import { groupIntegerDigits } from "../../math-field/digit-groups";
 import type { MathField } from "../../math-field/MathField";
 import { latexToSpeech } from "../../math-field/speech";
 import { FocusContext, type FocusController } from "../focus/focus-controller";
@@ -60,6 +63,17 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
   const ids = useMemo(() => rowDomIds(row.id), [row.id]);
   const speech = useMemo(() => latexToSpeech(row.latex), [row.latex]);
   const tab = rowTab(row);
+  const error = row.error;
+  const valueText = error === null ? row.valueText : null; // R-5: an error row shows no value
+  // A11Y-3: the textbox's description lists the parts that render, in this order.
+  const describedBy = [
+    ids.speech,
+    valueText !== null ? ids.value : null,
+    error !== null ? ids.error : null,
+    row.complexHint ? ids.hint : null,
+  ]
+    .filter((id) => id !== null)
+    .join(" ");
 
   const hostRef = useRef<HTMLDivElement>(null);
   const fieldRef = useRef<MathField | null>(null);
@@ -118,17 +132,26 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
     fieldRef.current?.setInputMode(keypadOpen ? "none" : "text");
   }, [keypadOpen, createField, engine, focus, row.id]);
 
-  // After every render, so the name and description follow renumbering and edits (A11Y-3, A11Y-4).
+  // After every render, so the name, description and error state follow renumbering, edits and
+  // results (A11Y-3, A11Y-4, R-2). Rows without an error carry no aria-invalid attribute.
   useLayoutEffect(() => {
     const field = fieldRef.current;
     if (field === null) return;
     const textbox = fieldTextbox(field);
     textbox.setAttribute("aria-labelledby", ids.label);
-    textbox.setAttribute("aria-describedby", ids.speech);
+    textbox.setAttribute("aria-describedby", describedBy);
+    if (error !== null) textbox.setAttribute("aria-invalid", "true");
+    else textbox.removeAttribute("aria-invalid");
   });
 
   const onFieldPointerDown = (event: PointerEvent<HTMLDivElement>) => {
     touchRef.current = event.pointerType === "touch";
+  };
+
+  // FN-16 (OI-4): sets the S-5 complex checkbox and returns to the row; the hint then unmounts.
+  const turnOnComplexMode = () => {
+    engine.updateSettings({ complex: true });
+    focus.focusRow(row.id, "end");
   };
 
   return (
@@ -158,6 +181,11 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
               )}
             </button>
           )}
+          {error !== null && (
+            <span className="kc-row-warning" aria-hidden="true">
+              <TriangleAlert aria-hidden="true" focusable="false" size={16} />
+            </span>
+          )}
         </div>
         <div className="kc-row-main">
           <div className="kc-row-field" ref={hostRef} onPointerDown={onFieldPointerDown} />
@@ -165,6 +193,25 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
           <span id={ids.speech} hidden>
             {speech}
           </span>
+          {valueText !== null && (
+            <div className="kc-row-value" id={ids.value}>
+              <span aria-hidden="true">= {groupIntegerDigits(valueText)}</span>
+              <span className="kc-visually-hidden">equals {valueText}</span>
+            </div>
+          )}
+          {error !== null && (
+            <div className="kc-row-error" id={ids.error}>
+              {error.message}
+            </div>
+          )}
+          {row.complexHint && (
+            <div className="kc-row-hint">
+              <span id={ids.hint}>{COMPLEX_HINT.text}</span>
+              <button type="button" className="kc-row-hint-action" onClick={turnOnComplexMode}>
+                {COMPLEX_HINT.action}
+              </button>
+            </div>
+          )}
           {color.adjusted && <p className="kc-row-note">{EXPLICIT_COLOUR_NOTE}</p>}
         </div>
         <button type="button" className="kc-row-delete" aria-label={`Delete expression ${number}`}>

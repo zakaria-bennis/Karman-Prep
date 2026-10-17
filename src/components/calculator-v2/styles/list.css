@@ -86,6 +86,45 @@
   color: var(--kc-text-secondary);
 }
 
+/* R-5: the value sits below the math, right-aligned. */
+.kc-row-value {
+  text-align: end;
+  overflow-wrap: anywhere;
+}
+
+/* R-2: the message below the math and the marker in the gutter, beside or below the tab. */
+.kc-row-error {
+  color: var(--kc-error);
+}
+
+.kc-row-warning {
+  grid-column: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  color: var(--kc-error);
+}
+
+/* FN-16 (OI-4): the complex-mode hint and its action. */
+.kc-row-hint {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+}
+
+.kc-row-hint-action {
+  min-height: 32px;
+  padding: 0 8px;
+  border: 1px solid var(--kc-boundary);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--kc-text);
+  font: inherit;
+  cursor: pointer;
+}
+
 /* The inline --kc-row-color of each tab overrides this default (TH-3 needs a declaration). */
 .kc-row-tab {
   --kc-row-color: var(--kc-curve-1);
@@ -129,8 +168,17 @@
   height: 44px;
 }
 
+.kc-list-panel[data-pointer="coarse"] .kc-row-warning {
+  height: 44px;
+}
+
+.kc-list-panel[data-pointer="coarse"] .kc-row-hint-action {
+  min-height: 44px;
+}
+
 .kc-row-tab:focus-visible,
-.kc-row-delete:focus-visible {
+.kc-row-delete:focus-visible,
+.kc-row-hint-action:focus-visible {
   outline: 2px solid var(--kc-focus-ring);
   outline-offset: 2px;
 }
