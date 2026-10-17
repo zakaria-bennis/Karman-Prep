@@ -2,14 +2,16 @@
 // named "Expression list" whose list body holds the "List tools" toolbar (L-1, L-2: Add item, the
 // stacked Keypad toggle, Undo, Redo, Edit list, Collapse list), the Edit list bar (KB-5: Clear all
 // expressions, Done) and the "Expressions" list, one numbered row per engine row. Undo and Redo
-// stay in the Tab order at the ends of the stack, aria-disabled (KB-2, KB-13). Motion and
-// Collapse list's action come in Task 6.
+// stay in the Tab order at the ends of the stack, aria-disabled (KB-2, KB-13). While mounted it
+// announces row values and errors through createRowAnnouncements (A11Y-2). Motion and Collapse
+// list's action come in Task 6.
 
 import { ChevronsLeft, Keyboard, Pencil, Plus, Redo2, Undo2, type LucideIcon } from "lucide-react";
-import { useContext, useRef, useState, type JSX, type Ref } from "react";
+import { useContext, useEffect, useRef, useState, type JSX, type Ref } from "react";
 import { useAnnouncer } from "../a11y/announcer";
 import { FocusContext } from "../focus/focus-controller";
 import { useEngine, useEngineSnapshot } from "../hooks/use-engine";
+import { createRowAnnouncements } from "./announcements";
 import { ExpressionRow } from "./ExpressionRow";
 import { clearAllRows, insertRowBelow, performRedo, performUndo } from "./row-actions";
 
@@ -55,6 +57,11 @@ export function ExpressionPanel(props: ExpressionPanelProps): JSX.Element {
   const announcer = useAnnouncer();
   const [editing, setEditing] = useState(false);
   const editListRef = useRef<HTMLButtonElement>(null);
+  // A11Y-2: values 750 ms after the last edit and errors once, for user edits only.
+  useEffect(() => {
+    const announcements = createRowAnnouncements(engine, announcer);
+    return () => announcements.destroy();
+  }, [engine, announcer]);
   if (focus === null) throw new Error("ExpressionPanel must be used inside FocusContext");
 
   // Done leaves Edit list mode and returns focus to the Edit list toggle it came from.
