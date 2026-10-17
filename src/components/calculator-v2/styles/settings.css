@@ -1,4 +1,5 @@
-/* The settings popover (09 editor-ui Task 11; S-1). Colours come only from role variables (TH-3).
+/* The settings popover (09 editor-ui Tasks 11 and 12; S-1, S-7). Colours come only from role
+   variables (TH-3).
    SettingsPopover sets top and right (or left) and max-height inline from its anchor and offset
    parent; AN-4's transitions are Task 15's. */
 
@@ -102,6 +103,17 @@
   font-family: var(--kc-font-math);
   font-size: var(--kc-size-math);
   white-space: nowrap;
+}
+
+/* S-7: a bound or step error below its field. It sits on --kc-list because --kc-error's contrast
+   target is measured on that background (TH-1); it spans the label and input columns of a field. */
+.kc-settings-error {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: var(--kc-list);
+  color: var(--kc-error);
 }
 
 @media (pointer: coarse) {
