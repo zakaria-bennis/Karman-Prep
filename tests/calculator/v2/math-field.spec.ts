@@ -2,7 +2,17 @@ import { expect, test, type Page } from "@playwright/test";
 import CORPUS_KEYS from "../../../src/lib/calculator-v2/core/corpus/cases/keys";
 import { CORPUS } from "../../../src/lib/calculator-v2/core/corpus";
 import { runnerFor } from "../../../src/lib/calculator-v2/core/corpus/runners";
-import { parseLatex, toSExpr } from "../../../src/lib/calculator-v2/core/latex";
+import { inputKind } from "../../../src/lib/calculator-v2/core/corpus/types";
+import {
+  functionDefinitionHead,
+  parseLatex,
+  toSExpr,
+  treesEqual,
+} from "../../../src/lib/calculator-v2/core/latex";
+import {
+  mathQuillAutoOperatorNames,
+  panelCategories,
+} from "../../../src/lib/calculator-v2/core/latex/operator-names";
 
 async function open(page: Page, query = "") {
   await page.goto(`/v2/math-field.html${query}`);
@@ -246,3 +256,116 @@ for (const c of keyCases) {
     }
   });
 }
+
+test("PR-2 every latex corpus case parses to the same tree after a MathField round trip", async ({
+  page,
+}) => {
+  await open(page, "?fields=1&maxLength=1000000");
+  const cases = CORPUS.filter((c) => inputKind(c.input) === "latex");
+  const inputs = cases.map((c) => (c.input as { latex: string }).latex);
+  const outputs = await page.evaluate((list) => {
+    const f = window.__mathFieldHarness!.fields[0];
+    return list.map((latex) => {
+      f.latex(latex);
+      return f.latex();
+    });
+  }, inputs);
+  const failures: string[] = [];
+  let compared = 0;
+  cases.forEach((c, i) => {
+    const names = [...(c.rows ?? []), inputs[i]].flatMap(
+      (r) => functionDefinitionHead(r)?.name ?? []
+    );
+    const options = { userFunctions: new Set(names) };
+    const before = parseLatex(inputs[i], options);
+    if (!before.ok) return; // error cases have no tree to compare
+    compared++;
+    const after = parseLatex(outputs[i], options);
+    if (!after.ok || !treesEqual(before.tree, after.tree))
+      failures.push(`${c.id}: ${inputs[i]} -> ${outputs[i]}`);
+  });
+  expect(failures).toEqual([]);
+  expect(compared).toBeGreaterThanOrEqual(cases.filter((c) => c.tree !== undefined).length);
+});
+
+test("T-3 every non-member allowlist name types as an upright operator name", async ({ page }) => {
+  await open(page, "?fields=1");
+  const names = mathQuillAutoOperatorNames().split(" ");
+  const outputs = await page.evaluate((list) => {
+    const f = window.__mathFieldHarness!.fields[0];
+    return list.map((name) => {
+      f.latex("");
+      f.typedText(name);
+      return f.latex();
+    });
+  }, names);
+  const wrong = names
+    .map((name, i) => [name, outputs[i]] as const)
+    .filter(([name, out]) => out !== `\\${name}` && out !== `\\operatorname{${name}}`);
+  expect(wrong).toEqual([]);
+});
+test("T-9 panel entries insert the name with empty parentheses and the caret inside; typed names do not", async ({
+  page,
+}) => {
+  await open(page, "?fields=1");
+  const entries = panelCategories()
+    .flatMap((c) => c.entries)
+    .filter(
+      (e) =>
+        e.actions.length === 2 &&
+        e.actions[0].op === "write" &&
+        e.actions[0].arg.endsWith("\\left(\\right)") &&
+        e.actions[1].op === "keystroke" &&
+        e.actions[1].arg === "Left"
+    );
+  expect(entries.length).toBe(15); // six trig, six inverse trig, exp, ln, log (log_a is a template)
+  const out = await page.evaluate(
+    (list) => {
+      const f = window.__mathFieldHarness!.fields[0];
+      return list.map((e) => {
+        f.latex("");
+        f.run(e.actions);
+        f.typedText("x");
+        const fromPanel = f.latex();
+        f.latex("");
+        f.typedText(e.name);
+        return [fromPanel, f.latex()];
+      });
+    },
+    entries.map((e) => ({ name: e.name, actions: e.actions }))
+  );
+  entries.forEach((e, i) => {
+    const parsed = parseLatex(out[i][0]);
+    expect(parsed.ok ? toSExpr(parsed.tree) : parsed.error.code, e.name).toBe(
+      `(call ${e.name} (id x))`
+    );
+    expect(out[i][1], e.name).not.toContain("\\left(");
+  });
+});
+test("T-10 rows group integer digits in threes; LaTeX and speech stay ungrouped", async ({
+  page,
+}) => {
+  await open(page);
+  await textarea(page, 0).focus();
+  await page.keyboard.type("1234567");
+  await textarea(page, 1).focus(); // blur ends MathQuill's typing-time grouping suppression
+  await expect(fieldEl(page, 0).locator(".mq-group-start")).toHaveCount(2);
+  await expect(fieldEl(page, 0).locator(".mq-group-leading-1")).toHaveCount(1);
+  await expect(fieldEl(page, 0).locator(".mq-suppress-grouping")).toHaveCount(0);
+  // a thin space is about 1/6 to 1/5 em: the group gap is 0.1 to 0.25 of the digit's font size
+  const gapInEm = await fieldEl(page, 0)
+    .locator(".mq-group-start")
+    .first()
+    .evaluate((el) => {
+      const style = getComputedStyle(el);
+      return parseFloat(style.marginLeft) / parseFloat(style.fontSize);
+    });
+  expect(gapInEm).toBeGreaterThanOrEqual(0.1);
+  expect(gapInEm).toBeLessThanOrEqual(0.25);
+  expect(
+    await page.evaluate(() => {
+      const f = window.__mathFieldHarness!.fields[0];
+      return [f.latex(), f.speechText()];
+    })
+  ).toEqual(["1234567", "1234567"]);
+});
