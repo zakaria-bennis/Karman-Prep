@@ -2,6 +2,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { functionDefinitionHead } from "../latex/function-head";
 import { parseLatex, toSExpr } from "../latex/index";
+import { printLatex } from "../latex/printer";
 import { CORPUS_FILES } from "./cases/index";
 import { CORPUS, casesFor } from "./index";
 import { CORPUS_RUNNERS, isParseOnly, runnerFor } from "./runners";
@@ -103,11 +104,13 @@ describe("golden corpus parse runner", () => {
         !casesFor("PR-1").includes(cases[0])
     ).toBe(true);
   });
-  for (const field of ["tree", "error"] as const)
+  for (const field of ["tree", "latex", "error"] as const)
     for (const c of CORPUS.filter((k) => runnerFor(k, field)?.file === RUNNER))
       it(`${c.rules.join(", ")} ${c.id} ${field}`, () => {
         const r = parseLatex(latexOf(c), { userFunctions: userFunctionsFor(c) });
         if (field === "error") expect(r.ok ? "parsed" : r.error.code).toBe(c.error);
+        else if (field === "latex")
+          expect(r.ok ? printLatex(r.tree) : `${r.error.code}: ${r.error.detail}`).toBe(c.latex);
         else expect(r.ok ? toSExpr(r.tree) : `${r.error.code}: ${r.error.detail}`).toBe(c.tree);
       });
 });

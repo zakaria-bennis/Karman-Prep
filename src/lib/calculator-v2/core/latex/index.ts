@@ -19,6 +19,7 @@ export {
 export { countNodes, toSExpr, treesEqual } from "./ast";
 export { functionDefinitionHead } from "./function-head";
 export { normalizeLatex } from "./normalize";
+export { printLatex } from "./printer";
 
 export interface ParseOptions {
   userFunctions?: ReadonlySet<string>;
