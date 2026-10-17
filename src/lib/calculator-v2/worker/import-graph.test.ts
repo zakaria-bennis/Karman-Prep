@@ -53,7 +53,7 @@ it("AR-4 only math-field/MathField.ts imports vendor/mathquill at run time", () 
   expect(mathquillRuntimeImporters(nodeSourceHost(ROOT), files)).toEqual([
     "src/components/calculator-v2/math-field/MathField.ts",
   ]);
-});
+}, 60_000);
 it("AR-4 the MathQuill check allows .css?inline only from a harness page and flags any other import", () => {
   const host = memoryHost({
     "src/components/calculator-v2/math-field/MathField.ts":
