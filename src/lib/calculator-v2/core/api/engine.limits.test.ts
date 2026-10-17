@@ -63,3 +63,15 @@ it("NM-42 tree-node, nesting-depth and parameter limits give row errors", () => 
       .map((r) => r.error?.code)
   ).toEqual(["too-many-nodes", "too-deep", "too-many-params"]);
 });
+it("NM-42 setState over the row or character limit throws invalid-argument and changes nothing", () => {
+  const s = e.getState();
+  for (const expressions of [
+    Array.from({ length: 101 }, (_, i) => ({ id: `n${i}`, latex: "1" })),
+    [{ id: "a", latex: "1".repeat(2049) }],
+  ]) {
+    expect(() => e.setState({ ...s, expressions })).toThrow(
+      expect.objectContaining({ code: "invalid-argument" })
+    );
+    expect(e.getState()).toEqual(s);
+  }
+});

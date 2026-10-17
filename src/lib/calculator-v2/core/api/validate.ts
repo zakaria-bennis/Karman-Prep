@@ -6,12 +6,13 @@
 
 import type { Viewport } from "../../plot/viewport";
 import { CURVE_SLOTS } from "../../theme/skins";
-import { MAX_ROW_CHARACTERS } from "../latex";
+import { MAX_ROW_CHARACTERS, MAX_ROWS } from "../latex";
 import { KarmanCalculatorError } from "./errors";
 import type {
   AxisSettings,
   CalculatorOptions,
   CalculatorSettings,
+  CalculatorStateV1,
   ExpressionState,
   SettingsUpdate,
 } from "./types";
@@ -201,20 +202,24 @@ function settingsFields(
 
 const BOUND_KEYS = ["left", "right", "bottom", "top"] as const;
 
+/** Bounds named `field`; `prefix` starts each bound's name in messages ("" or "viewport."). */
+function boundsFields(value: unknown, method: string, field: string, prefix: string): Viewport {
+  const fields = strictObject(value, method, field, BOUND_KEYS);
+  const [left, right, bottom, top] = BOUND_KEYS.map((key) => {
+    const bound = own(fields, key);
+    return typeof bound === "number" && Number.isFinite(bound)
+      ? bound
+      : invalid(method, `${prefix}${key} must be a finite number`);
+  });
+  if (!(left < right)) invalid(method, `${prefix}left must be less than ${prefix}right`);
+  if (!(bottom < top)) invalid(method, `${prefix}bottom must be less than ${prefix}top`);
+  return { left, right, bottom, top };
+}
+
 /** API-7: exactly left, right, bottom and top, finite, left < right and bottom < top. The G-23
  * limits are not checked here: setMathBounds and setState clamp (Decision 11). */
 export function validateBounds(bounds: unknown): Viewport {
-  const method = "setMathBounds";
-  const fields = strictObject(bounds, method, "bounds", BOUND_KEYS);
-  const [left, right, bottom, top] = BOUND_KEYS.map((key) => {
-    const value = own(fields, key);
-    return typeof value === "number" && Number.isFinite(value)
-      ? value
-      : invalid(method, `${key} must be a finite number`);
-  });
-  if (!(left < right)) invalid(method, "left must be less than right");
-  if (!(bottom < top)) invalid(method, "bottom must be less than top");
-  return { left, right, bottom, top };
+  return boundsFields(bounds, "setMathBounds", "bounds", "");
 }
 
 const EXPRESSION_KEYS = [
@@ -268,42 +273,45 @@ const sliderBounds: Check<NonNullable<ExpressionState["sliderBounds"]>> = (
   };
 };
 
-/** API-2, API-13: one expression state for setExpression; omitted fields stay omitted. */
-export function validateExpressionState(state: unknown): ExpressionState {
-  const method = "setExpression";
+/**
+ * One expression state named `field`; `prefix` starts each field's name in messages ("" or
+ * "expressions[i]."). Omitted fields stay omitted.
+ */
+function expressionFields(
+  state: unknown,
+  method: string,
+  field: string,
+  prefix: string
+): ExpressionState {
   if (Object.prototype.toString.call(state) === "[object Object]") {
     const type = own(state as Fields, "type");
     if (typeof type === "string" && UNSUPPORTED_TYPES.includes(type)) {
-      unsupported(method, `type "${type}" is not supported`);
+      unsupported(method, `${prefix}type "${type}" is not supported`);
     }
   }
-  const fields = strictObject(state, method, "state", EXPRESSION_KEYS);
-  const out: ExpressionState = { id: id(own(fields, "id"), method, "id") };
-  const type = own(fields, "type");
-  if (type !== undefined) out.type = oneOf(["expression"] as const)(type, method, "type");
+  const fields = strictObject(state, method, field, EXPRESSION_KEYS);
+  const out: ExpressionState = { id: id(own(fields, "id"), method, `${prefix}id`) };
   const value = (key: (typeof EXPRESSION_KEYS)[number]) => own(fields, key);
-  if (value("latex") !== undefined) out.latex = latex(value("latex"), method, "latex");
-  if (value("color") !== undefined) out.color = colour(value("color"), method, "color");
-  if (value("hidden") !== undefined) out.hidden = bool(value("hidden"), method, "hidden");
+  const check = <T>(key: (typeof EXPRESSION_KEYS)[number], checker: Check<T>) =>
+    checker(value(key), method, `${prefix}${key}`);
+  if (value("type") !== undefined) out.type = check("type", oneOf(["expression"] as const));
+  if (value("latex") !== undefined) out.latex = check("latex", latex);
+  if (value("color") !== undefined) out.color = check("color", colour);
+  if (value("hidden") !== undefined) out.hidden = check("hidden", bool);
   if (value("lineStyle") !== undefined) {
-    out.lineStyle = oneOf(["solid", "dashed", "dotted"] as const)(
-      value("lineStyle"),
-      method,
-      "lineStyle"
-    );
+    out.lineStyle = check("lineStyle", oneOf(["solid", "dashed", "dotted"] as const));
   }
   if (value("pointStyle") !== undefined) {
-    out.pointStyle = oneOf(["filled", "open", "cross"] as const)(
-      value("pointStyle"),
-      method,
-      "pointStyle"
-    );
+    out.pointStyle = check("pointStyle", oneOf(["filled", "open", "cross"] as const));
   }
-  if (value("sliderBounds") !== undefined) {
-    out.sliderBounds = sliderBounds(value("sliderBounds"), method, "sliderBounds");
-  }
-  if (value("columns") !== undefined) invalid(method, 'columns needs type "table"');
+  if (value("sliderBounds") !== undefined) out.sliderBounds = check("sliderBounds", sliderBounds);
+  if (value("columns") !== undefined) invalid(method, `${prefix}columns needs type "table"`);
   return out;
+}
+
+/** API-2, API-13: one expression state for setExpression; omitted fields stay omitted. */
+export function validateExpressionState(state: unknown): ExpressionState {
+  return expressionFields(state, "setExpression", "state", "");
 }
 
 /** API-4: the `{ id }` list of removeExpressions. */
@@ -316,4 +324,49 @@ export function validateRowRefs(list: unknown): { id: string }[] {
     refs.push({ id: id(own(fields, "id"), method, `list[${i}].id`) });
   }
   return refs;
+}
+
+const STATE_KEYS = [
+  "version",
+  "mode",
+  "settings",
+  "viewport",
+  "expressions",
+  "scientific",
+] as const;
+
+/**
+ * API-5, API-13, NM-42: a whole state for setState, with all six keys: version 1, mode and settings
+ * under API-7's phase rule, finite ordered bounds (clamped later, Decision 11), at most MAX_ROWS
+ * expressions with distinct ids, and an empty scientific object until API-14.
+ */
+export function validateState(state: unknown): CalculatorStateV1 {
+  const method = "setState";
+  const fields = strictObject(state, method, "state", STATE_KEYS);
+  for (const key of STATE_KEYS) {
+    if (own(fields, key) === undefined) invalid(method, `${key} is missing`);
+  }
+  if (own(fields, "version") !== 1) invalid(method, "version must be 1");
+  SETTING_CHECKS.mode(own(fields, "mode"), method, "mode");
+  const settings = validateSettings(own(fields, "settings"));
+  const viewport = boundsFields(own(fields, "viewport"), method, "viewport", "viewport.");
+  const list = own(fields, "expressions");
+  if (!Array.isArray(list)) invalid(method, "expressions must be an array");
+  if (list.length > MAX_ROWS) invalid(method, `more than ${MAX_ROWS} rows`);
+  const ids = new Set<string>();
+  const expressions = list.map((item: unknown, i) => {
+    const expression = expressionFields(item, method, `expressions[${i}]`, `expressions[${i}].`);
+    if (ids.has(expression.id)) invalid(method, `expressions[${i}].id is a duplicate`);
+    ids.add(expression.id);
+    return expression;
+  });
+  strictObject(own(fields, "scientific"), method, "scientific", []);
+  return { version: 1, mode: "graphing", settings, viewport, expressions, scientific: {} };
+}
+
+/** API-5, API-6: the `{ allowUndo }` options of setState and setBlank; omitted means false. */
+export function validateAllowUndo(options: unknown, method: string): boolean {
+  if (options === undefined) return false;
+  const allowUndo = own(strictObject(options, method, "options", ["allowUndo"]), "allowUndo");
+  return allowUndo === undefined ? false : bool(allowUndo, method, "options.allowUndo");
 }
