@@ -98,7 +98,9 @@ export function runValuesPass(
   ctx: PassContext,
   fns: ComputeFns = DEFAULT_COMPUTE
 ): ValuesOutcome {
-  const sources = rows.map(({ id, latex, hidden }) => ({ id, latex, hidden }));
+  const sources = rows.map(({ id, latex, hidden, columns }) =>
+    columns === null ? { id, latex, hidden } : { id, latex, hidden, columns }
+  );
   const full = fns.analyzeRows(sources, settings),
     overrun = new Set<string>();
   let analysis = full,

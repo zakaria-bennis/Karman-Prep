@@ -156,6 +156,8 @@ function childNodes(node: Node): readonly Node[] {
       return [node.x, node.y];
     case "rel":
       return node.operands;
+    case "list":
+      return node.items;
   }
 }
 

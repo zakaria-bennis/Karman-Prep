@@ -118,6 +118,14 @@ function compileNode(node: Node, ctx: Context): Compiled {
     }
     case "call":
       return call(node, ctx);
+    case "list": {
+      // D-11: a table column; each element evaluates on its own
+      const items = node.items.map((item) => compileNode(item, ctx));
+      return (vars, deadline) => ({
+        type: "list",
+        value: items.map((item) => item(vars, deadline)),
+      });
+    }
     case "point": {
       // 04 decision 7: an undefined or non-real coordinate is stored as NaN.
       const x = compileNode(node.x, ctx),

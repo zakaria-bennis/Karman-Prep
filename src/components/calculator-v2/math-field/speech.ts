@@ -100,6 +100,8 @@ function speak(node: Node, source: string): string {
       const args = node.args.map((arg) => at(arg, 6));
       return call(node.name, args);
     }
+    case "list":
+      return words("list", ...node.items.map((item) => speak(item, source)));
     case "point":
       return words(
         "left parenthesis",

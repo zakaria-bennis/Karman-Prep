@@ -16,7 +16,8 @@ export type Node =
   | { kind: "root"; arg: Node; index: Node | null; span: SourceSpan } // \sqrt, \sqrt[n]
   | { kind: "call"; name: string; args: Node[]; span: SourceSpan } // \log_{b}x is call "log" args [x, b]
   | { kind: "point"; x: Node; y: Node; span: SourceSpan }
-  | { kind: "rel"; ops: RelOp[]; operands: Node[]; span: SourceSpan }; // operands.length === ops.length + 1
+  | { kind: "rel"; ops: RelOp[]; operands: Node[]; span: SourceSpan } // operands.length === ops.length + 1
+  | { kind: "list"; items: Node[]; span: SourceSpan }; // D-11: a table column; never parsed from row text
 
 /** The direct child nodes of `node`, in the order the S-expression writes them. */
 function children(node: Node): Node[] {
@@ -45,6 +46,8 @@ function children(node: Node): Node[] {
       return [node.x, node.y];
     case "rel":
       return node.operands;
+    case "list":
+      return node.items;
   }
 }
 

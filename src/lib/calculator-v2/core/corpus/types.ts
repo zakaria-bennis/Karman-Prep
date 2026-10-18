@@ -17,6 +17,7 @@ export type RowKind =
   | "constant-relation"
   | "unsolved-relation"
   | "point"
+  | "table" // D-1
   | "error";
 export type RowErrorCode =
   | ParseErrorCode

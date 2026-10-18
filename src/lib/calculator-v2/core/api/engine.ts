@@ -594,7 +594,9 @@ export class CalculatorEngine {
 
   /** AR-51: analyses on the main thread; a focused or active row that left the list is dropped. */
   private analyze(): void {
-    const sources = this.doc.rows.map(({ id, latex, hidden }) => ({ id, latex, hidden }));
+    const sources = this.doc.rows.map(({ id, latex, hidden, type, columns }) =>
+      type === "table" ? { id, latex, hidden, columns: columns ?? [] } : { id, latex, hidden }
+    );
     this.analysis = analyzeRows(sources, toWireSettings(this.currentSettings));
     this.observers.markDirty("expressionAnalysis");
     const kept = (id: string | null) => (id !== null && this.analysis.byId.has(id) ? id : null);

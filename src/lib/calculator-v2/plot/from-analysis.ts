@@ -28,7 +28,8 @@ export function buildCompileScope(
   settings: EvalSettings
 ): CompileScope {
   const named = new Map<string, Value>();
-  for (const row of analysis.rows) {
+  // byId also holds the synthetic definitions of table columns (D-11) and regressions (D-22).
+  for (const row of analysis.byId.values()) {
     if (row.kind === "definition" && row.defines?.type === "value" && values.has(row.id)) {
       named.set(row.defines.name, values.get(row.id)!);
     }
@@ -90,6 +91,8 @@ export function plotInputFor(
         holds: result.type === "number" && result.value === 1,
       };
     }
+    case "table":
+      return null; // D-11: the runPlot unit plots tables from their TableResult
     case "point": {
       if (value === null || value.type !== "point") return null;
       const [x, y] = value.value;

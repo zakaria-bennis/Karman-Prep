@@ -140,6 +140,7 @@ function compile(node: Node, ctx: Context): Fn {
       return relation(node.operands, node.ops, ctx);
     case "fact": // NM-15 ships in Phase 2
     case "point": // a point is not a real number
+    case "list": // nor is a list
       return undefinedFn;
   }
 }
