@@ -9,6 +9,13 @@ import {
   syntheticRows,
   type TableAnalysis,
 } from "../data/table-analysis";
+import {
+  planRegressions,
+  regressionCurve,
+  regressionSyntheticRows,
+  type RegressionAnalysis,
+  type RegressionPlan,
+} from "../data/regression-analysis";
 import { classifyRow } from "./classify";
 import { declaredHead, parseRows, userFunctionSet } from "./definitions";
 import { collectNameUses } from "./names";
@@ -25,6 +32,7 @@ export interface RowSource {
   latex: string; // "" for a table
   hidden: boolean;
   columns?: readonly { latex: string; values: readonly string[]; hidden?: boolean }[]; // D-1
+  logMode?: boolean; // D-30: a regression row's Log mode checkbox
 }
 export interface RowError {
   code: RowErrorCode;
@@ -59,6 +67,7 @@ export interface RowAnalysis {
   relation: { ops: RelOp[] } | null; // relations only; strict = "<" | ">"
   graph: RowGraph | null; // non-null exactly when isGraphable
   table?: TableAnalysis; // D-10: a table row's columns
+  regression?: RegressionAnalysis; // D-22: a regression row's fit
 }
 export interface AnalysisResult {
   rows: RowAnalysis[];
@@ -88,13 +97,36 @@ export function analyzeRows(
   const tables = rows.flatMap((row, k) =>
     row.columns === undefined ? [] : [{ k, table: parseTable(row, userFunctions) }]
   );
-  const external = new Set(parsed.flatMap((row) => declaredHead(row)?.name ?? []));
+  const heads = new Set(parsed.flatMap((row) => declaredHead(row)?.name ?? []));
+  // D-22, D-33: regressions fit what no row or table data column defines; a computed column may
+  // name a regression's residual list, so headers over blank columns do not count as defined.
+  const tableNames = tables.map(({ table }) => columnNames(table, heads));
+  const dataNames = tables.flatMap(({ table }, i) =>
+    tableNames[i].filter((n, j): n is string => n !== null && (j === 0 || hasCells(table, j)))
+  );
+  const plans = planRegressions(
+    parsed,
+    new Set([...heads, ...dataNames]),
+    new Set(dataNames),
+    settings
+  );
+  const fitted = [...plans.values()].flatMap((p) =>
+    p.analysis === null ? [] : [...p.analysis.params, p.analysis.residual]
+  );
+  const external = new Set([...heads, ...fitted]);
   const names = tables.map(({ table }) => columnNames(table, external));
   const declared = new Set([...external, ...names.flat().filter((n): n is string => n !== null)]);
   const synthetic = tables.flatMap(({ table }, i) => syntheticRows(table, names[i], declared));
-  const all = [...parsed, ...synthetic];
+  const regressionRows = [...plans.values()].flatMap((p) =>
+    p.analysis === null ? [] : regressionSyntheticRows(p.analysis)
+  );
+  const all = [...parsed, ...synthetic, ...regressionRows];
   const resolution = resolveDefinitions(all);
   const analysed = all.map((row) => classifyRow(row, resolution, settings));
+  parsed.forEach((row, k) => {
+    const plan = plans.get(row.source.id);
+    if (plan !== undefined) analysed[k] = regressionRow(analysed[k], plan, row.source.hidden);
+  });
   tables.forEach(({ k, table }, i) => {
     analysed[k] = tableRow(
       rows[k],
@@ -117,6 +149,26 @@ export function analyzeRows(
     byId: new Map(analysed.map((row) => [row.id, row])),
     valueOrder: resolution.valueOrder.filter((id) => defining.has(id)),
     functions,
+  };
+}
+
+/** Whether table column `j` holds any non-blank cell. */
+function hasCells(table: ReturnType<typeof parseTable>, j: number): boolean {
+  return table.cells[j].some((cell) => !cell.blank);
+}
+
+/** D-22, D-36: a regression row's analysis; it graphs y = M(x) when visible with one predictor. */
+function regressionRow(row: RowAnalysis, plan: RegressionPlan, hidden: boolean): RowAnalysis {
+  if (plan.analysis === null) return { ...row, kind: "error", error: plan.error };
+  const curve = regressionCurve(plan.analysis);
+  const isGraphable = curve !== null && !hidden;
+  return {
+    ...row,
+    kind: "regression",
+    chips: [],
+    isGraphable,
+    graph: isGraphable ? { kind: "explicit", independent: "x", expr: curve } : null,
+    regression: plan.analysis,
   };
 }
 

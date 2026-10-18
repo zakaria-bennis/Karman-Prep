@@ -31,7 +31,11 @@ export type RowErrorCode =
   | "point-coordinates"
   | "mixed-variables"
   | "polar-variable"
-  | "timeout";
+  | "timeout"
+  | "regression-data" // D-22
+  | "regression-predictor" // D-22
+  | "regression-params" // D-22
+  | "regression-fit"; // D-24
 export interface CorpusSettings {
   angleMode?: "radians" | "degrees";
   complex?: boolean;
