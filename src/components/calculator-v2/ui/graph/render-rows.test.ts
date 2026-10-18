@@ -141,3 +141,11 @@ it("G-5 the region cache keeps a row's shading through a pan and drops it when t
     expect(cache.has("4"), JSON.stringify(change)).toBe(false);
   }
 });
+
+it("POI-17 only the selected row's render row is marked selected", () => {
+  const rows = buildRenderRows({ ...snap, selectedRowId: "1" }, "ivory", view(), c0);
+  expect(rows.map((r) => [r.rowId, r.selected])).toEqual([
+    ["1", true],
+    ["4", false],
+  ]);
+});

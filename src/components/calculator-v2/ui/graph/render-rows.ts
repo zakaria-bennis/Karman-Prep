@@ -85,7 +85,13 @@ export function buildRenderRows(
     const geometry =
       g.kind === "region" ? alignRegionSpans(g, entry?.source ?? current, current) : g;
     const { hex, fillAlpha } = resolveRowColor(row.color, skin);
-    rows.push({ rowId: row.id, color: hex, fillAlpha, geometry });
+    rows.push({
+      rowId: row.id,
+      color: hex,
+      fillAlpha,
+      geometry,
+      selected: row.id === s.selectedRowId,
+    });
   }
   return rows;
 }

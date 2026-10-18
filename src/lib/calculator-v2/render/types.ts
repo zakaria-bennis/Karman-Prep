@@ -21,6 +21,13 @@ export interface RenderRow {
   color: string; // resolveRowColor(row.color, skin).hex
   fillAlpha: number; // resolveRowColor(row.color, skin).fillAlpha
   geometry: Geometry;
+  selected?: boolean; // POI-17: the selected row strokes at CURVE_SELECTED_LINE_PX
+}
+/** POI-1: a point-of-interest dot of the selected row; `open` while its label shows (POI-13). */
+export interface PoiDot {
+  x: number;
+  y: number;
+  open: boolean;
 }
 export type GridSettings = Pick<
   CalculatorSettings,
@@ -31,4 +38,5 @@ export interface RenderFrame {
   grid: GridSettings;
   rows: readonly RenderRow[];
   theme: RenderTheme;
+  poi?: readonly PoiDot[]; // POI-1, drawn above the row points
 }

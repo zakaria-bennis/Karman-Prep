@@ -5,6 +5,7 @@
 import { CURVE_VARS, FILL_ALPHA_VARS, ROLE_VARS } from "../theme/roles";
 import { CURVE_SLOTS, type CurveSlot } from "../theme/skins";
 import { AXIS_FONT } from "./constants";
+import { drawPoiDots } from "./draw-poi";
 import { drawCurveLayer, drawPointLayer, drawShadingLayer } from "./draw-geometry";
 import { drawGridLayer } from "./draw-grid";
 import { planGrid } from "./grid-plan";
@@ -77,6 +78,8 @@ export class GraphRenderer {
     drawGridLayer(grid, plan, theme, view);
     drawCurveLayer(curves, view, frame.rows);
     drawPointLayer(points, view, frame.rows);
+    if (frame.poi !== undefined && frame.poi.length > 0)
+      drawPoiDots(points, view, theme, frame.poi);
   }
 
   /** Empties and removes every canvas (iOS Safari frees canvas memory only at 0×0); idempotent. */

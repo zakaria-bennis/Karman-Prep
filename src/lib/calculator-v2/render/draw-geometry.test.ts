@@ -2,7 +2,7 @@ import { expect, it } from "vitest";
 import type { CurveGeometry, Geometry, LineSetGeometry } from "../plot/geometry";
 import type { PixelSize, Viewport, ViewSpec } from "../plot/viewport";
 import { createRecordingContext, type RecordedCall } from "./__fixtures__/recording-context";
-import { CURVE_LINE_PX } from "./constants";
+import { CURVE_LINE_PX, CURVE_SELECTED_LINE_PX } from "./constants";
 import { drawCurveLayer, drawPointLayer } from "./draw-geometry";
 import type { RenderRow } from "./types";
 
@@ -119,4 +119,13 @@ it("G-8 a line set strokes the full view height or width at its position", () =>
   expect(horizontal.map((c) => c.name)).toEqual(["moveTo", "lineTo", "stroke"]);
   expectAt(horizontal[0], "moveTo", 0, 220, 9);
   expectAt(horizontal[1], "lineTo", 800, 220, 9);
+});
+
+it("POI-17 the selected row's curve strokes at CURVE_SELECTED_LINE_PX and others at CURVE_LINE_PX", () => {
+  const { ctx, calls } = createRecordingContext();
+  const plain = curveRow([0, 0, 1, 1], false);
+  const selected = { ...curveRow([0, 1, 1, 2], false), rowId: "2", selected: true };
+  drawCurveLayer(ctx, view(), [plain, selected]);
+  const widths = calls.filter((c) => c.name === "stroke").map((c) => c.state.lineWidth);
+  expect(widths).toEqual([CURVE_LINE_PX, CURVE_SELECTED_LINE_PX]);
 });

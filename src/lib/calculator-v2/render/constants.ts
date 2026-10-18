@@ -3,12 +3,18 @@
 
 /** Line widths. */
 export const CURVE_LINE_PX = 2.5;
+export const CURVE_SELECTED_LINE_PX = 4; // POI-17: the selected row's curve
 export const GRID_LINE_PX = 1;
 export const AXIS_LINE_PX = 2;
 
 /** Marks: G-1 fixes no dash pattern and G-7 only the 0.5 px position tolerance (package decisions). */
 export const DASH_PX = [10, 6] as const;
 export const POINT_RADIUS_PX = 4;
+/** POI-1, POI-13: a point-of-interest dot, and the larger dot of one whose label is open. */
+export const POI_RADIUS_PX = 4;
+export const POI_OPEN_RADIUS_PX = 5.5;
+/** POI-1: the grey of a closed dot, this share of the text colour over the paper. */
+export const POI_DOT_TEXT_SHARE = 0.45;
 
 /** Labels: system Arial (TH-17) and the TH-9 halo technique. */
 export const AXIS_FONT = "13px Arial, sans-serif";

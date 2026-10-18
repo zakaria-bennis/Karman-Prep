@@ -5,7 +5,13 @@
 
 import type { CurveGeometry, LineSetGeometry } from "../plot/geometry";
 import { worldToPx, type ViewSpec } from "../plot/viewport";
-import { CURVE_LINE_PX, DASH_PX, JOIN_TOLERANCE_PX, POINT_RADIUS_PX } from "./constants";
+import {
+  CURVE_LINE_PX,
+  CURVE_SELECTED_LINE_PX,
+  DASH_PX,
+  JOIN_TOLERANCE_PX,
+  POINT_RADIUS_PX,
+} from "./constants";
 import type { ShadingRect } from "./shading";
 import type { RenderRow } from "./types";
 import type { Point } from "./view-input";
@@ -203,6 +209,7 @@ export function drawCurveLayer(ctx: Ctx, view: ViewSpec, rows: readonly RenderRo
     if (g.kind === "points") continue;
     ctx.strokeStyle = row.color;
     ctx.fillStyle = row.color;
+    ctx.lineWidth = row.selected === true ? CURVE_SELECTED_LINE_PX : CURVE_LINE_PX;
     if (g.kind === "region") {
       for (const boundary of g.boundaries) drawStrokes(ctx, view, boundary, clip);
     } else {
