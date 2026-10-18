@@ -212,10 +212,10 @@ export function Keypad(props: KeypadProps): JSX.Element {
   /** K-5: one run call into the keypad's row, close the panel, then focus the row's field. */
   const insertFunction = (entry: PanelEntry) => {
     doubleTap.clear();
-    const target = keypadTarget(focus, engine.getSnapshot());
+    const target = keypadTarget(focus, engine.getSnapshot(), engine);
     if (target !== null) {
-      const { rowId, field } = target;
-      editThroughKeypad(engine, announcer, rowId, field, (f) => f.run(entry.actions));
+      const { rowId, field, cell } = target;
+      editThroughKeypad(engine, announcer, rowId, field, (f) => f.run(entry.actions), cell?.commit);
     }
     setFunctionsState("closing");
     target?.field.focus(); // the caret stays where the template put it
@@ -239,7 +239,7 @@ export function Keypad(props: KeypadProps): JSX.Element {
         setFunctionsState((state) => (state === "open" ? "closing" : "open"));
         return;
       case "audio": // K-9: the keyboard trace of the keypad's row (POI-20)
-        trace?.toggle(keypadTarget(focus, engine.getSnapshot())?.rowId ?? null);
+        trace?.toggle(keypadTarget(focus, engine.getSnapshot(), engine)?.rowId ?? null);
         return;
     }
   };

@@ -10,6 +10,7 @@ import type { Announcer } from "../a11y/announcer";
 import type { FocusController } from "../focus/focus-controller";
 import { EDITOR_MESSAGES } from "../list/messages";
 import { editThroughKeypad, insertRowBelow } from "../list/row-actions";
+import { cellTarget, type CellTarget } from "../list/cell-target";
 import { fieldTextbox } from "../list/row-model";
 import type { DoubleTapTracker } from "./double-tap";
 import type { KeyDef } from "./keys";
@@ -46,13 +47,24 @@ function textboxFocused(field: MathField): boolean {
   return root.activeElement === textbox;
 }
 
+export interface KeypadTarget {
+  rowId: string;
+  field: MathField;
+  cell?: CellTarget; // D-41: the row is a table and this is its cell
+}
+
 export function keypadTarget(
   focus: FocusController,
-  snapshot: EngineSnapshot
-): { rowId: string; field: MathField } | null {
+  snapshot: EngineSnapshot,
+  engine: CalculatorEngine // reaches a table's cell (D-41)
+): KeypadTarget | null {
   // focus.activeRowId(), else focus.lastFocusedRowId(), else snapshot.rows[0].id; null when that row has no registered field
   const rowId = focus.activeRowId() ?? focus.lastFocusedRowId() ?? snapshot.rows[0]?.id ?? null;
   if (rowId === null) return null;
+  if (snapshot.rows.find((r) => r.id === rowId)?.type === "table") {
+    const cell = cellTarget(engine, focus, null, rowId);
+    return cell === null ? null : { rowId, field: cell.field, cell };
+  }
   const field = focus.field(rowId);
   return field === null ? null : { rowId, field };
 }
@@ -62,12 +74,13 @@ export function pressKey(ctx: KeyContext, key: KeyDef): void {
   const { engine, focus, announcer, doubleTap } = ctx;
   const { behaviour } = key;
   if (behaviour.type !== "insert" && behaviour.type !== "enter") return;
-  const target = keypadTarget(focus, engine.getSnapshot());
+  const target = keypadTarget(focus, engine.getSnapshot(), engine);
   if (target === null) return;
-  const { rowId, field } = target;
+  const { rowId, field, cell } = target;
 
   if (behaviour.type === "enter") {
     doubleTap.clear();
+    if (cell !== undefined) return cell.keys.onEnter(); // D-41: down the column
     insertRowBelow(engine, focus, announcer, rowId, textboxFocused(field) ? "focus" : "activate");
     return;
   }
@@ -75,7 +88,7 @@ export function pressKey(ctx: KeyContext, key: KeyDef): void {
   if (key.id === "equals" && doubleTap.matches(rowId, field.latex())) {
     // One undo step for the conversion, whatever the keypad group around it (09 Decisions).
     engine.endEditGroup();
-    editThroughKeypad(engine, announcer, rowId, field, (f) => f.run(EQUALS_TO_TILDE));
+    editThroughKeypad(engine, announcer, rowId, field, (f) => f.run(EQUALS_TO_TILDE), cell?.commit);
     engine.endEditGroup();
     doubleTap.clear();
     announcer?.announce(EDITOR_MESSAGES.tilde);
@@ -84,7 +97,14 @@ export function pressKey(ctx: KeyContext, key: KeyDef): void {
 
   const { op, arg } = behaviour.action;
   const before = field.latex();
-  const refusal = editThroughKeypad(engine, announcer, rowId, field, (f) => f[op](arg));
+  const refusal = editThroughKeypad(
+    engine,
+    announcer,
+    rowId,
+    field,
+    (f) => f[op](arg),
+    cell?.commit
+  );
   const after = field.latex();
   // Only an = that actually landed can be replaced; a refused one leaves nothing to convert.
   if (key.id === "equals" && refusal === null && after !== before) {

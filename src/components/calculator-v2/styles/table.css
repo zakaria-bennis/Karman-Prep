@@ -1,10 +1,10 @@
-/* Table items in the expression list (03-tables-ui; D-5, D-19). Colours come only from role
-   variables (TH-3). A grid of equal-width cells that scrolls sideways inside the row when its
-   columns outgrow the list. */
+/* Table items in the expression list (03-tables-ui; D-5, D-19, D-42). Colours come only from role
+   variables (TH-3). Every column keeps one width, and a table wider than the list scrolls sideways
+   inside its own item (D-42); the focused cell is scrolled into view by the focus controller. */
 
 .kc-table {
-  display: table;
-  border-collapse: collapse;
+  display: block;
+  width: max-content;
   max-width: 100%;
   overflow-x: auto;
   font-family: var(--kc-font-math);
@@ -12,16 +12,20 @@
 }
 
 .kc-table-row {
-  display: table-row;
+  display: flex;
 }
 
 .kc-table-cell {
-  display: table-cell;
-  min-width: 64px;
+  display: flex;
+  flex: 0 0 var(--kc-table-column, 96px);
+  align-items: center;
+  box-sizing: border-box;
+  min-width: 0;
   height: 32px;
   padding: 0 6px;
   border: 1px solid var(--kc-boundary);
-  vertical-align: middle;
+  margin: 0 -1px -1px 0;
+  overflow: hidden;
   color: var(--kc-text);
 }
 
@@ -50,9 +54,10 @@
 
 /* D-8: the per-row delete control shows on hover or focus, and always with a coarse pointer. */
 .kc-table-control {
-  display: table-cell;
-  width: 28px;
-  vertical-align: middle;
+  display: flex;
+  flex: 0 0 28px;
+  align-items: center;
+  justify-content: center;
 }
 
 .kc-table-row-delete,
@@ -89,7 +94,7 @@
 .kc-column-style {
   position: relative;
   display: inline-flex;
-  vertical-align: middle;
+  flex: none;
 }
 
 .kc-column-icon {
@@ -178,4 +183,9 @@
   border-radius: 4px;
   color: var(--kc-text);
   cursor: pointer;
+}
+
+.kc-table-field {
+  flex: 1 1 auto;
+  min-width: 0;
 }

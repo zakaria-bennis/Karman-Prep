@@ -190,7 +190,7 @@ export function performRedo(engine: CalculatorEngine, announcer: Announcer | nul
 /**
  * Keypad and Functions panel input (09 Decisions, "One undo step per K-7 conversion"): `apply`
  * runs with the field marked as batching, so the row's onEdit ignores the adapter's edit events,
- * then one editRow(rowId, field.latex(), "keypad"). On "char-limit" the field gets its previous
+ * then one editRow(rowId, field.latex(), "keypad"), or `commit` for a table cell (D-41). On "char-limit" the field gets its previous
  * latex back and the T-13 limit is announced.
  */
 export function editThroughKeypad(
@@ -198,11 +198,12 @@ export function editThroughKeypad(
   announcer: Announcer | null,
   rowId: string,
   field: MathField,
-  apply: (field: MathField) => void
+  apply: (field: MathField) => void,
+  commit: (latex: string) => EditRefusal | null = (latex) => engine.editRow(rowId, latex, "keypad")
 ): EditRefusal | null {
   const before = field.latex();
   inKeypadBatch(field, () => apply(field));
-  const refusal = engine.editRow(rowId, field.latex(), "keypad");
+  const refusal = commit(field.latex());
   if (refusal === "char-limit") {
     inKeypadBatch(field, () => field.latex(before));
     announcer?.announce(EDITOR_MESSAGES.charLimit);

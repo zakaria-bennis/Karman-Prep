@@ -10,6 +10,7 @@ import { useAnnouncer } from "../a11y/announcer";
 import { cellKey, FocusContext } from "../focus/focus-controller";
 import { useEngine } from "../hooks/use-engine";
 import { MathFieldFactoryContext } from "./math-field-factory";
+import { isKeypadBatch } from "./row-actions";
 import { fieldTextbox } from "./row-model";
 
 /** What the keys of a cell do; table-keys builds these per cell (D-7, D-8). */
@@ -55,7 +56,7 @@ export function TableCell(props: TableCellProps): JSX.Element {
       ariaLabel: latest.current.name,
       maxLength: MAX_CELL_CHARACTERS,
       onEdit(latex) {
-        if (syncing.current) return;
+        if (syncing.current || isKeypadBatch(field)) return; // the keypad commits its own edit
         const refusal = latest.current.onEdit(engine, latex);
         if (refusal !== null) {
           syncing.current = true;
@@ -71,6 +72,7 @@ export function TableCell(props: TableCellProps): JSX.Element {
         if (direction === "left" && field.latex() === "") latest.current.keys.onDeleteOutOf();
       },
       onFocus() {
+        focus.noteCell(tableId, cellKey(tableId, latest.current.column, latest.current.row));
         engine.setFocusedRow(tableId);
         engine.activateExpression(tableId);
       },
@@ -97,7 +99,7 @@ export function TableCell(props: TableCellProps): JSX.Element {
       fieldRef.current = null;
       field.destroy();
     };
-  }, [announcer, createField, engine, tableId]);
+  }, [announcer, createField, engine, focus, tableId]);
 
   useLayoutEffect(() => {
     const field = fieldRef.current;
@@ -115,7 +117,7 @@ export function TableCell(props: TableCellProps): JSX.Element {
 
   useLayoutEffect(() => {
     fieldRef.current?.setInputMode(props.keypadOpen ? "none" : "text");
-  }, [props.keypadOpen, announcer, createField, engine, tableId]);
+  }, [props.keypadOpen, announcer, createField, engine, focus, tableId]);
 
   useLayoutEffect(() => {
     const field = fieldRef.current;

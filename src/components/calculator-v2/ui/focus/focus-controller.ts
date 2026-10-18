@@ -17,6 +17,8 @@ export interface FocusController {
   activateRow(rowId: string): void; // active row without DOM focus (API-12)
   activeRowId(): string | null;
   lastFocusedRowId(): string | null; // KB-4 reopen
+  noteCell(tableId: string, key: string): void; // D-41: a table cell or header took focus
+  lastCell(tableId: string): string | null; // D-41: the keypad's cell in that table
   subscribe(listener: () => void): () => void;
 }
 
@@ -43,6 +45,7 @@ export function createFocusController(engine: CalculatorEngine): FocusController
   const listeners = new Set<() => void>();
   let pending: { rowId: string; caret: Caret } | null = null;
   let lastFocused: string | null = null;
+  const lastCells = new Map<string, string>();
 
   const notify = () => {
     for (const listener of [...listeners]) listener();
@@ -103,6 +106,8 @@ export function createFocusController(engine: CalculatorEngine): FocusController
     },
     activeRowId: () => engine.getSnapshot().activeRowId,
     lastFocusedRowId: () => lastFocused,
+    noteCell: (tableId, key) => void lastCells.set(tableId, key),
+    lastCell: (tableId) => lastCells.get(tableId) ?? null,
     subscribe(listener) {
       listeners.add(listener);
       return () => {
