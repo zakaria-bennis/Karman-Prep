@@ -64,4 +64,6 @@ export async function openV2(
   await page.goto(`/?flow=${flow}&calc=v2`);
   await (phoneSized(page) ? side(page) : trigger(page)).click();
   await expect(rowItem(page)).toBeVisible();
+  // AN-10: geometry is read once the 200 ms entry animation has ended.
+  await expect(frame(page)).not.toHaveAttribute("data-entering");
 }

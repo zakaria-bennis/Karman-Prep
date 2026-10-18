@@ -1,7 +1,17 @@
 // Calculator v2 window in the quiz hosts (11 tasks 7 to 9).
 
 import { expect, test } from "@playwright/test";
-import { frame, openV2, phoneSized, side, trigger, v2Requests } from "./quiz-helpers";
+import {
+  chromeOnly,
+  frame,
+  latex,
+  openV2,
+  phoneSized,
+  row,
+  side,
+  trigger,
+  v2Requests,
+} from "./quiz-helpers";
 
 test("L-4 the toolbar and the phone side button open v2 in Math questions only", async ({
   page,
@@ -27,4 +37,140 @@ test("AR-8 without calc=v2 every flow opens v1 and requests no v2 module", async
     await expect(frame(page)).toHaveCount(0);
   }
   expect(urls).toEqual([]);
+});
+
+test("AR-20, L-5 toolbar and side button open floating at 1024 px and wider over 500 px tall, full screen otherwise", async ({
+  page,
+}, info) => {
+  chromeOnly(info.project.name);
+  for (const [width, height, mode, phone] of [
+    [1023, 768, "fullscreen", false],
+    [1024, 768, "floating", false],
+    [1280, 800, "floating", false],
+    [390, 844, "fullscreen", true],
+    [1280, 480, "fullscreen", true],
+  ] as const) {
+    await page.setViewportSize({ width, height });
+    await page.goto("/?flow=diagnostic&calc=v2");
+    await expect(side(page)).toHaveCount(phone ? 1 : 0);
+    await (phone ? side(page) : trigger(page)).click();
+    await expect(frame(page)).toHaveAttribute("data-mode", mode);
+    await expect(side(page)).toHaveCount(0);
+  }
+});
+
+test("AR-22, L-6 the floating window keeps v1 geometry, drags and resizes with clamping, maximizes, minimizes, re-clamps on window and visualViewport resize and stays at z-index 72", async ({
+  page,
+}, info) => {
+  chromeOnly(info.project.name);
+  await openV2(page, "diagnostic", { width: 1280, height: 800 });
+  const box = async () => (await frame(page).boundingBox())!;
+  const z = () => frame(page).evaluate((el) => getComputedStyle(el).zIndex);
+  const drag = async (x: number, y: number, dx: number, dy: number) => {
+    await page.mouse.move(x, y);
+    await page.mouse.down();
+    await page.mouse.move(x + dx, y + dy, { steps: 4 });
+    await page.mouse.up();
+  };
+  const bar = async () => (await page.locator("[data-calculator-titlebar]").boundingBox())!;
+  expect(await box()).toEqual({ x: 16, y: 64, width: 880, height: 600 });
+  expect(await z()).toBe("72");
+  let b = await bar();
+  await drag(b.x + 300, b.y + b.height / 2, 300, 100);
+  expect(await box()).toMatchObject({ x: 316, y: 164 });
+  const g = (await page.getByRole("button", { name: "Resize calculator" }).boundingBox())!;
+  expect([g.width, g.height]).toEqual([24, 24]);
+  await drag(g.x + 12, g.y + 12, -2000, -2000);
+  expect(await box()).toMatchObject({ width: 360, height: 280 });
+  b = await bar();
+  await drag(b.x + 100, b.y + b.height / 2, 3000, 3000);
+  expect(await box()).toEqual({ x: 920, y: 520, width: 360, height: 280 });
+  // MathQuill keeps the row's textarea at 0 x 0, so it is focused rather than clicked.
+  await row(page).focus();
+  await page.keyboard.type("1+1");
+  await page.getByRole("button", { name: "Maximize calculator" }).click();
+  expect(await box()).toEqual({ x: 0, y: 0, width: 1280, height: 800 });
+  expect(await z()).toBe("72");
+  await page.getByRole("button", { name: "Restore calculator size" }).click();
+  expect(await box()).toEqual({ x: 920, y: 520, width: 360, height: 280 });
+  await page.getByRole("button", { name: "Minimize calculator" }).click();
+  await expect(frame(page)).toBeHidden();
+  await trigger(page).click();
+  expect(await latex(page)).toEqual(["1+1"]);
+  await page.setViewportSize({ width: 1100, height: 700 });
+  await expect.poll(box).toEqual({ x: 740, y: 420, width: 360, height: 280 });
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await expect.poll(box).toEqual({ x: 920, y: 520, width: 360, height: 280 });
+  await page.evaluate(() => {
+    Object.defineProperty(window, "innerHeight", { configurable: true, value: 600 });
+    visualViewport!.dispatchEvent(new Event("resize"));
+  });
+  await expect.poll(box).toEqual({ x: 920, y: 320, width: 360, height: 280 });
+});
+
+test("KB-10 arrow keys move the focused title-bar handle and resize the focused grip in 16 px steps, clamped", async ({
+  page,
+}, info) => {
+  chromeOnly(info.project.name);
+  await openV2(page, "diagnostic", { width: 1280, height: 800 });
+  const box = async () => (await frame(page).boundingBox())!;
+  await page.getByRole("button", { name: "Karman calculator", exact: true }).focus();
+  for (const key of ["ArrowRight", "ArrowRight", "ArrowDown"]) await page.keyboard.press(key);
+  expect(await box()).toMatchObject({ x: 48, y: 80 });
+  for (let i = 0; i < 30; i++) await page.keyboard.press("ArrowRight");
+  expect((await box()).x).toBe(400);
+  await page.getByRole("button", { name: "Resize calculator" }).focus();
+  await page.keyboard.press("ArrowLeft");
+  expect((await box()).width).toBe(864);
+  for (let i = 0; i < 40; i++) await page.keyboard.press("ArrowLeft");
+  expect((await box()).width).toBe(360);
+});
+
+test("AN-10 floating and full-screen windows open with opacity 0 to 1 and translateY(6px) to 0 over 200 ms", async ({
+  page,
+}, info) => {
+  chromeOnly(info.project.name);
+  const openAndRead = () =>
+    page.evaluate(
+      () =>
+        new Promise((resolve) => {
+          (
+            document.querySelector<HTMLElement>('[aria-label="Open Karman calculator"]') ??
+            document.querySelector<HTMLElement>('[aria-label="Toggle Karman calculator"]')!
+          ).click();
+          requestAnimationFrame(() =>
+            resolve(
+              document
+                .querySelector("[data-calculator-window]")!
+                .getAnimations()
+                .map((a) => {
+                  const e = a.effect as KeyframeEffect;
+                  return {
+                    duration: e.getTiming().duration,
+                    frames: e.getKeyframes().map((k) => [k.opacity, k.transform]),
+                  };
+                })
+            )
+          );
+        })
+    );
+  for (const size of [
+    { width: 1280, height: 800 },
+    { width: 390, height: 844 },
+  ]) {
+    await page.setViewportSize(size);
+    await page.goto("/?flow=diagnostic&calc=v2");
+    expect(await openAndRead()).toEqual([
+      {
+        duration: 200,
+        frames: [
+          ["0", "translateY(6px)"],
+          ["1", "translateY(0px)"],
+        ],
+      },
+    ]);
+  }
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/?flow=diagnostic&calc=v2");
+  expect(await openAndRead()).toEqual([]);
 });

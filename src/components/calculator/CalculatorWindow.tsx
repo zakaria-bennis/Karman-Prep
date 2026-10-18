@@ -3,9 +3,17 @@
 // The v2 calculator's light-DOM window (A11Y-6, L-12): one frame element in every mode, so a mode
 // change never remounts the shadow host inside it. Key handling is native on the frame (AR-18,
 // KB-6): React delegates from the root, which never sees the events the frame stops, so the move
-// handle, grip, splitter and Escape are handled here before propagation stops. Eager module.
+// handle, grip, splitter and Escape are handled here before propagation stops. The title bar and
+// the grip also drag with the pointer, captured, through clampFloatingRect (AR-22). Eager module.
 
-import { useEffect, useRef, type CSSProperties, type ReactNode, type RefObject } from "react";
+import {
+  useEffect,
+  useRef,
+  type CSSProperties,
+  type PointerEvent,
+  type ReactNode,
+  type RefObject,
+} from "react";
 import { Maximize2, Minimize2, Minus, PictureInPicture2, X } from "lucide-react";
 import {
   DOCK_MARGIN,
@@ -90,6 +98,25 @@ function maxDockWidth(): number {
     : clampDockWidth(Number.POSITIVE_INFINITY, window.innerWidth);
 }
 
+/** A pointer drag of the title bar (move) or the grip (resize), from the rect it started on. */
+interface PointerDrag {
+  kind: "move" | "resize";
+  pointerId: number;
+  startX: number;
+  startY: number;
+  rect: WindowRect;
+}
+
+/** `drag`'s rect after the pointer moved by (dx, dy), kept inside the viewport (AR-22). */
+function draggedRect(drag: PointerDrag, dx: number, dy: number): WindowRect {
+  const { rect } = drag;
+  const next =
+    drag.kind === "move"
+      ? { ...rect, x: rect.x + dx, y: rect.y + dy }
+      : { ...rect, width: rect.width + dx, height: rect.height + dy };
+  return clampFloatingRect(next, viewport());
+}
+
 function frameStyle(props: CalculatorWindowProps): CSSProperties | undefined {
   if (props.mode === "floating") {
     const { x, y, width, height } = props.floatingRect;
@@ -111,6 +138,41 @@ export function CalculatorWindow(props: CalculatorWindowProps) {
   const gripRef = useRef<HTMLDivElement>(null);
   const splitterRef = useRef<HTMLDivElement>(null);
   const titlebarRef = useRef<HTMLDivElement>(null);
+  const drag = useRef<PointerDrag | null>(null);
+
+  // AR-22, L-6: a primary-button press on the title bar (outside its buttons) or the grip starts a
+  // captured drag while floating; every move writes the clamped rect.
+  const startDrag = (kind: PointerDrag["kind"], event: PointerEvent<HTMLElement>) => {
+    const current = latest.current;
+    if (current.mode !== "floating" || event.button !== 0) return;
+    if (kind === "move" && (event.target as Element).closest("button")) return;
+    event.currentTarget.setPointerCapture(event.pointerId);
+    drag.current = {
+      kind,
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      rect: current.floatingRect,
+    };
+    event.preventDefault();
+  };
+  const moveDrag = (event: PointerEvent<HTMLElement>) => {
+    const active = drag.current;
+    if (!active || active.pointerId !== event.pointerId) return;
+    const dx = event.clientX - active.startX;
+    const dy = event.clientY - active.startY;
+    latest.current.onFloatingRectChange(draggedRect(active, dx, dy));
+  };
+  const endDrag = (event: PointerEvent<HTMLElement>) => {
+    if (drag.current?.pointerId === event.pointerId) drag.current = null;
+  };
+  const dragHandlers = (kind: PointerDrag["kind"]) => ({
+    onPointerDown: (event: PointerEvent<HTMLElement>) => startDrag(kind, event),
+    onPointerMove: moveDrag,
+    onPointerUp: endDrag,
+    onPointerCancel: endDrag,
+    onLostPointerCapture: endDrag,
+  });
 
   // AR-18, KB-6, KB-10, AR-23: the frame's own key handling, then no key event leaves it.
   useEffect(() => {
@@ -187,7 +249,12 @@ export function CalculatorWindow(props: CalculatorWindowProps) {
       style={frameStyle(props)}
     >
       {sentinel("start")}
-      <div ref={titlebarRef} className={styles.titlebar} data-calculator-titlebar="">
+      <div
+        ref={titlebarRef}
+        className={styles.titlebar}
+        data-calculator-titlebar=""
+        {...(floating ? dragHandlers("move") : {})}
+      >
         <span
           ref={handleRef}
           className={styles.moveHandle}
@@ -236,6 +303,7 @@ export function CalculatorWindow(props: CalculatorWindowProps) {
           aria-label="Resize calculator"
           aria-roledescription="resize handle"
           tabIndex={0}
+          {...dragHandlers("resize")}
         />
       ) : null}
       {mode === "docked" ? (

@@ -23,7 +23,7 @@ import { useTheme } from "@/components/shared/ThemeProvider";
 import { useQuizAnimations } from "@/components/learn/quiz/QuizTools";
 import type { OpenTrigger, QuizCalculatorHandle } from "@/components/calculator-v2/host/quiz-host"; // type-only (AR-1)
 import type { PastePayload } from "@/lib/calculator/paste";
-import { PHONE_QUERY } from "./breakpoints";
+import { FULL_SCREEN_QUERY, PHONE_QUERY } from "./breakpoints";
 import {
   CalculatorHostIdContext,
   CalculatorLoader,
@@ -35,6 +35,8 @@ import { useCalculatorVersion } from "./CalculatorVersion";
 import { CalculatorWindow } from "./CalculatorWindow";
 import {
   calculatorWindowStore,
+  clampDockWidth,
+  clampFloatingRect,
   defaultDockWidth,
   defaultFloatingRect,
   windowModeFor,
@@ -261,24 +263,46 @@ function useOpenTriggerHandlers(toggle: (trigger?: OpenTrigger) => void) {
   };
 }
 
-/** The viewport the window's default geometry is measured in. */
+/** The viewport the window's geometry is measured and clamped in. */
 function viewportSize(): ViewportSize {
   return typeof window === "undefined"
     ? { width: 0, height: 0 }
     : { width: window.innerWidth, height: window.innerHeight };
 }
 
-function usePhone(): boolean {
-  const [phone, setPhone] = useState(false);
+/** The live viewport, refreshed on window and `visualViewport` resize (AR-22, L-6). */
+function useViewport(): ViewportSize {
+  const [viewport, setViewport] = useState<ViewportSize>(viewportSize);
+  useEffect(() => {
+    const update = () =>
+      setViewport((previous) => {
+        const next = viewportSize();
+        return next.width === previous.width && next.height === previous.height ? previous : next;
+      });
+    update();
+    const visual = window.visualViewport;
+    window.addEventListener("resize", update);
+    visual?.addEventListener("resize", update);
+    return () => {
+      window.removeEventListener("resize", update);
+      visual?.removeEventListener("resize", update);
+    };
+  }, []);
+  return viewport;
+}
+
+/** Whether `query` (one of breakpoints.ts's, AR-19) matches now, following its changes. */
+function useMediaQuery(query: string): boolean {
+  const [matches, setMatches] = useState(false);
   useEffect(() => {
     if (typeof window.matchMedia !== "function") return;
-    const query = window.matchMedia(PHONE_QUERY);
-    const update = () => setPhone(query.matches);
+    const list = window.matchMedia(query);
+    const update = () => setMatches(list.matches);
     update();
-    query.addEventListener("change", update);
-    return () => query.removeEventListener("change", update);
-  }, []);
-  return phone;
+    list.addEventListener("change", update);
+    return () => list.removeEventListener("change", update);
+  }, [query]);
+  return matches;
 }
 
 function V2Scope({
@@ -291,7 +315,9 @@ function V2Scope({
 }: CalculatorScopeProps) {
   const hostId = `karman-calculator-${useId().replace(/[^A-Za-z0-9_-]/g, "")}`;
   const reducedMotion = !useQuizAnimations();
-  const phone = usePhone();
+  const phone = useMediaQuery(PHONE_QUERY);
+  const fullScreen = useMediaQuery(FULL_SCREEN_QUERY); // AR-20, L-5
+  const viewport = useViewport();
   const windowState = useSyncExternalStore(
     calculatorWindowStore.subscribe,
     calculatorWindowStore.get,
@@ -320,6 +346,31 @@ function V2Scope({
     setChromeSlot(chromeSlotRef.current);
   }, [enabled, shown, windowAttempt]);
 
+  // AN-10: the open animation runs only when this scope's window goes from closed to open with
+  // motion allowed; any mode change or closing ends it, so Undock, Restore and AR-26 never replay it.
+  const mode = windowModeFor(windowState, fullScreen);
+  const previous = useRef({ open, mode });
+  useLayoutEffect(() => {
+    const before = previous.current;
+    previous.current = { open, mode };
+    const node = frameRef.current;
+    if (!node) return;
+    if (open && !before.open && !reducedMotion) node.setAttribute("data-entering", "");
+    else if (!open || mode !== before.mode) node.removeAttribute("data-entering");
+  }, [open, mode, reducedMotion]);
+  useEffect(() => {
+    if (!frame) return;
+    const finish = (event: AnimationEvent) => {
+      if (event.target === frame) frame.removeAttribute("data-entering");
+    };
+    frame.addEventListener("animationend", finish);
+    frame.addEventListener("animationcancel", finish);
+    return () => {
+      frame.removeEventListener("animationend", finish);
+      frame.removeEventListener("animationcancel", finish);
+    };
+  }, [frame]);
+
   // Once per open: the calculator places focus for the trigger that opened it (OI-7).
   useEffect(() => {
     const trigger = remembered.current;
@@ -346,7 +397,16 @@ function V2Scope({
   const bridge: V2Bridge | null = enabled
     ? { version: "v2", open, status, failure, questionKey, toggle, prefetch }
     : null;
-  const viewport = viewportSize();
+  // Render-time clamping: the store keeps what the student set, so a shrink and regrow restores
+  // the earlier place and dock width (AR-25).
+  const floatingRect = clampFloatingRect(
+    windowState.floatingRect ?? defaultFloatingRect(viewport),
+    viewport
+  );
+  const dockWidth = clampDockWidth(
+    windowState.dockWidth ?? defaultDockWidth(viewport.width),
+    viewport.width
+  );
 
   return (
     <Context.Provider value={bridge}>
@@ -376,10 +436,10 @@ function V2Scope({
             <WindowBoundary onRetry={() => setWindowAttempt((count) => count + 1)}>
               <CalculatorWindow
                 key={windowAttempt}
-                mode={windowModeFor(windowState, false)}
+                mode={mode}
                 dockTop={dockTop}
-                dockWidth={windowState.dockWidth ?? defaultDockWidth(viewport.width)}
-                floatingRect={windowState.floatingRect ?? defaultFloatingRect(viewport)}
+                dockWidth={dockWidth}
+                floatingRect={floatingRect}
                 onModeChange={(mode) => calculatorWindowStore.set({ mode })}
                 onFloatingRectChange={(floatingRect) => calculatorWindowStore.set({ floatingRect })}
                 onDockWidthChange={(dockWidth) => calculatorWindowStore.set({ dockWidth })}
