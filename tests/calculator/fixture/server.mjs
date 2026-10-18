@@ -27,6 +27,10 @@ const server = await createServer({
       { find: "@sentry/nextjs", replacement: path.join(fixture, "platform.tsx") },
       { find: "next/navigation", replacement: path.join(fixture, "platform.tsx") },
       { find: "next/link", replacement: path.join(fixture, "link.tsx") },
+      {
+        find: "@/app/learn/daily-challenge-actions",
+        replacement: path.join(fixture, "daily-actions.ts"),
+      },
       { find: "@", replacement: path.join(root, "src") },
     ],
   },

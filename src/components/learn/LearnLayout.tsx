@@ -32,7 +32,7 @@ export default function LearnLayout({ children }: { children: React.ReactNode })
           it's even more minimal (just translucent mark + back). */}
       <header
         className={cn(
-          "fixed left-0 right-0 top-0 z-40 flex items-center gap-3 px-4 py-3",
+          "fixed left-0 right-0 top-0 z-40 flex items-center gap-3 px-4 pb-1.5 pt-3",
           "pointer-events-none" // children re-enable interactions
         )}
       >
