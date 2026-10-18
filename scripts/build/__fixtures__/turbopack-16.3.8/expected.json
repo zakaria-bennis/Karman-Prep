@@ -1,0 +1,30 @@
+{
+  "asyncChunkGroups": [
+    [
+      "static/chunks/10h16tf7gsmn0.css",
+      "static/chunks/2e1y3n26a2id3.js",
+      "static/chunks/2jo197ntpm5op.js",
+      "static/chunks/0q-8luhtsbxqf.js",
+      "static/chunks/2x-w3p-a89ard.js"
+    ]
+  ],
+  "workerCall": {
+    "bootstrap": "static/chunks/turbopack-worker-1r2nq6-dwes2z.js",
+    "chunks": [
+      "static/chunks/1nw3eik9ya-z-.js",
+      "static/chunks/2x-w3p-a89ard.js",
+      "static/chunks/turbopack-2wob-yi2zdykv.js"
+    ]
+  },
+  "workerUrl": "http://localhost:8787/_next/static/chunks/turbopack-worker-1r2nq6-dwes2z.js#params=%5B%5B%22%2F_next%2Fstatic%2Fchunks%2Fturbopack-2wob-yi2zdykv.js%22%2C%22%2F_next%2Fstatic%2Fchunks%2F2x-w3p-a89ard.js%22%2C%22%2F_next%2Fstatic%2Fchunks%2F1nw3eik9ya-z-.js%22%5D%2C%22%22%2C%22%2F_next%2F%22%2Cnull%2Cnull%5D",
+  "eagerFiles": [
+    "static/chunks/0s6axtlxf7-m4.js",
+    "static/chunks/1akf4yl4n8iro.js",
+    "static/chunks/1eivugfpnp4ui.js",
+    "static/chunks/29tawydumh2h1.js",
+    "static/chunks/2x7tord86u8wi.js",
+    "static/chunks/3f2xshynpa4h_.css",
+    "static/chunks/40eg_hl9s771n.js"
+  ],
+  "probeChunk": "static/chunks/40eg_hl9s771n.js"
+}
