@@ -37,6 +37,21 @@ describe("production release build inputs", () => {
       []
     );
   });
+  it("accepts Supabase's publishable key format, which carries no project reference", () => {
+    const publishable = "sb_publishable_" + "a".repeat(31);
+    expect(
+      checkReleaseEnvironment({ ...valid, NEXT_PUBLIC_SUPABASE_ANON_KEY: publishable })
+    ).toEqual([]);
+    for (const url of ["http://synthetic.supabase.co", "https://synthetic.example.com"]) {
+      const errors = checkReleaseEnvironment({
+        ...valid,
+        NEXT_PUBLIC_SUPABASE_URL: url,
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: publishable,
+      });
+      expect(errors.length).toBeGreaterThan(0);
+      expect(JSON.stringify(errors)).not.toContain(publishable);
+    }
+  });
   it("rejects private and mismatched database keys without echoing them", () => {
     for (const key of [anonKey("service_role"), anonKey("anon", "another"), "sb_secret_private"]) {
       const errors = checkReleaseEnvironment({ ...valid, NEXT_PUBLIC_SUPABASE_ANON_KEY: key });
