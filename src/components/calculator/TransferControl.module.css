@@ -1,0 +1,91 @@
+/* Transfer to Calculator control (14). Next compiles CSS Modules in pure mode, so every selector
+   keeps a local class; rules keyed only on other components' attributes live in
+   transfer-control.css. Colours come only from the --kcc-* chrome tokens (TH-2). The button is
+   never display: none or visibility: hidden, so it stays in the accessibility tree (TR-59). */
+.anchor {
+  position: relative;
+}
+.anchor[data-placement="inline"] {
+  display: inline;
+}
+.anchor[data-placement="block"] {
+  display: block;
+  height: 0;
+}
+.anchor[data-placement="cluster"] {
+  display: inline-flex;
+  opacity: 0;
+}
+.anchor[data-placement="cluster"]:focus-within {
+  opacity: 1;
+}
+.button {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 24px;
+  height: 24px;
+  margin: 0;
+  padding: 0;
+  border-radius: 6px;
+  cursor: pointer;
+  background: var(--kcc-chrome);
+  color: var(--kcc-text);
+  border: 1px solid var(--kcc-boundary);
+}
+.anchor[data-placement="cluster"] .button {
+  position: static;
+}
+.anchor[data-reveal="coarse"] .button {
+  width: 44px;
+  height: 44px;
+}
+.button:focus-visible {
+  outline: 2px solid var(--kcc-focus);
+  outline-offset: 2px;
+}
+.anchor[data-visible="false"] .button:not(:focus-visible) {
+  clip-path: inset(50%);
+  width: 1px;
+  height: 1px;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  padding: 0;
+  border: 0;
+}
+.glyph {
+  position: relative;
+  display: inline-flex;
+  width: 16px;
+  height: 16px;
+  pointer-events: none;
+}
+.glyph > svg:last-child {
+  position: absolute;
+  top: -5px;
+  right: -6px;
+  width: 10px;
+  height: 10px;
+}
+.tooltip {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 0;
+  z-index: 2;
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+  pointer-events: none;
+  font:
+    12px/1.4 Arial,
+    sans-serif;
+  color: var(--kcc-text);
+  background: var(--kcc-chrome);
+  border: 1px solid var(--kcc-boundary);
+}

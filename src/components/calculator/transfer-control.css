@@ -1,0 +1,7 @@
+/* Global rules for the Transfer control (14). They key only on attributes of other components'
+   elements, which Next's CSS Modules pure mode rejects, so they live outside
+   TransferControl.module.css. Colours come only from the --kcc-* chrome tokens (TH-2). */
+[data-transfer-selected="true"] {
+  outline: 2px solid var(--kcc-focus);
+  outline-offset: 2px;
+}
