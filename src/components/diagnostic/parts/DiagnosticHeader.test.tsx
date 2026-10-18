@@ -22,7 +22,7 @@ it("uses one external link only for Math while retaining diagnostic controls and
     onToggleBookmark: vi.fn(),
   };
   const { rerender, container } = render(
-    <CalculatorScope enabled open={false} onOpenChange={() => {}}>
+    <CalculatorScope enabled open={false} onOpenChange={() => {}} questionKey="diagnostic:q1">
       <DiagnosticHeader {...props} />
     </CalculatorScope>
   );

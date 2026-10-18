@@ -14,6 +14,8 @@ import ChartFigure from "./ChartFigure";
 import GeometryFigure from "./GeometryFigure";
 import FigureFrame from "./FigureFrame";
 import { CalculatorScope, CalculatorTrigger } from "@/components/calculator/CalculatorScope";
+import { makeQuestionKey } from "@/components/calculator/question-key";
+import { LEARN_HEADER_CLEARANCE } from "@/components/learn/learn-header";
 import { buildGeometrySvg } from "@/lib/figures/geometry-svg";
 
 const subjectName: Record<DailySubject, string> = {
@@ -64,7 +66,10 @@ function DailySlotCard({ subject, slot }: { subject: DailySubject; slot: DailySl
         <h3 className="font-plex-serif text-2xl text-ivory">{subjectName[subject]}</h3>
       </div>
       {slot.state === "ready" ? (
-        <DailyQuestion key={`${slot.value.day}:${slot.value.question.id}`} value={slot.value} />
+        <DailyQuestion
+          key={makeQuestionKey(slot.value.day, slot.value.question.id)}
+          value={slot.value}
+        />
       ) : (
         <div className="mt-6 border-t border-bronze pt-5">
           <p className="text-sm leading-relaxed text-taupe" role="status">
@@ -119,6 +124,8 @@ function DailyQuestion({ value }: { value: Extract<DailySlot, { state: "ready" }
       enabled={subject === "math"}
       open={calculatorOpen}
       onOpenChange={setCalculatorOpen}
+      questionKey={makeQuestionKey(day, q.id)}
+      dockTop={LEARN_HEADER_CLEARANCE}
     >
       <div className="mt-6 border-t border-bronze pt-5">
         <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-taupe">
