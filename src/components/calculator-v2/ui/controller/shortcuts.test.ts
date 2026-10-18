@@ -80,3 +80,33 @@ it("KB-3 installShellKeyboard prevents a handled Escape without stopping it, and
   expect([actions, heard.length]).toEqual([["undo"], 3]);
   ac.abort();
 });
+
+it("KB-7 undo, redo and add-row-end stay with a native text input; a math field's textarea, a radio and toggle-keypad still get them", () => {
+  const actions: string[] = [];
+  const off = installShellKeyboard(root, {
+    onShortcut: (a) => actions.push(a),
+    onEscape: () => false,
+  });
+  const input = root
+    .appendChild(document.createElement("label"))
+    .appendChild(Object.assign(document.createElement("input"), { type: "text" }));
+  const radio = root.appendChild(Object.assign(document.createElement("input"), { type: "radio" }));
+  const mq = root.appendChild(document.createElement("span"));
+  mq.className = "mq-textarea";
+  const mqTextarea = mq.appendChild(document.createElement("textarea"));
+  expect([
+    press(input, { code: "KeyZ", key: "z", ctrlKey: true }),
+    press(input, { code: "KeyY", key: "y", ctrlKey: true }),
+    press(input, { code: "KeyZ", key: "Z", metaKey: true, shiftKey: true }),
+    press(input, { code: "Enter", key: "Enter", altKey: true }),
+  ]).toEqual([false, false, false, false]);
+  expect(actions).toEqual([]);
+  expect([
+    press(input, { code: "KeyK", key: "k", ctrlKey: true }),
+    press(mqTextarea, { code: "KeyZ", key: "z", ctrlKey: true }),
+    press(inner, { code: "KeyY", key: "y", ctrlKey: true }),
+    press(radio, { code: "KeyZ", key: "z", ctrlKey: true }),
+  ]).toEqual([true, true, true, true]);
+  expect(actions).toEqual(["toggle-keypad", "undo", "redo", "undo"]);
+  off();
+});
