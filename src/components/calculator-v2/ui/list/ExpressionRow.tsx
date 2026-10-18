@@ -49,6 +49,7 @@ import {
   leaveRow,
 } from "./row-actions";
 import { fieldTextbox, rowDomIds, rowTab } from "./row-model";
+import { RegressionPanel, STATISTICS_HINT } from "./RegressionPanel";
 import { offersCreateTable, RowMenu } from "./RowMenu";
 import type { RowMotion } from "./row-presence";
 
@@ -340,7 +341,11 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
         </div>
         <div className="kc-row-main">
           <div className="kc-row-field" ref={hostRef} onPointerDown={onFieldPointerDown} />
-          <span id={ids.label} hidden>{`Expression ${number}`}</span>
+          <span id={ids.label} hidden>
+            {row.regression?.result?.ok === true
+              ? `Expression ${number}. ${STATISTICS_HINT}` // D-37
+              : `Expression ${number}`}
+          </span>
           <span id={ids.speech} hidden>
             {speech}
           </span>
@@ -363,6 +368,7 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
               </button>
             </div>
           )}
+          {error === null && <RegressionPanel row={row} />}
           {color.adjusted && <p className="kc-row-note">{EXPLICIT_COLOUR_NOTE}</p>}
         </div>
         <button

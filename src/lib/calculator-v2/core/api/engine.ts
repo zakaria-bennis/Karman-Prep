@@ -10,7 +10,6 @@ import type { PoiCurve } from "../../poi/types";
 import { nextSlot } from "../../theme/roles";
 import type { ComputeBackend } from "../../worker/backend";
 import { analyzeRows, type AnalysisResult } from "../analysis";
-import type { Value } from "../eval/values";
 import { MAX_ROW_CHARACTERS, MAX_ROWS } from "../latex";
 import { defaultBackend, defaultRandomSeed, defaultScheduleFrame } from "./default-deps";
 import {
@@ -24,18 +23,18 @@ import { KarmanCalculatorError } from "./errors";
 import {
   emptiedTable,
   newTable,
-  tableFromRow,
   usedNames,
   withCell,
   withColumnStyle,
   withHeader,
   withoutColumn,
   withoutTableRow,
+  type RowEditContext,
 } from "./table-edits";
 import { HelperRegistry, type HelperExpression } from "./helper-expression";
 import { ResultInbox, sentRows } from "./inbox";
 import { EngineObservers } from "./observers";
-import { buildRowView, snapshotAnalysis, type EngineSnapshot } from "./results";
+import { buildRowView, latestValues, snapshotAnalysis, type EngineSnapshot } from "./results";
 import {
   acceptView,
   blankSettings,
@@ -386,17 +385,22 @@ export class CalculatorEngine {
     return { id: rowId };
   }
 
-  /** D-13: Create table, a table of row `rowId`'s function below it as one step; null if none. */
-  createTableFromRow(rowId: string): { id: string } | EditRefusal | null {
-    const rows = this.doc.rows,
-      at = rows.findIndex((r) => r.id === rowId);
-    if (this.destroyed || at < 0) return null;
-    const nextId = () => this.doc.nextId();
-    const table = tableFromRow(rows[at], rows, nextId, usedNames(rows, this.analysis));
-    if (table === null) return null;
-    if (rows.length >= MAX_ROWS) return "row-limit";
-    this.commitRows([...rows.slice(0, at + 1), table, ...rows.slice(at + 1)], STEP, true);
-    return { id: table.id };
+  /**
+   * One undo step replacing the rows with what `edit` returns (row-commands.ts: Create table,
+   * Plot residuals, Add regression, Log mode); null changes nothing, and past MAX_ROWS nothing is
+   * committed and "row-limit" returned.
+   */
+  editRows(edit: (rows: readonly StoredRow[], ctx: RowEditContext) => StoredRow[] | null) {
+    if (this.destroyed) return null;
+    const rows = this.doc.rows;
+    const next = edit(rows, {
+      nextId: () => this.doc.nextId(),
+      used: usedNames(rows, this.analysis),
+    });
+    if (next === null) return null;
+    if (next.length > MAX_ROWS) return "row-limit";
+    this.commitRows(next, STEP, true);
+    return null;
   }
 
   /** D-6, D-8, D-20: one cell's LaTeX; typing coalesces per table (KB-2). */
@@ -483,11 +487,7 @@ export class CalculatorEngine {
   poiCurves(id: string): PoiCurve[] {
     const row = this.analysis.byId.get(id);
     if (row === undefined || !row.isGraphable) return [];
-    const values = new Map<string, Value>();
-    for (const r of this.doc.rows) {
-      const value = this.inbox.result(r.id).value;
-      if (value !== null) values.set(r.id, value);
-    }
+    const values = latestValues(this.doc.rows, (id) => this.inbox.result(id));
     const scope = buildCompileScope(this.analysis, values, toWireSettings(this.currentSettings));
     return poiCurvesFor(row, scope);
   }

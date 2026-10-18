@@ -1,6 +1,7 @@
 import { beforeEach, expect, it } from "vitest";
 import { createTestEngine, type TestEngine } from "./__fixtures__/test-engine";
 import type { StoredColumn } from "./document";
+import { createTableFromRow } from "./row-commands";
 
 let t: TestEngine;
 let e: TestEngine["engine"];
@@ -159,7 +160,7 @@ it("D-9 deleteTableColumn removes a later column with its data as one undo step 
 
 it("D-13 createTableFromRow inserts a table of the row's function below it as one undo step", () => {
   e.setExpression({ id: "a", latex: "y=x^{2}", color: "c3" });
-  const made = e.createTableFromRow("a") as { id: string };
+  const made = createTableFromRow(e, "a") as { id: string };
   expect(e.getSnapshot().rows.map((r) => r.id)).toEqual(["1", "a", made.id]);
   expect(headers(made.id)).toEqual(["x_{1}", "x_{1}^{2}"]);
   expect(cells(made.id)[0]).toEqual(["-2", "-1", "0", "1", "2"]);
@@ -167,5 +168,5 @@ it("D-13 createTableFromRow inserts a table of the row's function below it as on
   e.undo();
   expect(e.getSnapshot().rows.map((r) => r.id)).toEqual(["1", "a"]);
   e.setExpression({ id: "b", latex: "x=3" });
-  expect(e.createTableFromRow("b")).toBeNull();
+  expect(createTableFromRow(e, "b")).toBeNull();
 });

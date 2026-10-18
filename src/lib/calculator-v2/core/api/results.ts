@@ -14,8 +14,8 @@ import type { TableResult } from "../data/evaluate";
 import type { TableAnalysis } from "../data/table-analysis";
 import type { StoredColumn, StoredRow } from "./document";
 import type { RowResult } from "./inbox";
-import type { RegressionOutcome } from "../data/evaluate-regression";
-import type { RegressionAnalysis } from "../data/regression-analysis";
+import { regressionValues, type RegressionOutcome } from "../data/evaluate-regression";
+import { regressionDefinitionId, type RegressionAnalysis } from "../data/regression-analysis";
 import type { ApiEvaluation, CalculatorSettings, ExpressionAnalysis } from "./types";
 
 export interface RowView {
@@ -150,6 +150,25 @@ export function buildRowView(row: StoredRow, analysis: RowAnalysis, result: RowR
         ? null
         : { analysis: analysis.regression, result: result.regression ?? null },
   };
+}
+
+/**
+ * Every row's latest accepted value by row id, and each regression's fitted names by their
+ * synthetic definition ids (D-22), as buildCompileScope reads them.
+ */
+export function latestValues(
+  rows: readonly StoredRow[],
+  result: (id: string) => RowResult
+): Map<string, Value> {
+  const values = new Map<string, Value>();
+  for (const { id } of rows) {
+    const { value, regression } = result(id);
+    if (value !== null) values.set(id, value);
+    if (regression === undefined) continue;
+    for (const [name, v] of regressionValues(regression))
+      values.set(regressionDefinitionId(id, name), v);
+  }
+  return values;
 }
 
 /** D-22, D-24: a failed fit is the row's error, shown in place of its results. */

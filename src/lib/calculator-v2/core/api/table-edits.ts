@@ -17,6 +17,12 @@ import {
 } from "./document";
 import type { EditRefusal } from "./engine";
 
+/** What CalculatorEngine.editRows hands an edit: fresh row ids and the D-4 names in use. */
+export interface RowEditContext {
+  nextId(): string; // consumes an id: call it only for a row that is kept
+  used: ReadonlySet<string>;
+}
+
 /** D-4: every name a row defines or references, and every table header. */
 export function usedNames(rows: readonly StoredRow[], analysis: AnalysisResult): Set<string> {
   const used = new Set<string>();
@@ -88,7 +94,7 @@ export function withHeader(row: StoredRow, column: number, latex: string): Store
 }
 
 /** The slot after `color` ("c2" after "c1"), or slot `fallback` for an explicit colour. */
-function nextColour(color: string | undefined, fallback: number): string {
+export function nextColour(color: string | undefined, fallback: number): string {
   const m = color === undefined ? null : /^c([1-6])$/.exec(color);
   return nextSlot(m === null ? fallback : Number(m[1])); // nextSlot(n) is slot n + 1
 }

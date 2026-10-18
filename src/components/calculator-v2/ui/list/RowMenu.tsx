@@ -5,6 +5,7 @@
 
 import { useContext, useEffect, useRef, type JSX, type RefObject } from "react";
 import type { CalculatorEngine } from "@/lib/calculator-v2/core/api/engine";
+import { createTableFromRow } from "@/lib/calculator-v2/core/api/row-commands";
 import { tableHeaderFor } from "@/lib/calculator-v2/core/data/table-from-row";
 import { functionDefinitionHead } from "@/lib/calculator-v2/core/latex";
 import { useAnnouncer } from "../a11y/announcer";
@@ -46,7 +47,7 @@ export function RowMenu({ rowId, number, trigger, onClose }: RowMenuProps): JSX.
 
   const createTable = () => {
     onClose(false);
-    const made = engine.createTableFromRow(rowId);
+    const made = createTableFromRow(engine, rowId);
     if (made === null || typeof made === "string") return;
     focus.focusRow(cellKey(made.id, 0, 0), "all");
     toaster?.show({
