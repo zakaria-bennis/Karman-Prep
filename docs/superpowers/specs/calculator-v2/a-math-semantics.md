@@ -306,22 +306,22 @@ The calculator README documents these limits. None of them blocks a phase.
 
 ## 6. Points of interest (POI-)
 
-| Graph kind                                     | Intercepts                       | Extrema                                   | Intersections |
-| ---------------------------------------------- | -------------------------------- | ----------------------------------------- | ------------- |
-| `y=f(x)`, one-parameter functions, regressions | x-intercepts and the y-intercept | local maxima and minima, corners included | yes           |
-| `x=g(y)`                                       | y-intercepts and the x-intercept | leftmost and rightmost turning points     | yes           |
-| Implicit equations (circles, conics, lines)    | both axes                        | none                                      | yes           |
-| Vertical and horizontal lines                  | the axis crossing                | none                                      | yes           |
-| Inequality boundaries                          | as the boundary curve            | as the boundary curve                     | yes           |
-| Polar, parametric, points, tables              | none                             | none                                      | none          |
+| Graph kind                                     | Intercepts                       | Extrema                                                                               | Intersections |
+| ---------------------------------------------- | -------------------------------- | ------------------------------------------------------------------------------------- | ------------- |
+| `y=f(x)`, one-parameter functions, regressions | x-intercepts and the y-intercept | local maxima and minima, corners included                                             | yes           |
+| `x=g(y)`                                       | y-intercepts and the x-intercept | leftmost and rightmost turning points                                                 | yes           |
+| Implicit equations (circles, conics, lines)    | both axes                        | top and bottom points (horizontal tangents), never leftmost or rightmost (appendix F) | yes           |
+| Vertical and horizontal lines                  | the axis crossing                | none                                                                                  | yes           |
+| Inequality boundaries                          | as the boundary curve            | as the boundary curve                                                                 | yes           |
+| Polar, parametric, points, tables              | none                             | none                                                                                  | none          |
 
 - **POI-1** Points of interest appear only for the focused row's graphed curves, as dots. Hidden rows and rows with errors have none. (Phase 2; verified by browser test)
-- **POI-2** Each graph kind gets the kinds of point of interest that the coverage table gives it. (Phase 2; verified by unit test)
+- **POI-2** Each graph kind gets the kinds of point of interest that the coverage table gives it; a circle or other implicit curve gets its axis intercepts and its top and bottom points (appendix F). (Parity; verified by unit test)
 - **POI-3** Regression curves (D-2) get the `y=f(x)` points of interest. (Phase 3; verified by unit test)
 - **POI-4** Intersections are found between the focused row's curves and every other visible graphed curve, including inequality boundaries and vertical lines. (Phase 2; verified by unit test)
 - **POI-5** Detection is scale-invariant. Roots come from sign-change bracketing with a bracketing solver, and touching roots from local minimisation of |f| relative to f's local scale. No absolute threshold on |f| is used, so `y=10^{-8}(x-3)` has exactly one root, at 3. (Phase 2; verified by unit test)
 - **POI-6** Excluded: poles (`\tan x` has no intercepts at its poles), removable holes (`\frac{x^{2}-1}{x-1}` has nothing at x = 1), restriction endpoints that are not true zeros, and anything outside the row's domain or restriction. (Phase 2; verified by unit test)
-- **POI-7** An even-multiplicity root such as (x−2)² is reported once. Points of interest closer than 10^-9·max(1, |x|) merge into one dot that lists every kind; for (x−2)² that is the intercept and the minimum at (2, 0). (Phase 2; verified by unit test)
+- **POI-7** An even-multiplicity root such as (x−2)² is reported once. Points of interest closer than 10^-9·max(1, |x|) (10^-7·max(1, |x|) when one is an extremum, POI-11's extremum accuracy) merge into one dot with one label that lists every kind; for (x−2)² that is the zero and the minimum at (2, 0), spoken with the combined kind words of A11Y-9. (Parity; verified by unit test)
 - **POI-8** Corner extrema, such as the minimum of |x−1| at (1, 0), are found from a sign change in slope. (Phase 2; verified by unit test)
 - **POI-9** The search covers the view widened by 10% on each side. Dots are drawn only inside the view and are recomputed when panning or zooming settles. (Phase 2; verified by browser test)
 - **POI-10** When a curve has more than 100 points of one kind in the search region, that kind is hidden until the view is zoomed in, so no partial set is shown (confirm by REA behaviour capture in Phase 2). (Phase 2; verified by unit test)
