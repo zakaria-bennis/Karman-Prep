@@ -1,6 +1,8 @@
+import "katex/dist/katex.min.css";
 // Lazy quiz entry (01-interfaces-integration.md section 12): 11's loader imports this module and
 // mounts calculator v2 inside CalculatorWindow. AR-35 limits it to the public API, focusBoundary()
-// and the internal channels of 10 Decision 6 (reflow, engine, lastFocusedRow).
+// and the internal channels of 10 Decision 6 (reflow, engine, lastFocusedRow). The KaTeX stylesheet
+// is imported at document scope so its @font-face rules reach the shadow root (AR-39, AR-40).
 
 import { reportCalculatorError } from "@/components/calculator/report-error";
 import { KarmanCalculator, lastFocusedRow } from "../KarmanCalculator";
@@ -40,9 +42,16 @@ export function mountQuizCalculator(options: QuizMountOptions): QuizCalculatorHa
 
   return {
     calculator,
-    // KB-4: the last focused row, else row 1. Task 7 gives "touch" its OI-7 branch.
-    focusOnOpen() {
-      calculator.focusExpression(lastFocusedRow(calculator) ?? calculator.getExpressions()[0].id);
+    // KB-4: the last focused row, else row 1. A touch or pen open only activates that row and
+    // focuses the frame, so neither the keypad nor the system keyboard opens (OI-7, K-2).
+    focusOnOpen(trigger) {
+      const id = lastFocusedRow(calculator) ?? calculator.getExpressions()[0].id;
+      if (trigger === "touch") {
+        calculator.activateExpression(id);
+        options.frame.focus({ preventScroll: true });
+        return;
+      }
+      calculator.focusExpression(id);
     },
     focusBoundary(edge) {
       calculator.focusBoundary(edge);

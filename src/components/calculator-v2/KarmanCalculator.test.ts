@@ -6,7 +6,7 @@ import type { MathField } from "./math-field/MathField";
 import { CALCULATOR_V2_BUILD, CALCULATOR_V2_CSS } from "./styles/generated";
 import type { AppProps } from "./ui/App";
 import { ERROR_COPY } from "./ui/ErrorBoundary";
-import { KarmanCalculator } from "./KarmanCalculator";
+import { KarmanCalculator, RESET_ANNOUNCEMENT } from "./KarmanCalculator";
 
 const s = vi.hoisted(() => ({
   props: null as AppProps | null,
@@ -222,4 +222,11 @@ it("API-12 focusExpression and focusFirstExpression wait for the field; activate
     "desktop",
     { width: 700, height: 600 },
   ]); // jsdom measures 0×0 (stacked) until then
+});
+it("A11Y-2 announceResetOnMount announces the reset once with a 500 ms delay; without it nothing is announced (OI-3)", () => {
+  s.announced.length = 0;
+  new KarmanCalculator(mount());
+  expect(s.announced).toEqual([]);
+  new KarmanCalculator(mount(), undefined, { announceResetOnMount: true });
+  expect(s.announced).toEqual([[RESET_ANNOUNCEMENT, { delayMs: 500, key: "reset" }]]);
 });

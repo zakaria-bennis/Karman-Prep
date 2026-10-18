@@ -120,3 +120,17 @@ it("KB-4 focusOnOpen for mouse or keyboard focuses the last focused row, else ro
   handle.focusOnOpen("keyboard");
   expect(h.instance.focusExpression).toHaveBeenLastCalledWith("2");
 });
+
+it("AR-39 quiz-host imports katex/dist/katex.min.css at document scope", () => {
+  expect(SOURCE()).toMatch(/^import "katex\/dist\/katex\.min\.css";$/m);
+});
+
+it("KB-4 focusOnOpen('touch') activates the last focused row and focuses the frame (OI-7)", () => {
+  const o = opts();
+  const focus = vi.spyOn(o.frame, "focus");
+  h.lastRow = "2";
+  mountQuizCalculator(o).focusOnOpen("touch");
+  expect(h.instance.activateExpression).toHaveBeenCalledWith("2");
+  expect(h.instance.focusExpression).not.toHaveBeenCalled();
+  expect(focus).toHaveBeenCalledWith({ preventScroll: true });
+});

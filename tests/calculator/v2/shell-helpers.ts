@@ -116,3 +116,38 @@ export async function api(page: Page, script: string): Promise<void> {
 export function announced(page: Page): Promise<string[]> {
   return page.evaluate(() => globalThis.__shell!.log.announcements.map((a) => a.text));
 }
+
+/** TH-17: [fontFamily, fontSize] of the first shadow match of `selector` (whose trimmed text is `text`). */
+export function cs(page: Page, selector: string, text?: string): Promise<[string, string]> {
+  return page.evaluate(
+    ([sel, wanted]) => {
+      const root = document.querySelector("#calc")!.shadowRoot!;
+      const el = [...root.querySelectorAll(sel)].find(
+        (e) => wanted === null || e.textContent?.trim() === wanted
+      );
+      if (!el) throw new Error(`no shadow match for ${sel} ${wanted ?? ""}`);
+      const style = getComputedStyle(el);
+      return [style.fontFamily, style.fontSize] as [string, string];
+    },
+    [selector, text ?? null] as const
+  );
+}
+
+/** AR-40 (Chromium): the platform font family names CDP reports for the first shadow `selector`. */
+export async function platformFonts(page: Page, selector: string): Promise<string[]> {
+  const cdp = await page.context().newCDPSession(page);
+  try {
+    await cdp.send("DOM.enable");
+    await cdp.send("CSS.enable");
+    await cdp.send("DOM.getDocument", { depth: -1, pierce: true });
+    const { result } = await cdp.send("Runtime.evaluate", {
+      expression: `document.querySelector("#calc").shadowRoot.querySelector(${JSON.stringify(selector)})`,
+    });
+    if (!result.objectId) return [];
+    const { nodeId } = await cdp.send("DOM.requestNode", { objectId: result.objectId });
+    const { fonts } = await cdp.send("CSS.getPlatformFontsForNode", { nodeId });
+    return fonts.map((f) => f.familyName);
+  } finally {
+    await cdp.detach();
+  }
+}
