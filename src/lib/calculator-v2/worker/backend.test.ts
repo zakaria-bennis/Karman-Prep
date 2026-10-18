@@ -284,3 +284,39 @@ it("AR-50 the main-thread backend applies the 250 ms row deadline and posts over
   expect(await overrunsFor(250)).toEqual(["r0"]);
   expect(await overrunsFor(249.9)).toEqual([]);
 });
+it("AR-49 a quarantined row is restated as overrun in every state that leaves it out, after delete and restore or hide and show", async () => {
+  const b = createWorkerBackend({ createWorker: () => new FakeWorker() as unknown as Worker });
+  const got: WorkerToMain[] = [];
+  b.onMessage((m) => got.push(m));
+  const [w1] = FakeWorker.made;
+  w1.send({ v: 1, type: "ready", worker: WORKER_MARKER });
+  b.post(STATE(1, "x^{2}+y^{2}=25", "y=x"));
+  w1.send({ v: 1, type: "begin", generation: 1, rowId: "r0" });
+  vi.advanceTimersByTime(1500);
+  const w2 = FakeWorker.made[1];
+  const overruns = () => got.filter((m) => m.type === "overrun");
+  await macrotask();
+  got.length = 0;
+  const deleted = STATE(2, "x^{2}+y^{2}=25", "y=x");
+  b.post({ ...deleted, rows: deleted.rows.slice(1) }); // r0 deleted: nothing to restate
+  await macrotask();
+  expect(overruns()).toEqual([]);
+  b.post(STATE(3, "x^{2}+y^{2}=25", "y=x")); // undo restores r0 with the same latex
+  expect(stateIds(w2)).toEqual(["r1"]);
+  expect(overruns()).toEqual([]); // deferred: the engine notes the state after posting it
+  await macrotask();
+  expect(overruns()).toEqual([{ v: 1, type: "overrun", generation: 3, rowId: "r0" }]);
+  got.length = 0;
+  const hidden = STATE(4, "x^{2}+y^{2}=25", "y=x");
+  b.post({ ...hidden, rows: hidden.rows.map((r) => (r.id === "r0" ? { ...r, hidden: true } : r)) });
+  b.post(STATE(5, "x^{2}+y^{2}=25", "y=x")); // shown again
+  await macrotask();
+  expect(overruns()).toEqual([
+    { v: 1, type: "overrun", generation: 4, rowId: "r0" },
+    { v: 1, type: "overrun", generation: 5, rowId: "r0" },
+  ]);
+  b.dispose();
+  got.length = 0;
+  await macrotask();
+  expect(got).toEqual([]);
+});
