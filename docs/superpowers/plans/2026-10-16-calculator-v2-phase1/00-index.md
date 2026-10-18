@@ -647,9 +647,9 @@ exactly one `open-items.md` line: `every background role except the accent` (OI-
   `2\frac{1}{2}`, so accepting `2\frac12`, which also renders as 2½, would insert the product 1.
   Denying costs a missing control, and TR-80's bank scan (Phase 3) reports whether the spelling
   occurs in live questions.
-- D1, D2 and D3 take effect only after the lead's sign-off (12's precondition P3, before
-  12 Task 3); a rejected deviation follows the fallback in `12-transfer-core.md`.
-- 14's D4 (AR-33): 12's classifier loads lazily (`14-transfer-ui.md` decision D4); the owner must sign it off.
+- D1, D2 and D3 took effect with the transfer PR (#217): the founder signed them off on
+  2026-10-18 by delegation (12's precondition P3); the fallback in `12-transfer-core.md` was not needed.
+- 14's D4 (AR-33): 12's classifier loads lazily (`14-transfer-ui.md` decision D4); signed off by the founder on 2026-10-18 (#217).
 - 13's decision 12 (T-12): pasted plain text keeps its raw PR-18 meaning where typing the same
   characters builds something else: `sqrt(x)` pastes as `\sqrt{x}` (typing the characters gives
   `\sqrt{\left(x\right)}`), `3/4x` as `\frac{3}{4}x` (typing gives `\frac{3}{4x}`), `x/2` as `x/2`
