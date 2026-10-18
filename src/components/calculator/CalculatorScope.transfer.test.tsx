@@ -369,6 +369,25 @@ it("AR-21, TR-64 a mouse or touch transfer docks a closed, floating or maximized
   expect(screen.getByRole("button", { name: "Reload page" })).toBeInTheDocument();
 });
 
+it("TR-66 a transfer held while a toolbar-opened window is still loading places the focus, not the opener; once loaded, the opener's focus stays", async () => {
+  let release = () => {};
+  const s = await scope({ gate: new Promise<void>((r) => (release = r)) });
+  fireEvent.click(screen.getByRole("button", { name: "Toggle Karman calculator" }));
+  const out = send(s, payload(1), "mouse");
+  await act(async () => release());
+  await waitFor(() => expect(out.result?.status).toBe("added"));
+  expect(s.handles[0].applyTransfer.mock.calls).toEqual([[payload(1), "mouse"]]);
+  expect(s.handles[0].focusOnOpen).not.toHaveBeenCalled();
+  s.unmount();
+  const t = await scope();
+  fireEvent.click(screen.getByRole("button", { name: "Toggle Karman calculator" }));
+  // a synthetic click has no pointer detail, so the opener's trigger reads as keyboard
+  await waitFor(() => expect(t.handles[0].focusOnOpen.mock.calls).toEqual([["keyboard"]]));
+  const later = send(t, payload(2), "touch");
+  await waitFor(() => expect(later.result?.status).toBe("added"));
+  expect(t.handles[0].focusOnOpen).toHaveBeenCalledTimes(1);
+});
+
 it("TR-66, AR-55 a window a transfer opened takes its focus from the transfer: the row's own focus, else focusOnOpen when every result was rejected, else the failure panel's button, never the inert workspace", async () => {
   const a = await scope();
   const added = send(a, payload(1), "mouse");

@@ -49,9 +49,14 @@ function announce(s: TransferState, message: string): void {
 }
 
 /** Opens a closed window and remembers that this transfer opened it, so V2Scope skips its
- * once-per-open focusOnOpen and the transfer places focus (TR-66, TR-68). */
+ * once-per-open focusOnOpen and the transfer places focus (TR-66, TR-68). A window that is open
+ * but still loading (a toolbar open, a mount failure before Retry) is treated the same: the held
+ * transfer, not the opener, places focus once the calculator mounts. */
 function openWindow(s: TransferState, trigger: TransferTrigger): void {
-  if (s.options.open) return;
+  if (s.options.open) {
+    if (!s.handle && !s.opened) s.opened = { trigger, focusDue: true };
+    return;
+  }
   s.opened = { trigger, focusDue: true };
   s.options.onOpenChange(true);
 }
