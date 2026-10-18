@@ -337,3 +337,58 @@
   clip-path: inset(50%);
   white-space: nowrap;
 }
+
+/* S-2, S-11: the Add item menu, a popover below Add item (desktop) or to its right (stacked). */
+.kc-add-item {
+  position: relative;
+  display: inline-flex;
+}
+
+.kc-add-menu {
+  position: absolute;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  min-width: 9rem;
+  padding: 4px;
+  border: 1px solid var(--kc-boundary);
+  border-radius: 6px;
+  background: var(--kc-key);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--kc-text) 20%, transparent);
+}
+
+.kc-add-menu[data-placement="below"] {
+  top: calc(100% + 6px);
+  left: 0;
+}
+
+.kc-add-menu[data-placement="right"] {
+  top: 0;
+  left: calc(100% + 6px);
+}
+
+.kc-add-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  padding: 4px 8px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--kc-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.kc-add-menu-item:hover,
+.kc-add-menu-item:focus-visible {
+  background: var(--kc-chrome);
+}
+
+@media (pointer: coarse) {
+  .kc-add-menu-item {
+    min-height: 44px;
+  }
+}

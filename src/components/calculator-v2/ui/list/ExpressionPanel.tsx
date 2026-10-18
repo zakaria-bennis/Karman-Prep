@@ -13,7 +13,6 @@ import {
   ChevronsRight,
   Keyboard,
   Pencil,
-  Plus,
   Redo2,
   Undo2,
   type LucideIcon,
@@ -32,10 +31,11 @@ import type { CalculatorEngine } from "@/lib/calculator-v2/core/api/engine";
 import { useAnnouncer } from "../a11y/announcer";
 import { FocusContext } from "../focus/focus-controller";
 import { useEngine, useEngineSnapshot } from "../hooks/use-engine";
+import { AddItemMenu } from "./AddItemMenu";
 import { createRowAnnouncements } from "./announcements";
 import { ExpressionRow } from "./ExpressionRow";
 import { MotionContext } from "./motion";
-import { clearAllRows, insertRowBelow, performRedo, performUndo } from "./row-actions";
+import { clearAllRows, performRedo, performUndo } from "./row-actions";
 import { useRowPresence } from "./row-presence";
 
 type ListState = "expanded" | "collapsing" | "collapsed" | "expanding";
@@ -249,11 +249,7 @@ export function ExpressionPanel(props: ExpressionPanelProps): JSX.Element {
           style={list.overlayStyle}
         >
           <div className="kc-list-toolbar" role="toolbar" aria-label="List tools">
-            <ToolButton
-              label="Add item"
-              icon={Plus}
-              onClick={() => insertRowBelow(engine, focus, announcer, null, "focus")}
-            />
+            <AddItemMenu layout={props.layout} />
             {props.layout === "stacked" && (
               <ToolButton
                 label="Keypad"

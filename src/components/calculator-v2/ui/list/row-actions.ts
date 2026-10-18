@@ -7,7 +7,7 @@
 import type { CalculatorEngine, EditRefusal } from "@/lib/calculator-v2/core/api/engine";
 import type { MathField } from "../../math-field/MathField";
 import type { Announcer } from "../a11y/announcer";
-import type { FocusController } from "../focus/focus-controller";
+import { cellKey, type FocusController } from "../focus/focus-controller";
 import { EDITOR_MESSAGES } from "./messages";
 
 /** How many editThroughKeypad calls are running on each field (nested calls stay batched). */
@@ -49,6 +49,40 @@ export function insertRowBelow(
   }
   if (mode === "focus") focus.focusRow(inserted.id, "start");
   else focus.activateRow(inserted.id);
+  return inserted.id;
+}
+
+/** S-12, S-13: Add expression; a new empty row after `anchor` (the end for null), focused, announced. */
+export function insertExpressionItem(
+  engine: CalculatorEngine,
+  focus: FocusController,
+  announcer: Announcer | null,
+  anchor: string | null
+): string | null {
+  const id = insertRowBelow(engine, focus, announcer, anchor, "focus");
+  if (id !== null)
+    announcer?.announce(EDITOR_MESSAGES.added("Expression", indexOf(engine, id) + 1));
+  return id;
+}
+
+/**
+ * S-12, S-13, D-5: Add table; an empty active row becomes the table, any other anchor gets one
+ * after it, and focus goes to the first x cell.
+ */
+export function insertTableItem(
+  engine: CalculatorEngine,
+  focus: FocusController,
+  announcer: Announcer | null,
+  anchor: string | null
+): string | null {
+  const inserted =
+    anchor === null ? engine.insertTableAfter(null) : engine.replaceWithTable(anchor);
+  if (typeof inserted === "string") {
+    announcer?.announce(EDITOR_MESSAGES.rowLimit);
+    return null;
+  }
+  focus.focusRow(cellKey(inserted.id, 0, 0), "start");
+  announcer?.announce(EDITOR_MESSAGES.added("Table", indexOf(engine, inserted.id) + 1));
   return inserted.id;
 }
 

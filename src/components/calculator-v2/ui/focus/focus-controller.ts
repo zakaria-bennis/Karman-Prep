@@ -22,6 +22,11 @@ export interface FocusController {
 
 type Caret = "start" | "end";
 
+/** D-5, D-19: the focus key of a table cell (a data row, or "h" for the header). */
+export function cellKey(rowId: string, column: number, row: number | "h"): string {
+  return `${rowId}:${column}:${row}`;
+}
+
 function scrollToField(field: MathField): void {
   field.element.scrollIntoView?.({ block: "nearest" });
 }
