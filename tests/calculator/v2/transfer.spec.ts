@@ -384,6 +384,7 @@ test("TR-53, TH-1, TH-14 in all 12 skins the glyph is 4.5:1 on the button, the b
   for (const skin of SKIN_IDS) {
     await applySkin(page, skin);
     await page.mouse.move(5, 790);
+    await settled(page); // the site's colour transitions (a choice's transition-all) end first
     for (const [label, a, focus] of [
       ["stem", anchor(page, "y>2x+1"), control(page, "y>2x+1")],
       ["choice", choiceAnchor(page, "A"), choiceControl(page, "A")],
