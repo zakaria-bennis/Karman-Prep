@@ -15,6 +15,7 @@ import {
   type Deadline,
 } from "../core/deadline";
 import { compileExpression, evaluateRows, type CompileScope } from "../core/eval/compile";
+import type { DataSink, TableResult } from "../core/data/evaluate";
 import { UNDEFINED, type Value } from "../core/eval/values";
 import { parseLatex, type ParseResult } from "../core/latex/index";
 import { buildCompileScope, plotInputFor } from "../plot/from-analysis";
@@ -52,6 +53,7 @@ export const DEFAULT_COMPUTE: ComputeFns = Object.freeze({
 export interface ValuesOutcome {
   analysis: AnalysisResult;
   values: ReadonlyMap<string, Value>;
+  tables: ReadonlyMap<string, TableResult>; // D-11, by table row id
   scope: CompileScope;
   overrun: ReadonlySet<string>;
 }
@@ -104,10 +106,16 @@ export function runValuesPass(
   const full = fns.analyzeRows(sources, settings),
     overrun = new Set<string>();
   let analysis = full,
-    values: ReadonlyMap<string, Value> = new Map();
+    values: ReadonlyMap<string, Value> = new Map(),
+    tables = new Map<string, TableResult>();
   for (;;) {
     try {
-      values = fns.evaluateRows(analysis, settings, roundDeadlines(ctx, overrun));
+      tables = new Map();
+      const sink: DataSink = {
+        table: (rowId, table) => tables.set(rowId, table),
+        regression: () => undefined,
+      };
+      values = fns.evaluateRows(analysis, settings, roundDeadlines(ctx, overrun), sink);
       break;
     } catch (thrown) {
       if (thrown instanceof DeadlineExceeded && thrown.rowId !== null) {
@@ -133,9 +141,12 @@ export function runValuesPass(
     } else {
       const value = values.get(rowId) ?? UNDEFINED;
       ctx.post({ v: 1, type: "value", generation, rowId, jobId: null, value });
+      const table = tables.get(rowId);
+      if (table !== undefined) ctx.post({ v: 1, type: "table", generation, rowId, table });
     }
   }
-  return { analysis, values, scope: buildCompileScope(analysis, values, settings), overrun };
+  const scope = buildCompileScope(analysis, values, settings);
+  return { analysis, values, tables, scope, overrun };
 }
 
 /**

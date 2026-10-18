@@ -114,3 +114,24 @@ it("D-12 setColumnStyle changes one column's style and deleting a table leaves a
   e.undo();
   expect(table(id).type).toBe("table");
 });
+
+it("D-11 the worker posts a table result the snapshot exposes on the row view", async () => {
+  const m = createTestEngine(undefined, { backend: "main-thread" });
+  m.engine.setExpression({
+    id: "t",
+    type: "table",
+    columns: [
+      { latex: "x_{1}", values: ["1", "2"] },
+      { latex: "x_{1}^{2}", values: [] },
+    ],
+  });
+  await m.settled();
+  const view = m.engine.getSnapshot().rows.find((r) => r.id === "t")!;
+  expect(view.table?.analysis.columns.map((c) => c.role)).toEqual(["variable", "computed"]);
+  expect(view.table?.result?.columns[1].display).toEqual(["1", "4"]);
+  m.engine.editCell("t", 0, 1, "3", "api");
+  await m.settled();
+  const after = m.engine.getSnapshot().rows.find((r) => r.id === "t")!;
+  expect(after.table?.result?.columns[1].values).toEqual([1, 9]);
+  expect(m.received.some((msg) => msg.type === "table")).toBe(true);
+});

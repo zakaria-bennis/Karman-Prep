@@ -7,6 +7,7 @@ import type { PoiPoint } from "../../poi/types";
 import type { WorkerToMain } from "../../worker/protocol";
 import type { AnalysisResult } from "../analysis";
 import type { RowKind } from "../corpus/types";
+import type { TableResult } from "../data/evaluate";
 import type { Value } from "../eval/values";
 import type { StoredRow } from "./document";
 
@@ -20,6 +21,7 @@ export interface SentRow {
 export interface RowResult {
   value: Value | null;
   overrun: boolean;
+  table?: TableResult; // D-11: a table row's latest results
 }
 export interface InboxHooks {
   onFault(message: string): void;
@@ -32,10 +34,18 @@ const NO_RESULT: RowResult = Object.freeze({ value: null, overrun: false });
 
 /** The rows of a `state` send with the main thread's kind and graphability (AR-51). */
 export function sentRows(rows: readonly StoredRow[], analysis: AnalysisResult): SentRow[] {
-  return rows.map(({ id, latex, hidden }) => {
-    const { kind, isGraphable } = analysis.byId.get(id)!;
-    return { id, latex, hidden, kind, isGraphable };
+  return rows.map((row) => {
+    const { kind, isGraphable } = analysis.byId.get(row.id)!;
+    return { id: row.id, latex: rowSignature(row), hidden: row.hidden, kind, isGraphable };
   });
+}
+
+/** What makes a row's results stale: its latex, a table's columns, a regression's log mode. */
+function rowSignature(row: StoredRow): string {
+  if (row.type === "table") {
+    return JSON.stringify((row.columns ?? []).map((c) => [c.latex, c.values, c.hidden]));
+  }
+  return row.logMode === true ? `${row.latex}\u0000log` : row.latex;
 }
 
 export class ResultInbox {
@@ -105,6 +115,12 @@ export class ResultInbox {
         return this.store(message, { value: message.value, overrun: false });
       case "overrun":
         return this.store(message, { value: null, overrun: true });
+      case "table": {
+        if (!this.accepts(message)) return false;
+        const before = this.results.get(message.rowId) ?? NO_RESULT;
+        this.results.set(message.rowId, { ...before, table: message.table });
+        return true;
+      }
       case "plot": {
         const { generation, rowId, geometry } = message;
         const graphable = this.rows.get(rowId)?.isGraphable === true;

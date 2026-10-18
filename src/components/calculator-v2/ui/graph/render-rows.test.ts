@@ -40,6 +40,7 @@ const row = (id: string, kind: RowKind, extra: Partial<RowView> = {}): RowView =
   overrun: false,
   type: "expression",
   columns: null,
+  table: null,
   ...extra,
 });
 const curveG = (id: string): CurveGeometry => ({

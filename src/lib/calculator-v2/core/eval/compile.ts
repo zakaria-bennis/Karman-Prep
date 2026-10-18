@@ -9,6 +9,7 @@ import {
   type RowAnalysis,
 } from "../analysis/index";
 import { DeadlineExceeded, NO_DEADLINE, type Deadline } from "../deadline";
+import { evaluateTable, type DataSink } from "../data/evaluate";
 import type { Node } from "../latex/ast";
 import { isBuiltinName } from "../latex/operator-names";
 import { applyBuiltin } from "../lib/builtins";
@@ -317,7 +318,8 @@ function definitionBody(row: RowAnalysis): Node | null {
 export function evaluateRows(
   analysis: AnalysisResult,
   settings: EvalSettings,
-  deadlineFor: (rowId: string) => Deadline
+  deadlineFor: (rowId: string) => Deadline,
+  sink?: DataSink
 ): Map<string, Value> {
   const byRow = new Map<string, Value>(),
     values = new Map<string, Value>(),
@@ -344,6 +346,15 @@ export function evaluateRows(
   }
   for (const row of analysis.rows) {
     if (evaluable(row, ["value", "point"]) && row.tree !== null) evaluate(row.id, row.tree);
+  }
+  if (sink !== undefined) {
+    // D-11: tables after every value they can use; a row's deadline covers its whole table.
+    for (const row of analysis.rows) {
+      if (row.kind !== "table" || row.table === undefined) continue;
+      const deadline = deadlineFor(row.id);
+      deadline.check();
+      sink.table(row.id, evaluateTable(row, scope, deadline));
+    }
   }
   return byRow;
 }

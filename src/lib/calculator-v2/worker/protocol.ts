@@ -5,6 +5,7 @@ import type { RowError } from "../core/analysis";
 import type { RowKind } from "../core/corpus/types";
 import type { Value } from "../core/eval/values";
 import type { Geometry } from "../plot/geometry";
+import type { TableResult } from "../core/data/evaluate";
 import type { PoiPoint } from "../poi/types";
 import type { PixelSize, Viewport } from "../plot/viewport";
 
@@ -62,6 +63,7 @@ export type WorkerToMain =
   | { v: 1; type: "plot"; generation: number; rowId: string; geometry: Geometry }
   | { v: 1; type: "regression"; generation: number; rowId: string } // reserved; never sent before Phase 3
   | { v: 1; type: "poi"; generation: number; rowId: string; points: PoiPoint[] } // POI-1
+  | { v: 1; type: "table"; generation: number; rowId: string; table: TableResult } // D-11
   | { v: 1; type: "overrun"; generation: number; rowId: string } // AR-48 deadline or AR-49 watchdog
   | { v: 1; type: "heartbeat"; generation: number }
   | { v: 1; type: "done"; generation: number }
@@ -137,6 +139,13 @@ export function isWorkerMessage(data: unknown): data is WorkerToMain {
         isString(m.rowId) &&
         Array.isArray(m.points) &&
         m.points.every((p) => hasNumbers(p, ["x", "y"]) && Array.isArray((p as Fields).kinds))
+      );
+    case "table":
+      return (
+        isNumber(m.generation) &&
+        isString(m.rowId) &&
+        isRecord(m.table) &&
+        Array.isArray(m.table.columns)
       );
     case "begin":
     case "regression":

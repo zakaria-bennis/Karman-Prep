@@ -21,6 +21,7 @@ export interface ColumnAnalysis {
   tree: Node | null; // the header's tree
   error: RowError | null; // the header's warning (D-10)
   cellErrors: (RowError | null)[]; // per cell (D-6)
+  cells: (Node | null)[]; // each usable cell's tree; null when blank or in error
 }
 export interface TableAnalysis {
   columns: ColumnAnalysis[];
@@ -101,7 +102,9 @@ export function syntheticRows(
   const out: ParsedRow[] = [];
   names.forEach((name, j) => {
     if (name === null || !definable(name)) return;
-    const items = t.cells[j].map((cell) => (usableCell(cell, own, declared) ? cell.tree! : NAN));
+    const cells = [...t.cells[j]];
+    while (cells.length > 0 && cells[cells.length - 1].blank) cells.pop(); // D-11: trailing blanks
+    const items = cells.map((cell) => (usableCell(cell, own, declared) ? cell.tree! : NAN));
     const span = ZERO_SPAN;
     const body: Node = { kind: "list", items, span };
     const tree: Node = {
@@ -156,7 +159,8 @@ export function analyzeTable(
   const own = new Set(names.filter((n): n is string => n !== null));
   const columns = t.headers.map((h, j): ColumnAnalysis => {
     const cellErrors = t.cells[j].map((cell) => cellError(cell, own, declared));
-    const base = { index: j, tree: h.tree, cellErrors };
+    const cells = t.cells[j].map((cell, k) => (cellErrors[k] === null ? cell.tree : null));
+    const base = { index: j, tree: h.tree, cellErrors, cells };
     if (j === 0) {
       if (!isName(h.tree)) {
         return {

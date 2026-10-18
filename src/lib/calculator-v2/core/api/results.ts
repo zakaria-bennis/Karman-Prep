@@ -10,6 +10,8 @@ import { rowErrorMessage, type AnalysisResult, type RowAnalysis, type RowError }
 import type { RowKind } from "../corpus/types";
 import { formatValue } from "../eval/format";
 import type { Value } from "../eval/values";
+import type { TableResult } from "../data/evaluate";
+import type { TableAnalysis } from "../data/table-analysis";
 import type { StoredColumn, StoredRow } from "./document";
 import type { RowResult } from "./inbox";
 import type { ApiEvaluation, CalculatorSettings, ExpressionAnalysis } from "./types";
@@ -28,6 +30,11 @@ export interface RowView {
   overrun: boolean; // AR-48/AR-49 message showing
   type: "expression" | "table"; // D-1
   columns: readonly StoredColumn[] | null; // a table's stored columns
+  table: TableView | null; // D-10, D-11: a table's analysis and latest results
+}
+export interface TableView {
+  analysis: TableAnalysis;
+  result: TableResult | null; // null until the worker reports
 }
 export interface EngineSnapshot {
   revision: number;
@@ -127,6 +134,10 @@ export function buildRowView(row: StoredRow, analysis: RowAnalysis, result: RowR
     overrun,
     type: row.type === "table" ? "table" : "expression",
     columns: row.type === "table" ? (row.columns ?? []) : null,
+    table:
+      analysis.table === undefined
+        ? null
+        : { analysis: analysis.table, result: result.table ?? null },
   };
 }
 
