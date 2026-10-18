@@ -42,6 +42,10 @@ it("AR-16 payload.ts is an eager leaf with no imports and no browser globals", (
 it("TR-35, TR-36, TR-73 TRANSFER_MESSAGES holds table 11.1's copy", () => {
   expect(TRANSFER_MESSAGES.added("y = 2x + 3")).toBe("Added to calculator: y = 2x + 3.");
   expect(TRANSFER_MESSAGES.alreadyPresent(2)).toBe("Already in the calculator, row 2.");
+  expect(TRANSFER_MESSAGES.pairAppended("x₁", "y₁", 3)).toBe("Added to table x₁, y₁, row 3.");
+  expect(TRANSFER_MESSAGES.tableAdded(["x₁ is t", "y₁"], 2)).toBe(
+    "Added table to calculator: x₁ is t, y₁, 2 rows."
+  );
   expect(TRANSFER_MESSAGES.renamed("f₂", "f")).toBe("Added as f₂ because f is already defined.");
   expect(TRANSFER_MESSAGES.rejected).toBe("This can't be added to the calculator.");
   expect(TRANSFER_MESSAGES.unavailableRetry).toBe(

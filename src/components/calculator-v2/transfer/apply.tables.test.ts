@@ -108,3 +108,20 @@ it("TR-38, TR-73 a table transfer is one undo step, and an invalid or over-limit
     expect(applyTransfer(e, bad, "mouse").status, JSON.stringify(bad.table)).toBe("rejected");
   expect(e.getExpressions()).toEqual(before);
 });
+
+it("TR-35, D-18 a repeat transfer of a question table focuses the table it added while its values are unchanged; an edited one is added again", () => {
+  const e = seeded([{ id: "1", latex: "y=x" }]);
+  const payload = table(["x", "y"], [["1", "2"]]);
+  expect(applyTransfer(e, payload, "mouse").focusRowId).toBe("2");
+  expect(applyTransfer(e, payload, "mouse")).toEqual({
+    status: "already-present",
+    message: "Already in the calculator, row 2.",
+    focusRowId: "2",
+  });
+  e.editCell("2", 1, 0, "3", "api");
+  expect(applyTransfer(e, payload, "mouse")).toMatchObject({ status: "added", focusRowId: "3" });
+  expect(headersOf(e)).toEqual([
+    ["x_{1}", "y_{1}"],
+    ["x_{2}", "y_{2}"],
+  ]);
+});

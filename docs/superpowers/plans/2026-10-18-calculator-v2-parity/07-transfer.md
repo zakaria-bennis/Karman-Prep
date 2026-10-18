@@ -69,6 +69,28 @@ Tests `it("TR-22 only the two table 5.1 shapes are eligible")`, `it("TR-23 the f
 `it("D-18 a transferred table is editable and removed by the per-question reset")`.
 **Commit** `Apply calculator v2 table and point-row transfers (TR-34, TR-39, D-17, D-18)`.
 
+**Adaptations made while executing Task 16:**
+
+- The planning is split by concern so `plan.ts` and `apply.ts` stay small: `plan-table.ts`
+  (tables, Task 15), `plan-points.ts` (TR-34 point tables and the per-calculator registries) and
+  `fit.ts` (TR-39, D-17). A "point" payload goes through the rows plan after each row is checked
+  to be a point of numeric constants; "evaluate" stays rejected until TR-31.
+- A point-table append uses `engine.editRows` (the quiz host's `KarmanCalculator` reaches it as its
+  internal `engine`; a bare engine is its own editor) instead of `setExpressions`, whose API-2
+  column shape would drop the table's D-12 lines and point styles. Creating a table, point rows and
+  rows still use `setExpressions`; the view fit uses the public `graphpaperBounds` and
+  `setMathBounds`. This widens TR-71's "public API only" by that one internal channel.
+- D-17's visibility test and fit need the added points' values when the transfer lands. They are
+  the payload's numeric constants (no names, TR-15 and TR-24), so `fit.ts` reads them once on the
+  main thread through the core's parser and compiler, at most 200 cells, rather than waiting for
+  the worker's table geometry (AR-51 keeps row values in the worker; these are not row values).
+- The point-table and source-table registries are keyed by the calculator object, which the quiz
+  remounts per question (R10, AR-58), and a registered point table is used only while that row
+  is still a two-column table with the names it was created with.
+- Table 11.1's "Pair appended" message is also used when the first Table row creates the point
+  table ("Added to table x₁, y₁, row 1."). A repeat transfer of a question table whose values are
+  unchanged focuses the table it added (TR-35, D-18's source id).
+
 ### Task 17: The Point or Table row chooser (TR-60, TR-61, TR-63)
 
 **Files:** `src/components/calculator/TransferChooser.tsx`, `TransferControl.tsx`; tests

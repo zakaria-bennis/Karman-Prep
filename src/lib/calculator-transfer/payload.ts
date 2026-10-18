@@ -28,6 +28,8 @@ export const TRANSFER_MESSAGES = {
   // parts: "x₁ is t" per column, or "x₁" when the column has no header (TR-25)
   tableAdded: (parts: readonly string[], rows: number): string =>
     `Added table to calculator: ${[...parts, `${rows} ${rows === 1 ? "row" : "rows"}`].join(", ")}.`,
+  pairAppended: (input: string, output: string, row: number): string =>
+    `Added to table ${input}, ${output}, row ${row}.`,
   alreadyPresent: (row: number): string => `Already in the calculator, row ${row}.`,
   renamed: (newName: string, name: string): string =>
     `Added as ${newName} because ${name} is already defined.`,

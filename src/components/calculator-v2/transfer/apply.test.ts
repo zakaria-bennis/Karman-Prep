@@ -118,6 +118,9 @@ it("TR-71 apply uses only the TransferTarget members of the public API and focus
           "focusExpression",
           "activateExpression",
           "settings",
+          "graphpaperBounds", // TR-39: read, and setMathBounds called, only when points are added
+          "setMathBounds",
+          "editRows", // a point-table append (plan-points.ts)
         ].includes(k)
     )
   ).toEqual([]);
