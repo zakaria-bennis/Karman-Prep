@@ -9,10 +9,14 @@ import {
   DESKTOP,
   anchor,
   box,
+  choiceAnchor,
+  choiceContainer,
+  choiceControl,
   control,
   hoverAt,
   item,
   must,
+  opacity,
   open,
   settled,
   tapItem,
@@ -82,6 +86,10 @@ test("TR-43, TR-46 the revealed Transfer control matches its baselines at fine a
       await expect(anchor(page, "y>2x+1")).toHaveAttribute("data-reveal", "coarse");
       expect((await box(glyph(page, "y>2x+1"))).width).toBe(20);
       await shoot(page, `inline-coarse-${s}.png`, [item(page, "y>2x+1"), control(page, "y>2x+1")]);
+      // Note 2's fourth state: the choice A cluster at coarse reveal (task 9's coarse rule).
+      await expect.poll(() => opacity(choiceAnchor(page, "A"))).toBe("1");
+      expect((await box(choiceControl(page, "A").locator("[data-transfer-glyph]"))).width).toBe(20);
+      await shoot(page, `choice-a-coarse-${s}.png`, [choiceContainer(page, "A")]);
     }
   }
 });

@@ -12,3 +12,10 @@
 [data-calculator="v2"][data-calculator] {
   transition: none;
 }
+/* TR-42, AR-11: on any coarse pointer the v2 cluster itself is always visible too, with no hover
+   or pointer condition, so it applies whatever hover reports (OI-36). */
+@media (any-pointer: coarse) {
+  [data-calculator="v2"][data-calculator] {
+    opacity: 1;
+  }
+}

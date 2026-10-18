@@ -410,3 +410,18 @@ Task 8:
   hidden state's clip rule sets both to 1 px.
 - No non-null assertions: the helpers gain `must()`.
 - `npm run cf:build` (gate environment) exited 0, so Next accepted the module sheet's selectors.
+
+Task 9:
+
+- Step 0: `open-items.md` records OI-36 as accepted 2026-10-17, so the stylesheet check stands in
+  for AR-11's both-match profile.
+- The coarse glyph rule was already added in task 8 (see above); task 9 adds the two coarse
+  opacity rules only.
+- The coarse cluster baselines (`tr-43-46-choice-a-coarse-{ivory,observatory}-calculator-ios-darwin.png`)
+  need the calculator-ios project and a Mac, so they are not recorded here. The coarse branch was
+  exercised once on calculator-android through a temporary copy of the spec (inline coarse
+  outline with the 44 px control; choice A's control after cross-out with the 20 px glyph and
+  uncovered text, dark observatory), and those probe images were deleted, not committed.
+- `rows` and `answerState` use optional chaining instead of non-null assertions.
+- TR-41 passed before the coarse rules, as planned (task 6 built it); it is also the first
+  browser transfer through the D4 lazy bridge pipeline.

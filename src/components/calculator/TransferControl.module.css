@@ -88,8 +88,13 @@
   width: 20px;
   height: 20px;
 }
-/* TR-43: answer-choice controls show the coarse glyph whenever a coarse pointer exists (AR-11). */
+/* TR-42, TR-43, AR-11: whenever a coarse pointer exists, answer-choice controls are always
+   visible with the coarse glyph. The condition names no hover or pointer feature, so it applies
+   whatever hover reports (OI-36). */
 @media (any-pointer: coarse) {
+  .anchor[data-placement="cluster"][data-placement] {
+    opacity: 1;
+  }
   .anchor[data-placement="cluster"] .glyph {
     width: 20px;
     height: 20px;

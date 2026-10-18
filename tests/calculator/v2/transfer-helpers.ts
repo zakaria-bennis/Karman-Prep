@@ -82,3 +82,24 @@ export async function hoverAt(l: Locator, fx = 0.5, fy = 0.5) {
   const b = await box(l);
   await l.page().mouse.move(b.x + b.width * fx, b.y + b.height * fy);
 }
+/** The calculator's row latex, or null before the quiz host has set the harness. */
+export const rows = (page: Page) =>
+  page.evaluate(
+    () => globalThis.__calculatorHarness?.engine.getExpressions().map((e) => e.latex ?? "") ?? null
+  );
+/** What a transfer must never change: the answer, cross-outs, submit readiness and skip. */
+export const answerState = (page: Page) =>
+  page.evaluate(() => ({
+    checked: [...document.querySelectorAll<HTMLInputElement>("input[type=radio]")].filter(
+      (r) => r.checked
+    ).length,
+    crossed: document.querySelectorAll('[aria-label^="Restore choice"]').length,
+    ready: [...document.querySelectorAll<HTMLButtonElement>("button")].filter(
+      (b) =>
+        /^(Submit Answer|Check answer|Next Question)/.test(b.textContent?.trim() ?? "") &&
+        !b.disabled
+    ).length,
+    skip: [...document.querySelectorAll("button")].some((b) =>
+      b.textContent?.includes("Skip this question")
+    ),
+  }));
