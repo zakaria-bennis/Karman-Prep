@@ -4,9 +4,11 @@
 // quiz routes' eager budget, so eager code reaches them, and the wrappers' item lookup in
 // transfer-items.ts, only through these import()s, loaded together in their own chunks apart from
 // the calculator's. Callers render no Transfer control until all have resolved; a failed chunk
-// renders none and the next caller retries.
+// renders none and the next caller retries. The bridge's lazy pipeline (transfer-bridge-core.ts)
+// loads with them.
 
 import { useEffect, useState } from "react";
+import { loadTransferCore } from "./use-transfer-bridge";
 
 export type TransferClassifier = typeof import("@/lib/calculator-transfer/classify") &
   typeof import("./transfer-items") & {
@@ -23,6 +25,7 @@ export function loadTransferClassifier(): Promise<TransferClassifier> {
       import("@/lib/calculator-transfer/classify"),
       import("./transfer-items"),
       import("./TransferControl"),
+      loadTransferCore(), // the bridge's pipeline, so a control's transfer never waits for it
     ]).then(([classify, items, control]) => {
       loaded = { ...classify, ...items, TransferControl: control.TransferControl };
       return loaded;

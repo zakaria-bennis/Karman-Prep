@@ -67,6 +67,7 @@ async function scope(
     mount?: (options: QuizMountOptions) => ReturnType<typeof fakeHandle>;
     fullScreen?: boolean;
     loadFails?: boolean;
+    lazyCore?: boolean; // leave the bridge's lazy pipeline unloaded (D4)
   } = {}
 ) {
   vi.resetModules();
@@ -82,6 +83,8 @@ async function scope(
     return { mountQuizCalculator };
   });
   const S = await import("./CalculatorScope");
+  // D4: a Transfer control renders only once the bridge's lazy pipeline has loaded with it.
+  if (!o.lazyCore) await (await import("./use-transfer-bridge")).loadTransferCore();
   const { CalculatorVersionProvider } = await import("./CalculatorVersion");
   // the instances the reset scope uses
   const { calculatorWindowStore: store } = await import("./calculator-window-store");
@@ -177,8 +180,17 @@ it("AR-10 the v2 bridge exposes status, transfer and prefetch, hands each payloa
     "src/components/calculator-v2/host/quiz-host.ts",
     "src/components/calculator/CalculatorScope.tsx",
     "src/components/calculator/use-transfer-bridge.ts",
+    "src/components/calculator/transfer-bridge-core.ts",
   ])
     expect(readFileSync(file, "utf8"), file).not.toMatch(/\.subscribe\(/);
+});
+
+it("AR-33, AR-10 a transfer made before the bridge's lazy pipeline has loaded waits for it, then opens the calculator and applies", async () => {
+  const s = await scope({ lazyCore: true });
+  const out = send(s, payload(1), "touch");
+  await waitFor(() => expect(out.result?.status).toBe("added"));
+  expect(s.handles[0].applyTransfer.mock.calls).toEqual([[payload(1), "touch"]]);
+  expect(s.status()).toHaveTextContent("Added to calculator: y=1x.");
 });
 
 it("AR-17 transfers made while loading wait in order with their triggers, the 21st is refused and a question change discards the queue silently", async () => {

@@ -1,12 +1,11 @@
 "use client";
 
-import { useLayoutEffect, useMemo, useState, useSyncExternalStore, type JSX } from "react";
+import { useMemo, useState, type JSX } from "react";
 import { ClipboardPaste, ChevronDown, Table2, MapPin, Copy } from "lucide-react";
 import { normalizeMath, parseText, tablePayload, type PastePayload } from "@/lib/calculator/paste";
 import type { StemInput } from "@/lib/calculator-transfer/classify";
-import { useCalculator, type V2Bridge } from "./CalculatorScope";
+import { useCalculator } from "./CalculatorScope";
 import { useTransferClassifier, type TransferClassifier } from "./transfer-classifier";
-import type { TransferControlView } from "./transfer-items";
 import styles from "./calculator.module.css";
 
 function PasteAction({ payload, label }: { payload: PastePayload | null; label: string }) {
@@ -110,73 +109,14 @@ function PasteAction({ payload, label }: { payload: PastePayload | null; label: 
 }
 
 // AR-11 wrappers: each reads useCalculator() once and renders the v1 PasteAction path unchanged
-// or the v2 Transfer control (14). v2 controls come from the lazy classifier chunk (D4), so they
-// render nothing until it has loaded.
-
-// Stem registry (decision "AnswerChoiceButton"): the stem a question's own MathText renders,
-// by question key, for choice wrappers whose caller passes no stem.
-const stems = new Map<string, StemInput>();
-const stemListeners = new Set<() => void>();
-const notifyStems = () => stemListeners.forEach((listener) => listener());
-const subscribeStems = (listener: () => void) => {
-  stemListeners.add(listener);
-  return () => void stemListeners.delete(listener);
-};
-
-function useRegisterStem(questionKey: string, stem: StemInput | undefined) {
-  useLayoutEffect(() => {
-    if (stem === undefined) return;
-    stems.set(questionKey, stem);
-    notifyStems();
-    return () => {
-      if (stems.get(questionKey) !== stem) return;
-      stems.delete(questionKey);
-      notifyStems();
-    };
-  }, [questionKey, stem]);
-}
-
-function useQuestionStem(questionKey: string): StemInput | null {
-  return useSyncExternalStore(
-    subscribeStems,
-    () => stems.get(questionKey) ?? null,
-    () => null
-  );
-}
-
-function renderControl(t: TransferClassifier | null, view: TransferControlView | null) {
-  if (t === null || view === null) return null;
-  const { TransferControl } = t;
-  return <TransferControl {...view} />;
-}
-
-function V2SourceAction(props: {
-  latex: string;
-  segmentIndex?: number;
-  stem?: StemInput;
-  bridge: V2Bridge;
-}) {
-  const { latex, segmentIndex, stem, bridge } = props;
-  useRegisterStem(bridge.questionKey, stem);
-  const t = useTransferClassifier(stem !== undefined && segmentIndex !== undefined);
-  const view =
-    t && stem !== undefined && segmentIndex !== undefined
-      ? t.stemControl(stem, segmentIndex, latex)
-      : null;
-  return renderControl(t, view);
-}
-
-function V2ChoiceAction(props: {
-  text: string;
-  letter: string;
-  stem?: StemInput;
-  slot?: "cluster";
-  bridge: V2Bridge;
-}) {
-  const { text, letter, stem, slot, bridge } = props;
-  const registered = useQuestionStem(bridge.questionKey);
-  const t = useTransferClassifier(slot === "cluster");
-  return renderControl(t, t && t.choiceControl(letter, text, stem ?? registered));
+// or the v2 Transfer control (14). The v2 parts, the stem registry included, come from the lazy
+// transfer chunk (D4, transfer-items.tsx), so they render nothing until it has loaded.
+function V2Transfer(props: {
+  active: boolean;
+  part(t: TransferClassifier): JSX.Element;
+}): JSX.Element | null {
+  const t = useTransferClassifier(props.active);
+  return t && props.part(t);
 }
 
 function V1SourceAction({ latex }: { latex: string }) {
@@ -197,7 +137,10 @@ export function CalculatorSourceAction(props: {
 }): JSX.Element | null {
   const bridge = useCalculator();
   return bridge?.version === "v2" ? (
-    <V2SourceAction {...props} bridge={bridge} />
+    <V2Transfer
+      active={props.stem !== undefined}
+      part={(t) => <t.StemTransferAction {...props} questionKey={bridge.questionKey} />}
+    />
   ) : (
     <V1SourceAction latex={props.latex} />
   );
@@ -233,7 +176,13 @@ export function CalculatorChoiceAction(props: {
   slot?: "cluster";
 }): JSX.Element | null {
   const bridge = useCalculator();
-  if (bridge?.version === "v2") return <V2ChoiceAction {...props} bridge={bridge} />;
+  if (bridge?.version === "v2")
+    return (
+      <V2Transfer
+        active={props.slot === "cluster"}
+        part={(t) => <t.ChoiceTransferAction {...props} questionKey={bridge.questionKey} />}
+      />
+    );
   // v1 keeps its own instance below the choice; the v2-only cluster instance renders nothing.
   return props.slot === "cluster" ? null : (
     <V1ChoiceAction text={props.text} letter={props.letter} />

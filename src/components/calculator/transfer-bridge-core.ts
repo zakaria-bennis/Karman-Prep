@@ -1,0 +1,140 @@
+// Lazy (D4, AR-33): the v2 bridge's transfer pipeline behind use-transfer-bridge.ts's eager hook,
+// loaded through its import() (and together with the Transfer control's chunk): the question-key
+// check (TR-70), the held queue while the calculator loads (AR-17), the drain into the guarded
+// handle, holds across a mount failure and discards after a load failure (TR-69, OI-28), the
+// tap-selection clears (TR-57) and the quiz-side TR-67 announcement. Never imported by eager code.
+
+import {
+  MAX_QUEUED_TRANSFERS,
+  TRANSFER_MESSAGES,
+  type TransferPayload,
+  type TransferResult,
+  type TransferTrigger,
+} from "@/lib/calculator-transfer/payload";
+import { reportCalculatorError } from "./report-error";
+import { markCoreRejection } from "./transfer-report";
+import { transferSelection } from "./transfer-selection";
+import type { TransferState } from "./use-transfer-bridge"; // type-only
+
+/** A scope left before its held payloads applied: nothing failed, so nothing is announced. */
+const DISCARDED: TransferResult = { status: "unavailable", message: "", focusRowId: null };
+const rejected = (): TransferResult => ({
+  status: "rejected",
+  message: TRANSFER_MESSAGES.rejected,
+  focusRowId: null,
+});
+const unavailableReload = (): TransferResult => ({
+  status: "unavailable",
+  message: TRANSFER_MESSAGES.unavailableReload,
+  focusRowId: null,
+});
+
+/** The announced text; a repeat of the current text is cleared and written again after 50 ms. */
+function announce(s: TransferState, message: string): void {
+  if (s.timer !== null) clearTimeout(s.timer);
+  s.timer = null;
+  if (message !== s.spoken) {
+    s.spoken = message;
+    s.say(message);
+    return;
+  }
+  s.spoken = "";
+  s.say("");
+  s.timer = setTimeout(() => {
+    s.timer = null;
+    s.spoken = message;
+    s.say(message);
+  }, 50);
+}
+
+/** transfer() on the v2 bridge, acting on the scope's current options. */
+export function transfer(
+  s: TransferState,
+  payload: TransferPayload,
+  trigger: TransferTrigger
+): Promise<TransferResult> {
+  const now = s.options;
+  // 0. A transfer that waited for this chunk while its scope unmounted: discarded (TR-69, TR-70).
+  if (!s.live) return Promise.resolve(DISCARDED);
+  // 1. TR-70: never applied to another question; said, but never marked as a core rejection.
+  if (payload.questionKey !== now.questionKey) {
+    announce(s, TRANSFER_MESSAGES.rejected);
+    return Promise.resolve(rejected());
+  }
+  transferSelection.clear(); // 2. TR-57
+  // 3. AR-17
+  if (s.held.length >= MAX_QUEUED_TRANSFERS) {
+    announce(s, TRANSFER_MESSAGES.tooManyWaiting);
+    return Promise.resolve({
+      status: "queue-full",
+      message: TRANSFER_MESSAGES.tooManyWaiting,
+      focusRowId: null,
+    });
+  }
+  // 4. OI-28: a failed import stays failed for the page.
+  if (now.status === "failed" && now.failure === "load") {
+    if (!now.open) now.onOpenChange(true);
+    announce(s, TRANSFER_MESSAGES.unavailableReload);
+    return Promise.resolve(unavailableReload());
+  }
+  if (!now.open) now.onOpenChange(true); // 5.
+  // 6. TR-69: a mount failure holds the payload until Retry succeeds.
+  if (now.status === "failed" && now.failure === "mount") {
+    announce(s, TRANSFER_MESSAGES.unavailableRetry);
+  }
+  return new Promise<TransferResult>((resolve) => {
+    s.held.push({ payload, trigger, resolve }); // 7.
+    s.bump();
+  });
+}
+
+/** The drain: every held payload, in order, once the window is open and the calculator ready.
+ * A guarded apply that threw returns undefined and drops the handle (AR-53); the rest then wait. */
+export function drain(s: TransferState): void {
+  const handle = s.handle;
+  if (!s.options.open || handle === null || s.options.status !== "ready") return;
+  while (s.held.length > 0 && s.handle === handle) {
+    const entry = s.held.shift();
+    if (entry === undefined) break;
+    let result: TransferResult;
+    try {
+      const applied: TransferResult | undefined = handle.applyTransfer(
+        entry.payload,
+        entry.trigger
+      );
+      if (applied === undefined || applied === null) result = rejected();
+      else result = applied.status === "rejected" ? markCoreRejection(applied) : applied;
+    } catch (error) {
+      reportCalculatorError(error, null);
+      result = rejected();
+    }
+    announce(s, result.message);
+    entry.resolve(result);
+  }
+}
+
+/** TR-69: a load failure discards held payloads with one announcement; a mount failure keeps
+ * them for Retry and says so once. */
+export function settleFailure(s: TransferState): void {
+  const { status, failure } = s.options;
+  if (status !== "failed" || s.held.length === 0) return;
+  if (failure === "load") {
+    announce(s, TRANSFER_MESSAGES.unavailableReload);
+    for (const entry of s.held.splice(0)) entry.resolve(unavailableReload());
+  } else if (failure === "mount") {
+    announce(s, TRANSFER_MESSAGES.unavailableRetry);
+  }
+}
+
+/** TR-57: opening the calculator ends a tap selection. */
+export function clearSelection(): void {
+  transferSelection.clear();
+}
+
+/** TR-69, TR-70: leaving the question discards held payloads silently and ends a selection. */
+export function dispose(s: TransferState): void {
+  if (s.timer !== null) clearTimeout(s.timer);
+  s.timer = null;
+  for (const entry of s.held.splice(0)) entry.resolve(DISCARDED);
+  transferSelection.clear();
+}

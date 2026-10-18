@@ -10,11 +10,9 @@ beforeEach(() => {
 
 // D4 (00-index section 7): 12's classifier and the Transfer control are too large for AR-33's
 // eager budget, so quiz code reaches them only through this loader's import()s, in their own chunks.
-it("AR-33 the eager transfer code reaches the classifier and TransferControl only through the loader's import(), never a static value import", () => {
+it("AR-33 the eager transfer code reaches the classifier, TransferControl and the bridge's pipeline only through import(), never a static value import", () => {
   const eager = [
     "src/components/calculator/use-transfer-bridge.ts",
-    "src/components/calculator/transfer-selection.ts",
-    "src/components/calculator/transfer-report.ts",
     "src/components/calculator/transfer-classifier.ts",
     "src/components/calculator/CalculatorScope.tsx",
     "src/components/calculator/CalculatorSourceAction.tsx",
@@ -33,15 +31,31 @@ it("AR-33 the eager transfer code reaches the classifier and TransferControl onl
   // wrappers' lazy item lookup
   const controlImport =
     /^import\s+(?!type\b)(?:[^;]*?from\s+)?"[^"]*(?:\/TransferControl(?:\.module\.css)?|\/transfer-control\.css|\/transfer-items)";/m;
+  // the bridge's pipeline and the modules only it and the control use (moved out of the eager
+  // budget with D4's extension): the key check, queue, drain, announcements, selection store and
+  // rejection marks
+  const pipelineImport =
+    /^import\s+(?!type\b)(?:[^;]*?from\s+)?"[^"]*\/(?:transfer-bridge-core|transfer-selection|transfer-report)";/m;
+  // eager code takes the payload contract as types only (TRANSFER_MESSAGES and the queue limit
+  // live in the lazy pipeline)
+  const payloadValue = /^import\s+(?!type\b)[^;]*?from\s+"@\/lib\/calculator-transfer\/payload";/m;
   for (const file of eager) {
     const source = readFileSync(file, "utf8");
     expect(source, file).not.toMatch(staticImport);
     expect(source, file).not.toMatch(controlImport);
+    expect(source, file).not.toMatch(pipelineImport);
+    expect(source, file).not.toMatch(payloadValue);
   }
+  const bridge = readFileSync("src/components/calculator/use-transfer-bridge.ts", "utf8");
+  expect(bridge).toMatch(/import\("\.\/transfer-bridge-core"\)/);
+  // the stem registry and the v2 wrapper bodies live in the lazy transfer-items.tsx
+  const wrappers = readFileSync("src/components/calculator/CalculatorSourceAction.tsx", "utf8");
+  expect(wrappers).not.toMatch(/useSyncExternalStore|useLayoutEffect/);
   const loader = readFileSync("src/components/calculator/transfer-classifier.ts", "utf8");
   expect(loader).toMatch(/import\("@\/lib\/calculator-transfer\/classify"\)/);
   expect(loader).toMatch(/import\("\.\/TransferControl"\)/);
   expect(loader).toMatch(/import\("\.\/transfer-items"\)/);
+  expect(loader).toMatch(/loadTransferCore\(\)/); // the pipeline loads with the controls
   // the control's stylesheets are imported only by the lazily loaded control
   const control = readFileSync("src/components/calculator/TransferControl.tsx", "utf8");
   expect(control).toMatch(/^import styles from "\.\/TransferControl\.module\.css";$/m);
