@@ -21,6 +21,7 @@ import {
   type JSX,
   type MouseEvent,
   type PointerEvent,
+  type TransitionEvent,
 } from "react";
 import { COMPLEX_HINT } from "@/lib/calculator-v2/core/analysis";
 import type { RowView } from "@/lib/calculator-v2/core/api/engine";
@@ -228,6 +229,14 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
     touchRef.current = event.pointerType === "touch";
   };
 
+  // L-14, L-2: a new row is focused while it still grows in (AN-5), so the focus scroll saw its
+  // collapsed height; once it has grown, the focused or active row is revealed again.
+  const onRowTransitionEnd = (event: TransitionEvent<HTMLLIElement>) => {
+    if (event.target !== event.currentTarget || exiting) return;
+    const { focusedRowId: focused, activeRowId: active } = engine.getSnapshot();
+    if ((focused ?? active) === row.id) itemRef.current?.scrollIntoView({ block: "nearest" });
+  };
+
   // R-1 (lead decision, Bluebook parity): a press anywhere on the row body that is not a row
   // control or the MathQuill field itself focuses the row's field with the caret at the end. The
   // mousedown is cancelled so focus does not leave for the frame first.
@@ -256,6 +265,7 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
       data-active={activeRowId === row.id ? "true" : undefined}
       data-motion={motion}
       aria-hidden={exiting ? "true" : undefined}
+      onTransitionEnd={onRowTransitionEnd}
     >
       <div
         className="kc-row-inner"

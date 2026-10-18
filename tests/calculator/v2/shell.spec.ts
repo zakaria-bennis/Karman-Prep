@@ -355,3 +355,60 @@ test("L-3 a row's math field draws no box, focused or not; the row's L-3 outline
     rowOutline: "solid 2px",
   });
 });
+test("L-2 phone: after typing six rows the list shows them, scrolls, and keeps the active row in view", async ({
+  page,
+  isMobile,
+}) => {
+  test.skip(!isMobile, "phone layout");
+  await openShell(page);
+  await rowField(page, "1").click(); // a click keeps the touch keypad closed, as the owner preview did
+  for (let i = 1; i <= 6; i++) {
+    await page.keyboard.type(`y=${i}x`);
+    if (i < 6) await page.keyboard.press("Enter");
+  }
+  await expect
+    .poll(async () => (await rows(page)).map((r) => r.id))
+    .toEqual(["1", "2", "3", "4", "5", "6"]);
+  const measure = () =>
+    page.locator("#calc .kc-list-body").evaluate((body) => {
+      const view = body.getBoundingClientRect();
+      const within = (r: DOMRect) => r.top >= view.top - 0.5 && r.bottom <= view.bottom + 0.5;
+      const all = [...body.querySelectorAll<HTMLElement>("[data-row-id]")];
+      const active = body.querySelector<HTMLElement>('[data-active="true"]');
+      return {
+        activeId: active?.getAttribute("data-row-id") ?? null,
+        activeInView: active !== null && within(active.getBoundingClientRect()),
+        enoughRowsInView: all.filter((r) => within(r.getBoundingClientRect())).length >= 3,
+        scrollable: ["auto", "scroll"].includes(getComputedStyle(body).overflowY),
+      };
+    });
+  // polled: the new row grows in over 200 ms (AN-5) before it can be fully in view
+  await expect
+    .poll(measure)
+    .toEqual({ activeId: "6", activeInView: true, enoughRowsInView: true, scrollable: true });
+});
+test("L-1 the graph and list fill the calculator's height while the keypad is closed and stop at the keypad when it opens", async ({
+  page,
+  isMobile,
+}) => {
+  test.skip(isMobile, "desktop layout");
+  await page.setViewportSize({ width: 1280, height: 760 });
+  await openShell(page);
+  const host = (await page.locator("#calc").boundingBox())!;
+  for (const cls of ["kc-graph-region", "kc-list-region"]) {
+    const b = await box(page, cls);
+    expect(Math.abs(b.y + b.height - (host.y + host.height)), cls).toBeLessThanOrEqual(1);
+  }
+  await api(page, "c.updateSettings({ keypad: true })");
+  // once the AN-1 slide has ended, the graph stops at the keypad's top edge
+  await expect
+    .poll(async () => {
+      const keypad = (await page.getByRole("region", { name: "Keypad" }).boundingBox())!;
+      const graph = await box(page, "kc-graph-region");
+      return [
+        Math.abs(graph.y + graph.height - keypad.y) <= 1,
+        keypad.y + keypad.height <= host.y + host.height + 1,
+      ];
+    })
+    .toEqual([true, true]);
+});
