@@ -14,6 +14,7 @@ export function rows(...latex: string[]): WireRow[] {
     columns: null,
     hidden: false,
     sliderBounds: null,
+    logMode: false,
   }));
 }
 

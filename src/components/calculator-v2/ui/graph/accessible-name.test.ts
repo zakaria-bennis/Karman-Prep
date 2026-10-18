@@ -25,6 +25,8 @@ const row = (id: string, kind: RowKind, extra: Partial<RowView> = {}): RowView =
   value: null,
   valueText: null,
   overrun: false,
+  type: "expression",
+  columns: null,
   ...extra,
 });
 const REGION_STUB: RegionGeometry = {

@@ -8,6 +8,7 @@ import type { Viewport } from "../../plot/viewport";
 import { CURVE_SLOTS } from "../../theme/skins";
 import { MAX_ROW_CHARACTERS, MAX_ROWS } from "../latex";
 import { KarmanCalculatorError } from "./errors";
+import { MAX_CELL_CHARACTERS, MAX_TABLE_COLUMNS, MAX_TABLE_ROWS } from "./document";
 import type {
   AxisSettings,
   CalculatorOptions,
@@ -233,8 +234,9 @@ const EXPRESSION_KEYS = [
   "sliderBounds",
   "columns",
 ] as const;
-// API-2 and OI-23: other item types are rejected as unsupported; tables until Phase 3 (API-3)
-const UNSUPPORTED_TYPES: readonly string[] = ["table", "note", "folder", "image", "text"];
+// API-2 and OI-23: other item types are rejected as unsupported; tables ship with D-1 (parity)
+const UNSUPPORTED_TYPES: readonly string[] = ["note", "folder", "image", "text"];
+const COLUMN_KEYS = ["latex", "values", "color", "hidden"] as const;
 const HEX_COLOUR = /^#[0-9a-f]{6}$/i;
 const SLIDER_KEYS = ["min", "max", "step"] as const;
 
@@ -273,6 +275,34 @@ const sliderBounds: Check<NonNullable<ExpressionState["sliderBounds"]>> = (
   };
 };
 
+/** D-1, D-6, D-8, D-9: at most 10 columns of at most 1,000 cells of at most 128 characters. */
+const columns: Check<NonNullable<ExpressionState["columns"]>> = (value, method, field) => {
+  if (!Array.isArray(value)) return invalid(method, `${field} must be an array`);
+  if (value.length > MAX_TABLE_COLUMNS)
+    invalid(method, `${field} has more than ${MAX_TABLE_COLUMNS} columns: at most 10 columns`);
+  return value.map((item: unknown, i) => {
+    const name = `${field}[${i}]`;
+    const fields = strictObject(item, method, name, COLUMN_KEYS);
+    const values = own(fields, "values");
+    if (!Array.isArray(values) || values.length > MAX_TABLE_ROWS) {
+      invalid(method, `${name}.values must be an array of at most ${MAX_TABLE_ROWS} strings`);
+    }
+    const column: NonNullable<ExpressionState["columns"]>[number] = {
+      latex: text(own(fields, "latex"), method, `${name}.latex`),
+      values: values.map((v: unknown, k: number) => {
+        const cell = text(v, method, `${name}.values[${k}]`);
+        if (cell.length > MAX_CELL_CHARACTERS) invalid(method, `${name}.values[${k}] is too long`);
+        return cell;
+      }),
+    };
+    if (own(fields, "color") !== undefined)
+      column.color = colour(own(fields, "color"), method, `${name}.color`);
+    if (own(fields, "hidden") !== undefined)
+      column.hidden = bool(own(fields, "hidden"), method, `${name}.hidden`);
+    return column;
+  });
+};
+
 /**
  * One expression state named `field`; `prefix` starts each field's name in messages ("" or
  * "expressions[i]."). Omitted fields stay omitted.
@@ -294,7 +324,9 @@ function expressionFields(
   const value = (key: (typeof EXPRESSION_KEYS)[number]) => own(fields, key);
   const check = <T>(key: (typeof EXPRESSION_KEYS)[number], checker: Check<T>) =>
     checker(value(key), method, `${prefix}${key}`);
-  if (value("type") !== undefined) out.type = check("type", oneOf(["expression"] as const));
+  if (value("type") !== undefined) {
+    out.type = check("type", oneOf(["expression", "table"] as const));
+  }
   if (value("latex") !== undefined) out.latex = check("latex", latex);
   if (value("color") !== undefined) out.color = check("color", colour);
   if (value("hidden") !== undefined) out.hidden = check("hidden", bool);
@@ -305,7 +337,10 @@ function expressionFields(
     out.pointStyle = check("pointStyle", oneOf(["filled", "open", "cross"] as const));
   }
   if (value("sliderBounds") !== undefined) out.sliderBounds = check("sliderBounds", sliderBounds);
-  if (value("columns") !== undefined) invalid(method, `${prefix}columns needs type "table"`);
+  if (value("columns") !== undefined) {
+    if (out.type !== "table") invalid(method, `${prefix}columns needs type "table"`);
+    out.columns = check("columns", columns);
+  }
   return out;
 }
 

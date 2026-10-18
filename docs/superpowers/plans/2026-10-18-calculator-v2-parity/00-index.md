@@ -84,7 +84,7 @@ order and each ends in a commit.
 ### IDs by package
 
 - **02 poi:** POI-1, POI-2, POI-4 to POI-14, POI-16 to POI-20; A11Y-9; KB-14; K-9.
-- **03 tables:** D-1, D-4, D-6, D-10, D-11, D-20; API-2 (table type).
+- **03 tables:** D-1, D-4, D-6, D-10, D-11, D-20; API-3.
 - **03 tables-ui:** S-2, S-10 to S-13; D-5, D-7, D-8, D-9, D-12, D-13, D-16, D-19, D-41, D-42.
 - **04 regress:** PR-30; D-2, D-3, D-22, D-24 to D-34, D-36, D-37, D-39, D-44 to D-46; POI-3; K-8; A11Y-10.
 - **05 visual:** TH-6, TH-7, TH-8, TH-17, TH-19; G-25; L-3, L-16.
@@ -128,7 +128,7 @@ Appendix F gains a section "Parity increment scope" listing these IDs (02 Task 1
 | POI-9, POI-12, POI-13, POI-14    | A    | labels close on pan/zoom; 5-decimal floor; click rules; trace rounding       | 02 T2, T6, T7  |
 | POI-17 to POI-20                 | A    | add: selection, hit area, label placement, keyboard trace                    | 02 T4 to T8    |
 | A11Y-9, KB-14, K-9               | E    | Desmos kind words; Page Up/Down in trace and `[` `]` kept; keypad trace key  | 02 T8          |
-| D-1, D-4, D-6, D-10, D-11, API-2 | B, D | tables ship; defined list names make computed columns; empty header          | 03 T1 to T4    |
+| D-1, D-4, D-6, D-10, D-11, API-3 | B, D | tables ship; defined list names make computed columns; empty header          | 03 T1 to T4    |
 | S-2, S-10 to S-13                | E    | Expression and Table only; menu keyboard, placement, insertion, announcement | 03-ui T1       |
 | D-5, D-7, D-8, D-9, D-12, D-13   | B    | Desmos keyboard, no row/column buttons, style menu, toast                    | 03-ui T2 to T8 |
 | D-16, D-19, D-41, D-42           | B    | Zoom Fit; empty-cell names; add phone keypad and overflow rules              | 03-ui T7, T9   |

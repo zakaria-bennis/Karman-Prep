@@ -17,13 +17,30 @@ const DECIMAL_ID = /^[0-9]{1,15}$/;
 
 export interface StoredRow {
   readonly id: string;
-  readonly latex: string;
+  readonly latex: string; // "" for a table
   readonly color: string; // "c1".."c6" or "#rrggbb"
   readonly hidden: boolean;
   readonly lineStyle?: LineStyle;
   readonly pointStyle?: PointStyle;
   readonly sliderBounds?: { readonly min: string; readonly max: string; readonly step: string };
+  readonly type?: "table"; // D-1: absent for an expression row
+  readonly columns?: readonly StoredColumn[]; // tables only
+  readonly logMode?: boolean; // D-30: a regression row's Log mode checkbox
 }
+/** D-1: one table column; `values` holds each cell's LaTeX, "" for a blank cell. */
+export interface StoredColumn {
+  readonly latex: string; // the header
+  readonly values: readonly string[];
+  readonly color: string;
+  readonly hidden: boolean; // D-12: points off
+  readonly lines?: boolean; // D-12: points joined in row order
+  readonly lineStyle?: LineStyle;
+  readonly pointStyle?: PointStyle;
+}
+/** D-8, D-9: a table holds at most 1,000 data rows and 10 columns; D-6: a cell 128 characters. */
+export const MAX_TABLE_ROWS = 1000;
+export const MAX_TABLE_COLUMNS = 10;
+export const MAX_CELL_CHARACTERS = 128;
 
 export type HistoryStep =
   | { kind: "none" } // no undo entry (setState without allowUndo)
@@ -36,6 +53,10 @@ function freezeRows(rows: RowList): RowList {
   return Object.freeze(
     rows.map((row) => {
       if (row.sliderBounds !== undefined) Object.freeze(row.sliderBounds);
+      if (row.columns !== undefined) {
+        for (const column of row.columns) Object.freeze(Object.freeze(column).values);
+        Object.freeze(row.columns);
+      }
       return Object.freeze(row);
     })
   );
@@ -46,8 +67,29 @@ export function sameRows(a: RowList, b: RowList): boolean {
   return a.length === b.length && a.every((row, i) => sameRow(row, b[i]));
 }
 
+function sameColumns(a?: readonly StoredColumn[], b?: readonly StoredColumn[]): boolean {
+  if (a === b) return true;
+  if (a === undefined || b === undefined || a.length !== b.length) return false;
+  return a.every((c, i) => {
+    const d = b[i];
+    return (
+      c.latex === d.latex &&
+      c.color === d.color &&
+      c.hidden === d.hidden &&
+      c.lines === d.lines &&
+      c.lineStyle === d.lineStyle &&
+      c.pointStyle === d.pointStyle &&
+      c.values.length === d.values.length &&
+      c.values.every((v, k) => v === d.values[k])
+    );
+  });
+}
+
 function sameRow(a: StoredRow, b: StoredRow): boolean {
   if (a === b) return true;
+  if (a.type !== b.type || a.logMode !== b.logMode || !sameColumns(a.columns, b.columns)) {
+    return false;
+  }
   const sa = a.sliderBounds,
     sb = b.sliderBounds;
   return (

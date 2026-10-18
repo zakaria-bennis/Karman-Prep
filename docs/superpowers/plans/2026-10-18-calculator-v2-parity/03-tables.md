@@ -6,7 +6,7 @@
 analysed (its column names become list values every row can use), evaluated (cells, computed
 columns) and plotted as point series, with no UI yet (03-tables-ui adds it).
 
-**IDs:** D-1, D-4, D-6, D-10, D-11, D-20; API-2 (table type).
+**IDs:** D-1, D-4, D-6, D-10, D-11, D-20; API-3.
 
 **Owns:** `src/lib/calculator-v2/core/data/`; the table fields of `document.ts`, `state.ts`,
 `validate.ts`, `protocol.ts`, `inbox.ts`, `results.ts`; `plot/table.ts`.
@@ -33,18 +33,18 @@ columns) and plotted as point series, with no UI yet (03-tables-ui adds it).
 
 ---
 
-### Task 1: Stored tables, state and validation (D-1, D-4, D-20, API-2)
+### Task 1: Stored tables, state and validation (D-1, D-4, D-20, API-3)
 
 **Files:** Modify `core/api/document.ts`, `state.ts`, `validate.ts`, `types.ts`; create
 `core/data/naming.ts`; tests `core/api/engine.tables.test.ts`, `core/data/naming.test.ts`. Spec
-edit: API-2 in D accepts `type: "table"` with `columns`; D-1's phase tag.
+edit: API-3 in D's phase tag; D-1's phase tag.
 
 - [ ] **Step 1: failing tests.**
   - `it("D-4 a new table takes the lowest n whose x_n and y_n are unused by rows, headers and references")`: empty → x₁, y₁; with `x_{1}=3` → x₂, y₂; with a reference to `y_{2}` → x₃, y₃.
-  - `it("API-2 setExpression accepts a table with columns and getExpressions returns it")`.
+  - `it("API-3 setExpression accepts a table with columns and getExpressions returns it")`.
   - `it("D-20 table creation, a cell edit and a header edit are one undo step each, typing coalesces per table")`.
 - [ ] **Step 2:** fails. **Step 3:** implement `StoredColumn`, `sameRow` over columns, wire rows with `type`, `columns` and `logMode`, `toExpressionState` for tables, and the engine methods `insertTableAfter`, `replaceWithTable`, `editCell`, `editHeader`, `deleteTableRow`, `setColumnStyle` of `01-interfaces.md` section 5.
-- [ ] **Step 4:** PASS. **Step 5: commit** `Store calculator v2 tables with undo and API state (D-1, D-4, D-20, API-2)`.
+- [ ] **Step 4:** PASS. **Step 5: commit** `Store calculator v2 tables with undo and API state (D-1, D-4, D-20, API-3)`.
 
 ### Task 2: Table analysis (D-6, D-10, D-11)
 
@@ -87,4 +87,4 @@ synthetic definitions), `worker/pass.ts`, `worker/protocol.ts` (`table`), `core/
   - `it("D-11 each series draws in its column's colour, joined in row order only when lines are on")`.
 - [ ] **Step 2–4:** fail, implement, pass. **Step 5: commit** `Plot calculator v2 table columns as point series (D-11)`.
 
-**Package gate:** section 3 of `00-index.md`, `check-spec-ids --ids D-1,D-4,D-6,D-10,D-11,D-20,API-2`.
+**Package gate:** section 3 of `00-index.md`, `check-spec-ids --ids D-1,D-4,D-6,D-10,D-11,D-20,API-3`.

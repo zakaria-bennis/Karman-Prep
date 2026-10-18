@@ -21,6 +21,15 @@ import {
   type StoredRow,
 } from "./document";
 import { KarmanCalculatorError } from "./errors";
+import {
+  emptiedTable,
+  newTable,
+  usedNames,
+  withCell,
+  withColumnStyle,
+  withHeader,
+  withoutTableRow,
+} from "./table-edits";
 import { HelperRegistry, type HelperExpression } from "./helper-expression";
 import { ResultInbox, sentRows } from "./inbox";
 import { EngineObservers } from "./observers";
@@ -346,9 +355,77 @@ export class CalculatorEngine {
     return { id: row.id };
   }
 
+  /** D-5, S-12: a new table after `afterId` (at the end for null), named by D-4. */
+  insertTableAfter(afterId: string | null): { id: string } | EditRefusal {
+    const rows = this.doc.rows;
+    if (this.destroyed || rows.length >= MAX_ROWS) return "row-limit";
+    const after = afterId === null ? -1 : rows.findIndex((r) => r.id === afterId);
+    const index = after < 0 ? rows.length : after + 1;
+    const table = newTable(this.doc.nextId(), index, usedNames(rows, this.analysis));
+    this.commitRows([...rows.slice(0, index), table, ...rows.slice(index)], STEP, true);
+    return { id: table.id };
+  }
+
+  /** D-5, S-12: an empty expression row becomes a table in place; any other row gets one after it. */
+  replaceWithTable(rowId: string): { id: string } | EditRefusal {
+    const rows = this.doc.rows,
+      at = rows.findIndex((r) => r.id === rowId);
+    const row = rows[at];
+    if (row === undefined || row.type === "table" || row.latex !== "")
+      return this.insertTableAfter(rowId);
+    if (this.destroyed) return "row-limit";
+    const table = newTable(row.id, at, usedNames(rows, this.analysis));
+    this.commitRows(
+      rows.map((r) => (r.id === rowId ? table : r)),
+      STEP,
+      true
+    );
+    return { id: rowId };
+  }
+
+  /** D-6, D-8, D-20: one cell's LaTeX; typing coalesces per table (KB-2). */
+  editCell(
+    rowId: string,
+    column: number,
+    r: number,
+    latex: string,
+    source: EditSource
+  ): EditRefusal | null {
+    return this.editTable(rowId, source, (row) => withCell(row, column, r, latex));
+  }
+
+  /** D-9, D-10, D-20: one header's LaTeX; the column after the last adds a column. */
+  editHeader(rowId: string, column: number, latex: string, source: EditSource): EditRefusal | null {
+    return this.editTable(rowId, source, (row) => withHeader(row, column, latex));
+  }
+
+  /** D-8: data row `r` of a table removed, one undo step. */
+  deleteTableRow(rowId: string, r: number): void {
+    this.editTable(rowId, "api", (row) => withoutTableRow(row, r));
+  }
+
+  /** D-12: a column's style, one undo step. */
+  setColumnStyle(
+    rowId: string,
+    column: number,
+    style: Parameters<typeof withColumnStyle>[2]
+  ): void {
+    this.editTable(rowId, "api", (row) => withColumnStyle(row, column, style));
+  }
+
   /** R-9: deletes a row as one step; the last remaining row is never deleted, only emptied. */
   deleteRow(id: string): void {
     const rows = this.doc.rows;
+    const target = rows.find((r) => r.id === id);
+    if (target?.type === "table") {
+      const emptied = emptiedTable(target); // appendix F 32
+      this.commitRows(
+        rows.map((r) => (r.id === id ? emptied : r)),
+        STEP,
+        true
+      );
+      return;
+    }
     if (!rows.some((r) => r.id === id)) return;
     const next = rows.length === 1 ? [{ ...rows[0], latex: "" }] : rows.filter((r) => r.id !== id);
     this.commitRows(next, STEP, true);
@@ -473,6 +550,28 @@ export class CalculatorEngine {
   /** The rows with row `id` replaced by a changed copy; every other row keeps its object. */
   private withRow(id: string, change: Partial<StoredRow>): StoredRow[] {
     return this.doc.rows.map((row) => (row.id === id ? { ...row, ...change } : row));
+  }
+
+  /** Applies a table edit as one step, or as a KB-2 typing group for "typing" and "keypad". */
+  private editTable(
+    rowId: string,
+    source: EditSource,
+    edit: (row: StoredRow) => StoredRow | EditRefusal
+  ): EditRefusal | null {
+    const row = this.doc.rows.find((r) => r.id === rowId);
+    if (row === undefined || row.type !== "table") return null;
+    const next = edit(row);
+    if (typeof next === "string") return next;
+    const step: HistoryStep =
+      source === "typing" || source === "keypad"
+        ? { kind: "group", rowId, at: this.deps.now() }
+        : STEP;
+    this.commitRows(
+      this.doc.rows.map((r) => (r.id === rowId ? next : r)),
+      step,
+      true
+    );
+    return null;
   }
 
   /** Commits `rows` unless they equal the current list or the engine is destroyed. */
