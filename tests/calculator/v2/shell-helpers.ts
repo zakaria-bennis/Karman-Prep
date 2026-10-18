@@ -61,6 +61,20 @@ export function focusedRow(page: Page): Promise<string | null> {
   });
 }
 
+/** Taps `locator` on touch projects and clicks it otherwise. */
+export async function tap(isMobile: boolean, locator: Locator): Promise<void> {
+  if (isMobile) await locator.tap();
+  else await locator.click();
+}
+
+/** K-2: the inputmode attribute of the shadow root's active element, or null. */
+export function inputMode(page: Page): Promise<string | null> {
+  return page.evaluate(
+    () =>
+      document.querySelector("#calc")?.shadowRoot?.activeElement?.getAttribute("inputmode") ?? null
+  );
+}
+
 export async function box(
   page: Page,
   cls: string

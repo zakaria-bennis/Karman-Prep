@@ -1,17 +1,20 @@
 // Calculator v2 shell keyboard browser tests (10 Task 9): Escape layers by rank (KB-3), shortcuts
-// on event.code (KB-7) and the tab order of the assembled calculator (KB-13), on the harness page
-// /v2/calculator.html.
+// on event.code (KB-7), the tab order of the assembled calculator (KB-13) and the keypad visibility
+// policy (K-2, K-12; 10 Task 10), on the harness page /v2/calculator.html.
 
 import { expect, test, type Page } from "@playwright/test";
 import {
   api,
   enc,
   expectOrder,
+  focusedRow,
   frames,
+  inputMode,
   keypadOpen,
   openShell,
   rowField,
   rows,
+  tap,
   useConsoleGuard,
 } from "./shell-helpers";
 
@@ -217,4 +220,75 @@ test("KB-13 Undo, Redo, Clear all, Add item and every keypad key are tabbable in
   expect(
     (await tabCycle(page)).filter((d) => d.row || (d.keypad && !/^show keypad$/i.test(d.name)))
   ).toEqual([]);
+});
+
+test("K-2 fine pointer: the keypad starts hidden, Show keypad sits at the bottom left, and clicking a row keeps it closed", async ({
+  page,
+  isMobile,
+}) => {
+  test.skip(isMobile, "fine-pointer case");
+  await openShell(page, "?w=800&h=600");
+  const show = (await page.getByRole("button", { name: "Show keypad" }).boundingBox())!,
+    host = (await page.locator("#calc").boundingBox())!;
+  expect([show.x < host.x + host.width / 2, show.y > host.y + host.height / 2]).toEqual([
+    true,
+    true,
+  ]);
+  await rowField(page, "1").click();
+  await frames(page);
+  expect(await keypadOpen(page)).toBe(false);
+});
+test("K-2 coarse pointer: a row touch opens the keypad; after Hide keypad, row touches use the phone keyboard until Show keypad; defaults return per question", async ({
+  page,
+  isMobile,
+}) => {
+  test.skip(!isMobile, "touch projects");
+  await openShell(page);
+  await rowField(page, "1").tap();
+  await expect.poll(() => keypadOpen(page)).toBe(true);
+  await page.getByRole("button", { name: "Hide keypad" }).tap();
+  await rowField(page, "1").tap();
+  await frames(page);
+  expect([await keypadOpen(page), await inputMode(page)]).toEqual([false, "text"]);
+  await page.getByRole("button", { name: "Show keypad" }).tap();
+  await rowField(page, "1").tap();
+  await expect.poll(() => keypadOpen(page)).toBe(true);
+  await page.getByRole("button", { name: "Hide keypad" }).tap();
+  await page.evaluate(() => globalThis.__shell!.remount());
+  expect(await keypadOpen(page)).toBe(false);
+  await rowField(page, "1").tap();
+  await expect.poll(() => keypadOpen(page)).toBe(true);
+}); // the student's close does not carry into the next question
+test("K-2 hardware typing edits the row while the touch keypad is open", async ({ page }, info) => {
+  test.skip(info.project.name !== "calculator-ios", "touch device with a hardware keyboard");
+  await openShell(page);
+  await rowField(page, "1").tap();
+  await expect.poll(() => keypadOpen(page)).toBe(true);
+  expect(await inputMode(page)).toBe("none");
+  await page.keyboard.type("x+1");
+  await expect.poll(async () => (await rows(page))[0].latex).toBe("x+1");
+  await page.keyboard.press("Escape");
+  await expect.poll(() => keypadOpen(page)).toBe(false);
+  expect(await focusedRow(page)).toBe("1");
+  await page.getByRole("button", { name: "Show keypad" }).tap();
+  await page.getByRole("button", { name: "Hide keypad" }).tap();
+  await rowField(page, "1").tap();
+  await frames(page);
+  expect(await keypadOpen(page)).toBe(false);
+});
+test("K-12 opening the keypad, ABC page or Functions panel keeps the focused row and the caret", async ({
+  page,
+  isMobile,
+}) => {
+  await openShell(page, `?rows=${enc(["1", "x+12"])}`);
+  await tap(isMobile, rowField(page, "2"));
+  for (const key of ["End", "ArrowLeft", "ArrowLeft"]) await page.keyboard.press(key);
+  if (!isMobile) await tap(isMobile, page.getByRole("button", { name: "Show keypad" }));
+  await expect.poll(() => keypadOpen(page)).toBe(true);
+  for (const name of ["ABC", "ABC", "Functions"]) {
+    await tap(isMobile, page.getByRole("button", { name, exact: true }));
+    expect(await focusedRow(page)).toBe("2");
+  }
+  await page.keyboard.type("7");
+  await expect.poll(async () => (await rows(page))[1].latex).toBe("x+712");
 });
