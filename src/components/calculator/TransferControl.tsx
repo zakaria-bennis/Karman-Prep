@@ -6,7 +6,9 @@
 // focus always shows it (TR-59). Eager: no v2 code; the item comes from the lazy classifier (D4).
 
 import {
+  useCallback,
   useEffect,
+  useId,
   useLayoutEffect,
   useRef,
   useState,
@@ -16,7 +18,9 @@ import {
 } from "react";
 import { ArrowUpRight, Calculator } from "lucide-react";
 import type { TransferItem } from "@/lib/calculator-transfer/classify";
+import type { TransferPayload, TransferTrigger } from "@/lib/calculator-transfer/payload";
 import { useCalculator, type V2Bridge } from "./CalculatorScope";
+import { TransferChooser } from "./TransferChooser";
 import { isCoreRejection, reportTransferRejection } from "./transfer-report";
 import {
   isHoverPointer,
@@ -106,6 +110,9 @@ function V2TransferControl({
   const [focused, setFocused] = useState(false);
   const [hovered, setHovered] = useState(false);
   const [tooltip, setTooltip] = useState(false);
+  // TR-60: a pair's or function coordinate's control opens the chooser; `coarse` from its trigger
+  const [menu, setMenu] = useState<{ coarse: boolean } | null>(null);
+  const menuId = useId();
   const pointer = useRef({
     overItem: false,
     overControl: false,
@@ -115,15 +122,17 @@ function V2TransferControl({
     timer: null as ReturnType<typeof setTimeout> | null,
     focused: false,
     selected: false, // with focused, for the synchronous data-visible write
+    chooserOpen: false, // TR-47: the control stays while its chooser is open
     tooltip: false,
     escaped: false, // TR-49: hidden by Escape until the pointer leaves and re-enters the item
     leftSinceEscape: false,
     place: () => {}, // places the button now (inline and block)
   });
   const inlineOrBlock = placement !== "cluster";
-  const visible = focused || selected || hovered;
+  const visible = focused || selected || hovered || menu !== null;
   pointer.current.focused = focused;
   pointer.current.selected = selected;
+  pointer.current.chooserOpen = menu !== null;
   pointer.current.tooltip = tooltip;
 
   // The item element, its marker and (inline and block) the hover and tap listeners.
@@ -146,7 +155,7 @@ function V2TransferControl({
     const sync = () => {
       const on = (p.overItem || p.overControl) && !p.escaped;
       if (inlineOrBlock) {
-        const shown = p.focused || p.selected || on;
+        const shown = p.focused || p.selected || p.chooserOpen || on;
         if (shown && a.dataset.visible !== "true") p.place();
         a.dataset.visible = String(shown);
       } else if (p.overItem) a.dataset.hover = "true";
@@ -180,7 +189,7 @@ function V2TransferControl({
     // TR-49: Escape hides a hover- or tap-revealed control and its tooltip, without moving focus,
     // and is consumed only when it hid something. A cluster that TR-42 keeps visible is skipped.
     const escape = (e: KeyboardEvent) => {
-      if (e.key !== "Escape") return;
+      if (e.key !== "Escape" || p.chooserOpen) return; // an open chooser handles its own Escape
       if (!inlineOrBlock && window.matchMedia?.("(any-pointer: coarse)").matches) return;
       const hovered = (p.overItem || p.overControl) && !p.escaped;
       const hid = p.tooltip || p.timer !== null || p.selected || (!p.focused && hovered);
@@ -373,28 +382,28 @@ function V2TransferControl({
   useEffect(() => {
     const el = anchor.current?.previousElementSibling;
     if (!inlineOrBlock || !(el instanceof HTMLElement)) return;
-    if (selected || focused) el.setAttribute("data-transfer-selected", "true");
+    if (selected || focused || menu !== null) el.setAttribute("data-transfer-selected", "true");
     else el.removeAttribute("data-transfer-selected");
-  }, [selected, focused, inlineOrBlock]);
+  }, [selected, focused, menu, inlineOrBlock]);
 
   const revealedByHoverPen = () => {
     const p = pointer.current;
     return p.hoverType === "pen" && (p.overItem || p.overControl);
   };
 
-  async function activate(event: ReactMouseEvent) {
-    event.stopPropagation();
+  /** TR-68: the control has focus before the window opens, so the scope records it as the
+   * opener on every engine (Safari never focuses a clicked button). */
+  const focusControl = () => {
     const p = pointer.current;
-    const trigger = triggerFor(p.lastDown, revealedByHoverPen());
-    // TR-68: the control has focus before the window opens, so the scope records it as the opener
-    // on every engine (Safari never focuses a clicked button).
     p.focusing = true;
     button.current?.focus({ preventScroll: true });
     p.focusing = false;
-    p.lastDown = null;
+  };
+
+  async function run(payload: Omit<TransferPayload, "questionKey">, trigger: TransferTrigger) {
     transferSelection.clear();
     const { bridge: now, item: target } = current.current;
-    const result = await now.transfer({ ...target.payload, questionKey: now.questionKey }, trigger);
+    const result = await now.transfer({ ...payload, questionKey: now.questionKey }, trigger);
     if (result.status === "rejected" && isCoreRejection(result))
       // TR-73. The id after the first ":" (question-key.ts's questionIdFromKey rule, written here
       // so the eager question-key module keeps only makeQuestionKey, AR-33)
@@ -403,6 +412,29 @@ function V2TransferControl({
         target.ruleId
       );
   }
+
+  function activate(event: ReactMouseEvent) {
+    event.stopPropagation();
+    const p = pointer.current;
+    const trigger = triggerFor(p.lastDown, revealedByHoverPen());
+    focusControl();
+    p.lastDown = null;
+    // TR-56, TR-60: a pair or function coordinate opens (or closes) its chooser; the tap
+    // selection stays until a format is chosen (TR-48).
+    if (item.chooser) setMenu((m) => (m ? null : { coarse: trigger === "touch" || selected }));
+    else void run(item.payload, trigger);
+  }
+
+  const closeMenu = useCallback((returnFocus: boolean) => {
+    setMenu(null);
+    if (returnFocus) focusControl();
+  }, []);
+  const choose = (format: "point" | "tableRow", trigger: TransferTrigger) => {
+    const options = current.current.item.chooser;
+    setMenu(null);
+    focusControl();
+    if (options) void run(options[format], trigger);
+  };
 
   return (
     <span
@@ -417,6 +449,9 @@ function V2TransferControl({
         ref={button}
         type="button"
         aria-label={accessibleName}
+        aria-haspopup={item.chooser ? "menu" : undefined}
+        aria-expanded={item.chooser ? menu !== null : undefined}
+        aria-controls={menu !== null ? menuId : undefined}
         onPointerDown={(e) => {
           pointer.current.lastDown = { pointerType: e.pointerType };
           e.stopPropagation();
@@ -424,6 +459,11 @@ function V2TransferControl({
         onKeyDown={(e) => {
           pointer.current.lastDown = null;
           if (e.key === "Enter" || e.key === " ") e.stopPropagation();
+          if (e.key === "ArrowDown" && item.chooser && menu === null) {
+            e.preventDefault(); // TR-60: ArrowDown opens the chooser
+            e.stopPropagation();
+            setMenu({ coarse: selected });
+          }
         }}
         onFocus={() => {
           setFocused(true);
@@ -435,16 +475,35 @@ function V2TransferControl({
           setFocused(false);
           setTooltip(false);
         }}
-        onClick={(e) => void activate(e)}
+        onClick={activate}
       >
         <span data-transfer-glyph="" aria-hidden="true">
           <Calculator size={16} />
           <ArrowUpRight size={16} />
         </span>
       </button>
-      <span ref={tip} data-transfer-tooltip="" aria-hidden="true" hidden={!tooltip}>
+      <span
+        ref={tip}
+        data-transfer-tooltip=""
+        aria-hidden="true"
+        hidden={!tooltip || menu !== null}
+      >
         {TRANSFER_TOOLTIP}
       </span>
+      {menu !== null && item.chooser && button.current && (
+        <TransferChooser
+          id={menuId}
+          options={item.chooser}
+          questionKey={bridge.questionKey}
+          coarse={menu.coarse}
+          control={button.current}
+          item={
+            inlineOrBlock ? (anchor.current?.previousElementSibling as HTMLElement | null) : null
+          }
+          onChoose={choose}
+          onClose={closeMenu}
+        />
+      )}
     </span>
   );
 }

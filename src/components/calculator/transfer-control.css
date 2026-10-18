@@ -149,3 +149,57 @@
 [data-calculator-workspace][data-calculator-docked="true"] [data-question-layout] {
   padding-top: 24px;
 }
+/* TR-60 to TR-63: the format chooser, portalled to the body and placed by placeChooser. Items are
+   32 px tall for fine reveal and 44 px for coarse reveal; text uses --kcc-text on --kcc-chrome
+   (TR-53's 7:1), and nothing moves (TR-52). */
+[data-transfer-chooser] {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  min-width: 160px;
+  max-width: calc(100vw - 32px);
+  padding: 4px;
+  border-radius: 8px;
+  background: var(--kcc-chrome);
+  border: 1px solid var(--kcc-text-secondary);
+  transition: none;
+  animation: none;
+}
+[data-transfer-chooser] > [role="menuitem"] {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  box-sizing: border-box;
+  min-height: 32px;
+  margin: 0;
+  padding: 4px 10px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--kcc-text);
+  font:
+    14px/1.3 Arial,
+    sans-serif;
+  text-align: left;
+  cursor: pointer;
+}
+[data-transfer-chooser][data-reveal="coarse"] > [role="menuitem"] {
+  min-height: 44px;
+}
+[data-transfer-chooser] > [role="menuitem"]:focus,
+[data-transfer-chooser] > [role="menuitem"]:hover {
+  outline: 2px solid var(--kcc-focus);
+  outline-offset: -2px;
+}
+[data-transfer-chooser] > [aria-disabled="true"] {
+  cursor: default;
+}
+[data-transfer-reason] {
+  font-size: 12px;
+  font-style: italic;
+}

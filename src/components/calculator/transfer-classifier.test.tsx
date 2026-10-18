@@ -28,10 +28,10 @@ it("AR-33 the eager transfer code reaches the classifier, TransferControl and th
   // a value import of any calculator-transfer module but the eager payload leaf
   const staticImport =
     /^import\s+(?!type\b)[^;]*?from\s+"@\/lib\/calculator-transfer\/(?!payload")[^"]*";/m;
-  // any value import (or side-effect import) of TransferControl, its two stylesheets or the
-  // wrappers' lazy item lookup
+  // any value import (or side-effect import) of TransferControl, its chooser (TR-60), its two
+  // stylesheets or the wrappers' lazy item lookup
   const controlImport =
-    /^import\s+(?!type\b)(?:[^;]*?from\s+)?"[^"]*(?:\/TransferControl(?:\.module\.css)?|\/transfer-control\.css|\/transfer-items|\/transfer-lazy)";/m;
+    /^import\s+(?!type\b)(?:[^;]*?from\s+)?"[^"]*(?:\/TransferControl(?:\.module\.css)?|\/TransferChooser|\/transfer-control\.css|\/transfer-items|\/transfer-lazy)";/m;
   // the bridge's pipeline and the modules only it and the control use (moved out of the eager
   // budget with D4's extension): the key check, queue, drain, announcements, selection store and
   // rejection marks
@@ -69,6 +69,12 @@ it("AR-33 the eager transfer code reaches the classifier, TransferControl and th
   const control = readFileSync("src/components/calculator/TransferControl.tsx", "utf8");
   expect(control).toMatch(/^import "\.\/transfer-control\.css";$/m);
   expect(control).not.toMatch(/\.module\.css"/);
+  // the chooser, the table and pair classifiers load only with the lazy control (TR-60, TR-22)
+  expect(control).toMatch(/^import \{ TransferChooser \} from "\.\/TransferChooser";$/m);
+  const chooser = readFileSync("src/components/calculator/TransferChooser.tsx", "utf8");
+  expect(chooser).not.toMatch(/^import\s+(?!type\b)[^;]*?from\s+"@\/lib\/calculator-transfer\//m);
+  const items = readFileSync("src/components/calculator/transfer-items.tsx", "utf8");
+  expect(items).toMatch(/from "@\/lib\/calculator-transfer\/table";/);
 });
 
 it("AR-33 useTransferClassifier gives null until the lazy classifier and TransferControl resolve, then both, loading them once; an inactive caller gets null and loads nothing", async () => {

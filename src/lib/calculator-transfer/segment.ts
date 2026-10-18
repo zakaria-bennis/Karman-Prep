@@ -1,5 +1,5 @@
-// Segment grammar, types, Phase 1 gates and segment-level narrowing (TR-10 to TR-14, TR-18, TR-21,
-// TR-77). A recursive-descent recogniser over lex.ts tokens decides whether one normalised math
+// Segment grammar, types, Phase 1 gates and segment-level narrowing (TR-10 to TR-15, TR-17, TR-18,
+// TR-21, TR-77). A recursive-descent recogniser over lex.ts tokens decides whether one normalised math
 // segment is an expression, equation, inequality, function or system, and records the names each
 // row defines, uses and calls. Eager and framework-free; it never imports the v2 parser (AR-3,
 // TR-74), so the limits below repeat 02's values.
@@ -35,7 +35,14 @@ export interface SegmentRow {
   pointNames: string[];
 }
 
-export type SegmentKind = "expression" | "equation" | "inequality" | "function" | "system";
+export type SegmentKind =
+  | "expression"
+  | "equation"
+  | "inequality"
+  | "function"
+  | "system"
+  | "pair" // TR-15: one row of one or more coordinate pairs; pairs.ts reads the coordinates
+  | "functionCoordinate"; // TR-17: `name(a)=b`, its call not a dependency (TR-20)
 
 export type SegmentResult =
   | { ok: true; kind: SegmentKind; rows: SegmentRow[] }
@@ -484,8 +491,8 @@ function parseRow(tokens: QToken[], latex: string, functionNames: ReadonlySet<st
 }
 
 /** Decision 8's segment-level Phase 1 gates (TR-77). */
-function gate(p: ParsedRow, functionNames: ReadonlySet<string>) {
-  const { row, tokens, sums } = p;
+function gate(p: ParsedRow) {
+  const { row, tokens } = p;
   if (TRANSFER_PHASE < 2) {
     const hyperbolic = tokens.find((t) => t.kind === "fn" && /^(sinh|cosh|tanh)$/.test(t.text));
     if (hyperbolic) reject("TR-77", `${hyperbolic.text} waits for FN-68`);
@@ -498,18 +505,54 @@ function gate(p: ParsedRow, functionNames: ReadonlySet<string>) {
         : row.defines?.type === "value" && row.defines.name !== "r";
     if (usesR && !exempt) reject("TR-77", "r outside a definition waits for RC-18");
   }
-  // Phase 3 enables coordinate pairs (TR-15) and function coordinates (TR-17).
-  if (p.pair) reject("TR-77", "coordinate pairs wait for Phase 3");
-  const [left, right] = sums;
-  if (
-    sums.length === 2 &&
-    row.kind === "equation" &&
+}
+
+/** TR-17: `name(a)=b` with a question function name and numeric constants a and b. */
+function isFunctionCoordinate(p: ParsedRow, functionNames: ReadonlySet<string>): boolean {
+  const [left, right] = p.sums;
+  return (
+    p.sums.length === 2 &&
+    p.row.kind === "equation" &&
     left.t === "call" &&
     functionNames.has(left.name) &&
     isNumericConstant(left.arg) &&
     isNumericConstant(right)
-  )
-    reject("TR-77", "function coordinates wait for Phase 3");
+  );
+}
+
+/** TR-15: the tokens without capital-letter point labels (`A(2,3)`), or null when there are none. */
+function withoutPointLabels(tokens: QToken[]): QToken[] | null {
+  const out: QToken[] = [];
+  let depth = 0;
+  let itemStart = true;
+  for (let k = 0; k < tokens.length; k++) {
+    const t = tokens[k];
+    if (depth === 0 && itemStart && t.kind === "name" && /^[A-Z]$/.test(t.text)) {
+      if (is(tokens[k + 1], "open", "(")) continue;
+    }
+    if (t.kind === "open") depth++;
+    else if (t.kind === "close") depth--;
+    itemStart = depth === 0 && (t.kind === "comma" || t.kind === "semi");
+    out.push(t);
+  }
+  return out.length < tokens.length ? out : null;
+}
+
+/** A labelled pair list read without its labels, else null (decision: labels are not transferred). */
+function labelledPairs(
+  tokens: QToken[],
+  latex: string,
+  functionNames: ReadonlySet<string>
+): ParsedRow | null {
+  const unlabelled = withoutPointLabels(tokens);
+  if (unlabelled === null) return null;
+  try {
+    const parsed = parseRow(unlabelled, latex, functionNames);
+    return parsed.pair ? parsed : null;
+  } catch (error) {
+    if (error instanceof Reject) return null;
+    throw error;
+  }
 }
 
 /** Decision 7's segment-level narrowing (TR-21): each mirrors a v2 row error. */
@@ -600,14 +643,24 @@ function classify(
       );
     });
     if (rows.some((r) => r.row.kind === "expression")) reject("TR-12", "expression line");
-    for (const r of rows) gate(r, functionNames);
+    for (const r of rows) gate(r);
     for (const r of rows) narrow(r);
     return { ok: true, kind: "system", rows: rows.map((r) => r.row) };
   }
 
-  const parsed = parseRow(tokens, latex, functionNames);
+  const parsed =
+    labelledPairs(tokens, latex, functionNames) ?? parseRow(tokens, latex, functionNames);
   if (role === "stem" && isLoneSymbol(tokens)) reject("TR-10", "lone symbol");
-  gate(parsed, functionNames);
+  gate(parsed);
+  // TR-15: a pair list with no names; pairs.ts reads and checks its coordinates.
+  if (parsed.pair) {
+    if (parsed.row.names.length > 0 || parsed.row.calls.length > 0)
+      reject("TR-15", "a pair holds a name");
+    return { ok: true, kind: "pair", rows: [parsed.row] };
+  }
   narrow(parsed);
+  // TR-17, TR-20: the call of a function coordinate is its left side, never a dependency.
+  if (isFunctionCoordinate(parsed, functionNames))
+    return { ok: true, kind: "functionCoordinate", rows: [{ ...parsed.row, calls: [] }] };
   return { ok: true, kind: parsed.row.kind, rows: [parsed.row] };
 }

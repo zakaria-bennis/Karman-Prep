@@ -4,11 +4,19 @@
 // splitMathText call (decision 1). Eager and framework-free; it reads question text only and
 // imports nothing from the v2 calculator (AR-3, TR-74).
 
-import { splitMathText } from "../../components/learn/math-segments";
+import { splitMathText, type MathSegment } from "../../components/learn/math-segments";
 import { describeChoice, describeMath, describeSystem } from "./describe";
 import { lexQuestionMath, type QToken } from "./lex";
 import { FUNCTION_HEAD, proseFunctionNames } from "./names";
 import { normalizeQuestionMath } from "./normalize";
+import {
+  EVALUATE_REASONS,
+  functionCoordinateItem,
+  functionCoordinateParts,
+  inIntervalContext,
+  pairCoordinates,
+  pairItem,
+} from "./pairs";
 import type { TransferPayload } from "./payload";
 import {
   classifySegment,
@@ -33,13 +41,22 @@ export type TransferItemKind =
   | "function"
   | "system"
   | "choice"
-  | "table";
+  | "table"
+  | "pair"
+  | "functionCoordinate";
+/** TR-60, TR-61: the formats of a coordinate pair or function coordinate (pairs.ts). */
+export interface TransferChooser {
+  point: Omit<TransferPayload, "questionKey">;
+  tableRow: Omit<TransferPayload, "questionKey">;
+  evaluate: { label: string; reason: string } | null; // function coordinates: disabled (TR-62)
+}
 export interface TransferItem {
   sourceId: string; // "stem:<splitMathText index>", "choice:<letter>" or "table" (table.ts)
   kind: TransferItemKind;
   ruleId: string; // accepting rule, e.g. "TR-11"; the only content TR-73 reports
   description: string; // table 8.1
-  payload: Omit<TransferPayload, "questionKey">;
+  payload: Omit<TransferPayload, "questionKey">; // a chooser item's: its Point payload
+  chooser?: TransferChooser;
 }
 export type SegmentVerdict = { item: TransferItem } | { rule: string; detail: string };
 
@@ -52,6 +69,8 @@ const ACCEPTING_RULE: Readonly<Record<TransferItemKind, string>> = {
   system: "TR-12",
   choice: "TR-40",
   table: "TR-22",
+  pair: "TR-15",
+  functionCoordinate: "TR-17",
 };
 
 const MEMO_LIMIT = 200;
@@ -97,7 +116,7 @@ function functionHeads(latex: string): string[] {
 /** The kind of an accepted segment, its description and its payload rows. */
 function itemFor(
   sourceId: string,
-  kind: SegmentKind,
+  kind: Exclude<SegmentKind, "pair" | "functionCoordinate">,
   rows: readonly SegmentRow[],
   dependencies: string[]
 ): TransferItem {
@@ -136,6 +155,7 @@ interface StemSegment {
 class StemContext {
   readonly functionNames: ReadonlySet<string>;
   readonly segments: readonly StemSegment[];
+  private readonly split: readonly MathSegment[];
   private readonly candidates = new Map<number, SegmentRow>();
   private readonly definitions = new Map<string, number[]>();
   private readonly cycleSet: ReadonlySet<number>;
@@ -143,6 +163,7 @@ class StemContext {
 
   constructor(stem: StemInput | null) {
     const split = stem ? splitMathText(stem.text, stem.serializedFunctionLines, true, true) : [];
+    this.split = split;
     const math = split.flatMap((s, index) =>
       s.kind === "text" ? [] : [{ index, latex: normalizeQuestionMath(s.latex, "math") }]
     );
@@ -208,6 +229,8 @@ class StemContext {
     else if (!segment.result.ok)
       verdict = { rule: segment.result.rule, detail: segment.result.detail };
     else if (this.cycleSet.has(index)) verdict = { rule: "TR-21", detail: "cycle" };
+    else if (segment.result.kind === "pair" || segment.result.kind === "functionCoordinate")
+      verdict = this.chooserVerdict(index, segment.result.kind);
     else {
       const { kind, rows } = segment.result;
       const resolution = this.resolveRows(rows);
@@ -217,7 +240,7 @@ class StemContext {
           : {
               item: itemFor(
                 `stem:${index}`,
-                kind,
+                kind as Exclude<SegmentKind, "pair" | "functionCoordinate">,
                 rows,
                 resolution.dependencies.map((d) => d.latex)
               ),
@@ -225,6 +248,37 @@ class StemContext {
     }
     this.verdicts.set(index, verdict);
     return verdict;
+  }
+
+  /** TR-15 to TR-17: a pair or function-coordinate segment's item, read from its source text. */
+  private chooserVerdict(index: number, kind: "pair" | "functionCoordinate"): SegmentVerdict {
+    const source = this.split[index];
+    const raw = source.kind === "text" ? "" : source.latex;
+    const sourceId = `stem:${index}`;
+    if (kind === "pair") {
+      if (inIntervalContext(this.split, index)) return { rule: "TR-16", detail: "an interval" };
+      const pairs = pairCoordinates(raw);
+      return pairs ? { item: pairItem(sourceId, pairs) } : { rule: "TR-15", detail: "coordinates" };
+    }
+    const parts = functionCoordinateParts(raw);
+    if (parts === null) return { rule: "TR-17", detail: "coordinates" };
+    return { item: functionCoordinateItem(sourceId, parts, this.evaluateReason(parts)) };
+  }
+
+  /**
+   * TR-62's reason for the disabled Evaluate option (TR-31 is not shipped), from the question
+   * alone: no definition, several, one using a name with no value here, else no value yet.
+   */
+  evaluateReason({ name, a }: { name: string; a: string }): string {
+    const defined = this.definitions.get(name) ?? [];
+    if (defined.length === 0) return EVALUATE_REASONS.undefined(name);
+    if (defined.length > 1) return EVALUATE_REASONS.ambiguous(name);
+    const [row] = this.exportable(name);
+    if (row === undefined) return EVALUATE_REASONS.undefined(name);
+    const valueless = row.names.find((n) => this.exportable(n).length !== 1);
+    return valueless === undefined
+      ? EVALUATE_REASONS.noValue(name, a)
+      : EVALUATE_REASONS.usesName(name, valueless);
   }
 
   private isExportable(index: number): boolean {
@@ -352,15 +406,35 @@ export function explainChoice(choice: ChoiceInput, stem: StemInput | null): Segm
     ...proseFunctionNames(segments),
   ]);
   const rows: SegmentRow[] = [];
+  const kinds: SegmentKind[] = [];
   for (const l of latex) {
     const result = classifySegment(l, "choice", names);
     if (!result.ok) return { rule: result.rule, detail: result.detail };
     rows.push(...result.rows);
+    kinds.push(result.kind);
+  }
+  const sourceId = `choice:${choice.letter}`;
+  const description = describeChoice(choice.letter);
+  // TR-40: several pairs make a coordinate-pair item; a function coordinate stands alone.
+  if (kinds.every((k) => k === "pair")) {
+    const pairs = math.map(pairCoordinates);
+    if (pairs.some((p) => p === null)) return { rule: "TR-15", detail: "coordinates" };
+    return {
+      item: pairItem(
+        sourceId,
+        pairs.flatMap((p) => p ?? []),
+        description
+      ),
+    };
+  }
+  if (kinds.includes("functionCoordinate")) {
+    const parts = kinds.length === 1 ? functionCoordinateParts(math[0]) : null;
+    if (parts === null) return { rule: "TR-17", detail: "a function coordinate among other math" };
+    const reason = context.evaluateReason(parts);
+    return { item: functionCoordinateItem(sourceId, parts, reason, description) };
   }
   const resolution = context.resolveRows(rows);
   if ("rule" in resolution) return resolution;
-  const sourceId = `choice:${choice.letter}`;
-  const description = describeChoice(choice.letter);
   return {
     item: {
       sourceId,

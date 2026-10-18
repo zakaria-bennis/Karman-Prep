@@ -89,7 +89,7 @@ test("TR-76 with calculatorV2 off every call site renders Export to Karman uncha
   await expect(page.getByText(/Export to Karman|Copy for Desmos/)).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Export options" })).toHaveCount(0);
   await expect(anchors(page, "\\sin(30)")).toHaveCount(1);
-  await expect(anchors(page, "(1,2)")).toHaveCount(0);
+  await expect(anchors(page, "(1,2)")).toHaveCount(1); // pairs transfer from 07 Task 17 (TR-15)
   await expect(anchor(page, "\\sin(30)")).toBeAttached();
   await expect(
     page.getByRole("button", { name: /^Transfer to Calculator: choice [ABCD]$/ })

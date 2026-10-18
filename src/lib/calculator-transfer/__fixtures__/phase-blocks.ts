@@ -1,5 +1,6 @@
-// Phase 1 polar, parametric, hyperbolic, point and function-coordinate blocks (TR-77); the
-// pairs and `f(2)=5` that Phase 3 enables are blocked here (c-transfer.md section 14).
+// Phase 1 polar, parametric, hyperbolic and point blocks (TR-77, c-transfer.md section 14). The
+// parity increment enables pairs and `f(2)=5` (classify.pairs.test.ts); the parametric pair
+// `(\cos t,\sin t)` holds names, so TR-15 blocks it.
 
 import type { TransferFixture } from "./types";
 
@@ -9,12 +10,9 @@ const id = () => `phase-blocks-${++n}`;
 const BLOCKED: readonly string[] = [
   "2\\pi r",
   "\\sin\\theta=\\frac{3}{5}",
-  "(\\cos t,\\sin t)",
   "\\sinh x",
   "y=\\cosh(x)",
   "\\tanh2",
-  "(2,5)",
-  "(1,2),(3,4)",
   "r=5",
   "P=(t,2)", // a point on a t that no row defines
 ];
@@ -30,9 +28,9 @@ const fixtures: TransferFixture[] = [
   ),
   {
     id: id(),
-    rules: ["TR-77", "TR-13"],
-    source: { kind: "stem", text: "The linear function $f$ has $f(2)=5$.", segment: 3 },
-    expect: { control: false, rule: "TR-77" },
+    rules: ["TR-77", "TR-15"],
+    source: { kind: "stem", text: "$(\\cos t,\\sin t)$", segment: 0 },
+    expect: { control: false, rule: "TR-15" },
   },
   {
     id: id(),

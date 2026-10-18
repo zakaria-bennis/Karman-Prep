@@ -45,8 +45,8 @@ it("TR-1, TR-40 a whole choice is one item whose segments pass with TR-10 except
     "No solution",
     "",
     "$12",
-    "$(2,5)$",
-    "$(1,2)$ and $(3,4)$",
+    "$(h,k)$",
+    "$(1,2)$ and $(a,4)$",
     "$0<x>2$",
   ])
     expect(choice(t), t).toBeNull();

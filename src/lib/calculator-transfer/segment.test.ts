@@ -222,7 +222,7 @@ it("TR-21 the classifier is narrowed wherever the v2 core reports a row error, w
   ]).toEqual([601, 599, 600]);
   expect(SEGMENT_LIMITS).toEqual({ characters: 2048, tokens: 600, depth: 64 });
 });
-it("TR-77 Phase 1 blocks hyperbolic functions, θ, r outside a definition of another name, pairs and function coordinates; the t gate needs dependencies", () => {
+it("TR-77 Phase 1 blocks hyperbolic functions, θ and r outside a definition of another name; the t gate needs dependencies", () => {
   for (const s of [
     "\\sinh x",
     "y=\\cosh(x)",
@@ -231,19 +231,22 @@ it("TR-77 Phase 1 blocks hyperbolic functions, θ, r outside a definition of ano
     "2\\pi r",
     "r=5",
     "y=r+1",
-    "(\\cos t,\\sin t)",
-    "(2,5)",
-    "(1,2),(3,4)",
-    "(1,2);(3,4)",
-    "(h,k)",
-    "(2a,0)",
   ])
     expect(verdict(s), s).toBe("TR-77");
-  expect(verdict("f(2)=5", "stem", ["f"])).toBe("TR-77");
   // P=(t,2) passes here; classify.ts applies decision 8's t gate once dependencies are known (Task 7)
   for (const s of ["A=\\pi r^{2}", "C=2\\pi r", "P=(1,2)", "f(2)=5", "P=(t,2)"])
     expect(verdict(s), s).toBe("equation");
   const p = S("P=(t,2)");
   expect(p.ok && [p.rows[0].names, p.rows[0].pointNames]).toEqual([["t"], ["t"]]);
   expect(TRANSFER_PHASE).toBe(1);
+});
+it("TR-15, TR-17 pairs with no names and function coordinates of a question function name are their own kinds (the parity increment enables them ahead of Phase 3)", () => {
+  for (const s of ["(2,5)", "(1,2),(3,4)", "(1,2);(3,4)", "A(2,3)", "A(1,2),B(3,4)"])
+    expect(verdict(s), s).toBe("pair");
+  for (const s of ["(h,k)", "(2a,0)", "(\\cos t,\\sin t)", "(1,x)"])
+    expect(verdict(s), s).toBe("TR-15");
+  expect(verdict("f(2)=5", "stem", ["f"])).toBe("functionCoordinate");
+  const f = S("f(2)=5", "stem", ["f"]);
+  expect(f.ok && f.rows[0].calls).toEqual([]); // TR-20: the left side is not a call to resolve
+  expect(verdict("A(x+1)")).toBe("expression"); // a capital before a non-pair is no label
 });

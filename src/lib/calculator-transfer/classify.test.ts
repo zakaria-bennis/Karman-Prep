@@ -62,12 +62,12 @@ it("TR-3 classifier inputs carry no figure fields", () => {
   expectTypeOf<keyof ChoiceInput>().toEqualTypeOf<"letter" | "text">();
 });
 it("TR-5 rejected segments get no entry and no placeholder", () => {
-  const text = "Find $x$ if $x\\ne3$, $(2,5)$, $\\sinh x$ and $y=2x$.";
+  const text = "Find $x$ if $x\\ne3$, $(h,5)$, $\\sinh x$ and $y=2x$.";
   expect([...classifyStem(stem(text)).keys()]).toEqual([9]);
   expect(verdicts(text)).toEqual([
     [1, "TR-10"],
     [3, "TR-9"],
-    [5, "TR-77"],
+    [5, "TR-15"],
     [7, "TR-77"],
     [9, "item"],
   ]);

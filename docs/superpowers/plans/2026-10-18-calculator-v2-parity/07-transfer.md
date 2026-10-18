@@ -99,6 +99,29 @@ Tests `it("TR-22 only the two table 5.1 shapes are eligible")`, `it("TR-23 the f
 `test("TR-63 the chooser opens above or below the item and stays inside the viewport")`.
 **Commit** `Add the Point or Table row transfer chooser (TR-60, TR-61, TR-63)`.
 
+**Adaptations made while executing Task 17:**
+
+- The chooser needs items to choose for, so this task also enables coordinate pairs and function
+  coordinates in the classifier ahead of their Phase 3 tag: `segment.ts` gives them their own kinds
+  (TR-15: no names in a pair, else `TR-15`; TR-17: the call is not a TR-20 dependency) and drops
+  their TR-77 gates, and the new `pairs.ts` reads the coordinates in TR-7's "coordinate" context
+  (mixed numbers become improper fractions), applies TR-16's same-sentence interval rule (stems
+  only) and builds the items. A capital-letter point label (`A(2,3)`) is dropped. A choice of pairs
+  only is a pair item; pairs beside other math transfer as point rows (TR-40); a function coordinate
+  beside other math gets no control. `TransferItem.chooser` carries the Point and Table row payloads
+  (the item's own payload is its Point payload) and the Evaluate label and reason.
+- Evaluate is always disabled (TR-31 is not shipped); its TR-62 reason comes from the question
+  alone: no definition of f, more than one, one that uses a name with no exportable value ("f uses
+  k, which has no value"), else "f(a) has no value in the calculator".
+- The menu is portalled to the body and fixed to the viewport, so no quiz container clips or
+  transforms it; Tab closes it and returns focus to the control, from which the browser's Tab moves
+  on. Items are 44 px tall when a touch opened the menu or the item is tap-selected, else 32 px.
+  Opening the menu keeps a tap selection (the control stays at its coarse size); choosing a format
+  clears it and transfers. The last-used format is kept per question key in the lazy chooser module.
+- TR-63's browser test is in a new `tests/calculator/v2/transfer-chooser.spec.ts`, on a daily-flow
+  fixture question (`?questions=transfer-tables`) added here and reused by Task 18. The practice
+  fixture's `(1,2)` now has a control, so `transfer.spec.ts`'s TR-76 check expects one.
+
 ### Task 18: Browser coverage
 
 `tests/calculator/v2/transfer-tables.spec.ts`: transfer the D-40 table from a fixture question,

@@ -92,3 +92,29 @@ export const TRANSFER_DAILY_QUESTION = {
     choice_table_data: null,
   })),
 } as StudentQuizQuestion;
+
+/** 07 Tasks 17 and 18 (`?questions=transfer-tables`, daily flow): D-40's table as a question
+ * table, a coordinate pair and a function coordinate. Original text and data only. */
+export const TABLE_PAIR = "(2,5)";
+export const TABLE_COORDINATE = "f(3)=7";
+const TABLES_DAILY_ID = "00000000-0000-4000-8000-0000000000d2";
+export const TRANSFER_TABLES_DAILY_QUESTION = {
+  ...TRANSFER_DAILY_QUESTION,
+  id: TABLES_DAILY_ID,
+  question_text: `The table shows a town's population. The line passes through $${TABLE_PAIR}$, and for the function $f$, $${TABLE_COORDINATE}$. Which value is largest?`,
+  figure_kind: "table",
+  figure_table_data: {
+    header_row: ["Year", "Population"],
+    rows: [
+      ["1990", "30,000"],
+      ["2000", "36,000"],
+      ["2010", "42,000"],
+      ["2020", "48,000"],
+    ],
+  },
+  answer_choices: TRANSFER_DAILY_QUESTION.answer_choices.map((c) => ({
+    ...c,
+    id: `tables-${c.id}`,
+    question_id: TABLES_DAILY_ID,
+  })),
+} as StudentQuizQuestion;
