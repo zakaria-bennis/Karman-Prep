@@ -42,7 +42,8 @@ test.describe("admin impersonation", () => {
     await midRow.getByRole("button", { name: /Impersonate/i }).click();
 
     // ── 3. Banner appears with target's name ───────────────
-    const banner = page.getByRole("status");
+    // Other pages also use role="status" for inline messages, so match by text.
+    const banner = page.getByRole("status").filter({ hasText: "Admin viewing as" });
     await expect(banner).toBeVisible();
     await expect(banner).toContainText("Mid Student");
     await expect(banner).toContainText(/student/i);
@@ -66,7 +67,7 @@ test.describe("admin impersonation", () => {
 
     // Lands on /admin/users with no banner.
     await expect(page).toHaveURL(/\/admin\/users/);
-    await expect(page.getByRole("status")).toHaveCount(0);
+    await expect(page.getByRole("status").filter({ hasText: "Admin viewing as" })).toHaveCount(0);
   });
 
   test("stuck student shows the placement-failure banner when impersonated", async ({ page }) => {
