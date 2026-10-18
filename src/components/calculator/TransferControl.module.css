@@ -40,7 +40,9 @@
   cursor: pointer;
   background: var(--kcc-chrome);
   color: var(--kcc-text);
-  border: 1px solid var(--kcc-boundary);
+  /* TR-53: --kcc-boundary measured 2.7:1 beside ivory's choice cluster, so the 3:1 boundary uses
+     the secondary text colour in every skin (decision "Light-DOM colours"). */
+  border: 1px solid var(--kcc-text-secondary);
 }
 .anchor[data-placement="cluster"] .button {
   position: static;

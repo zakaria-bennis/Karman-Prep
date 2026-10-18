@@ -1,5 +1,7 @@
 // Shared helpers for the v2 transfer specs (14). No tests: Playwright's default testMatch skips it.
 import { expect, test, type Locator, type Page } from "@playwright/test";
+import { SKIN_COLORS } from "../../../src/lib/calculator-v2/theme/skin-colors.generated";
+import type { SkinId } from "../../../src/lib/calculator-v2/theme/skins";
 
 export const url = (flow = "diagnostic", extra = "") =>
   `/?flow=${flow}&calc=v2&questions=transfer${extra}`;
@@ -188,3 +190,123 @@ export const failMountOnce = () => {
     return attach.call(this, init);
   };
 };
+/** Switches the site skin as applyTheme does: data-theme plus the dark class for dark skins. */
+export const applySkin = (page: Page, skin: SkinId) =>
+  page.evaluate(
+    ([s, dark]) => {
+      const r = document.documentElement;
+      r.classList.toggle("dark", dark);
+      r.dataset.theme = s;
+    },
+    [skin, SKIN_COLORS[skin].normal.dark] as const
+  );
+/** A computed rgb()/rgba() colour as #rrggbb (alpha dropped). */
+export const hex = (css: string) =>
+  `#${(css.match(/[\d.]+/g) ?? [])
+    .slice(0, 3)
+    .map((n) => Math.round(Number(n)).toString(16).padStart(2, "0"))
+    .join("")}`;
+/** The control's colours and the colours actually painted beside the button and the item. */
+export const paint = (a: Locator) =>
+  a.evaluate((el: HTMLElement) => {
+    const rgba = (v: string) => {
+      const n = (v.match(/[\d.]+/g) ?? []).map(Number);
+      return n.length < 3 ? [0, 0, 0, 0] : [n[0], n[1], n[2], n.length > 3 ? n[3] : 1];
+    };
+    // the colour actually under (x, y): the anchor's own subtree skipped, translucent layers
+    // composited over the first opaque one
+    const under = (x: number, y: number) => {
+      const layers = document
+        .elementsFromPoint(x, y)
+        .filter((e) => !el.contains(e))
+        .map((e) => rgba(getComputedStyle(e).backgroundColor))
+        .filter((c) => c[3] > 0);
+      const base = layers.findIndex((c) => c[3] === 1);
+      let rgb = base < 0 ? [255, 255, 255] : layers[base].slice(0, 3);
+      for (const c of layers.slice(0, base < 0 ? layers.length : base).reverse())
+        rgb = rgb.map((v, i) => c[3] * c[i] + (1 - c[3]) * v);
+      return `rgb(${rgb.map(Math.round).join(", ")})`;
+    };
+    const around = (r: DOMRect, d: number) => [
+      under(r.left + r.width / 2, r.top - d),
+      under(r.left + r.width / 2, r.bottom + d),
+      under(r.left - d, r.top + r.height / 2),
+      under(r.right + d, r.top + r.height / 2),
+    ];
+    const b = el.querySelector("button");
+    const tip = el.querySelector("[data-transfer-tooltip]");
+    const glyph = b?.querySelector("svg");
+    if (!b || !tip || !glyph) throw new Error("missing control parts");
+    const s = getComputedStyle(b);
+    const t = getComputedStyle(tip);
+    const r = b.getBoundingClientRect();
+    const item = el.dataset.placement === "cluster" ? null : el.previousElementSibling;
+    const ir = item?.getBoundingClientRect(); // the selected outline: 2 px outside the item, 2 px wide
+    return {
+      glyph: getComputedStyle(glyph).color,
+      button: s.backgroundColor,
+      border: s.borderTopColor,
+      ring: s.outlineColor,
+      ringStyle: [s.outlineStyle, s.outlineWidth, s.outlineOffset],
+      outline: item ? getComputedStyle(item).outlineColor : s.outlineColor,
+      tipText: t.color,
+      tipBg: t.backgroundColor,
+      pages: around(r, 2), // beside the button: what its border and focus ring sit on
+      // beside the item's outline: its 2 px offset gap and just outside the line
+      outlinePages: ir ? [...around(ir, 1), ...around(ir, 5)] : around(r, 2),
+    };
+  });
+/** An init script: records the strokeStyle of every canvas stroke() call. */
+export const recordStrokes = () => {
+  const w = window as unknown as { __transferStrokes: string[] };
+  w.__transferStrokes = [];
+  const stroke = CanvasRenderingContext2D.prototype.stroke;
+  CanvasRenderingContext2D.prototype.stroke = function (
+    this: CanvasRenderingContext2D,
+    ...args: unknown[]
+  ) {
+    w.__transferStrokes.push(String(this.strokeStyle));
+    return (stroke as (...a: unknown[]) => void).apply(this, args);
+  };
+};
+export const strokes = (page: Page) =>
+  page.evaluate(() => (window as unknown as { __transferStrokes: string[] }).__transferStrokes);
+export const nextFrame = () =>
+  new Promise<void>((r) => requestAnimationFrame(() => setTimeout(r, 0)));
+/** Marks the calculator's layout element, so a remount (a new element) is detectable. */
+export const markLayout = () => {
+  const layout = document
+    .querySelector("[data-calculator-host]")
+    ?.shadowRoot?.querySelector("[data-kc-layout]") as unknown as { kcMark?: number } | null;
+  if (layout) layout.kcMark = 1;
+};
+export const layoutMarked = () =>
+  (
+    document
+      .querySelector("[data-calculator-host]")
+      ?.shadowRoot?.querySelector("[data-kc-layout]") as unknown as { kcMark?: number } | null
+  )?.kcMark === 1;
+export const kcPaper = (page: Page) =>
+  page.evaluate(() => {
+    const host = document.querySelector("[data-calculator-host]");
+    return host ? getComputedStyle(host).getPropertyValue("--kc-paper").trim().toLowerCase() : "";
+  });
+/** 08's graph-pixels.ts layerColors(page, "shading"), read in the calculator host's shadow root. */
+export const shadingLayer = (page: Page) =>
+  page.evaluate(() => {
+    const c = document
+      .querySelector("[data-calculator-host]")
+      ?.shadowRoot?.querySelector<HTMLCanvasElement>('canvas[data-layer="shading"]');
+    const d = c?.getContext("2d")?.getImageData(0, 0, c.width, c.height).data;
+    const opaque = new Set<string>();
+    let partial = 0;
+    if (!d) return { opaque: [], partial: -1 };
+    for (let i = 0; i < d.length; i += 4) {
+      if (d[i + 3] === 255)
+        opaque.add(
+          `#${[d[i], d[i + 1], d[i + 2]].map((v) => v.toString(16).padStart(2, "0")).join("")}`
+        );
+      else if (d[i + 3] > 0) partial++;
+    }
+    return { opaque: [...opaque], partial };
+  });

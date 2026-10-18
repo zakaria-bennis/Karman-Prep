@@ -1,11 +1,16 @@
 import { expect, test, type Locator } from "@playwright/test";
 import { BLOCK_SYSTEM, T1_STEM_CONTROLS, T1_STEM_DENIED } from "../fixture/v2/transfer-questions";
+import { compositeShading, contrastRatio } from "../../../src/lib/calculator-v2/theme/contrast";
+import { resolveRowColor } from "../../../src/lib/calculator-v2/theme/roles";
+import { SKIN_COLORS } from "../../../src/lib/calculator-v2/theme/skin-colors.generated";
+import { SKIN_IDS, type SkinId } from "../../../src/lib/calculator-v2/theme/skins";
 import {
   DESKTOP,
   allControls,
   anchor,
   anchors,
   annotations,
+  applySkin,
   blurActive,
   box,
   choiceAnchor,
@@ -13,16 +18,30 @@ import {
   choiceControl,
   chromeOnly,
   control,
+  hex,
   hoverAt,
   item,
+  kcPaper,
+  layoutMarked,
+  markLayout,
   must,
+  nextFrame,
   opacity,
   open,
   outline,
+  paint,
   press,
+  recordStrokes,
+  rowItem,
+  rows,
+  setRows,
   settled,
+  shadingLayer,
+  snapshot,
+  strokes,
   tapItem,
   tooltip,
+  transferByMouse,
   url,
 } from "./transfer-helpers";
 
@@ -354,5 +373,212 @@ test("TR-52, AN-12 the control, tooltip, selected outline and choice clusters ap
   for (const c of await page.locator('[data-calculator="v2"]').all()) {
     await c.hover();
     await clusterStill(c);
+  }
+});
+
+test("TR-53, TH-1, TH-14 in all 12 skins the glyph is 4.5:1 on the button, the boundary and focus ring 3:1 on the colour beside the control, the selected outline 3:1 on the colour beside the item, the ring 2 px solid offset 2 px and the tooltip text 7:1", async ({
+  page,
+}, info) => {
+  chromeOnly(info.project.name);
+  await open(page);
+  for (const skin of SKIN_IDS) {
+    await applySkin(page, skin);
+    await page.mouse.move(5, 790);
+    for (const [label, a, focus] of [
+      ["stem", anchor(page, "y>2x+1"), control(page, "y>2x+1")],
+      ["choice", choiceAnchor(page, "A"), choiceControl(page, "A")],
+    ] as const) {
+      await page.keyboard.press("Shift");
+      await focus.focus();
+      const c = await paint(a);
+      expect(
+        contrastRatio(hex(c.glyph), hex(c.button)),
+        `${skin} ${label} glyph`
+      ).toBeGreaterThanOrEqual(4.5);
+      for (const k of ["border", "ring"] as const)
+        for (const [side, bg] of c.pages.entries())
+          expect(
+            contrastRatio(hex(c[k]), hex(bg)),
+            `${skin} ${label} ${k} side ${side}`
+          ).toBeGreaterThanOrEqual(3);
+      for (const [side, bg] of c.outlinePages.entries())
+        expect(
+          contrastRatio(hex(c.outline), hex(bg)),
+          `${skin} ${label} outline side ${side}`
+        ).toBeGreaterThanOrEqual(3);
+      expect(c.ringStyle, `${skin} ${label}`).toEqual(["solid", "2px", "2px"]);
+      if (label === "stem")
+        expect(
+          contrastRatio(hex(c.tipText), hex(c.tipBg)),
+          `${skin} tooltip`
+        ).toBeGreaterThanOrEqual(7);
+    }
+  }
+});
+
+test("TH-2, AR-37 the control, tooltip and selected outline take their colours from --kcc-* and repaint on a theme change", async ({
+  page,
+}, info) => {
+  chromeOnly(info.project.name);
+  await open(page);
+  await page.keyboard.press("Shift");
+  await control(page, "y>2x+1").focus();
+  const seen: string[] = [];
+  const v = (name: string) =>
+    page.evaluate(
+      (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim().toLowerCase(),
+      name
+    );
+  for (const skin of ["ivory", "observatory"] as const) {
+    await applySkin(page, skin);
+    const c = await paint(anchor(page, "y>2x+1"));
+    expect(
+      [c.button, c.glyph, c.border, c.ring, c.outline, c.tipText, c.tipBg].map(hex),
+      skin
+    ).toEqual([
+      await v("--kcc-chrome"),
+      await v("--kcc-text"),
+      await v("--kcc-text-secondary"), // TR-53's border fallback
+      await v("--kcc-focus"),
+      await v("--kcc-focus"),
+      await v("--kcc-text"),
+      await v("--kcc-chrome"),
+    ]);
+    seen.push(c.button);
+  }
+  expect(seen[0]).not.toBe(seen[1]);
+});
+
+test("AR-37 the open calculator's shadow CSS reads only inherited or locally declared custom properties and repaints within one frame on a theme switch, contrast and colour-scheme changes, with no remount", async ({
+  page,
+}, info) => {
+  chromeOnly(info.project.name);
+  await page.addInitScript(recordStrokes);
+  await page.emulateMedia({
+    colorScheme: "light",
+    contrast: "no-preference",
+    reducedMotion: "no-preference",
+  });
+  await open(page);
+  await applySkin(page, "ivory");
+  await press(page, "Toggle Karman calculator");
+  await expect(rowItem(page)).toBeVisible();
+  await setRows(page, ["y=x"]);
+  await expect.poll(async () => (await strokes(page)).length).toBeGreaterThan(0);
+  const vars = await page.evaluate(() => {
+    const host = document.querySelector<HTMLElement>("[data-calculator-host]");
+    const root = host?.shadowRoot;
+    if (!host || !root) return null;
+    // 10's installStyles adopts constructed sheets in Chromium and falls back to <style> elsewhere
+    const sheets = [...root.adoptedStyleSheets, ...root.styleSheets];
+    const css = sheets.flatMap((s) => [...s.cssRules].map((r) => r.cssText)).join("\n"); // CSSOM text holds no comments
+    const inline = [...root.querySelectorAll<HTMLElement>("[style]")].flatMap((e) => [
+      ...(e.getAttribute("style") ?? "").matchAll(/(--[\w-]+)\s*:/g),
+    ]);
+    const declared = new Set([...css.matchAll(/(--[\w-]+)\s*:/g), ...inline].map((m) => m[1]));
+    const read = [...new Set([...css.matchAll(/var\(\s*(--[\w-]+)\s*\)/g)].map((m) => m[1]))];
+    const cs = getComputedStyle(host);
+    return {
+      sheets: sheets.length,
+      read: read.length,
+      missing: read.filter((n) => !declared.has(n) && cs.getPropertyValue(n).trim() === ""),
+    };
+  });
+  expect(vars?.sheets).toBeGreaterThan(0);
+  expect(vars?.read).toBeGreaterThan(0);
+  expect(vars?.missing).toEqual([]);
+  await page.evaluate(markLayout);
+  const changes: [string, () => Promise<unknown>, SkinId | null][] = [
+    [
+      "theme switch (class and data-theme, as applyTheme does)",
+      () => applySkin(page, "observatory"),
+      "observatory",
+    ],
+    ["prefers-contrast", () => page.emulateMedia({ contrast: "more" }), null],
+    [
+      "data-theme removed",
+      () =>
+        page.evaluate(() => {
+          const r = document.documentElement;
+          r.classList.toggle("dark", false);
+          delete r.dataset.theme;
+        }),
+      "ivory",
+    ],
+    ["prefers-color-scheme", () => page.emulateMedia({ colorScheme: "dark" }), "observatory"],
+  ];
+  for (const [name, change, skin] of changes) {
+    const before = (await strokes(page)).length;
+    await change();
+    await page.evaluate(nextFrame);
+    expect((await strokes(page)).length, name).toBeGreaterThan(before);
+    if (skin)
+      expect(await kcPaper(page), name).toBe(SKIN_COLORS[skin].normal.roles.paper.toLowerCase());
+  }
+  expect([await page.evaluate(layoutMarked), await rows(page)]).toEqual([true, ["y=x"]]);
+});
+
+// Finding for 10 (14 task 14): the open calculator does not repaint its canvas when
+// prefers-reduced-motion changes (10's watchTheme follows colour scheme, contrast and forced
+// colours only; KarmanCalculator stores the motion query without a repaint). Fixme until 10 fixes
+// it; this package never edits src/components/calculator-v2/.
+test.fixme("AR-37 the open calculator repaints within one frame on a prefers-reduced-motion change, with no remount", async ({
+  page,
+}, info) => {
+  chromeOnly(info.project.name);
+  await page.addInitScript(recordStrokes);
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await open(page);
+  await press(page, "Toggle Karman calculator");
+  await expect(rowItem(page)).toBeVisible();
+  await setRows(page, ["y=x"]);
+  await expect.poll(async () => (await strokes(page)).length).toBeGreaterThan(0);
+  await page.evaluate(markLayout);
+  const before = (await strokes(page)).length;
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.evaluate(nextFrame);
+  expect((await strokes(page)).length).toBeGreaterThan(before);
+  expect([await page.evaluate(layoutMarked), await rows(page)]).toEqual([true, ["y=x"]]);
+});
+
+test("TH-8 a transferred inequality and system shade within the skin's shading cap and keep curves at 4.5:1", async ({
+  page,
+}, info) => {
+  chromeOnly(info.project.name);
+  await open(page);
+  await transferByMouse(page, "y>2x+1");
+  await transferByMouse(page, BLOCK_SYSTEM);
+  // the inequality and the system's 2 inequalities
+  await expect.poll(async () => (await snapshot(page))?.regions).toBe(3);
+  const colors = await page.evaluate(
+    () => globalThis.__calculatorHarness?.engine.getSnapshot().rows.map((r) => r.color) ?? []
+  );
+  for (const skin of SKIN_IDS) {
+    const paper = SKIN_COLORS[skin].normal.roles.paper;
+    const cap = SKIN_COLORS[skin].normal.shadingCap; // TH-8 as amended: a cap per skin
+    await applySkin(page, skin);
+    await expect.poll(() => kcPaper(page)).toBe(paper.toLowerCase());
+    await page.evaluate(nextFrame);
+    const fills = colors.map((c) => resolveRowColor(c, skin)); // each row's curve colour and fill alpha, in row order
+    const allowed = Array.from({ length: 2 ** fills.length - 1 }, (_, m) =>
+      compositeShading(
+        paper,
+        fills
+          .filter((_, i) => ((m + 1) >> i) & 1)
+          .map((f) => ({ color: f.hex, alpha: f.fillAlpha })),
+        cap
+      ).toLowerCase()
+    );
+    const { opaque, partial } = await shadingLayer(page);
+    expect(partial, `${skin} partial shading pixels`).toBe(0);
+    expect(opaque.length, `${skin} shading painted`).toBeGreaterThan(0);
+    for (const c of opaque) {
+      expect(contrastRatio(c, paper), `${skin} ${c} on the paper`).toBeLessThanOrEqual(cap + 1e-9);
+      expect(allowed, `${skin} ${c} is a compositeShading result`).toContain(c);
+      for (const f of fills)
+        expect(contrastRatio(f.hex, c), `${skin} curve ${f.hex} on ${c}`).toBeGreaterThanOrEqual(
+          4.5
+        );
+    }
   }
 });
