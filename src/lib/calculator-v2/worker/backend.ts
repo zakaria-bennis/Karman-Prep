@@ -185,9 +185,27 @@ class WorkerBackend implements ComputeBackend {
     this.latestDone = false;
   }
 
+  /**
+   * The state without its quarantined rows. Each row left out is restated as an `overrun` at the
+   * state's generation (AR-49: it keeps the AR-48 message until edited), so an engine that dropped
+   * the row's result (deleted and restored, hidden and shown, or a restored state) shows it again.
+   * Deferred to a microtask: the engine notes a state after posting it, which drops the result.
+   */
   private withoutQuarantined(state: StateMessage): StateMessage {
     if (this.quarantine.size === 0) return state;
-    const rows = state.rows.filter((row) => this.quarantine.get(row.id) !== row.latex);
+    const left: string[] = [];
+    const rows = state.rows.filter((row) => {
+      const quarantined = this.quarantine.get(row.id) === row.latex;
+      if (quarantined) left.push(row.id);
+      return !quarantined;
+    });
+    if (left.length > 0) {
+      const { generation } = state;
+      queueMicrotask(() => {
+        if (this.disposed) return;
+        for (const rowId of left) this.listeners.emit({ v: 1, type: "overrun", generation, rowId });
+      });
+    }
     return { ...state, rows };
   }
 

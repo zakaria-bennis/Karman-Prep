@@ -2,7 +2,11 @@ import { beforeEach, expect, it, vi } from "vitest";
 import type { CurveGeometry, PointGeometry, RegionGeometry } from "../../plot/geometry";
 import { rowErrorMessage } from "../analysis";
 import type { Value } from "../eval/values";
+import { createWorkerBackend } from "../../worker/backend";
+import { macrotask } from "../../worker/__fixtures__/messages";
+import { WORKER_MARKER, type WorkerToMain } from "../../worker/protocol";
 import { createTestEngine, TEST_VIEW, type TestEngine } from "./__fixtures__/test-engine";
+import { CalculatorEngine } from "./engine";
 import { KarmanCalculatorError } from "./errors";
 import { toApiEvaluation } from "./results";
 import type { ExpressionState } from "./types";
@@ -201,6 +205,56 @@ it("AR-48 an overrun row shows the timeout message until it is edited or a later
   expect(row("a").overrun).toBe(true);
   e.editRow("a", "2+4", "typing");
   expect(row("a")).toMatchObject({ overrun: false, error: null });
+});
+it("AR-49 a watchdog-quarantined row keeps the timeout message after delete and undo and after hide and show", async () => {
+  vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+  try {
+    const timeout = {
+      code: "timeout",
+      message: "This is taking too long. Try a smaller range or fewer terms.",
+    };
+    const workers: { onmessage: ((e: { data: unknown }) => void) | null }[] = [];
+    const backend = createWorkerBackend({
+      createWorker: () => {
+        const w = { onmessage: null, onerror: null, postMessage() {}, terminate() {} };
+        workers.push(w);
+        return w as unknown as Worker;
+      },
+    });
+    const send = (data: WorkerToMain) => workers.at(-1)!.onmessage?.({ data });
+    const frames: (() => void)[] = [];
+    const w = new CalculatorEngine(undefined, {
+      backend,
+      scheduleFrame: (callback) => {
+        frames.push(callback);
+      },
+      now: () => 0,
+      randomSeed: () => 1,
+    });
+    const view = async (id: string) => {
+      await macrotask();
+      for (const callback of frames.splice(0)) callback();
+      return w.getSnapshot().rows.find((r) => r.id === id)!;
+    };
+    send({ v: 1, type: "ready", worker: WORKER_MARKER });
+    w.setExpressions([
+      { id: "a", latex: "y=x^{2}" },
+      { id: "b", latex: "2+3" },
+    ]);
+    send({ v: 1, type: "begin", generation: 1, rowId: "a" });
+    vi.advanceTimersByTime(1500);
+    expect(workers).toHaveLength(2);
+    expect(await view("a")).toMatchObject({ overrun: true, error: timeout });
+    w.deleteRow("a");
+    w.undo();
+    expect(await view("a")).toMatchObject({ overrun: true, value: null, error: timeout });
+    w.setRowHidden("a", true);
+    w.setRowHidden("a", false);
+    expect(await view("a")).toMatchObject({ overrun: true, value: null, error: timeout });
+    w.destroy();
+  } finally {
+    vi.useRealTimers();
+  }
 });
 it("AR-45 an analysis kind that differs from the main thread's logs console.error in development", () => {
   const spy = vi.spyOn(console, "error").mockImplementation(() => {});
