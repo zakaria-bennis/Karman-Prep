@@ -18,6 +18,7 @@ const UNICODE: ReadonlyMap<string, string> = new Map([
   ["≤", "\\le "], // ≤
   ["≥", "\\ge "], // ≥
   ["°", "^{\\circ}"], // °
+  ["…", "\\ldots "], // … (PR-34's range ellipsis)
 ]);
 /** Superscript two and three; a run of them becomes one `^{…}` group. */
 const SUPERSCRIPT_DIGITS: ReadonlyMap<string, string> = new Map([
@@ -46,6 +47,7 @@ const COMMAND_REWRITES: ReadonlyMap<string, string> = new Map([
   ["lt", "<"],
   ["gt", ">"],
   ["degree", "^{\\circ}"],
+  ["dots", "\\ldots"], // PR-34
 ]);
 /** `\left` and `\right` with a `|` become bar commands; with a `.` they vanish with it. */
 const BAR_COMMANDS: ReadonlyMap<string, string> = new Map([

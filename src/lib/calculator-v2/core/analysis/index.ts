@@ -17,7 +17,9 @@ import {
   type RegressionPlan,
 } from "../data/regression-analysis";
 import { classifyRow } from "./classify";
-import { declaredHead, parseRows, userFunctionSet } from "./definitions";
+import { declaredHead, parseRows, userFunctionSet, type ParsedRow } from "./definitions";
+import { inferLists, listCurveProblem, listProblem, type ListTyping } from "./lists";
+import { rowErrorMessage } from "./messages";
 import { collectNameUses } from "./names";
 import { resolveDefinitions } from "./resolve";
 
@@ -91,23 +93,28 @@ export function analyzeRows(
   rows: readonly RowSource[],
   settings: AnalysisSettings
 ): AnalysisResult {
-  const parsed = parseRows(rows, settings);
+  const unchecked = parseRows(rows, settings);
   // D-10, D-11: tables define their column names through synthetic definition rows.
   const userFunctions = userFunctionSet(rows, settings);
   const tables = rows.flatMap((row, k) =>
     row.columns === undefined ? [] : [{ k, table: parseTable(row, userFunctions) }]
   );
-  const heads = new Set(parsed.flatMap((row) => declaredHead(row)?.name ?? []));
+  const heads = new Set(unchecked.flatMap((row) => declaredHead(row)?.name ?? []));
   // D-22, D-33: regressions fit what no row or table data column defines; a computed column may
   // name a regression's residual list, so headers over blank columns do not count as defined.
   const tableNames = tables.map(({ table }) => columnNames(table, heads));
   const dataNames = tables.flatMap(({ table }, i) =>
     tableNames[i].filter((n, j): n is string => n !== null && (j === 0 || hasCells(table, j)))
   );
+  // PR-34, NM-34 to NM-36: which names hold lists, and the list errors the rows show; D-22: a
+  // list definition is regression data like a table column.
+  const columnLists = tableNames.flat().filter((n): n is string => n !== null);
+  const early = inferLists(errorFreeHeads(unchecked), columnLists);
+  const parsed = unchecked.map((row) => withListError(row, early));
   const plans = planRegressions(
     parsed,
     new Set([...heads, ...dataNames]),
-    new Set(dataNames),
+    new Set([...dataNames, ...early.names]),
     settings
   );
   const fitted = [...plans.values()].flatMap((p) =>
@@ -123,9 +130,11 @@ export function analyzeRows(
   const all = [...parsed, ...synthetic, ...regressionRows];
   const resolution = resolveDefinitions(all);
   const analysed = all.map((row) => classifyRow(row, resolution, settings));
+  const typing = inferLists(errorFreeHeads(all), [], new Set(fitted));
   parsed.forEach((row, k) => {
     const plan = plans.get(row.source.id);
     if (plan !== undefined) analysed[k] = regressionRow(analysed[k], plan, row.source.hidden);
+    else analysed[k] = withoutListCurves(analysed[k], row, typing);
   });
   tables.forEach(({ k, table }, i) => {
     analysed[k] = tableRow(
@@ -149,6 +158,57 @@ export function analyzeRows(
     byId: new Map(analysed.map((row) => [row.id, row])),
     valueOrder: resolution.valueOrder.filter((id) => defining.has(id)),
     functions,
+  };
+}
+
+/** The heads of the rows without an error, for list typing. */
+function errorFreeHeads(rows: readonly ParsedRow[]) {
+  return rows.flatMap((row) => (row.head !== null && row.error === null ? [row.head] : []));
+}
+
+/** NM-34 to NM-36: a row's first nested list or invalid literal range, as its row error. */
+function withListError(row: ParsedRow, typing: ListTyping): ParsedRow {
+  if (row.error !== null || row.tree === null) return row;
+  const problem = listProblem(row.head?.body ?? row.tree, row.head?.params ?? [], typing);
+  if (problem === null) return row;
+  const { code, names, span } = problem;
+  return { ...row, error: { code, message: rowErrorMessage(code, names), names, span } };
+}
+
+/** The kinds that graph a curve, line set or region from the row's own tree (RC-11 to RC-14). */
+const CURVE_KINDS: ReadonlySet<RowKind> = new Set([
+  "curve-y",
+  "curve-x",
+  "implicit",
+  "vertical-lines",
+  "horizontal-lines",
+  "region",
+  "constant-relation",
+]);
+
+/**
+ * G-22, deferred: a row that would graph a list of curves (a curve, line set or region, or a
+ * one-parameter function, RC-5) is an `unsupported` error instead of a curve of undefined values.
+ */
+function withoutListCurves(row: RowAnalysis, parsed: ParsedRow, typing: ListTyping): RowAnalysis {
+  if (row.error !== null || parsed.tree === null) return row;
+  const head = parsed.head;
+  const fn = row.kind === "function-definition" && head !== null && head.params.length === 1;
+  if (!fn && !CURVE_KINDS.has(row.kind)) return row;
+  const problem = fn
+    ? listCurveProblem(head.body, head.params, typing)
+    : listCurveProblem(parsed.tree, [], typing);
+  if (problem === null) return row;
+  const { code, names, span } = problem;
+  return {
+    ...row,
+    kind: "error",
+    error: { code, message: rowErrorMessage(code, names), names, span },
+    chips: [],
+    complexHint: false,
+    isGraphable: false,
+    relation: null,
+    graph: null,
   };
 }
 

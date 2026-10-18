@@ -188,7 +188,7 @@ A11Y-3) and `b-functions-and-data.md` (D-4, D-5, D-7, D-19, D-20, FN-59), plus C
 
 1. Typing `~` (Shift+Backquote) in a math row inserts `\sim`, displayed as "∼" and read as "similar".
 2. Typing a digit straight after a single-letter variable (`y1`, `x1`, including inside an exponent) auto-subscripts it to y₁/x₁.
-3. A row ending in `∼` with an empty side shows the error "You need something on both sides of the '∼' symbol." (or the Karman equivalent).
+3. A row ending in `∼` with an empty side shows the error "You need something on both sides of the '∼' symbol." (Karman uses this text: PR-30's `sim-side` code).
 4. The regression refits on every keystroke in the row and on every committed or in-progress cell edit in its source table, with no submit step.
 5. The results area shows a "Regression parameters" section with one `name = value` per fitted parameter, then "Statistics" and "Residuals" sections side by side.
 6. Parameter values display at 6 significant digits with trailing zeros removed (2.02, 3.13429, 0.0267857).
@@ -204,7 +204,7 @@ A11Y-3) and `b-functions-and-data.md` (D-4, D-5, D-7, D-19, D-20, FN-59), plus C
 16. A model that is undefined for the data (blank or non-numeric cell in the used columns, or a model like `log(−a²−1)`) shows the row error "We couldn't find any region where this model is defined." in place of results.
 17. A non-numeric table cell shows its own in-cell warning ("Too many variables. Try defining 'q'."). **Matched** (D-6; component test).
 18. A name defined by another row (e.g. `m = 3`) is treated as a constant, not a parameter, and the remaining parameters refit.
-19. Referencing a parameter name that two regressions both fit is the error "You've defined 'm' in more than one place. Try deleting some of the definitions of 'm'."
+19. Referencing a parameter name that two regressions both fit is the error "You've defined 'm' in more than one place. Try deleting some of the definitions of 'm'." (Karman uses this text on every row that defines a duplicated name, RC-7; a row that references it reads "m has more than one definition.", D-44.)
 20. Each value in the results is a focusable read-only field whose accessible name reads "name equals value", and the row's accessible name ends with "Has graph and regression. To access statistics, press Tab."
 21. Tab from the regression row visits Delete, each parameter, each statistic, the residual name, the plot control and the colour toggle, in that order.
 22. Row errors are exposed as an ARIA note and appended to the textbox's accessible name, and visually as a warning icon in the colour tab with a hover tooltip. **Matched** (R-2; component and browser tests).

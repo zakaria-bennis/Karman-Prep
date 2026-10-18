@@ -1,7 +1,7 @@
 import { expect, it } from "vitest";
 import { collectNameUses, isReservedName } from "./names";
 import { displayName, rowErrorMessage } from "./messages";
-import { COMPLEX_HINT } from "./index";
+import { analyzeRows, COMPLEX_HINT } from "./index";
 import { parseLatex } from "../latex/index";
 import type { RowErrorCode } from "../corpus/types";
 
@@ -48,7 +48,16 @@ it("RC-2, RC-7, RC-8, RC-19, RC-20 row errors and the complex hint use the exact
     ["too-many-nodes", [], "This row is too long to evaluate. Split it into smaller definitions."],
     ["too-deep", [], "This row is nested too deeply."],
     ["too-many-params", [], "Functions can have at most 8 parameters."],
-    ["duplicate-definition", ["a"], "a is defined more than once."],
+    [
+      "duplicate-definition",
+      ["a"],
+      "You've defined 'a' in more than one place. Try deleting some of the definitions of 'a'.",
+    ],
+    [
+      "duplicate-definition",
+      ["θ_1"],
+      "You've defined 'θ_1' in more than one place. Try deleting some of the definitions of 'θ_1'.",
+    ],
     ["dependency", ["a"], "a has more than one definition."],
     ["cycle", ["a"], "a is defined in terms of itself."],
     ["reserved-name", ["e"], "e is reserved and can't be redefined."],
@@ -75,4 +84,39 @@ it("RC-2, RC-7, RC-8, RC-19, RC-20 row errors and the complex hint use the exact
     ["A", "A"],
   ];
   for (const [name, text] of shown) expect(displayName(name)).toBe(text);
+});
+
+it("PR-30, PR-34, NM-30, NM-31, NM-37, G-22 a half-typed regression and deferred list notation have their own copy", () => {
+  const table: [RowErrorCode, string[], string][] = [
+    ["sim-side", [], "You need something on both sides of the '∼' symbol."],
+    ["unsupported", ["Indexing a list"], "Indexing a list isn't supported yet."],
+    ["unsupported", ["Slicing a list"], "Slicing a list isn't supported yet."],
+    ["unsupported", ["Filtering a list"], "Filtering a list isn't supported yet."],
+    [
+      "unsupported",
+      ["Building a list with 'for'"],
+      "Building a list with 'for' isn't supported yet.",
+    ],
+    [
+      "unsupported",
+      ["Graphing a list of curves"],
+      "Graphing a list of curves isn't supported yet.",
+    ],
+  ];
+  for (const [code, names, text] of table) expect(rowErrorMessage(code, names)).toBe(text);
+  const rows = ["L[2]", "y_{1}\\sim"].map((latex, k) => ({ id: `r${k}`, latex, hidden: false }));
+  expect(analyzeRows(rows, REAL).rows.map((r) => r.error?.message)).toEqual([
+    "Indexing a list isn't supported yet.",
+    "You need something on both sides of the '∼' symbol.",
+  ]);
+});
+
+it("NM-34, NM-35, NM-36, NM-32 list errors use their exact copy", () => {
+  const table: [RowErrorCode, string[], string][] = [
+    ["nested-list", [], "Cannot store a list of numbers in a list."],
+    ["list-too-long", [], "A list can have at most 10,000 elements."],
+    ["range-step", [], "A range can't step by 0. Make its first two values different."],
+    ["list-mixed", [], "A list can't mix numbers and points."],
+  ];
+  for (const [code, names, text] of table) expect(rowErrorMessage(code, names)).toBe(text);
 });

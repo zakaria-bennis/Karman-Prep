@@ -76,8 +76,10 @@ claim the site may state is in `src/lib/marketing/offer.ts`. Values marked
 
 ### Calculator
 
-- Never load a Desmos API, SDK or component. Never copy Desmos code, DOM, assets,
-  icons, fonts, logo or exact visual design. Locally bundled mathjs and KaTeX are fine.
+- Never load a Desmos API, SDK or component. Never copy Desmos code, DOM, asset
+  files, fonts, logo or name, and never fetch anything from desmos.com. Matching
+  Desmos's visual design and behaviour with our own drawings and code is allowed
+  (founder, 2026-10-18). Locally bundled mathjs and KaTeX are fine.
 - After editing `karman-calculator/lib/`, run `npm run calculator:build`. Automated
   mobile, keyboard and theme checks are required.
 
