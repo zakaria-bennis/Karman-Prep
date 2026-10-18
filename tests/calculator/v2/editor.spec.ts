@@ -235,8 +235,9 @@ test("K-7 double-tapping the keypad = gives one ~ in one undo step, announces ti
   } else await equals.dblclick();
   await expect.poll(async () => (await latexes(page))[0]).toMatch(/^y\\sim\s*$/);
   await expect(page.getByRole("status")).toHaveText("tilde");
+  // PR-30: y\sim with nothing after it is a half-typed regression, a syntax error.
   await expect(page.locator('li[data-row-id="1"] .kc-row-error')).toHaveText(
-    "This calculator doesn't support that notation."
+    "This can't be read. Check for a missing bracket or operator."
   );
   await page.getByRole("button", { name: "Undo", exact: true }).click();
   await expect.poll(() => latexes(page)).toEqual(["y="]);
