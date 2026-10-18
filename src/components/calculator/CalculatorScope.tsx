@@ -6,7 +6,6 @@
 
 import {
   Component,
-  createContext,
   useContext,
   useEffect,
   useId,
@@ -30,6 +29,7 @@ import {
   MOUNT_FAILED_COPY,
   getCalculatorModule,
 } from "./CalculatorLoader";
+import { CalculatorBridgeContext, useCalculator } from "./bridge-context";
 import { CalculatorShell } from "./CalculatorShell";
 import { useCalculatorVersion } from "./CalculatorVersion";
 import { CalculatorWindow } from "./CalculatorWindow";
@@ -83,11 +83,7 @@ export interface V2Bridge {
 
 export type CalculatorBridge = V1Bridge | V2Bridge;
 
-const Context = createContext<CalculatorBridge | null>(null);
-
-export function useCalculator(): CalculatorBridge | null {
-  return useContext(Context);
-}
+export { useCalculator };
 
 /** Key this scope by attempt + active question. Closing keeps this scope alive;
  * navigating destroys it, including pending clipboard work and native history. */
@@ -165,7 +161,7 @@ function V1Scope({ enabled, open, onOpenChange, children }: CalculatorScopeProps
       }
     : null;
   return (
-    <Context.Provider value={bridge}>
+    <CalculatorBridgeContext.Provider value={bridge}>
       <div
         ref={content}
         className={styles.workspace}
@@ -208,7 +204,7 @@ function V1Scope({ enabled, open, onOpenChange, children }: CalculatorScopeProps
           onClose={() => changeOpen(false)}
         />
       )}
-    </Context.Provider>
+    </CalculatorBridgeContext.Provider>
   );
 }
 
@@ -532,7 +528,7 @@ function V2Scope({
   const shiftWorkspace = dockShift !== null && shiftHost === null;
 
   return (
-    <Context.Provider value={bridge}>
+    <CalculatorBridgeContext.Provider value={bridge}>
       <CalculatorHostIdContext.Provider value={hostId}>
         <div
           ref={workspaceRef}
@@ -621,7 +617,7 @@ function V2Scope({
           </div>
         )}
       </CalculatorHostIdContext.Provider>
-    </Context.Provider>
+    </CalculatorBridgeContext.Provider>
   );
 }
 

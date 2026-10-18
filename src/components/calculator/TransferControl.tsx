@@ -19,7 +19,8 @@ import {
 import { ArrowUpRight, Calculator } from "lucide-react";
 import type { TransferItem } from "@/lib/calculator-transfer/classify";
 import type { TransferPayload, TransferTrigger } from "@/lib/calculator-transfer/payload";
-import { useCalculator, type V2Bridge } from "./CalculatorScope";
+import { useCalculator } from "./bridge-context"; // not CalculatorScope (AR-33)
+import type { V2Bridge } from "./CalculatorScope";
 import { TransferChooser } from "./TransferChooser";
 import { isCoreRejection, reportTransferRejection } from "./transfer-report";
 import {

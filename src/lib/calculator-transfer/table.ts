@@ -4,7 +4,7 @@
 // the payload (TR-72). Lazy with the classifier (D4) and framework-free; it reads the table's text
 // only and imports nothing from the v2 calculator (AR-3, TR-74).
 
-import { splitMathText } from "../../components/learn/math-segments";
+import { splitMathText } from "./math-split"; // not math-segments: AR-33, math-split.ts
 import type { SegmentVerdict, TransferItem } from "./classify";
 import { describeChoice, plainMath } from "./describe";
 import { normalizeQuestionMath } from "./normalize";

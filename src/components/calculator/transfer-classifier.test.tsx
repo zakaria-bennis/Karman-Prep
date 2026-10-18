@@ -75,6 +75,20 @@ it("AR-33 the eager transfer code reaches the classifier, TransferControl and th
   expect(chooser).not.toMatch(/^import\s+(?!type\b)[^;]*?from\s+"@\/lib\/calculator-transfer\//m);
   const items = readFileSync("src/components/calculator/transfer-items.tsx", "utf8");
   expect(items).toMatch(/from "@\/lib\/calculator-transfer\/table";/);
+  // A value import of an eager module from the lazy chunk regroups the quiz routes' eager chunks
+  // (about 400 gzip bytes on /learn/daily): the control reads the bridge from bridge-context, and
+  // the classifier gets MathText's splitter from the loader through math-split.ts.
+  expect(control).not.toMatch(/^import\s+(?!type\b)[^;]*?from\s+"\.\/CalculatorScope";/m);
+  expect(control).toMatch(/^import \{ useCalculator \} from "\.\/bridge-context";/m);
+  const segmentsValue = /^import\s+(?!type\b)[^;]*?from\s+"[^"]*\/math-segments";/m;
+  for (const file of [
+    "src/components/calculator/transfer-items.tsx",
+    "src/lib/calculator-transfer/classify.ts",
+    "src/lib/calculator-transfer/table.ts",
+    "src/lib/calculator-transfer/math-split.ts",
+  ])
+    expect(readFileSync(file, "utf8"), file).not.toMatch(segmentsValue);
+  expect(loader).toMatch(/m\.installMathSplit\(splitMathText\)/);
 });
 
 it("AR-33 useTransferClassifier gives null until the lazy classifier and TransferControl resolve, then both, loading them once; an inactive caller gets null and loads nothing", async () => {
@@ -90,6 +104,12 @@ it("AR-33 useTransferClassifier gives null until the lazy classifier and Transfe
   const control = await import("./TransferControl");
   expect(first.result.current?.TransferControl).toBe(control.TransferControl);
   expect(loadTransferClassifier()).toBe(loadTransferClassifier());
+  // the loader handed the chunk MathText's splitter (math-split.ts)
+  const split = await import("@/lib/calculator-transfer/math-split");
+  const { splitMathText } = await import("@/components/learn/math-segments");
+  expect(split.splitMathText("$x$", false, true, true)).toEqual(
+    splitMathText("$x$", false, true, true)
+  );
   // a later caller gets the loaded module on its first render
   const later = renderHook(() => useTransferClassifier(true));
   expect(later.result.current?.classifyChoice).toBe(classify.classifyChoice);

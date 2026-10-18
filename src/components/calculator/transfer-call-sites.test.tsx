@@ -41,8 +41,9 @@ const h = vi.hoisted(() => ({
   onCross: vi.fn(),
   outer: vi.fn(),
 }));
-vi.mock("./CalculatorScope", async (original) => {
-  const real = await original<typeof import("./CalculatorScope")>();
+// bridge-context holds useCalculator; CalculatorScope re-exports it (AR-33).
+vi.mock("./bridge-context", async (original) => {
+  const real = await original<typeof import("./bridge-context")>();
   return {
     ...real,
     useCalculator: () =>

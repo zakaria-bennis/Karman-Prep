@@ -8,6 +8,7 @@
 // Transfer control until both have resolved; a failed chunk renders none and the next caller retries.
 
 import { useEffect, useState } from "react";
+import { splitMathText } from "@/components/learn/math-segments";
 import { loadTransferCore } from "./use-transfer-bridge";
 
 export type TransferClassifier = typeof import("./transfer-lazy");
@@ -16,10 +17,14 @@ let pending: Promise<TransferClassifier> | null = null;
 let loaded: TransferClassifier | null = null;
 
 /** The controls' chunk, imported once per page while it succeeds, with the bridge's pipeline (so
- * a control's transfer never waits for it). */
+ * a control's transfer never waits for it). The chunk gets MathText's splitMathText from here, so
+ * math-segments stays out of it (AR-33, math-split.ts). */
 export const loadTransferClassifier = (): Promise<TransferClassifier> =>
   (pending ??= Promise.all([import("./transfer-lazy"), loadTransferCore()]).then(
-    ([m]) => (loaded = m),
+    ([m]) => {
+      m.installMathSplit(splitMathText);
+      return (loaded = m);
+    },
     (error: unknown) => {
       pending = null;
       throw error;

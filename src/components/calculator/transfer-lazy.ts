@@ -5,5 +5,6 @@
 // import() in use-transfer-bridge.ts. Never imported by eager code.
 
 export * from "@/lib/calculator-transfer/classify";
+export { installMathSplit } from "@/lib/calculator-transfer/math-split";
 export * from "./transfer-items";
 export { TransferControl } from "./TransferControl";

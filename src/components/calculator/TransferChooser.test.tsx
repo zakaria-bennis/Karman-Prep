@@ -12,8 +12,9 @@ import { resetLastFormats } from "./TransferChooser";
 import { transferSelection } from "./transfer-selection";
 
 const h = vi.hoisted(() => ({ bridge: null as unknown }));
-vi.mock("./CalculatorScope", async (original) => {
-  const real = await original<typeof import("./CalculatorScope")>();
+// bridge-context holds useCalculator; CalculatorScope re-exports it (AR-33).
+vi.mock("./bridge-context", async (original) => {
+  const real = await original<typeof import("./bridge-context")>();
   return { ...real, useCalculator: () => h.bridge as ReturnType<typeof real.useCalculator> };
 });
 

@@ -4,7 +4,8 @@
 // splitMathText call (decision 1). Eager and framework-free; it reads question text only and
 // imports nothing from the v2 calculator (AR-3, TR-74).
 
-import { splitMathText, type MathSegment } from "../../components/learn/math-segments";
+import type { MathSegment } from "../../components/learn/math-segments";
+import { splitMathText } from "./math-split"; // not math-segments: AR-33, math-split.ts
 import { describeChoice, describeMath, describeSystem } from "./describe";
 import { lexQuestionMath, type QToken } from "./lex";
 import { FUNCTION_HEAD, proseFunctionNames } from "./names";

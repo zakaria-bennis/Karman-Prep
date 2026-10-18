@@ -9,7 +9,8 @@ import { isCoreRejection, markCoreRejection, reportTransferRejection } from "./t
 
 const h = vi.hoisted(() => ({ capture: vi.fn(), bridge: null as unknown }));
 vi.mock("@sentry/nextjs", () => ({ captureException: h.capture }));
-vi.mock("./CalculatorScope", () => ({ useCalculator: () => h.bridge }));
+// bridge-context holds useCalculator; CalculatorScope re-exports it (AR-33).
+vi.mock("./bridge-context", () => ({ useCalculator: () => h.bridge }));
 
 const REJECTED: TransferResult = {
   status: "rejected",

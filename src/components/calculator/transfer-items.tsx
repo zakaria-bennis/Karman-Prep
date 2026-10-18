@@ -11,7 +11,8 @@ import {
   type TransferItem,
 } from "@/lib/calculator-transfer/classify";
 import { classifyTable } from "@/lib/calculator-transfer/table";
-import { splitMathText, type MathSegment } from "@/components/learn/math-segments";
+import type { MathSegment } from "@/components/learn/math-segments";
+import { splitMathText } from "@/lib/calculator-transfer/math-split"; // AR-33
 import { TransferControl } from "./TransferControl";
 
 export interface TransferControlView {
