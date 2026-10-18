@@ -125,7 +125,8 @@ function handOff(el: HTMLElement | null, surface: Ref): void {
  * The Home control (G-5, AN-8). While leaving it is inert and hidden from assistive technology,
  * and focus moves to the graph as it starts to leave or, with no fade, as it is removed: React
  * runs a deleted component's layout cleanups before it removes the node, so the cleanup still
- * sees the button focused.
+ * sees the button focused. The refs are stable, so that cleanup runs only at removal and a
+ * re-render never moves focus off a focused Home.
  */
 function HomeButton({ phase, homeRef, surface, onActivate }: HomeButtonProps): JSX.Element {
   useLayoutEffect(() => {
@@ -134,7 +135,7 @@ function HomeButton({ phase, homeRef, surface, onActivate }: HomeButtonProps): J
   useLayoutEffect(() => {
     const el = homeRef.current;
     return () => handOff(el, surface);
-  });
+  }, [homeRef, surface]);
   const leaving = phase === "leaving";
   return (
     <button

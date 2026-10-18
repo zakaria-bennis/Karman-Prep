@@ -343,6 +343,15 @@ it("AN-8 Home shows only off the default view and hands focus to the graph as it
 
   await run(() => fireEvent.keyDown(graph(), { key: "ArrowRight" }));
   await run(() => button("Home").focus());
+  // A re-render that keeps the view off the default leaves focus on Home and never moves it away,
+  // even for a moment that React's commit would hide by restoring focus.
+  const graphFocus = vi.fn();
+  graph().addEventListener("focus", graphFocus);
+  await advance(250);
+  await run(() => engine.setExpressions([{ id: "1", latex: "y=x" }]));
+  graph().removeEventListener("focus", graphFocus);
+  expect(graphFocus).not.toHaveBeenCalled();
+  expect(document.activeElement).toBe(button("Home"));
   await run(() => engine.setMathBounds(DEFAULT));
   expect(screen.queryByRole("button", { name: "Home" })).toBeNull();
   expect(document.activeElement).toBe(graph());
