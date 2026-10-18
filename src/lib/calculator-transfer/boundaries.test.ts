@@ -32,7 +32,7 @@ function importClosure(entries: readonly string[]): string[] {
   return [...seen];
 }
 
-const TRANSFER_MODULES = ["payload", "normalize", "lex", "segment", "describe", "classify"]
+const TRANSFER_MODULES = ["payload", "normalize", "lex", "segment", "describe", "classify", "names"]
   .map((m) => `src/lib/calculator-transfer/${m}.ts`)
   .concat("src/components/learn/math-segments.ts");
 

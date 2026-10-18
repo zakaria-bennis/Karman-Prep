@@ -1,4 +1,5 @@
-// Stem classification (TR-1, TR-3, TR-5, TR-6): which question math segments get a Transfer
+// Stem classification (TR-1, TR-3, TR-5, TR-6) with question function names, calls and stem
+// dependencies (TR-18 to TR-21, TR-37, TR-77): which question math segments get a Transfer
 // control and what each inserts. Items are keyed by the segment index of one whole-text
 // splitMathText call (decision 1). Eager and framework-free; it reads question text only and
 // imports nothing from the v2 calculator (AR-3, TR-74).
@@ -6,9 +7,16 @@
 import { splitMathText } from "../../components/learn/math-segments";
 import { describeMath, describeSystem } from "./describe";
 import { lexQuestionMath, type QToken } from "./lex";
+import { FUNCTION_HEAD, proseFunctionNames } from "./names";
 import { normalizeQuestionMath } from "./normalize";
 import type { TransferPayload } from "./payload";
-import { classifySegment, type SegmentKind, type SegmentResult, type SegmentRow } from "./segment";
+import {
+  classifySegment,
+  TRANSFER_PHASE,
+  type SegmentKind,
+  type SegmentResult,
+  type SegmentRow,
+} from "./segment";
 
 export interface StemInput {
   text: string;
@@ -57,9 +65,6 @@ function memoized<K, V>(): (key: K, compute: () => V) => V {
   };
 }
 const stemKey = (stem: StemInput) => `${stem.serializedFunctionLines}\u0000${stem.text}`;
-
-/** TR-13 and the core's head pre-scan: a Latin letter, optionally subscripted. */
-const FUNCTION_HEAD = /^[A-Za-z](?:_\{[A-Za-z0-9]+\})?$/;
 
 /** TR-19: names a row of `latex` defines as functions (`name(v)=…`), whatever else the row holds. */
 function functionHeads(latex: string): string[] {
@@ -114,37 +119,198 @@ function itemFor(
   };
 }
 
+type Rejection = { rule: string; detail: string };
+type Resolution = { dependencies: SegmentRow[] } | Rejection;
+
 interface StemSegment {
   index: number;
-  latex: string;
   result: SegmentResult;
 }
 
-/** Every non-text segment of the stem, normalised and classified with the stem's function names. */
-function stemSegments(stem: StemInput): StemSegment[] {
-  const segments = splitMathText(stem.text, stem.serializedFunctionLines, true, true);
-  const math = segments.flatMap((s, index) =>
-    s.kind === "text" ? [] : [{ index, latex: normalizeQuestionMath(s.latex, "math") }]
-  );
-  const functionNames = new Set(math.flatMap((m) => functionHeads(m.latex)));
-  return math.map((m) => ({ ...m, result: classifySegment(m.latex, "stem", functionNames) }));
+/**
+ * One stem's classified segments, candidate definitions and cycle set (decision 9), with the
+ * memoized resolver of decision 6's classify.ts steps. Choices resolve against it too (Task 8).
+ */
+class StemContext {
+  readonly functionNames: ReadonlySet<string>;
+  readonly segments: readonly StemSegment[];
+  private readonly candidates = new Map<number, SegmentRow>();
+  private readonly definitions = new Map<string, number[]>();
+  private readonly cycleSet: ReadonlySet<number>;
+  private readonly verdicts = new Map<number, SegmentVerdict>();
+
+  constructor(stem: StemInput | null) {
+    const split = stem ? splitMathText(stem.text, stem.serializedFunctionLines, true, true) : [];
+    const math = split.flatMap((s, index) =>
+      s.kind === "text" ? [] : [{ index, latex: normalizeQuestionMath(s.latex, "math") }]
+    );
+    this.functionNames = new Set([
+      ...proseFunctionNames(split),
+      ...math.flatMap((m) => functionHeads(m.latex)),
+    ]);
+    this.segments = math.map((m) => ({
+      index: m.index,
+      result: classifySegment(m.latex, "stem", this.functionNames),
+    }));
+    for (const { index, result } of this.segments) {
+      const defines = result.ok && result.rows.length === 1 ? result.rows[0].defines : null;
+      if (!result.ok || !defines) continue;
+      this.candidates.set(index, result.rows[0]);
+      this.definitions.set(defines.name, [...(this.definitions.get(defines.name) ?? []), index]);
+    }
+    this.cycleSet = this.findCycleSet();
+  }
+
+  /** Candidates on a cycle: members of a strongly connected component of two or more (Tarjan). */
+  private findCycleSet(): Set<number> {
+    const edges = (c: number) => {
+      const row = this.candidates.get(c);
+      return row ? [...row.names, ...row.calls].flatMap((n) => this.definitions.get(n) ?? []) : [];
+    };
+    const order = new Map<number, number>();
+    const low = new Map<number, number>();
+    const stack: number[] = [];
+    const onStack = new Set<number>();
+    const cycle = new Set<number>();
+    const visit = (v: number) => {
+      order.set(v, order.size);
+      low.set(v, order.size - 1);
+      stack.push(v);
+      onStack.add(v);
+      for (const w of edges(v)) {
+        if (!order.has(w)) {
+          visit(w);
+          low.set(v, Math.min(low.get(v) ?? 0, low.get(w) ?? 0));
+        } else if (onStack.has(w)) low.set(v, Math.min(low.get(v) ?? 0, order.get(w) ?? 0));
+      }
+      if (low.get(v) !== order.get(v)) return;
+      const component: number[] = [];
+      for (let w = stack.pop(); w !== undefined; w = stack.pop()) {
+        onStack.delete(w);
+        component.push(w);
+        if (w === v) break;
+      }
+      if (component.length > 1) for (const w of component) cycle.add(w);
+    };
+    for (const c of this.candidates.keys()) if (!order.has(c)) visit(c);
+    return cycle;
+  }
+
+  /** The verdict of stem segment `index` (decision 6's classify.ts steps 1 to 6). */
+  resolve(index: number): SegmentVerdict {
+    const hit = this.verdicts.get(index);
+    if (hit) return hit;
+    const segment = this.segments.find((s) => s.index === index);
+    let verdict: SegmentVerdict;
+    if (!segment) verdict = { rule: "TR-1", detail: "not a math segment" };
+    else if (!segment.result.ok)
+      verdict = { rule: segment.result.rule, detail: segment.result.detail };
+    else if (this.cycleSet.has(index)) verdict = { rule: "TR-21", detail: "cycle" };
+    else {
+      const { kind, rows } = segment.result;
+      const resolution = this.resolveRows(rows);
+      verdict =
+        "rule" in resolution
+          ? resolution
+          : {
+              item: itemFor(
+                `stem:${index}`,
+                kind,
+                rows,
+                resolution.dependencies.map((d) => d.latex)
+              ),
+            };
+    }
+    this.verdicts.set(index, verdict);
+    return verdict;
+  }
+
+  private isExportable(index: number): boolean {
+    return !this.cycleSet.has(index) && "item" in this.resolve(index);
+  }
+
+  /** The rows of the exportable definitions of `name`. */
+  private exportable(name: string): SegmentRow[] {
+    return (this.definitions.get(name) ?? []).flatMap((c) => {
+      const row = this.candidates.get(c);
+      return row && this.isExportable(c) ? [row] : [];
+    });
+  }
+
+  /** Steps 3 to 6 for the rows of one item: calls, dependencies, item checks and gates. */
+  resolveRows(rows: readonly SegmentRow[]): Resolution {
+    const ownRows = rows.filter((r) => r.defines !== null);
+    const own = new Set(ownRows.map((r) => r.defines?.name));
+    for (const row of rows)
+      for (const call of row.calls)
+        if (!own.has(call) && this.exportable(call).length !== 1)
+          return { rule: "TR-20", detail: `${call} needs one exportable definition` };
+
+    const dependencies: SegmentRow[] = [];
+    const visited = new Set<string>();
+    const visit = (name: string) => {
+      if (own.has(name) || visited.has(name)) return;
+      const found = this.exportable(name);
+      if (found.length !== 1) return;
+      visited.add(name);
+      for (const n of [...found[0].names, ...found[0].calls]) visit(n);
+      dependencies.push(found[0]);
+    };
+    for (const row of rows) for (const n of [...row.names, ...row.calls]) visit(n);
+
+    if (own.size < ownRows.length) return { rule: "TR-21", detail: "duplicate-definition" };
+    const definitionOf = new Map<string, SegmentRow>();
+    for (const row of [...ownRows, ...dependencies])
+      if (row.defines) definitionOf.set(row.defines.name, row);
+    if (hasCycle(definitionOf)) return { rule: "TR-21", detail: "cycle" };
+
+    if (
+      TRANSFER_PHASE < 2 &&
+      rows.some((r) => r.defines === null) &&
+      dependencies.some((d) => d.names.includes("r"))
+    )
+      return { rule: "TR-77", detail: "r through a dependency waits for RC-18" };
+    if (!definitionOf.has("t"))
+      for (const row of rows) {
+        const pending = [...row.pointNames];
+        const seen = new Set<string>();
+        for (let n = pending.pop(); n !== undefined; n = pending.pop()) {
+          if (n === "t") return { rule: "TR-77", detail: "a point uses an undefined t" };
+          if (seen.has(n)) continue;
+          seen.add(n);
+          pending.push(...(definitionOf.get(n)?.names ?? []));
+        }
+      }
+    return { dependencies };
+  }
 }
+
+/** Decision 7's item-level cycle: definitions reaching each other through names and calls. */
+function hasCycle(definitionOf: ReadonlyMap<string, SegmentRow>): boolean {
+  const state = new Map<string, "open" | "done">();
+  const visit = (name: string): boolean => {
+    const row = definitionOf.get(name);
+    if (!row || state.get(name) === "done") return false;
+    if (state.get(name) === "open") return true;
+    state.set(name, "open");
+    if ([...row.names, ...row.calls].some(visit)) return true;
+    state.set(name, "done");
+    return false;
+  };
+  return [...definitionOf.keys()].some(visit);
+}
+
+const contextMemo = memoized<string, StemContext>();
+const contextFor = (stem: StemInput | null) =>
+  contextMemo(stem ? stemKey(stem) : "\u0000none", () => new StemContext(stem));
 
 const explainMemo = memoized<string, ReadonlyMap<number, SegmentVerdict>>();
 
 /** A verdict for every non-text segment of the stem, keyed by its whole-text segment index. */
 export function explainStem(stem: StemInput): ReadonlyMap<number, SegmentVerdict> {
   return explainMemo(stemKey(stem), () => {
-    const verdicts = new Map<number, SegmentVerdict>();
-    for (const { index, result } of stemSegments(stem)) {
-      verdicts.set(
-        index,
-        result.ok
-          ? { item: itemFor(`stem:${index}`, result.kind, result.rows, []) }
-          : { rule: result.rule, detail: result.detail }
-      );
-    }
-    return verdicts;
+    const context = contextFor(stem);
+    return new Map(context.segments.map(({ index }) => [index, context.resolve(index)]));
   });
 }
 
