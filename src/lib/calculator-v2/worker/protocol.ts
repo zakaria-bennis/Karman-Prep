@@ -5,6 +5,7 @@ import type { RowError } from "../core/analysis";
 import type { RowKind } from "../core/corpus/types";
 import type { Value } from "../core/eval/values";
 import type { Geometry } from "../plot/geometry";
+import type { PoiPoint } from "../poi/types";
 import type { PixelSize, Viewport } from "../plot/viewport";
 
 export const PROTOCOL_VERSION = 1;
@@ -38,6 +39,7 @@ export type MainToWorker =
     }
   | { v: 1; type: "view"; generation: number; viewport: Viewport; size: PixelSize; dpr: number }
   | { v: 1; type: "evaluate"; jobId: number; generation: number; latex: string } // HelperExpression
+  | { v: 1; type: "select"; rowId: string | null } // POI-1: the row whose points of interest to find
   | { v: 1; type: "dispose" };
 export type WorkerToMain =
   | { v: 1; type: "ready"; worker: typeof WORKER_MARKER }
@@ -53,7 +55,7 @@ export type WorkerToMain =
     }
   | { v: 1; type: "plot"; generation: number; rowId: string; geometry: Geometry }
   | { v: 1; type: "regression"; generation: number; rowId: string } // reserved; never sent before Phase 3
-  | { v: 1; type: "poi"; generation: number; rowId: string } // reserved; never sent before Phase 2
+  | { v: 1; type: "poi"; generation: number; rowId: string; points: PoiPoint[] } // POI-1
   | { v: 1; type: "overrun"; generation: number; rowId: string } // AR-48 deadline or AR-49 watchdog
   | { v: 1; type: "heartbeat"; generation: number }
   | { v: 1; type: "done"; generation: number }
@@ -112,9 +114,15 @@ export function isWorkerMessage(data: unknown): data is WorkerToMain {
   switch (m.type) {
     case "ready":
       return m.worker === WORKER_MARKER;
+    case "poi":
+      return (
+        isNumber(m.generation) &&
+        isString(m.rowId) &&
+        Array.isArray(m.points) &&
+        m.points.every((p) => hasNumbers(p, ["x", "y"]) && Array.isArray((p as Fields).kinds))
+      );
     case "begin":
     case "regression":
-    case "poi":
     case "overrun":
       return isNumber(m.generation) && isString(m.rowId);
     case "analysis":
@@ -163,6 +171,8 @@ export function isMainMessage(data: unknown): data is MainToWorker {
       );
     case "evaluate":
       return isNumber(m.jobId) && isNumber(m.generation) && isString(m.latex);
+    case "select":
+      return m.rowId === null || isString(m.rowId);
     case "dispose":
       return true;
     default:

@@ -4,7 +4,14 @@
 // yield. The same class runs in the worker and on the main thread (AR-50). Pure TypeScript: no DOM.
 
 import type { ViewSpec } from "../plot/viewport";
-import { runHelper, runPlot, runValuesPass, type PassContext, type ValuesOutcome } from "./pass";
+import {
+  runHelper,
+  runPlot,
+  runPoi,
+  runValuesPass,
+  type PassContext,
+  type ValuesOutcome,
+} from "./pass";
 import { WORKER_MARKER, type MainToWorker, type WorkerToMain } from "./protocol";
 import { SliceClock, type ExecutorTiming } from "./slice";
 import { messageChannelYield } from "./yield";
@@ -47,6 +54,9 @@ export class Executor {
   private valuesFor: StateMessage | null = null;
   private plottedFor: number | null = null;
   private doneFor: number | null = null;
+  /** POI-1: the selected row, and the generation and row its points were last found for. */
+  private selected: string | null = null;
+  private poiFor: string | null = null;
 
   constructor(port: ExecutorPort, timing: Partial<ExecutorTiming> = {}) {
     this.port = port;
@@ -96,6 +106,10 @@ export class Executor {
         this.jobs.push({ jobId, generation, latex });
         break;
       }
+      case "select":
+        this.selected = message.rowId;
+        this.poiFor = null;
+        break;
       case "dispose":
         this.dispose();
         return;
@@ -144,7 +158,8 @@ export class Executor {
   /**
    * One iteration for generation `gen` (AR-46 message order): `ready` if a `hello` is pending,
    * the values pass when the state changed, every queued helper job, the plots of every graphable
-   * row when the view's generation has not been plotted, then `done`. Goes idle when `gen` is
+   * row when the view's generation has not been plotted, the selected row's points of interest
+   * (POI-1) once per generation and selection, then `done`. Goes idle when `gen` is
    * still the latest and no job waits.
    */
   private async iterate(gen: number): Promise<"idle" | "restart" | "stop"> {
@@ -181,6 +196,16 @@ export class Executor {
         if (next !== "go") return next;
       }
       this.plottedFor = gen;
+    }
+    const selected = this.selected;
+    if (outcome !== null && view !== null && selected !== null) {
+      const key = `${gen}:${selected}`;
+      if (this.poiFor !== key) {
+        runPoi(selected, outcome, view, ctx);
+        this.poiFor = key;
+        const next = await this.afterUnit(gen);
+        if (next !== "go") return next;
+      }
     }
     if (this.state !== null && this.doneFor !== gen) {
       this.post({ v: 1, type: "done", generation: gen });

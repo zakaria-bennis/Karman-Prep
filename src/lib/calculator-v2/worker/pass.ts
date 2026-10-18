@@ -8,13 +8,19 @@ import {
   type AnalysisResult,
   type RowAnalysis,
 } from "../core/analysis/index";
-import { DeadlineExceeded, ROW_VALUE_DEADLINE_MS, type Deadline } from "../core/deadline";
+import {
+  DeadlineExceeded,
+  POI_DEADLINE_MS,
+  ROW_VALUE_DEADLINE_MS,
+  type Deadline,
+} from "../core/deadline";
 import { compileExpression, evaluateRows, type CompileScope } from "../core/eval/compile";
 import { UNDEFINED, type Value } from "../core/eval/values";
 import { parseLatex, type ParseResult } from "../core/latex/index";
 import { buildCompileScope, plotInputFor } from "../plot/from-analysis";
 import { geometryTransferables } from "../plot/geometry";
 import { plotRow } from "../plot/index";
+import { findRowPois } from "../poi/index";
 import type { ViewSpec } from "../plot/viewport";
 import type { WireRow, WireSettings, WorkerToMain } from "./protocol";
 import { createWorkDeadline, type SliceClock } from "./slice";
@@ -192,4 +198,32 @@ export function runHelper(
   }
   const { generation } = ctx;
   ctx.post({ v: 1, type: "value", generation, rowId: null, jobId: job.jobId, value });
+}
+
+/**
+ * POI-1: the points of interest of the selected row in `view` under POI_DEADLINE_MS. A row that is
+ * not graphable (hidden, an error, chips) or overran posts an empty list, so its dots go; an
+ * expired deadline posts nothing; any other throw posts a fault (AR-54).
+ */
+export function runPoi(
+  rowId: string,
+  outcome: ValuesOutcome,
+  view: ViewSpec,
+  ctx: PassContext
+): void {
+  const { generation } = ctx;
+  try {
+    const deadline = createWorkDeadline({
+      clock: ctx.clock,
+      now: ctx.now,
+      limitMs: POI_DEADLINE_MS,
+      rowId,
+    });
+    const points = outcome.overrun.has(rowId)
+      ? []
+      : findRowPois(rowId, outcome.analysis, outcome.scope, view, deadline);
+    ctx.post({ v: 1, type: "poi", generation, rowId, points });
+  } catch (thrown) {
+    if (!(thrown instanceof DeadlineExceeded)) postFault(ctx, thrown);
+  }
 }

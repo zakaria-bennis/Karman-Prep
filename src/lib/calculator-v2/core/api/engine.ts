@@ -98,6 +98,8 @@ export class CalculatorEngine {
   /** KB-4's DOM-focused row and API-12's active row (OI-10); neither is an undo step. */
   private focusedRowId: string | null = null;
   private activeRowId: string | null = null;
+  /** POI-17: the selected row; set by focus, activation and curve clicks; not an undo step. */
+  private selectedRowId: string | null = null;
   private destroyed = false;
 
   /** Validates the options (API-1) before anything is posted, then resets as setBlank() does. */
@@ -369,6 +371,16 @@ export class CalculatorEngine {
   setFocusedRow(id: string | null): void {
     this.doc.endGroup();
     this.setFocus(id, id ?? this.activeRowId);
+    if (id !== null) this.setSelectedRow(id);
+  }
+
+  /** POI-1, POI-17: the selected row (null for none); posts `select` when it changes. */
+  setSelectedRow(id: string | null): void {
+    const next = id !== null && this.doc.rows.some((r) => r.id === id) ? id : null;
+    if (this.destroyed || next === this.selectedRowId) return;
+    this.selectedRowId = next;
+    this.deps.backend.post({ v: 1, type: "select", rowId: next });
+    this.changed();
   }
 
   // ── commit pipeline ──
@@ -383,6 +395,7 @@ export class CalculatorEngine {
   private activate(id: string, method: string): void {
     if (!this.doc.rows.some((r) => r.id === id)) invalid(`${method}: no row has id ${String(id)}`);
     this.setFocus(this.focusedRowId, id);
+    this.setSelectedRow(id);
   }
 
   /** Stores the focused and active rows; focusedExpression fires when the active row changes. */
@@ -399,6 +412,10 @@ export class CalculatorEngine {
    * (API-1), state, view once sized, and a new job for each live helper.
    */
   private resetDocument(settings: CalculatorSettings, allowUndo: boolean): void {
+    if (this.selectedRowId !== null) {
+      this.selectedRowId = null; // POI-17: setBlank clears the selection
+      this.deps.backend.post({ v: 1, type: "select", rowId: null });
+    }
     if (!allowUndo) this.doc.reset();
     else if (!sameRows(BLANK_ROWS, this.doc.rows)) this.doc.commit(BLANK_ROWS, STEP);
     this.storeSettings(settings);
@@ -464,6 +481,10 @@ export class CalculatorEngine {
     const kept = (id: string | null) => (id !== null && this.analysis.byId.has(id) ? id : null);
     if (kept(this.activeRowId) !== this.activeRowId) this.observers.markDirty("focusedExpression");
     [this.focusedRowId, this.activeRowId] = [kept(this.focusedRowId), kept(this.activeRowId)];
+    if (this.selectedRowId !== null && kept(this.selectedRowId) === null) {
+      this.selectedRowId = null;
+      this.deps.backend.post({ v: 1, type: "select", rowId: null });
+    }
   }
 
   /** AR-45, AR-46: posts state (then view when asked) and re-issues every live helper (API-6). */
@@ -503,6 +524,8 @@ export class CalculatorEngine {
       geometry: this.inbox.geometry,
       focusedRowId: this.focusedRowId,
       activeRowId: this.activeRowId,
+      selectedRowId: this.selectedRowId,
+      poi: this.inbox.poi?.rowId === this.selectedRowId ? this.inbox.poi : null,
       canUndo: this.doc.canUndo(),
       canRedo: this.doc.canRedo(),
       backendKind: this.deps.backend.kind,

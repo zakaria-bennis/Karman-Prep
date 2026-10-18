@@ -76,6 +76,8 @@ const snap: EngineSnapshot = {
   ]),
   focusedRowId: null,
   activeRowId: null,
+  selectedRowId: null,
+  poi: null,
   canUndo: false,
   canRedo: false,
   backendKind: "main-thread",

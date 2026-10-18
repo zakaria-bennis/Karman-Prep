@@ -4,6 +4,7 @@
 // expressionAnalysis. Package-internal apart from the two re-exported types.
 
 import type { Geometry } from "../../plot/geometry";
+import type { PoiPoint } from "../../poi/types";
 import type { Viewport, ViewSpec } from "../../plot/viewport";
 import { rowErrorMessage, type AnalysisResult, type RowAnalysis, type RowError } from "../analysis";
 import type { RowKind } from "../corpus/types";
@@ -35,6 +36,8 @@ export interface EngineSnapshot {
   geometry: ReadonlyMap<string, Geometry>; // each row's latest accepted plot; dropped at once when the row is deleted, edited, hidden or no longer graphable; region geometry dropped on every view send; at done only rows plotted in that generation are kept
   focusedRowId: string | null; // DOM-focused row (KB-4)
   activeRowId: string | null; // API-12 active row (L-3 styling, keypad target)
+  selectedRowId: string | null; // POI-17: the row whose curve is selected (heavier, with POI dots)
+  poi: { rowId: string; points: readonly PoiPoint[] } | null; // POI-1: the selected row's points
   canUndo: boolean;
   canRedo: boolean;
   backendKind: "worker" | "main-thread";

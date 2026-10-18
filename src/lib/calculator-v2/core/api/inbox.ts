@@ -3,6 +3,7 @@
 // kind check and worker faults. Package-internal.
 
 import type { Geometry } from "../../plot/geometry";
+import type { PoiPoint } from "../../poi/types";
 import type { WorkerToMain } from "../../worker/protocol";
 import type { AnalysisResult } from "../analysis";
 import type { RowKind } from "../corpus/types";
@@ -49,6 +50,8 @@ export class ResultInbox {
   /** The generation of the latest `state` sent, and of the latest `state` or `view` sent. */
   private stateGeneration = 0;
   private latestGeneration = 0;
+  /** POI-1: the latest accepted points of interest, for the row they were found for. */
+  private points: { rowId: string; points: readonly PoiPoint[] } | null = null;
 
   constructor(hooks: InboxHooks) {
     this.hooks = hooks;
@@ -67,6 +70,7 @@ export class ResultInbox {
       return !before || !after || after.latex !== before.latex || after.hidden !== before.hidden;
     };
     for (const id of this.rows.keys()) if (edited(id)) this.results.delete(id);
+    if (this.points !== null && edited(this.points.rowId)) this.points = null;
     this.keepGeometry((id) => !edited(id) && next.get(id)!.isGraphable);
     this.rows = next;
     this.stateGeneration = this.latestGeneration = generation;
@@ -112,11 +116,21 @@ export class ResultInbox {
       case "done":
         if (message.generation !== this.latestGeneration) return false;
         return this.keepGeometry((id) => this.plotted.has(id));
+      case "poi": {
+        if (message.generation !== this.latestGeneration || !this.rows.has(message.rowId)) {
+          return false;
+        }
+        this.points = Object.freeze({
+          rowId: message.rowId,
+          points: Object.freeze(message.points),
+        });
+        return true;
+      }
       case "fault":
         this.hooks.onFault(message.message);
         return false;
       default:
-        return false; // begin, heartbeat, and the reserved regression and poi
+        return false; // begin, heartbeat, and the reserved regression
     }
   }
 
@@ -129,12 +143,18 @@ export class ResultInbox {
     return this.plots;
   }
 
+  /** POI-1: the latest accepted points of interest, or null. */
+  get poi(): { rowId: string; points: readonly PoiPoint[] } | null {
+    return this.points;
+  }
+
   /** setBlank: forgets every result, geometry and generation mark. */
   reset(): void {
     this.rows = new Map();
     this.results.clear();
     this.plots = new Map();
     this.plotted = new Set();
+    this.points = null;
     this.stateGeneration = this.latestGeneration = 0;
   }
 

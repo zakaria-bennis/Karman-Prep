@@ -315,7 +315,7 @@ The calculator README documents these limits. None of them blocks a phase.
 | Inequality boundaries                          | as the boundary curve            | as the boundary curve                                                                 | yes           |
 | Polar, parametric, points, tables              | none                             | none                                                                                  | none          |
 
-- **POI-1** Points of interest appear only for the focused row's graphed curves, as dots. Hidden rows and rows with errors have none. (Phase 2; verified by browser test)
+- **POI-1** Points of interest appear only for the selected row's graphed curves (POI-17), as small grey dots without labels; with no row selected none are drawn. Hidden rows and rows with errors have none. (Parity; verified by browser test)
 - **POI-2** Each graph kind gets the kinds of point of interest that the coverage table gives it; a circle or other implicit curve gets its axis intercepts and its top and bottom points (appendix F). (Parity; verified by unit test)
 - **POI-3** Regression curves (D-2) get the `y=f(x)` points of interest. (Phase 3; verified by unit test)
 - **POI-4** Intersections are found between the focused row's curves and every other visible graphed curve, including inequality boundaries and vertical lines. (Phase 2; verified by unit test)
@@ -344,6 +344,8 @@ The calculator README documents these limits. None of them blocks a phase.
 | `x^{2}+y^{2}=25` and `y=5`    | one intersection, (0, 5)                                                |
 | `y=\sin x`                    | 7 zeros: 0, ±π, ±2π, ±3π                                                |
 | `y=10^{-8}(x-3)`              | exactly one zero, (3, 0)                                                |
+
+- **POI-17** Selection (appendix F requirements 1 to 3 and 9): focusing or activating a row, or clicking or tapping its curve, selects that row; the selected curve draws heavier (4 CSS px) and shows its points of interest; a single click or tap on a curve away from any point of interest selects its row and leaves no point or label behind; a click on empty graph paper, deleting the row and `setBlank()` clear the selection, while focus leaving the list, zoom and pan keep it. (Parity; verified by browser test)
 
 ## 7. Golden corpus (shared with Transfer)
 
