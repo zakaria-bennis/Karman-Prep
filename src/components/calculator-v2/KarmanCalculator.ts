@@ -141,7 +141,7 @@ export class KarmanCalculator {
     // 7. Browser watchers feed the store; the theme watcher is disposed last.
     this.#disposers.push(theme.dispose);
     const size = observeHostSize(element, (next) =>
-      this.#store.set({ size: next, layout: layoutFor(next.width) })
+      this.#store.set({ size: next, layout: layoutFor(next) })
     );
     this.#disposers.push(size.dispose);
     this.#measure = size.measure;
