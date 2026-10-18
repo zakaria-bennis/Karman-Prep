@@ -24,9 +24,40 @@ export function matchShortcut(event: ShortcutKey): ShortcutAction | null {
   return null;
 }
 
+/** Shortcuts a native text control keeps for itself (its own text undo and redo, and Alt+Enter). */
+const NATIVE_EDITING: ReadonlySet<ShortcutAction> = new Set(["undo", "redo", "add-row-end"]);
+
+/**
+ * Whether the event's composed target is a native text field or select (a Graph settings field).
+ * Textareas are left out: the shell's only textareas are math fields' (MathQuill's, or the fake
+ * field in component tests), and those keep the shortcuts (Decision 4). Checkboxes and radios have
+ * no text undo, so they keep them too.
+ */
+function inNativeTextControl(event: Event): boolean {
+  const target = event.composedPath()[0];
+  if (!(target instanceof Element)) return false;
+  if (target.closest(".mq-textarea") !== null) return false;
+  if (target.tagName === "SELECT") return true;
+  return target.tagName === "INPUT" && !NON_TEXT_INPUTS.has((target as HTMLInputElement).type);
+}
+
+const NON_TEXT_INPUTS: ReadonlySet<string> = new Set([
+  "checkbox",
+  "radio",
+  "button",
+  "submit",
+  "reset",
+  "range",
+  "color",
+  "file",
+  "image",
+]);
+
 /**
  * One capture-phase `keydown` listener on `root`. A shortcut gets preventDefault() and
- * stopPropagation() (so MathQuill never sees it), then `onShortcut`. Escape is matched on the key
+ * stopPropagation() (so MathQuill never sees it), then `onShortcut`. Undo, redo and add-row-end
+ * are left alone in a native text input or select (a Graph settings text field), so its own
+ * text undo works and no expression row behind the popover changes; toggle-keypad stays global. Escape is matched on the key
  * and gets preventDefault() only when `onEscape()` closed a layer; it is never stopped, so the
  * light-DOM frame closes the calculator only when `defaultPrevented` is false (KB-3's last layer).
  * Returns the function that removes the listener.
@@ -42,6 +73,7 @@ export function installShellKeyboard(
     }
     const action = matchShortcut(event);
     if (action === null) return;
+    if (NATIVE_EDITING.has(action) && inNativeTextControl(event)) return;
     event.preventDefault();
     event.stopPropagation();
     handlers.onShortcut(action);
