@@ -113,6 +113,9 @@
   min-width: 0;
   padding: 4px 8px;
   border-bottom: 1px solid var(--kcc-boundary);
+  /* The frame's 8 px corner less its 1 px border, so the bar never paints over the rounded edge. */
+  border-radius: 7px 7px 0 0;
+  background: var(--kcc-chrome);
   color: var(--kcc-text);
 }
 
