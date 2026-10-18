@@ -28,17 +28,19 @@ beforeEach(() => {
   mocks.capture.mockReset();
 });
 
-it("AR-57 reportCalculatorError sends only the error name, its code and the calculator tags", () => {
+it("AR-57 reportCalculatorError sends only the error name, its code and the calculator tags", async () => {
   reportCalculatorError(new KarmanCalculatorError("y=\\frac{1}{2} row 3"), "abc123");
+  await vi.dynamicImportSettled();
   const [err, hint] = sent();
   expect(err.message).toBe("KarmanCalculatorError: unsupported");
   expect(hint).toEqual({ tags: { calculator: "v2", build: "abc123" } });
   expect(JSON.stringify([err.message, err.stack, hint])).not.toMatch(/frac|row 3/);
 });
 
-it("AR-57 the stack keeps only frame lines, so a multi-line message cannot leak", () => {
+it("AR-57 the stack keeps only frame lines, so a multi-line message cannot leak", async () => {
   const e = new TypeError("x^{2}\nquestion text\nanswer B");
   reportCalculatorError(e, null);
+  await vi.dynamicImportSettled();
   const [err, hint] = sent();
   expect(err.message).toBe("TypeError");
   expect(hint.tags.build).toBe("unknown");
@@ -48,17 +50,20 @@ it("AR-57 the stack keeps only frame lines, so a multi-line message cannot leak"
   expect(err.stack).not.toMatch(/x\^|question text|answer B/);
 });
 
-it("AR-57 non-Error values, odd names and unknown codes are reduced to safe names", () => {
+it("AR-57 non-Error values, odd names and unknown codes are reduced to safe names", async () => {
   reportCalculatorError("y=x^2", "b");
+  await vi.dynamicImportSettled();
   expect(sent()[0].message).toBe("UnknownError");
   reportCalculatorError(Object.assign(new Error("m"), { name: "y = 2x + 1", code: "row-7" }), "b");
+  await vi.dynamicImportSettled();
   expect(sent()[0].message).toBe("Error");
 });
 
-it("AR-57 a throwing Sentry client never escapes the reporter", () => {
+it("AR-57 a throwing Sentry client never escapes the reporter", async () => {
   mocks.capture.mockImplementationOnce(() => {
     throw new Error("Sentry is unavailable");
   });
   expect(() => reportCalculatorError(new Error("x"), "b")).not.toThrow();
+  await vi.dynamicImportSettled();
   expect(mocks.capture).toHaveBeenCalledTimes(1);
 });
