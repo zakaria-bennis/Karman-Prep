@@ -29,6 +29,9 @@ conflict.
    purple, then a neutral (near-black on light skins, near-white on dark skins); mid-dark and
    moderately saturated, all curves within a narrow lightness band, never neon. Exact shades are
    derived per skin to meet D9 (cap chroma at 0.17 on light skins and 0.14 on dark skins).
+   _Resolved 2026-10-18 (founder's delegation): the hue order is not applied. No palette in those
+   windows meets TH-7's colour-blind distance floor (red, orange and green merge under deutan and
+   protan simulation), and that guarantee wins; TH-6's derivation stays. See `05-visual.md`._
 6. **Docking.** On desktop (at least 1024 px wide), the toolbar and side buttons open the
    calculator docked on the left of the quiz; on smaller screens it opens full screen.
 7. **Fonts.** All calculator UI text, including the window title, uses the sans UI font (Arial);
