@@ -125,7 +125,7 @@ Tasks run in number order; each part starts where the previous one ends.
 Used only inside this package, in addition to sections 13.2 and 14:
 
 ```ts
-// src/components/calculator/transfer-selection.ts (eager; no React, no DOM globals)
+// src/components/calculator/transfer-selection.ts (lazy since D4's part 3 extension; no React, no DOM globals)
 import type { TransferTrigger } from "@/lib/calculator-transfer/payload";
 export const TAP_MAX_MOVE_PX = 10; // TR-55
 export const TAP_MAX_MS = 500; // TR-55, TR-58
@@ -164,12 +164,13 @@ export const transferSelection: {
   resetForTests(): void;
 };
 
-// src/components/calculator/transfer-report.ts (eager; no React)
+// src/components/calculator/transfer-report.ts (lazy since D4's part 3 extension; no React)
 import type { TransferResult } from "@/lib/calculator-transfer/payload";
 export function markCoreRejection(result: TransferResult): TransferResult; // module WeakSet; returns result
 export function isCoreRejection(result: TransferResult): boolean; // true only for a marked result
 
-// src/components/calculator/use-transfer-bridge.ts (eager; "use client"; called only by V2Scope)
+// src/components/calculator/use-transfer-bridge.ts (eager state and effects; "use client"; called only by V2Scope;
+// the pipeline is the lazy transfer-bridge-core.ts, D4)
 import type { RefObject } from "react";
 import type { QuizCalculatorHandle } from "@/components/calculator-v2/host/quiz-host"; // type-only (AR-1)
 import type {
@@ -313,8 +314,9 @@ div[data-transfer-status][role=status][aria-live=polite][aria-atomic=true].sr-on
   `.tooltip`). Rules keyed only on attributes of other components' elements (the item's
   `[data-transfer-selected="true"]` outline, the `[data-calculator="v2"]` cluster's
   `transition: none` and its coarse-pointer `opacity: 1`) live in the plain global sheet
-  `src/components/calculator/transfer-control.css`, imported by `TransferControl.tsx` and counted
-  in AR-33's eager budget with the module sheet. Task 4's TH-2 test checks both sheets and the
+  `src/components/calculator/transfer-control.css`, imported by `TransferControl.tsx` and loaded
+  with its lazy chunk together with the module sheet (D4; before D4's extension they were counted
+  in AR-33's eager budget). Task 4's TH-2 test checks both sheets and the
   local-class rule, and tasks 8 and 9 run `npm run cf:build`, because the Vite fixture accepts
   selectors Next rejects.
 - Pen activation (AR-10): a pen `pointerdown` while a pen hover reveal is active is a
@@ -366,6 +368,57 @@ div[data-transfer-status][role=status][aria-live=polite][aria-atomic=true].sr-on
   behaviour, the exact command, the assertion that must fail, then `git checkout -- <file>` and a
   passing rerun. Mutations are never committed.
 
+- D4, classifier and Transfer control loaded lazily (AR-33; lead decision during part 1, listed
+  in 00-index section 7 beside D1 to D3; it takes effect only once the owner signs it off, and
+  until then it is the lead's interim decision). 12's classifier is about 11.3 KB gzipped and the
+  quiz routes already add 7.5 to 8.9 KB of eager JS (`docs/calculator-v2-bundle-baseline.json`),
+  so the 10240-byte eager budget cannot hold it. `src/lib/calculator-transfer/classify.ts` and its
+  imports are reached only through the `import()` in `src/components/calculator/transfer-classifier.ts`
+  (`loadTransferClassifier()`, `useTransferClassifier(active)`), their own chunk apart from the
+  calculator's, loaded when a v2 Math question first renders. During part 2 the lead extended D4
+  to `TransferControl.tsx`: after part 1 the eager pieces measured 3.7 KB against about 1.1 KB of
+  headroom on `/learn/daily`, and a control only appears once the classifier has loaded anyway.
+  `loadTransferClassifier()` therefore runs a second `import("./TransferControl")` together with
+  the classifier's and resolves both as one value (`TransferClassifier` gains `TransferControl`);
+  the AR-11 wrappers in `CalculatorSourceAction.tsx` render `t.TransferControl` from that value
+  and never import the control. A third `import("./transfer-items")` in the same call carries the
+  wrappers' item lookup (`stemControl`, with the run-shift guard and the TR-50 names, and
+  `choiceControl`), so the eager wrappers keep only the version switch and the stem registry. The control's two stylesheets (`TransferControl.module.css`,
+  `transfer-control.css`) are imported only by `TransferControl.tsx`, so they load with its chunk
+  and no Transfer CSS is eager; this is safe because every rule they hold styles a control or an
+  attribute a mounted control writes. Controls render nothing until both chunks have resolved,
+  then appear; a failed chunk renders none and the next caller retries. During part 3 the lead
+  extended D4 to the bridge's pipeline (AR-33 eager budget fix): after part 2 the transfer code
+  still eager on `/learn/daily` measured 2,155 bytes against the 1,321 left by the baseline's
+  8,919 (esbuild minified ESM, gzip -9, React and lucide external, against `18ac662`, the commit
+  before this package). `use-transfer-bridge.ts` now keeps only the per-scope state (the latest
+  options, the held queue, the handle, the announced text) and the effects that call the
+  pipeline; `transfer()` hands every payload to `transfer-bridge-core.ts`, which holds the key
+  check, the selection clear, the queue limit, the load-failure step, the open, the held queue
+  push, the drain, the TR-69 failure handling, the TR-57 selection clears, the silent discard on
+  unmount and the announcer, and which is reached only through the hook's
+  `import("./transfer-bridge-core")` (`loadTransferCore()`). `loadTransferClassifier()` loads it
+  together with the classifier and control, so a control's transfer never waits for it; a call
+  made before it has loaded waits for that import (a failed import resolves the neutral
+  `unavailable` result, and the next call retries). `transfer-selection.ts` and
+  `transfer-report.ts` are now imported only by that pipeline and the control, so they are lazy
+  too, and the stem registry and the v2 wrapper bodies moved from `CalculatorSourceAction.tsx`
+  into `transfer-items.tsx` (`StemTransferAction`, `ChoiceTransferAction`); the eager wrappers
+  keep only the version switch and one `V2Transfer` that renders the loaded part. Measured the
+  same way, the eager transfer addition on `/learn/daily` is 1,240 bytes (budget for this
+  package: at most 1,300). Tasks 11 to 14 put their pipeline steps (docking write, focus
+  fallback, `openedByTransfer()` state) in `transfer-bridge-core.ts`, not in the eager hook.
+  Only `use-transfer-bridge.ts` (state and effects), the loader (`transfer-classifier.ts`), the
+  version switch in `CalculatorSourceAction.tsx` and the seam stay eager. AR-33's source test
+  (`transfer-classifier.test.tsx`) checks that no eager module value-imports the classifier,
+  `TransferControl`, its stylesheets, `transfer-items`, `transfer-bridge-core.ts`,
+  `transfer-selection.ts`, `transfer-report.ts` or a value of the payload module, that the hook
+  reaches the pipeline through `import()` and the loader preloads it, and that the wrappers hold
+  no stem registry. Tests that classify a rendered question await the controls
+  (`findBy…`, or `waitFor`, or an awaited `loadTransferClassifier()`) instead of assuming
+  synchronous classification; `TransferControl.test.tsx` and `transfer-report.test.ts` import the
+  control directly and stay synchronous.
+
 ## Notes for the lead
 
 This package edits only its own plan files; these changes belong to other files.
@@ -392,7 +445,9 @@ This package edits only its own plan files; these changes belong to other files.
    `CalculatorScope.tsx`) and imports from `@/components/calculator-v2/` only with `import type`.
    15-release-gates' "TR-74 the eager transfer modules import no calculator-v2, …" test lists
    `TransferControl.tsx`, `transfer-selection.ts` and `transfer-report.ts`; add
-   `use-transfer-bridge.ts` to that list so the rule covers it.
+   `use-transfer-bridge.ts` to that list so the rule covers it. Since D4's part 3 extension
+   `transfer-selection.ts`, `transfer-report.ts` and the new `transfer-bridge-core.ts` are lazy;
+   the rule still applies to them (they import calculator-v2 code only as types).
 5. **`transfer-visual.spec.ts` (00-index section 2; add to section 5.4 so it is not missed).** In
    section 2's 14 **Owns** line, after `transfer-failures.spec.ts` add
    `` , `transfer-visual.spec.ts` and `transfer-visual.spec.ts-snapshots/` ``. Tasks 8 and 9

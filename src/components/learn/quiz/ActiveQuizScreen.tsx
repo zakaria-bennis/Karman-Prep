@@ -12,6 +12,7 @@ import type { MappedNode } from "../ConstellationMap";
 import { useOptionalQuizState, type QuizState } from "@/contexts/QuizContext";
 import type { StudentQuizQuestion } from "@/types/quiz";
 import { CalculatorChoiceAction } from "@/components/calculator/CalculatorSourceAction";
+import { useCalculator } from "@/components/calculator/CalculatorScope";
 import styles from "./workspace.module.css";
 import MathText from "../MathText";
 import ReviewedSinglePassage from "../ReviewedSinglePassage";
@@ -72,6 +73,12 @@ export function ActiveQuizScreen({
     setCrossed((old) => ({ ...old, [`${q.id}:${letter}`]: !old[`${q.id}:${letter}`] }));
   const contextState = useOptionalQuizState();
   const state = stateOverride ?? contextState;
+  // AR-11: on v2 each text choice's tool cluster also holds its Transfer control (14).
+  const calculatorVersion = useCalculator()?.version;
+  const stem = useMemo(
+    () => ({ text: q.question_text, serializedFunctionLines: q.subject === "math" }),
+    [q.question_text, q.subject]
+  );
   if (!state) throw new Error("ActiveQuizScreen requires a quiz session or read-only state.");
   const nativeGeometryRenderable = useMemo(
     () =>
@@ -208,7 +215,7 @@ export function ActiveQuizScreen({
                       onClick={() => !readOnly && !isSubmitted && onSelectAnswer(letter)}
                       disabled={readOnly || isSubmitted || crossed[`${q.id}:${letter}`]}
                       className={cn(
-                        "w-full rounded-xl border py-3.5 pl-5 pr-14 text-left transition-all",
+                        `w-full rounded-xl border py-3.5 pl-5 ${calculatorVersion === "v2" ? "pr-24" : "pr-14"} text-left transition-all`,
                         crossed[`${q.id}:${letter}`] && "line-through opacity-50",
                         "flex items-start gap-4",
                         !isSubmitted && "cursor-pointer hover:border-info/40 hover:bg-info/5",
@@ -239,7 +246,10 @@ export function ActiveQuizScreen({
                       </span>
                     </button>
                     {!readOnly && (
-                      <div className={`${styles.choiceTools} absolute right-1 top-1`}>
+                      <div
+                        className={`${styles.choiceTools} absolute right-1 top-1`}
+                        data-calculator={calculatorVersion === "v2" ? "v2" : undefined}
+                      >
                         <button
                           type="button"
                           aria-label={
@@ -252,6 +262,14 @@ export function ActiveQuizScreen({
                         >
                           <Ban size={18} />
                         </button>
+                        {q.subject === "math" && (
+                          <CalculatorChoiceAction
+                            slot="cluster"
+                            text={choice.choice_text}
+                            letter={letter}
+                            stem={stem}
+                          />
+                        )}
                       </div>
                     )}
                     {!readOnly && q.subject === "math" && (

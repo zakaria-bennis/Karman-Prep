@@ -11,6 +11,7 @@
 import { Ban, CheckCircle, Highlighter, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CalculatorChoiceAction } from "@/components/calculator/CalculatorSourceAction";
+import { useCalculator } from "@/components/calculator/CalculatorScope";
 import MathText from "@/components/learn/MathText";
 
 interface Props {
@@ -40,6 +41,9 @@ export function AnswerChoiceButton({
   const isCorrect = letter === correctLetter;
   const choiceBody = option.replace(/^[A-D]\)\s*/, "");
   const choiceDisabled = isAnswered || isCrossed;
+  // AR-11: on v2 the hover-revealed cluster also holds the Transfer control (14). It passes no
+  // stem, so it uses the one the question's own MathText registered.
+  const v2 = useCalculator()?.version === "v2";
 
   return (
     <div>
@@ -48,7 +52,7 @@ export function AnswerChoiceButton({
           onClick={() => !isCrossed && onSelect()}
           disabled={choiceDisabled}
           className={cn(
-            "w-full rounded-xl border-2 py-4 pl-4 pr-28 text-left text-sm font-medium transition-all",
+            `w-full rounded-xl border-2 py-4 pl-4 ${v2 ? "pr-40" : "pr-28"} text-left text-sm font-medium transition-all`,
             isCrossed &&
               "cursor-not-allowed border-bronze bg-surface/60 opacity-50 dark:border-bronze dark:bg-surface-raised/40",
             !isCrossed &&
@@ -130,6 +134,7 @@ export function AnswerChoiceButton({
               ? "opacity-100"
               : "opacity-100 sm:opacity-0 sm:focus-within:opacity-100 sm:group-hover:opacity-100"
           )}
+          data-calculator={v2 ? "v2" : undefined}
         >
           <button
             type="button"
@@ -169,6 +174,7 @@ export function AnswerChoiceButton({
           >
             <Ban className="h-4 w-4" />
           </button>
+          {v2 && <CalculatorChoiceAction slot="cluster" text={choiceBody} letter={letter} />}
         </div>
       </div>
       <CalculatorChoiceAction text={choiceBody} letter={letter} />

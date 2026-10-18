@@ -6,7 +6,6 @@
 
 import {
   Component,
-  createContext,
   useContext,
   useEffect,
   useId,
@@ -30,6 +29,7 @@ import {
   MOUNT_FAILED_COPY,
   getCalculatorModule,
 } from "./CalculatorLoader";
+import { CalculatorBridgeContext, useCalculator } from "./bridge-context";
 import { CalculatorShell } from "./CalculatorShell";
 import { useCalculatorVersion } from "./CalculatorVersion";
 import { CalculatorWindow } from "./CalculatorWindow";
@@ -46,6 +46,7 @@ import {
 } from "./calculator-window-store";
 import { warmCalculatorFonts } from "./font-warmup";
 import { reportCalculatorError } from "./report-error";
+import { useTransferBridge, type TransferBridge } from "./use-transfer-bridge";
 import "./calculator-chrome.generated.css"; // AR-37: the --kcc-* tokens of the window chrome
 import styles from "./calculator.module.css";
 import windowStyles from "./CalculatorWindow.module.css";
@@ -77,15 +78,12 @@ export interface V2Bridge {
   questionKey: string;
   toggle(trigger?: OpenTrigger): void;
   prefetch(): void; // getCalculatorModule() and warmCalculatorFonts()
+  transfer: TransferBridge["transfer"]; // (payload, trigger) => Promise<TransferResult>, 14
 }
 
 export type CalculatorBridge = V1Bridge | V2Bridge;
 
-const Context = createContext<CalculatorBridge | null>(null);
-
-export function useCalculator(): CalculatorBridge | null {
-  return useContext(Context);
-}
+export { useCalculator };
 
 /** Key this scope by attempt + active question. Closing keeps this scope alive;
  * navigating destroys it, including pending clipboard work and native history. */
@@ -163,7 +161,7 @@ function V1Scope({ enabled, open, onOpenChange, children }: CalculatorScopeProps
       }
     : null;
   return (
-    <Context.Provider value={bridge}>
+    <CalculatorBridgeContext.Provider value={bridge}>
       <div
         ref={content}
         className={styles.workspace}
@@ -206,7 +204,7 @@ function V1Scope({ enabled, open, onOpenChange, children }: CalculatorScopeProps
           onClose={() => changeOpen(false)}
         />
       )}
-    </Context.Provider>
+    </CalculatorBridgeContext.Provider>
   );
 }
 
@@ -452,14 +450,6 @@ function V2Scope({
     }
   }, [open]);
 
-  // Once per open: the calculator places focus for the trigger that opened it (OI-7).
-  useEffect(() => {
-    const trigger = remembered.current;
-    if (!open || handle === null || trigger === null) return;
-    remembered.current = null;
-    handle.focusOnOpen(trigger);
-  }, [open, handle]);
-
   const toggle = (trigger?: OpenTrigger) => {
     if (open) {
       onOpenChange(false);
@@ -482,9 +472,27 @@ function V2Scope({
     void warmCalculatorFonts();
   };
   const sideHandlers = useOpenTriggerHandlers(toggle);
+  // 14: transfer(), its queue and the TR-67 status region text.
+  const transferBridge = useTransferBridge({
+    questionKey,
+    open,
+    status,
+    failure,
+    onOpenChange,
+    frameRef,
+  });
+  const { transfer, openedByTransfer } = transferBridge;
+  // Once per open: the calculator places focus for the trigger that opened it (OI-7), unless a
+  // transfer opened it (TR-66). After the hook, so 11's opener memory runs before the drain.
+  useEffect(() => {
+    const trigger = remembered.current;
+    if (!open || handle === null || trigger === null || openedByTransfer()) return;
+    remembered.current = null;
+    handle.focusOnOpen(trigger);
+  }, [open, handle, openedByTransfer]);
 
   const bridge: V2Bridge | null = enabled
-    ? { version: "v2", open, status, failure, questionKey, toggle, prefetch }
+    ? { version: "v2", open, status, failure, questionKey, toggle, prefetch, transfer }
     : null;
   // Render-time clamping: the store keeps what the student set, so a shrink and regrow restores
   // the earlier place and dock width (AR-25).
@@ -520,7 +528,7 @@ function V2Scope({
   const shiftWorkspace = dockShift !== null && shiftHost === null;
 
   return (
-    <Context.Provider value={bridge}>
+    <CalculatorBridgeContext.Provider value={bridge}>
       <CalculatorHostIdContext.Provider value={hostId}>
         <div
           ref={workspaceRef}
@@ -541,6 +549,15 @@ function V2Scope({
           }
         >
           {children}
+        </div>
+        <div
+          data-transfer-status
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+          className="sr-only"
+        >
+          {transferBridge.announcement}
         </div>
         {enabled && phone && !open && (
           <button
@@ -590,14 +607,17 @@ function V2Scope({
                     setStatus(nextStatus);
                     setFailure(nextFailure);
                   }}
-                  onHandle={setHandle}
+                  onHandle={(next) => {
+                    setHandle(next);
+                    transferBridge.onHandle(next);
+                  }}
                 />
               </CalculatorWindow>
             </WindowBoundary>
           </div>
         )}
       </CalculatorHostIdContext.Provider>
-    </Context.Provider>
+    </CalculatorBridgeContext.Provider>
   );
 }
 

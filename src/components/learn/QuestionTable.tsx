@@ -32,6 +32,8 @@ interface Props {
   ariaLabel?: string;
   /** Optional wrapper class. */
   className?: string;
+  /** The transfer item id of this table: "table", or "choice:<letter>" for a table choice. */
+  calculatorItemId?: string;
 }
 
 export default function QuestionTable({
@@ -40,6 +42,7 @@ export default function QuestionTable({
   ariaLabel,
   className,
   calculator = false,
+  calculatorItemId = "table",
 }: Props) {
   const { caption, header_row, rows, footer_note } = data;
   const renderCell = (text: string, key: string) => (
@@ -121,7 +124,13 @@ export default function QuestionTable({
           </tfoot>
         )}
       </table>
-      {calculator && <CalculatorTableAction rows={rows} />}
+      {calculator && (
+        <CalculatorTableAction
+          rows={rows}
+          headers={header_row ?? undefined}
+          itemId={calculatorItemId}
+        />
+      )}
     </figure>
   );
 }

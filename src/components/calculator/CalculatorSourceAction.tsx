@@ -1,9 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, type JSX } from "react";
 import { ClipboardPaste, ChevronDown, Table2, MapPin, Copy } from "lucide-react";
 import { normalizeMath, parseText, tablePayload, type PastePayload } from "@/lib/calculator/paste";
+import type { StemInput } from "@/lib/calculator-transfer/classify";
 import { useCalculator } from "./CalculatorScope";
+import { useTransferClassifier, type TransferClassifier } from "./transfer-classifier";
 import styles from "./calculator.module.css";
 
 function PasteAction({ payload, label }: { payload: PastePayload | null; label: string }) {
@@ -106,7 +108,16 @@ function PasteAction({ payload, label }: { payload: PastePayload | null; label: 
   );
 }
 
-export function CalculatorSourceAction({ latex }: { latex: string }) {
+// AR-11 wrappers: each reads useCalculator() once and renders the v1 PasteAction path unchanged
+// or the v2 Transfer control (14). The v2 parts, the stem registry and which instances render a
+// control included, come from the lazy transfer chunk (D4, transfer-items.tsx), so they render
+// nothing until it has loaded.
+function V2Transfer(props: { part(t: TransferClassifier): JSX.Element }): JSX.Element | null {
+  const t = useTransferClassifier(true);
+  return t && props.part(t);
+}
+
+function V1SourceAction({ latex }: { latex: string }) {
   const payload = useMemo(() => {
     try {
       return parseText(normalizeMath(latex));
@@ -117,6 +128,20 @@ export function CalculatorSourceAction({ latex }: { latex: string }) {
   return <PasteAction payload={payload} label={`Paste ${latex} into calculator`} />;
 }
 
+export function CalculatorSourceAction(props: {
+  latex: string;
+  segmentIndex?: number;
+  stem?: StemInput;
+}): JSX.Element | null {
+  const bridge = useCalculator();
+  return bridge?.version === "v2" ? (
+    <V2Transfer
+      part={(t) => <t.StemTransferAction {...props} questionKey={bridge.questionKey} />}
+    />
+  ) : (
+    <V1SourceAction latex={props.latex} />
+  );
+}
 function choicePayload(text: string): PastePayload | null {
   try {
     const math = [...text.matchAll(/\${1,2}((?:\\\$|[^$])+)\${1,2}/g)].map((m) =>
@@ -135,13 +160,32 @@ function choicePayload(text: string): PastePayload | null {
   return null;
 }
 
-/** Choice actions are siblings of answer buttons, so pasting never selects an answer. */
-export function CalculatorChoiceAction({ text, letter }: { text: string; letter: string }) {
+function V1ChoiceAction({ text, letter }: { text: string; letter: string }) {
   const payload = useMemo(() => choicePayload(text), [text]);
   return <PasteAction payload={payload} label={`Paste choice ${letter} into calculator`} />;
 }
 
-export function CalculatorTableAction({ rows }: { rows: string[][] }) {
+/** Choice actions are siblings of answer buttons, so pasting never selects an answer. */
+export function CalculatorChoiceAction(props: {
+  text: string;
+  letter: string;
+  stem?: StemInput;
+  slot?: "cluster";
+}): JSX.Element | null {
+  const bridge = useCalculator();
+  if (bridge?.version === "v2")
+    return (
+      <V2Transfer
+        part={(t) => <t.ChoiceTransferAction {...props} questionKey={bridge.questionKey} />}
+      />
+    );
+  // v1 keeps its own instance below the choice; the v2-only cluster instance renders nothing.
+  return props.slot === "cluster" ? null : (
+    <V1ChoiceAction text={props.text} letter={props.letter} />
+  );
+}
+
+function V1TableAction({ rows }: { rows: string[][] }) {
   const payload = useMemo(() => {
     try {
       return tablePayload(rows);
@@ -150,4 +194,18 @@ export function CalculatorTableAction({ rows }: { rows: string[][] }) {
     }
   }, [rows]);
   return <PasteAction payload={payload} label="Paste table into calculator as x₁, y₁" />;
+}
+
+/** v2: a question table's control (TR-22), or a table choice's in its cluster (transfer-items). */
+export function CalculatorTableAction(props: {
+  rows: string[][];
+  headers?: string[];
+  layout?: "vertical" | "horizontal";
+  itemId?: string;
+  slot?: "cluster";
+}): JSX.Element | null {
+  const bridge = useCalculator();
+  if (bridge?.version === "v2")
+    return <V2Transfer part={(t) => <t.TableTransferAction {...props} />} />;
+  return props.slot === "cluster" ? null : <V1TableAction rows={props.rows} />;
 }

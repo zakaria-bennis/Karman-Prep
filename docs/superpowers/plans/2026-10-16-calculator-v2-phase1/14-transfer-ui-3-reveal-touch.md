@@ -371,3 +371,71 @@ test("TR-58 a long press, a drag (even one that returns to its start) or a gestu
   - TR-55: in `src/components/calculator/transfer-control.css` change the `[data-transfer-selected="true"]` outline to `1px solid`; Expected: FAIL at `outline(it)`, received `["solid", "1px", "2px"]`.
   - TR-56: in `src/components/calculator/transfer-selection.ts` make `toggle` re-select an equal selection instead of clearing it; Expected: FAIL at the first `expect(selected(page)).toHaveCount(0)`.
   - TR-58: in `src/components/calculator/TransferControl.tsx` pass `0` instead of the tracked `maxMove` to the item's `isTap` call; Expected: FAIL at the `{ dx: 30, back: true }` gesture's `toHaveCount(0)` (received 1).
+
+### Adaptations made while executing tasks 8 to 10
+
+Task 8:
+
+- Baselines: this machine is Linux, so Playwright names the snapshots `…-calculator-chrome-linux.png`.
+  The four calculator-chrome fine-reveal baselines were recorded as `-linux` files and reviewed
+  with the Read tool (glyph composition, light and dark skins, no tooltip, inline overlap,
+  block corner); no `-darwin` file is committed. The four `-darwin` calculator-chrome baselines
+  and the coarse calculator-ios baselines (`inline-coarse`, task 9's `choice-a-coarse`) still
+  need a Mac (WebKit and the iOS project cannot run here), so the gate's `ls` of eight `-darwin`
+  files is not met yet. Step 11's mutation (the arrow at `right: 0; top: 0`) failed the
+  `inline-fine-ivory` screenshot with 14 differing pixels, as expected.
+- `Locator.hover()` on an inline KaTeX item aims at the centre of the item's first content quad,
+  which here lies outside the math (the h2 "intercepts pointer events"), so the helpers add
+  `hoverAt(locator, fx, fy)`, a mouse move to a point of the bounding box, and the tests and
+  `hoverCorner` use it.
+- `open()` also waits for the page's finite animations (`settled(page)`): the diagnostic card's
+  entrance moved the h2 by about 5 px while TR-46 measured its "before" layout.
+- TR-48: `page.locator(":focus")` re-resolves after the second Tab, so the test pins the anchor
+  by its `data-source-id` before tabbing on.
+- TR-52: the diagnostic cluster's own cross-out and highlight buttons keep their Tailwind hover
+  colour transitions (host code, not the Transfer control), so a cluster is checked for its own
+  animations and transition plus its Transfer control's subtree; choice D (no control) is
+  skipped by iterating the controls a cluster holds.
+- The coarse glyph size for answer-choice clusters (`@media (any-pointer: coarse)`, 20 px) moved
+  from task 9 into task 8, because task 8's TR-43 touch case measures it; task 9 keeps the
+  coarse opacity rules.
+- The tooltip takes the pointer (TR-51 "stays while the pointer is on the control or the
+  tooltip"): leaving the anchor hides it, and leaving the button hides it unless the pointer
+  moved onto the tooltip, so the component test's synthetic `pointerLeave` still hides it.
+- Escape is handled by one `document` bubble-phase listener per mounted control, which acts only
+  when its own control showed something (a tooltip, its pending timer, a tap selection, or a
+  hover reveal while unfocused).
+- Cluster answer-choice buttons are 44×44 at every pointer (TR-44 "in every answer-choice tool
+  cluster"); stem buttons keep `width`/`height` (24 or 44 px) rather than `min-*`, because the
+  hidden state's clip rule sets both to 1 px.
+- No non-null assertions: the helpers gain `must()`.
+- `npm run cf:build` (gate environment) exited 0, so Next accepted the module sheet's selectors.
+
+Task 9:
+
+- Step 0: `open-items.md` records OI-36 as accepted 2026-10-17, so the stylesheet check stands in
+  for AR-11's both-match profile.
+- The coarse glyph rule was already added in task 8 (see above); task 9 adds the two coarse
+  opacity rules only.
+- The coarse cluster baselines (`tr-43-46-choice-a-coarse-{ivory,observatory}-calculator-ios-darwin.png`)
+  need the calculator-ios project and a Mac, so they are not recorded here. The coarse branch was
+  exercised once on calculator-android through a temporary copy of the spec (inline coarse
+  outline with the 44 px control; choice A's control after cross-out with the 20 px glyph and
+  uncovered text, dark observatory), and those probe images were deleted, not committed.
+- `rows` and `answerState` use optional chaining instead of non-null assertions.
+- TR-41 passed before the coarse rules, as planned (task 6 built it); it is also the first
+  browser transfer through the D4 lazy bridge pipeline.
+
+Task 10:
+
+- `tapItem` taps 6 px into the item instead of its centre: the coarse control covers the item's
+  end (TR-55), and Chromium's touch adjustment moved a centre tap 6 px below the button onto it,
+  so TR-56's second tap transferred instead of deselecting. A real phone's touch adjustment does
+  the same near the control; deselecting needs a tap on the uncovered part of the item.
+- TR-57: `tapItem`'s scroll into view leaves the diagnostic at its bottom on calculator-android,
+  so the test scrolls 120 px up when it can (else down), with `behavior: "instant"`: the site
+  scrolls smoothly, and a measurement mid-scroll read the item and control at different times.
+- The outside-tap listeners are capture-phase `document` listeners added while the item is
+  selected; a contact that starts inside the item or anchor is not tracked.
+- Only calculator-android ran the touch tests here; calculator-ios (WebKit) cannot run on this
+  machine.

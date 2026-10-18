@@ -16,6 +16,12 @@
 import "@testing-library/jest-dom/vitest";
 import { afterEach } from "vitest";
 import { cleanup } from "@testing-library/react";
+import { splitMathText } from "@/components/learn/math-segments";
+import { installMathSplit } from "@/lib/calculator-transfer/math-split";
+
+// The lazy transfer classifier gets MathText's splitter from its eager loader in the app
+// (src/lib/calculator-transfer/math-split.ts); tests that call it directly get it here.
+installMathSplit(splitMathText);
 
 afterEach(async () => {
   cleanup();
