@@ -130,7 +130,7 @@
   color: var(--kc-focus-bar-label);
 }
 
-.kc-row:is([data-focused="true"], [data-active="true"]) .kc-row-tab {
+.kc-row:is([data-focused="true"], [data-active="true"]) :is(.kc-row-tab, .kc-row-warning) {
   border-radius: 50%;
   background: var(--kc-list);
 }
@@ -172,24 +172,38 @@
   color: var(--kc-text-secondary);
 }
 
-/* R-5: the value sits below the math, right-aligned. */
+/* R-5: the value sits below the math, right-aligned: a muted = and the value in a small raised box;
+   a list result shows one box per element, wrapping (NM-38). */
 .kc-row-value {
   text-align: end;
+}
+
+.kc-row-value-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
+.kc-row-equals {
+  color: var(--kc-text-secondary);
+}
+
+.kc-row-value-box {
+  padding: 2px 8px;
+  border: 1px solid var(--kc-boundary);
+  border-radius: 3px;
+  background: var(--kc-key);
   overflow-wrap: anywhere;
 }
 
-/* R-2: the message below the math and the marker in the gutter, beside or below the tab. */
-.kc-row-error {
-  color: var(--kc-error);
-}
-
+/* R-2: the warning marker stands in the gutter where the colour tab would be (the message is in
+   its tooltip, error-tip.css), drawn in the --kc-warning role. */
 .kc-row-warning {
   grid-column: 2;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  height: 32px;
-  color: var(--kc-error);
+  grid-row: 1;
+  color: var(--kc-warning);
 }
 
 /* FN-16 (OI-4): the complex-mode hint and its action. */
@@ -216,6 +230,7 @@
 }
 
 .kc-row-tab,
+.kc-row-warning,
 .kc-row-delete {
   display: inline-flex;
   align-items: center;
@@ -247,12 +262,8 @@
   grid-template-columns: minmax(24px, auto) 44px;
 }
 
-.kc-list-panel[data-pointer="coarse"] :is(.kc-row-tab, .kc-row-delete) {
+.kc-list-panel[data-pointer="coarse"] :is(.kc-row-tab, .kc-row-warning, .kc-row-delete) {
   width: 44px;
-  height: 44px;
-}
-
-.kc-list-panel[data-pointer="coarse"] .kc-row-warning {
   height: 44px;
 }
 
@@ -275,6 +286,7 @@
 .kc-list-tool,
 .kc-edit-action,
 .kc-row-tab,
+.kc-row-warning,
 .kc-row-delete,
 .kc-row-hint-action {
   background-color: var(--kc-list);
@@ -292,6 +304,7 @@
 .kc-list-tool:focus-visible,
 .kc-edit-action:focus-visible,
 .kc-row-tab:focus-visible,
+.kc-row-warning:focus-visible,
 .kc-row-delete:focus-visible,
 .kc-row-hint-action:focus-visible {
   outline: 2px solid var(--kc-focus-ring);

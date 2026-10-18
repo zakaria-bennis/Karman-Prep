@@ -36,13 +36,14 @@ test("AR-56 a runaway row leaves the diagnostic timer and Skip responsive and sh
       { id: "2", latex: OVER_CAP },
     ]
   );
-  await expect(
-    page
-      .locator("[data-calculator-host]")
-      .getByText(
-        /^(This row is too long to evaluate\. Split it into smaller definitions\.|This is taking too long\. Try a smaller range or fewer terms\.)$/
-      )
-  ).toBeVisible({ timeout: 2000 });
+  // R-2: the marker shows in the gutter and its tooltip (hidden until hovered) holds the message.
+  const host = page.locator("[data-calculator-host]");
+  await expect(host.locator('li[data-row-id="2"] .kc-row-warning')).toBeVisible({
+    timeout: 2000,
+  });
+  await expect(host.locator('[role="tooltip"]#kc-row-2-error')).toHaveText(
+    /^(This row is too long to evaluate\. Split it into smaller definitions\.|This is taking too long\. Try a smaller range or fewer terms\.)$/
+  );
   const timer = page.getByText(/^\d{1,2}:\d{2}$/).first();
   const ticks = new Set<string>();
   for (let i = 0; i < 3; i++) {

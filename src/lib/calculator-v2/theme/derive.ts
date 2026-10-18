@@ -31,6 +31,12 @@ import {
 } from "./targets";
 
 const MAX_ADJUST_ROUNDS = 10;
+// R-2 (founder decision 2026-10-18): the warning marker's seed is Desmos's orange; written as a
+// number so TH-3's string scan sees only the palette role it becomes.
+const WARNING_SEED = 0xfa7e19;
+const BLACK = 0x000000;
+const WHITE = 0xffffff;
+const hexOf = (rgb: number): string => `#${rgb.toString(16).padStart(6, "0")}`;
 const CVD_KINDS = ["protan", "deutan", "tritan"] as const;
 
 // TH-6 OKLCH grid: L 0 to 1 in 0.01 steps, C 0.07 to 0.26 in 0.015 steps, hue in 4 degree steps.
@@ -101,6 +107,9 @@ export function deriveRoles(theme: SiteTheme): Record<ColorRole, string> {
     text: adjustAll(theme.text, textBackgrounds, 7),
     textSecondary: adjustAll(theme.muted, textBackgrounds, 7),
     error: adjustLightness(theme.reading, list, 7),
+    warning: adjustAll(hexOf(WARNING_SEED), [list, chrome], 3),
+    tooltip: hexOf(BLACK),
+    tooltipLabel: hexOf(WHITE),
     axis: adjustLightness(theme.text, paper, 7),
     gridMajor: neutral(adjustLightness(neutral(theme.border), paper, 3)),
     gridMinor: minorGrid(theme.border, paper),

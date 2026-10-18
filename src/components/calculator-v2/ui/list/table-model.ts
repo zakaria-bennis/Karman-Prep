@@ -38,4 +38,9 @@ export function computedCellName(header: string, row: number, value: string | nu
   return `${header}, row ${row + 1}, computed${value === null ? "" : `, ${value}`}`;
 }
 
+/** D-6, D-10: the id of the tooltip holding a cell's (or, for row "h", a header's) error message. */
+export function cellErrorId(tableId: string, column: number, row: number | "h"): string {
+  return `kc-row-${tableId}-cell-${column}-${row}-error`;
+}
+
 export const NEW_COLUMN_HEADER = "New column header";

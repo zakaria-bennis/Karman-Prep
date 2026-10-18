@@ -3,7 +3,8 @@
 // row, each entered cell a TableCell named "header, row r" (", blank" while empty) and each
 // computed cell a read-only gridcell named "header, row r, computed, value". While focus is in the
 // grid a blank header slot right of the last column adds a column (D-5). The Delete control
-// removes the table through row-actions (D-16).
+// removes the table through row-actions (D-16). A cell or header that cannot evaluate shows the
+// warning marker at its left, with the message in a tooltip, and its field is aria-invalid (D-6, D-10).
 
 import { Maximize, Plus, TrendingUp, X } from "lucide-react";
 import { useContext, useLayoutEffect, useRef, useState, type FocusEvent, type JSX } from "react";
@@ -15,11 +16,13 @@ import { useAnnouncer } from "../a11y/announcer";
 import { cellKey, FocusContext } from "../focus/focus-controller";
 import { useEngine, useEngineSnapshot } from "../hooks/use-engine";
 import { ColumnStyleMenu } from "./ColumnStyleMenu";
+import { ErrorMarker } from "./ErrorMarker";
 import { deleteRowByControl } from "./row-actions";
 import type { RowMotion } from "./row-presence";
 import { addTableRow, cellKeys, deleteTableRowByControl, type TableKeyContext } from "./table-keys";
 import { TableCell } from "./TableCell";
 import {
+  cellErrorId,
   cellName,
   computedCellName,
   dataRowCount,
@@ -97,14 +100,18 @@ export function TableItem(props: TableItemProps): JSX.Element {
         </div>
       );
     }
+    const error = analysis[k]?.cellErrors[r] ?? null;
+    const errorId = error === null ? null : cellErrorId(row.id, k, r);
     return (
       <div key={k} role="gridcell" className="kc-table-cell">
+        {error !== null && <ErrorMarker id={errorId!} message={error.message} variant="cell" />}
         <TableCell
           tableId={row.id}
           column={k}
           row={r}
           latex={latex}
           name={cellName(headers[k], r, latex)}
+          errorId={errorId}
           keypadOpen={keypadOpen}
           onTouchFocus={props.onTouchFocus}
           keys={cellKeys(keyContext, k, r)}
@@ -138,31 +145,39 @@ export function TableItem(props: TableItemProps): JSX.Element {
           >
             <div role="row" className="kc-table-row" data-header="true">
               {/* One keyed list, so the slot's field becomes the new column's header in place. */}
-              {[...columns.map((c) => c.latex), ...(slot ? [null] : [])].map((latex, k) => (
-                <div key={`h-${k}`} role="columnheader" className="kc-table-cell">
-                  {latex !== null && k > 0 && (
-                    <ColumnStyleMenu
+              {[...columns.map((c) => c.latex), ...(slot ? [null] : [])].map((latex, k) => {
+                const error = latex === null ? null : (analysis[k]?.error ?? null);
+                const errorId = error === null ? null : cellErrorId(row.id, k, "h");
+                return (
+                  <div key={`h-${k}`} role="columnheader" className="kc-table-cell">
+                    {error !== null && (
+                      <ErrorMarker id={errorId!} message={error.message} variant="cell" />
+                    )}
+                    {latex !== null && k > 0 && (
+                      <ColumnStyleMenu
+                        tableId={row.id}
+                        column={k}
+                        stored={columns[k]}
+                        header={headers[k]}
+                        onDeleted={() => focus.focusRow(cellKey(row.id, k - 1, "h"), "end")}
+                        onAddRegression={() => addRegression(k)}
+                      />
+                    )}
+                    <TableCell
                       tableId={row.id}
                       column={k}
-                      stored={columns[k]}
-                      header={headers[k]}
-                      onDeleted={() => focus.focusRow(cellKey(row.id, k - 1, "h"), "end")}
-                      onAddRegression={() => addRegression(k)}
+                      row="h"
+                      latex={latex ?? ""}
+                      name={latex === null ? NEW_COLUMN_HEADER : `Column ${k + 1} header`}
+                      errorId={errorId}
+                      keypadOpen={keypadOpen}
+                      onTouchFocus={props.onTouchFocus}
+                      keys={cellKeys(keyContext, k, "h")}
+                      onEdit={(e, next) => e.editHeader(row.id, k, next, "typing")}
                     />
-                  )}
-                  <TableCell
-                    tableId={row.id}
-                    column={k}
-                    row="h"
-                    latex={latex ?? ""}
-                    name={latex === null ? NEW_COLUMN_HEADER : `Column ${k + 1} header`}
-                    keypadOpen={keypadOpen}
-                    onTouchFocus={props.onTouchFocus}
-                    keys={cellKeys(keyContext, k, "h")}
-                    onEdit={(e, next) => e.editHeader(row.id, k, next, "typing")}
-                  />
-                </div>
-              ))}
+                  </div>
+                );
+              })}
             </div>
             {Array.from({ length: rows + 1 }, (_, r) => (
               <div key={r} role="row" className="kc-table-row">
