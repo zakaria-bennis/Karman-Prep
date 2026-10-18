@@ -1,11 +1,11 @@
 // Stem classification (TR-1, TR-3, TR-5, TR-6) with question function names, calls and stem
-// dependencies (TR-18 to TR-21, TR-37, TR-77): which question math segments get a Transfer
-// control and what each inserts. Items are keyed by the segment index of one whole-text
+// dependencies (TR-18 to TR-21, TR-37, TR-77), whole answer choices (TR-40) and control names
+// (TR-50): which question math segments get a Transfer control and what each inserts. Items are keyed by the segment index of one whole-text
 // splitMathText call (decision 1). Eager and framework-free; it reads question text only and
 // imports nothing from the v2 calculator (AR-3, TR-74).
 
 import { splitMathText } from "../../components/learn/math-segments";
-import { describeMath, describeSystem } from "./describe";
+import { describeChoice, describeMath, describeSystem } from "./describe";
 import { lexQuestionMath, type QToken } from "./lex";
 import { FUNCTION_HEAD, proseFunctionNames } from "./names";
 import { normalizeQuestionMath } from "./normalize";
@@ -324,4 +324,79 @@ export function classifyStem(stem: StemInput): ReadonlyMap<number, TransferItem>
       if ("item" in verdict) items.set(index, verdict.item);
     return items;
   });
+}
+
+/** TR-40's plain-math character list, plus whitespace, for a choice without delimiters. */
+export const PLAIN_CHOICE = /^[0-9A-Za-z+\-−×·÷/^=<>≤≥().,\sπ√²³]+$/;
+const CHOICE_PROSE = /^(?:[\s,;]|\band\b)*$/i;
+
+/** TR-40: the verdict for a whole answer choice, resolved against the stem's definitions only. */
+export function explainChoice(choice: ChoiceInput, stem: StemInput | null): SegmentVerdict {
+  const segments = splitMathText(choice.text, false, true, true);
+  const math = segments.flatMap((s) => (s.kind === "text" ? [] : [s.latex]));
+  if (math.length === 0) {
+    const plain = choice.text.trim();
+    if (plain === "" || !PLAIN_CHOICE.test(plain))
+      return { rule: "TR-40", detail: "not plain math" };
+    math.push(plain);
+  } else if (segments.some((s) => s.kind === "text" && !CHOICE_PROSE.test(s.value)))
+    return { rule: "TR-40", detail: "prose outside math" };
+
+  const context = contextFor(stem);
+  const latex = math.map((m) => normalizeQuestionMath(m, "math"));
+  const names = new Set([
+    ...context.functionNames,
+    ...latex.flatMap(functionHeads),
+    ...proseFunctionNames(segments),
+  ]);
+  const rows: SegmentRow[] = [];
+  for (const l of latex) {
+    const result = classifySegment(l, "choice", names);
+    if (!result.ok) return { rule: result.rule, detail: result.detail };
+    rows.push(...result.rows);
+  }
+  const resolution = context.resolveRows(rows);
+  if ("rule" in resolution) return resolution;
+  const sourceId = `choice:${choice.letter}`;
+  const description = describeChoice(choice.letter);
+  return {
+    item: {
+      sourceId,
+      kind: "choice",
+      ruleId: ACCEPTING_RULE.choice,
+      description,
+      payload: {
+        version: 1,
+        sourceId,
+        description,
+        format: "rows",
+        dependencies: resolution.dependencies.map((d) => d.latex),
+        rows: rows.map((r) => r.latex),
+      },
+    },
+  };
+}
+
+const choiceMemo = memoized<string, TransferItem | null>();
+
+/** TR-40: the item for a whole answer choice, or null when it gets no control. */
+export function classifyChoice(choice: ChoiceInput, stem: StemInput | null): TransferItem | null {
+  const key = `${choice.letter}\u0000${choice.text}\u0000${stem ? stemKey(stem) : ""}`;
+  return choiceMemo(key, () => {
+    const verdict = explainChoice(choice, stem);
+    return "item" in verdict ? verdict.item : null;
+  });
+}
+
+/** TR-50: sourceId to "Transfer to Calculator: {description}", repeats numbered in order. */
+export function accessibleNames(items: readonly TransferItem[]): Map<string, string> {
+  const counts = new Map<string, number>();
+  const names = new Map<string, string>();
+  for (const item of items) {
+    const k = (counts.get(item.description) ?? 0) + 1;
+    counts.set(item.description, k);
+    const suffix = k > 1 ? `, occurrence ${k}` : "";
+    names.set(item.sourceId, `Transfer to Calculator: ${item.description}${suffix}`);
+  }
+  return names;
 }
