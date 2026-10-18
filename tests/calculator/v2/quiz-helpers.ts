@@ -55,15 +55,25 @@ export function v2Requests(page: Page) {
   return urls;
 }
 
+/**
+ * Opens the v2 calculator from the toolbar (the side button on phones). L-4 docks the first open
+ * of a page session on wide viewports; most window tests start from the floating window, so the
+ * helper undocks unless `docked` is asked for.
+ */
 export async function openV2(
   page: Page,
   flow = "diagnostic",
-  size?: { width: number; height: number }
+  size?: { width: number; height: number },
+  options: { docked?: boolean } = {}
 ) {
   if (size) await page.setViewportSize(size);
   await page.goto(`/?flow=${flow}&calc=v2`);
   await (phoneSized(page) ? side(page) : trigger(page)).click();
   await expect(rowItem(page)).toBeVisible();
+  if (!options.docked && (await frame(page).getAttribute("data-mode")) === "docked") {
+    await page.getByRole("button", { name: "Undock calculator", exact: true }).click();
+    await expect(frame(page)).toHaveAttribute("data-mode", "floating");
+  }
   // AN-10: geometry is read once the 200 ms entry animation has ended.
   await expect(frame(page)).not.toHaveAttribute("data-entering");
 }
