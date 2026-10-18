@@ -11,6 +11,7 @@ import {
   frames,
   inputMode,
   keypadOpen,
+  openSettings,
   openShell,
   rowField,
   rows,
@@ -183,6 +184,26 @@ test("KB-7 shortcuts match event.code with Option-modified keys and skip composi
   await expect.poll(async () => (await rows(page))[0].latex).toBe("x");
   await page.keyboard.press("Alt+KeyK");
   await expect.poll(() => keypadOpen(page)).toBe(false);
+});
+
+test("KB-7 undo, redo and Alt+Enter in a Graph settings text field leave the expression rows alone", async ({
+  page,
+}) => {
+  await openShell(page, "?w=800&h=600");
+  await rowField(page, "1").click();
+  await page.keyboard.type("xy");
+  await page.keyboard.press("ControlOrMeta+KeyZ"); // the row's own history: redo now holds a step
+  await expect.poll(async () => (await rows(page))[0].latex).not.toBe("xy");
+  const before = await rows(page);
+  await openSettings(page);
+  const label = page.getByRole("textbox", { name: "x-axis label", exact: true });
+  await label.click();
+  await page.keyboard.type("ab");
+  for (const key of ["ControlOrMeta+KeyZ", "ControlOrMeta+Shift+KeyZ", "Alt+Enter"])
+    await page.keyboard.press(key);
+  await frames(page);
+  expect(await rows(page)).toEqual(before);
+  await expect(page.getByRole("dialog", { name: "Graph settings" })).toBeVisible();
 });
 
 test("KB-13 Undo, Redo, Clear all, Add item and every keypad key are tabbable in visual order; a hidden keypad and collapsed list are skipped", async ({

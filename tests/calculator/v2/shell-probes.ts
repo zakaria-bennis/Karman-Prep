@@ -314,3 +314,101 @@ export function readTextPairs(): TextPair[] {
   }
   return out;
 }
+
+/** NM-29 init script: records the type of every message posted to a Worker in globalThis.__posted. */
+export function postedLog(): void {
+  const store = globalThis as unknown as { __posted: { type: unknown }[] };
+  store.__posted = [];
+  const postMessage = Worker.prototype.postMessage as (...args: unknown[]) => void;
+  Worker.prototype.postMessage = function (this: Worker, ...args: unknown[]) {
+    const message = args[0] as { type?: unknown } | null;
+    store.__posted.push({ type: message?.type });
+    return postMessage.apply(this, args);
+  } as Worker["postMessage"];
+}
+
+export interface CurveStats {
+  bands: number; // bands.length / 4 (G-12)
+  maxAbsY: number; // over the finite polyline vertices
+  maxY: number;
+}
+
+export interface SwitchTiming {
+  sameTask: boolean; // a state message was posted before click() returned
+  ms: number; // click to rows 1–17 equal to `expected` and rows 18–20 each replotted; Infinity if never
+  stale: number[]; // indexes of value rows that showed their new value and later changed
+  changes: number[]; // rows 18–20: how many times the geometry object changed
+  curves: CurveStats[]; // rows 18–20: the first geometry after the click
+}
+
+/**
+ * NM-29 (runs on the control `el`): waits for rows 18–20 to have geometry, clicks `el`, then for
+ * 1 s records every engine snapshot's row 1–17 valueText and row 18–20 geometry object.
+ */
+export async function switchAndTime(el: Element, expected: string[]): Promise<SwitchTiming> {
+  const engine = globalThis.__calculatorHarness!.engine;
+  const valueIds = expected.map((_, i) => String(i + 1));
+  const curveIds = ["18", "19", "20"];
+  const frame = () => new Promise((r) => requestAnimationFrame(r));
+  const geometryOf = (id: string) => engine.getSnapshot().geometry.get(id);
+  const waitStart = performance.now();
+  while (curveIds.some((id) => geometryOf(id) === undefined)) {
+    if (performance.now() - waitStart > 2000) break;
+    await frame();
+  }
+  const before = curveIds.map(geometryOf);
+  const last = [...before];
+  const changes = curveIds.map(() => 0);
+  const first: unknown[] = curveIds.map(() => undefined);
+  const shown = valueIds.map(() => false);
+  const stale = new Set<number>();
+  let ms = Number.POSITIVE_INFINITY;
+  let start = 0;
+  const record = () => {
+    const snapshot = engine.getSnapshot();
+    const texts = valueIds.map((id) => snapshot.rows.find((r) => r.id === id)?.valueText ?? null);
+    texts.forEach((text, i) => {
+      if (text === expected[i]) shown[i] = true;
+      else if (shown[i]) stale.add(i);
+    });
+    curveIds.forEach((id, i) => {
+      const g = snapshot.geometry.get(id);
+      if (g === last[i]) return;
+      changes[i]++;
+      last[i] = g;
+      if (first[i] === undefined) first[i] = g;
+    });
+    const done =
+      texts.every((text, i) => text === expected[i]) &&
+      curveIds.every((id, i) => {
+        const g = snapshot.geometry.get(id);
+        return g !== undefined && g !== before[i];
+      });
+    if (done && ms === Number.POSITIVE_INFINITY) ms = performance.now() - start;
+  };
+  const unsubscribe = engine.subscribe(record);
+  const store = globalThis as unknown as { __posted?: { type: unknown }[] };
+  const postedBefore = store.__posted?.length ?? 0;
+  start = performance.now();
+  (el as HTMLElement).click();
+  const sameTask = (store.__posted ?? []).slice(postedBefore).some((m) => m.type === "state");
+  while (performance.now() - start < 1000) {
+    await frame();
+    record();
+  }
+  unsubscribe();
+  const curves = first.map((g) => {
+    const curve = g as { polylines?: Float64Array; bands?: Float64Array } | undefined;
+    const ys: number[] = [];
+    const p = curve?.polylines ?? new Float64Array();
+    for (let i = 0; i + 1 < p.length; i += 2) {
+      if (Number.isFinite(p[i]) && Number.isFinite(p[i + 1])) ys.push(p[i + 1]);
+    }
+    return {
+      bands: (curve?.bands?.length ?? 0) / 4,
+      maxAbsY: Math.max(...ys.map(Math.abs)),
+      maxY: Math.max(...ys),
+    };
+  });
+  return { sameTask, ms, stale: [...stale], changes, curves };
+}
