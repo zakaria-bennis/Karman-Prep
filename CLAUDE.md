@@ -15,6 +15,11 @@ paying users yet.
 4. [`docs/adr/`](./docs/adr/) — why core decisions exist (per-session pay,
    Stripe Connect Express, ChatGPT-based imports).
 
+## Question imports
+
+Rules for the PDF → CSV question import live in [`docs/import.md`](./docs/import.md).
+Read it only when doing import work.
+
 ## Repo defaults you must respect
 
 - Default branch `main`. Feature branches `zakaria/<short-kebab-description>`.
