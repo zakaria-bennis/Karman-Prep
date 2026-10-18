@@ -44,6 +44,9 @@ export const FILL_ALPHA_VARS: Readonly<Record<CurveSlot, string>> = {
   c6: "--kc-fill-alpha-6",
 };
 
+/** TH-8: the skin's combined shading cap. */
+export const SHADING_CAP_VAR = "--kc-shading-cap";
+
 /** The roles the eager light-DOM chrome sheet declares (TH-2, TH-5). */
 export type ChromeRole =
   | "chrome"

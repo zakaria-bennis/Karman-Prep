@@ -23,7 +23,9 @@ import {
 import {
   CURVE_CANDIDATE_TARGET,
   GRID_MAX_CHROMA,
-  FILL_CONTRAST,
+  CURVE_OVER_SHADING,
+  MAX_FILL_ALPHA,
+  OVERLAP_STEP,
   MINOR_GRID_TARGET,
   TEXT_BACKGROUNDS,
 } from "./targets";
@@ -195,23 +197,44 @@ export function pickCurveSlots(candidates: readonly CurveCandidate[]): Record<Cu
   >;
 }
 
-/** TH-8: the smallest alpha (in 0.001 steps) at which `color` over `paper` reaches 1.15:1; 1 if none. */
-export function fillAlphaFor(color: string, paper: string): number {
-  for (let k = 1; k <= 1000; k++) {
-    const alpha = k / 1000;
-    if (contrastRatio(compositeOver(color, alpha, paper), paper) >= FILL_CONTRAST) return alpha;
+/**
+ * TH-8 (appendix F): the cap on combined shading, the lowest curve contrast over 4.5 so every curve
+ * keeps 4.5:1 over any shading, and never above the contrast of any curve's 40% mix.
+ */
+export function shadingCapFor(curves: readonly string[], paper: string): number {
+  let cap = Infinity;
+  for (const c of curves) {
+    cap = Math.min(cap, contrastRatio(c, paper) / CURVE_OVER_SHADING);
+    cap = Math.min(cap, contrastRatio(compositeOver(c, MAX_FILL_ALPHA, paper), paper));
   }
-  return 1;
+  return Math.floor(cap * 1000) / 1000;
+}
+
+/**
+ * TH-8: one fill's alpha, the largest (in 0.001 steps, at most 40%) at which `color` over `paper`
+ * stays at or below cap / 1.04 (with a margin for 8-bit rounding), so a second fill still shows
+ * 1.04:1 apart under the cap.
+ */
+const FILL_STEP = OVERLAP_STEP + 0.02;
+export function fillAlphaFor(color: string, paper: string, cap: number): number {
+  let best = 0.001;
+  for (let k = 1; k <= MAX_FILL_ALPHA * 1000; k++) {
+    const alpha = k / 1000;
+    if (contrastRatio(compositeOver(color, alpha, paper), paper) > cap / FILL_STEP) break;
+    best = alpha;
+  }
+  return best;
 }
 
 /** One skin's roles, TH-6 curves and TH-8 fill alphas. */
 export function buildSkinPalette(theme: SiteTheme): SkinPalette {
   const roles = deriveRoles(theme);
   const curves = pickCurveSlots(curveCandidates(roles.paper));
+  const shadingCap = shadingCapFor(Object.values(curves), roles.paper);
   const fillAlpha = Object.fromEntries(
-    CURVE_SLOTS.map((slot) => [slot, fillAlphaFor(curves[slot], roles.paper)])
+    CURVE_SLOTS.map((slot) => [slot, fillAlphaFor(curves[slot], roles.paper, shadingCap)])
   ) as Record<CurveSlot, number>;
-  return { dark: theme.dark, roles, curves, fillAlpha };
+  return { dark: theme.dark, roles, curves, fillAlpha, shadingCap };
 }
 
 /** Every skin's palette keyed by `SKIN_IDS`; the themes must be the 12 skins in that order. */

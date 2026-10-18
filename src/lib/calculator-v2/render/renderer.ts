@@ -3,6 +3,8 @@
 // store; the paper is the panel's CSS background, so unshaded pixels stay transparent.
 
 import { CURVE_VARS, FILL_ALPHA_VARS, ROLE_VARS } from "../theme/roles";
+import { SHADING_CAP } from "../theme/targets";
+import { SHADING_CAP_VAR } from "../theme/vars";
 import { CURVE_SLOTS, type CurveSlot } from "../theme/skins";
 import { AXIS_FONT } from "./constants";
 import { drawPoiDots, drawTraceDot } from "./draw-poi";
@@ -125,7 +127,7 @@ export class GraphRenderer {
     ) {
       return memo.rects;
     }
-    const rects = buildShadingRects(regions, theme.paper, size, dpr);
+    const rects = buildShadingRects(regions, theme.paper, size, dpr, theme.shadingCap);
     this.shading = {
       regions,
       paper: theme.paper,
@@ -153,5 +155,6 @@ export function readRenderTheme(host: Element): RenderTheme {
     focusRing: read(ROLE_VARS.focusRing),
     curves: perSlot((slot) => read(CURVE_VARS[slot])),
     fillAlpha: perSlot((slot) => parseFloat(read(FILL_ALPHA_VARS[slot]))),
+    shadingCap: parseFloat(read(SHADING_CAP_VAR)) || SHADING_CAP,
   };
 }

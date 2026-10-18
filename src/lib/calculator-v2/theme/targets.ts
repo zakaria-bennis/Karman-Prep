@@ -9,9 +9,11 @@ export const CURVE_CANDIDATE_TARGET = 5.95;
 export const ADJUST_STEP = 0.005;
 /** TH-4: an adjusted role stops at its target plus this margin. */
 export const ADJUST_MARGIN = 0.05;
-/** TH-8: one inequality fill against the paper. */
-export const FILL_CONTRAST = 1.15;
-/** TH-8: combined shading never exceeds this against the paper. */
+/** TH-8: a curve keeps this contrast over the strongest shading, so the cap is curve / 4.5. */
+export const CURVE_OVER_SHADING = 4.5;
+/** TH-8: a single fill is at most this alpha; the cap never exceeds such a mix's contrast. */
+export const MAX_FILL_ALPHA = 0.4;
+/** TH-8: the Phase 1 cap, still the default of compositeShading for callers with no skin. */
 export const SHADING_CAP = 1.3;
 /** TH-8: two overlapping fills stay at least this far from one fill. */
 export const OVERLAP_STEP = 1.04;

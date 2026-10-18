@@ -460,7 +460,7 @@ test("G-17 overlap of two regions has higher contrast than either and curves sta
   }
 });
 
-test("TH-8 combined canvas shading never exceeds 1.3:1 in all 12 skins", async ({
+test("TH-8 combined canvas shading never exceeds the skin's cap in all 12 skins", async ({
   page,
   isMobile,
 }) => {
@@ -468,7 +468,8 @@ test("TH-8 combined canvas shading never exceeds 1.3:1 in all 12 skins", async (
   for (const skin of SKIN_IDS) {
     const rows = ["y>0", "x>0", "y>x", "y>-x"];
     await openGraph(page, isMobile, { rows, skin, plots: 4 });
-    const paper = SKIN_COLORS[skin].normal.roles.paper;
+    const { roles, shadingCap } = SKIN_COLORS[skin].normal;
+    const paper = roles.paper;
     const fills = (["c1", "c2", "c3", "c4"] as const).map((slot) => {
       const { hex, fillAlpha } = resolveRowColor(slot, skin);
       return { color: hex, alpha: fillAlpha };
@@ -478,7 +479,8 @@ test("TH-8 combined canvas shading never exceeds 1.3:1 in all 12 skins", async (
       allowed.add(
         compositeShading(
           paper,
-          fills.filter((_, i) => (mask >> i) & 1)
+          fills.filter((_, i) => (mask >> i) & 1),
+          shadingCap
         )
       );
     }
@@ -486,8 +488,8 @@ test("TH-8 combined canvas shading never exceeds 1.3:1 in all 12 skins", async (
     expect(partial, skin).toBe(0);
     for (const colour of opaque) {
       expect(allowed.has(colour), `${skin} ${colour}`).toBe(true);
-      expect(contrastRatio(colour, paper), skin).toBeLessThanOrEqual(1.3 + 1e-9);
+      expect(contrastRatio(colour, paper), skin).toBeLessThanOrEqual(shadingCap + 1e-9);
     }
-    expect(opaque, skin).toContain(compositeShading(paper, fills));
+    expect(opaque, skin).toContain(compositeShading(paper, fills, shadingCap));
   }
 });

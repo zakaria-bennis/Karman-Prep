@@ -70,7 +70,8 @@ export function buildShadingRects(
   regions: readonly ShadingRegion[],
   paper: string,
   size: PixelSize,
-  dpr: number
+  dpr: number,
+  cap?: number // TH-8: the skin's shadingCap
 ): ShadingRect[] {
   const w = Math.round(size.width * dpr);
   const h = Math.round(size.height * dpr);
@@ -84,7 +85,8 @@ export function buildShadingRects(
     if (colour === undefined) {
       colour = compositeShading(
         paper,
-        key.split(",").map((i) => fill(regions[Number(i)]))
+        key.split(",").map((i) => fill(regions[Number(i)])),
+        cap
       );
       colours.set(key, colour);
     }

@@ -180,19 +180,23 @@ export function compositeOver(color: string, alpha: number, background: string):
 }
 
 /**
- * TH-8: the colour of a pixel covered by `fills`, capped at 1.3:1 against `paper`. The fills are
- * composited over the paper in order; when the result passes the cap it is mixed back toward the
- * paper in 0.001 steps until it is at most 1.3:1. With the skin's fill alphas the second fill is
- * at least 1.04:1 apart from the one-fill colour, and 3 or more fills stay at the 1.3:1 cap; the
- * renderer (08) paints shading through it.
+ * TH-8: the colour of a pixel covered by `fills`, capped at `cap` (the skin's shadingCap) against
+ * `paper`. The fills are composited over the paper in order; when the result passes the cap it is
+ * mixed back toward the paper in 0.001 steps until it is at most the cap. With the skin's fill
+ * alphas the second fill is at least 1.04:1 apart from the one-fill colour, and 3 or more fills
+ * stay at the cap; the renderer (08) paints shading through it.
  */
-export function compositeShading(paper: string, fills: { color: string; alpha: number }[]): string {
+export function compositeShading(
+  paper: string,
+  fills: { color: string; alpha: number }[],
+  cap = SHADING_CAP
+): string {
   let c = paper.toLowerCase();
   for (const fill of fills) c = compositeOver(fill.color, fill.alpha, c);
-  if (contrastRatio(c, paper) <= SHADING_CAP) return c;
+  if (contrastRatio(c, paper) <= cap) return c;
   for (let k = SHADING_PULLBACK_STEPS - 1; k >= 0; k--) {
     const d = compositeOver(c, k / SHADING_PULLBACK_STEPS, paper);
-    if (contrastRatio(d, paper) <= SHADING_CAP) return d;
+    if (contrastRatio(d, paper) <= cap) return d;
   }
   return paper.toLowerCase();
 }
