@@ -34,6 +34,17 @@ conflict.
 7. **Fonts.** All calculator UI text, including the window title, uses the sans UI font (Arial);
    only math uses KaTeX fonts.
 
+## Parity increment scope
+
+The parity plan (`docs/superpowers/plans/2026-10-18-calculator-v2-parity/`) delivers these IDs
+ahead of their phases, with the wording this appendix's findings give them; their phase tags read
+"Parity". Points of interest: POI-1 to POI-14, POI-16 to POI-20, A11Y-9, KB-14, K-9. Add item and
+tables: S-2, S-10 to S-13, D-1, D-4 to D-13, D-16, D-19, D-20, D-41, D-42. Regression: PR-30, D-2,
+D-3, D-22, D-24 to D-34, D-36, D-37, D-39, D-44 to D-46, POI-3, K-8, A11Y-10. Visual retune: TH-6,
+TH-7, TH-8, TH-17, TH-19, G-25, L-3, L-16. Docking: L-4. Transfer to Calculator, including tables
+and coordinate pairs: the Phase 1 TR- IDs plus TR-22 to TR-25, TR-34, TR-39, TR-60, TR-61, TR-63,
+D-17, D-18.
+
 ## The + (Add Item) menu
 
 ### Requirements
