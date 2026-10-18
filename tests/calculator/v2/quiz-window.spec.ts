@@ -11,6 +11,7 @@ import {
   side,
   trigger,
   v2Requests,
+  workspace,
 } from "./quiz-helpers";
 
 test("L-4 the toolbar and the phone side button open v2 in Math questions only", async ({
@@ -173,4 +174,134 @@ test("AN-10 floating and full-screen windows open with opacity 0 to 1 and transl
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/?flow=diagnostic&calc=v2");
   expect(await openAndRead()).toEqual([]);
+});
+
+test("AR-28, L-11, KB-12, L-6, AR-22 full screen is modal and fills the viewport at z-index 72: the workspace is inert, hidden and scroll-locked and Tab cycles inside the window", async ({
+  page,
+}, info) => {
+  chromeOnly(info.project.name);
+  await openV2(page, "diagnostic", { width: 390, height: 844 });
+  const background = () =>
+    workspace(page).evaluate((el) => [
+      (el as HTMLElement).inert,
+      el.getAttribute("aria-hidden"),
+      document.body.style.overflow,
+    ]);
+  await expect(
+    page.getByRole("dialog", { name: "Karman calculator", exact: true })
+  ).toHaveAttribute("aria-modal", "true");
+  expect(await background()).toEqual([true, "true", "hidden"]);
+  expect(await frame(page).boundingBox()).toEqual({ x: 0, y: 0, width: 390, height: 844 });
+  expect(await frame(page).evaluate((el) => getComputedStyle(el).zIndex)).toBe("72");
+  const where = () =>
+    page.evaluate(() => {
+      const a = document.activeElement!;
+      return !document.querySelector("[data-calculator-window]")!.contains(a)
+        ? "outside"
+        : a.hasAttribute("data-calculator-host")
+          ? "shadow"
+          : (a.getAttribute("aria-label") ?? "light");
+    });
+  const close = page.getByRole("button", { name: "Close calculator", exact: true });
+  await close.focus();
+  const seen = new Set<string>();
+  for (let i = 0; i < 80; i++) {
+    await page.keyboard.press("Tab");
+    seen.add(await where());
+  }
+  expect(seen.has("outside")).toBe(false);
+  expect(seen.has("shadow")).toBe(true);
+  expect(seen.has("Close calculator")).toBe(true);
+  await close.focus();
+  await page.keyboard.press("Shift+Tab");
+  expect(await where()).toBe("shadow");
+  await close.click();
+  expect(await background()).toEqual([false, null, ""]);
+  await expect(trigger(page)).toBeFocused();
+});
+
+test("AR-27, L-10, KB-4 Close and Minimize keep the content and return focus to the opener, or the toolbar button when it is gone; reopening restores the last row", async ({
+  page,
+}, info) => {
+  chromeOnly(info.project.name);
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto("/?flow=diagnostic&calc=v2");
+  await trigger(page).focus();
+  await page.keyboard.press("Enter");
+  await expect(row(page)).toBeFocused();
+  await page.keyboard.type("1+1");
+  await page.keyboard.press("Enter");
+  await expect(row(page, 2)).toBeFocused();
+  for (const name of ["Close calculator", "Minimize calculator"]) {
+    await page.getByRole("button", { name, exact: true }).click();
+    await expect(frame(page)).toBeHidden();
+    await expect(trigger(page)).toBeFocused();
+    await trigger(page).click();
+    await expect(row(page, 2)).toBeFocused();
+    expect(await latex(page)).toEqual(["1+1", ""]);
+  }
+  await page.getByRole("button", { name: "Close calculator", exact: true }).click();
+  await page.setViewportSize({ width: 1280, height: 480 });
+  await side(page).click();
+  await page.getByRole("button", { name: "Close calculator", exact: true }).click();
+  await expect(trigger(page)).toBeFocused();
+});
+
+test("KB-6, AR-18 calculator keys never reach window or document listeners; Escape closes the window only when no layer handled it", async ({
+  page,
+}, info) => {
+  test.skip(/ios|android/.test(info.project.name), "hardware keyboard projects only");
+  await openV2(page, "diagnostic", { width: 1280, height: 800 });
+  await page.evaluate(() => {
+    const log: string[] = ((globalThis as { quizKeys?: string[] }).quizKeys = []);
+    for (const type of ["keydown", "keyup", "keypress"]) {
+      window.addEventListener(type, (e) => log.push(`window ${type} ${(e as KeyboardEvent).key}`));
+      document.addEventListener(type, (e) =>
+        log.push(`document ${type} ${(e as KeyboardEvent).key}`)
+      );
+    }
+  });
+  const heard = () =>
+    page.evaluate(() => (globalThis as { quizKeys?: string[] }).quizKeys!.splice(0));
+  const keypad = page.getByRole("region", { name: "Keypad" });
+  await row(page).focus();
+  await page.keyboard.type("2+3");
+  await page.keyboard.press("Enter");
+  await page.keyboard.press("Alt+KeyH");
+  await page.getByRole("button", { name: "Karman calculator", exact: true }).focus();
+  await page.keyboard.press("ArrowRight");
+  await row(page).focus();
+  await page.keyboard.press("Control+KeyK");
+  await expect(keypad).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(keypad).toBeHidden();
+  await expect(frame(page)).toBeVisible();
+  expect(await heard()).toEqual([]);
+  await expect(page.getByText(/^Question 1:/)).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(frame(page)).toBeHidden();
+  await page.locator("body").press("x");
+  expect(await heard()).toContain("window keydown x");
+});
+
+test("AR-13 no v1 shell control is rendered or registered around a v2 calculator", async ({
+  page,
+}) => {
+  await openV2(page, "practice");
+  for (const name of [
+    "Calculator mode",
+    "Paste math",
+    "Paste points as",
+    "Show calculator keypad",
+    "Hide calculator keypad",
+  ])
+    await expect(page.getByLabel(name, { exact: true })).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: /Export to Karman|Export options|Copy for Desmos/ })
+  ).toHaveCount(0);
+  const keypads = page.getByRole("region", { name: "Keypad" });
+  const before = await keypads.count();
+  await page.locator("body").press("Control+KeyK");
+  await page.locator("body").press("Alt+KeyK");
+  await expect(keypads).toHaveCount(before);
 });

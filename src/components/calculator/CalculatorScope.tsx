@@ -291,6 +291,11 @@ function useViewport(): ViewportSize {
   return viewport;
 }
 
+/** Whether focus can return to `element`: still in the document, rendered and not inert. */
+function focusable(element: HTMLElement): boolean {
+  return element.isConnected && element.getClientRects().length > 0 && !element.closest("[inert]");
+}
+
 /** Whether `query` (one of breakpoints.ts's, AR-19) matches now, following its changes. */
 function useMediaQuery(query: string): boolean {
   const [matches, setMatches] = useState(false);
@@ -371,6 +376,48 @@ function V2Scope({
     };
   }, [frame]);
 
+  // AR-28, L-11: full screen is modal; the workspace is inert and hidden and the page cannot
+  // scroll behind it, and the previous body overflow comes back on hide.
+  const workspaceRef = useRef<HTMLDivElement | null>(null);
+  const sideRef = useRef<HTMLButtonElement | null>(null);
+  const modal = enabled && open && mode === "fullscreen";
+  useLayoutEffect(() => {
+    const node = workspaceRef.current;
+    if (!modal || !node) return;
+    const overflow = document.body.style.overflow;
+    node.inert = true;
+    document.body.style.overflow = "hidden";
+    return () => {
+      node.inert = false;
+      document.body.style.overflow = overflow;
+    };
+  }, [modal]);
+
+  // AR-27, L-10: an open remembers the element that had focus outside the window; a hide returns
+  // focus to it while it is connected and visible, else to the toolbar button, else the side button.
+  const opener = useRef<HTMLElement | null>(null);
+  const wasOpen = useRef(open);
+  useLayoutEffect(() => {
+    const before = wasOpen.current;
+    wasOpen.current = open;
+    if (open && !before) {
+      const active = document.activeElement;
+      const inside = active !== null && frameRef.current?.contains(active) === true;
+      if (!inside && active instanceof HTMLElement && active !== document.body) {
+        opener.current = active;
+      }
+    } else if (!open && before) {
+      const remembered = opener.current;
+      opener.current = null;
+      const target = [
+        remembered,
+        workspaceRef.current?.querySelector<HTMLElement>("[data-calculator-trigger]") ?? null,
+        sideRef.current,
+      ].find((element) => element !== null && focusable(element));
+      target?.focus();
+    }
+  }, [open]);
+
   // Once per open: the calculator places focus for the trigger that opened it (OI-7).
   useEffect(() => {
     const trigger = remembered.current;
@@ -412,8 +459,10 @@ function V2Scope({
     <Context.Provider value={bridge}>
       <CalculatorHostIdContext.Provider value={hostId}>
         <div
+          ref={workspaceRef}
           className={styles.workspace}
           data-calculator-workspace=""
+          aria-hidden={modal ? "true" : undefined}
           style={{ display: "contents" }}
         >
           {children}
@@ -421,6 +470,7 @@ function V2Scope({
         {enabled && phone && !open && (
           <button
             type="button"
+            ref={sideRef}
             className={styles.sideToggle}
             aria-label="Open Karman calculator"
             aria-expanded={open}
