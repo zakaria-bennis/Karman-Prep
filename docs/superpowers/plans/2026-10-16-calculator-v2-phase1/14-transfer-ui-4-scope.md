@@ -435,3 +435,81 @@ If the decision's border fallback is applied, the TH-2 mapping's `--kcc-boundary
   - TH-2: in the same file set `.tooltip`'s `background` to `var(--kcc-text-secondary)`; Expected: FAIL at the `ivory` mapping (the seventh value, the tooltip background, differs).
   - AR-37: in `src/components/calculator-v2/KarmanCalculator.ts` (temporary only) remove the `watchTheme(…)` registration; Expected: FAIL at `theme switch (class and data-theme, as applyTheme does)`.
   - TH-8: in `src/lib/calculator-v2/render/shading.ts` (temporary only) colour each run with its last region's `color` in place of the `compositeShading` result; Expected: FAIL at the 1.3:1 bound (`<skin> <colour> on the paper`).
+
+### Adaptations made while executing tasks 11 to 14
+
+Task 11:
+
+- The docking write sits in `transfer-bridge-core.ts` (D4), between the queue-full refusal and the
+  load-failure step, as the plan places it in `transfer()`. Since the AR-33 size work below it calls
+  `s.dock()`, a closure the eager hook puts on the scope state, so the lazy core imports neither
+  `breakpoints.ts` nor `calculator-window-store.ts`.
+- Consistency with the parity work: the first toolbar open of a page session already docks on wide
+  viewports (`toggle` in `CalculatorScope.tsx`), and a transfer docks on every wide-viewport press,
+  so the TR-65 test first undocks the toolbar-opened window to reach floating. `quiz-helpers.ts`
+  `openV2` and 11's quiz specs are unchanged and pass. `CalculatorScope.tsx` did not grow.
+- `transferByMouse` moves the mouse to the centre of the item's last line box (and waits for the
+  page's finite animations): at 1023 px the inline item wraps, so its bounding-box centre lies
+  between its lines, and a new question's card moves while it enters. Rows are clicked and checked
+  for visibility through their list item (`rowItem`), as 11's helpers do: MathQuill keeps the
+  textarea at 0 x 0. `windowStore` reads `__calculatorWindowStore?.get() ?? null`.
+- Found while writing task 12's TR-67 test: docked, the question layout is a scroll box
+  (`calculator.module.css`, 11), so an inline control above a stem's first line was clipped (the
+  t2 stem's `f(x)=x^{2}-3` control could not be clicked). `transfer-control.css` (lazy, v2 only)
+  gives the docked workspace's `[data-question-layout]` 24 px of top padding. Lead: confirm, or move
+  the rule to 11's sheet.
+
+Task 12:
+
+- `transferOpen` is the scope state's `opened` field (with `wasOpen` and `failureSeen`), and the
+  close reset happens in the drain, which runs on every `open` change, so no new eager effect was
+  needed. The failure-panel focus runs in `settle` (formerly `settleFailure`), whose effect gained
+  `open`; announcements there fire only when the status or failure changes.
+- `openedByTransfer()` is on the bridge. In `CalculatorScope.tsx` 11's once-per-open `focusOnOpen`
+  effect moved below the `useTransferBridge` call (so it can read `openedByTransfer` without a
+  forward reference) with the guard in its condition; 11's opener-memory layout effect still runs
+  before the drain. Net line change 0 (664).
+- TR-68 component test also checks a click with no `pointerdown` (the DOM click the browser specs
+  use): it focuses the control and shows no tooltip. Task 4's TR-59 test asserted no
+  `[data-transfer-selected]` after such a click; the control now has focus, which shows the
+  outline by the DOM contract, so the test checks instead that no tap selection was made.
+- TR-66 touch: the activated row is revealed after it grows in (L-14), so the touch state is
+  polled. NM-42: replacing the focused row 1 with 100 rows makes the calculator read "Expression 1
+  equals 0" (its own row announcement), so the test starts watching the calculator's live region
+  after that and asserts the transfer adds nothing to it.
+- TR-66 and TR-68 passed on calculator-chrome before the change (Chromium focuses a clicked
+  button and 11's effect only runs for toolbar opens); calculator-android TR-66 failed as planned
+  (focus not in the window). Safari and iOS cannot run here.
+
+Task 13: passed on first run; all three mutation checks failed as stated.
+
+Task 14:
+
+- TR-53 found `--kcc-boundary` at 2.70:1 beside ivory's choice cluster, so the button border uses
+  `--kcc-text-secondary` in every skin (decision "Light-DOM colours"), the TH-2 mapping says so, and
+  the four calculator-chrome `-linux` baselines were re-recorded and reviewed (darker 1 px border;
+  glyph, overlap and corner unchanged). The tooltip keeps its `--kcc-boundary` border (no 3:1 rule
+  applies to it). The test waits for the page's transitions after each skin switch: the diagnostic
+  choice has `transition-all`, and a mid-transition background read 2.81:1 for plum.
+- TH-8 was amended in the parity work (a per-skin `shadingCap`, `--kc-shading-cap`, not 1.3), so
+  the test bounds each skin by `SKIN_COLORS[skin].normal.shadingCap` and passes that cap to
+  `compositeShading`; observatory's legitimate colour `#1f3437` is 1.33:1.
+- Finding for 10: the open calculator does not repaint on a `prefers-reduced-motion` change
+  (`watchTheme` follows colour scheme, contrast and forced colours only). That case is a separate
+  `test.fixme` in `transfer.spec.ts`; the main AR-37 test covers the theme switch, contrast,
+  `data-theme` removal and colour scheme.
+
+AR-33 (package gate): the real build (`npm run cf:build`, `check-calculator-v2-bundle.mjs`) failed
+the 10240-byte eager budget on `/learn/daily` at 11,514 bytes. The same build of `18ac662`'s
+sources measures 9,007 there, so this package's real eager addition was 2,507 bytes, not the
+1,240 the esbuild estimate gives. Turbopack had merged `TransferControl.module.css` into a CSS
+chunk the route loads eagerly (406 bytes), and every `import()` adds a loader stub. Reductions:
+the module sheet's rules moved into the plain global `transfer-control.css` keyed on the DOM
+contract's attributes (Turbopack keeps a global sheet imported only by lazy code in its own lazy
+chunk; `TransferControl.module.css` is gone and Next's pure-mode rule no longer applies); the
+classifier, item lookup and control load through one entry, `transfer-lazy.ts`, and one
+`import()` in `transfer-classifier.ts` (the hook keeps its own `import("./transfer-bridge-core")`:
+under Vitest a dynamic import made from a module first loaded through the mocked
+`CalculatorScope`'s `importOriginal` chain gets the unmocked `CalculatorScope`); the eager hook and
+loader were slimmed; the control computes the question id itself. Daily is now 10,689 (this
+package +1,682; room 1,233), still 449 over. Lead decision needed.
