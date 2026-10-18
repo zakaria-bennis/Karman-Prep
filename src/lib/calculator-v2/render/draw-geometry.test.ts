@@ -2,7 +2,14 @@ import { expect, it } from "vitest";
 import type { CurveGeometry, Geometry, LineSetGeometry } from "../plot/geometry";
 import type { PixelSize, Viewport, ViewSpec } from "../plot/viewport";
 import { createRecordingContext, type RecordedCall } from "./__fixtures__/recording-context";
-import { CURVE_LINE_PX, CURVE_SELECTED_LINE_PX } from "./constants";
+import {
+  AXIS_LINE_PX,
+  CURVE_LINE_PX,
+  CURVE_SELECTED_LINE_PX,
+  DASH_PX,
+  GRID_LINE_PX,
+  POINT_RADIUS_PX,
+} from "./constants";
 import { drawCurveLayer, drawPointLayer } from "./draw-geometry";
 import type { RenderRow } from "./types";
 
@@ -75,7 +82,7 @@ it("G-5 strict region boundaries stroke with the dash pattern and non-strict one
     }),
   ]);
   const drawn = strokes(calls);
-  expect(drawn.map((c) => c.state.lineDash)).toEqual([[10, 6], []]);
+  expect(drawn.map((c) => c.state.lineDash)).toEqual([[12, 6], []]);
   for (const c of drawn) {
     expect(c.state.strokeStyle).toBe(COLOR);
     expect(c.state.lineWidth).toBe(2.5);
@@ -89,13 +96,13 @@ it("G-5 the dash phase continues across runs that meet", () => {
   expect(strokes(calls).map((c) => c.state.lineDashOffset)).toEqual([0, 200, 0]);
 });
 
-it("G-5 a point is a filled circle of radius 4 px at its view position (G-7)", () => {
+it("G-5 a point is a filled circle of radius 5 px at its view position (G-7, G-25)", () => {
   const { ctx, calls } = createRecordingContext();
   drawPointLayer(ctx, view(), [
     rowOf({ kind: "points", rowId: "1", evaluations: 0, coords: new Float64Array([2, 3, NaN, 1]) }),
   ]);
   expect(calls.filter((c) => c.name === "arc").map((c) => c.args)).toEqual([
-    [480, 180, 4, 0, 2 * Math.PI],
+    [480, 180, 5, 0, 2 * Math.PI],
   ]);
   expect(calls.filter((c) => c.name === "fill").map((c) => c.state.fillStyle)).toEqual([COLOR]);
 });
@@ -139,14 +146,21 @@ it("D-12 open circles stroke, crosses draw two strokes, and a dotted column line
   ]);
   expect(calls.filter((c) => c.name === "fill")).toHaveLength(0);
   expect(calls.filter((c) => c.name === "arc").map((c) => c.args)).toEqual([
-    [480, 180, 4, 0, 2 * Math.PI],
+    [480, 180, 5, 0, 2 * Math.PI],
   ]);
   const lines = calls.filter((c) => c.name === "lineTo").map((c) => c.args);
   expect(lines).toEqual([
-    [484, 184],
-    [484, 176],
+    [485, 185],
+    [485, 175],
   ]);
   expect(strokes(calls)).toHaveLength(2);
   const dotted = drawCurves([{ ...curveRow([-5, 1, 5, 1], false), lineStyle: "dotted" }]);
   expect(strokes(dotted).map((c) => c.state.lineDash)).toEqual([[0.1, 6]]);
+});
+
+it("G-25 curves stroke 2.5 px, points are 10 px discs, strict boundaries dash 12 on 6 off and axes are 1.5 px", () => {
+  expect([CURVE_LINE_PX, CURVE_SELECTED_LINE_PX, 2 * POINT_RADIUS_PX]).toEqual([2.5, 4, 10]);
+  expect([[...DASH_PX], AXIS_LINE_PX, GRID_LINE_PX]).toEqual([[12, 6], 1.5, 1]);
+  const drawn = strokes(drawCurves([curveRow([-5, 1, 5, 1], true)]));
+  expect(drawn.map((c) => [c.state.lineWidth, c.state.lineDash])).toEqual([[2.5, [12, 6]]]);
 });

@@ -9,6 +9,7 @@ import {
   inGamut,
   simulateCvd,
   toOklab,
+  toOklch,
 } from "./contrast";
 import {
   COLOR_ROLES,
@@ -21,6 +22,7 @@ import {
 } from "./skins";
 import {
   CURVE_CANDIDATE_TARGET,
+  GRID_MAX_CHROMA,
   FILL_CONTRAST,
   MINOR_GRID_TARGET,
   TEXT_BACKGROUNDS,
@@ -57,13 +59,23 @@ function adjustAll(color: string, backgrounds: readonly string[], target: number
   throw new Error(`Could not bring ${color} to ${target}:1 on ${backgrounds.join(", ")}`);
 }
 
-/** `border` mixed toward the paper at the largest alpha (in 0.01 steps) at most 1.5:1 on it. */
+/** TH-19: `color` with its OKLCH chroma brought down to GRID_MAX_CHROMA, lightness and hue kept. */
+function neutral(color: string): string {
+  const { l, c, h } = toOklch(color);
+  // Encoding to hex can raise the chroma a little, so the reduced colour aims just under the cap.
+  return c <= GRID_MAX_CHROMA ? color : fromOklch(l, GRID_MAX_CHROMA - 0.004, h);
+}
+
+/**
+ * `border` mixed toward the paper at the largest alpha (in 0.01 steps) whose neutral (TH-19) is at
+ * most 1.5:1 on it.
+ */
 function minorGrid(border: string, paper: string): string {
   for (let k = 100; k >= 0; k--) {
-    const mixed = compositeOver(border, k / 100, paper);
+    const mixed = neutral(compositeOver(border, k / 100, paper));
     if (contrastRatio(mixed, paper) <= MINOR_GRID_TARGET) return mixed;
   }
-  return paper;
+  return neutral(paper);
 }
 
 /** Every colour role of a site theme by the 10.3 mapping, adjusted by the TH-4 rule. */
@@ -88,7 +100,7 @@ export function deriveRoles(theme: SiteTheme): Record<ColorRole, string> {
     textSecondary: adjustAll(theme.muted, textBackgrounds, 7),
     error: adjustLightness(theme.reading, list, 7),
     axis: adjustLightness(theme.text, paper, 7),
-    gridMajor: adjustLightness(theme.border, paper, 3),
+    gridMajor: neutral(adjustLightness(neutral(theme.border), paper, 3)),
     gridMinor: minorGrid(theme.border, paper),
     focusRing: adjustAll(theme.math, textBackgrounds, 3),
     focusBar: adjustLightness(theme.math, focusBarLabel, 7),

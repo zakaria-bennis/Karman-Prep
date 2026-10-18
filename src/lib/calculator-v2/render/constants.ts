@@ -4,13 +4,13 @@
 /** Line widths. */
 export const CURVE_LINE_PX = 2.5;
 export const CURVE_SELECTED_LINE_PX = 4; // POI-17: the selected row's curve
-export const GRID_LINE_PX = 1;
-export const AXIS_LINE_PX = 2;
+export const GRID_LINE_PX = 1; // G-25
+export const AXIS_LINE_PX = 1.5; // G-25
 
-/** Marks: G-1 fixes no dash pattern and G-7 only the 0.5 px position tolerance (package decisions). */
-export const DASH_PX = [10, 6] as const;
+/** Marks (G-25, appendix F): strict boundaries dash 12 on 6 off; points are 10 px discs. */
+export const DASH_PX = [12, 6] as const; // G-25
 export const DOT_PX = [0.1, 6] as const; // D-12: round caps make each dash a dot
-export const POINT_RADIUS_PX = 4;
+export const POINT_RADIUS_PX = 5; // G-25: 10 px discs
 export const POINT_STROKE_PX = 2; // D-12: open circles and crosses
 /** POI-1, POI-13: a point-of-interest dot, and the larger dot of one whose label is open. */
 export const POI_RADIUS_PX = 4;

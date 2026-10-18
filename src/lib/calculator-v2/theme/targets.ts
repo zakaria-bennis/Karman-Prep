@@ -17,6 +17,8 @@ export const SHADING_CAP = 1.3;
 export const OVERLAP_STEP = 1.04;
 /** TH-7: minimum pairwise ΔE_OK of a skin's six curves under every simulated vision. */
 export const MIN_CURVE_DELTA_E = 0.08;
+/** TH-19: gridlines are neutral, at most this OKLCH chroma. */
+export const GRID_MAX_CHROMA = 0.02;
 /** TH-1: minor gridlines aim at the middle of 1.4:1 to 1.6:1 on the paper. */
 export const MINOR_GRID_TARGET = 1.5;
 

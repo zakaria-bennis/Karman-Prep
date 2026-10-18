@@ -125,3 +125,15 @@ it(
     }
   }
 );
+
+it("TH-19 major and minor gridlines have OKLCH chroma at most 0.02 and keep their contrast targets", () => {
+  for (const theme of SITE_THEMES) {
+    const roles = deriveRoles(theme);
+    for (const role of ["gridMajor", "gridMinor"] as const)
+      expect(toOklch(roles[role]).c, `${theme.id} ${role}`).toBeLessThanOrEqual(0.02 + 1e-9);
+    expect(contrastRatio(roles.gridMajor, roles.paper)).toBeGreaterThanOrEqual(3);
+    const minor = contrastRatio(roles.gridMinor, roles.paper);
+    expect(minor).toBeGreaterThanOrEqual(1.4);
+    expect(minor).toBeLessThanOrEqual(1.6);
+  }
+});

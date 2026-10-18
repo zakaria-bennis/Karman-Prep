@@ -294,6 +294,7 @@ These rules are checked on the sampler's polylines and contours, not on pixels.
 
 - **G-23** Zooming in stops at a span of 10^-9·max(1, |centre|) per axis, and zooming out stops at a span of 10^15. No bound goes beyond ±10^15, and G-11 holds at both limits. These widen the deployed engine's limits (`karman-calculator/lib/graph.js:11-15`). (Phase 1; verified by unit test)
 - **G-24** Every curve in the existing engines' test suites (`src/lib/calculator/engine.test.ts`, `tests/unit/calculator/standalone.test.ts`, `karman-calculator/tests/smoke.mjs`, `tests/calculator/*.spec.ts`) renders in v2 and meets G-9 to G-17. This check gates the Phase 3 switch-over. Its curve inputs are copied once into a committed corpus file under `src/lib/calculator-v2/core/corpus/` (PR-39), so the check keeps running after the removal PR deletes those suites (overview section 8.3). (Phase 3; verified by unit test)
+- **G-25** Mark sizes (appendix F, the Desmos feel): curves stroke 2.5 CSS px (4 px for the selected row, POI-17), points are 10 px discs (open circles and crosses stroke 2 px, D-12), strict inequality boundaries dash 12 px on and 6 px off, axes are 1.5 px and gridlines 1 px, each snapped to device pixels. (Phase 3, built in the parity work; verified by unit test)
 
 ### 5.6 Documented limits (not gates)
 
