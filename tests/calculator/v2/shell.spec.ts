@@ -64,7 +64,7 @@ test("L-1 desktop: list on the left at max(260px, 40%); toolbar and graph contro
   expect((await names(page, "kc-graph-region")).some((n) => /^home$/i.test(n))).toBe(false); // 08's Home control
   await page.getByRole("img", { name: /^Graph from/ }).press("ArrowRight");
   await expect(page.getByRole("button", { name: /^home$/i })).toBeVisible();
-  await page.evaluate(() => globalThis.__shell!.resizeFrame(600, 600));
+  await page.evaluate(() => globalThis.__shell!.resizeFrame(600, 450));
   await expect.poll(async () => Math.round((await box(page, "kc-list-region")).width)).toBe(260);
 });
 test("L-2 stacked: graph, toolbar, list, then keypad; the graph keeps 40% of the height with the keypad closed", async ({
@@ -82,23 +82,42 @@ test("L-2 stacked: graph, toolbar, list, then keypad; the graph keeps 40% of the
   const listNow = await box(page, "kc-list-region");
   expect(keypad.y).toBeGreaterThanOrEqual(listNow.y + listNow.height - 1);
 });
-test("L-8 the layout follows the container width, not the viewport", async ({ page }) => {
+test("L-8 the layout follows the container size, not the viewport", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 800 });
   await openShell(page, `?w=800&h=600&rows=${enc(["y=x", "1+1"])}`);
   const layout = page.locator("#calc [data-kc-layout]");
-  for (const [w, l] of [
-    [461, "stacked"],
-    [560, "desktop"],
+  for (const [w, h, l] of [
+    [461, 400, "stacked"],
+    [560, 400, "desktop"],
+    [560, 600, "stacked"], // narrower than 1.2 times its height
   ] as const) {
-    await page.evaluate((x) => globalThis.__shell!.resizeFrame(x, 600), w);
+    await page.evaluate(([x, y]) => globalThis.__shell!.resizeFrame(x, y), [w, h]);
     await expect(layout).toHaveAttribute("data-kc-layout", l);
     const [list, graph] = [await box(page, "kc-list-region"), await box(page, "kc-graph-region")];
     expect(
       l === "stacked" ? graph.y + graph.height <= list.y + 1 : list.x + list.width <= graph.x + 1,
-      `${w}`
+      `${w}x${h}`
     ).toBe(true);
   } // stacked: graph above the list; desktop: list left of it
   expect((await rows(page)).map((r) => r.latex)).toEqual(["y=x", "1+1"]);
+});
+test("L-2 a portrait dock (576x750) is stacked and a landscape container (800x500) is desktop", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  const layout = page.locator("#calc [data-kc-layout]");
+  await openShell(page, "?w=576&h=750");
+  await expect(layout).toHaveAttribute("data-kc-layout", "stacked");
+  const [stackedGraph, stackedList] = [
+    await box(page, "kc-graph-region"),
+    await box(page, "kc-list-region"),
+  ];
+  expect(stackedGraph.y + stackedGraph.height).toBeLessThanOrEqual(stackedList.y + 1);
+  expect(stackedGraph.width).toBeGreaterThan(500); // the full dock width, not ~345 px
+  await openShell(page, "?w=800&h=500");
+  await expect(layout).toHaveAttribute("data-kc-layout", "desktop");
+  const [list, graph] = [await box(page, "kc-list-region"), await box(page, "kc-graph-region")];
+  expect(list.x + list.width).toBeLessThanOrEqual(graph.x + 1);
 });
 test("AR-60 destroying the quiz handle terminates the calculator's worker", async ({ page }) => {
   await openShell(page);

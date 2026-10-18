@@ -56,17 +56,20 @@ function ariaIds(root: ShadowRoot): string[] {
   );
 }
 
-it("AR-29 the layout follows the host's ResizeObserver width (560 desktop; 559 and a 461 dock stacked), never a width media query", async () => {
+it("AR-29 the layout follows the host's ResizeObserver size (560x400 desktop; 559, a 461 dock and a 576x750 portrait dock stacked), never a media query", async () => {
   const media = vi.spyOn(window, "matchMedia");
   const el = mount();
   new KarmanCalculator(el);
-  for (const [w, l] of [
-    [560, "desktop"],
-    [559, "stacked"],
-    [461, "stacked"],
-    [1024, "desktop"],
+  for (const [w, h, l] of [
+    [560, 400, "desktop"],
+    [559, 400, "stacked"],
+    [461, 400, "stacked"],
+    [1024, 600, "desktop"],
+    [576, 750, "stacked"],
+    [800, 500, "desktop"],
+    [900, 800, "stacked"],
   ] as const) {
-    triggerResize(el, { width: w, height: 600 });
+    triggerResize(el, { width: w, height: h });
     await vi.waitFor(() => expect(layoutOf(el)).toBe(l));
   }
   expect(media.mock.calls.map(([q]) => q).filter((q) => /width|height/.test(q))).toEqual([]);

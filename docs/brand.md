@@ -1,5 +1,10 @@
 # Brand & design language
 
+> **Superseded in part (2026-10-18).** The founder is retiring the
+> espresso-and-gold look. The palette, type, motion and logo sections below
+> describe the old system and are no longer required. The binding rules are in
+> [`docs/design-rules.md`](./design-rules.md). The Voice section still applies.
+
 Karman Prep's unified visual + interaction system. Source of truth for every
 visual decision in the product. Pre-code reference: every new token,
 component, or surface composition starts here.
