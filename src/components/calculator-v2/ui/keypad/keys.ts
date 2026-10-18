@@ -8,7 +8,7 @@ export type KeyBehaviour =
   | { type: "letters" } // the ABC key: visible ABC or 123, accessible name "ABC" on both pages, aria-pressed
   | { type: "shift" } // aria-pressed
   | { type: "functions" } // aria-expanded
-  | { type: "audio" }; // aria-disabled until Phase 4 (K-9)
+  | { type: "audio" }; // K-9: starts and stops the keyboard trace (POI-20)
 // lucide-react component names, kept as strings so keys.ts and its node tests never import React
 export type KeyIcon =
   | "ArrowLeft"
@@ -90,7 +90,7 @@ const FIXED_KEYS: Readonly<Record<string, FixedKey>> = {
   plus: fixed("+", "Plus", typed("+")),
   equals: fixed("=", "Equals", typed("=")),
   tilde: fixed("~", "Tilde", typed("~")),
-  audio: iconKey("Volume2", "Audio trace, available later", { type: "audio" }),
+  audio: iconKey("Volume2", "Audio trace", { type: "audio" }),
   functions: fixed("functions", "Functions", { type: "functions" }),
   left: iconKey("ArrowLeft", "Left arrow", insert("keystroke", "Left"), "operator", true),
   right: iconKey("ArrowRight", "Right arrow", insert("keystroke", "Right"), "operator", true),

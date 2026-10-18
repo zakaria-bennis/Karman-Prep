@@ -17,6 +17,7 @@ export type LabelEvent =
   | { type: "row-edited" }
   | { type: "row-focused"; rowId: string }
   | { type: "escape" }
+  | { type: "show"; rowId: string; point: LabelPoint } // KB-14: only this point's label
   | { type: "selection"; rowId: string | null } // the engine's selectedRowId
   | { type: "poi-updated"; rowId: string; points: readonly LabelPoint[] };
 
@@ -49,6 +50,8 @@ export function reduceLabels(state: LabelState, event: LabelEvent): LabelState {
       return state.open.length === 0 ? state : closed(state.rowId);
     case "row-focused":
       return closed(event.rowId);
+    case "show":
+      return { rowId: event.rowId, open: [event.point] };
     case "selection":
       return event.rowId === state.rowId ? state : closed(event.rowId);
     case "poi-updated": {

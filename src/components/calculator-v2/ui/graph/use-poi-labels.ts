@@ -9,7 +9,9 @@ import { formatPoiLabel } from "@/lib/calculator-v2/poi/format";
 import type { PoiPoint } from "@/lib/calculator-v2/poi/types";
 import type { PoiDot, RenderRow } from "@/lib/calculator-v2/render/types";
 import type { Pointer } from "../controller/media";
+import { AnnouncerContext } from "../a11y/announcer";
 import { EscapeContext } from "../focus/escape-stack";
+import { poiAnnouncement } from "./keyboard-trace";
 import { hitCurve, hitPoi } from "./hit-test";
 import { NO_LABELS, reduceLabels, type LabelState } from "./poi-labels";
 
@@ -46,6 +48,8 @@ export function openLabels(s: EngineSnapshot, labels: LabelState, view: ViewSpec
 export function usePoiLabels(snapshot: EngineSnapshot, engine: CalculatorEngine) {
   const [labels, dispatch] = useReducer(reduceLabels, NO_LABELS);
   const escape = useContext(EscapeContext);
+  const announcer = useContext(AnnouncerContext);
+  const stepIndex = useRef(-1);
 
   useEffect(
     () => dispatch({ type: "selection", rowId: snapshot.selectedRowId }),
@@ -101,5 +105,22 @@ export function usePoiLabels(snapshot: EngineSnapshot, engine: CalculatorEngine)
   );
   const viewChanged = useCallback(() => dispatch({ type: "view-changed" }), []);
 
-  return { labels, click, viewChanged };
+  /** KB-14: `]` and `[` with the graph focused show the next or previous point and announce it. */
+  const step = useCallback(
+    (direction: 1 | -1, view: ViewSpec): boolean => {
+      const s = engine.getSnapshot();
+      const own = selectedPoints(s);
+      if (own.length === 0 || s.selectedRowId === null) return false;
+      const next = stepIndex.current + direction;
+      stepIndex.current = next < 0 ? own.length - 1 : next >= own.length ? 0 : next;
+      const point = own[stepIndex.current];
+      dispatch({ type: "show", rowId: s.selectedRowId, point });
+      const numbers = new Map(s.rows.map((r, i) => [r.id, i + 1]));
+      announcer?.announce(poiAnnouncement(point, numbers, view));
+      return true;
+    },
+    [engine, announcer]
+  );
+
+  return { labels, click, viewChanged, step };
 }

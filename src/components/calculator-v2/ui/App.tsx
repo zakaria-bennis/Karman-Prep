@@ -13,6 +13,7 @@ import {
   useCallback,
   useEffect,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
   useSyncExternalStore,
@@ -26,6 +27,7 @@ import { installShellKeyboard, type ShortcutAction } from "./controller/shortcut
 import { EscapeContext, type EscapeStack } from "./focus/escape-stack";
 import { FocusContext, type FocusController } from "./focus/focus-controller";
 import { SkinContext } from "./hooks/skin";
+import { KeyboardTrace, KeyboardTraceContext } from "./graph/keyboard-trace";
 import { EngineContext, useEngineSnapshot } from "./hooks/use-engine";
 import { CalculatorLayout } from "./layout/CalculatorLayout";
 import { insertRowBelow, performRedo, performUndo } from "./list/row-actions";
@@ -67,6 +69,16 @@ export function App(props: AppProps): JSX.Element {
   const [settingsAnchor, setSettingsAnchor] = useState<HTMLElement | null>(null);
   const rootRef = useRef<HTMLElement>(null);
   const { settings } = snapshot;
+  // POI-20: one keyboard trace per calculator; it speaks through the live region (A11Y-2).
+  const trace = useMemo(
+    () =>
+      new KeyboardTrace({
+        engine,
+        announce: (text) => announcer.announce(text),
+        focusRow: (rowId) => focus.focusRow(rowId, "end"),
+      }),
+    [engine, announcer, focus]
+  );
 
   // AN-13: base.css and tokens.css zero every duration under :host([data-reduced-motion="true"]).
   useLayoutEffect(() => {
@@ -112,6 +124,11 @@ export function App(props: AppProps): JSX.Element {
         return toggleKeypad(); // a student change (10 Decision 3)
       case "add-row-end":
         insertRowBelow(engine, focus, announcer, null, "focus"); // NM-42 on a refusal
+        return;
+      case "audio-trace": {
+        const s = engine.getSnapshot();
+        return trace.toggle(s.focusedRowId ?? s.selectedRowId ?? s.activeRowId);
+      }
     }
   };
   useEffect(() => {
@@ -119,39 +136,42 @@ export function App(props: AppProps): JSX.Element {
     const off = installShellKeyboard(root, {
       onShortcut: (a) => latest.current(a),
       onEscape: () => escape.handleEscape(),
+      onKey: (e) => trace.handleKey(e),
     });
     root.addEventListener("click", focusClickedControl);
     return () => {
       off();
       root.removeEventListener("click", focusClickedControl);
     };
-  }, [escape]);
+  }, [escape, trace]);
 
   return (
     <EngineContext.Provider value={engine}>
       <FocusContext.Provider value={focus}>
         <EscapeContext.Provider value={escape}>
           <AnnouncerContext.Provider value={announcer}>
-            <SkinContext.Provider value={shell.skin}>
-              <CalculatorLayout
-                layout={shell.layout}
-                containerWidth={shell.size.width}
-                pointer={shell.pointer}
-                collapsed={settings.expressionsCollapsed}
-                keypadOpen={settings.keypad}
-                host={host}
-                themeRevision={shell.themeRevision}
-                reducedMotion={settings.reducedMotion || shell.reducedMotionMedia}
-                settingsAnchor={settingsAnchor}
-                revealRowId={snapshot.focusedRowId ?? snapshot.activeRowId}
-                rootRef={rootRef}
-                onOpenSettings={toggleSettings}
-                onCloseSettings={closeSettings}
-                onToggleKeypad={toggleKeypad}
-                onKeypadChange={changeKeypad}
-                onTouchFocusRow={touchFocusRow}
-              />
-            </SkinContext.Provider>
+            <KeyboardTraceContext.Provider value={trace}>
+              <SkinContext.Provider value={shell.skin}>
+                <CalculatorLayout
+                  layout={shell.layout}
+                  containerWidth={shell.size.width}
+                  pointer={shell.pointer}
+                  collapsed={settings.expressionsCollapsed}
+                  keypadOpen={settings.keypad}
+                  host={host}
+                  themeRevision={shell.themeRevision}
+                  reducedMotion={settings.reducedMotion || shell.reducedMotionMedia}
+                  settingsAnchor={settingsAnchor}
+                  revealRowId={snapshot.focusedRowId ?? snapshot.activeRowId}
+                  rootRef={rootRef}
+                  onOpenSettings={toggleSettings}
+                  onCloseSettings={closeSettings}
+                  onToggleKeypad={toggleKeypad}
+                  onKeypadChange={changeKeypad}
+                  onTouchFocusRow={touchFocusRow}
+                />
+              </SkinContext.Provider>
+            </KeyboardTraceContext.Provider>
           </AnnouncerContext.Provider>
         </EscapeContext.Provider>
       </FocusContext.Provider>

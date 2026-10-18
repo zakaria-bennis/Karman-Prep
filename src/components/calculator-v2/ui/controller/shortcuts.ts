@@ -1,9 +1,9 @@
 // Shell keyboard shortcuts (KB-7) and the Escape hand-off (KB-3, 10 Decision 4). Shortcuts match on
 // `event.code`, so Option-modified keys on macOS (Option+K types "˚") still work, and never fire
-// while an IME is composing. KB-7 also lists KeyC and KeyT; those arrive with KB-11 (Phase 2) and
-// A11Y-13 (Phase 4), which extend matchShortcut, so Phase 1 matches KeyK, KeyZ and KeyY (KB-1).
+// while an IME is composing. KB-7 also lists KeyC, which arrives with KB-11 (Phase 2); KeyT starts
+// the keyboard trace (POI-20), whose tones A11Y-13 adds in Phase 4.
 
-export type ShortcutAction = "undo" | "redo" | "toggle-keypad" | "add-row-end";
+export type ShortcutAction = "undo" | "redo" | "toggle-keypad" | "add-row-end" | "audio-trace";
 export type ShortcutKey = Pick<
   KeyboardEvent,
   "code" | "key" | "ctrlKey" | "metaKey" | "altKey" | "shiftKey" | "isComposing"
@@ -11,6 +11,7 @@ export type ShortcutKey = Pick<
 export interface ShellKeyboardHandlers {
   onShortcut(action: ShortcutAction): void;
   onEscape(): boolean; // true when a layer closed
+  onKey?(event: KeyboardEvent): boolean; // POI-20: true when the running keyboard trace took the key
 }
 
 export function matchShortcut(event: ShortcutKey): ShortcutAction | null {
@@ -21,6 +22,7 @@ export function matchShortcut(event: ShortcutKey): ShortcutAction | null {
   if (ctrlKey && !altKey && code === "KeyY") return "redo";
   if ((ctrlKey || altKey) && !metaKey && code === "KeyK") return "toggle-keypad";
   if (altKey && (code === "Enter" || code === "NumpadEnter")) return "add-row-end";
+  if (altKey && !ctrlKey && !metaKey && code === "KeyT") return "audio-trace"; // POI-20
   return null;
 }
 
@@ -67,6 +69,11 @@ export function installShellKeyboard(
   handlers: ShellKeyboardHandlers
 ): () => void {
   const onKeyDown = (event: KeyboardEvent) => {
+    if (!event.isComposing && handlers.onKey?.(event) === true) {
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
     if (event.key === "Escape" && !event.isComposing) {
       if (handlers.onEscape()) event.preventDefault();
       return;

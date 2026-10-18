@@ -60,18 +60,18 @@ it("K-3 ABC switches the left and centre groups to the letters page and back; Sh
   expect(groupIds()).toEqual(["left", "centre", "right"]);
 });
 
-it("K-9 the audio key sits on both main pages, disabled with its later-phase name, and not on letters pages", async () => {
+it("K-9 the audio key sits on both main pages, named Audio trace with aria-pressed, and not on letters pages", async () => {
   renderEditor(keypad(), { rows: [""] });
-  const audio = screen.getByRole("button", { name: "Audio trace, available later" });
-  expect(audio).toHaveAttribute("aria-disabled", "true");
-  expect(audio).toHaveAttribute("title", "Audio trace, available later");
+  const audio = screen.getByRole("button", { name: "Audio trace" });
+  expect(audio).toHaveAttribute("aria-pressed", "false");
+  expect(audio).not.toHaveAttribute("aria-disabled");
   await userEvent.setup().click(screen.getByRole("button", { name: "ABC" }));
-  expect(screen.queryByRole("button", { name: "Audio trace, available later" })).toBeNull();
+  expect(screen.queryByRole("button", { name: "Audio trace" })).toBeNull();
   cleanup();
   renderEditor(keypad({ containerWidth: 390, pointer: "coarse" }), { rows: [""] });
-  expect(screen.getByRole("button", { name: "Audio trace, available later" })).toHaveAttribute(
-    "aria-disabled",
-    "true"
+  expect(screen.getByRole("button", { name: "Audio trace" })).toHaveAttribute(
+    "aria-pressed",
+    "false"
   );
 });
 

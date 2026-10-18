@@ -6,7 +6,16 @@
 // keys (KB-8) and the panel drag, pinch and wheel (useGraphInput).
 
 import { House, Minus, Plus, Settings } from "lucide-react";
-import { useEffect, useLayoutEffect, useRef, type RefObject } from "react";
+import {
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useSyncExternalStore,
+  type KeyboardEvent,
+  type RefObject,
+} from "react";
+import { formatPoiLabel, formatTraceLabel } from "@/lib/calculator-v2/poi/format";
 import type { EngineSnapshot } from "@/lib/calculator-v2/core/api/engine";
 import {
   defaultViewport,
@@ -24,6 +33,7 @@ import { useSkin } from "../hooks/skin";
 import { useEngine, useEngineSnapshot } from "../hooks/use-engine";
 import { countPlots, graphAccessibleName } from "./accessible-name";
 import { homeFadeMs, useHomePresence, type HomePhase } from "./home-presence";
+import { KeyboardTraceContext, type KeyboardTrace } from "./keyboard-trace";
 import { GRAPH_CONTROL_LABELS } from "./labels";
 import { PoiOverlay } from "./PoiOverlay";
 import type { LabelState } from "./poi-labels";
@@ -175,6 +185,25 @@ function selectedCurvePx(s: EngineSnapshot, view: ViewSpec): [number, number][] 
   return out;
 }
 
+const noTrace = () => () => undefined;
+
+/** POI-20: the keyboard trace's point as a drawn trace (dot and label), or null. */
+function keyboardTracePoint(
+  trace: KeyboardTrace | null,
+  s: EngineSnapshot,
+  view: ViewSpec | null,
+  rows: ReturnType<typeof buildRenderRows>
+): TraceState | null {
+  const at = trace?.state ?? null;
+  if (at === null || view === null) return null;
+  const poi =
+    s.poi?.rowId === at.rowId ? s.poi.points.find((p) => p.x === at.x && p.y === at.y) : undefined;
+  const [x, y] = worldToPx(view, at.x, at.y);
+  const text = poi === undefined ? formatTraceLabel(at.x, at.y, view) : formatPoiLabel(poi, view);
+  const color = rows.find((r) => r.rowId === at.rowId)?.color ?? "#000000";
+  return { x, y, wx: at.x, wy: at.y, text, color };
+}
+
 export function GraphPanel(props: GraphPanelProps): JSX.Element {
   const { host, themeRevision, reducedMotion, settingsOpen, onOpenSettings } = props;
   const engine = useEngine();
@@ -187,6 +216,11 @@ export function GraphPanel(props: GraphPanelProps): JSX.Element {
   const size = useGraphSize(layers, engine);
   const poi = usePoiLabels(snapshot, engine);
   const tracer = useTrace(engine);
+  const keyboardTrace = useContext(KeyboardTraceContext);
+  useSyncExternalStore(
+    keyboardTrace === null ? noTrace : (l) => keyboardTrace.subscribe(l),
+    () => keyboardTrace?.state ?? null
+  );
   const current = useRef({ snapshot, skin, size, cache: NO_REGIONS });
   /** The view and the drawn rows as of the latest commit, or null while unsized. */
   const scene = (): { view: ViewSpec; rows: ReturnType<typeof buildRenderRows> } | null => {
@@ -239,11 +273,26 @@ export function GraphPanel(props: GraphPanelProps): JSX.Element {
     maxWaitMs: NAME_MAX_WAIT_MS,
   });
 
+  const shownTrace =
+    tracer.trace ??
+    keyboardTracePoint(
+      keyboardTrace,
+      snapshot,
+      view,
+      view === null ? [] : buildRenderRows(snapshot, skin, view, cache)
+    );
   useRenderLoop(
     layers,
-    { snapshot, skin, cache, size, host, labels: poi.labels, trace: tracer.trace },
+    { snapshot, skin, cache, size, host, labels: poi.labels, trace: shownTrace },
     themeRevision
   );
+  const onKeyDown = (e: KeyboardEvent): void => {
+    if ((e.key === "[" || e.key === "]") && view !== null) {
+      if (poi.step(e.key === "]" ? 1 : -1, view)) e.preventDefault();
+      return;
+    }
+    input.onKeyDown(e);
+  };
 
   // Before Home mounts there is no transition to read, so it enters with a fade unless motion is
   // reduced (AN-8 fades in as well as out); once mounted, its computed transition gives the time.
@@ -271,14 +320,14 @@ export function GraphPanel(props: GraphPanelProps): JSX.Element {
         role="img"
         aria-label={name}
         tabIndex={0}
-        onKeyDown={input.onKeyDown}
+        onKeyDown={onKeyDown}
       />
       {view !== null && (
         <PoiOverlay
           labels={openLabels(snapshot, poi.labels, view)}
           curve={selectedCurvePx(snapshot, view)}
           size={view.size}
-          trace={tracer.trace}
+          trace={shownTrace}
         />
       )}
       <div className="kc-graph-controls" role="group" aria-label={GRAPH_CONTROL_LABELS.group}>

@@ -265,3 +265,15 @@ it("POI-14 a trace on a fine pointer snaps to a point of interest and shows its 
   );
   expect(traceLabel()).toBe("(1.41421, 0)");
 });
+
+it("KB-14 with the graph focused ] and [ step through the selected row's points, one label at a time", async () => {
+  await setup();
+  const surface = screen.getByRole("img");
+  await act(async () => fireEvent.keyDown(surface, { key: "]" }));
+  expect(labels()).toEqual(["(−1.41421, 0)"]);
+  await act(async () => fireEvent.keyDown(surface, { key: "]" }));
+  expect(labels()).toEqual(["(0, −2)"]);
+  await act(async () => fireEvent.keyDown(surface, { key: "[" }));
+  expect(labels()).toEqual(["(−1.41421, 0)"]);
+  expect(t.engine.getSnapshot().viewport.left).toBe(-10); // [ and ] are not graph keys
+});

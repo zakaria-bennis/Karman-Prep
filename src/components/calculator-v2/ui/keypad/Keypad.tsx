@@ -2,7 +2,7 @@
 // with a Hide keypad bar and the key groups of keypadLayout() for the page, width, pointer and
 // Shift (the K-1 tray, the K-3 letters pages, the K-6 phone keypad), and a Show keypad control
 // while closed. A closed keypad stays mounted, hidden from assistive technology and inert, so the
-// AN-1 slide has something to move. The audio key is drawn but disabled (K-9). Insert and Enter
+// AN-1 slide has something to move. The audio key starts and stops the keyboard trace (K-9, POI-20). Insert and Enter
 // keys act through pressKey without taking focus from the row (K-10); arrows and Backspace repeat
 // while held (K-11); a pressed key carries data-pressed for its tone (AN-11). The Functions key
 // opens the Functions panel (K-4, K-5): a panel button inserts its template into the keypad's row
@@ -26,6 +26,7 @@ import {
   useLayoutEffect,
   useRef,
   useState,
+  useSyncExternalStore,
   type ButtonHTMLAttributes,
   type CSSProperties,
   type JSX,
@@ -35,6 +36,7 @@ import type { PanelEntry } from "@/lib/calculator-v2/core/latex/operator-names";
 import { AnnouncerContext } from "../a11y/announcer";
 import { EscapeContext, type EscapeStack } from "../focus/escape-stack";
 import { FocusContext } from "../focus/focus-controller";
+import { KeyboardTraceContext } from "../graph/keyboard-trace";
 import { useEngine } from "../hooks/use-engine";
 import { editThroughKeypad } from "../list/row-actions";
 import { MotionContext } from "../list/motion";
@@ -102,7 +104,8 @@ function keyState(
   page: KeypadLayout["page"],
   shift: boolean,
   functionsPanelId: string,
-  functionsOpen: boolean
+  functionsOpen: boolean,
+  tracing: boolean
 ): ButtonHTMLAttributes<HTMLButtonElement> {
   switch (key.behaviour.type) {
     case "letters":
@@ -112,17 +115,25 @@ function keyState(
     case "functions":
       return { "aria-expanded": functionsOpen, "aria-controls": functionsPanelId };
     case "audio":
-      return { "aria-disabled": true, title: key.name };
+      return { "aria-pressed": tracing, title: key.name };
     default:
       return {};
   }
 }
+
+const noSubscribe = () => () => undefined;
 
 export function Keypad(props: KeypadProps): JSX.Element {
   const { containerWidth, pointer, open, onOpenChange } = props;
   const engine = useEngine();
   const focus = useContext(FocusContext);
   const announcer = useContext(AnnouncerContext);
+  const trace = useContext(KeyboardTraceContext);
+  const tracing =
+    useSyncExternalStore(
+      trace === null ? noSubscribe : (l) => trace.subscribe(l),
+      () => trace?.state ?? null
+    ) !== null;
   const escape = useContext(EscapeContext);
   const readDuration = useContext(MotionContext);
   const [page, setPage] = useState<KeypadLayout["page"]>("main");
@@ -210,7 +221,7 @@ export function Keypad(props: KeypadProps): JSX.Element {
     target?.field.focus(); // the caret stays where the template put it
   };
 
-  /** A key's action on click (mouse, touch and keyboard). The audio key has none (K-9). */
+  /** A key's action on click (mouse, touch and keyboard). */
   const activate = (key: KeyDef) => {
     switch (key.behaviour.type) {
       case "letters":
@@ -227,7 +238,8 @@ export function Keypad(props: KeypadProps): JSX.Element {
       case "functions":
         setFunctionsState((state) => (state === "open" ? "closing" : "open"));
         return;
-      default: // audio: no action until Phase 4 (K-9)
+      case "audio": // K-9: the keyboard trace of the keypad's row (POI-20)
+        trace?.toggle(keypadTarget(focus, engine.getSnapshot())?.rowId ?? null);
         return;
     }
   };
@@ -290,7 +302,14 @@ export function Keypad(props: KeypadProps): JSX.Element {
                   data-tone={key.tone}
                   data-pressed={pressed === key.id ? "true" : undefined}
                   style={{ gridColumn: `span ${key.span}` }}
-                  {...keyState(key, page, shift, functionsPanelId, functionsState === "open")}
+                  {...keyState(
+                    key,
+                    page,
+                    shift,
+                    functionsPanelId,
+                    functionsState === "open",
+                    tracing
+                  )}
                   onMouseDown={keepFocus}
                   onPointerDown={(event) => startPress(event, key)}
                   onPointerUp={() => endPress(key)}

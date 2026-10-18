@@ -110,3 +110,27 @@ it("KB-7 undo, redo and add-row-end stay with a native text input; a math field'
   expect(actions).toEqual(["toggle-keypad", "undo", "redo", "undo"]);
   off();
 });
+
+it("POI-20 Alt or Option+T starts or stops the keyboard trace, matched on its code", () => {
+  expect(matchShortcut(k({ code: "KeyT", key: "†", altKey: true }))).toBe("audio-trace");
+  expect(matchShortcut(k({ code: "KeyT", key: "t", altKey: true, ctrlKey: true }))).toBeNull();
+  expect(matchShortcut(k({ code: "KeyT", key: "t" }))).toBeNull();
+});
+
+it("POI-20 a key the running trace takes is prevented and stopped before shortcuts and Escape", () => {
+  const taken: string[] = [];
+  const off = installShellKeyboard(root, {
+    onShortcut: () => undefined,
+    onEscape: () => false,
+    onKey: (e) => {
+      if (e.key !== "PageDown" && e.key !== "Escape") return false;
+      taken.push(e.key);
+      return true;
+    },
+  });
+  expect(press(inner, { key: "PageDown" })).toBe(true);
+  expect(press(inner, { key: "Escape" })).toBe(true);
+  expect(press(inner, { key: "a" })).toBe(false);
+  expect(taken).toEqual(["PageDown", "Escape"]);
+  off();
+});
