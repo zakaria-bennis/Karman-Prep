@@ -200,8 +200,8 @@ function keyboardTracePoint(
     s.poi?.rowId === at.rowId ? s.poi.points.find((p) => p.x === at.x && p.y === at.y) : undefined;
   const [x, y] = worldToPx(view, at.x, at.y);
   const text = poi === undefined ? formatTraceLabel(at.x, at.y, view) : formatPoiLabel(poi, view);
-  const color = rows.find((r) => r.rowId === at.rowId)?.color ?? "#000000";
-  return { x, y, wx: at.x, wy: at.y, text, color };
+  const row = rows.find((r) => r.rowId === at.rowId);
+  return row === undefined ? null : { x, y, wx: at.x, wy: at.y, text, color: row.color };
 }
 
 export function GraphPanel(props: GraphPanelProps): JSX.Element {
