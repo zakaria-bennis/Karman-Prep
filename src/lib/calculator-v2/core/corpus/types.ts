@@ -15,8 +15,10 @@ export type RowKind =
   | "horizontal-lines"
   | "region"
   | "constant-relation"
+  | "regression" // PR-30, D-2: L ~ M
   | "unsolved-relation"
   | "point"
+  | "table" // D-1
   | "error";
 export type RowErrorCode =
   | ParseErrorCode
@@ -29,7 +31,11 @@ export type RowErrorCode =
   | "point-coordinates"
   | "mixed-variables"
   | "polar-variable"
-  | "timeout";
+  | "timeout"
+  | "regression-data" // D-22
+  | "regression-predictor" // D-22
+  | "regression-params" // D-22
+  | "regression-fit"; // D-24
 export interface CorpusSettings {
   angleMode?: "radians" | "degrees";
   complex?: boolean;

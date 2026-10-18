@@ -37,12 +37,21 @@ type PreScan = { name: string; params: string[] } | null;
  */
 export function parseRows(rows: readonly RowSource[], settings: AnalysisSettings): ParsedRow[] {
   const scanned = rows.map((row) => functionDefinitionHead(row.latex));
-  const userFunctions = new Set(
-    scanned.flatMap((head) =>
-      head !== null && !isReservedName(head.name, settings) ? [head.name] : []
-    )
-  );
+  const userFunctions = userFunctionSet(rows, settings);
   return rows.map((source, k) => parseRow(source, scanned[k], userFunctions, settings));
+}
+
+/** PR-23: the names every row's function head defines, reserved names excepted. */
+export function userFunctionSet(
+  rows: readonly RowSource[],
+  settings: AnalysisSettings
+): Set<string> {
+  return new Set(
+    rows.flatMap((row) => {
+      const head = functionDefinitionHead(row.latex);
+      return head !== null && !isReservedName(head.name, settings) ? [head.name] : [];
+    })
+  );
 }
 
 /**

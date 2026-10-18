@@ -17,6 +17,7 @@ import {
   useLayoutEffect,
   useMemo,
   useRef,
+  useState,
   type CSSProperties,
   type JSX,
   type MouseEvent,
@@ -37,15 +38,19 @@ import { useSkin } from "../hooks/skin";
 import { useEngine, useEngineSnapshot } from "../hooks/use-engine";
 import { MathFieldFactoryContext } from "./math-field-factory";
 import { EDITOR_MESSAGES } from "./messages";
+import { useMenuTrigger } from "./menu-trigger";
 import { MotionContext } from "./motion";
 import {
   deleteFromEmptyRow,
+  convertToTable,
   deleteRowByControl,
   insertRowBelow,
   isKeypadBatch,
   leaveRow,
 } from "./row-actions";
 import { fieldTextbox, rowDomIds, rowTab } from "./row-model";
+import { RegressionPanel, STATISTICS_HINT } from "./RegressionPanel";
+import { offersCreateTable, RowMenu } from "./RowMenu";
 import type { RowMotion } from "./row-presence";
 
 export interface ExpressionRowProps {
@@ -105,6 +110,15 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
     .join(" ");
 
   const itemRef = useRef<HTMLLIElement>(null);
+  const tabRef = useRef<HTMLButtonElement>(null);
+  // D-13: the row menu, from a long-press on the gutter tab or a right-click or Shift+F10 anywhere
+  // on the row (f(x)=E rows have no tab), only while the row has something to offer.
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menu = useMenuTrigger(() => {
+    const offered = offersCreateTable(engine, row.id);
+    if (offered) setMenuOpen(true);
+    return offered;
+  });
   const hostRef = useRef<HTMLDivElement>(null);
   const fieldRef = useRef<MathField | null>(null);
   /** True while the row writes the snapshot's latex into the field, so onEdit ignores it. */
@@ -136,6 +150,10 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
         const current = fieldRef.current;
         // Snapshot writes are not edits; editThroughKeypad makes a keypad batch's one editRow.
         if (syncingRef.current || current === null || isKeypadBatch(current)) return;
+        if (latex === "table") {
+          convertToTable(engine, focus, rowId); // D-5: typing table in an empty row
+          return;
+        }
         if (engine.editRow(rowId, latex, "typing") === "char-limit") {
           writeLatex(current, latest.current.latex, syncingRef); // T-13: the row stays unchanged
           announcer.announce(EDITOR_MESSAGES.charLimit);
@@ -272,6 +290,8 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
         onPointerDown={onBodyPointerDown}
         onMouseDown={onBodyMouseDown}
         onClick={onBodyClick}
+        onContextMenu={exiting ? undefined : menu.trigger.onContextMenu}
+        onKeyDown={exiting ? undefined : menu.trigger.onKeyDown}
       >
         <div className="kc-row-gutter">
           <span className="kc-row-number">{exiting ? null : number}</span>
@@ -283,7 +303,15 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
               aria-pressed={!row.hidden}
               data-style={tab === "point" ? "filled" : "solid"}
               style={{ "--kc-row-color": color.hex } as CSSProperties}
-              onClick={() => engine.setRowHidden(row.id, !row.hidden)}
+              ref={tabRef}
+              aria-haspopup="menu"
+              aria-expanded={menuOpen}
+              onClick={() => {
+                if (!menu.consumeClick()) engine.setRowHidden(row.id, !row.hidden);
+              }}
+              onPointerDown={menu.trigger.onPointerDown}
+              onPointerUp={menu.trigger.onPointerUp}
+              onPointerLeave={menu.trigger.onPointerLeave}
             >
               {tab === "point" ? (
                 <PointStyleGlyph style="filled" />
@@ -291,6 +319,19 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
                 <LineStyleGlyph style="solid" />
               )}
             </button>
+          )}
+          {menuOpen && (
+            <RowMenu
+              rowId={row.id}
+              number={number}
+              trigger={tabRef}
+              onClose={(refocus) => {
+                setMenuOpen(false);
+                if (!refocus) return;
+                if (tabRef.current !== null) tabRef.current.focus();
+                else focus.focusRow(row.id, "end");
+              }}
+            />
           )}
           {error !== null && (
             <span className="kc-row-warning" aria-hidden="true">
@@ -300,7 +341,11 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
         </div>
         <div className="kc-row-main">
           <div className="kc-row-field" ref={hostRef} onPointerDown={onFieldPointerDown} />
-          <span id={ids.label} hidden>{`Expression ${number}`}</span>
+          <span id={ids.label} hidden>
+            {row.regression?.result?.ok === true
+              ? `Expression ${number}. ${STATISTICS_HINT}` // D-37
+              : `Expression ${number}`}
+          </span>
           <span id={ids.speech} hidden>
             {speech}
           </span>
@@ -323,6 +368,7 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
               </button>
             </div>
           )}
+          {error === null && <RegressionPanel row={row} />}
           {color.adjusted && <p className="kc-row-note">{EXPLICIT_COLOUR_NOTE}</p>}
         </div>
         <button

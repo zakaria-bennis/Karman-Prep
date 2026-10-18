@@ -52,16 +52,20 @@ it("K-10 each key inserts through exactly one adapter call and focus stays in th
   expect(fieldTextbox(kit.fields.forRow("2"))).toHaveFocus();
 });
 
-it("K-9 activating the audio key by pointer or keyboard does nothing", async () => {
-  const kit = renderEditor(editor(), { rows: [""] });
+it("K-9 the audio key starts and stops the keyboard trace of the keypad's row without editing it", async () => {
+  const kit = renderEditor(editor(), { rows: ["y=x"] });
   const field = kit.fields.forRow("1");
   act(() => kit.focus.focusRow("1", "end"));
   field.calls = [];
   const user = userEvent.setup();
-  await user.click(key("Audio trace, available later"));
-  key("Audio trace, available later").focus();
+  await user.click(key("Audio trace"));
+  expect(kit.trace.state?.rowId).toBe("1");
+  expect(key("Audio trace")).toHaveAttribute("aria-pressed", "true");
+  key("Audio trace").focus();
   await user.keyboard("{Enter}");
-  expect(field.calls).toEqual([]);
+  expect(kit.trace.state).toBeNull();
+  const edits = ["write", "cmd", "typedText", "run", "latex"];
+  expect(field.calls.filter((c) => edits.includes(c.method))).toEqual([]); // stopping refocuses the row
 });
 
 it("K-3 Shift capitalises the next letter only", async () => {

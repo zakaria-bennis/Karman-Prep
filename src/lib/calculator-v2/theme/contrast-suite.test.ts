@@ -93,24 +93,25 @@ it("TH-7 the six curve colours are at least 0.08 ΔE_OK apart under normal, prot
   }
 });
 
-it("TH-8 each fill alpha gives 1.15:1 against the paper", () => {
+it("TH-8 each fill alpha stays under the skin's cap over 1.04 against the paper, at most 40%, and is stronger than 1.2:1", () => {
   for (const s of SKIN_IDS) {
-    const { roles } = pal(s);
+    const { roles, shadingCap } = pal(s);
     fills(s).forEach(({ color, alpha }, i) => {
       const ratio = contrastRatio(compositeOver(color, alpha, roles.paper), roles.paper);
       const label = `${s}: ${CURVE_SLOTS[i]} fill`;
-      expect(ratio, label).toBeGreaterThanOrEqual(1.15);
-      expect(ratio, label).toBeLessThan(1.17);
+      expect(alpha, label).toBeLessThanOrEqual(0.4);
+      expect(ratio, label).toBeLessThanOrEqual(shadingCap / 1.04);
+      expect(ratio, label).toBeGreaterThan(1.2); // stronger than the Phase 1 fill of 1.15:1
     });
   }
 });
 
-it("TH-8 shading never exceeds 1.3:1, two fills stay 1.04:1 from one, and every curve stays 4.5:1 over it", () => {
+it("TH-8 shading never exceeds the skin's cap, two fills stay 1.04:1 from one, and every curve stays 4.5:1 over it", () => {
   for (const s of SKIN_IDS) {
-    const { roles, curves } = pal(s);
+    const { roles, curves, shadingCap: cap } = pal(s);
     const paper = roles.paper;
     const f = fills(s);
-    const one = f.map((fill) => compositeShading(paper, [fill]));
+    const one = f.map((fill) => compositeShading(paper, [fill], cap));
     const shades: { label: string; color: string }[] = one.map((color, i) => ({
       label: `${CURVE_SLOTS[i]} fill`,
       color,
@@ -119,8 +120,8 @@ it("TH-8 shading never exceeds 1.3:1, two fills stay 1.04:1 from one, and every 
       for (let j = 0; j < f.length; j++) {
         if (i === j) continue;
         const label = `${CURVE_SLOTS[i]} and ${CURVE_SLOTS[j]} fills`;
-        const two = compositeShading(paper, [f[i], f[j]]);
-        expect(contrastRatio(two, paper), `${s}: ${label} on paper`).toBeLessThanOrEqual(1.3);
+        const two = compositeShading(paper, [f[i], f[j]], cap);
+        expect(contrastRatio(two, paper), `${s}: ${label} on paper`).toBeLessThanOrEqual(cap);
         expect(
           contrastRatio(two, one[i]),
           `${s}: ${label} against the ${CURVE_SLOTS[i]} fill`
@@ -132,8 +133,8 @@ it("TH-8 shading never exceeds 1.3:1, two fills stay 1.04:1 from one, and every 
         shades.push({ label, color: two });
       }
     }
-    const six = compositeShading(paper, f);
-    expect(contrastRatio(six, paper), `${s}: six fills on paper`).toBeLessThanOrEqual(1.3);
+    const six = compositeShading(paper, f, cap);
+    expect(contrastRatio(six, paper), `${s}: six fills on paper`).toBeLessThanOrEqual(cap);
     shades.push({ label: "six fills", color: six });
     for (const k of CURVE_SLOTS) {
       for (const shade of shades) {

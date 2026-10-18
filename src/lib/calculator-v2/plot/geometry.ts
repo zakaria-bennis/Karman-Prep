@@ -21,6 +21,13 @@ export interface LineSetGeometry extends GeometryBase {
   positions: Float64Array;
   dashed: boolean;
 }
+/** D-11: a table's plotted columns, each world [x, y, …] pairs in row order. */
+export interface TableGeometry {
+  kind: "table";
+  rowId: string;
+  evaluations: number;
+  series: { column: number; coords: Float64Array }[];
+}
 export interface PointGeometry extends GeometryBase {
   kind: "points";
   coords: Float64Array; // world [x0,y0,…]
@@ -30,7 +37,12 @@ export interface RegionGeometry extends GeometryBase {
   spans: Float32Array; // CSS px [yTop,yBottom,x0,x1,…] in the ViewSpec's pixel frame
   boundaries: (CurveGeometry | LineSetGeometry)[];
 }
-export type Geometry = CurveGeometry | LineSetGeometry | PointGeometry | RegionGeometry;
+export type Geometry =
+  | CurveGeometry
+  | LineSetGeometry
+  | PointGeometry
+  | RegionGeometry
+  | TableGeometry;
 
 /** Every typed array a geometry holds, in transfer order. */
 function arraysOf(g: Geometry): ArrayBufferView[] {
@@ -43,6 +55,8 @@ function arraysOf(g: Geometry): ArrayBufferView[] {
       return [g.coords];
     case "region":
       return [g.spans, ...g.boundaries.flatMap(arraysOf)];
+    case "table":
+      return g.series.map((s) => s.coords);
   }
 }
 

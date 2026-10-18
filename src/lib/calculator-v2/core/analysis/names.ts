@@ -64,6 +64,7 @@ function children(node: Node): readonly Node[] {
     case "mul":
     case "div":
     case "pow":
+    case "sim":
       return [node.left, node.right];
     case "neg":
     case "pct":
@@ -79,5 +80,7 @@ function children(node: Node): readonly Node[] {
       return [node.x, node.y];
     case "rel":
       return node.operands;
+    case "list":
+      return node.items;
   }
 }

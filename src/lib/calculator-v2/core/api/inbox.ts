@@ -3,9 +3,12 @@
 // kind check and worker faults. Package-internal.
 
 import type { Geometry } from "../../plot/geometry";
+import type { PoiPoint } from "../../poi/types";
 import type { WorkerToMain } from "../../worker/protocol";
 import type { AnalysisResult } from "../analysis";
 import type { RowKind } from "../corpus/types";
+import type { TableResult } from "../data/evaluate";
+import type { RegressionOutcome } from "../data/evaluate-regression";
 import type { Value } from "../eval/values";
 import type { StoredRow } from "./document";
 
@@ -19,6 +22,8 @@ export interface SentRow {
 export interface RowResult {
   value: Value | null;
   overrun: boolean;
+  table?: TableResult; // D-11: a table row's latest results
+  regression?: RegressionOutcome; // D-22: a regression row's latest fit
 }
 export interface InboxHooks {
   onFault(message: string): void;
@@ -31,10 +36,18 @@ const NO_RESULT: RowResult = Object.freeze({ value: null, overrun: false });
 
 /** The rows of a `state` send with the main thread's kind and graphability (AR-51). */
 export function sentRows(rows: readonly StoredRow[], analysis: AnalysisResult): SentRow[] {
-  return rows.map(({ id, latex, hidden }) => {
-    const { kind, isGraphable } = analysis.byId.get(id)!;
-    return { id, latex, hidden, kind, isGraphable };
+  return rows.map((row) => {
+    const { kind, isGraphable } = analysis.byId.get(row.id)!;
+    return { id: row.id, latex: rowSignature(row), hidden: row.hidden, kind, isGraphable };
   });
+}
+
+/** What makes a row's results stale: its latex, a table's columns, a regression's log mode. */
+function rowSignature(row: StoredRow): string {
+  if (row.type === "table") {
+    return JSON.stringify((row.columns ?? []).map((c) => [c.latex, c.values, c.hidden]));
+  }
+  return row.logMode === true ? `${row.latex}\u0000log` : row.latex;
 }
 
 export class ResultInbox {
@@ -49,6 +62,8 @@ export class ResultInbox {
   /** The generation of the latest `state` sent, and of the latest `state` or `view` sent. */
   private stateGeneration = 0;
   private latestGeneration = 0;
+  /** POI-1: the latest accepted points of interest, for the row they were found for. */
+  private points: { rowId: string; points: readonly PoiPoint[] } | null = null;
 
   constructor(hooks: InboxHooks) {
     this.hooks = hooks;
@@ -67,6 +82,7 @@ export class ResultInbox {
       return !before || !after || after.latex !== before.latex || after.hidden !== before.hidden;
     };
     for (const id of this.rows.keys()) if (edited(id)) this.results.delete(id);
+    if (this.points !== null && edited(this.points.rowId)) this.points = null;
     this.keepGeometry((id) => !edited(id) && next.get(id)!.isGraphable);
     this.rows = next;
     this.stateGeneration = this.latestGeneration = generation;
@@ -101,6 +117,18 @@ export class ResultInbox {
         return this.store(message, { value: message.value, overrun: false });
       case "overrun":
         return this.store(message, { value: null, overrun: true });
+      case "table": {
+        if (!this.accepts(message)) return false;
+        const before = this.results.get(message.rowId) ?? NO_RESULT;
+        this.results.set(message.rowId, { ...before, table: message.table });
+        return true;
+      }
+      case "regression": {
+        if (!this.accepts(message)) return false;
+        const before = this.results.get(message.rowId) ?? NO_RESULT;
+        this.results.set(message.rowId, { ...before, regression: message.result });
+        return true;
+      }
       case "plot": {
         const { generation, rowId, geometry } = message;
         const graphable = this.rows.get(rowId)?.isGraphable === true;
@@ -112,11 +140,21 @@ export class ResultInbox {
       case "done":
         if (message.generation !== this.latestGeneration) return false;
         return this.keepGeometry((id) => this.plotted.has(id));
+      case "poi": {
+        if (message.generation !== this.latestGeneration || !this.rows.has(message.rowId)) {
+          return false;
+        }
+        this.points = Object.freeze({
+          rowId: message.rowId,
+          points: Object.freeze(message.points),
+        });
+        return true;
+      }
       case "fault":
         this.hooks.onFault(message.message);
         return false;
       default:
-        return false; // begin, heartbeat, and the reserved regression and poi
+        return false; // begin and heartbeat
     }
   }
 
@@ -129,12 +167,18 @@ export class ResultInbox {
     return this.plots;
   }
 
+  /** POI-1: the latest accepted points of interest, or null. */
+  get poi(): { rowId: string; points: readonly PoiPoint[] } | null {
+    return this.points;
+  }
+
   /** setBlank: forgets every result, geometry and generation mark. */
   reset(): void {
     this.rows = new Map();
     this.results.clear();
     this.plots = new Map();
     this.plotted = new Set();
+    this.points = null;
     this.stateGeneration = this.latestGeneration = 0;
   }
 

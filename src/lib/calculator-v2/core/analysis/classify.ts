@@ -47,6 +47,8 @@ export function classifyRow(
   if (row.error !== null || row.tree === null || scope === null) {
     return { ...analysis, kind: "error", error: row.error, uses };
   }
+  // PR-30, D-2: a regression row; regression-analysis.ts adds its parameters and errors.
+  if (row.tree.kind === "sim") return { ...analysis, kind: "regression", uses };
   const conflict = conflictError(row, scope, locals, resolution);
   if (conflict !== null) return { ...analysis, kind: "error", error: conflict, uses };
   const shape =
@@ -141,6 +143,7 @@ function childNodes(node: Node): readonly Node[] {
     case "mul":
     case "div":
     case "pow":
+    case "sim":
       return [node.left, node.right];
     case "neg":
     case "pct":
@@ -156,6 +159,8 @@ function childNodes(node: Node): readonly Node[] {
       return [node.x, node.y];
     case "rel":
       return node.operands;
+    case "list":
+      return node.items;
   }
 }
 

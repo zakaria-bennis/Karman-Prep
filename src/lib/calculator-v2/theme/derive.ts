@@ -9,6 +9,7 @@ import {
   inGamut,
   simulateCvd,
   toOklab,
+  toOklch,
 } from "./contrast";
 import {
   COLOR_ROLES,
@@ -21,7 +22,10 @@ import {
 } from "./skins";
 import {
   CURVE_CANDIDATE_TARGET,
-  FILL_CONTRAST,
+  GRID_MAX_CHROMA,
+  CURVE_OVER_SHADING,
+  MAX_FILL_ALPHA,
+  OVERLAP_STEP,
   MINOR_GRID_TARGET,
   TEXT_BACKGROUNDS,
 } from "./targets";
@@ -57,13 +61,23 @@ function adjustAll(color: string, backgrounds: readonly string[], target: number
   throw new Error(`Could not bring ${color} to ${target}:1 on ${backgrounds.join(", ")}`);
 }
 
-/** `border` mixed toward the paper at the largest alpha (in 0.01 steps) at most 1.5:1 on it. */
+/** TH-19: `color` with its OKLCH chroma brought down to GRID_MAX_CHROMA, lightness and hue kept. */
+function neutral(color: string): string {
+  const { l, c, h } = toOklch(color);
+  // Encoding to hex can raise the chroma a little, so the reduced colour aims just under the cap.
+  return c <= GRID_MAX_CHROMA ? color : fromOklch(l, GRID_MAX_CHROMA - 0.004, h);
+}
+
+/**
+ * `border` mixed toward the paper at the largest alpha (in 0.01 steps) whose neutral (TH-19) is at
+ * most 1.5:1 on it.
+ */
 function minorGrid(border: string, paper: string): string {
   for (let k = 100; k >= 0; k--) {
-    const mixed = compositeOver(border, k / 100, paper);
+    const mixed = neutral(compositeOver(border, k / 100, paper));
     if (contrastRatio(mixed, paper) <= MINOR_GRID_TARGET) return mixed;
   }
-  return paper;
+  return neutral(paper);
 }
 
 /** Every colour role of a site theme by the 10.3 mapping, adjusted by the TH-4 rule. */
@@ -88,7 +102,7 @@ export function deriveRoles(theme: SiteTheme): Record<ColorRole, string> {
     textSecondary: adjustAll(theme.muted, textBackgrounds, 7),
     error: adjustLightness(theme.reading, list, 7),
     axis: adjustLightness(theme.text, paper, 7),
-    gridMajor: adjustLightness(theme.border, paper, 3),
+    gridMajor: neutral(adjustLightness(neutral(theme.border), paper, 3)),
     gridMinor: minorGrid(theme.border, paper),
     focusRing: adjustAll(theme.math, textBackgrounds, 3),
     focusBar: adjustLightness(theme.math, focusBarLabel, 7),
@@ -183,23 +197,44 @@ export function pickCurveSlots(candidates: readonly CurveCandidate[]): Record<Cu
   >;
 }
 
-/** TH-8: the smallest alpha (in 0.001 steps) at which `color` over `paper` reaches 1.15:1; 1 if none. */
-export function fillAlphaFor(color: string, paper: string): number {
-  for (let k = 1; k <= 1000; k++) {
-    const alpha = k / 1000;
-    if (contrastRatio(compositeOver(color, alpha, paper), paper) >= FILL_CONTRAST) return alpha;
+/**
+ * TH-8 (appendix F): the cap on combined shading, the lowest curve contrast over 4.5 so every curve
+ * keeps 4.5:1 over any shading, and never above the contrast of any curve's 40% mix.
+ */
+export function shadingCapFor(curves: readonly string[], paper: string): number {
+  let cap = Infinity;
+  for (const c of curves) {
+    cap = Math.min(cap, contrastRatio(c, paper) / CURVE_OVER_SHADING);
+    cap = Math.min(cap, contrastRatio(compositeOver(c, MAX_FILL_ALPHA, paper), paper));
   }
-  return 1;
+  return Math.floor(cap * 1000) / 1000;
+}
+
+/**
+ * TH-8: one fill's alpha, the largest (in 0.001 steps, at most 40%) at which `color` over `paper`
+ * stays at or below cap / 1.04 (with a margin for 8-bit rounding), so a second fill still shows
+ * 1.04:1 apart under the cap.
+ */
+const FILL_STEP = OVERLAP_STEP + 0.02;
+export function fillAlphaFor(color: string, paper: string, cap: number): number {
+  let best = 0.001;
+  for (let k = 1; k <= MAX_FILL_ALPHA * 1000; k++) {
+    const alpha = k / 1000;
+    if (contrastRatio(compositeOver(color, alpha, paper), paper) > cap / FILL_STEP) break;
+    best = alpha;
+  }
+  return best;
 }
 
 /** One skin's roles, TH-6 curves and TH-8 fill alphas. */
 export function buildSkinPalette(theme: SiteTheme): SkinPalette {
   const roles = deriveRoles(theme);
   const curves = pickCurveSlots(curveCandidates(roles.paper));
+  const shadingCap = shadingCapFor(Object.values(curves), roles.paper);
   const fillAlpha = Object.fromEntries(
-    CURVE_SLOTS.map((slot) => [slot, fillAlphaFor(curves[slot], roles.paper)])
+    CURVE_SLOTS.map((slot) => [slot, fillAlphaFor(curves[slot], roles.paper, shadingCap)])
   ) as Record<CurveSlot, number>;
-  return { dark: theme.dark, roles, curves, fillAlpha };
+  return { dark: theme.dark, roles, curves, fillAlpha, shadingCap };
 }
 
 /** Every skin's palette keyed by `SKIN_IDS`; the themes must be the 12 skins in that order. */

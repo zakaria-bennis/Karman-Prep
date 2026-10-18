@@ -106,6 +106,14 @@ export function printLatex(tree: Node): string {
         : join(["\\sqrt[", printLatex(tree.index), "]{", printLatex(tree.arg), "}"]);
     case "point":
       return join(["\\left(", printLatex(tree.x), ",", printLatex(tree.y), "\\right)"]);
+    case "list":
+      return join([
+        "\\left[",
+        ...tree.items.flatMap((item, i) =>
+          i === 0 ? [printLatex(item)] : [",", printLatex(item)]
+        ),
+        "\\right]",
+      ]);
     case "rel":
       return join(
         tree.operands.flatMap((operand, i) =>
@@ -114,6 +122,8 @@ export function printLatex(tree: Node): string {
       );
     case "call":
       return printCall(tree.name, tree.args);
+    case "sim":
+      return join([printLatex(tree.left), "\\sim", printLatex(tree.right)]);
   }
 }
 

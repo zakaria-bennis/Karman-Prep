@@ -17,6 +17,7 @@ import {
   type FocusController,
 } from "../../focus/focus-controller";
 import { SkinContext } from "../../hooks/skin";
+import { KeyboardTrace, KeyboardTraceContext } from "../../graph/keyboard-trace";
 import { EngineContext } from "../../hooks/use-engine";
 import { MathFieldFactoryContext } from "../math-field-factory";
 import { MotionContext } from "../motion";
@@ -33,6 +34,7 @@ export interface EditorKit {
   escape: EscapeStack;
   announcer: RecordingAnnouncer;
   fields: FakeFieldFactory;
+  trace: KeyboardTrace; // POI-20, the keypad's audio key (K-9)
   clock: { now: number }; // the engine's deps.now; starts at 0
   pressEscape(): void;
 }
@@ -70,11 +72,18 @@ export function renderEditor(
   engine.clearHistory();
   const wrapper = createRef<HTMLDivElement>();
   const escape = createEscapeStack();
+  const focus = createFocusController(engine),
+    announcer = createRecordingAnnouncer();
   const kit: EditorKit = {
     engine,
-    focus: createFocusController(engine),
+    focus,
     escape,
-    announcer: createRecordingAnnouncer(),
+    announcer,
+    trace: new KeyboardTrace({
+      engine,
+      announce: (text) => announcer.announce(text),
+      focusRow: (rowId) => focus.focusRow(rowId, "end"),
+    }),
     fields: createFakeFieldFactory(),
     clock,
     pressEscape() {
@@ -97,18 +106,20 @@ export function renderEditor(
         <FocusContext.Provider value={kit.focus}>
           <EscapeContext.Provider value={escape}>
             <AnnouncerContext.Provider value={kit.announcer}>
-              <MathFieldFactoryContext.Provider value={kit.fields.factory}>
-                <MotionContext.Provider value={() => durationMs}>
-                  <div
-                    ref={wrapper}
-                    onKeyDown={(event) => {
-                      if (event.key === "Escape" && escape.handleEscape()) event.preventDefault();
-                    }}
-                  >
-                    {ui}
-                  </div>
-                </MotionContext.Provider>
-              </MathFieldFactoryContext.Provider>
+              <KeyboardTraceContext.Provider value={kit.trace}>
+                <MathFieldFactoryContext.Provider value={kit.fields.factory}>
+                  <MotionContext.Provider value={() => durationMs}>
+                    <div
+                      ref={wrapper}
+                      onKeyDown={(event) => {
+                        if (event.key === "Escape" && escape.handleEscape()) event.preventDefault();
+                      }}
+                    >
+                      {ui}
+                    </div>
+                  </MotionContext.Provider>
+                </MathFieldFactoryContext.Provider>
+              </KeyboardTraceContext.Provider>
             </AnnouncerContext.Provider>
           </EscapeContext.Provider>
         </FocusContext.Provider>

@@ -201,3 +201,23 @@ it("AR-13 on v2 the v1 export controls render nothing", () => {
   render(<Host version="v2" />);
   expect(screen.queryByRole("button", { name: /Export|Paste|Copy for Desmos/ })).toBeNull();
 });
+
+it("L-4 the toolbar opens v2 docked on a wide viewport and full screen on a narrow one", () => {
+  const mode = () => document.querySelector("[data-mode]")?.getAttribute("data-mode");
+  const { unmount } = render(<Host version="v2" />);
+  fireEvent.click(trigger());
+  expect(calculatorWindowStore.get()).toMatchObject({ mode: "docked", restoreMode: "docked" });
+  expect(mode()).toBe("docked");
+  // The student undocks; closing and reopening keeps the floating window.
+  calculatorWindowStore.set({ mode: "floating" });
+  fireEvent.click(trigger());
+  fireEvent.click(trigger());
+  expect(mode()).toBe("floating");
+  unmount();
+  calculatorWindowStore.resetForTests();
+  phone();
+  render(<Host version="v2" />);
+  fireEvent.click(trigger());
+  expect(mode()).toBe("fullscreen");
+  expect(calculatorWindowStore.get().mode).not.toBe("docked");
+});

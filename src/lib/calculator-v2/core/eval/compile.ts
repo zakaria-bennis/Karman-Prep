@@ -9,6 +9,9 @@ import {
   type RowAnalysis,
 } from "../analysis/index";
 import { DeadlineExceeded, NO_DEADLINE, type Deadline } from "../deadline";
+import { evaluateTable, type DataSink } from "../data/evaluate";
+import { evaluateRegression, regressionValues } from "../data/evaluate-regression";
+import { regressionDefinitionId, regressionOf } from "../data/regression-analysis";
 import type { Node } from "../latex/ast";
 import { isBuiltinName } from "../latex/operator-names";
 import { applyBuiltin } from "../lib/builtins";
@@ -118,6 +121,16 @@ function compileNode(node: Node, ctx: Context): Compiled {
     }
     case "call":
       return call(node, ctx);
+    case "list": {
+      // D-11: a table column; each element evaluates on its own
+      const items = node.items.map((item) => compileNode(item, ctx));
+      return (vars, deadline) => ({
+        type: "list",
+        value: items.map((item) => item(vars, deadline)),
+      });
+    }
+    case "sim": // D-2: a regression row is fitted by the values pass, never compiled
+      return constant(UNDEFINED);
     case "point": {
       // 04 decision 7: an undefined or non-real coordinate is stored as NaN.
       const x = compileNode(node.x, ctx),
@@ -309,7 +322,8 @@ function definitionBody(row: RowAnalysis): Node | null {
 export function evaluateRows(
   analysis: AnalysisResult,
   settings: EvalSettings,
-  deadlineFor: (rowId: string) => Deadline
+  deadlineFor: (rowId: string) => Deadline,
+  sink?: DataSink
 ): Map<string, Value> {
   const byRow = new Map<string, Value>(),
     values = new Map<string, Value>(),
@@ -326,7 +340,24 @@ export function evaluateRows(
       throw error;
     }
   };
+  const fitted = new Set<string>();
   for (const id of analysis.valueOrder) {
+    // D-22, D-46: a regression fits once, at its first synthetic definition in dependency order.
+    const regression = regressionOf(id);
+    if (regression !== null) {
+      const r = analysis.byId.get(regression)?.regression;
+      if (r === undefined || fitted.has(regression)) continue;
+      fitted.add(regression);
+      const deadline = deadlineFor(regression);
+      deadline.check();
+      const outcome = evaluateRegression(r, scope, deadline);
+      for (const [name, v] of regressionValues(outcome)) {
+        values.set(name, v);
+        byRow.set(regressionDefinitionId(regression, name), v); // buildCompileScope reads these
+      }
+      sink?.regression(regression, outcome);
+      continue;
+    }
     const row = analysis.byId.get(id),
       body = row === undefined ? null : definitionBody(row);
     if (row === undefined || body === null || row.defines === null) continue;
@@ -336,6 +367,15 @@ export function evaluateRows(
   }
   for (const row of analysis.rows) {
     if (evaluable(row, ["value", "point"]) && row.tree !== null) evaluate(row.id, row.tree);
+  }
+  if (sink !== undefined) {
+    // D-11: tables after every value they can use; a row's deadline covers its whole table.
+    for (const row of analysis.rows) {
+      if (row.kind !== "table" || row.table === undefined) continue;
+      const deadline = deadlineFor(row.id);
+      deadline.check();
+      sink.table(row.id, evaluateTable(row, scope, deadline));
+    }
   }
   return byRow;
 }

@@ -11,6 +11,7 @@ export const EDITOR_MESSAGES = {
   rowLimit: "The calculator holds at most 100 expressions.", // MAX_ROWS (NM-42); 10's ROW_LIMIT_MESSAGE text
   charLimit: "Each expression can be up to 2,048 characters.", // MAX_ROW_CHARACTERS (T-13)
   tilde: "tilde", // K-7
+  added: (kind: "Expression" | "Table", n: number) => `${kind} ${n} added`, // S-13
   angle: (mode: "radians" | "degrees") => `Angle set to ${mode}.`, // S-6, A11Y-2
   boundNotNumber: "Enter an expression with a finite value.", // S-7
   boundOrder: "The minimum must be less than the maximum.", // S-7

@@ -5,7 +5,7 @@ import { fillAlphaFor } from "./derive";
 import { SKIN_COLORS } from "./skin-colors.generated";
 import { COLOR_ROLES, CURVE_SLOTS, SKIN_IDS, type CurveSlot, type SkinId } from "./skins";
 import { CURVE_TARGET } from "./targets";
-import { CURVE_VARS, FILL_ALPHA_VARS, ROLE_VARS } from "./vars";
+import { CURVE_VARS, FILL_ALPHA_VARS, ROLE_VARS, SHADING_CAP_VAR } from "./vars";
 
 export { ROLE_VARS, CURVE_VARS, FILL_ALPHA_VARS, CHROME_VARS, type ChromeRole } from "./vars";
 
@@ -32,11 +32,12 @@ export function resolveSkinId(themeId: string | null | undefined, prefersDark: b
  * `COLOR_ROLES` order, then the six curves, then the six fill alphas.
  */
 export function hostThemeCss(skin: SkinId): string {
-  const { roles, curves, fillAlpha } = SKIN_COLORS[skin].normal;
+  const { roles, curves, fillAlpha, shadingCap } = SKIN_COLORS[skin].normal;
   const decls = [
     ...COLOR_ROLES.map((role) => `${ROLE_VARS[role]}:${roles[role]}`),
     ...CURVE_SLOTS.map((slot) => `${CURVE_VARS[slot]}:${curves[slot]}`),
     ...CURVE_SLOTS.map((slot) => `${FILL_ALPHA_VARS[slot]}:${String(fillAlpha[slot])}`),
+    `${SHADING_CAP_VAR}:${String(shadingCap)}`,
   ];
   return `:host{${decls.join(";")}}`;
 }
@@ -61,18 +62,19 @@ export function resolveRowColor(color: string, skin: SkinId): RowColor {
   const key = `${skin}|${hex}`;
   let resolved = explicitColors.get(key);
   if (resolved === undefined) {
-    resolved = resolveExplicitColor(hex, SKIN_COLORS[skin].normal.roles.paper);
+    const { roles, shadingCap } = SKIN_COLORS[skin].normal;
+    resolved = resolveExplicitColor(hex, roles.paper, shadingCap);
     explicitColors.set(key, resolved);
   }
   return { ...resolved };
 }
 
-function resolveExplicitColor(hex: string, paper: string): RowColor {
+function resolveExplicitColor(hex: string, paper: string, shadingCap: number): RowColor {
   if (contrastRatio(hex, paper) >= CURVE_TARGET) {
-    return { hex, fillAlpha: fillAlphaFor(hex, paper), adjusted: false };
+    return { hex, fillAlpha: fillAlphaFor(hex, paper, shadingCap), adjusted: false };
   }
   const lifted = adjustLightness(hex, paper, CURVE_TARGET);
-  return { hex: lifted, fillAlpha: fillAlphaFor(lifted, paper), adjusted: true };
+  return { hex: lifted, fillAlpha: fillAlphaFor(lifted, paper, shadingCap), adjusted: true };
 }
 
 function isCurveSlot(id: string): id is CurveSlot {

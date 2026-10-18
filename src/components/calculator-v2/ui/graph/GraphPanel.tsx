@@ -6,7 +6,16 @@
 // keys (KB-8) and the panel drag, pinch and wheel (useGraphInput).
 
 import { House, Minus, Plus, Settings } from "lucide-react";
-import { useEffect, useLayoutEffect, useRef, type RefObject } from "react";
+import {
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useSyncExternalStore,
+  type KeyboardEvent,
+  type RefObject,
+} from "react";
+import { formatPoiLabel, formatTraceLabel } from "@/lib/calculator-v2/poi/format";
 import type { EngineSnapshot } from "@/lib/calculator-v2/core/api/engine";
 import {
   defaultViewport,
@@ -14,6 +23,7 @@ import {
   ZOOM_BUTTON_FACTOR,
   zoomViewport,
   type ViewSpec,
+  worldToPx,
 } from "@/lib/calculator-v2/plot/viewport";
 import { NAME_DEBOUNCE_MS, NAME_MAX_WAIT_MS } from "@/lib/calculator-v2/render/constants";
 import { pickGrid } from "@/lib/calculator-v2/render/grid-plan";
@@ -23,7 +33,10 @@ import { useSkin } from "../hooks/skin";
 import { useEngine, useEngineSnapshot } from "../hooks/use-engine";
 import { countPlots, graphAccessibleName } from "./accessible-name";
 import { homeFadeMs, useHomePresence, type HomePhase } from "./home-presence";
+import { KeyboardTraceContext, type KeyboardTrace } from "./keyboard-trace";
 import { GRAPH_CONTROL_LABELS } from "./labels";
+import { PoiOverlay } from "./PoiOverlay";
+import type { LabelState } from "./poi-labels";
 import {
   buildRenderRows,
   displayedGeometry,
@@ -33,6 +46,8 @@ import {
 import { useDebounced } from "./use-debounced";
 import { useGraphInput } from "./use-graph-input";
 import { useGraphSize, type GraphSize } from "./use-graph-size";
+import { openLabels, poiDots, usePoiLabels } from "./use-poi-labels";
+import { useTrace, type TraceState } from "./use-trace";
 
 export { graphAccessibleName };
 
@@ -51,6 +66,8 @@ type FrameInputs = {
   cache: RegionCache;
   size: GraphSize | null;
   host: Element;
+  labels: LabelState;
+  trace: TraceState | null;
 };
 type FrameRef = { current: number | null };
 type Ref = RefObject<HTMLElement | null>;
@@ -93,13 +110,13 @@ function useRenderLoop(
     };
   }, [layers]);
 
-  const { snapshot, skin, size } = inputs;
+  const { snapshot, skin, size, labels, trace } = inputs;
   useEffect(() => {
     if (size === null || frame.current !== null) return;
     frame.current = requestAnimationFrame(() => {
       frame.current = null;
       const container = layers.current;
-      const { snapshot: s, skin: k, cache, size: g, host } = latest.current;
+      const { snapshot: s, skin: k, cache, size: g, host, labels: l, trace: tr } = latest.current;
       if (renderer.current === null || container === null || g === null) return;
       const view: ViewSpec = { viewport: s.viewport, size: g.size, dpr: g.dpr };
       renderer.current.render({
@@ -107,10 +124,12 @@ function useRenderLoop(
         grid: pickGrid(s.settings),
         rows: buildRenderRows(s, k, view, cache),
         theme: readRenderTheme(host),
+        poi: poiDots(s, l),
+        trace: tr === null ? null : { x: tr.wx, y: tr.wy, color: tr.color },
       });
       container.dataset.renderedRevision = String(s.revision);
     });
-  }, [layers, snapshot, skin, themeRevision, size]);
+  }, [layers, snapshot, skin, themeRevision, size, labels, trace]);
 }
 
 /** Moves focus to the graph surface when `el` has it, so focus never falls to the body. */
@@ -154,6 +173,37 @@ function HomeButton({ phase, homeRef, surface, onActivate }: HomeButtonProps): J
   );
 }
 
+/** The selected row's drawn vertices in CSS px, every 4th, for label placement (POI-19). */
+function selectedCurvePx(s: EngineSnapshot, view: ViewSpec): [number, number][] {
+  const g = s.selectedRowId === null ? undefined : s.geometry.get(s.selectedRowId);
+  if (g === undefined || g.kind !== "curve") return [];
+  const out: [number, number][] = [];
+  for (let k = 0; k + 1 < g.polylines.length; k += 8) {
+    if (Number.isFinite(g.polylines[k]))
+      out.push(worldToPx(view, g.polylines[k], g.polylines[k + 1]));
+  }
+  return out;
+}
+
+const noTrace = () => () => undefined;
+
+/** POI-20: the keyboard trace's point as a drawn trace (dot and label), or null. */
+function keyboardTracePoint(
+  trace: KeyboardTrace | null,
+  s: EngineSnapshot,
+  view: ViewSpec | null,
+  rows: ReturnType<typeof buildRenderRows>
+): TraceState | null {
+  const at = trace?.state ?? null;
+  if (at === null || view === null) return null;
+  const poi =
+    s.poi?.rowId === at.rowId ? s.poi.points.find((p) => p.x === at.x && p.y === at.y) : undefined;
+  const [x, y] = worldToPx(view, at.x, at.y);
+  const text = poi === undefined ? formatTraceLabel(at.x, at.y, view) : formatPoiLabel(poi, view);
+  const row = rows.find((r) => r.rowId === at.rowId);
+  return row === undefined ? null : { x, y, wx: at.x, wy: at.y, text, color: row.color };
+}
+
 export function GraphPanel(props: GraphPanelProps): JSX.Element {
   const { host, themeRevision, reducedMotion, settingsOpen, onOpenSettings } = props;
   const engine = useEngine();
@@ -164,7 +214,43 @@ export function GraphPanel(props: GraphPanelProps): JSX.Element {
   const surface = useRef<HTMLDivElement>(null);
   const homeRef = useRef<HTMLButtonElement>(null);
   const size = useGraphSize(layers, engine);
-  const input = useGraphInput({ panel, surface, engine, size });
+  const poi = usePoiLabels(snapshot, engine);
+  const tracer = useTrace(engine);
+  const keyboardTrace = useContext(KeyboardTraceContext);
+  useSyncExternalStore(
+    keyboardTrace === null ? noTrace : (l) => keyboardTrace.subscribe(l),
+    () => keyboardTrace?.state ?? null
+  );
+  const current = useRef({ snapshot, skin, size, cache: NO_REGIONS });
+  /** The view and the drawn rows as of the latest commit, or null while unsized. */
+  const scene = (): { view: ViewSpec; rows: ReturnType<typeof buildRenderRows> } | null => {
+    const { snapshot: s, skin: k, size: g, cache: c } = current.current;
+    if (g === null) return null;
+    const v: ViewSpec = { viewport: s.viewport, size: g.size, dpr: g.dpr };
+    return { view: v, rows: buildRenderRows(s, k, v, c) };
+  };
+  const input = useGraphInput({
+    panel,
+    surface,
+    engine,
+    size,
+    interaction: {
+      claim(at, pointer) {
+        const sc = scene();
+        return sc !== null && tracer.claim(at, pointer, sc.view, sc.rows);
+      },
+      move(at) {
+        const sc = scene();
+        if (sc !== null) tracer.move(at, sc.view);
+      },
+      release: tracer.release,
+      click(at, pointer) {
+        const sc = scene();
+        if (sc !== null) poi.click(at, pointer, sc.view, sc.rows);
+      },
+      viewChanged: poi.viewChanged,
+    },
+  });
 
   // The region cache follows the snapshot during render; updateRegionCache is pure, so a repeated
   // render gives the same cache.
@@ -176,13 +262,37 @@ export function GraphPanel(props: GraphPanelProps): JSX.Element {
     regions.current = { snapshot, cache: updateRegionCache(regions.current.cache, snapshot) };
   }
   const { cache } = regions.current;
+  useLayoutEffect(() => {
+    current.current = { snapshot, skin, size, cache };
+  });
+  const view: ViewSpec | null =
+    size === null ? null : { viewport: snapshot.viewport, size: size.size, dpr: size.dpr };
 
   const plots = countPlots(snapshot.rows, displayedGeometry(snapshot, cache));
   const name = useDebounced(graphAccessibleName(snapshot.viewport, plots), NAME_DEBOUNCE_MS, {
     maxWaitMs: NAME_MAX_WAIT_MS,
   });
 
-  useRenderLoop(layers, { snapshot, skin, cache, size, host }, themeRevision);
+  const shownTrace =
+    tracer.trace ??
+    keyboardTracePoint(
+      keyboardTrace,
+      snapshot,
+      view,
+      view === null ? [] : buildRenderRows(snapshot, skin, view, cache)
+    );
+  useRenderLoop(
+    layers,
+    { snapshot, skin, cache, size, host, labels: poi.labels, trace: shownTrace },
+    themeRevision
+  );
+  const onKeyDown = (e: KeyboardEvent): void => {
+    if ((e.key === "[" || e.key === "]") && view !== null) {
+      if (poi.step(e.key === "]" ? 1 : -1, view)) e.preventDefault();
+      return;
+    }
+    input.onKeyDown(e);
+  };
 
   // Before Home mounts there is no transition to read, so it enters with a fade unless motion is
   // reduced (AN-8 fades in as well as out); once mounted, its computed transition gives the time.
@@ -210,8 +320,16 @@ export function GraphPanel(props: GraphPanelProps): JSX.Element {
         role="img"
         aria-label={name}
         tabIndex={0}
-        onKeyDown={input.onKeyDown}
+        onKeyDown={onKeyDown}
       />
+      {view !== null && (
+        <PoiOverlay
+          labels={openLabels(snapshot, poi.labels, view)}
+          curve={selectedCurvePx(snapshot, view)}
+          size={view.size}
+          trace={shownTrace}
+        />
+      )}
       <div className="kc-graph-controls" role="group" aria-label={GRAPH_CONTROL_LABELS.group}>
         <button
           type="button"

@@ -392,7 +392,9 @@ function V2Scope({
     previous.current = { open, mode };
     const node = frameRef.current;
     if (!node) return;
-    if (open && !before.open && !reducedMotion) node.setAttribute("data-entering", "");
+    // Docked and maximized windows never animate (AN-10), so they are never marked entering.
+    const animates = mode === "floating" || mode === "fullscreen";
+    if (open && !before.open && !reducedMotion && animates) node.setAttribute("data-entering", "");
     else if (!open || mode !== before.mode) node.removeAttribute("data-entering");
   }, [open, mode, reducedMotion]);
   useEffect(() => {
@@ -464,7 +466,15 @@ function V2Scope({
       return;
     }
     remembered.current = trigger ?? "keyboard";
-    calculatorWindowStore.set({ mode: "floating" });
+    // L-4: the first open of a page session docks on a wide viewport; later opens restore the
+    // floating or docked mode the student last chose.
+    const stored = calculatorWindowStore.get();
+    if (stored.mode === null && !fullScreen) {
+      calculatorWindowStore.set({ mode: "docked", restoreMode: "docked" });
+    } else {
+      // Only floating or docked is restored, so a later open always recovers (AR-53).
+      calculatorWindowStore.set({ mode: stored.restoreMode === "docked" ? "docked" : "floating" });
+    }
     onOpenChange(true);
   };
   const prefetch = () => {

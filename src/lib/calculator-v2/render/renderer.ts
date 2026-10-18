@@ -3,8 +3,11 @@
 // store; the paper is the panel's CSS background, so unshaded pixels stay transparent.
 
 import { CURVE_VARS, FILL_ALPHA_VARS, ROLE_VARS } from "../theme/roles";
+import { SHADING_CAP } from "../theme/targets";
+import { SHADING_CAP_VAR } from "../theme/vars";
 import { CURVE_SLOTS, type CurveSlot } from "../theme/skins";
 import { AXIS_FONT } from "./constants";
+import { drawPoiDots, drawTraceDot } from "./draw-poi";
 import { drawCurveLayer, drawPointLayer, drawShadingLayer } from "./draw-geometry";
 import { drawGridLayer } from "./draw-grid";
 import { planGrid } from "./grid-plan";
@@ -77,6 +80,9 @@ export class GraphRenderer {
     drawGridLayer(grid, plan, theme, view);
     drawCurveLayer(curves, view, frame.rows);
     drawPointLayer(points, view, frame.rows);
+    if (frame.poi !== undefined && frame.poi.length > 0)
+      drawPoiDots(points, view, theme, frame.poi);
+    if (frame.trace) drawTraceDot(points, view, theme, frame.trace);
   }
 
   /** Empties and removes every canvas (iOS Safari frees canvas memory only at 0×0); idempotent. */
@@ -121,7 +127,7 @@ export class GraphRenderer {
     ) {
       return memo.rects;
     }
-    const rects = buildShadingRects(regions, theme.paper, size, dpr);
+    const rects = buildShadingRects(regions, theme.paper, size, dpr, theme.shadingCap);
     this.shading = {
       regions,
       paper: theme.paper,
@@ -149,5 +155,6 @@ export function readRenderTheme(host: Element): RenderTheme {
     focusRing: read(ROLE_VARS.focusRing),
     curves: perSlot((slot) => read(CURVE_VARS[slot])),
     fillAlpha: perSlot((slot) => parseFloat(read(FILL_ALPHA_VARS[slot]))),
+    shadingCap: parseFloat(read(SHADING_CAP_VAR)) || SHADING_CAP,
   };
 }

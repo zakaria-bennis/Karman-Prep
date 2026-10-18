@@ -15,6 +15,13 @@ import type { CalculatorEngine, RowView } from "@/lib/calculator-v2/core/api/eng
 import type { ChangeEvent } from "@/lib/calculator-v2/core/api/types";
 import type { Announcer } from "../a11y/announcer";
 import { EDITOR_MESSAGES } from "./messages";
+import { regressionSummary } from "./regression-text";
+
+/** What a row says once its result is in: its value (A11Y-2), or a regression's summary (A11Y-10). */
+function spoken(row: RowView, number: number): string | null {
+  if (row.kind === "regression") return regressionSummary(row);
+  return row.valueText === null ? null : EDITOR_MESSAGES.value(number, row.valueText);
+}
 
 export const VALUE_ANNOUNCE_DELAY_MS = 750;
 /** 05's announcer writes this long after a call (its minimum); the idle timer runs the rest. */
@@ -103,8 +110,9 @@ export function createRowAnnouncements(
     const rowId = focusedRowId ?? activeRowId;
     const index = rows.findIndex((row) => row.id === rowId);
     if (index < 0 || rows[index].error !== null) return;
-    const { id, valueText } = rows[index];
-    if (valueText !== null) say(`value:${id}`, EDITOR_MESSAGES.value(index + 1, valueText));
+    const { id } = rows[index];
+    const text = spoken(rows[index], index + 1);
+    if (text !== null) say(`value:${id}`, text);
     else pendingValueRow = id;
   };
 
@@ -136,9 +144,9 @@ export function createRowAnnouncements(
     const { rows } = engine.getSnapshot();
     if (pendingValueRow !== null) {
       const index = rows.findIndex((row) => row.id === pendingValueRow);
-      const valueText = index < 0 ? null : rows[index].valueText;
-      if (valueText !== null) {
-        say(`value:${pendingValueRow}`, EDITOR_MESSAGES.value(index + 1, valueText));
+      const text = index < 0 ? null : spoken(rows[index], index + 1);
+      if (text !== null) {
+        say(`value:${pendingValueRow}`, text);
         pendingValueRow = null;
       }
     }

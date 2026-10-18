@@ -92,3 +92,23 @@
 .kc-graph-controls [data-graph-home][data-phase="leaving"] {
   pointer-events: none;
 }
+
+/* POI-13, POI-19: open coordinate labels; the overlay never takes pointer input. */
+.kc-poi-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.kc-poi-label {
+  position: absolute;
+  padding: 2px 4px;
+  border: 1px solid var(--kc-boundary);
+  border-radius: 4px;
+  background: var(--kc-paper);
+  color: var(--kc-text);
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--kc-text) 25%, transparent);
+  font: 13px/16px var(--kc-font-math);
+  white-space: nowrap;
+}

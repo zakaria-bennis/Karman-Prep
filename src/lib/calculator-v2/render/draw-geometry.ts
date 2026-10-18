@@ -5,7 +5,15 @@
 
 import type { CurveGeometry, LineSetGeometry } from "../plot/geometry";
 import { worldToPx, type ViewSpec } from "../plot/viewport";
-import { CURVE_LINE_PX, DASH_PX, JOIN_TOLERANCE_PX, POINT_RADIUS_PX } from "./constants";
+import {
+  CURVE_LINE_PX,
+  CURVE_SELECTED_LINE_PX,
+  DASH_PX,
+  DOT_PX,
+  JOIN_TOLERANCE_PX,
+  POINT_RADIUS_PX,
+  POINT_STROKE_PX,
+} from "./constants";
 import type { ShadingRect } from "./shading";
 import type { RenderRow } from "./types";
 import type { Point } from "./view-input";
@@ -103,8 +111,15 @@ function fillBands(ctx: Ctx, view: ViewSpec, bands: Float64Array, clip: ClipRect
  * segment. A dashed run that starts within JOIN_TOLERANCE_PX of the previous run's end continues
  * its dash phase; any other run starts the pattern afresh.
  */
-function strokeCurve(ctx: Ctx, view: ViewSpec, g: CurveGeometry, clip: ClipRect): void {
-  ctx.setLineDash(g.dashed ? [...DASH_PX] : []);
+function strokeCurve(
+  ctx: Ctx,
+  view: ViewSpec,
+  g: CurveGeometry,
+  clip: ClipRect,
+  dotted: boolean
+): void {
+  const patterned = dotted || g.dashed;
+  ctx.setLineDash(dotted ? [...DOT_PX] : g.dashed ? [...DASH_PX] : []);
   const p = g.polylines;
   let phase = 0;
   let previousEnd: Point | null = null;
@@ -138,7 +153,7 @@ function strokeCurve(ctx: Ctx, view: ViewSpec, g: CurveGeometry, clip: ClipRect)
         a = b;
       }
       if (pen !== null) {
-        ctx.lineDashOffset = g.dashed ? runPhase : 0;
+        ctx.lineDashOffset = patterned ? runPhase : 0;
         ctx.stroke();
       }
       previousEnd = a;
@@ -178,14 +193,15 @@ function drawStrokes(
   ctx: Ctx,
   view: ViewSpec,
   g: CurveGeometry | LineSetGeometry,
-  clip: ClipRect
+  clip: ClipRect,
+  dotted = false
 ): void {
   if (g.kind === "lines") {
     strokeLines(ctx, view, g, clip);
     return;
   }
   fillBands(ctx, view, g.bands, clip);
-  strokeCurve(ctx, view, g, clip);
+  strokeCurve(ctx, view, g, clip, dotted);
 }
 
 /**
@@ -200,24 +216,31 @@ export function drawCurveLayer(ctx: Ctx, view: ViewSpec, rows: readonly RenderRo
   const clip = grown(view, 2 * CURVE_LINE_PX);
   for (const row of rows) {
     const g = row.geometry;
-    if (g.kind === "points") continue;
+    if (g.kind === "points" || g.kind === "table") continue; // render-rows splits tables
     ctx.strokeStyle = row.color;
     ctx.fillStyle = row.color;
+    ctx.lineWidth = row.selected === true ? CURVE_SELECTED_LINE_PX : CURVE_LINE_PX;
     if (g.kind === "region") {
       for (const boundary of g.boundaries) drawStrokes(ctx, view, boundary, clip);
     } else {
-      drawStrokes(ctx, view, g, clip);
+      drawStrokes(ctx, view, g, clip, row.lineStyle === "dotted");
     }
   }
 }
 
-/** G-7: a filled circle of POINT_RADIUS_PX at each finite coordinate pair, one path per row. */
+/**
+ * G-7, D-12: each finite coordinate pair as a filled circle of POINT_RADIUS_PX, one path per row;
+ * a table column may instead ask for open circles or crosses, stroked at POINT_STROKE_PX.
+ */
 export function drawPointLayer(ctx: Ctx, view: ViewSpec, rows: readonly RenderRow[]): void {
   startLayer(ctx, view.dpr);
   const clip = grown(view, 2 * POINT_RADIUS_PX);
+  ctx.setLineDash([]);
+  ctx.lineCap = "round";
   for (const row of rows) {
     const g = row.geometry;
     if (g.kind !== "points") continue;
+    const style = row.pointStyle ?? "filled";
     let started = false;
     for (let k = 0; k + 1 < g.coords.length; k += 2) {
       if (!finitePair(g.coords, k)) continue;
@@ -226,12 +249,24 @@ export function drawPointLayer(ctx: Ctx, view: ViewSpec, rows: readonly RenderRo
       if (!started) {
         started = true;
         ctx.fillStyle = row.color;
+        ctx.strokeStyle = row.color;
+        ctx.lineWidth = POINT_STROKE_PX;
         ctx.beginPath();
       }
       const [x, y] = centre;
-      ctx.moveTo(x + POINT_RADIUS_PX, y);
-      ctx.arc(x, y, POINT_RADIUS_PX, 0, 2 * Math.PI);
+      const r = POINT_RADIUS_PX;
+      if (style === "cross") {
+        ctx.moveTo(x - r, y - r);
+        ctx.lineTo(x + r, y + r);
+        ctx.moveTo(x - r, y + r);
+        ctx.lineTo(x + r, y - r);
+      } else {
+        ctx.moveTo(x + r, y);
+        ctx.arc(x, y, r, 0, 2 * Math.PI);
+      }
     }
-    if (started) ctx.fill();
+    if (!started) continue;
+    if (style === "filled") ctx.fill();
+    else ctx.stroke();
   }
 }

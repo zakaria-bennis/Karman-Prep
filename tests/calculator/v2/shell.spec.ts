@@ -412,3 +412,41 @@ test("L-1 the graph and list fill the calculator's height while the keypad is cl
     })
     .toEqual([true, true]);
 });
+
+test("L-16 unfocused rows have no border, fill or box around the math and are separated by one 1 px rule", async ({
+  page,
+}) => {
+  await openShell(page, `?w=900&h=600&rows=${enc(["y=x", "y=2"])}`);
+  const look = await page.locator('#calc [data-row-id="2"]').evaluate((li) => {
+    const field = li.querySelector(".mq-editable-field")!;
+    const f = getComputedStyle(field);
+    const row = getComputedStyle(li);
+    return {
+      field: [f.borderTopStyle, f.backgroundColor, f.boxShadow],
+      rule: [row.borderBottomStyle, row.borderBottomWidth, row.borderTopStyle],
+    };
+  });
+  expect(look.field).toEqual(["none", "rgba(0, 0, 0, 0)", "none"]);
+  expect(look.rule).toEqual(["solid", "1px", "none"]);
+});
+
+test("L-3 the focused row fills its whole gutter in the focused-row colour", async ({ page }) => {
+  await openShell(page, `?w=900&h=600&rows=${enc(["y=x", "y=2"])}`);
+  await rowField(page, "1").click();
+  const colours = await page.locator("#calc").evaluate((host) => {
+    const root = host.shadowRoot!;
+    const bar = getComputedStyle(root.querySelector(".kc-list-panel")!).getPropertyValue(
+      "--kc-focus-bar"
+    );
+    const probe = document.createElement("span");
+    probe.style.color = bar;
+    root.append(probe);
+    const want = getComputedStyle(probe).color;
+    probe.remove();
+    const gutter = (id: string) =>
+      getComputedStyle(root.querySelector(`[data-row-id="${id}"] .kc-row-gutter`)!).backgroundColor;
+    return { want, focused: gutter("1"), other: gutter("2") };
+  });
+  expect(colours.focused).toBe(colours.want);
+  expect(colours.other).toBe("rgba(0, 0, 0, 0)");
+});

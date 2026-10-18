@@ -6,8 +6,10 @@ import type { JSX } from "react";
 
 const SIZE = 20;
 
-/** R-1: a row whose graph is a curve, line set, region or relation; drawn as a solid stroke. */
-export function LineStyleGlyph(props: { style: "solid" }): JSX.Element {
+const DASHES = { solid: undefined, dashed: "4 3", dotted: "0.5 3.5" } as const;
+
+/** R-1, D-12: a row whose graph is a curve, line set, region or relation, in its line style. */
+export function LineStyleGlyph(props: { style: "solid" | "dashed" | "dotted" }): JSX.Element {
   return (
     <svg
       className="kc-glyph"
@@ -24,24 +26,41 @@ export function LineStyleGlyph(props: { style: "solid" }): JSX.Element {
         stroke="currentColor"
         strokeWidth={2.5}
         strokeLinecap="round"
+        strokeDasharray={DASHES[props.style]}
       />
     </svg>
   );
 }
 
-/** R-1: a point row; drawn as a filled dot. */
-export function PointStyleGlyph(props: { style: "filled" }): JSX.Element {
+/** R-1, D-12: a point row or table column, in its point style; hidden points show an outline. */
+export function PointStyleGlyph(props: {
+  style: "filled" | "open" | "cross";
+  hidden?: boolean;
+}): JSX.Element {
+  const outline = props.hidden === true || props.style === "open";
   return (
     <svg
       className="kc-glyph"
       data-style={props.style}
+      data-hidden={props.hidden === true ? "true" : undefined}
       width={SIZE}
       height={SIZE}
       viewBox="0 0 20 20"
       aria-hidden="true"
       focusable="false"
     >
-      <circle cx={10} cy={10} r={5} fill="currentColor" />
+      {props.style === "cross" && props.hidden !== true ? (
+        <path d="M5.5 5.5L14.5 14.5M14.5 5.5L5.5 14.5" stroke="currentColor" strokeWidth={2.5} />
+      ) : (
+        <circle
+          cx={10}
+          cy={10}
+          r={outline ? 4.5 : 5}
+          fill={outline ? "none" : "currentColor"}
+          stroke={outline ? "currentColor" : undefined}
+          strokeWidth={outline ? 2 : undefined}
+        />
+      )}
     </svg>
   );
 }

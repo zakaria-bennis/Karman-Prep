@@ -32,5 +32,12 @@ const cases: CorpusCase[] = [
   t(4, ["PR-29", "PR-3"], "x\\leq3", "(rel <= (id x) (num 3))"),
   t(13, ["PR-29", "PR-3"], "x\\gt1", "(rel > (id x) (num 1))"),
   t(5, ["PR-29", "PR-4"], "x≥3", "(rel >= (id x) (num 3))"),
+  t(17, ["PR-30"], "y_{1}\\sim mx_{1}+b", "(sim (id y_{1}) (add (mul (id m) (id x_{1})) (id b)))"),
+  t(18, ["PR-30"], "y\\sim x", "(sim (id y) (id x))"),
+  t(19, ["PR-30"], "y~x", "(sim (id y) (id x))"),
+  x(20, ["PR-30"], "y\\sim x\\sim2", "syntax"),
+  x(21, ["PR-30"], "(y\\sim x)", "syntax"),
+  x(22, ["PR-30"], "y=x\\sim2", "syntax"),
+  x(23, ["PR-30"], "y\\sim x=2", "syntax"),
 ];
 export default cases;

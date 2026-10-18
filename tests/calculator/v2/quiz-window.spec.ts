@@ -40,14 +40,14 @@ test("AR-8 without calc=v2 every flow opens v1 and requests no v2 module", async
   expect(urls).toEqual([]);
 });
 
-test("AR-20, L-5 toolbar and side button open floating at 1024 px and wider over 500 px tall, full screen otherwise", async ({
+test("AR-20, L-4, L-5 toolbar and side button open docked at 1024 px and wider over 500 px tall, full screen otherwise", async ({
   page,
 }, info) => {
   chromeOnly(info.project.name);
   for (const [width, height, mode, phone] of [
     [1023, 768, "fullscreen", false],
-    [1024, 768, "floating", false],
-    [1280, 800, "floating", false],
+    [1024, 768, "docked", false],
+    [1280, 800, "docked", false],
     [390, 844, "fullscreen", true],
     [1280, 480, "fullscreen", true],
   ] as const) {
@@ -155,12 +155,18 @@ test("AN-10 floating and full-screen windows open with opacity 0 to 1 and transl
           );
         })
     );
+  // L-4: a wide first open docks, and a docked window never animates; floating reopens do.
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto("/?flow=diagnostic&calc=v2");
+  expect(await openAndRead()).toEqual([]);
+  await page.getByRole("button", { name: "Undock calculator", exact: true }).click();
+  await page.getByRole("button", { name: "Close calculator", exact: true }).click();
   for (const size of [
     { width: 1280, height: 800 },
     { width: 390, height: 844 },
   ]) {
     await page.setViewportSize(size);
-    await page.goto("/?flow=diagnostic&calc=v2");
+    if (size.width < 1024) await page.goto("/?flow=diagnostic&calc=v2");
     expect(await openAndRead()).toEqual([
       {
         duration: 200,

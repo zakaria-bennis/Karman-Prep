@@ -100,6 +100,7 @@ class WorkerBackend implements ComputeBackend {
   private hello: HelloMessage | null = null;
   private state: StateMessage | null = null;
   private view: ViewMessage | null = null;
+  private select: Extract<MainToWorker, { type: "select" }> | null = null; // POI-1
   private readonly jobs = new Map<number, EvaluateMessage>();
   /** The generation of the latest state or view posted, and whether its `done` has arrived. */
   private latestGeneration = 0;
@@ -177,6 +178,9 @@ class WorkerBackend implements ComputeBackend {
           this.jobs.set(message.jobId, message);
         }
         return message;
+      case "select":
+        this.select = message;
+        return message;
     }
   }
 
@@ -219,6 +223,7 @@ class WorkerBackend implements ComputeBackend {
     if (this.hello !== null) this.forward(this.hello);
     if (this.state !== null) this.forward(this.withoutQuarantined(this.state));
     if (this.view !== null) this.forward(this.view);
+    if (this.select !== null) this.forward(this.select);
     for (const job of this.jobs.values()) this.forward(job);
   }
 

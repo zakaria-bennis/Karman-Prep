@@ -105,7 +105,7 @@ test("AR-24 catalog and daily docks start below the learn header; the page conte
     }
 });
 
-test("AR-25, AR-27 the open window keeps its mode and place across Next and Previous with fresh content and without taking focus; Undock returns to the last floating place; a toolbar open follows AR-20; a reload forgets", async ({
+test("AR-25, AR-27, L-4 the open window keeps its mode and place across Next and Previous with fresh content and without taking focus; Undock returns to the last floating place; a toolbar open restores the last mode; a reload forgets", async ({
   page,
 }, info) => {
   chromeOnly(info.project.name);
@@ -135,11 +135,14 @@ test("AR-25, AR-27 the open window keeps its mode and place across Next and Prev
   await page.getByRole("button", { name: "Close calculator", exact: true }).click();
   await press(page, "Skip this question");
   await trigger(page).click();
-  await expect(frame(page)).toHaveAttribute("data-mode", "floating");
+  await expect(frame(page)).toHaveAttribute("data-mode", "docked"); // L-4: the mode last chosen
+  await page.getByRole("button", { name: "Undock calculator" }).click();
   await expect(frame(page)).not.toHaveAttribute("data-entering"); // AN-10 translateY has ended
   expect(await frame(page).boundingBox()).toMatchObject({ x: 208, y: 160 });
   await page.reload();
   await trigger(page).click();
+  await expect(frame(page)).toHaveAttribute("data-mode", "docked"); // L-4: a new page session docks
+  await page.getByRole("button", { name: "Undock calculator" }).click();
   await expect(frame(page)).not.toHaveAttribute("data-entering"); // AN-10 translateY has ended
   expect(await frame(page).boundingBox()).toMatchObject({ x: 16, y: 64 });
 });
@@ -235,4 +238,27 @@ test("A11Y-6 floating and maximized are non-modal dialogs, full screen is modal,
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(dialog).toHaveAttribute("aria-modal", "true");
   await expect(region).toBeVisible();
+});
+
+test("L-4 at 1280 by 800 the toolbar button docks the calculator on the left of the question", async ({
+  page,
+}, info) => {
+  chromeOnly(info.project.name);
+  await openV2(page, "diagnostic", { width: 1280, height: 800 }, { docked: true });
+  await expect(frame(page)).toHaveAttribute("data-mode", "docked");
+  await expect(page.getByRole("complementary", { name: "Karman calculator" })).toBeVisible();
+  const dockBox = (await frame(page).boundingBox())!;
+  const question = (await workspace(page).boundingBox())!;
+  expect(dockBox.x).toBe(12);
+  expect(question.x).toBeGreaterThanOrEqual(dockBox.x + dockBox.width);
+});
+
+test("L-4 after Undock, closing and reopening keeps the floating window", async ({
+  page,
+}, info) => {
+  chromeOnly(info.project.name);
+  await openV2(page, "diagnostic", { width: 1280, height: 800 }); // undocks
+  await page.getByRole("button", { name: "Close calculator", exact: true }).click();
+  await trigger(page).click();
+  await expect(frame(page)).toHaveAttribute("data-mode", "floating");
 });

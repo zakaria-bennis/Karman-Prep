@@ -7,7 +7,7 @@
 import type { CalculatorEngine, EditRefusal } from "@/lib/calculator-v2/core/api/engine";
 import type { MathField } from "../../math-field/MathField";
 import type { Announcer } from "../a11y/announcer";
-import type { FocusController } from "../focus/focus-controller";
+import { cellKey, type FocusController } from "../focus/focus-controller";
 import { EDITOR_MESSAGES } from "./messages";
 
 /** How many editThroughKeypad calls are running on each field (nested calls stay batched). */
@@ -52,6 +52,50 @@ export function insertRowBelow(
   return inserted.id;
 }
 
+/** S-12, S-13: Add expression; a new empty row after `anchor` (the end for null), focused, announced. */
+export function insertExpressionItem(
+  engine: CalculatorEngine,
+  focus: FocusController,
+  announcer: Announcer | null,
+  anchor: string | null
+): string | null {
+  const id = insertRowBelow(engine, focus, announcer, anchor, "focus");
+  if (id !== null)
+    announcer?.announce(EDITOR_MESSAGES.added("Expression", indexOf(engine, id) + 1));
+  return id;
+}
+
+/**
+ * S-12, S-13, D-5: Add table; an empty active row becomes the table, any other anchor gets one
+ * after it, and focus goes to the first x cell.
+ */
+/** D-5: an empty expression row that the user typed "table" into becomes a table in place. */
+export function convertToTable(
+  engine: CalculatorEngine,
+  focus: FocusController,
+  rowId: string
+): void {
+  const converted = engine.replaceWithTable(rowId);
+  if (typeof converted !== "string") focus.focusRow(cellKey(converted.id, 0, 0), "start");
+}
+
+export function insertTableItem(
+  engine: CalculatorEngine,
+  focus: FocusController,
+  announcer: Announcer | null,
+  anchor: string | null
+): string | null {
+  const inserted =
+    anchor === null ? engine.insertTableAfter(null) : engine.replaceWithTable(anchor);
+  if (typeof inserted === "string") {
+    announcer?.announce(EDITOR_MESSAGES.rowLimit);
+    return null;
+  }
+  focus.focusRow(cellKey(inserted.id, 0, 0), "start");
+  announcer?.announce(EDITOR_MESSAGES.added("Table", indexOf(engine, inserted.id) + 1));
+  return inserted.id;
+}
+
 /** R-3: up → previous row at "end", down → next row at "start"; nothing at either end of the list. */
 export function leaveRow(
   engine: CalculatorEngine,
@@ -91,7 +135,11 @@ export function deleteFromEmptyRow(
   const previous = i > 0 ? rows[i - 1] : null;
   const next = i < rows.length - 1 ? rows[i + 1] : null;
   if (direction === "left") {
-    if (previous !== null) focus.focusRow(previous.id, "end");
+    // D-8 (appendix F requirement 15): below a table, Backspace enters the table's blank row.
+    if (previous?.type === "table") {
+      const blank = Math.max(0, ...(previous.columns ?? []).map((c) => c.values.length));
+      focus.focusRow(cellKey(previous.id, 0, blank), "start");
+    } else if (previous !== null) focus.focusRow(previous.id, "end");
     else if (next !== null) focus.focusRow(next.id, "start");
   } else if (next !== null) {
     focus.focusRow(next.id, "start");
@@ -142,7 +190,7 @@ export function performRedo(engine: CalculatorEngine, announcer: Announcer | nul
 /**
  * Keypad and Functions panel input (09 Decisions, "One undo step per K-7 conversion"): `apply`
  * runs with the field marked as batching, so the row's onEdit ignores the adapter's edit events,
- * then one editRow(rowId, field.latex(), "keypad"). On "char-limit" the field gets its previous
+ * then one editRow(rowId, field.latex(), "keypad"), or `commit` for a table cell (D-41). On "char-limit" the field gets its previous
  * latex back and the T-13 limit is announced.
  */
 export function editThroughKeypad(
@@ -150,11 +198,12 @@ export function editThroughKeypad(
   announcer: Announcer | null,
   rowId: string,
   field: MathField,
-  apply: (field: MathField) => void
+  apply: (field: MathField) => void,
+  commit: (latex: string) => EditRefusal | null = (latex) => engine.editRow(rowId, latex, "keypad")
 ): EditRefusal | null {
   const before = field.latex();
   inKeypadBatch(field, () => apply(field));
-  const refusal = engine.editRow(rowId, field.latex(), "keypad");
+  const refusal = commit(field.latex());
   if (refusal === "char-limit") {
     inKeypadBatch(field, () => field.latex(before));
     announcer?.announce(EDITOR_MESSAGES.charLimit);

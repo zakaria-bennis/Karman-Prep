@@ -20,6 +20,7 @@ const THEME: RenderTheme = {
   focusRing: p.roles.focusRing,
   curves: p.curves,
   fillAlpha: p.fillAlpha,
+  shadingCap: p.shadingCap,
 };
 const frame = (size: PixelSize, dpr: number): RenderFrame => ({
   view: { viewport: defaultViewport(size), size, dpr },

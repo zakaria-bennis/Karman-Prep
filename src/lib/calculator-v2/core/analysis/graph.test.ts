@@ -8,7 +8,7 @@ const src = (l: string[]) => l.map((latex, k) => ({ id: `r${k}`, latex, hidden: 
 const analyze = (l: string[], s: AnalysisSettings = REAL) => analyzeRows(src(l), s);
 
 function describeGraph(g: RowGraph | null): string {
-  if (!g || g.kind === "point") return g ? "point" : "null";
+  if (!g || g.kind === "point" || g.kind === "table") return g ? g.kind : "null";
   if (g.kind === "explicit") return `explicit ${g.independent} ${toSExpr(g.expr)}`;
   if (g.kind === "implicit" || g.kind === "lines")
     return `${g.kind === "lines" ? `lines ${g.orientation}` : "implicit"} ${toSExpr(g.expr)}`;

@@ -4,6 +4,9 @@
 // default-deps.ts (createEngine's defaults). No DOM, no React (AR-44).
 
 import { clampViewport, defaultViewport, type Viewport, type ViewSpec } from "../../plot/viewport";
+import { buildCompileScope } from "../../plot/from-analysis";
+import { poiCurvesFor } from "../../poi/index";
+import type { PoiCurve } from "../../poi/types";
 import { nextSlot } from "../../theme/roles";
 import type { ComputeBackend } from "../../worker/backend";
 import { analyzeRows, type AnalysisResult } from "../analysis";
@@ -17,10 +20,21 @@ import {
   type StoredRow,
 } from "./document";
 import { KarmanCalculatorError } from "./errors";
+import {
+  emptiedTable,
+  newTable,
+  usedNames,
+  withCell,
+  withColumnStyle,
+  withHeader,
+  withoutColumn,
+  withoutTableRow,
+  type RowEditContext,
+} from "./table-edits";
 import { HelperRegistry, type HelperExpression } from "./helper-expression";
 import { ResultInbox, sentRows } from "./inbox";
 import { EngineObservers } from "./observers";
-import { buildRowView, snapshotAnalysis, type EngineSnapshot } from "./results";
+import { buildRowView, latestValues, snapshotAnalysis, type EngineSnapshot } from "./results";
 import {
   acceptView,
   blankSettings,
@@ -98,6 +112,8 @@ export class CalculatorEngine {
   /** KB-4's DOM-focused row and API-12's active row (OI-10); neither is an undo step. */
   private focusedRowId: string | null = null;
   private activeRowId: string | null = null;
+  /** POI-17: the selected row; set by focus, activation and curve clicks; not an undo step. */
+  private selectedRowId: string | null = null;
   private destroyed = false;
 
   /** Validates the options (API-1) before anything is posted, then resets as setBlank() does. */
@@ -340,9 +356,101 @@ export class CalculatorEngine {
     return { id: row.id };
   }
 
+  /** D-5, S-12: a new table after `afterId` (at the end for null), named by D-4. */
+  insertTableAfter(afterId: string | null): { id: string } | EditRefusal {
+    const rows = this.doc.rows;
+    if (this.destroyed || rows.length >= MAX_ROWS) return "row-limit";
+    const after = afterId === null ? -1 : rows.findIndex((r) => r.id === afterId);
+    const index = after < 0 ? rows.length : after + 1;
+    const table = newTable(this.doc.nextId(), index, usedNames(rows, this.analysis));
+    this.commitRows([...rows.slice(0, index), table, ...rows.slice(index)], STEP, true);
+    return { id: table.id };
+  }
+
+  /** D-5, S-12: an empty expression row (or one partway through typing `table`) becomes a table in place; any other row gets one after it. */
+  replaceWithTable(rowId: string): { id: string } | EditRefusal {
+    const rows = this.doc.rows,
+      at = rows.findIndex((r) => r.id === rowId);
+    const row = rows[at];
+    // D-5: typing `table` converts the row it was typed into, whose stored latex is then "tabl".
+    if (row === undefined || row.type === "table" || !/^(t(a(b(l(e)?)?)?)?)?$/.test(row.latex))
+      return this.insertTableAfter(rowId);
+    if (this.destroyed) return "row-limit";
+    const table = newTable(row.id, at, usedNames(rows, this.analysis));
+    this.commitRows(
+      rows.map((r) => (r.id === rowId ? table : r)),
+      STEP,
+      true
+    );
+    return { id: rowId };
+  }
+
+  /**
+   * One undo step replacing the rows with what `edit` returns (row-commands.ts: Create table,
+   * Plot residuals, Add regression, Log mode); null changes nothing, and past MAX_ROWS nothing is
+   * committed and "row-limit" returned.
+   */
+  editRows(edit: (rows: readonly StoredRow[], ctx: RowEditContext) => StoredRow[] | null) {
+    if (this.destroyed) return null;
+    const rows = this.doc.rows;
+    const next = edit(rows, {
+      nextId: () => this.doc.nextId(),
+      used: usedNames(rows, this.analysis),
+    });
+    if (next === null) return null;
+    if (next.length > MAX_ROWS) return "row-limit";
+    this.commitRows(next, STEP, true);
+    return null;
+  }
+
+  /** D-6, D-8, D-20: one cell's LaTeX; typing coalesces per table (KB-2). */
+  editCell(
+    rowId: string,
+    column: number,
+    r: number,
+    latex: string,
+    source: EditSource
+  ): EditRefusal | null {
+    return this.editTable(rowId, source, (row) => withCell(row, column, r, latex));
+  }
+
+  /** D-9, D-10, D-20: one header's LaTeX; the column after the last adds a column. */
+  editHeader(rowId: string, column: number, latex: string, source: EditSource): EditRefusal | null {
+    return this.editTable(rowId, source, (row) => withHeader(row, column, latex));
+  }
+
+  /** D-8: data row `r` of a table removed, one undo step. */
+  deleteTableRow(rowId: string, r: number): void {
+    this.editTable(rowId, "api", (row) => withoutTableRow(row, r));
+  }
+
+  /** D-9: a later column deleted with its data, one undo step. */
+  deleteTableColumn(rowId: string, column: number): void {
+    this.editTable(rowId, "api", (row) => withoutColumn(row, column));
+  }
+
+  /** D-12: a column's style, one undo step. */
+  setColumnStyle(
+    rowId: string,
+    column: number,
+    style: Parameters<typeof withColumnStyle>[2]
+  ): void {
+    this.editTable(rowId, "api", (row) => withColumnStyle(row, column, style));
+  }
+
   /** R-9: deletes a row as one step; the last remaining row is never deleted, only emptied. */
   deleteRow(id: string): void {
     const rows = this.doc.rows;
+    const target = rows.find((r) => r.id === id);
+    if (target?.type === "table") {
+      const emptied = emptiedTable(target); // appendix F 32
+      this.commitRows(
+        rows.map((r) => (r.id === id ? emptied : r)),
+        STEP,
+        true
+      );
+      return;
+    }
     if (!rows.some((r) => r.id === id)) return;
     const next = rows.length === 1 ? [{ ...rows[0], latex: "" }] : rows.filter((r) => r.id !== id);
     this.commitRows(next, STEP, true);
@@ -369,6 +477,28 @@ export class CalculatorEngine {
   setFocusedRow(id: string | null): void {
     this.doc.endGroup();
     this.setFocus(id, id ?? this.activeRowId);
+    if (id !== null) this.setSelectedRow(id);
+  }
+
+  /**
+   * POI-14: row `id`'s curves compiled on the main thread from the latest analysis and the latest
+   * accepted values, for tracing; none for a row that is not graphable.
+   */
+  poiCurves(id: string): PoiCurve[] {
+    const row = this.analysis.byId.get(id);
+    if (row === undefined || !row.isGraphable) return [];
+    const values = latestValues(this.doc.rows, (id) => this.inbox.result(id));
+    const scope = buildCompileScope(this.analysis, values, toWireSettings(this.currentSettings));
+    return poiCurvesFor(row, scope);
+  }
+
+  /** POI-1, POI-17: the selected row (null for none); posts `select` when it changes. */
+  setSelectedRow(id: string | null): void {
+    const next = id !== null && this.doc.rows.some((r) => r.id === id) ? id : null;
+    if (this.destroyed || next === this.selectedRowId) return;
+    this.selectedRowId = next;
+    this.deps.backend.post({ v: 1, type: "select", rowId: next });
+    this.changed();
   }
 
   // ── commit pipeline ──
@@ -383,6 +513,7 @@ export class CalculatorEngine {
   private activate(id: string, method: string): void {
     if (!this.doc.rows.some((r) => r.id === id)) invalid(`${method}: no row has id ${String(id)}`);
     this.setFocus(this.focusedRowId, id);
+    this.setSelectedRow(id);
   }
 
   /** Stores the focused and active rows; focusedExpression fires when the active row changes. */
@@ -399,6 +530,10 @@ export class CalculatorEngine {
    * (API-1), state, view once sized, and a new job for each live helper.
    */
   private resetDocument(settings: CalculatorSettings, allowUndo: boolean): void {
+    if (this.selectedRowId !== null) {
+      this.selectedRowId = null; // POI-17: setBlank clears the selection
+      this.deps.backend.post({ v: 1, type: "select", rowId: null });
+    }
     if (!allowUndo) this.doc.reset();
     else if (!sameRows(BLANK_ROWS, this.doc.rows)) this.doc.commit(BLANK_ROWS, STEP);
     this.storeSettings(settings);
@@ -438,6 +573,28 @@ export class CalculatorEngine {
     return this.doc.rows.map((row) => (row.id === id ? { ...row, ...change } : row));
   }
 
+  /** Applies a table edit as one step, or as a KB-2 typing group for "typing" and "keypad". */
+  private editTable(
+    rowId: string,
+    source: EditSource,
+    edit: (row: StoredRow) => StoredRow | EditRefusal
+  ): EditRefusal | null {
+    const row = this.doc.rows.find((r) => r.id === rowId);
+    if (row === undefined || row.type !== "table") return null;
+    const next = edit(row);
+    if (typeof next === "string") return next;
+    const step: HistoryStep =
+      source === "typing" || source === "keypad"
+        ? { kind: "group", rowId, at: this.deps.now() }
+        : STEP;
+    this.commitRows(
+      this.doc.rows.map((r) => (r.id === rowId ? next : r)),
+      step,
+      true
+    );
+    return null;
+  }
+
   /** Commits `rows` unless they equal the current list or the engine is destroyed. */
   private commitRows(rows: readonly StoredRow[], step: HistoryStep, userInitiated = false): void {
     if (this.destroyed || sameRows(rows, this.doc.rows)) return;
@@ -458,12 +615,20 @@ export class CalculatorEngine {
 
   /** AR-51: analyses on the main thread; a focused or active row that left the list is dropped. */
   private analyze(): void {
-    const sources = this.doc.rows.map(({ id, latex, hidden }) => ({ id, latex, hidden }));
+    const sources = this.doc.rows.map(({ id, latex, hidden, type, columns, logMode }) =>
+      type === "table"
+        ? { id, latex, hidden, columns: columns ?? [] }
+        : { id, latex, hidden, logMode: logMode === true }
+    );
     this.analysis = analyzeRows(sources, toWireSettings(this.currentSettings));
     this.observers.markDirty("expressionAnalysis");
     const kept = (id: string | null) => (id !== null && this.analysis.byId.has(id) ? id : null);
     if (kept(this.activeRowId) !== this.activeRowId) this.observers.markDirty("focusedExpression");
     [this.focusedRowId, this.activeRowId] = [kept(this.focusedRowId), kept(this.activeRowId)];
+    if (this.selectedRowId !== null && kept(this.selectedRowId) === null) {
+      this.selectedRowId = null;
+      this.deps.backend.post({ v: 1, type: "select", rowId: null });
+    }
   }
 
   /** AR-45, AR-46: posts state (then view when asked) and re-issues every live helper (API-6). */
@@ -503,6 +668,8 @@ export class CalculatorEngine {
       geometry: this.inbox.geometry,
       focusedRowId: this.focusedRowId,
       activeRowId: this.activeRowId,
+      selectedRowId: this.selectedRowId,
+      poi: this.inbox.poi?.rowId === this.selectedRowId ? this.inbox.poi : null,
       canUndo: this.doc.canUndo(),
       canRedo: this.doc.canRedo(),
       backendKind: this.deps.backend.kind,

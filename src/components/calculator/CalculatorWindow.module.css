@@ -151,6 +151,7 @@
   border-radius: 7px 7px 0 0;
   background: var(--kcc-chrome);
   color: var(--kcc-text);
+  font-family: Arial, sans-serif; /* TH-17: the window title in the calculator's UI font */
 }
 
 .moveHandle {

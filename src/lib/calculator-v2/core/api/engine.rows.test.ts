@@ -58,7 +58,7 @@ it("API-2, TH-10 a new row takes the next skin colour slot", () => {
   ]);
 });
 it("API-2 note, folder, image and text throw unsupported and change nothing (OI-23)", () => {
-  for (const type of ["note", "folder", "image", "text", "table"]) {
+  for (const type of ["note", "folder", "image", "text"]) {
     expect(() =>
       e.setExpressions([{ id: "ok", latex: "1" }, { id: "n", type } as unknown as ExpressionState])
     ).toThrow(expect.objectContaining({ code: "unsupported" }));
@@ -208,6 +208,7 @@ it("AR-45 the engine posts versioned plain hello and state messages with wire ro
           columns: null,
           hidden: false,
           sliderBounds: null,
+          logMode: false,
         },
       ],
       settings: { angleMode: "radians", complex: false },

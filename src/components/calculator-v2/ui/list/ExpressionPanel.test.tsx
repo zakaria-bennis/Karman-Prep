@@ -106,6 +106,7 @@ it("A11Y-2 the row limit, Clear all, Undo and Redo are announced through the sta
   const kit = renderEditor(<ExpressionPanel {...panelProps()} />, { rows });
   const user = userEvent.setup();
   await user.click(screen.getByRole("button", { name: "Add item" }));
+  await user.click(screen.getByRole("menuitem", { name: "Add expression" })); // S-2's menu
   expect(kit.engine.getSnapshot().rows).toHaveLength(MAX_ROWS);
   await user.click(screen.getByRole("button", { name: "Edit list" }));
   await user.click(screen.getByRole("button", { name: "Clear all expressions" }));

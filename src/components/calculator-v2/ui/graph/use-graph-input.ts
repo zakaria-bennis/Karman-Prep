@@ -22,6 +22,7 @@ import {
   type PinchState,
   type Point,
 } from "@/lib/calculator-v2/render/view-input";
+import type { Pointer } from "../controller/media";
 import type { GraphSize } from "./use-graph-size";
 
 type Ref = RefObject<HTMLElement | null>;
@@ -30,7 +31,23 @@ export type GraphInputOptions = {
   surface: Ref;
   engine: CalculatorEngine;
   size: GraphSize | null;
+  interaction?: GraphInteraction;
 };
+/**
+ * What the panel does with presses that are not pans (POI-13, POI-14, POI-17): a press that
+ * `claim` accepts traces once it moves CLICK_SLOP_PX (move and release follow it, the view stays
+ * put); any press released within CLICK_SLOP_PX of where it started is a click; anything that
+ * moves the view calls viewChanged.
+ */
+export interface GraphInteraction {
+  claim?(at: Point, pointer: Pointer): boolean;
+  move?(at: Point): void;
+  release?(): void;
+  click(at: Point, pointer: Pointer): void;
+  viewChanged(): void;
+}
+/** A press that moves less than this is a click, not a pan. */
+export const CLICK_SLOP_PX = 4;
 /** Applies `next(current view)` at once; false (and nothing done) when the size is unknown or it is null. */
 export type ApplyNow = (next: (view: ViewSpec) => Viewport | null) => boolean;
 export type GraphInput = { onKeyDown(e: KeyboardEvent): void; applyNow: ApplyNow };
@@ -40,12 +57,16 @@ type Gesture =
   | { kind: "drag"; id: number; start: ViewSpec; at: Point }
   | { kind: "pinch"; ids: [number, number]; start: ViewSpec; from: PinchState };
 
+type Press = { id: number; at: Point; pointer: Pointer; moved: boolean; claimed: boolean };
 type InputState = {
   pending: Viewport | null;
   frame: number | null;
   pointers: Map<number, Point>;
   gesture: Gesture | null;
+  press: Press | null;
 };
+
+const pointerOf = (e: PointerEvent): Pointer => (e.pointerType === "mouse" ? "fine" : "coarse");
 
 const pinchOf = (a: Point, b: Point): PinchState => ({
   mid: [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2],
@@ -53,16 +74,17 @@ const pinchOf = (a: Point, b: Point): PinchState => ({
 });
 
 export function useGraphInput(o: GraphInputOptions): GraphInput {
-  const { panel, surface, engine, size } = o;
+  const { panel, surface, engine, size, interaction } = o;
   const state = useRef<InputState>({
     pending: null,
     frame: null,
     pointers: new Map(),
     gesture: null,
+    press: null,
   });
-  const latest = useRef({ engine, size });
+  const latest = useRef({ engine, size, interaction });
   useLayoutEffect(() => {
-    latest.current = { engine, size };
+    latest.current = { engine, size, interaction };
   });
 
   /** The view every change builds on: the pending viewport, else the engine's; null while unsized. */
@@ -105,6 +127,7 @@ export function useGraphInput(o: GraphInputOptions): GraphInput {
       const viewport = next(view);
       if (viewport === null) return false;
       cancelPending();
+      latest.current.interaction?.viewChanged();
       latest.current.engine.setMathBounds(viewport);
       if (state.current.gesture !== null) anchor({ ...view, viewport });
       return true;
@@ -150,13 +173,41 @@ export function useGraphInput(o: GraphInputOptions): GraphInput {
       } catch {
         // synthetic pointers have no capture
       }
+      const at = position(e),
+        pointer = pointerOf(e),
+        hooks = latest.current.interaction;
+      s.pointers.set(e.pointerId, at);
+      if (s.pointers.size === 1) {
+        const claimed = hooks?.claim?.(at, pointer) === true;
+        s.press = { id: e.pointerId, at, pointer, moved: false, claimed };
+        if (claimed) {
+          s.gesture = null;
+          return;
+        }
+      } else if (s.press !== null) {
+        if (s.press.claimed) hooks?.release?.();
+        s.press = { ...s.press, moved: true, claimed: false };
+        hooks?.viewChanged();
+      }
       if (surface.current !== null) surface.current.dataset.dragging = "";
-      s.pointers.set(e.pointerId, position(e));
       anchor(view);
     };
     const onPointerMove = (e: PointerEvent): void => {
       if (latest.current.size === null || !s.pointers.has(e.pointerId)) return;
-      s.pointers.set(e.pointerId, position(e));
+      const at = position(e);
+      s.pointers.set(e.pointerId, at);
+      const press = s.press;
+      if (press !== null && press.id === e.pointerId) {
+        if (!press.moved) {
+          if (Math.hypot(at[0] - press.at[0], at[1] - press.at[1]) < CLICK_SLOP_PX) return;
+          press.moved = true;
+          if (!press.claimed) latest.current.interaction?.viewChanged();
+        }
+        if (press.claimed) {
+          latest.current.interaction?.move?.(at);
+          return;
+        }
+      }
       const g = s.gesture;
       if (g?.kind === "drag" && g.id === e.pointerId) {
         const at = s.pointers.get(g.id)!;
@@ -168,6 +219,13 @@ export function useGraphInput(o: GraphInputOptions): GraphInput {
     };
     const onPointerEnd = (e: PointerEvent): void => {
       if (latest.current.size === null || !s.pointers.delete(e.pointerId)) return;
+      const press = s.press;
+      if (press !== null && press.id === e.pointerId) {
+        s.press = null;
+        const hooks = latest.current.interaction;
+        if (press.claimed && press.moved) hooks?.release?.();
+        else if (!press.moved && e.type === "pointerup") hooks?.click(press.at, press.pointer);
+      }
       const view = currentView();
       if (view !== null) anchor(view);
       if (s.pointers.size === 0 && surface.current !== null)
@@ -177,6 +235,7 @@ export function useGraphInput(o: GraphInputOptions): GraphInput {
       const view = currentView();
       if (view === null) return;
       e.preventDefault();
+      latest.current.interaction?.viewChanged();
       schedule(wheelViewport(view, e.deltaY, e.deltaMode, position(e)));
     };
 
@@ -196,6 +255,7 @@ export function useGraphInput(o: GraphInputOptions): GraphInput {
       cancelPending();
       s.pointers.clear();
       s.gesture = null;
+      s.press = null;
     };
   }, [panel, surface, anchor, cancelPending, currentView]);
 

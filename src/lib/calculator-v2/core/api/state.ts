@@ -22,11 +22,19 @@ type Mutable<T> = { -readonly [K in keyof T]: T[K] };
 export function toWireRows(rows: readonly StoredRow[]): WireRow[] {
   return rows.map((row) => ({
     id: row.id,
-    type: "expression",
+    type: row.type === "table" ? "table" : "expression",
     latex: row.latex,
-    columns: null,
+    columns:
+      row.type === "table"
+        ? (row.columns ?? []).map((c) => ({
+            latex: c.latex,
+            values: [...c.values],
+            hidden: c.hidden,
+          }))
+        : null,
     hidden: row.hidden,
     sliderBounds: row.sliderBounds ? { ...row.sliderBounds } : null,
+    logMode: row.logMode === true,
   }));
 }
 
@@ -64,6 +72,23 @@ function mergeRow(base: StoredRow, state: ExpressionState): StoredRow {
   if (state.lineStyle !== undefined) merged.lineStyle = state.lineStyle;
   if (state.pointStyle !== undefined) merged.pointStyle = state.pointStyle;
   if (state.sliderBounds !== undefined) merged.sliderBounds = { ...state.sliderBounds };
+  if (state.type === "expression") {
+    delete merged.type;
+    delete merged.columns;
+  }
+  if (state.type === "table") merged.type = "table";
+  if (state.columns !== undefined) {
+    merged.columns = state.columns.map((c) => ({
+      latex: c.latex,
+      values: [...c.values],
+      color: c.color ?? base.color,
+      hidden: c.hidden ?? false,
+    }));
+  }
+  if (merged.type === "table") {
+    merged.latex = "";
+    merged.columns ??= [];
+  }
   return merged;
 }
 
@@ -105,11 +130,19 @@ export function rowsFromState(expressions: readonly ExpressionState[]): StoredRo
 export function toExpressionState(row: StoredRow): ExpressionState {
   const state: ExpressionState = {
     id: row.id,
-    type: "expression",
+    type: row.type === "table" ? "table" : "expression",
     latex: row.latex,
     color: row.color,
     hidden: row.hidden,
   };
+  if (row.type === "table") {
+    state.columns = (row.columns ?? []).map((c) => ({
+      latex: c.latex,
+      values: [...c.values],
+      color: c.color,
+      hidden: c.hidden,
+    }));
+  }
   if (row.lineStyle !== undefined) state.lineStyle = row.lineStyle;
   if (row.pointStyle !== undefined) state.pointStyle = row.pointStyle;
   if (row.sliderBounds !== undefined) state.sliderBounds = { ...row.sliderBounds };

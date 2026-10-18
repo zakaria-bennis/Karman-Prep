@@ -12,6 +12,7 @@ import {
   resolveSkinId,
 } from "./roles";
 import { SKIN_COLORS } from "./skin-colors.generated";
+import { SHADING_CAP_VAR } from "./vars";
 import { COLOR_ROLES, CURVE_SLOTS, SKIN_IDS, type SkinId, type SkinPalette } from "./skins";
 
 function pal(s: SkinId): SkinPalette {
@@ -155,8 +156,8 @@ it("TH-11 an explicit colour already at 5.85:1 is unchanged and shows no note", 
   expect(EXPLICIT_COLOUR_NOTE).toBe("Colour adjusted for contrast on this theme");
 });
 
-it("TH-3 hostThemeCss declares every role, curve and fill alpha of the skin on :host and nothing else", () => {
-  const { roles, curves, fillAlpha } = pal("sage");
+it("TH-3 hostThemeCss declares every role, curve and fill alpha and the shading cap of the skin on :host and nothing else", () => {
+  const { roles, curves, fillAlpha, shadingCap } = pal("sage");
   const css = hostThemeCss("sage");
   expect(css.startsWith(":host{")).toBe(true);
   expect(css.endsWith("}")).toBe(true);
@@ -164,10 +165,11 @@ it("TH-3 hostThemeCss declares every role, curve and fill alpha of the skin on :
     .slice(6, -1)
     .split(";")
     .map((decl) => decl.split(":"));
-  expect(entries).toHaveLength(29);
+  expect(entries).toHaveLength(30);
   expect(entries).toEqual([
     ...COLOR_ROLES.map((r) => [ROLE_VARS[r], roles[r]]),
     ...CURVE_SLOTS.map((k) => [CURVE_VARS[k], curves[k]]),
     ...CURVE_SLOTS.map((k) => [FILL_ALPHA_VARS[k], String(fillAlpha[k])]),
+    [SHADING_CAP_VAR, String(shadingCap)],
   ]);
 });

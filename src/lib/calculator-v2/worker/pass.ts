@@ -8,14 +8,23 @@ import {
   type AnalysisResult,
   type RowAnalysis,
 } from "../core/analysis/index";
-import { DeadlineExceeded, ROW_VALUE_DEADLINE_MS, type Deadline } from "../core/deadline";
+import {
+  DeadlineExceeded,
+  POI_DEADLINE_MS,
+  ROW_VALUE_DEADLINE_MS,
+  type Deadline,
+} from "../core/deadline";
 import { compileExpression, evaluateRows, type CompileScope } from "../core/eval/compile";
+import type { DataSink, TableResult } from "../core/data/evaluate";
 import { UNDEFINED, type Value } from "../core/eval/values";
 import { parseLatex, type ParseResult } from "../core/latex/index";
 import { buildCompileScope, plotInputFor } from "../plot/from-analysis";
 import { geometryTransferables } from "../plot/geometry";
 import { plotRow } from "../plot/index";
+import { plotTable } from "../plot/table";
+import { findRowPois } from "../poi/index";
 import type { ViewSpec } from "../plot/viewport";
+import type { RegressionOutcome } from "../core/data/evaluate-regression";
 import type { WireRow, WireSettings, WorkerToMain } from "./protocol";
 import { createWorkDeadline, type SliceClock } from "./slice";
 
@@ -46,6 +55,7 @@ export const DEFAULT_COMPUTE: ComputeFns = Object.freeze({
 export interface ValuesOutcome {
   analysis: AnalysisResult;
   values: ReadonlyMap<string, Value>;
+  tables: ReadonlyMap<string, TableResult>; // D-11, by table row id
   scope: CompileScope;
   overrun: ReadonlySet<string>;
 }
@@ -92,14 +102,24 @@ export function runValuesPass(
   ctx: PassContext,
   fns: ComputeFns = DEFAULT_COMPUTE
 ): ValuesOutcome {
-  const sources = rows.map(({ id, latex, hidden }) => ({ id, latex, hidden }));
+  const sources = rows.map(({ id, latex, hidden, columns, logMode }) =>
+    columns === null ? { id, latex, hidden, logMode } : { id, latex, hidden, columns }
+  );
   const full = fns.analyzeRows(sources, settings),
     overrun = new Set<string>();
   let analysis = full,
-    values: ReadonlyMap<string, Value> = new Map();
+    values: ReadonlyMap<string, Value> = new Map(),
+    tables = new Map<string, TableResult>(),
+    regressions = new Map<string, RegressionOutcome>();
   for (;;) {
     try {
-      values = fns.evaluateRows(analysis, settings, roundDeadlines(ctx, overrun));
+      tables = new Map();
+      regressions = new Map();
+      const sink: DataSink = {
+        table: (rowId, table) => tables.set(rowId, table),
+        regression: (rowId, result) => regressions.set(rowId, result),
+      };
+      values = fns.evaluateRows(analysis, settings, roundDeadlines(ctx, overrun), sink);
       break;
     } catch (thrown) {
       if (thrown instanceof DeadlineExceeded && thrown.rowId !== null) {
@@ -125,9 +145,14 @@ export function runValuesPass(
     } else {
       const value = values.get(rowId) ?? UNDEFINED;
       ctx.post({ v: 1, type: "value", generation, rowId, jobId: null, value });
+      const table = tables.get(rowId);
+      if (table !== undefined) ctx.post({ v: 1, type: "table", generation, rowId, table });
+      const result = regressions.get(rowId);
+      if (result !== undefined) ctx.post({ v: 1, type: "regression", generation, rowId, result });
     }
   }
-  return { analysis, values, scope: buildCompileScope(analysis, values, settings), overrun };
+  const scope = buildCompileScope(analysis, values, settings);
+  return { analysis, values, tables, scope, overrun };
 }
 
 /**
@@ -145,6 +170,13 @@ export function runPlot(
   if (outcome.overrun.has(row.id)) return;
   const { generation } = ctx,
     rowId = row.id;
+  if (row.kind === "table") {
+    const result = outcome.tables.get(rowId);
+    if (row.table === undefined || result === undefined) return;
+    const geometry = plotTable(rowId, row.table, result); // D-11
+    ctx.post({ v: 1, type: "plot", generation, rowId, geometry }, geometryTransferables(geometry));
+    return;
+  }
   try {
     const input = fns.plotInputFor(row, outcome.scope, outcome.values.get(rowId) ?? null);
     if (input === null) return;
@@ -192,4 +224,32 @@ export function runHelper(
   }
   const { generation } = ctx;
   ctx.post({ v: 1, type: "value", generation, rowId: null, jobId: job.jobId, value });
+}
+
+/**
+ * POI-1: the points of interest of the selected row in `view` under POI_DEADLINE_MS. A row that is
+ * not graphable (hidden, an error, chips) or overran posts an empty list, so its dots go; an
+ * expired deadline posts nothing; any other throw posts a fault (AR-54).
+ */
+export function runPoi(
+  rowId: string,
+  outcome: ValuesOutcome,
+  view: ViewSpec,
+  ctx: PassContext
+): void {
+  const { generation } = ctx;
+  try {
+    const deadline = createWorkDeadline({
+      clock: ctx.clock,
+      now: ctx.now,
+      limitMs: POI_DEADLINE_MS,
+      rowId,
+    });
+    const points = outcome.overrun.has(rowId)
+      ? []
+      : findRowPois(rowId, outcome.analysis, outcome.scope, view, deadline);
+    ctx.post({ v: 1, type: "poi", generation, rowId, points });
+  } catch (thrown) {
+    if (!(thrown instanceof DeadlineExceeded)) postFault(ctx, thrown);
+  }
 }

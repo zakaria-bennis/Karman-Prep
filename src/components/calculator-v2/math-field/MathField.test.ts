@@ -83,6 +83,16 @@ it("createMathField: Enter, Up, Down and Backspace or Delete at an edge raise th
   expect(vi.mocked(options.onDeleteOutOf).mock.calls).toEqual([["left"], ["right"]]);
   expect(field.latex()).toBe("x");
 });
+it("D-7 createMathField: Left at the start and Right at the end raise onMoveOutOf", () => {
+  const onMoveOutOf = vi.fn();
+  const { field } = mount({ onMoveOutOf });
+  field.latex("2");
+  field.keystroke("End");
+  field.keystroke("Right");
+  field.keystroke("Home");
+  field.keystroke("Left");
+  expect(onMoveOutOf.mock.calls).toEqual([["right"], ["left"]]);
+});
 it("createMathField: focus, blur and selection work through the adapter", () => {
   const { field, options, textarea } = mount();
   field.focus();

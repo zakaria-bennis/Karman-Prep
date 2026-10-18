@@ -6,7 +6,7 @@
 // fresh geometry arrives. Pure functions: GraphPanel holds the cache.
 
 import type { EngineSnapshot, RowView } from "@/lib/calculator-v2/core/api/engine";
-import type { Geometry, RegionGeometry } from "@/lib/calculator-v2/plot/geometry";
+import type { Geometry, TableGeometry, RegionGeometry } from "@/lib/calculator-v2/plot/geometry";
 import type { ViewSpec } from "@/lib/calculator-v2/plot/viewport";
 import { alignRegionSpans } from "@/lib/calculator-v2/render/shading";
 import type { RenderRow } from "@/lib/calculator-v2/render/types";
@@ -84,8 +84,62 @@ export function buildRenderRows(
     if (g === undefined) continue;
     const geometry =
       g.kind === "region" ? alignRegionSpans(g, entry?.source ?? current, current) : g;
+    if (geometry.kind === "table") {
+      rows.push(...tableRenderRows(row, geometry, skin, row.id === s.selectedRowId));
+      continue;
+    }
     const { hex, fillAlpha } = resolveRowColor(row.color, skin);
-    rows.push({ rowId: row.id, color: hex, fillAlpha, geometry });
+    rows.push({
+      rowId: row.id,
+      color: hex,
+      fillAlpha,
+      geometry,
+      selected: row.id === s.selectedRowId,
+    });
   }
   return rows;
+}
+
+/**
+ * D-11, D-12: a table's series as point rows in their columns' colours, each preceded by a curve
+ * through its points in row order when the column's lines are on.
+ */
+function tableRenderRows(
+  row: EngineSnapshot["rows"][number],
+  g: TableGeometry,
+  skin: SkinId,
+  selected: boolean
+): RenderRow[] {
+  const out: RenderRow[] = [];
+  for (const { column, coords } of g.series) {
+    const stored = row.columns?.[column];
+    if (stored === undefined) continue;
+    const { hex, fillAlpha } = resolveRowColor(stored.color, skin);
+    if (stored.lines === true) {
+      out.push({
+        rowId: row.id,
+        color: hex,
+        fillAlpha,
+        selected,
+        geometry: {
+          kind: "curve",
+          rowId: row.id,
+          evaluations: 0,
+          polylines: coords,
+          bands: new Float64Array(0),
+          dashed: stored.lineStyle === "dashed",
+        },
+        lineStyle: stored.lineStyle,
+      });
+    }
+    out.push({
+      rowId: row.id,
+      color: hex,
+      fillAlpha,
+      selected,
+      geometry: { kind: "points", rowId: row.id, evaluations: 0, coords },
+      pointStyle: stored.pointStyle,
+    });
+  }
+  return out;
 }

@@ -30,7 +30,7 @@ const x = (
 
 const cases: CorpusCase[] = [
   { id: `${FILE}-1`, rules: ["RC-2"], input: { latex: "" }, kind: "empty" },
-  x(2, ["RC-2"], "y_{1}\\sim mx_{1}+b", "unsupported"),
+  k(2, ["RC-2", "PR-30"], "y_{1}\\sim mx_{1}+b", "regression"),
   k(3, ["RC-2"], "3+4", "value"),
   k(4, ["RC-1"], "A+a", "value", ["a"], { rows: ["A=3"] }),
   k(5, ["RC-1"], "A+a", "value", [], { rows: ["A=3", "a=4"] }),

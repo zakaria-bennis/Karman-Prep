@@ -97,7 +97,13 @@ test("AR-59 closing and reopening within a question keeps rows, history, setting
   await trigger(page).click();
   await expect(rowItem(page)).toBeVisible();
   const after = await snapshot(page);
-  expect(after.state).toEqual(before.state);
+  // L-4 opens docked; reopening the dock measures the graph again, which may move a bound by one
+  // floating-point step, so the viewport is compared to 12 significant digits.
+  const { viewport: was, ...restBefore } = before.state;
+  const { viewport: now, ...restAfter } = after.state;
+  expect(restAfter).toEqual(restBefore);
+  for (const side of ["left", "right", "bottom", "top"] as const)
+    expect(now[side]).toBeCloseTo(was[side], 12);
   expect(after.canUndo).toBe(true);
 });
 

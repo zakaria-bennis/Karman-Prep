@@ -274,6 +274,7 @@ export async function instantMotion(page: Page): Promise<InstantMotion> {
 
   const before = new Set((await rows(page)).map((r) => r.id));
   await page.getByRole("button", { name: "Add item" }).click();
+  await page.getByRole("menuitem", { name: "Add expression" }).click(); // S-2's menu
   await frames(page, 1);
   const added = (await rows(page)).find((r) => !before.has(r.id))!;
   const row = page.locator(`#calc [data-row-id="${added.id}"]`);

@@ -5,17 +5,26 @@ import type { RowError } from "../core/analysis";
 import type { RowKind } from "../core/corpus/types";
 import type { Value } from "../core/eval/values";
 import type { Geometry } from "../plot/geometry";
+import type { TableResult } from "../core/data/evaluate";
+import type { RegressionOutcome } from "../core/data/evaluate-regression";
+import type { PoiPoint } from "../poi/types";
 import type { PixelSize, Viewport } from "../plot/viewport";
 
 export const PROTOCOL_VERSION = 1;
 export const WORKER_MARKER = "karman-compute-v1"; // OI-29: finds the worker code in build output
 export interface WireRow {
   id: string;
-  type: "expression"; // "table" from Phase 3
-  latex: string;
-  columns: null; // Phase 3
+  type: "expression" | "table"; // D-1
+  latex: string; // "" for a table
+  columns: WireColumn[] | null; // a table's columns; null for an expression
   hidden: boolean;
   sliderBounds: { min: string; max: string; step: string } | null;
+  logMode: boolean; // D-30: a regression row's Log mode checkbox
+}
+export interface WireColumn {
+  latex: string;
+  values: string[];
+  hidden: boolean;
 }
 export interface WireSettings {
   angleMode: "radians" | "degrees";
@@ -38,6 +47,7 @@ export type MainToWorker =
     }
   | { v: 1; type: "view"; generation: number; viewport: Viewport; size: PixelSize; dpr: number }
   | { v: 1; type: "evaluate"; jobId: number; generation: number; latex: string } // HelperExpression
+  | { v: 1; type: "select"; rowId: string | null } // POI-1: the row whose points of interest to find
   | { v: 1; type: "dispose" };
 export type WorkerToMain =
   | { v: 1; type: "ready"; worker: typeof WORKER_MARKER }
@@ -52,8 +62,9 @@ export type WorkerToMain =
       value: Value;
     }
   | { v: 1; type: "plot"; generation: number; rowId: string; geometry: Geometry }
-  | { v: 1; type: "regression"; generation: number; rowId: string } // reserved; never sent before Phase 3
-  | { v: 1; type: "poi"; generation: number; rowId: string } // reserved; never sent before Phase 2
+  | { v: 1; type: "regression"; generation: number; rowId: string; result: RegressionOutcome } // D-22
+  | { v: 1; type: "poi"; generation: number; rowId: string; points: PoiPoint[] } // POI-1
+  | { v: 1; type: "table"; generation: number; rowId: string; table: TableResult } // D-11
   | { v: 1; type: "overrun"; generation: number; rowId: string } // AR-48 deadline or AR-49 watchdog
   | { v: 1; type: "heartbeat"; generation: number }
   | { v: 1; type: "done"; generation: number }
@@ -87,11 +98,22 @@ function isWireAnalysis(x: unknown): boolean {
 function isWireRow(x: unknown): boolean {
   if (!isRecord(x)) return false;
   const b = x.sliderBounds;
+  const columns = x.columns;
+  const tableColumns =
+    Array.isArray(columns) &&
+    columns.every(
+      (c) =>
+        isRecord(c) &&
+        isString(c.latex) &&
+        Array.isArray(c.values) &&
+        c.values.every(isString) &&
+        typeof c.hidden === "boolean"
+    );
   return (
     isString(x.id) &&
-    x.type === "expression" &&
+    ((x.type === "expression" && columns === null) || (x.type === "table" && tableColumns)) &&
     isString(x.latex) &&
-    x.columns === null &&
+    typeof x.logMode === "boolean" &&
     typeof x.hidden === "boolean" &&
     (b === null || (isRecord(b) && isString(b.min) && isString(b.max) && isString(b.step)))
   );
@@ -112,9 +134,30 @@ export function isWorkerMessage(data: unknown): data is WorkerToMain {
   switch (m.type) {
     case "ready":
       return m.worker === WORKER_MARKER;
-    case "begin":
-    case "regression":
     case "poi":
+      return (
+        isNumber(m.generation) &&
+        isString(m.rowId) &&
+        Array.isArray(m.points) &&
+        m.points.every((p) => hasNumbers(p, ["x", "y"]) && Array.isArray((p as Fields).kinds))
+      );
+    case "table":
+      return (
+        isNumber(m.generation) &&
+        isString(m.rowId) &&
+        isRecord(m.table) &&
+        Array.isArray(m.table.columns)
+      );
+    case "regression":
+      return (
+        isNumber(m.generation) &&
+        isString(m.rowId) &&
+        isRecord(m.result) &&
+        typeof m.result.ok === "boolean" &&
+        Array.isArray(m.result.params) &&
+        Array.isArray(m.result.residuals)
+      );
+    case "begin":
     case "overrun":
       return isNumber(m.generation) && isString(m.rowId);
     case "analysis":
@@ -163,6 +206,8 @@ export function isMainMessage(data: unknown): data is MainToWorker {
       );
     case "evaluate":
       return isNumber(m.jobId) && isNumber(m.generation) && isString(m.latex);
+    case "select":
+      return m.rowId === null || isString(m.rowId);
     case "dispose":
       return true;
     default:
