@@ -36,16 +36,17 @@ export function checkReleaseEnvironment(env) {
 
   try {
     const url = new URL(env.NEXT_PUBLIC_SUPABASE_URL);
-    const payload = JSON.parse(
-      Buffer.from(env.NEXT_PUBLIC_SUPABASE_ANON_KEY.split(".")[1], "base64url").toString()
-    );
-    if (
-      url.protocol !== "https:" ||
-      !url.hostname.endsWith(".supabase.co") ||
-      payload.role !== "anon" ||
-      payload.ref !== url.hostname.split(".")[0]
-    )
-      problems.push("Supabase public URL and anon key must identify the same project");
+    const key = env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    const hosted = url.protocol === "https:" && url.hostname.endsWith(".supabase.co");
+    if (/^sb_publishable_[A-Za-z0-9_-]+$/.test(key)) {
+      // Supabase's newer publishable keys are opaque: no role or project reference inside, so
+      // only the URL can be checked (the secret counterpart is sb_secret_, rejected below).
+      if (!hosted) problems.push("Supabase public URL must be the project's https supabase.co URL");
+    } else {
+      const payload = JSON.parse(Buffer.from(key.split(".")[1], "base64url").toString());
+      if (!hosted || payload.role !== "anon" || payload.ref !== url.hostname.split(".")[0])
+        problems.push("Supabase public URL and anon key must identify the same project");
+    }
   } catch {
     problems.push("Supabase public URL or anon key is malformed");
   }
