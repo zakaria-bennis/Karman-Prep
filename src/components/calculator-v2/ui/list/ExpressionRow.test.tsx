@@ -103,3 +103,24 @@ it("T-11 a row calls setInputMode none while keypadOpen and text after the keypa
   fireEvent.click(screen.getByRole("button", { name: "Test close keypad" })); // rerender with keypadOpen false
   expect(modes().at(-1)).toEqual({ method: "setInputMode", arg: "text" });
 });
+
+it("R-1 clicking a row body focuses its field", async () => {
+  const kit = renderEditor(<ExpressionPanel {...panelProps()} />, { rows: ["y=2x", "y=x"] });
+  const user = userEvent.setup();
+  const field = kit.fields.forRow("1");
+  field.calls = [];
+  await user.click(rowItem("1").querySelector(".kc-row-number")!); // the gutter number
+  expect(fieldTextbox(field)).toHaveFocus();
+  expect(field.calls).toEqual([
+    { method: "focus", arg: undefined },
+    { method: "keystroke", arg: "Ctrl-End" },
+  ]);
+  expect(rowItem("1")).toHaveAttribute("data-focused", "true");
+  await user.click(rowItem("2").querySelector(".kc-row-main")!); // the space beside the field
+  expect(fieldTextbox(kit.fields.forRow("2"))).toHaveFocus();
+  // Row controls keep their own action and do not move focus into the field.
+  const second = kit.fields.forRow("2");
+  second.calls = [];
+  await user.click(screen.getByRole("button", { name: "Hide expression 2" }));
+  expect(second.calls.filter((c) => c.method === "focus")).toEqual([]);
+});
