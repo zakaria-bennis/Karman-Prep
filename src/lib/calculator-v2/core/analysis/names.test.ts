@@ -101,3 +101,13 @@ it("PR-30, PR-34, NM-30, NM-31, NM-37, G-22 a half-typed regression and deferred
     "You need something on both sides of the '∼' symbol.",
   ]);
 });
+
+it("NM-34, NM-35, NM-36, NM-32 list errors use their exact copy", () => {
+  const table: [RowErrorCode, string[], string][] = [
+    ["nested-list", [], "Cannot store a list of numbers in a list."],
+    ["list-too-long", [], "A list can have at most 10,000 elements."],
+    ["range-step", [], "A range can't step by 0. Make its first two values different."],
+    ["list-mixed", [], "A list can't mix numbers and points."],
+  ];
+  for (const [code, names, text] of table) expect(rowErrorMessage(code, names)).toBe(text);
+});

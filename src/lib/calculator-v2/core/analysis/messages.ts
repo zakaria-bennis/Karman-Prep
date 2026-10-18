@@ -74,6 +74,10 @@ const MESSAGES: Readonly<Record<RowErrorCode, string>> = {
   "regression-predictor": "Use the table column, such as x₁, not x.",
   "regression-params": "A regression can fit at most 8 parameters.",
   "regression-fit": "We couldn't find any region where this model is defined.",
+  "nested-list": "Cannot store a list of numbers in a list.",
+  "list-too-long": "A list can have at most 10,000 elements.",
+  "range-step": "A range can't step by 0. Make its first two values different.",
+  "list-mixed": "A list can't mix numbers and points.",
 };
 /** RC-2, Phase 1: `unsupported` naming r or θ, whose polar graphs ship in Phase 2. */
 const POLAR_UNSUPPORTED = "{n} is for polar graphs, which aren't available yet.";

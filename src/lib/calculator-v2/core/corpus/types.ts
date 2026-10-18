@@ -35,7 +35,11 @@ export type RowErrorCode =
   | "regression-data" // D-22
   | "regression-predictor" // D-22
   | "regression-params" // D-22
-  | "regression-fit"; // D-24
+  | "regression-fit" // D-24
+  | "nested-list" // NM-34
+  | "list-too-long" // NM-35, NM-42
+  | "range-step" // NM-36
+  | "list-mixed"; // PR-34: numbers and points in one list
 export interface CorpusSettings {
   angleMode?: "radians" | "degrees";
   complex?: boolean;

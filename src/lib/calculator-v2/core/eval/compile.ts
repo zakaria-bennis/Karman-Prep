@@ -32,6 +32,16 @@ import {
   subV,
   toPlotNumber,
 } from "./ops";
+import {
+  ListError,
+  listErrorValue,
+  makeList,
+  map1,
+  map2,
+  mapN,
+  pointValue,
+  rangeValue,
+} from "./lists";
 import { exponentRational } from "./real-pow";
 import { complexValue, numberValue, UNDEFINED, type Value } from "./values";
 
@@ -74,10 +84,22 @@ const hasOwn = (vars: Readonly<Record<string, Value>>, name: string) =>
  * degree path (NM-27). A user call binds its parameters over the caller's `vars`, calls
  * `deadline.check()`, and is UNDEFINED past MAX_CALL_DEPTH nested calls or when the name has no
  * `scope.functions` entry (a head with an error). 04 decision 6: a `rel` node is n(1) when every
- * link holds between real operands, else UNDEFINED.
+ * link holds between real operands, else UNDEFINED. NM-32, NM-33: operators and built-ins apply
+ * element by element with scalar broadcast, truncating to the shorter list, and a user function
+ * takes a list argument whole, so its body broadcasts. A list error (NM-34 to NM-36) makes the
+ * whole result an undefined value carrying its code; the closure never throws it (AR-54).
  */
 export function compileExpression(tree: Node, scope: CompileScope): Compiled {
-  return compileNode(tree, { scope, functions: new Map(), depth: 0 });
+  const root = compileNode(tree, { scope, functions: new Map(), depth: 0 });
+  // NM-34 to NM-36: a list error anywhere below is the root's value, an undefined that names it.
+  return (vars, deadline) => {
+    try {
+      return root(vars, deadline);
+    } catch (error) {
+      if (error instanceof ListError) return listErrorValue(error.code);
+      throw error;
+    }
+  };
 }
 
 function constant(v: Value): Compiled {
@@ -116,29 +138,30 @@ function compileNode(node: Node, ctx: Context): Compiled {
     case "root": {
       const arg = compileNode(node.arg, ctx),
         index = node.index === null ? null : compileNode(node.index, ctx);
+      if (index === null)
+        return (vars, deadline) => map1(arg(vars, deadline), (a) => rootV(a, null, complex));
       return (vars, deadline) =>
-        rootV(arg(vars, deadline), index === null ? null : index(vars, deadline), complex);
+        map2(arg(vars, deadline), index(vars, deadline), (a, k) => rootV(a, k, complex));
     }
     case "call":
       return call(node, ctx);
     case "list": {
-      // D-11: a table column; each element evaluates on its own
+      // PR-34, NM-36: a literal (or a D-11 table column) or a range; each item evaluates on its own
       const items = node.items.map((item) => compileNode(item, ctx));
-      return (vars, deadline) => ({
-        type: "list",
-        value: items.map((item) => item(vars, deadline)),
-      });
+      if (node.range !== true) {
+        return (vars, deadline) => makeList(items.map((item) => item(vars, deadline)));
+      }
+      const [from, second, to] = items.length === 2 ? [items[0], null, items[1]] : items;
+      return (vars, deadline) =>
+        rangeValue(from(vars, deadline), second?.(vars, deadline) ?? null, to(vars, deadline));
     }
     case "sim": // D-2: a regression row is fitted by the values pass, never compiled
       return constant(UNDEFINED);
     case "point": {
-      // 04 decision 7: an undefined or non-real coordinate is stored as NaN.
+      // 04 decision 7: an undefined or non-real coordinate is stored as NaN; G-3: list parts pair up.
       const x = compileNode(node.x, ctx),
         y = compileNode(node.y, ctx);
-      return (vars, deadline) => ({
-        type: "point",
-        value: [toPlotNumber(x(vars, deadline)), toPlotNumber(y(vars, deadline))],
-      });
+      return (vars, deadline) => pointValue(x(vars, deadline), y(vars, deadline));
     }
     case "rel": {
       const operands = node.operands.map((operand) => compileNode(operand, ctx)),
@@ -154,15 +177,17 @@ function compileNode(node: Node, ctx: Context): Compiled {
   }
 }
 
+/** NM-32: a one-operand operator, element by element on a list. */
 function unary(argNode: Node, ctx: Context, op: (a: Value) => Value): Compiled {
   const arg = compileNode(argNode, ctx);
-  return (vars, deadline) => op(arg(vars, deadline));
+  return (vars, deadline) => map1(arg(vars, deadline), op);
 }
 
+/** NM-32, NM-33: a two-operand operator with scalar broadcast and truncation to the shorter list. */
 function binary(node: Binary, ctx: Context, op: (a: Value, b: Value) => Value): Compiled {
   const a = compileNode(node.left, ctx),
     b = compileNode(node.right, ctx);
-  return (vars, deadline) => op(a(vars, deadline), b(vars, deadline));
+  return (vars, deadline) => map2(a(vars, deadline), b(vars, deadline), op);
 }
 
 /** a^b by powV with the exponent's tree rational fixed here (NM-10, NM-19); e^B is exp(B). */
@@ -174,7 +199,8 @@ function power(node: Binary, ctx: Context): Compiled {
     b = compileNode(node.right, ctx),
     rational = exponentRational(node.right),
     { complex } = ctx.scope.settings;
-  return (vars, deadline) => powV(a(vars, deadline), b(vars, deadline), rational, complex);
+  return (vars, deadline) =>
+    map2(a(vars, deadline), b(vars, deadline), (x, y) => powV(x, y, rational, complex));
 }
 
 function call(node: Call, ctx: Context): Compiled {
@@ -198,21 +224,19 @@ function builtinCall(name: string, argNodes: readonly Node[], ctx: Context): Com
     degrees = degreeArgument(name, argNodes);
   if (degrees !== null) {
     const angle = compileNode(degrees, ctx);
-    return (vars, deadline) => {
-      const a = angle(vars, deadline);
-      if (a.type === "number") {
-        return numberValue(circular(name as CircularName, a.value, "degrees"));
-      }
-      return applyBuiltin(name, [degV(a, angleMode)], angleMode, complex);
-    };
+    return (vars, deadline) =>
+      map1(angle(vars, deadline), (a) =>
+        a.type === "number"
+          ? numberValue(circular(name as CircularName, a.value, "degrees"))
+          : applyBuiltin(name, [degV(a, angleMode)], angleMode, complex)
+      );
   }
+  // NM-32: built-ins apply element by element; no list-taking built-in has shipped (FN-).
   const args = argNodes.map((arg) => compileNode(arg, ctx));
   return (vars, deadline) =>
-    applyBuiltin(
-      name,
+    mapN(
       args.map((arg) => arg(vars, deadline)),
-      angleMode,
-      complex
+      (values) => applyBuiltin(name, values, angleMode, complex)
     );
 }
 
@@ -363,7 +387,8 @@ export function evaluateRows(
     if (row === undefined || body === null || row.defines === null) continue;
     if (!evaluable(row, ["definition"])) continue;
     const v = evaluate(id, body);
-    if (v !== null) values.set(row.defines.name, v);
+    // A list error stays on its own row (R-2); rows that use the name read it as undefined.
+    if (v !== null) values.set(row.defines.name, v.type === "undefined" ? UNDEFINED : v);
   }
   for (const row of analysis.rows) {
     if (evaluable(row, ["value", "point"]) && row.tree !== null) evaluate(row.id, row.tree);

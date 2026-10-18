@@ -7,12 +7,15 @@ export interface Complex {
   im: number;
 }
 
+/** The run-time list errors (NM-34 to NM-36) an undefined value can carry to its row (R-2). */
+export type ListErrorCode = "nested-list" | "list-too-long" | "range-step" | "list-mixed";
+
 export type Value =
   | { type: "number"; value: number }
   | { type: "complex"; value: Complex }
   | { type: "point"; value: [number, number] }
-  | { type: "list"; value: Value[] } // produced from Phase 2
-  | { type: "undefined" };
+  | { type: "list"; value: Value[] } // PR-34: numbers, complex values or points; never lists
+  | { type: "undefined"; error?: ListErrorCode }; // `error`: the row's value failed with that error
 
 export const UNDEFINED: Value = Object.freeze({ type: "undefined" as const });
 

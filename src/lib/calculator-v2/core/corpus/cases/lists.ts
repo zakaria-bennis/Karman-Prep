@@ -10,6 +10,14 @@ const t = (n: number, rules: string[], latex: string, tree: string): CorpusCase 
   input: { latex },
   tree,
 });
+/** A row whose value formatValue shows as `display`. */
+const d = (
+  n: number,
+  rules: string[],
+  latex: string,
+  display: string,
+  context: Context = {}
+): CorpusCase => ({ id: `${FILE}-${n}`, rules, input: { latex }, ...context, display });
 /** A row whose parse or row error is `error`. */
 const x = (
   n: number,
@@ -42,5 +50,21 @@ const cases: CorpusCase[] = [
   x(15, ["PR-34", "NM-37"], "[n^{2}\\operatorname{for}n=[1...5]]", "unsupported"),
   x(16, ["PR-30"], "y_{1}\\sim", "sim-side"),
   x(17, ["PR-30"], "\\sim x_{1}", "sim-side"),
+  d(18, ["NM-32"], "[1,2,3]+1", "[2, 3, 4]"),
+  d(19, ["NM-32"], "2[1,2,3]", "[2, 4, 6]"),
+  d(20, ["NM-32"], "[1,2,3]^{2}", "[1, 4, 9]"),
+  d(21, ["NM-32"], "\\sqrt{[4,9,16]}", "[2, 3, 4]"),
+  d(22, ["NM-32"], "f(L)", "[2, 5, 10]", { rows: ["f(a)=a^{2}+1", "L=[1,2,3]"] }),
+  d(23, ["NM-33"], "[1,2,3]+[10,20]", "[11, 22]"),
+  d(24, ["NM-33", "G-3"], "(L_{1},L_{2})", "[(1, 4), (2, 5)]", {
+    rows: ["L_{1}=[1,2,3]", "L_{2}=[4,5]"],
+  }),
+  d(25, ["NM-36"], "[0,0.1,...,1]", "[0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]"),
+  d(26, ["NM-36"], "[10...1]", "[10, 9, 8, 7, 6, 5, 4, 3, 2, 1]"),
+  d(27, ["NM-36"], "[1...10.5]", "[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]"),
+  d(28, ["NM-36"], "[1,3,...,10]", "[1, 3, 5, 7, 9]"),
+  d(29, ["NM-36"], "[1,2,...,0]", "[]"),
+  d(30, ["NM-38"], "[1...40]", `[${Array.from({ length: 30 }, (_, k) => k + 1).join(", ")}, …]`),
+  d(31, ["RC-6"], "x_{1}=[1...5]", "[1, 2, 3, 4, 5]"),
 ];
 export default cases;
