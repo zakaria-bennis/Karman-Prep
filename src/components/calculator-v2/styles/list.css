@@ -138,6 +138,17 @@
   min-height: 32px;
 }
 
+/* L-3: a row's field draws no box, focused or not; the row's L-3 bar and outline are its focus
+   indicator (TH-14), and the row's own rules bound it (TH-1). Role-safe values that beat
+   math-field.css's role borders by specificity. */
+.kc-row-field .kc-math-field.mq-editable-field,
+.kc-row-field .kc-math-field.mq-editable-field.mq-focused {
+  border-style: none;
+  border-color: transparent;
+  box-shadow: none;
+  outline: none;
+}
+
 /* A long row keeps to its column so MathQuill's root block scrolls to the caret. */
 .kc-row-field > .kc-math-field {
   flex: 1 1 auto;

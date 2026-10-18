@@ -26,8 +26,13 @@
   font-size: var(--kc-size-ui);
 }
 
-/* AN-1: hidden, the keypad stays mounted below its open position (the slide is at the end). */
+/* AN-1: hidden, the keypad stays mounted below its open position (the slide is at the end). It
+   leaves the flow, so the keypad grid row collapses and the graph and list take the calculator's
+   whole height (L-1, L-2); .kc-app clips the tray below its bottom edge. */
 .kc-keypad[data-open="false"] {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
   transform: translateY(100%);
   visibility: hidden;
 }

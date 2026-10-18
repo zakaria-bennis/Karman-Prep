@@ -108,6 +108,7 @@ textarea {
 }
 .kc-keypad-region {
   grid-area: keypad;
+  position: relative;
   min-width: 0;
 }
 /* L-14: the keypad sits in flow below the list, so the list's scroll box ends at its top edge;
