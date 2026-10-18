@@ -113,7 +113,10 @@ const touch = (page: Page, type: string, id: number, x: number, y: number) =>
 
 /** Drags from the graph's centre by (dx, dy): the mouse on desktop, touch pointer 1 on mobile. */
 async function drag(page: Page, isMobile: boolean, dx: number, dy: number): Promise<void> {
-  const { cx, cy } = await layersBox(page);
+  // Start on empty paper (world (−6, 4.5) in the default view): a press on a curve traces (POI-14).
+  const box = await layersBox(page);
+  const cx = box.cx - 0.3 * box.width,
+    cy = box.cy - 0.3 * box.height;
   if (isMobile) {
     await touch(page, "pointerdown", 1, cx, cy);
     await touch(page, "pointermove", 1, cx + dx, cy + dy);
