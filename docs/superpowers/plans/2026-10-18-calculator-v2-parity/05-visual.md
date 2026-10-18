@@ -37,6 +37,19 @@ when focused; the window title in Arial.
 
 ---
 
+### Outcome of Task 1 (held for the founder, 2026-10-18)
+
+Task 1 was not shipped. A search over the OKLCH grid with the hue windows above, chroma limits
+and one 0.10-wide lightness band found no palette that meets TH-7's 0.08 ΔE_OK floor under the
+three colour-vision simulations: the best minimum was 0.012 to 0.046 on dark skins and 0.03 to
+0.07 on light skins (red, orange and green collapse under deutan and protan simulation inside one
+lightness band). Widening the band to 0.25 reached 0.08 only on some light skins, and only with
+near-black curves. Under normal vision alone the windows give calm colours with a minimum of
+0.13 to 0.16 (for example #fd8993, #43befd, #68ca80, #c499f9, grey and #e9a03e on Observatory).
+Shipping that would drop the colour-blind guarantee, so the TH-6 palette stays as it is until the
+founder chooses: keep TH-7 under simulation (current palette), or measure TH-7 under normal vision
+only and take the Desmos-feel palette. Tasks 2 to 4 shipped.
+
 ### Task 1: The curve palette (TH-6, TH-7)
 
 **Files:** modify `theme/derive.ts`, `theme/targets.ts`, `scripts/calculator-v2/generate-skin-colors.ts`
