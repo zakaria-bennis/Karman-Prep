@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Ban } from "lucide-react";
 import { CalculatorChoiceAction } from "@/components/calculator/CalculatorSourceAction";
+import { useCalculator } from "@/components/calculator/CalculatorScope";
 import styles from "../quiz/workspace.module.css";
 import type { StudentQuizQuestion } from "@/types/quiz";
 import MathText from "../MathText";
@@ -27,6 +28,12 @@ export default function CatalogQuestion({
   onAnswer: (answer: string) => void;
 }) {
   const [crossed, setCrossed] = useState<Record<string, boolean>>({});
+  // AR-11: on v2 each text choice's tool cluster also holds its Transfer control (14).
+  const v2 = useCalculator()?.version === "v2";
+  const stem = useMemo(
+    () => ({ text: q.question_text, serializedFunctionLines: q.subject === "math" }),
+    [q.question_text, q.subject]
+  );
   const geometry =
     q.figure_kind === "geometric" &&
     q.figure_geometry_data &&
@@ -137,6 +144,7 @@ export default function CatalogQuestion({
                     <QuestionTable
                       calculator={q.subject === "math"}
                       data={choice.choice_table_data}
+                      calculatorItemId={`choice:${choice.letter}`}
                       ariaLabel={`Choice ${choice.letter} data table`}
                       className="max-w-full"
                     />
@@ -144,7 +152,7 @@ export default function CatalogQuestion({
                 ) : (
                   <div className="group relative" key={choice.id}>
                     <label
-                      className={`flex min-h-11 min-w-0 items-start gap-3 rounded-xl border p-4 pr-14 ${crossed[`${q.id}:${choice.letter}`] ? "line-through opacity-50" : ""} ${answer === choice.letter ? "border-info bg-info/10" : "border-bronze bg-surface"}`}
+                      className={`flex min-h-11 min-w-0 items-start gap-3 rounded-xl border p-4 ${v2 ? "pr-24" : "pr-14"} ${crossed[`${q.id}:${choice.letter}`] ? "line-through opacity-50" : ""} ${answer === choice.letter ? "border-info bg-info/10" : "border-bronze bg-surface"}`}
                     >
                       <input
                         type="radio"
@@ -163,7 +171,10 @@ export default function CatalogQuestion({
                         serializedFunctionLines={q.subject === "math"}
                       />
                     </label>
-                    <div className={`${styles.choiceTools} absolute right-1 top-1`}>
+                    <div
+                      className={`${styles.choiceTools} absolute right-1 top-1`}
+                      data-calculator={v2 ? "v2" : undefined}
+                    >
                       <button
                         type="button"
                         aria-label={
@@ -181,6 +192,14 @@ export default function CatalogQuestion({
                       >
                         <Ban size={18} />
                       </button>
+                      {q.subject === "math" && (
+                        <CalculatorChoiceAction
+                          slot="cluster"
+                          text={choice.choice_text}
+                          letter={choice.letter}
+                          stem={stem}
+                        />
+                      )}
                     </div>
                     {q.subject === "math" && (
                       <CalculatorChoiceAction text={choice.choice_text} letter={choice.letter} />

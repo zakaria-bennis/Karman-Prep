@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, BookOpen, Calculator } from "lucide-react";
 import { actionReviewDailyAnswer } from "@/app/learn/daily-challenge-actions";
@@ -14,6 +14,11 @@ import ChartFigure from "./ChartFigure";
 import GeometryFigure from "./GeometryFigure";
 import FigureFrame from "./FigureFrame";
 import { CalculatorScope, CalculatorTrigger } from "@/components/calculator/CalculatorScope";
+import {
+  CalculatorChoiceAction,
+  CalculatorTableAction,
+} from "@/components/calculator/CalculatorSourceAction";
+import { useCalculatorVersion } from "@/components/calculator/CalculatorVersion";
 import { makeQuestionKey } from "@/components/calculator/question-key";
 import { LEARN_HEADER_CLEARANCE } from "@/components/learn/learn-header";
 import { buildGeometrySvg } from "@/lib/figures/geometry-svg";
@@ -97,6 +102,12 @@ function DailyQuestion({ value }: { value: Extract<DailySlot, { state: "ready" }
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showExplanation, setShowExplanation] = useState(false);
+  const v2Choices = useCalculatorVersion() === "v2" && subject === "math";
+  const clusterPadding = v2Choices ? " pr-14" : ""; // v1 keeps its exact class string
+  const stem = useMemo(
+    () => ({ text: q.question_text, serializedFunctionLines: true }),
+    [q.question_text]
+  );
 
   async function submitAnswer() {
     if (pending || review || !answer.trim()) return;
@@ -153,38 +164,67 @@ function DailyQuestion({ value }: { value: Extract<DailySlot, { state: "ready" }
               <div className="space-y-2">
                 {[...q.answer_choices]
                   .sort((left, right) => left.letter.localeCompare(right.letter))
-                  .map((choice) => (
-                    <label
-                      key={choice.id}
-                      className={`block cursor-pointer rounded-lg border p-3 focus-within:ring-2 focus-within:ring-gold ${answer === choice.letter ? "border-gold bg-gold/10" : "border-bronze bg-night"}`}
-                    >
-                      <span className="flex items-start gap-3">
-                        <input
-                          type="radio"
-                          name={`daily-${subject}-${q.id}`}
-                          value={choice.letter}
-                          checked={answer === choice.letter}
-                          onChange={() => setAnswer(choice.letter)}
-                          className="mt-1 accent-gold"
-                        />
-                        <span className="min-w-0 flex-1 text-sm leading-relaxed text-ivory">
-                          <span className="mr-2 font-semibold">{choice.letter}.</span>
+                  .map((choice) => {
+                    const label = (
+                      <label
+                        key={choice.id}
+                        className={`block cursor-pointer rounded-lg border p-3 focus-within:ring-2 focus-within:ring-gold ${answer === choice.letter ? "border-gold bg-gold/10" : "border-bronze bg-night"}${clusterPadding}`}
+                      >
+                        <span className="flex items-start gap-3">
+                          <input
+                            type="radio"
+                            name={`daily-${subject}-${q.id}`}
+                            value={choice.letter}
+                            checked={answer === choice.letter}
+                            onChange={() => setAnswer(choice.letter)}
+                            className="mt-1 accent-gold"
+                          />
+                          <span className="min-w-0 flex-1 text-sm leading-relaxed text-ivory">
+                            <span className="mr-2 font-semibold">{choice.letter}.</span>
+                            {choice.choice_table_data ? (
+                              <QuestionTable
+                                data={choice.choice_table_data}
+                                ariaLabel={`Choice ${choice.letter} data table`}
+                                className="mt-2 max-w-full"
+                              />
+                            ) : (
+                              <MathText
+                                text={choice.choice_text}
+                                serializedFunctionLines={subject === "math"}
+                              />
+                            )}
+                          </span>
+                        </span>
+                      </label>
+                    );
+                    if (!v2Choices) return label;
+                    // AR-11: the v2-only daily cluster, a sibling of the label (14).
+                    return (
+                      <div key={choice.id} className="group relative">
+                        {label}
+                        <div
+                          data-calculator="v2"
+                          className="absolute right-1 top-1 flex items-center"
+                        >
                           {choice.choice_table_data ? (
-                            <QuestionTable
-                              data={choice.choice_table_data}
-                              ariaLabel={`Choice ${choice.letter} data table`}
-                              className="mt-2 max-w-full"
+                            <CalculatorTableAction
+                              slot="cluster"
+                              rows={choice.choice_table_data.rows}
+                              headers={choice.choice_table_data.header_row ?? undefined}
+                              itemId={`choice:${choice.letter}`}
                             />
                           ) : (
-                            <MathText
+                            <CalculatorChoiceAction
+                              slot="cluster"
                               text={choice.choice_text}
-                              serializedFunctionLines={subject === "math"}
+                              letter={choice.letter}
+                              stem={stem}
                             />
                           )}
-                        </span>
-                      </span>
-                    </label>
-                  ))}
+                        </div>
+                      </div>
+                    );
+                  })}
               </div>
             </fieldset>
           )}
