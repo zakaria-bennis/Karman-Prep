@@ -5,8 +5,10 @@ import "katex/dist/katex.min.css";
 // is imported at document scope so its @font-face rules reach the shadow root (AR-39, AR-40).
 
 import { reportCalculatorError } from "@/components/calculator/report-error";
+import type { TransferResult, TransferTrigger } from "@/lib/calculator-transfer/payload";
 import { KarmanCalculator, lastFocusedRow } from "../KarmanCalculator";
 import { CALCULATOR_V2_BUILD } from "../styles/generated";
+import { applyTransfer as applyTransferPayload } from "../transfer/apply";
 import { exposeEngineForTests } from "../ui/hooks/dev-hooks";
 
 export type OpenTrigger = "mouse" | "keyboard" | "touch";
@@ -26,6 +28,7 @@ export interface QuizCalculatorHandle {
   setReducedMotion(value: boolean): void;
   reflow(): void; // AR-41, called by 11's loader when fonts load
   destroy(): void;
+  applyTransfer(payload: unknown, trigger: TransferTrigger): TransferResult; // added by 12-transfer-core
 }
 
 export function mountQuizCalculator(options: QuizMountOptions): QuizCalculatorHandle {
@@ -62,6 +65,8 @@ export function mountQuizCalculator(options: QuizMountOptions): QuizCalculatorHa
     reflow() {
       calculator.reflow();
     },
+    // TR-71: the bridge's payload goes through the lazy apply step with this calculator as target.
+    applyTransfer: (payload, trigger) => applyTransferPayload(calculator, payload, trigger),
     // AR-60: idempotent; clears the test global before tearing the calculator down.
     destroy() {
       if (destroyed) return;
