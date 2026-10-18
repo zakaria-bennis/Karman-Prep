@@ -99,13 +99,18 @@ test("TR-29, TR-34 a pair transfers as Point and as Table row, and a function co
     "true"
   );
   await expect(menu.getByText("f isn't defined in the calculator or this question")).toBeVisible();
+  // D-17: (2, 5) was inside the default view, so the two transfers above did not move it.
+  const before = (await calculator(page))!.view;
+  expect(before.left < 0 && before.right > 2 && before.top > 5 && before.bottom < 0).toBe(true);
   await menu.getByRole("menuitem", { name: "Table row" }).click();
   await expect
     .poll(async () => (await calculator(page))?.rows)
     .toEqual(["(2,5)", ["x_{1} 2", "y_{1} 5"], ["x_{2} 3", "y_{2} 7"]]);
-  // the points' table rows were visible in the default view, so the view did not move (D-17)
-  const view = (await calculator(page))?.view;
-  expect(view && view.left < 0 && view.right > 3 && view.top > 7).toBe(true);
+  // D-17 again for (3, 7): a visible point leaves the view alone; one outside it (the stacked
+  // dock's default view tops out near y = 5.7, L-8) zooms the view to fit it.
+  const after = (await calculator(page))!.view;
+  if (before.top > 7 && before.right > 3) expect(after).toEqual(before);
+  else expect(after.left < 3 && after.right > 3 && after.bottom < 7 && after.top > 7).toBe(true);
 });
 
 test("TR-56, TR-34 on touch a tapped pair's control opens the chooser and Table row adds a point table", async ({
