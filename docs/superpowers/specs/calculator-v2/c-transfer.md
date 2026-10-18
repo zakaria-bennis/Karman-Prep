@@ -286,21 +286,21 @@ Table 10.1, chooser keyboard model:
 - **TR-66** After a mouse or keyboard transfer, focus moves into the math field of the new row (or the row TR-35 matched) with the caret at the end; after a touch transfer that row becomes the active row and scrolls into view, the system keyboard does not open, and the keypad keeps its state (K-2). (Phase 1; verified by browser test)
 - **TR-67** One polite `role="status"` region, rendered by `CalculatorScope` as a sibling of the quiz workspace and the calculator window (outside the calculator's shadow root and never inside an inert or `aria-hidden` subtree, including in full screen), announces each result in plain text using table 11.1. (Phase 1; verified by component test)
 - **TR-68** Closing the calculator returns focus as L-10 and AR-27 state: to the control that opened it (the Transfer control whose transfer opened it, the toolbar Calculator button or the side button) if it is still in the document, and otherwise to the toolbar Calculator button; a later transfer into an already open calculator does not change that target. (Phase 1; verified by browser test)
-- **TR-69** Pressing Transfer starts the lazy calculator load (AR-), the payload is held and applied exactly once when the calculator is ready, a load failure is announced and the held payload is applied exactly once after a successful Retry, and a question change discards it. (Phase 1; verified by browser test)
+- **TR-69** Pressing Transfer starts the lazy calculator load (AR-), the payload is held and applied exactly once when the calculator is ready, a load failure is announced after a mount failure the held payload is applied exactly once after a successful Retry, and after a load failure held payloads are discarded, and a question change discards it. (Phase 1; verified by browser test)
 - **TR-70** Every payload carries the question key and the bridge drops any payload whose key does not match the current question; the selection, point tables, last-used format and held payloads reset with the rest of the per-question calculator state when the calculator remounts and calls `setBlank()` (R10, AR-58); display size and reverse contrast, which persist for the page session (S-9), are not transfer state, and a transfer never changes them. (Phase 1; verified by browser test)
 
 Table 11.1, status messages:
 
-| Result                    | Message                                                                                                                               |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| Rows added                | "Added to calculator: {description}."                                                                                                 |
-| Table added               | "Added table to calculator: {input name} is {header 1}, {output name} is {header 2}, …, {k} rows." (header parts omitted when absent) |
-| Pair appended             | "Added to table {input name}, {output name}, row {r}."                                                                                |
-| Already present           | "Already in the calculator, row {n}."                                                                                                 |
-| Renamed                   | "Added as {new name} because {name} is already defined."                                                                              |
-| Core check failed (TR-73) | "This can't be added to the calculator."                                                                                              |
-| Calculator failed to load | "Calculator unavailable. Use Retry in the calculator panel."                                                                          |
-| Too many waiting (AR-17)  | "Too many transfers are waiting. Try again when the calculator has opened."                                                           |
+| Result                    | Message                                                                                                                                                |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Rows added                | "Added to calculator: {description}."                                                                                                                  |
+| Table added               | "Added table to calculator: {input name} is {header 1}, {output name} is {header 2}, …, {k} rows." (header parts omitted when absent)                  |
+| Pair appended             | "Added to table {input name}, {output name}, row {r}."                                                                                                 |
+| Already present           | "Already in the calculator, row {n}."                                                                                                                  |
+| Renamed                   | "Added as {new name} because {name} is already defined."                                                                                               |
+| Core check failed (TR-73) | "This can't be added to the calculator."                                                                                                               |
+| Calculator failed to load | "Calculator unavailable. Use Retry in the calculator panel."; after a load failure the message is "Calculator unavailable. Reload the page to use it." |
+| Too many waiting (AR-17)  | "Too many transfers are waiting. Try again when the calculator has opened."                                                                            |
 
 ## 12. Data contract and code layout
 

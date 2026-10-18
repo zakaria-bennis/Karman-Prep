@@ -10,7 +10,7 @@ function PasteAction({ payload, label }: { payload: PastePayload | null; label: 
   const calculator = useCalculator();
   const [expanded, setExpanded] = useState(false);
   const [message, setMessage] = useState("");
-  if (!calculator || !payload) return null;
+  if (calculator?.version !== "v1" || !payload) return null;
   const pairs =
     payload.kind === "points" ? payload.pairs : payload.kind === "table" ? payload.rows : null;
   async function copy() {
