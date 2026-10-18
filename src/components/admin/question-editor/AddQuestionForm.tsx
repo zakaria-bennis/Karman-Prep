@@ -25,6 +25,9 @@ import type {
 import { DIFFICULTY_LEVEL_HEX, DIFFICULTY_LEVEL_LABELS } from "@/types/quiz";
 import type { Subject } from "@/data/curriculum";
 import { actionAddQuestion, actionUploadQuestionImage } from "@/app/admin/actions";
+import type { QuestionTableData } from "@/types/question-table";
+import { isValidChoiceTableData } from "@/lib/question-bank/choice-table";
+import { ChoiceTableEditor } from "./ChoiceTableEditor";
 
 const LETTERS: AnswerLetter[] = ["A", "B", "C", "D"];
 
@@ -52,6 +55,12 @@ export function AddQuestionForm({
     B: "",
     C: "",
     D: "",
+  });
+  const [choiceTables, setChoiceTables] = useState<Record<AnswerLetter, QuestionTableData | null>>({
+    A: null,
+    B: null,
+    C: null,
+    D: null,
   });
   const [correctAnswer, setCorrectAnswer] = useState<AnswerLetter>("A");
   const [numericAnswer, setNumericAnswer] = useState("");
@@ -143,7 +152,11 @@ export function AddQuestionForm({
         choices:
           answerFormat === "numeric_entry"
             ? []
-            : LETTERS.map((letter) => ({ letter, choice_text: choices[letter].trim() })),
+            : LETTERS.map((letter) => ({
+                letter,
+                choice_text: choices[letter].trim(),
+                choice_table_data: choiceTables[letter],
+              })),
       });
 
       // If an image was attached, upload it now and merge the URL into the returned question
@@ -181,7 +194,11 @@ export function AddQuestionForm({
     explanation.trim().length > 0 &&
     (answerFormat === "numeric_entry"
       ? numericAnswer.trim().length > 0
-      : LETTERS.every((l) => choices[l].trim().length > 0));
+      : LETTERS.every(
+          (l) =>
+            choices[l].trim().length > 0 &&
+            (!choiceTables[l] || isValidChoiceTableData(choiceTables[l]))
+        ));
 
   return (
     <form
@@ -305,7 +322,7 @@ export function AddQuestionForm({
       {/* Answer area: either 4 MC choices OR single numeric value */}
       {answerFormat === "multiple_choice" ? (
         <>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
             {LETTERS.map((letter) => (
               <Field key={letter} label={`Choice ${letter}`}>
                 <input
@@ -313,7 +330,37 @@ export function AddQuestionForm({
                   value={choices[letter]}
                   onChange={(e) => setChoices((c) => ({ ...c, [letter]: e.target.value }))}
                   className={inputClass}
+                  placeholder={choiceTables[letter] ? "Describe the table for accessibility" : ""}
                 />
+                <button
+                  type="button"
+                  onClick={() =>
+                    setChoiceTables((current) => ({
+                      ...current,
+                      [letter]: current[letter]
+                        ? null
+                        : {
+                            header_row: ["x", "y"],
+                            rows: [
+                              ["", ""],
+                              ["", ""],
+                              ["", ""],
+                            ],
+                          },
+                    }))
+                  }
+                  className="mt-1.5 text-xs font-semibold text-gold-bright"
+                >
+                  {choiceTables[letter] ? "Remove table" : "Add source table"}
+                </button>
+                {choiceTables[letter] && (
+                  <ChoiceTableEditor
+                    value={choiceTables[letter]}
+                    onChange={(table) =>
+                      setChoiceTables((current) => ({ ...current, [letter]: table }))
+                    }
+                  />
+                )}
               </Field>
             ))}
           </div>

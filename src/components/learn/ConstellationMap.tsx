@@ -16,7 +16,13 @@
 // ============================================================
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { AnimatePresence, motion, useMotionValue, useTransform } from "framer-motion";
+import {
+  AnimatePresence,
+  motion,
+  useMotionValue,
+  useReducedMotion,
+  useTransform,
+} from "framer-motion";
 import { cn } from "@/lib/utils";
 import {
   type CurriculumNode,
@@ -57,6 +63,10 @@ interface Props {
   readingNodes: MappedNode[];
   /** All 50 Math nodes with their status. */
   mathNodes: MappedNode[];
+  /** A validated deep link from the study dashboard. */
+  initialQuizNodeId?: string;
+  resumeAttemptId?: string;
+  initialLessonNodeId?: string;
 }
 
 // ── Public wrapper — provides QuizContext ───────────────────
@@ -69,12 +79,24 @@ export default function ConstellationMap(props: Props) {
 }
 
 // ── Inner component ──────────────────────────────────────────
-function ConstellationMapInner({ activeSubject, readingNodes, mathNodes }: Props) {
+function ConstellationMapInner({
+  activeSubject,
+  readingNodes,
+  mathNodes,
+  initialQuizNodeId,
+  resumeAttemptId,
+  initialLessonNodeId,
+}: Props) {
+  const reduceMotion = useReducedMotion();
   const [hovered, setHovered] = useState<string | null>(null);
-  const [selectedNode, setSelectedNode] = useState<MappedNode | null>(null);
+  const [selectedNode, setSelectedNode] = useState<MappedNode | null>(() => {
+    const nodes = activeSubject === "reading" ? readingNodes : mathNodes;
+    return nodes.find((node) => node.id === (initialQuizNodeId ?? initialLessonNodeId)) ?? null;
+  });
   const [cardOrigin, setCardOrigin] = useState<{ x: number; y: number } | null>(null);
-  const [lessonOpen, setLessonOpen] = useState(false);
-  const [quizOpen, setQuizOpen] = useState(false);
+  const [lessonOpen, setLessonOpen] = useState(!!initialLessonNodeId);
+  const [quizOpen, setQuizOpen] = useState(!!initialQuizNodeId);
+  const [pendingResumeAttemptId, setPendingResumeAttemptId] = useState(resumeAttemptId);
   const [nodeBundle, setNodeBundle] = useState<{
     attempts: QuizAttempt[];
     watch_percentage: number | null;
@@ -161,6 +183,7 @@ function ConstellationMapInner({ activeSubject, readingNodes, mathNodes }: Props
 
   function closeAll() {
     setQuizOpen(false);
+    setPendingResumeAttemptId(undefined);
     setLessonOpen(false);
     setSelectedNode(null);
     setCardOrigin(null);
@@ -193,6 +216,7 @@ function ConstellationMapInner({ activeSubject, readingNodes, mathNodes }: Props
       animate={{ opacity: 1 }}
       transition={{ duration: 1.6, ease: [0.16, 1, 0.3, 1] }}
       onMouseMove={(e) => {
+        if (reduceMotion) return;
         const rect = e.currentTarget.getBoundingClientRect();
         parallaxMx.set(((e.clientX - rect.left) / rect.width) * 2 - 1);
         parallaxMy.set(((e.clientY - rect.top) / rect.height) * 2 - 1);
@@ -282,7 +306,12 @@ function ConstellationMapInner({ activeSubject, readingNodes, mathNodes }: Props
           />
 
           {/* Background star field — ivory, parallaxes subtly with the cursor */}
-          <motion.g style={{ x: parallaxTransformX, y: parallaxTransformY }}>
+          <motion.g
+            style={{
+              x: reduceMotion ? 0 : parallaxTransformX,
+              y: reduceMotion ? 0 : parallaxTransformY,
+            }}
+          >
             {BG_STARS.map((s, i) => (
               <circle key={i} cx={s.x} cy={s.y} r={s.r} fill="#f3ecdd" opacity={s.o} />
             ))}
@@ -499,7 +528,10 @@ function ConstellationMapInner({ activeSubject, readingNodes, mathNodes }: Props
             node={mappedSelected}
             origin={cardOrigin}
             onWatchLesson={() => setLessonOpen(true)}
-            onStartQuiz={() => setQuizOpen(true)}
+            onStartQuiz={() => {
+              setPendingResumeAttemptId(undefined);
+              setQuizOpen(true);
+            }}
             onClose={() => {
               setSelectedNode(null);
               setCardOrigin(null);
@@ -517,8 +549,11 @@ function ConstellationMapInner({ activeSubject, readingNodes, mathNodes }: Props
             watchPercentage={nodeBundle.watch_percentage}
             bestScore={nodeBundle.best_quiz_score}
             band={nodeBundle.confidence_band}
-            onClose={() => setLessonOpen(false)}
-            onStartQuiz={() => setQuizOpen(true)}
+            onClose={() => (cardOrigin ? setLessonOpen(false) : closeAll())}
+            onStartQuiz={() => {
+              setPendingResumeAttemptId(undefined);
+              setQuizOpen(true);
+            }}
             onGoToNext={() => goToNextNode(mappedSelected.id)}
           />
         )}
@@ -530,7 +565,8 @@ function ConstellationMapInner({ activeSubject, readingNodes, mathNodes }: Props
           <QuizEngine
             node={mappedSelected}
             videoUrl={mappedSelected.video_url ?? null}
-            onClose={() => setQuizOpen(false)}
+            resumeAttemptId={pendingResumeAttemptId}
+            onClose={() => (cardOrigin ? setQuizOpen(false) : closeAll())}
             onGoToNext={() => goToNextNode(mappedSelected.id)}
           />
         )}

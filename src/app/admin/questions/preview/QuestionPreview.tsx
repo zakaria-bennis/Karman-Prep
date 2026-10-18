@@ -23,6 +23,7 @@ import { cn } from "@/lib/utils";
 import type { QuizQuestionWithChoices, AnswerLetter } from "@/types/quiz";
 import { EditableMathText } from "./EditableMathText";
 import { EditedChip } from "@/components/admin/EditedChip";
+import { TableChoiceOption } from "@/components/learn/quiz/TableChoiceOption";
 
 const LETTERS: AnswerLetter[] = ["A", "B", "C", "D"];
 
@@ -38,9 +39,11 @@ export interface PreviewEditProps {
 export function QuestionPreview({
   q,
   edit,
+  readOnly = false,
 }: {
   q: QuizQuestionWithChoices;
   edit?: PreviewEditProps;
+  readOnly?: boolean;
 }) {
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -63,7 +66,7 @@ export function QuestionPreview({
   const perChoiceMap = q.explanation_per_choice as Record<string, string | undefined> | null;
 
   // ── Buttons row at the bottom of the choices ─────────────────
-  const choicesButtonRow = !isSubmitted ? (
+  const choicesButtonRow = readOnly ? null : !isSubmitted ? (
     selectedAnswer ? (
       <motion.div
         initial={{ opacity: 0, y: 10 }}
@@ -72,7 +75,7 @@ export function QuestionPreview({
       >
         <button
           onClick={() => setIsSubmitted(true)}
-          className="rounded-xl bg-info px-8 py-3 text-sm font-bold text-ivory transition-colors hover:bg-info-bright"
+          className="rounded-xl bg-info px-8 py-3 text-sm font-semibold text-night underline-offset-4 transition-colors hover:bg-info-bright hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ivory"
         >
           Simulate submit
         </button>
@@ -95,7 +98,7 @@ export function QuestionPreview({
       </button>
       <button
         onClick={() => setShowExplanations(true)}
-        className="rounded-xl bg-info px-8 py-3 text-sm font-bold text-ivory transition-colors hover:bg-info-bright"
+        className="rounded-xl bg-info px-8 py-3 text-sm font-semibold text-night underline-offset-4 transition-colors hover:bg-info-bright hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ivory"
       >
         Show explanations
       </button>
@@ -137,11 +140,26 @@ export function QuestionPreview({
           const isCorrect = letter === correctLetter;
           const showCorrect = isSubmitted && isCorrect;
           const showWrong = isSubmitted && isSelected && !isCorrect;
+          if (choice.choice_table_data) {
+            return (
+              <TableChoiceOption
+                key={letter}
+                id={`preview-${q.id}-choice-${letter}`}
+                groupName={`preview-${q.id}-choice`}
+                letter={letter}
+                table={choice.choice_table_data}
+                selected={isSelected}
+                submitted={isSubmitted}
+                correct={isCorrect}
+                onSelect={readOnly ? () => undefined : setSelectedAnswer}
+              />
+            );
+          }
           return (
             <button
               key={letter}
-              onClick={() => !isSubmitted && setSelectedAnswer(letter)}
-              disabled={isSubmitted}
+              onClick={() => !readOnly && !isSubmitted && setSelectedAnswer(letter)}
+              disabled={readOnly || isSubmitted}
               className={cn(
                 "w-full rounded-xl border px-5 py-3.5 text-left transition-all",
                 "flex items-start gap-4",
@@ -157,9 +175,9 @@ export function QuestionPreview({
                 className={cn(
                   "mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[13px] font-bold",
                   !isSubmitted && !isSelected && "bg-surface-raised text-ivory",
-                  !isSubmitted && isSelected && "bg-info text-ivory",
+                  !isSubmitted && isSelected && "bg-info text-night",
                   showCorrect && "bg-success text-night",
-                  showWrong && "bg-error text-ivory",
+                  showWrong && "bg-error text-night",
                   isSubmitted && !isSelected && !isCorrect && "bg-surface-raised text-taupe"
                 )}
               >
@@ -248,7 +266,7 @@ export function QuestionPreview({
                   className={cn(
                     "mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[13px] font-bold",
                     isCorrect && "bg-success text-night",
-                    !isCorrect && isStudentChoice && "bg-error text-ivory",
+                    !isCorrect && isStudentChoice && "bg-error text-night",
                     !isCorrect && !isStudentChoice && "bg-surface-raised text-ivory"
                   )}
                 >

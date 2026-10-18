@@ -14,54 +14,49 @@ const config: Config = {
         foreground: "var(--foreground)",
 
         // ── Observatory palette (docs/brand.md) ───────────────────────
-        // Hex literals (NOT the CSS vars from globals.css) so Tailwind can
-        // generate opacity modifiers — `border-bronze/60`, `text-taupe/70`
-        // etc. don't work against `var(...)` colors in Tailwind v3. The
-        // :root variables remain for plain-CSS consumers; keep both in
-        // sync with the "Brand name" table in docs/brand.md.
-        //
+        // RGB channel tokens preserve opacity utilities across all account themes.
         // Foundation — warm dark canvas
-        night: "#070605", //          page background
-        espresso: "#0D0A08", //       alt sections
-        charcoal: "#12110D", //       section dividers
-        surface: "#171611", //        default card
-        "surface-raised": "#222018", // elevated card/modal
-        ivory: "#F3ECDD", //          primary text on dark
-        taupe: "#B8B0A1", //          secondary text
-        bronze: "#3B3426", //         default border
+        night: "rgb(var(--k-night) / <alpha-value>)", //          page background
+        espresso: "rgb(var(--k-espresso) / <alpha-value>)", //       alt sections
+        charcoal: "rgb(var(--k-charcoal) / <alpha-value>)", //       section dividers
+        surface: "rgb(var(--k-surface) / <alpha-value>)", //        default card
+        "surface-raised": "rgb(var(--k-surface-raised) / <alpha-value>)", // elevated card/modal
+        ivory: "rgb(var(--k-ivory) / <alpha-value>)", //          primary text on dark
+        taupe: "rgb(var(--k-taupe) / <alpha-value>)", //          secondary text
+        bronze: "rgb(var(--k-bronze) / <alpha-value>)", //         default border
         // Prestige — gold (used SPARINGLY per brand brief)
-        gold: "#C8AB6A", //           CTAs, mastery, brand moments
-        "gold-bright": "#E4C86A", //  focus rings, twinkle
+        gold: "rgb(var(--k-gold) / <alpha-value>)", //           CTAs, mastery, brand moments
+        "gold-bright": "rgb(var(--k-gold-bright) / <alpha-value>)", //  focus rings, twinkle
         // Constellation accents — subject signals (not full-page themes)
-        rw: "#D84F73", //             R&W signal
-        "rw-glow": "#F06A8C", //      R&W ambient/hover
-        math: "#2FA8FF", //           Math signal
-        "math-glow": "#42D9FF", //    Math ambient/hover
+        rw: "rgb(var(--k-rw) / <alpha-value>)", //             R&W signal
+        "rw-glow": "rgb(var(--k-rw-glow) / <alpha-value>)", //      R&W ambient/hover
+        math: "rgb(var(--k-math) / <alpha-value>)", //           Math signal
+        "math-glow": "rgb(var(--k-math-glow) / <alpha-value>)", //    Math ambient/hover
 
         // ── Semantic status palette (docs/brand.md "Status colors") ───
         // Warm-compatible so status reads on the espresso canvas without
         // the cool-green / cool-amber clash. error→rose and info→blue are
         // the same hues as the constellation signals, named semantically
         // so dashboard code reads intent (text-error) not signal (text-rw).
-        success: "#8BA86A", //        moss — pass, mastered, paid, on-track
-        "success-bright": "#A6C486", // emphasis / icons on dark
-        warning: "#E0A24A", //        amber — pending, due soon, caution
-        "warning-bright": "#F0BE72",
-        error: "#D84F73", //          rose — fail, reject, overdue, error
-        "error-bright": "#F06A8C",
-        info: "#2FA8FF", //           blue — neutral info, hints
-        "info-bright": "#42D9FF",
+        success: "rgb(var(--k-success) / <alpha-value>)", //        moss — pass, mastered, paid, on-track
+        "success-bright": "rgb(var(--k-success-bright) / <alpha-value>)", // emphasis / icons on dark
+        warning: "rgb(var(--k-warning) / <alpha-value>)", //        amber — pending, due soon, caution
+        "warning-bright": "rgb(var(--k-warning-bright) / <alpha-value>)",
+        error: "rgb(var(--k-error) / <alpha-value>)", //          rose — fail, reject, overdue, error
+        "error-bright": "rgb(var(--k-error-bright) / <alpha-value>)",
+        info: "rgb(var(--k-info) / <alpha-value>)", //           blue — neutral info, hints
+        "info-bright": "rgb(var(--k-info-bright) / <alpha-value>)",
 
         // ── SAT domain colors — warm subject signals ──────────────────
         // The five SAT domains collapse to two subject signals (Math blue,
         // R&W rose) per docs/brand.md. The four math sub-domains keep
         // distinguishable blue shades so domain-breakdown charts stay
         // legible; reading carries the rose signal.
-        algebra: "#2FA8FF", //        Math — Algebra
-        "adv-math": "#42D9FF", //     Math — Advanced
-        geometry: "#7FC4FF", //       Math — Geometry / Trig
-        "data-analy": "#2B7FC4", //   Math — Data / Stats
-        "read-write": "#D84F73", //   Reading & Writing
+        algebra: "rgb(var(--k-algebra) / <alpha-value>)", //        Math — Algebra
+        "adv-math": "rgb(var(--k-adv-math) / <alpha-value>)", //     Math — Advanced
+        geometry: "rgb(var(--k-geometry) / <alpha-value>)", //       Math — Geometry / Trig
+        "data-analy": "rgb(var(--k-data-analy) / <alpha-value>)", //   Math — Data / Stats
+        "read-write": "rgb(var(--k-read-write) / <alpha-value>)", //   Reading & Writing
       },
       fontFamily: {
         // ── Observatory type stack (docs/brand.md) ────────────────────

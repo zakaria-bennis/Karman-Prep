@@ -1,27 +1,57 @@
 "use client";
 
-// ============================================================
-// ThemeToggle — sun/moon button for dark/light mode switch
-// ============================================================
-
-import { useEffect, useState } from "react";
 import { Sun, Moon } from "lucide-react";
+import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { useTheme } from "@/components/shared/ThemeProvider";
 
-export function ThemeToggle() {
-  const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => setMounted(true), []);
-  if (!mounted) return <div className="h-9 w-9" />;
-
+export function ThemeToggle({ floating = false }: { floating?: boolean }) {
+  const pathname = usePathname();
+  const { toggleMode, saving } = useTheme();
+  const [ready, setReady] = useState(false);
+  // Server-rendered buttons must not accept clicks before React attaches the handler.
+  // This waits for this control to hydrate, independently of Clerk loading.
+  useEffect(() => setReady(true), []);
+  // Shells and public navigation provide an in-flow control, clear of content.
+  const portalHasThemeControl =
+    ["/dashboard/student", "/dashboard/parent", "/tutor", "/admin", "/learn"].some(
+      (prefix) => pathname === prefix || pathname?.startsWith(prefix + "/")
+    ) ||
+    [
+      "/",
+      "/free-diagnostic",
+      "/plans",
+      "/questions",
+      "/about",
+      "/faq",
+      "/blog",
+      "/privacy",
+      "/terms",
+      "/refunds",
+      "/guarantee",
+    ].includes(pathname ?? "");
+  if (floating && portalHasThemeControl) return null;
   return (
     <button
-      onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-      aria-label="Toggle dark mode"
-      className="flex h-9 w-9 items-center justify-center rounded-lg text-taupe transition-colors hover:bg-surface dark:text-ivory dark:hover:bg-surface-raised"
+      type="button"
+      onClick={toggleMode}
+      disabled={!ready || saving}
+      aria-label="Toggle light and dark mode"
+      title="Toggle light and dark mode"
+      className={
+        floating
+          ? "fixed right-3 top-[4.75rem] z-50 inline-flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-full border border-bronze bg-surface px-3 text-ivory shadow-lg transition-colors hover:bg-surface-raised disabled:opacity-60 sm:right-5 sm:top-20"
+          : "inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg text-ivory transition-colors hover:bg-surface-raised disabled:opacity-60"
+      }
     >
-      {theme === "dark" ? <Sun className="w-4.5 h-4.5" /> : <Moon className="w-4.5 h-4.5" />}
+      <Sun className="hidden h-5 w-5 dark:block" aria-hidden="true" />
+      <Moon className="h-5 w-5 dark:hidden" aria-hidden="true" />
+      {floating && (
+        <>
+          <span className="hidden text-xs font-semibold dark:sm:inline">Light</span>
+          <span className="hidden text-xs font-semibold dark:hidden sm:inline">Dark</span>
+        </>
+      )}
     </button>
   );
 }

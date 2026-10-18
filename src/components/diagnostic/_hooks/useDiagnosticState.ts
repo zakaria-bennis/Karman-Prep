@@ -84,6 +84,9 @@ export function useDiagnosticState({ questions, isSubscribed }: DiagnosticStateA
   const isAnswered = selected !== null;
   const currentSection = DOMAIN_SECTION[question.domain];
   const isMathQuestion = currentSection === "math";
+  useEffect(() => {
+    if (!isMathQuestion) setDesmosOpen(false);
+  }, [isMathQuestion]);
   const questionCrossed = crossedOut[question.id] ?? new Set<string>();
   const questionHighlightedChoices = highlightedChoices[question.id] ?? new Set<string>();
   const questionHighlights = highlights[question.id] ?? [];
@@ -91,10 +94,8 @@ export function useDiagnosticState({ questions, isSubscribed }: DiagnosticStateA
   const isBookmarked = bookmarked.has(question.id);
   const sectionTimeLeft = sectionTime[currentSection];
 
-  // Per-section numbering — when the test transitions from R&W
-  // (now first) into Math, the visible "Question X / N" resets
-  // so the student tracks their position within the section
-  // rather than across the whole diagnostic.
+  // Internal section positions support assessment state only.
+  // Short diagnostics do not display question ordinals or counters.
   const sectionStartIdx = questions.findIndex((q) => DOMAIN_SECTION[q.domain] === currentSection);
   const sectionLength = questions.filter((q) => DOMAIN_SECTION[q.domain] === currentSection).length;
   const sectionPosition = currentIdx - sectionStartIdx + 1;
@@ -144,7 +145,7 @@ export function useDiagnosticState({ questions, isSubscribed }: DiagnosticStateA
       handleSubmit();
     } else {
       setCurrentIdx(nextSectionStart);
-      setSelected(null);
+      setSelected(answers[questions[currentIdx + 1]?.id] ?? null);
       setShowExplanation(false);
     }
   }
@@ -203,10 +204,6 @@ export function useDiagnosticState({ questions, isSubscribed }: DiagnosticStateA
     const payload = questions.map((q) => ({
       questionId: q.id,
       selectedAnswer: answers[q.id] || "",
-      domain: q.domain,
-      difficulty: q.difficulty,
-      conceptId: q.conceptId,
-      correct: answers[q.id] === q.correct,
     }));
 
     try {
@@ -235,10 +232,10 @@ export function useDiagnosticState({ questions, isSubscribed }: DiagnosticStateA
       handleSubmit();
     } else {
       setCurrentIdx((i) => i + 1);
-      setSelected(null);
+      setSelected(answers[questions[currentIdx + 1]?.id] ?? null);
       setShowExplanation(false);
     }
-  }, [isLast, handleSubmit]);
+  }, [isLast, handleSubmit, answers, questions, currentIdx]);
 
   // Keyboard shortcuts:
   //   Escape — close calculator / scratchpad (whichever is open).
@@ -247,6 +244,9 @@ export function useDiagnosticState({ questions, isSubscribed }: DiagnosticStateA
     if (scoring) return;
     function onKey(e: KeyboardEvent) {
       const target = e.target as HTMLElement | null;
+      // Native controls own Enter/Space. Marking and navigation must not
+      // also trigger the assessment-wide advance shortcut.
+      if (e.defaultPrevented || target?.closest("button, a, summary, [role=button]")) return;
       const isEditable =
         target?.tagName === "INPUT" ||
         target?.tagName === "TEXTAREA" ||
@@ -285,7 +285,12 @@ export function useDiagnosticState({ questions, isSubscribed }: DiagnosticStateA
   function jumpTo(idx: number) {
     // Cross-section jumps are blocked at the navigator level,
     // but defend in depth.
-    if (DOMAIN_SECTION[questions[idx].domain] !== currentSection) return;
+    if (
+      !Number.isInteger(idx) ||
+      !questions[idx] ||
+      DOMAIN_SECTION[questions[idx].domain] !== currentSection
+    )
+      return;
     setCurrentIdx(idx);
     setSelected(answers[questions[idx].id] ?? null);
     setShowExplanation(false);
@@ -302,7 +307,7 @@ export function useDiagnosticState({ questions, isSubscribed }: DiagnosticStateA
     showExplanation,
     isSubmitting,
     scoring,
-    desmosOpen,
+    desmosOpen: isMathQuestion && desmosOpen,
     scratchpadOpen,
     navigatorOpen,
     exitConfirmOpen,
@@ -325,7 +330,10 @@ export function useDiagnosticState({ questions, isSubscribed }: DiagnosticStateA
     questionHighlightedChoices,
     questionHighlights,
     // Setters callers need
-    setDesmosOpen,
+    setDesmosOpen: (open: boolean | ((previous: boolean) => boolean)) =>
+      setDesmosOpen(
+        (previous) => isMathQuestion && (typeof open === "function" ? open(previous) : open)
+      ),
     setScratchpadOpen,
     setNavigatorOpen,
     setExitConfirmOpen,

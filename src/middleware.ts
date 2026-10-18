@@ -18,6 +18,7 @@
 
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse, type NextRequest } from "next/server";
+import { KARMAN_AUTH_ROUTES } from "@/lib/auth/routes";
 
 /** Dev-only auth bypass. When NODE_ENV !== "production" and
  *  DEV_IMPERSONATE_CLERK_ID is set, the entire Clerk gate is
@@ -51,6 +52,9 @@ const isMaintenanceExempt = createRouteMatcher([
  *  Used only when NEXT_PUBLIC_KARMAN_LAUNCHED === "true". */
 const isPublicRoute = createRouteMatcher([
   "/",
+  "/free-diagnostic",
+  "/plans",
+  "/questions",
   "/faq",
   "/about",
   "/blog(.*)",
@@ -102,7 +106,7 @@ const realMiddleware = clerkMiddleware(async (auth, request) => {
   }
   await auth.protect();
   return NextResponse.next();
-});
+}, KARMAN_AUTH_ROUTES);
 
 // Pick at module load — bypass branch skips Clerk's per-request
 // publishable-key check entirely. Cannot fire in production.

@@ -57,130 +57,149 @@ function stripe(): Stripe {
   return _stripe;
 }
 
-export const POST = withWebhookInstrumentation("stripe-connect", async (request: Request) => {
-  const signature = request.headers.get("stripe-signature");
-  const secret = process.env.STRIPE_CONNECT_WEBHOOK_SECRET;
-  if (!signature || !secret) {
-    return NextResponse.json({ error: "missing_signature_or_secret" }, { status: 401 });
-  }
-
-  const rawBody = await request.text();
-  let event: Stripe.Event;
-  try {
-    event = stripe().webhooks.constructEvent(rawBody, signature, secret);
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : "unknown";
-    console.error("[stripe-connect] signature verification failed:", msg);
-    return NextResponse.json({ error: "invalid_signature" }, { status: 401 });
-  }
-
-  const supabase = createAdminClient();
-
-  // Insert raw payload (dedup on Stripe event id). On retry from
-  // Stripe we hit the unique index; below we look up the prior row
-  // and decide whether to reprocess.
-  const { data: webhookRow, error: insErr } = await supabase
-    .from("webhook_events")
-    .insert({
-      source: "stripe_connect",
-      external_event_id: event.id,
-      event_type: event.type,
-      raw_payload: event as unknown as Json,
-    })
-    .select("id, attempts, processed, gave_up_at")
-    .single();
-
-  let rowId: string;
-  let priorAttempts: number;
-
-  if (insErr) {
-    if (insErr.code !== "23505") {
-      console.error("[stripe-connect] log insert failed:", insErr.message);
-      return NextResponse.json({ error: "log_failed" }, { status: 500 });
+export const POST = withWebhookInstrumentation(
+  "stripe-connect",
+  async (request: Request) => {
+    const signature = request.headers.get("stripe-signature");
+    const secret = process.env.STRIPE_CONNECT_WEBHOOK_SECRET;
+    if (!signature || !secret) {
+      return NextResponse.json({ error: "missing_signature_or_secret" }, { status: 401 });
     }
-    // Duplicate delivery: pull the existing row to decide if we
-    // should reprocess (prior attempt failed) or short-circuit
-    // (already done, or gave up).
-    const { data: prior, error: priorErr } = await supabase
+
+    const rawBody = await request.text();
+    let event: Stripe.Event;
+    try {
+      event = stripe().webhooks.constructEvent(rawBody, signature, secret);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "unknown";
+      console.error("[stripe-connect] signature verification failed:", msg);
+      return NextResponse.json({ error: "invalid_signature" }, { status: 401 });
+    }
+
+    const supabase = createAdminClient();
+
+    // Insert raw payload (dedup on Stripe event id). On retry from
+    // Stripe we hit the unique index; below we look up the prior row
+    // and decide whether to reprocess.
+    const { data: webhookRow, error: insErr } = await supabase
       .from("webhook_events")
-      .select("id, attempts, processed, gave_up_at")
-      .eq("source", "stripe_connect")
-      .eq("external_event_id", event.id)
-      .single();
-    if (priorErr || !prior) {
-      console.error("[stripe-connect] duplicate lookup failed:", priorErr?.message);
-      return NextResponse.json({ error: "log_failed" }, { status: 500 });
-    }
-    if (prior.processed) {
-      return NextResponse.json({ received: true, duplicate: true }, { status: 200 });
-    }
-    if (prior.gave_up_at) {
-      // We've already alerted admin; tell Stripe to stop bothering.
-      return NextResponse.json({ received: true, gave_up: true }, { status: 200 });
-    }
-    rowId = prior.id;
-    priorAttempts = prior.attempts ?? 0;
-  } else {
-    rowId = webhookRow.id;
-    priorAttempts = webhookRow.attempts ?? 0;
-  }
-
-  const nextAttempts = priorAttempts + 1;
-
-  let processingError: Error | null = null;
-  try {
-    await processEvent(event, supabase);
-  } catch (err) {
-    processingError = err instanceof Error ? err : new Error(String(err));
-    console.error(
-      `[stripe-connect] processing ${event.type} failed (attempt ${nextAttempts}):`,
-      processingError.message
-    );
-  }
-
-  const outcome = decideRetryOutcome({
-    nextAttempts,
-    processingThrew: processingError !== null,
-  });
-
-  if (!processingError) {
-    await supabase
-      .from("webhook_events")
-      .update({
-        processed: true,
-        processed_at: new Date().toISOString(),
-        attempts: nextAttempts,
-        error_message: null,
+      .insert({
+        source: "stripe_connect",
+        external_event_id: event.id,
+        event_type: event.type,
+        raw_payload: event as unknown as Json,
       })
-      .eq("id", rowId);
-    return NextResponse.json({ received: true }, { status: outcome.responseStatus });
-  }
+      .select("id, attempts, processed, gave_up_at")
+      .single();
 
-  if (outcome.giveUp) {
-    await supabase
+    let rowId: string;
+    let priorAttempts: number;
+
+    if (insErr) {
+      if (insErr.code !== "23505") {
+        console.error("[stripe-connect] log insert failed:", insErr.message);
+        return NextResponse.json({ error: "log_failed" }, { status: 500 });
+      }
+      // Duplicate delivery: pull the existing row to decide if we
+      // should reprocess (prior attempt failed) or short-circuit
+      // (already done, or gave up).
+      const { data: prior, error: priorErr } = await supabase
+        .from("webhook_events")
+        .select("id, attempts, processed, gave_up_at")
+        .eq("source", "stripe_connect")
+        .eq("external_event_id", event.id)
+        .single();
+      if (priorErr || !prior) {
+        console.error("[stripe-connect] duplicate lookup failed:", priorErr?.message);
+        return NextResponse.json({ error: "log_failed" }, { status: 500 });
+      }
+      if (prior.processed) {
+        return NextResponse.json({ received: true, duplicate: true }, { status: 200 });
+      }
+      if (prior.gave_up_at) {
+        // We've already alerted admin; tell Stripe to stop bothering.
+        return NextResponse.json({ received: true, gave_up: true }, { status: 200 });
+      }
+      rowId = prior.id;
+      priorAttempts = prior.attempts ?? 0;
+    } else {
+      rowId = webhookRow.id;
+      priorAttempts = webhookRow.attempts ?? 0;
+    }
+
+    const nextAttempts = priorAttempts + 1;
+
+    let processingError: Error | null = null;
+    try {
+      await processEvent(event, supabase);
+    } catch (err) {
+      processingError = err instanceof Error ? err : new Error(String(err));
+      console.error(
+        `[stripe-connect] processing ${event.type} failed (attempt ${nextAttempts}):`,
+        processingError.message
+      );
+    }
+
+    const outcome = decideRetryOutcome({
+      nextAttempts,
+      processingThrew: processingError !== null,
+    });
+
+    if (!processingError) {
+      const { data: saved, error: saveError } = await supabase
+        .from("webhook_events")
+        .update({
+          processed: true,
+          processed_at: new Date().toISOString(),
+          attempts: nextAttempts,
+          error_message: null,
+        })
+        .eq("id", rowId)
+        .select("id")
+        .single();
+      if (saveError) throw saveError;
+      if (!saved) throw new Error("Webhook state was not persisted");
+      return NextResponse.json({ received: true }, { status: outcome.responseStatus });
+    }
+
+    if (outcome.giveUp) {
+      const { data: saved, error: saveError } = await supabase
+        .from("webhook_events")
+        .update({
+          attempts: nextAttempts,
+          error_message: processingError.message,
+          gave_up_at: new Date().toISOString(),
+        })
+        .eq("id", rowId)
+        .select("id")
+        .single();
+      if (saveError) throw saveError;
+      if (!saved) throw new Error("Webhook state was not persisted");
+      await alertAdminGaveUp(event, rowId, processingError.message);
+      return NextResponse.json(
+        { received: true, gave_up: true },
+        { status: outcome.responseStatus }
+      );
+    }
+
+    const { data: saved, error: saveError } = await supabase
       .from("webhook_events")
       .update({
         attempts: nextAttempts,
         error_message: processingError.message,
-        gave_up_at: new Date().toISOString(),
       })
-      .eq("id", rowId);
-    await alertAdminGaveUp(event, rowId, processingError.message);
-    return NextResponse.json({ received: true, gave_up: true }, { status: outcome.responseStatus });
-  }
-
-  await supabase
-    .from("webhook_events")
-    .update({
-      attempts: nextAttempts,
-      error_message: processingError.message,
-    })
-    .eq("id", rowId);
-  return NextResponse.json(
-    { error: "processing_failed", attempt: nextAttempts },
-    { status: outcome.responseStatus }
-  );
-});
+      .eq("id", rowId)
+      .select("id")
+      .single();
+    if (saveError) throw saveError;
+    if (!saved) throw new Error("Webhook state was not persisted");
+    return NextResponse.json(
+      { error: "processing_failed", attempt: nextAttempts },
+      { status: outcome.responseStatus }
+    );
+  },
+  { retryOnError: true }
+);
 
 type Supabase = ReturnType<typeof createAdminClient>;
 

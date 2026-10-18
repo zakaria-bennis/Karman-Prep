@@ -2,6 +2,7 @@
 
 import { ArrowRight, CheckCircle2, Loader2, Sparkles } from "lucide-react";
 import { tierLabel, type Recommendation } from "@/lib/onboarding/recommend-tier";
+import { isFreeTrialEligibleTier } from "@/lib/integrations/stripe/checkout-policy";
 import type { Role } from "./shared";
 
 export function RecommendationStep({
@@ -78,7 +79,9 @@ export function RecommendationStep({
           </>
         ) : (
           <>
-            Start free trial — {tierLabel(recommendation.tier)}
+            {isFreeTrialEligibleTier(recommendation.tier)
+              ? `Start 7-day trial — ${tierLabel(recommendation.tier)}`
+              : `Continue to checkout — ${tierLabel(recommendation.tier)}`}
             <ArrowRight className="h-5 w-5" />
           </>
         )}

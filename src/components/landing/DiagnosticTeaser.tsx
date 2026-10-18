@@ -1,73 +1,33 @@
-// ============================================================
-// DiagnosticTeaser — points visitors to the real 35-question
-// diagnostic. Anonymous visitors get bounced to sign-in, then
-// dropped on /diagnostic via Clerk's redirect_url.
-//
-// Observatory treatment: espresso section on the night canvas,
-// surface card, taupe prose. Gold appears once — on the CTA.
-// ============================================================
-
 import Link from "next/link";
-import { ArrowRight, ClipboardCheck, Clock, Sparkles } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 
 export default function DiagnosticTeaser() {
   return (
-    <section id="sample-quiz" className="bg-grain relative overflow-hidden bg-espresso py-24">
-      <div className="relative mx-auto max-w-3xl px-4 sm:px-6">
-        {/* Headline */}
-        <div className="mb-10 text-center">
-          <span className="type-label text-taupe">Your free diagnostic</span>
-          <h2 className="type-display-lg mt-4 text-ivory">
-            Find your SAT <span className="italic text-gold-bright">baseline</span>.
+    <section
+      id="sample-quiz"
+      className="scroll-mt-24 bg-night px-5 py-16 text-ivory md:px-8 md:py-20"
+    >
+      <div className="mx-auto grid max-w-7xl gap-8 border-y border-bronze py-9 md:grid-cols-[0.85fr_1.15fr] md:items-center md:gap-16">
+        <div>
+          <p className="text-sm font-medium text-gold">The free diagnostic</p>
+          <h2 className="mt-3 max-w-md font-plex-serif text-4xl leading-tight sm:text-5xl">
+            A little clarity.
+            <br />A place to begin.
           </h2>
-          <p className="type-body-lg mt-4 text-balance text-taupe">
-            35 questions across all eight Digital SAT domains. Get a difficulty-weighted score
-            range, a per-domain breakdown, and the exact topics you need to start with.
-          </p>
         </div>
-
-        {/* Stat strip — three small cards reinforcing what they get. */}
-        <div className="card-surface p-6 sm:p-8">
-          <div className="mb-8 grid gap-4 sm:grid-cols-3">
-            <StatCard
-              icon={<Clock className="h-5 w-5" />}
-              value="~35 min"
-              label="One sitting, untimed retakes never offered"
-            />
-            <StatCard
-              icon={<ClipboardCheck className="h-5 w-5" />}
-              value="35 questions"
-              label="Math + Reading & Writing"
-            />
-            <StatCard
-              icon={<Sparkles className="h-5 w-5" />}
-              value="Foundation-aware"
-              label="Tells you what to start with — not just what's lowest"
-            />
-          </div>
-
-          {/* CTA */}
-          <Link href="/diagnostic" className="btn-primary w-full justify-center py-4 text-base">
-            Begin the diagnostic
-            <ArrowRight className="h-5 w-5" />
-          </Link>
-          <p className="mt-3 text-center text-xs text-taupe/80">
-            Free · sign-in required so we can save your results
+        <div>
+          <p className="max-w-xl text-lg leading-relaxed text-taupe">
+            Try 35 Math and Reading &amp; Writing questions. See which tested skills feel
+            comfortable and which deserve your next practice session.
           </p>
+          <Link
+            href="/free-diagnostic"
+            className="mt-5 inline-flex min-h-11 items-center gap-2 font-semibold underline underline-offset-4"
+          >
+            Explore the free diagnostic <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+          </Link>
         </div>
       </div>
     </section>
-  );
-}
-
-function StatCard({ icon, value, label }: { icon: React.ReactNode; value: string; label: string }) {
-  return (
-    <div className="rounded-2xl border border-bronze/70 bg-charcoal p-4">
-      <div className="mb-2 flex items-center gap-2 text-ivory">
-        <span className="text-gold">{icon}</span>
-        <span className="text-sm font-semibold">{value}</span>
-      </div>
-      <p className="text-xs leading-relaxed text-taupe">{label}</p>
-    </div>
   );
 }

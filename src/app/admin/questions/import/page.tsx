@@ -1,18 +1,4 @@
-// ============================================================
-// /admin/questions/import — two upload paths into the question bank:
-//
-//   1. PdfPipelineUploadClient — drop a PDF, runs the full
-//      automated pipeline on GitHub Actions (Gemini extraction +
-//      figure cropping + Sonnet/Haiku explanations + answer-key
-//      audit). Live progress at /admin/pdf-pipeline/jobs/[id].
-//
-//   2. BankImportClient — upload a pre-baked CSV (manual workflow
-//      or ChatGPT path). Direct insert into the bank, no
-//      pipeline.
-//
-// Bank rows from either path land with no node assignment,
-// awaiting triage at /admin/questions/review.
-// ============================================================
+// Reviewed import tools and the retained legacy CSV adapter.
 
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -36,8 +22,8 @@ export default function QuestionImportPage() {
           <Upload className="h-5 w-5 text-gold" /> Question import
         </h1>
         <p className="mt-1.5 max-w-2xl text-sm text-taupe">
-          Two ways in: drop a PDF for the automated pipeline, or upload a pre-baked CSV. Either way,
-          rows land in the bank for triage at{" "}
+          Import reviewed questions using the offline JSON workflow. The existing CSV adapter
+          remains available below; imported rows still require triage at{" "}
           <code className="rounded bg-surface-raised/70 px-1.5 py-0.5 text-[11px] text-ivory">
             /admin/questions/review
           </code>

@@ -4,14 +4,13 @@
 // Diagnostic Results Screen
 //
 // Renders the ScoredDiagnostic returned by /api/diagnostic/submit:
-//   · Predicted total SAT range + Math + R&W subscores
+//   · Measured question accuracy and weighted section/domain performance
 //   · Domain breakdown across all 8 official SAT domains,
 //     grouped Math vs R&W
 //   · Foundation-aware focus area (vs the old "lowest %" bug)
 //   · Strongest domain ONLY when the student got ≥3 correct in
 //     that domain — otherwise honestly says "no clear strength yet"
-//   · Dynamic CTA: paying users → learning path; non-payers →
-//     Start free trial
+//   · Dynamic CTA: subscribers → their week; others → current plan options
 // ============================================================
 
 import Link from "next/link";
@@ -23,7 +22,7 @@ import {
   Sparkles,
   BookmarkCheck,
 } from "lucide-react";
-import { DOMAIN_COLORS, DOMAIN_LABELS, type SATDomain, type DomainScores } from "@/types";
+import { DOMAIN_LABELS, type SATDomain, type DomainScores } from "@/types";
 import type { ScoredDiagnostic } from "@/lib/diagnostic-scoring";
 
 interface Props {
@@ -31,30 +30,16 @@ interface Props {
   totalQuestions: number;
   answers: Record<string, string>;
   questions: Array<{ id: string; correct: string; text?: string; domain?: SATDomain }>;
-  /** Drives the CTA button below the score guarantee block. */
+  /** Drives the next-step destination; never implies trial eligibility. */
   isSubscribed: boolean;
   /** Question ids the student bookmarked during the diagnostic. */
   bookmarkedIds?: string[];
 }
 
-const SCORE_LABELS: Record<string, string> = {
-  "400-800": "Building foundations",
-  "800-1100": "On the way up",
-  "1100-1300": "Approaching target",
-  "1300-1600": "Strong performer",
-};
-
-function getScoreLabel(total: number): string {
-  if (total < 800) return SCORE_LABELS["400-800"];
-  if (total < 1100) return SCORE_LABELS["800-1100"];
-  if (total < 1300) return SCORE_LABELS["1100-1300"];
-  return SCORE_LABELS["1300-1600"];
-}
-
 function domainHeatColor(score: number): string {
-  if (score >= 70) return "#8BA86A";
-  if (score >= 50) return "#E0A24A";
-  return "#D84F73";
+  if (score >= 70) return "rgb(var(--k-success))";
+  if (score >= 50) return "rgb(var(--k-warning))";
+  return "rgb(var(--k-rw))";
 }
 
 const MATH_DOMAINS: SATDomain[] = ["algebra", "advanced_math", "geometry", "data_analysis"];
@@ -78,14 +63,11 @@ export default function DiagnosticResults({
     .map((q, i) => ({ ...q, index: i }))
     .filter((q) => bookmarkedSet.has(q.id));
   const correctCount = questions.filter((q) => answers[q.id] === q.correct).length;
-  const accuracy = Math.round((correctCount / totalQuestions) * 100);
-  const midScore = Math.round((scoring.totalLow + scoring.totalHigh) / 2);
-  const scoreLabel = getScoreLabel(midScore);
+  const accuracy = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0;
 
-  // CTA: non-subscribers go to /billing to pick a tier + start the
-  // free trial. Paying subscribers head straight to their dashboard.
+  // Keep the existing plan/account destinations; checkout defines any trial.
   const ctaHref = isSubscribed ? "/dashboard/student" : "/billing";
-  const ctaLabel = isSubscribed ? "Go to my learning path" : "Begin your journey";
+  const ctaLabel = isSubscribed ? "Open your SAT week" : "Review your plan options";
 
   return (
     <div className="min-h-screen bg-surface px-4 py-10 dark:bg-night">
@@ -103,87 +85,39 @@ export default function DiagnosticResults({
           </p>
         </div>
 
-        {/* Predicted score card — total + section subscores */}
-        <div className="glass-card p-6">
-          <p className="mb-2 text-center text-sm font-semibold uppercase tracking-wide text-taupe dark:text-taupe">
-            Predicted SAT Score Range
+        <section
+          aria-labelledby="performance-heading"
+          className="rounded-2xl border border-bronze/40 bg-surface p-6 sm:p-8"
+        >
+          <p className="text-xs font-semibold uppercase tracking-wider text-gold">
+            Your starting point
           </p>
-          <div className="mb-1 text-center text-5xl font-extrabold text-ivory dark:text-ivory">
-            {scoring.totalLow}–{scoring.totalHigh}
-          </div>
-          <p className="text-center text-sm text-taupe dark:text-taupe">{scoreLabel}</p>
-
-          {/* Score-range bar (400-1600).
-              The range itself is the marker — a glowing white
-              capsule sits ON the gradient bar spanning from `low`
-              to `high`, so the visual width literally maps to the
-              student's predicted range. Endpoint scores float just
-              above each cap so the eye reads `739 ─── 859` at a
-              glance, in line with the bar instead of hovering over
-              it. */}
-          {(() => {
-            const lowPct = ((scoring.totalLow - 400) / 1200) * 100;
-            const highPct = ((scoring.totalHigh - 400) / 1200) * 100;
-            const widthPct = Math.max(highPct - lowPct, 1.5);
-            return (
-              <div className="relative mb-2 mt-7">
-                {/* Endpoint labels — small Karman-blue numerals
-                    sitting just above each end of the range. */}
-                <div
-                  className="pointer-events-none absolute -top-5 text-[10px] font-bold tabular-nums text-info-bright"
-                  style={{ left: `${lowPct}%`, transform: "translateX(-50%)" }}
-                >
-                  {scoring.totalLow}
-                </div>
-                <div
-                  className="pointer-events-none absolute -top-5 text-[10px] font-bold tabular-nums text-info-bright"
-                  style={{ left: `${highPct}%`, transform: "translateX(-50%)" }}
-                >
-                  {scoring.totalHigh}
-                </div>
-
-                {/* Gradient bar — red → amber → green heat map. */}
-                <div className="relative h-2.5 rounded-full bg-gradient-to-r from-error via-warning to-success shadow-[inset_0_1px_2px_rgba(0,0,0,0.25)]">
-                  {/* Range capsule — sits ON the bar, slightly
-                      taller so it reads as raised, with a soft
-                      Karman glow. Width literally is the range. */}
-                  <div
-                    className="absolute top-1/2 h-4 -translate-y-1/2 rounded-full border border-info/60 bg-surface shadow-[0_0_14px_rgba(59,130,246,0.55)]"
-                    style={{ left: `${lowPct}%`, width: `${widthPct}%` }}
-                    aria-hidden
-                  />
-                </div>
-
-                <div className="mt-2 flex justify-between text-xs tabular-nums text-taupe">
-                  <span>400</span>
-                  <span>800</span>
-                  <span>1200</span>
-                  <span>1600</span>
-                </div>
+          <h2 id="performance-heading" className="mt-3 text-2xl font-semibold tracking-tight">
+            A snapshot of this practice.
+          </h2>
+          <p className="mt-4 text-base leading-7 text-taupe">
+            These results describe the questions and skills sampled here. They do not predict an
+            official SAT score or measure every skill on the test.
+          </p>
+          <div className="mt-6 grid gap-5 border-t border-bronze/30 pt-5 sm:grid-cols-2">
+            {[
+              { label: "Math", value: scoring.math.accuracy },
+              { label: "Reading & Writing", value: scoring.rw.accuracy },
+            ].map((section) => (
+              <div key={section.label}>
+                <h3 className="text-sm font-medium text-taupe">{section.label}</h3>
+                <p className="mt-2 text-3xl font-semibold text-ivory">
+                  {Math.round(section.value)}%
+                </p>
+                <p className="mt-1 text-sm leading-6 text-taupe">Difficulty-weighted accuracy</p>
               </div>
-            );
-          })()}
-
-          {/* Section subscores */}
-          <div className="mt-5 grid grid-cols-2 gap-3 border-t border-bronze pt-5 dark:border-bronze">
-            <div className="text-center">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-taupe dark:text-taupe">
-                Math
-              </p>
-              <p className="mt-0.5 text-2xl font-extrabold text-ivory dark:text-ivory">
-                {scoring.math.low}–{scoring.math.high}
-              </p>
-            </div>
-            <div className="text-center">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-taupe dark:text-taupe">
-                Reading & Writing
-              </p>
-              <p className="mt-0.5 text-2xl font-extrabold text-ivory dark:text-ivory">
-                {scoring.rw.low}–{scoring.rw.high}
-              </p>
-            </div>
+            ))}
           </div>
-        </div>
+          <p className="mt-5 text-sm leading-6 text-taupe">
+            Harder questions carry more weight in the section and domain breakdowns. Use them to
+            choose practice, rather than compare with a College Board score.
+          </p>
+        </section>
 
         {/* Domain heatmap — Math */}
         <DomainSectionCard
@@ -226,9 +160,7 @@ export default function DiagnosticResults({
             {scoring.strongest ? (
               <>
                 <p className="text-sm font-semibold text-ivory dark:text-ivory">
-                  <span style={{ color: DOMAIN_COLORS[scoring.strongest.domain].hex }}>
-                    {DOMAIN_LABELS[scoring.strongest.domain]}
-                  </span>
+                  <span className="text-ivory">{DOMAIN_LABELS[scoring.strongest.domain]}</span>
                 </p>
                 <p className="mt-1 text-xs leading-relaxed text-taupe dark:text-taupe">
                   {scoring.strongest.score}% difficulty-weighted accuracy
@@ -259,8 +191,8 @@ export default function DiagnosticResults({
               <span className="text-xs font-normal text-taupe">({bookmarkedQuestions.length})</span>
             </h2>
             <p className="mb-4 text-xs text-taupe dark:text-taupe">
-              You flagged these during the diagnostic. They&apos;ll come up first when you start
-              your learning path.
+              You flagged these during the diagnostic. Use this list to choose questions you want to
+              discuss or practice again.
             </p>
             <ul className="space-y-2">
               {bookmarkedQuestions.map((q) => {
@@ -273,17 +205,8 @@ export default function DiagnosticResults({
                   >
                     <div className="mb-1 flex items-center justify-between gap-3">
                       <div className="flex min-w-0 items-center gap-2">
-                        <span className="text-[11px] font-bold uppercase tracking-wider text-taupe dark:text-taupe">
-                          Q{q.index + 1}
-                        </span>
                         {q.domain && (
-                          <span
-                            className="rounded px-1.5 py-0.5 text-[10px] font-semibold"
-                            style={{
-                              backgroundColor: DOMAIN_COLORS[q.domain].hex + "22",
-                              color: DOMAIN_COLORS[q.domain].hex,
-                            }}
-                          >
+                          <span className="rounded px-1.5 py-0.5 text-[10px] font-semibold">
                             {DOMAIN_LABELS[q.domain]}
                           </span>
                         )}
@@ -312,14 +235,18 @@ export default function DiagnosticResults({
           </div>
         )}
 
-        {/* Score guarantee */}
-        <div className="rounded-2xl border border-info/40 bg-info/10 p-5 text-sm text-info dark:border-info/40 dark:bg-info/20 dark:text-info-bright">
-          <p className="mb-1 font-bold">Score Improvement Guarantee</p>
-          <p>
-            Follow your personalized learning path for 8 weeks. If you don&apos;t improve by at
-            least 50 points on your next official SAT, we&apos;ll refund your subscription — no
-            questions asked.
+        <div className="rounded-2xl bg-surface-raised p-6 text-base leading-7 text-taupe">
+          <h2 className="font-semibold text-ivory">Put the result to work.</h2>
+          <p className="mt-2">
+            Start with the focus area above, revisit your bookmarked questions, or bring this
+            breakdown to your tutor.
           </p>
+          <Link
+            href="/guarantee"
+            className="mt-3 inline-flex min-h-11 items-center text-sm underline underline-offset-4"
+          >
+            Read the score policy and existing-purchase terms
+          </Link>
         </div>
 
         {/* CTA */}
@@ -355,9 +282,7 @@ function DomainSectionCard({
               <span className="text-sm font-medium text-ivory dark:text-ivory">
                 {DOMAIN_LABELS[domain]}
               </span>
-              <span className="text-sm font-bold" style={{ color: domainHeatColor(score) }}>
-                {score}%
-              </span>
+              <span className="text-sm font-semibold text-ivory">{score}%</span>
             </div>
             <div className="h-2.5 overflow-hidden rounded-full bg-surface dark:bg-surface-raised">
               <div

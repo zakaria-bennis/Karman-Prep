@@ -15,6 +15,13 @@ import type {
   ImportStatus,
   QuizDifficulty,
 } from "@/types/quiz";
+import type { QuestionTableData } from "@/types/question-table";
+import type { Json } from "@/types/supabase";
+import { isValidChoiceTableData } from "@/lib/question-bank/choice-table";
+import {
+  numericAnswerSetFromEvidence,
+  reviewedNumericAnswers,
+} from "@/lib/question-bank/numeric-answer-set";
 
 // ── Live-question filter ─────────────────────────────────────
 // PDF-imported questions land with import_status = 'needs_review'
@@ -40,7 +47,8 @@ export const LIVE_FILTER = "import_status.is.null,import_status.eq.ok";
 // ── Question catalog ──────────────────────────────────────────
 
 /** Fetch questions for a curriculum node.
- *  Defaults to live-only (hides `needs_review` flagged questions).
+ *  Defaults to student-visible only. Both the legacy archive/review
+ *  filter and the v2 publication gate must allow a question through.
  *  Pass `{ includeFlagged: true }` from admin contexts that need
  *  to see everything. */
 export async function fetchQuestionsForNode(
@@ -49,12 +57,41 @@ export async function fetchQuestionsForNode(
 ): Promise<QuizQuestionWithChoices[]> {
   const supabase = createAdminClient();
   let query = supabase.from("quiz_questions").select("*, answer_choices(*)").eq("node_id", nodeId);
-  if (!opts.includeFlagged) query = query.eq("is_live", true);
+  if (!opts.includeFlagged) {
+    query = query
+      .eq("is_live", true)
+      .in("publish_status", ["publish_ready", "publish_ready_with_verified_repair"]);
+  }
   const { data, error } = await query
     .order("display_order", { ascending: true })
     .order("difficulty", { ascending: true });
   if (error) throw error;
-  return (data ?? []) as QuizQuestionWithChoices[];
+  const questions = data ?? [];
+  const numericIds = questions.filter((q) => q.answer_format === "numeric_entry").map((q) => q.id);
+  if (numericIds.length) {
+    const { data: keys, error: keyError } = await supabase
+      .from("answer_key_entries")
+      .select("question_id, raw_model_response")
+      .in("question_id", numericIds);
+    if (keyError) throw keyError;
+    for (const id of numericIds) {
+      const entries = (keys ?? []).filter((key) => key.question_id === id);
+      if (
+        entries.length > 1 &&
+        entries.some((key) => numericAnswerSetFromEvidence(key.raw_model_response) !== undefined)
+      )
+        throw new Error("Ambiguous reviewed numeric answer evidence");
+    }
+    const evidence = new Map((keys ?? []).map((key) => [key.question_id, key.raw_model_response]));
+    return questions.map((q) => ({
+      ...q,
+      reviewed_numeric_answers: reviewedNumericAnswers(
+        q,
+        numericAnswerSetFromEvidence(evidence.get(q.id))
+      ),
+    })) as QuizQuestionWithChoices[];
+  }
+  return questions as QuizQuestionWithChoices[];
 }
 
 export async function fetchAllQuestionsForAdmin(): Promise<QuizQuestionWithChoices[]> {
@@ -85,7 +122,11 @@ export interface NewQuestionInput {
   subject: QuizQuestion["subject"];
   topic_cluster: string;
   desmos_strategy: string | null;
-  choices: { letter: AnswerLetter; choice_text: string }[]; // ignored when answer_format = 'numeric_entry'
+  choices: {
+    letter: AnswerLetter;
+    choice_text: string;
+    choice_table_data?: QuestionTableData | null;
+  }[]; // ignored when answer_format = 'numeric_entry'
   display_order?: number;
 
   // ── Ingestion fields (migration 020) ───────────────────────
@@ -118,6 +159,14 @@ export interface InsertQuestionResult {
 }
 
 export async function insertQuestion(input: NewQuestionInput): Promise<InsertQuestionResult> {
+  // Validate before the question row is written, so a malformed choice
+  // cannot leave behind a question without its answers.
+  if (input.answer_format === "multiple_choice") {
+    for (const choice of input.choices) {
+      if (choice.choice_table_data != null && !isValidChoiceTableData(choice.choice_table_data))
+        throw new Error(`Choice ${choice.letter} has invalid table data`);
+    }
+  }
   const supabase = createAdminClient();
 
   // ── Idempotent re-import: when both source_pdf and content_hash
@@ -185,6 +234,7 @@ export async function insertQuestion(input: NewQuestionInput): Promise<InsertQue
       question_id: question.id,
       letter: c.letter,
       choice_text: c.choice_text,
+      choice_table_data: (c.choice_table_data as unknown as Json) ?? null,
       // v2 phase 5: at creation time the user-entered text IS the raw
       // text. Phase 5 may later diverge choice_text from raw_choice_text
       // for verified auto-repairs.

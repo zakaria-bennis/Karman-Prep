@@ -1,7 +1,7 @@
 "use client";
 
 // ============================================================
-// MathText — lightweight inline renderer that handles $…$ and $$…$$
+// MathText — lightweight renderer for $…$, $$…$$ and source \(…\)
 // KaTeX math inside a plain text string. Preserves line breaks.
 // Use for short bodies (question text, choice labels, one-liner prompts).
 //
@@ -12,13 +12,21 @@
 // ============================================================
 
 import { Fragment, useMemo, type ReactNode } from "react";
+import { CalculatorSourceAction } from "@/components/calculator/CalculatorSourceAction";
 import katex from "katex";
 import "katex/dist/katex.min.css";
+import { parseSourceUnderlining } from "./source-underlining";
+import { parseSourceItalics } from "./source-italics";
+import { currencyDollarDelimiters } from "./currency-dollar-delimiters";
+import { parseSerializedFunctionLines } from "./serialized-function-math";
 
 interface Props {
   text: string;
+  calculator?: boolean;
   className?: string;
   blockClassName?: string;
+  /** Math stems/choices only: display narrowly specified reviewed serialized math. */
+  serializedFunctionLines?: boolean;
   /** When true, also treat the literal word "blank" (alone or wrapped
    *  in `_` / `-` chars) as a fill-in-the-blank marker. Default false
    *  — the word "blank" is a perfectly normal English word in question
@@ -29,10 +37,15 @@ interface Props {
 
 type Seg =
   | { kind: "text"; value: string }
-  | { kind: "inline"; latex: string }
+  | { kind: "inline"; latex: string; sourceFunction?: true }
   | { kind: "block"; latex: string };
 
-function parse(text: string): Seg[] {
+function parse(
+  text: string,
+  serializedFunctionLines: boolean,
+  atLineStart: boolean,
+  atLineEnd: boolean
+): Seg[] {
   // Extract $$…$$ first (greedy block), then remaining $…$ inline.
   //
   // Both regexes accept `\$` (escaped dollar) inside the math span
@@ -57,36 +70,63 @@ function parse(text: string): Seg[] {
   }
   if (rest) segmentsAfterBlock.push({ kind: "text", value: rest });
 
-  // Inline pass — same fix for `\$`.
+  // Explicit source \(…\) delimiters and $…$ use the same KaTeX path.
+  // Preserve prose and unmatched delimiters rather than guessing bare commands.
   for (const seg of segmentsAfterBlock) {
     if (seg.kind !== "text") {
       out.push(seg);
       continue;
     }
+    const currencyOffsets = currencyDollarDelimiters(seg.value);
+    let offset = 0;
     let remaining = seg.value;
     while (true) {
-      const m = remaining.match(/\$((?:\\\$|[^$\n])+?)\$/);
+      const m = remaining.match(/\$((?:\\\$|[^$\n])+?)\$|\\\(([\s\S]+?)\\\)/);
       if (!m) break;
+      if (
+        m[1] !== undefined &&
+        (currencyOffsets.has(offset + m.index!) ||
+          currencyOffsets.has(offset + m.index! + m[0].length - 1))
+      ) {
+        // Keep the currency symbol and rescan, so later explicit math survives.
+        const consumed = m.index! + 1;
+        out.push({ kind: "text", value: remaining.slice(0, consumed) });
+        remaining = remaining.slice(consumed);
+        offset += consumed;
+        continue;
+      }
       const before = remaining.slice(0, m.index!);
       if (before) out.push({ kind: "text", value: before });
-      out.push({ kind: "inline", latex: m[1].trim() });
-      remaining = remaining.slice((m.index ?? 0) + m[0].length);
+      out.push({ kind: "inline", latex: (m[1] ?? m[2]).trim() });
+      const consumed = (m.index ?? 0) + m[0].length;
+      remaining = remaining.slice(consumed);
+      offset += consumed;
     }
     if (remaining) out.push({ kind: "text", value: remaining });
   }
 
-  return out;
+  return serializedFunctionLines
+    ? out.flatMap<Seg>((seg, index) =>
+        seg.kind === "text"
+          ? parseSerializedFunctionLines(seg.value, {
+              atLineStart: index === 0 && atLineStart,
+              atLineEnd: index === out.length - 1 && atLineEnd,
+            })
+          : [seg]
+      )
+    : out;
 }
 
 /** Patterns for fill-in-the-blank markers:
  *    Underscores-only:  `__`, `_____`           (universal — always replaced)
+ *    Composite marker: `_____blank`, `__blank__` (one blank, not visible prose)
  *    Word "blank":      `blank`, `_blank_`,
  *                       `-blank-`, `__blank__`  (passage-only — opt-in)
  *
  *  The lookarounds `(?<!\w) / (?!\w)` prevent matching inside larger
  *  words: "blanket", "unblanked", "var_name" stay untouched. */
-const UNDERSCORE_PATTERN = /_{2,}/g;
-const BLANK_OR_UNDERSCORE_PATTERN = /_{2,}|(?<!\w)[_-]*blank[_-]*(?!\w)/gi;
+const UNDERSCORE_PATTERN = /(?<!\w)_{2,}blank_*(?!\w)|_{2,}/gi;
+const BLANK_OR_UNDERSCORE_PATTERN = /(?<!\w)[_-]*blank[_-]*(?!\w)|_{2,}/gi;
 
 /** Replace each blank marker with one fixed-width continuous underline
  *  at the baseline. Width is uniform — what matters is that the blank
@@ -117,7 +157,7 @@ function renderTextWithBlanks(text: string, segKey: number, treatBlankWord: bool
             <span
               key={key}
               aria-label="blank"
-              role="presentation"
+              role="img"
               style={{
                 display: "inline-block",
                 width: "4em",
@@ -142,7 +182,8 @@ function renderKaTeX(latex: string, displayMode: boolean): string {
       output: "htmlAndMathml",
     });
   } catch {
-    return displayMode ? `<pre>${latex}</pre>` : latex;
+    const escaped = latex.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+    return displayMode ? `<pre>${escaped}</pre>` : escaped;
   }
 }
 
@@ -151,34 +192,89 @@ export default function MathText({
   className = "",
   blockClassName = "",
   treatBlankWord = false,
+  serializedFunctionLines = false,
+  calculator = false,
 }: Props) {
-  const segs = useMemo(() => parse(text), [text]);
+  const runs = useMemo(
+    () =>
+      parseSourceUnderlining(text).map((run, index, sourceRuns) => ({
+        ...run,
+        italicRuns: parseSourceItalics(run.text).map((italicRun, italicIndex, italicRuns) => ({
+          ...italicRun,
+          segments: parse(
+            italicRun.text,
+            serializedFunctionLines,
+            italicIndex === 0
+              ? index === 0 || sourceRuns[index - 1].text.endsWith("\n")
+              : italicRuns[italicIndex - 1].text.endsWith("\n"),
+            italicIndex === italicRuns.length - 1
+              ? index === sourceRuns.length - 1 || sourceRuns[index + 1].text.startsWith("\n")
+              : italicRuns[italicIndex + 1].text.startsWith("\n")
+          ),
+        })),
+      })),
+    [text, serializedFunctionLines]
+  );
 
-  return (
-    <span className={className} style={{ whiteSpace: "pre-wrap" }}>
-      {segs.map((s, i) => {
-        if (s.kind === "text")
-          return <span key={i}>{renderTextWithBlanks(s.value, i, treatBlankWord)}</span>;
-        if (s.kind === "inline") {
-          // Baseline alignment + inheriting color/size keeps the
-          // math inline with prose. The CSS override on .katex in
-          // globals.css does the heavy lifting here.
-          return (
+  function renderSegments(segs: Seg[]) {
+    return segs.map((s, i) => {
+      if (s.kind === "text")
+        return <span key={i}>{renderTextWithBlanks(s.value, i, treatBlankWord)}</span>;
+      if (s.kind === "inline") {
+        // Baseline alignment + inheriting color/size keeps the
+        // math inline with prose. The CSS override on .katex in
+        // globals.css does the heavy lifting here.
+        return (
+          <Fragment key={i}>
             <span
-              key={i}
-              className="align-baseline"
+              className={
+                s.sourceFunction ? "source-function-math align-baseline" : "align-baseline"
+              }
               dangerouslySetInnerHTML={{ __html: renderKaTeX(s.latex, false) }}
             />
-          );
-        }
-        return (
+            {calculator && <CalculatorSourceAction latex={s.latex} />}
+          </Fragment>
+        );
+      }
+      return (
+        <Fragment key={i}>
           <span
-            key={i}
             className={`my-3 block text-center ${blockClassName}`}
             dangerouslySetInnerHTML={{ __html: renderKaTeX(s.latex, true) }}
           />
-        );
-      })}
+          {calculator && <CalculatorSourceAction latex={s.latex} />}
+        </Fragment>
+      );
+    });
+  }
+
+  function renderSourceRun(run: (typeof runs)[number]) {
+    return run.italicRuns.map((italicRun, index) =>
+      italicRun.italic ? (
+        <i key={index} style={{ fontStyle: "italic" }}>
+          {renderSegments(italicRun.segments)}
+        </i>
+      ) : (
+        <Fragment key={index}>{renderSegments(italicRun.segments)}</Fragment>
+      )
+    );
+  }
+
+  return (
+    <span className={className} style={{ whiteSpace: "pre-wrap" }}>
+      {runs.map((run, index) =>
+        run.underlined ? (
+          <Fragment key={index}>
+            <span className="sr-only">Start of underlined text. </span>
+            <u style={{ textUnderlineOffset: "0.16em", textDecorationThickness: "0.075em" }}>
+              {renderSourceRun(run)}
+            </u>
+            <span className="sr-only"> End of underlined text.</span>
+          </Fragment>
+        ) : (
+          <Fragment key={index}>{renderSourceRun(run)}</Fragment>
+        )
+      )}
     </span>
   );
 }

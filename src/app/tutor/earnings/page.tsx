@@ -18,7 +18,6 @@ import { Wallet, Clock, DollarSign, ArrowRight, BarChart3 } from "lucide-react";
 import { fetchUserRole } from "@/lib/supabase/queries/admin";
 import { createAdminClient } from "@/lib/supabase/server";
 import { fetchTutorEarningsSummary } from "@/lib/supabase/queries/earnings";
-import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "My Earnings — Karman" };
@@ -47,7 +46,7 @@ export default async function TutorEarningsPage() {
   const canRequestPayout = summary.pending_amount > 0;
 
   return (
-    <DashboardLayout>
+    <>
       <div className="mx-auto max-w-4xl space-y-8 px-4 py-8 sm:px-6">
         {/* ── Header ────────────────────────────────── */}
         <header>
@@ -135,7 +134,7 @@ export default async function TutorEarningsPage() {
           Pay = $35/hour, rounded down to 15-min increments. Same rate for 1:1 and group sessions.
         </p>
       </div>
-    </DashboardLayout>
+    </>
   );
 }
 

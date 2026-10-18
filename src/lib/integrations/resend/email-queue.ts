@@ -90,7 +90,7 @@ export async function enqueueFailedEmail(args: {
 
   // Try update-then-insert (partial unique index on dedupe_key means
   // we can have AT MOST one active row per key). UPDATE first:
-  const { data: updated } = await supabase
+  const { data: updated, error: updateErr } = await supabase
     .from("failed_emails")
     .update({
       attempts: 1, // will be set absolute by cron on next attempt
@@ -104,6 +104,7 @@ export async function enqueueFailedEmail(args: {
     .is("given_up_at", null)
     .select("id")
     .maybeSingle();
+  if (updateErr) throw updateErr;
   if (updated) return;
 
   // No active row — INSERT a new one. attempts=1 represents the
@@ -119,10 +120,18 @@ export async function enqueueFailedEmail(args: {
     next_attempt_at: nextAttemptIso,
   });
   if (insertErr) {
-    // Either a concurrent insert raced us (re-queue is now a no-op),
-    // or something more interesting — log either way so we don't lose
-    // visibility silently.
-    console.error("[email-queue] enqueue insert error:", insertErr);
+    // A concurrent enqueue is safe only if the durable active row exists.
+    if (insertErr.code === "23505") {
+      const { data, error } = await supabase
+        .from("failed_emails")
+        .select("id")
+        .eq("dedupe_key", args.dedupeKey)
+        .is("succeeded_at", null)
+        .is("given_up_at", null)
+        .maybeSingle();
+      if (!error && data) return;
+    }
+    throw insertErr;
   }
 }
 
@@ -161,13 +170,14 @@ export async function listPendingFailedEmails(limit = 20): Promise<FailedEmailRo
  *  matching booking's *_email_sent flag separately. */
 export async function markFailedEmailSucceeded(id: string): Promise<void> {
   const supabase = createAdminClient();
-  await supabase
+  const { error } = await supabase
     .from("failed_emails")
     .update({
       succeeded_at: new Date().toISOString(),
       last_attempt_at: new Date().toISOString(),
     })
     .eq("id", id);
+  if (error) throw error;
 }
 
 /** Record another failure: increments attempts + schedules next try,
@@ -183,7 +193,7 @@ export async function recordFailedEmailRetryOutcome(args: {
   const nowIso = new Date().toISOString();
 
   if (nextAttempts >= MAX_ATTEMPTS) {
-    await supabase
+    const { error } = await supabase
       .from("failed_emails")
       .update({
         attempts: nextAttempts,
@@ -192,11 +202,12 @@ export async function recordFailedEmailRetryOutcome(args: {
         given_up_at: nowIso,
       })
       .eq("id", args.id);
+    if (error) throw error;
     return;
   }
 
   const nextAttemptIso = new Date(Date.now() + backoffDelayMs(nextAttempts)).toISOString();
-  await supabase
+  const { error } = await supabase
     .from("failed_emails")
     .update({
       attempts: nextAttempts,
@@ -205,4 +216,5 @@ export async function recordFailedEmailRetryOutcome(args: {
       next_attempt_at: nextAttemptIso,
     })
     .eq("id", args.id);
+  if (error) throw error;
 }

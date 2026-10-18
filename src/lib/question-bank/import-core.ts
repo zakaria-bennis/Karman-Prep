@@ -28,24 +28,35 @@
 // ============================================================
 
 import { createHash } from "node:crypto";
+import { parseDifficulty, parseReviewedDifficulty } from "./import-difficulty";
+export { parseDifficulty, parseReviewedDifficulty } from "./import-difficulty";
+import type { QuestionTableData } from "@/types/question-table";
+import { isValidChoiceTableData } from "./choice-table";
+import {
+  writeImportAnswerProvenance,
+  importAnswerEvidence,
+  canonicalEvidence,
+  type ReviewedAnswerProvenance,
+} from "./import-provenance";
+import { validateReviewedAnswer } from "./reviewed-answer";
+import { validatePrivateDraftInput } from "./private-draft";
+import { validateNumericImport } from "./numeric-answer-set";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database } from "@/types/supabase";
+import type { Database, Json } from "@/types/supabase";
 import {
   isValidSlug,
   isValidDomain,
+  domainFromSlug,
   clusterFromSlug,
   nodeIdFromSlug,
   CLUSTER_BY_DOMAIN,
   type SATDomain,
 } from "@/lib/question-bank/taxonomy";
 import {
-  levelToLegacyDifficulty,
   type AnswerLetter,
   type AnswerSource,
   type ImportFlagType,
   type ImportStatus,
-  type QuizDifficulty,
-  type QuizDifficultyLevel,
 } from "@/types/quiz";
 
 // ── Public types ─────────────────────────────────────────────
@@ -60,6 +71,9 @@ import {
 export interface ImportQuestionInput {
   // ── Required ──
   question_text: string;
+  raw_question_text?: string;
+  raw_choice_texts?: Partial<Record<AnswerLetter, string>>;
+  reviewed_answer?: ReviewedAnswerProvenance;
   correct_answer: string;
   domain: SATDomain;
 
@@ -68,6 +82,10 @@ export interface ImportQuestionInput {
   choice_b?: string;
   choice_c?: string;
   choice_d?: string;
+
+  choice_tables?: Partial<Record<AnswerLetter, QuestionTableData>> | null;
+  figure_kind?: "table" | null;
+  figure_table_data?: QuestionTableData | null;
 
   // ── Difficulty + format ──
   difficulty?: string | number; // 1-7 or legacy label; defaults to 4 / "intermediate"
@@ -78,6 +96,16 @@ export interface ImportQuestionInput {
   source_pdf?: string;
   source_page?: number | string;
   content_hash?: string; // v1 hash kept for back-compat; v2 is computed here
+  source_provider?: string;
+  source_identity_required?: boolean;
+  source_document_id?: string;
+  source_provider_version_id?: string;
+  source_version?: string;
+  source_section?: "reading" | "math";
+  source_module?: "M1" | "M2";
+  source_question_number?: number;
+  source_occurrence?: number;
+  source_regions?: Json;
 
   // ── Curriculum routing ──
   concept_slug?: string;
@@ -118,6 +146,13 @@ export interface ImportQuestionResult {
   errors: string[];
 }
 
+/** Reviewed imports require an explicit numeric rating; legacy callers stay compatible. */
+export interface ImportQuestionOptions {
+  difficultyPolicy?: "legacy" | "reviewed";
+  /** Opt-in local private drafts remain invisible even to legacy is_live selectors. */
+  privateDraft?: boolean;
+}
+
 export interface ImportBatchSummary {
   inserted: number;
   skipped_duplicates: number;
@@ -137,37 +172,6 @@ const READING_DOMAINS = new Set<SATDomain>([
 
 export function subjectFromDomain(domain: SATDomain): "reading" | "math" {
   return READING_DOMAINS.has(domain) ? "reading" : "math";
-}
-
-const LEGACY_LEVEL_MAP: Record<QuizDifficulty, QuizDifficultyLevel> = {
-  foundational: 2,
-  intermediate: 4,
-  advanced: 5,
-  mastery: 6,
-};
-
-/**
- * Parse a difficulty value (either 1-7 integer, or legacy enum
- * "foundational" / "intermediate" / "advanced" / "mastery") into the
- * canonical pair { level, legacy }. Defaults to (4, "intermediate")
- * when the input is missing or unparseable.
- */
-export function parseDifficulty(value: string | number | undefined | null): {
-  level: QuizDifficultyLevel;
-  legacy: QuizDifficulty;
-} {
-  if (value == null) return { level: 4, legacy: levelToLegacyDifficulty(4) };
-  const asNumber = typeof value === "number" ? value : Number.parseInt(String(value).trim(), 10);
-  if (Number.isFinite(asNumber) && asNumber >= 1 && asNumber <= 7) {
-    const lvl = asNumber as QuizDifficultyLevel;
-    return { level: lvl, legacy: levelToLegacyDifficulty(lvl) };
-  }
-  const trimmed = String(value).trim();
-  if (trimmed in LEGACY_LEVEL_MAP) {
-    const legacy = trimmed as QuizDifficulty;
-    return { level: LEGACY_LEVEL_MAP[legacy], legacy };
-  }
-  return { level: 4, legacy: levelToLegacyDifficulty(4) };
 }
 
 /**
@@ -191,6 +195,8 @@ export function computeContentHashV2(fields: {
   choice_b?: string;
   choice_c?: string;
   choice_d?: string;
+  choice_tables?: Partial<Record<AnswerLetter, QuestionTableData>> | null;
+  figure_table_data?: QuestionTableData | null;
 }): string {
   const normalized = [
     fields.subject,
@@ -208,7 +214,22 @@ export function computeContentHashV2(fields: {
   ]
     .map((p) => String(p).trim().toLowerCase())
     .join("|");
-  return createHash("sha256").update(normalized, "utf-8").digest("hex");
+  // Preserve legacy text-only hashes; include all meaningful table cells for
+  // new native-table questions so different datasets are not skipped as retries.
+  const canonicalTable = (table: QuestionTableData | null | undefined) =>
+    table == null
+      ? null
+      : [table.caption ?? null, table.header_row ?? null, table.rows, table.footer_note ?? null];
+  const tables = [
+    canonicalTable(fields.figure_table_data),
+    ...(["A", "B", "C", "D"] as const).map((letter) =>
+      canonicalTable(fields.choice_tables?.[letter])
+    ),
+  ];
+  const payload = tables.some((table) => table !== null)
+    ? normalized + "|native-tables:" + JSON.stringify(tables)
+    : normalized;
+  return createHash("sha256").update(payload, "utf-8").digest("hex");
 }
 
 /**
@@ -221,11 +242,31 @@ export function computeContentHashV2(fields: {
  * pass the publish-gate later). This gate only rejects rows that
  * would corrupt the DB.
  */
-export function validateImportRow(row: ImportQuestionInput): {
+export function validateImportRow(
+  row: ImportQuestionInput,
+  options: ImportQuestionOptions = {}
+): {
   ok: boolean;
   errors: string[];
 } {
   const errors: string[] = [];
+  if (row.reviewed_answer)
+    errors.push(
+      ...validateReviewedAnswer(
+        row.reviewed_answer,
+        row.correct_answer,
+        row.import_status === "needs_review"
+      )
+    );
+  errors.push(...validatePrivateDraftInput(row, options));
+
+  if (options.difficultyPolicy === "reviewed") {
+    try {
+      parseReviewedDifficulty(row.difficulty);
+    } catch (error) {
+      errors.push((error as Error).message);
+    }
+  }
 
   if (!row.question_text || !row.question_text.trim()) {
     errors.push("missing question_text");
@@ -238,10 +279,46 @@ export function validateImportRow(row: ImportQuestionInput): {
   } else if (!isValidDomain(row.domain)) {
     errors.push(`unknown domain "${row.domain}"`);
   }
-  if (row.concept_slug && !isValidSlug(row.concept_slug)) {
-    errors.push(`unknown concept_slug "${row.concept_slug}"`);
+  if (row.concept_slug) {
+    if (!isValidSlug(row.concept_slug)) {
+      errors.push(`unknown concept_slug "${row.concept_slug}"`);
+    } else if (isValidDomain(row.domain) && domainFromSlug(row.concept_slug) !== row.domain) {
+      errors.push(
+        `concept_slug "${row.concept_slug}" belongs to domain "${domainFromSlug(row.concept_slug)}", not "${row.domain}"`
+      );
+    }
+  }
+  if (row.source_version) {
+    if (!/^[a-f0-9]{64}$/.test(row.source_version)) errors.push("invalid source_version");
+    if (
+      !row.source_section ||
+      !row.source_module ||
+      !row.source_question_number ||
+      !row.source_occurrence
+    ) {
+      errors.push("incomplete source question identity");
+    } else if (isValidDomain(row.domain) && row.source_section !== subjectFromDomain(row.domain)) {
+      errors.push(`source_section "${row.source_section}" does not match domain "${row.domain}"`);
+    }
   }
 
+  if (row.figure_table_data != null && !isValidChoiceTableData(row.figure_table_data))
+    errors.push("invalid figure_table_data");
+  if (row.figure_kind === "table" && row.figure_table_data == null)
+    errors.push("table figure requires figure_table_data");
+  if (row.figure_table_data != null && row.figure_kind !== "table")
+    errors.push("figure_table_data requires figure_kind=table");
+  if (row.choice_tables != null) {
+    if (typeof row.choice_tables !== "object" || Array.isArray(row.choice_tables))
+      errors.push("invalid choice_tables");
+    else
+      for (const [letter, table] of Object.entries(row.choice_tables)) {
+        if (!/^[A-D]$/.test(letter) || !isValidChoiceTableData(table))
+          errors.push(`invalid choice table ${letter}`);
+      }
+    if (row.question_format === "numeric_entry")
+      errors.push("numeric entry cannot have choice tables");
+  }
   const fmt = row.question_format ?? "multiple_choice";
   if (fmt === "multiple_choice") {
     // Empty strings are OK for individual choice texts (the rare
@@ -256,17 +333,8 @@ export function validateImportRow(row: ImportQuestionInput): {
     if (row.correct_answer && !/^[A-Da-d]$/.test(row.correct_answer.trim())) {
       errors.push(`correct_answer "${row.correct_answer}" is not A/B/C/D`);
     }
-  } else if (fmt === "numeric_entry") {
-    if (row.numeric_tolerance != null && row.numeric_tolerance !== "") {
-      const t =
-        typeof row.numeric_tolerance === "number"
-          ? row.numeric_tolerance
-          : Number.parseFloat(String(row.numeric_tolerance));
-      if (!Number.isFinite(t)) {
-        errors.push(`numeric_tolerance "${row.numeric_tolerance}" is not numeric`);
-      }
-    }
   }
+  errors.push(...validateNumericImport(row));
 
   if (row.import_status === "needs_review" && !row.import_flag_reason?.trim()) {
     errors.push("needs_review row missing import_flag_reason");
@@ -295,9 +363,10 @@ export function validateImportRow(row: ImportQuestionInput): {
  */
 export async function importQuestion(
   supabase: SupabaseClient<Database>,
-  row: ImportQuestionInput
+  row: ImportQuestionInput,
+  options: ImportQuestionOptions = {}
 ): Promise<ImportQuestionResult> {
-  const validation = validateImportRow(row);
+  const validation = validateImportRow(row, options);
   if (!validation.ok) {
     return {
       inserted: false,
@@ -309,7 +378,10 @@ export async function importQuestion(
   }
 
   const subject = subjectFromDomain(row.domain);
-  const { level, legacy } = parseDifficulty(row.difficulty);
+  const { level, legacy } =
+    options.difficultyPolicy === "reviewed"
+      ? parseReviewedDifficulty(row.difficulty)
+      : parseDifficulty(row.difficulty);
   const format = row.question_format ?? "multiple_choice";
   const question_type = subject === "reading" ? "evidence_based" : "math_computation";
   const cluster =
@@ -322,7 +394,8 @@ export async function importQuestion(
   // Phase 1 publish_status: new rows land as 'draft' (or
   // 'needs_human_review' if pre-flagged). Only the publish-gate
   // promotes to publish_ready.
-  const publish_status = row.import_status === "needs_review" ? "needs_human_review" : "draft";
+  const publish_status =
+    options.privateDraft || row.import_status === "needs_review" ? "needs_human_review" : "draft";
 
   const hasAnyChoiceExpl =
     row.explanation_a || row.explanation_b || row.explanation_c || row.explanation_d;
@@ -359,6 +432,8 @@ export async function importQuestion(
     choice_b: row.choice_b,
     choice_c: row.choice_c,
     choice_d: row.choice_d,
+    choice_tables: row.choice_tables,
+    figure_table_data: row.figure_table_data,
   });
 
   // ── 1. Insert quiz_questions ──
@@ -368,7 +443,8 @@ export async function importQuestion(
     // v2 phase 5: raw_question_text mirrors question_text at import.
     // Phase 5 math repair may later diverge them; this column is
     // the immutable original.
-    raw_question_text: row.question_text,
+    raw_question_text: row.raw_question_text ?? row.question_text,
+    verified_answer: row.reviewed_answer?.independently_verified_answer ?? null,
     question_type,
     difficulty: legacy,
     difficulty_level: level,
@@ -387,15 +463,32 @@ export async function importQuestion(
     passage_b: row.passage_b || null,
     domain: row.domain,
     concept_slug: row.concept_slug || null,
-    answer_source: row.answer_source ?? null,
+    answer_source:
+      row.reviewed_answer?.kind === "independently_confirmed_generated"
+        ? "inferred"
+        : (row.answer_source ?? null),
     source_pdf: row.source_pdf || null,
     source_page: Number.isFinite(source_page as number) ? (source_page as number) : null,
+    source_provider: row.source_provider || null,
+    source_identity_required: row.source_identity_required ?? false,
+    source_document_id: row.source_document_id || null,
+    source_provider_version_id: row.source_provider_version_id || null,
+    source_version: row.source_version || null,
+    source_section: row.source_section || null,
+    source_module: row.source_module || null,
+    source_question_number: row.source_question_number ?? null,
+    source_occurrence: row.source_occurrence ?? null,
+    source_regions: row.source_regions ?? null,
     content_hash: row.content_hash || null,
     content_hash_v2,
-    import_status: row.import_status ?? null,
+    import_status: options.privateDraft ? "needs_review" : (row.import_status ?? null),
     import_flag_type: row.import_flag_type ?? null,
-    import_flag_reason: row.import_flag_reason || null,
+    import_flag_reason:
+      row.import_flag_reason ||
+      (options.privateDraft ? "private_draft_not_for_student_selection" : null),
     publish_status,
+    figure_kind: row.figure_kind ?? null,
+    figure_table_data: (row.figure_table_data as unknown as Json) ?? null,
     image_url: row.image_url ?? null,
     image_storage_path: row.image_storage_path ?? null,
     image_alt: row.image_alt?.trim() || null,
@@ -408,9 +501,70 @@ export async function importQuestion(
     .single();
 
   if (qErr) {
-    // Postgres UNIQUE violation on (source_pdf, content_hash) →
-    // duplicate_skipped (not an error).
+    // A versioned retry is a duplicate only when the stored content,
+    // answer, and topic agree. Never silently discard a changed answer
+    // or remapped topic under the same source identity.
     if (qErr.code === "23505" || /duplicate/i.test(qErr.message)) {
+      if (row.source_version && row.source_section && row.source_module) {
+        const { data: existing, error: lookupErr } = await supabase
+          .from("quiz_questions")
+          .select(
+            "id, content_hash_v2, correct_answer, concept_slug, raw_question_text, selected_official_answer, verified_answer, is_live, publish_status, difficulty_level"
+          )
+          .eq("source_version", row.source_version)
+          .eq("source_section", row.source_section)
+          .eq("source_module", row.source_module)
+          .eq("source_question_number", row.source_question_number!)
+          .eq("source_occurrence", row.source_occurrence!)
+          .maybeSingle();
+        if (
+          lookupErr ||
+          !existing ||
+          (options.privateDraft &&
+            (existing.is_live !== false ||
+              existing.difficulty_level !== level ||
+              !["draft", "needs_human_review"].includes(existing.publish_status ?? ""))) ||
+          existing.content_hash_v2 !== content_hash_v2 ||
+          existing.correct_answer !== row.correct_answer ||
+          (row.raw_question_text != null && existing.raw_question_text !== row.raw_question_text) ||
+          (row.reviewed_answer != null &&
+            (existing.selected_official_answer !== row.reviewed_answer.printed_answer ||
+              existing.verified_answer !== row.reviewed_answer.independently_verified_answer)) ||
+          existing.concept_slug !== (row.concept_slug || null)
+        ) {
+          return {
+            inserted: false,
+            question_id: null,
+            duplicate_skipped: false,
+            flagged_for_review: false,
+            errors: [
+              "source identity conflict: existing question differs in content, answer, or topic",
+            ],
+          };
+        }
+        if (options.privateDraft) {
+          const { data: key, error } = await supabase
+            .from("answer_key_entries")
+            .select("raw_model_response")
+            .eq("question_id", existing.id)
+            .maybeSingle();
+          if (
+            error ||
+            !key ||
+            canonicalEvidence(key.raw_model_response) !==
+              canonicalEvidence(importAnswerEvidence(row))
+          )
+            return {
+              inserted: false,
+              question_id: null,
+              duplicate_skipped: false,
+              flagged_for_review: false,
+              errors: [
+                "source identity conflict: private answer evidence differs or is incomplete",
+              ],
+            };
+        }
+      }
       return {
         inserted: false,
         question_id: null,
@@ -448,7 +602,8 @@ export async function importQuestion(
         letter: letter as AnswerLetter,
         choice_text,
         // v2 phase 5: mirror raw_choice_text.
-        raw_choice_text: choice_text,
+        raw_choice_text: row.raw_choice_texts?.[letter] ?? choice_text,
+        choice_table_data: (row.choice_tables?.[letter] as unknown as Json) ?? null,
         is_correct: letter === correctLetter,
       };
     });
@@ -456,32 +611,8 @@ export async function importQuestion(
     if (cErr) errors.push(`answer_choices insert: ${cErr.message}`);
   }
 
-  // ── 3. Seed answer_key_entries (Phase 1) ──
-  const correctLetter = row.correct_answer.trim();
-  if (correctLetter) {
-    const { error: akeErr } = await supabase.from("answer_key_entries").insert({
-      question_id,
-      printed_answer: correctLetter,
-      printed_answer_crossed_out: false,
-      manual_correction_present: false,
-      selected_official_answer: correctLetter,
-      selection_reason: "phase1_seed_from_printed_correct_answer",
-      status: "printed_key_used_no_correction",
-    });
-    // Non-fatal: a missing answer_key_entries row just means the
-    // publish-gate's Phase 2 check will flag it.
-    if (akeErr) errors.push(`answer_key_entries insert (non-fatal): ${akeErr.message}`);
-
-    // ── 4. Mirror selected_official_answer + answer_key_status ──
-    const { error: mirrorErr } = await supabase
-      .from("quiz_questions")
-      .update({
-        selected_official_answer: correctLetter,
-        answer_key_status: "printed_key_used_no_correction",
-      })
-      .eq("id", question_id);
-    if (mirrorErr) errors.push(`answer_key mirror (non-fatal): ${mirrorErr.message}`);
-  }
+  // Preserve printed key, independent solve and source identity separately.
+  errors.push(...(await writeImportAnswerProvenance(supabase, question_id, row)));
 
   // ── 5. Register figure as source_asset (Phase 1) ──
   if (row.image_url) {
@@ -504,7 +635,7 @@ export async function importQuestion(
     inserted: true,
     question_id,
     duplicate_skipped: false,
-    flagged_for_review: row.import_status === "needs_review",
+    flagged_for_review: Boolean(options.privateDraft) || row.import_status === "needs_review",
     errors,
   };
 }

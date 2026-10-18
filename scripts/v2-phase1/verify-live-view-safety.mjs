@@ -14,7 +14,9 @@
 //      IS in quiz_questions_live.
 //   3. publish_status='needs_human_review' is NOT in the view.
 //   4. publish_status='publish_ready_with_verified_repair' IS.
-//   5. The row is automatically cleaned up.
+//   5. A blocked row is NOT in the view.
+//   6. An approved but archived row is NOT in the view.
+//   7. The row is automatically cleaned up.
 //
 // USAGE
 //   node --env-file=.env.local scripts/v2-phase1/verify-live-view-safety.mjs
@@ -60,6 +62,16 @@ async function isInLiveView(id) {
   return !!data;
 }
 
+async function updateTestRow(values) {
+  const { data, error } = await supabase
+    .from("quiz_questions")
+    .update(values)
+    .eq("id", testId)
+    .select("id")
+    .single();
+  if (error || !data) throw error ?? new Error("Test row update did not match a row");
+}
+
 async function cleanup() {
   // Delete anything matching our marker, even from prior runs.
   const { error } = await supabase
@@ -80,6 +92,7 @@ async function main() {
     .from("quiz_questions")
     .insert({
       question_text: `${MARKER}sample stem`,
+      raw_question_text: `${MARKER}sample stem`,
       correct_answer: "A",
       answer_format: "multiple_choice",
       question_type: "evidence_based",
@@ -108,40 +121,35 @@ async function main() {
   // ── ASSERT 2: publish_ready → IN live view ──
   console.log("");
   console.log("[2] publish_status='publish_ready'");
-  await supabase
-    .from("quiz_questions")
-    .update({ publish_status: "publish_ready" })
-    .eq("id", testId);
+  await updateTestRow({ publish_status: "publish_ready" });
   inView = await isInLiveView(testId);
   assert("IN quiz_questions_live", inView, true);
 
   // ── ASSERT 3: needs_human_review → NOT in live view ──
   console.log("");
   console.log("[3] publish_status='needs_human_review'");
-  await supabase
-    .from("quiz_questions")
-    .update({ publish_status: "needs_human_review" })
-    .eq("id", testId);
+  await updateTestRow({ publish_status: "needs_human_review" });
   inView = await isInLiveView(testId);
   assert("NOT in quiz_questions_live", inView, false);
 
   // ── ASSERT 4: publish_ready_with_verified_repair → IN live view ──
   console.log("");
   console.log("[4] publish_status='publish_ready_with_verified_repair'");
-  await supabase
-    .from("quiz_questions")
-    .update({ publish_status: "publish_ready_with_verified_repair" })
-    .eq("id", testId);
+  await updateTestRow({ publish_status: "publish_ready_with_verified_repair" });
   inView = await isInLiveView(testId);
   assert("IN quiz_questions_live", inView, true);
 
   // ── ASSERT 5: blocked_katex_error → NOT in live view ──
   console.log("");
   console.log("[5] publish_status='blocked_katex_error'");
-  await supabase
-    .from("quiz_questions")
-    .update({ publish_status: "blocked_katex_error" })
-    .eq("id", testId);
+  await updateTestRow({ publish_status: "blocked_katex_error" });
+  inView = await isInLiveView(testId);
+  assert("NOT in quiz_questions_live", inView, false);
+
+  // ── ASSERT 6: approved + archived → NOT in live view ───────
+  console.log("");
+  console.log("[6] publish_ready with archived_at set");
+  await updateTestRow({ publish_status: "publish_ready", archived_at: new Date().toISOString() });
   inView = await isInLiveView(testId);
   assert("NOT in quiz_questions_live", inView, false);
 
@@ -151,7 +159,7 @@ async function main() {
   console.log("");
   console.log("═".repeat(60));
   if (failures === 0) {
-    console.log("✓ All 5 live-view safety assertions passed.");
+    console.log("✓ All 6 live-view safety assertions passed.");
     process.exit(0);
   } else {
     console.log(`✗ ${failures} assertion(s) failed.`);

@@ -43,6 +43,14 @@ export const CLUSTER_BY_DOMAIN: Record<SATDomain, string> = {
   conventions: "Standard English Conventions",
 };
 
+/** Accepted spellings of a domain's cluster label. Some reviewed import batches wrote
+ *  "and" where the canonical label uses "&"; the delivery seal covers that stored text,
+ *  so readers accept both spellings instead of rewriting sealed rows. */
+export function clusterLabelsForDomain(domain: SATDomain): string[] {
+  const label = CLUSTER_BY_DOMAIN[domain];
+  return label.includes(" & ") ? [label, label.replace(/ & /g, " and ")] : [label];
+}
+
 export interface ConceptSlug {
   slug: string;
   label: string;

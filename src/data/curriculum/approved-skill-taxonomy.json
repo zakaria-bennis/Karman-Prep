@@ -1,0 +1,235 @@
+{
+  "schema_version": 1,
+  "authority": "User-approved hierarchy supplied in delegation",
+  "domains": [
+    {
+      "section": "Reading and Writing",
+      "label": "Information and Ideas",
+      "skills": [
+        {
+          "label": "Central Ideas and Details",
+          "selectable": true
+        },
+        {
+          "label": "Command of Evidence",
+          "selectable": true
+        },
+        {
+          "label": "Inferences",
+          "selectable": true
+        }
+      ]
+    },
+    {
+      "section": "Reading and Writing",
+      "label": "Craft and Structure",
+      "skills": [
+        {
+          "label": "Words in Context",
+          "selectable": true
+        },
+        {
+          "label": "Text Structure and Purpose",
+          "selectable": true
+        },
+        {
+          "label": "Cross-Text Connections",
+          "selectable": true
+        }
+      ]
+    },
+    {
+      "section": "Reading and Writing",
+      "label": "Expression of Ideas",
+      "skills": [
+        {
+          "label": "Rhetorical Synthesis",
+          "selectable": true
+        },
+        {
+          "label": "Transitions",
+          "selectable": true
+        }
+      ]
+    },
+    {
+      "section": "Reading and Writing",
+      "label": "Standard English Conventions",
+      "skills": [
+        {
+          "label": "Sentence boundaries and joining independent clauses",
+          "selectable": true,
+          "background_mapping": "Boundaries"
+        },
+        {
+          "label": "Joining main and dependent clauses",
+          "selectable": true,
+          "background_mapping": "Boundaries"
+        },
+        {
+          "label": "Essential versus nonessential information including names and titles",
+          "selectable": true,
+          "background_mapping": "Boundaries"
+        },
+        {
+          "label": "Colons and dashes introducing explanations or lists",
+          "selectable": true,
+          "background_mapping": "Boundaries"
+        },
+        {
+          "label": "Lists and series",
+          "selectable": true,
+          "background_mapping": "Boundaries"
+        },
+        {
+          "label": "Unnecessary punctuation within a sentence",
+          "selectable": true,
+          "background_mapping": "Boundaries"
+        },
+        {
+          "label": "Subject-verb agreement",
+          "selectable": true,
+          "background_mapping": "Form, Structure, and Sense"
+        },
+        {
+          "label": "Pronoun-antecedent agreement",
+          "selectable": true,
+          "background_mapping": "Form, Structure, and Sense"
+        },
+        {
+          "label": "Finite versus nonfinite verb forms",
+          "selectable": true,
+          "background_mapping": "Form, Structure, and Sense"
+        },
+        {
+          "label": "Verb tense and aspect",
+          "selectable": true,
+          "background_mapping": "Form, Structure, and Sense"
+        },
+        {
+          "label": "Modifier placement",
+          "selectable": true,
+          "background_mapping": "Form, Structure, and Sense"
+        },
+        {
+          "label": "Plurals possessives and contractions",
+          "selectable": true,
+          "background_mapping": "Form, Structure, and Sense"
+        }
+      ]
+    },
+    {
+      "section": "Math",
+      "label": "Algebra",
+      "skills": [
+        {
+          "label": "Linear equations in one variable",
+          "selectable": true
+        },
+        {
+          "label": "Linear equations in two variables",
+          "selectable": true
+        },
+        {
+          "label": "Linear functions",
+          "selectable": true
+        },
+        {
+          "label": "Systems of two linear equations in two variables",
+          "selectable": true
+        },
+        {
+          "label": "Linear inequalities in one or two variables",
+          "selectable": true
+        }
+      ]
+    },
+    {
+      "section": "Math",
+      "label": "Advanced Math",
+      "skills": [
+        {
+          "label": "Equivalent expressions",
+          "selectable": true
+        },
+        {
+          "label": "Nonlinear equations in one variable and systems of equations in two variables",
+          "selectable": true
+        },
+        {
+          "label": "Nonlinear functions",
+          "selectable": true
+        }
+      ]
+    },
+    {
+      "section": "Math",
+      "label": "Problem-Solving and Data Analysis",
+      "skills": [
+        {
+          "label": "Ratios rates proportional relationships and units",
+          "selectable": true
+        },
+        {
+          "label": "Percentages",
+          "selectable": true
+        },
+        {
+          "label": "One-variable data: distributions and measures of center and spread",
+          "selectable": true
+        },
+        {
+          "label": "Two-variable data: models and scatterplots",
+          "selectable": true
+        },
+        {
+          "label": "Probability and conditional probability",
+          "selectable": true
+        },
+        {
+          "label": "Inference from sample statistics and margin of error",
+          "selectable": true
+        },
+        {
+          "label": "Evaluating statistical claims: observational studies and experiments",
+          "selectable": true
+        }
+      ]
+    },
+    {
+      "section": "Math",
+      "label": "Geometry and Trigonometry",
+      "skills": [
+        {
+          "label": "Area and volume",
+          "selectable": true
+        },
+        {
+          "label": "Lines angles and triangles",
+          "selectable": true
+        },
+        {
+          "label": "Right triangles and trigonometry",
+          "selectable": true
+        },
+        {
+          "label": "Circles",
+          "selectable": true
+        }
+      ]
+    }
+  ],
+  "background_only_skills": ["Boundaries", "Form, Structure, and Sense"],
+  "selectable_skill_count": 39,
+  "reading_and_writing_selectable_count": 20,
+  "math_selectable_count": 19,
+  "references": [
+    "https://satsuite.collegeboard.org/k12-educators/about/alignment/reading",
+    "https://satsuite.collegeboard.org/k12-educators/about/alignment/math"
+  ],
+  "legacy_crosswalk": {
+    "status": "not_needed_yet",
+    "read_only_library_id": "libfile_c823c11c597c8191ab77f5538ab96a36",
+    "policy": "Preserve legacy IDs and mark ambiguous mappings; never force a lossy mapping."
+  }
+}

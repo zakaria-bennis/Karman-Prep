@@ -15,6 +15,8 @@
 import { z } from "zod";
 
 import { isValidNodeId } from "@/lib/question-bank/taxonomy";
+import { isValidChoiceTableData } from "@/lib/question-bank/choice-table";
+import type { QuestionTableData } from "@/types/question-table";
 
 /** A curriculum node id — must match a real node in the curriculum.
  *  Used by every admin schema where a `nodeId` lands on
@@ -57,6 +59,31 @@ export const answerSourceSchema = z.enum(["extracted", "inferred", "hand_correct
 
 export const subjectSchema = z.enum(["reading", "math"]);
 
+const choiceTableDataSchema = z.custom<QuestionTableData>(
+  (value) => isValidChoiceTableData(value),
+  "Choice table must have 1–30 complete rows and 1–8 matching columns"
+);
+
+/** Inspector edits may repair source wording while preserving raw_* evidence. */
+export const inspectedQuestionEditSchema = z.object({
+  questionId: z.string().min(1),
+  question_text: z.string().trim().min(1).optional(),
+  hint: z.string().nullable().optional(),
+  explanation_text: z.string().optional(),
+  desmos_strategy: z.string().nullable().optional(),
+  image_alt: z.string().nullable().optional(),
+  passage_intro: z.string().nullable().optional(),
+  passage: z.string().nullable().optional(),
+  passage_a: z.string().nullable().optional(),
+  passage_b: z.string().nullable().optional(),
+  numeric_tolerance: z.number().finite().nullable().optional(),
+  correct_answer: z.string().trim().min(1).optional(),
+  choices: z.partialRecord(answerLetterSchema, z.string().trim().min(1)).optional(),
+  choice_tables: z.partialRecord(answerLetterSchema, choiceTableDataSchema.nullable()).optional(),
+  explanations_per_choice: z.partialRecord(answerLetterSchema, z.string()).optional(),
+  concept_slug: z.string().optional(),
+});
+
 // IDs are not all UUIDs (some are slug-like, e.g. node ids like "ma-15").
 // We require non-empty strings without baking in a format.
 const nonEmptyString = z.string().min(1);
@@ -78,7 +105,15 @@ export const newQuestionInputSchema = z.object({
   subject: subjectSchema,
   topic_cluster: z.string(),
   desmos_strategy: z.string().nullable(),
-  choices: z.array(z.object({ letter: answerLetterSchema, choice_text: z.string() })).max(4),
+  choices: z
+    .array(
+      z.object({
+        letter: answerLetterSchema,
+        choice_text: z.string().trim().min(1),
+        choice_table_data: choiceTableDataSchema.nullable().optional(),
+      })
+    )
+    .max(4),
   display_order: z.number().int().optional(),
   passage_intro: z.string().nullable().optional(),
   passage: z.string().nullable().optional(),

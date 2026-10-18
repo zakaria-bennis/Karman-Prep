@@ -22,7 +22,6 @@ import {
   fetchTutorStudentSessionCounts,
   type TimeRange,
 } from "@/lib/supabase/queries/earnings";
-import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import EarningsDataClient from "./EarningsDataClient";
 
 export const metadata: Metadata = { title: "Earning Data — Karman" };
@@ -70,7 +69,7 @@ export default async function TutorEarningsDataPage({ searchParams }: PageProps)
   for (const [k, v] of studentCounts) studentCountsObj[k] = v;
 
   return (
-    <DashboardLayout>
+    <>
       <div className="mx-auto max-w-6xl space-y-8 px-4 py-8 sm:px-6">
         <Link
           href="/tutor/earnings"
@@ -96,6 +95,6 @@ export default async function TutorEarningsDataPage({ searchParams }: PageProps)
           studentSessionCounts={studentCountsObj}
         />
       </div>
-    </DashboardLayout>
+    </>
   );
 }

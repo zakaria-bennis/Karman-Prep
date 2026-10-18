@@ -1,0 +1,476 @@
+KARMAN DAILY VOCABULARY: VERIFIED LAUNCH POOL v1
+Reviewed 8 October 2026
+
+RESULT
+73 distinct alphabetic English words, 6–15 letters. This is a research-ready answer pool for a literal letter-guessing game. No initial definition or sentence clue; show the selected definition and sources after completion. It is not an official College Board word list and makes no claim about exam frequency or future appearances.
+
+EVIDENCE
+All 73 entries are independently selected from answer choices in official College Board SAT practice tests 4–10, specifically logical-and-precise word-choice items. These are released practice materials, not evidence of use on an administered exam. Incorrect distractors count as occurrence evidence; no record claims that the word was the correct answer.
+65 words occur in the exact dictionary form used by the game. 8 use a dictionary lemma whose inflected form was observed. Each record preserves observedForm, PDF page number, answer-choice letter and exact source link. No editorial-only SAT-relevance entries were needed.
+All 73 live Merriam-Webster pages were read to check spelling, part of speech and the selected meaning. Derived forms and definition cross-references were checked when needed. Every definition was written as an original concise paraphrase. No commercial examples, test passages or questions are reproduced.
+62 entries have an additional PrepScholar list-overlap signal. This corroborates educator interest only; its marketing or frequency claims are not adopted. The pool was selected from official practice PDFs rather than copied from the educator's list.
+
+COUNTS
+Length distribution: {6: 3, 7: 6, 8: 13, 9: 21, 10: 9, 11: 9, 12: 5, 13: 4, 14: 1, 15: 2}
+Parts of speech: {'adjective': 37, 'noun': 5, 'verb': 27, 'adverb': 4}
+
+IMPORTANT LIMITS
+- Source verification and review were AI-assisted editorial work, not independent human sign-off or College Board endorsement.
+- Difficulty is editorial, not measured by student response data. Words such as esteem, earnest and latent provide shorter challenging rounds; long words are not automatically harder educationally.
+- Sanction has conflicting senses; compound, manifest, operative, antecedent and other words have multiple parts of speech or meanings. Keep the supplied part-of-speech label and caution with the reveal.
+- Exact American spellings are the answers. The game should not silently rotate in British spellings or inflections without additional records and stable IDs.
+- SAT Words in Context tests contextual precision. This game supplements spelling and word familiarity; it is not a substitute for context-based SAT practice.
+- No offensive slurs, proper names, hyphenations, spaces, isolated roots or niche technical-only forms were included. Negative-tone academic words such as misanthropic remain legitimate vocabulary.
+
+IMPORT / GAME NOTES
+- JSON top level is an array; stable IDs are karman-daily-<word>. Deduplicate against the existing starter by lowercase word before merging; do not append duplicate answers.
+- Support 6–15 letters and horizontally constrained mobile layouts before enabling the entire pool. The longest answers are inconsequential and synchronization (15 each). Do not clip the answer grid.
+- Treat this as the target-answer pool, not the entire allowed-guess dictionary. A separate accepted-guess policy is needed for full-word submissions; individual-letter guessing does not need one.
+- Keep repeated-letter accounting correct; repeated letters such as the three r letters in corroborate  must be processed by actual counts. No gameplay code has been changed or tested in this research task.
+- Shuffle deterministically by stable ID / date; avoid unintentional repeats until the pool is exhausted. The JSON ordering follows source tests and should not be used directly as the daily schedule.
+
+PRIMARY SOURCES
+College Board Reading and Writing framework: https://satsuite.collegeboard.org/sat/whats-on-the-test/reading-writing
+Official paper practice portal: https://satsuite.collegeboard.org/practice/practice-tests/paper
+Educator cross-check: https://blog.prepscholar.com/sat-vocabulary-words
+Dictionary links are per record.
+
+RECORD INDEX
+
+infallible (10; adjective) — incapable of being wrong or failing
+  Evidence: official_exact_form; observed infallible; test 4, PDF page 19, choice A.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-4-digital.pdf#page=19
+  Dictionary: https://www.merriam-webster.com/dictionary/infallible
+  Caution: The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.
+
+atypical (8; adjective) — different from what is usual for its kind
+  Evidence: official_exact_form; observed atypical; test 4, PDF page 19, choice B.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-4-digital.pdf#page=19
+  Dictionary: https://www.merriam-webster.com/dictionary/atypical
+  Caution: The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.
+
+lucrative (9; adjective) — producing substantial financial gain
+  Evidence: official_exact_form; observed lucrative; test 4, PDF page 19, choice C.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-4-digital.pdf#page=19
+  Dictionary: https://www.merriam-webster.com/dictionary/lucrative
+  Caution: The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.
+
+tedious (7; adjective) — wearisome because it is slow or repetitive
+  Evidence: official_exact_form; observed tedious; test 4, PDF page 19, choice D.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-4-digital.pdf#page=19
+  Dictionary: https://www.merriam-webster.com/dictionary/tedious
+  Caution: The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.
+
+proponent (9; noun) — a person who actively supports an idea or proposal
+  Evidence: official_exact_form; observed proponent; test 4, PDF page 20, choice A.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-4-digital.pdf#page=20
+  Dictionary: https://www.merriam-webster.com/dictionary/proponent
+  Caution: The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.
+
+beneficiary (11; noun) — a person or group receiving an advantage or benefit
+  Evidence: official_exact_form; observed beneficiary; test 4, PDF page 20, choice C.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-4-digital.pdf#page=20
+  Dictionary: https://www.merriam-webster.com/dictionary/beneficiary
+  Caution: The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.
+
+reciprocate (11; verb) — to respond with a corresponding action or feeling
+  Evidence: official_exact_form; observed reciprocate; test 4, PDF page 20, choice A.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-4-digital.pdf#page=20
+  Dictionary: https://www.merriam-webster.com/dictionary/reciprocate
+  Caution: The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.
+
+annotate (8; verb) — to add explanatory notes to a text
+  Evidence: official_exact_form; observed annotate; test 4, PDF page 20, choice B.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-4-digital.pdf#page=20
+  Dictionary: https://www.merriam-webster.com/dictionary/annotate
+  Caution: The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.
+
+buttress (8; verb) — to strengthen or support something
+  Evidence: official_exact_form; observed buttress; test 4, PDF page 20, choice C.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-4-digital.pdf#page=20
+  Dictionary: https://www.merriam-webster.com/dictionary/buttress
+  Caution: Selected verb sense; also a noun for a supporting structure.
+
+disengage (9; verb) — to separate or withdraw from an involvement
+  Evidence: official_exact_form; observed disengage; test 4, PDF page 20, choice D.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-4-digital.pdf#page=20
+  Dictionary: https://www.merriam-webster.com/dictionary/disengage
+  Caution: The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.
+
+conceptualize (13; verb) — to form an idea or model of something
+  Evidence: official_exact_form; observed conceptualize; test 4, PDF page 18, choice A.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-4-digital.pdf#page=18
+  Dictionary: https://www.merriam-webster.com/dictionary/conceptualize
+  Caution: The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.
+
+antecedent (10; adjective) — existing or occurring before something else
+  Evidence: official_exact_form; observed antecedent; test 5, PDF page 5, choice A.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-5-digital.pdf#page=5
+  Dictionary: https://www.merriam-webster.com/dictionary/antecedent
+  Caution: Selected adjective sense; also a noun for an earlier event or a grammatical referent.
+
+impending (9; adjective) — likely to happen very soon
+  Evidence: official_exact_form; observed impending; test 5, PDF page 5, choice B.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-5-digital.pdf#page=5
+  Dictionary: https://www.merriam-webster.com/dictionary/impending
+  Caution: The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.
+
+innocuous (9; adjective) — unlikely to cause harm or give offense
+  Evidence: official_exact_form; observed innocuous; test 5, PDF page 5, choice C.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-5-digital.pdf#page=5
+  Dictionary: https://www.merriam-webster.com/dictionary/innocuous
+  Caution: The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.
+
+perpetual (9; adjective) — continuing without an expected end
+  Evidence: official_exact_form; observed perpetual; test 5, PDF page 5, choice D.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-5-digital.pdf#page=5
+  Dictionary: https://www.merriam-webster.com/dictionary/perpetual
+  Caution: The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.
+
+sanction (8; verb) — to formally approve or authorize
+  Evidence: official_exact_form; observed sanction; test 5, PDF page 5, choice A.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-5-digital.pdf#page=5
+  Dictionary: https://www.merriam-webster.com/dictionary/sanction
+  Caution: Contronym: can mean authorize or penalize. The reveal must label the selected approval sense.
+
+ameliorate (10; verb) — to make an unfavorable situation better
+  Evidence: official_exact_form; observed ameliorate; test 5, PDF page 5, choice B.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-5-digital.pdf#page=5
+  Dictionary: https://www.merriam-webster.com/dictionary/ameliorate
+  Caution: The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.
+
+rationalize (11; verb) — to give a seemingly reasonable explanation for something
+  Evidence: official_exact_form; observed rationalize; test 5, PDF page 5, choice C.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-5-digital.pdf#page=5
+  Dictionary: https://www.merriam-webster.com/dictionary/rationalize
+  Caution: Selected explanatory sense; can suggest an excuse rather than a sound justification. Other technical senses exist.
+
+postulate (9; verb) — to propose an assumption as a basis for reasoning
+  Evidence: official_exact_form; observed postulate; test 5, PDF page 5, choice D.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-5-digital.pdf#page=5
+  Dictionary: https://www.merriam-webster.com/dictionary/postulate
+  Caution: Selected verb sense; the same spelling is also a noun, with a different final-syllable pronunciation.
+
+tenuous (7; adjective) — weak or insufficiently supported
+  Evidence: official_exact_form; observed tenuous; test 5, PDF page 19, choice A.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-5-digital.pdf#page=19
+  Dictionary: https://www.merriam-webster.com/dictionary/tenuous
+  Caution: The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.
+
+contentious (11; adjective) — likely to provoke disagreement or argument
+  Evidence: official_exact_form; observed contentious; test 5, PDF page 19, choice C.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-5-digital.pdf#page=19
+  Dictionary: https://www.merriam-webster.com/dictionary/contentious
+  Caution: The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.
+
+conspicuous (11; adjective) — easy to notice because it stands out
+  Evidence: official_exact_form; observed conspicuous; test 5, PDF page 19, choice D.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-5-digital.pdf#page=19
+  Dictionary: https://www.merriam-webster.com/dictionary/conspicuous
+  Caution: The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.
+
+prudently (9; adverb) — with careful judgment about possible consequences
+  Evidence: official_exact_form; observed prudently; test 6, PDF page 4, choice A.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-6-digital.pdf#page=4
+  Dictionary: https://www.merriam-webster.com/dictionary/prudently
+  Caution: The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.
+
+overtly (7; adverb) — in an open and clearly apparent way
+  Evidence: official_exact_form; observed overtly; test 6, PDF page 4, choice B.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-6-digital.pdf#page=4
+  Dictionary: https://www.merriam-webster.com/dictionary/overtly
+  Caution: The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.
+
+cordially (9; adverb) — in a warm and friendly manner
+  Evidence: official_exact_form; observed cordially; test 6, PDF page 4, choice C.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-6-digital.pdf#page=4
+  Dictionary: https://www.merriam-webster.com/dictionary/cordially
+  Caution: Selected friendly sense; can also intensify an attitude in phrases such as cordially disliked.
+
+inadvertently (13; adverb) — without intending or realizing it
+  Evidence: official_exact_form; observed inadvertently; test 6, PDF page 4, choice D.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-6-digital.pdf#page=4
+  Dictionary: https://www.merriam-webster.com/dictionary/inadvertently
+  Caution: Dictionary lists this adverb as a derived form under inadvertent, rather than an independent definition.
+
+exacerbate (10; verb) — to make a problem or harmful condition worse
+  Evidence: official_inflected_form_lemma_normalized; observed Exacerbating; test 6, PDF page 5, choice A.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-6-digital.pdf#page=5
+  Dictionary: https://www.merriam-webster.com/dictionary/exacerbate
+  Caution: The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry. Official item uses Exacerbating; game uses the dictionary base form.
+
+redress (7; verb) — to correct a wrong or an unfair imbalance
+  Evidence: official_inflected_form_lemma_normalized; observed Redressing; test 6, PDF page 5, choice B.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-6-digital.pdf#page=5
+  Dictionary: https://www.merriam-webster.com/dictionary/redress
+  Caution: Selected verb sense of remedy; also a noun meaning remedy or compensation. Official item uses Redressing; game uses the dictionary base form.
+
+epitomize (9; verb) — to be a particularly clear example of something
+  Evidence: official_inflected_form_lemma_normalized; observed Epitomizing; test 6, PDF page 5, choice C.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-6-digital.pdf#page=5
+  Dictionary: https://www.merriam-webster.com/dictionary/epitomize
+  Caution: The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry. Official item uses Epitomizing; game uses the dictionary base form.
+
+preclude (8; verb) — to prevent or rule out a possibility
+  Evidence: official_inflected_form_lemma_normalized; observed Precluding; test 6, PDF page 5, choice D.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-6-digital.pdf#page=5
+  Dictionary: https://www.merriam-webster.com/dictionary/preclude
+  Caution: The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry. Official item uses Precluding; game uses the dictionary base form.
+
+antagonistic (12; adjective) — actively opposed or hostile
+  Evidence: official_exact_form; observed antagonistic; test 6, PDF page 5, choice B.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-6-digital.pdf#page=5
+  Dictionary: https://www.merriam-webster.com/dictionary/antagonistic
+  Caution: The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.
+
+inconsequential (15; adjective) — having little importance or effect
+  Evidence: official_exact_form; observed inconsequential; test 6, PDF page 5, choice D.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-6-digital.pdf#page=5
+  Dictionary: https://www.merriam-webster.com/dictionary/inconsequential
+  Caution: The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.
+
+insensible (10; adjective) — unaware of or unable to perceive something
+  Evidence: official_exact_form; observed insensible; test 6, PDF page 19, choice A.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-6-digital.pdf#page=19
+  Dictionary: https://www.merriam-webster.com/dictionary/insensible
+  Caution: Selected unawareness sense; can also mean unconscious or imperceptible. It does not simply mean unreasonable.
+
+manifest (8; adjective) — clearly visible or readily apparent
+  Evidence: official_exact_form; observed manifest; test 6, PDF page 19, choice B.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-6-digital.pdf#page=19
+  Dictionary: https://www.merriam-webster.com/dictionary/manifest
+  Caution: Selected adjective sense; also a verb meaning make evident and a noun for a cargo or passenger list.
+
+tentative (9; adjective) — provisional and open to later change
+  Evidence: official_exact_form; observed tentative; test 6, PDF page 19, choice B.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-6-digital.pdf#page=19
+  Dictionary: https://www.merriam-webster.com/dictionary/tentative
+  Caution: The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.
+
+rectify (7; verb) — to correct something that is wrong
+  Evidence: official_exact_form; observed rectify; test 7, PDF page 5, choice B.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-7-digital.pdf#page=5
+  Dictionary: https://www.merriam-webster.com/dictionary/rectify
+  Caution: The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.
+
+circumvent (10; verb) — to find a way around an obstacle or restriction
+  Evidence: official_exact_form; observed circumvent; test 7, PDF page 5, choice A.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-7-digital.pdf#page=5
+  Dictionary: https://www.merriam-webster.com/dictionary/circumvent
+  Caution: The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.
+
+corroborate (11; verb) — to support a claim with additional evidence
+  Evidence: official_exact_form; observed corroborate; test 7, PDF page 5, choice B.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-7-digital.pdf#page=5
+  Dictionary: https://www.merriam-webster.com/dictionary/corroborate
+  Caution: The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.
+
+disseminate (11; verb) — to spread information or ideas widely
+  Evidence: official_exact_form; observed disseminate; test 7, PDF page 5, choice C.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-7-digital.pdf#page=5
+  Dictionary: https://www.merriam-webster.com/dictionary/disseminate
+  Caution: The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.
+
+implement (9; verb) — to put a plan or decision into effect
+  Evidence: official_exact_form; observed implement; test 7, PDF page 5, choice D.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-7-digital.pdf#page=5
+  Dictionary: https://www.merriam-webster.com/dictionary/implement
+  Caution: Selected verb sense; also a noun for a tool, with a different stress/pronunciation pattern.
+
+demarcate (9; verb) — to establish or mark a boundary or distinction
+  Evidence: official_inflected_form_lemma_normalized; observed demarcated; test 7, PDF page 5, choice A.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-7-digital.pdf#page=5
+  Dictionary: https://www.merriam-webster.com/dictionary/demarcate
+  Caution: The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry. Official item uses demarcated; game uses the dictionary base form.
+
+reconstitute (12; verb) — to form again by assembling or restoring parts
+  Evidence: official_inflected_form_lemma_normalized; observed reconstituted; test 7, PDF page 5, choice B.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-7-digital.pdf#page=5
+  Dictionary: https://www.merriam-webster.com/dictionary/reconstitute
+  Caution: Selected broad rebuilding sense; can also mean restore by adding liquid. Official item uses reconstituted; game uses the dictionary base form.
+
+conflate (8; verb) — to combine distinct things as if they were one
+  Evidence: official_inflected_form_lemma_normalized; observed conflated; test 7, PDF page 5, choice C.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-7-digital.pdf#page=5
+  Dictionary: https://www.merriam-webster.com/dictionary/conflate
+  Caution: Selected sense of treating distinct things together; can also refer to merging versions of a text. Official item uses conflated; game uses the dictionary base form.
+
+reprieve (8; noun) — a temporary relief from something unpleasant
+  Evidence: official_exact_form; observed reprieve; test 7, PDF page 21, choice B.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-7-digital.pdf#page=21
+  Dictionary: https://www.merriam-webster.com/dictionary/reprieve
+  Caution: Selected noun sense of temporary relief; also used as a verb and in legal contexts.
+
+esteem (6; noun) — a high degree of respect or regard
+  Evidence: official_exact_form; observed esteem; test 7, PDF page 21, choice B.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-7-digital.pdf#page=21
+  Dictionary: https://www.merriam-webster.com/dictionary/esteem
+  Caution: Selected noun sense; also a verb meaning regard highly.
+
+disconcerting (13; adjective) — causing someone to feel unsettled or confused
+  Evidence: official_exact_form; observed disconcerting; test 8, PDF page 4, choice A.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-8-digital.pdf#page=4
+  Dictionary: https://www.merriam-webster.com/dictionary/disconcerting
+  Caution: The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.
+
+imperceptible (13; adjective) — too slight to be detected or noticed
+  Evidence: official_exact_form; observed imperceptible; test 8, PDF page 4, choice C.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-8-digital.pdf#page=4
+  Dictionary: https://www.merriam-webster.com/dictionary/imperceptible
+  Caution: The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.
+
+tranquil (8; adjective) — calm and free from disturbance
+  Evidence: official_exact_form; observed tranquil; test 8, PDF page 5, choice A.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-8-digital.pdf#page=5
+  Dictionary: https://www.merriam-webster.com/dictionary/tranquil
+  Caution: The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.
+
+pragmatic (9; adjective) — focused on workable solutions and practical results
+  Evidence: official_exact_form; observed pragmatic; test 8, PDF page 5, choice A.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-8-digital.pdf#page=5
+  Dictionary: https://www.merriam-webster.com/dictionary/pragmatic
+  Caution: The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.
+
+resilient (9; adjective) — able to recover after difficulty or disruption
+  Evidence: official_exact_form; observed resilient; test 8, PDF page 18, choice A.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-8-digital.pdf#page=18
+  Dictionary: https://www.merriam-webster.com/dictionary/resilient
+  Caution: The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.
+
+intricate (9; adjective) — containing many closely connected details or parts
+  Evidence: official_exact_form; observed intricate; test 8, PDF page 19, choice D.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-8-digital.pdf#page=19
+  Dictionary: https://www.merriam-webster.com/dictionary/intricate
+  Caution: The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.
+
+replicable (10; adjective) — able to be repeated or reproduced
+  Evidence: official_exact_form; observed replicable; test 8, PDF page 19, choice A.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-8-digital.pdf#page=19
+  Dictionary: https://www.merriam-webster.com/dictionary/replicable
+  Caution: The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.
+
+operative (9; adjective) — currently functioning or producing an effect
+  Evidence: official_exact_form; observed operative; test 8, PDF page 19, choice C.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-8-digital.pdf#page=19
+  Dictionary: https://www.merriam-webster.com/dictionary/operative
+  Caution: Selected adjective sense; also a noun for an agent or worker.
+
+latent (6; adjective) — present but not yet active or apparent
+  Evidence: official_exact_form; observed latent; test 8, PDF page 19, choice D.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-8-digital.pdf#page=19
+  Dictionary: https://www.merriam-webster.com/dictionary/latent
+  Caution: Means present but not manifest, not absent or nonexistent.
+
+renounce (8; verb) — to formally give up or reject something
+  Evidence: official_exact_form; observed renounce; test 9, PDF page 4, choice D.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-9-digital.pdf#page=4
+  Dictionary: https://www.merriam-webster.com/dictionary/renounce
+  Caution: The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.
+
+impenetrable (12; adjective) — impossible or very difficult to enter or pass through
+  Evidence: official_exact_form; observed impenetrable; test 9, PDF page 5, choice B.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-9-digital.pdf#page=5
+  Dictionary: https://www.merriam-webster.com/dictionary/impenetrable
+  Caution: Selected entry/barrier sense; can also describe something impossible to understand.
+
+indecipherable (14; adjective) — impossible or very difficult to read or understand
+  Evidence: official_exact_form; observed indecipherable; test 9, PDF page 5, choice D.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-9-digital.pdf#page=5
+  Dictionary: https://www.merriam-webster.com/dictionary/indecipherable
+  Caution: The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.
+
+impartial (9; adjective) — not favoring one side over another
+  Evidence: official_exact_form; observed impartial; test 9, PDF page 19, choice A.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-9-digital.pdf#page=19
+  Dictionary: https://www.merriam-webster.com/dictionary/impartial
+  Caution: The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.
+
+skeptical (9; adjective) — inclined to question whether a claim is true
+  Evidence: official_exact_form; observed skeptical; test 10, PDF page 4, choice A.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-10-digital.pdf#page=4
+  Dictionary: https://www.merriam-webster.com/dictionary/skeptical
+  Caution: American spelling selected; sceptical is an established British variant.
+
+speculate (9; verb) — to form a possible explanation without sufficient proof
+  Evidence: official_inflected_form_lemma_normalized; observed speculates; test 10, PDF page 5, choice B.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-10-digital.pdf#page=5
+  Dictionary: https://www.merriam-webster.com/dictionary/speculate
+  Caution: Selected reasoning sense; the word also has an investing sense. Official item uses speculates; game uses the dictionary base form.
+
+synchronization (15; noun) — the coordination of events so they occur together
+  Evidence: official_exact_form; observed synchronization; test 10, PDF page 5, choice A.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-10-digital.pdf#page=5
+  Dictionary: https://www.merriam-webster.com/dictionary/synchronization
+  Caution: American -ization spelling selected; synchronization concerns coordinated timing, not mere similarity.
+
+superficial (11; adjective) — concerned with surface features rather than deeper substance
+  Evidence: official_exact_form; observed superficial; test 10, PDF page 5, choice B.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-10-digital.pdf#page=5
+  Dictionary: https://www.merriam-webster.com/dictionary/superficial
+  Caution: Selected figurative sense; can also mean physically near a surface.
+
+exhaustive (10; adjective) — covering every relevant detail or possibility
+  Evidence: official_exact_form; observed exhaustive; test 10, PDF page 5, choice C.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-10-digital.pdf#page=5
+  Dictionary: https://www.merriam-webster.com/dictionary/exhaustive
+  Caution: The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.
+
+peripheral (10; adjective) — located at an outer edge or away from the center
+  Evidence: official_exact_form; observed peripheral; test 10, PDF page 19, choice D.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-10-digital.pdf#page=19
+  Dictionary: https://www.merriam-webster.com/dictionary/peripheral
+  Caution: Selected outer-position sense; also means secondary in importance and is a computing noun.
+
+unobtrusive (11; adjective) — not drawing attention or getting in the way
+  Evidence: official_exact_form; observed unobtrusive; test 10, PDF page 19, choice A.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-10-digital.pdf#page=19
+  Dictionary: https://www.merriam-webster.com/dictionary/unobtrusive
+  Caution: The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.
+
+stymie (6; verb) — to obstruct progress or prevent success
+  Evidence: official_exact_form; observed stymie; test 10, PDF page 19, choice A.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-10-digital.pdf#page=19
+  Dictionary: https://www.merriam-webster.com/dictionary/stymie
+  Caution: The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.
+
+compound (8; verb) — to make a difficulty worse by adding to it
+  Evidence: official_exact_form; observed compound; test 10, PDF page 19, choice B.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-10-digital.pdf#page=19
+  Dictionary: https://www.merriam-webster.com/dictionary/compound
+  Caution: Selected verb sense of worsening by addition; several unrelated noun/adjective senses and pronunciations exist.
+
+disparage (9; verb) — to speak of someone or something as having little worth
+  Evidence: official_exact_form; observed disparage; test 10, PDF page 19, choice C.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-10-digital.pdf#page=19
+  Dictionary: https://www.merriam-webster.com/dictionary/disparage
+  Caution: The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.
+
+outstrip (8; verb) — to surpass in amount, performance, or development
+  Evidence: official_exact_form; observed outstrip; test 10, PDF page 19, choice D.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-10-digital.pdf#page=19
+  Dictionary: https://www.merriam-webster.com/dictionary/outstrip
+  Caution: The reveal gives one useful general-academic sense; it is not an exhaustive dictionary entry.
+
+sanguine (8; adjective) — confident that things will turn out well
+  Evidence: official_exact_form; observed sanguine; test 10, PDF page 19, choice A.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-10-digital.pdf#page=19
+  Dictionary: https://www.merriam-webster.com/dictionary/sanguine
+  Caution: Selected optimistic sense; other historical and color-related meanings exist.
+
+recalcitrant (12; adjective) — stubbornly unwilling to accept authority or guidance
+  Evidence: official_exact_form; observed recalcitrant; test 10, PDF page 19, choice B.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-10-digital.pdf#page=19
+  Dictionary: https://www.merriam-webster.com/dictionary/recalcitrant
+  Caution: Selected resistance-to-authority sense; also describes things that resist change or treatment.
+
+misanthropic (12; adjective) — showing a general dislike or distrust of people
+  Evidence: official_exact_form; observed misanthropic; test 10, PDF page 19, choice C.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-10-digital.pdf#page=19
+  Dictionary: https://www.merriam-webster.com/dictionary/misanthropic
+  Caution: Negative attitude word, not a slur; describes dislike of people generally, not a protected group.
+
+earnest (7; adjective) — showing sincere and serious commitment
+  Evidence: official_exact_form; observed earnest; test 10, PDF page 19, choice D.
+  SAT: https://satsuite.collegeboard.org/media/pdf/sat-practice-test-10-digital.pdf#page=19
+  Dictionary: https://www.merriam-webster.com/dictionary/earnest
+  Caution: Selected adjective sense; also a noun with financial and idiomatic meanings. Lowercase distinguishes it from the personal name.
