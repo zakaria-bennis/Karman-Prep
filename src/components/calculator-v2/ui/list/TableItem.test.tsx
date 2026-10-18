@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { act, fireEvent, screen, waitFor, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { expect, it, vi } from "vitest";
 import { ExpressionPanel } from "./ExpressionPanel";
 import { panelProps, renderEditor } from "./__fixtures__/render-editor";
@@ -144,4 +144,35 @@ it("K-2 a touch focus on a table cell lets the shell open the keypad", () => {
   fireEvent.pointerDown(textbox, { pointerType: "touch" });
   act(() => textbox.focus());
   expect(onTouchFocusRow).toHaveBeenCalledWith(tableOf(kit, "2").id);
+});
+
+it("D-3 Add regression inserts y1~mx1+b below the table, fitted and focused, in one tap", async () => {
+  const kit = renderEditor(<ExpressionPanel {...panelProps()} />, { rows: ["y=x"] });
+  act(() =>
+    kit.engine.setExpression({
+      id: "t",
+      type: "table",
+      columns: [
+        { latex: "x_{1}", values: ["1", "2", "3"] },
+        { latex: "y_{1}", values: ["3", "5", "7"] },
+      ],
+    })
+  );
+  act(() => screen.getByRole("button", { name: "Add regression for table 2" }).click());
+  const rows = kit.engine.getSnapshot().rows;
+  expect(rows.map((r) => r.latex)).toEqual(["y=x", "", "y_{1}\\sim mx_{1}+b"]);
+  expect(box("Expression 3")).toHaveFocus();
+  await waitFor(() => expect(kit.engine.getSnapshot().rows[2].regression?.result?.ok).toBe(true));
+});
+
+it("K-8 the button is in the table footer on every layout and in the style menu", () => {
+  for (const layout of ["desktop", "stacked"] as const) {
+    const kit = renderEditor(<ExpressionPanel {...panelProps({ layout })} />, { rows: ["y=x"] });
+    act(() => void kit.engine.insertTableAfter("1"));
+    expect(screen.getByRole("button", { name: "Add regression for table 2" })).toBeInTheDocument();
+    fireEvent.contextMenu(screen.getByRole("button", { name: "Points for y₁" }));
+    act(() => screen.getByRole("button", { name: "Add regression" }).click());
+    expect(kit.engine.getSnapshot().rows.at(-1)!.latex).toBe("y_{1}\\sim mx_{1}+b");
+    cleanup();
+  }
 });

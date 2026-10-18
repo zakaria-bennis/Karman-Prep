@@ -5,11 +5,12 @@
 // grid a blank header slot right of the last column adds a column (D-5). The Delete control
 // removes the table through row-actions (D-16).
 
-import { Maximize, Plus, X } from "lucide-react";
+import { Maximize, Plus, TrendingUp, X } from "lucide-react";
 import { useContext, useLayoutEffect, useRef, useState, type FocusEvent, type JSX } from "react";
 import type { RowView } from "@/lib/calculator-v2/core/api/engine";
 import { MAX_TABLE_COLUMNS, MAX_TABLE_ROWS } from "@/lib/calculator-v2/core/api/document";
 import { fitPoints } from "@/lib/calculator-v2/core/data/fit-view";
+import { insertRegressionBelow } from "@/lib/calculator-v2/core/api/row-commands";
 import { useAnnouncer } from "../a11y/announcer";
 import { cellKey, FocusContext } from "../focus/focus-controller";
 import { useEngine, useEngineSnapshot } from "../hooks/use-engine";
@@ -63,6 +64,11 @@ export function TableItem(props: TableItemProps): JSX.Element {
   const headers = columns.map((c, k) => headerName(c.latex, k));
   const computed = (k: number) => analysis[k]?.role === "computed";
   const slot = inside && columns.length < MAX_TABLE_COLUMNS;
+  // D-3, K-8: one tap to a linear regression of `column` against the first column, focused.
+  const addRegression = (column: number) => {
+    const made = insertRegressionBelow(engine, row.id, column);
+    if (made !== null && typeof made !== "string") focus.focusRow(made.id, "end");
+  };
   // D-16: the plotted points' fitted view, null while nothing is plotted.
   const plotted = geometry.get(row.id);
   const fit = plotted?.kind === "table" ? fitPoints(plotted.series.map((s) => s.coords)) : null;
@@ -141,6 +147,7 @@ export function TableItem(props: TableItemProps): JSX.Element {
                       stored={columns[k]}
                       header={headers[k]}
                       onDeleted={() => focus.focusRow(cellKey(row.id, k - 1, "h"), "end")}
+                      onAddRegression={() => addRegression(k)}
                     />
                   )}
                   <TableCell
@@ -192,6 +199,15 @@ export function TableItem(props: TableItemProps): JSX.Element {
             onClick={() => fit !== null && engine.setMathBounds(fit)}
           >
             <Maximize aria-hidden="true" focusable="false" size={14} />
+          </button>
+          <button
+            type="button"
+            className="kc-table-add-row"
+            aria-label={`Add regression for table ${number}`}
+            aria-disabled={columns.length < 2 ? "true" : undefined}
+            onClick={() => addRegression(1)}
+          >
+            <TrendingUp aria-hidden="true" focusable="false" size={14} />
           </button>
         </div>
         <button

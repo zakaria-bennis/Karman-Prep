@@ -21,6 +21,7 @@ export interface ColumnStyleMenuProps {
   stored: StoredColumn;
   header: string; // the header as read, "y₁"
   onDeleted(): void; // focus moves on once the column is gone
+  onAddRegression(): void; // D-3: a linear regression of this column, below the table
 }
 
 const POINT_STYLES: readonly [PointStyle, string][] = [
@@ -134,6 +135,16 @@ export function ColumnStyleMenu(props: ColumnStyleMenuProps): JSX.Element {
               </label>
             ))}
           </fieldset>
+          <button
+            type="button"
+            className="kc-style-action"
+            onClick={() => {
+              setOpen(false);
+              props.onAddRegression();
+            }}
+          >
+            Add regression
+          </button>
           <button
             type="button"
             className="kc-style-action"
