@@ -135,3 +135,24 @@ it("D-11 the worker posts a table result the snapshot exposes on the row view", 
   expect(after.table?.result?.columns[1].values).toEqual([1, 9]);
   expect(m.received.some((msg) => msg.type === "table")).toBe(true);
 });
+
+it("D-9 deleteTableColumn removes a later column with its data as one undo step and never the first", () => {
+  e.setExpression({
+    id: "t",
+    type: "table",
+    columns: [
+      { latex: "x_{1}", values: ["1", "2"] },
+      { latex: "y_{1}", values: ["3", "4"] },
+      { latex: "y_{2}", values: ["5", ""] },
+    ],
+  });
+  e.deleteTableColumn("t", 0);
+  expect(headers("t")).toEqual(["x_{1}", "y_{1}", "y_{2}"]);
+  e.deleteTableColumn("t", 1);
+  expect(cells("t")).toEqual([
+    ["1", "2"],
+    ["5", ""],
+  ]);
+  e.undo();
+  expect(headers("t")).toEqual(["x_{1}", "y_{1}", "y_{2}"]);
+});

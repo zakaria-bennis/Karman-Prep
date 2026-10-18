@@ -10,8 +10,9 @@ import { useContext, useLayoutEffect, useRef, useState, type FocusEvent, type JS
 import type { RowView } from "@/lib/calculator-v2/core/api/engine";
 import { MAX_TABLE_COLUMNS, MAX_TABLE_ROWS } from "@/lib/calculator-v2/core/api/document";
 import { useAnnouncer } from "../a11y/announcer";
-import { FocusContext } from "../focus/focus-controller";
+import { cellKey, FocusContext } from "../focus/focus-controller";
 import { useEngine, useEngineSnapshot } from "../hooks/use-engine";
+import { ColumnStyleMenu } from "./ColumnStyleMenu";
 import { deleteRowByControl } from "./row-actions";
 import type { RowMotion } from "./row-presence";
 import { addTableRow, cellKeys, deleteTableRowByControl, type TableKeyContext } from "./table-keys";
@@ -127,6 +128,15 @@ export function TableItem(props: TableItemProps): JSX.Element {
               {/* One keyed list, so the slot's field becomes the new column's header in place. */}
               {[...columns.map((c) => c.latex), ...(slot ? [null] : [])].map((latex, k) => (
                 <div key={`h-${k}`} role="columnheader" className="kc-table-cell">
+                  {latex !== null && k > 0 && (
+                    <ColumnStyleMenu
+                      tableId={row.id}
+                      column={k}
+                      stored={columns[k]}
+                      header={headers[k]}
+                      onDeleted={() => focus.focusRow(cellKey(row.id, k - 1, "h"), "end")}
+                    />
+                  )}
                   <TableCell
                     tableId={row.id}
                     column={k}

@@ -129,6 +129,7 @@ function tableRenderRows(
           bands: new Float64Array(0),
           dashed: stored.lineStyle === "dashed",
         },
+        lineStyle: stored.lineStyle,
       });
     }
     out.push({
@@ -137,6 +138,7 @@ function tableRenderRows(
       fillAlpha,
       selected,
       geometry: { kind: "points", rowId: row.id, evaluations: 0, coords },
+      pointStyle: stored.pointStyle,
     });
   }
   return out;

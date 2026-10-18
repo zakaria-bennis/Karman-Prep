@@ -100,6 +100,13 @@ export function withoutTableRow(row: StoredRow, r: number): StoredRow {
   return { ...row, columns: normalizeColumns(columns) };
 }
 
+/** D-9: a later column and its data removed; the first column is never removed this way. */
+export function withoutColumn(row: StoredRow, column: number): StoredRow {
+  const columns = row.columns ?? [];
+  if (column < 1 || column >= columns.length) return row;
+  return { ...row, columns: normalizeColumns(columns.filter((_, j) => j !== column)) };
+}
+
 /** D-12: one column's style changed. */
 export function withColumnStyle(
   row: StoredRow,

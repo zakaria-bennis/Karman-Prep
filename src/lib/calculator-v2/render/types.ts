@@ -1,7 +1,7 @@
 // What one graph frame draws (01-interfaces-runtime.md section 10): the view, the grid settings,
 // the rows' geometry in their resolved colours, and the skin's graph roles read from the host.
 
-import type { CalculatorSettings } from "../core/api/types";
+import type { CalculatorSettings, LineStyle, PointStyle } from "../core/api/types";
 import type { Geometry } from "../plot/geometry";
 import type { ViewSpec } from "../plot/viewport";
 import type { CurveSlot } from "../theme/skins";
@@ -22,6 +22,8 @@ export interface RenderRow {
   fillAlpha: number; // resolveRowColor(row.color, skin).fillAlpha
   geometry: Geometry;
   selected?: boolean; // POI-17: the selected row strokes at CURVE_SELECTED_LINE_PX
+  pointStyle?: PointStyle; // D-12: a table column's points; filled when absent
+  lineStyle?: LineStyle; // D-12: "dotted" overrides the geometry's dash flag
 }
 /** POI-1: a point-of-interest dot of the selected row; `open` while its label shows (POI-13). */
 export interface PoiDot {

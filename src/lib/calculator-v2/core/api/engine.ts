@@ -28,6 +28,7 @@ import {
   withCell,
   withColumnStyle,
   withHeader,
+  withoutColumn,
   withoutTableRow,
 } from "./table-edits";
 import { HelperRegistry, type HelperExpression } from "./helper-expression";
@@ -402,6 +403,11 @@ export class CalculatorEngine {
   /** D-8: data row `r` of a table removed, one undo step. */
   deleteTableRow(rowId: string, r: number): void {
     this.editTable(rowId, "api", (row) => withoutTableRow(row, r));
+  }
+
+  /** D-9: a later column deleted with its data, one undo step. */
+  deleteTableColumn(rowId: string, column: number): void {
+    this.editTable(rowId, "api", (row) => withoutColumn(row, column));
   }
 
   /** D-12: a column's style, one undo step. */

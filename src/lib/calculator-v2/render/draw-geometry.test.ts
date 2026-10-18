@@ -129,3 +129,24 @@ it("POI-17 the selected row's curve strokes at CURVE_SELECTED_LINE_PX and others
   const widths = calls.filter((c) => c.name === "stroke").map((c) => c.state.lineWidth);
   expect(widths).toEqual([CURVE_LINE_PX, CURVE_SELECTED_LINE_PX]);
 });
+
+it("D-12 open circles stroke, crosses draw two strokes, and a dotted column line uses the dot pattern", () => {
+  const { ctx, calls } = createRecordingContext();
+  const coords = new Float64Array([2, 3]);
+  drawPointLayer(ctx, view(), [
+    { ...rowOf({ kind: "points", rowId: "1", evaluations: 0, coords }), pointStyle: "open" },
+    { ...rowOf({ kind: "points", rowId: "1", evaluations: 0, coords }), pointStyle: "cross" },
+  ]);
+  expect(calls.filter((c) => c.name === "fill")).toHaveLength(0);
+  expect(calls.filter((c) => c.name === "arc").map((c) => c.args)).toEqual([
+    [480, 180, 4, 0, 2 * Math.PI],
+  ]);
+  const lines = calls.filter((c) => c.name === "lineTo").map((c) => c.args);
+  expect(lines).toEqual([
+    [484, 184],
+    [484, 176],
+  ]);
+  expect(strokes(calls)).toHaveLength(2);
+  const dotted = drawCurves([{ ...curveRow([-5, 1, 5, 1], false), lineStyle: "dotted" }]);
+  expect(strokes(dotted).map((c) => c.state.lineDash)).toEqual([[0.1, 6]]);
+});
