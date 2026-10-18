@@ -315,3 +315,56 @@ it("TR-69 after a mount failure the held payload waits for Retry and applies onc
   const again = send(f, payload(3), "mouse");
   await waitFor(() => expect(again.result?.status).toBe("unavailable"));
 });
+
+it("AR-21, TR-64 a mouse or touch transfer docks a closed, floating or maximized window when the viewport is wide, opens a load-failure panel docked, leaves the stored mode alone in full screen and never writes it for a refused transfer", async () => {
+  const s = await scope();
+  const first = send(s, payload(1), "mouse");
+  await waitFor(() => expect(first.result?.status).toBe("added"));
+  expect(s.store.get().mode).toBe("docked");
+  expect(document.querySelector("[data-calculator-window]")).toHaveAttribute("data-mode", "docked");
+  for (const [n, mode, trigger] of [
+    [2, "floating", "touch"],
+    [3, "maximized", "mouse"],
+  ] as const) {
+    act(() => s.store.set({ mode }));
+    const o = send(s, payload(n), trigger);
+    await waitFor(() => expect(o.result).toBeDefined());
+    expect(s.store.get().mode, trigger).toBe("docked");
+  }
+  s.unmount();
+  const t = await scope();
+  const byTouch = send(t, payload(1), "touch");
+  await waitFor(() => expect(byTouch.result?.status).toBe("added"));
+  expect(t.store.get().mode).toBe("docked");
+  expect(document.querySelector("[data-calculator-window]")).toHaveAttribute("data-mode", "docked");
+  t.unmount();
+  const f = await scope({ fullScreen: true });
+  const o = send(f, payload(4), "mouse");
+  await waitFor(() => expect(o.result?.status).toBe("added"));
+  expect(f.store.get().mode).toBeNull();
+  expect(document.querySelector("[data-calculator-window]")).toHaveAttribute(
+    "data-mode",
+    "fullscreen"
+  );
+  f.unmount();
+  const k = await scope();
+  const stale = send(k, payload(1, "attempt:q0"), "mouse");
+  await waitFor(() => expect(stale.result?.status).toBe("rejected"));
+  expect(k.store.get().mode).toBeNull();
+  k.unmount();
+  let release = () => {};
+  const q = await scope({ gate: new Promise<void>((r) => (release = r)) });
+  for (let n = 0; n < 20; n++) send(q, payload(n), "mouse");
+  act(() => q.store.set({ mode: "floating" }));
+  const full = send(q, payload(20), "mouse");
+  await waitFor(() => expect(full.result?.status).toBe("queue-full"));
+  expect(q.store.get().mode).toBe("floating");
+  await act(async () => release());
+  q.unmount();
+  const l = await scope({ loadFails: true });
+  const lost = send(l, payload(1), "mouse");
+  await waitFor(() => expect(lost.result?.status).toBe("unavailable"));
+  expect(l.store.get().mode).toBe("docked");
+  expect(document.querySelector("[data-calculator-window]")).toHaveAttribute("data-mode", "docked");
+  expect(screen.getByRole("button", { name: "Reload page" })).toBeInTheDocument();
+});

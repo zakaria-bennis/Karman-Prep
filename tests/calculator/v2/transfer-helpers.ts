@@ -124,3 +124,27 @@ export async function touchGesture(
   if (o.holdMs) await page.waitForTimeout(o.holdMs);
   await target.dispatchEvent("pointerup", { ...init, clientX: o.back ? x : x + (o.dx ?? 0) });
 }
+export const row = (page: Page, n = 1) =>
+  page.getByRole("textbox", { name: `Expression ${n}`, exact: true });
+/** The list item that shows row `n` (MathQuill keeps the row's textarea at 0 x 0). */
+export const rowItem = (page: Page, n = 1) =>
+  page.getByRole("listitem").filter({ has: row(page, n) });
+/** Hovers the centre of the item's last line box (a wrapped inline item's bounding-box centre can
+ * lie between its lines, and Locator.hover() misses inline KaTeX) and clicks its control. */
+export async function transferByMouse(page: Page, latex: string, n = 0) {
+  const target = item(page, latex, n);
+  await target.scrollIntoViewIfNeeded();
+  const [x, y] = await target.evaluate((el) => {
+    const rects = el.getClientRects();
+    const r = rects[rects.length - 1] ?? el.getBoundingClientRect();
+    return [r.left + r.width / 2, r.top + r.height / 2];
+  });
+  await page.mouse.move(x, y);
+  await control(page, latex, n).click();
+}
+/** A click with no pointerdown that no window can cover. */
+export const clickControl = (page: Page, latex: string, n = 0) =>
+  control(page, latex, n).evaluate((el: HTMLElement) => el.click());
+/** The page-session window store the fixture exposes (null before it is set). */
+export const windowStore = (page: Page) =>
+  page.evaluate(() => globalThis.__calculatorWindowStore?.get() ?? null);

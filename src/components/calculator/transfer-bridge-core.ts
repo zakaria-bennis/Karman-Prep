@@ -1,6 +1,6 @@
 // Lazy (D4, AR-33): the v2 bridge's transfer pipeline behind use-transfer-bridge.ts's eager hook,
 // loaded through its import() (and together with the Transfer control's chunk): the question-key
-// check (TR-70), the held queue while the calculator loads (AR-17), the drain into the guarded
+// check (TR-70), the docking write (AR-21), the held queue while the calculator loads (AR-17), the drain into the guarded
 // handle, holds across a mount failure and discards after a load failure (TR-69, OI-28), the
 // tap-selection clears (TR-57) and the quiz-side TR-67 announcement. Never imported by eager code.
 
@@ -11,6 +11,8 @@ import {
   type TransferResult,
   type TransferTrigger,
 } from "@/lib/calculator-transfer/payload";
+import { FULL_SCREEN_QUERY } from "./breakpoints";
+import { calculatorWindowStore } from "./calculator-window-store";
 import { reportCalculatorError } from "./report-error";
 import { markCoreRejection } from "./transfer-report";
 import { transferSelection } from "./transfer-selection";
@@ -70,6 +72,12 @@ export function transfer(
       message: TRANSFER_MESSAGES.tooManyWaiting,
       focusRowId: null,
     });
+  }
+  // AR-21, TR-64, TR-65: dock on a wide viewport, whatever the trigger and whatever mode was open
+  // (the same rule as the first toolbar open of a page session, L-4); a full-screen viewport keeps
+  // the stored mode. Refusals above never write the store; a load-failure panel opens docked.
+  if (!matchMedia(FULL_SCREEN_QUERY).matches) {
+    calculatorWindowStore.set({ mode: "docked", restoreMode: "docked" });
   }
   // 4. OI-28: a failed import stays failed for the page.
   if (now.status === "failed" && now.failure === "load") {
