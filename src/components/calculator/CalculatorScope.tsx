@@ -46,6 +46,7 @@ import {
 } from "./calculator-window-store";
 import { warmCalculatorFonts } from "./font-warmup";
 import { reportCalculatorError } from "./report-error";
+import { useTransferBridge, type TransferBridge } from "./use-transfer-bridge";
 import "./calculator-chrome.generated.css"; // AR-37: the --kcc-* tokens of the window chrome
 import styles from "./calculator.module.css";
 import windowStyles from "./CalculatorWindow.module.css";
@@ -77,6 +78,7 @@ export interface V2Bridge {
   questionKey: string;
   toggle(trigger?: OpenTrigger): void;
   prefetch(): void; // getCalculatorModule() and warmCalculatorFonts()
+  transfer: TransferBridge["transfer"]; // (payload, trigger) => Promise<TransferResult>, 14
 }
 
 export type CalculatorBridge = V1Bridge | V2Bridge;
@@ -482,9 +484,19 @@ function V2Scope({
     void warmCalculatorFonts();
   };
   const sideHandlers = useOpenTriggerHandlers(toggle);
+  // 14: transfer(), its queue and the TR-67 status region text.
+  const transferBridge = useTransferBridge({
+    questionKey,
+    open,
+    status,
+    failure,
+    onOpenChange,
+    frameRef,
+  });
+  const { transfer } = transferBridge;
 
   const bridge: V2Bridge | null = enabled
-    ? { version: "v2", open, status, failure, questionKey, toggle, prefetch }
+    ? { version: "v2", open, status, failure, questionKey, toggle, prefetch, transfer }
     : null;
   // Render-time clamping: the store keeps what the student set, so a shrink and regrow restores
   // the earlier place and dock width (AR-25).
@@ -542,6 +554,15 @@ function V2Scope({
         >
           {children}
         </div>
+        <div
+          data-transfer-status
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+          className="sr-only"
+        >
+          {transferBridge.announcement}
+        </div>
         {enabled && phone && !open && (
           <button
             type="button"
@@ -590,7 +611,10 @@ function V2Scope({
                     setStatus(nextStatus);
                     setFailure(nextFailure);
                   }}
-                  onHandle={setHandle}
+                  onHandle={(next) => {
+                    setHandle(next);
+                    transferBridge.onHandle(next);
+                  }}
                 />
               </CalculatorWindow>
             </WindowBoundary>
