@@ -38,6 +38,29 @@ Error wording moves to Desmos's text where appendix F recorded it: nested list
 both sides of the '∼' symbol."; duplicate definition "You've defined 'm' in more than one place.
 Try deleting some of the definitions of 'm'.".
 
+### Package B as built
+
+- Ranges are list nodes with `range: true` (items are the bounds), so every tree walker, the UI's
+  `speech.ts` included, keeps compiling; `speech.ts` still reads `[1...10]` as "list 1 10" and
+  could say "1 through 10" in a UI follow-up.
+- Run-time list errors (a nested list a function returns, a range over 10,000 elements or with a
+  zero step, numbers mixed with points) come back as an undefined value with an `error` code;
+  `buildRowView` shows that code's message as the row's error. Analysis reports the same errors
+  when the rows show them (list literals, list names, literal ranges).
+- New row error codes: `sim-side`, `nested-list`, `list-too-long`, `range-step`, `list-mixed`.
+
+### Deferred
+
+Each shows the `unsupported` row error "{thing} isn't supported yet." (R-2):
+
+- Indexing `L[i]` (NM-30): "Indexing a list isn't supported yet."
+- Slicing `L[i...j]` (NM-31): "Slicing a list isn't supported yet."
+- Filtering `L[c]` (NM-31): "Filtering a list isn't supported yet."
+- Comprehensions `[e\operatorname{for}n=L]` (NM-37): "Building a list with 'for' isn't supported yet."
+- List-valued curves, line sets and regions, including a one-parameter function whose body is a
+  list (G-22): "Graphing a list of curves isn't supported yet."
+- List functions (mean, total, sort, …): still the PR-9 unshipped-built-in `unsupported` message.
+
 ## Sequence
 
 A and B are dispatched together (Sonnet for A, Opus for B); the orchestrator reviews each diff,

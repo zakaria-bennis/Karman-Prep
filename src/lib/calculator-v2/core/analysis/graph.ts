@@ -19,7 +19,7 @@ export const POLAR_NAMES: readonly string[] = ["r", "\\theta"];
 
 /**
  * Classifies a tree that defines nothing, by RC-2's order: r or θ anywhere is `unsupported`;
- * then a point (RC-15), a relation (RC-11 to RC-14) or a bare expression (RC-17). `coordinatesOf`
+ * then a point or a list of points (RC-15, G-3), a relation (RC-11 to RC-14) or a bare expression (RC-17). `coordinatesOf`
  * gives the coordinates a node reaches through definitions; `unboundT` is true when a `t` inside
  * the point has no defining row. A relation with no coordinates is a `constant-relation` here:
  * classifyRow makes it an `unsolved-relation` when the row has chips (RC-13), which depend on the
@@ -34,7 +34,7 @@ export function shapeOf(
   const relation = tree.kind === "rel" ? { ops: [...tree.ops] } : null;
   const polar = [...coordinates].find((name) => POLAR_NAMES.includes(name));
   if (polar !== undefined) return failed("unsupported", [displayName(polar)], relation);
-  if (tree.kind === "point") {
+  if (tree.kind === "point" || isPointList(tree)) {
     if (unboundT) return failed("unsupported", ["t"], relation);
     if (coordinates.has("x") || coordinates.has("y")) {
       return failed("point-coordinates", [], relation);
@@ -133,6 +133,16 @@ function chainShape(tree: Rel, coordinates: ReadonlySet<string>): RowShape {
     operands = tree.operands;
   if (coordinates.size > 0) return shape("region", { kind: "region", operands, ops });
   return shape("constant-relation", { kind: "constant-region", operands, ops });
+}
+
+/** G-3: a list literal of points, such as `[(1,2),(3,4)]`, plots like a point (RC-15). */
+function isPointList(tree: Node): boolean {
+  return (
+    tree.kind === "list" &&
+    tree.range !== true &&
+    tree.items.length > 0 &&
+    tree.items.every((item) => item.kind === "point")
+  );
 }
 
 function isId(node: Node, name: string): boolean {

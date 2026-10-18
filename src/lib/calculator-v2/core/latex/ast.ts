@@ -23,7 +23,7 @@ export type Node =
   | { kind: "sim"; left: Node; right: Node; span: SourceSpan }; // PR-30, D-2: a regression row L ~ M
 
 /** The direct child nodes of `node`, in the order the S-expression writes them. */
-function children(node: Node): Node[] {
+export function children(node: Node): Node[] {
   switch (node.kind) {
     case "num":
     case "id":

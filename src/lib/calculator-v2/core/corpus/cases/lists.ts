@@ -1,5 +1,5 @@
 // PR-34 list syntax and NM-32 to NM-38 list meaning (calculator v2 lists package, 2026-10-18).
-import type { CorpusCase, RowErrorCode } from "../types";
+import type { CorpusCase, RowErrorCode, RowKind } from "../types";
 
 const FILE = "lists";
 type Context = Pick<CorpusCase, "rows" | "settings">;
@@ -10,6 +10,15 @@ const t = (n: number, rules: string[], latex: string, tree: string): CorpusCase 
   input: { latex },
   tree,
 });
+/** A row of `kind` with its RC-10 chips in order (none listed: `[]`). */
+const k = (
+  n: number,
+  rules: string[],
+  latex: string,
+  kind: RowKind,
+  context: Context = {},
+  chips: string[] = []
+): CorpusCase => ({ id: `${FILE}-${n}`, rules, input: { latex }, ...context, kind, chips });
 /** A row whose value formatValue shows as `display`. */
 const d = (
   n: number,
@@ -66,5 +75,24 @@ const cases: CorpusCase[] = [
   d(29, ["NM-36"], "[1,2,...,0]", "[]"),
   d(30, ["NM-38"], "[1...40]", `[${Array.from({ length: 30 }, (_, k) => k + 1).join(", ")}, …]`),
   d(31, ["RC-6"], "x_{1}=[1...5]", "[1, 2, 3, 4, 5]"),
+  k(32, ["RC-6"], "x_{1}=[1...5]", "definition"),
+  x(33, ["NM-34"], "[x_{1},x_{1}]\\sim[y_{1},y_{1}]", "nested-list", {
+    rows: ["x_{1}=[1...10]", "y_{1}=[1...10]"],
+  }),
+  x(34, ["NM-34"], "[[1,2],3]", "nested-list"),
+  x(35, ["NM-34"], "[1...L]", "nested-list", { rows: ["L=[1,2]"] }),
+  x(36, ["NM-35", "NM-42"], "[1...10001]", "list-too-long"),
+  x(37, ["NM-36"], "[1,1,...,5]", "range-step"),
+  x(38, ["NM-34"], "[(L,1)]", "nested-list", { rows: ["L=[1,2]"] }),
+  { ...x(39, ["G-22"], "y=[1,2,3]x", "unsupported"), kind: "error" }, // analysis, not parse
+  x(40, ["G-22"], "y=Lx", "unsupported", { rows: ["L=[1,2]"] }),
+  { ...x(41, ["G-22"], "f(x)=[1,2]x", "unsupported"), kind: "error" },
+  k(42, ["G-3"], "(L_{1},L_{2})", "point", { rows: ["L_{1}=[1,2]", "L_{2}=[3,4]"] }),
+  k(43, ["G-3"], "[(1,2),(3,4)]", "point"),
+  k(44, ["D-22"], "y_{1}\\sim mx_{1}+b", "regression", {
+    rows: ["x_{1}=[1,2,3]", "y_{1}=[3,5,7]"],
+  }),
+  k(45, ["NM-32"], "[1,2,3]+1", "value"),
+  k(46, ["NM-32"], "f(x)=x^{2}+L_{1}", "error", { rows: ["L_{1}=[1,2]"] }),
 ];
 export default cases;

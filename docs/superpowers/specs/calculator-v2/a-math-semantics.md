@@ -258,7 +258,7 @@ Tolerances for statistics, distributions, inference, regression and calculus are
 
 - **G-1** `y=f(x)`, `x=g(y)`, implicit equations and inequalities graph. Shaded regions have a dashed boundary for strict inequalities and a solid one for non-strict. (Phase 1; verified by unit test)
 - **G-2** Polar `r=f(\theta)`, parametric `(f(t),g(t))`, point lists built from lists, piecewise `\{\}` and domain restrictions graph. Single points are G-7. (Phase 2; verified by unit test)
-- **G-3** Lists, ranges, comprehensions and lists of functions graph according to NM-30 to NM-38 and G-22. (Phase 2; verified by unit test)
+- **G-3** Lists, ranges, comprehensions and lists of functions graph according to NM-30 to NM-38 and G-22. A point whose parts are lists, such as `(L_{1},L_{2})` or `(L,5)`, and a list of points such as `[(1,2),(3,4)]` are point rows that draw one dot per defined pair, paired by NM-33 (shipped by the 2026-10-18 lists package). (Phase 2; verified by unit test)
 - **G-4** Points of interest, labels, trace and draggable points follow POI-1 to POI-16. (Phase 2; verified by browser test)
 - **G-5** Pan works by drag and arrow keys. Pinch zooms, and the wheel zooms about the pointer. Zoom In and Zoom Out zoom about the view centre by a factor of 2 per press. Home restores the default view: x from −10 to 10, y centred on 0, equal units on both axes (observed on 2026-10-16: y from −8.60887 to 8.60887 in the 1440×900 desktop layout). AN- sets the animation timing (confirm the zoom factor by REA behaviour capture in Phase 1). (Phase 1; verified by browser test)
 - **G-6** Function definitions with one or more parameters (`f(x)=…`, `g(a,b)=…`) can be used from any row, in any order (RC-4, RC-9). (Phase 1; verified by unit test)
@@ -288,7 +288,7 @@ These rules are checked on the sampler's polylines and contours, not on pixels.
 - **G-19** Polar curves measure θ in the current angle unit (NM-25). The default domain is 0 ≤ θ ≤ 12π (0 ≤ θ ≤ 2160 in degrees). Negative r plots in the opposite direction, `r=c` is a circle, and `\theta=c` is the full line through the origin (confirm the default domain and `\theta=c` by REA behaviour capture in Phase 2). (Phase 2; verified by unit test)
 - **G-20** Parametric curves default to 0 ≤ t ≤ 1. Polar and parametric rows show their domain as editable inline bounds (`0\le\theta\le12\pi`, `0\le t\le1`), and a restriction on the row narrows that domain. (Phase 2; verified by component test)
 - **G-21** Polar and parametric curves meet G-9, G-11 and G-12 over their parameter range, and domain bounds or restrictions clip within 0.5 px of the bound's point. (Phase 2; verified by unit test)
-- **G-22** `y=[1,2,3]x` and other list-valued curves draw one curve per element, all in the row's colour and style. (Phase 2; verified by unit test)
+- **G-22** `y=[1,2,3]x` and other list-valued curves draw one curve per element, all in the row's colour and style. Until this ships (deferred by the 2026-10-18 lists package), a row that would graph a list-valued curve, line set or region, including a one-parameter function whose body is a list, is the `unsupported` row error "Graphing a list of curves isn't supported yet.", never a curve of undefined values. (Phase 2; verified by unit test)
 
 ### 5.5 Viewport limits and parity
 
