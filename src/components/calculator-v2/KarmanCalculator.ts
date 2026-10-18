@@ -18,7 +18,7 @@ import type {
   GraphpaperBounds,
 } from "@/lib/calculator-v2/core/api/types";
 import { bumpDevCounter } from "@/lib/calculator-v2/dev-counters";
-import { hostThemeCss, resolveSkinId } from "@/lib/calculator-v2/theme/roles";
+import { hostThemeCss } from "@/lib/calculator-v2/theme/roles";
 import { CALCULATOR_V2_BUILD, CALCULATOR_V2_CSS } from "./styles/generated";
 import { App } from "./ui/App";
 import { ErrorBoundary, type ErrorBoundaryProps } from "./ui/ErrorBoundary";
@@ -27,6 +27,7 @@ import { focusBoundary as focusShadowBoundary } from "./ui/controller/focusables
 import { watchMediaQuery, watchPointer } from "./ui/controller/media";
 import { createShellStore, type ShellStore } from "./ui/controller/shell-store";
 import { installStyles, type ShadowStyles } from "./ui/controller/stylesheet";
+import { watchTheme, type ThemeState } from "./ui/controller/theme-watcher";
 import { whenFieldReady } from "./ui/controller/when-field-ready";
 import { createEscapeStack, type EscapeStack } from "./ui/focus/escape-stack";
 import { createFocusController, type FocusController } from "./ui/focus/focus-controller";
@@ -51,7 +52,6 @@ type Method = {
 type Args<K extends Method> = Parameters<CalculatorEngine[K]>;
 type Result<K extends Method> = ReturnType<CalculatorEngine[K]>;
 
-const DARK_QUERY = "(prefers-color-scheme: dark)";
 const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
 
 interface Internals {
@@ -61,10 +61,6 @@ interface Internals {
 /** 10 Decision 6: the quiz host's channel to the KB-4 reopen row, kept off the public surface. */
 const internals = new WeakMap<KarmanCalculator, Internals>();
 let hostCount = 0;
-
-function prefersDark(): boolean {
-  return typeof window.matchMedia === "function" && window.matchMedia(DARK_QUERY).matches;
-}
 
 export class KarmanCalculator {
   static readonly version: string = CALCULATOR_V2_BUILD;
@@ -85,6 +81,7 @@ export class KarmanCalculator {
   readonly #measure: () => void;
   readonly #disposers: (() => void)[] = [];
   #reducedMotion: boolean;
+  #reflows = 0;
   #cancelFieldWait: () => void = () => {};
   #destroyed = false;
 
@@ -107,13 +104,19 @@ export class KarmanCalculator {
     element.dataset.karmanCalculator = KARMAN_CALCULATOR_SENTINEL;
     element.id ||= `karman-calculator-host-${++hostCount}`;
 
-    // 3–5. Shadow root, styles, React container and the one polite status region.
+    // 3–5. Shadow root, styles, React container and the one polite status region. TH-15: the
+    // theme watcher re-resolves the skin live; Watch.initial never reaches onTheme, and later
+    // changes arrive in a microtask or a media change task, after #styles and #store are assigned.
     const shadow = element.shadowRoot ?? element.attachShadow({ mode: "open" });
     shadow.replaceChildren();
     this.#shadow = shadow;
+    const onTheme = (t: ThemeState) => {
+      this.#styles.setSkinCss(hostThemeCss(t.skin));
+      this.#store.set({ skin: t.skin, themeRevision: t.revision + this.#reflows });
+    };
+    const theme = watchTheme(document.documentElement, window, onTheme);
     this.#styles = installStyles(shadow, CALCULATOR_V2_CSS);
-    const skin = resolveSkinId(document.documentElement.dataset.theme ?? null, prefersDark());
-    this.#styles.setSkinCss(hostThemeCss(skin));
+    this.#styles.setSkinCss(hostThemeCss(theme.initial.skin));
     const container = document.createElement("div");
     container.className = "kc-root";
     const region = document.createElement("div");
@@ -129,13 +132,14 @@ export class KarmanCalculator {
     this.#store = createShellStore({
       size: { width: 0, height: 0 },
       layout: "stacked",
-      skin,
-      themeRevision: 0,
+      skin: theme.initial.skin,
+      themeRevision: theme.initial.revision,
       reducedMotionMedia: false,
       pointer: "fine",
     });
 
-    // 7. Browser watchers feed the store.
+    // 7. Browser watchers feed the store; the theme watcher is disposed last.
+    this.#disposers.push(theme.dispose);
     const size = observeHostSize(element, (next) =>
       this.#store.set({ size: next, layout: layoutFor(next.width) })
     );
@@ -324,6 +328,7 @@ export class KarmanCalculator {
   reflow(): void {
     if (this.#destroyed) return;
     for (const field of this.#focus.fields()) field.reflow();
+    this.#reflows += 1; // counted so a later theme change keeps the revision increasing
     this.#store.set({ themeRevision: this.#store.get().themeRevision + 1 });
   }
 

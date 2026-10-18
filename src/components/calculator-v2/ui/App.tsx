@@ -5,11 +5,22 @@
 // settings popover's anchor and composes CalculatorLayout from the engine snapshot and the shell
 // store; 13 wraps it in CalculatorChrome, which portals into chromeSlot. App installs the shell
 // keyboard (KB-3, KB-7) on the layout's root: shortcuts go through 09's row actions, so they insert,
-// focus and announce exactly as the toolbar does (A11Y-2, NM-42).
+// focus and announce exactly as the toolbar does (A11Y-2, NM-42). Every keypad change goes through
+// the K-2 policy (reduceKeypad). The quiz setting reaches the stylesheet as the host's
+// data-reduced-motion, and either it or the OS preference makes the graph's motion instant (AN-13).
 
-import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type JSX } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type JSX,
+} from "react";
 import type { CalculatorEngine } from "@/lib/calculator-v2/core/api/engine";
 import { AnnouncerContext, type Announcer } from "./a11y/announcer";
+import { reduceKeypad, type KeypadEvent } from "./controller/keypad-policy";
 import type { ShellStore } from "./controller/shell-store";
 import { installShellKeyboard, type ShortcutAction } from "./controller/shortcuts";
 import { EscapeContext, type EscapeStack } from "./focus/escape-stack";
@@ -57,20 +68,37 @@ export function App(props: AppProps): JSX.Element {
   const rootRef = useRef<HTMLElement>(null);
   const { settings } = snapshot;
 
+  // AN-13: base.css and tokens.css zero every duration under :host([data-reduced-motion="true"]).
+  useLayoutEffect(() => {
+    host.dataset.reducedMotion = String(settings.reducedMotion);
+  }, [host, settings.reducedMotion]);
+
   const toggleSettings = useCallback(
     (anchor: HTMLElement) => setSettingsAnchor((open) => (open === null ? anchor : null)),
     []
   );
   const closeSettings = useCallback(() => setSettingsAnchor(null), []);
-  const toggleKeypad = useCallback(
-    () => engine.updateSettings({ keypad: !engine.settings.keypad }),
+  // K-2: every keypad change goes through the policy. studentClosed lives for this mount only, so
+  // a student close does not carry into the next question (a new KarmanCalculator).
+  const studentClosed = useRef(false);
+  const keypadEvent = useCallback(
+    (event: KeypadEvent) => {
+      const open = engine.settings.keypad;
+      const next = reduceKeypad({ open, studentClosed: studentClosed.current }, event);
+      studentClosed.current = next.studentClosed;
+      if (next.open !== open) engine.updateSettings({ keypad: next.open });
+    },
     [engine]
+  );
+  const toggleKeypad = useCallback(
+    () => keypadEvent({ type: "set", open: !engine.settings.keypad, by: "student" }), // Decision 3
+    [engine, keypadEvent]
   );
   const changeKeypad = useCallback(
-    (keypad: boolean) => engine.updateSettings({ keypad }),
-    [engine]
+    (open: boolean, by: "student" | "system") => keypadEvent({ type: "set", open, by }),
+    [keypadEvent]
   );
-  const touchFocusRow = useCallback(() => {}, []); // K-2 policy arrives in Task 10
+  const touchFocusRow = useCallback(() => keypadEvent({ type: "touch-focus-row" }), [keypadEvent]);
 
   // KB-7: the current shortcut handler, read through a ref so the listener installs once per stack.
   const latest = useRef<(action: ShortcutAction) => void>(() => {});
@@ -81,7 +109,7 @@ export function App(props: AppProps): JSX.Element {
       case "redo":
         return performRedo(engine, announcer);
       case "toggle-keypad":
-        return toggleKeypad(); // Task 10 routes this through the policy
+        return toggleKeypad(); // a student change (10 Decision 3)
       case "add-row-end":
         insertRowBelow(engine, focus, announcer, null, "focus"); // NM-42 on a refusal
     }
@@ -113,7 +141,7 @@ export function App(props: AppProps): JSX.Element {
                 keypadOpen={settings.keypad}
                 host={host}
                 themeRevision={shell.themeRevision}
-                reducedMotion={settings.reducedMotion}
+                reducedMotion={settings.reducedMotion || shell.reducedMotionMedia}
                 settingsAnchor={settingsAnchor}
                 revealRowId={snapshot.focusedRowId ?? snapshot.activeRowId}
                 rootRef={rootRef}

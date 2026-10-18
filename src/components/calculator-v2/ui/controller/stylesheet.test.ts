@@ -144,3 +144,9 @@ it("AN-14 every CSS duration comes from --kc-duration-* and no cubic-bezier over
     expect([y1, y2].every((y) => y >= 0 && y <= 1)).toBe(true);
   }
 });
+
+it("TH-14 base.css gives :focus-visible a 2px solid focus-ring outline at a 2px offset", () => {
+  expect(CALCULATOR_V2_CSS).toMatch(
+    /^:focus-visible \{\s*outline: 2px solid var\(--kc-focus-ring\);\s*outline-offset: 2px;\s*\}/m
+  ); // a top-level rule, not 08's or 09's
+});
