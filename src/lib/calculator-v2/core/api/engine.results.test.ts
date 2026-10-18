@@ -316,7 +316,7 @@ it("AR-54 parse, analysis and evaluation errors are row values and never throw",
     "unsupported", // \sum
     "unsupported", // \begin{matrix}1\end{matrix}
     "mixed-variables", // x+y
-    "syntax", // \sim with nothing to fit (PR-30: a half-typed regression)
+    "sim-side", // \sim with nothing on either side (PR-30: a half-typed regression)
   ]);
   expect(rows[7].value).toEqual({ type: "undefined" });
   for (const r of rows.filter((r) => r.error))

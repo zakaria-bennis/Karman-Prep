@@ -53,6 +53,7 @@ const BARE_BASES: ReadonlySet<Kind> = new Set([
   "deg",
   "fact",
   "point",
+  "list",
 ]);
 /** Wrapped as a sum's right operand and as a product's left factor. */
 const SUMS: ReadonlySet<Kind> = new Set(["add", "sub"]);
@@ -107,13 +108,7 @@ export function printLatex(tree: Node): string {
     case "point":
       return join(["\\left(", printLatex(tree.x), ",", printLatex(tree.y), "\\right)"]);
     case "list":
-      return join([
-        "\\left[",
-        ...tree.items.flatMap((item, i) =>
-          i === 0 ? [printLatex(item)] : [",", printLatex(item)]
-        ),
-        "\\right]",
-      ]);
+      return join(["\\left[", ...listItems(tree.items, tree.range === true), "\\right]"]);
     case "rel":
       return join(
         tree.operands.flatMap((operand, i) =>
@@ -153,6 +148,19 @@ function printCall(name: string, args: readonly Node[]): string {
     return join([head, "_{", printLatex(args[1]), "}", parenthesised([args[0]])]);
   }
   return join([head, parenthesised(args)]);
+}
+
+/**
+ * PR-34: list items separated by commas, as MathQuill writes them; a range puts `\\ldots` before
+ * its last item, joined to it directly after one item (`1\\ldots10`) and by commas after two
+ * (`1,3,\\ldots,10`).
+ */
+function listItems(items: readonly Node[], range: boolean): string[] {
+  const parts = items.map(printLatex);
+  if (!range) return parts.flatMap((part, i) => (i === 0 ? [part] : [",", part]));
+  const last = parts.length - 1;
+  const head = parts.slice(0, last).flatMap((part, i) => (i === 0 ? [part] : [",", part]));
+  return last === 1 ? [...head, "\\ldots", parts[last]] : [...head, ",\\ldots,", parts[last]];
 }
 
 function parenthesised(args: readonly Node[]): string {

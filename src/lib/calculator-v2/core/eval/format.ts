@@ -1,7 +1,7 @@
-// Display text for numbers, points, complex values and axis labels (NM-1 to NM-3, NM-5, NM-6,
-// NM-8, NM-20; 01-interfaces.md section 4). Hyphen-minus for signs; scientific form m×10^n with ×
-// U+00D7 and a plain exponent. T-10 thin-space grouping is the renderer's job, never done here.
-// Pure TypeScript: no DOM (AR-44).
+// Display text for numbers, points, complex values, lists and axis labels (NM-1 to NM-3, NM-5,
+// NM-6, NM-8, NM-20, NM-38; 01-interfaces.md section 4). Hyphen-minus for signs; scientific form
+// m×10^n with × U+00D7 and a plain exponent. T-10 thin-space grouping is the renderer's job, never
+// done here. Pure TypeScript: no DOM (AR-44).
 
 import type { Complex, Value } from "./values";
 
@@ -11,26 +11,27 @@ const PLAIN_MAX = 1e12;
 const NEGLIGIBLE_PART = 1e-14; // NM-20: |part| ≤ 10^-14·|other part| is omitted
 const AXIS_ZERO = 1e-6; // NM-8: |v| < 10^-6·step labels as 0
 const TIMES = "×";
+const LIST_SHOWN = 30; // NM-38: a list shows its first 30 elements, then an ellipsis
 
 interface Style {
   undefined: string;
   scientific: (mantissa: string, exponent: string) => string;
   point: (a: string, b: string) => string;
-  list: (items: string[]) => string;
+  list: (items: string[], more: boolean) => string; // `more`: elements past the first 30 (NM-38)
 }
 
 const TEXT: Style = {
   undefined: "undefined",
   scientific: (m, e) => `${m}${TIMES}10^${e}`,
   point: (a, b) => `(${a}, ${b})`,
-  list: (items) => `[${items.join(", ")}]`, // until NM-38
+  list: (items, more) => `[${[...items, ...(more ? ["…"] : [])].join(", ")}]`,
 };
 
 const LATEX: Style = {
   undefined: "\\mathrm{undefined}",
   scientific: (m, e) => `${m}\\times10^{${e}}`,
   point: (a, b) => `\\left(${a},${b}\\right)`,
-  list: (items) => `\\left[${items.join(",")}\\right]`,
+  list: (items, more) => `\\left[${[...items, ...(more ? ["\\ldots"] : [])].join(",")}\\right]`,
 };
 
 /** Trailing fraction zeros and a bare "." removed: "1.500" → "1.5", "2.000" → "2", "10" → "10". */
@@ -72,7 +73,10 @@ function format(v: Value, style: Style): string {
     case "point":
       return style.point(formatReal(v.value[0], style), formatReal(v.value[1], style));
     case "list":
-      return style.list(v.value.map((item) => format(item, style)));
+      return style.list(
+        v.value.slice(0, LIST_SHOWN).map((item) => format(item, style)),
+        v.value.length > LIST_SHOWN
+      );
     case "undefined":
       return style.undefined;
   }
@@ -83,7 +87,10 @@ export function formatNumber(v: number): string {
   return formatReal(v, TEXT);
 }
 
-/** NM-5, NM-6, NM-20: points `(a, b)`, complex `a+bi` with negligible parts omitted. */
+/**
+ * NM-5, NM-6, NM-20, NM-38: points `(a, b)`, complex `a+bi` with negligible parts omitted, lists
+ * `[a, b, c]` with their first 30 elements and then `…`.
+ */
 export function formatValue(v: Value): string {
   return format(v, TEXT);
 }

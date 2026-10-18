@@ -29,7 +29,15 @@ export class ParseFailure extends Error {
 }
 
 /** The operators and the closer that are commands (G3): no factor or atom starts with one. */
-const OPERATOR_COMMANDS: ReadonlySet<string> = new Set(["cdot", "le", "ge", "rvert", "of", "sim"]);
+const OPERATOR_COMMANDS: ReadonlySet<string> = new Set([
+  "cdot",
+  "le",
+  "ge",
+  "rvert",
+  "of",
+  "sim",
+  "ldots", // PR-34: the range ellipsis, read only inside list brackets
+]);
 
 export function createParserState(
   tokens: Token[],
@@ -39,8 +47,14 @@ export function createParserState(
   return { tokens, pos: 0, depth: 0, bars: [], normalized, options };
 }
 
-export function fail(code: ParseErrorCode, span: SourceSpan, detail: string): never {
-  throw new ParseFailure({ code, span: { start: span.start, end: span.end }, detail });
+export function fail(
+  code: ParseErrorCode,
+  span: SourceSpan,
+  detail: string,
+  feature?: string
+): never {
+  const error: ParseError = { code, span: { start: span.start, end: span.end }, detail };
+  throw new ParseFailure(feature === undefined ? error : { ...error, feature });
 }
 
 /** A `syntax` failure at `token` (G14): the end token reports the end of the input. */
@@ -83,10 +97,15 @@ export function enter<T>(state: ParserState, opener: Token, body: () => T): T {
  * relation operator is unexpected, so it is `syntax`.
  */
 export function parseRow(state: ParserState): Node {
+  // PR-30: `L \sim M` (or `~`) is a whole row; an empty side is `sim-side`, and anything after M,
+  // or a relation, is `syntax`.
+  const first = peek(state);
+  if (isSim(first)) fail("sim-side", first.span, "nothing before \\sim");
   const operands = [parseSum(state)];
-  // PR-30: `L \sim M` (or `~`) is a whole row; anything after M, or a relation, is `syntax`.
-  if (isSim(peek(state))) {
+  const sim = peek(state);
+  if (isSim(sim)) {
     take(state);
+    if (peek(state).t === "end") fail("sim-side", sim.span, "nothing after \\sim");
     const right = parseSum(state);
     const after = peek(state);
     if (after.t !== "end") unexpected(state, after);

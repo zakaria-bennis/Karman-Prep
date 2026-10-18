@@ -39,8 +39,8 @@ export function buildCompileScope(
 
 /**
  * The PlotInput of a row, or null when `row.graph` is null (an error, chips, a hidden row or a
- * non-graphing kind) or for a point whose `value` is not a point with two finite coordinates
- * (G-7: not drawn). explicit → compileRealFunction1(expr, independent); implicit →
+ * non-graphing kind) or for a point row whose `value` holds no point with two finite coordinates
+ * (G-7: not drawn; G-3: a list of points draws each defined one). explicit → compileRealFunction1(expr, independent); implicit →
  * compileRealFunction2(expr); lines → compileRealFunction1(expr, "x" for vertical, "y" for
  * horizontal); region → compileRealFunction2 per operand. constant-region compiles the chain as
  * one `rel` node and evaluates it once: it holds exactly when the result is n(1), which
@@ -94,11 +94,16 @@ export function plotInputFor(
     case "table":
       return null; // D-11: the runPlot unit plots tables from their TableResult
     case "point": {
-      if (value === null || value.type !== "point") return null;
-      const [x, y] = value.value;
-      return Number.isFinite(x) && Number.isFinite(y)
-        ? { rowId, kind: "points", points: [[x, y]] }
-        : null;
+      // G-7: a point with an undefined coordinate is not drawn; G-3, NM-33: a list of points
+      // (a point whose parts are lists, or a list of points) draws each point that is defined.
+      const items = value?.type === "list" ? value.value : value === null ? [] : [value];
+      const points: [number, number][] = [];
+      for (const item of items) {
+        if (item.type !== "point") continue;
+        const [x, y] = item.value;
+        if (Number.isFinite(x) && Number.isFinite(y)) points.push([x, y]);
+      }
+      return points.length > 0 ? { rowId, kind: "points", points } : null;
     }
   }
 }

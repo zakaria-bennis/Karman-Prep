@@ -107,8 +107,9 @@ export function toApiEvaluation(value: Value, display: string | null): ApiEvalua
 }
 
 /**
- * Decision 5, R-5: a row shows its value when its kind is `value` or `definition`, with no error,
- * no chips and no overrun, once a value has arrived.
+ * Decision 5, R-5, RC-6: a row shows its value (a number, point or list) when its kind is `value`
+ * or `definition`, with no error, no chips and no overrun, once a value without a list error has
+ * arrived.
  */
 export function rowShowsValue(row: RowAnalysis, value: Value | null, overrun: boolean): boolean {
   return (
@@ -116,13 +117,22 @@ export function rowShowsValue(row: RowAnalysis, value: Value | null, overrun: bo
     row.error === null &&
     row.chips.length === 0 &&
     !overrun &&
-    value !== null
+    value !== null &&
+    valueError(value) === null
   );
+}
+
+/** NM-34 to NM-36, NM-42: the list error a row's value carries, as its row error (R-2). */
+function valueError(value: Value | null): RowError | null {
+  if (value === null || value.type !== "undefined" || value.error === undefined) return null;
+  const code = value.error;
+  return { code, message: rowErrorMessage(code, []), names: [], span: null };
 }
 
 /**
  * A row's view: kind, error, chips and complex hint from the main-thread analysis (AR-51), and the
- * value from its latest accepted result. An overrun row shows the AR-48 timeout error.
+ * value from its latest accepted result. An overrun row shows the AR-48 timeout error, and a value
+ * carrying a list error shows that error (NM-34 to NM-36).
  */
 export function buildRowView(row: StoredRow, analysis: RowAnalysis, result: RowResult): RowView {
   const { value, overrun } = result;
@@ -132,7 +142,9 @@ export function buildRowView(row: StoredRow, analysis: RowAnalysis, result: RowR
     hidden: row.hidden,
     color: row.color,
     kind: analysis.kind,
-    error: overrun ? timeoutError() : (analysis.error ?? fitError(result.regression)),
+    error: overrun
+      ? timeoutError()
+      : (analysis.error ?? valueError(value) ?? fitError(result.regression)),
     chips: [...analysis.chips],
     complexHint: analysis.complexHint,
     value,

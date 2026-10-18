@@ -79,7 +79,10 @@ function parseRow(
     return { ...row, error: rowError("too-many-params", [], null) };
   }
   const parsed = parseLatex(source.latex, { userFunctions });
-  if (!parsed.ok) return { ...row, error: rowError(parsed.error.code, [], parsed.error.span) };
+  if (!parsed.ok) {
+    const { code, feature, span } = parsed.error;
+    return { ...row, error: rowError(code, feature === undefined ? [] : [feature], span) };
+  }
   const tree = parsed.tree;
   if (scanned !== null && isReservedName(scanned.name, settings)) {
     return { ...row, tree, error: rowError("reserved-name", [displayName(scanned.name)], null) };
