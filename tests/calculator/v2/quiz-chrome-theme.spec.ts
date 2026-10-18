@@ -131,3 +131,12 @@ test("TH-2, AR-37 window chrome, splitter, grip and loader take only --kcc-* col
   }
   expect(seen[0]).not.toBe(seen[1]);
 });
+
+test("TH-17 the window title and calculator UI text use Arial", async ({ page }) => {
+  await openV2(page);
+  const title = await page
+    .locator("[data-calculator-titlebar] > span")
+    .first()
+    .evaluate((el) => getComputedStyle(el).fontFamily);
+  expect(title).toMatch(/^Arial, sans-serif$/);
+});

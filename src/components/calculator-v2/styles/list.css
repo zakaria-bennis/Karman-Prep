@@ -119,9 +119,20 @@
   outline-offset: -2px;
 }
 
-.kc-row:is([data-focused="true"], [data-active="true"]) .kc-row-number {
+/* L-3, L-16: the focused or active row fills its whole gutter in the focused-row colour; the
+   colour tab keeps a list-coloured disc so the row colour stays readable on it (TH-11). */
+.kc-row:is([data-focused="true"], [data-active="true"]) .kc-row-gutter {
+  border-radius: 2px;
   background: var(--kc-focus-bar);
+}
+
+.kc-row:is([data-focused="true"], [data-active="true"]) .kc-row-number {
   color: var(--kc-focus-bar-label);
+}
+
+.kc-row:is([data-focused="true"], [data-active="true"]) .kc-row-tab {
+  border-radius: 50%;
+  background: var(--kc-list);
 }
 
 .kc-row-main {
