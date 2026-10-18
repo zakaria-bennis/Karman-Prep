@@ -3,7 +3,9 @@
 // contributions here.
 
 import { expect, test } from "@playwright/test";
+import { EDITOR_MESSAGES } from "@/components/calculator-v2/ui/list/messages";
 import {
+  announced,
   api,
   box,
   cs,
@@ -227,4 +229,24 @@ test("A11Y-2 the reset announcement plays once, 500 ms after mount, only when th
   expect(await count()).toBe(1);
   await page.evaluate(() => globalThis.__shell!.remount({ announceReset: true }));
   await expect.poll(count, { timeout: 3000 }).toBe(2);
+});
+test("A11Y-2 Ctrl or Cmd+Z and the redo shortcut announce Undone. and Redone. like the toolbar", async ({
+  page,
+}) => {
+  await openShell(page);
+  await rowField(page, "1").click();
+  await page.keyboard.type("1");
+  await page.keyboard.press("ControlOrMeta+KeyZ");
+  await expect.poll(() => announced(page)).toContain(EDITOR_MESSAGES.undone);
+  await page.keyboard.press("ControlOrMeta+Shift+KeyZ");
+  await expect.poll(() => announced(page)).toContain(EDITOR_MESSAGES.redone);
+});
+test("NM-42 an Alt+Enter row-limit refusal announces the row-limit message and adds no row", async ({
+  page,
+}) => {
+  await openShell(page, `?rows=${enc(Array.from({ length: 100 }, (_, i) => String(i)))}`);
+  await rowField(page, "1").click();
+  await page.keyboard.press("Alt+Enter");
+  await expect.poll(() => announced(page)).toContain(EDITOR_MESSAGES.rowLimit);
+  expect(await rows(page)).toHaveLength(100);
 });
