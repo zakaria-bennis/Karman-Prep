@@ -19,6 +19,7 @@ import {
   useRef,
   type CSSProperties,
   type JSX,
+  type MouseEvent,
   type PointerEvent,
 } from "react";
 import { COMPLEX_HINT } from "@/lib/calculator-v2/core/analysis";
@@ -63,6 +64,12 @@ function writeLatex(field: MathField, latex: string, syncing: { current: boolean
   } finally {
     syncing.current = false;
   }
+}
+
+/** R-1: whether a press on `target` lands on the row body rather than a control or the field. */
+function isRowBody(target: EventTarget): boolean {
+  if (!(target instanceof Element)) return false;
+  return target.closest("button, a, input, select, textarea, .mq-editable-field") === null;
 }
 
 function useFocusController(): FocusController {
@@ -221,6 +228,19 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
     touchRef.current = event.pointerType === "touch";
   };
 
+  // R-1 (lead decision, Bluebook parity): a press anywhere on the row body that is not a row
+  // control or the MathQuill field itself focuses the row's field with the caret at the end. The
+  // mousedown is cancelled so focus does not leave for the frame first.
+  const onBodyPointerDown = (event: PointerEvent<HTMLDivElement>) => {
+    if (!exiting && isRowBody(event.target)) touchRef.current = event.pointerType === "touch";
+  };
+  const onBodyMouseDown = (event: MouseEvent<HTMLDivElement>) => {
+    if (!exiting && isRowBody(event.target)) event.preventDefault();
+  };
+  const onBodyClick = (event: MouseEvent<HTMLDivElement>) => {
+    if (!exiting && isRowBody(event.target)) focus.focusRow(row.id, "end");
+  };
+
   // FN-16 (OI-4): sets the S-5 complex checkbox and returns to the row; the hint then unmounts.
   const turnOnComplexMode = () => {
     engine.updateSettings({ complex: true });
@@ -237,7 +257,12 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
       data-motion={motion}
       aria-hidden={exiting ? "true" : undefined}
     >
-      <div className="kc-row-inner">
+      <div
+        className="kc-row-inner"
+        onPointerDown={onBodyPointerDown}
+        onMouseDown={onBodyMouseDown}
+        onClick={onBodyClick}
+      >
         <div className="kc-row-gutter">
           <span className="kc-row-number">{exiting ? null : number}</span>
           {tab !== null && (

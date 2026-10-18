@@ -277,3 +277,31 @@ for (const skin of SKIN_IDS)
         `${p.kind} ${p.name}`
       ).toBeGreaterThanOrEqual(p.kind === "text" ? 7 : 3);
   });
+test("R-1 clicking a row body focuses its field", async ({ page, isMobile }) => {
+  test.skip(isMobile, "fine-pointer click; touch focus is K-2");
+  await page.setViewportSize({ width: 1280, height: 760 });
+  await openShell(page, `?rows=${enc(["y=x", "y=2x", ""])}`);
+  const rowBody = (id: string) => page.locator(`#calc [data-row-id="${id}"] .kc-row-inner`);
+  for (const [id, at] of [
+    ["2", "number"],
+    ["3", "right"],
+  ] as const) {
+    const b = (await rowBody(id).boundingBox())!;
+    // the gutter number, or the row's own space between the (empty) field and Delete
+    const point =
+      at === "number"
+        ? { x: b.x + 12, y: b.y + b.height / 2 }
+        : { x: b.x + b.width - 48, y: b.y + b.height - 3 };
+    await page.mouse.click(point.x, point.y);
+    await expect.poll(() => focusedRow(page)).toBe(id);
+  }
+  await page.mouse.click(
+    (await rowBody("2").boundingBox())!.x + 12,
+    (await rowBody("2").boundingBox())!.y + 12
+  );
+  await expect.poll(() => focusedRow(page)).toBe("2");
+  await page.keyboard.type("+1"); // the caret is at the end
+  await expect.poll(async () => (await rows(page))[1].latex).toBe("y=2x+1");
+  await page.getByRole("button", { name: "Delete expression 3" }).click();
+  await expect.poll(async () => (await rows(page)).length).toBe(2);
+});
