@@ -55,6 +55,19 @@ it("TH-3 background, label and unadjusted roles come from the 10.3 mapping", () 
   }
 });
 
+it("R-2 the warning marker keeps its orange hue, 3:1 on the list and chrome in every skin; the tooltip is black with white text", () => {
+  for (const theme of SITE_THEMES) {
+    const r = deriveRoles(theme);
+    expect(contrastRatio(r.warning, r.list), theme.id).toBeGreaterThanOrEqual(3);
+    expect(contrastRatio(r.warning, r.chrome), theme.id).toBeGreaterThanOrEqual(3);
+    const { h } = toOklch(r.warning);
+    expect(h, theme.id).toBeGreaterThan(45);
+    expect(h, theme.id).toBeLessThan(65);
+    expect([r.tooltip, r.tooltipLabel], theme.id).toEqual(["#000000", "#ffffff"]);
+  }
+  expect(deriveRoles(t("charcoal")).warning).toBe("#fa7e19"); // dark skins keep the seed unchanged
+});
+
 it("TH-4 Clean paper's Enter fill derives to #6d531f", () => {
   expect(deriveRoles(t("paper")).accent).toBe("#6d531f");
 });

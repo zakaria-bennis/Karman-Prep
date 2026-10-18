@@ -48,6 +48,8 @@ export const ROLE_TARGETS: readonly RoleTarget[] = [
   { fg: "text", on: TEXT_BACKGROUNDS, min: 7 },
   { fg: "textSecondary", on: TEXT_BACKGROUNDS, min: 7 },
   { fg: "error", on: ["list"], min: 7 },
+  { fg: "warning", on: ["list", "chrome"], min: 3 }, // R-2: a non-text marker (WCAG 1.4.11)
+  { fg: "tooltipLabel", on: ["tooltip"], min: 7 },
   { fg: "axis", on: ["paper"], min: 7 },
   { fg: "gridMajor", on: ["paper"], min: 3 },
   { fg: "gridMinor", on: ["paper"], min: 1.4, max: 1.6 },
