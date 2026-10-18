@@ -42,6 +42,7 @@ import {
   defaultFloatingRect,
   windowModeFor,
   type ViewportSize,
+  type WindowRect,
 } from "./calculator-window-store";
 import { warmCalculatorFonts } from "./font-warmup";
 import { reportCalculatorError } from "./report-error";
@@ -210,9 +211,19 @@ function V1Scope({ enabled, open, onOpenChange, children }: CalculatorScopeProps
 }
 
 /** AR-53: a render error in the window keeps the question mounted and offers Retry, which
- * calls `onRetry`; the scope then remounts the window and loader under a new key. */
+ * calls `onRetry`; the scope then remounts the window and loader under a new key. The fallback is
+ * its own fixed box at the floating window's place and width, so it never fills the host's
+ * positioned ancestor, and Close hides it; a later open retries. `onFailedChange` lets the scope
+ * drop full screen's modal inertness while the fallback shows, so the question stays usable. */
 class WindowBoundary extends Component<
-  { onRetry(): void; children: ReactNode },
+  {
+    open: boolean;
+    rect: WindowRect;
+    onRetry(): void;
+    onClose(): void;
+    onFailedChange(failed: boolean): void;
+    children: ReactNode;
+  },
   { failed: boolean }
 > {
   state = { failed: false };
@@ -223,22 +234,39 @@ class WindowBoundary extends Component<
 
   componentDidCatch(error: unknown) {
     reportCalculatorError(error, null);
+    this.props.onFailedChange(true);
+  }
+
+  componentDidUpdate(previous: { open: boolean }) {
+    if (this.props.open && !previous.open && this.state.failed) this.retry();
+  }
+
+  retry() {
+    this.setState({ failed: false });
+    this.props.onFailedChange(false);
+    this.props.onRetry();
   }
 
   render() {
     if (!this.state.failed) return this.props.children;
+    const { x, y, width, height } = this.props.rect;
     return (
-      <div className={windowStyles.panel} role="status">
-        <p>{MOUNT_FAILED_COPY}</p>
-        <button
-          type="button"
-          onClick={() => {
-            this.setState({ failed: false });
-            this.props.onRetry();
-          }}
-        >
-          Retry
-        </button>
+      <div
+        className={windowStyles.fallback}
+        data-calculator-window-fallback=""
+        role="dialog"
+        aria-label="Karman calculator"
+        style={{ left: x, top: y, width, maxHeight: height }}
+      >
+        <p role="status">{MOUNT_FAILED_COPY}</p>
+        <div className={windowStyles.fallbackActions}>
+          <button type="button" onClick={() => this.retry()}>
+            Retry
+          </button>
+          <button type="button" onClick={() => this.props.onClose()}>
+            Close calculator
+          </button>
+        </div>
       </div>
     );
   }
@@ -338,6 +366,7 @@ function V2Scope({
   const [frame, setFrame] = useState<HTMLDivElement | null>(null);
   const [chromeSlot, setChromeSlot] = useState<HTMLDivElement | null>(null);
   const [windowAttempt, setWindowAttempt] = useState(0);
+  const [windowFailed, setWindowFailed] = useState(false);
   const frameRef = useRef<HTMLDivElement | null>(null);
   const chromeSlotRef = useRef<HTMLDivElement | null>(null);
   // The trigger of an open from closed; a scope mounted already open remembers none (AR-25).
@@ -383,7 +412,7 @@ function V2Scope({
   // scroll behind it, and the previous body overflow comes back on hide.
   const workspaceRef = useRef<HTMLDivElement | null>(null);
   const sideRef = useRef<HTMLButtonElement | null>(null);
-  const modal = enabled && open && mode === "fullscreen";
+  const modal = enabled && open && mode === "fullscreen" && !windowFailed;
   useLayoutEffect(() => {
     const node = workspaceRef.current;
     if (!modal || !node) return;
@@ -519,7 +548,13 @@ function V2Scope({
         )}
         {enabled && shown && (
           <div data-calculator-v2="" hidden={!open} data-reduced-motion={String(reducedMotion)}>
-            <WindowBoundary onRetry={() => setWindowAttempt((count) => count + 1)}>
+            <WindowBoundary
+              open={open}
+              rect={floatingRect}
+              onRetry={() => setWindowAttempt((count) => count + 1)}
+              onClose={() => onOpenChange(false)}
+              onFailedChange={setWindowFailed}
+            >
               <CalculatorWindow
                 key={windowAttempt}
                 mode={mode}

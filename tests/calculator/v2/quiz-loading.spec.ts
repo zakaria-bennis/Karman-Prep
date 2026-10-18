@@ -2,6 +2,7 @@
 
 import { expect, test } from "@playwright/test";
 import { countNodes, parseLatex } from "../../../src/lib/calculator-v2/core/latex";
+import { MOUNT_FAILED_COPY } from "../../../src/components/calculator/CalculatorLoader";
 import {
   RUNAWAY,
   chromeOnly,
@@ -13,6 +14,9 @@ import {
   v2Requests,
 } from "./quiz-helpers";
 
+/** RUNAWAY with one more `xy` term: 2,004 nodes, over the NM- cap of 2,000 (NM-42). */
+const OVER_CAP = RUNAWAY.replace("=", "+xy=");
+
 test("AR-56 a runaway row leaves the diagnostic timer and Skip responsive and shows a cap or timeout message within 2 s", async ({
   page,
 }, info) => {
@@ -20,27 +24,25 @@ test("AR-56 a runaway row leaves the diagnostic timer and Skip responsive and sh
   const parsed = parseLatex(RUNAWAY);
   expect(parsed.ok && countNodes(parsed.tree)).toBe(2000);
   await openV2(page, "diagnostic", { width: 1280, height: 800 });
+  // RUNAWAY is exactly 2,000 nodes, within the NM- cap (only more is refused), and plot sampling
+  // has no deadline (AR-47, AR-48), so it is the work load and plots without a message; the row
+  // beside it is the same equation one term longer, which the NM- cap refuses before evaluation.
+  const overCap = parseLatex(OVER_CAP);
+  expect(!overCap.ok && overCap.error.code).toBe("too-many-nodes");
   await page.evaluate(
-    (latex) => globalThis.__calculatorHarness!.engine.setExpression({ id: "1", latex }),
-    RUNAWAY
+    (rows) => globalThis.__calculatorHarness!.engine.setExpressions(rows),
+    [
+      { id: "1", latex: RUNAWAY },
+      { id: "2", latex: OVER_CAP },
+    ]
   );
-  // Exactly 2,000 nodes is within the NM- cap (only more is refused), and plot sampling has no
-  // deadline (AR-48), so this row may plot in full; it must not stay unresolved past 2 s.
-  const messages = [
-    "This row is too long to evaluate. Split it into smaller definitions.",
-    "This is taking too long. Try a smaller range or fewer terms.",
-  ];
-  await expect
-    .poll(
-      () =>
-        page.evaluate((known) => {
-          const s = globalThis.__calculatorHarness!.engine.getSnapshot();
-          const message = s.rows[0]?.error?.message ?? "";
-          return known.includes(message) || s.geometry.has("1");
-        }, messages),
-      { timeout: 2000 }
-    )
-    .toBe(true);
+  await expect(
+    page
+      .locator("[data-calculator-host]")
+      .getByText(
+        /^(This row is too long to evaluate\. Split it into smaller definitions\.|This is taking too long\. Try a smaller range or fewer terms\.)$/
+      )
+  ).toBeVisible({ timeout: 2000 });
   const timer = page.getByText(/^\d{1,2}:\d{2}$/).first();
   const ticks = new Set<string>();
   for (let i = 0; i < 3; i++) {
@@ -140,4 +142,35 @@ test("AR-31 a mount failure shows Retry, which mounts from the module already lo
   await page.getByRole("button", { name: "Retry" }).click();
   await expect(rowItem(page)).toBeVisible();
   expect(requests).toBe(1);
+});
+
+test("AR-53 a window render error shows a window-sized fallback with Retry and Close, and the question stays visible and clickable", async ({
+  page,
+}, info) => {
+  chromeOnly(info.project.name);
+  await openV2(page, "diagnostic", { width: 1280, height: 800 });
+  // An unknown mode makes the window's render throw on every attempt, Retry included.
+  const breakWindow = () =>
+    page.evaluate(() =>
+      (
+        globalThis as unknown as { __calculatorWindowStore: { set(patch: object): void } }
+      ).__calculatorWindowStore.set({ mode: "broken", restoreMode: "broken" })
+    );
+  await breakWindow();
+  const message = page.getByText(MOUNT_FAILED_COPY, { exact: true });
+  const fallback = page.getByRole("dialog", { name: "Karman calculator" });
+  await expect(message).toBeVisible();
+  await page.getByRole("button", { name: "Retry", exact: true }).click();
+  await expect(message).toBeVisible();
+  const box = (await fallback.boundingBox())!;
+  expect(box.width).toBeLessThanOrEqual(880);
+  expect(box.height).toBeLessThan(400);
+  const skip = page.getByRole("button", { name: "Skip this question" });
+  await expect(page.getByText(/^Question \d+/).first()).toBeVisible();
+  // A trial click runs every actionability check, the hit test included, without skipping.
+  await skip.click({ trial: true });
+  await fallback.getByRole("button", { name: "Close calculator", exact: true }).click();
+  await expect(message).toBeHidden();
+  await trigger(page).click();
+  await expect(rowItem(page)).toBeVisible();
 });

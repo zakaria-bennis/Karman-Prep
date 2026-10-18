@@ -30,7 +30,40 @@
   color: var(--kcc-text);
 }
 
-.panel button {
+/* AR-53: the render-error fallback replaces the frame, so it is its own fixed box at the floating
+   window's place and width, sized to its content, never a cover over the question. */
+.fallback {
+  position: fixed;
+  z-index: 72;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  box-sizing: border-box;
+  max-width: 100vw;
+  overflow: auto;
+  padding: 16px;
+  border: 1px solid var(--kcc-boundary);
+  border-radius: 8px;
+  text-align: center;
+  font-size: 0.9375rem;
+  background: var(--kcc-chrome);
+  color: var(--kcc-text);
+}
+
+.fallback p {
+  margin: 0;
+}
+
+.fallbackActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.panel button,
+.fallback button {
   min-height: 44px;
   padding: 0 16px;
   border: 1px solid var(--kcc-boundary);
@@ -41,7 +74,8 @@
   cursor: pointer;
 }
 
-.panel button:focus-visible {
+.panel button:focus-visible,
+.fallback button:focus-visible {
   outline: 2px solid var(--kcc-focus);
   outline-offset: 2px;
 }
