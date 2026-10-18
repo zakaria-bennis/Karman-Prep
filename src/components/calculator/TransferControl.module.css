@@ -1,7 +1,9 @@
 /* Transfer to Calculator control (14). Next compiles CSS Modules in pure mode, so every selector
    keeps a local class; rules keyed only on other components' attributes live in
    transfer-control.css. Colours come only from the --kcc-* chrome tokens (TH-2). The button is
-   never display: none or visibility: hidden, so it stays in the accessibility tree (TR-59). */
+   never hidden through the display or visibility properties, so it stays in the accessibility
+   tree (TR-59); a hidden stem control is clipped and a hidden choice control is at opacity 0
+   (TR-45, OI-18). */
 .anchor {
   position: relative;
 }

@@ -132,6 +132,23 @@ export default function MathText({
       })),
     [text, serializedFunctionLines]
   );
+  // Transfer (14): the k-th rendered math segment maps to the k-th non-text segment of the
+  // whole-text split, the key classifyStem uses (TR-6). A source marker inside a math delimiter
+  // pair can shift later ordinals; the wrapper's run-shift guard then renders nothing.
+  const stem = useMemo(() => ({ text, serializedFunctionLines }), [text, serializedFunctionLines]);
+  const mathKeys = useMemo(
+    () =>
+      calculator
+        ? splitMathText(text, serializedFunctionLines, true, true).flatMap((s, i) =>
+            s.kind === "text" ? [] : [i]
+          )
+        : [],
+    [calculator, text, serializedFunctionLines]
+  );
+  let mathOrdinal = 0;
+  const sourceAction = (latex: string) => (
+    <CalculatorSourceAction latex={latex} segmentIndex={mathKeys[mathOrdinal++]} stem={stem} />
+  );
 
   function renderSegments(segs: MathSegment[]) {
     return segs.map((s, i) => {
@@ -149,7 +166,7 @@ export default function MathText({
               }
               dangerouslySetInnerHTML={{ __html: renderKaTeX(s.latex, false) }}
             />
-            {calculator && <CalculatorSourceAction latex={s.latex} />}
+            {calculator && sourceAction(s.latex)}
           </Fragment>
         );
       }
@@ -159,7 +176,7 @@ export default function MathText({
             className={`my-3 block text-center ${blockClassName}`}
             dangerouslySetInnerHTML={{ __html: renderKaTeX(s.latex, true) }}
           />
-          {calculator && <CalculatorSourceAction latex={s.latex} />}
+          {calculator && sourceAction(s.latex)}
         </Fragment>
       );
     });

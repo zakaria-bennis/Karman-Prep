@@ -1,21 +1,29 @@
 "use client";
 
-// D4 (00-index section 7, AR-33): 12's classifier is too large for the quiz routes' eager budget,
-// so eager code reaches it only through this import(), in its own chunk apart from the
-// calculator's. Callers render no Transfer control until it has resolved; a failed chunk renders
-// none and the next caller retries.
+// D4 (00-index section 7, AR-33): 12's classifier and the Transfer control are too large for the
+// quiz routes' eager budget, so eager code reaches them only through these two import()s, loaded
+// together in their own chunks apart from the calculator's. Callers render no Transfer control
+// until both have resolved; a failed chunk renders none and the next caller retries.
 
 import { useEffect, useState } from "react";
 
-export type TransferClassifier = typeof import("@/lib/calculator-transfer/classify");
+export type TransferClassifier = typeof import("@/lib/calculator-transfer/classify") & {
+  TransferControl: typeof import("./TransferControl").TransferControl;
+};
 
 let pending: Promise<TransferClassifier> | null = null;
 let loaded: TransferClassifier | null = null;
 
-/** The classifier chunk, imported once per page while it succeeds. */
+/** The classifier and control chunks, imported once per page while they succeed. */
 export function loadTransferClassifier(): Promise<TransferClassifier> {
   if (pending === null) {
-    const attempt = import("@/lib/calculator-transfer/classify").then((m) => (loaded = m));
+    const attempt = Promise.all([
+      import("@/lib/calculator-transfer/classify"),
+      import("./TransferControl"),
+    ]).then(([classify, control]) => {
+      loaded = { ...classify, TransferControl: control.TransferControl };
+      return loaded;
+    });
     attempt.catch(() => {
       if (pending === attempt) pending = null;
     });

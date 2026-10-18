@@ -1,9 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useLayoutEffect, useMemo, useState, useSyncExternalStore, type JSX } from "react";
 import { ClipboardPaste, ChevronDown, Table2, MapPin, Copy } from "lucide-react";
 import { normalizeMath, parseText, tablePayload, type PastePayload } from "@/lib/calculator/paste";
-import { useCalculator } from "./CalculatorScope";
+import type { StemInput, TransferItem } from "@/lib/calculator-transfer/classify";
+import { splitMathText, type MathSegment } from "@/components/learn/math-segments";
+import { useCalculator, type V2Bridge } from "./CalculatorScope";
+import { useTransferClassifier, type TransferClassifier } from "./transfer-classifier";
 import styles from "./calculator.module.css";
 
 function PasteAction({ payload, label }: { payload: PastePayload | null; label: string }) {
@@ -106,7 +109,118 @@ function PasteAction({ payload, label }: { payload: PastePayload | null; label: 
   );
 }
 
-export function CalculatorSourceAction({ latex }: { latex: string }) {
+// AR-11 wrappers: each reads useCalculator() once and renders the v1 PasteAction path unchanged
+// or the v2 Transfer control (14). v2 controls come from the lazy classifier chunk (D4), so they
+// render nothing until it has loaded.
+
+// Stem registry (decision "AnswerChoiceButton"): the stem a question's own MathText renders,
+// by question key, for choice wrappers whose caller passes no stem.
+const stems = new Map<string, StemInput>();
+const stemListeners = new Set<() => void>();
+const notifyStems = () => stemListeners.forEach((listener) => listener());
+const subscribeStems = (listener: () => void) => {
+  stemListeners.add(listener);
+  return () => void stemListeners.delete(listener);
+};
+
+function useRegisterStem(questionKey: string, stem: StemInput | undefined) {
+  useLayoutEffect(() => {
+    if (stem === undefined) return;
+    stems.set(questionKey, stem);
+    notifyStems();
+    return () => {
+      if (stems.get(questionKey) !== stem) return;
+      stems.delete(questionKey);
+      notifyStems();
+    };
+  }, [questionKey, stem]);
+}
+
+function useQuestionStem(questionKey: string): StemInput | null {
+  return useSyncExternalStore(
+    subscribeStems,
+    () => stems.get(questionKey) ?? null,
+    () => null
+  );
+}
+
+const segmentCache = new WeakMap<StemInput, MathSegment[]>();
+const segmentsOf = (stem: StemInput) => {
+  let segments = segmentCache.get(stem);
+  if (segments === undefined) {
+    segments = splitMathText(stem.text, stem.serializedFunctionLines, true, true);
+    segmentCache.set(stem, segments);
+  }
+  return segments;
+};
+const namesCache = new WeakMap<ReadonlyMap<number, TransferItem>, Map<string, string>>();
+
+interface Control {
+  item: TransferItem;
+  name: string;
+  placement: "inline" | "block" | "cluster";
+}
+function renderControl(t: TransferClassifier | null, control: Control | null) {
+  if (t === null || control === null) return null;
+  const { TransferControl } = t;
+  return (
+    <TransferControl
+      item={control.item}
+      accessibleName={control.name}
+      placement={control.placement}
+    />
+  );
+}
+
+function V2SourceAction(props: {
+  latex: string;
+  segmentIndex?: number;
+  stem?: StemInput;
+  bridge: V2Bridge;
+}) {
+  const { latex, segmentIndex, stem, bridge } = props;
+  useRegisterStem(bridge.questionKey, stem);
+  const t = useTransferClassifier(stem !== undefined && segmentIndex !== undefined);
+  const control = useMemo((): Control | null => {
+    if (t === null || stem === undefined || segmentIndex === undefined) return null;
+    // The run-shift guard: the k-th rendered math must be the whole-text segment it maps to.
+    const segment = segmentsOf(stem)[segmentIndex];
+    const items = t.classifyStem(stem);
+    const item = items.get(segmentIndex);
+    if (segment === undefined || segment.kind === "text" || segment.latex !== latex || !item)
+      return null;
+    let names = namesCache.get(items);
+    if (names === undefined) {
+      names = t.accessibleNames([...items.values()]);
+      namesCache.set(items, names);
+    }
+    const name = names.get(item.sourceId);
+    if (name === undefined) return null;
+    return { item, name, placement: segment.kind === "block" ? "block" : "inline" };
+  }, [t, stem, segmentIndex, latex]);
+  return renderControl(t, control);
+}
+
+function V2ChoiceAction(props: {
+  text: string;
+  letter: string;
+  stem?: StemInput;
+  slot?: "cluster";
+  bridge: V2Bridge;
+}) {
+  const { text, letter, stem, slot, bridge } = props;
+  const registered = useQuestionStem(bridge.questionKey);
+  const t = useTransferClassifier(slot === "cluster");
+  const context = stem ?? registered;
+  const control = useMemo((): Control | null => {
+    const item = t?.classifyChoice({ letter, text }, context) ?? null;
+    const name = item && t?.accessibleNames([item]).get(item.sourceId);
+    return item && name ? { item, name, placement: "cluster" } : null;
+  }, [t, letter, text, context]);
+  return renderControl(t, control);
+}
+
+function V1SourceAction({ latex }: { latex: string }) {
   const payload = useMemo(() => {
     try {
       return parseText(normalizeMath(latex));
@@ -117,6 +231,18 @@ export function CalculatorSourceAction({ latex }: { latex: string }) {
   return <PasteAction payload={payload} label={`Paste ${latex} into calculator`} />;
 }
 
+export function CalculatorSourceAction(props: {
+  latex: string;
+  segmentIndex?: number;
+  stem?: StemInput;
+}): JSX.Element | null {
+  const bridge = useCalculator();
+  return bridge?.version === "v2" ? (
+    <V2SourceAction {...props} bridge={bridge} />
+  ) : (
+    <V1SourceAction latex={props.latex} />
+  );
+}
 function choicePayload(text: string): PastePayload | null {
   try {
     const math = [...text.matchAll(/\${1,2}((?:\\\$|[^$])+)\${1,2}/g)].map((m) =>
@@ -135,13 +261,27 @@ function choicePayload(text: string): PastePayload | null {
   return null;
 }
 
-/** Choice actions are siblings of answer buttons, so pasting never selects an answer. */
-export function CalculatorChoiceAction({ text, letter }: { text: string; letter: string }) {
+function V1ChoiceAction({ text, letter }: { text: string; letter: string }) {
   const payload = useMemo(() => choicePayload(text), [text]);
   return <PasteAction payload={payload} label={`Paste choice ${letter} into calculator`} />;
 }
 
-export function CalculatorTableAction({ rows }: { rows: string[][] }) {
+/** Choice actions are siblings of answer buttons, so pasting never selects an answer. */
+export function CalculatorChoiceAction(props: {
+  text: string;
+  letter: string;
+  stem?: StemInput;
+  slot?: "cluster";
+}): JSX.Element | null {
+  const bridge = useCalculator();
+  if (bridge?.version === "v2") return <V2ChoiceAction {...props} bridge={bridge} />;
+  // v1 keeps its own instance below the choice; the v2-only cluster instance renders nothing.
+  return props.slot === "cluster" ? null : (
+    <V1ChoiceAction text={props.text} letter={props.letter} />
+  );
+}
+
+function V1TableAction({ rows }: { rows: string[][] }) {
   const payload = useMemo(() => {
     try {
       return tablePayload(rows);
@@ -150,4 +290,17 @@ export function CalculatorTableAction({ rows }: { rows: string[][] }) {
     }
   }, [rows]);
   return <PasteAction payload={payload} label="Paste table into calculator as x₁, y₁" />;
+}
+
+/** v2 renders no table control until Phase 3 (TR-77); headers, layout and itemId wait for it. */
+export function CalculatorTableAction(props: {
+  rows: string[][];
+  headers?: string[];
+  layout?: "vertical" | "horizontal";
+  itemId?: string;
+  slot?: "cluster";
+}): JSX.Element | null {
+  const bridge = useCalculator();
+  if (bridge?.version === "v2" || props.slot === "cluster") return null;
+  return <V1TableAction rows={props.rows} />;
 }

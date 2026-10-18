@@ -313,8 +313,9 @@ div[data-transfer-status][role=status][aria-live=polite][aria-atomic=true].sr-on
   `.tooltip`). Rules keyed only on attributes of other components' elements (the item's
   `[data-transfer-selected="true"]` outline, the `[data-calculator="v2"]` cluster's
   `transition: none` and its coarse-pointer `opacity: 1`) live in the plain global sheet
-  `src/components/calculator/transfer-control.css`, imported by `TransferControl.tsx` and counted
-  in AR-33's eager budget with the module sheet. Task 4's TH-2 test checks both sheets and the
+  `src/components/calculator/transfer-control.css`, imported by `TransferControl.tsx` and loaded
+  with its lazy chunk together with the module sheet (D4; before D4's extension they were counted
+  in AR-33's eager budget). Task 4's TH-2 test checks both sheets and the
   local-class rule, and tasks 8 and 9 run `npm run cf:build`, because the Vite fixture accepts
   selectors Next rejects.
 - Pen activation (AR-10): a pen `pointerdown` while a pen hover reveal is active is a
@@ -366,19 +367,32 @@ div[data-transfer-status][role=status][aria-live=polite][aria-atomic=true].sr-on
   behaviour, the exact command, the assertion that must fail, then `git checkout -- <file>` and a
   passing rerun. Mutations are never committed.
 
-- D4, classifier loaded lazily (AR-33; lead decision during part 1, listed in 00-index
-  section 7 beside D1 to D3; it takes effect only once the owner signs it off, and until then it
-  is the lead's interim decision). 12's classifier is about 11.3 KB gzipped and the quiz routes
-  already add 7.5 to 8.9 KB of eager JS (`docs/calculator-v2-bundle-baseline.json`), so the
-  10240-byte eager budget cannot hold it. `src/lib/calculator-transfer/classify.ts` and its imports
-  are reached only through the `import()` in `src/components/calculator/transfer-classifier.ts`
+- D4, classifier and Transfer control loaded lazily (AR-33; lead decision during part 1, listed
+  in 00-index section 7 beside D1 to D3; it takes effect only once the owner signs it off, and
+  until then it is the lead's interim decision). 12's classifier is about 11.3 KB gzipped and the
+  quiz routes already add 7.5 to 8.9 KB of eager JS (`docs/calculator-v2-bundle-baseline.json`),
+  so the 10240-byte eager budget cannot hold it. `src/lib/calculator-transfer/classify.ts` and its
+  imports are reached only through the `import()` in `src/components/calculator/transfer-classifier.ts`
   (`loadTransferClassifier()`, `useTransferClassifier(active)`), their own chunk apart from the
-  calculator's, loaded when a v2 Math question first renders. Controls render nothing until it
-  has resolved, then appear; a failed chunk renders none and the next caller retries. Only
-  `use-transfer-bridge.ts`, `TransferControl` with its two stylesheets, `transfer-selection.ts`,
-  `transfer-report.ts` (whose Sentry send loads lazily from `transfer-report-send.ts`, as
-  `report-error.ts`'s does), the loader and the seam stay eager. Later tests that classify a
-  rendered question await the controls (`findBy…`) instead of assuming synchronous classification.
+  calculator's, loaded when a v2 Math question first renders. During part 2 the lead extended D4
+  to `TransferControl.tsx`: after part 1 the eager pieces measured 3.7 KB against about 1.1 KB of
+  headroom on `/learn/daily`, and a control only appears once the classifier has loaded anyway.
+  `loadTransferClassifier()` therefore runs a second `import("./TransferControl")` together with
+  the classifier's and resolves both as one value (`TransferClassifier` gains `TransferControl`);
+  the AR-11 wrappers in `CalculatorSourceAction.tsx` render `t.TransferControl` from that value
+  and never import the control. The control's two stylesheets (`TransferControl.module.css`,
+  `transfer-control.css`) are imported only by `TransferControl.tsx`, so they load with its chunk
+  and no Transfer CSS is eager; this is safe because every rule they hold styles a control or an
+  attribute a mounted control writes. Controls render nothing until both chunks have resolved,
+  then appear; a failed chunk renders none and the next caller retries. Only
+  `use-transfer-bridge.ts`, `transfer-selection.ts`, `transfer-report.ts` (whose Sentry send loads
+  lazily from `transfer-report-send.ts`, as `report-error.ts`'s does), the loader, the stem
+  registry and wrappers in `CalculatorSourceAction.tsx` and the seam stay eager. AR-33's source
+  test (`transfer-classifier.test.tsx`) checks that no eager module value-imports the classifier,
+  `TransferControl` or its stylesheets. Tests that classify a rendered question await the controls
+  (`findBy…`, or `waitFor`, or an awaited `loadTransferClassifier()`) instead of assuming
+  synchronous classification; `TransferControl.test.tsx` and `transfer-report.test.ts` import the
+  control directly and stay synchronous.
 
 ## Notes for the lead
 
