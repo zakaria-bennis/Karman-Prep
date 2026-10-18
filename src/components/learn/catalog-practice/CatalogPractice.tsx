@@ -21,6 +21,8 @@ import MathText from "../MathText";
 import Scratchpad from "../Scratchpad";
 import { AnnotationProvider } from "../quiz/PassageAnnotations";
 import { CalculatorScope, CalculatorTrigger } from "@/components/calculator/CalculatorScope";
+import { makeQuestionKey } from "@/components/calculator/question-key";
+import { LEARN_HEADER_CLEARANCE } from "@/components/learn/learn-header";
 import { QuizMenu } from "../quiz/QuizMenu";
 import { PracticeTimer, HighlightTool } from "../quiz/QuizTools";
 import { CatalogStudyTools } from "./CatalogStudyTools";
@@ -143,6 +145,10 @@ export default function CatalogPractice({
     });
   }
 
+  const questionKey = makeQuestionKey(
+    session?.id ?? "preview",
+    String(shownQuestion?.id ?? previewQuestion?.id)
+  );
   return (
     <AnnotationProvider key={session?.id ?? "preview"}>
       <div
@@ -150,7 +156,9 @@ export default function CatalogPractice({
         className="mx-auto min-h-dvh w-full max-w-6xl px-4 pb-24 pt-24 text-ivory sm:px-8"
       >
         <CalculatorScope
-          key={`${session?.id ?? "preview"}:${shownQuestion?.id ?? previewQuestion?.id}`}
+          key={questionKey}
+          questionKey={questionKey}
+          dockTop={LEARN_HEADER_CLEARANCE}
           enabled={skill.subject === "math" && !session?.completedAt}
           open={calculatorOpen}
           onOpenChange={setCalculatorOpen}

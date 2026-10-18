@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useId, useState } from "react";
 import {
   CalculatorScope,
   CalculatorTrigger,
@@ -9,19 +9,27 @@ import {
 export default function ExternalCalculatorLink({
   subject,
   className,
+  questionKey,
 }: {
   subject?: string | null;
   className?: string;
+  questionKey?: string;
 }) {
   const scope = useCalculator();
   const [open, setOpen] = useState(false);
+  const fallbackKey = useId();
   if (subject !== "math") return null;
   return (
     <span className={className}>
       {scope ? (
         <CalculatorTrigger />
       ) : (
-        <CalculatorScope enabled open={open} onOpenChange={setOpen}>
+        <CalculatorScope
+          enabled
+          open={open}
+          onOpenChange={setOpen}
+          questionKey={questionKey ?? fallbackKey}
+        >
           <CalculatorTrigger />
         </CalculatorScope>
       )}
