@@ -188,7 +188,7 @@ A11Y-3) and `b-functions-and-data.md` (D-4, D-5, D-7, D-19, D-20, FN-59), plus C
 
 1. Typing `~` (Shift+Backquote) in a math row inserts `\sim`, displayed as "∼" and read as "similar".
 2. Typing a digit straight after a single-letter variable (`y1`, `x1`, including inside an exponent) auto-subscripts it to y₁/x₁.
-3. A row ending in `∼` with an empty side shows the error "You need something on both sides of the '∼' symbol." (or the Karman equivalent).
+3. A row ending in `∼` with an empty side shows the error "You need something on both sides of the '∼' symbol." (Karman uses this text: PR-30's `sim-side` code).
 4. The regression refits on every keystroke in the row and on every committed or in-progress cell edit in its source table, with no submit step.
 5. The results area shows a "Regression parameters" section with one `name = value` per fitted parameter, then "Statistics" and "Residuals" sections side by side.
 6. Parameter values display at 6 significant digits with trailing zeros removed (2.02, 3.13429, 0.0267857).

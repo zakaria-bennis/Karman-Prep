@@ -5,6 +5,7 @@
 
 import type { Node, SourceSpan } from "./ast";
 import { isBuiltinCommand, parseBuiltinCall, parseUserCall } from "./calls";
+import { failIfComprehension, failIfIndexed, parseList } from "./lists";
 import {
   enter,
   fail,
@@ -74,7 +75,7 @@ export function parsePostfix(state: ParserState): Node {
  * exponent directly after another is `syntax` (G5, PR-19). Every operator position follows this
  * loop, so it reports PR-9's notation there: `!` (factorial) and `'` (prime) are `unsupported`, as is a `.` after an identifier or a call (member access); any other `.` ends the
  * loop and is `syntax` where the caller meets it. A built-in call with a `(` argument list is an
- * atom too (PR-25).
+ * atom too (PR-25). A `[` after a name, a call or a list is PR-34's indexing (failIfIndexed).
  */
 export function takePostfix(state: ParserState, atom: Node): Node {
   let node = atom;
@@ -103,13 +104,14 @@ export function takePostfix(state: ParserState, atom: Node): Node {
       break;
     }
   }
+  failIfIndexed(state, node);
   return node;
 }
 
 /**
  * An atom (level 11): a number, a Latin or Greek identifier or a constant (G6), an identifier's
- * user-function call (PR-23), a `(` or `{` group (G10), a fraction or root (G9) or absolute-value
- * bars (G11); any other token fails (G14).
+ * user-function call (PR-23), a `(` or `{` group (G10), a `[` list or range (PR-34), a fraction
+ * or root (G9) or absolute-value bars (G11); any other token fails (G14).
  */
 export function parseAtom(state: ParserState): Node {
   const token = peek(state);
@@ -120,8 +122,7 @@ export function parseAtom(state: ParserState): Node {
     case "letter":
       return parseUserCall(state, parseLetter(state, token));
     case "open":
-      if (token.ch === "[") return fail("unsupported", token.span, '"[" is not supported');
-      return parseGroup(state, token);
+      return token.ch === "[" ? parseList(state, token) : parseGroup(state, token);
     case "symbol":
       return token.ch === "|" ? parseBars(state, token, "raw") : unexpected(state, token);
     case "command":
@@ -327,6 +328,7 @@ function parseCommandAtom(state: ParserState, subscripts: boolean): Node {
     }
     return { kind: "id", name, span: token.span };
   }
+  failIfComprehension(token);
   const [open, close] = [peek(state), peek(state, 1)];
   const emptyGroup =
     open.t === "open" && open.ch === "{" && close.t === "close" && close.ch === "}";

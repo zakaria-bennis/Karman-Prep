@@ -55,6 +55,7 @@ const SYMBOLS: ReadonlySet<string> = new Set<SymbolChar>([
 const OPENERS: ReadonlySet<string> = new Set(["(", "[", "{"]);
 const CLOSERS: ReadonlySet<string> = new Set([")", "]", "}"]);
 const OPERATORNAME = "\\operatorname{";
+const ELLIPSIS = "...";
 
 const isDigit = (ch: string | undefined): boolean => ch !== undefined && ch >= "0" && ch <= "9";
 const isLetter = (ch: string | undefined): boolean =>
@@ -78,6 +79,10 @@ export function tokenize(normalized: string): Token[] | ParseError {
     const span = (end: number): SourceSpan => ({ start: i, end });
     if (isSpace(ch)) {
       i += 1;
+    } else if (normalized.startsWith(ELLIPSIS, i)) {
+      // PR-34: a typed or pasted `...` is the range ellipsis, the same token as `\ldots`.
+      tokens.push({ t: "command", name: "ldots", span: span(i + ELLIPSIS.length) });
+      i += ELLIPSIS.length;
     } else if (isDigit(ch) || (ch === "." && isDigit(normalized[i + 1]) && !afterDecimal(tokens))) {
       const digits = readDigits(normalized, i);
       tokens.push(digits);
@@ -128,7 +133,7 @@ function afterDecimal(tokens: readonly Token[]): boolean {
 
 /**
  * The number starting at `start`: digits with at most one `.`, continuing across whitespace when
- * a digit or the first `.` follows it. Whitespace is dropped from `text` but stays inside the span,
+ * a digit or the first `.` follows it; a `.` that starts `...` ends the number (PR-34). Whitespace is dropped from `text` but stays inside the span,
  * so the parser can tell `x1` from `x 1` (PR-14).
  */
 function readDigits(text: string, start: number): Extract<Token, { t: "digits" }> {
@@ -137,7 +142,7 @@ function readDigits(text: string, start: number): Extract<Token, { t: "digits" }
   let i = start;
   for (;;) {
     const ch = text[i];
-    if (isDigit(ch) || (ch === "." && !digits.includes("."))) {
+    if (isDigit(ch) || (ch === "." && !digits.includes(".") && !text.startsWith(ELLIPSIS, i))) {
       digits += ch;
       i += 1;
       end = i;

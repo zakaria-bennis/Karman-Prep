@@ -17,7 +17,9 @@ export type Node =
   | { kind: "call"; name: string; args: Node[]; span: SourceSpan } // \log_{b}x is call "log" args [x, b]
   | { kind: "point"; x: Node; y: Node; span: SourceSpan }
   | { kind: "rel"; ops: RelOp[]; operands: Node[]; span: SourceSpan } // operands.length === ops.length + 1
-  | { kind: "list"; items: Node[]; span: SourceSpan } // D-11: a table column; never parsed from row text
+  // PR-34: `[a,b,c]` and `[]`; a table column (D-11). With `range`, items are the bounds of
+  // `[a...b]` ([a, b]) or `[a,b,...,c]` ([a, b, c]), which NM-36 expands when evaluated.
+  | { kind: "list"; items: Node[]; range?: true; span: SourceSpan }
   | { kind: "sim"; left: Node; right: Node; span: SourceSpan }; // PR-30, D-2: a regression row L ~ M
 
 /** The direct child nodes of `node`, in the order the S-expression writes them. */
@@ -55,7 +57,8 @@ function children(node: Node): Node[] {
 
 /**
  * The corpus tree notation (PR-40): `(num 0.5)`, `(id a_{1})`, `(const pi)`, `(root A N)`,
- * `(call log X B)`, `(rel = A B)` for one relation and `(rel (<= <) A B C)` for a chain.
+ * `(call log X B)`, `(rel = A B)` for one relation and `(rel (<= <) A B C)` for a chain; a list is
+ * `(list A B)` and a range `(range A B)` or `(range A S B)` (PR-34).
  */
 export function toSExpr(tree: Node): string {
   switch (tree.kind) {
@@ -66,6 +69,8 @@ export function toSExpr(tree: Node): string {
       return `(${tree.kind} ${tree.name})`;
     case "call":
       return `(${["call", tree.name, ...tree.args.map(toSExpr)].join(" ")})`;
+    case "list":
+      return `(${[tree.range ? "range" : "list", ...tree.items.map(toSExpr)].join(" ")})`;
     case "rel": {
       const ops = tree.ops.length === 1 ? tree.ops[0] : `(${tree.ops.join(" ")})`;
       return `(${["rel", ops, ...tree.operands.map(toSExpr)].join(" ")})`;

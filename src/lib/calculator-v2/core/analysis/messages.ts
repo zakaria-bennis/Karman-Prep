@@ -2,6 +2,7 @@
 // DOM (AR-44).
 
 import type { RowErrorCode } from "../corpus/types";
+import { DEFERRED_FEATURES } from "../latex/errors";
 
 /** The letters MathQuill shows for each Greek command (PR-11; omicron is not a name). */
 const GREEK_LETTERS: Readonly<Record<string, string>> = {
@@ -58,6 +59,7 @@ const MESSAGES: Readonly<Record<RowErrorCode, string>> = {
   "relation-chain": "A chain of inequalities must point one way and use at most one =.",
   "too-many-nodes": "This row is too long to evaluate. Split it into smaller definitions.",
   "too-deep": "This row is nested too deeply.",
+  "sim-side": "You need something on both sides of the '∼' symbol.",
   "too-many-params": "Functions can have at most 8 parameters.",
   "duplicate-definition": "{n} is defined more than once.",
   dependency: "{n} has more than one definition.",
@@ -77,12 +79,16 @@ const MESSAGES: Readonly<Record<RowErrorCode, string>> = {
 const POLAR_UNSUPPORTED = "{n} is for polar graphs, which aren't available yet.";
 const SINGLE_ARGUMENT = "{n} takes {k} argument.";
 const POLAR_NAMES: ReadonlySet<string> = new Set(["r", "θ"]);
+/** PR-34, G-22: `unsupported` naming notation whose meaning has not shipped yet. */
+const DEFERRED = "{n} isn't supported yet.";
+const DEFERRED_NAMES: ReadonlySet<string> = new Set(Object.values(DEFERRED_FEATURES));
 
 /** The exact message for a row error; `names` holds display text, `[name, count]` for `arity`. */
 export function rowErrorMessage(code: RowErrorCode, names: string[]): string {
   const [n = "", k = ""] = names;
   let template = MESSAGES[code];
   if (code === "unsupported" && POLAR_NAMES.has(n)) template = POLAR_UNSUPPORTED;
+  if (code === "unsupported" && DEFERRED_NAMES.has(n)) template = DEFERRED;
   if (code === "arity" && k === "1") template = SINGLE_ARGUMENT;
   return template.replace("{n}", () => n).replace("{k}", () => k);
 }

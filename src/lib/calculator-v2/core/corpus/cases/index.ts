@@ -20,6 +20,7 @@ import keys from "./keys";
 import graph from "./graph";
 import questionDialect from "./question-dialect";
 import paste from "./paste";
+import lists from "./lists";
 
 export const CORPUS_FILES: Readonly<Record<string, readonly CorpusCase[]>> = {
   "parse-literals": parseLiterals,
@@ -40,4 +41,5 @@ export const CORPUS_FILES: Readonly<Record<string, readonly CorpusCase[]>> = {
   graph,
   "question-dialect": questionDialect,
   paste,
+  lists,
 };
