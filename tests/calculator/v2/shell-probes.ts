@@ -92,3 +92,39 @@ export function shadowHasFontFace(): boolean {
     );
   return sheets.some((sheet) => hasFace(sheet.cssRules));
 }
+
+export interface Motion {
+  durations: string[]; // computed transition durations, plus animation durations when one runs
+  easing: string[]; // computed transition and animation timing functions
+}
+
+/** AN-14, AN-13, AR-38: the computed motion of every shadow element and its ::before and ::after. */
+export function readMotion(): Motion[] {
+  const root = document.querySelector("#calc")!.shadowRoot!;
+  const split = (list: string) => list.split(/,(?![^(]*\))/).map((part) => part.trim());
+  const out: Motion[] = [];
+  for (const el of root.querySelectorAll("*")) {
+    for (const pseudo of [null, "::before", "::after"]) {
+      const style = getComputedStyle(el, pseudo);
+      const durations = split(style.transitionDuration);
+      const easing = split(style.transitionTimingFunction);
+      if (style.animationName !== "none") {
+        durations.push(...split(style.animationDuration));
+        easing.push(...split(style.animationTimingFunction));
+      }
+      out.push({ durations, easing });
+    }
+  }
+  return out;
+}
+
+/** AN-13: over the next 10 animation frames, how many show AN-8's Home control leaving. */
+export async function countLeavingFrames(): Promise<number> {
+  const host = document.querySelector("#calc")!;
+  let count = 0;
+  for (let i = 0; i < 10; i++) {
+    await new Promise((r) => requestAnimationFrame(r));
+    if (host.shadowRoot!.querySelector('[data-graph-home][data-phase="leaving"]')) count++;
+  }
+  return count;
+}

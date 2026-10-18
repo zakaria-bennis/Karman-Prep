@@ -6,9 +6,18 @@
 // store; 13 wraps it in CalculatorChrome, which portals into chromeSlot. App installs the shell
 // keyboard (KB-3, KB-7) on the layout's root: shortcuts go through 09's row actions, so they insert,
 // focus and announce exactly as the toolbar does (A11Y-2, NM-42). Every keypad change goes through
-// the K-2 policy (reduceKeypad).
+// the K-2 policy (reduceKeypad). The quiz setting reaches the stylesheet as the host's
+// data-reduced-motion, and either it or the OS preference makes the graph's motion instant (AN-13).
 
-import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type JSX } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type JSX,
+} from "react";
 import type { CalculatorEngine } from "@/lib/calculator-v2/core/api/engine";
 import { AnnouncerContext, type Announcer } from "./a11y/announcer";
 import { reduceKeypad, type KeypadEvent } from "./controller/keypad-policy";
@@ -58,6 +67,11 @@ export function App(props: AppProps): JSX.Element {
   const [settingsAnchor, setSettingsAnchor] = useState<HTMLElement | null>(null);
   const rootRef = useRef<HTMLElement>(null);
   const { settings } = snapshot;
+
+  // AN-13: base.css and tokens.css zero every duration under :host([data-reduced-motion="true"]).
+  useLayoutEffect(() => {
+    host.dataset.reducedMotion = String(settings.reducedMotion);
+  }, [host, settings.reducedMotion]);
 
   const toggleSettings = useCallback(
     (anchor: HTMLElement) => setSettingsAnchor((open) => (open === null ? anchor : null)),
@@ -127,7 +141,7 @@ export function App(props: AppProps): JSX.Element {
                 keypadOpen={settings.keypad}
                 host={host}
                 themeRevision={shell.themeRevision}
-                reducedMotion={settings.reducedMotion}
+                reducedMotion={settings.reducedMotion || shell.reducedMotionMedia}
                 settingsAnchor={settingsAnchor}
                 revealRowId={snapshot.focusedRowId ?? snapshot.activeRowId}
                 rootRef={rootRef}

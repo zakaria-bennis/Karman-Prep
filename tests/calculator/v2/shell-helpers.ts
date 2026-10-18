@@ -5,6 +5,7 @@
 // inside the page live in shell-probes.ts.
 
 import { expect, test, type Locator, type Page } from "@playwright/test";
+import { countLeavingFrames, readMotion, type Motion } from "./shell-probes";
 
 /** Fails the test on any console error or page error (each shell spec file calls it once). */
 export function useConsoleGuard(): void {
@@ -164,4 +165,121 @@ export async function platformFonts(page: Page, selector: string): Promise<strin
   } finally {
     await cdp.detach();
   }
+}
+
+/** AN-14: a computed CSS time in seconds ("0.2s", "200ms"); NaN for anything else. */
+export function seconds(d: string): number {
+  const match = /^(-?[\d.]+(?:e[+-]?\d+)?)(ms|s)$/i.exec(d.trim());
+  if (match === null) return Number.NaN;
+  return match[2].toLowerCase() === "ms" ? Number(match[1]) / 1000 : Number(match[1]);
+}
+
+/** A computed custom property of #calc, trimmed. */
+export function hostVar(page: Page, name: string): Promise<string> {
+  return page.evaluate(
+    (prop) => getComputedStyle(document.querySelector("#calc")!).getPropertyValue(prop).trim(),
+    name
+  );
+}
+
+/** The computed { durations, easing } of every shadow element. */
+export function motionNow(page: Page): Promise<Motion[]> {
+  return page.evaluate(readMotion);
+}
+
+/**
+ * motionNow after focusing row 1, opening the keypad, the Functions panel and the Graph settings
+ * popover. Escape then closes the popover and the panel; the keypad stays open and focus is on the
+ * Graph settings button, where 09's popover returns it.
+ */
+export async function motionAcrossLayers(page: Page): Promise<Motion[]> {
+  const all: Motion[] = [];
+  await rowField(page, "1").click();
+  all.push(...(await motionNow(page)));
+  await api(page, "c.updateSettings({ keypad: true })");
+  all.push(...(await motionNow(page)));
+  const keypad = page.getByRole("region", { name: "Keypad" });
+  await keypad.getByRole("button", { name: "Functions", exact: true }).click();
+  all.push(...(await motionNow(page)));
+  const settings = page.getByRole("button", { name: "Graph settings" });
+  await settings.click();
+  all.push(...(await motionNow(page)));
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog", { name: "Graph settings" })).toHaveCount(0);
+  await page.keyboard.press("Escape");
+  await expect(keypad.getByRole("button", { name: "Functions", exact: true })).toHaveAttribute(
+    "aria-expanded",
+    "false"
+  );
+  await expect(settings).toBeFocused();
+  return all;
+}
+
+/** Every duration is 0. */
+export function allZero(list: Motion[]): boolean {
+  return list.every((m) => m.durations.every((d) => seconds(d) === 0));
+}
+
+/** A linear() easing, or a cubic-bezier whose y values leave [0, 1]. */
+export function overshoots(easing: string): boolean {
+  if (/^linear\(/.test(easing)) return true;
+  const bezier = /^cubic-bezier\(([^)]*)\)$/.exec(easing);
+  if (bezier === null) return false;
+  const [, y1, , y2] = bezier[1].split(",").map(Number);
+  return [y1, y2].some((y) => y < 0 || y > 1);
+}
+
+export interface InstantMotion {
+  homeGone: boolean; // AN-8: no Home control a frame after Home
+  leavingFrames: number; // AN-8: frames in which Home was fading out
+  rowSettled: boolean; // AN-5: a frame after Add item, the new row has its final height
+  graphMoved: boolean; // AN-3: a frame after Collapse list, the graph has widened
+  graphSettled: boolean; // AN-3: and keeps that width
+}
+
+export const INSTANT: InstantMotion = {
+  homeGone: true,
+  leavingFrames: 0,
+  rowSettled: true,
+  graphMoved: true,
+  graphSettled: true,
+};
+
+/** AN-13: the motions that exist only while they run (AN-8 Home fade, AN-5 row insert, AN-3 collapse). */
+export async function instantMotion(page: Page): Promise<InstantMotion> {
+  const graph = page.getByRole("img", { name: /^Graph from/ });
+  await graph.press("ArrowRight");
+  await page.getByRole("button", { name: /^home$/i }).waitFor();
+  const leaving = page.evaluate(countLeavingFrames);
+  await graph.press("Home");
+  await frames(page, 1);
+  const homeGone = (await page.locator("#calc [data-graph-home]").count()) === 0;
+  const leavingFrames = await leaving;
+
+  const before = new Set((await rows(page)).map((r) => r.id));
+  await page.getByRole("button", { name: "Add item" }).click();
+  await frames(page, 1);
+  const added = (await rows(page)).find((r) => !before.has(r.id))!;
+  const row = page.locator(`#calc [data-row-id="${added.id}"]`);
+  const height = (await row.boundingBox())!.height;
+  await page.waitForTimeout(300);
+  const rowSettled = Math.abs((await row.boundingBox())!.height - height) <= 0.5;
+
+  const width = async () => (await box(page, "kc-graph-region")).width;
+  const start = await width();
+  await page.getByRole("button", { name: "Collapse list" }).click();
+  await frames(page, 1);
+  const moved = await width();
+  await page.waitForTimeout(300);
+  const graphMoved = Math.abs(moved - start) > 1;
+  const graphSettled = Math.abs((await width()) - moved) <= 0.5;
+  await page.getByRole("button", { name: "Expand list" }).click();
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () => globalThis.__calculatorHarness!.engine.getSnapshot().settings.expressionsCollapsed
+      )
+    )
+    .toBe(false);
+  return { homeGone, leavingFrames, rowSettled, graphMoved, graphSettled };
 }
