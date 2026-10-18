@@ -216,11 +216,11 @@ it("API-12 focusExpression and focusFirstExpression wait for the field; activate
   await vi.waitFor(() => expect(seen).toHaveBeenCalled());
   calc.focusFirstExpression();
   await vi.waitFor(() => expect(f1.focus).toHaveBeenCalled()); // row "1" is getExpressions()[0]
-  el.getBoundingClientRect = () => ({ width: 700, height: 600 }) as DOMRect;
+  el.getBoundingClientRect = () => ({ width: 700, height: 500 }) as DOMRect;
   calc.resize();
   expect([s.props!.store.get().layout, s.props!.store.get().size]).toEqual([
     "desktop",
-    { width: 700, height: 600 },
+    { width: 700, height: 500 },
   ]); // jsdom measures 0×0 (stacked) until then
 });
 it("A11Y-2 announceResetOnMount announces the reset once with a 500 ms delay; without it nothing is announced (OI-3)", () => {
