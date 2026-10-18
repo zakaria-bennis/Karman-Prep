@@ -312,6 +312,7 @@ export function ExpressionPanel(props: ExpressionPanelProps): JSX.Element {
                     row={row}
                     number={number}
                     keypadOpen={props.keypadOpen}
+                    onTouchFocus={props.onTouchFocusRow}
                     motion={motion}
                     onExitDone={exitDone}
                   />

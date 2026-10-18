@@ -31,6 +31,7 @@ export interface TableCellProps {
   keypadOpen: boolean;
   keys: CellKeys;
   onEdit(engine: CalculatorEngine, latex: string): EditRefusal | null;
+  onTouchFocus(rowId: string): void; // K-2: a touch focus lets the shell open the keypad
 }
 
 export const CELL_CHARACTER_MESSAGE = "Each cell can be up to 128 characters.";
@@ -45,6 +46,7 @@ export function TableCell(props: TableCellProps): JSX.Element {
   const hostRef = useRef<HTMLDivElement>(null);
   const fieldRef = useRef<MathField | null>(null);
   const syncing = useRef(false);
+  const touch = useRef(false); // the last pointerdown on the field was a touch (K-2)
   const latest = useRef(props);
   useLayoutEffect(() => {
     latest.current = props;
@@ -75,6 +77,8 @@ export function TableCell(props: TableCellProps): JSX.Element {
         focus.noteCell(tableId, cellKey(tableId, latest.current.column, latest.current.row));
         engine.setFocusedRow(tableId);
         engine.activateExpression(tableId);
+        if (touch.current) latest.current.onTouchFocus(tableId);
+        touch.current = false;
       },
       onBlur() {
         engine.setFocusedRow(null);
@@ -124,5 +128,13 @@ export function TableCell(props: TableCellProps): JSX.Element {
     if (field !== null) fieldTextbox(field).setAttribute("aria-label", props.name);
   });
 
-  return <div className="kc-table-field" ref={hostRef} />;
+  return (
+    <div
+      className="kc-table-field"
+      ref={hostRef}
+      onPointerDown={(e) => {
+        touch.current = e.pointerType === "touch";
+      }}
+    />
+  );
 }

@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
-import { act, screen, waitFor, within } from "@testing-library/react";
-import { expect, it } from "vitest";
+import { act, fireEvent, screen, waitFor, within } from "@testing-library/react";
+import { expect, it, vi } from "vitest";
 import { ExpressionPanel } from "./ExpressionPanel";
 import { panelProps, renderEditor } from "./__fixtures__/render-editor";
 import { insertTableItem } from "./row-actions";
@@ -23,7 +23,8 @@ it("D-5 typing table into an empty row converts it at once and other words stay 
   const kit = renderEditor(<ExpressionPanel {...panelProps()} />, { rows: ["", ""] });
   act(() => kit.fields.forRow("2").emitEdit("note"));
   expect(tableOf(kit, "2").type).toBe("expression");
-  act(() => kit.fields.forRow("1").emitEdit("table"));
+  for (const typed of ["t", "ta", "tab", "tabl", "table"])
+    act(() => kit.fields.forRow("1").emitEdit(typed)); // letter by letter, as MathQuill reports it
   expect(tableOf(kit, "1").type).toBe("table");
   expect(box("x₁, row 1, blank")).toHaveFocus();
   act(() => kit.engine.undo());
@@ -129,4 +130,18 @@ it("D-5 deleting a table leaves an empty expression row with the caret and Undo 
   act(() => kit.engine.undo());
   expect(tableOf(kit, "2").type).toBe("table");
   expect(screen.getByRole("grid", { name: "Table 2, 2 columns, 0 rows" })).toBeInTheDocument();
+});
+
+it("K-2 a touch focus on a table cell lets the shell open the keypad", () => {
+  const onTouchFocusRow = vi.fn();
+  const kit = renderEditor(<ExpressionPanel {...panelProps({ onTouchFocusRow })} />, {
+    rows: ["y=x"],
+  });
+  act(() => void kit.engine.insertTableAfter("1"));
+  const textbox = box("x₁, row 1, blank");
+  act(() => box("y₁, row 1, blank").focus()); // a keyboard focus is not a touch
+  expect(onTouchFocusRow).not.toHaveBeenCalled();
+  fireEvent.pointerDown(textbox, { pointerType: "touch" });
+  act(() => textbox.focus());
+  expect(onTouchFocusRow).toHaveBeenCalledWith(tableOf(kit, "2").id);
 });

@@ -149,7 +149,7 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
         const current = fieldRef.current;
         // Snapshot writes are not edits; editThroughKeypad makes a keypad batch's one editRow.
         if (syncingRef.current || current === null || isKeypadBatch(current)) return;
-        if (latex === "table" && latest.current.latex === "") {
+        if (latex === "table") {
           convertToTable(engine, focus, rowId); // D-5: typing table in an empty row
           return;
         }

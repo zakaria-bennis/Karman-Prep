@@ -368,12 +368,13 @@ export class CalculatorEngine {
     return { id: table.id };
   }
 
-  /** D-5, S-12: an empty expression row becomes a table in place; any other row gets one after it. */
+  /** D-5, S-12: an empty expression row (or one partway through typing `table`) becomes a table in place; any other row gets one after it. */
   replaceWithTable(rowId: string): { id: string } | EditRefusal {
     const rows = this.doc.rows,
       at = rows.findIndex((r) => r.id === rowId);
     const row = rows[at];
-    if (row === undefined || row.type === "table" || row.latex !== "")
+    // D-5: typing `table` converts the row it was typed into, whose stored latex is then "tabl".
+    if (row === undefined || row.type === "table" || !/^(t(a(b(l(e)?)?)?)?)?$/.test(row.latex))
       return this.insertTableAfter(rowId);
     if (this.destroyed) return "row-limit";
     const table = newTable(row.id, at, usedNames(rows, this.analysis));

@@ -33,6 +33,7 @@ export interface TableItemProps {
   keypadOpen: boolean;
   motion: RowMotion;
   onExitDone(rowId: string): void;
+  onTouchFocus(rowId: string): void; // K-2
 }
 
 export function TableItem(props: TableItemProps): JSX.Element {
@@ -99,6 +100,7 @@ export function TableItem(props: TableItemProps): JSX.Element {
           latex={latex}
           name={cellName(headers[k], r, latex)}
           keypadOpen={keypadOpen}
+          onTouchFocus={props.onTouchFocus}
           keys={cellKeys(keyContext, k, r)}
           onEdit={(e, next) => e.editCell(row.id, k, r, next, "typing")}
         />
@@ -148,6 +150,7 @@ export function TableItem(props: TableItemProps): JSX.Element {
                     latex={latex ?? ""}
                     name={latex === null ? NEW_COLUMN_HEADER : `Column ${k + 1} header`}
                     keypadOpen={keypadOpen}
+                    onTouchFocus={props.onTouchFocus}
                     keys={cellKeys(keyContext, k, "h")}
                     onEdit={(e, next) => e.editHeader(row.id, k, next, "typing")}
                   />
