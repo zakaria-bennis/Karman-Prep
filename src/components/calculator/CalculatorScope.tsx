@@ -330,6 +330,8 @@ function V2Scope({
     calculatorWindowStore.get
   );
   const [activated, setActivated] = useState(open);
+  // OI-3: true exactly when the lifted open state carried an open window into this question.
+  const announceReset = useState(() => open)[0];
   const [status, setStatus] = useState<CalculatorLoadStatus>("idle");
   const [failure, setFailure] = useState<CalculatorLoadFailure | null>(null);
   const [handle, setHandle] = useState<QuizCalculatorHandle | null>(null);
@@ -538,7 +540,7 @@ function V2Scope({
                   frame={frame}
                   chromeSlot={chromeSlot}
                   reducedMotion={reducedMotion}
-                  announceReset={false}
+                  announceReset={announceReset}
                   onStatus={(nextStatus, nextFailure) => {
                     setStatus(nextStatus);
                     setFailure(nextFailure);
