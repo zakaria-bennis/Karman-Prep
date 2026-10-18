@@ -24,7 +24,7 @@ const columns = (page: Page) =>
       .columns!.map((c) => [...c.values])
   );
 
-test("S-2 S-10 Add item opens by keyboard and Add table puts focus in the first x cell", async ({
+test("S-2, S-10 Add item opens by keyboard and Add table puts focus in the first x cell", async ({
   page,
 }) => {
   await openShell(page, `?w=900&h=600&rows=${enc(["y=x"])}`);
@@ -37,7 +37,7 @@ test("S-2 S-10 Add item opens by keyboard and Add table puts focus in the first 
   await expect(page.getByRole("grid", { name: "Table 2, 2 columns, 0 rows" })).toBeVisible();
 });
 
-test("D-5 D-7 typing table converts the row, and Enter and Tab fill 1, 2, 3 against 2, 4, 6 as three points", async ({
+test("D-5, D-7 typing table converts the row, and Enter and Tab fill 1, 2, 3 against 2, 4, 6 as three points", async ({
   page,
 }) => {
   await openShell(page, `?w=900&h=600&rows=${enc([""])}`);
@@ -146,7 +146,7 @@ test("D-16 Zoom to fit table 2 fits the view to its points", async ({ page }) =>
   await expect(page.getByRole("button", { name: "Home" })).toBeVisible();
 });
 
-test("D-41 D-42 at 390 px a wide table scrolls inside its item and the keypad's arrows cross cells", async ({
+test("D-41, D-42 at 390 px a wide table scrolls inside its item and the keypad's arrows cross cells", async ({
   page,
   isMobile,
 }) => {
