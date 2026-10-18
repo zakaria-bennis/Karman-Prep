@@ -4,4 +4,11 @@
 [data-transfer-selected="true"] {
   outline: 2px solid var(--kcc-focus);
   outline-offset: 2px;
+  transition: none;
+  animation: none;
+}
+/* TR-52, AN-12: v2 answer-choice tool clusters appear and disappear with no transition (the
+   diagnostic's cluster has a Tailwind opacity transition). */
+[data-calculator="v2"][data-calculator] {
+  transition: none;
 }

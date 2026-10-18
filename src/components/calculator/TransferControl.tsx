@@ -7,6 +7,7 @@
 
 import {
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
   useSyncExternalStore,
@@ -30,6 +31,41 @@ import "./transfer-control.css";
 
 export const TRANSFER_TOOLTIP = "Transfer to Calculator";
 export const TOOLTIP_DELAY_MS = 300; // TR-51
+export const FINE_TARGET_PX = 24; // TR-44
+export const COARSE_TARGET_PX = 44; // TR-44, TR-55
+export const INLINE_OVERLAP_PX = 4; // TR-46
+const TOOLTIP_EDGE_PX = 8; // the tooltip flips left when its right edge would pass innerWidth - 8
+
+/** TR-46: inline controls sit above the end of the item's last line, overlapping it by 4 px;
+ * block controls sit inside the item's top-right corner. With no rects (jsdom, detached) the
+ * styles stay as they are. */
+export function placeControl(
+  anchor: HTMLElement,
+  item: HTMLElement,
+  button: HTMLElement,
+  placement: "inline" | "block",
+  size: number
+): void {
+  const rects = item.getClientRects();
+  if (rects.length === 0) return;
+  const a = anchor.getBoundingClientRect();
+  const r = placement === "inline" ? rects[rects.length - 1] : item.getBoundingClientRect();
+  button.style.left = `${r.right - a.left - size}px`;
+  button.style.top =
+    placement === "inline" ? `${r.top - a.top - size + INLINE_OVERLAP_PX}px` : `${r.top - a.top}px`;
+}
+
+/** TR-51: the tooltip beside the button with no gap, vertically centred on it; right of the
+ * button, or left of it when it would pass the viewport's right edge. */
+function placeTooltip(anchor: HTMLElement, button: HTMLElement, tip: HTMLElement): void {
+  const a = anchor.getBoundingClientRect();
+  const b = button.getBoundingClientRect();
+  const t = tip.getBoundingClientRect();
+  if (b.width === 0 || t.width === 0) return;
+  const right = b.right + t.width <= window.innerWidth - TOOLTIP_EDGE_PX;
+  tip.style.left = `${(right ? b.right : b.left - t.width) - a.left}px`;
+  tip.style.top = `${b.top - a.top + (b.height - t.height) / 2}px`;
+}
 
 export interface TransferControlProps {
   item: TransferItem;
@@ -58,6 +94,7 @@ function V2TransferControl({
 }: TransferControlProps & { bridge: V2Bridge }) {
   const anchor = useRef<HTMLSpanElement>(null);
   const button = useRef<HTMLButtonElement>(null);
+  const tip = useRef<HTMLSpanElement>(null);
   const current = useRef({ bridge, item });
   current.current = { bridge, item };
   const selected = useSyncExternalStore(
@@ -77,11 +114,18 @@ function V2TransferControl({
     hoverType: "", // pointerType of the last accepted hover pointerenter
     lastDown: null as { pointerType: string } | null, // decision "Pointer record"
     timer: null as ReturnType<typeof setTimeout> | null,
-    shown: false, // focused || selected, for the synchronous data-visible write
+    focused: false,
+    selected: false, // with focused, for the synchronous data-visible write
+    tooltip: false,
+    escaped: false, // TR-49: hidden by Escape until the pointer leaves and re-enters the item
+    leftSinceEscape: false,
+    place: () => {}, // places the button now (inline and block)
   });
   const inlineOrBlock = placement !== "cluster";
   const visible = focused || selected || hovered;
-  pointer.current.shown = focused || selected;
+  pointer.current.focused = focused;
+  pointer.current.selected = selected;
+  pointer.current.tooltip = tooltip;
 
   // The item element, its marker and (inline and block) the hover and tap listeners.
   useEffect(() => {
@@ -93,20 +137,39 @@ function V2TransferControl({
       placement === "cluster"
         ? a.closest('[data-calculator="v2"]')?.parentElement
         : a.previousElementSibling;
+    p.place = () => {
+      if (inlineOrBlock && el instanceof HTMLElement) {
+        const size = p.selected ? COARSE_TARGET_PX : FINE_TARGET_PX;
+        placeControl(a, el, b, placement, size);
+      }
+    };
     // Written synchronously, so a reveal never waits for a render (DOM contract).
     const sync = () => {
-      const on = p.overItem || p.overControl;
-      if (inlineOrBlock) a.dataset.visible = String(p.shown || on);
+      const on = (p.overItem || p.overControl) && !p.escaped;
+      if (inlineOrBlock) {
+        const shown = p.focused || p.selected || on;
+        if (shown && a.dataset.visible !== "true") p.place();
+        a.dataset.visible = String(shown);
+      } else if (p.overItem) a.dataset.hover = "true";
+      else delete a.dataset.hover;
       setHovered(on);
     };
     const enter = (key: "overItem" | "overControl") => (e: PointerEvent) => {
       if (!isHoverPointer(e)) return;
+      // TR-49: only re-entering the item (or, for a cluster, the choice) after leaving it ends
+      // an Escape; pointer events on the anchor or button never do.
+      if (key === "overItem" && p.leftSinceEscape) {
+        p.escaped = false;
+        p.leftSinceEscape = false;
+        delete a.dataset.escaped;
+      }
       p[key] = true;
       p.hoverType = e.pointerType;
       sync();
     };
     const leave = (key: "overItem" | "overControl") => (e: PointerEvent) => {
       if (e.pointerType === "touch") return;
+      if (key === "overItem" && p.escaped) p.leftSinceEscape = true;
       p[key] = false;
       sync();
     };
@@ -115,16 +178,47 @@ function V2TransferControl({
       p.timer = null;
       setTooltip(false);
     };
+    // TR-49: Escape hides a hover- or tap-revealed control and its tooltip, without moving focus,
+    // and is consumed only when it hid something. A cluster that TR-42 keeps visible is skipped.
+    const escape = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      if (!inlineOrBlock && window.matchMedia?.("(any-pointer: coarse)").matches) return;
+      const hovered = (p.overItem || p.overControl) && !p.escaped;
+      const hid = p.tooltip || p.timer !== null || p.selected || (!p.focused && hovered);
+      if (!hid) return;
+      hideTip();
+      if (!p.focused && (hovered || p.selected)) {
+        p.escaped = true;
+        p.leftSinceEscape = false;
+        if (!inlineOrBlock) a.dataset.escaped = "true";
+      }
+      if (p.selected) transferSelection.clear();
+      sync();
+      e.preventDefault();
+      e.stopPropagation();
+    };
+    document.addEventListener("keydown", escape);
     const list: Listeners = [
       [a, "pointerenter", enter("overControl")],
-      [a, "pointerleave", leave("overControl")],
+      [
+        a,
+        "pointerleave",
+        (e) => {
+          leave("overControl")(e);
+          hideTip(); // the tooltip is inside the anchor, so it persists while over either
+        },
+      ],
       [
         b,
         "pointerenter",
         (e) => {
           if (!isHoverPointer(e)) return;
           current.current.bridge.prefetch();
-          if (p.timer === null) p.timer = setTimeout(() => setTooltip(true), TOOLTIP_DELAY_MS);
+          if (p.timer === null && !p.escaped)
+            p.timer = setTimeout(() => {
+              p.timer = null;
+              setTooltip(true);
+            }, TOOLTIP_DELAY_MS);
         },
       ],
       [
@@ -132,13 +226,18 @@ function V2TransferControl({
         "pointerleave",
         (e) => {
           if (e.buttons !== 0) p.lastDown = null; // a press dragged off never becomes a click
-          hideTip(); // the tooltip takes no pointer, so leaving the button leaves both
+          // The tooltip persists while the pointer moves onto it (TR-51); anywhere else hides it.
+          const to = e.relatedTarget;
+          if (!(to instanceof Node && a.contains(to))) hideTip();
         },
       ],
       [b, "pointercancel", () => (p.lastDown = null)],
     ];
     if (el instanceof HTMLElement) {
       el.setAttribute("data-transfer-item", "");
+      // A cluster's choice container reveals its control on hover (TR-42, AR-11).
+      if (!inlineOrBlock)
+        list.push([el, "pointerenter", enter("overItem")], [el, "pointerleave", leave("overItem")]);
       if (inlineOrBlock) {
         let down: PointerSample | null = null;
         let maxMove = 0;
@@ -177,6 +276,8 @@ function V2TransferControl({
               down = null;
               const collapsed = window.getSelection?.()?.isCollapsed ?? true;
               if (start === null || !isTap(start, sample(e), maxMove, collapsed)) return;
+              p.escaped = false; // TR-49: a tap on the item ends an Escape
+              p.leftSinceEscape = false;
               const now = current.current;
               transferSelection.toggle({
                 questionKey: now.bridge.questionKey,
@@ -191,6 +292,7 @@ function V2TransferControl({
     const stop = listen(list);
     return () => {
       stop();
+      document.removeEventListener("keydown", escape);
       hideTip();
       if (el instanceof HTMLElement) {
         el.removeAttribute("data-transfer-item");
@@ -198,6 +300,25 @@ function V2TransferControl({
       }
     };
   }, [placement, inlineOrBlock]);
+
+  // TR-46: place the button whenever it shows or its reveal size changes, and again while it
+  // shows whenever the item resizes.
+  useLayoutEffect(() => {
+    const el = anchor.current?.previousElementSibling;
+    if (!inlineOrBlock || !visible || !(el instanceof HTMLElement)) return;
+    const place = pointer.current.place;
+    place();
+    if (typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(() => place());
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [visible, selected, inlineOrBlock]);
+
+  // TR-51: the tooltip adjoins the button whenever it shows.
+  useLayoutEffect(() => {
+    const [a, b, t] = [anchor.current, button.current, tip.current];
+    if (tooltip && a !== null && b !== null && t !== null) placeTooltip(a, b, t);
+  }, [tooltip, visible, selected]);
 
   // The item shows the selected outline while tap-selected or while its control has focus.
   useEffect(() => {
@@ -265,6 +386,7 @@ function V2TransferControl({
         </span>
       </button>
       <span
+        ref={tip}
         data-transfer-tooltip=""
         aria-hidden="true"
         hidden={!tooltip}
