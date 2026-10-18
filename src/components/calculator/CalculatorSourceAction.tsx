@@ -109,13 +109,11 @@ function PasteAction({ payload, label }: { payload: PastePayload | null; label: 
 }
 
 // AR-11 wrappers: each reads useCalculator() once and renders the v1 PasteAction path unchanged
-// or the v2 Transfer control (14). The v2 parts, the stem registry included, come from the lazy
-// transfer chunk (D4, transfer-items.tsx), so they render nothing until it has loaded.
-function V2Transfer(props: {
-  active: boolean;
-  part(t: TransferClassifier): JSX.Element;
-}): JSX.Element | null {
-  const t = useTransferClassifier(props.active);
+// or the v2 Transfer control (14). The v2 parts, the stem registry and which instances render a
+// control included, come from the lazy transfer chunk (D4, transfer-items.tsx), so they render
+// nothing until it has loaded.
+function V2Transfer(props: { part(t: TransferClassifier): JSX.Element }): JSX.Element | null {
+  const t = useTransferClassifier(true);
   return t && props.part(t);
 }
 
@@ -138,7 +136,6 @@ export function CalculatorSourceAction(props: {
   const bridge = useCalculator();
   return bridge?.version === "v2" ? (
     <V2Transfer
-      active={props.stem !== undefined}
       part={(t) => <t.StemTransferAction {...props} questionKey={bridge.questionKey} />}
     />
   ) : (
@@ -179,7 +176,6 @@ export function CalculatorChoiceAction(props: {
   if (bridge?.version === "v2")
     return (
       <V2Transfer
-        active={props.slot === "cluster"}
         part={(t) => <t.ChoiceTransferAction {...props} questionKey={bridge.questionKey} />}
       />
     );
@@ -200,8 +196,7 @@ function V1TableAction({ rows }: { rows: string[][] }) {
   return <PasteAction payload={payload} label="Paste table into calculator as x₁, y₁" />;
 }
 
-/** v2: a question table's control (TR-22), or a table choice's in its cluster; the v1 instance
- * of a table choice renders nothing on v2. */
+/** v2: a question table's control (TR-22), or a table choice's in its cluster (transfer-items). */
 export function CalculatorTableAction(props: {
   rows: string[][];
   headers?: string[];
@@ -211,11 +206,6 @@ export function CalculatorTableAction(props: {
 }): JSX.Element | null {
   const bridge = useCalculator();
   if (bridge?.version === "v2")
-    return (
-      <V2Transfer
-        active={props.slot === "cluster" || props.itemId === "table"}
-        part={(t) => <t.TableTransferAction {...props} />}
-      />
-    );
+    return <V2Transfer part={(t) => <t.TableTransferAction {...props} />} />;
   return props.slot === "cluster" ? null : <V1TableAction rows={props.rows} />;
 }

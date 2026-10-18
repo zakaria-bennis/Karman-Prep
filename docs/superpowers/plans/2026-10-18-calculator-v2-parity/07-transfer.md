@@ -128,5 +128,18 @@ Tests `it("TR-22 only the two table 5.1 shapes are eligible")`, `it("TR-23 the f
 see x₁/y₁ and every point inside the view; transfer a pair as Point and as Table row.
 **Commit** `Add calculator v2 table transfer browser tests`.
 
+**Adaptations made while executing Task 18 and the package gate:**
+
+- The pair, function-coordinate and table cases share one daily-flow fixture question
+  (`?questions=transfer-tables`, Task 17) rather than a diagnostic one: the daily flow renders a
+  native question table, and the existing `?questions=transfer` specs keep their content.
+- AR-33, D4: the first gate build measured 20 to 24 gzip bytes more on every quiz route, all from
+  the eager `CalculatorTableAction` v2 branch. The wrappers now always load the lazy chunk on v2
+  and the lazy parts decide which instances render a control (a stem item with a stem, a choice's
+  cluster instance, a question table or a table choice's cluster instance), which leaves every route
+  at or below its eager size before this package: practice 8,867 (was 8,869), daily 10,686 (was
+  10,689), earlier 9,351 (was 9,357) and diagnostic 9,129 (was 9,135) gzip bytes. Daily stays over
+  its 10,240-byte budget, as before this package; the baseline file is not updated.
+
 **Package gate:** section 3 of `00-index.md`, the Phase 1 gates of packages 12 and 14 (their AR-33
 eager budget included), `check-spec-ids --ids` with this package's IDs.

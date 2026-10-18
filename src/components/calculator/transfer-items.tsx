@@ -114,8 +114,11 @@ export function ChoiceTransferAction(props: {
   letter: string;
   stem?: StemInput;
   questionKey: string;
+  slot?: "cluster";
 }): JSX.Element | null {
   const registered = useQuestionStem(props.questionKey);
+  // AR-11: only the cluster instance renders a control; v1's own instance renders none on v2.
+  if (props.slot !== "cluster") return null;
   const view = choiceControl(props.letter, props.text, props.stem ?? registered);
   return view && <TransferControl {...view} />;
 }
@@ -128,6 +131,9 @@ export function TableTransferAction(props: {
   itemId?: string;
   slot?: "cluster";
 }): JSX.Element | null {
+  // A table choice's control is its cluster instance's; TableChoiceOption's v1 instance (and
+  // catalog practice's QuestionTable, with no cluster) render none on v2.
+  if (props.slot !== "cluster" && props.itemId !== "table") return null;
   const sourceId = props.itemId ?? "table";
   const letter = sourceId.startsWith("choice:") ? sourceId.slice("choice:".length) : undefined;
   const item = classifyTable({
