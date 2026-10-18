@@ -17,6 +17,7 @@ import { CalculatorVersionProvider } from "../../../src/components/calculator/Ca
 import { calculatorWindowStore } from "../../../src/components/calculator/calculator-window-store";
 import "../../../src/app/globals.css";
 import { themeStyleSheet } from "../../../src/lib/themes/palettes";
+import { TRANSFER_DAILY_QUESTION, TRANSFER_DIAGNOSTIC_QUESTIONS } from "./v2/transfer-questions";
 const sheet = document.createElement("style");
 sheet.textContent = themeStyleSheet();
 document.head.append(sheet);
@@ -28,6 +29,8 @@ const params = new URLSearchParams(location.search);
 const flow = params.get("flow");
 const v2 = params.get("calc") === "v2"; // without calc=v2 every flow is v1, as before (AR-8)
 if (v2) globalThis.__calculatorWindowStore = calculatorWindowStore;
+// 14: ?questions=transfer swaps the diagnostic questions and the daily question.
+const transferQuestions = params.get("questions") === "transfer";
 const subject = params.get("subject") === "reading" ? "reading" : "math";
 const node = { id: subject, subject, topic: "Calculator fixture" } as MappedNode;
 const questions: DiagnosticQuestion[] = Array.from({ length: 3 }, (_, i) => ({
@@ -50,7 +53,11 @@ function Flow({ session }: { session: number }) {
       math={
         {
           state: "ready",
-          value: { day: "2026-10-16", subject: "math", question: catalogQuestions[0] },
+          value: {
+            day: "2026-10-16",
+            subject: "math",
+            question: transferQuestions ? TRANSFER_DAILY_QUESTION : catalogQuestions[0],
+          },
         } as DailySlot
       }
       reading={{ state: "empty" }}
@@ -72,7 +79,11 @@ function Flow({ session }: { session: number }) {
       <QuizEngine node={node} onClose={() => {}} onGoToNext={null} />
     </QuizProvider>
   ) : (
-    <DiagnosticClient key={session} questions={questions} isSubscribed />
+    <DiagnosticClient
+      key={session}
+      questions={transferQuestions ? TRANSFER_DIAGNOSTIC_QUESTIONS : questions}
+      isSubscribed
+    />
   );
 }
 function App() {
