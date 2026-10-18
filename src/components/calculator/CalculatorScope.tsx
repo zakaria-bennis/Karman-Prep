@@ -34,6 +34,7 @@ import { CalculatorShell } from "./CalculatorShell";
 import { useCalculatorVersion } from "./CalculatorVersion";
 import { CalculatorWindow } from "./CalculatorWindow";
 import {
+  DOCK_MARGIN,
   calculatorWindowStore,
   clampDockWidth,
   clampFloatingRect,
@@ -455,6 +456,28 @@ function V2Scope({
     viewport.width
   );
 
+  // AR-23, AR-24: while docked and open, the dock width plus a 12 px margin on each side shifts one
+  // target right of the dock: a host ancestor marked data-calculator-dock-shift (the daily column,
+  // set here and removed on undock, close, any other mode change and unmount), else the workspace,
+  // which takes v1's single-column rule. No transition, so the width changes within one frame.
+  const [shiftHost, setShiftHost] = useState<HTMLElement | null>(null);
+  useLayoutEffect(() => {
+    const parent = workspaceRef.current?.parentElement ?? null;
+    setShiftHost(parent?.closest<HTMLElement>("[data-calculator-dock-shift]") ?? null);
+  }, []);
+  const dockShift = enabled && open && mode === "docked" ? dockWidth + 2 * DOCK_MARGIN : null;
+  useLayoutEffect(() => {
+    if (shiftHost === null || dockShift === null) return;
+    const marginLeft = shiftHost.style.marginLeft;
+    shiftHost.setAttribute("data-calculator-docked", "true");
+    shiftHost.style.marginLeft = `${dockShift}px`;
+    return () => {
+      shiftHost.removeAttribute("data-calculator-docked");
+      shiftHost.style.marginLeft = marginLeft;
+    };
+  }, [shiftHost, dockShift]);
+  const shiftWorkspace = dockShift !== null && shiftHost === null;
+
   return (
     <Context.Provider value={bridge}>
       <CalculatorHostIdContext.Provider value={hostId}>
@@ -463,7 +486,18 @@ function V2Scope({
           className={styles.workspace}
           data-calculator-workspace=""
           aria-hidden={modal ? "true" : undefined}
-          style={{ display: "contents" }}
+          data-calculator-docked={shiftWorkspace ? "true" : undefined}
+          style={
+            shiftWorkspace
+              ? {
+                  display: "block",
+                  position: "relative",
+                  marginLeft: dockShift,
+                  minHeight: "100%",
+                  height: "100%",
+                }
+              : { display: "contents" }
+          }
         >
           {children}
         </div>

@@ -4,7 +4,8 @@
 // change never remounts the shadow host inside it. Key handling is native on the frame (AR-18,
 // KB-6): React delegates from the root, which never sees the events the frame stops, so the move
 // handle, grip, splitter and Escape are handled here before propagation stops. The title bar and
-// the grip also drag with the pointer, captured, through clampFloatingRect (AR-22). Eager module.
+// the grip also drag with the pointer, captured, through clampFloatingRect (AR-22), and the
+// splitter through clampDockWidth (AR-23). Eager module.
 
 import {
   useEffect,
@@ -166,6 +167,34 @@ export function CalculatorWindow(props: CalculatorWindowProps) {
   const endDrag = (event: PointerEvent<HTMLElement>) => {
     if (drag.current?.pointerId === event.pointerId) drag.current = null;
   };
+  // AR-23: a primary-button press on the docked splitter starts a captured drag; every move writes
+  // the dock width it started from plus the pointer's horizontal travel, clamped by clampDockWidth.
+  const splitterDrag = useRef<{ pointerId: number; startX: number; width: number } | null>(null);
+  const splitterHandlers = {
+    onPointerDown(event: PointerEvent<HTMLElement>) {
+      const current = latest.current;
+      if (current.mode !== "docked" || event.button !== 0) return;
+      event.currentTarget.setPointerCapture(event.pointerId);
+      splitterDrag.current = {
+        pointerId: event.pointerId,
+        startX: event.clientX,
+        width: current.dockWidth,
+      };
+      event.preventDefault();
+    },
+    onPointerMove(event: PointerEvent<HTMLElement>) {
+      const active = splitterDrag.current;
+      if (!active || active.pointerId !== event.pointerId) return;
+      const width = active.width + event.clientX - active.startX;
+      latest.current.onDockWidthChange(clampDockWidth(width, window.innerWidth));
+    },
+    onPointerUp: endSplitterDrag,
+    onPointerCancel: endSplitterDrag,
+    onLostPointerCapture: endSplitterDrag,
+  };
+  function endSplitterDrag(event: PointerEvent<HTMLElement>) {
+    if (splitterDrag.current?.pointerId === event.pointerId) splitterDrag.current = null;
+  }
   const dragHandlers = (kind: PointerDrag["kind"]) => ({
     onPointerDown: (event: PointerEvent<HTMLElement>) => startDrag(kind, event),
     onPointerMove: moveDrag,
@@ -317,6 +346,7 @@ export function CalculatorWindow(props: CalculatorWindowProps) {
           aria-valuemin={DOCK_MIN_WIDTH}
           aria-valuemax={maxDockWidth()}
           tabIndex={0}
+          {...splitterHandlers}
         />
       ) : null}
       {sentinel("end")}

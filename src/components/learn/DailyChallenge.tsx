@@ -34,7 +34,7 @@ export default function DailyChallenge({ math, reading }: DailyChallengeProps) {
       aria-labelledby="daily-challenge-heading"
       className="bg-night px-5 py-12 text-ivory sm:px-8"
     >
-      <div className="mx-auto max-w-6xl">
+      <div className="mx-auto max-w-6xl" data-calculator-dock-shift="">
         <div className="flex flex-wrap items-end justify-between gap-4 border-b border-bronze pb-6">
           <div className="pr-12 sm:pr-0">
             <h2 id="daily-challenge-heading" className="type-display-m">
@@ -47,7 +47,7 @@ export default function DailyChallenge({ math, reading }: DailyChallengeProps) {
           </div>
           <p className="text-xs text-taupe">Changes at midnight UTC</p>
         </div>
-        <div className="mt-6 grid items-start gap-6 lg:grid-cols-2">
+        <div className="mt-6 grid items-start gap-6 lg:grid-cols-2 [[data-calculator-docked=true]_&]:grid-cols-1">
           <DailySlotCard subject="math" slot={math} />
           <DailySlotCard subject="reading" slot={reading} />
         </div>
