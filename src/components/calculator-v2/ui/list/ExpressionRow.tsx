@@ -40,6 +40,7 @@ import { EDITOR_MESSAGES } from "./messages";
 import { MotionContext } from "./motion";
 import {
   deleteFromEmptyRow,
+  convertToTable,
   deleteRowByControl,
   insertRowBelow,
   isKeypadBatch,
@@ -136,6 +137,10 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
         const current = fieldRef.current;
         // Snapshot writes are not edits; editThroughKeypad makes a keypad batch's one editRow.
         if (syncingRef.current || current === null || isKeypadBatch(current)) return;
+        if (latex === "table" && latest.current.latex === "") {
+          convertToTable(engine, focus, rowId); // D-5: typing table in an empty row
+          return;
+        }
         if (engine.editRow(rowId, latex, "typing") === "char-limit") {
           writeLatex(current, latest.current.latex, syncingRef); // T-13: the row stays unchanged
           announcer.announce(EDITOR_MESSAGES.charLimit);

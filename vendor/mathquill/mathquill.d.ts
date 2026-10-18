@@ -4,6 +4,7 @@ export interface MathQuillHandlers {
   enter?(mq: EditableMathQuill): void;
   upOutOf?(mq: EditableMathQuill): void;
   downOutOf?(mq: EditableMathQuill): void;
+  moveOutOf?(direction: -1 | 1, mq: EditableMathQuill): void;
   deleteOutOf?(direction: -1 | 1, mq: EditableMathQuill): void;
 }
 export interface MathQuillConfig {

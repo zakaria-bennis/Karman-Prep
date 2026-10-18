@@ -21,6 +21,7 @@ export interface MathFieldOptions {
   onEnter(): void;
   onArrowOut(direction: "up" | "down"): void; // caret cannot move further (R-3)
   onDeleteOutOf(direction: "left" | "right"): void; // Backspace or Delete at an edge (R-9)
+  onMoveOutOf?(direction: "left" | "right"): void; // ArrowLeft or ArrowRight at an edge (D-7)
   onFocus(): void;
   onBlur(): void;
   onRefused(reason: "char-limit"): void;
@@ -93,6 +94,8 @@ class KarmanMathField implements MathField {
         enter: () => this.live() && this.options.onEnter(),
         upOutOf: () => this.live() && this.options.onArrowOut("up"),
         downOutOf: () => this.live() && this.options.onArrowOut("down"),
+        moveOutOf: (direction) =>
+          this.live() && this.options.onMoveOutOf?.(direction < 0 ? "left" : "right"),
         deleteOutOf: (direction) =>
           this.live() && this.options.onDeleteOutOf(direction < 0 ? "left" : "right"),
       },

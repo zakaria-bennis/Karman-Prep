@@ -1,0 +1,49 @@
+/* Table items in the expression list (03-tables-ui; D-5, D-19). Colours come only from role
+   variables (TH-3). A grid of equal-width cells that scrolls sideways inside the row when its
+   columns outgrow the list. */
+
+.kc-table {
+  display: table;
+  border-collapse: collapse;
+  max-width: 100%;
+  overflow-x: auto;
+  font-family: var(--kc-font-math);
+  font-size: var(--kc-size-math);
+}
+
+.kc-table-row {
+  display: table-row;
+}
+
+.kc-table-cell {
+  display: table-cell;
+  min-width: 64px;
+  height: 32px;
+  padding: 0 6px;
+  border: 1px solid var(--kc-boundary);
+  vertical-align: middle;
+  color: var(--kc-text);
+}
+
+.kc-table-row[data-header="true"] > .kc-table-cell {
+  background: var(--kc-chrome);
+}
+
+/* D-10, D-19: computed cells are read-only and set apart by their secondary text. */
+.kc-table-cell[data-computed="true"] {
+  color: var(--kc-text-secondary);
+}
+
+.kc-table-cell:focus-within {
+  outline: 2px solid var(--kc-focus-ring);
+  outline-offset: -2px;
+}
+
+.kc-table-field .kc-math-field.mq-editable-field,
+.kc-table-field .kc-math-field.mq-editable-field.mq-focused {
+  border-style: none;
+  border-color: transparent;
+  box-shadow: none;
+  outline: none;
+  min-width: 100%;
+}

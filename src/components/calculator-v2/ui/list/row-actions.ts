@@ -69,6 +69,16 @@ export function insertExpressionItem(
  * S-12, S-13, D-5: Add table; an empty active row becomes the table, any other anchor gets one
  * after it, and focus goes to the first x cell.
  */
+/** D-5: an empty expression row that the user typed "table" into becomes a table in place. */
+export function convertToTable(
+  engine: CalculatorEngine,
+  focus: FocusController,
+  rowId: string
+): void {
+  const converted = engine.replaceWithTable(rowId);
+  if (typeof converted !== "string") focus.focusRow(cellKey(converted.id, 0, 0), "start");
+}
+
 export function insertTableItem(
   engine: CalculatorEngine,
   focus: FocusController,

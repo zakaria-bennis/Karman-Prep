@@ -37,6 +37,7 @@ import { ExpressionRow } from "./ExpressionRow";
 import { MotionContext } from "./motion";
 import { clearAllRows, performRedo, performUndo } from "./row-actions";
 import { useRowPresence } from "./row-presence";
+import { TableItem } from "./TableItem";
 
 type ListState = "expanded" | "collapsing" | "collapsed" | "expanding";
 
@@ -302,17 +303,28 @@ export function ExpressionPanel(props: ExpressionPanelProps): JSX.Element {
           )}
           {/* role="list" keeps list semantics in WebKit, which drops them under list-style: none */}
           <ol className="kc-list" role="list" aria-label="Expressions">
-            {numbered.map(({ row, motion, number }) => (
-              <ExpressionRow
-                key={row.id}
-                row={row}
-                number={number}
-                keypadOpen={props.keypadOpen}
-                onTouchFocus={props.onTouchFocusRow}
-                motion={motion}
-                onExitDone={exitDone}
-              />
-            ))}
+            {numbered.map(({ row, motion, number }) =>
+              row.type === "table" ? (
+                <TableItem
+                  key={row.id}
+                  row={row}
+                  number={number}
+                  keypadOpen={props.keypadOpen}
+                  motion={motion}
+                  onExitDone={exitDone}
+                />
+              ) : (
+                <ExpressionRow
+                  key={row.id}
+                  row={row}
+                  number={number}
+                  keypadOpen={props.keypadOpen}
+                  onTouchFocus={props.onTouchFocusRow}
+                  motion={motion}
+                  onExitDone={exitDone}
+                />
+              )
+            )}
           </ol>
         </div>
       )}
