@@ -173,6 +173,25 @@ it("AR-53 a render error in the window leaves the question mounted and offers Re
   expect(document.querySelector("[data-calculator-window]")).not.toBeNull();
 });
 
+it("AR-53 the render-error fallback is a window-shaped dialog that Close calculator hides, and a later open retries", () => {
+  h.throwWindow = true;
+  vi.spyOn(console, "error").mockImplementation(() => {});
+  phone();
+  render(<Host version="v2" />);
+  fireEvent.click(screen.getByRole("button", { name: "Open Karman calculator" }));
+  const fallback = screen.getByRole("dialog", { name: "Karman calculator" });
+  expect(fallback).toHaveAttribute("data-calculator-window-fallback");
+  expect(fallback.style.width).not.toBe("");
+  // full screen's modal inertness is dropped while the fallback shows (AR-28 resumes on retry)
+  expect(screen.getByText("Question body").closest("[inert]")).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: "Close calculator" }));
+  expect(trigger()).toHaveAttribute("aria-expanded", "false");
+  h.throwWindow = false;
+  fireEvent.click(screen.getByRole("button", { name: "Open Karman calculator" }));
+  expect(screen.queryByText(MOUNT_FAILED_COPY, { exact: true })).toBeNull();
+  expect(document.querySelector("[data-calculator-window]")).not.toBeNull();
+});
+
 it("AR-13 on v2 the v1 export controls render nothing", () => {
   const v1 = render(<Host version="v1" />);
   expect(
