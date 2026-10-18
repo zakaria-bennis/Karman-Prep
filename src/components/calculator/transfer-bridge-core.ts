@@ -12,8 +12,6 @@ import {
   type TransferResult,
   type TransferTrigger,
 } from "@/lib/calculator-transfer/payload";
-import { FULL_SCREEN_QUERY } from "./breakpoints";
-import { calculatorWindowStore } from "./calculator-window-store";
 import { reportCalculatorError } from "./report-error";
 import { markCoreRejection } from "./transfer-report";
 import { transferSelection } from "./transfer-selection";
@@ -34,8 +32,8 @@ const unavailableReload = (): TransferResult => ({
 
 /** The announced text; a repeat of the current text is cleared and written again after 50 ms. */
 function announce(s: TransferState, message: string): void {
-  if (s.timer !== null) clearTimeout(s.timer);
-  s.timer = null;
+  clearTimeout(s.timer);
+  s.timer = undefined;
   if (message !== s.spoken) {
     s.spoken = message;
     s.say(message);
@@ -44,7 +42,7 @@ function announce(s: TransferState, message: string): void {
   s.spoken = "";
   s.say("");
   s.timer = setTimeout(() => {
-    s.timer = null;
+    s.timer = undefined;
     s.spoken = message;
     s.say(message);
   }, 50);
@@ -74,7 +72,7 @@ export function transfer(
 ): Promise<TransferResult> {
   const now = s.options;
   // 0. A transfer that waited for this chunk while its scope unmounted: discarded (TR-69, TR-70).
-  if (!s.live) return Promise.resolve(DISCARDED);
+  if (s.dead) return Promise.resolve(DISCARDED);
   // 1. TR-70: never applied to another question; said, but never marked as a core rejection.
   if (payload.questionKey !== now.questionKey) {
     announce(s, TRANSFER_MESSAGES.rejected);
@@ -93,9 +91,7 @@ export function transfer(
   // AR-21, TR-64, TR-65: dock on a wide viewport, whatever the trigger and whatever mode was open
   // (the same rule as the first toolbar open of a page session, L-4); a full-screen viewport keeps
   // the stored mode. Refusals above never write the store; a load-failure panel opens docked.
-  if (!matchMedia(FULL_SCREEN_QUERY).matches) {
-    calculatorWindowStore.set({ mode: "docked", restoreMode: "docked" });
-  }
+  s.dock(); // the hook's: docked unless the viewport is full screen
   // 4. OI-28: a failed import stays failed for the page.
   if (now.status === "failed" && now.failure === "load") {
     openWindow(s, trigger);
@@ -118,7 +114,7 @@ export function transfer(
  * The first batch after a transfer opened the window places its focus (TR-66, AR-55): the
  * transferred row's own focus, else, when every result was rejected, focusOnOpen. */
 export function drain(s: TransferState): void {
-  const handle = s.handle;
+  const handle = s.handle ?? null;
   if (!s.options.open) {
     if (s.wasOpen) s.opened = null; // closed: the next open is a new one
     s.wasOpen = false;
@@ -160,8 +156,10 @@ export function drain(s: TransferState): void {
  * them for Retry and says so once. AR-55: a window a transfer opened on a failure panel focuses
  * its "Reload page" or "Retry" button (else the frame); after a mount failure the focus stays due,
  * so the drain after a successful Retry still places it. */
-export function settleFailure(s: TransferState): void {
+export function settle(s: TransferState): void {
   const { open, status, failure, frameRef } = s.options;
+  if (open && !s.selectionOpen) transferSelection.clear(); // TR-57: opening ends a tap selection
+  s.selectionOpen = open;
   const seen = `${status}:${failure}`;
   if (s.failureSeen !== seen && status === "failed" && s.held.length > 0) {
     if (failure === "load") {
@@ -180,15 +178,10 @@ export function settleFailure(s: TransferState): void {
   if (failure === "load") s.opened.focusDue = false;
 }
 
-/** TR-57: opening the calculator ends a tap selection. */
-export function clearSelection(): void {
-  transferSelection.clear();
-}
-
 /** TR-69, TR-70: leaving the question discards held payloads silently and ends a selection. */
 export function dispose(s: TransferState): void {
-  if (s.timer !== null) clearTimeout(s.timer);
-  s.timer = null;
+  clearTimeout(s.timer);
+  s.timer = undefined;
   for (const entry of s.held.splice(0)) entry.resolve(DISCARDED);
   transferSelection.clear();
 }

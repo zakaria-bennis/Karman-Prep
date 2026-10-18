@@ -6,11 +6,12 @@ import { beforeEach, expect, it, vi } from "vitest";
 beforeEach(() => {
   vi.resetModules();
   vi.doUnmock("@/lib/calculator-transfer/classify");
+  vi.doUnmock("./transfer-lazy");
 });
 
 // D4 (00-index section 7): 12's classifier and the Transfer control are too large for AR-33's
 // eager budget, so quiz code reaches them only through this loader's import()s, in their own chunks.
-it("AR-33 the eager transfer code reaches the classifier, TransferControl and the bridge's pipeline only through import(), never a static value import", () => {
+it("AR-33 the eager transfer code reaches the classifier, TransferControl and the bridge's pipeline only through the one import() of the lazy Transfer chunk, never a static value import", () => {
   const eager = [
     "src/components/calculator/use-transfer-bridge.ts",
     "src/components/calculator/transfer-classifier.ts",
@@ -30,7 +31,7 @@ it("AR-33 the eager transfer code reaches the classifier, TransferControl and th
   // any value import (or side-effect import) of TransferControl, its two stylesheets or the
   // wrappers' lazy item lookup
   const controlImport =
-    /^import\s+(?!type\b)(?:[^;]*?from\s+)?"[^"]*(?:\/TransferControl(?:\.module\.css)?|\/transfer-control\.css|\/transfer-items)";/m;
+    /^import\s+(?!type\b)(?:[^;]*?from\s+)?"[^"]*(?:\/TransferControl(?:\.module\.css)?|\/transfer-control\.css|\/transfer-items|\/transfer-lazy)";/m;
   // the bridge's pipeline and the modules only it and the control use (moved out of the eager
   // budget with D4's extension): the key check, queue, drain, announcements, selection store and
   // rejection marks
@@ -46,20 +47,28 @@ it("AR-33 the eager transfer code reaches the classifier, TransferControl and th
     expect(source, file).not.toMatch(pipelineImport);
     expect(source, file).not.toMatch(payloadValue);
   }
+  // the hook's one import() is its pipeline; the loader's one import() is the controls' chunk entry,
+  // re-exporting the classifier, the item lookup and the control, and it preloads the pipeline
+  const dynamic = /(?<!typeof )import\("[^"]*"\)/g;
   const bridge = readFileSync("src/components/calculator/use-transfer-bridge.ts", "utf8");
-  expect(bridge).toMatch(/import\("\.\/transfer-bridge-core"\)/);
+  expect(bridge.match(dynamic)).toEqual(['import("./transfer-bridge-core")']);
+  const lazy = readFileSync("src/components/calculator/transfer-lazy.ts", "utf8");
+  for (const target of [
+    "@/lib/calculator-transfer/classify",
+    "./transfer-items",
+    "./TransferControl",
+  ])
+    expect(lazy, target).toContain(`from "${target}";`);
   // the stem registry and the v2 wrapper bodies live in the lazy transfer-items.tsx
   const wrappers = readFileSync("src/components/calculator/CalculatorSourceAction.tsx", "utf8");
   expect(wrappers).not.toMatch(/useSyncExternalStore|useLayoutEffect/);
   const loader = readFileSync("src/components/calculator/transfer-classifier.ts", "utf8");
-  expect(loader).toMatch(/import\("@\/lib\/calculator-transfer\/classify"\)/);
-  expect(loader).toMatch(/import\("\.\/TransferControl"\)/);
-  expect(loader).toMatch(/import\("\.\/transfer-items"\)/);
+  expect(loader.match(dynamic)).toEqual(['import("./transfer-lazy")']);
   expect(loader).toMatch(/loadTransferCore\(\)/); // the pipeline loads with the controls
-  // the control's stylesheets are imported only by the lazily loaded control
+  // the control's stylesheet is imported only by the lazily loaded control
   const control = readFileSync("src/components/calculator/TransferControl.tsx", "utf8");
-  expect(control).toMatch(/^import styles from "\.\/TransferControl\.module\.css";$/m);
   expect(control).toMatch(/^import "\.\/transfer-control\.css";$/m);
+  expect(control).not.toMatch(/\.module\.css"/);
 });
 
 it("AR-33 useTransferClassifier gives null until the lazy classifier and TransferControl resolve, then both, loading them once; an inactive caller gets null and loads nothing", async () => {
@@ -84,13 +93,10 @@ it("AR-33 useTransferClassifier gives null until the lazy classifier and Transfe
 
 it("AR-33 a failed classifier chunk renders no control and never throws, and the next caller retries the import", async () => {
   let fail = true;
-  vi.doMock("@/lib/calculator-transfer/classify", async () => {
+  // the controls' chunk entry fails once, as a lost chunk request would
+  vi.doMock("./transfer-lazy", async (original) => {
     if (fail) throw new Error("chunk failed");
-    return {
-      classifyStem: () => new Map(),
-      classifyChoice: () => null,
-      accessibleNames: () => new Map(),
-    };
+    return original();
   });
   const { loadTransferClassifier, useTransferClassifier } = await import("./transfer-classifier");
   const view = renderHook(() => useTransferClassifier(true));

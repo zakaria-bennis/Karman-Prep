@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { execFileSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import type {
@@ -271,10 +271,10 @@ it("TR-54 the triggering pointer type sets the mode whatever the device class or
   expect(item).toHaveAttribute("data-transfer-selected", "true");
 });
 
-it("TH-2 the control, tooltip and outline take colours only from --kcc-*, the injected shadow sheet holds no literal colour outside the vendored MathQuill section, and every module selector keeps a local class", () => {
+it("TH-2 the control, tooltip and outline take colours only from --kcc-*, the injected shadow sheet holds no literal colour outside the vendored MathQuill section, and every rule of the control's global sheet is keyed on a Transfer or v2 attribute", () => {
   const literal = /#[0-9a-fA-F]{3,8}\b|\b(rgba?|hsla?|oklch|oklab|lab|lch|hwb|color)\(/;
   const strip = (css: string) => css.replace(/\/\*[\s\S]*?\*\//g, "");
-  for (const file of ["TransferControl.module.css", "transfer-control.css"]) {
+  for (const file of ["transfer-control.css"]) {
     const css = strip(readFileSync(`src/components/calculator/${file}`, "utf8"));
     expect(css, file).not.toMatch(literal);
     // (?!-) so the property white-space is not read as the colour white
@@ -284,15 +284,22 @@ it("TH-2 the control, tooltip and outline take colours only from --kcc-*, the in
       file
     ).toEqual([]);
   }
-  const moduleCss = strip(
-    readFileSync("src/components/calculator/TransferControl.module.css", "utf8")
-  );
-  const selectors = [...moduleCss.matchAll(/(?:^|[{};])\s*([^\s{}@;][^{};]*)\{/g)].flatMap((m) =>
+  // AR-33: no CSS Module (Turbopack merged it into an eager CSS chunk); the one global sheet
+  // styles only the control's own DOM-contract attributes, the items and clusters it marks, and
+  // the docked question layout around them.
+  expect(existsSync("src/components/calculator/TransferControl.module.css")).toBe(false);
+  const globalCss = strip(readFileSync("src/components/calculator/transfer-control.css", "utf8"));
+  const selectors = [...globalCss.matchAll(/(?:^|[{};])\s*([^\s{}@;][^{};]*)\{/g)].flatMap((m) =>
     m[1].split(",").map((s) => s.trim())
   );
   expect(selectors.length).toBeGreaterThan(0);
-  // Next's pure mode
-  expect(selectors.filter((s) => !/\.(anchor|button|glyph|tooltip)\b/.test(s))).toEqual([]);
+  expect(
+    selectors.filter(
+      (s) =>
+        !/^\[data-(transfer-[a-z]+|calculator="v2"|calculator-workspace)[\]=]/.test(s) ||
+        /(^|[\s>])[a-z]*\.[\w-]+/.test(s)
+    )
+  ).toEqual([]);
   // The import line carries an explanatory comment in the current CalculatorScope.tsx.
   expect(readFileSync("src/components/calculator/CalculatorScope.tsx", "utf8")).toMatch(
     /^import "\.\/calculator-chrome\.generated\.css";(\s*\/\/.*)?$/m

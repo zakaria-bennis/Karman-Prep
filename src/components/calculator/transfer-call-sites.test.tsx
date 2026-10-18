@@ -134,7 +134,7 @@ it("TR-45 one real button per item right after it or in its cluster; the math is
   expect(anchors[2].previousElementSibling).toHaveAccessibleName("Cross out choice A");
   expect(container.querySelectorAll(".katex [tabindex], [tabindex].katex")).toHaveLength(0);
   expect(anchors[0]).toHaveAttribute("data-visible", "false");
-  const css = readFileSync("src/components/calculator/TransferControl.module.css", "utf8");
+  const css = readFileSync("src/components/calculator/transfer-control.css", "utf8");
   expect(css).toMatch(/\[data-visible="false"\][^{]*\{[^}]*clip-path:\s*inset\(50%\)/);
   expect(css).toMatch(/\[data-placement="cluster"\]\s*\{[^}]*opacity:\s*0\s*[;}]/);
   expect(css).not.toMatch(/display:\s*none|visibility:\s*hidden/);

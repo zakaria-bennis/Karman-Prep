@@ -17,7 +17,6 @@ import {
 import { ArrowUpRight, Calculator } from "lucide-react";
 import type { TransferItem } from "@/lib/calculator-transfer/classify";
 import { useCalculator, type V2Bridge } from "./CalculatorScope";
-import { questionIdFromKey } from "./question-key";
 import { isCoreRejection, reportTransferRejection } from "./transfer-report";
 import {
   isHoverPointer,
@@ -26,7 +25,6 @@ import {
   triggerFor,
   type PointerSample,
 } from "./transfer-selection";
-import styles from "./TransferControl.module.css";
 import "./transfer-control.css";
 
 export const TRANSFER_TOOLTIP = "Transfer to Calculator";
@@ -398,7 +396,12 @@ function V2TransferControl({
     const { bridge: now, item: target } = current.current;
     const result = await now.transfer({ ...target.payload, questionKey: now.questionKey }, trigger);
     if (result.status === "rejected" && isCoreRejection(result))
-      reportTransferRejection(questionIdFromKey(now.questionKey), target.ruleId); // TR-73
+      // TR-73. The id after the first ":" (question-key.ts's questionIdFromKey rule, written here
+      // so the eager question-key module keeps only makeQuestionKey, AR-33)
+      reportTransferRejection(
+        now.questionKey.slice(now.questionKey.indexOf(":") + 1),
+        target.ruleId
+      );
   }
 
   return (
@@ -409,13 +412,11 @@ function V2TransferControl({
       data-placement={placement}
       data-visible={inlineOrBlock ? String(visible) : undefined}
       data-reveal={inlineOrBlock ? (selected ? "coarse" : "fine") : undefined}
-      className={styles.anchor}
     >
       <button
         ref={button}
         type="button"
         aria-label={accessibleName}
-        className={styles.button}
         onPointerDown={(e) => {
           pointer.current.lastDown = { pointerType: e.pointerType };
           e.stopPropagation();
@@ -436,18 +437,12 @@ function V2TransferControl({
         }}
         onClick={(e) => void activate(e)}
       >
-        <span data-transfer-glyph="" aria-hidden="true" className={styles.glyph}>
+        <span data-transfer-glyph="" aria-hidden="true">
           <Calculator size={16} />
           <ArrowUpRight size={16} />
         </span>
       </button>
-      <span
-        ref={tip}
-        data-transfer-tooltip=""
-        aria-hidden="true"
-        hidden={!tooltip}
-        className={styles.tooltip}
-      >
+      <span ref={tip} data-transfer-tooltip="" aria-hidden="true" hidden={!tooltip}>
         {TRANSFER_TOOLTIP}
       </span>
     </span>
