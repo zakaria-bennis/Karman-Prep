@@ -425,3 +425,17 @@ Task 9:
 - `rows` and `answerState` use optional chaining instead of non-null assertions.
 - TR-41 passed before the coarse rules, as planned (task 6 built it); it is also the first
   browser transfer through the D4 lazy bridge pipeline.
+
+Task 10:
+
+- `tapItem` taps 6 px into the item instead of its centre: the coarse control covers the item's
+  end (TR-55), and Chromium's touch adjustment moved a centre tap 6 px below the button onto it,
+  so TR-56's second tap transferred instead of deselecting. A real phone's touch adjustment does
+  the same near the control; deselecting needs a tap on the uncovered part of the item.
+- TR-57: `tapItem`'s scroll into view leaves the diagnostic at its bottom on calculator-android,
+  so the test scrolls 120 px up when it can (else down), with `behavior: "instant"`: the site
+  scrolls smoothly, and a measurement mid-scroll read the item and control at different times.
+- The outside-tap listeners are capture-phase `document` listeners added while the item is
+  selected; a contact that starts inside the item or anchor is not tracked.
+- Only calculator-android ran the touch tests here; calculator-ios (WebKit) cannot run on this
+  machine.

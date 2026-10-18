@@ -301,6 +301,56 @@ function V2TransferControl({
     };
   }, [placement, inlineOrBlock]);
 
+  // TR-57: while selected, a tap outside both the item and the control ends the selection. One
+  // contact is tracked as on the item (largest movement, cancel ends it).
+  useEffect(() => {
+    const a = anchor.current;
+    const el = a?.previousElementSibling;
+    if (!selected || !inlineOrBlock || a === null || !(el instanceof HTMLElement)) return;
+    let down: PointerSample | null = null;
+    let maxMove = 0;
+    const sample = (e: PointerEvent): PointerSample => ({
+      pointerType: e.pointerType,
+      x: e.clientX,
+      y: e.clientY,
+      t: e.timeStamp,
+    });
+    const inside = (target: EventTarget | null) =>
+      target instanceof Node && (el.contains(target) || a.contains(target));
+    const capture: [string, (e: PointerEvent) => void][] = [
+      [
+        "pointerdown",
+        (e) => {
+          down = inside(e.target) ? null : sample(e);
+          maxMove = 0;
+        },
+      ],
+      [
+        "pointermove",
+        (e) => {
+          if (down !== null)
+            maxMove = Math.max(maxMove, Math.hypot(e.clientX - down.x, e.clientY - down.y));
+        },
+      ],
+      ["pointercancel", () => (down = null)],
+      [
+        "pointerup",
+        (e) => {
+          const start = down;
+          down = null;
+          const collapsed = window.getSelection?.()?.isCollapsed ?? true;
+          if (start !== null && !inside(e.target) && isTap(start, sample(e), maxMove, collapsed))
+            transferSelection.clear();
+        },
+      ],
+    ];
+    for (const [type, fn] of capture) document.addEventListener(type, fn as EventListener, true);
+    return () => {
+      for (const [type, fn] of capture)
+        document.removeEventListener(type, fn as EventListener, true);
+    };
+  }, [selected, inlineOrBlock]);
+
   // TR-46: place the button whenever it shows or its reveal size changes, and again while it
   // shows whenever the item resizes.
   useLayoutEffect(() => {

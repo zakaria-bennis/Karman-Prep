@@ -69,10 +69,12 @@ export const settled = (page: Page) =>
         .map((a) => a.finished.catch(() => undefined))
     ).then(() => true)
   );
+/** Taps the item near its start: a coarse control covers the item's end (TR-55), and Chromium's
+ * touch adjustment moves a tap a few px from the button onto it. */
 export async function tapItem(page: Page, latex: string, n = 0) {
   await item(page, latex, n).scrollIntoViewIfNeeded();
   const b = await box(item(page, latex, n));
-  await page.touchscreen.tap(b.x + b.width / 2, b.y + b.height / 2);
+  await page.touchscreen.tap(b.x + Math.min(b.width / 2, 6), b.y + b.height / 2);
 }
 /** Moves the mouse to a point of the element's bounding box (default its centre). Locator.hover()
  * aims at the centre of an inline item's first content quad, which for a KaTeX span starting at
@@ -103,3 +105,22 @@ export const answerState = (page: Page) =>
       b.textContent?.includes("Skip this question")
     ),
   }));
+export const touchOnly = (name: string) =>
+  test.skip(!/ios|android/.test(name), "touch projects only");
+export const frame = (page: Page) => page.locator("[data-calculator-window]");
+export const selected = (page: Page) => page.locator('[data-transfer-selected="true"]');
+/** A synthetic touch contact on the target's centre: optional hold, move by dx, and return. */
+export async function touchGesture(
+  page: Page,
+  target: Locator,
+  o: { holdMs?: number; dx?: number; back?: boolean }
+) {
+  const b = await box(target);
+  const x = b.x + b.width / 2;
+  const y = b.y + b.height / 2;
+  const init = { pointerType: "touch", isPrimary: true, clientY: y, bubbles: true };
+  await target.dispatchEvent("pointerdown", { ...init, clientX: x });
+  if (o.dx) await target.dispatchEvent("pointermove", { ...init, clientX: x + o.dx });
+  if (o.holdMs) await page.waitForTimeout(o.holdMs);
+  await target.dispatchEvent("pointerup", { ...init, clientX: o.back ? x : x + (o.dx ?? 0) });
+}
