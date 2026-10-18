@@ -39,6 +39,28 @@ TR-34, TR-39, TR-60, TR-61, TR-63, D-17 and D-18.
 Tests `it("TR-22 only the two table 5.1 shapes are eligible")`, `it("TR-23 the first variable is the input and 1 to 8 variables with 1 to 200 points transfer")`, `it("TR-24 cells must be numeric constants after normalisation, separators removed")`, `it("TR-25 columns are named x_n and y_n with the lowest free n")`.
 **Commit** `Classify question tables for calculator v2 transfer (TR-22 to TR-25)`.
 
+**Adaptations made while executing Task 15:**
+
+- The payload keeps the AR-16 shape `table: { headers: (string | null)[]; columns: string[][] }`
+  (section 12 of `c-transfer.md`) rather than columns alone: table 11.1's "Added table" message
+  names each column's header, and the AR-16 type test already fixes that shape. `apply.ts`
+  validates both fields with Zod; headers are plain text used only in the status (TR-25).
+- Names are chosen at apply (TR-72), so the TR-25 test lives in
+  `src/components/calculator-v2/transfer/apply.tables.test.ts`, and the table branch of apply
+  (`plan-table.ts`: D-4 names, the TR-73 check, the table 11.1 message) ships with this task.
+- The controls render in this task too: the eager `CalculatorTableAction` gains a v2 branch that
+  renders the lazy `TableTransferAction` (`transfer-items.tsx`) for `itemId="table"` (block
+  placement) and for the cluster slot of a table choice. Catalog practice renders its table choices
+  through `QuestionTable` with `itemId="choice:<letter>"` and no cluster, which the wrapper cannot
+  tell apart from `TableChoiceOption`'s v1-only instance without a new call-site prop (eager bytes,
+  AR-33), so those choices get no v2 control yet.
+- The table 8.1 description is "table, n rows" without the caption: the wrappers do not receive
+  the caption, and passing it would add eager bytes.
+- The table fixtures live in `__fixtures__/tables.ts` and run in `table.test.ts`; the seven-file
+  TR-79 runner takes stems and choices only, and its PR-44 check has no cell cases.
+- A table with a table 5.1 header or first-column pattern but a non-numeric body cell reports
+  TR-24 (so a frequency table with a "Total" row is TR-24); a table with no such pattern is TR-22.
+
 ### Task 16: Applying tables and point rows (TR-34, D-17, D-18, TR-39)
 
 **Files:** `src/components/calculator-v2/transfer/apply.ts`, `plan.ts`; tests

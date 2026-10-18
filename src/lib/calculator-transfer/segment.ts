@@ -370,6 +370,20 @@ const isInteger = (node: Node): boolean =>
       ? isInteger(node.a)
       : node.t === "group" && isInteger(node.inner);
 
+/** TR-24 and TR-15: normalised LaTeX that is exactly one numeric constant (section 2's term). */
+export function isNumericConstantLatex(latex: string): boolean {
+  const lexed = lexQuestionMath(latex);
+  if (!lexed.ok || lexed.tokens.length === 0 || lexed.tokens.length > SEGMENT_LIMITS.tokens)
+    return false;
+  try {
+    const items = new Parser(lexed.tokens, new Set()).parseRow();
+    return items.length === 1 && items[0].length === 1 && isNumericConstant(items[0][0]);
+  } catch (error) {
+    if (error instanceof Reject) return false;
+    throw error;
+  }
+}
+
 const is = (t: QToken | undefined, kind: QTokenKind, text?: string) =>
   t !== undefined && t.kind === kind && (text === undefined || t.text === text);
 

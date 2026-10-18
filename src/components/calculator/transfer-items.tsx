@@ -10,6 +10,7 @@ import {
   type StemInput,
   type TransferItem,
 } from "@/lib/calculator-transfer/classify";
+import { classifyTable } from "@/lib/calculator-transfer/table";
 import { splitMathText, type MathSegment } from "@/components/learn/math-segments";
 import { TransferControl } from "./TransferControl";
 
@@ -117,4 +118,26 @@ export function ChoiceTransferAction(props: {
   const registered = useQuestionStem(props.questionKey);
   const view = choiceControl(props.letter, props.text, props.stem ?? registered);
   return view && <TransferControl {...view} />;
+}
+
+/** The v2 CalculatorTableAction (TR-22): a question table's control at its top-right corner, or
+ * a table answer choice's in its cluster ("choice:<letter>" items are described by the letter). */
+export function TableTransferAction(props: {
+  rows: string[][];
+  headers?: string[];
+  itemId?: string;
+  slot?: "cluster";
+}): JSX.Element | null {
+  const sourceId = props.itemId ?? "table";
+  const letter = sourceId.startsWith("choice:") ? sourceId.slice("choice:".length) : undefined;
+  const item = classifyTable({
+    sourceId,
+    headers: props.headers ?? null,
+    rows: props.rows,
+    letter,
+  });
+  const accessibleName = item && accessibleNames([item]).get(item.sourceId);
+  if (!item || !accessibleName) return null;
+  const placement = props.slot === "cluster" ? "cluster" : "block";
+  return <TransferControl item={item} accessibleName={accessibleName} placement={placement} />;
 }

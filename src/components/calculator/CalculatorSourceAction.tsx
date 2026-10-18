@@ -200,7 +200,8 @@ function V1TableAction({ rows }: { rows: string[][] }) {
   return <PasteAction payload={payload} label="Paste table into calculator as x₁, y₁" />;
 }
 
-/** v2 renders no table control until Phase 3 (TR-77); headers, layout and itemId wait for it. */
+/** v2: a question table's control (TR-22), or a table choice's in its cluster; the v1 instance
+ * of a table choice renders nothing on v2. */
 export function CalculatorTableAction(props: {
   rows: string[][];
   headers?: string[];
@@ -209,6 +210,12 @@ export function CalculatorTableAction(props: {
   slot?: "cluster";
 }): JSX.Element | null {
   const bridge = useCalculator();
-  if (bridge?.version === "v2" || props.slot === "cluster") return null;
-  return <V1TableAction rows={props.rows} />;
+  if (bridge?.version === "v2")
+    return (
+      <V2Transfer
+        active={props.slot === "cluster" || props.itemId === "table"}
+        part={(t) => <t.TableTransferAction {...props} />}
+      />
+    );
+  return props.slot === "cluster" ? null : <V1TableAction rows={props.rows} />;
 }

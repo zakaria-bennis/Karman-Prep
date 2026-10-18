@@ -197,7 +197,7 @@ it("TR-50 names are Transfer to Calculator plus the table 8.1 description, uniqu
   ]);
 });
 
-it("TR-76, AR-11 the wrappers branch on bridge.version: v1 keeps PasteAction and cluster instances render nothing; v2 renders only Transfer controls and no table control before Phase 3", async () => {
+it("TR-76, AR-11, TR-22 the wrappers branch on bridge.version: v1 keeps PasteAction and cluster instances render nothing; v2 renders only Transfer controls, question tables and table choices included", async () => {
   const stem = { text: "Line $y=2x+3$", serializedFunctionLines: false };
   const tree = (
     <>
@@ -235,13 +235,20 @@ it("TR-76, AR-11 the wrappers branch on bridge.version: v1 keeps PasteAction and
   v1.unmount();
   stubbed(v2Bridge());
   render(tree);
-  await waitFor(() => expect(namesOf()).toHaveLength(2));
+  await waitFor(() => expect(namesOf()).toHaveLength(4));
   expect(screen.queryAllByText(/Export to Karman|Copy for Desmos/)).toHaveLength(0);
   expect(screen.queryByRole("button", { name: "Export options" })).toBeNull();
   expect(namesOf()).toEqual([
     "Transfer to Calculator: y = 2x + 3",
     "Transfer to Calculator: choice B",
+    "Transfer to Calculator: table, 1 row",
+    "Transfer to Calculator: table, 2 rows",
   ]);
+  expect(
+    [...document.querySelectorAll("[data-transfer-control]")].map((a) =>
+      a.getAttribute("data-placement")
+    )
+  ).toEqual(["inline", "cluster", "cluster", "block"]);
 });
 
 it("AR-11 a choice with no stem prop classifies against the stem its question's MathText registered", async () => {
@@ -481,7 +488,7 @@ it("AR-11 on v2 each answer-choice cluster gains data-calculator=v2 and one Tran
   }
 });
 
-it("AR-11 table choices get the v2 cluster attribute with no control before Phase 3, and daily choices get a v2-only cluster as the next sibling of each label", async () => {
+it("AR-11, TR-22 a table choice's control sits in its v2 cluster (its v1 instance renders nothing), and daily choices get a v2-only cluster as the next sibling of each label", async () => {
   const table = () => (
     <TableChoiceOption
       id="c-d"
@@ -503,7 +510,10 @@ it("AR-11 table choices get the v2 cluster attribute with no control before Phas
   const v2 = render(table());
   const header = must(buttons(/^Cross out choice D$/)[0]).parentElement;
   expect(header).toHaveAttribute("data-calculator", "v2");
-  expect(document.querySelectorAll("[data-transfer-control]")).toHaveLength(0);
+  await waitFor(() => expect(document.querySelectorAll("[data-transfer-control]")).toHaveLength(1));
+  expect(header?.querySelector("[data-transfer-control] button")).toHaveAccessibleName(
+    "Transfer to Calculator: choice D"
+  );
   expect(buttons(/^Paste table/)).toHaveLength(0);
   v2.unmount();
   const slot = {

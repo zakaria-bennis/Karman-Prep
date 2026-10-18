@@ -25,6 +25,9 @@ export const MAX_QUEUED_TRANSFERS = 20; // AR-17
 
 export const TRANSFER_MESSAGES = {
   added: (description: string): string => `Added to calculator: ${description}.`,
+  // parts: "x₁ is t" per column, or "x₁" when the column has no header (TR-25)
+  tableAdded: (parts: readonly string[], rows: number): string =>
+    `Added table to calculator: ${[...parts, `${rows} ${rows === 1 ? "row" : "rows"}`].join(", ")}.`,
   alreadyPresent: (row: number): string => `Already in the calculator, row ${row}.`,
   renamed: (newName: string, name: string): string =>
     `Added as ${newName} because ${name} is already defined.`,

@@ -32,9 +32,10 @@ export type TransferItemKind =
   | "inequality"
   | "function"
   | "system"
-  | "choice";
+  | "choice"
+  | "table";
 export interface TransferItem {
-  sourceId: string; // "stem:<splitMathText index>" or "choice:<letter>"
+  sourceId: string; // "stem:<splitMathText index>", "choice:<letter>" or "table" (table.ts)
   kind: TransferItemKind;
   ruleId: string; // accepting rule, e.g. "TR-11"; the only content TR-73 reports
   description: string; // table 8.1
@@ -50,6 +51,7 @@ const ACCEPTING_RULE: Readonly<Record<TransferItemKind, string>> = {
   function: "TR-13",
   system: "TR-12",
   choice: "TR-40",
+  table: "TR-22",
 };
 
 const MEMO_LIMIT = 200;

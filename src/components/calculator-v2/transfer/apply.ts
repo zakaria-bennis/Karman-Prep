@@ -5,6 +5,7 @@
 
 import { z } from "zod";
 import type { CalculatorEngine } from "@/lib/calculator-v2/core/api/engine";
+import type { ExpressionState } from "@/lib/calculator-v2/core/api/types";
 import { MAX_ROWS } from "@/lib/calculator-v2/core/latex/index";
 import { plainMath } from "@/lib/calculator-transfer/describe";
 import {
@@ -14,6 +15,7 @@ import {
   type TransferTrigger,
 } from "@/lib/calculator-transfer/payload";
 import { planTransfer } from "./plan";
+import { planTable } from "./plan-table";
 
 export type TransferTarget = Pick<
   CalculatorEngine,
@@ -55,6 +57,43 @@ const REJECTED: ApplyResult = {
   focusRowId: null,
 };
 
+/** What apply.ts commits: one setExpressions of `writes` (one undo step), then the focus. */
+type Commit =
+  | { status: "rejected" }
+  | { status: "already-present"; focusRowId: string; message: string }
+  | {
+      status: "added" | "renamed";
+      writes: ExpressionState[];
+      focusRowId: string;
+      message: string;
+    };
+
+/** The rows payload's plan (TR-26 to TR-37) as a commit. */
+function rowsCommit(target: TransferTarget, payload: TransferPayload): Commit {
+  const { angleMode, complex } = target.settings;
+  const plan = planTransfer({
+    existing: target.getExpressions(),
+    payload,
+    settings: { angleMode, complex },
+  });
+  if (plan.status === "rejected") return plan;
+  if (plan.status === "already-present")
+    return { ...plan, message: TRANSFER_MESSAGES.alreadyPresent(plan.row) };
+  const message =
+    plan.status === "renamed" && plan.rename !== null
+      ? TRANSFER_MESSAGES.renamed(plainMath(plan.rename.to), plainMath(plan.rename.from))
+      : TRANSFER_MESSAGES.added(payload.description);
+  return { status: plan.status, writes: plan.writes, focusRowId: plan.focusRowId, message };
+}
+
+/** The table payload's plan (TR-25) as a commit. */
+function tableCommit(target: TransferTarget, payload: TransferPayload): Commit {
+  if (payload.table === undefined) return { status: "rejected" };
+  const { angleMode, complex } = target.settings;
+  const plan = planTable(target.getExpressions(), payload.table, { angleMode, complex });
+  return plan.status === "rejected" ? plan : { ...plan, writes: [plan.write] };
+}
+
 /**
  * TR-71 to TR-73: nothing changes unless the payload is valid and the prospective list passes
  * the core check; then one setExpressions (one undo step, TR-38), the list expanded (TR-32) and
@@ -68,14 +107,9 @@ export function applyTransfer(
   const parsed = transferPayloadSchema.safeParse(payload);
   if (!parsed.success) return REJECTED;
   const valid = parsed.data;
-  let plan;
+  let plan: Commit;
   try {
-    const { angleMode, complex } = target.settings;
-    plan = planTransfer({
-      existing: target.getExpressions(),
-      payload: valid,
-      settings: { angleMode, complex },
-    });
+    plan = valid.format === "table" ? tableCommit(target, valid) : rowsCommit(target, valid);
   } catch {
     return REJECTED;
   }
@@ -93,16 +127,5 @@ export function applyTransfer(
   } catch {
     // The rows are committed; a focus failure (the row left the list meanwhile) changes nothing.
   }
-  if (plan.status === "already-present") {
-    return {
-      status: plan.status,
-      message: TRANSFER_MESSAGES.alreadyPresent(plan.row),
-      focusRowId: plan.focusRowId,
-    };
-  }
-  const message =
-    plan.status === "renamed" && plan.rename !== null
-      ? TRANSFER_MESSAGES.renamed(plainMath(plan.rename.to), plainMath(plan.rename.from))
-      : TRANSFER_MESSAGES.added(valid.description);
-  return { status: plan.status, message, focusRowId: plan.focusRowId };
+  return { status: plan.status, message: plan.message, focusRowId: plan.focusRowId };
 }
