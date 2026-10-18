@@ -209,3 +209,22 @@ test("R-10 after setBlank() a keyboard reopen focuses Expression 1", async ({ pa
   await api(page, 'globalThis.__shell.handle.focusOnOpen("keyboard")');
   await expect.poll(() => focusedRow(page)).toBe("1");
 });
+test("A11Y-2 the reset announcement plays once, 500 ms after mount, only when the window stayed open (OI-3)", async ({
+  page,
+}) => {
+  const log = () => page.evaluate(() => globalThis.__shell!.log);
+  const count = async () => (await log()).announcements.length;
+  await openShell(page, "?announceReset=1");
+  await expect.poll(count, { timeout: 3000 }).toBe(1);
+  const {
+    announcements: [first],
+    mountedAt,
+  } = await log();
+  expect(first.text).toBe("Calculator cleared for this question.");
+  expect([first.t - mountedAt >= 450, first.t - mountedAt < 1500]).toEqual([true, true]);
+  await page.evaluate(() => globalThis.__shell!.remount({ announceReset: false }));
+  await page.waitForTimeout(1500);
+  expect(await count()).toBe(1);
+  await page.evaluate(() => globalThis.__shell!.remount({ announceReset: true }));
+  await expect.poll(count, { timeout: 3000 }).toBe(2);
+});

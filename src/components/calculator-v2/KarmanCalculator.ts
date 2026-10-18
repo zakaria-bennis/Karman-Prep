@@ -160,6 +160,11 @@ export class KarmanCalculator {
     // 9. Dev counter and the internal channel.
     bumpDevCounter("calculators", 1);
     internals.set(this, { focus: this.#focus });
+
+    // 10. A11Y-2, OI-3: only a calculator that stayed open across the question change announces.
+    if (hooks?.announceResetOnMount) {
+      this.#announcer.announce(RESET_ANNOUNCEMENT, { delayMs: 500, key: "reset" });
+    }
   }
 
   #render(): void {
