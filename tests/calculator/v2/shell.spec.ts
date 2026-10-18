@@ -12,6 +12,7 @@ import {
   box,
   cs,
   enc,
+  tap,
   expectOrder,
   focusedRow,
   frames,
@@ -266,6 +267,13 @@ for (const skin of SKIN_IDS)
     await rowField(page, "3").click();
     await api(page, "c.updateSettings({ keypad: true })");
     await page.getByRole("button", { name: "Graph settings" }).click();
+    // Rows draw no field box (L-3), so the boundaries measured are the settings fields: wait for
+    // the popover to be up and its AN-4 fade to end before reading colours.
+    const settings = page.locator("#calc .kc-settings");
+    await expect(settings).toBeVisible();
+    await expect
+      .poll(() => settings.evaluate((el) => el.getAnimations({ subtree: true }).length))
+      .toBe(0);
     const pairs = await textPairs(page);
     expect([
       pairs.some((p) => p.kind === "text"),
@@ -304,4 +312,46 @@ test("R-1 clicking a row body focuses its field", async ({ page, isMobile }) => 
   await expect.poll(async () => (await rows(page))[1].latex).toBe("y=2x+1");
   await page.getByRole("button", { name: "Delete expression 3" }).click();
   await expect.poll(async () => (await rows(page)).length).toBe(2);
+});
+test("L-3 a row's math field draws no box, focused or not; the row's L-3 outline marks focus", async ({
+  page,
+  isMobile,
+}) => {
+  await openShell(page, `?rows=${enc(["y=x", "y=2x"])}`);
+  await tap(isMobile, rowField(page, "2"));
+  await expect.poll(() => focusedRow(page)).toBe("2");
+  const look = (id: string) =>
+    page.locator(`#calc [data-row-id="${id}"]`).evaluate((row) => {
+      const field = getComputedStyle(row.querySelector(".mq-editable-field")!);
+      const li = getComputedStyle(row);
+      const visible = (style: string, width: string, color: string) =>
+        style !== "none" &&
+        style !== "hidden" &&
+        parseFloat(width) > 0 &&
+        !/rgba\(.*,\s*0\)$|transparent/.test(color);
+      return {
+        fieldBox: ["Top", "Right", "Bottom", "Left"].some((s) =>
+          visible(
+            field.getPropertyValue(`border-${s.toLowerCase()}-style`),
+            field.getPropertyValue(`border-${s.toLowerCase()}-width`),
+            field.getPropertyValue(`border-${s.toLowerCase()}-color`)
+          )
+        ),
+        fieldOutline: visible(field.outlineStyle, field.outlineWidth, field.outlineColor),
+        fieldShadow: field.boxShadow !== "none",
+        rowOutline: li.outlineStyle === "none" ? "none" : `${li.outlineStyle} ${li.outlineWidth}`,
+      };
+    });
+  expect(await look("1")).toEqual({
+    fieldBox: false,
+    fieldOutline: false,
+    fieldShadow: false,
+    rowOutline: "none",
+  });
+  expect(await look("2")).toEqual({
+    fieldBox: false,
+    fieldOutline: false,
+    fieldShadow: false,
+    rowOutline: "solid 2px",
+  });
 });
