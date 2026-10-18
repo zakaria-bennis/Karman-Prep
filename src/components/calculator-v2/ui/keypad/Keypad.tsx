@@ -66,6 +66,13 @@ const INERT: object = { inert: true };
 /** The letter keys a to z: under Shift they type the capital, then Shift turns off (K-3). */
 const LETTER_KEY = /^[a-z]$/;
 
+/** True when focus (in `el`'s document or shadow root) is on `el` or inside it. */
+function holdsFocus(el: HTMLElement | null): boolean {
+  if (el === null) return false;
+  const active = (el.getRootNode() as Document | ShadowRoot).activeElement;
+  return active !== null && el.contains(active);
+}
+
 /** Keeps focus in the row: a key's mousedown never moves focus to the key (K-10). */
 const keepFocus = (event: { preventDefault(): void }) => event.preventDefault();
 
@@ -130,6 +137,22 @@ export function Keypad(props: KeypadProps): JSX.Element {
   const functionsPanelId = useId();
   const [functionsState, setFunctionsState] = useState<FunctionsState>("closed");
   const sectionRef = useRef<HTMLElement>(null);
+  const hideRef = useRef<HTMLButtonElement>(null);
+  const showRef = useRef<HTMLButtonElement>(null);
+  /** KB-13, WCAG 2.4.3: the control to focus once `open` commits, set when focus was on the
+   *  control that unmounts (Show keypad) or inside the keypad that turns inert (Hide, Escape). */
+  const focusAfter = useRef<"hide" | "show" | null>(null);
+  const studentOpenChange = (next: boolean) => {
+    const held = next ? holdsFocus(showRef.current) : holdsFocus(sectionRef.current);
+    focusAfter.current = held ? (next ? "hide" : "show") : null;
+    onOpenChange(next, "student");
+  };
+  useLayoutEffect(() => {
+    const target = focusAfter.current;
+    if (target === null || (target === "hide") !== open) return;
+    focusAfter.current = null;
+    (target === "hide" ? hideRef : showRef).current?.focus();
+  }, [open]);
 
   // Closing the keypad resets the page and Shift, so it always reopens on the main page, and ends
   // a held key, whose pointerup an inert keypad never receives.
@@ -144,7 +167,7 @@ export function Keypad(props: KeypadProps): JSX.Element {
   }, [open, repeat]);
   useEffect(() => () => repeat.stop(), [repeat]);
   // KB-3: Escape closes the ABC page before the keypad (ESCAPE_RANK).
-  useEscapeLayer(escape, "keypad", open, () => onOpenChange(false, "student"));
+  useEscapeLayer(escape, "keypad", open, () => studentOpenChange(false));
   useEscapeLayer(escape, "letters", open && page === "letters", () => setPage("main"));
   // KB-3: Escape closes the Functions panel first. Focus inside the panel moves to the Functions
   // key, checked before "closing" makes the panel inert (a browser drops focus from it).
@@ -240,9 +263,10 @@ export function Keypad(props: KeypadProps): JSX.Element {
       >
         <div className="kc-keypad-bar">
           <button
+            ref={hideRef}
             type="button"
             aria-label="Hide keypad"
-            onClick={() => onOpenChange(false, "student")}
+            onClick={() => studentOpenChange(false)}
           >
             <ChevronDown aria-hidden="true" focusable="false" size={20} />
           </button>
@@ -297,12 +321,13 @@ export function Keypad(props: KeypadProps): JSX.Element {
       </section>
       {!open && (
         <button
+          ref={showRef}
           type="button"
           className="kc-show-keypad"
           aria-label="Show keypad"
           data-layout={layout.id}
           data-pointer={pointer}
-          onClick={() => onOpenChange(true, "student")}
+          onClick={() => studentOpenChange(true)}
         >
           <Keyboard aria-hidden="true" focusable="false" size={20} />
         </button>

@@ -37,3 +37,58 @@ textarea {
   white-space: nowrap;
   clip-path: inset(50%);
 }
+
+/* L-1, L-2 (10 Task 6): one grid, areas keyed on data-kc-layout, so a layout switch never
+   remounts a MathField (AR-26). DOM order stays list, graph, keypad (10 Decision 1). */
+.kc-app {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+.kc-app[data-kc-layout="desktop"] {
+  grid-template:
+    "list graph" minmax(0, 1fr)
+    "keypad keypad" auto
+    / max(260px, 40%) minmax(0, 1fr);
+}
+.kc-app[data-kc-layout="desktop"][data-collapsed="true"] {
+  grid-template-columns: auto minmax(0, 1fr);
+}
+.kc-app[data-kc-layout="stacked"] {
+  grid-template:
+    "graph" minmax(40%, 1fr)
+    "list" minmax(0, 1fr)
+    "keypad" auto
+    / minmax(0, 1fr);
+}
+.kc-app[data-kc-layout="stacked"][data-keypad="true"] {
+  grid-template-rows: minmax(0, 1fr) minmax(0, 1fr) auto;
+}
+/* overflow stays visible for 09's Expand list overlay (AN-3, 09 consumer note 4) */
+.kc-list-region {
+  grid-area: list;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.kc-list-region > .kc-list-panel {
+  flex: 1 1 0;
+  min-height: 0;
+}
+.kc-graph-region {
+  grid-area: graph;
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+}
+.kc-keypad-region {
+  grid-area: keypad;
+  min-width: 0;
+}
+/* L-14: the keypad sits in flow below the list, so the list's scroll box ends at its top edge;
+   reveal-row.ts scrolls the focused or active row back into view when that box resizes. */
+[data-row-id] {
+  scroll-margin-block: 8px;
+}

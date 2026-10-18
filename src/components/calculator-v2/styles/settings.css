@@ -1,7 +1,7 @@
 /* The settings popover (09 editor-ui Tasks 11 and 12; S-1, S-7). Colours come only from role
    variables (TH-3).
    SettingsPopover sets top and right (or left) and max-height inline from its anchor and offset
-   parent; AN-4's transitions are Task 15's. */
+   parent. AN-4's fade is at the end of this file. */
 
 .kc-settings {
   position: absolute;
@@ -96,6 +96,7 @@
 .kc-settings-bound > * {
   flex: 1 1 auto;
   min-width: 0;
+  max-width: 100%;
 }
 
 .kc-settings-relation {
@@ -127,4 +128,21 @@
 .kc-settings input:focus-visible {
   outline: 2px solid var(--kc-focus-ring);
   outline-offset: 2px;
+}
+
+/* AN-4: the popover fades in rising 4 px over 100 ms and fades out, in place, over 100 ms. */
+.kc-settings {
+  transition:
+    opacity var(--kc-duration-instant) var(--kc-ease-standard),
+    transform var(--kc-duration-instant) var(--kc-ease-standard);
+}
+
+.kc-settings[data-state="enter"] {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+
+.kc-settings[data-state="closing"] {
+  opacity: 0;
+  transition: opacity var(--kc-duration-instant) var(--kc-ease-standard);
 }

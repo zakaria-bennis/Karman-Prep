@@ -26,7 +26,7 @@
   font-size: var(--kc-size-ui);
 }
 
-/* AN-1: Task 14 adds the slide; hidden, the keypad stays mounted below its open position. */
+/* AN-1: hidden, the keypad stays mounted below its open position (the slide is at the end). */
 .kc-keypad[data-open="false"] {
   transform: translateY(100%);
   visibility: hidden;
@@ -184,4 +184,55 @@
 .kc-show-keypad:focus-visible {
   outline: 2px solid var(--kc-focus-ring);
   outline-offset: 2px;
+}
+
+/* K-7: no double-tap zoom, so a double tap on = reaches the keypad; AN-11: a 100 ms tone change on
+   press, with no scale or shadow. */
+.kc-key {
+  touch-action: manipulation;
+  transition: background-color var(--kc-duration-instant) var(--kc-ease-standard);
+}
+
+/* AN-11 press tone: the other 10.3 key role (package Decisions, "Press tone is a 10.3 role") */
+.kc-key[data-tone="key"]:is(:active, [data-pressed="true"]) {
+  background-color: var(--kc-key-operator);
+}
+
+.kc-key[data-tone="operator"]:is(:active, [data-pressed="true"]) {
+  background-color: var(--kc-key);
+}
+
+.kc-key[data-tone="accent"]:is(:active, [data-pressed="true"]) {
+  background-color: var(--kc-key-operator);
+  color: var(--kc-text); /* --kc-accent-label is measured only on the accent */
+}
+
+/* AN-1: the keypad becomes visible at once and hidden only after its 200 ms slide. */
+.kc-keypad {
+  transition:
+    transform var(--kc-duration-fast) var(--kc-ease-standard),
+    visibility 0s linear var(--kc-duration-fast);
+}
+
+.kc-keypad[data-open="true"] {
+  transition:
+    transform var(--kc-duration-fast) var(--kc-ease-standard),
+    visibility 0s linear 0s;
+}
+
+/* AN-2: the Functions panel fades in rising 8 px over 200 ms and fades out over 100 ms. */
+.kc-functions-panel {
+  transition:
+    opacity var(--kc-duration-fast) var(--kc-ease-standard),
+    transform var(--kc-duration-fast) var(--kc-ease-standard);
+}
+
+.kc-functions-panel[data-state="enter"] {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+.kc-functions-panel[data-state="closing"] {
+  opacity: 0;
+  transition: opacity var(--kc-duration-instant) var(--kc-ease-standard);
 }
