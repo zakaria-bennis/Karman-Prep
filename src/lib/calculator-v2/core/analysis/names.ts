@@ -64,6 +64,7 @@ function children(node: Node): readonly Node[] {
     case "mul":
     case "div":
     case "pow":
+    case "sim":
       return [node.left, node.right];
     case "neg":
     case "pct":

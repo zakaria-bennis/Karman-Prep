@@ -15,6 +15,7 @@ export type RowKind =
   | "horizontal-lines"
   | "region"
   | "constant-relation"
+  | "regression" // PR-30, D-2: L ~ M
   | "unsolved-relation"
   | "point"
   | "table" // D-1

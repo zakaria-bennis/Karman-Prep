@@ -17,7 +17,8 @@ export type Node =
   | { kind: "call"; name: string; args: Node[]; span: SourceSpan } // \log_{b}x is call "log" args [x, b]
   | { kind: "point"; x: Node; y: Node; span: SourceSpan }
   | { kind: "rel"; ops: RelOp[]; operands: Node[]; span: SourceSpan } // operands.length === ops.length + 1
-  | { kind: "list"; items: Node[]; span: SourceSpan }; // D-11: a table column; never parsed from row text
+  | { kind: "list"; items: Node[]; span: SourceSpan } // D-11: a table column; never parsed from row text
+  | { kind: "sim"; left: Node; right: Node; span: SourceSpan }; // PR-30, D-2: a regression row L ~ M
 
 /** The direct child nodes of `node`, in the order the S-expression writes them. */
 function children(node: Node): Node[] {
@@ -31,6 +32,7 @@ function children(node: Node): Node[] {
     case "mul":
     case "div":
     case "pow":
+    case "sim":
       return [node.left, node.right];
     case "neg":
     case "pct":

@@ -23,8 +23,8 @@ type OpenToken = Extract<Token, { t: "open" }>;
 /** An argument and the end of its text: a braced argument ends at its closing brace. */
 type Argument = { node: Node; end: number };
 
-/** Postfix and operator signs PR-9 reports as `unsupported`: factorial, prime and tilde. */
-const UNSUPPORTED_POSTFIX: ReadonlySet<string> = new Set(["!", "'", "~"]);
+/** Postfix signs PR-9 reports as `unsupported`: factorial and prime. `~` is PR-30's regression. */
+const UNSUPPORTED_POSTFIX: ReadonlySet<string> = new Set(["!", "'"]);
 /** Text-style wrappers: an empty group is half-typed `syntax`, any other use `unsupported` (G15). */
 const NAME_WRAPPERS: ReadonlySet<string> = new Set(["operatorname", "text", "mathrm"]);
 
@@ -72,8 +72,7 @@ export function parsePostfix(state: ParserState): Node {
 /**
  * The postfix loop after `atom` (G2), each sign applying to everything before it (PR-20). An
  * exponent directly after another is `syntax` (G5, PR-19). Every operator position follows this
- * loop, so it reports PR-9's notation there: `!` (factorial), `'` (prime) and `~` (tilde) are
- * `unsupported`, as is a `.` after an identifier or a call (member access); any other `.` ends the
+ * loop, so it reports PR-9's notation there: `!` (factorial) and `'` (prime) are `unsupported`, as is a `.` after an identifier or a call (member access); any other `.` ends the
  * loop and is `syntax` where the caller meets it. A built-in call with a `(` argument list is an
  * atom too (PR-25).
  */

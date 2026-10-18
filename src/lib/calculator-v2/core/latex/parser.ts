@@ -29,7 +29,7 @@ export class ParseFailure extends Error {
 }
 
 /** The operators and the closer that are commands (G3): no factor or atom starts with one. */
-const OPERATOR_COMMANDS: ReadonlySet<string> = new Set(["cdot", "le", "ge", "rvert", "of"]);
+const OPERATOR_COMMANDS: ReadonlySet<string> = new Set(["cdot", "le", "ge", "rvert", "of", "sim"]);
 
 export function createParserState(
   tokens: Token[],
@@ -84,6 +84,14 @@ export function enter<T>(state: ParserState, opener: Token, body: () => T): T {
  */
 export function parseRow(state: ParserState): Node {
   const operands = [parseSum(state)];
+  // PR-30: `L \sim M` (or `~`) is a whole row; anything after M, or a relation, is `syntax`.
+  if (isSim(peek(state))) {
+    take(state);
+    const right = parseSum(state);
+    const after = peek(state);
+    if (after.t !== "end") unexpected(state, after);
+    return { kind: "sim", left: operands[0], right, span: spanning(operands[0], right) };
+  }
   const ops: RelOp[] = [];
   for (let relop = takeRelop(state); relop !== null; relop = takeRelop(state)) {
     checkChain(ops, relop);
@@ -215,6 +223,12 @@ function checkChain(ops: readonly RelOp[], relop: { op: RelOp; span: SourceSpan 
   if (relop.op === "=" || previous === "=" || relop.op[0] !== previous[0]) {
     fail("relation-chain", relop.span, `"${relop.op}" cannot follow "${previous}" in a chain`);
   }
+}
+
+function isSim(token: Token): boolean {
+  return (
+    (token.t === "symbol" && token.ch === "~") || (token.t === "command" && token.name === "sim")
+  );
 }
 
 function isSign(token: Token): token is Extract<Token, { t: "symbol" }> & { ch: "+" | "-" } {

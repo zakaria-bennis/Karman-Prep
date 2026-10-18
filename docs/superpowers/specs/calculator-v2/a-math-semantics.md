@@ -100,7 +100,7 @@ There are three input paths. Typed input comes from the MathField. API and paste
 ### 2.5 Relations and conditions
 
 - **PR-29** The relations are `=`, `<`, `>`, `\le` and `\ge`. A chain of inequalities pointing the same way, such as `0\le x<10`, is allowed. A chain that mixes directions (`a<x>b`), mixes `=` with `<`, `>`, `\le` or `\ge` (`x=y<3`), or contains more than one `=` is a parse error. (Phase 1; verified by unit test)
-- **PR-30** `\sim` may appear once, at top level, with an expression on each side. It means a regression (D-2). (Phase 3; verified by unit test)
+- **PR-30** `\sim` (or a typed `~`) may appear once, at top level, with an expression on each side. It means a regression (D-2) and parses to `(sim L M)`; a second `\sim`, one inside parentheses, one beside a relation, or one with a side missing is `syntax` (a half-typed regression), not `unsupported`. (Phase 3, built in the parity work; verified by unit test)
 - **PR-31** `\{c_1:v_1,c_2:v_2,…,v\}` is piecewise: the value of the first true condition is used, and the optional final bare value is the otherwise case. With no otherwise case and no true condition the result is undefined. `\{c\}` alone is 1 when c is true and undefined otherwise. (Phase 2; verified by unit test)
 - **PR-32** Condition braces directly after an expression or relation restrict it, as in `y=x^{2}\{x>0\}`. Several restrictions combine with and, as in `\{0<x<2\}\{y>1\}`, and the row is undefined wherever any restriction is false or undefined. (Phase 2; verified by unit test)
 - **PR-33** Inside conditions, `\operatorname{and}` binds tighter than `\operatorname{or}`, and both bind looser than relations. (Phase 4; verified by unit test)

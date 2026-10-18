@@ -301,8 +301,8 @@ it("AR-54 parse, analysis and evaluation errors are row values and never throw",
   expect(() => m.engine.editRow("b0", "\\frac{1}", "typing")).not.toThrow();
   await m.settled();
   const rows = m.engine.getSnapshot().rows.slice(1); // row "1" comes first; then b0…b11 in input order
-  // codes from 02's parse-errors corpus (PR-38 cases 35 to 41 and 45; PR-9 cases 8, 9 and 20: matrix, \sim
-  // and \sum are unsupported commands) and 04's RC-17 list (x+y is mixed-variables); "1/0" has no error
+  // codes from 02's parse-errors corpus (PR-38 cases 35 to 41 and 45; PR-9 cases 8 and 20: matrix and \sum
+  // are unsupported commands) and 04's RC-17 list (x+y is mixed-variables); "1/0" has no error
   // and its value is undefined
   expect(rows.map((r) => r.error?.code ?? null)).toEqual([
     "syntax", // b0, edited to \frac{1} (PR-38 case 45)
@@ -316,7 +316,7 @@ it("AR-54 parse, analysis and evaluation errors are row values and never throw",
     "unsupported", // \sum
     "unsupported", // \begin{matrix}1\end{matrix}
     "mixed-variables", // x+y
-    "unsupported", // \sim
+    "syntax", // \sim with nothing to fit (PR-30: a half-typed regression)
   ]);
   expect(rows[7].value).toEqual({ type: "undefined" });
   for (const r of rows.filter((r) => r.error))

@@ -127,6 +127,8 @@ function compileNode(node: Node, ctx: Context): Compiled {
         value: items.map((item) => item(vars, deadline)),
       });
     }
+    case "sim": // D-2: a regression row is fitted by the values pass, never compiled
+      return constant(UNDEFINED);
     case "point": {
       // 04 decision 7: an undefined or non-real coordinate is stored as NaN.
       const x = compileNode(node.x, ctx),

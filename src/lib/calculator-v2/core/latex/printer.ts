@@ -122,6 +122,8 @@ export function printLatex(tree: Node): string {
       );
     case "call":
       return printCall(tree.name, tree.args);
+    case "sim":
+      return join([printLatex(tree.left), "\\sim", printLatex(tree.right)]);
   }
 }
 
