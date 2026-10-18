@@ -47,3 +47,40 @@
   outline: none;
   min-width: 100%;
 }
+
+/* D-8: the per-row delete control shows on hover or focus, and always with a coarse pointer. */
+.kc-table-control {
+  display: table-cell;
+  width: 28px;
+  vertical-align: middle;
+}
+
+.kc-table-row-delete,
+.kc-table-add-row {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  color: var(--kc-text-secondary);
+  cursor: pointer;
+}
+
+.kc-table-row-delete {
+  opacity: 0;
+}
+
+.kc-table-row:hover .kc-table-row-delete,
+.kc-table-row:focus-within .kc-table-row-delete,
+.kc-table-row-delete:focus-visible,
+.kc-list-panel[data-pointer="coarse"] .kc-table-row-delete {
+  opacity: 1;
+}
+
+.kc-table-add-row[aria-disabled="true"] {
+  cursor: default;
+  opacity: 0.5;
+}

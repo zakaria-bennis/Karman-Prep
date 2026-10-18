@@ -17,7 +17,7 @@ export interface CellKeys {
   onEnter(): void;
   onArrowOut(direction: "up" | "down"): void;
   onMoveOutOf(direction: "left" | "right"): void;
-  onTab(backwards: boolean): void;
+  onTab(backwards: boolean): boolean; // false past either end: Tab then leaves the table
   onDeleteOutOf(): void; // Backspace in an empty cell
 }
 
@@ -33,6 +33,7 @@ export interface TableCellProps {
 }
 
 export const CELL_CHARACTER_MESSAGE = "Each cell can be up to 128 characters.";
+export const TABLE_ROW_MESSAGE = "Tables hold up to 1,000 rows."; // D-8
 
 export function TableCell(props: TableCellProps): JSX.Element {
   const { tableId, column, row } = props;
@@ -55,11 +56,12 @@ export function TableCell(props: TableCellProps): JSX.Element {
       maxLength: MAX_CELL_CHARACTERS,
       onEdit(latex) {
         if (syncing.current) return;
-        if (latest.current.onEdit(engine, latex) === "char-limit") {
+        const refusal = latest.current.onEdit(engine, latex);
+        if (refusal !== null) {
           syncing.current = true;
           field.latex(latest.current.latex);
           syncing.current = false;
-          announcer.announce(CELL_CHARACTER_MESSAGE);
+          announcer.announce(refusal === "char-limit" ? CELL_CHARACTER_MESSAGE : TABLE_ROW_MESSAGE);
         }
       },
       onEnter: () => latest.current.keys.onEnter(),
@@ -86,8 +88,7 @@ export function TableCell(props: TableCellProps): JSX.Element {
     // root: MathQuill prevents the default only when it moves out of a structure).
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key !== "Tab" || e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey) return;
-      e.preventDefault();
-      latest.current.keys.onTab(e.shiftKey);
+      if (latest.current.keys.onTab(e.shiftKey)) e.preventDefault();
     };
     const host = hostRef.current!;
     host.addEventListener("keydown", onKeyDown);

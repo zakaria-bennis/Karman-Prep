@@ -5,15 +5,17 @@
 // grid a blank header slot right of the last column adds a column (D-5). The Delete control
 // removes the table through row-actions (D-16).
 
-import { X } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import { useContext, useLayoutEffect, useRef, useState, type FocusEvent, type JSX } from "react";
 import type { RowView } from "@/lib/calculator-v2/core/api/engine";
-import { MAX_TABLE_COLUMNS } from "@/lib/calculator-v2/core/api/document";
+import { MAX_TABLE_COLUMNS, MAX_TABLE_ROWS } from "@/lib/calculator-v2/core/api/document";
+import { useAnnouncer } from "../a11y/announcer";
 import { FocusContext } from "../focus/focus-controller";
 import { useEngine, useEngineSnapshot } from "../hooks/use-engine";
 import { deleteRowByControl } from "./row-actions";
 import type { RowMotion } from "./row-presence";
-import { TableCell, type CellKeys } from "./TableCell";
+import { addTableRow, cellKeys, deleteTableRowByControl, type TableKeyContext } from "./table-keys";
+import { TableCell } from "./TableCell";
 import {
   cellName,
   computedCellName,
@@ -31,21 +33,14 @@ export interface TableItemProps {
   onExitDone(rowId: string): void;
 }
 
-/** The keys of one cell; Task 3 of 03-tables-ui fills them in (D-7, D-8). */
-const NO_KEYS: CellKeys = {
-  onEnter: () => undefined,
-  onArrowOut: () => undefined,
-  onMoveOutOf: () => undefined,
-  onTab: () => undefined,
-  onDeleteOutOf: () => undefined,
-};
-
 export function TableItem(props: TableItemProps): JSX.Element {
   const { row, number, keypadOpen, motion } = props;
   const exiting = motion === "exit";
   const engine = useEngine();
   const { focusedRowId, activeRowId } = useEngineSnapshot(engine);
   const focus = useContext(FocusContext)!;
+  const announcer = useAnnouncer();
+  const keyContext: TableKeyContext = { engine, focus, announcer, tableId: row.id };
   const [inside, setInside] = useState(false);
   const gridRef = useRef<HTMLDivElement>(null);
   const latest = useRef(props.onExitDone);
@@ -99,7 +94,7 @@ export function TableItem(props: TableItemProps): JSX.Element {
           latex={latex}
           name={cellName(headers[k], r, latex)}
           keypadOpen={keypadOpen}
-          keys={NO_KEYS}
+          keys={cellKeys(keyContext, k, r)}
           onEdit={(e, next) => e.editCell(row.id, k, r, next, "typing")}
         />
       </div>
@@ -138,7 +133,7 @@ export function TableItem(props: TableItemProps): JSX.Element {
                     latex={c.latex}
                     name={`Column ${k + 1} header`}
                     keypadOpen={keypadOpen}
-                    keys={NO_KEYS}
+                    keys={cellKeys(keyContext, k, "h")}
                     onEdit={(e, next) => e.editHeader(row.id, k, next, "typing")}
                   />
                 </div>
@@ -152,7 +147,7 @@ export function TableItem(props: TableItemProps): JSX.Element {
                     latex=""
                     name={NEW_COLUMN_HEADER}
                     keypadOpen={keypadOpen}
-                    keys={NO_KEYS}
+                    keys={cellKeys(keyContext, columns.length, "h")}
                     onEdit={(e, next) => e.editHeader(row.id, columns.length, next, "typing")}
                   />
                 </div>
@@ -161,9 +156,30 @@ export function TableItem(props: TableItemProps): JSX.Element {
             {Array.from({ length: rows + 1 }, (_, r) => (
               <div key={r} role="row" className="kc-table-row">
                 {columns.map((_, k) => cell(k, r))}
+                {r < rows && (
+                  <div role="gridcell" className="kc-table-control">
+                    <button
+                      type="button"
+                      className="kc-table-row-delete"
+                      aria-label={`Delete table ${number} row ${r + 1}`}
+                      onClick={() => deleteTableRowByControl(keyContext, r)}
+                    >
+                      <X aria-hidden="true" focusable="false" size={14} />
+                    </button>
+                  </div>
+                )}
               </div>
             ))}
           </div>
+          <button
+            type="button"
+            className="kc-table-add-row"
+            aria-label={`Add row to table ${number}`}
+            aria-disabled={rows >= MAX_TABLE_ROWS ? "true" : undefined}
+            onClick={() => addTableRow(keyContext)}
+          >
+            <Plus aria-hidden="true" focusable="false" size={14} />
+          </button>
         </div>
         <button
           type="button"

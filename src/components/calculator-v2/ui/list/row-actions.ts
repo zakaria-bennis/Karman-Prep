@@ -135,7 +135,11 @@ export function deleteFromEmptyRow(
   const previous = i > 0 ? rows[i - 1] : null;
   const next = i < rows.length - 1 ? rows[i + 1] : null;
   if (direction === "left") {
-    if (previous !== null) focus.focusRow(previous.id, "end");
+    // D-8 (appendix F requirement 15): below a table, Backspace enters the table's blank row.
+    if (previous?.type === "table") {
+      const blank = Math.max(0, ...(previous.columns ?? []).map((c) => c.values.length));
+      focus.focusRow(cellKey(previous.id, 0, blank), "start");
+    } else if (previous !== null) focus.focusRow(previous.id, "end");
     else if (next !== null) focus.focusRow(next.id, "start");
   } else if (next !== null) {
     focus.focusRow(next.id, "start");
