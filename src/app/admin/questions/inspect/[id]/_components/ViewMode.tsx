@@ -97,9 +97,17 @@ export default function ViewMode({ question, hasPassage, choices }: Props) {
                 >
                   {c.letter}
                 </span>
-                <span className="text-ivory">
-                  <MathText text={c.choice_text} />
-                </span>
+                <div className="min-w-0 flex-1 text-ivory">
+                  {c.choice_table_data ? (
+                    <QuestionTable
+                      data={c.choice_table_data}
+                      ariaLabel={`Choice ${c.letter} data table`}
+                      className="my-0 max-w-full p-2"
+                    />
+                  ) : (
+                    <MathText text={c.choice_text} />
+                  )}
+                </div>
               </div>
             );
           })}

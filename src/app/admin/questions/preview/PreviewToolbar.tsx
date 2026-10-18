@@ -17,6 +17,7 @@
 // ============================================================
 
 import { ChevronLeft, ChevronRight, Filter, Keyboard } from "lucide-react";
+import { useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { DeviceFrameToggle, type DeviceWidth } from "./DeviceFrame";
 
@@ -45,6 +46,7 @@ interface Props {
   onNext: () => void;
   onClearFilters: () => void;
   onOpenCheatSheet: () => void;
+  onJumpToId: (id: string) => boolean;
 }
 
 export function PreviewToolbar({
@@ -60,7 +62,11 @@ export function PreviewToolbar({
   onNext,
   onClearFilters,
   onOpenCheatSheet,
+  onJumpToId,
 }: Props) {
+  const [jumpId, setJumpId] = useState("");
+  const [jumpMessage, setJumpMessage] = useState("");
+  const jumpInput = useRef<HTMLInputElement>(null);
   const anyFilterSet =
     filters.subject !== "all" ||
     filters.status !== "all" ||
@@ -76,6 +82,7 @@ export function PreviewToolbar({
       </div>
 
       <Select
+        label="Subject"
         value={filters.subject}
         onChange={(v) => onChangeFilter("subject", v as Subject)}
         options={[
@@ -85,6 +92,7 @@ export function PreviewToolbar({
         ]}
       />
       <Select
+        label="Question status"
         value={filters.status}
         onChange={(v) => onChangeFilter("status", v as Status)}
         options={[
@@ -94,6 +102,7 @@ export function PreviewToolbar({
         ]}
       />
       <Select
+        label="Source PDF"
         value={filters.pdf}
         onChange={(v) => onChangeFilter("pdf", v)}
         className="max-w-[14rem]"
@@ -103,6 +112,7 @@ export function PreviewToolbar({
         ]}
       />
       <Select
+        label="SAT domain"
         value={filters.domain}
         onChange={(v) => onChangeFilter("domain", v)}
         options={[
@@ -111,6 +121,7 @@ export function PreviewToolbar({
         ]}
       />
       <Select
+        label="Figure availability"
         value={filters.hasFigure}
         onChange={(v) => onChangeFilter("hasFigure", v as HasFigure)}
         options={[
@@ -120,6 +131,36 @@ export function PreviewToolbar({
         ]}
       />
 
+      <form
+        className="flex max-w-full flex-wrap items-center gap-2"
+        onSubmit={(event) => {
+          event.preventDefault();
+          const opened = onJumpToId(jumpId);
+          setJumpMessage(
+            opened ? "Question opened. Filters cleared." : "No question with that ID is loaded."
+          );
+          if (!opened) jumpInput.current?.focus();
+        }}
+      >
+        <input
+          ref={jumpInput}
+          value={jumpId}
+          onChange={(event) => setJumpId(event.target.value)}
+          aria-label="Jump to question ID"
+          placeholder="Question ID"
+          className="min-h-11 min-w-0 max-w-full rounded-lg border border-bronze bg-surface px-3 text-sm text-ivory"
+        />
+        <button
+          type="submit"
+          className="min-h-11 rounded-lg border border-bronze px-3 text-sm font-medium"
+        >
+          Jump
+        </button>
+        <span role="status" className="w-full text-xs text-taupe">
+          {jumpMessage}
+        </span>
+      </form>
+
       {anyFilterSet && (
         <button onClick={onClearFilters} className="text-xs text-taupe hover:text-ivory">
           Clear filters
@@ -127,10 +168,10 @@ export function PreviewToolbar({
       )}
 
       {/* ── Right side: device frame + nav ────────────────── */}
-      <div className="ml-auto flex items-center gap-3">
+      <div className="flex w-full flex-wrap items-center gap-3 sm:ml-auto sm:w-auto">
         <button
           onClick={onOpenCheatSheet}
-          className="inline-flex items-center gap-1 rounded-lg border border-bronze bg-surface px-2 py-1 text-[11px] text-ivory hover:border-bronze hover:text-ivory"
+          className="inline-flex min-h-11 min-w-11 items-center justify-center gap-1 rounded-lg border border-bronze bg-surface px-2 py-1 text-[11px] text-ivory hover:border-bronze hover:text-ivory"
           title="Keyboard shortcuts (?)"
           aria-label="Open keyboard shortcuts"
         >
@@ -152,7 +193,7 @@ export function PreviewToolbar({
           <button
             onClick={onPrev}
             disabled={currentIndex === 0 || totalCount === 0}
-            className="rounded-md border border-bronze bg-surface-raised p-1.5 hover:bg-surface-raised disabled:cursor-not-allowed disabled:opacity-40"
+            className="flex min-h-11 min-w-11 items-center justify-center rounded-md border border-bronze bg-surface-raised p-1.5 hover:bg-surface-raised disabled:cursor-not-allowed disabled:opacity-40"
             aria-label="Previous question"
           >
             <ChevronLeft className="h-4 w-4 text-ivory" />
@@ -160,7 +201,7 @@ export function PreviewToolbar({
           <button
             onClick={onNext}
             disabled={currentIndex >= totalCount - 1 || totalCount === 0}
-            className="rounded-md border border-bronze bg-surface-raised p-1.5 hover:bg-surface-raised disabled:cursor-not-allowed disabled:opacity-40"
+            className="flex min-h-11 min-w-11 items-center justify-center rounded-md border border-bronze bg-surface-raised p-1.5 hover:bg-surface-raised disabled:cursor-not-allowed disabled:opacity-40"
             aria-label="Next question"
           >
             <ChevronRight className="h-4 w-4 text-ivory" />
@@ -172,11 +213,13 @@ export function PreviewToolbar({
 }
 
 function Select({
+  label,
   value,
   onChange,
   options,
   className,
 }: {
+  label: string;
   value: string;
   onChange: (v: string) => void;
   options: Array<{ value: string; label: string }>;
@@ -184,10 +227,11 @@ function Select({
 }) {
   return (
     <select
+      aria-label={label}
       value={value}
       onChange={(e) => onChange(e.target.value)}
       className={cn(
-        "rounded-lg border border-bronze bg-surface px-2.5 py-1 text-xs text-ivory",
+        "min-h-11 max-w-full rounded-lg border border-bronze bg-surface px-2.5 py-1 text-sm text-ivory",
         "focus:border-gold/40 focus:outline-none",
         className
       )}

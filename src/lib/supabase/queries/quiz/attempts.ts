@@ -14,54 +14,55 @@ import type {
 } from "@/types/quiz";
 
 export async function createQuizAttempt(studentId: string, nodeId: string): Promise<QuizAttempt> {
-  const supabase = createAdminClient();
-
-  const { count } = await supabase
-    .from("quiz_attempts")
-    .select("id", { count: "exact", head: true })
-    .eq("student_id", studentId)
-    .eq("node_id", nodeId);
-
-  const { data, error } = await supabase
-    .from("quiz_attempts")
-    .insert({
-      student_id: studentId,
-      node_id: nodeId,
-      attempt_number: (count ?? 0) + 1,
-    })
-    .select()
-    .single();
+  const { data, error } = await createAdminClient().rpc("start_quiz_attempt_atomic", {
+    p_student_id: studentId,
+    p_node_id: nodeId,
+  });
   if (error || !data) throw error ?? new Error("Failed to create quiz attempt");
   return data as unknown as QuizAttempt;
 }
 
-export async function finalizeQuizAttempt(
+export async function fetchQuizAttemptForStudent(
   attemptId: string,
-  input: {
-    score: number;
-    questions_answered: number;
-    questions_correct: number;
-    confidence_band: ConfidenceBand;
-    adaptive_path: AdaptiveStep[];
-  }
-): Promise<void> {
+  studentId: string
+): Promise<QuizAttempt | null> {
   const supabase = createAdminClient();
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("quiz_attempts")
-    .update({
-      score: input.score,
-      questions_answered: input.questions_answered,
-      questions_correct: input.questions_correct,
-      confidence_band: input.confidence_band,
-      adaptive_path: input.adaptive_path as unknown as Json,
-      completed_at: new Date().toISOString(),
-    })
-    .eq("id", attemptId);
+    .select("*")
+    .eq("id", attemptId)
+    .eq("student_id", studentId)
+    .maybeSingle();
   if (error) throw error;
+  return (data as QuizAttempt | null) ?? null;
+}
+
+export async function completeQuizAttemptAtomic(
+  attemptId: string,
+  studentId: string,
+  nodeId: string,
+  input: { expectedCount: number; adaptive_path: AdaptiveStep[] }
+): Promise<{ score: number; newStatus: string; confidenceBand: ConfidenceBand }> {
+  const { data, error } = await createAdminClient()
+    .rpc("complete_quiz_attempt_atomic", {
+      p_attempt_id: attemptId,
+      p_student_id: studentId,
+      p_node_id: nodeId,
+      p_expected_count: input.expectedCount,
+      p_adaptive_path: input.adaptive_path as unknown as Json,
+    })
+    .single();
+  if (error || !data) throw error ?? new Error("Failed to complete quiz attempt");
+  return {
+    score: data.result_score,
+    newStatus: data.result_status,
+    confidenceBand: data.result_band,
+  };
 }
 
 export async function recordQuestionResponse(input: {
   attempt_id: string;
+  student_id: string;
   question_id: string;
   /** Free-form text. Letter (A/B/C/D) for multiple-choice; numeric
    *  string (e.g. "42", "1/2") for SAT math grid-ins. */
@@ -70,8 +71,15 @@ export async function recordQuestionResponse(input: {
   difficulty_at_time: QuizDifficulty;
   response_time_seconds: number;
 }): Promise<QuestionResponse> {
-  const supabase = createAdminClient();
-  const { data, error } = await supabase.from("question_responses").insert(input).select().single();
+  const { data, error } = await createAdminClient().rpc("record_quiz_response_once", {
+    p_attempt_id: input.attempt_id,
+    p_student_id: input.student_id,
+    p_question_id: input.question_id,
+    p_answer: input.student_answer,
+    p_correct: input.is_correct,
+    p_difficulty: input.difficulty_at_time,
+    p_seconds: input.response_time_seconds,
+  });
   if (error || !data) throw error ?? new Error("Failed to record response");
   return data as QuestionResponse;
 }

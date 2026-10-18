@@ -11,6 +11,7 @@ export type Database = {
       answer_choices: {
         Row: {
           choice_text: string;
+          choice_table_data: Json | null;
           id: string;
           is_correct: boolean;
           letter: Database["public"]["Enums"]["answer_letter"];
@@ -20,6 +21,7 @@ export type Database = {
         };
         Insert: {
           choice_text: string;
+          choice_table_data?: Json | null;
           id?: string;
           is_correct?: boolean;
           letter: Database["public"]["Enums"]["answer_letter"];
@@ -29,6 +31,7 @@ export type Database = {
         };
         Update: {
           choice_text?: string;
+          choice_table_data?: Json | null;
           id?: string;
           is_correct?: boolean;
           letter?: Database["public"]["Enums"]["answer_letter"];
@@ -1881,6 +1884,16 @@ export type Database = {
           question_type: Database["public"]["Enums"]["question_type"];
           source_page: number | null;
           source_pdf: string | null;
+          source_provider: string | null;
+          source_identity_required: boolean;
+          source_document_id: string | null;
+          source_provider_version_id: string | null;
+          source_version: string | null;
+          source_section: string | null;
+          source_module: string | null;
+          source_question_number: number | null;
+          source_occurrence: number | null;
+          source_regions: Json | null;
           subject: Database["public"]["Enums"]["quiz_subject"];
           topic_cluster: string;
           updated_at: string | null;
@@ -1965,6 +1978,16 @@ export type Database = {
           question_type: Database["public"]["Enums"]["question_type"];
           source_page?: number | null;
           source_pdf?: string | null;
+          source_provider?: string | null;
+          source_identity_required?: boolean;
+          source_document_id?: string | null;
+          source_provider_version_id?: string | null;
+          source_version?: string | null;
+          source_section?: string | null;
+          source_module?: string | null;
+          source_question_number?: number | null;
+          source_occurrence?: number | null;
+          source_regions?: Json | null;
           subject: Database["public"]["Enums"]["quiz_subject"];
           topic_cluster: string;
           updated_at?: string | null;
@@ -2049,6 +2072,16 @@ export type Database = {
           question_type?: Database["public"]["Enums"]["question_type"];
           source_page?: number | null;
           source_pdf?: string | null;
+          source_provider?: string | null;
+          source_identity_required?: boolean;
+          source_document_id?: string | null;
+          source_provider_version_id?: string | null;
+          source_version?: string | null;
+          source_section?: string | null;
+          source_module?: string | null;
+          source_question_number?: number | null;
+          source_occurrence?: number | null;
+          source_regions?: Json | null;
           subject?: Database["public"]["Enums"]["quiz_subject"];
           topic_cluster?: string;
           updated_at?: string | null;
@@ -3086,6 +3119,8 @@ export type Database = {
           section: string | null;
           module: string | null;
           source_question_number: number | null;
+          source_version: string | null;
+          source_occurrence: number | null;
           answer_mode: string | null;
           correction_detection_model: string | null;
           correction_detection_provider: string | null;
@@ -3118,6 +3153,8 @@ export type Database = {
           section?: string | null;
           module?: string | null;
           source_question_number?: number | null;
+          source_version?: string | null;
+          source_occurrence?: number | null;
           answer_mode?: string | null;
           correction_detection_model?: string | null;
           correction_detection_provider?: string | null;
@@ -3150,6 +3187,8 @@ export type Database = {
           section?: string | null;
           module?: string | null;
           source_question_number?: number | null;
+          source_version?: string | null;
+          source_occurrence?: number | null;
           answer_mode?: string | null;
           correction_detection_model?: string | null;
           correction_detection_provider?: string | null;
@@ -3541,6 +3580,36 @@ export type Database = {
       };
     };
     Functions: {
+      start_quiz_attempt_atomic: {
+        Args: { p_student_id: string; p_node_id: string };
+        Returns: Database["public"]["Tables"]["quiz_attempts"]["Row"];
+      };
+      record_quiz_response_once: {
+        Args: {
+          p_attempt_id: string;
+          p_student_id: string;
+          p_question_id: string;
+          p_answer: string;
+          p_correct: boolean;
+          p_difficulty: Database["public"]["Enums"]["question_difficulty"];
+          p_seconds: number;
+        };
+        Returns: Database["public"]["Tables"]["question_responses"]["Row"];
+      };
+      complete_quiz_attempt_atomic: {
+        Args: {
+          p_attempt_id: string;
+          p_student_id: string;
+          p_node_id: string;
+          p_expected_count: number;
+          p_adaptive_path: Json;
+        };
+        Returns: {
+          result_score: number;
+          result_status: string;
+          result_band: Database["public"]["Enums"]["confidence_band"];
+        }[];
+      };
       refresh_tutor_earnings_summary: { Args: never; Returns: undefined };
     };
     Enums: {

@@ -21,7 +21,6 @@ import { redirect } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
 import { fetchUserRole } from "@/lib/supabase/queries/admin";
 import { createAdminClient } from "@/lib/supabase/server";
-import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { fetchAccountStatus } from "@/lib/integrations/stripe/connect";
 import PaymentSettingsClient from "./PaymentSettingsClient";
 
@@ -88,7 +87,7 @@ export default async function PaymentSettingsPage({ searchParams }: PageProps) {
   }
 
   return (
-    <DashboardLayout>
+    <>
       <div className="mx-auto max-w-2xl space-y-6 px-4 py-8 sm:px-6">
         <Link
           href="/tutor/earnings"
@@ -118,6 +117,6 @@ export default async function PaymentSettingsPage({ searchParams }: PageProps) {
           }}
         />
       </div>
-    </DashboardLayout>
+    </>
   );
 }

@@ -3,6 +3,7 @@
 // ============================================================
 
 import Stripe from "stripe";
+import { isFreeTrialEligibleTier } from "./checkout-policy";
 
 /** Server-side Stripe client. Never import in browser code.
  *
@@ -37,7 +38,7 @@ export function getPriceId(tier: string): string {
 
 /**
  * Creates a Stripe Checkout Session for the given tier.
- * Includes a 7-day trial on monthly plans.
+ * Includes the owner-approved 7-day trial on the bottom tier only.
  */
 export async function createCheckoutSession({
   customerId,
@@ -54,7 +55,7 @@ export async function createCheckoutSession({
   successUrl: string;
   cancelUrl: string;
 }) {
-  const isMonthly = ["group", "elite", "annual"].includes(tier);
+  const trialEligible = isFreeTrialEligibleTier(tier);
 
   const session = await stripe.checkout.sessions.create({
     mode: "subscription",
@@ -62,8 +63,8 @@ export async function createCheckoutSession({
     customer: customerId,
     customer_email: customerId ? undefined : email,
     line_items: [{ price: getPriceId(tier), quantity: 1 }],
-    // 7-day free trial for monthly subscriptions
-    subscription_data: isMonthly
+    // New checkouts only: do not alter existing subscriptions or customer balances.
+    subscription_data: trialEligible
       ? {
           trial_period_days: 7,
           metadata: { userId, tier },

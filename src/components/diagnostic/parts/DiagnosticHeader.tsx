@@ -1,51 +1,33 @@
 "use client";
 
 // DiagnosticHeader — top bar for the active diagnostic:
-//   · Exit button + question counter
+//   · Exit button + diagnostic label
 //   · Calculator (Desmos) + Scratchpad toggles (math only)
 //   · Question navigator opener
 //   · Bookmark toggle
 //   · Section timer (circular ring + clock)
-//   · Per-section progress bar
 //
 // Used by DiagnosticClient only.
 
-import { Bookmark, BookmarkCheck, Calculator, LayoutGrid, PencilLine, X } from "lucide-react";
+import { Bookmark, BookmarkCheck, LayoutGrid, PencilLine, X } from "lucide-react";
+import { CalculatorTrigger } from "@/components/calculator/CalculatorScope";
+import { TimerToggle, HighlightTool } from "@/components/learn/quiz/QuizTools";
+import { QuizMenu } from "@/components/learn/quiz/QuizMenu";
 import { cn } from "@/lib/utils";
 
-const SECTION_LABELS: Record<"math" | "rw", string> = {
-  math: "Math",
-  rw: "Reading & Writing",
-};
-
-function fmtClock(sec: number): string {
-  const m = Math.floor(sec / 60);
-  const s = sec % 60;
-  return `${m}:${s.toString().padStart(2, "0")}`;
-}
-
 export function DiagnosticHeader({
-  sectionPosition,
-  sectionLength,
   isMathQuestion,
-  desmosOpen,
   scratchpadOpen,
   isBookmarked,
-  currentSection,
   sectionTimeLeft,
-  timerColor,
-  timerPct,
   minutesLeft,
+  timerColor,
   onOpenExit,
   onOpenNavigator,
-  onToggleDesmos,
   onToggleScratchpad,
   onToggleBookmark,
 }: {
-  sectionPosition: number;
-  sectionLength: number;
   isMathQuestion: boolean;
-  desmosOpen: boolean;
   scratchpadOpen: boolean;
   isBookmarked: boolean;
   currentSection: "math" | "rw";
@@ -55,13 +37,12 @@ export function DiagnosticHeader({
   minutesLeft: number;
   onOpenExit: () => void;
   onOpenNavigator: () => void;
-  onToggleDesmos: () => void;
   onToggleScratchpad: () => void;
   onToggleBookmark: () => void;
 }) {
   return (
     <div className="border-b border-bronze bg-surface px-4 py-3 dark:border-bronze dark:bg-surface">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
+      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           {/* Exit — opens a confirmation modal because the
               diagnostic must be completed in one session and any
@@ -76,36 +57,16 @@ export function DiagnosticHeader({
             <X className="h-3.5 w-3.5" />
             Exit
           </button>
-          <div>
-            <span className="text-sm font-semibold text-ivory dark:text-ivory">
-              Question {sectionPosition} / {sectionLength}
-            </span>
-            <span className="ml-2 text-xs text-taupe">SAT Diagnostic</span>
-          </div>
+          <span className="text-sm font-semibold text-ivory">SAT Diagnostic</span>
         </div>
 
-        <div className="flex items-center gap-2">
-          {/* Calculator (Desmos) — math questions only. */}
-          {isMathQuestion && (
-            <button
-              type="button"
-              onClick={onToggleDesmos}
-              className={cn(
-                "inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-semibold transition-colors",
-                desmosOpen
-                  ? "border-error/40 bg-error text-ivory"
-                  : "border-bronze text-taupe hover:border-error/40 hover:text-error dark:border-bronze dark:text-error-bright dark:hover:text-error-bright"
-              )}
-              aria-pressed={desmosOpen}
-              aria-label="Toggle Desmos calculator"
-            >
-              <Calculator className="h-3.5 w-3.5" />
-              Calculator
-            </button>
-          )}
+        <div className="flex max-w-full flex-wrap items-center gap-2">
+          {isMathQuestion && <CalculatorTrigger />}
+          <HighlightTool />
+          <QuizMenu subject={isMathQuestion ? "math" : "reading"} />
 
           {/* Scratchpad — pristine white accent. */}
-          {isMathQuestion && (
+          {
             <button
               type="button"
               onClick={onToggleScratchpad}
@@ -121,10 +82,10 @@ export function DiagnosticHeader({
               <PencilLine className="h-3.5 w-3.5" />
               Scratchpad
             </button>
-          )}
+          }
 
-          {/* Question navigator — opens a slide-in grid of all
-              35 questions with status pips for jump navigation. */}
+          {/* Question navigator — prompt labels preserve jump navigation
+              without showing ordinals or source identifiers. */}
           <button
             type="button"
             onClick={onOpenNavigator}
@@ -160,55 +121,10 @@ export function DiagnosticHeader({
             {isBookmarked ? "Saved" : "Bookmark"}
           </button>
 
-          {/* Section timer — clock for the active SAT section.
-              Shows "Math 31:42" or "Reading & Writing 17:08", with
-              a circular progress ring that turns amber under 5
-              minutes and red under 1 minute. */}
-          <div className="ml-1 flex items-center gap-2 border-l border-bronze pl-1.5 pl-3 dark:border-bronze">
-            <svg width="32" height="32" className="-rotate-90">
-              <circle
-                cx="16"
-                cy="16"
-                r="12"
-                strokeWidth="3"
-                fill="none"
-                className="stroke-ivory dark:stroke-ivory"
-              />
-              <circle
-                cx="16"
-                cy="16"
-                r="12"
-                strokeWidth="3"
-                fill="none"
-                stroke={timerColor}
-                strokeLinecap="round"
-                strokeDasharray={75.4}
-                strokeDashoffset={75.4 - (timerPct / 100) * 75.4}
-                className="transition-all duration-1000"
-              />
-            </svg>
-            <div className="flex flex-col leading-none">
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-taupe dark:text-taupe">
-                {SECTION_LABELS[currentSection]}
-              </span>
-              <span className="font-mono text-sm font-bold" style={{ color: timerColor }}>
-                {fmtClock(sectionTimeLeft)}
-              </span>
-            </div>
-            {minutesLeft <= 0 && sectionTimeLeft > 0 && (
-              <span className="sr-only">Less than a minute remaining</span>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Progress bar */}
-      <div className="mx-auto mt-2 max-w-6xl">
-        <div className="h-1.5 overflow-hidden rounded-full bg-surface dark:bg-surface-raised">
-          <div
-            className="h-full rounded-full bg-info transition-all duration-300"
-            style={{ width: `${(sectionPosition / sectionLength) * 100}%` }}
-          />
+          <TimerToggle seconds={sectionTimeLeft} countdown color={timerColor} />
+          {minutesLeft <= 0 && sectionTimeLeft > 0 && (
+            <span className="sr-only">Less than a minute remaining</span>
+          )}
         </div>
       </div>
     </div>

@@ -324,11 +324,12 @@ export async function fetchTutorScope(tutorClerkId: string): Promise<TutorScope>
   const supabase = createAdminClient();
 
   // 1. Resolve the tutor's users.id from their clerk_id.
-  const { data: tutorRow } = await supabase
+  const { data: tutorRow, error: tutorError } = await supabase
     .from("users")
     .select("id, role")
     .eq("clerk_id", tutorClerkId)
     .maybeSingle();
+  if (tutorError) throw tutorError;
   if (!tutorRow) return { cohorts: [], studentClerkIds: [], tutorUserId: null };
 
   const tutorUserId = tutorRow.id as string;

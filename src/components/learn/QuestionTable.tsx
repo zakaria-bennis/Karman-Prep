@@ -17,25 +17,30 @@
 // so KaTeX renders correctly in headers + body.
 // ============================================================
 
+import { CalculatorTableAction } from "@/components/calculator/CalculatorSourceAction";
 import MathText from "@/components/learn/MathText";
 import { cn } from "@/lib/utils";
-
-export interface QuestionTableData {
-  caption?: string | null;
-  header_row?: string[] | null;
-  rows: string[][];
-  footer_note?: string | null;
-}
+import type { QuestionTableData } from "@/types/question-table";
+export type { QuestionTableData } from "@/types/question-table";
 
 interface Props {
   data: QuestionTableData;
+  calculator?: boolean;
   /** Inline math? Pass `false` to skip KaTeX wrapping for plain-text-only tables. */
   renderMath?: boolean;
+  /** Distinguishes multiple tables used as separate answer choices. */
+  ariaLabel?: string;
   /** Optional wrapper class. */
   className?: string;
 }
 
-export default function QuestionTable({ data, renderMath = true, className }: Props) {
+export default function QuestionTable({
+  data,
+  renderMath = true,
+  ariaLabel,
+  className,
+  calculator = false,
+}: Props) {
   const { caption, header_row, rows, footer_note } = data;
   const renderCell = (text: string, key: string) => (
     <span key={key}>{renderMath ? <MathText text={text} /> : text}</span>
@@ -52,10 +57,10 @@ export default function QuestionTable({ data, renderMath = true, className }: Pr
 
   return (
     <figure
-      aria-label={caption ? undefined : "Question data table"}
+      aria-label={ariaLabel ?? (caption ? undefined : "Question data table")}
       className={cn(
         // Container: warm card surface, bronze frame (observatory system).
-        "my-4 inline-block max-w-full rounded-lg border border-bronze bg-surface px-5 py-4 shadow-[0_4px_16px_-8px_rgba(0,0,0,0.5)]",
+        "themed-question-figure themed-question-table my-4 inline-block max-w-full overflow-x-auto rounded-lg border border-bronze bg-surface px-5 py-4 shadow-[0_4px_16px_-8px_rgba(0,0,0,0.5)]",
         className
       )}
     >
@@ -116,6 +121,7 @@ export default function QuestionTable({ data, renderMath = true, className }: Pr
           </tfoot>
         )}
       </table>
+      {calculator && <CalculatorTableAction rows={rows} />}
     </figure>
   );
 }

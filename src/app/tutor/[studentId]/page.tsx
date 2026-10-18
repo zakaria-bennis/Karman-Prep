@@ -10,6 +10,7 @@ import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { fetchUserRole } from "@/lib/supabase/queries/admin";
+import { canTutorAccessStudent } from "@/lib/auth/tutor-access";
 import { fetchStudentById, fetchNodeStatuses } from "@/lib/supabase/queries/tutor";
 import {
   fetchAllAttemptsForStudent,
@@ -17,7 +18,6 @@ import {
   fetchResponsesForAttempt,
 } from "@/lib/supabase/queries/quiz";
 import { RW_NODES, MATH_NODES, currentAtmosphere, ATMOSPHERE_COLORS } from "@/data/curriculum";
-import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import StudentDetailTabs from "@/components/tutor/StudentDetailTabs";
 
 export const metadata: Metadata = { title: "Student — Tutor Portal" };
@@ -36,6 +36,8 @@ export default async function StudentDetailPage({ params, searchParams }: Params
 
   const role = await fetchUserRole(userId);
   if (role !== "tutor" && role !== "admin") redirect("/dashboard/student");
+
+  if (!(await canTutorAccessStudent(userId, studentId))) notFound();
 
   const student = await fetchStudentById(studentId);
   if (!student) notFound();
@@ -96,13 +98,20 @@ export default async function StudentDetailPage({ params, searchParams }: Params
   const activeTab = (tabParam ?? "skills") as "skills" | "controls" | "flagged" | "quiz";
 
   return (
-    <DashboardLayout>
+    <>
       <div className="mx-auto max-w-6xl space-y-6 px-4 py-8 sm:px-6">
         <Link
           href="/tutor"
           className="mb-2 inline-flex items-center gap-1 text-xs text-taupe hover:text-ivory dark:hover:text-ivory"
         >
           <ArrowLeft className="h-3.5 w-3.5" /> All students
+        </Link>
+
+        <Link
+          href={`/tutor/${encodeURIComponent(studentId)}/briefing`}
+          className="inline-flex min-h-11 items-center text-sm font-semibold text-info underline underline-offset-4"
+        >
+          Saved practice briefing
         </Link>
 
         {/* Summary bar */}
@@ -163,7 +172,7 @@ export default async function StudentDetailPage({ params, searchParams }: Params
           activeTab={activeTab}
         />
       </div>
-    </DashboardLayout>
+    </>
   );
 }
 

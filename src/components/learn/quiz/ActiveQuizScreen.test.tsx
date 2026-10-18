@@ -1,0 +1,177 @@
+// @vitest-environment jsdom
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import petry from "@/lib/question-bank/reviewed-passage.fixture.json";
+import { toStudentQuizQuestion } from "@/lib/student-quiz-payload";
+import type { QuizQuestionWithChoices } from "@/types/quiz";
+import type { StudentQuizQuestion } from "@/types/quiz";
+import type { MappedNode } from "../ConstellationMap";
+import { ActiveQuizScreen } from "./ActiveQuizScreen";
+
+const mockQuizState = {
+  phase: "answering",
+  targetLength: 1,
+  records: [],
+  currentIndex: 0,
+  selectedAnswer: null,
+  reviews: {},
+};
+
+vi.mock("@/contexts/QuizContext", () => ({
+  useQuiz: () => ({ state: mockQuizState }),
+  useOptionalQuizState: () => mockQuizState,
+}));
+afterEach(cleanup);
+
+function showQuestion(q: StudentQuizQuestion, onSelectAnswer = vi.fn()) {
+  render(
+    <ActiveQuizScreen
+      node={{ subject: "math", topic: "Practice" } as MappedNode}
+      q={q}
+      onClose={() => {}}
+      onSelectAnswer={onSelectAnswer}
+      onSubmit={() => {}}
+      onFlagClick={() => {}}
+      showExplanations={false}
+      onToggleExplanations={() => {}}
+      onNext={() => {}}
+    />
+  );
+  return onSelectAnswer;
+}
+const base = {
+  id: "visual-review",
+  question_text: "What is the value?",
+  topic_cluster: "Practice",
+  answer_choices: [],
+} as unknown as StudentQuizQuestion;
+
+describe("student answer presentation", () => {
+  it("uses reviewed source structure in the actual unanswered screen", () => {
+    showQuestion(toStudentQuizQuestion(petry as unknown as QuizQuestionWithChoices));
+    expect(document.querySelectorAll("[data-passage-part]")).toHaveLength(3);
+    expect(document.querySelector("[data-passage-part=introduction] i")).toHaveTextContent(
+      "The Street"
+    );
+    expect(screen.getAllByRole("button", { name: /^[ABCD]\s*Lutie/ })).toHaveLength(4);
+    expect(screen.queryByText("Current correct answer")).toBeNull();
+  });
+  it("falls back to the source image when reviewed geometry cannot resolve its angle", () => {
+    showQuestion({
+      ...base,
+      answer_format: "numeric_entry",
+      figure_kind: "geometric",
+      figure_geometry_data: {
+        layout_version: "balanced-v1",
+        shapes: [
+          {
+            kind: "triangle",
+            vertices_or_points: [
+              { id: "A", x: 0, y: 0 },
+              { id: "B", x: 0, y: 10 },
+              { id: "C", x: 10, y: 10 },
+            ],
+          },
+        ],
+        angle_markings: [{ at_vertex: "A", measure: "x°" }],
+      },
+      image_url: "/source-figure.svg",
+      image_alt: "Source triangle",
+    });
+    expect(screen.getByRole("img", { name: "Source triangle" })).toHaveAttribute(
+      "src",
+      "/source-figure.svg"
+    );
+  });
+  it("labels the numeric input and allows a fraction without exposing an answer", () => {
+    const onSelect = showQuestion({ ...base, answer_format: "numeric_entry" });
+    const input = screen.getByRole("textbox", { name: "Your answer" }) as HTMLInputElement;
+    expect(input.placeholder).toBe("Number or fraction");
+    expect(input.inputMode).toBe("text");
+    fireEvent.change(input, { target: { value: "11/28" } });
+    expect(onSelect).toHaveBeenCalledWith("11/28");
+    expect(screen.queryByText(/Correct:/)).toBeNull();
+  });
+
+  it("keeps each table attached to its own answer radio", () => {
+    showQuestion({
+      ...base,
+      answer_format: "multiple_choice",
+      answer_choices: ["A", "B", "C", "D"].map((letter, index) => ({
+        id: letter,
+        question_id: base.id,
+        letter,
+        choice_text: "Table",
+        choice_table_data: { header_row: ["x", "y"], rows: [["1", String(index + 10)]] },
+      })),
+    } as StudentQuizQuestion);
+    expect(screen.getAllByRole("radio")).toHaveLength(4);
+    for (const [index, letter] of ["A", "B", "C", "D"].entries()) {
+      const figure = screen.getByRole("figure", { name: `Choice ${letter} data table` });
+      expect(within(figure).getByText(String(index + 10))).toBeTruthy();
+      expect(screen.getByRole("radio", { name: `Choice ${letter}` })).toBeTruthy();
+    }
+    expect(document.querySelector("button table")).toBeNull();
+  });
+});
+
+describe("practice identity and reading order", () => {
+  it("keeps content numbers intact without question numbering", () => {
+    mockQuizState.currentIndex = 1;
+    mockQuizState.targetLength = 11;
+    const q = {
+      ...base,
+      subject: "math",
+      question_text: "The fraction 2/11 is between 0 and 1.",
+      source_pdf: "Original-Test-17.pdf",
+      source_page: 42,
+    } as StudentQuizQuestion;
+    const original = JSON.stringify(q);
+    showQuestion(q, vi.fn());
+    expect(screen.getByText("The fraction 2/11 is between 0 and 1.")).toBeTruthy();
+    const counter = screen.queryByText(
+      (_, element) => element?.tagName === "SPAN" && element.textContent === "Question 2 of 11"
+    );
+    expect(counter).toBeNull();
+    expect(screen.queryByText(/Original-Test-17|page 42/)).toBeNull();
+    expect(JSON.stringify(q)).toBe(original);
+    mockQuizState.currentIndex = 0;
+    mockQuizState.targetLength = 1;
+  });
+  it("renders passage, source table, prompt and choices in that order", () => {
+    showQuestion({
+      ...base,
+      subject: "reading",
+      answer_format: "multiple_choice",
+      passage: "A study recorded 17 birds.",
+      question_text: "Which choice most logically completes the text?",
+      figure_kind: "table",
+      figure_table_data: { header_row: ["Year", "Birds"], rows: [["2025", "17"]] },
+      answer_choices: [
+        {
+          id: "a",
+          question_id: base.id,
+          letter: "A",
+          choice_text: "The population remained stable.",
+        },
+      ],
+    } as StudentQuizQuestion);
+    const passage = screen.getByText("A study recorded 17 birds.");
+    const table = screen.getByRole("table");
+    const prompt = screen.getByText("Which choice most logically completes the text?");
+    const choice = screen.getByRole("button", { name: /A\s*The population/ });
+    expect(passage.compareDocumentPosition(table) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(table.compareDocumentPosition(prompt) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(prompt.compareDocumentPosition(choice) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+  it("preserves a lone second source passage rather than silently dropping it", () => {
+    showQuestion({
+      ...base,
+      subject: "reading",
+      passage_b: "The second source passage.",
+      question_text: "What does Text 2 suggest?",
+    } as StudentQuizQuestion);
+    expect(screen.getByText("Text 2")).toBeTruthy();
+    expect(screen.getByText("The second source passage.")).toBeTruthy();
+  });
+});

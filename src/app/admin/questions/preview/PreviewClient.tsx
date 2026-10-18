@@ -18,7 +18,7 @@
 // per-session and stale across reloads.
 // ============================================================
 
-import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -42,6 +42,7 @@ import { PreviewSidePanel } from "./PreviewSidePanel";
 import { useKeyboardShortcuts, type Shortcut } from "./useKeyboardShortcuts";
 import { KeyboardCheatSheet } from "./KeyboardCheatSheet";
 import { MetadataStrip } from "./MetadataStrip";
+import { PreviewWorkspace, type PreviewWorkspaceNavigation } from "./PreviewWorkspace";
 import type { PreviewQuestionWithLineage } from "./types";
 
 const LS_KEY = "karman.preview.v2";
@@ -64,6 +65,7 @@ const DEFAULT_FILTERS: FilterState = {
 export default function PreviewClient({ initial }: { initial: PreviewQuestionWithLineage[] }) {
   const router = useRouter();
   const [, startTransition] = useTransition();
+  const workspaceNavigation = useRef<PreviewWorkspaceNavigation>(null);
 
   // ── Persisted bits ────────────────────────────────────────
   const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS);
@@ -416,127 +418,111 @@ export default function PreviewClient({ initial }: { initial: PreviewQuestionWit
       }
     : undefined;
 
-  // ── Keyboard shortcuts ────────────────────────────────────
-  // Built once per render — useMemo keeps the array stable so
-  // useKeyboardShortcuts' effect doesn't re-register on every
-  // keystroke. Handlers close over current state, which is fine
-  // because the array recomputes when those deps change.
-  //
-  // Flag (S) and Reject (D) intentionally fire WITHOUT a note:
-  // Flag will throw server-side because note is required, but
-  // that surfaces as a banner error which is the right hint to
-  // "click the flag button to type a note." Reject is recoverable
-  // (soft delete) so firing without a reason is fine.
-  const shortcuts: Shortcut[] = useMemo(() => {
-    const list: Shortcut[] = [
-      // Navigation
-      {
-        key: "ArrowLeft",
-        handler: () => jump(-1),
-        description: "Previous question",
-        group: "Navigation",
-      },
-      {
-        key: "ArrowRight",
-        handler: () => jump(1),
-        description: "Next question",
-        group: "Navigation",
-      },
-      // Actions
-      { key: "a", handler: () => handleApprove(), description: "Approve", group: "Actions" },
-      {
-        key: "s",
-        handler: () =>
-          setBanner({
-            kind: "err",
-            text: "Flag needs a note — click the Flag button to type one.",
-          }),
-        description: "Flag (opens note input — use the button to type)",
-        group: "Actions",
-      },
-      {
-        key: "d",
-        handler: () => handleReject(""),
-        description: "Reject (soft, recoverable from /rejected)",
-        group: "Actions",
-      },
-      // Panels
-      {
-        key: "1",
-        handler: () => togglePanel("desmos"),
-        description: "Toggle Desmos panel",
-        group: "Panels",
-      },
-      {
-        key: "2",
-        handler: () => togglePanel("hints"),
-        description: "Toggle Hints panel",
-        group: "Panels",
-      },
-      {
-        key: "3",
-        handler: () => togglePanel("explanations"),
-        description: "Toggle Explanations panel",
-        group: "Panels",
-      },
-      {
-        key: "p",
-        handler: () => togglePanel("pdf"),
-        description: "Toggle PDF panel",
-        group: "Panels",
-      },
-      {
-        key: "g",
-        handler: () => togglePanel("grader"),
-        description: "Toggle Grader panel",
-        group: "Panels",
-      },
-      // View — device frame
-      {
-        key: "Shift+M",
-        handler: () => setDevice("mobile"),
-        description: "Mobile viewport (375px)",
-        group: "View",
-      },
-      {
-        key: "Shift+T",
-        handler: () => setDevice("tablet"),
-        description: "Tablet viewport (768px)",
-        group: "View",
-      },
-      {
-        key: "Shift+K",
-        handler: () => setDevice("desktop"),
-        description: "Desktop viewport (1440px)",
-        group: "View",
-      },
-      {
-        key: "Shift+F",
-        handler: () => setDevice("full"),
-        description: "Full-width (no frame)",
-        group: "View",
-      },
-      // Help
-      {
-        key: "?",
-        handler: () => setCheatSheetOpen((o) => !o),
-        description: "Show / hide this cheat sheet",
-        group: "Help",
-      },
-      {
-        key: "Escape",
-        handler: () => setCheatSheetOpen(false),
-        description: "Close cheat sheet",
-        group: "Help",
-        fireInInputs: true,
-      },
-    ];
-    return list;
-    // Handlers close over the latest state via the function
-    // references themselves — fresh handler instances per render.
-    // No deps array needed beyond the handlers we reference.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // Refresh handlers with the selected question. Memoizing without dependencies
+  // would leave navigation and review actions bound to the first question.
+  const shortcuts: Shortcut[] = [
+    // Navigation
+    {
+      key: "ArrowLeft",
+      handler: () => jump(-1),
+      description: "Previous question",
+      group: "Navigation",
+    },
+    {
+      key: "ArrowRight",
+      handler: () => jump(1),
+      description: "Next question",
+      group: "Navigation",
+    },
+    // Actions
+    { key: "a", handler: () => handleApprove(), description: "Approve", group: "Actions" },
+    {
+      key: "s",
+      handler: () =>
+        setBanner({
+          kind: "err",
+          text: "Flag needs a note — click the Flag button to type one.",
+        }),
+      description: "Flag (opens note input — use the button to type)",
+      group: "Actions",
+    },
+    {
+      key: "d",
+      handler: () => handleReject(""),
+      description: "Reject (soft, recoverable from /rejected)",
+      group: "Actions",
+    },
+    // Panels
+    {
+      key: "1",
+      handler: () => togglePanel("desmos"),
+      description: "Toggle Desmos panel",
+      group: "Panels",
+    },
+    {
+      key: "2",
+      handler: () => togglePanel("hints"),
+      description: "Toggle Hints panel",
+      group: "Panels",
+    },
+    {
+      key: "3",
+      handler: () => togglePanel("explanations"),
+      description: "Toggle Explanations panel",
+      group: "Panels",
+    },
+    {
+      key: "p",
+      handler: () => togglePanel("pdf"),
+      description: "Toggle PDF panel",
+      group: "Panels",
+    },
+    {
+      key: "g",
+      handler: () => togglePanel("grader"),
+      description: "Toggle Grader panel",
+      group: "Panels",
+    },
+    // View — device frame
+    {
+      key: "Shift+M",
+      handler: () => setDevice("mobile"),
+      description: "Mobile viewport (375px)",
+      group: "View",
+    },
+    {
+      key: "Shift+T",
+      handler: () => setDevice("tablet"),
+      description: "Tablet viewport (768px)",
+      group: "View",
+    },
+    {
+      key: "Shift+K",
+      handler: () => setDevice("desktop"),
+      description: "Desktop viewport (1440px)",
+      group: "View",
+    },
+    {
+      key: "Shift+F",
+      handler: () => setDevice("full"),
+      description: "Full-width (no frame)",
+      group: "View",
+    },
+    // Help
+    {
+      key: "?",
+      handler: () => setCheatSheetOpen((o) => !o),
+      description: "Show / hide this cheat sheet",
+      group: "Help",
+    },
+    {
+      key: "Escape",
+      handler: () => setCheatSheetOpen(false),
+      description: "Close cheat sheet",
+      group: "Help",
+      fireInInputs: true,
+    },
+  ];
 
   useKeyboardShortcuts(shortcuts);
 
@@ -549,7 +535,7 @@ export default function PreviewClient({ initial }: { initial: PreviewQuestionWit
     );
 
   return (
-    <div className="flex h-[calc(100vh-9rem)] flex-col">
+    <div className="flex min-h-[calc(100dvh-4rem)] min-w-0 flex-col text-ivory">
       <PreviewToolbar
         filters={filters}
         pdfOptions={pdfOptions}
@@ -563,6 +549,16 @@ export default function PreviewClient({ initial }: { initial: PreviewQuestionWit
         onNext={() => jump(1)}
         onClearFilters={clearFilters}
         onOpenCheatSheet={() => setCheatSheetOpen(true)}
+        onJumpToId={(id) => {
+          const match = initial.find(
+            (question) => question.id.toLowerCase() === id.trim().toLowerCase()
+          );
+          if (!match) return false;
+          setFilters(DEFAULT_FILTERS);
+          setActiveId(match.id);
+          workspaceNavigation.current?.returnToQuestion();
+          return true;
+        }}
       />
 
       {banner && (
@@ -582,64 +578,60 @@ export default function PreviewClient({ initial }: { initial: PreviewQuestionWit
         </div>
       )}
 
-      <div
-        className={cn(
-          "grid min-h-0 flex-1 gap-3 px-4 py-3",
-          // Three-column layout when the side panel is open; two
-          // otherwise. The side panel COMPRESSES the preview pane
-          // (rather than overlaying it) per the design decision in
-          // the planning rounds.
-          hasSidePanel ? "grid-cols-[16rem_minmax(0,1fr)_18rem]" : "grid-cols-[16rem_minmax(0,1fr)]"
-        )}
-      >
-        <PreviewSidebar
-          questions={filtered}
-          activeId={current?.id ?? null}
-          selectedIds={selectedIds}
-          bulkPending={bulkPending}
-          onSelectQuestion={selectQuestion}
-          onToggleSelected={toggleSelected}
-          onToggleSelectAll={toggleSelectAll}
-          onClearSelection={clearSelection}
-          onBulkApprove={handleBulkApprove}
-          onBulkReject={handleBulkReject}
-        />
-
-        <main className="flex h-full min-h-0 flex-col overflow-hidden rounded-xl border border-bronze bg-night">
-          {current ? (
-            <>
-              <MetadataStrip question={current} />
-              <OrphanWarningBanner
-                lineage={current.sourceLineage}
-                questionId={current.id}
-                href={`/admin/questions/inspect/${current.id}`}
-                className="rounded-none border-x-0 border-t-0"
-              />
-              <div className="min-h-0 flex-1 overflow-hidden">
-                <DeviceFrame width={device}>
-                  <div className="h-full overflow-y-auto">
-                    <QuestionPreview q={current} edit={editProps} />
-                  </div>
-                </DeviceFrame>
-              </div>
-            </>
-          ) : (
-            <div className="grid h-full place-items-center px-6 py-10 text-center text-sm text-taupe">
-              No question selected.
-            </div>
-          )}
-        </main>
-
-        {hasSidePanel && current && (
-          <PreviewSidePanel
-            question={current}
-            openPanels={openPanels}
-            onClose={(k) => togglePanel(k)}
-            edit={editProps}
-            showSourceAssetPanels={hasSourceLineagePanels}
+      <PreviewWorkspace
+        navigationRef={workspaceNavigation}
+        questions={(returnToQuestion) => (
+          <PreviewSidebar
+            questions={filtered}
+            activeId={current?.id ?? null}
+            selectedIds={selectedIds}
+            bulkPending={bulkPending}
+            onSelectQuestion={(id) => {
+              selectQuestion(id);
+              returnToQuestion();
+            }}
+            onToggleSelected={toggleSelected}
+            onToggleSelectAll={toggleSelectAll}
+            onClearSelection={clearSelection}
+            onBulkApprove={handleBulkApprove}
+            onBulkReject={handleBulkReject}
           />
         )}
-      </div>
+        inspection={
+          hasSidePanel && current ? (
+            <PreviewSidePanel
+              question={current}
+              openPanels={openPanels}
+              onClose={(k) => togglePanel(k)}
+              edit={editProps}
+              showSourceAssetPanels={hasSourceLineagePanels}
+            />
+          ) : null
+        }
+      >
+        {current ? (
+          <>
+            <MetadataStrip question={current} />
+            <OrphanWarningBanner
+              lineage={current.sourceLineage}
+              questionId={current.id}
+              href={`/admin/questions/inspect/${current.id}`}
+              className="rounded-none border-x-0 border-t-0"
+            />
+            <div className="min-h-0 flex-1 overflow-hidden">
+              <DeviceFrame width={device}>
+                <div className="h-full overflow-y-auto">
+                  <QuestionPreview q={current} edit={editProps} />
+                </div>
+              </DeviceFrame>
+            </div>
+          </>
+        ) : (
+          <div className="grid h-full place-items-center px-6 py-10 text-center text-sm text-taupe">
+            No question selected.
+          </div>
+        )}
+      </PreviewWorkspace>
 
       <PreviewActionBar
         pending={pending}

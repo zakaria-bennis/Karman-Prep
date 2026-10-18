@@ -1,0 +1,4334 @@
+[
+  {
+    "id": "prefix-a-negative",
+    "group": "prefix",
+    "front": "a-",
+    "meaning": "Not; lacking or without.",
+    "variants": ["an-"],
+    "caution": "This Greek negative prefix differs from a- meaning on or in, as in aboard.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/a-"]
+  },
+  {
+    "id": "prefix-ab",
+    "group": "prefix",
+    "front": "ab-",
+    "meaning": "Away from; departing from.",
+    "variants": ["abs-"],
+    "caution": "The sense may be historical rather than a complete modern definition.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/ab-"]
+  },
+  {
+    "id": "prefix-ad",
+    "group": "prefix",
+    "front": "ad-",
+    "meaning": "Toward; added to or brought near.",
+    "variants": ["ac-", "af-", "ag-", "al-", "ap-", "as-", "at-"],
+    "caution": "The final consonant often changes to match the following consonant.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/ad-"]
+  },
+  {
+    "id": "prefix-ambi",
+    "group": "prefix",
+    "front": "ambi-",
+    "meaning": "Both; on both sides.",
+    "variants": [],
+    "caution": "Ambivalent means having conflicting feelings, not simply being indifferent.",
+    "sameFrontCardIds": [],
+    "sourceUrls": [
+      "https://www.merriam-webster.com/dictionary/ambi-",
+      "https://www.dictionary.com/browse/ambivalent"
+    ]
+  },
+  {
+    "id": "prefix-ante",
+    "group": "prefix",
+    "front": "ante-",
+    "meaning": "Earlier than; before in time or position.",
+    "variants": [],
+    "caution": "Do not confuse ante- with anti-, which commonly signals opposition.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/ante-"]
+  },
+  {
+    "id": "prefix-anti",
+    "group": "prefix",
+    "front": "anti-",
+    "meaning": "Against; opposing or preventing.",
+    "variants": ["ant-"],
+    "caution": "Anti- is not the same as ante-, meaning before.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/anti-"]
+  },
+  {
+    "id": "prefix-arch",
+    "group": "prefix",
+    "front": "arch-",
+    "meaning": "Chief; principal; especially extreme.",
+    "variants": [],
+    "caution": "Keep this prefix distinct from the arch meaning a curved structure.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/arch-"]
+  },
+  {
+    "id": "prefix-auto",
+    "group": "prefix",
+    "front": "auto-",
+    "meaning": "Self; acting by itself.",
+    "variants": ["aut-"],
+    "caution": "Technically a combining form; auto can also abbreviate automobile.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/auto-"]
+  },
+  {
+    "id": "prefix-bene",
+    "group": "prefix",
+    "front": "bene-",
+    "meaning": "Well; favorably or for good.",
+    "variants": [],
+    "caution": "Technically a combining form inherited from Latin; contrast mal-.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.collinsdictionary.com/dictionary/english/bene"]
+  },
+  {
+    "id": "prefix-bi",
+    "group": "prefix",
+    "front": "bi-",
+    "meaning": "Two; double; involving two parts.",
+    "variants": [],
+    "caution": "Time words such as biweekly can mean twice per period or every two periods.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/bi-"]
+  },
+  {
+    "id": "prefix-cent-hundred",
+    "group": "prefix",
+    "front": "cent-",
+    "meaning": "One hundred; involving a hundred.",
+    "variants": ["centi-"],
+    "caution": "Technically a combining form. In metric units centi- means one hundredth; historical names need not give literal counts.",
+    "sameFrontCardIds": [],
+    "sourceUrls": [
+      "https://www.merriam-webster.com/dictionary/centi-",
+      "https://www.dictionary.com/browse/cent"
+    ]
+  },
+  {
+    "id": "prefix-centi-fraction",
+    "group": "prefix",
+    "front": "centi-",
+    "meaning": "One hundredth of a unit.",
+    "variants": [],
+    "caution": "Technically a combining form; distinct from the hundred sense in centennial or centipede.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/centi-"]
+  },
+  {
+    "id": "prefix-circum",
+    "group": "prefix",
+    "front": "circum-",
+    "meaning": "Around; surrounding.",
+    "variants": [],
+    "caution": "Figurative uses can involve limits or indirectness rather than a literal circle.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/circum-"]
+  },
+  {
+    "id": "prefix-com",
+    "group": "prefix",
+    "front": "com-",
+    "meaning": "Together; jointly; with.",
+    "variants": ["con-", "col-", "cor-", "co-"],
+    "caution": "Con-, col-, cor-, and co- are related spellings. Co- is also productive in modern compounds; these forms are not freely interchangeable.",
+    "sameFrontCardIds": [],
+    "sourceUrls": [
+      "https://www.merriam-webster.com/dictionary/com-",
+      "https://www.merriam-webster.com/dictionary/co-"
+    ]
+  },
+  {
+    "id": "prefix-contra",
+    "group": "prefix",
+    "front": "contra-",
+    "meaning": "Against; opposite or contrasting.",
+    "variants": [],
+    "caution": "",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/contra-"]
+  },
+  {
+    "id": "prefix-counter",
+    "group": "prefix",
+    "front": "counter-",
+    "meaning": "Opposing; in the reverse direction; balancing.",
+    "variants": [],
+    "caution": "Not every counter- word expresses hostility; a counterweight balances another weight.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/counter-"]
+  },
+  {
+    "id": "prefix-de",
+    "group": "prefix",
+    "front": "de-",
+    "meaning": "Undo or remove; reduce.",
+    "variants": [],
+    "caution": "De- has several related senses; use the whole word and context to choose among them.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/de-"]
+  },
+  {
+    "id": "prefix-deca",
+    "group": "prefix",
+    "front": "deca-",
+    "meaning": "Ten; involving ten units or parts.",
+    "variants": ["dec-", "deka-", "dek-"],
+    "caution": "Technically a combining form; deca- means ten, while deci- means one tenth.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/deca-"]
+  },
+  {
+    "id": "prefix-deci",
+    "group": "prefix",
+    "front": "deci-",
+    "meaning": "One tenth of a unit.",
+    "variants": [],
+    "caution": "Technically a combining form; in measurement, distinguish deci- from deca-, meaning ten.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/deci-"]
+  },
+  {
+    "id": "prefix-di-two",
+    "group": "prefix",
+    "front": "di-",
+    "meaning": "Two; double.",
+    "variants": [],
+    "caution": "Technically a combining form. Distinct from di-, the shortened form of dia-.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/di-"]
+  },
+  {
+    "id": "prefix-dia",
+    "group": "prefix",
+    "front": "dia-",
+    "meaning": "Through; across.",
+    "variants": ["di-"],
+    "caution": "The di- variant is unrelated to di- meaning two.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/dia-"]
+  },
+  {
+    "id": "prefix-dis",
+    "group": "prefix",
+    "front": "dis-",
+    "meaning": "Not or opposite; undo or remove.",
+    "variants": [],
+    "caution": "A few inherited words use dis- intensively; do not force negation onto every dis- word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/dis-"]
+  },
+  {
+    "id": "prefix-dys",
+    "group": "prefix",
+    "front": "dys-",
+    "meaning": "Impaired, abnormal, difficult, or bad.",
+    "variants": [],
+    "caution": "It indicates a difficulty or abnormality, not simple absence.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/dys-"]
+  },
+  {
+    "id": "prefix-en",
+    "group": "prefix",
+    "front": "en-",
+    "meaning": "Make or cause to be; put into; provide with.",
+    "variants": ["em-"],
+    "caution": "Often em- before b, m, or p; there is also a separate Greek en- meaning within.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/en-"]
+  },
+  {
+    "id": "prefix-endo",
+    "group": "prefix",
+    "front": "endo-",
+    "meaning": "Inside; within.",
+    "variants": ["end-"],
+    "caution": "Technically a combining form; its scientific meaning depends on the whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/endo-"]
+  },
+  {
+    "id": "prefix-epi",
+    "group": "prefix",
+    "front": "epi-",
+    "meaning": "Upon; over; attached to the outside.",
+    "variants": ["ep-"],
+    "caution": "Epi- also has after and additional senses in particular scientific terms.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/epi-"]
+  },
+  {
+    "id": "prefix-eu",
+    "group": "prefix",
+    "front": "eu-",
+    "meaning": "Good; well; easily.",
+    "variants": [],
+    "caution": "Technically a combining form; some scientific words instead use its true or normal sense.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/eu-"]
+  },
+  {
+    "id": "prefix-ex-former",
+    "group": "prefix",
+    "front": "ex-",
+    "meaning": "Former; no longer holding a role.",
+    "variants": [],
+    "caution": "Usually hyphenated in this sense; it is distinct from outward ex-.",
+    "sameFrontCardIds": ["prefix-ex-out"],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/ex-"]
+  },
+  {
+    "id": "prefix-ex-out",
+    "group": "prefix",
+    "front": "ex-",
+    "meaning": "Out of; away from; outside.",
+    "variants": [],
+    "caution": "This is the outward sense, distinct from ex- meaning former.",
+    "sameFrontCardIds": ["prefix-ex-former"],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/ex-"]
+  },
+  {
+    "id": "prefix-extra",
+    "group": "prefix",
+    "front": "extra-",
+    "meaning": "Outside; beyond a boundary.",
+    "variants": [],
+    "caution": "Do not assume it means merely more or especially in every word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/extra-"]
+  },
+  {
+    "id": "prefix-fore",
+    "group": "prefix",
+    "front": "fore-",
+    "meaning": "Beforehand; earlier; at the front.",
+    "variants": [],
+    "caution": "Technically a combining form; distinguish a foreword from the word forward.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/fore-"]
+  },
+  {
+    "id": "prefix-hemi",
+    "group": "prefix",
+    "front": "hemi-",
+    "meaning": "Half.",
+    "variants": [],
+    "caution": "Especially useful in scientific and geometric vocabulary.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/hemi-"]
+  },
+  {
+    "id": "prefix-hetero",
+    "group": "prefix",
+    "front": "hetero-",
+    "meaning": "Different; other; unlike the usual kind.",
+    "variants": ["heter-"],
+    "caution": "Technically a combining form; contrast homo-/hom-.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/hetero-"]
+  },
+  {
+    "id": "prefix-homo",
+    "group": "prefix",
+    "front": "homo-",
+    "meaning": "The same; alike or similar.",
+    "variants": ["hom-"],
+    "caution": "Technically a combining form; distinct from the Latin word homo meaning human.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/hom-"]
+  },
+  {
+    "id": "prefix-hyper",
+    "group": "prefix",
+    "front": "hyper-",
+    "meaning": "Above or beyond; excessively.",
+    "variants": [],
+    "caution": "Contrast hypo-, which commonly means below or deficient.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/hyper-"]
+  },
+  {
+    "id": "prefix-hypo",
+    "group": "prefix",
+    "front": "hypo-",
+    "meaning": "Under or beneath; below normal.",
+    "variants": ["hyp-"],
+    "caution": "Contrast hyper-. Do not use word parts alone to interpret a medical condition.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/hypo-"]
+  },
+  {
+    "id": "prefix-in-into",
+    "group": "prefix",
+    "front": "in-",
+    "meaning": "In; into; within or toward.",
+    "variants": ["im-", "il-", "ir-"],
+    "caution": "This sense is not negative; the same surface spellings occur in negative in-.",
+    "sameFrontCardIds": ["prefix-in-negative"],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/in-"]
+  },
+  {
+    "id": "prefix-in-negative",
+    "group": "prefix",
+    "front": "in-",
+    "meaning": "Not; the opposite or absence of a quality.",
+    "variants": ["im-", "il-", "ir-"],
+    "caution": "In- can also mean into. Im- often precedes b/m/p, il- precedes l, and ir- precedes r.",
+    "sameFrontCardIds": ["prefix-in-into"],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/in-"]
+  },
+  {
+    "id": "prefix-infra",
+    "group": "prefix",
+    "front": "infra-",
+    "meaning": "Below; lower on a scale.",
+    "variants": [],
+    "caution": "The prefix can also mean within in specialized classification terms.",
+    "sameFrontCardIds": [],
+    "sourceUrls": [
+      "https://www.merriam-webster.com/dictionary/infra-",
+      "https://www.etymonline.com/word/infrastructure"
+    ]
+  },
+  {
+    "id": "prefix-inter",
+    "group": "prefix",
+    "front": "inter-",
+    "meaning": "Between or among; involving one another.",
+    "variants": [],
+    "caution": "Inter- usually connects separate things; intra- commonly stays within one.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/inter-"]
+  },
+  {
+    "id": "prefix-intra",
+    "group": "prefix",
+    "front": "intra-",
+    "meaning": "Within; inside a single thing or group.",
+    "variants": [],
+    "caution": "Do not confuse intra- with inter-, meaning between or among.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/intra-"]
+  },
+  {
+    "id": "prefix-macro",
+    "group": "prefix",
+    "front": "macro-",
+    "meaning": "Large; on a broad scale.",
+    "variants": [],
+    "caution": "Technically a combining form; contrast micro-.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/macro-"]
+  },
+  {
+    "id": "prefix-mal",
+    "group": "prefix",
+    "front": "mal-",
+    "meaning": "Badly; poorly; abnormal or inadequate.",
+    "variants": [],
+    "caution": "Technically a combining form; it does not always imply moral wrongdoing.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/mal-"]
+  },
+  {
+    "id": "prefix-meta",
+    "group": "prefix",
+    "front": "meta-",
+    "meaning": "Change; beyond; sometimes a higher-level examination of something.",
+    "variants": ["met-"],
+    "caution": "Its senses vary substantially; it can also mean after in specialized vocabulary.",
+    "sameFrontCardIds": [],
+    "sourceUrls": [
+      "https://www.merriam-webster.com/dictionary/meta-",
+      "https://www.dictionary.com/culture/tech-science/meta-analysis"
+    ]
+  },
+  {
+    "id": "prefix-micro",
+    "group": "prefix",
+    "front": "micro-",
+    "meaning": "Small; on a very small scale.",
+    "variants": ["micr-"],
+    "caution": "Technically a combining form; in measurement units it specifically means one millionth.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/micr-"]
+  },
+  {
+    "id": "prefix-mis",
+    "group": "prefix",
+    "front": "mis-",
+    "meaning": "Wrongly; badly or incorrectly.",
+    "variants": [],
+    "caution": "Usually describes error or bad execution rather than simple negation.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/mis-"]
+  },
+  {
+    "id": "prefix-mono",
+    "group": "prefix",
+    "front": "mono-",
+    "meaning": "One; single; alone.",
+    "variants": ["mon-"],
+    "caution": "Technically a combining form; the mon- spelling occurs before some vowels.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/mon-"]
+  },
+  {
+    "id": "prefix-multi",
+    "group": "prefix",
+    "front": "multi-",
+    "meaning": "Many; multiple; more than one.",
+    "variants": [],
+    "caution": "Technically a combining form; the precise number is usually unspecified.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/multi-"]
+  },
+  {
+    "id": "prefix-neo",
+    "group": "prefix",
+    "front": "neo-",
+    "meaning": "New; recent; a new form or revival.",
+    "variants": ["ne-"],
+    "caution": "Technically a combining form; a revived movement need not repeat the old one exactly.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/neo-"]
+  },
+  {
+    "id": "prefix-non",
+    "group": "prefix",
+    "front": "non-",
+    "meaning": "Not; lacking the specified characteristic.",
+    "variants": [],
+    "caution": "Non- often marks absence rather than active opposition; compare anti-.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/non-"]
+  },
+  {
+    "id": "prefix-ob",
+    "group": "prefix",
+    "front": "ob-",
+    "meaning": "Toward or against; sometimes thoroughly.",
+    "variants": ["oc-", "of-", "op-", "o-"],
+    "caution": "A historical Latin prefix with several senses; modern scientific ob- can mean inversely.",
+    "sameFrontCardIds": [],
+    "sourceUrls": [
+      "https://www.merriam-webster.com/dictionary/ob-",
+      "https://www.collinsdictionary.com/us/dictionary/english/ob"
+    ]
+  },
+  {
+    "id": "prefix-omni",
+    "group": "prefix",
+    "front": "omni-",
+    "meaning": "All; everywhere or universally.",
+    "variants": [],
+    "caution": "Technically a combining form; the rest of the word tells what all refers to.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/omni-"]
+  },
+  {
+    "id": "prefix-out",
+    "group": "prefix",
+    "front": "out-",
+    "meaning": "Exceed; surpass or do better than.",
+    "variants": [],
+    "caution": "This card teaches the surpassing sense, not the independent direction word out.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/out-"]
+  },
+  {
+    "id": "prefix-over",
+    "group": "prefix",
+    "front": "over-",
+    "meaning": "Too much; to an excessive degree.",
+    "variants": [],
+    "caution": "This card teaches excess; other over- words can express position above.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/over-"]
+  },
+  {
+    "id": "prefix-pan",
+    "group": "prefix",
+    "front": "pan-",
+    "meaning": "All; the whole of a group or region.",
+    "variants": [],
+    "caution": "Technically a combining form; capitalization follows the whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/pan-"]
+  },
+  {
+    "id": "prefix-para",
+    "group": "prefix",
+    "front": "para-",
+    "meaning": "Beside or alongside; beyond; closely related.",
+    "variants": ["par-"],
+    "caution": "Highly context-dependent: some para- words instead mean abnormal or almost.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/para-"]
+  },
+  {
+    "id": "prefix-per",
+    "group": "prefix",
+    "front": "per-",
+    "meaning": "Through; throughout; thoroughly.",
+    "variants": [],
+    "caution": "The historical prefix is not the standalone word per meaning for each.",
+    "sameFrontCardIds": [],
+    "sourceUrls": [
+      "https://www.merriam-webster.com/dictionary/per-",
+      "https://api.collinsdictionary.com/dictionary/english/per-"
+    ]
+  },
+  {
+    "id": "prefix-peri",
+    "group": "prefix",
+    "front": "peri-",
+    "meaning": "Around; surrounding; near.",
+    "variants": [],
+    "caution": "Peri- is different from per- meaning through or thoroughly.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/peri-"]
+  },
+  {
+    "id": "prefix-poly",
+    "group": "prefix",
+    "front": "poly-",
+    "meaning": "Many; several.",
+    "variants": [],
+    "caution": "Technically a combining form; chemistry adds more specialized meanings.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/poly-"]
+  },
+  {
+    "id": "prefix-post",
+    "group": "prefix",
+    "front": "post-",
+    "meaning": "After; later than; behind.",
+    "variants": [],
+    "caution": "The prefix can express time or position.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/post-"]
+  },
+  {
+    "id": "prefix-pre",
+    "group": "prefix",
+    "front": "pre-",
+    "meaning": "Before; earlier; in advance.",
+    "variants": [],
+    "caution": "Recognize the whole word: its meaning may be less literal than the parts.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/pre-"]
+  },
+  {
+    "id": "prefix-pro-before",
+    "group": "prefix",
+    "front": "pro-",
+    "meaning": "Before; in front of; preliminary.",
+    "variants": [],
+    "caution": "This sense differs from pro- meaning in favor of.",
+    "sameFrontCardIds": ["prefix-pro-forward", "prefix-pro-support"],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/pro-"]
+  },
+  {
+    "id": "prefix-pro-forward",
+    "group": "prefix",
+    "front": "pro-",
+    "meaning": "Forward; forth; outward or onward.",
+    "variants": [],
+    "caution": "This inherited movement sense differs from pro- meaning support or before.",
+    "sameFrontCardIds": ["prefix-pro-before", "prefix-pro-support"],
+    "sourceUrls": ["https://www.collinsdictionary.com/dictionary/english/pro"]
+  },
+  {
+    "id": "prefix-pro-support",
+    "group": "prefix",
+    "front": "pro-",
+    "meaning": "In favor of; supporting.",
+    "variants": [],
+    "caution": "The same spelling has a separate before/in-front-of sense.",
+    "sameFrontCardIds": ["prefix-pro-before", "prefix-pro-forward"],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/pro-"]
+  },
+  {
+    "id": "prefix-pseudo",
+    "group": "prefix",
+    "front": "pseudo-",
+    "meaning": "False; imitation or only apparent.",
+    "variants": ["pseud-"],
+    "caution": "Technically a combining form; a pseudonym is an assumed name, not necessarily a deceptive claim.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/pseudo-"]
+  },
+  {
+    "id": "prefix-quadri",
+    "group": "prefix",
+    "front": "quadri-",
+    "meaning": "Four; having four parts; sometimes square.",
+    "variants": ["quadr-", "quadru-"],
+    "caution": "Technically a combining form; distinguish four-related vocabulary from the verb quadruple, meaning multiply by four.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/quadri-"]
+  },
+  {
+    "id": "prefix-re",
+    "group": "prefix",
+    "front": "re-",
+    "meaning": "Again; anew; back.",
+    "variants": [],
+    "caution": "Not every word beginning re has a separately useful re- prefix; rely on context.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/re-"]
+  },
+  {
+    "id": "prefix-retro",
+    "group": "prefix",
+    "front": "retro-",
+    "meaning": "Backward; back; behind.",
+    "variants": [],
+    "caution": "Retroactive applies backward to an earlier time, not simply old-fashioned.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/retro-"]
+  },
+  {
+    "id": "prefix-se",
+    "group": "prefix",
+    "front": "se-",
+    "meaning": "Apart; away; separately.",
+    "variants": [],
+    "caution": "An inherited Latin prefix; many words beginning se do not contain it.",
+    "sameFrontCardIds": [],
+    "sourceUrls": [
+      "https://www.collinsdictionary.com/dictionary/english/se",
+      "https://www.etymonline.com/word/se-"
+    ]
+  },
+  {
+    "id": "prefix-semi",
+    "group": "prefix",
+    "front": "semi-",
+    "meaning": "Half; partly or incompletely.",
+    "variants": [],
+    "caution": "Semiannual means twice a year; semi- does not always mean exactly half.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/semi-"]
+  },
+  {
+    "id": "prefix-sub",
+    "group": "prefix",
+    "front": "sub-",
+    "meaning": "Under or below; secondary; less than fully.",
+    "variants": [],
+    "caution": "Choose the spatial, rank, or degree sense from context.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/sub-"]
+  },
+  {
+    "id": "prefix-super",
+    "group": "prefix",
+    "front": "super-",
+    "meaning": "Above; greater than usual; higher in rank.",
+    "variants": [],
+    "caution": "In technical classifications it can name a category above another.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/super-"]
+  },
+  {
+    "id": "prefix-supra",
+    "group": "prefix",
+    "front": "supra-",
+    "meaning": "Above; beyond a level or boundary.",
+    "variants": [],
+    "caution": "Often appears in academic and scientific vocabulary.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/supra-"]
+  },
+  {
+    "id": "prefix-syn",
+    "group": "prefix",
+    "front": "syn-",
+    "meaning": "Together; with; at the same time.",
+    "variants": ["sym-"],
+    "caution": "The spelling changes in different word families; syn- and sym- are related forms.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/syn-"]
+  },
+  {
+    "id": "prefix-tele",
+    "group": "prefix",
+    "front": "tele-",
+    "meaning": "Distant; at or across a distance.",
+    "variants": ["tel-"],
+    "caution": "Technically a combining form; some modern uses abbreviate television or telecommunications.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/tele-"]
+  },
+  {
+    "id": "prefix-trans",
+    "group": "prefix",
+    "front": "trans-",
+    "meaning": "Across; through; to the other side; changing.",
+    "variants": [],
+    "caution": "The whole word determines whether the sense concerns movement, position, or change.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/trans-"]
+  },
+  {
+    "id": "prefix-tri",
+    "group": "prefix",
+    "front": "tri-",
+    "meaning": "Three; having three parts.",
+    "variants": [],
+    "caution": "Technically a combining form; time expressions built with tri- may be ambiguous.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/tri-"]
+  },
+  {
+    "id": "prefix-ultra",
+    "group": "prefix",
+    "front": "ultra-",
+    "meaning": "Beyond a limit; extremely.",
+    "variants": [],
+    "caution": "In science, beyond can refer to a precise range rather than general intensity.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/ultra-"]
+  },
+  {
+    "id": "prefix-un-negative",
+    "group": "prefix",
+    "front": "un-",
+    "meaning": "Not; lacking or opposite in quality.",
+    "variants": [],
+    "caution": "This adjective-forming sense differs from the undoing sense in untie.",
+    "sameFrontCardIds": ["prefix-un-reverse"],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/un-"]
+  },
+  {
+    "id": "prefix-un-reverse",
+    "group": "prefix",
+    "front": "un-",
+    "meaning": "Undo an action; remove or release from.",
+    "variants": [],
+    "caution": "Usually attached to verbs; distinguish un- meaning not.",
+    "sameFrontCardIds": ["prefix-un-negative"],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/un-"]
+  },
+  {
+    "id": "prefix-under",
+    "group": "prefix",
+    "front": "under-",
+    "meaning": "Below; insufficiently or less than needed.",
+    "variants": [],
+    "caution": "Under- can describe physical position or an inadequate amount.",
+    "sameFrontCardIds": [],
+    "sourceUrls": [
+      "https://dictionary.cambridge.org/dictionary/english/under?topic=lists-and-catalogues"
+    ]
+  },
+  {
+    "id": "prefix-uni",
+    "group": "prefix",
+    "front": "uni-",
+    "meaning": "One; single.",
+    "variants": [],
+    "caution": "Unilateral means one-sided, including action by just one party.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/uni-"]
+  },
+  {
+    "id": "prefix-vice",
+    "group": "prefix",
+    "front": "vice-",
+    "meaning": "Deputy; someone acting in place of another.",
+    "variants": [],
+    "caution": "This prefix is unrelated to the noun vice meaning an immoral habit.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/vice-"]
+  },
+  {
+    "id": "suffix-able",
+    "group": "suffix",
+    "front": "-able",
+    "meaning": "Able to be acted on; suitable for, or tending toward, something.",
+    "variants": ["-ible"],
+    "caution": "The spelling is word-specific; -able and -ible cannot be freely swapped.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/-able"]
+  },
+  {
+    "id": "suffix-acy",
+    "group": "suffix",
+    "front": "-acy",
+    "meaning": "A state or quality; forms an abstract noun.",
+    "variants": [],
+    "caution": "Often replaces an adjective ending rather than simply attaching to a full word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/-acy"]
+  },
+  {
+    "id": "suffix-age",
+    "group": "suffix",
+    "front": "-age",
+    "meaning": "An action, result, collection, amount, or charge; forms nouns.",
+    "variants": [],
+    "caution": "The suffix has several senses, so the whole word matters.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/-age"]
+  },
+  {
+    "id": "suffix-al-adjective",
+    "group": "suffix",
+    "front": "-al",
+    "meaning": "Related to; characterized by; forms adjectives.",
+    "variants": [],
+    "caution": "Separate from noun-forming -al in refusal and arrival.",
+    "sameFrontCardIds": ["suffix-al-noun"],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/-al"]
+  },
+  {
+    "id": "suffix-al-noun",
+    "group": "suffix",
+    "front": "-al",
+    "meaning": "An action or process; forms nouns.",
+    "variants": [],
+    "caution": "Separate from adjective-forming -al in cultural.",
+    "sameFrontCardIds": ["suffix-al-adjective"],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/-al"]
+  },
+  {
+    "id": "suffix-an",
+    "group": "suffix",
+    "front": "-an",
+    "meaning": "Related to; or a person associated with a place, field, or group.",
+    "variants": ["-ian", "-ean"],
+    "caution": "Can form nouns or adjectives; proper-name derivatives often keep a capital letter.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/-an"]
+  },
+  {
+    "id": "suffix-ance",
+    "group": "suffix",
+    "front": "-ance",
+    "meaning": "An action, state, or quality; forms nouns.",
+    "variants": ["-ence"],
+    "caution": "The two spellings are word-specific, not interchangeable.",
+    "sameFrontCardIds": [],
+    "sourceUrls": [
+      "https://www.merriam-webster.com/dictionary/-ance",
+      "https://www.merriam-webster.com/dictionary/-ence"
+    ]
+  },
+  {
+    "id": "suffix-ant-adjective",
+    "group": "suffix",
+    "front": "-ant",
+    "meaning": "Performing an action or showing a condition; forms adjectives.",
+    "variants": ["-ent"],
+    "caution": "Can also form agent nouns; the sentence determines the part of speech.",
+    "sameFrontCardIds": ["suffix-ant-agent"],
+    "sourceUrls": [
+      "https://www.merriam-webster.com/dictionary/-ant",
+      "https://www.collinsdictionary.com/us/dictionary/english/ent"
+    ]
+  },
+  {
+    "id": "suffix-ant-agent",
+    "group": "suffix",
+    "front": "-ant",
+    "meaning": "A person or thing that performs an action; forms nouns.",
+    "variants": ["-ent"],
+    "caution": "Separate from the adjective use in observant or dependent.",
+    "sameFrontCardIds": ["suffix-ant-adjective"],
+    "sourceUrls": [
+      "https://www.merriam-webster.com/dictionary/-ant",
+      "https://www.collinsdictionary.com/us/dictionary/english/ent"
+    ]
+  },
+  {
+    "id": "suffix-ary",
+    "group": "suffix",
+    "front": "-ary",
+    "meaning": "Related to or connected with; forms adjectives.",
+    "variants": [],
+    "caution": "There is also a noun-forming -ary, as in functionary.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/-ary"]
+  },
+  {
+    "id": "suffix-ate-verb",
+    "group": "suffix",
+    "front": "-ate",
+    "meaning": "Make, cause to become, or act on; forms verbs.",
+    "variants": [],
+    "caution": "The letters -ate also occur in adjectives and nouns; check the sentence.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/-ate"]
+  },
+  {
+    "id": "suffix-cracy",
+    "group": "suffix",
+    "front": "-cracy",
+    "meaning": "A system of government, rule, or social organization.",
+    "variants": [],
+    "caution": "Technically a noun combining form; it can also name a ruling or influential group.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/-cracy"]
+  },
+  {
+    "id": "suffix-dom",
+    "group": "suffix",
+    "front": "-dom",
+    "meaning": "A state, realm, rank, or collective group; forms nouns.",
+    "variants": [],
+    "caution": "A literal kingdom is a realm, while freedom names a state.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/-dom"]
+  },
+  {
+    "id": "suffix-ee",
+    "group": "suffix",
+    "front": "-ee",
+    "meaning": "A person receiving or affected by an action; forms nouns.",
+    "variants": [],
+    "caution": "Some words, such as escapee, name the performer instead of the receiver.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/-ee"]
+  },
+  {
+    "id": "suffix-en-material",
+    "group": "suffix",
+    "front": "-en",
+    "meaning": "Made of a material; forms adjectives.",
+    "variants": ["-n"],
+    "caution": "Separate from verb-forming -en and from the ending in broken.",
+    "sameFrontCardIds": ["suffix-en-verb"],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/-en"]
+  },
+  {
+    "id": "suffix-en-verb",
+    "group": "suffix",
+    "front": "-en",
+    "meaning": "Make or become; forms verbs.",
+    "variants": [],
+    "caution": "Separate from material-adjective -en in wooden.",
+    "sameFrontCardIds": ["suffix-en-material"],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/-en"]
+  },
+  {
+    "id": "suffix-er-agent",
+    "group": "suffix",
+    "front": "-er",
+    "meaning": "A person or thing that does something; forms nouns.",
+    "variants": ["-or"],
+    "caution": "Separate from comparative -er in smaller; spelling depends on the word.",
+    "sameFrontCardIds": ["suffix-er-comparative"],
+    "sourceUrls": [
+      "https://www.merriam-webster.com/dictionary/-er",
+      "https://www.merriam-webster.com/dictionary/-or"
+    ]
+  },
+  {
+    "id": "suffix-er-comparative",
+    "group": "suffix",
+    "front": "-er",
+    "meaning": "More in degree; forms a comparison.",
+    "variants": [],
+    "caution": "An inflectional ending, distinct from the doer suffix in teacher.",
+    "sameFrontCardIds": ["suffix-er-agent"],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/-er"]
+  },
+  {
+    "id": "suffix-ery",
+    "group": "suffix",
+    "front": "-ery",
+    "meaning": "A practice, place, collection, or condition; forms nouns.",
+    "variants": ["-ry"],
+    "caution": "The exact noun meaning varies by word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": [
+      "https://www.merriam-webster.com/dictionary/-ery",
+      "https://www.merriam-webster.com/dictionary/-ry"
+    ]
+  },
+  {
+    "id": "suffix-esque",
+    "group": "suffix",
+    "front": "-esque",
+    "meaning": "In the style or manner of; resembling.",
+    "variants": [],
+    "caution": "Often expresses a resemblance or artistic style, not literal identity.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/-esque"]
+  },
+  {
+    "id": "suffix-est",
+    "group": "suffix",
+    "front": "-est",
+    "meaning": "Most in degree within a comparison; marks the superlative.",
+    "variants": [],
+    "caution": "An inflectional ending; do not add it to every adjective automatically.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/-est"]
+  },
+  {
+    "id": "suffix-ful",
+    "group": "suffix",
+    "front": "-ful",
+    "meaning": "Having or showing a quality; full of; forms adjectives.",
+    "variants": [],
+    "caution": "Adjective -ful has one l. Noun -ful can instead express a quantity, as in spoonful.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/-ful"]
+  },
+  {
+    "id": "suffix-hood",
+    "group": "suffix",
+    "front": "-hood",
+    "meaning": "A state, stage of life, or shared group; forms nouns.",
+    "variants": [],
+    "caution": "Its meaning ranges from a condition to the people who share one.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/-hood"]
+  },
+  {
+    "id": "suffix-ic",
+    "group": "suffix",
+    "front": "-ic",
+    "meaning": "Related to; characteristic of; forms adjectives.",
+    "variants": ["-ical"],
+    "caution": "Paired forms can differ in meaning, as historic and historical do.",
+    "sameFrontCardIds": [],
+    "sourceUrls": [
+      "https://www.merriam-webster.com/dictionary/-ic",
+      "https://www.merriam-webster.com/dictionary/-ical",
+      "https://style.mla.org/historic-or-historical/"
+    ]
+  },
+  {
+    "id": "suffix-ify",
+    "group": "suffix",
+    "front": "-ify",
+    "meaning": "Make; cause to become; forms verbs.",
+    "variants": ["-fy"],
+    "caution": "The base can change spelling before the suffix is added.",
+    "sameFrontCardIds": [],
+    "sourceUrls": [
+      "https://www.merriam-webster.com/dictionary/-fy",
+      "https://www.merriam-webster.com/dictionary/-ify"
+    ]
+  },
+  {
+    "id": "suffix-ion",
+    "group": "suffix",
+    "front": "-ion",
+    "meaning": "An action, process, result, or state; forms nouns.",
+    "variants": ["-tion", "-sion", "-xion"],
+    "caution": "The longer spellings are useful visible endings; the stem may change before -ion.",
+    "sameFrontCardIds": [],
+    "sourceUrls": [
+      "https://www.merriam-webster.com/dictionary/-ion",
+      "https://dictionary.cambridge.org/grammar/british-grammar/suffixes%2B"
+    ]
+  },
+  {
+    "id": "suffix-ish",
+    "group": "suffix",
+    "front": "-ish",
+    "meaning": "Somewhat; approximately; resembling or characteristic of.",
+    "variants": [],
+    "caution": "It can also mark nationality; approximate -ish is not the only sense.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/-ish"]
+  },
+  {
+    "id": "suffix-ism",
+    "group": "suffix",
+    "front": "-ism",
+    "meaning": "A belief system, practice, behavior, or condition; forms nouns.",
+    "variants": [],
+    "caution": "Not every -ism names an ideology.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/-ism"]
+  },
+  {
+    "id": "suffix-ist",
+    "group": "suffix",
+    "front": "-ist",
+    "meaning": "A practitioner, specialist, or supporter; forms nouns.",
+    "variants": [],
+    "caution": "Some -ist words are also adjectives, as in an elitist attitude.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/-ist"]
+  },
+  {
+    "id": "suffix-ity",
+    "group": "suffix",
+    "front": "-ity",
+    "meaning": "A quality, condition, or degree; forms nouns.",
+    "variants": ["-ty"],
+    "caution": "The base can change spelling or pronunciation.",
+    "sameFrontCardIds": [],
+    "sourceUrls": [
+      "https://www.merriam-webster.com/dictionary/-ity",
+      "https://www.merriam-webster.com/dictionary/-ty"
+    ]
+  },
+  {
+    "id": "suffix-ive",
+    "group": "suffix",
+    "front": "-ive",
+    "meaning": "Tending to perform an action; having an associated quality.",
+    "variants": [],
+    "caution": "Usually forms adjectives; the rest of the word determines the exact tendency.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/-ive"]
+  },
+  {
+    "id": "suffix-ize",
+    "group": "suffix",
+    "front": "-ize",
+    "meaning": "Make, become, or subject to a process; forms verbs.",
+    "variants": ["-ise"],
+    "caution": "-ise is common in British spelling; the variants are not freely interchangeable in every word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": [
+      "https://www.merriam-webster.com/dictionary/-ize",
+      "https://www.merriam-webster.com/dictionary/-ise"
+    ]
+  },
+  {
+    "id": "suffix-less",
+    "group": "suffix",
+    "front": "-less",
+    "meaning": "Without; lacking; sometimes unable to be affected.",
+    "variants": [],
+    "caution": "Tireless and dauntless express resistance to an action, not a missing physical object.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/-less"]
+  },
+  {
+    "id": "suffix-let",
+    "group": "suffix",
+    "front": "-let",
+    "meaning": "A smaller version or small instance; forms nouns.",
+    "variants": [],
+    "caution": "A useful size clue, not a complete definition of every resulting word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/-let"]
+  },
+  {
+    "id": "suffix-like",
+    "group": "suffix",
+    "front": "-like",
+    "meaning": "Resembling or characteristic of.",
+    "variants": [],
+    "caution": "Technically an adjective combining form; hyphenation varies.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/-like"]
+  },
+  {
+    "id": "suffix-logy",
+    "group": "suffix",
+    "front": "-logy",
+    "meaning": "A field of study, science, theory, or structured expression.",
+    "variants": ["-ology"],
+    "caution": "Technically a noun combining form. The visible -ology often includes a linking o; not every -logy word means a field of study.",
+    "sameFrontCardIds": [],
+    "sourceUrls": [
+      "https://www.merriam-webster.com/dictionary/-logy",
+      "https://www.merriam-webster.com/dictionary/-ology"
+    ]
+  },
+  {
+    "id": "suffix-ly-adjective",
+    "group": "suffix",
+    "front": "-ly",
+    "meaning": "Having the character of; or recurring at an interval.",
+    "variants": [],
+    "caution": "This is the adjective use, separate from -ly in carefully.",
+    "sameFrontCardIds": ["suffix-ly-adverb"],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/-ly"]
+  },
+  {
+    "id": "suffix-ly-adverb",
+    "group": "suffix",
+    "front": "-ly",
+    "meaning": "In a particular manner, respect, or degree; often forms adverbs.",
+    "variants": [],
+    "caution": "Not every -ly word is an adverb: friendly is an adjective.",
+    "sameFrontCardIds": ["suffix-ly-adjective"],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/-ly"]
+  },
+  {
+    "id": "suffix-ment",
+    "group": "suffix",
+    "front": "-ment",
+    "meaning": "An action, result, or resulting state; forms nouns.",
+    "variants": [],
+    "caution": "A -ment noun may name either a process or what the process produces.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/-ment"]
+  },
+  {
+    "id": "suffix-ness",
+    "group": "suffix",
+    "front": "-ness",
+    "meaning": "A state, condition, or quality; forms nouns.",
+    "variants": [],
+    "caution": "Usually builds a noun from an adjective; a final y may change to i.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/-ness"]
+  },
+  {
+    "id": "suffix-oid",
+    "group": "suffix",
+    "front": "-oid",
+    "meaning": "Resembling; having the form of; also a thing with that form.",
+    "variants": [],
+    "caution": "Can form adjectives or nouns; the resemblance may concern shape rather than identity.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/-oid"]
+  },
+  {
+    "id": "suffix-ory",
+    "group": "suffix",
+    "front": "-ory",
+    "meaning": "Related to, serving for, or producing; forms adjectives.",
+    "variants": [],
+    "caution": "Noun -ory can instead indicate a place or instrument, as in observatory.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/-ory"]
+  },
+  {
+    "id": "suffix-ous",
+    "group": "suffix",
+    "front": "-ous",
+    "meaning": "Having, showing, or resembling a quality; forms adjectives.",
+    "variants": ["-ious", "-eous"],
+    "caution": "The spellings are word-specific; chemistry gives -ous additional technical uses.",
+    "sameFrontCardIds": [],
+    "sourceUrls": [
+      "https://www.merriam-webster.com/dictionary/-ous",
+      "https://www.merriam-webster.com/dictionary/-ious",
+      "https://www.merriam-webster.com/dictionary/-eous"
+    ]
+  },
+  {
+    "id": "suffix-ship",
+    "group": "suffix",
+    "front": "-ship",
+    "meaning": "A state, relationship, role, skill, or body of people; forms nouns.",
+    "variants": [],
+    "caution": "The suffix is unrelated to the vessel noun ship.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/-ship"]
+  },
+  {
+    "id": "suffix-some",
+    "group": "suffix",
+    "front": "-some",
+    "meaning": "Characterized by; causing or tending to cause a quality.",
+    "variants": [],
+    "caution": "Separate from noun -some in foursome and the body combining form in chromosome.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/-some"]
+  },
+  {
+    "id": "suffix-tude",
+    "group": "suffix",
+    "front": "-tude",
+    "meaning": "A state, condition, or quality; forms nouns.",
+    "variants": [],
+    "caution": "Often occurs in inherited Latin word families rather than new everyday formations.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/-tude"]
+  },
+  {
+    "id": "suffix-ure",
+    "group": "suffix",
+    "front": "-ure",
+    "meaning": "An action, process, or office; forms nouns.",
+    "variants": [],
+    "caution": "The meaning is often lexicalized; word parts provide a clue, not a full definition.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/-ure"]
+  },
+  {
+    "id": "suffix-ward",
+    "group": "suffix",
+    "front": "-ward",
+    "meaning": "Toward a direction, position, or time.",
+    "variants": ["-wards"],
+    "caution": "Can form adjectives or adverbs; -wards is especially common in adverb uses.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/-ward"]
+  },
+  {
+    "id": "suffix-wise",
+    "group": "suffix",
+    "front": "-wise",
+    "meaning": "In a manner or direction; with respect to something.",
+    "variants": [],
+    "caution": "Technically an adverb combining form; it is not the adjective wise meaning sensible.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/-wise"]
+  },
+  {
+    "id": "suffix-y",
+    "group": "suffix",
+    "front": "-y",
+    "meaning": "Having, showing, or resembling a quality; forms adjectives.",
+    "variants": ["-ey"],
+    "caution": "This card covers adjective -y, not the separate noun endings in inquiry or difficulty.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.merriam-webster.com/dictionary/-y"]
+  },
+  {
+    "id": "root-acerb",
+    "group": "root",
+    "front": "acerb",
+    "meaning": "bitter or harsh",
+    "variants": [],
+    "caution": "A clue to harshness; verify the whole word and its tone.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/acerb-bitter"]
+  },
+  {
+    "id": "root-acr",
+    "group": "root",
+    "front": "acr",
+    "meaning": "sharp or intense",
+    "variants": [],
+    "caution": "This sharpness family differs from acro- meaning high or at the tip.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/acr-sharp"]
+  },
+  {
+    "id": "root-act",
+    "group": "root",
+    "front": "act",
+    "meaning": "do or drive",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/act-drive"]
+  },
+  {
+    "id": "root-aesthet",
+    "group": "root",
+    "front": "aesthet",
+    "meaning": "perceive or feel",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/aesthet-feel"]
+  },
+  {
+    "id": "root-agog",
+    "group": "root",
+    "front": "agog",
+    "meaning": "lead",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/agog-leading"]
+  },
+  {
+    "id": "root-agon",
+    "group": "root",
+    "front": "agon",
+    "meaning": "contest or struggle",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/agon-struggle"]
+  },
+  {
+    "id": "root-agr",
+    "group": "root",
+    "front": "agr",
+    "meaning": "field or land",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/agr-field"]
+  },
+  {
+    "id": "root-alter",
+    "group": "root",
+    "front": "alter",
+    "meaning": "other",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/alter-another"]
+  },
+  {
+    "id": "root-am",
+    "group": "root",
+    "front": "am",
+    "meaning": "love",
+    "variants": [],
+    "caution": "Do not treat every occurrence of the letters am as this Latin root.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/am-love"]
+  },
+  {
+    "id": "root-ambul",
+    "group": "root",
+    "front": "ambul",
+    "meaning": "walk or move about",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/ambul-walk"]
+  },
+  {
+    "id": "root-ami",
+    "group": "root",
+    "front": "ami",
+    "meaning": "friend",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/ami-friend"]
+  },
+  {
+    "id": "root-ampl",
+    "group": "root",
+    "front": "ampl",
+    "meaning": "large",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/ampl-large"]
+  },
+  {
+    "id": "root-anim",
+    "group": "root",
+    "front": "anim",
+    "meaning": "mind or spirit",
+    "variants": [],
+    "caution": "Modern meanings range from life to spirit or attitude; animosity is not simply animation.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/anim-mind"]
+  },
+  {
+    "id": "root-ann",
+    "group": "root",
+    "front": "ann",
+    "meaning": "year",
+    "variants": ["enn"],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/ann-year", "https://membean.com/roots/enn-year"]
+  },
+  {
+    "id": "root-anthrop",
+    "group": "root",
+    "front": "anthrop",
+    "meaning": "human",
+    "variants": ["anthropo"],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": [
+      "https://membean.com/roots/anthrop-human",
+      "https://www.readingrockets.org/topics/spelling-and-word-study/articles/root-words-suffixes-and-prefixes"
+    ]
+  },
+  {
+    "id": "root-antiqu",
+    "group": "root",
+    "front": "antiqu",
+    "meaning": "old or ancient",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/antiqu-old"]
+  },
+  {
+    "id": "root-apt",
+    "group": "root",
+    "front": "apt",
+    "meaning": "fit or suitable",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/apt-suitable"]
+  },
+  {
+    "id": "root-aqua",
+    "group": "root",
+    "front": "aqua",
+    "meaning": "water",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.etymonline.com/word/aquatic"]
+  },
+  {
+    "id": "root-arbitr",
+    "group": "root",
+    "front": "arbitr",
+    "meaning": "judge or decide",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/arbitr-think"]
+  },
+  {
+    "id": "root-arbor",
+    "group": "root",
+    "front": "arbor",
+    "meaning": "tree",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/arbor-tree"]
+  },
+  {
+    "id": "root-arch-ancient-or-early",
+    "group": "root",
+    "front": "arch",
+    "meaning": "ancient or early",
+    "variants": ["archaeo", "archeo"],
+    "caution": "Keep the ruling family separate from the ancient/early family and the chief prefix arch-.",
+    "sameFrontCardIds": ["root-arch-rule"],
+    "sourceUrls": [
+      "https://membean.com/roots/arch-ancient",
+      "https://www.etymonline.com/word/archaeology"
+    ]
+  },
+  {
+    "id": "root-arch-rule",
+    "group": "root",
+    "front": "arch",
+    "meaning": "rule",
+    "variants": [],
+    "caution": "Keep the ruling family separate from the ancient/early family and the chief prefix arch-.",
+    "sameFrontCardIds": ["root-arch-ancient-or-early"],
+    "sourceUrls": ["https://membean.com/roots/arch-rule"]
+  },
+  {
+    "id": "root-ard",
+    "group": "root",
+    "front": "ard",
+    "meaning": "burn",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/ard-burn"]
+  },
+  {
+    "id": "root-art",
+    "group": "root",
+    "front": "art",
+    "meaning": "skill or craft",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/art-skill"]
+  },
+  {
+    "id": "root-aster",
+    "group": "root",
+    "front": "aster",
+    "meaning": "star",
+    "variants": ["astr", "astro"],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": [
+      "https://membean.com/roots/aster-star",
+      "https://www.etymonline.com/word/astronomy"
+    ]
+  },
+  {
+    "id": "root-aud",
+    "group": "root",
+    "front": "aud",
+    "meaning": "hear",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/aud-hear"]
+  },
+  {
+    "id": "root-bell",
+    "group": "root",
+    "front": "bell",
+    "meaning": "war",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/bell-war"]
+  },
+  {
+    "id": "root-bibl",
+    "group": "root",
+    "front": "bibl",
+    "meaning": "book",
+    "variants": ["biblio"],
+    "caution": "Usually books; certain compounds refer specifically to the Bible.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.collinsdictionary.com/us/dictionary/english/biblio"]
+  },
+  {
+    "id": "root-bio",
+    "group": "root",
+    "front": "bio",
+    "meaning": "life",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/bio-life"]
+  },
+  {
+    "id": "root-bon",
+    "group": "root",
+    "front": "bon",
+    "meaning": "good",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/bon-good"]
+  },
+  {
+    "id": "root-brev",
+    "group": "root",
+    "front": "brev",
+    "meaning": "short",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/brev-short"]
+  },
+  {
+    "id": "root-cad",
+    "group": "root",
+    "front": "cad",
+    "meaning": "fall",
+    "variants": ["cas", "cid"],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": [
+      "https://membean.com/roots/cad-fall",
+      "https://membean.com/roots/cas-fall",
+      "https://membean.com/roots/cid-fall"
+    ]
+  },
+  {
+    "id": "root-cand",
+    "group": "root",
+    "front": "cand",
+    "meaning": "shine or be white",
+    "variants": [],
+    "caution": "The historical brightness sense is not the modern definition of candid.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/cand-shine"]
+  },
+  {
+    "id": "root-cant",
+    "group": "root",
+    "front": "cant",
+    "meaning": "sing",
+    "variants": ["chant"],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/cant-sing", "https://www.etymonline.com/word/chant"]
+  },
+  {
+    "id": "root-cap",
+    "group": "root",
+    "front": "cap",
+    "meaning": "take or seize",
+    "variants": ["capt", "cept", "ceiv", "cip"],
+    "caution": "Related stems change spelling; capital belongs to the head family instead.",
+    "sameFrontCardIds": [],
+    "sourceUrls": [
+      "https://membean.com/roots/cap-take",
+      "https://membean.com/roots/capt-taken",
+      "https://membean.com/roots/cept-taken",
+      "https://membean.com/roots/ceiv-take",
+      "https://membean.com/roots/cip-take"
+    ]
+  },
+  {
+    "id": "root-capit",
+    "group": "root",
+    "front": "capit",
+    "meaning": "head",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/capit-head"]
+  },
+  {
+    "id": "root-carn",
+    "group": "root",
+    "front": "carn",
+    "meaning": "flesh",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/carn-meat"]
+  },
+  {
+    "id": "root-caust",
+    "group": "root",
+    "front": "caust",
+    "meaning": "burn",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/caust-burnt"]
+  },
+  {
+    "id": "root-cav",
+    "group": "root",
+    "front": "cav",
+    "meaning": "hollow",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/cav-hollow"]
+  },
+  {
+    "id": "root-ced",
+    "group": "root",
+    "front": "ced",
+    "meaning": "go or yield",
+    "variants": ["ceed", "cess"],
+    "caution": "Going and yielding are related senses; the whole word determines which applies.",
+    "sameFrontCardIds": [],
+    "sourceUrls": [
+      "https://membean.com/roots/ced-go",
+      "https://membean.com/roots/ceed-move",
+      "https://membean.com/roots/cess-go",
+      "https://membean.com/roots/ced-yield"
+    ]
+  },
+  {
+    "id": "root-celer",
+    "group": "root",
+    "front": "celer",
+    "meaning": "swift",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/celer-swift"]
+  },
+  {
+    "id": "root-cens",
+    "group": "root",
+    "front": "cens",
+    "meaning": "judge or assess",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/cens-assessed"]
+  },
+  {
+    "id": "root-centr",
+    "group": "root",
+    "front": "centr",
+    "meaning": "center",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/centr-center"]
+  },
+  {
+    "id": "root-cern",
+    "group": "root",
+    "front": "cern",
+    "meaning": "separate or discern",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/cern-sift"]
+  },
+  {
+    "id": "root-cert",
+    "group": "root",
+    "front": "cert",
+    "meaning": "sure",
+    "variants": [],
+    "caution": "This certainty sense differs from cert meaning compete in some etymologies.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/cert-sure"]
+  },
+  {
+    "id": "root-chrom",
+    "group": "root",
+    "front": "chrom",
+    "meaning": "color",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/chrom-color"]
+  },
+  {
+    "id": "root-chron",
+    "group": "root",
+    "front": "chron",
+    "meaning": "time",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/chron-time"]
+  },
+  {
+    "id": "root-cis",
+    "group": "root",
+    "front": "cis",
+    "meaning": "cut",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/cis-cut"]
+  },
+  {
+    "id": "root-civ",
+    "group": "root",
+    "front": "civ",
+    "meaning": "citizen",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/civ-citizen"]
+  },
+  {
+    "id": "root-clam",
+    "group": "root",
+    "front": "clam",
+    "meaning": "shout",
+    "variants": ["claim"],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/clam-shout", "https://www.etymonline.com/word/claim"]
+  },
+  {
+    "id": "root-clar",
+    "group": "root",
+    "front": "clar",
+    "meaning": "clear or bright",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/clar-clear"]
+  },
+  {
+    "id": "root-clin",
+    "group": "root",
+    "front": "clin",
+    "meaning": "lean or slope",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/clin-lean"]
+  },
+  {
+    "id": "root-clud",
+    "group": "root",
+    "front": "clud",
+    "meaning": "close or shut",
+    "variants": ["clus"],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/clud-shut", "https://membean.com/roots/clus-shut"]
+  },
+  {
+    "id": "root-cogn",
+    "group": "root",
+    "front": "cogn",
+    "meaning": "know",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/cogn-learn"]
+  },
+  {
+    "id": "root-cord",
+    "group": "root",
+    "front": "cord",
+    "meaning": "heart",
+    "variants": [],
+    "caution": "Heart may be figurative, as in agreement or warmth.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/cord-heart"]
+  },
+  {
+    "id": "root-corp",
+    "group": "root",
+    "front": "corp",
+    "meaning": "body",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/corp-body"]
+  },
+  {
+    "id": "root-cosm",
+    "group": "root",
+    "front": "cosm",
+    "meaning": "universe or ordered world",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/cosm-universe"]
+  },
+  {
+    "id": "root-crat",
+    "group": "root",
+    "front": "crat",
+    "meaning": "rule or power",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/crat-rule"]
+  },
+  {
+    "id": "root-cred",
+    "group": "root",
+    "front": "cred",
+    "meaning": "believe or trust",
+    "variants": [],
+    "caution": "Credible means believable; credulous describes someone too willing to believe.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/cred-believe"]
+  },
+  {
+    "id": "root-cresc",
+    "group": "root",
+    "front": "cresc",
+    "meaning": "grow",
+    "variants": ["cret"],
+    "caution": "Do not confuse cret meaning grow with cret meaning separate.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/cresc-grow", "https://membean.com/roots/cret-grow"]
+  },
+  {
+    "id": "root-crit",
+    "group": "root",
+    "front": "crit",
+    "meaning": "judge",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/crit-judge"]
+  },
+  {
+    "id": "root-crypt",
+    "group": "root",
+    "front": "crypt",
+    "meaning": "hidden",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/crypt-hidden"]
+  },
+  {
+    "id": "root-culp",
+    "group": "root",
+    "front": "culp",
+    "meaning": "blame or fault",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/culp-fault"]
+  },
+  {
+    "id": "root-cult",
+    "group": "root",
+    "front": "cult",
+    "meaning": "grow or tend",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/cult-grow"]
+  },
+  {
+    "id": "root-cumb",
+    "group": "root",
+    "front": "cumb",
+    "meaning": "lie down",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/cumb-lie"]
+  },
+  {
+    "id": "root-cur",
+    "group": "root",
+    "front": "cur",
+    "meaning": "care or concern",
+    "variants": [],
+    "caution": "This care family differs from curr/curs meaning run.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/cur-worry"]
+  },
+  {
+    "id": "root-curr",
+    "group": "root",
+    "front": "curr",
+    "meaning": "run",
+    "variants": ["curs"],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/curr-run", "https://membean.com/roots/curs-ran"]
+  },
+  {
+    "id": "root-cycl",
+    "group": "root",
+    "front": "cycl",
+    "meaning": "circle or wheel",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/cycl-circle"]
+  },
+  {
+    "id": "root-dem",
+    "group": "root",
+    "front": "dem",
+    "meaning": "people",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/dem-people"]
+  },
+  {
+    "id": "root-dict",
+    "group": "root",
+    "front": "dict",
+    "meaning": "say",
+    "variants": ["dic"],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/dict-say", "https://membean.com/roots/dic-say"]
+  },
+  {
+    "id": "root-dign",
+    "group": "root",
+    "front": "dign",
+    "meaning": "worthy",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/dign-worthy"]
+  },
+  {
+    "id": "root-doc",
+    "group": "root",
+    "front": "doc",
+    "meaning": "teach",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/doc-teach"]
+  },
+  {
+    "id": "root-dol",
+    "group": "root",
+    "front": "dol",
+    "meaning": "pain or grief",
+    "variants": [],
+    "caution": "Indolent has shifted from a historical lack of pain to laziness.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/dol-feel"]
+  },
+  {
+    "id": "root-dom",
+    "group": "root",
+    "front": "dom",
+    "meaning": "house or home",
+    "variants": [],
+    "caution": "This house root is separate from the English suffix -dom.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/dom-house"]
+  },
+  {
+    "id": "root-domin",
+    "group": "root",
+    "front": "domin",
+    "meaning": "master or control",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/domin-master"]
+  },
+  {
+    "id": "root-don",
+    "group": "root",
+    "front": "don",
+    "meaning": "gift",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/don-gift"]
+  },
+  {
+    "id": "root-dox",
+    "group": "root",
+    "front": "dox",
+    "meaning": "opinion or belief",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/dox-opinion"]
+  },
+  {
+    "id": "root-dubi",
+    "group": "root",
+    "front": "dubi",
+    "meaning": "doubt",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/dubi-doubt"]
+  },
+  {
+    "id": "root-duc",
+    "group": "root",
+    "front": "duc",
+    "meaning": "lead",
+    "variants": ["duct"],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/duc-lead", "https://membean.com/roots/duct-led"]
+  },
+  {
+    "id": "root-dur",
+    "group": "root",
+    "front": "dur",
+    "meaning": "hard or lasting",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/dur-hard"]
+  },
+  {
+    "id": "root-dyn",
+    "group": "root",
+    "front": "dyn",
+    "meaning": "power",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/dyn-power"]
+  },
+  {
+    "id": "root-ego",
+    "group": "root",
+    "front": "ego",
+    "meaning": "self or I",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/ego-I"]
+  },
+  {
+    "id": "root-empt",
+    "group": "root",
+    "front": "empt",
+    "meaning": "buy",
+    "variants": [],
+    "caution": "Do not infer that exempt and preempt are interchangeable from their history.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/empt-buy"]
+  },
+  {
+    "id": "root-equ",
+    "group": "root",
+    "front": "equ",
+    "meaning": "equal",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/equ-equal"]
+  },
+  {
+    "id": "root-erg",
+    "group": "root",
+    "front": "erg",
+    "meaning": "work",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/erg-work"]
+  },
+  {
+    "id": "root-err",
+    "group": "root",
+    "front": "err",
+    "meaning": "wander or go wrong",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/err-wander"]
+  },
+  {
+    "id": "root-ethn",
+    "group": "root",
+    "front": "ethn",
+    "meaning": "people or cultural group",
+    "variants": ["ethno"],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": [
+      "https://gato-docs.its.txst.edu/jcr:2d1b1332-3571-4950-9add-f273ee9e106e/Greek%20Roots.pdf"
+    ]
+  },
+  {
+    "id": "root-facil",
+    "group": "root",
+    "front": "facil",
+    "meaning": "easy",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/facil-easy"]
+  },
+  {
+    "id": "root-fact",
+    "group": "root",
+    "front": "fact",
+    "meaning": "make or do",
+    "variants": ["fac", "fect", "fic"],
+    "caution": "Related stems include fac, fect, and fic; they are not freely interchangeable.",
+    "sameFrontCardIds": [],
+    "sourceUrls": [
+      "https://membean.com/roots/fact-made",
+      "https://membean.com/roots/fect-make",
+      "https://membean.com/roots/fic-make",
+      "https://www.readingrockets.org/topics/spelling-and-word-study/articles/root-words-suffixes-and-prefixes"
+    ]
+  },
+  {
+    "id": "root-fall",
+    "group": "root",
+    "front": "fall",
+    "meaning": "deceive or be mistaken",
+    "variants": [],
+    "caution": "This Latin error family is separate from the ordinary English verb fall.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/fall-trick"]
+  },
+  {
+    "id": "root-fer",
+    "group": "root",
+    "front": "fer",
+    "meaning": "carry or bring",
+    "variants": [],
+    "caution": "This carrying family is separate from fer meaning wild in feral.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/fer-carry"]
+  },
+  {
+    "id": "root-ferv",
+    "group": "root",
+    "front": "ferv",
+    "meaning": "boil or be hot",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/ferv-boil"]
+  },
+  {
+    "id": "root-fid",
+    "group": "root",
+    "front": "fid",
+    "meaning": "trust or faith",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/fid-trust"]
+  },
+  {
+    "id": "root-fin",
+    "group": "root",
+    "front": "fin",
+    "meaning": "end or boundary",
+    "variants": [],
+    "caution": "Boundary is often abstract; define is not simply the opposite of fine.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/fin-end"]
+  },
+  {
+    "id": "root-firm",
+    "group": "root",
+    "front": "firm",
+    "meaning": "steady or strong",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/firm-stable"]
+  },
+  {
+    "id": "root-fix",
+    "group": "root",
+    "front": "fix",
+    "meaning": "fasten",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/fix-fastened"]
+  },
+  {
+    "id": "root-flect",
+    "group": "root",
+    "front": "flect",
+    "meaning": "bend",
+    "variants": ["flex"],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": [
+      "https://membean.com/roots/flect-bent",
+      "https://www.etymonline.com/word/flexible"
+    ]
+  },
+  {
+    "id": "root-flict",
+    "group": "root",
+    "front": "flict",
+    "meaning": "strike",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/flict-struck"]
+  },
+  {
+    "id": "root-flor",
+    "group": "root",
+    "front": "flor",
+    "meaning": "flower",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/flor-flower"]
+  },
+  {
+    "id": "root-flu",
+    "group": "root",
+    "front": "flu",
+    "meaning": "flow",
+    "variants": ["flux"],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/flu-flow", "https://www.etymonline.com/word/flux"]
+  },
+  {
+    "id": "root-form",
+    "group": "root",
+    "front": "form",
+    "meaning": "shape",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/form-shape"]
+  },
+  {
+    "id": "root-fort",
+    "group": "root",
+    "front": "fort",
+    "meaning": "strong",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/fort-strong"]
+  },
+  {
+    "id": "root-fract",
+    "group": "root",
+    "front": "fract",
+    "meaning": "break",
+    "variants": ["frag"],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/fract-broken", "https://membean.com/roots/frag-break"]
+  },
+  {
+    "id": "root-fug",
+    "group": "root",
+    "front": "fug",
+    "meaning": "flee",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/fug-flee"]
+  },
+  {
+    "id": "root-fus",
+    "group": "root",
+    "front": "fus",
+    "meaning": "pour",
+    "variants": [],
+    "caution": "The pouring form fund differs from fund meaning bottom or foundation.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/fus-pour"]
+  },
+  {
+    "id": "root-ge",
+    "group": "root",
+    "front": "ge",
+    "meaning": "earth",
+    "variants": ["geo"],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": [
+      "https://membean.com/roots/ge-earth",
+      "https://www.readingrockets.org/topics/spelling-and-word-study/articles/root-words-suffixes-and-prefixes"
+    ]
+  },
+  {
+    "id": "root-gen-kind-or-class",
+    "group": "root",
+    "front": "gen",
+    "meaning": "kind or class",
+    "variants": [],
+    "caution": "Birth/production and kind/class are taught as separate sense families.",
+    "sameFrontCardIds": ["root-gen-produce-or-give-birth"],
+    "sourceUrls": ["https://membean.com/roots/gen-kind"]
+  },
+  {
+    "id": "root-gen-produce-or-give-birth",
+    "group": "root",
+    "front": "gen",
+    "meaning": "produce or give birth",
+    "variants": [],
+    "caution": "Birth/production and kind/class are taught as separate sense families.",
+    "sameFrontCardIds": ["root-gen-kind-or-class"],
+    "sourceUrls": ["https://membean.com/roots/gen-born"]
+  },
+  {
+    "id": "root-gnost",
+    "group": "root",
+    "front": "gnost",
+    "meaning": "know",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/gnost-know"]
+  },
+  {
+    "id": "root-grad",
+    "group": "root",
+    "front": "grad",
+    "meaning": "step",
+    "variants": ["gress"],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/grad-step", "https://membean.com/roots/gress-step"]
+  },
+  {
+    "id": "root-gram",
+    "group": "root",
+    "front": "gram",
+    "meaning": "something written",
+    "variants": [],
+    "caution": "This writing element is separate from gram as a metric unit of mass.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/gram-line"]
+  },
+  {
+    "id": "root-graph",
+    "group": "root",
+    "front": "graph",
+    "meaning": "write or record",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/graph-write"]
+  },
+  {
+    "id": "root-grat",
+    "group": "root",
+    "front": "grat",
+    "meaning": "pleasing or thankful",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/grat-pleasing"]
+  },
+  {
+    "id": "root-grav",
+    "group": "root",
+    "front": "grav",
+    "meaning": "heavy or serious",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/grav-heavy"]
+  },
+  {
+    "id": "root-greg",
+    "group": "root",
+    "front": "greg",
+    "meaning": "flock or group",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/greg-flock"]
+  },
+  {
+    "id": "root-her",
+    "group": "root",
+    "front": "her",
+    "meaning": "stick or cling",
+    "variants": ["hes"],
+    "caution": "This bound Latin root is not the English pronoun her.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/her-stick", "https://membean.com/roots/hes-stick"]
+  },
+  {
+    "id": "root-hibit",
+    "group": "root",
+    "front": "hibit",
+    "meaning": "hold",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/hibit-hold"]
+  },
+  {
+    "id": "root-hort",
+    "group": "root",
+    "front": "hort",
+    "meaning": "urge or encourage",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/hort-urge"]
+  },
+  {
+    "id": "root-hospit",
+    "group": "root",
+    "front": "hospit",
+    "meaning": "host or guest",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/hospit-host"]
+  },
+  {
+    "id": "root-hum",
+    "group": "root",
+    "front": "hum",
+    "meaning": "ground",
+    "variants": [],
+    "caution": "This ground family is not the sound word hum.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/hum-ground"]
+  },
+  {
+    "id": "root-hydr",
+    "group": "root",
+    "front": "hydr",
+    "meaning": "water",
+    "variants": ["hydro"],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": [
+      "https://gato-docs.its.txst.edu/jcr:2d1b1332-3571-4950-9add-f273ee9e106e/Greek%20Roots.pdf"
+    ]
+  },
+  {
+    "id": "root-icon",
+    "group": "root",
+    "front": "icon",
+    "meaning": "image",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/icon-image"]
+  },
+  {
+    "id": "root-insul",
+    "group": "root",
+    "front": "insul",
+    "meaning": "island",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/insul-island"]
+  },
+  {
+    "id": "root-integr",
+    "group": "root",
+    "front": "integr",
+    "meaning": "whole",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/integr-whole"]
+  },
+  {
+    "id": "root-ject",
+    "group": "root",
+    "front": "ject",
+    "meaning": "throw",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/ject-thrown"]
+  },
+  {
+    "id": "root-judic",
+    "group": "root",
+    "front": "judic",
+    "meaning": "judge",
+    "variants": ["jud"],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": [
+      "https://membean.com/roots/judic-judge",
+      "https://www.readingrockets.org/topics/spelling-and-word-study/articles/root-words-suffixes-and-prefixes"
+    ]
+  },
+  {
+    "id": "root-junct",
+    "group": "root",
+    "front": "junct",
+    "meaning": "join",
+    "variants": ["join"],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/junct-joined", "https://membean.com/roots/join-join"]
+  },
+  {
+    "id": "root-jur",
+    "group": "root",
+    "front": "jur",
+    "meaning": "law or oath",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/jur-swear"]
+  },
+  {
+    "id": "root-juven",
+    "group": "root",
+    "front": "juven",
+    "meaning": "young",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/juven-young"]
+  },
+  {
+    "id": "root-kine",
+    "group": "root",
+    "front": "kine",
+    "meaning": "movement",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/kine-moving"]
+  },
+  {
+    "id": "root-labor",
+    "group": "root",
+    "front": "labor",
+    "meaning": "work",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/labor-work"]
+  },
+  {
+    "id": "root-langu",
+    "group": "root",
+    "front": "langu",
+    "meaning": "be weak or sluggish",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/langu-sluggish"]
+  },
+  {
+    "id": "root-lat",
+    "group": "root",
+    "front": "lat",
+    "meaning": "carry or bring",
+    "variants": [],
+    "caution": "This carrying family differs from lat meaning wide in latitude.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/lat-carry"]
+  },
+  {
+    "id": "root-laud",
+    "group": "root",
+    "front": "laud",
+    "meaning": "praise",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/laud-praise"]
+  },
+  {
+    "id": "root-lect",
+    "group": "root",
+    "front": "lect",
+    "meaning": "gather or choose",
+    "variants": [],
+    "caution": "This gathering family differs from forms associated with speech.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/lect-gathered"]
+  },
+  {
+    "id": "root-leg",
+    "group": "root",
+    "front": "leg",
+    "meaning": "law",
+    "variants": [],
+    "caution": "This law family differs from leg/lect meaning gather or read.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/leg-law"]
+  },
+  {
+    "id": "root-lev",
+    "group": "root",
+    "front": "lev",
+    "meaning": "light in weight; lift",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/lev-light"]
+  },
+  {
+    "id": "root-liber",
+    "group": "root",
+    "front": "liber",
+    "meaning": "free",
+    "variants": [],
+    "caution": "This freedom family differs from Latin liber meaning book.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/liber-free"]
+  },
+  {
+    "id": "root-lig",
+    "group": "root",
+    "front": "lig",
+    "meaning": "bind or tie",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/lig-tie"]
+  },
+  {
+    "id": "root-lingu",
+    "group": "root",
+    "front": "lingu",
+    "meaning": "tongue or language",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.etymonline.com/word/lingual"]
+  },
+  {
+    "id": "root-liter",
+    "group": "root",
+    "front": "liter",
+    "meaning": "letter or writing",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/liter-letter"]
+  },
+  {
+    "id": "root-lith",
+    "group": "root",
+    "front": "lith",
+    "meaning": "stone",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": [
+      "https://gato-docs.its.txst.edu/jcr:2d1b1332-3571-4950-9add-f273ee9e106e/Greek%20Roots.pdf"
+    ]
+  },
+  {
+    "id": "root-loc",
+    "group": "root",
+    "front": "loc",
+    "meaning": "place",
+    "variants": [],
+    "caution": "This place root differs from locut, the speaking stem in elocution.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/loc-place"]
+  },
+  {
+    "id": "root-log",
+    "group": "root",
+    "front": "log",
+    "meaning": "word or reason",
+    "variants": [],
+    "caution": "Word and reason are related senses; -logy has a specialized study/discourse function.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/log-word"]
+  },
+  {
+    "id": "root-loqu",
+    "group": "root",
+    "front": "loqu",
+    "meaning": "speak",
+    "variants": ["locut"],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/loqu-talk", "https://membean.com/roots/locut-having"]
+  },
+  {
+    "id": "root-luc",
+    "group": "root",
+    "front": "luc",
+    "meaning": "light",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/luc-light"]
+  },
+  {
+    "id": "root-lud",
+    "group": "root",
+    "front": "lud",
+    "meaning": "play",
+    "variants": ["lus"],
+    "caution": "Allude and elude have different meanings despite their shared ancestry.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/lud-play", "https://membean.com/roots/lus-play"]
+  },
+  {
+    "id": "root-lumin",
+    "group": "root",
+    "front": "lumin",
+    "meaning": "light",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/lumin-light"]
+  },
+  {
+    "id": "root-magn",
+    "group": "root",
+    "front": "magn",
+    "meaning": "great or large",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/magn-large"]
+  },
+  {
+    "id": "root-man",
+    "group": "root",
+    "front": "man",
+    "meaning": "hand",
+    "variants": [],
+    "caution": "This hand root is not the English noun man and does not mean male.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/man-hand"]
+  },
+  {
+    "id": "root-mand",
+    "group": "root",
+    "front": "mand",
+    "meaning": "order or entrust",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/mand-order"]
+  },
+  {
+    "id": "root-mar",
+    "group": "root",
+    "front": "mar",
+    "meaning": "sea",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.etymonline.com/word/maritime"]
+  },
+  {
+    "id": "root-mater",
+    "group": "root",
+    "front": "mater",
+    "meaning": "mother",
+    "variants": ["matr"],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/matr-mother"]
+  },
+  {
+    "id": "root-medi",
+    "group": "root",
+    "front": "medi",
+    "meaning": "middle",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/medi-middle"]
+  },
+  {
+    "id": "root-memor",
+    "group": "root",
+    "front": "memor",
+    "meaning": "remember",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/memor-remembering"]
+  },
+  {
+    "id": "root-ment",
+    "group": "root",
+    "front": "ment",
+    "meaning": "mind",
+    "variants": [],
+    "caution": "This mind root differs from the noun-forming suffix -ment.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/ment-mind"]
+  },
+  {
+    "id": "root-metr",
+    "group": "root",
+    "front": "metr",
+    "meaning": "measure",
+    "variants": ["meter"],
+    "caution": "The measuring root differs from Greek metr meaning mother.",
+    "sameFrontCardIds": [],
+    "sourceUrls": [
+      "https://membean.com/roots/metr-measure",
+      "https://www.readingrockets.org/topics/spelling-and-word-study/articles/root-words-suffixes-and-prefixes"
+    ]
+  },
+  {
+    "id": "root-migr",
+    "group": "root",
+    "front": "migr",
+    "meaning": "move from place to place",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/migr-move"]
+  },
+  {
+    "id": "root-min",
+    "group": "root",
+    "front": "min",
+    "meaning": "small or less",
+    "variants": [],
+    "caution": "This small/less family differs from min meaning project or threaten.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/min-lessen"]
+  },
+  {
+    "id": "root-mir",
+    "group": "root",
+    "front": "mir",
+    "meaning": "wonder",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.etymonline.com/word/miracle"]
+  },
+  {
+    "id": "root-miso",
+    "group": "root",
+    "front": "miso",
+    "meaning": "hatred or strong dislike",
+    "variants": ["mis"],
+    "caution": "Different from the English prefix mis- meaning wrongly. Do not merge those senses.",
+    "sameFrontCardIds": [],
+    "sourceUrls": [
+      "https://gato-docs.its.txst.edu/jcr:2d1b1332-3571-4950-9add-f273ee9e106e/Greek%20Roots.pdf",
+      "https://www.readingrockets.org/topics/spelling-and-word-study/articles/root-words-suffixes-and-prefixes"
+    ]
+  },
+  {
+    "id": "root-mit",
+    "group": "root",
+    "front": "mit",
+    "meaning": "send",
+    "variants": ["miss"],
+    "caution": "Miss is a related stem here, not the everyday verb meaning fail to hit.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/mit-send", "https://membean.com/roots/miss-sent"]
+  },
+  {
+    "id": "root-mon",
+    "group": "root",
+    "front": "mon",
+    "meaning": "warn or advise",
+    "variants": [],
+    "caution": "This warning family differs from mono- meaning one.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/mon-warn"]
+  },
+  {
+    "id": "root-morph",
+    "group": "root",
+    "front": "morph",
+    "meaning": "shape or form",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/morph-shape"]
+  },
+  {
+    "id": "root-mort",
+    "group": "root",
+    "front": "mort",
+    "meaning": "death",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/mort-death"]
+  },
+  {
+    "id": "root-mot",
+    "group": "root",
+    "front": "mot",
+    "meaning": "move",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/mot-move"]
+  },
+  {
+    "id": "root-mov",
+    "group": "root",
+    "front": "mov",
+    "meaning": "move",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/mov-move"]
+  },
+  {
+    "id": "root-mun",
+    "group": "root",
+    "front": "mun",
+    "meaning": "gift or service",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/mun-gift"]
+  },
+  {
+    "id": "root-mut",
+    "group": "root",
+    "front": "mut",
+    "meaning": "change",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/mut-change"]
+  },
+  {
+    "id": "root-narr",
+    "group": "root",
+    "front": "narr",
+    "meaning": "tell",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/narrat-tell"]
+  },
+  {
+    "id": "root-nat",
+    "group": "root",
+    "front": "nat",
+    "meaning": "born",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/nat-born"]
+  },
+  {
+    "id": "root-nav",
+    "group": "root",
+    "front": "nav",
+    "meaning": "ship",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.etymonline.com/word/navigation"]
+  },
+  {
+    "id": "root-neur",
+    "group": "root",
+    "front": "neur",
+    "meaning": "nerve",
+    "variants": ["neuro"],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": [
+      "https://gato-docs.its.txst.edu/jcr:2d1b1332-3571-4950-9add-f273ee9e106e/Greek%20Roots.pdf"
+    ]
+  },
+  {
+    "id": "root-nom-law-or-arrangement",
+    "group": "root",
+    "front": "nom",
+    "meaning": "law or arrangement",
+    "variants": [],
+    "caution": "Separate Latin name from Greek law/arrangement; matching spelling is insufficient.",
+    "sameFrontCardIds": ["root-nom-name"],
+    "sourceUrls": ["https://membean.com/roots/nom-law"]
+  },
+  {
+    "id": "root-nom-name",
+    "group": "root",
+    "front": "nom",
+    "meaning": "name",
+    "variants": [],
+    "caution": "Separate Latin name from Greek law/arrangement; matching spelling is insufficient.",
+    "sameFrontCardIds": ["root-nom-law-or-arrangement"],
+    "sourceUrls": ["https://membean.com/roots/nom-name"]
+  },
+  {
+    "id": "root-norm",
+    "group": "root",
+    "front": "norm",
+    "meaning": "standard or rule",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/norm-standard"]
+  },
+  {
+    "id": "root-not",
+    "group": "root",
+    "front": "not",
+    "meaning": "mark",
+    "variants": [],
+    "caution": "This marking root is not the English negative word not.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/not-mark"]
+  },
+  {
+    "id": "root-nov",
+    "group": "root",
+    "front": "nov",
+    "meaning": "new",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/nov-new"]
+  },
+  {
+    "id": "root-numer",
+    "group": "root",
+    "front": "numer",
+    "meaning": "number",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/numer-number"]
+  },
+  {
+    "id": "root-nunci",
+    "group": "root",
+    "front": "nunci",
+    "meaning": "announce",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/nunc-messenger"]
+  },
+  {
+    "id": "root-nutri",
+    "group": "root",
+    "front": "nutri",
+    "meaning": "nourish",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.etymonline.com/word/nutrition"]
+  },
+  {
+    "id": "root-nym",
+    "group": "root",
+    "front": "nym",
+    "meaning": "name",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/onym-name"]
+  },
+  {
+    "id": "root-oper",
+    "group": "root",
+    "front": "oper",
+    "meaning": "work",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/oper-work"]
+  },
+  {
+    "id": "root-opt",
+    "group": "root",
+    "front": "opt",
+    "meaning": "choose",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/opt-wish"]
+  },
+  {
+    "id": "root-ordin",
+    "group": "root",
+    "front": "ordin",
+    "meaning": "order",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.etymonline.com/word/ordinate"]
+  },
+  {
+    "id": "root-orn",
+    "group": "root",
+    "front": "orn",
+    "meaning": "adorn",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/orn-decorate"]
+  },
+  {
+    "id": "root-pac",
+    "group": "root",
+    "front": "pac",
+    "meaning": "peace",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/pac-peace"]
+  },
+  {
+    "id": "root-pall",
+    "group": "root",
+    "front": "pall",
+    "meaning": "pale",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/pall-pale"]
+  },
+  {
+    "id": "root-part",
+    "group": "root",
+    "front": "part",
+    "meaning": "share or divide",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/part-part"]
+  },
+  {
+    "id": "root-pass",
+    "group": "root",
+    "front": "pass",
+    "meaning": "suffer or feel",
+    "variants": [],
+    "caution": "This feeling/suffering family differs from pass meaning step or passage.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/pass-suffer"]
+  },
+  {
+    "id": "root-pater",
+    "group": "root",
+    "front": "pater",
+    "meaning": "father",
+    "variants": ["patr"],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/patr-father"]
+  },
+  {
+    "id": "root-path",
+    "group": "root",
+    "front": "path",
+    "meaning": "feeling or suffering",
+    "variants": [],
+    "caution": "Can refer to emotion or suffering; pathology is more specialized than empathy.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/path-feeling"]
+  },
+  {
+    "id": "root-ped-child",
+    "group": "root",
+    "front": "ped",
+    "meaning": "child",
+    "variants": [],
+    "caution": "Latin foot and Greek child are different roots with overlapping English spellings.",
+    "sameFrontCardIds": ["root-ped-foot"],
+    "sourceUrls": ["https://membean.com/roots/ped-child"]
+  },
+  {
+    "id": "root-ped-foot",
+    "group": "root",
+    "front": "ped",
+    "meaning": "foot",
+    "variants": [],
+    "caution": "Latin foot and Greek child are different roots with overlapping English spellings.",
+    "sameFrontCardIds": ["root-ped-child"],
+    "sourceUrls": ["https://membean.com/roots/ped-foot"]
+  },
+  {
+    "id": "root-pell",
+    "group": "root",
+    "front": "pell",
+    "meaning": "drive or push",
+    "variants": ["puls"],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/pel-push", "https://membean.com/roots/puls-pushed"]
+  },
+  {
+    "id": "root-pend",
+    "group": "root",
+    "front": "pend",
+    "meaning": "hang or weigh",
+    "variants": ["pens"],
+    "caution": "Hanging and weighing are related historical senses; check the individual word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/pend-hang", "https://membean.com/roots/pens-hang"]
+  },
+  {
+    "id": "root-pet",
+    "group": "root",
+    "front": "pet",
+    "meaning": "seek or move toward",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/pet-seek"]
+  },
+  {
+    "id": "root-phil",
+    "group": "root",
+    "front": "phil",
+    "meaning": "love or liking",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/phil-love"]
+  },
+  {
+    "id": "root-phob",
+    "group": "root",
+    "front": "phob",
+    "meaning": "fear or strong aversion",
+    "variants": ["phobia"],
+    "caution": "This element gives a meaning clue; a technical phobia term can have a narrower definition.",
+    "sameFrontCardIds": [],
+    "sourceUrls": [
+      "https://gato-docs.its.txst.edu/jcr:2d1b1332-3571-4950-9add-f273ee9e106e/Greek%20Roots.pdf"
+    ]
+  },
+  {
+    "id": "root-phon",
+    "group": "root",
+    "front": "phon",
+    "meaning": "sound",
+    "variants": [],
+    "caution": "Sound does not always mean a human voice.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/phon-voice"]
+  },
+  {
+    "id": "root-phot",
+    "group": "root",
+    "front": "phot",
+    "meaning": "light",
+    "variants": ["photo"],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": [
+      "https://gato-docs.its.txst.edu/jcr:2d1b1332-3571-4950-9add-f273ee9e106e/Greek%20Roots.pdf",
+      "https://www.etymonline.com/word/photosynthesis"
+    ]
+  },
+  {
+    "id": "root-plac",
+    "group": "root",
+    "front": "plac",
+    "meaning": "please or soothe",
+    "variants": [],
+    "caution": "Complacent and complaisant have distinct current meanings; do not substitute them.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/plac-please"]
+  },
+  {
+    "id": "root-plen",
+    "group": "root",
+    "front": "plen",
+    "meaning": "full",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/plen-full"]
+  },
+  {
+    "id": "root-plic",
+    "group": "root",
+    "front": "plic",
+    "meaning": "fold",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/plic-fold"]
+  },
+  {
+    "id": "root-pod",
+    "group": "root",
+    "front": "pod",
+    "meaning": "foot",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": [
+      "https://gato-docs.its.txst.edu/jcr:2d1b1332-3571-4950-9add-f273ee9e106e/Greek%20Roots.pdf"
+    ]
+  },
+  {
+    "id": "root-polis",
+    "group": "root",
+    "front": "polis",
+    "meaning": "city",
+    "variants": ["polit"],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": [
+      "https://gato-docs.its.txst.edu/jcr:2d1b1332-3571-4950-9add-f273ee9e106e/Greek%20Roots.pdf",
+      "https://membean.com/roots/polit-citizen"
+    ]
+  },
+  {
+    "id": "root-pon",
+    "group": "root",
+    "front": "pon",
+    "meaning": "put or place",
+    "variants": ["posit"],
+    "caution": "Related stems change spelling; pose may also have independent modern uses.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/pon-put", "https://membean.com/roots/posit-placed"]
+  },
+  {
+    "id": "root-port",
+    "group": "root",
+    "front": "port",
+    "meaning": "carry",
+    "variants": [],
+    "caution": "This carry family differs from port meaning harbor or gateway.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/port-carry"]
+  },
+  {
+    "id": "root-pot",
+    "group": "root",
+    "front": "pot",
+    "meaning": "power or ability",
+    "variants": ["potent"],
+    "caution": "This power/ability family differs from pot meaning drink in potable.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/potent-capable"]
+  },
+  {
+    "id": "root-prehend",
+    "group": "root",
+    "front": "prehend",
+    "meaning": "grasp",
+    "variants": ["prehens"],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": [
+      "https://membean.com/roots/prehend-seize",
+      "https://membean.com/roots/prehens-seized"
+    ]
+  },
+  {
+    "id": "root-prim",
+    "group": "root",
+    "front": "prim",
+    "meaning": "first",
+    "variants": [],
+    "caution": "This first family differs from prim/press meaning press.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/prim-first"]
+  },
+  {
+    "id": "root-prob",
+    "group": "root",
+    "front": "prob",
+    "meaning": "test or prove",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/prob-prove"]
+  },
+  {
+    "id": "root-proxim",
+    "group": "root",
+    "front": "proxim",
+    "meaning": "nearest",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/proxim-next"]
+  },
+  {
+    "id": "root-psych",
+    "group": "root",
+    "front": "psych",
+    "meaning": "mind",
+    "variants": ["psycho"],
+    "caution": "The historical soul sense and modern mind sense depend on the word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": [
+      "https://www.etymonline.com/word/psychology",
+      "https://gato-docs.its.txst.edu/jcr:2d1b1332-3571-4950-9add-f273ee9e106e/Greek%20Roots.pdf"
+    ]
+  },
+  {
+    "id": "root-pugn",
+    "group": "root",
+    "front": "pugn",
+    "meaning": "fight",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/pugn-fight"]
+  },
+  {
+    "id": "root-punct",
+    "group": "root",
+    "front": "punct",
+    "meaning": "point or pierce",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/punct-pointed"]
+  },
+  {
+    "id": "root-put",
+    "group": "root",
+    "front": "put",
+    "meaning": "think or calculate",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/put-think"]
+  },
+  {
+    "id": "root-quer",
+    "group": "root",
+    "front": "quer",
+    "meaning": "complain",
+    "variants": [],
+    "caution": "This complaining family differs from quest/quir meaning seek or ask.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/quer-complain"]
+  },
+  {
+    "id": "root-quest",
+    "group": "root",
+    "front": "quest",
+    "meaning": "seek or ask",
+    "variants": ["quir", "quisit"],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": [
+      "https://membean.com/roots/quest-seek",
+      "https://membean.com/roots/quir-seek",
+      "https://membean.com/roots/quisit-seek"
+    ]
+  },
+  {
+    "id": "root-quiesc",
+    "group": "root",
+    "front": "quiesc",
+    "meaning": "rest or become still",
+    "variants": [],
+    "caution": "Acquiesce means accept or consent, not merely become quiet.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/quiesc-rest"]
+  },
+  {
+    "id": "root-radic",
+    "group": "root",
+    "front": "radic",
+    "meaning": "root",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/radic-root"]
+  },
+  {
+    "id": "root-rap",
+    "group": "root",
+    "front": "rap",
+    "meaning": "seize",
+    "variants": ["rapt"],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": [
+      "https://membean.com/roots/rap-snatch",
+      "https://www.etymonline.com/word/rapture"
+    ]
+  },
+  {
+    "id": "root-rect",
+    "group": "root",
+    "front": "rect",
+    "meaning": "straight or right",
+    "variants": [],
+    "caution": "Straight and correct are related senses; the modern word can be figurative.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/rect-ruled"]
+  },
+  {
+    "id": "root-reg",
+    "group": "root",
+    "front": "reg",
+    "meaning": "rule or direct",
+    "variants": [],
+    "caution": "Do not infer a complete modern definition just from the ruling sense.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/reg-rule"]
+  },
+  {
+    "id": "root-rid",
+    "group": "root",
+    "front": "rid",
+    "meaning": "laugh",
+    "variants": ["ris"],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": [
+      "https://membean.com/roots/rid-laughat",
+      "https://www.etymonline.com/word/derision"
+    ]
+  },
+  {
+    "id": "root-rig",
+    "group": "root",
+    "front": "rig",
+    "meaning": "stiff",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/rig-stiffness"]
+  },
+  {
+    "id": "root-rog",
+    "group": "root",
+    "front": "rog",
+    "meaning": "ask",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/rog-ask"]
+  },
+  {
+    "id": "root-rupt",
+    "group": "root",
+    "front": "rupt",
+    "meaning": "break or burst",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/rupt-burst"]
+  },
+  {
+    "id": "root-sacr",
+    "group": "root",
+    "front": "sacr",
+    "meaning": "sacred",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/sacr-sacred"]
+  },
+  {
+    "id": "root-sal",
+    "group": "root",
+    "front": "sal",
+    "meaning": "health or safety",
+    "variants": [],
+    "caution": "This health family differs from sal meaning leap in salient.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/sal-health"]
+  },
+  {
+    "id": "root-san",
+    "group": "root",
+    "front": "san",
+    "meaning": "healthy or sound",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.etymonline.com/word/sanity"]
+  },
+  {
+    "id": "root-sci",
+    "group": "root",
+    "front": "sci",
+    "meaning": "know",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/sci-know"]
+  },
+  {
+    "id": "root-scop",
+    "group": "root",
+    "front": "scop",
+    "meaning": "look or examine",
+    "variants": ["scope"],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": [
+      "https://gato-docs.its.txst.edu/jcr:2d1b1332-3571-4950-9add-f273ee9e106e/Greek%20Roots.pdf",
+      "https://www.readingrockets.org/topics/spelling-and-word-study/articles/root-words-suffixes-and-prefixes"
+    ]
+  },
+  {
+    "id": "root-scrib",
+    "group": "root",
+    "front": "scrib",
+    "meaning": "write",
+    "variants": ["script"],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": [
+      "https://membean.com/roots/scrib-write",
+      "https://membean.com/roots/script-written"
+    ]
+  },
+  {
+    "id": "root-sect",
+    "group": "root",
+    "front": "sect",
+    "meaning": "cut",
+    "variants": ["sec"],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": [
+      "https://membean.com/roots/sect-cut",
+      "https://www.readingrockets.org/topics/spelling-and-word-study/articles/root-words-suffixes-and-prefixes"
+    ]
+  },
+  {
+    "id": "root-sed",
+    "group": "root",
+    "front": "sed",
+    "meaning": "sit or settle",
+    "variants": ["sess", "sid"],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": [
+      "https://membean.com/roots/sed-sit",
+      "https://membean.com/roots/sid-sit",
+      "https://www.etymonline.com/word/session"
+    ]
+  },
+  {
+    "id": "root-sens",
+    "group": "root",
+    "front": "sens",
+    "meaning": "feel or perceive",
+    "variants": ["sent"],
+    "caution": "Sent in this family means feel; do not label it send based on the verb sent.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/sens-felt", "https://membean.com/roots/sent-feel"]
+  },
+  {
+    "id": "root-sequ",
+    "group": "root",
+    "front": "sequ",
+    "meaning": "follow",
+    "variants": ["secut"],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": [
+      "https://membean.com/roots/sequ-follow",
+      "https://membean.com/roots/secut-follow"
+    ]
+  },
+  {
+    "id": "root-serv",
+    "group": "root",
+    "front": "serv",
+    "meaning": "keep or protect",
+    "variants": [],
+    "caution": "This keeping family differs from serv meaning serve or servant.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/serv-keep"]
+  },
+  {
+    "id": "root-sign",
+    "group": "root",
+    "front": "sign",
+    "meaning": "mark",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/sign-mark"]
+  },
+  {
+    "id": "root-simil",
+    "group": "root",
+    "front": "simil",
+    "meaning": "like or resembling",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/simil-like"]
+  },
+  {
+    "id": "root-soci",
+    "group": "root",
+    "front": "soci",
+    "meaning": "companion or associate",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://www.etymonline.com/word/social"]
+  },
+  {
+    "id": "root-sol",
+    "group": "root",
+    "front": "sol",
+    "meaning": "alone",
+    "variants": [],
+    "caution": "This alone family is separate from sol meaning sun or whole.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/sol-alone"]
+  },
+  {
+    "id": "root-solv",
+    "group": "root",
+    "front": "solv",
+    "meaning": "loosen or release",
+    "variants": ["solut"],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": [
+      "https://membean.com/roots/solv-loosen",
+      "https://membean.com/roots/solut-loosened"
+    ]
+  },
+  {
+    "id": "root-somn",
+    "group": "root",
+    "front": "somn",
+    "meaning": "sleep",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/somn-sleep"]
+  },
+  {
+    "id": "root-son",
+    "group": "root",
+    "front": "son",
+    "meaning": "sound",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/son-sound"]
+  },
+  {
+    "id": "root-soph",
+    "group": "root",
+    "front": "soph",
+    "meaning": "wisdom",
+    "variants": [],
+    "caution": "Sophisticated has undergone a meaning change; wisdom alone is not its definition.",
+    "sameFrontCardIds": [],
+    "sourceUrls": [
+      "https://gato-docs.its.txst.edu/jcr:2d1b1332-3571-4950-9add-f273ee9e106e/Greek%20Roots.pdf"
+    ]
+  },
+  {
+    "id": "root-spec",
+    "group": "root",
+    "front": "spec",
+    "meaning": "look or see",
+    "variants": ["spect"],
+    "caution": "This seeing family differs from spec meaning kind in special.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/spec-see", "https://membean.com/roots/spect-see"]
+  },
+  {
+    "id": "root-spir",
+    "group": "root",
+    "front": "spir",
+    "meaning": "breathe",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/spir-breathe"]
+  },
+  {
+    "id": "root-sta",
+    "group": "root",
+    "front": "sta",
+    "meaning": "stand",
+    "variants": ["stat"],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/stat-stands"]
+  },
+  {
+    "id": "root-string",
+    "group": "root",
+    "front": "string",
+    "meaning": "draw tight",
+    "variants": ["strict"],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": [
+      "https://membean.com/roots/string-draw",
+      "https://membean.com/roots/strict-drawn"
+    ]
+  },
+  {
+    "id": "root-stru",
+    "group": "root",
+    "front": "stru",
+    "meaning": "build",
+    "variants": ["struct"],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/stru-build", "https://membean.com/roots/struct-built"]
+  },
+  {
+    "id": "root-sum",
+    "group": "root",
+    "front": "sum",
+    "meaning": "take",
+    "variants": ["sumpt"],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/sum-take", "https://membean.com/roots/sumpt-taken"]
+  },
+  {
+    "id": "root-tact",
+    "group": "root",
+    "front": "tact",
+    "meaning": "touch",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/tact-touched"]
+  },
+  {
+    "id": "root-techn",
+    "group": "root",
+    "front": "techn",
+    "meaning": "skill or craft",
+    "variants": ["techno"],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": [
+      "https://gato-docs.its.txst.edu/jcr:2d1b1332-3571-4950-9add-f273ee9e106e/Greek%20Roots.pdf",
+      "https://www.readingrockets.org/topics/spelling-and-word-study/articles/root-words-suffixes-and-prefixes"
+    ]
+  },
+  {
+    "id": "root-ten",
+    "group": "root",
+    "front": "ten",
+    "meaning": "hold",
+    "variants": ["tain"],
+    "caution": "This holding family overlaps in spelling with tend/tens meaning stretch.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/ten-hold", "https://membean.com/roots/tain-hold"]
+  },
+  {
+    "id": "root-tend",
+    "group": "root",
+    "front": "tend",
+    "meaning": "stretch",
+    "variants": ["tens", "tent"],
+    "caution": "Stretching stems may overlap in spelling with the ten/tent holding family.",
+    "sameFrontCardIds": [],
+    "sourceUrls": [
+      "https://membean.com/roots/tend-stretch",
+      "https://membean.com/roots/tens-stretch",
+      "https://membean.com/roots/tent-stretched"
+    ]
+  },
+  {
+    "id": "root-terr",
+    "group": "root",
+    "front": "terr",
+    "meaning": "earth or land",
+    "variants": [],
+    "caution": "This earth family differs from terr meaning frighten in terror.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/terr-earth"]
+  },
+  {
+    "id": "root-test",
+    "group": "root",
+    "front": "test",
+    "meaning": "witness",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/test-witness"]
+  },
+  {
+    "id": "root-text",
+    "group": "root",
+    "front": "text",
+    "meaning": "weave",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/text-weave"]
+  },
+  {
+    "id": "root-the",
+    "group": "root",
+    "front": "the",
+    "meaning": "god",
+    "variants": ["theo"],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": [
+      "https://membean.com/roots/the-god",
+      "https://gato-docs.its.txst.edu/jcr:2d1b1332-3571-4950-9add-f273ee9e106e/Greek%20Roots.pdf"
+    ]
+  },
+  {
+    "id": "root-therm",
+    "group": "root",
+    "front": "therm",
+    "meaning": "heat",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/therm-heat"]
+  },
+  {
+    "id": "root-torqu",
+    "group": "root",
+    "front": "torqu",
+    "meaning": "twist",
+    "variants": ["tort"],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/tort-twisted"]
+  },
+  {
+    "id": "root-tract",
+    "group": "root",
+    "front": "tract",
+    "meaning": "pull or draw",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/tract-drag"]
+  },
+  {
+    "id": "root-trib",
+    "group": "root",
+    "front": "trib",
+    "meaning": "give or assign",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/tribut-divided"]
+  },
+  {
+    "id": "root-trud",
+    "group": "root",
+    "front": "trud",
+    "meaning": "thrust or push",
+    "variants": ["trus"],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": [
+      "https://membean.com/roots/trud-thrust",
+      "https://membean.com/roots/trus-thrusted"
+    ]
+  },
+  {
+    "id": "root-urb",
+    "group": "root",
+    "front": "urb",
+    "meaning": "city",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/urb-city"]
+  },
+  {
+    "id": "root-vac",
+    "group": "root",
+    "front": "vac",
+    "meaning": "empty",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/vac-empty"]
+  },
+  {
+    "id": "root-vag",
+    "group": "root",
+    "front": "vag",
+    "meaning": "wander",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/vag-wander"]
+  },
+  {
+    "id": "root-val",
+    "group": "root",
+    "front": "val",
+    "meaning": "strong or worth",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/val-strong"]
+  },
+  {
+    "id": "root-ven",
+    "group": "root",
+    "front": "ven",
+    "meaning": "come",
+    "variants": ["vent"],
+    "caution": "This coming family differs from ven meaning sale in vendor.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/ven-come", "https://membean.com/roots/vent-come"]
+  },
+  {
+    "id": "root-ver",
+    "group": "root",
+    "front": "ver",
+    "meaning": "true",
+    "variants": [],
+    "caution": "This truth family differs from similar-looking historical fear forms.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/ver-truth"]
+  },
+  {
+    "id": "root-verb",
+    "group": "root",
+    "front": "verb",
+    "meaning": "word",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/verb-word"]
+  },
+  {
+    "id": "root-vert",
+    "group": "root",
+    "front": "vert",
+    "meaning": "turn",
+    "variants": ["vers"],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/vert-turn", "https://membean.com/roots/vers-turned"]
+  },
+  {
+    "id": "root-vid",
+    "group": "root",
+    "front": "vid",
+    "meaning": "see",
+    "variants": ["vis"],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/vid-see", "https://membean.com/roots/vis-see"]
+  },
+  {
+    "id": "root-vinc",
+    "group": "root",
+    "front": "vinc",
+    "meaning": "conquer",
+    "variants": ["vict"],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": [
+      "https://membean.com/roots/vinc-conquer",
+      "https://www.etymonline.com/word/victory"
+    ]
+  },
+  {
+    "id": "root-vit",
+    "group": "root",
+    "front": "vit",
+    "meaning": "life",
+    "variants": [],
+    "caution": "This life family differs from vit meaning fault or defect.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/vit-life"]
+  },
+  {
+    "id": "root-viv",
+    "group": "root",
+    "front": "viv",
+    "meaning": "live",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/viv-live"]
+  },
+  {
+    "id": "root-voc",
+    "group": "root",
+    "front": "voc",
+    "meaning": "voice or call",
+    "variants": ["vok"],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/voc-call", "https://membean.com/roots/vok-call"]
+  },
+  {
+    "id": "root-vol",
+    "group": "root",
+    "front": "vol",
+    "meaning": "wish or will",
+    "variants": [],
+    "caution": "This will/wish family differs from volv meaning roll and vol meaning fly.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/vol-wish"]
+  },
+  {
+    "id": "root-volv",
+    "group": "root",
+    "front": "volv",
+    "meaning": "roll or turn",
+    "variants": ["volut"],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/volv-roll", "https://membean.com/roots/volut-rolled"]
+  },
+  {
+    "id": "root-vor",
+    "group": "root",
+    "front": "vor",
+    "meaning": "eat",
+    "variants": [],
+    "caution": "Use as a meaning clue; a matching letter sequence alone does not establish a root or define a whole word.",
+    "sameFrontCardIds": [],
+    "sourceUrls": ["https://membean.com/roots/vor-eat"]
+  }
+]

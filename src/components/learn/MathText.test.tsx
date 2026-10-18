@@ -1,0 +1,348 @@
+// @vitest-environment jsdom
+import { render, screen, cleanup } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import katex from "katex";
+import MathText from "./MathText";
+
+afterEach(() => {
+  cleanup();
+  vi.restoreAllMocks();
+});
+describe("reviewed Next22 math display", () => {
+  it("renders a radical over x squared only, with the right side outside the root", () => {
+    const text = "√(x²) = 24 − 5x\nWhat is the solution to the given equation?";
+    const { container, rerender } = render(<MathText text={text} />);
+    expect(container.querySelector(".katex")).toBeNull();
+    expect(container.textContent).toBe(text);
+    rerender(<MathText text={text} serializedFunctionLines />);
+    expect(container.querySelector("annotation")?.textContent).toBe(
+      String.raw`\sqrt{x^{2}} = 24 - 5x`
+    );
+    expect(container.querySelector("math msqrt msup")?.textContent).toBe("x2");
+    expect(container.querySelector("math msqrt")?.textContent).toBe("x2");
+    expect(container.querySelector(".katex-html .sqrt svg")).toBeTruthy();
+    expect(container.querySelector(".katex-error")).toBeNull();
+    container.querySelectorAll(".katex").forEach((e) => e.remove());
+    expect(container.textContent).toBe("\nWhat is the solution to the given equation?");
+  });
+  it("renders a stacked coefficient fraction and preserves the surrounding source prose", () => {
+    const text = "5. The function f is defined by f(x) = (1/2)(x + 11). What is the value of f(3)?";
+    const { container, rerender } = render(<MathText text={text} />);
+    expect(container.querySelector(".katex")).toBeNull();
+    expect(container.textContent).toBe(text);
+    rerender(<MathText text={text} serializedFunctionLines />);
+    expect(container.querySelector("annotation")?.textContent).toBe(
+      String.raw`f(x) = \dfrac{1}{2}(x + 11)`
+    );
+    expect(container.querySelector("math mfrac")?.textContent).toBe("12");
+    expect(container.querySelector(".katex-html .mfrac .frac-line")).toBeTruthy();
+    expect(container.querySelector(".katex-error")).toBeNull();
+    container.querySelectorAll(".katex").forEach((e) => e.remove());
+    expect(container.textContent).toBe(
+      "5. The function f is defined by . What is the value of f(3)?"
+    );
+  });
+  it.each([
+    "√(<i>x</i>²) = 24 − 5x",
+    "√(x²) = 24 − 5<i>x</i>",
+    "The function f is defined by f(x) = (1/2)(x + <u>11</u>).",
+    "The function f is defined by f(x) = $1/2$(x + 11).",
+  ])("keeps the existing explicit-formatting boundaries: %s", (text) => {
+    const { container } = render(<MathText text={text} serializedFunctionLines />);
+    expect(container.querySelector(".source-function-math")).toBeNull();
+  });
+});
+describe("source composite blank markers", () => {
+  it.each([
+    "the counterintuitive effect of _____blank demand: buyers",
+    "courtly life _____blank readers a thousand years later.",
+    "consumers. _____blank the European Union established DOP status,",
+  ])("renders the reviewed placeholder as one accessible underline: %s", (text) => {
+    const { container } = render(<MathText text={text} />);
+    const blank = screen.getByRole("img", { name: "blank" });
+    expect(container.querySelectorAll('[aria-label="blank"]')).toHaveLength(1);
+    expect(blank).toHaveStyle({ width: "4em" });
+    expect(blank.style.borderBottomWidth).toBe("0.12em");
+    expect(blank.style.borderBottomStyle).toBe("solid");
+    expect(blank.textContent).toBe("");
+    expect(container.textContent).toBe(text.replace("_____blank", ""));
+  });
+  it("consumes a composite marker once when blank-word handling is enabled", () => {
+    const { container } = render(<MathText text="Before __blank__ after" treatBlankWord />);
+    expect(container.querySelectorAll('[aria-label="blank"]')).toHaveLength(1);
+    expect(container.textContent).toBe("Before  after");
+  });
+  it("preserves ordinary blank prose and words after an underscore marker", () => {
+    const text = "Leave the blank page beside a blanket. _____blanket _____ blank.";
+    const { container } = render(<MathText text={text} />);
+    expect(container.textContent).toBe("Leave the blank page beside a blanket. blanket  blank.");
+    expect(container.querySelectorAll('[aria-label="blank"]')).toHaveLength(2);
+  });
+});
+describe("source-formatting rendering", () => {
+  it("renders a source-backed title without italicizing its possessive or punctuation", () => {
+    const text = "from Sei Shōnagon’s <i>Pillow Book</i>, the author delights";
+    const { container } = render(<MathText text={text} />);
+    expect(container.querySelector("i")?.textContent).toBe("Pillow Book");
+    expect(container.querySelector("i")?.style.fontStyle).toBe("italic");
+    expect(container.textContent).toBe("from Sei Shōnagon’s Pillow Book, the author delights");
+  });
+  it("keeps organism names italic and the rest of a source choice upright", () => {
+    const { container } = render(
+      <MathText text="Whereas <i>Halococcus</i> live in one portion, <i>Bacillus</i> live elsewhere." />
+    );
+    expect(Array.from(container.querySelectorAll("i"), (el) => el.textContent)).toEqual([
+      "Halococcus",
+      "Bacillus",
+    ]);
+    expect(container.textContent).toBe(
+      "Whereas Halococcus live in one portion, Bacillus live elsewhere."
+    );
+  });
+  it("preserves one accessible underline boundary when source italics are inside it", () => {
+    const { container } = render(<MathText text="Before <u>the <i>title</i> clause</u> after" />);
+    expect(container.querySelectorAll("u")).toHaveLength(1);
+    expect(container.querySelector("u i")?.textContent).toBe("title");
+    expect(container.querySelectorAll(".sr-only")).toHaveLength(2);
+    expect(container.querySelector("u")?.textContent).toBe("the title clause");
+  });
+  it("keeps explicit fractions, newlines and blanks inside an italic source span", () => {
+    const { container } = render(
+      <MathText
+        text={String.raw`[[i]]\(\frac{3}{4}\)
+______[[/i]]`}
+      />
+    );
+    expect(container.querySelector("i .katex-html .mfrac")).toBeTruthy();
+    expect(container.querySelector('i [aria-label="blank"]')).toBeTruthy();
+    expect(container.querySelector("annotation")?.textContent).toBe(String.raw`\frac{3}{4}`);
+  });
+  it.each(["<i>unclosed", '<i onclick="alert(1)">unsafe</i>'])(
+    "does not execute malformed source emphasis: %s",
+    (text) => {
+      const { container } = render(<MathText text={text} />);
+      expect(container.querySelector("i")).toBeNull();
+      expect(container.textContent).toBe(text);
+    }
+  );
+  it("renders general HTML inside a supported italic span as harmless source text", () => {
+    const text = '<i><img src="x" onerror="alert(1)"></i>';
+    const { container } = render(<MathText text={text} />);
+    expect(container.querySelector("img")).toBeNull();
+    expect(container.querySelector("i")?.textContent).toBe('<img src="x" onerror="alert(1)">');
+  });
+  it("does not infer serialized functions across a source italic boundary", () => {
+    const { container } = render(
+      <MathText text="equation y = 5(2)^<i>x</i> + 9." serializedFunctionLines />
+    );
+    expect(container.querySelector(".source-function-math")).toBeNull();
+    expect(container.querySelector("i")?.textContent).toBe("x");
+  });
+  it("raises only the source x in the complete December Q13 inline equation", () => {
+    const text =
+      "The table shows three values of x and their corresponding values of y for the equation y = 5(2)^x + 9. In the table, a is a constant. What is the value of a?";
+    const { container, rerender } = render(<MathText text={text} />);
+    expect(container.textContent).toBe(text);
+    expect(container.querySelector(".katex")).toBeNull();
+    rerender(<MathText text={text} serializedFunctionLines />);
+    expect(container.querySelector("annotation")?.textContent).toBe("y = 5(2)^{x} + 9");
+    expect(container.querySelectorAll(".source-function-math .msupsub")).toHaveLength(1);
+    expect(container.querySelector(".msupsub")?.textContent).toBe("x");
+    container.querySelectorAll(".katex").forEach((e) => e.remove());
+    expect(container.textContent).toBe(text.replace("y = 5(2)^x + 9", ""));
+  });
+  it.each([
+    "equation y = 5(2)^<u>x</u> + 9.",
+    "equation y = 5(2)^x + $9$.",
+    "equation $y$ = 5(2)^x + 9.",
+    String.raw`equation \(y = 5(2)^{x} + 9\).`,
+  ])("does not reinterpret an equation across explicit formatting boundaries: %s", (text) => {
+    const { container } = render(<MathText text={text} serializedFunctionLines />);
+    expect(container.querySelector(".source-function-math")).toBeNull();
+  });
+  it.each([
+    ["f(x) = −26(2)^(x/6)", String.raw`f(x) = -26(2)^{\frac{x}{6}}`],
+    ["Shown, where f(x) = ab^x + c, and constants follow.", "f(x) = ab^{x} + c"],
+    ...[1, 3, 4, 5].map((c) => [`f(x) = −3^x + ${c}`, `f(x) = -3^{x} + ${c}`]),
+  ])("renders reviewed exponent notation with preserved scope: %s", (text, latex) => {
+    const { container, rerender } = render(<MathText text={text} />);
+    expect(container.textContent).toBe(text);
+    expect(container.querySelector(".katex")).toBeNull();
+    rerender(<MathText text={text} serializedFunctionLines />);
+    expect(container.querySelector("annotation")?.textContent).toBe(latex);
+    expect(container.querySelectorAll(".source-function-math .msupsub")).toHaveLength(1);
+    expect(container.querySelector(".katex-error")).toBeNull();
+  });
+  it.each(["$y$f(x) = −3^x + 1", "f(x) = −3^x + 1$y$", "where f(x) = ab^x + <u>c</u>,"])(
+    "does not infer a function across explicit math or underline boundaries: %s",
+    (text) => {
+      const { container } = render(<MathText text={text} serializedFunctionLines />);
+      expect(container.querySelector(".source-function-math")).toBeNull();
+    }
+  );
+  it("renders the exact serialized Q16 exponent only when explicitly enabled", () => {
+    const text = "f(x) = 24(2)^(x/6)\n\nWhich table?";
+    const { container, rerender } = render(<MathText text={text} />);
+    expect(container.querySelector(".katex")).toBeNull();
+    expect(container.textContent).toBe(text);
+    rerender(<MathText text={text} serializedFunctionLines />);
+    expect(container.querySelector(".source-function-math .msupsub .mfrac")).toBeTruthy();
+    expect(container.querySelector("annotation")?.textContent).toBe(
+      String.raw`f(x) = 24(2)^{\frac{x}{6}}`
+    );
+    expect(container.textContent).toContain("Which table?");
+    expect(container.querySelector(".katex-error")).toBeNull();
+  });
+  it("does not reinterpret existing explicit math or inline prose when enabled", () => {
+    const latex = "f(x) = 24(2)^{x/6}";
+    const { container } = render(
+      <MathText text={`$${latex}$\nExplain f(x) = 24(2)^(x/6).`} serializedFunctionLines />
+    );
+    expect(container.querySelectorAll(".katex")).toHaveLength(1);
+    expect(container.querySelector(".source-function-math")).toBeNull();
+    expect(container.querySelector("annotation")?.textContent).toBe(latex);
+    expect(container.textContent).toContain("Explain f(x) = 24(2)^(x/6).");
+  });
+  it.each(["$y$f(x) = 24(2)^(x/6)", "f(x) = 24(2)^(x/6)$y$", "Before <u>f(x) = 24(2)^(x/6)</u>"])(
+    "does not mistake a partial prose line for a complete function: %s",
+    (text) => {
+      const { container } = render(<MathText text={text} serializedFunctionLines />);
+      expect(container.querySelector(".mfrac")).toBeNull();
+      expect(container.textContent).toContain("f(x) = 24(2)^(x/6)");
+    }
+  );
+  it("underlines only the supplied source span and removes formatting markers", () => {
+    const { container } = render(<MathText text="Before [[u]]the selected clause[[/u]] after." />);
+    expect(container.querySelector("u")?.textContent).toBe("the selected clause");
+    expect(container.textContent).not.toContain("[[u]]");
+    expect(screen.getByText("Start of underlined text.")).toBeTruthy();
+    expect(screen.getByText("End of underlined text.")).toBeTruthy();
+  });
+  it("preserves stacked fractions and blanks within the marked span", () => {
+    const { container } = render(<MathText text={"[[u]]$\\dfrac{1}{4}$ and ______[[/u]]"} />);
+    expect(container.querySelector("u .katex .mfrac")).toBeTruthy();
+    expect(container.querySelector('u [aria-label="blank"]')).toBeTruthy();
+  });
+  it("renders source HTML as text rather than executing markup", () => {
+    const { container } = render(<MathText text={'[[u]]<img src="x" onerror="alert(1)">[[/u]]'} />);
+    expect(container.querySelector("img")).toBeNull();
+    expect(container.querySelector("u")?.textContent).toContain("<img");
+  });
+  it("keeps ordinary math and malformed formatting readable", () => {
+    const { container } = render(<MathText text={"$x^2$ [[u]]unclosed"} />);
+    expect(container.querySelector(".katex")).toBeTruthy();
+    expect(container.querySelector("u")).toBeNull();
+    expect(container.textContent).toContain("[[u]]unclosed");
+  });
+  it("supports math and blanks inside exact source tokens", () => {
+    const { container } = render(<MathText text={"<u>$\\dfrac{1}{4}$ and ______</u>"} />);
+    expect(container.querySelector("u .katex .mfrac")).toBeTruthy();
+    expect(container.querySelector('u [aria-label="blank"]')).toBeTruthy();
+    expect(container.textContent).not.toContain("<u>");
+  });
+  it("escapes arbitrary markup inside a supported source span", () => {
+    const { container } = render(<MathText text={'<u><img src="x" onerror="alert(1)"></u>'} />);
+    expect(container.querySelector("img")).toBeNull();
+    expect(container.querySelector("u")?.textContent).toBe('<img src="x" onerror="alert(1)">');
+  });
+  it("does not interpret attributes as underline markup", () => {
+    const text = '<u onclick="alert(1)">unsafe</u>';
+    const { container } = render(<MathText text={text} />);
+    expect(container.querySelector("u")).toBeNull();
+    expect(container.textContent).toBe(text);
+  });
+  it("renders explicit source math without changing overlines or fractional values", () => {
+    const text = String.raw`In triangles \(RST\) and \(XYZ\) shown, \(\overline{XY}\) is parallel to \(\overline{TS}\) and \(\tan R=\frac{180}{299}\). What is the value of \(\sin X\) in triangle \(XYZ\)?`;
+    const { container } = render(<MathText text={text} />);
+    expect(container.querySelectorAll(".katex")).toHaveLength(7);
+    // Assert visible bars rather than KaTeX's renamed wrapper class.
+    const overlines = container.querySelectorAll<HTMLElement>(".katex-html .overline-line");
+    expect(overlines).toHaveLength(2);
+    expect(Array.from(overlines, (el) => parseFloat(el.style.borderBottomWidth))).toEqual([
+      0.04, 0.04,
+    ]);
+    expect(container.querySelectorAll(".katex-html .mfrac")).toHaveLength(1);
+    expect(Array.from(container.querySelectorAll("annotation"), (el) => el.textContent)).toEqual([
+      "RST",
+      "XYZ",
+      String.raw`\overline{XY}`,
+      String.raw`\overline{TS}`,
+      String.raw`\tan R=\frac{180}{299}`,
+      String.raw`\sin X`,
+      "XYZ",
+    ]);
+    expect(container.querySelector(".katex-error")).toBeNull();
+  });
+  it.each(["299}{349", "180}{349", "180}{479", "299}{180"])(
+    "renders the approved Q20 answer fraction %s",
+    (fraction) => {
+      const latex = `\\frac{${fraction}}`;
+      const { container } = render(<MathText text={`\\(${latex}\\)`} />);
+      expect(container.querySelector(".katex-html .mfrac")).toBeTruthy();
+      expect(container.querySelector("annotation")?.textContent).toBe(latex);
+      expect(container.querySelector(".katex-error")).toBeNull();
+    }
+  );
+  it("keeps mixed delimiters, escaped dollars and underline math in source order", () => {
+    const { container } = render(
+      <MathText text={String.raw`$x$ then \(\$80\), $$y^2$$ and <u>\(\frac{1}{4}\)</u>.`} />
+    );
+    expect(Array.from(container.querySelectorAll("annotation"), (el) => el.textContent)).toEqual([
+      "x",
+      String.raw`\$80`,
+      "y^2",
+      String.raw`\frac{1}{4}`,
+    ]);
+    expect(container.querySelector("u .katex-html .mfrac")).toBeTruthy();
+    expect(container.querySelectorAll(".katex-display")).toHaveLength(1);
+  });
+  it.each([
+    String.raw`\(unclosed`,
+    String.raw`orphan\)`,
+    String.raw`\(\)`,
+    String.raw`bare \frac{1}{2}`,
+  ])("keeps unsupported or incomplete source math literal: %s", (text) => {
+    const { container } = render(<MathText text={text} />);
+    expect(container.querySelector(".katex")).toBeNull();
+    expect(container.textContent).toBe(text);
+  });
+  it.each(["inline", "block"])(
+    "escapes failed %s KaTeX output rather than inserting source HTML",
+    (mode) => {
+      vi.spyOn(katex, "renderToString").mockImplementationOnce(() => {
+        throw new Error("Synthetic render failure");
+      });
+      const payload = '<img src="x" onerror="alert(1)"> & text';
+      const { container } = render(
+        <MathText text={mode === "inline" ? `\\(${payload}\\)` : `$$${payload}$$`} />
+      );
+      expect(container.querySelector("img")).toBeNull();
+      expect(container.textContent).toBe(payload);
+    }
+  );
+  // Approved B source versions: Q01 1e2f2370ad59; Q09 e93c2d610cba.
+  it.each([
+    {
+      question: "2025-05_US_V2_RW_M2_Q01",
+      passage:
+        "Community science, which involves professional scientists collaborating with members of the public to study a topic, is often an effective and engaging way to conduct research. <u>It can increase the amount of data researchers can collect, offer insight into the daily life of a scientist, and spark youth interest in science.</u> This approach was essential to the success of biologist Grace Herzel and colleagues' study of how weather relates to a butterfly's flower choice, which included findings from hundreds of students and community members in northwestern Arkansas.",
+      expected:
+        "It can increase the amount of data researchers can collect, offer insight into the daily life of a scientist, and spark youth interest in science.",
+    },
+    {
+      question: "2025-05_US_V2_RW_M2_Q09",
+      passage:
+        "The following text is from William Shakespeare's circa 1611 play The Winter's Tale. Camillo has been away from his home in Sicily and serves in the court of Polixenes, the king of Bohemia. He has asked Polixenes for permission to return to Sicily.\n\nPOLIXENES: I pray thee, good Camillo, be no more\nimportunate. 'Tis a sickness denying thee anything,\na death to grant this.\n\nCAMILLO: It is fifteen years since I saw my country.\nThough I have for the most part been aired abroad,\nI desire to lay my bones there. Besides, the penitent\nking, my master, hath sent for me, <u>to whose feeling\nsorrows I might be some allay-or I o'erween [presume] to\nthink so-</u>which is another spur to my departure.",
+      expected:
+        "to whose feeling\nsorrows I might be some allay-or I o'erween [presume] to\nthink so-",
+    },
+  ])("renders the exact approved source boundary for $question", ({ passage, expected }) => {
+    const { container } = render(<MathText text={passage} />);
+    expect(container.querySelectorAll("u")).toHaveLength(1);
+    expect(container.querySelector("u")?.textContent).toBe(expected);
+    expect(container.textContent).not.toContain("<u>");
+    expect(container.textContent).not.toContain("</u>");
+    container.querySelectorAll(".sr-only").forEach((el) => el.remove());
+    expect(container.textContent).toBe(passage.replace("<u>", "").replace("</u>", ""));
+  });
+});

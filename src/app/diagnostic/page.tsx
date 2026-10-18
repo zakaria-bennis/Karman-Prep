@@ -8,7 +8,7 @@
 //                           require an admin reset (reset script).
 //   · Otherwise           → take it. Results CTA copy depends on
 //                           subscription status (paying → "learning
-//                           path", non-paying → "Start free trial").
+//                           path", non-paying → checkout).
 //
 // Note: paying subscribers are NOT forced into the diagnostic
 // (no nav links push them in), but if they explicitly click

@@ -10,7 +10,12 @@
 // source_pdf=NULL and Stages 4-14 silently no-op.
 
 import { describe, expect, it } from "vitest";
-import { rowToImportInput } from "../../../scripts/pdf-pipeline/import-json-direct-row";
+import {
+  rowToImportInput,
+  preflightImportRows,
+} from "../../../scripts/pdf-pipeline/import-json-direct-row";
+
+const version = "a".repeat(64);
 
 // Minimum-viable row that passes the domain check.
 function validRow(extra: Record<string, unknown> = {}): Record<string, unknown> {
@@ -49,27 +54,20 @@ describe("rowToImportInput — source_pdf injection (Phase 8.1 hotfix)", () => {
     }
   });
 
-  it("injects defaultSourcePdf when row.source_pdf is empty string", () => {
-    // Empty string is falsy in the ?? fallback path we expect:
-    // `row.source_pdf ?? defaultSourcePdf` would PASS empty string through
-    // (?? only catches null/undefined). We document the current behavior:
-    // the explicit-override semantics are preserved, even if "" is silly.
-    // The orchestrator never produces empty source_pdf, so this case is
-    // only relevant if someone hand-edits the JSON.
+  it("rejects an empty explicit source_pdf before import", () => {
     const out = rowToImportInput(validRow({ source_pdf: "" }), "202406asiav2.pdf");
-    if (!("error" in out)) {
-      // An empty string IS truthy enough to bypass ??, so we surface it.
-      // If we ever want to coerce empty → default, change the operator
-      // to || in import-json-direct.ts.
-      expect(out.source_pdf).toBe("");
-    }
+    expect(out).toEqual({ error: 'source_pdf must match source file "202406asiav2.pdf"' });
   });
 
-  it("preserves explicit row.source_pdf when set (override path)", () => {
+  it("rejects an explicit source_pdf for a different file", () => {
     const out = rowToImportInput(validRow({ source_pdf: "hand-edited.pdf" }), "202406asiav2.pdf");
-    if (!("error" in out)) {
-      expect(out.source_pdf).toBe("hand-edited.pdf");
-    }
+    expect(out).toEqual({ error: 'source_pdf must match source file "202406asiav2.pdf"' });
+  });
+
+  it("accepts an explicit source_pdf matching the CLI file", () => {
+    const out = rowToImportInput(validRow({ source_pdf: "202406asiav2.pdf" }), "202406asiav2.pdf");
+    expect("error" in out).toBe(false);
+    if (!("error" in out)) expect(out.source_pdf).toBe("202406asiav2.pdf");
   });
 
   it("still validates domain before injection (rejects unknown domain)", () => {
@@ -88,5 +86,95 @@ describe("rowToImportInput — source_pdf injection (Phase 8.1 hotfix)", () => {
       expect(out.source_pdf).not.toContain("/");
       expect(out.source_pdf).toBe("202406asiav2.pdf");
     }
+  });
+});
+
+describe("versioned source identity preflight", () => {
+  const identified = {
+    section: "math",
+    module_number: 1,
+    question_number: 1,
+    occurrence_index: 1,
+  };
+
+  it("preserves explicit identity and source provenance", () => {
+    const result = rowToImportInput(
+      validRow({
+        ...identified,
+        source_provider: "box",
+        source_document_id: "1892233086581",
+        source_provider_version_id: "2087154443381",
+      }),
+      "released.pdf",
+      version
+    );
+    expect("error" in result).toBe(false);
+    if (!("error" in result)) {
+      expect(result).toMatchObject({
+        source_version: version,
+        source_section: "math",
+        source_module: "M1",
+        source_question_number: 1,
+        source_occurrence: 1,
+        source_provider: "box",
+        source_document_id: "1892233086581",
+      });
+    }
+  });
+
+  it("keeps incomplete legacy identity under human review", () => {
+    const result = rowToImportInput(validRow(), "released.pdf", version);
+    expect("error" in result).toBe(false);
+    if (!("error" in result)) {
+      expect(result.source_version).toBeUndefined();
+      expect(result.import_status).toBe("needs_review");
+      expect(result.import_flag_reason).toMatch(/Missing stable source question identity/);
+    }
+  });
+
+  it("stops duplicate identities before any writes, including retries in one batch", () => {
+    const rows = [validRow(identified), validRow(identified)];
+    const result = preflightImportRows(rows, "released.pdf", version, true);
+    expect(result.errors).toContain("rows 1 and 2: duplicate source identity");
+  });
+
+  it("strict mode blocks missing identity; legacy mode records it for review", () => {
+    const rows = [validRow()];
+    expect(preflightImportRows(rows, "released.pdf", version, true).errors).toEqual([
+      "row 1: missing stable source identity",
+    ]);
+    const legacy = preflightImportRows(rows, "released.pdf", version, false);
+    expect(legacy.errors).toEqual([]);
+    expect(legacy.inputs[0].import_status).toBe("needs_review");
+  });
+
+  it("adapts nested Box provenance and rejects a mismatched file checksum", () => {
+    const row = validRow({
+      source_page: undefined,
+      sourceDocument: { provider: "box", fileId: "file-123" },
+      sourceVersion: { boxVersionId: "version-456", sha256: version },
+      occurrence: {
+        section: "math",
+        module: "M2",
+        visibleQuestionNumber: "2",
+        occurrenceIndex: 1,
+        pageIndexStart: 4,
+        regions: [{ pageIndex: 4, bbox: [10, 20, 30, 40] }],
+      },
+    });
+    const prepared = preflightImportRows([row], "renamed.pdf", version, true);
+    expect(prepared.errors).toEqual([]);
+    expect(prepared.inputs[0]).toMatchObject({
+      source_provider: "box",
+      source_document_id: "file-123",
+      source_provider_version_id: "version-456",
+      source_section: "math",
+      source_module: "M2",
+      source_question_number: 2,
+      source_page: 5,
+    });
+    expect(preflightImportRows([row], "renamed.pdf", "b".repeat(64), true).errors).toEqual([
+      "row 1: source version checksum differs from source file",
+    ]);
   });
 });

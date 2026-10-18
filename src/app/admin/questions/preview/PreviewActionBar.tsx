@@ -93,7 +93,7 @@ export function PreviewActionBar({
     <div className="border-t border-bronze bg-surface/40 px-4 py-2.5">
       {/* ── Note input (shown when Flag or Reject is armed) ── */}
       {(flagMode || rejectMode) && (
-        <div className="mb-2.5 flex items-center gap-2">
+        <div className="mb-2.5 flex flex-wrap items-center gap-2">
           <input
             type="text"
             autoFocus
@@ -106,18 +106,19 @@ export function PreviewActionBar({
               }
               if (e.key === "Escape") cancelNote();
             }}
+            aria-label={flagMode ? "Flag note" : "Rejection reason"}
             placeholder={
               flagMode
                 ? "Why is this flagged? (required)"
                 : "Why are you rejecting this? (optional — recoverable)"
             }
-            className="flex-1 rounded-lg border border-bronze bg-night px-3 py-1.5 text-sm text-ivory placeholder:text-taupe focus:border-gold/40 focus:outline-none"
+            className="min-h-11 min-w-0 flex-1 rounded-lg border border-bronze bg-night px-3 py-1.5 text-sm text-ivory placeholder:text-taupe focus:border-gold/40 focus:outline-none"
           />
           <button
             onClick={flagMode ? submitFlag : submitReject}
             disabled={anyBusy || (flagMode && !note.trim())}
             className={cn(
-              "rounded-lg px-3 py-1.5 text-xs font-bold text-ivory disabled:opacity-50",
+              "min-h-11 rounded-lg px-3 py-1.5 text-xs font-bold text-ivory disabled:opacity-50",
               flagMode ? "bg-warning hover:bg-warning-bright" : "bg-error hover:bg-error-bright"
             )}
           >
@@ -125,7 +126,7 @@ export function PreviewActionBar({
           </button>
           <button
             onClick={cancelNote}
-            className="rounded-lg border border-bronze px-3 py-1.5 text-xs text-ivory hover:bg-surface-raised"
+            className="min-h-11 rounded-lg border border-bronze px-3 py-1.5 text-xs text-ivory hover:bg-surface-raised"
           >
             Cancel
           </button>
@@ -135,12 +136,12 @@ export function PreviewActionBar({
       {/* ── Action row ──────────────────────────────────── */}
       <div className="flex flex-wrap items-center gap-2">
         {/* Left cluster: per-question actions */}
-        <div className="flex items-center gap-1.5">
+        <div className="flex flex-wrap items-center gap-1.5">
           <button
             onClick={onApprove}
             disabled={anyBusy || flagMode || rejectMode}
             className={cn(
-              "inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold text-ivory disabled:opacity-50",
+              "inline-flex min-h-11 items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold text-ivory disabled:opacity-50",
               "bg-success hover:bg-success-bright"
             )}
           >
@@ -158,7 +159,7 @@ export function PreviewActionBar({
             }}
             disabled={anyBusy}
             className={cn(
-              "inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-bold disabled:opacity-50",
+              "inline-flex min-h-11 items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-bold disabled:opacity-50",
               flagMode
                 ? "border-warning/40 bg-warning/15 text-warning-bright"
                 : "border-warning/40 bg-transparent text-warning-bright hover:bg-warning/10"
@@ -178,7 +179,7 @@ export function PreviewActionBar({
             }}
             disabled={anyBusy}
             className={cn(
-              "inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-bold disabled:opacity-50",
+              "inline-flex min-h-11 items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-bold disabled:opacity-50",
               rejectMode
                 ? "border-error/40 bg-error/15 text-error-bright"
                 : "border-error/40 bg-transparent text-error-bright hover:bg-error/10"
@@ -205,7 +206,7 @@ export function PreviewActionBar({
                 onClick={() => onTogglePanel(key)}
                 aria-pressed={open}
                 className={cn(
-                  "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold transition-colors",
+                  "inline-flex min-h-11 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold transition-colors",
                   open
                     ? "border-gold/40 bg-gold/20 text-gold-bright"
                     : "border-bronze bg-surface text-taupe hover:border-bronze hover:text-ivory"

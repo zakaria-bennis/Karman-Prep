@@ -1,0 +1,143 @@
+import { MATH_NODES, RW_NODES, type CurriculumNode, type Subject } from "@/data/curriculum";
+import { getCatalogSkills } from "@/data/curriculum/skill-catalog";
+import type { LegacyLearningRecord } from "@/lib/supabase/queries/skill-catalog";
+import type { QuizAttempt } from "@/types/quiz";
+import type { CatalogPracticeHistory } from "@/lib/catalog-practice/history";
+
+export interface StudyAction {
+  title: string;
+  detail: string;
+  href: string;
+  label: string;
+  kind?: "skill" | "earlier";
+}
+
+export interface SubjectProgress {
+  subject: Subject;
+  skillCount: number;
+  savedLessons: number;
+  markedMastered: number;
+  underway: number;
+}
+
+export interface LearnDashboardData {
+  next: StudyAction | null;
+  review: {
+    title: string;
+    href: string;
+    incorrect: number | null;
+    kind?: "skill" | "earlier";
+    resultUnavailable?: boolean;
+  } | null;
+  subjects: SubjectProgress[];
+  skillHistoryStatus?: CatalogPracticeHistory["status"];
+}
+
+const allNodes = [...RW_NODES, ...MATH_NODES];
+const nodesById = new Map(allNodes.map((node) => [node.id, node]));
+
+/** A read-only view of saved practice and earlier lessons; no new mastery is inferred. */
+export function buildLearnDashboard(
+  history: LegacyLearningRecord[],
+  attempts: QuizAttempt[],
+  skillHistory?: CatalogPracticeHistory
+): LearnDashboardData {
+  const saved = new Map(history.map((row) => [row.node_id, row]));
+  const incomplete = attempts.find(
+    (attempt) => !attempt.completed_at && nodesById.has(attempt.node_id)
+  );
+  const inProgress = allNodes.find((node) => {
+    const status = saved.get(node.id)?.status;
+    return status === "in_progress" || status === "partially_complete";
+  });
+  const available = allNodes.find((node) => saved.get(node.id)?.status === "available");
+
+  let next: StudyAction | null = null;
+  if (incomplete) {
+    const node = nodesById.get(incomplete.node_id)!;
+    next = {
+      ...actionForNode(node, "Continue practice", "An unfinished quiz is saved for this lesson."),
+      href: `/learn/earlier/${node.subject}?resume=${encodeURIComponent(incomplete.id)}`,
+    };
+  } else if (inProgress) {
+    next = actionForNode(inProgress, "Continue lesson", "This earlier lesson is underway.");
+  } else if (available) {
+    next = actionForNode(available, "Open lesson", "This earlier lesson is available to start.");
+  }
+  const latestUnfinished = skillHistory?.sessions
+    .filter((session) => !session.completedAt)
+    .sort((a, b) => Date.parse(b.startedAt) - Date.parse(a.startedAt))[0];
+  if (
+    latestUnfinished &&
+    (!incomplete || Date.parse(latestUnfinished.startedAt) >= Date.parse(incomplete.started_at))
+  ) {
+    next = {
+      title: latestUnfinished.title,
+      detail: "Your answers are saved. Continue where you left off.",
+      href: latestUnfinished.href,
+      label: "Continue practice",
+      kind: "skill",
+    };
+  }
+
+  const reviewAttempt = attempts.find(
+    (attempt) =>
+      attempt.completed_at &&
+      attempt.questions_answered > 0 &&
+      attempt.questions_correct < attempt.questions_answered
+  );
+  let review: LearnDashboardData["review"] = reviewAttempt
+    ? {
+        title: nodesById.get(reviewAttempt.node_id)?.topic ?? "Earlier practice",
+        href: `/dashboard/student/quizzes/${reviewAttempt.id}`,
+        incorrect: reviewAttempt.questions_answered - reviewAttempt.questions_correct,
+      }
+    : null;
+  const latestReview = skillHistory?.sessions
+    .filter((session) => session.completedAt && (session.score === null || session.score < 100))
+    .sort((a, b) => Date.parse(b.completedAt!) - Date.parse(a.completedAt!))[0];
+  if (
+    latestReview &&
+    (!reviewAttempt ||
+      Date.parse(latestReview.completedAt!) >= Date.parse(reviewAttempt.completed_at!))
+  ) {
+    review = {
+      title: latestReview.title,
+      href: latestReview.href,
+      incorrect: null,
+      kind: "skill",
+      ...(latestReview.score === null ? { resultUnavailable: true } : {}),
+    };
+  }
+
+  const subjects: SubjectProgress[] = (["reading", "math"] as const).map((subject) => {
+    const rows = (subject === "reading" ? RW_NODES : MATH_NODES)
+      .map((node) => saved.get(node.id))
+      .filter((row): row is LegacyLearningRecord => !!row);
+    return {
+      subject,
+      skillCount: getCatalogSkills(subject).length,
+      savedLessons: rows.filter(
+        (row) =>
+          row.status === "in_progress" ||
+          row.status === "partially_complete" ||
+          row.status === "mastered"
+      ).length,
+      markedMastered: rows.filter((row) => row.status === "mastered").length,
+      underway: rows.filter(
+        (row) => row.status === "in_progress" || row.status === "partially_complete"
+      ).length,
+    };
+  });
+
+  return { next, review, subjects, skillHistoryStatus: skillHistory?.status };
+}
+
+function actionForNode(node: CurriculumNode, label: string, detail: string): StudyAction {
+  return {
+    title: node.topic,
+    detail,
+    href: `/learn/earlier/${node.subject}?lesson=${node.id}`,
+    label,
+  };
+}

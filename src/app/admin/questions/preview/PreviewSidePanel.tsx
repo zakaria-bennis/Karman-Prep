@@ -209,7 +209,7 @@ function PanelCard({
         )}
         <button
           onClick={onClose}
-          className="ml-auto text-taupe hover:text-ivory"
+          className="ml-auto flex min-h-11 min-w-11 items-center justify-center rounded-lg text-taupe hover:text-ivory"
           aria-label={`Close ${title}`}
         >
           <X className="h-3.5 w-3.5" />

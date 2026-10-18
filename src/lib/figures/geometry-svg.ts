@@ -18,7 +18,11 @@
 // screenshot.
 // ============================================================
 
+import { placeAngleMark, placeLengthLabel } from "./geometry-layout";
+
 interface Pt {
+  /** Internal source reference; never printed as a vertex label. */
+  id?: string;
   // The extractor emits null for an unlabeled vertex (never invent a label).
   label?: string | null;
   x?: number | null;
@@ -31,6 +35,8 @@ interface Shape {
 }
 interface AngleMark {
   at_vertex?: string;
+  /** Explicit endpoints of the two rays. Required by balanced layout; no guessed angles. */
+  between_vertices?: [string, string];
   measure?: string | null;
   right_angle?: boolean;
 }
@@ -39,6 +45,8 @@ interface LengthMark {
   value?: string | null;
 }
 export interface GeometryFigureData {
+  /** Opt-in for reviewed recreations; legacy figures retain their existing layout. */
+  layout_version?: "balanced-v1";
   kind?: string;
   shapes?: Shape[];
   angle_markings?: AngleMark[];
@@ -124,16 +132,19 @@ const FONT = 'font-family="ui-serif, Georgia, serif"';
  *  shapes appears once), plus keep per-shape point lists for drawing. */
 function collectPoints(shapes: Shape[]) {
   const byLabel = new Map<string, { x: number; y: number; label: string }>();
+  const byReference = new Map<string, { x: number; y: number }>();
   const all: Array<{ x: number; y: number; label?: string | null }> = [];
   for (const sh of shapes) {
     for (const p of sh.vertices_or_points ?? []) {
       if (!isNum(p.x) || !isNum(p.y)) continue;
       all.push({ x: p.x, y: p.y, label: p.label });
+      if (p.id && !byReference.has(p.id)) byReference.set(p.id, { x: p.x, y: p.y });
+      if (p.label && !byReference.has(p.label)) byReference.set(p.label, { x: p.x, y: p.y });
       if (p.label && !byLabel.has(p.label))
         byLabel.set(p.label, { x: p.x, y: p.y, label: p.label });
     }
   }
-  return { byLabel, all };
+  return { byLabel, byReference, all };
 }
 
 /** Resolve an angle marking's `at_vertex` to a position. First by vertex
@@ -170,7 +181,8 @@ export function buildGeometrySvg(
   const STROKE = theme.stroke;
   const LABEL_FILL = theme.label;
   const shapes = Array.isArray(data?.shapes) ? data.shapes : [];
-  const { byLabel, all } = collectPoints(shapes);
+  const { byLabel, byReference, all } = collectPoints(shapes);
+  const balanced = data.layout_version === "balanced-v1";
   if (all.length < 2) {
     return { svg: null, renderable: false, reason: "no_coordinates" };
   }
@@ -182,7 +194,7 @@ export function buildGeometrySvg(
     maxX = Math.max(...xs),
     minY = Math.min(...ys),
     maxY = Math.max(...ys);
-  const pad = Math.max(24, (maxX - minX + maxY - minY) * 0.08);
+  const pad = Math.max(24, (maxX - minX + maxY - minY) * (balanced ? 0.12 : 0.08));
   const vbX = minX - pad,
     vbY = minY - pad,
     vbW = maxX - minX + pad * 2,
@@ -192,8 +204,48 @@ export function buildGeometrySvg(
   // Scale-independent stroke/label sizing from the figure's extent.
   const unit = Math.max(vbW, vbH);
   const sw = Math.max(1, unit * 0.004);
-  const fs = Math.max(9, unit * 0.04);
+  const fs = Math.max(9, unit * (balanced ? 0.06 : 0.04));
   const dot = sw * 2.2;
+  if (balanced) {
+    const supported = new Set(["point", "line_segment", "triangle", "quadrilateral", "polygon"]);
+    const references = new Map<string, { x: number; y: number }>();
+    for (const shape of shapes) {
+      if (!supported.has(shape.kind ?? "") || !shape.vertices_or_points?.length)
+        return { svg: null, renderable: false, reason: "unsupported_source_shape" };
+      for (const point of shape.vertices_or_points) {
+        if (!isNum(point.x) || !isNum(point.y))
+          return { svg: null, renderable: false, reason: "missing_source_coordinates" };
+        for (const ref of [point.id, point.label]) {
+          if (!ref) continue;
+          const prior = references.get(ref);
+          if (prior && (prior.x !== point.x || prior.y !== point.y))
+            return { svg: null, renderable: false, reason: "ambiguous_source_reference" };
+          references.set(ref, { x: point.x, y: point.y });
+        }
+      }
+    }
+    for (const lm of data.length_markings ?? []) {
+      if (
+        !lm.value ||
+        !lm.on_segment ||
+        lm.on_segment.length !== 2 ||
+        !byReference.has(lm.on_segment[0]) ||
+        !byReference.has(lm.on_segment[1])
+      ) {
+        return { svg: null, renderable: false, reason: "unresolved_length_mark" };
+      }
+    }
+    for (const am of data.angle_markings ?? []) {
+      const vertex = am.at_vertex ? byReference.get(am.at_vertex) : undefined;
+      const rays = am.between_vertices;
+      const a = rays ? byReference.get(rays[0]) : undefined;
+      const b = rays ? byReference.get(rays[1]) : undefined;
+      const mark = vertex && a && b ? placeAngleMark(vertex, a, b, fs) : null;
+      if (!mark || (am.right_angle && !mark.perpendicular)) {
+        return { svg: null, renderable: false, reason: "unresolved_angle_mark" };
+      }
+    }
+  }
 
   const parts: string[] = [];
 
@@ -223,9 +275,21 @@ export function buildGeometrySvg(
   for (const lm of data.length_markings ?? []) {
     const seg = lm.on_segment ?? [];
     if (seg.length < 2 || !lm.value) continue;
-    const a = byLabel.get(seg[0]);
-    const b = byLabel.get(seg[seg.length - 1]);
+    const a = byReference.get(seg[0]);
+    const b = byReference.get(seg[seg.length - 1]);
     if (!a || !b) continue;
+    if (balanced) {
+      const sourceCenter = {
+        x: all.reduce((sum, point) => sum + point.x, 0) / all.length,
+        y: all.reduce((sum, point) => sum + point.y, 0) / all.length,
+      };
+      const position = placeLengthLabel(a, b, sourceCenter, fs * 1.6);
+      if (!position) return { svg: null, renderable: false, reason: "zero_length_segment" };
+      parts.push(
+        `<text data-length-mark="${esc(seg.join("-"))}" x="${position.x}" y="${position.y}" ${FONT} font-size="${fs * 0.85}" fill="${LABEL_FILL}" text-anchor="middle" dominant-baseline="middle">${esc(katexToUnicode(lm.value))}</text>`
+      );
+      continue;
+    }
     const mx = (a.x + b.x) / 2,
       my = (a.y + b.y) / 2;
     // nudge perpendicular to the segment, away from centre
@@ -252,6 +316,19 @@ export function buildGeometrySvg(
   // co-located ones can be fanned apart below.
   const measureMarks: Array<{ pos: { x: number; y: number }; measure: string }> = [];
   for (const am of data.angle_markings ?? []) {
+    if (balanced) {
+      const vertex = byReference.get(am.at_vertex!)!;
+      const [a, b] = am.between_vertices!.map((ref) => byReference.get(ref)!);
+      const mark = placeAngleMark(vertex, a, b, fs)!;
+      parts.push(
+        `<path data-angle-mark="${esc(am.at_vertex)}" d="${am.right_angle ? mark.rightAngle : mark.arc}" fill="none" stroke="${STROKE}" stroke-width="${sw * 0.8}" />`
+      );
+      if (am.measure)
+        parts.push(
+          `<text x="${mark.label.x}" y="${mark.label.y}" ${FONT} font-size="${fs * 0.8}" fill="${LABEL_FILL}" text-anchor="middle" dominant-baseline="middle">${esc(katexToUnicode(am.measure))}</text>`
+        );
+      continue;
+    }
     const pos = resolveVertexPos(am.at_vertex, byLabel);
     if (!pos) continue;
     if (am.measure) measureMarks.push({ pos, measure: am.measure });

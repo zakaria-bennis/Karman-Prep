@@ -157,14 +157,26 @@ export default function InspectorDetailClient({
         // Choices (MC only) — bundle into `choices` object
         if (isMc) {
           const choices: Record<string, string> = {};
+          const choiceTables: Record<
+            string,
+            import("@/types/question-table").QuestionTableData | null
+          > = {};
           (["A", "B", "C", "D"] as const).forEach((letter) => {
             const k = `choice_${letter.toLowerCase()}` as keyof EditFormShape;
             if (form[k] !== original[k]) {
-              choices[letter] = form[k];
+              choices[letter] = form[k] as string;
+              changes++;
+            }
+            const tableKey = `choice_table_${letter.toLowerCase()}` as keyof EditFormShape;
+            if (JSON.stringify(form[tableKey]) !== JSON.stringify(original[tableKey])) {
+              choiceTables[letter] = form[tableKey] as
+                | import("@/types/question-table").QuestionTableData
+                | null;
               changes++;
             }
           });
           if (Object.keys(choices).length > 0) patch.choices = choices;
+          if (Object.keys(choiceTables).length > 0) patch.choice_tables = choiceTables;
         }
         // Per-choice explanations (MC only) — bundle into
         // `explanations_per_choice` (note the plural — payload field

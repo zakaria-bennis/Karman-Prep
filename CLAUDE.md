@@ -20,16 +20,105 @@ paying users yet.
 - Default branch `main`. Feature branches `zakaria/<short-kebab-description>`.
 - Lint rules `@typescript-eslint/no-unused-vars` and `react/no-unescaped-entities`
   are **error**, not warn — CI fails on either.
-- 5 required CI checks: TypeScript, ESLint, Prettier, Vitest, Cloudflare build.
+- Required CI checks: TypeScript, ESLint, Prettier, Vitest, Cloudflare build,
+  file-size limits, and taxonomy regeneration stability.
 - Migrations: `supabase/migrations/<YYYYMMDDHHMMSS>_name.sql`, applied via
   `npm run db:push` or on `main` merges via `.github/workflows/db-deploy.yml`.
-- Dev server: `npm run dev:next`. Deploy: `npm run cf:build && npm run cf:deploy`
+- Dev server: `npm run dev:next`. Public release: `npm run cf:build:release && npm run cf:deploy`
   (Cloudflare, not Vercel). `cf:deploy` only uploads `.open-next/` — it does
   NOT rebuild. Running it alone re-ships whatever's in the local build cache,
   which is how stale code gets pushed to prod. Always pair the two commands.
+- Public release builds require the existing production `NEXT_PUBLIC_*` values
+  in the build process, including `NEXT_PUBLIC_KARMAN_LAUNCHED=true`. Next.js
+  embeds them during compilation; runtime secret bindings cannot supply missing
+  public values afterward. The release build preflight rejects missing inputs,
+  placeholders, maintenance mode, and private/mismatched Supabase keys without
+  printing values. Keep CI fixture builds on `cf:build`. Verify the exact built
+  Worker before deployment and retain the previous version for rollback.
 - No file should exceed ~700 lines — split by concern instead.
+- Reviewed exam underlining uses explicit `[[u]]...[[/u]]` display markers or
+  exact attribute-free `<u>...</u>` source tokens in `MathText`. These are parsed
+  into structured React underline spans, never general HTML. Preserve original
+  exam text separately, verify each
+  marked span against original page pixels, and keep surrounding context outside
+  the markers. Malformed markers render literally. Existing KaTeX and blank
+  rendering still applies inside each span.
+- Reviewed prose italics use explicit `[[i]]...[[/i]]` or exact attribute-free
+  `<i>...</i>` display tokens in `MathText`. Verify every span against original
+  source pixels; preserve raw source text and answer provenance separately.
+  Only balanced, nonempty tokens are structured React italics. Attributes,
+  arbitrary HTML, malformed/nested markers and unmatched delimiters stay literal.
+  Existing blanks, explicit math and underlined spans remain supported; this
+  renderer support does not approve a question version or infer emphasis.
+- Reviewed source inline math supports both `$...$` and `\(...\)` in
+  `MathText`; display math uses `$$...$$`. Preserve approved source bytes and
+  expressions. Do not strip commands, guess bare math or rewrite source packages
+  to accommodate a renderer limitation.
+- Math question stems and choices opt into narrowly specified exponential
+  display support: complete `f(x) = a(b)^(x/n)` lines with matching variables and
+  a positive integer denominator, complete numeric `f(x) = −b^x + c` lines,
+  the exact comma-delimited inline clause `where f(x) = ab^x + c,`, and
+  complete numeric exponential expressions introduced by `equation ` and
+  followed by a sentence-ending period, such as `equation y = 5(2)^x + 9.`.
+  Numeric bases must be positive. ASCII and Unicode minus signs are supported;
+  unary minus stays outside the power, and additive constants stay outside the
+  exponent. This changes display only; approved source bytes remain intact.
+  Other prose, bare notation and existing explicit math remain unchanged.
+- The same Math-only display opt-in supports complete `√(x²) = 24 − 5x`
+  equation lines (matching single variable, integer terms) and the complete
+  sentence-delimited defining clause `The function f is defined by
+f(x) = (1/2)(x + 11).` (matching function/variable, positive integer
+  denominator). The radical covers the square only; the stacked coefficient
+  fraction leaves the following sum outside it. Source bytes, ordinary prose,
+  explicit math and unsupported forms stay intact. Require source-pixel review
+  for affected questions on the exact renderer before accepting display.
 - Server actions validate inputs with Zod schemas; add a schema when adding
   an action.
+
+## Calculator launch policy
+
+The user authorized the original Karman calculator release on 2026-10-15.
+Use the local calculator in Math practice and diagnostics. Never load a Desmos
+API, SDK, or proprietary component. The standalone runtime has no third-party
+dependencies; run `npm run calculator:build` after editing its `lib/` modules.
+Question changes clear
+calculator and scratch work. Physical-phone review is optional and must not
+block this release; automated mobile, keyboard and theme checks remain required.
+
+## Released-exam ingestion
+
+The old paid AI extraction, grading, figure interpretation and orchestration
+entry points are retired. Use reviewed OpenAI content and the retained local
+source/duplicate/schema/format checks; do not restore provider calls implicitly.
+`npm run questions:import-reviewed -- <reviewed.json> <source.pdf> --dry-run`
+validates source identity and explicit numeric difficulty without DB access.
+An import remains draft until final source, answer, category, figure, duplicate
+and current-version gates pass. See
+[`docs/ingestion/paid-processing-retirement.md`](./docs/ingestion/paid-processing-retirement.md).
+Essential app APIs and the separate tutor recap integration remain intact.
+
+Reviewed independent generated answers use `kind=independently_confirmed_generated`,
+`printed_answer=null`, the frozen generated-key artifact hash and at least two
+distinct independent review hashes. Never label them printed/official keys.
+The existing `missing_answer_key` status represents unavailable usable official
+mapping, while `verified_answer` and private evidence preserve the independent
+answer. Publication remains held; this does not restore paid processing.
+The shared writer's opt-in `privateDraft` mode requires reviewed numeric
+difficulty, explicit answer provenance and complete stable source identity,
+forces `needs_review` so the database computes `is_live=false`, and rejects
+replays targeting live/published rows. Legacy
+callers retain their previous behavior. This internal option does not make a
+preview eligible: exact canonical/legacy bindings and complete dependent-write
+checks are required before a disposable local batch. The reviewed CLI still
+has no private-draft flag; `--dry-run` does not access the database.
+
+Numeric questions may store an explicitly reviewed `numeric_answer_set` in
+answer provenance evidence. Version 1 contains distinct numeric answer strings,
+the unchanged stored key, exact displayed/raw question hashes and stable source
+identity, key artifact hash, two distinct review hashes and a rationale. The
+server validates the binding before grading and keeps the set out of unanswered
+student payloads. Missing sets keep single-key grading; malformed/stale sets
+fail closed. No automatic solving, tolerance expansion or history regrading.
 
 ## Testing & verification workflow
 
@@ -160,7 +249,7 @@ For changes that affect any of those, the fallback workflow is:
    to share with a teammate, `npx cloudflared tunnel --url http://localhost:3000`
    prints a public URL — free, ephemeral, no signup.
 
-Treat that 60-second manual check as required for anything visual-heavy
+For this release, physical-phone review is optional (user override on 2026-10-15); retain automated mobile checks for anything visual-heavy
 before merge.
 
 ### Real-device capture workflow (iPhone wired to Mac)
@@ -208,9 +297,7 @@ Recording → camera dropdown → choose the iPhone. Records the phone's
 screen at full quality to a .mov file. I can't watch video but a human
 review still beats emulation for "does this animation feel snappy."
 
-I'll prompt you to do a real-device check whenever a change is visual-
-heavy or touches mobile-specific code (touch handlers, viewport meta,
-scroll behavior, hover-vs-touch states).
+A real-device check may be offered later, but must not block this user-authorized release.
 
 See `docs/design-tokens.md` for the canonical type scale + palette the
 drift-checker compares against.

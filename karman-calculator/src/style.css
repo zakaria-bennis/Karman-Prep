@@ -1,0 +1,638 @@
+/* Host tokens are used when present; these fallbacks make the three files standalone. */
+:root,
+.karman-theme-light {
+  color-scheme: light;
+  --karman-primary-bg: color-mix(in srgb, var(--background, #eef3f0) 35%, white);
+  --karman-sidebar-bg: var(--surface, #f0f0f0);
+  --karman-border-color: var(--border, #d7d7d7);
+  --karman-text-color: var(--text-primary, #222b38);
+  --karman-muted: var(--text-secondary, #566273);
+  --karman-grid: color-mix(in srgb, var(--text-primary, #222b38) 55%, var(--karman-primary-bg));
+  --karman-axis: var(--text-primary, #222b38);
+  --karman-focus: #2668ad;
+  --karman-error: #af2432;
+  --karman-plot-1: #2865b0;
+  --karman-plot-2: #b43c43;
+  --karman-plot-3: #22794d;
+  --karman-plot-4: #8655b2;
+  --karman-plot-5: #9c650f;
+  --karman-plot-6: #137b86;
+}
+.karman-theme-dark {
+  color-scheme: dark;
+  --karman-primary-bg: color-mix(in srgb, var(--background, #121b17) 88%, black);
+  --karman-sidebar-bg: var(--surface, #1e2b24);
+  --karman-border-color: var(--border, #48564d);
+  --karman-text-color: var(--text-primary, #f3f1e8);
+  --karman-muted: var(--text-secondary, #bdc8c0);
+  --karman-grid: color-mix(in srgb, var(--text-primary, #f3f1e8) 38%, var(--karman-primary-bg));
+  --karman-axis: var(--text-primary, #f3f1e8);
+  --karman-focus: #92c2ff;
+  --karman-error: #ff9b9f;
+  --karman-plot-1: #86b8ff;
+  --karman-plot-2: #ff9398;
+  --karman-plot-3: #7bd8a3;
+  --karman-plot-4: #cea4ff;
+  --karman-plot-5: #f2c579;
+  --karman-plot-6: #7dd6df;
+}
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+:host,
+body {
+  font-family:
+    var(--font-plex-sans, system-ui),
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  color: var(--karman-text-color);
+  background: var(--karman-primary-bg);
+}
+#karman-calculator {
+  --footer-height: 48px;
+  --keypad-height: 220px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  height: 100%;
+  overflow: clip;
+  background: var(--karman-primary-bg);
+}
+#karman-calculator button,
+#karman-calculator input,
+#karman-calculator select {
+  font: inherit;
+  color: inherit;
+}
+#karman-calculator button {
+  min-width: 40px;
+  min-height: 40px;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  background: transparent;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+#karman-calculator button:hover {
+  background: color-mix(in srgb, var(--karman-text-color) 8%, transparent);
+}
+#karman-calculator button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+#karman-calculator :focus-visible {
+  outline: 2px solid var(--karman-focus);
+  outline-offset: -2px;
+}
+#karman-calculator [hidden] {
+  display: none !important;
+}
+.calc-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 5px 12px;
+  padding-top: max(5px, env(safe-area-inset-top));
+  min-height: 50px;
+  background: var(--karman-sidebar-bg);
+  border-bottom: 1px solid var(--karman-border-color);
+}
+.calc-header h1 {
+  margin: 0 auto 0 0;
+  font-size: 17px;
+  font-weight: 650;
+  letter-spacing: -0.25px;
+}
+.calc-header h1 span {
+  font-weight: 400;
+}
+.angle-switch {
+  display: flex;
+  border: 1px solid var(--karman-border-color);
+  border-radius: 6px;
+}
+#karman-calculator .angle-switch button {
+  min-height: 34px;
+  padding: 0 10px;
+  font-size: 12px;
+  font-weight: 650;
+}
+.angle-switch [aria-pressed="true"] {
+  background: var(--karman-text-color) !important;
+  color: var(--karman-primary-bg) !important;
+}
+.calc-workspace {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  padding-bottom: 0;
+}
+.calc-sidebar {
+  display: flex;
+  flex-direction: column;
+  width: clamp(260px, 32.5%, 416px);
+  flex-shrink: 0;
+  min-height: 0;
+  background: var(--karman-sidebar-bg);
+  border-right: 1px solid var(--karman-border-color);
+}
+.sidebar-toolbar {
+  display: flex;
+  flex-shrink: 0;
+  gap: 2px;
+  padding: 4px 7px;
+  border-bottom: 1px solid var(--karman-border-color);
+}
+.sidebar-toolbar button {
+  font-size: 21px !important;
+}
+#karman-calculator #paste-expression,
+#karman-calculator #clear-expressions {
+  font-size: 12px !important;
+  padding: 0 7px;
+}
+#expression-rows-container {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+.expression-row {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) 32px;
+  padding: 9px 5px;
+  border-bottom: 1px solid var(--karman-border-color);
+  align-items: start;
+  border-left: 3px solid transparent;
+}
+.expression-row:focus-within {
+  border-left-color: var(--row-color);
+  background: var(--karman-primary-bg);
+}
+#karman-calculator .plot-toggle {
+  min-width: 30px;
+  min-height: 30px;
+  font-size: 12px;
+  border: 1px solid var(--row-color);
+  color: var(--row-color);
+  border-radius: 50%;
+  height: 30px;
+  margin-top: 5px;
+  align-self: start;
+  padding: 0;
+}
+.plot-toggle[aria-pressed="false"] {
+  opacity: 0.45;
+  text-decoration: line-through;
+}
+.expression-input {
+  width: 100%;
+  min-width: 0;
+  height: 40px;
+  border: 0;
+  border-radius: 3px;
+  padding: 7px;
+  background: transparent;
+  font-size: 18px !important;
+}
+.expression-input::placeholder {
+  color: var(--karman-muted);
+  font-size: 14px;
+}
+.expression-result {
+  display: block;
+  min-height: 20px;
+  padding: 0 7px;
+  font-size: 13px;
+  color: var(--karman-muted);
+  overflow-wrap: anywhere;
+}
+.expression-result.is-error {
+  color: var(--karman-error);
+}
+#karman-calculator .remove-expression {
+  min-width: 28px;
+  min-height: 40px;
+  font-size: 20px;
+  color: var(--karman-muted);
+}
+.entry-hint {
+  margin: auto 0 0;
+  padding: 15px;
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--karman-muted);
+}
+code {
+  font-family: inherit;
+  font-weight: 550;
+}
+.graph-viewport-container {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+#karman-graph-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  cursor: grab;
+}
+#karman-graph-canvas:active {
+  cursor: grabbing;
+}
+.graph-controls {
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+#karman-calculator .graph-controls button,
+#karman-calculator .sidebar-toggle {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  background: var(--karman-sidebar-bg);
+  border-color: var(--karman-border-color);
+  font-size: 26px;
+  box-shadow: 0 1px 3px #00000012;
+}
+.graph-controls svg {
+  height: 23px;
+  width: 23px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.sidebar-toggle {
+  position: absolute;
+  top: 12px;
+  left: 10px;
+}
+.sidebar-hidden .calc-sidebar {
+  display: none;
+}
+#graph-coordinates {
+  position: absolute;
+  bottom: 9px;
+  left: 10px;
+  pointer-events: none;
+  font-size: 11px;
+  padding: 3px 6px;
+  color: var(--karman-muted);
+  background: var(--karman-primary-bg);
+  border-radius: 3px;
+}
+#graph-coordinates:empty {
+  display: none;
+}
+.floating-panel {
+  z-index: 5;
+  position: absolute;
+  top: 12px;
+  right: 64px;
+  width: min(280px, calc(100% - 78px));
+  max-height: calc(100% - 24px);
+  overflow-y: auto;
+  border: 1px solid var(--karman-border-color);
+  border-radius: 8px;
+  padding: 12px;
+  background: var(--karman-sidebar-bg);
+  box-shadow: 0 6px 24px #00000021;
+  font-size: 14px;
+}
+.panel-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.panel-heading h2 {
+  font-size: 15px;
+  margin: 0;
+}
+.floating-panel label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 12px 0;
+}
+.floating-panel select {
+  padding: 8px;
+  background: var(--karman-primary-bg);
+  border: 1px solid var(--karman-border-color);
+  border-radius: 4px;
+}
+.floating-panel .check-label {
+  justify-content: flex-start;
+}
+.check-label input {
+  width: 19px;
+  height: 19px;
+  accent-color: var(--karman-focus);
+}
+.floating-panel p {
+  line-height: 1.6;
+  font-size: 12px;
+  color: var(--karman-muted);
+}
+.help-panel {
+  top: 60px;
+  right: 12px;
+  width: min(380px, calc(100% - 24px));
+  max-height: calc(100% - 120px);
+}
+.calc-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: calc(var(--footer-height) + env(safe-area-inset-bottom));
+  padding: 3px 12px max(3px, env(safe-area-inset-bottom));
+  border-top: 1px solid var(--karman-border-color);
+  background: var(--karman-sidebar-bg);
+  z-index: 4;
+}
+#keypad-toggle {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 13px !important;
+}
+#calculator-status {
+  font-size: 12px;
+  color: var(--karman-muted);
+  text-align: right;
+}
+.keypad-tray {
+  position: absolute;
+  bottom: calc(var(--footer-height) + env(safe-area-inset-bottom));
+  left: 0;
+  right: 0;
+  height: var(--keypad-height);
+  padding: 10px max(12px, env(safe-area-inset-right)) 10px max(12px, env(safe-area-inset-left));
+  background: var(--karman-sidebar-bg);
+  border-top: 1px solid var(--karman-border-color);
+  transform: translateY(calc(100% + var(--footer-height) + env(safe-area-inset-bottom)));
+  transition:
+    transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    visibility 0s 0.25s;
+  z-index: 3;
+  visibility: hidden;
+}
+.keypad-open .keypad-tray {
+  transform: translateY(0);
+  visibility: visible;
+  transition-delay: 0s;
+}
+.keypad-open .calc-workspace {
+  padding-bottom: var(--keypad-height);
+}
+.keypad-grid,
+.keypad-function-row {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 5px;
+  max-width: 720px;
+  margin: 0 auto;
+}
+.keypad-function-row {
+  margin-bottom: 7px;
+}
+#karman-calculator .keypad-tray button {
+  background: var(--karman-primary-bg);
+  border-color: var(--karman-border-color);
+  min-width: 0;
+  min-height: 32px;
+  font-size: 18px;
+}
+#karman-calculator .keypad-function-row button {
+  font-size: 14px;
+}
+#karman-calculator .key-enter {
+  background: var(--karman-text-color);
+  color: var(--karman-primary-bg);
+}
+@media (max-width: 768px) {
+  #karman-calculator {
+    --keypad-height: 244px;
+  }
+  .calc-header {
+    gap: 8px;
+    padding-inline: 10px;
+  }
+  .calc-header h1 {
+    font-size: 15px;
+  }
+  .calc-workspace {
+    flex-direction: column;
+  }
+  .graph-viewport-container {
+    order: -1;
+    flex: 1 1 42%;
+    min-height: 100px;
+  }
+  .calc-sidebar {
+    width: 100%;
+    height: 58%;
+    min-height: 100px;
+    max-height: 58%;
+    border-right: 0;
+    border-top: 1px solid var(--karman-border-color);
+  }
+  .entry-hint {
+    display: none;
+  }
+  .expression-input {
+    font-size: 16px !important;
+  }
+  .sidebar-toolbar {
+    padding-block: 0;
+  }
+  .graph-controls {
+    right: 8px;
+    top: 8px;
+    gap: 3px;
+  }
+  .keypad-open .graph-controls {
+    flex-direction: row;
+  }
+  #karman-calculator .graph-controls button {
+    min-height: 36px;
+    width: 38px;
+    height: 38px;
+  }
+  .keypad-tray {
+    padding: 6px 8px;
+  }
+  #karman-calculator .keypad-tray button {
+    min-height: 40px;
+  }
+  #calculator-status {
+    font-size: 11px;
+  }
+}
+@media (max-height: 560px) {
+  #karman-calculator {
+    --keypad-height: 170px;
+  }
+  .keypad-tray {
+    overflow-y: auto;
+  }
+  .entry-hint {
+    display: none;
+  }
+  .graph-controls {
+    flex-direction: row;
+    top: 8px;
+    right: 8px;
+    gap: 3px;
+  }
+  .keypad-open .calc-sidebar {
+    min-height: 70px;
+  }
+  .keypad-open .graph-viewport-container {
+    min-height: 65px;
+  }
+  .keypad-grid {
+    gap: 3px;
+  }
+  #karman-calculator .keypad-tray button {
+    min-height: 30px;
+  }
+  .keypad-function-row {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .keypad-tray {
+    transition: none;
+  }
+}
+
+/* The same DOM and engine also mount in an isolated shadow root in quiz flows. */
+:host {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+#karman-calculator[data-embedded] {
+  --footer-height: 0px;
+}
+[data-embedded] .calc-footer,
+[data-embedded] .calc-header h1 {
+  display: none;
+}
+[data-embedded] .calc-header {
+  justify-content: flex-end;
+  min-height: 42px;
+}
+#karman-calculator[data-mode="scientific"] .graph-viewport-container {
+  display: none;
+}
+#karman-calculator[data-mode="scientific"] .calc-sidebar {
+  width: 100%;
+  height: 100%;
+  max-height: 100%;
+}
+.data-table {
+  table-layout: fixed;
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.data-table th {
+  font-weight: 600;
+  padding: 6px;
+}
+.data-table td {
+  border: 1px solid var(--karman-border-color);
+  padding: 0;
+}
+.data-table input {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  border: 0;
+  padding: 7px;
+  background: var(--karman-primary-bg);
+}
+.data-table td:last-child {
+  width: 28px;
+}
+#karman-calculator .data-table button {
+  min-width: 26px;
+  min-height: 32px;
+}
+.table-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  margin: 6px 0;
+}
+.table-actions button,
+.table-actions select {
+  font-size: 12px !important;
+}
+.table-actions select {
+  min-width: 0;
+  background: var(--karman-primary-bg);
+  border: 1px solid var(--karman-border-color);
+  border-radius: 4px;
+}
+.row-extra {
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.fit-metrics {
+  line-height: 1.7;
+  padding: 6px 0;
+}
+.parameter-control {
+  margin-top: 8px;
+}
+.parameter-control label {
+  display: block;
+}
+.parameter-control input[type="range"] {
+  display: block;
+  width: 100%;
+  accent-color: var(--row-color);
+  min-height: 28px;
+}
+.slider-bounds {
+  display: flex;
+  gap: 3px;
+}
+.slider-bounds input {
+  width: 33%;
+  min-width: 0;
+  padding: 3px;
+  border: 1px solid var(--karman-border-color);
+  background: var(--karman-primary-bg);
+  border-radius: 3px;
+}

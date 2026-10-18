@@ -1,115 +1,58 @@
-"use client";
-
-// ============================================================
-// Pricing section — all four tiers with feature lists.
-// Each CTA links to Stripe checkout (via sign-up flow).
-//
-// Observatory treatment: four flat surface cards on the night
-// canvas. The highlighted tier earns a gold frame and a gold CTA
-// — prestige by restraint, not by a louder gradient.
-// ============================================================
-
 import Link from "next/link";
-import { Check, Zap, Gem } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { ArrowUpRight } from "lucide-react";
 import { PRICING_TIERS } from "@/types";
-import Reveal from "@/components/shared/Reveal";
+import styles from "./landing.module.css";
+
+export function PlanCards({ onPlansPage = false }: { onPlansPage?: boolean }) {
+  // Same-page details use native anchors so repeated jumps do not race the app router.
+  const CardLink = onPlansPage ? "a" : Link;
+  return (
+    <div
+      className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-5"
+      aria-label="Compare all four plans"
+    >
+      {PRICING_TIERS.map((tier) => (
+        <CardLink
+          key={tier.id}
+          href={`${onPlansPage ? "" : "/plans"}#${tier.id}`}
+          className={`${styles.planCard} flex min-w-0 flex-col rounded-2xl border border-bronze bg-surface p-4 text-ivory sm:p-6`}
+        >
+          <h3 className="font-plex-serif text-xl sm:text-2xl">{tier.name}</h3>
+          <p className="mt-4 font-plex-sans text-3xl font-semibold tracking-tight sm:text-4xl">
+            {tier.price}
+          </p>
+          <p className="mt-1 text-xs leading-relaxed text-taupe sm:text-sm">{tier.period}</p>
+          <span className="mt-5 flex min-h-7 items-center justify-between gap-2 text-sm font-medium">
+            Plan details <ArrowUpRight className="h-4 w-4 shrink-0" aria-hidden="true" />
+          </span>
+        </CardLink>
+      ))}
+    </div>
+  );
+}
 
 export default function Pricing() {
   return (
-    <section id="pricing" className="bg-grain relative overflow-hidden bg-night py-24">
-      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <Reveal className="mb-16 text-center">
-          <span className="type-label text-taupe">Pricing</span>
-          <h2 className="type-display-lg mt-4 text-ivory">Transparent pricing. No surprises.</h2>
-          <p className="type-body-lg mx-auto mt-5 max-w-xl text-balance text-taupe">
-            All plans include this 7-day free trial, cancel any time.
-          </p>
-        </Reveal>
-
-        <Reveal as="stagger" className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
-          {PRICING_TIERS.map((tier) => (
-            <Reveal
-              key={tier.id}
-              className={cn(
-                "relative flex flex-col gap-5 rounded-2xl p-6 transition-colors duration-fast",
-                tier.highlighted
-                  ? "border border-gold/60 bg-surface shadow-[0_0_48px_-18px_rgba(200,171,106,0.45)]"
-                  : "border border-bronze bg-surface hover:border-taupe/40",
-                tier.bestValue && "pt-8"
-              )}
-            >
-              {tier.highlighted && (
-                <div className="type-label absolute -top-3.5 left-1/2 flex -translate-x-1/2 items-center gap-1.5 whitespace-nowrap rounded-full bg-gold px-4 py-1 !text-xs text-night">
-                  <Zap className="h-3 w-3" /> Most Popular
-                </div>
-              )}
-              {tier.bestValue && (
-                <div className="type-label absolute -top-3.5 left-1/2 flex -translate-x-1/2 items-center gap-1.5 whitespace-nowrap rounded-full border border-gold/50 bg-charcoal px-4 py-1 !text-xs text-gold-bright">
-                  <Gem className="h-3 w-3" /> Best Value
-                </div>
-              )}
-
-              {/* Header */}
-              <div>
-                <h3 className="type-h2 mb-1 text-ivory">{tier.name}</h3>
-                <p className="text-xs leading-relaxed text-taupe">{tier.description}</p>
-              </div>
-
-              {/* Price */}
-              <div className="flex items-end gap-1">
-                <span className="type-mono text-4xl font-medium text-ivory">{tier.price}</span>
-                <span className="mb-1.5 text-sm text-taupe">{tier.period}</span>
-              </div>
-
-              {/* Features */}
-              <ul className="flex-1 space-y-2.5">
-                {tier.features.map((feature) => (
-                  <li key={feature} className="flex items-start gap-2.5 text-sm">
-                    <Check
-                      className={cn(
-                        "mt-0.5 h-4 w-4 shrink-0",
-                        tier.highlighted ? "text-gold" : "text-taupe"
-                      )}
-                    />
-                    <span className="text-ivory/85">{feature}</span>
-                  </li>
-                ))}
-              </ul>
-
-              {/* CTA */}
-              <Link
-                href={`/auth/sign-up?tier=${tier.id}`}
-                className={cn(
-                  "px-6 py-3 text-center text-sm",
-                  tier.highlighted ? "btn-primary" : "btn-secondary"
-                )}
-              >
-                {tier.cta}
-              </Link>
-            </Reveal>
-          ))}
-        </Reveal>
-
-        {/* Guarantee note */}
-        <div className="mt-10 space-y-1.5 text-center">
-          <p className="text-sm text-taupe">
-            All plans include our{" "}
-            <span className="font-medium text-gold-bright">
-              50-point score improvement guarantee*
-            </span>{" "}
-            or your money back.
-          </p>
-          <p className="text-xs text-taupe/80">
-            *Terms apply.{" "}
-            <Link
-              href="/guarantee"
-              className="underline transition-colors duration-fast hover:text-ivory"
-            >
-              See full guarantee terms
-            </Link>
-          </p>
+    <section id="pricing" className="scroll-mt-24 bg-night px-5 py-16 text-ivory md:px-8 md:py-20">
+      <div className="mx-auto max-w-7xl">
+        <div className="mb-7 flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <p className="text-sm font-medium text-gold">Room for your kind of prep</p>
+            <h2 className="mt-3 font-plex-serif text-4xl leading-tight sm:text-5xl">
+              Find your fit.
+            </h2>
+          </div>
+          <Link
+            href="/plans"
+            className="inline-flex min-h-11 items-center gap-2 font-semibold underline underline-offset-4"
+          >
+            Compare plans <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+          </Link>
         </div>
+        <PlanCards />
+        <p className="mt-5 text-sm text-taupe">
+          Seminar includes a 7-day trial. See each plan’s details and charge timing before choosing.
+        </p>
       </div>
     </section>
   );

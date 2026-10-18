@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import MathText from "@/components/learn/MathText";
+import QuestionTable from "@/components/learn/QuestionTable";
 import type { QuizQuestionWithChoices } from "@/types/quiz";
 import { GraderVotesBadge } from "@/components/admin/GraderVotesBadge";
 import { NodePicker } from "./NodePicker";
@@ -235,7 +236,17 @@ export function QuestionCard({
                       )}
                     >
                       <span className="shrink-0 font-mono text-xs text-taupe">{c.letter}.</span>
-                      <MathText text={c.choice_text} className="flex-1" />
+                      <div className="min-w-0 flex-1">
+                        {c.choice_table_data ? (
+                          <QuestionTable
+                            data={c.choice_table_data}
+                            ariaLabel={`Choice ${c.letter} data table`}
+                            className="my-1 max-w-full p-2"
+                          />
+                        ) : (
+                          <MathText text={c.choice_text} />
+                        )}
+                      </div>
                       {c.is_correct && (
                         <Check className="inline h-3.5 w-3.5 shrink-0 text-success" />
                       )}

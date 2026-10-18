@@ -48,22 +48,33 @@ export async function POST(req: NextRequest) {
     const fwd = req.headers.get("x-forwarded-for") || "";
     const signupIp = fwd.split(",")[0].trim() || req.headers.get("x-real-ip") || null;
 
-    const { data: existing } = await supabase
+    const { data: existing, error: lookupError } = await supabase
       .from("users")
-      .select("signup_ip")
+      .select("signup_ip, role")
       .eq("clerk_id", userId)
       .maybeSingle();
+    if (lookupError) throw lookupError;
 
-    // Upsert so re-calling this is idempotent
-    const { error } = await supabase.from("users").upsert({
-      clerk_id: userId,
-      email,
-      role: role || "student",
-      first_name: firstName,
-      last_name: lastName,
-      avatar_url: avatarUrl,
-      ...(existing?.signup_ip ? {} : { signup_ip: signupIp }),
-    });
+    // Signup cannot approve staff. Only an already-approved tutor can
+    // repeat the tutor onboarding sync; no supplied role is written.
+    if (role === "tutor" && existing?.role !== "tutor") {
+      return NextResponse.json({ error: "Tutor access requires approval" }, { status: 403 });
+    }
+
+    // Ignore an existing Clerk identity atomically, including concurrent
+    // syncs or staff approval. Never demote or overwrite an existing role.
+    const { error } = await supabase.from("users").upsert(
+      {
+        clerk_id: userId,
+        email,
+        role: "student",
+        first_name: firstName,
+        last_name: lastName,
+        avatar_url: avatarUrl,
+        ...(existing?.signup_ip ? {} : { signup_ip: signupIp }),
+      },
+      { onConflict: "clerk_id", ignoreDuplicates: true }
+    );
 
     if (error) {
       console.error("[sync-user] Supabase error:", error);
