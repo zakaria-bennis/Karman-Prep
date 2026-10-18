@@ -138,6 +138,8 @@ function nearestVertexPx(r: GoldenRun, p: Pt): number {
 /** The least CSS px distance from the world point `p` to anything `g` draws. */
 function distancePx(view: ViewSpec, g: Geometry, p: Pt): number {
   switch (g.kind) {
+    case "table":
+      return Infinity; // no golden case plots a table
     case "curve": {
       let best = Infinity;
       for (const run of runsOf(g.polylines)) {

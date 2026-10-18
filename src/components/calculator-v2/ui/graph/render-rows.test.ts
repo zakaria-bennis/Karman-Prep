@@ -152,3 +152,34 @@ it("POI-17 only the selected row's render row is marked selected", () => {
     ["4", false],
   ]);
 });
+
+it("D-11 each series draws in its column's colour, joined in row order only when lines are on", () => {
+  const columns = [
+    { latex: "x_{1}", values: ["1", "2"], color: "c1", hidden: false },
+    { latex: "y_{1}", values: ["3", "4"], color: "c2", hidden: false },
+    { latex: "y_{2}", values: ["5", "6"], color: "c3", hidden: false, lines: true },
+  ];
+  const tableRow = row("t", "table", { type: "table", columns });
+  const geometry = new Map<string, Geometry>([
+    [
+      "t",
+      {
+        kind: "table",
+        rowId: "t",
+        evaluations: 0,
+        series: [
+          { column: 1, coords: new Float64Array([1, 3, 2, 4]) },
+          { column: 2, coords: new Float64Array([1, 5, 2, 6]) },
+        ],
+      },
+    ],
+  ]);
+  const rows = buildRenderRows({ ...snap, rows: [tableRow], geometry }, "ivory", view(), c0);
+  expect(rows.map((r) => [r.rowId, r.geometry.kind, r.color])).toEqual([
+    ["t", "points", resolveRowColor("c2", "ivory").hex],
+    ["t", "curve", resolveRowColor("c3", "ivory").hex],
+    ["t", "points", resolveRowColor("c3", "ivory").hex],
+  ]);
+  const line = rows[1].geometry;
+  expect(line.kind === "curve" && [...line.polylines]).toEqual([1, 5, 2, 6]);
+});

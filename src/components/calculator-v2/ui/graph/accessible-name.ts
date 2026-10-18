@@ -45,6 +45,11 @@ function drawsPlot(row: RowView, geo: ReadonlyMap<string, Geometry>): boolean {
         Number.isFinite(row.value.value[0]) &&
         Number.isFinite(row.value.value[1])
       );
+    case "table": {
+      // D-11: a table draws when some column has points
+      const g = geo.get(row.id);
+      return g?.kind === "table" && g.series.some((series) => series.coords.length > 0);
+    }
     case "constant-relation": {
       // only a true inequality draws: its region has spans
       const g = geo.get(row.id);

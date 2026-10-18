@@ -21,6 +21,7 @@ import { parseLatex, type ParseResult } from "../core/latex/index";
 import { buildCompileScope, plotInputFor } from "../plot/from-analysis";
 import { geometryTransferables } from "../plot/geometry";
 import { plotRow } from "../plot/index";
+import { plotTable } from "../plot/table";
 import { findRowPois } from "../poi/index";
 import type { ViewSpec } from "../plot/viewport";
 import type { WireRow, WireSettings, WorkerToMain } from "./protocol";
@@ -164,6 +165,13 @@ export function runPlot(
   if (outcome.overrun.has(row.id)) return;
   const { generation } = ctx,
     rowId = row.id;
+  if (row.kind === "table") {
+    const result = outcome.tables.get(rowId);
+    if (row.table === undefined || result === undefined) return;
+    const geometry = plotTable(rowId, row.table, result); // D-11
+    ctx.post({ v: 1, type: "plot", generation, rowId, geometry }, geometryTransferables(geometry));
+    return;
+  }
   try {
     const input = fns.plotInputFor(row, outcome.scope, outcome.values.get(rowId) ?? null);
     if (input === null) return;

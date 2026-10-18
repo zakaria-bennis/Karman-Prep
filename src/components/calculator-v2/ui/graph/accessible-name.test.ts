@@ -100,3 +100,19 @@ it("A11Y-1 only visible, error-free, chip-free graphed rows count as plots", () 
   ];
   expect(countPlots(rows, geometry)).toBe(8);
 });
+
+it("A11Y-1 a table with plotted columns counts as one plot", () => {
+  const g = new Map<string, Geometry>([
+    [
+      "t",
+      {
+        kind: "table",
+        rowId: "t",
+        evaluations: 0,
+        series: [{ column: 1, coords: new Float64Array([1, 2]) }],
+      },
+    ],
+    ["u", { kind: "table", rowId: "u", evaluations: 0, series: [] }],
+  ]);
+  expect(countPlots([row("t", "table"), row("u", "table"), row("v", "table")], g)).toBe(1);
+});

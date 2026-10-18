@@ -206,7 +206,7 @@ export function drawCurveLayer(ctx: Ctx, view: ViewSpec, rows: readonly RenderRo
   const clip = grown(view, 2 * CURVE_LINE_PX);
   for (const row of rows) {
     const g = row.geometry;
-    if (g.kind === "points") continue;
+    if (g.kind === "points" || g.kind === "table") continue; // render-rows splits tables
     ctx.strokeStyle = row.color;
     ctx.fillStyle = row.color;
     ctx.lineWidth = row.selected === true ? CURVE_SELECTED_LINE_PX : CURVE_LINE_PX;

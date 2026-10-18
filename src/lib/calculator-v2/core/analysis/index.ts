@@ -24,7 +24,7 @@ export interface RowSource {
   id: string;
   latex: string; // "" for a table
   hidden: boolean;
-  columns?: readonly { latex: string; values: readonly string[] }[]; // D-1: a table's columns
+  columns?: readonly { latex: string; values: readonly string[]; hidden?: boolean }[]; // D-1
 }
 export interface RowError {
   code: RowErrorCode;

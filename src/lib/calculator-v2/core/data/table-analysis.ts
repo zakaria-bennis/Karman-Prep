@@ -22,6 +22,7 @@ export interface ColumnAnalysis {
   error: RowError | null; // the header's warning (D-10)
   cellErrors: (RowError | null)[]; // per cell (D-6)
   cells: (Node | null)[]; // each usable cell's tree; null when blank or in error
+  hidden: boolean; // D-12: points off
 }
 export interface TableAnalysis {
   columns: ColumnAnalysis[];
@@ -160,7 +161,8 @@ export function analyzeTable(
   const columns = t.headers.map((h, j): ColumnAnalysis => {
     const cellErrors = t.cells[j].map((cell) => cellError(cell, own, declared));
     const cells = t.cells[j].map((cell, k) => (cellErrors[k] === null ? cell.tree : null));
-    const base = { index: j, tree: h.tree, cellErrors, cells };
+    const hidden = t.source.columns?.[j]?.hidden === true;
+    const base = { index: j, tree: h.tree, cellErrors, cells, hidden };
     if (j === 0) {
       if (!isName(h.tree)) {
         return {
