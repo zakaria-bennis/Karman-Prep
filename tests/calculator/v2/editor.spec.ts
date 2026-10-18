@@ -105,7 +105,7 @@ test("KB-5 Clear all removes every row in one undo step, keeps settings and view
   await expect.poll(() => latexes(page)).toEqual(["y=x", "a=2", "y=ax"]);
 });
 
-test("L-3 the focused row draws the focus-bar number and a 2 px focus-ring outline", async ({
+test("L-3 the focused row fills its gutter in the focus-bar colour and draws a 2 px focus-ring outline", async ({
   page,
 }) => {
   await open(page, ["y=x", "2+3"]);
@@ -116,9 +116,13 @@ test("L-3 the focused row draws the focus-bar number and a 2 px focus-ring outli
   await expect(row).toHaveCSS("outline-style", "solid");
   await expect(row).toHaveCSS("outline-width", "2px");
   await expect(row).toHaveCSS("outline-color", rgb(await role("--kc-focus-ring")));
-  await expect(row.locator(".kc-row-number")).toHaveCSS(
+  await expect(row.locator(".kc-row-gutter")).toHaveCSS(
     "background-color",
     rgb(await role("--kc-focus-bar"))
+  );
+  await expect(row.locator(".kc-row-number")).toHaveCSS(
+    "color",
+    rgb(await role("--kc-focus-bar-label"))
   );
   await expect(page.locator('li[data-row-id="1"]')).toHaveCSS("outline-style", "none");
 });
