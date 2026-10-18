@@ -67,6 +67,7 @@ it("TR-7 notation outside table 4.1 is left as written", () => {
     "\\tau",
     "\\sin x",
     "x|y",
+    "\\left\\{\\begin{array}{l}y=x\\end{array}\\right.", // the system wrapper's \right. is not trailing punctuation
   ])
     expect(N(s), s).toBe(s);
   expect(N("\\sin 30^{\\circ}")).toBe("\\sin30^{\\circ}"); // decision 3

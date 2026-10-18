@@ -212,6 +212,6 @@ export function normalizeQuestionMath(latex: string, context: QuestionMathContex
   if (plain) s = rewritePlainFractions(s);
   s = rewriteRepeatingDecimals(s);
   s = pairRawBars(s);
-  s = s.replace(/(?<!\\)[,.;:]$/, "").trim();
+  s = s.replace(/(?<!\\|\\right)[,.;:]$/, "").trim(); // `\right.` closes a system wrapper
   return rewriteMixedNumbers(s, context);
 }
