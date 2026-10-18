@@ -64,3 +64,38 @@ export function PointStyleGlyph(props: {
     </svg>
   );
 }
+
+/**
+ * R-2, D-6: the row and cell warning marker, a rounded equilateral triangle 22 units wide in
+ * currentColor (the --kc-warning role) with an exclamation mark cut out in the list colour. Drawn
+ * here from plain shapes; `size` is the rendered width in CSS px.
+ */
+export function WarningGlyph(props: { size?: number }): JSX.Element {
+  const width = props.size ?? 22;
+  return (
+    <svg
+      className="kc-glyph kc-warning-glyph"
+      width={width}
+      height={(width * 20) / 22}
+      viewBox="0 0 22 20"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path
+        d="M11 3L20 18H2Z"
+        fill="currentColor"
+        stroke="currentColor"
+        strokeWidth={3}
+        strokeLinejoin="round"
+      />
+      <path
+        className="kc-warning-mark"
+        d="M11 8V12.2"
+        fill="none"
+        strokeWidth={2.2}
+        strokeLinecap="round"
+      />
+      <circle className="kc-warning-mark-dot" cx={11} cy={15.2} r={1.2} />
+    </svg>
+  );
+}

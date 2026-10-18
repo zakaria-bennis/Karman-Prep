@@ -127,7 +127,7 @@ A11Y-3) and `b-functions-and-data.md` (D-4, D-5, D-7, D-19, D-20, FN-59), plus C
 15. Backspace in an empty expression row directly below a table deletes that row and puts focus in the table's blank row.
 16. Clearing every cell of an interior row leaves an empty row in place until it is deleted explicitly.
 17. A cell accepts numbers, negatives, decimals, typed fractions (rendered stacked) and simple expressions such as 2·3 and √2, plotted by their value.
-18. A cell that cannot be evaluated shows a warning icon at its left and exposes the message (for example "Too many variables. Try defining 'a'." or "Points are written like this: (1, 2).") to assistive technology.
+18. A cell that cannot be evaluated shows a warning icon at its left and exposes the message (for example "Too many variables. Try defining 'a'." or "Points are written like this: (1, 2).") to assistive technology, in a hover, focus and tap tooltip on the marker, with `aria-invalid` and `aria-describedby` on the cell. **Matched** (D-6; component test).
 19. Rows with a blank or invalid value in a pair are skipped when plotting, and the other rows still plot.
 20. Data columns plot as filled circles of size 8 in the column colour, not joined, by default; the second and later data columns take the next palette colours.
 21. Activating the column icon toggles that column's points on and off, and the icon shows an empty outline when hidden.
@@ -202,12 +202,12 @@ A11Y-3) and `b-functions-and-data.md` (D-4, D-5, D-7, D-19, D-20, FN-59), plus C
 14. Exponential, power and logarithmic fits show a "Log mode" checkbox (with help) under the math, and toggling it refits and adds or removes r.
 15. When any y ≤ 0 for an exponential fit, the Log mode control is not offered and the original-unit fit is shown.
 16. A model that is undefined for the data (blank or non-numeric cell in the used columns, or a model like `log(−a²−1)`) shows the row error "We couldn't find any region where this model is defined." in place of results.
-17. A non-numeric table cell shows its own in-cell warning ("Too many variables. Try defining 'q'.").
+17. A non-numeric table cell shows its own in-cell warning ("Too many variables. Try defining 'q'."). **Matched** (D-6; component test).
 18. A name defined by another row (e.g. `m = 3`) is treated as a constant, not a parameter, and the remaining parameters refit.
 19. Referencing a parameter name that two regressions both fit is the error "You've defined 'm' in more than one place. Try deleting some of the definitions of 'm'." (Karman uses this text on every row that defines a duplicated name, RC-7; a row that references it reads "m has more than one definition.", D-44.)
 20. Each value in the results is a focusable read-only field whose accessible name reads "name equals value", and the row's accessible name ends with "Has graph and regression. To access statistics, press Tab."
 21. Tab from the regression row visits Delete, each parameter, each statistic, the residual name, the plot control and the colour toggle, in that order.
-22. Row errors are exposed as an ARIA note and appended to the textbox's accessible name, and visually as a warning icon in the colour tab with a hover tooltip.
+22. Row errors are exposed as an ARIA note and appended to the textbox's accessible name, and visually as a warning icon in the colour tab with a hover tooltip. **Matched** (R-2; component and browser tests).
 23. On a 390×844 phone the results keep the two-column layout, scroll within the list, and the `~` key is reachable from the letters keypad page.
 
 ### Gaps against the existing spec
@@ -315,8 +315,10 @@ Graph
     colour, swatch unchanged), plus the L-3/TH-14 outline; the math area background stays the list colour.
 13. Minimum row height 54 CSS px for single-line math; math at 18-20 CSS px with ≥12 CSS px left padding.
 14. Evaluation result right-aligned on its own line below the math: muted "=" then the value in a small box
-    (raised background, 1 px field-boundary border, 3 px radius).
-15. Warning marker replaces the swatch in the gutter (not an extra icon in the math area).
+    (raised background, 1 px field-boundary border, 3 px radius); a list shows one box per element, then "…" after 30
+    (NM-38). **Matched** (R-5; component and browser tests).
+15. Warning marker replaces the swatch in the gutter (not an extra icon in the math area). **Matched** (R-2; component and
+    browser tests).
 16. Delete control is a quiet muted-colour × at the row's top right, visible on every row.
     Typography
 17. Math in KaTeX serif with italic variables and upright digits/function names; all chrome (title bar, toolbar,
@@ -345,4 +347,4 @@ Graph
 - **TH-13** reverse contrast regenerates colours to 7:1, unlike Desmos's plain inversion — ours is better for
   contrast; no change, but note Desmos keeps curve identity only by complement hue, ours should keep hue (TH-10 slots).
 - **K-6/SC-4** require 44x44 px phone keys; Desmos uses 31x36. Ours is intentionally larger; keep.
-- **R-2** says warning marker in the gutter: matches Desmos; spec requires `reading` at 7:1 where Desmos is ~3.2:1.
+- **R-2** says warning marker in the gutter: matches Desmos. Founder decision 2026-10-18: match Desmos's marker (orange `#fa7e19` triangle replacing the swatch, black tooltip on hover, focus and tap). The earlier `reading` role at 7:1 no longer applies to the marker, which is a non-text icon held to 3:1 (WCAG 1.4.11): `#fa7e19` is 2.6:1 on a white list, so light skins darken it just enough to reach 3:1 and dark skins keep it unchanged. The tooltip text is white on black (21:1, above the 7:1 of TH-1).

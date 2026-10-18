@@ -127,11 +127,22 @@ test("L-3 the focused row fills its gutter in the focus-bar colour and draws a 2
   await expect(page.locator('li[data-row-id="1"]')).toHaveCSS("outline-style", "none");
 });
 
-test("R-5 the value sits below the math, right-aligned", async ({ page }) => {
+test("R-5 the value sits below the math, right-aligned, in a small raised box after a muted =", async ({
+  page,
+}) => {
   await open(page, ["2+3"]);
   const value = page.locator('li[data-row-id="1"] .kc-row-value');
-  await expect(value).toContainText("= 5");
+  const box = value.locator(".kc-row-value-box");
+  await expect(box).toHaveText("5");
+  await expect(value.locator(".kc-row-equals")).toHaveText("=");
   await expect(value).toHaveCSS("text-align", /^(end|right)$/);
+  await expect(box).toHaveCSS("border-top-width", "1px");
+  await expect(box).toHaveCSS("border-top-left-radius", "3px");
+  await expect(box).toHaveCSS("padding-top", "2px");
+  await expect(box).toHaveCSS("padding-left", "8px");
+  const equals = (await value.locator(".kc-row-equals").boundingBox())!;
+  const boxed = (await box.boundingBox())!;
+  expect(boxed.x).toBeGreaterThan(equals.x); // the = comes first, the box follows
   const math = (await page.locator('li[data-row-id="1"] .kc-row-field').boundingBox())!;
   expect((await value.boundingBox())!.y).toBeGreaterThanOrEqual(math.y + math.height - 1);
 });
@@ -240,7 +251,10 @@ test("K-7 double-tapping the keypad = gives one ~ in one undo step, announces ti
   await expect.poll(async () => (await latexes(page))[0]).toMatch(/^y\\sim\s*$/);
   await expect(page.getByRole("status")).toHaveText("tilde");
   // PR-30: y\sim with nothing after it is a half-typed regression, a syntax error.
-  await expect(page.locator('li[data-row-id="1"] .kc-row-error')).toHaveText(
+  const marker = page.locator('li[data-row-id="1"] .kc-row-warning');
+  if (isMobile) await marker.tap();
+  else await marker.hover();
+  await expect(page.getByRole("tooltip")).toHaveText(
     "This can't be read. Check for a missing bracket or operator."
   );
   await page.getByRole("button", { name: "Undo", exact: true }).click();
@@ -249,6 +263,46 @@ test("K-7 double-tapping the keypad = gives one ~ in one undo step, announces ti
   await page.keyboard.press("End");
   await page.keyboard.type("==");
   await expect.poll(async () => (await latexes(page))[0]).not.toContain("\\sim");
+});
+
+test("R-2 the error tooltip opens on hover and focus, closes on Escape, and toggles on tap", async ({
+  page,
+  isMobile,
+}) => {
+  await open(page, ["y=2+", "y=x"]);
+  const marker = page.locator('li[data-row-id="1"] .kc-row-warning');
+  const tip = page.getByRole("tooltip");
+  const message = "This can't be read. Check for a missing bracket or operator.";
+  await expect(marker).toHaveAccessibleName("Error");
+  await expect(page.locator('li[data-row-id="1"] .kc-row-tab')).toHaveCount(0);
+  await expect(tip).toHaveCount(0);
+  if (isMobile) {
+    await marker.tap(); // a tap toggles it
+    await expect(tip).toHaveText(message);
+    await marker.tap();
+    await expect(tip).toHaveCount(0);
+    await marker.tap();
+    await expect(tip).toBeVisible();
+    await page.locator('li[data-row-id="2"] .kc-row-number').tap(); // a press outside closes it
+    await expect(tip).toHaveCount(0);
+    return;
+  }
+  await marker.hover(); // at once, no delay
+  await expect(tip).toHaveText(message, { timeout: 500 });
+  const m = (await marker.boundingBox())!;
+  const t = (await tip.boundingBox())!;
+  expect(t.y).toBeGreaterThanOrEqual(m.y + m.height); // directly below the marker
+  expect(Math.abs(t.x + t.width / 2 - (m.x + m.width / 2))).toBeLessThanOrEqual(2); // centred on it
+  await page.mouse.move(600, 400);
+  await expect(tip).toHaveCount(0);
+  await marker.focus();
+  await expect(tip).toHaveText(message);
+  await expect(marker).toHaveAttribute("aria-expanded", "true");
+  await page.keyboard.press("Escape");
+  await expect(tip).toHaveCount(0);
+  await expect(marker).toBeFocused();
+  await field(page, 1).focus();
+  await expect(tip).toHaveCount(0);
 });
 
 test("AN-1 the keypad slides on translateY over 200 ms with ease-standard and is visibility:hidden once hidden", async ({

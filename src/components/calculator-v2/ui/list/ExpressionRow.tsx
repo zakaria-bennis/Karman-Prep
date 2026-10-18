@@ -2,8 +2,9 @@
 // and the focused or active row marks (L-3), the gutter tab that hides or shows the row's graph
 // (R-1), the MathField textbox named "Expression n" through a hidden label the row keeps current
 // (A11Y-3, 09 Decisions "Textbox naming survives renumbering") and described by the row's T-5
-// speech text (A11Y-4), its value (R-5), its error with the gutter marker and aria-invalid (R-2)
-// and the complex-mode hint (FN-16, OI-4), the TH-11 colour note, and the Delete control. The
+// speech text (A11Y-4), its value in a box (R-5, RowValue), its error as a warning marker that
+// replaces the tab, with the message in its tooltip and aria-invalid on the textbox (R-2,
+// ErrorMarker) and the complex-mode hint (FN-16, OI-4), the TH-11 colour note, and the Delete control. The
 // field's inputmode follows the on-screen keypad (T-11). Enter, the arrow edges, Backspace or
 // Delete in an empty row and the Delete control go through row-actions (R-3, R-9); a typed edit
 // past the T-13 limit is refused, restored and announced. AN-5: the row carries its presence
@@ -11,7 +12,7 @@
 // reports onExitDone once its own exit transition-duration has passed (09 Decisions, "Motion
 // lifecycles read CSS").
 
-import { TriangleAlert, X } from "lucide-react";
+import { X } from "lucide-react";
 import {
   useContext,
   useLayoutEffect,
@@ -29,7 +30,6 @@ import type { RowView } from "@/lib/calculator-v2/core/api/engine";
 import { MAX_ROW_CHARACTERS } from "@/lib/calculator-v2/core/latex/limits";
 import { EXPLICIT_COLOUR_NOTE, resolveRowColor } from "@/lib/calculator-v2/theme/roles";
 import { LineStyleGlyph, PointStyleGlyph } from "../../icons";
-import { groupIntegerDigits } from "../../math-field/digit-groups";
 import type { MathField } from "../../math-field/MathField";
 import { latexToSpeech } from "../../math-field/speech";
 import { useAnnouncer } from "../a11y/announcer";
@@ -37,6 +37,7 @@ import { FocusContext, type FocusController } from "../focus/focus-controller";
 import { useSkin } from "../hooks/skin";
 import { useEngine, useEngineSnapshot } from "../hooks/use-engine";
 import { MathFieldFactoryContext } from "./math-field-factory";
+import { ErrorMarker } from "./ErrorMarker";
 import { EDITOR_MESSAGES } from "./messages";
 import { useMenuTrigger } from "./menu-trigger";
 import { MotionContext } from "./motion";
@@ -51,6 +52,7 @@ import {
 import { fieldTextbox, rowDomIds, rowTab } from "./row-model";
 import { RegressionPanel, STATISTICS_HINT } from "./RegressionPanel";
 import { offersCreateTable, RowMenu } from "./RowMenu";
+import { RowValue } from "./RowValue";
 import type { RowMotion } from "./row-presence";
 
 export interface ExpressionRowProps {
@@ -96,8 +98,8 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
   const color = resolveRowColor(row.color, useSkin());
   const ids = useMemo(() => rowDomIds(row.id), [row.id]);
   const speech = useMemo(() => latexToSpeech(row.latex), [row.latex]);
-  const tab = rowTab(row);
   const error = row.error;
+  const tab = error === null ? rowTab(row) : null; // R-2: the warning marker takes the tab's place
   const valueText = error === null ? row.valueText : null; // R-5: an error row shows no value
   // A11Y-3: the textbox's description lists the parts that render, in this order.
   const describedBy = [
@@ -333,11 +335,7 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
               }}
             />
           )}
-          {error !== null && (
-            <span className="kc-row-warning" aria-hidden="true">
-              <TriangleAlert aria-hidden="true" focusable="false" size={16} />
-            </span>
-          )}
+          {error !== null && <ErrorMarker id={ids.error} message={error.message} variant="row" />}
         </div>
         <div className="kc-row-main">
           <div className="kc-row-field" ref={hostRef} onPointerDown={onFieldPointerDown} />
@@ -350,15 +348,7 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
             {speech}
           </span>
           {valueText !== null && (
-            <div className="kc-row-value" id={ids.value}>
-              <span aria-hidden="true">= {groupIntegerDigits(valueText)}</span>
-              <span className="kc-visually-hidden">equals {valueText}</span>
-            </div>
-          )}
-          {error !== null && (
-            <div className="kc-row-error" id={ids.error}>
-              {error.message}
-            </div>
+            <RowValue id={ids.value} value={row.value} valueText={valueText} />
           )}
           {row.complexHint && (
             <div className="kc-row-hint">
