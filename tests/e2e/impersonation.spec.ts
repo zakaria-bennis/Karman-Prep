@@ -42,7 +42,9 @@ test.describe("admin impersonation", () => {
     await midRow.getByRole("button", { name: /Impersonate/i }).click();
 
     // ── 3. Banner appears with target's name ───────────────
-    const banner = page.getByRole("status");
+    // Other parts of the app also use role="status", so match the
+    // banner by its text.
+    const banner = page.getByRole("status").filter({ hasText: "Admin viewing as" });
     await expect(banner).toBeVisible();
     await expect(banner).toContainText("Mid Student");
     await expect(banner).toContainText(/student/i);
@@ -50,10 +52,10 @@ test.describe("admin impersonation", () => {
     // We should have been redirected to /dashboard/student and
     // the page should render the target's seeded data.
     await expect(page).toHaveURL(/\/dashboard\/student/);
-    // Latest seeded diagnostic puts the student in the 1200-1300
-    // predicted-SAT band — visible on the home dashboard's
-    // "predicted SAT" tile.
-    await expect(page.locator("body")).toContainText(/1200.+1300/);
+    // The mid student has a seeded diagnostic. The dashboard no
+    // longer shows a forecast band, so check for the link to the
+    // measured results, which only renders when a diagnostic exists.
+    await expect(page.getByRole("link", { name: /See diagnostic details/i })).toBeVisible();
 
     // ── 4. Navigate to /learn while still impersonated ─────
     // The banner is site-wide so it should follow us.
@@ -66,7 +68,7 @@ test.describe("admin impersonation", () => {
 
     // Lands on /admin/users with no banner.
     await expect(page).toHaveURL(/\/admin\/users/);
-    await expect(page.getByRole("status")).toHaveCount(0);
+    await expect(banner).toHaveCount(0);
   });
 
   test("stuck student shows the placement-failure banner when impersonated", async ({ page }) => {
