@@ -366,6 +366,20 @@ div[data-transfer-status][role=status][aria-live=polite][aria-atomic=true].sr-on
   behaviour, the exact command, the assertion that must fail, then `git checkout -- <file>` and a
   passing rerun. Mutations are never committed.
 
+- D4, classifier loaded lazily (AR-33; lead decision during part 1, listed in 00-index
+  section 7 beside D1 to D3; it takes effect only once the owner signs it off, and until then it
+  is the lead's interim decision). 12's classifier is about 11.3 KB gzipped and the quiz routes
+  already add 7.5 to 8.9 KB of eager JS (`docs/calculator-v2-bundle-baseline.json`), so the
+  10240-byte eager budget cannot hold it. `src/lib/calculator-transfer/classify.ts` and its imports
+  are reached only through the `import()` in `src/components/calculator/transfer-classifier.ts`
+  (`loadTransferClassifier()`, `useTransferClassifier(active)`), their own chunk apart from the
+  calculator's, loaded when a v2 Math question first renders. Controls render nothing until it
+  has resolved, then appear; a failed chunk renders none and the next caller retries. Only
+  `use-transfer-bridge.ts`, `TransferControl` with its two stylesheets, `transfer-selection.ts`,
+  `transfer-report.ts` (whose Sentry send loads lazily from `transfer-report-send.ts`, as
+  `report-error.ts`'s does), the loader and the seam stay eager. Later tests that classify a
+  rendered question await the controls (`findBy…`) instead of assuming synchronous classification.
+
 ## Notes for the lead
 
 This package edits only its own plan files; these changes belong to other files.
