@@ -14,6 +14,7 @@ import {
   ZOOM_BUTTON_FACTOR,
   zoomViewport,
   type ViewSpec,
+  worldToPx,
 } from "@/lib/calculator-v2/plot/viewport";
 import { NAME_DEBOUNCE_MS, NAME_MAX_WAIT_MS } from "@/lib/calculator-v2/render/constants";
 import { pickGrid } from "@/lib/calculator-v2/render/grid-plan";
@@ -24,6 +25,8 @@ import { useEngine, useEngineSnapshot } from "../hooks/use-engine";
 import { countPlots, graphAccessibleName } from "./accessible-name";
 import { homeFadeMs, useHomePresence, type HomePhase } from "./home-presence";
 import { GRAPH_CONTROL_LABELS } from "./labels";
+import { PoiOverlay } from "./PoiOverlay";
+import type { LabelState } from "./poi-labels";
 import {
   buildRenderRows,
   displayedGeometry,
@@ -33,6 +36,7 @@ import {
 import { useDebounced } from "./use-debounced";
 import { useGraphInput } from "./use-graph-input";
 import { useGraphSize, type GraphSize } from "./use-graph-size";
+import { openLabels, poiDots, usePoiLabels } from "./use-poi-labels";
 
 export { graphAccessibleName };
 
@@ -51,6 +55,7 @@ type FrameInputs = {
   cache: RegionCache;
   size: GraphSize | null;
   host: Element;
+  labels: LabelState;
 };
 type FrameRef = { current: number | null };
 type Ref = RefObject<HTMLElement | null>;
@@ -93,13 +98,13 @@ function useRenderLoop(
     };
   }, [layers]);
 
-  const { snapshot, skin, size } = inputs;
+  const { snapshot, skin, size, labels } = inputs;
   useEffect(() => {
     if (size === null || frame.current !== null) return;
     frame.current = requestAnimationFrame(() => {
       frame.current = null;
       const container = layers.current;
-      const { snapshot: s, skin: k, cache, size: g, host } = latest.current;
+      const { snapshot: s, skin: k, cache, size: g, host, labels: l } = latest.current;
       if (renderer.current === null || container === null || g === null) return;
       const view: ViewSpec = { viewport: s.viewport, size: g.size, dpr: g.dpr };
       renderer.current.render({
@@ -107,10 +112,11 @@ function useRenderLoop(
         grid: pickGrid(s.settings),
         rows: buildRenderRows(s, k, view, cache),
         theme: readRenderTheme(host),
+        poi: poiDots(s, l),
       });
       container.dataset.renderedRevision = String(s.revision);
     });
-  }, [layers, snapshot, skin, themeRevision, size]);
+  }, [layers, snapshot, skin, themeRevision, size, labels]);
 }
 
 /** Moves focus to the graph surface when `el` has it, so focus never falls to the body. */
@@ -154,6 +160,18 @@ function HomeButton({ phase, homeRef, surface, onActivate }: HomeButtonProps): J
   );
 }
 
+/** The selected row's drawn vertices in CSS px, every 4th, for label placement (POI-19). */
+function selectedCurvePx(s: EngineSnapshot, view: ViewSpec): [number, number][] {
+  const g = s.selectedRowId === null ? undefined : s.geometry.get(s.selectedRowId);
+  if (g === undefined || g.kind !== "curve") return [];
+  const out: [number, number][] = [];
+  for (let k = 0; k + 1 < g.polylines.length; k += 8) {
+    if (Number.isFinite(g.polylines[k]))
+      out.push(worldToPx(view, g.polylines[k], g.polylines[k + 1]));
+  }
+  return out;
+}
+
 export function GraphPanel(props: GraphPanelProps): JSX.Element {
   const { host, themeRevision, reducedMotion, settingsOpen, onOpenSettings } = props;
   const engine = useEngine();
@@ -164,7 +182,23 @@ export function GraphPanel(props: GraphPanelProps): JSX.Element {
   const surface = useRef<HTMLDivElement>(null);
   const homeRef = useRef<HTMLButtonElement>(null);
   const size = useGraphSize(layers, engine);
-  const input = useGraphInput({ panel, surface, engine, size });
+  const poi = usePoiLabels(snapshot, engine);
+  const current = useRef({ snapshot, skin, size, cache: NO_REGIONS });
+  const input = useGraphInput({
+    panel,
+    surface,
+    engine,
+    size,
+    interaction: {
+      click(at, pointer) {
+        const { snapshot: s, skin: k, size: g, cache: c } = current.current;
+        if (g === null) return;
+        const view: ViewSpec = { viewport: s.viewport, size: g.size, dpr: g.dpr };
+        poi.click(at, pointer, view, buildRenderRows(s, k, view, c));
+      },
+      viewChanged: poi.viewChanged,
+    },
+  });
 
   // The region cache follows the snapshot during render; updateRegionCache is pure, so a repeated
   // render gives the same cache.
@@ -176,13 +210,18 @@ export function GraphPanel(props: GraphPanelProps): JSX.Element {
     regions.current = { snapshot, cache: updateRegionCache(regions.current.cache, snapshot) };
   }
   const { cache } = regions.current;
+  useLayoutEffect(() => {
+    current.current = { snapshot, skin, size, cache };
+  });
+  const view: ViewSpec | null =
+    size === null ? null : { viewport: snapshot.viewport, size: size.size, dpr: size.dpr };
 
   const plots = countPlots(snapshot.rows, displayedGeometry(snapshot, cache));
   const name = useDebounced(graphAccessibleName(snapshot.viewport, plots), NAME_DEBOUNCE_MS, {
     maxWaitMs: NAME_MAX_WAIT_MS,
   });
 
-  useRenderLoop(layers, { snapshot, skin, cache, size, host }, themeRevision);
+  useRenderLoop(layers, { snapshot, skin, cache, size, host, labels: poi.labels }, themeRevision);
 
   // Before Home mounts there is no transition to read, so it enters with a fade unless motion is
   // reduced (AN-8 fades in as well as out); once mounted, its computed transition gives the time.
@@ -212,6 +251,13 @@ export function GraphPanel(props: GraphPanelProps): JSX.Element {
         tabIndex={0}
         onKeyDown={input.onKeyDown}
       />
+      {view !== null && (
+        <PoiOverlay
+          labels={openLabels(snapshot, poi.labels, view)}
+          curve={selectedCurvePx(snapshot, view)}
+          size={view.size}
+        />
+      )}
       <div className="kc-graph-controls" role="group" aria-label={GRAPH_CONTROL_LABELS.group}>
         <button
           type="button"
