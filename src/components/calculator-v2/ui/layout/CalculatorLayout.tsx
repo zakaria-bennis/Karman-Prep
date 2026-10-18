@@ -3,7 +3,8 @@
 // grid areas keyed on data-kc-layout, so a layout switch never remounts a MathField (AR-26).
 // rootRef lands on section.kc-app, where the shell installs its keyboard handling. A ResizeObserver
 // on the list region keeps the focused or active row in view (L-14, 10 Decision 2), and focus
-// entering the list closes the settings popover (10 Decision 7).
+// entering the list closes the settings popover (10 Decision 7). A mousedown in the keypad region
+// while a row has focus is cancelled, so focus and caret stay in the row (K-12).
 
 import { useEffect, useRef, type JSX, type Ref } from "react";
 import { GraphPanel } from "../graph/GraphPanel";
@@ -44,6 +45,10 @@ export function CalculatorLayout(props: CalculatorLayoutProps): JSX.Element {
     return () => observer.disconnect();
   }, []);
 
+  // K-12: 09's keys prevent mousedown (K-10); the region extends that to its other controls, such
+  // as Show keypad. A touch tap's compatibility mousedown takes the same path.
+  const rowFocused = () => props.host.shadowRoot!.activeElement?.closest("[data-row-id]") != null;
+
   return (
     <section
       ref={props.rootRef}
@@ -78,7 +83,12 @@ export function CalculatorLayout(props: CalculatorLayoutProps): JSX.Element {
           onOpenSettings={props.onOpenSettings}
         />
       </div>
-      <div className="kc-keypad-region">
+      <div
+        className="kc-keypad-region"
+        onMouseDownCapture={(e) => {
+          if (rowFocused()) e.preventDefault(); // K-12: focus and caret stay in the row
+        }}
+      >
         <Keypad
           containerWidth={props.containerWidth}
           pointer={props.pointer}

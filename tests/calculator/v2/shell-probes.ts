@@ -92,3 +92,225 @@ export function shadowHasFontFace(): boolean {
     );
   return sheets.some((sheet) => hasFace(sheet.cssRules));
 }
+
+export interface Motion {
+  durations: string[]; // computed transition durations, plus animation durations when one runs
+  easing: string[]; // computed transition and animation timing functions
+}
+
+/** AN-14, AN-13, AR-38: the computed motion of every shadow element and its ::before and ::after. */
+export function readMotion(): Motion[] {
+  const root = document.querySelector("#calc")!.shadowRoot!;
+  const split = (list: string) => list.split(/,(?![^(]*\))/).map((part) => part.trim());
+  const out: Motion[] = [];
+  for (const el of root.querySelectorAll("*")) {
+    for (const pseudo of [null, "::before", "::after"]) {
+      const style = getComputedStyle(el, pseudo);
+      const durations = split(style.transitionDuration);
+      const easing = split(style.transitionTimingFunction);
+      if (style.animationName !== "none") {
+        durations.push(...split(style.animationDuration));
+        easing.push(...split(style.animationTimingFunction));
+      }
+      out.push({ durations, easing });
+    }
+  }
+  return out;
+}
+
+/** AN-13: over the next 10 animation frames, how many show AN-8's Home control leaving. */
+export async function countLeavingFrames(): Promise<number> {
+  const host = document.querySelector("#calc")!;
+  let count = 0;
+  for (let i = 0; i < 10; i++) {
+    await new Promise((r) => requestAnimationFrame(r));
+    if (host.shadowRoot!.querySelector('[data-graph-home][data-phase="leaving"]')) count++;
+  }
+  return count;
+}
+
+/**
+ * TH-15 init script: records in globalThis.__strokes the strokeStyle of every canvas stroke() and,
+ * because 08's renderer draws the axes and grid lines as filled rectangles (draw-grid.ts), the
+ * fillStyle of every fill() and fillRect().
+ */
+export function recordStrokes(): void {
+  const store = globalThis as unknown as { __strokes: string[] };
+  store.__strokes = [];
+  const proto = CanvasRenderingContext2D.prototype as unknown as Record<
+    string,
+    (...args: unknown[]) => unknown
+  >;
+  for (const [method, style] of [
+    ["stroke", "strokeStyle"],
+    ["fill", "fillStyle"],
+    ["fillRect", "fillStyle"],
+  ] as const) {
+    const original = proto[method];
+    proto[method] = function (this: CanvasRenderingContext2D, ...args: unknown[]) {
+      store.__strokes.push(String(this[style]));
+      return original.apply(this, args);
+    };
+  }
+}
+
+/** TH-15: the strokes recorded so far. */
+export function readStrokes(): string[] {
+  return [...((globalThis as unknown as { __strokes?: string[] }).__strokes ?? [])];
+}
+
+/**
+ * TH-15: sets html[data-theme], waits one animation frame and a task, and returns the strokes
+ * painted since the change and --kc-paper on #calc.
+ */
+export async function setThemeAndWait(
+  theme: string
+): Promise<{ strokes: string[]; paper: string }> {
+  const store = globalThis as unknown as { __strokes?: string[] };
+  const start = store.__strokes?.length ?? 0;
+  document.documentElement.dataset.theme = theme;
+  await new Promise((r) => requestAnimationFrame(r));
+  await new Promise((r) => setTimeout(r, 0));
+  const paper = getComputedStyle(document.querySelector("#calc")!).getPropertyValue("--kc-paper");
+  return { strokes: (store.__strokes ?? []).slice(start), paper: paper.trim().toLowerCase() };
+}
+
+/** TH-15: marks [data-kc-layout] with a property that a remount would lose. */
+export function markLayoutNode(): void {
+  const node = document.querySelector("#calc")!.shadowRoot!.querySelector("[data-kc-layout]");
+  (node as unknown as { kcMark?: number }).kcMark = 1;
+}
+
+/** TH-15: whether the marked [data-kc-layout] node is still the mounted one. */
+export function layoutNodeMarked(): boolean {
+  const node = document.querySelector("#calc")!.shadowRoot!.querySelector("[data-kc-layout]");
+  return (node as unknown as { kcMark?: number } | null)?.kcMark === 1;
+}
+
+export interface Ring {
+  name: string;
+  style: string;
+  width: string;
+  offset: string;
+  color: string;
+  background: string; // the first opaque background behind the ring
+  inset: boolean; // measured on the row (L-3, OI-31) for MathQuill's textarea
+}
+
+/** TH-14: the outline of the focused shadow element (a row for MathQuill's textarea), or null. */
+export function readRing(): Ring | null {
+  const host = document.querySelector("#calc")!;
+  const active = host.shadowRoot!.activeElement;
+  if (active === null) return null;
+  const row = active.closest(".mq-textarea") ? active.closest("li[data-row-id]") : null;
+  const el = row ?? active;
+  const inset = row !== null;
+  const opaque = (c: string) => {
+    const m = /^rgba?\(([^)]*)\)$/.exec(c);
+    if (m === null) return false;
+    const parts = m[1].split(/[\s,/]+/).filter(Boolean);
+    return parts.length < 4 || Number(parts[3]) === 1;
+  };
+  const parent = (n: Element): Element | null => {
+    if (n.parentElement) return n.parentElement;
+    const root = n.getRootNode();
+    return root instanceof ShadowRoot ? root.host : null;
+  };
+  let background = "rgb(255, 255, 255)";
+  for (let n: Element | null = inset ? el : parent(el); n !== null; n = parent(n)) {
+    const bg = getComputedStyle(n).backgroundColor;
+    if (opaque(bg)) {
+      background = bg;
+      break;
+    }
+  }
+  const style = getComputedStyle(el);
+  return {
+    name: `${active.getAttribute("aria-label") ?? active.textContent?.trim() ?? ""} <${el.tagName.toLowerCase()}.${String(el.className).trim().split(/\s+/).join(".")}>`,
+    style: style.outlineStyle,
+    width: style.outlineWidth,
+    offset: style.outlineOffset,
+    color: style.outlineColor,
+    background,
+    inset,
+  };
+}
+
+export interface TextPair {
+  kind: "text" | "boundary";
+  name: string;
+  fg: string;
+  alpha: number; // the colour's alpha times the opacity of the element and its ancestors
+  bg: string;
+}
+
+/**
+ * TH-1: every visible shadow element with its own text (not .kc-sr-only or MathQuill's textarea)
+ * against its background, and every bordered input or .mq-editable-field's border against the
+ * background behind it.
+ */
+export function readTextPairs(): TextPair[] {
+  const root = document.querySelector("#calc")!.shadowRoot!;
+  const parent = (n: Element): Element | null => {
+    if (n.parentElement) return n.parentElement;
+    const r = n.getRootNode();
+    return r instanceof ShadowRoot ? r.host : null;
+  };
+  const alphaOf = (c: string) => {
+    const m = /^rgba?\(([^)]*)\)$/.exec(c);
+    if (m === null) return 1;
+    const parts = m[1].split(/[\s,/]+/).filter(Boolean);
+    return parts.length < 4 ? 1 : Number(parts[3]);
+  };
+  const backgroundFrom = (start: Element | null) => {
+    for (let n = start; n !== null; n = parent(n)) {
+      const bg = getComputedStyle(n).backgroundColor;
+      if (alphaOf(bg) === 1) return bg;
+    }
+    return "rgb(255, 255, 255)";
+  };
+  const opacity = (el: Element) => {
+    let product = 1;
+    for (let n: Element | null = el; n !== null; n = parent(n)) {
+      product *= Number(getComputedStyle(n).opacity);
+    }
+    return product;
+  };
+  const describe = (el: Element) =>
+    `${el.tagName.toLowerCase()}.${String(el.className).trim().split(/\s+/).join(".")} "${(el.textContent ?? "").trim().slice(0, 24)}"`;
+  const out: TextPair[] = [];
+  for (const el of root.querySelectorAll("*")) {
+    if (el.closest(".kc-sr-only, .mq-textarea")) continue;
+    const style = getComputedStyle(el);
+    const rect = el.getBoundingClientRect();
+    if (style.visibility === "hidden" || rect.width === 0 || rect.height === 0) continue;
+    const own = [...el.childNodes].some(
+      (n) => n.nodeType === Node.TEXT_NODE && (n.textContent ?? "").replace(/[\s​]/g, "") !== ""
+    );
+    const opacityProduct = opacity(el);
+    if (opacityProduct === 0) continue;
+    if (own) {
+      out.push({
+        kind: "text",
+        name: describe(el),
+        fg: style.color,
+        alpha: alphaOf(style.color) * opacityProduct,
+        bg: backgroundFrom(el),
+      });
+    }
+    const bordered =
+      (el.matches("input") || el.matches(".mq-editable-field")) &&
+      style.borderTopStyle !== "none" &&
+      parseFloat(style.borderTopWidth) > 0;
+    if (bordered) {
+      out.push({
+        kind: "boundary",
+        name: describe(el),
+        fg: style.borderTopColor,
+        alpha: alphaOf(style.borderTopColor) * opacityProduct,
+        bg: backgroundFrom(parent(el)),
+      });
+    }
+  }
+  return out;
+}
