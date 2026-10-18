@@ -28,6 +28,7 @@ const row = (id: string, kind: RowKind, extra: Partial<RowView> = {}): RowView =
   type: "expression",
   columns: null,
   table: null,
+  regression: null,
   ...extra,
 });
 const REGION_STUB: RegionGeometry = {

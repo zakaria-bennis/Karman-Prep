@@ -6,6 +6,7 @@ import type { RowKind } from "../core/corpus/types";
 import type { Value } from "../core/eval/values";
 import type { Geometry } from "../plot/geometry";
 import type { TableResult } from "../core/data/evaluate";
+import type { RegressionOutcome } from "../core/data/evaluate-regression";
 import type { PoiPoint } from "../poi/types";
 import type { PixelSize, Viewport } from "../plot/viewport";
 
@@ -61,7 +62,7 @@ export type WorkerToMain =
       value: Value;
     }
   | { v: 1; type: "plot"; generation: number; rowId: string; geometry: Geometry }
-  | { v: 1; type: "regression"; generation: number; rowId: string } // reserved; never sent before Phase 3
+  | { v: 1; type: "regression"; generation: number; rowId: string; result: RegressionOutcome } // D-22
   | { v: 1; type: "poi"; generation: number; rowId: string; points: PoiPoint[] } // POI-1
   | { v: 1; type: "table"; generation: number; rowId: string; table: TableResult } // D-11
   | { v: 1; type: "overrun"; generation: number; rowId: string } // AR-48 deadline or AR-49 watchdog
@@ -147,8 +148,16 @@ export function isWorkerMessage(data: unknown): data is WorkerToMain {
         isRecord(m.table) &&
         Array.isArray(m.table.columns)
       );
-    case "begin":
     case "regression":
+      return (
+        isNumber(m.generation) &&
+        isString(m.rowId) &&
+        isRecord(m.result) &&
+        typeof m.result.ok === "boolean" &&
+        Array.isArray(m.result.params) &&
+        Array.isArray(m.result.residuals)
+      );
+    case "begin":
     case "overrun":
       return isNumber(m.generation) && isString(m.rowId);
     case "analysis":

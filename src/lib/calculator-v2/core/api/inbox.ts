@@ -8,6 +8,7 @@ import type { WorkerToMain } from "../../worker/protocol";
 import type { AnalysisResult } from "../analysis";
 import type { RowKind } from "../corpus/types";
 import type { TableResult } from "../data/evaluate";
+import type { RegressionOutcome } from "../data/evaluate-regression";
 import type { Value } from "../eval/values";
 import type { StoredRow } from "./document";
 
@@ -22,6 +23,7 @@ export interface RowResult {
   value: Value | null;
   overrun: boolean;
   table?: TableResult; // D-11: a table row's latest results
+  regression?: RegressionOutcome; // D-22: a regression row's latest fit
 }
 export interface InboxHooks {
   onFault(message: string): void;
@@ -121,6 +123,12 @@ export class ResultInbox {
         this.results.set(message.rowId, { ...before, table: message.table });
         return true;
       }
+      case "regression": {
+        if (!this.accepts(message)) return false;
+        const before = this.results.get(message.rowId) ?? NO_RESULT;
+        this.results.set(message.rowId, { ...before, regression: message.result });
+        return true;
+      }
       case "plot": {
         const { generation, rowId, geometry } = message;
         const graphable = this.rows.get(rowId)?.isGraphable === true;
@@ -146,7 +154,7 @@ export class ResultInbox {
         this.hooks.onFault(message.message);
         return false;
       default:
-        return false; // begin, heartbeat, and the reserved regression
+        return false; // begin and heartbeat
     }
   }
 

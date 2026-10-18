@@ -9,6 +9,7 @@ import { compileExpression, type CompileScope } from "../eval/compile";
 import { formatNumber } from "../eval/format";
 import { numberValue, type Value } from "../eval/values";
 import { collectNameUses } from "../analysis/names";
+import type { RegressionOutcome } from "./evaluate-regression";
 
 export interface TableColumnResult {
   values: (number | null)[]; // null: blank, undefined or not a real number
@@ -20,7 +21,7 @@ export interface TableResult {
 /** Where evaluateRows hands the results that are not row values (D-11, D-22). */
 export interface DataSink {
   table(rowId: string, table: TableResult): void;
-  regression(rowId: string, result: unknown): void;
+  regression(rowId: string, result: RegressionOutcome): void; // D-22
 }
 
 const real = (v: Value | undefined): number | null =>

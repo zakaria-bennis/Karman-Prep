@@ -14,6 +14,8 @@ import type { TableResult } from "../data/evaluate";
 import type { TableAnalysis } from "../data/table-analysis";
 import type { StoredColumn, StoredRow } from "./document";
 import type { RowResult } from "./inbox";
+import type { RegressionOutcome } from "../data/evaluate-regression";
+import type { RegressionAnalysis } from "../data/regression-analysis";
 import type { ApiEvaluation, CalculatorSettings, ExpressionAnalysis } from "./types";
 
 export interface RowView {
@@ -31,6 +33,11 @@ export interface RowView {
   type: "expression" | "table"; // D-1
   columns: readonly StoredColumn[] | null; // a table's stored columns
   table: TableView | null; // D-10, D-11: a table's analysis and latest results
+  regression: RegressionView | null; // D-22: a regression row's analysis and latest fit
+}
+export interface RegressionView {
+  analysis: RegressionAnalysis;
+  result: RegressionOutcome | null; // null until the worker reports
 }
 export interface TableView {
   analysis: TableAnalysis;
@@ -125,7 +132,7 @@ export function buildRowView(row: StoredRow, analysis: RowAnalysis, result: RowR
     hidden: row.hidden,
     color: row.color,
     kind: analysis.kind,
-    error: overrun ? timeoutError() : analysis.error,
+    error: overrun ? timeoutError() : (analysis.error ?? fitError(result.regression)),
     chips: [...analysis.chips],
     complexHint: analysis.complexHint,
     value,
@@ -138,7 +145,19 @@ export function buildRowView(row: StoredRow, analysis: RowAnalysis, result: RowR
       analysis.table === undefined
         ? null
         : { analysis: analysis.table, result: result.table ?? null },
+    regression:
+      analysis.regression === undefined
+        ? null
+        : { analysis: analysis.regression, result: result.regression ?? null },
   };
+}
+
+/** D-22, D-24: a failed fit is the row's error, shown in place of its results. */
+function fitError(fit: RegressionOutcome | undefined): RowView["error"] {
+  if (fit === undefined || fit.ok || fit.error === null) return null;
+  const code =
+    fit.error === rowErrorMessage("regression-data", []) ? "regression-data" : "regression-fit";
+  return { code, message: fit.error, names: [], span: null };
 }
 
 /**

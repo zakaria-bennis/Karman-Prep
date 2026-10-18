@@ -24,6 +24,7 @@ import { plotRow } from "../plot/index";
 import { plotTable } from "../plot/table";
 import { findRowPois } from "../poi/index";
 import type { ViewSpec } from "../plot/viewport";
+import type { RegressionOutcome } from "../core/data/evaluate-regression";
 import type { WireRow, WireSettings, WorkerToMain } from "./protocol";
 import { createWorkDeadline, type SliceClock } from "./slice";
 
@@ -101,20 +102,22 @@ export function runValuesPass(
   ctx: PassContext,
   fns: ComputeFns = DEFAULT_COMPUTE
 ): ValuesOutcome {
-  const sources = rows.map(({ id, latex, hidden, columns }) =>
-    columns === null ? { id, latex, hidden } : { id, latex, hidden, columns }
+  const sources = rows.map(({ id, latex, hidden, columns, logMode }) =>
+    columns === null ? { id, latex, hidden, logMode } : { id, latex, hidden, columns }
   );
   const full = fns.analyzeRows(sources, settings),
     overrun = new Set<string>();
   let analysis = full,
     values: ReadonlyMap<string, Value> = new Map(),
-    tables = new Map<string, TableResult>();
+    tables = new Map<string, TableResult>(),
+    regressions = new Map<string, RegressionOutcome>();
   for (;;) {
     try {
       tables = new Map();
+      regressions = new Map();
       const sink: DataSink = {
         table: (rowId, table) => tables.set(rowId, table),
-        regression: () => undefined,
+        regression: (rowId, result) => regressions.set(rowId, result),
       };
       values = fns.evaluateRows(analysis, settings, roundDeadlines(ctx, overrun), sink);
       break;
@@ -144,6 +147,8 @@ export function runValuesPass(
       ctx.post({ v: 1, type: "value", generation, rowId, jobId: null, value });
       const table = tables.get(rowId);
       if (table !== undefined) ctx.post({ v: 1, type: "table", generation, rowId, table });
+      const result = regressions.get(rowId);
+      if (result !== undefined) ctx.post({ v: 1, type: "regression", generation, rowId, result });
     }
   }
   const scope = buildCompileScope(analysis, values, settings);

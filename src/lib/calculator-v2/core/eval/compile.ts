@@ -10,6 +10,8 @@ import {
 } from "../analysis/index";
 import { DeadlineExceeded, NO_DEADLINE, type Deadline } from "../deadline";
 import { evaluateTable, type DataSink } from "../data/evaluate";
+import { evaluateRegression, regressionValues } from "../data/evaluate-regression";
+import { regressionDefinitionId, regressionOf } from "../data/regression-analysis";
 import type { Node } from "../latex/ast";
 import { isBuiltinName } from "../latex/operator-names";
 import { applyBuiltin } from "../lib/builtins";
@@ -338,7 +340,24 @@ export function evaluateRows(
       throw error;
     }
   };
+  const fitted = new Set<string>();
   for (const id of analysis.valueOrder) {
+    // D-22, D-46: a regression fits once, at its first synthetic definition in dependency order.
+    const regression = regressionOf(id);
+    if (regression !== null) {
+      const r = analysis.byId.get(regression)?.regression;
+      if (r === undefined || fitted.has(regression)) continue;
+      fitted.add(regression);
+      const deadline = deadlineFor(regression);
+      deadline.check();
+      const outcome = evaluateRegression(r, scope, deadline);
+      for (const [name, v] of regressionValues(outcome)) {
+        values.set(name, v);
+        byRow.set(regressionDefinitionId(regression, name), v); // buildCompileScope reads these
+      }
+      sink?.regression(regression, outcome);
+      continue;
+    }
     const row = analysis.byId.get(id),
       body = row === undefined ? null : definitionBody(row);
     if (row === undefined || body === null || row.defines === null) continue;
