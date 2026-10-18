@@ -2,7 +2,8 @@
 // loaded through its import() (and together with the Transfer control's chunk): the question-key
 // check (TR-70), the docking write (AR-21), the held queue while the calculator loads (AR-17), the drain into the guarded
 // handle, holds across a mount failure and discards after a load failure (TR-69, OI-28), the
-// tap-selection clears (TR-57) and the quiz-side TR-67 announcement. Never imported by eager code.
+// tap-selection clears (TR-57), the focus of a window a transfer opened (TR-66, AR-55) and the
+// quiz-side TR-67 announcement. Never imported by eager code.
 
 import {
   MAX_QUEUED_TRANSFERS,
@@ -49,6 +50,22 @@ function announce(s: TransferState, message: string): void {
   }, 50);
 }
 
+/** Opens a closed window and remembers that this transfer opened it, so V2Scope skips its
+ * once-per-open focusOnOpen and the transfer places focus (TR-66, TR-68). */
+function openWindow(s: TransferState, trigger: TransferTrigger): void {
+  if (s.options.open) return;
+  s.opened = { trigger, focusDue: true };
+  s.options.onOpenChange(true);
+}
+
+/** TR-66, OI-7: a touch transfer activates its row without focusing it, so focus moves into the
+ * window, never staying on a control inside the inert full-screen workspace. */
+function focusFrame(s: TransferState): void {
+  const frame = s.options.frameRef.current;
+  if (frame !== null && !frame.contains(document.activeElement))
+    frame.focus({ preventScroll: true });
+}
+
 /** transfer() on the v2 bridge, acting on the scope's current options. */
 export function transfer(
   s: TransferState,
@@ -81,11 +98,11 @@ export function transfer(
   }
   // 4. OI-28: a failed import stays failed for the page.
   if (now.status === "failed" && now.failure === "load") {
-    if (!now.open) now.onOpenChange(true);
+    openWindow(s, trigger);
     announce(s, TRANSFER_MESSAGES.unavailableReload);
     return Promise.resolve(unavailableReload());
   }
-  if (!now.open) now.onOpenChange(true); // 5.
+  openWindow(s, trigger); // 5.
   // 6. TR-69: a mount failure holds the payload until Retry succeeds.
   if (now.status === "failed" && now.failure === "mount") {
     announce(s, TRANSFER_MESSAGES.unavailableRetry);
@@ -97,10 +114,20 @@ export function transfer(
 }
 
 /** The drain: every held payload, in order, once the window is open and the calculator ready.
- * A guarded apply that threw returns undefined and drops the handle (AR-53); the rest then wait. */
+ * A guarded apply that threw returns undefined and drops the handle (AR-53); the rest then wait.
+ * The first batch after a transfer opened the window places its focus (TR-66, AR-55): the
+ * transferred row's own focus, else, when every result was rejected, focusOnOpen. */
 export function drain(s: TransferState): void {
   const handle = s.handle;
-  if (!s.options.open || handle === null || s.options.status !== "ready") return;
+  if (!s.options.open) {
+    if (s.wasOpen) s.opened = null; // closed: the next open is a new one
+    s.wasOpen = false;
+    return;
+  }
+  s.wasOpen = true;
+  if (handle === null || s.options.status !== "ready") return;
+  let count = 0;
+  let landed = false;
   while (s.held.length > 0 && s.handle === handle) {
     const entry = s.held.shift();
     if (entry === undefined) break;
@@ -116,22 +143,41 @@ export function drain(s: TransferState): void {
       reportCalculatorError(error, null);
       result = rejected();
     }
+    count++;
+    if (result.focusRowId !== null) landed = true;
+    if (entry.trigger === "touch") focusFrame(s);
     announce(s, result.message);
     entry.resolve(result);
+  }
+  const opened = s.opened;
+  if (count > 0 && opened?.focusDue) {
+    opened.focusDue = false;
+    if (!landed && s.handle === handle) handle.focusOnOpen(opened.trigger);
   }
 }
 
 /** TR-69: a load failure discards held payloads with one announcement; a mount failure keeps
- * them for Retry and says so once. */
+ * them for Retry and says so once. AR-55: a window a transfer opened on a failure panel focuses
+ * its "Reload page" or "Retry" button (else the frame); after a mount failure the focus stays due,
+ * so the drain after a successful Retry still places it. */
 export function settleFailure(s: TransferState): void {
-  const { status, failure } = s.options;
-  if (status !== "failed" || s.held.length === 0) return;
-  if (failure === "load") {
-    announce(s, TRANSFER_MESSAGES.unavailableReload);
-    for (const entry of s.held.splice(0)) entry.resolve(unavailableReload());
-  } else if (failure === "mount") {
-    announce(s, TRANSFER_MESSAGES.unavailableRetry);
+  const { open, status, failure, frameRef } = s.options;
+  const seen = `${status}:${failure}`;
+  if (s.failureSeen !== seen && status === "failed" && s.held.length > 0) {
+    if (failure === "load") {
+      announce(s, TRANSFER_MESSAGES.unavailableReload);
+      for (const entry of s.held.splice(0)) entry.resolve(unavailableReload());
+    } else if (failure === "mount") {
+      announce(s, TRANSFER_MESSAGES.unavailableRetry);
+    }
   }
+  s.failureSeen = seen;
+  if (!open || status !== "failed" || !s.opened?.focusDue) return;
+  const frame = frameRef.current;
+  const label = failure === "load" ? "Reload page" : "Retry";
+  const buttons = frame === null ? [] : [...frame.querySelectorAll("button")];
+  (buttons.find((b) => b.textContent?.trim() === label) ?? frame)?.focus({ preventScroll: true });
+  if (failure === "load") s.opened.focusDue = false;
 }
 
 /** TR-57: opening the calculator ends a tap selection. */

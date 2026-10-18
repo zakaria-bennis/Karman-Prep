@@ -134,6 +134,7 @@ export const rowItem = (page: Page, n = 1) =>
 export async function transferByMouse(page: Page, latex: string, n = 0) {
   const target = item(page, latex, n);
   await target.scrollIntoViewIfNeeded();
+  await settled(page); // a new question's card moves while it enters
   const [x, y] = await target.evaluate((el) => {
     const rects = el.getClientRects();
     const r = rects[rects.length - 1] ?? el.getBoundingClientRect();
@@ -148,3 +149,28 @@ export const clickControl = (page: Page, latex: string, n = 0) =>
 /** The page-session window store the fixture exposes (null before it is set). */
 export const windowStore = (page: Page) =>
   page.evaluate(() => globalThis.__calculatorWindowStore?.get() ?? null);
+export const statusRegion = (page: Page) => page.locator("[data-transfer-status]");
+/** The engine's focus, keypad, display settings and shaded-region count (null before the host). */
+export const snapshot = (page: Page) =>
+  page.evaluate(() => {
+    const engine = globalThis.__calculatorHarness?.engine;
+    if (engine === undefined) return null;
+    const s = engine.getSnapshot();
+    return {
+      activeRowId: s.activeRowId,
+      focusedLatex: s.rows.find((r) => r.id === s.focusedRowId)?.latex ?? null,
+      keypad: s.settings.keypad,
+      displaySize: s.settings.displaySize,
+      reverseContrast: s.settings.reverseContrast,
+      regions: [...s.geometry.values()].filter((g) => g.kind === "region").length,
+    };
+  });
+/** Replaces the calculator's rows through the harness engine (no typing, so no row announcements). */
+export const setRows = (page: Page, latex: string[]) =>
+  page.evaluate(
+    (list) =>
+      globalThis.__calculatorHarness?.engine.setExpressions(
+        list.map((l, i) => ({ id: String(i + 1), latex: l }))
+      ),
+    latex
+  );

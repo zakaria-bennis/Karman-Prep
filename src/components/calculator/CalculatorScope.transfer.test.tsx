@@ -368,3 +368,25 @@ it("AR-21, TR-64 a mouse or touch transfer docks a closed, floating or maximized
   expect(document.querySelector("[data-calculator-window]")).toHaveAttribute("data-mode", "docked");
   expect(screen.getByRole("button", { name: "Reload page" })).toBeInTheDocument();
 });
+
+it("TR-66, AR-55 a window a transfer opened takes its focus from the transfer: the row's own focus, else focusOnOpen when every result was rejected, else the failure panel's button, never the inert workspace", async () => {
+  const a = await scope();
+  const added = send(a, payload(1), "mouse");
+  await waitFor(() => expect(added.result?.status).toBe("added"));
+  expect(a.handles[0].focusOnOpen).not.toHaveBeenCalled();
+  a.unmount();
+  const s = await scope({ fullScreen: true, mount: rejecting });
+  screen.getByRole("button", { name: "Stand-in control" }).focus();
+  const out = send(s, payload(1), "touch");
+  await waitFor(() => expect(out.result?.status).toBe("rejected"));
+  await waitFor(() =>
+    expect(document.activeElement?.closest("[data-calculator-window]")).not.toBeNull()
+  );
+  expect(s.handles[0].focusOnOpen.mock.calls).toEqual([["touch"]]);
+  s.unmount();
+  const f = await scope({ fullScreen: true, loadFails: true });
+  screen.getByRole("button", { name: "Stand-in control" }).focus();
+  const lost = send(f, payload(1), "mouse");
+  await waitFor(() => expect(lost.result?.status).toBe("unavailable"));
+  await waitFor(() => expect(screen.getByRole("button", { name: "Reload page" })).toHaveFocus());
+});

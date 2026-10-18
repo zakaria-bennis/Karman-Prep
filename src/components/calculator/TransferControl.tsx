@@ -113,6 +113,7 @@ function V2TransferControl({
     overControl: false,
     hoverType: "", // pointerType of the last accepted hover pointerenter
     lastDown: null as { pointerType: string } | null, // decision "Pointer record"
+    focusing: false, // TR-68: activate() focuses the button, which shows no tooltip
     timer: null as ReturnType<typeof setTimeout> | null,
     focused: false,
     selected: false, // with focused, for the synchronous data-visible write
@@ -387,6 +388,11 @@ function V2TransferControl({
     event.stopPropagation();
     const p = pointer.current;
     const trigger = triggerFor(p.lastDown, revealedByHoverPen());
+    // TR-68: the control has focus before the window opens, so the scope records it as the opener
+    // on every engine (Safari never focuses a clicked button).
+    p.focusing = true;
+    button.current?.focus({ preventScroll: true });
+    p.focusing = false;
     p.lastDown = null;
     transferSelection.clear();
     const { bridge: now, item: target } = current.current;
@@ -421,7 +427,7 @@ function V2TransferControl({
         onFocus={() => {
           setFocused(true);
           bridge.prefetch();
-          if (pointer.current.lastDown === null) setTooltip(true);
+          if (pointer.current.lastDown === null && !pointer.current.focusing) setTooltip(true);
         }}
         onBlur={() => {
           pointer.current.lastDown = null;

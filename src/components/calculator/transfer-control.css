@@ -19,3 +19,8 @@
     opacity: 1;
   }
 }
+/* TR-46: docked, the question layout is a scroll box (calculator.module.css), so an inline control
+   above a stem's first line (20 px above it) would be clipped; the room above keeps it inside. */
+[data-calculator-workspace][data-calculator-docked="true"] [data-question-layout] {
+  padding-top: 24px;
+}

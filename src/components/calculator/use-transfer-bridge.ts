@@ -29,6 +29,7 @@ export interface TransferBridge {
   transfer(payload: TransferPayload, trigger: TransferTrigger): Promise<TransferResult>;
   onHandle(handle: QuizCalculatorHandle | null): void;
   announcement: string; // the [data-transfer-status] text
+  openedByTransfer(): boolean; // V2Scope's once-per-open focusOnOpen skips such an open (TR-66)
 }
 
 /** One scope's transfer state, owned here and acted on by transfer-bridge-core.ts. */
@@ -45,6 +46,10 @@ export interface TransferState {
   timer: ReturnType<typeof setTimeout> | null;
   say(message: string): void;
   bump(): void; // runs the drain again
+  // Set when a transfer opened the window, until it closes; focusDue until its focus is placed.
+  opened?: { trigger: TransferTrigger; focusDue: boolean } | null;
+  wasOpen?: boolean;
+  failureSeen?: string; // the status and failure settleFailure last acted on
 }
 
 type Core = typeof import("./transfer-bridge-core");
@@ -91,6 +96,7 @@ export function useTransferBridge(options: TransferBridgeOptions): TransferBridg
         if (handle !== null) s.bump();
       },
       announcement: "",
+      openedByTransfer: () => !!s.opened,
     };
     ref.current = { s, bridge };
   }
@@ -99,7 +105,7 @@ export function useTransferBridge(options: TransferBridgeOptions): TransferBridg
   const { open, status, failure } = options;
   // Held payloads exist only once the core has loaded, so these are no-ops before it.
   useLayoutEffect(() => core?.drain(s), [s, open, status, tick]);
-  useEffect(() => core?.settleFailure(s), [s, status, failure]);
+  useEffect(() => core?.settleFailure(s), [s, open, status, failure]);
   useEffect(() => {
     if (open) core?.clearSelection();
   }, [open]);

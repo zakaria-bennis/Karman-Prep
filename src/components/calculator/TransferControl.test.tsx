@@ -164,7 +164,9 @@ it("TR-59 a hidden control stays in the accessibility tree, and a click with no 
     { ...ITEM.payload, questionKey: "attempt:q1" },
     "keyboard"
   );
-  expect(document.querySelector("[data-transfer-selected]")).toBeNull();
+  // no tap selection (the item's outline now shows only because TR-68 focuses the control)
+  expect(transferSelection.get()).toBeNull();
+  expect(anchorEl()).toHaveAttribute("data-reveal", "fine");
 });
 
 it("AR-10 the control passes touch for a touch or pen tap, mouse for a mouse click or a click from a hovering pen, and keyboard for a click with no pointerdown", async () => {
@@ -340,3 +342,25 @@ it.skipIf(!hasCutPoint)(
     ).not.toThrow();
   }
 );
+
+it("TR-68 a pointer click focuses the control before the transfer starts, and that focus never shows the tooltip", async () => {
+  const bridge = stubbed(v2Bridge());
+  render(<Control />);
+  const button = screen.getByRole("button", { name: "Transfer to Calculator: y=2x+3" });
+  let focusedAtTransfer: Element | null = null;
+  bridge.transfer.mockImplementation(async () => {
+    focusedAtTransfer = document.activeElement;
+    return { status: "added", message: "Added to calculator: y=2x+3.", focusRowId: "1" };
+  });
+  fireEvent.pointerDown(button, { pointerType: "mouse", buttons: 1 });
+  fireEvent.click(button);
+  await waitFor(() => expect(bridge.transfer).toHaveBeenCalledTimes(1));
+  expect(focusedAtTransfer).toBe(button);
+  expect(document.querySelector("[data-transfer-tooltip]")).toHaveAttribute("hidden");
+  // a click with no pointerdown (a DOM click) focuses it the same way, still without the tooltip
+  button.blur();
+  fireEvent.click(button);
+  await waitFor(() => expect(bridge.transfer).toHaveBeenCalledTimes(2));
+  expect(focusedAtTransfer).toBe(button);
+  expect(document.querySelector("[data-transfer-tooltip]")).toHaveAttribute("hidden");
+});

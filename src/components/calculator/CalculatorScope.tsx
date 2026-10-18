@@ -454,14 +454,6 @@ function V2Scope({
     }
   }, [open]);
 
-  // Once per open: the calculator places focus for the trigger that opened it (OI-7).
-  useEffect(() => {
-    const trigger = remembered.current;
-    if (!open || handle === null || trigger === null) return;
-    remembered.current = null;
-    handle.focusOnOpen(trigger);
-  }, [open, handle]);
-
   const toggle = (trigger?: OpenTrigger) => {
     if (open) {
       onOpenChange(false);
@@ -493,7 +485,15 @@ function V2Scope({
     onOpenChange,
     frameRef,
   });
-  const { transfer } = transferBridge;
+  const { transfer, openedByTransfer } = transferBridge;
+  // Once per open: the calculator places focus for the trigger that opened it (OI-7), unless a
+  // transfer opened it (TR-66). After the hook, so 11's opener memory runs before the drain.
+  useEffect(() => {
+    const trigger = remembered.current;
+    if (!open || handle === null || trigger === null || openedByTransfer()) return;
+    remembered.current = null;
+    handle.focusOnOpen(trigger);
+  }, [open, handle, openedByTransfer]);
 
   const bridge: V2Bridge | null = enabled
     ? { version: "v2", open, status, failure, questionKey, toggle, prefetch, transfer }
