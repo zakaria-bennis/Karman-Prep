@@ -18,6 +18,7 @@ import QuizResults from "./QuizResults";
 import { ActiveQuizScreen } from "./quiz/ActiveQuizScreen";
 import { PracticeToolbar, PracticeTopTools } from "./quiz/PracticeToolbar";
 import { CalculatorScope } from "@/components/calculator/CalculatorScope";
+import { makeQuestionKey } from "@/components/calculator/question-key";
 import { QuestionTransition } from "./quiz/QuizTools";
 import { VideoPromptBanner } from "./quiz/VideoPromptBanner";
 import { QuizMenu } from "./quiz/QuizMenu";
@@ -133,6 +134,7 @@ export default function QuizEngine({
     if (reviewing) navigate(displayIndex + 1);
     else void nextQuestion();
   };
+  const questionKey = makeQuestionKey(String(state.attemptId), currentQuestionId ?? state.phase);
   if (typeof document === "undefined") return null;
   return createPortal(
     <AnnotationProvider key={state.attemptId ?? "new"}>
@@ -146,7 +148,8 @@ export default function QuizEngine({
         className="fixed inset-0 z-[60] overflow-hidden bg-night text-ivory"
       >
         <CalculatorScope
-          key={`${state.attemptId}:${currentQuestionId ?? state.phase}`}
+          key={questionKey}
+          questionKey={questionKey}
           enabled={
             node.subject === "math" &&
             currentQuestion?.subject === "math" &&

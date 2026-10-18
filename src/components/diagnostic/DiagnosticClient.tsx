@@ -13,6 +13,7 @@
 // ============================================================
 
 import { CalculatorScope } from "@/components/calculator/CalculatorScope";
+import { makeQuestionKey } from "@/components/calculator/question-key";
 import { QuestionTransition } from "@/components/learn/quiz/QuizTools";
 import { ArrowRight, Lightbulb } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -73,7 +74,8 @@ export default function DiagnosticClient({ questions, isSubscribed, isRetake }: 
   return (
     <div ref={s.shellRef} className="relative flex min-h-screen flex-col bg-surface dark:bg-night">
       <CalculatorScope
-        key={question.id}
+        key={makeQuestionKey("diagnostic", question.id)}
+        questionKey={makeQuestionKey("diagnostic", question.id)}
         enabled={s.isMathQuestion}
         open={s.desmosOpen}
         onOpenChange={s.setDesmosOpen}

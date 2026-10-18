@@ -1,0 +1,39 @@
+diff --git a/src/commands/math/basicSymbols.ts b/src/commands/math/basicSymbols.ts
+index 09b0f52f..8c62abee 100644
+--- a/src/commands/math/basicSymbols.ts
++++ b/src/commands/math/basicSymbols.ts
+@@ -366,7 +366,10 @@ class Letter extends Variable {
+       }
+       // check for an autocommand, going thru substrings longest to shortest
+       while (str.length) {
+-        if (autoCmds.hasOwnProperty(str)) {
++        if (
++          autoCmds.hasOwnProperty(str) &&
++          !this.endsLongerOperatorName(cursor.options, str.length)
++        ) {
+           l = this;
+           for (i = 1; l && i < str.length; i += 1, l = l[L]);
+ 
+@@ -387,6 +390,22 @@ class Letter extends Variable {
+       }
+     }
+   }
++  // An auto-command yields when a longer suffix of this letter run is an
++  // operator name, so a typed name such as `midpoint` stays one operator name.
++  endsLongerOperatorName(opts: CursorOptions, length: number): boolean {
++    const names = opts.autoOperatorNames;
++    let run = '';
++    let l: NodeRef = this;
++    for (
++      let i = 0;
++      l instanceof Letter && i < (names._maxLength || 0);
++      i++, l = l[L]
++    ) {
++      run = l.letter + run;
++      if (run.length > length && names.hasOwnProperty(run)) return true;
++    }
++    return false;
++  }
+ 
+   autoParenthesize(cursor: Cursor) {
+     //exit early if already parenthesized

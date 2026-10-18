@@ -45,3 +45,6 @@ public/
 *.gif
 *.webp
 *.svg
+
+# Vendored third-party build output (AR-5)
+vendor/

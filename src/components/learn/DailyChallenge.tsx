@@ -14,6 +14,8 @@ import ChartFigure from "./ChartFigure";
 import GeometryFigure from "./GeometryFigure";
 import FigureFrame from "./FigureFrame";
 import { CalculatorScope, CalculatorTrigger } from "@/components/calculator/CalculatorScope";
+import { makeQuestionKey } from "@/components/calculator/question-key";
+import { LEARN_HEADER_CLEARANCE } from "@/components/learn/learn-header";
 import { buildGeometrySvg } from "@/lib/figures/geometry-svg";
 
 const subjectName: Record<DailySubject, string> = {
@@ -32,7 +34,7 @@ export default function DailyChallenge({ math, reading }: DailyChallengeProps) {
       aria-labelledby="daily-challenge-heading"
       className="bg-night px-5 py-12 text-ivory sm:px-8"
     >
-      <div className="mx-auto max-w-6xl">
+      <div className="mx-auto max-w-6xl" data-calculator-dock-shift="">
         <div className="flex flex-wrap items-end justify-between gap-4 border-b border-bronze pb-6">
           <div className="pr-12 sm:pr-0">
             <h2 id="daily-challenge-heading" className="type-display-m">
@@ -45,7 +47,7 @@ export default function DailyChallenge({ math, reading }: DailyChallengeProps) {
           </div>
           <p className="text-xs text-taupe">Changes at midnight UTC</p>
         </div>
-        <div className="mt-6 grid items-start gap-6 lg:grid-cols-2">
+        <div className="mt-6 grid items-start gap-6 lg:grid-cols-2 [[data-calculator-docked=true]_&]:grid-cols-1">
           <DailySlotCard subject="math" slot={math} />
           <DailySlotCard subject="reading" slot={reading} />
         </div>
@@ -64,7 +66,10 @@ function DailySlotCard({ subject, slot }: { subject: DailySubject; slot: DailySl
         <h3 className="font-plex-serif text-2xl text-ivory">{subjectName[subject]}</h3>
       </div>
       {slot.state === "ready" ? (
-        <DailyQuestion key={`${slot.value.day}:${slot.value.question.id}`} value={slot.value} />
+        <DailyQuestion
+          key={makeQuestionKey(slot.value.day, slot.value.question.id)}
+          value={slot.value}
+        />
       ) : (
         <div className="mt-6 border-t border-bronze pt-5">
           <p className="text-sm leading-relaxed text-taupe" role="status">
@@ -119,6 +124,8 @@ function DailyQuestion({ value }: { value: Extract<DailySlot, { state: "ready" }
       enabled={subject === "math"}
       open={calculatorOpen}
       onOpenChange={setCalculatorOpen}
+      questionKey={makeQuestionKey(day, q.id)}
+      dockTop={LEARN_HEADER_CLEARANCE}
     >
       <div className="mt-6 border-t border-bronze pt-5">
         <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-taupe">

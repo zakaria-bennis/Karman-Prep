@@ -1,0 +1,393 @@
+{
+  "generator": "scripts/calculator-v2/reference-elementary.mjs",
+  "library": "mathjs 15.2.0 (decimal.js BigNumber)",
+  "precision": 40,
+  "cases": [
+    {
+      "id": "add-1",
+      "op": "add",
+      "args": [0.1, 0.2],
+      "latex": "0.1+0.2",
+      "expected": "0.3000000000000000166533454"
+    },
+    {
+      "id": "add-2",
+      "op": "add",
+      "args": [10000000000000000, 3],
+      "latex": "10000000000000000+3",
+      "expected": "10000000000000003"
+    },
+    {
+      "id": "sub-1",
+      "op": "sub",
+      "args": [1, 1e-10],
+      "latex": "1-0.0000000001",
+      "expected": "0.9999999999"
+    },
+    {
+      "id": "sub-2",
+      "op": "sub",
+      "args": [0.3, 0.1],
+      "latex": "0.3-0.1",
+      "expected": "0.1999999999999999833466546"
+    },
+    {
+      "id": "mul-1",
+      "op": "mul",
+      "args": [0.1, 3],
+      "latex": "0.1\\cdot 3",
+      "expected": "0.3000000000000000166533454"
+    },
+    {
+      "id": "mul-2",
+      "op": "mul",
+      "args": [1.1, 1.1],
+      "latex": "1.1\\cdot 1.1",
+      "expected": "1.210000000000000195399252"
+    },
+    {
+      "id": "div-1",
+      "op": "div",
+      "args": [1, 3],
+      "latex": "\\frac{1}{3}",
+      "expected": "0.3333333333333333333333333"
+    },
+    {
+      "id": "div-2",
+      "op": "div",
+      "args": [22, 7],
+      "latex": "\\frac{22}{7}",
+      "expected": "3.142857142857142857142857"
+    },
+    {
+      "id": "pow-1",
+      "op": "pow",
+      "args": [2, 0.5],
+      "latex": "2^{0.5}",
+      "expected": "1.414213562373095048801689"
+    },
+    {
+      "id": "pow-2",
+      "op": "pow",
+      "args": [1.5, 10.25],
+      "latex": "1.5^{10.25}",
+      "expected": "63.81685612928153292006509"
+    },
+    { "id": "pow-3", "op": "pow", "args": [10, -3], "latex": "10^{-3}", "expected": "0.001" },
+    {
+      "id": "pow-4",
+      "op": "pow",
+      "args": [0.5, 100],
+      "latex": "0.5^{100}",
+      "expected": "7.888609052210118054117286e-31"
+    },
+    {
+      "id": "sqrt-1",
+      "op": "sqrt",
+      "args": [2],
+      "latex": "\\sqrt{2}",
+      "expected": "1.414213562373095048801689"
+    },
+    {
+      "id": "sqrt-2",
+      "op": "sqrt",
+      "args": [12345.678],
+      "latex": "\\sqrt{12345.678}",
+      "expected": "111.1111065555554616427939"
+    },
+    {
+      "id": "nthroot-1",
+      "op": "nthroot",
+      "args": [3, 10],
+      "latex": "\\sqrt[3]{10}",
+      "expected": "2.154434690031883721759294"
+    },
+    {
+      "id": "nthroot-2",
+      "op": "nthroot",
+      "args": [5, 100],
+      "latex": "\\sqrt[5]{100}",
+      "expected": "2.511886431509580111085032"
+    },
+    {
+      "id": "exp-1",
+      "op": "exp",
+      "args": [1],
+      "latex": "\\exp\\left(1\\right)",
+      "expected": "2.718281828459045235360287"
+    },
+    {
+      "id": "exp-2",
+      "op": "exp",
+      "args": [-2.5],
+      "latex": "\\exp\\left(-2.5\\right)",
+      "expected": "0.08208499862389879516952867"
+    },
+    {
+      "id": "exp-3",
+      "op": "exp",
+      "args": [20],
+      "latex": "\\exp\\left(20\\right)",
+      "expected": "485165195.4097902779691068"
+    },
+    {
+      "id": "ln-1",
+      "op": "ln",
+      "args": [2],
+      "latex": "\\ln\\left(2\\right)",
+      "expected": "0.6931471805599453094172321"
+    },
+    {
+      "id": "ln-2",
+      "op": "ln",
+      "args": [0.001],
+      "latex": "\\ln\\left(0.001\\right)",
+      "expected": "-6.907755278982137031237293"
+    },
+    {
+      "id": "ln-3",
+      "op": "ln",
+      "args": [1e100],
+      "latex": "\\ln\\left(10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\\right)",
+      "expected": "230.258509299404568417702"
+    },
+    {
+      "id": "log-1",
+      "op": "log",
+      "args": [2],
+      "latex": "\\log\\left(2\\right)",
+      "expected": "0.3010299956639811952137389"
+    },
+    {
+      "id": "log-2",
+      "op": "log",
+      "args": [12345],
+      "latex": "\\log\\left(12345\\right)",
+      "expected": "4.091491094267951081848997"
+    },
+    {
+      "id": "logBase-1",
+      "op": "logBase",
+      "args": [2, 10],
+      "latex": "\\log_{2}\\left(10\\right)",
+      "expected": "3.321928094887362347870319"
+    },
+    {
+      "id": "logBase-2",
+      "op": "logBase",
+      "args": [7, 3.5],
+      "latex": "\\log_{7}\\left(3.5\\right)",
+      "expected": "0.6437928128919778234858229"
+    },
+    {
+      "id": "sin-1",
+      "op": "sin",
+      "args": [1],
+      "latex": "\\sin\\left(1\\right)",
+      "expected": "0.8414709848078965066525023"
+    },
+    {
+      "id": "sin-2",
+      "op": "sin",
+      "args": [-2],
+      "latex": "\\sin\\left(-2\\right)",
+      "expected": "-0.9092974268256816953960199"
+    },
+    {
+      "id": "sin-3",
+      "op": "sin",
+      "args": [100],
+      "latex": "\\sin\\left(100\\right)",
+      "expected": "-0.5063656411097587936565576"
+    },
+    {
+      "id": "sin-4",
+      "op": "sin",
+      "args": [100000],
+      "latex": "\\sin\\left(100000\\right)",
+      "expected": "0.0357487979720165093164705"
+    },
+    {
+      "id": "cos-1",
+      "op": "cos",
+      "args": [1],
+      "latex": "\\cos\\left(1\\right)",
+      "expected": "0.5403023058681397174009366"
+    },
+    {
+      "id": "cos-2",
+      "op": "cos",
+      "args": [2.5],
+      "latex": "\\cos\\left(2.5\\right)",
+      "expected": "-0.8011436155469337148335028"
+    },
+    {
+      "id": "cos-3",
+      "op": "cos",
+      "args": [50],
+      "latex": "\\cos\\left(50\\right)",
+      "expected": "0.9649660284921132740689571"
+    },
+    {
+      "id": "tan-1",
+      "op": "tan",
+      "args": [1],
+      "latex": "\\tan\\left(1\\right)",
+      "expected": "1.557407724654902230506975"
+    },
+    {
+      "id": "tan-2",
+      "op": "tan",
+      "args": [1.2],
+      "latex": "\\tan\\left(1.2\\right)",
+      "expected": "2.572151622126318597193252"
+    },
+    {
+      "id": "tan-3",
+      "op": "tan",
+      "args": [-0.3],
+      "latex": "\\tan\\left(-0.3\\right)",
+      "expected": "-0.3093362496096232208707131"
+    },
+    {
+      "id": "csc-1",
+      "op": "csc",
+      "args": [1],
+      "latex": "\\csc\\left(1\\right)",
+      "expected": "1.188395105778121216261599"
+    },
+    {
+      "id": "csc-2",
+      "op": "csc",
+      "args": [2],
+      "latex": "\\csc\\left(2\\right)",
+      "expected": "1.099750170294616466756697"
+    },
+    {
+      "id": "sec-1",
+      "op": "sec",
+      "args": [1],
+      "latex": "\\sec\\left(1\\right)",
+      "expected": "1.850815717680925617911753"
+    },
+    {
+      "id": "sec-2",
+      "op": "sec",
+      "args": [0.4],
+      "latex": "\\sec\\left(0.4\\right)",
+      "expected": "1.085704428383238713306409"
+    },
+    {
+      "id": "cot-1",
+      "op": "cot",
+      "args": [1],
+      "latex": "\\cot\\left(1\\right)",
+      "expected": "0.64209261593433070300642"
+    },
+    {
+      "id": "cot-2",
+      "op": "cot",
+      "args": [2],
+      "latex": "\\cot\\left(2\\right)",
+      "expected": "-0.4576575543602857637502774"
+    },
+    {
+      "id": "arcsin-1",
+      "op": "arcsin",
+      "args": [0.3],
+      "latex": "\\arcsin\\left(0.3\\right)",
+      "expected": "0.3046926540153974963337033"
+    },
+    {
+      "id": "arcsin-2",
+      "op": "arcsin",
+      "args": [-0.9],
+      "latex": "\\arcsin\\left(-0.9\\right)",
+      "expected": "-1.119769514998634237627203"
+    },
+    {
+      "id": "arccos-1",
+      "op": "arccos",
+      "args": [0.3],
+      "latex": "\\arccos\\left(0.3\\right)",
+      "expected": "1.266103672779499122897618"
+    },
+    {
+      "id": "arccos-2",
+      "op": "arccos",
+      "args": [-0.9],
+      "latex": "\\arccos\\left(-0.9\\right)",
+      "expected": "2.690565841793530856858525"
+    },
+    {
+      "id": "arctan-1",
+      "op": "arctan",
+      "args": [0.5],
+      "latex": "\\arctan\\left(0.5\\right)",
+      "expected": "0.4636476090008061162142562"
+    },
+    {
+      "id": "arctan-2",
+      "op": "arctan",
+      "args": [-3],
+      "latex": "\\arctan\\left(-3\\right)",
+      "expected": "-1.249045772398254425829917"
+    },
+    {
+      "id": "arctan2-1",
+      "op": "arctan2",
+      "args": [1, 2],
+      "latex": "\\arctan\\left(1,2\\right)",
+      "expected": "0.4636476090008061162142562"
+    },
+    {
+      "id": "arctan2-2",
+      "op": "arctan2",
+      "args": [-1, -3],
+      "latex": "\\arctan\\left(-1,-3\\right)",
+      "expected": "-2.819842099193151045061239"
+    },
+    {
+      "id": "arccsc-1",
+      "op": "arccsc",
+      "args": [2.5],
+      "latex": "\\operatorname{arccsc}\\left(2.5\\right)",
+      "expected": "0.4115168460674880193847379"
+    },
+    {
+      "id": "arccsc-2",
+      "op": "arccsc",
+      "args": [-1.5],
+      "latex": "\\operatorname{arccsc}\\left(-1.5\\right)",
+      "expected": "-0.7297276562269663634547967"
+    },
+    {
+      "id": "arcsec-1",
+      "op": "arcsec",
+      "args": [2.5],
+      "latex": "\\operatorname{arcsec}\\left(2.5\\right)",
+      "expected": "1.159279480727408599846584"
+    },
+    {
+      "id": "arcsec-2",
+      "op": "arcsec",
+      "args": [-3],
+      "latex": "\\operatorname{arcsec}\\left(-3\\right)",
+      "expected": "1.910633236249018556327714"
+    },
+    {
+      "id": "arccot-1",
+      "op": "arccot",
+      "args": [0.5],
+      "latex": "\\operatorname{arccot}\\left(0.5\\right)",
+      "expected": "1.107148717794090503017065"
+    },
+    {
+      "id": "arccot-2",
+      "op": "arccot",
+      "args": [-2],
+      "latex": "\\operatorname{arccot}\\left(-2\\right)",
+      "expected": "2.677945044588987122248387"
+    }
+  ]
+}

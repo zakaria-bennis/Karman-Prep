@@ -88,6 +88,7 @@ export default [
       "*.config.js",
       "*.config.mjs",
       "next-env.d.ts",
+      "vendor/**",
     ],
   },
 ];

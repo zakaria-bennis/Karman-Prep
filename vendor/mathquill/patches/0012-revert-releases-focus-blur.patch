@@ -1,0 +1,47 @@
+diff --git a/src/controller.ts b/src/controller.ts
+index fac138a3..803ff188 100644
+--- a/src/controller.ts
++++ b/src/controller.ts
+@@ -172,7 +172,7 @@ class ControllerBase {
+     }
+   }
+ 
+-  protected removeTextareaEventListener(event: keyof HTMLElementEventMap) {
++  removeTextareaEventListener(event: keyof HTMLElementEventMap) {
+     if (!this.textarea) return;
+     const listener = this.textareaEventListeners[event];
+     if (!listener) return;
+diff --git a/src/publicapi.ts b/src/publicapi.ts
+index 93c47707..c9e912d2 100644
+--- a/src/publicapi.ts
++++ b/src/publicapi.ts
+@@ -283,6 +283,9 @@ function getInterface(v: number): MathQuill.v3.API | MathQuill.v1.API {
+       this.latex(contents.text());
+ 
+       this.revert = function () {
++        ctrlr.removeTextareaEventListener('focus');
++        ctrlr.removeTextareaEventListener('blur');
++        ctrlr.releaseFocusBlur();
+         ctrlr.removeMouseEventListener();
+         domFrag(el)
+           .removeClass('mq-editable-field mq-math-mode mq-text-mode')
+diff --git a/src/services/focusBlur.ts b/src/services/focusBlur.ts
+index ade266df..4547b3ac 100644
+--- a/src/services/focusBlur.ts
++++ b/src/services/focusBlur.ts
+@@ -94,6 +94,15 @@ class Controller_focusBlur extends Controller_exportText {
+     this.updateMathspeak();
+   };
+ 
++  /** Clear the pending blur and selection timers, remove the window `blur` listener and stop the cursor blink the cancelled blur would have stopped, so a reverted field leaves none behind. */
++  releaseFocusBlur() {
++    clearTimeout(this.blurTimeout);
++    clearTimeout(this.textareaSelectionTimeout);
++    this.textareaSelectionTimeout = 0;
++    window.removeEventListener('blur', this.handleWindowBlur);
++    this.cursor.hide();
++  }
++
+   private blur() {
+     // not directly in the textarea blur handler so as to be
+     this.cursor.hide().parent.blur(this.cursor); // synchronous with/in the same frame as

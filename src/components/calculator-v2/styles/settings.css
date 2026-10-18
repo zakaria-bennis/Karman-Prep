@@ -1,0 +1,148 @@
+/* The settings popover (09 editor-ui Tasks 11 and 12; S-1, S-7). Colours come only from role
+   variables (TH-3).
+   SettingsPopover sets top and right (or left) and max-height inline from its anchor and offset
+   parent. AN-4's fade is at the end of this file. */
+
+.kc-settings {
+  position: absolute;
+  z-index: 1;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 320px;
+  max-width: 100%;
+  padding: 8px 12px;
+  overflow-y: auto;
+  border: 1px solid var(--kc-boundary);
+  border-radius: 4px;
+  background: var(--kc-key);
+  color: var(--kc-text);
+  font-family: var(--kc-font-ui);
+  font-size: var(--kc-size-ui);
+}
+
+/* Checkboxes and radio options: the whole label is the target. */
+.kc-settings-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  cursor: pointer;
+}
+
+.kc-settings-check input {
+  margin: 0;
+  accent-color: var(--kc-accent);
+  cursor: pointer;
+}
+
+/* Cartesian or Polar grid; Radians or Degrees. */
+.kc-settings-choice {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 16px;
+}
+
+/* One axis: show, label, bounds line, step. */
+.kc-settings-axis {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 4px 0;
+  border-top: 1px solid var(--kc-boundary);
+  border-bottom: 1px solid var(--kc-boundary);
+}
+
+.kc-settings-axis + .kc-settings-axis {
+  border-top: none;
+}
+
+.kc-settings-field {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr);
+  align-items: center;
+  column-gap: 8px;
+}
+
+.kc-settings-input {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 32px;
+  padding: 0 8px;
+  border: 1px solid var(--kc-boundary);
+  border-radius: 4px;
+  background: var(--kc-paper);
+  color: var(--kc-text);
+  font: inherit;
+}
+
+/* S-1: bounds as inline math, a ≤ x ≤ b. */
+.kc-settings-bounds {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.kc-settings-bound {
+  display: flex;
+  flex: 1 1 0;
+  align-items: center;
+  min-width: 0;
+  min-height: 32px;
+  background: var(--kc-paper);
+}
+
+.kc-settings-bound > * {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.kc-settings-relation {
+  flex: none;
+  font-family: var(--kc-font-math);
+  font-size: var(--kc-size-math);
+  white-space: nowrap;
+}
+
+/* S-7: a bound or step error below its field. It sits on --kc-list because --kc-error's contrast
+   target is measured on that background (TH-1); it spans the label and input columns of a field. */
+.kc-settings-error {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: var(--kc-list);
+  color: var(--kc-error);
+}
+
+@media (pointer: coarse) {
+  .kc-settings-check,
+  .kc-settings-input,
+  .kc-settings-bound {
+    min-height: 44px;
+  }
+}
+
+.kc-settings input:focus-visible {
+  outline: 2px solid var(--kc-focus-ring);
+  outline-offset: 2px;
+}
+
+/* AN-4: the popover fades in rising 4 px over 100 ms and fades out, in place, over 100 ms. */
+.kc-settings {
+  transition:
+    opacity var(--kc-duration-instant) var(--kc-ease-standard),
+    transform var(--kc-duration-instant) var(--kc-ease-standard);
+}
+
+.kc-settings[data-state="enter"] {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+
+.kc-settings[data-state="closing"] {
+  opacity: 0;
+  transition: opacity var(--kc-duration-instant) var(--kc-ease-standard);
+}
