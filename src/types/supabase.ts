@@ -1137,6 +1137,33 @@ export type Database = {
         };
         Relationships: [];
       };
+      marketing_leads: {
+        Row: {
+          created_at: string;
+          email: string;
+          id: string;
+          name: string | null;
+          role: string | null;
+          source: string;
+        };
+        Insert: {
+          created_at?: string;
+          email: string;
+          id?: string;
+          name?: string | null;
+          role?: string | null;
+          source: string;
+        };
+        Update: {
+          created_at?: string;
+          email?: string;
+          id?: string;
+          name?: string | null;
+          role?: string | null;
+          source?: string;
+        };
+        Relationships: [];
+      };
       moderation_actions: {
         Row: {
           action_type: string;
