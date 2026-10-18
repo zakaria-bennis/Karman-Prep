@@ -38,6 +38,7 @@ import { MotionContext } from "./motion";
 import { clearAllRows, performRedo, performUndo } from "./row-actions";
 import { useRowPresence } from "./row-presence";
 import { TableItem } from "./TableItem";
+import { ToastHost } from "./Toast";
 
 type ListState = "expanded" | "collapsing" | "collapsed" | "expanding";
 
@@ -301,31 +302,33 @@ export function ExpressionPanel(props: ExpressionPanelProps): JSX.Element {
               </button>
             </div>
           )}
-          {/* role="list" keeps list semantics in WebKit, which drops them under list-style: none */}
-          <ol className="kc-list" role="list" aria-label="Expressions">
-            {numbered.map(({ row, motion, number }) =>
-              row.type === "table" ? (
-                <TableItem
-                  key={row.id}
-                  row={row}
-                  number={number}
-                  keypadOpen={props.keypadOpen}
-                  motion={motion}
-                  onExitDone={exitDone}
-                />
-              ) : (
-                <ExpressionRow
-                  key={row.id}
-                  row={row}
-                  number={number}
-                  keypadOpen={props.keypadOpen}
-                  onTouchFocus={props.onTouchFocusRow}
-                  motion={motion}
-                  onExitDone={exitDone}
-                />
-              )
-            )}
-          </ol>
+          <ToastHost>
+            {/* role="list" keeps list semantics in WebKit, which drops them under list-style: none */}
+            <ol className="kc-list" role="list" aria-label="Expressions">
+              {numbered.map(({ row, motion, number }) =>
+                row.type === "table" ? (
+                  <TableItem
+                    key={row.id}
+                    row={row}
+                    number={number}
+                    keypadOpen={props.keypadOpen}
+                    motion={motion}
+                    onExitDone={exitDone}
+                  />
+                ) : (
+                  <ExpressionRow
+                    key={row.id}
+                    row={row}
+                    number={number}
+                    keypadOpen={props.keypadOpen}
+                    onTouchFocus={props.onTouchFocusRow}
+                    motion={motion}
+                    onExitDone={exitDone}
+                  />
+                )
+              )}
+            </ol>
+          </ToastHost>
         </div>
       )}
     </section>

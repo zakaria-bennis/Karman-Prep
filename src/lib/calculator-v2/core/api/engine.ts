@@ -24,6 +24,7 @@ import { KarmanCalculatorError } from "./errors";
 import {
   emptiedTable,
   newTable,
+  tableFromRow,
   usedNames,
   withCell,
   withColumnStyle,
@@ -382,6 +383,19 @@ export class CalculatorEngine {
       true
     );
     return { id: rowId };
+  }
+
+  /** D-13: Create table, a table of row `rowId`'s function below it as one step; null if none. */
+  createTableFromRow(rowId: string): { id: string } | EditRefusal | null {
+    const rows = this.doc.rows,
+      at = rows.findIndex((r) => r.id === rowId);
+    if (this.destroyed || at < 0) return null;
+    const nextId = () => this.doc.nextId();
+    const table = tableFromRow(rows[at], rows, nextId, usedNames(rows, this.analysis));
+    if (table === null) return null;
+    if (rows.length >= MAX_ROWS) return "row-limit";
+    this.commitRows([...rows.slice(0, at + 1), table, ...rows.slice(at + 1)], STEP, true);
+    return { id: table.id };
   }
 
   /** D-6, D-8, D-20: one cell's LaTeX; typing coalesces per table (KB-2). */

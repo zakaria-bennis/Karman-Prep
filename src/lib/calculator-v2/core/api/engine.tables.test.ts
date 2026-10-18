@@ -156,3 +156,16 @@ it("D-9 deleteTableColumn removes a later column with its data as one undo step 
   e.undo();
   expect(headers("t")).toEqual(["x_{1}", "y_{1}", "y_{2}"]);
 });
+
+it("D-13 createTableFromRow inserts a table of the row's function below it as one undo step", () => {
+  e.setExpression({ id: "a", latex: "y=x^{2}", color: "c3" });
+  const made = e.createTableFromRow("a") as { id: string };
+  expect(e.getSnapshot().rows.map((r) => r.id)).toEqual(["1", "a", made.id]);
+  expect(headers(made.id)).toEqual(["x_{1}", "x_{1}^{2}"]);
+  expect(cells(made.id)[0]).toEqual(["-2", "-1", "0", "1", "2"]);
+  expect(table(made.id).columns!.map((c) => c.color)).toEqual(["c3", "c3"]);
+  e.undo();
+  expect(e.getSnapshot().rows.map((r) => r.id)).toEqual(["1", "a"]);
+  e.setExpression({ id: "b", latex: "x=3" });
+  expect(e.createTableFromRow("b")).toBeNull();
+});

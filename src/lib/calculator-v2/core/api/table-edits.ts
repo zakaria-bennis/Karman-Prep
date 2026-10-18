@@ -6,6 +6,8 @@
 import { nextSlot } from "../../theme/roles";
 import type { AnalysisResult } from "../analysis";
 import { nextTableNames } from "../data/naming";
+import { tableHeaderFor } from "../data/table-from-row";
+import { functionDefinitionHead } from "../latex/index";
 import {
   MAX_CELL_CHARACTERS,
   MAX_TABLE_COLUMNS,
@@ -98,6 +100,33 @@ export function withoutTableRow(row: StoredRow, r: number): StoredRow {
     values: c.values.filter((_, k) => k !== r),
   }));
   return { ...row, columns: normalizeColumns(columns) };
+}
+
+/** D-13: the table Create table inserts below `row`, or null when the row has no function. */
+export function tableFromRow(
+  row: StoredRow,
+  rows: readonly StoredRow[],
+  nextId: () => string, // called only when a table is made
+  used: ReadonlySet<string>
+): StoredRow | null {
+  const functions = new Set(rows.flatMap((r) => functionDefinitionHead(r.latex)?.name ?? []));
+  const header = row.type === "table" ? null : tableHeaderFor(row.latex, functions);
+  if (header === null) return null;
+  const x = nextTableNames(used, 1).x;
+  const column = (latex: string, values: string[]): StoredColumn => ({
+    latex,
+    values,
+    color: row.color,
+    hidden: false,
+  });
+  return {
+    id: nextId(),
+    latex: "",
+    color: row.color,
+    hidden: false,
+    type: "table",
+    columns: [column(x, ["-2", "-1", "0", "1", "2"]), column(header(x), [])],
+  };
 }
 
 /** D-9: a later column and its data removed; the first column is never removed this way. */

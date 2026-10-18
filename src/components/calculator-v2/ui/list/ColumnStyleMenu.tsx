@@ -13,6 +13,7 @@ import { PointStyleGlyph } from "../../icons";
 import { EscapeContext } from "../focus/escape-stack";
 import { useSkin } from "../hooks/skin";
 import { useEngine } from "../hooks/use-engine";
+import { useMenuTrigger, usePopupDismiss } from "./menu-trigger";
 
 export interface ColumnStyleMenuProps {
   tableId: string;
@@ -22,7 +23,6 @@ export interface ColumnStyleMenuProps {
   onDeleted(): void; // focus moves on once the column is gone
 }
 
-const LONG_PRESS_MS = 500;
 const POINT_STYLES: readonly [PointStyle, string][] = [
   ["filled", "Filled circle"],
   ["open", "Open circle"],
@@ -43,40 +43,19 @@ export function ColumnStyleMenu(props: ColumnStyleMenuProps): JSX.Element {
   const button = useRef<HTMLButtonElement>(null);
   const panel = useRef<HTMLDivElement>(null);
   const first = useRef<HTMLInputElement>(null);
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const pressed = useRef(false); // a long-press opened the menu; its click does not toggle
   const color = resolveRowColor(stored.color, skin);
   const set = (style: Parameters<typeof engine.setColumnStyle>[2]) =>
     engine.setColumnStyle(tableId, column, style);
-
   const close = (refocus: boolean) => {
     setOpen(false);
     if (refocus) button.current?.focus();
   };
+  const { trigger, consumeClick } = useMenuTrigger(() => setOpen(true));
+  usePopupDismiss(open, "column-style-menu", { popup: panel, trigger: button }, escape, close);
   useEffect(() => {
     if (open) first.current?.focus();
   }, [open]);
-  useEffect(() => {
-    if (!open || escape === null) return;
-    return escape.push({ id: "column-style-menu", close: () => close(true) });
-  }, [open, escape]);
-  useEffect(() => {
-    if (!open) return;
-    const root = panel.current?.getRootNode() as Document | ShadowRoot | undefined;
-    if (root === undefined) return;
-    const onPress = (e: Event) => {
-      const path = e.composedPath();
-      if (!path.includes(panel.current!) && !path.includes(button.current!)) setOpen(false);
-    };
-    root.addEventListener("pointerdown", onPress, { capture: true });
-    return () => root.removeEventListener("pointerdown", onPress, { capture: true });
-  }, [open]);
-  useEffect(() => () => clearTimeout(timer.current ?? undefined), []);
 
-  const cancelPress = () => {
-    if (timer.current !== null) clearTimeout(timer.current);
-    timer.current = null;
-  };
   const pointStyle = stored.pointStyle ?? "filled";
   const lineStyle = stored.lineStyle ?? "solid";
   const radio = (name: string, label: string, checked: boolean, onChange: () => void) => (
@@ -100,30 +79,9 @@ export function ColumnStyleMenu(props: ColumnStyleMenuProps): JSX.Element {
         aria-keyshortcuts="Shift+F10"
         style={{ "--kc-row-color": color.hex } as CSSProperties}
         onClick={() => {
-          if (pressed.current) pressed.current = false;
-          else set({ hidden: !stored.hidden });
+          if (!consumeClick()) set({ hidden: !stored.hidden });
         }}
-        onContextMenu={(e) => {
-          e.preventDefault();
-          setOpen(true);
-        }}
-        onKeyDown={(e) => {
-          if ((e.key === "F10" && e.shiftKey) || e.key === "ContextMenu") {
-            e.preventDefault();
-            setOpen(true);
-          }
-        }}
-        onPointerDown={() => {
-          pressed.current = false;
-          cancelPress();
-          timer.current = setTimeout(() => {
-            timer.current = null;
-            pressed.current = true;
-            setOpen(true);
-          }, LONG_PRESS_MS);
-        }}
-        onPointerUp={cancelPress}
-        onPointerLeave={cancelPress}
+        {...trigger}
       >
         <PointStyleGlyph style={pointStyle} hidden={stored.hidden} />
       </button>

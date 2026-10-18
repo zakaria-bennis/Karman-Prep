@@ -13,14 +13,14 @@ export interface FocusController {
   registerField(rowId: string, field: MathField): () => void;
   field(rowId: string): MathField | null;
   fields(): readonly MathField[]; // every mounted field, list order (AR-41 reflow)
-  focusRow(rowId: string, caret: "start" | "end"): void; // DOM focus into the MathField
+  focusRow(rowId: string, caret: Caret): void; // DOM focus into the MathField; "all" selects it
   activateRow(rowId: string): void; // active row without DOM focus (API-12)
   activeRowId(): string | null;
   lastFocusedRowId(): string | null; // KB-4 reopen
   subscribe(listener: () => void): () => void;
 }
 
-type Caret = "start" | "end";
+type Caret = "start" | "end" | "all"; // "all": the field's content selected (D-7, D-13)
 
 /** D-5, D-19: the focus key of a table cell (a data row, or "h" for the header). */
 export function cellKey(rowId: string, column: number, row: number | "h"): string {
@@ -33,7 +33,8 @@ function scrollToField(field: MathField): void {
 
 function focusField(field: MathField, caret: Caret): void {
   field.focus();
-  field.keystroke(caret === "start" ? "Ctrl-Home" : "Ctrl-End");
+  if (caret === "all") field.select();
+  else field.keystroke(caret === "start" ? "Ctrl-Home" : "Ctrl-End");
   scrollToField(field);
 }
 

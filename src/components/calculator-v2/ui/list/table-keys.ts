@@ -26,9 +26,7 @@ type Entry = "select" | "start" | "end";
 
 /** Focuses a cell: the caret at its start or end, or its whole content selected. */
 function enter(ctx: TableKeyContext, { column, row }: Place, how: Entry): void {
-  const key = cellKey(ctx.tableId, column, row);
-  ctx.focus.focusRow(key, how === "start" ? "start" : "end");
-  if (how === "select") ctx.focus.field(key)?.select();
+  ctx.focus.focusRow(cellKey(ctx.tableId, column, row), how === "select" ? "all" : how);
 }
 
 function tableView(ctx: TableKeyContext): RowView | undefined {
