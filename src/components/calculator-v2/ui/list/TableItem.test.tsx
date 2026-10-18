@@ -82,3 +82,51 @@ it("D-19 a computed cell reads header, row r, computed, value and is read-only",
     screen.getByRole("gridcell", { name: "x₁ squared, row 1, computed, 4" })
   ).toHaveTextContent("4");
 });
+
+it("D-16 Zoom to fit table n fits the view to the plotted points and is disabled when nothing is plotted", async () => {
+  const kit = renderEditor(<ExpressionPanel {...panelProps()} />, { rows: ["y=x"] });
+  act(() =>
+    kit.engine.setView({
+      viewport: { left: -10, right: 10, bottom: -7.5, top: 7.5 },
+      size: { width: 800, height: 600 },
+      dpr: 1,
+    })
+  );
+  act(() =>
+    kit.engine.setExpression({
+      id: "t",
+      type: "table",
+      columns: [
+        { latex: "x_{1}", values: [] },
+        { latex: "y_{1}", values: [] },
+      ],
+    })
+  );
+  const fit = () => screen.getByRole("button", { name: "Zoom to fit table 2" });
+  expect(fit()).toHaveAttribute("aria-disabled", "true");
+  act(() =>
+    kit.engine.setExpression({
+      id: "t",
+      type: "table",
+      columns: [
+        { latex: "x_{1}", values: ["10", "30"] },
+        { latex: "y_{1}", values: ["100", "200"] },
+      ],
+    })
+  );
+  await waitFor(() => expect(fit()).not.toHaveAttribute("aria-disabled"));
+  act(() => fit().click());
+  const { left, right, bottom, top } = kit.engine.getSnapshot().viewport;
+  expect([left, right, bottom, top].map((v) => Math.round(v))).toEqual([8, 32, 90, 210]);
+});
+
+it("D-5 deleting a table leaves an empty expression row with the caret and Undo restores it", () => {
+  const kit = renderEditor(<ExpressionPanel {...panelProps()} />, { rows: ["y=x"] });
+  act(() => void kit.engine.insertTableAfter("1"));
+  act(() => screen.getByRole("button", { name: "Delete table 2" }).click());
+  expect(tableOf(kit, "2").type).toBe("expression");
+  expect(box("Expression 2")).toHaveFocus();
+  act(() => kit.engine.undo());
+  expect(tableOf(kit, "2").type).toBe("table");
+  expect(screen.getByRole("grid", { name: "Table 2, 2 columns, 0 rows" })).toBeInTheDocument();
+});

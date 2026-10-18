@@ -5,10 +5,11 @@
 // grid a blank header slot right of the last column adds a column (D-5). The Delete control
 // removes the table through row-actions (D-16).
 
-import { Plus, X } from "lucide-react";
+import { Maximize, Plus, X } from "lucide-react";
 import { useContext, useLayoutEffect, useRef, useState, type FocusEvent, type JSX } from "react";
 import type { RowView } from "@/lib/calculator-v2/core/api/engine";
 import { MAX_TABLE_COLUMNS, MAX_TABLE_ROWS } from "@/lib/calculator-v2/core/api/document";
+import { fitPoints } from "@/lib/calculator-v2/core/data/fit-view";
 import { useAnnouncer } from "../a11y/announcer";
 import { cellKey, FocusContext } from "../focus/focus-controller";
 import { useEngine, useEngineSnapshot } from "../hooks/use-engine";
@@ -38,7 +39,7 @@ export function TableItem(props: TableItemProps): JSX.Element {
   const { row, number, keypadOpen, motion } = props;
   const exiting = motion === "exit";
   const engine = useEngine();
-  const { focusedRowId, activeRowId } = useEngineSnapshot(engine);
+  const { focusedRowId, activeRowId, geometry } = useEngineSnapshot(engine);
   const focus = useContext(FocusContext)!;
   const announcer = useAnnouncer();
   const keyContext: TableKeyContext = { engine, focus, announcer, tableId: row.id };
@@ -61,6 +62,9 @@ export function TableItem(props: TableItemProps): JSX.Element {
   const headers = columns.map((c, k) => headerName(c.latex, k));
   const computed = (k: number) => analysis[k]?.role === "computed";
   const slot = inside && columns.length < MAX_TABLE_COLUMNS;
+  // D-16: the plotted points' fitted view, null while nothing is plotted.
+  const plotted = geometry.get(row.id);
+  const fit = plotted?.kind === "table" ? fitPoints(plotted.series.map((s) => s.coords)) : null;
 
   // D-5: the header slot shows while focus is anywhere in the grid.
   const onGridFocus = () => setInside(true);
@@ -176,6 +180,15 @@ export function TableItem(props: TableItemProps): JSX.Element {
             onClick={() => addTableRow(keyContext)}
           >
             <Plus aria-hidden="true" focusable="false" size={14} />
+          </button>
+          <button
+            type="button"
+            className="kc-table-add-row"
+            aria-label={`Zoom to fit table ${number}`}
+            aria-disabled={fit === null ? "true" : undefined}
+            onClick={() => fit !== null && engine.setMathBounds(fit)}
+          >
+            <Maximize aria-hidden="true" focusable="false" size={14} />
           </button>
         </div>
         <button
