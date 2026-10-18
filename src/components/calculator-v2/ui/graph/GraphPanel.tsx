@@ -37,6 +37,7 @@ import { useDebounced } from "./use-debounced";
 import { useGraphInput } from "./use-graph-input";
 import { useGraphSize, type GraphSize } from "./use-graph-size";
 import { openLabels, poiDots, usePoiLabels } from "./use-poi-labels";
+import { useTrace, type TraceState } from "./use-trace";
 
 export { graphAccessibleName };
 
@@ -56,6 +57,7 @@ type FrameInputs = {
   size: GraphSize | null;
   host: Element;
   labels: LabelState;
+  trace: TraceState | null;
 };
 type FrameRef = { current: number | null };
 type Ref = RefObject<HTMLElement | null>;
@@ -98,13 +100,13 @@ function useRenderLoop(
     };
   }, [layers]);
 
-  const { snapshot, skin, size, labels } = inputs;
+  const { snapshot, skin, size, labels, trace } = inputs;
   useEffect(() => {
     if (size === null || frame.current !== null) return;
     frame.current = requestAnimationFrame(() => {
       frame.current = null;
       const container = layers.current;
-      const { snapshot: s, skin: k, cache, size: g, host, labels: l } = latest.current;
+      const { snapshot: s, skin: k, cache, size: g, host, labels: l, trace: tr } = latest.current;
       if (renderer.current === null || container === null || g === null) return;
       const view: ViewSpec = { viewport: s.viewport, size: g.size, dpr: g.dpr };
       renderer.current.render({
@@ -113,10 +115,11 @@ function useRenderLoop(
         rows: buildRenderRows(s, k, view, cache),
         theme: readRenderTheme(host),
         poi: poiDots(s, l),
+        trace: tr === null ? null : { x: tr.wx, y: tr.wy, color: tr.color },
       });
       container.dataset.renderedRevision = String(s.revision);
     });
-  }, [layers, snapshot, skin, themeRevision, size, labels]);
+  }, [layers, snapshot, skin, themeRevision, size, labels, trace]);
 }
 
 /** Moves focus to the graph surface when `el` has it, so focus never falls to the body. */
@@ -183,18 +186,33 @@ export function GraphPanel(props: GraphPanelProps): JSX.Element {
   const homeRef = useRef<HTMLButtonElement>(null);
   const size = useGraphSize(layers, engine);
   const poi = usePoiLabels(snapshot, engine);
+  const tracer = useTrace(engine);
   const current = useRef({ snapshot, skin, size, cache: NO_REGIONS });
+  /** The view and the drawn rows as of the latest commit, or null while unsized. */
+  const scene = (): { view: ViewSpec; rows: ReturnType<typeof buildRenderRows> } | null => {
+    const { snapshot: s, skin: k, size: g, cache: c } = current.current;
+    if (g === null) return null;
+    const v: ViewSpec = { viewport: s.viewport, size: g.size, dpr: g.dpr };
+    return { view: v, rows: buildRenderRows(s, k, v, c) };
+  };
   const input = useGraphInput({
     panel,
     surface,
     engine,
     size,
     interaction: {
+      claim(at, pointer) {
+        const sc = scene();
+        return sc !== null && tracer.claim(at, pointer, sc.view, sc.rows);
+      },
+      move(at) {
+        const sc = scene();
+        if (sc !== null) tracer.move(at, sc.view);
+      },
+      release: tracer.release,
       click(at, pointer) {
-        const { snapshot: s, skin: k, size: g, cache: c } = current.current;
-        if (g === null) return;
-        const view: ViewSpec = { viewport: s.viewport, size: g.size, dpr: g.dpr };
-        poi.click(at, pointer, view, buildRenderRows(s, k, view, c));
+        const sc = scene();
+        if (sc !== null) poi.click(at, pointer, sc.view, sc.rows);
       },
       viewChanged: poi.viewChanged,
     },
@@ -221,7 +239,11 @@ export function GraphPanel(props: GraphPanelProps): JSX.Element {
     maxWaitMs: NAME_MAX_WAIT_MS,
   });
 
-  useRenderLoop(layers, { snapshot, skin, cache, size, host, labels: poi.labels }, themeRevision);
+  useRenderLoop(
+    layers,
+    { snapshot, skin, cache, size, host, labels: poi.labels, trace: tracer.trace },
+    themeRevision
+  );
 
   // Before Home mounts there is no transition to read, so it enters with a fade unless motion is
   // reduced (AN-8 fades in as well as out); once mounted, its computed transition gives the time.
@@ -256,6 +278,7 @@ export function GraphPanel(props: GraphPanelProps): JSX.Element {
           labels={openLabels(snapshot, poi.labels, view)}
           curve={selectedCurvePx(snapshot, view)}
           size={view.size}
+          trace={tracer.trace}
         />
       )}
       <div className="kc-graph-controls" role="group" aria-label={GRAPH_CONTROL_LABELS.group}>

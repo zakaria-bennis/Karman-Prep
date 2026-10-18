@@ -35,8 +35,9 @@ export type GraphInputOptions = {
 };
 /**
  * What the panel does with presses that are not pans (POI-13, POI-14, POI-17): a press that
- * `claim` accepts traces (move and release follow it, the view stays put); a press released within
- * CLICK_SLOP_PX of where it started is a click; anything that moves the view calls viewChanged.
+ * `claim` accepts traces once it moves CLICK_SLOP_PX (move and release follow it, the view stays
+ * put); any press released within CLICK_SLOP_PX of where it started is a click; anything that
+ * moves the view calls viewChanged.
  */
 export interface GraphInteraction {
   claim?(at: Point, pointer: Pointer): boolean;
@@ -197,14 +198,14 @@ export function useGraphInput(o: GraphInputOptions): GraphInput {
       s.pointers.set(e.pointerId, at);
       const press = s.press;
       if (press !== null && press.id === e.pointerId) {
-        if (press.claimed) {
-          latest.current.interaction?.move?.(at);
-          return;
-        }
         if (!press.moved) {
           if (Math.hypot(at[0] - press.at[0], at[1] - press.at[1]) < CLICK_SLOP_PX) return;
           press.moved = true;
-          latest.current.interaction?.viewChanged();
+          if (!press.claimed) latest.current.interaction?.viewChanged();
+        }
+        if (press.claimed) {
+          latest.current.interaction?.move?.(at);
+          return;
         }
       }
       const g = s.gesture;
@@ -222,7 +223,7 @@ export function useGraphInput(o: GraphInputOptions): GraphInput {
       if (press !== null && press.id === e.pointerId) {
         s.press = null;
         const hooks = latest.current.interaction;
-        if (press.claimed) hooks?.release?.();
+        if (press.claimed && press.moved) hooks?.release?.();
         else if (!press.moved && e.type === "pointerup") hooks?.click(press.at, press.pointer);
       }
       const view = currentView();

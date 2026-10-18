@@ -192,3 +192,76 @@ it("POI-19 an open label is text reading the coordinates", async () => {
   expect(label.closest("[aria-hidden]")).toBeNull();
   expect(label.getAttribute("role")).toBe("note");
 });
+
+async function drag(
+  points: [number, number][],
+  pointerType = "mouse",
+  release = true
+): Promise<void> {
+  await act(async () => {
+    const [first, ...rest] = points;
+    fireEvent.pointerDown(panel(), {
+      pointerId: 1,
+      button: 0,
+      clientX: first[0],
+      clientY: first[1],
+      pointerType,
+    });
+    for (const [x, y] of rest)
+      fireEvent.pointerMove(panel(), { pointerId: 1, clientX: x, clientY: y, pointerType });
+    if (release) {
+      const [x, y] = points.at(-1)!;
+      fireEvent.pointerUp(panel(), {
+        pointerId: 1,
+        button: 0,
+        clientX: x,
+        clientY: y,
+        pointerType,
+      });
+    }
+  });
+  await flush();
+}
+const traceLabel = () => document.querySelector("[data-trace-label]")?.textContent ?? null;
+
+it("POI-14 pressing on a curve and dragging traces instead of panning", async () => {
+  await setup();
+  const before = t.engine.getSnapshot().viewport;
+  await drag(
+    [
+      [px(2), py(2)],
+      [px(2.5), py(4.25)],
+      [px(3), py(0)],
+    ],
+    "mouse",
+    false
+  );
+  expect(traceLabel()).toBe("(3, 7)");
+  expect(lastFrame().trace).toMatchObject({ x: 3, y: 7 });
+  expect(t.engine.getSnapshot().viewport).toEqual(before);
+});
+
+it("POI-14 releasing a trace removes the dot and label and pins nothing", async () => {
+  await setup();
+  await drag([
+    [px(2), py(2)],
+    [px(2.5), py(4.25)],
+  ]);
+  expect(traceLabel()).toBeNull();
+  expect(lastFrame().trace ?? null).toBeNull();
+  expect(labels()).toEqual([]);
+});
+
+it("POI-14 a trace on a fine pointer snaps to a point of interest and shows its exact label", async () => {
+  await setup();
+  await drag(
+    [
+      [px(2), py(2)],
+      [px(1.6), py(0.5)],
+      [px(ROOT2) + 2, py(0)],
+    ],
+    "mouse",
+    false
+  );
+  expect(traceLabel()).toBe("(1.41421, 0)");
+});

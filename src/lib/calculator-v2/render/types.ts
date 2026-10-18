@@ -39,4 +39,5 @@ export interface RenderFrame {
   rows: readonly RenderRow[];
   theme: RenderTheme;
   poi?: readonly PoiDot[]; // POI-1, drawn above the row points
+  trace?: { x: number; y: number; color: string } | null; // POI-14's trace dot, drawn last
 }

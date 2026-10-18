@@ -46,3 +46,21 @@ export function drawPoiDots(
     if (started) ctx.fill();
   }
 }
+
+/** POI-14: the trace dot, in the traced curve's colour with a paper ring so it reads over the curve. */
+export function drawTraceDot(
+  ctx: Ctx,
+  view: ViewSpec,
+  theme: Pick<RenderTheme, "paper">,
+  dot: { x: number; y: number; color: string }
+): void {
+  const [x, y] = worldToPx(view, dot.x, dot.y);
+  ctx.beginPath();
+  ctx.arc(x, y, POI_OPEN_RADIUS_PX + 1.5, 0, 2 * Math.PI);
+  ctx.fillStyle = theme.paper;
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(x, y, POI_OPEN_RADIUS_PX, 0, 2 * Math.PI);
+  ctx.fillStyle = dot.color;
+  ctx.fill();
+}

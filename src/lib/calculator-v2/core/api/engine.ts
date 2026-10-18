@@ -4,9 +4,13 @@
 // default-deps.ts (createEngine's defaults). No DOM, no React (AR-44).
 
 import { clampViewport, defaultViewport, type Viewport, type ViewSpec } from "../../plot/viewport";
+import { buildCompileScope } from "../../plot/from-analysis";
+import { poiCurvesFor } from "../../poi/index";
+import type { PoiCurve } from "../../poi/types";
 import { nextSlot } from "../../theme/roles";
 import type { ComputeBackend } from "../../worker/backend";
 import { analyzeRows, type AnalysisResult } from "../analysis";
+import type { Value } from "../eval/values";
 import { MAX_ROW_CHARACTERS, MAX_ROWS } from "../latex";
 import { defaultBackend, defaultRandomSeed, defaultScheduleFrame } from "./default-deps";
 import {
@@ -372,6 +376,22 @@ export class CalculatorEngine {
     this.doc.endGroup();
     this.setFocus(id, id ?? this.activeRowId);
     if (id !== null) this.setSelectedRow(id);
+  }
+
+  /**
+   * POI-14: row `id`'s curves compiled on the main thread from the latest analysis and the latest
+   * accepted values, for tracing; none for a row that is not graphable.
+   */
+  poiCurves(id: string): PoiCurve[] {
+    const row = this.analysis.byId.get(id);
+    if (row === undefined || !row.isGraphable) return [];
+    const values = new Map<string, Value>();
+    for (const r of this.doc.rows) {
+      const value = this.inbox.result(r.id).value;
+      if (value !== null) values.set(r.id, value);
+    }
+    const scope = buildCompileScope(this.analysis, values, toWireSettings(this.currentSettings));
+    return poiCurvesFor(row, scope);
   }
 
   /** POI-1, POI-17: the selected row (null for none); posts `select` when it changes. */
