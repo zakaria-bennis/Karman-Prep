@@ -34,7 +34,10 @@
     "questions:preflight": "tsx scripts/pdf-pipeline/preflight-import-json.ts",
     "questions:import-reviewed": "tsx scripts/pdf-pipeline/import-reviewed-questions.ts",
     "test:calculator": "playwright test --config=playwright.calculator.config.ts",
-    "dev:calculator": "node tests/calculator/fixture/server.mjs"
+    "dev:calculator": "node tests/calculator/fixture/server.mjs",
+    "calculator:build": "node karman-calculator/build.mjs",
+    "prebuild": "npm run calculator:build",
+    "predev:calculator": "npm run calculator:build"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1038.0",

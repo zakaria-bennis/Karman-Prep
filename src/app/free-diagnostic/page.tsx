@@ -74,7 +74,7 @@ export default function FreeDiagnosticPage() {
               <ul className="mt-5 list-disc space-y-3 pl-5 leading-relaxed text-taupe">
                 <li>Find a quiet place and keep your scratch paper nearby.</li>
                 <li>
-                  The Math section links to the official Desmos SAT calculator in a separate tab.
+                  The Math section includes the Karman graphing calculator in the quiz workspace.
                 </li>
                 <li>
                   If you’ve already taken the diagnostic, we’ll take you to your saved results.

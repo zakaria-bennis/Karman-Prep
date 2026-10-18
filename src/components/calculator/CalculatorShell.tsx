@@ -136,7 +136,7 @@ export function CalculatorShell({
     const node = shell.current;
     if (!node) return;
     const paste = (event: ClipboardEvent) => {
-      const target = event.target as HTMLElement;
+      const target = (event.composedPath()[0] ?? event.target) as HTMLElement;
       if (target.closest("[data-manual-paste]")) return;
       if (!event.clipboardData) return;
       try {
@@ -312,6 +312,7 @@ export function CalculatorShell({
           keypad={keypad}
           visible={mode === "graphing" && open}
           onReady={onReady}
+          onKeypadChange={setKeypad}
         />
         {scientificVisited && (
           <CalculatorSurface
@@ -321,6 +322,7 @@ export function CalculatorShell({
             keypad={keypad}
             visible={mode === "scientific" && open}
             onReady={onReady}
+            onKeypadChange={setKeypad}
           />
         )}
       </div>

@@ -60,6 +60,120 @@ describe("canonical skill evidence read contract", () => {
   });
 });
 
+describe("evidence formats written by later reviewed release batches", () => {
+  const skillLabel = "Linear equations in one variable";
+  // Later batches name the question `stable_question_id` instead of `question_id`.
+  const renamed = () => {
+    const { question_id, ...rest } = approvedCatalogEvidence();
+    return { ...rest, stable_question_id: question_id };
+  };
+  const withoutOriginalD = () => {
+    const { D_original_record: _d, ...rest } = renamed();
+    void _d;
+    return rest;
+  };
+
+  it("accepts evidence that names the question stable_question_id instead of question_id", () => {
+    expect(readCatalogQuestionScope(renamed()).publicationAllowed).toBe(true);
+  });
+
+  it("rejects a missing, foreign or conflicting evidence question identity", () => {
+    const { stable_question_id: _s, ...anonymous } = renamed();
+    void _s;
+    for (const changed of [
+      anonymous,
+      { ...renamed(), stable_question_id: "other-question" },
+      { ...approvedCatalogEvidence(), stable_question_id: "other-question" },
+    ])
+      expect(() => readCatalogQuestionScope(changed)).toThrow(/differs/);
+  });
+
+  it("accepts a delivery-payload-sealed approval that has no pilot-row hash", () => {
+    const evidence = renamed();
+    const { pilot_row_sha256: _p, ...tags } = evidence.approved_tags;
+    void _p;
+    expect(readCatalogQuestionScope({ ...evidence, approved_tags: tags }).publicationAllowed).toBe(
+      true
+    );
+  });
+
+  it("still requires a pilot-row hash or a delivery-payload seal", () => {
+    const evidence = renamed();
+    const { pilot_row_sha256: _p, question_payload_sha256: _q, ...tags } = evidence.approved_tags;
+    void _p;
+    void _q;
+    expect(() => readCatalogQuestionScope({ ...evidence, approved_tags: tags })).toThrow(
+      /unavailable/
+    );
+  });
+
+  const independent = () => ({
+    ...withoutOriginalD(),
+    independent_D_review_sha256: "e".repeat(64),
+    independent_D_record: { skill: skillLabel, domain: "Algebra", level: 3, reason: "Solve." },
+  });
+
+  it("accepts an independent D skill review that confirms the tagged skill and domain", () => {
+    expect(readCatalogQuestionScope(independent()).publicationAllowed).toBe(true);
+  });
+
+  it("rejects an independent D review for another skill or domain, or without its review hash", () => {
+    const base = independent();
+    for (const changed of [
+      {
+        ...base,
+        independent_D_record: { ...base.independent_D_record, skill: "Linear functions" },
+      },
+      { ...base, independent_D_record: { ...base.independent_D_record, domain: "Advanced Math" } },
+      { ...base, independent_D_review_sha256: "not-a-hash" },
+      withoutOriginalD(),
+    ])
+      expect(() => readCatalogQuestionScope(changed)).toThrow(/differs/);
+  });
+
+  const classified = () => ({
+    ...withoutOriginalD(),
+    D_classification_sha256: "f".repeat(64),
+    D_classification_record: {
+      stable_question_id: "synthetic-math-M1-Q1",
+      D_classification_sha256: "f".repeat(64),
+      D_skill: skillLabel,
+      D_domain: "Algebra",
+      D_content_sha256: "a".repeat(64),
+      D_difficulty_level: 2,
+    },
+  });
+
+  it("accepts a D classification record bound to the row's classification hash and content", () => {
+    expect(readCatalogQuestionScope(classified()).publicationAllowed).toBe(true);
+  });
+
+  it("rejects a D classification for other content, another skill, another question or hash", () => {
+    const base = classified();
+    const record = base.D_classification_record;
+    for (const changed of [
+      { ...base, D_classification_record: { ...record, D_content_sha256: "9".repeat(64) } },
+      { ...base, D_classification_record: { ...record, D_skill: "Linear functions" } },
+      { ...base, D_classification_record: { ...record, D_domain: "Advanced Math" } },
+      { ...base, D_classification_record: { ...record, stable_question_id: "other-question" } },
+      { ...base, D_classification_sha256: "8".repeat(64) },
+    ])
+      expect(() => readCatalogQuestionScope(changed)).toThrow(/differs/);
+  });
+
+  it("never lets a weaker review rescue an original D record that fails", () => {
+    const evidence = approvedCatalogEvidence();
+    expect(() =>
+      readCatalogQuestionScope({
+        ...evidence,
+        D_original_record: { ...evidence.D_original_record, uncertain: true },
+        independent_D_review_sha256: "e".repeat(64),
+        independent_D_record: { skill: skillLabel, domain: "Algebra", level: 3, reason: "Solve." },
+      })
+    ).toThrow(/differs/);
+  });
+});
+
 describe("source formatting in canonical delivery", () => {
   const formatted = () => ({
     ...catalogQuestion(),

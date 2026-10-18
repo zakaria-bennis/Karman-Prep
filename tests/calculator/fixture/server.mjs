@@ -7,6 +7,7 @@ const fixture = path.join(root, "tests/calculator/fixture");
 const server = await createServer({
   configFile: false,
   root: fixture,
+  publicDir: path.join(root, "public"),
   server: {
     host: process.env.CALCULATOR_FIXTURE_HOST ?? "127.0.0.1",
     port: 4318,
