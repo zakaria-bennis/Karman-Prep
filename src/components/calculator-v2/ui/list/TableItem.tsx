@@ -124,34 +124,21 @@ export function TableItem(props: TableItemProps): JSX.Element {
             onBlur={onGridBlur}
           >
             <div role="row" className="kc-table-row" data-header="true">
-              {columns.map((c, k) => (
-                <div key={k} role="columnheader" className="kc-table-cell">
+              {/* One keyed list, so the slot's field becomes the new column's header in place. */}
+              {[...columns.map((c) => c.latex), ...(slot ? [null] : [])].map((latex, k) => (
+                <div key={`h-${k}`} role="columnheader" className="kc-table-cell">
                   <TableCell
                     tableId={row.id}
                     column={k}
                     row="h"
-                    latex={c.latex}
-                    name={`Column ${k + 1} header`}
+                    latex={latex ?? ""}
+                    name={latex === null ? NEW_COLUMN_HEADER : `Column ${k + 1} header`}
                     keypadOpen={keypadOpen}
                     keys={cellKeys(keyContext, k, "h")}
                     onEdit={(e, next) => e.editHeader(row.id, k, next, "typing")}
                   />
                 </div>
               ))}
-              {slot && (
-                <div key={`h-${columns.length}`} role="columnheader" className="kc-table-cell">
-                  <TableCell
-                    tableId={row.id}
-                    column={columns.length}
-                    row="h"
-                    latex=""
-                    name={NEW_COLUMN_HEADER}
-                    keypadOpen={keypadOpen}
-                    keys={cellKeys(keyContext, columns.length, "h")}
-                    onEdit={(e, next) => e.editHeader(row.id, columns.length, next, "typing")}
-                  />
-                </div>
-              )}
             </div>
             {Array.from({ length: rows + 1 }, (_, r) => (
               <div key={r} role="row" className="kc-table-row">
