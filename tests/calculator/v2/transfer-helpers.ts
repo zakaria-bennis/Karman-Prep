@@ -174,3 +174,17 @@ export const setRows = (page: Page, latex: string[]) =>
       ),
     latex
   );
+/** The quiz host module request (the calculator's lazy import in the Vite fixture). */
+export const HOST = /\/calculator-v2\/host\/quiz-host\.ts/;
+/** An init script: the first shadow root attached to the calculator host throws (a mount failure). */
+export const failMountOnce = () => {
+  let failed = false;
+  const attach = Element.prototype.attachShadow;
+  Element.prototype.attachShadow = function (init) {
+    if (!failed && this.hasAttribute("data-calculator-host")) {
+      failed = true;
+      throw new Error("fixture mount failure");
+    }
+    return attach.call(this, init);
+  };
+};
