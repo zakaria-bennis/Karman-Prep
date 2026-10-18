@@ -197,7 +197,20 @@ function appendRows(editor: RowsEditor, id: string, added: readonly [string, str
   );
 }
 
+/**
+ * An id freed by undo or delete is handed out again (TR-32, D-4), so a registered table whose row
+ * is gone is forgotten before a transfer can mistake its successor for it (TR-34, TR-35).
+ */
+function forgetMissingTables(target: TransferTarget): void {
+  const ids = new Set(target.getExpressions().map((r) => r.id));
+  const tables = pointTables(target);
+  for (const [key, t] of tables) if (!ids.has(t.id)) tables.delete(key);
+  const sources = sourceTables(target);
+  for (const [key, id] of sources) if (!ids.has(id)) sources.delete(key);
+}
+
 function plan(target: TransferTarget, payload: TransferPayload): Commit {
+  forgetMissingTables(target);
   switch (payload.format) {
     case "table":
       return tableCommit(target, payload);

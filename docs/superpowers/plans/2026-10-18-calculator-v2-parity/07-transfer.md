@@ -86,7 +86,9 @@ Tests `it("TR-22 only the two table 5.1 shapes are eligible")`, `it("TR-23 the f
   the worker's table geometry (AR-51 keeps row values in the worker; these are not row values).
 - The point-table and source-table registries are keyed by the calculator object, which the quiz
   remounts per question (R10, AR-58), and a registered point table is used only while that row
-  is still a two-column table with the names it was created with.
+  is still a two-column table with the names it was created with. Because an id freed by undo or
+  delete is handed out again (TR-32, D-4), every transfer first forgets registered tables whose
+  row is gone, so a question table that lands on a freed id never receives points (TR-34).
 - Table 11.1's "Pair appended" message is also used when the first Table row creates the point
   table ("Added to table x₁, y₁, row 1."). A repeat transfer of a question table whose values are
   unchanged focuses the table it added (TR-35, D-18's source id).

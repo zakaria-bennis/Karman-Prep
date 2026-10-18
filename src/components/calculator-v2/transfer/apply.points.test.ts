@@ -101,6 +101,35 @@ it("TR-34 Table row appends to the source's point table and creates it on first 
   expect(tables(e).at(-1)).toEqual(["5", "x_{4} 6", "y_{4} 6"]);
 });
 
+it("TR-34 a question table that takes a freed point-table id never receives Table row pairs", () => {
+  const free = {
+    undo: (e: CalculatorEngine) => e.undo(),
+    delete: (e: CalculatorEngine) => e.removeExpression({ id: "2" }),
+  };
+  for (const [how, gone] of Object.entries(free)) {
+    const e = seeded([{ id: "1", latex: "y=x" }]);
+    applyTransfer(e, tableRow([["1", "2"]]), "mouse"); // the point table: id 2, x₁ and y₁
+    gone(e); // its id and names are free again (TR-32, D-4)
+    applyTransfer(
+      e,
+      table([
+        ["0", "1"],
+        ["5", "6"],
+      ]),
+      "mouse"
+    ); // the question table lands on id 2 with x₁ and y₁
+    expect(applyTransfer(e, tableRow([["7", "8"]]), "mouse"), how).toEqual({
+      status: "added",
+      message: "Added to table x₂, y₂, row 1.",
+      focusRowId: "3",
+    });
+    expect(tables(e), how).toEqual([
+      ["2", "x_{1} 0 1", "y_{1} 5 6"],
+      ["3", "x_{2} 7", "y_{2} 8"],
+    ]);
+  }
+});
+
 it("TR-29, TR-35 Point inserts one (a,b) row per pair and never repeats one; non-point rows are refused", () => {
   const e = seeded();
   expect(applyTransfer(e, point(["(1,2)", "(3,4)"]), "mouse")).toMatchObject({
