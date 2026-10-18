@@ -72,7 +72,9 @@ it("D-10 a header name another table also defines warns on both headers", () => 
     SETTINGS
   );
   for (const id of ["t", "u"]) {
-    expect(a.byId.get(id)!.table!.columns[1].error?.message).toBe("y_1 is defined more than once.");
+    expect(a.byId.get(id)!.table!.columns[1].error?.message).toBe(
+      "You've defined 'y_1' in more than one place. Try deleting some of the definitions of 'y_1'."
+    );
   }
 });
 

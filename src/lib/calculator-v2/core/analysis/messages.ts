@@ -51,7 +51,11 @@ function letter(base: string): string {
   return base === "pi" || base === "tau" ? GREEK_LETTERS[base] : base;
 }
 
-/** `{n}` is `names[0]` and `{k}` is `names[1]`, both already display text (04 decision 3). */
+/**
+ * `{n}` is `names[0]` and `{k}` is `names[1]`, both already display text (04 decision 3), at every
+ * place they appear. Appendix F recorded the reference's text for `duplicate-definition` (19),
+ * `sim-side` (3) and `nested-list`, which these use.
+ */
 const MESSAGES: Readonly<Record<RowErrorCode, string>> = {
   syntax: "This can't be read. Check for a missing bracket or operator.",
   unsupported: "This calculator doesn't support that notation.",
@@ -61,7 +65,8 @@ const MESSAGES: Readonly<Record<RowErrorCode, string>> = {
   "too-deep": "This row is nested too deeply.",
   "sim-side": "You need something on both sides of the '∼' symbol.",
   "too-many-params": "Functions can have at most 8 parameters.",
-  "duplicate-definition": "{n} is defined more than once.",
+  "duplicate-definition":
+    "You've defined '{n}' in more than one place. Try deleting some of the definitions of '{n}'.",
   dependency: "{n} has more than one definition.",
   cycle: "{n} is defined in terms of itself.",
   "reserved-name": "{n} is reserved and can't be redefined.",
@@ -94,5 +99,5 @@ export function rowErrorMessage(code: RowErrorCode, names: string[]): string {
   if (code === "unsupported" && POLAR_NAMES.has(n)) template = POLAR_UNSUPPORTED;
   if (code === "unsupported" && DEFERRED_NAMES.has(n)) template = DEFERRED;
   if (code === "arity" && k === "1") template = SINGLE_ARGUMENT;
-  return template.replace("{n}", () => n).replace("{k}", () => k);
+  return template.replaceAll("{n}", () => n).replaceAll("{k}", () => k);
 }

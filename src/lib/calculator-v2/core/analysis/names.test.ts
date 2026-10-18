@@ -48,7 +48,16 @@ it("RC-2, RC-7, RC-8, RC-19, RC-20 row errors and the complex hint use the exact
     ["too-many-nodes", [], "This row is too long to evaluate. Split it into smaller definitions."],
     ["too-deep", [], "This row is nested too deeply."],
     ["too-many-params", [], "Functions can have at most 8 parameters."],
-    ["duplicate-definition", ["a"], "a is defined more than once."],
+    [
+      "duplicate-definition",
+      ["a"],
+      "You've defined 'a' in more than one place. Try deleting some of the definitions of 'a'.",
+    ],
+    [
+      "duplicate-definition",
+      ["θ_1"],
+      "You've defined 'θ_1' in more than one place. Try deleting some of the definitions of 'θ_1'.",
+    ],
     ["dependency", ["a"], "a has more than one definition."],
     ["cycle", ["a"], "a is defined in terms of itself."],
     ["reserved-name", ["e"], "e is reserved and can't be redefined."],
