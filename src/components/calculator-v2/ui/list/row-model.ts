@@ -21,14 +21,13 @@ const LINE_KINDS: ReadonlySet<RowView["kind"]> = new Set<RowView["kind"]>([
 
 /**
  * R-1, A11Y-3 (09 Decisions, "Gutter tab only on rows with something to hide"): a point row shows
- * the point tab, a graphing row the line tab, and an error row the line tab only while it is
- * hidden, so a row hidden before it broke can be shown again. Every other row has no graph to
- * hide and no tab.
+ * the point tab and a graphing row the line tab. An error row does not plot, so it offers no tab
+ * (R-2: its warning marker takes the tab's place; a row hidden before it broke gets its tab back
+ * once the error is fixed). Every other row has no graph to hide and no tab.
  */
 export function rowTab(row: RowView): RowTab {
   if (row.kind === "point") return "point";
   if (LINE_KINDS.has(row.kind)) return "line";
-  if (row.kind === "error" && row.hidden) return "line";
   return null;
 }
 

@@ -86,10 +86,10 @@ it("S-5 Complex mode is off by default and switches complex evaluation", async (
   );
   const box = screen.getByRole("checkbox", { name: "Complex mode" });
   expect(box).not.toBeChecked();
-  expect(await screen.findByText("= undefined")).toBeInTheDocument();
+  expect(await screen.findByText("undefined")).toBeInTheDocument();
   await userEvent.setup().click(box);
   expect(kit.engine.settings.complex).toBe(true);
-  expect(await screen.findByText("= 2i")).toBeInTheDocument();
+  expect(await screen.findByText("2i")).toBeInTheDocument();
 });
 
 it("A11Y-15 no Braille setting is offered", () => {

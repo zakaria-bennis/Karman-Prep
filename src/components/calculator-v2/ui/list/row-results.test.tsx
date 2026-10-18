@@ -1,9 +1,17 @@
 // @vitest-environment jsdom
-import { getDefaultNormalizer, screen, within } from "@testing-library/react";
+import {
+  act,
+  cleanup,
+  fireEvent,
+  getDefaultNormalizer,
+  screen,
+  within,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { expect, it } from "vitest";
 import { panelProps, renderEditor, rowItem, textbox } from "./__fixtures__/render-editor";
 import { ExpressionPanel } from "./ExpressionPanel";
+import { ExpressionRow } from "./ExpressionRow";
 import { fieldTextbox, rowDomIds } from "./row-model";
 
 // Testing Library's default normalizer collapses \s+, U+2009 included, so T-10 text is matched
@@ -14,28 +22,146 @@ it("R-5 a numeric row shows its value below the math with NM-1, NM-2 and T-10 di
   renderEditor(<ExpressionPanel {...panelProps()} />, {
     rows: ["\\frac{1}{3}", "12340+5", "2^{40}"],
   });
-  expect(await screen.findByText("= 0.333333333333")).toBeInTheDocument();
-  expect(await screen.findByText("= 12 345", keepSpaces)).toBeInTheDocument(); // U+2009 (T-10)
-  expect(await screen.findByText("= 1.09951162778×10^12")).toBeInTheDocument();
+  expect(await screen.findByText("0.333333333333")).toBeInTheDocument();
+  expect(await screen.findByText("12 345", keepSpaces)).toBeInTheDocument(); // U+2009 (T-10)
+  expect(await screen.findByText("1.09951162778×10^12")).toBeInTheDocument();
   expect(textbox(2)).toHaveAccessibleDescription(/ equals 12345$/);
   expect(screen.queryByRole("button", { name: /fraction|decimal/i })).toBeNull();
 });
 
-it("R-2 an error row shows the gutter marker, the message below the math, aria-invalid and no graph", () => {
+const SYNTAX_MESSAGE = "This can't be read. Check for a missing bracket or operator.";
+
+it("R-2 an error row shows the warning marker in place of the tab, with a tooltip that opens on hover, focus and tap and closes on leave, blur, Escape and a press outside; the message is the textbox's description", async () => {
   const kit = renderEditor(<ExpressionPanel {...panelProps()} />, { rows: ["y=2+"] });
-  expect(rowItem("1").querySelector(".kc-row-gutter .kc-row-warning")).not.toBeNull();
-  const message = within(rowItem("1")).getByText(
-    "This can't be read. Check for a missing bracket or operator."
-  );
-  expect(textbox(1)).toHaveAttribute("aria-invalid", "true");
-  expect(textbox(1).getAttribute("aria-describedby")!.split(" ")).toContain(message.id);
+  const ids = rowDomIds("1");
+  const row = rowItem("1");
+  const marker = within(row.querySelector<HTMLElement>(".kc-row-gutter")!).getByRole("button", {
+    name: "Error",
+  });
+  expect(marker).toHaveClass("kc-row-warning");
+  expect(marker).toHaveAttribute("type", "button");
+  expect(marker).toHaveAttribute("aria-describedby", ids.error);
+  expect(row.querySelector(".kc-row-tab")).toBeNull(); // replaces the swatch, no hide toggle
+  expect(within(row).queryByRole("button", { name: /^(Hide|Show) expression/ })).toBeNull();
+  expect(row.querySelector(".kc-row-error")).toBeNull(); // no inline message
   expect(kit.engine.expressionAnalysis["1"]).toMatchObject({ isGraphable: false, isError: true });
+
+  // A11Y-3: the textbox is invalid and described by the message even while the tooltip is closed.
+  expect(textbox(1)).toHaveAttribute("aria-invalid", "true");
+  expect(textbox(1).getAttribute("aria-describedby")!.split(" ")).toContain(ids.error);
+  expect(textbox(1)).toHaveAccessibleDescription(expect.stringContaining(SYNTAX_MESSAGE));
+  expect(screen.queryByRole("tooltip")).toBeNull();
+  expect(marker).toHaveAttribute("aria-expanded", "false");
+
+  // Pointer: opens at once on hover, closes on leave.
+  const user = userEvent.setup();
+  await user.hover(marker);
+  const tip = screen.getByRole("tooltip");
+  expect(tip).toHaveAttribute("id", ids.error);
+  expect(tip).toHaveTextContent(SYNTAX_MESSAGE);
+  expect(marker).toHaveAttribute("aria-expanded", "true");
+  await user.unhover(marker);
+  expect(screen.queryByRole("tooltip")).toBeNull();
+
+  // Keyboard: focus opens, Escape closes one KB-3 layer and focus stays, blur closes.
+  act(() => marker.focus());
+  expect(screen.getByRole("tooltip")).toBeInTheDocument();
+  act(() => kit.pressEscape());
+  expect(screen.queryByRole("tooltip")).toBeNull();
+  expect(marker).toHaveFocus();
+  act(() => marker.blur());
+  act(() => marker.focus());
+  expect(screen.getByRole("tooltip")).toBeInTheDocument();
+  act(() => marker.blur());
+  expect(screen.queryByRole("tooltip")).toBeNull();
+  expect(kit.escape.handleEscape()).toBe(false); // no layer left behind
+
+  // Touch: a tap toggles it; a press outside closes it.
+  fireEvent.pointerDown(marker, { pointerType: "touch" });
+  fireEvent.click(marker);
+  expect(screen.getByRole("tooltip")).toBeInTheDocument();
+  fireEvent.pointerDown(marker, { pointerType: "touch" });
+  fireEvent.click(marker);
+  expect(screen.queryByRole("tooltip")).toBeNull();
+  fireEvent.pointerDown(marker, { pointerType: "touch" });
+  fireEvent.click(marker);
+  expect(screen.getByRole("tooltip")).toBeInTheDocument();
+  fireEvent.pointerDown(document.body, { pointerType: "touch" });
+  expect(screen.queryByRole("tooltip")).toBeNull();
+});
+
+it("R-2 a row that broke while hidden offers no hide or show tab, and the tab returns once the error is fixed", () => {
+  const kit = renderEditor(<ExpressionPanel {...panelProps()} />, { rows: ["y=x"] });
+  act(() => kit.engine.setRowHidden("1", true));
+  expect(rowItem("1").querySelector(".kc-row-tab")).not.toBeNull();
+  act(() => kit.engine.editRow("1", "y=2+", "typing"));
+  expect(rowItem("1").querySelector(".kc-row-tab")).toBeNull();
+  expect(rowItem("1").querySelector(".kc-row-warning")).not.toBeNull();
+  act(() => kit.engine.editRow("1", "y=x", "typing"));
+  expect(rowItem("1").querySelector(".kc-row-warning")).toBeNull();
+  expect(
+    within(rowItem("1")).getByRole("button", { name: "Show expression 1" })
+  ).toBeInTheDocument();
+});
+
+it("R-5 the value sits in a box after a muted =; a list shows one box per element and … after 30 (NM-38)", async () => {
+  const kit = renderEditor(<ExpressionPanel {...panelProps()} />, { rows: ["12340+5"] });
+  await screen.findByText("12 345", keepSpaces);
+  const single = rowItem("1").querySelector(".kc-row-value")!;
+  expect(single.querySelectorAll(".kc-row-value-box")).toHaveLength(1);
+  expect(single.querySelector(".kc-row-equals")).toHaveTextContent("=");
+  expect(single.querySelector(".kc-row-value-box")!.textContent).toBe("12 345");
+
+  // A hand-built list result: a separate package adds list syntax, so only this row has one.
+  const base = kit.engine.getSnapshot().rows[0];
+  const listRow = (n: number) => {
+    const value = {
+      type: "list" as const,
+      value: Array.from({ length: n }, (_, i) => ({ type: "number" as const, value: i + 1 })),
+    };
+    return { ...base, value, valueText: `[${value.value.map((v) => v.value).join(", ")}]` };
+  };
+  const listItem = (n: number): HTMLElement => {
+    cleanup();
+    renderEditor(
+      <ol>
+        <ExpressionRow
+          row={listRow(n)}
+          number={1}
+          keypadOpen={false}
+          onTouchFocus={() => undefined}
+          motion="idle"
+          onExitDone={() => undefined}
+        />
+      </ol>
+    );
+    return rowItem(base.id);
+  };
+  const three = listItem(3);
+  expect([...three.querySelectorAll(".kc-row-value-box")].map((b) => b.textContent)).toEqual([
+    "1",
+    "2",
+    "3",
+  ]);
+  expect(three.querySelector(".kc-row-value .kc-visually-hidden")).toHaveTextContent(
+    "equals 1, 2, 3"
+  );
+
+  const long = listItem(40);
+  const boxes = [...long.querySelectorAll(".kc-row-value-box")].map((b) => b.textContent);
+  expect(boxes).toHaveLength(31);
+  expect(boxes.slice(0, 3)).toEqual(["1", "2", "3"]);
+  expect(boxes[29]).toBe("30");
+  expect(boxes[30]).toBe("…");
+  expect(long.querySelector(".kc-row-value .kc-visually-hidden")!.textContent).toMatch(
+    /^equals 1, 2, 3, .*, 30, …$/
+  );
 });
 
 it("A11Y-3 the value element and the error element are linked from the textbox by aria-describedby; only the error row is aria-invalid", async () => {
   renderEditor(<ExpressionPanel {...panelProps()} />, { rows: ["2+3", "y=2+"] });
   const [one, two] = [rowDomIds("1"), rowDomIds("2")];
-  await screen.findByText("= 5");
+  await screen.findByText("5");
   expect(textbox(1).getAttribute("aria-describedby")!.split(" ")).toEqual([one.speech, one.value]);
   expect(document.getElementById(one.value)).toHaveTextContent("equals 5");
   expect(textbox(1)).not.toHaveAttribute("aria-invalid");
@@ -56,6 +182,6 @@ it("FN-16 a row whose only undefined name is i shows the complex-mode hint, whos
     .setup()
     .click(within(rowItem("1")).getByRole("button", { name: "Turn on complex mode" }));
   expect(kit.engine.settings.complex).toBe(true);
-  expect(await within(rowItem("1")).findByText("= 2i")).toBeInTheDocument();
+  expect(await within(rowItem("1")).findByText("2i")).toBeInTheDocument();
   expect(fieldTextbox(kit.fields.forRow("1"))).toHaveFocus();
 });

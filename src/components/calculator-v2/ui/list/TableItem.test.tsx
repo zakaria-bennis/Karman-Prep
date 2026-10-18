@@ -176,3 +176,59 @@ it("K-8 the button is in the table footer on every layout and in the style menu"
     cleanup();
   }
 });
+
+it("D-6 a cell with a cell error shows the marker and its tooltip; the header error likewise (parity 17, 18)", () => {
+  const kit = renderEditor(<ExpressionPanel {...panelProps()} />, { rows: ["y=x"] });
+  act(() =>
+    kit.engine.setExpression({
+      id: "t",
+      type: "table",
+      columns: [
+        { latex: "x_{1}", values: ["1", "2"] },
+        { latex: "y_{1}", values: ["1,2", "5"] },
+        { latex: "x_{1}", values: ["3", "4"] },
+      ],
+    })
+  );
+  const grid = screen.getByRole("grid", { name: "Table 2, 3 columns, 2 rows" });
+  const analysis = tableOf(kit, "t").table!.analysis.columns;
+  expect(analysis[1].cellErrors[0]!.message).toBe("Points are written like this: (1, 2).");
+  expect(analysis[2].error).not.toBeNull();
+
+  // One marker for the bad cell and one for each bad header (x₁ is defined twice); no others.
+  const markers = within(grid).getAllByRole("button", { name: "Error" });
+  expect(markers).toHaveLength(3);
+  const cell = box("y₁, row 1");
+  expect(cell).toHaveAttribute("aria-invalid", "true");
+  const tipId = cell.getAttribute("aria-describedby")!;
+  expect(document.getElementById(tipId)).toHaveTextContent("Points are written like this: (1, 2).");
+  expect(box("y₁, row 2")).not.toHaveAttribute("aria-invalid");
+  expect(box("y₁, row 2")).not.toHaveAttribute("aria-describedby");
+
+  // The marker sits in the bad cell and opens the same tooltip on focus.
+  const cellMarker = markers.find((m) => m.getAttribute("aria-describedby") === tipId)!;
+  expect(cellMarker).toHaveClass("kc-cell-warning");
+  expect(cellMarker.closest('[role="gridcell"]')).toContainElement(cell);
+  expect(screen.queryByRole("tooltip")).toBeNull();
+  act(() => cellMarker.focus());
+  expect(screen.getByRole("tooltip")).toHaveTextContent("Points are written like this: (1, 2).");
+  act(() => cellMarker.blur());
+  expect(screen.queryByRole("tooltip")).toBeNull();
+
+  // A header's own error: the marker is in its column header, and its field is described by it.
+  const headerMarkers = markers.filter((m) => m.closest('[role="columnheader"]') !== null);
+  expect(headerMarkers).toHaveLength(2);
+  for (const [marker, name] of [
+    [headerMarkers[0], "Column 1 header"],
+    [headerMarkers[1], "Column 3 header"],
+  ] as const) {
+    const header = box(name);
+    expect(header).toHaveAttribute("aria-invalid", "true");
+    expect(marker.closest('[role="columnheader"]')).toContainElement(header);
+    expect(header.getAttribute("aria-describedby")).toBe(marker.getAttribute("aria-describedby"));
+    act(() => marker.focus());
+    expect(screen.getByRole("tooltip")).toHaveTextContent(analysis[2].error!.message);
+    act(() => marker.blur());
+  }
+  expect(box("Column 2 header")).not.toHaveAttribute("aria-invalid");
+});

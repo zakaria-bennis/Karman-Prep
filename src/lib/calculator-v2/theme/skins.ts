@@ -16,11 +16,20 @@ export const SKIN_IDS = [
   "plum",
 ] as const;
 export type SkinId = (typeof SKIN_IDS)[number];
-export type BackgroundRole = "paper" | "list" | "chrome" | "key" | "keyOperator" | "accent";
+export type BackgroundRole =
+  | "paper"
+  | "list"
+  | "chrome"
+  | "key"
+  | "keyOperator"
+  | "accent"
+  | "tooltip";
 export type ForegroundRole =
   | "text"
   | "textSecondary"
   | "error"
+  | "warning"
+  | "tooltipLabel"
   | "axis"
   | "gridMajor"
   | "gridMinor"
@@ -50,6 +59,9 @@ export const COLOR_ROLES: readonly ColorRole[] = [
   "text",
   "textSecondary",
   "error",
+  "warning",
+  "tooltipLabel",
+  "tooltip",
   "axis",
   "gridMajor",
   "gridMinor",

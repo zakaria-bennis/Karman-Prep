@@ -1,6 +1,7 @@
 // One editable table cell or header (D-5, D-6, D-19): a MathField named by its column and row,
 // registered with the focus controller under its cell key and kept in step with the stored LaTeX.
-// Key handling comes through `keys`; the field's inputmode follows the keypad (T-11).
+// Key handling comes through `keys`; the field's inputmode follows the keypad (T-11). A cell with
+// an error is aria-invalid and described by its marker's tooltip (D-6).
 
 import { useContext, useLayoutEffect, useRef, type JSX } from "react";
 import type { CalculatorEngine, EditRefusal } from "@/lib/calculator-v2/core/api/engine";
@@ -28,6 +29,7 @@ export interface TableCellProps {
   row: number | "h";
   latex: string;
   name: string; // the textbox's accessible name
+  errorId: string | null; // D-6: the id of the tooltip holding this cell's error message, if any
   keypadOpen: boolean;
   keys: CellKeys;
   onEdit(engine: CalculatorEngine, latex: string): EditRefusal | null;
@@ -123,9 +125,19 @@ export function TableCell(props: TableCellProps): JSX.Element {
     fieldRef.current?.setInputMode(props.keypadOpen ? "none" : "text");
   }, [props.keypadOpen, announcer, createField, engine, focus, tableId]);
 
+  // After every render: the name, and the error state and message of a cell that cannot evaluate.
   useLayoutEffect(() => {
     const field = fieldRef.current;
-    if (field !== null) fieldTextbox(field).setAttribute("aria-label", props.name);
+    if (field === null) return;
+    const textbox = fieldTextbox(field);
+    textbox.setAttribute("aria-label", props.name);
+    if (props.errorId !== null) {
+      textbox.setAttribute("aria-invalid", "true");
+      textbox.setAttribute("aria-describedby", props.errorId);
+    } else {
+      textbox.removeAttribute("aria-invalid");
+      textbox.removeAttribute("aria-describedby");
+    }
   });
 
   return (

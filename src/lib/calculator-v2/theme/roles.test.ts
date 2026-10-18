@@ -39,6 +39,9 @@ it("TH-3 every role, curve slot and fill alpha has its own --kc- custom property
     text: "--kc-text",
     textSecondary: "--kc-text-secondary",
     error: "--kc-error",
+    warning: "--kc-warning",
+    tooltip: "--kc-tooltip",
+    tooltipLabel: "--kc-tooltip-label",
     axis: "--kc-axis",
     gridMajor: "--kc-grid-major",
     gridMinor: "--kc-grid-minor",
@@ -165,7 +168,7 @@ it("TH-3 hostThemeCss declares every role, curve and fill alpha and the shading 
     .slice(6, -1)
     .split(";")
     .map((decl) => decl.split(":"));
-  expect(entries).toHaveLength(30);
+  expect(entries).toHaveLength(33);
   expect(entries).toEqual([
     ...COLOR_ROLES.map((r) => [ROLE_VARS[r], roles[r]]),
     ...CURVE_SLOTS.map((k) => [CURVE_VARS[k], curves[k]]),
