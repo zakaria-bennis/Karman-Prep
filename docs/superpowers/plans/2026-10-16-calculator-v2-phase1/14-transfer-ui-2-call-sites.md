@@ -334,3 +334,31 @@ test("TR-76 with calculatorV2 off every call site renders Export to Karman uncha
 
 - [ ] **Step 4: Run them and see them pass** — `npm run test:calculator -- tests/calculator/v2/transfer.spec.ts -g "TR-4 |TR-76"` (all five projects), then `npx tsc --noEmit`; Expected: PASS, tsc exit 0.
 - [ ] **Step 5: Commit** — `git add tests/calculator && git commit -m "Add the synthetic transfer questions and check where Transfer controls render"`
+
+### Adaptations made while executing tasks 5 to 7
+
+- D4 (lead decision): the wrappers render `t.TransferControl` from `useTransferClassifier()`, and
+  their item lookup lives in the lazy `transfer-items.ts`; no eager module imports either. The
+  component tests therefore await the first control (`waitFor`, `findBy…`) or an awaited
+  `loadTransferClassifier()` before their synchronous checks, and one added test,
+  "AR-33 (D4) a v2 wrapper renders no control until the lazy classifier has loaded", checks the
+  empty first render. The AR-33 source test covers `TransferControl`, its stylesheets and
+  `transfer-items.ts`.
+- Names: 12's table 8.1 descriptions are spaced plain text, so the expected names read
+  `Transfer to Calculator: y = 2x + 3` (and `…, occurrence 2`), not `y=2x+3`.
+- The TR-2 test moved from task 5 to task 6: its `STEM_AND_CHOICES` expectation needs the
+  answer-choice clusters task 6 adds.
+- jsdom gives KaTeX's MathML elements no `style`, so a role query by name over a page whose
+  choice buttons hold math throws inside `getComputedStyle`. The call-site tests find buttons by
+  `aria-label` or text (`buttons(…)`) instead; isolated wrapper tests keep role queries.
+- No non-null assertions: the tests use optional chaining and a `must()` helper.
+- `TransferControl.module.css`'s header comment no longer spells the forbidden declarations, which
+  the TR-45 stylesheet check matched.
+- v1 class strings stay byte-identical: the choice padding switches inside the existing template
+  (`pr-14`/`pr-24`, `pr-28`/`pr-40`), and the daily label appends ` pr-14` only on v2.
+- `MathText` computes `mathKeys` only when `calculator` is set.
+- Browser helpers: an XPath name test never matches KaTeX's MathML `<annotation>` in an HTML
+  document, so `transfer-helpers.ts` uses `*[local-name()="annotation"]` and exports
+  `annotations(page, latex)` for the TR-4 test.
+- Task 7's TR-76 test passed before `main.tsx` changed (it checks the wrappers from tasks 5 and 6);
+  only TR-4 failed first, as expected.

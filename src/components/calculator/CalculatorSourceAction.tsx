@@ -3,10 +3,10 @@
 import { useLayoutEffect, useMemo, useState, useSyncExternalStore, type JSX } from "react";
 import { ClipboardPaste, ChevronDown, Table2, MapPin, Copy } from "lucide-react";
 import { normalizeMath, parseText, tablePayload, type PastePayload } from "@/lib/calculator/paste";
-import type { StemInput, TransferItem } from "@/lib/calculator-transfer/classify";
-import { splitMathText, type MathSegment } from "@/components/learn/math-segments";
+import type { StemInput } from "@/lib/calculator-transfer/classify";
 import { useCalculator, type V2Bridge } from "./CalculatorScope";
 import { useTransferClassifier, type TransferClassifier } from "./transfer-classifier";
+import type { TransferControlView } from "./transfer-items";
 import styles from "./calculator.module.css";
 
 function PasteAction({ payload, label }: { payload: PastePayload | null; label: string }) {
@@ -144,32 +144,10 @@ function useQuestionStem(questionKey: string): StemInput | null {
   );
 }
 
-const segmentCache = new WeakMap<StemInput, MathSegment[]>();
-const segmentsOf = (stem: StemInput) => {
-  let segments = segmentCache.get(stem);
-  if (segments === undefined) {
-    segments = splitMathText(stem.text, stem.serializedFunctionLines, true, true);
-    segmentCache.set(stem, segments);
-  }
-  return segments;
-};
-const namesCache = new WeakMap<ReadonlyMap<number, TransferItem>, Map<string, string>>();
-
-interface Control {
-  item: TransferItem;
-  name: string;
-  placement: "inline" | "block" | "cluster";
-}
-function renderControl(t: TransferClassifier | null, control: Control | null) {
-  if (t === null || control === null) return null;
+function renderControl(t: TransferClassifier | null, view: TransferControlView | null) {
+  if (t === null || view === null) return null;
   const { TransferControl } = t;
-  return (
-    <TransferControl
-      item={control.item}
-      accessibleName={control.name}
-      placement={control.placement}
-    />
-  );
+  return <TransferControl {...view} />;
 }
 
 function V2SourceAction(props: {
@@ -181,24 +159,11 @@ function V2SourceAction(props: {
   const { latex, segmentIndex, stem, bridge } = props;
   useRegisterStem(bridge.questionKey, stem);
   const t = useTransferClassifier(stem !== undefined && segmentIndex !== undefined);
-  const control = useMemo((): Control | null => {
-    if (t === null || stem === undefined || segmentIndex === undefined) return null;
-    // The run-shift guard: the k-th rendered math must be the whole-text segment it maps to.
-    const segment = segmentsOf(stem)[segmentIndex];
-    const items = t.classifyStem(stem);
-    const item = items.get(segmentIndex);
-    if (segment === undefined || segment.kind === "text" || segment.latex !== latex || !item)
-      return null;
-    let names = namesCache.get(items);
-    if (names === undefined) {
-      names = t.accessibleNames([...items.values()]);
-      namesCache.set(items, names);
-    }
-    const name = names.get(item.sourceId);
-    if (name === undefined) return null;
-    return { item, name, placement: segment.kind === "block" ? "block" : "inline" };
-  }, [t, stem, segmentIndex, latex]);
-  return renderControl(t, control);
+  const view =
+    t && stem !== undefined && segmentIndex !== undefined
+      ? t.stemControl(stem, segmentIndex, latex)
+      : null;
+  return renderControl(t, view);
 }
 
 function V2ChoiceAction(props: {
@@ -211,13 +176,7 @@ function V2ChoiceAction(props: {
   const { text, letter, stem, slot, bridge } = props;
   const registered = useQuestionStem(bridge.questionKey);
   const t = useTransferClassifier(slot === "cluster");
-  const context = stem ?? registered;
-  const control = useMemo((): Control | null => {
-    const item = t?.classifyChoice({ letter, text }, context) ?? null;
-    const name = item && t?.accessibleNames([item]).get(item.sourceId);
-    return item && name ? { item, name, placement: "cluster" } : null;
-  }, [t, letter, text, context]);
-  return renderControl(t, control);
+  return renderControl(t, t && t.choiceControl(letter, text, stem ?? registered));
 }
 
 function V1SourceAction({ latex }: { latex: string }) {

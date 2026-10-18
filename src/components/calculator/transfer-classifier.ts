@@ -1,15 +1,17 @@
 "use client";
 
 // D4 (00-index section 7, AR-33): 12's classifier and the Transfer control are too large for the
-// quiz routes' eager budget, so eager code reaches them only through these two import()s, loaded
-// together in their own chunks apart from the calculator's. Callers render no Transfer control
-// until both have resolved; a failed chunk renders none and the next caller retries.
+// quiz routes' eager budget, so eager code reaches them, and the wrappers' item lookup in
+// transfer-items.ts, only through these import()s, loaded together in their own chunks apart from
+// the calculator's. Callers render no Transfer control until all have resolved; a failed chunk
+// renders none and the next caller retries.
 
 import { useEffect, useState } from "react";
 
-export type TransferClassifier = typeof import("@/lib/calculator-transfer/classify") & {
-  TransferControl: typeof import("./TransferControl").TransferControl;
-};
+export type TransferClassifier = typeof import("@/lib/calculator-transfer/classify") &
+  typeof import("./transfer-items") & {
+    TransferControl: typeof import("./TransferControl").TransferControl;
+  };
 
 let pending: Promise<TransferClassifier> | null = null;
 let loaded: TransferClassifier | null = null;
@@ -19,9 +21,10 @@ export function loadTransferClassifier(): Promise<TransferClassifier> {
   if (pending === null) {
     const attempt = Promise.all([
       import("@/lib/calculator-transfer/classify"),
+      import("./transfer-items"),
       import("./TransferControl"),
-    ]).then(([classify, control]) => {
-      loaded = { ...classify, TransferControl: control.TransferControl };
+    ]).then(([classify, items, control]) => {
+      loaded = { ...classify, ...items, TransferControl: control.TransferControl };
       return loaded;
     });
     attempt.catch(() => {

@@ -380,7 +380,9 @@ div[data-transfer-status][role=status][aria-live=polite][aria-atomic=true].sr-on
   `loadTransferClassifier()` therefore runs a second `import("./TransferControl")` together with
   the classifier's and resolves both as one value (`TransferClassifier` gains `TransferControl`);
   the AR-11 wrappers in `CalculatorSourceAction.tsx` render `t.TransferControl` from that value
-  and never import the control. The control's two stylesheets (`TransferControl.module.css`,
+  and never import the control. A third `import("./transfer-items")` in the same call carries the
+  wrappers' item lookup (`stemControl`, with the run-shift guard and the TR-50 names, and
+  `choiceControl`), so the eager wrappers keep only the version switch and the stem registry. The control's two stylesheets (`TransferControl.module.css`,
   `transfer-control.css`) are imported only by `TransferControl.tsx`, so they load with its chunk
   and no Transfer CSS is eager; this is safe because every rule they hold styles a control or an
   attribute a mounted control writes. Controls render nothing until both chunks have resolved,
@@ -389,7 +391,7 @@ div[data-transfer-status][role=status][aria-live=polite][aria-atomic=true].sr-on
   lazily from `transfer-report-send.ts`, as `report-error.ts`'s does), the loader, the stem
   registry and wrappers in `CalculatorSourceAction.tsx` and the seam stay eager. AR-33's source
   test (`transfer-classifier.test.tsx`) checks that no eager module value-imports the classifier,
-  `TransferControl` or its stylesheets. Tests that classify a rendered question await the controls
+  `TransferControl`, its stylesheets or `transfer-items.ts`. Tests that classify a rendered question await the controls
   (`findBy…`, or `waitFor`, or an awaited `loadTransferClassifier()`) instead of assuming
   synchronous classification; `TransferControl.test.tsx` and `transfer-report.test.ts` import the
   control directly and stay synchronous.

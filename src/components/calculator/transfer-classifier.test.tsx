@@ -29,9 +29,10 @@ it("AR-33 the eager transfer code reaches the classifier and TransferControl onl
   // a value import of any calculator-transfer module but the eager payload leaf
   const staticImport =
     /^import\s+(?!type\b)[^;]*?from\s+"@\/lib\/calculator-transfer\/(?!payload")[^"]*";/m;
-  // any value import (or side-effect import) of TransferControl or its two stylesheets
+  // any value import (or side-effect import) of TransferControl, its two stylesheets or the
+  // wrappers' lazy item lookup
   const controlImport =
-    /^import\s+(?!type\b)(?:[^;]*?from\s+)?"[^"]*(?:\/TransferControl(?:\.module\.css)?|\/transfer-control\.css)";/m;
+    /^import\s+(?!type\b)(?:[^;]*?from\s+)?"[^"]*(?:\/TransferControl(?:\.module\.css)?|\/transfer-control\.css|\/transfer-items)";/m;
   for (const file of eager) {
     const source = readFileSync(file, "utf8");
     expect(source, file).not.toMatch(staticImport);
@@ -40,6 +41,7 @@ it("AR-33 the eager transfer code reaches the classifier and TransferControl onl
   const loader = readFileSync("src/components/calculator/transfer-classifier.ts", "utf8");
   expect(loader).toMatch(/import\("@\/lib\/calculator-transfer\/classify"\)/);
   expect(loader).toMatch(/import\("\.\/TransferControl"\)/);
+  expect(loader).toMatch(/import\("\.\/transfer-items"\)/);
   // the control's stylesheets are imported only by the lazily loaded control
   const control = readFileSync("src/components/calculator/TransferControl.tsx", "utf8");
   expect(control).toMatch(/^import styles from "\.\/TransferControl\.module\.css";$/m);
