@@ -4,6 +4,8 @@
 
 import { expect, test } from "@playwright/test";
 import { EDITOR_MESSAGES } from "@/components/calculator-v2/ui/list/messages";
+import { contrastRatio } from "@/lib/calculator-v2/theme/contrast";
+import { SKIN_IDS } from "@/lib/calculator-v2/theme/skins";
 import {
   announced,
   api,
@@ -15,10 +17,14 @@ import {
   frames,
   keypadOpen,
   names,
+  onBackground,
   openShell,
   platformFonts,
+  PROJECTS,
   rowField,
   rows,
+  textPairs,
+  toHex,
   useConsoleGuard,
 } from "./shell-helpers";
 import {
@@ -250,3 +256,24 @@ test("NM-42 an Alt+Enter row-limit refusal announces the row-limit message and a
   await expect.poll(() => announced(page)).toContain(EDITOR_MESSAGES.rowLimit);
   expect(await rows(page)).toHaveLength(100);
 });
+
+for (const skin of SKIN_IDS)
+  test(`TH-1 rendered shadow text meets 7:1 and field boundaries 3:1 on their backgrounds in ${skin}`, async ({
+    page,
+  }, info) => {
+    test.skip(!PROJECTS.includes(info.project.name), "computed colours are engine-independent");
+    await openShell(page, `?skin=${skin}&w=800&h=600&rows=${enc(["y=x", "\\frac{", "2+3"])}`);
+    await rowField(page, "3").click();
+    await api(page, "c.updateSettings({ keypad: true })");
+    await page.getByRole("button", { name: "Graph settings" }).click();
+    const pairs = await textPairs(page);
+    expect([
+      pairs.some((p) => p.kind === "text"),
+      pairs.some((p) => p.kind === "boundary"),
+    ]).toEqual([true, true]);
+    for (const p of pairs)
+      expect(
+        contrastRatio(onBackground(p.fg, p.alpha, p.bg), toHex(p.bg).hex),
+        `${p.kind} ${p.name}`
+      ).toBeGreaterThanOrEqual(p.kind === "text" ? 7 : 3);
+  });

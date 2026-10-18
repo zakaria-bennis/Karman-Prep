@@ -15,6 +15,12 @@
 *::after {
   box-sizing: border-box;
 }
+/* TH-14 (10 Task 12): the focus ring of shell-owned controls such as the AR-52 fallback buttons;
+   08 and 09 style their own. */
+:focus-visible {
+  outline: 2px solid var(--kc-focus-ring);
+  outline-offset: 2px;
+}
 /* AN-13, AR-38 (10 Task 11): the OS preference or the quiz setting makes every motion instant. */
 @media (prefers-reduced-motion: reduce) {
   *,

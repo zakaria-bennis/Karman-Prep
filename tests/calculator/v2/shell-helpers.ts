@@ -5,7 +5,17 @@
 // inside the page live in shell-probes.ts.
 
 import { expect, test, type Locator, type Page } from "@playwright/test";
-import { countLeavingFrames, readMotion, type Motion } from "./shell-probes";
+import { compositeOver } from "@/lib/calculator-v2/theme/contrast";
+import {
+  countLeavingFrames,
+  readMotion,
+  readRing,
+  readStrokes,
+  readTextPairs,
+  type Motion,
+  type Ring,
+  type TextPair,
+} from "./shell-probes";
 
 /** Fails the test on any console error or page error (each shell spec file calls it once). */
 export function useConsoleGuard(): void {
@@ -282,4 +292,72 @@ export async function instantMotion(page: Page): Promise<InstantMotion> {
     )
     .toBe(false);
   return { homeGone, leavingFrames, rowSettled, graphMoved, graphSettled };
+}
+
+/** TH-1, TH-14, TH-15: the projects that measure computed colours, which do not depend on the engine. */
+export const PROJECTS = ["calculator-chrome", "calculator-android"];
+
+/** A computed CSS colour ("rgb(…)", "rgba(…)", "color(srgb …)" or "#rrggbb[aa]") as lowercase hex and alpha. */
+export function toHex(css: string): { hex: string; alpha: number } {
+  const c = css.trim().toLowerCase();
+  const byte = (n: number) =>
+    Math.round(Math.min(255, Math.max(0, n)))
+      .toString(16)
+      .padStart(2, "0");
+  const hexMatch = /^#([0-9a-f]{6})([0-9a-f]{2})?$/.exec(c);
+  if (hexMatch) {
+    return {
+      hex: `#${hexMatch[1]}`,
+      alpha: hexMatch[2] ? parseInt(hexMatch[2], 16) / 255 : 1,
+    };
+  }
+  const rgb = /^rgba?\(([^)]*)\)$/.exec(c);
+  const srgb = /^color\(srgb ([^)]*)\)$/.exec(c);
+  const body = rgb?.[1] ?? srgb?.[1];
+  if (body === undefined) throw new Error(`unparsed colour ${css}`);
+  const parts = body
+    .split(/[\s,/]+/)
+    .filter(Boolean)
+    .map(Number);
+  const scale = srgb ? 255 : 1;
+  return {
+    hex: `#${parts
+      .slice(0, 3)
+      .map((v) => byte(v * scale))
+      .join("")}`,
+    alpha: parts.length > 3 ? parts[3] : 1,
+  };
+}
+
+/** The hex of `fg` at `alpha` over the opaque `bg`. */
+export function onBackground(fg: string, alpha: number, bg: string): string {
+  return compositeOver(toHex(fg).hex, alpha, toHex(bg).hex);
+}
+
+/** TH-14: the focused shadow element's outline and the background behind it, or null. */
+export function ringOf(page: Page): Promise<Ring | null> {
+  return page.evaluate(readRing);
+}
+
+/** TH-14: Tabs from #outside until focus returns there and returns every non-null ringOf. */
+export async function tabRings(page: Page): Promise<Ring[]> {
+  await page.locator("#outside").focus();
+  const rings: Ring[] = [];
+  for (let i = 0; i < 150; i++) {
+    await page.keyboard.press("Tab");
+    if (await page.evaluate(() => document.activeElement?.id === "outside")) return rings;
+    const ring = await ringOf(page);
+    if (ring !== null) rings.push(ring);
+  }
+  throw new Error(`focus never returned to #outside: ${JSON.stringify(rings.map((r) => r.name))}`);
+}
+
+/** TH-1: the rendered text and field-boundary colour pairs of the shadow root. */
+export function textPairs(page: Page): Promise<TextPair[]> {
+  return page.evaluate(readTextPairs);
+}
+
+/** TH-15: the canvas strokeStyles recorded by the recordStrokes init script. */
+export function strokes(page: Page): Promise<string[]> {
+  return page.evaluate(readStrokes);
 }
