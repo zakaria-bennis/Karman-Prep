@@ -138,6 +138,12 @@ export async function api(page: Page, script: string): Promise<void> {
   }, script);
 }
 
+/** S-6, NM-29: opens the settings popover with the Graph settings button. */
+export async function openSettings(page: Page): Promise<void> {
+  await page.getByRole("button", { name: "Graph settings" }).click();
+  await page.getByRole("dialog", { name: "Graph settings" }).waitFor();
+}
+
 export function announced(page: Page): Promise<string[]> {
   return page.evaluate(() => globalThis.__shell!.log.announcements.map((a) => a.text));
 }
