@@ -156,7 +156,7 @@ export function fitRegression(input: FitInput): RegressionResult {
   if (n === 0 || lists.some((l) => l.slice(0, n).some((v) => !Number.isFinite(v)))) {
     return failure(available, on);
   }
-  let p = new Float64Array(k),
+  let p: Float64Array = new Float64Array(k),
     approximate = false,
     linearFreeIntercept = false;
   const logFit = trans === null ? null : simple(trans.u, trans.v);
