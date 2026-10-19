@@ -365,14 +365,21 @@ test("R-1 clicking a row body focuses its field", async ({ page, isMobile }) => 
   await page.getByRole("button", { name: "Delete expression 3" }).click();
   await expect.poll(async () => (await rows(page)).length).toBe(2);
 });
-test("L-3 a row's math field draws no box, focused or not; the row's L-3 outline marks focus", async ({
+test("L-3 a row's math field draws no box, focused or not; the row's L-3 outline marks keyboard focus only", async ({
   page,
   isMobile,
 }) => {
   await openShell(page, `?rows=${enc(["y=x", "y=2x"])}`);
-  await tap(isMobile, rowField(page, "2"));
+  await tap(isMobile, rowField(page, "1"));
+  await expect.poll(() => focusedRow(page)).toBe("1");
+  await page.keyboard.press("End"); // an editing key in a clicked row keeps the pointer look
+  expect(
+    await page
+      .locator('#calc [data-row-id="1"]')
+      .evaluate((li) => getComputedStyle(li).outlineStyle)
+  ).toBe("none");
+  await page.keyboard.press("ArrowDown"); // L-3: a row reached from the keyboard is outlined
   await expect.poll(() => focusedRow(page)).toBe("2");
-  await page.keyboard.press("End"); // L-3: the outline marks keyboard focus
   const look = (id: string) =>
     page.locator(`#calc [data-row-id="${id}"]`).evaluate((row) => {
       const field = getComputedStyle(row.querySelector(".mq-editable-field")!);

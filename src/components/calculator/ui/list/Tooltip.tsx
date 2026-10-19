@@ -1,8 +1,9 @@
 // PM-29: the hover tooltip of the list toolbar and the Expand list button. A black box with white
-// 14 px text appears 450 ms after the pointer rests on the button (and at once on keyboard focus,
-// a Karman addition), 3 px below it with a 5 px arrow, centred on it and kept inside the
-// calculator. A disabled (aria-disabled) button shows none; a press, pointer leave or blur hides
-// it. The button's aria-label already names it, so the tooltip is aria-hidden.
+// 14 px text fades in (0.3 s) 500 ms after the pointer rests on the button (and at once on keyboard
+// focus, a Karman addition), 3 px below it (5 px below Expand list) with a 5 px arrow, centred on
+// it and kept 2 px inside the calculator. A disabled (aria-disabled) button shows none; it stays
+// about 165 ms after the pointer leaves, and a press or blur hides it at once. The button's
+// aria-label already names it, so the tooltip is aria-hidden.
 
 import {
   useEffect,
@@ -14,8 +15,9 @@ import {
   type PointerEvent,
 } from "react";
 
-export const TOOLTIP_DELAY_MS = 450;
-const EDGE = 4; // the least distance kept from the calculator's edges
+export const TOOLTIP_DELAY_MS = 500;
+export const TOOLTIP_LINGER_MS = 165; // how long it stays after the pointer leaves
+const EDGE = 2; // the least distance kept from the calculator's edges
 
 export interface TooltipHandlers {
   onPointerEnter(e: PointerEvent<HTMLElement>): void;
@@ -51,7 +53,10 @@ export function useTooltip(disabled: boolean): { open: boolean; handlers: Toolti
         clear();
         timer.current = setTimeout(() => setOpen(true), TOOLTIP_DELAY_MS);
       },
-      onPointerLeave: hide,
+      onPointerLeave() {
+        clear();
+        timer.current = setTimeout(() => setOpen(false), TOOLTIP_LINGER_MS);
+      },
       onPointerDown: hide,
       onFocus(e) {
         if (!disabled && e.currentTarget.matches(":focus-visible")) setOpen(true);

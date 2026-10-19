@@ -8,7 +8,7 @@ import { afterEach, expect, it, vi } from "vitest";
 import { clampListWidth, ListResizer } from "../layout/ListResizer";
 import { panelProps, renderEditor, rowItem } from "./__fixtures__/render-editor";
 import { ExpressionPanel } from "./ExpressionPanel";
-import { TOOLTIP_DELAY_MS } from "./Tooltip";
+import { TOOLTIP_DELAY_MS, TOOLTIP_LINGER_MS } from "./Tooltip";
 
 const latexes = (kit: ReturnType<typeof renderEditor>) =>
   kit.engine.getSnapshot().rows.map((r) => r.latex);
@@ -59,18 +59,20 @@ it("EL-45 Edit list mode swaps each row's cross for Create Table, Duplicate and 
   const kit = renderEditor(<ExpressionPanel {...panelProps()} />, { rows: ["y=x", "a=2"] });
   const user = userEvent.setup();
   await user.click(screen.getByRole("button", { name: "Edit list" }));
-  expect(screen.queryByRole("button", { name: "Delete expression 1" })).toBeNull();
-  expect(screen.getByRole("button", { name: "Create Table: Expression 1" })).toBeInTheDocument();
-  expect(screen.queryByRole("button", { name: "Create Table: Expression 2" })).toBeNull();
-  await user.click(screen.getByRole("button", { name: "Duplicate: Expression 2" }));
+  expect(document.querySelector(".kc-row-delete")).toBeNull(); // the crosses give way
+  expect(
+    screen.getByRole("button", { name: "Create table from expression 1" })
+  ).toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "Create table from expression 2" })).toBeNull();
+  await user.click(screen.getByRole("button", { name: "Duplicate expression 2" }));
   expect(latexes(kit)).toEqual(["y=x", "a=2", "a=2"]);
-  await user.click(screen.getByRole("button", { name: "Delete: Expression 1" }));
+  await user.click(screen.getByRole("button", { name: "Delete expression 1" }));
   expect(latexes(kit)).toEqual(["a=2", "a=2"]);
   await user.click(screen.getByRole("button", { name: "Done" }));
   expect(screen.getByRole("button", { name: "Delete expression 1" })).toBeInTheDocument();
 });
 
-it("PM-29 a toolbar tooltip shows 450 ms after hover, hides on leave, and never on a disabled button", () => {
+it("PM-29 a toolbar tooltip shows 500 ms after hover, stays 165 ms after leave, and never on a disabled button", () => {
   vi.useFakeTimers();
   renderEditor(<ExpressionPanel {...panelProps()} />, { rows: ["y=x"] });
   const collapse = screen.getByRole("button", { name: "Collapse list" });
@@ -80,6 +82,9 @@ it("PM-29 a toolbar tooltip shows 450 ms after hover, hides on leave, and never 
   act(() => vi.advanceTimersByTime(1));
   expect(collapse.querySelector(".kc-tooltip")).toHaveTextContent("Hide Expression List");
   fireEvent.pointerLeave(collapse);
+  act(() => vi.advanceTimersByTime(TOOLTIP_LINGER_MS - 1));
+  expect(collapse.querySelector(".kc-tooltip")).not.toBeNull();
+  act(() => vi.advanceTimersByTime(1));
   expect(collapse.querySelector(".kc-tooltip")).toBeNull();
   const redo = screen.getByRole("button", { name: "Redo" });
   expect(redo).toHaveAttribute("aria-disabled", "true");

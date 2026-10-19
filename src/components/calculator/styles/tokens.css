@@ -6,7 +6,6 @@
   /* Type */
   --kc-font-ui: Arial, Arimo, "Liberation Sans", sans-serif;
   --kc-font-math: "Times New Roman", Tinos, "Liberation Serif", serif;
-  --kc-font-math-operator: STIXGeneral, "Times New Roman", Tinos, "Liberation Serif", serif;
   --kc-size-ui: 16px;
   --kc-size-list: 17.6px;
   --kc-size-math: 20.24px;
@@ -17,6 +16,7 @@
   --kc-size-eval: 15.2px;
   --kc-size-eval-math: 17.48px;
   --kc-size-slider-letter: 15.64px;
+  --kc-size-slider-word: 13.6px;
 
   /* Geometry */
   --kc-list-width: clamp(320px, calc(160px + 20%), 500px);
@@ -71,8 +71,8 @@
   --kc-dur-200: 200ms;
   --kc-dur-250: 250ms;
   --kc-dur-300: 300ms;
+  --kc-dur-400: 400ms;
   --kc-dur-800: 800ms;
-  --kc-dur-row-exit: 190ms;
   --kc-ease: ease;
   --kc-ease-out: ease-out;
 }
@@ -81,14 +81,14 @@
     --kc-dur-200: 0ms;
     --kc-dur-250: 0ms;
     --kc-dur-300: 0ms;
+    --kc-dur-400: 0ms;
     --kc-dur-800: 0ms;
-    --kc-dur-row-exit: 0ms;
   }
 }
 :host([data-reduced-motion="true"]) {
   --kc-dur-200: 0ms;
   --kc-dur-250: 0ms;
   --kc-dur-300: 0ms;
+  --kc-dur-400: 0ms;
   --kc-dur-800: 0ms;
-  --kc-dur-row-exit: 0ms;
 }

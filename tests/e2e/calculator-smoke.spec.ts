@@ -34,7 +34,7 @@ const failOneMount = () => {
   };
 };
 
-test("AR-65 practice opens the calculator under Turbopack, types and graphs y=x^2 with the worker loaded from /_next/ and a KaTeX_Math face loaded", async ({
+test("AR-65 practice opens the calculator under Turbopack, types and graphs y=x^2 with the worker loaded from /_next/ and the row in the --kc-font-math stack", async ({
   page,
 }) => {
   const errors: string[] = [];
@@ -60,12 +60,12 @@ test("AR-65 practice opens the calculator under Turbopack, types and graphs y=x^
     await page.evaluate(() => globalThis.__calculatorHarness!.engine.getExpressions()[0].latex)
   ).toBe("y=x^{2}");
   expect(
-    await page.evaluate(() =>
-      [...document.fonts].some(
-        (f) => f.family.replace(/"/g, "") === "KaTeX_Math" && f.status === "loaded"
-      )
-    )
-  ).toBe(true);
+    await page.evaluate(() => {
+      const root = document.querySelector("[data-calculator-host]")?.shadowRoot;
+      const math = root?.querySelector(".mq-root-block");
+      return math ? getComputedStyle(math).fontFamily : null;
+    })
+  ).toBe('"Times New Roman", Tinos, "Liberation Serif", serif');
   expect(failedFonts).toEqual([]);
   expect(errors).toEqual([]);
 });

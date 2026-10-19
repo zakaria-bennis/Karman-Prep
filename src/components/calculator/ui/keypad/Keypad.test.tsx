@@ -10,12 +10,27 @@ import { Keypad, type KeypadProps } from "./Keypad";
 import { keypadLayout } from "./keys";
 
 const keypad = (props: Partial<KeypadProps> = {}) => (
-  <Keypad containerWidth={900} pointer="fine" open onOpenChange={vi.fn()} {...props} />
+  <Keypad
+    containerWidth={900}
+    layout="desktop"
+    pointer="fine"
+    open
+    onOpenChange={vi.fn()}
+    {...props}
+  />
 );
 /** A keypad whose open state follows its own onOpenChange, as the shell's does. */
 function StatefulKeypad(props: { initialOpen: boolean }) {
   const [open, setOpen] = useState(props.initialOpen);
-  return <Keypad containerWidth={900} pointer="fine" open={open} onOpenChange={setOpen} />;
+  return (
+    <Keypad
+      containerWidth={900}
+      layout="desktop"
+      pointer="fine"
+      open={open}
+      onOpenChange={setOpen}
+    />
+  );
 }
 const groupIds = () =>
   [...document.querySelectorAll("[data-group]")].map((g) => g.getAttribute("data-group"));

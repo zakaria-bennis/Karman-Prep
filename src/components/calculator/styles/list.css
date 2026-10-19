@@ -73,17 +73,6 @@
   transform: translateY(100%);
 }
 
-/* TH-14: a 2 px focus-ring outline with a 2 px offset, on keyboard focus only. */
-.kc-list-tool:focus-visible,
-.kc-edit-action:focus-visible,
-.kc-list:focus-visible,
-.kc-row-tab:focus-visible,
-.kc-row-warning:focus-visible,
-.kc-row-hint-action:focus-visible {
-  outline: 2px solid var(--kc-focus-ring);
-  outline-offset: 2px;
-}
-
 /* L-3, TH-14: a row reached from the keyboard also carries a 2 px outline inside its accent
    borders; the panel marks keyboard use, so a click keeps the reference look. */
 .kc-list-panel[data-input="keyboard"] .kc-row[data-focused="true"] {
@@ -111,7 +100,6 @@
 .kc-row {
   position: relative;
   display: grid;
-  grid-template-rows: 1fr;
   margin-top: -1px;
   border-top: 1px solid var(--kc-row-rule);
   border-right: 1px solid transparent;
@@ -126,15 +114,21 @@
   padding-bottom: 6px;
 }
 
-/* VIS-22: the focused or active row: 2 px accent top and bottom, 1 px right, an accent tab with a
-   white number; the inner box gives back the extra pixels so the row keeps its height. */
-.kc-row:is([data-focused="true"], [data-active="true"]) {
+/* VIS-22: the focused row, or the keypad's target row while focus is in the keypad: 2 px accent
+   top and bottom, 1 px right, an accent tab with a white number; the inner box gives back the
+   extra pixels so the row keeps its height. A blurred row (a graph click, Escape) goes back to
+   the plain look, as the reference's does. */
+.kc-row:is(
+  [data-focused="true"],
+  .kc-app:has(.kc-keypad-region:focus-within) [data-active="true"]
+) {
   border-top: 2px solid var(--kc-focus-bar);
   border-right-color: var(--kc-focus-bar);
   border-bottom: 2px solid var(--kc-focus-bar);
 }
 
-.kc-row:is([data-focused="true"], [data-active="true"]) > .kc-row-inner {
+.kc-row:is([data-focused="true"], .kc-app:has(.kc-keypad-region:focus-within) [data-active="true"])
+  > .kc-row-inner {
   margin: -1px 0;
 }
 
@@ -158,12 +152,14 @@
   line-height: 11px;
 }
 
-.kc-row:is([data-focused="true"], [data-active="true"]) .kc-row-gutter {
+.kc-row:is([data-focused="true"], .kc-app:has(.kc-keypad-region:focus-within) [data-active="true"])
+  .kc-row-gutter {
   border-right-color: transparent;
   background: var(--kc-focus-bar);
 }
 
-.kc-row:is([data-focused="true"], [data-active="true"]) .kc-row-number {
+.kc-row:is([data-focused="true"], .kc-app:has(.kc-keypad-region:focus-within) [data-active="true"])
+  .kc-row-number {
   color: var(--kc-focus-bar-label);
 }
 
@@ -233,15 +229,18 @@
   fill: var(--kc-tab);
 }
 
-.kc-row:is([data-focused="true"], [data-active="true"]) .kc-row-warning {
+.kc-row:is([data-focused="true"], .kc-app:has(.kc-keypad-region:focus-within) [data-active="true"])
+  .kc-row-warning {
   color: var(--kc-focus-bar-label);
 }
 
-.kc-row:is([data-focused="true"], [data-active="true"]) .kc-warning-mark {
+.kc-row:is([data-focused="true"], .kc-app:has(.kc-keypad-region:focus-within) [data-active="true"])
+  .kc-warning-mark {
   stroke: var(--kc-focus-bar);
 }
 
-.kc-row:is([data-focused="true"], [data-active="true"]) .kc-warning-mark-dot {
+.kc-row:is([data-focused="true"], .kc-app:has(.kc-keypad-region:focus-within) [data-active="true"])
+  .kc-warning-mark-dot {
   fill: var(--kc-focus-bar);
 }
 
@@ -376,11 +375,13 @@
 }
 
 .kc-add-slider {
-  margin-bottom: 1px;
+  margin-top: -1px;
+  margin-bottom: 2px;
 }
 
+/* EL-36: 5 px from "add slider:" to the first button (with the 3 px gap). */
 .kc-add-slider-label {
-  margin-right: 1px;
+  margin-right: 2px;
 }
 
 /* EL-36: 35 by 26 letter buttons on a light gradient; one undefined letter, and "all", are blue. */
@@ -401,17 +402,16 @@
 }
 
 .kc-letter-button {
+  padding-bottom: 2px;
   font-family: var(--kc-font-math);
   font-size: var(--kc-size-slider-letter);
   font-style: italic;
 }
 
-.kc-letter-button {
-  padding-bottom: 2px;
-}
-
+/* "all" is upright, 13.6 px, centred without the letters' lift. */
 .kc-letter-button[data-word="true"] {
-  font-size: var(--kc-size-small);
+  padding-bottom: 0;
+  font-size: var(--kc-size-slider-word);
   font-style: normal;
 }
 
@@ -430,16 +430,20 @@
   color: var(--kc-accent-label);
 }
 
-.kc-letter-button:focus-visible {
-  outline: 2px solid var(--kc-focus-ring);
-  outline-offset: 2px;
-}
-
-/* EL-15: a point row's Label line: a 14 px white box with a 1 px grey edge, then the caption. */
+/* EL-15: a point row's Label line: a 14 px white box with a 1 px grey edge and 3 px corners, then
+   the caption 5 px on. Point labels are not drawn yet, so the line is shown unavailable: the
+   not-allowed cursor over both, and no hover or press look. */
 .kc-point-label {
-  gap: 6px;
+  gap: 5px;
   height: 14px;
   margin-bottom: 4px;
+  cursor: not-allowed;
+}
+
+.kc-point-label > label {
+  position: relative;
+  top: 1px;
+  cursor: inherit;
 }
 
 .kc-checkbox {
@@ -449,15 +453,10 @@
   height: 14px;
   margin: 0;
   border: 1px solid var(--kc-boundary);
-  border-radius: 2px;
+  border-radius: var(--kc-radius-small);
   background: var(--kc-list);
   appearance: none;
-  cursor: default;
-}
-
-.kc-checkbox:focus-visible {
-  outline: 2px solid var(--kc-focus-ring);
-  outline-offset: 2px;
+  cursor: inherit;
 }
 
 .kc-row-main > .kc-regression {
@@ -465,14 +464,16 @@
   padding-left: 53px;
 }
 
-/* VIS-30: a row is added at once; a row deleted with its cross folds its height and fades with
-   a slow start over 190 ms. A keyboard removal has no motion (row-presence). */
+/* VIS-30, VIS-MOTION-8: a row is added at once; a row deleted with its cross shrinks about its
+   centre to a tenth while it fades over 200 ms, in place, and the rows below move up when it is
+   removed. A keyboard removal has no motion (row-presence). */
 .kc-row[data-motion="exit"] {
-  grid-template-rows: 0fr;
   opacity: 0;
+  transform: scale(0.1);
+  transform-origin: center;
   transition:
-    grid-template-rows var(--kc-dur-row-exit) var(--kc-ease),
-    opacity var(--kc-dur-row-exit) var(--kc-ease);
+    transform var(--kc-dur-200) var(--kc-ease),
+    opacity var(--kc-dur-200) var(--kc-ease);
 }
 
 /* VIS-23: the next row's number on a tab that fades out downward; a press adds the row. */

@@ -131,6 +131,11 @@
   opacity: var(--kc-icon-rest);
 }
 
+/* KP-32: the keyboard sits 2.5 px above the tab's centre line, the triangle on it. */
+.kc-show-keypad > svg:first-child {
+  margin-bottom: 5px;
+}
+
 .kc-show-keypad:hover > svg {
   opacity: var(--kc-icon-hover-graph);
 }
@@ -209,13 +214,6 @@
 .kc-keypad[data-layout="phone"] .kc-key {
   border: 2px solid transparent;
   background-clip: padding-box;
-}
-
-.kc-key:focus-visible,
-.kc-keypad-bar button:focus-visible,
-.kc-show-keypad:focus-visible {
-  outline: 2px solid var(--kc-focus-ring);
-  outline-offset: 2px;
 }
 
 /* K-7: no double-tap zoom, so a double tap on = reaches the keypad; AN-11: a 100 ms tone change on

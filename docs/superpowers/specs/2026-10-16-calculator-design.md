@@ -413,9 +413,9 @@ when it stays at or under 400 ms with no overshoot.
 ### 10.5 Documents to update
 
 - `CLAUDE.md` describes the single calculator, its paths and its checks.
-- `public/calculator-notices.txt` lists MathQuill (commit `1cbc1c4128`), KaTeX and each KaTeX font
-  file the calculator serves, and every other third-party package in the lazy calculator chunk
-  (react, react-dom, scheduler, lucide-react and zod), as AR-5 and AR-62 require.
+- `public/calculator-notices.txt` lists MathQuill (commit `1cbc1c4128`) and every other
+  third-party package in the lazy calculator chunk (react, react-dom, scheduler, lucide-react and
+  zod), as AR-5 and AR-62 require. The calculator serves no font files (`--kc-font-math`).
 - `docs/enhanced-quiz-engine.md` section 8 describes the calculator; the Phase 4 PR that ships S-3
   and S-4 adds that display size and reverse contrast persist for the page session (section 10.3
   item 6).

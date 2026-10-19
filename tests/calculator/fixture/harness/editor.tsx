@@ -195,6 +195,7 @@ function EditorFrame(props: {
       </div>
       <Keypad
         containerWidth={containerWidth}
+        layout={query.layout}
         pointer={query.pointer}
         open={open}
         onOpenChange={(next) => setOpen(next)}

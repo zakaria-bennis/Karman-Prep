@@ -105,14 +105,11 @@ export function App(props: AppProps): JSX.Element {
     []
   );
   const closeSettings = useCallback(() => setSettingsAnchor(null), []);
-  // K-2: every keypad change goes through the policy. studentClosed lives for this mount only, so
-  // a student close does not carry into the next question (a new KarmanCalculator).
-  const studentClosed = useRef(false);
+  // K-2: every keypad change goes through the policy.
   const keypadEvent = useCallback(
     (event: KeypadEvent) => {
       const open = engine.settings.keypad;
-      const next = reduceKeypad({ open, studentClosed: studentClosed.current }, event);
-      studentClosed.current = next.studentClosed;
+      const next = reduceKeypad({ open }, event);
       if (next.open !== open) engine.updateSettings({ keypad: next.open });
     },
     [engine]

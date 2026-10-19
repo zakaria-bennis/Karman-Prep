@@ -14,7 +14,7 @@ import { Keypad } from "./Keypad";
 const editor = () => (
   <>
     <ExpressionPanel {...panelProps({ keypadOpen: true })} />
-    <Keypad containerWidth={900} pointer="fine" open onOpenChange={vi.fn()} />
+    <Keypad containerWidth={900} layout="desktop" pointer="fine" open onOpenChange={vi.fn()} />
   </>
 );
 const key = (name: string) => screen.getByRole("button", { name });
@@ -60,9 +60,18 @@ it("K-4 the Functions panel covers the keypad area in containers under 450 px (s
     [449, "cover"],
     [450, "above"],
   ] as const) {
-    renderEditor(<Keypad containerWidth={width} pointer="coarse" open onOpenChange={vi.fn()} />, {
-      rows: [""],
-    });
+    renderEditor(
+      <Keypad
+        containerWidth={width}
+        layout="desktop"
+        pointer="coarse"
+        open
+        onOpenChange={vi.fn()}
+      />,
+      {
+        rows: [""],
+      }
+    );
     await userEvent.setup().click(key("Functions"));
     expect(screen.getByRole("group", { name: "Functions" })).toHaveAttribute(
       "data-placement",

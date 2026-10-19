@@ -192,9 +192,12 @@ test("TR-66, KB-4 a mouse or keyboard transfer focuses the new row with the care
     inWindow: true,
   });
   expect((await snapshot(page))?.keypad).toBe(keypad);
-  // KB-4: the active row is the target of keypad input
+  // KB-4: the active row is the target of keypad input. A touch calculator has no Show keypad tab
+  // (VIS-RESPONSIVE-15), so a closed keypad is opened through the setting.
   if (!(await snapshot(page))?.keypad)
-    await page.getByRole("button", { name: "Show keypad", exact: true }).tap();
+    await page.evaluate(() =>
+      globalThis.__calculatorHarness!.engine.updateSettings({ keypad: true })
+    );
   await page
     .getByRole("region", { name: "Keypad", exact: true })
     .getByRole("button", { name: "7", exact: true })

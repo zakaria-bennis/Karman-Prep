@@ -1,11 +1,13 @@
 // EL-4, RS-2: the list's resize divider in the side-by-side layout. An invisible 15 px strip from
 // 3 px inside the panel's right edge to 12 px past it, with the ew-resize cursor. Dragging it sets
-// the list width live (pointer x minus 2 px, no transition), clamped to 320 px and the container
+// the list width live (no transition), keeping the distance between the pointer and the panel edge
+// it had at the grab, so the edge never jumps on the first move; clamped to 320 px and the container
 // width minus 200 px; the dragged width is kept when the container later resizes (re-clamped, never
 // replaced by the clamp() default). Karman addition: the strip is a focusable separator that the
 // arrow keys (10 px, 50 px with Shift), Home and End move.
 
 import {
+  useRef,
   useState,
   type CSSProperties,
   type JSX,
@@ -42,17 +44,21 @@ export function ListResizer(props: {
   onResize(width: number): void;
 }): JSX.Element {
   const { containerWidth, onResize } = props;
+  /** The pointer's distance past the panel edge at the grab. */
+  const grab = useRef(0);
 
   const onPointerDown = (e: PointerEvent<HTMLDivElement>) => {
     if (e.button !== 0) return;
     e.preventDefault();
+    const left = e.currentTarget.parentElement!.getBoundingClientRect().left;
+    grab.current = e.clientX - (left + props.width);
     e.currentTarget.setPointerCapture(e.pointerId);
   };
   const onPointerMove = (e: PointerEvent<HTMLDivElement>) => {
     const el = e.currentTarget;
     if (!el.hasPointerCapture(e.pointerId)) return;
     const left = el.parentElement!.getBoundingClientRect().left;
-    onResize(clampListWidth(e.clientX - left - 2, containerWidth));
+    onResize(clampListWidth(e.clientX - left - grab.current, containerWidth));
   };
   const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
     const now = props.width;

@@ -1,7 +1,8 @@
 // The keypad: a region named "Keypad"
 // with a Hide keypad bar and the key groups of keypadLayout() for the page, width, pointer and
-// Shift (the K-1 tray, the K-3 letters pages, the K-6 phone keypad), and a Show keypad control
-// while closed. A closed keypad stays mounted, hidden from assistive technology and inert, so the
+// Shift (the K-1 tray, the K-3 letters pages, the K-6 phone keypad), and, while closed, a Show
+// keypad tab at the bottom-left for a mouse in the side-by-side layout only (VIS-RESPONSIVE-15: a
+// stacked mouse layout opens it from the list toolbar, and a touch opens it by focusing a row). A closed keypad stays mounted, hidden from assistive technology and inert, so the
 // AN-1 slide has something to move. The audio key starts and stops the keyboard trace (K-9, POI-20). Insert and Enter
 // keys act through pressKey without taking focus from the row (K-10); arrows and Backspace repeat
 // while held (K-11); a pressed key carries data-pressed for its tone (AN-11). The Functions key
@@ -48,6 +49,7 @@ import { keypadLayout, type KeyDef, type KeyIcon, type KeypadLayout } from "./ke
 
 export interface KeypadProps {
   containerWidth: number; // < 600 uses the K-6 phone keypad
+  layout: "desktop" | "stacked"; // L-1 side by side, L-2 stacked
   pointer: "fine" | "coarse";
   open: boolean;
   onOpenChange(open: boolean, by: "student" | "system"): void;
@@ -125,6 +127,7 @@ const noSubscribe = () => () => undefined;
 
 export function Keypad(props: KeypadProps): JSX.Element {
   const { containerWidth, pointer, open, onOpenChange } = props;
+  const showTab = pointer === "fine" && props.layout === "desktop";
   const engine = useEngine();
   const focus = useContext(FocusContext);
   const announcer = useContext(AnnouncerContext);
@@ -162,7 +165,11 @@ export function Keypad(props: KeypadProps): JSX.Element {
     const target = focusAfter.current;
     if (target === null || (target === "hide") !== open) return;
     focusAfter.current = null;
-    (target === "hide" ? hideRef : showRef).current?.focus();
+    // Without the Show keypad tab, focus goes to the list toolbar's Keypad toggle when there is one.
+    const show =
+      showRef.current ??
+      sectionRef.current?.closest(".kc-app")?.querySelector<HTMLElement>('[data-tool="keypad"]');
+    (target === "hide" ? hideRef.current : show)?.focus();
   }, [open]);
 
   // Closing the keypad resets the page and Shift, so it always reopens on the main page, and ends
@@ -338,7 +345,7 @@ export function Keypad(props: KeypadProps): JSX.Element {
           />
         )}
       </section>
-      {!open && (
+      {!open && showTab && (
         <button
           ref={showRef}
           type="button"

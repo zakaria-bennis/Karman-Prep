@@ -109,8 +109,10 @@ test("L-3 the focused row fills its gutter in the focus-bar colour and draws a 2
   page,
 }) => {
   await open(page, ["y=x", "2+3"]);
-  await field(page, 2).focus();
-  await page.keyboard.press("End"); // keyboard use: the outline is for keyboard focus (L-3)
+  await field(page, 1).focus();
+  await page.keyboard.press("End");
+  await page.keyboard.press("ArrowDown"); // L-3: the outline is for a row reached from the keyboard
+  await expect(field(page, 2)).toBeFocused();
   const row = page.locator('li[data-row-id="2"]');
   const role = (name: string) =>
     row.evaluate((el, n) => getComputedStyle(el).getPropertyValue(n).trim(), name);
@@ -314,7 +316,7 @@ test("R-2 the error tooltip opens on hover and focus, closes on Escape, and togg
 test("AN-1 the keypad slides on translateY over 300 ms with ease and is visibility:hidden once hidden", async ({
   page,
 }) => {
-  await open(page, [""]);
+  await open(page, [""], "&pointer=fine"); // the Show keypad tab is a fine-pointer control
   const tray = page.locator(".kc-keypad");
   await expect(tray).toHaveCSS("visibility", "hidden");
   await page.getByRole("button", { name: "Show keypad" }).click();
@@ -433,7 +435,7 @@ test("S-1 the settings popover opens below its Settings control with right edges
   expect(p.y).toBeGreaterThanOrEqual(a.y + a.height - 1);
 });
 
-test("AN-5 rows appear at once and a removed row folds out over 190 ms without moving another row's caret", async ({
+test("AN-5 rows appear at once and a removed row shrinks and fades out in place over 200 ms without moving another row's caret", async ({
   page,
 }) => {
   await open(page, ["y=x", "a=2", "b=3"]);
@@ -450,7 +452,7 @@ test("AN-5 rows appear at once and a removed row folds out over 190 ms without m
   await expect(ghost).toHaveAttribute("data-motion", "exit");
   await expect
     .poll(() => transitions(ghost), { intervals: [16] })
-    .toContainEqual({ property: "grid-template-rows", duration: 190 });
+    .toContainEqual({ property: "transform", duration: 200 });
   await expect(ghost).toHaveCount(0);
   await page.keyboard.type("2");
   await expect.poll(() => latexes(page)).toEqual(["y=2x", "b=3", "y=3"]);

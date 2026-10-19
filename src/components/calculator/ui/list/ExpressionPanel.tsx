@@ -15,9 +15,11 @@ import {
   useRef,
   useState,
   type CSSProperties,
+  type FocusEvent,
   type JSX,
   type KeyboardEvent,
   type MouseEvent,
+  type PointerEvent,
   type ReactNode,
   type Ref,
 } from "react";
@@ -36,9 +38,31 @@ import { TableItem } from "./TableItem";
 import { ToastHost } from "./Toast";
 import { Tooltip, useTooltip } from "./Tooltip";
 
-/** L-3: marks keyboard use on the panel; Shift alone, as part of a chord, does not count. */
-function markInput(e: KeyboardEvent<HTMLElement>): void {
-  if (e.key !== "Shift") e.currentTarget.dataset.input = "keyboard";
+/** L-3: the keys that move focus between rows and controls; editing keys in a field do not. */
+const NAVIGATION_KEYS = new Set(["Tab", "ArrowUp", "ArrowDown"]);
+
+/**
+ * L-3: marks keyboard navigation on the panel, so only a row reached from the keyboard draws its
+ * outline. A navigation key arms the mark and the focus move it causes sets it; a Tab into the list
+ * arrives as its keyup. Typing, End or Backspace in a clicked row keeps the pointer look.
+ */
+function useInputMark() {
+  const armed = useRef(false);
+  return {
+    onKeyDownCapture: (e: KeyboardEvent<HTMLElement>) => {
+      if (e.key !== "Shift") armed.current = NAVIGATION_KEYS.has(e.key);
+    },
+    onKeyUpCapture: (e: KeyboardEvent<HTMLElement>) => {
+      if (e.key === "Tab") e.currentTarget.dataset.input = "keyboard";
+    },
+    onFocusCapture: (e: FocusEvent<HTMLElement>) => {
+      if (armed.current) e.currentTarget.dataset.input = "keyboard";
+    },
+    onPointerDownCapture: (e: PointerEvent<HTMLElement>) => {
+      armed.current = false;
+      e.currentTarget.dataset.input = "pointer";
+    },
+  };
 }
 
 type ListState = "expanded" | "collapsing" | "collapsed" | "expanding";
@@ -63,6 +87,7 @@ interface ToolButtonProps {
   icon: ReactNode;
   pressed?: boolean; // a toggle: aria-pressed
   disabled?: boolean; // aria-disabled; the button stays focusable (KB-13)
+  tool?: string; // data-tool, for the stylesheet and the keypad's focus return
   onClick?(): void;
   buttonRef?: Ref<HTMLButtonElement>;
 }
@@ -78,6 +103,7 @@ function ToolButton(props: ToolButtonProps): JSX.Element {
       aria-label={props.label}
       aria-pressed={props.pressed}
       aria-disabled={props.disabled}
+      data-tool={props.tool}
       onClick={props.onClick}
       {...tip.handlers}
     >
@@ -192,6 +218,7 @@ export function ExpressionPanel(props: ExpressionPanelProps): JSX.Element {
   const editListRef = useRef<HTMLButtonElement>(null);
   const presence = useRowPresence(rows);
   const list = useListLifecycle(engine, settings.expressionsCollapsed);
+  const inputMark = useInputMark();
   const { items, exitDone } = presence;
   // While collapsed no row is mounted to report its exit, so a row that leaves then is done.
   useEffect(() => {
@@ -244,13 +271,9 @@ export function ExpressionPanel(props: ExpressionPanelProps): JSX.Element {
       data-list-state={listState}
       data-keypad={String(props.keypadOpen)}
       data-scrolled={scrolled ? "true" : undefined}
-      // L-3, TH-14: the last input kind (a Tab into the list arrives as its keyup), so a row
-      // focused from the keyboard shows its outline and a clicked one keeps the reference look.
-      onKeyDownCapture={markInput}
-      onKeyUpCapture={markInput}
-      onPointerDownCapture={(e) => {
-        e.currentTarget.dataset.input = "pointer";
-      }}
+      // L-3, TH-14: a row focused from the keyboard shows its outline and a clicked one keeps
+      // the reference look.
+      {...inputMark}
     >
       {listState === "collapsed" && (
         <ToolButton
@@ -292,7 +315,8 @@ export function ExpressionPanel(props: ExpressionPanelProps): JSX.Element {
                     <ToolButton
                       label="Keypad"
                       tooltip="Keypad"
-                      icon={<KeyboardGlyph />}
+                      icon={<KeyboardGlyph width={22} />}
+                      tool="keypad"
                       pressed={props.keypadOpen}
                       onClick={props.onToggleKeypad}
                     />
@@ -307,6 +331,7 @@ export function ExpressionPanel(props: ExpressionPanelProps): JSX.Element {
                 label="Undo"
                 tooltip="Undo (CTRL+Z)"
                 icon={<UndoGlyph />}
+                tool="history"
                 disabled={!canUndo}
                 onClick={() => performUndo(engine, announcer)}
               />
@@ -314,6 +339,7 @@ export function ExpressionPanel(props: ExpressionPanelProps): JSX.Element {
                 label="Redo"
                 tooltip="Redo (CTRL+Y)"
                 icon={<UndoGlyph redo />}
+                tool="history"
                 disabled={!canRedo}
                 onClick={() => performRedo(engine, announcer)}
               />

@@ -106,6 +106,21 @@
   outline-offset: 2px;
 }
 
+/* Karman addition (D4 kept until the founder decides): on a coarse pointer the 37 px pills take
+   touches over a 44 px box; the drawn pill keeps the reference size. The zoom halves stay 35 px
+   (their group clips them, and they clear the 24 px minimum). */
+@media (pointer: coarse) {
+  .kc-graph-controls > button {
+    position: relative;
+  }
+
+  .kc-graph-controls > button::before {
+    content: "";
+    position: absolute;
+    inset: -3.5px;
+  }
+}
+
 /* RS (responsive.md): on a touch screen with a calculator under 450 by 495 px the zoom buttons
    go; pinch zoom stands in for them. CalculatorLayout marks that case. */
 .kc-app[data-compact-touch="true"] .kc-zoom-group {

@@ -15,8 +15,8 @@
 *::after {
   box-sizing: border-box;
 }
-/* TH-14: the focus ring of shell-owned controls such as the AR-52 fallback buttons;
-   08 and 09 style their own. */
+/* TH-14: the one keyboard focus ring of every control in the shadow root, a 2 px focus-ring outline
+   2 px out; other rules only move it (an inset offset) where the control is clipped. */
 :focus-visible {
   outline: 2px solid var(--kc-focus-ring);
   outline-offset: 2px;

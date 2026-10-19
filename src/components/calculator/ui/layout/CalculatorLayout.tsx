@@ -111,6 +111,7 @@ export function CalculatorLayout(props: CalculatorLayoutProps): JSX.Element {
       >
         <Keypad
           containerWidth={props.containerWidth}
+          layout={props.layout}
           pointer={props.pointer}
           open={props.keypadOpen}
           onOpenChange={props.onKeypadChange}

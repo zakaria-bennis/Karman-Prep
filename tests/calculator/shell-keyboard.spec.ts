@@ -266,27 +266,22 @@ test("K-2 fine pointer: the keypad starts hidden, Show keypad sits at the bottom
   await frames(page);
   expect(await keypadOpen(page)).toBe(false);
 });
-test("K-2 coarse pointer: a row touch opens the keypad; after Hide keypad, row touches use the phone keyboard until Show keypad; defaults return per question", async ({
+test("K-2 coarse pointer: a row touch opens the keypad; after Hide keypad the row keeps the phone keyboard until the next row touch, and there is no Show keypad tab", async ({
   page,
   isMobile,
 }) => {
   test.skip(!isMobile, "touch projects");
-  await openShell(page);
+  await openShell(page, `?rows=${enc(["1", "2"])}`);
+  await expect(page.getByRole("button", { name: "Show keypad" })).toHaveCount(0);
   await rowField(page, "1").tap();
   await expect.poll(() => keypadOpen(page)).toBe(true);
   await page.getByRole("button", { name: "Hide keypad" }).tap();
-  await rowField(page, "1").tap();
   await frames(page);
   expect([await keypadOpen(page), await inputMode(page)]).toEqual([false, "text"]);
-  await page.getByRole("button", { name: "Show keypad" }).tap();
-  await rowField(page, "1").tap();
+  await expect(page.getByRole("button", { name: "Show keypad" })).toHaveCount(0);
+  await rowField(page, "2").tap();
   await expect.poll(() => keypadOpen(page)).toBe(true);
-  await page.getByRole("button", { name: "Hide keypad" }).tap();
-  await page.evaluate(() => globalThis.__shell!.remount());
-  expect(await keypadOpen(page)).toBe(false);
-  await rowField(page, "1").tap();
-  await expect.poll(() => keypadOpen(page)).toBe(true);
-}); // the student's close does not carry into the next question
+});
 test("K-2 hardware typing edits the row while the touch keypad is open", async ({ page }, info) => {
   test.skip(info.project.name !== "calculator-ios", "touch device with a hardware keyboard");
   await openShell(page);
@@ -298,11 +293,6 @@ test("K-2 hardware typing edits the row while the touch keypad is open", async (
   await page.keyboard.press("Escape");
   await expect.poll(() => keypadOpen(page)).toBe(false);
   expect(await focusedRow(page)).toBe("1");
-  await page.getByRole("button", { name: "Show keypad" }).tap();
-  await page.getByRole("button", { name: "Hide keypad" }).tap();
-  await rowField(page, "1").tap();
-  await frames(page);
-  expect(await keypadOpen(page)).toBe(false);
 });
 test("K-12 opening the keypad, ABC page or Functions panel keeps the focused row and the caret", async ({
   page,

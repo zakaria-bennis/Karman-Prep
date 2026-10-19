@@ -25,7 +25,7 @@ export function EditRowActions(props: {
         <button
           type="button"
           className="kc-edit-row-action"
-          aria-label={`Create Table: Expression ${number}`}
+          aria-label={`Create table from expression ${number}`}
           onClick={props.onCreateTable}
         >
           <TableItemGlyph />
@@ -34,7 +34,7 @@ export function EditRowActions(props: {
       <button
         type="button"
         className="kc-edit-row-action"
-        aria-label={`Duplicate: Expression ${number}`}
+        aria-label={`Duplicate expression ${number}`}
         onClick={() => duplicateRow(engine, announcer, rowId)}
       >
         <DuplicateGlyph />
@@ -42,7 +42,7 @@ export function EditRowActions(props: {
       <button
         type="button"
         className="kc-edit-row-action"
-        aria-label={`Delete: Expression ${number}`}
+        aria-label={`Delete expression ${number}`}
         onClick={() => deleteRowByControl(engine, focus, rowId)}
       >
         <RemoveGlyph size={18} />

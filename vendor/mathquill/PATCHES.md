@@ -28,7 +28,7 @@ used; 0011 is made on top of 0009.
 ## Build options
 
 - `OMIT_FONT_FACE=true` drops the Symbola `@font-face` rule (and with it every CSS `url()`), so the
-  sheet loads no Symbola font; patch 0008 maps the families to KaTeX (AR-39).
+  sheet loads no Symbola font; patch 0008 maps the families to `--kc-font-math` (AR-39).
 - `NO_INSTALL=1` because `npm ci --ignore-scripts` ran first; the Makefile then skips its own
   `npm ci`, which would run install scripts.
 - Only the `js` and `css` targets are built: no minified file, no `basic` build and no fonts are

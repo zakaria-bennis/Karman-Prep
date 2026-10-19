@@ -1,29 +1,19 @@
-// K-2 keypad visibility policy. On a coarse pointer, a row focused by touch opens the keypad unless
-// the student closed it; a student close (Hide keypad, the L-2 toggle, Ctrl or Alt/Option+K, or
-// Escape) disarms touch opening until a student open re-arms it. A system change
-// (the per-question defaults) keeps the student's choice.
+// K-2 keypad visibility policy. A row focused by touch opens the keypad, as the reference's touch
+// calculator does (VIS-RESPONSIVE-15): touch has no Show keypad tab, so a student close (Hide
+// keypad, Ctrl or Alt/Option+K, or Escape) lasts until the next row is focused by touch, and the
+// phone keyboard serves the row in the meantime. Every other change sets the state it names.
 
 export interface KeypadPolicyState {
   open: boolean;
-  studentClosed: boolean;
 }
 export type KeypadEvent =
   | { type: "touch-focus-row" }
   | { type: "set"; open: boolean; by: "student" | "system" };
 
-export const INITIAL_KEYPAD_POLICY: KeypadPolicyState = Object.freeze({
-  open: false,
-  studentClosed: false,
-});
+export const INITIAL_KEYPAD_POLICY: KeypadPolicyState = Object.freeze({ open: false });
 
 /** Returns `state` itself when the event changes nothing. */
 export function reduceKeypad(state: KeypadPolicyState, event: KeypadEvent): KeypadPolicyState {
-  const next: KeypadPolicyState =
-    event.type === "touch-focus-row"
-      ? { open: state.open || !state.studentClosed, studentClosed: state.studentClosed }
-      : {
-          open: event.open,
-          studentClosed: event.by === "student" ? !event.open : state.studentClosed,
-        };
-  return next.open === state.open && next.studentClosed === state.studentClosed ? state : next;
+  const open = event.type === "touch-focus-row" ? true : event.open;
+  return open === state.open ? state : { open };
 }

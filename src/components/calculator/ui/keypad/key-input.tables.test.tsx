@@ -9,7 +9,7 @@ import { Keypad } from "./Keypad";
 const editor = () => (
   <>
     <ExpressionPanel {...panelProps({ keypadOpen: true })} />
-    <Keypad containerWidth={900} pointer="coarse" open onOpenChange={vi.fn()} />
+    <Keypad containerWidth={900} layout="desktop" pointer="coarse" open onOpenChange={vi.fn()} />
   </>
 );
 const key = (name: string) => screen.getByRole("button", { name });

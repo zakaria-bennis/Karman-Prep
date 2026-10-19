@@ -3,12 +3,15 @@
    -15); selection is a light blue behind ink glyphs (VIS-18) and empty slots are a 20% ink box
    (TY-29). */
 /* VIS-TYPOGRAPHY-ICONS-19: "=", "+", "<" and the other binary operators take a 23.8 px box at
-   20.24 px. They are set in the operator stack, whose first face (macOS's STIX) draws them at the
-   reference's size: "=" 12 by 6, "+" and "<" 12 by 12. */
+   20.24 px. They stay in the math stack's upright Times (the reference's own fallback face, whose
+   thin strokes match its operators on every platform), a tenth larger so "=" is 13 px wide with
+   its bars 4 px apart, padded out to the box and lowered onto the reference's line. */
 .mq-math-mode .mq-binary-operator {
-  padding: 0 0.246em;
-  font-family: var(--kc-font-math-operator);
-  line-height: 0.9;
+  position: relative;
+  top: 2px;
+  padding: 0 0.2533em;
+  font-size: 1.1em;
+  line-height: 0.8182;
 }
 
 /* VIS-TYPOGRAPHY-ICONS-20: an exponent clears its base by a pixel and rises one above the vendored
@@ -22,8 +25,34 @@
   top: -1px;
 }
 
+/* EL (error-1440 measurement): the fraction bar sits a pixel lower than the vendored one, with
+   the numerator and denominator where they were. */
+.mq-math-mode .mq-fraction .mq-denominator {
+  margin-top: 1px;
+  padding-top: calc(0.1em - 1px);
+}
+
+/* VIS-MOTION-24: the caret sits a pixel lower than the vendored one; right after an exponent it
+   reaches up past the exponent's raise, 24.5 px in all, as the reference's does. */
 .mq-editable-field .mq-cursor {
+  top: 1px;
   border-left-color: var(--kc-text);
+}
+
+.mq-editable-field .mq-supsub + .mq-cursor {
+  padding-top: 3.8px;
+}
+
+/* VIS-MOTION-24: under reduced motion the caret stays on. MathQuill blinks it by toggling a class
+   from script, which base.css's zero durations do not reach. */
+@media (prefers-reduced-motion: reduce) {
+  .mq-editable-field .mq-cursor.mq-blink {
+    visibility: visible;
+  }
+}
+
+:host([data-reduced-motion="true"]) .mq-editable-field .mq-cursor.mq-blink {
+  visibility: visible;
 }
 
 .mq-editable-field,
