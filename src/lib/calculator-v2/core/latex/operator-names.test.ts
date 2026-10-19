@@ -7,7 +7,7 @@ describe("operator-name allowlist", () => {
       new Set(names()).size,
       O.mathQuillAutoOperatorNames(),
       names().every(O.isBuiltinName),
-    ]).toEqual([104, names().join(" "), true]);
+    ]).toEqual([106, names().join(" "), true]);
     for (const e of O.panelCategories().flatMap((c) => c.entries))
       expect(O.isBuiltinName(e.name) && O.isShippedBuiltin(e.name)).toBe(true);
     expect([O.AUTO_COMMANDS.join(" "), O.mathQuillAutoCommands()]).toEqual(
@@ -21,8 +21,9 @@ describe("operator-name allowlist", () => {
         false
       );
   });
-  it("PR-12 Phase 1 ships exactly the trig, inverse trig, exp, ln and log functions", () => {
-    expect(O.SHIPPED_PHASE).toBe(1);
+  it("PR-12 built-ins ship by name: the SHIPPED set is the trig, inverse trig, exp, ln and log functions", () => {
+    expect([...O.SHIPPED].every(O.isBuiltinName)).toBe(true);
+    expect(names().filter(O.isShippedBuiltin)).toEqual([...O.SHIPPED]);
     expect(
       O.OPERATOR_NAMES.filter((n) => n.category !== null && O.isShippedBuiltin(n.name))
         .map((n) => n.name)
@@ -35,11 +36,21 @@ describe("operator-name allowlist", () => {
     ).toBe("with for and or of");
     expect([
       O.OPERATOR_NAMES.find((n) => n.name === "arctan")?.arity,
-      ["mean", "sinh", "nope"].map(O.isShippedBuiltin),
+      ["mean", "sinh", "nope", "length", "abs"].map(O.isShippedBuiltin),
     ]).toEqual([
       [1, 2],
-      [false, false, false],
+      [false, false, false, false, false],
     ]);
+  });
+  it("PR-12 abs and length are Desmos built-in names (appendix F decision 2)", () => {
+    const byName = new Map(O.OPERATOR_NAMES.map((n) => [n.name, n]));
+    expect([byName.get("abs"), byName.get("length")]).toEqual([
+      { name: "abs", category: 12, phase: 2, arity: [1] },
+      { name: "length", category: 4, phase: 2, arity: "variadic" },
+    ]);
+    expect(O.mathQuillAutoOperatorNames().split(" ")).toEqual(
+      expect.arrayContaining(["abs", "length"])
+    );
   });
   it("PR-12 panelCategories gives categories 1, 2 and 8 with K-5 actions", () => {
     expect(O.CATEGORY_HEADINGS.join("|")).toBe(
