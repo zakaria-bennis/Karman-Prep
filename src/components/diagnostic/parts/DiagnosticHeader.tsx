@@ -2,7 +2,7 @@
 
 // DiagnosticHeader — top bar for the active diagnostic:
 //   · Exit button + diagnostic label
-//   · Calculator (Desmos) + Scratchpad toggles (math only)
+//   · Calculator + Scratchpad toggles (math only)
 //   · Question navigator opener
 //   · Bookmark toggle
 //   · Section timer (circular ring + clock)

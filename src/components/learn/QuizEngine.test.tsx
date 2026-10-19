@@ -11,10 +11,8 @@ vi.mock("@/contexts/QuizContext", () => ({
   useQuiz: () => quiz,
   useOptionalQuizState: () => quiz.state,
 }));
-vi.mock("./DesmosWindow", () => ({ default: () => null }));
 vi.mock("./Scratchpad", () => ({ default: () => null }));
 vi.mock("./QuizResults", () => ({ default: () => <div>Results</div> }));
-vi.mock("./quiz/BottomToolbar", () => ({ BottomToolbar: () => null }));
 vi.mock("./quiz/VideoPromptBanner", () => ({ VideoPromptBanner: () => null }));
 
 const question: StudentQuizQuestion = {
@@ -66,7 +64,6 @@ beforeEach(() => {
     records: [],
     adaptivePath: [],
     consecutiveWrong: 0,
-    isDesmosOpen: false,
     isScratchpadOpen: false,
     score: null,
     correctCount: 0,
@@ -82,7 +79,6 @@ beforeEach(() => {
     nextQuestion: vi.fn(async () => {}),
     dismissVideoPrompt: vi.fn(),
     flagCurrent: vi.fn(async () => {}),
-    toggleDesmos: vi.fn(),
     toggleScratchpad: vi.fn(),
     reset: vi.fn(),
     retakeQuiz: vi.fn(async () => {}),

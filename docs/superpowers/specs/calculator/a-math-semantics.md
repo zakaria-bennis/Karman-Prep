@@ -357,7 +357,7 @@ The calculator README documents these limits. None of them blocks a phase.
 - **PR-43** The corpus has cases for `x_{1}`, `y_{1}` tables with blank cells, coordinate pairs as points and as table rows, and function coordinates as a table row, a point and an `f(2)` row; the `f(2)` case asserts a call with a value, never f·2, so Evaluate either uses f's existing definition or writes the question's definition first, and is otherwise shown disabled with its reason, including when f is defined nowhere (TR-31, TR-62). (Phase 3; verified by unit test)
 - **PR-44** Every TR- outcome names a corpus case. The transfer tests assert that the LaTeX written into the row parses to that case's tree and kind. Transferred inequalities and compound inequalities in x, y or both, and each such line of a transferred system of inequalities, classify as shaded regions (RC-14) and graph with shading, overlaps included (G-17; TR-11, TR-12); a transferred inequality whose only free names are not coordinates, such as `3p+4>19`, classifies by RC-13 (chip for p, nothing graphed); transferred circle equations classify as implicit curves (RC-12, TR-14). (Phase 1; verified by unit test)
 
-The Phase 1 plan grows the corpus; it has no fixed size. An REA capture that contradicts a default updates the rule, its cases and its tests in the same pull request.
+Each phase plan grows the corpus; it has no fixed size. An REA capture that contradicts a default updates the rule, its cases and its tests in the same pull request.
 
 ## 8. Phase summary
 

@@ -1,7 +1,7 @@
 # Karman calculator: UX, keypad, accessibility and theme
 
 This part of the [Karman calculator design](../2026-10-16-calculator-design.md)
-defines what a student sees, touches and hears in Karman calculator: the calculator
+defines what a student sees, touches and hears in the Karman calculator: the calculator
 window and its layouts, expression rows, typing behaviour and MathQuill configuration, the desktop
 and mobile keypads and the functions panel, settings, keyboard-first operation, the Scientific
 calculator, animation, screen-reader and audio support, and how every colour is derived from the
@@ -13,7 +13,7 @@ adapter and the public API in `d-architecture-integration.md`.
 
 IDs defined here:
 
-- Layout and window: L-1 to L-14 (L-15 was removed on 2026-10-19 with the standalone page)
+- Layout and window: L-1 to L-14
 - Rows: R-1 to R-10
 - Typing: T-1 to T-13
 - Keypad: K-1 to K-12
@@ -265,7 +265,8 @@ Defaults use the brand motion tokens (`docs/brand.md:186-201`): `duration-instan
 `cubic-bezier(0.22, 1, 0.36, 1)`, never overshoot. The 2026-10-16 captures contain no timings.
 During Phase 1 the lead measures test-day durations with owner-authorised REA behaviour capture
 (timing and screenshots only); a measured value replaces the default below when it stays at or
-under 400 ms with no overshoot, and the Phase 1 plan records both.
+under 400 ms with no overshoot, and the active phase plan records both (Phase 1 records are in git
+history).
 
 - **AN-1** Keypad show and hide: the tray moves on `transform: translateY` between 100% and 0 over 200 ms with `ease-standard`, then gets `visibility: hidden` when hidden (confirm by REA behaviour capture in Phase 1). (Phase 1; verified by browser test)
 - **AN-2** Functions panel: opens with opacity 0 to 1 and `translateY(8px)` to 0 over 200 ms, closes with opacity only over 100 ms, both `ease-standard` (confirm by REA behaviour capture in Phase 1). (Phase 1; verified by browser test)

@@ -51,12 +51,12 @@ export function useDiagnosticState({ questions, isSubscribed }: DiagnosticStateA
   const [showExplanation, setShowExplanation] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [scoring, setScoring] = useState<ScoredDiagnostic | null>(null);
-  const [desmosOpen, setDesmosOpen] = useState(false);
+  const [calculatorOpen, setCalculatorOpen] = useState(false);
   const [scratchpadOpen, setScratchpadOpen] = useState(false);
   const [navigatorOpen, setNavigatorOpen] = useState(false);
   const [exitConfirmOpen, setExitConfirmOpen] = useState(false);
   const router = useRouter();
-  // Constrain Desmos / Scratchpad drag to the diagnostic shell.
+  // Constrain Calculator / Scratchpad drag to the diagnostic shell.
   const shellRef = useRef<HTMLDivElement>(null);
 
   // Per-question UI state — keyed by question id so it survives
@@ -85,7 +85,7 @@ export function useDiagnosticState({ questions, isSubscribed }: DiagnosticStateA
   const currentSection = DOMAIN_SECTION[question.domain];
   const isMathQuestion = currentSection === "math";
   useEffect(() => {
-    if (!isMathQuestion) setDesmosOpen(false);
+    if (!isMathQuestion) setCalculatorOpen(false);
   }, [isMathQuestion]);
   const questionCrossed = crossedOut[question.id] ?? new Set<string>();
   const questionHighlightedChoices = highlightedChoices[question.id] ?? new Set<string>();
@@ -254,16 +254,16 @@ export function useDiagnosticState({ questions, isSubscribed }: DiagnosticStateA
       if (isEditable) return;
 
       if (e.key === "Escape") {
-        if (desmosOpen || scratchpadOpen) {
+        if (calculatorOpen || scratchpadOpen) {
           e.preventDefault();
-          if (desmosOpen) setDesmosOpen(false);
+          if (calculatorOpen) setCalculatorOpen(false);
           if (scratchpadOpen) setScratchpadOpen(false);
         }
         return;
       }
 
       if (e.key === "Enter") {
-        if (exitConfirmOpen || navigatorOpen || desmosOpen || scratchpadOpen) return;
+        if (exitConfirmOpen || navigatorOpen || calculatorOpen || scratchpadOpen) return;
         if (!isAnswered || isSubmitting) return;
         e.preventDefault();
         handleNext();
@@ -273,7 +273,7 @@ export function useDiagnosticState({ questions, isSubscribed }: DiagnosticStateA
     return () => window.removeEventListener("keydown", onKey);
   }, [
     scoring,
-    desmosOpen,
+    calculatorOpen,
     scratchpadOpen,
     exitConfirmOpen,
     navigatorOpen,
@@ -307,7 +307,7 @@ export function useDiagnosticState({ questions, isSubscribed }: DiagnosticStateA
     showExplanation,
     isSubmitting,
     scoring,
-    desmosOpen: isMathQuestion && desmosOpen,
+    calculatorOpen: isMathQuestion && calculatorOpen,
     scratchpadOpen,
     navigatorOpen,
     exitConfirmOpen,
@@ -330,8 +330,8 @@ export function useDiagnosticState({ questions, isSubscribed }: DiagnosticStateA
     questionHighlightedChoices,
     questionHighlights,
     // Setters callers need
-    setDesmosOpen: (open: boolean | ((previous: boolean) => boolean)) =>
-      setDesmosOpen(
+    setCalculatorOpen: (open: boolean | ((previous: boolean) => boolean)) =>
+      setCalculatorOpen(
         (previous) => isMathQuestion && (typeof open === "function" ? open(previous) : open)
       ),
     setScratchpadOpen,

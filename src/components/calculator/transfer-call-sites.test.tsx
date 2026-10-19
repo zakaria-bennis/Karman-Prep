@@ -218,8 +218,6 @@ it("AR-11, TR-22 the wrappers render only Transfer controls, question tables and
   stubbed(bridgeStub());
   render(tree);
   await waitFor(() => expect(namesOf()).toHaveLength(4));
-  expect(screen.queryAllByText(/Export to Karman|Copy for Desmos/)).toHaveLength(0);
-  expect(screen.queryByRole("button", { name: "Export options" })).toBeNull();
   expect(namesOf()).toEqual([
     "Transfer to Calculator: y = 2x + 3",
     "Transfer to Calculator: choice B",

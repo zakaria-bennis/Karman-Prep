@@ -23,7 +23,7 @@ cited inline as ground truth.
 - Format chooser: TR-60 to TR-63
 - After a transfer: TR-64 to TR-70
 - Data contract and code layout: TR-71 to TR-75
-- Release: TR-77 (TR-76 and TR-78 were removed on 2026-10-19 with the old calculator)
+- Release: TR-77
 - Corpus and bank checks: TR-79 to TR-80
 
 ## 1. Owner requirements (verbatim)
@@ -144,7 +144,7 @@ Table 4.2, allowed and excluded forms:
 - **TR-13** Equation subtypes all transfer as single rows: function definitions `name(v) = expr` with a one-letter name (optionally subscripted) and one identifier argument, variable definitions as RC- defines them, graphable relations, and other single equations such as `3p+4=19`; how each row then behaves follows RC- rules. (Phase 1; verified by unit test)
 - **TR-14** Circle equations such as `(x-2)^2+(y+1)^2=9` are equations and get a control; "circles" in the owner's blocked list means circle figures (owner confirmation 2). (Phase 1; verified by unit test)
 - **TR-15** A coordinate pair is `(a,b)` with numeric constants a and b, or two or more such pairs in one segment separated only by commas or semicolons; a capital letter directly before a pair (`A(2,3)`) is a point label and is not transferred, and pairs containing any name, such as `(h,k)` or `(2a,0)`, get no control. (Phase 3; verified by unit test)
-- **TR-16** An interval is not a pair: `(a,b)` gets no control when the prose of the same sentence before it contains "interval", "domain" or "range", carrying forward the context rule in `src/lib/desmos-transfers.ts:104-106`. (Phase 3; verified by unit test)
+- **TR-16** An interval is not a pair: `(a,b)` gets no control when the prose of the same sentence before it contains "interval", "domain" or "range". (Phase 3; verified by unit test)
 - **TR-17** A function coordinate is `name(a) = b` where name is a question function name and a and b are numeric constants. (Phase 3; verified by unit test)
 - **TR-18** In a segment, `name(…)` is a function call only when name is a question function name; otherwise it is implicit multiplication, such as `a(x+3)`, and transfers unchanged. (Phase 1; verified by unit test)
 - **TR-19** A name is a question function name if a stem segment defines it as a function, or if the prose of the stem or answer choice places it directly after "function" or "functions" (for example "the function $f$" or "functions $f$ and $g$"). (Phase 1; verified by unit test)

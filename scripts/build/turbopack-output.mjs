@@ -1,5 +1,4 @@
-// Turbopack output parsers for the calculator build checks (
-// section 16; AR-32, AR-33, AR-66). Each parser is written against the shapes Next 16.3.8 emits,
+// Turbopack output parsers for the calculator build checks (AR-32, AR-33, AR-66). Each parser is written against the shapes Next 16.3.8 emits,
 // recorded in scripts/build/__fixtures__/turbopack-16.3.8/ (see its README.md). Any other Next
 // version fails assertPinnedNext, so a format change is re-captured instead of misread.
 //

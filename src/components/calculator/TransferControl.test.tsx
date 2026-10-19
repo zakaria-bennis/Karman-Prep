@@ -144,8 +144,6 @@ it("AR-12 the control is icon-only with a Transfer to Calculator tooltip after 3
   fireEvent.focus(button);
   expect(tip).not.toHaveAttribute("hidden");
   expect(bridge.prefetch).toHaveBeenCalledTimes(2);
-  expect(screen.queryByText(/Export to Karman|Copy for Desmos/)).toBeNull();
-  expect(screen.queryByRole("button", { name: "Export options" })).toBeNull();
 });
 
 it("TR-59 a hidden control stays in the accessibility tree, and a click with no pointerdown transfers at once with trigger keyboard and no selection step", async () => {

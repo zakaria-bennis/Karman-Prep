@@ -16,26 +16,24 @@ configuration (CB-) is in the main overview.
 **IDs defined in this file**
 
 - AR-1 to AR-5: module layout, import boundaries, vendored MathQuill.
-- AR-6 to AR-8: removed on 2026-10-19 with the rollout flag.
-- AR-9 to AR-18: integration seam (scope, bridge, call sites, paste, keyboard isolation); AR-13
-  was removed on 2026-10-19 with the old calculator.
+- AR-9 to AR-18: integration seam (scope, bridge, call sites, paste, keyboard isolation).
 - AR-19 to AR-29: entry points, window modes, docking and breakpoints.
 - AR-30 to AR-34: lazy loading, bundle boundary, bundle and open-latency budgets.
 - AR-35 to AR-42: shadow-root mounting, styles, theme, motion, fonts, MathField adapter.
 - AR-43 to AR-51: compute worker, job protocol, cancellation, budgets, fallback.
 - AR-52 to AR-57: failure containment.
 - AR-58 to AR-61: per-question reset, page-session accessibility settings and teardown.
-- AR-62: the style build; AR-63 and AR-64 were removed on 2026-10-19 with the old calculator.
+- AR-62: the style build.
 - AR-65 to AR-66: checks against Next development and production bundles.
 - API-1 to API-15: the public `KarmanCalculator` API.
+- Gaps in ID numbers are retired IDs.
 
 ## 1. Quiz integration
 
 Scope hosts, each keyed per question: `src/components/learn/QuizEngine.tsx:148-156` (key at 149),
 `src/components/diagnostic/DiagnosticClient.tsx:75-80`,
-`src/components/learn/catalog-practice/CatalogPractice.tsx:152-157`,
-`src/components/learn/DailyChallenge.tsx:118-122` (inside `DailyQuestion`, keyed at 67) and
-`src/components/learn/ExternalCalculatorLink.tsx:24`. Toolbar triggers:
+`src/components/learn/catalog-practice/CatalogPractice.tsx:152-157`
+and `src/components/learn/DailyChallenge.tsx:118-122` (inside `DailyQuestion`, keyed at 67). Toolbar triggers:
 `quiz/PracticeToolbar.tsx:22`, `diagnostic/parts/DiagnosticHeader.tsx:64`,
 `CatalogPractice.tsx:188`, `DailyChallenge.tsx:185`. Transfer call sites: `MathText.tsx:235` and
 `245`, `QuestionTable.tsx:124`, `quiz/TableChoiceOption.tsx:92`, `quiz/ActiveQuizScreen.tsx:258`,
@@ -137,7 +135,7 @@ viewport opens full screen.
 - **AR-19** `src/components/calculator/breakpoints.ts` exports `CALCULATOR_DOCK_MIN_WIDTH = 1024`, `FULL_SCREEN_QUERY = "(max-width: 1023px), (max-height: 500px)"` and `PHONE_QUERY = "(max-width: 767px), (max-height: 500px)"`; calculator code uses only these. (Phase 1; verified by unit test)
 - **AR-20** Opening from the toolbar or side button gives the docked window (L-4, L-7) at 1024 px and wider (over 500 px tall) on the first open of a page session, then the floating or docked mode the student last chose, and full screen otherwise; the side button shows while the window is closed and `PHONE_QUERY` matches; tests cover viewports 1023, 1024, 1280 and 390 px wide and 1280×480. (Phase 1, amended by L-4 in the parity work; verified by browser test)
 - **AR-21** A transfer at 1024 px and wider (over 500 px tall) docks the window whether it was closed, floating or maximized, keeping its rows; below that it opens full screen; either way the transferred row is focused as `c-transfer.md` describes; tests cover viewports 1023, 1024, 1280 and 390 px wide and 1280×480. (Phase 1; verified by browser test)
-- **AR-22** The floating window starts at 16, 64 ( size `min(880px, 100vw - 32px)` by `min(600px, 100dvh - 80px)`; minimum 360 by 280 px; the earlier calculator's geometry) and drags by its title bar with pointer capture, clamped to the viewport; maximized and full-screen windows fill the viewport (`inset: 0`), full screen with safe-area padding; a resize grip element with a 24 by 24 px hit area (pointer drag, or arrow keys in 16 px steps when focused) replaces CSS `resize`, so touch tablets at 1024 px and wider can resize it; the window is re-clamped on window and `visualViewport` resize. (Phase 1; verified by browser test)
+- **AR-22** The floating window starts at 16, 64 ( size `min(880px, 100vw - 32px)` by `min(600px, 100dvh - 80px)`; minimum 360 by 280 px) and drags by its title bar with pointer capture, clamped to the viewport; maximized and full-screen windows fill the viewport (`inset: 0`), full screen with safe-area padding; a resize grip element with a 24 by 24 px hit area (pointer drag, or arrow keys in 16 px steps when focused) replaces CSS `resize`, so touch tablets at 1024 px and wider can resize it; the window is re-clamped on window and `visualViewport` resize. (Phase 1; verified by browser test)
 - **AR-23** The dock is a fixed left column 12 px from the left edge, running from `dockTop` (AR-24) to 12 px above the bottom; its default width is `clamp(400px, 45vw, 720px)`; a splitter (role `separator`, 24 px hit area, pointer drag, arrow keys in 16 px steps, Home and End) keeps it between 400 px and `min(900px, 100vw - 480px)`; the workspace shifts right by the dock width plus 24 px (a 12 px margin on each side) and keeps the single-column question rule in `calculator.module.css`. (Phase 1; verified by browser test)
 - **AR-24** `CalculatorScope` takes an optional `dockTop` in pixels (default 12); `CatalogPractice` and `DailyChallenge` pass `LEARN_HEADER_CLEARANCE = 72`, exported by `LearnLayout.tsx`, so the fixed learn header (`LearnLayout.tsx:31-34`) stays uncovered; at 1024 and 1440 px the dock's top edge is below the header's bottom edge and no focusable page element is hidden under the dock. (Phase 1; verified by browser test)
 - **AR-25** Window mode, floating position and size, and dock width live in `calculator-window-store.ts` for the page session, so after Next or Previous the window reopens in the same mode and place while its content is fresh; from Phase 4 the same store also holds the display size and reverse contrast choices (AR-58); the stored mode applies only when the lifted open state carries an open window into the next question, while a later open from the toolbar or side button follows AR-20 and a transfer follows AR-21. A page session is the lifetime of the loaded document: the store is module state, survives client-side navigation between quiz routes and is lost on a full reload or in a new tab. (Phase 1; verified by browser test)

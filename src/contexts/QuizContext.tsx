@@ -2,8 +2,8 @@
 
 // ============================================================
 // QuizContext — Adaptive quiz state machine
-// Holds everything the QuizEngine + floating windows (Desmos,
-// Scratchpad) need to read or mutate without prop-drilling.
+// Holds everything the QuizEngine + floating windows (Scratchpad)
+// need to read or mutate without prop-drilling.
 // ============================================================
 
 import {
@@ -81,7 +81,6 @@ export interface QuizState {
   adaptivePath: AdaptiveStep[];
   consecutiveWrong: number;
 
-  isDesmosOpen: boolean;
   isScratchpadOpen: boolean;
 
   score: number | null;
@@ -107,7 +106,6 @@ const initialState: QuizState = {
   records: [],
   adaptivePath: [],
   consecutiveWrong: 0,
-  isDesmosOpen: false,
   isScratchpadOpen: false,
   score: null,
   correctCount: 0,
@@ -140,7 +138,6 @@ type Action =
   | { type: "SHOW_VIDEO_PROMPT" }
   | { type: "DISMISS_VIDEO_PROMPT" }
   | { type: "FLAG_CURRENT"; note?: string }
-  | { type: "TOGGLE_DESMOS" }
   | { type: "TOGGLE_SCRATCHPAD" }
   | {
       type: "COMPLETE";
@@ -295,16 +292,8 @@ function reducer(state: QuizState, action: Action): QuizState {
       return { ...state, records };
     }
 
-    case "TOGGLE_DESMOS":
-      if (
-        state.subject !== "math" ||
-        state.selectedQuestions[state.currentIndex]?.subject !== "math"
-      )
-        return { ...state, isDesmosOpen: false };
-      return { ...state, isDesmosOpen: !state.isDesmosOpen, isScratchpadOpen: false };
-
     case "TOGGLE_SCRATCHPAD":
-      return { ...state, isScratchpadOpen: !state.isScratchpadOpen, isDesmosOpen: false };
+      return { ...state, isScratchpadOpen: !state.isScratchpadOpen };
 
     case "COMPLETE":
       return {
@@ -330,7 +319,6 @@ interface QuizContextValue {
   nextQuestion: () => Promise<void>;
   dismissVideoPrompt: () => void;
   flagCurrent: (note?: string) => Promise<void>;
-  toggleDesmos: () => void;
   toggleScratchpad: () => void;
   reset: () => void;
   retakeQuiz: () => Promise<void>;
@@ -479,7 +467,6 @@ export function QuizProvider({ children }: { children: ReactNode }) {
     [state]
   );
 
-  const toggleDesmos = useCallback(() => dispatch({ type: "TOGGLE_DESMOS" }), []);
   const toggleScratchpad = useCallback(() => dispatch({ type: "TOGGLE_SCRATCHPAD" }), []);
   const reset = useCallback(() => {
     advancedQuestionRef.current = null;
@@ -510,7 +497,6 @@ export function QuizProvider({ children }: { children: ReactNode }) {
       nextQuestion,
       dismissVideoPrompt,
       flagCurrent,
-      toggleDesmos,
       toggleScratchpad,
       reset,
       retakeQuiz,
@@ -523,7 +509,6 @@ export function QuizProvider({ children }: { children: ReactNode }) {
       nextQuestion,
       dismissVideoPrompt,
       flagCurrent,
-      toggleDesmos,
       toggleScratchpad,
       reset,
       retakeQuiz,

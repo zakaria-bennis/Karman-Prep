@@ -1,4 +1,4 @@
-# Released-exam figures and practice calculator transfers
+# Released-exam figures
 
 User decisions, October 5, 2026: recreate source figures with crisp native text,
 balanced label spacing and explicit angle arcs. Keep Box read-only. Perform all
@@ -36,34 +36,10 @@ reconcile original module/question identities with the key before import. A text
 match or a default screenshot alone cannot resolve this difference. Keep useful
 editorial annotations as evidence; do not change annotations in Box.
 
-## Desmos transfers
+## Calculator transfers
 
-The setting lives in the math quiz **Menu**, on by default during practice. A
-student can turn it off; the browser remembers the preference when storage is
-available. The calculator displays transfer buttons, not a second settings toggle.
-Students explicitly click to add an item. Stable expression IDs prevent repeated
-clicks from creating additional copies, and existing manual work is retained when
-minimizing or switching calculator modes.
-
-Transfers read the student question givens only: explicitly delimited equations,
-numeric native x–y tables, and numeric coordinate pairs described as points.
-No answer choices, answer keys, explanations, geometry pixel coordinates or
-inferred chart series are used. Unsupported or ambiguous expressions are omitted;
-there is no automatic solving, curve fitting or interpolation. Fractions in tables
-retain their exact values. Scientific mode requires switching to Graphing to
-transfer. Desmos's supported `invertedColors` option supplies its dark appearance;
-Karman controls the surrounding responsive window.
-
-`QuizEngine` accepts `sessionMode="realistic"`, which locks the menu switch off
-and omits transfer actions regardless of the practice preference. Current callers
-are adaptive practice; a future realistic timed-exam caller must explicitly pass
-this mode. This change does not implement a complete timed-exam runner.
-
-The existing public demo API key shows a **Desmos Trial Key** banner. A registered
-`NEXT_PUBLIC_DESMOS_API_KEY` and appropriate production license are still needed
-before shipping the embed as a polished production feature. Do not hide licensing
-UI or purchase a plan automatically. API reference:
-[Desmos v1.10 documentation](https://www.desmos.com/api/v1.10/docs/index.html).
+Practice calculator transfer rules are in
+`docs/superpowers/specs/calculator/c-transfer.md`.
 
 ## Duplicate review
 

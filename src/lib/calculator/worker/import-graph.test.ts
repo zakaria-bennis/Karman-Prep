@@ -36,7 +36,7 @@ it("AR-4 the compute worker's import graph has no React, MathQuill, src/componen
   ).toEqual([]);
   expect(
     g.files.filter((f) =>
-      /^(vendor\/mathquill\/|src\/components\/|src\/lib\/calculator\/(core\/api|render)\/|src\/lib\/calculator\/worker\/(create|create\.standalone|backend)\.ts$)/.test(
+      /^(vendor\/mathquill\/|src\/components\/|src\/lib\/calculator\/(core\/api|render)\/|src\/lib\/calculator\/worker\/(create|backend)\.ts$)/.test(
         f
       )
     )

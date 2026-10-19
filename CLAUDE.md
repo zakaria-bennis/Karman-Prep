@@ -84,7 +84,8 @@ claim the site may state is in `src/lib/marketing/offer.ts`. Values marked
 - Never load a Desmos API, SDK or component. Never copy Desmos code, DOM, asset
   files, fonts, logo or name, and never fetch anything from desmos.com. Matching
   Desmos's visual design and behaviour with our own drawings and code is allowed
-  (founder, 2026-10-18). Locally bundled mathjs and KaTeX are fine.
+  (founder, 2026-10-18). Locally bundled MathQuill and KaTeX are fine (mathjs only
+  in the reference-value script).
 - After editing calculator styles or theme sources, run `npm run calculator:build`
   (`npm run calculator:check` must pass). Run `npm run test:calculator`. Automated
   mobile, keyboard and theme checks are required.

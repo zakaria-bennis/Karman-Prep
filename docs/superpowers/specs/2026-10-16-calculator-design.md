@@ -88,7 +88,6 @@ Notes on the decisions:
   screen-reader users reach the visually hidden control by swiping and activate it directly, with
   no selection step (TR-59). All other content follows the owner's flow: tap the item, tap the
   control on top of it, then pick a format only when there is a choice (TR-55, TR-56, item 5).
-- **D8.** Removed on 2026-10-19 with the rollout flag; every student gets the calculator.
 - **D9.** The wording above is the approved wording. TH-1 measures every target in all 12 skins
   with no large-text exception and defines "lighter" minor gridlines as 1.4:1 to 1.6:1; TH-6 and
   TH-7 make "distinguishable, including for colour-blind students" measurable (minimum pairwise
@@ -158,10 +157,9 @@ then the keypad audio key is present and disabled (K-9).
 - **CB-2** Log mode applies automatically to applicable exponential, logarithmic and power regressions, with the forms, data conditions, statistics and original-unit fallback of D-27 to D-30. (Phase 3; verified by unit test)
 - **CB-3** Scientific and Graphing calculators are both available in every math question through the Calculator mode control, each mode keeping its work for the question, as SC-1 to SC-15 define. (Phase 2; verified by browser test)
 
-## 6. Removed: inventory of the earlier calculator
+## 6. Reserved
 
-The earlier calculator's capability inventory was removed on 2026-10-19 together with that
-calculator. Its capabilities live on as the appendix IDs it mapped to.
+This section number is kept so that references to sections 7 to 12 stay stable.
 
 ## 7. Phase map
 
@@ -177,8 +175,7 @@ calculator. Its capabilities live on as the appendix IDs it mapped to.
 ### 7.2 IDs by phase
 
 Every ID in the five appendices and this overview appears exactly once below (583 appendix IDs and
-3 CB- IDs). Phases come from the owning files. AR-6 to AR-8, AR-13, AR-63, AR-64, TR-76, TR-78 and
-L-15 were removed on 2026-10-19 with the earlier calculator and the rollout flag.
+3 CB- IDs). Phases come from the owning files. Gaps in ID numbers are retired IDs.
 
 **Phase 1**
 
@@ -264,7 +261,7 @@ A11Y-6, A11Y-11; TH-2, TH-8, TH-10, TH-15, TH-17.
 
 ### 8.1 Releases
 
-Since 2026-10-19 every student gets this calculator; there is no rollout flag. Each phase has its
+Every student gets this calculator. Each phase has its
 own implementation plan, test-first development and pull request. Every release runs
 `npm run cf:build:release && npm run cf:deploy` as one step, never `cf:deploy` alone, after the
 AR-66 checks pass on the built output, and an admin repeats AR-65's steps on production after each
@@ -285,8 +282,9 @@ Phase 3 is complete when all of the following hold:
    Cloudflare build); the five calculator Playwright projects; AR-65; AR-32, AR-33 and AR-66 on the
    `cf:build` output; the TH-1 contrast suite in all 12 skins; the visual baselines; the perf
    budgets in section 9.
-5. The REA confirmations scheduled for Phases 1 to 3 are recorded in their phase plans, and every
-   rule a capture changed has updated corpus cases and tests.
+5. The REA confirmations scheduled for Phases 1 to 3 are recorded in the active phase plan (earlier
+   phase records are in git history), and every rule a capture changed has updated corpus cases
+   and tests.
 
 The lead records the result in the Phase 3 plan and reports it to the owner.
 

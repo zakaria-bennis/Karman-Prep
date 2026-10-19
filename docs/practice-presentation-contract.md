@@ -14,7 +14,7 @@ Reading presentation follows passage, associated native figure/table, prompt, ch
 - Diagnostic markings remain in the existing controlled per-question state. Mouse selection creates the selected mark type; the keyboard phrase path and Mark selection control offer alternative input. Overlapping highlight and underline remain independent. Notes can be saved with Enter, dismissed with Escape, reopened, edited and removed; save/cancel returns focus to the marking, and removal returns focus to the selected tool. Existing choice highlights, crossouts, bookmarks and hints retain their stable question identities.
 - Scratchpad bitmaps are held per question in memory. Closing/reopening, question A → B → A and viewport resizing retain drawing. Clear affects the current question. Opening a new lesson/catalog session remounts the local tool store; leaving or reloading the page discards local marks, notes and drawings. These are not saved to a server or restored after reload.
 - The diagnostic navigator retains exact same-section jump indexes and locks the other section. It has a labeled dialog, keyboard focus containment, Escape dismissal and return focus. Native controls own Enter/Space so marking cannot also fire the global next-question shortcut.
-- Calculator access remains the existing Math-only external Desmos link in a new tab. No equations or tables transfer automatically.
+- Math questions use the built-in calculator, as described in `docs/enhanced-quiz-engine.md` §8 and `docs/superpowers/specs/calculator/`.
 
 ## Verification boundary
 

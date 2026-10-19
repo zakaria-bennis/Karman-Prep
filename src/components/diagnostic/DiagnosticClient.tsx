@@ -77,8 +77,8 @@ export default function DiagnosticClient({ questions, isSubscribed, isRetake }: 
         key={makeQuestionKey("diagnostic", question.id)}
         questionKey={makeQuestionKey("diagnostic", question.id)}
         enabled={s.isMathQuestion}
-        open={s.desmosOpen}
-        onOpenChange={s.setDesmosOpen}
+        open={s.calculatorOpen}
+        onOpenChange={s.setCalculatorOpen}
       >
         <DiagnosticHeader
           isMathQuestion={s.isMathQuestion}
