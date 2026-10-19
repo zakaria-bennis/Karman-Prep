@@ -4,7 +4,7 @@
 // and the `x-axis step` field showing the step or blank (y likewise). S-7: a bound applies on
 // Enter or blur once the backend evaluates it to a finite number that keeps min below max; the step
 // takes a positive number or blank for automatic. An error shows below its field, which links it
-// with aria-describedby and sets aria-invalid until a successful commit. Labels are <label>s.
+// with aria-describedby and sets aria-invalid until a successful commit. Text fields are named by aria-label.
 
 import {
   useContext,
