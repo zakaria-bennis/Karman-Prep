@@ -24,7 +24,11 @@
     0 2px 2px color-mix(in srgb, var(--kc-text) 20%, transparent),
     0 0 3px color-mix(in srgb, var(--kc-text) 20%, transparent);
   --kc-pop-circle: color-mix(in srgb, var(--kc-text) 2.4%, var(--kc-list)); /* #f9f9f9 */
-  --kc-pop-circle-ink: color-mix(in srgb, var(--kc-text) 53.3%, var(--kc-list)); /* #777 */
+  --kc-pop-circle-ink: color-mix(
+    in srgb,
+    var(--kc-text) 30%,
+    var(--kc-list)
+  ); /* lighter than #777: our thinner lines read darker */
   --kc-pop-circle-shadow: inset 0 0 2px color-mix(in srgb, var(--kc-text) 20%, transparent);
   --kc-pop-mini-ink: color-mix(in srgb, var(--kc-text) 42%, var(--kc-list)); /* #949494 */
   --kc-pop-mini-on: color-mix(in srgb, var(--kc-accent) 25%, transparent);
@@ -357,8 +361,8 @@
 }
 
 .kc-settings-relation > span {
-  padding: 0 0.3em;
-  font-size: 18.4px;
+  padding: 0 0.25em;
+  font-size: 20.24px;
   line-height: 18.4px;
   font-family: var(--kc-font-math-operator);
 }
