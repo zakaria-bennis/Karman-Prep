@@ -7,7 +7,7 @@ import { useState } from "react";
 import { expect, it, vi } from "vitest";
 import { renderEditor } from "../list/__fixtures__/render-editor";
 import { Keypad, type KeypadProps } from "./Keypad";
-import { keypadLayout } from "./keys";
+import { keypadLayout, layoutKeys } from "./keys";
 
 const keypad = (props: Partial<KeypadProps> = {}) => (
   <Keypad containerWidth={900} pointer="fine" open onOpenChange={vi.fn()} {...props} />
@@ -17,23 +17,15 @@ function StatefulKeypad(props: { initialOpen: boolean }) {
   const [open, setOpen] = useState(props.initialOpen);
   return <Keypad containerWidth={900} pointer="fine" open={open} onOpenChange={setOpen} />;
 }
-const groupIds = () =>
-  [...document.querySelectorAll("[data-group]")].map((g) => g.getAttribute("data-group"));
+const keyIds = () =>
+  [...document.querySelectorAll(".kc-keypad [data-key]")].map((k) => k.getAttribute("data-key"));
 
-it("K-1 the tray renders the K-1 groups in order and Hide and Show keypad report a student change", async () => {
+it("K-1 the tray renders the 123 page's keys in row order and Hide and Show keypad report a student change", async () => {
   const onOpenChange = vi.fn();
   renderEditor(keypad({ onOpenChange }), { rows: [""] });
   const region = screen.getByRole("region", { name: "Keypad" });
-  expect(region).toHaveAttribute("data-layout", "tray");
-  expect(groupIds()).toEqual(["left", "centre", "right"]);
-  const keys = [...region.querySelectorAll('[data-group="left"] [data-key]')].map((k) =>
-    k.getAttribute("data-key")
-  );
-  expect(keys).toEqual(
-    keypadLayout("main", 900, "fine", false)
-      .groups[0].rows.flat()
-      .map((k) => k.id)
-  );
+  expect(region).toHaveAttribute("data-page", "main");
+  expect(keyIds()).toEqual(layoutKeys(keypadLayout("main", 900, false)).map((k) => k.id));
   await userEvent.setup().click(screen.getByRole("button", { name: "Hide keypad" }));
   expect(onOpenChange).toHaveBeenCalledWith(false, "student");
   cleanup();
@@ -43,28 +35,40 @@ it("K-1 the tray renders the K-1 groups in order and Hide and Show keypad report
   expect(onOpenChange).toHaveBeenLastCalledWith(true, "student");
 });
 
-it("K-3 ABC switches the left and centre groups to the letters page and back; Shift is a pressed toggle", async () => {
+it("VIS-KEYPAD-32, 40 coarse pointers and keypads under 450 px have no Show or Hide keypad control", () => {
+  for (const props of [{ pointer: "coarse" as const }, { containerWidth: 449 }]) {
+    renderEditor(keypad(props), { rows: [""] });
+    expect(screen.queryByRole("button", { name: "Hide keypad" })).toBeNull();
+    cleanup();
+    renderEditor(keypad({ ...props, open: false }), { rows: [""] });
+    expect(screen.queryByRole("button", { name: "Show keypad" })).toBeNull();
+    cleanup();
+  }
+});
+
+it("K-3 ABC switches to the letters page and back; Shift is a pressed toggle that stays on", async () => {
   renderEditor(keypad(), { rows: [""] });
   const user = userEvent.setup();
   const abc = () => screen.getByRole("button", { name: "ABC" });
   expect(abc()).toHaveAttribute("aria-pressed", "false");
-  expect(abc()).toHaveTextContent("ABC");
+  expect(abc()).toHaveTextContent("A B C");
   await user.click(abc());
   expect(abc()).toHaveAttribute("aria-pressed", "true");
-  expect(abc()).toHaveTextContent("123");
-  expect(groupIds()).toEqual(["letters", "right"]);
+  expect(abc()).toHaveTextContent("1 2 3");
+  expect(keyIds()).toEqual(layoutKeys(keypadLayout("letters", 900, false)).map((k) => k.id));
   await user.click(screen.getByRole("button", { name: "Shift" }));
   expect(screen.getByRole("button", { name: "Shift" })).toHaveAttribute("aria-pressed", "true");
   expect(screen.getByRole("button", { name: "Q" })).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Tau" })).toBeInTheDocument();
   await user.click(abc());
-  expect(groupIds()).toEqual(["left", "centre", "right"]);
+  expect(keyIds()).toEqual(layoutKeys(keypadLayout("main", 900, false)).map((k) => k.id));
 });
 
-it("K-9 the audio key sits on both main pages, named Audio trace with aria-pressed, and not on letters pages", async () => {
+it("K-9 the audio key sits on the 123 page at every width, named Audio trace with aria-pressed, disabled with nothing to trace, and not on the letters page", async () => {
   renderEditor(keypad(), { rows: [""] });
   const audio = screen.getByRole("button", { name: "Audio trace" });
   expect(audio).toHaveAttribute("aria-pressed", "false");
-  expect(audio).not.toHaveAttribute("aria-disabled");
+  expect(audio).toHaveAttribute("aria-disabled", "true");
   await userEvent.setup().click(screen.getByRole("button", { name: "ABC" }));
   expect(screen.queryByRole("button", { name: "Audio trace" })).toBeNull();
   cleanup();
@@ -86,7 +90,7 @@ it("A11Y-5 the keypad is a region named Keypad whose keys are named in words; AB
     "Less than or equal to",
     "Absolute value",
     "Left arrow",
-    "Tilde",
+    "Backspace",
   ])
     expect(within(region).getByRole("button", { name })).toBeInTheDocument();
   for (const button of within(region).getAllByRole("button"))

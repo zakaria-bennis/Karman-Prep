@@ -1,7 +1,7 @@
 import { afterEach, expect, it, vi } from "vitest";
 import { createDoubleTapTracker } from "./double-tap";
 import { createKeyRepeat } from "./key-repeat";
-import { keypadLayout } from "./keys";
+import { keypadLayout, layoutKeys } from "./keys";
 
 afterEach(() => vi.useRealTimers());
 
@@ -21,7 +21,7 @@ it("K-11 a held key fires at once, again after 400 ms, then every 80 ms until st
   vi.advanceTimersByTime(1000);
   expect(fire).toHaveBeenCalledTimes(4);
   const all = (["main", "letters"] as const).flatMap((p) =>
-    keypadLayout(p, 900, "coarse", false).groups.flatMap((g) => g.rows.flat())
+    layoutKeys(keypadLayout(p, 900, false))
   );
   expect([...new Set(all.filter((k) => k.repeat).map((k) => k.id))].sort()).toEqual([
     "backspace",

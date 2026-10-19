@@ -1,200 +1,285 @@
-// Keypad key tables (K-1, K-3, K-6, K-9 to K-11). Node tests load this module, so it imports
-// MathField types with `import type` only and never touches React or the vendored MathQuill.
+// Keypad key tables, drawn to the reference keypad (rea-targets visual keypad.md, VIS-KEYPAD-3 to
+// 23). Node tests load this module, so it imports MathField types with `import type` only and
+// never touches React or the vendored MathQuill.
+//
+// Both pages are rows of cells sized as a fraction of the key block's inner width. The 123 page is
+// an 11-unit grid (4 keys, a half-unit gap, 4 keys, a half-unit gap, 2 units); the letters page is
+// a 10-column grid whose third and fourth rows mix 1.5- and 2-unit keys of the 11-unit grid with
+// spacers that share what is left. Every width, phones included, uses the same two pages.
 import type { MathFieldAction } from "@/lib/calculator/core/latex/operator-names";
 
 export type KeyBehaviour =
   | { type: "insert"; action: MathFieldAction }
   | { type: "enter" }
-  | { type: "letters" } // the ABC key: visible ABC or 123, accessible name "ABC" on both pages, aria-pressed
+  | { type: "letters" } // the ABC key: "A B C" or "1 2 3", accessible name "ABC" on both pages
   | { type: "shift" } // aria-pressed
   | { type: "functions" } // aria-expanded
   | { type: "audio" }; // K-9: starts and stops the keyboard trace (POI-20)
-// lucide-react component names, kept as strings so keys.ts and its node tests never import React
-export type KeyIcon =
-  | "ArrowLeft"
-  | "ArrowRight"
-  | "Delete"
-  | "CornerDownLeft"
-  | "ArrowBigUp"
-  | "Volume2";
+
+/** The keypad's own drawn icons (keypad-icons.tsx). */
+export type KeyIcon = "left" | "right" | "backspace" | "enter" | "audio" | "shift";
+
+/**
+ * How a key's face is drawn: plain maths text (italic for variables), a word in the UI font, an
+ * icon, or one of the typeset glyphs Keypad draws itself.
+ */
+export type KeyFace =
+  | { kind: "math"; text: string; italic?: boolean }
+  | { kind: "word"; text: string }
+  | { kind: "icon"; icon: KeyIcon }
+  | { kind: "power"; exponent: string; italic: boolean } // a² and aᵇ
+  | { kind: "subscript" } // aᵦ
+  | { kind: "abs" } // |a|
+  | { kind: "sqrt" }
+  | { kind: "dual"; first: string; second: string; selected: 0 | 1; raised?: boolean };
+
+/** Light keys are white, dark keys grey, the accent key is Enter (VIS-KEYPAD-6 to 8). */
+export type KeyTone = "light" | "dark" | "accent";
+
 export interface KeyDef {
   id: string;
-  label: string; // visible text; "" for an icon key
-  icon?: KeyIcon; // set only on the six icon keys (table below); Keypad draws it aria-hidden
+  label: string; // visible text in words or symbols; "" for an icon key
+  face: KeyFace;
   name: string; // accessible name, in words
   behaviour: KeyBehaviour;
-  span: 1 | 2 | 3 | 4;
-  tone: "key" | "operator" | "accent"; // TH-3 roles key, keyOperator, accent
+  width: number; // fraction of the key block's inner width taken by the key's cell
+  tone: KeyTone;
   repeat: boolean; // true for left, right and backspace only (K-11)
 }
-export type KeyGroupId = "left" | "centre" | "right" | "letters" | "phone";
-export interface KeyGroup {
-  id: KeyGroupId;
-  columns: number;
-  rows: readonly (readonly KeyDef[])[];
+/** An empty cell: a fixed fraction of the inner width, or "fill" to share what the row leaves. */
+export interface KeySpacer {
+  spacer: number | "fill";
 }
+export type RowItem = KeyDef | KeySpacer;
+
 export interface KeypadLayout {
-  id: "tray" | "phone";
   page: "main" | "letters";
-  groups: readonly KeyGroup[];
+  rows: readonly (readonly RowItem[])[];
 }
-export const PHONE_KEYPAD_BELOW = 600; // container width < 600 → phone keypad (K-6)
+
+export const isSpacer = (item: RowItem): item is KeySpacer => "spacer" in item;
+
+/** VIS-KEYPAD-39: "functions" reads "funcs" in the narrow layout. */
+export const NARROW_BELOW = 450;
+/** VIS-KEYPAD-39: "A B C" reads "ABC" at 600 px and under. */
+export const SPACED_ABC_ABOVE = 600;
 
 type Page = KeypadLayout["page"];
-type FixedKey = Omit<KeyDef, "id" | "span">;
+type FixedKey = Omit<KeyDef, "id" | "width">;
 
 const insert = (op: MathFieldAction["op"], arg: string): KeyBehaviour => ({
   type: "insert",
   action: { op, arg },
 });
 const typed = (arg: string) => insert("typedText", arg);
+const math = (text: string, italic = false): KeyFace => ({ kind: "math", text, italic });
 
 function fixed(
   label: string,
   name: string,
   behaviour: KeyBehaviour,
-  tone: KeyDef["tone"] = "operator"
+  tone: KeyTone = "light",
+  face: KeyFace = math(label)
 ): FixedKey {
-  return { label, name, behaviour, tone, repeat: false };
+  return { label, face, name, behaviour, tone, repeat: false };
 }
 function iconKey(
   icon: KeyIcon,
   name: string,
   behaviour: KeyBehaviour,
-  tone: KeyDef["tone"] = "operator",
+  tone: KeyTone = "dark",
   repeat = false
 ): FixedKey {
-  return { label: "", icon, name, behaviour, tone, repeat };
+  return { label: "", face: { kind: "icon", icon }, name, behaviour, tone, repeat };
 }
 
-// Every key except digits, letters a to z and the ABC key, whose labels depend on the key or the
-// page. Behaviours follow the package Decisions' reading E2 of K-10: `a²` is one write("^2"), the
-// named symbols π, θ, ≤ and ≥ are cmd, every other character is typedText.
+// Behaviours follow the package Decisions' reading E2 of K-10: `a²` is one write("^2"), the named
+// symbols π, θ, τ, ≤ and ≥ are cmd, every other character is typedText.
 const FIXED_KEYS: Readonly<Record<string, FixedKey>> = {
-  squared: fixed("a²", "Squared", insert("write", "^2")),
-  power: fixed("aᵇ", "Power", insert("cmd", "^")),
+  x: fixed("x", "x", typed("x"), "light", math("x", true)),
+  y: fixed("y", "y", typed("y"), "light", math("y", true)),
+  squared: fixed("a²", "Squared", insert("write", "^2"), "light", {
+    kind: "power",
+    exponent: "2",
+    italic: false,
+  }),
+  power: fixed("aᵇ", "Power", insert("cmd", "^"), "light", {
+    kind: "power",
+    exponent: "b",
+    italic: true,
+  }),
   lparen: fixed("(", "Left parenthesis", typed("(")),
   rparen: fixed(")", "Right parenthesis", typed(")")),
   lt: fixed("<", "Less than", typed("<")),
   gt: fixed(">", "Greater than", typed(">")),
-  abs: fixed("|a|", "Absolute value", insert("cmd", "|")),
+  abs: fixed("|a|", "Absolute value", insert("cmd", "|"), "light", { kind: "abs" }),
   comma: fixed(",", "Comma", typed(",")),
   le: fixed("≤", "Less than or equal to", insert("cmd", "\\le")),
   ge: fixed("≥", "Greater than or equal to", insert("cmd", "\\ge")),
-  sqrt: fixed("√", "Square root", insert("cmd", "\\sqrt")),
+  sqrt: fixed("√", "Square root", insert("cmd", "\\sqrt"), "light", { kind: "sqrt" }),
   pi: fixed("π", "Pi", insert("cmd", "\\pi")),
-  point: fixed(".", "Decimal point", typed("."), "key"),
+  point: fixed(".", "Decimal point", typed("."), "dark"),
   divide: fixed("÷", "Divide", typed("/")),
   times: fixed("×", "Multiply", typed("*")),
   minus: fixed("−", "Minus", typed("-")),
   plus: fixed("+", "Plus", typed("+")),
   equals: fixed("=", "Equals", typed("=")),
-  tilde: fixed("~", "Tilde", typed("~")),
-  audio: iconKey("Volume2", "Audio trace", { type: "audio" }),
-  functions: fixed("functions", "Functions", { type: "functions" }),
-  left: iconKey("ArrowLeft", "Left arrow", insert("keystroke", "Left"), "operator", true),
-  right: iconKey("ArrowRight", "Right arrow", insert("keystroke", "Right"), "operator", true),
-  backspace: iconKey("Delete", "Backspace", insert("keystroke", "Backspace"), "operator", true),
-  enter: iconKey("CornerDownLeft", "Enter", { type: "enter" }, "accent"),
-  theta: fixed("θ", "Theta", insert("cmd", "\\theta"), "key"),
-  prime: fixed("′", "Prime", typed("'")),
-  subscript: fixed("aₙ", "Subscript", insert("cmd", "_")),
-  shift: iconKey("ArrowBigUp", "Shift", { type: "shift" }),
-  factorial: fixed("!", "Factorial", typed("!")),
-  percent: fixed("%", "Percent", typed("%")),
-  lbracket: fixed("[", "Left bracket", typed("[")),
-  lbrace: fixed("{", "Left brace", typed("{")),
-  colon: fixed(":", "Colon", typed(":")),
+  audio: iconKey("audio", "Audio trace", { type: "audio" }),
+  left: iconKey("left", "Left arrow", insert("keystroke", "Left"), "dark", true),
+  right: iconKey("right", "Right arrow", insert("keystroke", "Right"), "dark", true),
+  backspace: iconKey("backspace", "Backspace", insert("keystroke", "Backspace"), "dark", true),
+  enter: iconKey("enter", "Enter", { type: "enter" }, "accent"),
+  shift: iconKey("shift", "Shift", { type: "shift" }),
 };
 
-// Shift applies only on the letters page, the one page with a Shift key (K-3).
-function keyDef(id: string, span: KeyDef["span"], page: Page, shift: boolean): KeyDef {
-  if (/^[0-9]$/.test(id))
-    return { id, label: id, name: id, behaviour: typed(id), span, tone: "key", repeat: false };
-  if (/^[a-z]$/.test(id)) {
-    const letter = shift && page === "letters" ? id.toUpperCase() : id;
+/** VIS-KEYPAD-22, 23: the keys whose Shift state is a second symbol, and θ/τ and aᵦ/aᵇ. */
+function shiftableKey(id: string, shift: boolean): FixedKey | null {
+  const dual = (
+    first: string,
+    second: string,
+    names: [string, string],
+    inserts: [KeyBehaviour, KeyBehaviour],
+    raised = false
+  ): FixedKey => {
+    const i = shift ? 1 : 0;
+    const face: KeyFace = { kind: "dual", first, second, selected: i, raised };
+    return {
+      label: `${first} ${second}`,
+      face,
+      name: names[i],
+      behaviour: inserts[i],
+      tone: "light",
+      repeat: false,
+    };
+  };
+  switch (id) {
+    case "theta":
+      return shift
+        ? fixed("τ", "Tau", insert("cmd", "\\tau"), "light", math("τ", true))
+        : fixed("θ", "Theta", insert("cmd", "\\theta"), "light", math("θ", true));
+    case "subscript":
+      return shift
+        ? fixed("aᵇ", "Superscript", insert("cmd", "^"), "light", {
+            kind: "power",
+            exponent: "b",
+            italic: true,
+          })
+        : fixed("aᵦ", "Subscript", insert("cmd", "_"), "light", { kind: "subscript" });
+    case "bang":
+      return dual("!", "′", ["Factorial", "Prime"], [typed("!"), typed("'")]);
+    case "bracket":
+      return dual("[", "]", ["Left bracket", "Right bracket"], [typed("["), typed("]")]);
+    case "brace":
+      return dual("{", "}", ["Left brace", "Right brace"], [typed("{"), typed("}")]);
+    case "tilde":
+      return dual("~", "%", ["Tilde", "Percent"], [typed("~"), typed("%")], true);
+    case "colon":
+      return dual(":", ";", ["Colon", "Semicolon"], [typed(":"), typed(";")]);
+    default:
+      return null;
+  }
+}
+
+function keyDef(
+  id: string,
+  width: number,
+  page: Page,
+  shift: boolean,
+  containerWidth: number
+): KeyDef {
+  if (/^[0-9]$/.test(id)) {
+    return {
+      id,
+      label: id,
+      face: math(id),
+      name: id,
+      behaviour: typed(id),
+      width,
+      tone: "dark",
+      repeat: false,
+    };
+  }
+  if (/^[a-z]$/.test(id) && page === "letters") {
+    const letter = shift ? id.toUpperCase() : id;
     const behaviour = typed(letter);
-    return { id, label: letter, name: letter, behaviour, span, tone: "key", repeat: false };
+    const face = math(letter, true);
+    return {
+      id,
+      label: letter,
+      face,
+      name: letter,
+      behaviour,
+      width,
+      tone: "light",
+      repeat: false,
+    };
   }
   if (id === "letters") {
-    const label = page === "main" ? "ABC" : "123";
+    const spaced = containerWidth > SPACED_ABC_ABOVE;
+    const text = page === "main" ? (spaced ? "A B C" : "ABC") : "1 2 3";
     const behaviour: KeyBehaviour = { type: "letters" };
-    return { id, label, name: "ABC", behaviour, span, tone: "operator", repeat: false };
+    const face: KeyFace = { kind: "word", text };
+    return { id, label: text, face, name: "ABC", behaviour, width, tone: "dark", repeat: false };
   }
-  const key = FIXED_KEYS[id];
+  if (id === "functions") {
+    const text = containerWidth < NARROW_BELOW ? "funcs" : "functions";
+    const face: KeyFace = { kind: "word", text };
+    const behaviour: KeyBehaviour = { type: "functions" };
+    return {
+      id,
+      label: text,
+      face,
+      name: "Functions",
+      behaviour,
+      width,
+      tone: "dark",
+      repeat: false,
+    };
+  }
+  const key = shiftableKey(id, shift) ?? FIXED_KEYS[id];
   if (!key) throw new Error(`Unknown keypad key "${id}"`);
-  return { id, ...key, span };
+  return { id, ...key, width };
 }
 
-// Rows are written as space-separated key ids, `id*n` for a key n columns wide.
-type RowSpec = readonly string[];
-const TRAY_LEFT: RowSpec = [
-  "x y squared power",
-  "lparen rparen lt gt",
-  "abs comma le ge",
-  "letters audio sqrt pi",
+// Rows are space-separated tokens: a key id, `id*n` for a key n grid units wide, `_n` for an
+// n-unit spacer and `_` for a spacer that shares what the row leaves.
+type RowSpec = { grid: number; tokens: string };
+const MAIN: readonly RowSpec[] = [
+  { grid: 11, tokens: "x y squared power _0.5 7 8 9 divide _0.5 functions*2" },
+  { grid: 11, tokens: "lparen rparen lt gt _0.5 4 5 6 times _0.5 left right" },
+  { grid: 11, tokens: "abs comma le ge _0.5 1 2 3 minus _1 backspace*1.5" },
+  { grid: 11, tokens: "letters audio sqrt pi _0.5 0 point equals plus _0.5 enter*2" },
 ];
-const TRAY_CENTRE: RowSpec = ["7 8 9 divide", "4 5 6 times", "1 2 3 minus", "0 point equals plus"];
-const TRAY_RIGHT: Record<"fine" | "coarse", RowSpec> = {
-  fine: ["functions*2", "left right", "backspace*2", "enter*2"],
-  coarse: ["functions*2", "left right", "tilde backspace", "enter*2"], // K-6 adds ~
-};
-const TRAY_LETTERS: RowSpec = [
-  "q w e r t y u i o p",
-  "a s d f g h j k l theta",
-  "shift z x c v b n m prime tilde",
-  "letters*4 subscript factorial percent lbracket lbrace colon",
-];
-const PHONE_MAIN: RowSpec = [
-  "functions*2 left right tilde backspace*2",
-  "x y squared 7 8 9 divide",
-  "lparen rparen power 4 5 6 times",
-  "lt gt sqrt 1 2 3 minus",
-  "le ge pi 0 point equals plus",
-  "letters abs comma audio enter*3",
-];
-const PHONE_LETTERS: RowSpec = [
-  "a b c d e f g",
-  "h i j k l m n",
-  "o p q r s t u",
-  "v w x y z theta shift",
-  "subscript factorial percent lbracket lbrace tilde colon",
-  "letters prime left right backspace enter*2",
+const LETTERS: readonly RowSpec[] = [
+  { grid: 10, tokens: "q w e r t y u i o p" },
+  { grid: 10, tokens: "a s d f g h j k l theta" },
+  { grid: 10, tokens: "shift*1.5/11 _ z x c v b n m _ backspace*1.5/11" },
+  { grid: 10, tokens: "letters*2/11 _ subscript bang bracket brace tilde colon _ enter*2/11" },
 ];
 
-function group(
-  id: KeyGroupId,
-  columns: number,
-  rows: RowSpec,
-  page: Page,
-  shift: boolean
-): KeyGroup {
-  return {
-    id,
-    columns,
-    rows: rows.map((row) =>
-      row.split(" ").map((token) => {
-        const [keyId, span = "1"] = token.split("*");
-        return keyDef(keyId, Number(span) as KeyDef["span"], page, shift);
-      })
-    ),
-  };
+function parseWidth(spec: string | undefined, grid: number): number {
+  if (spec === undefined) return 1 / grid;
+  const [units, ownGrid] = spec.split("/");
+  return Number(units) / (ownGrid === undefined ? grid : Number(ownGrid));
 }
 
-export function keypadLayout(
-  page: "main" | "letters",
-  containerWidth: number,
-  pointer: "fine" | "coarse",
-  shift: boolean
-): KeypadLayout {
-  if (containerWidth < PHONE_KEYPAD_BELOW) {
-    const rows = page === "main" ? PHONE_MAIN : PHONE_LETTERS;
-    return { id: "phone", page, groups: [group("phone", 7, rows, page, shift)] };
-  }
-  const right = group("right", 2, TRAY_RIGHT[pointer], page, shift);
-  const groups =
-    page === "main"
-      ? [group("left", 4, TRAY_LEFT, page, shift), group("centre", 4, TRAY_CENTRE, page, shift)]
-      : [group("letters", 10, TRAY_LETTERS, page, shift)];
-  return { id: "tray", page, groups: [...groups, right] };
+function rows(specs: readonly RowSpec[], page: Page, shift: boolean, containerWidth: number) {
+  return specs.map(({ grid, tokens }) =>
+    tokens.split(" ").map((token): RowItem => {
+      if (token === "_") return { spacer: "fill" };
+      if (token.startsWith("_")) return { spacer: Number(token.slice(1)) / grid };
+      const [keyId, span] = token.split("*");
+      return keyDef(keyId, parseWidth(span, grid), page, shift, containerWidth);
+    })
+  );
+}
+
+export function keypadLayout(page: Page, containerWidth: number, shift: boolean): KeypadLayout {
+  const specs = page === "main" ? MAIN : LETTERS;
+  return { page, rows: rows(specs, page, shift && page === "letters", containerWidth) };
+}
+
+/** Every key of a layout, in row order. */
+export function layoutKeys(layout: KeypadLayout): KeyDef[] {
+  return layout.rows.flatMap((row) => row.filter((item): item is KeyDef => !isSpacer(item)));
 }

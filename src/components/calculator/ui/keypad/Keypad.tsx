@@ -9,16 +9,6 @@
 // in one run call, closes the panel and returns focus to the row.
 
 import {
-  ArrowBigUp,
-  ArrowLeft,
-  ArrowRight,
-  ChevronDown,
-  CornerDownLeft,
-  Delete,
-  Volume2,
-  type LucideIcon,
-} from "lucide-react";
-import {
   useContext,
   useEffect,
   useId,
@@ -27,7 +17,6 @@ import {
   useState,
   useSyncExternalStore,
   type ButtonHTMLAttributes,
-  type CSSProperties,
   type JSX,
   type PointerEvent,
 } from "react";
@@ -42,31 +31,21 @@ import { editThroughKeypad } from "../list/row-actions";
 import { MotionContext } from "../list/motion";
 import { keypadTarget, pressKey, type KeyContext } from "./apply-key";
 import { createDoubleTapTracker } from "./double-tap";
-import { FunctionsPanel, functionsPlacement } from "./FunctionsPanel";
+import { FunctionsPanel } from "./FunctionsPanel";
 import { createKeyRepeat } from "./key-repeat";
-import { keypadLayout, type KeyDef, type KeyIcon, type KeypadLayout } from "./keys";
+import { KeyFace } from "./KeyFace";
+import { CaretDownGlyph } from "./keypad-icons";
+import { isSpacer, keypadLayout, NARROW_BELOW, type KeyDef, type KeypadLayout } from "./keys";
 
 export interface KeypadProps {
-  containerWidth: number; // < 600 uses the K-6 phone keypad
-  pointer: "fine" | "coarse";
+  containerWidth: number; // VIS-KEYPAD-39: word labels by width; < 450 has no Show/Hide controls
+  pointer: "fine" | "coarse"; // VIS-KEYPAD-32: coarse pointers have no Show/Hide controls
   open: boolean;
   onOpenChange(open: boolean, by: "student" | "system"): void;
 }
 
-const KEY_ICONS: Record<KeyIcon, LucideIcon> = {
-  ArrowLeft,
-  ArrowRight,
-  Delete,
-  CornerDownLeft,
-  ArrowBigUp,
-  Volume2,
-};
-
 // The installed @types/react (18) has no `inert` prop; React 19 renders it as a boolean attribute.
 const INERT: object = { inert: true };
-
-/** The letter keys a to z: under Shift they type the capital, then Shift turns off (K-3). */
-const LETTER_KEY = /^[a-z]$/;
 
 /** True when focus (in `el`'s document or shadow root) is on `el` or inside it. */
 function holdsFocus(el: HTMLElement | null): boolean {
@@ -105,7 +84,8 @@ function keyState(
   shift: boolean,
   functionsPanelId: string,
   functionsOpen: boolean,
-  tracing: boolean
+  tracing: boolean,
+  traceAvailable: boolean
 ): ButtonHTMLAttributes<HTMLButtonElement> {
   switch (key.behaviour.type) {
     case "letters":
@@ -115,7 +95,11 @@ function keyState(
     case "functions":
       return { "aria-expanded": functionsOpen, "aria-controls": functionsPanelId };
     case "audio":
-      return { "aria-pressed": tracing, title: key.name };
+      return {
+        "aria-pressed": tracing,
+        "aria-disabled": tracing || traceAvailable ? undefined : true,
+        title: key.name,
+      };
     default:
       return {};
   }
@@ -134,6 +118,21 @@ export function Keypad(props: KeypadProps): JSX.Element {
       trace === null ? noSubscribe : (l) => trace.subscribe(l),
       () => trace?.state ?? null
     ) !== null;
+  // VIS-KEYPAD-9: the open keypad's audio key looks disabled while no row has a curve to trace,
+  // checked once per engine snapshot.
+  const traceCache = useRef<{ snapshot: unknown; available: boolean } | null>(null);
+  const traceAvailable = useSyncExternalStore(
+    (l) => engine.subscribe(l),
+    () => {
+      if (!open) return false;
+      const snapshot = engine.getSnapshot();
+      if (traceCache.current?.snapshot !== snapshot) {
+        const available = snapshot.rows.some((row) => engine.poiCurves(row.id).length > 0);
+        traceCache.current = { snapshot, available };
+      }
+      return traceCache.current.available;
+    }
+  );
   const escape = useContext(EscapeContext);
   const readDuration = useContext(MotionContext);
   const [page, setPage] = useState<KeypadLayout["page"]>("main");
@@ -153,6 +152,9 @@ export function Keypad(props: KeypadProps): JSX.Element {
   /** KB-13, WCAG 2.4.3: the control to focus once `open` commits, set when focus was on the
    *  control that unmounts (Show keypad) or inside the keypad that turns inert (Hide, Escape). */
   const focusAfter = useRef<"hide" | "show" | null>(null);
+  /** VIS-KEYPAD-36: Show keypad fades in only when it returns after the keypad was open. */
+  const [wasOpen, setWasOpen] = useState(open);
+  if (open && !wasOpen) setWasOpen(true);
   const studentOpenChange = (next: boolean) => {
     const held = next ? holdsFocus(showRef.current) : holdsFocus(sectionRef.current);
     focusAfter.current = held ? (next ? "hide" : "show") : null;
@@ -206,7 +208,9 @@ export function Keypad(props: KeypadProps): JSX.Element {
   if (escape === null) throw new Error("Keypad must be used inside EscapeContext");
   if (focus === null) throw new Error("Keypad must be used inside FocusContext");
 
-  const layout = keypadLayout(page, containerWidth, pointer, shift);
+  const layout = keypadLayout(page, containerWidth, shift);
+  // VIS-KEYPAD-32, 40: no Show or Hide control on touch or in the narrow layout.
+  const controls = pointer === "fine" && containerWidth >= NARROW_BELOW;
   const ctx: KeyContext = { engine, focus, announcer, doubleTap };
 
   /** K-5: one run call into the keypad's row, close the panel, then focus the row's field. */
@@ -232,8 +236,7 @@ export function Keypad(props: KeypadProps): JSX.Element {
         return;
       case "insert":
       case "enter":
-        pressKey(ctx, key);
-        if (LETTER_KEY.test(key.id)) setShift(false); // Shift capitalises the next letter only
+        pressKey(ctx, key); // VIS-KEYPAD-23: Shift stays on until tapped again
         return;
       case "functions":
         setFunctionsState((state) => (state === "open" ? "closing" : "open"));
@@ -259,6 +262,38 @@ export function Keypad(props: KeypadProps): JSX.Element {
     activate(key);
   };
 
+  const renderKey = (key: KeyDef) => (
+    <button
+      key={key.id}
+      type="button"
+      className="kc-key"
+      aria-label={key.name}
+      data-key={key.id}
+      data-tone={key.tone}
+      data-pressed={pressed === key.id ? "true" : undefined}
+      style={{ flexBasis: `calc(${key.width * 100}% - 4px)` }}
+      {...keyState(
+        key,
+        page,
+        shift,
+        functionsPanelId,
+        functionsState === "open",
+        tracing,
+        traceAvailable
+      )}
+      onMouseDown={keepFocus}
+      onPointerDown={(event) => startPress(event, key)}
+      onPointerUp={() => endPress(key)}
+      onPointerCancel={() => endPress(key)}
+      onPointerLeave={() => endPress(key)}
+      // A pointer press that ended off the key leaves no click; a keyboard press acts.
+      onKeyDown={() => pointerPressed.current.delete(key.id)}
+      onClick={() => click(key)}
+    >
+      <KeyFace face={key.face} />
+    </button>
+  );
+
   return (
     <>
       <section
@@ -269,83 +304,62 @@ export function Keypad(props: KeypadProps): JSX.Element {
         aria-hidden={open ? undefined : true}
         {...(open ? {} : INERT)}
         data-open={String(open)}
-        data-layout={layout.id}
+        data-narrow={containerWidth < NARROW_BELOW ? "true" : undefined}
+        data-abc-size={abcSize(containerWidth)}
         data-pointer={pointer}
         data-page={page}
       >
-        <div className="kc-keypad-bar">
+        {controls && (
           <button
             ref={hideRef}
             type="button"
+            className="kc-hide-keypad"
             aria-label="Hide keypad"
             onClick={() => studentOpenChange(false)}
           >
-            <ChevronDown aria-hidden="true" focusable="false" size={20} />
+            <KeyboardGlyph />
+            <CaretDownGlyph />
           </button>
-        </div>
-        {layout.groups.map((group) => (
-          <div
-            key={group.id}
-            role="group"
-            data-group={group.id}
-            style={{ "--kc-columns": group.columns } as CSSProperties}
-          >
-            {group.rows.flat().map((key) => {
-              const Icon = key.icon === undefined ? null : KEY_ICONS[key.icon];
-              return (
-                <button
-                  key={key.id}
-                  type="button"
-                  className="kc-key"
-                  aria-label={key.name}
-                  data-key={key.id}
-                  data-tone={key.tone}
-                  data-pressed={pressed === key.id ? "true" : undefined}
-                  style={{ gridColumn: `span ${key.span}` }}
-                  {...keyState(
-                    key,
-                    page,
-                    shift,
-                    functionsPanelId,
-                    functionsState === "open",
-                    tracing
-                  )}
-                  onMouseDown={keepFocus}
-                  onPointerDown={(event) => startPress(event, key)}
-                  onPointerUp={() => endPress(key)}
-                  onPointerCancel={() => endPress(key)}
-                  onPointerLeave={() => endPress(key)}
-                  // A pointer press that ended off the key leaves no click; a keyboard press acts.
-                  onKeyDown={() => pointerPressed.current.delete(key.id)}
-                  onClick={() => click(key)}
-                >
-                  {Icon === null ? (
-                    key.label
-                  ) : (
-                    <Icon aria-hidden="true" focusable="false" size={20} />
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        ))}
-        {functionsState !== "closed" && (
-          <FunctionsPanel
-            id={functionsPanelId}
-            placement={functionsPlacement(containerWidth)}
-            state={functionsState}
-            onInsert={insertFunction}
-          />
         )}
+        <div className="kc-keypad-keys">
+          {layout.rows.map((row, r) => (
+            <div key={r} className="kc-keypad-row">
+              {row.map((item, i) =>
+                isSpacer(item) ? (
+                  <span
+                    key={`gap${i}`}
+                    className="kc-keypad-gap"
+                    style={
+                      item.spacer === "fill"
+                        ? { flexGrow: 1 }
+                        : { flexBasis: `${item.spacer * 100}%` }
+                    }
+                  />
+                ) : (
+                  renderKey(item)
+                )
+              )}
+            </div>
+          ))}
+          {functionsState !== "closed" && (
+            <>
+              <FunctionsPanel
+                id={functionsPanelId}
+                state={functionsState}
+                onInsert={insertFunction}
+              />
+              <FunctionsArrow />
+            </>
+          )}
+        </div>
       </section>
-      {!open && (
+      {!open && controls && (
         <button
           ref={showRef}
           type="button"
           className="kc-show-keypad"
           aria-label="Show keypad"
-          data-layout={layout.id}
-          data-pointer={pointer}
+          data-returning={wasOpen ? "true" : undefined}
           onClick={() => studentOpenChange(true)}
         >
           <KeyboardGlyph />
@@ -353,5 +367,29 @@ export function Keypad(props: KeypadProps): JSX.Element {
         </button>
       )}
     </>
+  );
+}
+
+/** VIS-KEYPAD-39: the ABC key's font steps below 490, 420 and 380 px. */
+function abcSize(width: number): string | undefined {
+  if (width < 380) return "xs";
+  if (width < 420) return "s";
+  if (width < 490) return "m";
+  return undefined;
+}
+
+/** VIS-KEYPAD-26: the popover's 24 by 12 arrow, its tip on the Functions key's cell. */
+function FunctionsArrow(): JSX.Element {
+  return (
+    <svg
+      className="kc-functions-arrow"
+      width={24}
+      height={13}
+      viewBox="0 0 24 13"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path d="M0 0.5L12 12.5L24 0.5" />
+    </svg>
   );
 }
