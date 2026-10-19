@@ -25,8 +25,8 @@ function Arrow(props: { flip: boolean }): JSX.Element {
   return (
     <Svg w={18} h={10}>
       <g transform={props.flip ? "translate(18 0) scale(-1 1)" : undefined} fill="currentColor">
-        <rect x={4} y={4.3} width={13.5} height={1.4} />
-        <path d="M0.5 5L5 2V8Z" />
+        <rect x={4} y={4.15} width={13.5} height={1.7} />
+        <path d="M0.5 5L4.7 2.1V7.9Z" />
       </g>
     </Svg>
   );
@@ -47,12 +47,12 @@ const ICONS: Record<KeyIcon, () => JSX.Element> = {
   enter: () => (
     <Svg w={24} h={14}>
       <path
-        d="M20.4 2.4V7.6Q20.4 10 18 10H5.5"
+        d="M20.4 3.2V6.8Q20.4 10 17.2 10H4.6"
         fill="none"
         stroke="currentColor"
         strokeWidth={2.2}
       />
-      <path d="M0.6 10L6.4 6.2V13.8Z" fill="currentColor" />
+      <path d="M0.6 10L5.2 6.4V13.6Z" fill="currentColor" />
     </Svg>
   ),
   audio: () => (
