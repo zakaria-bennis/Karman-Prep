@@ -25,6 +25,7 @@ Major technical choices and why we made them. Read these before deciding to do s
 
 ## Subject-matter docs
 
+- **[Question import rules](./import.md)** — start here for import work
 - **[Ingestion / routine](./ingestion/routine.md)** — production routine for the SAT question-import pipeline
 - **[Ingestion / spec](./ingestion/spec.md)** — full schema + behavior spec for question imports
 - **[Recaps & payouts / phase-0 audit](./recaps-payouts/phase-0-audit.md)** — codebase audit + decisions made before building the recap-email + tutor-payout system
