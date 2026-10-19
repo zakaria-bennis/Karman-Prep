@@ -214,7 +214,6 @@ function DailyQuestion({ value }: { value: Extract<DailySlot, { state: "ready" }
                             />
                           ) : (
                             <CalculatorChoiceAction
-                              slot="cluster"
                               text={choice.choice_text}
                               letter={choice.letter}
                               stem={stem}

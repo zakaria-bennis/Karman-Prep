@@ -20,7 +20,7 @@ on:
     # finding S5.
     branches: [main]
   pull_request:
-    branches: [main, zakaria/calculator-regression-release]
+    branches: [main]
 
 # Cancel in-flight runs when a new commit lands on the same PR/branch.
 # Saves CI minutes; the older run was about to be obsolete anyway.

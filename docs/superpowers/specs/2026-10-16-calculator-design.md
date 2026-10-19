@@ -204,11 +204,19 @@ Every ID in the five appendices and this overview appears exactly once below (58
 | File     | IDs                                                                                 |
 | -------- | ----------------------------------------------------------------------------------- |
 | Overview | CB-2                                                                                |
-| A        | PR-30, PR-43, PR-45; NM-39, NM-40; G-24; POI-3                                      |
-| B        | FN-5, FN-7, FN-8, FN-30 to FN-59; D-1 to D-40                                       |
+| A        | PR-30, PR-43, PR-45; NM-39, NM-40; G-24, G-25; POI-3                                |
+| B        | FN-5, FN-7, FN-8, FN-30 to FN-59; D-1 to D-42, D-44, D-46                           |
 | C        | TR-15 to TR-17, TR-22 to TR-25, TR-29 to TR-31, TR-34, TR-39, TR-60 to TR-63, TR-80 |
 | D        | AR-15; API-3                                                                        |
-| E        | K-8; S-2; A11Y-10                                                                   |
+| E        | L-16; K-8; S-2; A11Y-10; TH-19                                                      |
+
+**Parity work (appendix F)**
+
+| File | IDs              |
+| ---- | ---------------- |
+| A    | POI-17 to POI-20 |
+| B    | D-45             |
+| E    | S-10 to S-13     |
 
 **Phase 4**
 

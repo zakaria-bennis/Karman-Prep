@@ -33,7 +33,6 @@ export function CalculatorChoiceAction(props: {
   text: string;
   letter: string;
   stem?: StemInput;
-  slot?: "cluster";
 }): JSX.Element | null {
   const bridge = useCalculator();
   if (!bridge) return null;

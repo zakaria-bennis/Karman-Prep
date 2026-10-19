@@ -174,9 +174,7 @@ export function AnswerChoiceButton({
           >
             <Ban className="h-4 w-4" />
           </button>
-          {hasCalculator && (
-            <CalculatorChoiceAction slot="cluster" text={choiceBody} letter={letter} />
-          )}
+          {hasCalculator && <CalculatorChoiceAction text={choiceBody} letter={letter} />}
         </div>
       </div>
     </div>

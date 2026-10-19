@@ -96,7 +96,7 @@ Evidence directory: `../legacy-feature-review-artifacts` outside the checkout.
 1. Finish corpus final-version/dedup/key/figure/category approval and reconcile unique approved versus published counts.
 2. Review this read-only student history feature on a physical phone and a real account before merge/deploy. Existing release gates, original lesson/video limitations and live integration checks remain.
 3. Define the daily activity source and timezone for a real consecutive streak. Quiz attempts can provide completion timestamps; legacy `progress.last_visited` retains only the latest visit per concept and cannot reconstruct all historical activity. Confirm strict streak versus weekly freeze separately.
-4. Scope the realistic test engine: reserved question pool, section/module timing and routing, navigation/review/elimination, resume/expiry, accommodations and calibrated results. Existing calculator guard does not settle those decisions.
+4. Scope the realistic test engine: reserved question pool, section/module timing and routing, navigation/review/elimination, resume/expiry, accommodations and calibrated results.
 5. Agree canonical 39-skill mastery/recommendation policy while retaining old results. Do not remap or merge historical learner scores opportunistically.
 6. Decide lesson/video launch presentation and actual content/completion criteria separately. Keep those paths unchanged meanwhile.
 7. Parent goals/digests/messaging, support tooling and telemetry need product/privacy/delivery decisions. Payment, security, legal and provider configuration changes retain their separate approval requirements.

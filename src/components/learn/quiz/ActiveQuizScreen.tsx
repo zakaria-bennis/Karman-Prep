@@ -264,7 +264,6 @@ export function ActiveQuizScreen({
                         </button>
                         {q.subject === "math" && (
                           <CalculatorChoiceAction
-                            slot="cluster"
                             text={choice.choice_text}
                             letter={letter}
                             stem={stem}

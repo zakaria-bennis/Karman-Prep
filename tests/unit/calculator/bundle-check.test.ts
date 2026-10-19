@@ -227,9 +227,9 @@ it("AR-66 release.sh is the only deploy path and runs the checks between cf:buil
   ).toEqual(["scripts/calculator/release.sh"]);
 });
 
-it("AR-66 CI runs for pull requests to the release branch and checks the bundle after cf:build", () => {
+it("AR-66 CI runs for pull requests to main and checks the bundle after cf:build", () => {
   const ci = readFileSync(".github/workflows/ci.yml", "utf8");
-  expect(ci).toContain("branches: [main, zakaria/calculator-regression-release]");
+  expect(ci).toMatch(/pull_request:\s*\n\s*branches: \[main\]/);
   expect(ci.indexOf("node scripts/build/check-calculator-bundle.mjs")).toBeGreaterThan(
     ci.indexOf("npm run cf:build")
   );

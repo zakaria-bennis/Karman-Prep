@@ -109,17 +109,14 @@ export function StemTransferAction(props: {
   return view && <TransferControl {...view} />;
 }
 
-/** The cluster CalculatorChoiceAction body: the caller's stem, else the registered one. */
+/** The CalculatorChoiceAction body: the caller's stem, else the registered one. */
 export function ChoiceTransferAction(props: {
   text: string;
   letter: string;
   stem?: StemInput;
   questionKey: string;
-  slot?: "cluster";
 }): JSX.Element | null {
   const registered = useQuestionStem(props.questionKey);
-  // AR-11: only the cluster instance renders a control.
-  if (props.slot !== "cluster") return null;
   const view = choiceControl(props.letter, props.text, props.stem ?? registered);
   return view && <TransferControl {...view} />;
 }

@@ -194,7 +194,6 @@ export default function CatalogQuestion({
                       </button>
                       {q.subject === "math" && (
                         <CalculatorChoiceAction
-                          slot="cluster"
                           text={choice.choice_text}
                           letter={choice.letter}
                           stem={stem}

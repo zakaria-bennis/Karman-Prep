@@ -8,7 +8,8 @@
 > rows and point lists, and Desmos-style row errors and tooltips (R-2, R-5). The "today" notes
 > below and tasks T6 to T8 describe the old base: re-scope them against main's `latex/lists.ts`,
 > `eval/lists.ts` and `analysis/lists.ts` before starting, and keep main's behaviour and wording.
-> T1 to T5 were carried over onto main. `plan-remaining.md` replaces tasks T6 to T15.
+> T1 to T5 were carried over onto main. `plan-remaining.md` says what is left of tasks T6 to T15
+> and wins where they differ; their text below stays only as the detail it cites.
 
 - **Normalizer.** `\left\{` and `\right\}` become `\{` and `\}` (normalize.ts:178-188). The tokenizer reads them as commands named `{` and `}` (tokens.ts:163-168). Nothing rewrites `\ldots`.
 - **Ellipsis bug.** There is no ellipsis token. `1...10` currently tokenizes as `1.`, `.`, `.10`, because readDigits takes a single dot (tokens.ts:81, 134-153). Ranges cannot parse until this is fixed.

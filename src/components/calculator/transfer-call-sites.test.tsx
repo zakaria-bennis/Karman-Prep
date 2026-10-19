@@ -106,7 +106,7 @@ it("TR-45 one real button per item right after it or in its cluster; the math is
         <button type="button">A</button>
         <div data-calculator-cluster="">
           <button type="button" aria-label="Cross out choice A" />
-          <CalculatorChoiceAction slot="cluster" text="$2x$" letter="A" />
+          <CalculatorChoiceAction text="$2x$" letter="A" />
         </div>
       </div>
     </>
@@ -195,14 +195,13 @@ it("TR-50 names are Transfer to Calculator plus the table 8.1 description, uniqu
   ]);
 });
 
-it("AR-11, TR-22 the wrappers render only Transfer controls, question tables and table choices included; a choice outside its cluster renders nothing", async () => {
+it("AR-11, TR-22 the wrappers render only Transfer controls, question tables and table choices included", async () => {
   const stem = { text: "Line $y=2x+3$", serializedFunctionLines: false };
   const tree = (
     <>
       <CalculatorSourceAction latex="y=2x+3" segmentIndex={1} stem={stem} />
-      <CalculatorChoiceAction text="$2x$" letter="B" />
       <div data-testid="cluster">
-        <CalculatorChoiceAction text="$2x$" letter="B" slot="cluster" />
+        <CalculatorChoiceAction text="$2x$" letter="B" />
         <CalculatorTableAction rows={[["1", "2"]]} slot="cluster" />
       </div>
       <CalculatorTableAction
@@ -238,7 +237,7 @@ it("AR-11 a choice with no stem prop classifies against the stem its question's 
     <>
       <MathText calculator text={text} />
       <div data-calculator-cluster="">
-        <CalculatorChoiceAction slot="cluster" text="$f(x)+1$" letter="A" />
+        <CalculatorChoiceAction text="$f(x)+1$" letter="A" />
       </div>
     </>
   );
@@ -261,7 +260,7 @@ it("AR-33 (D4) a wrapper renders no control until the lazy classifier has loaded
   const fresh = await import("./CalculatorSourceAction");
   const { container } = render(
     <div data-calculator-cluster="">
-      <fresh.CalculatorChoiceAction slot="cluster" text="$5$" letter="A" />
+      <fresh.CalculatorChoiceAction text="$5$" letter="A" />
     </div>
   );
   expect(container.querySelector("[data-transfer-control]")).toBeNull();
