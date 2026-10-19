@@ -13,7 +13,7 @@ const toolbarNames = () =>
     .map((b) => b.getAttribute("aria-label"));
 const latexes = (kit: EditorKit) => kit.engine.getSnapshot().rows.map((r) => r.latex);
 
-it("KB-2 Undo and Redo follow Add item in each toolbar and are aria-disabled at the ends of the stack", () => {
+it("KB-2 Undo and Redo follow Add item (and the stacked mouse Keypad toggle) and are aria-disabled at the ends of the stack", () => {
   renderEditor(<ExpressionPanel {...panelProps()} />, { rows: [""] });
   expect(toolbarNames()).toEqual(["Add item", "Undo", "Redo", "Edit list", "Collapse list"]);
   cleanup();
@@ -28,6 +28,12 @@ it("KB-2 Undo and Redo follow Add item in each toolbar and are aria-disabled at 
   ]);
   expect(screen.getByRole("button", { name: "Undo" })).toHaveAttribute("aria-disabled", "true");
   expect(screen.getByRole("button", { name: "Redo" })).toHaveAttribute("aria-disabled", "true");
+  cleanup();
+  // RS-9: touch never gets the Keypad toggle; focusing a row opens the keypad instead (K-2).
+  renderEditor(<ExpressionPanel {...panelProps({ layout: "stacked", pointer: "coarse" })} />, {
+    rows: [""],
+  });
+  expect(toolbarNames()).toEqual(["Add item", "Undo", "Redo", "Edit list", "Collapse list"]);
 });
 
 it("KB-2 typing in one row is one undo step until 1,000 ms without edits or a focus change", async () => {

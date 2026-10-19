@@ -4,8 +4,9 @@
 // layout and to its right on the stacked one (S-11), insertion after the last active row (S-12)
 // and an announcement of what was added (S-13). Escape closes it as one KB-3 layer.
 
-import { Plus, SquareFunction, Table2 } from "lucide-react";
+import { SquareFunction, Table2 } from "lucide-react";
 import { useContext, useEffect, useRef, useState, type JSX, type KeyboardEvent } from "react";
+import { AddGlyph } from "../../icons/list";
 import { useAnnouncer } from "../a11y/announcer";
 import { EscapeContext } from "../focus/escape-stack";
 import { FocusContext } from "../focus/focus-controller";
@@ -109,7 +110,7 @@ export function AddItemMenu({ layout }: AddItemMenuProps): JSX.Element {
         onClick={() => setOpen((o) => !o)}
         onKeyDown={onButtonKey}
       >
-        <Plus aria-hidden="true" focusable="false" size={20} />
+        <AddGlyph />
       </button>
       {open && (
         <div

@@ -34,7 +34,7 @@ it("A11Y-4 each textbox's accessible description is the T-5 speech text", () => 
   expect(textbox(2)).toHaveAccessibleDescription("y equals Start Root, x, End Root plus pi");
 });
 
-it("L-3 the gutter numbers rows from 1 and marks the focused row and the active row", () => {
+it("L-3 the gutter numbers rows from 1, the ghost row shows the next number, and the focused and active rows are marked", () => {
   const props = panelProps();
   const kit = renderEditor(<ExpressionPanel {...props} />, { rows: ["y=x", "a=2", ""] });
   expect([...document.querySelectorAll("li .kc-row-number")].map((n) => n.textContent)).toEqual([
@@ -42,6 +42,8 @@ it("L-3 the gutter numbers rows from 1 and marks the focused row and the active 
     "2",
     "3",
   ]);
+  expect(document.querySelector(".kc-ghost-row")).toHaveTextContent("4");
+  expect(document.querySelector(".kc-ghost-row")).toHaveAttribute("aria-hidden", "true");
   fireEvent.pointerDown(rowItem("2").querySelector(".kc-row-field")!, { pointerType: "touch" });
   act(() => kit.focus.focusRow("2", "end"));
   expect(rowItem("2")).toHaveAttribute("data-focused", "true");

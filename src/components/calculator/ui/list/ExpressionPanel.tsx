@@ -8,15 +8,7 @@
 // Expand list run AN-3's lifecycle in data-list-state and flip settings.expressionsCollapsed only
 // when the transition ends, so the layout resizes the graph once.
 
-import {
-  ChevronsLeft,
-  ChevronsRight,
-  Keyboard,
-  Pencil,
-  Redo2,
-  Undo2,
-  type LucideIcon,
-} from "lucide-react";
+import { Keyboard } from "lucide-react";
 import {
   useContext,
   useEffect,
@@ -25,9 +17,12 @@ import {
   useState,
   type CSSProperties,
   type JSX,
+  type MouseEvent,
+  type ReactNode,
   type Ref,
 } from "react";
 import type { CalculatorEngine } from "@/lib/calculator/core/api/engine";
+import { DoubleChevronGlyph, EditListGlyph, UndoGlyph } from "../../icons/list";
 import { useAnnouncer } from "../a11y/announcer";
 import { FocusContext } from "../focus/focus-controller";
 import { useEngine, useEngineSnapshot } from "../hooks/use-engine";
@@ -35,7 +30,7 @@ import { AddItemMenu } from "./AddItemMenu";
 import { createRowAnnouncements } from "./announcements";
 import { ExpressionRow } from "./ExpressionRow";
 import { MotionContext } from "./motion";
-import { clearAllRows, performRedo, performUndo } from "./row-actions";
+import { clearAllRows, insertRowBelow, performRedo, performUndo } from "./row-actions";
 import { useRowPresence } from "./row-presence";
 import { TableItem } from "./TableItem";
 import { ToastHost } from "./Toast";
@@ -58,16 +53,15 @@ export interface ExpressionPanelProps {
 
 interface ToolButtonProps {
   label: string;
-  icon: LucideIcon;
+  icon: ReactNode;
   pressed?: boolean; // a toggle: aria-pressed
   disabled?: boolean; // aria-disabled; the button stays focusable (KB-13)
   onClick?(): void;
   buttonRef?: Ref<HTMLButtonElement>;
 }
 
-/** One toolbar button, named by its aria-label and drawn with a lucide icon. */
+/** One toolbar button, named by its aria-label and drawn with one of our list glyphs. */
 function ToolButton(props: ToolButtonProps): JSX.Element {
-  const Icon = props.icon;
   return (
     <button
       type="button"
@@ -78,7 +72,7 @@ function ToolButton(props: ToolButtonProps): JSX.Element {
       aria-disabled={props.disabled}
       onClick={props.onClick}
     >
-      <Icon aria-hidden="true" focusable="false" size={20} />
+      {props.icon}
     </button>
   );
 }
@@ -194,6 +188,7 @@ export function ExpressionPanel(props: ExpressionPanelProps): JSX.Element {
   const focus = useContext(FocusContext);
   const announcer = useAnnouncer();
   const [editing, setEditing] = useState(false);
+  const [scrolled, setScrolled] = useState(false); // VIS-13: the toolbar's shadow
   const editListRef = useRef<HTMLButtonElement>(null);
   const presence = useRowPresence(rows);
   const list = useListLifecycle(engine, settings.expressionsCollapsed);
@@ -226,6 +221,12 @@ export function ExpressionPanel(props: ExpressionPanelProps): JSX.Element {
   });
 
   const { listState } = list;
+  const stacked = props.layout === "stacked";
+  // The next row's number on the ghost row below the last item; pressing it adds that row.
+  const appendRow = (event: MouseEvent) => {
+    event.preventDefault();
+    insertRowBelow(engine, focus, announcer, null, "focus");
+  };
   return (
     <section
       ref={list.panelRef}
@@ -234,102 +235,124 @@ export function ExpressionPanel(props: ExpressionPanelProps): JSX.Element {
       data-layout={props.layout}
       data-pointer={props.pointer}
       data-list-state={listState}
+      data-scrolled={scrolled ? "true" : undefined}
     >
       {(listState === "collapsed" || listState === "expanding") && (
         <ToolButton
           label="Expand list"
-          icon={ChevronsRight}
+          icon={<DoubleChevronGlyph direction={stacked ? "up" : "right"} />}
           buttonRef={list.expandRef}
           onClick={list.expand}
         />
       )}
       {listState !== "collapsed" && (
         <div
-          className="kc-list-body"
+          className="kc-list-slide"
           ref={list.bodyRef}
           data-enter={listState === "expanding" ? "true" : undefined}
           style={list.overlayStyle}
         >
           <div className="kc-list-toolbar" role="toolbar" aria-label="List tools">
-            <AddItemMenu layout={props.layout} />
-            {props.layout === "stacked" && (
-              <ToolButton
-                label="Keypad"
-                icon={Keyboard}
-                pressed={props.keypadOpen}
-                onClick={props.onToggleKeypad}
-              />
-            )}
+            <div className="kc-toolbar-zone">
+              <AddItemMenu layout={props.layout} />
+              {stacked && props.pointer === "fine" && (
+                <ToolButton
+                  label="Keypad"
+                  icon={<Keyboard aria-hidden="true" focusable="false" size={22} />}
+                  pressed={props.keypadOpen}
+                  onClick={props.onToggleKeypad}
+                />
+              )}
+            </div>
             {/* performUndo and performRedo do nothing at the ends of the stack, so an
               aria-disabled button ignores activation. */}
-            <ToolButton
-              label="Undo"
-              icon={Undo2}
-              disabled={!canUndo}
-              onClick={() => performUndo(engine, announcer)}
-            />
-            <ToolButton
-              label="Redo"
-              icon={Redo2}
-              disabled={!canRedo}
-              onClick={() => performRedo(engine, announcer)}
-            />
-            <ToolButton
-              label="Edit list"
-              icon={Pencil}
-              pressed={editing}
-              buttonRef={editListRef}
-              onClick={() => setEditing((on) => !on)}
-            />
-            <ToolButton
-              label="Collapse list"
-              icon={ChevronsLeft}
-              buttonRef={list.collapseRef}
-              onClick={list.collapse}
-            />
+            <div className="kc-toolbar-zone" data-zone="centre">
+              <ToolButton
+                label="Undo"
+                icon={<UndoGlyph />}
+                disabled={!canUndo}
+                onClick={() => performUndo(engine, announcer)}
+              />
+              <ToolButton
+                label="Redo"
+                icon={<UndoGlyph redo />}
+                disabled={!canRedo}
+                onClick={() => performRedo(engine, announcer)}
+              />
+            </div>
+            <div className="kc-toolbar-zone">
+              <ToolButton
+                label="Edit list"
+                icon={<EditListGlyph />}
+                pressed={editing}
+                buttonRef={editListRef}
+                onClick={() => setEditing((on) => !on)}
+              />
+              <ToolButton
+                label="Collapse list"
+                icon={<DoubleChevronGlyph direction={stacked ? "down" : "left"} />}
+                buttonRef={list.collapseRef}
+                onClick={list.collapse}
+              />
+            </div>
           </div>
           {editing && (
             <div className="kc-edit-bar">
               <button
                 type="button"
                 className="kc-edit-action"
+                data-tone="danger"
                 onClick={() => clearAllRows(engine, focus, announcer)}
               >
                 Clear all expressions
               </button>
-              <button type="button" className="kc-edit-action" onClick={finishEditing}>
+              <button
+                type="button"
+                className="kc-edit-action"
+                data-tone="accent"
+                onClick={finishEditing}
+              >
                 Done
               </button>
             </div>
           )}
-          <ToastHost>
-            {/* role="list" keeps list semantics in WebKit, which drops them under list-style: none */}
-            <ol className="kc-list" role="list" aria-label="Expressions">
-              {numbered.map(({ row, motion, number }) =>
-                row.type === "table" ? (
-                  <TableItem
-                    key={row.id}
-                    row={row}
-                    number={number}
-                    keypadOpen={props.keypadOpen}
-                    onTouchFocus={props.onTouchFocusRow}
-                    motion={motion}
-                    onExitDone={exitDone}
-                  />
-                ) : (
-                  <ExpressionRow
-                    key={row.id}
-                    row={row}
-                    number={number}
-                    keypadOpen={props.keypadOpen}
-                    onTouchFocus={props.onTouchFocusRow}
-                    motion={motion}
-                    onExitDone={exitDone}
-                  />
-                )
-              )}
-            </ol>
-          </ToastHost>
+          <div
+            className="kc-list-body"
+            onScroll={(e) => setScrolled(e.currentTarget.scrollTop > 0)}
+          >
+            <ToastHost>
+              {/* role="list" keeps list semantics in WebKit, which drops them under list-style: none */}
+              <ol className="kc-list" role="list" aria-label="Expressions">
+                {numbered.map(({ row, motion, number }) =>
+                  row.type === "table" ? (
+                    <TableItem
+                      key={row.id}
+                      row={row}
+                      number={number}
+                      keypadOpen={props.keypadOpen}
+                      onTouchFocus={props.onTouchFocusRow}
+                      motion={motion}
+                      onExitDone={exitDone}
+                    />
+                  ) : (
+                    <ExpressionRow
+                      key={row.id}
+                      row={row}
+                      number={number}
+                      keypadOpen={props.keypadOpen}
+                      onTouchFocus={props.onTouchFocusRow}
+                      motion={motion}
+                      onExitDone={exitDone}
+                    />
+                  )
+                )}
+              </ol>
+              {/* A pointer shortcut only: keyboard users add rows with Enter or Add item. */}
+              <div className="kc-ghost-row" aria-hidden="true" onMouseDown={appendRow}>
+                <span className="kc-row-number">{shown + 1}</span>
+              </div>
+            </ToastHost>
+          </div>
         </div>
       )}
     </section>
