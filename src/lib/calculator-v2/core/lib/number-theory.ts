@@ -6,9 +6,13 @@
 
 import type { Complex } from "../eval/values";
 import type { Rule } from "./builtins";
-import { gamma, reciprocalGamma } from "./gamma";
+import { gamma, logAbsGamma, reciprocalGamma } from "./gamma";
 
-/** Integer r up to this uses the exact multiplicative product for any n; past it, Γ. */
+/**
+ * A whole r up to this uses the exact multiplicative product for any n. Past it, a whole n uses the
+ * product (shortened by symmetry or reflection) and any other n uses Γ in log form, since the
+ * product need not reach 0 or overflow and so would not stop early.
+ */
 const PRODUCT_LIMIT = 1000;
 const NAN: Complex = Object.freeze({ re: NaN, im: NaN });
 
@@ -71,38 +75,48 @@ function fallingProduct(n: number, r: number, choose: boolean): number {
   return result;
 }
 
-/** Whether nCr or nPr can use the exact product: a whole r ≥ 0, short or with a whole n ≥ 0. */
-function productApplies(n: number, r: number): boolean {
-  return Number.isInteger(r) && r >= 0 && (r <= PRODUCT_LIMIT || (Number.isInteger(n) && n >= 0));
-}
-
 /**
  * FN-78: nCr(n, r) = Γ(n+1)/(Γ(r+1)·Γ(n−r+1)), where a pole in the denominator gives 0
  * (nCr(5, −1) = 0, nCr(2, 5) = 0). A whole r ≥ 0 uses the generalised binomial product, which is
- * exact below 2^53 and defined for every n (nCr(−1, 2) = 1). A whole negative n with a whole
- * negative r takes the symmetric form (nCr(−1, −1) = 1).
+ * exact below 2^53 and defined for every n (nCr(−1, 2) = 1); a whole negative n first takes the
+ * reflection nCr(n, r) = (−1)^r·nCr(r − n − 1, r), so the product stays short for any r
+ * (nCr(−2, 1001) = −1002). A whole negative n with a whole negative r takes the symmetric form
+ * (nCr(−1, −1) = 1). Past PRODUCT_LIMIT, any other n uses Γ in log form, which does not overflow.
  */
 export function nCr(n: number, r: number): number {
-  if (Number.isInteger(n) && n < 0 && Number.isInteger(r) && r < 0) {
+  const wholeN = Number.isInteger(n);
+  if (wholeN && n < 0 && Number.isInteger(r) && r < 0) {
     // Both whole and negative: Γ(n+1) has a pole, so take Desmos's limit through the symmetry
     // nCr(n, r) = nCr(n, n − r), which is 0 for r > n (nCr(−2, −1) = 0, nCr(−3, −5) = 6).
     return r > n ? 0 : nCr(n, n - r);
   }
-  if (productApplies(n, r)) {
-    const k = Number.isInteger(n) && n >= 0 ? (r > n ? -1 : Math.min(r, n - r)) : r;
-    return k < 0 ? 0 : fallingProduct(n, k, true) + 0;
+  if (Number.isInteger(r) && r >= 0) {
+    if (wholeN && n < 0) return (r % 2 === 0 ? 1 : -1) * nCr(r - n - 1, r) + 0;
+    if (wholeN) return r > n ? 0 : fallingProduct(n, Math.min(r, n - r), true) + 0;
+    if (r <= PRODUCT_LIMIT) return fallingProduct(n, r, true) + 0;
+    return logGammaRatio(n, r);
   }
   return gamma(n + 1) * reciprocalGamma(r + 1) * reciprocalGamma(n - r + 1) + 0;
 }
 
+/** Γ(n+1)/(Γ(r+1)·Γ(n−r+1)) through ln|Γ|, for arguments off the poles. */
+function logGammaRatio(n: number, r: number): number {
+  const top = logAbsGamma(n + 1);
+  const left = logAbsGamma(r + 1);
+  const right = logAbsGamma(n - r + 1);
+  const v = top.sign * left.sign * right.sign * Math.exp(top.log - left.log - right.log);
+  return Number.isFinite(v) ? v + 0 : NaN;
+}
+
 /**
- * FN-78: nPr(n, r) = Γ(n+1)/Γ(n−r+1); a whole r ≥ 0 uses the falling product (nPr(5, 6) = 0). When
+ * FN-78: nPr(n, r) = Γ(n+1)/Γ(n−r+1); a whole r ≥ 0 uses the falling product (nPr(5, 6) = 0),
+ * which for any r stops at a 0 factor or overflows within a few hundred factors. When
  * both Γ(n+1) and Γ(n−r+1) are at poles, n+1 = −a and n−r+1 = −b, Desmos takes the limit, the
  * ratio of the residues (−1)^a/a! and (−1)^b/b!: (−1)^(a−b)·b!/a! (nPr(−2, −1) = −1,
  * nPr(−4, −1) = −1/3). A pole in the numerator alone stays undefined (nPr(−1, −1)).
  */
 export function nPr(n: number, r: number): number {
-  if (productApplies(n, r)) return fallingProduct(n, r, false) + 0;
+  if (Number.isInteger(r) && r >= 0) return fallingProduct(n, r, false) + 0;
   const top = n + 1;
   const bottom = n - r + 1;
   if (Number.isInteger(top) && top <= 0 && Number.isInteger(bottom) && bottom <= 0) {

@@ -144,3 +144,19 @@ it("NM-15 Γ past the factorial table on the reflection side is 0, and its recip
   expect(reciprocalGamma(-170.5)).toBeNaN();
   expect(withinTolerance(gamma(-169.5), 5.648220884223333e-306, "default")).toBe(true);
 });
+
+it("FN-78 nCr stays finite past r = 1000 when n is not a whole number of at least 0", () => {
+  // A whole negative n takes the reflection (−1)^r·nCr(r − n − 1, r), exact at any r.
+  expect([nCr(-2, 1000), nCr(-2, 1001), nCr(-1, 1001), nCr(-1, 1e15)]).toEqual([
+    1001, -1002, -1, 1,
+  ]);
+  // Any other n continues the product's values through Γ in log form: each step past the limit
+  // is one more factor (n − r + 1)/r.
+  for (const m of [2.5, -2.5, 0.5]) {
+    const step = nCr(m, 1000) * ((m - 1000) / 1001);
+    expect(Math.abs(nCr(m, 1001) / step - 1), `nCr(${m}, 1001)`).toBeLessThan(1e-10);
+  }
+  expect(Number.isFinite(nCr(2.5, 1e15))).toBe(true);
+  // nPr's product overflows instead, at r = 1000 as at r = 1001.
+  expect([nPr(-2, 1001), nPr(2.5, 1001)]).toEqual([Infinity, Infinity]);
+});

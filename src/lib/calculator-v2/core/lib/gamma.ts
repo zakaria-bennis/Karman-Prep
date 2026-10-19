@@ -75,6 +75,23 @@ export function reciprocalGamma(x: number): number {
   return Number.isNaN(g) || g === 0 ? NaN : 1 / g;
 }
 
+/**
+ * ln|Γ(x)| and the sign of Γ(x) for x off the poles, without overflow: Lanczos in log form for
+ * x ≥ 0.5 and the reflection ln|Γ(x)| = ln π − ln|sin πx| − ln Γ(1 − x) below. Used where Γ itself
+ * overflows but a ratio of Γ values is finite (nCr with a large r, FN-78).
+ */
+export function logAbsGamma(x: number): { log: number; sign: number } {
+  if (x < 0.5) {
+    const s = sinPi(x);
+    return { log: Math.log(Math.PI / Math.abs(s)) - logAbsGamma(1 - x).log, sign: Math.sign(s) };
+  }
+  const z = x - 1;
+  let sum = LANCZOS[0];
+  for (let k = 1; k < LANCZOS.length; k++) sum += LANCZOS[k] / (z + k);
+  const t = z + LANCZOS_G + 0.5;
+  return { log: Math.log(SQRT_TWO_PI * sum) + (z + 0.5) * Math.log(t) - t, sign: 1 };
+}
+
 /** x! = Γ(x + 1) (NM-15, FN-79): 0! = 1, 170! is finite, 171! and (−1)! are undefined. */
 export function factorial(x: number): number {
   return gamma(x + 1);
