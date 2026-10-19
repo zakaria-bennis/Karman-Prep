@@ -169,3 +169,16 @@ it("NM-21 the real plotting path agrees with compileExpression on every real-mod
     );
   }
 });
+it("NM-15, FN-79 x! is Γ(x+1) in values and in both graphing paths, undefined at negative integers", () => {
+  for (const settings of [REAL, CX]) {
+    const { analysis, scope } = setup(["y=x!"], settings),
+      f = compileRealFunction1(explicitExpr(analysis.rows[0].graph), "x", scope);
+    expect([f(5), f(0), f(-1), f(171)]).toEqual([120, 1, NaN, NaN]);
+    expect(Math.abs(f(0.5) - Math.sqrt(Math.PI) / 2)).toBeLessThan(1e-15);
+  }
+  expect([value("3!^{2}"), value("(-2)!"), value("(1+i)!", CX)]).toEqual([
+    n(36),
+    UNDEFINED,
+    UNDEFINED,
+  ]);
+});

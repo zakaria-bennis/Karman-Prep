@@ -247,6 +247,7 @@ calculator (SC-) uses them and v1 already offers floor, ceil and round.
 - **FN-78** nPr(n, r) = n!/(n − r)! and nCr(n, r) = n!/(r!(n − r)!) for integers 0 ≤ r ≤ n, exact below 2^53 (nCr(52, 5) = 2598960); r > n gives 0, and negative or non-integer arguments give undefined (confirm by REA behaviour capture in Phase 2). (Phase 2; verified by unit test)
   - _Amended 2026-10-19 (appendix F decision 2, Desmos behaviour wins):_ nCr and nPr follow the Γ generalisation, nCr(n, r) = Γ(n+1)/(Γ(r+1)Γ(n−r+1)) and nPr(n, r) = Γ(n+1)/Γ(n−r+1), with a pole in the denominator giving 0: nCr(5.5, 2) = 12.375, nCr(5, 2.5) ≈ 10.864977448406723, nCr(−1, 2) = 1, nCr(5, −1) = 0, nCr(2, 5) = 0 and nPr(5, 6) = 0. A whole r ≥ 0 uses the exact multiplicative product, so integer results below 2^53 stay exact.
 - **FN-79** x! = Γ(x + 1) for real x (5! = 120, (1/2)! = 0.8862269255), undefined at negative integers and when the result overflows (FN-14) (confirm by REA behaviour capture in Phase 2). (Phase 2; verified by unit test)
+  - _Amended 2026-10-19 (appendix F decision 2, Desmos behaviour wins):_ confirmed in Desmos: 0! = 1, 2.5! = 3.323350970447842, (−2.5)! = 2.363271801207355, (−1)! is undefined, 170! = 7.257415615307999e306 and 171! is undefined. Whole factorials up to 170! are the correctly rounded exact products; other arguments use Lanczos (g = 607/128) with reflection below ½. A complex argument is undefined.
 
 ## 15. Matrices
 

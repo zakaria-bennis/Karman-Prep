@@ -5,6 +5,7 @@
 // DOM (AR-44).
 
 import type { RelOp } from "../latex/ast";
+import { factorial } from "../lib/gamma";
 import { cadd, cdiv, cmul, cpow, csqrt, csub } from "./complex";
 import { realPow, realRoot, type Rational } from "./real-pow";
 import { complexValue, numberValue, UNDEFINED, type Complex, type Value } from "./values";
@@ -67,6 +68,11 @@ export function pctV(a: Value): Value {
 export function absV(a: Value): Value {
   if (a.type === "number") return numberValue(Math.abs(a.value));
   return a.type === "complex" ? numberValue(Math.hypot(a.value.re, a.value.im)) : UNDEFINED;
+}
+
+/** a! = Γ(a + 1) for a real a (NM-15, FN-79); a non-real a is undefined. */
+export function factV(a: Value): Value {
+  return a.type === "number" ? numberValue(factorial(a.value)) : UNDEFINED;
 }
 
 /** a° in the angle mode's unit: (a·π)/180 in radians, a itself in degrees. */

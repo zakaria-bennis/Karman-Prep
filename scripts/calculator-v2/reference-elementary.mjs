@@ -104,6 +104,14 @@ export const ELEMENTARY_INPUTS = [
   ["nPr", 20, 7],
   ["abs", -2.5],
   ["abs", 1e-300],
+  ["factorial", 0],
+  ["factorial", 5],
+  ["factorial", 20],
+  ["factorial", 170],
+  ["factorial", 0.5],
+  ["factorial", 2.5],
+  ["factorial", 10.5],
+  ["factorial", -2.5],
 ];
 
 /** Built-in names MathQuill writes as \operatorname{…}; every other op is a \name command. */
@@ -167,6 +175,8 @@ function latexFor(op, args) {
       return `\\log_{${p}}\\left(${q}\\right)`;
     case "arctan2": // (y, x)
       return `\\arctan\\left(${p},${q}\\right)`;
+    case "factorial":
+      return args[0] < 0 ? `\\left(${p}\\right)!` : `${p}!`;
     default: {
       const list = args.map(latexNumber).join(",");
       return OPERATORNAME_OPS.has(op)
@@ -174,6 +184,34 @@ function latexFor(op, args) {
         : `\\${op}\\left(${list}\\right)`;
     }
   }
+}
+
+/** k! for a whole k ≥ 0, exactly. */
+function bigFactorial(k) {
+  let product = new Big(1);
+  for (let j = 2; j <= k; j++) product = product.times(j);
+  return product;
+}
+
+/**
+ * x! = Γ(x + 1) for a whole x ≥ 0 (the exact product) or a half-integer x, where Γ(k + ½) is
+ * (2k)!/(4^k·k!)·√π for k ≥ 0 and (−4)^j·j!/(2j)!·√π for k = −j < 0.
+ */
+function factorialReference(x) {
+  if (Number.isInteger(x)) return bigFactorial(x);
+  const k = x + 0.5; // Γ(x + 1) = Γ(k + ½)
+  if (!Number.isInteger(k)) throw new Error(`No closed form for ${x}!`);
+  const rootPi = math.pi.sqrt();
+  if (k >= 0)
+    return bigFactorial(2 * k)
+      .div(new Big(4).pow(k).times(bigFactorial(k)))
+      .times(rootPi);
+  const j = -k;
+  return new Big(-4)
+    .pow(j)
+    .times(bigFactorial(j))
+    .div(bigFactorial(2 * j))
+    .times(rootPi);
 }
 
 /** The 40-digit reference value of `op` at `args`, using decimal.js methods only. */
@@ -260,6 +298,8 @@ function referenceFor(op, args) {
       for (let k = 2; k <= r; k++) product = product.div(k);
       return product;
     }
+    case "factorial":
+      return factorialReference(args[0]);
     default:
       throw new Error(`No reference rule for ${op}`);
   }
