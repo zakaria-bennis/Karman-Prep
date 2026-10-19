@@ -16,6 +16,7 @@ import {
   type ParserState,
 } from "./parser";
 import type { Token } from "./tokens";
+import { exactParse, isExactRational } from "../eval/rational";
 
 type DigitsToken = Extract<Token, { t: "digits" }>;
 type LetterToken = Extract<Token, { t: "letter" }>;
@@ -109,6 +110,18 @@ export function takePostfix(state: ParserState, atom: Node): Node {
 }
 
 /**
+ * A number literal. A non-integer decimal also keeps its exact rational (MATHS-CORE-1), which
+ * the evaluator uses for constants; an integer needs none, since every integer double is exact.
+ */
+function numberLiteral(text: string, span: SourceSpan): Node {
+  const value = Number(text);
+  const exact = Number.isInteger(value) ? null : exactParse(text);
+  return exact !== null && isExactRational(exact)
+    ? { kind: "num", value, exact, span }
+    : { kind: "num", value, span };
+}
+
+/**
  * An atom (level 11): a number, a Latin or Greek identifier or a constant (G6), an identifier's
  * user-function call (PR-23), a `(` or `{` group (G10), a fraction or root (G9) or absolute-value
  * bars (G11); any other token fails (G14).
@@ -118,7 +131,7 @@ export function parseAtom(state: ParserState): Node {
   switch (token.t) {
     case "digits":
       take(state);
-      return { kind: "num", value: Number(token.text), span: token.span };
+      return numberLiteral(token.text, token.span);
     case "letter":
       return parseUserCall(state, parseLetter(state, token));
     case "open":

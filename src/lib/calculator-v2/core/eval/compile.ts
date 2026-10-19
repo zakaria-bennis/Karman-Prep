@@ -1,6 +1,10 @@
 // The closure compiler and row evaluation (01-interfaces.md section 4; NM-9, NM-12, NM-21, NM-22,
-// NM-27, FN-17, G-6). Trees compile once into closures over `Value`; real-mode plotting functions
-// use compile-real.ts on plain numbers. Pure TypeScript: no DOM (AR-44), and no eval or Function.
+// NM-27, FN-17, G-6). Trees compile once into closures over `Value`, with constants on the exact
+// path of exact-fold.ts (NM-3 amendment, MATHS-CORE-1, 2, 61). Plotting functions fold each constant
+// sub-tree once on that exact path (constant-subtrees.ts) and use doubles for the parts that depend
+// on x or y: compile-real.ts on plain numbers in real mode, this compiler's double operations in
+// complex mode, so both modes plot the same. Pure TypeScript: no DOM (AR-44), and no eval or
+// Function.
 
 import {
   analyzeRows,
@@ -9,12 +13,27 @@ import {
   type RowAnalysis,
 } from "../analysis/index";
 import { DeadlineExceeded, NO_DEADLINE, type Deadline } from "../deadline";
-import type { Node } from "../latex/ast";
+import type { Node, RelOp } from "../latex/ast";
 import { isBuiltinName } from "../latex/operator-names";
 import { applyBuiltin } from "../lib/builtins";
 import { circular, type CircularName } from "../lib/trig";
 import { C_I } from "./complex";
-import { compileReal, constantValue, degreeArgument, MAX_CALL_DEPTH } from "./compile-real";
+import {
+  compileReal,
+  constantValue,
+  degreeArgument,
+  MAX_CALL_DEPTH,
+  type ConstantFold,
+} from "./compile-real";
+import { constantTest, type ConstantTest } from "./constant-subtrees";
+import {
+  exactBinary,
+  exactBuiltin,
+  exactPercent,
+  exactRelationHolds,
+  exactUnary,
+  literalValue,
+} from "./exact-fold";
 import {
   absV,
   addV,
@@ -30,7 +49,8 @@ import {
   subV,
   toPlotNumber,
 } from "./ops";
-import { exponentRational } from "./real-pow";
+import * as Q from "./rational";
+import { exponentRational, type Rational } from "./real-pow";
 import { complexValue, numberValue, UNDEFINED, type Value } from "./values";
 
 export interface EvalSettings {
@@ -53,13 +73,61 @@ interface CompiledFunction {
   body: Compiled;
 }
 
+/** The arithmetic a compile uses: exact constants for values, doubles for graphing. */
+interface Ops {
+  add: (a: Value, b: Value) => Value;
+  sub: (a: Value, b: Value) => Value;
+  mul: (a: Value, b: Value) => Value;
+  div: (a: Value, b: Value) => Value;
+  neg: (a: Value) => Value;
+  pct: (a: Value) => Value;
+  abs: (a: Value) => Value;
+  sqrt: (a: Value, complex: boolean) => Value;
+  pow: (a: Value, b: Value, rational: Rational | null, complex: boolean) => Value;
+  builtin: (name: string, args: readonly Value[]) => Value | null;
+  relation: (values: readonly Value[], ops: readonly RelOp[]) => boolean;
+}
+
 interface Context {
   scope: CompileScope;
   functions: Map<string, CompiledFunction>;
   depth: number; // user-function calls in progress
+  ops: Ops;
+  constant: ConstantTest | null; // graphing: fold the constant sub-trees on the exact path
+  inBody: boolean; // compiling a user-function body, where every parameter name is live
 }
 
 const ONE: Value = Object.freeze(numberValue(1));
+const EXACT_SQRT = [false, true].map((complex) =>
+  exactUnary(Q.sqrt, (a) => rootV(a, null, complex))
+);
+const EXACT_OPS: Ops = {
+    add: exactBinary(Q.add, addV, true),
+    sub: exactBinary(Q.sub, subV, true),
+    mul: exactBinary(Q.mul, mulV, true),
+    div: exactBinary(Q.div, divV, true),
+    neg: exactUnary(Q.neg, negV),
+    pct: exactUnary(exactPercent, pctV),
+    abs: exactUnary(Q.abs, absV),
+    sqrt: (a, complex) => EXACT_SQRT[complex ? 1 : 0](a),
+    pow: (a, b, rational, complex) =>
+      exactBinary(Q.pow, (x, y) => powV(x, y, rational, complex), false)(a, b),
+    builtin: exactBuiltin,
+    relation: exactRelationHolds,
+  },
+  DOUBLE_OPS: Ops = {
+    add: addV,
+    sub: subV,
+    mul: mulV,
+    div: divV,
+    neg: negV,
+    pct: pctV,
+    abs: absV,
+    sqrt: (a, complex) => rootV(a, null, complex),
+    pow: powV,
+    builtin: () => null,
+    relation: relationHolds,
+  };
 const I_VALUE: Value = Object.freeze(complexValue(C_I.re, C_I.im));
 const hasOwn = (vars: Readonly<Record<string, Value>>, name: string) =>
   Object.prototype.hasOwnProperty.call(vars, name);
@@ -75,7 +143,32 @@ const hasOwn = (vars: Readonly<Record<string, Value>>, name: string) =>
  * link holds between real operands, else UNDEFINED.
  */
 export function compileExpression(tree: Node, scope: CompileScope): Compiled {
-  return compileNode(tree, { scope, functions: new Map(), depth: 0 });
+  return compileNode(tree, valueContext(scope));
+}
+
+function valueContext(scope: CompileScope): Context {
+  return { scope, functions: new Map(), depth: 0, ops: EXACT_OPS, constant: null, inBody: false };
+}
+
+/** A constant sub-tree's value on the exact path, as a row would show it (MATHS-CORE-1, 2). */
+function constantOf(node: Node, scope: CompileScope): Value {
+  return compileExpression(node, scope)({}, NO_DEADLINE);
+}
+
+/**
+ * compileExpression for graphing (NM-21): each maximal constant sub-tree is its exact value,
+ * computed once, and the rest uses the double operations of ops.ts and applyBuiltin.
+ */
+function compileGraphExpression(tree: Node, scope: CompileScope): Compiled {
+  const ctx: Context = {
+    scope,
+    functions: new Map(),
+    depth: 0,
+    ops: DOUBLE_OPS,
+    constant: constantTest(scope),
+    inBody: false,
+  };
+  return compileNode(tree, ctx);
 }
 
 function constant(v: Value): Compiled {
@@ -83,30 +176,39 @@ function constant(v: Value): Compiled {
 }
 
 function compileNode(node: Node, ctx: Context): Compiled {
-  const { angleMode, complex } = ctx.scope.settings;
+  if (
+    ctx.constant !== null &&
+    node.kind !== "num" &&
+    node.kind !== "const" &&
+    ctx.constant(node, ctx.inBody)
+  ) {
+    return constant(constantOf(node, ctx.scope));
+  }
+  const { angleMode, complex } = ctx.scope.settings,
+    { ops } = ctx;
   switch (node.kind) {
     case "num":
-      return constant(Object.freeze(numberValue(node.value)));
+      return constant(literalValue(node.value, node.exact));
     case "const":
       return constant(Object.freeze(numberValue(constantValue(node.name))));
     case "id":
       return identifier(node.name, ctx);
     case "add":
-      return binary(node, ctx, addV);
+      return binary(node, ctx, ops.add);
     case "sub":
-      return binary(node, ctx, subV);
+      return binary(node, ctx, ops.sub);
     case "mul":
-      return binary(node, ctx, mulV);
+      return binary(node, ctx, ops.mul);
     case "div":
-      return binary(node, ctx, divV);
+      return binary(node, ctx, ops.div);
     case "pow":
       return power(node, ctx);
     case "neg":
-      return unary(node.arg, ctx, negV);
+      return unary(node.arg, ctx, ops.neg);
     case "pct":
-      return unary(node.arg, ctx, pctV);
+      return unary(node.arg, ctx, ops.pct);
     case "abs":
-      return unary(node.arg, ctx, absV);
+      return unary(node.arg, ctx, ops.abs);
     case "deg":
       return unary(node.arg, ctx, (a) => degV(a, angleMode));
     case "fact":
@@ -114,6 +216,7 @@ function compileNode(node: Node, ctx: Context): Compiled {
     case "root": {
       const arg = compileNode(node.arg, ctx),
         index = node.index === null ? null : compileNode(node.index, ctx);
+      if (index === null) return (vars, deadline) => ops.sqrt(arg(vars, deadline), complex);
       return (vars, deadline) =>
         rootV(arg(vars, deadline), index === null ? null : index(vars, deadline), complex);
     }
@@ -130,11 +233,11 @@ function compileNode(node: Node, ctx: Context): Compiled {
     }
     case "rel": {
       const operands = node.operands.map((operand) => compileNode(operand, ctx)),
-        ops = node.ops;
+        links = node.ops;
       return (vars, deadline) =>
-        relationHolds(
+        ops.relation(
           operands.map((operand) => operand(vars, deadline)),
-          ops
+          links
         )
           ? ONE
           : UNDEFINED;
@@ -161,8 +264,9 @@ function power(node: Binary, ctx: Context): Compiled {
   const a = compileNode(node.left, ctx),
     b = compileNode(node.right, ctx),
     rational = exponentRational(node.right),
-    { complex } = ctx.scope.settings;
-  return (vars, deadline) => powV(a(vars, deadline), b(vars, deadline), rational, complex);
+    { complex } = ctx.scope.settings,
+    { pow } = ctx.ops;
+  return (vars, deadline) => pow(a(vars, deadline), b(vars, deadline), rational, complex);
 }
 
 function call(node: Call, ctx: Context): Compiled {
@@ -177,7 +281,8 @@ function call(node: Call, ctx: Context): Compiled {
 }
 
 /**
- * A built-in through applyBuiltin (FN-4, FN-6, FN-17). NM-27: a circular function of `deg(A)` with
+ * A built-in through applyBuiltin (FN-4, FN-6, FN-17), or its exact version on exact arguments
+ * (exactBuiltin: abs, mod and round(x, n)). NM-27: a circular function of `deg(A)` with
  * a real A is evaluated exactly in degrees (NM-26) whatever the angle unit; a non-real A takes the
  * general path, so its complex rule stays in radians (NM-25).
  */
@@ -195,13 +300,10 @@ function builtinCall(name: string, argNodes: readonly Node[], ctx: Context): Com
     };
   }
   const args = argNodes.map((arg) => compileNode(arg, ctx));
-  return (vars, deadline) =>
-    applyBuiltin(
-      name,
-      args.map((arg) => arg(vars, deadline)),
-      angleMode,
-      complex
-    );
+  return (vars, deadline) => {
+    const values = args.map((arg) => arg(vars, deadline));
+    return ctx.ops.builtin(name, values) ?? applyBuiltin(name, values, angleMode, complex);
+  };
 }
 
 /**
@@ -238,7 +340,10 @@ function userFunction(name: string, ctx: Context): CompiledFunction | null {
   if (definition === undefined) return null;
   const fn: CompiledFunction = { params: definition.params, body: constant(UNDEFINED) };
   ctx.functions.set(name, fn);
+  const { inBody } = ctx;
+  ctx.inBody = true;
   fn.body = compileNode(definition.body, ctx);
+  ctx.inBody = inBody;
   return fn;
 }
 
@@ -259,8 +364,10 @@ function unboundName(name: string, ctx: Context): Compiled {
 
 /**
  * NM-21, FN-17: `tree` as a function of one coordinate, NaN where it is undefined or, in complex
- * mode, not real (|Im| > 1e-12·max(1, |Re|)); the other coordinate is undefined. Real mode uses
- * compileReal, complex mode the Value closure through toPlotNumber.
+ * mode, not real (|Im| > 1e-12·max(1, |Re|)); the other coordinate is undefined. Each maximal
+ * constant sub-tree is folded once on the exact value path, so it plots the value its row shows;
+ * the rest uses doubles: compileReal in real mode, the graphing Value closure through toPlotNumber
+ * in complex mode.
  */
 export function compileRealFunction1(
   tree: Node,
@@ -268,13 +375,21 @@ export function compileRealFunction1(
   scope: CompileScope
 ): (t: number) => number {
   if (!scope.settings.complex) {
-    const g = compileReal(tree, scope);
+    const g = compileReal(tree, scope, realFold(scope));
     return variable === "x" ? (t) => g(t, NaN) : (t) => g(NaN, t);
   }
-  const f = compileExpression(tree, scope);
+  const f = compileGraphExpression(tree, scope);
   return variable === "x"
     ? (t) => toPlotNumber(f({ x: numberValue(t), y: UNDEFINED }, NO_DEADLINE))
     : (t) => toPlotNumber(f({ x: UNDEFINED, y: numberValue(t) }, NO_DEADLINE));
+}
+
+/** compileReal's constant folding: constant sub-trees plot their exact value. */
+function realFold(scope: CompileScope): ConstantFold {
+  return {
+    isConstant: constantTest(scope),
+    value: (node) => toPlotNumber(constantOf(node, scope)),
+  };
 }
 
 /** NM-21: `tree` as a function of x and y, by compileRealFunction1's rule. */
@@ -282,8 +397,8 @@ export function compileRealFunction2(
   tree: Node,
   scope: CompileScope
 ): (x: number, y: number) => number {
-  if (!scope.settings.complex) return compileReal(tree, scope);
-  const f = compileExpression(tree, scope);
+  if (!scope.settings.complex) return compileReal(tree, scope, realFold(scope));
+  const f = compileGraphExpression(tree, scope);
   return (x, y) => toPlotNumber(f({ x: numberValue(x), y: numberValue(y) }, NO_DEADLINE));
 }
 

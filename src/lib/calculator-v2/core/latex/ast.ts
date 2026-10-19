@@ -8,7 +8,7 @@ export type RelOp = "=" | "<" | ">" | "<=" | ">=";
 export type InequalityOp = Exclude<RelOp, "=">;
 export type ConstName = "e" | "pi" | "tau";
 export type Node =
-  | { kind: "num"; value: number; span: SourceSpan }
+  | { kind: "num"; value: number; exact?: { n: number; d: number }; span: SourceSpan } // exact: a decimal literal's reduced n/d (MATHS-CORE-1)
   | { kind: "id"; name: string; span: SourceSpan } // "x", "A", "a_{1}", "v_{max}", "\\alpha", "e_{3}"
   | { kind: "const"; name: ConstName; span: SourceSpan }
   | { kind: "add" | "sub" | "mul" | "div" | "pow"; left: Node; right: Node; span: SourceSpan }

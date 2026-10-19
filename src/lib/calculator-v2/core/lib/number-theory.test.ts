@@ -33,7 +33,8 @@ it("FN-77 round uses Math.round (halves toward +∞) and rounds n to whole digit
     roundTo(1234, -2),
     roundTo(2.5, -1),
     roundTo(2.5, 1.5),
-    roundTo(1.005, 2), // Math.round(100.49999…) / 100, as in Desmos
+    roundTo(1.005, 2), // the double 1.005: Math.round(100.49999…) / 100. A typed round(1.005,2) is
+    // 1.01, because the evaluator rounds the exact 1.005·100 = 100.5 first (exact-fold.ts, MATHS-CORE-61)
     roundTo(0.1, 400),
     roundTo(1e300, -400),
     roundTo(1e20, 5),

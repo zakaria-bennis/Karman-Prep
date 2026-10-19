@@ -2,7 +2,9 @@
 // plain numbers, with NaN for undefined, points and lists and -0 kept. Every node's result is a
 // finite number or NaN. Variables live in slots, one per name, and a user-function call saves the
 // slots of its parameters on a shared stack and restores them afterwards, so an evaluation
-// allocates nothing per node. Nothing here throws. Pure TypeScript: no DOM (AR-44).
+// allocates nothing per node. A constant sub-tree (constant-subtrees.ts) is folded once by the
+// caller's `fold`, which evaluates it on the exact value path (MATHS-CORE-1, 2), so only the parts
+// that depend on x or y use doubles. Nothing here throws. Pure TypeScript: no DOM (AR-44).
 
 import type { ConstName, Node, RelOp } from "../latex/ast";
 import { isBuiltinName } from "../latex/operator-names";
@@ -10,6 +12,7 @@ import { BUILTINS } from "../lib/builtins";
 import { factorial } from "../lib/gamma";
 import { circular, type CircularName } from "../lib/trig";
 import type { CompileScope } from "./compile";
+import type { ConstantTest } from "./constant-subtrees";
 import { linkHolds } from "./ops";
 import { exponentRational, realPow, realRoot } from "./real-pow";
 
@@ -21,6 +24,12 @@ const CIRCULAR_NAMES: ReadonlySet<string> = new Set(["sin", "cos", "tan", "csc",
 type Binary = Extract<Node, { left: Node }>;
 type Call = Extract<Node, { kind: "call" }>;
 type Fn = () => number;
+
+/** Folds constant sub-trees: which are constant, and the plotted number of one. */
+export interface ConstantFold {
+  isConstant: ConstantTest;
+  value: (node: Node) => number;
+}
 
 /** A user function, compiled once per compileReal: the slots of its parameters and its body. */
 interface RealFunction {
@@ -38,6 +47,8 @@ interface Context {
   sp: number; // the first free stack index
   depth: number; // user-function calls in progress
   functions: Map<string, RealFunction>;
+  fold: ConstantFold | null;
+  inBody: boolean; // compiling a user-function body, where every parameter name is live
 }
 
 const undefinedFn: Fn = () => NaN;
@@ -68,9 +79,14 @@ export function degreeArgument(name: string, args: readonly Node[]): Node | null
  * as non-real in complex mode, then `scope.values` (NaN unless a number), then a zero-parameter
  * entry of `scope.functions` run with the same variables, else NaN. A call binds its parameters
  * over the caller's variables; past MAX_CALL_DEPTH nested calls, or for a name without a
- * `scope.functions` entry (a head with an error), it is NaN.
+ * `scope.functions` entry (a head with an error), it is NaN. With `fold`, each maximal constant
+ * sub-tree is `fold.value` of it, computed once here.
  */
-export function compileReal(tree: Node, scope: CompileScope): (x: number, y: number) => number {
+export function compileReal(
+  tree: Node,
+  scope: CompileScope,
+  fold: ConstantFold | null = null
+): (x: number, y: number) => number {
   const ctx: Context = {
     scope,
     slots: new Map([
@@ -84,6 +100,8 @@ export function compileReal(tree: Node, scope: CompileScope): (x: number, y: num
     sp: 0,
     depth: 0,
     functions: new Map(),
+    fold,
+    inBody: false,
   };
   const root = compile(tree, ctx),
     env = ctx.env;
@@ -95,6 +113,20 @@ export function compileReal(tree: Node, scope: CompileScope): (x: number, y: num
 }
 
 function compile(node: Node, ctx: Context): Fn {
+  const { fold } = ctx;
+  if (
+    fold !== null &&
+    node.kind !== "num" &&
+    node.kind !== "const" &&
+    fold.isConstant(node, ctx.inBody)
+  ) {
+    const v = finite(fold.value(node));
+    return () => v;
+  }
+  return compileNode(node, ctx);
+}
+
+function compileNode(node: Node, ctx: Context): Fn {
   switch (node.kind) {
     case "num": {
       const v = finite(node.value);
@@ -270,7 +302,10 @@ function userFunction(name: string, ctx: Context): RealFunction | null {
     body: undefinedFn,
   };
   ctx.functions.set(name, fn);
+  const { inBody } = ctx;
+  ctx.inBody = true;
   fn.body = compile(definition.body, ctx);
+  ctx.inBody = inBody;
   return fn;
 }
 

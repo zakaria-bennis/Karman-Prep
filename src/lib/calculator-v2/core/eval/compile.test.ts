@@ -84,11 +84,12 @@ it("RC-9 evaluateRows follows dependency order and skips a row whose deadline ex
     late = evaluateRows(a, REAL, expire);
   expect([late.has("r1"), late.get("r0"), late.get("r2")]).toEqual([false, UNDEFINED, n(1)]);
 });
+// NM-3 amendment: 0.1+0.2 is exactly 3/10 now (exact-fold.test.ts), so these use π.
 it("NM-9 later rows and conditions use the full double, not the displayed value", () =>
-  expect([evaluateLatex("a-0.3", { rows: ["a=0.1+0.2"] }), value("0.1+0.2>0.3")]).toEqual([
-    n(5.551115123125783e-17),
-    n(1),
-  ]));
+  expect([
+    evaluateLatex("a-3.14159265359", { rows: ["a=\\pi"] }),
+    value("\\pi<3.14159265359"),
+  ]).toEqual([n(Math.PI - 3.14159265359), n(1)]));
 it("NM-12 division by zero, bad logs, even roots, inverse-trig domains and poles are undefined", () => {
   for (const l of [
     "\\frac{1}{0}",
@@ -164,6 +165,8 @@ it("NM-21 the real plotting path agrees with compileExpression on every real-mod
     if (c.rows || c.settings?.complex || !("latex" in c.input)) continue;
     const s: EvalSettings = { angleMode: c.settings?.angleMode ?? "radians", complex: false },
       t = tree(c.input.latex);
+    // Graphing folds constant sub-trees on the exact value path (NM-3 amendment), so a constant
+    // plots exactly the value its row shows.
     expect(compileRealFunction1(t, "x", empty(s))(0), c.id).toBe(
       toPlotNumber(compileExpression(t, empty(s))({}, NO_DEADLINE))
     );

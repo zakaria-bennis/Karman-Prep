@@ -2,8 +2,8 @@
 // Decimal and integer literals are n/d with |n| and d up to 2^53−1, and stay exact through +, −, ×,
 // ÷, integer powers, exact roots, sqrt, mod and abs. Whenever a result cannot be held exactly, the
 // operation returns the plain double instead, and a double never turns back into a rational except
-// through fromDouble. Standalone for now: nothing in the evaluator calls it yet. Pure TypeScript: no
-// DOM (AR-44).
+// through fromDouble. exact-fold.ts wires it into value evaluation. Pure TypeScript: no DOM
+// (AR-44).
 //
 // The double fallback of +, −, × and ÷ matches the reference calculator: it is the cross-multiplied
 // numerator over the denominator, formed as doubles and divided once, not the sum or product of the
