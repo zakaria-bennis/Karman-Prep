@@ -5,7 +5,6 @@
 // the centre; Home shows only off the default view and fades (AN-8); the surface takes the graph
 // keys (KB-8) and the panel drag, pinch and wheel (useGraphInput).
 
-import { House } from "lucide-react";
 import {
   useContext,
   useEffect,
@@ -34,7 +33,7 @@ import { useEngine, useEngineSnapshot } from "../hooks/use-engine";
 import { countPlots, graphAccessibleName } from "./accessible-name";
 import { homeFadeMs, useHomePresence, type HomePhase } from "./home-presence";
 import { KeyboardTraceContext, type KeyboardTrace } from "./keyboard-trace";
-import { GraphWrenchGlyph, GraphZoomGlyph } from "./graph-glyphs";
+import { GraphHomeGlyph, GraphWrenchGlyph, GraphZoomGlyph } from "./graph-glyphs";
 import { GRAPH_CONTROL_LABELS } from "./labels";
 import { PoiOverlay } from "./PoiOverlay";
 import type { LabelState } from "./poi-labels";
@@ -169,7 +168,7 @@ function HomeButton({ phase, homeRef, surface, onActivate }: HomeButtonProps): J
       aria-hidden={leaving ? "true" : undefined}
       onClick={onActivate}
     >
-      <House size={16} aria-hidden="true" />
+      <GraphHomeGlyph />
     </button>
   );
 }

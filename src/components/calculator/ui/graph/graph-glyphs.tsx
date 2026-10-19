@@ -22,21 +22,42 @@ export function GraphWrenchGlyph(): JSX.Element {
         />
       </clipPath>
       <g clipPath="url(#kc-wrench-jaw)" fill="currentColor">
-        <path d="M1.9 13.9L8.6 7.2" stroke="currentColor" strokeWidth="3.1" strokeLinecap="round" />
-        <circle cx="11" cy="4.7" r="4.4" />
+        <path d="M1.9 13.9L8.6 7.2" stroke="currentColor" strokeWidth="3.4" strokeLinecap="round" />
+        <circle cx="11" cy="4.7" r="4.6" />
       </g>
     </svg>
   );
 }
 
-/** GP-41: Zoom in and Zoom out, a plus or a minus with 2 px bars (12 px). */
+/** GP-41: Zoom in and Zoom out, a plus or a minus with 2.3 px bars (12 px). */
 export function GraphZoomGlyph(props: { out?: boolean }): JSX.Element {
   return (
     <svg {...svgProps} width={12} height={12} viewBox="0 0 12 12">
       <path
-        d={props.out === true ? "M0 5H12V7H0Z" : "M5 0H7V5H12V7H7V12H5V7H0V5H5Z"}
+        d={
+          props.out === true
+            ? "M0 4.85H12V7.15H0Z"
+            : "M4.85 0H7.15V4.85H12V7.15H7.15V12H4.85V7.15H0V4.85H4.85Z"
+        }
         fill="currentColor"
       />
+    </svg>
+  );
+}
+
+/** GP-42: Home, a house under a separate eaved roof with a chimney and a door (16 px). */
+export function GraphHomeGlyph(): JSX.Element {
+  return (
+    <svg {...svgProps} width={16} height={16} viewBox="0 0 16 16">
+      <path
+        d="M0.6 8.4L8 1.9L15.4 8.4"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinejoin="miter"
+      />
+      <path d="M11.2 1.9H13V5.6L11.2 4Z" fill="currentColor" />
+      <path d="M2.6 8.7L8 4L13.4 8.7V14H9.2V10.4H6.8V14H2.6Z" fill="currentColor" />
     </svg>
   );
 }

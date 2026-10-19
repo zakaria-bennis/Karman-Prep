@@ -109,6 +109,39 @@ function fillBands(ctx: Ctx, view: ViewSpec, bands: Float64Array, clip: ClipRect
   }
 }
 
+const EDGE_SLACK_PX = 1;
+const SAMPLE_LEAD_PX = 0.5;
+
+/**
+ * GP-20, GP-22: where the reference's dash pattern starts. It cuts a curve at `clip` above and
+ * below the view and samples explicit curves from about SAMPLE_LEAD_PX past the left and right
+ * edges, starting the pattern where the drawn path starts. A run that starts at the view's edge
+ * (within EDGE_SLACK_PX of it, or past it) is taken to continue back to that start: the length of
+ * the lead-in, along the run's first segment `a`→`b`, is the dash phase at `a`. Any other start
+ * begins the pattern afresh.
+ */
+function leadIn(view: ViewSpec, a: Point, b: Point, clip: ClipRect): number {
+  const { width, height } = view.size;
+  const atEdge =
+    a[0] <= EDGE_SLACK_PX ||
+    a[1] <= EDGE_SLACK_PX ||
+    a[0] >= width - EDGE_SLACK_PX ||
+    a[1] >= height - EDGE_SLACK_PX;
+  if (!atEdge || !isInside(a, clip) || a[0] < -SAMPLE_LEAD_PX || a[0] > width + SAMPLE_LEAD_PX)
+    return 0;
+  const length = Math.hypot(a[0] - b[0], a[1] - b[1]);
+  if (!(length > 0)) return 0;
+  const u = [(a[0] - b[0]) / length, (a[1] - b[1]) / length];
+  let t = Infinity;
+  for (const axis of [0, 1]) {
+    const [lo, hi] =
+      axis === 0 ? [-SAMPLE_LEAD_PX, width + SAMPLE_LEAD_PX] : [clip.top, clip.bottom];
+    if (u[axis] > 0) t = Math.min(t, (hi - a[axis]) / u[axis]);
+    else if (u[axis] < 0) t = Math.min(t, (lo - a[axis]) / u[axis]);
+  }
+  return Number.isFinite(t) ? t : 0;
+}
+
 /**
  * A curve's polylines: each NaN-separated run is its own path and stroke, clipped segment by
  * segment. A dashed run that starts within JOIN_TOLERANCE_PX of the previous run's end continues
@@ -143,7 +176,7 @@ function strokeCurve(
       const joins =
         previousEnd !== null &&
         Math.hypot(start[0] - previousEnd[0], start[1] - previousEnd[1]) <= JOIN_TOLERANCE_PX;
-      if (!joins) phase = 0;
+      if (!joins) phase = leadIn(view, start, worldToPx(view, p[k + 2], p[k + 3]), clip);
       const runPhase = phase;
       let pen: Point | null = null;
       let a = start;

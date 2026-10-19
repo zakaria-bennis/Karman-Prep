@@ -68,14 +68,18 @@
   opacity: var(--kc-icon-rest);
 }
 
-/* GP-40, GP-41: the reference's glyphs sit off the box centre: the wrench 2.5 px left and up,
-   the plus and minus half a px left and down. */
+/* GP-40, GP-41: the reference's glyphs sit off the box centre: the wrench 1.3 px left and a little up,
+   the plus and minus half a px left and 1 px down, the house a little left and 1 px up. */
 .kc-graph-controls > button:first-child > svg {
-  translate: -2.5px -2.5px;
+  translate: -1.3px -0.2px;
 }
 
 .kc-zoom-group > button > svg {
-  translate: -0.5px 0.5px;
+  translate: -0.5px 1px;
+}
+
+.kc-graph-controls [data-graph-home] > svg {
+  translate: -0.4px -1px;
 }
 
 .kc-graph-controls button:hover > svg {
