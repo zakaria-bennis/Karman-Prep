@@ -1,16 +1,8 @@
 // Derives the calculator v2 skin palettes from the site themes of src/lib/themes/palettes.ts:
-// the 10.3 role mapping with the TH-4 adjustment, the TH-6 curve palettes and the TH-8 fill alphas.
+// the 10.3 role mapping with the TH-4 adjustment, plus Desmos's curve colours and shading (F-A1).
 import type { SiteTheme } from "../../themes/palettes";
-import {
-  adjustLightness,
-  compositeOver,
-  contrastRatio,
-  fromOklch,
-  inGamut,
-  simulateCvd,
-  toOklab,
-  toOklch,
-} from "./contrast";
+import { adjustLightness, compositeOver, contrastRatio, fromOklch, toOklch } from "./contrast";
+import { DESMOS_FILL_ALPHA, desmosCurves } from "./desmos-palette";
 import {
   COLOR_ROLES,
   CURVE_SLOTS,
@@ -20,15 +12,7 @@ import {
   type SkinId,
   type SkinPalette,
 } from "./skins";
-import {
-  CURVE_CANDIDATE_TARGET,
-  GRID_MAX_CHROMA,
-  CURVE_OVER_SHADING,
-  MAX_FILL_ALPHA,
-  OVERLAP_STEP,
-  MINOR_GRID_TARGET,
-  TEXT_BACKGROUNDS,
-} from "./targets";
+import { GRID_MAX_CHROMA, MINOR_GRID_TARGET, TEXT_BACKGROUNDS } from "./targets";
 
 const MAX_ADJUST_ROUNDS = 10;
 // R-2 (founder decision 2026-10-18): the warning marker's seed is Desmos's orange; written as a
@@ -37,17 +21,6 @@ const WARNING_SEED = 0xfa7e19;
 const BLACK = 0x000000;
 const WHITE = 0xffffff;
 const hexOf = (rgb: number): string => `#${rgb.toString(16).padStart(6, "0")}`;
-const CVD_KINDS = ["protan", "deutan", "tritan"] as const;
-
-// TH-6 OKLCH grid: L 0 to 1 in 0.01 steps, C 0.07 to 0.26 in 0.015 steps, hue in 4 degree steps.
-const GRID_L_STEPS = 100;
-const GRID_C_START = 0.07;
-const GRID_C_STEP = 0.015;
-const GRID_C_STEPS = 12;
-const GRID_H_STEP = 4;
-const GRID_H_STEPS = 90;
-const C1_HUE_MIN = 240;
-const C1_HUE_MAX = 270;
 
 /**
  * Applies `adjustLightness` against whichever of `backgrounds` gives the lowest contrast until the
@@ -125,125 +98,14 @@ export function deriveRoles(theme: SiteTheme): Record<ColorRole, string> {
   >;
 }
 
-export interface CurveCandidate {
-  hex: string; // encoded from the OKLCH grid point l, c, h
-  l: number;
-  c: number;
-  h: number;
-  contrast: number; // contrastRatio(hex, paper)
-  labs: readonly (readonly [number, number, number])[]; // toOklab: normal, protan, deutan, tritan
-}
-
-/** TH-6: the distinct in-gamut OKLCH grid colours at least 5.95:1 against `paper`. */
-export function curveCandidates(paper: string): CurveCandidate[] {
-  const seen = new Set<string>();
-  const out: CurveCandidate[] = [];
-  for (let li = 0; li <= GRID_L_STEPS; li++) {
-    const l = li / GRID_L_STEPS;
-    for (let k = 0; k <= GRID_C_STEPS; k++) {
-      const c = GRID_C_START + GRID_C_STEP * k;
-      for (let hi = 0; hi < GRID_H_STEPS; hi++) {
-        const h = GRID_H_STEP * hi;
-        if (!inGamut(l, c, h)) continue;
-        const hex = fromOklch(l, c, h);
-        if (seen.has(hex)) continue;
-        seen.add(hex);
-        const contrast = contrastRatio(hex, paper);
-        if (contrast < CURVE_CANDIDATE_TARGET) continue;
-        const labs = [toOklab(hex), ...CVD_KINDS.map((kind) => toOklab(simulateCvd(hex, kind)))];
-        out.push({ hex, l, c, h, contrast, labs });
-      }
-    }
-  }
-  return out;
-}
-
-/**
- * TH-6: the smallest ΔE_OK between `candidate` and any chosen colour under normal, protan, deutan
- * and tritan vision, each vision compared with itself only; Infinity when nothing is chosen.
- */
-export function curveScore(candidate: CurveCandidate, chosen: readonly CurveCandidate[]): number {
-  let score = Infinity;
-  for (const s of chosen) {
-    for (let v = 0; v < candidate.labs.length; v++) {
-      const [l1, a1, b1] = candidate.labs[v];
-      const [l2, a2, b2] = s.labs[v];
-      score = Math.min(score, Math.hypot(l1 - l2, a1 - a2, b1 - b2));
-    }
-  }
-  return score;
-}
-
-/**
- * TH-6: c1 is the highest-chroma candidate with hue 240 to 270 (then highest contrast, then
- * first); each later slot is the candidate with the strictly greatest score against the slots so
- * far (ties keep the first).
- */
-export function pickCurveSlots(candidates: readonly CurveCandidate[]): Record<CurveSlot, string> {
-  let first: CurveCandidate | undefined;
-  for (const x of candidates) {
-    if (x.h < C1_HUE_MIN || x.h > C1_HUE_MAX) continue;
-    if (!first || x.c > first.c || (x.c === first.c && x.contrast > first.contrast)) first = x;
-  }
-  if (!first) throw new Error("No curve candidate has a hue of 240 to 270 degrees");
-  const chosen: CurveCandidate[] = [first];
-  while (chosen.length < CURVE_SLOTS.length) {
-    let best: CurveCandidate | undefined;
-    let bestScore = -Infinity;
-    for (const x of candidates) {
-      const score = curveScore(x, chosen);
-      if (score > bestScore) {
-        best = x;
-        bestScore = score;
-      }
-    }
-    if (!best) throw new Error("Not enough curve candidates for six slots");
-    chosen.push(best);
-  }
-  return Object.fromEntries(CURVE_SLOTS.map((slot, i) => [slot, chosen[i].hex])) as Record<
-    CurveSlot,
-    string
-  >;
-}
-
-/**
- * TH-8 (appendix F): the cap on combined shading, the lowest curve contrast over 4.5 so every curve
- * keeps 4.5:1 over any shading, and never above the contrast of any curve's 40% mix.
- */
-export function shadingCapFor(curves: readonly string[], paper: string): number {
-  let cap = Infinity;
-  for (const c of curves) {
-    cap = Math.min(cap, contrastRatio(c, paper) / CURVE_OVER_SHADING);
-    cap = Math.min(cap, contrastRatio(compositeOver(c, MAX_FILL_ALPHA, paper), paper));
-  }
-  return Math.floor(cap * 1000) / 1000;
-}
-
-/**
- * TH-8: one fill's alpha, the largest (in 0.001 steps, at most 40%) at which `color` over `paper`
- * stays at or below cap / 1.04 (with a margin for 8-bit rounding), so a second fill still shows
- * 1.04:1 apart under the cap.
- */
-const FILL_STEP = OVERLAP_STEP + 0.02;
-export function fillAlphaFor(color: string, paper: string, cap: number): number {
-  let best = 0.001;
-  for (let k = 1; k <= MAX_FILL_ALPHA * 1000; k++) {
-    const alpha = k / 1000;
-    if (contrastRatio(compositeOver(color, alpha, paper), paper) > cap / FILL_STEP) break;
-    best = alpha;
-  }
-  return best;
-}
-
-/** One skin's roles, TH-6 curves and TH-8 fill alphas. */
+/** One skin's roles, with Desmos's curve colours and 40% fill on every slot (F-A1). */
 export function buildSkinPalette(theme: SiteTheme): SkinPalette {
   const roles = deriveRoles(theme);
-  const curves = pickCurveSlots(curveCandidates(roles.paper));
-  const shadingCap = shadingCapFor(Object.values(curves), roles.paper);
+  const curves = desmosCurves(theme.dark);
   const fillAlpha = Object.fromEntries(
-    CURVE_SLOTS.map((slot) => [slot, fillAlphaFor(curves[slot], roles.paper, shadingCap)])
+    CURVE_SLOTS.map((slot) => [slot, DESMOS_FILL_ALPHA])
   ) as Record<CurveSlot, number>;
-  return { dark: theme.dark, roles, curves, fillAlpha, shadingCap };
+  return { dark: theme.dark, roles, curves, fillAlpha };
 }
 
 /** Every skin's palette keyed by `SKIN_IDS`; the themes must be the 12 skins in that order. */

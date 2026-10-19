@@ -1,24 +1,11 @@
-// Contrast targets of the calculator v2 theme (spec appendix E, 10.3 and TH-1 to TH-11).
+// Contrast targets of the calculator v2 theme (spec appendix E, 10.3, TH-1 and TH-4). Curves and
+// shading follow Desmos instead (appendix F amendment F-A1), so TH-6 to TH-8 and TH-11 have no targets.
 import type { ColorRole, ForegroundRole } from "./skins";
 
-/** Curves on the graph paper: 10.3 and TH-11 with OI-1, so a curve stays 4.5:1 over shading. */
-export const CURVE_TARGET = 5.85;
-/** TH-6 curve candidates: the curve target plus a 0.1 rounding margin. */
-export const CURVE_CANDIDATE_TARGET = 5.95;
 /** TH-4: OKLCH lightness step of the adjustment rule. */
 export const ADJUST_STEP = 0.005;
 /** TH-4: an adjusted role stops at its target plus this margin. */
 export const ADJUST_MARGIN = 0.05;
-/** TH-8: a curve keeps this contrast over the strongest shading, so the cap is curve / 4.5. */
-export const CURVE_OVER_SHADING = 4.5;
-/** TH-8: a single fill is at most this alpha; the cap never exceeds such a mix's contrast. */
-export const MAX_FILL_ALPHA = 0.4;
-/** TH-8: the Phase 1 cap, still the default of compositeShading for callers with no skin. */
-export const SHADING_CAP = 1.3;
-/** TH-8: two overlapping fills stay at least this far from one fill. */
-export const OVERLAP_STEP = 1.04;
-/** TH-7: minimum pairwise ΔE_OK of a skin's six curves under every simulated vision. */
-export const MIN_CURVE_DELTA_E = 0.08;
 /** TH-19: gridlines are neutral, at most this OKLCH chroma. */
 export const GRID_MAX_CHROMA = 0.02;
 /** TH-1: minor gridlines aim at the middle of 1.4:1 to 1.6:1 on the paper. */

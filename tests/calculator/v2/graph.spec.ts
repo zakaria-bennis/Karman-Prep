@@ -431,7 +431,7 @@ test("G-7 a point paints within 0.5 px", async ({ page, isMobile }) => {
   }
 });
 
-test("G-17 overlap of two regions has higher contrast than either and curves stay ≥4.5:1 over shading", async ({
+test("G-17 overlap of two regions has higher contrast than either and the curve paints over the shading", async ({
   page,
   isMobile,
 }) => {
@@ -456,11 +456,10 @@ test("G-17 overlap of two regions has higher contrast than either and curves sta
     }
     const nearest = Math.min(...around.map((p) => rgbDistance(p, c3)));
     expect(nearest, skin).toBeLessThanOrEqual(8);
-    expect(contrastRatio(c3, ab), skin).toBeGreaterThanOrEqual(4.5);
   }
 });
 
-test("TH-8 combined canvas shading never exceeds the skin's cap in all 12 skins", async ({
+test("F-A1 combined canvas shading is the uncapped stack of 40% fills in all 12 skins", async ({
   page,
   isMobile,
 }) => {
@@ -468,8 +467,7 @@ test("TH-8 combined canvas shading never exceeds the skin's cap in all 12 skins"
   for (const skin of SKIN_IDS) {
     const rows = ["y>0", "x>0", "y>x", "y>-x"];
     await openGraph(page, isMobile, { rows, skin, plots: 4 });
-    const { roles, shadingCap } = SKIN_COLORS[skin].normal;
-    const paper = roles.paper;
+    const paper = SKIN_COLORS[skin].normal.roles.paper;
     const fills = (["c1", "c2", "c3", "c4"] as const).map((slot) => {
       const { hex, fillAlpha } = resolveRowColor(slot, skin);
       return { color: hex, alpha: fillAlpha };
@@ -479,8 +477,7 @@ test("TH-8 combined canvas shading never exceeds the skin's cap in all 12 skins"
       allowed.add(
         compositeShading(
           paper,
-          fills.filter((_, i) => (mask >> i) & 1),
-          shadingCap
+          fills.filter((_, i) => (mask >> i) & 1)
         )
       );
     }
@@ -488,8 +485,7 @@ test("TH-8 combined canvas shading never exceeds the skin's cap in all 12 skins"
     expect(partial, skin).toBe(0);
     for (const colour of opaque) {
       expect(allowed.has(colour), `${skin} ${colour}`).toBe(true);
-      expect(contrastRatio(colour, paper), skin).toBeLessThanOrEqual(shadingCap + 1e-9);
     }
-    expect(opaque, skin).toContain(compositeShading(paper, fills, shadingCap));
+    expect(opaque, skin).toContain(compositeShading(paper, fills));
   }
 });

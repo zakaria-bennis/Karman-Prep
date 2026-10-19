@@ -1,7 +1,7 @@
 import { expect, it } from "vitest";
 import type { RegionGeometry } from "../plot/geometry";
 import type { PixelSize, Viewport, ViewSpec } from "../plot/viewport";
-import { compositeShading, contrastRatio } from "../theme/contrast";
+import { compositeOver, compositeShading, contrastRatio } from "../theme/contrast";
 import { alignRegionSpans, buildShadingRects, type ShadingRegion } from "./shading";
 
 const vp = (l: number, r: number, b: number, t: number): Viewport => ({
@@ -48,15 +48,14 @@ it("G-5 a device pixel is shaded exactly when its centre lies inside a region sp
   ]);
 });
 
-it("G-5 stacked region fills never paint the paper and stay within TH-8's 1.3:1", () => {
-  const regions = ["#1f5fbf", "#b8322a", "#2c7a3f", "#7a3fa0"].map((c) =>
-    region([0, 4, 0, 4], c, 0.12)
-  );
+it("G-5, F-A1 stacked region fills composite in row order with no cap, as Desmos stacks them", () => {
+  const colours = ["#c74440", "#2d70b3", "#348543", "#6042a6"];
+  const regions = colours.map((c) => region([0, 4, 0, 4], c, 0.4));
   const rects = buildShadingRects(regions, PAPER, { width: 4, height: 4 }, 1);
   expect(rects).toHaveLength(1);
-  const [{ color }] = rects;
-  expect(color).not.toBe(PAPER);
-  expect(contrastRatio(color, PAPER)).toBeLessThanOrEqual(1.3 + 1e-9);
+  const expected = colours.reduce((under, c) => compositeOver(c, 0.4, under), PAPER.toLowerCase());
+  expect(rects[0].color).toBe(expected);
+  expect(contrastRatio(rects[0].color, PAPER)).toBeGreaterThan(1.3);
 });
 
 it("G-5 region spans follow a pan and are withheld after a zoom until fresh geometry arrives", () => {

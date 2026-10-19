@@ -6,7 +6,7 @@ import { act, fireEvent, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useState } from "react";
 import { expect, it } from "vitest";
-import { EXPLICIT_COLOUR_NOTE, resolveRowColor } from "@/lib/calculator-v2/theme/roles";
+import { resolveRowColor } from "@/lib/calculator-v2/theme/roles";
 import { panelProps, renderEditor, rowItem, textbox } from "./__fixtures__/render-editor";
 import { ExpressionPanel } from "./ExpressionPanel";
 import { fieldTextbox } from "./row-model";
@@ -75,12 +75,10 @@ it("R-1 the gutter tab shows the row colour and line or point style and toggles 
   expect(kit.engine.expressionAnalysis["1"].isGraphable).toBe(false);
 });
 
-it("R-1, TH-11 an explicit colour that the skin adjusts shows the TH-11 note", () => {
-  expect(resolveRowColor("#ffff00", "ivory").adjusted).toBe(true);
+it("R-1, F-A1 an explicit colour is never adjusted, so no row shows a contrast note", () => {
   const kit = renderEditor(<ExpressionPanel {...panelProps()} />, { rows: ["y=x"] });
   act(() => kit.engine.setExpression({ id: "2", latex: "y=2x", color: "#ffff00" }));
-  expect(within(rowItem("2")).getByText(EXPLICIT_COLOUR_NOTE)).toBeInTheDocument();
-  expect(within(rowItem("1")).queryByText(EXPLICIT_COLOUR_NOTE)).toBeNull();
+  expect(within(rowItem("2")).queryByText(/adjusted for contrast/i)).toBeNull();
 });
 
 it("T-11 a row calls setInputMode none while keypadOpen and text after the keypad closes", () => {

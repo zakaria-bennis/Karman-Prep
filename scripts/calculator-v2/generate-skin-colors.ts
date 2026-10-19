@@ -45,7 +45,6 @@ function paletteLiteral(palette: SkinPalette): string {
     ["roles", objectLiteral(COLOR_ROLES.map((r) => [r, JSON.stringify(palette.roles[r])]))],
     ["curves", objectLiteral(CURVE_SLOTS.map((k) => [k, JSON.stringify(palette.curves[k])]))],
     ["fillAlpha", objectLiteral(CURVE_SLOTS.map((k) => [k, String(palette.fillAlpha[k])]))],
-    ["shadingCap", String(palette.shadingCap)],
   ]);
 }
 

@@ -43,9 +43,8 @@ export type CurveSlot = "c1" | "c2" | "c3" | "c4" | "c5" | "c6";
 export interface SkinPalette {
   dark: boolean;
   roles: Record<ColorRole, string>; // "#rrggbb"
-  curves: Record<CurveSlot, string>; // TH-6, >= 5.95:1 on paper
-  fillAlpha: Record<CurveSlot, number>; // TH-8: min(40%, the alpha reaching shadingCap / 1.04)
-  shadingCap: number; // TH-8: combined shading's contrast cap on the paper
+  curves: Record<CurveSlot, string>; // F-A1: Desmos's six colours, inverted on dark skins
+  fillAlpha: Record<CurveSlot, number>; // F-A1: Desmos's 40% inequality fill
 }
 
 /** Every colour role in section 6 order: the background roles, then the foreground roles. */

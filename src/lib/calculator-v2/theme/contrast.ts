@@ -1,6 +1,6 @@
 // Colour math of the calculator v2 theme: WCAG 2.x contrast, OKLab and OKLCH (Ottosson 2020),
 // the TH-4 lightness adjustment, Machado 2009 colour-vision simulation and alpha compositing.
-import { ADJUST_MARGIN, ADJUST_STEP, SHADING_CAP } from "./targets";
+import { ADJUST_MARGIN, ADJUST_STEP } from "./targets";
 
 type Vec3 = readonly [number, number, number];
 type Matrix3 = readonly [Vec3, Vec3, Vec3];
@@ -9,7 +9,6 @@ const HEX = /^#[0-9a-f]{6}$/i;
 const GAMUT_EPSILON = 1e-7;
 const CHROMA_BISECTION_STEPS = 24;
 const MAX_ADJUST_STEPS = 200;
-const SHADING_PULLBACK_STEPS = 1000;
 const DEG = Math.PI / 180;
 
 // Machado, Oliveira and Fernandes 2009, severity 1.0, applied to linear sRGB.
@@ -180,23 +179,11 @@ export function compositeOver(color: string, alpha: number, background: string):
 }
 
 /**
- * TH-8: the colour of a pixel covered by `fills`, capped at `cap` (the skin's shadingCap) against
- * `paper`. The fills are composited over the paper in order; when the result passes the cap it is
- * mixed back toward the paper in 0.001 steps until it is at most the cap. With the skin's fill
- * alphas the second fill is at least 1.04:1 apart from the one-fill colour, and 3 or more fills
- * stay at the cap; the renderer (08) paints shading through it.
+ * F-A1: the colour of a pixel covered by `fills`, each composited over the paper in order with no
+ * cap, as Desmos stacks overlapping 40% inequality fills.
  */
-export function compositeShading(
-  paper: string,
-  fills: { color: string; alpha: number }[],
-  cap = SHADING_CAP
-): string {
+export function compositeShading(paper: string, fills: { color: string; alpha: number }[]): string {
   let c = paper.toLowerCase();
   for (const fill of fills) c = compositeOver(fill.color, fill.alpha, c);
-  if (contrastRatio(c, paper) <= cap) return c;
-  for (let k = SHADING_PULLBACK_STEPS - 1; k >= 0; k--) {
-    const d = compositeOver(c, k / SHADING_PULLBACK_STEPS, paper);
-    if (contrastRatio(d, paper) <= cap) return d;
-  }
-  return paper.toLowerCase();
+  return c;
 }

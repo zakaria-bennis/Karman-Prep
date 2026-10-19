@@ -542,7 +542,7 @@ test.fixme("AR-37 the open calculator repaints within one frame on a prefers-red
   expect([await page.evaluate(layoutMarked), await rows(page)]).toEqual([true, ["y=x"]]);
 });
 
-test("TH-8 a transferred inequality and system shade within the skin's shading cap and keep curves at 4.5:1", async ({
+test("F-A1 a transferred inequality and system shade as the uncapped stack of their 40% fills", async ({
   page,
 }, info) => {
   chromeOnly(info.project.name);
@@ -556,7 +556,6 @@ test("TH-8 a transferred inequality and system shade within the skin's shading c
   );
   for (const skin of SKIN_IDS) {
     const paper = SKIN_COLORS[skin].normal.roles.paper;
-    const cap = SKIN_COLORS[skin].normal.shadingCap; // TH-8 as amended: a cap per skin
     await applySkin(page, skin);
     await expect.poll(() => kcPaper(page)).toBe(paper.toLowerCase());
     await page.evaluate(nextFrame);
@@ -566,20 +565,14 @@ test("TH-8 a transferred inequality and system shade within the skin's shading c
         paper,
         fills
           .filter((_, i) => ((m + 1) >> i) & 1)
-          .map((f) => ({ color: f.hex, alpha: f.fillAlpha })),
-        cap
+          .map((f) => ({ color: f.hex, alpha: f.fillAlpha }))
       ).toLowerCase()
     );
     const { opaque, partial } = await shadingLayer(page);
     expect(partial, `${skin} partial shading pixels`).toBe(0);
     expect(opaque.length, `${skin} shading painted`).toBeGreaterThan(0);
     for (const c of opaque) {
-      expect(contrastRatio(c, paper), `${skin} ${c} on the paper`).toBeLessThanOrEqual(cap + 1e-9);
       expect(allowed, `${skin} ${c} is a compositeShading result`).toContain(c);
-      for (const f of fills)
-        expect(contrastRatio(f.hex, c), `${skin} curve ${f.hex} on ${c}`).toBeGreaterThanOrEqual(
-          4.5
-        );
     }
   }
 });

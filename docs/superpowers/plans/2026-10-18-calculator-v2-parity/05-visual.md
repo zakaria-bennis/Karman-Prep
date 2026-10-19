@@ -50,6 +50,10 @@ Shipping that would drop the colour-blind guarantee. Decision (the founder deleg
 under simulation wins, so the TH-6 palette stays as it is and the Desmos hue order is dropped; the
 f-desmos-parity.md decision 5 records this. Tasks 2 to 4 shipped.
 
+_Superseded 2026-10-19: the owner's amendment F-A1 in f-desmos-parity.md replaces this decision
+and Task 2's per-skin shading cap. Curves are Desmos's own six colours (inverted on dark skins) and
+shading is an uncapped stack of 40% fills; TH-6, TH-7, TH-8 and TH-11 no longer apply._
+
 ### Task 1: The curve palette (TH-6, TH-7)
 
 **Files:** modify `theme/derive.ts`, `theme/targets.ts`, `scripts/calculator-v2/generate-skin-colors.ts`

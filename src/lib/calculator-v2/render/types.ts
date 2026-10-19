@@ -15,7 +15,6 @@ export interface RenderTheme {
   focusRing: string;
   curves: Record<CurveSlot, string>;
   fillAlpha: Record<CurveSlot, number>;
-  shadingCap: number; // TH-8
 }
 export interface RenderRow {
   rowId: string;

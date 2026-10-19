@@ -32,6 +32,7 @@ conflict.
    _Resolved 2026-10-18 (founder's delegation): the hue order is not applied. No palette in those
    windows meets TH-7's colour-blind distance floor (red, orange and green merge under deutan and
    protan simulation), and that guarantee wins; TH-6's derivation stays. See `05-visual.md`._
+   _Superseded 2026-10-19 by amendment F-A1 below: curves are Desmos's own colours._
 6. **Docking.** On desktop (at least 1024 px wide), the toolbar and side buttons open the
    calculator docked on the left of the quiz; on smaller screens it opens full screen.
 7. **Fonts.** All calculator UI text, including the window title, uses the sans UI font (Arial);
@@ -47,6 +48,36 @@ D-3, D-22, D-24 to D-34, D-36, D-37, D-39, D-44 to D-46, POI-3, K-8, A11Y-10. Vi
 TH-7, TH-8, TH-17, TH-19, G-25, L-3, L-16. Docking: L-4. Transfer to Calculator, including tables
 and coordinate pairs: the Phase 1 TR- IDs plus TR-22 to TR-25, TR-34, TR-39, TR-60, TR-61, TR-63,
 D-17, D-18.
+
+### Amendment F-A1 (owner, 2026-10-18): Desmos colours and shading, no curve contrast caps
+
+This replaces decisions 4 and 5. It also drops the D9 contrast rules for curves and shading
+(TH-6, TH-7, TH-8 and TH-11), whatever decision 2 says. The 10.3 targets for text, axes,
+gridlines, focus and keys are unchanged.
+
+F-A1 supersedes the 2026-10-18 resolution of decision 5 (keep TH-7's colour-blind guarantee over
+the Desmos hue order, recorded in `05-visual.md`) and the per-skin TH-8 shading cap that shipped
+with the parity visual retune: the owner's later explicit instruction (2026-10-19) is to match
+Desmos's colours exactly, so the colour-blind spacing and the shading cap are both gone.
+
+- **Curves.** The six slots are Desmos's colours in its picker order:
+  - c1 red `#c74440`
+  - c2 blue `#2d70b3`
+  - c3 green `#348543`
+  - c4 purple `#6042a6`
+  - c5 orange `#fa7e19`
+  - c6 black `#000000`
+- **New rows** cycle c1, c2, c3, c4, c6 and repeat, skipping orange, as Desmos's next-colour rule
+  does.
+- **Dark skins** show every curve colour inverted, as Desmos's Reverse contrast (`invert(100%)`)
+  does. For example, black becomes white and red becomes `#38bbbf`.
+- **Shading.** Every inequality fill is 40% of its curve colour. Overlapping fills stack in row
+  order with no cap.
+- **Explicit colours.** An explicit `#rrggbb` row colour is used as given, inverted on dark skins,
+  and is never adjusted for contrast. The TH-11 "Colour adjusted for contrast" note is removed.
+- **Source.** The values live in `src/lib/calculator-v2/theme/desmos-palette.ts`.
+- **Not yet matched.** Desmos keeps a running colour counter, so a new row continues the cycle
+  wherever the last one left off. V2 still picks the slot from the row's position.
 
 ## The + (Add Item) menu
 

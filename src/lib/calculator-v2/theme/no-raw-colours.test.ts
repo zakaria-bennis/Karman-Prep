@@ -18,7 +18,11 @@ const STYLES_DIR = "src/components/calculator-v2/styles";
 const SCAN_ROOTS: readonly { dir: string; except: readonly string[] }[] = [
   { dir: "src/components/calculator-v2", except: [SHADOW_TS] },
   { dir: "src/lib/calculator-v2/render", except: [] },
-  { dir: "src/lib/calculator-v2/theme", except: [GENERATED_FILES.skinColors] },
+  {
+    dir: "src/lib/calculator-v2/theme",
+    // desmos-palette.ts is the one hand-written source of Desmos's six curve colours (F-A1).
+    except: [GENERATED_FILES.skinColors, "src/lib/calculator-v2/theme/desmos-palette.ts"],
+  },
   {
     dir: "src/components/calculator",
     except: ["src/components/calculator/calculator.module.css", GENERATED_FILES.chromeCss],
