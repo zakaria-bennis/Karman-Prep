@@ -6,32 +6,6 @@ import type { JSX } from "react";
 
 const SIZE = 20;
 
-const DASHES = { solid: undefined, dashed: "4 3", dotted: "0.5 3.5" } as const;
-
-/** R-1, D-12: a row whose graph is a curve, line set, region or relation, in its line style. */
-export function LineStyleGlyph(props: { style: "solid" | "dashed" | "dotted" }): JSX.Element {
-  return (
-    <svg
-      className="kc-glyph"
-      data-style={props.style}
-      width={SIZE}
-      height={SIZE}
-      viewBox="0 0 20 20"
-      aria-hidden="true"
-      focusable="false"
-    >
-      <path
-        d="M3 15.5C7.5 15.5 8.5 4.5 17 4.5"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth={2.5}
-        strokeLinecap="round"
-        strokeDasharray={DASHES[props.style]}
-      />
-    </svg>
-  );
-}
-
 /** R-1, D-12: a point row or table column, in its point style; hidden points show an outline. */
 export function PointStyleGlyph(props: {
   style: "filled" | "open" | "cross";

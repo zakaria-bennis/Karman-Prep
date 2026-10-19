@@ -11,7 +11,6 @@
 // motion; an exiting row leaves the focus controller, is aria-hidden and inert with no number, and
 // reports onExitDone once its own exit transition-duration has passed.
 
-import { X } from "lucide-react";
 import {
   useContext,
   useLayoutEffect,
@@ -28,7 +27,7 @@ import { COMPLEX_HINT } from "@/lib/calculator/core/analysis";
 import type { RowView } from "@/lib/calculator/core/api/engine";
 import { MAX_ROW_CHARACTERS } from "@/lib/calculator/core/latex/limits";
 import { resolveRowColor } from "@/lib/calculator/theme/roles";
-import { LineStyleGlyph, PointStyleGlyph } from "../../icons";
+import { ColourKindGlyph, RemoveGlyph, type KindGlyph } from "../../icons/list";
 import type { MathField } from "../../math-field/MathField";
 import { latexToSpeech } from "../../math-field/speech";
 import { useAnnouncer } from "../a11y/announcer";
@@ -77,6 +76,13 @@ function writeLatex(field: MathField, latex: string, syncing: { current: boolean
 function isRowBody(target: EventTarget): boolean {
   if (!(target instanceof Element)) return false;
   return target.closest("button, a, input, select, textarea, .mq-editable-field") === null;
+}
+
+/** The white glyph in a row's colour icon: a wave, a dot, or a split disc for a region. */
+function kindGlyph(row: RowView, tab: "line" | "point"): KindGlyph {
+  if (tab === "point") return "point";
+  if (row.kind !== "region") return "wave";
+  return /\\(?:le|ge|leq|geq)\b|≤|≥/.test(row.latex) ? "region" : "region-strict";
 }
 
 function useFocusController(): FocusController {
@@ -302,7 +308,7 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
               className="kc-row-tab"
               aria-label={`${row.hidden ? "Show" : "Hide"} expression ${number}`}
               aria-pressed={!row.hidden}
-              data-style={tab === "point" ? "filled" : "solid"}
+              data-kind={kindGlyph(row, tab)}
               style={{ "--kc-row-color": color.hex } as CSSProperties}
               ref={tabRef}
               aria-haspopup="menu"
@@ -314,11 +320,7 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
               onPointerUp={menu.trigger.onPointerUp}
               onPointerLeave={menu.trigger.onPointerLeave}
             >
-              {tab === "point" ? (
-                <PointStyleGlyph style="filled" />
-              ) : (
-                <LineStyleGlyph style="solid" />
-              )}
+              {!row.hidden && <ColourKindGlyph kind={kindGlyph(row, tab)} />}
             </button>
           )}
           {menuOpen && (
@@ -365,7 +367,7 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
           aria-label={`Delete expression ${number}`}
           onClick={() => deleteRowByControl(engine, focus, row.id)}
         >
-          <X aria-hidden="true" focusable="false" size={16} />
+          <RemoveGlyph />
         </button>
       </div>
     </li>

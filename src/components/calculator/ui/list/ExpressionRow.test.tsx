@@ -37,7 +37,7 @@ it("A11Y-4 each textbox's accessible description is the T-5 speech text", () => 
 it("L-3 the gutter numbers rows from 1 and marks the focused row and the active row", () => {
   const props = panelProps();
   const kit = renderEditor(<ExpressionPanel {...props} />, { rows: ["y=x", "a=2", ""] });
-  expect([...document.querySelectorAll(".kc-row-number")].map((n) => n.textContent)).toEqual([
+  expect([...document.querySelectorAll("li .kc-row-number")].map((n) => n.textContent)).toEqual([
     "1",
     "2",
     "3",
@@ -53,17 +53,17 @@ it("L-3 the gutter numbers rows from 1 and marks the focused row and the active 
   expect(fieldTextbox(kit.fields.forRow("3"))).not.toHaveFocus();
 });
 
-it("R-1 the gutter tab shows the row colour and line or point style and toggles the graph with aria-pressed", async () => {
+it("R-1 the colour icon shows the row colour and a wave or point kind glyph and toggles the graph with aria-pressed", async () => {
   const kit = renderEditor(<ExpressionPanel {...panelProps()} />, {
     rows: ["y=x", "(2,3)", "2+3"],
   });
   const tab = screen.getByRole("button", { name: "Hide expression 1" });
-  expect(tab).toHaveAttribute("data-style", "solid");
+  expect(tab).toHaveAttribute("data-kind", "wave");
   const { hex } = resolveRowColor(kit.engine.getSnapshot().rows[0].color, "ivory");
   expect(tab.style.getPropertyValue("--kc-row-color")).toBe(hex);
   expect(screen.getByRole("button", { name: "Hide expression 2" })).toHaveAttribute(
-    "data-style",
-    "filled"
+    "data-kind",
+    "point"
   );
   expect(screen.queryByRole("button", { name: "Hide expression 3" })).toBeNull();
   await userEvent.setup().click(tab);

@@ -23,7 +23,7 @@ import { WarningGlyph } from "../../icons";
 import { EscapeContext } from "../focus/escape-stack";
 import { usePopupDismiss } from "./menu-trigger";
 
-const GAP = 8; // marker to tooltip: the 6 px arrow plus 2 px
+const GAP = 7; // marker to tooltip: the 5 px arrow plus 2 px
 const EDGE = 4; // the least distance kept from the root's edges
 
 export interface ErrorMarkerProps {

@@ -42,23 +42,22 @@
   width: 24px;
 }
 
-/* Black box, white 14 px text, 4 px radius, at most 240 px wide, under its marker with an arrow
-   pointing up at it (--kc-tip-arrow is the marker's centre inside the box), or above it with the
-   arrow pointing down when there is no room below. */
+/* VIS-35: a grey box 200 px wide, white 14 px text on a 15.4 px line, 5 px by 8 px padding, 4 px
+   radius, under its marker with a 5 px arrow pointing up at it (--kc-tip-arrow is the marker's
+   centre inside the box), or above it with the arrow pointing down when there is no room below. */
 .kc-error-tip {
   --kc-tip-arrow: 50%;
   position: fixed;
   z-index: 10;
   box-sizing: border-box;
-  width: max-content;
-  max-width: 240px;
-  padding: 8px 12px;
-  border-radius: 4px;
-  background: var(--kc-tooltip);
+  width: 200px;
+  padding: 5px 8px;
+  border-radius: var(--kc-radius-chip);
+  background: var(--kc-tooltip-error);
   color: var(--kc-tooltip-label);
   font-family: var(--kc-font-ui);
-  font-size: var(--kc-size-ui);
-  line-height: 1.3;
+  font-size: var(--kc-size-tooltip);
+  line-height: var(--kc-line-tooltip);
   text-align: center;
   overflow-wrap: anywhere;
   pointer-events: none;
@@ -72,20 +71,20 @@
 .kc-error-tip::before {
   content: "";
   position: absolute;
-  top: -6px;
+  top: -5px;
   left: var(--kc-tip-arrow);
-  margin-left: -6px;
-  border: 6px solid transparent;
+  margin-left: -5px;
+  border: 5px solid transparent;
   border-top-width: 0;
-  border-bottom-color: var(--kc-tooltip);
+  border-bottom-color: var(--kc-tooltip-error);
 }
 
 .kc-error-tip[data-side="above"]::before {
   top: auto;
-  bottom: -6px;
-  border-top-width: 6px;
+  bottom: -5px;
+  border-top-width: 5px;
   border-bottom-width: 0;
-  border-top-color: var(--kc-tooltip);
+  border-top-color: var(--kc-tooltip-error);
   border-bottom-color: transparent;
 }
 

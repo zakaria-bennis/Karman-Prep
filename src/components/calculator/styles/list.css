@@ -1,76 +1,211 @@
-/* The expression list and its rows. Colours come only
-   from role variables and --kc-row-color (TH-3). */
+/* The expression list: panel, toolbar, rows, colour icon, delete control, value line, ghost row
+   and the hidden-list Expand button. Geometry and tones follow the reference graphing calculator
+   (expression-list VIS-1 to VIS-50) through tokens.css; colours come only from roles (TH-3). */
 
+/* VIS-5: the panel's 1 px right rule and the 4 px shadow strip that falls on the graph. */
 .kc-list-panel {
+  position: relative;
   display: flex;
   flex-direction: column;
   height: 100%;
   min-height: 0;
+  border-right: 1px solid var(--kc-rule);
   background: var(--kc-list);
-  color: var(--kc-text);
-}
-
-.kc-list-body {
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow-y: auto;
-}
-
-/* L-1, L-2: the list toolbar, first in the list body; Tab follows this DOM order (KB-13). */
-.kc-list-toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 4px;
-  padding: 4px;
-  border-bottom: 1px solid var(--kc-boundary);
-}
-
-.kc-list-tool,
-.kc-edit-action {
-  border-radius: 4px;
   color: var(--kc-text);
   font-family: var(--kc-font-ui);
   font-size: var(--kc-size-ui);
+}
+
+.kc-list-panel::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 100%;
+  width: 4px;
+  background: linear-gradient(to right, var(--kc-panel-shadow), transparent);
+  pointer-events: none;
+}
+
+/* RS-3: stacked, the list sits under the graph behind a 1 px top rule. */
+.kc-list-panel[data-layout="stacked"] {
+  border-top: 1px solid var(--kc-rule);
+  border-right: none;
+}
+
+.kc-list-panel[data-layout="stacked"]::after,
+.kc-list-panel[data-list-state="collapsed"]::after {
+  content: none;
+}
+
+.kc-list-panel[data-list-state="collapsed"] {
+  border: none;
+  background: transparent;
+}
+
+/* VIS-49: the toolbar and the list slide out together; the column keeps its width meanwhile. */
+.kc-list-slide {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--kc-list);
+  transition: transform var(--kc-dur-250) var(--kc-ease-out);
+}
+
+.kc-list-panel[data-list-state="collapsing"] .kc-list-slide,
+.kc-list-slide[data-enter="true"] {
+  transform: translateX(-100%);
+}
+
+.kc-list-panel[data-layout="stacked"][data-list-state="collapsing"] .kc-list-slide,
+.kc-list-panel[data-layout="stacked"] .kc-list-slide[data-enter="true"] {
+  transform: translateY(100%);
+}
+
+/* VIS-7, VIS-8, VIS-13: the 48 px toolbar, + at the left, Undo and Redo in the free space between,
+   Edit list and Collapse list at the right; a shadow while the list below is scrolled. */
+.kc-list-toolbar {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex: none;
+  align-items: center;
+  height: var(--kc-toolbar-h);
+  padding: 5px;
+  border-bottom: 1px solid var(--kc-rule);
+  background: linear-gradient(var(--kc-toolbar-top), var(--kc-toolbar-bottom));
+  transition: box-shadow var(--kc-dur-200) var(--kc-ease);
+}
+
+.kc-list-panel[data-scrolled="true"] .kc-list-toolbar {
+  box-shadow: -2px 2px 4px var(--kc-panel-shadow);
+}
+
+.kc-toolbar-zone {
+  display: flex;
+  align-items: center;
+}
+
+.kc-toolbar-zone[data-zone="centre"] {
+  flex: 1 1 auto;
+  justify-content: center;
+  padding-left: 4px;
+}
+
+/* VIS-9, VIS-10: 40 px buttons on a 38 px pitch; the glyph rests at 0.6, 0.8 on hover over a 10%
+   fill, 1 pressed over 20%; a disabled button is 0.3 as a whole. Every change is instant. */
+.kc-list-tool {
+  display: grid;
+  place-items: center;
+  width: var(--kc-tool-size);
+  height: var(--kc-tool-size);
+  margin: -1px;
+  padding: 0;
+  border: none;
+  border-radius: var(--kc-radius-button);
+  background: transparent;
+  color: var(--kc-text);
   cursor: pointer;
 }
 
-.kc-list-tool {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  padding: 0;
-  border: none;
+.kc-list-tool > svg {
+  opacity: var(--kc-icon-rest);
 }
 
-/* Edit list and the stacked Keypad toggle while on. */
-.kc-list-tool[aria-pressed="true"] {
-  background: var(--kc-chrome);
+.kc-list-tool:not([aria-disabled="true"]):is(
+    :hover,
+    [aria-pressed="true"],
+    [aria-expanded="true"]
+  ) {
+  background: var(--kc-hover-fill);
 }
 
-/* KB-2: Undo and Redo at the ends of the stack; they stay in the Tab order (KB-13). */
+.kc-list-tool:not([aria-disabled="true"]):is(:hover, [aria-pressed="true"], [aria-expanded="true"])
+  > svg {
+  opacity: var(--kc-icon-hover);
+}
+
+.kc-list-tool:not([aria-disabled="true"]):active {
+  background: var(--kc-pressed-fill);
+}
+
+.kc-list-tool:not([aria-disabled="true"]):active > svg {
+  opacity: var(--kc-icon-pressed);
+}
+
+/* KB-2: Undo and Redo at the ends of the stack stay in the Tab order (KB-13). */
 .kc-list-tool[aria-disabled="true"] {
-  color: var(--kc-text-secondary);
+  opacity: var(--kc-icon-disabled);
   cursor: default;
 }
 
-/* KB-5: Edit list mode, between the toolbar and the list. */
+/* VIS-28: the browser's own ring colour, no offset. */
+.kc-list-tool:focus-visible,
+.kc-edit-action:focus-visible,
+.kc-row-tab:focus-visible,
+.kc-row-warning:focus-visible,
+.kc-row-hint-action:focus-visible {
+  outline: 2px solid var(--kc-focus-ring);
+  outline-offset: 0;
+}
+
+/* VIS-50: with the list hidden, Expand list sits over the graph's top-left corner (stacked: the
+   bottom-right corner, pointing up). */
+.kc-list-panel > .kc-list-tool {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  z-index: 3;
+  width: var(--kc-graph-button);
+  height: var(--kc-graph-button);
+  margin: 0;
+}
+
+.kc-list-panel[data-layout="stacked"] > .kc-list-tool {
+  top: auto;
+  right: 5px;
+  bottom: 5px;
+  left: auto;
+}
+
+/* KB-5, VIS-44: Edit list mode's bar under the toolbar, a red and a blue button. */
 .kc-edit-bar {
   display: flex;
+  flex: none;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 4px 8px;
-  padding: 4px;
-  border-bottom: 1px solid var(--kc-boundary);
+  padding: 5px;
+  border-bottom: 1px solid var(--kc-rule);
 }
 
 .kc-edit-action {
-  min-height: 32px;
-  padding: 0 8px;
-  border: 1px solid var(--kc-boundary);
+  height: 35px;
+  padding: 0 15px;
+  border: none;
+  border-radius: var(--kc-radius-small);
+  color: var(--kc-accent-label);
+  font: inherit;
+  cursor: pointer;
+}
+
+.kc-edit-action[data-tone="danger"] {
+  background: var(--kc-error);
+}
+
+.kc-edit-action[data-tone="accent"] {
+  background: var(--kc-accent);
+}
+
+/* VIS-47: the list scrolls under the fixed toolbar with the platform scrollbar. */
+.kc-list-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  font-size: var(--kc-size-list);
 }
 
 .kc-list {
@@ -79,50 +214,60 @@
   list-style: none;
 }
 
+/* VIS-14: each row's top rule overlaps the one above; the transparent right and bottom borders are
+   the room the focused row's borders take. */
 .kc-row {
-  border-bottom: 1px solid var(--kc-boundary);
+  position: relative;
+  display: grid;
+  grid-template-rows: 1fr;
+  margin-top: -1px;
+  border-top: 1px solid var(--kc-row-rule);
+  border-right: 1px solid transparent;
+  border-bottom: 1px solid transparent;
+  background: var(--kc-list);
 }
 
-/* The li's only child, so Task 6 can animate the li around it. */
 .kc-row-inner {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: start;
-  column-gap: 4px;
-  padding: 4px;
+  position: relative;
+  min-height: 0;
+  overflow: hidden;
+  padding-bottom: 6px;
 }
 
-/* The number fills the gutter's height on the left, so it is the L-3 focus bar. */
+/* VIS-22: the focused or active row: 2 px accent top and bottom, 1 px right, an accent tab with a
+   white number; the inner box gives back the extra pixels so the row keeps its height. */
+.kc-row:is([data-focused="true"], [data-active="true"]) {
+  border-top: 2px solid var(--kc-focus-bar);
+  border-right-color: var(--kc-focus-bar);
+  border-bottom: 2px solid var(--kc-focus-bar);
+}
+
+.kc-row:is([data-focused="true"], [data-active="true"]) > .kc-row-inner {
+  margin: -1px 0;
+}
+
+/* VIS-20, VIS-21: the 38 px grey tab down the row's left edge, the row number at its top-left. */
 .kc-row-gutter {
-  display: grid;
-  grid-template-columns: minmax(24px, auto) 32px;
-  grid-template-rows: auto 1fr;
-  align-self: stretch;
-  column-gap: 2px;
-  row-gap: 2px;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: var(--kc-gutter);
+  padding: 1px 2px;
+  border-right: 1px solid var(--kc-tab-rule);
+  background: var(--kc-tab);
 }
 
 .kc-row-number {
-  grid-column: 1;
-  grid-row: 1 / 3;
-  display: flex;
-  justify-content: center;
-  padding: 6px 4px 0;
-  border-radius: 2px;
-  color: var(--kc-text-secondary);
-  font-variant-numeric: tabular-nums;
+  display: block;
+  color: var(--kc-row-number);
+  font-family: var(--kc-font-ui);
+  font-size: var(--kc-size-row-index);
+  line-height: 11px;
 }
 
-/* L-3: the focused row and the active row. */
-.kc-row:is([data-focused="true"], [data-active="true"]) {
-  outline: 2px solid var(--kc-focus-ring);
-  outline-offset: -2px;
-}
-
-/* L-3, L-16: the focused or active row fills its whole gutter in the focused-row colour; the
-   colour tab keeps a list-coloured disc so the row colour stays readable on it. */
 .kc-row:is([data-focused="true"], [data-active="true"]) .kc-row-gutter {
-  border-radius: 2px;
+  border-right-color: transparent;
   background: var(--kc-focus-bar);
 }
 
@@ -130,15 +275,88 @@
   color: var(--kc-focus-bar-label);
 }
 
-.kc-row:is([data-focused="true"], [data-active="true"]) :is(.kc-row-tab, .kc-row-warning) {
+/* VIS-24 to VIS-26: the 29 px colour icon filled with the row colour and a white kind glyph;
+   hidden, it is an empty grey ring. The inline --kc-row-color overrides this default (TH-3). */
+.kc-row-tab {
+  --kc-row-color: var(--kc-curve-1);
+  position: absolute;
+  top: 13.5px;
+  left: 4px;
+  width: var(--kc-colour-icon);
+  height: var(--kc-colour-icon);
+  padding: 0;
+  border: none;
   border-radius: 50%;
-  background: var(--kc-list);
+  overflow: hidden;
+  background: var(--kc-row-color);
+  box-shadow: inset 0 0 3px var(--kc-rule);
+  color: var(--kc-list);
+  cursor: pointer;
 }
 
+.kc-row-tab > svg {
+  display: block;
+}
+
+.kc-row-tab[aria-pressed="false"] {
+  background: transparent;
+}
+
+.kc-row-tab[aria-pressed="false"]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 5px solid var(--kc-hidden-ring);
+  border-radius: 50%;
+  opacity: 0.25;
+}
+
+.kc-row-tab[aria-pressed="false"]:hover::after {
+  opacity: 0.3125;
+}
+
+/* VIS-34: the warning triangle stands where the colour icon would, fading in after 0.8 s. */
+.kc-row-warning {
+  position: absolute;
+  top: 15px;
+  left: 5.5px;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--kc-warning);
+  cursor: pointer;
+  animation: kc-warning-in var(--kc-dur-200) var(--kc-ease) var(--kc-dur-800) both;
+}
+
+.kc-row:is([data-focused="true"], [data-active="true"]) .kc-row-warning {
+  color: var(--kc-focus-bar-label);
+}
+
+.kc-row:is([data-focused="true"], [data-active="true"]) .kc-warning-mark {
+  stroke: var(--kc-focus-bar);
+}
+
+.kc-row:is([data-focused="true"], [data-active="true"]) .kc-warning-mark-dot {
+  fill: var(--kc-focus-bar);
+}
+
+@keyframes kc-warning-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* VIS-16: the math starts 53 px from the panel edge, 15 px below the row's top rule. */
 .kc-row-main {
   display: flex;
   flex-direction: column;
-  gap: 2px;
   min-width: 0;
 }
 
@@ -146,12 +364,17 @@
   display: flex;
   align-items: center;
   min-width: 0;
-  min-height: 32px;
+  padding: 15px 35px 9px 53px;
 }
 
-/* L-3: a row's field draws no box, focused or not; the row's L-3 bar and outline are its focus
-   indicator (TH-14), and the row's own rules bound it (TH-1). Role-safe values that beat
-   math-field.css's role borders by specificity. */
+.kc-row-field > .kc-math-field {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* A row's field draws no box, focused or not; the row's borders and tab are its focus indicator
+   (TH-14). Role-safe values that beat math-field.css's role borders by specificity. */
 .kc-row-field .kc-math-field.mq-editable-field,
 .kc-row-field .kc-math-field.mq-editable-field.mq-focused {
   border-style: none;
@@ -160,17 +383,53 @@
   outline: none;
 }
 
-/* A long row keeps to its column so MathQuill's root block scrolls to the caret. */
-.kc-row-field > .kc-math-field {
-  flex: 1 1 auto;
-  min-width: 0;
-  max-width: 100%;
+.kc-row-field .mq-root-block {
+  margin: -6px 0;
+  padding: 8px 5px 8px 2px;
+  vertical-align: top;
 }
 
-/* R-5: the value sits below the math, right-aligned: a muted = and the value in a small raised box;
-   a list result shows one box per element, wrapping (NM-38). */
+/* VIS-29: the delete cross, always shown at 0.2, in a hit box at the row's top-right corner. */
+.kc-row-delete {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 45.4px;
+  height: 46.4px;
+  padding: 8px 8.3px 20px 18.7px;
+  border: none;
+  background: transparent;
+  color: var(--kc-text);
+  cursor: pointer;
+}
+
+.kc-row-delete > svg {
+  display: block;
+  opacity: var(--kc-delete-rest);
+}
+
+.kc-row-delete:hover > svg {
+  opacity: var(--kc-delete-hover);
+}
+
+.kc-row-delete:active > svg {
+  opacity: var(--kc-delete-pressed);
+}
+
+.kc-row-delete:focus-visible {
+  outline: 2px solid var(--kc-focus-ring);
+  outline-offset: -4px;
+}
+
+/* VIS-31, VIS-32: the value line under the math, right-aligned 5 px from the edge: a faint "=" and
+   the value in a light chip; a list result shows one chip per element (NM-38). It fades in. */
 .kc-row-value {
+  margin-top: -4px;
+  padding: 0 5px 0 53px;
+  font-size: var(--kc-size-eval);
   text-align: end;
+  cursor: default;
+  animation: kc-warning-in var(--kc-dur-800) var(--kc-ease);
 }
 
 .kc-row-value-line {
@@ -178,170 +437,93 @@
   flex-wrap: wrap;
   align-items: center;
   justify-content: flex-end;
-  gap: 4px;
+  gap: 3px;
 }
 
 .kc-row-equals {
-  color: var(--kc-text-secondary);
+  margin-right: -1px;
+  padding: 0 0.2em;
+  font-family: var(--kc-font-math);
+  font-size: var(--kc-size-eval-math);
+  opacity: var(--kc-equals-opacity);
 }
 
 .kc-row-value-box {
-  padding: 2px 8px;
-  border: 1px solid var(--kc-boundary);
-  border-radius: 3px;
-  background: var(--kc-key);
+  padding: 3px 5px 1px;
+  border: 1px solid var(--kc-row-rule);
+  border-radius: var(--kc-radius-chip);
+  background: var(--kc-chip-fill);
+  font-family: var(--kc-font-math);
+  font-size: var(--kc-size-eval-math);
+  line-height: 21.5px;
   overflow-wrap: anywhere;
 }
 
-/* R-2: the warning marker stands in the gutter where the colour tab would be (the message is in
-   its tooltip, error-tip.css), drawn in the --kc-warning role. */
-.kc-row-warning {
-  grid-column: 2;
-  grid-row: 1;
-  color: var(--kc-warning);
-}
-
-/* FN-16 (OI-4): the complex-mode hint and its action. */
+/* FN-16 (OI-4): the complex-mode hint and its action, under the math like the add-slider line. */
 .kc-row-hint {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 4px 8px;
+  gap: 3px 5px;
+  padding: 0 35px 0 53px;
+  color: var(--kc-text-muted);
+  font-size: var(--kc-size-small);
 }
 
 .kc-row-hint-action {
-  min-height: 32px;
-  padding: 0 8px;
-  border: 1px solid var(--kc-boundary);
-  border-radius: 4px;
+  height: 26px;
+  padding: 0 4px;
+  border: 1px solid var(--kc-row-rule);
+  border-radius: var(--kc-radius-small);
+  background: linear-gradient(var(--kc-letter-top), var(--kc-letter-bottom));
   color: var(--kc-text);
   font: inherit;
   cursor: pointer;
 }
 
-/* The inline --kc-row-color of each tab overrides this default (TH-3 needs a declaration). */
-.kc-row-tab {
-  --kc-row-color: var(--kc-curve-1);
+.kc-row-hint-action:hover {
+  border-color: var(--kc-boundary);
+  background: var(--kc-letter-bottom);
 }
 
-.kc-row-tab,
-.kc-row-warning,
-.kc-row-delete {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  padding: 0;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
+.kc-row-main > .kc-regression {
+  padding-right: 35px;
+  padding-left: 53px;
 }
 
-/* R-1: the swatch is the glyph, drawn in currentColor. */
-.kc-row-tab {
-  grid-column: 2;
-  grid-row: 1;
-  color: var(--kc-row-color);
-}
-
-.kc-row-tab[aria-pressed="false"] {
-  color: var(--kc-text-secondary);
-}
-
-.kc-row-delete {
-  color: var(--kc-text-secondary);
-}
-
-.kc-list-panel[data-pointer="coarse"] .kc-row-gutter {
-  grid-template-columns: minmax(24px, auto) 44px;
-}
-
-.kc-list-panel[data-pointer="coarse"] :is(.kc-row-tab, .kc-row-warning, .kc-row-delete) {
-  width: 44px;
-  height: 44px;
-}
-
-.kc-list-panel[data-pointer="coarse"] .kc-row-hint-action {
-  min-height: 44px;
-}
-
-.kc-list-panel[data-pointer="coarse"] .kc-list-tool {
-  width: 44px;
-  height: 44px;
-}
-
-.kc-list-panel[data-pointer="coarse"] .kc-edit-action {
-  min-height: 44px;
-}
-
-/* AN-11: every list-panel button rests on the list role and presses to chrome over 100 ms, with no
-   scale or shadow (package Decisions, "Press tone is a 10.3 role"). The tab's swatch is its glyph,
-   so its background is free for the tone. */
-.kc-list-tool,
-.kc-edit-action,
-.kc-row-tab,
-.kc-row-warning,
-.kc-row-delete,
-.kc-row-hint-action {
-  background-color: var(--kc-list);
-  transition: background-color var(--kc-dur-hover) var(--kc-ease);
-}
-
-.kc-list-tool:active,
-.kc-edit-action:active,
-.kc-row-tab:active,
-.kc-row-delete:active,
-.kc-row-hint-action:active {
-  background-color: var(--kc-chrome);
-}
-
-.kc-list-tool:focus-visible,
-.kc-edit-action:focus-visible,
-.kc-row-tab:focus-visible,
-.kc-row-warning:focus-visible,
-.kc-row-delete:focus-visible,
-.kc-row-hint-action:focus-visible {
-  outline: 2px solid var(--kc-focus-ring);
-  outline-offset: 2px;
-}
-
-/* AN-3: Collapse and Expand list slide the list body on transform over 200 ms; the collapsed
-   transform also applies to the first `expanding` commit (data-enter="true"), so expanding slides
-   back in from it. A stacked layout slides down instead of left. */
-.kc-list-body {
-  transition: transform var(--kc-dur-250) var(--kc-ease-out);
-}
-
-.kc-list-panel[data-list-state="collapsing"] .kc-list-body,
-.kc-list-body[data-enter="true"] {
-  transform: translateX(-100%);
-}
-
-.kc-list-panel[data-layout="stacked"][data-list-state="collapsing"] .kc-list-body,
-.kc-list-panel[data-layout="stacked"] .kc-list-body[data-enter="true"] {
-  transform: translateY(100%);
-}
-
-/* AN-5: a row grows in over 200 ms and collapses out over 100 ms on grid-template-rows; the li's
-   one track wraps .kc-row-inner. */
-.kc-row {
-  display: grid;
-  grid-template-rows: 1fr;
-  transition: grid-template-rows var(--kc-dur-200) var(--kc-ease-out);
-}
-
-.kc-row:is([data-motion="enter"], [data-motion="exit"]) {
-  grid-template-rows: 0fr;
-}
-
+/* VIS-30: a row is added at once; a deleted row folds its height and fades over 200 ms. */
 .kc-row[data-motion="exit"] {
-  transition-duration: var(--kc-dur-200);
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition:
+    grid-template-rows var(--kc-dur-200) var(--kc-ease-out),
+    opacity var(--kc-dur-200) var(--kc-ease-out);
 }
 
-.kc-row-inner {
-  min-height: 0;
-  overflow: hidden; /* its 4 px padding (Task 2) keeps inner focus outlines inside the clip */
+/* VIS-23: the next row's number on a tab that fades out downward; a press adds the row. */
+.kc-ghost-row {
+  position: relative;
+  height: 54px;
+  margin-top: -1px;
+  border-top: 1px solid var(--kc-row-rule);
+  cursor: text;
+}
+
+.kc-ghost-row::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: var(--kc-gutter);
+  border-right: 1px solid var(--kc-tab-rule);
+  background: var(--kc-tab);
+  mask-image: linear-gradient(to bottom, var(--kc-text) 50%, transparent);
+}
+
+.kc-ghost-row > .kc-row-number {
+  position: relative;
+  padding: 1px 2px;
 }
 
 .kc-visually-hidden {
@@ -406,17 +588,7 @@
   background: var(--kc-chrome);
 }
 
-@media (pointer: coarse) {
-  .kc-add-menu-item {
-    min-height: 44px;
-  }
-}
-
-/* D-13: the row menu from the gutter tab, over the row below it. */
-.kc-row-gutter {
-  position: relative;
-}
-
+/* D-13: the row menu from the colour icon, over the row below it. */
 .kc-row-menu {
   position: absolute;
   top: 100%;

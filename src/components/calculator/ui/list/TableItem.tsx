@@ -7,6 +7,7 @@
 // warning marker at its left, with the message in a tooltip, and its field is aria-invalid (D-6, D-10).
 
 import { Maximize, Plus, TrendingUp, X } from "lucide-react";
+import { RemoveGlyph } from "../../icons/list";
 import { useContext, useLayoutEffect, useRef, useState, type FocusEvent, type JSX } from "react";
 import type { RowView } from "@/lib/calculator/core/api/engine";
 import { MAX_TABLE_COLUMNS, MAX_TABLE_ROWS } from "@/lib/calculator/core/api/document";
@@ -231,7 +232,7 @@ export function TableItem(props: TableItemProps): JSX.Element {
           aria-label={`Delete table ${number}`}
           onClick={() => deleteRowByControl(engine, focus, row.id)}
         >
-          <X aria-hidden="true" focusable="false" size={16} />
+          <RemoveGlyph />
         </button>
       </div>
     </li>
