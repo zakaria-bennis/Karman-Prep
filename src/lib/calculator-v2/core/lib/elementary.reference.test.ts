@@ -15,14 +15,17 @@ import { evaluateLatex } from "../eval/compile";
 import { OPERATOR_NAMES, SHIPPED } from "../latex/operator-names";
 import { readFileSync } from "node:fs";
 
-for (const c of reference.cases)
-  it(`NM-43 ${c.id} is within 1e-13 relative error of its 40-digit reference`, () => {
+for (const c of reference.cases) {
+  const gamma = c.op === "factorial"; // NM-44: Γ and factorial use relative 1e-12
+  it(`${gamma ? "NM-44" : "NM-43"} ${c.id} is within ${gamma ? "1e-12" : "1e-13"} relative error of its 40-digit reference`, () => {
     const v = evaluateLatex(c.latex);
     expect(
-      v.type === "number" && withinTolerance(v.value, Number(c.expected), "elementary"),
+      v.type === "number" &&
+        withinTolerance(v.value, Number(c.expected), gamma ? "gamma" : "elementary"),
       `${JSON.stringify(v)} vs ${c.expected}`
     ).toBe(true);
   });
+}
 it("NM-43 elementary.json is exactly what its generator writes", async () =>
   expect(await formatElementaryReference(buildElementaryReference())).toBe(
     readFileSync(ELEMENTARY_PATH, "utf8")
@@ -52,6 +55,7 @@ it("FN-1 every shipped built-in and operator has a committed reference case, wit
     "nthroot",
     "logBase",
     "arctan2",
+    "factorial",
   ])
     expect(ops.has(op), op).toBe(true);
 });

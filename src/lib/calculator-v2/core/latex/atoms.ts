@@ -24,8 +24,8 @@ type OpenToken = Extract<Token, { t: "open" }>;
 /** An argument and the end of its text: a braced argument ends at its closing brace. */
 type Argument = { node: Node; end: number };
 
-/** Postfix signs PR-9 reports as `unsupported`: factorial and prime. `~` is PR-30's regression. */
-const UNSUPPORTED_POSTFIX: ReadonlySet<string> = new Set(["!", "'"]);
+/** Postfix signs PR-9 reports as `unsupported`: prime. `~` is PR-30's regression. */
+const UNSUPPORTED_POSTFIX: ReadonlySet<string> = new Set(["'"]);
 /** Text-style wrappers: an empty group is half-typed `syntax`, any other use `unsupported` (G15). */
 const NAME_WRAPPERS: ReadonlySet<string> = new Set(["operatorname", "text", "mathrm"]);
 
@@ -71,9 +71,11 @@ export function parsePostfix(state: ParserState): Node {
 }
 
 /**
- * The postfix loop after `atom` (G2), each sign applying to everything before it (PR-20). An
- * exponent directly after another is `syntax` (G5, PR-19). Every operator position follows this
- * loop, so it reports PR-9's notation there: `!` (factorial) and `'` (prime) are `unsupported`, as is a `.` after an identifier or a call (member access); any other `.` ends the
+ * The postfix loop after `atom` (G2), each sign applying to everything before it (PR-20): `\%`,
+ * the degree sign, `^` and `!` (factorial, NM-15). An exponent directly after another is `syntax`
+ * (G5, PR-19); `3!^{2}` is (3!)². Every operator position follows this loop, so it reports PR-9's
+ * notation there: `'` (prime) is `unsupported`, as is a `.` after an identifier or a call (member
+ * access); any other `.` ends the
  * loop and is `syntax` where the caller meets it. A built-in call with a `(` argument list is an
  * atom too (PR-25). A `[` after a name, a call or a list is PR-34's indexing (failIfIndexed).
  */
@@ -84,9 +86,10 @@ export function takePostfix(state: ParserState, atom: Node): Node {
     if (UNSUPPORTED_POSTFIX.has(token.ch) || (token.ch === "." && isMemberBase(node))) {
       fail("unsupported", token.span, `"${token.ch}" is not supported`);
     }
-    if (token.ch === "%") {
+    if (token.ch === "%" || token.ch === "!") {
       take(state);
-      node = { kind: "pct", arg: node, span: { start: node.span.start, end: token.span.end } };
+      const kind = token.ch === "%" ? "pct" : "fact";
+      node = { kind, arg: node, span: { start: node.span.start, end: token.span.end } };
       afterExponent = false;
     } else if (token.ch === "^" && isDegreeSign(state)) {
       for (let i = 0; i < 3; i++) take(state);

@@ -16,6 +16,7 @@ const FAMILIES: { rules: string; pattern: RegExp; count: number }[] = [
     pattern: /^\\operatorname\{(floor|ceil|round|sign|mod|nCr|nPr)\}\(/,
     count: 22,
   },
+  { rules: "NM-15 FN-79", pattern: /^[^[]*!$/, count: 7 },
 ];
 
 for (const { rules, pattern, count } of FAMILIES) {

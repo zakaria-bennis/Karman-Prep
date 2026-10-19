@@ -23,6 +23,7 @@ import {
   addV,
   degV,
   divV,
+  factV,
   mulV,
   negV,
   pctV,
@@ -134,7 +135,7 @@ function compileNode(node: Node, ctx: Context): Compiled {
     case "deg":
       return unary(node.arg, ctx, (a) => degV(a, angleMode));
     case "fact":
-      return constant(UNDEFINED); // NM-15 ships in Phase 2
+      return unary(node.arg, ctx, factV);
     case "root": {
       const arg = compileNode(node.arg, ctx),
         index = node.index === null ? null : compileNode(node.index, ctx);

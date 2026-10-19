@@ -7,6 +7,7 @@
 import type { ConstName, Node, RelOp } from "../latex/ast";
 import { isBuiltinName } from "../latex/operator-names";
 import { BUILTINS } from "../lib/builtins";
+import { factorial } from "../lib/gamma";
 import { circular, type CircularName } from "../lib/trig";
 import type { CompileScope } from "./compile";
 import { linkHolds } from "./ops";
@@ -138,7 +139,10 @@ function compile(node: Node, ctx: Context): Fn {
       return call(node, ctx);
     case "rel":
       return relation(node.operands, node.ops, ctx);
-    case "fact": // NM-15 ships in Phase 2
+    case "fact": {
+      const a = compile(node.arg, ctx);
+      return () => factorial(a());
+    }
     case "point": // a point is not a real number
     case "list": // nor is a list
     case "sim": // a regression row is fitted by the values pass (D-2)
