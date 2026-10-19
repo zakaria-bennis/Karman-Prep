@@ -1,11 +1,13 @@
-// Phase 1 built-in functions (FN-4, FN-6, FN-18 to FN-22, FN-60; NM-25). Each one has a real rule
-// in the current angle unit and a complex rule that is always in radians. The names and their
+// Built-in functions (FN-4, FN-6, FN-18 to FN-22, FN-60; NM-25), with the number theory rules of
+// number-theory.ts (FN-76 to FN-78). Each one has a real rule in the current angle unit and a
+// complex rule that is always in radians. The names and their
 // argument counts come from BUILTIN_ARITY, so the allowlist stays the one source of both. Pure
 // TypeScript: no DOM (AR-44).
 
 import { cacos, casin, catan, ccos, cdiv, cexp, cln, csin, csub, ctan } from "../eval/complex";
 import { complexValue, numberValue, UNDEFINED, type Complex, type Value } from "../eval/values";
 import { BUILTIN_ARITY } from "./arity";
+import { NUMBER_THEORY_RULES } from "./number-theory";
 import { arctan2, circular, inverseCircular, type CircularName, type InverseName } from "./trig";
 
 export interface BuiltinFunction {
@@ -17,7 +19,7 @@ export interface BuiltinFunction {
   complex(args: readonly Complex[]): Complex; // always radians (NM-25)
 }
 
-type Rule = Omit<BuiltinFunction, "name" | "arity">;
+export type Rule = Omit<BuiltinFunction, "name" | "arity">;
 
 const NAN: Complex = Object.freeze({ re: NaN, im: NaN });
 const ONE: Complex = Object.freeze({ re: 1, im: 0 });
@@ -107,6 +109,7 @@ const RULES: ReadonlyMap<string, Rule> = new Map<string, Rule>([
     },
   ],
   ["log", { angle: "none", extendsToComplex: true, real: realLog, complex: complexLog }],
+  ...NUMBER_THEORY_RULES,
 ]);
 
 /** A real result: a non-finite value (overflow, a pole) is NaN, which means undefined. */

@@ -3,6 +3,7 @@
 
 import type { RowErrorCode } from "../corpus/types";
 import { DEFERRED_FEATURES } from "../latex/errors";
+import { isBuiltinName } from "../latex/operator-names";
 
 /** The letters MathQuill shows for each Greek command (PR-11; omicron is not a name). */
 const GREEK_LETTERS: Readonly<Record<string, string>> = {
@@ -92,12 +93,32 @@ const POLAR_NAMES: ReadonlySet<string> = new Set(["r", "θ"]);
 const DEFERRED = "{n} isn't supported yet.";
 const DEFERRED_NAMES: ReadonlySet<string> = new Set(Object.values(DEFERRED_FEATURES));
 
-/** The exact message for a row error; `names` holds display text, `[name, count]` for `arity`. */
+/**
+ * The exact message for a row error; `names` holds display text, `[name, expected count, given
+ * count]` for `arity`. A built-in's arity error uses Desmos's wording (appendix F decision 2).
+ */
 export function rowErrorMessage(code: RowErrorCode, names: string[]): string {
   const [n = "", k = ""] = names;
+  if (code === "arity" && isBuiltinName(n)) return builtinArityMessage(n, k, Number(names[2]));
   let template = MESSAGES[code];
   if (code === "unsupported" && POLAR_NAMES.has(n)) template = POLAR_UNSUPPORTED;
   if (code === "unsupported" && DEFERRED_NAMES.has(n)) template = DEFERRED;
   if (code === "arity" && k === "1") template = SINGLE_ARGUMENT;
   return template.replaceAll("{n}", () => n).replaceAll("{k}", () => k);
+}
+
+/**
+ * Desmos's arity wording for a built-in, from the expected count text `k` ("1", "2", "1 or 2")
+ * and the count given: "requires only k argument(s)" when too many were given, "requires k
+ * argument(s)" otherwise, then an example call with the nearest accepted count, `x` for one
+ * argument and `1, 2, …` for more ("floor(x)", "nCr(1, 2)").
+ */
+function builtinArityMessage(name: string, k: string, given: number): string {
+  const counts = k.split(/, | or /).map(Number);
+  const tooMany = given > Math.max(...counts);
+  const example = tooMany ? Math.max(...counts) : (counts.find((c) => c >= given) ?? counts[0]);
+  const args =
+    example === 1 ? "x" : Array.from({ length: example }, (_, i) => String(i + 1)).join(", ");
+  const noun = k === "1" ? "argument" : "arguments";
+  return `Function '${name}' requires ${tooMany ? "only " : ""}${k} ${noun}. For example, try typing: ${name}(${args}).`;
 }

@@ -53,14 +53,29 @@ it("RC-20 a call with the wrong number of arguments names the expected count", (
   const sin = analyze(["\\sin(1,2)"]).rows[0].error;
   expect([sin?.code, sin?.names, sin?.message, sin?.span?.start]).toEqual([
     "arity",
-    ["sin", "1"],
-    "sin takes 1 argument.",
+    ["sin", "1", "2"],
+    "Function 'sin' requires only 1 argument. For example, try typing: sin(x).",
     0,
   ]);
   expect(analyze(["f(x)=x", "f(1,2)"]).rows[1].error?.message).toBe("f takes 1 argument.");
   expect(analyze(["g(a,b)=a+b", "g(1)"]).rows[1].error?.message).toBe("g takes 2 arguments.");
   expect(analyze(["\\arctan(1,2,3)"]).rows[0].error?.message).toBe(
-    "arctan takes 1 or 2 arguments."
+    "Function 'arctan' requires only 1 or 2 arguments. For example, try typing: arctan(1, 2)."
   );
   expect(codes(["\\arctan(1,2)", "\\log_{2}(8)"])).toEqual([null, null]);
+});
+
+it("RC-20 a built-in's arity error uses Desmos's wording (appendix F decision 2)", () => {
+  const message = (latex: string) => analyze([latex]).rows[0].error?.message;
+  expect([
+    message("\\operatorname{floor}(2.7,1)"),
+    message("\\operatorname{nCr}(5)"),
+    message("\\operatorname{mod}(1,2,3)"),
+    message("\\operatorname{round}(1,2,3)"),
+  ]).toEqual([
+    "Function 'floor' requires only 1 argument. For example, try typing: floor(x).",
+    "Function 'nCr' requires 2 arguments. For example, try typing: nCr(1, 2).",
+    "Function 'mod' requires only 2 arguments. For example, try typing: mod(1, 2).",
+    "Function 'round' requires only 1 or 2 arguments. For example, try typing: round(1, 2).",
+  ]);
 });

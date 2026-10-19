@@ -388,6 +388,139 @@
       "args": [-2],
       "latex": "\\operatorname{arccot}\\left(-2\\right)",
       "expected": "2.677945044588987122248387"
+    },
+    {
+      "id": "floor-1",
+      "op": "floor",
+      "args": [-2.5],
+      "latex": "\\operatorname{floor}\\left(-2.5\\right)",
+      "expected": "-3"
+    },
+    {
+      "id": "floor-2",
+      "op": "floor",
+      "args": [7.99],
+      "latex": "\\operatorname{floor}\\left(7.99\\right)",
+      "expected": "7"
+    },
+    {
+      "id": "ceil-1",
+      "op": "ceil",
+      "args": [2.1],
+      "latex": "\\operatorname{ceil}\\left(2.1\\right)",
+      "expected": "3"
+    },
+    {
+      "id": "ceil-2",
+      "op": "ceil",
+      "args": [-2.9],
+      "latex": "\\operatorname{ceil}\\left(-2.9\\right)",
+      "expected": "-2"
+    },
+    {
+      "id": "round-1",
+      "op": "round",
+      "args": [2.5],
+      "latex": "\\operatorname{round}\\left(2.5\\right)",
+      "expected": "3"
+    },
+    {
+      "id": "round-2",
+      "op": "round",
+      "args": [-2.5],
+      "latex": "\\operatorname{round}\\left(-2.5\\right)",
+      "expected": "-2"
+    },
+    {
+      "id": "round-3",
+      "op": "round",
+      "args": [3.14159, 2],
+      "latex": "\\operatorname{round}\\left(3.14159,2\\right)",
+      "expected": "3.14"
+    },
+    {
+      "id": "round-4",
+      "op": "round",
+      "args": [1234, -2],
+      "latex": "\\operatorname{round}\\left(1234,-2\\right)",
+      "expected": "1200"
+    },
+    {
+      "id": "sign-1",
+      "op": "sign",
+      "args": [-3],
+      "latex": "\\operatorname{sign}\\left(-3\\right)",
+      "expected": "-1"
+    },
+    {
+      "id": "sign-2",
+      "op": "sign",
+      "args": [0],
+      "latex": "\\operatorname{sign}\\left(0\\right)",
+      "expected": "0"
+    },
+    {
+      "id": "mod-1",
+      "op": "mod",
+      "args": [-7, 3],
+      "latex": "\\operatorname{mod}\\left(-7,3\\right)",
+      "expected": "2"
+    },
+    {
+      "id": "mod-2",
+      "op": "mod",
+      "args": [7, -3],
+      "latex": "\\operatorname{mod}\\left(7,-3\\right)",
+      "expected": "-2"
+    },
+    {
+      "id": "mod-3",
+      "op": "mod",
+      "args": [5.5, 2],
+      "latex": "\\operatorname{mod}\\left(5.5,2\\right)",
+      "expected": "1.5"
+    },
+    {
+      "id": "nCr-1",
+      "op": "nCr",
+      "args": [52, 5],
+      "latex": "\\operatorname{nCr}\\left(52,5\\right)",
+      "expected": "2598960"
+    },
+    {
+      "id": "nCr-2",
+      "op": "nCr",
+      "args": [40, 20],
+      "latex": "\\operatorname{nCr}\\left(40,20\\right)",
+      "expected": "137846528820"
+    },
+    {
+      "id": "nPr-1",
+      "op": "nPr",
+      "args": [10, 4],
+      "latex": "\\operatorname{nPr}\\left(10,4\\right)",
+      "expected": "5040"
+    },
+    {
+      "id": "nPr-2",
+      "op": "nPr",
+      "args": [20, 7],
+      "latex": "\\operatorname{nPr}\\left(20,7\\right)",
+      "expected": "390700800"
+    },
+    {
+      "id": "abs-1",
+      "op": "abs",
+      "args": [-2.5],
+      "latex": "\\operatorname{abs}\\left(-2.5\\right)",
+      "expected": "2.5"
+    },
+    {
+      "id": "abs-2",
+      "op": "abs",
+      "args": [1e-300],
+      "latex": "\\operatorname{abs}\\left(0.000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001\\right)",
+      "expected": "1.000000000000000025059092e-300"
     }
   ]
 }

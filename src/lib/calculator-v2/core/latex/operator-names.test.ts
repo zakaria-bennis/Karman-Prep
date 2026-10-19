@@ -21,14 +21,17 @@ describe("operator-name allowlist", () => {
         false
       );
   });
-  it("PR-12 built-ins ship by name: the SHIPPED set is the trig, inverse trig, exp, ln and log functions", () => {
+  it("PR-12 built-ins ship by name: the SHIPPED set is trig, inverse trig, exp, ln, log and number theory", () => {
     expect([...O.SHIPPED].every(O.isBuiltinName)).toBe(true);
     expect(names().filter(O.isShippedBuiltin)).toEqual([...O.SHIPPED]);
     expect(
       O.OPERATOR_NAMES.filter((n) => n.category !== null && O.isShippedBuiltin(n.name))
         .map((n) => n.name)
         .join(" ")
-    ).toBe("sin cos tan csc sec cot arcsin arccos arctan arccsc arcsec arccot exp ln log");
+    ).toBe(
+      "sin cos tan csc sec cot arcsin arccos arctan arccsc arcsec arccot exp ln log " +
+        "mod ceil floor round sign nPr nCr abs"
+    );
     expect(
       O.OPERATOR_NAMES.filter((n) => n.category === null)
         .map((n) => n.name)
@@ -39,7 +42,7 @@ describe("operator-name allowlist", () => {
       ["mean", "sinh", "nope", "length", "abs"].map(O.isShippedBuiltin),
     ]).toEqual([
       [1, 2],
-      [false, false, false, false, false],
+      [false, false, false, false, true],
     ]);
   });
   it("PR-12 abs and length are Desmos built-in names (appendix F decision 2)", () => {
