@@ -26,7 +26,7 @@ import {
 import { COMPLEX_HINT } from "@/lib/calculator-v2/core/analysis";
 import type { RowView } from "@/lib/calculator-v2/core/api/engine";
 import { MAX_ROW_CHARACTERS } from "@/lib/calculator-v2/core/latex/limits";
-import { EXPLICIT_COLOUR_NOTE, resolveRowColor } from "@/lib/calculator-v2/theme/roles";
+import { resolveRowColor } from "@/lib/calculator-v2/theme/roles";
 import { LineStyleGlyph, PointStyleGlyph } from "../../icons";
 import { groupIntegerDigits } from "../../math-field/digit-groups";
 import type { MathField } from "../../math-field/MathField";
@@ -323,7 +323,6 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
               </button>
             </div>
           )}
-          {color.adjusted && <p className="kc-row-note">{EXPLICIT_COLOUR_NOTE}</p>}
         </div>
         <button
           type="button"

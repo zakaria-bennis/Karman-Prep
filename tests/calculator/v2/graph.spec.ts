@@ -428,7 +428,7 @@ test("G-7 a point paints within 0.5 px", async ({ page, isMobile }) => {
   }
 });
 
-test("G-17 overlap of two regions has higher contrast than either and curves stay ≥4.5:1 over shading", async ({
+test("G-17 overlap of two regions has higher contrast than either and the curve paints over the shading", async ({
   page,
   isMobile,
 }) => {
@@ -453,11 +453,10 @@ test("G-17 overlap of two regions has higher contrast than either and curves sta
     }
     const nearest = Math.min(...around.map((p) => rgbDistance(p, c3)));
     expect(nearest, skin).toBeLessThanOrEqual(8);
-    expect(contrastRatio(c3, ab), skin).toBeGreaterThanOrEqual(4.5);
   }
 });
 
-test("TH-8 combined canvas shading never exceeds 1.3:1 in all 12 skins", async ({
+test("F-A1 combined canvas shading is the uncapped stack of 40% fills in all 12 skins", async ({
   page,
   isMobile,
 }) => {
@@ -483,7 +482,6 @@ test("TH-8 combined canvas shading never exceeds 1.3:1 in all 12 skins", async (
     expect(partial, skin).toBe(0);
     for (const colour of opaque) {
       expect(allowed.has(colour), `${skin} ${colour}`).toBe(true);
-      expect(contrastRatio(colour, paper), skin).toBeLessThanOrEqual(1.3 + 1e-9);
     }
     expect(opaque, skin).toContain(compositeShading(paper, fills));
   }

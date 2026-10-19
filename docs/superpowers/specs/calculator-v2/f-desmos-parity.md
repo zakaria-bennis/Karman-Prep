@@ -34,6 +34,31 @@ conflict.
 7. **Fonts.** All calculator UI text, including the window title, uses the sans UI font (Arial);
    only math uses KaTeX fonts.
 
+### Amendment F-A1 (owner, 2026-10-18): Desmos colours and shading, no curve contrast caps
+
+This replaces decisions 4 and 5. It also drops the D9 contrast rules for curves and shading
+(TH-6, TH-7, TH-8 and TH-11), whatever decision 2 says. The 10.3 targets for text, axes,
+gridlines, focus and keys are unchanged.
+
+- **Curves.** The six slots are Desmos's colours in its picker order:
+  - c1 red `#c74440`
+  - c2 blue `#2d70b3`
+  - c3 green `#348543`
+  - c4 purple `#6042a6`
+  - c5 orange `#fa7e19`
+  - c6 black `#000000`
+- **New rows** cycle c1, c2, c3, c4, c6 and repeat, skipping orange, as Desmos's next-colour rule
+  does.
+- **Dark skins** show every curve colour inverted, as Desmos's Reverse contrast (`invert(100%)`)
+  does. For example, black becomes white and red becomes `#38bbbf`.
+- **Shading.** Every inequality fill is 40% of its curve colour. Overlapping fills stack in row
+  order with no cap.
+- **Explicit colours.** An explicit `#rrggbb` row colour is used as given, inverted on dark skins,
+  and is never adjusted for contrast. The TH-11 "Colour adjusted for contrast" note is removed.
+- **Source.** The values live in `src/lib/calculator-v2/theme/desmos-palette.ts`.
+- **Not yet matched.** Desmos keeps a running colour counter, so a new row continues the cycle
+  wherever the last one left off. V2 still picks the slot from the row's position.
+
 ## The + (Add Item) menu
 
 ### Requirements

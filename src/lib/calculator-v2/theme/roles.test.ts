@@ -1,9 +1,7 @@
 import { expect, it } from "vitest";
-import { compositeOver, compositeShading, contrastRatio, toOklch } from "./contrast";
 import {
   CHROME_VARS,
   CURVE_VARS,
-  EXPLICIT_COLOUR_NOTE,
   FILL_ALPHA_VARS,
   ROLE_VARS,
   hostThemeCss,
@@ -74,19 +72,17 @@ it("TH-3 every role, curve slot and fill alpha has its own --kc- custom property
   ]);
 });
 
-it("TH-10 new rows take slots c1 to c6 in order and repeat", () => {
-  expect(Array.from({ length: 14 }, (_, i) => nextSlot(i))).toEqual([
+it("F-A1 new rows cycle red, blue, green, purple, black and repeat, skipping orange", () => {
+  expect(Array.from({ length: 12 }, (_, i) => nextSlot(i))).toEqual([
     "c1",
     "c2",
     "c3",
     "c4",
-    "c5",
     "c6",
     "c1",
     "c2",
     "c3",
     "c4",
-    "c5",
     "c6",
     "c1",
     "c2",
@@ -99,7 +95,6 @@ it("TH-10 a slot id resolves from the active skin and re-maps when the skin chan
       expect(resolveRowColor(k, s), `${s}: ${k}`).toEqual({
         hex: pal(s).curves[k],
         fillAlpha: pal(s).fillAlpha[k],
-        adjusted: false,
       });
     }
   }
@@ -107,52 +102,11 @@ it("TH-10 a slot id resolves from the active skin and re-maps when the skin chan
   expect(resolveRowColor("not-a-colour", "paper")).toEqual(resolveRowColor("c1", "paper"));
 });
 
-it("TH-11 an explicit hex at 4.53:1 on Warm ivory is lifted to 5.85:1 and stays 4.5:1 over capped shading (OI-1)", () => {
-  const { roles, curves, fillAlpha } = pal("ivory");
-  const paper = roles.paper;
-  expect(contrastRatio("#757575", paper)).toBeCloseTo(4.53, 2);
-  const r = resolveRowColor("#757575", "ivory");
-  expect(r).toMatchObject({ hex: "#626262", adjusted: true });
-  expect(contrastRatio(r.hex, paper)).toBeGreaterThanOrEqual(5.85);
-  const shade = compositeShading(paper, [
-    { color: r.hex, alpha: r.fillAlpha },
-    { color: curves.c1, alpha: fillAlpha.c1 },
-  ]);
-  expect(contrastRatio(shade, paper)).toBeLessThanOrEqual(1.3);
-  expect(contrastRatio(r.hex, shade)).toBeGreaterThanOrEqual(4.5);
-});
-
-it("TH-11 explicit colours keep hue and chroma (except to stay in gamut) and move only in lightness", () => {
-  const cases: [string, SkinId, string | null][] = [
-    ["#2E7D32", "ivory", "#207126"],
-    ["#ffd400", "ivory", null],
-    ["#1f3fbf", "observatory", null],
-  ];
-  for (const [hex, skin, out] of cases) {
-    const paper = pal(skin).roles.paper;
-    const r = resolveRowColor(hex, skin);
-    const label = `${hex} on ${skin}`;
-    expect(r.adjusted, label).toBe(true);
-    if (out !== null) expect(r.hex, label).toBe(out);
-    expect(contrastRatio(r.hex, paper), label).toBeGreaterThanOrEqual(5.9);
-    const before = toOklch(hex);
-    const after = toOklch(r.hex);
-    expect(Math.abs(after.h - before.h), label).toBeLessThan(0.5);
-    expect(after.c, label).toBeLessThanOrEqual(before.c + 0.002);
-    expect(
-      contrastRatio(compositeOver(r.hex, r.fillAlpha, paper), paper),
-      label
-    ).toBeGreaterThanOrEqual(1.15);
-  }
-});
-
-it("TH-11 an explicit colour already at 5.85:1 is unchanged and shows no note", () => {
-  expect(resolveRowColor("#000000", "paper")).toMatchObject({ hex: "#000000", adjusted: false });
-  expect(resolveRowColor("#FFFFFF", "observatory")).toMatchObject({
-    hex: "#ffffff",
-    adjusted: false,
-  });
-  expect(EXPLICIT_COLOUR_NOTE).toBe("Colour adjusted for contrast on this theme");
+it("F-A1 an explicit colour is used as is with a 40% fill on light skins and inverted on dark skins", () => {
+  expect(resolveRowColor("#757575", "ivory")).toEqual({ hex: "#757575", fillAlpha: 0.4 });
+  expect(resolveRowColor("#FFD400", "paper")).toEqual({ hex: "#ffd400", fillAlpha: 0.4 });
+  expect(resolveRowColor("#000000", "observatory")).toEqual({ hex: "#ffffff", fillAlpha: 0.4 });
+  expect(resolveRowColor("#c74440", "observatory").hex).toBe("#38bbbf");
 });
 
 it("TH-3 hostThemeCss declares every role, curve and fill alpha of the skin on :host and nothing else", () => {

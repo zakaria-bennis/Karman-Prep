@@ -45,16 +45,16 @@ it("API-2 setExpressions upserts several rows as one undo step", () => {
     ["b", "2"],
   ]);
 });
-it("API-2, TH-10 a new row takes the next skin colour slot", () => {
+it("API-2, F-A1 a new row takes the next Desmos colour slot, skipping orange", () => {
   e.setExpressions(["a", "b", "c", "d", "e", "f"].map((id) => ({ id, latex: "x" })));
   expect(e.getExpressions().map((r) => r.color)).toEqual([
     "c1",
     "c2",
     "c3",
     "c4",
-    "c5",
     "c6",
     "c1",
+    "c2",
   ]);
 });
 it("API-2 note, folder, image and text throw unsupported and change nothing (OI-23)", () => {
