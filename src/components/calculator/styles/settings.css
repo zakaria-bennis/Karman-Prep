@@ -1,14 +1,12 @@
-/* The settings popover (S-1, S-7), drawn to popovers-menus.md VIS-1 to VIS-19. Colours come only
-   from role variables (TH-3); the reference's fixed greys are mixed from --kc-text over --kc-list,
-   so on the classic skin each equals the measured value.
+/* The settings popover (S-1, S-7) and the popover controls it shares with the column style menu
+   (ui/settings/controls.tsx), drawn to popovers-menus.md VIS-1 to VIS-19. Colours come only from
+   role variables (TH-3); the reference's fixed greys are mixed from --kc-text over --kc-list, so
+   on the classic skin each equals the measured value.
    SettingsPopover sets top, left, data-side, --kc-arrow-at and --kc-settings-max-h inline. */
 
-.kc-settings {
-  /* Placement, set inline by SettingsPopover. */
-  --kc-arrow-at: 18.5px;
-  --kc-settings-max-h: none;
-
-  /* Tones local to the popover (wanted as shared tokens, see the menus note). */
+/* Tones of the popovers (wanted as shared tokens, see the report). */
+.kc-settings,
+.kc-style-menu {
   --kc-pop-rule: color-mix(in srgb, var(--kc-text) 11.4%, var(--kc-list)); /* #e2e2e2 */
   --kc-pop-hover-border: color-mix(in srgb, var(--kc-text) 42%, var(--kc-list)); /* #949494 */
   --kc-pop-ink-strong: color-mix(in srgb, var(--kc-text) 73%, var(--kc-list)); /* #454545 */
@@ -28,6 +26,16 @@
   --kc-pop-circle: color-mix(in srgb, var(--kc-text) 2.4%, var(--kc-list)); /* #f9f9f9 */
   --kc-pop-circle-ink: color-mix(in srgb, var(--kc-text) 53.3%, var(--kc-list)); /* #777 */
   --kc-pop-circle-shadow: inset 0 0 2px color-mix(in srgb, var(--kc-text) 20%, transparent);
+  --kc-pop-mini-ink: color-mix(in srgb, var(--kc-text) 42%, var(--kc-list)); /* #949494 */
+  --kc-pop-mini-on: color-mix(in srgb, var(--kc-accent) 25%, transparent);
+  --kc-pop-mini-hover: color-mix(in srgb, var(--kc-text) 4%, transparent);
+  --kc-pop-swatch-ring: 0 0 0 2px color-mix(in srgb, var(--kc-text) 10%, transparent);
+}
+
+.kc-settings {
+  /* Placement, set inline by SettingsPopover. */
+  --kc-arrow-at: 18.5px;
+  --kc-settings-max-h: none;
 
   /* VIS-1: the positioned wrapper; its body is the white box, 1 px outside it on every side. */
   position: absolute;
@@ -509,6 +517,38 @@
   line-height: 34px;
   white-space: nowrap;
   pointer-events: none;
+}
+
+/* VIS-13: the mini theme, icon buttons with #bbb borders; the selected one is tinted blue. */
+.kc-segments[data-theme="mini"] .kc-segment {
+  flex: none;
+  height: 30px;
+  padding: 4px 6px;
+  border-color: var(--kc-boundary);
+  color: var(--kc-pop-mini-ink);
+}
+
+.kc-segments[data-theme="mini"] .kc-segment:hover {
+  border-color: var(--kc-boundary);
+  background: var(--kc-pop-mini-hover);
+  color: var(--kc-text);
+}
+
+.kc-segments[data-theme="mini"] .kc-segment:has(> input:checked) {
+  border-color: var(--kc-accent);
+  background: var(--kc-pop-mini-on);
+  color: var(--kc-accent);
+}
+
+.kc-segment-icon {
+  position: relative;
+  display: flex;
+  pointer-events: none;
+}
+
+.kc-segment-icon > svg {
+  width: 20.8px;
+  height: 20.8px;
 }
 
 /* VIS-9: a 2 px blue ring 2 px outside the focused control. */

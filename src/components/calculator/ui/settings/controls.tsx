@@ -3,7 +3,7 @@
 // toggle, a segmented choice, the round grid-type buttons and their glyphs. Each wraps a native
 // input, so roles, names, keyboard behaviour and the checked state stay the browser's own.
 
-import type { JSX, ReactNode } from "react";
+import type { JSX, ReactNode, Ref } from "react";
 
 export interface SettingCheckProps {
   label: string;
@@ -46,10 +46,12 @@ export function SettingToggle(props: {
   name: string;
   checked: boolean;
   onChange(checked: boolean): void;
+  inputRef?: Ref<HTMLInputElement>;
 }): JSX.Element {
   return (
     <label className="kc-toggle">
       <input
+        ref={props.inputRef}
         type="checkbox"
         aria-label={props.name}
         checked={props.checked}
@@ -64,27 +66,45 @@ export function SettingToggle(props: {
 export interface SegmentOption<T extends string> {
   value: T;
   label: string;
+  icon?: ReactNode; // VIS-13: the mini theme shows an icon, named by `label`
 }
 
-/** VIS-12: a full-width row of joined radio buttons; the selected one is filled dark grey. */
+/**
+ * VIS-12: a full-width row of joined radio buttons; the selected one is filled dark grey. VIS-13:
+ * the "mini" theme shows icons, the selected one tinted blue.
+ */
 export function SettingSegments<T extends string>(props: {
   name: string; // the radio group's form name
   label: string; // the radiogroup's accessible name
   options: readonly SegmentOption<T>[];
   value: T;
   onSelect(value: T): void;
+  theme?: "default" | "mini";
 }): JSX.Element {
+  const mini = props.theme === "mini";
   return (
-    <div className="kc-segments" role="radiogroup" aria-label={props.label}>
+    <div
+      className="kc-segments"
+      data-theme={mini ? "mini" : undefined}
+      role="radiogroup"
+      aria-label={props.label}
+    >
       {props.options.map((option) => (
         <label key={option.value} className="kc-segment">
           <input
             type="radio"
             name={props.name}
+            aria-label={mini ? option.label : undefined}
             checked={props.value === option.value}
             onChange={() => props.onSelect(option.value)}
           />
-          <span className="kc-segment-text">{option.label}</span>
+          {mini ? (
+            <span className="kc-segment-icon" aria-hidden="true">
+              {option.icon}
+            </span>
+          ) : (
+            <span className="kc-segment-text">{option.label}</span>
+          )}
         </label>
       ))}
     </div>
