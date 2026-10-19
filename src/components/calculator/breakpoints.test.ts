@@ -17,13 +17,8 @@ const SCAN_DIRS = [
   "src/components/calculator",
 ] as const;
 
-/** breakpoints.ts itself and the v1 files AR-8 keeps exactly as deployed. */
-const EXCEPT: readonly string[] = [
-  "src/components/calculator/breakpoints.ts",
-  "src/components/calculator/CalculatorShell.tsx",
-  "src/components/calculator/CalculatorSurface.tsx",
-  "src/components/calculator/calculator.module.css",
-];
+/** breakpoints.ts itself. */
+const EXCEPT: readonly string[] = ["src/components/calculator/breakpoints.ts"];
 
 /** A width or height media feature in TS string or template text. */
 const TS_SIZE_QUERY = /\((?:min|max)-(?:width|height)\s*:/;

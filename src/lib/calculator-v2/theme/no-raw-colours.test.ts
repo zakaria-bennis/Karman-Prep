@@ -14,7 +14,8 @@ const MQ_CSS = "vendor/mathquill/mathquill.css";
 const SHADOW_TS = "src/components/calculator-v2/styles/generated.ts";
 const STYLES_DIR = "src/components/calculator-v2/styles";
 
-/** The folders TH-3 scans and the generated or v1 files inside them it leaves out. */
+/** The folders TH-3 scans and the files inside them it leaves out (generated files, the hand-written
+ * Desmos palette and the quiz trigger stylesheet, whose focus ring predates the --kcc-* tokens). */
 const SCAN_ROOTS: readonly { dir: string; except: readonly string[] }[] = [
   { dir: "src/components/calculator-v2", except: [SHADOW_TS] },
   { dir: "src/lib/calculator-v2/render", except: [] },
