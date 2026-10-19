@@ -1,8 +1,9 @@
-// TH-15 live theme: a MutationObserver on the page root (`data-theme`, `class`) and media-query
-// listeners for the colour scheme, contrast and forced colours. The skin is always
-// resolveSkinId(root.dataset.theme ?? null, prefersDark) (TH-5). A prefers-contrast or
-// forced-colors change keeps the skin and bumps `revision` by one, so the shell re-applies its
-// roles and repaints without toggling Reverse contrast (S-4).
+// TH-15 live theme: a MutationObserver on the page root (`data-calculator-skin`, `class`) and
+// media-query listeners for contrast and forced colours. The skin is always
+// resolveSkinId(root.dataset.calculatorSkin) ("classic" unless the page opts into another skin);
+// the OS colour scheme does not change it. A prefers-contrast or forced-colors change keeps the
+// skin and bumps `revision` by one, so the shell re-applies its roles and repaints without
+// toggling Reverse contrast (S-4).
 
 import { resolveSkinId } from "@/lib/calculator/theme/roles";
 import type { SkinId } from "@/lib/calculator/theme/skins";
@@ -13,7 +14,6 @@ export interface ThemeState {
   revision: number;
 }
 
-const DARK_QUERY = "(prefers-color-scheme: dark)";
 const CONTRAST_QUERY = "(prefers-contrast: more)";
 const FORCED_COLORS_QUERY = "(forced-colors: active)";
 
@@ -23,10 +23,9 @@ export function watchTheme(
   m: MediaQuerySource,
   on: (s: ThemeState) => void
 ): Watch<ThemeState> {
-  let prefersDark = false;
   let revision = 0;
   const state = (): ThemeState => ({
-    skin: resolveSkinId(root.dataset.theme ?? null, prefersDark),
+    skin: resolveSkinId(root.dataset.calculatorSkin ?? null),
     revision,
   });
   const emit = () => on(state());
@@ -35,18 +34,12 @@ export function watchTheme(
     emit();
   };
 
-  const dark = watchMediaQuery(m, DARK_QUERY, (matches) => {
-    prefersDark = matches;
-    emit();
-  });
-  prefersDark = dark.initial;
   const watches = [
-    dark,
     watchMediaQuery(m, CONTRAST_QUERY, bumpRevision),
     watchMediaQuery(m, FORCED_COLORS_QUERY, bumpRevision),
   ];
   const observer = new MutationObserver(emit);
-  observer.observe(root, { attributes: true, attributeFilter: ["data-theme", "class"] });
+  observer.observe(root, { attributes: true, attributeFilter: ["data-calculator-skin", "class"] });
 
   return {
     initial: state(),

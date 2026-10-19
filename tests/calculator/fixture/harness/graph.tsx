@@ -14,7 +14,7 @@ const skinParam = params.get("skin");
 const skin: SkinId =
   skinParam !== null && (SKIN_IDS as readonly string[]).includes(skinParam)
     ? (skinParam as SkinId)
-    : "ivory";
+    : "classic";
 const rowsParam = params.get("rows");
 const rows = rowsParam === null ? [] : (JSON.parse(rowsParam) as string[]);
 const w = Number(params.get("w") ?? 800);

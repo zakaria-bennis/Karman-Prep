@@ -25,6 +25,7 @@ export const ROLE_VARS: Readonly<Record<ColorRole, string>> = {
   focusBarLabel: "--kc-focus-bar-label",
   accentLabel: "--kc-accent-label",
   boundary: "--kc-boundary",
+  selection: "--kc-selection",
 };
 
 /** Each curve slot's colour property (F-A1, Desmos's colours; TH-10). */

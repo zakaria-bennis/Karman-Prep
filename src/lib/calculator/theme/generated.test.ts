@@ -12,7 +12,7 @@ import {
 import { SITE_THEMES } from "../../themes/palettes";
 import { CHROME_VARS, type ChromeRole } from "./roles";
 import { SKIN_COLORS } from "./skin-colors.generated";
-import { SKIN_IDS, type SkinId } from "./skins";
+import { SITE_SKIN_IDS, SKIN_IDS, type SkinId } from "./skins";
 
 const ROOT = resolve(__dirname, "../../../..");
 const GENERATOR = "scripts/calculator/generate-skin-colors.ts";
@@ -91,8 +91,9 @@ it("TH-5 the checked-in table and chrome sheet match a fresh generation from pal
   }
 }, 60_000);
 
-it("TH-5 SKIN_IDS are the palettes.ts themes in order", () => {
-  expect([...SKIN_IDS]).toEqual(SITE_THEMES.map((t) => t.id));
+it("TH-5 SKIN_IDS are classic, then the palettes.ts themes in order", () => {
+  expect([...SITE_SKIN_IDS]).toEqual(SITE_THEMES.map((t) => t.id));
+  expect([...SKIN_IDS]).toEqual(["classic", ...SITE_SKIN_IDS]);
 });
 
 it("TH-5 the chrome sheet holds only the seven chrome roles for the 12 skins and the ivory and observatory fallback", () => {
@@ -101,12 +102,12 @@ it("TH-5 the chrome sheet holds only the seven chrome roles for the 12 skins and
   expect(blocks.map((b) => b.sel)).toEqual([
     ":root",
     ":root",
-    ...SKIN_IDS.map((id) => 'html[data-theme="' + id + '"]'),
+    ...SITE_SKIN_IDS.map((id) => 'html[data-theme="' + id + '"]'),
   ]);
   expect(sheet).toMatch(/@media \(prefers-color-scheme: dark\) \{\s*:root \{/);
   expect(blocks[0].decls).toEqual(expected("ivory"));
   expect(blocks[1].decls).toEqual(expected("observatory"));
-  SKIN_IDS.forEach((id, i) => {
+  SITE_SKIN_IDS.forEach((id, i) => {
     expect(blocks[i + 2].decls, id).toEqual(expected(id));
   });
   expect(gzipSync(sheet).length).toBeLessThan(10_240);

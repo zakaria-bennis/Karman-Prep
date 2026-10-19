@@ -1,7 +1,8 @@
-// Skin ids, colour roles and curve slots of the calculator theme (
-// section 6). The 12 skins are the site themes of src/lib/themes/palettes.ts in order (TH-5).
+// Skin ids, colour roles and curve slots of the calculator theme (section 6). "classic" is the
+// hand-set default that matches the reference graphing calculator (desmos-palette.ts); the 12 site
+// skins are the site themes of src/lib/themes/palettes.ts in order (TH-5), derived by derive.ts.
 
-export const SKIN_IDS = [
+export const SITE_SKIN_IDS = [
   "observatory",
   "charcoal",
   "forest",
@@ -15,6 +16,8 @@ export const SKIN_IDS = [
   "blush",
   "plum",
 ] as const;
+export type SiteSkinId = (typeof SITE_SKIN_IDS)[number];
+export const SKIN_IDS = ["classic", ...SITE_SKIN_IDS] as const;
 export type SkinId = (typeof SKIN_IDS)[number];
 export type BackgroundRole =
   | "paper"
@@ -23,7 +26,8 @@ export type BackgroundRole =
   | "key"
   | "keyOperator"
   | "accent"
-  | "tooltip";
+  | "tooltip"
+  | "selection";
 export type ForegroundRole =
   | "text"
   | "textSecondary"
@@ -69,6 +73,7 @@ export const COLOR_ROLES: readonly ColorRole[] = [
   "focusBarLabel",
   "accentLabel",
   "boundary",
+  "selection",
 ];
 
 /** The six curve palette slots (F-A1, Desmos's colours; TH-10). */

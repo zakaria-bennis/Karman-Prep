@@ -59,7 +59,9 @@ export function readEditorQuery(search: string, coarsePointer: boolean): EditorQ
     width: width === null ? DEFAULT_WIDTH : Number(width),
     keypadOpen: params.get("keypad") === "open",
     skin:
-      skin !== null && (SKIN_IDS as readonly string[]).includes(skin) ? (skin as SkinId) : "ivory",
+      skin !== null && (SKIN_IDS as readonly string[]).includes(skin)
+        ? (skin as SkinId)
+        : "classic",
   };
 }
 

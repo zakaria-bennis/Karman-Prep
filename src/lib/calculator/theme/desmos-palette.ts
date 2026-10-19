@@ -2,7 +2,7 @@
 // amendment F-A1). It replaces the TH-6 generated curve palettes, the TH-7 colour-blind spacing, the TH-8
 // fill alphas and shading cap, and the TH-11 explicit-colour lift. The 10.3 role targets for text,
 // axes, gridlines and focus still apply.
-import type { CurveSlot } from "./skins";
+import type { ColorRole, CurveSlot } from "./skins";
 
 /**
  * Desmos's six colour-picker colours by slot: red, blue, green, purple, orange, black. The slot
@@ -51,3 +51,32 @@ export function desmosCurves(dark: boolean): Record<CurveSlot, string> {
   if (dark) for (const slot of Object.keys(out) as CurveSlot[]) out[slot] = invertHex(out[slot]);
   return out;
 }
+
+/**
+ * The "classic" skin's roles: the reference calculator's own surfaces and ink, measured 2026-10-19
+ * (rea-targets visual MASTER.md section 1). Hand-set, never contrast-adjusted. Alpha tones such as
+ * the toolbar rule or the gutter tab are mixed from these in styles/tokens.css.
+ */
+export const CLASSIC_ROLES: Readonly<Record<ColorRole, string>> = {
+  paper: "#ffffff",
+  list: "#ffffff",
+  chrome: "#f0f0f0",
+  key: "#ffffff",
+  keyOperator: "#ededed",
+  accent: "#2f72dc",
+  text: "#000000",
+  textSecondary: "#666666",
+  error: "#ce4945",
+  warning: "#e66b3c",
+  tooltipLabel: "#ffffff",
+  tooltip: "#000000",
+  axis: "#191919",
+  gridMajor: "#999999",
+  gridMinor: "#e0e0e0",
+  focusRing: "#005fcc",
+  focusBar: "#2f72dc",
+  focusBarLabel: "#ffffff",
+  accentLabel: "#ffffff",
+  boundary: "#bbbbbb",
+  selection: "#b4d5fe",
+};

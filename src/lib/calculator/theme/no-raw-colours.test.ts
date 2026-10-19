@@ -397,10 +397,15 @@ it("TH-3 calculator stylesheets and canvas code contain no raw colours outside t
   expect(files.flatMap((path) => rawColourFindings(path, read(path)))).toEqual([]);
 });
 
-it("TH-3 the quiz trigger focus colour #2f72dc appears in no other calculator file, generated and vendored files included", () => {
+it("TH-3 the reference blue #2f72dc appears only in the quiz trigger, the hand-set classic palette and the generated skin table", () => {
+  const allowed = new Set([
+    "src/lib/calculator/theme/desmos-palette.ts",
+    GENERATED_FILES.skinColors,
+  ]);
   const paths = [...scannedFiles(ROOT), ...Object.values(GENERATED_FILES), SHADOW_TS, MQ_CSS];
+  expect(read("src/lib/calculator/theme/desmos-palette.ts").includes("#2f72dc")).toBe(true);
   for (const path of paths) {
-    if (!existsSync(join(ROOT, path))) continue;
+    if (!existsSync(join(ROOT, path)) || allowed.has(path)) continue;
     expect(read(path).toLowerCase().includes("2f72dc"), path).toBe(false);
   }
 });

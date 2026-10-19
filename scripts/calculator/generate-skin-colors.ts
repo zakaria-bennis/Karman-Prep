@@ -15,6 +15,7 @@ import { buildSkinColors } from "../../src/lib/calculator/theme/derive";
 import {
   COLOR_ROLES,
   CURVE_SLOTS,
+  SITE_SKIN_IDS,
   SKIN_IDS,
   type SkinId,
   type SkinPalette,
@@ -69,14 +70,16 @@ function chromeDeclarations(colors: SkinTable, skin: SkinId): string {
 
 /**
  * The light-DOM chrome sheet (unformatted): Warm ivory on `:root`, Observatory on `:root` under
- * `prefers-color-scheme: dark`, then one `html[data-theme]` block per skin. `:root` (0,1,0) loses to
+ * `prefers-color-scheme: dark`, then one `html[data-theme]` block per site skin. `:root` (0,1,0) loses to
  * `html[data-theme="<id>"]` (0,1,1), so the fallback applies only to a missing or unknown id.
  */
 export function chromeStylesheet(colors: SkinTable): string {
   const blocks = [
     `:root {\n${chromeDeclarations(colors, "ivory")}\n}`,
     `@media (prefers-color-scheme: dark) {\n:root {\n${chromeDeclarations(colors, "observatory")}\n}\n}`,
-    ...SKIN_IDS.map((id) => `html[data-theme="${id}"] {\n${chromeDeclarations(colors, id)}\n}`),
+    ...SITE_SKIN_IDS.map(
+      (id) => `html[data-theme="${id}"] {\n${chromeDeclarations(colors, id)}\n}`
+    ),
   ];
   return `/* ${HEADER} */\n${blocks.join("\n\n")}\n`;
 }

@@ -2,7 +2,7 @@
 // mounts the assembled calculator through the quiz host's mountQuizCalculator in #calc, inside a
 // fixed #frame that stands in for the CalculatorWindow. The frame is w×h px (default the whole
 // viewport), clamped to the viewport so phones hold a phone-sized calculator. skin sets
-// html[data-theme] (default ivory); rows (URL-encoded JSON string[]) become rows "1"…"n" at every
+// html[data-theme] (default ivory) and names the calculator skin (default classic); rows (URL-encoded JSON string[]) become rows "1"…"n" at every
 // mount. The shell specs drive it through globalThis.__shell; the engine is on
 // globalThis.__calculatorHarness.
 
@@ -36,7 +36,10 @@ const width = params.get("w");
 const height = params.get("h");
 const reducedMotion = params.get("reducedMotion") === "1";
 
+// The site theme drives the light-DOM chrome; the calculator itself is "classic" unless skin names
+// another calculator skin.
 document.documentElement.dataset.theme = params.get("skin") || "ivory";
+if (params.get("skin")) document.documentElement.dataset.calculatorSkin = params.get("skin")!;
 
 const frame = document.getElementById("frame")!;
 const slot = document.getElementById("slot")!;

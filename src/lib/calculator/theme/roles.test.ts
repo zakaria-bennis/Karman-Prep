@@ -17,13 +17,13 @@ function pal(s: SkinId): SkinPalette {
   return SKIN_COLORS[s].normal;
 }
 
-it("TH-5 unknown or missing theme ids fall back to Warm ivory or Observatory by prefers-color-scheme", () => {
-  expect(resolveSkinId("paper", true)).toBe("paper");
-  expect(resolveSkinId("plum", false)).toBe("plum");
-  expect(resolveSkinId("unknown", false)).toBe("ivory");
-  expect(resolveSkinId(undefined, false)).toBe("ivory");
-  expect(resolveSkinId(null, true)).toBe("observatory");
-  expect(resolveSkinId("", true)).toBe("observatory");
+it("TH-5 the calculator is classic unless the page names another calculator skin", () => {
+  expect(resolveSkinId("paper")).toBe("paper");
+  expect(resolveSkinId("plum")).toBe("plum");
+  expect(resolveSkinId("unknown")).toBe("classic");
+  expect(resolveSkinId(undefined)).toBe("classic");
+  expect(resolveSkinId(null)).toBe("classic");
+  expect(resolveSkinId("")).toBe("classic");
 });
 
 it("TH-3 every role, curve slot and fill alpha has its own --kc- custom property", () => {
@@ -48,6 +48,7 @@ it("TH-3 every role, curve slot and fill alpha has its own --kc- custom property
     focusBarLabel: "--kc-focus-bar-label",
     accentLabel: "--kc-accent-label",
     boundary: "--kc-boundary",
+    selection: "--kc-selection",
   });
   expect(Object.values(CURVE_VARS)).toEqual([
     "--kc-curve-1",
@@ -135,7 +136,7 @@ it("TH-3 hostThemeCss declares every role, curve and fill alpha of the skin on :
     .slice(6, -1)
     .split(";")
     .map((decl) => decl.split(":"));
-  expect(entries).toHaveLength(32);
+  expect(entries).toHaveLength(33);
   expect(entries).toEqual([
     ...COLOR_ROLES.map((r) => [ROLE_VARS[r], roles[r]]),
     ...CURVE_SLOTS.map((k) => [CURVE_VARS[k], curves[k]]),

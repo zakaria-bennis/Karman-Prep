@@ -13,12 +13,12 @@ type RowColor = { hex: string; fillAlpha: number };
 const HEX_COLOR = /^#[0-9a-f]{6}$/i;
 
 /**
- * TH-5: the site theme id when it is one of the 12 skins, else Warm ivory or Observatory by
- * `prefers-color-scheme`.
+ * The calculator's skin: "classic" (the reference calculator's look, owner decision 2026-10-19),
+ * unless the page opts into another skin by naming it in `html[data-calculator-skin]`. The site
+ * theme and `prefers-color-scheme` no longer change the calculator.
  */
-export function resolveSkinId(themeId: string | null | undefined, prefersDark: boolean): SkinId {
-  if (isSkinId(themeId)) return themeId;
-  return prefersDark ? "observatory" : "ivory";
+export function resolveSkinId(calculatorSkin: string | null | undefined): SkinId {
+  return isSkinId(calculatorSkin) ? calculatorSkin : "classic";
 }
 
 /**

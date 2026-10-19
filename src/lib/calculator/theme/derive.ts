@@ -2,11 +2,11 @@
 // the 10.3 role mapping with the TH-4 adjustment, plus Desmos's curve colours and shading (F-A1).
 import type { SiteTheme } from "../../themes/palettes";
 import { adjustLightness, compositeOver, contrastRatio, fromOklch, toOklch } from "./contrast";
-import { DESMOS_FILL_ALPHA, desmosCurves } from "./desmos-palette";
+import { CLASSIC_ROLES, DESMOS_FILL_ALPHA, desmosCurves } from "./desmos-palette";
 import {
   COLOR_ROLES,
   CURVE_SLOTS,
-  SKIN_IDS,
+  SITE_SKIN_IDS,
   type ColorRole,
   type CurveSlot,
   type SkinId,
@@ -91,6 +91,7 @@ export function deriveRoles(theme: SiteTheme): Record<ColorRole, string> {
     focusBarLabel,
     accentLabel,
     boundary: adjustAll(theme.border, [list, chrome, key], 3),
+    selection: compositeOver(theme.math, 0.3, list),
   };
   return Object.fromEntries(COLOR_ROLES.map((role) => [role, derived[role]])) as Record<
     ColorRole,
@@ -98,24 +99,40 @@ export function deriveRoles(theme: SiteTheme): Record<ColorRole, string> {
   >;
 }
 
-/** One skin's roles, with Desmos's curve colours and 40% fill on every slot (F-A1). */
-export function buildSkinPalette(theme: SiteTheme): SkinPalette {
-  const roles = deriveRoles(theme);
-  const curves = desmosCurves(theme.dark);
+function palette(dark: boolean, roles: Record<ColorRole, string>): SkinPalette {
+  const curves = desmosCurves(dark);
   const fillAlpha = Object.fromEntries(
     CURVE_SLOTS.map((slot) => [slot, DESMOS_FILL_ALPHA])
   ) as Record<CurveSlot, number>;
-  return { dark: theme.dark, roles, curves, fillAlpha };
+  return { dark, roles, curves, fillAlpha };
 }
 
-/** Every skin's palette keyed by `SKIN_IDS`; the themes must be the 12 skins in that order. */
+/** One skin's roles, with Desmos's curve colours and 40% fill on every slot (F-A1). */
+export function buildSkinPalette(theme: SiteTheme): SkinPalette {
+  return palette(theme.dark, deriveRoles(theme));
+}
+
+/** The hand-set classic skin: the reference calculator's roles, curves and fill. */
+export function buildClassicPalette(): SkinPalette {
+  const roles = Object.fromEntries(COLOR_ROLES.map((role) => [role, CLASSIC_ROLES[role]]));
+  return palette(false, roles as Record<ColorRole, string>);
+}
+
+/**
+ * Every skin's palette keyed by `SKIN_IDS`: classic first, then the site skins; the themes must be
+ * the 12 site skins in `SITE_SKIN_IDS` order.
+ */
 export function buildSkinColors(
   themes: readonly SiteTheme[]
 ): Record<SkinId, { normal: SkinPalette }> {
-  if (themes.length !== SKIN_IDS.length || themes.some((theme, i) => theme.id !== SKIN_IDS[i])) {
-    throw new Error("palettes.ts themes do not match SKIN_IDS");
+  if (
+    themes.length !== SITE_SKIN_IDS.length ||
+    themes.some((theme, i) => theme.id !== SITE_SKIN_IDS[i])
+  ) {
+    throw new Error("palettes.ts themes do not match SITE_SKIN_IDS");
   }
-  return Object.fromEntries(
-    SKIN_IDS.map((id, i) => [id, { normal: buildSkinPalette(themes[i]) }])
-  ) as Record<SkinId, { normal: SkinPalette }>;
+  return Object.fromEntries([
+    ["classic", { normal: buildClassicPalette() }],
+    ...SITE_SKIN_IDS.map((id, i) => [id, { normal: buildSkinPalette(themes[i]) }]),
+  ]) as Record<SkinId, { normal: SkinPalette }>;
 }

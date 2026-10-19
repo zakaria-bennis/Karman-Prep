@@ -17,7 +17,7 @@ import type { SkinId } from "@/lib/calculator/theme/skins";
 export interface HarnessOptions {
   root: HTMLElement; // a shadow root is attached to it
   css: string[]; // CSS text imported with Vite's ?inline (declared in env.d.ts)
-  skin?: SkinId; // default "ivory"; installs hostThemeCss(skin) and provides SkinContext
+  skin?: SkinId; // default "classic"; installs hostThemeCss(skin) and provides SkinContext
   options?: CalculatorOptions;
   render(engine: CalculatorEngine): React.ReactNode;
 }
@@ -31,7 +31,7 @@ export function mountHarness(options: HarnessOptions): {
   engine: CalculatorEngine;
   destroy(): void;
 } {
-  const skin = options.skin ?? "ivory";
+  const skin = options.skin ?? "classic";
   const shadow = options.root.shadowRoot ?? options.root.attachShadow({ mode: "open" });
   installCss(shadow, [hostThemeCss(skin), ...options.css].join("\n"));
   const engine = createEngine(options.options);

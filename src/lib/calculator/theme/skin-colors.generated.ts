@@ -2,6 +2,50 @@
 import type { SkinId, SkinPalette } from "./skins";
 
 export const SKIN_COLORS: Readonly<Record<SkinId, { normal: SkinPalette }>> = {
+  classic: {
+    normal: {
+      dark: false,
+      roles: {
+        paper: "#ffffff",
+        list: "#ffffff",
+        chrome: "#f0f0f0",
+        key: "#ffffff",
+        keyOperator: "#ededed",
+        accent: "#2f72dc",
+        text: "#000000",
+        textSecondary: "#666666",
+        error: "#ce4945",
+        warning: "#e66b3c",
+        tooltipLabel: "#ffffff",
+        tooltip: "#000000",
+        axis: "#191919",
+        gridMajor: "#999999",
+        gridMinor: "#e0e0e0",
+        focusRing: "#005fcc",
+        focusBar: "#2f72dc",
+        focusBarLabel: "#ffffff",
+        accentLabel: "#ffffff",
+        boundary: "#bbbbbb",
+        selection: "#b4d5fe",
+      },
+      curves: {
+        c1: "#c74440",
+        c2: "#2d70b3",
+        c3: "#348543",
+        c4: "#6042a6",
+        c5: "#fa7e19",
+        c6: "#000000",
+      },
+      fillAlpha: {
+        c1: 0.4,
+        c2: 0.4,
+        c3: 0.4,
+        c4: 0.4,
+        c5: 0.4,
+        c6: 0.4,
+      },
+    },
+  },
   observatory: {
     normal: {
       dark: true,
@@ -26,6 +70,7 @@ export const SKIN_COLORS: Readonly<Record<SkinId, { normal: SkinPalette }>> = {
         focusBarLabel: "#111c19",
         accentLabel: "#111c19",
         boundary: "#74877a",
+        selection: "#3f5b61",
       },
       curves: {
         c1: "#38bbbf",
@@ -69,6 +114,7 @@ export const SKIN_COLORS: Readonly<Record<SkinId, { normal: SkinPalette }>> = {
         focusBarLabel: "#101319",
         accentLabel: "#101319",
         boundary: "#6a7a8f",
+        selection: "#375369",
       },
       curves: {
         c1: "#38bbbf",
@@ -112,6 +158,7 @@ export const SKIN_COLORS: Readonly<Record<SkinId, { normal: SkinPalette }>> = {
         focusBarLabel: "#0c1814",
         accentLabel: "#0c1814",
         boundary: "#668574",
+        selection: "#385a63",
       },
       curves: {
         c1: "#38bbbf",
@@ -155,6 +202,7 @@ export const SKIN_COLORS: Readonly<Record<SkinId, { normal: SkinPalette }>> = {
         focusBarLabel: "#fffdf7",
         accentLabel: "#fffdf7",
         boundary: "#7a8978",
+        selection: "#bfccd1",
       },
       curves: {
         c1: "#c74440",
@@ -198,6 +246,7 @@ export const SKIN_COLORS: Readonly<Record<SkinId, { normal: SkinPalette }>> = {
         focusBarLabel: "#ffffff",
         accentLabel: "#ffffff",
         boundary: "#77879d",
+        selection: "#b9cfe0",
       },
       curves: {
         c1: "#c74440",
@@ -241,6 +290,7 @@ export const SKIN_COLORS: Readonly<Record<SkinId, { normal: SkinPalette }>> = {
         focusBarLabel: "#fbf6ee",
         accentLabel: "#fbf6ee",
         boundary: "#8e7961",
+        selection: "#b6c7cf",
       },
       curves: {
         c1: "#c74440",
@@ -284,6 +334,7 @@ export const SKIN_COLORS: Readonly<Record<SkinId, { normal: SkinPalette }>> = {
         focusBarLabel: "#f6faf3",
         accentLabel: "#f6faf3",
         boundary: "#6e8770",
+        selection: "#b3cad2",
       },
       curves: {
         c1: "#c74440",
@@ -327,6 +378,7 @@ export const SKIN_COLORS: Readonly<Record<SkinId, { normal: SkinPalette }>> = {
         focusBarLabel: "#faf8ff",
         accentLabel: "#faf8ff",
         boundary: "#86769c",
+        selection: "#bbc8de",
       },
       curves: {
         c1: "#c74440",
@@ -370,6 +422,7 @@ export const SKIN_COLORS: Readonly<Record<SkinId, { normal: SkinPalette }>> = {
         focusBarLabel: "#fff8f2",
         accentLabel: "#fff8f2",
         boundary: "#987464",
+        selection: "#b9c8d2",
       },
       curves: {
         c1: "#c74440",
@@ -413,6 +466,7 @@ export const SKIN_COLORS: Readonly<Record<SkinId, { normal: SkinPalette }>> = {
         focusBarLabel: "#fff7fa",
         accentLabel: "#fff7fa",
         boundary: "#987187",
+        selection: "#bfc8da",
       },
       curves: {
         c1: "#c74440",
@@ -456,6 +510,7 @@ export const SKIN_COLORS: Readonly<Record<SkinId, { normal: SkinPalette }>> = {
         focusBarLabel: "#fff9f7",
         accentLabel: "#fff9f7",
         boundary: "#9b757d",
+        selection: "#becad6",
       },
       curves: {
         c1: "#c74440",
@@ -499,6 +554,7 @@ export const SKIN_COLORS: Readonly<Record<SkinId, { normal: SkinPalette }>> = {
         focusBarLabel: "#201321",
         accentLabel: "#201321",
         boundary: "#98769c",
+        selection: "#4f5471",
       },
       curves: {
         c1: "#38bbbf",
