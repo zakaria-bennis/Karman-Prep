@@ -40,8 +40,27 @@ export const CATEGORY_HEADINGS: readonly string[] = Object.freeze([
   "Advanced",
 ]);
 
-/** Built-ins up to this phase are shipped; calls to later ones are `unsupported` (PR-9). */
-export const SHIPPED_PHASE = 1;
+/**
+ * The built-ins whose FN- rule has shipped, by name; a call to any other allowlisted name is
+ * `unsupported` (PR-9). Names ship one task at a time, so `phase` below is only the K-4 schedule.
+ */
+export const SHIPPED: ReadonlySet<string> = new Set([
+  "sin",
+  "cos",
+  "tan",
+  "csc",
+  "sec",
+  "cot",
+  "arcsin",
+  "arccos",
+  "arctan",
+  "arccsc",
+  "arcsec",
+  "arccot",
+  "exp",
+  "ln",
+  "log",
+]);
 
 type Phase = OperatorName["phase"];
 type Arity = OperatorName["arity"];
@@ -100,6 +119,7 @@ export const OPERATOR_NAMES: readonly OperatorName[] = Object.freeze([
   op("sort", 4, 3, [1, 2]),
   op("shuffle", 4, 3, [1, 2]),
   op("unique", 4, 3, [1]),
+  op("length", 4, 2, V), // a Desmos name not in PR-12's list (appendix F decision 2)
   // 5 Visualizations
   op("histogram", 5, 3, [1, 2]),
   op("dotplot", 5, 3, [1]),
@@ -160,6 +180,7 @@ export const OPERATOR_NAMES: readonly OperatorName[] = Object.freeze([
   op("sign", 12, 2, [1]),
   op("nPr", 12, 2, [2]),
   op("nCr", 12, 2, [2]),
+  op("abs", 12, 2, [1]), // a Desmos name not in PR-12's list (appendix F decision 2)
   // 13 Matrices
   op("det", 13, 4, [1]),
   op("trace", 13, 4, [1]),
@@ -223,8 +244,7 @@ export function isBuiltinName(name: string): boolean {
 }
 
 export function isShippedBuiltin(name: string): boolean {
-  const entry = BY_NAME.get(name);
-  return entry !== undefined && entry.phase <= SHIPPED_PHASE;
+  return SHIPPED.has(name) && BY_NAME.has(name);
 }
 
 /** Every allowlisted name, space-separated; MEMBER_NAMES are a separate list and never included. */
@@ -290,7 +310,7 @@ const PANEL_CATEGORIES: readonly PanelCategory[] = Object.freeze(
   CATEGORY_HEADINGS.flatMap((heading, index) => {
     const id = index + 1;
     const entries = OPERATOR_NAMES.filter(
-      (n) => n.category === id && n.phase <= SHIPPED_PHASE
+      (n) => n.category === id && isShippedBuiltin(n.name)
     ).flatMap((n) => PANEL_PRESENTATIONS.get(n.name) ?? []);
     return entries.length === 0
       ? []

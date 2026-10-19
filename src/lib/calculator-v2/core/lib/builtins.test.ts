@@ -2,6 +2,7 @@ import { expect, it } from "vitest";
 import { applyBuiltin, BUILTINS } from "./builtins";
 import { numberValue, UNDEFINED } from "../eval/values";
 import { formatValue } from "../eval/format";
+import { OPERATOR_NAMES, SHIPPED } from "../latex/operator-names";
 
 const P = Math.PI;
 const n = numberValue;
@@ -65,4 +66,8 @@ it("FN-4 every built-in returns undefined outside its domain, shows undefined an
   expect(applyBuiltin("sin", [{ type: "point", value: [1, 2] }], "radians", false)).toEqual(
     UNDEFINED
   );
+});
+it("FN-1 every shipped built-in function has a rule, and no unshipped one does", () => {
+  const functions = OPERATOR_NAMES.filter((o) => o.category !== null).map((o) => o.name);
+  for (const name of functions) expect(BUILTINS.has(name), name).toBe(SHIPPED.has(name));
 });
