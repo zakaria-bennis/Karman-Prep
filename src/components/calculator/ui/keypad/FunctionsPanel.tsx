@@ -8,9 +8,9 @@ import { useId, useLayoutEffect, useRef, useState, type JSX } from "react";
 import { panelCategories, type PanelEntry } from "@/lib/calculator/core/latex/operator-names";
 
 /** L-1/L-2 threshold: the shell's LAYOUT_DESKTOP_MIN_WIDTH, repeated so the keypad needs no import. */
-export const FUNCTIONS_COVER_BELOW = 560;
+export const FUNCTIONS_COVER_BELOW = 450;
 
-/** "cover" (the stacked layout's keypad area) below 560 px, otherwise "above" the keypad. */
+/** "cover" (the stacked layout's keypad area) below 450 px, otherwise "above" the keypad. */
 export function functionsPlacement(containerWidth: number): "above" | "cover" {
   return containerWidth < FUNCTIONS_COVER_BELOW ? "cover" : "above";
 }

@@ -47,9 +47,9 @@ it("K-4 Functions panel shows the shipped categories 1, 2 and 8 in K-4 order und
   expect(labels("Calculus")).toEqual(["exp", "ln", "log", "logₐ"]);
 });
 
-it("K-4 the Functions panel covers the keypad area in containers under 560 px (stacked layout) and sits above the keypad from 560 px", async () => {
-  expect(FUNCTIONS_COVER_BELOW).toBe(560);
-  expect([0, 559, 560, 599, 900].map(functionsPlacement)).toEqual([
+it("K-4 the Functions panel covers the keypad area in containers under 450 px (stacked layout) and sits above the keypad from 450 px", async () => {
+  expect(FUNCTIONS_COVER_BELOW).toBe(450);
+  expect([0, 449, 450, 599, 900].map(functionsPlacement)).toEqual([
     "cover",
     "cover",
     "above",
@@ -57,8 +57,8 @@ it("K-4 the Functions panel covers the keypad area in containers under 560 px (s
     "above",
   ]);
   for (const [width, placement] of [
-    [559, "cover"],
-    [560, "above"],
+    [449, "cover"],
+    [450, "above"],
   ] as const) {
     renderEditor(<Keypad containerWidth={width} pointer="coarse" open onOpenChange={vi.fn()} />, {
       rows: [""],
