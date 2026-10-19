@@ -265,11 +265,11 @@ Each task is one commit and starts with a failing test. Test titles lead with th
 
 ### Critical Files for Implementation
 
-- /Users/zakariabennis/Karman-Prep/.claude/worktrees/cv2-colour-parity/src/lib/calculator-v2/core/latex/atoms.ts
-- /Users/zakariabennis/Karman-Prep/.claude/worktrees/cv2-colour-parity/src/lib/calculator-v2/core/eval/compile.ts
-- /Users/zakariabennis/Karman-Prep/.claude/worktrees/cv2-colour-parity/src/lib/calculator-v2/core/eval/compile-real.ts
-- /Users/zakariabennis/Karman-Prep/.claude/worktrees/cv2-colour-parity/src/lib/calculator-v2/core/lib/builtins.ts
-- /Users/zakariabennis/Karman-Prep/.claude/worktrees/cv2-colour-parity/src/lib/calculator-v2/plot/from-analysis.ts
+- src/lib/calculator-v2/core/latex/atoms.ts
+- src/lib/calculator-v2/core/eval/compile.ts
+- src/lib/calculator-v2/core/eval/compile-real.ts
+- src/lib/calculator-v2/core/lib/builtins.ts
+- src/lib/calculator-v2/plot/from-analysis.ts
 
 ---
 

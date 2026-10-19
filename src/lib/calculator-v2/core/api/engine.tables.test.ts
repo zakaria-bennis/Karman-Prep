@@ -1,7 +1,8 @@
 import { beforeEach, expect, it } from "vitest";
 import { createTestEngine, type TestEngine } from "./__fixtures__/test-engine";
-import type { StoredColumn } from "./document";
+import type { StoredColumn, StoredRow } from "./document";
 import { createTableFromRow } from "./row-commands";
+import { nextColour, withHeader } from "./table-edits";
 
 let t: TestEngine;
 let e: TestEngine["engine"];
@@ -169,4 +170,29 @@ it("D-13 createTableFromRow inserts a table of the row's function below it as on
   expect(e.getSnapshot().rows.map((r) => r.id)).toEqual(["1", "a"]);
   e.setExpression({ id: "b", latex: "x=3" });
   expect(createTableFromRow(e, "b")).toBeNull();
+});
+
+it("D-9, F-A1 a new column takes the colour after the last one in the new-row cycle, so red follows black", () => {
+  const added = (color: string) => {
+    const row: StoredRow = {
+      id: "t",
+      type: "table",
+      latex: "",
+      color: "c1",
+      hidden: false,
+      columns: [{ latex: "x_{1}", values: [], color, hidden: false }],
+    };
+    const next = withHeader(row, 1, "y_{1}");
+    return typeof next === "string" ? next : next.columns?.[1].color;
+  };
+  expect(["c1", "c2", "#388c46", "c4", "c5", "c6", "#123456"].map(added)).toEqual([
+    "c2",
+    "#388c46",
+    "c4",
+    "c6",
+    "c6",
+    "c1",
+    "c2", // an explicit colour falls back to nextSlot(the column index), here 1
+  ]);
+  expect(nextColour("c6", 0)).toBe("c1");
 });

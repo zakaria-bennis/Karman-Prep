@@ -4,6 +4,7 @@ import {
   CURVE_VARS,
   FILL_ALPHA_VARS,
   ROLE_VARS,
+  colourAfter,
   hostThemeCss,
   nextSlot,
   resolveRowColor,
@@ -75,20 +76,33 @@ it("TH-3 every role, curve slot and fill alpha has its own --kc- custom property
   ]);
 });
 
-it("F-A1 new rows cycle red, blue, green, purple, black and repeat, skipping orange", () => {
+it("F-A1 new rows cycle red, blue, Desmos's new-row green, purple, black and repeat, skipping orange", () => {
+  const g = "#388c46";
   expect(Array.from({ length: 12 }, (_, i) => nextSlot(i))).toEqual([
-    "c1",
+    ...["c1", "c2", g, "c4", "c6"],
+    ...["c1", "c2", g, "c4", "c6"],
+    ...["c1", "c2"],
+  ]);
+  expect(resolveRowColor(g, "ivory").hex).toBe("#388c46");
+  expect(resolveRowColor(g, "observatory").hex).toBe("#c773b9");
+  expect(resolveRowColor("c3", "ivory").hex).toBe("#348543"); // the picker's green stays
+});
+
+it("F-A1 the colour after a column or row follows the new-row cycle, so red follows black", () => {
+  const after = (c: string | undefined) => colourAfter(c, 7);
+  expect(["c1", "c2", "#388c46", "c3", "c4", "c5", "c6"].map(after)).toEqual([
     "c2",
-    "c3",
+    "#388c46",
+    "c4",
     "c4",
     "c6",
-    "c1",
-    "c2",
-    "c3",
-    "c4",
     "c6",
     "c1",
-    "c2",
+  ]);
+  expect([after("#123456"), after(undefined), after("#388C46")]).toEqual([
+    nextSlot(7),
+    nextSlot(7),
+    "c4",
   ]);
 });
 

@@ -49,7 +49,10 @@ it("D-12 long-press, right-click or Shift+F10 opens the style menu with points, 
   expect(within(dialog).getAllByRole("radio", { name: /^Colour \d$/ })).toHaveLength(6);
   fireEvent.click(within(dialog).getByRole("radio", { name: "Cross" }));
   expect(column(kit).pointStyle).toBe("cross");
+  // F-A1: the swatches follow Desmos's picker order, orange (c5) before purple (c4).
   fireEvent.click(within(dialog).getByRole("radio", { name: "Colour 4" }));
+  expect(column(kit).color).toBe("c5");
+  fireEvent.click(within(dialog).getByRole("radio", { name: "Colour 5" }));
   expect(column(kit).color).toBe("c4");
   act(() => kit.pressEscape());
   expect(menu()).toBeNull();

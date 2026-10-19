@@ -4,7 +4,7 @@
 // (A11Y-3, 09 Decisions "Textbox naming survives renumbering") and described by the row's T-5
 // speech text (A11Y-4), its value in a box (R-5, RowValue), its error as a warning marker that
 // replaces the tab, with the message in its tooltip and aria-invalid on the textbox (R-2,
-// ErrorMarker) and the complex-mode hint (FN-16, OI-4), the TH-11 colour note, and the Delete control. The
+// ErrorMarker) and the complex-mode hint (FN-16, OI-4), and the Delete control. The
 // field's inputmode follows the on-screen keypad (T-11). Enter, the arrow edges, Backspace or
 // Delete in an empty row and the Delete control go through row-actions (R-3, R-9); a typed edit
 // past the T-13 limit is refused, restored and announced. AN-5: the row carries its presence

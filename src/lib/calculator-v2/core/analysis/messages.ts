@@ -108,17 +108,21 @@ export function rowErrorMessage(code: RowErrorCode, names: string[]): string {
 }
 
 /**
- * Desmos's arity wording for a built-in, from the expected count text `k` ("1", "2", "1 or 2")
- * and the count given: "requires only k argument(s)" when too many were given, "requires k
- * argument(s)" otherwise, then an example call with the nearest accepted count, `x` for one
- * argument and `1, 2, …` for more ("floor(x)", "nCr(1, 2)").
+ * Desmos's arity wording for a built-in (captured 2026-10-19), from the expected count text `k`
+ * ("1", "2", "1 or 2") and the count given. A function accepting one argument "requires an
+ * argument" when given none (`round()`, `arctan()`), and one taking at most one "requires only 1
+ * argument" when given more, each with the example `name(x)`; otherwise only the largest accepted
+ * count is named, "requires {max} arguments", too many or too few, with the example
+ * `name(1, …, max)` ("mod(1, 2)", "arctan(1, 2)"). `log` reads as a one-argument function, since
+ * Desmos writes its base only as a subscript.
  */
 function builtinArityMessage(name: string, k: string, given: number): string {
-  const counts = k.split(/, | or /).map(Number);
-  const tooMany = given > Math.max(...counts);
-  const example = tooMany ? Math.max(...counts) : (counts.find((c) => c >= given) ?? counts[0]);
-  const args =
-    example === 1 ? "x" : Array.from({ length: example }, (_, i) => String(i + 1)).join(", ");
-  const noun = k === "1" ? "argument" : "arguments";
-  return `Function '${name}' requires ${tooMany ? "only " : ""}${k} ${noun}. For example, try typing: ${name}(${args}).`;
+  const counts = name === "log" ? [1] : k.split(/, | or /).map(Number);
+  const max = Math.max(...counts);
+  const say = (needs: string, args: string) =>
+    `Function '${name}' requires ${needs}. For example, try typing: ${name}(${args}).`;
+  if (given === 0 && counts.includes(1)) return say("an argument", "x");
+  if (max === 1) return say("only 1 argument", "x");
+  const args = Array.from({ length: max }, (_, i) => String(i + 1)).join(", ");
+  return say(`${max} arguments`, args);
 }

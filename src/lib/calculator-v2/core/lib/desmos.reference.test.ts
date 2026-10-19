@@ -5,6 +5,7 @@
 // many captured values it covers, so none is skipped silently.
 import { expect, it } from "vitest";
 import captured from "../../../../../docs/superpowers/plans/2026-10-19-calculator-v2-phase2-desmos/desmos-reference-values.json";
+import { analyzeRows } from "../analysis";
 import { evaluateLatex } from "../eval/compile";
 import type { Value } from "../eval/values";
 import { withinTolerance } from "./tolerance";
@@ -14,7 +15,8 @@ const VALUES: [string, Captured][] = Object.entries(captured.values);
 
 // Ranges whose last step does not land on the bound: Desmos rounds the element count, so
 // [1...3.5] is [1, 2, 3, 4], while v2 (NM-36 as shipped on main) stops at the bound and gives
-// [1, 2, 3]. Not yet matched; listed here so the gap stays visible.
+// [1, 2, 3]. Not yet matched (f-desmos-parity.md, "Not yet matched"; NM-36 follow-up). Each is an
+// expected failure below, so fixing NM-36 fails the test and this set must then be deleted.
 const RANGE_COUNT_GAP: ReadonlySet<string> = new Set([
   "[1...3.5]",
   "[1...3.6]",
@@ -27,7 +29,7 @@ const FAMILIES: { rules: string; pattern: RegExp; count: number }[] = [
   {
     rules: "FN-76 FN-77 FN-78",
     pattern: /^\\operatorname\{(floor|ceil|round|sign|mod|nCr|nPr)\}\(/,
-    count: 22,
+    count: 44,
   },
   { rules: "NM-15 FN-79", pattern: /!$/, count: 8 },
   // PR-34, NM-32, NM-36: list literals, ranges and element-by-element arithmetic, without
@@ -63,12 +65,33 @@ for (const { rules, pattern, count } of FAMILIES) {
   }
 }
 
-it("NM-36 the ranges Desmos counts by rounding are the only captured list values not yet matched", () => {
+for (const latex of RANGE_COUNT_GAP) {
+  it.fails(`NM-36 follow-up: ${latex} does not yet match Desmos's rounded element count`, () => {
+    const desmos = captured.values[latex as keyof typeof captured.values] as number[];
+    const v = evaluateLatex(latex);
+    expect(v.type === "list" ? v.value.map((e) => e.type === "number" && e.value) : v).toEqual(
+      desmos
+    );
+  });
+}
+
+it("NM-36 the ranges Desmos counts by rounding are the only captured list values not checked", () => {
   const lists = VALUES.filter(([latex]) => FAMILIES[2].pattern.test(latex)).map(([l]) => l);
   expect(lists.filter((l) => RANGE_COUNT_GAP.has(l))).toEqual([...RANGE_COUNT_GAP]);
-  for (const latex of RANGE_COUNT_GAP) {
-    const v = evaluateLatex(latex);
-    const desmos = captured.values[latex as keyof typeof captured.values] as number[];
-    expect(v.type === "list" && v.value.length, latex).toBe(desmos.length - 1);
-  }
 });
+
+// RC-20: every captured built-in arity message ("Function '…' requires …") is v2's wording too.
+const ARITY_ERRORS = Object.entries(captured.errors).filter(([, m]) => m.startsWith("Function '"));
+
+it("RC-20 all 12 captured Desmos arity messages are checked", () =>
+  expect(ARITY_ERRORS.length).toBe(12));
+
+for (const [latex, message] of ARITY_ERRORS) {
+  it(`RC-20 ${latex} reads "${message}", as in Desmos`, () => {
+    const analysis = analyzeRows([{ id: "case", latex, hidden: false }], {
+      angleMode: "radians",
+      complex: false,
+    });
+    expect(analysis.rows[0].error?.message).toBe(message);
+  });
+}

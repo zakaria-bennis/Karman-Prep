@@ -8,7 +8,7 @@ import { useContext, useEffect, useRef, useState, type CSSProperties, type JSX }
 import type { StoredColumn } from "@/lib/calculator-v2/core/api/document";
 import type { LineStyle, PointStyle } from "@/lib/calculator-v2/core/api/types";
 import { resolveRowColor } from "@/lib/calculator-v2/theme/roles";
-import { CURVE_SLOTS } from "@/lib/calculator-v2/theme/skins";
+import { PICKER_SLOTS } from "@/lib/calculator-v2/theme/desmos-palette";
 import { PointStyleGlyph } from "../../icons";
 import { EscapeContext } from "../focus/escape-stack";
 import { useSkin } from "../hooks/skin";
@@ -119,7 +119,7 @@ export function ColumnStyleMenu(props: ColumnStyleMenuProps): JSX.Element {
           </fieldset>
           <fieldset className="kc-style-group kc-style-colours">
             <legend>Colour</legend>
-            {CURVE_SLOTS.map((slot, i) => (
+            {PICKER_SLOTS.map((slot, i) => (
               <label
                 key={slot}
                 className="kc-style-swatch"

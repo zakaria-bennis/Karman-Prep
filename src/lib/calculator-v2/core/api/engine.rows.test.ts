@@ -45,12 +45,12 @@ it("API-2 setExpressions upserts several rows as one undo step", () => {
     ["b", "2"],
   ]);
 });
-it("API-2, F-A1 a new row takes the next Desmos colour slot, skipping orange", () => {
+it("API-2, F-A1 a new row takes the next Desmos colour, skipping orange", () => {
   e.setExpressions(["a", "b", "c", "d", "e", "f"].map((id) => ({ id, latex: "x" })));
   expect(e.getExpressions().map((r) => r.color)).toEqual([
     "c1",
     "c2",
-    "c3",
+    "#388c46",
     "c4",
     "c6",
     "c1",

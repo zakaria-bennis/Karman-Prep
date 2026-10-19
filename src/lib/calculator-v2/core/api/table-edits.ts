@@ -3,7 +3,7 @@
 // columns the same length, with trailing all-blank rows trimmed, so the one blank row a table
 // shows (D-5) is never stored. Package-internal.
 
-import { nextSlot } from "../../theme/roles";
+import { colourAfter, nextSlot } from "../../theme/roles";
 import type { AnalysisResult } from "../analysis";
 import { nextTableNames } from "../data/naming";
 import { tableHeaderFor } from "../data/table-from-row";
@@ -93,10 +93,12 @@ export function withHeader(row: StoredRow, column: number, latex: string): Store
   return { ...row, columns: columns.map((c, j) => (j === column ? { ...c, latex } : c)) };
 }
 
-/** The slot after `color` ("c2" after "c1"), or slot `fallback` for an explicit colour. */
+/**
+ * The colour after `color` in F-A1's new-row cycle ("c2" after "c1", red after black), or
+ * `nextSlot(fallback)` for an explicit colour outside the cycle.
+ */
 export function nextColour(color: string | undefined, fallback: number): string {
-  const m = color === undefined ? null : /^c([1-6])$/.exec(color);
-  return nextSlot(m === null ? fallback : Number(m[1])); // nextSlot(n) is slot n + 1
+  return colourAfter(color, fallback);
 }
 
 /** D-8: data row `r` removed from every column. */

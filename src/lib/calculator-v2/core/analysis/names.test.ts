@@ -71,7 +71,7 @@ it("RC-2, RC-7, RC-8, RC-19, RC-20 row errors and the complex hint use the exact
     [
       "arity",
       ["arctan", "1 or 2", "3"],
-      "Function 'arctan' requires only 1 or 2 arguments. For example, try typing: arctan(1, 2).",
+      "Function 'arctan' requires 2 arguments. For example, try typing: arctan(1, 2).",
     ],
     [
       "arity",

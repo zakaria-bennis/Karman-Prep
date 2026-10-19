@@ -74,12 +74,32 @@ export function parseBuiltinCall(state: ParserState, name: CommandToken): Node {
   const open = peek(state);
   if (isSymbol(open, "'")) return fail("unsupported", open.span, `"'" is not supported`);
   if (open.t === "open" && open.ch === "(") {
+    if (base === null && takesFixedArguments(name.name) && takeEmptyList(state)) {
+      // An empty `()` on a fixed-arity built-in is RC-20's arity error, as in Desmos ("Function
+      // 'sin' requires an argument"), not a syntax error.
+      return takePostfix(state, withPower(callNode(name, [], null, previousEnd(state)), power));
+    }
     const args = parseArgumentList(state);
     const call = callNode(name, args, base, previousEnd(state));
     return takePostfix(state, withPower(call, power));
   }
   const arg = parseRunArgument(state);
   return withPower(callNode(name, [arg], base, arg.span.end), power);
+}
+
+/** Whether a built-in takes a fixed number of arguments, none of them optional down to zero. */
+function takesFixedArguments(name: string): boolean {
+  const arity = OPERATOR_NAMES.find((n) => n.name === name)?.arity;
+  return arity !== undefined && arity !== "variadic" && !arity.includes(0);
+}
+
+/** Takes an empty `()` at the cursor and returns true, or leaves the cursor and returns false. */
+function takeEmptyList(state: ParserState): boolean {
+  const close = peek(state, 1);
+  if (close.t !== "close" || close.ch !== ")") return false;
+  take(state);
+  take(state);
+  return true;
 }
 
 /**

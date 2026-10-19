@@ -13,23 +13,27 @@ const PRODUCT_LIMIT = 1000;
 const NAN: Complex = Object.freeze({ re: NaN, im: NaN });
 
 /**
- * FN-77: round(x) is Math.round (halves toward +∞, so round(−2.5) = −2); round(x, n) is
- * Math.round(x·10^n)/10^n with n rounded to a whole number and allowed to be negative
- * (round(1234, −2) = 1200, round(2.5, 1.5) = 2.5). A scaled value already past 2^52 is whole, so
- * x is returned as it is.
+ * FN-77: round(x) is Math.round (halves toward +∞, so round(−2.5) = −2). round(x, n) rounds n to a
+ * whole number (it may be negative: round(1234, −2) = 1200, round(2.5, 1.5) = 2.5) and shifts x by
+ * n decimal places through its decimal text, as Desmos does, so round(1.005, 2) = 1.01 although
+ * 1.005·100 is 100.4999… in binary. As in Desmos, the result is undefined when 10^n or the shifted
+ * value is not finite or 10^n underflows to 0 (round(5, 308), round(5, −400)); a shifted value
+ * already past 2^52 is whole, so x is returned as it is (round(5, 300) = 5).
  */
 export function roundTo(x: number, n = 0): number {
   const digits = Math.round(n);
   if (digits === 0) return Math.round(x) + 0;
-  if (digits > 0) {
-    const scale = 10 ** digits;
-    const scaled = x * scale;
-    if (!(Math.abs(scaled) < 2 ** 52)) return x;
-    return Math.round(scaled) / scale + 0;
-  }
-  const scale = 10 ** -digits;
-  if (!Number.isFinite(scale)) return 0;
-  return Math.round(x / scale) * scale + 0;
+  const scale = 10 ** digits;
+  const scaled = shiftDecimal(x, digits);
+  if (scale === 0 || !Number.isFinite(scale) || !Number.isFinite(scaled)) return NaN;
+  if (Math.abs(scaled) >= 2 ** 52) return x;
+  return shiftDecimal(Math.round(scaled), -digits) + 0;
+}
+
+/** `v`·10^k computed on the decimal text of `v` ("1.005" → "1.005e2" = 100.5), not in binary. */
+function shiftDecimal(v: number, k: number): number {
+  const [mantissa, exponent = "0"] = String(v).split("e");
+  return Number(`${mantissa}e${Number(exponent) + k}`);
 }
 
 /** FN-76: a − b·⌊a/b⌋ through the exact fmod, so the result has the sign of b; mod(a, 0) is undefined. */
@@ -60,9 +64,15 @@ function productApplies(n: number, r: number): boolean {
 /**
  * FN-78: nCr(n, r) = Γ(n+1)/(Γ(r+1)·Γ(n−r+1)), where a pole in the denominator gives 0
  * (nCr(5, −1) = 0, nCr(2, 5) = 0). A whole r ≥ 0 uses the generalised binomial product, which is
- * exact below 2^53 and defined for every n (nCr(−1, 2) = 1).
+ * exact below 2^53 and defined for every n (nCr(−1, 2) = 1). A whole negative n with a whole
+ * negative r takes the symmetric form (nCr(−1, −1) = 1).
  */
 export function nCr(n: number, r: number): number {
+  if (Number.isInteger(n) && n < 0 && Number.isInteger(r) && r < 0) {
+    // Both whole and negative: Γ(n+1) has a pole, so take Desmos's limit through the symmetry
+    // nCr(n, r) = nCr(n, n − r), which is 0 for r > n (nCr(−2, −1) = 0, nCr(−3, −5) = 6).
+    return r > n ? 0 : nCr(n, n - r);
+  }
   if (productApplies(n, r)) {
     const k = Number.isInteger(n) && n >= 0 ? (r > n ? -1 : Math.min(r, n - r)) : r;
     return k < 0 ? 0 : fallingProduct(n, k, true) + 0;

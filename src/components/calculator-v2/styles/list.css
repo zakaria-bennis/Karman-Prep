@@ -120,7 +120,7 @@
 }
 
 /* L-3, L-16: the focused or active row fills its whole gutter in the focused-row colour; the
-   colour tab keeps a list-coloured disc so the row colour stays readable on it (TH-11). */
+   colour tab keeps a list-coloured disc so the row colour stays readable on it. */
 .kc-row:is([data-focused="true"], [data-active="true"]) .kc-row-gutter {
   border-radius: 2px;
   background: var(--kc-focus-bar);
@@ -165,11 +165,6 @@
   flex: 1 1 auto;
   min-width: 0;
   max-width: 100%;
-}
-
-.kc-row-note {
-  margin: 0;
-  color: var(--kc-text-secondary);
 }
 
 /* R-5: the value sits below the math, right-aligned: a muted = and the value in a small raised box;

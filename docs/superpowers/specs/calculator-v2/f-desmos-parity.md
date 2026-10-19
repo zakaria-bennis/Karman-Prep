@@ -25,6 +25,7 @@ conflict.
 4. **Shading.** Inequality shading is as close to Desmos's strength (about 40 percent of the
    curve colour) as the D9 rule allows: raise the TH-8 cap until any curve would drop below 4.5:1
    (7:1 in reverse contrast) over the shading in a skin, per skin, never beyond Desmos's strength.
+   _Superseded 2026-10-19 by amendment F-A1 below: every fill is 40% with no cap._
 5. **Colours.** Curves use Karman's own palette with Desmos's feel: hue order red, blue, green,
    purple, then a neutral (near-black on light skins, near-white on dark skins); mid-dark and
    moderately saturated, all curves within a narrow lightness band, never neon. Exact shades are
@@ -49,35 +50,55 @@ TH-7, TH-8, TH-17, TH-19, G-25, L-3, L-16. Docking: L-4. Transfer to Calculator,
 and coordinate pairs: the Phase 1 TR- IDs plus TR-22 to TR-25, TR-34, TR-39, TR-60, TR-61, TR-63,
 D-17, D-18.
 
-### Amendment F-A1 (owner, 2026-10-18): Desmos colours and shading, no curve contrast caps
+### Amendment F-A1 (owner, 2026-10-19): Desmos colours and shading, no curve contrast caps
 
 This replaces decisions 4 and 5. It also drops the D9 contrast rules for curves and shading
-(TH-6, TH-7, TH-8 and TH-11), whatever decision 2 says. The 10.3 targets for text, axes,
-gridlines, focus and keys are unchanged.
+(TH-6, TH-7, TH-8 and TH-11), whatever decision 2 says, and changes TH-10's new-row order, G-17's
+shading clause and FN-74's TH-11 lift. Each of those rules carries an "Amended 2026-10-19 (F-A1)"
+note. The 10.3 targets for text, axes, gridlines, focus and keys are unchanged.
 
 F-A1 supersedes the 2026-10-18 resolution of decision 5 (keep TH-7's colour-blind guarantee over
-the Desmos hue order, recorded in `05-visual.md`) and the per-skin TH-8 shading cap that shipped
-with the parity visual retune: the owner's later explicit instruction (2026-10-19) is to match
-Desmos's colours exactly, so the colour-blind spacing and the shading cap are both gone.
+the Desmos hue order, recorded in `05-visual.md` by commit 89ac84f) and the per-skin TH-8 shading
+cap that shipped with the parity visual retune: the owner's later explicit instruction
+(2026-10-19) is to match Desmos's colours exactly, so the colour-blind spacing and the shading cap
+are both gone.
 
-- **Curves.** The six slots are Desmos's colours in its picker order:
+- **Curves.** The six slots hold Desmos's colour-picker colours. Slot numbers are stored in saved
+  states, so they never change:
   - c1 red `#c74440`
   - c2 blue `#2d70b3`
-  - c3 green `#348543`
+  - c3 green `#348543` (the picker's green)
   - c4 purple `#6042a6`
   - c5 orange `#fa7e19`
   - c6 black `#000000`
-- **New rows** cycle c1, c2, c3, c4, c6 and repeat, skipping orange, as Desmos's next-colour rule
-  does.
+- **Picker order.** Desmos's colour picker shows red, blue, green, orange, purple, black, so the
+  swatches are drawn in the order c1, c2, c3, c5, c4, c6.
+- **New rows** cycle red, blue, green, purple, black and repeat, skipping orange, as Desmos's
+  next-colour rule does: c1, c2, `#388c46`, c4, c6. Desmos gives new rows a slightly different
+  green (`#388c46`) from its picker green (`#348543`), so the new-row green is stored as an explicit
+  colour. A new table column or regression column takes the colour after the previous one in this
+  cycle, so red follows black (picker green counts as the new-row green, and orange as purple).
 - **Dark skins** show every curve colour inverted, as Desmos's Reverse contrast (`invert(100%)`)
-  does. For example, black becomes white and red becomes `#38bbbf`.
+  does. For example, black becomes white, red becomes `#38bbbf` and the new-row green `#c773b9`.
 - **Shading.** Every inequality fill is 40% of its curve colour. Overlapping fills stack in row
   order with no cap.
 - **Explicit colours.** An explicit `#rrggbb` row colour is used as given, inverted on dark skins,
   and is never adjusted for contrast. The TH-11 "Colour adjusted for contrast" note is removed.
 - **Source.** The values live in `src/lib/calculator-v2/theme/desmos-palette.ts`.
-- **Not yet matched.** Desmos keeps a running colour counter, so a new row continues the cycle
-  wherever the last one left off. V2 still picks the slot from the row's position.
+
+### Not yet matched
+
+These Desmos behaviours are known and recorded but not yet built:
+
+- **Colour counter.** Desmos keeps a running colour counter, so a new row continues the cycle
+  wherever the last one left off. V2 still picks the colour from the row's position.
+- **Range length (NM-36).** Desmos rounds a range's element count, n = round((c − a)/s) + 1, so
+  `[1...3.5]` is `[1, 2, 3, 4]` and `[1,3,...,8]` is `[1, 3, 5, 7, 9]`. V2 floors it and stops at
+  the bound. The captured cases are expected failures in `desmos.reference.test.ts`
+  (`RANGE_COUNT_GAP`); fixing NM-36 makes them pass, and that list must then be deleted.
+- **`log` with two arguments.** In Desmos `log(1,2)` is an arity error ("requires only 1
+  argument"), because a base is written only as a subscript. V2 parses `\log_{b}(x)` and
+  `\log(x, b)` to the same call, so it still evaluates `log(1,2)`.
 
 ## The + (Add Item) menu
 

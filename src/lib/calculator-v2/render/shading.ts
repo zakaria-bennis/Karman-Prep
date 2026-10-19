@@ -1,6 +1,6 @@
-// Inequality shading for the graph (G-5, G-17, TH-8). Region spans become opaque device-px
-// rectangles, each painted the compositeShading colour of every region covering it, so overlaps
-// are never alpha-stacked and stay within TH-8's cap. alignRegionSpans keeps a region's spans under
+// Inequality shading for the graph (G-5, G-17, F-A1). Region spans become opaque device-px
+// rectangles, each painted the compositeShading colour of every region covering it: the 40% fills
+// stacked over the paper with no cap, as Desmos shows overlaps. alignRegionSpans keeps a region's spans under
 // the pointer through a pan while fresh geometry is pending. Pure: no DOM.
 
 import type { RegionGeometry } from "../plot/geometry";
