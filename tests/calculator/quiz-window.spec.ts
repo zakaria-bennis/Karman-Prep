@@ -271,6 +271,9 @@ test("KB-6, AR-18 calculator keys never reach window or document listeners; Esca
   await expect(frame(page)).toBeVisible();
   expect(await heard()).toEqual([]);
   await expect(page.getByText(/^Question 1:/)).toBeVisible();
+  await page.keyboard.press("Escape"); // leaves the row, as the reference's Escape does
+  await expect(frame(page)).toBeVisible();
+  expect(await heard()).toEqual([]);
   await page.keyboard.press("Escape");
   await expect(frame(page)).toBeHidden();
   await page.locator("body").press("x");

@@ -6,13 +6,13 @@
 // removes the table through row-actions (D-16). A cell or header that cannot evaluate shows the
 // warning marker at its left, with the message in a tooltip, and its field is aria-invalid (D-6, D-10).
 
-import { Maximize, Plus, TrendingUp, X } from "lucide-react";
-import { RemoveGlyph } from "../../icons/list";
+import { Maximize, Plus, TrendingUp } from "lucide-react";
 import { useContext, useLayoutEffect, useRef, useState, type FocusEvent, type JSX } from "react";
 import type { RowView } from "@/lib/calculator/core/api/engine";
 import { MAX_TABLE_COLUMNS, MAX_TABLE_ROWS } from "@/lib/calculator/core/api/document";
 import { fitPoints } from "@/lib/calculator/core/data/fit-view";
 import { insertRegressionBelow } from "@/lib/calculator/core/api/row-commands";
+import { RemoveGlyph } from "../../icons/list";
 import { useAnnouncer } from "../a11y/announcer";
 import { cellKey, FocusContext } from "../focus/focus-controller";
 import { useEngine, useEngineSnapshot } from "../hooks/use-engine";
@@ -191,7 +191,7 @@ export function TableItem(props: TableItemProps): JSX.Element {
                       aria-label={`Delete table ${number} row ${r + 1}`}
                       onClick={() => deleteTableRowByControl(keyContext, r)}
                     >
-                      <X aria-hidden="true" focusable="false" size={14} />
+                      <RemoveGlyph size={12} />
                     </button>
                   </div>
                 )}

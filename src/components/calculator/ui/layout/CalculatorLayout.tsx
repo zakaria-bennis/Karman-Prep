@@ -11,11 +11,13 @@ import { GraphPanel } from "../graph/GraphPanel";
 import { Keypad } from "../keypad/Keypad";
 import { ExpressionPanel } from "../list/ExpressionPanel";
 import { SettingsPopover } from "../settings/SettingsPopover";
+import { ListResizer, useListWidth } from "./ListResizer";
 import { revealRow } from "./reveal-row";
 
 export interface CalculatorLayoutProps {
   layout: "desktop" | "stacked";
   containerWidth: number;
+  containerHeight?: number;
   pointer: "fine" | "coarse";
   collapsed: boolean;
   keypadOpen: boolean;
@@ -47,6 +49,9 @@ export function CalculatorLayout(props: CalculatorLayoutProps): JSX.Element {
 
   // K-12: the keys prevent mousedown (K-10); the region extends that to its other controls, such
   // as Show keypad. A touch tap's compatibility mousedown takes the same path.
+  const listWidth = useListWidth(props.containerWidth);
+  const resizable = props.layout === "desktop" && !props.collapsed;
+
   const rowFocused = () => props.host.shadowRoot!.activeElement?.closest("[data-row-id]") != null;
 
   return (
@@ -58,6 +63,14 @@ export function CalculatorLayout(props: CalculatorLayoutProps): JSX.Element {
       data-kc-layout={props.layout}
       data-collapsed={String(props.collapsed)}
       data-keypad={String(props.keypadOpen)}
+      // RS (responsive.md): a touch calculator under 450 by 495 px drops the zoom buttons.
+      data-compact-touch={
+        props.pointer === "coarse" &&
+        (props.containerWidth < 450 || (props.containerHeight ?? Infinity) < 495)
+          ? "true"
+          : undefined
+      }
+      style={props.layout === "desktop" ? listWidth.style : undefined}
     >
       <div
         ref={listRegion}
@@ -74,6 +87,13 @@ export function CalculatorLayout(props: CalculatorLayoutProps): JSX.Element {
           onTouchFocusRow={props.onTouchFocusRow}
         />
       </div>
+      {resizable && (
+        <ListResizer
+          width={listWidth.width}
+          containerWidth={props.containerWidth}
+          onResize={listWidth.setWidth}
+        />
+      )}
       <div className="kc-graph-region">
         <GraphPanel
           host={props.host}

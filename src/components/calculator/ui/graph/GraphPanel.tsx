@@ -5,7 +5,7 @@
 // the centre; Home shows only off the default view and fades (AN-8); the surface takes the graph
 // keys (KB-8) and the panel drag, pinch and wheel (useGraphInput).
 
-import { House, Minus, Plus, Settings } from "lucide-react";
+import { House } from "lucide-react";
 import {
   useContext,
   useEffect,
@@ -29,6 +29,7 @@ import { NAME_DEBOUNCE_MS, NAME_MAX_WAIT_MS } from "@/lib/calculator/render/cons
 import { pickGrid } from "@/lib/calculator/render/grid-plan";
 import { GraphRenderer, readRenderTheme } from "@/lib/calculator/render/renderer";
 import type { SkinId } from "@/lib/calculator/theme/skins";
+import { WrenchGlyph, ZoomGlyph } from "../../icons/list";
 import { useSkin } from "../hooks/skin";
 import { useEngine, useEngineSnapshot } from "../hooks/use-engine";
 import { countPlots, graphAccessibleName } from "./accessible-name";
@@ -168,7 +169,7 @@ function HomeButton({ phase, homeRef, surface, onActivate }: HomeButtonProps): J
       aria-hidden={leaving ? "true" : undefined}
       onClick={onActivate}
     >
-      <House size={18} aria-hidden="true" />
+      <House size={16} aria-hidden="true" />
     </button>
   );
 }
@@ -339,24 +340,27 @@ export function GraphPanel(props: GraphPanelProps): JSX.Element {
           aria-expanded={settingsOpen}
           onClick={(e) => onOpenSettings(e.currentTarget)}
         >
-          <Settings size={18} aria-hidden="true" />
+          <WrenchGlyph />
         </button>
-        <button
-          type="button"
-          aria-label={GRAPH_CONTROL_LABELS.zoomIn}
-          title={GRAPH_CONTROL_LABELS.zoomIn}
-          onClick={() => zoom(ZOOM_BUTTON_FACTOR)}
-        >
-          <Plus size={18} aria-hidden="true" />
-        </button>
-        <button
-          type="button"
-          aria-label={GRAPH_CONTROL_LABELS.zoomOut}
-          title={GRAPH_CONTROL_LABELS.zoomOut}
-          onClick={() => zoom(1 / ZOOM_BUTTON_FACTOR)}
-        >
-          <Minus size={18} aria-hidden="true" />
-        </button>
+        {/* GP-41: one pill holding Zoom in and Zoom out, split by a 1 px rule. */}
+        <div className="kc-zoom-group" role="group" aria-label="Zoom">
+          <button
+            type="button"
+            aria-label={GRAPH_CONTROL_LABELS.zoomIn}
+            title={GRAPH_CONTROL_LABELS.zoomIn}
+            onClick={() => zoom(ZOOM_BUTTON_FACTOR)}
+          >
+            <ZoomGlyph />
+          </button>
+          <button
+            type="button"
+            aria-label={GRAPH_CONTROL_LABELS.zoomOut}
+            title={GRAPH_CONTROL_LABELS.zoomOut}
+            onClick={() => zoom(1 / ZOOM_BUTTON_FACTOR)}
+          >
+            <ZoomGlyph out />
+          </button>
+        </div>
         {phase !== "absent" && (
           <HomeButton phase={phase} homeRef={homeRef} surface={surface} onActivate={goHome} />
         )}

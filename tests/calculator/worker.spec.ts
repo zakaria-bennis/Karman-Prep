@@ -93,7 +93,7 @@ test("AR-43 each calculator runs one module worker named karman-calculator that 
       }
     })
   ).toBe("module");
-  await expect(page.getByTestId("probe")).toHaveText("ivory 1 worker");
+  await expect(page.getByTestId("probe")).toHaveText("classic 1 worker"); // the default skin (TH-5);
   await page.evaluate(() => {
     const e = globalThis.__calculatorHarness!.engine;
     e.setExpression({ id: "p", latex: "y=x^{2}" });

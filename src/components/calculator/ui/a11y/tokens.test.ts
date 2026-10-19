@@ -13,6 +13,7 @@ const ZERO = {
   "--kc-dur-250": "0ms",
   "--kc-dur-300": "0ms",
   "--kc-dur-800": "0ms",
+  "--kc-dur-row-exit": "0ms",
 };
 
 it("tokens.css declares the reference calculator's type, motion and geometry tokens on :host", () => {

@@ -217,6 +217,7 @@ test("TR-68 closing returns focus to the Transfer control that opened the calcul
   await control(page, "y>2x+1").focus();
   await page.keyboard.press("Enter");
   await expect(row(page, 1)).toBeFocused();
+  await page.keyboard.press("Escape"); // leaves the row (the reference's Escape)
   await page.keyboard.press("Escape");
   await expect(frame(page)).toBeHidden();
   await expect(control(page, "y>2x+1")).toBeFocused();

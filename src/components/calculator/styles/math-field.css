@@ -1,25 +1,25 @@
-/* Role colours and the math font for the vendored MathQuill rules (TH-3, OI-34). The math is set in
-   the Times stack of --kc-font-math with italic variables (VIS-TYPOGRAPHY-ICONS-14, -15), selection
-   is a light blue behind ink glyphs (VIS-18) and empty slots are a 20% ink box (TY-29). */
-.mq-math-mode,
-.mq-math-mode .mq-editable-field,
-.mq-math-mode .mq-text-mode,
-.mq-math-mode .mq-nonSymbola,
-.mq-math-mode .mq-operator-name,
-.mq-math-mode .mq-font {
-  font-family: var(--kc-font-math);
-}
-
-.mq-math-mode var {
-  font-family: var(--kc-font-math);
-  font-style: italic;
-}
-
+/* Role colours for the vendored MathQuill rules (TH-3, OI-34). The vendored sheet already sets the
+   math in the --kc-font-math Times stack with italic variables (patch 0008; VIS-TYPOGRAPHY-ICONS-14,
+   -15); selection is a light blue behind ink glyphs (VIS-18) and empty slots are a 20% ink box
+   (TY-29). */
 /* VIS-TYPOGRAPHY-ICONS-19: "=", "+", "<" and the other binary operators take a 23.8 px box at
-   20.24 px; Times draws them narrower than the reference face, so the side padding makes up the
-   difference. */
+   20.24 px. They are set in the operator stack, whose first face (macOS's STIX) draws them at the
+   reference's size: "=" 12 by 6, "+" and "<" 12 by 12. */
 .mq-math-mode .mq-binary-operator {
-  padding: 0 0.306em;
+  padding: 0 0.246em;
+  font-family: var(--kc-font-math-operator);
+  line-height: 0.9;
+}
+
+/* VIS-TYPOGRAPHY-ICONS-20: an exponent clears its base by a pixel and rises one above the vendored
+   position, as the reference's does. */
+.mq-math-mode .mq-supsub.mq-sup-only {
+  vertical-align: 0.512em;
+}
+
+.mq-math-mode .mq-supsub.mq-sup-only > .mq-sup {
+  position: relative;
+  top: -1px;
 }
 
 .mq-editable-field .mq-cursor {

@@ -1,6 +1,6 @@
 // Theme roles of the calculator: the custom property maps,
 // the TH-5 skin fallback, the `:host` theme declarations, and the row colours (F-A1).
-import { DESMOS_FILL_ALPHA, NEW_ROW_COLOURS, invertHex } from "./desmos-palette";
+import { DESMOS_FILL_ALPHA, NEW_ROW_COLOURS, NEW_ROW_GREEN, invertHex } from "./desmos-palette";
 import { SKIN_COLORS } from "./skin-colors.generated";
 import { COLOR_ROLES, CURVE_SLOTS, SKIN_IDS, type CurveSlot, type SkinId } from "./skins";
 import { CURVE_VARS, FILL_ALPHA_VARS, ROLE_VARS } from "./vars";
@@ -67,6 +67,15 @@ export function resolveRowColor(color: string, skin: SkinId): RowColor {
   if (!HEX_COLOR.test(color)) return resolveRowColor(CURVE_SLOTS[0], skin);
   const hex = color.toLowerCase();
   return { hex: dark ? invertHex(hex) : hex, fillAlpha: DESMOS_FILL_ALPHA };
+}
+
+/**
+ * EL-25: the colour a row's list icon shows. The reference stores new-row green as #388c46 but
+ * paints the icon in the picker's green (c3, #348543); every other colour is resolveRowColor's.
+ */
+export function rowIconHex(color: string, skin: SkinId): string {
+  const key = color.toLowerCase() === NEW_ROW_GREEN ? "c3" : color;
+  return resolveRowColor(key, skin).hex;
 }
 
 function isCurveSlot(id: string): id is CurveSlot {

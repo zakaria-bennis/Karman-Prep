@@ -89,6 +89,7 @@ const MESSAGES: Readonly<Record<RowErrorCode, string>> = {
   "list-too-long": "Lists may not have more than 10,000 elements.",
   "range-step": "A range can't step by 0. Make its first two values different.",
   "list-mixed": "A list can't mix numbers and points.",
+  "too-many-variables": "Too many variables. Try defining '{n}'.", // tooManyVariables gives the full text
 };
 /** RC-2, Phase 1: `unsupported` naming r or θ, whose polar graphs ship in Phase 2. */
 const POLAR_UNSUPPORTED = "{n} is for polar graphs, which aren't available yet.";
@@ -107,6 +108,7 @@ const DEFERRED_NAMES: ReadonlySet<string> = new Set(Object.values(DEFERRED_FEATU
 export function rowErrorMessage(code: RowErrorCode, names: string[]): string {
   const [n = "", k = ""] = names;
   if (code === "arity") return arityMessage(n, k, Number(names[2]));
+  if (code === "too-many-variables") return tooManyVariables(names);
   // PR-24: a trig, hyperbolic, ln or log name on its own reads as Desmos's empty call.
   if (code === "function-parentheses" && PREFIX_FORM_NAMES.has(n)) {
     return arityMessage(n, "1", 0);
@@ -135,4 +137,15 @@ function arityMessage(name: string, k: string, given: number): string {
   if (max === 1) return say("only 1 argument", "x");
   const args = Array.from({ length: max }, (_, i) => String(i + 1)).join(", ");
   return say(`${max} arguments`, args);
+}
+
+/**
+ * RC-10, EL-35: the warning an add-slider row shows, naming its undefined names in order:
+ * "Too many variables. Try defining 'k'." and "Try defining 'm' or 'b'." (Desmos, 2026-10-19).
+ */
+function tooManyVariables(names: string[]): string {
+  if (names.length === 0) return "Too many variables, I don't know what to do with this.";
+  if (names.length === 1) return `Too many variables. Try defining '${names[0]}'.`;
+  const last = names[names.length - 1];
+  return `Too many variables. Try defining '${names.slice(0, -1).join("', '")}' or '${last}'.`;
 }

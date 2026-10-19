@@ -101,7 +101,16 @@ test("POI-9 zooming keeps the selection, closes labels and recomputes dots", asy
   await selectRow1(page);
   await clickAt(page, isMobile, Math.SQRT2, 0);
   await expect(labels(page)).toHaveCount(1);
-  await page.locator("#calc").getByRole("button", { name: "Zoom in" }).click();
+  if (isMobile) {
+    // RS: a phone-sized touch calculator has no zoom buttons, so zoom in by the same factor
+    await page.evaluate(() => {
+      const e = globalThis.__calculatorHarness!.engine;
+      const v = e.getSnapshot().viewport;
+      const [cx, cy] = [(v.left + v.right) / 2, (v.bottom + v.top) / 2];
+      const [hw, hh] = [(v.right - v.left) / 4, (v.top - v.bottom) / 4];
+      e.setMathBounds({ left: cx - hw, right: cx + hw, bottom: cy - hh, top: cy + hh });
+    });
+  } else await page.locator("#calc").getByRole("button", { name: "Zoom in" }).click();
   await expect(labels(page)).toHaveCount(0);
   await page.waitForFunction(() => {
     const s = globalThis.__calculatorHarness!.engine.getSnapshot();

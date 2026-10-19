@@ -23,7 +23,7 @@ import { rowErrorMessage } from "./messages";
 import { collectNameUses } from "./names";
 import { resolveDefinitions } from "./resolve";
 
-export { rowErrorMessage } from "./messages";
+export { displayName, rowErrorMessage } from "./messages";
 
 export interface AnalysisSettings {
   angleMode: "radians" | "degrees";

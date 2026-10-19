@@ -1,10 +1,55 @@
 // The contrast suite: measures the generated table against the 10.3 role targets (TH-1).
 // Curves and shading follow Desmos (F-A1), so TH-7, TH-8 and TH-11 are no longer checked here.
-// The hand-set classic skin copies the reference calculator's measured colours and is exempt.
+// The hand-set classic skin copies the reference calculator's measured colours. It is measured
+// too: every pair meets its target except the ones CLASSIC_REFERENCE_EXCEPTIONS lists, each pinned
+// to the reference's measured ratio, so a change to either side shows up here.
 import { expect, it } from "vitest";
 import { compositeOver, compositeShading, contrastRatio } from "./contrast";
 import { SKIN_COLORS } from "./skin-colors.generated";
 import { CURVE_SLOTS, SITE_SKIN_IDS, type SkinId, type SkinPalette } from "./skins";
+
+/**
+ * The classic skin's pairs that miss Karman's 10.3 targets because the reference calculator's own
+ * colours do, with the measured ratio. PENDING FOUNDER DECISION (AAA targets versus the reference
+ * look): until then the classic skin keeps the reference values and these stay listed.
+ */
+const CLASSIC_REFERENCE_EXCEPTIONS: Readonly<Record<string, number>> = {
+  "textSecondary on paper": 5.74,
+  "textSecondary on list": 5.74,
+  "textSecondary on chrome": 5.04,
+  "textSecondary on key": 5.74,
+  "textSecondary on keyOperator": 4.9,
+  "error on list": 4.5,
+  "warning on chrome": 2.82,
+  "gridMajor on paper": 2.85,
+  "gridMinor on paper": 1.32,
+  "focusBarLabel on focusBar": 4.6,
+  "accentLabel on accent": 4.6,
+  "boundary on list": 1.92,
+  "boundary on chrome": 1.68,
+  "boundary on key": 1.92,
+};
+
+it("TH-1 the classic skin meets every 10.3 target except its listed reference values", () => {
+  const { roles } = pal("classic");
+  const pairs = ROLE_TARGETS.flatMap((t) => t.on.map((bg) => ({ ...t, bg })));
+  for (const fg of ["text", "textSecondary"] as const)
+    pairs.push({ fg, bg: "chrome", on: [], min: 7 });
+  for (const fg of ["boundary", "focusRing"] as const)
+    pairs.push({ fg, bg: "chrome", on: [], min: 3 });
+  pairs.push({ fg: "accentLabel", bg: "accent", on: [], min: 7 });
+  for (const t of pairs) {
+    const name = `${t.fg} on ${t.bg}`;
+    const ratio = contrastRatio(roles[t.fg], roles[t.bg]);
+    const pinned = CLASSIC_REFERENCE_EXCEPTIONS[name];
+    if (pinned !== undefined) {
+      expect(ratio, `classic: ${name} (reference value)`).toBeCloseTo(pinned, 2);
+      continue;
+    }
+    expect(ratio, `classic: ${name}`).toBeGreaterThanOrEqual(t.min);
+    if (t.max !== undefined) expect(ratio, `classic: ${name}`).toBeLessThanOrEqual(t.max);
+  }
+});
 import { ROLE_TARGETS } from "./targets";
 
 function pal(s: SkinId): SkinPalette {

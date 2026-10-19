@@ -8,13 +8,13 @@ import type { CalculatorEngine } from "@/lib/calculator/core/api/engine";
 import { createTableFromRow } from "@/lib/calculator/core/api/row-commands";
 import { tableHeaderFor } from "@/lib/calculator/core/data/table-from-row";
 import { functionDefinitionHead } from "@/lib/calculator/core/latex";
-import { useAnnouncer } from "../a11y/announcer";
+import { useAnnouncer, type Announcer } from "../a11y/announcer";
 import { EscapeContext } from "../focus/escape-stack";
-import { cellKey, FocusContext } from "../focus/focus-controller";
+import { cellKey, FocusContext, type FocusController } from "../focus/focus-controller";
 import { useEngine } from "../hooks/use-engine";
 import { usePopupDismiss } from "./menu-trigger";
 import { performUndo } from "./row-actions";
-import { ToastContext } from "./Toast";
+import { ToastContext, type Toaster } from "./Toast";
 
 export const TABLE_CREATED = "Table created.";
 
@@ -25,6 +25,23 @@ export function offersCreateTable(engine: CalculatorEngine, rowId: string): bool
   if (row === undefined || row.type === "table") return false;
   const functions = new Set(rows.flatMap((r) => functionDefinitionHead(r.latex)?.name ?? []));
   return tableHeaderFor(row.latex, functions) !== null;
+}
+
+/** D-13: Create table below row `rowId`, its first x cell selected, with the undoable toast. */
+export function createTableBelow(
+  engine: CalculatorEngine,
+  focus: FocusController,
+  announcer: Announcer | null,
+  toaster: Toaster | null,
+  rowId: string
+): void {
+  const made = createTableFromRow(engine, rowId);
+  if (made === null || typeof made === "string") return;
+  focus.focusRow(cellKey(made.id, 0, 0), "all");
+  toaster?.show({
+    text: TABLE_CREATED,
+    action: { label: "Undo", run: () => performUndo(engine, announcer) },
+  });
 }
 
 export interface RowMenuProps {
@@ -47,13 +64,7 @@ export function RowMenu({ rowId, number, trigger, onClose }: RowMenuProps): JSX.
 
   const createTable = () => {
     onClose(false);
-    const made = createTableFromRow(engine, rowId);
-    if (made === null || typeof made === "string") return;
-    focus.focusRow(cellKey(made.id, 0, 0), "all");
-    toaster?.show({
-      text: TABLE_CREATED,
-      action: { label: "Undo", run: () => performUndo(engine, announcer) },
-    });
+    createTableBelow(engine, focus, announcer, toaster, rowId);
   };
 
   return (

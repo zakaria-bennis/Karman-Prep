@@ -1,14 +1,13 @@
 // The expression list panel: a region
 // named "Expression list" whose list body holds the "List tools" toolbar (L-1, L-2: Add item, the
-// stacked Keypad toggle, Undo, Redo, Edit list, Collapse list), the Edit list bar (KB-5: Clear all
-// expressions, Done) and the "Expressions" list, one numbered row per engine row. Undo and Redo
+// stacked Keypad toggle, Undo, Redo, Edit list, Collapse list; in Edit list mode, KB-5 and EL-44's
+// Delete All, Undo, Redo and Done) and the "Expressions" list, one numbered row per engine row. Undo and Redo
 // stay in the Tab order at the ends of the stack, aria-disabled (KB-2, KB-13). While mounted it
 // announces row values and errors through createRowAnnouncements (A11Y-2). Rows enter and exit
 // through useRowPresence and only rows that are not exiting are numbered (AN-5). Collapse list and
-// Expand list run AN-3's lifecycle in data-list-state and flip settings.expressionsCollapsed only
-// when the transition ends, so the layout resizes the graph once.
+// Expand list run AN-3's lifecycle in data-list-state and flip settings.expressionsCollapsed on the
+// first frame, so the layout resizes the graph once and the panel slides over it (EL-49).
 
-import { Keyboard } from "lucide-react";
 import {
   useContext,
   useEffect,
@@ -17,12 +16,13 @@ import {
   useState,
   type CSSProperties,
   type JSX,
+  type KeyboardEvent,
   type MouseEvent,
   type ReactNode,
   type Ref,
 } from "react";
 import type { CalculatorEngine } from "@/lib/calculator/core/api/engine";
-import { DoubleChevronGlyph, EditListGlyph, UndoGlyph } from "../../icons/list";
+import { DoubleChevronGlyph, EditListGlyph, KeyboardGlyph, UndoGlyph } from "../../icons/list";
 import { useAnnouncer } from "../a11y/announcer";
 import { FocusContext } from "../focus/focus-controller";
 import { useEngine, useEngineSnapshot } from "../hooks/use-engine";
@@ -34,6 +34,12 @@ import { clearAllRows, insertRowBelow, performRedo, performUndo } from "./row-ac
 import { useRowPresence } from "./row-presence";
 import { TableItem } from "./TableItem";
 import { ToastHost } from "./Toast";
+import { Tooltip, useTooltip } from "./Tooltip";
+
+/** L-3: marks keyboard use on the panel; Shift alone, as part of a chord, does not count. */
+function markInput(e: KeyboardEvent<HTMLElement>): void {
+  if (e.key !== "Shift") e.currentTarget.dataset.input = "keyboard";
+}
 
 type ListState = "expanded" | "collapsing" | "collapsed" | "expanding";
 
@@ -53,6 +59,7 @@ export interface ExpressionPanelProps {
 
 interface ToolButtonProps {
   label: string;
+  tooltip: string; // PM-29: the reference's hover text
   icon: ReactNode;
   pressed?: boolean; // a toggle: aria-pressed
   disabled?: boolean; // aria-disabled; the button stays focusable (KB-13)
@@ -62,6 +69,7 @@ interface ToolButtonProps {
 
 /** One toolbar button, named by its aria-label and drawn with one of our list glyphs. */
 function ToolButton(props: ToolButtonProps): JSX.Element {
+  const tip = useTooltip(props.disabled === true);
   return (
     <button
       type="button"
@@ -71,18 +79,22 @@ function ToolButton(props: ToolButtonProps): JSX.Element {
       aria-pressed={props.pressed}
       aria-disabled={props.disabled}
       onClick={props.onClick}
+      {...tip.handlers}
     >
       {props.icon}
+      {tip.open && <Tooltip text={props.tooltip} />}
     </button>
   );
 }
 
 /**
- * AN-3's Collapse list and Expand list lifecycle. Each transition lasts the list body's own
- * transition-duration, read in a layout effect once its state is committed (0 finishes in that
- * layout effect, any other value sets one timeout), and only then flips expressionsCollapsed, so
- * the layout resizes the graph once per transition. A flip from elsewhere (the API, setBlank)
- * sets collapsed or expanded at once.
+ * AN-3's Collapse list and Expand list lifecycle, as the reference times it (EL-49): the setting
+ * flips on the first frame, so the graph resizes once, at the start; the panel then slides over
+ * the graph for the list body's own transition-duration (read in a layout effect once the state is
+ * committed; 0 finishes at once). While collapsing, the slide is an absolute overlay at the size of
+ * the last in-flow list body. A flip from elsewhere (the API, setBlank) sets collapsed or expanded
+ * at once. Focus moves from Collapse list to Expand list after a collapse, and back after an
+ * expand, as the reference's does.
  */
 function useListLifecycle(engine: CalculatorEngine, collapsedSetting: boolean) {
   const readDuration = useContext(MotionContext);
@@ -90,10 +102,12 @@ function useListLifecycle(engine: CalculatorEngine, collapsedSetting: boolean) {
     collapsedSetting ? "collapsed" : "expanded"
   );
   const [seenSetting, setSeenSetting] = useState(collapsedSetting);
+  /** The setting value the panel's own transition flipped to, so it does not cut the slide short. */
+  const ownFlip = useRef<boolean | null>(null);
   if (collapsedSetting !== seenSetting) {
-    // The panel's own flip at the end of a transition lands here too, already in that state.
     setSeenSetting(collapsedSetting);
-    setListState(collapsedSetting ? "collapsed" : "expanded");
+    if (ownFlip.current === collapsedSetting) ownFlip.current = null;
+    else setListState(collapsedSetting ? "collapsed" : "expanded");
   }
   const panelRef = useRef<HTMLElement>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
@@ -103,19 +117,15 @@ function useListLifecycle(engine: CalculatorEngine, collapsedSetting: boolean) {
   /** The button that takes focus once the transition that set this has committed. */
   const focusAfter = useRef<"expand" | "collapse" | null>(null);
 
-  // Collapsing: the list body stays in flow, so the column keeps its width until the flip.
+  // Collapsing or expanding: the slide runs for its own duration, then the state settles.
   useLayoutEffect(() => {
     const body = bodyRef.current;
-    if (listState !== "collapsing" || body === null) return;
-    sizeRef.current = { width: body.offsetWidth, height: body.offsetHeight };
-    const finish = () => {
-      const panel = panelRef.current;
-      if (panel !== null && panel.contains(panel.ownerDocument.activeElement)) {
-        focusAfter.current = "expand";
-      }
-      engine.updateSettings({ expressionsCollapsed: true });
-      setListState("collapsed");
-    };
+    if ((listState !== "collapsing" && listState !== "expanding") || body === null) return;
+    if (listState === "expanding") {
+      void body.offsetHeight; // the committed data-enter transform, so removing it transitions
+      body.removeAttribute("data-enter");
+    }
+    const finish = () => setListState(listState === "collapsing" ? "collapsed" : "expanded");
     const ms = readDuration(body);
     if (ms <= 0) {
       finish();
@@ -123,28 +133,7 @@ function useListLifecycle(engine: CalculatorEngine, collapsedSetting: boolean) {
     }
     const timer = setTimeout(finish, ms);
     return () => clearTimeout(timer);
-  }, [listState, engine, readDuration]);
-
-  // Expanding: the overlay was committed with data-enter (the collapsed transform); a style flush
-  // and its removal start the transform transition while the Expand list button keeps the column.
-  useLayoutEffect(() => {
-    const body = bodyRef.current;
-    if (listState !== "expanding" || body === null) return;
-    void body.offsetHeight;
-    body.removeAttribute("data-enter");
-    const finish = () => {
-      focusAfter.current = "collapse";
-      engine.updateSettings({ expressionsCollapsed: false });
-      setListState("expanded");
-    };
-    const ms = readDuration(body);
-    if (ms <= 0) {
-      finish();
-      return;
-    }
-    const timer = setTimeout(finish, ms);
-    return () => clearTimeout(timer);
-  }, [listState, engine, readDuration]);
+  }, [listState, readDuration]);
 
   useLayoutEffect(() => {
     if (focusAfter.current === "expand" && listState === "collapsed") {
@@ -164,18 +153,29 @@ function useListLifecycle(engine: CalculatorEngine, collapsedSetting: boolean) {
     expandRef,
     collapseRef,
     collapse: () => {
-      if (listState === "expanded") setListState("collapsing");
+      if (listState !== "expanded") return;
+      const body = bodyRef.current;
+      sizeRef.current =
+        body === null ? null : { width: body.offsetWidth, height: body.offsetHeight };
+      focusAfter.current = "expand"; // the Collapse list button is going away (EL-49)
+      ownFlip.current = true;
+      engine.updateSettings({ expressionsCollapsed: true });
+      setListState("collapsing");
     },
     expand: () => {
-      if (listState === "collapsed") setListState("expanding");
+      if (listState !== "collapsed") return;
+      focusAfter.current = "collapse";
+      ownFlip.current = false;
+      engine.updateSettings({ expressionsCollapsed: false });
+      setListState("expanding");
     },
-    // Over the graph, at the size of the last in-flow list body, until the flip.
+    // Over the graph, at the size of the last in-flow list body, while it slides away.
     overlayStyle:
-      listState === "expanding"
+      listState === "collapsing"
         ? ({
             position: "absolute",
+            left: 0,
             zIndex: 1,
-            background: "var(--kc-list)",
             ...(size === null ? {} : { width: size.width, height: size.height }),
           } satisfies CSSProperties)
         : undefined,
@@ -205,11 +205,18 @@ export function ExpressionPanel(props: ExpressionPanelProps): JSX.Element {
   }, [engine, announcer]);
   if (focus === null) throw new Error("ExpressionPanel must be used inside FocusContext");
 
-  // Done leaves Edit list mode and returns focus to the Edit list toggle it came from.
+  // Done leaves Edit list mode and returns focus to the Edit list toggle it came from, once the
+  // normal toolbar is back.
+  const refocusEditList = useRef(false);
   const finishEditing = () => {
-    editListRef.current?.focus();
+    refocusEditList.current = true;
     setEditing(false);
   };
+  useLayoutEffect(() => {
+    if (editing || !refocusEditList.current) return;
+    refocusEditList.current = false;
+    editListRef.current?.focus();
+  }, [editing]);
 
   // AN-5: only rows that are not exiting are numbered; an exiting row keeps the number of its
   // place for its hidden labels and shows none.
@@ -235,11 +242,20 @@ export function ExpressionPanel(props: ExpressionPanelProps): JSX.Element {
       data-layout={props.layout}
       data-pointer={props.pointer}
       data-list-state={listState}
+      data-keypad={String(props.keypadOpen)}
       data-scrolled={scrolled ? "true" : undefined}
+      // L-3, TH-14: the last input kind (a Tab into the list arrives as its keyup), so a row
+      // focused from the keyboard shows its outline and a clicked one keeps the reference look.
+      onKeyDownCapture={markInput}
+      onKeyUpCapture={markInput}
+      onPointerDownCapture={(e) => {
+        e.currentTarget.dataset.input = "pointer";
+      }}
     >
-      {(listState === "collapsed" || listState === "expanding") && (
+      {listState === "collapsed" && (
         <ToolButton
           label="Expand list"
+          tooltip="Show List"
           icon={<DoubleChevronGlyph direction={stacked ? "up" : "right"} />}
           buttonRef={list.expandRef}
           onClick={list.expand}
@@ -252,16 +268,36 @@ export function ExpressionPanel(props: ExpressionPanelProps): JSX.Element {
           data-enter={listState === "expanding" ? "true" : undefined}
           style={list.overlayStyle}
         >
-          <div className="kc-list-toolbar" role="toolbar" aria-label="List tools">
+          {/* EL-44: Edit list mode swaps the toolbar's ends for Delete All and Done. */}
+          <div
+            className="kc-list-toolbar"
+            role="toolbar"
+            aria-label="List tools"
+            data-editing={editing ? "true" : undefined}
+          >
             <div className="kc-toolbar-zone">
-              <AddItemMenu layout={props.layout} />
-              {stacked && props.pointer === "fine" && (
-                <ToolButton
-                  label="Keypad"
-                  icon={<Keyboard aria-hidden="true" focusable="false" size={22} />}
-                  pressed={props.keypadOpen}
-                  onClick={props.onToggleKeypad}
-                />
+              {editing ? (
+                <button
+                  type="button"
+                  className="kc-edit-action"
+                  data-tone="danger"
+                  onClick={() => clearAllRows(engine, focus, announcer)}
+                >
+                  Delete All
+                </button>
+              ) : (
+                <>
+                  <AddItemMenu layout={props.layout} />
+                  {stacked && props.pointer === "fine" && (
+                    <ToolButton
+                      label="Keypad"
+                      tooltip="Keypad"
+                      icon={<KeyboardGlyph />}
+                      pressed={props.keypadOpen}
+                      onClick={props.onToggleKeypad}
+                    />
+                  )}
+                </>
               )}
             </div>
             {/* performUndo and performRedo do nothing at the ends of the stack, so an
@@ -269,60 +305,56 @@ export function ExpressionPanel(props: ExpressionPanelProps): JSX.Element {
             <div className="kc-toolbar-zone" data-zone="centre">
               <ToolButton
                 label="Undo"
+                tooltip="Undo (CTRL+Z)"
                 icon={<UndoGlyph />}
                 disabled={!canUndo}
                 onClick={() => performUndo(engine, announcer)}
               />
               <ToolButton
                 label="Redo"
+                tooltip="Redo (CTRL+Y)"
                 icon={<UndoGlyph redo />}
                 disabled={!canRedo}
                 onClick={() => performRedo(engine, announcer)}
               />
             </div>
             <div className="kc-toolbar-zone">
-              <ToolButton
-                label="Edit list"
-                icon={<EditListGlyph />}
-                pressed={editing}
-                buttonRef={editListRef}
-                onClick={() => setEditing((on) => !on)}
-              />
-              <ToolButton
-                label="Collapse list"
-                icon={<DoubleChevronGlyph direction={stacked ? "down" : "left"} />}
-                buttonRef={list.collapseRef}
-                onClick={list.collapse}
-              />
+              {editing ? (
+                <button
+                  type="button"
+                  className="kc-edit-action"
+                  data-tone="accent"
+                  onClick={finishEditing}
+                >
+                  Done
+                </button>
+              ) : (
+                <>
+                  <ToolButton
+                    label="Edit list"
+                    tooltip="Edit List"
+                    icon={<EditListGlyph />}
+                    buttonRef={editListRef}
+                    onClick={() => setEditing(true)}
+                  />
+                  <ToolButton
+                    label="Collapse list"
+                    tooltip="Hide Expression List"
+                    icon={<DoubleChevronGlyph direction={stacked ? "down" : "left"} />}
+                    buttonRef={list.collapseRef}
+                    onClick={list.collapse}
+                  />
+                </>
+              )}
             </div>
           </div>
-          {editing && (
-            <div className="kc-edit-bar">
-              <button
-                type="button"
-                className="kc-edit-action"
-                data-tone="danger"
-                onClick={() => clearAllRows(engine, focus, announcer)}
-              >
-                Clear all expressions
-              </button>
-              <button
-                type="button"
-                className="kc-edit-action"
-                data-tone="accent"
-                onClick={finishEditing}
-              >
-                Done
-              </button>
-            </div>
-          )}
           <div
             className="kc-list-body"
             onScroll={(e) => setScrolled(e.currentTarget.scrollTop > 0)}
           >
             <ToastHost>
               {/* role="list" keeps list semantics in WebKit, which drops them under list-style: none */}
-              <ol className="kc-list" role="list" aria-label="Expressions">
+              <ol className="kc-list" role="list" aria-label="Expressions" tabIndex={-1}>
                 {numbered.map(({ row, motion, number }) =>
                   row.type === "table" ? (
                     <TableItem
@@ -339,6 +371,7 @@ export function ExpressionPanel(props: ExpressionPanelProps): JSX.Element {
                       key={row.id}
                       row={row}
                       number={number}
+                      editing={editing}
                       keypadOpen={props.keypadOpen}
                       onTouchFocus={props.onTouchFocusRow}
                       motion={motion}

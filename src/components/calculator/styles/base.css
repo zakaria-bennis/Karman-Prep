@@ -114,6 +114,22 @@ textarea {
   flex: 1 1 0;
   min-height: 0;
 }
+/* EL-4: the resize divider, 15 px from 3 px inside the list's edge, over the graph. */
+.kc-list-resizer {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--kc-list-width) - 3px);
+  z-index: 2;
+  width: 15px;
+  cursor: ew-resize;
+  touch-action: none;
+}
+
+.kc-list-resizer:focus-visible {
+  outline-offset: -2px;
+}
+
 .kc-graph-region {
   grid-area: graph;
   position: relative;

@@ -18,7 +18,7 @@ it("S-2 Add item is a menu button whose menu holds Add expression then Add table
   expect(addItem()).toHaveAttribute("aria-expanded", "true");
   const items = within(menu()!).getAllByRole("menuitem");
   expect(items.map((i) => i.getAttribute("aria-label"))).toEqual(["Add expression", "Add table"]);
-  expect(items.map((i) => i.textContent)).toEqual(["Expression", "Table"]);
+  expect(items.map((i) => i.textContent)).toEqual(["f(x)expression", "table"]);
   expect(items[0]).toHaveFocus();
   await userEvent.setup().click(addItem());
   expect(menu()).toBeNull();

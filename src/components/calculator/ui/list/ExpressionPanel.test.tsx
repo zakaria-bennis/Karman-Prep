@@ -77,14 +77,16 @@ it("R-10 Clear all and setBlank leave exactly one empty row numbered 1, and Clea
   const kit = renderEditor(<ExpressionPanel {...panelProps()} />, { rows: ["y=x", "a=2", "y=a"] });
   const user = userEvent.setup();
   await user.click(screen.getByRole("button", { name: "Edit list" }));
-  expect(screen.getByRole("button", { name: "Edit list" })).toHaveAttribute("aria-pressed", "true");
-  await user.click(screen.getByRole("button", { name: "Clear all expressions" }));
+  // EL-44: the toolbar's ends become Delete All and Done.
+  expect(screen.queryByRole("button", { name: "Edit list" })).toBeNull();
+  expect(screen.queryByRole("button", { name: "Add item" })).toBeNull();
+  await user.click(screen.getByRole("button", { name: "Delete All" }));
   expect(screen.getAllByRole("listitem")).toHaveLength(1);
   expect(latexes(kit)).toEqual([""]);
   expect(textbox(1)).toHaveFocus();
   await user.click(screen.getByRole("button", { name: "Done" }));
   expect(screen.getByRole("button", { name: "Edit list" })).toHaveFocus();
-  expect(screen.queryByRole("button", { name: "Clear all expressions" })).toBeNull();
+  expect(screen.queryByRole("button", { name: "Delete All" })).toBeNull();
   act(() => {
     kit.engine.setExpressions([
       { id: "1", latex: "y=x" },
@@ -115,7 +117,7 @@ it("A11Y-2 the row limit, Clear all, Undo and Redo are announced through the sta
   await user.click(screen.getByRole("menuitem", { name: "Add expression" })); // S-2's menu
   expect(kit.engine.getSnapshot().rows).toHaveLength(MAX_ROWS);
   await user.click(screen.getByRole("button", { name: "Edit list" }));
-  await user.click(screen.getByRole("button", { name: "Clear all expressions" }));
+  await user.click(screen.getByRole("button", { name: "Delete All" }));
   await user.click(screen.getByRole("button", { name: "Undo" }));
   await user.click(screen.getByRole("button", { name: "Redo" }));
   expect(kit.announcer.texts.filter((t) => !t.startsWith("Expression "))).toEqual([

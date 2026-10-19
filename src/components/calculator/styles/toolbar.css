@@ -1,0 +1,317 @@
+/* The list toolbar and what hangs off it: the 48 px toolbar and its 40 px buttons, their hover
+   tooltips (PM-29), the Expand list button over the graph, Edit list mode's toolbar and row
+   actions (EL-44, EL-45) and the Add item menu (EL-42, EL-43). Colours come only from roles. */
+
+/* VIS-7, VIS-8, VIS-13: the 48 px toolbar, + at the left, Undo and Redo in the free space between,
+   Edit list and Collapse list at the right; a shadow while the list below is scrolled. */
+.kc-list-toolbar {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex: none;
+  align-items: center;
+  height: var(--kc-toolbar-h);
+  padding: 6px 5px 5px;
+  border-bottom: 1px solid var(--kc-rule);
+  background: linear-gradient(var(--kc-toolbar-top), var(--kc-toolbar-bottom));
+  transition: box-shadow var(--kc-dur-200) var(--kc-ease);
+}
+
+.kc-list-panel[data-scrolled="true"] .kc-list-toolbar {
+  box-shadow: -2px 2px 4px var(--kc-panel-shadow);
+}
+
+.kc-toolbar-zone {
+  display: flex;
+  align-items: center;
+}
+
+.kc-toolbar-zone[data-zone="centre"] {
+  flex: 1 1 auto;
+  justify-content: center;
+  padding-left: 4px;
+}
+
+/* VIS-9, VIS-10: 40 px buttons on a 38 px pitch; the glyph rests at 0.6, 0.8 on hover over a 10%
+   fill, 1 pressed over 20%; a disabled button is 0.3 as a whole. Every change is instant. */
+.kc-list-tool {
+  display: grid;
+  place-items: center;
+  width: var(--kc-tool-size);
+  height: var(--kc-tool-size);
+  margin: -1px;
+  padding: 0;
+  border: none;
+  border-radius: var(--kc-radius-button);
+  background: transparent;
+  color: var(--kc-text);
+  cursor: pointer;
+}
+
+.kc-list-tool > svg {
+  opacity: var(--kc-icon-rest);
+}
+
+/* PM-29: the hover tooltip, a black box 3 px below its button with a 5 px arrow pointing up. */
+.kc-list-tool {
+  position: relative;
+}
+
+.kc-tooltip {
+  --kc-tip-shift: 0px;
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  z-index: 10;
+  width: max-content;
+  max-width: 200px;
+  padding: 5px 8px;
+  border-radius: var(--kc-radius-chip);
+  background: var(--kc-tooltip);
+  color: var(--kc-tooltip-label);
+  font-family: var(--kc-font-ui);
+  font-size: var(--kc-size-tooltip);
+  line-height: var(--kc-line-tooltip);
+  text-align: center;
+  white-space: nowrap;
+  pointer-events: none;
+  transform: translateX(calc(-50% + var(--kc-tip-shift)));
+}
+
+.kc-tooltip::before {
+  content: "";
+  position: absolute;
+  top: -5px;
+  left: calc(50% - var(--kc-tip-shift));
+  margin-left: -5px;
+  border: 5px solid transparent;
+  border-top-width: 0;
+  border-bottom-color: var(--kc-tooltip);
+}
+
+.kc-list-tool:not([aria-disabled="true"]):is(
+    :hover,
+    [aria-pressed="true"],
+    [aria-expanded="true"]
+  ) {
+  background: var(--kc-hover-fill);
+}
+
+.kc-list-tool:not([aria-disabled="true"]):is(:hover, [aria-pressed="true"], [aria-expanded="true"])
+  > svg {
+  opacity: var(--kc-icon-hover);
+}
+
+.kc-list-tool:not([aria-disabled="true"]):active {
+  background: var(--kc-pressed-fill);
+}
+
+.kc-list-tool:not([aria-disabled="true"]):active > svg {
+  opacity: var(--kc-icon-pressed);
+}
+
+/* KB-2: Undo and Redo at the ends of the stack stay in the Tab order (KB-13). */
+.kc-list-tool[aria-disabled="true"] {
+  opacity: var(--kc-icon-disabled);
+  cursor: default;
+}
+
+/* VIS-50: with the list hidden, Expand list sits over the graph's top-left corner (stacked: the
+   bottom-right corner, pointing up). */
+.kc-list-panel > .kc-list-tool {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  z-index: 3;
+  width: var(--kc-graph-button);
+  height: var(--kc-graph-button);
+  margin: 0;
+}
+
+.kc-list-panel[data-layout="stacked"] > .kc-list-tool {
+  top: auto;
+  right: 5px;
+  bottom: 5px;
+  left: auto;
+}
+
+/* KB-5, EL-44: Edit list mode's red Delete All and blue Done, 35 px tall, in the toolbar. */
+.kc-edit-action {
+  height: 35px;
+  margin: 0 1px;
+  padding: 0 15px;
+  border: none;
+  border-radius: var(--kc-radius-small);
+  box-shadow:
+    inset 0 1px color-mix(in srgb, var(--kc-list) 10%, transparent),
+    inset 0 -1px color-mix(in srgb, var(--kc-text) 4%, transparent);
+  color: var(--kc-accent-label);
+  font-family: var(--kc-font-ui);
+  font-size: var(--kc-size-ui);
+  cursor: pointer;
+}
+
+.kc-edit-action[data-tone="danger"] {
+  background: var(--kc-error);
+}
+
+.kc-edit-action[data-tone="accent"] {
+  background: var(--kc-accent);
+}
+
+.kc-edit-action:focus-visible {
+  outline-offset: 3px;
+}
+
+/* EL-45: a row's Edit list actions, 44 px buttons at its top-right with 20 px glyphs at 0.6. */
+.kc-edit-row-actions {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  display: flex;
+  gap: 2px;
+}
+
+.kc-edit-row-action {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: none;
+  border-radius: var(--kc-radius-button);
+  background: transparent;
+  color: var(--kc-text);
+  cursor: pointer;
+}
+
+.kc-edit-row-action > svg {
+  opacity: var(--kc-icon-rest);
+}
+
+.kc-edit-row-action:hover {
+  background: var(--kc-hover-fill);
+}
+
+.kc-edit-row-action:active > svg {
+  opacity: var(--kc-icon-pressed);
+}
+
+.kc-edit-row-action:focus-visible {
+  outline: 2px solid var(--kc-focus-ring);
+  outline-offset: -2px;
+}
+
+/* S-2, S-11: the Add item menu, a popover below Add item (desktop) or to its right (stacked). */
+.kc-add-item {
+  position: relative;
+  display: inline-flex;
+}
+
+/* EL-42, PM-1, PM-2: the popover under +, 126 px wide, white with a 1 px grey border, 6 px radius
+   and a soft drop shadow; a 24 by 12 arrow (a white triangle over a grey one 1 px further out)
+   points at the + button. Stacked, it opens to the button's right with a sideways arrow. */
+.kc-add-menu {
+  position: absolute;
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-sizing: border-box;
+  width: 126px;
+  padding: 14px 12px 12px;
+  border: 1px solid var(--kc-boundary);
+  border-radius: 6px;
+  background: var(--kc-list);
+  box-shadow: var(--kc-popover-shadow);
+}
+
+.kc-add-menu[data-placement="below"] {
+  top: calc(100% + 11px);
+  left: -1px;
+}
+
+.kc-add-menu[data-placement="right"] {
+  top: -1px;
+  left: calc(100% + 11px);
+}
+
+.kc-add-menu::before,
+.kc-add-menu::after {
+  content: "";
+  position: absolute;
+  border: 12px solid transparent;
+}
+
+.kc-add-menu[data-placement="below"]::before,
+.kc-add-menu[data-placement="below"]::after {
+  left: 9px;
+  border-top-width: 0;
+}
+
+.kc-add-menu[data-placement="below"]::before {
+  top: -13px;
+  border-bottom-color: var(--kc-boundary);
+}
+
+.kc-add-menu[data-placement="below"]::after {
+  top: -12px;
+  border-bottom-color: var(--kc-list);
+}
+
+.kc-add-menu[data-placement="right"]::before,
+.kc-add-menu[data-placement="right"]::after {
+  top: 9px;
+  border-left-width: 0;
+}
+
+.kc-add-menu[data-placement="right"]::before {
+  left: -13px;
+  border-right-color: var(--kc-boundary);
+}
+
+.kc-add-menu[data-placement="right"]::after {
+  left: -12px;
+  border-right-color: var(--kc-list);
+}
+
+/* EL-43: a 30 px icon cell, 8 px gap, a lower-case 12.8 px label; the item rests at 0.5 and
+   rises to 0.8 on hover, with no background. */
+.kc-add-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--kc-text);
+  font-family: var(--kc-font-ui);
+  font-size: var(--kc-size-small);
+  text-align: left;
+  opacity: var(--kc-menu-item-rest);
+  cursor: pointer;
+}
+
+.kc-add-menu-item:hover,
+.kc-add-menu-item:focus-visible {
+  opacity: var(--kc-menu-item-hover);
+}
+
+.kc-add-menu-item:focus-visible {
+  outline: 2px solid var(--kc-focus-ring);
+  outline-offset: 2px;
+}
+
+.kc-add-menu-icon {
+  display: flex;
+  flex: none;
+  justify-content: flex-end;
+  width: 30px;
+}
+
+.kc-add-menu-fx {
+  font-family: var(--kc-font-math);
+  font-size: 17px;
+  line-height: 24px;
+}

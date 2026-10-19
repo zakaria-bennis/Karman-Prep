@@ -9,6 +9,7 @@ import type { MathField } from "../../math-field/MathField";
 import type { Announcer } from "../a11y/announcer";
 import { cellKey, type FocusController } from "../focus/focus-controller";
 import { EDITOR_MESSAGES } from "./messages";
+import { removeWithoutMotion } from "./row-presence";
 
 /** How many editThroughKeypad calls are running on each field (nested calls stay batched). */
 const keypadBatches = new WeakMap<MathField, number>();
@@ -127,6 +128,7 @@ export function deleteFromEmptyRow(
   const { rows } = engine.getSnapshot();
   const i = indexOf(engine, rowId);
   if (i < 0) return;
+  if (rows.length > 1) removeWithoutMotion(rowId); // VIS-30: a keyboard removal has no motion
   engine.deleteRow(rowId); // the last remaining row is only emptied
   if (rows.length === 1) {
     focus.focusRow(rowId, "start");
@@ -160,6 +162,22 @@ export function deleteRowByControl(
   const { rows } = engine.getSnapshot();
   const target = rows[Math.min(i, rows.length - 1)];
   if (target !== undefined) focus.focusRow(target.id, "end");
+}
+
+/** EL-45: Duplicate, a copy of the row (latex, colour, visibility) right below it, one undo step. */
+export function duplicateRow(
+  engine: CalculatorEngine,
+  announcer: Announcer | null,
+  rowId: string
+): void {
+  const refused = engine.editRows((rows, ctx) => {
+    const at = rows.findIndex((r) => r.id === rowId);
+    const row = rows[at];
+    if (row === undefined || row.type === "table") return null;
+    const copy = { ...row, id: ctx.nextId() };
+    return [...rows.slice(0, at + 1), copy, ...rows.slice(at + 1)];
+  });
+  if (refused === "row-limit") announcer?.announce(EDITOR_MESSAGES.rowLimit);
 }
 
 /** KB-5, R-10: one undoable step to one empty row, announced, with that row focused. */

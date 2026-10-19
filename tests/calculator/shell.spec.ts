@@ -29,7 +29,6 @@ import {
   useConsoleGuard,
 } from "./shell-helpers";
 import {
-  katexMathLoaded,
   measureL14,
   popoverCoversRow1,
   recordCanvasFonts,
@@ -41,7 +40,7 @@ useConsoleGuard();
 
 const TOOLBAR = [/^add item/i, /^undo/i, /^redo/i, /^edit list/i, /^collapse list/i],
   GRAPH = [/^graph settings$/i, /^zoom in$/i, /^zoom out$/i];
-test("L-1 desktop: list on the left at max(260px, 40%); toolbar and graph controls in order; Home only off the default view", async ({
+test("L-1 desktop: list on the left at clamp(320px, 160px + 20%, 500px); toolbar and graph controls in order; Home only off the default view", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1280, height: 800 });
@@ -65,18 +64,26 @@ test("L-1 desktop: list on the left at max(260px, 40%); toolbar and graph contro
   await page.getByRole("img", { name: /^Graph from/ }).press("ArrowRight");
   await expect(page.getByRole("button", { name: /^home$/i })).toBeVisible();
   await page.evaluate(() => globalThis.__shell!.resizeFrame(600, 450));
-  await expect.poll(async () => Math.round((await box(page, "kc-list-region")).width)).toBe(260);
+  await expect.poll(async () => Math.round((await box(page, "kc-list-region")).width)).toBe(320);
+  await page.evaluate(() => globalThis.__shell!.resizeFrame(1200, 600));
+  await expect.poll(async () => Math.round((await box(page, "kc-list-region")).width)).toBe(400);
 });
 test("L-2 stacked: graph, toolbar, list, then keypad; the graph keeps 40% of the height with the keypad closed", async ({
   page,
+  isMobile,
 }) => {
   await openShell(page, "?w=400&h=700");
   const host = (await page.locator("#calc").boundingBox())!; // clamped on phones (R5)
   const [graph, list] = [await box(page, "kc-graph-region"), await box(page, "kc-list-region")];
   expect(graph.y + graph.height).toBeLessThanOrEqual(list.y + 1);
   expect(graph.height).toBeGreaterThanOrEqual(0.4 * host.height - 1);
-  expectOrder(await names(page, "kc-list-region"), [TOOLBAR[0], /keypad/i, ...TOOLBAR.slice(1)]);
-  expectOrder(await names(page, "kc-graph-region"), GRAPH);
+  // L-2: the toolbar's Keypad toggle is for fine pointers; touch rows open the keypad (K-2)
+  expectOrder(
+    await names(page, "kc-list-region"),
+    isMobile ? TOOLBAR : [TOOLBAR[0], /keypad/i, ...TOOLBAR.slice(1)]
+  );
+  // RS: a touch calculator under 450 px wide shows only Graph settings
+  expectOrder(await names(page, "kc-graph-region"), isMobile ? GRAPH.slice(0, 1) : GRAPH);
   await api(page, "c.updateSettings({ keypad: true })");
   const keypad = (await page.getByRole("region", { name: "Keypad" }).boundingBox())!;
   const listNow = await box(page, "kc-list-region");
@@ -87,9 +94,10 @@ test("L-8 the layout follows the container size, not the viewport", async ({ pag
   await openShell(page, `?w=800&h=600&rows=${enc(["y=x", "1+1"])}`);
   const layout = page.locator("#calc [data-kc-layout]");
   for (const [w, h, l] of [
-    [461, 400, "stacked"],
+    [449, 400, "stacked"],
     [560, 400, "desktop"],
-    [560, 600, "stacked"], // narrower than 1.2 times its height
+    [560, 900, "desktop"], // RS-1: the height plays no part
+    [449, 900, "stacked"],
   ] as const) {
     await page.evaluate(([x, y]) => globalThis.__shell!.resizeFrame(x, y), [w, h]);
     await expect(layout).toHaveAttribute("data-kc-layout", l);
@@ -101,24 +109,25 @@ test("L-8 the layout follows the container size, not the viewport", async ({ pag
   } // stacked: graph above the list; desktop: list left of it
   expect((await rows(page)).map((r) => r.latex)).toEqual(["y=x", "1+1"]);
 });
-test("L-2 a portrait dock (576x750) is stacked and a landscape container (800x500) is desktop", async ({
+test("L-2, RS-1 a 576x750 portrait dock is desktop (450 px or wider) and a 440x750 container is stacked", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1280, height: 800 });
   const layout = page.locator("#calc [data-kc-layout]");
-  await openShell(page, "?w=576&h=750");
+  await openShell(page, "?w=440&h=750");
   await expect(layout).toHaveAttribute("data-kc-layout", "stacked");
   const [stackedGraph, stackedList] = [
     await box(page, "kc-graph-region"),
     await box(page, "kc-list-region"),
   ];
   expect(stackedGraph.y + stackedGraph.height).toBeLessThanOrEqual(stackedList.y + 1);
-  expect(stackedGraph.width).toBeGreaterThan(500); // the full dock width, not ~345 px
-  await openShell(page, "?w=800&h=500");
+  expect(stackedGraph.width).toBeGreaterThan(400); // the full container width
+  await openShell(page, "?w=576&h=750");
   await expect(layout).toHaveAttribute("data-kc-layout", "desktop");
   const [list, graph] = [await box(page, "kc-list-region"), await box(page, "kc-graph-region")];
   expect(list.x + list.width).toBeLessThanOrEqual(graph.x + 1);
 });
+
 test("AR-60 destroying the quiz handle terminates the calculator's worker", async ({ page }) => {
   await openShell(page);
   const workers = () => page.evaluate(() => globalThis.__karmanCalculatorCounters?.workers ?? 0);
@@ -167,7 +176,7 @@ test("L-14 no horizontal scroll from 320×568 to 1920×1080; keypad and toolbar 
   await api(page, 'c.focusExpression("1")');
   await expect.poll(() => page.evaluate(popoverCoversRow1)).toBe(false);
 }); // .kc-settings[role=dialog] rect vs row 1
-test("AR-40 KaTeX fonts reach the shadow root: KaTeX_Math loads, check() is true, no font request fails, no @font-face inside", async ({
+test("AR-40 the math needs no web font: no font request fails and no @font-face sits inside the shadow root", async ({
   page,
 }) => {
   const failed: string[] = [];
@@ -177,12 +186,11 @@ test("AR-40 KaTeX fonts reach the shadow root: KaTeX_Math loads, check() is true
   await openShell(page);
   await rowField(page, "1").click();
   await page.keyboard.type("y=x");
-  await page.waitForFunction(katexMathLoaded, undefined, { timeout: 5000 });
-  expect(await page.evaluate(() => document.fonts.check("16px KaTeX_Math"))).toBe(true);
   expect(await page.evaluate(shadowHasFontFace)).toBe(false);
   expect(failed).toEqual([]);
 });
-test("AR-40 CDP reports KaTeX_Math as the platform font of a MathQuill variable", async ({
+
+test("AR-40 CDP reports a Times face as the platform font of a MathQuill variable", async ({
   page,
   browserName,
 }) => {
@@ -190,9 +198,12 @@ test("AR-40 CDP reports KaTeX_Math as the platform font of a MathQuill variable"
   await openShell(page);
   await rowField(page, "1").click();
   await page.keyboard.type("y=x");
-  await expect.poll(() => platformFonts(page, ".mq-root-block var")).toContain("KaTeX_Math");
+  await expect
+    .poll(async () => (await platformFonts(page, ".mq-root-block var")).join(","))
+    .toMatch(/Times New Roman|Tinos|Liberation Serif/);
 });
-test("TH-17 UI text Arial 14px, math KaTeX 18px, keys in KaTeX, axis numbers 13px Arial", async ({
+
+test("TH-17 UI text Arial 16px, math in the Times stack at 20.24px with italic variables, keys in Times, axis numbers 13px Arial", async ({
   page,
 }) => {
   await page.addInitScript(recordCanvasFonts);
@@ -200,18 +211,19 @@ test("TH-17 UI text Arial 14px, math KaTeX 18px, keys in KaTeX, axis numbers 13p
   await api(page, "c.updateSettings({ keypad: true })");
   expect(await cs(page, ".kc-list-region button")).toEqual([
     expect.stringMatching(/^Arial\b/),
-    "14px",
+    "16px",
   ]);
   expect(await cs(page, ".mq-root-block")).toEqual([
-    expect.stringMatching(/^"?KaTeX_Main/),
-    "18px",
+    expect.stringMatching(/^"Times New Roman"/),
+    "20.24px",
   ]);
-  expect((await cs(page, ".mq-root-block var"))[0]).toMatch(/^"?KaTeX_Math/);
-  expect((await cs(page, '[aria-label="Keypad"] button', "7"))[0]).toMatch(/^"?KaTeX_Main/);
+  expect((await cs(page, ".mq-root-block var"))[0]).toMatch(/^"Times New Roman"/);
+  expect((await cs(page, '[aria-label="Keypad"] button', "7"))[0]).toMatch(/^"Times New Roman"/);
   const fonts = () => page.evaluate(() => (globalThis as unknown as { __fonts: string[] }).__fonts);
   await expect.poll(fonts).toContainEqual(expect.stringMatching(/^13px Arial/));
   expect((await fonts()).filter((f) => !f.startsWith("13px"))).toEqual([]);
 });
+
 test("KB-4 opens by mouse, keyboard and touch (OI-7) and reopen restores the last row", async ({
   page,
 }) => {
@@ -293,16 +305,37 @@ for (const skin of SKIN_IDS)
     await expect
       .poll(() => settings.evaluate((el) => el.getAnimations({ subtree: true }).length))
       .toBe(0);
+    // and for the value line's EL-31 fade-in to end too
+    await expect
+      .poll(() =>
+        page
+          .locator("#calc .kc-list-panel")
+          .evaluate(
+            (el) =>
+              el
+                .getAnimations({ subtree: true })
+                .filter(
+                  (a) => a.playState === "running" && a.effect?.getTiming().iterations !== Infinity
+                ).length
+          )
+      )
+      .toBe(0);
     const pairs = await textPairs(page);
     expect([
       pairs.some((p) => p.kind === "text"),
       pairs.some((p) => p.kind === "boundary"),
     ]).toEqual([true, true]);
-    for (const p of pairs)
+    for (const p of pairs) {
+      // The row number (65% ink) and the value's "=" (55%) keep the reference look, pending the
+      // founder's AAA-versus-reference decision (contrast-suite CLASSIC_REFERENCE_EXCEPTIONS).
+      if (/span\.kc-row-(number|equals)\b/.test(p.name)) continue;
+      // The classic skin's field boundary is the reference's #bbb (1.9:1), pinned the same way.
+      if (skin === "classic" && p.kind === "boundary") continue;
       expect(
         contrastRatio(onBackground(p.fg, p.alpha, p.bg), toHex(p.bg).hex),
         `${p.kind} ${p.name}`
       ).toBeGreaterThanOrEqual(p.kind === "text" ? 7 : 3);
+    }
   });
 test("R-1 clicking a row body focuses its field", async ({ page, isMobile }) => {
   test.skip(isMobile, "fine-pointer click; touch focus is K-2");
@@ -339,6 +372,7 @@ test("L-3 a row's math field draws no box, focused or not; the row's L-3 outline
   await openShell(page, `?rows=${enc(["y=x", "y=2x"])}`);
   await tap(isMobile, rowField(page, "2"));
   await expect.poll(() => focusedRow(page)).toBe("2");
+  await page.keyboard.press("End"); // L-3: the outline marks keyboard focus
   const look = (id: string) =>
     page.locator(`#calc [data-row-id="${id}"]`).evaluate((row) => {
       const field = getComputedStyle(row.querySelector(".mq-editable-field")!);
@@ -406,7 +440,7 @@ test("L-2 phone: after typing six rows the list shows them, scrolls, and keeps t
     .poll(measure)
     .toEqual({ activeId: "6", activeInView: true, enoughRowsInView: true, scrollable: true });
 });
-test("L-1 the graph and list fill the calculator's height while the keypad is closed and stop at the keypad when it opens", async ({
+test("L-1 the graph and list fill the calculator's height; the open keypad lies over the graph's bottom and the list stops at it", async ({
   page,
   isMobile,
 }) => {
@@ -414,22 +448,26 @@ test("L-1 the graph and list fill the calculator's height while the keypad is cl
   await page.setViewportSize({ width: 1280, height: 760 });
   await openShell(page);
   const host = (await page.locator("#calc").boundingBox())!;
-  for (const cls of ["kc-graph-region", "kc-list-region"]) {
+  const bottomGap = async (cls: string) => {
     const b = await box(page, cls);
-    expect(Math.abs(b.y + b.height - (host.y + host.height)), cls).toBeLessThanOrEqual(1);
-  }
+    return Math.abs(b.y + b.height - (host.y + host.height));
+  };
+  for (const cls of ["kc-graph-region", "kc-list-region"])
+    expect(await bottomGap(cls), cls).toBeLessThanOrEqual(1);
   await api(page, "c.updateSettings({ keypad: true })");
-  // once the AN-1 slide has ended, the graph stops at the keypad's top edge
+  // RS-2: once the AN-1 slide has ended the keypad sits at the bottom over the graph, which keeps
+  // its size; the list's scroll box ends at the keypad's top (L-14)
   await expect
     .poll(async () => {
       const keypad = (await page.getByRole("region", { name: "Keypad" }).boundingBox())!;
-      const graph = await box(page, "kc-graph-region");
+      const list = await box(page, "kc-list-region");
       return [
-        Math.abs(graph.y + graph.height - keypad.y) <= 1,
-        keypad.y + keypad.height <= host.y + host.height + 1,
+        Math.abs(keypad.y + keypad.height - (host.y + host.height)) <= 1,
+        Math.abs(list.y + list.height - keypad.y) <= 1,
+        (await bottomGap("kc-graph-region")) <= 1,
       ];
     })
-    .toEqual([true, true]);
+    .toEqual([true, true, true]);
 });
 
 test("L-16 unfocused rows have no border, fill or box around the math and are separated by one 1 px rule", async ({
@@ -446,7 +484,9 @@ test("L-16 unfocused rows have no border, fill or box around the math and are se
     };
   });
   expect(look.field).toEqual(["none", "rgba(0, 0, 0, 0)", "none"]);
-  expect(look.rule).toEqual(["solid", "1px", "none"]);
+  // EL-14: each row's 1 px top rule overlaps the one above (margin-top -1px); the bottom border is
+  // transparent room for the focused row's accent border.
+  expect(look.rule).toEqual(["solid", "1px", "solid"]);
 });
 
 test("L-3 the focused row fills its whole gutter in the focused-row colour", async ({ page }) => {
@@ -467,5 +507,5 @@ test("L-3 the focused row fills its whole gutter in the focused-row colour", asy
     return { want, focused: gutter("1"), other: gutter("2") };
   });
   expect(colours.focused).toBe(colours.want);
-  expect(colours.other).toBe("rgba(0, 0, 0, 0)");
+  expect(colours.other).not.toBe(colours.want); // EL-20: the grey tab
 });

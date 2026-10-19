@@ -296,7 +296,7 @@ const samples = (page: Page): Promise<Sample[]> =>
 const between = (list: Sample[]) =>
   list.filter((x) => x.opacity !== null && Number(x.opacity) > 0 && Number(x.opacity) < 1);
 
-test("AN-8 the Home button fades in over 100 ms and out over 100 ms", async ({
+test("AN-8 the Home button fades in over 250 ms and out over 250 ms", async ({
   page,
   isMobile,
 }) => {
@@ -316,8 +316,8 @@ test("AN-8 the Home button fades in over 100 ms and out over 100 ms", async ({
     return { index: i, duration: durations[i], timing: timings[i] };
   });
   expect(transition.index).toBeGreaterThanOrEqual(0);
-  expect(transition.duration).toBe("0.1s");
-  expect(transition.timing).toBe("cubic-bezier(0.22, 1, 0.36, 1)");
+  expect(transition.duration).toBe("0.25s");
+  expect(transition.timing).toBe("ease-out");
 
   const fadeIn = await samples(page);
   const firstPresent = fadeIn.find((x) => x.opacity !== null)!;

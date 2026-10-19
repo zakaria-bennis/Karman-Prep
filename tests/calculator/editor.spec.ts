@@ -89,7 +89,7 @@ test("KB-5 Clear all removes every row in one undo step, keeps settings and view
     engine.setMathBounds({ left: -5, right: 5, bottom: -3, top: 3 });
   });
   await page.getByRole("button", { name: "Edit list", exact: true }).click();
-  await page.getByRole("button", { name: "Clear all expressions", exact: true }).click();
+  await page.getByRole("button", { name: "Delete All", exact: true }).click();
   await expect(page.getByRole("list", { name: "Expressions" }).getByRole("listitem")).toHaveCount(
     1
   );
@@ -110,6 +110,7 @@ test("L-3 the focused row fills its gutter in the focus-bar colour and draws a 2
 }) => {
   await open(page, ["y=x", "2+3"]);
   await field(page, 2).focus();
+  await page.keyboard.press("End"); // keyboard use: the outline is for keyboard focus (L-3)
   const row = page.locator('li[data-row-id="2"]');
   const role = (name: string) =>
     row.evaluate((el, n) => getComputedStyle(el).getPropertyValue(n).trim(), name);
@@ -137,14 +138,15 @@ test("R-5 the value sits below the math, right-aligned, in a small raised box af
   await expect(value.locator(".kc-row-equals")).toHaveText("=");
   await expect(value).toHaveCSS("text-align", /^(end|right)$/);
   await expect(box).toHaveCSS("border-top-width", "1px");
-  await expect(box).toHaveCSS("border-top-left-radius", "3px");
-  await expect(box).toHaveCSS("padding-top", "2px");
-  await expect(box).toHaveCSS("padding-left", "8px");
+  await expect(box).toHaveCSS("border-top-left-radius", "4px"); // EL-32
+  await expect(box).toHaveCSS("padding-top", "3px");
+  await expect(box).toHaveCSS("padding-left", "5px");
   const equals = (await value.locator(".kc-row-equals").boundingBox())!;
   const boxed = (await box.boundingBox())!;
   expect(boxed.x).toBeGreaterThan(equals.x); // the = comes first, the box follows
   const math = (await page.locator('li[data-row-id="1"] .kc-row-field').boundingBox())!;
-  expect((await value.boundingBox())!.y).toBeGreaterThanOrEqual(math.y + math.height - 1);
+  // EL-31: the value line tucks 4 px up under the field's bottom padding.
+  expect((await value.boundingBox())!.y).toBeGreaterThanOrEqual(math.y + math.height - 5);
 });
 
 test("K-5 Functions templates land in the row with the caret inside", async ({ page }) => {
@@ -292,7 +294,11 @@ test("R-2 the error tooltip opens on hover and focus, closes on Escape, and togg
   const m = (await marker.boundingBox())!;
   const t = (await tip.boundingBox())!;
   expect(t.y).toBeGreaterThanOrEqual(m.y + m.height); // directly below the marker
-  expect(Math.abs(t.x + t.width / 2 - (m.x + m.width / 2))).toBeLessThanOrEqual(2); // centred on it
+  // EL-35: the 200 px box stays inside the calculator; its arrow points at the marker's centre.
+  const arrow = await tip.evaluate((el) =>
+    parseFloat(getComputedStyle(el).getPropertyValue("--kc-tip-arrow"))
+  );
+  expect(Math.abs(t.x + arrow - (m.x + m.width / 2))).toBeLessThanOrEqual(2);
   await page.mouse.move(600, 400);
   await expect(tip).toHaveCount(0);
   await marker.focus();
@@ -305,7 +311,7 @@ test("R-2 the error tooltip opens on hover and focus, closes on Escape, and togg
   await expect(tip).toHaveCount(0);
 });
 
-test("AN-1 the keypad slides on translateY over 200 ms with ease-standard and is visibility:hidden once hidden", async ({
+test("AN-1 the keypad slides on translateY over 300 ms with ease and is visibility:hidden once hidden", async ({
   page,
 }) => {
   await open(page, [""]);
@@ -314,16 +320,16 @@ test("AN-1 the keypad slides on translateY over 200 ms with ease-standard and is
   await page.getByRole("button", { name: "Show keypad" }).click();
   await expect
     .poll(() => transitions(tray), { intervals: [16] })
-    .toContainEqual({ property: "transform", duration: 200 });
-  await expect(tray).toHaveCSS("transition-timing-function", /cubic-bezier\(0\.22, 1, 0\.36, 1\)/);
+    .toContainEqual({ property: "transform", duration: 300 });
+  await expect(tray).toHaveCSS("transition-timing-function", /^ease\b/);
   await page.getByRole("button", { name: "Hide keypad" }).click();
   await expect
     .poll(() => transitions(tray), { intervals: [16] })
-    .toContainEqual({ property: "transform", duration: 200 });
+    .toContainEqual({ property: "transform", duration: 300 });
   await expect(tray).toHaveCSS("visibility", "hidden");
 });
 
-test("AN-2 the Functions panel fades in rising 8 px over 200 ms and fades out over 100 ms", async ({
+test("AN-2 the Functions panel fades in rising 8 px over 300 ms and closes at once", async ({
   page,
 }) => {
   await open(page, [""], "&keypad=open");
@@ -335,24 +341,19 @@ test("AN-2 the Functions panel fades in rising 8 px over 200 ms and fades out ov
     .poll(() => transitions(panel), { intervals: [16] })
     .toEqual(
       expect.arrayContaining([
-        { property: "opacity", duration: 200 },
-        { property: "transform", duration: 200 },
+        { property: "opacity", duration: 300 },
+        { property: "transform", duration: 300 },
       ])
     );
   expect(await fromValue(panel, "transform")).toMatch(
     /translateY\(8px\)|matrix\(1, 0, 0, 1, 0, 8\)/
   );
-  // The opening ends first: a fade-out that reverses a running fade-in is shortened by the browser.
   await expect.poll(() => transitions(panel), { intervals: [16] }).toEqual([]);
   await functions.click();
-  await expect(panel).toHaveAttribute("inert"); // a fading panel takes no second tap
-  await expect
-    .poll(() => transitions(panel), { intervals: [16] })
-    .toEqual([{ property: "opacity", duration: 100 }]);
-  await expect(panel).toHaveCount(0);
+  await expect(panel).toHaveCount(0); // the reference's popovers leave at once
 });
 
-test("AN-11 keys and toolbar buttons change background tone over 100 ms on press, with no scale or shadow", async ({
+test("AN-11 keys and toolbar buttons change background tone at once on press, with no scale or shadow", async ({
   page,
 }) => {
   await open(page, [""], "&keypad=open&pointer=fine");
@@ -361,24 +362,25 @@ test("AN-11 keys and toolbar buttons change background tone over 100 ms on press
   const cases = [
     [page.getByRole("button", { name: "7", exact: true }), "--kc-key", "--kc-key-operator"],
     [page.getByRole("button", { name: "Divide", exact: true }), "--kc-key-operator", "--kc-key"],
-    [page.getByRole("button", { name: "Add item" }), "--kc-list", "--kc-chrome"],
+    [page.getByRole("button", { name: "Add item" }), null, null],
   ] as const;
   for (const [target, restRole, pressedRole] of cases) {
-    await expect(target).toHaveCSS("transition-property", "background-color");
-    await expect(target).toHaveCSS("transition-duration", "0.1s");
+    await expect(target).toHaveCSS("transition-duration", "0s");
     const rest = await target.evaluate((el) => getComputedStyle(el).backgroundColor);
-    expect(rest).toBe(rgb(await roleOf(target, restRole)));
+    if (restRole !== null) expect(rest).toBe(rgb(await roleOf(target, restRole)));
     await target.hover();
     await page.mouse.down();
     await expect(target).toHaveCSS("transform", "none");
     await expect(target).toHaveCSS("box-shadow", "none");
     await expect(target).not.toHaveCSS("background-color", rest);
-    await expect(target).toHaveCSS("background-color", rgb(await roleOf(target, pressedRole)));
+    if (pressedRole !== null) {
+      await expect(target).toHaveCSS("background-color", rgb(await roleOf(target, pressedRole)));
+    }
     await page.mouse.up();
   }
 });
 
-test("AN-3 Collapse and Expand list move the list on transform over 200 ms and resize the graph once each, at the end", async ({
+test("AN-3 Collapse and Expand list resize the graph once each, at the start, then slide the list over 250 ms", async ({
   page,
 }) => {
   await open(page, ["y=x"]);
@@ -387,48 +389,31 @@ test("AN-3 Collapse and Expand list move the list on transform over 200 ms and r
   const base = await resizes();
   await page.getByRole("button", { name: "Collapse list" }).click();
   await expect
-    .poll(() => transitions(page.locator(".kc-list-body")), { intervals: [16] })
-    .toContainEqual({ property: "transform", duration: 200 });
-  expect(await resizes()).toBe(base);
-  await expect.poll(resizes).toBe(base + 1);
+    .poll(() => transitions(page.locator(".kc-list-slide")), { intervals: [16] })
+    .toContainEqual({ property: "transform", duration: 250 });
+  await expect.poll(resizes).toBe(base + 1); // EL-49: during the slide, not after it
+  await expect(page.getByRole("button", { name: "Expand list" })).toBeFocused();
   await page.waitForTimeout(300);
   expect(await resizes()).toBe(base + 1);
   await page.getByRole("button", { name: "Expand list" }).click();
   await expect
-    .poll(() => transitions(page.locator(".kc-list-body")), { intervals: [16] })
-    .toContainEqual({ property: "transform", duration: 200 });
-  expect(await resizes()).toBe(base + 1);
+    .poll(() => transitions(page.locator(".kc-list-slide")), { intervals: [16] })
+    .toContainEqual({ property: "transform", duration: 250 });
   await expect.poll(resizes).toBe(base + 2);
   await page.waitForTimeout(300);
   expect(await resizes()).toBe(base + 2);
+  await expect(page.getByRole("button", { name: "Collapse list" })).toBeFocused();
 });
 
-test("AN-4 the settings popover fades in rising 4 px over 100 ms and fades out over 100 ms", async ({
-  page,
-}) => {
+test("AN-4 the settings popover appears and leaves at once", async ({ page }) => {
   await open(page, [""]);
   const settings = page.getByRole("button", { name: "Settings" });
   const popover = page.locator(".kc-settings");
   await settings.click();
-  await expect
-    .poll(() => transitions(popover), { intervals: [16] })
-    .toEqual(
-      expect.arrayContaining([
-        { property: "opacity", duration: 100 },
-        { property: "transform", duration: 100 },
-      ])
-    );
-  expect(await fromValue(popover, "transform")).toMatch(
-    /translateY\(-4px\)|matrix\(1, 0, 0, 1, 0, -4\)/
-  );
-  // The opening ends first: a fade-out that reverses a running fade-in is shortened by the browser.
-  await expect.poll(() => transitions(popover), { intervals: [16] }).toEqual([]);
+  await expect(popover).toBeVisible();
+  expect(await transitions(popover)).toEqual([]);
   await settings.focus(); // WebKit does not focus a clicked button, so Escape would miss the editor
   await page.keyboard.press("Escape");
-  await expect(popover).toHaveAttribute("inert"); // a fading popover takes no input
-  await expect
-    .poll(() => transitions(popover), { intervals: [16] })
-    .toEqual([{ property: "opacity", duration: 100 }]);
   await expect(popover).toHaveCount(0);
   await expect(settings).toBeFocused();
 });
@@ -448,7 +433,7 @@ test("S-1 the settings popover opens below its Settings control with right edges
   expect(p.y).toBeGreaterThanOrEqual(a.y + a.height - 1);
 });
 
-test("AN-5 rows grow in over 200 ms and collapse out over 100 ms without moving another row's caret", async ({
+test("AN-5 rows appear at once and a removed row folds out over 190 ms without moving another row's caret", async ({
   page,
 }) => {
   await open(page, ["y=x", "a=2", "b=3"]);
@@ -458,15 +443,14 @@ test("AN-5 rows grow in over 200 ms and collapse out over 100 ms without moving 
   await page.evaluate(() =>
     globalThis.__calculatorHarness!.engine.setExpression({ id: "9", latex: "y=3" })
   );
-  await expect
-    .poll(() => transitions(page.locator('li[data-row-id="9"]')), { intervals: [16] })
-    .toContainEqual({ property: "grid-template-rows", duration: 200 });
+  await expect(page.locator('li[data-row-id="9"]')).toHaveCount(1);
+  expect(await transitions(page.locator('li[data-row-id="9"]'))).toEqual([]);
   await page.evaluate(() => globalThis.__calculatorHarness!.engine.removeExpression({ id: "2" }));
   const ghost = page.locator('li[data-row-id="2"]');
   await expect(ghost).toHaveAttribute("data-motion", "exit");
   await expect
     .poll(() => transitions(ghost), { intervals: [16] })
-    .toContainEqual({ property: "grid-template-rows", duration: 100 });
+    .toContainEqual({ property: "grid-template-rows", duration: 190 });
   await expect(ghost).toHaveCount(0);
   await page.keyboard.type("2");
   await expect.poll(() => latexes(page)).toEqual(["y=2x", "b=3", "y=3"]);

@@ -7,7 +7,7 @@ import {
 import { compositeShading, contrastRatio } from "../../src/lib/calculator/theme/contrast";
 import { resolveRowColor } from "../../src/lib/calculator/theme/roles";
 import { SKIN_COLORS } from "../../src/lib/calculator/theme/skin-colors.generated";
-import { SKIN_IDS, type SkinId } from "../../src/lib/calculator/theme/skins";
+import { SITE_SKIN_IDS, SKIN_IDS, type SkinId } from "../../src/lib/calculator/theme/skins";
 import {
   DESKTOP,
   allControls,
@@ -351,7 +351,8 @@ test("TR-53, TH-1, TH-14 in all 12 skins the glyph is 4.5:1 on the button, the b
 }, info) => {
   chromeOnly(info.project.name);
   await open(page);
-  for (const skin of SKIN_IDS) {
+  for (const skin of SITE_SKIN_IDS) {
+    // the Transfer control is site chrome, so it follows the 12 site themes (TH-5)
     await applySkin(page, skin);
     await page.mouse.move(5, 790);
     await settled(page); // the site's colour transitions (a choice's transition-all) end first
@@ -459,30 +460,35 @@ test("AR-37 the open calculator's shadow CSS reads only inherited or locally dec
   expect(vars?.read).toBeGreaterThan(0);
   expect(vars?.missing).toEqual([]);
   await page.evaluate(markLayout);
-  const changes: [string, () => Promise<unknown>, SkinId | null][] = [
+  // [name, change, the skin it leaves, whether the canvas repaints]
+  const changes: [string, () => Promise<unknown>, SkinId | null, boolean][] = [
     [
-      "theme switch (class and data-theme, as applyTheme does)",
+      "skin switch (data-calculator-skin, with the site theme)",
       () => applySkin(page, "observatory"),
       "observatory",
+      true,
     ],
-    ["prefers-contrast", () => page.emulateMedia({ contrast: "more" }), null],
+    ["prefers-contrast", () => page.emulateMedia({ contrast: "more" }), null, true],
     [
-      "data-theme removed",
+      "calculator skin removed",
       () =>
         page.evaluate(() => {
           const r = document.documentElement;
           r.classList.toggle("dark", false);
           delete r.dataset.theme;
+          delete r.dataset.calculatorSkin;
         }),
-      "ivory",
+      "classic",
+      true,
     ],
-    ["prefers-color-scheme", () => page.emulateMedia({ colorScheme: "dark" }), "observatory"],
+    // TH-15: the OS colour scheme no longer picks the calculator's skin
+    ["prefers-color-scheme", () => page.emulateMedia({ colorScheme: "dark" }), "classic", false],
   ];
-  for (const [name, change, skin] of changes) {
+  for (const [name, change, skin, repaints] of changes) {
     const before = (await strokes(page)).length;
     await change();
     await page.evaluate(nextFrame);
-    expect((await strokes(page)).length, name).toBeGreaterThan(before);
+    if (repaints) expect((await strokes(page)).length, name).toBeGreaterThan(before);
     if (skin)
       expect(await kcPaper(page), name).toBe(SKIN_COLORS[skin].normal.roles.paper.toLowerCase());
   }

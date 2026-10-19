@@ -2,6 +2,12 @@
    variables (TH-3). Every column keeps one width, and a table wider than the list scrolls sideways
    inside its own item (D-42); the focused cell is scrolled into view by the focus controller. */
 
+/* EL-41: a table item's grid and buttons start 53 px in, clear of the 38 px gutter tab, with the
+   delete cross's room at the right. */
+.kc-table-item .kc-row-main {
+  padding: 15px 35px 0 53px;
+}
+
 .kc-table {
   display: block;
   width: max-content;

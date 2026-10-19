@@ -62,6 +62,21 @@ function focusClickedControl(event: MouseEvent): void {
   control.focus({ preventScroll: true });
 }
 
+/**
+ * KB-3, EL (reference behaviour): with no layer open, Escape in a row's math field leaves the row,
+ * as the reference's blur does, so the selected styling clears; focus stays in the calculator on
+ * the expression list, and the next Escape goes on to the host. True when it moved focus.
+ */
+function leaveFocusedRow(root: HTMLElement): boolean {
+  const shadow = root.getRootNode();
+  const active = shadow instanceof ShadowRoot ? shadow.activeElement : null;
+  if (active === null || active.closest(".mq-editable-field") === null) return false;
+  const list = active.closest(".kc-list-panel")?.querySelector<HTMLElement>(".kc-list");
+  if (list === null || list === undefined) return false;
+  list.focus({ preventScroll: true });
+  return true;
+}
+
 export function App(props: AppProps): JSX.Element {
   const { engine, host, store, focus, escape, announcer } = props;
   const snapshot = useEngineSnapshot(engine);
@@ -135,7 +150,7 @@ export function App(props: AppProps): JSX.Element {
     const root = rootRef.current!;
     const off = installShellKeyboard(root, {
       onShortcut: (a) => latest.current(a),
-      onEscape: () => escape.handleEscape(),
+      onEscape: () => escape.handleEscape() || leaveFocusedRow(root),
       onKey: (e) => trace.handleKey(e),
     });
     root.addEventListener("click", focusClickedControl);
@@ -155,6 +170,7 @@ export function App(props: AppProps): JSX.Element {
                 <CalculatorLayout
                   layout={shell.layout}
                   containerWidth={shell.size.width}
+                  containerHeight={shell.size.height}
                   pointer={shell.pointer}
                   collapsed={settings.expressionsCollapsed}
                   keypadOpen={settings.keypad}

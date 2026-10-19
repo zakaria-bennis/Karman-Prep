@@ -37,39 +37,68 @@
   cursor: grabbing;
 }
 
-/* Graph settings, Zoom in, Zoom out and Home (G-5, L-1), at the inline end. */
+/* G-5, GP-40 to GP-44: Graph settings, the Zoom group and Home as grey pills 5 px from the top and
+   inline end, 5 px apart: 37 px boxes (the zoom group 37 by 73 with two 35 px halves), a 1 px faint
+   border, 5 px radius and a soft shadow; icons rest at 0.6, 0.9 on hover, 1 pressed. */
 .kc-graph-controls {
   position: absolute;
-  top: 8px;
-  inset-inline-end: 8px;
+  top: 5px;
+  inset-inline-end: 5px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 5px;
+}
+
+.kc-graph-controls > button,
+.kc-zoom-group {
+  border: 1px solid var(--kc-pill-border);
+  border-radius: var(--kc-radius-button);
+  background: var(--kc-pill);
+  box-shadow: var(--kc-pill-shadow);
 }
 
 .kc-graph-controls button {
   display: grid;
   place-items: center;
-  width: 32px;
-  height: 32px;
+  width: var(--kc-graph-button);
+  height: var(--kc-graph-button);
   padding: 0;
-  border: 1px solid var(--kc-boundary);
-  border-radius: 6px;
-  background: var(--kc-chrome);
   color: var(--kc-text);
-  transition: background-color var(--kc-dur-hover) var(--kc-ease);
+  cursor: pointer;
 }
 
-@media (pointer: coarse) {
-  .kc-graph-controls button {
-    width: 44px;
-    height: 44px;
-  }
+.kc-graph-controls button > svg {
+  opacity: var(--kc-icon-rest);
 }
 
-/* AN-11 */
+.kc-graph-controls button:hover > svg {
+  opacity: var(--kc-icon-hover-graph);
+}
+
 .kc-graph-controls button:active {
-  background: var(--kc-key-operator);
+  background: var(--kc-pill-pressed);
+}
+
+.kc-graph-controls button:active > svg {
+  opacity: var(--kc-icon-pressed);
+}
+
+.kc-zoom-group {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.kc-zoom-group > button {
+  width: 35px;
+  height: 35px;
+  border: none;
+  background: transparent;
+}
+
+.kc-zoom-group > button + button {
+  height: 36px;
+  border-top: 1px solid var(--kc-pill-border);
 }
 
 .kc-graph-controls button:focus-visible {
@@ -77,11 +106,15 @@
   outline-offset: 2px;
 }
 
+/* RS (responsive.md): on a touch screen with a calculator under 450 by 495 px the zoom buttons
+   go; pinch zoom stands in for them. CalculatorLayout marks that case. */
+.kc-app[data-compact-touch="true"] .kc-zoom-group {
+  display: none;
+}
+
 /* AN-8: Home fades in and out with the same duration and easing. */
 .kc-graph-controls [data-graph-home] {
-  transition:
-    background-color var(--kc-dur-hover) var(--kc-ease),
-    opacity var(--kc-dur-250) var(--kc-ease-out);
+  transition: opacity var(--kc-dur-250) var(--kc-ease-out);
 }
 
 .kc-graph-controls [data-graph-home][data-phase="entering"],

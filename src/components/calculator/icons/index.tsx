@@ -56,20 +56,14 @@ export function WarningGlyph(props: { size?: number }): JSX.Element {
       focusable="false"
     >
       <path
-        d="M11 3L20 18H2Z"
+        d="M11 1.4L21.1 19H0.9Z"
         fill="currentColor"
         stroke="currentColor"
-        strokeWidth={3}
+        strokeWidth={1.2}
         strokeLinejoin="round"
       />
-      <path
-        className="kc-warning-mark"
-        d="M11 8V12.2"
-        fill="none"
-        strokeWidth={2.2}
-        strokeLinecap="round"
-      />
-      <circle className="kc-warning-mark-dot" cx={11} cy={15.2} r={1.2} />
+      <path className="kc-warning-mark" d="M11 7V13.2" fill="none" strokeWidth={2} />
+      <rect className="kc-warning-mark-dot" x={10} y={14.6} width={2} height={2} />
     </svg>
   );
 }

@@ -142,3 +142,13 @@ it("NM-34, NM-35, NM-36, NM-32 list errors use their exact copy", () => {
   ];
   for (const [code, names, text] of table) expect(rowErrorMessage(code, names)).toBe(text);
 });
+
+it("R-6, EL-35 undefined names read as the reference's Too many variables warning", () => {
+  const table: [RowErrorCode, string[], string][] = [
+    ["too-many-variables", ["k"], "Too many variables. Try defining 'k'."],
+    ["too-many-variables", ["m", "b"], "Too many variables. Try defining 'm' or 'b'."],
+    ["too-many-variables", ["a", "b", "c"], "Too many variables. Try defining 'a', 'b' or 'c'."],
+    ["too-many-variables", [], "Too many variables, I don't know what to do with this."],
+  ];
+  for (const [code, names, text] of table) expect(rowErrorMessage(code, names)).toBe(text);
+});

@@ -2,13 +2,11 @@
    the K-6 phone keypad. Colours come only from role variables (TH-3); keys are at least 32 px, and
    44 px on coarse pointers and on the phone keypad (K-1, K-6). */
 
-.kc-keypad,
-.kc-show-keypad {
+.kc-keypad {
   --kc-key-size: 32px;
 }
 
-.kc-keypad:is([data-pointer="coarse"], [data-layout="phone"]),
-.kc-show-keypad:is([data-pointer="coarse"], [data-layout="phone"]) {
+.kc-keypad:is([data-pointer="coarse"], [data-layout="phone"]) {
   --kc-key-size: 44px;
 }
 
@@ -57,8 +55,7 @@
 }
 
 .kc-key,
-.kc-keypad-bar button,
-.kc-show-keypad {
+.kc-keypad-bar button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -107,13 +104,43 @@
   background-color: transparent;
 }
 
-/* K-2: at the bottom left of the calculator while the keypad is closed. */
+/* K-2, KP-32: the Show keypad pill at the bottom left while the keypad is closed: 78 by 42, 5 px
+   from the edges, a keyboard and an up caret at 0.6 (0.9 hover, 1 pressed). */
 .kc-show-keypad {
   position: absolute;
-  inset-inline-start: 8px;
-  bottom: 8px;
-  border: 1px solid var(--kc-boundary);
-  background-color: var(--kc-chrome);
+  inset-inline-start: 5px;
+  bottom: 5px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-sizing: border-box;
+  width: 78px;
+  height: 42px;
+  padding: 4px 14px;
+  border: 1px solid var(--kc-pill-border);
+  border-radius: var(--kc-radius-button);
+  background-color: var(--kc-pill);
+  box-shadow: var(--kc-pill-shadow);
+  color: var(--kc-text);
+  cursor: pointer;
+}
+
+.kc-show-keypad > svg {
+  flex: none;
+  opacity: var(--kc-icon-rest);
+}
+
+.kc-show-keypad:hover > svg {
+  opacity: var(--kc-icon-hover-graph);
+}
+
+.kc-show-keypad:active {
+  background-color: var(--kc-pill-pressed);
+}
+
+.kc-show-keypad:active > svg {
+  opacity: var(--kc-icon-pressed);
 }
 
 /* K-4: the Functions panel sits directly above the keypad from 560 px, scrolling when its

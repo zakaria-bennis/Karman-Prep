@@ -126,8 +126,11 @@ it("AR-36 one constructed sheet is shared across shadow roots; <style> is the fa
 });
 
 it("AR-39 shadow CSS sets .mq-math-mode and its var in the --kc-font-math Times stack last, with no Symbola", () => {
-  expect(family(".mq-math-mode").at(-1)).toBe("var(--kc-font-math)");
-  expect(family(".mq-math-mode var").at(-1)).toBe("var(--kc-font-math)");
+  const stack = 'var(--kc-font-math, "Times New Roman", serif)';
+  expect(family(".mq-math-mode")).toContain(stack);
+  // TY-19: binary operators take their own stack (STIX first, then the same Times faces).
+  expect(family(".mq-math-mode .mq-binary-operator").at(-1)).toBe("var(--kc-font-math-operator)");
+  expect(family(".mq-math-mode var").at(-1)).toBe(stack);
   expect(CALCULATOR_CSS).toMatch(
     /--kc-font-math: "Times New Roman", Tinos, "Liberation Serif", serif;/
   );
@@ -135,7 +138,7 @@ it("AR-39 shadow CSS sets .mq-math-mode and its var in the --kc-font-math Times 
   expect(CALCULATOR_CSS).not.toMatch(/font(?:-family)?\s*:[^;}]*Symbola/i);
 });
 
-it("AN-14 every CSS duration comes from --kc-duration-* and no cubic-bezier overshoots", () => {
+it("AN-14 every CSS duration comes from a --kc-dur-* token and no cubic-bezier overshoots", () => {
   const decls = CALCULATOR_CSS.match(/(?:transition|animation)(?:-duration)?\s*:[^;}]+/g) ?? [];
   expect(
     decls

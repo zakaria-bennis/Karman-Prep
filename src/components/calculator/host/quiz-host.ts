@@ -1,8 +1,7 @@
-import "katex/dist/katex.min.css";
 // Lazy quiz entry: the loader imports this module and
 // mounts calculator inside CalculatorWindow. AR-35 limits it to the public API, focusBoundary()
-// and the internal channels of (reflow, engine, lastFocusedRow). The KaTeX stylesheet
-// is imported at document scope so its @font-face rules reach the shadow root (AR-39, AR-40).
+// and the internal channels of (reflow, engine, lastFocusedRow). The math uses the system Times
+// stack (--kc-font-math), so no font stylesheet is imported (AR-39, AR-40).
 
 import { reportCalculatorError } from "@/components/calculator/report-error";
 import type { TransferResult, TransferTrigger } from "@/lib/calculator-transfer/payload";

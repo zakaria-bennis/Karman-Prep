@@ -130,7 +130,7 @@
   outline-offset: 2px;
 }
 
-/* AN-4: the popover fades in rising 4 px over 100 ms and fades out, in place, over 100 ms. */
+/* AN-4: the popover appears and leaves at once (--kc-dur-hover is 0 ms), as the reference's does. */
 .kc-settings {
   transition:
     opacity var(--kc-dur-hover) var(--kc-ease),

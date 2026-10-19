@@ -8,6 +8,17 @@ import type { RowView } from "@/lib/calculator/core/api/engine";
 
 export type RowMotion = "enter" | "idle" | "exit";
 
+/**
+ * Rows removed from the keyboard (Backspace or Delete in an empty row), which leave at once with
+ * no exit motion, as the reference's do; the next reconcile consumes each mark.
+ */
+const instantRemovals = new Set<string>();
+
+/** Marks row `rowId`'s coming removal as a keyboard one, with no exit motion. */
+export function removeWithoutMotion(rowId: string): void {
+  instantRemovals.add(rowId);
+}
+
 export interface PresentRow {
   row: RowView;
   motion: RowMotion;
@@ -32,6 +43,7 @@ function reconcile(previous: readonly PresentRow[], rows: readonly RowView[]): P
   });
   previous.forEach((item, index) => {
     if (ids.has(item.row.id)) return;
+    if (instantRemovals.delete(item.row.id)) return;
     items.splice(Math.min(index, items.length), 0, { row: item.row, motion: "exit" });
   });
   return items;

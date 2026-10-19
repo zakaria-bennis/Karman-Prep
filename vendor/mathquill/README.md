@@ -22,5 +22,5 @@ cp "$MQ/build/mathquill.js" "$MQ/build/mathquill.css" "$MQ/LICENSE" vendor/mathq
 | File          | sha256                                                           |
 | ------------- | ---------------------------------------------------------------- |
 | LICENSE       | 1f256ecad192880510e84ad60474eab7589218784b9a50bc7ceee34c2b91f1d5 |
-| mathquill.css | 70bc76264f5a7bcafd53d5af25a2bb47aa04ebadc068f486b8c2551f1575b3e9 |
+| mathquill.css | 2612845e915e2bd21611d34eb8fcfdaad0b09399f1023dae9e70bb95a55a1a49 |
 | mathquill.js  | 8739f2468a7c67436fb35b19d9d523aed8e0c72e90ff1903328050ffd3bab25a |

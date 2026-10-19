@@ -1,25 +1,35 @@
-// The Add item menu (S-2, S-10 to S-13): a menu button whose menu holds Add expression and Add
-// table only (owner decision 3: no inference item; CB-1: no notes, folders or images). The
+// The Add item menu (S-2, S-10 to S-13; drawn as EL-42, EL-43): a menu button whose menu holds Add
+// expression and Add table only (owner decision 3: no inference item; CB-1: no notes, folders or images). The
 // menu-button keyboard pattern with Home and End (S-10), placement below the button on the desktop
 // layout and to its right on the stacked one (S-11), insertion after the last active row (S-12)
 // and an announcement of what was added (S-13). Escape closes it as one KB-3 layer.
 
-import { SquareFunction, Table2 } from "lucide-react";
 import { useContext, useEffect, useRef, useState, type JSX, type KeyboardEvent } from "react";
-import { AddGlyph } from "../../icons/list";
+import { AddGlyph, TableItemGlyph } from "../../icons/list";
 import { useAnnouncer } from "../a11y/announcer";
 import { EscapeContext } from "../focus/escape-stack";
 import { FocusContext } from "../focus/focus-controller";
 import { useEngine } from "../hooks/use-engine";
 import { insertExpressionItem, insertTableItem } from "./row-actions";
+import { Tooltip, useTooltip } from "./Tooltip";
 
 export interface AddItemMenuProps {
   layout: "desktop" | "stacked";
 }
 
+/** EL-43: "f(x)" in the math font, italic letters and upright brackets. */
+function ExpressionItemGlyph(): JSX.Element {
+  return (
+    <span className="kc-add-menu-fx" aria-hidden="true">
+      <i>f</i>(<i>x</i>)
+    </span>
+  );
+}
+
+// EL-43: the reference's lower-case labels; only the item types Karman supports.
 const ITEMS = [
-  { id: "expression", label: "Add expression", text: "Expression", icon: SquareFunction },
-  { id: "table", label: "Add table", text: "Table", icon: Table2 },
+  { id: "expression", label: "Add expression", text: "expression", icon: ExpressionItemGlyph },
+  { id: "table", label: "Add table", text: "table", icon: TableItemGlyph },
 ] as const;
 
 export function AddItemMenu({ layout }: AddItemMenuProps): JSX.Element {
@@ -28,6 +38,7 @@ export function AddItemMenu({ layout }: AddItemMenuProps): JSX.Element {
   const announcer = useAnnouncer();
   const escape = useContext(EscapeContext);
   const [open, setOpen] = useState(false);
+  const tip = useTooltip(open);
   const button = useRef<HTMLButtonElement>(null);
   const menu = useRef<HTMLDivElement>(null);
   const items = useRef<(HTMLButtonElement | null)[]>([]);
@@ -109,8 +120,10 @@ export function AddItemMenu({ layout }: AddItemMenuProps): JSX.Element {
         aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
         onKeyDown={onButtonKey}
+        {...tip.handlers}
       >
         <AddGlyph />
+        {tip.open && <Tooltip text="Add Item" />}
       </button>
       {open && (
         <div
@@ -136,7 +149,9 @@ export function AddItemMenu({ layout }: AddItemMenuProps): JSX.Element {
                 onClick={() => activate(item.id)}
                 onKeyDown={(e) => onMenuKey(e, i)}
               >
-                <Icon aria-hidden="true" focusable="false" size={18} />
+                <span className="kc-add-menu-icon">
+                  <Icon />
+                </span>
                 <span aria-hidden="true">{item.text}</span>
               </button>
             );

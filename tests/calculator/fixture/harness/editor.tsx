@@ -6,10 +6,12 @@
 // stand-in graph's resizes on globalThis.__editorHarness.
 
 import { useEffect, useMemo, useRef, useState, type JSX } from "react";
+import errorTipCss from "@/components/calculator/styles/error-tip.css?inline";
 import keypadCss from "@/components/calculator/styles/keypad.css?inline";
 import listCss from "@/components/calculator/styles/list.css?inline";
 import settingsCss from "@/components/calculator/styles/settings.css?inline";
 import tokensCss from "@/components/calculator/styles/tokens.css?inline";
+import toolbarCss from "@/components/calculator/styles/toolbar.css?inline";
 import {
   AnnouncerContext,
   LiveRegion,
@@ -205,7 +207,7 @@ globalThis.__editorHarness = { graphResizes: 0 };
 const query = readEditorQuery(location.search, matchMedia("(any-pointer: coarse)").matches);
 const { engine } = mountHarness({
   root: document.getElementById("root")!,
-  css: [tokensCss, mathquillCss, listCss, keypadCss, settingsCss],
+  css: [tokensCss, mathquillCss, listCss, toolbarCss, errorTipCss, keypadCss, settingsCss],
   skin: query.skin,
   render: (engine) => <EditorHarness engine={engine} query={query} />,
 });

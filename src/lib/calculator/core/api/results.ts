@@ -6,7 +6,13 @@
 import type { Geometry } from "../../plot/geometry";
 import type { PoiPoint } from "../../poi/types";
 import type { Viewport, ViewSpec } from "../../plot/viewport";
-import { rowErrorMessage, type AnalysisResult, type RowAnalysis, type RowError } from "../analysis";
+import {
+  displayName,
+  rowErrorMessage,
+  type AnalysisResult,
+  type RowAnalysis,
+  type RowError,
+} from "../analysis";
 import type { RowKind } from "../corpus/types";
 import { formatValue } from "../eval/format";
 import type { Value } from "../eval/values";
@@ -122,6 +128,21 @@ export function rowShowsValue(row: RowAnalysis, value: Value | null, overrun: bo
   );
 }
 
+/**
+ * RC-10, EL-34: a row whose only problem is undefined names shows the reference's "Too many
+ * variables" warning beside its add-slider chips. The complex-mode hint row (NM-17) keeps its hint.
+ */
+function chipsError(row: RowAnalysis): RowError | null {
+  if (row.chips.length === 0 || row.complexHint) return null;
+  const names = row.chips.map(displayName);
+  return {
+    code: "too-many-variables",
+    message: rowErrorMessage("too-many-variables", names),
+    names,
+    span: null,
+  };
+}
+
 /** NM-34 to NM-36, NM-42: the list error a row's value carries, as its row error (R-2). */
 function valueError(value: Value | null): RowError | null {
   if (value === null || value.type !== "undefined" || value.error === undefined) return null;
@@ -144,7 +165,10 @@ export function buildRowView(row: StoredRow, analysis: RowAnalysis, result: RowR
     kind: analysis.kind,
     error: overrun
       ? timeoutError()
-      : (analysis.error ?? valueError(value) ?? fitError(result.regression)),
+      : (analysis.error ??
+        chipsError(analysis) ??
+        valueError(value) ??
+        fitError(result.regression)),
     chips: [...analysis.chips],
     complexHint: analysis.complexHint,
     value,

@@ -121,8 +121,8 @@ it("KB-4 focusOnOpen for mouse or keyboard focuses the last focused row, else ro
   expect(h.instance.focusExpression).toHaveBeenLastCalledWith("2");
 });
 
-it("AR-39 quiz-host imports katex/dist/katex.min.css at document scope", () => {
-  expect(SOURCE()).toMatch(/^import "katex\/dist\/katex\.min\.css";$/m);
+it("AR-39 quiz-host imports no font stylesheet: the math uses the system Times stack", () => {
+  expect(SOURCE()).not.toMatch(/katex/i);
 });
 
 it("KB-4 focusOnOpen('touch') activates the last focused row and focuses the frame (OI-7)", () => {

@@ -70,16 +70,6 @@ export function recordCanvasFonts(): void {
   };
 }
 
-/** AR-40: a KaTeX_Math face exists in document.fonts and has loaded (check() is true with none). */
-export function katexMathLoaded(): boolean {
-  for (const face of document.fonts) {
-    if (face.family.replace(/^["']|["']$/g, "") === "KaTeX_Math" && face.status === "loaded") {
-      return true;
-    }
-  }
-  return false;
-}
-
 /** AR-40: whether any stylesheet of the shadow root holds an @font-face rule. */
 export function shadowHasFontFace(): boolean {
   const root = document.querySelector("#calc")!.shadowRoot!;
@@ -168,7 +158,7 @@ export async function setThemeAndWait(
 ): Promise<{ strokes: string[]; paper: string }> {
   const store = globalThis as unknown as { __strokes?: string[] };
   const start = store.__strokes?.length ?? 0;
-  document.documentElement.dataset.theme = theme;
+  document.documentElement.dataset.calculatorSkin = theme; // TH-15: the calculator's own skin
   await new Promise((r) => requestAnimationFrame(r));
   await new Promise((r) => setTimeout(r, 0));
   const paper = getComputedStyle(document.querySelector("#calc")!).getPropertyValue("--kc-paper");
@@ -257,6 +247,9 @@ export function readTextPairs(): TextPair[] {
     return r instanceof ShadowRoot ? r.host : null;
   };
   const alphaOf = (c: string) => {
+    // color-mix() tones compute to color(srgb r g b / a)
+    const mixed = /^color\(srgb [^/)]*\/\s*([\d.]+)\)$/.exec(c);
+    if (mixed !== null) return Number(mixed[1]);
     const m = /^rgba?\(([^)]*)\)$/.exec(c);
     if (m === null) return 1;
     const parts = m[1].split(/[\s,/]+/).filter(Boolean);

@@ -41,9 +41,9 @@ test("AN-14 no transition or animation exceeds 400 ms or overshoots, and duratio
   const all = await motionAcrossLayers(page);
   expect(all.flatMap((m) => m.durations).filter((d) => seconds(d) > 0.4)).toEqual([]);
   expect(all.flatMap((m) => m.easing).filter(overshoots)).toEqual([]);
-  expect(await hostVar(page, "--kc-duration-normal")).toBe("400ms");
+  expect(await hostVar(page, "--kc-dur-250")).toBe("250ms");
   await page.emulateMedia({ reducedMotion: "reduce" });
-  expect([await hostVar(page, "--kc-duration-normal"), allZero(await motionNow(page))]).toEqual([
+  expect([await hostVar(page, "--kc-dur-250"), allZero(await motionNow(page))]).toEqual([
     "0ms",
     true,
   ]);
@@ -58,9 +58,9 @@ test("AN-13 the quiz Question animations setting or the OS preference makes calc
   expect(await instantMotion(page)).toEqual(INSTANT);
   await api(page, "globalThis.__shell.handle.setReducedMotion(false)");
   await expect(page.locator("#calc")).toHaveAttribute("data-reduced-motion", "false");
-  expect(await hostVar(page, "--kc-duration-fast")).toBe("200ms");
+  expect(await hostVar(page, "--kc-dur-200")).toBe("200ms");
   await page.emulateMedia({ reducedMotion: "reduce" });
-  expect(await hostVar(page, "--kc-duration-fast")).toBe("0ms");
+  expect(await hostVar(page, "--kc-dur-200")).toBe("0ms");
   expect(await instantMotion(page)).toEqual(INSTANT); // the OS path: reducedMotionMedia into GraphPanel
 });
 test("AR-38 CSS transitions and keyframes stop under prefers-reduced-motion and the keypad opens within a frame", async ({
@@ -78,7 +78,7 @@ test("AR-38 CSS transitions and keyframes stop under prefers-reduced-motion and 
   await page.waitForTimeout(300);
   expect(await keypad.boundingBox()).toEqual(first);
 });
-test("TH-15 data-theme, contrast, forced-colour and colour-scheme changes repaint within one frame with no remount and no lost rows; prefers-contrast never toggles Reverse contrast", async ({
+test("TH-15 data-calculator-skin, contrast and forced-colour changes repaint within one frame with no remount and no lost rows; prefers-contrast never toggles Reverse contrast; the colour scheme leaves classic alone", async ({
   page,
 }) => {
   await page.addInitScript(recordStrokes);
@@ -114,16 +114,17 @@ test("TH-15 data-theme, contrast, forced-colour and colour-scheme changes repain
     colorScheme: "light",
   });
   await page.evaluate(() => {
-    delete document.documentElement.dataset.theme;
+    delete document.documentElement.dataset.calculatorSkin;
   });
   await frames(page);
-  expect(await paper()).toBe(SKIN_COLORS.ivory.normal.roles.paper.toLowerCase()); // the colour scheme now picks the skin
+  const classic = SKIN_COLORS.classic.normal.roles.paper.toLowerCase();
+  expect(await paper()).toBe(classic); // no calculator skin named: classic
   await page.emulateMedia({ colorScheme: "dark" });
   await frames(page, 1);
-  expect(await paper()).toBe(SKIN_COLORS.observatory.normal.roles.paper.toLowerCase());
+  expect(await paper()).toBe(classic); // the OS colour scheme no longer changes the calculator
 });
 for (const skin of SKIN_IDS)
-  test(`TH-14 every shell focusable shows a 2px solid focus-ring outline (offset 2px; rows -2px, OI-31) at 3:1 or more in ${skin}`, async ({
+  test(`TH-14 every shell focusable shows a 2px solid focus-ring outline (offset 2px; rows and the list resizer -2px, OI-31; the delete cross -4px, AK-17) at 3:1 or more in ${skin}`, async ({
     page,
   }, info) => {
     test.skip(!PROJECTS.includes(info.project.name), "computed colours are engine-independent");
@@ -135,7 +136,11 @@ for (const skin of SKIN_IDS)
       expect([r.style, r.width, r.offset, toHex(r.color).hex], r.name).toEqual([
         "solid",
         "2px",
-        r.inset ? "-2px" : "2px",
+        r.inset || r.name.startsWith("Resize expression list")
+          ? "-2px"
+          : r.name.startsWith("Delete expression")
+            ? "-4px"
+            : "2px",
         SKIN_COLORS[skin].normal.roles.focusRing.toLowerCase(),
       ]);
       expect(

@@ -206,18 +206,22 @@ test("KB-7 undo, redo and Alt+Enter in a Graph settings text field leave the exp
   await expect(page.getByRole("dialog", { name: "Graph settings" })).toBeVisible();
 });
 
-test("KB-13 Undo, Redo, Clear all, Add item and every keypad key are tabbable in visual order; a hidden keypad and collapsed list are skipped", async ({
+test("KB-13 Delete All, Undo, Redo, Done and every keypad key are tabbable in visual order; a hidden keypad and collapsed list are skipped", async ({
   page,
 }) => {
   await openShell(page, `?w=800&h=600&rows=${enc(["1"])}`);
   await rowField(page, "1").click();
   for (const key of ["End", "2", "Control+KeyZ", "Control+KeyK"]) await page.keyboard.press(key); // Undo and Redo both enabled; keypad open
   await page.getByRole("button", { name: /^edit list/i }).click();
+  // AN-1: measure the keys once the keypad's 300 ms slide has ended.
+  await expect
+    .poll(() => page.locator("#calc .kc-keypad").evaluate((el) => el.getAnimations().length))
+    .toBe(0);
   const open = await tabCycle(page);
   expect(open.filter((d) => d.hidden)).toEqual([]);
   expectOrder(
     open.map((d) => d.name),
-    [/^add item/i, /^undo/i, /^redo/i, /^clear all/i]
+    [/^delete all/i, /^undo/i, /^redo/i, /^done/i] // EL-44: Edit list mode's toolbar
   );
   const keys = open.filter((d) => d.keypad);
   expect(keys.length).toBeGreaterThan(0);
@@ -228,8 +232,8 @@ test("KB-13 Undo, Redo, Clear all, Add item and every keypad key are tabbable in
     keys.filter((d, i) => i > 0 && d.top < keys[i - 1].top - 2 && d.left <= keys[i - 1].left)
   ).toEqual([]); // up only into a group further right
   await api(page, "c.updateSettings({ keypad: false })"); // tabCycle left focus on #outside, outside the shadow root
+  await page.getByRole("button", { name: /^done/i }).click();
   await page.getByRole("button", { name: /^collapse list/i }).click();
-  // AN-3's 200 ms collapse outlasts 15 frames on a 120 Hz display, so wait for it to finish first.
   await expect
     .poll(() =>
       page.evaluate(
@@ -237,6 +241,9 @@ test("KB-13 Undo, Redo, Clear all, Add item and every keypad key are tabbable in
       )
     )
     .toBe(true);
+  // AN-1: the hidden keypad turns visibility:hidden once its 300 ms slide ends.
+  await expect(page.locator("#calc .kc-keypad")).toHaveCSS("visibility", "hidden");
+  await page.waitForTimeout(300); // the list's 250 ms slide (AN-3)
   await frames(page, 15);
   expect(
     (await tabCycle(page)).filter((d) => d.row || (d.keypad && !/^show keypad$/i.test(d.name)))

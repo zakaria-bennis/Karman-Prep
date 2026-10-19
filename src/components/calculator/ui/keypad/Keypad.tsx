@@ -15,7 +15,6 @@ import {
   ChevronDown,
   CornerDownLeft,
   Delete,
-  Keyboard,
   Volume2,
   type LucideIcon,
 } from "lucide-react";
@@ -36,6 +35,7 @@ import type { PanelEntry } from "@/lib/calculator/core/latex/operator-names";
 import { AnnouncerContext } from "../a11y/announcer";
 import { EscapeContext, type EscapeStack } from "../focus/escape-stack";
 import { FocusContext } from "../focus/focus-controller";
+import { CaretUpGlyph, KeyboardGlyph } from "../../icons/list";
 import { KeyboardTraceContext } from "../graph/keyboard-trace";
 import { useEngine } from "../hooks/use-engine";
 import { editThroughKeypad } from "../list/row-actions";
@@ -348,7 +348,8 @@ export function Keypad(props: KeypadProps): JSX.Element {
           data-pointer={pointer}
           onClick={() => studentOpenChange(true)}
         >
-          <Keyboard aria-hidden="true" focusable="false" size={20} />
+          <KeyboardGlyph />
+          <CaretUpGlyph />
         </button>
       )}
     </>

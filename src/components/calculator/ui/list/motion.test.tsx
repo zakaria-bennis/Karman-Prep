@@ -47,7 +47,7 @@ it("AN-5 an exiting row is inert, unnumbered and removed after its exit duration
   expect(document.querySelector('li[data-row-id="2"]')).toBeNull();
 });
 
-it("AN-3 Collapse list and Expand list flip expressionsCollapsed only when their transition ends", () => {
+it("AN-3, EL-49 Collapse list and Expand list flip expressionsCollapsed at once and slide for their duration", () => {
   vi.useFakeTimers();
   const kit = renderEditor(<ExpressionPanel {...panelProps()} />, {
     rows: ["y=x"],
@@ -56,17 +56,17 @@ it("AN-3 Collapse list and Expand list flip expressionsCollapsed only when their
   const panel = document.querySelector(".kc-list-panel")!;
   fireEvent.click(screen.getByRole("button", { name: "Collapse list" }));
   expect(panel).toHaveAttribute("data-list-state", "collapsing");
+  expect(kit.engine.settings.expressionsCollapsed).toBe(true); // the graph resizes on frame 1
   act(() => vi.advanceTimersByTime(199));
-  expect(kit.engine.settings.expressionsCollapsed).toBe(false);
+  expect(panel).toHaveAttribute("data-list-state", "collapsing");
   act(() => vi.advanceTimersByTime(1));
-  expect(kit.engine.settings.expressionsCollapsed).toBe(true);
   expect(panel).toHaveAttribute("data-list-state", "collapsed");
   expect(screen.queryByRole("list", { name: "Expressions" })).toBeNull();
+  expect(screen.getByRole("button", { name: "Expand list" })).toHaveFocus();
   fireEvent.click(screen.getByRole("button", { name: "Expand list" }));
   expect(panel).toHaveAttribute("data-list-state", "expanding");
-  act(() => vi.advanceTimersByTime(199));
-  expect(kit.engine.settings.expressionsCollapsed).toBe(true);
-  act(() => vi.advanceTimersByTime(1));
   expect(kit.engine.settings.expressionsCollapsed).toBe(false);
+  act(() => vi.advanceTimersByTime(200));
+  expect(panel).toHaveAttribute("data-list-state", "expanded");
   expect(screen.getByRole("button", { name: "Collapse list" })).toHaveFocus();
 });

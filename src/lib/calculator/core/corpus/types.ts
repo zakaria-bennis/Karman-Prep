@@ -39,7 +39,8 @@ export type RowErrorCode =
   | "nested-list" // NM-34
   | "list-too-long" // NM-35, NM-42
   | "range-step" // NM-36
-  | "list-mixed"; // PR-34: numbers and points in one list
+  | "list-mixed" // PR-34: numbers and points in one list
+  | "too-many-variables"; // RC-10: undefined names; the row view adds it, the analysis gives chips
 export interface CorpusSettings {
   angleMode?: "radians" | "degrees";
   complex?: boolean;

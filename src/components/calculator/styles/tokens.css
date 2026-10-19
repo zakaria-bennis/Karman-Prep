@@ -6,6 +6,7 @@
   /* Type */
   --kc-font-ui: Arial, Arimo, "Liberation Sans", sans-serif;
   --kc-font-math: "Times New Roman", Tinos, "Liberation Serif", serif;
+  --kc-font-math-operator: STIXGeneral, "Times New Roman", Tinos, "Liberation Serif", serif;
   --kc-size-ui: 16px;
   --kc-size-list: 17.6px;
   --kc-size-math: 20.24px;
@@ -31,12 +32,15 @@
   /* Icon and control opacities */
   --kc-icon-rest: 0.6;
   --kc-icon-hover: 0.8;
+  --kc-icon-hover-graph: 0.9;
   --kc-icon-pressed: 1;
   --kc-icon-disabled: 0.3;
   --kc-delete-rest: 0.2;
   --kc-delete-hover: 0.6;
   --kc-delete-pressed: 0.8;
   --kc-equals-opacity: 0.55;
+  --kc-menu-item-rest: 0.5;
+  --kc-menu-item-hover: 0.8;
 
   /* Tones mixed from the roles */
   --kc-rule: color-mix(in srgb, var(--kc-text) 20%, transparent);
@@ -56,6 +60,11 @@
   --kc-tooltip-error: var(--kc-text-secondary);
   --kc-letter-top: color-mix(in srgb, var(--kc-text) 3.5%, var(--kc-list));
   --kc-letter-bottom: color-mix(in srgb, var(--kc-text) 5.5%, var(--kc-list));
+  --kc-pill: color-mix(in srgb, var(--kc-text) 7%, var(--kc-list));
+  --kc-pill-pressed: color-mix(in srgb, var(--kc-text) 9%, var(--kc-list));
+  --kc-pill-border: color-mix(in srgb, var(--kc-text) 10%, transparent);
+  --kc-pill-shadow: 0 0 5px color-mix(in srgb, var(--kc-text) 10%, transparent);
+  --kc-popover-shadow: 0 5px 10px color-mix(in srgb, var(--kc-text) 20%, transparent);
 
   /* Motion: hover and press are instant; the rest use ease or ease-out. */
   --kc-dur-hover: 0ms;
@@ -63,6 +72,7 @@
   --kc-dur-250: 250ms;
   --kc-dur-300: 300ms;
   --kc-dur-800: 800ms;
+  --kc-dur-row-exit: 190ms;
   --kc-ease: ease;
   --kc-ease-out: ease-out;
 }
@@ -72,6 +82,7 @@
     --kc-dur-250: 0ms;
     --kc-dur-300: 0ms;
     --kc-dur-800: 0ms;
+    --kc-dur-row-exit: 0ms;
   }
 }
 :host([data-reduced-motion="true"]) {
@@ -79,4 +90,5 @@
   --kc-dur-250: 0ms;
   --kc-dur-300: 0ms;
   --kc-dur-800: 0ms;
+  --kc-dur-row-exit: 0ms;
 }

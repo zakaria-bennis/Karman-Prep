@@ -1,5 +1,5 @@
-/* The expression list: panel, toolbar, rows, colour icon, delete control, value line, ghost row
-   and the hidden-list Expand button. Geometry and tones follow the reference graphing calculator
+/* The expression list: panel, rows, colour icon, delete control, value line, the lines under the
+   math, ghost row, row menu and toast (the toolbar is toolbar.css). Geometry and tones follow the reference graphing calculator
    (expression-list VIS-1 to VIS-50) through tokens.css; colours come only from roles (TH-3). */
 
 /* VIS-5: the panel's 1 px right rule and the 4 px shadow strip that falls on the graph. */
@@ -21,7 +21,7 @@
   position: absolute;
   top: 0;
   bottom: 0;
-  left: 100%;
+  left: calc(100% + 1px);
   width: 4px;
   background: linear-gradient(to right, var(--kc-panel-shadow), transparent);
   pointer-events: none;
@@ -34,11 +34,11 @@
 }
 
 .kc-list-panel[data-layout="stacked"]::after,
-.kc-list-panel[data-list-state="collapsed"]::after {
+.kc-list-panel:is([data-list-state="collapsed"], [data-list-state="collapsing"])::after {
   content: none;
 }
 
-.kc-list-panel[data-list-state="collapsed"] {
+.kc-list-panel:is([data-list-state="collapsed"], [data-list-state="collapsing"]) {
   border: none;
   background: transparent;
 }
@@ -58,145 +58,37 @@
   transform: translateX(-100%);
 }
 
+/* While collapsing, the slide is an overlay (inline size) anchored where the column was. */
+.kc-list-panel[data-list-state="collapsing"] > .kc-list-slide {
+  top: 0;
+}
+
+.kc-list-panel[data-layout="stacked"][data-list-state="collapsing"] > .kc-list-slide {
+  top: auto;
+  bottom: 0;
+}
+
 .kc-list-panel[data-layout="stacked"][data-list-state="collapsing"] .kc-list-slide,
 .kc-list-panel[data-layout="stacked"] .kc-list-slide[data-enter="true"] {
   transform: translateY(100%);
 }
 
-/* VIS-7, VIS-8, VIS-13: the 48 px toolbar, + at the left, Undo and Redo in the free space between,
-   Edit list and Collapse list at the right; a shadow while the list below is scrolled. */
-.kc-list-toolbar {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  flex: none;
-  align-items: center;
-  height: var(--kc-toolbar-h);
-  padding: 6px 5px 5px;
-  border-bottom: 1px solid var(--kc-rule);
-  background: linear-gradient(var(--kc-toolbar-top), var(--kc-toolbar-bottom));
-  transition: box-shadow var(--kc-dur-200) var(--kc-ease);
-}
-
-.kc-list-panel[data-scrolled="true"] .kc-list-toolbar {
-  box-shadow: -2px 2px 4px var(--kc-panel-shadow);
-}
-
-.kc-toolbar-zone {
-  display: flex;
-  align-items: center;
-}
-
-.kc-toolbar-zone[data-zone="centre"] {
-  flex: 1 1 auto;
-  justify-content: center;
-  padding-left: 4px;
-}
-
-/* VIS-9, VIS-10: 40 px buttons on a 38 px pitch; the glyph rests at 0.6, 0.8 on hover over a 10%
-   fill, 1 pressed over 20%; a disabled button is 0.3 as a whole. Every change is instant. */
-.kc-list-tool {
-  display: grid;
-  place-items: center;
-  width: var(--kc-tool-size);
-  height: var(--kc-tool-size);
-  margin: -1px;
-  padding: 0;
-  border: none;
-  border-radius: var(--kc-radius-button);
-  background: transparent;
-  color: var(--kc-text);
-  cursor: pointer;
-}
-
-.kc-list-tool > svg {
-  opacity: var(--kc-icon-rest);
-}
-
-.kc-list-tool:not([aria-disabled="true"]):is(
-    :hover,
-    [aria-pressed="true"],
-    [aria-expanded="true"]
-  ) {
-  background: var(--kc-hover-fill);
-}
-
-.kc-list-tool:not([aria-disabled="true"]):is(:hover, [aria-pressed="true"], [aria-expanded="true"])
-  > svg {
-  opacity: var(--kc-icon-hover);
-}
-
-.kc-list-tool:not([aria-disabled="true"]):active {
-  background: var(--kc-pressed-fill);
-}
-
-.kc-list-tool:not([aria-disabled="true"]):active > svg {
-  opacity: var(--kc-icon-pressed);
-}
-
-/* KB-2: Undo and Redo at the ends of the stack stay in the Tab order (KB-13). */
-.kc-list-tool[aria-disabled="true"] {
-  opacity: var(--kc-icon-disabled);
-  cursor: default;
-}
-
-/* VIS-28: the browser's own ring colour, no offset. */
+/* TH-14: a 2 px focus-ring outline with a 2 px offset, on keyboard focus only. */
 .kc-list-tool:focus-visible,
 .kc-edit-action:focus-visible,
+.kc-list:focus-visible,
 .kc-row-tab:focus-visible,
 .kc-row-warning:focus-visible,
 .kc-row-hint-action:focus-visible {
   outline: 2px solid var(--kc-focus-ring);
-  outline-offset: 0;
+  outline-offset: 2px;
 }
 
-/* VIS-50: with the list hidden, Expand list sits over the graph's top-left corner (stacked: the
-   bottom-right corner, pointing up). */
-.kc-list-panel > .kc-list-tool {
-  position: absolute;
-  top: 5px;
-  left: 5px;
-  z-index: 3;
-  width: var(--kc-graph-button);
-  height: var(--kc-graph-button);
-  margin: 0;
-}
-
-.kc-list-panel[data-layout="stacked"] > .kc-list-tool {
-  top: auto;
-  right: 5px;
-  bottom: 5px;
-  left: auto;
-}
-
-/* KB-5, VIS-44: Edit list mode's bar under the toolbar, a red and a blue button. */
-.kc-edit-bar {
-  display: flex;
-  flex: none;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 4px 8px;
-  padding: 5px;
-  border-bottom: 1px solid var(--kc-rule);
-}
-
-.kc-edit-action {
-  height: 35px;
-  padding: 0 15px;
-  border: none;
-  border-radius: var(--kc-radius-small);
-  color: var(--kc-accent-label);
-  font: inherit;
-  cursor: pointer;
-}
-
-.kc-edit-action[data-tone="danger"] {
-  background: var(--kc-error);
-}
-
-.kc-edit-action[data-tone="accent"] {
-  background: var(--kc-accent);
+/* L-3, TH-14: a row reached from the keyboard also carries a 2 px outline inside its accent
+   borders; the panel marks keyboard use, so a click keeps the reference look. */
+.kc-list-panel[data-input="keyboard"] .kc-row[data-focused="true"] {
+  outline: 2px solid var(--kc-focus-ring);
+  outline-offset: -2px;
 }
 
 /* VIS-47: the list scrolls under the fixed toolbar with the platform scrollbar. */
@@ -318,8 +210,8 @@
 /* VIS-34: the warning triangle stands where the colour icon would, fading in after 0.8 s. */
 .kc-row-warning {
   position: absolute;
-  top: 15px;
-  left: 5.5px;
+  top: 11.3px;
+  left: 5px;
   display: grid;
   place-items: center;
   width: 26px;
@@ -330,6 +222,15 @@
   color: var(--kc-warning);
   cursor: pointer;
   animation: kc-warning-in var(--kc-dur-200) var(--kc-ease) var(--kc-dur-800) both;
+}
+
+/* EL-34: the exclamation mark is cut out of the triangle, so the tab shows through it. */
+.kc-row-warning .kc-warning-mark {
+  stroke: var(--kc-tab);
+}
+
+.kc-row-warning .kc-warning-mark-dot {
+  fill: var(--kc-tab);
 }
 
 .kc-row:is([data-focused="true"], [data-active="true"]) .kc-row-warning {
@@ -364,7 +265,7 @@
   display: flex;
   align-items: center;
   min-width: 0;
-  padding: 15px 35px 9px 53px;
+  padding: 14px 35px 10px 53px;
 }
 
 .kc-row-field > .kc-math-field {
@@ -394,9 +295,9 @@
   position: absolute;
   top: 0;
   right: 0;
-  width: 45.4px;
+  width: 45px;
   height: 46.4px;
-  padding: 8px 6.3px 20px 20.7px;
+  padding: 8px 7px 20px 20px;
   border: none;
   background: transparent;
   color: var(--kc-text);
@@ -459,31 +360,104 @@
   overflow-wrap: anywhere;
 }
 
-/* FN-16 (OI-4): the complex-mode hint and its action, under the math like the add-slider line. */
+/* EL-36, FN-16: the lines under the math (add slider, Label, the complex-mode hint), 53 px in,
+   in small muted text, fading in like the value line. */
+.kc-row-under,
 .kc-row-hint {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 3px 5px;
+  gap: 3px;
   padding: 0 35px 0 53px;
   color: var(--kc-text-muted);
+  font-family: var(--kc-font-ui);
   font-size: var(--kc-size-small);
+  animation: kc-warning-in var(--kc-dur-800) var(--kc-ease);
 }
 
+.kc-add-slider {
+  margin-bottom: 1px;
+}
+
+.kc-add-slider-label {
+  margin-right: 1px;
+}
+
+/* EL-36: 35 by 26 letter buttons on a light gradient; one undefined letter, and "all", are blue. */
+.kc-letter-button,
 .kc-row-hint-action {
+  min-width: 35px;
   height: 26px;
   padding: 0 4px;
   border: 1px solid var(--kc-row-rule);
   border-radius: var(--kc-radius-small);
   background: linear-gradient(var(--kc-letter-top), var(--kc-letter-bottom));
+  box-shadow:
+    inset 0 1px color-mix(in srgb, var(--kc-list) 25%, transparent),
+    inset 0 -1px color-mix(in srgb, var(--kc-text) 2%, transparent);
   color: var(--kc-text);
   font: inherit;
   cursor: pointer;
 }
 
+.kc-letter-button {
+  font-family: var(--kc-font-math);
+  font-size: var(--kc-size-slider-letter);
+  font-style: italic;
+}
+
+.kc-letter-button {
+  padding-bottom: 2px;
+}
+
+.kc-letter-button[data-word="true"] {
+  font-size: var(--kc-size-small);
+  font-style: normal;
+}
+
+.kc-letter-button:not([data-tone="accent"]):hover,
 .kc-row-hint-action:hover {
   border-color: var(--kc-boundary);
   background: var(--kc-letter-bottom);
+}
+
+.kc-letter-button[data-tone="accent"] {
+  border-color: var(--kc-accent);
+  background: var(--kc-accent);
+  box-shadow:
+    inset 0 1px color-mix(in srgb, var(--kc-list) 10%, transparent),
+    inset 0 -1px color-mix(in srgb, var(--kc-text) 4%, transparent);
+  color: var(--kc-accent-label);
+}
+
+.kc-letter-button:focus-visible {
+  outline: 2px solid var(--kc-focus-ring);
+  outline-offset: 2px;
+}
+
+/* EL-15: a point row's Label line: a 14 px white box with a 1 px grey edge, then the caption. */
+.kc-point-label {
+  gap: 6px;
+  height: 14px;
+  margin-bottom: 4px;
+}
+
+.kc-checkbox {
+  flex: none;
+  box-sizing: border-box;
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  border: 1px solid var(--kc-boundary);
+  border-radius: 2px;
+  background: var(--kc-list);
+  appearance: none;
+  cursor: default;
+}
+
+.kc-checkbox:focus-visible {
+  outline: 2px solid var(--kc-focus-ring);
+  outline-offset: 2px;
 }
 
 .kc-row-main > .kc-regression {
@@ -491,13 +465,14 @@
   padding-left: 53px;
 }
 
-/* VIS-30: a row is added at once; a deleted row folds its height and fades over 200 ms. */
+/* VIS-30: a row is added at once; a row deleted with its cross folds its height and fades with
+   a slow start over 190 ms. A keyboard removal has no motion (row-presence). */
 .kc-row[data-motion="exit"] {
   grid-template-rows: 0fr;
   opacity: 0;
   transition:
-    grid-template-rows var(--kc-dur-200) var(--kc-ease-out),
-    opacity var(--kc-dur-200) var(--kc-ease-out);
+    grid-template-rows var(--kc-dur-row-exit) var(--kc-ease),
+    opacity var(--kc-dur-row-exit) var(--kc-ease);
 }
 
 /* VIS-23: the next row's number on a tab that fades out downward; a press adds the row. */
@@ -521,6 +496,12 @@
   mask-image: linear-gradient(to bottom, var(--kc-text) 50%, transparent);
 }
 
+/* The room the reference leaves under the ghost row, so the last row scrolls clear of Show
+   keypad. */
+.kc-list-panel[data-layout="desktop"][data-keypad="false"] .kc-ghost-row {
+  margin-bottom: 104px;
+}
+
 .kc-ghost-row > .kc-row-number {
   position: relative;
   padding: 1px 2px;
@@ -537,55 +518,6 @@
   clip: rect(0 0 0 0);
   clip-path: inset(50%);
   white-space: nowrap;
-}
-
-/* S-2, S-11: the Add item menu, a popover below Add item (desktop) or to its right (stacked). */
-.kc-add-item {
-  position: relative;
-  display: inline-flex;
-}
-
-.kc-add-menu {
-  position: absolute;
-  z-index: 5;
-  display: flex;
-  flex-direction: column;
-  min-width: 9rem;
-  padding: 4px;
-  border: 1px solid var(--kc-boundary);
-  border-radius: 6px;
-  background: var(--kc-key);
-  box-shadow: 0 2px 8px color-mix(in srgb, var(--kc-text) 20%, transparent);
-}
-
-.kc-add-menu[data-placement="below"] {
-  top: calc(100% + 6px);
-  left: 0;
-}
-
-.kc-add-menu[data-placement="right"] {
-  top: 0;
-  left: calc(100% + 6px);
-}
-
-.kc-add-menu-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 32px;
-  padding: 4px 8px;
-  border: none;
-  border-radius: 4px;
-  background: transparent;
-  color: var(--kc-text);
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-
-.kc-add-menu-item:hover,
-.kc-add-menu-item:focus-visible {
-  background: var(--kc-chrome);
 }
 
 /* D-13: the row menu from the colour icon, over the row below it. */

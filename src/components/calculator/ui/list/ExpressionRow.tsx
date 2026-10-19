@@ -7,7 +7,9 @@
 // ErrorMarker) and the complex-mode hint (FN-16, OI-4), and the Delete control. The
 // field's inputmode follows the on-screen keypad (T-11). Enter, the arrow edges, Backspace or
 // Delete in an empty row and the Delete control go through row-actions (R-3, R-9); a typed edit
-// past the T-13 limit is refused, restored and announced. AN-5: the row carries its presence
+// past the T-13 limit is refused, restored and announced. Under the math it shows the add-slider
+// line of a row with undefined names (R-6) and a point row's Label line (EL-15); in Edit list mode
+// its actions replace the delete cross (EL-45). AN-5: the row carries its presence
 // motion; an exiting row leaves the focus controller, is aria-hidden and inert with no number, and
 // reports onExitDone once its own exit transition-duration has passed.
 
@@ -26,7 +28,7 @@ import {
 import { COMPLEX_HINT } from "@/lib/calculator/core/analysis";
 import type { RowView } from "@/lib/calculator/core/api/engine";
 import { MAX_ROW_CHARACTERS } from "@/lib/calculator/core/latex/limits";
-import { resolveRowColor } from "@/lib/calculator/theme/roles";
+import { rowIconHex } from "@/lib/calculator/theme/roles";
 import { ColourKindGlyph, RemoveGlyph, type KindGlyph } from "../../icons/list";
 import type { MathField } from "../../math-field/MathField";
 import { latexToSpeech } from "../../math-field/speech";
@@ -49,14 +51,18 @@ import {
 } from "./row-actions";
 import { fieldTextbox, rowDomIds, rowTab } from "./row-model";
 import { RegressionPanel, STATISTICS_HINT } from "./RegressionPanel";
-import { offersCreateTable, RowMenu } from "./RowMenu";
+import { createTableBelow, offersCreateTable, RowMenu } from "./RowMenu";
+import { EditRowActions } from "./EditRowActions";
+import { ToastContext } from "./Toast";
 import { RowValue } from "./RowValue";
+import { AddSliderLine, addSliders, PointLabelLine } from "./RowUnderMath";
 import type { RowMotion } from "./row-presence";
 
 export interface ExpressionRowProps {
   row: RowView;
   number: number; // 1-based; an exiting row shows none
   keypadOpen: boolean;
+  editing?: boolean; // EL-45: Edit list mode's row actions in place of the delete cross
   onTouchFocus(rowId: string): void;
   motion: RowMotion; // AN-5, from useRowPresence
   onExitDone(rowId: string): void; // after the exit transition; the panel then drops the row
@@ -100,7 +106,9 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
   const announcer = useAnnouncer();
   const createField = useContext(MathFieldFactoryContext);
   const readDuration = useContext(MotionContext);
-  const color = resolveRowColor(row.color, useSkin());
+  const toaster = useContext(ToastContext);
+  const editing = props.editing === true && !exiting;
+  const iconHex = rowIconHex(row.color, useSkin());
   const ids = useMemo(() => rowDomIds(row.id), [row.id]);
   const speech = useMemo(() => latexToSpeech(row.latex), [row.latex]);
   const error = row.error;
@@ -309,7 +317,7 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
               aria-label={`${row.hidden ? "Show" : "Hide"} expression ${number}`}
               aria-pressed={!row.hidden}
               data-kind={kindGlyph(row, tab)}
-              style={{ "--kc-row-color": color.hex } as CSSProperties}
+              style={{ "--kc-row-color": iconHex } as CSSProperties}
               ref={tabRef}
               aria-haspopup="menu"
               aria-expanded={menuOpen}
@@ -317,10 +325,12 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
                 if (!menu.consumeClick()) engine.setRowHidden(row.id, !row.hidden);
               }}
               onPointerDown={menu.trigger.onPointerDown}
+              // The reference leaves focus where it was when the circle is clicked.
+              onMouseDown={(e) => e.preventDefault()}
               onPointerUp={menu.trigger.onPointerUp}
               onPointerLeave={menu.trigger.onPointerLeave}
             >
-              {!row.hidden && <ColourKindGlyph kind={kindGlyph(row, tab)} />}
+              {!row.hidden && <ColourKindGlyph kind={editing ? null : kindGlyph(row, tab)} />}
             </button>
           )}
           {menuOpen && (
@@ -359,16 +369,45 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
               </button>
             </div>
           )}
+          {error?.code === "too-many-variables" && (
+            <AddSliderLine
+              names={row.chips}
+              onAdd={(names) => addSliders(engine, announcer, row.id, names)}
+            />
+          )}
+          {tab === "point" && <PointLabelLine rowNumber={number} />}
           {error === null && <RegressionPanel row={row} />}
         </div>
-        <button
-          type="button"
-          className="kc-row-delete"
-          aria-label={`Delete expression ${number}`}
-          onClick={() => deleteRowByControl(engine, focus, row.id)}
-        >
-          <RemoveGlyph />
-        </button>
+        {editing ? (
+          <EditRowActions
+            engine={engine}
+            focus={focus}
+            announcer={announcer}
+            rowId={row.id}
+            number={number}
+            canTabulate={offersCreateTable(engine, row.id)}
+            onCreateTable={() => createTableBelow(engine, focus, announcer, toaster, row.id)}
+          />
+        ) : (
+          <button
+            type="button"
+            className="kc-row-delete"
+            aria-label={`Delete expression ${number}`}
+            onClick={(e) => {
+              // A keyboard press (detail 0) moves on to the next row (R-3); a click leaves no row
+              // selected, as the reference does, with focus kept on the list.
+              if (e.detail === 0) {
+                deleteRowByControl(engine, focus, row.id);
+                return;
+              }
+              const list = itemRef.current?.closest<HTMLElement>(".kc-list");
+              engine.deleteRow(row.id);
+              list?.focus({ preventScroll: true });
+            }}
+          >
+            <RemoveGlyph />
+          </button>
+        )}
       </div>
     </li>
   );

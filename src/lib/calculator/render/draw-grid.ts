@@ -28,11 +28,19 @@ const MAX_ARC_STEPS = 4096;
 
 /**
  * An axis-aligned segment as a device-px rectangle `max(1, round(px·dpr))` thick, placed at
- * `round(pos·dpr) − floor(thickness/2)`; draw under the identity transform.
+ * `snap(pos·dpr) − floor(thickness/2)`; draw under the identity transform. Gridlines snap down
+ * (floor), as the reference's do (GP-2), so a line just left of or above the canvas stays off it;
+ * axes round.
  */
-function fillLine(ctx: Ctx, s: PxSegment, px: number, dpr: number): void {
+function fillLine(
+  ctx: Ctx,
+  s: PxSegment,
+  px: number,
+  dpr: number,
+  snap: (v: number) => number = Math.round
+): void {
   const t = Math.max(1, Math.round(px * dpr));
-  const across = (pos: number) => Math.round(pos * dpr) - Math.floor(t / 2);
+  const across = (pos: number) => snap(pos * dpr) - Math.floor(t / 2);
   const along = (a: number, b: number) => [
     Math.round(Math.min(a, b) * dpr),
     Math.round(Math.max(a, b) * dpr),
@@ -119,7 +127,7 @@ function paintGridClass(
     if (lines.length === 0) return;
     ctx.fillStyle = colour;
     ctx.setTransform(1, 0, 0, 1, 0, 0);
-    for (const s of lines) fillLine(ctx, s, GRID_LINE_PX, dpr);
+    for (const s of lines) fillLine(ctx, s, GRID_LINE_PX, dpr, Math.floor);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     return;
   }
