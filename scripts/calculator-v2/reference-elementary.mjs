@@ -85,6 +85,30 @@ export const ELEMENTARY_INPUTS = [
   ["arcsec", -3],
   ["arccot", 0.5],
   ["arccot", -2],
+  ["sinh", 1],
+  ["sinh", -2.5],
+  ["cosh", 1],
+  ["cosh", 3],
+  ["tanh", 0.5],
+  ["tanh", -2],
+  ["csch", 1],
+  ["csch", -0.3],
+  ["sech", 1],
+  ["sech", 4],
+  ["coth", 2],
+  ["coth", -0.7],
+  ["arcsinh", 0.5],
+  ["arcsinh", -3],
+  ["arccosh", 2],
+  ["arccosh", 10],
+  ["arctanh", 0.5],
+  ["arctanh", -0.9],
+  ["arccsch", 2],
+  ["arccsch", -0.4],
+  ["arcsech", 0.3],
+  ["arcsech", 0.75],
+  ["arccoth", 2],
+  ["arccoth", -5],
   ["floor", -2.5],
   ["floor", 7.99],
   ["ceil", 2.1],
@@ -119,6 +143,14 @@ const OPERATORNAME_OPS = new Set([
   "arccsc",
   "arcsec",
   "arccot",
+  "csch",
+  "sech",
+  "arcsinh",
+  "arccosh",
+  "arctanh",
+  "arccsch",
+  "arcsech",
+  "arccoth",
   "floor",
   "ceil",
   "round",
@@ -274,6 +306,30 @@ function referenceFor(op, args) {
       return one.div(a).acos();
     case "arccot":
       return math.pi.div(2).minus(a.atan());
+    case "sinh":
+      return a.sinh();
+    case "cosh":
+      return a.cosh();
+    case "tanh":
+      return a.tanh();
+    case "csch":
+      return one.div(a.sinh());
+    case "sech":
+      return one.div(a.cosh());
+    case "coth":
+      return one.div(a.tanh());
+    case "arcsinh":
+      return a.asinh();
+    case "arccosh":
+      return a.acosh();
+    case "arctanh":
+      return a.atanh();
+    case "arccsch":
+      return one.div(a).asinh();
+    case "arcsech":
+      return one.div(a).acosh();
+    case "arccoth":
+      return one.div(a).atanh();
     case "floor":
       return a.floor();
     case "ceil":

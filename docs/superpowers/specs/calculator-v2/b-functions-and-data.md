@@ -221,6 +221,7 @@ category ships in Phase 4.
 ## 11. Hyperbolic trig
 
 - **FN-68** sinh, cosh and tanh use their exponential definitions, csch = 1/sinh, sech = 1/cosh and coth = cosh/sinh (csch(0) and coth(0) undefined), none depend on the angle unit, and the typed inverses arcsinh (all reals), arccosh (x ≥ 1, result ≥ 0) and arctanh (|x| < 1) are accepted; arccsch(x) = arcsinh(1/x) for x ≠ 0, arcsech(x) = arccosh(1/x) for 0 < x ≤ 1 and arccoth(x) = arctanh(1/x) for |x| > 1, each also reached by `^{-1}` on csch, sech and coth (PR-26). (Phase 2; verified by unit test)
+  - _Amended 2026-10-19 (appendix F decision 2, Desmos behaviour wins):_ the names are Desmos's (`arcsinh`, `arccosh`, `arctanh`, `arccsch`, `arcsech`, `arccoth`), sinh(1) = 1.1752011936438014 and arccosh(0.5) is undefined in real mode, as in Desmos. In complex mode arccosh, arctanh, arcsech and arccoth extend outside their real domains on the principal branch (arccosh(0.5) = (π/3)i), and every hyperbolic function takes complex arguments. No functions-panel entries ship yet; the names are typed.
 
 ## 12. Geometry
 

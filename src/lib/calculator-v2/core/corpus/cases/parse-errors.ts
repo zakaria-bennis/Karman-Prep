@@ -33,8 +33,6 @@ const cases: CorpusCase[] = [
   x(27, ["PR-9"], "x>0\\operatorname{or}y>0", "unsupported"),
   x(28, ["PR-9"], "\\operatorname{mean}(1,2)", "unsupported"),
   x(29, ["PR-9"], "mean(1,2)", "unsupported"),
-  x(30, ["PR-9"], "\\sinh x", "unsupported"),
-  x(31, ["PR-9"], "\\cosh^{-1}x", "unsupported"),
   x(32, ["PR-9"], "\\operatorname{foo}(x)", "unsupported"),
   x(33, ["PR-9"], "nthrootx", "unsupported"),
   x(34, ["PR-9"], "infinity", "unsupported"),

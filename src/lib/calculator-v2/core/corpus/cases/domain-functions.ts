@@ -3,6 +3,7 @@ import type { CorpusCase, CorpusSettings } from "../types";
 const FILE = "domain-functions";
 const DEG: CorpusSettings = { angleMode: "degrees" };
 const DEG_CX: CorpusSettings = { angleMode: "degrees", complex: true };
+const CX: CorpusSettings = { complex: true };
 type Context = Pick<CorpusCase, "rows" | "settings">;
 /** A case whose value formatValue shows as `display`. */
 const d = (
@@ -63,5 +64,20 @@ const cases: CorpusCase[] = [
   g(44, ["NM-25"], "\\ln(10)", "2.30258509299"),
   d(45, ["NM-25", "FN-18"], "\\sin(i)", "1.17520119364i", { settings: DEG_CX }),
   d(46, ["NM-25"], "e^{i\\pi}", "-1", { settings: DEG_CX }),
+  g(47, ["FN-68", "FN-6"], "\\sinh(1)", "1.17520119364"),
+  d(48, ["FN-68"], "\\cosh(0)", "1"),
+  d(49, ["FN-68"], "\\tanh(0.5)", "0.46211715726"),
+  d(50, ["FN-68"], "\\operatorname{csch}(0)", "undefined"),
+  d(51, ["FN-68"], "\\coth(0)", "undefined"),
+  d(52, ["FN-68"], "\\operatorname{sech}(0)", "1"),
+  g(53, ["FN-68", "FN-6"], "\\operatorname{arcsinh}(1)", "0.88137358702"),
+  d(54, ["FN-68"], "\\operatorname{arccosh}(0.5)", "undefined"),
+  d(55, ["FN-68", "NM-19"], "\\operatorname{arccosh}(0.5)", "1.0471975512i", { settings: CX }),
+  d(56, ["FN-68"], "\\operatorname{arctanh}(1)", "undefined"),
+  d(57, ["FN-68"], "\\operatorname{arcsech}(2)", "undefined"),
+  d(58, ["FN-68"], "\\operatorname{arccoth}(0.5)", "undefined"),
+  d(59, ["FN-68"], "\\operatorname{arccsch}(0)", "undefined"),
+  d(60, ["PR-26", "FN-68"], "\\sinh^{-1}(1)", "0.88137358702"),
+  d(61, ["FN-68", "NM-25"], "\\cosh(i\\pi)", "-1", { settings: DEG_CX }),
 ];
 export default cases;
