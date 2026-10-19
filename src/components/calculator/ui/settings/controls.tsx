@@ -135,8 +135,8 @@ export function GridTypeButton(props: {
 
 const R = 12; // the glyphs' radius inside their 26 px box
 
-/** Lines every 3 px across the circle, each cut at the circle's edge (our own drawing). */
-const CARTESIAN_PATH = [-9, -6, -3, 0, 3, 6, 9]
+/** Five lines each way, 4.25 px apart, each cut at the circle's edge (our own drawing). */
+const CARTESIAN_PATH = [-8.5, -4.25, 0, 4.25, 8.5]
   .map((d) => {
     const h = Math.sqrt(R * R - d * d).toFixed(2);
     return `M${13 + d} ${13}m0 -${h}v${2 * Number(h)}M13 ${13 + d}m-${h} 0h${2 * Number(h)}`;
@@ -167,9 +167,9 @@ export function PolarGlyph(): JSX.Element {
   return (
     <svg viewBox="0 0 26 26" aria-hidden="true" focusable="false">
       <g className="kc-grid-type-lines">
-        <circle cx="13" cy="13" r="3" />
-        <circle cx="13" cy="13" r="6" />
-        <circle cx="13" cy="13" r="9" />
+        <circle cx="13" cy="13" r="1.5" />
+        <circle cx="13" cy="13" r="4.25" />
+        <circle cx="13" cy="13" r="8.5" />
         <path d={POLAR_SPOKES} />
       </g>
     </svg>

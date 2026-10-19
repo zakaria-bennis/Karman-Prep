@@ -235,13 +235,13 @@
 }
 
 .kc-grid-type > input:checked + svg {
-  color: color-mix(in srgb, var(--kc-list) 45%, var(--kc-text-secondary));
+  color: color-mix(in srgb, var(--kc-list) 55%, var(--kc-text-secondary));
 }
 
 .kc-grid-type-lines {
   fill: none;
   stroke: currentColor;
-  stroke-width: 0.8;
+  stroke-width: 1;
 }
 
 /* VIS-17, VIS-19: each axis. The title row ends level with the Label field's bottom border. */
@@ -323,14 +323,14 @@
 .kc-settings-bound {
   display: inline-flex;
   flex: none;
-  min-width: 37px;
+  min-width: 35px;
 }
 
 .kc-settings-bound > .mq-editable-field,
 .kc-settings .kc-settings-bound > .mq-math-mode.mq-editable-field {
   box-sizing: border-box;
-  min-width: 37px;
-  min-height: 24.2px;
+  min-width: 35px;
+  min-height: 22.2px;
   padding: 1px 3px;
   border: none;
   border-bottom: 1px solid var(--kc-pop-field-line);
@@ -350,6 +350,7 @@
 /* VIS-17: "≤ x ≤" overlaps the fields' right and left padding by 6 px, as the reference's does. */
 .kc-settings-relation {
   position: relative;
+  top: -1px;
   display: flex;
   flex: none;
   align-items: center;
