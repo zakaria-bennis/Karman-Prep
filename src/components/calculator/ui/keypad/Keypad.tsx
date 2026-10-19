@@ -17,6 +17,7 @@ import {
   useState,
   useSyncExternalStore,
   type ButtonHTMLAttributes,
+  type CSSProperties,
   type JSX,
   type PointerEvent,
 } from "react";
@@ -34,8 +35,8 @@ import { createDoubleTapTracker } from "./double-tap";
 import { FunctionsPanel } from "./FunctionsPanel";
 import { createKeyRepeat } from "./key-repeat";
 import { KeyFace } from "./KeyFace";
-import { CaretDownGlyph } from "./keypad-icons";
-import { isSpacer, keypadLayout, NARROW_BELOW, type KeyDef, type KeypadLayout } from "./keys";
+import { CaretDownGlyph, TabKeyboardGlyph } from "./keypad-icons";
+import { keypadLayout, placeRow, NARROW_BELOW, type KeyDef, type KeypadLayout } from "./keys";
 
 export interface KeypadProps {
   containerWidth: number; // VIS-KEYPAD-39: word labels by width; < 450 has no Show/Hide controls
@@ -262,16 +263,17 @@ export function Keypad(props: KeypadProps): JSX.Element {
     activate(key);
   };
 
-  const renderKey = (key: KeyDef) => (
+  // VIS-KEYPAD-3: each key fills its cell less a 2 px margin, edges rounded to whole pixels.
+  const renderKey = (key: KeyDef, x: number, width: number) => (
     <button
       key={key.id}
+      style={{ "--kc-x": x, "--kc-w": width } as CSSProperties}
       type="button"
       className="kc-key"
       aria-label={key.name}
       data-key={key.id}
       data-tone={key.tone}
       data-pressed={pressed === key.id ? "true" : undefined}
-      style={{ flexBasis: `calc(${key.width * 100}% - 4px)` }}
       {...keyState(
         key,
         page,
@@ -305,6 +307,7 @@ export function Keypad(props: KeypadProps): JSX.Element {
         {...(open ? {} : INERT)}
         data-open={String(open)}
         data-narrow={containerWidth < NARROW_BELOW ? "true" : undefined}
+        data-full-width={containerWidth <= KEY_BLOCK_MAX ? "true" : undefined}
         data-abc-size={abcSize(containerWidth)}
         data-pointer={pointer}
         data-page={page}
@@ -317,28 +320,14 @@ export function Keypad(props: KeypadProps): JSX.Element {
             aria-label="Hide keypad"
             onClick={() => studentOpenChange(false)}
           >
-            <KeyboardGlyph />
+            <TabKeyboardGlyph />
             <CaretDownGlyph />
           </button>
         )}
         <div className="kc-keypad-keys">
           {layout.rows.map((row, r) => (
             <div key={r} className="kc-keypad-row">
-              {row.map((item, i) =>
-                isSpacer(item) ? (
-                  <span
-                    key={`gap${i}`}
-                    className="kc-keypad-gap"
-                    style={
-                      item.spacer === "fill"
-                        ? { flexGrow: 1 }
-                        : { flexBasis: `${item.spacer * 100}%` }
-                    }
-                  />
-                ) : (
-                  renderKey(item)
-                )
-              )}
+              {placeRow(row).map((cell) => renderKey(cell.key, cell.x, cell.width))}
             </div>
           ))}
           {functionsState !== "closed" && (
@@ -369,6 +358,9 @@ export function Keypad(props: KeypadProps): JSX.Element {
     </>
   );
 }
+
+/** VIS-KEYPAD-2: the key block's largest width. */
+const KEY_BLOCK_MAX = 835;
 
 /** VIS-KEYPAD-39: the ABC key's font steps below 490, 420 and 380 px. */
 function abcSize(width: number): string | undefined {

@@ -283,3 +283,31 @@ export function keypadLayout(page: Page, containerWidth: number, shift: boolean)
 export function layoutKeys(layout: KeypadLayout): KeyDef[] {
   return layout.rows.flatMap((row) => row.filter((item): item is KeyDef => !isSpacer(item)));
 }
+
+/** A key's cell: its left edge and width as fractions of the key block's inner width. */
+export interface KeyPlacement {
+  key: KeyDef;
+  x: number;
+  width: number;
+}
+
+/** The cells of one row, with "fill" spacers sharing what the keys and fixed spacers leave. */
+export function placeRow(row: readonly RowItem[]): KeyPlacement[] {
+  const fixed = row.reduce(
+    (sum, item) => sum + (isSpacer(item) ? (item.spacer === "fill" ? 0 : item.spacer) : item.width),
+    0
+  );
+  const fills = row.filter((item) => isSpacer(item) && item.spacer === "fill").length;
+  const fill = fills === 0 ? 0 : Math.max(0, 1 - fixed) / fills;
+  const out: KeyPlacement[] = [];
+  let x = 0;
+  for (const item of row) {
+    if (isSpacer(item)) {
+      x += item.spacer === "fill" ? fill : item.spacer;
+    } else {
+      out.push({ key: item, x, width: item.width });
+      x += item.width;
+    }
+  }
+  return out;
+}

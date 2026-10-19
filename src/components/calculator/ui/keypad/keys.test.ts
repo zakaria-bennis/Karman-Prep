@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { isSpacer, keypadLayout, layoutKeys, type KeypadLayout } from "./keys";
+import { isSpacer, keypadLayout, layoutKeys, placeRow, type KeypadLayout } from "./keys";
 
 /** Each row as tokens: a key id, `id*w` for a cell w of the block's inner width, `_w` / `_` spacers. */
 const ids = (layout: KeypadLayout) =>
@@ -123,4 +123,13 @@ it("VIS-KEYPAD-23 Shift capitalises letters, swaps θ for τ, aᵦ for aᵇ and 
   expect(layoutKeys(keypadLayout("main", 900, true))).toEqual(
     layoutKeys(keypadLayout("main", 900, false))
   );
+});
+
+it("VIS-KEYPAD-21 placeRow shares a row's leftover between its fill spacers", () => {
+  const [shift, z, , , , , , m, backspace] = placeRow(keypadLayout("letters", 900, false).rows[2]);
+  const gap = (1 - 3 / 11 - 7 / 10) / 2;
+  expect([shift.key.id, shift.x]).toEqual(["shift", 0]);
+  expect(z.x).toBeCloseTo(1.5 / 11 + gap, 9);
+  expect(m.x).toBeCloseTo(1.5 / 11 + gap + 0.6, 9);
+  expect(backspace.x + backspace.width).toBeCloseTo(1, 9);
 });

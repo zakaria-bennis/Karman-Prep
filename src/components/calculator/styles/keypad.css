@@ -58,24 +58,24 @@
 
 /* VIS-KEYPAD-3: 40 px rows; each cell carries a 2 px margin round a 36 px key. */
 .kc-keypad-row {
-  display: flex;
+  position: relative;
   height: 40px;
 }
 
-.kc-keypad-gap {
-  flex: 0 0 auto;
-}
-
+/* Inline --kc-x and --kc-w place each cell as fractions of the row. */
 .kc-key {
-  position: relative;
+  --kc-x: 0;
+  --kc-w: 0;
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  left: calc(var(--kc-x) * 100% + 2px);
+  width: calc(var(--kc-w) * 100% - 4px);
   display: flex;
-  flex: 0 0 auto;
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
   min-width: 0;
-  height: 36px;
-  margin: 2px;
   padding: 0;
   overflow: hidden;
   border: 1px solid transparent;
@@ -88,6 +88,16 @@
   cursor: pointer;
   touch-action: manipulation; /* K-7: no double-tap zoom, so a double tap on = reaches the key */
   user-select: none;
+}
+
+/* A full-width key block starts on a whole pixel; there, like the reference, each key's edges
+   are rounded to whole pixels (browsers without round() keep the plain calc() above). */
+.kc-keypad[data-full-width="true"] .kc-key {
+  left: round(calc(var(--kc-x) * 100% + 2px), 1px);
+  width: calc(
+    round(calc((var(--kc-x) + var(--kc-w)) * 100% - 2px), 1px) -
+      round(calc(var(--kc-x) * 100% + 2px), 1px)
+  );
 }
 
 /* VIS-KEYPAD-6: white keys. */
@@ -168,7 +178,7 @@
 /* Maths sits 1 px below the key's centre. */
 .kc-key > span:not(.kc-key-word) {
   position: relative;
-  top: 1px;
+  top: 0.5px;
 }
 
 .kc-key-word {
@@ -183,7 +193,8 @@
 }
 
 .kc-key-sup {
-  vertical-align: 0.5em;
+  padding-left: 1px;
+  vertical-align: 0.42em;
 }
 
 .kc-key-sub {
@@ -209,6 +220,10 @@
 .kc-key-icon,
 .kc-key-sqrt {
   flex: none;
+}
+
+.kc-key-sqrt {
+  margin-top: -2px;
 }
 
 /* VIS-KEYPAD-39: the ABC key's smaller font on narrow keypads. */
@@ -246,7 +261,7 @@
   box-sizing: border-box;
   width: 90px;
   height: 42px;
-  padding: 4px 20px;
+  padding: 0 20px 6px;
   border: none;
   border-top: 1px solid var(--kc-kp-edge);
   border-radius: 5px 5px 0 0;
@@ -313,12 +328,12 @@
 .kc-functions-panel {
   position: absolute;
   right: 2px;
-  bottom: calc(100% + 8px);
+  bottom: calc(100% + 7px);
   z-index: 1;
   box-sizing: border-box;
   width: 312px;
   max-width: calc(100vw - 8px);
-  height: 345px;
+  height: 346px;
   overflow-y: auto;
   scrollbar-width: none;
   padding: 10px 8px 9px 9px;
@@ -347,8 +362,8 @@
 /* VIS-KEYPAD-26: the arrow's tip touches the Functions key's cell (the last two of 11 units). */
 .kc-functions-arrow {
   position: absolute;
-  right: calc(3px + (100% - 6px) / 11 - 12px);
-  bottom: calc(100% - 4px);
+  right: calc(4px + (100% - 6px) / 11 - 12px);
+  bottom: calc(100% - 5px);
   z-index: 1;
   fill: var(--kc-key);
   stroke: var(--kc-boundary);
@@ -377,7 +392,7 @@
   box-sizing: border-box;
   height: 38px;
   margin: 2px;
-  padding: 0 4px;
+  padding: 0 4px 2px;
   border: 1px solid var(--kc-kp-edge);
   border-radius: 3px;
   background: linear-gradient(var(--kc-kp-fn-top), var(--kc-kp-fn-bottom));
