@@ -25,11 +25,12 @@ export async function POST(req: Request) {
     const action = parsed.success ? (parsed.data.action ?? null) : null;
 
     const supabase = createAdminClient();
-    const { data: sub } = await supabase
+    const { data: sub, error: lookupError } = await supabase
       .from("subscriptions")
       .select("stripe_customer_id, stripe_subscription_id, status")
       .eq("user_id", userId)
-      .single();
+      .maybeSingle();
+    if (lookupError) throw lookupError;
 
     if (!sub?.stripe_customer_id) {
       return NextResponse.json({ error: "No subscription found" }, { status: 404 });
@@ -39,7 +40,14 @@ export async function POST(req: Request) {
     if (action === "cancel") {
       // Dev sub IDs start with 'sub_dev_' — mark canceled in DB, skip Stripe
       if (sub.stripe_subscription_id?.startsWith("sub_dev")) {
-        await supabase.from("subscriptions").update({ status: "canceled" }).eq("user_id", userId);
+        if (process.env.NODE_ENV === "production") {
+          return NextResponse.json({ error: "Invalid subscription" }, { status: 400 });
+        }
+        const { error } = await supabase
+          .from("subscriptions")
+          .update({ status: "canceled" })
+          .eq("stripe_subscription_id", sub.stripe_subscription_id);
+        if (error) throw error;
         return NextResponse.json({ ok: true, mode: "dev" });
       }
 
@@ -48,8 +56,9 @@ export async function POST(req: Request) {
         await stripe.subscriptions.update(sub.stripe_subscription_id, {
           cancel_at_period_end: true,
         });
-        await supabase.from("subscriptions").update({ status: "canceled" }).eq("user_id", userId);
-        return NextResponse.json({ ok: true, mode: "stripe" });
+        // Scheduling cancellation does not end paid access. The verified
+        // subscription.deleted webhook marks it canceled at actual expiry.
+        return NextResponse.json({ ok: true, mode: "stripe", cancelAtPeriodEnd: true });
       } catch (stripeErr) {
         console.error("[portal] Stripe cancel failed:", stripeErr);
         return NextResponse.json({ error: "Stripe cancel failed" }, { status: 500 });

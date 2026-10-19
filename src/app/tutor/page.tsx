@@ -25,8 +25,11 @@ import {
 import { fetchTutorScope, fetchStudentDashboardRows } from "@/lib/supabase/queries/tutor";
 import { getUserUuidByClerkId } from "@/lib/supabase/queries/bookings";
 import { getCalConnectionStatus } from "@/lib/supabase/queries/cal-oauth";
-import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import StudentTable from "@/components/tutor/StudentTable";
+import {
+  cohortTopicEmptyMessage,
+  cohortTopicPresentation,
+} from "@/lib/learning-plan/cohort-presentation";
 import { CalendarPlus, AlertCircle } from "lucide-react";
 
 export const metadata: Metadata = { title: "Tutor Portal — Karman" };
@@ -50,7 +53,7 @@ export default async function TutorPage() {
     hasStudents && calStatus !== null && (!calStatus.connected || !calStatus.eventTypeId);
 
   return (
-    <DashboardLayout>
+    <>
       <div className="mx-auto max-w-6xl space-y-10 px-4 py-8 sm:px-6">
         {needsCalSetup ? (
           <CalSetupBanner
@@ -70,7 +73,13 @@ export default async function TutorPage() {
               {rows.length} student{rows.length !== 1 ? "s" : ""} across cohorts + 1:1
             </p>
           </div>
-          <nav className="flex items-center gap-2">
+          <nav className="flex flex-wrap items-center gap-2">
+            <Link
+              href="/tutor/briefing"
+              className="inline-flex min-h-11 items-center rounded-lg border border-bronze px-3 py-1.5 text-sm font-semibold text-info hover:border-info/40"
+            >
+              Daily briefing
+            </Link>
             <Link
               href="/tutor/schedule"
               className="inline-flex items-center gap-1.5 rounded-lg border border-bronze px-3 py-1.5 text-sm font-semibold text-ivory hover:border-info/40 dark:border-bronze dark:text-ivory"
@@ -112,6 +121,7 @@ export default async function TutorPage() {
             <ul className="grid gap-3 sm:grid-cols-2">
               {scope.cohorts.map((c) => {
                 const satDate = formatDate(c.sat_date);
+                const topic = cohortTopicPresentation(c.status, c.current_topic);
                 return (
                   <li key={c.id}>
                     <Link
@@ -127,7 +137,9 @@ export default async function TutorPage() {
                         {c.name}
                       </div>
                       <div className="mt-1 text-xs text-taupe dark:text-taupe">
-                        {c.current_topic ?? "No current topic set"}
+                        {topic
+                          ? `${topic.label}: ${topic.topic}`
+                          : cohortTopicEmptyMessage(c.status)}
                       </div>
                       <div className="mt-3 flex items-center justify-between text-xs text-taupe">
                         <span>
@@ -175,7 +187,7 @@ export default async function TutorPage() {
           )}
         </section>
       </div>
-    </DashboardLayout>
+    </>
   );
 }
 

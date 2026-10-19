@@ -1,0 +1,31 @@
+{
+  "wordCount": 73,
+  "lengthDistribution": {
+    "6": 3,
+    "7": 6,
+    "8": 13,
+    "9": 21,
+    "10": 9,
+    "11": 9,
+    "12": 5,
+    "13": 4,
+    "14": 1,
+    "15": 2
+  },
+  "evidenceLevels": {
+    "official_exact_form": 65,
+    "official_inflected_form_lemma_normalized": 8
+  },
+  "partsOfSpeech": {
+    "adjective": 37,
+    "noun": 5,
+    "verb": 27,
+    "adverb": 4
+  },
+  "educatorOverlapCount": 62,
+  "allAsciiAlphabetic": true,
+  "uniqueIdsAndWords": true,
+  "allLiveDictionaryEntriesRead": true,
+  "allOfficialChoiceLocationsVerified": true,
+  "sha256": "0aca436362791691921fcf0ff90256787889630690ba0d00bb0313bc57ae325a"
+}

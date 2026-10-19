@@ -1,0 +1,44 @@
+diff --git a/Makefile b/Makefile
+index 23b30613..e6eebbde 100644
+--- a/Makefile
++++ b/Makefile
+@@ -133,6 +133,7 @@ $(BUILD_JS): $(INTRO) $(SOURCES_FULL) $(OUTRO) $(BUILD_DIR_EXISTS)
+ 	cat $^ | ./script/escape-non-ascii | ./script/tsc-emit-only > $@
+ 	perl -pi -e s/mq-/$(MQ_CLASS_PREFIX)mq-/g $@
+ 	perl -pi -e s/{VERSION}/v$(VERSION)/ $@
++	printf '\nexport default MathQuillModule;\n' >> $@
+ 
+ $(UGLY_JS): $(BUILD_JS) $(NODE_MODULES_INSTALLED)
+ 	$(UGLIFY) $(UGLIFY_OPTS) < $< > $@
+diff --git a/src/intro.js b/src/intro.js
+index 593aa711..222f7c3d 100644
+--- a/src/intro.js
++++ b/src/intro.js
+@@ -8,4 +8,4 @@
+  * one at http://mozilla.org/MPL/2.0/.
+  */
+ 
+-(function() {
++var MathQuillModule = (function() {
+diff --git a/src/outro.js b/src/outro.js
+index c3358fc8..6fb5b53b 100644
+--- a/src/outro.js
++++ b/src/outro.js
+@@ -1,16 +1,2 @@
+-// For backwards compatibility, set up the global MathQuill object as an instance of API interface v1
+-if ((window as any).jQuery) {
+-    MQ1 = getInterface(1);
+-    for (var key in MQ1)
+-      (function (key, val) {
+-        if (typeof val === 'function') {
+-          (MathQuill as any)[key] = function () {
+-            insistOnInterVer();
+-            return val.apply(this, arguments);
+-          };
+-          (MathQuill as any)[key].prototype = val.prototype;
+-        } else (MathQuill as any)[key] = val;
+-      })(key, MQ1[key]);
+-  }
+-
++return MathQuill;
+ }());

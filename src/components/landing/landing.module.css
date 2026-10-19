@@ -1,0 +1,167 @@
+.hero {
+  display: grid;
+  gap: 1.5rem;
+  padding-top: 2rem;
+  padding-bottom: 3.5rem;
+}
+.heroHeading {
+  animation: arrive 650ms both;
+}
+.heroPhoto {
+  aspect-ratio: 3 / 2;
+  overflow: hidden;
+  border-radius: 4rem 1.25rem 4rem 1.25rem;
+  animation: photograph 850ms both;
+}
+.heroActions {
+  animation: arrive 750ms both;
+}
+.tutorPhoto {
+  aspect-ratio: 3 / 2;
+  border-radius: 1.25rem 5rem 1.25rem 1.25rem;
+}
+.subjectSwitch {
+  position: relative;
+  isolation: isolate;
+}
+.subjectIndicator {
+  position: absolute;
+  inset: 0.375rem auto 0.375rem 0.375rem;
+  width: calc(50% - 0.375rem);
+  z-index: -1;
+  border-radius: 0.75rem;
+  background: rgb(var(--k-rw));
+  transition:
+    transform 350ms var(--ease-standard),
+    background-color 350ms;
+}
+.subjectSwitch[data-subject="math"] .subjectIndicator {
+  transform: translateX(100%);
+  background: rgb(var(--k-math));
+}
+.subjectContent {
+  animation: subjectIn 320ms var(--ease-standard) both;
+}
+.subjectContent[data-subject="math"] {
+  --slide-from: 1rem;
+}
+.subjectContent[data-subject="reading"] {
+  --slide-from: -1rem;
+}
+.planCard {
+  transition:
+    transform 220ms var(--ease-standard),
+    border-color 220ms,
+    background-color 220ms;
+}
+.planCard:focus-visible,
+.planCard:hover {
+  transform: translateY(-5px) rotate(-0.6deg);
+  border-color: rgb(var(--k-gold));
+  background-color: rgb(var(--k-surface-raised));
+}
+.planCard:nth-child(even):focus-visible,
+.planCard:nth-child(even):hover {
+  transform: translateY(-5px) rotate(0.6deg);
+}
+.planCard:active {
+  transform: translateY(-1px) scale(0.99);
+}
+.mascot {
+  transform-origin: 55% 80%;
+}
+.mascotInvitation:hover .mascot,
+.mascotInvitation:focus-within .mascot {
+  animation: wave 650ms var(--ease-standard) both;
+}
+.dialog {
+  width: min(38rem, calc(100% - 2rem));
+}
+.dialog::backdrop {
+  background: rgb(0 0 0 / 0.65);
+}
+@keyframes arrive {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes photograph {
+  from {
+    opacity: 0;
+    transform: translateY(14px) rotate(1.2deg);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) rotate(0);
+  }
+}
+@keyframes subjectIn {
+  from {
+    opacity: 0;
+    transform: translateX(var(--slide-from));
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+@keyframes wave {
+  0%,
+  100% {
+    transform: rotate(0);
+  }
+  30% {
+    transform: rotate(5deg);
+  }
+  65% {
+    transform: rotate(-3deg);
+  }
+}
+@media (min-width: 768px) {
+  .hero {
+    grid-template-columns: 0.95fr 1.05fr;
+    grid-template-rows: auto auto;
+    column-gap: 3rem;
+    row-gap: 1.5rem;
+    padding-top: 4rem;
+    padding-bottom: 5rem;
+  }
+  .heroHeading {
+    grid-area: 1 / 1;
+    align-self: end;
+  }
+  .heroActions {
+    grid-area: 2 / 1;
+    align-self: start;
+  }
+  .heroPhoto {
+    grid-area: 1 / 2 / 3 / 3;
+    aspect-ratio: 5 / 4;
+    align-self: stretch;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .heroHeading,
+  .heroPhoto,
+  .heroActions,
+  .subjectContent,
+  .mascotInvitation .mascot {
+    animation: none !important;
+  }
+  .subjectIndicator,
+  .planCard {
+    transition: none;
+  }
+  .planCard:hover,
+  .planCard:focus-visible,
+  .planCard:active,
+  .planCard:nth-child(even):hover,
+  .planCard:nth-child(even):focus-visible {
+    transform: none;
+  }
+}

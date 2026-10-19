@@ -1,0 +1,205 @@
+/* Transfer to Calculator control (14). Imported only by the lazily loaded TransferControl.tsx
+   (D4), so it loads with the lazy Transfer chunk. A plain global sheet keyed on the DOM contract's
+   attributes, not a CSS Module: Turbopack merged the module sheet into a CSS chunk the quiz routes
+   load eagerly (AR-33), while a global sheet imported only by lazy code stays in its own lazy
+   chunk. Colours come only from the --kcc-* chrome tokens (TH-2). The button is never hidden
+   through the display or visibility properties, so it stays in the accessibility tree (TR-59); a
+   hidden stem control is clipped and a hidden choice control is at opacity 0 (TR-45, OI-18). */
+[data-transfer-control] {
+  position: relative;
+}
+[data-transfer-control][data-placement="inline"] {
+  display: inline;
+}
+[data-transfer-control][data-placement="block"] {
+  display: block;
+  height: 0;
+}
+[data-transfer-control][data-placement="cluster"] {
+  display: inline-flex;
+  opacity: 0;
+}
+[data-transfer-control][data-placement="cluster"]:focus-within,
+[data-transfer-control][data-placement="cluster"][data-hover="true"]:not([data-escaped="true"]),
+[data-calculator="v2"]:focus-within > [data-transfer-control][data-placement="cluster"] {
+  opacity: 1;
+}
+[data-transfer-control] > button {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 24px;
+  height: 24px;
+  margin: 0;
+  padding: 0;
+  border-radius: 6px;
+  cursor: pointer;
+  background: var(--kcc-chrome);
+  color: var(--kcc-text);
+  /* TR-53: --kcc-boundary measured 2.7:1 beside ivory's choice cluster, so the 3:1 boundary uses
+     the secondary text colour in every skin (decision "Light-DOM colours"). */
+  border: 1px solid var(--kcc-text-secondary);
+}
+[data-transfer-control][data-placement="cluster"] > button {
+  position: static;
+  width: 44px;
+  height: 44px;
+}
+[data-transfer-control][data-reveal="coarse"] > button {
+  width: 44px;
+  height: 44px;
+}
+[data-transfer-control] > button:focus-visible {
+  outline: 2px solid var(--kcc-focus);
+  outline-offset: 2px;
+}
+[data-transfer-control][data-visible="false"] > button:not(:focus-visible) {
+  clip-path: inset(50%);
+  width: 1px;
+  height: 1px;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  padding: 0;
+  border: 0;
+}
+[data-transfer-glyph] {
+  position: relative;
+  display: block;
+  width: 16px;
+  height: 16px;
+  pointer-events: none;
+}
+[data-transfer-glyph] > svg:first-child {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+[data-transfer-glyph] > svg:last-child {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  width: 55%;
+  height: 55%;
+}
+[data-transfer-control][data-reveal="coarse"] [data-transfer-glyph] {
+  width: 20px;
+  height: 20px;
+}
+/* TR-42, TR-43, AR-11: whenever a coarse pointer exists, answer-choice controls are always
+   visible with the coarse glyph. The condition names no hover or pointer feature, so it applies
+   whatever hover reports (OI-36). */
+@media (any-pointer: coarse) {
+  [data-transfer-control][data-placement="cluster"][data-placement] {
+    opacity: 1;
+  }
+  [data-transfer-control][data-placement="cluster"] [data-transfer-glyph] {
+    width: 20px;
+    height: 20px;
+  }
+}
+[data-transfer-tooltip] {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  box-sizing: border-box;
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+  font:
+    12px/1.4 Arial,
+    sans-serif;
+  color: var(--kcc-text);
+  background: var(--kcc-chrome);
+  border: 1px solid var(--kcc-boundary);
+}
+/* TR-52, AN-12: no motion on the control, its tooltip or the anchor. */
+[data-transfer-control],
+[data-transfer-control] > button,
+[data-transfer-tooltip] {
+  transition: none;
+  animation: none;
+}
+[data-transfer-selected="true"] {
+  outline: 2px solid var(--kcc-focus);
+  outline-offset: 2px;
+  transition: none;
+  animation: none;
+}
+/* TR-52, AN-12: v2 answer-choice tool clusters appear and disappear with no transition (the
+   diagnostic's cluster has a Tailwind opacity transition). */
+[data-calculator="v2"][data-calculator] {
+  transition: none;
+}
+/* TR-42, AR-11: on any coarse pointer the v2 cluster itself is always visible too, with no hover
+   or pointer condition, so it applies whatever hover reports (OI-36). */
+@media (any-pointer: coarse) {
+  [data-calculator="v2"][data-calculator] {
+    opacity: 1;
+  }
+}
+/* TR-46: docked, the question layout is a scroll box (calculator.module.css), so an inline control
+   above a stem's first line (20 px above it) would be clipped; the room above keeps it inside. */
+[data-calculator-workspace][data-calculator-docked="true"] [data-question-layout] {
+  padding-top: 24px;
+}
+/* TR-60 to TR-63: the format chooser, portalled to the body and placed by placeChooser. Items are
+   32 px tall for fine reveal and 44 px for coarse reveal; text uses --kcc-text on --kcc-chrome
+   (TR-53's 7:1), and nothing moves (TR-52). */
+[data-transfer-chooser] {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  min-width: 160px;
+  max-width: calc(100vw - 32px);
+  padding: 4px;
+  border-radius: 8px;
+  background: var(--kcc-chrome);
+  border: 1px solid var(--kcc-text-secondary);
+  transition: none;
+  animation: none;
+}
+[data-transfer-chooser] > [role="menuitem"] {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  box-sizing: border-box;
+  min-height: 32px;
+  margin: 0;
+  padding: 4px 10px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--kcc-text);
+  font:
+    14px/1.3 Arial,
+    sans-serif;
+  text-align: left;
+  cursor: pointer;
+}
+[data-transfer-chooser][data-reveal="coarse"] > [role="menuitem"] {
+  min-height: 44px;
+}
+[data-transfer-chooser] > [role="menuitem"]:focus,
+[data-transfer-chooser] > [role="menuitem"]:hover {
+  outline: 2px solid var(--kcc-focus);
+  outline-offset: -2px;
+}
+[data-transfer-chooser] > [aria-disabled="true"] {
+  cursor: default;
+}
+[data-transfer-reason] {
+  font-size: 12px;
+  font-style: italic;
+}

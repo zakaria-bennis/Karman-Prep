@@ -6,6 +6,7 @@
 // the role check in each page component).
 // ============================================================
 
+import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { safeAuth } from "@/lib/auth/dev-auth";
 import { resolveEffectiveClerkId } from "@/lib/supabase/queries/admin";
 import { redirect } from "next/navigation";
@@ -21,5 +22,5 @@ export default async function TutorLayout({ children }: { children: React.ReactN
     redirect("/dashboard/student");
   }
 
-  return <>{children}</>;
+  return <DashboardLayout>{children}</DashboardLayout>;
 }

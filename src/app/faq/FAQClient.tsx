@@ -8,6 +8,7 @@ import { useState } from "react";
 import { ChevronDown, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { GUARANTEE_POLICY } from "@/lib/guarantee/policy";
 
 interface FAQItem {
   q: string;
@@ -20,23 +21,23 @@ const FAQ_SECTIONS: { title: string; items: FAQItem[] }[] = [
     items: [
       {
         q: "What is Karman?",
-        a: "Karman is a personalized SAT tutoring platform built around two expert tutors — Zakaria and Nabil. We combine adaptive diagnostic assessments, structured lesson plans, and 1-on-1 coaching to help students improve their SAT scores by an average of 285 points.",
+        a: "Karman brings digital SAT skill practice, a signed-in diagnostic, and tutoring support into one place. The diagnostic shows performance on its covered questions; it is not an official score prediction.",
       },
       {
         q: "How does the free trial work?",
-        a: "Every subscription plan includes a 7-day free trial. You'll enter your card details upfront, but you won't be charged until day 8. You can cancel anytime before then with no fee. If you cancel, you keep access through the end of your trial period.",
+        a: `A ${GUARANTEE_POLICY.trial.days}-day trial is available only on the Seminar (Group) tier for new checkouts. Other tiers do not receive a trial. Checkout shows any applicable trial and charge timing before purchase; existing subscriptions are unchanged.`,
       },
       {
         q: "Who are the tutors?",
-        a: "Zakaria and Nabil are the core tutors at Karman. Both scored in the 99th percentile on the SAT and have collectively tutored over 2,400 students. They specialize in SAT math and have developed a teaching methodology that consistently produces 200–300+ point improvements. Students regularly credit them by name for their success.",
+        a: `Tutor availability depends on the current plan and schedule. For billing or plan questions, use ${GUARANTEE_POLICY.supportEmail}.`,
       },
       {
         q: "What's the first thing I should do after signing up?",
-        a: "Take the free 20-question diagnostic assessment. It covers all four SAT math domains and gives you a predicted score range, a domain-by-domain breakdown, and an auto-generated learning path. The whole thing takes about 35 minutes and immediately tells you where to focus.",
+        a: "Answer the onboarding questions to see a suggested plan and why it was selected. Choosing a plan starts checkout. You can also take the signed-in 35-question diagnostic to review performance on the skills it covers.",
       },
       {
         q: "Is Karman just for math, or does it cover Reading & Writing too?",
-        a: "Our current curriculum is focused on SAT Math, which is where the largest score improvements come from for most students. Reading & Writing content is on our roadmap and will be available soon.",
+        a: "The current diagnostic includes Math and Reading & Writing questions. Lesson and practice coverage varies by skill; check what is available in the product before choosing a plan.",
       },
     ],
   },
@@ -91,23 +92,23 @@ const FAQ_SECTIONS: { title: string; items: FAQItem[] }[] = [
     ],
   },
   {
-    title: "Score Improvement Guarantee",
+    title: "Course-Fee Protection",
     items: [
       {
-        q: "What is the score improvement guarantee?",
-        a: "If you follow your personalized learning path consistently for 16 weeks and don't improve by at least 50 points on your next official SAT, we'll give you a full refund — no questions asked.",
+        q: "What is the course-fee protection?",
+        a: `It is a prospective policy for specifically identified 12-week one-to-one SAT offers with a positive online-course fee separately disclosed and paid. If the first qualifying official SAT total after plan completion is equal to or below the qualifying baseline, the eligible course fee may be refunded. It is not a fixed-point promise. Current standard checkout plans are not configured as eligible. Read the full terms before purchase.`,
       },
       {
-        q: "What does 'following the learning path' mean?",
-        a: "It means completing at least 80% of the recommended lessons each week, taking all scheduled practice quizzes, and attending your scheduled tutoring sessions. We track this automatically in your dashboard.",
+        q: "What participation is required on a qualifying offer?",
+        a: "The written plan must be provided before teaching and include the agreed one-to-one hours, required homework, and specified full-length tests. The policy requires completing the plan, at least 90% of required homework in good faith by agreed deadlines, and all specified full-length tests. Optional work is excluded; requirements are not added retroactively.",
       },
       {
         q: "Does the guarantee apply to all plans?",
-        a: "Yes — the 50-point improvement guarantee applies to all active subscribers across all plans. Elite students typically see even higher improvements (our average is +285 pts), but the guarantee is 50 points minimum.",
+        a: "No current standard checkout offer is configured as eligible. Only a specific offer that identifies the qualifying 12-week one-to-one SAT plan and separately itemizes a positive course fee can qualify. Check the offer and full policy before purchase.",
       },
       {
         q: "How do I claim the guarantee?",
-        a: "Email us at support@karmanprep.com with your official SAT score report (before and after). We'll review your completion record in the dashboard and process your refund within 5 business days if you qualify.",
+        a: `Contact ${GUARANTEE_POLICY.supportEmail} within 30 calendar days after the qualifying score becomes available, with official before-and-after score reports. Karman acknowledges within 5 business days and decides or requests specifically missing information within 10 business days after a complete claim. Human review is available for disputes and exceptions.`,
       },
     ],
   },
@@ -116,7 +117,7 @@ const FAQ_SECTIONS: { title: string; items: FAQItem[] }[] = [
     items: [
       {
         q: "How does the diagnostic work?",
-        a: "The diagnostic is a 20-question adaptive assessment timed at 90 seconds per question. It covers Algebra, Advanced Math, Geometry, and Data Analysis. After you finish, you instantly see your predicted score range, a color-coded domain breakdown, and a personalized concept map of what to study first.",
+        a: "The signed-in diagnostic has 35 Math and Reading & Writing questions. Its results describe performance on the skills sampled by those questions, not a predicted official SAT score. It is normally taken once; another attempt requires an approved reset.",
       },
       {
         q: "How are concepts unlocked?",
@@ -124,11 +125,11 @@ const FAQ_SECTIONS: { title: string; items: FAQItem[] }[] = [
       },
       {
         q: "How many lessons are in the curriculum?",
-        a: "The current library has 15 core SAT math concepts with associated lessons, videos, and practice questions. We're adding 10–15 new concepts per month, aiming for 100+ concepts by end of year.",
+        a: "Available lessons and questions vary by skill. Open the learning area to see current coverage; Karman does not promise a fixed number of new lessons on a schedule.",
       },
       {
         q: "Can parents track their child's progress?",
-        a: "Yes — parents who sign up with the Parent role get a dedicated dashboard showing their child's streak, mastered concepts, domain progress, and predicted score trend. Weekly progress emails are also sent automatically.",
+        a: "A linked parent can see a permitted progress summary and upcoming commitments in the parent dashboard. Access depends on the student-parent relationship recorded for the account.",
       },
     ],
   },
@@ -207,8 +208,8 @@ export default function FAQClient() {
           Got questions? We&apos;ve got answers.
         </h1>
         <p className="mx-auto max-w-xl text-taupe dark:text-taupe">
-          Everything you need to know about Karman, our tutors, pricing, and the score improvement
-          guarantee.
+          Information about Karman, current plans, and the terms for prospective course-fee
+          protection.
         </p>
       </div>
 
@@ -241,14 +242,14 @@ export default function FAQClient() {
             Still have questions?
           </h3>
           <p className="mb-6 text-sm text-taupe dark:text-taupe">
-            Our team is happy to help. Reach out and we&apos;ll get back to you within a few hours.
+            For billing or plan questions, use our verified billing contact.
           </p>
           <div className="flex flex-col justify-center gap-3 sm:flex-row">
-            <a href="mailto:support@karmanprep.com" className="btn-secondary text-sm">
-              Email support@karmanprep.com
+            <a href={`mailto:${GUARANTEE_POLICY.supportEmail}`} className="btn-secondary text-sm">
+              Email {GUARANTEE_POLICY.supportEmail}
             </a>
-            <Link href="/auth/sign-up" className="btn-primary text-sm">
-              Start Free Trial
+            <Link href="/#pricing" className="btn-primary text-sm">
+              View current plans
             </Link>
           </div>
         </div>

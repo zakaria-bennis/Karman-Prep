@@ -6,11 +6,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
+import { GUARANTEE_POLICY } from "@/lib/guarantee/policy";
 
 export const metadata: Metadata = {
   title: "Terms of Service — Karman SAT Tutoring",
   description:
-    "Karman's Terms of Service covering subscriptions, sessions, cancellation, the score guarantee, and acceptable use.",
+    "Karman's Terms of Service covering subscriptions, sessions, cancellation, prospective course-fee protection, and acceptable use.",
 };
 
 const SECTIONS = [
@@ -24,8 +25,8 @@ const SECTIONS = [
     title: "2. Subscriptions & Billing",
     content: null,
     list: [
-      "Karman offers monthly and annual subscription plans. All plans begin with a 7-day free trial. You will not be charged during the trial period.",
-      "On day 8 of your trial, your card on file will be automatically charged at the rate of your selected plan. You authorize this recurring charge by entering your payment details.",
+      `For new checkouts, a ${GUARANTEE_POLICY.trial.days}-day trial is available only on the Seminar (Group) tier. Other tiers do not receive a trial. Any applicable trial and charge date will be displayed in checkout before purchase. Existing subscriptions and purchase terms are not changed by this prospective policy.`,
+      "A payment method may be required at checkout. Any charge timing and recurring amount are shown in the checkout terms for the selected offer.",
       "Monthly subscriptions renew automatically on the same date each month. Annual subscriptions renew on the anniversary of your purchase date.",
       "All prices are in USD and inclusive of applicable taxes where required.",
       "We reserve the right to change pricing with 30 days' advance notice by email. Continued use after the notice period constitutes acceptance of the new price.",
@@ -39,7 +40,7 @@ const SECTIONS = [
       "You may cancel your subscription at any time through Account → Billing → Cancel Subscription, or by emailing billing@karmanprep.com.",
       "Cancellation stops future billing. You retain full platform access through the end of your current billing period.",
       "Cancellation does not automatically generate a refund for the current billing period. See our Refund Policy for details.",
-      "Cancelling during your 7-day trial before day 8 incurs no charge.",
+      "If your new purchase includes a trial, the checkout shows its length and cancellation deadline. Cancel before the displayed deadline to avoid the post-trial charge.",
     ],
   },
   {
@@ -56,8 +57,8 @@ const SECTIONS = [
   },
   {
     id: "guarantee",
-    title: "5. Score Improvement Guarantee",
-    content: `The 50-point score improvement guarantee is subject to full eligibility requirements detailed at karmanprep.com/guarantee. Meeting the eligibility requirements is the student's responsibility. Karman reserves the right to verify claims using official score documentation.`,
+    title: "5. Prospective Course-Fee Protection",
+    content: `The prospective ${GUARANTEE_POLICY.outcome.instructionalWeeks}-week course-fee protection applies only to a specifically identified qualifying one-to-one SAT offer with a positive online-course fee separately disclosed and paid. It is not a fixed score-improvement promise. Current standard checkout offers are not configured as eligible. The full terms are at karmanprep.com/guarantee. Existing purchases remain subject to the purchase-time terms and policy version.`,
   },
   {
     id: "acceptable-use",
@@ -81,7 +82,7 @@ const SECTIONS = [
     title: "8. Disclaimers & Limitation of Liability",
     content: null,
     list: [
-      'Karman provides the platform "as is" and makes no guarantees of specific score outcomes beyond the terms of the 50-point guarantee.',
+      'Karman provides the platform "as is" and makes no guarantees of specific score outcomes. Any prospective course-fee protection is limited to the expressly eligible offers and terms shown at purchase.',
       "Karman is not liable for internet connectivity issues, College Board testing irregularities, or student circumstances outside our control that affect test performance.",
       "To the maximum extent permitted by law, Karman's total liability for any claim is limited to the amount you paid in the preceding 3 months.",
     ],
@@ -99,7 +100,7 @@ const SECTIONS = [
   {
     id: "contact",
     title: "11. Contact",
-    content: `Questions about these Terms? Email legal@karmanprep.com. We respond within 2 business days.`,
+    content: `For billing or policy questions, use the verified contact route at billing@karmanprep.com.`,
   },
 ];
 
@@ -115,7 +116,7 @@ export default function TermsPage() {
               Terms of Service
             </h1>
             <p className="text-base text-taupe dark:text-taupe">
-              Effective April 2025 · Governing law: Texas, United States
+              Effective October 8, 2026 · Governing law: Texas, United States
             </p>
           </div>
         </section>

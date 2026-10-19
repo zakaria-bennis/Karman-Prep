@@ -1,0 +1,270 @@
+/* Light-DOM calculator window surfaces (AR-37): colours come only from the --kcc-* tokens of
+   calculator-chrome.generated.css, which CalculatorScope imports. */
+
+/* The shadow host the v2 calculator mounts into (CalculatorLoader). It keeps its layout while
+   loading, so the calculator measures its real size, but stays invisible until ready. */
+.host {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+
+.host[data-loading] {
+  visibility: hidden;
+}
+
+/* The AR-31 loading, reload and Retry panel, laid over the window body. */
+.panel {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 16px;
+  text-align: center;
+  font-size: 0.9375rem;
+  background: var(--kcc-chrome);
+  color: var(--kcc-text);
+}
+
+/* AR-53: the render-error fallback replaces the frame, so it is its own fixed box at the floating
+   window's place and width, sized to its content, never a cover over the question. */
+.fallback {
+  position: fixed;
+  z-index: 72;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  box-sizing: border-box;
+  max-width: 100vw;
+  overflow: auto;
+  padding: 16px;
+  border: 1px solid var(--kcc-boundary);
+  border-radius: 8px;
+  text-align: center;
+  font-size: 0.9375rem;
+  background: var(--kcc-chrome);
+  color: var(--kcc-text);
+}
+
+.fallback p {
+  margin: 0;
+}
+
+.fallbackActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.panel button,
+.fallback button {
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid var(--kcc-boundary);
+  border-radius: 6px;
+  background: var(--kcc-accent);
+  color: var(--kcc-accent-label);
+  font: inherit;
+  cursor: pointer;
+}
+
+.panel button:focus-visible,
+.fallback button:focus-visible {
+  outline: 2px solid var(--kcc-focus);
+  outline-offset: 2px;
+}
+
+/* The window frame (CalculatorWindow): one element in every mode. Floating and docked geometry is
+   inline; maximized and full screen fill the viewport (AR-22). */
+.frame {
+  position: fixed;
+  z-index: 72;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  min-width: 0;
+  min-height: 0;
+  border: 1px solid var(--kcc-boundary);
+  border-radius: 8px;
+  background: var(--kcc-chrome);
+  color: var(--kcc-text);
+  outline: none;
+}
+
+.frame[data-mode="maximized"],
+.frame[data-mode="fullscreen"] {
+  inset: 0;
+  border-radius: 0;
+}
+
+.frame[data-mode="fullscreen"] {
+  border: 0;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
+    env(safe-area-inset-left);
+}
+
+/* AN-10: floating and full-screen windows enter over 200 ms while the scope marks the frame
+   data-entering. No fill-mode, so no transform remains to become a containing block; docked and
+   maximized never animate. */
+@keyframes kcc-window-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0px);
+  }
+}
+
+.frame[data-entering][data-mode="floating"],
+.frame[data-entering][data-mode="fullscreen"] {
+  animation: kcc-window-enter 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .frame[data-entering][data-mode] {
+    animation: none;
+  }
+}
+
+[data-reduced-motion="true"] .frame[data-entering][data-mode] {
+  animation: none;
+}
+
+/* L-12: the label, the chrome slot, then the window controls and Close. */
+.titlebar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  min-width: 0;
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--kcc-boundary);
+  /* The frame's 8 px corner less its 1 px border, so the bar never paints over the rounded edge. */
+  border-radius: 7px 7px 0 0;
+  background: var(--kcc-chrome);
+  color: var(--kcc-text);
+  font-family: Arial, sans-serif; /* TH-17: the window title in the calculator's UI font */
+}
+
+.moveHandle {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-weight: 600;
+  font-size: 0.875rem;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.frame[data-mode="floating"] .titlebar {
+  cursor: grab;
+  touch-action: none;
+}
+
+.titleSlot,
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.controls > button,
+.titleSlot > button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 36px;
+  min-height: 36px;
+  padding: 4px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--kcc-text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.controls > button:hover,
+.titleSlot > button:hover {
+  border-color: var(--kcc-boundary);
+}
+
+/* The window body: the containing block for the loader's absolutely placed panel. */
+.body {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+}
+
+/* AR-22: a 24 × 24 px resize grip in the floating window's bottom-right corner. */
+.grip {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 24px;
+  height: 24px;
+  cursor: nwse-resize;
+  touch-action: none;
+  background: linear-gradient(
+    135deg,
+    transparent 0 55%,
+    var(--kcc-boundary) 55% 62%,
+    transparent 62% 72%,
+    var(--kcc-boundary) 72% 79%,
+    transparent 79%
+  );
+}
+
+/* AR-23: a 24 px splitter hit area centred on the dock's right edge. */
+.splitter {
+  position: absolute;
+  top: 0;
+  right: -12px;
+  bottom: 0;
+  width: 24px;
+  cursor: col-resize;
+  touch-action: none;
+}
+
+.splitter::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 10px;
+  width: 4px;
+  height: 40px;
+  border-radius: 2px;
+  background: var(--kcc-boundary);
+  transform: translateY(-50%);
+}
+
+/* AR-28: focusable but invisible ends of the full-screen frame. */
+.sentinel {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+/* TH-14: one focus ring for every window control. */
+.moveHandle:focus-visible,
+.controls > button:focus-visible,
+.titleSlot > button:focus-visible,
+.grip:focus-visible,
+.splitter:focus-visible,
+.sentinel:focus-visible {
+  outline: 2px solid var(--kcc-focus);
+  outline-offset: 2px;
+}

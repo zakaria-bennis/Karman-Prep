@@ -8,10 +8,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { UserButton } from "@clerk/nextjs";
+import { ThemeSelector } from "@/components/shared/ThemeSelector";
+import { ThemedUserButton as UserButton } from "@/components/shared/ThemedClerkWidgets";
 import { ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { KarmanLogoMark } from "@/components/shared/KarmanLogo";
+
+export { LEARN_HEADER_CLEARANCE } from "./learn-header";
 
 const SUBJECT_HREFS = ["/learn/reading", "/learn/math"];
 
@@ -20,7 +23,7 @@ export default function LearnLayout({ children }: { children: React.ReactNode })
   const onConstellation = SUBJECT_HREFS.some((h) => pathname.startsWith(h));
 
   return (
-    <div className="relative min-h-screen bg-[#070605]">
+    <div className="relative min-h-screen bg-night">
       {/* ── Content (full 100vh) ────────────────────────── */}
       <main className="relative z-0 min-h-screen">{children}</main>
 
@@ -29,7 +32,7 @@ export default function LearnLayout({ children }: { children: React.ReactNode })
           it's even more minimal (just translucent mark + back). */}
       <header
         className={cn(
-          "fixed left-0 right-0 top-0 z-40 flex items-center gap-3 px-4 py-3",
+          "fixed left-0 right-0 top-0 z-40 flex items-center gap-3 px-4 pb-1.5 pt-3",
           "pointer-events-none" // children re-enable interactions
         )}
       >
@@ -87,10 +90,11 @@ export default function LearnLayout({ children }: { children: React.ReactNode })
         {/* User button — floats top-right, translucent */}
         <div
           className={cn(
-            "pointer-events-auto rounded-full border border-ivory/10 bg-night/35 p-1 shadow-lg backdrop-blur-md",
+            "pointer-events-auto flex items-center gap-1 rounded-full border border-ivory/10 bg-night/35 p-1 shadow-lg backdrop-blur-md",
             !onConstellation && "ml-auto"
           )}
         >
+          <ThemeSelector compact />
           <UserButton />
         </div>
       </header>

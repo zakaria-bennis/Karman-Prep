@@ -20,7 +20,7 @@ on:
     # finding S5.
     branches: [main]
   pull_request:
-    branches: [main]
+    branches: [main, zakaria/calculator-regression-release]
 
 # Cancel in-flight runs when a new commit lands on the same PR/branch.
 # Saves CI minutes; the older run was about to be obsolete anyway.
@@ -175,3 +175,5 @@ jobs:
             nextjs-${{ runner.os }}-
       - run: npm install --no-audit --no-fund
       - run: npm run cf:build
+      # AR-32, AR-33 and AR-66: the v2 bundle boundary, budgets and worker output.
+      - run: node scripts/build/check-calculator-v2-bundle.mjs

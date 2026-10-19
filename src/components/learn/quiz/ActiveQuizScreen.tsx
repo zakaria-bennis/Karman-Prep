@@ -4,19 +4,25 @@
 // question, choice grid (or numeric input), explanations, and
 // inline progression controls. Driven by QuizContext.
 
-import { useMemo } from "react";
+import { useMemo, useState, useRef, useEffect, type ReactNode } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Check, X } from "lucide-react";
+import { Check, X, Ban } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { MappedNode } from "../ConstellationMap";
-import { QUIZ_TOTAL_QUESTIONS, useQuiz } from "@/contexts/QuizContext";
-import type { QuizQuestionWithChoices } from "@/types/quiz";
+import { useOptionalQuizState, type QuizState } from "@/contexts/QuizContext";
+import type { StudentQuizQuestion } from "@/types/quiz";
+import { CalculatorChoiceAction } from "@/components/calculator/CalculatorSourceAction";
+import { useCalculator } from "@/components/calculator/CalculatorScope";
+import styles from "./workspace.module.css";
 import MathText from "../MathText";
+import ReviewedSinglePassage from "../ReviewedSinglePassage";
 import QuestionTable from "../QuestionTable";
 import ChartFigure from "../ChartFigure";
 import GeometryFigure from "../GeometryFigure";
 import FigureFrame from "../FigureFrame";
-import { ProgressDot } from "./ProgressDot";
+import { TableChoiceOption } from "./TableChoiceOption";
+import PassageAnnotations from "./PassageAnnotations";
+import { buildGeometrySvg } from "@/lib/figures/geometry-svg";
 
 export function ActiveQuizScreen({
   node,
@@ -28,9 +34,12 @@ export function ActiveQuizScreen({
   showExplanations,
   onToggleExplanations,
   onNext,
+  menu,
+  readOnly = false,
+  stateOverride,
 }: {
   node: MappedNode;
-  q: QuizQuestionWithChoices;
+  q: StudentQuizQuestion;
   onClose: () => void;
   onSelectAnswer: (l: string) => void;
   onSubmit: () => void;
@@ -38,75 +47,91 @@ export function ActiveQuizScreen({
   showExplanations: boolean;
   onToggleExplanations: (v: boolean) => void;
   onNext: () => void;
+  menu?: ReactNode;
+  readOnly?: boolean;
+  stateOverride?: Pick<
+    QuizState,
+    "phase" | "reviews" | "records" | "targetLength" | "currentIndex" | "selectedAnswer"
+  >;
 }) {
-  const { state } = useQuiz();
+  const headerRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const header = headerRef.current;
+    if (!header || typeof ResizeObserver === "undefined") return;
+    const measure = () =>
+      header.parentElement?.style.setProperty(
+        "--quiz-header-height",
+        `${header.getBoundingClientRect().height}px`
+      );
+    const observer = new ResizeObserver(measure);
+    observer.observe(header);
+    measure();
+    return () => observer.disconnect();
+  }, []);
+  const [crossed, setCrossed] = useState<Record<string, boolean>>({});
+  const toggleCrossed = (letter: string) =>
+    setCrossed((old) => ({ ...old, [`${q.id}:${letter}`]: !old[`${q.id}:${letter}`] }));
+  const contextState = useOptionalQuizState();
+  const state = stateOverride ?? contextState;
+  // AR-11: on v2 each text choice's tool cluster also holds its Transfer control (14).
+  const calculatorVersion = useCalculator()?.version;
+  const stem = useMemo(
+    () => ({ text: q.question_text, serializedFunctionLines: q.subject === "math" }),
+    [q.question_text, q.subject]
+  );
+  if (!state) throw new Error("ActiveQuizScreen requires a quiz session or read-only state.");
+  const nativeGeometryRenderable = useMemo(
+    () =>
+      q.figure_kind === "geometric" &&
+      !!q.figure_geometry_data &&
+      buildGeometrySvg(q.figure_geometry_data).renderable,
+    [q.figure_kind, q.figure_geometry_data]
+  );
   const sortedChoices = useMemo(
     () => [...q.answer_choices].sort((a, b) => (a.letter > b.letter ? 1 : -1)),
     [q]
   );
+  const allChoicesAreTables =
+    sortedChoices.length > 0 && sortedChoices.every((choice) => choice.choice_table_data);
   const isSubmitted = state.phase === "submitted_correct" || state.phase === "submitted_wrong";
-  const correctLetter = q.correct_answer;
-
-  // Progress dots
-  const dots = Array.from({ length: QUIZ_TOTAL_QUESTIONS }, (_, i) => {
-    const rec = state.records[i];
-    const isCurrent = i === state.currentIndex;
-    const isAnswered = !!rec?.isCorrect || rec?.isCorrect === false;
-    const isCorrect = rec?.isCorrect === true;
-    const isFlagged = rec?.flagged === true;
-    return { i, isCurrent, isAnswered, isCorrect, isFlagged };
-  });
+  const review = isSubmitted ? state.reviews[q.id] : undefined;
+  const correctLetter = review?.correct_answer;
 
   return (
     <>
       {/* Top bar */}
-      <div className="absolute inset-x-0 top-0 z-10 flex h-14 items-center border-b border-bronze bg-night/80 px-6 backdrop-blur-sm">
+      <div
+        ref={headerRef}
+        className="absolute inset-x-0 top-0 z-[72] flex min-h-14 flex-wrap items-center border-b border-bronze bg-night/80 px-3 backdrop-blur-sm sm:px-6"
+      >
         <div className="min-w-0 flex-1">
           <p className="text-xs font-semibold uppercase tracking-widest text-taupe">
             {node.subject === "reading" ? "Reading & Writing" : "Math"}
           </p>
           <p className="truncate text-sm font-bold">{node.topic}</p>
         </div>
-        <div className="flex-1 text-center">
-          <span className="text-sm font-semibold text-ivory/80">
-            Question <span className="text-ivory">{state.currentIndex + 1}</span> of{" "}
-            {QUIZ_TOTAL_QUESTIONS}
-          </span>
-        </div>
-        <div className="flex flex-1 justify-end">
-          <button
-            onClick={onClose}
-            className="flex h-9 w-9 items-center justify-center rounded-full text-taupe hover:bg-surface-raised hover:text-ivory"
-            aria-label="Close quiz"
-          >
-            <X className="h-4 w-4" />
-          </button>
+        <div className="flex flex-wrap items-center justify-end gap-1">
+          {menu}
+          {!readOnly && (
+            <button
+              onClick={onClose}
+              className="flex h-9 w-9 items-center justify-center rounded-full text-taupe hover:bg-surface-raised hover:text-ivory"
+              aria-label="Close quiz"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
         </div>
       </div>
 
-      {/* Progress dots row (top) */}
-      <div className="absolute inset-x-0 top-14 z-10 flex h-10 items-center justify-center gap-2 border-b border-bronze bg-night/60">
-        {dots.map((d) => (
-          <ProgressDot key={d.i} {...d} />
-        ))}
-      </div>
-
-      {/* Question area — College Board Bluebook-style split view, with
-          an in-place explanation toggle.
-            · Pre-submit / submitted-no-explanations: passage on left
-              (R&W), question + choices + Submit/Show on right.
-            · Submitted + Show explanations clicked: question + choices
-              slide under the passage on the left; right panel becomes
-              the explanations + Hide button. Math (no passage) uses
-              the same 2-column shape with question on left.
-          Each panel scrolls independently. */}
+      {/* Passage precedes prompt in every existing practice mode. */}
       {(() => {
         const hasPassage = !!(q.passage_intro || q.passage || q.passage_a || q.passage_b);
         const inExplanationMode = isSubmitted && showExplanations;
         const LETTERS: ("A" | "B" | "C" | "D")[] = ["A", "B", "C", "D"];
 
         // ── Buttons row that lives at the bottom of the choices ──
-        const choicesButtonRow = !isSubmitted ? (
+        const choicesButtonRow = readOnly ? null : !isSubmitted ? (
           state.selectedAnswer ? (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
@@ -115,7 +140,7 @@ export function ActiveQuizScreen({
             >
               <button
                 onClick={onSubmit}
-                className="rounded-xl bg-info px-8 py-3 text-sm font-bold text-ivory transition-colors hover:bg-info-bright"
+                className="rounded-xl bg-ivory px-8 py-3 text-sm font-bold text-night transition-colors hover:bg-ivory/90"
               >
                 Submit Answer
               </button>
@@ -135,9 +160,9 @@ export function ActiveQuizScreen({
             </button>
             <button
               onClick={onNext}
-              className="rounded-xl bg-info px-8 py-3 text-sm font-bold text-ivory transition-colors hover:bg-info-bright"
+              className="rounded-xl bg-ivory px-8 py-3 text-sm font-bold text-night transition-colors hover:bg-ivory/90"
             >
-              Next question →
+              {state.currentIndex + 1 >= state.targetLength ? "See results →" : "Next question →"}
             </button>
           </motion.div>
         ) : null;
@@ -150,50 +175,107 @@ export function ActiveQuizScreen({
               onChange={onSelectAnswer}
               isSubmitted={isSubmitted}
               studentAnswer={state.selectedAnswer}
-              correctAnswer={q.correct_answer}
-              tolerance={q.numeric_tolerance}
+              correctAnswer={review?.correct_answer ?? ""}
+              tolerance={review?.numeric_tolerance ?? null}
               wasCorrect={state.phase === "submitted_correct"}
+              readOnly={readOnly}
             />
           ) : (
-            <div className="mt-7 space-y-3">
+            <div
+              className={cn(
+                "mt-7",
+                allChoicesAreTables ? "grid grid-cols-1 gap-3 sm:grid-cols-2" : "space-y-3"
+              )}
+            >
               {sortedChoices.map((choice) => {
                 const letter = choice.letter;
                 const isSelected = state.selectedAnswer === letter;
                 const isCorrect = letter === correctLetter;
                 const showCorrect = isSubmitted && isCorrect;
                 const showWrong = isSubmitted && isSelected && !isCorrect;
+                if (choice.choice_table_data) {
+                  return (
+                    <TableChoiceOption
+                      key={letter}
+                      id={`quiz-${q.id}-choice-${letter}`}
+                      groupName={`quiz-${q.id}-choice`}
+                      letter={letter}
+                      table={choice.choice_table_data}
+                      readOnly={readOnly}
+                      selected={isSelected}
+                      submitted={isSubmitted}
+                      correct={isCorrect}
+                      onSelect={readOnly ? () => undefined : onSelectAnswer}
+                    />
+                  );
+                }
                 return (
-                  <button
-                    key={letter}
-                    onClick={() => !isSubmitted && onSelectAnswer(letter)}
-                    disabled={isSubmitted}
-                    className={cn(
-                      "w-full rounded-xl border px-5 py-3.5 text-left transition-all",
-                      "flex items-start gap-4",
-                      !isSubmitted && "cursor-pointer hover:border-info/40 hover:bg-info/5",
-                      isSelected && !isSubmitted && "border-info/40 bg-info/10",
-                      !isSelected && !isSubmitted && "border-bronze bg-surface",
-                      showCorrect && "border-success/40 bg-success/15",
-                      showWrong && "border-error/40 bg-error/15",
-                      isSubmitted && !isSelected && !isCorrect && "border-bronze opacity-50"
-                    )}
-                  >
-                    <span
+                  <div key={letter} className="group relative">
+                    <button
+                      onClick={() => !readOnly && !isSubmitted && onSelectAnswer(letter)}
+                      disabled={readOnly || isSubmitted || crossed[`${q.id}:${letter}`]}
                       className={cn(
-                        "mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[13px] font-bold",
-                        !isSubmitted && !isSelected && "bg-surface-raised text-ivory/80",
-                        !isSubmitted && isSelected && "bg-info text-ivory",
-                        showCorrect && "bg-success text-night",
-                        showWrong && "bg-error text-ivory",
-                        isSubmitted && !isSelected && !isCorrect && "bg-surface-raised text-taupe"
+                        `w-full rounded-xl border py-3.5 pl-5 ${calculatorVersion === "v2" ? "pr-24" : "pr-14"} text-left transition-all`,
+                        crossed[`${q.id}:${letter}`] && "line-through opacity-50",
+                        "flex items-start gap-4",
+                        !isSubmitted && "cursor-pointer hover:border-info/40 hover:bg-info/5",
+                        isSelected && !isSubmitted && "border-info/40 bg-info/10",
+                        !isSelected && !isSubmitted && "border-bronze bg-surface",
+                        showCorrect && "border-success/40 bg-success/15",
+                        showWrong && "border-error/40 bg-error/15",
+                        isSubmitted && !isSelected && !isCorrect && "border-bronze opacity-50"
                       )}
                     >
-                      {showCorrect ? <Check className="h-3.5 w-3.5" /> : letter}
-                    </span>
-                    <span className="flex-1 text-[16px] leading-[1.5] text-ivory">
-                      <MathText text={choice.choice_text} />
-                    </span>
-                  </button>
+                      <span
+                        className={cn(
+                          "mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[13px] font-bold",
+                          !isSubmitted && !isSelected && "bg-surface-raised text-ivory/80",
+                          !isSubmitted && isSelected && "bg-ivory text-night",
+                          showCorrect && "bg-success text-night",
+                          showWrong && "bg-error text-ivory",
+                          isSubmitted && !isSelected && !isCorrect && "bg-surface-raised text-taupe"
+                        )}
+                      >
+                        {showCorrect ? <Check className="h-3.5 w-3.5" /> : letter}
+                      </span>
+                      <span className="flex-1 text-[16px] leading-[1.5] text-ivory">
+                        <MathText
+                          text={choice.choice_text}
+                          serializedFunctionLines={q.subject === "math"}
+                        />
+                      </span>
+                    </button>
+                    {!readOnly && (
+                      <div
+                        className={`${styles.choiceTools} absolute right-1 top-1`}
+                        data-calculator={calculatorVersion === "v2" ? "v2" : undefined}
+                      >
+                        <button
+                          type="button"
+                          aria-label={
+                            crossed[`${q.id}:${letter}`]
+                              ? `Restore choice ${letter}`
+                              : `Cross out choice ${letter}`
+                          }
+                          aria-pressed={!!crossed[`${q.id}:${letter}`]}
+                          onClick={() => toggleCrossed(letter)}
+                        >
+                          <Ban size={18} />
+                        </button>
+                        {q.subject === "math" && (
+                          <CalculatorChoiceAction
+                            slot="cluster"
+                            text={choice.choice_text}
+                            letter={letter}
+                            stem={stem}
+                          />
+                        )}
+                      </div>
+                    )}
+                    {!readOnly && q.subject === "math" && (
+                      <CalculatorChoiceAction text={choice.choice_text} letter={letter} />
+                    )}
+                  </div>
                 );
               })}
             </div>
@@ -204,8 +286,12 @@ export function ActiveQuizScreen({
             <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-taupe">
               {q.topic_cluster}
             </p>
-            <h2 className="text-[19px] font-medium leading-[1.5] text-ivory md:text-[20px]">
-              <MathText text={q.question_text} />
+            <h2 className="whitespace-pre-line text-[19px] font-medium leading-[1.5] text-ivory md:text-[20px]">
+              <MathText
+                text={q.question_text}
+                serializedFunctionLines={q.subject === "math"}
+                calculator={!readOnly && q.subject === "math"}
+              />
             </h2>
             {choicesBlock}
             {choicesButtonRow}
@@ -213,7 +299,10 @@ export function ActiveQuizScreen({
         );
 
         // ── Explanations panel (right side when showExplanations) ──
-        const perChoiceMap = q.explanation_per_choice as Record<string, string | undefined> | null;
+        const perChoiceMap = review?.explanation_per_choice as
+          | Record<string, string | undefined>
+          | null
+          | undefined;
         const explanationsPanel = (
           <motion.div
             key="explanations"
@@ -227,9 +316,9 @@ export function ActiveQuizScreen({
               Explanation
             </h3>
 
-            {q.explanation_text && (
+            {review?.explanation_text && (
               <div className="mb-6 text-[16px] leading-[1.6] text-ivory">
-                <MathText text={q.explanation_text} className="block whitespace-pre-wrap" />
+                <MathText text={review.explanation_text} className="block whitespace-pre-wrap" />
               </div>
             )}
 
@@ -279,13 +368,13 @@ export function ActiveQuizScreen({
               </div>
             )}
 
-            {q.desmos_strategy && (
+            {q.subject === "math" && review?.desmos_strategy && (
               <div className="mb-6 rounded-xl border border-info/30 bg-info/5 p-4">
                 <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-info-bright">
                   Desmos strategy
                 </div>
                 <div className="text-[16px] leading-[1.6] text-info-bright">
-                  <MathText text={q.desmos_strategy} className="block whitespace-pre-wrap" />
+                  <MathText text={review.desmos_strategy} className="block whitespace-pre-wrap" />
                 </div>
               </div>
             )}
@@ -299,9 +388,9 @@ export function ActiveQuizScreen({
               </button>
               <button
                 onClick={onNext}
-                className="rounded-xl bg-info px-8 py-3 text-sm font-bold text-ivory transition-colors hover:bg-info-bright"
+                className="rounded-xl bg-ivory px-8 py-3 text-sm font-bold text-night transition-colors hover:bg-ivory/90"
               >
-                Next question →
+                {state.currentIndex + 1 >= state.targetLength ? "See results →" : "Next question →"}
               </button>
             </div>
           </motion.div>
@@ -323,11 +412,14 @@ export function ActiveQuizScreen({
         // so we skip the white-bg FigureFrame card for them.
         const isNativeTable = q.figure_kind === "table" && q.figure_table_data;
         const isNativeChart = q.figure_kind === "chart" && q.figure_chart_data;
-        const isNativeGeometry = q.figure_kind === "geometric" && q.figure_geometry_data;
+        const isNativeGeometry = nativeGeometryRenderable;
         const hasFigure = !!q.image_url || isNativeTable || isNativeChart || isNativeGeometry;
         const figureCard = isNativeTable ? (
           <div className="mb-6 flex justify-center">
-            <QuestionTable data={q.figure_table_data!} />
+            <QuestionTable
+              data={q.figure_table_data!}
+              calculator={!readOnly && q.subject === "math"}
+            />
           </div>
         ) : isNativeChart ? (
           <div className="mb-6 flex justify-center">
@@ -354,30 +446,31 @@ export function ActiveQuizScreen({
         // Passage block (used in left column whenever R&W has passage).
         const passageBlock = (
           <article className="mx-auto max-w-prose font-serif text-[17px] leading-[1.7] text-ivory">
-            {q.passage_a && q.passage_b ? (
+            {q.passage_a || q.passage_b ? (
               <>
-                <section className="mb-7">
-                  <div className="mb-2 font-sans text-[10px] font-bold uppercase tracking-[0.2em] text-taupe">
-                    Text 1
-                  </div>
-                  <MathText text={q.passage_a} className="block whitespace-pre-wrap" />
-                </section>
-                <section>
-                  <div className="mb-2 font-sans text-[10px] font-bold uppercase tracking-[0.2em] text-taupe">
-                    Text 2
-                  </div>
-                  <MathText text={q.passage_b} className="block whitespace-pre-wrap" />
-                </section>
+                {q.passage_a && (
+                  <section className="mb-7">
+                    <div className="mb-2 font-sans text-[10px] font-bold uppercase tracking-[0.2em] text-taupe">
+                      Text 1
+                    </div>
+                    <MathText text={q.passage_a} className="block whitespace-pre-wrap" />
+                  </section>
+                )}
+                {q.passage_b && (
+                  <section>
+                    <div className="mb-2 font-sans text-[10px] font-bold uppercase tracking-[0.2em] text-taupe">
+                      Text 2
+                    </div>
+                    <MathText text={q.passage_b} className="block whitespace-pre-wrap" />
+                  </section>
+                )}
               </>
             ) : (
-              <>
-                {q.passage_intro && (
-                  <p className="mb-5">
-                    <MathText text={q.passage_intro} />
-                  </p>
-                )}
-                {q.passage && <MathText text={q.passage} className="block whitespace-pre-wrap" />}
-              </>
+              <ReviewedSinglePassage
+                intro={q.passage_intro}
+                passage={q.passage}
+                display={q.reviewed_passage}
+              />
             )}
           </article>
         );
@@ -390,18 +483,47 @@ export function ActiveQuizScreen({
         // column, mirroring College Board Bluebook behavior.
         if (hasPassage || hasFigure) {
           return (
-            <div className="absolute inset-x-0 bottom-20 top-24 overflow-hidden">
-              <div className="grid h-full divide-y divide-bronze md:grid-cols-2 md:divide-x md:divide-y-0">
+            <div
+              data-question-content
+              className={cn(
+                "absolute inset-x-0 bottom-20 top-28 overflow-y-auto md:top-20 md:overflow-hidden"
+              )}
+            >
+              <div
+                data-question-layout
+                className="grid min-h-full divide-y divide-bronze md:h-full md:grid-cols-2 md:divide-x md:divide-y-0"
+              >
                 {/* LEFT */}
-                <div className="overflow-y-auto px-6 py-8 md:px-10">
+                <div
+                  className={cn(
+                    "px-6 py-8 md:overflow-y-auto md:px-10",
+                    isNativeTable && "min-w-0"
+                  )}
+                >
+                  {hasPassage &&
+                    (readOnly ? (
+                      passageBlock
+                    ) : (
+                      <PassageAnnotations
+                        questionId={q.id}
+                        sourceKey={JSON.stringify([
+                          q.passage_intro,
+                          q.passage,
+                          q.passage_a,
+                          q.passage_b,
+                          q.reviewed_passage,
+                        ])}
+                      >
+                        {passageBlock}
+                      </PassageAnnotations>
+                    ))}
                   {figureCard}
-                  {hasPassage && passageBlock}
                   {inExplanationMode && (
                     <div className="mt-10 border-t border-bronze/50 pt-6">{questionPanel}</div>
                   )}
                 </div>
                 {/* RIGHT */}
-                <div className="overflow-y-auto px-6 py-8 md:px-10">
+                <div className="px-6 py-8 md:overflow-y-auto md:px-10">
                   <AnimatePresence mode="wait" initial={false}>
                     {inExplanationMode ? (
                       explanationsPanel
@@ -428,10 +550,18 @@ export function ActiveQuizScreen({
         // on the RIGHT — same shape as R&W in explanation mode.
         if (inExplanationMode) {
           return (
-            <div className="absolute inset-x-0 bottom-20 top-24 overflow-hidden">
-              <div className="grid h-full divide-y divide-bronze md:grid-cols-2 md:divide-x md:divide-y-0">
-                <div className="overflow-y-auto px-6 py-8 md:px-10">{questionPanel}</div>
-                <div className="overflow-y-auto px-6 py-8 md:px-10">{explanationsPanel}</div>
+            <div
+              data-question-content
+              className={cn(
+                "absolute inset-x-0 bottom-20 top-28 overflow-y-auto md:top-20 md:overflow-hidden"
+              )}
+            >
+              <div
+                data-question-layout
+                className="grid min-h-full divide-y divide-bronze md:h-full md:grid-cols-2 md:divide-x md:divide-y-0"
+              >
+                <div className="px-6 py-8 md:overflow-y-auto md:px-10">{questionPanel}</div>
+                <div className="px-6 py-8 md:overflow-y-auto md:px-10">{explanationsPanel}</div>
               </div>
             </div>
           );
@@ -439,7 +569,12 @@ export function ActiveQuizScreen({
 
         // Math, default: single centered column.
         return (
-          <div className="absolute inset-x-0 bottom-20 top-24 overflow-y-auto px-6 py-8">
+          <div
+            data-question-content
+            className={cn(
+              "absolute inset-x-0 bottom-20 top-28 overflow-y-auto px-6 py-8 md:top-20"
+            )}
+          >
             {questionPanel}
           </div>
         );
@@ -463,6 +598,7 @@ function NumericAnswerInput({
   correctAnswer,
   tolerance,
   wasCorrect,
+  readOnly,
 }: {
   value: string;
   onChange: (v: string) => void;
@@ -471,6 +607,7 @@ function NumericAnswerInput({
   correctAnswer: string;
   tolerance: number | null;
   wasCorrect: boolean;
+  readOnly: boolean;
 }) {
   const showFeedback = isSubmitted && studentAnswer !== null;
   const feedbackClass = showFeedback
@@ -484,19 +621,23 @@ function NumericAnswerInput({
   return (
     <div className="mt-8 space-y-3">
       <div className={cn("rounded-xl border px-5 py-4", feedbackClass)}>
-        <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-taupe">
+        <label
+          htmlFor="quiz-numeric-answer"
+          className="mb-2 block text-xs font-semibold uppercase tracking-wider text-taupe"
+        >
           Your answer
         </label>
         <input
+          id="quiz-numeric-answer"
           type="text"
-          inputMode="decimal"
+          inputMode="text"
           autoComplete="off"
           autoFocus
-          disabled={isSubmitted}
+          disabled={isSubmitted || readOnly}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          placeholder="Type a number (e.g. 3.14 or 1/2)"
-          className="w-full border-0 bg-transparent font-mono text-2xl font-bold tabular-nums text-ivory placeholder:text-taupe focus:outline-none md:text-3xl"
+          placeholder="Number or fraction"
+          className="w-full border-0 bg-transparent font-mono text-2xl font-bold tabular-nums text-ivory placeholder:text-base placeholder:text-taupe focus:outline-none md:text-3xl md:placeholder:text-lg"
         />
         {showFeedback && !wasCorrect && (
           <p className="mt-3 text-sm text-error-bright">

@@ -121,6 +121,12 @@ export default async function AdminQuestionPreviewPage({ searchParams }: PagePro
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
+            <Link
+              href="/admin/questions/preview/rapid"
+              className="inline-flex items-center gap-1.5 rounded-md border border-bronze bg-surface px-3 py-1.5 text-xs font-semibold text-ivory hover:border-bronze"
+            >
+              Rapid student view
+            </Link>
             <SourcePdfFilter sources={sourcePdfs} />
             <Link
               href={

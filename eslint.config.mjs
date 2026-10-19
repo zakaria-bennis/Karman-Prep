@@ -54,6 +54,12 @@ export default [
     },
   },
 
+  {
+    // Bundled into one checked lexical scope; calculator.js is linted in full.
+    files: ["karman-calculator/lib/*.js"],
+    rules: { "@typescript-eslint/no-unused-vars": "off" },
+  },
+
   // Ignore generated + vendored output. ESLint 9 doesn't read
   // .eslintignore — ignores live here instead.
   //
@@ -82,6 +88,7 @@ export default [
       "*.config.js",
       "*.config.mjs",
       "next-env.d.ts",
+      "vendor/**",
     ],
   },
 ];

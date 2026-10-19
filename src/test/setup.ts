@@ -16,7 +16,20 @@
 import "@testing-library/jest-dom/vitest";
 import { afterEach } from "vitest";
 import { cleanup } from "@testing-library/react";
+import { splitMathText } from "@/components/learn/math-segments";
+import { installMathSplit } from "@/lib/calculator-transfer/math-split";
 
-afterEach(() => {
+// The lazy transfer classifier gets MathText's splitter from its eager loader in the app
+// (src/lib/calculator-transfer/math-split.ts); tests that call it directly get it here.
+installMathSplit(splitMathText);
+
+afterEach(async () => {
   cleanup();
+  // React's scheduler queues its remaining work (passive-effect cleanups
+  // from the unmount above) on setImmediate. When the file's last test
+  // ends, Vitest tears the jsdom window down before that task runs and
+  // react-dom throws "window is not defined" as an unhandled error, which
+  // fails the run although every test passed. One macrotask turn lets the
+  // scheduler drain while the window still exists.
+  await new Promise<void>((resolve) => setImmediate(resolve));
 });

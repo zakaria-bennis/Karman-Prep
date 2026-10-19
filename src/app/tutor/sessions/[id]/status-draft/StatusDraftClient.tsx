@@ -32,6 +32,7 @@ import {
   Users as UsersIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { learningPlanCopy } from "@/lib/learning-plan/copy";
 import type { StatusDraft } from "@/lib/integrations/openai/generate-status-draft";
 import {
   actionSaveDraft,
@@ -73,7 +74,7 @@ const FIELDS: Array<{ key: Field; label: string }> = [
   { key: "subjects_to_cover_next_session", label: "Subjects to Cover Next Session" },
   {
     key: "homework_practice_before_next_session",
-    label: "Homework/Practice to Complete Before Next Session",
+    label: learningPlanCopy.tutorPracticeField,
   },
   { key: "date_and_time_of_next_session", label: "Date and Time of Next Session" },
 ];

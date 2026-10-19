@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 460" width="600" height="460" role="img" aria-labelledby="title desc">
+<title id="title">Parallel lines r and s cut by transversal t</title>
+<desc id="desc">The corresponding angle above line r is x degrees and the angle above line s is 44 degrees. Figure not drawn to scale.</desc>
+<rect width="600" height="460" fill="#171611"/>
+<g fill="none" stroke="#2FA8FF" stroke-width="2.7"><path d="M80 140H475 M80 280H475 M98 422L478 42"/><path d="M418 140A38 38 0 0 0 406.87 113.13 M278 280A38 38 0 0 0 266.87 253.13" stroke-width="1.7"/></g>
+<g fill="#F3ECDD" font-family="Arial, Helvetica, sans-serif" font-size="27" dominant-baseline="middle"><text x="492" y="140" font-style="italic">r</text><text x="492" y="280" font-style="italic">s</text><text x="492" y="30" font-style="italic">t</text><text x="441" y="119" text-anchor="middle" font-style="italic">x°</text><text x="301" y="259" text-anchor="middle">44°</text></g>
+<text x="300" y="450" text-anchor="middle" fill="#F3ECDD" font-family="Arial, Helvetica, sans-serif" font-size="18">Note: Figure not drawn to scale.</text>
+</svg>

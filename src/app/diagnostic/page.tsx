@@ -8,7 +8,7 @@
 //                           require an admin reset (reset script).
 //   · Otherwise           → take it. Results CTA copy depends on
 //                           subscription status (paying → "learning
-//                           path", non-paying → "Start free trial").
+//                           path", non-paying → checkout).
 //
 // Note: paying subscribers are NOT forced into the diagnostic
 // (no nav links push them in), but if they explicitly click
@@ -21,7 +21,9 @@ import { safeAuth } from "@/lib/auth/dev-auth";
 import { redirect } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/server";
 import DiagnosticClient from "@/components/diagnostic/DiagnosticClient";
+import { CalculatorVersionProvider } from "@/components/calculator/CalculatorVersion";
 import { DIAGNOSTIC_QUESTIONS } from "@/data/diagnostic-questions";
+import { resolveCalculatorVersion } from "@/lib/calculator-version";
 
 export const metadata: Metadata = { title: "SAT Diagnostic — 35 Questions" };
 
@@ -62,11 +64,16 @@ export default async function DiagnosticPage() {
 
   const isSubscribed = sub?.status === "active" || sub?.status === "trialing";
 
+  // Per-request calculator version (AR-7); never rejects, any failure is "v1".
+  const version = await resolveCalculatorVersion();
+
   return (
-    <DiagnosticClient
-      questions={DIAGNOSTIC_QUESTIONS}
-      isSubscribed={isSubscribed}
-      isRetake={isRetake}
-    />
+    <CalculatorVersionProvider version={version}>
+      <DiagnosticClient
+        questions={DIAGNOSTIC_QUESTIONS}
+        isSubscribed={isSubscribed}
+        isRetake={isRetake}
+      />
+    </CalculatorVersionProvider>
   );
 }

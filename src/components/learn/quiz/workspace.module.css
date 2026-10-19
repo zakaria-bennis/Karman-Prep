@@ -1,0 +1,150 @@
+.tool,
+.timer button,
+.settings summary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text-primary);
+  font-size: 12px;
+  cursor: pointer;
+}
+.timer {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+.settings {
+  position: relative;
+}
+.settings > div {
+  position: fixed;
+  right: 16px;
+  top: 120px;
+  z-index: 80;
+  width: 245px;
+  padding: 16px;
+  color: var(--text-primary);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 8px 25px #0003;
+}
+.settings label {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.settings p {
+  margin-top: 8px;
+  font-size: 12px;
+}
+.transition {
+  display: contents;
+}
+.transition[data-animate="true"] > [data-question-content] {
+  animation: pan-next 150ms ease-out;
+}
+.transition[data-animate="true"][data-direction="previous"] > [data-question-content] {
+  animation-name: pan-previous;
+}
+@keyframes pan-next {
+  from {
+    opacity: 0.65;
+    translate: 20px 0;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+@keyframes pan-previous {
+  from {
+    opacity: 0.65;
+    translate: -20px 0;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: #0005;
+}
+.guide {
+  width: min(100%, 540px);
+  max-height: 80dvh;
+  overflow: auto;
+  padding: 20px;
+  background: var(--surface);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: 0 12px 40px #0004;
+}
+.guide header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+.guide button {
+  min-height: 44px;
+  min-width: 44px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+.guide button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.guide button[aria-current="true"] {
+  outline: 2px solid var(--accent-gold);
+}
+.guideGrid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  margin: 14px 0;
+}
+.guide p {
+  font-size: 13px;
+  margin: 10px 0;
+}
+.choiceTools {
+  opacity: 0;
+  display: flex;
+  align-items: center;
+}
+:global(.group):hover .choiceTools,
+.choiceTools:focus-within {
+  opacity: 1;
+}
+.choiceTools button {
+  min-width: 44px;
+  min-height: 44px;
+}
+@media (hover: none) {
+  .choiceTools {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .transition[data-animate] > [data-question-content] {
+    animation: none;
+  }
+}

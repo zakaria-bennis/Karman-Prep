@@ -7,6 +7,8 @@
 // See public/sounds/README.md for file specs.
 // ============================================================
 
+import { soundEnabled, subscribeSoundPreference } from "./sound-preference";
+
 export type SoundName =
   | "nodeClick" // Node selected on constellation map
   | "nodeComplete" // Correct quiz answer / node mastered
@@ -34,6 +36,12 @@ type HowlLike = {
 };
 
 let _cache: Record<SoundName, HowlLike> | null = null;
+
+subscribeSoundPreference(() => {
+  if (!soundEnabled() && _cache) {
+    for (const sound of Object.values(_cache)) sound.stop();
+  }
+});
 
 function initCache() {
   try {
@@ -65,7 +73,7 @@ function initCache() {
 
 /** Access a raw Howl instance for advanced operations (fade, volume, loop). */
 export function getSound(name: SoundName): HowlLike | null {
-  if (typeof window === "undefined") return null;
+  if (typeof window === "undefined" || !soundEnabled()) return null;
   try {
     const cache = _cache ?? initCache();
     return cache?.[name] ?? null;
@@ -76,7 +84,7 @@ export function getSound(name: SoundName): HowlLike | null {
 
 /** Crossfade two ambient tracks over the given duration (ms). */
 export function crossfadeAmbient(from: SoundName, to: SoundName, durationMs: number): void {
-  if (typeof window === "undefined") return;
+  if (typeof window === "undefined" || !soundEnabled()) return;
   try {
     const a = getSound(from);
     const b = getSound(to);
@@ -97,7 +105,7 @@ export function crossfadeAmbient(from: SoundName, to: SoundName, durationMs: num
  * Safe to call when audio files don't exist — Howler fails silently.
  */
 export function playSound(name: SoundName): void {
-  if (typeof window === "undefined") return;
+  if (typeof window === "undefined" || !soundEnabled()) return;
   try {
     const cache = _cache ?? initCache();
     cache?.[name]?.play();
@@ -108,6 +116,6 @@ export function playSound(name: SoundName): void {
 
 /** Preload all sounds (call once after user interaction to warm the cache) */
 export function preloadSounds(): void {
-  if (typeof window === "undefined") return;
+  if (typeof window === "undefined" || !soundEnabled()) return;
   if (!_cache) initCache();
 }

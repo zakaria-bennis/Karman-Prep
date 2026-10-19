@@ -21,22 +21,28 @@
     "test:visual:regression": "playwright test tests/visual/regression.spec.ts --project=visual",
     "test:visual:regression:update": "playwright test tests/visual/regression.spec.ts --project=visual --update-snapshots",
     "cf:build": "opennextjs-cloudflare build && node scripts/build/patch-cf-worker.mjs",
+    "cf:build:release": "node scripts/build/check-release-env.mjs && npm run cf:build",
     "cf:preview": "opennextjs-cloudflare preview",
     "cf:deploy": "opennextjs-cloudflare deploy",
-    "pdf:extract": "node --env-file=.env.local scripts/pdf-pipeline/run-extraction.mjs",
-    "pdf:grade": "node --env-file=.env.local scripts/question-audit/verify-answers.mjs --from-db",
     "db:types": "npx supabase gen types typescript --project-id yyocjxvrakuhnvepaevh > src/types/supabase.ts",
     "db:push": "npx supabase db push",
     "db:status": "npx supabase migration list --linked",
     "seed:dev": "node scripts/seed-dev.mjs",
     "sync:taxonomy": "tsx scripts/sync-taxonomy.ts",
     "check:sizes": "node scripts/check-file-sizes.mjs",
-    "prepare": "husky"
+    "prepare": "husky",
+    "questions:preflight": "tsx scripts/pdf-pipeline/preflight-import-json.ts",
+    "questions:import-reviewed": "tsx scripts/pdf-pipeline/import-reviewed-questions.ts",
+    "test:calculator": "playwright test --config=playwright.calculator.config.ts",
+    "dev:calculator": "node tests/calculator/fixture/server.mjs",
+    "calculator:build": "node karman-calculator/build.mjs",
+    "prebuild": "npm run calculator:build",
+    "predev:calculator": "npm run calculator:build"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1038.0",
     "@aws-sdk/s3-request-presigner": "^3.1055.0",
-    "@clerk/nextjs": "^7.2.3",
+    "@clerk/nextjs": "7.9.11",
     "@clerk/themes": "^2.4.57",
     "@opennextjs/cloudflare": "^1.19.4",
     "@react-email/components": "^1.0.12",
@@ -52,19 +58,20 @@
     "framer-motion": "^12.38.0",
     "howler": "^2.2.4",
     "ical-generator": "^10.2.0",
-    "katex": "^0.16.45",
+    "katex": "0.18.2",
     "lucide-react": "^1.8.0",
-    "next": "^16.2.4",
+    "next": "16.3.8",
     "next-themes": "^0.4.6",
     "openai": "^6.37.0",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "react-useanimations": "^2.10.0",
     "resend": "^6.12.2",
-    "sharp": "^0.34.5",
+    "sharp": "0.35.5",
     "stripe": "^22.0.2",
     "tailwind-merge": "^3.5.0",
-    "zod": "^4.4.3"
+    "zod": "^4.4.3",
+    "mathjs": "^15.1.1"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.3",
@@ -75,10 +82,10 @@
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
-    "@vitest/ui": "^4.1.6",
+    "@vitest/ui": "4.1.11",
     "concurrently": "^9.2.1",
     "eslint": "^9.39.4",
-    "eslint-config-next": "^16.2.6",
+    "eslint-config-next": "16.3.8",
     "eslint-config-prettier": "^10.1.8",
     "husky": "^9.1.7",
     "jsdom": "^29.1.1",
@@ -89,7 +96,7 @@
     "tailwindcss": "^3.4.1",
     "tsx": "^4.22.1",
     "typescript": "^5",
-    "vitest": "^4.1.6"
+    "vitest": "4.1.11"
   },
   "lint-staged": {
     "*.{ts,tsx}": [
@@ -99,5 +106,10 @@
     "*.{js,mjs,json,md}": [
       "prettier --write"
     ]
+  },
+  "overrides": {
+    "sharp": "$sharp",
+    "postcss-selector-parser": "7.1.6",
+    "shell-quote": "1.11.0"
   }
 }

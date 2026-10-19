@@ -2,7 +2,7 @@
 // /dashboard/student/progress — student-facing progress hub.
 //
 // Surfaces the diagnostic into the rest of the experience:
-//   · Latest predicted SAT score range + delta vs first-ever
+//   · Latest saved diagnostic date and measured domain performance
 //   · Domain breakdown (latest snapshot)
 //   · Weak topics from the latest diagnostic, grouped by domain
 //   · Constellation mastery counter (from learn_node_status)
@@ -32,9 +32,9 @@ export const dynamic = "force-dynamic";
 const topicLabel = labelFromSlug;
 
 function domainHeatColor(score: number): string {
-  if (score >= 70) return "#8BA86A";
-  if (score >= 50) return "#E0A24A";
-  return "#D84F73";
+  if (score >= 70) return "var(--status-success)";
+  if (score >= 50) return "var(--status-warning)";
+  return "var(--status-error)";
 }
 
 interface DiagnosticRow {
@@ -75,7 +75,6 @@ export default async function StudentProgressPage() {
   }
 
   const latest = diagnostics[0] ?? null;
-  const first = diagnostics[diagnostics.length - 1] ?? null;
 
   // Mastery counter — keyed by Clerk userId per learn_node_status convention.
   const { data: masteryRows } = await supabase
@@ -85,13 +84,6 @@ export default async function StudentProgressPage() {
   const masteryRowsTyped = (masteryRows ?? []) as Array<{ status: string }>;
   const masteredCount = masteryRowsTyped.filter((r) => r.status === "mastered").length;
   const inProgressCount = masteryRowsTyped.filter((r) => r.status === "in_progress").length;
-
-  const latestMid = latest
-    ? Math.round((latest.score_range_low + latest.score_range_high) / 2)
-    : null;
-  const firstMid = first ? Math.round((first.score_range_low + first.score_range_high) / 2) : null;
-  const delta =
-    latestMid !== null && firstMid !== null && diagnostics.length > 1 ? latestMid - firstMid : null;
 
   // Group weak topics by domain for the breakdown card
   const weakByDomain: Record<SATDomain, string[]> = {
@@ -122,8 +114,7 @@ export default async function StudentProgressPage() {
             Your progress
           </h1>
           <p className="mt-1 text-sm text-taupe dark:text-taupe">
-            Diagnostic snapshots, weak-topic focus areas, and constellation mastery — all in one
-            place.
+            See your saved diagnostic breakdown, practice focus areas, and earlier lesson progress.
           </p>
         </header>
 
@@ -131,17 +122,12 @@ export default async function StudentProgressPage() {
           <EmptyState />
         ) : (
           <div className="space-y-6">
-            {/* ─── Top row: predicted score + mastery ──────────── */}
+            {/* ─── Top row: saved diagnostic + earlier-lesson mastery ──────────── */}
             <div className="grid gap-4 sm:grid-cols-2">
-              <PredictedCard
-                low={latest.score_range_low}
-                high={latest.score_range_high}
-                delta={delta}
-                takenAt={latest.taken_at}
-              />
+              <DiagnosticSnapshotCard takenAt={latest.taken_at} count={diagnostics.length} />
               <CounterCard
                 icon={<Sparkles className="h-4 w-4" />}
-                label="Concepts mastered"
+                label="Earlier lessons marked mastered"
                 value={masteredCount}
                 hint={inProgressCount > 0 ? `${inProgressCount} in progress` : "Keep going"}
               />
@@ -174,8 +160,8 @@ function EmptyState() {
       </div>
       <h2 className="text-lg font-bold text-ivory dark:text-ivory">No diagnostic on file yet</h2>
       <p className="mx-auto mt-1 max-w-md text-sm text-taupe dark:text-taupe">
-        Take your first diagnostic — 35 questions, ~35 minutes — and your predicted SAT range,
-        domain breakdown, and weak topics will all show up here.
+        Take the 35-question diagnostic to see performance on the domains it samples and topics to
+        practice next. It does not predict an official SAT score.
       </p>
       <Link
         href="/diagnostic"
@@ -188,46 +174,16 @@ function EmptyState() {
   );
 }
 
-function PredictedCard({
-  low,
-  high,
-  delta,
-  takenAt,
-}: {
-  low: number;
-  high: number;
-  delta: number | null;
-  takenAt: string;
-}) {
-  const mid = Math.round((low + high) / 2);
-  const tookAgo = formatDaysAgo(takenAt);
+function DiagnosticSnapshotCard({ takenAt, count }: { takenAt: string; count: number }) {
   return (
-    <div className="rounded-2xl border border-bronze bg-surface p-5 dark:border-bronze dark:bg-surface/40">
-      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-taupe dark:text-taupe">
-        Predicted SAT
+    <section className="rounded-2xl border border-bronze/40 bg-surface p-6">
+      <h2 className="text-sm font-medium text-taupe">Latest diagnostic snapshot</h2>
+      <p className="mt-3 text-2xl font-semibold text-ivory">Taken {formatDaysAgo(takenAt)}</p>
+      <p className="mt-3 text-sm leading-6 text-taupe">
+        {count} saved {count === 1 ? "diagnostic" : "diagnostics"}. The domain breakdown below
+        describes sampled practice performance, not an official SAT score or prediction.
       </p>
-      <p className="text-3xl font-extrabold text-ivory dark:text-ivory">
-        {low}–{high}
-      </p>
-      <div className="mt-2 flex items-center justify-between text-[11px] text-taupe dark:text-taupe">
-        <span>Midpoint {mid}</span>
-        {delta !== null && (
-          <span
-            className={
-              delta > 0
-                ? "font-semibold text-success dark:text-success"
-                : delta < 0
-                  ? "font-semibold text-error dark:text-error"
-                  : "text-taupe dark:text-ivory"
-            }
-          >
-            {delta > 0 ? "+" : ""}
-            {delta} since first
-          </span>
-        )}
-      </div>
-      <p className="mt-1 text-[10px] text-taupe">Taken {tookAgo}</p>
-    </div>
+    </section>
   );
 }
 
@@ -331,8 +287,8 @@ function WeakTopics({ weakByDomain }: { weakByDomain: Record<SATDomain, string[]
           No weak topics flagged
         </p>
         <p className="mt-1 text-xs text-success/80 dark:text-success-bright/80">
-          You answered every question correctly on the diagnostic. Strong starting point — your
-          learning path will push the harder material.
+          No weak topics are recorded for your latest diagnostic. Continue practicing to build on
+          your progress.
         </p>
       </div>
     );

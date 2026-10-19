@@ -13,7 +13,10 @@ import {
 } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { karmanClerkAppearance } from "@/lib/clerkAppearance";
+import { KARMAN_AUTH_ROUTES } from "@/lib/auth/routes";
 import { ThemeProvider } from "@/components/shared/ThemeProvider";
+import { ThemeToggle } from "@/components/shared/ThemeToggle";
+import { themeBootstrapScript, themeStyleSheet } from "@/lib/themes/palettes";
 import { ConfirmProvider } from "@/components/shared/ConfirmDialog";
 import ImpersonationBanner from "@/components/admin/ImpersonationBanner";
 import ReplayConsentBanner from "@/components/consent/ReplayConsentBanner";
@@ -75,11 +78,11 @@ export const metadata: Metadata = {
   // domain so social-share previews work in dev and prod.
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? "https://karmanprep.com"),
   title: {
-    default: "Karman — SAT Tutoring That Gets Results",
+    default: "Karman Prep — SAT Practice and Tutoring",
     template: "%s | Karman",
   },
   description:
-    "Personalized SAT prep with expert tutors, adaptive diagnostics, and a score improvement guarantee. Group, private, and elite plans starting at $40/month.",
+    "SAT practice, a starting-point diagnostic, and tutoring support. Find a useful next step for your Math and Reading & Writing preparation.",
   keywords: [
     "SAT tutoring",
     "SAT prep",
@@ -93,14 +96,13 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: process.env.NEXT_PUBLIC_APP_URL,
     siteName: "Karman",
-    title: "Karman — SAT Tutoring That Gets Results",
-    description:
-      "Personalized SAT prep with expert tutors, adaptive diagnostics, and a score improvement guarantee.",
+    title: "Karman Prep — SAT Practice and Tutoring",
+    description: "SAT practice, a starting-point diagnostic, and tutoring support.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Karman — SAT Tutoring That Gets Results",
-    description: "Personalized SAT prep. Score improvement guarantee.",
+    title: "Karman Prep — SAT Practice and Tutoring",
+    description: "A clearer next step for your SAT preparation.",
   },
   robots: { index: true, follow: true },
 };
@@ -129,6 +131,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
 
   return (
     <ClerkProvider
+      {...KARMAN_AUTH_ROUTES}
       appearance={karmanClerkAppearance}
       localization={{
         signIn: {
@@ -140,7 +143,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         signUp: {
           start: {
             title: "Create your Karman account",
-            subtitle: "Start your free trial",
+            subtitle: "Build your SAT routine",
           },
         },
       }}
@@ -148,7 +151,14 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       signUpFallbackRedirectUrl="/onboarding"
       afterSignOutUrl="/"
     >
-      <html lang="en" className="dark" suppressHydrationWarning>
+      <html lang="en" className="dark" data-theme="observatory" suppressHydrationWarning>
+        <head>
+          <style
+            id="karman-account-themes"
+            dangerouslySetInnerHTML={{ __html: themeStyleSheet() }}
+          />
+          <script dangerouslySetInnerHTML={{ __html: themeBootstrapScript() }} />
+        </head>
         <body
           className={`${geistSans.variable} ${geistMono.variable} ${plexSerif.variable} ${plexSans.variable} ${plexMono.variable} ${atkinson.variable} antialiased`}
         >
@@ -158,6 +168,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
                 <ImpersonationBanner role={impersonatedRole} userName={impersonatedUserName} />
               )}
               {children}
+              <ThemeToggle floating />
               <ReplayConsentBanner show={consentState === "banner_show"} />
             </ConfirmProvider>
           </ThemeProvider>

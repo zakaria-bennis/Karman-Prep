@@ -1,0 +1,35 @@
+diff --git a/src/commands/math/commands.ts b/src/commands/math/commands.ts
+index fa99807a..0e92f568 100644
+--- a/src/commands/math/commands.ts
++++ b/src/commands/math/commands.ts
+@@ -400,7 +400,16 @@ class SupSub extends MathCommand {
+   finalizeTree() {
+     var endsL = this.getEnd(L);
+     endsL.write = function (cursor: Cursor, ch: string) {
++      // An operator typed at the end of a non-empty block leaves it, even a
++      // subscript under autoSubscriptNumerals (`a_2+1` gives a_{2}+1); an empty
++      // subscript still keeps its first character.
++      var breaksOut =
++        cursor[L] &&
++        !cursor[R] &&
++        !cursor.selection &&
++        cursor.options.charsThatBreakOutOfSupSub.indexOf(ch) > -1;
+       if (
++        !breaksOut &&
+         cursor.options.autoSubscriptNumerals &&
+         this === (this.parent as SupSub).sub
+       ) {
+@@ -414,12 +423,7 @@ class SupSub extends MathCommand {
+           .alert(cmd.mathspeak({ createdLeftOf: cursor }));
+         return;
+       }
+-      if (
+-        cursor[L] &&
+-        !cursor[R] &&
+-        !cursor.selection &&
+-        cursor.options.charsThatBreakOutOfSupSub.indexOf(ch) > -1
+-      ) {
++      if (breaksOut) {
+         cursor.insRightOf(this.parent);
+         cursor.controller.aria.queue('Baseline');
+       }

@@ -21,6 +21,7 @@ import {
   gateKaTeX,
   gateGraderVotes,
   gateSlug,
+  gateSourceIdentity,
   gateMissingVisual,
   gateIrrelevantAttachedVisual,
   gateUncertainVisualRelevance,
@@ -108,6 +109,35 @@ describe("computePublishStatus — blocking gates", () => {
       slugs
     );
     expect(r.suggestedStatus).toBe("corrupt_question");
+  });
+
+  it("corrupt_question when MC choice letters exist but text is empty", () => {
+    const r = computePublishStatus(
+      {
+        ...baseRow,
+        answer_choices: ["A", "B", "C", "D"].map((letter) => ({ letter, choice_text: " " })),
+      },
+      slugs
+    );
+    expect(r).toEqual({ reason: "mc_empty_choice_text", suggestedStatus: "corrupt_question" });
+  });
+
+  it("blocks a malformed table attached to an otherwise complete choice", () => {
+    const r = computePublishStatus(
+      {
+        ...baseRow,
+        answer_choices: baseRow.answer_choices.map((choice) =>
+          choice.letter === "B"
+            ? { ...choice, choice_table_data: { header_row: ["x", "y"], rows: [["1"]] } }
+            : choice
+        ),
+      },
+      slugs
+    );
+    expect(r).toEqual({
+      reason: "choice_B_invalid_table",
+      suggestedStatus: "corrupt_question",
+    });
   });
 });
 
@@ -257,6 +287,38 @@ describe("computePublishStatus — slug gate fallbacks", () => {
   it("no validSlugs set (curriculum file missing) → slug gate is a no-op", () => {
     const r = computePublishStatus({ ...baseRow, concept_slug: "anything-goes" }, new Set());
     expect(r.suggestedStatus).toBe("publish_ready");
+  });
+});
+
+describe("new versioned source identity gate", () => {
+  const identified = {
+    ...baseRow,
+    source_identity_required: true,
+    source_version: "a".repeat(64),
+    source_section: "math",
+    source_module: "M1",
+    source_question_number: 1,
+    source_occurrence: 1,
+  };
+
+  it("holds an incomplete new batch even after import_status becomes ok", () => {
+    expect(
+      computePublishStatus({ ...identified, source_module: null }, slugs).suggestedStatus
+    ).toBe("needs_human_review");
+    expect(gateSourceIdentity({ ...identified, concept_slug: null })?.reason).toBe(
+      "missing_versioned_source_identity_or_topic"
+    );
+  });
+
+  it("holds Box rows without file and version provenance", () => {
+    expect(gateSourceIdentity({ ...identified, source_provider: "box" })?.reason).toBe(
+      "missing_box_source_provenance"
+    );
+  });
+
+  it("passes an identified new batch and leaves legacy behavior unchanged", () => {
+    expect(gateSourceIdentity(identified)).toBeNull();
+    expect(gateSourceIdentity(baseRow)).toBeNull();
   });
 });
 

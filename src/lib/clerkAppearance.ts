@@ -160,3 +160,25 @@ export const karmanClerkAppearance = {
     termsPageUrl: "/terms",
   },
 };
+
+/** Concrete colors keep Clerk's color parser compatible while inheriting the account palette. */
+export function clerkAppearanceForTheme(theme: import("@/lib/themes/palettes").SiteTheme) {
+  return {
+    ...karmanClerkAppearance,
+    baseTheme: theme.dark ? dark : undefined,
+    variables: {
+      ...karmanClerkAppearance.variables,
+      colorPrimary: theme.gold,
+      colorDanger: theme.reading,
+      colorSuccess: theme.dark ? "#afcf94" : "#356343",
+      colorWarning: theme.dark ? "#efbf79" : "#805019",
+      colorBackground: theme.canvas,
+      colorInputBackground: theme.surface,
+      colorInputText: theme.text,
+      colorText: theme.text,
+      colorTextSecondary: theme.muted,
+      colorTextOnPrimaryBackground: theme.canvas,
+      colorNeutral: theme.muted,
+    },
+  };
+}

@@ -1,0 +1,33 @@
+diff --git a/src/controller.ts b/src/controller.ts
+index 7f2571b4..fac138a3 100644
+--- a/src/controller.ts
++++ b/src/controller.ts
+@@ -145,9 +145,9 @@ class ControllerBase {
+     return this.ariaPostLabel || '';
+   }
+   containerHasFocus() {
+-    return (
+-      document.activeElement && this.container.contains(document.activeElement)
+-    );
++    const active = (this.container.getRootNode() as Document | ShadowRoot)
++      .activeElement;
++    return !!active && this.container.contains(active);
+   }
+ 
+   getTextareaOrThrow() {
+diff --git a/src/services/saneKeyboardEvents.util.ts b/src/services/saneKeyboardEvents.util.ts
+index 7cea916d..ddda75da 100644
+--- a/src/services/saneKeyboardEvents.util.ts
++++ b/src/services/saneKeyboardEvents.util.ts
+@@ -328,7 +328,10 @@ var saneKeyboardEvents = (function () {
+       // on keydown too, FWIW).
+       //
+       // And by nifty, we mean dumb (but useful sometimes).
+-      if (document.activeElement !== textarea) {
++      if (
++        (textarea.getRootNode() as Document | ShadowRoot).activeElement !==
++        textarea
++      ) {
+         textarea.focus();
+       }
+ 
