@@ -87,7 +87,7 @@ it("T-5 speech text speaks every Phase 1 function name as words", () => {
     ["\\operatorname{arccot}x", "arc cotangent of x"],
     ["\\ln x", "natural log of x"],
     ["\\log x", "log of x"],
-    ["\\exp x", "exp of x"],
+    ["\\exp(x)", "exp of x"],
   ];
   for (const [latex, speech] of cases) expect(latexToSpeech(latex), latex).toBe(speech);
 });

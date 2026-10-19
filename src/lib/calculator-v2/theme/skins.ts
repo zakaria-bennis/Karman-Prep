@@ -71,5 +71,5 @@ export const COLOR_ROLES: readonly ColorRole[] = [
   "boundary",
 ];
 
-/** The six curve palette slots (TH-6, TH-10). */
+/** The six curve palette slots (F-A1, Desmos's colours; TH-10). */
 export const CURVE_SLOTS: readonly CurveSlot[] = ["c1", "c2", "c3", "c4", "c5", "c6"];

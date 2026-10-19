@@ -51,7 +51,7 @@ const cases: CorpusCase[] = [
   ),
   t(8, ["PR-34"], "2[1,2]", "(mul (num 2) (list (num 1) (num 2)))"),
   t(9, ["PR-34"], "(L_{1},L_{2})", "(point (id L_{1}) (id L_{2}))"),
-  x(10, ["PR-34"], "[1...]", "syntax"),
+  x(10, ["PR-34"], "[1...]", "range-bound"), // Desmos: "Range must have an upper and lower bound."
   x(11, ["PR-34"], "[1,2,3,...,10]", "syntax"),
   x(12, ["PR-34", "NM-30"], "L[2]", "unsupported"),
   x(13, ["PR-34", "NM-31"], "L[1...2]", "unsupported"),

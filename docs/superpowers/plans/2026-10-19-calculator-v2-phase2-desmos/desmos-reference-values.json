@@ -1,5 +1,5 @@
 {
-  "_about": "Values observed from desmos.com/calculator on 2026-10-19 (Calc.expressionAnalysis evaluation). null = undefined. Context: L=[5,3,8,1]. Values and errors added by the 2026-10-19 review (mod with decimal divisors, nPr at two poles, large negative factorials, ^{-1} on inverse names, built-ins without parentheses) were captured the same way.",
+  "_about": "Values observed from desmos.com/calculator on 2026-10-19 (Calc.expressionAnalysis evaluation). null = undefined. Context: L=[5,3,8,1]. Values and errors added by the 2026-10-19 review (mod with decimal divisors, nPr at two poles, large negative factorials, ^{-1} on inverse names, built-ins without parentheses) were captured the same way. The 2026-10-19 second review added the exp, empty-argument, run-before-a-call and user-function errors; errorsWithDefinitions were captured with its _rows defined first.",
   "values": {
     "[1,2,3]": [1, 2, 3],
     "[1...5]": [1, 2, 3, 4, 5],
@@ -197,7 +197,23 @@
     "\\operatorname{sign}": "'sign' is a function. Try using parentheses.",
     "\\operatorname{nCr}": "'nCr' is a function. Try using parentheses.",
     "\\sinh": "Function 'sinh' requires an argument. For example, try typing: sinh(x).",
-    "\\sin": "Function 'sin' requires an argument. For example, try typing: sin(x)."
+    "\\sin": "Function 'sin' requires an argument. For example, try typing: sin(x).",
+    "\\operatorname{nCr}(,2)": "You need something on both sides of the ',' symbol.",
+    "\\operatorname{mod}(1,)": "You need something on both sides of the ',' symbol.",
+    "\\log_{2}()": "Function 'log' requires an argument. For example, try typing: log(x).",
+    "\\exp()": "Function 'exp' requires an argument. For example, try typing: exp(x).",
+    "\\exp 2": "'exp' is a function. Try using parentheses.",
+    "\\exp^{2}(1)": "'exp' is a function. Try using parentheses.",
+    "\\exp": "'exp' is a function. Try using parentheses.",
+    "\\sinh 2\\cosh 1": "Use parentheses around the argument of 'sinh'.",
+    "\\sin 2\\cos 1": "Use parentheses around the argument of 'sin'."
+  },
+  "errorsWithDefinitions": {
+    "_rows": ["f(x)=x", "g(a,b)=a+b"],
+    "f(1,2)": "Function 'f' requires only 1 argument. For example, try typing: f(x).",
+    "f()": "Function 'f' requires an argument. For example, try typing: f(x).",
+    "g(1)": "Function 'g' requires 2 arguments. For example, try typing: g(1, 2).",
+    "g(1,2,3)": "Function 'g' requires 2 arguments. For example, try typing: g(1, 2)."
   },
   "graphable": [
     "y=x\\left\\{0<x<2\\right\\}",

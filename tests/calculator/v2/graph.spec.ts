@@ -381,7 +381,7 @@ test("A11Y-1 the graph's name gives the bounds and plot count and follows pan, z
   await expect(graph(page)).toHaveAttribute("aria-label", /, 4 plots$/, within);
 });
 
-// G-1, G-7, G-17 and TH-8 contributions (08 Task 9): canvas pixels in all 12 skins.
+// G-1, G-7, G-17 and F-A1 fill contributions (08 Task 9): canvas pixels in all 12 skins.
 
 /** The RGB distance between two `#rrggbb` colours. */
 const rgbDistance = (a: string, b: string) => {

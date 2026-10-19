@@ -37,7 +37,7 @@ it("NM-42, NM-35, NM-36 a list error found while evaluating is the row's error a
   ]);
   expect(row("a").error).toEqual({
     code: "list-too-long",
-    message: "A list can have at most 10,000 elements.",
+    message: "Lists may not have more than 10,000 elements.",
     names: [],
     span: null,
   });
@@ -49,7 +49,7 @@ it("NM-42, NM-35, NM-36 a list error found while evaluating is the row's error a
   expect(row("c").valueText).toBe("undefined");
   expect(m.engine.expressionAnalysis.a).toMatchObject({
     isError: true,
-    errorMessage: "A list can have at most 10,000 elements.",
+    errorMessage: "Lists may not have more than 10,000 elements.",
     evaluationDisplayed: false,
   });
 });

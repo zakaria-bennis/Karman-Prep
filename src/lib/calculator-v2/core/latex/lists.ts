@@ -17,8 +17,10 @@ const RELATION_SYMBOLS: ReadonlySet<string> = new Set(["=", "<", ">"]);
 /**
  * The `[` at the cursor and its list, one nesting level deeper (G13). Items are sums separated by
  * commas; one ellipsis, with an optional comma on either side, makes a range: one item before it
- * steps by ±1 and two items step by their difference, with exactly one item after it. An empty
- * item or any other shape is `syntax` at the token where it goes wrong.
+ * steps by ±1 and two items step by their difference, with exactly one item after it. An ellipsis
+ * with no item before it or none after it is `range-bound` at the ellipsis, Desmos's "Range must
+ * have an upper and lower bound." (`[1,...]`). An empty item or any other shape is `syntax` at the
+ * token where it goes wrong.
  */
 export function parseList(state: ParserState, open: OpenToken): Node {
   take(state);
@@ -29,10 +31,12 @@ export function parseList(state: ParserState, open: OpenToken): Node {
     for (;;) {
       const token = peek(state);
       if (isEllipsis(token)) {
-        if (before >= 0 || items.length === 0 || items.length > 2) unexpected(state, token);
+        if (items.length === 0) failRangeBound(token);
+        if (before >= 0 || items.length > 2) unexpected(state, token);
         take(state);
         before = items.length;
         if (isComma(peek(state))) take(state);
+        if (isClose(peek(state))) failRangeBound(token);
       }
       items.push(parseSum(state));
       const next = peek(state);
@@ -85,6 +89,10 @@ function indexFeature(state: ParserState): string {
     }
   }
   return DEFERRED_FEATURES.index;
+}
+
+function failRangeBound(ellipsis: Token): never {
+  return fail("range-bound", ellipsis.span, "a range needs an item on each side of the ellipsis");
 }
 
 function isEllipsis(token: Token): boolean {

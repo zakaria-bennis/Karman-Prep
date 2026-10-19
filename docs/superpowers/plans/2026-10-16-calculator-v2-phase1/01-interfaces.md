@@ -396,31 +396,34 @@ give `null`.
 
 Row error messages (exact copy; `{n}` is `names[0]`, `{k}` the expected count):
 
-| Code                    | Message                                                                                                    |
-| ----------------------- | ---------------------------------------------------------------------------------------------------------- |
-| `syntax`                | "This can't be read. Check for a missing bracket or operator."                                             |
-| `unsupported`           | "This calculator doesn't support that notation."                                                           |
-| `unsupported` + r or θ  | "{n} is for polar graphs, which aren't available yet." (RC-2, Phase 1)                                     |
-| `point-arity`           | "A point needs exactly two coordinates."                                                                   |
-| `relation-chain`        | "A chain of inequalities must point one way and use at most one =."                                        |
-| `too-many-nodes`        | "This row is too long to evaluate. Split it into smaller definitions."                                     |
-| `too-deep`              | "This row is nested too deeply."                                                                           |
-| `sim-side`              | "You need something on both sides of the '∼' symbol." (PR-30, 2026-10-18)                                  |
-| `unsupported` + feature | "{n} isn't supported yet." (PR-34, G-22 deferred notation, 2026-10-18)                                     |
-| `nested-list`           | "Cannot store a list of numbers in a list." (NM-34, 2026-10-18)                                            |
-| `list-too-long`         | "A list can have at most 10,000 elements." (NM-35, 2026-10-18)                                             |
-| `range-step`            | "A range can't step by 0. Make its first two values different." (NM-36)                                    |
-| `list-mixed`            | "A list can't mix numbers and points." (NM-32, 2026-10-18)                                                 |
-| `too-many-params`       | "Functions can have at most 8 parameters."                                                                 |
-| `duplicate-definition`  | "You've defined '{n}' in more than one place. Try deleting some of the definitions of '{n}'." (2026-10-18) |
-| `dependency`            | "{n} has more than one definition."                                                                        |
-| `cycle`                 | "{n} is defined in terms of itself."                                                                       |
-| `reserved-name`         | "{n} is reserved and can't be redefined."                                                                  |
-| `arity`                 | "{n} takes {k} argument." / "{n} takes {k} arguments."                                                     |
-| `point-coordinates`     | "A point's coordinates can't use x or y."                                                                  |
-| `mixed-variables`       | "Use an equation such as y=… to graph an expression in x and y."                                           |
-| `polar-variable`        | "{n} only has a meaning in a polar equation."                                                              |
-| `timeout`               | "This is taking too long. Try a smaller range or fewer terms." (AR-48)                                     |
+| Code                    | Message                                                                                                                                                                                                                             |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `syntax`                | "This can't be read. Check for a missing bracket or operator."                                                                                                                                                                      |
+| `unsupported`           | "This calculator doesn't support that notation."                                                                                                                                                                                    |
+| `unsupported` + r or θ  | "{n} is for polar graphs, which aren't available yet." (RC-2, Phase 1)                                                                                                                                                              |
+| `point-arity`           | "A point needs exactly two coordinates."                                                                                                                                                                                            |
+| `relation-chain`        | "A chain of inequalities must point one way and use at most one =."                                                                                                                                                                 |
+| `too-many-nodes`        | "This row is too long to evaluate. Split it into smaller definitions."                                                                                                                                                              |
+| `too-deep`              | "This row is nested too deeply."                                                                                                                                                                                                    |
+| `sim-side`              | "You need something on both sides of the '∼' symbol." (PR-30, 2026-10-18)                                                                                                                                                           |
+| `unsupported` + feature | "{n} isn't supported yet." (PR-34, G-22 deferred notation, 2026-10-18)                                                                                                                                                              |
+| `nested-list`           | "Cannot store a list of numbers in a list." (NM-34, 2026-10-18)                                                                                                                                                                     |
+| `list-too-long`         | "Lists may not have more than 10,000 elements." (NM-35, Desmos's wording 2026-10-19)                                                                                                                                                |
+| `range-bound`           | "Range must have an upper and lower bound." (PR-34, Desmos 2026-10-19)                                                                                                                                                              |
+| `comma-side`            | "You need something on both sides of the ',' symbol." (PR-25, Desmos 2026-10-19)                                                                                                                                                    |
+| `argument-parentheses`  | "Use parentheses around the argument of '{n}'." (PR-24, Desmos 2026-10-19)                                                                                                                                                          |
+| `range-step`            | "A range can't step by 0. Make its first two values different." (NM-36)                                                                                                                                                             |
+| `list-mixed`            | "A list can't mix numbers and points." (NM-32, 2026-10-18)                                                                                                                                                                          |
+| `too-many-params`       | "Functions can have at most 8 parameters."                                                                                                                                                                                          |
+| `duplicate-definition`  | "You've defined '{n}' in more than one place. Try deleting some of the definitions of '{n}'." (2026-10-18)                                                                                                                          |
+| `dependency`            | "{n} has more than one definition."                                                                                                                                                                                                 |
+| `cycle`                 | "{n} is defined in terms of itself."                                                                                                                                                                                                |
+| `reserved-name`         | "{n} is reserved and can't be redefined."                                                                                                                                                                                           |
+| `arity`                 | Desmos's wording for every function (2026-10-19): "Function '{n}' requires an argument." / "… requires only 1 argument." / "… requires {max} arguments.", each followed by " For example, try typing: {n}(x)." or "{n}(1, …, max)." |
+| `point-coordinates`     | "A point's coordinates can't use x or y."                                                                                                                                                                                           |
+| `mixed-variables`       | "Use an equation such as y=… to graph an expression in x and y."                                                                                                                                                                    |
+| `polar-variable`        | "{n} only has a meaning in a polar equation."                                                                                                                                                                                       |
+| `timeout`               | "This is taking too long. Try a smaller range or fewer terms." (AR-48)                                                                                                                                                              |
 
 ## 4. Evaluator and number display (owner: 04-semantics)
 

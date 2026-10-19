@@ -43,7 +43,8 @@ const cases: CorpusCase[] = [
   t(20, ["PR-24"], "\\sin2x", "(call sin (mul (num 2) (id x)))"),
   t(21, ["PR-24"], "\\sin x+1", "(add (call sin (id x)) (num 1))"),
   t(23, ["PR-24"], "\\ln x^{2}", "(call ln (pow (id x) (num 2)))"),
-  t(22, ["PR-24"], "\\sin x\\cos x", "(mul (call sin (id x)) (call cos (id x)))"),
+  // Desmos: "Use parentheses around the argument of 'sin'." (2026-10-19 review)
+  x(22, ["PR-24"], "\\sin x\\cos x", "argument-parentheses"),
   t(24, ["PR-24"], "\\sin2\\pi x", "(call sin (mul (mul (num 2) (const pi)) (id x)))"),
   t(25, ["PR-24"], "\\sin-x", "(call sin (neg (id x)))"),
   t(26, ["PR-24"], "\\sin x\\cdot2", "(mul (call sin (id x)) (num 2))"),
@@ -72,7 +73,8 @@ const cases: CorpusCase[] = [
   t(49, ["PR-27"], "\\ln x", "(call ln (id x))"),
   t(47, ["PR-27"], "\\log_{b}x", "(call log (id x) (id b))"),
   t(48, ["PR-27"], "\\log_{2}(8)", "(call log (num 8) (num 2))"),
-  t(50, ["PR-27"], "\\exp x", "(call exp (id x))"),
+  // exp needs ( in Desmos: "'exp' is a function. Try using parentheses." (2026-10-19 review)
+  x(50, ["PR-24", "PR-27"], "\\exp x", "function-parentheses"),
   t(51, ["PR-27"], "cbrtx", "(root (id x) (num 3))"),
   // Hyperbolic trig (FN-68), moved here from parse-errors 30 and 31 when it shipped
   t(54, ["FN-68"], "\\sinh x", "(call sinh (id x))"),
@@ -83,10 +85,16 @@ const cases: CorpusCase[] = [
   // ^{-1} on an inverse name is the forward function, as in Desmos (appendix F decision 2)
   t(59, ["PR-26"], "\\arcsin^{-1}(0.5)", "(call sin (num 0.5))"),
   t(60, ["PR-26", "FN-68"], "\\operatorname{arcsinh}^{-1}(2)", "(call sinh (num 2))"),
-  // Only trig, hyperbolic, ln, log and exp take the run or a power on the name (Desmos)
+  // Only trig, hyperbolic, ln and log take the run or a power on the name (Desmos)
   x(61, ["PR-24"], "\\operatorname{floor}2.5", "function-parentheses"),
   x(62, ["PR-24", "PR-26"], "\\operatorname{abs}^{-1}(2)", "function-parentheses"),
   x(63, ["PR-24"], "\\operatorname{floor}", "function-parentheses"),
   x(64, ["PR-24"], "\\sinh", "function-parentheses"),
+  // Captured by the 2026-10-19 review (appendix F decision 2)
+  x(65, ["PR-24", "PR-26"], "\\exp^{2}(1)", "function-parentheses"),
+  x(66, ["PR-24", "FN-68"], "\\sinh 2\\cosh 1", "argument-parentheses"),
+  x(67, ["PR-25"], "\\operatorname{nCr}(,2)", "comma-side"),
+  x(68, ["PR-25"], "\\operatorname{mod}(1,)", "comma-side"),
+  x(69, ["PR-25", "RC-20"], "\\log_{2}()", "arity"),
 ];
 export default cases;

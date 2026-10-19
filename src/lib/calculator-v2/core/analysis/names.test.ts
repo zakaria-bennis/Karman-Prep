@@ -61,8 +61,16 @@ it("RC-2, RC-7, RC-8, RC-19, RC-20 row errors and the complex hint use the exact
     ["dependency", ["a"], "a has more than one definition."],
     ["cycle", ["a"], "a is defined in terms of itself."],
     ["reserved-name", ["e"], "e is reserved and can't be redefined."],
-    ["arity", ["g", "2"], "g takes 2 arguments."],
-    ["arity", ["f", "1", "2"], "f takes 1 argument."],
+    [
+      "arity",
+      ["g", "2", "1"],
+      "Function 'g' requires 2 arguments. For example, try typing: g(1, 2).",
+    ],
+    [
+      "arity",
+      ["f", "1", "2"],
+      "Function 'f' requires only 1 argument. For example, try typing: f(x).",
+    ],
     [
       "arity",
       ["sin", "1", "2"],
@@ -128,7 +136,7 @@ it("PR-30, PR-34, NM-30, NM-31, NM-37, G-22 a half-typed regression and deferred
 it("NM-34, NM-35, NM-36, NM-32 list errors use their exact copy", () => {
   const table: [RowErrorCode, string[], string][] = [
     ["nested-list", [], "Cannot store a list of numbers in a list."],
-    ["list-too-long", [], "A list can have at most 10,000 elements."],
+    ["list-too-long", [], "Lists may not have more than 10,000 elements."],
     ["range-step", [], "A range can't step by 0. Make its first two values different."],
     ["list-mixed", [], "A list can't mix numbers and points."],
   ];

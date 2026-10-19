@@ -57,8 +57,20 @@ it("RC-20 a call with the wrong number of arguments names the expected count", (
     "Function 'sin' requires only 1 argument. For example, try typing: sin(x).",
     0,
   ]);
-  expect(analyze(["f(x)=x", "f(1,2)"]).rows[1].error?.message).toBe("f takes 1 argument.");
-  expect(analyze(["g(a,b)=a+b", "g(1)"]).rows[1].error?.message).toBe("g takes 2 arguments.");
+  // A user function's arity error has Desmos's wording too (captured by the 2026-10-19 review),
+  // and an empty f() is an arity error with no arguments, not a syntax error.
+  const user = (rows: string[]) => analyze(rows).rows[rows.length - 1].error?.message;
+  expect(user(["f(x)=x", "f(1,2)"])).toBe(
+    "Function 'f' requires only 1 argument. For example, try typing: f(x)."
+  );
+  expect(user(["f(x)=x", "f()"])).toBe(
+    "Function 'f' requires an argument. For example, try typing: f(x)."
+  );
+  for (const call of ["g(1)", "g(1,2,3)", "g()"]) {
+    expect(user(["g(a,b)=a+b", call]), call).toBe(
+      "Function 'g' requires 2 arguments. For example, try typing: g(1, 2)."
+    );
+  }
   expect(analyze(["\\arctan(1,2,3)"]).rows[0].error?.message).toBe(
     "Function 'arctan' requires 2 arguments. For example, try typing: arctan(1, 2)."
   );

@@ -82,25 +82,39 @@ it("NM-36 the ranges Desmos counts by rounding are the only captured list values
   expect(lists.filter((l) => RANGE_COUNT_GAP.has(l))).toEqual([...RANGE_COUNT_GAP]);
 });
 
-// RC-20: every captured built-in arity message ("Function '…' requires …") is v2's wording too,
-// and PR-24: every captured "'floor' is a function. Try using parentheses." message.
-const ARITY_ERRORS = Object.entries(captured.errors).filter(([, m]) => m.startsWith("Function '"));
-const PARENTHESES_ERRORS = Object.entries(captured.errors).filter(([, m]) =>
-  m.endsWith("is a function. Try using parentheses.")
-);
+// Every captured Desmos error message, built-in arity (RC-20), "is a function" (PR-24), list
+// (NM-34, NM-35, PR-34) and the rest, is checked, either as v2's message or, for the gaps listed
+// under "Not yet matched" in f-desmos-parity.md, as an expected failure that fails once matched.
+const ERROR_GAP: ReadonlySet<string> = new Set([
+  // Piecewise braces (PR-31) have not shipped; v2 reads this as unsupported notation.
+  "\\left\\{1<0:5,\\right\\}",
+]);
+const ERRORS = Object.entries(captured.errors);
+const { _rows: DEFINITIONS, ...USER_ERRORS } = captured.errorsWithDefinitions;
 
-it("RC-20 all 14 captured Desmos arity messages are checked", () =>
-  expect(ARITY_ERRORS.length).toBe(14));
+function errorMessage(rows: readonly string[], latex: string): string | undefined {
+  const analysis = analyzeRows(
+    [...rows, latex].map((row, i) => ({ id: `row-${i}`, latex: row, hidden: false })),
+    { angleMode: "radians", complex: false }
+  );
+  return analysis.rows[rows.length].error?.message;
+}
 
-it("PR-24 all 14 captured Desmos parentheses messages are checked", () =>
-  expect(PARENTHESES_ERRORS.length).toBe(14));
+it("RC-20 PR-24 PR-34 all 41 captured Desmos error messages are checked", () => {
+  expect(ERRORS.length).toBe(41);
+});
 
-for (const [latex, message] of [...ARITY_ERRORS, ...PARENTHESES_ERRORS]) {
-  it(`RC-20 PR-24 ${latex} reads "${message}", as in Desmos`, () => {
-    const analysis = analyzeRows([{ id: "case", latex, hidden: false }], {
-      angleMode: "radians",
-      complex: false,
-    });
-    expect(analysis.rows[0].error?.message).toBe(message);
-  });
+for (const [latex, message] of ERRORS) {
+  const check = () => expect(errorMessage([], latex)).toBe(message);
+  if (ERROR_GAP.has(latex))
+    it.fails(`not yet matched: ${latex} reads "${message}" in Desmos`, check);
+  else it(`RC-20 PR-24 PR-34 ${latex} reads "${message}", as in Desmos`, check);
+}
+
+it("RC-20 all 4 captured user-function arity messages are checked", () =>
+  expect(Object.keys(USER_ERRORS).length).toBe(4));
+
+for (const [latex, message] of Object.entries(USER_ERRORS)) {
+  it(`RC-20 with ${DEFINITIONS.join(" and ")}, ${latex} reads "${message}", as in Desmos`, () =>
+    expect(errorMessage(DEFINITIONS, latex)).toBe(message));
 }

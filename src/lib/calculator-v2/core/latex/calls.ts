@@ -81,9 +81,10 @@ export function parseBuiltinCall(state: ParserState, name: CommandToken): Node {
   const open = peek(state);
   if (isSymbol(open, "'")) return fail("unsupported", open.span, `"'" is not supported`);
   if (open.t === "open" && open.ch === "(") {
-    if (base === null && takesFixedArguments(name.name) && takeEmptyList(state)) {
+    if (takesFixedArguments(name.name) && takeEmptyList(state)) {
       // An empty `()` on a fixed-arity built-in is RC-20's arity error, as in Desmos ("Function
-      // 'sin' requires an argument"), not a syntax error.
+      // 'sin' requires an argument"), not a syntax error; a log base does not count as an argument
+      // (`\log_{2}()` reads "Function 'log' requires an argument").
       return takePostfix(state, withPower(callNode(name, [], null, previousEnd(state)), power));
     }
     const args = parseArgumentList(state);
@@ -117,14 +118,20 @@ function takeEmptyList(state: ParserState): boolean {
 
 /**
  * The `(` group at the cursor holding one or more comma-separated sums (PR-25), one nesting level
- * deeper (G13). An empty argument is `syntax` at the token where its sum is due.
+ * deeper (G13). An empty argument beside a comma (`(,2)`, `(1,)`, `(1,,2)`) is `comma-side` at
+ * that comma, Desmos's "You need something on both sides of the ',' symbol."; any other empty
+ * argument is `syntax` at the token where its sum is due.
  */
 export function parseArgumentList(state: ParserState): Node[] {
   const open = take(state);
   const args = enter(state, open, () => {
+    const first = peek(state);
+    if (isSymbol(first, ","))
+      fail("comma-side", first.span, "an argument is missing before a comma");
     const found = [parseSum(state)];
     for (let comma = peek(state); isSymbol(comma, ","); comma = peek(state)) {
       take(state);
+      failIfCommaSide(comma, peek(state));
       found.push(parseSum(state));
     }
     return found;
@@ -135,6 +142,14 @@ export function parseArgumentList(state: ParserState): Node[] {
   return args;
 }
 
+/** `comma-side` at `comma` when `next`, where an argument is due, is a comma or the closing `)`. */
+function failIfCommaSide(comma: Token, next: Token): void {
+  if (!isSymbol(comma, ",")) return;
+  if (isSymbol(next, ",") || (next.t === "close" && next.ch === ")")) {
+    fail("comma-side", comma.span, "an argument is missing beside a comma");
+  }
+}
+
 /**
  * `callee` followed by `(` is a call when it is an identifier some row defines as a function
  * (PR-23, `ParseOptions.userFunctions`); otherwise `callee` is returned and the group multiplies.
@@ -143,16 +158,20 @@ export function parseUserCall(state: ParserState, callee: Node): Node {
   const open = peek(state);
   if (callee.kind !== "id" || open.t !== "open" || open.ch !== "(") return callee;
   if (!state.options.userFunctions?.has(callee.name)) return callee;
-  const args = parseArgumentList(state);
+  // An empty `()` is a call with no arguments, so it is RC-20's arity error, as in Desmos
+  // ("Function 'f' requires an argument"), not a syntax error.
+  const args = takeEmptyList(state) ? [] : parseArgumentList(state);
   const span = { start: callee.span.start, end: previousEnd(state) };
   return { kind: "call", name: callee.name, args, span };
 }
 
 /**
  * The PR-24 argument: leading signs, then factors while one starts and the next token is not a
- * built-in. An empty run before a built-in takes that call as its argument (`\sin\cos x`); an
- * empty run at the end of the row is `function-parentheses` at the name (Desmos's "Function 'sin'
- * requires an argument"); any other empty run is `syntax` at the token where the argument is due.
+ * built-in. An empty run before a built-in takes that call as its argument (`\sin\cos x`), while a
+ * run followed by a built-in (`\sin 2\cos 1`) is `argument-parentheses` at the name, Desmos's "Use
+ * parentheses around the argument of 'sin'."; an empty run at the end of the row is
+ * `function-parentheses` at the name (Desmos's "Function 'sin' requires an argument"); any other
+ * empty run is `syntax` at the token where the argument is due.
  * Each `-` wraps the first factor, as at level 8 (`-2x` is `(mul (neg (num 2)) (id x))`).
  */
 function parseRunArgument(state: ParserState, name: CommandToken): Node {
@@ -167,8 +186,11 @@ function parseRunArgument(state: ParserState, name: CommandToken): Node {
     const factor = parsePostfix(state);
     arg = arg === null ? negated(minuses, factor) : product(arg, factor);
   }
-  if (arg !== null) return arg;
   const next = peek(state);
+  if (arg !== null && isBuiltinCommand(next)) {
+    return fail("argument-parentheses", name.span, `"${name.name}" needs (`, name.name);
+  }
+  if (arg !== null) return arg;
   if (next.t === "end" && state.pos === start) return needsParentheses(name);
   if (!isBuiltinCommand(next)) return unexpected(state, next);
   return negated(minuses, parseBuiltinCall(state, next));

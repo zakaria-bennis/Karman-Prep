@@ -93,7 +93,11 @@ are both gone.
 These Desmos behaviours are known and recorded but not yet built:
 
 - **Colour counter.** Desmos keeps a running colour counter, so a new row continues the cycle
-  wherever the last one left off. V2 still picks the colour from the row's position.
+  wherever the last one left off. V2 still picks the colour from the row's position, so a row
+  inserted after the first of red, blue, green repeats blue where Desmos gives purple. The
+  expected-failure test "F-A1 a row inserted mid-list continues Desmos's colour cycle" in
+  `engine.rows.test.ts` pins the gap; building the counter makes it pass, and its `.fails` must
+  then be removed.
 - **Range length (NM-36).** Desmos rounds a range's element count, n = round((c − a)/s) + 1, so
   `[1...3.5]` is `[1, 2, 3, 4]` and `[1,3,...,8]` is `[1, 3, 5, 7, 9]`. V2 floors it and stops at
   the bound. The captured cases are expected failures in `desmos.reference.test.ts`
@@ -106,8 +110,32 @@ These Desmos behaviours are known and recorded but not yet built:
   into an operator name, but it has not shipped: no list-reducing built-in exists yet, so a row
   using it shows "This calculator doesn't support that notation." It ships with the statistics
   task (plan T9a), and the captured values are then checked.
-- **`exp` without parentheses.** V2 keeps Phase 1's `\exp x`, `\exp^{2}x`; Desmos's behaviour for
-  these was not captured.
+- **An empty piecewise branch.** Desmos reads `\left\{1<0:5,\right\}` as "You need something on
+  both sides of the ',' symbol." Piecewise braces (PR-31) have not shipped, so v2 shows its
+  unsupported-notation message. The captured error is an expected failure in
+  `desmos.reference.test.ts` (`ERROR_GAP`).
+
+### Matched after the 2026-10-19 second review
+
+These were captured from Desmos by the second review and now match. Every captured error,
+including these, is checked in `desmos.reference.test.ts`:
+
+- **`exp` needs parentheses.** `\exp 2`, `\exp^{2}(1)` and `\exp` on its own read "'exp' is a
+  function. Try using parentheses."; `\exp()` reads "Function 'exp' requires an argument. For
+  example, try typing: exp(x)." `exp` is no longer a prefix-form name.
+- **A run before another call.** `\sin 2\cos 1` and `\sinh 2\cosh 1` read "Use parentheses around
+  the argument of 'sin'." (or 'sinh'), the new `argument-parentheses` error. `\sin\cos x` is still
+  sin(cos x).
+- **User-function arity.** With f(x)=x and g(a,b)=a+b, `f(1,2)` reads "Function 'f' requires only
+  1 argument. For example, try typing: f(x).", `f()` "Function 'f' requires an argument. For
+  example, try typing: f(x).", and `g(1)` and `g(1,2,3)` "Function 'g' requires 2 arguments. For
+  example, try typing: g(1, 2)." An empty `f()` is now an arity error, not a syntax error.
+- **Empty arguments.** `\operatorname{nCr}(,2)` and `\operatorname{mod}(1,)` read "You need
+  something on both sides of the ',' symbol." (the new `comma-side` error), and `\log_{2}()` reads
+  "Function 'log' requires an argument. For example, try typing: log(x)."
+- **List errors.** `[1,...]` reads "Range must have an upper and lower bound." (the new
+  `range-bound` error) and `[1...10001]` reads "Lists may not have more than 10,000 elements."
+  (NM-35's wording, changed to Desmos's).
 
 ## The + (Add Item) menu
 

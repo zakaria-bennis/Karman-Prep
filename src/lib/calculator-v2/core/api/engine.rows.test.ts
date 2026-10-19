@@ -226,3 +226,17 @@ it("AR-46 every state send increments the generation by one", () => {
     1, 2, 3, 4, 5,
   ]);
 });
+
+// F-A1 follow-up (f-desmos-parity.md, "Not yet matched"): Desmos keeps a running colour counter,
+// so a row inserted mid-list continues the cycle (red, blue, green, then purple), while v2 still
+// picks nextSlot(the row's index) and repeats blue. Expected to fail until the counter is built;
+// then delete `.fails`.
+it.fails("F-A1 a row inserted mid-list continues Desmos's colour cycle", () => {
+  const second = e.insertRowAfter("1");
+  if (typeof second === "string") throw new Error(second);
+  const third = e.insertRowAfter(second.id);
+  if (typeof third === "string") throw new Error(third);
+  expect(e.getExpressions().map((r) => r.color)).toEqual(["c1", "c2", "#388c46"]);
+  e.insertRowAfter("1");
+  expect(e.getExpressions().map((r) => r.color)).toEqual(["c1", "c4", "c2", "#388c46"]);
+});

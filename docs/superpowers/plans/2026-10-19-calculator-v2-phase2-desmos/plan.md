@@ -56,7 +56,7 @@ Each task is one commit and starts with a failing test. Test titles lead with th
 
 - **operator-names.ts:**
   - Add `SHIPPED: ReadonlySet<string>`, starting with the 15 Phase 1 names.
-  - `isShippedBuiltin` reads the set. Keep `phase` as the K-4 panel schedule (operator-names.ts:293 still filters panel entries by phase, and only trig, exp, ln and log have panel entries, so the panel does not change).
+  - `isShippedBuiltin` reads the set. `phase` stays as information only. As built, the panel filters by `isShippedBuiltin` and `PANEL_PRESENTATIONS` (operator-names.ts, `PANEL_CATEGORIES`), not by phase, so a shipped name with a panel entry joins the panel at once. Only trig, inverse trig, exp, ln and log have panel entries, so the panel does not change.
   - Add `op("length", 4, 2, V)` and `op("abs", 12, 2, [1])`. Desmos accepts both. Confirm `abs` first.
 - **Tests:**
   - operator-names.test.ts:10: count goes to 106.

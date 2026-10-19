@@ -31,8 +31,6 @@ describe("list syntax", () => {
 
   it("PR-34 a malformed range or list is syntax, never a partial tree", () => {
     for (const latex of [
-      "[1...]",
-      "[...5]",
       "[1,2,3,...,10]",
       "[1...5...9]",
       "[1...5,6]",
@@ -43,6 +41,12 @@ describe("list syntax", () => {
       "x\\ldots",
     ])
       expect(tree(latex), latex).toBe("syntax");
+  });
+
+  it("PR-34 a range with nothing before or after its ellipsis is range-bound, as in Desmos", () => {
+    for (const latex of ["[1...]", "[1,...]", "[...5]", "[1,2,...]"]) {
+      expect(tree(latex), latex).toBe("range-bound");
+    }
   });
 
   it("PR-34 lists print back to MathQuill LaTeX that parses to the same tree", () => {

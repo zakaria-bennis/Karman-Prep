@@ -27,7 +27,7 @@ export const ROLE_VARS: Readonly<Record<ColorRole, string>> = {
   boundary: "--kc-boundary",
 };
 
-/** Each curve slot's colour property (TH-6, TH-10). */
+/** Each curve slot's colour property (F-A1, Desmos's colours; TH-10). */
 export const CURVE_VARS: Readonly<Record<CurveSlot, string>> = {
   c1: "--kc-curve-1",
   c2: "--kc-curve-2",
@@ -37,7 +37,7 @@ export const CURVE_VARS: Readonly<Record<CurveSlot, string>> = {
   c6: "--kc-curve-6",
 };
 
-/** Each curve slot's inequality fill alpha property (TH-8). */
+/** Each curve slot's inequality fill alpha property (F-A1, Desmos's 40% fill). */
 export const FILL_ALPHA_VARS: Readonly<Record<CurveSlot, string>> = {
   c1: "--kc-fill-alpha-1",
   c2: "--kc-fill-alpha-2",

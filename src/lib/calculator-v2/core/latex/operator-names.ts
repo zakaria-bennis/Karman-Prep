@@ -6,7 +6,7 @@ export type MathFieldAction = { op: "write" | "cmd" | "keystroke" | "typedText";
 export interface OperatorName {
   name: string; // "sin", "arcsin", "log", "mean", "with", "of", …
   category: number | null; // 1–15 in K-4 order; null for with/for/and/or/of
-  phase: 1 | 2 | 3 | 4; // when its FN- rule ships (K-4 schedule)
+  phase: 1 | 2 | 3 | 4; // K-4's planned phase, information only: SHIPPED gates names and the panel
   arity: readonly number[] | "variadic";
 }
 export interface PanelEntry {
@@ -42,7 +42,7 @@ export const CATEGORY_HEADINGS: readonly string[] = Object.freeze([
 
 /**
  * The built-ins whose FN- rule has shipped, by name; a call to any other allowlisted name is
- * `unsupported` (PR-9). Names ship one task at a time, so `phase` below is only the K-4 schedule.
+ * `unsupported` (PR-9). Names ship one task at a time, so `phase` below is information only.
  */
 export const SHIPPED: ReadonlySet<string> = new Set([
   "sin",
@@ -87,15 +87,15 @@ export const SHIPPED: ReadonlySet<string> = new Set([
 /**
  * PR-24, PR-26: the built-ins Desmos lets you call without parentheses (`\sin x`, `\ln 2`) or with
  * a power on the name (`\sin^{2}x`, `\cosh^{-1}2`): circular and hyperbolic trig, their inverses,
- * ln, log and exp. Any other built-in needs `(`: Desmos reads `\operatorname{floor}2.5` and
+ * ln and log. Any other built-in needs `(`: Desmos reads `\operatorname{floor}2.5` and
  * `\operatorname{abs}^{-1}(2)` as "'floor' is a function. Try using parentheses." (captured
- * 2026-10-19). exp keeps Phase 1's prefix form; its Desmos behaviour was not captured.
+ * 2026-10-19), and exp too: `\exp 2`, `\exp^{2}(1)` and `\exp` each read "'exp' is a function.
+ * Try using parentheses." (captured by the 2026-10-19 review).
  */
 export const PREFIX_FORM_NAMES: ReadonlySet<string> = new Set([
   ...["sin", "cos", "tan", "csc", "sec", "cot"].flatMap((t) => [t, `arc${t}`, `${t}h`, `arc${t}h`]),
   "ln",
   "log",
-  "exp",
 ]);
 
 type Phase = OperatorName["phase"];
@@ -341,7 +341,8 @@ PANEL_PRESENTATIONS.set("log", [
 ]);
 
 // Per category id in order: the shipped names with a presentation, in OPERATOR_NAMES order;
-// categories left empty are dropped.
+// categories left empty are dropped. `phase` is not read: shipping a name with a presentation adds
+// it to the panel at once.
 const PANEL_CATEGORIES: readonly PanelCategory[] = Object.freeze(
   CATEGORY_HEADINGS.flatMap((heading, index) => {
     const id = index + 1;
