@@ -69,13 +69,20 @@
   opacity: var(--kc-icon-rest);
 }
 
-/* VIS-RESPONSIVE-9: stacked, the reference draws the toolbar's +, gear and chevrons half a pixel
-   right of and below the button centre (Undo and Redo stay centred). */
-.kc-list-panel[data-layout="stacked"]
-  .kc-list-toolbar
-  .kc-list-tool:not([data-tool="history"])
-  > svg {
+/* VIS-RESPONSIVE-9: stacked, the reference draws the toolbar's +, Keypad and chevrons half a pixel
+   right of and below the button centre and the gear half a pixel lower; its down chevrons are
+   16 px tall. Undo and Redo stay centred. */
+.kc-list-panel[data-layout="stacked"] .kc-list-tool:not([data-tool="history"]) > svg {
   translate: 0.5px 0.5px;
+}
+
+.kc-list-panel[data-layout="stacked"] .kc-list-tool[data-tool="edit"] > svg {
+  translate: 0 0.5px;
+}
+
+.kc-list-panel[data-layout="stacked"] .kc-list-tool[data-tool="collapse"] > svg {
+  transform-origin: bottom;
+  scale: 1 0.96;
 }
 
 /* PM-29: the hover tooltip, a black box 3 px below its button (5 px below Expand list) with a

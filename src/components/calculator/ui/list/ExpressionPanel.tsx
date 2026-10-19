@@ -360,6 +360,7 @@ export function ExpressionPanel(props: ExpressionPanelProps): JSX.Element {
                     label="Edit list"
                     tooltip="Edit List"
                     icon={<EditListGlyph />}
+                    tool="edit"
                     buttonRef={editListRef}
                     onClick={() => setEditing(true)}
                   />
@@ -367,6 +368,7 @@ export function ExpressionPanel(props: ExpressionPanelProps): JSX.Element {
                     label="Collapse list"
                     tooltip="Hide Expression List"
                     icon={<DoubleChevronGlyph direction={stacked ? "down" : "left"} />}
+                    tool="collapse"
                     buttonRef={list.collapseRef}
                     onClick={list.collapse}
                   />
