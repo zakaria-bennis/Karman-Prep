@@ -70,7 +70,7 @@ describe("check-spec-ids", () => {
       want = [
         "tests/unit/calculator-v2/check-spec-ids.test.ts",
         "src/lib/calculator-v2/core/corpus/corpus.test.ts",
-        "tests/calculator/layout.spec.ts",
+        "tests/calculator/v2/shell.spec.ts",
       ];
     expect([
       C.SCANNED_GLOBS,

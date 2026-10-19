@@ -73,8 +73,8 @@ export function ActiveQuizScreen({
     setCrossed((old) => ({ ...old, [`${q.id}:${letter}`]: !old[`${q.id}:${letter}`] }));
   const contextState = useOptionalQuizState();
   const state = stateOverride ?? contextState;
-  // AR-11: on v2 each text choice's tool cluster also holds its Transfer control (14).
-  const calculatorVersion = useCalculator()?.version;
+  // AR-11: with a calculator each text choice's tool cluster also holds its Transfer control (14).
+  const hasCalculator = useCalculator() !== null;
   const stem = useMemo(
     () => ({ text: q.question_text, serializedFunctionLines: q.subject === "math" }),
     [q.question_text, q.subject]
@@ -215,7 +215,7 @@ export function ActiveQuizScreen({
                       onClick={() => !readOnly && !isSubmitted && onSelectAnswer(letter)}
                       disabled={readOnly || isSubmitted || crossed[`${q.id}:${letter}`]}
                       className={cn(
-                        `w-full rounded-xl border py-3.5 pl-5 ${calculatorVersion === "v2" ? "pr-24" : "pr-14"} text-left transition-all`,
+                        `w-full rounded-xl border py-3.5 pl-5 ${hasCalculator ? "pr-24" : "pr-14"} text-left transition-all`,
                         crossed[`${q.id}:${letter}`] && "line-through opacity-50",
                         "flex items-start gap-4",
                         !isSubmitted && "cursor-pointer hover:border-info/40 hover:bg-info/5",
@@ -248,7 +248,7 @@ export function ActiveQuizScreen({
                     {!readOnly && (
                       <div
                         className={`${styles.choiceTools} absolute right-1 top-1`}
-                        data-calculator={calculatorVersion === "v2" ? "v2" : undefined}
+                        data-calculator-cluster={hasCalculator ? "" : undefined}
                       >
                         <button
                           type="button"
@@ -271,9 +271,6 @@ export function ActiveQuizScreen({
                           />
                         )}
                       </div>
-                    )}
-                    {!readOnly && q.subject === "math" && (
-                      <CalculatorChoiceAction text={choice.choice_text} letter={letter} />
                     )}
                   </div>
                 );

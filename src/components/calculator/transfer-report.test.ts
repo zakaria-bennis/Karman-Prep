@@ -53,7 +53,6 @@ const ITEM: TransferItem = {
   },
 };
 const bridgeReturning = (result: TransferResult) => ({
-  version: "v2",
   open: false,
   status: "ready",
   failure: null,

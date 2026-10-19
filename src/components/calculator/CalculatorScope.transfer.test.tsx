@@ -11,7 +11,7 @@ import type {
 import type { QuizMountOptions } from "@/components/calculator-v2/host/quiz-host";
 import { installDomStubs } from "@/components/calculator-v2/__fixtures__/dom-stubs";
 import { FULL_SCREEN_QUERY } from "./breakpoints";
-import type { V2Bridge } from "./CalculatorScope";
+import type { CalculatorBridge } from "./CalculatorScope";
 
 vi.mock("@/components/calculator-v2/host/quiz-host", () => ({ mountQuizCalculator: vi.fn() }));
 
@@ -85,34 +85,31 @@ async function scope(
   const S = await import("./CalculatorScope");
   // D4: a Transfer control renders only once the bridge's lazy pipeline has loaded with it.
   if (!o.lazyCore) await (await import("./use-transfer-bridge")).loadTransferCore();
-  const { CalculatorVersionProvider } = await import("./CalculatorVersion");
   // the instances the reset scope uses
   const { calculatorWindowStore: store } = await import("./calculator-window-store");
   const { isCoreRejection } = await import("./transfer-report");
   store.resetForTests();
   window.matchMedia = media(o.fullScreen ? [FULL_SCREEN_QUERY] : []);
-  const seen = { bridge: null as V2Bridge | null };
+  const seen = { bridge: null as CalculatorBridge | null };
   function Probe() {
-    seen.bridge = S.useCalculator() as V2Bridge;
+    seen.bridge = S.useCalculator();
     return null;
   }
   function Host({ questionKey }: { questionKey: string }) {
     const [open, setOpen] = useState(false);
     return (
-      <CalculatorVersionProvider version="v2">
-        <S.CalculatorScope
-          key={questionKey}
-          enabled
-          open={open}
-          onOpenChange={setOpen}
-          questionKey={questionKey}
-        >
-          <p>Question body</p>
-          <button type="button">Stand-in control</button>
-          <S.CalculatorTrigger />
-          <Probe />
-        </S.CalculatorScope>
-      </CalculatorVersionProvider>
+      <S.CalculatorScope
+        key={questionKey}
+        enabled
+        open={open}
+        onOpenChange={setOpen}
+        questionKey={questionKey}
+      >
+        <p>Question body</p>
+        <button type="button">Stand-in control</button>
+        <S.CalculatorTrigger />
+        <Probe />
+      </S.CalculatorScope>
     );
   }
   const view = render(<Host questionKey="attempt:q1" />);
@@ -149,10 +146,9 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-it("AR-10 the v2 bridge exposes status, transfer and prefetch, hands each payload to the calculator with its trigger, and the host never calls subscribe", async () => {
+it("AR-10 the bridge exposes status, transfer and prefetch, hands each payload to the calculator with its trigger, and the host never calls subscribe", async () => {
   const s = await scope();
   expect(s.bridge()).toMatchObject({
-    version: "v2",
     open: false,
     status: "idle",
     failure: null,
@@ -265,7 +261,7 @@ it("TR-67 one polite status region beside the workspace and the window announces
   expect(workspace).toHaveAttribute("aria-hidden", "true");
   expect(
     region.closest(
-      "[inert], [aria-hidden='true'], [data-calculator-v2], [data-calculator-window], [data-calculator-host]"
+      "[inert], [aria-hidden='true'], [data-calculator-root], [data-calculator-window], [data-calculator-host]"
     )
   ).toBeNull();
 });

@@ -21,9 +21,7 @@ import { safeAuth } from "@/lib/auth/dev-auth";
 import { redirect } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/server";
 import DiagnosticClient from "@/components/diagnostic/DiagnosticClient";
-import { CalculatorVersionProvider } from "@/components/calculator/CalculatorVersion";
 import { DIAGNOSTIC_QUESTIONS } from "@/data/diagnostic-questions";
-import { resolveCalculatorVersion } from "@/lib/calculator-version";
 
 export const metadata: Metadata = { title: "SAT Diagnostic — 35 Questions" };
 
@@ -64,16 +62,11 @@ export default async function DiagnosticPage() {
 
   const isSubscribed = sub?.status === "active" || sub?.status === "trialing";
 
-  // Per-request calculator version (AR-7); never rejects, any failure is "v1".
-  const version = await resolveCalculatorVersion();
-
   return (
-    <CalculatorVersionProvider version={version}>
-      <DiagnosticClient
-        questions={DIAGNOSTIC_QUESTIONS}
-        isSubscribed={isSubscribed}
-        isRetake={isRetake}
-      />
-    </CalculatorVersionProvider>
+    <DiagnosticClient
+      questions={DIAGNOSTIC_QUESTIONS}
+      isSubscribed={isSubscribed}
+      isRetake={isRetake}
+    />
   );
 }

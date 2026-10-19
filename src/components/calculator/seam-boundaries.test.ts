@@ -4,11 +4,10 @@
 // src/components/calculator-v2/. The scan runs on synthetic sources first, then on every source file
 // it finds under src/ at run time, so modules that later packages add are covered without edits.
 //
-// AR-2: the eager modules (src/lib/calculator-version.ts and the non-test modules of
-// src/lib/calculator-transfer/ and src/components/calculator/) touch no window, document,
-// navigator or Worker at module scope, and each loads under Vitest's node environment. AR-7:
-// client modules import the resolver for types only. AR-24 (03's contribution): learn-header.ts
-// is a leaf that LearnLayout re-exports. These scans also enumerate files at run time.
+// AR-2: the eager modules (the non-test modules of src/lib/calculator-transfer/ and
+// src/components/calculator/) touch no window, document, navigator or Worker at module scope, and
+// each loads under Vitest's node environment. AR-24 (03's contribution): learn-header.ts is a leaf
+// that LearnLayout re-exports. These scans also enumerate files at run time.
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join, posix, relative, resolve, sep } from "node:path";
 import ts from "typescript";
@@ -251,9 +250,7 @@ const BROWSER_GLOBALS = new Set(["window", "document", "navigator", "Worker"]);
 /** `globalThis.window`, `self.document` and the like reach the same globals. */
 const GLOBAL_OBJECTS = new Set(["globalThis", "self"]);
 
-/** The rollout resolver, an eager module (AR-2) that client modules import as types only (AR-7). */
-const RESOLVER = "src/lib/calculator-version";
-/** The folders whose non-test modules are eager too (AR-2). */
+/** The folders whose non-test modules are eager (AR-2). */
 const EAGER_DIRS = ["src/lib/calculator-transfer", "src/components/calculator"];
 
 /** A class `extends` clause's expression: the one TypeNode whose expression runs. */
@@ -345,38 +342,12 @@ function moduleScopeGlobals(path: string, source: string): string[] {
 
 /** AR-2's eager modules: the resolver plus the non-test `.ts` and `.tsx` files of EAGER_DIRS. */
 function eagerFiles(root: string): string[] {
-  const files = [`${RESOLVER}.ts`];
+  const files: string[] = [];
   for (const dir of EAGER_DIRS) {
     if (!existsSync(join(root, dir))) continue;
     files.push(...repoPaths(root, dir).filter((path) => /\.tsx?$/.test(path)));
   }
   return files.sort();
-}
-
-/** Whether the first statement of `source` is the "use client" directive. */
-function isClientModule(path: string, source: string): boolean {
-  const file = ts.createSourceFile(path, source, ts.ScriptTarget.Latest, false, scriptKind(path));
-  const first = file.statements[0];
-  return (
-    first !== undefined &&
-    ts.isExpressionStatement(first) &&
-    ts.isStringLiteral(first.expression) &&
-    first.expression.text === "use client"
-  );
-}
-
-/** One `<path> imports <specifier>` per value import of the resolver from a "use client" module. */
-function clientResolverImports(files: readonly { path: string; source: string }[]): string[] {
-  const findings: string[] = [];
-  for (const { path, source } of files) {
-    if (!source.includes("use client") || !isClientModule(path, source)) continue;
-    for (const ref of collectImports(path, source)) {
-      if (!ref.typeOnly && resolveSpecifier(path, ref.specifier) === RESOLVER) {
-        findings.push(`${path} imports ${ref.specifier}`);
-      }
-    }
-  }
-  return findings;
 }
 
 function g(src: string): string[] {
@@ -413,7 +384,6 @@ it("AR-2 eager calculator modules touch no browser global at module scope", () =
   const files = eagerFiles(ROOT);
   expect(files).toEqual(
     expect.arrayContaining([
-      "src/lib/calculator-version.ts",
       "src/components/calculator/CalculatorScope.tsx",
       "src/components/calculator/report-error.ts",
     ])
@@ -441,16 +411,4 @@ it("AR-24 learn-header.ts imports nothing and LearnLayout re-exports LEARN_HEADE
   expect(readFileSync(join(ROOT, "src/components/learn/LearnLayout.tsx"), "utf8")).toContain(
     'export { LEARN_HEADER_CLEARANCE } from "./learn-header";'
   );
-});
-
-it("AR-7 client modules import calculator-version.ts for types only", () => {
-  const path = "src/components/X.tsx";
-  const valueImport = 'import { resolveCalculatorVersion } from "@/lib/calculator-version";';
-  const typeImport = 'import type { CalculatorVersion } from "@/lib/calculator-version";';
-  expect(clientResolverImports([{ path, source: `"use client";\n${valueImport}` }])).toEqual([
-    `${path} imports @/lib/calculator-version`,
-  ]);
-  expect(clientResolverImports([{ path, source: `"use client";\n${typeImport}` }])).toEqual([]);
-  expect(clientResolverImports([{ path, source: valueImport }])).toEqual([]);
-  expect(clientResolverImports(sourceFiles(ROOT))).toEqual([]);
 });

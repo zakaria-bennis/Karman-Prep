@@ -23,7 +23,7 @@ How did you verify this works?
 
 <!--
 If this lands in prod and breaks something, what's the recovery path?
-- "git revert this commit + scripts/calculator-v2/release.sh" is the default; `printf off | npx wrangler secret put CALCULATOR_V2_ROLLOUT` switches calculator v2 off without a deploy.
+- "git revert this commit + scripts/calculator-v2/release.sh" is the default.
 - For migrations: write the inverse SQL inline OR mark this as "no rollback —
   forward fix only" and explain why.
 -->

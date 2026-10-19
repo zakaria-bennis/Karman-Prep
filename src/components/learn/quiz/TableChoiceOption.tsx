@@ -34,8 +34,8 @@ export function TableChoiceOption({
   onSelect: (letter: AnswerLetter) => void;
 }) {
   const [crossed, setCrossed] = useState(false);
-  // AR-11: the v2 cluster; v2 renders no table control until Phase 3 (TR-77).
-  const v2 = useCalculator()?.version === "v2";
+  // AR-11: the answer-choice cluster (TR-77).
+  const hasCalculator = useCalculator() !== null;
   const headers = table.header_row ?? undefined;
   const summaryId = `${id}-table-summary`;
   const showCorrect = submitted && correct;
@@ -52,7 +52,10 @@ export function TableChoiceOption({
         submitted && !selected && !correct && "border-bronze opacity-50"
       )}
     >
-      <div className="flex items-center gap-3" data-calculator={v2 ? "v2" : undefined}>
+      <div
+        className="flex items-center gap-3"
+        data-calculator-cluster={hasCalculator ? "" : undefined}
+      >
         <input
           id={id}
           type="radio"
@@ -101,7 +104,6 @@ export function TableChoiceOption({
           className="my-2 w-auto max-w-full p-2 shadow-none"
         />
       </div>
-      <CalculatorTableAction rows={table.rows} headers={headers} itemId={`choice:${letter}`} />
     </div>
   );
 }

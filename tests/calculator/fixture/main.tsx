@@ -13,7 +13,6 @@ import type { DiagnosticQuestion } from "../../../src/components/diagnostic/_hoo
 import DailyChallenge from "../../../src/components/learn/DailyChallenge";
 import LearnLayout from "../../../src/components/learn/LearnLayout";
 import type { DailySlot } from "../../../src/lib/daily-challenge/server";
-import { CalculatorVersionProvider } from "../../../src/components/calculator/CalculatorVersion";
 import { calculatorWindowStore } from "../../../src/components/calculator/calculator-window-store";
 import "../../../src/app/globals.css";
 import { themeStyleSheet } from "../../../src/lib/themes/palettes";
@@ -26,13 +25,12 @@ const sheet = document.createElement("style");
 sheet.textContent = themeStyleSheet();
 document.head.append(sheet);
 declare global {
-  // The v2 quiz specs (11) read and drive the page-session window store through this global.
+  // The quiz specs (11) read and drive the page-session window store through this global.
   var __calculatorWindowStore: typeof calculatorWindowStore | undefined;
 }
 const params = new URLSearchParams(location.search);
 const flow = params.get("flow");
-const v2 = params.get("calc") === "v2"; // without calc=v2 every flow is v1, as before (AR-8)
-if (v2) globalThis.__calculatorWindowStore = calculatorWindowStore;
+globalThis.__calculatorWindowStore = calculatorWindowStore;
 // 14: ?questions=transfer swaps the diagnostic questions and the daily question.
 const transferQuestions = params.get("questions") === "transfer";
 // 07: ?questions=transfer-tables gives the daily flow a question table, a pair and f(3)=7.
@@ -110,22 +108,14 @@ function App() {
           Fixture theme
         </button>
         <button onClick={() => setSession((n) => n + 1)}>Fixture retake</button>
-        {v2 && (
-          <button
-            aria-label="Fixture dock"
-            onClick={() => calculatorWindowStore.set({ mode: "docked" })}
-          >
-            Fixture dock
-          </button>
-        )}
+        <button
+          aria-label="Fixture dock"
+          onClick={() => calculatorWindowStore.set({ mode: "docked" })}
+        >
+          Fixture dock
+        </button>
       </div>
-      {!v2 ? (
-        content
-      ) : (
-        <CalculatorVersionProvider version="v2">
-          {flow === "catalog" || flow === "daily" ? <LearnLayout>{content}</LearnLayout> : content}
-        </CalculatorVersionProvider>
-      )}
+      {flow === "catalog" || flow === "daily" ? <LearnLayout>{content}</LearnLayout> : content}
     </>
   );
 }

@@ -3,8 +3,7 @@ import { expect, test, type Locator, type Page } from "@playwright/test";
 import { SKIN_COLORS } from "../../../src/lib/calculator-v2/theme/skin-colors.generated";
 import type { SkinId } from "../../../src/lib/calculator-v2/theme/skins";
 
-export const url = (flow = "diagnostic", extra = "") =>
-  `/?flow=${flow}&calc=v2&questions=transfer${extra}`;
+export const url = (flow = "diagnostic", extra = "") => `/?flow=${flow}&questions=transfer${extra}`;
 export const xq = (s: string) => `"${s}"`;
 // KaTeX's <annotation> is a MathML element, which an XPath name test in an HTML document never
 // matches (the name test matches HTML-namespace elements only), so the paths use local-name().
@@ -40,9 +39,9 @@ export const tooltip = (page: Page, latex: string, n = 0) =>
   anchor(page, latex, n).locator("[data-transfer-tooltip]");
 export const choiceAnchor = (page: Page, letter: string) =>
   choiceControl(page, letter).locator("xpath=..");
-/** The choice container: the parent of the choice's [data-calculator="v2"] cluster. */
+/** The choice container: the parent of the choice's [data-calculator-cluster] cluster. */
 export const choiceContainer = (page: Page, letter: string) =>
-  choiceControl(page, letter).locator("xpath=ancestor::*[@data-calculator='v2']/..");
+  choiceControl(page, letter).locator("xpath=ancestor::*[@data-calculator-cluster]/..");
 export const box = async (l: Locator) => must(await l.boundingBox(), "bounding box");
 export const opacity = (l: Locator) => l.evaluate((el) => getComputedStyle(el).opacity);
 export const outline = (l: Locator) =>

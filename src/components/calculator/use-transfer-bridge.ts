@@ -1,11 +1,11 @@
 "use client";
 
-// The v2 bridge's transfer entry, called only by CalculatorScope's V2Scope (14 decision "Bridge
+// The bridge's transfer entry, called only by CalculatorScope (14 decision "Bridge
 // hook"). Eager and minimal (D4, AR-33): it keeps the per-scope state, the announced text and the
 // effects that run the pipeline; the pipeline itself (key check, held queue, drain, failure
 // handling, selection clears and announcements) is transfer-bridge-core.ts, loaded by import()
-// with the Transfer control's chunk, so a transfer from a control never waits for it. Eager: v2
-// code only as types (AR-1).
+// with the Transfer control's chunk, so a transfer from a control never waits for it. Eager: lazy
+// calculator code only as types (AR-1).
 
 import { useEffect, useLayoutEffect, useReducer, useState, type RefObject } from "react";
 import type { QuizCalculatorHandle } from "@/components/calculator-v2/host/quiz-host"; // type-only (AR-1)
@@ -31,7 +31,7 @@ export interface TransferBridge {
   transfer(payload: TransferPayload, trigger: TransferTrigger): Promise<TransferResult>;
   onHandle(handle: QuizCalculatorHandle | null): void;
   announcement: string; // the [data-transfer-status] text
-  openedByTransfer(): boolean; // V2Scope's once-per-open focusOnOpen skips such an open (TR-66)
+  openedByTransfer(): boolean; // CalculatorScope's once-per-open focusOnOpen skips such an open (TR-66)
 }
 
 /** One scope's transfer state, owned here and acted on by transfer-bridge-core.ts. Fields only the

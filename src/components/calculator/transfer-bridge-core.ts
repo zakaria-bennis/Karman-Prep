@@ -1,4 +1,4 @@
-// Lazy (D4, AR-33): the v2 bridge's transfer pipeline behind use-transfer-bridge.ts's eager hook,
+// Lazy (D4, AR-33): the bridge's transfer pipeline behind use-transfer-bridge.ts's eager hook,
 // loaded through its import() (and together with the Transfer control's chunk): the question-key
 // check (TR-70), the docking write (AR-21), the held queue while the calculator loads (AR-17), the drain into the guarded
 // handle, holds across a mount failure and discards after a load failure (TR-69, OI-28), the
@@ -48,7 +48,7 @@ function announce(s: TransferState, message: string): void {
   }, 50);
 }
 
-/** Opens a closed window and remembers that this transfer opened it, so V2Scope skips its
+/** Opens a closed window and remembers that this transfer opened it, so CalculatorScope skips its
  * once-per-open focusOnOpen and the transfer places focus (TR-66, TR-68). A window that is open
  * but still loading (a toolbar open, a mount failure before Retry) is treated the same: the held
  * transfer, not the opener, places focus once the calculator mounts. */
@@ -69,7 +69,7 @@ function focusFrame(s: TransferState): void {
     frame.focus({ preventScroll: true });
 }
 
-/** transfer() on the v2 bridge, acting on the scope's current options. */
+/** transfer() on the bridge, acting on the scope's current options. */
 export function transfer(
   s: TransferState,
   payload: TransferPayload,

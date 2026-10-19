@@ -1,17 +1,4 @@
-import { existsSync, readFileSync } from "node:fs";
-import { join } from "node:path";
 import { pathToFileURL } from "node:url";
-
-/** The .env files Next.js and OpenNext load, checked in this order (OI-30). */
-const ROLLOUT_ENV_FILES = [
-  ".env",
-  ".env.local",
-  ".env.development",
-  ".env.development.local",
-  ".env.production",
-  ".env.production.local",
-];
-const ROLLOUT_ASSIGNMENT = /^\s*(?:export\s+)?CALCULATOR_V2_ROLLOUT\s*=/m;
 
 /** Check public build inputs without logging their values or reading private credentials. */
 export function checkReleaseEnvironment(env) {
@@ -53,24 +40,8 @@ export function checkReleaseEnvironment(env) {
   return problems;
 }
 
-/** One problem per .env file in `dir` that defines CALCULATOR_V2_ROLLOUT. OpenNext bakes these
- *  files into the Worker, so the rollout lives only in the Worker binding (AR-6, OI-30). The
- *  value is never read into a message. */
-export function checkRolloutNotInEnvFiles(dir) {
-  return ROLLOUT_ENV_FILES.filter((file) => {
-    const path = join(dir, file);
-    return existsSync(path) && ROLLOUT_ASSIGNMENT.test(readFileSync(path, "utf8"));
-  }).map(
-    (file) =>
-      `${file} defines CALCULATOR_V2_ROLLOUT; set it with wrangler secret put or in the shell, never in a .env file`
-  );
-}
-
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  const problems = [
-    ...checkReleaseEnvironment(process.env),
-    ...checkRolloutNotInEnvFiles(process.cwd()),
-  ];
+  const problems = checkReleaseEnvironment(process.env);
   if (problems.length) {
     console.error("Release build stopped before compilation:\n" + problems.join("\n"));
     process.exitCode = 1;

@@ -1,9 +1,9 @@
 "use client";
 
 // Karman's icon-only Transfer to Calculator control (AR-12, TR-41 to TR-59). It renders only
-// where useCalculator() returns a v2 bridge (TR-4, OI-21). A mouse or hovering pen reveals it by
+// where useCalculator() returns a bridge (TR-4, OI-21). A mouse or hovering pen reveals it by
 // hover (TR-54), a touch or pen tap on its item selects the item (TR-55 to TR-58), and keyboard
-// focus always shows it (TR-59). Eager: no v2 code; the item comes from the lazy classifier (D4).
+// focus always shows it (TR-59). Eager: no lazy calculator code; the item comes from the lazy classifier (D4).
 
 import {
   useCallback,
@@ -20,7 +20,7 @@ import { ArrowUpRight, Calculator } from "lucide-react";
 import type { TransferItem } from "@/lib/calculator-transfer/classify";
 import type { TransferPayload, TransferTrigger } from "@/lib/calculator-transfer/payload";
 import { useCalculator } from "./bridge-context"; // not CalculatorScope (AR-33)
-import type { V2Bridge } from "./CalculatorScope";
+import type { CalculatorBridge } from "./CalculatorScope";
 import { TransferChooser } from "./TransferChooser";
 import { isCoreRejection, reportTransferRejection } from "./transfer-report";
 import {
@@ -78,7 +78,7 @@ export interface TransferControlProps {
 
 export function TransferControl(props: TransferControlProps): JSX.Element | null {
   const bridge = useCalculator();
-  return bridge?.version === "v2" ? <V2TransferControl {...props} bridge={bridge} /> : null;
+  return bridge ? <TransferControlBody {...props} bridge={bridge} /> : null;
 }
 
 type Listeners = [EventTarget, string, (event: PointerEvent) => void][];
@@ -89,12 +89,12 @@ const listen = (list: Listeners) => {
   };
 };
 
-function V2TransferControl({
+function TransferControlBody({
   item,
   accessibleName,
   placement,
   bridge,
-}: TransferControlProps & { bridge: V2Bridge }) {
+}: TransferControlProps & { bridge: CalculatorBridge }) {
   const anchor = useRef<HTMLSpanElement>(null);
   const button = useRef<HTMLButtonElement>(null);
   const tip = useRef<HTMLSpanElement>(null);
@@ -144,7 +144,7 @@ function V2TransferControl({
     const p = pointer.current;
     const el =
       placement === "cluster"
-        ? a.closest('[data-calculator="v2"]')?.parentElement
+        ? a.closest("[data-calculator-cluster]")?.parentElement
         : a.previousElementSibling;
     p.place = () => {
       if (inlineOrBlock && el instanceof HTMLElement) {

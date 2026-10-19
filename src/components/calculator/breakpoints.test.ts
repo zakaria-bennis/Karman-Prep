@@ -10,9 +10,6 @@ import { CALCULATOR_DOCK_MIN_WIDTH, FULL_SCREEN_QUERY, PHONE_QUERY } from "./bre
 
 const ROOT = resolve(__dirname, "../../..");
 
-/** v1's dock rule, which CalculatorScope keeps for AR-8. */
-const V1_DOCK = new Map([["src/components/calculator/CalculatorScope.tsx|innerWidth >= 1100", 1]]);
-
 /** The folders AR-19 scans. */
 const SCAN_DIRS = [
   "src/components/calculator-v2",
@@ -155,7 +152,6 @@ it("AR-19 breakpoints.ts exports the dock width and the two media queries", () =
 
 it("AR-19 the scan flags other viewport queries and literal innerWidth comparisons", () => {
   const p = "src/components/calculator-v2/a.ts";
-  const scope = "src/components/calculator/CalculatorScope.tsx";
   expect(breakpointFindings(p, 'matchMedia("(max-width: 900px)")')).toEqual([
     p + ": (max-width: 900px)",
   ]);
@@ -171,10 +167,6 @@ it("AR-19 the scan flags other viewport queries and literal innerWidth compariso
   expect(breakpointFindings(p, "if (window.innerWidth >= 1100) {}")).toEqual([
     p + ": window.innerWidth >= 1100",
   ]);
-  expect(breakpointFindings(scope, "a(innerWidth >= 1100);", V1_DOCK)).toEqual([]);
-  expect(
-    breakpointFindings(scope, "a(innerWidth >= 1100); b(innerWidth >= 1100);", V1_DOCK)
-  ).toEqual([scope + ": innerWidth >= 1100"]);
   expect(breakpointFindings("a.css", "@media (max-width: 600px) {}")).toEqual([
     "a.css: (max-width: 600px)",
   ]);
@@ -190,5 +182,5 @@ it("AR-19 v2 code uses only the breakpoints.ts queries and dock width", () => {
   const files = v2Files(ROOT);
   expect(files).toContain("src/components/calculator/CalculatorScope.tsx");
   expect(files).not.toContain("src/components/calculator/breakpoints.ts");
-  expect(files.flatMap((path) => breakpointFindings(path, read(path), V1_DOCK))).toEqual([]);
+  expect(files.flatMap((path) => breakpointFindings(path, read(path)))).toEqual([]);
 });

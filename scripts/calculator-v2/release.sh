@@ -5,5 +5,3 @@ npm run cf:build:release
 node scripts/build/check-calculator-v2-bundle.mjs
 npx playwright test --config=playwright.cf-preview.config.ts
 npm run cf:deploy
-secrets=$(npx wrangler secret list)
-grep -q '"CALCULATOR_V2_ROLLOUT"' <<<"$secrets" || { echo "CALCULATOR_V2_ROLLOUT secret missing"; exit 1; }

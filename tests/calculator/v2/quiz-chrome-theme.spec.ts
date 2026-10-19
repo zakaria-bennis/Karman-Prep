@@ -57,7 +57,7 @@ test("TH-1, TH-14 window chrome, every title-bar control, the move handle, grip,
   await openV2(page, "diagnostic", { width: 1280, height: 800 });
   const loading = await context.newPage();
   await loading.route(/\/calculator-v2\/host\/quiz-host\.ts/, () => {});
-  await loading.goto("/?flow=diagnostic&calc=v2");
+  await loading.goto("/?flow=diagnostic");
   await trigger(loading).click();
   await expect(loading.getByText("Loading calculator…")).toBeVisible();
   for (const skin of SKIN_IDS) {

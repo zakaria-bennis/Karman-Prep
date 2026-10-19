@@ -1,20 +1,9 @@
 // Calculator v2 window in the quiz hosts (11 tasks 7 to 9).
 
 import { expect, test } from "@playwright/test";
-import {
-  chromeOnly,
-  frame,
-  latex,
-  openV2,
-  phoneSized,
-  row,
-  side,
-  trigger,
-  v2Requests,
-  workspace,
-} from "./quiz-helpers";
+import { chromeOnly, frame, latex, openV2, row, side, trigger, workspace } from "./quiz-helpers";
 
-test("L-4 the toolbar and the phone side button open v2 in Math questions only", async ({
+test("L-4 the toolbar and the phone side button open the calculator in Math questions only", async ({
   page,
 }) => {
   for (const flow of ["practice", "diagnostic", "catalog", "daily"]) {
@@ -23,21 +12,10 @@ test("L-4 the toolbar and the phone side button open v2 in Math questions only",
       page.getByRole("region", { name: "Graphing calculator", exact: true })
     ).toBeVisible();
   }
-  await page.goto("/?flow=practice&calc=v2&subject=reading");
+  await page.goto("/?flow=practice&subject=reading");
   await expect(page.getByText(/^Question 1:/).first()).toBeVisible();
   await expect(trigger(page)).toHaveCount(0);
   await expect(side(page)).toHaveCount(0);
-});
-
-test("AR-8 without calc=v2 every flow opens v1 and requests no v2 module", async ({ page }) => {
-  const urls = v2Requests(page);
-  for (const flow of ["practice", "diagnostic", "catalog", "daily"]) {
-    await page.goto(`/?flow=${flow}`);
-    await (phoneSized(page) ? side(page) : trigger(page)).click();
-    await expect(page.getByRole("button", { name: "Paste math", exact: true })).toBeVisible();
-    await expect(frame(page)).toHaveCount(0);
-  }
-  expect(urls).toEqual([]);
 });
 
 test("AR-20, L-4, L-5 toolbar and side button open docked at 1024 px and wider over 500 px tall, full screen otherwise", async ({
@@ -52,7 +30,7 @@ test("AR-20, L-4, L-5 toolbar and side button open docked at 1024 px and wider o
     [1280, 480, "fullscreen", true],
   ] as const) {
     await page.setViewportSize({ width, height });
-    await page.goto("/?flow=diagnostic&calc=v2");
+    await page.goto("/?flow=diagnostic");
     await expect(side(page)).toHaveCount(phone ? 1 : 0);
     await (phone ? side(page) : trigger(page)).click();
     await expect(frame(page)).toHaveAttribute("data-mode", mode);
@@ -60,7 +38,7 @@ test("AR-20, L-4, L-5 toolbar and side button open docked at 1024 px and wider o
   }
 });
 
-test("AR-22, L-6 the floating window keeps v1 geometry, drags and resizes with clamping, maximizes, minimizes, re-clamps on window and visualViewport resize and stays at z-index 72", async ({
+test("AR-22, L-6 the floating window keeps its default geometry, drags and resizes with clamping, maximizes, minimizes, re-clamps on window and visualViewport resize and stays at z-index 72", async ({
   page,
 }, info) => {
   chromeOnly(info.project.name);
@@ -157,7 +135,7 @@ test("AN-10 floating and full-screen windows open with opacity 0 to 1 and transl
     );
   // L-4: a wide first open docks, and a docked window never animates; floating reopens do.
   await page.setViewportSize({ width: 1280, height: 800 });
-  await page.goto("/?flow=diagnostic&calc=v2");
+  await page.goto("/?flow=diagnostic");
   expect(await openAndRead()).toEqual([]);
   await page.getByRole("button", { name: "Undock calculator", exact: true }).click();
   await page.getByRole("button", { name: "Close calculator", exact: true }).click();
@@ -166,7 +144,7 @@ test("AN-10 floating and full-screen windows open with opacity 0 to 1 and transl
     { width: 390, height: 844 },
   ]) {
     await page.setViewportSize(size);
-    if (size.width < 1024) await page.goto("/?flow=diagnostic&calc=v2");
+    if (size.width < 1024) await page.goto("/?flow=diagnostic");
     expect(await openAndRead()).toEqual([
       {
         duration: 200,
@@ -178,7 +156,7 @@ test("AN-10 floating and full-screen windows open with opacity 0 to 1 and transl
     ]);
   }
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/?flow=diagnostic&calc=v2");
+  await page.goto("/?flow=diagnostic");
   expect(await openAndRead()).toEqual([]);
 });
 
@@ -231,7 +209,7 @@ test("AR-27, L-10, KB-4 Close and Minimize keep the content and return focus to 
 }, info) => {
   chromeOnly(info.project.name);
   await page.setViewportSize({ width: 1280, height: 800 });
-  await page.goto("/?flow=diagnostic&calc=v2");
+  await page.goto("/?flow=diagnostic");
   await trigger(page).focus();
   await page.keyboard.press("Enter");
   await expect(row(page)).toBeFocused();
@@ -288,26 +266,4 @@ test("KB-6, AR-18 calculator keys never reach window or document listeners; Esca
   await expect(frame(page)).toBeHidden();
   await page.locator("body").press("x");
   expect(await heard()).toContain("window keydown x");
-});
-
-test("AR-13 no v1 shell control is rendered or registered around a v2 calculator", async ({
-  page,
-}) => {
-  await openV2(page, "practice");
-  for (const name of [
-    "Calculator mode",
-    "Paste math",
-    "Paste points as",
-    "Show calculator keypad",
-    "Hide calculator keypad",
-  ])
-    await expect(page.getByLabel(name, { exact: true })).toHaveCount(0);
-  await expect(
-    page.getByRole("button", { name: /Export to Karman|Export options|Copy for Desmos/ })
-  ).toHaveCount(0);
-  const keypads = page.getByRole("region", { name: "Keypad" });
-  const before = await keypads.count();
-  await page.locator("body").press("Control+KeyK");
-  await page.locator("body").press("Alt+KeyK");
-  await expect(keypads).toHaveCount(before);
 });

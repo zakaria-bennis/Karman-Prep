@@ -71,27 +71,23 @@ test("AR-56 a runaway row leaves the diagnostic timer and Skip responsive and sh
   expect(elapsed).toBeLessThan(300);
 });
 
-test("AR-30 no v2 module loads on a fresh v2 page, a Reading page or a v1 page; pointer-enter and focus on the trigger prefetch", async ({
+test("AR-30 no calculator module loads on a fresh page or a Reading page; pointer-enter and focus on the trigger prefetch", async ({
   page,
 }, info) => {
   test.skip(/ios|android/.test(info.project.name), "hover and focus prefetch need a fine pointer");
   const urls = v2Requests(page);
   const requested = () => urls.some((u) => u.includes("/calculator-v2/host/quiz-host"));
-  await page.goto("/?flow=practice&calc=v2");
+  await page.goto("/?flow=practice");
   await page.waitForLoadState("networkidle");
   expect(urls).toEqual([]);
-  await page.goto("/?flow=practice&calc=v2&subject=reading");
+  await page.goto("/?flow=practice&subject=reading");
   await page.waitForLoadState("networkidle");
   expect(urls).toEqual([]);
   await page.goto("/?flow=practice");
-  await trigger(page).click();
-  await expect(page.getByRole("button", { name: "Paste math" })).toBeVisible();
-  expect(urls).toEqual([]);
-  await page.goto("/?flow=practice&calc=v2");
   await trigger(page).hover();
   await expect.poll(requested).toBe(true);
   urls.length = 0;
-  await page.goto("/?flow=diagnostic&calc=v2");
+  await page.goto("/?flow=diagnostic");
   await trigger(page).focus();
   await expect.poll(requested).toBe(true);
 });
@@ -101,7 +97,7 @@ test("AR-31 a failed chunk shows the reload panel, stays failed for the page and
 }) => {
   const hostModule = /\/calculator-v2\/host\/quiz-host\.ts/;
   await page.route(hostModule, (route) => route.abort());
-  await page.goto("/?flow=diagnostic&calc=v2");
+  await page.goto("/?flow=diagnostic");
   const open = () => (phoneSized(page) ? side(page) : trigger(page)).click();
   const panel = page.getByText("The calculator could not load. Reload the page to try again.");
   await open();
@@ -137,7 +133,7 @@ test("AR-31 a mount failure shows Retry, which mounts from the module already lo
   page.on("request", (r) => {
     if (r.url().includes("/calculator-v2/host/quiz-host")) requests++;
   });
-  await page.goto("/?flow=diagnostic&calc=v2");
+  await page.goto("/?flow=diagnostic");
   await (phoneSized(page) ? side(page) : trigger(page)).click();
   await expect(page.getByText("The calculator could not load.", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Retry" }).click();

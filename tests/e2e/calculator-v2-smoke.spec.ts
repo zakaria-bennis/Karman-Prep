@@ -1,8 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 
-// Turbopack smoke (AR-65, API-15, AR-31) against `next dev` as dev_seed_admin with
-// CALCULATOR_V2_ROLLOUT=admins. Run with:
-//   npx playwright test --config=playwright.calculator-v2-e2e.config.ts
+// Turbopack smoke (AR-65, API-15, AR-31) against `next dev` as dev_seed_admin, the default
+// webServer persona. Runs under `npm run test:e2e` (Chromium only).
 
 const trigger = (page: Page) =>
   page.getByRole("button", { name: "Toggle Karman calculator", exact: true });
@@ -35,7 +34,7 @@ const failOneMount = () => {
   };
 };
 
-test("AR-65 practice opens v2 under Turbopack, types and graphs y=x^2 with the worker loaded from /_next/ and a KaTeX_Math face loaded", async ({
+test("AR-65 practice opens the calculator under Turbopack, types and graphs y=x^2 with the worker loaded from /_next/ and a KaTeX_Math face loaded", async ({
   page,
 }) => {
   const errors: string[] = [];

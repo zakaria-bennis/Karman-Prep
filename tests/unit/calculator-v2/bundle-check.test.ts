@@ -212,7 +212,7 @@ it("AR-33 the committed baseline is script-formatted, pinned to Next 16.3.8 and 
   expect(await formatBaseline(baseline)).toBe(text);
 });
 
-it("AR-66 release.sh is the only deploy path, runs the checks between cf:build:release and cf:deploy and reads the secret list without a pipe", () => {
+it("AR-66 release.sh is the only deploy path and runs the checks between cf:build:release and cf:deploy", () => {
   const script = readFileSync("scripts/calculator-v2/release.sh", "utf8");
   const at = [
     "set -euo pipefail",
@@ -220,12 +220,9 @@ it("AR-66 release.sh is the only deploy path, runs the checks between cf:build:r
     "node scripts/build/check-calculator-v2-bundle.mjs",
     "npx playwright test --config=playwright.cf-preview.config.ts",
     "npm run cf:deploy",
-    "npx wrangler secret list",
   ].map((s) => script.indexOf(s));
   expect(at.every((p, i) => p >= 0 && (i === 0 || p > at[i - 1]))).toBe(true);
   expect(statSync("scripts/calculator-v2/release.sh").mode & 0o111).not.toBe(0);
-  expect(script).toContain(`grep -q '"CALCULATOR_V2_ROLLOUT"' <<<"$secrets"`);
-  expect(script).not.toMatch(/secret list\s*\|/);
   expect(
     execSync("git grep -l -e cf:deploy -- scripts .github", { encoding: "utf8" }).trim().split("\n")
   ).toEqual(["scripts/calculator-v2/release.sh"]);

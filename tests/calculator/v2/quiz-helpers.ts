@@ -1,6 +1,6 @@
 // Node-side helpers for the calculator v2 quiz seam specs (11 tasks 7 to 13): quiz-window,
 // quiz-reset, quiz-loading, quiz-dock and quiz-chrome-theme. They drive the quiz fixture
-// (tests/calculator/fixture/main.tsx) with `calc=v2` and read the engine through
+// (tests/calculator/fixture/main.tsx) and read the engine through
 // globalThis.__calculatorHarness, which the quiz host sets in development.
 
 import { expect, test, type Page } from "@playwright/test";
@@ -67,7 +67,7 @@ export async function openV2(
   options: { docked?: boolean } = {}
 ) {
   if (size) await page.setViewportSize(size);
-  await page.goto(`/?flow=${flow}&calc=v2`);
+  await page.goto(`/?flow=${flow}`);
   await (phoneSized(page) ? side(page) : trigger(page)).click();
   await expect(rowItem(page)).toBeVisible();
   if (!options.docked && (await frame(page).getAttribute("data-mode")) === "docked") {

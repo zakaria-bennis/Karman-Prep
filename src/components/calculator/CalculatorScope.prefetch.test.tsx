@@ -1,10 +1,9 @@
 // @vitest-environment jsdom
 import { useState } from "react";
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import { expect, it, vi } from "vitest";
 import { installDomStubs } from "@/components/calculator-v2/__fixtures__/dom-stubs";
 import { CalculatorScope, CalculatorTrigger } from "./CalculatorScope";
-import { CalculatorVersionProvider } from "./CalculatorVersion";
 
 const imported = vi.hoisted(() => vi.fn());
 const warm = vi.hoisted(() => vi.fn(async () => {}));
@@ -25,27 +24,20 @@ vi.mock("@/components/calculator-v2/host/quiz-host", () => {
     }),
   };
 });
-vi.mock("./CalculatorShell", () => ({ CalculatorShell: () => <div data-testid="v1-shell" /> }));
 
-function Host({ version }: { version: "v1" | "v2" }) {
+function Host() {
   const [open, setOpen] = useState(false);
   return (
-    <CalculatorVersionProvider version={version}>
-      <CalculatorScope enabled open={open} onOpenChange={setOpen} questionKey="attempt:q1">
-        <CalculatorTrigger />
-      </CalculatorScope>
-    </CalculatorVersionProvider>
+    <CalculatorScope enabled open={open} onOpenChange={setOpen} questionKey="attempt:q1">
+      <CalculatorTrigger />
+    </CalculatorScope>
   );
 }
 
-it("AR-30, AR-41 nothing is imported or warmed before open or prefetch, trigger focus prefetches the module and warms the fonts, and v1 does neither", async () => {
+it("AR-30, AR-41 nothing is imported or warmed before open or prefetch, trigger focus prefetches the module and warms the fonts", async () => {
   const restore = installDomStubs();
   const trigger = () => screen.getByRole("button", { name: "Toggle Karman calculator" });
-  const v1 = render(<Host version="v1" />);
-  fireEvent.pointerEnter(trigger());
-  fireEvent.click(trigger());
-  v1.unmount();
-  render(<Host version="v2" />);
+  render(<Host />);
   await act(async () => {});
   expect(imported).not.toHaveBeenCalled();
   expect(warm).not.toHaveBeenCalled();

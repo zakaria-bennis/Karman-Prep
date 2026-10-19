@@ -13,7 +13,7 @@ import {
   transferByMouse,
 } from "./transfer-helpers";
 
-const URL = "/?flow=daily&calc=v2&questions=transfer-tables";
+const URL = "/?flow=daily&questions=transfer-tables";
 const TABLE_NAME = "Transfer to Calculator: table, 4 rows";
 async function openTables(page: Page) {
   await page.setViewportSize({ width: 1280, height: 800 });

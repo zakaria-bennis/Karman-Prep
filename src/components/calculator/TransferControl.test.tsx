@@ -45,8 +45,7 @@ const ITEM: TransferItem = {
     rows: ["y=2x+3"],
   },
 };
-const v2Bridge = () => ({
-  version: "v2",
+const bridgeStub = () => ({
   open: false,
   status: "idle",
   failure: null,
@@ -61,13 +60,13 @@ const v2Bridge = () => ({
     })
   ),
 });
-const v1Bridge = () => ({ version: "v1", open: false, toggle: vi.fn(), paste: vi.fn() });
 const stubbed = (bridge: unknown) => {
   h.stub = true;
   h.bridge = bridge;
-  return bridge as ReturnType<typeof v2Bridge>;
+  return bridge as ReturnType<typeof bridgeStub>;
 };
-const lastTrigger = (bridge: ReturnType<typeof v2Bridge>) => must(bridge.transfer.mock.lastCall)[1];
+const lastTrigger = (bridge: ReturnType<typeof bridgeStub>) =>
+  must(bridge.transfer.mock.lastCall)[1];
 const media = (matching: string[]) =>
   ((q: string) => ({
     matches: matching.includes(q),
@@ -107,22 +106,20 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-it("TR-4 the control renders only when useCalculator() returns a v2 bridge (OI-21)", () => {
-  for (const bridge of [null, v1Bridge()]) {
-    stubbed(bridge);
-    const v = render(<Control />);
-    expect(v.container.querySelector("[data-transfer-control]")).toBeNull();
-    v.unmount();
-  }
-  stubbed(v2Bridge());
+it("TR-4 the control renders only when useCalculator() returns a bridge (OI-21)", () => {
+  stubbed(null);
+  const v = render(<Control />);
+  expect(v.container.querySelector("[data-transfer-control]")).toBeNull();
+  v.unmount();
+  stubbed(bridgeStub());
   render(<Control />);
   expect(
     screen.getByRole("button", { name: "Transfer to Calculator: y=2x+3" })
   ).toBeInTheDocument();
 });
 
-it("AR-12 the v2 control is icon-only with a Transfer to Calculator tooltip after 300 ms of hover or at once on keyboard focus, and a name that starts with it", () => {
-  const bridge = stubbed(v2Bridge());
+it("AR-12 the control is icon-only with a Transfer to Calculator tooltip after 300 ms of hover or at once on keyboard focus, and a name that starts with it", () => {
+  const bridge = stubbed(bridgeStub());
   render(<Control />);
   vi.useFakeTimers();
   const button = screen.getByRole("button", { name: "Transfer to Calculator: y=2x+3" });
@@ -152,7 +149,7 @@ it("AR-12 the v2 control is icon-only with a Transfer to Calculator tooltip afte
 });
 
 it("TR-59 a hidden control stays in the accessibility tree, and a click with no pointerdown transfers at once with trigger keyboard and no selection step", async () => {
-  const bridge = stubbed(v2Bridge());
+  const bridge = stubbed(bridgeStub());
   render(<Control />);
   expect(anchorEl()).toHaveAttribute("data-visible", "false");
   const button = screen.getByRole("button", { name: "Transfer to Calculator: y=2x+3" });
@@ -171,7 +168,7 @@ it("TR-59 a hidden control stays in the accessibility tree, and a click with no 
 });
 
 it("AR-10 the control passes touch for a touch or pen tap, mouse for a mouse click or a click from a hovering pen, and keyboard for a click with no pointerdown", async () => {
-  const bridge = stubbed(v2Bridge());
+  const bridge = stubbed(bridgeStub());
   render(<Control />);
   const button = screen.getByRole("button");
   const runs = [
@@ -192,7 +189,7 @@ it("AR-10 the control passes touch for a touch or pen tap, mouse for a mouse cli
 });
 
 it("TR-59, AR-10 a pointer contact that never becomes a click leaves no record: after a pointercancel, a pressed pointer leaving the button, a key or a blur, the next click with no pointerdown is keyboard, while a touch tap whose pointerleave fires before its click stays touch", async () => {
-  const bridge = stubbed(v2Bridge());
+  const bridge = stubbed(bridgeStub());
   render(<Control />);
   const button = screen.getByRole("button");
   const aborted: [string, () => void][] = [
@@ -240,7 +237,7 @@ it("TR-59, AR-10 a pointer contact that never becomes a click leaves no record: 
 });
 
 it("TR-54 the triggering pointer type sets the mode whatever the device class or width: mouse and hovering pen reveal, touch and pen taps select", () => {
-  const bridge = stubbed(v2Bridge());
+  const bridge = stubbed(bridgeStub());
   window.matchMedia = media([
     "(any-pointer: coarse)",
     "(max-width: 767px), (max-height: 500px)",
@@ -272,7 +269,7 @@ it("TR-54 the triggering pointer type sets the mode whatever the device class or
   expect(item).toHaveAttribute("data-transfer-selected", "true");
 });
 
-it("TH-2 the control, tooltip and outline take colours only from --kcc-*, the injected shadow sheet holds no literal colour outside the vendored MathQuill section, and every rule of the control's global sheet is keyed on a Transfer or v2 attribute", () => {
+it("TH-2 the control, tooltip and outline take colours only from --kcc-*, the injected shadow sheet holds no literal colour outside the vendored MathQuill section, and every rule of the control's global sheet is keyed on a Transfer or calculator attribute", () => {
   const literal = /#[0-9a-fA-F]{3,8}\b|\b(rgba?|hsla?|oklch|oklab|lab|lch|hwb|color)\(/;
   const strip = (css: string) => css.replace(/\/\*[\s\S]*?\*\//g, "");
   for (const file of ["transfer-control.css"]) {
@@ -297,7 +294,7 @@ it("TH-2 the control, tooltip and outline take colours only from --kcc-*, the in
   expect(
     selectors.filter(
       (s) =>
-        !/^\[data-(transfer-[a-z]+|calculator="v2"|calculator-workspace)[\]=]/.test(s) ||
+        !/^\[data-(transfer-[a-z]+|calculator-cluster|calculator-workspace)[\]=]/.test(s) ||
         /(^|[\s>])[a-z]*\.[\w-]+/.test(s)
     )
   ).toEqual([]);
@@ -352,7 +349,7 @@ it.skipIf(!hasCutPoint)(
 );
 
 it("TR-68 a pointer click focuses the control before the transfer starts, and that focus never shows the tooltip", async () => {
-  const bridge = stubbed(v2Bridge());
+  const bridge = stubbed(bridgeStub());
   render(<Control />);
   const button = screen.getByRole("button", { name: "Transfer to Calculator: y=2x+3" });
   let focusedAtTransfer: Element | null = null;

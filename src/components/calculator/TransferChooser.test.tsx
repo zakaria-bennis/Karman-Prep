@@ -20,7 +20,6 @@ vi.mock("./bridge-context", async (original) => {
 
 const bridge = (questionKey = "attempt:q1") => {
   const b = {
-    version: "v2",
     open: false,
     status: "idle",
     failure: null,

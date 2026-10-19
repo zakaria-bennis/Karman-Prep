@@ -2,7 +2,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { installDomStubs } from "@/components/calculator-v2/__fixtures__/dom-stubs";
-import { CalculatorVersionProvider } from "@/components/calculator/CalculatorVersion";
 import ExternalCalculatorLink from "./ExternalCalculatorLink";
 
 const probe = vi.hoisted(() => ({ keys: [] as (string | undefined)[] }));
@@ -24,7 +23,7 @@ vi.mock("@/components/calculator/CalculatorScope", async (original) => {
     ...m,
     CalculatorTrigger: () => {
       const bridge = m.useCalculator();
-      if (bridge?.version === "v2") probe.keys.push(bridge.questionKey);
+      if (bridge) probe.keys.push(bridge.questionKey);
       return m.CalculatorTrigger();
     },
   };
@@ -42,13 +41,9 @@ describe("local calculator entry", () => {
   });
 });
 
-it("AR-9 ExternalCalculatorLink forwards questionKey to the v2 scope, else one stable fallback id, and opens the v2 window", () => {
+it("AR-9 ExternalCalculatorLink forwards questionKey to the scope, else one stable fallback id, and opens the window", () => {
   const restore = installDomStubs();
-  const tree = (key?: string) => (
-    <CalculatorVersionProvider version="v2">
-      <ExternalCalculatorLink subject="math" questionKey={key} />
-    </CalculatorVersionProvider>
-  );
+  const tree = (key?: string) => <ExternalCalculatorLink subject="math" questionKey={key} />;
   const { rerender } = render(tree("a:q1"));
   expect(probe.keys.at(-1)).toBe("a:q1");
   const button = screen.getByRole("button", { name: "Toggle Karman calculator" });

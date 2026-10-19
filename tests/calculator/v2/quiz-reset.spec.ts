@@ -25,7 +25,7 @@ const counters = (page: Page) => page.evaluate(() => globalThis.__karmanCalculat
 
 async function open(page: Page) {
   await page.setViewportSize({ width: 1280, height: 800 });
-  await page.goto("/?flow=diagnostic&calc=v2");
+  await page.goto("/?flow=diagnostic");
   await trigger(page).click();
   await expect(rowItem(page)).toBeVisible();
 }
@@ -201,7 +201,7 @@ test("AR-61 five question changes in one second leave one calculator and no stal
     await new Promise((r) => setTimeout(r, 800));
     await route.continue();
   });
-  await page.goto("/?flow=diagnostic&calc=v2");
+  await page.goto("/?flow=diagnostic");
   await trigger(page).click();
   await burst("Skip this question");
   await expect(rowItem(page)).toBeVisible();

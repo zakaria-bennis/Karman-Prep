@@ -27,7 +27,6 @@ import {
   CalculatorSourceAction,
   CalculatorTableAction,
 } from "./CalculatorSourceAction";
-import { CalculatorVersionProvider } from "./CalculatorVersion";
 import { loadTransferClassifier } from "./transfer-classifier";
 import { transferSelection } from "./transfer-selection";
 
@@ -55,8 +54,7 @@ vi.mock("next/navigation", () => ({
   usePathname: () => "/free-diagnostic",
   useRouter: () => ({ replace: vi.fn(), push: vi.fn() }),
 }));
-const v2Bridge = () => ({
-  version: "v2",
+const bridgeStub = () => ({
   open: false,
   status: "idle",
   failure: null,
@@ -71,11 +69,10 @@ const v2Bridge = () => ({
     })
   ),
 });
-const v1Bridge = () => ({ version: "v1", open: false, toggle: vi.fn(), paste: vi.fn() });
 const stubbed = (bridge: unknown) => {
   h.stub = true;
   h.bridge = bridge;
-  return bridge as ReturnType<typeof v2Bridge>;
+  return bridge as ReturnType<typeof bridgeStub>;
 };
 let restore = () => {};
 beforeEach(() => {
@@ -101,13 +98,13 @@ const annotationBefore = (anchor: Element) =>
   anchor.previousElementSibling?.querySelector("annotation")?.textContent;
 
 it("TR-45 one real button per item right after it or in its cluster; the math is never focusable; hidden stem controls are clipped and hidden choice controls sit at opacity 0, never leaving the tree (OI-18)", async () => {
-  stubbed(v2Bridge());
+  stubbed(bridgeStub());
   const { container } = render(
     <>
       <MathText calculator text={`Use $y=2x+3$, $x$ and $$${SYSTEM}$$`} />
       <div className="group relative">
         <button type="button">A</button>
-        <div data-calculator="v2">
+        <div data-calculator-cluster="">
           <button type="button" aria-label="Cross out choice A" />
           <CalculatorChoiceAction slot="cluster" text="$2x$" letter="A" />
         </div>
@@ -131,7 +128,7 @@ it("TR-45 one real button per item right after it or in its cluster; the math is
   }
   expect(annotationBefore(anchors[0])).toBe("y=2x+3");
   expect(anchors[1].previousElementSibling?.classList.contains("block")).toBe(true);
-  expect(anchors[2].parentElement).toHaveAttribute("data-calculator", "v2");
+  expect(anchors[2].parentElement).toHaveAttribute("data-calculator-cluster");
   expect(anchors[2].previousElementSibling).toHaveAccessibleName("Cross out choice A");
   expect(container.querySelectorAll(".katex [tabindex], [tabindex].katex")).toHaveLength(0);
   expect(anchors[0]).toHaveAttribute("data-visible", "false");
@@ -142,7 +139,7 @@ it("TR-45 one real button per item right after it or in its cluster; the math is
 });
 
 it("TR-45 across underline, italic and serialized-function runs each control follows the segment its item came from, and a run that shifts the math count renders no wrong control", async () => {
-  stubbed(v2Bridge());
+  stubbed(bridgeStub());
   await loadTransferClassifier(); // D4: later renders get the loaded chunk synchronously
   const runs = {
     text: "[[u]]Line $y=2x+3$[[/u]]\nf(x) = 2^x + 3\n<i>Region $y>2x+1$</i>",
@@ -188,7 +185,7 @@ it("TR-45 across underline, italic and serialized-function runs each control fol
 });
 
 it("TR-50 names are Transfer to Calculator plus the table 8.1 description, unique within the question with ', occurrence n' for repeats", async () => {
-  stubbed(v2Bridge());
+  stubbed(bridgeStub());
   render(<MathText calculator text={`Lines $y=2x+3$ and $y=2x+3$ meet $$${SYSTEM}$$`} />);
   await waitFor(() => expect(namesOf()).toHaveLength(3));
   expect(namesOf()).toEqual([
@@ -198,7 +195,7 @@ it("TR-50 names are Transfer to Calculator plus the table 8.1 description, uniqu
   ]);
 });
 
-it("TR-76, AR-11, TR-22 the wrappers branch on bridge.version: v1 keeps PasteAction and cluster instances render nothing; v2 renders only Transfer controls, question tables and table choices included", async () => {
+it("AR-11, TR-22 the wrappers render only Transfer controls, question tables and table choices included; a choice outside its cluster renders nothing", async () => {
   const stem = { text: "Line $y=2x+3$", serializedFunctionLines: false };
   const tree = (
     <>
@@ -218,23 +215,7 @@ it("TR-76, AR-11, TR-22 the wrappers branch on bridge.version: v1 keeps PasteAct
       />
     </>
   );
-  stubbed(v1Bridge());
-  const v1 = render(tree);
-  expect(
-    screen
-      .getAllByRole("button", {
-        name: /^Paste .+ into calculator|^Paste table into calculator as x₁, y₁$/,
-      })
-      .map((b) => b.getAttribute("aria-label"))
-  ).toEqual([
-    "Paste y=2x+3 into calculator",
-    "Paste choice B into calculator",
-    "Paste table into calculator as x₁, y₁",
-  ]);
-  expect(screen.getByTestId("cluster")).toBeEmptyDOMElement();
-  expect(screen.queryAllByRole("button", { name: /^Transfer to Calculator/ })).toHaveLength(0);
-  v1.unmount();
-  stubbed(v2Bridge());
+  stubbed(bridgeStub());
   render(tree);
   await waitFor(() => expect(namesOf()).toHaveLength(4));
   expect(screen.queryAllByText(/Export to Karman|Copy for Desmos/)).toHaveLength(0);
@@ -253,12 +234,12 @@ it("TR-76, AR-11, TR-22 the wrappers branch on bridge.version: v1 keeps PasteAct
 });
 
 it("AR-11 a choice with no stem prop classifies against the stem its question's MathText registered", async () => {
-  const bridge = stubbed(v2Bridge());
+  const bridge = stubbed(bridgeStub());
   const text = "The function $f$ is defined by $f(x)=x^{2}$.";
   render(
     <>
       <MathText calculator text={text} />
-      <div data-calculator="v2">
+      <div data-calculator-cluster="">
         <CalculatorChoiceAction slot="cluster" text="$f(x)+1$" letter="A" />
       </div>
     </>
@@ -276,12 +257,12 @@ it("AR-11 a choice with no stem prop classifies against the stem its question's 
   });
 });
 
-it("AR-33 (D4) a v2 wrapper renders no control until the lazy classifier has loaded, then the control appears", async () => {
+it("AR-33 (D4) a wrapper renders no control until the lazy classifier has loaded, then the control appears", async () => {
   vi.resetModules();
-  stubbed(v2Bridge());
+  stubbed(bridgeStub());
   const fresh = await import("./CalculatorSourceAction");
   const { container } = render(
-    <div data-calculator="v2">
+    <div data-calculator-cluster="">
       <fresh.CalculatorChoiceAction slot="cluster" text="$5$" letter="A" />
     </div>
   );
@@ -370,8 +351,8 @@ const practice = (q: StudentQuizQuestion, state: QuizStateOverride, onSelect = n
 
 // Task 5's TR-2 test, moved to task 6: its STEM_AND_CHOICES expectation needs the answer-choice
 // clusters this task adds.
-it("TR-2 passages, hints, explanations, review panels, captions, footers, cells, prose outside delimiters and the student's own answers render no control in an active v2 quiz", async () => {
-  stubbed(v2Bridge());
+it("TR-2 passages, hints, explanations, review panels, captions, footers, cells, prose outside delimiters and the student's own answers render no control in an active quiz", async () => {
+  stubbed(bridgeStub());
   const submitted: QuizStateOverride = {
     ...STATE,
     phase: "submitted_wrong",
@@ -460,18 +441,11 @@ const TABLE = {
   ],
 };
 
-it("AR-11 on v2 each answer-choice cluster gains data-calculator=v2 and one Transfer control after cross-out; on v1 the cluster is unchanged", async () => {
+it("AR-11 each answer-choice cluster gains data-calculator-cluster and one Transfer control after cross-out", async () => {
   for (const [name, site] of Object.entries(SITES)) {
-    stubbed(v1Bridge());
-    const v1 = render(site());
-    expect(document.querySelectorAll("[data-calculator]"), name).toHaveLength(0);
-    for (const cross of buttons(/^Cross out choice [AB]$/))
-      expect(cross.parentElement?.children, name).toHaveLength(name === "diagnostic" ? 2 : 1);
-    expect(buttons(/^Paste choice [AB] into calculator$/), name).toHaveLength(2);
-    v1.unmount();
-    stubbed(v2Bridge());
-    const v2 = render(site());
-    const clusters = [...document.querySelectorAll<HTMLElement>('[data-calculator="v2"]')];
+    stubbed(bridgeStub());
+    const view = render(site());
+    const clusters = [...document.querySelectorAll<HTMLElement>("[data-calculator-cluster]")];
     expect(clusters, name).toHaveLength(2);
     await waitFor(() =>
       expect(clusters[1].lastElementChild).toHaveAttribute("data-transfer-control")
@@ -484,12 +458,11 @@ it("AR-11 on v2 each answer-choice cluster gains data-calculator=v2 and one Tran
       );
       expect(last?.previousElementSibling).toHaveAccessibleName(`Cross out choice ${"AB"[i]}`);
     });
-    expect(buttons(/^Paste choice/), name).toHaveLength(0);
-    v2.unmount();
+    view.unmount();
   }
 });
 
-it("AR-11, TR-22 a table choice's control sits in its v2 cluster (its v1 instance renders nothing), and daily choices get a v2-only cluster as the next sibling of each label", async () => {
+it("AR-11, TR-22 a table choice's control sits in its cluster, and daily math choices get a cluster as the next sibling of each label", async () => {
   const table = () => (
     <TableChoiceOption
       id="c-d"
@@ -502,21 +475,15 @@ it("AR-11, TR-22 a table choice's control sits in its v2 cluster (its v1 instanc
       onSelect={h.onSelect}
     />
   );
-  stubbed(v1Bridge());
-  const v1 = render(table());
-  expect(document.querySelector("[data-calculator]")).toBeNull();
-  expect(must(buttons(/^Paste table into calculator as x₁, y₁$/)[0])).toBeInTheDocument();
-  v1.unmount();
-  stubbed(v2Bridge());
-  const v2 = render(table());
+  stubbed(bridgeStub());
+  const view = render(table());
   const header = must(buttons(/^Cross out choice D$/)[0]).parentElement;
-  expect(header).toHaveAttribute("data-calculator", "v2");
+  expect(header).toHaveAttribute("data-calculator-cluster");
   await waitFor(() => expect(document.querySelectorAll("[data-transfer-control]")).toHaveLength(1));
   expect(header?.querySelector("[data-transfer-control] button")).toHaveAccessibleName(
     "Transfer to Calculator: choice D"
   );
-  expect(buttons(/^Paste table/)).toHaveLength(0);
-  v2.unmount();
+  view.unmount();
   const slot = {
     state: "ready",
     value: {
@@ -533,21 +500,12 @@ it("AR-11, TR-22 a table choice's control sits in its v2 cluster (its v1 instanc
   } as DailySlot;
   const labels = () =>
     [...document.querySelectorAll("label")].filter((l) => l.querySelector("input[type=radio]"));
-  h.stub = false;
-  const daily1 = render(<DailyChallenge math={slot} reading={{ state: "empty" }} />);
-  expect(labels().map((l) => l.nextElementSibling?.tagName ?? null)).toEqual(["LABEL", null]);
-  expect(document.querySelector("[data-calculator]")).toBeNull();
-  daily1.unmount();
-  stubbed(v2Bridge());
-  render(
-    <CalculatorVersionProvider version="v2">
-      <DailyChallenge math={slot} reading={{ state: "empty" }} />
-    </CalculatorVersionProvider>
-  );
+  stubbed(bridgeStub());
+  render(<DailyChallenge math={slot} reading={{ state: "empty" }} />);
   await waitFor(() => expect(namesOf()).toHaveLength(3));
   for (const [i, label] of labels().entries()) {
     const cluster = label.nextElementSibling;
-    expect(cluster).toHaveAttribute("data-calculator", "v2");
+    expect(cluster).toHaveAttribute("data-calculator-cluster");
     expect(cluster?.querySelectorAll("[data-transfer-control]")).toHaveLength(1);
     expect(cluster?.querySelector("button")).toHaveAccessibleName(
       `Transfer to Calculator: choice ${"AB"[i]}`
@@ -557,7 +515,7 @@ it("AR-11, TR-22 a table choice's control sits in its v2 cluster (its v1 instanc
 });
 
 it("TR-41 activating a choice's control by mouse, touch or keyboard never selects, crosses out or reaches an answer handler", async () => {
-  const bridge = stubbed(v2Bridge());
+  const bridge = stubbed(bridgeStub());
   for (const [name, site] of Object.entries(SITES)) {
     const view = render(
       <div onClick={h.outer} onPointerDown={h.outer} onKeyDown={h.outer}>

@@ -18,7 +18,6 @@ import {
   CalculatorChoiceAction,
   CalculatorTableAction,
 } from "@/components/calculator/CalculatorSourceAction";
-import { useCalculatorVersion } from "@/components/calculator/CalculatorVersion";
 import { makeQuestionKey } from "@/components/calculator/question-key";
 import { LEARN_HEADER_CLEARANCE } from "@/components/learn/learn-header";
 import { buildGeometrySvg } from "@/lib/figures/geometry-svg";
@@ -102,8 +101,8 @@ function DailyQuestion({ value }: { value: Extract<DailySlot, { state: "ready" }
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showExplanation, setShowExplanation] = useState(false);
-  const v2Choices = useCalculatorVersion() === "v2" && subject === "math";
-  const clusterPadding = v2Choices ? " pr-14" : ""; // v1 keeps its exact class string
+  const transferChoices = subject === "math"; // the scope below is enabled for math only
+  const clusterPadding = transferChoices ? " pr-14" : "";
   const stem = useMemo(
     () => ({ text: q.question_text, serializedFunctionLines: true }),
     [q.question_text]
@@ -197,13 +196,13 @@ function DailyQuestion({ value }: { value: Extract<DailySlot, { state: "ready" }
                         </span>
                       </label>
                     );
-                    if (!v2Choices) return label;
-                    // AR-11: the v2-only daily cluster, a sibling of the label (14).
+                    if (!transferChoices) return label;
+                    // AR-11: the daily cluster, a sibling of the label (14).
                     return (
                       <div key={choice.id} className="group relative">
                         {label}
                         <div
-                          data-calculator="v2"
+                          data-calculator-cluster=""
                           className="absolute right-1 top-1 flex items-center"
                         >
                           {choice.choice_table_data ? (

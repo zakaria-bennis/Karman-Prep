@@ -45,7 +45,7 @@ import {
   url,
 } from "./transfer-helpers";
 
-test("TR-4 controls render only where useCalculator() returns a v2 bridge: v2 Math questions, never Reading and Writing", async ({
+test("TR-4 controls render only where useCalculator() returns a bridge: Math questions, never Reading and Writing", async ({
   page,
 }) => {
   await page.goto(url());
@@ -68,40 +68,6 @@ test("TR-4 controls render only where useCalculator() returns a v2 bridge: v2 Ma
   await press(page, "Skip this question");
   await expect(page.getByText("is quoted", { exact: false })).toBeVisible();
   await expect(allControls(page)).toHaveCount(0);
-});
-
-test("TR-76 with calculatorV2 off every call site renders Export to Karman unchanged; with it on only Transfer controls render", async ({
-  page,
-}) => {
-  await page.goto("/?flow=practice");
-  await expect(
-    page.getByRole("button", { name: "Paste \\sin(30) into calculator", exact: true })
-  ).toBeVisible();
-  await expect(
-    page.getByRole("button", { name: "Paste table into calculator as x₁, y₁", exact: true })
-  ).toBeVisible();
-  await expect(
-    page.getByRole("button", { name: /^Paste choice [ABCD] into calculator$/ })
-  ).toHaveCount(4);
-  await expect(allControls(page)).toHaveCount(0);
-  await page.goto("/?flow=practice&calc=v2");
-  await expect(page.getByText(/^Question 1:/).first()).toBeVisible();
-  await expect(page.getByText(/Export to Karman|Copy for Desmos/)).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "Export options" })).toHaveCount(0);
-  await expect(anchors(page, "\\sin(30)")).toHaveCount(1);
-  await expect(anchors(page, "(1,2)")).toHaveCount(1); // pairs transfer from 07 Task 17 (TR-15)
-  await expect(anchor(page, "\\sin(30)")).toBeAttached();
-  await expect(
-    page.getByRole("button", { name: /^Transfer to Calculator: choice [ABCD]$/ })
-  ).toHaveCount(4);
-  for (const flow of ["diagnostic", "catalog", "daily"]) {
-    await page.goto(`/?flow=${flow}&questions=transfer`);
-    await expect(page.getByText("Export to Karman").first()).toBeVisible();
-    await expect(allControls(page)).toHaveCount(0);
-    await page.goto(url(flow));
-    await expect(allControls(page).first()).toBeAttached();
-    await expect(page.getByText(/Export to Karman|Copy for Desmos/)).toHaveCount(0);
-  }
 });
 
 const OFF = { x: 5, y: 790 }; // a page point clear of every item and control at 1280×800
@@ -203,7 +169,7 @@ test("TR-47 hover shows the control at once along the path to it, keeps it with 
   await page.getByRole("button", { name: "Cross out choice A", exact: true }).click();
   await blurActive(page); // the click focused the cross-out button inside the cluster
   await page.mouse.move(OFF.x, OFF.y);
-  expect(await opacity(page.locator('[data-calculator="v2"]').first())).toBe("1");
+  expect(await opacity(page.locator("[data-calculator-cluster]").first())).toBe("1");
   expect(await opacity(choiceAnchor(page, "A"))).toBe("0");
   await choiceContainer(page, "A").hover();
   expect(await opacity(choiceAnchor(page, "A"))).toBe("1");
@@ -344,7 +310,7 @@ test("TR-52, AN-12 the control, tooltip, selected outline and choice clusters ap
   if (touch) {
     await page.goto(url());
     await settled(page);
-    for (const c of await page.locator('[data-calculator="v2"]').all()) await clusterStill(c);
+    for (const c of await page.locator("[data-calculator-cluster]").all()) await clusterStill(c);
     await tapItem(page, "y>2x+1");
     for (const l of [anchor(page, "y>2x+1"), item(page, "y>2x+1")])
       expect(await still(l)).toEqual([0, "0s"]);
@@ -370,7 +336,7 @@ test("TR-52, AN-12 the control, tooltip, selected outline and choice clusters ap
     ])
       expect(await still(l)).toEqual([0, "0s"]);
   }
-  for (const c of await page.locator('[data-calculator="v2"]').all()) {
+  for (const c of await page.locator("[data-calculator-cluster]").all()) {
     await c.hover();
     await clusterStill(c);
   }

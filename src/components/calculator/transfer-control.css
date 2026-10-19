@@ -21,7 +21,7 @@
 }
 [data-transfer-control][data-placement="cluster"]:focus-within,
 [data-transfer-control][data-placement="cluster"][data-hover="true"]:not([data-escaped="true"]),
-[data-calculator="v2"]:focus-within > [data-transfer-control][data-placement="cluster"] {
+[data-calculator-cluster]:focus-within > [data-transfer-control][data-placement="cluster"] {
   opacity: 1;
 }
 [data-transfer-control] > button {
@@ -132,15 +132,16 @@
   transition: none;
   animation: none;
 }
-/* TR-52, AN-12: v2 answer-choice tool clusters appear and disappear with no transition (the
-   diagnostic's cluster has a Tailwind opacity transition). */
-[data-calculator="v2"][data-calculator] {
+/* TR-52, AN-12: answer-choice tool clusters appear and disappear with no transition (the
+   diagnostic's cluster has a Tailwind opacity transition). The attribute is repeated to keep the
+   specificity above a single Tailwind utility class. */
+[data-calculator-cluster][data-calculator-cluster] {
   transition: none;
 }
-/* TR-42, AR-11: on any coarse pointer the v2 cluster itself is always visible too, with no hover
+/* TR-42, AR-11: on any coarse pointer the cluster itself is always visible too, with no hover
    or pointer condition, so it applies whatever hover reports (OI-36). */
 @media (any-pointer: coarse) {
-  [data-calculator="v2"][data-calculator] {
+  [data-calculator-cluster][data-calculator-cluster] {
     opacity: 1;
   }
 }
