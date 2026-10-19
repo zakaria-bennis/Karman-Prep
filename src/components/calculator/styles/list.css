@@ -72,7 +72,7 @@
   flex: none;
   align-items: center;
   height: var(--kc-toolbar-h);
-  padding: 5px;
+  padding: 6px 5px 5px;
   border-bottom: 1px solid var(--kc-rule);
   background: linear-gradient(var(--kc-toolbar-top), var(--kc-toolbar-bottom));
   transition: box-shadow var(--kc-dur-200) var(--kc-ease);
@@ -396,7 +396,7 @@
   right: 0;
   width: 45.4px;
   height: 46.4px;
-  padding: 8px 8.3px 20px 18.7px;
+  padding: 8px 6.3px 20px 20.7px;
   border: none;
   background: transparent;
   color: var(--kc-text);

@@ -25,7 +25,7 @@ function Glyph(props: { size: number; className?: string; children: ReactNode })
 export function AddGlyph(props: { size?: number }): JSX.Element {
   return (
     <Glyph size={props.size ?? 17.6}>
-      <path d="M9.35 0h5.3v9.35H24v5.3h-9.35V24h-5.3v-9.35H0v-5.3h9.35z" fill="currentColor" />
+      <path d="M9.6 0h4.8v9.6H24v4.8h-9.6V24H9.6v-9.6H0V9.6h9.6z" fill="currentColor" />
     </Glyph>
   );
 }
@@ -38,7 +38,7 @@ export function UndoGlyph(props: { size?: number; redo?: boolean }): JSX.Element
   return (
     <Glyph size={props.size ?? 21.12}>
       <path
-        d="M0 6.3V17.2H11.4L7.75 13.7C12 10.3 18 9.4 23.4 10.9L24 9.3C21.5 5.6 17 3.8 12.5 4C9.2 4.2 6.3 6.2 4.1 10.2Z"
+        d="M0 7.1V18H11.4L7.75 14.5C12 11.1 18 10.2 23.4 11.7L24 10.1C21.5 6.4 17 4.6 12.5 4.8C9.2 5 6.3 7 4.1 11Z"
         fill="currentColor"
         transform={props.redo === true ? "matrix(-1 0 0 1 24 0)" : undefined}
       />
@@ -89,7 +89,7 @@ export function DoubleChevronGlyph(props: {
   return (
     <Glyph size={props.size ?? 17.6}>
       <path
-        d="M12.6 0.8L2.4 12L12.6 23.2M22 0.8L11.8 12L22 23.2"
+        d="M13.2 0.8L3 12L13.2 23.2M22.6 0.8L12.4 12L22.6 23.2"
         fill="none"
         stroke="currentColor"
         strokeWidth={3.2}
@@ -104,7 +104,7 @@ export function RemoveGlyph(props: { size?: number }): JSX.Element {
   return (
     <Glyph size={props.size ?? 18.4}>
       <path
-        d="M2.6 2.6L21.4 21.4M21.4 2.6L2.6 21.4"
+        d="M1.6 1.6L22.4 22.4M22.4 1.6L1.6 22.4"
         fill="none"
         stroke="currentColor"
         strokeWidth={4.6}
