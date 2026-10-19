@@ -145,14 +145,16 @@
   overflow: hidden;
 }
 
+/* GP-37: a white box with a faint 1 px border, 5 px radius and a soft shadow; the coordinates in
+   the 20.24 px math serif in near-black, padded 7/4/5 px, 42.27 px tall in all. */
 .kc-poi-label {
   position: absolute;
-  padding: 2px 4px;
-  border: 1px solid var(--kc-boundary);
-  border-radius: 4px;
+  padding: 7px 4px 5px;
+  border: 1px solid color-mix(in srgb, var(--kc-text) 11%, var(--kc-paper));
+  border-radius: 5px;
   background: var(--kc-paper);
-  color: var(--kc-text);
-  box-shadow: 0 1px 3px color-mix(in srgb, var(--kc-text) 25%, transparent);
-  font: 13px/16px var(--kc-font-math);
+  color: color-mix(in srgb, var(--kc-text) 87%, var(--kc-paper));
+  box-shadow: 0 0 5px color-mix(in srgb, var(--kc-text) 20%, transparent);
+  font: 20.24px/28.27px var(--kc-font-math);
   white-space: nowrap;
 }
