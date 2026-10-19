@@ -460,34 +460,23 @@ test("G-17 overlap of two regions has higher contrast than either and the curve 
   }
 });
 
-test("F-A1 combined canvas shading is the uncapped stack of 40% fills in all 12 skins", async ({
+test("F-A1 canvas shading is the uncapped stack of 40% fills in all 12 skins", async ({
   page,
   isMobile,
 }) => {
   test.setTimeout(180_000);
   for (const skin of SKIN_IDS) {
     const rows = ["y>0", "x>0", "y>x", "y>-x"];
-    await openGraph(page, isMobile, { rows, skin, plots: 4 });
+    const { w, h } = await openGraph(page, isMobile, { rows, skin, plots: 4 });
     const paper = SKIN_COLORS[skin].normal.roles.paper;
     // The colours the rows actually take: F-A1's new-row cycle, whose third step is #388c46.
     const fills = [0, 1, 2, 3].map((index) => {
       const { hex, fillAlpha } = resolveRowColor(nextSlot(index), skin);
       return { color: hex, alpha: fillAlpha };
     });
-    const allowed = new Set<string>();
-    for (let mask = 1; mask < 16; mask++) {
-      allowed.add(
-        compositeShading(
-          paper,
-          fills.filter((_, i) => (mask >> i) & 1)
-        )
-      );
-    }
-    const { opaque, partial } = await layerColors(page, "shading");
-    expect(partial, skin).toBe(0);
-    for (const colour of opaque) {
-      expect(allowed.has(colour), `${skin} ${colour}`).toBe(true);
-    }
-    expect(opaque, skin).toContain(compositeShading(paper, fills));
+    // GP-4: each row's translucent shading lies over the grid, so read the composite between
+    // gridlines where all four regions overlap.
+    const all = await pixel(page, "composite", ...px(1.25, 5.25, w, h));
+    expect(rgbDistance(all, compositeShading(paper, fills)), skin).toBeLessThanOrEqual(4);
   }
 });

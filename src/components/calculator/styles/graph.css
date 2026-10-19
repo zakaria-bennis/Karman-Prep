@@ -21,20 +21,17 @@
   pointer-events: none;
 }
 
-/* The graph's one tab stop. The 4 px inset keeps the focus outline inside the clipped panel. */
+/* The graph's one tab stop. The 4 px inset keeps the focus outline inside the clipped panel.
+   GP-50: the paper keeps the default cursor, also while dragging. */
 .kc-graph-surface {
   position: absolute;
   inset: 4px;
-  cursor: grab;
+  cursor: auto;
 }
 
 .kc-graph-surface:focus-visible {
   outline: 2px solid var(--kc-focus-ring);
   outline-offset: 2px;
-}
-
-.kc-graph-surface[data-dragging] {
-  cursor: grabbing;
 }
 
 /* G-5, GP-40 to GP-44: Graph settings, the Zoom group and Home as grey pills 5 px from the top and
@@ -69,6 +66,16 @@
 
 .kc-graph-controls button > svg {
   opacity: var(--kc-icon-rest);
+}
+
+/* GP-40, GP-41: the reference's glyphs sit off the box centre: the wrench 2.5 px left and up,
+   the plus and minus half a px left and down. */
+.kc-graph-controls > button:first-child > svg {
+  translate: -2.5px -2.5px;
+}
+
+.kc-zoom-group > button > svg {
+  translate: -0.5px 0.5px;
 }
 
 .kc-graph-controls button:hover > svg {

@@ -1,43 +1,39 @@
-// The layered HiDPI canvas renderer of the graph (G-5). Four
-// stacked canvases, bottom to top shading, grid, curves and points, each with a device-px backing
-// store; the paper is the panel's CSS background, so unshaded pixels stay transparent.
+// The layered HiDPI canvas renderer of the graph (G-5). Three stacked canvases, bottom to top grid,
+// rows and points, each with a device-px backing store; the paper is the panel's CSS background, so
+// unshaded pixels stay transparent. GP-4: the rows layer paints each row's 40% shading and then its
+// strokes, row by row, over the grid.
 
 import { CURVE_VARS, FILL_ALPHA_VARS, ROLE_VARS } from "../theme/roles";
 import { CURVE_SLOTS, type CurveSlot } from "../theme/skins";
-import { AXIS_FONT } from "./constants";
 import { drawPoiDots, drawTraceDot } from "./draw-poi";
-import { drawCurveLayer, drawPointLayer, drawShadingLayer } from "./draw-geometry";
-import { drawGridLayer } from "./draw-grid";
+import { drawCurveLayer, drawPointLayer } from "./draw-geometry";
+import { drawGridLayer, labelFont } from "./draw-grid";
 import { planGrid } from "./grid-plan";
 import { buildShadingRects, type ShadingRect, type ShadingRegion } from "./shading";
 import type { RenderFrame, RenderTheme } from "./types";
 
 /** Bottom to top; one canvas each. */
-export const LAYER_ORDER = ["shading", "grid", "curves", "points"] as const;
+export const LAYER_ORDER = ["grid", "curves", "points"] as const;
 
 type Ctx = CanvasRenderingContext2D;
 const PAPER_HEX = /^#[0-9a-f]{6}$/i;
 
-/** The last shading rectangles and what they were built from. */
+/** One region row's shading rectangles and what they were built from. */
 type ShadingMemo = {
-  regions: ShadingRegion[];
-  paper: string;
+  region: ShadingRegion;
   width: number;
   height: number;
   dpr: number;
   rects: ShadingRect[];
 };
 
-const sameRegions = (p: readonly ShadingRegion[], q: readonly ShadingRegion[]) =>
-  p.length === q.length &&
-  p.every(
-    (r, i) => r.spans === q[i].spans && r.color === q[i].color && r.fillAlpha === q[i].fillAlpha
-  );
+const sameRegion = (p: ShadingRegion, q: ShadingRegion) =>
+  p.spans === q.spans && p.color === q.color && p.fillAlpha === q.fillAlpha;
 
 export class GraphRenderer {
   private readonly canvases: HTMLCanvasElement[];
   private readonly contexts: (Ctx | null)[];
-  private shading: ShadingMemo | null = null;
+  private shading = new Map<string, ShadingMemo>();
   private destroyed = false;
 
   /** Appends one hidden canvas per LAYER_ORDER entry to `container` (the DOM contract). */
@@ -71,23 +67,24 @@ export class GraphRenderer {
     }
     const contexts = this.layerContexts();
     if (contexts === null) return;
-    const [shading, grid, curves, points] = contexts;
-    drawShadingLayer(shading, this.shadingRects(frame));
-    grid.font = AXIS_FONT;
-    const plan = planGrid(view, frame.grid, (text) => grid.measureText(text).width);
+    const [grid, curves, points] = contexts;
+    const plan = planGrid(view, frame.grid, (text, font) => {
+      grid.font = labelFont(font);
+      return grid.measureText(text).width;
+    });
     drawGridLayer(grid, plan, theme, view);
-    drawCurveLayer(curves, view, frame.rows);
-    drawPointLayer(points, view, frame.rows);
+    drawCurveLayer(curves, view, frame.rows, this.shadingRects(frame));
+    drawPointLayer(points, view, frame.rows, theme.paper);
     if (frame.poi !== undefined && frame.poi.length > 0)
       drawPoiDots(points, view, theme, frame.poi);
-    if (frame.trace) drawTraceDot(points, view, theme, frame.trace);
+    if (frame.trace) drawTraceDot(points, view, frame.trace);
   }
 
   /** Empties and removes every canvas (iOS Safari frees canvas memory only at 0×0); idempotent. */
   destroy(): void {
     if (this.destroyed) return;
     this.destroyed = true;
-    this.shading = null;
+    this.shading.clear();
     for (const canvas of this.canvases) {
       canvas.width = 0;
       canvas.height = 0;
@@ -105,36 +102,36 @@ export class GraphRenderer {
   }
 
   /**
-   * The region rows' shading rectangles on the theme's paper, rebuilt only when a region's spans,
-   * colour or fill, the paper, the size or the dpr changed (point- and curve-only redraws reuse it).
+   * Each region row's shading rectangles by row id, rebuilt only when its spans, colour or fill,
+   * the size or the dpr changed (point- and curve-only redraws reuse them).
    */
-  private shadingRects({ view, theme, rows }: RenderFrame): ShadingRect[] {
-    const regions: ShadingRegion[] = [];
-    for (const { geometry: g, color, fillAlpha } of rows) {
-      if (g.kind === "region") regions.push({ spans: g.spans, color, fillAlpha });
-    }
+  private shadingRects({ view, rows }: RenderFrame): Map<string, ShadingRect[]> {
     const { size, dpr } = view;
-    const memo = this.shading;
-    if (
-      memo !== null &&
-      memo.paper === theme.paper &&
-      memo.width === size.width &&
-      memo.height === size.height &&
-      memo.dpr === dpr &&
-      sameRegions(memo.regions, regions)
-    ) {
-      return memo.rects;
+    const next = new Map<string, ShadingMemo>();
+    const out = new Map<string, ShadingRect[]>();
+    for (const { rowId, geometry: g, color, fillAlpha } of rows) {
+      if (g.kind !== "region") continue;
+      const region: ShadingRegion = { spans: g.spans, color, fillAlpha };
+      const memo = this.shading.get(rowId);
+      const fresh =
+        memo !== undefined &&
+        memo.width === size.width &&
+        memo.height === size.height &&
+        memo.dpr === dpr &&
+        sameRegion(memo.region, region)
+          ? memo
+          : {
+              region,
+              width: size.width,
+              height: size.height,
+              dpr,
+              rects: buildShadingRects([region], size, dpr),
+            };
+      next.set(rowId, fresh);
+      out.set(rowId, fresh.rects);
     }
-    const rects = buildShadingRects(regions, theme.paper, size, dpr);
-    this.shading = {
-      regions,
-      paper: theme.paper,
-      width: size.width,
-      height: size.height,
-      dpr,
-      rects,
-    };
-    return rects;
+    this.shading = next;
+    return out;
   }
 }
 

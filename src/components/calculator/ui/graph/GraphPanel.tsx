@@ -29,12 +29,12 @@ import { NAME_DEBOUNCE_MS, NAME_MAX_WAIT_MS } from "@/lib/calculator/render/cons
 import { pickGrid } from "@/lib/calculator/render/grid-plan";
 import { GraphRenderer, readRenderTheme } from "@/lib/calculator/render/renderer";
 import type { SkinId } from "@/lib/calculator/theme/skins";
-import { WrenchGlyph, ZoomGlyph } from "../../icons/list";
 import { useSkin } from "../hooks/skin";
 import { useEngine, useEngineSnapshot } from "../hooks/use-engine";
 import { countPlots, graphAccessibleName } from "./accessible-name";
 import { homeFadeMs, useHomePresence, type HomePhase } from "./home-presence";
 import { KeyboardTraceContext, type KeyboardTrace } from "./keyboard-trace";
+import { GraphWrenchGlyph, GraphZoomGlyph } from "./graph-glyphs";
 import { GRAPH_CONTROL_LABELS } from "./labels";
 import { PoiOverlay } from "./PoiOverlay";
 import type { LabelState } from "./poi-labels";
@@ -340,7 +340,7 @@ export function GraphPanel(props: GraphPanelProps): JSX.Element {
           aria-expanded={settingsOpen}
           onClick={(e) => onOpenSettings(e.currentTarget)}
         >
-          <WrenchGlyph />
+          <GraphWrenchGlyph />
         </button>
         {/* GP-41: one pill holding Zoom in and Zoom out, split by a 1 px rule. */}
         <div className="kc-zoom-group" role="group" aria-label="Zoom">
@@ -350,7 +350,7 @@ export function GraphPanel(props: GraphPanelProps): JSX.Element {
             title={GRAPH_CONTROL_LABELS.zoomIn}
             onClick={() => zoom(ZOOM_BUTTON_FACTOR)}
           >
-            <ZoomGlyph />
+            <GraphZoomGlyph />
           </button>
           <button
             type="button"
@@ -358,7 +358,7 @@ export function GraphPanel(props: GraphPanelProps): JSX.Element {
             title={GRAPH_CONTROL_LABELS.zoomOut}
             onClick={() => zoom(1 / ZOOM_BUTTON_FACTOR)}
           >
-            <ZoomGlyph out />
+            <GraphZoomGlyph out />
           </button>
         </div>
         {phase !== "absent" && (
