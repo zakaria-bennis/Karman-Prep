@@ -1,4 +1,4 @@
-// Pure helpers for one expression row (01-interfaces-integration.md section 11; 09 Task 2): which
+// Pure helpers for one expression row: which
 // gutter tab a row shows, the ids of the row parts its textbox names and describes (A11Y-3, A11Y-4,
 // A11Y-7: every id stays inside the calculator's own tree), and the textbox inside a MathField.
 // Type-only imports, so node tests that load this module never load the engine or MathQuill.
@@ -20,7 +20,7 @@ const LINE_KINDS: ReadonlySet<RowView["kind"]> = new Set<RowView["kind"]>([
 ]);
 
 /**
- * R-1, A11Y-3 (09 Decisions, "Gutter tab only on rows with something to hide"): a point row shows
+ * R-1, A11Y-3 (a gutter tab only on rows with something to hide): a point row shows
  * the point tab and a graphing row the line tab. An error row does not plot, so it offers no tab
  * (R-2: its warning marker takes the tab's place; a row hidden before it broke gets its tab back
  * once the error is fixed). Every other row has no graph to hide and no tab.

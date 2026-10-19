@@ -1,7 +1,7 @@
-// The graph panel (G-5, A11Y-1; 01-interfaces-runtime.md section 10 and 08's DOM contract): the
+// The graph panel (G-5, A11Y-1; 's DOM contract): the
 // layered canvases, drawn at most once per animation frame at the size useGraphSize reports, and
 // the graph's one role img surface, named from the view and the plotted rows. The engine holds the
-// viewport (08 Decision "The engine holds the viewport"). The controls (G-5, L-1) zoom by 2 about
+// viewport. The controls (G-5, L-1) zoom by 2 about
 // the centre; Home shows only off the default view and fades (AN-8); the surface takes the graph
 // keys (KB-8) and the panel drag, pinch and wheel (useGraphInput).
 

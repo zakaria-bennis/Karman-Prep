@@ -1,4 +1,4 @@
-// AR-43, AR-49 and AR-50 on the worker harness page (/harness/worker.html, 07 Task 14). Each test
+// AR-43, AR-49 and AR-50 on the worker harness page (/harness/worker.html). Each test
 // starts one scenario through window.__workerHarness, reads the engine through
 // globalThis.__calculatorHarness and the live-worker count through
 // globalThis.__karmanCalculatorCounters.

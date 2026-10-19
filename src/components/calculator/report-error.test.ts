@@ -1,4 +1,4 @@
-// AR-57 (03's contribution; owner 10): the quiz host's onError hook sends calculator exceptions to
+// AR-57 : the quiz host's onError hook sends calculator exceptions to
 // Sentry as a new Error that carries only a safe name, a known code, stack frame lines and the
 // calculator tags, never LaTeX, row content, question text or answers.
 import { beforeEach, expect, it, vi } from "vitest";

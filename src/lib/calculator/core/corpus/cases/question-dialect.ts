@@ -1,6 +1,6 @@
 // Question-dialect cases (TR-7, PR-1, PR-5, PR-6, PR-44): question math as a question shows it,
 // compared on its TR-7 output by src/lib/calculator-transfer/question-dialect.corpus.test.ts;
-// t() cases are typed twins routed to 02's and 04's runners. Relative imports only.
+// t cases are typed twins routed to the and the runners. Relative imports only.
 
 import type { CorpusCase } from "../types";
 

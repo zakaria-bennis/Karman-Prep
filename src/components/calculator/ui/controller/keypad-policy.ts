@@ -1,6 +1,6 @@
 // K-2 keypad visibility policy. On a coarse pointer, a row focused by touch opens the keypad unless
 // the student closed it; a student close (Hide keypad, the L-2 toggle, Ctrl or Alt/Option+K, or
-// Escape: 10 Decision 3) disarms touch opening until a student open re-arms it. A system change
+// Escape) disarms touch opening until a student open re-arms it. A system change
 // (the per-question defaults) keeps the student's choice.
 
 export interface KeypadPolicyState {

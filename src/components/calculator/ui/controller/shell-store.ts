@@ -1,4 +1,4 @@
-// The shell store (01-interfaces-integration.md section 12): the browser-fed state the facade
+// The shell store: the browser-fed state the facade
 // shares with React (size and layout, AR-29; skin and theme revision, TH-15; reduced-motion media,
 // AR-38; pointer, K-2). `set` compares each patched key with the current value (`size` by width
 // and height) and notifies subscribers only when one differs, so an unchanged patch keeps the same

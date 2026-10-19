@@ -1,4 +1,4 @@
-// Helper expressions (API-10; 07 Decisions 3 and 8): expressions that add no row and that the
+// Helper expressions (API-10): expressions that add no row and that the
 // worker evaluates with the rows' definitions. Each live helper has one current job. The engine
 // re-issues every live helper after each `state` send, setBlank included, so values for an older
 // job are ignored (API-6, AR-46). The HelperExpression type is public; HelperRegistry is

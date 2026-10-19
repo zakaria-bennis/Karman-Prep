@@ -1,4 +1,4 @@
-// The expression list panel (01-interfaces-integration.md section 11 and 09's Row DOM): a region
+// The expression list panel: a region
 // named "Expression list" whose list body holds the "List tools" toolbar (L-1, L-2: Add item, the
 // stacked Keypad toggle, Undo, Redo, Edit list, Collapse list), the Edit list bar (KB-5: Clear all
 // expressions, Done) and the "Expressions" list, one numbered row per engine row. Undo and Redo
@@ -6,7 +6,7 @@
 // announces row values and errors through createRowAnnouncements (A11Y-2). Rows enter and exit
 // through useRowPresence and only rows that are not exiting are numbered (AN-5). Collapse list and
 // Expand list run AN-3's lifecycle in data-list-state and flip settings.expressionsCollapsed only
-// when the transition ends, so the layout resizes the graph once (09 consumer note 4).
+// when the transition ends, so the layout resizes the graph once.
 
 import {
   ChevronsLeft,

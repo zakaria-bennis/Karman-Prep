@@ -1,6 +1,6 @@
 // The calculator's one polite status region and the announcer that writes
-// into it (01 section 9). A11Y-2, AN-13 and AN-14 are verified by 09 and 10
-// against the rendered calculator; this module only pins the timing contract.
+// into it. A11Y-2, AN-13 and AN-14 are verified by the editor and shell
+// tests against the rendered calculator; this module only pins the timing contract.
 //
 // Timing: announce(text, { delayMs, key }) schedules two timers, a clear at
 // max(0, delayMs - CLEAR_MS) and a write at max(delayMs, CLEAR_MS). The text

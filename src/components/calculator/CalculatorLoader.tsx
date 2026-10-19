@@ -46,7 +46,7 @@ export function resetCalculatorModuleForTests(): void {
 type AnyFunction = (...args: unknown[]) => unknown;
 
 /**
- * AR-53: wraps every function member of `handle` present now (12's applyTransfer included) and,
+ * AR-53: wraps every function member of `handle` present now (the applyTransfer included) and,
  * through a Proxy, every function member of `handle.calculator`. A throw calls `onThrow(error)`
  * and the call returns undefined, so no calculator error reaches React.
  */

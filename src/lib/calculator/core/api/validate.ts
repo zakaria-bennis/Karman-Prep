@@ -1,4 +1,4 @@
-// Hand-written validation of public API input (API-1, API-7, API-13; 07 Decision 11). No Zod in
+// Hand-written validation of public API input (API-1, API-7, API-13). No Zod in
 // core/api, so AR-44's guard sees no code-generation probe. Objects are strict: an unknown key
 // throws invalid-argument. A key whose value is undefined counts as omitted. Every message names
 // the method and the field, for example "setExpression: latex is longer than 2048 characters".

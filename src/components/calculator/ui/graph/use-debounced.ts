@@ -1,4 +1,4 @@
-// A debounced value for the graph's accessible name (A11Y-1; 08 Decision "The accessible name"):
+// A debounced value for the graph's accessible name (A11Y-1):
 // the name follows the view once it has held still, and a continuous drag or wheel still renames
 // the graph within maxWaitMs. Every timer takes a function argument (AR-44).
 

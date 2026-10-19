@@ -1,10 +1,10 @@
-// Shell harness page (10 Task 6), /harness/calculator.html?skin=&w=&h=&rows=&reducedMotion=1&announceReset=1:
+// Shell harness page, /harness/calculator.html?skin=&w=&h=&rows=&reducedMotion=1&announceReset=1:
 // mounts the assembled calculator through the quiz host's mountQuizCalculator in #calc, inside a
-// fixed #frame that stands in for 11's CalculatorWindow. The frame is w×h px (default the whole
-// viewport), clamped to the viewport so phones hold a phone-sized calculator (10 R5). skin sets
+// fixed #frame that stands in for the CalculatorWindow. The frame is w×h px (default the whole
+// viewport), clamped to the viewport so phones hold a phone-sized calculator. skin sets
 // html[data-theme] (default ivory); rows (URL-encoded JSON string[]) become rows "1"…"n" at every
 // mount. The shell specs drive it through globalThis.__shell; the engine is on
-// globalThis.__calculatorHarness (07).
+// globalThis.__calculatorHarness.
 
 import {
   mountQuizCalculator,
@@ -42,7 +42,7 @@ const frame = document.getElementById("frame")!;
 const slot = document.getElementById("slot")!;
 const calc = document.getElementById("calc")!;
 
-/** Sizes the frame to width×height px, clamped to the viewport (10 R5). */
+/** Sizes the frame to width×height px, clamped to the viewport. */
 function resizeFrame(w: number | null, h: number | null): void {
   frame.style.width = w === null ? "100vw" : `min(${w}px, 100vw)`;
   frame.style.height = h === null ? "100dvh" : `min(${h}px, 100dvh)`;
@@ -51,7 +51,7 @@ resizeFrame(width === null ? null : Number(width), height === null ? null : Numb
 
 const log: ShellLog = { mountedAt: 0, escapes: [], announcements: [] };
 
-// Stands in for 11's frame: the shell never stops an Escape (10 Decision 4), so every one bubbles
+// Stands in for the frame: the shell never stops an Escape, so every one bubbles
 // here, and the frame closes only when no calculator layer took it.
 frame.addEventListener("keydown", (event) => {
   if (event.key !== "Escape") return;

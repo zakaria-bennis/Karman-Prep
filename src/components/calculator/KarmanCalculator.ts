@@ -1,4 +1,4 @@
-// The calculator facade (01-interfaces-integration.md section 12). It validates the options by
+// The calculator facade. It validates the options by
 // creating the engine first (API-1), then owns an open shadow root on `element` that holds the one
 // generated stylesheet, the React UI and a polite status region, so nothing lands in the light DOM
 // (AR-35). It forwards every public CalculatorEngine member and none of the internal UI surface,
@@ -40,7 +40,7 @@ export const KARMAN_CALCULATOR_SENTINEL = "karman-calculator:lazy-chunk";
 export const RESET_ANNOUNCEMENT = "Calculator cleared for this question.";
 
 export interface HostHooks {
-  chromeSlot?: HTMLElement; // light-DOM title-bar slot (L-12); filled by 13-paste-standalone
+  chromeSlot?: HTMLElement; // light-DOM title-bar slot (L-12);
   announceResetOnMount?: boolean; // OI-3
 }
 
@@ -58,7 +58,7 @@ interface Internals {
   focus: FocusController;
 }
 
-/** 10 Decision 6: the quiz host's channel to the KB-4 reopen row, kept off the public surface. */
+/** The quiz host's channel to the KB-4 reopen row, kept off the public surface. */
 const internals = new WeakMap<KarmanCalculator, Internals>();
 let hostCount = 0;
 

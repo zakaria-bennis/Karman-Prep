@@ -1,4 +1,4 @@
-// Letter runs (PR-13; grammar contract G7 of the 02-parser plan). Typed letters arrive one token
+// Letter runs (PR-13; parser grammar G7). Typed letters arrive one token
 // each; a run of adjacent letters is split left to right into allowlisted names and single letters,
 // the rule MathQuill applies while typing (T-3). parseLatex runs this between tokenize and parsing.
 

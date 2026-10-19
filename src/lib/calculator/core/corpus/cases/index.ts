@@ -1,4 +1,4 @@
-// Static registry of the golden corpus case files (PR-39; 01-interfaces.md section 2.1 order).
+// Static registry of the golden corpus case files (PR-39; order).
 // Plain static imports only, so Vitest, tsx scripts and Playwright specs all load it alike.
 
 import type { CorpusCase } from "../types";

@@ -135,7 +135,7 @@ function rewriteRepeatingDecimals(s: string): string {
 const BAR_OPENER_CONTEXT = /(?:[+\-*/^=<>([{,]|\\cdot|\\div|\\le|\\ge|\\left\|)$/;
 
 /**
- * Pass 6 (PR-21, 02's G11): raw `|` bars pair left to right. A bar closes the innermost open bar
+ * Pass 6 (PR-21, the G11): raw `|` bars pair left to right. A bar closes the innermost open bar
  * unless it follows an operator, relation, opening bracket, comma or opening bar; otherwise it
  * opens. Paired bars become `\left|` and `\right|`; an unpaired input keeps all its raw bars.
  */

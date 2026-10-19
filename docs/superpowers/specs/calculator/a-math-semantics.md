@@ -1,6 +1,6 @@
-# Calculator v2: math semantics
+# Calculator: math semantics
 
-Date: 2026-10-16 · Part of the [Karman calculator v2 design](../2026-10-16-karman-calculator-v2-design.md) · Owner: Zakaria Bennis
+Date: 2026-10-16 · Part of the [Karman calculator design](../2026-10-16-calculator-design.md) · Owner: Zakaria Bennis
 
 This file defines what every row means mathematically. It covers how LaTeX from typing, the API, paste and Transfer to Calculator becomes a syntax tree; how a row is classified; how numbers, lists, angles and complex values evaluate and display; what counts as a correct graph; and how points of interest are found. Every rule is a checklist ID with an automated test, and a golden corpus shared with the Transfer tests holds the expected results. Where test-day behaviour was not captured, a rule gives a concrete default and says when REA behaviour capture confirms it. A capture that disagrees with a default changes the rule, its corpus cases and its tests in one pull request.
 
@@ -18,19 +18,8 @@ IDs referenced from other files: T-1 to T-6, T-13, R-2, R-5 to R-7, S-1, S-9, SC
 
 - **Target.** Behaviour matches the SAT testing configuration (D2). The test-day calculator is a reference for observable behaviour only. Nothing here copies its code, assets or exact visual design.
 - **Scientific calculator.** The Scientific calculator (CB-3) uses these rules; SC-6 adds `ans`, SC-9 adds the ×10ⁿ key for scientific notation, and `e` is Euler's number in both calculators.
-- **Existing engines are non-normative.** Neither the deployed engine (`karman-calculator/lib/`) nor the legacy engine (`src/lib/calculator/`) is a reference. Their tests do not carry forward, except that their inputs feed the G-24 parity check. The table lists the conflicts this file settles.
-
-| Topic          | Deployed engine                                                    | Legacy engine                                   | v2 rule         |
-| -------------- | ------------------------------------------------------------------ | ----------------------------------------------- | --------------- |
-| Letter runs    | `[a-z]+` read as one lower-cased name (`lib/math.js:53`)           | 2–5 letters split into products (`math.ts:208`) | PR-13, RC-1     |
-| `1e3`          | 1000 (`lib/math.js:46`)                                            | not handled                                     | PR-10 (2·e·3)   |
-| (−8)^(1/3)     | NaN in real mode (`lib/complex.js:37-38`)                          | needs complex mode                              | NM-10           |
-| sin(180°)      | about 1.22e-16 (`lib/math.js:199-204`)                             | same conversion (`math.ts:77-78`)               | NM-26           |
-| Default angle  | degrees (`karman-calculator/README.md:42`)                         | degrees                                         | NM-24 (radians) |
-| Small values   | 10 significant digits (`lib/math.js:15`)                           | snaps values below 1e-14 to 0 (`math.ts:255`)   | NM-1 to NM-4    |
-| Roots          | none                                                               | absolute threshold 1e-7 (`numerics.ts:10`)      | POI-5           |
-| Curve sampling | at most 2,048 samples and a midpoint test (`lib/graph.js:159-180`) | 400–1,600 fixed samples (`plot.ts:27`)          | G-9 to G-15     |
-| Implicit grid  | at most 180×160 cells (`lib/implicit.js:13-14`)                    | 8 px cells (`plot.ts:183`)                      | G-16            |
+- **No earlier engine is a reference.** Only the rules in this file and the test-day calculator's
+  observable behaviour are.
 
 **Conventions.**
 
@@ -59,7 +48,7 @@ There are three input paths. Typed input comes from the MathField. API and paste
 
 - **PR-10** A number literal is digits with at most one decimal point (`12`, `0.5`, `.5`, `5.`). A sign is never part of a literal. Spaces between digits are ignored as in LaTeX, so `2 3` is 23. Neither calculator has E-notation, so `2e3` is 2·e·3; scientific notation is entered as `\times10^{3}` with the ×10ⁿ key (SC-9). (Phase 1; verified by unit test)
 - **PR-11** An identifier is one Latin letter, case-sensitive, or one lowercase Greek letter command other than `\pi`, `\tau` and omicron. It may carry a subscript of letters and digits (`a_{1}`, `x_{12}`, `v_{max}`). Subscripts are compared as written, so `a_{1}` and `a_{01}` are different names. (Phase 1; verified by unit test)
-- **PR-12** One allowlist module, `src/lib/calculator-v2/core/latex/operator-names.ts`, lists every built-in operator name and auto-command. It generates the parser's names, MathQuill's `autoOperatorNames` and `autoCommands` (T-3) and the functions panel entries (K-4), and a test asserts that all three match. Member names (`null`, `p`, `pleft`, `pright`, `score`, `dof`, `stderr`, `conf`, `lower`, `upper`, `estimate`) are a separate list in the same module: they generate K-4 panel entries that insert `.name` at the caret, are recognised only directly after `.` (PR-45), and are never parser bare names, PR-13 split targets or MathQuill autoOperatorNames; the three-way match test compares the non-member names, and a corpus case asserts that `3p+4=19` offers a chip for p after category 7 ships. (Phase 1; verified by unit test)
+- **PR-12** One allowlist module, `src/lib/calculator/core/latex/operator-names.ts`, lists every built-in operator name and auto-command. It generates the parser's names, MathQuill's `autoOperatorNames` and `autoCommands` (T-3) and the functions panel entries (K-4), and a test asserts that all three match. Member names (`null`, `p`, `pleft`, `pright`, `score`, `dof`, `stderr`, `conf`, `lower`, `upper`, `estimate`) are a separate list in the same module: they generate K-4 panel entries that insert `.name` at the caret, are recognised only directly after `.` (PR-45), and are never parser bare names, PR-13 split targets or MathQuill autoOperatorNames; the three-way match test compares the non-member names, and a corpus case asserts that `3p+4=19` offers a chip for p after category 7 ships. (Phase 1; verified by unit test)
   - _Amended 2026-10-19 (appendix F decision 2, Desmos behaviour wins):_ the allowlist also holds `abs` (category 12) and `length` (category 4), which Desmos accepts as built-in names, so typing them now gives an operator name. Built-ins ship by name through the module's `SHIPPED` set, one task at a time; each entry's `phase` is informational only: no code reads it. The K-4 functions panel lists the names that are in `SHIPPED` and have an entry in `PANEL_PRESENTATIONS` (operator-names.ts), so shipping a name that has a panel entry adds it to the panel at once. Today only trig, inverse trig, exp, ln and log have panel entries.
 - **PR-13** A run of Latin letters outside a command is split left to right, taking at each position the longest allowlisted name or auto-command that starts there. This is the rule MathQuill applies while typing (T-3). Letters that start no name are single-letter identifiers multiplied implicitly: `mx` is m·x, `sinx` is sin x and `2pix` is 2πx. (Phase 1; verified by unit test)
 - **PR-14** A digit run directly after a single-letter identifier is that identifier's subscript: `x1` is `x_{1}` and `a12` is `a_{12}`. This matches automatic numeral subscripts while typing (T-4). (Phase 1; verified by unit test)
@@ -156,7 +145,7 @@ PR-39 to PR-44 define the golden corpus in section 7.
 | `x+y`, `e=2`, `a=a+1`               | error                                                         |
 | `y_{1}\sim mx_{1}+b`                | regression (D-2)                                              |
 
-- **RC-1** Names are case-sensitive, so `A` and `a` are different names. This fixes the deployed engine, which lower-cases every name (`karman-calculator/lib/math.js:53`, `lib/model.js:33-39`). (Phase 1; verified by unit test)
+- **RC-1** Names are case-sensitive, so `A` and `a` are different names. (Phase 1; verified by unit test)
 - **RC-2** A row takes the first rule that matches, in this order: empty; table (D-1); regression with `\sim` (D-2); function definition (RC-4); definition of a name (RC-6); relation (RC-11 to RC-14); point or parametric curve (RC-15, RC-16); bare expression (RC-17). Until RC-16 and RC-18 ship in Phase 2, a point whose parts depend on a `t` that no row defines, and any row other than an RC-6 definition that uses `r` or `\theta` (including the `r=…` and `\theta=…` rows of RC-19), give a row error with code `unsupported` (R-2); `A=\pi r^{2}` stays a dependent definition (RC-6). (Phase 1; verified by unit test)
 - **RC-3** The reserved names are `x` and `y` (coordinates), `r` and `\theta` (polar), `e`, `\pi`, `\tau`, `i` in complex mode, and every built-in name. `t` is the parametric parameter only inside a point whose `t` no row defines. (Phase 1; verified by unit test)
 - **RC-4** `f(p_1,…,p_n)=body` defines a function when f is a single non-reserved letter (optionally subscripted) and the parameters are 1 to 8 distinct single letters; x, y and t are allowed as parameters. Parameters are local and shadow other names. (Phase 1; verified by unit test)
@@ -227,11 +216,11 @@ PR-39 to PR-44 define the golden corpus in section 7.
 - **NM-30** Lists are indexed from 1. An index out of range or non-integer gives undefined, and a list of indices gives a list (`L[[1,3]]`) (confirm non-integer indices by REA behaviour capture in Phase 2). (Phase 2; verified by unit test)
 - **NM-31** `L[i...j]` slices inclusively, and `L[c]` keeps the elements for which condition c is true (`L[L>2]`). (Phase 2; verified by unit test)
 - **NM-32** Operators, one-argument built-ins and user functions apply element by element, and a scalar combines with every element. A user function receives a list argument whole, so its body broadcasts (`f(a)=a^{2}+1` gives `f([1,2,3])` = [2, 5, 10]). Functions that take a whole list, such as mean, total and sort, do not broadcast over that list; FN- marks each one. A list holds numbers or points (`[(1,2),(3,4)]`, and a point whose parts are lists, G-3); a list that mixes numbers and points is the error "A list can't mix numbers and points.". (Phase 2; verified by unit test)
-- **NM-33** Lists of different lengths are truncated to the shorter one, so `[1,2,3]+[10,20]` is `[11,22]` and `(L_{1},L_{2})` pairs only up to the shorter length. This replaces the legacy NaN-on-mismatch. (Phase 2; verified by unit test)
+- **NM-33** Lists of different lengths are truncated to the shorter one, so `[1,2,3]+[10,20]` is `[11,22]` and `(L_{1},L_{2})` pairs only up to the shorter length. (Phase 2; verified by unit test)
 - **NM-34** A nested list is an error with the message "Cannot store a list of numbers in a list." (the reference's text, R-2), so `[x_{1},x_{1}]\sim[y_{1},y_{1}]` with list columns x₁ and y₁ is that error. Analysis finds it from the rows (a list literal, range or list-valued name, call or expression inside list brackets or as a range bound); evaluation reports any it could not see, such as a function that returns a list. (Phase 2; verified by unit test)
 - **NM-35** A list, including a range or comprehension result, holds at most 10,000 elements; a longer one is the error "Lists may not have more than 10,000 elements." (Desmos's wording, adopted 2026-10-19 under appendix F decision 2). (Phase 2; verified by unit test)
 - **NM-36** `[a...b]` steps by 1, or by −1 when b < a. `[a,b,...,c]` steps by s = b − a, and s = 0 is the error "A range can't step by 0. Make its first two values different.". A bound that is not a real number makes the range undefined, and a list bound is NM-34's error. The element count is n = floor((c − a)/s + 10^-9) + 1, elements are a + k·s (never accumulated), and the last element is exactly c when |a + (n−1)s − c| ≤ 10^-9·|s|. A range whose step points away from c is empty. So `[0,0.1,...,1]` has 11 elements and ends exactly at 1, `[10...1]` has 10, `[1...10.5]` ends at 10, and `[1,3,...,10]` is `[1,3,5,7,9]` (confirm the empty case by REA behaviour capture in Phase 2). (Phase 2; verified by unit test)
-  - _Note 2026-10-19 (appendix F decision 2, not yet matched):_ Desmos rounds the element count, n = round((c − a)/s) + 1, so `[1...3.5]` is `[1, 2, 3, 4]`, `[0.5...3]` is `[0.5, 1.5, 2.5, 3.5]` and `[1,3,...,8]` is `[1, 3, 5, 7, 9]`. V2 still uses the floor rule above. The gap is tracked in `f-desmos-parity.md` ("Not yet matched") and as expected failures in `desmos.reference.test.ts`.
+  - _Note 2026-10-19 (appendix F decision 2, not yet matched):_ Desmos rounds the element count, n = round((c − a)/s) + 1, so `[1...3.5]` is `[1, 2, 3, 4]`, `[0.5...3]` is `[0.5, 1.5, 2.5, 3.5]` and `[1,3,...,8]` is `[1, 3, 5, 7, 9]`. The calculator still uses the floor rule above. The gap is tracked in `f-desmos-parity.md` ("Not yet matched") and as expected failures in `desmos.reference.test.ts`.
 - **NM-37** A comprehension over several names forms every combination, with the first listed name varying fastest (confirm by REA behaviour capture in Phase 2). (Phase 2; verified by unit test)
 - **NM-38** A list result shows its first 30 elements, then `…`. (Phase 2; verified by unit test)
 - **NM-39** A table column is a list. Trailing blank cells are trimmed, and an interior blank cell is an undefined element. (Phase 3; verified by unit test)
@@ -240,16 +229,16 @@ PR-39 to PR-44 define the golden corpus in section 7.
 
 ### 4.6 Limits and tolerances
 
-| Limit                                | Value                                       |
-| ------------------------------------ | ------------------------------------------- |
-| Rows                                 | 100 (the deployed engine has 32)            |
-| Characters per row                   | 2,048 (T-13; every input path, matching v1) |
-| Tree nodes per row                   | 2,000                                       |
-| Nesting depth                        | 64                                          |
-| Function parameters                  | 8 (RC-4)                                    |
-| List elements                        | 10,000 (NM-35)                              |
-| Curve evaluations per view           | G-15                                        |
-| Table rows and regression iterations | D-1 and D-2                                 |
+| Limit                                | Value                          |
+| ------------------------------------ | ------------------------------ |
+| Rows                                 | 100                            |
+| Characters per row                   | 2,048 (T-13; every input path) |
+| Tree nodes per row                   | 2,000                          |
+| Nesting depth                        | 64                             |
+| Function parameters                  | 8 (RC-4)                       |
+| List elements                        | 10,000 (NM-35)                 |
+| Curve evaluations per view           | G-15                           |
+| Table rows and regression iterations | D-1 and D-2                    |
 
 - **NM-42** Each limit in the table is enforced without freezing or crashing. Typing, paste or keypad input that would exceed the row or character limit is refused with a status message in the calculator's live region and leaves the list unchanged (T-13, A11Y-2); transfer input that would exceed either limit inserts nothing and is reported only through the TR-67 region with the TR-73 message "This can't be added to the calculator." (A11Y-11). setExpression or setState input that exceeds either limit throws invalid-argument and changes nothing (API-13). Exceeding the tree-node, nesting-depth, parameter or list-element limit gives a row error (R-2). (Phase 1; verified by unit test)
 - **NM-43** For +, −, ×, ÷, powers, roots, exp, ln, log, circular and hyperbolic trig and their inverses, each result is within 10^-13 relative error of reference values computed with at least 30-digit arithmetic and committed to the corpus. This covers each function from the phase it ships in. The snapped values of NM-4, NM-26 and NM-28 are checked for exact equality instead. (Phase 1; verified by unit test)
@@ -298,8 +287,8 @@ These rules are checked on the sampler's polylines and contours, not on pixels.
 
 ### 5.5 Viewport limits and parity
 
-- **G-23** Zooming in stops at a span of 10^-9·max(1, |centre|) per axis, and zooming out stops at a span of 10^15. No bound goes beyond ±10^15, and G-11 holds at both limits. These widen the deployed engine's limits (`karman-calculator/lib/graph.js:11-15`). (Phase 1; verified by unit test)
-- **G-24** Every curve in the existing engines' test suites (`src/lib/calculator/engine.test.ts`, `tests/unit/calculator/standalone.test.ts`, `karman-calculator/tests/smoke.mjs`, `tests/calculator/*.spec.ts`) renders in v2 and meets G-9 to G-17. This check gates the Phase 3 switch-over. Its curve inputs are copied once into a committed corpus file under `src/lib/calculator-v2/core/corpus/` (PR-39), so the check keeps running after the removal PR deletes those suites (overview section 8.3). (Phase 3; verified by unit test)
+- **G-23** Zooming in stops at a span of 10^-9·max(1, |centre|) per axis, and zooming out stops at a span of 10^15. No bound goes beyond ±10^15, and G-11 holds at both limits. (Phase 1; verified by unit test)
+- **G-24** Every golden-corpus case under `src/lib/calculator/core/corpus/` (PR-39) that graphs renders and meets G-9 to G-17. (Phase 3; verified by unit test)
 - **G-25** Mark sizes (appendix F, the Desmos feel): curves stroke 2.5 CSS px (4 px for the selected row, POI-17), points are 10 px discs (open circles and crosses stroke 2 px, D-12), strict inequality boundaries dash 12 px on and 6 px off, axes are 1.5 px and gridlines 1 px, each snapped to device pixels. (Phase 3, built in the parity work; verified by unit test)
 
 ### 5.6 Documented limits (not gates)
@@ -336,7 +325,7 @@ The calculator README documents these limits. None of them blocks a phase.
 - **POI-12** A point-of-interest label rounds each coordinate to d decimals, where d = clamp(max(5, ceil(−log10 u) + 3), 0, 12) and u is that axis's world units per px (appendix F decision 2: Desmos prints 5 decimals at the default view, 6 at 8x zoom in and still 5 at 8x zoom out). Trailing zeros are trimmed, so integer and terminating values print exactly (`2`, `−0.5`, `0.8`); negative values use a true minus sign and values below 1 a leading zero; a label never shows more digits than POI-11's accuracy supports, and outside NM-2's range it uses the ×10^n form. So in the default 800 px wide view, the root of x²−2 labels as 1.41421. (Parity; verified by unit test)
 - **POI-13** Clicking or tapping a grey dot of the selected curve turns it into a larger dark dot and opens its `(x, y)` label, formatted by POI-12; several labels can be open at once and opening one never closes another; clicking an open dot again closes only its label; a click on a point of interest of an unselected curve only selects that curve (a second click opens the label); clicking empty graph paper closes every label and deselects the row; focusing or editing a row, the zoom buttons, the graph keys and panning close every label; labels never persist across deselection; Escape closes open labels as one KB-3 layer (a Karman addition: Desmos keeps them); A11Y- covers keyboard and screen-reader access (appendix F requirements 4 to 10). (Parity; verified by browser test)
 - **POI-14** Pressing on a curve and dragging along it traces the curve: a dot in the curve's colour with a live `(x, y)` label (no export action) stays on the curve at the point nearest the pointer, even when the pointer leaves the curve; x is rounded to clamp(ceil(−log10 u) + 1, 0, 12) decimals (the view's pixel precision) and y is the curve's value at that rounded x shown to at most 5 decimals; on a fine pointer the trace snaps to a point of interest within 3 px and then shows that point's POI-12 label; releasing removes the dot and label and pins nothing (appendix F requirements 16 to 20). (Parity; verified by browser test)
-- **POI-15** A point can be dragged when each coordinate is a numeric literal or a bare slider name, or when one coordinate is a bare slider name and the other depends only on that slider. Dragging rewrites the literals or sets the sliders to values rounded by POI-12, so `(a,a^{2})` moves a and follows the parabola; other points stay fixed. This keeps the deployed engine's literal-point dragging (`karman-calculator/lib/graph.js:81-91`). (Phase 2; verified by browser test)
+- **POI-15** A point can be dragged when each coordinate is a numeric literal or a bare slider name, or when one coordinate is a bare slider name and the other depends only on that slider. Dragging rewrites the literals or sets the sliders to values rounded by POI-12, so `(a,a^{2})` moves a and follows the parabola; other points stay fixed. (Phase 2; verified by browser test)
 - **POI-16** The golden cases in the table below pass, using the default view unless stated. (Phase 2; verified by unit test)
 
 | Rows                          | Expected points of interest                                             |
@@ -361,7 +350,7 @@ The calculator README documents these limits. None of them blocks a phase.
 
 ## 7. Golden corpus (shared with Transfer)
 
-- **PR-39** One golden corpus lives under `src/lib/calculator-v2/core/corpus/`, split by category into files under 700 lines. It is the only source of expected parse, classification and display results. The PR-, RC- and NM- Vitest suites and the TR- transfer tests all import it. (Phase 1; verified by unit test)
+- **PR-39** One golden corpus lives under `src/lib/calculator/core/corpus/`, split by category into files under 700 lines. It is the only source of expected parse, classification and display results. The PR-, RC- and NM- Vitest suites and the TR- transfer tests all import it. (Phase 1; verified by unit test)
 - **PR-40** Each case has an `id`; `rules`, listing the IDs it checks; an `input` that is `latex`, `keys` (a keystroke list) or `question` (question-dialect KaTeX); optional context `rows` and `settings` (angle unit, complex mode); and an expected `tree`, `latex` (printer output), `kind` (RC- outcome), `display` (NM- text) or `error` code. (Phase 1; verified by unit test)
 - **PR-41** A coverage test fails unless every PR-, RC- and NM- ID in this file has at least one case. The G- and POI- golden cases live in the sampler and POI suites and take their row inputs from the corpus. (Phase 1; verified by unit test)
 - **PR-42** The corpus has cases for these SAT forms: lines in slope-intercept, point-slope and standard form; quadratics in vertex, factored and expanded form; exponential growth and decay with percent rates (`P(t)=500(1.03)^{t}`, `(1.20)^{x/4}`); function notation; systems of two linear equations and a linear–quadratic system; numeric circle equations; absolute value, radical and rational functions, including one with a hole; inequalities, compound inequalities and systems of inequalities; and mixed numbers, percents and degree measures in question dialect. (Phase 1; verified by unit test)

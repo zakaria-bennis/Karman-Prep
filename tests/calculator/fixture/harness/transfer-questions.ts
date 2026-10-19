@@ -1,6 +1,6 @@
-// Synthetic transfer questions for the transfer browser specs (14). Original text only; `?questions=transfer`
-// swaps the diagnostic questions and the daily question (decision: practice and catalog keep
-// their existing synthetic content).
+// Synthetic transfer questions for the transfer browser specs. Original text only;
+// `?questions=transfer` swaps the diagnostic questions and the daily question (decision: practice
+// and catalog keep their existing synthetic content).
 import type { DiagnosticQuestion } from "../../../../src/components/diagnostic/_hooks/useDiagnosticState";
 import type { StudentQuizQuestion } from "../../../../src/types/quiz";
 
@@ -93,7 +93,7 @@ export const TRANSFER_DAILY_QUESTION = {
   })),
 } as StudentQuizQuestion;
 
-/** 07 Tasks 17 and 18 (`?questions=transfer-tables`, daily flow): D-40's table as a question
+/** (`?questions=transfer-tables`, daily flow): D-40's table as a question
  * table, a coordinate pair and a function coordinate. Original text and data only. */
 export const TABLE_PAIR = "(2,5)";
 export const TABLE_COORDINATE = "f(3)=7";

@@ -1,4 +1,4 @@
-// The graph's CSS size and device pixel ratio (G-5; 08 Decision "Resizes"; 00-index Review Focus
+// The graph's CSS size and device pixel ratio (G-5; "Resizes"; Review Focus
 // 3). A ResizeObserver on the layers element reports the size and a resolution media query the
 // dpr. Each new usable size or dpr goes to the engine through setView, with a default view kept
 // default and any other view keeping its centre and units per px (nextViewportForSize). A size with

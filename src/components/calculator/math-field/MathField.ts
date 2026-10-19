@@ -1,4 +1,4 @@
-// The MathField adapter (AR-42; 01-interfaces-runtime.md section 9): one calculator row's
+// The MathField adapter (AR-42): one calculator row's
 // editable math field over the vendored MathQuill. This is the only module that imports
 // vendor/mathquill/, values and types alike (AR-5).
 
@@ -258,7 +258,7 @@ class KarmanMathField implements MathField {
 
   /**
    * MathQuill's substituteTextarea hook. The listeners are bound here, before MathQuill binds
-   * its own. Copy, cut and paste only prevent the default action: 13's capture-phase bridge on
+   * its own. Copy, cut and paste only prevent the default action: the capture-phase bridge on
    * the shadow root has already run, and MathQuill (disableCopyPaste) never edits on them.
    */
   private createTextarea(): HTMLTextAreaElement {

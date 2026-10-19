@@ -1,4 +1,4 @@
-// Functions the calculator shell specs run inside the harness page (10 R5), through
+// Functions the calculator shell specs run inside the harness page, through
 // page.evaluate, locator.evaluate or addInitScript. Each is self-contained: it closes over nothing
 // from this module, because Playwright serializes it into the page.
 
@@ -131,7 +131,7 @@ export async function countLeavingFrames(): Promise<number> {
 
 /**
  * TH-15 init script: records in globalThis.__strokes the strokeStyle of every canvas stroke() and,
- * because 08's renderer draws the axes and grid lines as filled rectangles (draw-grid.ts), the
+ * because the renderer draws the axes and grid lines as filled rectangles (draw-grid.ts), the
  * fillStyle of every fill() and fillRect().
  */
 export function recordStrokes(): void {

@@ -1,4 +1,4 @@
-// The graph renderer's and graph panel's constants (08 Constants). Values with no named source are
+// The graph renderer's and graph panel's constants. Values with no named source are
 // package decisions. Pixel quantities are CSS px.
 
 /** Line widths. */

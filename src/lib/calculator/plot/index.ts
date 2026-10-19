@@ -1,5 +1,5 @@
 // The plot entry point (G-1, G-11, G-15, G-23): plotRow sends one row's PlotInput to its sampler
-// for a ViewSpec, which 07-engine-worker calls per row. A hidden or invalid view evaluates nothing.
+// for a ViewSpec, which calls per row. A hidden or invalid view evaluates nothing.
 // Pure TypeScript, no DOM (AR-44); DeadlineExceeded propagates to the caller.
 
 import type { Deadline } from "../core/deadline";

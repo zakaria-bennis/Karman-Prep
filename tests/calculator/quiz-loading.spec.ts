@@ -1,4 +1,4 @@
-// Calculator loading, failure panels and runaway work in the quiz hosts (11 tasks 7 and 11).
+// Calculator loading, failure panels and runaway work in the quiz hosts.
 
 import { expect, test } from "@playwright/test";
 import { countNodes, parseLatex } from "../../src/lib/calculator/core/latex";

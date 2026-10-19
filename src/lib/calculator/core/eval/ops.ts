@@ -151,7 +151,7 @@ export function linkHolds(a: number, op: RelOp, b: number): boolean {
 }
 
 /**
- * NM-22, 04 decision 6: a relation holds when every operand is a finite number and every link
+ * NM-22, : a relation holds when every operand is a finite number and every link
  * holds. A non-real, undefined, point or list operand makes it false.
  */
 export function relationHolds(values: readonly Value[], ops: readonly RelOp[]): boolean {

@@ -1,4 +1,4 @@
-// Evaluator values (01-interfaces.md section 4). "Undefined" is the single non-value state
+// Evaluator values. "Undefined" is the single non-value state
 // (NM-6): every non-finite number or complex part becomes UNDEFINED here. Pure TypeScript: no DOM
 // (AR-44).
 

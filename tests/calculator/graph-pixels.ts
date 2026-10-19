@@ -1,4 +1,4 @@
-// Canvas pixel helpers for graph.spec.ts (08 Task 9). Not a spec: Playwright and the ID checker
+// Canvas pixel helpers for graph.spec.ts. Not a spec: Playwright and the ID checker
 // skip it. Every helper but `px` runs in the page on the graph harness's canvases and scales CSS
 // coordinates by `canvas.width / layersBox.width`; "composite" paints --kc-paper, then the layers
 // in LAYER_ORDER, as the panel shows them.

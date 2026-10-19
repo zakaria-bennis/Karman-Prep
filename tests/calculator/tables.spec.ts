@@ -1,4 +1,4 @@
-// Tables in a real calculator (03-tables-ui Task 9 of the parity plan): S-2, S-10, D-5, D-7, D-13,
+// Tables in a real calculator: S-2, S-10, D-5, D-7, D-13,
 // D-16, D-41 and D-42 on the harness page /harness/calculator.html, with real MathQuill cells.
 
 import { expect, test, type Page } from "@playwright/test";

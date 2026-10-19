@@ -1,4 +1,4 @@
-// The editor test kit (01-interfaces-integration.md section 11; 09 Task 1): renders editor UI in
+// The editor test kit: renders editor UI in
 // jsdom with every 09 provider, a main-thread engine on a test-owned clock, recording fake
 // MathFields and a recording announcer. Test-only.
 

@@ -1,6 +1,6 @@
 // TR-43 and TR-46 say "verified by visual test": pixel baselines of the revealed Transfer control
 // at fine reveal (calculator-chrome, 1280×800) and coarse reveal (calculator-ios), in ivory and
-// observatory (14 decision "TR-43 and TR-46"). The geometry tests in transfer.spec.ts stay as the
+// observatory. The geometry tests in transfer.spec.ts stay as the
 // browser layer beside them.
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { SKIN_COLORS } from "../../src/lib/calculator/theme/skin-colors.generated";
@@ -25,7 +25,7 @@ import {
 const SKINS = ["ivory", "observatory"] as const;
 const PAD = 8; // CSS px of page kept around the item and control in each clip
 
-// As applyTheme does (data-theme and the dark class); task 14's applySkin does not exist yet.
+// As applyTheme does (data-theme and the dark class); task the applySkin does not exist yet.
 const setSkin = async (page: Page, skin: (typeof SKINS)[number]) => {
   await page.evaluate(
     ([s, dark]) => {

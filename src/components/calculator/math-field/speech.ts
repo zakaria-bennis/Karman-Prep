@@ -1,5 +1,5 @@
-// Row speech text (T-5, A11Y-4; 01-interfaces-runtime.md section 9), MathSpeak style, built from
-// the parser tree by the Decisions speech table of the 05-editor-foundation plan. Empty or
+// Row speech text (T-5, A11Y-4), MathSpeak style, built from
+// the parser tree by a fixed speech table. Empty or
 // unparseable LaTeX has no tree speech (""), and speechText() then falls back to MathQuill's
 // mathspeak(). Numbers are spoken from their source digits and are never grouped (T-10).
 

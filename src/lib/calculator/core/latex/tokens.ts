@@ -1,4 +1,4 @@
-// Tokenizer (01-interfaces.md section 1; grammar contract G1 of the 02-parser plan). It reads
+// Tokenizer (parser grammar G1). It reads
 // normalizeLatex output; every span is a UTF-16 offset range into that text. Whitespace makes no
 // token: numbers ignore it, and the parser reads adjacency from spans (G6, G7, G12).
 

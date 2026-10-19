@@ -1,4 +1,4 @@
-// Plot inputs from row analyses (01-interfaces.md section 5, owner 07-engine-worker; NM-16, AR-44).
+// Plot inputs from row analyses (NM-16, AR-44).
 // Each graphable row's RowGraph compiles once into the closures plotRow samples; the executor
 // calls this per row with the scope built from the latest values pass. Pure TypeScript: no DOM,
 // so it runs unchanged in the worker and in the main-thread executor (AR-44).
@@ -18,7 +18,7 @@ import type { PlotInput } from "./index";
 
 /**
  * The scope plot closures compile against. `functions` is `analysis.functions`, which holds
- * function definitions and each dependent definition as a zero-parameter entry (04 decision 2).
+ * function definitions and each dependent definition as a zero-parameter entry.
  * `values` maps a constant definition's name to its row's entry in `values` (keyed by row id);
  * a dependent definition (`a=2x`) never gets one, so it cannot shadow its function entry (RC-6).
  */

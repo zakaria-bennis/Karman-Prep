@@ -1,4 +1,4 @@
-// The transfer plan (12 Decisions 10 and 11; c-transfer TR-27, TR-32, TR-35 to TR-37, TR-72,
+// The transfer plan (c-transfer TR-27, TR-32, TR-35 to TR-37, TR-72,
 // TR-73): which rows a payload writes, under which ids and names, and whether the prospective list
 // passes the core check. Pure: it reads the existing rows and analyses them with the calculator core, and
 // changes nothing (apply.ts commits). Table columns, regression parameters and residual lists are
@@ -64,7 +64,7 @@ export function definedName(latex: string, userFunctions: ReadonlySet<string>): 
   return left.kind === "id" && !NOT_DEFINED_BY_NAME.has(left.name) ? left.name : null;
 }
 
-/** Decision 10's view of the calculator: used names, and each defined name's canonical rows. */
+/** The calculator as the plan sees it: used names, and each defined name's canonical rows. */
 interface ExistingNames {
   used: Set<string>;
   definitions: Map<string, (string | null)[]>; // null: a table column or a regression's fit

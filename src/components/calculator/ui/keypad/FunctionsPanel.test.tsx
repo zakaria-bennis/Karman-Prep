@@ -148,7 +148,7 @@ it("K-5 every shipped entry of categories 1, 2 and 8 inserts its own template in
   }
 });
 
-// 05 Task 11's T-9 browser test runs these actions in a real MathField, types x and gets \sin\left(x\right).
+//  T-9 browser test runs these actions in a real MathField, types x and gets \sin\left(x\right).
 it("T-9 the functions panel's sin button inserts \\sin\\left(\\right) with the caret inside, so typing x gives \\sin\\left(x\\right)", async () => {
   const kit = renderEditor(editor(), { rows: [""] });
   const field = kit.fields.forRow("1");
@@ -167,7 +167,7 @@ it("T-9 the functions panel's sin button inserts \\sin\\left(\\right) with the c
   ]);
 });
 
-// No spec ID: AN-2's owning test is Task 14's browser test (package ID coverage note).
+// No spec ID: AN-2's owning test is a browser test.
 it("Functions panel lifecycle: a closing panel is inert at once and unmounts after its closing duration", () => {
   vi.useFakeTimers();
   renderEditor(editor(), { rows: [""], durationMs: 100 });

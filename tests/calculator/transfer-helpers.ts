@@ -1,4 +1,4 @@
-// Shared helpers for the transfer specs (14). No tests: Playwright's default testMatch skips it.
+// Shared helpers for the transfer specs. No tests: Playwright's default testMatch skips it.
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { SKIN_COLORS } from "../../src/lib/calculator/theme/skin-colors.generated";
 import type { SkinId } from "../../src/lib/calculator/theme/skins";
@@ -290,7 +290,7 @@ export const kcPaper = (page: Page) =>
     const host = document.querySelector("[data-calculator-host]");
     return host ? getComputedStyle(host).getPropertyValue("--kc-paper").trim().toLowerCase() : "";
   });
-/** 08's graph-pixels.ts layerColors(page, "shading"), read in the calculator host's shadow root. */
+/** graph-pixels.ts layerColors(page, "shading"), read in the calculator host's shadow root. */
 export const shadingLayer = (page: Page) =>
   page.evaluate(() => {
     const c = document

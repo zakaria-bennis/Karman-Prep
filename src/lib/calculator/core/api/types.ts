@@ -1,4 +1,4 @@
-// Public calculator API types (01-interfaces-runtime.md section 8; spec d-architecture-integration.md
+// Public calculator API types (spec d-architecture-integration.md
 // section 11). Shared by the headless engine, KarmanCalculator and the hosts.
 
 import type { PixelSize, Viewport } from "../../plot/viewport";

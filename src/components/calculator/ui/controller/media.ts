@@ -1,6 +1,6 @@
-// Live media-query and pointer watchers for the calculator shell (10 Task 2). The facade feeds
+// Live media-query and pointer watchers for the calculator shell. The facade feeds
 // their values into the shell store: prefers-reduced-motion (AR-38, AN-13) and the coarse or
-// fine pointer that the keypad policy reads (K-2, 10 Decision 5). `window` satisfies
+// fine pointer that the keypad policy reads (K-2). `window` satisfies
 // MediaQuerySource; tests pass ui/controller/__fixtures__/fake-media.ts instead.
 
 /** A running watcher: `initial` is the value when watching began; later values reach only the callback. */
@@ -28,7 +28,7 @@ export function watchMediaQuery(
 }
 
 /**
- * 10 Decision 5: the pointer is coarse when `(any-pointer: coarse)` matches or a touch or pen
+ * The pointer is coarse when `(any-pointer: coarse)` matches or a touch or pen
  * `pointerdown` reaches `target` (capture phase). It never returns to fine, so `on` hears
  * `"coarse"` at most once.
  */

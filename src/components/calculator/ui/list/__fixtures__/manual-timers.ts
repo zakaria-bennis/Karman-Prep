@@ -1,4 +1,4 @@
-// Hand-driven timers for node tests of timer-taking modules (09 Task 5's row announcements):
+// Hand-driven timers for node tests of timer-taking modules (row announcements):
 // nothing runs until the test calls advance(ms), which runs every callback that falls due by
 // then in due order, including callbacks those callbacks schedule. Test-only.
 

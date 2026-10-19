@@ -1,6 +1,6 @@
 // The graph's accessible name (A11Y-1): "Graph from x=-10 to 10, y=-7.5 to 7.5, 2 plots", with
 // bounds to at most 4 significant digits and the plotted visible rows counted. GraphPanel debounces
-// it (NAME_DEBOUNCE_MS, NAME_MAX_WAIT_MS) and re-exports graphAccessibleName (01 section 10).
+// it (NAME_DEBOUNCE_MS, NAME_MAX_WAIT_MS) and re-exports graphAccessibleName.
 
 import type { RowView } from "@/lib/calculator/core/api/engine";
 import type { RowKind } from "@/lib/calculator/core/corpus/types";
@@ -56,7 +56,7 @@ function drawsPlot(row: RowView, geo: ReadonlyMap<string, Geometry>): boolean {
       return g?.kind === "region" && g.spans.length > 0;
     }
     case "function-definition":
-      // only a one-parameter definition ever gets geometry (01-interfaces.md section 3)
+      // only a one-parameter definition ever gets geometry
       return geo.has(row.id);
     default:
       return false;

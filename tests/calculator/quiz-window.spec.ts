@@ -1,4 +1,4 @@
-// Calculator window in the quiz hosts (11 tasks 7 to 9).
+// Calculator window in the quiz hosts.
 
 import { expect, test } from "@playwright/test";
 import {

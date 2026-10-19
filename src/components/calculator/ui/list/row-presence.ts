@@ -1,4 +1,4 @@
-// Row presence for AN-5 (09 Task 6): which rows the list renders and in which motion state. A row
+// Row presence for AN-5: which rows the list renders and in which motion state. A row
 // that joins the list is "enter" for one commit, then "idle", so its height can grow from 0; a row
 // that leaves stays at its last index as "exit" until its row reports the exit transition done.
 // The first render shows every row "idle", so opening the calculator animates nothing.

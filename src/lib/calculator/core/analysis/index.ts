@@ -1,4 +1,4 @@
-// Row analysis API (01-interfaces.md section 3). Pure TypeScript: no DOM (AR-44).
+// Row analysis API. Pure TypeScript: no DOM (AR-44).
 
 import type { RowErrorCode, RowKind } from "../corpus/types";
 import type { InequalityOp, Node, RelOp, SourceSpan } from "../latex/ast";

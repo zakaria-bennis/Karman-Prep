@@ -9,7 +9,7 @@ beforeEach(() => {
   vi.doUnmock("./transfer-lazy");
 });
 
-// D4 (00-index section 7): 12's classifier and the Transfer control are too large for AR-33's
+// D4: the classifier and the Transfer control are too large for AR-33's
 // eager budget, so quiz code reaches them only through this loader's import()s, in their own chunks.
 it("AR-33 the eager transfer code reaches the classifier, TransferControl and the bridge's pipeline only through the one import() of the lazy Transfer chunk, never a static value import", () => {
   const eager = [

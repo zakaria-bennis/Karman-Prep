@@ -1,4 +1,4 @@
-// Recursive-descent parser, precedence levels 5 to 8 (grammar contract G2 of the 02-parser plan):
+// Recursive-descent parser, precedence levels 5 to 8 (parser grammar G2):
 // rows with their relations (G12), sums, terms with explicit and implicit multiplication, and unary
 // signs. Factors and atoms (levels 9 to 11) are in atoms.ts. Every failure throws ParseFailure,
 // which parseLatex turns into a result.

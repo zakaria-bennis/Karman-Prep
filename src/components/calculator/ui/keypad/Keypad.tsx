@@ -1,4 +1,4 @@
-// The keypad (01-interfaces-integration.md section 11 and 09's Row DOM): a region named "Keypad"
+// The keypad: a region named "Keypad"
 // with a Hide keypad bar and the key groups of keypadLayout() for the page, width, pointer and
 // Shift (the K-1 tray, the K-3 letters pages, the K-6 phone keypad), and a Show keypad control
 // while closed. A closed keypad stays mounted, hidden from assistive technology and inert, so the

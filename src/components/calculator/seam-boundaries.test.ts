@@ -7,8 +7,9 @@
 //
 // AR-2: the eager modules (the non-test modules of src/lib/calculator-transfer/ and the top-level
 // modules of src/components/calculator/ other than KarmanCalculator.ts) touch no window, document,
-// navigator or Worker at module scope, and each loads under Vitest's node environment. AR-24 (03's contribution): learn-header.ts is a leaf
-// that LearnLayout re-exports. These scans also enumerate files at run time.
+// navigator or Worker at module scope, and each loads under Vitest's node environment. AR-24:
+// learn-header.ts is a leaf that LearnLayout re-exports. These scans also enumerate files at run
+// time.
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join, posix, relative, resolve, sep } from "node:path";
 import ts from "typescript";

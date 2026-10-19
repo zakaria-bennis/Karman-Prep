@@ -81,7 +81,7 @@ it("API-7 bounds need finite left < right and bottom < top", () => {
     bottom: -2,
     top: 2,
   });
-  // finite and ordered but outside G-23: valid here; Task 10's setMathBounds clamps it
+  // finite and ordered but outside G-23: valid here; setMathBounds clamps it
   expect(v.validateBounds({ left: -1e16, right: 0, bottom: 0, top: 1 })).toEqual({
     left: -1e16,
     right: 0,

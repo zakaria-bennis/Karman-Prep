@@ -13,7 +13,7 @@ const ZERO = {
   "--kc-duration-normal": "0ms",
 };
 
-it("tokens.css declares the 01 section 9 motion, font and size tokens on :host", () => {
+it("tokens.css declares the motion, font and size tokens on :host", () => {
   expect(declarations(/^:host \{([^}]*)\}/m.exec(css)![1])).toEqual({
     "--kc-duration-instant": "100ms",
     "--kc-duration-fast": "200ms",

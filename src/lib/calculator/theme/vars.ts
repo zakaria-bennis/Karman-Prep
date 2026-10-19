@@ -1,4 +1,4 @@
-// CSS custom property names of the calculator theme (01-interfaces-runtime.md section 6).
+// CSS custom property names of the calculator theme.
 // Type-only imports keep this module free of runtime dependencies, so the TH-5 generator and the
 // TH-3 scan import these maps from here and still run when skin-colors.generated.ts is missing.
 import type { ColorRole, CurveSlot } from "./skins";

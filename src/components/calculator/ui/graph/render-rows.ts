@@ -1,4 +1,4 @@
-// What GraphPanel draws (G-5; 08 Decision "Region spans"): the snapshot's rows as RenderRows in
+// What GraphPanel draws (G-5): the snapshot's rows as RenderRows in
 // list order and skin colours, and the region cache that keeps a row's shading through a pan. 07
 // drops region geometry from the snapshot on every view send, and region spans are CSS px for the
 // view they were computed in, so the cache keeps each row's last region geometry with that view;

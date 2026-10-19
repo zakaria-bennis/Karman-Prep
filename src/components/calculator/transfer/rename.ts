@@ -1,4 +1,4 @@
-// Apply-time renames (c-transfer TR-36; 12 Decision 10): rewrites one name in question-dialect
+// Apply-time renames (c-transfer TR-36): rewrites one name in question-dialect
 // LaTeX through the question-math lexer, so only identifier tokens change, never command words,
 // environment names or other identifiers that merely contain the name.
 

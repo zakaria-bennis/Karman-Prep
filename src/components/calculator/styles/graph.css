@@ -1,4 +1,4 @@
-/* The graph panel (G-5, A11Y-1; 08's DOM contract). The paper is the panel's background, so a
+/* The graph panel (G-5, A11Y-1; the DOM contract). The paper is the panel's background, so a
    canvas pixel without shading stays transparent. Colours come only from role variables (TH-3). */
 .kc-graph {
   position: relative;

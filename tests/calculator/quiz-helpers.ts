@@ -1,4 +1,4 @@
-// Node-side helpers for the calculator quiz seam specs (11 tasks 7 to 13): quiz-window,
+// Node-side helpers for the calculator quiz seam specs: quiz-window,
 // quiz-reset, quiz-loading, quiz-dock and quiz-chrome-theme. They drive the quiz fixture
 // (tests/calculator/fixture/main.tsx) and read the engine through
 // globalThis.__calculatorHarness, which the quiz host sets in development.

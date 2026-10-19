@@ -1,4 +1,4 @@
-// Theme roles of the calculator (01-interfaces-runtime.md section 6): the custom property maps,
+// Theme roles of the calculator: the custom property maps,
 // the TH-5 skin fallback, the `:host` theme declarations, and the row colours (F-A1).
 import { DESMOS_FILL_ALPHA, NEW_ROW_COLOURS, invertHex } from "./desmos-palette";
 import { SKIN_COLORS } from "./skin-colors.generated";

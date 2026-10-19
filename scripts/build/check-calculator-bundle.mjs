@@ -1,4 +1,4 @@
-// Calculator bundle check (01-interfaces-integration.md section 16; AR-32, AR-33, AR-66).
+// Calculator bundle check (AR-32, AR-33, AR-66).
 // Reads the OpenNext output of `npm run cf:build` and checks, in order: the pinned Turbopack
 // format, the lazy chunk group's positive control, that the calculator never reaches the server
 // handler or an eager chunk of a quiz route, the emitted worker, the gzip budgets and growth

@@ -1,4 +1,4 @@
-// Parse and row limits (01-interfaces.md section 1). A leaf module that index.ts re-exports, so
+// Parse and row limits. A leaf module that index.ts re-exports, so
 // parser modules read the limits without importing index.ts at run time.
 
 export const MAX_ROWS = 100;

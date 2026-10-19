@@ -1,4 +1,4 @@
-// Calculator docking and page-session geometry in the quiz hosts (11 task 10).
+// Calculator docking and page-session geometry in the quiz hosts.
 
 import { expect, test } from "@playwright/test";
 import {

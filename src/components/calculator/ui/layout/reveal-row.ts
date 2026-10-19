@@ -1,4 +1,4 @@
-// L-14 (10 Decision 2): keeps the focused or active row in view. The keypad region sits in flow
+// L-14: keeps the focused or active row in view. The keypad region sits in flow
 // under the list, so the list's scroll box ends at the keypad's top edge; whenever that box
 // changes size (keypad open or close, layout or host size change), CalculatorLayout calls
 // revealRow, whichever order focus and keypad arrive in.

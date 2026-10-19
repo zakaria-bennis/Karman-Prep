@@ -1,4 +1,4 @@
-// What a keypad key does to the row (09 Task 9): which row the keypad edits, one adapter call per
+// What a keypad key does to the row: which row the keypad edits, one adapter call per
 // insert key through editThroughKeypad (K-10), the double-tap = that becomes ~ in one undo step
 // (K-7, A11Y-2) and the Enter key's new row below. The letters, Shift, Functions and audio keys
 // are the Keypad's own and never reach pressKey.
@@ -86,7 +86,7 @@ export function pressKey(ctx: KeyContext, key: KeyDef): void {
   }
 
   if (key.id === "equals" && doubleTap.matches(rowId, field.latex())) {
-    // One undo step for the conversion, whatever the keypad group around it (09 Decisions).
+    // One undo step for the conversion, whatever the keypad group around it.
     engine.endEditGroup();
     editThroughKeypad(engine, announcer, rowId, field, (f) => f.run(EQUALS_TO_TILDE), cell?.commit);
     engine.endEditGroup();

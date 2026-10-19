@@ -1,4 +1,4 @@
-// Regressions in a real calculator (04 Task 8 of the parity plan): D-2 and the desktop part of
+// Regressions in a real calculator: D-2 and the desktop part of
 // D-40 on the harness page /harness/calculator.html, typed with real MathQuill and added by the table's
 // one-tap button.
 

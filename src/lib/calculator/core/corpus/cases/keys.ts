@@ -1,6 +1,6 @@
 import type { CorpusCase } from "../types";
 
-// PR-36 keystroke cases, compared by 05's runner in tests/calculator/math-field.spec.ts on the
+// PR-36 keystroke cases, compared by the runner in tests/calculator/math-field.spec.ts on the
 // real MathField. One keys element per typed character; longer elements are MathQuill key names
 // (Left, Right, Up, Down, Backspace, Del, Home, End, Shift-Left, Shift-Right). latex is the
 // field's latex(); tree, when present, is toSExpr of parseLatex(latex). Cases without a tree do

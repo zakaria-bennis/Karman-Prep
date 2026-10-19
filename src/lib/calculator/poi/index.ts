@@ -1,4 +1,4 @@
-// Points of interest of one row (01-interfaces.md section 1 of the parity plan): the row's curves
+// Points of interest of one row: the row's curves
 // as closures from its RowGraph, searched against every other graphable row's curves (POI-1,
 // POI-4). Pure TypeScript: no DOM, so it runs in the worker and the main-thread executor.
 

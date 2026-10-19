@@ -159,8 +159,8 @@ it("AR-5 mathquill.d.ts declares only members MathField.ts calls", () => {
 });
 it("MathField.ts is the only module under src/ that imports vendor/mathquill, types included", () => {
   // static `from "…"`, side-effect `import "…"` and dynamic `import("…")` specifiers.
-  // Test files and __fixtures__/ are skipped (03's scan rules): 03's seam-boundaries.test.ts
-  // and 07's worker/import-graph.test.ts hold vendor/mathquill import strings as synthetic input.
+  // Test files and __fixtures__/ are skipped (the scan rules): the seam-boundaries.test.ts
+  // and the worker/import-graph.test.ts hold vendor/mathquill import strings as synthetic input.
   const SPECIFIER = /(\bfrom|\bimport)\s*\(?\s*["'][^"']*vendor\/mathquill/;
   const importers = (readdirSync("src", { recursive: true }) as string[])
     .filter((f) => /\.(ts|tsx)$/.test(f))

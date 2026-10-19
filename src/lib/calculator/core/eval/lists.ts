@@ -100,7 +100,7 @@ export function mapN(args: readonly Value[], op: (args: Value[]) => Value): Valu
 
 /**
  * RC-15, G-3, NM-33: the point (x, y), or a list of points when a part is a list. An undefined or
- * non-real coordinate is stored as NaN (04 decision 7).
+ * non-real coordinate is stored as NaN.
  */
 export function pointValue(x: Value, y: Value): Value {
   return map2(x, y, (a, b) => ({ type: "point", value: [toPlotNumber(a), toPlotNumber(b)] }));

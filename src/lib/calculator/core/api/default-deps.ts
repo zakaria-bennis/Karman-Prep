@@ -1,4 +1,4 @@
-// The engine's default dependencies (01-interfaces-runtime.md section 8; 07 Decision 14): what
+// The engine's default dependencies: what
 // createEngine uses for each EngineDeps member the caller leaves out. Package-internal. The browser
 // globals are read behind typeof guards, so the module also loads in node, where there are none.
 

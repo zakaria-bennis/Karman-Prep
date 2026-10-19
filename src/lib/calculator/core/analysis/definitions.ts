@@ -1,5 +1,5 @@
 // Row parsing for analysis: the PR-23 function pre-scan, one parse per row and the definition
-// heads of RC-4 and RC-6 with their head errors (04 decision 4). Pure TypeScript: no DOM (AR-44).
+// heads of RC-4 and RC-6 with their head errors. Pure TypeScript: no DOM (AR-44).
 
 import type { RowErrorCode } from "../corpus/types";
 import type { Node, SourceSpan } from "../latex/ast";
@@ -55,7 +55,7 @@ export function userFunctionSet(
 }
 
 /**
- * What a row defines, with or without an error (04 decision 3): its head, else, for a row whose
+ * What a row defines, with or without an error: its head, else, for a row whose
  * error left no head (too many parameters, a parse error, a reserved function name), the head the
  * PR-23 pre-scan reads from its source.
  */

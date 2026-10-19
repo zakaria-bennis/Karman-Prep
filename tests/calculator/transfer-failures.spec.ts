@@ -1,4 +1,4 @@
-// Held payloads, failures and question keys in the browser (14 task 13).
+// Held payloads, failures and question keys in the browser.
 import { expect, test } from "@playwright/test";
 import {
   HOST,

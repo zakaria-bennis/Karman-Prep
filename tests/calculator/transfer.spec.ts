@@ -440,7 +440,7 @@ test("AR-37 the open calculator's shadow CSS reads only inherited or locally dec
     const host = document.querySelector<HTMLElement>("[data-calculator-host]");
     const root = host?.shadowRoot;
     if (!host || !root) return null;
-    // 10's installStyles adopts constructed sheets in Chromium and falls back to <style> elsewhere
+    // the installStyles adopts constructed sheets in Chromium and falls back to <style> elsewhere
     const sheets = [...root.adoptedStyleSheets, ...root.styleSheets];
     const css = sheets.flatMap((s) => [...s.cssRules].map((r) => r.cssText)).join("\n"); // CSSOM text holds no comments
     const inline = [...root.querySelectorAll<HTMLElement>("[style]")].flatMap((e) => [
@@ -489,10 +489,9 @@ test("AR-37 the open calculator's shadow CSS reads only inherited or locally dec
   expect([await page.evaluate(layoutMarked), await rows(page)]).toEqual([true, ["y=x"]]);
 });
 
-// Finding for 10 (14 task 14): the open calculator does not repaint its canvas when
-// prefers-reduced-motion changes (10's watchTheme follows colour scheme, contrast and forced
-// colours only; KarmanCalculator stores the motion query without a repaint). Fixme until 10 fixes
-// it; this package never edits src/components/calculator/.
+// Known gap: the open calculator does not repaint its canvas when prefers-reduced-motion changes
+// (watchTheme follows colour scheme, contrast and forced colours only; KarmanCalculator stores the
+// motion query without a repaint). Fixme until the shell repaints on that change.
 test.fixme("AR-37 the open calculator repaints within one frame on a prefers-reduced-motion change, with no remount", async ({
   page,
 }, info) => {

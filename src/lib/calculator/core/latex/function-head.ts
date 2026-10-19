@@ -1,5 +1,5 @@
-// Function-definition heads (01-interfaces.md section 1; PR-23, RC-4 and G15 of the 02-parser
-// plan). 04's RC-4 pre-scan builds ParseOptions.userFunctions from these names before parsing.
+// Function-definition heads (PR-23, RC-4; parser grammar G15). The RC-4 pre-scan builds
+// ParseOptions.userFunctions from these names before parsing.
 
 import { normalizeLatex } from "./normalize";
 import { tokenize, type Token } from "./tokens";
@@ -8,7 +8,7 @@ import { tokenize, type Token } from "./tokens";
  * The head of a row written `f(p1,…,pn)=…`, or null. The name is one Latin letter with an optional
  * subscript (`_` with one letter or digit, or a braced run of them), named as identifiers are
  * (`f_{1}`); each parameter is one Latin letter. Greek names and parameters give null (G15). Any
- * number of parameters is returned, repeats included, as written: RC-4's limits are 04's checks.
+ * number of parameters is returned, repeats included, as written: RC-4's limits are the checks.
  */
 export function functionDefinitionHead(input: string): { name: string; params: string[] } | null {
   const tokens = tokenize(normalizeLatex(input));

@@ -15,13 +15,13 @@
 *::after {
   box-sizing: border-box;
 }
-/* TH-14 (10 Task 12): the focus ring of shell-owned controls such as the AR-52 fallback buttons;
+/* TH-14: the focus ring of shell-owned controls such as the AR-52 fallback buttons;
    08 and 09 style their own. */
 :focus-visible {
   outline: 2px solid var(--kc-focus-ring);
   outline-offset: 2px;
 }
-/* AN-13, AR-38 (10 Task 11): the OS preference or the quiz setting makes every motion instant. */
+/* AN-13, AR-38: the OS preference or the quiz setting makes every motion instant. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -61,7 +61,7 @@ textarea {
   clip-path: inset(50%);
 }
 
-/* L-1, L-2 (10 Task 6): one grid, areas keyed on data-kc-layout, so a layout switch never
+/* L-1, L-2: one grid, areas keyed on data-kc-layout, so a layout switch never
    remounts a MathField (AR-26). DOM order stays list, graph, keypad (10 Decision 1). */
 .kc-app {
   display: grid;
@@ -88,7 +88,7 @@ textarea {
 .kc-app[data-kc-layout="stacked"][data-keypad="true"] {
   grid-template-rows: minmax(0, 1fr) minmax(0, 1fr) auto;
 }
-/* overflow stays visible for 09's Expand list overlay (AN-3, 09 consumer note 4) */
+/* overflow stays visible for the Expand list overlay (AN-3) */
 .kc-list-region {
   grid-area: list;
   min-width: 0;
@@ -117,7 +117,7 @@ textarea {
   scroll-margin-block: 8px;
 }
 
-/* TH-17 (10 Task 7): math at --kc-size-math; this comes after MathQuill's 115% rule, so it wins. */
+/* TH-17: math at --kc-size-math; this comes after MathQuill's 115% rule, so it wins. */
 .mq-math-mode,
 .mq-editable-field {
   font-size: var(--kc-size-math);

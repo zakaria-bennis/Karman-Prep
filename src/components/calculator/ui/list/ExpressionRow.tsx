@@ -1,7 +1,7 @@
-// One expression row (01-interfaces-integration.md section 11 and 09's Row DOM): the gutter number
+// One expression row: the gutter number
 // and the focused or active row marks (L-3), the gutter tab that hides or shows the row's graph
 // (R-1), the MathField textbox named "Expression n" through a hidden label the row keeps current
-// (A11Y-3, 09 Decisions "Textbox naming survives renumbering") and described by the row's T-5
+// (A11Y-3) and described by the row's T-5
 // speech text (A11Y-4), its value in a box (R-5, RowValue), its error as a warning marker that
 // replaces the tab, with the message in its tooltip and aria-invalid on the textbox (R-2,
 // ErrorMarker) and the complex-mode hint (FN-16, OI-4), and the Delete control. The
@@ -9,8 +9,7 @@
 // Delete in an empty row and the Delete control go through row-actions (R-3, R-9); a typed edit
 // past the T-13 limit is refused, restored and announced. AN-5: the row carries its presence
 // motion; an exiting row leaves the focus controller, is aria-hidden and inert with no number, and
-// reports onExitDone once its own exit transition-duration has passed (09 Decisions, "Motion
-// lifecycles read CSS").
+// reports onExitDone once its own exit transition-duration has passed.
 
 import { X } from "lucide-react";
 import {

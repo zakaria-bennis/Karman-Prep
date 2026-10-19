@@ -1,5 +1,5 @@
 // Display text for numbers, points, complex values, lists and axis labels (NM-1 to NM-3, NM-5,
-// NM-6, NM-8, NM-20, NM-38; 01-interfaces.md section 4). Hyphen-minus for signs; scientific form
+// NM-6, NM-8, NM-20, NM-38). Hyphen-minus for signs; scientific form
 // m×10^n with × U+00D7 and a plain exponent. T-10 thin-space grouping is the renderer's job, never
 // done here. Pure TypeScript: no DOM (AR-44).
 
@@ -102,7 +102,7 @@ export function formatValueLatex(v: Value): string {
 
 /**
  * NM-8: a tick label with the fewest decimals `step` needs, switching to m×10^n outside NM-2's
- * plain range. The renderer (08) calls it per major tick.
+ * plain range. The renderer calls it per major tick.
  */
 export function formatAxisLabel(v: number, step: number): string {
   if (!Number.isFinite(v)) return TEXT.undefined;

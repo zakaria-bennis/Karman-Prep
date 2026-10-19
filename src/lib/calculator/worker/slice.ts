@@ -4,7 +4,7 @@
 
 import { DeadlineExceeded, type Deadline } from "../core/deadline";
 
-/** The executor's clock and yield (01-interfaces-runtime.md section 7); executor.ts re-exports it. */
+/** The executor's clock and yield; executor.ts re-exports it. */
 export interface ExecutorTiming {
   now(): number;
   yieldToEventLoop(): Promise<void>; // MessageChannel macrotask

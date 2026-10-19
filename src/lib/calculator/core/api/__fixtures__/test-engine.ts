@@ -1,7 +1,7 @@
-// Test-only engine harness (01-interfaces-runtime.md section 8.1): a fake compute backend that
+// Test-only engine harness: a fake compute backend that
 // records posts and delivers emitted messages synchronously, and an engine wired to it (or to the
 // real main-thread backend) with a manual frame queue, a manual clock and fixed random seeds.
-// Imported by 07's engine tests, 09's list tests and 12's transfer tests; never by production code.
+// Imported by the engine tests, the list tests and the transfer tests; never by production code.
 
 import { defaultViewport, type ViewSpec } from "../../../plot/viewport";
 import { createMainThreadBackend, type ComputeBackend } from "../../../worker/backend";

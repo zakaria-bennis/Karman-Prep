@@ -5,7 +5,7 @@ import type { StemInput } from "@/lib/calculator-transfer/classify";
 import { useCalculator } from "./CalculatorScope";
 import { useTransferClassifier, type TransferClassifier } from "./transfer-classifier";
 
-// AR-11 wrappers: each reads useCalculator() once and renders the Transfer control (14) while a
+// AR-11 wrappers: each reads useCalculator once and renders the Transfer control while a
 // calculator is mounted. The parts, the stem registry and which instances render a control
 // included, come from the lazy transfer chunk (D4, transfer-items.tsx), so they render nothing
 // until it has loaded.

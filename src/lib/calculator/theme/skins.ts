@@ -1,4 +1,4 @@
-// Skin ids, colour roles and curve slots of the calculator theme (01-interfaces-runtime.md
+// Skin ids, colour roles and curve slots of the calculator theme (
 // section 6). The 12 skins are the site themes of src/lib/themes/palettes.ts in order (TH-5).
 
 export const SKIN_IDS = [

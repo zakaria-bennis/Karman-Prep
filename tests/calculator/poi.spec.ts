@@ -1,5 +1,5 @@
-// Points of interest, coordinate labels and tracing in a real calculator (02 Task 9 of the parity
-// plan): POI-1, POI-9, POI-13, POI-14 and POI-17 on the harness page /harness/calculator.html.
+// Points of interest, coordinate labels and tracing in a real calculator:
+// POI-1, POI-9, POI-13, POI-14 and POI-17 on the harness page /harness/calculator.html.
 
 import { expect, test, type Page } from "@playwright/test";
 import { enc, openShell, rowField, useConsoleGuard } from "./shell-helpers";

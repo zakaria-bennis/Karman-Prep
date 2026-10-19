@@ -190,7 +190,7 @@ export function runPlot(
 }
 
 /**
- * Parses helper LaTeX as a row is parsed (PR-23, 04 decision 2): only functions with parameters
+ * Parses helper LaTeX as a row is parsed (PR-23): only functions with parameters
  * are callable, so after `a=2x` the helper `a(x+1)` is a product, as the row `a(x+1)` is.
  */
 export function parseHelper(latex: string, analysis: AnalysisResult): ParseResult {

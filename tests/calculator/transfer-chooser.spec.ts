@@ -1,4 +1,4 @@
-// The format chooser in the browser (07 Task 17; c-transfer TR-63): placement against the item
+// The format chooser in the browser (c-transfer TR-63): placement against the item
 // and the control, item heights by reveal, and the viewport margin.
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { TABLE_PAIR } from "./fixture/harness/transfer-questions";

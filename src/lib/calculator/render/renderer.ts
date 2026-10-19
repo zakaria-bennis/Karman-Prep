@@ -1,4 +1,4 @@
-// The layered HiDPI canvas renderer of the graph (G-5; 01-interfaces-runtime.md section 10). Four
+// The layered HiDPI canvas renderer of the graph (G-5). Four
 // stacked canvases, bottom to top shading, grid, curves and points, each with a device-px backing
 // store; the paper is the panel's CSS background, so unshaded pixels stay transparent.
 
@@ -40,7 +40,7 @@ export class GraphRenderer {
   private shading: ShadingMemo | null = null;
   private destroyed = false;
 
-  /** Appends one hidden canvas per LAYER_ORDER entry to `container` (08's DOM contract). */
+  /** Appends one hidden canvas per LAYER_ORDER entry to `container` (the DOM contract). */
   constructor(container: HTMLElement) {
     this.canvases = LAYER_ORDER.map((layer) => {
       const canvas = container.ownerDocument.createElement("canvas");

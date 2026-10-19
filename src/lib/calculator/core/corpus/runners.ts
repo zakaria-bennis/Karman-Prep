@@ -1,4 +1,4 @@
-// Corpus runner routing (PR-39; 01-interfaces.md section 2.2): every expected field of every case
+// Corpus runner routing (PR-39): every expected field of every case
 // is compared by exactly one runner. Relative imports only.
 
 import { isParseErrorCode } from "../latex/errors";

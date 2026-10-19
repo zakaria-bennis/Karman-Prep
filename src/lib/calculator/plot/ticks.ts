@@ -1,5 +1,5 @@
 // Axis tick positions (NM-8). Values come from integer indices, never a running sum, so labels
-// stay exact; 08-graph labels each major tick with formatAxisLabel(value, step) (04).
+// stay exact; the graph labels each major tick with formatAxisLabel(value, step).
 
 export interface AxisTicks {
   step: number;

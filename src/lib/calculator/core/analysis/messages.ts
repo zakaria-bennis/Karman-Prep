@@ -1,4 +1,4 @@
-// Row error copy (01-interfaces.md section 3) and the display text of names. Pure TypeScript: no
+// Row error copy and the display text of names. Pure TypeScript: no
 // DOM (AR-44).
 
 import type { RowErrorCode } from "../corpus/types";
@@ -53,7 +53,7 @@ function letter(base: string): string {
 }
 
 /**
- * `{n}` is `names[0]` and `{k}` is `names[1]`, both already display text (04 decision 3), at every
+ * `{n}` is `names[0]` and `{k}` is `names[1]`, both already display text, at every
  * place they appear. Appendix F recorded the reference's text for `duplicate-definition` (19),
  * `sim-side` (3) and `nested-list`, which these use; `argument-parentheses`, `comma-side`,
  * `range-bound` and `list-too-long` use the text Desmos gave on 2026-10-19.

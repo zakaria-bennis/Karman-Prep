@@ -1,4 +1,4 @@
-// Graph harness page (08 Task 8), /harness/graph.html?skin=<SkinId>&rows=<url-encoded JSON string[]>
+// Graph harness page, /harness/graph.html?skin=<SkinId>&rows=<url-encoded JSON string[]>
 // &w=<px>&h=<px>: mounts GraphPanel at w×h CSS px (default 800×600) in a harness-kit shadow root,
 // with rows "1"…"n". graph.spec.ts reads the engine through globalThis.__calculatorHarness.
 

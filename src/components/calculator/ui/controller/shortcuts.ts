@@ -1,4 +1,4 @@
-// Shell keyboard shortcuts (KB-7) and the Escape hand-off (KB-3, 10 Decision 4). Shortcuts match on
+// Shell keyboard shortcuts (KB-7) and the Escape hand-off (KB-3). Shortcuts match on
 // `event.code`, so Option-modified keys on macOS (Option+K types "˚") still work, and never fire
 // while an IME is composing. KB-7 also lists KeyC, which arrives with KB-11 (Phase 2); KeyT starts
 // the keyboard trace (POI-20), whose tones A11Y-13 adds in Phase 4.

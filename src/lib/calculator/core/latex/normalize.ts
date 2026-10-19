@@ -1,4 +1,4 @@
-// LaTeX normalizer (01-interfaces.md section 1; PR-3, PR-4). Typed, API and paste input pass through
+// LaTeX normalizer (PR-3, PR-4). Typed, API and paste input pass through
 // here before the tokenizer, so every SourceSpan the parser reports is an offset into this output.
 // Three passes in order: Unicode characters, raw percent signs, then whole-command rewrites. The
 // output is a fixed point: normalizing it again returns it unchanged.

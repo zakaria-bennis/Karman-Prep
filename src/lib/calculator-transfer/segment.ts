@@ -1,8 +1,8 @@
 // Segment grammar, types, Phase 1 gates and segment-level narrowing (TR-10 to TR-15, TR-17, TR-18,
-// TR-21, TR-77). A recursive-descent recogniser over lex.ts tokens decides whether one normalised math
-// segment is an expression, equation, inequality, function or system, and records the names each
-// row defines, uses and calls. Eager and framework-free; it never imports the calculator parser (AR-3,
-// TR-74), so the limits below repeat 02's values.
+// TR-21, TR-77). A recursive-descent recogniser over lex.ts tokens decides whether one normalised
+// math segment is an expression, equation, inequality, function or system, and records the names
+// each row defines, uses and calls. Eager and framework-free; it never imports the calculator
+// parser (AR-3, TR-74), so the limits below repeat the values.
 
 import { lexQuestionMath, type QToken, type QTokenKind } from "./lex";
 
@@ -10,9 +10,9 @@ import { lexQuestionMath, type QToken, type QTokenKind } from "./lex";
 export const TRANSFER_PHASE: number = 1;
 
 /**
- * Decision 7: `characters` is 02's MAX_ROW_CHARACTERS and `depth` its MAX_NESTING_DEPTH, repeated
- * (AR-3); `tokens` is a plan value, the safe proxy for 02's MAX_TREE_NODES (2,000): a segment of
- * t tokens parses to at most 2t − 1 nodes.
+ * Decision 7: `characters` is the parser's MAX_ROW_CHARACTERS and `depth` its MAX_NESTING_DEPTH,
+ * repeated (AR-3); `tokens` is a chosen value, the safe proxy for the parser's MAX_TREE_NODES
+ * (2,000): a segment of t tokens parses to at most 2t − 1 nodes.
  */
 export const SEGMENT_LIMITS = { characters: 2048, tokens: 600, depth: 64 } as const;
 
@@ -111,7 +111,7 @@ class Parser {
     if (!this.at(kind, text)) reject("TR-8", `expected ${text}`);
     this.i++;
   }
-  /** 02's G13 nesting count (decision 7). */
+  /** the G13 nesting count (decision 7). */
   private nested<T>(read: () => T): T {
     if (++this.depth > SEGMENT_LIMITS.depth) reject("TR-21", "too-deep");
     const value = read();

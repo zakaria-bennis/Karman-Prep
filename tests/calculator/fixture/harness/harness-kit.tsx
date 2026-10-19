@@ -1,5 +1,5 @@
-// Harness kit for the calculator browser pages (01-interfaces-integration.md section 16; owner
-// 07, used by the 08, 09 and 10 harness pages). mountHarness creates an engine, themes an open
+// Harness kit for the calculator browser pages (the graph, editor and shell harness pages).
+// mountHarness creates an engine, themes an open
 // shadow root on the page's element with the skin's :host declarations and the page's CSS, and
 // renders the page's React tree in it inside EngineContext and SkinContext. Browser specs read the
 // engine through globalThis.__calculatorHarness.
@@ -16,7 +16,7 @@ import type { SkinId } from "@/lib/calculator/theme/skins";
 
 export interface HarnessOptions {
   root: HTMLElement; // a shadow root is attached to it
-  css: string[]; // CSS text imported with Vite's ?inline (declared in env.d.ts, owner 05)
+  css: string[]; // CSS text imported with Vite's ?inline (declared in env.d.ts)
   skin?: SkinId; // default "ivory"; installs hostThemeCss(skin) and provides SkinContext
   options?: CalculatorOptions;
   render(engine: CalculatorEngine): React.ReactNode;

@@ -1,6 +1,6 @@
 // PR-1 one parser (verification): typed and API input reach the engine's analysis through
 // core/latex's parseLatex only, so an API row has exactly the tree parseLatex gives its LaTeX.
-// Question dialect is covered by question-dialect.corpus.test.ts; paste by 13's clipboard tests.
+// Question dialect is covered by question-dialect.corpus.test.ts; paste by the clipboard tests.
 
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";

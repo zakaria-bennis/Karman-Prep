@@ -25,7 +25,7 @@ const sheet = document.createElement("style");
 sheet.textContent = themeStyleSheet();
 document.head.append(sheet);
 declare global {
-  // The quiz specs (11) read and drive the page-session window store through this global.
+  // The quiz specs read and drive the page-session window store through this global.
   var __calculatorWindowStore: typeof calculatorWindowStore | undefined;
 }
 const params = new URLSearchParams(location.search);

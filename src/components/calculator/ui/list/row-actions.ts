@@ -1,5 +1,5 @@
-// The list's row and history actions (01-interfaces-integration.md section 11; 09 Task 4 and
-// consumer note 3). The toolbar, the rows, the keypad and 10's keyboard shortcuts all go through
+// The list's row and history actions (and
+// consumer note 3). The toolbar, the rows, the keypad and the keyboard shortcuts all go through
 // these, so every path inserts, deletes, moves focus and announces (A11Y-2, NM-42, T-13) in exactly
 // the same way. Type-only imports, so node tests that load this module never load the engine or
 // MathQuill.
@@ -31,7 +31,7 @@ function indexOf(engine: CalculatorEngine, rowId: string): number {
 }
 
 /**
- * Add item, Enter (R-3), the keypad's Enter key and 10's add-row shortcut: a new empty row below
+ * Add item, Enter (R-3), the keypad's Enter key and the add-row shortcut: a new empty row below
  * `afterId` (at the end for null), focused or only made active. At MAX_ROWS nothing is inserted
  * and the NM-42 limit is announced instead.
  */
@@ -188,7 +188,7 @@ export function performRedo(engine: CalculatorEngine, announcer: Announcer | nul
 }
 
 /**
- * Keypad and Functions panel input (09 Decisions, "One undo step per K-7 conversion"): `apply`
+ * Keypad and Functions panel input (one undo step per K-7 conversion): `apply`
  * runs with the field marked as batching, so the row's onEdit ignores the adapter's edit events,
  * then one editRow(rowId, field.latex(), "keypad"), or `commit` for a table cell (D-41). On "char-limit" the field gets its previous
  * latex back and the T-13 limit is announced.

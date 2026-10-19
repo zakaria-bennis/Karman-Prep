@@ -1,4 +1,4 @@
-// S-7 axis bounds (01-interfaces-integration.md section 11; 09 Task 12): a bound field's latex is
+// S-7 axis bounds: a bound field's latex is
 // evaluated by a HelperExpression, so the backend computes it and the main thread never evaluates
 // it (AR-51). Node tests load this module, so the engine is imported as a type only.
 

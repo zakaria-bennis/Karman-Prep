@@ -1,4 +1,4 @@
-// React bindings for the headless engine (01-interfaces-runtime.md section 8.1). The UI reads the
+// React bindings for the headless engine. The UI reads the
 // engine from EngineContext and its state through useEngineSnapshot. Parse, analysis and
 // evaluation errors arrive as row messages in the snapshot and are never thrown into React
 // (AR-54); getSnapshot never throws, even after destroy().

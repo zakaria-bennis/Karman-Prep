@@ -1,4 +1,4 @@
-// One axis of the settings popover (S-1; 09 Tasks 11 and 12): the `Show x-axis` checkbox, the
+// One axis of the settings popover (S-1): the `Show x-axis` checkbox, the
 // `x-axis label` field committed on Enter or blur, the bounds line `[x minimum] ≤ x ≤ [x maximum]`
 // as two MathFields from MathFieldFactoryContext that show the viewport bound while not focused,
 // and the `x-axis step` field showing the step or blank (y likewise). S-7: a bound applies on

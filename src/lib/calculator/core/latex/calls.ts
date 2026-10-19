@@ -1,4 +1,4 @@
-// Built-in and user-function calls (grammar contract G8 of the 02-parser plan; PR-23 to PR-27).
+// Built-in and user-function calls (grammar contract G8 of ; PR-23 to PR-27).
 // A built-in takes a `(` argument list (a level-11 atom that takes postfix signs, PR-25) or, with
 // no parenthesis, the PR-24 run of implicitly multiplied factors (level 9).
 

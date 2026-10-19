@@ -1,4 +1,4 @@
-// The Functions panel (09 Task 10; K-4, K-5, A11Y-5): a group named "Functions" holding, per
+// The Functions panel (K-4, K-5, A11Y-5): a group named "Functions" holding, per
 // shipped category of panelCategories(), an h3 under CATEGORY_HEADINGS and a group of buttons that
 // show entry.label and are named by entry.spoken. The Keypad owns its open, closing and closed
 // states; the panel mounts with data-state="enter" and a style flush moves it to "open", so AN-2's
@@ -7,7 +7,7 @@
 import { useId, useLayoutEffect, useRef, useState, type JSX } from "react";
 import { panelCategories, type PanelEntry } from "@/lib/calculator/core/latex/operator-names";
 
-/** L-1/L-2 threshold: 10's LAYOUT_DESKTOP_MIN_WIDTH, which 09 cannot import (09 Decisions). */
+/** L-1/L-2 threshold: the shell's LAYOUT_DESKTOP_MIN_WIDTH, repeated so the keypad needs no import. */
 export const FUNCTIONS_COVER_BELOW = 560;
 
 /** "cover" (the stacked layout's keypad area) below 560 px, otherwise "above" the keypad. */

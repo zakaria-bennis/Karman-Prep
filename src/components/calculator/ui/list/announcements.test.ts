@@ -1,7 +1,7 @@
-// A11Y-2 row announcements (09 Task 5) on 07's test engine and hand-driven timers. The announcer
-// here follows 05's public contract on the same timers (a write max(delayMs, 50) ms after the call,
+// A11Y-2 row announcements on the test engine and hand-driven timers. The announcer
+// here follows the public contract on the same timers (a write max(delayMs, 50) ms after the call,
 // dropped by a same-key call or cancel), so these tests assert when the text is written, not when
-// announce is called. announcements.live-region.test.ts pins the same timing against 05's real
+// announce is called. announcements.live-region.test.ts pins the same timing against the real
 // announcer.
 
 import { expect, it, onTestFinished } from "vitest";

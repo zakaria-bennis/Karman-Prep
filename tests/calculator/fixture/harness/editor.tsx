@@ -1,4 +1,4 @@
-// Editor harness page (09 Task 13), /harness/editor.html: mounts 09's ExpressionPanel, Keypad and
+// Editor harness page, /harness/editor.html: mounts the ExpressionPanel, Keypad and
 // SettingsPopover around a stand-in graph in one shadow root, with the real MathField, announcer,
 // focus controller and Escape stack. Query parameters: rows (URL-encoded JSON string[], ids
 // "1"…"n"), layout (desktop | stacked), pointer (fine | coarse), width (container px), keypad=open

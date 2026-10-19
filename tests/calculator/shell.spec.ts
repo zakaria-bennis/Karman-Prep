@@ -1,6 +1,6 @@
-// Calculator shell browser tests (10 R5): layouts L-1, L-2, L-8 and L-14 and the AR-60 worker
+// Calculator shell browser tests: layouts L-1, L-2, L-8 and L-14 and the AR-60 worker
 // gate on the harness page /harness/calculator.html; later shell tasks add AR-40, TH-17, KB-4 and the
-// contributions here.
+// here.
 
 import { expect, test } from "@playwright/test";
 import { EDITOR_MESSAGES } from "@/components/calculator/ui/list/messages";
@@ -61,7 +61,7 @@ test("L-1 desktop: list on the left at max(260px, 40%); toolbar and graph contro
       true,
     ]);
   }
-  expect((await names(page, "kc-graph-region")).some((n) => /^home$/i.test(n))).toBe(false); // 08's Home control
+  expect((await names(page, "kc-graph-region")).some((n) => /^home$/i.test(n))).toBe(false); // the graph Home control
   await page.getByRole("img", { name: /^Graph from/ }).press("ArrowRight");
   await expect(page.getByRole("button", { name: /^home$/i })).toBeVisible();
   await page.evaluate(() => globalThis.__shell!.resizeFrame(600, 450));

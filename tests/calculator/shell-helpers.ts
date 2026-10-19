@@ -1,4 +1,4 @@
-// Node-side helpers for the calculator shell specs (10 R5): shell.spec.ts,
+// Node-side helpers for the calculator shell specs: shell.spec.ts,
 // shell-keyboard.spec.ts, shell-motion-theme.spec.ts and shell-settings.spec.ts. They drive the
 // harness page /harness/calculator.html (tests/calculator/fixture/harness/calculator.tsx) through
 // globalThis.__shell and read the engine through globalThis.__calculatorHarness. Functions that run
@@ -206,7 +206,7 @@ export function motionNow(page: Page): Promise<Motion[]> {
 /**
  * motionNow after focusing row 1, opening the keypad, the Functions panel and the Graph settings
  * popover. Escape then closes the popover and the panel; the keypad stays open and focus is on the
- * Graph settings button, where 09's popover returns it.
+ * Graph settings button, where the popover returns it.
  */
 export async function motionAcrossLayers(page: Page): Promise<Motion[]> {
   const all: Motion[] = [];

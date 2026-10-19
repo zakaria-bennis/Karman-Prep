@@ -1,4 +1,4 @@
-// Backend messages applied to the engine's results (07 Decisions 3 to 5, 12 and 14): AR-46's
+// Backend messages applied to the engine's results: AR-46's
 // acceptance rule, each row's latest value or overrun, each row's geometry, the AR-45 development
 // kind check and worker faults. Package-internal.
 

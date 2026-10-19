@@ -1,4 +1,4 @@
-// Graph input (G-5, KB-8; 08 Decision "The engine holds the viewport"): drag, pinch and wheel on
+// Graph input (G-5, KB-8): drag, pinch and wheel on
 // the panel, and the graph keys on the surface. Pointer and wheel changes apply once per animation
 // frame; until that frame runs, the pending viewport is the base every change builds on, so wheel
 // events in one frame accumulate. Buttons, Home and keys apply synchronously through applyNow,

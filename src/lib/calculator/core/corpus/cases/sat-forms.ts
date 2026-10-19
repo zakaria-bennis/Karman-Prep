@@ -8,7 +8,7 @@ const t = (
   tree: string,
   rows?: string[]
 ): CorpusCase => ({ id: `${FILE}-${n}`, rules, input: { latex }, ...(rows ? { rows } : {}), tree });
-// Question-dialect twin of t: compared by 12-transfer-core's runner (wave 6).
+// Question-dialect twin of t: compared by the transfer-core runner.
 const q = (
   n: number,
   rules: string[],

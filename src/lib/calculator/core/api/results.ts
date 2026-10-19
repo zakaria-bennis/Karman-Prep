@@ -1,5 +1,5 @@
-// The engine's views (07 Decisions 4, 5 and 14): the RowView and EngineSnapshot types, which
-// engine.ts re-exports (01-interfaces-runtime.md section 8), each row's view built from the
+// The engine's views: the RowView and EngineSnapshot types, which
+// engine.ts re-exports, each row's view built from the
 // main-thread analysis (AR-51) and its latest accepted worker result, and API-9's
 // expressionAnalysis. Package-internal apart from the two re-exported types.
 
@@ -75,7 +75,7 @@ function deepFreeze<T>(value: T): T {
 
 /**
  * API-9: a value as its public evaluation. A non-finite number or complex part is undefined (NM-6);
- * a point keeps NaN for an undefined coordinate (04 decision 7); a list of numbers is a list, with
+ * a point keeps NaN for an undefined coordinate; a list of numbers is a list, with
  * NaN for an undefined item. Any other value, such as a later phase's distribution, inference test,
  * matrix, colour or tone, is `{ type: "other", display }` with the row's R-5 text (OI-24).
  */

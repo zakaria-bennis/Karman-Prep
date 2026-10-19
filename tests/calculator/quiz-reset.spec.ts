@@ -1,4 +1,4 @@
-// Calculator per-question reset in the quiz hosts (11 tasks 7 and 12).
+// Calculator per-question reset in the quiz hosts.
 
 import { expect, test, type Page } from "@playwright/test";
 import { DEFAULT_SETTINGS } from "../../src/lib/calculator/core/api/types";

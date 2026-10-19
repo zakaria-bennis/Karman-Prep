@@ -1,6 +1,6 @@
 "use client";
 
-// D4 (00-index section 7, AR-33): 12's classifier and the Transfer control are too large for the
+// D4 (AR-33): the classifier and the Transfer control are too large for the
 // quiz routes' eager budget, so eager code reaches them, the wrappers' item lookup in
 // transfer-items.tsx and the bridge's pipeline (transfer-bridge-core.ts) only through the one lazy
 // Transfer chunk, transfer-lazy.ts, through this loader's one import(); the bridge's pipeline

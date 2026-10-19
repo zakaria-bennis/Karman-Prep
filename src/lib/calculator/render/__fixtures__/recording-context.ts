@@ -1,4 +1,4 @@
-// Test support for the renderer (08 Task 5): a plain object standing in for a 2D canvas context.
+// Test support for the renderer: a plain object standing in for a 2D canvas context.
 // It implements only the members the draw modules use and records every method call with the
 // drawing state copied at that moment, so tests read what was stroked, filled and where. Never
 // imported by production code.

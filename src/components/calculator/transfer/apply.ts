@@ -1,4 +1,4 @@
-// The lazy transfer apply step (01-interfaces-integration.md section 14; c-transfer TR-71 to
+// The lazy transfer apply step (c-transfer TR-71 to
 // TR-73, AR-16): validates a payload with Zod, plans it against the current rows (plan.ts, and
 // plan-table.ts and plan-points.ts for tables and point tables) and commits it as one undo step,
 // then fits the view to added points none of which is visible (fit.ts, TR-39). No API method

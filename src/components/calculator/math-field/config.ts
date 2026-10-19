@@ -57,7 +57,7 @@ export function mathQuillOptions(): MathQuillOptions {
     restrictMismatchedBrackets: true,
     // T-10: CSS margins only; the LaTeX is unchanged
     enableDigitGrouping: true,
-    // AR-42, AR-14: 13's clipboard bridge and the adapter's own listeners own copy and paste
+    // AR-42, AR-14: the clipboard bridge and the adapter's own listeners own copy and paste
     disableCopyPaste: true,
     // T-7: * types \cdot and % types \%
     typingAsteriskWritesTimesSymbol: false,

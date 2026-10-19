@@ -1,4 +1,4 @@
-/* The settings popover (09 editor-ui Tasks 11 and 12; S-1, S-7). Colours come only from role
+/* The settings popover (S-1, S-7). Colours come only from role
    variables (TH-3).
    SettingsPopover sets top and right (or left) and max-height inline from its anchor and offset
    parent. AN-4's fade is at the end of this file. */

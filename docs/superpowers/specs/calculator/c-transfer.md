@@ -1,11 +1,11 @@
-# Calculator v2, part C: Transfer to Calculator
+# Calculator, part C: Transfer to Calculator
 
 Date: 2026-10-16 · Status: owner decisions of 2026-10-16 applied · Parent:
-[2026-10-16-karman-calculator-v2-design.md](../2026-10-16-karman-calculator-v2-design.md)
+[2026-10-16-calculator-design.md](../2026-10-16-calculator-design.md)
 
 This file specifies Transfer to Calculator from end to end: which question content gets a control
 and how each math segment, table and answer choice is classified; exactly what each transfer
-inserts in the v2 calculator, including x₁/y₁ naming, collisions, repeat transfers and `f(2)`; how
+inserts in the calculator, including x₁/y₁ naming, collisions, repeat transfers and `f(2)`; how
 the control is revealed and operated with a mouse, a keyboard, touch and assistive technology; the
 format chooser; what happens after a transfer; the data contract; phasing; and tests. It replaces
 §7 of the first draft and resolves review findings F3, F4, F5 and C4, using the repository code
@@ -23,7 +23,7 @@ cited inline as ground truth.
 - Format chooser: TR-60 to TR-63
 - After a transfer: TR-64 to TR-70
 - Data contract and code layout: TR-71 to TR-75
-- Release and v1 coexistence: TR-76 to TR-78
+- Release: TR-77 (TR-76 and TR-78 were removed on 2026-10-19 with the old calculator)
 - Corpus and bank checks: TR-79 to TR-80
 
 ## 1. Owner requirements (verbatim)
@@ -71,7 +71,7 @@ points from questions without student notation cleanup, using x1/y1-style table 
 | Numeric constant       | Built only from numbers, signs, `\frac`, `\sqrt`, `\pi`, parentheses, `\cdot`, `\div` and integer powers; contains no names |
 | Question function name | A name the question treats as a function (TR-19)                                                                            |
 | Point table            | A two-column calculator table that collects table-row transfers (TR-34)                                                     |
-| Canonical LaTeX        | The v2 printer's output for a row (PR-37); used only for the TR-35 duplicate check                                          |
+| Canonical LaTeX        | The printer's output for a row (PR-37); used only for the TR-35 duplicate check                                             |
 | Unused name            | Not defined by any row, not a table column header, and not referenced by any row in the calculator                          |
 | Fine and coarse reveal | Fine: revealed by a mouse, a hovering pen or the keyboard. Coarse: revealed by touch or a pen tap                           |
 
@@ -80,7 +80,7 @@ points from questions without student notation cleanup, using x1/y1-style table 
 - **TR-1** Controls come only from these sources in a math question: the math segments of `question_text` (inline `$…$` and `\(…\)`, display `$$…$$`, reviewed serialized function lines), the native question table (`figure_kind = "table"` with `figure_table_data`), each answer choice's `choice_text` taken whole, and each `choice_table_data`. (Phase 1; verified by unit test)
 - **TR-2** Nothing else gets a control: passages, hints, explanations, review screens, table captions and footers, individual table cells, prose outside math delimiters and the student's own answers render none. (Phase 1; verified by component test)
 - **TR-3** Figures never get a control and the classifier never reads their data: `image_url` images, `figure_kind` image, svg, graph, geometric, 3d_shape, other and chart, every `ChartKind` (scatterplot, line_graph, bar_chart, function_plot, boxplot, pie), `figure_chart_data` including function_plot expressions, and `figure_geometry_data`. (Phase 1; verified by unit test)
-- **TR-4** Controls render only where the calculator itself is available for the question under CalculatorScope's existing eligibility, the condition under which AR-10's useCalculator() returns a bridge (math question in a math section, quiz active and not read-only, `calculatorV2` on), so Reading and Writing questions render none. (Phase 1; verified by browser test)
+- **TR-4** Controls render only where the calculator itself is available for the question under CalculatorScope's existing eligibility, the condition under which AR-10's useCalculator() returns a bridge (math question in a math section, quiz active and not read-only), so Reading and Writing questions render none. (Phase 1; verified by browser test)
 - **TR-5** Default deny: content that fails any rule in sections 4 and 5, or whose type is not enabled in the current phase (TR-77), gets no control, and nothing is rendered in its place (no disabled control). (Phase 1; verified by unit test)
 - **TR-6** The classifier splits question text with the same function MathText uses, moved from `src/components/learn/MathText.tsx:43-118` into a shared framework-free module, so each rendered segment maps to exactly one classification result by index. (Phase 1; verified by unit test)
 
@@ -149,7 +149,7 @@ Table 4.2, allowed and excluded forms:
 - **TR-18** In a segment, `name(…)` is a function call only when name is a question function name; otherwise it is implicit multiplication, such as `a(x+3)`, and transfers unchanged. (Phase 1; verified by unit test)
 - **TR-19** A name is a question function name if a stem segment defines it as a function, or if the prose of the stem or answer choice places it directly after "function" or "functions" (for example "the function $f$" or "functions $f$ and $g$"). (Phase 1; verified by unit test)
 - **TR-20** A segment that calls a question function name gets a control only when exactly one stem segment exportably defines that name (transferred with it under TR-37) or when the call is the left side of a function coordinate, so `y=f(x)` with f undefined gets no control instead of becoming f times x. (Phase 1; verified by unit test)
-- **TR-21** Every output the classifier accepts must analyse in the v2 core with no row error, and where a fixture shows disagreement the classifier is narrowed, never the core loosened. (Phase 1; verified by unit test)
+- **TR-21** Every output the classifier accepts must analyse in the calculator core with no row error, and where a fixture shows disagreement the classifier is narrowed, never the core loosened. (Phase 1; verified by unit test)
 
 ### 4.4 Examples
 
@@ -215,7 +215,7 @@ Table 5.1, accepted shapes:
 - **TR-33** A transfer always targets the Graphing calculator; if Scientific is showing, the calculator switches to Graphing and keeps the Scientific state under SC- rules. (Phase 2; verified by component test)
 - **TR-34** Table-row transfers go to a point table keyed by source (one for plain coordinate pairs, one per function name), created on first use with two columns named by TR-25 and appended to while it exists with exactly two columns, otherwise replaced by a new point table; a question table never receives points and a point never goes into a question table. (Phase 3; verified by unit test)
 - **TR-35** Repeat transfers never duplicate: a row whose canonical LaTeX equals an existing row, a table from a source item already transferred with unchanged columns and values, and a pair equal to an existing row of the target point table are not inserted again; the existing content is focused and the status reports it (TR-67). (Phase 1; verified by unit test)
-- **TR-36** When a transferred function or variable definition (RC-) would redefine a name the calculator already defines differently, that definition and every reference to it in the same transfer are renamed to `b_{n}` (b the base letter, n the lowest integer ≥ 2 with `b_{n}` unused), existing rows are never modified, and the status reports the rename; this replaces v1's "x₁ or y₁ already belongs to your work" error (`src/lib/calculator/paste.ts:261-263`). (Phase 1; verified by unit test)
+- **TR-36** When a transferred function or variable definition (RC-) would redefine a name the calculator already defines differently, that definition and every reference to it in the same transfer are renamed to `b_{n}` (b the base letter, n the lowest integer ≥ 2 with `b_{n}` unused), existing rows are never modified, and the status reports the rename. (Phase 1; verified by unit test)
 - **TR-37** When a segment references a name defined by exactly one exportable stem segment, that definition is inserted first in the same transfer if the name is unused, and the calculator's own definition is used (nothing inserted) if it already defines the name; answer choices are never a dependency source. (Phase 1; verified by unit test)
 - **TR-38** Each transfer is a single undo step that removes everything it added (dependencies, renamed definitions and appended table rows included) without closing the calculator or changing the view. (Phase 1; verified by component test)
 - **TR-39** After a table, coordinate-pair or function-coordinate transfer, if none of the transferred points lies inside the current graph bounds, the view fits them using the D- zoom-fit rule; expression, equation, inequality and function transfers never change the view. (Phase 3; verified by browser test)
@@ -281,7 +281,7 @@ Table 10.1, chooser keyboard model:
 
 ## 11. After a transfer
 
-- **TR-64** A transfer opens the calculator if it is closed or minimized, using the AR- docked layout on the left of the quiz workspace with the workspace shifted right when the viewport is at least 1024 px wide and more than 500 px tall (owner confirmation 6), and the AR- full-screen layout otherwise (AR-21), for touch and mouse alike; this replaces v1's 1100 px threshold (`src/components/calculator/CalculatorScope.tsx:45`). (Phase 1; verified by browser test)
+- **TR-64** A transfer opens the calculator if it is closed or minimized, using the AR- docked layout on the left of the quiz workspace with the workspace shifted right when the viewport is at least 1024 px wide and more than 500 px tall (owner confirmation 6), and the AR- full-screen layout otherwise (AR-21), for touch and mouse alike. (Phase 1; verified by browser test)
 - **TR-65** If the calculator is already open, a floating or maximized window becomes docked when the viewport meets the TR-64 size rule (AR-21) and keeps its rows, a docked or full-screen calculator stays as it is, and every transfer in a question adds to the same calculator. (Phase 1; verified by browser test)
 - **TR-66** After a mouse or keyboard transfer, focus moves into the math field of the new row (or the row TR-35 matched) with the caret at the end; after a touch transfer that row becomes the active row and scrolls into view, the system keyboard does not open, and the keypad keeps its state (K-2). (Phase 1; verified by browser test)
 - **TR-67** One polite `role="status"` region, rendered by `CalculatorScope` as a sibling of the quiz workspace and the calculator window (outside the calculator's shadow root and never inside an inert or `aria-hidden` subtree, including in full screen), announces each result in plain text using table 11.1. (Phase 1; verified by component test)
@@ -307,7 +307,7 @@ Table 11.1, status messages:
 - **TR-71** The bridge (`transfer()`, AR-10) carries the `TransferPayload` below, declared in `src/lib/calculator-transfer/payload.ts` (AR-16), and the lazy `transfer/apply.ts` validates it with Zod and applies it through public API methods only; no API transfer method exists. (Phase 1; verified by unit test)
 - **TR-72** Names (TR-25, TR-36), duplicate checks (TR-35), dependency insertion (TR-37) and point-table choice (TR-34) are decided when the calculator applies the payload, never in the classifier. (Phase 1; verified by unit test)
 - **TR-73** Before inserting anything the calculator analyses the payload; if any row would error, or the transfer would take the list past the NM-42 row limit or a row past its character limit, nothing is inserted, the status reads "This can't be added to the calculator.", and the existing error reporter receives only the question id and the classifier rule ID. (Phase 1; verified by unit test)
-- **TR-74** The classifier and payload builders live in framework-free `src/lib/calculator-transfer/` and the control in `src/components/calculator/TransferControl.tsx`, rendered in the quiz page DOM rather than the calculator's shadow root. Neither imports MathQuill, the calculator React UI, plot, render, worker or `src/lib/calculator-v2/` (AR-1, AR-3). The apply step `src/components/calculator-v2/transfer/apply.ts` is imported only by the lazy calculator chunk, and the eager quiz-route cost stays inside AR-33's 10 KB gzip budget for all eager calculator code. (Phase 1; verified by perf test)
+- **TR-74** The classifier and payload builders live in framework-free `src/lib/calculator-transfer/` and the control in `src/components/calculator/TransferControl.tsx`, rendered in the quiz page DOM rather than the calculator's shadow root. Neither imports MathQuill, the calculator React UI, plot, render, worker or `src/lib/calculator/` (AR-1, AR-3). The apply step `src/components/calculator/transfer/apply.ts` is imported only by the lazy calculator chunk, and the eager quiz-route cost stays inside AR-33's 10 KB gzip budget for all eager calculator code. (Phase 1; verified by perf test)
 - **TR-75** Classification takes at most 10 ms per question under 4× CPU throttle, and press-to-visible-row takes at most 400 ms under the same throttle, measured from a press with the calculator chunk cached and the calculator not yet mounted in this question, so the budget includes mounting. (Phase 1; verified by perf test)
 
 ```ts
@@ -329,16 +329,14 @@ The first draft's `transferTarget` constructor option is dropped: the quiz host 
 (TR-64), and transfers enter only through the bridge and `transfer/apply.ts`. The paste path
 (T-12) reuses the TR-7 normalisation functions for KaTeX plain-text copies and Unicode operators.
 
-## 13. Release and v1 coexistence
+## 13. Release
 
-- **TR-76** With `calculatorV2` off, the seven call sites in six files (AR-11) render v1's `PasteAction` (Export to Karman, its options menu, Copy for Desmos) unchanged, and with it on they render only the Transfer control, through the AR-11 wrappers CalculatorSourceAction, CalculatorChoiceAction and CalculatorTableAction, which branch on bridge.version, plus AR-11's v2-only daily-question cluster instance. (Phase 1; verified by browser test)
 - **TR-77** Phase 1 enables expressions, equations, inequalities (compound ones included), functions, systems of equations, inequalities or both, and answer choices of those types; segments using `\sinh`, `\cosh` or `\tanh` are enabled from Phase 2, when FN-68 ships; Phase 3 enables tables (table answer choices included), coordinate pairs, function coordinates, the chooser, point tables, Evaluate and the view fit; a type not yet enabled gets no control. Until RC-16 and RC-18 ship in Phase 2, a segment gets no control if its rows would use θ, use r outside an RC-6 definition (`A=\pi r^{2}` stays enabled), or contain a point whose parts depend on a t that no row defines. RC-2 makes such rows `unsupported` errors in Phase 1, and TR-21 forbids a control the core would reject. From Phase 2 these segments follow TR-21 against RC-16 to RC-18 and RC-17. The TR-79 corpus has a Phase 1 blocked fixture for each. (Phase 1; verified by unit test)
-- **TR-78** The "Export to Karman" and "Copy for Desmos" labels, `PasteAction`, `src/lib/desmos-transfers.ts` (referenced only by its tests) and `src/lib/desmos-math.ts` are deleted with the v1 engine two weeks after a stable switch (R9). (Phase 4; verified by unit test)
 
 ## 14. Tests
 
 - **TR-79** The committed synthetic fixtures in `src/lib/calculator-transfer/__fixtures__/`, one file per required corpus category below and each under 700 lines, have at least one fixture per rule outcome, allowed and blocked, in every category below, and each fixture runs classifier → payload → apply on a headless calculator, asserting control presence, chooser options, the inserted TR-7 normalised LaTeX and the PR-44 tree it parses to (or the table columns), and zero analysis errors. (Phase 1; verified by unit test)
-- **TR-80** `npm run check:transfer-bank` runs the TR-79 assertions over every live math question with read-only database credentials and reports counts per type; its assertions are unit-tested on the TR-79 fixtures, and a run with zero classifier–core disagreements and zero exceptions is recorded in the Phase 3 plan before switch-over. (Phase 3; verified by unit test)
+- **TR-80** `npm run check:transfer-bank` runs the TR-79 assertions over every live math question with read-only database credentials and reports counts per type; its assertions are unit-tested on the TR-79 fixtures, and a run with zero classifier–core disagreements and zero exceptions is recorded in the Phase 3 plan. (Phase 3; verified by unit test)
 
 Required corpus categories (Phase 3 categories are added when TR-77 enables them):
 
@@ -368,26 +366,12 @@ Component and browser cases:
 | Contrast                                                     | TR-53 targets in all 12 skins                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 | Perf                                                         | TR-74 bundle cost and TR-75 timings                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 
-## 15. v1 behaviours replaced
-
-| v1 behaviour (evidence)                                                                      | v2 rule                                                  |
-| -------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
-| Collision error for x₁/y₁ (`src/lib/calculator/paste.ts:261-263`)                            | Lowest unused index (TR-25); renamed definitions (TR-36) |
-| One fixed-id imported table replaced on each paste (`paste.ts:8`, `CalculatorShell.tsx:351`) | A new table per transfer, plus point tables (TR-34)      |
-| Two-column tables only, headers ignored (`paste.ts:89-96`, `QuestionTable.tsx:124`)          | 1–8 variables, vertical or horizontal (TR-22, TR-23)     |
-| Global "Paste points as" select (`CalculatorShell.tsx:340-350`)                              | Per-item chooser (TR-60, TR-61)                          |
-| A control on every segment (`MathText.tsx:235,245`)                                          | Classifier with default deny (TR-5 to TR-21)             |
-| Large 60 px "Export to Karman" buttons (`docs/enhanced-quiz-engine.md` §4)                   | Small hover or tap control (TR-43 to TR-48)              |
-| Names `Paste {latex} into calculator` (`CalculatorSourceAction.tsx:117,141`)                 | Unique "Transfer to Calculator: …" names (TR-50)         |
-| Table-choice export rendered even when read-only (`TableChoiceOption.tsx:92`)                | Availability rule (TR-4)                                 |
-| Dock at ≥ 1100 px (`CalculatorScope.tsx:45`)                                                 | Dock at ≥ 1024 px wide and > 500 px tall (TR-64)         |
-
-## 16. Findings resolved
+## 15. Findings resolved
 
 | Finding                             | Resolved by                                                                |
 | ----------------------------------- | -------------------------------------------------------------------------- |
 | F3 output undefined                 | TR-22 to TR-39, TR-71, TR-72, TR-79, TR-80; `transferTarget` dropped (§12) |
-| F4 touch flow and chooser           | TR-41, TR-42, TR-54 to TR-63, TR-66, TR-77, TR-78                          |
+| F4 touch flow and chooser           | TR-41, TR-42, TR-54 to TR-63, TR-66, TR-77                                 |
 | F5 WCAG 1.4.13, 2.5.8 and names     | TR-44 to TR-51, TR-59, TR-60                                               |
 | C4 which inline math gets a control | TR-1 to TR-21, examples in §4.4, owner confirmations 1 and 2               |
 

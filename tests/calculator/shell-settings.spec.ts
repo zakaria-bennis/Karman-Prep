@@ -1,5 +1,5 @@
-// Calculator shell settings browser tests (10 Task 13): the assembled path from 09's Settings
-// controls through 07's engine, S-6's per-question angle default and NM-29's same-task generation
+// Calculator shell settings browser tests: the assembled path from the Settings
+// controls through the engine, S-6's per-question angle default and NM-29's same-task generation
 // switch, on the harness page /harness/calculator.html. Both are package gate checks.
 
 import { expect, test } from "@playwright/test";
@@ -32,7 +32,7 @@ test("NM-29 angle and complex switches post a new generation in the same task; 2
     info.project.name !== "calculator-chrome",
     "the 250 ms budget is set for the desktop CI profile"
   );
-  // ids 1 to 17: 04's NM-25 to NM-28, NM-18 and NM-19 cases; no imaginary unit, so no chips (07 Decision 5)
+  // ids 1 to 17: the NM-25 to NM-28, NM-18 and NM-19 cases; no imaginary unit, so no chips
   const values = [
     "\\sin(30)",
     "\\cos(60)",
@@ -52,7 +52,8 @@ test("NM-29 angle and complex switches post a new generation in the same task; 2
     "\\sqrt{-4}",
     "(-8)^{\\frac{1}{2}}",
   ];
-  // ids 18 to 20: 07's graph.ts cases graph-9, graph-1 and graph-10, the corpus curves that depend on the angle unit
+  // ids 18 to 20: the graph.ts cases graph-9, graph-1 and graph-10, the corpus curves that depend
+  // on the angle unit
   const curves = ["y=\\sin x", "y=\\tan x", "y=\\sin(100x)"];
   for (const l of [...values, ...curves]) {
     expect(

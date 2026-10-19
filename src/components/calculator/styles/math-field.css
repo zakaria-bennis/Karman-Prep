@@ -1,4 +1,4 @@
-/* Role colours for the vendored MathQuill rules (TH-3, OI-34); 05 Task 2 */
+/* Role colours for the vendored MathQuill rules (TH-3, OI-34); */
 .mq-editable-field .mq-cursor {
   border-left-color: var(--kc-text);
 }

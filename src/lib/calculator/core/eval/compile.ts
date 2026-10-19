@@ -1,4 +1,4 @@
-// The closure compiler and row evaluation (01-interfaces.md section 4; NM-9, NM-12, NM-21, NM-22,
+// The closure compiler and row evaluation (NM-9, NM-12, NM-21, NM-22,
 // NM-27, FN-17, G-6). Trees compile once into closures over `Value`; real-mode plotting functions
 // use compile-real.ts on plain numbers. Pure TypeScript: no DOM (AR-44), and no eval or Function.
 
@@ -84,7 +84,7 @@ const hasOwn = (vars: Readonly<Record<string, Value>>, name: string) =>
  * applyBuiltin, and `name(deg(A))` of a circular function with a real A through NM-26's exact
  * degree path (NM-27). A user call binds its parameters over the caller's `vars`, calls
  * `deadline.check()`, and is UNDEFINED past MAX_CALL_DEPTH nested calls or when the name has no
- * `scope.functions` entry (a head with an error). 04 decision 6: a `rel` node is n(1) when every
+ * `scope.functions` entry (a head with an error). : a `rel` node is n(1) when every
  * link holds between real operands, else UNDEFINED. NM-32, NM-33: operators and built-ins apply
  * element by element with scalar broadcast, truncating to the shorter list, and a user function
  * takes a list argument whole, so its body broadcasts. A list error (NM-34 to NM-36) makes the
@@ -159,7 +159,7 @@ function compileNode(node: Node, ctx: Context): Compiled {
     case "sim": // D-2: a regression row is fitted by the values pass, never compiled
       return constant(UNDEFINED);
     case "point": {
-      // 04 decision 7: an undefined or non-real coordinate is stored as NaN; G-3: list parts pair up.
+      // An undefined or non-real coordinate is stored as NaN; G-3: list parts pair up.
       const x = compileNode(node.x, ctx),
         y = compileNode(node.y, ctx);
       return (vars, deadline) => pointValue(x(vars, deadline), y(vars, deadline));
@@ -243,7 +243,7 @@ function builtinCall(name: string, argNodes: readonly Node[], ctx: Context): Com
 
 /**
  * Calls a user function: its parameters are bound over the caller's `vars`, the deadline is
- * checked (04 decision 5), and a call past MAX_CALL_DEPTH nested calls is UNDEFINED.
+ * checked, and a call past MAX_CALL_DEPTH nested calls is UNDEFINED.
  */
 function userCall(fn: CompiledFunction, args: readonly Compiled[], ctx: Context): Compiled {
   return (vars, deadline) => {
@@ -338,7 +338,7 @@ function definitionBody(row: RowAnalysis): Node | null {
 }
 
 /**
- * 04 decision 5: entries only for error-free, chip-free rows of kind `value`, `definition` and
+ * Entries only for error-free, chip-free rows of kind `value`, `definition` and
  * `point`; definitions first in `valueOrder` (filling the name-to-value map later rows read),
  * then value and point rows in list order. `deadlineFor(id)` is called once per evaluated row,
  * checked before the row and passed to its closure, which checks it at every user-function call.
@@ -409,7 +409,7 @@ export function evaluateRows(
 /**
  * The value of `latex` as a row after `context.rows` (tests and the 04 corpus runner; never UI
  * values, AR-51). A row with an error or chips is UNDEFINED; a value, definition or point row is
- * its evaluateRows entry; a constant relation is compileExpression of its tree (04 decision 6);
+ * its evaluateRows entry; a constant relation is compileExpression of its tree;
  * every other kind is UNDEFINED.
  */
 export function evaluateLatex(

@@ -1,10 +1,10 @@
-// The settings popover (01-interfaces-integration.md section 11; 09 Task 11): a dialog named
+// The settings popover: a dialog named
 // "Graph settings", anchored below its Settings control, listing the Phase 1 controls in S-1
 // order: Grid, Cartesian or Polar grid, Arrows, Axis numbers, Minor gridlines, each axis
 // (AxisSection), Complex mode (S-5) and Angle (S-6, announced per A11Y-2). Display size, Reverse
 // contrast and More options are later phases (S-3, S-4, S-8); there is no Braille control
 // (A11Y-15). Escape (rank "popover", KB-3) or a pointerdown outside closes it; while closing it
-// stays mounted and inert for its CSS closing duration (09 Decisions, "Motion lifecycles read CSS").
+// stays mounted and inert for its CSS closing duration.
 
 import { useContext, useEffect, useId, useLayoutEffect, useRef, useState, type JSX } from "react";
 import type { AngleMode } from "@/lib/calculator/core/api/types";

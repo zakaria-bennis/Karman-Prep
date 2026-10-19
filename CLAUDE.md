@@ -16,8 +16,6 @@ claim the site may state is in `src/lib/marketing/offer.ts`. Values marked
 - Branch names: `zakaria/<short-kebab>` (founder), `claude/*` and `codex/*` (agents).
 - `wrangler.toml` defines one Worker for karmanprep.com, so the last deploy wins.
   Coordinate deploys between parallel sessions.
-- Calculator v2 lives on `zakaria/calculator-v2`, which is only on the founder's
-  laptop. It has to be pushed to GitHub before other agents can work on it.
 
 ## Active workstreams
 
@@ -30,13 +28,20 @@ claim the site may state is in `src/lib/marketing/offer.ts`. Values marked
   replace it. Goals: about 10,000 questions, difficulty 1 to 7, skill tags, no
   duplicates. Import sessions must read `docs/ingestion/reviewed-import-rules.md`.
   Other sessions can skip it. Detail docs are in `docs/ingestion/`.
-- **Calculator.** The live (v1) calculator is described in
-  `karman-calculator/README.md`, `docs/karman-calculator-design.md` and
-  `docs/karman-calculator-verification.md`. V2 ships behind `CALCULATOR_V2_ROLLOUT`
-  (server secret, off by default) to admins first. The founder is reviewing it, so
-  do not change the calculator without being asked.
+- **Calculator.** One calculator: engine in `src/lib/calculator/`, quiz window and
+  UI in `src/components/calculator/`, browser tests in `tests/calculator/`. The
+  living spec is `docs/superpowers/specs/2026-10-16-calculator-design.md` plus
+  `docs/superpowers/specs/calculator/`; the active plan is
+  `docs/superpowers/plans/2026-10-19-calculator-phase2-desmos/`. The founder is
+  reviewing it, so do not change the calculator without being asked.
 
 ## Must-follow rules
+
+### Replace, don't accumulate
+
+- Replace, don't accumulate: when a feature is replaced or reworked, delete the old
+  version everywhere (code, tests, docs, flags, version-suffixed names) in the same
+  change.
 
 ### Release and deploy
 
@@ -80,7 +85,8 @@ claim the site may state is in `src/lib/marketing/offer.ts`. Values marked
   files, fonts, logo or name, and never fetch anything from desmos.com. Matching
   Desmos's visual design and behaviour with our own drawings and code is allowed
   (founder, 2026-10-18). Locally bundled mathjs and KaTeX are fine.
-- After editing `karman-calculator/lib/`, run `npm run calculator:build`. Automated
+- After editing calculator styles or theme sources, run `npm run calculator:build`
+  (`npm run calculator:check` must pass). Run `npm run test:calculator`. Automated
   mobile, keyboard and theme checks are required.
 
 ### Marketing honesty

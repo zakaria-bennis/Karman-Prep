@@ -1,4 +1,4 @@
-/* Transfer to Calculator control (14). Imported only by the lazily loaded TransferControl.tsx
+/* Transfer to Calculator control. Imported only by the lazily loaded TransferControl.tsx
    (D4), so it loads with the lazy Transfer chunk. A plain global sheet keyed on the DOM contract's
    attributes, not a CSS Module: Turbopack merged the module sheet into a CSS chunk the quiz routes
    load eagerly (AR-33), while a global sheet imported only by lazy code stays in its own lazy

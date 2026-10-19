@@ -63,7 +63,7 @@ export function degreeArgument(name: string, args: readonly Node[]): Node | null
 }
 
 /**
- * Compiles `tree` for real mode into `(x, y) => number` (01-interfaces.md section 4): NaN means
+ * Compiles `tree` for real mode into `(x, y) => number`: NaN means
  * undefined. A name resolves as a variable (x, y or a parameter of a call in progress), then `i`
  * as non-real in complex mode, then `scope.values` (NaN unless a number), then a zero-parameter
  * entry of `scope.functions` run with the same variables, else NaN. A call binds its parameters
@@ -306,7 +306,7 @@ function slotOf(name: string, ctx: Context): number {
   return slot;
 }
 
-/** NM-22, 04 decision 6: 1 when every operand is a number and every link holds, else NaN. */
+/** NM-22, : 1 when every operand is a number and every link holds, else NaN. */
 function relation(operandNodes: readonly Node[], ops: readonly RelOp[], ctx: Context): Fn {
   const operands = operandNodes.map((operand) => compile(operand, ctx)),
     links = ops.length;

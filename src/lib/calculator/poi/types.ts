@@ -1,4 +1,4 @@
-// Points of interest (01-interfaces.md section 1 of the parity plan). Pure TypeScript: no DOM.
+// Points of interest. Pure TypeScript: no DOM.
 
 /** Kinds in the order a merged point lists them (POI-7). */
 export const POI_KINDS = [

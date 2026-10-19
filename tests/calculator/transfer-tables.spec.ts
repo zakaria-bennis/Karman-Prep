@@ -1,4 +1,4 @@
-// Table and pair transfers in the browser (07 Task 18; c-transfer TR-22 to TR-25, TR-29, TR-34,
+// Table and pair transfers in the browser (c-transfer TR-22 to TR-25, TR-29, TR-34,
 // TR-39; b D-17, D-40): D-40's table from a fixture question lands as x₁, y₁ with every point
 // inside graphpaperBounds, and a pair transfers as Point and as Table row.
 import { expect, test, type Page } from "@playwright/test";

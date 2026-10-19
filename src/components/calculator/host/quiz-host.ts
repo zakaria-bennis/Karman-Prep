@@ -1,7 +1,7 @@
 import "katex/dist/katex.min.css";
-// Lazy quiz entry (01-interfaces-integration.md section 12): 11's loader imports this module and
+// Lazy quiz entry: the loader imports this module and
 // mounts calculator inside CalculatorWindow. AR-35 limits it to the public API, focusBoundary()
-// and the internal channels of 10 Decision 6 (reflow, engine, lastFocusedRow). The KaTeX stylesheet
+// and the internal channels of (reflow, engine, lastFocusedRow). The KaTeX stylesheet
 // is imported at document scope so its @font-face rules reach the shadow root (AR-39, AR-40).
 
 import { reportCalculatorError } from "@/components/calculator/report-error";
@@ -26,9 +26,9 @@ export interface QuizCalculatorHandle {
   focusOnOpen(trigger: OpenTrigger): void;
   focusBoundary(edge: "first" | "last"): void;
   setReducedMotion(value: boolean): void;
-  reflow(): void; // AR-41, called by 11's loader when fonts load
+  reflow(): void; // AR-41, called by the loader when fonts load
   destroy(): void;
-  applyTransfer(payload: unknown, trigger: TransferTrigger): TransferResult; // added by 12-transfer-core
+  applyTransfer(payload: unknown, trigger: TransferTrigger): TransferResult;
 }
 
 export function mountQuizCalculator(options: QuizMountOptions): QuizCalculatorHandle {

@@ -170,7 +170,7 @@ it("API-10 after a=2x the helper a(x+1) is a product, as the row is, and f(2) st
     const r = parseHelper(latex, outcome.analysis);
     return r.ok && toSExpr(r.tree);
   };
-  // the keys of analysis.functions hold "a" (a zero-parameter entry, 04 decision 2); userFunctionNames does not
+  // the keys of analysis.functions hold "a" (a zero-parameter entry); userFunctionNames does not
   expect(tree("a(x+1)")).toBe("(mul (id a) (add (id x) (num 1)))");
   expect(tree("f(2)")).toBe("(call f (num 2))");
   runHelper({ jobId: 1, latex: "a(x+1)" }, outcome, ctx);

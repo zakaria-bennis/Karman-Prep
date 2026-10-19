@@ -1,4 +1,4 @@
-// Worker protocol (01-interfaces-runtime.md section 7; spec AR-45). Messages are versioned plain
+// Worker protocol (spec AR-45). Messages are versioned plain
 // objects: no function, closure or SharedArrayBuffer crosses threads. Pure TypeScript: no DOM.
 
 import type { RowError } from "../core/analysis";

@@ -17,8 +17,8 @@ type Call = Extract<Node, { kind: "call" }>;
 
 /**
  * Classifies one parsed row: a definition by its head (RC-4, RC-5, RC-6), every other row by
- * `shapeOf`, with 04 decision 4's error order. A row with an error keeps its tree, `defines` and
- * `uses` and has no chips, hint, relation or graph (04 decision 3). The graph survives only on a
+ * `shapeOf`, with 's error order. A row with an error keeps its tree, `defines` and
+ * `uses` and has no chips, hint, relation or graph. The graph survives only on a
  * graphable row: no error, no chips and not hidden.
  */
 export function classifyRow(
@@ -79,7 +79,7 @@ export function classifyRow(
 }
 
 /**
- * 04 decision 4's errors after the head errors and before the shape errors, in order: a defining
+ * 's errors after the head errors and before the shape errors, in order: a defining
  * row of a duplicated name (RC-7); a row in a cycle (RC-8); the first call, in source order, with
  * a count its function does not take (RC-20); the first use of a duplicated name (RC-7), which is
  * never the row's own name, since a row defining a duplicated name stopped at the first check.
@@ -114,7 +114,7 @@ function conflictError(
 /**
  * RC-20: a built-in's counts from `BUILTIN_ARITY` (none for a variadic one), a user function's
  * parameter count from its error-free head. A call to a function whose head has an error, is
- * duplicated or is in a cycle is not checked (04 decision 4).
+ * duplicated or is in a cycle is not checked.
  */
 function expectedArity(name: string, resolution: Resolution): readonly number[] | null {
   if (isBuiltinName(name)) return BUILTIN_ARITY.get(name) ?? null;
@@ -177,7 +177,7 @@ function unboundT(tree: Node, resolution: Resolution): boolean {
 }
 
 /**
- * 04 decision 3: the span of the first use, locals aside, that is the name shown as `shown` or
+ * The span of the first use, locals aside, that is the name shown as `shown` or
  * reaches it through definitions (`A` in `y=A` after `A=\pi r^{2}`).
  */
 function firstUseShown(

@@ -1,8 +1,7 @@
-// jsdom-only DOM stubs for calculator component tests (01-interfaces-runtime.md section 8.1;
-// 00-index.md section 4, "Test layout"). jsdom has no ResizeObserver, no matchMedia and no canvas
-// backend, so installDomStubs() puts inert stand-ins in their place and returns a function that
-// puts the originals back. A stub ResizeObserver only records its targets: nothing resizes until a
-// test calls triggerResize. Never imported by production code.
+// jsdom-only DOM stubs for calculator component tests. jsdom has no ResizeObserver, no matchMedia
+// and no canvas backend, so installDomStubs() puts inert stand-ins in their place and returns a
+// function that puts the originals back. A stub ResizeObserver only records its targets: nothing
+// resizes until a test calls triggerResize. Never imported by production code.
 
 type Size = { width: number; height: number };
 

@@ -1,7 +1,7 @@
-// The calculator's Escape layers (KB-3; 01-interfaces-integration.md section 11). Every closable
+// The calculator's Escape layers (KB-3). Every closable
 // layer pushes itself while open. Escape closes one layer per press by rank, not push order: any
 // menu, popover or picker first, then the Functions panel, the ABC page and the keypad; only when
-// no layer is left does 10's App close the calculator itself.
+// no layer is left does the App close the calculator itself.
 
 import { createContext } from "react";
 

@@ -1,4 +1,4 @@
-// Public parser API (01-interfaces.md section 1). Parser modules import limits.ts, never this file,
+// Public parser API. Parser modules import limits.ts, never this file,
 // at run time.
 
 import { countNodes, type Node } from "./ast";

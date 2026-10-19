@@ -1,4 +1,4 @@
-// Docking on transfer, focus after a transfer, focus return and announcements (14 tasks 11 and 12).
+// Docking on transfer, focus after a transfer, focus return and announcements.
 import { expect, test } from "@playwright/test";
 import { BLOCK_SYSTEM } from "./fixture/harness/transfer-questions";
 import {

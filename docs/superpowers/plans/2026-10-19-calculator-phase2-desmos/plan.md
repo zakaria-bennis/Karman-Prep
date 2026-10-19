@@ -1,4 +1,4 @@
-# Phase 2 maths implementation plan for Calculator V2: lists, factorial and number theory, piecewise and restrictions
+# Phase 2 maths implementation plan for the calculator: lists, factorial and number theory, piecewise and restrictions
 
 ## What the code accepts today
 
@@ -8,7 +8,7 @@
 > rows and point lists, and Desmos-style row errors and tooltips (R-2, R-5). The "today" notes
 > below and tasks T6 to T8 describe the old base: re-scope them against main's `latex/lists.ts`,
 > `eval/lists.ts` and `analysis/lists.ts` before starting, and keep main's behaviour and wording.
-> T1 to T5 were carried over onto main.
+> T1 to T5 were carried over onto main. `plan-remaining.md` replaces tasks T6 to T15.
 
 - **Normalizer.** `\left\{` and `\right\}` become `\{` and `\}` (normalize.ts:178-188). The tokenizer reads them as commands named `{` and `}` (tokens.ts:163-168). Nothing rewrites `\ldots`.
 - **Ellipsis bug.** There is no ellipsis token. `1...10` currently tokenizes as `1.`, `.`, `.10`, because readDigits takes a single dot (tokens.ts:81, 134-153). Ranges cannot parse until this is fixed.
@@ -29,7 +29,7 @@
   - `piecewise {branches: {cond, value: Node|null}[], otherwise: Node|null}`
   - `fact` already exists.
 
-  S-expressions: `(list …)`, `(range A B)` or `(range A S B)`, `(index L I)`, and `(piecewise C1 V1 C2 V2 O)`, with `_` standing for a missing value.
+  S-expressions: `(list …)`, `(range A B)` or `(range A S B)`, `(index L I)`, and `(piecewise C1 A1 C2 A2 O)`, with `_` standing for a missing value.
 
 - **Restrictions are not a separate node.** Desmos treats `x\{0<x<2\}` as ordinary implicit multiplication by a piecewise that is 1 or undefined. So `y=x\{x>0\}` parses as `(rel = (id y) (mul (id x) (piecewise …)))`. Several restrictions chain as products, which gives PR-32's "and" for free.
   - **Departs from spec:** the `restrict` head in a-math §2.7 is never produced.
@@ -89,7 +89,7 @@ Each task is one commit and starts with a failing test. Test titles lead with th
   - ops.ts: `factV`.
   - compile.ts:111-112 and compile-real.ts:141 call gamma(x+1) instead of returning undefined.
   - The printer already handles `fact` (printer.ts:99).
-- **Reference values:** extend scripts/calculator-v2/reference-elementary.mjs with integer and half-integer factorials. Both have exact closed forms (half-integers through √π at 40 digits). Compare at 1e-12 using the `gamma` tolerance class in tolerance.ts.
+- **Reference values:** extend scripts/calculator/reference-elementary.mjs with integer and half-integer factorials. Both have exact closed forms (half-integers through √π at 40 digits). Compare at 1e-12 using the `gamma` tolerance class in tolerance.ts.
 - **Corpus:**
   - Move parse-errors.ts cases 11-15 into parse-operators.ts as trees: `(fact (pow (id x) (num 2)))`, `(mul (num 2) (fact (id x)))`, `(neg (fact (num 3)))`.
   - Display cases: 3!=6, −3!=−6, 3!^{2}=36, 0.5!=0.886226925453, 171! undefined, (−1)! undefined.
@@ -233,7 +233,7 @@ Each task is one commit and starts with a failing test. Test titles lead with th
 ### T15. Keystroke corpus (PR-36)
 
 - **cases/keys.ts:** add keystrokes for `[`,`1`,`.`,`.`,`.`,`5`, for `{`, and for `!`.
-- **Check in tests/calculator/v2/math-field.spec.ts** what MathQuill actually emits (`...` or `\ldots`, `\left\{`).
+- **Check in tests/calculator/math-field.spec.ts** what MathQuill actually emits (`...` or `\ldots`, `\left\{`).
 
 ## Where the spec text differs from Desmos (follow Desmos)
 
@@ -242,7 +242,7 @@ Each task is one commit and starts with a failing test. Test titles lead with th
 3. **New names:** `length` and `abs` are Desmos names that are not in PR-12's list.
 4. **Spec gaps that Desmos fills:**
    - **Open slice:** `L[2...]` is not in PR-34.
-   - **Point arithmetic:** Desmos supports it. V2 gets only point × scalar here.
+   - **Point arithmetic:** Desmos supports it. Karman gets only point × scalar here.
    - **Point definitions:** Desmos graphs definition rows that are points (`A=(1,2)`, `A=[(1,2)]`), which RC-6 forbids. This is a follow-up.
 5. **Unconfirmed defaults. Capture these in Desmos before freezing the tests:**
    - non-integer index (NM-30)
@@ -266,17 +266,17 @@ Each task is one commit and starts with a failing test. Test titles lead with th
 
 ### Critical Files for Implementation
 
-- src/lib/calculator-v2/core/latex/atoms.ts
-- src/lib/calculator-v2/core/eval/compile.ts
-- src/lib/calculator-v2/core/eval/compile-real.ts
-- src/lib/calculator-v2/core/lib/builtins.ts
-- src/lib/calculator-v2/plot/from-analysis.ts
+- src/lib/calculator/core/latex/atoms.ts
+- src/lib/calculator/core/eval/compile.ts
+- src/lib/calculator/core/eval/compile-real.ts
+- src/lib/calculator/core/lib/builtins.ts
+- src/lib/calculator/plot/from-analysis.ts
 
 ---
 
 ## Desmos facts captured 2026-10-19 (these OVERRIDE the "to confirm" items above)
 
-Reference values: docs/superpowers/plans/2026-10-19-calculator-v2-phase2-desmos/desmos-reference-values.json (observed in desmos.com/calculator). Highlights:
+Reference values: docs/superpowers/plans/2026-10-19-calculator-phase2-desmos/desmos-reference-values.json (observed in desmos.com/calculator). Highlights:
 
 - round: halves go toward +infinity (JavaScript Math.round semantics): round(2.5)=3, round(-2.5)=-2. round(x,n) = Math.round(x\*10^n)/10^n, n may be negative (round(1234,-2)=1200, round(2.5,-1)=0); non-integer n (round(2.5,1.5)) returned 2.5 — treat n by rounding/flooring so that case holds.
 - mod(a,b) takes the sign of b: mod(-7,3)=2, mod(7,-3)=-2, mod(5,0)=undefined.

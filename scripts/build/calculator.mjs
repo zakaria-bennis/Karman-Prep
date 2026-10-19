@@ -1,4 +1,4 @@
-// Calculator build (01-interfaces-integration.md section 12, AR-36).
+// Calculator build (AR-36).
 //
 //   node scripts/build/calculator.mjs --styles           writes styles/generated.ts
 //   node scripts/build/calculator.mjs --styles --check   exits 1 when generated.ts is out of date

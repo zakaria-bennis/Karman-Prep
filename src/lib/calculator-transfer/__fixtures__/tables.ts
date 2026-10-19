@@ -157,7 +157,7 @@ export const TABLE_FIXTURES: readonly TableFixture[] = [
     ],
     expect: { control: false, rule: "TR-24" },
   },
-  // Section 14's extra cases.
+  // Extra cases.
   {
     id: id(),
     rules: ["TR-24"],

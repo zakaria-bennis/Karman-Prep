@@ -1,4 +1,4 @@
-// Parse-tree types and tree helpers (01-interfaces.md section 1). index.ts re-exports the helpers.
+// Parse-tree types and tree helpers. index.ts re-exports the helpers.
 
 export interface SourceSpan {
   start: number;

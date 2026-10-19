@@ -1,10 +1,10 @@
-// The calculator's React root inside the shadow root (01-interfaces-integration.md section 12).
+// The calculator's React root inside the shadow root.
 // App provides the five contexts every calculator component reads (engine, focus, Escape layers,
 // announcer, skin) and renders the calculator region. The skin and the layout come from the shell
 // store, so a TH-15 or AR-29 change re-renders without touching the engine. App holds the
 // settings popover's anchor and composes CalculatorLayout from the engine snapshot and the shell
 // store; 13 wraps it in CalculatorChrome, which portals into chromeSlot. App installs the shell
-// keyboard (KB-3, KB-7) on the layout's root: shortcuts go through 09's row actions, so they insert,
+// keyboard (KB-3, KB-7) on the layout's root: shortcuts go through the row actions, so they insert,
 // focus and announce exactly as the toolbar does (A11Y-2, NM-42). Every keypad change goes through
 // the K-2 policy (reduceKeypad). The quiz setting reaches the stylesheet as the host's
 // data-reduced-motion, and either it or the OS preference makes the graph's motion instant (AN-13).
@@ -35,11 +35,11 @@ import { insertRowBelow, performRedo, performUndo } from "./list/row-actions";
 export interface AppProps {
   engine: CalculatorEngine;
   host: HTMLElement;
-  store: ShellStore; // 13's CalculatorChrome reads ShellState.pointer
+  store: ShellStore; // the CalculatorChrome reads ShellState.pointer
   focus: FocusController;
   escape: EscapeStack;
   announcer: Announcer;
-  chromeSlot: HTMLElement | null; // HostHooks.chromeSlot; read by 13's portal
+  chromeSlot: HTMLElement | null; // HostHooks.chromeSlot; read by the portal
 }
 
 /**
@@ -121,7 +121,7 @@ export function App(props: AppProps): JSX.Element {
       case "redo":
         return performRedo(engine, announcer);
       case "toggle-keypad":
-        return toggleKeypad(); // a student change (10 Decision 3)
+        return toggleKeypad(); // a student change
       case "add-row-end":
         insertRowBelow(engine, focus, announcer, null, "focus"); // NM-42 on a refusal
         return;

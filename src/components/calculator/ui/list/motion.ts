@@ -1,4 +1,4 @@
-// Motion lifecycles read their timing from CSS (09 Decisions, "Motion lifecycles read CSS"): a row
+// Motion lifecycles read their timing from CSS: a row
 // exit, a closing panel or popover and Collapse list wait as long as the element's own computed
 // transition-duration, so reduced motion (every duration 0ms, AN-13) finishes at once. Component
 // tests provide a fixed duration through MotionContext instead.

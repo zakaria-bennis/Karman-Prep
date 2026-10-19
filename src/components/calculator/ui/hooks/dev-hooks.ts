@@ -1,5 +1,5 @@
-// Development-only test hook (01-interfaces-runtime.md section 8.1): browser specs read the mounted
-// engine through globalThis.__calculatorHarness. Called by harness-kit and by 10's quiz host.
+// Development-only test hook: browser specs read the mounted
+// engine through globalThis.__calculatorHarness. Called by harness-kit and by the quiz host.
 // Production builds replace process.env.NODE_ENV, so bundlers fold exposeEngineForTests to a
 // function that sets nothing.
 

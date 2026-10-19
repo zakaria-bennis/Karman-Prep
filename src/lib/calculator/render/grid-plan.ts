@@ -1,6 +1,6 @@
 // The grid plan (G-5): gridlines, polar rings and spokes, axes, arrows and tick labels for one view,
-// in CSS px, so the renderer only paints. Ticks come from 06's axisTicks (NM-8) unless a custom
-// axis step (S-1, S-7) is sparse enough; labels are formatAxisLabel(value, step) (04). Pure: no DOM.
+// in CSS px, so the renderer only paints. Ticks come from axisTicks (NM-8) unless a custom
+// axis step (S-1, S-7) is sparse enough; labels are formatAxisLabel(value, step). Pure: no DOM.
 
 import type { CalculatorSettings } from "../core/api/types";
 import { formatAxisLabel } from "../core/eval/format";

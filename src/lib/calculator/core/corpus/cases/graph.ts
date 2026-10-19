@@ -1,4 +1,4 @@
-// Row inputs for the G- golden graph cases (01-interfaces.md section 2.1, owner 07-engine-worker).
+// Row inputs for the G- golden graph cases.
 // No expected fields: plot/golden.test.ts runs each input through analyzeRows, evaluateRows,
 // plotInputFor and plotRow and holds one check per case id (AR-44). The case row comes after its
 // context `rows`, in order.

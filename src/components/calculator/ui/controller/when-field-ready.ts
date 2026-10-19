@@ -1,6 +1,6 @@
-// API-12 and 13's paste reveal: run something on a row's MathField as soon as it is mounted. A
+// API-12 and the paste reveal: run something on a row's MathField as soon as it is mounted. A
 // row added by the engine mounts its field on a later React commit, so the call waits up to
-// FIELD_WAIT_FRAMES frames for it (01-interfaces-integration.md section 12).
+// FIELD_WAIT_FRAMES frames for it.
 
 import type { MathField } from "../../math-field/MathField";
 import type { FocusController } from "../focus/focus-controller";

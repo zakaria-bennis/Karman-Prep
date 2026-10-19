@@ -1,4 +1,4 @@
-// Test-only MediaQuerySource (10 Task 2). Each query keeps a `matches` value and a set of
+// Test-only MediaQuerySource. Each query keeps a `matches` value and a set of
 // `change` listeners; `set` fires `change` only when the value changes, and `listeners()` counts
 // the listeners still attached across every query, so a test can check that `dispose` removed
 // them. Never imported by production code.

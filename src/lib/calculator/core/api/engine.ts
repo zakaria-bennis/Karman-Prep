@@ -1,4 +1,4 @@
-// The headless calculator engine (01-interfaces-runtime.md section 8; 07 Decision 14): the public
+// The headless calculator engine: the public
 // API that KarmanCalculator forwards and the internal surface the React UI drives, as a facade over
 // document.ts, state.ts, inbox.ts, results.ts, observers.ts, helper-expression.ts (API-10) and
 // default-deps.ts (createEngine's defaults). No DOM, no React (AR-44).

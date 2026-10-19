@@ -1,4 +1,4 @@
-// Calculator shell motion and theme browser tests (10 Tasks 11 and 12): the motion limits of
+// Calculator shell motion and theme browser tests: the motion limits of
 // AN-14, the quiz and OS reduced-motion paths of AN-13 and AR-38, the live theme of TH-15 and the
 // focus rings of TH-14 (with OI-31's inset row ring), on the harness page /harness/calculator.html.
 

@@ -1,4 +1,4 @@
-// The 12-skin contrast suite: measures the generated table against the 10.3 role targets (TH-1).
+// The contrast suite: measures the generated table against the 10.3 role targets (TH-1).
 // Curves and shading follow Desmos (F-A1), so TH-7, TH-8 and TH-11 are no longer checked here.
 import { expect, it } from "vitest";
 import { compositeOver, compositeShading, contrastRatio } from "./contrast";

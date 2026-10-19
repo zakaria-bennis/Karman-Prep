@@ -1,10 +1,10 @@
-// A11Y-2's row announcements (09 Task 5; Decisions "Announcements are engine-driven and user-only"
+// A11Y-2's row announcements (engine-driven and user-only, for the announced row)
 // and "Announced row"): the focused row's value VALUE_ANNOUNCE_DELAY_MS after the last edit, and a
 // row's error once when it appears or changes. Only user-initiated `change` events that change the
 // rows (ids and latex in list order) start the idle timer; API and transfer changes are recorded
 // silently (A11Y-11), and pans, zooms, settings and worker results never re-announce anything.
 //
-// Timing: 05's announcer writes a call's text ANNOUNCE_WRITE_MS after it at the soonest, so the idle
+// Timing: the announcer writes a call's text ANNOUNCE_WRITE_MS after it at the soonest, so the idle
 // timer runs delayMs - ANNOUNCE_WRITE_MS (700 ms by default) and every call asks for exactly
 // ANNOUNCE_WRITE_MS, which puts the write at delayMs (750 ms). Each call carries a per-row key, so
 // a later rows change cancels a write still pending and no value is spoken after a newer edit.
@@ -24,7 +24,7 @@ function spoken(row: RowView, number: number): string | null {
 }
 
 export const VALUE_ANNOUNCE_DELAY_MS = 750;
-/** 05's announcer writes this long after a call (its minimum); the idle timer runs the rest. */
+/** the announcer writes this long after a call (its minimum); the idle timer runs the rest. */
 const ANNOUNCE_WRITE_MS = 50;
 
 export interface AnnouncementTimers {

@@ -1,4 +1,4 @@
-# Phase 2 maths plan for Calculator V2, version 2: what is left after main's lists work
+# Phase 2 maths plan for the calculator: what is left after main's lists work
 
 Written 2026-10-19 on `claude/cv2-parity-main` (cut from `origin/main` at 9bf4834, plus T1 to T5,
 F-A1 and the Desmos review fixes up to 84fd1c4). It replaces tasks T6 to T15 of `plan.md`. T1 to T5
@@ -53,7 +53,7 @@ features, because the new features build on them (indexing a range, piecewise ov
 
 ### M1. Range element count rounds, as in Desmos (NM-36) — confirmed by capture
 
-| Case           | Desmos                 | V2 now             |
+| Case           | Desmos                 | Karman now         |
 | -------------- | ---------------------- | ------------------ |
 | `[1...3.5]`    | `[1, 2, 3, 4]`         | `[1, 2, 3]`        |
 | `[1...3.6]`    | `[1, 2, 3, 4]`         | `[1, 2, 3]`        |
@@ -76,7 +76,7 @@ features, because the new features build on them (indexing a range, piecewise ov
 
 - **Desmos:** `\log(1,2)` reads "Function 'log' requires only 1 argument. For example, try typing:
   log(x)." (the same text as the captured `\log(1,2,3)`). A base is written only as a subscript.
-- **V2:** `\log(1,2)` is a value row that evaluates log base 2 of 1, because `latex/calls.ts`
+- **Karman:** `\log(1,2)` is a value row that evaluates log base 2 of 1, because `latex/calls.ts`
   builds `\log_{b}(x)` and `\log(x,b)` as the same call.
 - **Files:** `latex/calls.ts` (only the subscript form appends the base argument; mark it, for
   example by building the subscript base as a separate field or a distinct call name used only
@@ -89,14 +89,14 @@ features, because the new features build on them (indexing a range, piecewise ov
 ### M3. Colour counter for new rows (TH-10, F-A1) — recorded in f-desmos-parity.md, not maths
 
 - **Desmos:** a running colour counter; a row inserted after the first of red, blue, green is
-  purple. **V2:** colour from the row's position, so it repeats blue.
+  purple. **Karman:** colour from the row's position, so it repeats blue.
 - The expected failure "F-A1 a row inserted mid-list continues Desmos's colour cycle" in
   `core/api/engine.rows.test.ts` pins it. Not a maths task: listed here so the list of known gaps
   is complete; schedule it with the UI work, not in this plan's order.
 
 ### M4. Point arithmetic (NM-32, plan.md design note 4) — capture first
 
-- **V2 now:** `2(1,2)`, `(1,2)\cdot2` and `(1,2)+(3,4)` are value rows that evaluate to undefined.
+- **Karman now:** `2(1,2)`, `(1,2)\cdot2` and `(1,2)+(3,4)` are value rows that evaluate to undefined.
 - **Desmos (not in the captured file):** point times scalar and point plus point give points,
   `(2, 4)` and `(4, 6)`. Capture `2(1,2)`, `(1,2)\cdot2`, `(1,2)+(3,4)`, `(1,2)-(3,4)`,
   `(1,2)/2`, `(1,2)\cdot(3,4)` and `[(1,2),(3,4)]+(1,1)` and add them to the JSON before coding.
@@ -107,7 +107,7 @@ features, because the new features build on them (indexing a range, piecewise ov
 
 ### M5. Point-valued names graph (G-2, RC-6, plan.md design note 4) — capture first
 
-- **V2 now:** `A=(1,2)` and `P=[(1,2),(3,4)]` are definitions and draw nothing; a later row `P` is
+- **Karman now:** `A=(1,2)` and `P=[(1,2),(3,4)]` are definitions and draw nothing; a later row `P` is
   kind `value` and draws nothing.
 - **Desmos (from plan.md's notes, not in the captured file):** both definitions draw their points,
   and so does a bare `P`. Capture these three rows before coding; RC-6 forbids graphing
@@ -117,23 +117,23 @@ features, because the new features build on them (indexing a range, piecewise ov
 - **Tests:** `core/corpus/cases/classify-rows.ts`, `plot/from-analysis.test.ts`,
   `core/api/engine.lists.test.ts` (geometry for `A=(1,2)`).
 
-### M6. V2 wording that has no Desmos capture yet
+### M6. Karman wording that has no Desmos capture yet
 
 Not known to be wrong, but chosen without a capture. Capture each and match it, or record that it
 matches, before the lists work is called Desmos-exact:
 
-- `[1,1,...,5]`: V2 "A range can't step by 0. Make its first two values different."
-- `[(1,2),3]`: V2 "A list can't mix numbers and points."
+- `[1,1,...,5]`: Karman "A range can't step by 0. Make its first two values different."
+- `[(1,2),3]`: Karman "A list can't mix numbers and points."
 - 30 elements then `…` in the row value (NM-38).
-- An empty range with the step pointing away from the bound (`[1,2,...,0]`): V2 `[]`.
+- An empty range with the step pointing away from the bound (`[1,2,...,0]`): Karman `[]`.
 
 ## Remaining tasks, in order
 
 Each task is one commit and starts with a failing test, with test titles leading with the
 requirement ID. Gates for every commit: `npx tsc --noEmit`, `npm run lint`, `npx prettier --write`
 on the changed files then `npm run format:check`,
-`npx vitest run src/lib/calculator-v2 src/components/calculator-v2`, `npm run check:sizes`, and
-`npx tsx scripts/calculator-v2/generate-skin-colors.ts --check`. File sizes today: `compile.ts` 444
+`npx vitest run src/lib/calculator src/components/calculator`, `npm run check:sizes`, and
+`npx tsx scripts/calculator/generate-skin-colors.ts --check`. File sizes today: `compile.ts` 444
 lines, `atoms.ts` 425, `explicit.ts` 457; new behaviour goes in sibling modules, and no file passes
 about 700 lines.
 
@@ -261,13 +261,13 @@ otherwise}` with `sourceChildren`, `toSExpr` and printer (`\left\{x>0:x,-x\right
 
 - `core/api/engine.lists.test.ts`: a list-of-points row reports `{ type: "other" }` in
   `expressionAnalysis`, and an indexed row (`L[2]`) reports a number.
-- `src/components/calculator-v2/ui/list/row-results.test.tsx`: replace the hand-built list with
+- `src/components/calculator/ui/list/row-results.test.tsx`: replace the hand-built list with
   an engine-evaluated `[1...40]` row now that list syntax exists, keeping the `…` after 30 check.
 
 ### 11. Keystroke corpus (PR-36; T15 remainder)
 
 - `core/corpus/cases/keys.ts`: `3!` typed as `["3", "!"]` gives `3!` and `(fact (num 3))`; the
-  piecewise case if task 7 did not add it. Check in `tests/calculator/v2/math-field.spec.ts` what
+  piecewise case if task 7 did not add it. Check in `tests/calculator/math-field.spec.ts` what
   MathQuill emits for `!` and `:` inside braces.
 
 ### 12. Point arithmetic and point-valued names (M4, M5)

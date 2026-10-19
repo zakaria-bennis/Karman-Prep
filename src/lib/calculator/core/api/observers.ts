@@ -1,4 +1,4 @@
-// API-8 observers and the engine's change notification (07 Decisions 10, 13 and 14): callbacks run
+// API-8 observers and the engine's change notification: callbacks run
 // after the change commits, at most once per animation frame per name. Package-internal.
 
 import type { PixelSize, Viewport } from "../../plot/viewport";

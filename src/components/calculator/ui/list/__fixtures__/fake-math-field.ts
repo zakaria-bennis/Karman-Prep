@@ -1,4 +1,4 @@
-// Recording stand-ins for the MathField adapter (01-interfaces-integration.md section 11; 09 Task 1
+// Recording stand-ins for the MathField adapter (
 // and Decisions, "Fake MathFields in jsdom"). Component tests inject them through
 // MathFieldFactoryContext, so an adapter call is asserted call by call; real MathQuill behaviour is
 // asserted in the browser specs. Test-only: every import here is a type, so node tests that load
@@ -10,7 +10,7 @@ import type { MathField, MathFieldOptions } from "../../../math-field/MathField"
 import type { MathFieldFactory } from "../math-field-factory";
 
 export interface FakeCall {
-  // the only recorded methods (09 Task 1 Step 3): latex is latex(value), never a read; select,
+  // the only recorded methods: latex is latex(value), never a read; select,
   // clearSelection, reflow, destroy, speechText and selectedLatex run unrecorded
   method:
     | "focus"

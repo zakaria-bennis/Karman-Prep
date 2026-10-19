@@ -1,4 +1,4 @@
-// Golden corpus case shape (PR-40; 01-interfaces.md section 2). Relative imports only.
+// Golden corpus case shape (PR-40). Relative imports only.
 
 import type { ParseErrorCode } from "../latex/errors";
 
@@ -48,7 +48,7 @@ export type CorpusInput =
   | { latex: string } // typed, API and plain paste dialect
   | { keys: string[] } // MathField keystrokes, e.g. ["y","=","x","^","2","Right","+","3","/","4"]
   | { question: string; context?: "math" | "cell" | "coordinate" } // question dialect (TR-7)
-  | { pastedQuestionMath: string }; // OI-6: rendered question math pasted (13-paste-standalone)
+  | { pastedQuestionMath: string }; // OI-6: rendered question math pasted
 export interface CorpusCase {
   id: string; // "<case-file>-<n>", unique across the corpus
   rules: string[]; // spec IDs this case checks
@@ -57,7 +57,7 @@ export interface CorpusCase {
   settings?: CorpusSettings;
   tree?: string; // toSExpr
   latex?: string; // printLatex output, MathField latex() for keys, or the toPasteLatex output
-  // written to MathQuill for pastedQuestionMath cases (13)
+  // written to MathQuill for pastedQuestionMath cases
   kind?: RowKind;
   chips?: string[]; // RC-10 names in order
   display?: string; // formatValue text

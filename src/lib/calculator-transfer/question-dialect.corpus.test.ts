@@ -1,4 +1,4 @@
-// Golden corpus runner for 12-transfer-core (01-interfaces.md section 2.2): every expected field of
+// Golden corpus runner for the transfer core: every expected field of
 // every question-dialect case, compared on the TR-7 output (normalizeQuestionMath).
 
 import { describe, expect, it } from "vitest";

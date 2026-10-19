@@ -1,10 +1,10 @@
 // Desmos parity (appendix F decision 2): every value captured from desmos.com/calculator on
 // 2026-10-19 for a built-in or list notation the calculator has shipped, evaluated by its engine. A
-// whole-number value must match exactly, any other within FN-11's relative 1e-12, null (undefined
+// whole-number value must match exactly, any other within FN-the relative 1e-12, null (undefined
 // in Desmos) must be undefined, and a list must match element by element. Each family states how
 // many captured values it covers, so none is skipped silently.
 import { expect, it } from "vitest";
-import captured from "../../../../../docs/superpowers/plans/2026-10-19-calculator-v2-phase2-desmos/desmos-reference-values.json";
+import captured from "../../../../../docs/superpowers/plans/2026-10-19-calculator-phase2-desmos/desmos-reference-values.json";
 import { analyzeRows } from "../analysis";
 import { evaluateLatex } from "../eval/compile";
 import type { Value } from "../eval/values";

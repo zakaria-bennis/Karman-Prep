@@ -1,5 +1,5 @@
-// The engine's row list, id counter and undo history (07 Decisions 6 and 7). Package-internal,
-// except INITIAL_GRAPH_SIZE, which 08's nextViewportForSize reads. History entries hold the row list
+// The engine's row list, id counter and undo history. Package-internal,
+// except INITIAL_GRAPH_SIZE, which the nextViewportForSize reads. History entries hold the row list
 // only: settings and the viewport are never undo steps (KB-5). No method mutates a row in place;
 // every list and row the document holds is frozen.
 

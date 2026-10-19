@@ -1,4 +1,4 @@
-// Worker harness page (07 Task 14), /harness/worker.html: window.__workerHarness.start(scenario) builds
+// Worker harness page, /harness/worker.html: window.__workerHarness.start(scenario) builds
 // one calculator engine for an AR-43, AR-49 or AR-50 scenario and sets its view to 800×600 at
 // dpr 1. worker.spec.ts drives the engine through globalThis.__calculatorHarness and reads, through
 // log(), every message the tapped backend delivered, with its performance.now() time.

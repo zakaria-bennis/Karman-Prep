@@ -1,4 +1,4 @@
-// MathField harness page (05 Task 8): `?fields=<n, default 2>&maxLength=<n, default
+// MathField harness page: `?fields=<n, default 2>&maxLength=<n, default
 // MAX_ROW_CHARACTERS>` mounts that many MathFields inside an open shadow root and records every
 // callback and every non-modifier keydown on window.__mathFieldHarness. The page uses no React.
 import "katex/dist/katex.min.css";

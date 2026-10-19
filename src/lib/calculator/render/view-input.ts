@@ -1,5 +1,5 @@
 // Graph view input math (G-5, KB-8): keys, drag, pinch, wheel and resizes turned into viewports.
-// Pure functions over 06's viewport arithmetic; GraphPanel applies the results through the engine.
+// Pure functions over the viewport arithmetic; GraphPanel applies the results through the engine.
 
 import { INITIAL_GRAPH_SIZE } from "../core/api/document";
 import {

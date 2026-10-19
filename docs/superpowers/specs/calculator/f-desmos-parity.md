@@ -1,4 +1,4 @@
-# Calculator v2 appendix F: Desmos parity findings and owner decisions (2026-10-18)
+# Calculator appendix F: Desmos parity findings and owner decisions (2026-10-18)
 
 This appendix records a second, deeper behaviour study of the Desmos graphing calculator
 (desmos.com/calculator, desktop 1440x900 and phone 390x844) made on 2026-10-17 and 2026-10-18 with
@@ -41,7 +41,7 @@ conflict.
 
 ## Parity increment scope
 
-The parity plan (`docs/superpowers/plans/2026-10-18-calculator-v2-parity/`) delivers these IDs
+The parity increment (finished 2026-10-18) delivered these IDs
 ahead of their phases, with the wording this appendix's findings give them; their phase tags read
 "Parity". Points of interest: POI-1 to POI-14, POI-16 to POI-20, A11Y-9, KB-14, K-9. Add item and
 tables: S-2, S-10 to S-13, D-1, D-4 to D-13, D-16, D-19, D-20, D-41, D-42. Regression: PR-30, D-2,
@@ -86,32 +86,32 @@ are both gone.
   order with no cap.
 - **Explicit colours.** An explicit `#rrggbb` row colour is used as given, inverted on dark skins,
   and is never adjusted for contrast. The TH-11 "Colour adjusted for contrast" note is removed.
-- **Source.** The values live in `src/lib/calculator-v2/theme/desmos-palette.ts`.
+- **Source.** The values live in `src/lib/calculator/theme/desmos-palette.ts`.
 
 ### Not yet matched
 
 These Desmos behaviours are known and recorded but not yet built:
 
 - **Colour counter.** Desmos keeps a running colour counter, so a new row continues the cycle
-  wherever the last one left off. V2 still picks the colour from the row's position, so a row
+  wherever the last one left off. The calculator still picks the colour from the row's position, so a row
   inserted after the first of red, blue, green repeats blue where Desmos gives purple. The
   expected-failure test "F-A1 a row inserted mid-list continues Desmos's colour cycle" in
   `engine.rows.test.ts` pins the gap; building the counter makes it pass, and its `.fails` must
   then be removed.
 - **Range length (NM-36).** Desmos rounds a range's element count, n = round((c − a)/s) + 1, so
-  `[1...3.5]` is `[1, 2, 3, 4]` and `[1,3,...,8]` is `[1, 3, 5, 7, 9]`. V2 floors it and stops at
+  `[1...3.5]` is `[1, 2, 3, 4]` and `[1,3,...,8]` is `[1, 3, 5, 7, 9]`. The calculator floors it and stops at
   the bound. The captured cases are expected failures in `desmos.reference.test.ts`
   (`RANGE_COUNT_GAP`); fixing NM-36 makes them pass, and that list must then be deleted.
 - **`log` with two arguments.** In Desmos `log(1,2)` is an arity error ("requires only 1
-  argument"), because a base is written only as a subscript. V2 parses `\log_{b}(x)` and
+  argument"), because a base is written only as a subscript. The calculator parses `\log_{b}(x)` and
   `\log(x, b)` to the same call, so it still evaluates `log(1,2)`.
 - **`length`.** Desmos evaluates `length(L)` (`length([1,5,3,8])` = 4, `length(5)` = 1,
-  `length([])` = 0). V2 has `length` on the built-in allowlist, so MathQuill turns a typed `length`
+  `length([])` = 0). The calculator has `length` on the built-in allowlist, so MathQuill turns a typed `length`
   into an operator name, but it has not shipped: no list-reducing built-in exists yet, so a row
   using it shows "This calculator doesn't support that notation." It ships with the statistics
   task (plan T9a), and the captured values are then checked.
 - **An empty piecewise branch.** Desmos reads `\left\{1<0:5,\right\}` as "You need something on
-  both sides of the ',' symbol." Piecewise braces (PR-31) have not shipped, so v2 shows its
+  both sides of the ',' symbol." Piecewise braces (PR-31) have not shipped, so the calculator shows its
   unsupported-notation message. The captured error is an expected failure in
   `desmos.reference.test.ts` (`ERROR_GAP`).
 
@@ -312,7 +312,7 @@ A11Y-3) and `b-functions-and-data.md` (D-4, D-5, D-7, D-19, D-20, FN-59), plus C
 | D-22        | No parameters → "Add a parameter to fit, for example y₁ ~ m x₁ + b."                                  | `y₁ ~ 2x₁` / `y₁ ~ x₁` are valid and show R² only                                                                                                                                                 | **Gap:** consider allowing a no-parameter model (shows R² of a given model, a common SAT check) instead of erroring                                                |
 | D-22        | Undefined predictor/observation names                                                                 | Undefined names (even x₁, y₁, x₂) silently become parameters (`d1-03`, `e4-06`)                                                                                                                   | Spec should state explicitly that only names that no row defines **and that are not lists** are parameters, and that a missing column is an error, not a parameter |
 | D-31        | R² always; r for linear and log-mode                                                                  | Matches. With n ≤ p or no data, Desmos shows **RMSE instead of R²**                                                                                                                               | Matches; add a test for the RMSE-only degenerate case if we keep R² undefined                                                                                      |
-| D-32        | RMSE shown after R² and r on every fit                                                                | Desmos shows RMSE only in degenerate fits                                                                                                                                                         | Deliberate (v1 parity); fine                                                                                                                                       |
+| D-32        | RMSE shown after R² and r on every fit                                                                | Desmos shows RMSE only in degenerate fits                                                                                                                                                         | Deliberate; fine                                                                                                                                                   |
 | D-33        | "Plot residuals" control                                                                              | Button label is just "plot" beside eₖ; becomes a Zoom Fit icon; column greyed and read-only; residual points get a **new** colour, not the regression's colour                                    | **Gap:** D-33 says the regression's colour; Desmos uses a fresh colour so the residuals contrast with the curve. Decide; I recommend a distinct colour             |
 | D-33        | eₖ lowest free k                                                                                      | eₖ is numbered per regression at creation (e₁, e₂ …) and exists before plotting                                                                                                                   | Matches; add "exists before plot" to the test                                                                                                                      |
 | D-35        | Parameter sliders, "Adjusted model", "Refit data"                                                     | Not present in Desmos (parameters are plain read-only values)                                                                                                                                     | Karman addition; no parity reference                                                                                                                               |

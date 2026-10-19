@@ -1,6 +1,6 @@
 // The shape of a row that defines nothing (RC-2, RC-11 to RC-15, RC-17): its kind, graph
 // descriptor, shape error and relation; and the graph of a one-parameter function definition
-// (RC-5, 04 decision 1). Pure TypeScript: no DOM (AR-44).
+// (RC-5). Pure TypeScript: no DOM (AR-44).
 
 import type { RowErrorCode, RowKind } from "../corpus/types";
 import type { InequalityOp, Node, RelOp, SourceSpan } from "../latex/ast";
@@ -57,7 +57,7 @@ export function shapeOf(
 }
 
 /**
- * RC-5 and 04 decision 1: a one-parameter function definition graphs as y = f(x), whatever its
+ * RC-5 and : a one-parameter function definition graphs as y = f(x), whatever its
  * parameter is called, with every node spanning the row (`span`); more parameters give null.
  */
 export function functionGraph(

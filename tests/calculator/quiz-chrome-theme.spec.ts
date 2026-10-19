@@ -1,5 +1,5 @@
 // Calculator window chrome contrast, focus outlines and theme repaint in the quiz hosts
-// (11 task 13; contributions TH-1, TH-14, TH-2, AR-37).
+// (TH-1, TH-14, TH-2, AR-37).
 
 import { readFileSync } from "node:fs";
 import { expect, test, type Page } from "@playwright/test";

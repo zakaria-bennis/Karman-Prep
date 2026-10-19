@@ -1,4 +1,4 @@
-/* Table items in the expression list (03-tables-ui; D-5, D-19, D-42). Colours come only from role
+/* Table items in the expression list (D-5, D-19, D-42). Colours come only from role
    variables (TH-3). Every column keeps one width, and a table wider than the list scrolls sideways
    inside its own item (D-42); the focused cell is scrolled into view by the focus controller. */
 

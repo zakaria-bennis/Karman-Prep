@@ -1,6 +1,6 @@
-// The calculator's row focus controller (01-interfaces-integration.md section 11). Rows register
+// The calculator's row focus controller. Rows register
 // their MathFields here, so anything that must move focus into a row (Clear all, Add item, the
-// keypad, 10's focusOnOpen, transfers) asks the controller instead of reaching into the DOM. A
+// keypad, the focusOnOpen, transfers) asks the controller instead of reaching into the DOM. A
 // focus request for a row whose field has not mounted yet waits and runs when the field
 // registers. lastFocusedRowId is the KB-4 reopen target: the last row the engine reported as
 // DOM-focused, or null once that row has left the list (R-10: after setBlank()).

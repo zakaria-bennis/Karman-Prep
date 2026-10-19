@@ -1,4 +1,4 @@
-// Operator-name allowlist (01-interfaces.md section 1; PR-12). This one list generates the
+// Operator-name allowlist (PR-12). This one list generates the
 // parser's built-in names, MathQuill's autoOperatorNames and autoCommands (T-3) and the functions
 // panel entries (K-4, K-5). Member names are a separate list and appear in none of those.
 

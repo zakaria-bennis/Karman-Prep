@@ -1,4 +1,4 @@
-// Parse error codes and shape (01-interfaces.md section 1).
+// Parse error codes and shape.
 
 import type { SourceSpan } from "./ast";
 

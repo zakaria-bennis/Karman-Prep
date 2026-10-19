@@ -1,4 +1,4 @@
-// Golden corpus runner for 04-semantics (01-interfaces.md section 2.2): compares `kind`, `chips`
+// Golden corpus runner for semantics: compares `kind`, `chips`
 // and the non-parse-only `error` of every latex case through analyzeRows, and `display` through
 // evaluateLatex and formatValue. Relative imports only.
 

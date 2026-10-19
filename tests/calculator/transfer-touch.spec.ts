@@ -1,4 +1,4 @@
-// Answer-choice clusters in the browser (14 task 9, OI-36) and the touch selection flow (task 10).
+// Answer-choice clusters in the browser (OI-36) and the touch selection flow (task 10).
 import { expect, test } from "@playwright/test";
 import { BLOCK_SYSTEM } from "./fixture/harness/transfer-questions";
 import {

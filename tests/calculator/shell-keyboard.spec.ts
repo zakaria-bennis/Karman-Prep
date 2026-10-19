@@ -1,6 +1,6 @@
-// Calculator shell keyboard browser tests (10 Task 9): Escape layers by rank (KB-3), shortcuts
+// Calculator shell keyboard browser tests: Escape layers by rank (KB-3), shortcuts
 // on event.code (KB-7), the tab order of the assembled calculator (KB-13) and the keypad visibility
-// policy (K-2, K-12; 10 Task 10), on the harness page /harness/calculator.html.
+// policy (K-2, K-12), on the harness page /harness/calculator.html.
 
 import { expect, test, type Page } from "@playwright/test";
 import {
@@ -30,7 +30,7 @@ interface Layers {
   closed: boolean;
 }
 
-/** The open Escape layers: a control that is not rendered reads false (KB-3, 09 consumer note 6). */
+/** The open Escape layers: a control that is not rendered reads false (KB-3). */
 function layers(page: Page): Promise<Layers> {
   return page.evaluate(() => {
     const root = document.querySelector("#calc")!.shadowRoot!;
@@ -133,7 +133,7 @@ test("KB-3 Escape closes the popover, Functions panel, ABC page, keypad, then th
   await rowField(page, "1").click();
   await api(page, "c.updateSettings({ keypad: true })");
   for (const name of ["Functions", "ABC", "Graph settings"])
-    await page.getByRole("button", { name, exact: true }).click(); // 800 px: the tray, whose letters page keeps Functions (09 K-3)
+    await page.getByRole("button", { name, exact: true }).click(); // 800 px: the tray, whose letters page keeps Functions (K-3)
   await expect
     .poll(() => layers(page))
     .toEqual({ settings: true, functions: true, abc: true, keypad: true, closed: false }); // a LIFO stack would now close ABC before Functions

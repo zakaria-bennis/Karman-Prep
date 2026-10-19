@@ -1,4 +1,4 @@
-// Factors and atoms, precedence levels 9 to 11 (grammar contract of the 02-parser plan): the postfix
+// Factors and atoms, precedence levels 9 to 11 (parser grammar): the postfix
 // loop (G5, PR-8, PR-19, PR-20); numbers, identifiers and constants (G6, PR-10, PR-11, PR-14,
 // PR-15); groups and points (G10, PR-22); fractions and roots (G9, PR-27); absolute-value bars
 // (G11, PR-21); and single-token arguments (G4). Built-in and user calls are in calls.ts (G8).
