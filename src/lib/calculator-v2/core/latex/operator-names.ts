@@ -84,6 +84,20 @@ export const SHIPPED: ReadonlySet<string> = new Set([
   "abs",
 ]);
 
+/**
+ * PR-24, PR-26: the built-ins Desmos lets you call without parentheses (`\sin x`, `\ln 2`) or with
+ * a power on the name (`\sin^{2}x`, `\cosh^{-1}2`): circular and hyperbolic trig, their inverses,
+ * ln, log and exp. Any other built-in needs `(`: Desmos reads `\operatorname{floor}2.5` and
+ * `\operatorname{abs}^{-1}(2)` as "'floor' is a function. Try using parentheses." (captured
+ * 2026-10-19). exp keeps Phase 1's prefix form; its Desmos behaviour was not captured.
+ */
+export const PREFIX_FORM_NAMES: ReadonlySet<string> = new Set([
+  ...["sin", "cos", "tan", "csc", "sec", "cot"].flatMap((t) => [t, `arc${t}`, `${t}h`, `arc${t}h`]),
+  "ln",
+  "log",
+  "exp",
+]);
+
 type Phase = OperatorName["phase"];
 type Arity = OperatorName["arity"];
 const V = "variadic";

@@ -53,7 +53,9 @@ function lanczos(x: number): number {
 /**
  * Γ(x): undefined (NaN) at 0, −1, −2, … and when the result is not a finite double. Whole x up to
  * 171 reads the correctly rounded factorial table; x < 0.5 uses the reflection
- * Γ(x) = π / (sin(πx)·Γ(1 − x)).
+ * Γ(x) = π / (sin(πx)·Γ(1 − x)). As in Desmos, the reflection is 0 once Γ(1 − x) is past the
+ * factorial table (1 − x > 171): (−171.5)! = Γ(−170.5) is 0 although it is 3.3e−308 in exact
+ * arithmetic, while (−170.5)! is 5.648e−306.
  */
 export function gamma(x: number): number {
   if (Number.isNaN(x)) return NaN;
@@ -61,15 +63,16 @@ export function gamma(x: number): number {
     if (x <= 0 || x > MAX_FACTORIAL + 1) return NaN;
     return factorialOf(x - 1);
   }
+  if (x < 0.5 && 1 - x > MAX_FACTORIAL + 1) return 0;
   const v = x < 0.5 ? Math.PI / (sinPi(x) * lanczos(1 - x)) : lanczos(x);
   return Number.isFinite(v) && v !== 0 ? v : NaN;
 }
 
-/** 1/Γ(x), which is 0 at the poles 0, −1, −2, …; NaN when Γ(x) underflows past 1/MAX_VALUE. */
+/** 1/Γ(x), which is 0 at the poles 0, −1, −2, …; NaN when Γ(x) is 0 or underflows past 1/MAX_VALUE. */
 export function reciprocalGamma(x: number): number {
   if (Number.isInteger(x) && x <= 0) return 0;
   const g = gamma(x);
-  return Number.isNaN(g) ? NaN : 1 / g;
+  return Number.isNaN(g) || g === 0 ? NaN : 1 / g;
 }
 
 /** x! = Γ(x + 1) (NM-15, FN-79): 0! = 1, 170! is finite, 171! and (−1)! are undefined. */

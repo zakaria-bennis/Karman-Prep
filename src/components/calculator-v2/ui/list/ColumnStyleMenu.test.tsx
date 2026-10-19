@@ -99,3 +99,23 @@ it("D-9 Delete column in the style menu removes the column and its data, one und
   act(() => kit.engine.undo());
   expect(column(kit).latex).toBe("y_{1}");
 });
+
+it("F-A1 a column in Desmos's new-row green (#388c46) shows the green swatch as selected", () => {
+  const kit = renderEditor(<ExpressionPanel {...panelProps()} />, { rows: ["y=x"] });
+  act(() =>
+    kit.engine.setExpression({
+      id: "t",
+      type: "table",
+      columns: [
+        { latex: "x_{1}", values: ["1", "2"] },
+        { latex: "y_{1}", values: ["3", "4"], color: "#388c46" },
+      ],
+    })
+  );
+  expect(column(kit).color).toBe("#388c46");
+  fireEvent.contextMenu(icon());
+  const radios = within(menu()!).getAllByRole("radio", { name: /^Colour \d$/ });
+  expect(radios.filter((r) => (r as HTMLInputElement).checked).map((r) => r.ariaLabel)).toEqual([
+    "Colour 3",
+  ]);
+});

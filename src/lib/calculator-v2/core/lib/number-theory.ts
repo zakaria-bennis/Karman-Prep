@@ -36,9 +36,24 @@ function shiftDecimal(v: number, k: number): number {
   return Number(`${mantissa}e${Number(exponent) + k}`);
 }
 
-/** FN-76: a − b·⌊a/b⌋ through the exact fmod, so the result has the sign of b; mod(a, 0) is undefined. */
+/** A quotient this close to a whole number (relative to its size) is that whole number in mod. */
+const QUOTIENT_SNAP = 8 * Number.EPSILON;
+
+/**
+ * FN-76: a − b·⌊a/b⌋ with the sign of b; mod(a, 0) is undefined. Whole a and b use the exact fmod
+ * (mod(10^17, 3) = 1). Otherwise, as in Desmos, a quotient a/b within rounding error of a whole
+ * number gives 0, so a decimal divisor leaves no binary remainder: mod(1, 0.1), mod(0.3, 0.1) and
+ * mod(5.1, 1.7) are 0 where the fmod gives 0.0999…, 0.0999… and 1.6999…. Past 2^52 every quotient
+ * is whole, so the fmod is kept.
+ */
 export function mod(a: number, b: number): number {
   if (b === 0) return NaN;
+  if (!Number.isInteger(a) || !Number.isInteger(b)) {
+    const q = a / b;
+    if (Math.abs(q) < 2 ** 52 && Math.abs(q - Math.round(q)) <= QUOTIENT_SNAP * Math.abs(q)) {
+      return 0;
+    }
+  }
   const r = a % b;
   return (r !== 0 && r < 0 !== b < 0 ? r + b : r) + 0;
 }
@@ -80,10 +95,30 @@ export function nCr(n: number, r: number): number {
   return gamma(n + 1) * reciprocalGamma(r + 1) * reciprocalGamma(n - r + 1) + 0;
 }
 
-/** FN-78: nPr(n, r) = Γ(n+1)/Γ(n−r+1); a whole r ≥ 0 uses the falling product (nPr(5, 6) = 0). */
+/**
+ * FN-78: nPr(n, r) = Γ(n+1)/Γ(n−r+1); a whole r ≥ 0 uses the falling product (nPr(5, 6) = 0). When
+ * both Γ(n+1) and Γ(n−r+1) are at poles, n+1 = −a and n−r+1 = −b, Desmos takes the limit, the
+ * ratio of the residues (−1)^a/a! and (−1)^b/b!: (−1)^(a−b)·b!/a! (nPr(−2, −1) = −1,
+ * nPr(−4, −1) = −1/3). A pole in the numerator alone stays undefined (nPr(−1, −1)).
+ */
 export function nPr(n: number, r: number): number {
   if (productApplies(n, r)) return fallingProduct(n, r, false) + 0;
+  const top = n + 1;
+  const bottom = n - r + 1;
+  if (Number.isInteger(top) && top <= 0 && Number.isInteger(bottom) && bottom <= 0) {
+    return residueRatio(-top, -bottom) + 0;
+  }
   return gamma(n + 1) * reciprocalGamma(n - r + 1) + 0;
+}
+
+/** (−1)^(a−b)·b!/a! for whole a, b ≥ 0, as a running product that stops at 0 or ∞. */
+function residueRatio(a: number, b: number): number {
+  let ratio = (a - b) % 2 === 0 ? 1 : -1;
+  for (let k = Math.min(a, b) + 1; k <= Math.max(a, b); k++) {
+    ratio = a > b ? ratio / k : ratio * k;
+    if (ratio === 0 || !Number.isFinite(ratio)) break;
+  }
+  return ratio;
 }
 
 /** A one-argument rule whose complex values are undefined. */

@@ -3,7 +3,7 @@
 
 import type { RowErrorCode } from "../corpus/types";
 import { DEFERRED_FEATURES } from "../latex/errors";
-import { isBuiltinName } from "../latex/operator-names";
+import { isBuiltinName, PREFIX_FORM_NAMES } from "../latex/operator-names";
 
 /** The letters MathQuill shows for each Greek command (PR-11; omicron is not a name). */
 const GREEK_LETTERS: Readonly<Record<string, string>> = {
@@ -65,6 +65,7 @@ const MESSAGES: Readonly<Record<RowErrorCode, string>> = {
   "too-many-nodes": "This row is too long to evaluate. Split it into smaller definitions.",
   "too-deep": "This row is nested too deeply.",
   "sim-side": "You need something on both sides of the '∼' symbol.",
+  "function-parentheses": "'{n}' is a function. Try using parentheses.",
   "too-many-params": "Functions can have at most 8 parameters.",
   "duplicate-definition":
     "You've defined '{n}' in more than one place. Try deleting some of the definitions of '{n}'.",
@@ -100,6 +101,10 @@ const DEFERRED_NAMES: ReadonlySet<string> = new Set(Object.values(DEFERRED_FEATU
 export function rowErrorMessage(code: RowErrorCode, names: string[]): string {
   const [n = "", k = ""] = names;
   if (code === "arity" && isBuiltinName(n)) return builtinArityMessage(n, k, Number(names[2]));
+  // PR-24: a trig, hyperbolic, ln or log name on its own reads as Desmos's empty call.
+  if (code === "function-parentheses" && PREFIX_FORM_NAMES.has(n)) {
+    return builtinArityMessage(n, "1", 0);
+  }
   let template = MESSAGES[code];
   if (code === "unsupported" && POLAR_NAMES.has(n)) template = POLAR_UNSUPPORTED;
   if (code === "unsupported" && DEFERRED_NAMES.has(n)) template = DEFERRED;

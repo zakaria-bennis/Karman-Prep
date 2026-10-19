@@ -5,7 +5,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import { pxToWorld, type Viewport } from "@/lib/calculator-v2/plot/viewport";
 import { compositeShading, contrastRatio } from "@/lib/calculator-v2/theme/contrast";
-import { resolveRowColor } from "@/lib/calculator-v2/theme/roles";
+import { nextSlot, resolveRowColor } from "@/lib/calculator-v2/theme/roles";
 import { SKIN_COLORS } from "@/lib/calculator-v2/theme/skin-colors.generated";
 import { SKIN_IDS, type SkinId } from "@/lib/calculator-v2/theme/skins";
 import { inkCentroid, inkRow, layerColors, pixel, px } from "./graph-pixels";
@@ -448,13 +448,14 @@ test("G-17 overlap of two regions has higher contrast than either and the curve 
     expect(cr(ab), skin).toBeGreaterThan(cr(a));
     expect(cr(ab), skin).toBeGreaterThan(cr(b));
 
-    const c3 = resolveRowColor("c3", skin).hex;
+    // F-A1: the harness adds rows with no colour, so row 3 takes the new-row green, not slot c3.
+    const third = resolveRowColor(nextSlot(2), skin).hex;
     const [cx, cy] = px(3.25, 3.25, w, h);
     const around: string[] = [];
     for (const dy of [-1, 0, 1]) {
       for (const dx of [-1, 0, 1]) around.push(await pixel(page, "composite", cx + dx, cy + dy));
     }
-    const nearest = Math.min(...around.map((p) => rgbDistance(p, c3)));
+    const nearest = Math.min(...around.map((p) => rgbDistance(p, third)));
     expect(nearest, skin).toBeLessThanOrEqual(8);
   }
 });
@@ -468,8 +469,9 @@ test("F-A1 combined canvas shading is the uncapped stack of 40% fills in all 12 
     const rows = ["y>0", "x>0", "y>x", "y>-x"];
     await openGraph(page, isMobile, { rows, skin, plots: 4 });
     const paper = SKIN_COLORS[skin].normal.roles.paper;
-    const fills = (["c1", "c2", "c3", "c4"] as const).map((slot) => {
-      const { hex, fillAlpha } = resolveRowColor(slot, skin);
+    // The colours the rows actually take: F-A1's new-row cycle, whose third step is #388c46.
+    const fills = [0, 1, 2, 3].map((index) => {
+      const { hex, fillAlpha } = resolveRowColor(nextSlot(index), skin);
       return { color: hex, alpha: fillAlpha };
     });
     const allowed = new Set<string>();

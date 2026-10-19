@@ -9,12 +9,15 @@ export type ParseErrorCode =
   | "relation-chain"
   | "too-many-nodes"
   | "too-deep"
-  | "sim-side"; // PR-30: a regression row with nothing on one side of `\sim`
+  | "sim-side" // PR-30: a regression row with nothing on one side of `\sim`
+  | "function-parentheses"; // PR-24: a built-in that needs `(` written without one
 export interface ParseError {
   code: ParseErrorCode;
   span: SourceSpan;
   detail: string; // English, logs and tests only
-  feature?: string; // `unsupported` only: the deferred notation a row error names ("Indexing a list")
+  // `unsupported`: the deferred notation a row error names ("Indexing a list");
+  // `function-parentheses`: the built-in's name ("floor")
+  feature?: string;
 }
 
 const PARSE_ERROR_CODES: ReadonlySet<string> = new Set<ParseErrorCode>([
@@ -25,6 +28,7 @@ const PARSE_ERROR_CODES: ReadonlySet<string> = new Set<ParseErrorCode>([
   "too-many-nodes",
   "too-deep",
   "sim-side",
+  "function-parentheses",
 ]);
 
 export function isParseErrorCode(code: string): code is ParseErrorCode {

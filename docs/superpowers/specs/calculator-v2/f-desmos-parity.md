@@ -78,6 +78,8 @@ are both gone.
   green (`#388c46`) from its picker green (`#348543`), so the new-row green is stored as an explicit
   colour. A new table column or regression column takes the colour after the previous one in this
   cycle, so red follows black (picker green counts as the new-row green, and orange as purple).
+  The column colour picker shows the green swatch (c3) as selected for a column in the new-row
+  green, so a column always has one swatch checked.
 - **Dark skins** show every curve colour inverted, as Desmos's Reverse contrast (`invert(100%)`)
   does. For example, black becomes white, red becomes `#38bbbf` and the new-row green `#c773b9`.
 - **Shading.** Every inequality fill is 40% of its curve colour. Overlapping fills stack in row
@@ -99,6 +101,13 @@ These Desmos behaviours are known and recorded but not yet built:
 - **`log` with two arguments.** In Desmos `log(1,2)` is an arity error ("requires only 1
   argument"), because a base is written only as a subscript. V2 parses `\log_{b}(x)` and
   `\log(x, b)` to the same call, so it still evaluates `log(1,2)`.
+- **`length`.** Desmos evaluates `length(L)` (`length([1,5,3,8])` = 4, `length(5)` = 1,
+  `length([])` = 0). V2 has `length` on the built-in allowlist, so MathQuill turns a typed `length`
+  into an operator name, but it has not shipped: no list-reducing built-in exists yet, so a row
+  using it shows "This calculator doesn't support that notation." It ships with the statistics
+  task (plan T9a), and the captured values are then checked.
+- **`exp` without parentheses.** V2 keeps Phase 1's `\exp x`, `\exp^{2}x`; Desmos's behaviour for
+  these was not captured.
 
 ## The + (Add Item) menu
 

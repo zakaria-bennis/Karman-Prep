@@ -50,7 +50,7 @@ const cases: CorpusCase[] = [
   t(27, ["PR-24"], "\\sin x/2", "(div (call sin (id x)) (num 2))"),
   t(28, ["PR-24"], "2\\sin x", "(mul (num 2) (call sin (id x)))"),
   t(29, ["PR-24"], "\\sin\\cos x", "(call sin (call cos (id x)))"),
-  x(30, ["PR-24"], "\\sin", "syntax"),
+  x(30, ["PR-24"], "\\sin", "function-parentheses"),
   t(31, ["PR-24"], "\\sin\\frac{x}{2}", "(call sin (div (id x) (num 2)))"),
   t(52, ["PR-24"], "\\sin|x|", "(call sin (abs (id x)))"),
   t(53, ["PR-24"], "\\sin\\sqrt{x}", "(call sin (root (id x)))"),
@@ -80,5 +80,13 @@ const cases: CorpusCase[] = [
   t(56, ["PR-26", "FN-68"], "\\operatorname{csch}^{-1}(2)", "(call arccsch (num 2))"),
   t(57, ["PR-26", "FN-68"], "\\tanh^{2}x", "(pow (call tanh (id x)) (num 2))"),
   t(58, ["PR-13", "FN-68"], "arcsinhx", "(call arcsinh (id x))"),
+  // ^{-1} on an inverse name is the forward function, as in Desmos (appendix F decision 2)
+  t(59, ["PR-26"], "\\arcsin^{-1}(0.5)", "(call sin (num 0.5))"),
+  t(60, ["PR-26", "FN-68"], "\\operatorname{arcsinh}^{-1}(2)", "(call sinh (num 2))"),
+  // Only trig, hyperbolic, ln, log and exp take the run or a power on the name (Desmos)
+  x(61, ["PR-24"], "\\operatorname{floor}2.5", "function-parentheses"),
+  x(62, ["PR-24", "PR-26"], "\\operatorname{abs}^{-1}(2)", "function-parentheses"),
+  x(63, ["PR-24"], "\\operatorname{floor}", "function-parentheses"),
+  x(64, ["PR-24"], "\\sinh", "function-parentheses"),
 ];
 export default cases;

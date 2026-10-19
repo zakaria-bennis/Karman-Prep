@@ -29,9 +29,11 @@ const FAMILIES: { rules: string; pattern: RegExp; count: number }[] = [
   {
     rules: "FN-76 FN-77 FN-78",
     pattern: /^\\operatorname\{(floor|ceil|round|sign|mod|nCr|nPr)\}\(/,
-    count: 44,
+    count: 62,
   },
-  { rules: "NM-15 FN-79", pattern: /!$/, count: 8 },
+  { rules: "NM-15 FN-79", pattern: /!$/, count: 13 },
+  // PR-26: `^{-1}` on an inverse hyperbolic name is the forward function, as in Desmos.
+  { rules: "PR-26 FN-68", pattern: /^\\operatorname\{arc[a-z]+\}\^\{-1\}\(/, count: 3 },
   // PR-34, NM-32, NM-36: list literals, ranges and element-by-element arithmetic, without
   // indexing (L[…]) or list functions, which have not shipped.
   { rules: "PR-34 NM-32 NM-36", pattern: /^(\[[^\]]*\]([+^\\]|$)|\\sin\(\[)/, count: 17 },
@@ -76,18 +78,25 @@ for (const latex of RANGE_COUNT_GAP) {
 }
 
 it("NM-36 the ranges Desmos counts by rounding are the only captured list values not checked", () => {
-  const lists = VALUES.filter(([latex]) => FAMILIES[2].pattern.test(latex)).map(([l]) => l);
+  const lists = VALUES.filter(([latex]) => FAMILIES[3].pattern.test(latex)).map(([l]) => l);
   expect(lists.filter((l) => RANGE_COUNT_GAP.has(l))).toEqual([...RANGE_COUNT_GAP]);
 });
 
-// RC-20: every captured built-in arity message ("Function '…' requires …") is v2's wording too.
+// RC-20: every captured built-in arity message ("Function '…' requires …") is v2's wording too,
+// and PR-24: every captured "'floor' is a function. Try using parentheses." message.
 const ARITY_ERRORS = Object.entries(captured.errors).filter(([, m]) => m.startsWith("Function '"));
+const PARENTHESES_ERRORS = Object.entries(captured.errors).filter(([, m]) =>
+  m.endsWith("is a function. Try using parentheses.")
+);
 
-it("RC-20 all 12 captured Desmos arity messages are checked", () =>
-  expect(ARITY_ERRORS.length).toBe(12));
+it("RC-20 all 14 captured Desmos arity messages are checked", () =>
+  expect(ARITY_ERRORS.length).toBe(14));
 
-for (const [latex, message] of ARITY_ERRORS) {
-  it(`RC-20 ${latex} reads "${message}", as in Desmos`, () => {
+it("PR-24 all 14 captured Desmos parentheses messages are checked", () =>
+  expect(PARENTHESES_ERRORS.length).toBe(14));
+
+for (const [latex, message] of [...ARITY_ERRORS, ...PARENTHESES_ERRORS]) {
+  it(`RC-20 PR-24 ${latex} reads "${message}", as in Desmos`, () => {
     const analysis = analyzeRows([{ id: "case", latex, hidden: false }], {
       angleMode: "radians",
       complex: false,

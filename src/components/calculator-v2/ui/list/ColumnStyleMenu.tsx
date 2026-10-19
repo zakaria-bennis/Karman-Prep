@@ -8,7 +8,7 @@ import { useContext, useEffect, useRef, useState, type CSSProperties, type JSX }
 import type { StoredColumn } from "@/lib/calculator-v2/core/api/document";
 import type { LineStyle, PointStyle } from "@/lib/calculator-v2/core/api/types";
 import { resolveRowColor } from "@/lib/calculator-v2/theme/roles";
-import { PICKER_SLOTS } from "@/lib/calculator-v2/theme/desmos-palette";
+import { NEW_ROW_GREEN, PICKER_SLOTS } from "@/lib/calculator-v2/theme/desmos-palette";
 import { PointStyleGlyph } from "../../icons";
 import { EscapeContext } from "../focus/escape-stack";
 import { useSkin } from "../hooks/skin";
@@ -129,7 +129,7 @@ export function ColumnStyleMenu(props: ColumnStyleMenuProps): JSX.Element {
                   type="radio"
                   name={`${group}-colour`}
                   aria-label={`Colour ${i + 1}`}
-                  checked={stored.color === slot}
+                  checked={isSwatch(stored.color, slot)}
                   onChange={() => set({ color: slot })}
                 />
               </label>
@@ -160,4 +160,12 @@ export function ColumnStyleMenu(props: ColumnStyleMenuProps): JSX.Element {
       )}
     </div>
   );
+}
+
+/**
+ * F-A1: whether a stored colour is this swatch. Desmos's new-row green (#388c46, which the new-row
+ * cycle stores as a hex) shows as the green swatch (c3), so a column always has one swatch checked.
+ */
+function isSwatch(color: string, slot: string): boolean {
+  return color === slot || (slot === "c3" && color.toLowerCase() === NEW_ROW_GREEN);
 }

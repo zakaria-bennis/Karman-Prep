@@ -111,3 +111,36 @@ it("FN-4 abs is the absolute value, and the modulus of a complex number", () => 
     expect(applyBuiltin(name, [complexValue(1, 1)], "radians", true), name).toEqual(UNDEFINED);
   expect(evaluateLatex("\\operatorname{abs}(-2)+\\operatorname{floor}(2.5)")).toEqual(n(4));
 });
+
+it("FN-76 mod by a decimal divisor leaves no binary remainder, as in Desmos", () => {
+  for (const [a, b] of [
+    [1, 0.1],
+    [0.3, 0.1],
+    [5.1, 1.7],
+    [-1, 0.1],
+    [1, -0.1],
+  ]) {
+    expect(Object.is(mod(a, b), 0), `mod(${a}, ${b})`).toBe(true);
+  }
+  expect(withinTolerance(mod(0.35, 0.1), 0.05, "default")).toBe(true);
+  expect([mod(1e17, 3), mod(1e20, 7), mod(-7, 3), mod(7, -3)]).toEqual([1, 2, 2, -2]);
+});
+
+it("FN-78 nPr at two poles is the ratio of residues; a pole on top alone stays undefined", () => {
+  expect([nPr(-2, -1), nPr(-3, -2)]).toEqual([-1, 0.5]);
+  expect(withinTolerance(nPr(-4, -1), -1 / 3, "default")).toBe(true);
+  expect(nPr(-400, -1)).toBeCloseTo(-1 / 399, 15);
+  for (const [a, b] of [
+    [-1, -1],
+    [-1, -2],
+    [-3, -3],
+  ]) {
+    expect(nPr(a, b), `nPr(${a}, ${b})`).toBeNaN();
+  }
+});
+
+it("NM-15 Γ past the factorial table on the reflection side is 0, and its reciprocal undefined", () => {
+  expect([gamma(-170.5), gamma(-999.5)]).toEqual([0, 0]);
+  expect(reciprocalGamma(-170.5)).toBeNaN();
+  expect(withinTolerance(gamma(-169.5), 5.648220884223333e-306, "default")).toBe(true);
+});

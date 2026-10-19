@@ -4,7 +4,7 @@
 
 import type { Node, SourceSpan } from "./ast";
 import { isDegreeSign, parsePostfix, takeArgument, takePostfix } from "./atoms";
-import { isShippedBuiltin, OPERATOR_NAMES } from "./operator-names";
+import { isShippedBuiltin, OPERATOR_NAMES, PREFIX_FORM_NAMES } from "./operator-names";
 import {
   enter,
   fail,
@@ -25,7 +25,10 @@ const BUILTIN_NAMES: ReadonlySet<string> = new Set(
   OPERATOR_NAMES.filter((n) => n.category !== null).map((n) => n.name)
 );
 
-/** The circular and hyperbolic trig names whose `^{-1}` is the inverse function (PR-26). */
+/**
+ * The circular and hyperbolic trig names whose `^{-1}` is the inverse function (PR-26). On their
+ * inverses, `^{-1}` is the forward function, as in Desmos: `\arcsin^{-1}(0.5)` is sin(0.5).
+ */
 const INVERTIBLE_NAMES: ReadonlySet<string> = new Set([
   "sin",
   "cos",
@@ -51,7 +54,9 @@ export function isBuiltinCommand(token: Token): token is CommandToken {
  * read. After the name come an optional `_` base (`log` only) and `^` power, each once, in either
  * order; then a `(` argument list, or else the PR-24 run. A `^{-1}` power on a trig name renames
  * the call to its inverse; any other power raises the call to it (PR-26). `log`'s base is its last
- * argument (PR-27). A prime on the name (`\sin'(x)`, like `f'(x)`) is `unsupported` (PR-9).
+ * argument (PR-27). A prime on the name (`\sin'(x)`, like `f'(x)`) is `unsupported` (PR-9). The
+ * run and the power on the name are for PREFIX_FORM_NAMES only; any other built-in written without
+ * `(`, or with a power on its name, is `function-parentheses`, as in Desmos.
  */
 export function parseBuiltinCall(state: ParserState, name: CommandToken): Node {
   if (!isShippedBuiltin(name.name)) {
@@ -71,6 +76,8 @@ export function parseBuiltinCall(state: ParserState, name: CommandToken): Node {
       break;
     }
   }
+  const prefixForm = PREFIX_FORM_NAMES.has(name.name);
+  if (power !== null && !prefixForm) return needsParentheses(name);
   const open = peek(state);
   if (isSymbol(open, "'")) return fail("unsupported", open.span, `"'" is not supported`);
   if (open.t === "open" && open.ch === "(") {
@@ -83,8 +90,14 @@ export function parseBuiltinCall(state: ParserState, name: CommandToken): Node {
     const call = callNode(name, args, base, previousEnd(state));
     return takePostfix(state, withPower(call, power));
   }
-  const arg = parseRunArgument(state);
+  if (!prefixForm) return needsParentheses(name);
+  const arg = parseRunArgument(state, name);
   return withPower(callNode(name, [arg], base, arg.span.end), power);
+}
+
+/** PR-24: Desmos's "'floor' is a function. Try using parentheses." at the name. */
+function needsParentheses(name: CommandToken): never {
+  return fail("function-parentheses", name.span, `"${name.name}" needs (`, name.name);
 }
 
 /** Whether a built-in takes a fixed number of arguments, none of them optional down to zero. */
@@ -137,11 +150,13 @@ export function parseUserCall(state: ParserState, callee: Node): Node {
 
 /**
  * The PR-24 argument: leading signs, then factors while one starts and the next token is not a
- * built-in. An empty run before a built-in takes that call as its argument (`\sin\cos x`); any
- * other empty run is `syntax` at the token where the argument is due. Each `-` wraps the first
- * factor, as at level 8 (`-2x` is `(mul (neg (num 2)) (id x))`).
+ * built-in. An empty run before a built-in takes that call as its argument (`\sin\cos x`); an
+ * empty run at the end of the row is `function-parentheses` at the name (Desmos's "Function 'sin'
+ * requires an argument"); any other empty run is `syntax` at the token where the argument is due.
+ * Each `-` wraps the first factor, as at level 8 (`-2x` is `(mul (neg (num 2)) (id x))`).
  */
-function parseRunArgument(state: ParserState): Node {
+function parseRunArgument(state: ParserState, name: CommandToken): Node {
+  const start = state.pos;
   const minuses: Token[] = [];
   for (let sign = peek(state); isSign(sign); sign = peek(state)) {
     take(state);
@@ -154,6 +169,7 @@ function parseRunArgument(state: ParserState): Node {
   }
   if (arg !== null) return arg;
   const next = peek(state);
+  if (next.t === "end" && state.pos === start) return needsParentheses(name);
   if (!isBuiltinCommand(next)) return unexpected(state, next);
   return negated(minuses, parseBuiltinCall(state, next));
 }
@@ -163,9 +179,16 @@ function callNode(name: CommandToken, args: Node[], base: Node | null, end: numb
   return { kind: "call", name: name.name, args: base === null ? args : [...args, base], span };
 }
 
-/** PR-26: `^{-1}` on a trig name is its inverse; any other power gives `pow(call, power)`. */
+/**
+ * PR-26: `^{-1}` on a trig name is its inverse and on an inverse trig name the forward function;
+ * any other power gives `pow(call, power)`.
+ */
 function withPower(call: CallNode, power: Node | null): Node {
   if (power === null) return call;
+  const forward = call.name.slice(3);
+  if (call.name.startsWith("arc") && INVERTIBLE_NAMES.has(forward) && isMinusOne(power)) {
+    return { ...call, name: forward };
+  }
   if (INVERTIBLE_NAMES.has(call.name) && isMinusOne(power)) {
     const name = `arc${call.name}`;
     if (!isShippedBuiltin(name)) {

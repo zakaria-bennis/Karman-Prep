@@ -62,6 +62,7 @@ Each task is one commit and starts with a failing test. Test titles lead with th
   - operator-names.test.ts:10: count goes to 106.
   - New test: every name in `SHIPPED` has a rule. Put it in core/lib/builtins.test.ts, which avoids an import from latex into lib.
 - **Desmos note:** typing `abs` or `length` will now become an operator name (PR-13 split, MathQuill autoOperatorNames). This matches Desmos.
+- **As done:** `abs` shipped with T3. `length` is allowlisted only, not shipped: it is not in `SHIPPED`, so a row using it is `unsupported` until the statistics task ships list-reducing built-ins. f-desmos-parity.md lists it under "Not yet matched".
 
 ### T3. Number theory and rounding (FN-76, FN-77, FN-78, plus `abs`)
 
