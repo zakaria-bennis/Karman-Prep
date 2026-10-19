@@ -390,6 +390,174 @@
       "expected": "2.677945044588987122248387"
     },
     {
+      "id": "sinh-1",
+      "op": "sinh",
+      "args": [1],
+      "latex": "\\sinh\\left(1\\right)",
+      "expected": "1.175201193643801456882382"
+    },
+    {
+      "id": "sinh-2",
+      "op": "sinh",
+      "args": [-2.5],
+      "latex": "\\sinh\\left(-2.5\\right)",
+      "expected": "-6.050204481039787321450324"
+    },
+    {
+      "id": "cosh-1",
+      "op": "cosh",
+      "args": [1],
+      "latex": "\\cosh\\left(1\\right)",
+      "expected": "1.543080634815243778477906"
+    },
+    {
+      "id": "cosh-2",
+      "op": "cosh",
+      "args": [3],
+      "latex": "\\cosh\\left(3\\right)",
+      "expected": "10.06766199577776584195394"
+    },
+    {
+      "id": "tanh-1",
+      "op": "tanh",
+      "args": [0.5],
+      "latex": "\\tanh\\left(0.5\\right)",
+      "expected": "0.4621171572600097585023185"
+    },
+    {
+      "id": "tanh-2",
+      "op": "tanh",
+      "args": [-2],
+      "latex": "\\tanh\\left(-2\\right)",
+      "expected": "-0.9640275800758168839464137"
+    },
+    {
+      "id": "csch-1",
+      "op": "csch",
+      "args": [1],
+      "latex": "\\operatorname{csch}\\left(1\\right)",
+      "expected": "0.8509181282393215451338428"
+    },
+    {
+      "id": "csch-2",
+      "op": "csch",
+      "args": [-0.3],
+      "latex": "\\operatorname{csch}\\left(-0.3\\right)",
+      "expected": "-3.283853396698423740304774"
+    },
+    {
+      "id": "sech-1",
+      "op": "sech",
+      "args": [1],
+      "latex": "\\operatorname{sech}\\left(1\\right)",
+      "expected": "0.6480542736638853995749774"
+    },
+    {
+      "id": "sech-2",
+      "op": "sech",
+      "args": [4],
+      "latex": "\\operatorname{sech}\\left(4\\right)",
+      "expected": "0.03661899347368653277264189"
+    },
+    {
+      "id": "coth-1",
+      "op": "coth",
+      "args": [2],
+      "latex": "\\coth\\left(2\\right)",
+      "expected": "1.03731472072754809587781"
+    },
+    {
+      "id": "coth-2",
+      "op": "coth",
+      "args": [-0.7],
+      "latex": "\\coth\\left(-0.7\\right)",
+      "expected": "-1.654621635802629481885837"
+    },
+    {
+      "id": "arcsinh-1",
+      "op": "arcsinh",
+      "args": [0.5],
+      "latex": "\\operatorname{arcsinh}\\left(0.5\\right)",
+      "expected": "0.4812118250596034474977589"
+    },
+    {
+      "id": "arcsinh-2",
+      "op": "arcsinh",
+      "args": [-3],
+      "latex": "\\operatorname{arcsinh}\\left(-3\\right)",
+      "expected": "-1.818446459232066823483699"
+    },
+    {
+      "id": "arccosh-1",
+      "op": "arccosh",
+      "args": [2],
+      "latex": "\\operatorname{arccosh}\\left(2\\right)",
+      "expected": "1.316957896924816708625046"
+    },
+    {
+      "id": "arccosh-2",
+      "op": "arccosh",
+      "args": [10],
+      "latex": "\\operatorname{arccosh}\\left(10\\right)",
+      "expected": "2.993222846126380897912668"
+    },
+    {
+      "id": "arctanh-1",
+      "op": "arctanh",
+      "args": [0.5],
+      "latex": "\\operatorname{arctanh}\\left(0.5\\right)",
+      "expected": "0.5493061443340548456976226"
+    },
+    {
+      "id": "arctanh-2",
+      "op": "arctanh",
+      "args": [-0.9],
+      "latex": "\\operatorname{arctanh}\\left(-0.9\\right)",
+      "expected": "-1.472219489583220346870095"
+    },
+    {
+      "id": "arccsch-1",
+      "op": "arccsch",
+      "args": [2],
+      "latex": "\\operatorname{arccsch}\\left(2\\right)",
+      "expected": "0.4812118250596034474977589"
+    },
+    {
+      "id": "arccsch-2",
+      "op": "arccsch",
+      "args": [-0.4],
+      "latex": "\\operatorname{arccsch}\\left(-0.4\\right)",
+      "expected": "-1.647231146371095659084049"
+    },
+    {
+      "id": "arcsech-1",
+      "op": "arcsech",
+      "args": [0.3],
+      "latex": "\\operatorname{arcsech}\\left(0.3\\right)",
+      "expected": "1.87382024252741446377133"
+    },
+    {
+      "id": "arcsech-2",
+      "op": "arcsech",
+      "args": [0.75],
+      "latex": "\\operatorname{arcsech}\\left(0.75\\right)",
+      "expected": "0.7953654612239056305278909"
+    },
+    {
+      "id": "arccoth-1",
+      "op": "arccoth",
+      "args": [2],
+      "latex": "\\operatorname{arccoth}\\left(2\\right)",
+      "expected": "0.5493061443340548456976226"
+    },
+    {
+      "id": "arccoth-2",
+      "op": "arccoth",
+      "args": [-5],
+      "latex": "\\operatorname{arccoth}\\left(-5\\right)",
+      "expected": "-0.2027325540540821909890066"
+    },
+    {
       "id": "floor-1",
       "op": "floor",
       "args": [-2.5],

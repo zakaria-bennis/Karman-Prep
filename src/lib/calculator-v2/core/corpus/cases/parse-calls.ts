@@ -25,7 +25,7 @@ const cases: CorpusCase[] = [
   t(7, ["PR-13"], "taux", "(mul (const tau) (id x))"),
   t(8, ["PR-13"], "xy", "(mul (id x) (id y))"),
   t(11, ["PR-13"], "sqrtx", "(root (id x))"),
-  x(12, ["PR-13"], "sinhx", "unsupported"),
+  t(12, ["PR-13", "FN-68"], "sinhx", "(call sinh (id x))"),
   t(9, ["PR-12", "PR-13"], "3p+4=19", "(rel = (add (mul (num 3) (id p)) (num 4)) (num 19))"),
   t(
     10,
@@ -74,5 +74,11 @@ const cases: CorpusCase[] = [
   t(48, ["PR-27"], "\\log_{2}(8)", "(call log (num 8) (num 2))"),
   t(50, ["PR-27"], "\\exp x", "(call exp (id x))"),
   t(51, ["PR-27"], "cbrtx", "(root (id x) (num 3))"),
+  // Hyperbolic trig (FN-68), moved here from parse-errors 30 and 31 when it shipped
+  t(54, ["FN-68"], "\\sinh x", "(call sinh (id x))"),
+  t(55, ["PR-26", "FN-68"], "\\cosh^{-1}x", "(call arccosh (id x))"),
+  t(56, ["PR-26", "FN-68"], "\\operatorname{csch}^{-1}(2)", "(call arccsch (num 2))"),
+  t(57, ["PR-26", "FN-68"], "\\tanh^{2}x", "(pow (call tanh (id x)) (num 2))"),
+  t(58, ["PR-13", "FN-68"], "arcsinhx", "(call arcsinh (id x))"),
 ];
 export default cases;
