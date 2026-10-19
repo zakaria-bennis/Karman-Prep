@@ -9,18 +9,20 @@ import {
   useContext,
   useEffect,
   useLayoutEffect,
+  useMemo,
   useRef,
   useSyncExternalStore,
   type KeyboardEvent,
   type RefObject,
 } from "react";
 import { formatPoiLabel, formatTraceLabel } from "@/lib/calculator/poi/format";
-import type { EngineSnapshot } from "@/lib/calculator/core/api/engine";
+import type { CalculatorEngine, EngineSnapshot } from "@/lib/calculator/core/api/engine";
 import {
   defaultViewport,
   isDefaultViewport,
   ZOOM_BUTTON_FACTOR,
   zoomViewport,
+  type Viewport,
   type ViewSpec,
   worldToPx,
 } from "@/lib/calculator/plot/viewport";
@@ -31,6 +33,7 @@ import type { SkinId } from "@/lib/calculator/theme/skins";
 import { useSkin } from "../hooks/skin";
 import { useEngine, useEngineSnapshot } from "../hooks/use-engine";
 import { countPlots, graphAccessibleName } from "./accessible-name";
+import { createViewportAnimator, type ViewportAnimator } from "./animate-viewport";
 import { homeFadeMs, useHomePresence, type HomePhase } from "./home-presence";
 import { KeyboardTraceContext, type KeyboardTrace } from "./keyboard-trace";
 import { GraphHomeGlyph, GraphWrenchGlyph, GraphZoomGlyph } from "./graph-glyphs";
@@ -187,6 +190,13 @@ function selectedCurvePx(s: EngineSnapshot, view: ViewSpec): [number, number][] 
 
 const noTrace = () => () => undefined;
 
+/** One viewport animator per engine, cancelled on unmount. */
+function useViewportAnimator(engine: CalculatorEngine): ViewportAnimator {
+  const animator = useMemo(() => createViewportAnimator(engine), [engine]);
+  useEffect(() => () => animator.cancel(), [animator]);
+  return animator;
+}
+
 /** POI-20: the keyboard trace's point as a drawn trace (dot and label), or null. */
 function keyboardTracePoint(
   trace: KeyboardTrace | null,
@@ -301,14 +311,26 @@ export function GraphPanel(props: GraphPanelProps): JSX.Element {
   const offDefault = size !== null && !isDefaultViewport(snapshot.viewport, size.size);
   const phase = useHomePresence(offDefault, fadeMs);
 
-  const zoom = (factor: number) =>
+  // GP-46, GP-47: the buttons and Home animate unless motion is reduced; a click during an
+  // animation builds on its target.
+  const animator = useViewportAnimator(engine);
+  const animateTo = (next: (v: ViewSpec) => Viewport): void => {
     input.applyNow((v) => {
+      const target = next({ ...v, viewport: animator.target() ?? v.viewport });
+      if (reducedMotion) return target;
+      poi.viewChanged();
+      animator.run(target, false);
+      return null;
+    });
+  };
+  const zoom = (factor: number) =>
+    animateTo((v) => {
       const { left, right, bottom, top } = v.viewport;
       return zoomViewport(v.viewport, factor, { x: (left + right) / 2, y: (bottom + top) / 2 });
     });
   const goHome = (): void => {
     surface.current?.focus({ preventScroll: true });
-    input.applyNow((v) => defaultViewport(v.size));
+    animateTo((v) => defaultViewport(v.size));
   };
 
   return (

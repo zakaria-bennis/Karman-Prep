@@ -140,20 +140,20 @@ test("G-5 the default view is x -10 to 10, y centred on 0 with equal units", asy
   await expect(button(page, "Home")).toHaveCount(0);
 });
 
-test("G-5 Zoom in and Zoom out zoom about the view centre by 2 per press, instantly", async ({
+test("G-5 Zoom in and Zoom out zoom about the view centre by 2 per press over a short animation (GP-46)", async ({
   page,
   isMobile,
 }) => {
   await openGraph(page, isMobile);
   await button(page, "Zoom in").click();
-  expect(await viewport(page)).toEqual(near(vp(-5, 5, -3.75, 3.75)));
+  await expect.poll(() => viewport(page)).toEqual(near(vp(-5, 5, -3.75, 3.75)));
   await button(page, "Zoom out").click();
   await button(page, "Zoom out").click();
-  expect(await viewport(page)).toEqual(near(vp(-20, 20, -15, 15)));
+  await expect.poll(() => viewport(page)).toEqual(near(vp(-20, 20, -15, 15)));
   await graph(page).focus();
   await page.keyboard.press("ArrowRight");
   await button(page, "Zoom in").click();
-  expect(await viewport(page)).toEqual(near(vp(-6, 14, -7.5, 7.5)));
+  await expect.poll(() => viewport(page)).toEqual(near(vp(-6, 14, -7.5, 7.5)));
 });
 
 test("G-5 Home restores the default view by button and by key", async ({ page, isMobile }) => {
@@ -162,7 +162,7 @@ test("G-5 Home restores the default view by button and by key", async ({ page, i
   await page.keyboard.press("ArrowUp");
   await button(page, "Zoom in").click();
   await button(page, "Home").click();
-  expect(await viewport(page)).toEqual(near(DEFAULT));
+  await expect.poll(() => viewport(page)).toEqual(near(DEFAULT));
   await graph(page).focus();
   await page.keyboard.press("ArrowRight");
   await graph(page).press("Home");

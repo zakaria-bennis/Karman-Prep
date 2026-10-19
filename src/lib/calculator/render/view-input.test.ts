@@ -89,15 +89,18 @@ it("G-5 a drag moves the paper with the pointer", () => {
   expectVp(dragViewport(view(), 80, -60), vp(-12, 8, -9, 6));
 });
 
-it("G-5 the wheel zooms about the pointer with its rate and clamp", () => {
+it("GP-48 each wheel event zooms about the pointer by 16/17 in or 17/16 out, whatever its size", () => {
   const at: Point = [600, 150];
-  const zoomedIn = wheelViewport(view(), -100, 0, at);
-  expect(zoomedIn.right - zoomedIn.left).toBeCloseTo(20 / Math.exp(0.2), 9);
-  expectFixedPoint(DEFAULT, zoomedIn, at);
-  const clamped = wheelViewport(view(), 1000, 0, at);
-  expect(clamped.right - clamped.left).toBeCloseTo(20 * Math.exp(0.2), 9);
-  const lines = wheelViewport(view(), -3, 1, at);
-  expect(lines.right - lines.left).toBeCloseTo(20 / Math.exp(0.096), 9);
+  for (const dy of [-4, -100, -300]) {
+    const zoomedIn = wheelViewport(view(), dy, at);
+    expect(zoomedIn.right - zoomedIn.left).toBeCloseTo((20 * 16) / 17, 9);
+    expectFixedPoint(DEFAULT, zoomedIn, at);
+  }
+  for (const dy of [4, 100, 300]) {
+    const zoomedOut = wheelViewport(view(), dy, at);
+    expect(zoomedOut.right - zoomedOut.left).toBeCloseTo((20 * 17) / 16, 9);
+  }
+  expect(wheelViewport(view(), 0, at)).toEqual(DEFAULT);
 });
 
 it("G-5 a pinch zooms by the distance ratio about the midpoint and pans with it", () => {

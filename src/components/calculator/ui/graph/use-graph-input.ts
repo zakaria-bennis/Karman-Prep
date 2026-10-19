@@ -1,7 +1,7 @@
 // Graph input (G-5, KB-8): drag, pinch and wheel on
 // the panel, and the graph keys on the surface. Pointer and wheel changes apply once per animation
-// frame; until that frame runs, the pending viewport is the base every change builds on, so wheel
-// events in one frame accumulate. Buttons, Home and keys apply synchronously through applyNow,
+// frame; until that frame runs, the pending viewport is the base every change builds on. GP-48: only
+// the first wheel event of a frame zooms. Buttons, Home and keys apply synchronously through applyNow,
 // which cancels the pending frame and builds on it. While the size is unknown nothing acts.
 
 import {
@@ -61,6 +61,7 @@ type Press = { id: number; at: Point; pointer: Pointer; moved: boolean; claimed:
 type InputState = {
   pending: Viewport | null;
   frame: number | null;
+  wheeled: boolean; // a wheel step is pending in this frame
   pointers: Map<number, Point>;
   gesture: Gesture | null;
   press: Press | null;
@@ -78,6 +79,7 @@ export function useGraphInput(o: GraphInputOptions): GraphInput {
   const state = useRef<InputState>({
     pending: null,
     frame: null,
+    wheeled: false,
     pointers: new Map(),
     gesture: null,
     press: null,
@@ -99,6 +101,7 @@ export function useGraphInput(o: GraphInputOptions): GraphInput {
     if (s.frame !== null) cancelAnimationFrame(s.frame);
     s.frame = null;
     s.pending = null;
+    s.wheeled = false;
   }, []);
 
   /** Restarts the active gesture from `view` at the pointers' last positions. */
@@ -154,6 +157,7 @@ export function useGraphInput(o: GraphInputOptions): GraphInput {
         const pending = s.pending;
         s.frame = null;
         s.pending = null;
+        s.wheeled = false;
         if (pending !== null) latest.current.engine.setMathBounds(pending);
       });
     };
@@ -235,8 +239,10 @@ export function useGraphInput(o: GraphInputOptions): GraphInput {
       const view = currentView();
       if (view === null) return;
       e.preventDefault();
+      if (s.wheeled || e.deltaY === 0) return;
       latest.current.interaction?.viewChanged();
-      schedule(wheelViewport(view, e.deltaY, e.deltaMode, position(e)));
+      schedule(wheelViewport(view, e.deltaY, position(e)));
+      s.wheeled = true;
     };
 
     element.addEventListener("pointerdown", onPointerDown);

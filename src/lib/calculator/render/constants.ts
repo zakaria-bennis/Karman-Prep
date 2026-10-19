@@ -48,14 +48,8 @@ export const ARROW_AXIS_START_PX = 3;
 export const TICK_LENGTH_PX = 5.5;
 export const POLAR_SPOKE_DEG = 15;
 
-/**
- * Wheel: the rate and the clamp of the raw deltaY.
- * WHEEL_LINE_PX and the deltaMode conversion (lines × 16 px, pages × the graph height) are package
- * decisions.
- */
-export const WHEEL_ZOOM_RATE = 0.002;
-export const WHEEL_DELTA_LIMIT = 100;
-export const WHEEL_LINE_PX = 16;
+/** GP-48: each wheel event zooms by this fixed step about the pointer, whatever its size. */
+export const WHEEL_ZOOM_FACTOR = 17 / 16;
 
 /** Tolerances and timing. */
 export const CUSTOM_STEP_MIN_PX = 8;
