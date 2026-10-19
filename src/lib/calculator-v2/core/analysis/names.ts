@@ -1,6 +1,6 @@
 // Reserved names (RC-3) and the names a parse tree uses. Pure TypeScript: no DOM (AR-44).
 
-import type { Node, SourceSpan } from "../latex/ast";
+import { sourceChildren, type Node, type SourceSpan } from "../latex/ast";
 import { isBuiltinName } from "../latex/operator-names";
 import type { AnalysisSettings } from "./index";
 
@@ -33,7 +33,7 @@ export function collectNameUses(tree: Node): NameUse[] {
       uses.push({ name: node.name, span: node.span, call: true, inPoint });
     }
     const below = inPoint || node.kind === "point";
-    const kids = children(node);
+    const kids = sourceChildren(node);
     for (let i = kids.length - 1; i >= 0; i -= 1) pending.push([kids[i], below]);
   }
   return uses.sort((a, b) => a.span.start - b.span.start);
@@ -50,34 +50,4 @@ export function isReservedName(name: string, settings: AnalysisSettings): boolea
     (settings.complex && name === "i") ||
     isBuiltinName(name)
   );
-}
-
-/** The direct child nodes of `node`, in source order. */
-function children(node: Node): readonly Node[] {
-  switch (node.kind) {
-    case "num":
-    case "id":
-    case "const":
-      return [];
-    case "add":
-    case "sub":
-    case "mul":
-    case "div":
-    case "pow":
-      return [node.left, node.right];
-    case "neg":
-    case "pct":
-    case "deg":
-    case "fact":
-    case "abs":
-      return [node.arg];
-    case "root":
-      return node.index === null ? [node.arg] : [node.index, node.arg];
-    case "call":
-      return node.args;
-    case "point":
-      return [node.x, node.y];
-    case "rel":
-      return node.operands;
-  }
 }

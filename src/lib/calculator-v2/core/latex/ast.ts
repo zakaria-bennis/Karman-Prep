@@ -18,8 +18,11 @@ export type Node =
   | { kind: "point"; x: Node; y: Node; span: SourceSpan }
   | { kind: "rel"; ops: RelOp[]; operands: Node[]; span: SourceSpan }; // operands.length === ops.length + 1
 
-/** The direct child nodes of `node`, in the order the S-expression writes them. */
-function children(node: Node): Node[] {
+/**
+ * The direct child nodes of `node`, in source order: a root's index comes before its argument.
+ * The one shared child walker; tree passes use it instead of their own switch.
+ */
+export function sourceChildren(node: Node): readonly Node[] {
   switch (node.kind) {
     case "num":
     case "id":
@@ -38,7 +41,7 @@ function children(node: Node): Node[] {
     case "abs":
       return [node.arg];
     case "root":
-      return node.index === null ? [node.arg] : [node.arg, node.index];
+      return node.index === null ? [node.arg] : [node.index, node.arg];
     case "call":
       return node.args;
     case "point":
@@ -61,12 +64,16 @@ export function toSExpr(tree: Node): string {
       return `(${tree.kind} ${tree.name})`;
     case "call":
       return `(${["call", tree.name, ...tree.args.map(toSExpr)].join(" ")})`;
+    case "root": {
+      const parts = tree.index === null ? [tree.arg] : [tree.arg, tree.index];
+      return `(${["root", ...parts.map(toSExpr)].join(" ")})`;
+    }
     case "rel": {
       const ops = tree.ops.length === 1 ? tree.ops[0] : `(${tree.ops.join(" ")})`;
       return `(${["rel", ops, ...tree.operands.map(toSExpr)].join(" ")})`;
     }
     default:
-      return `(${[tree.kind, ...children(tree).map(toSExpr)].join(" ")})`;
+      return `(${[tree.kind, ...sourceChildren(tree).map(toSExpr)].join(" ")})`;
   }
 }
 
@@ -102,7 +109,7 @@ export function countNodes(tree: Node): number {
   const pending: Node[] = [tree];
   for (let node = pending.pop(); node !== undefined; node = pending.pop()) {
     count += 1;
-    pending.push(...children(node));
+    pending.push(...sourceChildren(node));
   }
   return count;
 }
