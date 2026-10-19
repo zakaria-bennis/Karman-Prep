@@ -48,8 +48,8 @@ Owner confirmations already given:
 
 - The third option puts `f(2)` in a row so the calculator evaluates it.
 - Desktop docking applies when the viewport is at least 1024 px wide and more than 500 px tall;
-  otherwise a transfer opens the calculator full screen (TR-64, section 17 item 6).
-- On 2026-10-16 the owner confirmed the seven readings of this text listed in section 17; each is a
+  otherwise a transfer opens the calculator full screen (TR-64, section 16 item 6).
+- On 2026-10-16 the owner confirmed the seven readings of this text listed in section 16; each is a
   fixed rule, not a pending default.
 
 Earlier handoff requirement: direct export of equations, expressions, tables, points and function
@@ -375,7 +375,7 @@ Component and browser cases:
 | F5 WCAG 1.4.13, 2.5.8 and names     | TR-44 to TR-51, TR-59, TR-60                                               |
 | C4 which inline math gets a control | TR-1 to TR-21, examples in §4.4, owner confirmations 1 and 2               |
 
-## 17. Owner confirmations
+## 16. Owner confirmations
 
 The owner confirmed these readings of the section 1 text on 2026-10-16. They are fixed rules, and
 the overview records them as owner-confirmed in its owner-interpretations list.

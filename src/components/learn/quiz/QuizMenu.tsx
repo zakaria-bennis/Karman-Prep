@@ -5,7 +5,7 @@ import { ThemeToggle } from "@/components/shared/ThemeToggle";
 import { QuizSettings } from "./QuizTools";
 import { Menu } from "lucide-react";
 
-export function QuizMenu({ subject }: { realistic?: boolean; subject?: string | null }) {
+export function QuizMenu({ subject }: { subject?: string | null }) {
   return (
     <div className="flex items-center gap-1">
       <ThemeToggle />
@@ -18,8 +18,8 @@ export function QuizMenu({ subject }: { realistic?: boolean; subject?: string | 
           <ThemeSelector />
           {subject === "math" && (
             <p className="mt-3 text-xs leading-relaxed text-taupe">
-              Karman’s original calculator works here. Export math or enter it directly. Calculator
-              and scratch work clear on every question change.
+              Open the calculator from the toolbar, or use Transfer to Calculator to send math from
+              the question. Calculator and scratch work clear on every question change.
             </p>
           )}
         </div>

@@ -1,7 +1,9 @@
 # Quiz calculator
 
-The quiz calculator lives in two folders: the engine in `src/lib/calculator/` and the quiz window
-and UI here. The living spec is
+The quiz calculator lives in three folders: the engine in `src/lib/calculator/`, the eager
+transfer classification and payload code in `src/lib/calculator-transfer/`, and the quiz window and
+UI here. Its scripts (skin-colour generator, spec ID check, reference values, release check) are in
+`scripts/calculator/`. The living spec is
 [the design doc](../../../docs/superpowers/specs/2026-10-16-calculator-design.md) plus
 [`docs/superpowers/specs/calculator/`](../../../docs/superpowers/specs/calculator/).
 

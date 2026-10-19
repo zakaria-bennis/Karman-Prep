@@ -1,7 +1,7 @@
 # Phase 2 maths plan for the calculator: what is left after main's lists work
 
-Written 2026-10-19 on `claude/cv2-parity-main` (cut from `origin/main` at 9bf4834, plus T1 to T5,
-F-A1 and the Desmos review fixes up to 84fd1c4). It replaces tasks T6 to T15 of `plan.md`. T1 to T5
+Written 2026-10-19 from `origin/main` at 9bf4834, plus T1 to T5,
+F-A1 and the Desmos review fixes up to 84fd1c4. It replaces tasks T6 to T15 of `plan.md`. T1 to T5
 are done and are not repeated. The "Desmos facts captured" section at the end of `plan.md` and
 `desmos-reference-values.json` stay the source of truth: where they disagree with the spec
 (a-math-semantics.md) or with `plan.md`'s design notes, Desmos wins (appendix F, decision 2).

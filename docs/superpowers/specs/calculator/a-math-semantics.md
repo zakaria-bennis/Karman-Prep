@@ -370,13 +370,13 @@ Each phase plan grows the corpus; it has no fixed size. An REA capture that cont
 
 ## 9. Review findings resolved here
 
-| Finding                      | Resolution                                                                                                                                                                        |
-| ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| F2 grammar                   | PR-1 to PR-38 and PR-45 state the grammar, precedence, dialects and typing outcomes; PR-39 to PR-44 define the shared corpus; section 1 makes both existing engines non-normative |
-| F15 row semantics            | RC-1 to RC-21 and the classification table; PR-43 and PR-44 tie Transfer outcomes, including `f(2)`, to corpus cases                                                              |
-| F16 points of interest       | POI-1 to POI-16: coverage table, exclusions, scale-invariant detection, multiplicity-aware accuracy, labels, caps and golden cases                                                |
-| F17 domains and complex mode | NM-10 to NM-16 for real mode, NM-17 to NM-22 for complex mode, NM-23 for the Complex category (R3)                                                                                |
-| F18 angle mode               | NM-24 to NM-29; G-19 to G-21 for polar and parametric domains                                                                                                                     |
-| F19 display and tolerances   | NM-1 to NM-9, the limits table, NM-42 to NM-44                                                                                                                                    |
-| F20 lists                    | PR-34, NM-30 to NM-41, G-22                                                                                                                                                       |
-| C6 graph correctness         | G-9 to G-24 and the documented limits                                                                                                                                             |
+| Finding                      | Resolution                                                                                                                                                                  |
+| ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| F2 grammar                   | PR-1 to PR-38 and PR-45 state the grammar, precedence, dialects and typing outcomes; PR-39 to PR-44 define the shared corpus; section 1 makes no earlier engine a reference |
+| F15 row semantics            | RC-1 to RC-21 and the classification table; PR-43 and PR-44 tie Transfer outcomes, including `f(2)`, to corpus cases                                                        |
+| F16 points of interest       | POI-1 to POI-16: coverage table, exclusions, scale-invariant detection, multiplicity-aware accuracy, labels, caps and golden cases                                          |
+| F17 domains and complex mode | NM-10 to NM-16 for real mode, NM-17 to NM-22 for complex mode, NM-23 for the Complex category (R3)                                                                          |
+| F18 angle mode               | NM-24 to NM-29; G-19 to G-21 for polar and parametric domains                                                                                                               |
+| F19 display and tolerances   | NM-1 to NM-9, the limits table, NM-42 to NM-44                                                                                                                              |
+| F20 lists                    | PR-34, NM-30 to NM-41, G-22                                                                                                                                                 |
+| C6 graph correctness         | G-9 to G-24 and the documented limits                                                                                                                                       |

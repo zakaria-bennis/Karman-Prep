@@ -28,7 +28,6 @@ interface Props {
   videoUrl?: string | null;
   onClose: () => void;
   onGoToNext: (() => void) | null;
-  sessionMode?: "practice" | "realistic";
   resumeAttemptId?: string;
 }
 
@@ -37,7 +36,6 @@ export default function QuizEngine({
   videoUrl,
   onClose,
   onGoToNext,
-  sessionMode = "practice",
   resumeAttemptId,
 }: Props) {
   const {
@@ -205,7 +203,7 @@ export default function QuizEngine({
                       onScratchpad={toggleScratchpad}
                       startedAt={state.questionStartedAt}
                     />
-                    <QuizMenu subject={node.subject} realistic={sessionMode === "realistic"} />
+                    <QuizMenu subject={node.subject} />
                   </>
                 }
               />
