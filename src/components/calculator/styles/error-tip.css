@@ -62,7 +62,7 @@
   text-align: center;
   overflow-wrap: anywhere;
   pointer-events: none;
-  animation: kc-error-tip-in var(--kc-duration-instant) var(--kc-ease-standard);
+  animation: kc-error-tip-in var(--kc-dur-300) var(--kc-ease);
 }
 
 .kc-error-tip[hidden] {
@@ -89,7 +89,7 @@
   border-bottom-color: transparent;
 }
 
-/* AN-4: a 100 ms opacity fade; reduced motion sets the duration to 0 (base.css). */
+/* A 300 ms opacity fade; reduced motion sets the duration to 0 (base.css). */
 @keyframes kc-error-tip-in {
   from {
     opacity: 0;

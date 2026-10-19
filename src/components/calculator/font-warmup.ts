@@ -1,10 +1,10 @@
-// KaTeX font warm-up for the quiz calculator (AR-41). At prefetch or activation the loader asks
-// the document to load KaTeX_Main and italic KaTeX_Math, so MathQuill fields measured before the
-// fonts arrive can reflow once they do. The warm-up is never awaited before render, never rejects
+// Math font warm-up for the quiz calculator (AR-41). At prefetch or activation the loader asks
+// the document to load the upright and italic faces of the math font stack (--kc-font-math), so
+// MathQuill fields measured before the fonts are ready can reflow once they are. The warm-up is never awaited before render, never rejects
 // and runs once per page. Eager module: `document` is read only inside the functions (AR-2).
 
 /** The two faces MathQuill renders with (AR-39): upright text and italic variables. */
-const CALCULATOR_FONTS = ["16px KaTeX_Main", "italic 16px KaTeX_Math"] as const;
+const CALCULATOR_FONTS = ['16px "Times New Roman"', 'italic 16px "Times New Roman"'] as const;
 
 let warmup: Promise<void> | null = null;
 const listeners = new Set<() => void>();
@@ -44,7 +44,7 @@ function loadFont(fonts: FontFaceSet, font: string): Promise<unknown> {
 }
 
 /**
- * Loads KaTeX_Main and italic KaTeX_Math once per page (AR-41). The returned promise settles after
+ * Loads the upright and italic math faces once per page (AR-41). The returned promise settles after
  * both loads settle and the listeners have run; it never rejects, and without `document.fonts` it
  * resolves at once. Callers never await it before rendering.
  */

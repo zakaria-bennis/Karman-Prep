@@ -23,9 +23,9 @@ beforeEach(() => {
   });
 });
 
-it("AR-41 warmCalculatorFonts loads KaTeX_Main and italic KaTeX_Math once per page", async () => {
+it("AR-41 warmCalculatorFonts loads the upright and italic Times math faces once per page", async () => {
   await Promise.all([warmCalculatorFonts(), warmCalculatorFonts()]);
-  expect(load.mock.calls).toEqual([["16px KaTeX_Main"], ["italic 16px KaTeX_Math"]]);
+  expect(load.mock.calls).toEqual([['16px "Times New Roman"'], ['italic 16px "Times New Roman"']]);
 });
 
 it("AR-41 the warm-up never rejects, with a failing load or without document.fonts", async () => {

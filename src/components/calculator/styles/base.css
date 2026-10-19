@@ -28,6 +28,7 @@
   *::after {
     transition-duration: 0ms !important;
     animation-duration: 0ms !important;
+    animation-delay: 0ms !important;
     animation-iteration-count: 1 !important;
   }
 }
@@ -36,6 +37,7 @@
 :host([data-reduced-motion="true"]) *::after {
   transition-duration: 0ms !important;
   animation-duration: 0ms !important;
+  animation-delay: 0ms !important;
   animation-iteration-count: 1 !important;
 }
 button,
@@ -117,7 +119,8 @@ textarea {
   scroll-margin-block: 8px;
 }
 
-/* TH-17: math at --kc-size-math; this comes after MathQuill's 115% rule, so it wins. */
+/* TH-17: math at --kc-size-math (20.24 px, 115% of the 17.6 px list text); this comes after
+   MathQuill's 115% rule, so it wins wherever the parent text is another size. */
 .mq-math-mode,
 .mq-editable-field {
   font-size: var(--kc-size-math);

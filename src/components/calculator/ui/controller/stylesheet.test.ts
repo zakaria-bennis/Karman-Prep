@@ -125,9 +125,12 @@ it("AR-36 one constructed sheet is shared across shadow roots; <style> is the fa
   expect(c.adoptedStyleSheets).toHaveLength(0);
 });
 
-it("AR-39 shadow CSS maps .mq-math-mode to KaTeX_Main and its var to KaTeX_Math, with no Symbola", () => {
-  expect(family(".mq-math-mode")).toContainEqual(expect.stringMatching(/^"?KaTeX_Main/));
-  expect(family(".mq-math-mode var")).toContainEqual(expect.stringMatching(/^"?KaTeX_Math/));
+it("AR-39 shadow CSS sets .mq-math-mode and its var in the --kc-font-math Times stack last, with no Symbola", () => {
+  expect(family(".mq-math-mode").at(-1)).toBe("var(--kc-font-math)");
+  expect(family(".mq-math-mode var").at(-1)).toBe("var(--kc-font-math)");
+  expect(CALCULATOR_CSS).toMatch(
+    /--kc-font-math: "Times New Roman", Tinos, "Liberation Serif", serif;/
+  );
   // The vendored selector `.mq-nonSymbola` is a class name, not a font; no font value names Symbola.
   expect(CALCULATOR_CSS).not.toMatch(/font(?:-family)?\s*:[^;}]*Symbola/i);
 });

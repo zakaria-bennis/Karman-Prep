@@ -285,7 +285,7 @@
 .kc-row-delete,
 .kc-row-hint-action {
   background-color: var(--kc-list);
-  transition: background-color var(--kc-duration-instant) var(--kc-ease-standard);
+  transition: background-color var(--kc-dur-hover) var(--kc-ease);
 }
 
 .kc-list-tool:active,
@@ -310,7 +310,7 @@
    transform also applies to the first `expanding` commit (data-enter="true"), so expanding slides
    back in from it. A stacked layout slides down instead of left. */
 .kc-list-body {
-  transition: transform var(--kc-duration-fast) var(--kc-ease-standard);
+  transition: transform var(--kc-dur-250) var(--kc-ease-out);
 }
 
 .kc-list-panel[data-list-state="collapsing"] .kc-list-body,
@@ -328,7 +328,7 @@
 .kc-row {
   display: grid;
   grid-template-rows: 1fr;
-  transition: grid-template-rows var(--kc-duration-fast) var(--kc-ease-standard);
+  transition: grid-template-rows var(--kc-dur-200) var(--kc-ease-out);
 }
 
 .kc-row:is([data-motion="enter"], [data-motion="exit"]) {
@@ -336,7 +336,7 @@
 }
 
 .kc-row[data-motion="exit"] {
-  transition-duration: var(--kc-duration-instant);
+  transition-duration: var(--kc-dur-200);
 }
 
 .kc-row-inner {

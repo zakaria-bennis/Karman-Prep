@@ -1,4 +1,27 @@
-/* Role colours for the vendored MathQuill rules (TH-3, OI-34); */
+/* Role colours and the math font for the vendored MathQuill rules (TH-3, OI-34). The math is set in
+   the Times stack of --kc-font-math with italic variables (VIS-TYPOGRAPHY-ICONS-14, -15), selection
+   is a light blue behind ink glyphs (VIS-18) and empty slots are a 20% ink box (TY-29). */
+.mq-math-mode,
+.mq-math-mode .mq-editable-field,
+.mq-math-mode .mq-text-mode,
+.mq-math-mode .mq-nonSymbola,
+.mq-math-mode .mq-operator-name,
+.mq-math-mode .mq-font {
+  font-family: var(--kc-font-math);
+}
+
+.mq-math-mode var {
+  font-family: var(--kc-font-math);
+  font-style: italic;
+}
+
+/* VIS-TYPOGRAPHY-ICONS-19: "=", "+", "<" and the other binary operators take a 23.8 px box at
+   20.24 px; Times draws them narrower than the reference face, so the side padding makes up the
+   difference. */
+.mq-math-mode .mq-binary-operator {
+  padding: 0 0.306em;
+}
+
 .mq-editable-field .mq-cursor {
   border-left-color: var(--kc-text);
 }
@@ -29,7 +52,7 @@
 }
 
 .mq-math-mode .mq-empty {
-  background: var(--kc-chrome);
+  background: var(--kc-empty-block);
 }
 
 .mq-math-mode .mq-text-mode.mq-hasCursor {
@@ -42,9 +65,9 @@
 .mq-editable-field .mq-selection .mq-non-leaf,
 .mq-math-mode .mq-selection .mq-scaled,
 .mq-editable-field .mq-selection .mq-scaled {
-  background: var(--kc-focus-bar) !important;
-  color: var(--kc-focus-bar-label);
-  border-color: var(--kc-focus-bar-label);
+  background: var(--kc-selection) !important;
+  color: var(--kc-text);
+  border-color: var(--kc-text);
 }
 
 .mq-math-mode .mq-selection.mq-blur,

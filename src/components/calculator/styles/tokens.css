@@ -1,23 +1,82 @@
+/* The calculator's design tokens: the one source for type, size, geometry, motion and the tones
+   mixed from the skin's colour roles. Values are the reference graphing calculator's measurements
+   (rea-targets visual MASTER.md section 1). On the classic skin (text #000000, list #ffffff) each
+   mixed tone equals the measured value; other skins mix from their own roles (TH-3). */
 :host {
-  --kc-duration-instant: 100ms;
-  --kc-duration-fast: 200ms;
-  --kc-duration-normal: 400ms;
-  --kc-ease-standard: cubic-bezier(0.22, 1, 0.36, 1);
-  --kc-font-ui: Arial, sans-serif;
-  --kc-font-math: KaTeX_Main, "Times New Roman", serif;
-  --kc-size-ui: 14px;
-  --kc-size-math: 18px;
-  --kc-size-axis: 13px;
+  /* Type */
+  --kc-font-ui: Arial, Arimo, "Liberation Sans", sans-serif;
+  --kc-font-math: "Times New Roman", Tinos, "Liberation Serif", serif;
+  --kc-size-ui: 16px;
+  --kc-size-list: 17.6px;
+  --kc-size-math: 20.24px;
+  --kc-size-row-index: 10.4px;
+  --kc-size-small: 12.8px;
+  --kc-size-tooltip: 14px;
+  --kc-line-tooltip: 15.4px;
+  --kc-size-eval: 15.2px;
+  --kc-size-eval-math: 17.48px;
+  --kc-size-slider-letter: 15.64px;
+
+  /* Geometry */
+  --kc-list-width: clamp(320px, calc(160px + 20%), 500px);
+  --kc-toolbar-h: 48px;
+  --kc-tool-size: 40px;
+  --kc-gutter: 38px;
+  --kc-colour-icon: 29px;
+  --kc-radius-chip: 4px;
+  --kc-radius-button: 5px;
+  --kc-radius-small: 3px;
+  --kc-graph-button: 37px;
+
+  /* Icon and control opacities */
+  --kc-icon-rest: 0.6;
+  --kc-icon-hover: 0.8;
+  --kc-icon-pressed: 1;
+  --kc-icon-disabled: 0.3;
+  --kc-delete-rest: 0.2;
+  --kc-delete-hover: 0.6;
+  --kc-delete-pressed: 0.8;
+  --kc-equals-opacity: 0.55;
+
+  /* Tones mixed from the roles */
+  --kc-rule: color-mix(in srgb, var(--kc-text) 20%, transparent);
+  --kc-row-rule: color-mix(in srgb, var(--kc-text) 15.5%, transparent);
+  --kc-tab: color-mix(in srgb, var(--kc-text) 6.7%, var(--kc-list));
+  --kc-tab-rule: color-mix(in srgb, var(--kc-text) 6%, transparent);
+  --kc-toolbar-top: color-mix(in srgb, var(--kc-text) 1.2%, var(--kc-list));
+  --kc-toolbar-bottom: color-mix(in srgb, var(--kc-text) 8.2%, var(--kc-list));
+  --kc-hover-fill: color-mix(in srgb, var(--kc-text) 10%, transparent);
+  --kc-pressed-fill: color-mix(in srgb, var(--kc-text) 20%, transparent);
+  --kc-chip-fill: color-mix(in srgb, var(--kc-text) 4%, transparent);
+  --kc-row-number: color-mix(in srgb, var(--kc-text) 65%, transparent);
+  --kc-text-muted: color-mix(in srgb, var(--kc-text) 60%, transparent);
+  --kc-empty-block: color-mix(in srgb, var(--kc-text) 20%, transparent);
+  --kc-hidden-ring: color-mix(in srgb, var(--kc-text-secondary) 70%, var(--kc-list));
+  --kc-panel-shadow: color-mix(in srgb, var(--kc-text) 10%, transparent);
+  --kc-tooltip-error: var(--kc-text-secondary);
+  --kc-letter-top: color-mix(in srgb, var(--kc-text) 3.5%, var(--kc-list));
+  --kc-letter-bottom: color-mix(in srgb, var(--kc-text) 5.5%, var(--kc-list));
+
+  /* Motion: hover and press are instant; the rest use ease or ease-out. */
+  --kc-dur-hover: 0ms;
+  --kc-dur-200: 200ms;
+  --kc-dur-250: 250ms;
+  --kc-dur-300: 300ms;
+  --kc-dur-800: 800ms;
+  --kc-ease: ease;
+  --kc-ease-out: ease-out;
 }
 @media (prefers-reduced-motion: reduce) {
   :host {
-    --kc-duration-instant: 0ms;
-    --kc-duration-fast: 0ms;
-    --kc-duration-normal: 0ms;
+    --kc-dur-200: 0ms;
+    --kc-dur-250: 0ms;
+    --kc-dur-300: 0ms;
+    --kc-dur-800: 0ms;
   }
 }
 :host([data-reduced-motion="true"]) {
-  --kc-duration-instant: 0ms;
-  --kc-duration-fast: 0ms;
-  --kc-duration-normal: 0ms;
+  --kc-dur-200: 0ms;
+  --kc-dur-250: 0ms;
+  --kc-dur-300: 0ms;
+  --kc-dur-800: 0ms;
 }

@@ -195,7 +195,7 @@
    press, with no scale or shadow. */
 .kc-key {
   touch-action: manipulation;
-  transition: background-color var(--kc-duration-instant) var(--kc-ease-standard);
+  transition: background-color var(--kc-dur-hover) var(--kc-ease);
 }
 
 /* AN-11 press tone: the other 10.3 key role (package Decisions, "Press tone is a 10.3 role") */
@@ -215,21 +215,21 @@
 /* AN-1: the keypad becomes visible at once and hidden only after its 200 ms slide. */
 .kc-keypad {
   transition:
-    transform var(--kc-duration-fast) var(--kc-ease-standard),
-    visibility 0s linear var(--kc-duration-fast);
+    transform var(--kc-dur-300) var(--kc-ease),
+    visibility 0s linear var(--kc-dur-300);
 }
 
 .kc-keypad[data-open="true"] {
   transition:
-    transform var(--kc-duration-fast) var(--kc-ease-standard),
+    transform var(--kc-dur-300) var(--kc-ease),
     visibility 0s linear 0s;
 }
 
 /* AN-2: the Functions panel fades in rising 8 px over 200 ms and fades out over 100 ms. */
 .kc-functions-panel {
   transition:
-    opacity var(--kc-duration-fast) var(--kc-ease-standard),
-    transform var(--kc-duration-fast) var(--kc-ease-standard);
+    opacity var(--kc-dur-300) var(--kc-ease),
+    transform var(--kc-dur-300) var(--kc-ease);
 }
 
 .kc-functions-panel[data-state="enter"] {
@@ -239,5 +239,5 @@
 
 .kc-functions-panel[data-state="closing"] {
   opacity: 0;
-  transition: opacity var(--kc-duration-instant) var(--kc-ease-standard);
+  transition: opacity var(--kc-dur-hover) var(--kc-ease);
 }

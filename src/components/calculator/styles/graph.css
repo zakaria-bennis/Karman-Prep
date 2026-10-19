@@ -57,7 +57,7 @@
   border-radius: 6px;
   background: var(--kc-chrome);
   color: var(--kc-text);
-  transition: background-color var(--kc-duration-instant) var(--kc-ease-standard);
+  transition: background-color var(--kc-dur-hover) var(--kc-ease);
 }
 
 @media (pointer: coarse) {
@@ -80,8 +80,8 @@
 /* AN-8: Home fades in and out with the same duration and easing. */
 .kc-graph-controls [data-graph-home] {
   transition:
-    background-color var(--kc-duration-instant) var(--kc-ease-standard),
-    opacity var(--kc-duration-instant) var(--kc-ease-standard);
+    background-color var(--kc-dur-hover) var(--kc-ease),
+    opacity var(--kc-dur-250) var(--kc-ease-out);
 }
 
 .kc-graph-controls [data-graph-home][data-phase="entering"],
