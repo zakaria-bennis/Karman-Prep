@@ -22,13 +22,14 @@ export type SymbolChar =
   | ","
   | ":"
   | "."
+  | "..."
   | "'"
   | "~";
 export type Token =
   | { t: "digits"; text: string; span: SourceSpan } // digits with at most one ".", inner spaces removed (PR-10)
   | { t: "letter"; ch: string; span: SourceSpan } // one Latin letter
   | { t: "command"; name: string; span: SourceSpan } // no backslash: "frac", "sin", "alpha", "lvert", "rvert"
-  | { t: "symbol"; ch: SymbolChar; span: SourceSpan }
+  | { t: "symbol"; ch: SymbolChar; span: SourceSpan } // "..." is three adjacent dots (MATHS-CORE-10)
   | { t: "open"; ch: "(" | "[" | "{"; span: SourceSpan }
   | { t: "close"; ch: ")" | "]" | "}"; span: SourceSpan }
   | { t: "end"; span: SourceSpan };
@@ -55,6 +56,7 @@ const SYMBOLS: ReadonlySet<string> = new Set<SymbolChar>([
 const OPENERS: ReadonlySet<string> = new Set(["(", "[", "{"]);
 const CLOSERS: ReadonlySet<string> = new Set([")", "]", "}"]);
 const OPERATORNAME = "\\operatorname{";
+const ELLIPSIS = "...";
 
 const isDigit = (ch: string | undefined): boolean => ch !== undefined && ch >= "0" && ch <= "9";
 const isLetter = (ch: string | undefined): boolean =>
@@ -78,6 +80,9 @@ export function tokenize(normalized: string): Token[] | ParseError {
     const span = (end: number): SourceSpan => ({ start: i, end });
     if (isSpace(ch)) {
       i += 1;
+    } else if (normalized.startsWith(ELLIPSIS, i)) {
+      tokens.push({ t: "symbol", ch: ELLIPSIS, span: span(i + ELLIPSIS.length) });
+      i += ELLIPSIS.length;
     } else if (isDigit(ch) || (ch === "." && isDigit(normalized[i + 1]) && !afterDecimal(tokens))) {
       const digits = readDigits(normalized, i);
       tokens.push(digits);
@@ -129,7 +134,8 @@ function afterDecimal(tokens: readonly Token[]): boolean {
 /**
  * The number starting at `start`: digits with at most one `.`, continuing across whitespace when
  * a digit or the first `.` follows it. Whitespace is dropped from `text` but stays inside the span,
- * so the parser can tell `x1` from `x 1` (PR-14).
+ * so the parser can tell `x1` from `x 1` (PR-14). A `.` that another `.` follows is never taken,
+ * so `1...10` leaves the dots to the ellipsis (MATHS-CORE-10).
  */
 function readDigits(text: string, start: number): Extract<Token, { t: "digits" }> {
   let digits = "";
@@ -137,7 +143,7 @@ function readDigits(text: string, start: number): Extract<Token, { t: "digits" }
   let i = start;
   for (;;) {
     const ch = text[i];
-    if (isDigit(ch) || (ch === "." && !digits.includes("."))) {
+    if (isDigit(ch) || isDecimalPoint(text, i, digits)) {
       digits += ch;
       i += 1;
       end = i;
@@ -146,10 +152,15 @@ function readDigits(text: string, start: number): Extract<Token, { t: "digits" }
     let next = i;
     while (isSpace(text[next])) next += 1;
     const after = text[next];
-    if (next === i || !(isDigit(after) || (after === "." && !digits.includes(".")))) break;
+    if (next === i || !(isDigit(after) || isDecimalPoint(text, next, digits))) break;
     i = next;
   }
   return { t: "digits", text: digits, span: { start, end } };
+}
+
+/** True when the `.` at `i` can join `digits`: none taken yet, and no second `.` right after. */
+function isDecimalPoint(text: string, i: number, digits: string): boolean {
+  return text[i] === "." && text[i + 1] !== "." && !digits.includes(".");
 }
 
 /**

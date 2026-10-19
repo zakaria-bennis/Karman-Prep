@@ -18,6 +18,7 @@ const UNICODE: ReadonlyMap<string, string> = new Map([
   ["≤", "\\le "], // ≤
   ["≥", "\\ge "], // ≥
   ["°", "^{\\circ}"], // °
+  ["…", " ... "], // … (U+2026), an extension beyond Desmos, spaced like `\ldots`
 ]);
 /** Superscript two and three; a run of them becomes one `^{…}` group. */
 const SUPERSCRIPT_DIGITS: ReadonlyMap<string, string> = new Map([
@@ -46,6 +47,10 @@ const COMMAND_REWRITES: ReadonlyMap<string, string> = new Map([
   ["lt", "<"],
   ["gt", ">"],
   ["degree", "^{\\circ}"],
+  // MATHS-CORE-10: the tokenizer reads three dots as one ellipsis. The spaces keep a dot written
+  // before it (`1.\ldots3`) from fusing into four dots. `\dots` is an extension; Desmos maps `\ldots` only.
+  ["ldots", " ... "],
+  ["dots", " ... "],
 ]);
 /** `\left` and `\right` with a `|` become bar commands; with a `.` they vanish with it. */
 const BAR_COMMANDS: ReadonlyMap<string, string> = new Map([
