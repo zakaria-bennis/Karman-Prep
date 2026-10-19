@@ -3,7 +3,7 @@
 // (RC-7, RC-8, RC-20). Pure TypeScript: no DOM (AR-44).
 
 import type { RowErrorCode } from "../corpus/types";
-import type { Node, SourceSpan } from "../latex/ast";
+import { sourceChildren, type Node, type SourceSpan } from "../latex/ast";
 import { isBuiltinName } from "../latex/operator-names";
 import { arityText, BUILTIN_ARITY } from "../lib/arity";
 import { declaredHead, type DefinitionHead, type ParsedRow } from "./definitions";
@@ -127,41 +127,9 @@ function callsOf(tree: Node): Call[] {
     pending: Node[] = [tree];
   for (let node = pending.pop(); node !== undefined; node = pending.pop()) {
     if (node.kind === "call") calls.push(node);
-    pending.push(...childNodes(node));
+    pending.push(...sourceChildren(node));
   }
   return calls.sort((a, b) => a.span.start - b.span.start);
-}
-
-function childNodes(node: Node): readonly Node[] {
-  switch (node.kind) {
-    case "num":
-    case "id":
-    case "const":
-      return [];
-    case "add":
-    case "sub":
-    case "mul":
-    case "div":
-    case "pow":
-    case "sim":
-      return [node.left, node.right];
-    case "neg":
-    case "pct":
-    case "deg":
-    case "fact":
-    case "abs":
-      return [node.arg];
-    case "root":
-      return node.index === null ? [node.arg] : [node.index, node.arg];
-    case "call":
-      return node.args;
-    case "point":
-      return [node.x, node.y];
-    case "rel":
-      return node.operands;
-    case "list":
-      return node.items;
-  }
 }
 
 function rowError(code: RowErrorCode, names: string[], span: SourceSpan | null): RowError {

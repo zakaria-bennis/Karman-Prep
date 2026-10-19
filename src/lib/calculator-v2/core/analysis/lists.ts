@@ -4,7 +4,7 @@
 // Evaluation still reports any list error these rules cannot see. Pure TypeScript: no DOM (AR-44).
 
 import type { RowErrorCode } from "../corpus/types";
-import { children as childNodes, type Node, type SourceSpan } from "../latex/ast";
+import { sourceChildren as childNodes, type Node, type SourceSpan } from "../latex/ast";
 import { DEFERRED_FEATURES } from "../latex/errors";
 import { isBuiltinName } from "../latex/operator-names";
 import type { DefinitionHead } from "./definitions";
