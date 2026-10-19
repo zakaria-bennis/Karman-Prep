@@ -1,4 +1,4 @@
-// NM-43, FN-1, FN-11: every Phase 1 operator and elementary function against 40-digit reference
+// NM-43, FN-1, FN-11: every operator and shipped built-in function against 40-digit reference
 // values that scripts/calculator-v2/reference-elementary.mjs writes to elementary.json, plus the
 // tolerance classes the comparisons use.
 import { expect, it } from "vitest";
@@ -12,7 +12,7 @@ import { withinTolerance } from "./tolerance";
 import { BUILTIN_ARITY } from "./arity";
 import { BUILTINS } from "./builtins";
 import { evaluateLatex } from "../eval/compile";
-import { OPERATOR_NAMES } from "../latex/operator-names";
+import { OPERATOR_NAMES, SHIPPED } from "../latex/operator-names";
 import { readFileSync } from "node:fs";
 
 for (const c of reference.cases)
@@ -27,8 +27,8 @@ it("NM-43 elementary.json is exactly what its generator writes", async () =>
   expect(await formatElementaryReference(buildElementaryReference())).toBe(
     readFileSync(ELEMENTARY_PATH, "utf8")
   ));
-it("FN-1 every Phase 1 built-in and operator has a committed reference case, with the allowlist's arity", () => {
-  const shipped = OPERATOR_NAMES.filter((o) => o.phase === 1 && o.category !== null).map(
+it("FN-1 every shipped built-in and operator has a committed reference case, with the allowlist's arity", () => {
+  const shipped = OPERATOR_NAMES.filter((o) => SHIPPED.has(o.name) && o.category !== null).map(
     (o) => o.name
   );
   expect(new Set(shipped)).toEqual(new Set(BUILTINS.keys()));
@@ -37,7 +37,9 @@ it("FN-1 every Phase 1 built-in and operator has a committed reference case, wit
     BUILTIN_ARITY.get("sin"),
     BUILTIN_ARITY.get("arctan"),
     BUILTIN_ARITY.get("log"),
-  ]).toEqual([15, [1], [1, 2], [1, 2]]);
+    BUILTIN_ARITY.get("round"),
+    BUILTIN_ARITY.get("nCr"),
+  ]).toEqual([23, [1], [1, 2], [1, 2], [1, 2], [2]]);
   const ops = new Set(reference.cases.map((c) => c.op));
   for (const op of [
     ...shipped,

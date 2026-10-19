@@ -16,6 +16,7 @@ import displayNumbers from "./display-numbers";
 import displayComplex from "./display-complex";
 import domainReal from "./domain-real";
 import domainFunctions from "./domain-functions";
+import numberTheory from "./number-theory";
 import keys from "./keys";
 import graph from "./graph";
 import questionDialect from "./question-dialect";
@@ -36,6 +37,7 @@ export const CORPUS_FILES: Readonly<Record<string, readonly CorpusCase[]>> = {
   "display-complex": displayComplex,
   "domain-real": domainReal,
   "domain-functions": domainFunctions,
+  "number-theory": numberTheory,
   keys,
   graph,
   "question-dialect": questionDialect,

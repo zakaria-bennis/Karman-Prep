@@ -1,4 +1,4 @@
-// Writes the committed reference values of NM-43 and FN-1: every Phase 1 operator and elementary
+// Writes the committed reference values of NM-43 and FN-1: every operator and shipped built-in
 // function at fixed inputs, computed with mathjs's decimal.js BigNumber at 40 significant digits
 // and stored to 25. The output is Prettier-formatted with the repo config and drift-tested by
 // src/lib/calculator-v2/core/lib/elementary.reference.test.ts, which also checks the v2 evaluator
@@ -85,10 +85,41 @@ export const ELEMENTARY_INPUTS = [
   ["arcsec", -3],
   ["arccot", 0.5],
   ["arccot", -2],
+  ["floor", -2.5],
+  ["floor", 7.99],
+  ["ceil", 2.1],
+  ["ceil", -2.9],
+  ["round", 2.5],
+  ["round", -2.5],
+  ["round", 3.14159, 2],
+  ["round", 1234, -2],
+  ["sign", -3],
+  ["sign", 0],
+  ["mod", -7, 3],
+  ["mod", 7, -3],
+  ["mod", 5.5, 2],
+  ["nCr", 52, 5],
+  ["nCr", 40, 20],
+  ["nPr", 10, 4],
+  ["nPr", 20, 7],
+  ["abs", -2.5],
+  ["abs", 1e-300],
 ];
 
-/** Inverse trig names MathQuill writes as \operatorname{…}; every other op is a \name command. */
-const OPERATORNAME_OPS = new Set(["arccsc", "arcsec", "arccot"]);
+/** Built-in names MathQuill writes as \operatorname{…}; every other op is a \name command. */
+const OPERATORNAME_OPS = new Set([
+  "arccsc",
+  "arcsec",
+  "arccot",
+  "floor",
+  "ceil",
+  "round",
+  "sign",
+  "mod",
+  "nCr",
+  "nPr",
+  "abs",
+]);
 
 /**
  * The exact binary value of a finite double, at precision 40: its 53-bit mantissa times a power
@@ -136,10 +167,12 @@ function latexFor(op, args) {
       return `\\log_{${p}}\\left(${q}\\right)`;
     case "arctan2": // (y, x)
       return `\\arctan\\left(${p},${q}\\right)`;
-    default:
+    default: {
+      const list = args.map(latexNumber).join(",");
       return OPERATORNAME_OPS.has(op)
-        ? `\\operatorname{${op}}\\left(${p}\\right)`
-        : `\\${op}\\left(${p}\\right)`;
+        ? `\\operatorname{${op}}\\left(${list}\\right)`
+        : `\\${op}\\left(${list}\\right)`;
+    }
   }
 }
 
@@ -203,6 +236,30 @@ function referenceFor(op, args) {
       return one.div(a).acos();
     case "arccot":
       return math.pi.div(2).minus(a.atan());
+    case "floor":
+      return a.floor();
+    case "ceil":
+      return a.ceil();
+    case "round": {
+      // Math.round semantics (halves toward +∞), at n decimal places (appendix F decision 2)
+      const scale = new Big(10).pow(args.length === 2 ? args[1] : 0);
+      return a.times(scale).plus(0.5).floor().div(scale);
+    }
+    case "sign":
+      return new Big(a.isZero() ? 0 : a.isNegative() ? -1 : 1);
+    case "abs":
+      return a.abs();
+    case "mod":
+      return a.minus(b.times(a.div(b).floor()));
+    case "nCr":
+    case "nPr": {
+      const [n, r] = args;
+      let product = one;
+      for (let k = 0; k < r; k++) product = product.times(n - k);
+      if (op === "nPr") return product;
+      for (let k = 2; k <= r; k++) product = product.div(k);
+      return product;
+    }
     default:
       throw new Error(`No reference rule for ${op}`);
   }

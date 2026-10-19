@@ -21,10 +21,15 @@ it("FN-60 exp, ln, log and log base b on their domains", () => {
   expect(f("ln", [-1], "radians", true)).toEqual({ type: "complex", value: { re: 0, im: P } });
 });
 it("FN-6, NM-25 only circular-trig inputs and inverse-trig outputs depend on the angle unit", () => {
+  const circular = ["sin", "cos", "tan", "csc", "sec", "cot"];
   for (const [name, fn] of BUILTINS) {
     const x = [name === "arcsec" || name === "arccsc" ? 2 : 0.5];
     expect(fn.angle, name).toBe(
-      name.startsWith("arc") ? "output" : ["exp", "ln", "log"].includes(name) ? "none" : "input"
+      circular.includes(name)
+        ? "input"
+        : circular.map((c) => `arc${c}`).includes(name)
+          ? "output"
+          : "none"
     );
     expect(JSON.stringify(f(name, x)) === JSON.stringify(f(name, x, "degrees")), name).toBe(
       fn.angle === "none"

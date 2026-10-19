@@ -60,6 +60,15 @@ export const SHIPPED: ReadonlySet<string> = new Set([
   "exp",
   "ln",
   "log",
+  // FN-76 to FN-78 and abs (Phase 2 T3), in OPERATOR_NAMES order
+  "mod",
+  "ceil",
+  "floor",
+  "round",
+  "sign",
+  "nPr",
+  "nCr",
+  "abs",
 ]);
 
 type Phase = OperatorName["phase"];

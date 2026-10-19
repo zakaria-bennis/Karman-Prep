@@ -99,7 +99,8 @@ function conflictError(
   for (const call of callsOf(scope)) {
     const arity = expectedArity(call.name, resolution);
     if (arity !== null && !arity.includes(call.args.length)) {
-      return rowError("arity", [displayName(call.name), arityText(arity)], call.span);
+      const given = String(call.args.length);
+      return rowError("arity", [displayName(call.name), arityText(arity), given], call.span);
     }
   }
   const use = collectNameUses(scope).find(
