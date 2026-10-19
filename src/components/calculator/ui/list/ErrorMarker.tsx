@@ -1,8 +1,10 @@
 // The warning marker of a row, a table cell or a column header, and its tooltip (R-2, D-6, D-10;
-// founder decision 2026-10-18 to match Desmos). The marker is a button that stands where the colour
-// tab would; the message is a role="tooltip" element below it that opens at once on pointer hover
-// and on keyboard focus, toggles on a tap, and closes on pointer leave, blur, Escape (one KB-3
-// layer) and a press outside. The tooltip element always exists, hidden while closed, so the id the
+// founder decision 2026-10-18 to match Desmos; popovers-menus.md VIS-32). The marker is a button
+// that stands where the colour tab would; the message is a role="tooltip" element below it. A grey
+// tooltip opens 500 ms after the pointer rests on the marker (fading in over 300 ms) and leaves
+// 170 ms after it goes; keyboard focus opens it at once. A click pins it: it turns black, stays
+// after the pointer leaves and its text can be selected; another click unpins it. A tap toggles
+// it. Blur (unless pinned), Escape (one KB-3 layer) and a press outside close it. The tooltip element always exists, hidden while closed, so the id the
 // field's aria-describedby names resolves for assistive technology (A11Y-3).
 //
 // A row's `.kc-row-inner` clips overflow, so the tooltip is portalled into the calculator root
@@ -12,6 +14,7 @@
 import {
   useCallback,
   useContext,
+  useEffect,
   useLayoutEffect,
   useRef,
   useState,
@@ -22,9 +25,10 @@ import { createPortal } from "react-dom";
 import { WarningGlyph } from "../../icons";
 import { EscapeContext } from "../focus/escape-stack";
 import { usePopupDismiss } from "./menu-trigger";
+import { TOOLTIP_DELAY_MS, TOOLTIP_HIDE_MS } from "./Tooltip";
 
 const GAP = 7; // marker to tooltip: the 5 px arrow plus 2 px
-const EDGE = 4; // the least distance kept from the root's edges
+const EDGE = 2; // the least distance kept from the root's edges (VIS-30)
 
 export interface ErrorMarkerProps {
   id: string; // the tooltip's id, named by the field's aria-describedby
@@ -64,6 +68,8 @@ function place(tip: HTMLElement, marker: HTMLElement, layer: Element): void {
 export function ErrorMarker({ id, message, variant }: ErrorMarkerProps): JSX.Element {
   const escape = useContext(EscapeContext);
   const [open, setOpen] = useState(false);
+  const [pinned, setPinned] = useState(false);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [layer, setLayer] = useState<Element | null>(null);
   const markerRef = useRef<HTMLButtonElement>(null);
   const tipRef = useRef<HTMLDivElement>(null);
@@ -75,7 +81,30 @@ export function ErrorMarker({ id, message, variant }: ErrorMarkerProps): JSX.Ele
     setLayer(marker.closest(".kc-app") ?? marker.parentElement);
   }, []);
 
-  const close = useCallback(() => setOpen(false), []);
+  const clearTimer = () => {
+    if (timer.current !== null) clearTimeout(timer.current);
+    timer.current = null;
+  };
+  const later = (ms: number, next: boolean) => {
+    clearTimer();
+    timer.current = setTimeout(() => {
+      timer.current = null;
+      setOpen(next);
+    }, ms);
+  };
+  useEffect(
+    () => () => {
+      if (timer.current !== null) clearTimeout(timer.current);
+    },
+    []
+  );
+
+  const close = useCallback(() => {
+    if (timer.current !== null) clearTimeout(timer.current);
+    timer.current = null;
+    setOpen(false);
+    setPinned(false);
+  }, []);
   usePopupDismiss(
     open && layer !== null,
     "error-tooltip",
@@ -102,7 +131,14 @@ export function ErrorMarker({ id, message, variant }: ErrorMarkerProps): JSX.Ele
   const touch = (e: PointerEvent) => e.pointerType === "touch";
 
   const tooltip = (
-    <div ref={tipRef} className="kc-error-tip" role="tooltip" id={id} hidden={!open}>
+    <div
+      ref={tipRef}
+      className="kc-error-tip"
+      role="tooltip"
+      id={id}
+      hidden={!open}
+      data-pinned={pinned ? "true" : undefined}
+    >
       {message}
     </div>
   );
@@ -120,20 +156,30 @@ export function ErrorMarker({ id, message, variant }: ErrorMarkerProps): JSX.Ele
           pressRef.current = e.pointerType;
         }}
         onPointerEnter={(e) => {
-          if (!touch(e)) setOpen(true);
+          if (!touch(e) && !open) later(TOOLTIP_DELAY_MS, true);
         }}
         onPointerLeave={(e) => {
-          if (!touch(e)) setOpen(false);
+          if (touch(e) || pinned) return;
+          if (open) later(TOOLTIP_HIDE_MS, false);
+          else clearTimer();
         }}
         onFocus={() => {
-          if (pressRef.current !== "touch") setOpen(true); // a tap's click toggles instead
+          // A tap's click toggles instead; a pointer press opens through the click below.
+          if (pressRef.current === "") {
+            clearTimer();
+            setOpen(true);
+          }
         }}
         onBlur={() => {
           pressRef.current = "";
-          setOpen(false);
+          if (!pinned) close();
         }}
         onClick={() => {
-          if (pressRef.current === "touch") setOpen((was) => !was);
+          clearTimer();
+          if (pressRef.current === "touch") return setOpen((was) => !was);
+          if (pressRef.current === "") return setOpen(true); // keyboard activation
+          setPinned((was) => !was);
+          setOpen(true);
         }}
       >
         <WarningGlyph size={variant === "row" ? 22 : 16} />

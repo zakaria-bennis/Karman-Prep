@@ -1,0 +1,192 @@
+/* Hover tooltips, the Add item menu and the other small popups of the list (popovers-menus.md
+   VIS-28 to VIS-31). Colours come only from roles. */
+
+/* VIS-29 to VIS-31: the hover tooltip, a black box with white 14 px text and a 5 px arrow. Below
+   its button (the list toolbar) its top is 3 px under the button and it is centred on it, kept
+   2 px inside the calculator (--kc-tip-shift); to the left of a graph control it is vertically
+   centred 5 px from it. It fades in over 300 ms and leaves with no fade. */
+.kc-list-tool {
+  position: relative;
+}
+
+.kc-tooltip {
+  --kc-tip-shift: 0px;
+  position: absolute;
+  top: calc(100% + 3px);
+  left: 50%;
+  z-index: 10;
+  width: max-content;
+  max-width: 200px;
+  padding: 5px 8px;
+  border-radius: var(--kc-radius-chip);
+  background: var(--kc-tooltip);
+  color: var(--kc-tooltip-label);
+  font-family: var(--kc-font-ui);
+  font-size: var(--kc-size-tooltip);
+  font-weight: 400;
+  line-height: var(--kc-line-tooltip);
+  text-align: center;
+  white-space: nowrap;
+  pointer-events: none;
+  transform: translateX(calc(-50% + var(--kc-tip-shift)));
+  animation: kc-tooltip-in var(--kc-dur-300) var(--kc-ease);
+}
+
+.kc-tooltip::before {
+  content: "";
+  position: absolute;
+  top: -5px;
+  left: calc(50% - var(--kc-tip-shift));
+  margin-left: -5px;
+  border: 5px solid transparent;
+  border-top-width: 0;
+  border-bottom-color: var(--kc-tooltip);
+}
+
+.kc-tooltip[data-side="left"] {
+  top: 50%;
+  right: calc(100% + 5px);
+  left: auto;
+  transform: translateY(-50%);
+}
+
+.kc-tooltip[data-side="left"]::before {
+  top: 50%;
+  right: -5px;
+  left: auto;
+  margin: -5px 0 0;
+  border-width: 5px 0 5px 5px;
+  border-color: transparent;
+  border-left-color: var(--kc-tooltip);
+}
+
+@keyframes kc-tooltip-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* S-2, S-11: the Add item menu, a popover below Add item (desktop) or to its right (stacked). */
+.kc-add-item {
+  position: relative;
+  display: inline-flex;
+}
+
+/* EL-42, PM-1, PM-2: the popover under +, 126 px wide, white with a 1 px grey border, 6 px radius
+   and a soft drop shadow; a 24 by 12 arrow (a white triangle over a grey one 1 px further out)
+   points at the + button. Stacked, it opens to the button's right with a sideways arrow. */
+.kc-add-menu {
+  position: absolute;
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-sizing: border-box;
+  width: 126px;
+  padding: 14px 12px 12px;
+  border: 1px solid var(--kc-boundary);
+  border-radius: 6px;
+  background: var(--kc-list);
+  box-shadow: var(--kc-popover-shadow);
+}
+
+.kc-add-menu[data-placement="below"] {
+  top: calc(100% + 10px);
+  left: -1px;
+}
+
+.kc-add-menu[data-placement="right"] {
+  top: -1px;
+  left: calc(100% + 11px);
+}
+
+.kc-add-menu::before,
+.kc-add-menu::after {
+  content: "";
+  position: absolute;
+  border: 12px solid transparent;
+}
+
+.kc-add-menu[data-placement="below"]::before,
+.kc-add-menu[data-placement="below"]::after {
+  left: 7px;
+  border-top-width: 0;
+}
+
+.kc-add-menu[data-placement="below"]::before {
+  top: -13px;
+  border-bottom-color: var(--kc-boundary);
+}
+
+.kc-add-menu[data-placement="below"]::after {
+  top: -12px;
+  border-bottom-color: var(--kc-list);
+}
+
+.kc-add-menu[data-placement="right"]::before,
+.kc-add-menu[data-placement="right"]::after {
+  top: 9px;
+  border-left-width: 0;
+}
+
+.kc-add-menu[data-placement="right"]::before {
+  left: -13px;
+  border-right-color: var(--kc-boundary);
+}
+
+.kc-add-menu[data-placement="right"]::after {
+  left: -12px;
+  border-right-color: var(--kc-list);
+}
+
+/* EL-43: a 30 px icon cell, 8 px gap, a lower-case 12.8 px label; the item rests at 0.5 and
+   rises to 0.8 on hover, with no background. */
+.kc-add-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--kc-text);
+  font-family: var(--kc-font-ui);
+  font-size: var(--kc-size-small);
+  text-align: left;
+  opacity: var(--kc-menu-item-rest);
+  cursor: pointer;
+}
+
+.kc-add-menu-item:hover,
+.kc-add-menu-item:focus-visible {
+  opacity: var(--kc-menu-item-hover);
+}
+
+.kc-add-menu-item:focus-visible {
+  outline: 2px solid var(--kc-focus-ring);
+  outline-offset: 2px;
+}
+
+.kc-add-menu-icon {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: flex-end;
+  width: 30px;
+  height: 27px;
+}
+
+.kc-add-menu-icon > svg {
+  width: 26px;
+  height: 26px;
+  fill: currentColor;
+}
+
+.kc-add-menu-fx {
+  font-family: var(--kc-font-math);
+  font-size: 17px;
+  line-height: 24px;
+}

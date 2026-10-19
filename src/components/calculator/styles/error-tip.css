@@ -64,6 +64,23 @@
   animation: kc-error-tip-in var(--kc-dur-300) var(--kc-ease);
 }
 
+/* VIS-32: a click pins the tooltip; it turns black and its text can be selected. */
+.kc-error-tip[data-pinned="true"] {
+  background: var(--kc-tooltip);
+  pointer-events: auto;
+  user-select: text;
+  cursor: text;
+}
+
+.kc-error-tip[data-pinned="true"]::before {
+  border-bottom-color: var(--kc-tooltip);
+}
+
+.kc-error-tip[data-pinned="true"][data-side="above"]::before {
+  border-top-color: var(--kc-tooltip);
+  border-bottom-color: transparent;
+}
+
 .kc-error-tip[hidden] {
   display: none;
 }

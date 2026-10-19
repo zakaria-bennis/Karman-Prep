@@ -289,8 +289,8 @@ test("R-2 the error tooltip opens on hover and focus, closes on Escape, and togg
     await expect(tip).toHaveCount(0);
     return;
   }
-  await marker.hover(); // at once, no delay
-  await expect(tip).toHaveText(message, { timeout: 500 });
+  await marker.hover(); // VIS-31: about 500 ms after the pointer rests on it
+  await expect(tip).toHaveText(message, { timeout: 1500 });
   const m = (await marker.boundingBox())!;
   const t = (await tip.boundingBox())!;
   expect(t.y).toBeGreaterThanOrEqual(m.y + m.height); // directly below the marker
@@ -418,7 +418,7 @@ test("AN-4 the settings popover appears and leaves at once", async ({ page }) =>
   await expect(settings).toBeFocused();
 });
 
-test("S-1 the settings popover opens below its Settings control with right edges aligned", async ({
+test("S-1 the settings popover opens to the left of its Settings control, top-aligned with it", async ({
   page,
 }) => {
   await open(page, [""]);
@@ -429,8 +429,10 @@ test("S-1 the settings popover opens below its Settings control with right edges
   await expect.poll(() => transitions(popover), { intervals: [16] }).toEqual([]); // AN-4 ended
   const a = (await settings.boundingBox())!;
   const p = (await popover.boundingBox())!;
-  expect(Math.abs(p.x + p.width - (a.x + a.width))).toBeLessThanOrEqual(1);
-  expect(p.y).toBeGreaterThanOrEqual(a.y + a.height - 1);
+  // VIS-4: 290 px wide, a 12 px arrow between its right edge and the control, tops level.
+  expect(Math.abs(p.width - 290)).toBeLessThanOrEqual(1);
+  expect(Math.abs(p.x + p.width + 12 - a.x)).toBeLessThanOrEqual(1);
+  expect(Math.abs(p.y - a.y)).toBeLessThanOrEqual(1);
 });
 
 test("AN-5 rows appear at once and a removed row folds out over 190 ms without moving another row's caret", async ({

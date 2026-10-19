@@ -1,148 +1,532 @@
-/* The settings popover (S-1, S-7). Colours come only from role
-   variables (TH-3).
-   SettingsPopover sets top and right (or left) and max-height inline from its anchor and offset
-   parent. AN-4's fade is at the end of this file. */
+/* The settings popover (S-1, S-7), drawn to popovers-menus.md VIS-1 to VIS-19. Colours come only
+   from role variables (TH-3); the reference's fixed greys are mixed from --kc-text over --kc-list,
+   so on the classic skin each equals the measured value.
+   SettingsPopover sets top, left, data-side, --kc-arrow-at and --kc-settings-max-h inline. */
 
 .kc-settings {
+  /* Placement, set inline by SettingsPopover. */
+  --kc-arrow-at: 18.5px;
+  --kc-settings-max-h: none;
+
+  /* Tones local to the popover (wanted as shared tokens, see the menus note). */
+  --kc-pop-rule: color-mix(in srgb, var(--kc-text) 11.4%, var(--kc-list)); /* #e2e2e2 */
+  --kc-pop-hover-border: color-mix(in srgb, var(--kc-text) 42%, var(--kc-list)); /* #949494 */
+  --kc-pop-ink-strong: color-mix(in srgb, var(--kc-text) 73%, var(--kc-list)); /* #454545 */
+  --kc-pop-line: color-mix(in srgb, var(--kc-text) 42%, transparent); /* rgba(0,0,0,.42) */
+  --kc-pop-line-hover: color-mix(in srgb, var(--kc-text) 62%, transparent);
+  --kc-pop-field-line: color-mix(in srgb, var(--kc-text) 20%, transparent);
+  --kc-pop-seg-text: color-mix(in srgb, var(--kc-text) 85%, transparent);
+  --kc-pop-seg-on: color-mix(in srgb, var(--kc-text) 65%, transparent);
+  --kc-pop-placeholder: color-mix(in srgb, var(--kc-text) 47%, transparent);
+  --kc-pop-track: color-mix(in srgb, var(--kc-text) 13.3%, var(--kc-list)); /* #ddd */
+  --kc-pop-knob: color-mix(in srgb, var(--kc-text) 4%, var(--kc-list)); /* #f5f5f5 */
+  --kc-pop-knob-hover: color-mix(in srgb, var(--kc-text) 8%, var(--kc-list)); /* #ebebeb */
+  --kc-pop-knob-on-hover: color-mix(in srgb, var(--kc-text) 66.7%, var(--kc-list)); /* #555 */
+  --kc-pop-knob-shadow:
+    0 2px 2px color-mix(in srgb, var(--kc-text) 20%, transparent),
+    0 0 3px color-mix(in srgb, var(--kc-text) 20%, transparent);
+  --kc-pop-circle: color-mix(in srgb, var(--kc-text) 2.4%, var(--kc-list)); /* #f9f9f9 */
+  --kc-pop-circle-ink: color-mix(in srgb, var(--kc-text) 53.3%, var(--kc-list)); /* #777 */
+  --kc-pop-circle-shadow: inset 0 0 2px color-mix(in srgb, var(--kc-text) 20%, transparent);
+
+  /* VIS-1: the positioned wrapper; its body is the white box, 1 px outside it on every side. */
   position: absolute;
-  z-index: 1;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  width: 320px;
-  max-width: 100%;
-  padding: 8px 12px;
-  overflow-y: auto;
-  border: 1px solid var(--kc-boundary);
-  border-radius: 4px;
-  background: var(--kc-key);
+  z-index: 6;
+  width: 290px;
+  max-width: calc(100% - 10px);
   color: var(--kc-text);
   font-family: var(--kc-font-ui);
   font-size: var(--kc-size-ui);
+  line-height: normal;
 }
 
-/* Checkboxes and radio options: the whole label is the target. */
-.kc-settings-check {
+.kc-settings-body {
+  box-sizing: border-box;
+  max-height: var(--kc-settings-max-h);
+  margin: -1px;
+  padding: 10px;
+  overflow: auto;
+  border: 1px solid var(--kc-boundary);
+  border-radius: 6px;
+  background: var(--kc-list);
+  box-shadow: var(--kc-popover-shadow);
+}
+
+/* VIS-2: a 24 by 12 arrow, a white triangle over a grey one 1 px further out, centred on the
+   anchor. Left of the anchor it points right; below it, up. */
+.kc-settings::before,
+.kc-settings::after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  border: 12px solid transparent;
+  pointer-events: none;
+}
+
+.kc-settings[data-side="left"]::before,
+.kc-settings[data-side="left"]::after {
+  top: calc(var(--kc-arrow-at) - 12px);
+  border-right-width: 0;
+}
+
+.kc-settings[data-side="left"]::before {
+  left: calc(100% + 1px);
+  border-left-color: var(--kc-boundary);
+}
+
+.kc-settings[data-side="left"]::after {
+  left: 100%;
+  border-left-color: var(--kc-list);
+}
+
+.kc-settings[data-side="below"]::before,
+.kc-settings[data-side="below"]::after {
+  left: calc(var(--kc-arrow-at) - 12px);
+  border-top-width: 0;
+}
+
+.kc-settings[data-side="below"]::before {
+  top: -13px;
+  border-bottom-color: var(--kc-boundary);
+}
+
+.kc-settings[data-side="below"]::after {
+  top: -12px;
+  border-bottom-color: var(--kc-list);
+}
+
+/* VIS-16: sections after the first sit under a 1 px rule with 10 px above and below. */
+.kc-settings-section {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--kc-pop-rule);
+}
+
+/* VIS-11: a 17.6 px box (1.1em) with a 1 px border and 3 px corners; checked shows a blue tick
+   1.15em tall that overflows the box's top-right corner. The whole label is the target. */
+.kc-check {
   display: flex;
   align-items: center;
-  gap: 8px;
-  min-height: 32px;
+  gap: 5px;
   cursor: pointer;
 }
 
-.kc-settings-check input {
+.kc-check[data-size="small"] {
+  font-size: 13.6px;
+}
+
+.kc-check[data-size="axis"] {
+  font-size: 15.2px;
+}
+
+.kc-check-box {
+  position: relative;
+  flex: none;
+  width: 1.1em;
+  height: 1.1em;
+}
+
+.kc-check-box > input {
+  appearance: none;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
   margin: 0;
-  accent-color: var(--kc-accent);
+  border: 1px solid var(--kc-boundary);
+  border-radius: 3px;
+  background: transparent;
   cursor: pointer;
 }
 
-/* Cartesian or Polar grid; Radians or Degrees. */
-.kc-settings-choice {
-  display: flex;
-  flex-wrap: wrap;
-  column-gap: 16px;
+.kc-check:hover .kc-check-box > input {
+  border-color: var(--kc-pop-hover-border);
 }
 
-/* One axis: show, label, bounds line, step. */
-.kc-settings-axis {
+.kc-check-tick {
+  position: absolute;
+  top: -0.175em;
+  left: 0.115em;
+  width: 1.15em;
+  height: 1.15em;
+  fill: none;
+  stroke: var(--kc-accent);
+  stroke-width: 3.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.kc-check-box > input:checked + .kc-check-tick {
+  visibility: visible;
+}
+
+/* VIS-17: Grid, its two round buttons and Arrows in a 110 px column; the small checkboxes beside. */
+.kc-settings-grid {
+  display: flex;
+  padding-bottom: 2px;
+}
+
+.kc-settings-grid-main {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: 4px 0;
-  border-top: 1px solid var(--kc-boundary);
-  border-bottom: 1px solid var(--kc-boundary);
+  width: 110px;
+  padding-top: 3px;
+}
+
+.kc-settings-grid-side {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding-top: 3px;
+}
+
+/* VIS-18: 28 px circles, 4.5 px apart, indented under the Grid label. */
+.kc-grid-types {
+  display: flex;
+  gap: 4.5px;
+  margin: 2px 0 8px 24px;
+}
+
+.kc-grid-type {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+}
+
+.kc-grid-type > input {
+  appearance: none;
+  position: absolute;
+  inset: 0;
+  box-sizing: border-box;
+  margin: 0;
+  border: 1px solid var(--kc-pop-line);
+  border-radius: 50%;
+  background: var(--kc-pop-circle);
+  box-shadow: var(--kc-pop-circle-shadow);
+  cursor: pointer;
+}
+
+.kc-grid-type > input:checked {
+  background: var(--kc-text-secondary);
+}
+
+.kc-grid-type > svg {
+  position: relative;
+  width: 26px;
+  height: 26px;
+  color: var(--kc-pop-circle-ink);
+  pointer-events: none;
+}
+
+.kc-grid-type > input:checked + svg {
+  color: color-mix(in srgb, var(--kc-list) 45%, var(--kc-text-secondary));
+}
+
+.kc-grid-type-lines {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 0.8;
+}
+
+/* VIS-17, VIS-19: each axis. The title row ends level with the Label field's bottom border. */
+.kc-settings-axes {
+  padding-top: 5px;
 }
 
 .kc-settings-axis + .kc-settings-axis {
-  border-top: none;
+  margin-top: 12px;
 }
 
-.kc-settings-field {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr);
-  align-items: center;
-  column-gap: 8px;
+/* An error line makes room under its axis. */
+.kc-settings-error + .kc-settings-error {
+  margin-top: 0;
 }
 
-.kc-settings-input {
+.kc-settings-axis-title {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+
+.kc-settings-axis-title > .kc-check {
+  margin-bottom: 8.4px;
+}
+
+.kc-settings-label {
+  position: relative;
+  display: block;
+  padding-top: 9.6px;
+}
+
+.kc-settings-legend {
+  position: absolute;
+  top: 2px;
+  left: 4px;
+  padding: 0 3px;
+  background: var(--kc-list);
+  color: var(--kc-text-secondary);
+  font-size: 12.92px;
+  line-height: 15px;
+}
+
+.kc-settings-label-input {
   box-sizing: border-box;
-  width: 100%;
-  min-height: 32px;
-  padding: 0 8px;
-  border: 1px solid var(--kc-boundary);
-  border-radius: 4px;
-  background: var(--kc-paper);
-  color: var(--kc-text);
-  font: inherit;
+  display: block;
+  width: 121.5px;
+  height: 31px;
+  margin: 0;
+  padding: 7px;
+  border: 1px solid var(--kc-pop-line);
+  border-radius: 5px;
+  background: var(--kc-list);
+  color: var(--kc-pop-ink-strong);
+  font-family: var(--kc-font-ui);
+  font-size: 13.68px;
 }
 
-/* S-1: bounds as inline math, a ≤ x ≤ b. */
+.kc-settings-label-input::placeholder,
+.kc-settings-step-input::placeholder {
+  color: var(--kc-pop-placeholder);
+}
+
+/* VIS-15: the bounds as inline math and Step: with borderless fields underlined 1 px. */
+.kc-settings-axis-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 24.6px;
+  margin-top: 3.6px;
+}
+
 .kc-settings-bounds {
   display: flex;
   align-items: center;
-  gap: 8px;
+  min-width: 0;
 }
 
 .kc-settings-bound {
-  display: flex;
-  flex: 1 1 0;
-  align-items: center;
-  min-width: 0;
-  min-height: 32px;
-  background: var(--kc-paper);
-}
-
-.kc-settings-bound > * {
-  flex: 1 1 auto;
-  min-width: 0;
-  max-width: 100%;
-}
-
-.kc-settings-relation {
+  display: inline-flex;
   flex: none;
+  min-width: 37px;
+}
+
+.kc-settings-bound > .mq-editable-field,
+.kc-settings .kc-settings-bound > .mq-math-mode.mq-editable-field {
+  box-sizing: border-box;
+  min-width: 37px;
+  min-height: 24.2px;
+  padding: 1px 3px;
+  border: none;
+  border-bottom: 1px solid var(--kc-pop-field-line);
+  border-radius: 0;
+  font-size: 15.2px;
+}
+
+.kc-settings .kc-settings-bound > .mq-editable-field.mq-focused {
+  border-bottom: 2px solid var(--kc-accent);
+}
+
+.kc-settings-relation > var {
+  font-size: 18.4px;
+  line-height: 20px;
+}
+
+/* VIS-17: "≤ x ≤" overlaps the fields' right and left padding by 6 px, as the reference's does. */
+.kc-settings-relation {
+  position: relative;
+  display: flex;
+  flex: none;
+  align-items: center;
+  margin: 0 -6px;
+  padding: 0 2px;
   font-family: var(--kc-font-math);
-  font-size: var(--kc-size-math);
+  font-size: 15.2px;
   white-space: nowrap;
 }
 
-/* S-7: a bound or step error below its field. It sits on --kc-list because --kc-error's contrast
-   target is measured on that background (TH-1); it spans the label and input columns of a field. */
-.kc-settings-error {
-  grid-column: 1 / -1;
+.kc-settings-relation > span {
+  padding: 0 0.3em;
+  font-size: 18.4px;
+  line-height: 18.4px;
+  font-family: var(--kc-font-math-operator);
+}
+
+.kc-settings-step {
+  display: flex;
+  flex: none;
+  align-items: center;
+  color: var(--kc-pop-ink-strong);
+  font-size: 13.6px;
+}
+
+.kc-settings-step-input {
+  box-sizing: border-box;
+  width: 37px;
+  height: 24.2px;
   margin: 0;
-  padding: 2px 8px;
-  border-radius: 4px;
-  background: var(--kc-list);
+  padding: 1px 2px;
+  border: none;
+  border-bottom: 1px solid var(--kc-pop-field-line);
+  border-radius: 0;
+  background: transparent;
+  color: var(--kc-text);
+  font-family: var(--kc-font-math);
+  font-size: 15.2px;
+}
+
+.kc-settings-step-input:focus {
+  outline: none;
+  border-bottom: 2px solid var(--kc-accent);
+}
+
+/* S-7: a bound or step error below its line, on --kc-list (TH-1). */
+.kc-settings-error {
+  margin: 4px 0 0;
   color: var(--kc-error);
+  font-size: 13.6px;
 }
 
-@media (pointer: coarse) {
-  .kc-settings-check,
-  .kc-settings-input,
-  .kc-settings-bound {
-    min-height: 44px;
-  }
+/* VIS-14: Complex Mode with its toggle on the right. */
+.kc-settings-complex {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 18px;
 }
 
-.kc-settings input:focus-visible {
-  outline: 2px solid var(--kc-focus-ring);
+.kc-toggle {
+  position: relative;
+  display: block;
+  width: 40px;
+  height: 24px;
+  margin-right: -5px;
+  cursor: pointer;
+}
+
+.kc-toggle > input {
+  appearance: none;
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+.kc-toggle-track {
+  position: absolute;
+  top: 7px;
+  left: 5px;
+  width: 30px;
+  height: 10px;
+  border-radius: 10px;
+  background: var(--kc-pop-track);
+  pointer-events: none;
+}
+
+.kc-toggle-knob {
+  position: absolute;
+  top: 3px;
+  left: 5px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--kc-pop-knob);
+  box-shadow: var(--kc-pop-knob-shadow);
+  pointer-events: none;
+  transition:
+    transform var(--kc-dur-200) var(--kc-ease),
+    background-color var(--kc-dur-200) var(--kc-ease);
+}
+
+.kc-toggle:hover .kc-toggle-knob {
+  background: var(--kc-pop-knob-hover);
+}
+
+.kc-toggle > input:checked ~ .kc-toggle-knob {
+  background: var(--kc-text-secondary);
+  transform: translateX(12px);
+}
+
+.kc-toggle:hover > input:checked ~ .kc-toggle-knob {
+  background: var(--kc-pop-knob-on-hover);
+}
+
+/* VIS-12: joined 36 px buttons; the selected one is dark grey with white text. */
+.kc-segments {
+  display: flex;
+  padding: 0 1px 1px 0;
+}
+
+.kc-segment {
+  position: relative;
+  display: flex;
+  flex: 1 1 0;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  height: 36px;
+  margin: 0 -1px -1px 0;
+  padding: 0 8px;
+  border: 1px solid var(--kc-pop-line);
+  color: var(--kc-pop-seg-text);
+  cursor: pointer;
+}
+
+.kc-segment:first-child {
+  border-radius: 3px 0 0 3px;
+}
+
+.kc-segment:last-child {
+  border-radius: 0 3px 3px 0;
+}
+
+.kc-segment:hover {
+  z-index: 1;
+  border-color: var(--kc-pop-line-hover);
+  color: var(--kc-text);
+}
+
+.kc-segment:has(> input:checked) {
+  z-index: 2;
+  border-color: var(--kc-pop-seg-on);
+  background: var(--kc-pop-seg-on);
+  color: var(--kc-list);
+}
+
+.kc-segment > input {
+  appearance: none;
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+.kc-segment-text {
+  position: relative;
+  line-height: 34px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* VIS-9: a 2 px blue ring 2 px outside the focused control. */
+.kc-check-box > input:focus-visible,
+.kc-grid-type > input:focus-visible,
+.kc-settings-label-input:focus-visible {
+  outline: 2px solid var(--kc-accent);
   outline-offset: 2px;
 }
 
-/* AN-4: the popover appears and leaves at once (--kc-dur-hover is 0 ms), as the reference's does. */
-.kc-settings {
-  transition:
-    opacity var(--kc-dur-hover) var(--kc-ease),
-    transform var(--kc-dur-hover) var(--kc-ease);
+.kc-toggle:has(> input:focus-visible),
+.kc-segment:has(> input:focus-visible) {
+  outline: 2px solid var(--kc-accent);
+  outline-offset: 2px;
 }
 
-.kc-settings[data-state="enter"] {
-  opacity: 0;
-  transform: translateY(-4px);
-}
-
-.kc-settings[data-state="closing"] {
-  opacity: 0;
-  transition: opacity var(--kc-dur-hover) var(--kc-ease);
+@media (pointer: coarse) {
+  .kc-check {
+    min-height: 32px;
+  }
 }
