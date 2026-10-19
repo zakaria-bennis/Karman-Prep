@@ -4,6 +4,9 @@
 import { captureException } from "@sentry/nextjs";
 
 /** Sends an already sanitised error with the calculator tags. */
-export function sendCalculatorError(error: Error, tags: { calculator: "v2"; build: string }): void {
+export function sendCalculatorError(
+  error: Error,
+  tags: { calculator: "quiz"; build: string }
+): void {
   captureException(error, { tags });
 }

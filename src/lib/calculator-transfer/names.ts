@@ -1,5 +1,5 @@
 // Question function names from prose (TR-19): a name directly after "function" or "functions",
-// in prose or as a lone math segment. Eager and framework-free; no v2 import (AR-3).
+// in prose or as a lone math segment. Eager and framework-free; no calculator import (AR-3).
 
 import type { MathSegment } from "../../components/learn/math-segments";
 import { lexQuestionMath } from "./lex";

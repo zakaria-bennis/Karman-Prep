@@ -18,7 +18,7 @@ function sent(): [Error, Hint] {
   return call as [Error, Hint];
 }
 
-/** Stands in for v2's KarmanCalculatorError without importing v2 code (AR-1). */
+/** Stands in for KarmanCalculatorError without importing lazy calculator code (AR-1). */
 class KarmanCalculatorError extends Error {
   name = "KarmanCalculatorError";
   code = "unsupported";
@@ -33,7 +33,7 @@ it("AR-57 reportCalculatorError sends only the error name, its code and the calc
   await vi.dynamicImportSettled();
   const [err, hint] = sent();
   expect(err.message).toBe("KarmanCalculatorError: unsupported");
-  expect(hint).toEqual({ tags: { calculator: "v2", build: "abc123" } });
+  expect(hint).toEqual({ tags: { calculator: "quiz", build: "abc123" } });
   expect(JSON.stringify([err.message, err.stack, hint])).not.toMatch(/frac|row 3/);
 });
 

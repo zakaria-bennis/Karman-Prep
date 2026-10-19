@@ -4601,7 +4601,7 @@ var MathQuillModule = (function () {
                     mathspeak).trim();
             }
             // Editable math: the textarea's aria-label is not written here. The embedding
-            // adapter owns aria-label and sets it once (Karman calculator v2, patch 0004).
+            // adapter owns aria-label and sets it once (Karman calculator, patch 0004).
         };
         return Controller;
     }(Controller_scrollHoriz));

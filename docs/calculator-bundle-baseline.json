@@ -1,0 +1,23 @@
+{
+  "next": "16.3.8",
+  "base": {
+    "commit": "08c8c76",
+    "eagerGzipBytes": {
+      "/learn/[subject]/[nodeId]/page": 121554,
+      "/learn/practice/[skillId]/page": 277448,
+      "/learn/daily/page": 231691,
+      "/learn/earlier/[subject]/page": 301738,
+      "/diagnostic/page": 314798
+    }
+  },
+  "eagerAddedGzipBytes": {
+    "/learn/[subject]/[nodeId]/page": 54,
+    "/learn/practice/[skillId]/page": -1042,
+    "/learn/daily/page": 1205,
+    "/learn/earlier/[subject]/page": -47,
+    "/diagnostic/page": -877
+  },
+  "lazyGzipBytes": 114164,
+  "workerGzipBytes": 47190,
+  "perf": null
+}

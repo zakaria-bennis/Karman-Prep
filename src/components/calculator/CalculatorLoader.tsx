@@ -1,34 +1,34 @@
 "use client";
 
-// Loads the lazy v2 quiz host once per page and mounts it into the window's shadow host (AR-31,
+// Loads the lazy quiz host once per page and mounts it into the window's shadow host (AR-31,
 // OI-28). A failed import stays failed for the page, so its panel offers "Reload page"; a mount or
 // API throw keeps the loaded module, so its panel offers "Retry", which mounts again (AR-53).
-// Eager module: it imports v2 code only through loadCalculatorModule() and as types (AR-1, AR-32).
+// Eager module: it imports lazy calculator code only through loadCalculatorModule() and as types (AR-1, AR-32).
 
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 import type {
   QuizCalculatorHandle,
   QuizMountOptions,
-} from "@/components/calculator-v2/host/quiz-host";
+} from "@/components/calculator/host/quiz-host";
 import type { CalculatorLoadFailure, CalculatorLoadStatus } from "./CalculatorScope";
 import { onCalculatorFontsLoaded, warmCalculatorFonts } from "./font-warmup";
 import { reportCalculatorError } from "./report-error";
 import styles from "./CalculatorWindow.module.css";
 
-export type QuizHostModule = typeof import("@/components/calculator-v2/host/quiz-host");
+export type QuizHostModule = typeof import("@/components/calculator/host/quiz-host");
 
 export const LOADING_COPY = "Loading calculator…";
 export const MOUNT_FAILED_COPY = "The calculator could not load.";
 export const LOAD_FAILED_COPY = "The calculator could not load. Reload the page to try again.";
 
-/** Provided by CalculatorScope (v2): the shadow host's id, which the trigger's aria-controls names. */
+/** Provided by CalculatorScope: the shadow host's id, which the trigger's aria-controls names. */
 export const CalculatorHostIdContext = createContext<string>("karman-calculator-host");
 
 /** The lazy quiz host import. Server renders never reach the dynamic import (AR-32). */
 export function loadCalculatorModule(): Promise<QuizHostModule> {
   return typeof window === "undefined"
     ? Promise.reject(new Error("client only"))
-    : import("@/components/calculator-v2/host/quiz-host");
+    : import("@/components/calculator/host/quiz-host");
 }
 
 let modulePromise: Promise<QuizHostModule> | null = null;

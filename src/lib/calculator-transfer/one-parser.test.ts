@@ -5,17 +5,13 @@
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { expect, it, vi } from "vitest";
-import type {
-  AnalysisResult,
-  AnalysisSettings,
-  RowSource,
-} from "@/lib/calculator-v2/core/analysis";
-import { createTestEngine } from "@/lib/calculator-v2/core/api/__fixtures__/test-engine";
-import { functionDefinitionHead, parseLatex, toSExpr } from "@/lib/calculator-v2/core/latex/index";
+import type { AnalysisResult, AnalysisSettings, RowSource } from "@/lib/calculator/core/analysis";
+import { createTestEngine } from "@/lib/calculator/core/api/__fixtures__/test-engine";
+import { functionDefinitionHead, parseLatex, toSExpr } from "@/lib/calculator/core/latex/index";
 
 const spy = vi.hoisted(() => ({ results: [] as AnalysisResult[] }));
-vi.mock("@/lib/calculator-v2/core/analysis", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/lib/calculator-v2/core/analysis")>();
+vi.mock("@/lib/calculator/core/analysis", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/calculator/core/analysis")>();
   return {
     ...actual,
     analyzeRows: (rows: readonly RowSource[], settings: AnalysisSettings) => {
@@ -68,17 +64,17 @@ it("PR-1 API input analysed by the engine has exactly the tree parseLatex gives 
 });
 
 it("PR-1 the engine's analysis and the MathField speech text parse only through core/latex's parseLatex", () => {
-  const api = sourceFiles("src/lib/calculator-v2/core/api");
+  const api = sourceFiles("src/lib/calculator/core/api");
   const analysers = api.filter((f) => /\banalyzeRows\b/.test(readFileSync(f, "utf8")));
   expect(analysers.length).toBeGreaterThan(0);
   for (const f of analysers) // the analysis index module, the one the spy above wraps
     expect(readFileSync(f, "utf8"), f).toMatch(
-      /import\s*\{[^}]*\banalyzeRows\b[^}]*\}\s*from\s*"(?:\.\.\/analysis|@\/lib\/calculator-v2\/core\/analysis)(?:\/index)?"/
+      /import\s*\{[^}]*\banalyzeRows\b[^}]*\}\s*from\s*"(?:\.\.\/analysis|@\/lib\/calculator\/core\/analysis)(?:\/index)?"/
     );
   const users = [
-    ...sourceFiles("src/lib/calculator-v2/core/analysis"),
+    ...sourceFiles("src/lib/calculator/core/analysis"),
     ...api,
-    "src/components/calculator-v2/math-field/speech.ts",
+    "src/components/calculator/math-field/speech.ts",
   ];
   for (const file of users) {
     const src = readFileSync(file, "utf8");
@@ -87,15 +83,13 @@ it("PR-1 the engine's analysis and the MathField speech text parse only through 
     );
     expect(
       specifiers.filter((s) =>
-        /^mathjs|^katex|(^|\/)calculator\/|latex\/(normalize|tokens|parser|atoms|calls|letters)$/.test(
-          s
-        )
+        /^mathjs|^katex|latex\/(normalize|tokens|parser|atoms|calls|letters)$/.test(s)
       ),
       file
     ).toEqual([]);
     expect(src, file).not.toMatch(/\btokenize\s*\(/);
   }
   const callers = users.filter((f) => /\bparseLatex\s*\(/.test(readFileSync(f, "utf8")));
-  expect(callers).toContain("src/components/calculator-v2/math-field/speech.ts");
-  expect(callers.some((f) => f.startsWith("src/lib/calculator-v2/core/analysis/"))).toBe(true);
+  expect(callers).toContain("src/components/calculator/math-field/speech.ts");
+  expect(callers.some((f) => f.startsWith("src/lib/calculator/core/analysis/"))).toBe(true);
 });

@@ -2,7 +2,7 @@
 // dependencies (TR-18 to TR-21, TR-37, TR-77), whole answer choices (TR-40) and control names
 // (TR-50): which question math segments get a Transfer control and what each inserts. Items are keyed by the segment index of one whole-text
 // splitMathText call (decision 1). Eager and framework-free; it reads question text only and
-// imports nothing from the v2 calculator (AR-3, TR-74).
+// imports nothing from the calculator (AR-3, TR-74).
 
 import type { MathSegment } from "../../components/learn/math-segments";
 import { splitMathText } from "./math-split"; // not math-segments: AR-33, math-split.ts

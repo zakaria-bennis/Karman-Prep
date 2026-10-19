@@ -1,7 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
 // AR-66 on `npm run cf:preview` (01-interfaces-integration.md section 16).
-// Run after `npm run cf:build`; scripts/calculator-v2/release.sh runs it before cf:deploy.
+// Run after `npm run cf:build`; scripts/calculator/release.sh runs it before cf:deploy.
 export default defineConfig({
   testDir: "./tests/cf-preview",
   projects: [{ name: "cf-preview", use: { ...devices["Desktop Chrome"] } }],

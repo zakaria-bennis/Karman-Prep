@@ -1,7 +1,7 @@
 // Segment grammar, types, Phase 1 gates and segment-level narrowing (TR-10 to TR-15, TR-17, TR-18,
 // TR-21, TR-77). A recursive-descent recogniser over lex.ts tokens decides whether one normalised math
 // segment is an expression, equation, inequality, function or system, and records the names each
-// row defines, uses and calls. Eager and framework-free; it never imports the v2 parser (AR-3,
+// row defines, uses and calls. Eager and framework-free; it never imports the calculator parser (AR-3,
 // TR-74), so the limits below repeat 02's values.
 
 import { lexQuestionMath, type QToken, type QTokenKind } from "./lex";
@@ -555,7 +555,7 @@ function labelledPairs(
   }
 }
 
-/** Decision 7's segment-level narrowing (TR-21): each mirrors a v2 row error. */
+/** Decision 7's segment-level narrowing (TR-21): each mirrors a calculator row error. */
 function narrow(p: ParsedRow) {
   const { row, sums } = p;
   const d = row.defines;

@@ -93,7 +93,7 @@ function useQuestionStem(questionKey: string): StemInput | null {
   );
 }
 
-/** The v2 CalculatorSourceAction: registers its stem and renders the stem item's control. */
+/** The CalculatorSourceAction body: registers its stem and renders the stem item's control. */
 export function StemTransferAction(props: {
   latex: string;
   segmentIndex?: number;
@@ -109,7 +109,7 @@ export function StemTransferAction(props: {
   return view && <TransferControl {...view} />;
 }
 
-/** The v2 cluster CalculatorChoiceAction: the caller's stem, else the registered one. */
+/** The cluster CalculatorChoiceAction body: the caller's stem, else the registered one. */
 export function ChoiceTransferAction(props: {
   text: string;
   letter: string;
@@ -118,13 +118,13 @@ export function ChoiceTransferAction(props: {
   slot?: "cluster";
 }): JSX.Element | null {
   const registered = useQuestionStem(props.questionKey);
-  // AR-11: only the cluster instance renders a control; v1's own instance renders none on v2.
+  // AR-11: only the cluster instance renders a control.
   if (props.slot !== "cluster") return null;
   const view = choiceControl(props.letter, props.text, props.stem ?? registered);
   return view && <TransferControl {...view} />;
 }
 
-/** The v2 CalculatorTableAction (TR-22): a question table's control at its top-right corner, or
+/** The CalculatorTableAction body (TR-22): a question table's control at its top-right corner, or
  * a table answer choice's in its cluster ("choice:<letter>" items are described by the letter). */
 export function TableTransferAction(props: {
   rows: string[][];
@@ -132,8 +132,8 @@ export function TableTransferAction(props: {
   itemId?: string;
   slot?: "cluster";
 }): JSX.Element | null {
-  // A table choice's control is its cluster instance's; TableChoiceOption's v1 instance (and
-  // catalog practice's QuestionTable, with no cluster) render none on v2.
+  // A table choice's control is its cluster instance's; catalog practice's QuestionTable, with
+  // no cluster, renders none.
   if (props.slot !== "cluster" && props.itemId !== "table") return null;
   const sourceId = props.itemId ?? "table";
   const letter = sourceId.startsWith("choice:") ? sourceId.slice("choice:".length) : undefined;

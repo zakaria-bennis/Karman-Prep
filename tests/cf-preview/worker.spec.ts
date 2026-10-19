@@ -6,11 +6,11 @@ test("AR-66 the built Turbopack worker starts on the cf:preview origin and plots
 }) => {
   // Imported dynamically: Playwright compiles a static import of an .mjs file to CommonJS, which
   // Node then rejects in ES module scope ("exports is not defined").
-  const { checkBundle } = await import("../../scripts/build/check-calculator-v2-bundle.mjs");
+  const { checkBundle } = await import("../../scripts/build/check-calculator-bundle.mjs");
   const { workerUrl } = await import("../../scripts/build/turbopack-output.mjs");
   const report = await checkBundle({
     root: process.cwd(),
-    baseline: JSON.parse(readFileSync("docs/calculator-v2-bundle-baseline.json", "utf8")),
+    baseline: JSON.parse(readFileSync("docs/calculator-bundle-baseline.json", "utf8")),
   });
   expect(report.problems).toEqual([]);
   expect(report.worker).not.toBeNull();
@@ -73,7 +73,7 @@ test("AR-66 the built Turbopack worker starts on the cf:preview origin and plots
     workerUrl(new URL(page.url()).origin, report.worker!)
   );
   expect(result).toMatchObject({
-    ready: { v: 1, type: "ready", worker: "karman-compute-v1" },
+    ready: { v: 1, type: "ready", worker: "karman-compute" },
     kind: "curve",
   });
   expect(result.floats).toBeGreaterThan(0);

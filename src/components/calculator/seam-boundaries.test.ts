@@ -1,12 +1,13 @@
-// AR-1: modules under src/lib/calculator-v2/, src/components/calculator-v2/ and vendor/mathquill/
-// are imported only by each other, by CalculatorLoader's import() and by the standalone entry (type-
-// only imports excepted), and src/lib/calculator-transfer/clipboard.ts only from
-// src/components/calculator-v2/. The scan runs on synthetic sources first, then on every source file
-// it finds under src/ at run time, so modules that later packages add are covered without edits.
+// AR-1: the lazy calculator modules (src/lib/calculator/, KarmanCalculator.ts and the subfolders
+// of src/components/calculator/, and vendor/mathquill/) are imported only by each other and by
+// CalculatorLoader's import() (type-only imports excepted), and
+// src/lib/calculator-transfer/clipboard.ts only from the lazy component modules. The scan runs on
+// synthetic sources first, then on every source file it finds under src/ at run time, so modules
+// that later packages add are covered without edits.
 //
-// AR-2: the eager modules (the non-test modules of src/lib/calculator-transfer/ and
-// src/components/calculator/) touch no window, document, navigator or Worker at module scope, and
-// each loads under Vitest's node environment. AR-24 (03's contribution): learn-header.ts is a leaf
+// AR-2: the eager modules (the non-test modules of src/lib/calculator-transfer/ and the top-level
+// modules of src/components/calculator/ other than KarmanCalculator.ts) touch no window, document,
+// navigator or Worker at module scope, and each loads under Vitest's node environment. AR-24 (03's contribution): learn-header.ts is a leaf
 // that LearnLayout re-exports. These scans also enumerate files at run time.
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join, posix, relative, resolve, sep } from "node:path";
@@ -24,22 +25,43 @@ interface ImportRef {
   line: number;
 }
 
+const COMPONENTS = "src/components/calculator";
+/** The lazy subfolders of src/components/calculator/; every subfolder must be listed here. */
+const LAZY_COMPONENT_DIRS = [
+  "host",
+  "icons",
+  "math-field",
+  "styles",
+  "transfer",
+  "ui",
+  "__fixtures__",
+];
+/** The lazy component paths, extensionless: KarmanCalculator.ts and the lazy subfolders. */
+const LAZY_COMPONENT_PATHS = [
+  `${COMPONENTS}/KarmanCalculator`,
+  ...LAZY_COMPONENT_DIRS.map((dir) => `${COMPONENTS}/${dir}`),
+];
 /**
- * The lazy v2 folders, imported only by their own modules (the standalone entry is one) and by the
- * loader's `import()`.
+ * The lazy calculator paths, extensionless, imported only by their own modules and by the loader's
+ * `import()`.
  */
-const LAZY_DIRS = ["src/lib/calculator-v2", "src/components/calculator-v2", "vendor/mathquill"];
+const LAZY_PATHS = ["src/lib/calculator", ...LAZY_COMPONENT_PATHS, "vendor/mathquill"];
 const loader = "src/components/calculator/CalculatorLoader.tsx";
 
-/** The v2 clipboard module and the one folder allowed to import it. */
+/** The clipboard module, which only the lazy component modules may import. */
 const CLIPBOARD = "src/lib/calculator-transfer/clipboard";
-const CLIPBOARD_IMPORTERS = "src/components/calculator-v2";
 
 const SOURCE_FILE = /\.(?:ts|tsx|js|mjs|jsx|mts)$/;
 const TEST_FILE = /\.test\.[cm]?[jt]sx?$/;
 
 function isUnder(path: string, dir: string): boolean {
   return path === dir || path.startsWith(`${dir}/`);
+}
+
+/** Whether `path` (with or without its extension) is a lazy calculator module. */
+function isLazy(path: string, paths: readonly string[] = LAZY_PATHS): boolean {
+  const bare = path.replace(/\.(?:ts|tsx|js|mjs|jsx|css)$/, "");
+  return paths.some((dir) => isUnder(bare, dir));
 }
 
 /** Test files and `__fixtures__/` folders, which AR-1 exempts as importers. */
@@ -151,14 +173,14 @@ function importViolations(files: readonly { path: string; source: string }[]): s
   const violations: string[] = [];
   for (const { path, source } of files) {
     if (isTestOrFixture(path)) continue;
-    const inLazyDir = LAZY_DIRS.some((dir) => isUnder(path, dir));
+    const inLazyDir = isLazy(path);
     for (const ref of collectImports(path, source)) {
       if (ref.typeOnly) continue;
       const target = resolveSpecifier(path, ref.specifier);
       if (target === null) continue;
-      const allowed = LAZY_DIRS.some((dir) => isUnder(target, dir))
+      const allowed = isLazy(target)
         ? inLazyDir || (ref.kind === "dynamic" && path === loader)
-        : target !== CLIPBOARD || isUnder(path, CLIPBOARD_IMPORTERS);
+        : target !== CLIPBOARD || isLazy(path, LAZY_COMPONENT_PATHS);
       if (!allowed) violations.push(`${path} imports ${ref.specifier}`);
     }
   }
@@ -166,36 +188,33 @@ function importViolations(files: readonly { path: string; source: string }[]): s
 }
 
 const scope = "src/components/calculator/CalculatorScope.tsx";
-const quizHost = "@/components/calculator-v2/host/quiz-host";
+const quizHost = "@/components/calculator/host/quiz-host";
 
 function v(path: string, source: string): string[] {
   return importViolations([{ path, source }]);
 }
 
-/** v2 imports of every kind, which only test files and fixtures may hold outside v2. */
-const V2_IMPORTS = [
+/** Lazy imports of every kind, which only test files and fixtures may hold outside the lazy paths. */
+const LAZY_IMPORTS = [
   `import { mountQuizCalculator } from "${quizHost}";`,
-  'export * from "@/lib/calculator-v2/theme/roles";',
-  'const latex = import("@/lib/calculator-v2/core/latex");',
-  'const app = require("@/components/calculator-v2/ui/App");',
+  'export * from "@/lib/calculator/theme/roles";',
+  'const latex = import("@/lib/calculator/core/latex");',
+  'const app = require("@/components/calculator/ui/App");',
   'import { readClipboard } from "@/lib/calculator-transfer/clipboard";',
 ].join("\n");
 
 it("AR-1 the import scan flags every importer outside the allowed set in synthetic sources", () => {
   expect(
-    v(
-      "src/components/learn/Fake.tsx",
-      'import { parseLatex } from "@/lib/calculator-v2/core/latex";'
-    )
-  ).toEqual(["src/components/learn/Fake.tsx imports @/lib/calculator-v2/core/latex"]);
+    v("src/components/learn/Fake.tsx", 'import { parseLatex } from "@/lib/calculator/core/latex";')
+  ).toEqual(["src/components/learn/Fake.tsx imports @/lib/calculator/core/latex"]);
 
   const flagged: readonly (readonly [path: string, source: string, specifier: string])[] = [
     [loader, `import { mountQuizCalculator } from "${quizHost}";`, quizHost],
     [scope, `const host = import("${quizHost}");`, quizHost],
     [
       "src/components/learn/A.ts",
-      'export { x } from "../calculator-v2/foo";',
-      "../calculator-v2/foo",
+      'export { x } from "../calculator/ui/foo";',
+      "../calculator/ui/foo",
     ],
     [
       "src/components/calculator/A.ts",
@@ -218,31 +237,40 @@ it("AR-1 the import scan flags every importer outside the allowed set in synthet
   }
 
   // The exempt importers below hold real violations: the same source fails from a quiz module.
-  expect(v("src/components/learn/B.ts", V2_IMPORTS)).toHaveLength(5);
+  expect(v("src/components/learn/B.ts", LAZY_IMPORTS)).toHaveLength(5);
   const allowed: readonly (readonly [path: string, source: string])[] = [
     [loader, `const load = () => import("${quizHost}");`],
     [loader, `type M = typeof import("${quizHost}");`],
     [scope, `import type { OpenTrigger } from "${quizHost}";`],
-    [scope, 'import { type SkinId } from "@/lib/calculator-v2/theme/skins";'],
+    [scope, 'import { type SkinId } from "@/lib/calculator/theme/skins";'],
     [
-      "src/components/calculator-v2/ui/App.tsx",
+      "src/components/calculator/ui/App.tsx",
       'import { readClipboard } from "@/lib/calculator-transfer/clipboard";',
     ],
-    ["src/lib/calculator-v2/plot/a.ts", 'import { b } from "../../../components/calculator-v2/b";'],
-    ["src/lib/calculator-transfer/a.test.ts", V2_IMPORTS],
-    ["src/components/calculator/__fixtures__/f.ts", V2_IMPORTS],
+    ["src/lib/calculator/plot/a.ts", 'import { b } from "../../../components/calculator/ui/b";'],
+    ["src/components/learn/C.tsx", 'import { c } from "../calculator/transfer-selection";'],
+    ["src/lib/calculator-transfer/a.test.ts", LAZY_IMPORTS],
+    ["src/components/calculator/__fixtures__/f.ts", LAZY_IMPORTS],
   ];
   for (const [path, source] of allowed) {
     expect(v(path, source), `${path}: ${source}`).toEqual([]);
   }
 });
 
-it("AR-1 only v2 modules, the CalculatorLoader import() and the standalone entry import v2 code, and only v2 UI imports clipboard.ts", () => {
+it("AR-1 only lazy modules and the CalculatorLoader import() import lazy calculator code, and only lazy UI imports clipboard.ts", () => {
   const files = sourceFiles(ROOT);
   const paths = files.map((file) => file.path);
-  expect(paths).toContain("src/lib/calculator-v2/theme/roles.ts");
+  expect(paths).toContain("src/lib/calculator/theme/roles.ts");
   expect(paths.filter((path) => path.includes(".test."))).toEqual([]);
   expect(importViolations(files)).toEqual([]);
+});
+
+it("AR-1 every subfolder of src/components/calculator/ is classified as lazy", () => {
+  const dirs = readdirSync(join(ROOT, COMPONENTS), { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name)
+    .sort();
+  expect(dirs).toEqual([...LAZY_COMPONENT_DIRS].sort());
 });
 
 /** Browser globals that AR-2 keeps out of module scope. */
@@ -251,7 +279,7 @@ const BROWSER_GLOBALS = new Set(["window", "document", "navigator", "Worker"]);
 const GLOBAL_OBJECTS = new Set(["globalThis", "self"]);
 
 /** The folders whose non-test modules are eager (AR-2). */
-const EAGER_DIRS = ["src/lib/calculator-transfer", "src/components/calculator"];
+const EAGER_DIR = "src/lib/calculator-transfer";
 
 /** A class `extends` clause's expression: the one TypeNode whose expression runs. */
 function isClassExtends(node: ts.Node): boolean {
@@ -340,14 +368,17 @@ function moduleScopeGlobals(path: string, source: string): string[] {
     });
 }
 
-/** AR-2's eager modules: the resolver plus the non-test `.ts` and `.tsx` files of EAGER_DIRS. */
+/**
+ * AR-2's eager modules: the non-test `.ts` and `.tsx` files of EAGER_DIR, plus the top-level
+ * non-test `.ts` and `.tsx` files of src/components/calculator/ that are not lazy.
+ */
 function eagerFiles(root: string): string[] {
-  const files: string[] = [];
-  for (const dir of EAGER_DIRS) {
-    if (!existsSync(join(root, dir))) continue;
-    files.push(...repoPaths(root, dir).filter((path) => /\.tsx?$/.test(path)));
+  const files = existsSync(join(root, EAGER_DIR)) ? repoPaths(root, EAGER_DIR) : [];
+  for (const entry of readdirSync(join(root, COMPONENTS), { withFileTypes: true })) {
+    const path = `${COMPONENTS}/${entry.name}`;
+    if (entry.isFile() && !isTestOrFixture(path) && !isLazy(path)) files.push(path);
   }
-  return files.sort();
+  return files.filter((path) => /\.tsx?$/.test(path)).sort();
 }
 
 function g(src: string): string[] {

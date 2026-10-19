@@ -2,14 +2,14 @@
 // every question-dialect case, compared on the TR-7 output (normalizeQuestionMath).
 
 import { describe, expect, it } from "vitest";
-import { analyzeRows, type RowAnalysis } from "../calculator-v2/core/analysis/index";
-import { CORPUS } from "../calculator-v2/core/corpus/index";
-import { runnerFor } from "../calculator-v2/core/corpus/runners";
-import type { CorpusCase, ExpectedField } from "../calculator-v2/core/corpus/types";
-import { evaluateLatex } from "../calculator-v2/core/eval/compile";
-import { formatValue } from "../calculator-v2/core/eval/format";
-import { functionDefinitionHead } from "../calculator-v2/core/latex/function-head";
-import { parseLatex, toSExpr } from "../calculator-v2/core/latex/index";
+import { analyzeRows, type RowAnalysis } from "../calculator/core/analysis/index";
+import { CORPUS } from "../calculator/core/corpus/index";
+import { runnerFor } from "../calculator/core/corpus/runners";
+import type { CorpusCase, ExpectedField } from "../calculator/core/corpus/types";
+import { evaluateLatex } from "../calculator/core/eval/compile";
+import { formatValue } from "../calculator/core/eval/format";
+import { functionDefinitionHead } from "../calculator/core/latex/function-head";
+import { parseLatex, toSExpr } from "../calculator/core/latex/index";
 import { normalizeQuestionMath } from "./normalize";
 
 const FILE = "src/lib/calculator-transfer/question-dialect.corpus.test.ts";

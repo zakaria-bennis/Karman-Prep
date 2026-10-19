@@ -1,12 +1,12 @@
 // @vitest-environment jsdom
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { installDomStubs } from "@/components/calculator-v2/__fixtures__/dom-stubs";
+import { installDomStubs } from "@/components/calculator/__fixtures__/dom-stubs";
 import ExternalCalculatorLink from "./ExternalCalculatorLink";
 
 const probe = vi.hoisted(() => ({ keys: [] as (string | undefined)[] }));
 
-vi.mock("@/components/calculator-v2/host/quiz-host", () => ({
+vi.mock("@/components/calculator/host/quiz-host", () => ({
   mountQuizCalculator: () => ({
     calculator: {},
     focusOnOpen: vi.fn(),

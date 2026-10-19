@@ -1,4 +1,4 @@
-// AR-19: v2 calculator code takes its viewport breakpoints only from breakpoints.ts. The scan runs on
+// AR-19: calculator code takes its viewport breakpoints only from breakpoints.ts. The scan runs on
 // synthetic sources first, then on the real files it finds at run time, so files that later
 // packages add under the scanned folders are covered without editing this test.
 import { existsSync, readdirSync, readFileSync } from "node:fs";
@@ -11,11 +11,7 @@ import { CALCULATOR_DOCK_MIN_WIDTH, FULL_SCREEN_QUERY, PHONE_QUERY } from "./bre
 const ROOT = resolve(__dirname, "../../..");
 
 /** The folders AR-19 scans. */
-const SCAN_DIRS = [
-  "src/components/calculator-v2",
-  "src/lib/calculator-v2",
-  "src/components/calculator",
-] as const;
+const SCAN_DIRS = ["src/components/calculator", "src/lib/calculator"] as const;
 
 /** breakpoints.ts itself. */
 const EXCEPT: readonly string[] = ["src/components/calculator/breakpoints.ts"];
@@ -118,8 +114,8 @@ function breakpointFindings(
   return texts.map((text) => `${path}: ${text}`);
 }
 
-/** The repo-relative v2 calculator files AR-19 scans, sorted. */
-function v2Files(root: string): string[] {
+/** The repo-relative calculator files AR-19 scans, sorted. */
+function calculatorFiles(root: string): string[] {
   const files: string[] = [];
   for (const dir of SCAN_DIRS) {
     const abs = join(root, dir);
@@ -146,7 +142,7 @@ it("AR-19 breakpoints.ts exports the dock width and the two media queries", () =
 });
 
 it("AR-19 the scan flags other viewport queries and literal innerWidth comparisons", () => {
-  const p = "src/components/calculator-v2/a.ts";
+  const p = "src/components/calculator/a.ts";
   expect(breakpointFindings(p, 'matchMedia("(max-width: 900px)")')).toEqual([
     p + ": (max-width: 900px)",
   ]);
@@ -173,8 +169,8 @@ it("AR-19 the scan flags other viewport queries and literal innerWidth compariso
   ).toEqual([]);
 });
 
-it("AR-19 v2 code uses only the breakpoints.ts queries and dock width", () => {
-  const files = v2Files(ROOT);
+it("AR-19 calculator code uses only the breakpoints.ts queries and dock width", () => {
+  const files = calculatorFiles(ROOT);
   expect(files).toContain("src/components/calculator/CalculatorScope.tsx");
   expect(files).not.toContain("src/components/calculator/breakpoints.ts");
   expect(files.flatMap((path) => breakpointFindings(path, read(path)))).toEqual([]);

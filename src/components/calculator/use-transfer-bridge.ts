@@ -8,7 +8,7 @@
 // calculator code only as types (AR-1).
 
 import { useEffect, useLayoutEffect, useReducer, useState, type RefObject } from "react";
-import type { QuizCalculatorHandle } from "@/components/calculator-v2/host/quiz-host"; // type-only (AR-1)
+import type { QuizCalculatorHandle } from "@/components/calculator/host/quiz-host"; // type-only (AR-1)
 import type {
   TransferPayload,
   TransferResult,

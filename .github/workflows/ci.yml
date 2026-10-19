@@ -175,5 +175,5 @@ jobs:
             nextjs-${{ runner.os }}-
       - run: npm install --no-audit --no-fund
       - run: npm run cf:build
-      # AR-32, AR-33 and AR-66: the v2 bundle boundary, budgets and worker output.
-      - run: node scripts/build/check-calculator-v2-bundle.mjs
+      # AR-32, AR-33 and AR-66: the calculator bundle boundary, budgets and worker output.
+      - run: node scripts/build/check-calculator-bundle.mjs

@@ -20,7 +20,7 @@ import {
   TRANSFER_DAILY_QUESTION,
   TRANSFER_DIAGNOSTIC_QUESTIONS,
   TRANSFER_TABLES_DAILY_QUESTION,
-} from "./v2/transfer-questions";
+} from "./harness/transfer-questions";
 const sheet = document.createElement("style");
 sheet.textContent = themeStyleSheet();
 document.head.append(sheet);

@@ -19,7 +19,7 @@ import {
 } from "react";
 import { Calculator } from "lucide-react";
 import { useQuizAnimations } from "@/components/learn/quiz/QuizTools";
-import type { OpenTrigger, QuizCalculatorHandle } from "@/components/calculator-v2/host/quiz-host"; // type-only (AR-1)
+import type { OpenTrigger, QuizCalculatorHandle } from "@/components/calculator/host/quiz-host"; // type-only (AR-1)
 import { FULL_SCREEN_QUERY, PHONE_QUERY } from "./breakpoints";
 import {
   CalculatorHostIdContext,

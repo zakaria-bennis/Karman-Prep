@@ -44,7 +44,7 @@ it("AR-26 floating and docked set the restore mode; maximized and full screen ke
   expect(get().restoreMode).toBe("floating");
 });
 
-it("AR-22 floating geometry starts at 16, 64 with v1's size and is clamped to the viewport", () => {
+it("AR-22 floating geometry starts at 16, 64 with its default size and is clamped to the viewport", () => {
   const view = { width: 1280, height: 800 };
   expect(defaultFloatingRect(view)).toEqual({ x: 16, y: 64, width: 880, height: 600 });
   expect(defaultFloatingRect({ width: 1024, height: 560 })).toEqual({

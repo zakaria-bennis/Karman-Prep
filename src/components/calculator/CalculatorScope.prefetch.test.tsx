@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { act, render, screen, waitFor } from "@testing-library/react";
 import { expect, it, vi } from "vitest";
-import { installDomStubs } from "@/components/calculator-v2/__fixtures__/dom-stubs";
+import { installDomStubs } from "@/components/calculator/__fixtures__/dom-stubs";
 import { CalculatorScope, CalculatorTrigger } from "./CalculatorScope";
 
 const imported = vi.hoisted(() => vi.fn());
@@ -11,7 +11,7 @@ vi.mock("./font-warmup", () => ({
   warmCalculatorFonts: warm,
   onCalculatorFontsLoaded: () => () => {},
 }));
-vi.mock("@/components/calculator-v2/host/quiz-host", () => {
+vi.mock("@/components/calculator/host/quiz-host", () => {
   imported();
   return {
     mountQuizCalculator: () => ({

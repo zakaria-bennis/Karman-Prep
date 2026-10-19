@@ -1,7 +1,7 @@
 // AR-57: privacy-safe calculator error reporting for the quiz host's onError hook. The sanitiser
 // is eager and reused by the lazy quiz host; the Sentry send (report-error-send.ts) loads on the
 // first report, which keeps Sentry off the quiz routes' eager graph (AR-33). A report is dropped
-// silently when that chunk cannot load. It never imports v2 code (AR-1), so the codes are listed
+// silently when that chunk cannot load. It never imports lazy calculator code (AR-1), so the codes are listed
 // here.
 
 /** KarmanCalculatorError's codes; any other code is dropped. */
@@ -33,7 +33,7 @@ function frameLines(error: unknown): string[] {
 /**
  * Sends `error` to Sentry as a new Error whose message is `${name}` or `${name}: ${code}` and whose
  * stack is "Error: <message>" followed only by the original V8/WebKit/Gecko frame lines, tagged
- * { calculator: "v2", build: build ?? "unknown" }. The send loads on first use and a failed load
+ * { calculator: "quiz", build: build ?? "unknown" }. The send loads on first use and a failed load
  * drops the report. Never sends LaTeX, rows, question text or answers, and never throws.
  */
 export function reportCalculatorError(error: unknown, build: string | null): void {
@@ -42,7 +42,9 @@ export function reportCalculatorError(error: unknown, build: string | null): voi
     const reported = new Error(message);
     reported.stack = ["Error: " + message, ...frameLines(error)].join("\n");
     void import("./report-error-send")
-      .then((m) => m.sendCalculatorError(reported, { calculator: "v2", build: build ?? "unknown" }))
+      .then((m) =>
+        m.sendCalculatorError(reported, { calculator: "quiz", build: build ?? "unknown" })
+      )
       .catch(() => {});
   } catch {
     // Reporting must never break the calculator or the quiz around it.

@@ -1,6 +1,6 @@
 "use client";
 
-// The v2 calculator's light-DOM window (A11Y-6, L-12): one frame element in every mode, so a mode
+// The calculator's light-DOM window (A11Y-6, L-12): one frame element in every mode, so a mode
 // change never remounts the shadow host inside it. Key handling is native on the frame (AR-18,
 // KB-6): React delegates from the root, which never sees the events the frame stops, so the move
 // handle, grip, splitter and Escape are handled here before propagation stops. The title bar and

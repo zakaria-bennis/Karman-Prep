@@ -2,7 +2,7 @@
 import { readFileSync } from "node:fs";
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, expect, it, vi } from "vitest";
-import type { QuizMountOptions } from "@/components/calculator-v2/host/quiz-host";
+import type { QuizMountOptions } from "@/components/calculator/host/quiz-host";
 import type { CalculatorLoaderProps } from "./CalculatorLoader";
 
 const fonts = vi.hoisted(() => ({
@@ -31,7 +31,7 @@ const fakeHandle = () => ({
 
 async function loaderWith(quizHost: () => object) {
   vi.resetModules();
-  vi.doMock("@/components/calculator-v2/host/quiz-host", quizHost);
+  vi.doMock("@/components/calculator/host/quiz-host", quizHost);
   return import("./CalculatorLoader");
 }
 
@@ -64,7 +64,7 @@ it("AR-32 loadCalculatorModule keeps the exact client-only import body", () => {
   expect(
     readFileSync("src/components/calculator/CalculatorLoader.tsx", "utf8").replace(/\s+/g, " ")
   ).toContain(
-    'typeof window === "undefined" ? Promise.reject(new Error("client only")) : import("@/components/calculator-v2/host/quiz-host")'
+    'typeof window === "undefined" ? Promise.reject(new Error("client only")) : import("@/components/calculator/host/quiz-host")'
   );
 });
 

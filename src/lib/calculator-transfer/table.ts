@@ -2,7 +2,7 @@
 // table answer choice gets a Transfer control, and the payload's columns of normalised cell
 // LaTeX with the first variable as the input. Names (TR-25) are chosen when the calculator applies
 // the payload (TR-72). Lazy with the classifier (D4) and framework-free; it reads the table's text
-// only and imports nothing from the v2 calculator (AR-3, TR-74).
+// only and imports nothing from the calculator (AR-3, TR-74).
 
 import { splitMathText } from "./math-split"; // not math-segments: AR-33, math-split.ts
 import type { SegmentVerdict, TransferItem } from "./classify";

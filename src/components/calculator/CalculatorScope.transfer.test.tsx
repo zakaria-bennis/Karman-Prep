@@ -8,12 +8,12 @@ import type {
   TransferResult,
   TransferTrigger,
 } from "@/lib/calculator-transfer/payload";
-import type { QuizMountOptions } from "@/components/calculator-v2/host/quiz-host";
-import { installDomStubs } from "@/components/calculator-v2/__fixtures__/dom-stubs";
+import type { QuizMountOptions } from "@/components/calculator/host/quiz-host";
+import { installDomStubs } from "@/components/calculator/__fixtures__/dom-stubs";
 import { FULL_SCREEN_QUERY } from "./breakpoints";
 import type { CalculatorBridge } from "./CalculatorScope";
 
-vi.mock("@/components/calculator-v2/host/quiz-host", () => ({ mountQuizCalculator: vi.fn() }));
+vi.mock("@/components/calculator/host/quiz-host", () => ({ mountQuizCalculator: vi.fn() }));
 
 const REJECTED: TransferResult = {
   status: "rejected",
@@ -77,7 +77,7 @@ async function scope(
     handles.push(hd);
     return hd;
   });
-  vi.doMock("@/components/calculator-v2/host/quiz-host", async () => {
+  vi.doMock("@/components/calculator/host/quiz-host", async () => {
     await o.gate;
     if (o.loadFails) throw new Error("chunk failed");
     return { mountQuizCalculator };
@@ -173,7 +173,7 @@ it("AR-10 the bridge exposes status, transfer and prefetch, hands each payload t
   ]);
   expect(s.handles[0].calculator.subscribe).not.toHaveBeenCalled();
   for (const file of [
-    "src/components/calculator-v2/host/quiz-host.ts",
+    "src/components/calculator/host/quiz-host.ts",
     "src/components/calculator/CalculatorScope.tsx",
     "src/components/calculator/use-transfer-bridge.ts",
     "src/components/calculator/transfer-bridge-core.ts",

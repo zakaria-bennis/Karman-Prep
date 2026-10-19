@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { parseLatex, toSExpr } from "../calculator-v2/core/latex/index";
+import { parseLatex, toSExpr } from "../calculator/core/latex/index";
 import { isPlainMathText, normalizeQuestionMath } from "./normalize";
 
 const N = (s: string, c: "math" | "cell" | "coordinate" = "math") => normalizeQuestionMath(s, c);

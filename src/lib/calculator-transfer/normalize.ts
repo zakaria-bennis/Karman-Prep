@@ -1,6 +1,6 @@
 // Question-dialect normalisation (TR-7, table 4.1; PR-5 thousands groups; PR-6 and TR-28 mixed
 // numbers). Rewrites question math into the calculator's typed dialect before classification and
-// transfer. Eager and framework-free: it imports nothing, least of all the v2 parser (AR-3).
+// transfer. Eager and framework-free: it imports nothing, least of all the calculator parser (AR-3).
 
 export type QuestionMathContext = "math" | "cell" | "coordinate";
 

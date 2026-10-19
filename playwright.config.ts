@@ -59,13 +59,13 @@ export default defineConfig({
     {
       name: "e2e-firefox",
       testDir: "./tests/e2e",
-      testIgnore: /calculator-(v2-)?smoke/,
+      testIgnore: /calculator-smoke/,
       use: { ...devices["Desktop Firefox"] },
     },
     {
       name: "e2e-webkit",
       testDir: "./tests/e2e",
-      testIgnore: /calculator-(v2-)?smoke/,
+      testIgnore: /calculator-smoke/,
       use: { ...devices["Desktop Safari"] },
     },
     {

@@ -179,7 +179,7 @@ it("TR-18 a name before ( is a call only when it is a question function name", (
   const g = S("g(x)=f(x+1)+f(2)", "stem", ["f"]);
   expect(g.ok && [g.kind, g.rows[0].calls, g.rows[0].names]).toEqual(["function", ["f"], []]);
 });
-it("TR-21 the classifier is narrowed wherever the v2 core reports a row error, with a 600-token cap standing in for the node limit", () => {
+it("TR-21 the classifier is narrowed wherever the calculator core reports a row error, with a 600-token cap standing in for the node limit", () => {
   for (const s of [
     "x+y",
     "e=2",

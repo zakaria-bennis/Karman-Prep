@@ -1,7 +1,7 @@
 // Coordinate pairs and function coordinates (c-transfer TR-15 to TR-17, TR-29, TR-30, TR-61,
 // TR-62): their coordinates as TR-7 "coordinate" LaTeX (mixed numbers become improper fractions,
 // TR-28), the TR-16 interval context, and the Point, Table row and Evaluate options a chooser
-// offers. Lazy with the classifier (D4) and framework-free; no v2 imports (AR-3, TR-74).
+// offers. Lazy with the classifier (D4) and framework-free; no calculator imports (AR-3, TR-74).
 
 import type { MathSegment } from "../../components/learn/math-segments";
 import type { TransferChooser, TransferItem } from "./classify";

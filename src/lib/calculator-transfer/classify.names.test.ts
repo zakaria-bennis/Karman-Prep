@@ -1,6 +1,6 @@
 import { expect, it } from "vitest";
-import { analyzeRows } from "../calculator-v2/core/analysis/index";
-import { CORPUS } from "../calculator-v2/core/corpus/index";
+import { analyzeRows } from "../calculator/core/analysis/index";
+import { CORPUS } from "../calculator/core/corpus/index";
 import { classifyStem, explainStem, type StemInput } from "./classify";
 
 const REAL = { angleMode: "radians", complex: false } as const;
@@ -282,7 +282,7 @@ it("TR-21 an item whose rows define a name twice or cyclically gets no control, 
     rowsOf("If $a=2$ and $f(x)=ax$, solve $\\begin{cases}a=5\\\\y=f(x)\\end{cases}$.").at(-1)
   ).toEqual([5, ["a=5", "y=f(x)"], ["f(x)=ax"]]);
 });
-it("TR-21 every output the classifier accepts analyses in the v2 core with no row error", () => {
+it("TR-21 every output the classifier accepts analyses in the calculator core with no row error", () => {
   const stems = [
     ...TR21_STEMS,
     ...CORPUS.flatMap((c) =>

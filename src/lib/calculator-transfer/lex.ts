@@ -1,7 +1,7 @@
 // Question-math lexer (TR-8, TR-9; table 4.2). Reads normalised question math (normalize.ts) into
 // tokens for the segment grammar, failing at the first token outside table 4.2's allowed column
 // (TR-8) or inside its excluded column (TR-9). Eager and framework-free: it imports nothing, least
-// of all the v2 parser (AR-3, TR-74).
+// of all the calculator parser (AR-3, TR-74).
 
 export type QTokenKind =
   | "num"

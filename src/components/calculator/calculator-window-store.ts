@@ -1,4 +1,4 @@
-// Page-session window state for the v2 quiz calculator (AR-25): the mode, the floating place and
+// Page-session window state for the quiz calculator (AR-25): the mode, the floating place and
 // size, and the dock width outlive one question's scope, so after Next or Previous the window
 // reopens where it was while its content is fresh. The store is module state, so it survives
 // client-side navigation and is lost on a full reload. Eager module: no browser global at module
@@ -27,9 +27,9 @@ export interface ViewportSize {
   height: number;
 }
 
-/** v1's floating start position (AR-22). */
+/** The floating start position (AR-22). */
 export const FLOATING_ORIGIN = { x: 16, y: 64 } as const;
-/** v1's minimum floating size (AR-22). */
+/** The minimum floating size (AR-22). */
 export const FLOATING_MIN_SIZE = { width: 360, height: 280 } as const;
 /** Arrow-key step for the move handle, the grip and the splitter. */
 export const WINDOW_KEY_STEP = 16; // AR-22, AR-23, KB-10
@@ -37,7 +37,7 @@ export const WINDOW_KEY_STEP = 16; // AR-22, AR-23, KB-10
 export const DOCK_MARGIN = 12; /* AR-23 */
 export const DOCK_MIN_WIDTH = 400;
 
-/** v1's default floating size: `min(880px, 100vw - 32px)` by `min(600px, 100dvh - 80px)`. */
+/** The default floating size: `min(880px, 100vw - 32px)` by `min(600px, 100dvh - 80px)`. */
 const FLOATING_DEFAULT_SIZE = { width: 880, height: 600 } as const;
 const FLOATING_VIEWPORT_INSET = { width: 32, height: 80 } as const;
 /** AR-23: the default dock width is `clamp(400px, 45vw, 720px)`. */
@@ -67,7 +67,7 @@ function clamp(value: number, min: number, max: number): number {
 
 /**
  * `rect` kept inside `viewport` (AR-22): the size between 360 × 280 and the viewport, then the
- * position between 0 and the viewport less that size. As in v1's CSS `min-width` and position
+ * position between 0 and the viewport less that size. As with a CSS `min-width` and position
  * clamp, the minimum size and the 0 edge win in a viewport too small for both.
  */
 export function clampFloatingRect(rect: WindowRect, viewport: ViewportSize): WindowRect {

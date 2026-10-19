@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import { installDomStubs } from "@/components/calculator-v2/__fixtures__/dom-stubs";
+import { installDomStubs } from "@/components/calculator/__fixtures__/dom-stubs";
 import { FULL_SCREEN_QUERY, PHONE_QUERY } from "./breakpoints";
 import { MOUNT_FAILED_COPY } from "./CalculatorLoader";
 import { CalculatorScope, CalculatorTrigger, useCalculator } from "./CalculatorScope";
@@ -15,7 +15,7 @@ const h = vi.hoisted(() => ({
   bridge: null as unknown,
   handles: [] as { focusOnOpen: ReturnType<typeof vi.fn> }[],
 }));
-vi.mock("@/components/calculator-v2/host/quiz-host", () => ({
+vi.mock("@/components/calculator/host/quiz-host", () => ({
   mountQuizCalculator: () => {
     const handle = {
       calculator: {},

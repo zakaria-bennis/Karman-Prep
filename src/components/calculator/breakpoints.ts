@@ -1,7 +1,7 @@
-// AR-19: the only viewport breakpoints v2 calculator code may use. v1 keeps its own 1100 px dock
-// rule in CalculatorScope (AR-8); breakpoints.test.ts scans the v2 files for any other query.
+// AR-19: the only viewport breakpoints calculator code may use; breakpoints.test.ts scans the
+// calculator files for any other query.
 
-/** The narrowest viewport, in CSS px, that docks or floats the v2 window (L-5). */
+/** The narrowest viewport, in CSS px, that docks or floats the window (L-5). */
 export const CALCULATOR_DOCK_MIN_WIDTH = 1024;
 
 /** Viewports narrower than the dock width, or 500 px tall or less: the window opens full screen. */

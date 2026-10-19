@@ -1,4 +1,4 @@
-// KaTeX font warm-up for the v2 quiz calculator (AR-41). At prefetch or activation the loader asks
+// KaTeX font warm-up for the quiz calculator (AR-41). At prefetch or activation the loader asks
 // the document to load KaTeX_Main and italic KaTeX_Math, so MathQuill fields measured before the
 // fonts arrive can reflow once they do. The warm-up is never awaited before render, never rejects
 // and runs once per page. Eager module: `document` is read only inside the functions (AR-2).

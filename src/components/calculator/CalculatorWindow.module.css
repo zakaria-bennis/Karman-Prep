@@ -1,7 +1,7 @@
 /* Light-DOM calculator window surfaces (AR-37): colours come only from the --kcc-* tokens of
    calculator-chrome.generated.css, which CalculatorScope imports. */
 
-/* The shadow host the v2 calculator mounts into (CalculatorLoader). It keeps its layout while
+/* The shadow host the calculator mounts into (CalculatorLoader). It keeps its layout while
    loading, so the calculator measures its real size, but stays invisible until ready. */
 .host {
   display: block;

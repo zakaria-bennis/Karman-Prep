@@ -1,6 +1,6 @@
 // Transfer descriptions (c-transfer table 8.1; TR-50 builds the accessible name from them): the
 // plain-text form of normalised question math, cut at 60 characters. Eager and framework-free; it
-// imports no v2 parser, renderer or KaTeX module (AR-3).
+// imports no calculator parser, renderer or KaTeX module (AR-3).
 
 import { GREEK_IDENTIFIERS, SEGMENT_FUNCTIONS } from "./lex";
 

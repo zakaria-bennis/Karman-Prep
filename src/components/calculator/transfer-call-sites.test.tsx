@@ -10,7 +10,7 @@ import type {
 } from "@/lib/calculator-transfer/payload";
 import { classifyChoice, classifyStem } from "@/lib/calculator-transfer/classify";
 import { splitMathText } from "@/components/learn/math-segments";
-import { installDomStubs } from "@/components/calculator-v2/__fixtures__/dom-stubs";
+import { installDomStubs } from "@/components/calculator/__fixtures__/dom-stubs";
 import MathText from "@/components/learn/MathText";
 import QuestionTable from "@/components/learn/QuestionTable";
 import { ActiveQuizScreen } from "@/components/learn/quiz/ActiveQuizScreen";

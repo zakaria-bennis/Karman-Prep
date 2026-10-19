@@ -1,15 +1,15 @@
 // Transfer fixture corpus runner (TR-79, PR-44): every fixture goes through the classifier, its
-// payload through apply into a seeded engine, and every inserted row through the v2 analysis; each
+// payload through apply into a seeded engine, and every inserted row through the calculator analysis; each
 // allowed row is also checked against its question-dialect corpus case.
 
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { applyTransfer } from "../../components/calculator-v2/transfer/apply";
-import { analyzeRows } from "../calculator-v2/core/analysis/index";
-import { createTestEngine } from "../calculator-v2/core/api/__fixtures__/test-engine";
-import type { CalculatorEngine } from "../calculator-v2/core/api/engine";
-import { CORPUS } from "../calculator-v2/core/corpus/index";
-import { functionDefinitionHead, parseLatex, toSExpr } from "../calculator-v2/core/latex/index";
+import { applyTransfer } from "../../components/calculator/transfer/apply";
+import { analyzeRows } from "../calculator/core/analysis/index";
+import { createTestEngine } from "../calculator/core/api/__fixtures__/test-engine";
+import type { CalculatorEngine } from "../calculator/core/api/engine";
+import { CORPUS } from "../calculator/core/corpus/index";
+import { functionDefinitionHead, parseLatex, toSExpr } from "../calculator/core/latex/index";
 import { FIXTURE_FILES, TRANSFER_FIXTURES } from "./__fixtures__";
 import type { FixtureExpect, TransferFixture } from "./__fixtures__/types";
 import { explainChoice, explainStem, type SegmentVerdict } from "./classify";

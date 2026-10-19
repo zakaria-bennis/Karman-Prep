@@ -59,7 +59,7 @@ it("AR-33 the eager transfer code reaches the classifier, TransferControl and th
     "./TransferControl",
   ])
     expect(lazy, target).toContain(`from "${target}";`);
-  // the stem registry and the v2 wrapper bodies live in the lazy transfer-items.tsx
+  // the stem registry and the wrapper bodies live in the lazy transfer-items.tsx
   const wrappers = readFileSync("src/components/calculator/CalculatorSourceAction.tsx", "utf8");
   expect(wrappers).not.toMatch(/useSyncExternalStore|useLayoutEffect/);
   const loader = readFileSync("src/components/calculator/transfer-classifier.ts", "utf8");

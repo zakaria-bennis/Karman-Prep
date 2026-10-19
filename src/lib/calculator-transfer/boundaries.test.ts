@@ -36,12 +36,14 @@ const TRANSFER_MODULES = ["payload", "normalize", "lex", "segment", "describe", 
   .map((m) => `src/lib/calculator-transfer/${m}.ts`)
   .concat("src/components/learn/math-segments.ts");
 
-it("AR-3 classification and payload building reach no v2 parser, MathField, render, worker, React or KaTeX module", () => {
+it("AR-3 classification and payload building reach no calculator parser, MathField, render, worker, React or KaTeX module", () => {
   const closure = importClosure(TRANSFER_MODULES);
   expect(closure).toEqual(expect.arrayContaining(TRANSFER_MODULES));
   expect(closure.filter((f) => !f.startsWith("src/"))).toEqual([]);
   expect(
-    closure.filter((f) => /calculator-v2|vendor\/mathquill|\/render\/|\/worker\//.test(f))
+    closure.filter((f) =>
+      /src\/(lib|components)\/calculator\/|vendor\/mathquill|\/render\/|\/worker\//.test(f)
+    )
   ).toEqual([]);
 });
 it("TR-3 no transfer module reads figure data", () => {

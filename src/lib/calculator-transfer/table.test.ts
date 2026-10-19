@@ -89,7 +89,7 @@ it("TR-24 cells must be numeric constants after normalisation, separators remove
   expect(classifyTable(input(["x", "y"], [["1", "1,25"]]))).toBeNull();
 });
 
-it("TR-74 table.ts stays framework-free and never imports the v2 calculator", () => {
+it("TR-74 table.ts stays framework-free and never imports the calculator", () => {
   const src = readFileSync("src/lib/calculator-transfer/table.ts", "utf8");
-  expect(src).not.toMatch(/calculator-v2|from "react"|mathquill/);
+  expect(src).not.toMatch(/(lib|components)\/calculator\/|from "react"|mathquill/);
 });

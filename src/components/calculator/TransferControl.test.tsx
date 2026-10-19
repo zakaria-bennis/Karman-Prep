@@ -9,9 +9,9 @@ import type {
   TransferTrigger,
 } from "@/lib/calculator-transfer/payload";
 import type { TransferItem } from "@/lib/calculator-transfer/classify";
-import { installDomStubs } from "@/components/calculator-v2/__fixtures__/dom-stubs";
-import { CALCULATOR_V2_CSS } from "@/components/calculator-v2/styles/generated";
-import { CURVE_VARS, ROLE_VARS, hostThemeCss } from "@/lib/calculator-v2/theme/roles";
+import { installDomStubs } from "@/components/calculator/__fixtures__/dom-stubs";
+import { CALCULATOR_CSS } from "@/components/calculator/styles/generated";
+import { CURVE_VARS, ROLE_VARS, hostThemeCss } from "@/lib/calculator/theme/roles";
 import { FULL_SCREEN_QUERY } from "./breakpoints";
 import { TRANSFER_TOOLTIP, TransferControl } from "./TransferControl";
 import { transferSelection } from "./transfer-selection";
@@ -305,7 +305,7 @@ it("TH-2 the control, tooltip and outline take colours only from --kcc-*, the in
   expect(readFileSync("src/components/calculator/TransferControl.tsx", "utf8")).toMatch(
     /^import "\.\/transfer-control\.css";$/m
   );
-  const parts = CALCULATOR_V2_CSS.split(/^\/\* ([\w./-]+\.css) \*\/$/m);
+  const parts = CALCULATOR_CSS.split(/^\/\* ([\w./-]+\.css) \*\/$/m);
   const sections = Array.from({ length: (parts.length - 1) / 2 }, (_, i) => ({
     path: parts[2 * i + 1],
     css: parts[2 * i + 2],
@@ -313,7 +313,7 @@ it("TH-2 the control, tooltip and outline take colours only from --kcc-*, the in
   expect(sections.map((s) => s.path)).toEqual(
     expect.arrayContaining([
       "vendor/mathquill/mathquill.css",
-      "src/components/calculator-v2/styles/tokens.css",
+      "src/components/calculator/styles/tokens.css",
     ])
   );
   for (const { path, css } of sections)

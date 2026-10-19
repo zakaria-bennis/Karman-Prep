@@ -1,5 +1,5 @@
 import { expect, expectTypeOf, it } from "vitest";
-import { analyzeRows } from "../calculator-v2/core/analysis/index";
+import { analyzeRows } from "../calculator/core/analysis/index";
 import {
   accessibleNames,
   classifyChoice,
