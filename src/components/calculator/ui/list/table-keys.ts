@@ -1,5 +1,6 @@
-// What the keys of a table cell do (D-7, D-8, D-9; appendix F requirements 6 to 16): Enter moves
-// down a column and leaves the table from the blank row, Tab and Shift+Tab walk the headers then
+// What the keys of a table cell do (D-7, D-8, D-9, RT-7; appendix F requirements 6 to 16): Enter
+// inserts a row or continues a sequence in the first column, moves down a later one and leaves
+// the table from the blank row, Tab and Shift+Tab walk the headers then
 // the cells row by row (never the header slot or a computed cell), the arrows move one cell and
 // leave the table at its top or bottom, ArrowLeft and ArrowRight cross cells at the caret's edge,
 // and Backspace in an empty cell moves back, deleting a wholly empty data row. A cell entered by
@@ -10,6 +11,8 @@ import { MAX_TABLE_ROWS } from "@/lib/calculator/core/api/document";
 import type { CalculatorEngine, RowView } from "@/lib/calculator/core/api/engine";
 import type { Announcer } from "../a11y/announcer";
 import { cellKey, type FocusController } from "../focus/focus-controller";
+import { nextSequenceTerm } from "@/lib/calculator/core/data/next-term";
+import { insertTableRow } from "@/lib/calculator/core/api/table-row-commands";
 import { insertRowBelow, leaveRow } from "./row-actions";
 import { TABLE_ROW_MESSAGE, type CellKeys } from "./TableCell";
 import { dataRowCount } from "./table-model";
@@ -61,6 +64,14 @@ function leaveDown(ctx: TableKeyContext): void {
   else leaveRow(ctx.engine, ctx.focus, ctx.tableId, "down");
 }
 
+/** A plain decimal or \frac{p}{q} cell's number, else null (the worker's value is used). */
+function cellNumber(latex: string): number | null {
+  const t = latex.trim();
+  if (/^-?(\d+\.?\d*|\.\d+)$/.test(t)) return Number(t);
+  const m = /^(-?)\\frac\{(\d+)\}\{(\d+)\}$/.exec(t);
+  return m === null ? null : (m[1] === "-" ? -1 : 1) * (Number(m[2]) / Number(m[3]));
+}
+
 /** The row ArrowUp or ArrowDown moves to from `row`, or null when it leaves the table (D-7). */
 function verticalTarget(
   row: number | "h",
@@ -88,11 +99,36 @@ export function cellKeys(ctx: TableKeyContext, column: number, row: number | "h"
     else leaveDown(ctx);
   };
   return {
-    // D-7, D-10: down the column; the blank row leaves the table (requirement 7).
+    // RT-7, TABLES-29, -30: a header goes to its row 1; in the first column an interior row
+    // inserts an empty row below and the last data row continues an arithmetic sequence (or
+    // goes to the blank row); a later column moves down; the blank row leaves the table for a
+    // new empty expression right below it.
     onEnter() {
       const t = read();
       if (t === null) return;
-      if (row !== "h" && row >= t.rows) return leaveDown(ctx);
+      if (row !== "h" && row >= t.rows) {
+        insertRowBelow(ctx.engine, ctx.focus, ctx.announcer, ctx.tableId, "focus");
+        return;
+      }
+      if (row !== "h" && column === 0 && t.view.table?.analysis.columns[0]?.role === "variable") {
+        if (row < t.rows - 1) insertTableRow(ctx.engine, ctx.tableId, row + 1);
+        else {
+          // The cells as typed, so a key pressed before the worker reports still sees them.
+          const computed = t.view.table.result?.columns[0]?.values ?? [];
+          const values = (t.view.columns?.[0]?.values ?? [])
+            .slice(0, row + 1)
+            .map((latex, k) => cellNumber(latex) ?? computed[k] ?? null);
+          const next = nextSequenceTerm(values);
+          if (next !== null) {
+            ctx.engine.editCell(ctx.tableId, 0, row + 1, next, "api");
+            // Select the new term once its field shows it, so typing replaces it.
+            requestAnimationFrame(() => enter(ctx, { column: 0, row: row + 1 }, "select"));
+            return;
+          }
+        }
+        enter(ctx, { column: 0, row: row + 1 }, "select");
+        return;
+      }
       const place = nearest(t.places, column, row === "h" ? 0 : row + 1);
       if (place !== null) enter(ctx, place, "select");
     },

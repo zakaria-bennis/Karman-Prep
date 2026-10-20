@@ -150,3 +150,22 @@ test("TABLES-49, -51 pasting a numeric grid into an empty row makes a table and 
   );
   expect(top).toBeGreaterThan(60);
 });
+
+test("RT-7 typing 1⏎2⏎3⏎ in a new table continues the sequence with 4", async ({ page }) => {
+  await openShell(page, "?w=900&h=600&rows=%5B%22%22%5D");
+  await page.locator("#calc [data-row-id='1'] .mq-root-block").click();
+  await page.keyboard.type("table");
+  for (const x of ["1", "2", "3"]) {
+    await page.keyboard.type(x);
+    await page.keyboard.press("Enter");
+  }
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          globalThis.__calculatorHarness!.engine.getExpressions().find((s) => s.type === "table")!
+            .columns![0].values
+      )
+    )
+    .toEqual(["1", "2", "3", "4"]);
+});
