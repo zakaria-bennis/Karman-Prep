@@ -5,6 +5,7 @@ import {
   fireEvent,
   getDefaultNormalizer,
   screen,
+  waitFor,
   within,
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -53,15 +54,26 @@ it("R-2 an error row shows the warning marker in place of the tab, with a toolti
   expect(screen.queryByRole("tooltip")).toBeNull();
   expect(marker).toHaveAttribute("aria-expanded", "false");
 
-  // Pointer: opens at once on hover, closes on leave.
+  // Pointer: opens 500 ms after hover, closes 170 ms after leave.
   const user = userEvent.setup();
   await user.hover(marker);
-  const tip = screen.getByRole("tooltip");
+  expect(screen.queryByRole("tooltip")).toBeNull();
+  const tip = await screen.findByRole("tooltip");
   expect(tip).toHaveAttribute("id", ids.error);
   expect(tip).toHaveTextContent(SYNTAX_MESSAGE);
   expect(marker).toHaveAttribute("aria-expanded", "true");
   await user.unhover(marker);
+  await waitFor(() => expect(screen.queryByRole("tooltip")).toBeNull());
+
+  // A click pins it: it stays after the pointer leaves until a press outside.
+  await user.click(marker);
+  expect(screen.getByRole("tooltip")).toHaveAttribute("data-pinned", "true");
+  await user.unhover(marker);
+  await new Promise((resolve) => setTimeout(resolve, 250));
+  expect(screen.getByRole("tooltip")).toBeInTheDocument();
+  fireEvent.pointerDown(document.body);
   expect(screen.queryByRole("tooltip")).toBeNull();
+  act(() => marker.blur());
 
   // Keyboard: focus opens, Escape closes one KB-3 layer and focus stays, blur closes.
   act(() => marker.focus());

@@ -8,7 +8,7 @@ import { afterEach, expect, it, vi } from "vitest";
 import { clampListWidth, ListResizer } from "../layout/ListResizer";
 import { panelProps, renderEditor, rowItem } from "./__fixtures__/render-editor";
 import { ExpressionPanel } from "./ExpressionPanel";
-import { TOOLTIP_DELAY_MS, TOOLTIP_LINGER_MS } from "./Tooltip";
+import { TOOLTIP_DELAY_MS, TOOLTIP_HIDE_MS } from "./Tooltip";
 
 const latexes = (kit: ReturnType<typeof renderEditor>) =>
   kit.engine.getSnapshot().rows.map((r) => r.latex);
@@ -72,7 +72,7 @@ it("EL-45 Edit list mode swaps each row's cross for Create Table, Duplicate and 
   expect(screen.getByRole("button", { name: "Delete expression 1" })).toBeInTheDocument();
 });
 
-it("PM-29 a toolbar tooltip shows 500 ms after hover, stays 165 ms after leave, and never on a disabled button", () => {
+it("PM-29 a toolbar tooltip shows 500 ms after hover, hides 170 ms after leave, and never on a disabled button", () => {
   vi.useFakeTimers();
   renderEditor(<ExpressionPanel {...panelProps()} />, { rows: ["y=x"] });
   const collapse = screen.getByRole("button", { name: "Collapse list" });
@@ -82,7 +82,7 @@ it("PM-29 a toolbar tooltip shows 500 ms after hover, stays 165 ms after leave, 
   act(() => vi.advanceTimersByTime(1));
   expect(collapse.querySelector(".kc-tooltip")).toHaveTextContent("Hide Expression List");
   fireEvent.pointerLeave(collapse);
-  act(() => vi.advanceTimersByTime(TOOLTIP_LINGER_MS - 1));
+  act(() => vi.advanceTimersByTime(TOOLTIP_HIDE_MS - 1));
   expect(collapse.querySelector(".kc-tooltip")).not.toBeNull();
   act(() => vi.advanceTimersByTime(1));
   expect(collapse.querySelector(".kc-tooltip")).toBeNull();

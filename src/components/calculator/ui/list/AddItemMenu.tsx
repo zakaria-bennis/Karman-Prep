@@ -6,7 +6,7 @@
 // and an announcement of what was added (S-13). Escape closes it as one KB-3 layer.
 
 import { useContext, useEffect, useRef, useState, type JSX, type KeyboardEvent } from "react";
-import { AddGlyph, TableItemGlyph } from "../../icons/list";
+import { AddGlyph } from "../../icons/list";
 import { useAnnouncer } from "../a11y/announcer";
 import { EscapeContext } from "../focus/escape-stack";
 import { FocusContext } from "../focus/focus-controller";
@@ -27,10 +27,22 @@ function ExpressionItemGlyph(): JSX.Element {
   );
 }
 
+/** VIS-28: a 26 px table, a filled header over three rows of two cells (our own drawing). */
+function TableMenuGlyph(): JSX.Element {
+  return (
+    <svg viewBox="0 0 26 26" aria-hidden="true" focusable="false">
+      <path
+        fillRule="evenodd"
+        d="M0 0h26v26H0zM1 7v5.5h11.5V7zm12.5 0v5.5H25V7zM1 13.5V19h11.5v-5.5zm12.5 0V19H25v-5.5zM1 20v5h11.5v-5zm12.5 0v5H25v-5z"
+      />
+    </svg>
+  );
+}
+
 // EL-43: the reference's lower-case labels; only the item types Karman supports.
 const ITEMS = [
   { id: "expression", label: "Add expression", text: "expression", icon: ExpressionItemGlyph },
-  { id: "table", label: "Add table", text: "table", icon: TableItemGlyph },
+  { id: "table", label: "Add table", text: "table", icon: TableMenuGlyph },
 ] as const;
 
 export function AddItemMenu({ layout }: AddItemMenuProps): JSX.Element {

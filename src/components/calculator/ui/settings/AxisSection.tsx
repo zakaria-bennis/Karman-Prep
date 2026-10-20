@@ -1,10 +1,10 @@
-// One axis of the settings popover (S-1): the `Show x-axis` checkbox, the
+// One axis of the settings popover (S-1, VIS-17): the `Show x-axis` checkbox, the floating-label
 // `x-axis label` field committed on Enter or blur, the bounds line `[x minimum] ≤ x ≤ [x maximum]`
 // as two MathFields from MathFieldFactoryContext that show the viewport bound while not focused,
 // and the `x-axis step` field showing the step or blank (y likewise). S-7: a bound applies on
 // Enter or blur once the backend evaluates it to a finite number that keeps min below max; the step
 // takes a positive number or blank for automatic. An error shows below its field, which links it
-// with aria-describedby and sets aria-invalid until a successful commit. Labels are <label>s.
+// with aria-describedby and sets aria-invalid until a successful commit. Text fields are named by aria-label.
 
 import {
   useContext,
@@ -25,46 +25,28 @@ import { MathFieldFactoryContext } from "../list/math-field-factory";
 import { EDITOR_MESSAGES } from "../list/messages";
 import { fieldTextbox } from "../list/row-model";
 import { evaluateBoundLatex } from "./bounds";
-
-export interface SettingCheckProps {
-  label: string;
-  checked: boolean;
-  onChange(checked: boolean): void;
-}
-
-/** A checkbox named by the <label> around it; the popover and each axis section share it. */
-export function SettingCheck(props: SettingCheckProps): JSX.Element {
-  return (
-    <label className="kc-settings-check">
-      <input
-        type="checkbox"
-        checked={props.checked}
-        onChange={(event) => props.onChange(event.currentTarget.checked)}
-      />
-      <span>{props.label}</span>
-    </label>
-  );
-}
+import { SettingCheck } from "./controls";
 
 interface CommitInputProps {
-  label: string;
+  name: string; // the accessible name
+  className: string;
   value: string; // shown whenever the field is not being edited
+  placeholder?: string;
   inputMode?: "decimal";
-  error?: string | null; // shown below the field and linked from it
-  onCommit?(text: string): void; // Enter or blur, when the text differs from `value` or an error shows
+  error: string | null; // shown by the caller with id `errorId`, linked from the field
+  errorId: string;
+  onCommit(text: string): void; // Enter or blur, when the text differs from `value` or an error shows
 }
 
 /** A text field holding a draft while edited; Enter or blur commits it and shows `value` again. */
 function CommitInput(props: CommitInputProps): JSX.Element {
-  const id = useId();
-  const errorId = `${id}-error`;
-  const error = props.error ?? null;
+  const { error } = props;
   const [draft, setDraft] = useState<string | null>(null);
   const commit = () => {
     if (draft === null) return;
     setDraft(null);
     // With an error showing, re-entering `value` is a commit too, so a valid entry clears it.
-    if (draft !== props.value || error !== null) props.onCommit?.(draft);
+    if (draft !== props.value || error !== null) props.onCommit(draft);
   };
   const onKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key !== "Enter") return;
@@ -72,29 +54,27 @@ function CommitInput(props: CommitInputProps): JSX.Element {
     commit();
   };
   return (
-    <div className="kc-settings-field">
-      <label htmlFor={id}>{props.label}</label>
-      <input
-        id={id}
-        className="kc-settings-input"
-        type="text"
-        autoComplete="off"
-        spellCheck={false}
-        inputMode={props.inputMode}
-        value={draft ?? props.value}
-        aria-invalid={error !== null ? true : undefined}
-        aria-describedby={error !== null ? errorId : undefined}
-        onChange={(event) => setDraft(event.currentTarget.value)}
-        onBlur={commit}
-        onKeyDown={onKeyDown}
-      />
-      {error !== null && (
-        <p id={errorId} className="kc-settings-error">
-          {error}
-        </p>
-      )}
-    </div>
+    <input
+      className={props.className}
+      type="text"
+      aria-label={props.name}
+      autoComplete="off"
+      spellCheck={false}
+      inputMode={props.inputMode}
+      placeholder={props.placeholder}
+      value={draft ?? props.value}
+      aria-invalid={error !== null ? true : undefined}
+      aria-describedby={error !== null ? props.errorId : undefined}
+      onChange={(event) => setDraft(event.currentTarget.value)}
+      onBlur={commit}
+      onKeyDown={onKeyDown}
+    />
   );
+}
+
+/** VIS-17: a bound as the reference shows it, to 6 significant digits (-8.60887). */
+function boundLatex(value: number): string {
+  return formatValueLatex({ type: "number", value: Number(value.toPrecision(6)) });
 }
 
 interface BoundFieldProps {
@@ -111,7 +91,7 @@ function BoundField(props: BoundFieldProps): JSX.Element {
   const hostRef = useRef<HTMLSpanElement>(null);
   const fieldRef = useRef<MathField | null>(null);
   const [focused, setFocused] = useState(false);
-  const displayed = formatValueLatex({ type: "number", value: props.value });
+  const displayed = boundLatex(props.value);
   const { label, error, errorId } = props;
   const onCommitRef = useRef(props.onCommit);
 
@@ -220,7 +200,7 @@ export function AxisSection(props: { axis: "x" | "y" }): JSX.Element {
   // shows and the view is unchanged. Latex equal to the shown bound changes nothing.
   const commitBound = (side: BoundSide, latex: string) => {
     const commit = ++commits.current[side];
-    if (latex === formatValueLatex({ type: "number", value: bounds[side] })) {
+    if (latex === boundLatex(bounds[side])) {
       showBoundError(side, null);
       return;
     }
@@ -256,24 +236,56 @@ export function AxisSection(props: { axis: "x" | "y" }): JSX.Element {
     />
   );
 
+  const stepErrorId = `${id}-step-error`;
+  // VIS-17: "X-Axis" with the floating-label Label field to its right, then the bounds as inline
+  // math and "Step:" with its underline field.
   return (
     <div className="kc-settings-axis">
-      <SettingCheck
-        label={`Show ${axis}-axis`}
-        checked={current.show}
-        onChange={(show) => update({ show })}
-      />
-      <CommitInput
-        label={`${axis}-axis label`}
-        value={current.label}
-        onCommit={(label) => update({ label })}
-      />
-      <div className="kc-settings-bounds">
-        {boundField("min")}
-        <span className="kc-settings-relation" aria-hidden="true">
-          ≤ <var>{axis}</var> ≤
+      <div className="kc-settings-axis-title">
+        <SettingCheck
+          label={`${axis.toUpperCase()}-Axis`}
+          name={`Show ${axis}-axis`}
+          size="axis"
+          checked={current.show}
+          onChange={(show) => update({ show })}
+        />
+        <span className="kc-settings-label">
+          <span className="kc-settings-legend" aria-hidden="true">
+            Label
+          </span>
+          <CommitInput
+            name={`${axis}-axis label`}
+            className="kc-settings-label-input"
+            placeholder={`e.g. \u201c${axis}\u201d`}
+            value={current.label}
+            error={null}
+            errorId=""
+            onCommit={(label) => update({ label })}
+          />
         </span>
-        {boundField("max")}
+      </div>
+      <div className="kc-settings-axis-line">
+        <span className="kc-settings-bounds">
+          {boundField("min")}
+          <span className="kc-settings-relation" aria-hidden="true">
+            <span>≤</span>
+            <var>{axis}</var>
+            <span>≤</span>
+          </span>
+          {boundField("max")}
+        </span>
+        <span className="kc-settings-step">
+          <span aria-hidden="true">Step:</span>
+          <CommitInput
+            name={`${axis}-axis step`}
+            className="kc-settings-step-input"
+            value={current.step === null ? "" : String(current.step)}
+            inputMode="decimal"
+            error={stepError}
+            errorId={stepErrorId}
+            onCommit={commitStep}
+          />
+        </span>
       </div>
       {(["min", "max"] as const).map(
         (side) =>
@@ -283,13 +295,11 @@ export function AxisSection(props: { axis: "x" | "y" }): JSX.Element {
             </p>
           )
       )}
-      <CommitInput
-        label={`${axis}-axis step`}
-        value={current.step === null ? "" : String(current.step)}
-        inputMode="decimal"
-        error={stepError}
-        onCommit={commitStep}
-      />
+      {stepError !== null && (
+        <p id={stepErrorId} className="kc-settings-error">
+          {stepError}
+        </p>
+      )}
     </div>
   );
 }

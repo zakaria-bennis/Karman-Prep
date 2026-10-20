@@ -96,7 +96,8 @@
   opacity: 0.5;
 }
 
-/* D-12: a later column's colour and style tab, inside its header cell, and its style menu. */
+/* D-12: a later column's colour and style tab, inside its header cell (its style menu is in
+   menus.css). */
 .kc-column-style {
   position: relative;
   display: inline-flex;
@@ -116,79 +117,6 @@
   color: var(--kc-row-color);
   cursor: pointer;
   touch-action: none;
-}
-
-.kc-style-menu {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  min-width: 180px;
-  padding: 8px;
-  border: 1px solid var(--kc-boundary);
-  border-radius: 6px;
-  background: var(--kc-list);
-  color: var(--kc-text);
-  font-family: var(--kc-font-ui);
-  font-size: var(--kc-size-ui);
-}
-
-.kc-style-group {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin: 0;
-  padding: 0;
-  border: none;
-}
-
-.kc-style-group > legend {
-  padding: 0 0 2px;
-  color: var(--kc-text-secondary);
-}
-
-.kc-style-option {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.kc-style-swatch {
-  display: inline-flex;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: var(--kc-row-color);
-}
-
-.kc-style-swatch > input {
-  width: 100%;
-  height: 100%;
-  margin: 0;
-  opacity: 0;
-  cursor: pointer;
-}
-
-.kc-style-swatch:has(input:checked) {
-  outline: 2px solid var(--kc-text);
-  outline-offset: 2px;
-}
-
-.kc-style-swatch:has(input:focus-visible) {
-  outline: 2px solid var(--kc-focus-ring);
-  outline-offset: 2px;
-}
-
-.kc-style-action {
-  align-self: flex-start;
-  padding: 4px 8px;
-  border: 1px solid var(--kc-boundary);
-  border-radius: 4px;
-  color: var(--kc-text);
-  cursor: pointer;
 }
 
 .kc-table-field {

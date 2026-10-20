@@ -1,10 +1,22 @@
 // A later table column's colour and style tab (D-12, D-9): the icon toggles the column's points
 // and shows an outline while they are hidden; a long-press, a right-click or Shift+F10 (or the
 // ContextMenu key) opens the style menu with points, point style, Connect points, line style, the
-// six palette colours and Delete column. Escape closes it as one KB-3 layer and returns focus to
+// six palette colours and Delete column. The menu is drawn as the reference's column popover
+// (popovers-menus.md VIS-3, VIS-13, VIS-14, VIS-22 to VIS-24, VIS-38): the shared popover box
+// 220 px wide below the icon with an 8 px arrow, "Points" and "Lines" with toggles and icon
+// segmented controls, and a row of six 30 px swatches. Escape closes it as one KB-3 layer and returns focus to
 // the icon; a press outside closes it. Every change is one undo step (D-20).
 
-import { useContext, useEffect, useRef, useState, type CSSProperties, type JSX } from "react";
+import {
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type JSX,
+} from "react";
+import { createPortal } from "react-dom";
 import type { StoredColumn } from "@/lib/calculator/core/api/document";
 import type { LineStyle, PointStyle } from "@/lib/calculator/core/api/types";
 import { resolveRowColor } from "@/lib/calculator/theme/roles";
@@ -13,6 +25,7 @@ import { PointStyleGlyph } from "../../icons";
 import { EscapeContext } from "../focus/escape-stack";
 import { useSkin } from "../hooks/skin";
 import { useEngine } from "../hooks/use-engine";
+import { SettingSegments, SettingToggle } from "../settings/controls";
 import { useMenuTrigger, usePopupDismiss } from "./menu-trigger";
 
 export interface ColumnStyleMenuProps {
@@ -24,16 +37,72 @@ export interface ColumnStyleMenuProps {
   onAddRegression(): void; // D-3: a linear regression of this column, below the table
 }
 
-const POINT_STYLES: readonly [PointStyle, string][] = [
-  ["filled", "Filled circle"],
-  ["open", "Open circle"],
-  ["cross", "Cross"],
-];
-const LINE_STYLES: readonly [LineStyle, string][] = [
-  ["solid", "Solid"],
-  ["dashed", "Dashed"],
-  ["dotted", "Dotted"],
-];
+const POINT_STYLES = (
+  [
+    ["filled", "Filled circle"],
+    ["open", "Open circle"],
+    ["cross", "Cross"],
+  ] as const satisfies readonly (readonly [PointStyle, string])[]
+).map(([value, label]) => ({ value, label, icon: <PointStyleGlyph style={value} /> }));
+
+/** VIS-13: a solid, dashed or dotted stroke across the button (our own drawing). */
+function LineStyleGlyph(props: { style: LineStyle }): JSX.Element {
+  const dash = props.style === "dashed" ? "4.5 3" : props.style === "dotted" ? "0.1 4" : undefined;
+  return (
+    <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+      <path
+        d="M2.5 17.5 17.5 2.5"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={2.5}
+        strokeLinecap="round"
+        strokeDasharray={dash}
+      />
+    </svg>
+  );
+}
+
+const LINE_STYLES = (
+  [
+    ["solid", "Solid"],
+    ["dashed", "Dashed"],
+    ["dotted", "Dotted"],
+  ] as const satisfies readonly (readonly [LineStyle, string])[]
+).map(([value, label]) => ({ value, label, icon: <LineStyleGlyph style={value} /> }));
+
+const ARROW_INSET = 10; // the arrow's left edge inside the menu (VIS-3)
+const ARROW_HALF = 8;
+const EDGE = 2; // the least distance kept from the calculator's edges
+
+/**
+ * Places the menu below `icon` with its arrow on the icon's centre line, overlapping the icon by
+ * 5 px as the reference's does, kept inside `layer`. The table cells clip their overflow, so the
+ * menu is portalled into the calculator root and placed with position: fixed.
+ */
+function placeMenu(menu: HTMLElement, icon: HTMLElement, layer: Element): void {
+  const i = icon.getBoundingClientRect();
+  const l = layer.getBoundingClientRect();
+  const centre = i.left + i.width / 2;
+  const width = menu.offsetWidth;
+  const left = Math.max(
+    l.left + EDGE,
+    Math.min(centre - ARROW_INSET - ARROW_HALF, l.right - width - EDGE)
+  );
+  const top = i.bottom + 3;
+  menu.style.left = `${left}px`;
+  menu.style.top = `${top}px`;
+  menu.style.maxHeight = `${Math.max(0, l.bottom - top - EDGE)}px`;
+  // A transformed ancestor would make position: fixed relative to it; measure and correct once.
+  const placed = menu.getBoundingClientRect();
+  if (
+    placed.width > 0 &&
+    (Math.abs(placed.left - left) > 0.5 || Math.abs(placed.top - top) > 0.5)
+  ) {
+    menu.style.left = `${2 * left - placed.left}px`;
+    menu.style.top = `${2 * top - placed.top}px`;
+  }
+  menu.style.setProperty("--kc-arrow-at", `${centre - left - ARROW_HALF}px`);
+}
 
 export function ColumnStyleMenu(props: ColumnStyleMenuProps): JSX.Element {
   const { tableId, column, stored, header } = props;
@@ -53,19 +122,26 @@ export function ColumnStyleMenu(props: ColumnStyleMenuProps): JSX.Element {
   };
   const { trigger, consumeClick } = useMenuTrigger(() => setOpen(true));
   usePopupDismiss(open, "column-style-menu", { popup: panel, trigger: button }, escape, close);
+  const [layer, setLayer] = useState<Element | null>(null);
+  useLayoutEffect(() => {
+    setLayer(button.current?.closest(".kc-app") ?? null);
+  }, []);
+  useLayoutEffect(() => {
+    const menu = panel.current;
+    if (open && menu !== null && button.current !== null && layer !== null) {
+      placeMenu(menu, button.current, layer);
+    }
+  });
   useEffect(() => {
     if (open) first.current?.focus();
   }, [open]);
 
   const pointStyle = stored.pointStyle ?? "filled";
   const lineStyle = stored.lineStyle ?? "solid";
-  const radio = (name: string, label: string, checked: boolean, onChange: () => void) => (
-    <label key={label} className="kc-style-option">
-      <input type="radio" name={name} checked={checked} onChange={onChange} />
-      <span>{label}</span>
-    </label>
-  );
   const group = `kc-style-${tableId}-${column}`;
+
+  // Without a calculator root (a bare test render) the menu stays inline.
+  const portal = (node: JSX.Element) => (layer === null ? node : createPortal(node, layer));
 
   return (
     <div className="kc-column-style">
@@ -86,78 +162,104 @@ export function ColumnStyleMenu(props: ColumnStyleMenuProps): JSX.Element {
       >
         <PointStyleGlyph style={pointStyle} hidden={stored.hidden} />
       </button>
-      {open && (
-        <div ref={panel} className="kc-style-menu" role="dialog" aria-label={`Style for ${header}`}>
-          <label className="kc-style-option">
-            <input
-              ref={first}
-              type="checkbox"
-              checked={!stored.hidden}
-              onChange={() => set({ hidden: !stored.hidden })}
-            />
-            <span>Show points</span>
-          </label>
-          <fieldset className="kc-style-group">
-            <legend>Point style</legend>
-            {POINT_STYLES.map(([style, label]) =>
-              radio(`${group}-point`, label, pointStyle === style, () => set({ pointStyle: style }))
-            )}
-          </fieldset>
-          <label className="kc-style-option">
-            <input
-              type="checkbox"
-              checked={stored.lines === true}
-              onChange={() => set({ lines: stored.lines !== true })}
-            />
-            <span>Connect points</span>
-          </label>
-          <fieldset className="kc-style-group">
-            <legend>Line style</legend>
-            {LINE_STYLES.map(([style, label]) =>
-              radio(`${group}-line`, label, lineStyle === style, () => set({ lineStyle: style }))
-            )}
-          </fieldset>
-          <fieldset className="kc-style-group kc-style-colours">
-            <legend>Colour</legend>
-            {PICKER_SLOTS.map((slot, i) => (
-              <label
-                key={slot}
-                className="kc-style-swatch"
-                style={{ "--kc-row-color": resolveRowColor(slot, skin).hex } as CSSProperties}
-              >
-                <input
-                  type="radio"
-                  name={`${group}-colour`}
-                  aria-label={`Colour ${i + 1}`}
-                  checked={isSwatch(stored.color, slot)}
-                  onChange={() => set({ color: slot })}
-                />
-              </label>
-            ))}
-          </fieldset>
-          <button
-            type="button"
-            className="kc-style-action"
-            onClick={() => {
-              setOpen(false);
-              props.onAddRegression();
-            }}
+      {open &&
+        portal(
+          <div
+            ref={panel}
+            className="kc-style-menu"
+            role="dialog"
+            aria-label={`Style for ${header}`}
           >
-            Add regression
-          </button>
-          <button
-            type="button"
-            className="kc-style-action"
-            onClick={() => {
-              setOpen(false);
-              engine.deleteTableColumn(tableId, column);
-              props.onDeleted();
-            }}
-          >
-            Delete column
-          </button>
-        </div>
-      )}
+            <div className="kc-style-body">
+              <div className="kc-style-section">
+                <div className="kc-style-title">
+                  <span aria-hidden="true">Points</span>
+                  <SettingToggle
+                    name="Show points"
+                    inputRef={first}
+                    checked={!stored.hidden}
+                    onChange={() => set({ hidden: !stored.hidden })}
+                  />
+                </div>
+                <div className="kc-style-content">
+                  <SettingSegments
+                    name={`${group}-point`}
+                    label="Point style"
+                    theme="mini"
+                    options={POINT_STYLES}
+                    value={pointStyle}
+                    onSelect={(style) => set({ pointStyle: style })}
+                  />
+                </div>
+              </div>
+              <div className="kc-style-section">
+                <div className="kc-style-swatches" role="radiogroup" aria-label="Colour">
+                  {PICKER_SLOTS.map((slot, i) => (
+                    <label
+                      key={slot}
+                      className="kc-style-swatch"
+                      style={{ "--kc-row-color": resolveRowColor(slot, skin).hex } as CSSProperties}
+                    >
+                      <input
+                        type="radio"
+                        name={`${group}-colour`}
+                        aria-label={`Colour ${i + 1}`}
+                        checked={isSwatch(stored.color, slot)}
+                        onChange={() => set({ color: slot })}
+                      />
+                      <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+                        <path d="M3 8.4 6.4 11.8 13 4.6" />
+                      </svg>
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <div className="kc-style-section">
+                <div className="kc-style-title">
+                  <span aria-hidden="true">Lines</span>
+                  <SettingToggle
+                    name="Connect points"
+                    checked={stored.lines === true}
+                    onChange={() => set({ lines: stored.lines !== true })}
+                  />
+                </div>
+                <div className="kc-style-content">
+                  <SettingSegments
+                    name={`${group}-line`}
+                    label="Line style"
+                    theme="mini"
+                    options={LINE_STYLES}
+                    value={lineStyle}
+                    onSelect={(style) => set({ lineStyle: style })}
+                  />
+                </div>
+              </div>
+              <div className="kc-style-section kc-style-actions">
+                <button
+                  type="button"
+                  className="kc-style-action"
+                  onClick={() => {
+                    setOpen(false);
+                    props.onAddRegression();
+                  }}
+                >
+                  Add regression
+                </button>
+                <button
+                  type="button"
+                  className="kc-style-action"
+                  onClick={() => {
+                    setOpen(false);
+                    engine.deleteTableColumn(tableId, column);
+                    props.onDeleted();
+                  }}
+                >
+                  Delete column
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
     </div>
   );
 }

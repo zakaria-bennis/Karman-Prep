@@ -64,9 +64,12 @@
   animation: kc-error-tip-in var(--kc-dur-300) var(--kc-ease);
 }
 
-/* menus-error-pinned-1440: a clicked marker pins its tip and the box turns black. */
+/* VIS-32: a click pins the tooltip; it turns black and its text can be selected. */
 .kc-error-tip[data-pinned="true"] {
   background: var(--kc-tooltip);
+  pointer-events: auto;
+  user-select: text;
+  cursor: text;
 }
 
 .kc-error-tip[data-pinned="true"]::before {
