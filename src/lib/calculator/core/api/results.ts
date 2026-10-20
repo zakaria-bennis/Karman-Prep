@@ -23,6 +23,7 @@ import type { StoredColumn, StoredRow } from "./document";
 import type { RowResult } from "./inbox";
 import { regressionValues, type RegressionOutcome } from "../data/evaluate-regression";
 import { regressionDefinitionId, type RegressionAnalysis } from "../data/regression-analysis";
+import type { SliderView } from "../../sliders/slider";
 import type { ApiEvaluation, CalculatorSettings, ExpressionAnalysis } from "./types";
 
 export interface RowView {
@@ -31,8 +32,8 @@ export interface RowView {
   hidden: boolean;
   color: string; // stored slot id or hex; the UI resolves it with resolveRowColor(color, skin)
   kind: RowKind;
-  error: RowError | null;
-  chips: string[];
+  error: ViewError | null;
+  chips: string[]; // RC-10 names, or a slider's undefined limit names (SLIDERS-10)
   complexHint: boolean;
   value: Value | null; // null until the worker reports
   valueText: string | null; // formatValue, only when the row shows a value (R-5)
@@ -41,7 +42,10 @@ export interface RowView {
   columns: readonly StoredColumn[] | null; // a table's stored columns
   table: TableView | null; // D-10, D-11: a table's analysis and latest results
   regression: RegressionView | null; // D-22: a regression row's analysis and latest fit
+  slider?: SliderView | null; // SLIDERS-1: a slider row's limits, range and shown value
 }
+/** A row's error: an analysis error, or a slider's limit error (SLIDERS-18). */
+export type ViewError = Omit<RowError, "code"> & { code: RowError["code"] | "slider-limits" };
 export interface RegressionView {
   analysis: RegressionAnalysis;
   result: RegressionOutcome | null; // null until the worker reports
@@ -176,8 +180,18 @@ function valueError(value: Value | null): RowError | null {
  * value from its latest accepted result. An overrun row shows the AR-48 timeout error, and a value
  * carrying a list error shows that error (NM-34 to NM-36).
  */
-export function buildRowView(row: StoredRow, analysis: RowAnalysis, result: RowResult): RowView {
+export function buildRowView(
+  row: StoredRow,
+  analysis: RowAnalysis,
+  result: RowResult,
+  sliders?: ReadonlyMap<string, SliderView>
+): RowView {
   const { value, overrun } = result;
+  const slider = sliders?.get(row.id) ?? null;
+  const limitError: ViewError | null =
+    slider?.error == null
+      ? null
+      : { code: "slider-limits", message: slider.error, names: [], span: null };
   return {
     id: row.id,
     latex: row.latex,
@@ -187,14 +201,18 @@ export function buildRowView(row: StoredRow, analysis: RowAnalysis, result: RowR
     error: overrun
       ? timeoutError()
       : (analysis.error ??
+        limitError ??
         chipsError(analysis) ??
         valueError(value) ??
         fitError(result.regression)),
-    chips: [...analysis.chips],
+    chips: slider === null ? [...analysis.chips] : [...slider.limitNames],
     complexHint: analysis.complexHint,
     value,
+    // SLIDERS-12: a slider row has no value readout
     valueText:
-      value !== null && rowShowsValue(analysis, value, overrun) ? formatValue(value) : null,
+      slider === null && value !== null && rowShowsValue(analysis, value, overrun)
+        ? formatValue(value)
+        : null,
     overrun,
     type: row.type === "table" ? "table" : "expression",
     columns: row.type === "table" ? (row.columns ?? []) : null,
@@ -206,6 +224,7 @@ export function buildRowView(row: StoredRow, analysis: RowAnalysis, result: RowR
       analysis.regression === undefined
         ? null
         : { analysis: analysis.regression, result: result.regression ?? null },
+    slider,
   };
 }
 

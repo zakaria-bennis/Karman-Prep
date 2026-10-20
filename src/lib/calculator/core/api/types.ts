@@ -3,6 +3,7 @@
 
 import type { PixelSize, Viewport } from "../../plot/viewport";
 import type { TableModel } from "../../regression/table-models";
+import type { SavedSlider } from "../../sliders/model";
 
 export type AngleMode = "radians" | "degrees";
 export type LineStyle = "solid" | "dashed" | "dotted"; // R-4 (Phase 2 picker)
@@ -78,7 +79,8 @@ export interface ExpressionState {
   hidden?: boolean;
   lineStyle?: LineStyle;
   pointStyle?: PointStyle;
-  sliderBounds?: { min: string; max: string; step: string };
+  slider?: SavedSlider; // SLIDERS-11: settings that differ from the defaults
+  sliderBounds?: { min: string; max: string; step: string }; // input only: non-empty bounds are hard
   columns?: { latex: string; values: string[]; color?: string; hidden?: boolean }[];
   regression?: TableRegressionState; // RT-28: tables only
 }

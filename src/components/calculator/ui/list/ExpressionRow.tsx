@@ -25,7 +25,9 @@ import {
   type PointerEvent,
   type TransitionEvent,
 } from "react";
-import { COMPLEX_HINT } from "@/lib/calculator/core/analysis";
+import { COMPLEX_HINT, displayName } from "@/lib/calculator/core/analysis";
+import { pauseSlider } from "@/lib/calculator/core/api/sliders";
+import { spokenName, withSliderValue } from "@/lib/calculator/sliders/slider";
 import type { RowView } from "@/lib/calculator/core/api/engine";
 import { MAX_ROW_CHARACTERS } from "@/lib/calculator/core/latex/limits";
 import { rowIconHex } from "@/lib/calculator/theme/roles";
@@ -56,6 +58,9 @@ import { EditRowActions } from "./EditRowActions";
 import { ToastContext } from "./Toast";
 import { RowValue } from "./RowValue";
 import { AddSliderLine, addSliders, PointLabelLine } from "./RowUnderMath";
+import { SliderGutter } from "./SliderGutter";
+import { SliderLine, type SliderLineHandle } from "./SliderLine";
+import { tabPastRow } from "./slider-focus";
 import type { RowMotion } from "./row-presence";
 
 export interface ExpressionRowProps {
@@ -81,7 +86,10 @@ function writeLatex(field: MathField, latex: string, syncing: { current: boolean
 /** R-1: whether a press on `target` lands on the row body rather than a control or the field. */
 function isRowBody(target: EventTarget): boolean {
   if (!(target instanceof Element)) return false;
-  return target.closest("button, a, input, select, textarea, .mq-editable-field") === null;
+  return (
+    target.closest("button, a, input, select, textarea, .mq-editable-field, .kc-slider-line") ===
+    null
+  );
 }
 
 /** The white glyph in a row's colour icon: a wave, a dot, or a split disc for a region. */
@@ -112,7 +120,14 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
   const ids = useMemo(() => rowDomIds(row.id), [row.id]);
   const speech = useMemo(() => latexToSpeech(row.latex), [row.latex]);
   const error = row.error;
-  const tab = error === null ? rowTab(row) : null; // R-2: the warning marker takes the tab's place
+  const slider = row.slider ?? null; // SLIDERS-12: Play button and slider line in place of the tab
+  const sliderName = slider === null ? "" : spokenName(slider.name); // SLIDERS-25: "alpha", "a_1"
+  const tab = error === null && slider === null ? rowTab(row) : null; // R-2: the marker replaces it
+  // SLIDERS-22: a slider row shows its snapped value, `a=10` for a stored `a=15` with max 10, once
+  // written from outside (load, API, limits, drag, playback); a typed value shows (and is used) as
+  // typed, so `shown` is the typed latex then.
+  const shown =
+    slider !== null && slider.error === null ? withSliderValue(row.latex, slider.value) : row.latex;
   const valueText = error === null ? row.valueText : null; // R-5: an error row shows no value
   // A11Y-3: the textbox's description lists the parts that render, in this order.
   const describedBy = [
@@ -125,6 +140,8 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
     .join(" ");
 
   const itemRef = useRef<HTMLLIElement>(null);
+  const playRef = useRef<HTMLButtonElement>(null);
+  const sliderLine = useRef<SliderLineHandle | null>(null);
   const tabRef = useRef<HTMLButtonElement>(null);
   // D-13: the row menu, from a long-press on the gutter tab or a right-click or Shift+F10 anywhere
   // on the row (f(x)=E rows have no tab), only while the row has something to offer.
@@ -136,12 +153,14 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
   });
   const hostRef = useRef<HTMLDivElement>(null);
   const fieldRef = useRef<MathField | null>(null);
+  const [fieldFocused, setFieldFocused] = useState(false);
   /** True while the row writes the snapshot's latex into the field, so onEdit ignores it. */
   const syncingRef = useRef(false);
   /** Whether the last pointerdown on the field was a touch; a focus consumes it (K-2). */
   const touchRef = useRef(false);
   const latest = useRef({
     latex: row.latex,
+    shown,
     number,
     onTouchFocus: props.onTouchFocus,
     onExitDone: props.onExitDone,
@@ -149,6 +168,7 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
   useLayoutEffect(() => {
     latest.current = {
       latex: row.latex,
+      shown,
       number,
       onTouchFocus: props.onTouchFocus,
       onExitDone: props.onExitDone,
@@ -165,6 +185,9 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
         const current = fieldRef.current;
         // Snapshot writes are not edits; editThroughKeypad makes a keypad batch's one editRow.
         if (syncingRef.current || current === null || isKeypadBatch(current)) return;
+        // SLIDERS-35: typing into a playing slider's row pauses it first.
+        const playing = engine.getSnapshot().rows.find((r) => r.id === rowId)?.slider;
+        if (playing?.settings.isPlaying) pauseSlider(engine, rowId);
         if (latex === "table") {
           convertToTable(engine, focus, rowId); // D-5: typing table in an empty row
           return;
@@ -180,6 +203,7 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
         if (fieldRef.current?.latex() === "") deleteFromEmptyRow(engine, focus, rowId, direction);
       },
       onFocus() {
+        setFieldFocused(true);
         const touch = touchRef.current;
         touchRef.current = false;
         engine.setFocusedRow(rowId);
@@ -187,6 +211,7 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
         if (touch) latest.current.onTouchFocus(rowId);
       },
       onBlur() {
+        setFieldFocused(false);
         touchRef.current = false;
         engine.setFocusedRow(null);
         engine.endEditGroup(); // KB-2: a focus change ends the typing group
@@ -196,7 +221,7 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
       },
     });
     fieldRef.current = field;
-    writeLatex(field, latest.current.latex, syncingRef);
+    writeLatex(field, latest.current.shown, syncingRef);
     return () => {
       fieldRef.current = null;
       field.destroy();
@@ -236,10 +261,19 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
     };
   }, [exiting, readDuration, row.id]);
 
+  // SLIDERS-22: a new stored latex goes into the field; a slider row out of focus shows `shown`,
+  // and in focus keeps what it shows until the stored latex changes (typing then edits that).
+  const lastLatex = useRef(row.latex);
+  const sliderFocus = slider === null ? null : fieldFocused;
   useLayoutEffect(() => {
     const field = fieldRef.current;
-    if (field !== null && field.latex() !== row.latex) writeLatex(field, row.latex, syncingRef);
-  }, [row.latex]);
+    const changed = lastLatex.current !== row.latex;
+    lastLatex.current = row.latex;
+    if (field === null) return;
+    const target = sliderFocus === true ? row.latex : shown;
+    if ((changed || sliderFocus === false) && field.latex() !== target)
+      writeLatex(field, target, syncingRef);
+  }, [row.latex, shown, sliderFocus]);
 
   // T-11: no phone keyboard over the open keypad. The field's own deps rerun this for a new field.
   useLayoutEffect(() => {
@@ -333,6 +367,18 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
               {!row.hidden && <ColourKindGlyph kind={editing ? null : kindGlyph(row, tab)} />}
             </button>
           )}
+          {slider !== null && error === null && (
+            <SliderGutter
+              rowId={row.id}
+              name={sliderName}
+              slider={slider}
+              playRef={playRef}
+              onTabOut={(direction) => {
+                if (direction === "back") sliderLine.current?.focusThumb();
+                else tabPastRow(engine, focus, row.id, itemRef.current);
+              }}
+            />
+          )}
           {menuOpen && (
             <RowMenu
               rowId={row.id}
@@ -349,7 +395,21 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
           {error !== null && <ErrorMarker id={ids.error} message={error.message} variant="row" />}
         </div>
         <div className="kc-row-main">
-          <div className="kc-row-field" ref={hostRef} onPointerDown={onFieldPointerDown} />
+          <div
+            className="kc-row-field"
+            ref={hostRef}
+            onPointerDown={onFieldPointerDown}
+            onKeyDownCapture={(e) => {
+              // SLIDERS-25: a slider row's math tabs to its delete button, the editor held open.
+              if (e.key !== "Tab" || e.shiftKey || sliderLine.current === null || editing) return;
+              const remove = itemRef.current?.querySelector<HTMLElement>(".kc-row-delete");
+              if (remove == null) return;
+              e.preventDefault();
+              e.stopPropagation();
+              sliderLine.current.hold();
+              remove.focus();
+            }}
+          />
           <span id={ids.label} hidden>
             {row.regression?.result?.ok === true
               ? `Expression ${number}. ${STATISTICS_HINT}` // D-37
@@ -369,10 +429,32 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
               </button>
             </div>
           )}
-          {error?.code === "too-many-variables" && (
+          {slider !== null && (
+            <SliderLine
+              engine={engine}
+              rowId={row.id}
+              name={sliderName}
+              glyph={displayName(slider.name)}
+              slider={slider}
+              rowFocused={focusedRowId === row.id}
+              handle={sliderLine}
+              playRef={playRef}
+              onFocusRow={() => focus.focusRow(row.id, "end")}
+              onFocusDelete={() =>
+                itemRef.current?.querySelector<HTMLElement>(".kc-row-delete")?.focus()
+              }
+              onLeave={(direction) => leaveRow(engine, focus, row.id, direction)}
+              onEnter={() => insertRowBelow(engine, focus, announcer, row.id, "focus")}
+            />
+          )}
+          {(error?.code === "too-many-variables" || slider !== null) && row.chips.length > 0 && (
             <AddSliderLine
               names={row.chips}
-              onAdd={(names) => addSliders(engine, announcer, row.id, names)}
+              onAdd={(names, keyboard) => {
+                addSliders(engine, announcer, row.id, names);
+                // SLIDERS-8: a keyboard press returns to the row's math; a click leaves focus.
+                if (keyboard) focus.focusRow(row.id, "end");
+              }}
             />
           )}
           {tab === "point" && <PointLabelLine rowNumber={number} />}
@@ -394,6 +476,13 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
             type="button"
             className="kc-row-delete"
             aria-label={`Delete expression ${number}`}
+            onKeyDown={(e) => {
+              // SLIDERS-25: in a slider row, Tab goes on into the limits and Shift+Tab to the math.
+              if (e.key !== "Tab" || sliderLine.current === null) return;
+              e.preventDefault();
+              if (e.shiftKey) focus.focusRow(row.id, "end");
+              else sliderLine.current.focusField("first");
+            }}
             onClick={(e) => {
               // A keyboard press (detail 0) moves on to the next row (R-3); a click leaves no row
               // selected, as the reference does, with focus kept on the list.

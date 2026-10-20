@@ -54,7 +54,7 @@ it("D-13 a toast says Table created. with Undo, is announced, and focus selects 
 });
 
 it("D-13 a row with no function opens no menu, and Escape closes the menu back to the tab", async () => {
-  const kit = renderEditor(<ExpressionPanel {...panelProps()} />, { rows: ["x=3", "y=x"] });
+  const kit = renderEditor(<ExpressionPanel {...panelProps()} />, { rows: ["x+y=3", "y=x"] });
   await waitFor(() => expect(tab(1)).toBeInTheDocument());
   expect(fireEvent.contextMenu(tab(1))).toBe(true); // not cancelled: the browser's menu shows
   expect(screen.queryByRole("menu")).toBeNull();

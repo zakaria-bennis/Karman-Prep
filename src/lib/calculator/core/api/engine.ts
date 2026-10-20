@@ -8,7 +8,7 @@ import { buildCompileScope } from "../../plot/from-analysis";
 import { poiBranchesFor } from "../../poi/index";
 import type { PoiBranch } from "../../poi/types";
 import type { ComputeBackend } from "../../worker/backend";
-import { analyzeRows, type AnalysisResult } from "../analysis";
+import type { AnalysisResult } from "../analysis";
 import { MAX_ROW_CHARACTERS, MAX_ROWS } from "../latex";
 import { defaultBackend, defaultRandomSeed, defaultScheduleFrame } from "./default-deps";
 import {
@@ -34,6 +34,7 @@ import { HelperRegistry, type HelperExpression } from "./helper-expression";
 import { ResultInbox, sentRows } from "./inbox";
 import { EngineObservers } from "./observers";
 import { buildRowView, latestValues, snapshotAnalysis, type EngineSnapshot } from "./results";
+import { analyzeDocument, editSliderLatex, type DocumentAnalysis } from "./sliders";
 import {
   acceptView,
   blankSettings,
@@ -102,6 +103,7 @@ export class CalculatorEngine {
   private currentSettings = DEFAULT_SETTINGS;
   private viewport!: Viewport;
   private analysis!: AnalysisResult;
+  private sliders!: Omit<DocumentAnalysis, "analysis">;
   /** The graph's last usable setView size and dpr; null until it reports one (Decision 9). */
   private graph: GraphSize | null = null;
   private revision = 0;
@@ -333,7 +335,8 @@ export class CalculatorEngine {
       source === "typing" || source === "keypad"
         ? { kind: "group", rowId: id, at: this.deps.now() }
         : STEP;
-    this.commitRows(this.withRow(id, { latex }), step, true);
+    const commit = () => this.commitRows(this.withRow(id, { latex }), step, true);
+    editSliderLatex(this, id, step, source !== "api", commit); // SLIDERS-22: typing loosens limits
     return null;
   }
 
@@ -391,7 +394,10 @@ export class CalculatorEngine {
    * Plot residuals, Add regression, Log mode); null changes nothing, and past MAX_ROWS nothing is
    * committed and "row-limit" returned.
    */
-  editRows(edit: (rows: readonly StoredRow[], ctx: RowEditContext) => StoredRow[] | null) {
+  editRows(
+    edit: (rows: readonly StoredRow[], ctx: RowEditContext) => StoredRow[] | null,
+    step: HistoryStep = STEP // sliders: "none" for animation frames and later drag writes
+  ) {
     if (this.destroyed) return null;
     const rows = this.doc.rows;
     const next = edit(rows, {
@@ -401,7 +407,7 @@ export class CalculatorEngine {
     });
     if (next === null) return null;
     if (next.length > MAX_ROWS) return "row-limit";
-    this.commitRows(next, STEP, true);
+    this.commitRows(next, step, true);
     return null;
   }
 
@@ -613,15 +619,10 @@ export class CalculatorEngine {
     this.changed(userInitiated);
   }
 
-  /** AR-51: analyses on the main thread; a focused or active row that left the list is dropped. */
+  /** AR-51, SLIDERS-22: analyses on the main thread; a focused or active row that left is dropped. */
   private analyze(): void {
-    const sources = this.doc.rows.map(
-      ({ id, latex, hidden, type, columns, logMode, regression }) =>
-        type === "table"
-          ? { id, latex, hidden, columns: columns ?? [], ...(regression ? { regression } : {}) }
-          : { id, latex, hidden, logMode: logMode === true }
-    );
-    this.analysis = analyzeRows(sources, toWireSettings(this.currentSettings));
+    const settings = toWireSettings(this.currentSettings);
+    ({ analysis: this.analysis, ...this.sliders } = analyzeDocument(this.doc.rows, settings));
     this.observers.markDirty("expressionAnalysis");
     const kept = (id: string | null) => (id !== null && this.analysis.byId.has(id) ? id : null);
     if (kept(this.activeRowId) !== this.activeRowId) this.observers.markDirty("focusedExpression");
@@ -635,8 +636,8 @@ export class CalculatorEngine {
   /** AR-45, AR-46: posts state (then view when asked) and re-issues every live helper (API-6). */
   private postState(withView = false): void {
     this.generation++;
-    this.deps.backend.post(stateMessage(this.generation, this.doc.rows, this.currentSettings));
-    this.inbox.noteState(this.generation, sentRows(this.doc.rows, this.analysis));
+    this.deps.backend.post(stateMessage(this.generation, this.sliders.sent, this.currentSettings));
+    this.inbox.noteState(this.generation, sentRows(this.sliders.sent, this.analysis));
     if (withView) this.postView();
     this.helpers.reissue();
   }
@@ -658,10 +659,11 @@ export class CalculatorEngine {
   }
 
   private buildSnapshot(): EngineSnapshot {
+    const s = this.sliders.sliders; // SLIDERS-1: the slider rows' views
     return {
       revision: this.revision,
       rows: this.doc.rows.map((row) =>
-        buildRowView(row, this.analysis.byId.get(row.id)!, this.inbox.result(row.id))
+        buildRowView(row, this.analysis.byId.get(row.id)!, this.inbox.result(row.id), s)
       ),
       settings: this.currentSettings,
       viewport: this.viewport,
