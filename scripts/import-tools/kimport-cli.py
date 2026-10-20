@@ -11,7 +11,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))  # -I drops the script dir
 
-from kimport import backfill, publish, sweep, writer  # noqa: E402
+from kimport import backfill, lint, publish, sweep, writer  # noqa: E402
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -21,6 +21,7 @@ def build_parser() -> argparse.ArgumentParser:
     _register_sweep(sub)
     _register_backfill(sub)
     _register_publish(sub)
+    _register_lint(sub)
     return parser
 
 
@@ -93,6 +94,24 @@ def _register_publish(sub) -> None:
         "publish: {rows} rows, {keyed} keyed, {figure_no_key} figure rows without a database key".format(
             **publish.run_publish(a.batch, Path(a.readback), Path(a.sealed), Path(a.export), Path(a.intents),
                                   Path(a.out))))))
+
+
+def _register_lint(sub) -> None:
+    ln = sub.add_parser("lint", help="check a reviewed batch before it is frozen; pull bad rows into the problem lane")
+    ln.add_argument("--reviewed", required=True, help="<batch>-reviewed-import-ready.json")
+    ln.add_argument("--frozen", help="<batch>-frozen-inputs-import-ready.json (skips the binding check when absent)")
+    ln.add_argument("--clusters", required=True, help="pipeline/corpus/clusters.json")
+    ln.add_argument("--lane", required=True, help="pipeline/lane.json")
+    ln.add_argument("--now", required=True, help="ISO-8601 time stamped on new lane entries")
+
+    def run(a):
+        res = lint.run_lint(Path(a.reviewed), Path(a.frozen) if a.frozen else None,
+                            Path(a.clusters), Path(a.lane), a.now)
+        for p in res["pulled"]:
+            print(f"pulled {p['id']} {p['code']}: {p['detail']}")
+        print("lint: {passed} passed, {pulled_rows} rows pulled".format(**res))
+
+    ln.set_defaults(func=lambda a: _guard(lambda: run(a)))
 
 
 def _guard(fn) -> int:
