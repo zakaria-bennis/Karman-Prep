@@ -87,3 +87,10 @@ f(x) = (1/2)(x + 11).` (matching function/variable, positive integer
   fraction leaves the following sum outside it. Source bytes, ordinary prose,
   explicit math and unsupported forms stay intact. Require source-pixel review
   for affected questions on the exact renderer before accepting display.
+
+## Duplicate and publish tooling
+
+Duplicate sweeps, the comparison key backfill, the corpus count and guarded
+publish SQL come from `scripts/import-tools/`. Follow the runbook in
+[`scripts/import-tools/README.md`](../../scripts/import-tools/README.md). Every
+live write in it still needs the founder's go-ahead per batch.

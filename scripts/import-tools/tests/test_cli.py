@@ -16,6 +16,19 @@ class CliTests(unittest.TestCase):
         self.assertEqual(r.returncode, 0)
         self.assertIn("kimport", r.stdout)
 
+    def test_cli_lists_all_commands(self):
+        r = subprocess.run(
+            [sys.executable, "-I", str(CLI), "--help"],
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(r.returncode, 0)
+        for name in (
+            "sweep", "backfill", "publish", "lint", "corpus",
+            "pairs", "lane", "slice", "lock", "intent",
+        ):
+            self.assertIn(name, r.stdout)
+
     def test_no_command_prints_help_and_fails(self):
         r = subprocess.run(
             [sys.executable, "-I", str(CLI)], capture_output=True, text=True
