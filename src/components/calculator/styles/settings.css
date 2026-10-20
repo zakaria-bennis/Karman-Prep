@@ -6,7 +6,8 @@
 
 /* Tones of the popovers (wanted as shared tokens, see the report). */
 .kc-settings,
-.kc-style-menu {
+.kc-style-menu,
+.kc-shortcuts-backdrop {
   --kc-pop-rule: color-mix(in srgb, var(--kc-text) 11.4%, var(--kc-list)); /* #e2e2e2 */
   --kc-pop-hover-border: color-mix(in srgb, var(--kc-text) 42%, var(--kc-list)); /* #949494 */
   --kc-pop-ink-strong: color-mix(in srgb, var(--kc-text) 73%, var(--kc-list)); /* #454545 */

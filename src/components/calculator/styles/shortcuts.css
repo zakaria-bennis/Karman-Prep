@@ -1,0 +1,232 @@
+/* The Keyboard Shortcuts dialog (ui/shortcuts, VIS-POPOVERS-MENUS-33 to -35). The reference's
+   modal is inset 80 px from the browser window, under a 47 px site header; here it is placed on
+   the calculator instead: 80 px in from the sides and bottom and 33 px from the top on a large
+   calculator, proportionally less on a small one. Colours come from role variables (TH-3). */
+
+.kc-shortcuts-backdrop {
+  --kc-hk-ink: color-mix(in srgb, var(--kc-text) 80%, var(--kc-list)); /* #333 */
+  --kc-hk-rule: color-mix(in srgb, var(--kc-text) 11.4%, var(--kc-list)); /* #e2e2e2 */
+
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  background: color-mix(in srgb, var(--kc-text) 70%, transparent);
+  font-family:
+    "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-weight: 300;
+  white-space: normal;
+}
+
+.kc-shortcuts {
+  position: absolute;
+  inset: min(33px, 4%) min(80px, 6%) min(80px, 9.4%);
+  animation: kc-shortcuts-in var(--kc-dur-300) var(--kc-ease) both;
+}
+
+@keyframes kc-shortcuts-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* VIS-34: a 32 px round close button just outside the box's top-right corner. */
+.kc-shortcuts-close {
+  position: absolute;
+  top: -28px;
+  right: -28px;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  opacity: 0.9;
+  cursor: pointer;
+}
+
+.kc-shortcuts-close:hover {
+  background: color-mix(in srgb, var(--kc-list) 15%, transparent);
+  opacity: 1;
+}
+
+.kc-shortcuts-close > svg {
+  width: 17.6px;
+  height: 17.6px;
+  fill: none;
+  stroke: var(--kc-list);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.kc-shortcuts-close:focus-visible {
+  outline: 2px solid var(--kc-list);
+  outline-offset: 2px;
+}
+
+.kc-shortcuts-box {
+  box-sizing: border-box;
+  height: 100%;
+  overflow: auto;
+  border-radius: 6px;
+  background: var(--kc-list);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--kc-text) 50%, transparent);
+  color: var(--kc-hk-ink);
+  outline: none;
+}
+
+/* VIS-35: a sticky white header, the 360 px title then the 500 px platform choice. */
+.kc-shortcuts-head {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  margin: 0 30px;
+  padding: 30px 0 5px;
+  background: var(--kc-list);
+}
+
+.kc-shortcuts-head > h1 {
+  flex: none;
+  width: 360px;
+  margin: 0;
+  color: var(--kc-text-secondary);
+  font-size: 27.2px;
+  font-weight: 300;
+  line-height: 36px;
+}
+
+.kc-shortcuts-head > .kc-segments {
+  flex: 0 1 500px;
+  min-width: 0;
+  font-size: 14.4px;
+}
+
+.kc-shortcuts-columns {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0 30px 30px;
+}
+
+.kc-shortcuts-column {
+  flex: 1 1 400px;
+  max-width: 610px;
+}
+
+.kc-shortcuts-section {
+  padding-right: 25px;
+}
+
+.kc-shortcuts-section > h2 {
+  margin: 10px 0 15px;
+  color: var(--kc-hk-ink);
+  font-size: 20.8px;
+  font-weight: 500;
+  line-height: 25px;
+}
+
+.kc-shortcuts-section > table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: 13.6px;
+  line-height: 16.32px;
+}
+
+.kc-shortcuts-section th {
+  padding: 1px;
+  font-weight: 700;
+  text-align: left;
+}
+
+.kc-shortcuts-section td {
+  padding: 8px 20px 8px 0;
+  border-top: 1px solid var(--kc-hk-rule);
+  vertical-align: middle;
+}
+
+.kc-key-cap {
+  margin: 0 1px;
+  padding: 3px 5px;
+  border: 1px solid var(--kc-boundary);
+  border-radius: 3px;
+  font-family: inherit;
+  font-size: 13.6px;
+  line-height: 27.2px;
+  white-space: nowrap;
+}
+
+.kc-key-text {
+  margin: 0 3px;
+}
+
+.kc-key-text[data-text="("],
+.kc-key-text[data-text=")"] {
+  margin: 0;
+}
+
+/* The Common Symbols column, set in the math font. */
+.kc-sym {
+  display: inline-block;
+  font-family: var(--kc-font-math);
+  font-size: 17px;
+  line-height: 27.2px;
+}
+
+.kc-sym sup,
+.kc-sym sub {
+  font-size: 0.75em;
+  line-height: 0;
+}
+
+.kc-sym-big[data-op="int"] {
+  min-height: 42.8px;
+}
+
+.kc-sym-big[data-op="int"] > .kc-sym-op {
+  line-height: 22px;
+}
+
+.kc-sym-big[data-op="int"] > .kc-sym-limit {
+  line-height: 10px;
+}
+
+.kc-sym-index {
+  margin-right: -0.3em;
+}
+
+.kc-sym-frac {
+  display: inline-flex;
+  vertical-align: middle;
+  flex-direction: column;
+  align-items: center;
+  height: 36px;
+  font-size: 14px;
+  line-height: 18px;
+}
+
+.kc-sym-frac > span:first-child {
+  border-bottom: 1px solid currentColor;
+}
+
+.kc-sym-big {
+  display: inline-flex;
+  vertical-align: middle;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 66.6px;
+  line-height: 1;
+}
+
+.kc-sym-op {
+  font-size: 28px;
+  line-height: 32px;
+}
+
+.kc-sym-limit {
+  font-size: 12px;
+}

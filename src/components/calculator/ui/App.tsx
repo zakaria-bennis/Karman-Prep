@@ -31,6 +31,7 @@ import { KeyboardTrace, KeyboardTraceContext } from "./graph/keyboard-trace";
 import { EngineContext, useEngineSnapshot } from "./hooks/use-engine";
 import { CalculatorLayout } from "./layout/CalculatorLayout";
 import { insertRowBelow, performRedo, performUndo } from "./list/row-actions";
+import { ShortcutsHost } from "./shortcuts/ShortcutsHost";
 
 export interface AppProps {
   engine: CalculatorEngine;
@@ -190,6 +191,7 @@ export function App(props: AppProps): JSX.Element {
                   onKeypadChange={changeKeypad}
                   onTouchFocusRow={touchFocusRow}
                 />
+                <ShortcutsHost rootRef={rootRef} />
               </SkinContext.Provider>
             </KeyboardTraceContext.Provider>
           </AnnouncerContext.Provider>

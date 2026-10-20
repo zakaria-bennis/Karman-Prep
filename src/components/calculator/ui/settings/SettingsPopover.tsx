@@ -114,6 +114,11 @@ export function SettingsPopover(props: SettingsPopoverProps): JSX.Element | null
     });
   }, [escape, open]);
 
+  // SETTINGS-32: opening moves focus to the chosen Display Size radio.
+  useEffect(() => {
+    if (open) ref.current?.querySelector<HTMLInputElement>(".kc-segment > input:checked")?.focus();
+  }, [open]);
+
   useEffect(() => {
     const el = ref.current;
     if (!open || el === null) return;
