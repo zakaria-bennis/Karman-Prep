@@ -140,12 +140,16 @@ def _register_corpus(sub) -> None:
     cp.add_argument("--ledger", required=True, help="current-readiness-ledger.json")
     cp.add_argument("--export", help="saved result of sql/live_export.sql (omit: live status from the ledger)")
     cp.add_argument("--out", required=True, help="output folder, e.g. pipeline/corpus/")
-    cp.add_argument("--decisions", help="founder_decisions.json to re-apply (default: <out>/founder_decisions.json if present)")
+    cp.add_argument("--decision-log", help="founder_decisions.json answer log to re-apply "
+                    "(default: <out>/founder_decisions.json if present)")
+    cp.add_argument("--lane", help="pipeline/lane.json: open or parked items are never elected canonical "
+                    "(default: lane.json in --out, or one folder up, if present)")
     cp.set_defaults(func=lambda a: _guard(lambda: print(
         "corpus: {occurrences} occurrences, {unique} unique, {unique_not_live} not yet live, "
         "{founder_pairs} founder pairs, {unparsed} unparsed".format(
             **corpus.run_corpus(Path(a.c_index), Path(a.ledger), Path(a.export) if a.export else None,
-                                Path(a.out), Path(a.decisions) if a.decisions else None)))))
+                                Path(a.out), Path(a.decision_log) if a.decision_log else None,
+                                Path(a.lane) if a.lane else None)))))
 
 
 def _register_pairs(sub) -> None:

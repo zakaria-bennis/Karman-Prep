@@ -6,20 +6,17 @@ blocks a batch. `pipeline/lane.json` is the single record of those questions:
 open, parked and resolved. Reviewers get disjoint slices of canonical
 questions, recorded in `pipeline/claims.json`.
 
-Every function takes file paths, reads, changes and writes back with a
-temp-file-then-rename. Nothing here reads the clock (callers pass `now`) and
+Every function takes file paths, reads, changes and writes back under
+kimport.jsonio's FileLock with its atomic writer (temp file, then rename). Nothing here reads the clock (callers pass `now`) and
 nothing edits question text.
 """
 
-import fcntl
-import json
-import os
 import re
-import time
 from datetime import datetime
 from pathlib import Path
 
 from .corpus import elect
+from .jsonio import FileLock, atomic_write_json, load_json
 from .keys import QuestionRecord
 
 REASONS = ("needs_figure", "asset_hold", "no_answer_key", "answer_dispute", "extraction_repair",
@@ -28,23 +25,11 @@ REASONS = ("needs_figure", "asset_hold", "no_answer_key", "answer_dispute", "ext
 STATUSES = ("open", "parked", "resolved")
 LINT_METHOD = "lint"  # a pull by the batch checks is not a fix method; it never counts toward parking
 SLICE_SIZE = 27
-_LOCK_WAIT_SECONDS = 10.0
 NOT_REVIEWABLE_BUCKETS = ("certified_broken", "certified_duplicate")
 _ID = re.compile(r"^(?P<exam>.+)_(?P<section>[A-Za-z]+)_M(?P<module>[A-Za-z0-9]+)_Q(?P<q>\d+)(?P<suffix>_[a-z]+)?$")   # e.g. ..._Q01_retained
 
 
 # ---------------------------------------------------------------- files
-
-
-def _load(path: Path):
-    return json.loads(Path(path).read_bytes().decode("utf-8"))
-
-
-def _write(path: Path, data) -> None:
-    path = Path(path)
-    tmp = path.with_name(path.name + f".tmp{os.getpid()}")
-    tmp.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    os.replace(tmp, path)
 
 
 def _read_lane(path: Path) -> dict:
@@ -53,7 +38,7 @@ def _read_lane(path: Path) -> dict:
     if not path.exists():
         return {"items": {}}
     try:
-        data = _load(path)
+        data = load_json(path)
         if not isinstance(data["items"], dict):
             raise TypeError
     except (ValueError, KeyError, TypeError) as e:
@@ -64,34 +49,6 @@ def _read_lane(path: Path) -> dict:
 def _check_reason(reason: str) -> None:
     if reason not in REASONS:
         raise ValueError(f"unknown lane reason {reason!r}; use one of {', '.join(REASONS)}")
-
-
-class _FileLock:
-    """Exclusive flock on a persistent `<file>.lock`, around a read-modify-write.
-    The file is never deleted; the OS drops the lock when its holder dies, so there is
-    nothing stale to break. Waits up to 10 seconds, then gives a plain message."""
-
-    def __init__(self, target: Path):
-        self.path = Path(target).with_name(Path(target).name + ".lock")
-        self.fd = None
-
-    def __enter__(self):
-        fd = os.open(self.path, os.O_CREAT | os.O_RDWR, 0o644)
-        deadline = time.monotonic() + _LOCK_WAIT_SECONDS
-        while True:
-            try:
-                fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
-                self.fd = fd
-                return self
-            except BlockingIOError:
-                if time.monotonic() > deadline:
-                    os.close(fd)
-                    raise ValueError(f"{self.path} is in use by another session; try again in a moment") from None
-                time.sleep(0.01)
-
-    def __exit__(self, *exc):
-        os.close(self.fd)   # closing releases the flock
-        self.fd = None
 
 
 # ---------------------------------------------------------------- lane
@@ -105,7 +62,7 @@ def add_open(lane_path: Path, entries: dict, now: str, source: str) -> int:
     for reason, _ in entries.values():
         _check_reason(reason)
     lane_path = Path(lane_path)
-    with _FileLock(lane_path):
+    with FileLock(lane_path):
         data = _read_lane(lane_path)
         items = data["items"]
         for sid, (reason, detail) in entries.items():
@@ -124,7 +81,7 @@ def add_open(lane_path: Path, entries: dict, now: str, source: str) -> int:
                 attempts.append({"method": source, "ok": False, "at": now, "detail": detail})
                 base["epoch"] = len(attempts)   # resolved: a fresh two-method count after a reopen
             items[sid] = {**base, "reason": reason, "status": status, "detail": detail, "attempts": attempts}
-        _write(lane_path, data)
+        atomic_write_json(lane_path, data)
     return len(entries)
 
 
@@ -142,7 +99,7 @@ def record_attempt(lane_path: Path, occ_id: str, method: str, ok: bool, now: str
     """Record a fix attempt; return the new status. ok resolves the item. A second failed
     attempt with a different method parks it; repeating a method does not count."""
     lane_path = Path(lane_path)
-    with _FileLock(lane_path):
+    with FileLock(lane_path):
         data = _read_lane(lane_path)
         item = data["items"].get(occ_id)
         if item is None:
@@ -155,7 +112,7 @@ def record_attempt(lane_path: Path, occ_id: str, method: str, ok: bool, now: str
             item["status"] = "resolved"
         else:
             item["status"] = "parked" if len(_failed_methods(item)) >= 2 else "open"
-        _write(lane_path, data)
+        atomic_write_json(lane_path, data)
         return item["status"]
 
 
@@ -164,7 +121,7 @@ def requeue(lane_path: Path, reason: str) -> list[str]:
     History is kept; the two-method count starts again. Returns the ids, sorted."""
     _check_reason(reason)
     lane_path = Path(lane_path)
-    with _FileLock(lane_path):
+    with FileLock(lane_path):
         data = _read_lane(lane_path)
         moved = []
         for sid, item in sorted(data["items"].items()):
@@ -173,7 +130,7 @@ def requeue(lane_path: Path, reason: str) -> list[str]:
                 item["epoch"] = len(item.get("attempts", []))
                 moved.append(sid)
         if moved:
-            _write(lane_path, data)
+            atomic_write_json(lane_path, data)
         return moved
 
 
@@ -200,17 +157,23 @@ def summary(lane_path: Path, now: str) -> dict:
 # ---------------------------------------------------------------- clusters
 
 
+def blocked_ids(lane_path: Path | None) -> set[str]:
+    """Ids open or parked in the lane: never elected canonical (promote_next_member,
+    corpus re-runs) and never handed out in a slice. No lane file: none."""
+    if lane_path is None:
+        return set()
+    return {i for i, it in _read_lane(lane_path)["items"].items() if it.get("status") in ("open", "parked")}
+
+
 def promote_next_member(clusters_path: Path, occ_id: str, lane_path: Path | None = None):
     """When canonical `occ_id` is parked or broken, elect the next member (corpus.elect, the
     parked one excluded), make it canonical and the former canonical a member. Returns the new
     canonical id, or None when nothing changed (not a canonical, held cluster, no member left).
     Members that are open or parked in the lane (when `lane_path` is given) are not candidates."""
-    in_lane = set()
-    if lane_path is not None:
-        in_lane = {i for i, it in _read_lane(lane_path)["items"].items() if it.get("status") in ("open", "parked")}
+    in_lane = blocked_ids(lane_path)
     clusters_path = Path(clusters_path)
-    with _FileLock(clusters_path):
-        doc = _load(clusters_path)
+    with FileLock(clusters_path):
+        doc = load_json(clusters_path)
         roles = doc["roles"]
         cluster = next((c for c in doc["clusters"] if c.get("canonical") == occ_id), None)
         if cluster is None or cluster.get("status") != "settled" or roles.get(occ_id) != "canonical":
@@ -235,7 +198,7 @@ def promote_next_member(clusters_path: Path, occ_id: str, lane_path: Path | None
                 m["match"] = "exact"
         roles[new], roles[occ_id] = "canonical", "member"
         by_id[new]["match"] = "canonical"
-        _write(clusters_path, doc)
+        atomic_write_json(clusters_path, doc)
         return new
 
 
@@ -268,7 +231,7 @@ def _read_claims(path: Path) -> dict:
     if not path.exists():
         return {}
     try:
-        data = _load(path)
+        data = load_json(path)
         if not isinstance(data, dict):
             raise TypeError
         return data
@@ -289,11 +252,10 @@ def next_slice(clusters_path: Path, lane_path: Path, ledger_path: Path, reviewer
     if size < 1:
         raise ValueError("size must be at least 1")
     claims_path = Path(claims_path) if claims_path else claims_path_for(lane_path)
-    roles = _load(clusters_path)["roles"]
-    ledger = {e["id"]: e for e in _load(ledger_path)["items"]}
-    lane_items = _read_lane(lane_path)["items"]
-    blocked_lane = {i for i, it in lane_items.items() if it.get("status") in ("open", "parked")}
-    with _FileLock(claims_path):
+    roles = load_json(clusters_path)["roles"]
+    ledger = {e["id"]: e for e in load_json(ledger_path)["items"]}
+    blocked_lane = blocked_ids(lane_path)
+    with FileLock(claims_path):
         claims = _read_claims(claims_path)
         claimed = {i for c in claims.values() for i in c.get("claimed", [])}
         eligible = []
@@ -312,34 +274,34 @@ def next_slice(clusters_path: Path, lane_path: Path, ledger_path: Path, reviewer
         entry = claims.setdefault(reviewer, {"claimed": [], "at": now})
         entry["claimed"] = list(entry.get("claimed", [])) + picked
         entry["at"] = now
-        _write(claims_path, claims)
+        atomic_write_json(claims_path, claims)
         return picked
 
 
 def release(claims_path: Path, reviewer: str) -> list[str]:
     """Drop all of `reviewer`'s claims so the items return to the pool; returns the ids."""
     claims_path = Path(claims_path)
-    with _FileLock(claims_path):
+    with FileLock(claims_path):
         claims = _read_claims(claims_path)
         gone = claims.pop(reviewer, {}).get("claimed", [])
-        _write(claims_path, claims)
+        atomic_write_json(claims_path, claims)
         return list(gone)
 
 
 def release_done(claims_path: Path, lane_path: Path, ledger_path: Path) -> list[str]:
     """Drop claims that are finished: resolved in the lane, or live in the ledger."""
     claims_path = Path(claims_path)
-    ledger = {e["id"]: e for e in _load(ledger_path)["items"]}
+    ledger = {e["id"]: e for e in load_json(ledger_path)["items"]}
     lane_items = _read_lane(lane_path)["items"]
 
     def done(i):
         return lane_items.get(i, {}).get("status") == "resolved" or (i in ledger and _is_live(ledger[i]))
     dropped = []
-    with _FileLock(claims_path):
+    with FileLock(claims_path):
         claims = _read_claims(claims_path)
         for entry in claims.values():
             keep = [i for i in entry.get("claimed", []) if not done(i)]
             dropped += [i for i in entry.get("claimed", []) if done(i)]
             entry["claimed"] = keep
-        _write(claims_path, claims)
+        atomic_write_json(claims_path, claims)
     return dropped

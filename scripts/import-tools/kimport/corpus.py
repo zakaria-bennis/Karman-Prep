@@ -18,7 +18,10 @@ Grouping (cluster):
      least FOUNDER_RATIO form founder yes/no pairs (founder_pairs.json); a
      non-live canonical in a pair gets role founder_review until decided.
 Canonical election: a live member always wins (a live export row before a
-live-linked occurrence), then a printed key (reviewed_answer.kind ==
+live-linked occurrence; it is already published), then a copy that is not
+open or parked in the problem lane (meta lane_blocked, from lane.blocked_ids;
+the same rule lane.promote_next_member applies, so a re-run keeps its
+promotions), then a printed key (reviewed_answer.kind ==
 "official"), then the copy without a typo, then the fewest ledger holds, then
 the lowest id. "Without a typo" is decided by evidence outside the cluster
 (rulings R8-R11): a bucket's side of the typo spots must use words more common
@@ -29,7 +32,6 @@ way is a tie (keeper_tie) and that step is skipped.
 
 import difflib
 import hashlib
-import json
 from collections import Counter
 from dataclasses import dataclass, field, replace
 from pathlib import Path
@@ -37,11 +39,13 @@ from pathlib import Path
 from kimport.corpus_load import load_corpus
 from kimport.evidence import WORD, OutsideEvidence, needs_visual
 from kimport.export import read_export_doc
+from kimport.jsonio import FileLock, atomic_write_json, write_text_atomic
 from kimport.keys import QuestionRecord, answer_value, clean_text, comparison_key, is_unkeyable, sorted_choices
 from kimport.normalize import NORMALIZER_VERSION
 from kimport.sweep import blocking_key, record_from_row
 from kimport.typo import typo_match
 
+# The role vocabulary of clusters.json "roles" (the file's contract; test_corpus checks every role is one).
 ROLES = ("canonical", "member", "pending_answer_dispute", "figure_review", "founder_review", "unparsed")
 FOUNDER_RATIO = 0.90
 GOAL = 10_000
@@ -90,12 +94,13 @@ def _official(r) -> bool:
 
 
 def _prio(r: QuestionRecord, typo_flag: int = 0):
-    return (not r.is_live, r.meta.get("source") != "live", not _official(r), typo_flag,
-            len(r.meta.get("holds") or ()), r.ref)
+    return (not r.is_live, r.meta.get("source") != "live", bool(r.meta.get("lane_blocked")), not _official(r),
+            typo_flag, len(r.meta.get("holds") or ()), r.ref)
 
 
 def elect(recs) -> QuestionRecord:
-    """The canonical among records (no typo evidence): live, printed key, fewest holds, lowest id."""
+    """The canonical among records (no typo evidence): live, not blocked in the lane, printed key,
+    fewest holds, lowest id."""
     return min(recs, key=_prio)
 
 
@@ -133,6 +138,8 @@ def _member(r, match, spots=(), reason=None) -> dict:
            "spots": [list(s) for s in spots], "printed_key": _official(r), "holds": len(r.meta.get("holds") or ())}
     if reason:
         out["reason"] = reason
+    if r.meta.get("lane_blocked"):
+        out["in_lane"] = True
     return out
 
 
@@ -522,19 +529,26 @@ def report_md(result: ClusterResult) -> str:
     return "\n".join(lines)
 
 
-def write_outputs(result: ClusterResult, out_dir: Path) -> None:
+def write_outputs(result: ClusterResult, out_dir: Path, decision_log: Path | None = None) -> None:
+    """Write clusters.json, founder_pairs.json and report.md, each atomically, under the
+    clusters.json lock (the one `pairs apply` and lane.promote_next_member take). With a
+    decision log, the saved answers are re-applied inside the same lock, so an answer
+    appended meanwhile is never lost."""
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
-    doc = {"normalizer_version": NORMALIZER_VERSION, "export_sha256": result.export_sha256,
-           "inputs": result.inputs, "counts": result.counts, "roles": dict(sorted(result.roles.items())),
-           "founder_decisions": result.decisions, "stale_answers": result.stale_answers,
-           "clusters": result.clusters, "unparsed": result.unparsed, "certified_duplicates": check_certified(result)}
-    (out_dir / "clusters.json").write_text(json.dumps(doc, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    pairs = {"normalizer_version": NORMALIZER_VERSION, "ratio_threshold": FOUNDER_RATIO,
-             "pair_count": len(result.founder_pairs), "pairs": result.founder_pairs}
-    (out_dir / "founder_pairs.json").write_text(json.dumps(pairs, indent=2, ensure_ascii=False) + "\n",
-                                                encoding="utf-8")
-    (out_dir / "report.md").write_text(report_md(result), encoding="utf-8")
+    with FileLock(out_dir / "clusters.json"):
+        if decision_log is not None and Path(decision_log).exists():
+            apply_saved_decisions(result, Path(decision_log))
+        doc = {"normalizer_version": NORMALIZER_VERSION, "export_sha256": result.export_sha256,
+               "inputs": result.inputs, "counts": result.counts, "roles": dict(sorted(result.roles.items())),
+               "founder_decisions": result.decisions, "stale_answers": result.stale_answers,
+               "clusters": result.clusters, "unparsed": result.unparsed,
+               "certified_duplicates": check_certified(result)}
+        pairs = {"normalizer_version": NORMALIZER_VERSION, "ratio_threshold": FOUNDER_RATIO,
+                 "pair_count": len(result.founder_pairs), "pairs": result.founder_pairs}
+        atomic_write_json(out_dir / "founder_pairs.json", pairs)
+        write_text_atomic(out_dir / "report.md", report_md(result))
+        atomic_write_json(out_dir / "clusters.json", doc)
 
 
 def _file_sha(path: Path) -> str:
@@ -560,18 +574,36 @@ def apply_saved_decisions(result: ClusterResult, decisions_file: Path) -> None:
     result.cluster_of = {m["id"]: c["cluster_id"] for c in result.clusters for m in c["members"]}
 
 
+def default_lane(out_dir: Path) -> Path | None:
+    """lane.json next to clusters.json, or one folder up (the runbook's $PIPE/lane.json), if present."""
+    for p in (Path(out_dir) / "lane.json", Path(out_dir).parent / "lane.json"):
+        if p.exists():
+            return p
+    return None
+
+
+def _mark_blocked(recs, blocked: set[str]):
+    return [replace(r, meta={**r.meta, "lane_blocked": True}) if r.ref in blocked else r for r in recs]
+
+
 def run_corpus(c_index: Path, ledger: Path, export: Path | None, out_dir: Path,
-               decisions: Path | None = None) -> dict:
+               decision_log: Path | None = None, lane_path: Path | None = None) -> dict:
+    from kimport.lane import blocked_ids  # lane imports this module
+
     corpus = load_corpus(Path(c_index), Path(ledger))
     live = None
     if export is not None:
         live = [record_from_row(row) for row in read_export_doc(Path(export)).rows]
+    lane_path = Path(lane_path) if lane_path else default_lane(out_dir)
+    blocked = blocked_ids(lane_path)
+    if blocked:
+        corpus = _mark_blocked(corpus, blocked)
+        live = None if live is None else _mark_blocked(live, blocked)
     result = cluster(corpus, live)
-    saved = Path(decisions) if decisions else Path(out_dir) / "founder_decisions.json"
-    if saved.exists():
-        apply_saved_decisions(result, saved)
     result.export_sha256 = _file_sha(export) if export is not None else None
     result.inputs = {"c_index": str(c_index), "c_index_sha256": _file_sha(c_index), "ledger": str(ledger),
-                     "ledger_sha256": _file_sha(ledger), "export": str(export) if export is not None else None}
-    write_outputs(result, Path(out_dir))
+                     "ledger_sha256": _file_sha(ledger), "export": str(export) if export is not None else None,
+                     "lane": str(lane_path) if lane_path else None, "lane_blocked": len(blocked)}
+    log = Path(decision_log) if decision_log else Path(out_dir) / "founder_decisions.json"
+    write_outputs(result, Path(out_dir), log)
     return result.counts

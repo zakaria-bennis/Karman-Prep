@@ -289,7 +289,7 @@ class ApplyTests(Base):
         pairs, clusters = self.basic()
         self.run_apply(pairs, clusters, {"fp-1": "same"})
         self.assertEqual(sorted(p.name for p in self.dir.iterdir() if p.name.startswith("clusters")),
-                         ["clusters.json"])
+                         ["clusters.json", "clusters.json.lock"])  # the lock file is persistent by design
 
 
 class FixRoundTests(Base):

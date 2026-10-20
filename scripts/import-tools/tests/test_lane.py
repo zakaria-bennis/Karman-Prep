@@ -6,7 +6,7 @@ import threading
 import unittest
 from pathlib import Path
 
-from kimport import lane
+from kimport import jsonio, lane
 
 CLI = Path(__file__).resolve().parent.parent / "kimport-cli.py"
 LEDGER_REAL = Path("/Users/zakariabennis/Documents/Codex/2026-10-11/task-3/current-readiness-ledger.json")
@@ -198,8 +198,8 @@ _HOLDER = """
 import sys, time
 sys.path.insert(0, sys.argv[1])
 from pathlib import Path
-from kimport import lane
-with lane._FileLock(Path(sys.argv[2])):
+from kimport import jsonio
+with jsonio.FileLock(Path(sys.argv[2])):
     print("held", flush=True)
     time.sleep(60)
 """
@@ -208,10 +208,10 @@ _WORKER = """
 import sys, os, time
 sys.path.insert(0, sys.argv[1])
 from pathlib import Path
-from kimport import lane
+from kimport import jsonio
 target, marker = Path(sys.argv[2]), Path(sys.argv[3])
 for _ in range(15):
-    with lane._FileLock(target):
+    with jsonio.FileLock(target):
         n = int(marker.read_text() or 0) if marker.exists() else 0
         marker.write_text(str(n + 1))        # inside the lock only one process may be here
         time.sleep(0.002)
@@ -238,18 +238,18 @@ class LockTests(Base):
         p = subprocess.Popen([sys.executable, "-I", "-c", _HOLDER, self.ROOT, str(self.lane)],
                              stdout=subprocess.PIPE, text=True)
         self.assertEqual(p.stdout.readline().strip(), "held")
-        old = lane._LOCK_WAIT_SECONDS
-        lane._LOCK_WAIT_SECONDS = 0.1
+        old = jsonio.LOCK_WAIT_SECONDS
+        jsonio.LOCK_WAIT_SECONDS = 0.1
         try:
             with self.assertRaises(ValueError) as cm:   # live holder blocks
                 lane.set_aside(self.lane, "X", "needs_figure", "d", "t")
             self.assertIn("in use", str(cm.exception))
             p.kill()
             p.wait()
-            lane._LOCK_WAIT_SECONDS = 5
+            jsonio.LOCK_WAIT_SECONDS = 5
             lane.set_aside(self.lane, "X", "needs_figure", "d", "t")   # no stale-break needed
         finally:
-            lane._LOCK_WAIT_SECONDS = old
+            jsonio.LOCK_WAIT_SECONDS = old
         self.assertIn("X", self.items())
 
     def test_lockfile_is_persistent(self):

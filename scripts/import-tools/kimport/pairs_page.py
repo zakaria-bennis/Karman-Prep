@@ -14,14 +14,13 @@ import difflib
 import hashlib
 import html
 import json
-import os
 import re
-import tempfile
 from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
 
 from kimport import corpus
+from kimport.jsonio import FileLock, atomic_write_json
 from kimport.keys import QuestionRecord
 
 DECISIONS = ("same", "different")
@@ -207,23 +206,11 @@ def render_pairs(pairs_json: Path, out_html: Path) -> int:
 # ---------------------------------------------------------------- applying
 
 
-def _atomic_write(path: Path, doc: dict) -> None:
-    path = Path(path)
-    fd, tmp = tempfile.mkstemp(prefix=path.name + ".", suffix=".tmp", dir=path.parent)
-    try:
-        with os.fdopen(fd, "w", encoding="utf-8") as f:
-            f.write(json.dumps(doc, indent=2, ensure_ascii=False) + "\n")
-        os.replace(tmp, path)
-    except BaseException:
-        if os.path.exists(tmp):
-            os.unlink(tmp)
-        raise
-
-
 def _stand_in(m: dict) -> QuestionRecord:
     """The election fields of a cluster member (corpus.elect reads only these)."""
     meta = {"source": m.get("source", "corpus"), "holds": [None] * int(m.get("holds") or 0),
-            "reviewed_answer": {"kind": "official" if m.get("printed_key") else None}}
+            "reviewed_answer": {"kind": "official" if m.get("printed_key") else None},
+            "lane_blocked": bool(m.get("in_lane"))}
     return QuestionRecord(ref=m["id"], text="", choices=(), answer="", answer_format="mc",
                           is_live=bool(m.get("is_live")), meta=meta)
 
@@ -265,7 +252,7 @@ def append_decisions(path: Path, log: dict[str, dict], new: dict[str, str], now:
     for k, v in new.items():
         merged.setdefault(k, {"decision": v, "at": now})
     if merged != log:
-        _atomic_write(Path(path), dict(sorted(merged.items())))
+        atomic_write_json(Path(path), dict(sorted(merged.items())))
     return merged
 
 
@@ -427,8 +414,14 @@ def apply_decisions(pairs_json: Path, decisions_json: Path, clusters_json: Path,
     """Fold the founder's page answers {pair_id: 'same'|'different'} into clusters.json. The answers are first
     appended to the decision log (default founder_decisions.json next to clusters.json) so a corpus re-run keeps them."""
     clusters_json = Path(clusters_json)
-    pairs_doc = json.loads(Path(pairs_json).read_text(encoding="utf-8"))
-    answers = json.loads(Path(decisions_json).read_text(encoding="utf-8"))
+    with FileLock(clusters_json):  # same lock as corpus and lane.promote_next_member
+        _apply_decisions_locked(Path(pairs_json), Path(decisions_json), clusters_json, decisions_file, now)
+
+
+def _apply_decisions_locked(pairs_json: Path, decisions_json: Path, clusters_json: Path,
+                            decisions_file: Path | None, now: str | None) -> None:
+    pairs_doc = json.loads(pairs_json.read_text(encoding="utf-8"))
+    answers = json.loads(decisions_json.read_text(encoding="utf-8"))
     doc = json.loads(clusters_json.read_text(encoding="utf-8"))
     if not isinstance(answers, dict):
         raise ValueError("The answers file must be a JSON object like {\"fp-...\": \"same\"}.")
@@ -450,4 +443,4 @@ def apply_decisions(pairs_json: Path, decisions_json: Path, clusters_json: Path,
     apply_to_doc(doc, [dict(p) for p in pairs_doc["pairs"]], decided)  # raises before anything is written
     if new:
         append_decisions(log_path, log, new, now or datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"))
-    _atomic_write(clusters_json, doc)
+    atomic_write_json(clusters_json, doc)
