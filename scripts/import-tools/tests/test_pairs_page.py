@@ -1,6 +1,7 @@
 """Founder yes/no page: render_pairs and apply_decisions (synthetic data only)."""
 
 import json
+import re
 import tempfile
 import unittest
 from collections import Counter
@@ -89,7 +90,7 @@ class RenderTests(Base):
         n, html = self.render(pairs)
         self.assertEqual(n, 3)
         self.assertEqual(html.count('<article class="pair" data-pair="fp-'), 3)
-        self.assertIn("of 3 answered", html)
+        self.assertIn("0 / 3", html)
 
     def test_differences_highlighted(self):
         _, html = self.render([pair("fp-1", 1, 2, "a", "b")])
@@ -112,8 +113,8 @@ class RenderTests(Base):
         _, html = self.render([pair("fp-1", 1, 2, "a", "b")])
         for bad in ("http://", "https://", "<script src", "<link ", "@import", "fetch(", "XMLHttpRequest"):
             self.assertNotIn(bad, html)
-        self.assertIn("prefers-color-scheme: dark", html)
-        self.assertIn("Copy my answers", html)
+        self.assertIn("Copy answers", html)
+        self.assertIn("answers.json", html)
         self.assertIn("localStorage", html)
         self.assertIn("<textarea", html)
         self.assertIn("Same", html)
@@ -126,10 +127,60 @@ class RenderTests(Base):
         self.assertNotIn("</script>\"", html)
         self.assertEqual(html.count("</script>"), 2)  # data block + code block only
 
+    def test_dark_by_default(self):
+        _, html = self.render([pair("fp-1", 1, 2, "a", "b")])
+        self.assertIn('<meta name="color-scheme" content="dark">', html)
+        self.assertIn("color-scheme:dark", html)
+        self.assertIn("--bg:#0d0e11", html)
+
+    def test_no_external_urls(self):
+        _, html = self.render([pair("fp-1", 1, 2, "a", "b")])
+        self.assertNotIn("//", html.replace("data:application/json", "").replace("/*", "").replace("*/", ""))
+        for bad in ("src=", "url(", "<img", "<iframe", "<link"):
+            self.assertNotIn(bad, html)
+
+    def test_keyboard_keys_wired(self):
+        _, html = self.render([pair("fp-1", 1, 2, "a", "b")])
+        for k in ("arrowright", "arrowleft", "backspace", "' ':'K'", "e.repeat"):
+            self.assertIn(k, html)
+
+    def test_easiest_first_ordering(self):
+        pairs = []
+        for pid, r in (("fp-low", 0.91), ("fp-top", 0.99), ("fp-mid", 0.95)):
+            p = pair(pid, len(pairs) * 2 + 1, len(pairs) * 2 + 2, f"a{pid}", f"b{pid}")
+            p["ratio"] = r
+            pairs.append(p)
+        _, html = self.render(pairs)
+        order = re.findall(r'<article class="pair" data-pair="(fp-[a-z]+)"', html)
+        self.assertEqual(order, ["fp-top", "fp-mid", "fp-low"])
+        data = json.loads(html.split('id="pair-data">', 1)[1].split("</script>", 1)[0])
+        self.assertEqual(data["ids"], ["fp-top", "fp-mid", "fp-low"])
+
+    def test_identical_choices_collapsed_and_differing_shown(self):
+        same = pair("fp-1", 1, 2, "a", "b")
+        same["member"]["choices"] = ["delta", "gamma", "beta", "alpha"]  # order differs only
+        _, html = self.render([same])
+        self.assertIn("choices and answer identical", html)
+        self.assertIn('<details class="same-choices">', html)
+        self.assertNotIn("choices or the answer differ", html)
+        diff = pair("fp-2", 3, 4, "c", "d")
+        diff["member"]["choices"] = ["alpha", "beta", "gamma", "deltas"]
+        _, html = self.render([diff])
+        self.assertIn("choices or the answer differ", html)
+        self.assertNotIn("choices and answer identical", html)
+
+    def test_decisions_json_shape_unchanged(self):
+        # the page copies {"pair_id": "same"|"different"}, the only shape apply_decisions reads
+        _, html = self.render([pair("fp-1", 1, 2, "a", "b")])
+        self.assertIn("r[id]=st.a[id]", html)
+        self.assertIn("'same'", html)
+        self.assertIn("'different'", html)
+        self.assertEqual(pairs_page.DECISIONS, ("same", "different"))
+
     def test_zero_pairs(self):
         n, html = self.render([])
         self.assertEqual(n, 0)
-        self.assertIn("0 of 0 answered", html)
+        self.assertIn("0 / 0", html)
 
     def test_numeric_answer_shown(self):
         p = pair("fp-1", 1, 2, "a", "b")
