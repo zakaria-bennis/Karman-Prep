@@ -161,13 +161,15 @@ def _register_lane(sub) -> None:
     sa.add_argument("--reason", required=True, help="one of: " + ", ".join(lane.REASONS))
     sa.add_argument("--detail", required=True)
     sa.add_argument("--now", required=True)
-    sa.add_argument("--clusters", help="clusters.json: when --reason is broken_or_excluded, promote the next member")
+    sa.add_argument("--clusters", help="clusters.json: required for broken_or_excluded (promotes the next member)")
 
     def set_aside(a):
+        if a.reason == "broken_or_excluded" and not a.clusters:
+            raise ValueError("--reason broken_or_excluded needs --clusters, so the next member can be promoted")
         lane.set_aside(Path(a.lane), a.id, a.reason, a.detail, a.now)
         print(f"lane: {a.id} set aside as {a.reason}")
         if a.reason == "broken_or_excluded" and a.clusters:
-            _promote(a.clusters, a.id)
+            _promote(a.clusters, a.id, a.lane)
 
     sa.set_defaults(func=lambda a: _guard(lambda: set_aside(a)))
     at = lsub.add_parser("attempt", help="record a fix attempt (two failed attempts by different methods park it)")
@@ -185,7 +187,7 @@ def _register_lane(sub) -> None:
         status = lane.record_attempt(Path(a.lane), a.id, a.method, a.ok, a.now, a.detail)
         print(f"lane: {a.id} is {status}")
         if status == "parked" and a.clusters:
-            _promote(a.clusters, a.id)
+            _promote(a.clusters, a.id, a.lane)
 
     at.set_defaults(func=lambda a: _guard(lambda: attempt(a)))
     rq = lsub.add_parser("requeue", help="a campaign starts: parked and open items with a reason go back to open")
@@ -193,6 +195,10 @@ def _register_lane(sub) -> None:
     rq.add_argument("--reason", required=True)
     rq.set_defaults(func=lambda a: _guard(lambda: print(
         "lane: {} requeued".format(len(lane.requeue(Path(a.lane), a.reason))))))
+    ul = lsub.add_parser("unlock", help="remove a stuck lockfile (only when no session is running)")
+    ul.add_argument("--path", required=True, help="the .lock file, or the file it guards")
+    ul.set_defaults(func=lambda a: _guard(lambda: print(
+        "lane: lock removed" if lane.unlock(Path(a.path)) else "lane: no lock there")))
     sm = lsub.add_parser("summary", help="counts by reason and status, with the oldest age per reason")
     sm.add_argument("--lane", required=True)
     sm.add_argument("--now", required=True)
@@ -241,8 +247,8 @@ def _register_lane(sub) -> None:
     sl.set_defaults(func=lambda a: _guard(lambda: slice_cmd(a)))
 
 
-def _promote(clusters: str, occ_id: str) -> None:
-    new = lane.promote_next_member(Path(clusters), occ_id)
+def _promote(clusters: str, occ_id: str, lane_path: str) -> None:
+    new = lane.promote_next_member(Path(clusters), occ_id, Path(lane_path))
     print(f"lane: promoted {new} to canonical" if new else f"lane: no member to promote for {occ_id}")
 
 

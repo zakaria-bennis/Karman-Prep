@@ -14,8 +14,10 @@ nothing edits question text.
 import json
 import os
 import re
+import socket
+import sys
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 from .corpus import elect
@@ -28,7 +30,9 @@ STATUSES = ("open", "parked", "resolved")
 LINT_METHOD = "lint"  # a pull by the batch checks is not a fix method; it never counts toward parking
 SLICE_SIZE = 27
 _LOCK_WAIT_SECONDS = 10.0
-_ID = re.compile(r"^(?P<exam>.+)_(?P<section>[A-Za-z]+)_M(?P<module>[A-Za-z0-9]+)_Q(?P<q>\d+)$")
+LOCK_STALE_SECONDS = 600   # a lock older than 10 minutes is dead
+NOT_REVIEWABLE_BUCKETS = ("certified_broken", "certified_duplicate")
+_ID = re.compile(r"^(?P<exam>.+)_(?P<section>[A-Za-z]+)_M(?P<module>[A-Za-z0-9]+)_Q(?P<q>\d+)(?P<suffix>_[a-z]+)?$")   # e.g. ..._Q01_retained
 
 
 # ---------------------------------------------------------------- files
@@ -64,8 +68,50 @@ def _check_reason(reason: str) -> None:
         raise ValueError(f"unknown lane reason {reason!r}; use one of {', '.join(REASONS)}")
 
 
+def _pid_alive(pid) -> bool:
+    try:
+        os.kill(int(pid), 0)
+    except ProcessLookupError:
+        return False
+    except (PermissionError, ValueError, TypeError, OverflowError):
+        return True   # exists but not ours, or unreadable: do not break on a guess
+    return True
+
+
+def _lock_is_dead(path: Path) -> str | None:
+    """Why the lock can be broken ('process N is gone', 'older than 10 minutes'), else None."""
+    try:
+        age = time.time() - path.stat().st_mtime
+    except FileNotFoundError:
+        return None
+    try:
+        info = json.loads(path.read_bytes().decode("utf-8"))
+        pid, host = info["pid"], info["host"]
+    except (ValueError, KeyError, TypeError):
+        info = None
+    if info is not None and host == socket.gethostname() and not _pid_alive(pid):
+        return f"process {pid} is gone"
+    if age > LOCK_STALE_SECONDS:
+        return "older than 10 minutes"
+    return None
+
+
+def unlock(lock_path: Path) -> bool:
+    """Manual recovery: remove a lockfile (pass the .lock file or the file it guards)."""
+    lock_path = Path(lock_path)
+    if lock_path.suffix != ".lock":
+        lock_path = lock_path.with_name(lock_path.name + ".lock")
+    try:
+        lock_path.unlink()
+        return True
+    except FileNotFoundError:
+        return False
+
+
 class _FileLock:
-    """O_EXCL lockfile around a read-modify-write, so two callers never interleave."""
+    """O_EXCL lockfile around a read-modify-write, so two callers never interleave.
+    The lock holds {pid, host, at}; a lock whose process is gone (same host) or that is
+    older than 10 minutes is broken with a one-line warning."""
 
     def __init__(self, target: Path):
         self.path = Path(target).with_name(Path(target).name + ".lock")
@@ -75,12 +121,21 @@ class _FileLock:
         while True:
             try:
                 fd = os.open(self.path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o644)
-                os.close(fd)
-                return self
             except FileExistsError:
+                why = _lock_is_dead(self.path)
+                if why:
+                    print(f"warning: breaking stale lock {self.path} ({why})", file=sys.stderr)
+                    unlock(self.path)
+                    continue
                 if time.monotonic() > deadline:
-                    raise ValueError(f"{self.path} is held by another session; if none is running, delete it") from None
+                    raise ValueError(f"{self.path} is held by another session; wait for it to finish, or if "
+                                     f"none is running, run: kimport-cli.py lane unlock --path {self.path}") from None
                 time.sleep(0.01)
+                continue
+            with os.fdopen(fd, "w") as f:
+                json.dump({"pid": os.getpid(), "host": socket.gethostname(),
+                           "at": datetime.now(timezone.utc).isoformat()}, f)
+            return self
 
     def __exit__(self, *exc):
         try:
@@ -94,7 +149,8 @@ class _FileLock:
 
 def add_open(lane_path: Path, entries: dict, now: str, source: str) -> int:
     """Add or update open entries ({id: (reason, detail)}); never remove entries.
-    An entry that was not open is reopened with a failed `source` attempt.
+    A resolved entry is reopened with a failed `source` attempt; a parked one records the
+    attempt and detail but stays parked (spec section 6).
     Existing fields, `since` and attempts are kept. Returns entries written."""
     for reason, _ in entries.values():
         _check_reason(reason)
@@ -106,11 +162,14 @@ def add_open(lane_path: Path, entries: dict, now: str, source: str) -> int:
             existing = items.get(sid)
             base = dict(existing) if existing else {"since": now, "attempts": []}
             attempts = list(base.get("attempts", []))
+            status = "open"
             if existing is not None and existing.get("status") != "open":
                 attempts.append({"method": source, "ok": False, "at": now, "detail": detail})
-                if existing.get("status") == "resolved":
-                    base["epoch"] = len(attempts)   # a fresh two-method count after a reopen
-            items[sid] = {**base, "reason": reason, "status": "open", "detail": detail, "attempts": attempts}
+                if existing.get("status") == "parked":
+                    status = "parked"   # only a campaign requeue for its reason brings it back
+                else:
+                    base["epoch"] = len(attempts)   # resolved: a fresh two-method count after a reopen
+            items[sid] = {**base, "reason": reason, "status": status, "detail": detail, "attempts": attempts}
         _write(lane_path, data)
     return len(entries)
 
@@ -185,10 +244,14 @@ def summary(lane_path: Path, now: str) -> dict:
 # ---------------------------------------------------------------- clusters
 
 
-def promote_next_member(clusters_path: Path, occ_id: str):
+def promote_next_member(clusters_path: Path, occ_id: str, lane_path: Path | None = None):
     """When canonical `occ_id` is parked or broken, elect the next member (corpus.elect, the
     parked one excluded), make it canonical and the former canonical a member. Returns the new
-    canonical id, or None when nothing changed (not a canonical, held cluster, no member left)."""
+    canonical id, or None when nothing changed (not a canonical, held cluster, no member left).
+    Members that are open or parked in the lane (when `lane_path` is given) are not candidates."""
+    in_lane = set()
+    if lane_path is not None:
+        in_lane = {i for i, it in _read_lane(lane_path)["items"].items() if it.get("status") in ("open", "parked")}
     clusters_path = Path(clusters_path)
     with _FileLock(clusters_path):
         doc = _load(clusters_path)
@@ -196,7 +259,8 @@ def promote_next_member(clusters_path: Path, occ_id: str):
         cluster = next((c for c in doc["clusters"] if c.get("canonical") == occ_id), None)
         if cluster is None or cluster.get("status") != "settled" or roles.get(occ_id) != "canonical":
             return None
-        candidates = [m for m in cluster["members"] if m["id"] != occ_id and roles.get(m["id"]) == "member"]
+        candidates = [m for m in cluster["members"] if m["id"] != occ_id and roles.get(m["id"]) == "member"
+                      and m["id"] not in in_lane]
         if not candidates:
             return None
         by_id = {m["id"]: m for m in candidates}
@@ -239,6 +303,10 @@ def _is_live(entry: dict) -> bool:
     return entry.get("bucket") == "already_live" or entry.get("final_category") == "LIVE"
 
 
+def _ruled_out(entry: dict) -> bool:
+    return entry.get("bucket") in NOT_REVIEWABLE_BUCKETS
+
+
 def _read_claims(path: Path) -> dict:
     path = Path(path)
     if not path.exists():
@@ -275,7 +343,7 @@ def next_slice(clusters_path: Path, lane_path: Path, ledger_path: Path, reviewer
         eligible = []
         for occ, role in roles.items():
             entry = ledger.get(occ)
-            if role != "canonical" or entry is None or _is_live(entry) or occ in blocked_lane or occ in claimed:
+            if role != "canonical" or entry is None or _is_live(entry) or _ruled_out(entry) or occ in blocked_lane or occ in claimed:
                 continue
             exam, section, module, num = parse_id(occ)
             eligible.append(((entry.get("bucket") != "awaiting_evidence", exam, section, _module_key(module), num, occ),

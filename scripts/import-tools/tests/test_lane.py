@@ -83,6 +83,23 @@ class LaneTests(Base):
         lane.record_attempt(self.lane, "X", "solve-a", True, "t1")
         self.assertEqual(self.items()["X"]["status"], "resolved")
 
+    def test_failed_attempt_on_resolved_item_reopens_it(self):
+        lane.set_aside(self.lane, "X", "needs_figure", "d", "t0")
+        lane.record_attempt(self.lane, "X", "m1", True, "t1")
+        self.assertEqual(lane.record_attempt(self.lane, "X", "m2", False, "t2"), "open")
+        self.assertEqual(self.items()["X"]["status"], "open")
+
+    def test_set_aside_on_parked_item_stays_parked(self):
+        lane.set_aside(self.lane, "X", "needs_figure", "d", "t0")
+        lane.record_attempt(self.lane, "X", "m1", False, "t1")
+        lane.record_attempt(self.lane, "X", "m2", False, "t2")
+        lane.set_aside(self.lane, "X", "needs_figure", "seen again", "t3")
+        it = self.items()["X"]
+        self.assertEqual((it["status"], it["detail"], len(it["attempts"])), ("parked", "seen again", 3))
+        self.assertEqual(it["attempts"][-1]["method"], "set_aside")
+        lane.requeue(self.lane, "needs_figure")
+        self.assertEqual(self.items()["X"]["status"], "open")
+
     def test_attempt_on_unknown_item_raises(self):
         lane.set_aside(self.lane, "X", "needs_figure", "d", "t0")
         with self.assertRaises(ValueError):
@@ -158,6 +175,44 @@ class LaneTests(Base):
         self.assertEqual(s["total"], 0)
 
 
+class LockTests(Base):
+    def test_dead_pid_lock_is_broken(self):
+        lock = self.tmp / "lane.json.lock"
+        lock.write_text(json.dumps({"pid": 2 ** 22 + 12345, "host": __import__("socket").gethostname(), "at": "t"}))
+        lane.set_aside(self.lane, "X", "needs_figure", "d", "t")
+        self.assertIn("X", self.items())
+        self.assertFalse(lock.exists())
+
+    def test_old_lock_is_broken(self):
+        import os
+        lock = self.tmp / "lane.json.lock"
+        lock.write_text(json.dumps({"pid": os.getpid(), "host": "other-host", "at": "t"}))
+        os.utime(lock, (1, 1))
+        lane.set_aside(self.lane, "X", "needs_figure", "d", "t")
+        self.assertIn("X", self.items())
+
+    def test_live_fresh_lock_blocks(self):
+        import os
+        lock = self.tmp / "lane.json.lock"
+        lock.write_text(json.dumps({"pid": os.getpid(), "host": __import__("socket").gethostname(), "at": "t"}))
+        old = lane._LOCK_WAIT_SECONDS
+        lane._LOCK_WAIT_SECONDS = 0.1
+        try:
+            with self.assertRaises(ValueError) as cm:
+                lane.set_aside(self.lane, "X", "needs_figure", "d", "t")
+        finally:
+            lane._LOCK_WAIT_SECONDS = old
+        self.assertIn("lane unlock", str(cm.exception))
+        self.assertTrue(lock.exists())
+
+    def test_lock_records_pid_host_at_and_unlock_removes(self):
+        with lane._FileLock(self.lane) as lk:
+            info = json.loads(lk.path.read_text())
+            self.assertEqual(set(info), {"pid", "host", "at"})
+            self.assertTrue(lane.unlock(self.lane))
+        self.assertFalse(lane.unlock(self.lane))
+
+
 class PromoteTests(Base):
     def test_parked_canonical_promotes_member(self):
         self.put(self.clusters, clusters_doc([settled("E_RW_M1_Q01", ["E_RW_M1_Q02", "F_RW_M1_Q01"])]))
@@ -185,6 +240,14 @@ class PromoteTests(Base):
         before = self.clusters.read_text()
         self.assertIsNone(lane.promote_next_member(self.clusters, "A_Q01"))
         self.assertEqual(self.clusters.read_text(), before)
+
+    def test_members_in_the_lane_are_skipped(self):
+        self.put(self.clusters, clusters_doc([settled("A_Q01", ["A_Q02", "A_Q03", "A_Q04"])]))
+        lane.set_aside(self.lane, "A_Q02", "needs_figure", "d", "t")
+        lane.set_aside(self.lane, "A_Q03", "needs_figure", "d", "t")
+        lane.record_attempt(self.lane, "A_Q03", "a", False, "t")
+        lane.record_attempt(self.lane, "A_Q03", "b", False, "t")
+        self.assertEqual(lane.promote_next_member(self.clusters, "A_Q01", self.lane), "A_Q04")
 
     def test_not_a_canonical_returns_none(self):
         self.put(self.clusters, clusters_doc([settled("A_Q01", ["A_Q02"])]))
@@ -291,6 +354,23 @@ class SliceTests(Base):
         got4 = lane.next_slice(self.clusters, self.lane, self.ledger, "r1", claims_path=self.claims, now="t")
         self.assertEqual(got4, [oid(e1, "RW", 2, 1), oid(e1, "RW", 2, 2), oid(e1, "RW", 2, 3)])
 
+    def test_retained_suffix_ids_parse_and_group_with_their_module(self):
+        e = "2026-08_ASIA_V3"
+        ids = [f"{e}_RW_M1_Q01_retained", f"{e}_RW_M1_Q02", f"{e}_RW_M1_Q03_retained"]
+        self.assertEqual(lane.parse_id(ids[0])[:4], (e, "RW", "1", 1))
+        self.put(self.clusters, clusters_doc([settled(i, []) for i in ids]))
+        self.put(self.ledger, ledger_doc([(i, "awaiting_evidence", None) for i in ids]))
+        got = lane.next_slice(self.clusters, self.lane, self.ledger, "r1", claims_path=self.claims, now="t")
+        self.assertEqual(got, ids)
+
+    def test_certified_broken_and_duplicate_excluded(self):
+        ids = [oid("2025-10_US_V1", "RW", 1, n) for n in (1, 2, 3)]
+        self.put(self.clusters, clusters_doc([settled(i, []) for i in ids]))
+        self.put(self.ledger, ledger_doc([(ids[0], "certified_broken", None), (ids[1], "certified_duplicate", None),
+                                          (ids[2], "held", None)]))
+        got = lane.next_slice(self.clusters, self.lane, self.ledger, "r1", claims_path=self.claims, now="t")
+        self.assertEqual(got, [ids[2]])
+
     def test_exam_order_is_chronological_id_order(self):
         ids = [oid("2025-10_US_V1", "RW", 1, 1), oid("2024-12_US_V1", "RW", 1, 1)]
         self.put(self.clusters, clusters_doc([settled(i, []) for i in ids]))
@@ -351,6 +431,9 @@ class SliceTests(Base):
         b = lane.next_slice(self.clusters, self.lane, LEDGER_REAL, "r2", claims_path=self.claims, now="t")
         self.assertTrue(0 < len(a) <= 27)   # a real module holds 22 or 27 questions
         self.assertFalse(set(a) & set(b))
+        for i in led["items"]:
+            if i["bucket"] == "awaiting_evidence":
+                self.assertNotEqual(lane.parse_id(i["id"])[0], "~", i["id"])
         modules = {lane.parse_id(i)[:3] for i in a}
         self.assertEqual(len(modules), 1)
         by_id = {i["id"]: i for i in led["items"]}
@@ -382,6 +465,17 @@ class LaneCliTests(Base):
         self.assertEqual(r.returncode, 0, r.stderr)
         self.assertIn("needs_figure", r.stdout)
         self.assertEqual(self.items()["X"]["status"], "open")
+
+    def test_cli_broken_without_clusters_refused_and_unlock(self):
+        r = self.run_cli("lane", "set-aside", "--lane", str(self.lane), "--id", "X",
+                         "--reason", "broken_or_excluded", "--detail", "d", "--now", "t")
+        self.assertEqual(r.returncode, 1)
+        self.assertIn("--clusters", r.stderr)
+        self.assertFalse(self.lane.exists())
+        (self.tmp / "lane.json.lock").write_text("{}")
+        r = self.run_cli("lane", "unlock", "--path", str(self.lane))
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertFalse((self.tmp / "lane.json.lock").exists())
 
     def test_cli_parked_canonical_promotes_when_clusters_given(self):
         self.put(self.clusters, clusters_doc([settled("2025-10_US_V1_RW_M1_Q01", ["2025-10_US_V1_RW_M1_Q02"])]))
