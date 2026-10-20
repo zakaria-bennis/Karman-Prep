@@ -175,6 +175,33 @@ class FindDuplicatesTests(unittest.TestCase):
         [g] = find_live_duplicates(recs)
         self.assertEqual((g["keep"], g["remove"]), ("cl", ["t"]))
 
+    def _typo_text_elsewhere(self, extra):
+        """Live typo + live clean + `extra` (the same typo text in another block)."""
+        clean = "The farmer watered the young trees each evening during the dry summer months."
+        typo = clean.replace("watered", "watcred")
+        recs = [live("t", typo, "2026-01-01T00:00:00+00:00"), live("cl", clean, "2026-01-02T00:00:00+00:00"),
+                extra(typo)]
+        [g] = find_live_duplicates(recs)
+        self.assertNotIn("cl", g["remove"])
+        self.assertTrue(g["keep"] == "cl" or g["relation"] == "typo_review", g)
+        [g] = find_live_duplicates(recs + [other("o", "Rain watered the fields overnight.")])
+        self.assertEqual((g["keep"], g["remove"], g["relation"]), ("cl", ["t"], "ocr_typo"))
+
+    def test_typo_copy_with_broken_key_is_not_outside_evidence(self):  # H1
+        def broken(text):
+            r = live("tb", text, "2026-01-01T01:00:00+00:00", answer="")
+            r.meta["answer_problem"] = True
+            return r
+        self._typo_text_elsewhere(broken)
+
+    def test_held_typo_copy_with_other_answer_is_not_outside_evidence(self):  # H2
+        self._typo_text_elsewhere(lambda text: live("th", text, "2025-01-01T00:00:00+00:00", answer="6", is_live=False))
+
+    def test_near_copy_with_other_choices_is_not_outside_evidence(self):
+        # A held copy with a second typo and different choices: still within spot limits of a candidate.
+        self._typo_text_elsewhere(lambda text: live("th", text.replace("young", "yuung"), "2025-01-01T00:00:00+00:00",
+                                                    choices=("1", "3", "5", "7"), answer="3", is_live=False))
+
     def test_equal_copies_without_outside_evidence_go_to_review(self):
         clean = "The farmer watered the young trees each evening during the dry summer months."
         typo = clean.replace("watered", "watcred")

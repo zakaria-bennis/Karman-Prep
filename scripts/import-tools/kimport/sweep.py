@@ -9,12 +9,14 @@ Grouping (live records only, see find_live_duplicates):
   2. buckets sharing blocking_key (everything typo_match requires to be equal)
      are compared with typo_match;
   3. a bucket joins a group only by matching the group's keeper (no chains).
-Keeper (ruling R8): exact-only groups keep the earliest created_at. A group
-with typo edges keeps the copy whose side of the typo spots uses words more
-common in rows OUTSIDE the group (live or not; every copy of the group and
-every row typo-matching it is left out of the count), so a typo imported
-several times cannot outvote the clean copy. If that is a tie the group is
-"typo_review": nothing is removed and a person picks the keeper.
+Keeper (rulings R8, R9): exact-only groups keep the earliest created_at. A
+group with typo edges keeps the copy whose side of the typo spots uses words
+more common in rows OUTSIDE the group. "Outside" is decided on text alone: any
+exported row (any status, answer or choices, broken key and format mismatch
+included) whose words equal or are within the typo spot limits of a
+candidate's words is left out of the count, so a typo imported several times
+cannot outvote the clean copy. If that is a tie the group is "typo_review":
+nothing is removed and a person picks the keeper.
 Live rows whose correct_answer letter matches no choice ("broken answer key")
 or whose question_format disagrees with having choices ("format mismatch")
 are left out of grouping and listed in the report.
@@ -39,7 +41,7 @@ from kimport.keys import (
     table_values,
 )
 from kimport.normalize import NORMALIZER_VERSION, math_tokens, strip_markup
-from kimport.typo import typo_match
+from kimport.typo import text_words, typo_match, words_within_spots
 
 PUBLISH_READY = ("publish_ready", "publish_ready_with_verified_repair")
 UNPUBLISHED_STATUS = "needs_human_review"
@@ -55,7 +57,10 @@ class DuplicateGroup(TypedDict):
     remove: list[str]  # empty for typo_review / figure_review
     relation: str  # "exact" | "ocr_typo" | "typo_review" | "figure_review"
     evidence: list[dict]
-    keeper_tie: bool  # True exactly when a typo group's keeper had no word evidence
+    # True when a typo group's keeper was decided by the tie rule (equal top
+    # scores, zero or not); such a group is typo_review. Always False for
+    # exact and figure_review groups.
+    keeper_tie: bool
 
 
 # ---------------------------------------------------------------- export
@@ -174,6 +179,14 @@ def _bare_words(r: QuestionRecord) -> frozenset[str]:
     return frozenset(_WORD.findall(clean_text(r.text)))
 
 
+def _near(ta: tuple[str, ...], tb: tuple[str, ...]) -> bool:
+    """Cheap pre-filter (>= 80% shared word set), then the exact spot check."""
+    sa, sb = set(ta), set(tb)
+    if len(sa & sb) < 0.8 * max(len(sa), len(sb)):
+        return False
+    return words_within_spots(ta, tb)
+
+
 def _created(r: QuestionRecord) -> datetime:
     s = r.meta.get("created_at")
     if not s:
@@ -224,39 +237,38 @@ def find_live_duplicates(records) -> list[DuplicateGroup]:
     for k in order:
         by_block.setdefault(block_of[k], []).append(k)
 
-    # Every exported row (live, non-live, excluded) by comparison key, built lazily:
+    # Every exported row (live, non-live, excluded) with its words, built lazily:
     # only needed once a typo candidate appears.
     every: dict = {}
 
     def index_all() -> dict:
         if not every:
-            by_key: dict[str, list[QuestionRecord]] = {}
-            for r in records:
-                by_key.setdefault(key_of.get(r.ref) or comparison_key(r), []).append(r)
-            blocks: dict[str, list[str]] = {}
-            for k, rs in by_key.items():
-                blocks.setdefault(block_of.get(k) or blocking_key(rs[0]), []).append(k)
-            total = Counter(w for r in records for w in _bare_words(r))
-            every.update(by_key=by_key, blocks=blocks, total=total)
+            rows = [(text_words(r.text), _bare_words(r)) for r in records]
+            by_len: dict[int, list[int]] = {}
+            for n, (ws, _) in enumerate(rows):
+                by_len.setdefault(len(ws), []).append(n)
+            total = Counter(w for _, bare in rows for w in bare)
+            every.update(rows=rows, by_len=by_len, total=total)
         return every
-
-    def rep_of(k: str) -> QuestionRecord:
-        return buckets[k][0] if k in buckets else index_all()["by_key"][k][0]
 
     cache: dict[tuple[str, str], object] = {}
 
     def typo(k1: str, k2: str):
         if (k1, k2) not in cache:
-            cache[(k1, k2)] = typo_match(rep_of(k1), rep_of(k2))
+            cache[(k1, k2)] = typo_match(buckets[k1][0], buckets[k2][0])
         return cache[(k1, k2)]
 
     def outside_freq_for(cands: list[str]):
-        """Word counts over rows outside the group: drops every row (any status)
-        that is a copy of a candidate or typo-matches one."""
+        """Word counts over rows outside the group (ruling R9, text only): drops
+        every exported row, of any status, answer or choices, whose words equal
+        or are within the typo spot limits of any candidate's words."""
         idx = index_all()
-        inside = set(cands) | {k for k in idx["blocks"][block_of[cands[0]]]
-                               if any(typo(c, k).same for c in cands)}
-        own = Counter(w for k in inside for r in idx["by_key"].get(k, ()) for w in _bare_words(r))
+        own: Counter = Counter()
+        cand_words = [text_words(buckets[k][0].text) for k in cands]
+        for n in {n for cw in cand_words for d in range(-2, 3) for n in idx["by_len"].get(len(cw) + d, ())}:
+            ws, bare = idx["rows"][n]
+            if any(_near(cw, ws) for cw in cand_words):
+                own.update(bare)
         return lambda w: idx["total"][w] - own[w]
 
     done: set[str] = set()
@@ -318,7 +330,7 @@ def _group(keep: QuestionRecord, kkey: str, copies: list[QuestionRecord], key_of
         })
     remove = [e["id"] for e in evidence]
     if any(c.meta.get("has_figure") for c in copies):
-        relation, remove = "figure_review", []
+        relation, remove, tie = "figure_review", [], False
     elif any(e["match"] == "ocr_typo" for e in evidence):
         relation = "typo_review" if tie else "ocr_typo"
         if tie:

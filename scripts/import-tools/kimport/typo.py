@@ -63,16 +63,6 @@ def _words(text: str) -> list[tuple[str, bool]]:
     return words
 
 
-def _levenshtein(a: str, b: str) -> int:
-    prev = list(range(len(b) + 1))
-    for i, ca in enumerate(a, 1):
-        cur = [i]
-        for j, cb in enumerate(b, 1):
-            cur.append(min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (ca != cb)))
-        prev = cur
-    return prev[-1]
-
-
 def _is_punct(c: str) -> bool:
     return unicodedata.category(c).startswith("P")
 
@@ -87,6 +77,48 @@ def _without_punctuation(s: str) -> str:
 
 def _bare_words(s: str) -> set[str]:
     return set("".join(c if not _is_punct(c) else " " for c in s).split())
+
+
+def _ops(ta: list[str], tb: list[str]):
+    return difflib.SequenceMatcher(None, ta, tb, autojunk=False).get_opcodes()
+
+
+def _spots(ta, tb, ops) -> tuple[tuple[str, str], ...]:
+    return tuple((" ".join(ta[i1:i2]), " ".join(tb[j1:j2])) for tag, i1, i2, j1, j2 in ops if tag != "equal")
+
+
+def _spot_small(x: str, y: str) -> bool:
+    """Character edit distance (Levenshtein) <= MAX_SPOT_CHARS; stops early on long spots."""
+    if abs(len(x) - len(y)) > MAX_SPOT_CHARS:
+        return False
+    prev = list(range(len(y) + 1))
+    for i, cx in enumerate(x, 1):
+        cur = [i]
+        for j, cy in enumerate(y, 1):
+            cur.append(min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (cx != cy)))
+        if min(cur) > MAX_SPOT_CHARS:
+            return False
+        prev = cur
+    return prev[-1] <= MAX_SPOT_CHARS
+
+
+def _spots_small(spots) -> bool:
+    return all(_spot_small(x, y) for x, y in spots)
+
+
+def text_words(text: str) -> tuple[str, ...]:
+    """The normalized words typo_match compares (markup dropped)."""
+    return tuple(w for w, _ in _words(text))
+
+
+def words_within_spots(ta: tuple[str, ...], tb: tuple[str, ...]) -> bool:
+    """Text-only typo limits: equal words, or at most MAX_SPOTS differing spots,
+    each at most MAX_SPOT_CHARS character edits. Ignores answers, choices,
+    markup and the meaning-word / punctuation rules."""
+    if ta == tb:
+        return True
+    spots = _spots(ta, tb, _ops(list(ta), list(tb)))
+    return len(spots) <= MAX_SPOTS and _spots_small(spots)
 
 
 def typo_match(a: QuestionRecord, b: QuestionRecord) -> TypoResult:
@@ -108,9 +140,9 @@ def typo_match(a: QuestionRecord, b: QuestionRecord) -> TypoResult:
             return TypoResult(True, (), "identical")
         return TypoResult(False, (), "markup_differs")
 
-    ops = difflib.SequenceMatcher(None, ta, tb, autojunk=False).get_opcodes()
+    ops = _ops(ta, tb)
     changed = [(i1, i2, j1, j2) for tag, i1, i2, j1, j2 in ops if tag != "equal"]
-    spots = tuple((" ".join(ta[i1:i2]), " ".join(tb[j1:j2])) for i1, i2, j1, j2 in changed)
+    spots = _spots(ta, tb, ops)
 
     for tag, i1, i2, j1, j2 in ops:  # a moved underline or blank is a different question
         if tag == "equal" and [f for _, f in wa[i1:i2]] != [f for _, f in wb[j1:j2]]:
@@ -121,7 +153,7 @@ def typo_match(a: QuestionRecord, b: QuestionRecord) -> TypoResult:
         return TypoResult(False, spots, "punctuation_differs")
     if len(spots) > MAX_SPOTS:
         return TypoResult(False, spots, "too_many_spots")
-    if any(_levenshtein(x, y) > MAX_SPOT_CHARS for x, y in spots):
+    if not _spots_small(spots):
         return TypoResult(False, spots, "spot_too_long")
     if any(_punctuation(x) != _punctuation(y) for x, y in spots):
         return TypoResult(False, spots, "punctuation_differs")
