@@ -15,6 +15,7 @@ import {
   startsFactor,
   take,
   unexpected,
+  unexpectedAfterSum,
   type ParserState,
 } from "./parser";
 import type { Token } from "./tokens";
@@ -193,7 +194,10 @@ function takeDelimited(state: ParserState, open: OpenToken, closer: ")" | "]" | 
   take(state);
   const node = enter(state, open, () => parseSum(state));
   const close = peek(state);
-  if (close.t !== "close" || close.ch !== closer) unexpected(state, close);
+  if (close.t !== "close" || close.ch !== closer) {
+    if (closer === "}") unexpectedAfterSum(state, close);
+    unexpected(state, close);
+  }
   take(state);
   return { node, end: close.span.end };
 }
@@ -214,7 +218,8 @@ export function isDegreeSign(state: ParserState): boolean {
 /**
  * A `(` or `{` group in atom position (G10, PR-22): comma-separated sums, an empty part being
  * `syntax`. One part is that sum, spanning the brackets; a `(` group with two parts is a point and
- * with more is `point-arity` over the group; a `{` group fails at its first top-level comma.
+ * with more is `point-arity` over the group; a `{` group fails at its first top-level comma. A
+ * `.` after a one-part `(` group reads a member of it (PR-45), so `((1,2)+(3,4)).x` is 4.
  */
 function parseGroup(state: ParserState, open: OpenToken): Node {
   take(state);
@@ -235,7 +240,11 @@ function parseGroup(state: ParserState, open: OpenToken): Node {
     return fail("point-arity", span, `a point has 2 coordinates, not ${parts.length}`);
   }
   if (parts.length === 2) return { kind: "point", x: parts[0], y: parts[1], span };
-  return { ...parts[0], span };
+  const group: Node = { ...parts[0], span };
+  // PR-45: a `.` after a `(` group is member access on the whole group, `((1,2)+(3,4)).x`
+  const dot = peek(state);
+  if (open.ch !== "(" || dot.t !== "symbol" || dot.ch !== "." || isMemberBase(group)) return group;
+  return parseMember(state, group) ?? fail("unsupported", dot.span, `"." is not supported`);
 }
 
 /**

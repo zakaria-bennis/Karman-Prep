@@ -334,8 +334,7 @@ for (const [key, message] of Object.entries(RELATED.errors)) {
 
 // G9, PR-27, FN-5: every catalogue value and error for square and nth roots
 // (desmos-root.fixture.json), keyed as the catalogue's. Not yet matched, each an expected failure
-// that fails once matched: the name `\operatorname{sqrt}` and `real` (not shipped),
-// `\sqrt{4,9}` (a point inside the braces reads as a syntax error), a bare `[`
+// that fails once matched: the name `\operatorname{sqrt}` and `real` (not shipped), a bare `[`
 // inside the index (normalizing drops `\left` and `\right`, so `\sqrt[[2,3]]{64}` reads as the
 // `\left[` spelling, which is [8, 4] in Desmos too) and `\sqrt(4)`, which the calculator reads
 // as a pasted `sqrt(4)`.
@@ -351,7 +350,6 @@ const ROOT_ERROR_GAP: ReadonlySet<string> = new Set([
   "\\sqrt[[2,3]]{64}",
   "\\operatorname{sqrt}()",
   "\\operatorname{sqrt}(4,2)",
-  "\\sqrt{4,9}",
 ]);
 
 it("G9 FN-5 all 55 catalogue root values and 13 root errors are checked", () =>

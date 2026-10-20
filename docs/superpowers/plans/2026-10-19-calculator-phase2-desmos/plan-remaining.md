@@ -173,11 +173,37 @@ the dot product), "Cannot use a point as a coordinate of a point.", "Cannot acce
 '.x' of a number." (".z" of a 2d point), "Function 'distance' requires 2 points.", "Function
 'midpoint' requires a segment or 2 points.", "Function 'distance' requires 2 arguments. " (with
 its trailing space), "Function 'distance' cannot be called with dot notation." and "Cannot call
-'.midpoint' on a point.". `core/lib/desmos-geometry.fixture.json` holds the catalogue's 114
-values, 61 errors and 7 graphed rows; `desmos-geometry.reference.test.ts` checks them. Not matched
-(expected failures): 3D points and `\times` as the cross product, `for` and `with`, the hidden
-names hypot, pointDot, pointDet, pointPerp and complexMultiplyPoints, `.\operatorname{length}`,
-parametric points in t (RC-16), `y=` rows with a constant side, and Desmos's free-variable texts.
+'.midpoint' on a point.". `core/lib/desmos-geometry.fixture.json` holds the catalogue's 136
+values, 103 errors, 15 graphed rows and 43 display flags, including the point cases of the
+statistics-lists, elementary, calculus, matrices and actions families; `desmos-geometry.reference.test.ts`
+checks them. Not matched (expected failures): 3D points and `\times` as the cross product, `for`
+and `with`, the hidden names hypot, pointDot, pointDet, pointPerp and complexMultiplyPoints,
+`.\operatorname{length}`, parametric points in t (RC-16), `y=` rows with a constant side,
+Desmos's free-variable texts, and the point texts of unshipped features: derivatives ("Cannot take
+derivative with respect to 'a' because it is a point."), sum, product and integral bounds, arg,
+det, `.det`, random and tone.
+
+Follow-up fixes (task 8 parity pass, 2026-10-20):
+
+- A point result shows its "=" value again (`2(1,2)`, `-(1,2)`, `(1,2)+(3,4)`, `midpoint(…)`,
+  `P`, `[(1,2),(3,4)]+(1,1)`), as Desmos's `evaluationDisplayed` does in the geometry captures;
+  only a literal point or list of literal points (`(2,3)`, `[(1,2),(3,4)]`, and so `A=(1,2)`, by
+  Desmos's evaluability rule for a definition's body) shows none (`api/results.ts`
+  `rowShowsValue`). The statistics-lists "no evaluation" rows (`P+(1,1)`, `mean(P)`) are rows
+  whose `expressionAnalysis` has no evaluation object, which Desmos leaves out for every point
+  value; they are listed as graphed rows, not as rows without a shown value.
+- Plotted rows with point arithmetic draw: `eval/compile-real.ts` sends a sum, difference,
+  product, quotient, negation or `|…|` with an operand that may be a point, and a user call with
+  a point argument, to the general evaluator (`y=\left|A-(x,0)\right|`, `y=(x,1)\cdot(1,1)`,
+  `\left|(x,y)-(1,1)\right|=2`, `y=g((x,0))`).
+- A user call whose body gives a point is typed as one and graphs (`f(3)` after `f(a)=(a,2a)`).
+- `.x` and `.y` read any `(…)` group (`((1,2)+(3,4)).x`, `\left(2P\right).y`).
+- A comma at the end of a sum, at the row's end or in a braced argument, reads Desmos's "Points
+  are written like this: (1, 2)." (`1,000`, `1,2`, `\sqrt{4,9}`); `(,)` and `{1,2}` stay syntax.
+- Left open, no Desmos capture: `(1,2)\%` (undefined, no error), `L.z` on a list of points
+  (Karman's "Cannot access coordinate '.z' of a list of points."), and whether Desmos hides a
+  bare numeral's value (`2`, `a=2`, `[1,2,3]`), which its evaluability rule suggests and R-5 and
+  RC-17 do not yet say.
 
 ### M5. Point-valued names graph (G-2, RC-6, RC-15) — done
 

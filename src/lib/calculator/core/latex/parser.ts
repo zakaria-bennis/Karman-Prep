@@ -65,6 +65,18 @@ export function unexpected(state: ParserState, token: Token): never {
   return fail("syntax", token.span, `unexpected "${text}"`);
 }
 
+/**
+ * `token` met where a complete sum must end, at the end of the row or of a braced argument: a
+ * comma there is a point written without its brackets, Desmos's "Points are written like this:
+ * (1, 2)." for `1,000` and `\sqrt{4,9}` (captured 2026-10-19); anything else is unexpected.
+ */
+export function unexpectedAfterSum(state: ParserState, token: Token): never {
+  if (token.t === "symbol" && token.ch === ",") {
+    return fail("point-syntax", token.span, "a comma outside a point, list or call");
+  }
+  return unexpected(state, token);
+}
+
 /** The token `offset` places after the cursor; past the end it is the `end` token. */
 export function peek(state: ParserState, offset = 0): Token {
   return state.tokens[Math.min(state.pos + offset, state.tokens.length - 1)];
@@ -109,12 +121,12 @@ export function parseRow(state: ParserState): Node {
     if (peek(state).t === "end") fail("sim-side", sim.span, "nothing after \\sim");
     const right = parseSum(state);
     const after = peek(state);
-    if (after.t !== "end") unexpected(state, after);
+    if (after.t !== "end") unexpectedAfterSum(state, after);
     return { kind: "sim", left: operands[0], right, span: spanning(operands[0], right) };
   }
   const tree = takeRelations(state, operands[0]);
   const next = peek(state);
-  if (next.t !== "end") unexpected(state, next);
+  if (next.t !== "end") unexpectedAfterSum(state, next);
   return tree;
 }
 

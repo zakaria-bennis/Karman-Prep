@@ -185,9 +185,10 @@ interface Known {
 }
 
 /**
- * FN-45: the shape of a user call when its body makes a distribution or a list of them, with the
- * parameters bound to the arguments' shapes (`f(2)` for `f(x)=\operatorname{normaldist}(x,1)`);
- * unknown otherwise, and for a call inside its own body.
+ * FN-45, M4: the shape of a user call when its body makes a distribution, a point or a list of
+ * either, with the parameters bound to the arguments' shapes (`f(2)` for
+ * `f(x)=\operatorname{normaldist}(x,1)`, `f(3)` for `f(a)=(a,2a)`, which Desmos plots); unknown
+ * otherwise, and for a call inside its own body.
  */
 function userCallShape(node: Call, args: readonly (Shape | null)[], known: Known): Shape | null {
   const head = known.functions.get(node.name);
@@ -197,7 +198,7 @@ function userCallShape(node: Call, args: readonly (Shape | null)[], known: Known
   const bound = new Map(head.params.map((p, k) => [p, args[k]]));
   const inner: Known = { ...known, open: new Set([...known.open, head.name]) };
   const shape = shapeOf(head.body, [], inner, bound);
-  return isDistributionShape(shape) ? shape : null;
+  return isDistributionShape(shape) || pointed(shape) ? shape : null;
 }
 
 /**

@@ -6,6 +6,7 @@ export type ParseErrorCode =
   | "syntax"
   | "unsupported"
   | "point-arity"
+  | "point-syntax" // a comma outside any bracket that takes one, `1,000`, `\sqrt{4,9}`
   | "relation-chain" // PR-29: a chain mixing `=` with an inequality, `x=y<3`
   | "relation-side" // PR-29: a relation operator straight after another, `x=>1`
   | "too-many-nodes"
@@ -42,6 +43,7 @@ const PARSE_ERROR_CODES: ReadonlySet<string> = new Set<ParseErrorCode>([
   "syntax",
   "unsupported",
   "point-arity",
+  "point-syntax",
   "relation-chain",
   "relation-side",
   "too-many-nodes",

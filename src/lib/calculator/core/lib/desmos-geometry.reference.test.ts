@@ -1,15 +1,18 @@
 // FN-80, FN-81, NM-32, PR-45, RC-15: every live Desmos value, error text and graphed row the
 // function catalogue captured for points, point arithmetic (M4), the members .x and .y, distance
-// and midpoint (desmos-geometry.fixture.json, copied from its ALL.values.json). A key's rows are
+// and midpoint, and the point cases of the statistics-lists, elementary, calculus, matrices and
+// actions families (desmos-geometry.fixture.json, copied from its ALL.values.json). A key's rows are
 // separated by " ;; ", the last one being the case; " [degrees]" marks degree mode. A point is
 // [x, y], null for an undefined coordinate. Not yet matched, each an expected failure that fails
 // once matched, by the notation they use that has not shipped: 3D points and the cross product,
 // comprehensions (`for`) and `with`, the hidden names hypot, pointDot, pointDet, pointPerp and
 // complexMultiplyPoints, length's dot call, parametric points in t (RC-16), `y=` rows, which
 // Desmos gives a value when the right side is constant, and Desmos's free-variable texts ("Too
-// many variables. Try defining 'i'.", `\int` bounds, `distance((0,0),(i,1))`'s "Try adding 'y='").
+// many variables. Try defining 'i'.", `\int` bounds, `distance((0,0),(i,1))`'s "Try adding 'y='"),
+// derivatives, sums and products, and arg, det, random and tone, none of them shipped.
 import { expect, it } from "vitest";
 import { analyzeRows } from "../analysis";
+import { rowShowsValue } from "../api/results";
 import { rowErrorMessage } from "../analysis/messages";
 import { evaluateLatex, type EvalSettings } from "../eval/compile";
 import type { Value } from "../eval/values";
@@ -26,6 +29,8 @@ const GAPS: readonly RegExp[] = [
   /\.\\operatorname\{length\}/,
   /\(t,|;; y=/,
   /\(i,1\)|\\int|^area|^dist$/,
+  /\\frac\{d\}\{d|\\sum|\\prod/,
+  /\\arg|\\operatorname\{(det|random|tone)\}/,
 ];
 const isGap = (key: string) => GAPS.some((gap) => gap.test(key));
 
@@ -81,8 +86,8 @@ const VALUES = Object.entries(geometry.values) as [string, Captured][];
 const ERRORS = Object.entries(geometry.errors);
 const GRAPHED = Object.keys(geometry.graphed);
 
-it("FN-70 FN-71 NM-32 PR-45 all 114 catalogue point values are checked, 95 matched", () =>
-  expect([VALUES.length, VALUES.filter(([key]) => !isGap(key)).length]).toEqual([114, 95]));
+it("FN-70 FN-71 NM-32 PR-45 all 136 catalogue point values are checked, 114 matched", () =>
+  expect([VALUES.length, VALUES.filter(([key]) => !isGap(key)).length]).toEqual([136, 114]));
 
 for (const [key, expected] of VALUES) {
   const check = () => {
@@ -96,8 +101,8 @@ for (const [key, expected] of VALUES) {
   else it(`FN-70 FN-71 NM-32 PR-45 ${key} is ${shown}, as in Desmos`, check);
 }
 
-it("FN-70 FN-71 NM-32 PR-45 all 61 catalogue point errors are checked, 44 matched", () =>
-  expect([ERRORS.length, ERRORS.filter(([key]) => !isGap(key)).length]).toEqual([61, 44]));
+it("FN-70 FN-71 NM-32 PR-45 all 103 catalogue point errors are checked, 75 matched", () =>
+  expect([ERRORS.length, ERRORS.filter(([key]) => !isGap(key)).length]).toEqual([103, 75]));
 
 // A row's error is its analysis error or, as the row shows it, the error its value carries
 // (`[(1,2),3]`, NM-32).
@@ -117,8 +122,8 @@ for (const [key, message] of ERRORS) {
   else it(`FN-70 FN-71 NM-32 PR-45 ${key} reads "${message}", as in Desmos`, check);
 }
 
-it("FN-70 FN-71 RC-15 all 7 catalogue rows Desmos graphs without a value are checked", () =>
-  expect(GRAPHED.length).toBe(7));
+it("FN-70 FN-71 RC-15 all 15 catalogue rows Desmos graphs without an evaluation are checked", () =>
+  expect(GRAPHED.length).toBe(15));
 
 for (const key of GRAPHED) {
   const check = () => {
@@ -128,6 +133,26 @@ for (const key of GRAPHED) {
   };
   if (isGap(key)) it.fails(`not yet matched: ${key} graphs in Desmos`, check);
   else it(`FN-70 FN-71 RC-15 ${key} graphs, as in Desmos`, check);
+}
+
+const DISPLAYED = Object.entries(geometry.displayed);
+
+it("FN-71 NM-32 RC-15 R-5 all 43 captured point rows' '=' values are checked", () =>
+  expect(DISPLAYED.length).toBe(43));
+
+// R-5, RC-15: Desmos shows a point-valued row's "=" value unless the row is a literal point or a
+// list of literal points (expressionAnalysis evaluationDisplayed, geometry captures 2026-10-19).
+for (const [key, displayed] of DISPLAYED) {
+  it(`FN-71 NM-32 RC-15 R-5 ${key} ${displayed ? "shows" : "hides"} its value, as in Desmos`, () => {
+    const { latex, rows } = caseOf(key);
+    const row = lastRow(rows, latex);
+    const v = evaluateLatex(latex, { rows });
+    expect([row.error, row.isGraphable, rowShowsValue(row, v, false)]).toEqual([
+      null,
+      true,
+      displayed,
+    ]);
+  });
 }
 
 // M4, M5 (RC-6, RC-15, G-3): Desmos draws a point-valued row, so arithmetic that gives a point,
@@ -148,6 +173,9 @@ it("RC-6 RC-15 G-3 point definitions, point names and point arithmetic graph as 
     graphOf(["A=(1,2)"], "M=\\operatorname{midpoint}(A,(3,4))"),
     graphOf([], "(1,2)\\cdot(3,4)"),
     graphOf([], "a=1"),
+    graphOf(["f(a)=(a,2a)"], "f(3)"),
+    graphOf(["f(a)=(a,2a)"], "f([1,2])"),
+    graphOf(["f(a)=(a,2a)"], "f(3).x"),
   ]).toEqual([
     ["definition", true, "point"],
     ["definition", true, "point"],
@@ -158,5 +186,24 @@ it("RC-6 RC-15 G-3 point definitions, point names and point arithmetic graph as 
     ["definition", true, "point"],
     ["value", false, null],
     ["definition", false, null],
+    ["point", true, "point"],
+    ["point", true, "point"],
+    ["value", false, null],
   ]);
+});
+
+// R-5, RC-6, RC-15: a definition follows the same rule as Desmos's evaluability check, which reads
+// a definition's body: a literal point or list of them shows no value, any other point does.
+it("RC-6 RC-15 R-5 a literal point definition shows no value and a computed one does", () => {
+  const shows = (rows: string[], latex: string) =>
+    rowShowsValue(lastRow(rows, latex), evaluateLatex(latex, { rows }), false);
+  expect([
+    shows([], "A=(1,2)"),
+    shows([], "A=(-1,2)"),
+    shows([], "P=[(1,2),(3,4)]"),
+    shows([], "A=(1,2)+(3,4)"),
+    shows(["f(a)=(a,2a)"], "f(3)"),
+    shows([], "[]"),
+    shows([], "1+2"),
+  ]).toEqual([false, false, false, true, true, true, true]);
 });

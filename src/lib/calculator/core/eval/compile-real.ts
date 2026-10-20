@@ -118,6 +118,11 @@ export function compileReal(
 }
 
 function compile(node: Node, ctx: Context): Fn {
+  // NM-32: arithmetic and |…| on points give points or numbers the plain-number rules cannot
+  // carry, so `y=\left|A-(x,0)\right|` and `y=(x,1)\cdot(1,1)` go to the general evaluator.
+  if (POINT_OPERATIONS.has(node.kind) && sourceChildren(node).some((n) => mayBePoint(n, ctx))) {
+    return generalNode(node, ctx);
+  }
   switch (node.kind) {
     case "num": {
       const v = finite(node.value);
@@ -290,6 +295,8 @@ function call(node: Call, ctx: Context): Fn {
   if (POINT_FUNCTIONS.has(node.name)) return generalNode(node, ctx);
   if (listFunction(node.name) !== undefined) return listFunctionCall(node, ctx);
   if (isBuiltinName(node.name)) return builtinCall(node.name, node.args, ctx);
+  // NM-32: a point argument is not a number, so the general evaluator binds it (`g((x,0))`).
+  if (node.args.some((arg) => mayBePoint(arg, ctx))) return generalNode(node, ctx);
   const fn = userFunction(node.name, ctx);
   if (fn === null || fn.slots.length !== node.args.length) return undefinedFn;
   return userCall(
@@ -472,6 +479,62 @@ function mayBeList(
     default:
       return sourceChildren(node).some(of);
   }
+}
+
+/** The nodes compile hands to generalNode when an operand may be a point (NM-32). */
+const POINT_OPERATIONS: ReadonlySet<Node["kind"]> = new Set([
+  "add",
+  "sub",
+  "mul",
+  "div",
+  "neg",
+  "abs",
+]);
+
+/**
+ * Whether `node` may evaluate to a point or a list of points, read from its tree: a point; a name
+ * whose value holds one, or whose definition may give one; midpoint; an index, piecewise or
+ * arithmetic with such an operand; or a call of a user function whose body may give one. x, y and
+ * parameters are numbers, and a coordinate (`P.x`), distance and |P| are numbers.
+ */
+function mayBePoint(node: Node, ctx: Context, seen: Set<string> = new Set()): boolean {
+  const of = (n: Node) => mayBePoint(n, ctx, seen);
+  switch (node.kind) {
+    case "point":
+      return true;
+    case "id": {
+      if (node.name === "x" || node.name === "y" || ctx.params.includes(node.name)) return false;
+      const value = ctx.scope.values.get(node.name);
+      if (value !== undefined) return holdsPoint(value);
+      return bodyMayBePoint(node.name, ctx, seen);
+    }
+    case "abs":
+      return false;
+    case "call":
+      if (node.member !== undefined || node.name === "distance") return false;
+      if (node.name === "midpoint") return true;
+      if (isBuiltinName(node.name)) return node.args.some(of);
+      return bodyMayBePoint(node.name, ctx, seen);
+    case "index":
+      return of(node.target);
+    default:
+      return sourceChildren(node).some(of);
+  }
+}
+
+const holdsPoint = (v: Value): boolean =>
+  v.type === "point" || (v.type === "list" && v.value.some((item) => item.type === "point"));
+
+/** Whether the body of the user function `name` may give a point, its parameters read as numbers. */
+function bodyMayBePoint(name: string, ctx: Context, seen: Set<string>): boolean {
+  const definition = ctx.scope.functions.get(name);
+  if (definition === undefined || seen.has(name)) return false;
+  seen.add(name);
+  const outer = ctx.params.length;
+  ctx.params.push(...definition.params);
+  const result = mayBePoint(definition.body, ctx, seen);
+  ctx.params.length = outer;
+  return result;
 }
 
 /** Whether the body of the user function `name` may give a list, its parameters read as numbers. */

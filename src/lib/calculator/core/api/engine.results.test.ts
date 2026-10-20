@@ -50,6 +50,7 @@ it("API-9 expressionAnalysis reports graphable, error and displayed number, poin
     { id: "c", latex: "\\frac{" },
     { id: "d", latex: "1/0" },
     { id: "e", latex: "P=(1,2)" },
+    { id: "f", latex: "Q=2(1,2)" },
   ]);
   await m.settled();
   expect(m.engine.expressionAnalysis).toMatchObject({
@@ -67,10 +68,13 @@ it("API-9 expressionAnalysis reports graphable, error and displayed number, poin
       evaluationDisplayed: false,
     },
     d: { evaluationDisplayed: true, evaluation: { type: "undefined" } },
-    e: {
-      isGraphable: true, // RC-6, M5: a point definition draws its point, as in Desmos
+    // RC-6, M5: a point definition draws its point, as in Desmos, which shows no value for a
+    // literal point (R-5, RC-15) and shows a computed one
+    e: { isGraphable: true, evaluationDisplayed: false },
+    f: {
+      isGraphable: true,
       evaluationDisplayed: true,
-      evaluation: { type: "point", value: [1, 2] },
+      evaluation: { type: "point", value: [2, 4] },
     },
   });
   expect(m.engine.expressionAnalysis.b).not.toHaveProperty("evaluation");

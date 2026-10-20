@@ -8,6 +8,7 @@ import type { PoiPoint } from "../../poi/types";
 import type { Viewport, ViewSpec } from "../../plot/viewport";
 import { rowErrorMessage, type AnalysisResult, type RowAnalysis, type RowError } from "../analysis";
 import type { RowKind } from "../corpus/types";
+import type { Node } from "../latex/ast";
 import { formatValue } from "../eval/format";
 import type { Value } from "../eval/values";
 import type { TableResult } from "../data/evaluate";
@@ -107,19 +108,39 @@ export function toApiEvaluation(value: Value, display: string | null): ApiEvalua
 }
 
 /**
- * Decision 5, R-5, RC-6: a row shows its value (a number, point or list) when its kind is `value`
- * or `definition`, with no error, no chips and no overrun, once a value without a list error has
- * arrived.
+ * Decision 5, R-5, RC-6, RC-15: a row shows its value (a number, point or list) when its kind is
+ * `value`, `definition` or `point`, with no error, no chips and no overrun, once a value without a
+ * list error has arrived. As in Desmos, a point or list of points written as literals (`(2,3)`,
+ * `A=(1,2)`, `[(1,2),(3,4)]`) shows none, while every other point result does (`2(1,2)`, `P`,
+ * `[(1,2),(3,4)]+(1,1)`; geometry captures 2026-10-19).
  */
 export function rowShowsValue(row: RowAnalysis, value: Value | null, overrun: boolean): boolean {
   return (
-    (row.kind === "value" || row.kind === "definition") &&
+    (row.kind === "value" || row.kind === "definition" || row.kind === "point") &&
+    !literalPoints(row.tree) &&
     row.error === null &&
     row.chips.length === 0 &&
     !overrun &&
     value !== null &&
     valueError(value) === null
   );
+}
+
+/**
+ * RC-15: a row, or a definition's body, that is a point whose coordinates are numerals (a sign
+ * allowed) or a list of such points, whose value Desmos leaves unshown.
+ */
+function literalPoints(tree: Node | null): boolean {
+  if (tree?.kind === "rel" && tree.ops.length === 1 && tree.ops[0] === "=") {
+    const [name, body] = tree.operands;
+    return name.kind === "id" && literalPoints(body);
+  }
+  const numeral = (n: Node) => n.kind === "num" || (n.kind === "neg" && n.arg.kind === "num");
+  const point = (n: Node) => n.kind === "point" && numeral(n.x) && numeral(n.y);
+  if (tree?.kind === "list") {
+    return tree.range === undefined && tree.items.length > 0 && tree.items.every(point);
+  }
+  return tree !== null && point(tree);
 }
 
 /** NM-34 to NM-36, NM-42: the list error a row's value carries, as its row error (R-2). */

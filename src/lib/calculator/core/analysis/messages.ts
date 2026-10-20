@@ -74,6 +74,7 @@ const MESSAGES: Readonly<Record<RowErrorCode, string>> = {
   syntax: "This can't be read. Check for a missing bracket or operator.",
   unsupported: "This calculator doesn't support that notation.",
   "point-arity": "A point needs exactly two coordinates.",
+  "point-syntax": "Points are written like this: (1, 2).",
   "relation-chain": "Cannot mix inequalities and equations in a chain of comparisons.",
   "relation-side": "You need something on both sides of the '{n}' symbol.",
   "too-many-nodes": "This row is too long to evaluate. Split it into smaller definitions.",
