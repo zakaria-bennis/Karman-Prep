@@ -14,7 +14,7 @@ import {
   setTableRegressionLogMode,
   setTableRegressionType,
 } from "./table-regression-commands";
-import { colourAfter } from "../../theme/roles";
+import { NEW_ROW_COLOURS } from "../../theme/desmos-palette";
 
 let m: TestEngine;
 let e: TestEngine["engine"];
@@ -45,7 +45,8 @@ it("RT-28 Add Regression adds Linear on the first qualifying column in the next 
   expect(state.regression).toEqual({
     type: "linear",
     columns: { x: 0, y: 1 },
-    color: colourAfter(state.columns![1].color, 1),
+    // RT-2: after x, y and the blank header slot (red went to the blank row)
+    color: NEW_ROW_COLOURS[4],
     hidden: false,
     isLogMode: false,
     residualVariable: "e_{1}",

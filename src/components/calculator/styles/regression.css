@@ -5,7 +5,7 @@
 
 .kc-regression {
   margin-top: -10px; /* the reference's panel starts 31 px under the formula's baseline */
-  padding: 0 0 8px;
+  padding: 0 0 10px;
   color: var(--kc-text);
   font-family: var(--kc-font-ui);
   font-size: var(--kc-size-small);
@@ -16,14 +16,26 @@
 }
 
 .kc-regression-params {
-  margin-top: 6px;
+  margin-top: 7px;
+}
+
+/* RT-31, measured on the reference: a typed panel's section titles are 10.24 px on an 11 px line
+   with 4 px under them (the table panel's are 11.2 px). */
+.kc-regression .kc-tr-title,
+.kc-regression .kc-tr-group .kc-tr-title {
+  height: 11px;
+  margin-bottom: 4px;
+  font-size: 10.24px;
+}
+
+.kc-regression .kc-tr-group .kc-tr-title + * {
+  margin-top: 0;
 }
 
 .kc-regression-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, 130px);
   row-gap: 2px;
-  margin-top: 2px;
 }
 
 .kc-regression-grid > .kc-static-math {

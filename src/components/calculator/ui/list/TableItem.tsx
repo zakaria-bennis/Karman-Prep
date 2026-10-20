@@ -23,7 +23,8 @@ import {
   addTableRegression,
   regressionEligibility,
 } from "@/lib/calculator/core/api/table-regression-commands";
-import { AddGlyph, RegressionGlyph, RemoveGlyph, ZoomFitGlyph } from "../../icons/list";
+import { AddGlyph, RemoveGlyph, ZoomFitGlyph } from "../../icons/list";
+import { AddRegressionGlyph } from "./TableGlyphs";
 import { useAnnouncer } from "../a11y/announcer";
 import { cellKey, FocusContext } from "../focus/focus-controller";
 import { useEngine, useEngineSnapshot } from "../hooks/use-engine";
@@ -76,6 +77,11 @@ function ComputedValue({ text }: { text: string }): JSX.Element {
  */
 export function collapsedRange(rows: number): { from: number; to: number } | null {
   return rows >= 29 ? { from: 7, to: rows - 4 } : null;
+}
+
+/** Whether `target` is inside a table cell's math field (which reports its own focus). */
+function inCell(target: EventTarget | null): boolean {
+  return target instanceof Element && target.closest(".kc-table-field") !== null;
 }
 
 export function TableItem(props: TableItemProps): JSX.Element {
@@ -183,6 +189,15 @@ export function TableItem(props: TableItemProps): JSX.Element {
       data-active={activeRowId === row.id ? "true" : undefined}
       data-motion={motion}
       aria-hidden={exiting ? "true" : undefined}
+      onFocus={(e) => {
+        // As on the reference, focus on any of the table's controls (the regression dropdown, a
+        // Zoom Fit, "plot") selects the table; its cells report their own focus.
+        if (!inCell(e.target)) engine.setFocusedRow(row.id);
+      }}
+      onBlur={(e) => {
+        if (inCell(e.target) || e.currentTarget.contains(e.relatedTarget as Node | null)) return;
+        engine.setFocusedRow(null);
+      }}
     >
       <div className="kc-row-inner">
         <div className="kc-row-gutter">
@@ -196,7 +211,7 @@ export function TableItem(props: TableItemProps): JSX.Element {
               title="Add Regression"
               onClick={() => addRegression()}
             >
-              <RegressionGlyph size={14} />
+              <AddRegressionGlyph />
             </button>
           )}
           {/* RT-8, RT-28: the table's actions sit at the foot of its gutter, as the reference's do. */}

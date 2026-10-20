@@ -7,10 +7,9 @@
 
 import { columnQualifies, chooseResidualName } from "../data/table-regression";
 import { TABLE_MODEL_SPECS, type TableModel } from "../../regression/table-models";
-import { colourAfter } from "../../theme/roles";
 import type { StoredRow, StoredTableRegression } from "./document";
 import type { CalculatorEngine, EditRefusal, RowView } from "./engine";
-import { normalizeColumns } from "./table-edits";
+import { normalizeColumns, type RowEditContext } from "./table-edits";
 
 const at = (rows: readonly StoredRow[], id: string) => rows.findIndex((r) => r.id === id);
 
@@ -45,12 +44,6 @@ export function regressionEligibility(view: RowView): RegressionEligibility {
   };
 }
 
-/** The colour after the last one a table uses: its regression's, else its last column's. */
-function nextTableColour(row: StoredRow, index: number): string {
-  const last = row.regression?.color ?? row.columns?.at(-1)?.color;
-  return colourAfter(last, index + 1);
-}
-
 /** The headers of the x and y columns, for the residual name (RT-25). */
 function headers(row: StoredRow, y: number): string[] {
   const columns = row.columns ?? [];
@@ -72,13 +65,13 @@ function withResidual(
 function editTable(
   engine: CalculatorEngine,
   tableId: string,
-  change: (row: StoredRow, index: number, used: ReadonlySet<string>) => StoredRow | null
+  change: (row: StoredRow, used: ReadonlySet<string>, nextColour: () => string) => StoredRow | null
 ): boolean {
   let changed = false;
   engine.editRows((rows, ctx) => {
     const i = at(rows, tableId);
     if (i < 0 || rows[i].type !== "table") return null;
-    const next = change(rows[i], i, ctx.used);
+    const next = change(rows[i], ctx.used, () => ctx.nextColour());
     if (next === null) return null;
     changed = true;
     return rows.map((r, k) => (k === i ? next : r));
@@ -93,10 +86,10 @@ export function addTableRegression(engine: CalculatorEngine, tableId: string, y?
   const { canAdd, candidates } = regressionEligibility(view);
   const column = y ?? candidates[0];
   if (!canAdd || column === undefined || !candidates.includes(column)) return false;
-  return editTable(engine, tableId, (row, i, used) =>
+  return editTable(engine, tableId, (row, used, nextColour) =>
     withResidual(
       row,
-      { type: "linear", y: column, color: nextTableColour(row, i), hidden: false, logMode: false },
+      { type: "linear", y: column, color: nextColour(), hidden: false, logMode: false },
       used
     )
   );
@@ -108,7 +101,7 @@ export function setTableRegressionType(
   tableId: string,
   type: TableModel
 ): boolean {
-  return editTable(engine, tableId, (row, _, used) => {
+  return editTable(engine, tableId, (row, used) => {
     const r = row.regression;
     if (r === undefined || r.type === type) return null;
     return withResidual(row, { ...r, type }, used);
@@ -121,7 +114,7 @@ export function setTableRegressionColumn(
   tableId: string,
   y: number
 ): boolean {
-  return editTable(engine, tableId, (row, _, used) => {
+  return editTable(engine, tableId, (row, used) => {
     const r = row.regression;
     if (r === undefined || r.y === y || y < 1 || y >= (row.columns?.length ?? 0)) return null;
     return withResidual(row, { ...r, y }, used);
@@ -175,7 +168,7 @@ export function deleteTableRegression(engine: CalculatorEngine, tableId: string)
 
 /** RT-26: "plot" appends the residual column e_k, computed and read-only, in the next colour. */
 export function plotTableResiduals(engine: CalculatorEngine, tableId: string): boolean {
-  return editTable(engine, tableId, (row, i) => {
+  return editTable(engine, tableId, (row, _, nextColour) => {
     const r = row.regression,
       columns = row.columns ?? [];
     if (r?.residual === undefined || residualColumnIndex(row) >= 0) return null;
@@ -183,12 +176,10 @@ export function plotTableResiduals(engine: CalculatorEngine, tableId: string): b
     const blank = columns.findIndex(
       (c, j) => j > 0 && c.latex.trim() === "" && c.values.every((v) => v === "")
     );
-    const color = nextTableColour(row, i);
-    const column = { latex: r.residual, values: [], color, hidden: false };
     const next =
       blank >= 0
         ? columns.map((c, j) => (j === blank ? { ...c, latex: r.residual! } : c))
-        : [...columns, column];
+        : [...columns, { latex: r.residual, values: [], color: nextColour(), hidden: false }];
     return { ...row, columns: normalizeColumns(next) };
   });
 }
@@ -261,13 +252,13 @@ export function exportParameterNames(params: readonly string[], defined: Readonl
 function insertBelow(
   engine: CalculatorEngine,
   tableId: string,
-  make: (table: StoredRow, index: number, id: () => string) => StoredRow | null
+  make: (table: StoredRow, ctx: RowEditContext) => StoredRow | null
 ): { id: string } | EditRefusal | null {
   let made: string | null = null;
   const refusal = engine.editRows((rows, ctx) => {
     const i = at(rows, tableId);
     if (i < 0) return null;
-    const row = make(rows[i], i, ctx.nextId);
+    const row = make(rows[i], ctx);
     if (row === null) return null;
     made = row.id;
     return [...rows.slice(0, i + 1), row, ...rows.slice(i + 1)];
@@ -281,14 +272,14 @@ export function exportCustomRegression(
   tableId: string
 ): { id: string } | EditRefusal | null {
   const defined = definedNames(engine.getSnapshot().rows);
-  return insertBelow(engine, tableId, (table, index, id) => {
+  return insertBelow(engine, tableId, (table, ctx) => {
     const r = table.regression;
     if (r === undefined || exportBlock(table) !== null) return null;
     const columns = table.columns ?? [];
     const spec = TABLE_MODEL_SPECS[r.type];
     const names = exportParameterNames(spec.params, defined);
     const latex = spec.template(columns[0].latex.trim(), columns[r.y].latex.trim(), names);
-    return { id: id(), latex, color: colourAfter(r.color, index + 1), hidden: false };
+    return { id: ctx.nextId(), latex, color: ctx.nextColour(), hidden: false };
   });
 }
 
@@ -300,9 +291,8 @@ export function exportRegressionEquation(
   const view = engine.getSnapshot().rows.find((r) => r.id === tableId);
   const fit = view?.table?.result?.regression?.fit;
   if (fit === undefined || !fit.ok) return null;
-  return insertBelow(engine, tableId, (table, index, id) => {
-    const r = table.regression;
-    if (r === undefined) return null;
-    return { id: id(), latex: fit.equation, color: colourAfter(r.color, index + 1), hidden: false };
+  return insertBelow(engine, tableId, (table, ctx) => {
+    if (table.regression === undefined) return null;
+    return { id: ctx.nextId(), latex: fit.equation, color: ctx.nextColour(), hidden: false };
   });
 }

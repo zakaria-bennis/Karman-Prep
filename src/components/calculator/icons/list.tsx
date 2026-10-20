@@ -235,18 +235,6 @@ export function ZoomFitGlyph(props: { size?: number }): JSX.Element {
   );
 }
 
-/** EL-41: a table's Add Regression, three solid dots rising to the right under a fitted line. */
-export function RegressionGlyph(props: { size?: number }): JSX.Element {
-  return (
-    <Glyph size={props.size ?? 20}>
-      <path d="M1.5 21.2L21.8 2.6L23.2 4.1L2.9 22.7Z" fill="currentColor" />
-      <circle cx={5} cy={14} r={3} fill="currentColor" />
-      <circle cx={12} cy={13} r={3} fill="currentColor" />
-      <circle cx={19} cy={6} r={3} fill="currentColor" />
-    </Glyph>
-  );
-}
-
 /** EL-43, VIS-52: the Add item menu's table glyph, a 3-column by 4-row grid with a solid header
  *  row (25 by 22 px). */
 export function TableItemGlyph(): JSX.Element {

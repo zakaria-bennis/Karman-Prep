@@ -14,14 +14,15 @@ function createTable(n: number) {
   fireEvent.click(within(menu).getByRole("menuitem", { name: "Create table" }));
 }
 
-it("D-13 Create table from y=x^2 inserts x1 -2 to 2 and a computed x1^2 column in the row's colour", async () => {
+it("D-13, RT-10 Create table from y=x^2 inserts x1 -2 to 2 and a computed x1^2 column in the row's colour", async () => {
   const kit = renderEditor(<ExpressionPanel {...panelProps()} />, { rows: ["y=x^{2}"] });
   await waitFor(() => expect(tab(1)).toBeInTheDocument());
   createTable(1);
   const table = rows(kit)[1];
   expect(table.type).toBe("table");
   expect(table.columns!.map((c) => c.latex)).toEqual(["x_{1}", "x_{1}^{2}"]);
-  expect(table.columns!.every((c) => c.color === rows(kit)[0].color)).toBe(true);
+  expect(table.columns![1].color).toBe(rows(kit)[0].color);
+  expect(table.columns![0].color).not.toBe(rows(kit)[0].color); // RT-2: the next colour
   await waitFor(() =>
     expect(
       screen.getByRole("gridcell", { name: "x₁ squared, row 1, computed, 4" })

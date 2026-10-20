@@ -4,7 +4,6 @@
 // the view, the view zooms to fit them by TABLES-48's rule.
 
 import type { Viewport } from "../../plot/viewport";
-import { nextSlot } from "../../theme/roles";
 import { PASTED_HEADER_LETTERS } from "../data/paste-grid";
 import type { StoredColumn, StoredRow } from "./document";
 import type { CalculatorEngine } from "./engine";
@@ -42,18 +41,19 @@ export function pasteTable(
     const replace = i >= 0 && rows[i].type !== "table" && rows[i].latex.trim() === "";
     const index = replace ? i : i < 0 ? rows.length : i + 1;
     const id = replace ? rows[i].id : ctx.nextId();
-    const color = replace ? rows[i].color : nextSlot(index);
     const length = Math.max(...columns.map((c) => c.length));
+    // RT-2: every pasted column takes the next colour.
     const stored: StoredColumn[] = names().map((latex, j) => ({
       latex,
       values: Array.from({ length }, (_, k) => columns[j][k] ?? ""),
-      color,
+      color: ctx.nextColour(),
       hidden: false,
     }));
     const table: StoredRow = {
       id,
       latex: "",
-      color,
+      color: stored[0]?.color ?? "c1",
+      blankColor: ctx.nextColour(),
       hidden: false,
       type: "table",
       columns: stored,

@@ -67,8 +67,14 @@ export function viewMessage(
   return { v: 1, type: "view", generation, viewport: { ...viewport }, size: { ...size }, dpr };
 }
 
-/** `base` with every field `state` sets; a new object, so `base` never changes. */
-function mergeRow(base: StoredRow, state: ExpressionState): StoredRow {
+/** RT-2: the next colour of the running counter, taken once per new row, column or regression. */
+export type TakeColour = () => string;
+
+/**
+ * `base` with every field `state` sets; a new object, so `base` never changes. A column without a
+ * colour keeps the colour of the column it replaces, else takes the next one (RT-2).
+ */
+function mergeRow(base: StoredRow, state: ExpressionState, take: TakeColour): StoredRow {
   const merged: Mutable<StoredRow> = { ...base };
   if (state.latex !== undefined) merged.latex = state.latex;
   if (state.color !== undefined) merged.color = state.color;
@@ -82,28 +88,36 @@ function mergeRow(base: StoredRow, state: ExpressionState): StoredRow {
   }
   if (state.type === "table") merged.type = "table";
   if (state.columns !== undefined) {
-    merged.columns = state.columns.map((c) => ({
+    merged.columns = state.columns.map((c, j) => ({
       latex: c.latex,
       values: [...c.values],
-      color: c.color ?? base.color,
+      color: c.color ?? base.columns?.[j]?.color ?? take(),
       hidden: c.hidden ?? false,
     }));
   }
+  if (merged.type === "table") merged.blankColor ??= take(); // RT-2: the blank header slot
   if (state.regression !== undefined)
-    merged.regression = fromRegressionState(state.regression, base);
+    merged.regression = fromRegressionState(state.regression, base, take);
   if (merged.type === "table") {
     merged.latex = "";
     merged.columns ??= [];
-  } else delete merged.regression;
+  } else {
+    delete merged.regression;
+    delete merged.blankColor;
+  }
   return merged;
 }
 
 /** RT-28: a stored table regression from its public state. */
-function fromRegressionState(state: TableRegressionState, base: StoredRow): StoredTableRegression {
+function fromRegressionState(
+  state: TableRegressionState,
+  base: StoredRow,
+  take: TakeColour
+): StoredTableRegression {
   const out: Mutable<StoredTableRegression> = {
     type: state.type,
     y: state.columns.y,
-    color: state.color ?? base.regression?.color ?? base.color,
+    color: state.color ?? base.regression?.color ?? take(),
     hidden: state.hidden ?? false,
     logMode: state.isLogMode ?? false,
   };
@@ -112,35 +126,49 @@ function fromRegressionState(state: TableRegressionState, base: StoredRow): Stor
   return out;
 }
 
-/** A new row at `index`: latex "", colour nextSlot(index) (TH-10), shown. */
-function newRow(id: string, index: number): StoredRow {
-  return { id, latex: "", color: nextSlot(index), hidden: false };
+/**
+ * A new row for `state`: latex "", shown, its own colour or the next one (RT-2). A table takes no
+ * row colour, as its columns and regression carry their own; it keeps "c1" as a placeholder.
+ */
+function newRow(id: string, state: ExpressionState, take: TakeColour): StoredRow {
+  const color = state.color ?? (state.type === "table" ? "c1" : take());
+  return { id, latex: "", color, hidden: false };
+}
+
+/** TH-10: the colour of a row at `index` when no running counter is given. */
+function slotTaker(start: number): TakeColour {
+  let i = start;
+  return () => nextSlot(i++);
 }
 
 /**
  * API-2: upserts `list` in order. An existing id merges, and its omitted fields keep their values;
- * a new id appends with `color ?? nextSlot(index)` (TH-10), `latex ?? ""` and `hidden ?? false`.
- * Never changes `rows`; every changed row is a new object.
+ * a new id appends with `color ?? take()` (RT-2; by default the TH-10 slot of its index),
+ * `latex ?? ""` and `hidden ?? false`. Never changes `rows`; every changed row is a new object.
  */
 export function upsertRows(
   rows: readonly StoredRow[],
-  list: readonly ExpressionState[]
+  list: readonly ExpressionState[],
+  take: TakeColour = slotTaker(rows.length)
 ): StoredRow[] {
   const out = [...rows];
   for (const state of list) {
     const at = out.findIndex((row) => row.id === state.id);
-    if (at >= 0) out[at] = mergeRow(out[at], state);
-    else out.push(mergeRow(newRow(state.id, out.length), state));
+    if (at >= 0) out[at] = mergeRow(out[at], state, take);
+    else out.push(mergeRow(newRow(state.id, state, take), state, take));
   }
   return out;
 }
 
 /**
- * API-5: the rows of a validated state, in order; a missing colour takes nextSlot(index), a
- * missing latex "" and a missing hidden false.
+ * API-5: the rows of a validated state, in order; a missing colour takes `take()` (RT-2: the
+ * counter restarts at red for a new state), a missing latex "" and a missing hidden false.
  */
-export function rowsFromState(expressions: readonly ExpressionState[]): StoredRow[] {
-  return expressions.map((state, index) => mergeRow(newRow(state.id, index), state));
+export function rowsFromState(
+  expressions: readonly ExpressionState[],
+  take: TakeColour = slotTaker(0)
+): StoredRow[] {
+  return expressions.map((state) => mergeRow(newRow(state.id, state, take), state, take));
 }
 
 /**

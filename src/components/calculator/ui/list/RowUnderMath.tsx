@@ -5,7 +5,6 @@
 import { useId, type JSX } from "react";
 import type { CalculatorEngine } from "@/lib/calculator/core/api/engine";
 import { displayName } from "@/lib/calculator/core/analysis";
-import { nextSlot } from "@/lib/calculator/theme/roles";
 import type { Announcer } from "../a11y/announcer";
 import { EDITOR_MESSAGES } from "./messages";
 
@@ -22,10 +21,10 @@ export function addSliders(
   const refused = engine.editRows((rows, ctx) => {
     const at = rows.findIndex((r) => r.id === rowId);
     if (at < 0 || names.length === 0) return null;
-    const added = names.map((name, i) => ({
+    const added = names.map((name) => ({
       id: ctx.nextId(),
       latex: `${name}=1`,
-      color: nextSlot(at + 1 + i),
+      color: ctx.nextColour(), // RT-2
       hidden: false,
     }));
     return [...rows.slice(0, at + 1), ...added, ...rows.slice(at + 1)];

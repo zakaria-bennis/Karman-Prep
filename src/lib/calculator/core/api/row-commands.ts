@@ -9,7 +9,7 @@ import type { StoredRow } from "./document";
 import { functionDefinitionHead } from "../latex/index";
 import { nextTableNames } from "../data/naming";
 import { pointTableCells } from "../data/table-from-points";
-import { nextColour, tableFromRow, withHeader, withColumnStyle } from "./table-edits";
+import { tableFromRow, withHeader } from "./table-edits";
 
 const at = (rows: readonly StoredRow[], id: string) => rows.findIndex((r) => r.id === id);
 
@@ -21,7 +21,7 @@ export function createTableFromRow(
   let made: string | null = null;
   const refusal = engine.editRows((rows, ctx) => {
     const i = at(rows, rowId);
-    const table = i < 0 ? null : tableFromRow(rows[i], rows, ctx.nextId, ctx.used);
+    const table = i < 0 ? null : tableFromRow(rows[i], rows, ctx);
     if (table === null) return null;
     made = table.id;
     return [...rows.slice(0, i + 1), table, ...rows.slice(i + 1)];
@@ -76,9 +76,10 @@ export function convertPointsToTable(
       hidden: row.hidden,
       type: "table",
       columns: [
-        { latex: names.x, values: cells.xs, color: nextColour(row.color, i), hidden: false },
+        { latex: names.x, values: cells.xs, color: ctx.nextColour(), hidden: false },
         { latex: names.ys[0], values: cells.ys, color: row.color, hidden: false },
       ],
+      blankColor: ctx.nextColour(),
     };
     made = true;
     return rows.map((r, k) => (k === i ? table : r));
@@ -97,7 +98,7 @@ export function setLogMode(engine: CalculatorEngine, rowId: string, on: boolean)
 
 /**
  * D-33: Plot residuals adds the regression's residual list e_k as a computed column of the table
- * its observations come from, in the palette colour after the regression's. The table's id, or
+ * its observations come from, in the next colour (RT-2, RT-26). The table's id, or
  * null when the observations are not a table column or the column is already there.
  */
 export function plotResiduals(engine: CalculatorEngine, rowId: string): string | null {
@@ -107,15 +108,13 @@ export function plotResiduals(engine: CalculatorEngine, rowId: string): string |
   if (view === undefined || fit === undefined) return null;
   const source = residualTable(rows, fit);
   if (source === undefined || source.columns!.some((c) => c.latex === fit.residual)) return null;
-  engine.editRows((rows) => {
+  engine.editRows((rows, ctx) => {
     const i = at(rows, source.id);
     if (i < 0) return null;
     const column = rows[i].columns?.length ?? 0;
-    const added = withHeader(rows[i], column, fit.residual);
+    const added = withHeader(rows[i], column, fit.residual, () => ctx.nextColour());
     if (typeof added === "string") return null;
-    const colour = nextColour(view.color, at(rows, rowId));
-    const styled = withColumnStyle(added, column, { color: colour });
-    return rows.map((r, k) => (k === i ? styled : r));
+    return rows.map((r, k) => (k === i ? added : r));
   });
   return source.id;
 }

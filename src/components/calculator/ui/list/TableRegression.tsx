@@ -25,6 +25,7 @@ import { TABLE_MODELS, TABLE_MODEL_SPECS } from "@/lib/calculator/regression/tab
 import { rowIconHex } from "@/lib/calculator/theme/roles";
 import { ColourKindGlyph, ZoomFitGlyph } from "../../icons/list";
 import { latexToSpeech } from "../../math-field/speech";
+import { InsertGlyph } from "./TableGlyphs";
 import { FocusContext } from "../focus/focus-controller";
 import { useSkin } from "../hooks/skin";
 import { useEngine, useEngineSnapshot } from "../hooks/use-engine";
@@ -178,14 +179,7 @@ export function TableRegression(props: {
                 if (made !== null && typeof made !== "string") focus?.focusRow(made.id, "end");
               }}
             >
-              <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
-                <path
-                  d="M2.5 2.5h8v3M2.5 2.5v11h11v-6M6 10l7-7M9 3h4v4"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.3"
-                />
-              </svg>
+              <InsertGlyph />
             </button>
           </div>
           <StaticMath

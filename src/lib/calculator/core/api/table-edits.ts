@@ -3,7 +3,6 @@
 // columns the same length, with trailing all-blank rows trimmed, so the one blank row a table
 // shows (D-5) is never stored. Package-internal.
 
-import { colourAfter, nextSlot } from "../../theme/roles";
 import type { AnalysisResult } from "../analysis";
 import { nextTableNames } from "../data/naming";
 import { tableHeaderFor } from "../data/table-from-row";
@@ -17,9 +16,11 @@ import {
 } from "./document";
 import type { EditRefusal } from "./engine";
 
-/** What CalculatorEngine.editRows hands an edit: fresh row ids and the D-4 names in use. */
+/** What CalculatorEngine.editRows hands an edit: fresh row ids, colours and the D-4 names in use. */
 export interface RowEditContext {
   nextId(): string; // consumes an id: call it only for a row that is kept
+  /** RT-2: the running counter's next colour (consumed even if the edit is dropped, as Desmos's). */
+  nextColour(): string;
   used: ReadonlySet<string>;
 }
 
@@ -35,18 +36,29 @@ export function usedNames(rows: readonly StoredRow[], analysis: AnalysisResult):
   return used;
 }
 
-/** D-5: a two-column table x_n, y_n with no data rows, coloured as a row at `index` (TH-10). */
-export function newTable(id: string, index: number, used: ReadonlySet<string>): StoredRow {
-  const names = nextTableNames(used, 1),
-    color = nextSlot(index);
-  const column = (latex: string): StoredColumn => ({ latex, values: [], color, hidden: false });
+/** D-5: a two-column table x_n, y_n with no data rows; each column takes the next colour (RT-2). */
+export function newTable(
+  id: string,
+  used: ReadonlySet<string>,
+  nextColour: () => string
+): StoredRow {
+  const names = nextTableNames(used, 1);
+  const column = (latex: string): StoredColumn => ({
+    latex,
+    values: [],
+    color: nextColour(),
+    hidden: false,
+  });
+  const x = column(names.x),
+    y = column(names.ys[0]);
   return {
     id,
     latex: "",
-    color,
+    color: x.color,
     hidden: false,
     type: "table",
-    columns: [column(names.x), column(names.ys[0])],
+    columns: [x, y],
+    blankColor: nextColour(),
   };
 }
 
@@ -80,26 +92,26 @@ export function withCell(
   return { ...row, columns: normalizeColumns(next) };
 }
 
-/** D-9: header `column` set to `latex`; one past the last column adds a column (at most 10). */
-export function withHeader(row: StoredRow, column: number, latex: string): StoredRow | EditRefusal {
+/**
+ * D-9: header `column` set to `latex`; one past the last column adds a column (at most 10) in the
+ * next colour (RT-2).
+ */
+export function withHeader(
+  row: StoredRow,
+  column: number,
+  latex: string,
+  nextColour: () => string
+): StoredRow | EditRefusal {
   const columns = row.columns ?? [];
   if (latex.length > MAX_CELL_CHARACTERS) return "char-limit";
   if (column === columns.length) {
     if (columns.length >= MAX_TABLE_COLUMNS) return "row-limit";
-    const color = nextColour(columns.at(-1)?.color, columns.length);
+    const color = row.blankColor ?? nextColour();
     const added: StoredColumn = { latex, values: [], color, hidden: false };
-    return { ...row, columns: normalizeColumns([...columns, added]) };
+    return { ...row, columns: normalizeColumns([...columns, added]), blankColor: nextColour() };
   }
   if (column < 0 || column > columns.length) return "row-limit";
   return { ...row, columns: columns.map((c, j) => (j === column ? { ...c, latex } : c)) };
-}
-
-/**
- * The colour after `color` in F-A1's new-row cycle ("c2" after "c1", red after black), or
- * `nextSlot(fallback)` for an explicit colour outside the cycle.
- */
-export function nextColour(color: string | undefined, fallback: number): string {
-  return colourAfter(color, fallback);
 }
 
 /** D-8: data row `r` removed from every column. */
@@ -111,30 +123,34 @@ export function withoutTableRow(row: StoredRow, r: number): StoredRow {
   return { ...row, columns: normalizeColumns(columns) };
 }
 
-/** D-13: the table Create table inserts below `row`, or null when the row has no function. */
+/**
+ * D-13, RT-10: the table Create table inserts below `row`, or null when the row has no function.
+ * The first column takes the next colour (RT-2), the computed second column the row's.
+ */
 export function tableFromRow(
   row: StoredRow,
   rows: readonly StoredRow[],
-  nextId: () => string, // called only when a table is made
-  used: ReadonlySet<string>
+  ctx: RowEditContext // ids and colours are taken only when a table is made
 ): StoredRow | null {
   const functions = new Set(rows.flatMap((r) => functionDefinitionHead(r.latex)?.name ?? []));
   const header = row.type === "table" ? null : tableHeaderFor(row.latex, functions);
   if (header === null) return null;
-  const x = nextTableNames(used, 1).x;
-  const column = (latex: string, values: string[]): StoredColumn => ({
+  const x = nextTableNames(ctx.used, 1).x;
+  const column = (latex: string, values: string[], color: string): StoredColumn => ({
     latex,
     values,
-    color: row.color,
+    color,
     hidden: false,
   });
+  const first = column(x, ["-2", "-1", "0", "1", "2"], ctx.nextColour());
   return {
-    id: nextId(),
+    id: ctx.nextId(),
     latex: "",
     color: row.color,
     hidden: false,
     type: "table",
-    columns: [column(x, ["-2", "-1", "0", "1", "2"]), column(header(x), [])],
+    columns: [first, column(header(x), [], row.color)],
+    blankColor: ctx.nextColour(),
   };
 }
 

@@ -5,7 +5,7 @@
 /* EL-41: a table item's grid and buttons start 53 px in, clear of the 38 px gutter tab, with the
    delete cross's room at the right. */
 .kc-table-item .kc-row-main {
-  padding: 15px 35px 0 53px;
+  padding: 15px 35px 9px 53px;
 }
 
 /* RT-6, measured on the reference at 1440 x 900: the grid starts 15 px further in, a 42 px header
@@ -59,6 +59,17 @@
 
 .kc-table-row[data-header="true"] .mq-math-mode {
   font-size: 17.02px;
+}
+
+/* RT-6, as the reference draws it: the blank last row has no bottom rule and fades out over its
+   lower 30 px (its column rules and computed shading with it). A focused cell is never faded, so
+   its focus ring stays whole. */
+.kc-table-row:last-child > .kc-table-cell {
+  border-bottom-color: transparent;
+}
+
+.kc-table-row:last-child > .kc-table-cell:not(:focus-within) {
+  mask-image: linear-gradient(to bottom, currentColor 4px, transparent 34px);
 }
 
 /* D-10, D-19, RT-6: computed cells are read-only and, as on the reference, shaded grey. */
@@ -186,10 +197,12 @@
   color: var(--kc-focus-bar-label);
 }
 
-/* The cell's math sits 20 px in (6 px after a colour icon), 5 px from top and bottom. */
+/* The cell's math is centred 20 px clear of either side (6 px after a colour icon), 5 px from top
+   and bottom, as the reference sets it. */
 .kc-table-field .mq-editable-field {
   box-sizing: border-box;
   padding: 5px 20px;
+  text-align: center;
 }
 
 .kc-column-style + .kc-table-field .mq-editable-field {
@@ -246,8 +259,8 @@
 }
 
 .kc-table-add-regression > svg {
-  width: 20px;
-  height: 20px;
+  width: 30px;
+  height: 30px;
 }
 
 /* RT-6: a computed cell's scientific exponent, raised as in the reference's typeset cells. */
