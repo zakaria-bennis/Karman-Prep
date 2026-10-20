@@ -27,6 +27,7 @@ export interface TableGeometry {
   rowId: string;
   evaluations: number;
   series: { column: number; coords: Float64Array }[];
+  regression?: CurveGeometry; // RT-16, RT-28: the table regression's curve over the view
 }
 export interface PointGeometry extends GeometryBase {
   kind: "points";
@@ -56,7 +57,10 @@ function arraysOf(g: Geometry): ArrayBufferView[] {
     case "region":
       return [g.spans, ...g.boundaries.flatMap(arraysOf)];
     case "table":
-      return g.series.map((s) => s.coords);
+      return [
+        ...g.series.map((s) => s.coords),
+        ...(g.regression ? [g.regression.polylines, g.regression.bands] : []),
+      ];
   }
 }
 

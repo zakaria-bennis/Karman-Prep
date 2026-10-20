@@ -291,3 +291,21 @@ class KarmanMathField implements MathField {
 export function createMathField(host: HTMLElement, options: MathFieldOptions): MathField {
   return new KarmanMathField(host, options);
 }
+
+/**
+ * RT-23, RT-30: `latex` typeset read-only in `host` (MathQuill's static math), for regression
+ * equations and statistics. The host keeps its own accessible name; the math is aria-hidden.
+ * Falls back to the plain latex text where MathQuill cannot typeset (no layout engine).
+ */
+export function renderStaticMath(host: HTMLElement, latex: string): void {
+  const api = mathQuill() as unknown as {
+    StaticMath?: (el: HTMLElement) => { latex(value: string): void };
+  };
+  try {
+    if (api.StaticMath === undefined) throw new Error("no static math");
+    host.textContent = "";
+    api.StaticMath(host).latex(latex);
+  } catch {
+    host.textContent = latex;
+  }
+}

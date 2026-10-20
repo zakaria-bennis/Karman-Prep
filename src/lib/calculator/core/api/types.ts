@@ -2,6 +2,7 @@
 // section 11). Shared by the headless engine, KarmanCalculator and the hosts.
 
 import type { PixelSize, Viewport } from "../../plot/viewport";
+import type { TableModel } from "../../regression/table-models";
 
 export type AngleMode = "radians" | "degrees";
 export type LineStyle = "solid" | "dashed" | "dotted"; // R-4 (Phase 2 picker)
@@ -73,6 +74,17 @@ export interface ExpressionState {
   pointStyle?: PointStyle;
   sliderBounds?: { min: string; max: string; step: string };
   columns?: { latex: string; values: string[]; color?: string; hidden?: boolean }[];
+  regression?: TableRegressionState; // RT-28: tables only
+}
+/** RT-28: a table's regression; `columns.x` is always 0. */
+export interface TableRegressionState {
+  type: TableModel;
+  columns: { x: number; y: number };
+  color?: string;
+  hidden?: boolean;
+  lineStyle?: LineStyle;
+  isLogMode?: boolean;
+  residualVariable?: string;
 }
 export interface CalculatorState {
   version: 1;

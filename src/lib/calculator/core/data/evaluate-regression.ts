@@ -32,6 +32,7 @@ const notData = (r: RegressionAnalysis): RegressionOutcome => ({
   residuals: [],
   logMode: { available: false, on: false },
   approximate: false,
+  isLinear: true,
   residualName: r.residual,
 });
 
@@ -61,6 +62,8 @@ export function evaluateRegression(
     model,
     logForm: r.logForm,
     logMode: r.logMode,
+    plainLeft: r.observed.kind === "id",
+    uniquePredictor: r.predictors.length === 1,
   });
   return { ...result, residualName: r.residual };
 }

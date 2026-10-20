@@ -51,7 +51,7 @@ import {
 } from "./row-actions";
 import { fieldTextbox, rowDomIds, rowTab } from "./row-model";
 import { RegressionPanel, STATISTICS_HINT } from "./RegressionPanel";
-import { createTableBelow, offersCreateTable, RowMenu } from "./RowMenu";
+import { convertsInPlace, createTableBelow, offersCreateTable, RowMenu } from "./RowMenu";
 import { EditRowActions } from "./EditRowActions";
 import { ToastContext } from "./Toast";
 import { RowValue } from "./RowValue";
@@ -386,6 +386,7 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
             rowId={row.id}
             number={number}
             canTabulate={offersCreateTable(engine, row.id)}
+            convertsInPlace={convertsInPlace(engine, row.id)}
             onCreateTable={() => createTableBelow(engine, focus, announcer, toaster, row.id)}
           />
         ) : (

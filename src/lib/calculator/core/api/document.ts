@@ -4,6 +4,8 @@
 // every list and row the document holds is frozen.
 
 import type { PixelSize } from "../../plot/viewport";
+import type { TableModel } from "../../regression/table-models";
+import { NEW_ROW_COLOURS } from "../../theme/desmos-palette";
 import type { LineStyle, PointStyle } from "./types";
 
 /** Undo steps kept; the oldest is dropped first (Decision 6's plan value; no spec ID sets a size). */
@@ -26,6 +28,22 @@ export interface StoredRow {
   readonly type?: "table"; // D-1: absent for an expression row
   readonly columns?: readonly StoredColumn[]; // tables only
   readonly logMode?: boolean; // D-30: a regression row's Log mode checkbox
+  readonly regression?: StoredTableRegression; // RT-28: a table's one regression
+  /**
+   * RT-2: the colour a table's blank header slot already took from the counter; a column typed
+   * into that slot keeps it and the new blank slot takes the next one. Never in the public state.
+   */
+  readonly blankColor?: string;
+}
+/** RT-28: a table regression; x is always the first column. */
+export interface StoredTableRegression {
+  readonly type: TableModel;
+  readonly y: number; // the y column's index (at least 1)
+  readonly color: string;
+  readonly hidden: boolean;
+  readonly logMode: boolean; // kept where Log Mode is not offered (RT-24c)
+  readonly lineStyle?: LineStyle;
+  readonly residual?: string; // e_k, chosen on the first fit and cleared by a type or column change (RT-25)
 }
 /** D-1: one table column; `values` holds each cell's LaTeX, "" for a blank cell. */
 export interface StoredColumn {
@@ -53,6 +71,7 @@ function freezeRows(rows: RowList): RowList {
   return Object.freeze(
     rows.map((row) => {
       if (row.sliderBounds !== undefined) Object.freeze(row.sliderBounds);
+      if (row.regression !== undefined) Object.freeze(row.regression);
       if (row.columns !== undefined) {
         for (const column of row.columns) Object.freeze(Object.freeze(column).values);
         Object.freeze(row.columns);
@@ -85,11 +104,26 @@ function sameColumns(a?: readonly StoredColumn[], b?: readonly StoredColumn[]): 
   });
 }
 
+function sameRegression(a?: StoredTableRegression, b?: StoredTableRegression): boolean {
+  if (a === b) return true;
+  if (a === undefined || b === undefined) return false;
+  return (
+    a.type === b.type &&
+    a.y === b.y &&
+    a.color === b.color &&
+    a.hidden === b.hidden &&
+    a.logMode === b.logMode &&
+    a.lineStyle === b.lineStyle &&
+    a.residual === b.residual
+  );
+}
+
 function sameRow(a: StoredRow, b: StoredRow): boolean {
   if (a === b) return true;
   if (a.type !== b.type || a.logMode !== b.logMode || !sameColumns(a.columns, b.columns)) {
     return false;
   }
+  if (!sameRegression(a.regression, b.regression)) return false;
   const sa = a.sliderBounds,
     sb = b.sliderBounds;
   return (
@@ -111,6 +145,8 @@ function sameRow(a: StoredRow, b: StoredRow): boolean {
 export class RowDocument {
   private list: RowList = [];
   private counter = 0;
+  /** RT-2: the running colour counter (an index into NEW_ROW_COLOURS); never undone. */
+  private colourIndex = 0;
   private past: RowList[] = [];
   private future: RowList[] = [];
   /** The open typing group: its row and the time of its last edit. */
@@ -128,7 +164,24 @@ export class RowDocument {
   reset(): void {
     this.list = freezeRows([{ id: "1", latex: "", color: "c1", hidden: false }]);
     this.counter = 1;
+    this.colourIndex = 1; // row "1" took red
     this.clearHistory();
+  }
+
+  /**
+   * RT-2: the next colour of the running counter (red, blue, green, purple, black, skipping
+   * orange), taken by every new row, table column, regression, exported row and residual column.
+   */
+  takeColour(): string {
+    const colour = NEW_ROW_COLOURS[this.colourIndex];
+    this.colourIndex = (this.colourIndex + 1) % NEW_ROW_COLOURS.length;
+    return colour;
+  }
+
+  /** RT-2: restarts the counter at red, as loading a whole state does; returns the taker. */
+  restartColours(): () => string {
+    this.colourIndex = 0;
+    return () => this.takeColour();
   }
 
   /** One more than the larger of the counter and the largest decimal id present (Decision 7). */

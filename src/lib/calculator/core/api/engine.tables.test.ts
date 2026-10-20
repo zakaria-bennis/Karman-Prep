@@ -2,7 +2,7 @@ import { beforeEach, expect, it } from "vitest";
 import { createTestEngine, type TestEngine } from "./__fixtures__/test-engine";
 import type { StoredColumn, StoredRow } from "./document";
 import { createTableFromRow } from "./row-commands";
-import { nextColour, withHeader } from "./table-edits";
+import { withHeader } from "./table-edits";
 
 let t: TestEngine;
 let e: TestEngine["engine"];
@@ -159,40 +159,29 @@ it("D-9 deleteTableColumn removes a later column with its data as one undo step 
   expect(headers("t")).toEqual(["x_{1}", "y_{1}", "y_{2}"]);
 });
 
-it("D-13 createTableFromRow inserts a table of the row's function below it as one undo step", () => {
+it("D-13, RT-10 createTableFromRow inserts a table of the row's function below it as one undo step", () => {
   e.setExpression({ id: "a", latex: "y=x^{2}", color: "c3" });
   const made = createTableFromRow(e, "a") as { id: string };
   expect(e.getSnapshot().rows.map((r) => r.id)).toEqual(["1", "a", made.id]);
   expect(headers(made.id)).toEqual(["x_{1}", "x_{1}^{2}"]);
   expect(cells(made.id)[0]).toEqual(["-2", "-1", "0", "1", "2"]);
-  expect(table(made.id).columns!.map((c) => c.color)).toEqual(["c3", "c3"]);
+  // RT-10: the first column takes the next colour (RT-2), the computed column the row's
+  expect(table(made.id).columns!.map((c) => c.color)).toEqual(["c2", "c3"]);
   e.undo();
   expect(e.getSnapshot().rows.map((r) => r.id)).toEqual(["1", "a"]);
   e.setExpression({ id: "b", latex: "x=3" });
   expect(createTableFromRow(e, "b")).toBeNull();
 });
 
-it("D-9, F-A1 a new column takes the colour after the last one in the new-row cycle, so red follows black", () => {
-  const added = (color: string) => {
-    const row: StoredRow = {
-      id: "t",
-      type: "table",
-      latex: "",
-      color: "c1",
-      hidden: false,
-      columns: [{ latex: "x_{1}", values: [], color, hidden: false }],
-    };
-    const next = withHeader(row, 1, "y_{1}");
-    return typeof next === "string" ? next : next.columns?.[1].color;
+it("RT-2 a new column takes the next colour of the running counter, whatever the last column's", () => {
+  const row: StoredRow = {
+    id: "t",
+    type: "table",
+    latex: "",
+    color: "c1",
+    hidden: false,
+    columns: [{ latex: "x_{1}", values: [], color: "#123456", hidden: false }],
   };
-  expect(["c1", "c2", "#388c46", "c4", "c5", "c6", "#123456"].map(added)).toEqual([
-    "c2",
-    "#388c46",
-    "c4",
-    "c6",
-    "c6",
-    "c1",
-    "c2", // an explicit colour falls back to nextSlot(the column index), here 1
-  ]);
-  expect(nextColour("c6", 0)).toBe("c1");
+  const next = withHeader(row, 1, "y_{1}", () => "c4");
+  expect(typeof next === "string" ? next : next.columns?.[1].color).toBe("c4");
 });

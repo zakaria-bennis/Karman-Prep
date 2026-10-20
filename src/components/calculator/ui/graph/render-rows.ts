@@ -111,6 +111,19 @@ function tableRenderRows(
   selected: boolean
 ): RenderRow[] {
   const out: RenderRow[] = [];
+  const regression = row.table?.analysis.regression ?? null;
+  if (g.regression !== undefined && regression !== null && !regression.hidden) {
+    // RT-16: the regression curve under the points, in the regression's colour and line style.
+    const { hex, fillAlpha } = resolveRowColor(regression.color, skin);
+    out.push({
+      rowId: row.id,
+      color: hex,
+      fillAlpha,
+      selected,
+      geometry: { ...g.regression, dashed: regression.lineStyle === "dashed" },
+      lineStyle: regression.lineStyle,
+    });
+  }
   for (const { column, coords } of g.series) {
     const stored = row.columns?.[column];
     if (stored === undefined) continue;

@@ -1,0 +1,494 @@
+/* A table's regression panel (RT-28 to RT-32), measured on the reference at 1440 x 900: a 36 px
+   header row (29 px colour icon, the 36 px model dropdown with a 2 px rule border and 5 px corners,
+   the ⋮ button), then 11.2 px upper-case muted section titles, the typeset equation at 14.72 px,
+   and STATISTICS and RESIDUALS in 130 px columns. Colours come only from role variables (TH-3). */
+
+/* 6 px under the grid, and 18 px wider than the grid's column on the right, into the delete
+   cross's room, as the reference's panel is; its last line sits into the item's 9 px foot as the
+   reference's (negative bottom margin) does. */
+.kc-tr {
+  position: relative;
+  margin: 6px -18px -9px 0;
+  color: var(--kc-text);
+  font-family: var(--kc-font-ui);
+  font-size: var(--kc-size-small);
+}
+
+.kc-tr-header {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  height: 36px;
+}
+
+/* The colour icon reuses the row tab's look, placed in the header instead of the gutter. */
+.kc-tr .kc-tr-icon {
+  position: static;
+  flex: none;
+  margin-right: 0;
+}
+
+.kc-tr-warning {
+  display: inline-flex;
+  flex: none;
+  width: 29px;
+  height: 29px;
+  align-items: center;
+  justify-content: center;
+  color: var(--kc-warning);
+}
+
+.kc-tr-warning svg {
+  width: 24px;
+  height: 24px;
+}
+
+.kc-tr-warning-mark {
+  fill: var(--kc-list);
+}
+
+.kc-tr-select {
+  position: relative;
+  min-width: 0;
+}
+
+.kc-tr-model {
+  flex: 1 1 auto;
+}
+
+.kc-tr-select-button {
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  width: 100%;
+  height: 36px;
+  padding: 0 8px;
+  border: 2px solid var(--kc-rule);
+  border-radius: 5px;
+  background: var(--kc-list);
+  color: var(--kc-text);
+  font-family: var(--kc-font-ui);
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.kc-tr-select-button:hover,
+.kc-tr-select[data-open="true"] .kc-tr-select-button {
+  border-color: var(--kc-hidden-ring);
+}
+
+.kc-tr-select[data-open="true"] .kc-tr-select-button {
+  border-radius: 5px 5px 0 0;
+}
+
+.kc-tr-select-button:focus-visible {
+  outline: 2px solid var(--kc-focus-ring);
+  outline-offset: 1px;
+}
+
+.kc-tr-select-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* The caret: a small solid triangle, down when closed and up when open. */
+.kc-tr-caret {
+  flex: none;
+  width: 0;
+  height: 0;
+  margin: 0 2px 0 8px;
+  border: 6px solid transparent;
+  border-top: 7px solid var(--kc-text-muted);
+  border-bottom-width: 0;
+}
+
+.kc-tr-select[data-open="true"] .kc-tr-caret {
+  border-top-width: 0;
+  border-bottom: 7px solid var(--kc-text-muted);
+}
+
+.kc-tr-select-list {
+  position: fixed;
+  z-index: 7;
+  box-sizing: border-box;
+  border: 1px solid var(--kc-rule);
+  border-top: none;
+  border-radius: 0 0 5px 5px;
+  background: var(--kc-list);
+}
+
+.kc-tr-option {
+  box-sizing: border-box;
+  height: 29px;
+  padding: 7px;
+  font-size: 13.6px;
+  line-height: 15px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.kc-tr-option:hover,
+.kc-tr-option:focus {
+  outline: none;
+  background: var(--kc-hover-fill);
+}
+
+.kc-tr-option[data-selected="true"] {
+  background: color-mix(in srgb, var(--kc-focus-ring) 15%, var(--kc-list));
+}
+
+.kc-tr-select-footer {
+  padding: 6px 30px 7px 8px;
+  border-top: 1px solid var(--kc-rule);
+  color: var(--kc-text-muted);
+  font-size: 12.8px;
+  font-style: italic;
+  line-height: 17px;
+}
+
+.kc-tr-select-footer p {
+  margin: 0;
+}
+
+.kc-tr-select-footer a {
+  color: var(--kc-focus-ring);
+}
+
+.kc-tr-tilde {
+  display: inline-block;
+  padding: 0 5px;
+  border: 1px solid var(--kc-hidden-ring);
+  border-radius: 3px;
+  font-style: normal;
+  line-height: 14px;
+}
+
+.kc-tr-for {
+  flex: none;
+  font-size: 14px;
+}
+
+.kc-tr-column {
+  flex: none;
+  width: 72px;
+}
+
+.kc-tr-more-wrap {
+  position: relative;
+  flex: none;
+}
+
+.kc-tr-more {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 21px;
+  margin-left: 2px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--kc-text);
+  opacity: var(--kc-icon-rest);
+  cursor: pointer;
+}
+
+.kc-tr-more:hover,
+.kc-tr-more[aria-expanded="true"] {
+  opacity: var(--kc-icon-pressed);
+}
+
+.kc-tr-more svg {
+  width: 18px;
+  height: 18px;
+}
+
+.kc-tr-options {
+  position: fixed;
+  z-index: 7;
+  box-sizing: border-box;
+  width: 245px;
+  border: 1px solid var(--kc-boundary);
+  border-radius: 6px;
+  background: var(--kc-list);
+  box-shadow: var(--kc-popover-shadow);
+}
+
+.kc-tr-options::before,
+.kc-tr-options::after {
+  content: "";
+  position: absolute;
+  right: 13px;
+  border: 8px solid transparent;
+  border-top-width: 0;
+}
+
+.kc-tr-options::before {
+  top: -9px;
+  border-bottom-color: var(--kc-boundary);
+}
+
+.kc-tr-options::after {
+  top: -8px;
+  border-bottom-color: var(--kc-list);
+}
+
+.kc-tr-options-section {
+  padding: 10px;
+}
+
+.kc-tr-options-section + .kc-tr-options-section {
+  border-top: 1px solid var(--kc-rule);
+}
+
+.kc-tr-options-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.kc-tr-options-button {
+  box-sizing: border-box;
+  width: 100%;
+  height: 34px;
+  border: 1px solid var(--kc-rule);
+  border-radius: 3px;
+  background: var(--kc-tab);
+  color: var(--kc-text);
+  font-family: var(--kc-font-ui);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.kc-tr-options-button[data-danger="true"] {
+  border-color: var(--kc-curve-1);
+  background: var(--kc-curve-1);
+  color: var(--kc-list);
+}
+
+.kc-tr-options-note {
+  margin: 0;
+  color: var(--kc-text-muted);
+  font-size: 12.8px;
+  line-height: 17px;
+}
+
+.kc-tr-structure {
+  display: block;
+  margin-top: 6px;
+}
+
+.kc-tr-title {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  height: 17px;
+  color: var(--kc-text-muted);
+  font-size: 11.2px;
+  text-transform: uppercase;
+}
+
+.kc-tr-equation-title {
+  margin-top: 8px;
+}
+
+/* RT-30: the EQUATION insert icon, right after the title: a 21 x 17 target whose 26 px glyph (a
+   sheet with an arrow into it, our own drawing) overhangs it, at 40% as the reference's. */
+.kc-tr-insert {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 21px;
+  height: 17px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--kc-text);
+  opacity: 0.4;
+  cursor: pointer;
+}
+
+.kc-tr-insert:hover {
+  opacity: var(--kc-icon-pressed);
+}
+
+.kc-tr-insert svg {
+  flex: none;
+  width: 26px;
+  height: 26px;
+}
+
+/* Regression math is 14.72 px (115% of 12.8 px); base.css sets every .mq-math-mode to the row
+   size, so the static math overrides it. The ⋮ menu's structure is larger. */
+.kc-static-math {
+  display: inline-block;
+}
+
+.kc-static-math .mq-math-mode {
+  font-size: 14.72px;
+}
+
+.kc-tr-structure .mq-math-mode {
+  font-size: 17.6px;
+}
+
+.kc-static-math:focus-visible {
+  outline: 2px solid var(--kc-focus-ring);
+  outline-offset: 1px;
+}
+
+.kc-tr-equation {
+  display: flex;
+  align-items: center;
+  min-height: 26px;
+  margin-top: 2px;
+}
+
+.kc-tr-param-warning {
+  margin: 6px 0 0;
+  color: var(--kc-text-muted);
+  font-size: 12.8px;
+}
+
+.kc-tr-log {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  font-size: 12.8px;
+}
+
+.kc-tr-log label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+}
+
+.kc-tr-help {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--kc-text-muted);
+  color: var(--kc-list);
+  font-size: 10px;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.kc-tr-footer {
+  display: flex;
+  margin-top: 8px;
+}
+
+.kc-tr-group {
+  display: flex;
+  flex: 0 0 130px;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* The values start 2 px under the title; the indented r follows R² with no gap. */
+.kc-tr-group .kc-tr-title + * {
+  margin-top: 2px;
+}
+
+.kc-tr-group .kc-tr-title {
+  height: 12px;
+}
+
+.kc-tr-stat {
+  display: flex;
+  align-items: baseline;
+  min-height: 19px;
+  color: var(--kc-text);
+}
+
+.kc-tr-stat[data-label="r"] {
+  padding-left: 10.24px;
+}
+
+.kc-tr-undefined {
+  font-size: 12.8px;
+}
+
+.kc-tr-residual {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+}
+
+.kc-tr-plot {
+  box-sizing: border-box;
+  height: 22px;
+  padding: 2px 8px;
+  border: 1px solid var(--kc-row-rule);
+  border-radius: 3px;
+  background: var(--kc-list);
+  color: var(--kc-text);
+  font-family: var(--kc-font-ui);
+  font-size: 12.8px;
+  line-height: 16px;
+  cursor: pointer;
+}
+
+.kc-tr-plot:hover {
+  background: var(--kc-tab);
+}
+
+/* RT-27: the residual Zoom Fit sits right after e_k (no gap), a 20 px box with a 13 px glyph at
+   half strength, as the reference's. */
+.kc-tr-zoom {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  margin-left: -7px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--kc-text);
+  opacity: 0.5;
+  cursor: pointer;
+}
+
+.kc-tr-zoom:hover {
+  opacity: var(--kc-icon-pressed);
+}
+
+/* RT-8, RT-28: the column style menu's "Add Regression", a full-width grey button as on the
+   reference, greyed when the column does not qualify. */
+.kc-style-regression {
+  box-sizing: border-box;
+  width: 100%;
+  height: 28px;
+  border: 1px solid var(--kc-rule);
+  border-radius: 3px;
+  background: var(--kc-tab);
+  color: var(--kc-text);
+  font-family: var(--kc-font-ui);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.kc-style-regression:hover {
+  background: var(--kc-hover-fill);
+}
+
+.kc-style-regression[aria-disabled="true"] {
+  opacity: var(--kc-icon-disabled);
+  cursor: default;
+}
+
+.kc-style-regression:focus-visible {
+  outline: 2px solid var(--kc-focus-ring);
+  outline-offset: 1px;
+}

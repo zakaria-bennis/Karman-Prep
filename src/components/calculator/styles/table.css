@@ -5,43 +5,88 @@
 /* EL-41: a table item's grid and buttons start 53 px in, clear of the 38 px gutter tab, with the
    delete cross's room at the right. */
 .kc-table-item .kc-row-main {
-  padding: 15px 35px 0 53px;
+  padding: 15px 35px 9px 53px;
 }
 
+/* RT-6, measured on the reference at 1440 x 900: the grid starts 15 px further in, a 42 px header
+   row ruled off by a 1 px text-colour line, 34 px body rows ruled by light lines, the first column
+   ruled off by a text-colour line and later columns by light ones, no outer frame, and math at
+   17.02 px in headers and 14.72 px in cells, 20 px in from each cell's left. */
 .kc-table {
-  display: block;
+  display: grid; /* TableItem sets the content-sized column tracks (RT-6) */
   width: max-content;
-  max-width: 100%;
+  max-width: calc(100% - 15px);
+  margin-left: 15px;
   overflow-x: auto;
   font-family: var(--kc-font-math);
-  font-size: var(--kc-size-math);
+  font-size: 14.72px;
 }
 
-.kc-table-row {
-  display: flex;
+/* Every row lays its cells on the table's shared column tracks. */
+.kc-table-row,
+.kc-table-more {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
 }
 
+/* RT-6: as the reference measures them, a first-column cell is at least 61 px and a later one,
+   which leaves room for a colour icon, at least 81 px; the blank slot keeps its 60 px track. */
 .kc-table-cell {
   display: flex;
-  flex: 0 0 96px; /* D-42: one width for every column */
   align-items: center;
   box-sizing: border-box;
-  min-width: 0;
-  height: 32px;
-  padding: 0 6px;
-  border: 1px solid var(--kc-boundary);
-  margin: 0 -1px -1px 0;
+  min-width: 81px;
+  height: 34px;
+  padding: 0 1px;
+  border-right: 1px solid var(--kc-rule);
+  border-bottom: 1px solid var(--kc-rule);
   overflow: hidden;
   color: var(--kc-text);
 }
 
-.kc-table-row[data-header="true"] > .kc-table-cell {
-  background: var(--kc-chrome);
+.kc-table-cell:first-child {
+  min-width: 61px;
+  border-right-color: var(--kc-text);
 }
 
-/* D-10, D-19: computed cells are read-only and set apart by their secondary text. */
+.kc-table-cell[data-slot="true"],
+.kc-table-slot {
+  min-width: 0;
+}
+
+.kc-table-cell:not(:has(~ .kc-table-cell)) {
+  border-right-color: transparent;
+}
+
+.kc-table-row[data-header="true"] > .kc-table-cell {
+  height: 42px;
+  border-bottom-color: var(--kc-text);
+}
+
+.kc-table .mq-math-mode {
+  font-size: 14.72px;
+}
+
+.kc-table-row[data-header="true"] .mq-math-mode {
+  font-size: 17.02px;
+}
+
+/* RT-6, as the reference draws it: the blank last row has no bottom rule and fades out over its
+   lower 30 px (its column rules and computed shading with it). A focused cell is never faded, so
+   its focus ring stays whole. */
+.kc-table-row:last-child > .kc-table-cell {
+  border-bottom-color: transparent;
+}
+
+.kc-table-row:last-child > .kc-table-cell:not(:focus-within) {
+  mask-image: linear-gradient(to bottom, currentColor 4px, transparent 34px);
+}
+
+/* D-10, D-19, RT-6: computed cells are read-only and, as on the reference, shaded grey. */
 .kc-table-cell[data-computed="true"] {
-  color: var(--kc-text-secondary);
+  justify-content: center; /* centred in the column, as the reference sets them */
+  background: var(--kc-chip-fill);
 }
 
 .kc-table-cell:focus-within {
@@ -104,22 +149,129 @@
   flex: none;
 }
 
+/* The column's colour icon: a 29 px disc in the column colour with white points, an empty grey
+   ring while its points are hidden, 5 px in from the cell edge as on the reference. */
 .kc-column-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
+  width: 29px;
+  height: 29px;
+  margin-left: 4px;
   padding: 0;
   border: none;
-  border-radius: 4px;
-  background: transparent;
-  color: var(--kc-row-color);
+  border-radius: 50%;
+  background: var(--kc-row-color);
+  box-shadow: inset 0 0 3px var(--kc-rule);
+  color: var(--kc-list);
   cursor: pointer;
   touch-action: none;
+}
+
+.kc-column-icon[aria-pressed="false"] {
+  background: transparent;
+  box-shadow: inset 0 0 0 5px var(--kc-hidden-ring);
+  opacity: 0.25;
 }
 
 .kc-table-field {
   flex: 1 1 auto;
   min-width: 0;
+}
+
+/* RT-8, RT-28: Add row, Zoom Fit and Add Regression stacked at the foot of the gutter, 30 px
+   targets with 20 px glyphs at 65% text, white on the focus bar while the table is selected. */
+.kc-table-actions {
+  position: absolute;
+  bottom: 6px;
+  left: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.kc-table-actions .kc-table-add-row {
+  width: 30px;
+  height: 30px;
+  background: transparent;
+  color: var(--kc-row-number);
+}
+
+.kc-table-actions .kc-table-add-row > svg {
+  width: 20px;
+  height: 20px;
+}
+
+.kc-row:is([data-focused="true"], .kc-app:has(.kc-keypad:focus-within) [data-active="true"])
+  .kc-table-actions
+  .kc-table-add-row {
+  color: var(--kc-focus-bar-label);
+}
+
+/* The cell's math is centred 20 px clear of either side (6 px after a colour icon), 5 px from top
+   and bottom, as the reference sets it. */
+.kc-table-field .mq-editable-field {
+  box-sizing: border-box;
+  padding: 5px 20px;
+  text-align: center;
+}
+
+.kc-column-style + .kc-table-field .mq-editable-field {
+  padding-left: 6px;
+}
+
+/* Add row (ours) fades in with focus or hover anywhere in the table, so it stays reachable by
+   keyboard and pointer; Zoom Fit stays, as the reference's does while points are plotted. */
+.kc-table-item:not(:focus-within):not(:hover):not([data-focused="true"])
+  .kc-table-actions
+  .kc-table-add-row:not(.kc-table-zoom) {
+  opacity: 0;
+}
+
+/* RT-6, TABLES-28: the collapsed-rows line, "18 more rows" in muted italics and a "Show all"
+   link, centred under the grid's columns on a row of the cells' height. */
+.kc-table-more-cell {
+  box-sizing: border-box;
+  height: 33px;
+  border-bottom: 1px solid var(--kc-rule);
+  color: var(--kc-text-muted);
+  font-family: var(--kc-font-ui);
+  font-size: 12.8px;
+  font-style: italic;
+  line-height: 32px;
+  text-align: center;
+}
+
+.kc-table-more-show {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--kc-focus-ring);
+  font: inherit;
+  font-style: normal;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* RT-28: the gutter's Add Regression, at its head under the row number as on the reference. */
+.kc-table-add-regression {
+  position: absolute;
+  top: 9px;
+  left: 4px;
+  width: 30px;
+  height: 30px;
+  background: transparent;
+  color: var(--kc-row-number);
+}
+
+.kc-table-add-regression > svg {
+  width: 30px;
+  height: 30px;
+}
+
+/* RT-6: a computed cell's scientific exponent, raised as in the reference's typeset cells. */
+.kc-table-exponent {
+  font-size: 0.75em;
+  line-height: 0;
+  vertical-align: 0.6em;
 }

@@ -7,7 +7,6 @@ import { clampViewport, defaultViewport, type Viewport, type ViewSpec } from "..
 import { buildCompileScope } from "../../plot/from-analysis";
 import { poiCurvesFor } from "../../poi/index";
 import type { PoiCurve } from "../../poi/types";
-import { nextSlot } from "../../theme/roles";
 import type { ComputeBackend } from "../../worker/backend";
 import { analyzeRows, type AnalysisResult } from "../analysis";
 import { MAX_ROW_CHARACTERS, MAX_ROWS } from "../latex";
@@ -89,6 +88,7 @@ export class CalculatorEngine {
   private readonly deps: EngineDeps;
   private readonly options: CalculatorOptions;
   private readonly doc = new RowDocument();
+  private readonly colours = () => this.doc.takeColour(); // RT-2: the running counter
   private readonly observers: EngineObservers;
   private readonly inbox = new ResultInbox({
     onFault: (message) => this.options.onError?.(new Error(`Calculator worker fault: ${message}`)),
@@ -131,7 +131,7 @@ export class CalculatorEngine {
 
   // ── public API (API-2 to API-13); after destroy() every member throws "destroyed" (live()) ──
 
-  /** API-2: upserts one row by id; a new row takes nextSlot(rowIndex) (TH-10). */
+  /** API-2: upserts one row by id; a new row takes the next colour (RT-2). */
   setExpression(state: ExpressionState): void {
     this.live().upsert("setExpression", [validateExpressionState(state)]);
   }
@@ -173,7 +173,8 @@ export class CalculatorEngine {
     this.live();
     const valid = validateState(state);
     const allowUndo = validateAllowUndo(options, "setState");
-    const rows = rowsFromState(valid.expressions);
+    const rows = rowsFromState(valid.expressions, this.doc.restartColours()); // RT-2
+    if (rows.length === 0) this.colours(); // the blank row the document adds takes red
     if (!allowUndo) {
       this.doc.commit(rows, { kind: "none" });
       this.doc.clearHistory();
@@ -342,7 +343,7 @@ export class CalculatorEngine {
 
   /**
    * A new empty row after `afterId` (at the end for null or an unknown id) with the next decimal
-   * id and nextSlot(its index) (Decision 7); refused with "row-limit" at MAX_ROWS (NM-42) and,
+   * id and the next colour (Decision 7, RT-2); refused with "row-limit" at MAX_ROWS (NM-42) and,
    * as nothing is inserted, after destroy().
    */
   insertRowAfter(afterId: string | null): { id: string } | EditRefusal {
@@ -350,7 +351,7 @@ export class CalculatorEngine {
     if (this.destroyed || rows.length >= MAX_ROWS) return "row-limit";
     const after = afterId === null ? -1 : rows.findIndex((r) => r.id === afterId);
     const index = after < 0 ? rows.length : after + 1;
-    const color = nextSlot(index);
+    const color = this.doc.takeColour();
     const row: StoredRow = { id: this.doc.nextId(), latex: "", color, hidden: false };
     this.commitRows([...rows.slice(0, index), row, ...rows.slice(index)], STEP, true);
     return { id: row.id };
@@ -362,7 +363,7 @@ export class CalculatorEngine {
     if (this.destroyed || rows.length >= MAX_ROWS) return "row-limit";
     const after = afterId === null ? -1 : rows.findIndex((r) => r.id === afterId);
     const index = after < 0 ? rows.length : after + 1;
-    const table = newTable(this.doc.nextId(), index, usedNames(rows, this.analysis));
+    const table = newTable(this.doc.nextId(), usedNames(rows, this.analysis), this.colours);
     this.commitRows([...rows.slice(0, index), table, ...rows.slice(index)], STEP, true);
     return { id: table.id };
   }
@@ -376,7 +377,7 @@ export class CalculatorEngine {
     if (row === undefined || row.type === "table" || !/^(t(a(b(l(e)?)?)?)?)?$/.test(row.latex))
       return this.insertTableAfter(rowId);
     if (this.destroyed) return "row-limit";
-    const table = newTable(row.id, at, usedNames(rows, this.analysis));
+    const table = newTable(row.id, usedNames(rows, this.analysis), this.colours);
     this.commitRows(
       rows.map((r) => (r.id === rowId ? table : r)),
       STEP,
@@ -395,6 +396,7 @@ export class CalculatorEngine {
     const rows = this.doc.rows;
     const next = edit(rows, {
       nextId: () => this.doc.nextId(),
+      nextColour: this.colours,
       used: usedNames(rows, this.analysis),
     });
     if (next === null) return null;
@@ -416,7 +418,7 @@ export class CalculatorEngine {
 
   /** D-9, D-10, D-20: one header's LaTeX; the column after the last adds a column. */
   editHeader(rowId: string, column: number, latex: string, source: EditSource): EditRefusal | null {
-    return this.editTable(rowId, source, (row) => withHeader(row, column, latex));
+    return this.editTable(rowId, source, (row) => withHeader(row, column, latex, this.colours));
   }
 
   /** D-8: data row `r` of a table removed, one undo step. */
@@ -563,7 +565,7 @@ export class CalculatorEngine {
 
   /** API-2, NM-42, API-13: over MAX_ROWS the call throws invalid-argument and changes nothing. */
   private upsert(method: string, states: readonly ExpressionState[]): void {
-    const rows = upsertRows(this.doc.rows, states);
+    const rows = upsertRows(this.doc.rows, states, this.colours);
     if (rows.length > MAX_ROWS) invalid(`${method}: more than ${MAX_ROWS} rows`);
     this.commitRows(rows, STEP);
   }
@@ -615,10 +617,11 @@ export class CalculatorEngine {
 
   /** AR-51: analyses on the main thread; a focused or active row that left the list is dropped. */
   private analyze(): void {
-    const sources = this.doc.rows.map(({ id, latex, hidden, type, columns, logMode }) =>
-      type === "table"
-        ? { id, latex, hidden, columns: columns ?? [] }
-        : { id, latex, hidden, logMode: logMode === true }
+    const sources = this.doc.rows.map(
+      ({ id, latex, hidden, type, columns, logMode, regression }) =>
+        type === "table"
+          ? { id, latex, hidden, columns: columns ?? [], ...(regression ? { regression } : {}) }
+          : { id, latex, hidden, logMode: logMode === true }
     );
     this.analysis = analyzeRows(sources, toWireSettings(this.currentSettings));
     this.observers.markDirty("expressionAnalysis");

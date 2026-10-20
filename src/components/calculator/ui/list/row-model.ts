@@ -28,6 +28,14 @@ const LINE_KINDS: ReadonlySet<RowView["kind"]> = new Set<RowView["kind"]>([
 export function rowTab(row: RowView): RowTab {
   if (row.kind === "point") return "point";
   if (LINE_KINDS.has(row.kind)) return "line";
+  // RT-16: a fitted regression with a bare left side and one predictor list draws its curve.
+  const r = row.regression;
+  if (
+    r?.result?.ok === true &&
+    r.analysis.observed.kind === "id" &&
+    r.analysis.predictors.length === 1
+  )
+    return "line";
   return null;
 }
 

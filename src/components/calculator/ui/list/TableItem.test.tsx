@@ -31,14 +31,15 @@ it("D-5 typing table into an empty row converts it at once and other words stay 
   expect(tableOf(kit, "1").type).toBe("expression");
 });
 
-it("D-5 a blank header slot shows right of the last column only while a cell or header has focus", () => {
+it("D-5, TABLES-2 the blank header slot and its read-only column show right of the last column, focused or not", () => {
   const kit = renderEditor(<ExpressionPanel {...panelProps()} />, { rows: ["y=x"] });
   act(() => kit.engine.insertTableAfter("1"));
-  expect(screen.queryByRole("textbox", { name: "New column header" })).toBeNull();
-  act(() => box("x₁, row 1, blank").focus());
   expect(box("New column header")).toBeInTheDocument();
+  // one slot cell per body row (a new table has the blank row), hidden from the grid's reading
+  expect(document.querySelectorAll(".kc-table-slot")).toHaveLength(1);
+  act(() => box("x₁, row 1, blank").focus());
   act(() => box("x₁, row 1, blank").blur());
-  expect(screen.queryByRole("textbox", { name: "New column header" })).toBeNull();
+  expect(box("New column header")).toBeInTheDocument();
 });
 
 it("D-19 the table is named Table n, k columns, m rows and each cell header, row r, including blank cells", () => {
@@ -84,7 +85,7 @@ it("D-19 a computed cell reads header, row r, computed, value and is read-only",
   ).toHaveTextContent("4");
 });
 
-it("D-16 Zoom to fit table n fits the view to the plotted points and is disabled when nothing is plotted", async () => {
+it("D-16, TABLES-48 Zoom to fit table n fits the plotted points by the reference rule and is gone when nothing is plotted", async () => {
   const kit = renderEditor(<ExpressionPanel {...panelProps()} />, { rows: ["y=x"] });
   act(() =>
     kit.engine.setView({
@@ -104,7 +105,7 @@ it("D-16 Zoom to fit table n fits the view to the plotted points and is disabled
     })
   );
   const fit = () => screen.getByRole("button", { name: "Zoom to fit table 2" });
-  expect(fit()).toHaveAttribute("aria-disabled", "true");
+  expect(screen.queryByRole("button", { name: "Zoom to fit table 2" })).toBeNull();
   act(() =>
     kit.engine.setExpression({
       id: "t",
@@ -115,10 +116,10 @@ it("D-16 Zoom to fit table n fits the view to the plotted points and is disabled
       ],
     })
   );
-  await waitFor(() => expect(fit()).not.toHaveAttribute("aria-disabled"));
+  await waitFor(() => expect(fit()).toBeInTheDocument());
   act(() => fit().click());
   const { left, right, bottom, top } = kit.engine.getSnapshot().viewport;
-  expect([left, right, bottom, top].map((v) => Math.round(v))).toEqual([8, 32, 90, 210]);
+  expect([left, right, bottom, top].map((v) => Math.round(v))).toEqual([-15, 45, -100, 300]);
 });
 
 it("D-5 deleting a table leaves an empty expression row with the caret and Undo restores it", () => {
@@ -146,33 +147,76 @@ it("K-2 a touch focus on a table cell lets the shell open the keypad", () => {
   expect(onTouchFocusRow).toHaveBeenCalledWith(tableOf(kit, "2").id);
 });
 
-it("D-3 Add regression inserts y1~mx1+b below the table, fitted and focused, in one tap", async () => {
-  const kit = renderEditor(<ExpressionPanel {...panelProps()} />, { rows: ["y=x"] });
+const regressionTable = (kit: ReturnType<typeof renderEditor>) =>
   act(() =>
     kit.engine.setExpression({
       id: "t",
       type: "table",
       columns: [
-        { latex: "x_{1}", values: ["1", "2", "3"] },
-        { latex: "y_{1}", values: ["3", "5", "7"] },
+        { latex: "x_{1}", values: ["12", "25", "325"] },
+        { latex: "y_{1}", values: ["3", "5", "10"] },
       ],
     })
   );
-  act(() => screen.getByRole("button", { name: "Add regression for table 2" }).click());
-  const rows = kit.engine.getSnapshot().rows;
-  expect(rows.map((r) => r.latex)).toEqual(["y=x", "", "y_{1}\\sim mx_{1}+b"]);
-  expect(box("Expression 3")).toHaveFocus();
-  await waitFor(() => expect(kit.engine.getSnapshot().rows[2].regression?.result?.ok).toBe(true));
+
+it("RT-28 Add Regression adds a Linear table regression whose panel shows the equation and statistics", async () => {
+  const kit = renderEditor(<ExpressionPanel {...panelProps()} />, { rows: ["y=x"] });
+  regressionTable(kit);
+  const add = await screen.findByRole("button", { name: "Add Regression" });
+  act(() => add.click());
+  expect(kit.engine.getExpressions().find((s) => s.id === "t")!.regression?.type).toBe("linear");
+  expect(kit.engine.getSnapshot().rows).toHaveLength(2); // no row below: the regression is the table's
+  expect(screen.queryByRole("button", { name: "Add Regression" })).toBeNull();
+  const panel = await waitFor(() => {
+    const el = document.querySelector<HTMLElement>("[data-table-regression]");
+    if (el === null) throw new Error("no panel");
+    return el;
+  });
+  await waitFor(() =>
+    expect(within(panel).getByRole("img", { name: /^Regression Equation:/ })).toBeInTheDocument()
+  );
+  expect(within(panel).getByRole("button", { name: "Linear Regression" })).toBeInTheDocument();
+  expect(within(panel).getByRole("region", { name: "Statistics" })).toBeInTheDocument();
+  expect(within(panel).getByRole("button", { name: "plot" })).toBeInTheDocument();
 });
 
-it("K-8 the button is in the table footer on every layout and in the style menu", () => {
+it("RT-29 the model dropdown lists the nine models and picking one refits", async () => {
+  const kit = renderEditor(<ExpressionPanel {...panelProps()} />, { rows: ["y=x"] });
+  regressionTable(kit);
+  const add = await screen.findByRole("button", { name: "Add Regression" });
+  act(() => add.click());
+  act(() => screen.getByRole("button", { name: "Linear Regression" }).click());
+  const options = screen.getAllByRole("option").map((o) => o.getAttribute("aria-label"));
+  expect(options).toEqual([
+    "Linear Regression",
+    "Quadratic Regression",
+    "Cubic Regression",
+    "Quartic Regression",
+    "Exponential Regression",
+    "Logarithmic Regression",
+    "Power Regression",
+    "Logistic Regression",
+    "Sinusoidal Regression",
+  ]);
+  act(() => screen.getByRole("option", { name: "Quadratic Regression" }).click());
+  expect(kit.engine.getExpressions().find((s) => s.id === "t")!.regression?.type).toBe("quadratic");
+  await waitFor(() =>
+    expect(
+      screen.getByRole("img", { name: /^Regression Equation:/ }).querySelector("[data-latex]")
+    ).toHaveAttribute("data-latex", "y=-0.000438273x^{2}+0.170062x+1.02236")
+  );
+});
+
+it("RT-8, K-8 the column style menu's Add Regression uses that column, on every layout", async () => {
   for (const layout of ["desktop", "stacked"] as const) {
     const kit = renderEditor(<ExpressionPanel {...panelProps({ layout })} />, { rows: ["y=x"] });
-    act(() => void kit.engine.insertTableAfter("1"));
-    expect(screen.getByRole("button", { name: "Add regression for table 2" })).toBeInTheDocument();
+    regressionTable(kit);
+    await screen.findByRole("button", { name: "Add Regression" });
     fireEvent.contextMenu(screen.getByRole("button", { name: "Points for y₁" }));
-    act(() => screen.getByRole("button", { name: "Add regression" }).click());
-    expect(kit.engine.getSnapshot().rows.at(-1)!.latex).toBe("y_{1}\\sim mx_{1}+b");
+    const menu = screen.getByRole("dialog", { name: "Style for y₁" });
+    act(() => within(menu).getByRole("button", { name: "Add Regression" }).click());
+    const state = kit.engine.getExpressions().find((s) => s.id === "t")!;
+    expect(state.regression?.columns).toEqual({ x: 0, y: 1 });
     cleanup();
   }
 });
@@ -231,4 +275,74 @@ it("D-6 a cell with a cell error shows the marker and its tooltip; the header er
     act(() => marker.blur());
   }
   expect(box("Column 2 header")).not.toHaveAttribute("aria-invalid");
+});
+
+it("RT-6, TABLES-28 29 data rows collapse to rows 1-7, 18 more rows, the last 4; Show all expands", async () => {
+  const kit = renderEditor(<ExpressionPanel {...panelProps()} />, { rows: ["y=x"] });
+  const xs = Array.from({ length: 29 }, (_, i) => String(i + 1));
+  act(() =>
+    kit.engine.setExpression({
+      id: "t",
+      type: "table",
+      columns: [
+        { latex: "x_{1}", values: xs },
+        { latex: "y_{1}", values: xs },
+      ],
+    })
+  );
+  expect(screen.getByText("18 more rows")).toBeInTheDocument();
+  const shown = () =>
+    screen
+      .getAllByRole("textbox", { name: /^x₁, row \d+/ })
+      .map((b) => b.getAttribute("aria-label"));
+  expect(shown()).toEqual([
+    ...[1, 2, 3, 4, 5, 6, 7, 26, 27, 28, 29].map((r) => `x₁, row ${r}`),
+    "x₁, row 30, blank",
+  ]);
+  act(() => screen.getByRole("button", { name: "Show all" }).click());
+  expect(screen.queryByText("18 more rows")).toBeNull();
+  expect(shown()).toHaveLength(30);
+});
+
+it("RT-6 28 data rows show in full", () => {
+  const kit = renderEditor(<ExpressionPanel {...panelProps()} />, { rows: ["y=x"] });
+  const xs = Array.from({ length: 28 }, (_, i) => String(i + 1));
+  act(() =>
+    kit.engine.setExpression({
+      id: "t",
+      type: "table",
+      columns: [
+        { latex: "x_{1}", values: xs },
+        { latex: "y_{1}", values: xs },
+      ],
+    })
+  );
+  expect(screen.queryByText(/more rows/)).toBeNull();
+});
+
+it("RT-28 the column menu's Add Regression is greyed on a column that cannot be regressed and gone once a regression exists", async () => {
+  const kit = renderEditor(<ExpressionPanel {...panelProps()} />, { rows: ["y=x"] });
+  act(() =>
+    kit.engine.setExpression({
+      id: "t",
+      type: "table",
+      columns: [
+        { latex: "x_{1}", values: ["1", "2", "3"] },
+        { latex: "y_{1}", values: ["3", "5", "10"] },
+        { latex: "y_{2}", values: ["1", "", ""] },
+      ],
+    })
+  );
+  await screen.findByRole("button", { name: "Add Regression" });
+  fireEvent.contextMenu(screen.getByRole("button", { name: "Points for y₂" }));
+  const menu = screen.getByRole("dialog", { name: "Style for y₂" });
+  const greyed = within(menu).getByRole("button", { name: "Add Regression" });
+  expect(greyed).toHaveAttribute("aria-disabled", "true");
+  act(() => greyed.click());
+  expect(kit.engine.getExpressions().find((s) => s.id === "t")!.regression).toBeUndefined();
+  act(() => screen.getAllByRole("button", { name: "Add Regression" })[0].click());
+  fireEvent.keyDown(menu, { key: "Escape" });
+  fireEvent.contextMenu(screen.getByRole("button", { name: "Points for y₁" }));
+  const second = screen.getByRole("dialog", { name: "Style for y₁" });
+  expect(within(second).queryByRole("button", { name: "Add Regression" })).toBeNull();
 });

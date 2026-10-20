@@ -2,16 +2,29 @@
 // k columns, m rows" whose first row holds the column headers and whose data rows end in one blank
 // row, each entered cell a TableCell named "header, row r" (", blank" while empty) and each
 // computed cell a read-only gridcell named "header, row r, computed, value". While focus is in the
-// grid a blank header slot right of the last column adds a column (D-5). The Delete control
+// grid's blank header slot right of the last column adds a column (D-5, TABLES-2: always shown). The Delete control
 // removes the table through row-actions (D-16). A cell or header that cannot evaluate shows the
 // warning marker at its left, with the message in a tooltip, and its field is aria-invalid (D-6, D-10).
 
-import { useContext, useLayoutEffect, useRef, useState, type FocusEvent, type JSX } from "react";
+import {
+  Fragment,
+  useContext,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type JSX,
+  type KeyboardEvent,
+} from "react";
 import type { RowView } from "@/lib/calculator/core/api/engine";
 import { MAX_TABLE_COLUMNS, MAX_TABLE_ROWS } from "@/lib/calculator/core/api/document";
-import { fitPoints } from "@/lib/calculator/core/data/fit-view";
-import { insertRegressionBelow } from "@/lib/calculator/core/api/row-commands";
-import { AddGlyph, RegressionGlyph, RemoveGlyph, ZoomFitGlyph } from "../../icons/list";
+import { zoomFitSeries } from "@/lib/calculator/core/api/table-paste";
+import {
+  addTableRegression,
+  regressionEligibility,
+} from "@/lib/calculator/core/api/table-regression-commands";
+import { AddGlyph, RemoveGlyph, ZoomFitGlyph } from "../../icons/list";
+import { AddRegressionGlyph } from "./TableGlyphs";
 import { useAnnouncer } from "../a11y/announcer";
 import { cellKey, FocusContext } from "../focus/focus-controller";
 import { useEngine, useEngineSnapshot } from "../hooks/use-engine";
@@ -21,6 +34,7 @@ import { deleteRowByControl } from "./row-actions";
 import type { RowMotion } from "./row-presence";
 import { addTableRow, cellKeys, deleteTableRowByControl, type TableKeyContext } from "./table-keys";
 import { TableCell } from "./TableCell";
+import { TableRegression } from "./TableRegression";
 import {
   cellErrorId,
   cellName,
@@ -40,6 +54,41 @@ export interface TableItemProps {
   onTouchFocus(rowId: string): void; // K-2
 }
 
+/** RT-6: the reference's widths for short values: 70 px first, 81 px later (room for the colour
+ * icon), 60 px for the blank header slot. */
+/**
+ * RT-6: the grid's column tracks, sized to their content as the reference's auto table layout
+ * does (table.css sets each cell's minimum), then the 60 px blank slot and the 28 px row-delete
+ * control. A table wider than the list scrolls sideways (D-42) rather than squeezing columns.
+ */
+const gridTracks = (columns: number, slot: boolean): CSSProperties => ({
+  gridTemplateColumns: `repeat(${columns}, max-content)${slot ? " 60px" : ""} 28px`,
+});
+
+/** RT-6: "1.234568×10^-4" drawn as the reference draws it, the exponent raised. */
+function ComputedValue({ text }: { text: string }): JSX.Element {
+  const m = /^(.*)×10\^(-?\d+)$/.exec(text);
+  if (m === null) return <>{text.replace(/^-/, "−")}</>;
+  return (
+    <>
+      {m[1]}×10<sup className="kc-table-exponent">{m[2].replace("-", "−")}</sup>
+    </>
+  );
+}
+
+/**
+ * RT-6, TABLES-28: the data rows a long table hides, [from, to): with 29 or more data rows it
+ * shows rows 1-7, "{n} more rows", then the last 4 and the blank row (n = rows - 11); else null.
+ */
+export function collapsedRange(rows: number): { from: number; to: number } | null {
+  return rows >= 29 ? { from: 7, to: rows - 4 } : null;
+}
+
+/** Whether `target` is inside a table cell's math field (which reports its own focus). */
+function inCell(target: EventTarget | null): boolean {
+  return target instanceof Element && target.closest(".kc-table-field") !== null;
+}
+
 export function TableItem(props: TableItemProps): JSX.Element {
   const { row, number, keypadOpen, motion } = props;
   const exiting = motion === "exit";
@@ -48,7 +97,8 @@ export function TableItem(props: TableItemProps): JSX.Element {
   const focus = useContext(FocusContext)!;
   const announcer = useAnnouncer();
   const keyContext: TableKeyContext = { engine, focus, announcer, tableId: row.id };
-  const [inside, setInside] = useState(false);
+  // RT-6, TABLES-28: 29 or more data rows collapse until "Show all" (or a move past the gap).
+  const [expanded, setExpanded] = useState(false);
   const gridRef = useRef<HTMLDivElement>(null);
   const latest = useRef(props.onExitDone);
   useLayoutEffect(() => {
@@ -64,23 +114,37 @@ export function TableItem(props: TableItemProps): JSX.Element {
   const analysis = row.table?.analysis.columns ?? [];
   const result = row.table?.result?.columns ?? [];
   const rows = dataRowCount(row);
+  const hidden = expanded ? null : collapsedRange(rows);
   const headers = columns.map((c, k) => headerName(c.latex, k));
   const computed = (k: number) => analysis[k]?.role === "computed";
-  const slot = inside && columns.length < MAX_TABLE_COLUMNS;
-  // D-3, K-8: one tap to a linear regression of `column` against the first column, focused.
-  const addRegression = (column: number) => {
-    const made = insertRegressionBelow(engine, row.id, column);
-    if (made !== null && typeof made !== "string") focus.focusRow(made.id, "end");
+  // TABLES-2: the blank header slot and its read-only column always show, as on the reference.
+  const slot = columns.length < MAX_TABLE_COLUMNS;
+  // RT-28: Add Regression adds a Linear table regression and focuses its model dropdown.
+  const eligibility = regressionEligibility(row);
+  const addRegression = (column?: number) => {
+    if (!addTableRegression(engine, row.id, column)) return;
+    requestAnimationFrame(() =>
+      gridRef.current
+        ?.closest(".kc-table-item")
+        ?.querySelector<HTMLElement>(".kc-tr-model .kc-tr-select-button")
+        ?.focus()
+    );
   };
+  const regression = row.table?.analysis.regression ?? undefined;
   // D-16: the plotted points' fitted view, null while nothing is plotted.
   const plotted = geometry.get(row.id);
-  const fit = plotted?.kind === "table" ? fitPoints(plotted.series.map((s) => s.coords)) : null;
+  const fit = plotted?.kind === "table" ? zoomFitSeries(plotted.series.map((s) => s.coords)) : null;
 
-  // D-5: the header slot shows while focus is anywhere in the grid.
-  const onGridFocus = () => setInside(true);
-  const onGridBlur = (e: FocusEvent<HTMLDivElement>) => {
-    const next = e.relatedTarget;
-    if (!(next instanceof Node) || !gridRef.current?.contains(next)) setInside(false);
+  // A keyboard move off the last row above the gap, or the first below it, shows every row first,
+  // so the cell it focuses mounts (the focus controller focuses it once it registers).
+  const onGridKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (hidden === null) return;
+    const r = Number(
+      (e.target as Element).closest?.("[data-table-row]")?.getAttribute("data-table-row")
+    );
+    const down = e.key === "ArrowDown" || e.key === "Enter" || (e.key === "Tab" && !e.shiftKey);
+    const up = e.key === "ArrowUp" || (e.key === "Tab" && e.shiftKey);
+    if ((down && r === hidden.from - 1) || (up && r === hidden.to)) setExpanded(true);
   };
 
   const cell = (k: number, r: number) => {
@@ -96,7 +160,7 @@ export function TableItem(props: TableItemProps): JSX.Element {
           aria-readonly="true"
           aria-label={computedCellName(headers[k], r, value)}
         >
-          {value}
+          {value === null ? null : <ComputedValue text={value} />}
         </div>
       );
     }
@@ -129,19 +193,64 @@ export function TableItem(props: TableItemProps): JSX.Element {
       data-active={activeRowId === row.id ? "true" : undefined}
       data-motion={motion}
       aria-hidden={exiting ? "true" : undefined}
+      onFocus={(e) => {
+        // As on the reference, focus on any of the table's controls (the regression dropdown, a
+        // Zoom Fit, "plot") selects the table; its cells report their own focus.
+        if (!inCell(e.target)) engine.setFocusedRow(row.id);
+      }}
+      onBlur={(e) => {
+        if (inCell(e.target) || e.currentTarget.contains(e.relatedTarget as Node | null)) return;
+        engine.setFocusedRow(null);
+      }}
     >
       <div className="kc-row-inner">
         <div className="kc-row-gutter">
           <span className="kc-row-number">{exiting ? null : number}</span>
+          {/* RT-28: Add Regression sits at the head of the gutter, under the number. */}
+          {eligibility.canAdd && (
+            <button
+              type="button"
+              className="kc-table-add-row kc-table-add-regression"
+              aria-label="Add Regression"
+              title="Add Regression"
+              onClick={() => addRegression()}
+            >
+              <AddRegressionGlyph />
+            </button>
+          )}
+          {/* RT-8, RT-28: the table's actions sit at the foot of its gutter, as the reference's do. */}
+          <div className="kc-table-actions">
+            <button
+              type="button"
+              className="kc-table-add-row"
+              aria-label={`Add row to table ${number}`}
+              aria-disabled={rows >= MAX_TABLE_ROWS ? "true" : undefined}
+              onClick={() => addTableRow(keyContext)}
+            >
+              <AddGlyph size={14} />
+            </button>
+            {/* TABLES-45, -48: shown whenever the table plots points, gone when nothing is. */}
+            {fit !== null && (
+              <button
+                type="button"
+                className="kc-table-add-row kc-table-zoom"
+                aria-label={`Zoom to fit table ${number}`}
+                title="Zoom Fit"
+                onClick={() => engine.setMathBounds(fit)}
+              >
+                <ZoomFitGlyph size={14} />
+              </button>
+            )}
+          </div>
         </div>
         <div className="kc-row-main">
           <div
             ref={gridRef}
             role="grid"
             className="kc-table"
+            style={gridTracks(columns.length, slot)}
             aria-label={gridName(number, columns.length, rows)}
-            onFocus={onGridFocus}
-            onBlur={onGridBlur}
+            onKeyDownCapture={onGridKeyDown}
           >
             <div role="row" className="kc-table-row" data-header="true">
               {/* One keyed list, so the slot's field becomes the new column's header in place. */}
@@ -149,7 +258,12 @@ export function TableItem(props: TableItemProps): JSX.Element {
                 const error = latex === null ? null : (analysis[k]?.error ?? null);
                 const errorId = error === null ? null : cellErrorId(row.id, k, "h");
                 return (
-                  <div key={`h-${k}`} role="columnheader" className="kc-table-cell">
+                  <div
+                    key={`h-${k}`}
+                    role="columnheader"
+                    className="kc-table-cell"
+                    data-slot={latex === null ? "true" : undefined}
+                  >
                     {error !== null && (
                       <ErrorMarker id={errorId!} message={error.message} variant="cell" />
                     )}
@@ -161,6 +275,13 @@ export function TableItem(props: TableItemProps): JSX.Element {
                         header={headers[k]}
                         onDeleted={() => focus.focusRow(cellKey(row.id, k - 1, "h"), "end")}
                         onAddRegression={() => addRegression(k)}
+                        regression={
+                          !eligibility.canAdd
+                            ? null
+                            : eligibility.candidates.includes(k)
+                              ? "add"
+                              : "disabled"
+                        }
                       />
                     )}
                     <TableCell
@@ -179,51 +300,61 @@ export function TableItem(props: TableItemProps): JSX.Element {
                 );
               })}
             </div>
-            {Array.from({ length: rows + 1 }, (_, r) => (
-              <div key={r} role="row" className="kc-table-row">
-                {columns.map((_, k) => cell(k, r))}
-                {r < rows && (
-                  <div role="gridcell" className="kc-table-control">
-                    <button
-                      type="button"
-                      className="kc-table-row-delete"
-                      aria-label={`Delete table ${number} row ${r + 1}`}
-                      onClick={() => deleteTableRowByControl(keyContext, r)}
-                    >
-                      <RemoveGlyph size={12} />
-                    </button>
+            {Array.from({ length: rows + 1 }, (_, r) => r)
+              .filter((r) => hidden === null || r < hidden.from || r >= hidden.to)
+              .map((r) => (
+                <Fragment key={r}>
+                  {hidden !== null && r === hidden.to && (
+                    <div role="row" className="kc-table-more">
+                      <div
+                        role="gridcell"
+                        className="kc-table-more-cell"
+                        style={{ gridColumn: `1 / span ${columns.length + (slot ? 1 : 0)}` }}
+                      >
+                        <span className="kc-table-more-count">
+                          {hidden.to - hidden.from} more rows
+                        </span>{" "}
+                        <button
+                          type="button"
+                          className="kc-table-more-show"
+                          onClick={() => {
+                            setExpanded(true);
+                            focus.focusRow(cellKey(row.id, 0, hidden.from), "all");
+                          }}
+                        >
+                          Show all
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                  <div role="row" className="kc-table-row" data-table-row={r}>
+                    {columns.map((_, k) => cell(k, r))}
+                    {slot && (
+                      <div
+                        role="gridcell"
+                        className="kc-table-cell kc-table-slot"
+                        aria-hidden="true"
+                      />
+                    )}
+                    {r < rows && (
+                      <div role="gridcell" className="kc-table-control">
+                        <button
+                          type="button"
+                          className="kc-table-row-delete"
+                          aria-label={`Delete table ${number} row ${r + 1}`}
+                          onClick={() => deleteTableRowByControl(keyContext, r)}
+                        >
+                          <RemoveGlyph size={12} />
+                        </button>
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-            ))}
+                </Fragment>
+              ))}
           </div>
-          <button
-            type="button"
-            className="kc-table-add-row"
-            aria-label={`Add row to table ${number}`}
-            aria-disabled={rows >= MAX_TABLE_ROWS ? "true" : undefined}
-            onClick={() => addTableRow(keyContext)}
-          >
-            <AddGlyph size={14} />
-          </button>
-          <button
-            type="button"
-            className="kc-table-add-row"
-            aria-label={`Zoom to fit table ${number}`}
-            aria-disabled={fit === null ? "true" : undefined}
-            onClick={() => fit !== null && engine.setMathBounds(fit)}
-          >
-            <ZoomFitGlyph size={14} />
-          </button>
-          <button
-            type="button"
-            className="kc-table-add-row"
-            aria-label={`Add regression for table ${number}`}
-            aria-disabled={columns.length < 2 ? "true" : undefined}
-            onClick={() => addRegression(1)}
-          >
-            <RegressionGlyph size={14} />
-          </button>
+          {regression !== undefined && (
+            <TableRegression row={row} stored={{ columns, regression }} />
+          )}
         </div>
         <button
           type="button"

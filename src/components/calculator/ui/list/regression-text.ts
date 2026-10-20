@@ -41,7 +41,7 @@ export function statisticValues(row: RowView): ShownValue[] {
   if (fit === null || fit === undefined || !fit.ok) return [];
   const out: ShownValue[] = [];
   if (fit.r2 !== null) out.push(value("r2", "R²", "R squared", formatStatistic(fit.r2)));
-  else if (fit.rmse !== null) out.push(value("rmse", "RMSE", "RMSE", formatParameter(fit.rmse)));
+  else if (fit.rmse !== null) out.push(value("rmse", "RMSE", "RMSE", formatStatistic(fit.rmse)));
   if (fit.r !== null) out.push(value("r", "r", "r", formatStatistic(fit.r)));
   return out;
 }

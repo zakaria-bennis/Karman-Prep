@@ -6,6 +6,7 @@ import type { RowKind } from "../core/corpus/types";
 import type { Value } from "../core/eval/values";
 import type { Geometry } from "../plot/geometry";
 import type { TableResult } from "../core/data/evaluate";
+import type { TableRegressionSpec } from "../core/data/table-regression";
 import type { RegressionOutcome } from "../core/data/evaluate-regression";
 import type { PoiPoint } from "../poi/types";
 import type { PixelSize, Viewport } from "../plot/viewport";
@@ -20,6 +21,7 @@ export interface WireRow {
   hidden: boolean;
   sliderBounds: { min: string; max: string; step: string } | null;
   logMode: boolean; // D-30: a regression row's Log mode checkbox
+  regression?: TableRegressionSpec | null; // RT-28: a table's regression
 }
 export interface WireColumn {
   latex: string;
@@ -115,6 +117,11 @@ function isWireRow(x: unknown): boolean {
     isString(x.latex) &&
     typeof x.logMode === "boolean" &&
     typeof x.hidden === "boolean" &&
+    (x.regression === undefined ||
+      x.regression === null ||
+      (isRecord(x.regression) &&
+        isString(x.regression.type) &&
+        typeof x.regression.y === "number")) &&
     (b === null || (isRecord(b) && isString(b.min) && isString(b.max) && isString(b.step)))
   );
 }

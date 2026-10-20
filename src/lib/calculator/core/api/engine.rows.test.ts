@@ -231,7 +231,7 @@ it("AR-46 every state send increments the generation by one", () => {
 // so a row inserted mid-list continues the cycle (red, blue, green, then purple), while the calculator still
 // picks nextSlot(the row's index) and repeats blue. Expected to fail until the counter is built;
 // then delete `.fails`.
-it.fails("F-A1 a row inserted mid-list continues Desmos's colour cycle", () => {
+it("F-A1, RT-2 a row inserted mid-list continues Desmos's colour cycle", () => {
   const second = e.insertRowAfter("1");
   if (typeof second === "string") throw new Error(second);
   const third = e.insertRowAfter(second.id);

@@ -1,73 +1,49 @@
-/* A regression row's results (D-37). Colours come only from role variables (TH-3). Statistics and
-   Residuals sit side by side and wrap onto two lines when the list is too narrow for both. */
+/* A typed regression row's results (RT-31), in the table panel's type (table-regression.css):
+   11.2 px upper-case muted titles, 14.72 px typeset values, parameters in a grid of 130 px columns
+   (two to a line in the default list), STATISTICS and RESIDUALS in 130 px columns. Colours come
+   only from role variables (TH-3). */
 
 .kc-regression {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 4px 0;
+  margin-top: -10px; /* the reference's panel starts 31 px under the formula's baseline */
+  padding: 0 0 10px;
+  color: var(--kc-text);
   font-family: var(--kc-font-ui);
-  font-size: var(--kc-size-ui);
-  color: var(--kc-text);
+  font-size: var(--kc-size-small);
 }
 
-.kc-regression-log {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
+.kc-regression .kc-tr-log {
+  margin-top: 4px;
 }
 
-.kc-regression-columns {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px 24px;
+.kc-regression-params {
+  margin-top: 7px;
 }
 
-.kc-regression-group {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 2px;
-  min-width: 0;
+/* RT-31, measured on the reference: a typed panel's section titles are 10.24 px on an 11 px line
+   with 4 px under them (the table panel's are 11.2 px). */
+.kc-regression .kc-tr-title,
+.kc-regression .kc-tr-group .kc-tr-title {
+  height: 11px;
+  margin-bottom: 4px;
+  font-size: 10.24px;
 }
 
-.kc-regression-heading {
-  margin: 0;
-  color: var(--kc-text-secondary);
-  font-size: var(--kc-size-ui);
-  font-weight: 600;
+.kc-regression .kc-tr-group .kc-tr-title + * {
+  margin-top: 0;
 }
 
-.kc-regression-value {
-  min-width: 0;
-  max-width: 100%;
-  padding: 2px 4px;
-  border: 1px solid transparent;
-  border-radius: 4px;
-  background: transparent;
-  color: var(--kc-text);
-  font-family: var(--kc-font-math);
-  font-size: var(--kc-size-ui);
+.kc-regression-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 130px);
+  row-gap: 2px;
 }
 
-.kc-regression-value:focus-visible {
-  outline: 2px solid var(--kc-focus-ring);
-  outline-offset: 0;
+.kc-regression-grid > .kc-static-math {
+  min-height: 19px;
+  overflow: hidden;
+  white-space: nowrap;
 }
 
-.kc-regression-residual {
-  font-family: var(--kc-font-math);
-}
-
-.kc-regression-action {
-  padding: 2px 8px;
-  border: 1px solid var(--kc-boundary);
-  border-radius: 4px;
-  color: var(--kc-text);
-  cursor: pointer;
-}
-
-.kc-regression-note {
-  margin: 0;
-  color: var(--kc-text-secondary);
+.kc-regression .kc-tr-footer {
+  margin-top: 6px;
 }

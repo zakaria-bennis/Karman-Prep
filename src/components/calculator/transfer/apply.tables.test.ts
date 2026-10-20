@@ -45,9 +45,10 @@ it("TR-25 columns are named x_n and y_n with the lowest free n", () => {
       latex: "",
       color: "c1",
       hidden: false,
+      // RT-2: each column takes the next colour of the running counter (row 1 took red)
       columns: [
-        { latex: "x_{1}", values: ["0", "1"], color: "c1", hidden: false },
-        { latex: "y_{1}", values: ["10", "14"], color: "c1", hidden: false },
+        { latex: "x_{1}", values: ["0", "1"], color: "c2", hidden: false },
+        { latex: "y_{1}", values: ["10", "14"], color: "#388c46", hidden: false },
       ],
     },
   ]);

@@ -46,6 +46,7 @@ it("AR-45 isWorkerMessage accepts every versioned WorkerToMain shape and rejects
         residuals: [0, 0],
         logMode: { available: false, on: false },
         approximate: false,
+        isLinear: true,
         residualName: "e_{1}",
       },
     },

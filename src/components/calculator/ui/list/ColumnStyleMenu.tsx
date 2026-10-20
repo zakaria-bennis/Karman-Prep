@@ -35,6 +35,8 @@ export interface ColumnStyleMenuProps {
   header: string; // the header as read, "y₁"
   onDeleted(): void; // focus moves on once the column is gone
   onAddRegression(): void; // D-3: a linear regression of this column, below the table
+  /** RT-28: "add" when this column can be regressed, "disabled" when only another can, else null. */
+  regression: "add" | "disabled" | null;
 }
 
 const POINT_STYLES = (
@@ -44,6 +46,23 @@ const POINT_STYLES = (
     ["cross", "Cross"],
   ] as const satisfies readonly (readonly [PointStyle, string])[]
 ).map(([value, label]) => ({ value, label, icon: <PointStyleGlyph style={value} /> }));
+
+/** RT-8: the column icon's white points, five dots scattered across the disc (our own drawing). */
+function PointsClusterGlyph(): JSX.Element {
+  return (
+    <svg viewBox="0 0 29 29" width={29} height={29} aria-hidden="true" focusable="false">
+      {[
+        [9, 12],
+        [15, 8.5],
+        [20, 13],
+        [12.5, 18.5],
+        [18.5, 20],
+      ].map(([cx, cy]) => (
+        <circle key={`${cx}-${cy}`} cx={cx} cy={cy} r={2.2} fill="currentColor" />
+      ))}
+    </svg>
+  );
+}
 
 /** VIS-13: a solid, dashed or dotted stroke across the button (our own drawing). */
 function LineStyleGlyph(props: { style: LineStyle }): JSX.Element {
@@ -155,12 +174,15 @@ export function ColumnStyleMenu(props: ColumnStyleMenuProps): JSX.Element {
         aria-expanded={open}
         aria-keyshortcuts="Shift+F10"
         style={{ "--kc-row-color": color.hex } as CSSProperties}
-        onClick={() => {
-          if (!consumeClick()) set({ hidden: !stored.hidden });
+        onClick={(e) => {
+          if (consumeClick()) return;
+          // TABLES-46: a Shift-click opens the menu, as a long-press does.
+          if (e.shiftKey) setOpen(true);
+          else set({ hidden: !stored.hidden });
         }}
         {...trigger}
       >
-        <PointStyleGlyph style={pointStyle} hidden={stored.hidden} />
+        {!stored.hidden && <PointsClusterGlyph />}
       </button>
       {open &&
         portal(
@@ -240,16 +262,6 @@ export function ColumnStyleMenu(props: ColumnStyleMenuProps): JSX.Element {
                   className="kc-style-action"
                   onClick={() => {
                     setOpen(false);
-                    props.onAddRegression();
-                  }}
-                >
-                  Add regression
-                </button>
-                <button
-                  type="button"
-                  className="kc-style-action"
-                  onClick={() => {
-                    setOpen(false);
                     engine.deleteTableColumn(tableId, column);
                     props.onDeleted();
                   }}
@@ -257,6 +269,24 @@ export function ColumnStyleMenu(props: ColumnStyleMenuProps): JSX.Element {
                   Delete column
                 </button>
               </div>
+              {props.regression !== null && (
+                <div className="kc-style-section">
+                  {/* RT-8, RT-28: the reference's full-width grey button, greyed when this column
+                      does not qualify. */}
+                  <button
+                    type="button"
+                    className="kc-style-regression"
+                    aria-disabled={props.regression === "disabled" ? "true" : undefined}
+                    onClick={() => {
+                      if (props.regression !== "add") return;
+                      setOpen(false);
+                      props.onAddRegression();
+                    }}
+                  >
+                    Add Regression
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         )}

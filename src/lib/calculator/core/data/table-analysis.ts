@@ -12,6 +12,7 @@ import type { ParsedRow } from "../analysis/definitions";
 import type { RowError, RowSource } from "../analysis/index";
 import { displayName, rowErrorMessage } from "../analysis/messages";
 import { collectNameUses, COORDINATE_NAMES } from "../analysis/names";
+import type { TableRegressionSpec } from "./table-regression";
 
 export type ColumnRole = "variable" | "data" | "computed" | "blank" | "error";
 export interface ColumnAnalysis {
@@ -27,6 +28,7 @@ export interface ColumnAnalysis {
 export interface TableAnalysis {
   columns: ColumnAnalysis[];
   rows: number; // data rows
+  regression: TableRegressionSpec | null; // RT-28
 }
 
 interface ParsedCell {
@@ -44,8 +46,15 @@ const ZERO_SPAN: SourceSpan = { start: 0, end: 0 };
 const NAN: Node = { kind: "num", value: NaN, span: ZERO_SPAN };
 export const TABLE_MESSAGES = {
   firstHeader: "The first column needs a name, such as x₁.",
-  ownColumns: "A cell can't use its own table's columns.",
+  firstHeaderCoordinate: "First column may not be 'y', 'r', or 'θ'.", // TABLES-16
   comma: "Points are written like this: (1, 2).",
+  // TABLES-13: what a cell may not hold
+  point: "Table entry cannot be a point.",
+  equation: "Table entries must be simple expressions. Equations are not allowed.",
+  inequality: "Table entries must be simple expressions. Inequalities are not allowed.",
+  list: "Table entries must be simple expressions. Lists are not allowed.",
+  functionDefinition:
+    "Table entries must be simple expressions. Function definitions are not allowed.",
   undefinedName: (name: string) => `Too many variables. Try defining '${name}'.`,
 } as const;
 
@@ -67,6 +76,12 @@ function parseCell(latex: string, userFunctions: ReadonlySet<string>): ParsedCel
   return { tree: null, error, blank: false };
 }
 
+/** RT-28: the regression a table's source carries, if any. */
+export function regressionOfSource(source: RowSource): TableRegressionSpec | null {
+  const spec = (source as RowSource & { regression?: TableRegressionSpec }).regression;
+  return spec ?? null;
+}
+
 export function parseTable(source: RowSource, userFunctions: ReadonlySet<string>): ParsedTable {
   const columns = source.columns ?? [];
   return {
@@ -86,8 +101,11 @@ const definable = (name: string) => !COORDINATE_NAMES.includes(name);
  * rows (and regressions) define: a later header naming one of those is a computed column (D-10).
  */
 export function columnNames(t: ParsedTable, external: ReadonlySet<string>): (string | null)[] {
+  // RT-26: the table's own residual column is computed from its regression.
+  const residual = regressionOfSource(t.source)?.residual ?? null;
   return t.headers.map((h, j) => {
     if (!isName(h.tree)) return null;
+    if (j > 0 && h.tree.name === residual) return null;
     if (j > 0 && external.has(h.tree.name)) return null;
     return h.tree.name;
   });
@@ -133,15 +151,28 @@ function usableCell(
   return cell.tree !== null && cellError(cell, own, declared) === null;
 }
 
+/** TABLES-13: a cell that is a point, a list, an equation, an inequality or a definition. */
+function shapeError(tree: Node): string | null {
+  if (tree.kind === "point") return TABLE_MESSAGES.point;
+  if (tree.kind === "list") return TABLE_MESSAGES.list;
+  if (tree.kind !== "rel") return null;
+  if (tree.ops.some((op) => op !== "=")) return TABLE_MESSAGES.inequality;
+  return tree.operands[0]?.kind === "call"
+    ? TABLE_MESSAGES.functionDefinition
+    : TABLE_MESSAGES.equation;
+}
+
 function cellError(
   cell: ParsedCell,
   own: ReadonlySet<string>,
   declared: ReadonlySet<string>
 ): RowError | null {
   if (cell.error !== null || cell.tree === null) return cell.error;
+  const shape = shapeError(cell.tree);
+  if (shape !== null) return message("syntax", shape);
   for (const { name } of collectNameUses(cell.tree)) {
-    if (own.has(name)) return message("dependency", TABLE_MESSAGES.ownColumns);
-    if (!declared.has(name) && !COORDINATE_NAMES.includes(name)) {
+    // TABLES-13: the reference reads its own table's column names in a cell as undefined names.
+    if (own.has(name) || (!declared.has(name) && !COORDINATE_NAMES.includes(name))) {
       return message("dependency", TABLE_MESSAGES.undefinedName(displayName(name)), [
         displayName(name),
       ]);
@@ -172,6 +203,14 @@ export function analyzeTable(
           error: message("syntax", TABLE_MESSAGES.firstHeader),
         };
       }
+      if (["y", "r", "\\theta"].includes(h.tree.name)) {
+        return {
+          ...base,
+          role: "error",
+          name: null,
+          error: message("syntax", TABLE_MESSAGES.firstHeaderCoordinate),
+        };
+      }
     } else if (h.blank) {
       return { ...base, role: "blank", name: null, error: null };
     }
@@ -192,5 +231,5 @@ export function analyzeTable(
     return { ...base, role: "computed", name: null, error: null };
   });
   const rows = Math.max(0, ...t.cells.map((c) => c.length));
-  return { columns, rows };
+  return { columns, rows, regression: regressionOfSource(t.source) };
 }

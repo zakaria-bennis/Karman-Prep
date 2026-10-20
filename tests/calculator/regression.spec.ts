@@ -1,6 +1,6 @@
 // Regressions in a real calculator: D-2 and the desktop part of
-// D-40 on the harness page /harness/calculator.html, typed with real MathQuill and added by the table's
-// one-tap button.
+// D-40 on the harness page /harness/calculator.html, typed with real MathQuill, and the table's
+// one-tap Add Regression (RT-28).
 
 import { expect, test, type Page } from "@playwright/test";
 import { enc, openShell, rowField, useConsoleGuard } from "./shell-helpers";
@@ -53,12 +53,18 @@ test("D-2, D-40 typing y_1~mx_1+b fits m = 600, b = −1164000, R² = 1 and r = 
   await expect(page.getByRole("textbox", { name: "b equals negative 1164000" })).toBeVisible();
 });
 
-test("D-2, D-40 the table's Add regression button fits in one tap and Zoom to fit shows all four points", async ({
+test("D-40, RT-28 the table's Add Regression fits in one tap and Zoom to fit shows all four points", async ({
   page,
 }) => {
   await withTable(page);
-  await page.getByRole("button", { name: "Add regression for table 2" }).click();
-  await expect.poll(() => values(page)).toEqual(EXPECTED);
+  await page.getByRole("button", { name: "Add Regression" }).click();
+  await expect
+    .poll(() =>
+      page
+        .locator("#calc [data-table-regression] .kc-tr-equation [data-latex]")
+        .getAttribute("data-latex")
+    )
+    .toBe("y=600x-1164000");
   await page.getByRole("button", { name: "Zoom to fit table 2" }).click();
   const inView = await page.evaluate(
     ([x, y]) => {
@@ -72,12 +78,10 @@ test("D-2, D-40 the table's Add regression button fits in one tap and Zoom to fi
     [YEARS, SALARIES]
   );
   expect(inView).toBe(true);
-  // The regression curve is drawn over the view.
+  // The regression curve is drawn with the table, over the view.
   const curve = await page.evaluate(() => {
-    const s = globalThis.__calculatorHarness!.engine.getSnapshot();
-    const id = s.rows.find((r) => r.kind === "regression")!.id;
-    const g = s.geometry.get(id);
-    return g?.kind === "curve" ? g.polylines.length : 0;
+    const g = globalThis.__calculatorHarness!.engine.getSnapshot().geometry.get("t");
+    return g?.kind === "table" ? (g.regression?.polylines.length ?? 0) : 0;
   });
   expect(curve).toBeGreaterThan(4);
 });

@@ -6,10 +6,15 @@
 import type { RowAnalysis } from "../analysis/index";
 import type { Deadline } from "../deadline";
 import { compileExpression, type CompileScope } from "../eval/compile";
-import { formatNumber } from "../eval/format";
+import { formatTableNumber } from "./table-format";
 import { numberValue, type Value } from "../eval/values";
 import { collectNameUses } from "../analysis/names";
 import type { RegressionOutcome } from "./evaluate-regression";
+import {
+  chooseResidualName,
+  evaluateTableRegression,
+  type TableRegressionResult,
+} from "./table-regression";
 
 export interface TableColumnResult {
   values: (number | null)[]; // null: blank, undefined or not a real number
@@ -17,6 +22,7 @@ export interface TableColumnResult {
 }
 export interface TableResult {
   columns: TableColumnResult[];
+  regression?: TableRegressionResult; // RT-28
 }
 /** Where evaluateRows hands the results that are not row values (D-11, D-22). */
 export interface DataSink {
@@ -50,11 +56,28 @@ export function evaluateTable(
   const firstValues =
     first.role === "variable" ? entered(0) : new Array<number | null>(n).fill(null);
   const firstName = first.role === "variable" ? first.name : null;
+  // RT-26: the regression fits before the columns, so its residual column can show e_k.
+  const spec = table.regression;
+  const residualName =
+    spec === null ? null : (spec.residual ?? chooseResidualName(undefined, [], new Set()));
+  const isResidual = (j: number) =>
+    residualName !== null &&
+    j > 0 &&
+    table.columns[j].role === "computed" &&
+    table.columns[j].tree?.kind === "id" &&
+    (table.columns[j].tree as { name: string }).name === residualName;
+  // RT-6: a computed cell shows "undefined" where its row's x is filled in but has no value, and
+  // nothing where the x cell is blank.
+  const filled = (i: number) => first.cells[i] != null || first.cellErrors[i] != null;
+  const shown = (v: number | null, i: number) =>
+    v === null && !filled(i) ? null : formatTableNumber(v);
   const columns = table.columns.map((c, j): TableColumnResult => {
     const none = () => ({ values: new Array(n).fill(null), display: new Array(n).fill(null) });
     if (j === 0) return { values: firstValues, display: new Array(n).fill(null) };
     if (c.role === "data") return { values: entered(j), display: new Array(n).fill(null) };
-    if (c.role !== "computed" || c.tree === null || firstName === null) return none();
+    if (c.role !== "computed" || c.tree === null || firstName === null || isResidual(j)) {
+      return none();
+    }
     const compiled = compileExpression(c.tree, scope);
     const lists = collectNameUses(c.tree).flatMap(({ name }) => {
       const v = name === firstName ? undefined : scope.values.get(name);
@@ -66,7 +89,17 @@ export function evaluateTable(
       for (const [name, items] of lists) vars[name] = items[i] ?? numberValue(NaN);
       return real(compiled(vars, deadline));
     });
-    return { values, display: values.map((v) => (v === null ? null : formatNumber(v))) };
+    return { values, display: values.map((v, i) => shown(v, i)) };
   });
-  return { columns };
+  if (spec === null || residualName === null || spec.y >= columns.length) return { columns };
+  const regression = evaluateTableRegression(spec, columns, residualName);
+  if (regression.fit.ok) {
+    const residuals = regression.fit.residuals;
+    columns.forEach((c, j) => {
+      if (!isResidual(j)) return;
+      const values = Array.from({ length: n }, (_, i) => residuals[i] ?? null);
+      columns[j] = { values, display: values.map((v, i) => shown(v, i)) };
+    });
+  }
+  return { columns, regression };
 }

@@ -22,7 +22,7 @@ it("D-24 a blank or non-numeric value in a used list fails the whole fit with De
   expect(fitRegression(linear([1, 2, 3], [2, 4, 6, NaN])).ok).toBe(true);
 });
 
-it("D-24 fewer points than parameters is not an error: the fit is exact and RMSE replaces R²", () => {
+it("RT-17, REG-STATISTICS-3 fewer points than parameters fits exactly with free parameters 0, R² = r² = 1", () => {
   const quad: FitInput = {
     observed: [3, 5],
     predictor: [1, 2],
@@ -33,17 +33,20 @@ it("D-24 fewer points than parameters is not an error: the fit is exact and RMSE
   };
   const r = fitRegression(quad);
   expect(r.ok).toBe(true);
-  expect(r.r2).toBeNull();
-  near(r.rmse, 0);
+  [-0.5, 3.5, 0].forEach((v, j) => near(r.params[j].value, v));
+  near(r.r2, 1);
+  near(r.r, 1); // the straight line fits as well: r shows
+  expect(r.rmse).toBeNull();
 });
 
-it("D-31 R² always, negative as computed, and r only for a linear model with a free intercept", () => {
+it("REG-STATISTICS-4, -5 R² can be negative, r shows exactly when the model fits as well as the best line", () => {
   const line = fitRegression(linear(X, Y));
   near(line.params[0].value, 600);
   near(line.params[1].value, -1164000, 4);
   near(line.r2, 1);
   near(line.r, 1);
   expect(line.rmse).toBeNull();
+  // mx₁ on data whose best line passes through the origin shows r; off the origin it does not
   const through0 = fitRegression({
     observed: [1, 2, 3],
     predictor: [1, 2, 3],
@@ -52,7 +55,16 @@ it("D-31 R² always, negative as computed, and r only for a linear model with a 
     logForm: null,
     logMode: false,
   });
-  expect(through0.r).toBeNull();
+  near(through0.r, 1);
+  const offset = fitRegression({
+    observed: [2, 3, 5],
+    predictor: [1, 2, 3],
+    params: ["m"],
+    model: (p, i) => p[0] * [1, 2, 3][i],
+    logForm: null,
+    logMode: false,
+  });
+  expect(offset.r).toBeNull();
   const given = fitRegression({
     observed: [1, 2, 3],
     predictor: [1, 2, 3],
@@ -63,6 +75,13 @@ it("D-31 R² always, negative as computed, and r only for a linear model with a 
   });
   expect(given.ok).toBe(true);
   expect(given.r2!).toBeLessThan(0);
+});
+
+it("REG-STATISTICS-8 a left side that is not a bare name shows RMSE only", () => {
+  const fit = fitRegression({ ...linear(X, Y), plainLeft: false });
+  expect(fit.r2).toBeNull();
+  expect(fit.r).toBeNull();
+  near(fit.rmse, 0);
 });
 
 it("D-32 RMSE is shown only when R² is undefined", () => {

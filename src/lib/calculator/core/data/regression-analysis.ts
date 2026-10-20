@@ -59,13 +59,18 @@ export function planRegressions(
   settings: AnalysisSettings
 ): Map<string, RegressionPlan> {
   const rows = parsed.filter((r) => r.error === null && r.tree?.kind === "sim");
-  const taken = new Set(defined);
+  // RT-25: a table regression's stored residual name is held too.
+  const taken = new Set([
+    ...defined,
+    ...parsed.flatMap(
+      (r) => (r.source as { regression?: { residual?: string } }).regression?.residual ?? []
+    ),
+  ]);
   const residuals = new Map<string, string>();
   for (const row of rows) {
-    let k = 1;
-    while (taken.has(`e_{${k}}`)) k++;
-    taken.add(`e_{${k}}`);
-    residuals.set(row.source.id, `e_{${k}}`);
+    const name = residualFor(row.tree as Extract<Node, { kind: "sim" }>, taken);
+    taken.add(name);
+    residuals.set(row.source.id, name);
   }
   const allLists = new Set([...lists, ...residuals.values()]);
   const plans = new Map<string, RegressionPlan>();
@@ -98,6 +103,24 @@ export function planRegressions(
     });
   }
   return plans;
+}
+
+/**
+ * RT-25 (REG-CUSTOM-12): e_<subscript> of each subscripted name the row reads, left side first in
+ * order of appearance (`y_7\sim mx_4+b` → e_7; with e_1 held, `y_1\sim mx_5+b` → e_5), else the
+ * lowest free e_k.
+ */
+function residualFor(tree: Extract<Node, { kind: "sim" }>, taken: ReadonlySet<string>): string {
+  const names = unique(
+    [tree.left, tree.right].flatMap((t) => collectNameUses(t).map((u) => u.name))
+  );
+  for (const name of names) {
+    const sub = /^[a-zA-Z]+_\{?([0-9a-zA-Z]+)\}?$/.exec(name)?.[1];
+    if (sub !== undefined && !taken.has(`e_{${sub}}`)) return `e_{${sub}}`;
+  }
+  let k = 1;
+  while (taken.has(`e_{${k}}`)) k++;
+  return `e_{${k}}`;
 }
 
 /**
