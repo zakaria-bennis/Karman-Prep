@@ -34,6 +34,25 @@ it("SETTINGS-31 Mac: Cmd+/ opens the dialog, Ctrl+Cmd+G the settings, Ctrl+D the
   expect(matchHelpKey(key("KeyD", { altKey: true }), true)).toBeNull();
 });
 
+it("SETTINGS-32 the zoom keys: Alt (Windows) or Ctrl (Mac) with =, -, 0 or the numpad + and -; Shift+= does not zoom", () => {
+  const cases: [string, string][] = [
+    ["Equal", "zoom-in"],
+    ["NumpadAdd", "zoom-in"],
+    ["Minus", "zoom-out"],
+    ["NumpadSubtract", "zoom-out"],
+    ["Digit0", "zoom-default"],
+  ];
+  for (const [code, action] of cases) {
+    expect(matchHelpKey(key(code, { altKey: true }), false)).toBe(action);
+    expect(matchHelpKey(key(code, { ctrlKey: true }), true)).toBe(action);
+    expect(matchHelpKey(key(code, { ctrlKey: true }), false)).toBeNull();
+    expect(matchHelpKey(key(code, { metaKey: true }), true)).toBeNull();
+    expect(matchHelpKey(key(code), false)).toBeNull();
+  }
+  expect(matchHelpKey(key("Equal", { altKey: true, shiftKey: true }), false)).toBeNull();
+  expect(matchHelpKey(key("Equal", { ctrlKey: true, shiftKey: true }), true)).toBeNull();
+});
+
 it("SETTINGS-31 the platform is Mac for Mac, iPhone and iPad platform strings", () => {
   expect(["MacIntel", "iPhone", "iPad", "Win32", "Linux x86_64"].map(isMacPlatform)).toEqual([
     true,

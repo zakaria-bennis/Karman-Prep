@@ -17,7 +17,7 @@ it("A11Y-3 rows are list items with an Expression n textbox and Delete and Hide 
   expect(within(list).getAllByRole("listitem")).toHaveLength(2);
   expect(textbox(2)).toBe(fieldTextbox(kit.fields.forRow("2")));
   expect(screen.getByRole("button", { name: "Delete expression 2" })).toBeInTheDocument();
-  expect(screen.getByRole("button", { name: "Hide expression 2" })).toHaveAttribute(
+  expect(screen.getByRole("button", { name: "Hide: Expression 2" })).toHaveAttribute(
     "aria-pressed",
     "true"
   );
@@ -59,18 +59,18 @@ it("R-1 the colour icon shows the row colour and a wave or point kind glyph and 
   const kit = renderEditor(<ExpressionPanel {...panelProps()} />, {
     rows: ["y=x", "(2,3)", "2+3"],
   });
-  const tab = screen.getByRole("button", { name: "Hide expression 1" });
+  const tab = screen.getByRole("button", { name: "Hide: Expression 1" });
   expect(tab).toHaveAttribute("data-kind", "wave");
   const { hex } = resolveRowColor(kit.engine.getSnapshot().rows[0].color, "ivory");
   expect(tab.style.getPropertyValue("--kc-row-color")).toBe(hex);
-  expect(screen.getByRole("button", { name: "Hide expression 2" })).toHaveAttribute(
+  expect(screen.getByRole("button", { name: "Hide: Expression 2" })).toHaveAttribute(
     "data-kind",
     "point"
   );
-  expect(screen.queryByRole("button", { name: "Hide expression 3" })).toBeNull();
+  expect(screen.queryByRole("button", { name: "Hide: Expression 3" })).toBeNull();
   await userEvent.setup().click(tab);
   expect(kit.engine.getSnapshot().rows[0].hidden).toBe(true);
-  expect(screen.getByRole("button", { name: "Show expression 1" })).toHaveAttribute(
+  expect(screen.getByRole("button", { name: "Show: Expression 1" })).toHaveAttribute(
     "aria-pressed",
     "false"
   );
@@ -121,6 +121,6 @@ it("R-1 clicking a row body focuses its field", async () => {
   // Row controls keep their own action and do not move focus into the field.
   const second = kit.fields.forRow("2");
   second.calls = [];
-  await user.click(screen.getByRole("button", { name: "Hide expression 2" }));
+  await user.click(screen.getByRole("button", { name: "Hide: Expression 2" }));
   expect(second.calls.filter((c) => c.method === "focus")).toEqual([]);
 });

@@ -20,15 +20,15 @@ const ORDER = [
   ["checkbox", "Axis Numbers"],
   ["checkbox", "Minor Gridlines"],
   ["checkbox", "X-Axis"],
-  ["textbox", "x-axis label"],
-  ["textbox", "x minimum"],
-  ["textbox", "x maximum"],
-  ["textbox", "x-axis step"],
+  ["textbox", "Label"],
+  ["textbox", "X Axis Minimum:"],
+  ["textbox", "X Axis Maximum:"],
+  ["textbox", "X Axis Step Size:"],
   ["checkbox", "Y-Axis"],
-  ["textbox", "y-axis label"],
-  ["textbox", "y minimum"],
-  ["textbox", "y maximum"],
-  ["textbox", "y-axis step"],
+  ["textbox", "Label"],
+  ["textbox", "Y Axis Minimum:"],
+  ["textbox", "Y Axis Maximum:"],
+  ["textbox", "Y Axis Step Size:"],
   ["button", "More Options"],
   ["checkbox", "Complex Mode"],
   ["radio", "Radians"],
@@ -42,11 +42,17 @@ const popover = (onClose: () => void = vi.fn()) => (
   />
 );
 
-it("SETTINGS-9 the settings popover lists the controls in the reference's order", () => {
+it("SETTINGS-8, -9 the settings popover is the region Graph Settings with the reference's controls in order", () => {
   renderEditor(popover(), { rows: [""] });
-  const dialog = screen.getByRole("dialog", { name: "Graph settings" });
+  const dialog = screen.getByRole("region", { name: "Graph Settings" });
   // ByRoleOptions has no `exact` (tsc rejects it); a string name already matches the whole name.
-  const controls = ORDER.map(([role, name]) => within(dialog).getByRole(role, { name }));
+  // Both axes have a field named "Label", so the nth one of a name is the nth in the order.
+  const seen = new Map<string, number>();
+  const controls = ORDER.map(([role, name]) => {
+    const n = seen.get(role + name) ?? 0;
+    seen.set(role + name, n + 1);
+    return within(dialog).getAllByRole(role, { name })[n];
+  });
   controls
     .slice(1)
     .forEach((el, i) =>
@@ -74,12 +80,13 @@ it("S-1 each display control writes its setting and Escape closes the popover", 
     await user.click(screen.getByRole("checkbox", { name }));
     expect(kit.engine.settings[setting]).toBe(!DEFAULT_SETTINGS[setting]);
   }
-  await user.type(screen.getByRole("textbox", { name: "x-axis label" }), "t{Enter}");
-  expect(kit.engine.settings.xAxis.label).toBe("t");
+  // SETTINGS-19: each keystroke in Label sets the label.
+  await user.type(screen.getAllByRole("textbox", { name: "Label" })[0], "ti");
+  expect(kit.engine.settings.xAxis.label).toBe("ti");
   await user.click(screen.getByRole("checkbox", { name: "X-Axis" }));
   expect(kit.engine.settings.xAxis.show).toBe(false);
   // SETTINGS-19: the Label field leaves with its axis.
-  expect(screen.queryByRole("textbox", { name: "x-axis label" })).toBeNull();
+  expect(screen.getAllByRole("textbox", { name: "Label" })).toHaveLength(1);
   await user.click(screen.getByRole("checkbox", { name: "Grid" }));
   await user.click(screen.getByRole("button", { name: "Polar Grid" }));
   expect(kit.engine.settings.polarGrid).toBe(true);
@@ -131,7 +138,7 @@ it("SETTINGS-14, -15 grid off hides the grid type and Minor Gridlines; polar hid
   const user = userEvent.setup();
   await user.click(screen.getByRole("button", { name: "Polar Grid" }));
   expect(screen.queryByRole("checkbox", { name: "Minor Gridlines" })).toBeNull();
-  expect(screen.queryByRole("textbox", { name: "x-axis step" })).toBeNull();
+  expect(screen.queryByRole("textbox", { name: "X Axis Step Size:" })).toBeNull();
   await user.click(screen.getByRole("checkbox", { name: "Grid" }));
   expect(screen.queryByRole("button", { name: "Cartesian Grid" })).toBeNull();
 });

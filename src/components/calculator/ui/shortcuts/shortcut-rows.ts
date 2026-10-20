@@ -93,6 +93,9 @@ const ACTIONS: readonly ShortcutRow[] = [
   { label: "Enable or Disable Audio Trace Mode", win: "ALT + T", mac: "OPTION + T" },
   { label: "Undo", win: "CTRL + Z", mac: "COMMAND + Z" },
   { label: "Redo", win: "CTRL + SHIFT + Z", mac: "COMMAND + SHIFT + Z" },
+  { label: "Zoom In", win: "ALT + +", mac: "CTRL + +" },
+  { label: "Zoom Out", win: "ALT + -", mac: "CTRL + -" },
+  { label: "Restore Default Viewport", win: "ALT + 0", mac: "CTRL + 0" },
   same(
     "Pan Graph in Given Direction (when focused)",
     "UP ARROW, DOWN ARROW, LEFT ARROW, or RIGHT ARROW"
@@ -121,7 +124,8 @@ export function shortcutParts(keys: string): ShortcutPart[] {
   for (const chunk of keys.split(/( \+ |, or |, |\(|\))/)) {
     const piece = chunk.trim();
     if (piece === "") continue;
-    if (piece === "+" || piece === "(" || piece === ")") parts.push({ text: piece });
+    // A bare "+" is the plus key ("ALT + +"); the separator is " + " with its spaces.
+    if (chunk === " + " || piece === "(" || piece === ")") parts.push({ text: piece });
     else if (piece === "," || piece === ", or") parts.push({ text: piece });
     else if (piece === "or") parts.push({ text: ", or" });
     else if (piece.startsWith("~") && piece.length > 1)

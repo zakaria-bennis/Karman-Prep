@@ -2,7 +2,14 @@
 // -20, -32, -33), on the harness page /harness/calculator.html.
 
 import { expect, test, type Page } from "@playwright/test";
-import { enc, openSettings, openShell, rowField, useConsoleGuard } from "./shell-helpers";
+import {
+  announced,
+  enc,
+  openSettings,
+  openShell,
+  rowField,
+  useConsoleGuard,
+} from "./shell-helpers";
 
 // eslint-disable-next-line react-hooks/rules-of-hooks -- registers Playwright hooks; not a React hook
 useConsoleGuard();
@@ -36,7 +43,57 @@ test("SETTINGS-32 Mod+Alt+G opens Graph settings on Display size and closes it a
   await page.keyboard.press(combo);
   await expect(page.getByRole("radio", { name: "Display size: default" })).toBeFocused();
   await page.keyboard.press(combo);
-  await expect(page.getByRole("dialog", { name: "Graph settings" })).toHaveCount(0);
+  await expect(page.getByRole("region", { name: "Graph Settings" })).toHaveCount(0);
+  // Closing puts focus on the Settings button, as Escape does.
+  await expect(page.getByRole("button", { name: "Graph settings" })).toBeFocused();
+});
+
+test("SETTINGS-32 the single-modifier =, - and 0 zoom in, zoom out and restore the default view, announced", async ({
+  page,
+}) => {
+  await openShell(page, `?w=1200&h=800&rows=${enc(["y=x"])}`);
+  await rowField(page, "1").click();
+  const isMac = await page.evaluate(() => /^Mac/.test(navigator.platform));
+  const mod = isMac ? "Control" : "Alt";
+  const right = async () => (await viewport(page)).right;
+  await page.keyboard.press(`${mod}+Equal`);
+  await expect.poll(right).toBe(5);
+  await page.keyboard.press(`${mod}+Minus`);
+  await page.keyboard.press(`${mod}+Minus`);
+  await expect.poll(right).toBe(20);
+  await page.keyboard.press(`${mod}+Digit0`);
+  await expect.poll(right).toBe(10);
+  expect(await announced(page)).toEqual(
+    expect.arrayContaining(["Graph zoom in", "Graph zoom out", "Graph viewport default"])
+  );
+  // The row was not typed into.
+  expect(
+    await page.evaluate(() => globalThis.__shell!.handle.calculator.getExpressions()[0].latex)
+  ).toBe("y=x");
+});
+
+test("SETTINGS-24 a bound applies as it is typed; an out-of-order bound marks the pair and keeps the last valid view", async ({
+  page,
+}) => {
+  await openShell(page, `?w=1200&h=800&rows=${enc(["y=x"])}`);
+  await openSettings(page);
+  const max = page.getByRole("textbox", { name: /^X Axis Maximum:/ });
+  await max.focus();
+  await page.keyboard.press("ControlOrMeta+KeyA");
+  await page.keyboard.type("-2");
+  await expect.poll(async () => (await viewport(page)).right).toBe(-2);
+  await page.keyboard.type("0");
+  const min = page.getByRole("textbox", { name: /^X Axis Minimum:/ });
+  await expect(min).toHaveAttribute("aria-invalid", "true");
+  await expect(min).toHaveAccessibleName(/expression has error$/);
+  expect((await viewport(page)).right).toBe(-2);
+  // Closing drops the invalid text; reopened, the fields show the view.
+  await page.keyboard.press("Escape");
+  await openSettings(page);
+  await expect(page.getByRole("textbox", { name: "X Axis Maximum: negative 2" })).toHaveCount(1);
+  await expect(page.getByRole("textbox", { name: /^X Axis Minimum:/ })).not.toHaveAttribute(
+    "aria-invalid"
+  );
 });
 
 test("SETTINGS-11, -12 Large display enlarges the list math and Reverse contrast inverts the calculator", async ({
@@ -79,7 +136,7 @@ test("STYLES-20, -25 a long-press on the row icon opens the style options; a col
   page,
 }) => {
   await openShell(page, `?w=1200&h=800&rows=${enc(["y=x"])}`);
-  const icon = page.getByRole("button", { name: "Hide expression 1" });
+  const icon = page.getByRole("button", { name: "Hide: Expression 1" });
   const box = await icon.boundingBox();
   await page.mouse.move(box!.x + box!.width / 2, box!.y + box!.height / 2);
   await page.mouse.down();
@@ -98,7 +155,7 @@ test("STYLES-20, -25 a long-press on the row icon opens the style options; a col
   );
   await page.keyboard.press("Escape");
   await expect(menu).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "Hide expression 1" })).toBeFocused();
+  await expect(page.getByRole("button", { name: "Hide: Expression 1" })).toBeFocused();
   // The long-press did not hide the row.
   expect(
     await page.evaluate(() => globalThis.__shell!.handle.calculator.getExpressions()[0].hidden)

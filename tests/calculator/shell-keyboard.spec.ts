@@ -196,14 +196,14 @@ test("KB-7 undo, redo and Alt+Enter in a Graph settings text field leave the exp
   await expect.poll(async () => (await rows(page))[0].latex).not.toBe("xy");
   const before = await rows(page);
   await openSettings(page);
-  const label = page.getByRole("textbox", { name: "x-axis label", exact: true });
+  const label = page.getByRole("textbox", { name: "Label", exact: true }).first();
   await label.click();
   await page.keyboard.type("ab");
   for (const key of ["ControlOrMeta+KeyZ", "ControlOrMeta+Shift+KeyZ", "Alt+Enter"])
     await page.keyboard.press(key);
   await frames(page);
   expect(await rows(page)).toEqual(before);
-  await expect(page.getByRole("dialog", { name: "Graph settings" })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Graph Settings" })).toBeVisible();
 });
 
 test("KB-13 Delete All, Undo, Redo, Done and every keypad key are tabbable in visual order; a hidden keypad and collapsed list are skipped", async ({

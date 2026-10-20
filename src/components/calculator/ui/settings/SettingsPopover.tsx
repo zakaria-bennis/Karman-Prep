@@ -1,5 +1,5 @@
-// The settings popover (S-1; drawn to popovers-menus.md VIS-1 to VIS-20): a dialog named
-// "Graph settings" to the left of its Settings control, top-aligned with it, with a 12 px arrow on
+// The settings popover (S-1; drawn to popovers-menus.md VIS-1 to VIS-20): a region named
+// "Graph Settings" (SETTINGS-8) to the left of its Settings control, top-aligned with it, with a 12 px arrow on
 // the control's centre line. It lists the controls in the reference's order (SETTINGS-9): Display
 // Size, Reverse contrast and Braille Mode (DisplaySection), Grid with the pressed Cartesian Grid and
 // Polar Grid buttons, Arrows, the small Axis Numbers and Minor Gridlines, each axis (AxisSection),
@@ -142,7 +142,7 @@ export function SettingsPopover(props: SettingsPopoverProps): JSX.Element | null
 
   const grid = settings.showGrid;
   return (
-    <div ref={ref} className="kc-settings" role="dialog" aria-label="Graph settings">
+    <div ref={ref} className="kc-settings" role="region" aria-label="Graph Settings">
       <div className="kc-settings-body">
         <DisplaySection />
         <div className="kc-settings-section kc-settings-grid">

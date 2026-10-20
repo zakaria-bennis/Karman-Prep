@@ -319,12 +319,13 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
             <button
               type="button"
               className="kc-row-tab"
+              // STYLES-19: "{action}: Expression n", as the reference names it.
               aria-label={
                 styleOpen
-                  ? `Hide options: expression ${number}`
+                  ? `Hide Options: Expression ${number}`
                   : editing
-                    ? `Show options: expression ${number}`
-                    : `${row.hidden ? "Show" : "Hide"} expression ${number}`
+                    ? `Show Options: Expression ${number}`
+                    : `${row.hidden ? "Show" : "Hide"}: Expression ${number}`
               }
               aria-pressed={!row.hidden}
               data-kind={kindGlyph(row, tab)}

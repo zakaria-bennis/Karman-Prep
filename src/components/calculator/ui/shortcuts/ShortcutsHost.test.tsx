@@ -4,14 +4,19 @@ import userEvent from "@testing-library/user-event";
 import { useRef } from "react";
 import { expect, it } from "vitest";
 import { renderEditor } from "../list/__fixtures__/render-editor";
-import { EDITOR_MESSAGES } from "../list/messages";
 import { ShortcutsHost } from "./ShortcutsHost";
 import { SHORTCUT_SECTIONS, shortcutParts } from "./shortcut-rows";
 
-function Root() {
+function Root(props: { zoom?: (name: string) => void; home?: boolean }) {
   const ref = useRef<HTMLElement>(null);
+  const zoom = props.zoom ?? (() => undefined);
   return (
     <section ref={ref} data-testid="root">
+      <div className="kc-graph-controls">
+        <button aria-label="Zoom in" onClick={() => zoom("in")} />
+        <button aria-label="Zoom out" onClick={() => zoom("out")} />
+        {props.home === true && <button aria-label="Home" onClick={() => zoom("home")} />}
+      </div>
       <input aria-label="inside" />
       <ShortcutsHost rootRef={ref} />
     </section>
@@ -58,11 +63,32 @@ it("SETTINGS-32 Alt+D switches degrees and radians and announces it; in complex 
   const kit = renderEditor(<Root />, { rows: [""] });
   await press("KeyD", { altKey: true });
   expect(kit.engine.settings.angleMode).toBe("degrees");
-  expect(kit.announcer.texts).toEqual([EDITOR_MESSAGES.angle("degrees")]);
+  await press("KeyD", { altKey: true });
+  expect(kit.engine.settings.angleMode).toBe("radians");
+  await press("KeyD", { altKey: true });
+  expect(kit.announcer.texts).toEqual(["Degrees", "Radians", "Degrees"]);
   act(() => kit.engine.updateSettings({ complex: true }));
   await press("KeyD", { altKey: true });
   expect(kit.engine.settings.angleMode).toBe("degrees");
   expect(kit.announcer.texts.at(-1)).toBe("Complex mode uses radians");
+});
+
+it("SETTINGS-3, -32 Alt+=, Alt+- and Alt+0 press Zoom in, Zoom out and Home and announce them; with no Home they do nothing", async () => {
+  const pressed: string[] = [];
+  const kit = renderEditor(<Root zoom={(name) => pressed.push(name)} />, { rows: [""] });
+  await press("Equal", { altKey: true });
+  await press("NumpadSubtract", { altKey: true });
+  await press("Digit0", { altKey: true });
+  expect(pressed).toEqual(["in", "out"]);
+  expect(kit.announcer.texts).toEqual(["Graph zoom in", "Graph zoom out"]);
+});
+
+it("SETTINGS-32 Alt+0 restores the default viewport while Home shows", async () => {
+  const pressed: string[] = [];
+  const kit = renderEditor(<Root home zoom={(name) => pressed.push(name)} />, { rows: [""] });
+  await press("Digit0", { altKey: true });
+  expect(pressed).toEqual(["home"]);
+  expect(kit.announcer.texts).toEqual(["Graph viewport default"]);
 });
 
 it("SETTINGS-33 shortcut strings become key caps with the separators as text", () => {
@@ -88,5 +114,6 @@ it("SETTINGS-33 shortcut strings become key caps with the separators as text", (
     { cap: "6" },
     { text: ")" },
   ]);
+  expect(shortcutParts("ALT + +")).toEqual([{ cap: "ALT" }, { text: "+" }, { cap: "+" }]);
   expect(shortcutParts("~sum")).toEqual([{ cap: "s" }, { cap: "u" }, { cap: "m" }]);
 });

@@ -5,7 +5,7 @@ import { ExpressionPanel } from "./ExpressionPanel";
 import { panelProps, renderEditor } from "./__fixtures__/render-editor";
 
 type Kit = ReturnType<typeof renderEditor>;
-const tab = (n: number) => screen.getByRole("button", { name: `Hide expression ${n}` });
+const tab = (n: number) => screen.getByRole("button", { name: `Hide: Expression ${n}` });
 const rows = (kit: Kit) => kit.engine.getSnapshot().rows;
 
 function createTable(n: number) {

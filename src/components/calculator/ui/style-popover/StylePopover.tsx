@@ -1,9 +1,10 @@
 // An expression row's style popover (STYLES-20 to STYLES-26, VIS-POPOVERS-MENUS-21 to -24): a
 // region named "Options Menu", 220 px wide, to the right of the row's colour icon with an 8 px
-// arrow on the icon's centre line. A curve shows "Lines" with its on/off switch ("Lines visible",
-// off hides the row, STYLES-29) and the Solid / Dashed / Dotted choice; a point shows "Points"
-// ("Points visible") and the point shape; an inequality only its colours. Below them, the six
-// colour tiles: a listbox "Standard" in the group "Color Picker", options named red to black, the
+// arrow on the icon's centre line. A curve shows "Lines" with its on/off switch ("Lines visible")
+// and the Solid / Dashed / Dotted choice; a point shows "Points" ("Points visible") and the point
+// shape; an inequality only its colours. With the switch off the row is hidden and the popover
+// shows only that heading (STYLES-29). The opacity fields are named "Line Opacity:" for points
+// too, as the reference names them (STYLES-24). Below them, the six colour tiles: a listbox "Standard" in the group "Color Picker", options named red to black, the
 // chosen one ticked. Every change is one undo step and keeps the popover open. Escape (one KB-3
 // layer) closes it back to the icon; a press outside it closes it.
 //
@@ -181,7 +182,7 @@ export function StylePopover({ row, kind, anchor, onClose }: StylePopoverProps):
     kind === "region" ? null : (
       <div className="kc-style-section">
         <div className="kc-style-title">
-          <span aria-hidden="true">{kind === "point" ? "Points" : "Lines"}</span>
+          <span>{kind === "point" ? "Points" : "Lines"}</span>
           <SettingToggle
             name={kind === "point" ? "Points visible" : "Lines visible"}
             checked={!row.hidden}
@@ -191,14 +192,9 @@ export function StylePopover({ row, kind, anchor, onClose }: StylePopoverProps):
         {!row.hidden && (
           <div className="kc-style-content kc-style-options">
             <div className="kc-style-fields">
-              <FixedField
-                icon="opacity"
-                name={kind === "point" ? "Point Opacity" : "Line Opacity"}
-                tip="Opacity (0 to 1)"
-                value="1"
-              />
+              <FixedField icon="opacity" name="Line Opacity:" tip="Opacity (0 to 1)" value="1" />
               {kind === "point" ? (
-                <FixedField icon="size" name="Point Size" tip="Point Size (px)" value="8" />
+                <FixedField icon="size" name="Point Size:" tip="Point Size (px)" value="8" />
               ) : (
                 <FixedField
                   icon="thickness"
@@ -236,32 +232,35 @@ export function StylePopover({ row, kind, anchor, onClose }: StylePopoverProps):
     <div ref={panel} className="kc-style-popover" role="region" aria-label="Options Menu">
       <div className="kc-style-popover-body">
         {section}
-        <div className="kc-style-section kc-style-colours" role="group" aria-label="Color Picker">
-          <div className="kc-style-swatches" role="listbox" aria-label="Standard">
-            {PICKER_SLOTS.map((slot, i) => (
-              <div
-                key={slot}
-                className="kc-style-swatch"
-                role="option"
-                aria-label={SWATCH_NAMES[i]}
-                aria-selected={i === chosen}
-                tabIndex={i === Math.max(0, chosen) ? 0 : -1}
-                style={{ "--kc-row-color": resolveRowColor(slot, skin).hex } as CSSProperties}
-                onClick={() => set({ color: slot })}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter" || event.key === " ") {
-                    event.preventDefault();
-                    set({ color: slot });
-                  } else onSwatchKey(event, i);
-                }}
-              >
-                <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
-                  <path d="M3 8.4 6.4 11.8 13 4.6" />
-                </svg>
-              </div>
-            ))}
+        {/* STYLES-29: with its lines or points off, a curve or point shows only that heading. */}
+        {(kind === "region" || !row.hidden) && (
+          <div className="kc-style-section kc-style-colours" role="group" aria-label="Color Picker">
+            <div className="kc-style-swatches" role="listbox" aria-label="Standard">
+              {PICKER_SLOTS.map((slot, i) => (
+                <div
+                  key={slot}
+                  className="kc-style-swatch"
+                  role="option"
+                  aria-label={SWATCH_NAMES[i]}
+                  aria-selected={i === chosen}
+                  tabIndex={i === Math.max(0, chosen) ? 0 : -1}
+                  style={{ "--kc-row-color": resolveRowColor(slot, skin).hex } as CSSProperties}
+                  onClick={() => set({ color: slot })}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      set({ color: slot });
+                    } else onSwatchKey(event, i);
+                  }}
+                >
+                  <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+                    <path d="M3 8.4 6.4 11.8 13 4.6" />
+                  </svg>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

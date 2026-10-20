@@ -426,7 +426,7 @@ test("S-1 the settings popover opens to the left of its Settings control, top-al
   await open(page, [""]);
   const settings = page.getByRole("button", { name: "Settings", exact: true });
   await settings.click();
-  const popover = page.getByRole("dialog", { name: "Graph settings" });
+  const popover = page.getByRole("region", { name: "Graph Settings" });
   await expect(popover).toBeVisible();
   await expect.poll(() => transitions(popover), { intervals: [16] }).toEqual([]); // AN-4 ended
   const a = (await settings.boundingBox())!;

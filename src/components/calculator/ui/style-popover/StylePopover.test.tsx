@@ -20,8 +20,8 @@ async function openWithShiftEnter(name: string) {
 
 it("STYLES-20, -22, -24 Shift+Enter on a curve's icon opens Lines, the line styles and the colour tiles; Escape returns to the icon", async () => {
   const kit = renderEditor(<ExpressionPanel {...panelProps()} />, { rows: ["y=x"] });
-  const menu = await openWithShiftEnter("Hide expression 1");
-  expect(tab("Hide options: expression 1")).toHaveAttribute("aria-expanded", "true");
+  const menu = await openWithShiftEnter("Hide: Expression 1");
+  expect(tab("Hide Options: Expression 1")).toHaveAttribute("aria-expanded", "true");
   expect(within(menu).getByRole("checkbox", { name: "Lines visible" })).toHaveFocus();
   const style = within(menu).getByRole("radiogroup", { name: "Style" });
   expect(
@@ -51,20 +51,22 @@ it("STYLES-20, -22, -24 Shift+Enter on a curve's icon opens Lines, the line styl
   expect(stored(kit, "1").color).not.toBe("c5"); // STYLES-49: one undo step
   act(() => kit.pressEscape());
   expect(screen.queryByRole("region", { name: "Options Menu" })).toBeNull();
-  expect(tab("Hide expression 1")).toHaveFocus();
+  expect(tab("Hide: Expression 1")).toHaveFocus();
 });
 
 it("STYLES-29 Lines off hides the row and leaves only the heading", async () => {
   const kit = renderEditor(<ExpressionPanel {...panelProps()} />, { rows: ["y=x"] });
-  const menu = await openWithShiftEnter("Hide expression 1");
+  const menu = await openWithShiftEnter("Hide: Expression 1");
   await userEvent.setup().click(within(menu).getByRole("checkbox", { name: "Lines visible" }));
   expect(stored(kit, "1").hidden).toBe(true);
   expect(within(menu).queryByRole("radiogroup", { name: "Style" })).toBeNull();
+  expect(within(menu).queryByRole("group", { name: "Color Picker" })).toBeNull();
+  expect(within(menu).getByText("Lines")).toBeInTheDocument();
 });
 
 it("STYLES-22 a point offers Points and its shapes", async () => {
   const kit = renderEditor(<ExpressionPanel {...panelProps()} />, { rows: ["(1,2)"] });
-  const menu = await openWithShiftEnter("Hide expression 1");
+  const menu = await openWithShiftEnter("Hide: Expression 1");
   expect(within(menu).getByRole("checkbox", { name: "Points visible" })).toBeChecked();
   await userEvent.setup().click(within(menu).getByRole("radio", { name: "Open" }));
   expect(stored(kit, "1").pointStyle).toBe("open");
@@ -74,11 +76,11 @@ it("STYLES-18, -20, -21 a short click hides; a long-press opens without hiding; 
   vi.useFakeTimers({ shouldAdvanceTime: true });
   try {
     const kit = renderEditor(<ExpressionPanel {...panelProps()} />, { rows: ["y=x"] });
-    await waitFor(() => expect(tab("Hide expression 1")).toBeInTheDocument());
-    fireEvent.click(tab("Hide expression 1"));
+    await waitFor(() => expect(tab("Hide: Expression 1")).toBeInTheDocument());
+    fireEvent.click(tab("Hide: Expression 1"));
     expect(stored(kit, "1").hidden).toBe(true);
-    fireEvent.click(tab("Show expression 1"));
-    const icon = tab("Hide expression 1");
+    fireEvent.click(tab("Show: Expression 1"));
+    const icon = tab("Hide: Expression 1");
     fireEvent.pointerDown(icon);
     act(() => {
       vi.advanceTimersByTime(LONG_PRESS_MS + 10);
@@ -87,7 +89,7 @@ it("STYLES-18, -20, -21 a short click hides; a long-press opens without hiding; 
     fireEvent.click(icon);
     expect(screen.getByRole("region", { name: "Options Menu" })).toBeInTheDocument();
     expect(stored(kit, "1").hidden).toBe(false);
-    fireEvent.click(tab("Hide options: expression 1"));
+    fireEvent.click(tab("Hide Options: Expression 1"));
     expect(screen.queryByRole("region", { name: "Options Menu" })).toBeNull();
     expect(stored(kit, "1").hidden).toBe(false);
   } finally {
@@ -99,6 +101,6 @@ it("STYLES-20 in Edit list mode a click on the icon opens the options", async ()
   renderEditor(<ExpressionPanel {...panelProps()} />, { rows: ["y=x"] });
   const user = userEvent.setup();
   await user.click(screen.getByRole("button", { name: "Edit list" }));
-  await user.click(tab("Show options: expression 1"));
+  await user.click(tab("Show Options: Expression 1"));
   expect(screen.getByRole("region", { name: "Options Menu" })).toBeInTheDocument();
 });
