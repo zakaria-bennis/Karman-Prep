@@ -71,6 +71,87 @@ class WriterTests(unittest.TestCase):
         self.assertEqual(len(lines), 2)
         self.assertEqual(lines[0], first)
 
+    def test_double_close_refused(self):
+        iid = self._open()
+        writer.close_intent(self.log, iid, "verified", "cd", T2)
+        with self.assertRaises(ValueError):
+            writer.close_intent(self.log, iid, "verified", "cd", T2)
+
+    def test_duplicate_open_refused(self):
+        self._open()
+        with self.assertRaises(ValueError):
+            self._open()
+
+    def test_torn_last_line_is_open_and_closable(self):
+        self._open("batch-07")
+        with open(self.log, "a") as f:
+            f.write('{"type": "open", "intent_')  # crash mid-append
+        opened = writer.open_intents(self.log)
+        self.assertEqual(len(opened), 2)
+        torn = [i for i in opened if i["intent_id"].startswith("torn-")][0]
+        self.assertEqual(torn["intent_id"], "torn-2")
+        self.assertIn("torn log line 2", torn["batch"])
+        with self.assertRaises(writer.OpenIntent) as cm:
+            writer.require_no_open_intents(self.log)
+        self.assertIn("torn-2", str(cm.exception))
+        writer.close_intent(self.log, "torn-2", "not_applied", "cd", T2)
+        self.assertEqual([i["batch"] for i in writer.open_intents(self.log)], ["batch-07"])
+
+    def test_append_after_torn_line_keeps_new_entry(self):
+        with open(self.log, "w") as f:
+            f.write('{"type": "open", "int')
+        iid = self._open("batch-08")
+        lines = self.log.read_text().splitlines()
+        self.assertEqual(len(lines), 2)
+        self.assertEqual(json.loads(lines[1])["intent_id"], iid)
+
+    def test_unclosed_torn_line_in_middle_is_corrupt(self):
+        with open(self.log, "w") as f:
+            f.write('{"type": "open", "int')
+        self._open("batch-08")
+        with self.assertRaises(writer.CorruptLog) as cm:
+            writer.open_intents(self.log)
+        self.assertEqual(cm.exception.line_no, 1)
+
+    def test_torn_line_closed_then_log_readable(self):
+        with open(self.log, "w") as f:
+            f.write('{"type": "open", "int')
+        writer.close_intent(self.log, "torn-1", "not_applied", "cd", T2)
+        self._open("batch-09")
+        self.assertEqual([i["batch"] for i in writer.open_intents(self.log)], ["batch-09"])
+
+    def test_unparseable_lock_blocks_acquire(self):
+        self.lock.write_text("")
+        with self.assertRaises(writer.LockHeld) as cm:
+            writer.acquire_lock(self.lock, "s", T1)
+        self.assertEqual((cm.exception.holder, cm.exception.since), ("unknown", "unknown"))
+
+    def test_unparseable_lock_release_needs_force(self):
+        self.lock.write_text('{"hold')
+        with self.assertRaises(writer.CorruptLock) as cm:
+            writer.release_lock(self.lock, "s")
+        self.assertIn(str(self.lock), str(cm.exception))
+        self.assertTrue(self.lock.exists())
+        writer.release_lock(self.lock, "s", force=True)
+        self.assertFalse(self.lock.exists())
+
+    def test_release_missing_lock(self):
+        with self.assertRaises(writer.NoLock) as cm:
+            writer.release_lock(self.lock, "s")
+        self.assertIn(str(self.lock), str(cm.exception))
+
+    def test_cli_errors_exit_one_with_message(self):
+        r = subprocess.run(
+            [sys.executable, "-I", str(CLI), "lock", "release", "--path", str(self.lock), "--holder", "s"],
+            capture_output=True, text=True)
+        self.assertEqual(r.returncode, 1)
+        self.assertIn("no lock held", r.stderr)
+        self.lock.write_text("x")
+        r = subprocess.run(
+            [sys.executable, "-I", str(CLI), "lock", "release", "--path", str(self.lock), "--holder", "s", "--force"],
+            capture_output=True, text=True)
+        self.assertEqual(r.returncode, 0, r.stderr)
+
     def test_intent_id_deterministic(self):
         a = writer.write_intent(self.dir / "x.jsonl", "b", "publish", ["2", "1"], "s", T1)
         b = writer.write_intent(self.dir / "y.jsonl", "b", "publish", ["1", "2"], "s", T1)

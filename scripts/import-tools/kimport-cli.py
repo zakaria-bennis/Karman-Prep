@@ -33,7 +33,8 @@ def _register_writer(sub) -> None:
     rel = lsub.add_parser("release")
     rel.add_argument("--path", required=True)
     rel.add_argument("--holder", required=True)
-    rel.set_defaults(func=lambda a: _guard(lambda: writer.release_lock(Path(a.path), a.holder)))
+    rel.add_argument("--force", action="store_true", help="remove an unreadable lock file")
+    rel.set_defaults(func=lambda a: _guard(lambda: writer.release_lock(Path(a.path), a.holder, force=a.force)))
 
     intent = sub.add_parser("intent", help="intent log: open, close or list")
     intent.set_defaults(func=lambda a: intent.print_help(sys.stderr) or 2)
@@ -63,7 +64,8 @@ def _register_writer(sub) -> None:
 def _guard(fn) -> int:
     try:
         fn()
-    except (writer.LockHeld, writer.WrongHolder, ValueError, FileNotFoundError) as e:
+    except (writer.LockHeld, writer.WrongHolder, writer.NoLock, writer.OpenIntent,
+            writer.CorruptLog, writer.CorruptLock, ValueError) as e:
         print(f"error: {e}", file=sys.stderr)
         return 1
     return 0
