@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { act, fireEvent, screen } from "@testing-library/react";
+import { act, fireEvent, screen, waitFor } from "@testing-library/react";
 import { expect, it, vi } from "vitest";
 import { ExpressionPanel } from "./ExpressionPanel";
 import { panelProps, renderEditor } from "./__fixtures__/render-editor";
@@ -42,19 +42,20 @@ const side = (kit: Kit, name: string, direction: "left" | "right") =>
 const tab = (name: string, shiftKey = false) =>
   act(() => void fireEvent.keyDown(box(name), { key: "Tab", shiftKey }));
 
-it("D-7 Enter moves down the column, creating a row from the blank row, and Enter in the blank row leaves the table", () => {
+it("D-7, RT-7 Enter goes to the blank row, continues a sequence, and leaves the table from the blank row", async () => {
   const kit = withTable(["y=x"], ["1"], ["2"]);
   act(() => box("x₁, row 1").focus());
-  press(kit, "x₁, row 1", "onEnter");
+  press(kit, "x₁, row 1", "onEnter"); // one value: no sequence, the blank row
   expect(box("x₁, row 2, blank")).toHaveFocus();
   act(() => field(kit, "x₁, row 2, blank").emitEdit("3"));
   expect(columns(kit)).toEqual([
     ["1", "3"],
     ["2", ""],
   ]);
-  expect(box("x₁, row 3, blank")).toBeInTheDocument(); // a new blank row
-  press(kit, "x₁, row 2, blank", "onEnter"); // the field created for the blank row
-  press(kit, "x₁, row 3, blank", "onEnter");
+  press(kit, "x₁, row 2, blank", "onEnter"); // the field created for the blank row; 1, 3 → 5
+  expect(columns(kit)[0]).toEqual(["1", "3", "5"]);
+  await waitFor(() => expect(box("x₁, row 3")).toHaveFocus());
+  press(kit, "x₁, row 4, blank", "onEnter");
   // The table was the last item, so a new empty expression takes focus.
   expect(kit.engine.getSnapshot().rows.map((r) => r.type)).toEqual([
     "expression",
@@ -62,6 +63,16 @@ it("D-7 Enter moves down the column, creating a row from the blank row, and Ente
     "expression",
   ]);
   expect(box("Expression 3")).toHaveFocus();
+});
+
+it("TABLES-29 Enter on an interior row of the first column inserts an empty row below", () => {
+  const kit = withTable(["y=x"], ["1", "2", "3"], ["4", "5", "6"]);
+  act(() => box("x₁, row 1").focus());
+  press(kit, "x₁, row 1", "onEnter");
+  expect(columns(kit)).toEqual([
+    ["1", "", "2", "3"],
+    ["4", "", "5", "6"],
+  ]);
 });
 
 it("D-7 Tab and Shift+Tab move across columns and wrap rows, skipping the header slot, and select the cell entered", () => {
