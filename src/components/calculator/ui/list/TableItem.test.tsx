@@ -206,13 +206,14 @@ it("RT-29 the model dropdown lists the nine models and picking one refits", asyn
   );
 });
 
-it("RT-8, K-8 the column style menu's Add regression uses that column, on every layout", async () => {
+it("RT-8, K-8 the column style menu's Add Regression uses that column, on every layout", async () => {
   for (const layout of ["desktop", "stacked"] as const) {
     const kit = renderEditor(<ExpressionPanel {...panelProps({ layout })} />, { rows: ["y=x"] });
     regressionTable(kit);
     await screen.findByRole("button", { name: "Add Regression" });
     fireEvent.contextMenu(screen.getByRole("button", { name: "Points for y₁" }));
-    act(() => screen.getByRole("button", { name: "Add regression" }).click());
+    const menu = screen.getByRole("dialog", { name: "Style for y₁" });
+    act(() => within(menu).getByRole("button", { name: "Add Regression" }).click());
     const state = kit.engine.getExpressions().find((s) => s.id === "t")!;
     expect(state.regression?.columns).toEqual({ x: 0, y: 1 });
     cleanup();
@@ -273,4 +274,74 @@ it("D-6 a cell with a cell error shows the marker and its tooltip; the header er
     act(() => marker.blur());
   }
   expect(box("Column 2 header")).not.toHaveAttribute("aria-invalid");
+});
+
+it("RT-6, TABLES-28 29 data rows collapse to rows 1-7, 18 more rows, the last 4; Show all expands", async () => {
+  const kit = renderEditor(<ExpressionPanel {...panelProps()} />, { rows: ["y=x"] });
+  const xs = Array.from({ length: 29 }, (_, i) => String(i + 1));
+  act(() =>
+    kit.engine.setExpression({
+      id: "t",
+      type: "table",
+      columns: [
+        { latex: "x_{1}", values: xs },
+        { latex: "y_{1}", values: xs },
+      ],
+    })
+  );
+  expect(screen.getByText("18 more rows")).toBeInTheDocument();
+  const shown = () =>
+    screen
+      .getAllByRole("textbox", { name: /^x₁, row \d+/ })
+      .map((b) => b.getAttribute("aria-label"));
+  expect(shown()).toEqual([
+    ...[1, 2, 3, 4, 5, 6, 7, 26, 27, 28, 29].map((r) => `x₁, row ${r}`),
+    "x₁, row 30, blank",
+  ]);
+  act(() => screen.getByRole("button", { name: "Show all" }).click());
+  expect(screen.queryByText("18 more rows")).toBeNull();
+  expect(shown()).toHaveLength(30);
+});
+
+it("RT-6 28 data rows show in full", () => {
+  const kit = renderEditor(<ExpressionPanel {...panelProps()} />, { rows: ["y=x"] });
+  const xs = Array.from({ length: 28 }, (_, i) => String(i + 1));
+  act(() =>
+    kit.engine.setExpression({
+      id: "t",
+      type: "table",
+      columns: [
+        { latex: "x_{1}", values: xs },
+        { latex: "y_{1}", values: xs },
+      ],
+    })
+  );
+  expect(screen.queryByText(/more rows/)).toBeNull();
+});
+
+it("RT-28 the column menu's Add Regression is greyed on a column that cannot be regressed and gone once a regression exists", async () => {
+  const kit = renderEditor(<ExpressionPanel {...panelProps()} />, { rows: ["y=x"] });
+  act(() =>
+    kit.engine.setExpression({
+      id: "t",
+      type: "table",
+      columns: [
+        { latex: "x_{1}", values: ["1", "2", "3"] },
+        { latex: "y_{1}", values: ["3", "5", "10"] },
+        { latex: "y_{2}", values: ["1", "", ""] },
+      ],
+    })
+  );
+  await screen.findByRole("button", { name: "Add Regression" });
+  fireEvent.contextMenu(screen.getByRole("button", { name: "Points for y₂" }));
+  const menu = screen.getByRole("dialog", { name: "Style for y₂" });
+  const greyed = within(menu).getByRole("button", { name: "Add Regression" });
+  expect(greyed).toHaveAttribute("aria-disabled", "true");
+  act(() => greyed.click());
+  expect(kit.engine.getExpressions().find((s) => s.id === "t")!.regression).toBeUndefined();
+  act(() => screen.getAllByRole("button", { name: "Add Regression" })[0].click());
+  fireEvent.keyDown(menu, { key: "Escape" });
+  fireEvent.contextMenu(screen.getByRole("button", { name: "Points for y₁" }));
+  const second = screen.getByRole("dialog", { name: "Style for y₁" });
+  expect(within(second).queryByRole("button", { name: "Add Regression" })).toBeNull();
 });

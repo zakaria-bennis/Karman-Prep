@@ -32,6 +32,7 @@ const notData = (r: RegressionAnalysis): RegressionOutcome => ({
   residuals: [],
   logMode: { available: false, on: false },
   approximate: false,
+  isLinear: true,
   residualName: r.residual,
 });
 

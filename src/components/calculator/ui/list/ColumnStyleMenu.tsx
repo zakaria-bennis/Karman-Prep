@@ -35,6 +35,8 @@ export interface ColumnStyleMenuProps {
   header: string; // the header as read, "y₁"
   onDeleted(): void; // focus moves on once the column is gone
   onAddRegression(): void; // D-3: a linear regression of this column, below the table
+  /** RT-28: "add" when this column can be regressed, "disabled" when only another can, else null. */
+  regression: "add" | "disabled" | null;
 }
 
 const POINT_STYLES = (
@@ -172,8 +174,11 @@ export function ColumnStyleMenu(props: ColumnStyleMenuProps): JSX.Element {
         aria-expanded={open}
         aria-keyshortcuts="Shift+F10"
         style={{ "--kc-row-color": color.hex } as CSSProperties}
-        onClick={() => {
-          if (!consumeClick()) set({ hidden: !stored.hidden });
+        onClick={(e) => {
+          if (consumeClick()) return;
+          // TABLES-46: a Shift-click opens the menu, as a long-press does.
+          if (e.shiftKey) setOpen(true);
+          else set({ hidden: !stored.hidden });
         }}
         {...trigger}
       >
@@ -257,16 +262,6 @@ export function ColumnStyleMenu(props: ColumnStyleMenuProps): JSX.Element {
                   className="kc-style-action"
                   onClick={() => {
                     setOpen(false);
-                    props.onAddRegression();
-                  }}
-                >
-                  Add regression
-                </button>
-                <button
-                  type="button"
-                  className="kc-style-action"
-                  onClick={() => {
-                    setOpen(false);
                     engine.deleteTableColumn(tableId, column);
                     props.onDeleted();
                   }}
@@ -274,6 +269,24 @@ export function ColumnStyleMenu(props: ColumnStyleMenuProps): JSX.Element {
                   Delete column
                 </button>
               </div>
+              {props.regression !== null && (
+                <div className="kc-style-section">
+                  {/* RT-8, RT-28: the reference's full-width grey button, greyed when this column
+                      does not qualify. */}
+                  <button
+                    type="button"
+                    className="kc-style-regression"
+                    aria-disabled={props.regression === "disabled" ? "true" : undefined}
+                    onClick={() => {
+                      if (props.regression !== "add") return;
+                      setOpen(false);
+                      props.onAddRegression();
+                    }}
+                  >
+                    Add Regression
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         )}

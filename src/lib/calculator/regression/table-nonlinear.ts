@@ -6,11 +6,13 @@
 // not raise the error. Pure TypeScript: no DOM.
 
 import { solveColumnOrder } from "./linear-fit";
+import { multiStartLm, type ProjectedProblem } from "./projected-lm";
 import { realPower, type TableModel } from "./table-models";
 
 export interface NonlinearResult {
   params: number[];
   sse: number;
+  parameterWarning?: boolean; // RT-19
 }
 
 const GOLDEN = 0.3819660112501051;
@@ -302,7 +304,7 @@ export function fitNonlinearTable(
   ys: readonly number[],
   evaluate: (p: ArrayLike<number>, x: number) => number
 ): NonlinearResult | null {
-  const params =
+  let params =
     type === "exponential"
       ? fitExponential(xs, ys)
       : type === "power"
@@ -310,9 +312,46 @@ export function fitNonlinearTable(
         : type === "logistic"
           ? fitLogistic(xs, ys)
           : fitSinusoidal(xs, ys);
+  let parameterWarning = false;
+  // RT-19: the centred fit can need a parameter no double holds (a ≈ e^-1400 for yearly data);
+  // then the best fit of the model as written stands, and an exponential warns when the
+  // unrepresentable fit was the better one and there are more points than parameters.
+  const finite = (p: number[]) =>
+    p.every(Number.isFinite) && xs.every((x) => Number.isFinite(evaluate(p, x)));
+  if ((type === "exponential" || type === "power") && !finite(params)) {
+    const raw = rawFit(type, xs, ys);
+    if (raw === null) return null;
+    params = raw.params;
+    parameterWarning = type === "exponential" && xs.length > 2;
+  }
   const cleaned = snapTinyParameters(params, xs, ys, evaluate);
   if (cleaned === null) return null;
-  return cleaned;
+  return parameterWarning ? { ...cleaned, parameterWarning } : cleaned;
+}
+
+/** RT-18: a·b^x or a·x^b fitted as written (a linear, b searched) by the multi-start LM. */
+function rawFit(
+  type: "exponential" | "power",
+  xs: readonly number[],
+  ys: readonly number[]
+): { params: number[] } | null {
+  if (type === "power" && !xs.every((x) => x > 0)) return null;
+  const problem: ProjectedProblem = {
+    n: xs.length,
+    y: ys,
+    linear: [true, false],
+    model: ([a, b], i) => (type === "exponential" ? a * b ** xs[i] : a * xs[i] ** b),
+    gradient: ([a, b], i) => {
+      const x = xs[i];
+      return type === "exponential"
+        ? [b ** x, a * x * b ** (x - 1)]
+        : [x ** b, a * x ** b * Math.log(x)];
+    },
+  };
+  const fit = multiStartLm(problem, [1, 1]);
+  return Number.isFinite(fit.mse) && fit.params.every(Number.isFinite)
+    ? { params: fit.params }
+    : null;
 }
 
 /**

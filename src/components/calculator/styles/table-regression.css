@@ -449,3 +449,32 @@
   opacity: var(--kc-icon-hover);
   cursor: pointer;
 }
+
+/* RT-8, RT-28: the column style menu's "Add Regression", a full-width grey button as on the
+   reference, greyed when the column does not qualify. */
+.kc-style-regression {
+  box-sizing: border-box;
+  width: 100%;
+  height: 28px;
+  border: 1px solid var(--kc-rule);
+  border-radius: 3px;
+  background: var(--kc-tab);
+  color: var(--kc-text);
+  font-family: var(--kc-font-ui);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.kc-style-regression:hover {
+  background: var(--kc-hover-fill);
+}
+
+.kc-style-regression[aria-disabled="true"] {
+  opacity: var(--kc-icon-disabled);
+  cursor: default;
+}
+
+.kc-style-regression:focus-visible {
+  outline: 2px solid var(--kc-focus-ring);
+  outline-offset: 1px;
+}

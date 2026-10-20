@@ -154,6 +154,20 @@ export function cellKeys(ctx: TableKeyContext, column: number, row: number | "h"
       }
       return false;
     },
+    // TABLES-36: Ctrl+ArrowUp/Down to the column's header or its blank row; Ctrl+ArrowLeft/Right
+    // to the first or last data column of the row.
+    onJump(direction) {
+      const t = read();
+      if (t === null) return;
+      let place: Place | null;
+      if (direction === "up") place = { column, row: "h" };
+      else if (direction === "down") place = nearest(t.places, column, t.rows);
+      else {
+        const inRow = t.places.filter((p) => p.row === row);
+        place = (direction === "left" ? inRow[0] : inRow.at(-1)) ?? null;
+      }
+      if (place !== null) enter(ctx, place, "select");
+    },
     // D-8, D-9: Backspace in an empty cell or header (requirements 13, 14).
     onDeleteOutOf() {
       const t = read();

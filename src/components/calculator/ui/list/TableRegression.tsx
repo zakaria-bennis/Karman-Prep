@@ -63,6 +63,7 @@ export function TableRegression(props: {
   const { geometry, settings, viewport } = useEngineSnapshot(engine);
   // RT-26: after "plot", focus moves to the Zoom Fit icon once it appears.
   const zoomRef = useRef<HTMLButtonElement>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
   const focusZoom = useRef(false);
   useEffect(() => {
     if (focusZoom.current && zoomRef.current !== null) {
@@ -97,7 +98,7 @@ export function TableRegression(props: {
   const failed = fit !== null && !fit.ok ? fit.message : null;
   const iconHex = rowIconHex(r.color, skin);
   return (
-    <div className="kc-tr" data-table-regression="">
+    <div className="kc-tr" data-table-regression="" ref={rootRef}>
       <div className="kc-tr-header">
         {failed !== null ? (
           <span className="kc-tr-warning" role="img" aria-label={failed} title={failed}>
@@ -147,7 +148,19 @@ export function TableRegression(props: {
         <RegressionOptionsMenu
           tableId={row.id}
           stored={stored}
-          onDeleted={() => focus?.focusRow(row.id, "end")}
+          onDeleted={() => {
+            // RT-28: the gutter's Add Regression returns and takes focus, as on the reference.
+            const item = rootRef.current?.closest(".kc-table-item");
+            // The icon returns once the table's values are back, a few frames later.
+            let frames = 0;
+            const tryFocus = () => {
+              const add = item?.querySelector<HTMLElement>('[aria-label="Add Regression"]');
+              if (add) add.focus();
+              else if (++frames < 60) requestAnimationFrame(tryFocus);
+              else focus?.focusRow(row.id, "end");
+            };
+            requestAnimationFrame(tryFocus);
+          }}
         />
       </div>
       {fit !== null && fit.ok && (
@@ -159,7 +172,11 @@ export function TableRegression(props: {
               className="kc-tr-insert"
               aria-label="Export to the expression list"
               title="Export to the expression list"
-              onClick={() => exportRegressionEquation(engine, row.id)}
+              onClick={() => {
+                // The new row takes focus, as on the reference.
+                const made = exportRegressionEquation(engine, row.id);
+                if (made !== null && typeof made !== "string") focus?.focusRow(made.id, "end");
+              }}
             >
               <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
                 <path

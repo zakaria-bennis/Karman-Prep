@@ -40,6 +40,7 @@ export interface RegressionResult {
   residuals: number[];
   logMode: { available: boolean; on: boolean };
   approximate: boolean;
+  isLinear: boolean; // RT-17: affine in its parameters, so solved exactly (RT-31's "?" when false)
 }
 
 const STARTS = [1, 0.1, -1, 0, 10]; // D-25
@@ -55,6 +56,7 @@ const failure = (available: boolean, on: boolean): RegressionResult => ({
   residuals: [],
   logMode: { available, on },
   approximate: false,
+  isLinear: true,
 });
 
 const mean = (v: ArrayLike<number>) => {
@@ -161,11 +163,12 @@ export function fitRegression(input: FitInput): RegressionResult {
   }
   let p: Float64Array = new Float64Array(k),
     approximate = false;
+  const affine = k > 0 ? affineColumns(model, n, k) : null;
+  const isLinear = k === 0 || affine !== null;
   const logFit = trans === null ? null : simple(trans.u, trans.v);
   if (on && logFit !== null) {
     p = logParams(logForm!, k, logFit);
   } else if (k > 0) {
-    const affine = affineColumns(model, n, k);
     if (affine !== null) {
       const a = new Float64Array(n * k);
       for (let i = 0; i < n; i++) for (let j = 0; j < k; j++) a[i * k + j] = affine.cols[j][i];
@@ -230,5 +233,6 @@ export function fitRegression(input: FitInput): RegressionResult {
     residuals,
     logMode: { available, on },
     approximate,
+    isLinear,
   };
 }

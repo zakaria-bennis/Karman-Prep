@@ -29,6 +29,7 @@ export function usedNames(rows: readonly StoredRow[], analysis: AnalysisResult):
   for (const row of analysis.byId.values()) {
     if (row.defines !== null) used.add(row.defines.name);
     for (const name of row.uses) used.add(name);
+    if (row.regression) used.add(row.regression.residual); // RT-25: a typed regression's e_k
   }
   for (const row of rows) for (const c of row.columns ?? []) used.add(c.latex);
   return used;

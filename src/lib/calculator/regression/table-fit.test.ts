@@ -87,3 +87,21 @@ it("RT-17 the owner's quadratic gives y=-0.000438273x^2+0.170062x+1.02236, R²=1
     { label: "R2", value: "1" },
   ]);
 });
+
+it("RT-19 yearly data: Exponential fits as written and warns, Power fits without a warning", () => {
+  const years = { xs: [2000, 2001, 2002, 2003], ys: [1, 2, 4.1, 7.9], logMode: false };
+  const exp = fitTableRegression({ type: "exponential", ...years });
+  expect(exp.ok && exp.parameterWarning).toBe(true);
+  // the reference: y=(1.031816×10⁻¹⁵³)·1.193268ˣ, R² = 0.4878; ours stops nearer the overflow edge
+  expect(exp.ok && exp.equation).toMatch(
+    /^y=\\left\(\d\.\d+\\times10\^\{-15[34]\}\\right\)\\cdot1\.193\d+\^\{x\}$/
+  );
+  expect(exp.ok && tableStatisticsLines("exponential", exp.statistics)[0].value).toMatch(/^0\.48/);
+  const power = fitTableRegression({ type: "power", ...years });
+  expect(power.ok && power.parameterWarning).toBe(false);
+  expect(power.ok && power.params[1]).toBeCloseTo(46.5, 0);
+  const logistic = fitTableRegression({ type: "logistic", ...years });
+  expect(logistic.ok && logistic.equation).toBe(
+    "y=\\frac{48.40253}{1+e^{-\\left(0.7484829x-1500.8455\\right)}}"
+  );
+});

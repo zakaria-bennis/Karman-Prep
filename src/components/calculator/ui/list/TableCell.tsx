@@ -21,6 +21,8 @@ export interface CellKeys {
   onMoveOutOf(direction: "left" | "right"): void;
   onTab(backwards: boolean): boolean; // false past either end: Tab then leaves the table
   onDeleteOutOf(): void; // Backspace in an empty cell
+  /** TABLES-36: Ctrl+Arrow jumps to the column's header or blank row, or the row's first or last data column. */
+  onJump?(direction: "up" | "down" | "left" | "right"): void;
 }
 
 export interface TableCellProps {
@@ -98,10 +100,28 @@ export function TableCell(props: TableCellProps): JSX.Element {
       if (e.key !== "Tab" || e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey) return;
       if (latest.current.keys.onTab(e.shiftKey)) e.preventDefault();
     };
+    const JUMPS: Record<string, "up" | "down" | "left" | "right"> = {
+      ArrowUp: "up",
+      ArrowDown: "down",
+      ArrowLeft: "left",
+      ArrowRight: "right",
+    };
+    // TABLES-36: taken before MathQuill, which would move the caret by a word.
+    const onJumpKey = (e: KeyboardEvent) => {
+      const direction = JUMPS[e.key];
+      if (direction === undefined || !e.ctrlKey || e.altKey || e.metaKey || e.shiftKey) return;
+      const jump = latest.current.keys.onJump;
+      if (jump === undefined) return;
+      e.preventDefault();
+      e.stopPropagation();
+      jump(direction);
+    };
     const host = hostRef.current!;
     host.addEventListener("keydown", onKeyDown);
+    host.addEventListener("keydown", onJumpKey, true);
     return () => {
       host.removeEventListener("keydown", onKeyDown);
+      host.removeEventListener("keydown", onJumpKey, true);
       fieldRef.current = null;
       field.destroy();
     };

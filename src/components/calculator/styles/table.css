@@ -201,3 +201,49 @@
 .kc-table-item:not(:focus-within):not(:hover):not([data-focused="true"]) .kc-table-actions {
   opacity: 0;
 }
+
+/* RT-6, TABLES-28: the collapsed-rows line, "18 more rows" in muted italics and a "Show all"
+   link, centred under the grid's columns on a row of the cells' height. */
+.kc-table-more {
+  display: flex;
+}
+
+.kc-table-more-cell {
+  box-sizing: border-box;
+  flex: 1 1 auto;
+  height: 34px;
+  border-bottom: 1px solid var(--kc-rule);
+  color: var(--kc-text-muted);
+  font-family: var(--kc-font-ui);
+  font-size: 12.8px;
+  font-style: italic;
+  line-height: 33px;
+  text-align: center;
+}
+
+.kc-table-more-show {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--kc-focus-ring);
+  font: inherit;
+  font-style: normal;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* RT-28: the gutter's Add Regression, at its head under the row number as on the reference. */
+.kc-table-add-regression {
+  position: absolute;
+  top: 9px;
+  left: 4px;
+  width: 30px;
+  height: 30px;
+  background: transparent;
+  color: var(--kc-row-number);
+}
+
+.kc-table-add-regression > svg {
+  width: 20px;
+  height: 20px;
+}

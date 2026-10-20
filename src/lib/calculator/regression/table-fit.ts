@@ -96,6 +96,7 @@ export function fitTableRegression(input: TableFitInput): TableFitResult {
     return fail(TABLE_REGRESSION_MESSAGES.logarithmicX);
   }
   let params: number[];
+  let parameterWarning = false;
   const isLinear = spec.basis !== undefined;
   if (spec.basis !== undefined) {
     const k = spec.params.length;
@@ -114,6 +115,7 @@ export function fitTableRegression(input: TableFitInput): TableFitResult {
     );
     if (fit === null) return fail(TABLE_REGRESSION_MESSAGES.fit);
     params = fit.params;
+    parameterWarning = fit.parameterWarning === true;
   }
   let predicted = xs.map((x) => spec.evaluate(params, x));
   if (!params.every(Number.isFinite) || !predicted.every(Number.isFinite)) {
@@ -155,7 +157,7 @@ export function fitTableRegression(input: TableFitInput): TableFitResult {
     statistics,
     residuals: ys.map((y, i) => y - predicted[i]),
     logMode: { available, on },
-    parameterWarning: false,
+    parameterWarning,
     isLinear,
   };
 }

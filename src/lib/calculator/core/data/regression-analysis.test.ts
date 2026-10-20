@@ -76,3 +76,34 @@ it("D-44 a shared parameter name errors only in rows that reference it", () => {
   expect(a.byId.get("u")!.error?.message).toBe("m has more than one definition.");
   expect(a.byId.get("v")!.error).toBeNull();
 });
+
+it("RT-25 a typed row's e_k follows its subscripts, left side first, then the lowest free k", () => {
+  const a = analyse(
+    row("r", "y_{7}\\sim mx_{4}+b"),
+    row("s", "y_{1}\\sim ax_{5}"),
+    row("u", "y_{1}\\sim cx_{1}")
+  );
+  expect(a.byId.get("r")!.regression!.residual).toBe("e_{7}");
+  expect(a.byId.get("s")!.regression!.residual).toBe("e_{1}");
+  // e_1 is held by s, so u (whose only subscript is 1) takes the lowest free k.
+  expect(a.byId.get("u")!.regression!.residual).toBe("e_{2}");
+});
+
+it("RT-25, RT-32 a table regression's stored e_1 is held: the exported m_0, b_0 row takes e_0", () => {
+  const withRegression = {
+    ...table,
+    regression: {
+      type: "linear",
+      y: 1,
+      color: "c3",
+      hidden: false,
+      logMode: false,
+      residual: "e_{1}",
+    },
+  } as RowSource;
+  const a = analyzeRows(
+    [withRegression, row("r", "y_{1}\\sim m_{0}x_{1}+b_{0}"), row("k", "m=2")],
+    SETTINGS
+  );
+  expect(a.byId.get("r")!.regression!.residual).toBe("e_{0}");
+});
