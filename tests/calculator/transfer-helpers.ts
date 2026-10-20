@@ -195,8 +195,7 @@ export const applySkin = (page: Page, skin: SkinId) =>
     ([s, dark]) => {
       const r = document.documentElement;
       r.classList.toggle("dark", dark);
-      r.dataset.theme = s; // the site theme: the light-DOM chrome around the calculator
-      r.dataset.calculatorSkin = s; // TH-15: the calculator follows only its own skin attribute
+      r.dataset.theme = s; // TH-15: the calculator and its light-DOM chrome follow the site theme
     },
     [skin, SKIN_COLORS[skin].normal.dark] as const
   );

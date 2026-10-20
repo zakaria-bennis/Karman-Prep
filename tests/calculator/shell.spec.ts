@@ -296,11 +296,6 @@ for (const skin of SKIN_IDS)
     page,
   }, info) => {
     test.skip(!PROJECTS.includes(info.project.name), "computed colours are engine-independent");
-    // CODE BUG (2026-10-20): the settings popover's selected segment (white or ink text on a 65%
-    // ink tone, VIS-12), its label-field boundary and its "Step:" text are mixed for the classic
-    // look and miss TH-1 in the 11 site skins (for example ivory 4.37:1, sage 4.08:1, plum 6.48:1).
-    // Remove this line once the popover tones meet 7:1 and 3:1 in every skin.
-    test.fail(skin !== "classic", "settings popover tones miss TH-1 in the site skins");
     await openShell(page, `?skin=${skin}&w=800&h=600&rows=${enc(["y=x", "\\frac{", "2+3"])}`);
     await rowField(page, "3").click();
     await api(page, "c.updateSettings({ keypad: true })");
@@ -333,9 +328,10 @@ for (const skin of SKIN_IDS)
       pairs.some((p) => p.kind === "boundary"),
     ]).toEqual([true, true]);
     for (const p of pairs) {
-      // The row number (65% ink) and the value's "=" (55%) keep the reference look, pending the
-      // founder's AAA-versus-reference decision (contrast-suite CLASSIC_REFERENCE_EXCEPTIONS).
-      if (/span\.kc-row-(number|equals)\b/.test(p.name)) continue;
+      // The classic skin's row number (65% ink) and the value's "=" (55%) keep the reference look,
+      // pending the founder's AAA-versus-reference decision (contrast-suite
+      // CLASSIC_REFERENCE_EXCEPTIONS); the site skins raise those tones to 7:1 (theme/tones.ts).
+      if (skin === "classic" && /span\.kc-row-(number|equals)\b/.test(p.name)) continue;
       // The classic skin's field boundary is the reference's #bbb (1.9:1) and its secondary text
       // the reference's #666 (5.74:1), pinned the same way.
       if (skin === "classic" && p.kind === "boundary") continue;

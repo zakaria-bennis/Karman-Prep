@@ -463,25 +463,24 @@ test("AR-37 the open calculator's shadow CSS reads only inherited or locally dec
   // [name, change, the skin it leaves, whether the canvas repaints]
   const changes: [string, () => Promise<unknown>, SkinId | null, boolean][] = [
     [
-      "skin switch (data-calculator-skin, with the site theme)",
+      "skin switch (the site theme in data-theme)",
       () => applySkin(page, "observatory"),
       "observatory",
       true,
     ],
     ["prefers-contrast", () => page.emulateMedia({ contrast: "more" }), null, true],
     [
-      "calculator skin removed",
+      "site theme removed",
       () =>
         page.evaluate(() => {
           const r = document.documentElement;
           r.classList.toggle("dark", false);
           delete r.dataset.theme;
-          delete r.dataset.calculatorSkin;
         }),
       "classic",
       true,
     ],
-    // TH-15: the OS colour scheme no longer picks the calculator's skin
+    // TH-15: with no site theme the OS colour scheme does not pick the calculator's skin
     ["prefers-color-scheme", () => page.emulateMedia({ colorScheme: "dark" }), "classic", false],
   ];
   for (const [name, change, skin, repaints] of changes) {
@@ -496,7 +495,7 @@ test("AR-37 the open calculator's shadow CSS reads only inherited or locally dec
 });
 
 // Known gap: the open calculator does not repaint its canvas when prefers-reduced-motion changes
-// (watchTheme follows colour scheme, contrast and forced colours only; KarmanCalculator stores the
+// (watchTheme follows the site theme, contrast and forced colours only; KarmanCalculator stores the
 // motion query without a repaint). Fixme until the shell repaints on that change.
 test.fixme("AR-37 the open calculator repaints within one frame on a prefers-reduced-motion change, with no remount", async ({
   page,

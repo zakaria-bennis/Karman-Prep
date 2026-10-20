@@ -1,11 +1,18 @@
-// Theme roles of the calculator: the custom property maps,
-// the TH-5 skin fallback, the `:host` theme declarations, and the row colours (F-A1).
+// Theme roles of the calculator: the custom property maps, the TH-5 skin choice, the `:host`
+// theme declarations, and the row colours (F-A1).
 import { DESMOS_FILL_ALPHA, NEW_ROW_COLOURS, NEW_ROW_GREEN, invertHex } from "./desmos-palette";
 import { SKIN_COLORS } from "./skin-colors.generated";
 import { COLOR_ROLES, CURVE_SLOTS, SKIN_IDS, type CurveSlot, type SkinId } from "./skins";
-import { CURVE_VARS, FILL_ALPHA_VARS, ROLE_VARS } from "./vars";
+import { CURVE_VARS, FILL_ALPHA_VARS, ROLE_VARS, TONES, TONE_VARS } from "./vars";
 
-export { ROLE_VARS, CURVE_VARS, FILL_ALPHA_VARS, CHROME_VARS, type ChromeRole } from "./vars";
+export {
+  ROLE_VARS,
+  TONE_VARS,
+  CURVE_VARS,
+  FILL_ALPHA_VARS,
+  CHROME_VARS,
+  type ChromeRole,
+} from "./vars";
 
 /** A row colour resolved against one skin (F-A1). */
 type RowColor = { hex: string; fillAlpha: number };
@@ -13,22 +20,22 @@ type RowColor = { hex: string; fillAlpha: number };
 const HEX_COLOR = /^#[0-9a-f]{6}$/i;
 
 /**
- * The calculator's skin: "classic" (the reference calculator's look, owner decision 2026-10-19),
- * unless the page opts into another skin by naming it in `html[data-calculator-skin]`. The site
- * theme and `prefers-color-scheme` no longer change the calculator.
+ * TH-5: the calculator takes the skin of the site theme in `html[data-theme]`, so it matches the
+ * quiz around it; "classic" (the reference calculator's own colours) when no site theme applies.
  */
-export function resolveSkinId(calculatorSkin: string | null | undefined): SkinId {
-  return isSkinId(calculatorSkin) ? calculatorSkin : "classic";
+export function resolveSkinId(siteTheme: string | null | undefined): SkinId {
+  return isSkinId(siteTheme) ? siteTheme : "classic";
 }
 
 /**
  * TH-3: the skin's declarations for the shadow root, `:host{name:value;…}` with every role in
- * `COLOR_ROLES` order, then the six curves, then the six fill alphas.
+ * `COLOR_ROLES` order, then the tones, then the six curves, then the six fill alphas.
  */
 export function hostThemeCss(skin: SkinId): string {
-  const { roles, curves, fillAlpha } = SKIN_COLORS[skin].normal;
+  const { roles, tones, curves, fillAlpha } = SKIN_COLORS[skin].normal;
   const decls = [
     ...COLOR_ROLES.map((role) => `${ROLE_VARS[role]}:${roles[role]}`),
+    ...TONES.map((tone) => `${TONE_VARS[tone]}:${Math.round(tones[tone] * 100)}%`),
     ...CURVE_SLOTS.map((slot) => `${CURVE_VARS[slot]}:${curves[slot]}`),
     ...CURVE_SLOTS.map((slot) => `${FILL_ALPHA_VARS[slot]}:${String(fillAlpha[slot])}`),
   ];

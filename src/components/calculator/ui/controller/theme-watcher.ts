@@ -1,9 +1,9 @@
-// TH-15 live theme: a MutationObserver on the page root (`data-calculator-skin`, `class`) and
-// media-query listeners for contrast and forced colours. The skin is always
-// resolveSkinId(root.dataset.calculatorSkin) ("classic" unless the page opts into another skin);
-// the OS colour scheme does not change it. A prefers-contrast or forced-colors change keeps the
-// skin and bumps `revision` by one, so the shell re-applies its roles and repaints without
-// toggling Reverse contrast (S-4).
+// TH-15 live theme: a MutationObserver on the page root (`data-theme`, `class`) and media-query
+// listeners for contrast and forced colours. The skin is always resolveSkinId(root.dataset.theme),
+// so the calculator follows the quiz's site theme, light and dark alike, and is "classic" when no
+// site theme applies. A prefers-contrast or forced-colors change keeps the skin and bumps
+// `revision` by one, so the shell re-applies its roles and repaints without toggling Reverse
+// contrast (S-4).
 
 import { resolveSkinId } from "@/lib/calculator/theme/roles";
 import type { SkinId } from "@/lib/calculator/theme/skins";
@@ -25,7 +25,7 @@ export function watchTheme(
 ): Watch<ThemeState> {
   let revision = 0;
   const state = (): ThemeState => ({
-    skin: resolveSkinId(root.dataset.calculatorSkin ?? null),
+    skin: resolveSkinId(root.dataset.theme),
     revision,
   });
   const emit = () => on(state());
@@ -39,7 +39,7 @@ export function watchTheme(
     watchMediaQuery(m, FORCED_COLORS_QUERY, bumpRevision),
   ];
   const observer = new MutationObserver(emit);
-  observer.observe(root, { attributes: true, attributeFilter: ["data-calculator-skin", "class"] });
+  observer.observe(root, { attributes: true, attributeFilter: ["data-theme", "class"] });
 
   return {
     initial: state(),

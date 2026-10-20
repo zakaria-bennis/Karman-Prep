@@ -4,6 +4,7 @@ import {
   CURVE_VARS,
   FILL_ALPHA_VARS,
   ROLE_VARS,
+  TONE_VARS,
   colourAfter,
   hostThemeCss,
   nextSlot,
@@ -12,21 +13,24 @@ import {
 } from "./roles";
 import { SKIN_COLORS } from "./skin-colors.generated";
 import { COLOR_ROLES, CURVE_SLOTS, SKIN_IDS, type SkinId, type SkinPalette } from "./skins";
+import { TONES } from "./vars";
 
 function pal(s: SkinId): SkinPalette {
   return SKIN_COLORS[s].normal;
 }
 
-it("TH-5 the calculator is classic unless the page names another calculator skin", () => {
+it("TH-5 the site theme picks the skin; classic when no site theme applies", () => {
   expect(resolveSkinId("paper")).toBe("paper");
   expect(resolveSkinId("plum")).toBe("plum");
+  expect(resolveSkinId("observatory")).toBe("observatory");
+  expect(resolveSkinId("classic")).toBe("classic");
   expect(resolveSkinId("unknown")).toBe("classic");
   expect(resolveSkinId(undefined)).toBe("classic");
   expect(resolveSkinId(null)).toBe("classic");
   expect(resolveSkinId("")).toBe("classic");
 });
 
-it("TH-3 every role, curve slot and fill alpha has its own --kc- custom property", () => {
+it("TH-3 every role, tone, curve slot and fill alpha has its own --kc- custom property", () => {
   expect(ROLE_VARS).toEqual({
     paper: "--kc-paper",
     list: "--kc-list",
@@ -50,6 +54,17 @@ it("TH-3 every role, curve slot and fill alpha has its own --kc- custom property
     boundary: "--kc-boundary",
     selection: "--kc-selection",
   });
+  expect(Object.values(TONE_VARS)).toEqual([
+    "--kc-tone-row-number",
+    "--kc-tone-text-muted",
+    "--kc-tone-equals",
+    "--kc-tone-field-text",
+    "--kc-tone-field-placeholder",
+    "--kc-tone-segment-text",
+    "--kc-tone-selected-fill",
+    "--kc-tone-field-line",
+    "--kc-tone-error-tip",
+  ]);
   expect(Object.values(CURVE_VARS)).toEqual([
     "--kc-curve-1",
     "--kc-curve-2",
@@ -127,8 +142,8 @@ it("F-A1 an explicit colour is used as is with a 40% fill on light skins and inv
   expect(resolveRowColor("#c74440", "observatory").hex).toBe("#38bbbf");
 });
 
-it("TH-3 hostThemeCss declares every role, curve and fill alpha of the skin on :host and nothing else", () => {
-  const { roles, curves, fillAlpha } = pal("sage");
+it("TH-3 hostThemeCss declares every role, tone, curve and fill alpha of the skin on :host and nothing else", () => {
+  const { roles, tones, curves, fillAlpha } = pal("sage");
   const css = hostThemeCss("sage");
   expect(css.startsWith(":host{")).toBe(true);
   expect(css.endsWith("}")).toBe(true);
@@ -136,9 +151,10 @@ it("TH-3 hostThemeCss declares every role, curve and fill alpha of the skin on :
     .slice(6, -1)
     .split(";")
     .map((decl) => decl.split(":"));
-  expect(entries).toHaveLength(33);
+  expect(entries).toHaveLength(42);
   expect(entries).toEqual([
     ...COLOR_ROLES.map((r) => [ROLE_VARS[r], roles[r]]),
+    ...TONES.map((t) => [TONE_VARS[t], `${Math.round(tones[t] * 100)}%`]),
     ...CURVE_SLOTS.map((k) => [CURVE_VARS[k], curves[k]]),
     ...CURVE_SLOTS.map((k) => [FILL_ALPHA_VARS[k], String(fillAlpha[k])]),
   ]);

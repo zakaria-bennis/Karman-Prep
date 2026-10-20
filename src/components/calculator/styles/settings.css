@@ -1,7 +1,8 @@
 /* The settings popover (S-1, S-7) and the popover controls it shares with the column style menu
    (ui/settings/controls.tsx), drawn to popovers-menus.md VIS-1 to VIS-19. Colours come only from
    role variables (TH-3); the reference's fixed greys are mixed from --kc-text over --kc-list, so
-   on the classic skin each equals the measured value.
+   on the classic skin each equals the measured value. Its text, field lines and selected segment
+   mix at the skin's --kc-tone-* strengths, which the site skins raise to meet TH-1.
    SettingsPopover sets top, left, data-side, --kc-arrow-at and --kc-settings-max-h inline. */
 
 /* Tones of the popovers (wanted as shared tokens, see the report). */
@@ -11,13 +12,29 @@
 .kc-shortcuts-backdrop {
   --kc-pop-rule: color-mix(in srgb, var(--kc-text) 11.4%, var(--kc-list)); /* #e2e2e2 */
   --kc-pop-hover-border: color-mix(in srgb, var(--kc-text) 42%, var(--kc-list)); /* #949494 */
-  --kc-pop-ink-strong: color-mix(in srgb, var(--kc-text) 73%, var(--kc-list)); /* #454545 */
-  --kc-pop-line: color-mix(in srgb, var(--kc-text) 42%, transparent); /* rgba(0,0,0,.42) */
-  --kc-pop-line-hover: color-mix(in srgb, var(--kc-text) 62%, transparent);
+  --kc-pop-ink-strong: color-mix(
+    in srgb,
+    var(--kc-text) var(--kc-tone-field-text),
+    var(--kc-list)
+  ); /* #454545 */
+  --kc-pop-line: color-mix(
+    in srgb,
+    var(--kc-text) var(--kc-tone-field-line),
+    transparent
+  ); /* rgba(0,0,0,.42) */
+  --kc-pop-line-hover: color-mix(
+    in srgb,
+    var(--kc-text) calc(var(--kc-tone-field-line) + 20%),
+    transparent
+  );
   --kc-pop-field-line: color-mix(in srgb, var(--kc-text) 20%, transparent);
-  --kc-pop-seg-text: color-mix(in srgb, var(--kc-text) 85%, transparent);
-  --kc-pop-seg-on: color-mix(in srgb, var(--kc-text) 65%, transparent);
-  --kc-pop-placeholder: color-mix(in srgb, var(--kc-text) 47%, transparent);
+  --kc-pop-seg-text: color-mix(in srgb, var(--kc-text) var(--kc-tone-segment-text), transparent);
+  --kc-pop-seg-on: color-mix(in srgb, var(--kc-text) var(--kc-tone-selected-fill), transparent);
+  --kc-pop-placeholder: color-mix(
+    in srgb,
+    var(--kc-text) var(--kc-tone-field-placeholder),
+    transparent
+  );
   --kc-pop-track: color-mix(in srgb, var(--kc-text) 13.3%, var(--kc-list)); /* #ddd */
   --kc-pop-knob: color-mix(in srgb, var(--kc-text) 4%, var(--kc-list)); /* #f5f5f5 */
   --kc-pop-knob-hover: color-mix(in srgb, var(--kc-text) 8%, var(--kc-list)); /* #ebebeb */
@@ -32,7 +49,11 @@
     var(--kc-list)
   ); /* lighter than #777: our thinner lines read darker */
   --kc-pop-circle-shadow: inset 0 0 2px color-mix(in srgb, var(--kc-text) 20%, transparent);
-  --kc-pop-mini-ink: color-mix(in srgb, var(--kc-text) 42%, var(--kc-list)); /* #949494 */
+  --kc-pop-mini-ink: color-mix(
+    in srgb,
+    var(--kc-text) var(--kc-tone-field-line),
+    var(--kc-list)
+  ); /* #949494 */
   --kc-pop-mini-on: color-mix(in srgb, var(--kc-accent) 25%, transparent);
   --kc-pop-mini-hover: color-mix(in srgb, var(--kc-text) 4%, transparent);
   --kc-pop-swatch-ring: 0 0 0 2px color-mix(in srgb, var(--kc-text) 10%, transparent);

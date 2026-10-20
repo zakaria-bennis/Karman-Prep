@@ -6,7 +6,9 @@
 import { expect, it } from "vitest";
 import { compositeOver, compositeShading, contrastRatio } from "./contrast";
 import { SKIN_COLORS } from "./skin-colors.generated";
-import { CURVE_SLOTS, SITE_SKIN_IDS, type SkinId, type SkinPalette } from "./skins";
+import { CURVE_SLOTS, SITE_SKIN_IDS, SKIN_IDS, type SkinId, type SkinPalette } from "./skins";
+import { TONE_SPECS, toneBackground, toneOver } from "./tones";
+import { TONES } from "./vars";
 
 /**
  * The classic skin's pairs that miss Karman's 10.3 targets because the reference calculator's own
@@ -28,6 +30,11 @@ const CLASSIC_REFERENCE_EXCEPTIONS: Readonly<Record<string, number>> = {
   "boundary on list": 1.92,
   "boundary on chrome": 1.68,
   "boundary on key": 1.92,
+  "rowNumber tone on tab": 6.63,
+  "textMuted tone on list": 5.74,
+  "equals tone on list": 4.74,
+  "fieldPlaceholder tone on list": 3.59,
+  "errorTip tone on tooltipLabel": 5.74,
 };
 
 it("TH-1 the classic skin meets every 10.3 target except its listed reference values", () => {
@@ -108,6 +115,23 @@ it("TH-1 light-DOM chrome text and tooltip text reach 7:1 and boundary and focus
       contrastRatio(roles.accentLabel, roles.accent),
       `${s}: accentLabel on accent`
     ).toBeGreaterThanOrEqual(7);
+  }
+});
+
+it("TH-1 every tone meets its 10.3 target in all 12 site skins; the classic skin's misses are its listed reference values", () => {
+  for (const s of SKIN_IDS) {
+    const { roles, tones } = pal(s);
+    for (const tone of TONES) {
+      const spec = TONE_SPECS[tone];
+      for (const on of spec.on) {
+        const bg = toneBackground(roles, on);
+        const name = `${tone} tone on ${on}`;
+        const ratio = contrastRatio(toneOver(roles, tone, tones[tone], bg), bg);
+        const pinned = s === "classic" ? CLASSIC_REFERENCE_EXCEPTIONS[name] : undefined;
+        if (pinned !== undefined) expect(ratio, `classic: ${name}`).toBeCloseTo(pinned, 2);
+        else expect(ratio, `${s}: ${name}`).toBeGreaterThanOrEqual(spec.min);
+      }
+    }
   }
 });
 

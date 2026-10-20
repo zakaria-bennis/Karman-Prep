@@ -1,7 +1,7 @@
 // CSS custom property names of the calculator theme.
 // Type-only imports keep this module free of runtime dependencies, so the TH-5 generator and the
 // TH-3 scan import these maps from here and still run when skin-colors.generated.ts is missing.
-import type { ColorRole, CurveSlot } from "./skins";
+import type { ColorRole, CurveSlot, Tone } from "./skins";
 
 /** Each colour role's shadow-root property on `:host`, in `COLOR_ROLES` order. */
 export const ROLE_VARS: Readonly<Record<ColorRole, string>> = {
@@ -27,6 +27,22 @@ export const ROLE_VARS: Readonly<Record<ColorRole, string>> = {
   boundary: "--kc-boundary",
   selection: "--kc-selection",
 };
+
+/** Each tone's strength property (tones.ts), a percentage such as `65%`. */
+export const TONE_VARS: Readonly<Record<Tone, string>> = {
+  rowNumber: "--kc-tone-row-number",
+  textMuted: "--kc-tone-text-muted",
+  equals: "--kc-tone-equals",
+  fieldText: "--kc-tone-field-text",
+  fieldPlaceholder: "--kc-tone-field-placeholder",
+  segmentText: "--kc-tone-segment-text",
+  selectedFill: "--kc-tone-selected-fill",
+  fieldLine: "--kc-tone-field-line",
+  errorTip: "--kc-tone-error-tip",
+};
+
+/** Every tone in `TONE_VARS` order (the order of hostThemeCss and the generated table). */
+export const TONES = Object.keys(TONE_VARS) as Tone[];
 
 /** Each curve slot's colour property (F-A1, Desmos's colours; TH-10). */
 export const CURVE_VARS: Readonly<Record<CurveSlot, string>> = {

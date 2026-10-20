@@ -1,7 +1,9 @@
 /* The calculator's design tokens: the one source for type, size, geometry, motion and the tones
    mixed from the skin's colour roles. Values are the reference graphing calculator's measurements
    (rea-targets visual MASTER.md section 1). On the classic skin (text #000000, list #ffffff) each
-   mixed tone equals the measured value; other skins mix from their own roles (TH-3). */
+   mixed tone equals the measured value; other skins mix from their own roles (TH-3). Text and
+   field tones mix at the skin's --kc-tone-* strength (theme/tones.ts): the reference's strength on
+   the classic skin, raised on the site skins until the tone meets its 10.3 target (TH-1). */
 :host {
   /* Type */
   --kc-font-ui: Arial, Arimo, "Liberation Sans", sans-serif;
@@ -38,7 +40,7 @@
   --kc-delete-rest: 0.2;
   --kc-delete-hover: 0.6;
   --kc-delete-pressed: 0.8;
-  --kc-equals-opacity: 0.55;
+  --kc-equals-opacity: var(--kc-tone-equals);
   --kc-menu-item-rest: 0.5;
   --kc-menu-item-hover: 0.8;
 
@@ -52,12 +54,16 @@
   --kc-hover-fill: color-mix(in srgb, var(--kc-text) 10%, transparent);
   --kc-pressed-fill: color-mix(in srgb, var(--kc-text) 20%, transparent);
   --kc-chip-fill: color-mix(in srgb, var(--kc-text) 4%, transparent);
-  --kc-row-number: color-mix(in srgb, var(--kc-text) 65%, transparent);
-  --kc-text-muted: color-mix(in srgb, var(--kc-text) 60%, transparent);
+  --kc-row-number: color-mix(in srgb, var(--kc-text) var(--kc-tone-row-number), transparent);
+  --kc-text-muted: color-mix(in srgb, var(--kc-text) var(--kc-tone-text-muted), transparent);
   --kc-empty-block: color-mix(in srgb, var(--kc-text) 20%, transparent);
   --kc-hidden-ring: color-mix(in srgb, var(--kc-text-secondary) 70%, var(--kc-list));
   --kc-panel-shadow: color-mix(in srgb, var(--kc-text) 10%, transparent);
-  --kc-tooltip-error: var(--kc-text-secondary);
+  --kc-tooltip-error: color-mix(
+    in srgb,
+    var(--kc-tooltip) var(--kc-tone-error-tip),
+    var(--kc-tooltip-label)
+  );
   --kc-letter-top: color-mix(in srgb, var(--kc-text) 3.5%, var(--kc-list));
   --kc-letter-bottom: color-mix(
     in srgb,

@@ -26,11 +26,16 @@ it("TH-3 background, label and unadjusted roles come from the 10.3 mapping", () 
     expect(r.text, message).toBe(theme.text);
     expect(r.axis, message).toBe(theme.text);
     expect(r.focusRing, message).toBe(theme.math);
-    if (theme.dark) expect(r.accent, message).toBe(theme.gold);
+    // The quiz's interactive blue (math) is the accent and the focused-row bar, as the reference
+    // uses its one blue for both.
+    expect(r.accent, message).toBe(r.focusBar);
+    // TH-4 keeps the hue; 8-bit encoding moves it by under 2 degrees.
+    expect(Math.abs(toOklch(r.accent).h - toOklch(theme.math).h), message).toBeLessThan(2);
+    if (theme.dark) expect(r.accent, message).toBe(theme.math);
   }
 });
 
-it("R-2 the warning marker keeps its orange hue, 3:1 on the list and chrome in every skin; the tooltip is black with white text", () => {
+it("R-2 the warning marker keeps its orange hue, 3:1 on the list and chrome in every skin; the tooltip is the skin's ink labelled in its page colour", () => {
   for (const theme of SITE_THEMES) {
     const r = deriveRoles(theme);
     expect(contrastRatio(r.warning, r.list), theme.id).toBeGreaterThanOrEqual(3);
@@ -38,13 +43,16 @@ it("R-2 the warning marker keeps its orange hue, 3:1 on the list and chrome in e
     const { h } = toOklch(r.warning);
     expect(h, theme.id).toBeGreaterThan(45);
     expect(h, theme.id).toBeLessThan(65);
-    expect([r.tooltip, r.tooltipLabel], theme.id).toEqual(["#000000", "#ffffff"]);
+    expect(r.tooltipLabel, theme.id).toBe(theme.dark ? theme.canvas : theme.surface);
+    expect(toOklch(r.tooltip).l > toOklch(r.tooltipLabel).l, theme.id).toBe(theme.dark);
+    expect(contrastRatio(r.tooltipLabel, r.tooltip), theme.id).toBeGreaterThanOrEqual(7);
   }
   expect(deriveRoles(t("charcoal")).warning).toBe("#fa7e19"); // dark skins keep the seed unchanged
 });
 
-it("TH-4 Clean paper's Enter fill derives to #6d531f", () => {
-  expect(deriveRoles(t("paper")).accent).toBe("#6d531f");
+it("TH-4 Clean paper's Enter fill derives to #0f5b96", () => {
+  expect(t("paper").math).toBe("#145e99");
+  expect(deriveRoles(t("paper")).accent).toBe("#0f5b96");
 });
 
 it("F-A1 light skins use Desmos's six colours and dark skins their inverses, all with a 40% fill", () => {

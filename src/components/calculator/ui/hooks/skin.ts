@@ -5,7 +5,7 @@
 import { createContext, useContext } from "react";
 import type { SkinId } from "@/lib/calculator/theme/skins";
 
-export const SkinContext = createContext<SkinId>("ivory");
+export const SkinContext = createContext<SkinId>("classic");
 
 export function useSkin(): SkinId {
   return useContext(SkinContext);
