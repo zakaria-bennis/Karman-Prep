@@ -107,7 +107,7 @@ class LintTests(unittest.TestCase):
         for text in ("What is the graph of y = 2x at x = 1?", "Studies have shown that x grows.",
                      "A book sits on a table.", "The Argand diagram is a tool.",
                      "A well known figure in history.", "It is shown that x is 2.",
-                     "The values are shown to be equal.", "The data set shown has mean 3."  # pinned: not matched):
+                     "The values are shown to be equal.", "The data set shown has mean 3."):  # pinned: "data set shown" is not matched
             with self.subTest(text=text):
                 self.assertEqual(self.figure_codes(text), [])
 
