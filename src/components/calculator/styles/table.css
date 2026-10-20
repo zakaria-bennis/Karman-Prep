@@ -196,9 +196,11 @@
   padding-left: 6px;
 }
 
-/* The reference shows the gutter actions only while the table is selected; ours fade in with focus
-   or hover anywhere in the table, so they stay reachable by keyboard and pointer. */
-.kc-table-item:not(:focus-within):not(:hover):not([data-focused="true"]) .kc-table-actions {
+/* Add row (ours) fades in with focus or hover anywhere in the table, so it stays reachable by
+   keyboard and pointer; Zoom Fit stays, as the reference's does while points are plotted. */
+.kc-table-item:not(:focus-within):not(:hover):not([data-focused="true"])
+  .kc-table-actions
+  .kc-table-add-row:not(.kc-table-zoom) {
   opacity: 0;
 }
 

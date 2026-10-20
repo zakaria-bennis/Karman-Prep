@@ -210,15 +210,18 @@ export function TableItem(props: TableItemProps): JSX.Element {
             >
               <AddGlyph size={14} />
             </button>
-            <button
-              type="button"
-              className="kc-table-add-row"
-              aria-label={`Zoom to fit table ${number}`}
-              aria-disabled={fit === null ? "true" : undefined}
-              onClick={() => fit !== null && engine.setMathBounds(fit)}
-            >
-              <ZoomFitGlyph size={14} />
-            </button>
+            {/* TABLES-45, -48: shown whenever the table plots points, gone when nothing is. */}
+            {fit !== null && (
+              <button
+                type="button"
+                className="kc-table-add-row kc-table-zoom"
+                aria-label={`Zoom to fit table ${number}`}
+                title="Zoom Fit"
+                onClick={() => engine.setMathBounds(fit)}
+              >
+                <ZoomFitGlyph size={14} />
+              </button>
+            )}
           </div>
         </div>
         <div className="kc-row-main">
