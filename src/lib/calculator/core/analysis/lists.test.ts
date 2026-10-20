@@ -57,14 +57,16 @@ describe("list errors found by analysis", () => {
       expect(last("a=1", "b=2", "L_{1}=3", latex).error, latex).toBeNull();
   });
 
-  it("NM-35, NM-36, NM-42 a literal range with a zero step or more than 10,000 elements is an analysis error", () => {
+  it("NM-35, NM-36, NM-42 a literal range that is not arithmetic or has more than 10,000 elements is an analysis error", () => {
     expect(last("[1...10000]").error).toBeNull();
     expect(last("[1...10001]").error?.code).toBe("list-too-long");
+    expect(last("[1...10^{6}]").error?.code).toBe("list-too-long");
     expect(last("L=[0,0.0001,...,10]").error?.code).toBe("list-too-long");
     expect(last("[1,1,...,5]").error?.code).toBe("range-step");
-    expect(last("[-2,-2,...,5]").error?.message).toBe(
-      "A range can't step by 0. Make its first two values different."
-    );
+    expect(last("[1...0/0]").error?.code).toBe("range-step");
+    expect(last("[1,3,...,1]").error?.code).toBe("range-step");
+    expect(last("[-2,-2,...,5]").error?.message).toBe("Ranges must be arithmetic sequences.");
+    expect(last("[1...(-8)^{1/3}]").error).toBeNull(); // evaluation's power, not JavaScript's
   });
 });
 

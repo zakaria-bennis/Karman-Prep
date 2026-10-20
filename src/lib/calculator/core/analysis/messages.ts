@@ -56,7 +56,7 @@ function letter(base: string): string {
  * `{n}` is `names[0]` and `{k}` is `names[1]`, both already display text, at every
  * place they appear. Appendix F recorded the reference's text for `duplicate-definition` (19),
  * `sim-side` (3) and `nested-list`, which these use; `argument-parentheses`, `comma-side`,
- * `range-bound` and `list-too-long` use the text Desmos gave on 2026-10-19.
+ * `range-bound`, `range-step` and `list-too-long` use the text Desmos gave on 2026-10-19.
  */
 const MESSAGES: Readonly<Record<RowErrorCode, string>> = {
   syntax: "This can't be read. Check for a missing bracket or operator.",
@@ -87,7 +87,7 @@ const MESSAGES: Readonly<Record<RowErrorCode, string>> = {
   "regression-fit": "We couldn't find any region where this model is defined.",
   "nested-list": "Cannot store a list of numbers in a list.",
   "list-too-long": "Lists may not have more than 10,000 elements.",
-  "range-step": "A range can't step by 0. Make its first two values different.",
+  "range-step": "Ranges must be arithmetic sequences.",
   "list-mixed": "A list can't mix numbers and points.",
 };
 /** RC-2, Phase 1: `unsupported` naming r or θ, whose polar graphs ship in Phase 2. */

@@ -6,24 +6,13 @@
 import { expect, it } from "vitest";
 import captured from "../../../../../docs/superpowers/plans/2026-10-19-calculator-phase2-desmos/desmos-reference-values.json";
 import { analyzeRows } from "../analysis";
-import { evaluateLatex } from "../eval/compile";
+import { evaluateLatex, type EvalSettings } from "../eval/compile";
 import type { Value } from "../eval/values";
+import catalogue from "./desmos-catalogue.fixture.json";
 import { withinTolerance } from "./tolerance";
 
 type Captured = number | number[] | null;
 const VALUES: [string, Captured][] = Object.entries(captured.values);
-
-// Ranges whose last step does not land on the bound: Desmos rounds the element count, so
-// [1...3.5] is [1, 2, 3, 4], while the calculator (NM-36 as shipped on main) stops at the bound and gives
-// [1, 2, 3]. Not yet matched (f-desmos-parity.md, "Not yet matched"; NM-36 follow-up). Each is an
-// expected failure below, so fixing NM-36 fails the test and this set must then be deleted.
-const RANGE_COUNT_GAP: ReadonlySet<string> = new Set([
-  "[1...3.5]",
-  "[1...3.6]",
-  "[0.5...3]",
-  "[1,3,...,8]",
-  "[10,8,...,1]",
-]);
 
 const FAMILIES: { rules: string; pattern: RegExp; count: number }[] = [
   {
@@ -52,7 +41,6 @@ for (const { rules, pattern, count } of FAMILIES) {
   it(`${rules} all ${count} captured Desmos values are checked`, () =>
     expect(cases.length).toBe(count));
   for (const [latex, expected] of cases) {
-    if (RANGE_COUNT_GAP.has(latex)) continue;
     it(`${rules} ${latex} is ${JSON.stringify(expected)}, as in Desmos`, () => {
       const v = evaluateLatex(latex);
       if (Array.isArray(expected)) {
@@ -66,21 +54,6 @@ for (const { rules, pattern, count } of FAMILIES) {
     });
   }
 }
-
-for (const latex of RANGE_COUNT_GAP) {
-  it.fails(`NM-36 follow-up: ${latex} does not yet match Desmos's rounded element count`, () => {
-    const desmos = captured.values[latex as keyof typeof captured.values] as number[];
-    const v = evaluateLatex(latex);
-    expect(v.type === "list" ? v.value.map((e) => e.type === "number" && e.value) : v).toEqual(
-      desmos
-    );
-  });
-}
-
-it("NM-36 the ranges Desmos counts by rounding are the only captured list values not checked", () => {
-  const lists = VALUES.filter(([latex]) => FAMILIES[3].pattern.test(latex)).map(([l]) => l);
-  expect(lists.filter((l) => RANGE_COUNT_GAP.has(l))).toEqual([...RANGE_COUNT_GAP]);
-});
 
 // Every captured Desmos error message, built-in arity (RC-20), "is a function" (PR-24), list
 // (NM-34, NM-35, PR-34) and the rest, is checked, either as the calculator's message or, for the gaps listed
@@ -117,4 +90,75 @@ it("RC-20 all 4 captured user-function arity messages are checked", () =>
 for (const [latex, message] of Object.entries(USER_ERRORS)) {
   it(`RC-20 with ${DEFINITIONS.join(" and ")}, ${latex} reads "${message}", as in Desmos`, () =>
     expect(errorMessage(DEFINITIONS, latex)).toBe(message));
+}
+
+// The function catalogue's live Desmos values (desmos-catalogue.fixture.json, copied from the
+// catalogue's ALL.values.json) for every built-in and notation the calculator ships and its
+// Phase 2 tasks have touched: ranges (NM-36). A "[deg] " key is evaluated in degree mode and a
+// "[complex] " key in complex mode, where a value is [re, im].
+type CatalogueValue = Captured | number[][] | { length: number; first: number[]; last: number };
+const CATALOGUE_VALUES = Object.entries(catalogue.values) as [string, CatalogueValue][];
+const CATALOGUE_ROWS = ["L=[3,1,4,1,5,9,2,6]"]; // the catalogue's statistics-lists definitions
+
+function catalogueCase(key: string): { latex: string; settings: Partial<EvalSettings> } {
+  const [, mode = "", latex = key] = /^(?:\[(deg|complex)\] )?(.*)$/.exec(key) ?? [];
+  if (mode === "deg") return { latex, settings: { angleMode: "degrees" } };
+  return { latex, settings: { complex: mode === "complex" } };
+}
+
+function sameValue(v: Value, expected: CatalogueValue, complex: boolean): boolean {
+  if (expected === null || typeof expected === "number") return matches(v, expected);
+  if (complex && Array.isArray(expected) && !Array.isArray(expected[0])) {
+    const [re, im] = expected as number[];
+    if (im === 0) return matches(v, re);
+    return (
+      v.type === "complex" &&
+      withinTolerance(v.value.re, re, "default") &&
+      withinTolerance(v.value.im, im, "default")
+    );
+  }
+  if (v.type !== "list") return false;
+  if (!Array.isArray(expected)) {
+    const { length, first, last } = expected;
+    return (
+      v.value.length === length &&
+      matches(v.value[length - 1], last) &&
+      first.every((e, i) => matches(v.value[i], e))
+    );
+  }
+  return (
+    v.value.length === expected.length &&
+    expected.every((e, i) => {
+      const item = v.value[i];
+      if (!Array.isArray(e)) return matches(item, e);
+      return item.type === "point" && item.value.every((c, k) => c === e[k]);
+    })
+  );
+}
+
+it("NM-36 all 24 catalogue values for ranges are checked", () =>
+  expect(CATALOGUE_VALUES.length).toBe(24));
+
+for (const [key, expected] of CATALOGUE_VALUES) {
+  it(`NM-36 ${key} is ${JSON.stringify(expected).slice(0, 60)}, as in Desmos`, () => {
+    const { latex, settings } = catalogueCase(key);
+    const v = evaluateLatex(latex, { settings });
+    expect(sameValue(v, expected, settings.complex === true), JSON.stringify(v)).toBe(true);
+  });
+}
+
+// Catalogue errors not yet matched, each an expected failure that fails once matched: an
+// ellipsis outside a list (the calculator reads a syntax error) and a range whose length depends
+// on x (G-22's list-valued graphs, task T11).
+const CATALOGUE_ERROR_GAP: ReadonlySet<string> = new Set(["1...5", "[x...5]"]);
+const CATALOGUE_ERRORS = Object.entries(catalogue.errors);
+
+it("NM-36 all 16 catalogue error messages for ranges are checked", () =>
+  expect(CATALOGUE_ERRORS.length).toBe(16));
+
+for (const [latex, message] of CATALOGUE_ERRORS) {
+  const check = () => expect(errorMessage(CATALOGUE_ROWS, latex)).toBe(message);
+  if (CATALOGUE_ERROR_GAP.has(latex))
+    it.fails(`not yet matched: ${latex} reads "${message}" in Desmos`, check);
+  else it(`NM-36 ${latex} reads "${message}", as in Desmos`, check);
 }

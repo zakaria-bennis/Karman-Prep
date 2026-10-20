@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { compileExpression, evaluateLatex, evaluateRows } from "./compile";
 import { formatValue, formatValueLatex } from "./format";
-import { MAX_LIST_ELEMENTS, rangeValue } from "./lists";
+import { ListError, MAX_LIST_ELEMENTS, rangeValue } from "./lists";
 import { numberValue, UNDEFINED, type Value } from "./values";
 import { analyzeRows, userFunctionNames } from "../analysis/index";
 import { NO_DEADLINE } from "../deadline";
@@ -79,23 +79,25 @@ describe("list values", () => {
     expect(v[3]).toBe(3 * 0.1); // a + k·s, never accumulated
   });
 
-  it("NM-36 ranges step by ±1 or by b − a, stop at c and are empty when the step points away", () => {
+  it("NM-36 ranges step by ±1 or by b − a and round their count, so the last element can pass c", () => {
     expect(numbers(evaluateLatex("[1...5]"))).toEqual([1, 2, 3, 4, 5]);
     expect(numbers(evaluateLatex("[10...1]"))).toEqual([10, 9, 8, 7, 6, 5, 4, 3, 2, 1]);
-    expect(numbers(evaluateLatex("[1...10.5]")).at(-1)).toBe(10);
-    expect(numbers(evaluateLatex("[1,3,...,10]"))).toEqual([1, 3, 5, 7, 9]);
+    expect(numbers(evaluateLatex("[1...10.5]")).at(-1)).toBe(11);
+    expect(numbers(evaluateLatex("[1...10.4]")).at(-1)).toBe(10);
+    expect(numbers(evaluateLatex("[1,3,...,10]"))).toEqual([1, 3, 5, 7, 9, 11]);
     expect(numbers(evaluateLatex("[5...5]"))).toEqual([5]);
     expect(numbers(evaluateLatex("[0.5...2.5]"))).toEqual([0.5, 1.5, 2.5]);
-    expect(evaluateLatex("[1,2,...,0]")).toEqual(list());
-    expect(evaluateLatex("[1,0,...,5]")).toEqual(list());
+    expect(numbers(evaluateLatex("[0,0.1,...,1]")).at(-1)).toBe(1);
     expect(numbers(evaluateLatex("[1...n]", { rows: ["n=3"] }))).toEqual([1, 2, 3]);
   });
 
-  it("NM-36 a range whose step is 0 is a range-step error, and undefined bounds give undefined", () => {
+  it("NM-36 a range Desmos does not count as arithmetic is a range-step error", () => {
     expect(errorOf(direct("[1,1,...,5]"))).toBe("range-step");
     expect(errorOf(direct("[a,a,...,5]", ["a=2"]))).toBe("range-step");
-    expect(rangeValue(UNDEFINED, null, n(3))).toEqual(UNDEFINED);
-    expect(rangeValue(n(1), null, n(NaN))).toEqual(UNDEFINED);
+    expect(errorOf(direct("[1,2,...,a]", ["a=0"]))).toBe("range-step");
+    expect(errorOf(direct("[1,0,...,a]", ["a=5"]))).toBe("range-step");
+    expect(() => rangeValue(UNDEFINED, null, n(3))).toThrow(new ListError("range-step"));
+    expect(() => rangeValue(n(1), null, n(NaN))).toThrow(new ListError("range-step"));
   });
 
   it("NM-32 a list of points and a point of lists are lists of points; mixing numbers and points is list-mixed", () => {

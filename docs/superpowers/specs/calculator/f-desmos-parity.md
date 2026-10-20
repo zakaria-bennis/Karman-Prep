@@ -98,10 +98,13 @@ These Desmos behaviours are known and recorded but not yet built:
   expected-failure test "F-A1 a row inserted mid-list continues Desmos's colour cycle" in
   `engine.rows.test.ts` pins the gap; building the counter makes it pass, and its `.fails` must
   then be removed.
-- **Range length (NM-36).** Desmos rounds a range's element count, n = round((c − a)/s) + 1, so
-  `[1...3.5]` is `[1, 2, 3, 4]` and `[1,3,...,8]` is `[1, 3, 5, 7, 9]`. The calculator floors it and stops at
-  the bound. The captured cases are expected failures in `desmos.reference.test.ts`
-  (`RANGE_COUNT_GAP`); fixing NM-36 makes them pass, and that list must then be deleted.
+- **An ellipsis outside a list.** Desmos reads `1...5` as "Sorry, I don't understand the way that
+  '...' is used here."; the calculator shows its syntax error. An expected failure in
+  `desmos.reference.test.ts` (`CATALOGUE_ERROR_GAP`).
+- **A range whose length depends on x.** Desmos reads `[x...5]` as "Can't plot a list whose length
+  depends on free variable 'x'."; the calculator reads it as a list-valued graph (G-22), "Graphing
+  a list of curves isn't supported yet." An expected failure in `desmos.reference.test.ts`
+  (`CATALOGUE_ERROR_GAP`), for the multi-branch graph task (T11).
 - **`log` with two arguments.** In Desmos `log(1,2)` is an arity error ("requires only 1
   argument"), because a base is written only as a subscript. The calculator parses `\log_{b}(x)` and
   `\log(x, b)` to the same call, so it still evaluates `log(1,2)`.
@@ -133,6 +136,12 @@ including these, is checked in `desmos.reference.test.ts`:
 - **Empty arguments.** `\operatorname{nCr}(,2)` and `\operatorname{mod}(1,)` read "You need
   something on both sides of the ',' symbol." (the new `comma-side` error), and `\log_{2}()` reads
   "Function 'log' requires an argument. For example, try typing: log(x)."
+- **Range length (NM-36).** Desmos rounds a range's element count, n = round((c − a)/s) + 1, so
+  `[1...3.5]` is `[1, 2, 3, 4]` and `[1,3,...,8]` is `[1, 3, 5, 7, 9]`, and the calculator now does
+  the same. A count that is not finite or is smaller than the values written before the ellipsis
+  (`[1,1,...,5]`, `[1...0/0]`, `[1,3,...,1]`, `[1,2,...,0]`) reads "Ranges must be arithmetic
+  sequences." Every range value and error in the function catalogue is checked in
+  `desmos.reference.test.ts` (`desmos-catalogue.fixture.json`).
 - **List errors.** `[1,...]` reads "Range must have an upper and lower bound." (the new
   `range-bound` error) and `[1...10001]` reads "Lists may not have more than 10,000 elements."
   (NM-35's wording, changed to Desmos's).

@@ -42,9 +42,7 @@ it("NM-42, NM-35, NM-36 a list error found while evaluating is the row's error a
     span: null,
   });
   expect(row("a").valueText).toBeNull();
-  expect(row("b").error?.message).toBe(
-    "A range can't step by 0. Make its first two values different."
-  );
+  expect(row("b").error?.message).toBe("Ranges must be arithmetic sequences.");
   expect(row("c").error).toBeNull();
   expect(row("c").valueText).toBe("undefined");
   expect(m.engine.expressionAnalysis.a).toMatchObject({

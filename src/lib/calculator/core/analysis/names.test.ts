@@ -137,7 +137,7 @@ it("NM-34, NM-35, NM-36, NM-32 list errors use their exact copy", () => {
   const table: [RowErrorCode, string[], string][] = [
     ["nested-list", [], "Cannot store a list of numbers in a list."],
     ["list-too-long", [], "Lists may not have more than 10,000 elements."],
-    ["range-step", [], "A range can't step by 0. Make its first two values different."],
+    ["range-step", [], "Ranges must be arithmetic sequences."],
     ["list-mixed", [], "A list can't mix numbers and points."],
   ];
   for (const [code, names, text] of table) expect(rowErrorMessage(code, names)).toBe(text);

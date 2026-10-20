@@ -54,6 +54,11 @@ features, because the new features build on them (indexing a range, piecewise ov
 
 ### M1. Range element count rounds, as in Desmos (NM-36) — confirmed by capture
 
+**Done.** `core/lib/range.ts` `rangeShape` is the one rule for analysis and evaluation. The
+function catalogue settled the open case: a count below the values written before the ellipsis
+(`[1,2,...,0]`, `[1,3,...,1]`) and a non-finite count (`[1...0/0]`) are "Ranges must be arithmetic
+sequences.", which is now the `range-step` text; there is no empty range.
+
 | Case           | Desmos                 | Karman now         |
 | -------------- | ---------------------- | ------------------ |
 | `[1...3.5]`    | `[1, 2, 3, 4]`         | `[1, 2, 3]`        |

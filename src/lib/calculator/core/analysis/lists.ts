@@ -1,18 +1,15 @@
 // Which names and calls hold lists, read from the rows before anything evaluates (PR-34, NM-32),
 // and the list errors analysis can report from that: nested lists (NM-34), literal ranges with a
-// zero step or too many elements (NM-35, NM-36) and list-valued graphs, which are deferred (G-22).
+// count Desmos rejects or too many elements (NM-35, NM-36) and list-valued graphs, which are deferred (G-22).
 // Evaluation still reports any list error these rules cannot see. Pure TypeScript: no DOM (AR-44).
 
 import type { RowErrorCode } from "../corpus/types";
 import { sourceChildren as childNodes, type Node, type SourceSpan } from "../latex/ast";
 import { DEFERRED_FEATURES } from "../latex/errors";
 import { isBuiltinName } from "../latex/operator-names";
+import { rangeShape } from "../lib/range";
 import type { DefinitionHead } from "./definitions";
 import { COORDINATE_NAMES } from "./names";
-
-/** NM-35: the most elements a list holds (eval/lists.ts holds the same limit for evaluation). */
-const MAX_LIST_ELEMENTS = 10_000;
-const RANGE_TOLERANCE = 1e-9; // NM-36
 
 export interface ListTyping {
   names: ReadonlySet<string>; // value names that hold a list
@@ -84,7 +81,7 @@ function listValued(
 
 /**
  * NM-34 to NM-36: the first nested list in `tree` (a list-valued item or range bound, at the
- * item's span), then the first literal range whose step is 0 or that holds more than 10,000
+ * item's span), then the first literal range that is not an arithmetic sequence (rangeShape) or holds more than 10,000
  * elements (over the range). `locals` are a function head's parameters.
  */
 export function listProblem(
@@ -140,30 +137,45 @@ function listNodes(tree: Node): Extract<Node, { kind: "list" }>[] {
 /** NM-35, NM-36 for a range whose bounds are all number literals; null otherwise or when valid. */
 function literalRangeError(bounds: readonly Node[]): RowErrorCode | null {
   const values = bounds.map(literal);
-  if (!values.every(Number.isFinite)) return null;
-  const [a, b, c] = values.length === 2 ? [values[0], NaN, values[1]] : values;
-  const s = values.length === 2 ? (c < a ? -1 : 1) : b - a;
-  if (s === 0) return "range-step";
-  const n = Math.floor((c - a) / s + RANGE_TOLERANCE) + 1;
-  return n <= MAX_LIST_ELEMENTS ? null : "list-too-long";
+  if (values.some((v) => v === null)) return null;
+  const [a, b, c] = values as number[];
+  const shape = values.length === 2 ? rangeShape(a, null, b) : rangeShape(a, b, c);
+  return typeof shape === "string" ? shape : null;
 }
 
-/** The value of a tree of number literals, signs and the four operations; NaN for anything else. */
-function literal(node: Node): number {
+/**
+ * The value of a tree of number literals, signs, the four operations and powers (NaN for `0/0`),
+ * or null when it holds anything else. A power that is NaN here (`(-8)^{1/3}`) is left to
+ * evaluation, whose powers of negative numbers differ from JavaScript's.
+ */
+function literal(node: Node): number | null {
   switch (node.kind) {
     case "num":
       return node.value;
-    case "neg":
-      return -literal(node.arg);
+    case "neg": {
+      const v = literal(node.arg);
+      return v === null ? null : -v;
+    }
     case "add":
-      return literal(node.left) + literal(node.right);
     case "sub":
-      return literal(node.left) - literal(node.right);
     case "mul":
-      return literal(node.left) * literal(node.right);
     case "div":
-      return literal(node.left) / literal(node.right);
+    case "pow": {
+      const left = literal(node.left),
+        right = literal(node.right);
+      if (left === null || right === null) return null;
+      const v = BINARY[node.kind](left, right);
+      return node.kind === "pow" && Number.isNaN(v) ? null : v;
+    }
     default:
-      return NaN;
+      return null;
   }
 }
+
+const BINARY = {
+  add: (a: number, b: number) => a + b,
+  sub: (a: number, b: number) => a - b,
+  mul: (a: number, b: number) => a * b,
+  div: (a: number, b: number) => a / b,
+  pow: (a: number, b: number) => a ** b,
+};
