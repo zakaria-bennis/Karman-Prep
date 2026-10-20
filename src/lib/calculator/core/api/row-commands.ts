@@ -9,7 +9,7 @@ import type { StoredRow } from "./document";
 import { functionDefinitionHead } from "../latex/index";
 import { nextTableNames } from "../data/naming";
 import { pointTableCells } from "../data/table-from-points";
-import { tableFromRow, withHeader } from "./table-edits";
+import { newTable, tableFromRow, withHeader } from "./table-edits";
 
 const at = (rows: readonly StoredRow[], id: string) => rows.findIndex((r) => r.id === id);
 
@@ -27,6 +27,20 @@ export function createTableFromRow(
     return [...rows.slice(0, i + 1), table, ...rows.slice(i + 1)];
   });
   return refusal ?? (made === null ? null : { id: made });
+}
+
+/**
+ * S-12, D-5: a new table as row 1, where the reference's Add table puts it when no row is
+ * selected, a blank list included (live Desmos, 2026-10-20); one undo step.
+ */
+export function insertTableFirst(engine: CalculatorEngine): { id: string } | EditRefusal {
+  let made = "";
+  const refusal = engine.editRows((rows, ctx) => {
+    const table = newTable(ctx.nextId(), ctx.used, ctx.nextColour);
+    made = table.id;
+    return [table, ...rows];
+  });
+  return refusal ?? (made === "" ? "row-limit" : { id: made });
 }
 
 /**

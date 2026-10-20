@@ -53,7 +53,7 @@ const cases: CorpusCase[] = [
   t(29, ["PR-24"], "\\sin\\cos x", "(call sin (call cos (id x)))"),
   x(30, ["PR-24"], "\\sin", "function-parentheses"),
   t(31, ["PR-24"], "\\sin\\frac{x}{2}", "(call sin (div (id x) (num 2)))"),
-  t(52, ["PR-24"], "\\sin|x|", "(call sin (abs (id x)))"),
+  t(52, ["PR-24"], "\\sin\\left|x\\right|", "(call sin (abs (id x)))"),
   t(53, ["PR-24"], "\\sin\\sqrt{x}", "(call sin (root (id x)))"),
   t(32, ["PR-25"], "\\sin(x)y", "(mul (call sin (id x)) (id y))"),
   t(33, ["PR-25"], "\\sin(x)^{2}", "(pow (call sin (id x)) (num 2))"),

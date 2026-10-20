@@ -102,7 +102,8 @@ const cases: CorpusCase[] = [
   k(36, ["T-6"], ["x", "^", "+", "1"], "x^{+1}"),
   k(37, ["T-7"], ["2", "*", "3"], "2\\cdot3", "(mul (num 2) (num 3))"),
   k(38, ["T-7"], ["y", "~", "x"], "y\\sim x"),
-  k(39, ["T-7"], ["5", "%"], "5\\%", "(pct (num 5))"),
+  // a percent without `of` is Desmos's error "'%' must be used with 'of'." (2026-10-20)
+  k(39, ["T-7"], ["5", "%"], "5\\%"),
   k(
     40,
     ["T-7", "PR-34"],

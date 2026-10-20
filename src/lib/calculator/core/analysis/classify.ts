@@ -8,7 +8,7 @@ import { isBuiltinName } from "../latex/operator-names";
 import { arityText, BUILTIN_ARITY } from "../lib/arity";
 import { POINT_FUNCTIONS } from "../lib/geometry";
 import { listFunction } from "../lib/statistics";
-import { declaredHead, type DefinitionHead, type ParsedRow } from "./definitions";
+import { declaredHead, rowFunctionName, type DefinitionHead, type ParsedRow } from "./definitions";
 import { functionGraph, isPointShaped, POLAR_NAMES, shapeOf, type RowShape } from "./graph";
 import type { AnalysisSettings, RowAnalysis, RowError } from "./index";
 import type { ListTyping } from "./lists";
@@ -63,17 +63,31 @@ export function classifyRow(
           unboundT(row.tree, resolution, typing),
           pointValued(row.tree, typing)
         )
-      : headShape(row.head, row.tree.span, resolution, typing);
-  if (shape.error !== null) {
+      : headShape(row.head, row.tree.span, resolution, typing, row.source.id);
+  const chips = uses.filter((name) => !resolution.isDefined(name));
+  // a bare expression's undefined names speak before its coordinates (Desmos: `\theta+a` asks
+  // for 'a'); RC-17: one undefined name and no coordinate asks for "y=" (Desmos, 2026-10-20)
+  const bare = row.head === null && row.tree.kind !== "rel" && !pointValued(row.tree, typing);
+  if (shape.error !== null && !(bare && chips.length > 0)) {
     const { code, names } = shape.error,
       span = code === "unsupported" ? firstUseShown(scope, names[0], locals, resolution) : null;
     return { ...analysis, kind: "error", error: rowError(code, names, span), uses };
   }
-  const chips = uses.filter((name) => !resolution.isDefined(name)),
-    isGraphable = shape.graph !== null && chips.length === 0 && !row.source.hidden;
+  // a curve whose value is a point or points (`y=(1,2)x`) is neither graphed nor marked (Desmos,
+  // 2026-10-20)
+  const pointCurve = shape.graph?.kind === "explicit" && pointValued(shape.graph.expr, typing);
+  const isGraphable =
+    shape.graph !== null && !pointCurve && chips.length === 0 && !row.source.hidden;
+  const coordinates = resolution.coordinatesOf(row.tree, []).size > 0;
   return {
     ...analysis,
-    kind: shape.kind === "constant-relation" && chips.length > 0 ? "unsolved-relation" : shape.kind,
+    ...(bare && chips.length === 1 && !coordinates && { asksForEquation: true }),
+    kind:
+      shape.error !== null
+        ? "value"
+        : shape.kind === "constant-relation" && chips.length > 0
+          ? "unsolved-relation"
+          : shape.kind,
     uses,
     chips,
     complexHint: !settings.complex && chips.length === 1 && chips[0] === "i",
@@ -84,11 +98,12 @@ export function classifyRow(
 }
 
 /**
- * 's errors after the head errors and before the shape errors, in order: a defining
- * row of a duplicated name (RC-7); a row in a cycle (RC-8); the first call, in source order, with
- * a count its function does not take (RC-20); the first use of a duplicated name (RC-7), which is
- * never the row's own name, since a row defining a duplicated name stopped at the first check.
- * `scope` is the row's body, or its tree when it defines nothing; `locals` are its parameters.
+ * 's errors after the head errors and before the shape errors, in order: a row in a cycle
+ * (RC-8); the first call, in source order, with a count its function does not take (RC-20); the
+ * first use of a name defined twice, in a cycle, or defined through one of those (RC-7, RC-8),
+ * with that name's error. As in Desmos, the rows that define a name twice are not marked: only
+ * the rows that use it (captured 2026-10-20). `scope` is the row's body, or its tree when it
+ * defines nothing; `locals` are its parameters.
  */
 function conflictError(
   row: ParsedRow,
@@ -96,14 +111,27 @@ function conflictError(
   locals: readonly string[],
   resolution: Resolution
 ): RowError | null {
-  const { head } = row;
-  if (head !== null && resolution.duplicates.has(head.name)) {
-    return rowError("duplicate-definition", [displayName(head.name)], null);
-  }
-  if (head !== null && resolution.cyclicRows.has(row.source.id)) {
-    return rowError("cycle", [displayName(head.name)], null);
-  }
-  for (const call of callsOf(scope)) {
+  const cycle = resolution.cycles.get(row.source.id);
+  if (cycle !== undefined) return rowError(cycle.code, cycle.names, null);
+  const arity = arityError(scope, resolution);
+  if (arity !== null) return arity;
+  const use = collectNameUses(scope).find(
+    ({ name }) => !locals.includes(name) && resolution.blocked.has(name)
+  );
+  if (use === undefined) return null;
+  const blocked = resolution.blocked.get(use.name)!;
+  return rowError(blocked.code, blocked.names, use.span);
+}
+
+/**
+ * RC-20: the first call in `tree`, in source order, with a count its function does not take, as
+ * Desmos words it; a table cell or header shows the same error (Desmos, 2026-10-20).
+ */
+export function arityError(
+  tree: Node,
+  resolution: Pick<Resolution, "functionArity">
+): RowError | null {
+  for (const call of callsOf(tree)) {
     if (call.member !== undefined) continue; // FN-47 to FN-51: distributions.ts counts these
     if (POINT_FUNCTIONS.has(call.name)) continue; // FN-70, FN-71: points.ts gives Desmos's texts
     const arity = expectedArity(call.name, resolution);
@@ -126,10 +154,7 @@ function conflictError(
       return rowError("arity", names, call.span);
     }
   }
-  const use = collectNameUses(scope).find(
-    ({ name }) => !locals.includes(name) && resolution.duplicates.has(name)
-  );
-  return use === undefined ? null : rowError("dependency", [displayName(use.name)], use.span);
+  return null;
 }
 
 /**
@@ -138,7 +163,10 @@ function conflictError(
  * a user function's parameter count from its error-free head. A call to a function whose head has
  * an error, is duplicated or is in a cycle is not checked.
  */
-function expectedArity(name: string, resolution: Resolution): readonly number[] | null {
+function expectedArity(
+  name: string,
+  resolution: Pick<Resolution, "functionArity">
+): readonly number[] | null {
   if (name === "log") return [1];
   if (isBuiltinName(name)) return BUILTIN_ARITY.get(name) ?? null;
   const count = resolution.functionArity(name);
@@ -189,7 +217,8 @@ function headShape(
   head: DefinitionHead,
   span: SourceSpan,
   resolution: Resolution,
-  typing: ListTyping
+  typing: ListTyping,
+  id: string
 ): RowShape {
   const coordinates = resolution.coordinatesOf(head.body, head.params),
     shape: RowShape = { kind: "definition", graph: null, error: null, relation: null };
@@ -204,7 +233,14 @@ function headShape(
   return {
     ...shape,
     kind: "function-definition",
-    graph: functionGraph(head.name, head.params, span),
+    // a function defined twice or under a reserved name graphs its own body (Desmos, 2026-10-20)
+    graph: functionGraph(
+      head.anonymous === true || resolution.duplicates.has(head.name)
+        ? rowFunctionName(id)
+        : head.name,
+      head.params,
+      span
+    ),
   };
 }
 

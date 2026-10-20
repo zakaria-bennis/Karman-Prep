@@ -42,6 +42,12 @@
   width: 24px;
 }
 
+/* A column header's marker is the reference's full 22 px triangle in a 26 px target. */
+.kc-cell-warning.kc-header-warning {
+  width: 26px;
+  height: 26px;
+}
+
 /* VIS-35: a grey box 200 px wide, white 14 px text on a 15.4 px line, 5 px by 8 px padding, 4 px
    radius, under its marker with a 5 px arrow pointing up at it (--kc-tip-arrow is the marker's
    centre inside the box), or above it with the arrow pointing down when there is no room below. */

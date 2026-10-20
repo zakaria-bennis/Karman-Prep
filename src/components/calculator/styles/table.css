@@ -216,8 +216,21 @@
   text-align: center;
 }
 
-.kc-column-style + .kc-table-field .mq-editable-field {
+.kc-column-style + .kc-table-field .mq-editable-field,
+.kc-header-warning + .kc-table-field .mq-editable-field {
   padding-left: 6px;
+}
+
+/* D-6: as on the reference, a cell's marker sits 5 px from the cell's left edge and its text
+   starts straight after it (live Desmos, 2026-10-20). */
+.kc-cell-warning:not(.kc-header-warning) {
+  width: 16px;
+  margin-left: 4px;
+}
+
+.kc-cell-warning:not(.kc-header-warning) + .kc-table-field .mq-editable-field {
+  padding-left: 0;
+  text-align: left;
 }
 
 /* Add row (ours) fades in with focus or hover anywhere in the table, so it stays reachable by
@@ -267,6 +280,12 @@
 .kc-table-add-regression > svg {
   width: 30px;
   height: 30px;
+}
+
+/* RT-28: white on the focus bar while the table is selected, as the reference draws it. */
+.kc-row:is([data-focused="true"], .kc-app:has(.kc-keypad:focus-within) [data-active="true"])
+  .kc-table-add-regression {
+  color: var(--kc-focus-bar-label);
 }
 
 /* RT-6: a computed cell's scientific exponent, raised as in the reference's typeset cells. */

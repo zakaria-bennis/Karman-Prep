@@ -59,10 +59,12 @@ const cases: CorpusCase[] = [
   x(28, ["RC-2"], "(t,t^{2})", "unsupported"),
   k(29, ["RC-19"], "(t,t^{2})", "point", [], { rows: ["t=2"] }),
   k(30, ["RC-17"], "x^{2}", "curve-y"),
+  // Desmos asks for an equation (2026-10-20): '=' for x with y, 'y=' for r alone, which it reads
+  // as a name, and 'r=' for θ alone; for y alone it asks for 'x=', where this calculator graphs
   k(31, ["RC-17"], "y^{2}+1", "curve-x"),
   x(32, ["RC-17"], "x+y", "mixed-variables"),
-  x(33, ["RC-17"], "2\\pi r", "unsupported"),
-  x(34, ["RC-17"], "\\sin\\theta", "unsupported"),
+  x(33, ["RC-17"], "2\\pi r", "equation-required"),
+  x(34, ["RC-17"], "\\sin\\theta", "equation-required"),
   k(35, ["RC-10", "RC-17"], "a(x-h)^{2}+k", "curve-y", ["a", "h", "k"]),
   k(36, ["NM-21"], "y=\\sqrt{x}", "curve-y", [], { settings: CX }),
   k(37, ["NM-16"], "y=x^{2/3}", "curve-y"),

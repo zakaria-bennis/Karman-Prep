@@ -23,7 +23,7 @@ type Coordinate = number | null;
 type Captured = Coordinate | Coordinate[] | Coordinate[][];
 
 const GAPS: readonly RegExp[] = [
-  /^(?!.*length).*(\(\d,\d,\d|\\times\()/,
+  /^(?!.*length)(?!\(1,2,3(,4)?\)$).*(\(\d,\d,\d|\\times\()/,
   /\\operatorname\{(for|with)\}/,
   /\\operatorname\{(hypot|pointDot|pointDet|pointPerp|complexMultiplyPoints)\}/,
   /\.\\operatorname\{length\}/,
@@ -32,7 +32,17 @@ const GAPS: readonly RegExp[] = [
   /\\frac\{d\}\{d|\\sum|\\prod/,
   /\\arg|\\operatorname\{(det|random|tone)\}/,
 ];
-const isGap = (key: string) => GAPS.some((gap) => gap.test(key));
+// Errors matched since: calls of built-ins the calculator reads but does not evaluate
+// (desmos-calls.ts), whose argument counts and literal arguments give Desmos's texts.
+const MATCHED: ReadonlySet<string> = new Set([
+  "\\operatorname{complexMultiplyPoints}\\left((1,2),(3,4)\\right)",
+  "\\operatorname{det}\\left(\\left(1,2\\right)\\right)",
+  "\\operatorname{hypot}\\left(3,4,12\\right)",
+  "\\operatorname{hypot}\\left(3\\right)",
+  "\\operatorname{pointDot}\\left((1,2)\\right)",
+  "\\operatorname{random}\\left(\\left(1,2\\right)\\right)",
+]);
+const isGap = (key: string) => !MATCHED.has(key) && GAPS.some((gap) => gap.test(key));
 
 function caseOf(key: string): { latex: string; rows: string[]; settings: Partial<EvalSettings> } {
   const degrees = key.endsWith(" [degrees]");
@@ -101,8 +111,8 @@ for (const [key, expected] of VALUES) {
   else it(`FN-70 FN-71 NM-32 PR-45 ${key} is ${shown}, as in Desmos`, check);
 }
 
-it("FN-70 FN-71 NM-32 PR-45 all 103 catalogue point errors are checked, 75 matched", () =>
-  expect([ERRORS.length, ERRORS.filter(([key]) => !isGap(key)).length]).toEqual([103, 75]));
+it("FN-70 FN-71 NM-32 PR-45 all 103 catalogue point errors are checked, 83 matched", () =>
+  expect([ERRORS.length, ERRORS.filter(([key]) => !isGap(key)).length]).toEqual([103, 83]));
 
 // A row's error is its analysis error or, as the row shows it, the error its value carries
 // (`[(1,2),3]`, NM-32).

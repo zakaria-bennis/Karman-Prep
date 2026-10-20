@@ -203,7 +203,7 @@ function callProblem(call: Call, shapes: readonly (Shape | null)[]): Problem | n
     const target = shapes[0];
     return target === null ? null : { code: "member-target", names: [name, NAMES[target]] };
   }
-  if (shapes.length > 2) return { code: "point-function-arity", names: [name] };
+  if (shapes.length > 2) return { code: "point-function-arity", names: [name, "2"] };
   const known = shapes.length < 2 || shapes.every((s) => s !== null);
   if (known && !(shapes.length === 2 && shapes.every(pointed))) {
     return { code: "point-function-arguments", names: [name, REQUIRES[name]] };

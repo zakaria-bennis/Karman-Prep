@@ -194,9 +194,8 @@ for (const [latex, expected] of RANGE_VALUES) {
   });
 }
 
-// Catalogue errors not yet matched, each an expected failure that fails once matched: an
-// ellipsis outside a list (the calculator reads a syntax error).
-const CATALOGUE_ERROR_GAP: ReadonlySet<string> = new Set(["1...5"]);
+// Catalogue errors not yet matched, each an expected failure that fails once matched.
+const CATALOGUE_ERROR_GAP: ReadonlySet<string> = new Set([]);
 const CATALOGUE_ERRORS = Object.entries(catalogue.errors);
 
 it("NM-36 RC-20 all 31 catalogue error messages for ranges, log and ln are checked", () =>
@@ -412,7 +411,19 @@ const STATISTICS_GAPS: readonly RegExp[] = [
   /^y=/,
 ];
 const SHIPPED_DISTRIBUTIONS = /\\operatorname\{(normaldist|tdist|binomialdist)\}/;
+// Errors matched since: built-ins the calculator reads but does not evaluate (desmos-calls.ts).
+const MATCHED: ReadonlySet<string> = new Set([
+  "\\arg\\max\\left(L\\right)",
+  "\\arg\\min\\left(L\\right)",
+  "\\operatorname{frequency}()",
+  "\\operatorname{shuffle}",
+  "\\operatorname{shuffle}()",
+  "\\operatorname{shuffle}(L,1,2)",
+  "\\operatorname{shuffle}\\left(1,2,3\\right)",
+  "\\operatorname{shuffle}\\left(\\right)",
+]);
 const statisticsGap = (key: string) =>
+  !MATCHED.has(key) &&
   STATISTICS_GAPS.some((gap) => gap.test(key)) &&
   !(SHIPPED_DISTRIBUTIONS.test(key) && !/\\arctan/.test(key));
 
@@ -440,11 +451,11 @@ for (const [key, expected] of STATISTICS_VALUES) {
 
 const STATISTICS_ERRORS = Object.entries(statistics.errors);
 
-it("FN-2 FN-23 FN-29 FN-75 all 75 catalogue statistics errors are checked, 63 matched", () =>
+it("FN-2 FN-23 FN-29 FN-75 all 75 catalogue statistics errors are checked, 65 matched", () =>
   expect([
     STATISTICS_ERRORS.length,
     STATISTICS_ERRORS.filter(([k]) => !statisticsGap(k)).length,
-  ]).toEqual([75, 63]));
+  ]).toEqual([75, 65]));
 
 for (const [key, message] of STATISTICS_ERRORS) {
   const check = () => {
@@ -493,7 +504,8 @@ const LIST_OPERATION_GAPS: readonly RegExp[] = [
   /0\.1\+0\.2/,
 ];
 const LIST_OPERATION_GRAPH_GAPS: ReadonlySet<string> = new Set(["\\operatorname{shuffle}(E)"]);
-const listOperationGap = (key: string) => LIST_OPERATION_GAPS.some((gap) => gap.test(key));
+const listOperationGap = (key: string) =>
+  !MATCHED.has(key) && LIST_OPERATION_GAPS.some((gap) => gap.test(key));
 const LIST_OPERATION_VALUES = Object.entries(listOperations.values) as [string, Captured][];
 const LIST_OPERATION_ERRORS = Object.entries(listOperations.errors);
 const LIST_OPERATION_GRAPHED = Object.entries(listOperations.graphed);
@@ -522,11 +534,11 @@ for (const [key, expected] of LIST_OPERATION_VALUES) {
   else it(`FN-30 FN-38 ${key} is ${shown}, as in Desmos`, check);
 }
 
-it("FN-30 FN-38 all 157 catalogue list operation errors are checked, 143 matched", () =>
+it("FN-30 FN-38 all 157 catalogue list operation errors are checked, 149 matched", () =>
   expect([
     LIST_OPERATION_ERRORS.length,
     LIST_OPERATION_ERRORS.filter(([k]) => !listOperationGap(k)).length,
-  ]).toEqual([157, 143]));
+  ]).toEqual([157, 149]));
 
 for (const [key, message] of LIST_OPERATION_ERRORS) {
   const check = () => {

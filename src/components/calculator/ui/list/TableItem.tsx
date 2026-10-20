@@ -41,6 +41,7 @@ import {
   computedCellName,
   dataRowCount,
   gridName,
+  storedRowCount,
   headerName,
   NEW_COLUMN_HEADER,
 } from "./table-model";
@@ -116,7 +117,9 @@ export function TableItem(props: TableItemProps): JSX.Element {
   const rows = dataRowCount(row);
   const hidden = expanded ? null : collapsedRange(rows);
   const headers = columns.map((c, k) => headerName(c.latex, k));
-  const computed = (k: number) => analysis[k]?.role === "computed";
+  // As on the reference, a column whose header is in error shows grey, read-only cells with its
+  // values hidden until the header is fixed (live Desmos, 2026-10-20).
+  const computed = (k: number) => analysis[k]?.role === "computed" || analysis[k]?.role === "error";
   // TABLES-2: the blank header slot and its read-only column always show, as on the reference.
   const slot = columns.length < MAX_TABLE_COLUMNS;
   // RT-28: Add Regression adds a Linear table regression and focuses its model dropdown.
@@ -249,7 +252,7 @@ export function TableItem(props: TableItemProps): JSX.Element {
             role="grid"
             className="kc-table"
             style={gridTracks(columns.length, slot)}
-            aria-label={gridName(number, columns.length, rows)}
+            aria-label={gridName(number, columns.length, storedRowCount(row))}
             onKeyDownCapture={onGridKeyDown}
           >
             <div role="row" className="kc-table-row" data-header="true">
@@ -265,9 +268,10 @@ export function TableItem(props: TableItemProps): JSX.Element {
                     data-slot={latex === null ? "true" : undefined}
                   >
                     {error !== null && (
-                      <ErrorMarker id={errorId!} message={error.message} variant="cell" />
+                      <ErrorMarker id={errorId!} message={error.message} variant="header" />
                     )}
-                    {latex !== null && k > 0 && (
+                    {/* R-2, D-10: as on the reference, a header's warning takes its colour icon's place. */}
+                    {latex !== null && k > 0 && error === null && (
                       <ColumnStyleMenu
                         tableId={row.id}
                         column={k}

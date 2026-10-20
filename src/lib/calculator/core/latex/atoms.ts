@@ -4,12 +4,15 @@
 // (G11, PR-21); and single-token arguments (G4). Built-in and user calls are in calls.ts (G8).
 
 import type { Node, SourceSpan } from "./ast";
+import { commandName } from "./command-names";
+import { displayGreek } from "./greek";
 import { isBuiltinCommand, parseBuiltinCall, parseMember, parseUserCall } from "./calls";
 import { failIfComprehension, parseIndex, parseList } from "./lists";
 import { isPiecewiseOpen, parsePiecewise } from "./piecewise";
 import {
   enter,
   fail,
+  missingOperand,
   parseSum,
   peek,
   startsFactor,
@@ -101,9 +104,14 @@ export function takePostfix(state: ParserState, atom: Node): Node {
         continue;
       }
     }
-    if (UNSUPPORTED_POSTFIX.has(token.ch) || (token.ch === "." && isMemberBase(node))) {
+    if (UNSUPPORTED_POSTFIX.has(token.ch)) failPrime(state, node, afterExponent);
+    if (token.ch === "." && isMemberBase(node)) {
       fail("unsupported", token.span, `"${token.ch}" is not supported`);
     }
+    if (token.ch === "_" && node.kind !== "id") {
+      fail("subscript-target", token.span, "a subscript on a number or group");
+    }
+    if (token.ch === "%") failIfPercentAlone(state, token);
     if (token.ch === "%" || token.ch === "!") {
       take(state);
       const kind = token.ch === "%" ? "pct" : "fact";
@@ -116,6 +124,10 @@ export function takePostfix(state: ParserState, atom: Node): Node {
       afterExponent = false;
     } else if (token.ch === "^") {
       if (afterExponent) unexpected(state, token);
+      if (isEmptyGroup(state, 1)) {
+        const close = peek(state, 2);
+        fail("empty-superscript", { start: token.span.start, end: close.span.end }, "x^{}");
+      }
       take(state);
       const exponent = takeArgument(state);
       const span = { start: node.span.start, end: exponent.end };
@@ -126,6 +138,50 @@ export function takePostfix(state: ParserState, atom: Node): Node {
     }
   }
   return node;
+}
+
+/**
+ * Desmos's prime errors (captured 2026-10-20): a power beside the prime is "Superscripts and
+ * primes cannot be combined.", a primed call of a name no row defines as a function is
+ * "Function 'g' is not defined.", and any other prime "Sorry, I don't understand this use of
+ * prime notation."; a primed call of a defined function (a derivative) stays `unsupported`.
+ */
+function failPrime(state: ParserState, node: Node, afterExponent: boolean): never {
+  const prime = peek(state);
+  let k = 0;
+  while (isSymbolAt(state, k, "'")) k += 1;
+  if (afterExponent || isSymbolAt(state, k, "^")) {
+    return fail("prime-superscript", prime.span, "a prime beside a power");
+  }
+  const after = peek(state, k);
+  const call = after.t === "open" && after.ch === "(" && node.kind === "id";
+  if (call && state.options.userFunctions?.has(node.name)) {
+    return fail("unsupported", prime.span, `"'" is not supported`);
+  }
+  if (call) return fail("function-undefined", node.span, "a primed undefined function", node.name);
+  return fail("prime-use", prime.span, "a prime on a value");
+}
+
+function isSymbolAt(state: ParserState, offset: number, ch: string): boolean {
+  const token = peek(state, offset);
+  return token.t === "symbol" && token.ch === ch;
+}
+
+/** True when the tokens `offset` places after the cursor are an empty `{}` group. */
+function isEmptyGroup(state: ParserState, offset: number): boolean {
+  const [open, close] = [peek(state, offset), peek(state, offset + 1)];
+  return open.t === "open" && open.ch === "{" && close.t === "close" && close.ch === "}";
+}
+
+/**
+ * Desmos's percent is only `a\% \operatorname{of} b` (captured 2026-10-20): `50\%x` is "'%' must
+ * be used with 'of'. Try '25% of 12'.", and `\%\operatorname{of}` with nothing after it is the
+ * both-sides error of '% of', which the operand after `of` reports.
+ */
+function failIfPercentAlone(state: ParserState, percent: Token): void {
+  const next = peek(state, 1);
+  if (next.t === "command" && next.name === "of") return;
+  fail("percent-of", percent.span, "a percent sign without of");
 }
 
 /**
@@ -145,18 +201,18 @@ export function parseAtom(state: ParserState): Node {
     case "open":
       return token.ch === "[" ? parseList(state, token) : parseGroup(state, token);
     case "symbol":
-      return token.ch === "|" ? parseBars(state, token, "raw") : unexpected(state, token);
+      return missingOperand(state, token);
     case "command":
       if (token.name === "frac") return parseFraction(state, token);
       if (token.name === "sqrt") return parseRoot(state, token, null);
       if (token.name === "cbrt" && isLetterRun(state, token)) {
         return parseRoot(state, token, { kind: "num", value: 3, span: token.span });
       }
-      if (token.name === "lvert") return parseBars(state, token, "lvert");
+      if (token.name === "lvert") return parseBars(state, token);
       if (isPiecewiseOpen(token)) return parsePiecewise(state, token);
       return parseUserCall(state, parseCommandAtom(state, true));
     default:
-      return unexpected(state, token);
+      return missingOperand(state, token);
   }
 }
 
@@ -226,7 +282,8 @@ function parseGroup(state: ParserState, open: OpenToken): Node {
   const parts = enter(state, open, () => {
     const found = [parseSum(state)];
     for (let comma = peek(state); comma.t === "symbol" && comma.ch === ","; comma = peek(state)) {
-      if (open.ch === "{") unexpected(state, comma);
+      // `{1,2}` is Desmos's "Points are written like this: (1, 2)."
+      if (open.ch === "{") fail("point-syntax", comma.span, "a comma in a brace group");
       take(state);
       found.push(parseSum(state));
     }
@@ -236,7 +293,8 @@ function parseGroup(state: ParserState, open: OpenToken): Node {
   if (close.t !== "close" || close.ch !== (open.ch === "(" ? ")" : "}")) unexpected(state, close);
   take(state);
   const span = { start: open.span.start, end: close.span.end };
-  if (parts.length > 2) {
+  if (parts.length === 3) return fail("point-3d", span, "a point with 3 coordinates");
+  if (parts.length > 3) {
     return fail("point-arity", span, `a point has 2 coordinates, not ${parts.length}`);
   }
   if (parts.length === 2) return { kind: "point", x: parts[0], y: parts[1], span };
@@ -248,25 +306,19 @@ function parseGroup(state: ParserState, open: OpenToken): Node {
 }
 
 /**
- * `\lvert … \rvert` or raw `| … |` (G11, PR-21): `abs`. The bar stays on `state.bars` while its
- * content is read, so a raw `|` there closes it instead of starting a factor (G3).
+ * `\lvert … \rvert` (G11, PR-21): `abs`; empty bars are Desmos's "Absolute value symbol cannot be
+ * empty.". A raw `|` is a symbol Desmos does not read: "Sorry, I don't understand the '|' symbol."
+ * (captured 2026-10-20), so only the bar commands pair.
  */
-function parseBars(state: ParserState, open: Token, bar: "raw" | "lvert"): Node {
+function parseBars(state: ParserState, open: Token): Node {
   take(state);
-  const arg = enter(state, open, () => {
-    state.bars.push(bar);
-    try {
-      return parseSum(state);
-    } finally {
-      state.bars.pop();
-    }
-  });
+  const empty = peek(state);
+  if (empty.t === "command" && empty.name === "rvert") {
+    fail("empty-pipe", { start: open.span.start, end: empty.span.end }, "empty bars");
+  }
+  const arg = enter(state, open, () => parseSum(state));
   const close = peek(state);
-  const closes =
-    bar === "raw"
-      ? close.t === "symbol" && close.ch === "|"
-      : close.t === "command" && close.name === "rvert";
-  if (!closes) unexpected(state, close);
+  if (close.t !== "command" || close.name !== "rvert") unexpected(state, close);
   take(state);
   return { kind: "abs", arg, span: { start: open.span.start, end: close.span.end } };
 }
@@ -277,6 +329,15 @@ function parseBars(state: ParserState, open: Token, bar: "raw" | "lvert"): Node 
  */
 function parseFraction(state: ParserState, frac: Token): Node {
   take(state);
+  const [top, bottom] = [
+    isEmptyGroup(state, 0),
+    isEmptyGroup(state, 2) || isEmptyAfterGroup(state),
+  ];
+  if (top || bottom) {
+    const code =
+      top && bottom ? "fraction-empty" : top ? "fraction-numerator" : "fraction-denominator";
+    return fail(code, frac.span, "an empty part of a fraction");
+  }
   const numerator = takeArgument(state);
   const denominator = takeArgument(state);
   if (isDerivative(numerator.node, denominator.node)) {
@@ -284,6 +345,20 @@ function parseFraction(state: ParserState, frac: Token): Node {
   }
   const span = { start: frac.span.start, end: denominator.end };
   return { kind: "div", left: numerator.node, right: denominator.node, span };
+}
+
+/** True when the group at the cursor is non-empty and an empty `{}` group follows it. */
+function isEmptyAfterGroup(state: ParserState): boolean {
+  const open = peek(state);
+  if (open.t !== "open" || open.ch !== "{") return false;
+  let depth = 0;
+  for (let k = 0; ; k++) {
+    const token = peek(state, k);
+    if (token.t === "end") return false;
+    if (token.t === "open" && token.ch === "{") depth += 1;
+    if (token.t === "close" && token.ch === "}") depth -= 1;
+    if (depth === 0) return isEmptyGroup(state, k + 1);
+  }
 }
 
 /** True for `\frac{d}{dx}`'s arguments: the letter d over d times one letter. */
@@ -379,9 +454,14 @@ function failIfLogicOutsideCondition(state: ParserState, command: Token): void {
  * are half-typed `syntax` at the closing brace (G15); any other command is unsupported (PR-9).
  */
 function parseCommandAtom(state: ParserState, subscripts: boolean): Node {
-  if (!startsFactor(state)) return unexpected(state, peek(state));
+  if (!startsFactor(state)) return missingOperand(state, peek(state));
   const token = take(state) as Extract<Token, { t: "command" }>;
   if (token.name === "pi" || token.name === "tau") {
+    // Desmos reads `\pi_{2}` as a name, like any letter with a subscript
+    const next = peek(state);
+    if (subscripts && next.t === "symbol" && next.ch === "_") {
+      return parseSubscript(state, `\\${token.name}`, token.span.start);
+    }
     return { kind: "const", name: token.name, span: token.span };
   }
   if (GREEK_IDENTIFIERS.has(token.name)) {
@@ -394,13 +474,33 @@ function parseCommandAtom(state: ParserState, subscripts: boolean): Node {
   }
   failIfComprehension(token);
   failIfLogicOutsideCondition(state, token);
+  failIfLeadingWith(state, token);
   const [open, close] = [peek(state), peek(state, 1)];
   const emptyGroup =
     open.t === "open" && open.ch === "{" && close.t === "close" && close.ch === "}";
   if (NAME_WRAPPERS.has(token.name) && emptyGroup) {
     return fail("syntax", close.span, `"\\${token.name}{}" is empty`);
   }
-  return fail("unsupported", token.span, `"\\${token.name}" is not supported`);
+  // Desmos reads any other command as a name (`x\ne1` is x·ne·1), as commandName decides
+  const name = commandName(state, token);
+  const next = peek(state);
+  if (subscripts && next.t === "symbol" && next.ch === "_") {
+    return parseSubscript(state, name, token.span.start);
+  }
+  const span = { start: token.span.start, end: state.tokens[state.pos - 1].span.end };
+  return { kind: "id", name, span };
+}
+
+/**
+ * `\operatorname{with}` where a sum starts, with nothing before it: Desmos's "You need something
+ * on both sides of the 'with' symbol." (captured 2026-10-20).
+ */
+function failIfLeadingWith(state: ParserState, command: Token): void {
+  if (command.t !== "command" || command.name !== "with") return;
+  const before = state.tokens[state.pos - 2];
+  if (before === undefined || before.t === "open" || peek(state).t === "end") {
+    fail("operator-side", command.span, "nothing before with", "with");
+  }
 }
 
 /**
@@ -413,6 +513,10 @@ function parseSubscript(state: ParserState, base: string, start: number): Node {
   let text: string;
   let end: number;
   if (token.t === "open" && token.ch === "{") {
+    if (isEmptyGroup(state, 0)) {
+      const close = peek(state, 1);
+      fail("empty-subscript", { start: token.span.start, end: close.span.end }, "x_{}");
+    }
     take(state);
     text = enter(state, token, () => readSubscriptGroup(state));
     end = take(state).span.end;
@@ -430,16 +534,45 @@ function parseSubscript(state: ParserState, base: string, start: number): Node {
   return { kind: "id", name: `${base}_{${text}}`, span: { start, end } };
 }
 
-/** Letters and digits up to a closing `}`, which stays at the cursor; an empty group fails. */
+/**
+ * Letters and digits up to a closing `}`, which stays at the cursor. Anything else is Desmos's
+ * "Subscripts may only contain letters and digits. '+' is not allowed.", naming that piece.
+ */
 function readSubscriptGroup(state: ParserState): string {
   let text = "";
   for (let token = peek(state); ; token = peek(state)) {
     if (token.t === "close" && token.ch === "}" && text !== "") return text;
     if (token.t === "letter") text += token.ch;
     else if (token.t === "digits" && !token.text.includes(".")) text += token.text;
-    else return unexpected(state, token);
+    else return fail("invalid-subscript", token.span, "not a letter or digit", piece(state, token));
     take(state);
   }
+}
+
+/**
+ * How Desmos names a piece of a subscript that is not a letter or digit: a symbol as itself (a
+ * decimal point as '.'), a Greek letter as its letter, and any other command or power with its
+ * groups and without the backslash, `^{2}` and `frac{1}{3}` (captured 2026-10-20).
+ */
+function piece(state: ParserState, token: Token): string {
+  if (token.t === "digits") return ".";
+  if (token.t === "command" && GREEK_IDENTIFIERS.has(token.name)) {
+    return displayGreek(token.name);
+  }
+  const power = token.t === "symbol" && token.ch === "^";
+  if (token.t !== "command" && !power) {
+    return state.normalized.slice(token.span.start, token.span.end);
+  }
+  let end = token.span.end;
+  for (let k = 1, depth = 0; ; k++) {
+    const next = peek(state, k);
+    if (next.t === "open" && next.ch === "{") depth += 1;
+    else if (depth === 0) break;
+    if (next.t === "close" && next.ch === "}") depth -= 1;
+    end = next.span.end;
+  }
+  const start = token.t === "command" ? token.span.start + 1 : token.span.start;
+  return state.normalized.slice(start, end);
 }
 
 /**

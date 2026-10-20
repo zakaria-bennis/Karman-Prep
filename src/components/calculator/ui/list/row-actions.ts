@@ -5,6 +5,7 @@
 // MathQuill.
 
 import type { CalculatorEngine, EditRefusal } from "@/lib/calculator/core/api/engine";
+import { insertTableFirst } from "@/lib/calculator/core/api/row-commands";
 import type { MathField } from "../../math-field/MathField";
 import type { Announcer } from "../a11y/announcer";
 import { cellKey, type FocusController } from "../focus/focus-controller";
@@ -66,10 +67,6 @@ export function insertExpressionItem(
   return id;
 }
 
-/**
- * S-12, S-13, D-5: Add table; an empty active row becomes the table, any other anchor gets one
- * after it, and focus goes to the first x cell.
- */
 /** D-5: an empty expression row that the user typed "table" into becomes a table in place. */
 export function convertToTable(
   engine: CalculatorEngine,
@@ -80,14 +77,18 @@ export function convertToTable(
   if (typeof converted !== "string") focus.focusRow(cellKey(converted.id, 0, 0), "start");
 }
 
+/**
+ * S-12, S-13, D-5: Add table; an empty active row becomes the table, any other anchor gets one
+ * after it, and with no anchor (a blank list) the table is row 1, as on the reference; focus
+ * goes to the first x cell.
+ */
 export function insertTableItem(
   engine: CalculatorEngine,
   focus: FocusController,
   announcer: Announcer | null,
   anchor: string | null
 ): string | null {
-  const inserted =
-    anchor === null ? engine.insertTableAfter(null) : engine.replaceWithTable(anchor);
+  const inserted = anchor === null ? insertTableFirst(engine) : engine.replaceWithTable(anchor);
   if (typeof inserted === "string") {
     announcer?.announce(EDITOR_MESSAGES.rowLimit);
     return null;

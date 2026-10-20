@@ -102,10 +102,8 @@ it("A11Y-2 a row's error is announced once when it appears or changes, and API c
   };
   engine.setFocusedRow("1");
   typeAndIdle("y=2+");
-  expect(texts).toEqual([
-    "Expression 1: This can't be read. Check for a missing bracket or operator.",
-  ]);
-  typeAndIdle("y=2+(");
+  expect(texts).toEqual(["Expression 1: You need something on both sides of the '+' symbol."]);
+  typeAndIdle("y=3+"); // the same message
   expect(texts).toHaveLength(1);
   typeAndIdle("y=2");
   typeAndIdle("y=2+");

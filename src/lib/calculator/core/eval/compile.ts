@@ -529,8 +529,15 @@ export function evaluateRows(
     // A list error stays on its own row (R-2); rows that use the name read it as undefined.
     if (v !== null) values.set(row.defines.name, v.type === "undefined" ? UNDEFINED : v);
   }
+  const ordered = new Set(analysis.valueOrder);
   for (const row of analysis.rows) {
     if (evaluable(row, ["value", "point"]) && row.tree !== null) evaluate(row.id, row.tree);
+    // A name defined twice: each defining row still shows its own value, as in Desmos, but binds
+    // no name (the rows that use it are marked).
+    const body = definitionBody(row);
+    if (!ordered.has(row.id) && evaluable(row, ["definition"]) && body !== null) {
+      evaluate(row.id, body);
+    }
   }
   if (sink !== undefined) {
     // D-11: tables after every value they can use; a row's deadline covers its whole table.

@@ -14,7 +14,7 @@ export interface ParserState {
   tokens: Token[];
   pos: number;
   depth: number;
-  bars: ("raw" | "lvert")[];
+  readonly prefixSigns: Set<number>; // indices of the `+` and `-` tokens read as leading signs
   readonly normalized: string;
   readonly options: ParseOptions;
 }
@@ -27,6 +27,9 @@ export class ParseFailure extends Error {
     this.error = error;
   }
 }
+
+/** The colour built-ins, which cannot be negated. */
+const COLOR_NAMES: ReadonlySet<string> = new Set(["rgb", "hsv", "okhsv", "oklab", "oklch"]);
 
 /** The operators and the closer that are commands (G3): no factor or atom starts with one. */
 const OPERATOR_COMMANDS: ReadonlySet<string> = new Set([
@@ -45,22 +48,34 @@ export function createParserState(
   normalized: string,
   options: ParseOptions
 ): ParserState {
-  return { tokens, pos: 0, depth: 0, bars: [], normalized, options };
+  return { tokens, pos: 0, depth: 0, prefixSigns: new Set(), normalized, options };
 }
 
 export function fail(
   code: ParseErrorCode,
   span: SourceSpan,
   detail: string,
-  feature?: string
+  feature?: string,
+  names?: string[]
 ): never {
   const error: ParseError = { code, span: { start: span.start, end: span.end }, detail };
-  throw new ParseFailure(feature === undefined ? error : { ...error, feature });
+  const named = names === undefined ? error : { ...error, names };
+  throw new ParseFailure(feature === undefined ? named : { ...named, feature });
 }
 
-/** A `syntax` failure at `token` (G14): the end token reports the end of the input. */
+/**
+ * A `syntax` failure at `token` (G14): the end token reports the end of the input. A misplaced
+ * ellipsis or `~` and a relation inside brackets are Desmos's own errors there (captured
+ * 2026-10-20): "Sorry, I don't understand the way that '~' is used here." and "Cannot use an
+ * inequality here.".
+ */
 export function unexpected(state: ParserState, token: Token): never {
   if (token.t === "end") return fail("syntax", token.span, "unexpected end of input");
+  const symbol = misplacedSymbol(token);
+  if (symbol !== null) return fail("unexpected-symbol", token.span, "a misplaced symbol", symbol);
+  const relation = relopSymbol(token);
+  if (relation === "=") return fail("equality-here", token.span, "an equation inside brackets");
+  if (relation !== null) return fail("inequality-here", token.span, "a relation inside brackets");
   const text = state.normalized.slice(token.span.start, token.span.end);
   return fail("syntax", token.span, `unexpected "${text}"`);
 }
@@ -72,7 +87,99 @@ export function unexpected(state: ParserState, token: Token): never {
  */
 export function unexpectedAfterSum(state: ParserState, token: Token): never {
   if (token.t === "symbol" && token.ch === ",") {
+    // Desmos reads the sum after the comma first: `1,` and `1,+` are that sum's errors
+    take(state);
+    parseSum(state);
     return fail("point-syntax", token.span, "a comma outside a point, list or call");
+  }
+  const previous = state.tokens[state.pos - 1];
+  if (token.t === "symbol" && token.ch === "." && previous?.t === "digits") {
+    return fail("number-dot", token.span, "a dot after a number");
+  }
+  const symbol = misplacedSymbol(token);
+  if (symbol !== null) return fail("unexpected-symbol", token.span, "a misplaced symbol", symbol);
+  return unexpected(state, token);
+}
+
+/** The ellipsis and `~`, which Desmos names when they stand where it cannot read them. */
+function misplacedSymbol(token: Token): string | null {
+  if (token.t === "command" && token.name === "ldots") return "...";
+  if (token.t === "command" && token.name === "sim") return "~";
+  return token.t === "symbol" && token.ch === "~" ? "~" : null;
+}
+
+/** The symbol Desmos names for an infix operator token, or null. */
+function infixSymbol(token: Token | undefined): string | null {
+  if (token === undefined) return null;
+  if (token.t === "symbol") return INFIX_SYMBOLS[token.ch] ?? null;
+  return token.t === "command" ? (INFIX_COMMANDS[token.name] ?? null) : null;
+}
+const INFIX_SYMBOLS: Readonly<Record<string, string>> = {
+  "+": "+",
+  "-": "-",
+  "*": "*",
+  "/": "/",
+  "=": "=",
+  "<": "<",
+  ">": ">",
+  ",": ",",
+  ".": ".",
+  "%": "% of",
+};
+const INFIX_COMMANDS: Readonly<Record<string, string>> = {
+  cdot: "⋅",
+  le: "≤",
+  ge: "≥",
+  of: "% of",
+  with: "with",
+};
+
+/** True for the end of the row or a closing bracket, bar or brace. */
+function closesGroup(token: Token): boolean {
+  if (token.t === "end" || token.t === "close") return true;
+  return token.t === "command" && (token.name === "rvert" || token.name === "}");
+}
+
+/**
+ * `token` met where an operand is due, as Desmos's parser reports it (captured 2026-10-20): an
+ * infix operator there has nothing before it (`=2`, `1+*2`: "You need something on both sides of
+ * the '*' symbol."), `!` nothing before it, a raw `|` is a symbol Desmos does not read, and the
+ * ellipsis is misplaced. At the end of the row or a group, the operator just read has nothing
+ * after it: a leading sign "You need something after the '+' symbol.", an infix operator its
+ * both-sides text; an empty `(…)` or `|…|` is its own error. Anything else is `syntax`.
+ */
+export function missingOperand(state: ParserState, token: Token): never {
+  if (token.t === "symbol" && token.ch === "!") {
+    return fail("operator-before", token.span, "nothing before !", "!");
+  }
+  if (token.t === "symbol" && token.ch === "|") {
+    return fail("unknown-symbol", token.span, "a raw bar", "|");
+  }
+  if (isSim(token)) return fail("sim-side", token.span, "nothing before \\sim");
+  const misplaced = misplacedSymbol(token);
+  if (misplaced !== null) {
+    return fail("unexpected-symbol", token.span, "a misplaced symbol", misplaced);
+  }
+  const own = infixSymbol(token);
+  if (own !== null && own !== "+" && own !== "-") {
+    return fail("operator-side", token.span, `nothing before ${own}`, own);
+  }
+  if (!closesGroup(token)) return unexpected(state, token);
+  const k = state.pos - 1,
+    previous = state.tokens[k];
+  const symbol = infixSymbol(previous);
+  if (symbol !== null && state.prefixSigns.has(k)) {
+    return fail("operator-after", previous.span, `nothing after ${symbol}`, symbol);
+  }
+  if (symbol !== null)
+    return fail("operator-side", previous.span, `nothing after ${symbol}`, symbol);
+  if (previous?.t === "open" && previous.ch === "(") {
+    const span = { start: previous.span.start, end: token.span.end };
+    return fail("empty-parentheses", span, "empty parentheses");
+  }
+  if (previous?.t === "command" && previous.name === "lvert") {
+    const span = { start: previous.span.start, end: token.span.end };
+    return fail("empty-pipe", span, "empty bars");
   }
   return unexpected(state, token);
 }
@@ -121,7 +228,7 @@ export function parseRow(state: ParserState): Node {
     if (peek(state).t === "end") fail("sim-side", sim.span, "nothing after \\sim");
     const right = parseSum(state);
     const after = peek(state);
-    if (after.t !== "end") unexpectedAfterSum(state, after);
+    if (after.t !== "end") fail("unexpected-symbol", sim.span, "more after a regression", "~");
     return { kind: "sim", left: operands[0], right, span: spanning(operands[0], right) };
   }
   const tree = takeRelations(state, operands[0]);
@@ -172,7 +279,7 @@ export function parseSum(state: ParserState): Node {
 
 /**
  * True when the cursor can start an implicitly multiplied factor (G3): digits, a letter, `(`, `{`,
- * `[`, a raw `|` while no bar is open (G11) and any command except `\cdot`, `\le`, `\ge`, `\rvert`,
+ * `[`, a raw `|` (an error where it starts) and any command except `\cdot`, `\le`, `\ge`, `\rvert`,
  * `\operatorname{of}`, the ellipsis and `\}`; `\{` starts one, so braces after a factor restrict
  * it (PR-32).
  */
@@ -184,7 +291,7 @@ export function startsFactor(state: ParserState): boolean {
     case "open":
       return true;
     case "symbol":
-      return token.ch === "|" && state.bars.length === 0;
+      return token.ch === "|"; // a raw bar, which Desmos does not read, reported where it starts
     case "command":
       return !OPERATOR_COMMANDS.has(token.name);
     default:
@@ -232,8 +339,21 @@ function mulop(token: Token, factor: Node): "mul" | "div" | null {
 function parseUnary(state: ParserState): { node: Node; factor: Node } {
   const minuses: Token[] = [];
   for (let sign = peek(state); isSign(sign); sign = peek(state)) {
+    state.prefixSigns.add(state.pos);
     take(state);
     if (sign.ch === "-") minuses.push(sign);
+  }
+  const first = peek(state);
+  // Desmos: `-\operatorname{rgb}(1,2,3)` is "Cannot negate a color." (captured 2026-10-20)
+  if (minuses.length % 2 === 1 && first.t === "command" && COLOR_NAMES.has(first.name)) {
+    const color = state.pos;
+    try {
+      parseFactor(state);
+    } catch (thrown) {
+      const unsupported = thrown instanceof ParseFailure && thrown.error.code === "unsupported";
+      if (!unsupported || state.tokens[color] !== first) throw thrown;
+    }
+    fail("negate-type", first.span, "a negated colour", undefined, ["a color"]);
   }
   const factor = parseFactor(state);
   let node = factor;

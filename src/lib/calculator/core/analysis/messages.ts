@@ -3,39 +3,9 @@
 
 import type { RowErrorCode } from "../corpus/types";
 import { DEFERRED_FEATURES } from "../latex/errors";
+import { DESMOS_ONLY_CALLS } from "../latex/desmos-names";
+import { GREEK_LETTERS } from "../latex/greek";
 import { PREFIX_FORM_NAMES, REFUSED_NAMES } from "../latex/operator-names";
-
-/** The letters MathQuill shows for each Greek command (PR-11; omicron is not a name). */
-const GREEK_LETTERS: Readonly<Record<string, string>> = {
-  alpha: "α",
-  beta: "β",
-  gamma: "γ",
-  delta: "δ",
-  epsilon: "ϵ",
-  varepsilon: "ε",
-  zeta: "ζ",
-  eta: "η",
-  theta: "θ",
-  vartheta: "ϑ",
-  iota: "ι",
-  kappa: "κ",
-  lambda: "λ",
-  mu: "μ",
-  nu: "ν",
-  xi: "ξ",
-  pi: "π",
-  rho: "ρ",
-  varrho: "ϱ",
-  sigma: "σ",
-  varsigma: "ς",
-  tau: "τ",
-  upsilon: "υ",
-  phi: "ϕ",
-  varphi: "φ",
-  chi: "χ",
-  psi: "ψ",
-  omega: "ω",
-};
 
 /**
  * The text a message shows for a name: Greek commands and the constants `pi` and `tau` as their
@@ -48,7 +18,11 @@ export function displayName(name: string): string {
 }
 
 function letter(base: string): string {
-  if (base.startsWith("\\")) return GREEK_LETTERS[base.slice(1)] ?? base;
+  // a name Desmos reads from another command shows without its backslash or wrapper: `\ne` is
+  // ne and `\operatorname{foo}` foo (captured 2026-10-20)
+  const wrapped = /^\\operatorname\{(.*)\}$/.exec(base);
+  if (wrapped !== null) return wrapped[1];
+  if (base.startsWith("\\")) return GREEK_LETTERS[base.slice(1)] ?? base.slice(1);
   return base === "pi" || base === "tau" ? GREEK_LETTERS[base] : base;
 }
 
@@ -71,9 +45,9 @@ function letter(base: string): string {
  * comparator chain strings, not yet captured live.
  */
 const MESSAGES: Readonly<Record<RowErrorCode, string>> = {
-  syntax: "This can't be read. Check for a missing bracket or operator.",
+  syntax: "Sorry, I don't understand this.",
   unsupported: "This calculator doesn't support that notation.",
-  "point-arity": "A point needs exactly two coordinates.",
+  "point-arity": "Points may only have 2 coordinates.",
   "point-syntax": "Points are written like this: (1, 2).",
   "relation-chain": "Cannot mix inequalities and equations in a chain of comparisons.",
   "relation-side": "You need something on both sides of the '{n}' symbol.",
@@ -92,15 +66,21 @@ const MESSAGES: Readonly<Record<RowErrorCode, string>> = {
   "duplicate-definition":
     "You've defined '{n}' in more than one place. Try deleting some of the definitions of '{n}'.",
   dependency: "{n} has more than one definition.",
-  cycle: "{n} is defined in terms of itself.",
+  cycle: "{n} can't be defined in terms of each other.", // cycleMessage gives the full text
+  "function-cycle": "The definitions of functions {n} depend on each other.",
+  "recursive-cycle": "The definitions of functions {n} depend on each other.",
+  "implicit-variables": "We only support implicit equations of x and y.",
+  "repeated-parameter": "Cannot use '{n}' for multiple parameters of this function.",
+  "equation-required": "Try adding '{n}' to the beginning of this equation.",
   "reserved-name": "{n} is reserved and can't be redefined.",
   arity: "Function '{n}' requires {k} arguments.", // arityMessage gives the full text
   "point-coordinates": "Too many variables, I don't know what to do with this.",
-  "mixed-variables": "Use an equation such as y=… to graph an expression in x and y.",
+  "mixed-variables": "Try adding an equals sign to turn this into an equation.",
   "polar-variable": "{n} only has a meaning in a polar equation.",
   timeout: "This is taking too long. Try a smaller range or fewer terms.",
   "regression-data": "Regression needs a list of data.",
-  "regression-predictor": "Use the table column, such as x₁, not x.",
+  "regression-predictor":
+    "'{n}' may not be used as a regression parameter. Try using a different variable name.",
   "regression-params": "A regression can fit at most 8 parameters.",
   "regression-fit": "We couldn't find any region where this model is defined.",
   "nested-list": "Cannot store a list of numbers in a list.",
@@ -148,13 +128,50 @@ const MESSAGES: Readonly<Record<RowErrorCode, string>> = {
   "coordinate-type": "Cannot access coordinate '.{n}' of {k}.",
   "point-function-arguments": "Function '{n}' requires {k}.",
   // Desmos's text ends with a space, the place its example would go (captured 2026-10-19)
-  "point-function-arity": "Function '{n}' requires 2 arguments. ",
+  "point-function-arity": "Function '{n}' requires {k} arguments. ",
   "dot-call": "Function '{n}' cannot be called with dot notation.",
   "member-target": "Cannot call '.{n}' on {k}.",
   "unexpected-symbol": "Sorry, I don't understand the way that '{n}' is used here.",
   "logic-outside-condition": "'{n}' can only be used as part of a condition.",
   "too-many-variables": "Too many variables. Try defining '{n}'.", // tooManyVariables gives the full text
+  // Desmos's surface parse errors (captured 2026-10-20)
+  "operator-side": "You need something on both sides of the '{n}' symbol.",
+  "operator-after": "You need something after the '{n}' symbol.",
+  "operator-before": "You need something before the '{n}' symbol.",
+  unmatched: "Expected '{n}' to match '{k}'.",
+  "unknown-symbol": "Sorry, I don't understand the '{n}' symbol.",
+  "empty-parentheses": "Parentheses cannot be empty.",
+  "empty-pipe": "Absolute value symbol cannot be empty.",
+  "empty-superscript": "Superscripts cannot be empty.",
+  "fraction-empty": "You need a numerator and denominator for your fraction.",
+  "fraction-numerator": "You need a numerator for the top of your fraction.",
+  "fraction-denominator": "You need a denominator for the bottom of your fraction.",
+  "invalid-subscript": "Subscripts may only contain letters and digits. '{n}' is not allowed.",
+  "subscript-target": "Only functions and variables may have subscripts.",
+  "adjacent-numbers":
+    "Sorry, I don't know what to do with adjacent numbers '{n}' and '{k}'. Try using parentheses or a '*' symbol.",
+  "number-dot": "Sorry, I don't understand this use of '.' after a constant number.",
+  "point-3d": "This calculator cannot plot a 3d point.",
+  "percent-of": "'%' must be used with 'of'. Try '25% of 12'.",
+  "prime-use": "Sorry, I don't understand this use of prime notation.",
+  "equality-here": "Cannot use an equality here.",
+  "inequality-here": "Cannot use an inequality here.",
+  "prime-superscript": "Superscripts and primes cannot be combined.",
+  "function-undefined": "Function '{n}' is not defined.",
+  "color-arity": "'{n}' should be called with 3 arguments. For example, try typing: {n}({k}).",
+  "random-arguments":
+    "'random' should be called with no arguments, or an optional number of samples. For example, try random() or random(10).",
+  "requires-list": "'{n}' requires a list. For example, try typing: {n}([1,2,3]).",
+  "too-many-arguments": "'{n}' accepts at most {k} arguments.",
+  "polygon-points": "Function 'polygon' requires several points.",
+  "symbol-context": "You can't use '{n}' in this context.",
+  "complex-only": "The '{n}' function is only available in complex mode.",
 };
+/** A built-in the reference's graphing calculator refuses (desmos-names.ts). */
+const isRefused = (name: string) => DESMOS_ONLY_CALLS.get(name)?.refused === true;
+
+/** The closer each opener of an `unmatched` error pairs with. */
+const CLOSERS: Readonly<Record<string, string>> = { "(": ")", "[": "]", "{": "}" };
 /** RC-2, Phase 1: `unsupported` naming r or θ, whose polar graphs ship in Phase 2. */
 const POLAR_UNSUPPORTED = "{n} is for polar graphs, which aren't available yet.";
 const POLAR_NAMES: ReadonlySet<string> = new Set(["r", "θ"]);
@@ -173,12 +190,19 @@ export function rowErrorMessage(code: RowErrorCode, names: string[]): string {
   const [n = "", k = ""] = names;
   if (code === "arity") return arityMessage(n, k, Number(names[2]));
   if (code === "too-many-variables") return tooManyVariables(names);
+  if (code === "cycle" || code === "function-cycle" || code === "recursive-cycle") {
+    return cycleMessage(code, names);
+  }
+  if (code === "equation-required" && names.length === 0) {
+    return "Try adding an equals sign to turn this into an equation.";
+  }
+  if (code === "unmatched") return MESSAGES.unmatched.replace("{n}", n).replace("{k}", CLOSERS[n]);
   // PR-24: a trig, hyperbolic, ln or log name on its own reads as Desmos's empty call.
   if (code === "function-parentheses" && PREFIX_FORM_NAMES.has(n)) {
     return arityMessage(n, "1", 0);
   }
   // A refused name on its own reads as Desmos's refusal, not "is a function".
-  if (code === "function-parentheses" && REFUSED_NAMES.includes(n)) {
+  if (code === "function-parentheses" && (REFUSED_NAMES.includes(n) || isRefused(n))) {
     return rowErrorMessage("refused-function", [n]);
   }
   let template = MESSAGES[code];
@@ -205,6 +229,13 @@ const LIST_EXAMPLES = new Map<string, { one?: string; many?: string }>([
   ["sort", { one: "[3,2,1]", many: "[1,2,3],[3,2,1]" }],
   ["unique", { one: "[1,2,3]" }],
   ["join", { many: "[1,2],[3,4]" }],
+  ["shuffle", { one: "[1,2,3]", many: "[1,2,3],2" }],
+  ["tone", { one: "440", many: "440, 0.5" }],
+  ["lowerQuantileIndex", QUANTILE_EXAMPLE],
+  ["upperQuantileIndex", QUANTILE_EXAMPLE],
+  ["quartileIndex", QUANTILE_EXAMPLE],
+  ["lowerQuartileIndex", QUANTILE_EXAMPLE],
+  ["upperQuartileIndex", QUANTILE_EXAMPLE],
   ["sortedLastLessIndex", QUANTILE_EXAMPLE],
   ["sortedLastLessEqualIndex", QUANTILE_EXAMPLE],
 ]);
@@ -241,4 +272,32 @@ function tooManyVariables(names: string[]): string {
   if (names.length === 1) return `Too many variables. Try defining '${names[0]}'.`;
   const last = names[names.length - 1];
   return `Too many variables. Try defining '${names.slice(0, -1).join("', '")}' or '${last}'.`;
+}
+
+/** `'a'`, `'a' and 'b'`, `'a', 'b' and 'c'`: Desmos's list of quoted names. */
+function quotedList(names: readonly string[]): string {
+  const quoted = names.map((n) => `'${n}'`);
+  if (quoted.length < 2) return quoted.join("");
+  return `${quoted.slice(0, -1).join(", ")} and ${quoted[quoted.length - 1]}`;
+}
+
+/**
+ * RC-8, Desmos's cycle texts (captured 2026-10-20): values "'a' and 'b' can't be defined in terms
+ * of each other."; one function "The definition of function 'f' depends on itself." and more
+ * "The definitions of functions 'g' and 'f' depend on each other.", each with its base-case hint
+ * when the cycle is a recursion.
+ */
+function cycleMessage(code: "cycle" | "function-cycle" | "recursive-cycle", names: string[]) {
+  if (code === "cycle") return `${quotedList(names)} can't be defined in terms of each other.`;
+  const hint = code === "recursive-cycle";
+  if (names.length === 1) {
+    const text = `The definition of function '${names[0]}' depends on itself.`;
+    return hint
+      ? `${text} If '${names[0]}' is meant to be a recursive function, try adding a valid base case.`
+      : text;
+  }
+  const text = `The definitions of functions ${quotedList(names)} depend on each other.`;
+  return hint
+    ? `${text} If they are meant to be mutually recursive functions, try adding a valid base case.`
+    : text;
 }

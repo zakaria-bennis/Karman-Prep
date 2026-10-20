@@ -17,9 +17,15 @@ import {
   type RegressionPlan,
 } from "../data/regression-analysis";
 import { normalizeLatex } from "../latex/index";
-import { classifyRow } from "./classify";
+import { arityError, classifyRow } from "./classify";
 import { distributionProblem } from "./distributions";
-import { declaredHead, parseRows, userFunctionSet, type ParsedRow } from "./definitions";
+import {
+  declaredHead,
+  parseRows,
+  rowFunctionName,
+  userFunctionSet,
+  type ParsedRow,
+} from "./definitions";
 import { listCallProblem } from "./list-calls";
 import { pointProblem } from "./points";
 import {
@@ -76,6 +82,7 @@ export interface RowAnalysis {
   uses: string[]; // referenced names, first-appearance order
   chips: string[]; // RC-10 undefined names, first-appearance order; UI adds "all" when length >= 2
   complexHint: boolean; // NM-17, FN-16: real mode and the only undefined name is i
+  asksForEquation?: true; // RC-17: a bare expression whose only problem is one undefined name
   isGraphable: boolean; // false when error, chips, hidden, or a non-graphing kind
   relation: { ops: RelOp[] } | null; // relations only; strict = "<" | ">"
   graph: RowGraph | null; // non-null exactly when isGraphable
@@ -151,11 +158,8 @@ export function analyzeRows(
     else analysed[k] = withCurveLength(analysed[k], row, typing);
   });
   tables.forEach(({ k, table }, i) => {
-    analysed[k] = tableRow(
-      rows[k],
-      analyzeTable(table, names[i], declared, resolution.duplicates),
-      table
-    );
+    const arity = (tree: Node) => arityError(tree, resolution);
+    analysed[k] = tableRow(rows[k], analyzeTable(table, names[i], declared, arity), table);
   });
   const defining = new Set<string>(),
     functions = new Map<string, FunctionDefinition>();
@@ -163,9 +167,13 @@ export function analyzeRows(
     const { id, kind, error } = analysed[k];
     if (head === null || error !== null || !DEFINING_KINDS.has(kind)) return;
     defining.add(id);
-    if (kind === "definition" || functions.has(head.name)) return;
+    if (kind === "definition") return;
     const params = kind === "function-definition" ? head.params : [];
-    functions.set(head.name, { name: head.name, params, body: head.body, rowId: id });
+    // a function defined twice or anonymously is reached only through its own row's graph
+    const own = head.anonymous === true || resolution.duplicates.has(head.name);
+    const name = own ? rowFunctionName(id) : head.name;
+    if (functions.has(name)) return;
+    functions.set(name, { name, params, body: head.body, rowId: id });
   });
   return {
     rows: analysed.slice(0, parsed.length),

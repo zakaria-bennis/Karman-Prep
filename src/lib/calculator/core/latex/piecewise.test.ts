@@ -36,12 +36,12 @@ describe("PR-31 piecewise braces", () => {
       ["colon-condition", 2, 3],
       ["piecewise-condition", 0, 7],
       ["piecewise-part", 8, 9],
-      ["syntax", 7, 7],
+      ["unmatched", 0, 2], // Desmos: "Expected '{' to match '}'."
     ]);
   });
 
-  it("a closing brace with no opener is a syntax error, not a factor", () => {
-    expect(spanOf("x\\}")).toEqual(["syntax", 1, 3]);
+  it("a closing brace with no opener is Desmos's unmatched error, not a factor", () => {
+    expect(spanOf("x\\}")).toEqual(["unmatched", 1, 3]);
   });
 
   it("PR-32 braces after a power, a call or a group restrict it as a product", () => {

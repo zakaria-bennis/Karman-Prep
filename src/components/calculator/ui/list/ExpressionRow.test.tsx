@@ -5,7 +5,7 @@
 import { act, fireEvent, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useState } from "react";
-import { expect, it } from "vitest";
+import { expect, it, vi } from "vitest";
 import { resolveRowColor } from "@/lib/calculator/theme/roles";
 import { panelProps, renderEditor, rowItem, textbox } from "./__fixtures__/render-editor";
 import { ExpressionPanel } from "./ExpressionPanel";
@@ -75,6 +75,18 @@ it("R-1 the colour icon shows the row colour and a wave or point kind glyph and 
     "false"
   );
   expect(kit.engine.expressionAnalysis["1"].isGraphable).toBe(false);
+});
+
+it("R-1 a list of points shows the four-dot points glyph; a single point keeps one dot", async () => {
+  renderEditor(<ExpressionPanel {...panelProps()} />, {
+    rows: ["[(1,2),(3,4)]", "(1,2)"],
+  });
+  const list = await screen.findByRole("button", { name: "Hide: Expression 1" });
+  await vi.waitFor(() => expect(list).toHaveAttribute("data-kind", "points"));
+  expect(list.querySelectorAll("circle")).toHaveLength(4);
+  const single = screen.getByRole("button", { name: "Hide: Expression 2" });
+  expect(single).toHaveAttribute("data-kind", "point");
+  expect(single.querySelectorAll("circle")).toHaveLength(1);
 });
 
 it("R-1, F-A1 an explicit colour is never adjusted, so no row shows a contrast note", () => {

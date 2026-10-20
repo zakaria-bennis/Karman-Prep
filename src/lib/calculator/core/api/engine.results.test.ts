@@ -65,7 +65,7 @@ it("API-9 expressionAnalysis reports graphable, error and displayed number, poin
     c: {
       isGraphable: false,
       isError: true,
-      errorMessage: "This can't be read. Check for a missing bracket or operator.",
+      errorMessage: "Sorry, I don't understand this.",
       evaluationDisplayed: false,
     },
     d: { evaluationDisplayed: true, evaluation: { type: "undefined" } },
@@ -311,15 +311,15 @@ it("AR-54 parse, analysis and evaluation errors are row values and never throw",
   // error and its value is undefined
   expect(rows.map((r) => r.error?.code ?? null)).toEqual([
     "syntax", // b0, edited to \frac{1} (PR-38 case 45)
-    "syntax", // x^{}
+    "empty-superscript", // x^{}: Desmos's "Superscripts cannot be empty."
     "empty-root", // \sqrt{}: Desmos's "Radical cannot be empty."
-    "syntax", // 2+
+    "operator-side", // 2+: "You need something on both sides of the '+' symbol."
     "syntax", // \left(
     "syntax", // \operatorname{}
-    "syntax", // =
+    "operator-side", // =
     null, // 1/0
     "unsupported", // \sum
-    "unsupported", // \begin{matrix}1\end{matrix}
+    "syntax", // \begin{matrix}1\end{matrix}: Desmos's "Sorry, I don't understand this."
     "mixed-variables", // x+y
     "sim-side", // \sim with nothing on either side (PR-30: a half-typed regression)
   ]);

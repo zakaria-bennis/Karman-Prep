@@ -33,6 +33,7 @@ export function shapeOf(
 ): RowShape {
   const coordinates = coordinatesOf(tree);
   const relation = tree.kind === "rel" ? { ops: [...tree.ops] } : null;
+  if (relation === null && !pointed) return expressionShape(tree, coordinates);
   const polar = [...coordinates].find((name) => POLAR_NAMES.includes(name));
   if (polar !== undefined) return failed("unsupported", [displayName(polar)], relation);
   if (pointed) {
@@ -51,11 +52,29 @@ export function shapeOf(
         : chainShape(tree, coordinates);
     return { ...shaped, relation };
   }
-  const hasX = coordinates.has("x"),
-    hasY = coordinates.has("y");
-  if (hasX && hasY) return failed("mixed-variables", [], relation);
-  if (hasX) return shape("curve-y", { kind: "explicit", independent: "x", expr: tree });
-  if (hasY) return shape("curve-x", { kind: "explicit", independent: "y", expr: tree });
+  return expressionShape(tree, coordinates);
+}
+
+/**
+ * RC-17, a bare expression as Desmos reads it (captured 2026-10-20): in x alone it graphs y=…;
+ * otherwise it asks for an equation: 'r=' for θ alone ("Try adding 'r=' to the beginning of this
+ * equation.") and "Try adding an equals sign to turn this into an equation." for x with y or r
+ * with θ. r without θ is a name like any other to Desmos, so it asks for 'y=' (or names r when x
+ * or y is there too), and θ beside x or y is "Too many variables, I don't know what to do with
+ * this.". classifyRow lets undefined names (chips) speak first. In y alone Desmos asks for 'x=';
+ * this calculator still graphs x=… there, which question transfer relies on.
+ */
+function expressionShape(tree: Node, coordinates: ReadonlySet<string>): RowShape {
+  const [x, y, r, theta] = ["x", "y", "r", "\\theta"].map((c) => coordinates.has(c));
+  if (theta && (x || y)) return failed("too-many-variables", [], null);
+  if ((x && y) || (r && theta)) return failed("mixed-variables", [], null);
+  if (r)
+    return x || y
+      ? failed("too-many-variables", ["r"], null)
+      : failed("equation-required", ["y="], null);
+  if (theta) return failed("equation-required", ["r="], null);
+  if (x) return shape("curve-y", { kind: "explicit", independent: "x", expr: tree });
+  if (y) return shape("curve-x", { kind: "explicit", independent: "y", expr: tree });
   return shape("value", null);
 }
 

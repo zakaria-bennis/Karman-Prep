@@ -130,7 +130,38 @@ export function RemoveGlyph(props: { size?: number }): JSX.Element {
 }
 
 /** The kind glyph inside a row's colour icon; drawn white over the row colour. */
-export type KindGlyph = "wave" | "point" | "region" | "region-strict";
+export type KindGlyph = "wave" | "point" | "points" | "region" | "region-strict";
+
+/**
+ * The points glyph: four dots scattered over a 29 px colour icon, as the reference's table
+ * column and list-of-points icons show them. Centres and radius were measured from the
+ * reference's rendering at device pixel ratios 2 and 3 (2026-10-20); the drawing is ours.
+ */
+export const POINTS_DOTS: readonly (readonly [number, number])[] = [
+  [10.03, 11.03],
+  [20.95, 7.87],
+  [17.15, 17.29],
+  [8.11, 21.3],
+];
+export const POINTS_DOT_RADIUS = 2.45;
+
+/** RT-8, R-1: the white points inside a table column's or a list of points' colour icon. */
+export function PointsGlyph(): JSX.Element {
+  return (
+    <svg
+      className="kc-glyph"
+      width={29}
+      height={29}
+      viewBox="0 0 29 29"
+      aria-hidden="true"
+      focusable="false"
+    >
+      {POINTS_DOTS.map(([cx, cy]) => (
+        <circle key={`${cx}-${cy}`} cx={cx} cy={cy} r={POINTS_DOT_RADIUS} fill="currentColor" />
+      ))}
+    </svg>
+  );
+}
 
 /** A plain sampled sine, x from 0 to 24 in 1-unit steps (period 20, amplitude 6). */
 const WAVE = Array.from({ length: 25 }, (_, x) => {
@@ -140,6 +171,7 @@ const WAVE = Array.from({ length: 25 }, (_, x) => {
 
 export function ColourKindGlyph(props: { kind: KindGlyph | null }): JSX.Element | null {
   if (props.kind === null) return null; // Edit list mode: a plain filled circle (EL-45)
+  if (props.kind === "points") return <PointsGlyph />;
   let body: JSX.Element;
   if (props.kind === "wave") {
     // VIS-51.9: a bold sine crossing the circle, one period of y = 12 - 6 sin(2 pi (x - 1) / 20).

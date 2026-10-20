@@ -21,10 +21,10 @@ const real = (v: Value | undefined): number =>
 const listOf = (v: Value | undefined): number[] | null =>
   v !== undefined && v.type === "list" ? v.value.map((item) => real(item)) : null;
 
-/** D-22: the error a regression shows in place of results when L is not a list. */
-const notData = (r: RegressionAnalysis): RegressionOutcome => ({
+/** D-22: the error a regression shows in place of results. */
+const failed = (r: RegressionAnalysis, error: string): RegressionOutcome => ({
   ok: false,
-  error: rowErrorMessage("regression-data", []),
+  error,
   params: [],
   r2: null,
   r: null,
@@ -36,15 +36,59 @@ const notData = (r: RegressionAnalysis): RegressionOutcome => ({
   residualName: r.residual,
 });
 
+/**
+ * D-22: how the reference names a side's type in "Cannot regress a point against a number.", and
+ * whether that type cannot be regressed (a point, a list of points or an empty list); null for a
+ * type it does not name.
+ */
+function sideType(v: Value | undefined): { phrase: string; bad: boolean } | null {
+  if (v === undefined || v.type === "number" || v.type === "undefined")
+    return { phrase: "a number", bad: false };
+  if (v.type === "point") return { phrase: "a point", bad: true };
+  if (v.type !== "list") return null;
+  if (v.value.length === 0) return { phrase: "an empty list", bad: true };
+  if (v.value.every((item) => item.type === "point"))
+    return { phrase: "a list of points", bad: true };
+  return { phrase: "a list of numbers", bad: false };
+}
+
+/** The model's value with every parameter 1 and every predictor its whole list, for its type. */
+function modelValue(
+  r: RegressionAnalysis,
+  scope: CompileScope,
+  deadline: Deadline
+): Value | undefined {
+  try {
+    const vars: Record<string, Value> = {};
+    for (const name of r.params) vars[name] = numberValue(1);
+    for (const name of r.predictors) {
+      const list = scope.values.get(name);
+      if (list !== undefined) vars[name] = list;
+    }
+    return compileExpression(r.model, scope)(vars, deadline);
+  } catch {
+    return undefined;
+  }
+}
+
 /** Fits `r` against the values in `scope`. */
 export function evaluateRegression(
   r: RegressionAnalysis,
   scope: CompileScope,
   deadline: Deadline
 ): RegressionOutcome {
-  const observed = listOf(compileExpression(r.observed, scope)({}, deadline));
-  if (observed === null) return notData(r);
+  const left = compileExpression(r.observed, scope)({}, deadline);
   const lists = r.predictors.map((name) => listOf(scope.values.get(name)) ?? []);
+  const leftType = sideType(left);
+  const rightType = sideType(modelValue(r, scope, deadline));
+  if (leftType !== null && rightType !== null && (leftType.bad || rightType.bad)) {
+    return failed(r, `Cannot regress ${leftType.phrase} against ${rightType.phrase}.`);
+  }
+  // RT-15: a scalar left side is legal, fitted against every predictor value.
+  const scalar = left.type === "number" || left.type === "undefined";
+  const pairs = lists.length === 0 ? 1 : Math.min(...lists.map((l) => l.length));
+  const observed = scalar ? new Array<number>(pairs).fill(real(left)) : listOf(left);
+  if (observed === null) return failed(r, rowErrorMessage("regression-data", []));
   const compiled = compileExpression(r.model, scope);
   const vars: Record<string, Value> = {};
   const model = (p: Float64Array, i: number): number => {

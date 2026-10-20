@@ -102,6 +102,6 @@ const cases: CorpusCase[] = [
   x(27, ["PR-32"], "y=x\\{x\\}", "piecewise-condition"),
   x(28, ["PR-31"], "\\{1>0:5,6,7\\}", "piecewise-part"),
   x(29, ["PR-31"], "\\{1>0:(1,2),3\\}", "piecewise-types"),
-  x(30, ["PR-31"], "\\{x>0:1", "syntax"),
+  x(30, ["PR-31"], "\\{x>0:1", "unmatched"),
 ];
 export default cases;

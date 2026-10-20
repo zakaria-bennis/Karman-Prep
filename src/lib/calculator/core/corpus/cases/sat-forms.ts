@@ -90,7 +90,7 @@ const cases: CorpusCase[] = [
   t(34, ["PR-42"], "\\sin(30^{\\circ})", "(call sin (deg (num 30)))"),
   t(38, ["PR-42"], "2x+5=17", "(rel = (add (mul (num 2) (id x)) (num 5)) (num 17))"),
   q(35, ["PR-42"], "2\\frac{1}{2}", "(add (num 2) (div (num 1) (num 2)))"),
-  q(36, ["PR-42"], "25\\%", "(pct (num 25))"),
+  q(36, ["PR-42"], "25\\%\\operatorname{of}80", "(mul (pct (num 25)) (num 80))"),
   q(37, ["PR-42"], "\\sin 30^{\\circ}", "(call sin (deg (num 30)))"),
 ];
 export default cases;

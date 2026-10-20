@@ -11,7 +11,7 @@ import {
 } from "../latex/index";
 import type { AnalysisSettings, RowAnalysis, RowError, RowSource } from "./index";
 import { displayName, rowErrorMessage } from "./messages";
-import { isReservedName } from "./names";
+import { collectNameUses, isReservedName } from "./names";
 
 export interface DefinitionHead {
   name: string;
@@ -19,6 +19,9 @@ export interface DefinitionHead {
   params: string[];
   body: Node;
   span: SourceSpan; // the defined side: the head call, or the name
+  // a reserved name written as a function head, `y(x)=x`: Desmos graphs the body as a function
+  // but the name stays what it was, so the head defines nothing other rows can use
+  anonymous?: boolean;
 }
 export interface ParsedRow {
   source: RowSource;
@@ -29,6 +32,14 @@ export interface ParsedRow {
 }
 
 type PreScan = { name: string; params: string[] } | null;
+
+/**
+ * The name a function-definition row's own function is compiled under when other rows cannot
+ * reach it by its name (defined twice, or anonymous): no typed name holds its `#`.
+ */
+export function rowFunctionName(rowId: string): string {
+  return `#row:${rowId}`;
+}
 
 /**
  * Parses every row once. The function heads of all rows are pre-scanned first (PR-23), so a call
@@ -60,6 +71,7 @@ export function userFunctionSet(
  * PR-23 pre-scan reads from its source.
  */
 export function declaredHead(row: ParsedRow): RowAnalysis["defines"] {
+  if (row.head?.anonymous === true) return null;
   if (row.head !== null) {
     return { name: row.head.name, type: row.head.type, params: [...row.head.params] };
   }
@@ -80,14 +92,44 @@ function parseRow(
   }
   const parsed = parseLatex(source.latex, { userFunctions });
   if (!parsed.ok) {
-    const { code, feature, span } = parsed.error;
-    return { ...row, error: rowError(code, feature === undefined ? [] : [feature], span) };
+    const { feature, names, span } = parsed.error;
+    // complex-number built-ins are Desmos's complex-mode error only in real mode; in complex mode
+    // they have not shipped
+    const code =
+      parsed.error.code === "complex-only" && settings.complex ? "unsupported" : parsed.error.code;
+    const named = names ?? (feature === undefined ? [] : [feature]);
+    const shown = code === "function-undefined" ? named.map(displayName) : named;
+    return { ...row, error: rowError(code, shown, span) };
   }
   const tree = parsed.tree;
   if (scanned !== null && isReservedName(scanned.name, settings)) {
-    return { ...row, tree, error: rowError("reserved-name", [displayName(scanned.name)], null) };
+    return { ...row, tree, ...anonymousHead(tree, scanned) };
   }
   return { ...row, tree, ...readHead(tree, scanned, settings) };
+}
+
+/**
+ * A reserved name written as a function head, `y(x)=x` or `x(t)=t^{2}`: Desmos graphs the right
+ * side as a function of its parameter, as it does `f(x)=x`, while the name keeps its meaning
+ * (captured 2026-10-20), so the head is anonymous.
+ */
+function anonymousHead(tree: Node, scanned: { name: string; params: string[] }) {
+  if (tree.kind !== "rel" || tree.ops.length !== 1 || tree.ops[0] !== "=") {
+    return { head: null, error: null };
+  }
+  const [left, body] = tree.operands;
+  const head: DefinitionHead = {
+    name: scanned.name,
+    type: "function",
+    params: scanned.params,
+    body,
+    span: left.span,
+    anonymous: true,
+  };
+  const repeated = scanned.params.find((p, k) => scanned.params.indexOf(p) !== k);
+  const error =
+    repeated === undefined ? null : rowError("repeated-parameter", [displayName(repeated)], null);
+  return { head, error };
 }
 
 /** RC-2's definition rules: a function head (RC-4), then a name head (RC-6, RC-19). */
@@ -111,7 +153,8 @@ function readHead(
       span: left.span,
     };
     const names = repeated === undefined ? null : [displayName(repeated)];
-    return { head, error: names === null ? null : rowError("duplicate-definition", names, null) };
+    // Desmos: "Cannot use 'x' for multiple parameters of this function." (captured 2026-10-20)
+    return { head, error: names === null ? null : rowError("repeated-parameter", names, null) };
   }
   if (left.kind === "const") {
     const head = valueHead(left.name, body, left.span);
@@ -121,6 +164,11 @@ function readHead(
     return { head: null, error: null };
   if (left.name === "r" || left.name === "\\theta") {
     return { head: null, error: rowError("unsupported", [displayName(left.name)], left.span) };
+  }
+  // Desmos reads `a=a+1` as an equation, not a definition: "We only support implicit equations
+  // of x and y." (captured 2026-10-20)
+  if (collectNameUses(body).some(({ name }) => name === left.name)) {
+    return { head: null, error: rowError("implicit-variables", [], null) };
   }
   const head = valueHead(left.name, body, left.span);
   if (!isReservedName(left.name, settings)) return { head, error: null };

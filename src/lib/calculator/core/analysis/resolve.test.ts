@@ -6,28 +6,35 @@ const src = (l: string[]) => l.map((latex, k) => ({ id: `r${k}`, latex, hidden: 
 const analyze = (l: string[], s: AnalysisSettings = REAL) => analyzeRows(src(l), s);
 const codes = (l: string[]) => analyze(l).rows.map((row) => row.error?.code ?? null);
 
-it("RC-7 every defining row of a duplicated name errors and its users show dependency", () => {
+it("RC-7 only the rows that use a name defined twice error, as in Desmos (2026-10-20)", () => {
   const d = "duplicate-definition";
   expect(codes(["a=1", "a=2", "a+1", "f(x)=x", "f=2", "f(3)"])).toEqual([
+    null,
+    null,
     d,
+    null,
+    null,
     d,
-    "dependency",
-    d,
-    d,
-    "dependency",
   ]);
+  expect(codes(["a=1", "a=2", "b=a", "b+1"])).toEqual([null, null, d, d]);
   expect(analyze(["a=1", "a=2", "a+1"]).rows[2].error?.message).toBe(
-    "a has more than one definition."
+    "You've defined 'a' in more than one place. Try deleting some of the definitions of 'a'."
   );
 });
 
-it("RC-8 every row in a cycle errors, including recursion through functions", () => {
+it("RC-8 every row in a cycle errors, and so does every row that uses one", () => {
   expect([codes(["a=a+1"]), codes(["a=b", "b=a", "c=a+1"])]).toEqual([
-    ["cycle"],
-    ["cycle", "cycle", null],
+    ["implicit-variables"],
+    ["cycle", "cycle", "cycle"],
   ]);
-  expect(codes(["f(x)=g(x)", "g(x)=f(x)", "h(x)=h(x-1)"])).toEqual(["cycle", "cycle", "cycle"]);
-  expect(analyze(["a=b", "b=a"]).rows[0].error?.message).toBe("a is defined in terms of itself.");
+  expect(codes(["f(x)=g(x)", "g(x)=f(x)", "h(x)=h(x-1)"])).toEqual([
+    "function-cycle",
+    "function-cycle",
+    "recursive-cycle",
+  ]);
+  expect(analyze(["a=b", "b=a"]).rows[0].error?.message).toBe(
+    "'a' and 'b' can't be defined in terms of each other."
+  );
 });
 
 it("RC-9 definitions resolve in any row order and hidden rows still define", () => {

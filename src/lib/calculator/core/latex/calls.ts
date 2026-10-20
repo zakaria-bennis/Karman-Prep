@@ -4,9 +4,12 @@
 
 import { isAxis, type Node, type SourceSpan } from "./ast";
 import { isDegreeSign, parsePostfix, takeArgument, takePostfix } from "./atoms";
+import { failUnevaluatedCall } from "./desmos-calls";
+import { DESMOS_BUILTIN_NAMES, DESMOS_ONLY_CALLS } from "./desmos-names";
 import {
   HIDDEN_OPERATOR_NAMES,
   isShippedBuiltin,
+  operatorName,
   MEMBER_NAMES,
   OPERATOR_NAMES,
   PREFIX_FORM_NAMES,
@@ -30,11 +33,14 @@ type CallNode = Extract<Node, { kind: "call" }>;
  * Allowlisted and hidden names with a category; `with`, `for`, `and`, `or` and `of` are operators
  * (G8).
  */
-const BUILTIN_NAMES: ReadonlySet<string> = new Set(
-  [...OPERATOR_NAMES, ...HIDDEN_OPERATOR_NAMES]
+const BUILTIN_NAMES: ReadonlySet<string> = new Set([
+  ...[...OPERATOR_NAMES, ...HIDDEN_OPERATOR_NAMES]
     .filter((n) => n.category !== null)
-    .map((n) => n.name)
-);
+    .map((n) => n.name),
+  ...[...DESMOS_BUILTIN_NAMES, ...DESMOS_ONLY_CALLS.keys()].filter(
+    (n) => operatorName(n)?.category !== null
+  ),
+]);
 
 /**
  * The circular and hyperbolic trig names whose `^{-1}` is the inverse function (PR-26). On their
@@ -74,9 +80,7 @@ export function isBuiltinCommand(token: Token): token is CommandToken {
  * written without `(`, or with a power on its name, is `function-parentheses`, as in Desmos.
  */
 export function parseBuiltinCall(state: ParserState, name: CommandToken): Node {
-  if (!isShippedBuiltin(name.name)) {
-    return fail("unsupported", name.span, `"${name.name}" is not supported`);
-  }
+  if (!isShippedBuiltin(name.name)) return failUnshippedCall(state, name);
   take(state);
   let base: Node | null = null;
   let power: Node | null = null;
@@ -122,6 +126,30 @@ export function parseBuiltinCall(state: ParserState, name: CommandToken): Node {
   const arg = parseRunArgument(state, name);
   return withPower(name, callNode(name, [arg], base, arg.span.end), power, form);
 }
+
+/**
+ * A built-in this calculator does not evaluate reads its arguments for the reference's errors
+ * (desmos-calls.ts); written without `(` it is "'shuffle' is a function. Try using parentheses.",
+ * as in Desmos. Any other form stays `unsupported` at the name.
+ */
+function failUnshippedCall(state: ParserState, name: CommandToken): never {
+  const open = peek(state, 1);
+  const known = operatorName(name.name);
+  if (known === undefined) return fail("unsupported", name.span, `"${name.name}" is not supported`);
+  const complexOnly = () =>
+    // Desmos, real mode: "The 'arg' function is only available in complex mode." (2026-10-20)
+    fail("complex-only", name.span, "a complex-mode function", name.name);
+  if (COMPLEX_ONLY.has(name.name) && !(open.t === "open" && open.ch === "(")) complexOnly();
+  if (open.t !== "open" || open.ch !== "(") return needsParentheses(name);
+  take(state);
+  const args = takeEmptyList(state) ? [] : parseArgumentList(state);
+  if (COMPLEX_ONLY.has(name.name) && args.length === 1) complexOnly();
+  const counts = known.arity === "variadic" ? null : known.arity;
+  return failUnevaluatedCall(state, name, args, counts);
+}
+
+/** The complex-number built-ins, which Desmos offers only in complex mode. */
+const COMPLEX_ONLY: ReadonlySet<string> = new Set(["arg", "real", "imag", "conj"]);
 
 /** PR-26: the names whose only power is `^2`, Desmos's "Only log^2 is supported." */
 const LOG_NAMES: ReadonlySet<string> = new Set(["log", "ln"]);
@@ -188,7 +216,14 @@ function failIfCommaSide(comma: Token, next: Token): void {
 export function parseUserCall(state: ParserState, callee: Node): Node {
   const open = peek(state);
   if (callee.kind !== "id" || open.t !== "open" || open.ch !== "(") return callee;
-  if (!state.options.userFunctions?.has(callee.name)) return callee;
+  if (!state.options.userFunctions?.has(callee.name)) {
+    // `a()`: Desmos's "Function 'a' is not defined." (captured 2026-10-20)
+    const close = peek(state, 1);
+    if (close.t === "close" && close.ch === ")") {
+      fail("function-undefined", callee.span, "an empty call of a name", callee.name);
+    }
+    return callee;
+  }
   // An empty `()` is a call with no arguments, so it is RC-20's arity error, as in Desmos
   // ("Function 'f' requires an argument"), not a syntax error.
   const args = takeEmptyList(state) ? [] : parseArgumentList(state);
@@ -242,7 +277,7 @@ export function parseMember(state: ParserState, target: Node): Node | null {
     return fail("unexpected-symbol", dot.span, "a one-letter name after a dot", ".");
   }
   const name = memberName(state);
-  if (name === null) return null;
+  if (name === null) return failIfNoMember(state);
   state.pos += name.tokens;
   const open = peek(state);
   const method = open.t === "open" && open.ch === "(";
@@ -271,6 +306,34 @@ function isOneLetterMember(state: ParserState): boolean {
     close.t === "close" &&
     close.ch === "}"
   );
+}
+
+/**
+ * The geometry tools and matrix internals, which have no dot form: Desmos reads `p.\operatorname{area}`
+ * as "Sorry, I don't understand the way that '.' is used here." (catalogue, 2026-10-19).
+ */
+const NO_DOT_FORM: ReadonlySet<string> = new Set([
+  ...["segment", "line", "ray", "vector", "circle", "arc", "angle", "directedangle", "center"],
+  ...["radius", "vertices", "segments", "perimeter", "area", "intersection", "glider"],
+  ...["strictintersection", "parallel", "perpendicular", "anglebisector", "translate", "rotate"],
+  ...["dilate", "reflect", "start", "end", "angles", "directedangles", "coterminal"],
+  ...["supplement", "hcat", "rowCount"],
+]);
+
+/**
+ * A member after the dot at the cursor that no parse reads: a name Desmos does not know
+ * (`L.\operatorname{StdDev}`) or a built-in with no dot form fails as Desmos's "Sorry, I don't
+ * understand the way that '.' is used here."; any other returns null, for the caller's
+ * `unsupported`.
+ */
+function failIfNoMember(state: ParserState): null {
+  const [dot, command] = [peek(state), peek(state, 1)];
+  if (command.t !== "command") return null;
+  const unknown = command.name === "operatorname" && isOpen(peek(state, 2), "{");
+  if (unknown || NO_DOT_FORM.has(command.name)) {
+    return fail("unexpected-symbol", dot.span, "a member with no dot form", ".");
+  }
+  return null;
 }
 
 /** The member name after the dot at the cursor and how many tokens it spans with the dot. */

@@ -57,7 +57,7 @@ it("D-10 a later header naming a list another row defines is a computed column",
   expect(a.byId.get("a")!.error).toBeNull();
 });
 
-it("D-10 a header name another table also defines warns on both headers", () => {
+it("D-10 a header name another table also defines marks only the rows that use it, as in Desmos", () => {
   const a = analyzeRows(
     [
       table("t", [
@@ -68,14 +68,14 @@ it("D-10 a header name another table also defines warns on both headers", () => 
         ["x_{2}", ["1"]],
         ["y_{1}", ["3"]],
       ]),
+      { id: "w", latex: "y_{1}+1", hidden: false },
     ],
     SETTINGS
   );
-  for (const id of ["t", "u"]) {
-    expect(a.byId.get(id)!.table!.columns[1].error?.message).toBe(
-      "You've defined 'y_1' in more than one place. Try deleting some of the definitions of 'y_1'."
-    );
-  }
+  for (const id of ["t", "u"]) expect(a.byId.get(id)!.table!.columns[1].error).toBeNull();
+  expect(a.byId.get("w")!.error?.message).toBe(
+    "You've defined 'y_1' in more than one place. Try deleting some of the definitions of 'y_1'."
+  );
 });
 
 it("D-11 column names are defined for every other row, so y_1 alone is a value row with no chip", () => {
@@ -164,5 +164,76 @@ it("TABLES-13 a cell holding a point, list, equation or inequality has the refer
     "Table entries must be simple expressions. Equations are not allowed.",
     "Table entries must be simple expressions. Inequalities are not allowed.",
     null,
+  ]);
+});
+
+it("TABLES-13 a cell or header that cannot be read, or is a point, list, relation or regression, uses the reference's table wording", () => {
+  const cellError = (latex: string) =>
+    analyzeRows(
+      [
+        table("t", [
+          ["x_{1}", ["1", latex]],
+          ["y_{1}", ["3", "4"]],
+        ]),
+      ],
+      SETTINGS
+    ).byId.get("t")!.table!.columns[0].cellErrors[1]?.message;
+  const NOT_ALLOWED =
+    "Table entries must be simple expressions. This type of expression is not allowed.";
+  for (const latex of ["2+", "\\sqrt{}", "\\left|\\right|", "\\sin", "x_{1^{2}}", "a=", "2^{}"])
+    expect(cellError(latex), latex).toBe(NOT_ALLOWED);
+  expect(cellError("1,2")).toBe("Points are written like this: (1, 2).");
+  expect(cellError("1\\sim2")).toBe(
+    "Table entries must be simple expressions. Regressions are not allowed."
+  );
+  const headerError = (latex: string) =>
+    analyzeRows(
+      [
+        table("t", [
+          ["x_{1}", ["1", "2"]],
+          [latex, ["3", "4"]],
+        ]),
+      ],
+      SETTINGS
+    ).byId.get("t")!.table!.columns[1].error?.message;
+  const HEAD_NOT_ALLOWED =
+    "Table headers must be simple expressions. This type of expression is not allowed.";
+  for (const latex of ["y_{1}+", "\\sqrt{}", "y_{1^{2}}", "2^{}", "\\frac{1}{}"])
+    expect(headerError(latex), latex).toBe(HEAD_NOT_ALLOWED);
+  expect(headerError("(1,2)")).toBe("Table header cannot be a point.");
+  expect(headerError("[1,2]")).toBe(
+    "Table headers must be simple expressions. Lists are not allowed."
+  );
+  expect(headerError("y_{1}=2")).toBe(
+    "Table headers must be simple expressions. Equations are not allowed."
+  );
+  expect(headerError("y_{1}<2")).toBe(
+    "Table headers must be simple expressions. Inequalities are not allowed."
+  );
+  expect(headerError("1,2")).toBe("Points are written like this: (1, 2).");
+});
+
+it("RC-20 a call with the wrong argument count marks its cell or header, as in Desmos (2026-10-20)", () => {
+  const a = analyzeRows(
+    [
+      table("t", [
+        ["x_{2}", ["1", "\\sin()"]],
+        ["\\sin()", ["7", "5"]],
+        ["y_{3}", ["\\sin(1,2)", "5"]],
+      ]),
+    ],
+    SETTINGS
+  );
+  const [x, header, y] = a.byId.get("t")!.table!.columns;
+  expect([
+    x.cellErrors[1]?.message,
+    header.role,
+    header.error?.message,
+    y.cellErrors[0]?.message,
+  ]).toEqual([
+    "Function 'sin' requires an argument. For example, try typing: sin(x).",
+    "error",
+    "Function 'sin' requires an argument. For example, try typing: sin(x).",
+    "Function 'sin' requires only 1 argument. For example, try typing: sin(x).",
   ]);
 });
