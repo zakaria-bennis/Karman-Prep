@@ -3,7 +3,7 @@ import { analyzeRows } from "../core/analysis/index";
 import { NO_DEADLINE } from "../core/deadline";
 import { evaluateRows, type EvalSettings } from "../core/eval/compile";
 import { buildCompileScope, plotInputFor } from "./from-analysis";
-import type { CurveGeometry, LineSetGeometry } from "./geometry";
+import type { CurveGeometry, LineSetGeometry, RegionGeometry } from "./geometry";
 import { plotRow } from "./index";
 import { defaultViewport, worldToPx, type ViewSpec } from "./viewport";
 
@@ -184,12 +184,15 @@ it("AR-44 buildCompileScope puts constant definitions in values and dependent de
 });
 it("AR-44 plotInputFor maps inequalities to regions and evaluates 3>2 once", () => {
   const a = run(["1<y<3"]).input()!;
-  expect(a.kind === "region" && [a.ops, a.terms.map((t) => t(0, 2))]).toEqual([
+  expect(a.kind === "region" && [a.ops, a.branches[0].map((t) => t(0, 2))]).toEqual([
     ["<", "<"],
     [1, 2, 3],
   ]);
   const b = run(["y\\le2x+1"]).input()!;
-  expect(b.kind === "region" && [b.ops, b.terms.map((t) => t(1, 0))]).toEqual([["<="], [0, 3]]);
+  expect(b.kind === "region" && [b.ops, b.branches[0].map((t) => t(1, 0))]).toEqual([
+    ["<="],
+    [0, 3],
+  ]);
   expect(run(["3>2"]).input()).toMatchObject({ kind: "constant-region", holds: true });
   expect(run(["3<2"]).input()).toMatchObject({ kind: "constant-region", holds: false });
 });
@@ -198,4 +201,39 @@ it("AR-44 plotInputFor plots (2,3) and returns null for undefined points, hidden
   for (const latex of ["(\\frac{1}{0},2)", "\\frac{", "2+3", "a=2"])
     expect(run([latex]).input()).toBeNull();
   expect(run(["y=x"], RAD, { hidden: true }).input()).toBeNull();
+});
+
+it("G-22 a list of curves plots each element as its own run, line or region, as Desmos does", () => {
+  const curve = (rows: string[], settings = RAD) =>
+    runsOf(run(rows, settings).plot() as CurveGeometry);
+  const three = curve(["y=[1,2,3]x"]);
+  expect(three).toHaveLength(3);
+  three.forEach((r, k) => r.forEach(([x, y]) => expect(y).toBeCloseTo((k + 1) * x, 9)));
+  expect(curve(["L=[1,2]", "y=Lx"])).toHaveLength(2);
+  expect(curve(["f(x)=[1,2]x"])).toHaveLength(2);
+  expect(curve(["y=x+\\operatorname{mean}([1,2,3])"])).toHaveLength(1);
+  expect(curve(["y=[1,2]x"], { angleMode: "radians", complex: true })).toHaveLength(2);
+  expect(curve(["x^{2}+y^{2}=[1,4]"])).toHaveLength(2); // two closed circles
+  const empty = run(["y=[]x"]).plot() as CurveGeometry;
+  expect([empty.polylines.length, empty.evaluations]).toEqual([0, 0]);
+  const lines = run(["x=[1,2,3]"]).plot() as LineSetGeometry;
+  expect(Array.from(lines.positions, (p) => Math.round(p * 1e9) / 1e9)).toEqual([1, 2, 3]);
+  const region = run(["y>[0,1]x"]).plot() as RegionGeometry;
+  expect(region.boundaries.map((b) => [b.dashed, runsOf(b as CurveGeometry).length > 0])).toEqual([
+    [true, true],
+    [true, true],
+  ]);
+  const above = (yPx: number, xPx: number) => {
+    let n = 0; // spans covering the pixel centre: one per element whose region holds there
+    for (let k = 0; k + 3 < region.spans.length; k += 4) {
+      const [y0, y1, x0, x1] = region.spans.subarray(k, k + 4);
+      if (y0 <= yPx && yPx < y1 && x0 <= xPx && xPx < x1) n += 1;
+    }
+    return n;
+  };
+  const at = (x: number, y: number) => {
+    const [px, py] = worldToPx(VIEW, x, y);
+    return above(Math.floor(py) + 0.5, Math.floor(px) + 0.5);
+  };
+  expect([at(-5, 1), at(5, 2), at(5, -1)]).toEqual([2, 1, 0]);
 });

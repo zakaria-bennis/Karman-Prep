@@ -131,28 +131,53 @@ describe("index errors found by analysis", () => {
 });
 
 describe("lists in graphs", () => {
-  it("G-22 a list-valued curve, line or region is a clear unsupported error, never a NaN curve", () => {
-    for (const latex of [
-      "y=[1,2]x",
-      "[1,2]x",
-      "y=Lx",
-      "y=a",
-      "x=[1,2]",
-      "y<[1,2]",
-      "f(x)=[1,2]x",
-      "y=g(x)",
-      "[1,2]<3",
+  it("G-22 a list-valued curve, line set, region or function graphs one branch per element", () => {
+    const branches = (...latex: string[]) => {
+      const a = analyzeRows(rows(...latex), REAL);
+      const values = evaluateRows(a, REAL, () => NO_DEADLINE);
+      const row = a.rows[a.rows.length - 1];
+      const input = plotInputFor(row, buildCompileScope(a, values, REAL), null);
+      const count =
+        input === null
+          ? null
+          : input.kind === "explicit" || input.kind === "lines"
+            ? input.fs.length
+            : input.kind === "implicit"
+              ? input.Fs.length
+              : input.kind === "region"
+                ? input.branches.length
+                : 1;
+      return [row.kind, row.error, row.isGraphable, count];
+    };
+    const context = ["L=[1,2]", "a=[1,2]x", "g(t)=t+L"];
+    for (const [latex, kind] of [
+      ["y=[1,2]x", "curve-y"],
+      ["[1,2]x", "curve-y"],
+      ["y=Lx", "curve-y"],
+      ["y=a", "curve-y"],
+      ["x=[1,2]", "vertical-lines"],
+      ["y<[1,2]", "region"],
+      ["f(x)=[1,2]x", "function-definition"],
+      ["y=g(x)", "curve-y"],
+      ["x^{2}+y^{2}=[1,4]", "implicit"],
     ]) {
-      const r = last("L=[1,2]", "a=[1,2]x", "g(t)=t+L", latex);
-      expect([r.kind, r.error?.code, r.error?.message, r.isGraphable], latex).toEqual([
-        "error",
-        "unsupported",
-        "Graphing a list of curves isn't supported yet.",
-        false,
-      ]);
+      expect(branches(...context, latex), latex).toEqual([kind, null, true, 2]);
     }
+    expect(branches("y=[1,2]x+[1,2,3]")).toEqual(["curve-y", null, true, 2]); // NM-33
+    expect(branches("y=[]x")).toEqual(["curve-y", null, true, 0]);
+    expect(branches("y=x+\\operatorname{mean}([1,2,3])")).toEqual(["curve-y", null, true, 1]);
     expect(last("L=[1,2]", "y=L_{1}x").error).toBeNull(); // L_1 is a different name
     expect(last("L=[1,2]", "h(a,b)=a+L").error).toBeNull(); // two parameters: not graphed
+  });
+
+  it("G-22 a list-valued relation without coordinates neither graphs nor errs, as in Desmos", () => {
+    const r = last("[1,2]<3");
+    expect([r.kind, r.error, r.isGraphable, r.graph]).toEqual([
+      "constant-relation",
+      null,
+      false,
+      null,
+    ]);
   });
 
   it("G-3 a point whose parts are lists is a point row that plots one dot per pair", () => {

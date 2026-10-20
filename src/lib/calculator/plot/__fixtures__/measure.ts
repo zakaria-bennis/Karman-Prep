@@ -37,7 +37,7 @@ export const UP_TO_1080: ViewSpec[] = [
   at({ width: 1920, height: 1080 }),
 ];
 
-/** An explicit y = f(x) row without its f, for `{ ...EXPLICIT_ROW, f }`. */
+/** An explicit y = f(x) row without its closures, for `{ ...EXPLICIT_ROW, fs: [f] }`. */
 export const EXPLICIT_ROW = { rowId: "e", kind: "explicit", independent: "x" } as const;
 /** G-15: the view sizes the evaluation budgets are checked at. */
 export const SIZES: PixelSize[] = [

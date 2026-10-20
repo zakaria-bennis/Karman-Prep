@@ -1,6 +1,7 @@
 import { expect, it } from "vitest";
 import { createTestEngine, TEST_VIEW } from "./__fixtures__/test-engine";
 import type { ExpressionState } from "./types";
+import { runsOf } from "../../plot/__fixtures__/measure";
 
 async function run(rows: ExpressionState[]) {
   const m = createTestEngine(undefined, { backend: "main-thread" });
@@ -69,7 +70,7 @@ it("D-22, G-3 list definitions fit a regression and a point of lists draws one d
   expect(dots?.kind === "points" ? [...dots.coords] : null).toEqual([1, 3, 2, 5, 3, 7]);
 });
 
-it("NM-34, G-22 the founder's nested-list row and a list-valued curve show their errors", async () => {
+it("NM-34, G-22 the founder's nested-list row shows its error and a list-valued curve draws each element", async () => {
   const { m, row } = await run([
     { id: "x", latex: "x_{1}=[1...10]" },
     { id: "y", latex: "y_{1}=[1...10]" },
@@ -77,9 +78,14 @@ it("NM-34, G-22 the founder's nested-list row and a list-valued curve show their
     { id: "c", latex: "y=[1,2]x" },
   ]);
   expect(row("s").error?.message).toBe("Cannot store a list of numbers in a list.");
-  expect(row("c").error?.message).toBe("Graphing a list of curves isn't supported yet.");
-  expect(row("c").error?.span).toEqual({ start: 2, end: 7 });
-  expect(m.engine.getSnapshot().geometry.has("c")).toBe(false);
+  expect([row("c").kind, row("c").error]).toEqual(["curve-y", null]);
+  const curve = m.engine.getSnapshot().geometry.get("c");
+  const runs = curve?.kind === "curve" ? runsOf(curve.polylines) : [];
+  expect(runs).toHaveLength(2); // y=x and y=2x, one run each
+  for (const [k, run] of runs.entries())
+    for (const [x, y] of run) expect(y).toBeCloseTo((k + 1) * x, 9);
+  // POI-TRACE-23: each element traces on its own
+  expect(m.engine.poiCurves("c").map((b) => b.f(3))).toEqual([3, 6]);
 });
 
 it("API-9, R-5 a list of points reports other and an indexed row reports a number", async () => {

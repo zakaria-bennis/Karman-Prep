@@ -186,7 +186,7 @@ export function runPlot(
           rowId,
         });
         const plotted = fns.plotRow(
-          { rowId, kind: "explicit", independent: "x", f: curve },
+          { rowId, kind: "explicit", independent: "x", fs: [curve] },
           view,
           deadline
         );

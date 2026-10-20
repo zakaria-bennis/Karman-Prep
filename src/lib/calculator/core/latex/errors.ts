@@ -33,7 +33,7 @@ export interface ParseError {
   code: ParseErrorCode;
   span: SourceSpan;
   detail: string; // English, logs and tests only
-  // `unsupported`: the deferred notation a row error names ("Graphing a list of curves");
+  // `unsupported`: the deferred notation a row error names ("Building a list with 'for'");
   // `function-parentheses`, `argument-parentheses`, `log-power`, `trig-power` and `name-subscript`: the
   // built-in's name ("floor"); `relation-side` and `unexpected-symbol`: the symbol (">", "."); `logic-outside-condition`: "or" or "and"
   feature?: string;
@@ -74,10 +74,9 @@ export function isParseErrorCode(code: string): code is ParseErrorCode {
 
 /**
  * Notation the parser or analysis reads but whose meaning has not shipped (PR-34's comprehensions,
- * NM-37; G-22's list-valued curves). An `unsupported` row error naming one of these reads
+ * NM-37). An `unsupported` row error naming one of these reads
  * "{feature} isn't supported yet." (R-2).
  */
 export const DEFERRED_FEATURES = Object.freeze({
   comprehension: "Building a list with 'for'",
-  listCurves: "Graphing a list of curves",
 } as const);

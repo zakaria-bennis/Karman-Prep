@@ -423,15 +423,19 @@ export function sampleExplicit(
   return sampler.assemble();
 }
 
-/** y = f(x) for independent "x", x = f(y) for "y", within EXPLICIT_BUDGET evaluations (G-15). */
+/**
+ * y = f(x) for independent "x", x = f(y) for "y", within `limit` evaluations (G-15: EXPLICIT_BUDGET
+ * for one curve, less for each branch of a list of curves).
+ */
 export function plotExplicit(
   rowId: string,
   independent: "x" | "y",
   f: RealFn1,
   view: ViewSpec,
-  deadline: Deadline
+  deadline: Deadline,
+  limit = EXPLICIT_BUDGET
 ): CurveGeometry {
-  const budget = new EvaluationBudget(EXPLICIT_BUDGET, deadline);
+  const budget = new EvaluationBudget(limit, deadline);
   const { polyline, bands } = sampleExplicit(f, explicitFrame(view, independent), budget);
   if (independent === "y") {
     for (let k = 0; k + 1 < polyline.length; k += 2) {

@@ -633,8 +633,8 @@ function slotOf(name: string, ctx: Context): number {
 
 /**
  * PR-31, PR-32: the value of the first condition that holds (1 for a bare condition), else the
- * otherwise value or NaN; `\{\}` is 1. A list condition gives a list, which analysis graphs
- * through the general evaluator or rejects (G-22), so here it never holds.
+ * otherwise value or NaN; `\{\}` is 1. A list condition gives a list, which a graph splits into
+ * one branch per element first (G-22, branches.ts), so here it never holds.
  */
 function piecewise(node: Piecewise, ctx: Context): Fn {
   const tests = node.branches.map(({ cond }) => relation(cond.operands, cond.ops, ctx)),

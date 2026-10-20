@@ -9,14 +9,15 @@ import { sampleField } from "./field";
 import type { CurveGeometry, RealFn2 } from "./geometry";
 import type { ViewSpec } from "./viewport";
 
-/** The zero set of F, where F = lhs − rhs of an implicit equation. */
+/** The zero set of F, where F = lhs − rhs of an implicit equation, within `limit` evaluations. */
 export function plotImplicit(
   rowId: string,
   F: RealFn2,
   view: ViewSpec,
-  deadline: Deadline
+  deadline: Deadline,
+  limit = IMPLICIT_BUDGET
 ): CurveGeometry {
-  const budget = new EvaluationBudget(IMPLICIT_BUDGET, deadline);
+  const budget = new EvaluationBudget(limit, deadline);
   const field = sampleField(
     view,
     1,

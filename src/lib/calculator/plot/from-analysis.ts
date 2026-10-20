@@ -12,6 +12,7 @@ import {
   type CompileScope,
   type EvalSettings,
 } from "../core/eval/compile";
+import { branchTrees, chainBranches } from "../core/eval/branches";
 import type { Value } from "../core/eval/values";
 import type { Node } from "../core/latex/ast";
 import type { PlotInput } from "./index";
@@ -40,9 +41,11 @@ export function buildCompileScope(
 /**
  * The PlotInput of a row, or null when `row.graph` is null (an error, chips, a hidden row or a
  * non-graphing kind) or for a point row whose `value` holds no point with two finite coordinates
- * (G-7: not drawn; G-3: a list of points draws each defined one). explicit → compileRealFunction1(expr, independent); implicit →
- * compileRealFunction2(expr); lines → compileRealFunction1(expr, "x" for vertical, "y" for
- * horizontal); region → compileRealFunction2 per operand. constant-region compiles the chain as
+ * (G-7: not drawn; G-3: a list of points draws each defined one). Each curve, line set or region
+ * compiles once per branch of branchTrees (G-22: a list-valued tree draws one per element):
+ * explicit → compileRealFunction1(branch, independent); implicit → compileRealFunction2(branch);
+ * lines → compileRealFunction1(branch, "x" for vertical, "y" for horizontal); region →
+ * compileRealFunction2 per operand of each branch of the chain (chainBranches). constant-region compiles the chain as
  * one `rel` node and evaluates it once: it holds exactly when the result is n(1), which
  * compileExpression gives only when every link holds between real operands (NM-22).
  */
@@ -59,22 +62,32 @@ export function plotInputFor(
         rowId,
         kind: "explicit",
         independent: graph.independent,
-        f: compileRealFunction1(graph.expr, graph.independent, scope),
+        fs: branchTrees(graph.expr, scope).map((tree) =>
+          compileRealFunction1(tree, graph.independent, scope)
+        ),
       };
     case "implicit":
-      return { rowId, kind: "implicit", F: compileRealFunction2(graph.expr, scope) };
-    case "lines":
+      return {
+        rowId,
+        kind: "implicit",
+        Fs: branchTrees(graph.expr, scope).map((tree) => compileRealFunction2(tree, scope)),
+      };
+    case "lines": {
+      const axis = graph.orientation === "vertical" ? "x" : "y";
       return {
         rowId,
         kind: "lines",
         orientation: graph.orientation,
-        f: compileRealFunction1(graph.expr, graph.orientation === "vertical" ? "x" : "y", scope),
+        fs: branchTrees(graph.expr, scope).map((tree) => compileRealFunction1(tree, axis, scope)),
       };
+    }
     case "region":
       return {
         rowId,
         kind: "region",
-        terms: graph.operands.map((operand) => compileRealFunction2(operand, scope)),
+        branches: chainBranches(graph.operands, graph.ops, scope).map((operands) =>
+          operands.map((operand) => compileRealFunction2(operand, scope))
+        ),
         ops: [...graph.ops],
       };
     case "constant-region": {
