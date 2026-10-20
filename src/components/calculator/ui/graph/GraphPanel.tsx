@@ -15,7 +15,7 @@ import {
   type KeyboardEvent,
   type RefObject,
 } from "react";
-import { formatPoiLabel, formatTraceLabel } from "@/lib/calculator/poi/format";
+import { formatPoiLabel } from "@/lib/calculator/poi/format";
 import type { CalculatorEngine, EngineSnapshot } from "@/lib/calculator/core/api/engine";
 import {
   defaultViewport,
@@ -49,7 +49,7 @@ import {
 import { useDebounced } from "./use-debounced";
 import { useGraphInput } from "./use-graph-input";
 import { useGraphSize, type GraphSize } from "./use-graph-size";
-import { openLabels, poiDots, usePoiLabels } from "./use-poi-labels";
+import { keepLabelsOpen, poiDots, shownLabels, usePoiLabels } from "./use-poi-labels";
 import { useTrace, type TraceState } from "./use-trace";
 
 export { graphAccessibleName };
@@ -128,7 +128,7 @@ function useRenderLoop(
         rows: buildRenderRows(s, k, view, cache),
         theme: readRenderTheme(host),
         poi: poiDots(s, l),
-        trace: tr === null ? null : { x: tr.wx, y: tr.wy, color: tr.color },
+        trace: tr === null ? null : { x: tr.point.x, y: tr.point.y, color: tr.color },
       });
       container.dataset.renderedRevision = String(s.revision);
     });
@@ -200,18 +200,16 @@ function useViewportAnimator(engine: CalculatorEngine): ViewportAnimator {
 /** POI-20: the keyboard trace's point as a drawn trace (dot and label), or null. */
 function keyboardTracePoint(
   trace: KeyboardTrace | null,
-  s: EngineSnapshot,
   view: ViewSpec | null,
   rows: ReturnType<typeof buildRenderRows>
 ): TraceState | null {
   const at = trace?.state ?? null;
   if (at === null || view === null) return null;
-  const poi =
-    s.poi?.rowId === at.rowId ? s.poi.points.find((p) => p.x === at.x && p.y === at.y) : undefined;
   const [x, y] = worldToPx(view, at.x, at.y);
-  const text = poi === undefined ? formatTraceLabel(at.x, at.y, view) : formatPoiLabel(poi, view);
   const row = rows.find((r) => r.rowId === at.rowId);
-  return row === undefined ? null : { x, y, wx: at.x, wy: at.y, text, color: row.color };
+  if (row === undefined) return null;
+  const label = formatPoiLabel(at, view);
+  return { x, y, point: { x: at.x, y: at.y }, label, opened: false, hole: false, color: row.color };
 }
 
 export function GraphPanel(props: GraphPanelProps): JSX.Element {
@@ -245,20 +243,30 @@ export function GraphPanel(props: GraphPanelProps): JSX.Element {
     engine,
     size,
     interaction: {
-      claim(at, pointer) {
+      press(at, pointer, event) {
         const sc = scene();
-        return sc !== null && tracer.claim(at, pointer, sc.view, sc.rows);
+        if (sc === null) return "pan";
+        if (poi.pressDot(at, pointer, sc.view)) {
+          keepLabelsOpen(event);
+          return "dot";
+        }
+        if (tracer.claim(at, pointer, sc.view, sc.rows)) {
+          keepLabelsOpen(event);
+          return "trace";
+        }
+        poi.close(); // POI-TRACE-14: blank paper closes every label and deselects
+        engine.setSelectedRow(null);
+        return "pan";
       },
       move(at) {
         const sc = scene();
         if (sc !== null) tracer.move(at, sc.view);
       },
       release: tracer.release,
-      click(at, pointer) {
-        const sc = scene();
-        if (sc !== null) poi.click(at, pointer, sc.view, sc.rows);
+      hover(at) {
+        poi.hover(at, scene()?.view ?? null);
       },
-      viewChanged: poi.viewChanged,
+      viewChanged: poi.close,
     },
   });
 
@@ -287,7 +295,6 @@ export function GraphPanel(props: GraphPanelProps): JSX.Element {
     tracer.trace ??
     keyboardTracePoint(
       keyboardTrace,
-      snapshot,
       view,
       view === null ? [] : buildRenderRows(snapshot, skin, view, cache)
     );
@@ -318,7 +325,7 @@ export function GraphPanel(props: GraphPanelProps): JSX.Element {
     input.applyNow((v) => {
       const target = next({ ...v, viewport: animator.target() ?? v.viewport });
       if (reducedMotion) return target;
-      poi.viewChanged();
+      poi.close();
       animator.run(target, false);
       return null;
     });
@@ -346,10 +353,11 @@ export function GraphPanel(props: GraphPanelProps): JSX.Element {
       />
       {view !== null && (
         <PoiOverlay
-          labels={openLabels(snapshot, poi.labels, view)}
+          labels={shownLabels(snapshot, poi.labels, view)}
           curve={selectedCurvePx(snapshot, view)}
           size={view.size}
           trace={shownTrace}
+          onExport={(l) => poi.exportPoint(l.label, l.point)}
         />
       )}
       <div className="kc-graph-controls" role="group" aria-label={GRAPH_CONTROL_LABELS.group}>

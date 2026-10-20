@@ -1,27 +1,36 @@
-// The panel's point-of-interest state (POI-1, POI-13, POI-17): the open labels, kept in step with
-// the engine's selection, row edits, view changes, focus and recomputed points; the click rules;
-// and the dots and labels a frame draws. Escape closes open labels as one KB-3 layer.
+// The panel's point-of-interest state (POI-TRACE-1, POI-TRACE-12 to POI-TRACE-18): the open and
+// hovered labels, kept in step with the engine's selection, recomputes and points; the press and
+// hover rules; the dots and labels a frame draws; and exporting a point as a new row. Escape closes
+// open labels as one KB-3 layer.
 
 import { useCallback, useContext, useEffect, useReducer, useRef } from "react";
 import type { CalculatorEngine, EngineSnapshot } from "@/lib/calculator/core/api/engine";
 import { worldToPx, type ViewSpec } from "@/lib/calculator/plot/viewport";
-import { formatPoiLabel } from "@/lib/calculator/poi/format";
+import { formatPoiLabel, type FormattedLabel } from "@/lib/calculator/poi/format";
 import type { PoiPoint } from "@/lib/calculator/poi/types";
-import type { PoiDot, RenderRow } from "@/lib/calculator/render/types";
+import type { PoiDot } from "@/lib/calculator/render/types";
+import { nextSlot } from "@/lib/calculator/theme/roles";
 import type { Pointer } from "../controller/media";
 import { AnnouncerContext } from "../a11y/announcer";
 import { EscapeContext } from "../focus/escape-stack";
 import { poiAnnouncement } from "./keyboard-trace";
-import { hitCurve, hitPoi } from "./hit-test";
-import { NO_LABELS, reduceLabels, type LabelState } from "./poi-labels";
+import { hitPoi } from "./hit-test";
+import { NO_LABELS, reduceLabels, samePoint, type LabelPoint, type LabelState } from "./poi-labels";
 
 export interface OpenLabel {
   x: number; // CSS px of the dot
   y: number;
-  text: string;
+  point: LabelPoint; // world units
+  label: FormattedLabel;
+  opened: boolean; // pinned by a press (a black dot under it), else hovered or traced
 }
 
 const NO_POINTS: readonly PoiPoint[] = Object.freeze([]);
+
+/** Presses that must not close open labels (POI-TRACE-14): on a dot, a curve or a label. */
+const keptPresses = new WeakSet<Event>();
+export const keepLabelsOpen = (e: Event): void => void keptPresses.add(e);
+export const LABEL_SELECTOR = "[data-poi-label], [data-trace-label]";
 
 /** The selected row's points of interest, when the snapshot has them for the selected row. */
 export function selectedPoints(s: EngineSnapshot): readonly PoiPoint[] {
@@ -33,16 +42,21 @@ export function poiDots(s: EngineSnapshot, labels: LabelState): PoiDot[] {
   return selectedPoints(s).map(({ x, y }) => ({
     x,
     y,
-    open: open.some((p) => p.x === x && p.y === y),
+    open: open.some((p) => samePoint(p, { x, y })),
   }));
 }
 
-export function openLabels(s: EngineSnapshot, labels: LabelState, view: ViewSpec): OpenLabel[] {
+/** The labels to show: every open one, then the hovered one unless it is open already. */
+export function shownLabels(s: EngineSnapshot, labels: LabelState, view: ViewSpec): OpenLabel[] {
   if (labels.rowId !== s.selectedRowId) return [];
-  return labels.open.map((p) => {
+  const at = (p: LabelPoint, opened: boolean): OpenLabel => {
     const [x, y] = worldToPx(view, p.x, p.y);
-    return { x, y, text: formatPoiLabel(p, view) };
-  });
+    return { x, y, point: { x: p.x, y: p.y }, label: formatPoiLabel(p, view), opened };
+  };
+  const out = labels.open.map((p) => at(p, true));
+  const h = labels.hover;
+  if (h !== null && !labels.open.some((p) => samePoint(p, h))) out.push(at(h, false));
+  return out;
 }
 
 export function usePoiLabels(snapshot: EngineSnapshot, engine: CalculatorEngine) {
@@ -59,12 +73,8 @@ export function usePoiLabels(snapshot: EngineSnapshot, engine: CalculatorEngine)
   useEffect(() => {
     if (revision.current === snapshot.revision) return;
     revision.current = snapshot.revision;
-    dispatch({ type: "row-edited" }); // a row edit or a view change
+    dispatch({ type: "close" }); // POI-TRACE-15: a row edit or a view change
   }, [snapshot.revision]);
-  useEffect(() => {
-    if (snapshot.focusedRowId !== null)
-      dispatch({ type: "row-focused", rowId: snapshot.focusedRowId });
-  }, [snapshot.focusedRowId]);
   const points = selectedPoints(snapshot);
   useEffect(() => {
     if (snapshot.selectedRowId !== null) {
@@ -74,36 +84,63 @@ export function usePoiLabels(snapshot: EngineSnapshot, engine: CalculatorEngine)
   const anyOpen = labels.open.length > 0;
   useEffect(() => {
     if (!anyOpen || escape === null) return;
-    return escape.push({ id: "poi-labels", close: () => dispatch({ type: "escape" }) });
+    return escape.push({ id: "poi-labels", close: () => dispatch({ type: "close" }) });
   }, [anyOpen, escape]);
+  // POI-TRACE-14: any press in the page that is not on a dot, a curve or a label closes them.
+  useEffect(() => {
+    if (!anyOpen) return;
+    const onPress = (e: PointerEvent) => {
+      if (keptPresses.has(e)) return;
+      const onLabel = e
+        .composedPath()
+        .some((t) => t instanceof Element && t.matches(LABEL_SELECTOR));
+      if (!onLabel) dispatch({ type: "close" });
+    };
+    document.addEventListener("pointerdown", onPress);
+    return () => document.removeEventListener("pointerdown", onPress);
+  }, [anyOpen]);
 
-  /** POI-13, POI-17: a click on the paper at `at` (CSS px). */
-  const click = useCallback(
-    (
-      at: readonly [number, number],
-      pointer: Pointer,
-      view: ViewSpec,
-      rows: readonly RenderRow[]
-    ) => {
+  /** POI-TRACE-13: a press at `at` (CSS px) on a dot of the selected row toggles its label. */
+  const pressDot = useCallback(
+    (at: readonly [number, number], pointer: Pointer, view: ViewSpec): boolean => {
       const s = engine.getSnapshot();
       const own = selectedPoints(s);
       const index = hitPoi(own, view, at, pointer);
-      if (index !== null && s.selectedRowId !== null) {
-        dispatch({ type: "click-poi", rowId: s.selectedRowId, point: own[index] });
-        return;
-      }
-      const rowId = hitCurve(rows, view, at, pointer);
-      if (rowId !== null) {
-        dispatch({ type: "click-curve", rowId });
-        engine.setSelectedRow(rowId);
-        return;
-      }
-      dispatch({ type: "click-empty" });
-      engine.setSelectedRow(null);
+      if (index === null || s.selectedRowId === null) return false;
+      dispatch({ type: "toggle", rowId: s.selectedRowId, point: own[index] });
+      return true;
     },
     [engine]
   );
-  const viewChanged = useCallback(() => dispatch({ type: "view-changed" }), []);
+
+  /** POI-TRACE-12: the mouse at `at` (null when it leaves or a press starts). */
+  const hover = useCallback(
+    (at: readonly [number, number] | null, view: ViewSpec | null): void => {
+      if (at === null || view === null) {
+        dispatch({ type: "hover", point: null });
+        return;
+      }
+      const own = selectedPoints(engine.getSnapshot());
+      const index = hitPoi(own, view, at, "fine");
+      dispatch({ type: "hover", point: index === null ? null : own[index] });
+    },
+    [engine]
+  );
+
+  const close = useCallback(() => dispatch({ type: "close" }), []);
+
+  /** POI-TRACE-18: closes the label and appends its point as a new row. */
+  const exportPoint = useCallback(
+    (label: FormattedLabel, point: LabelPoint): void => {
+      const s = engine.getSnapshot();
+      if (s.selectedRowId !== null) dispatch({ type: "toggle", rowId: s.selectedRowId, point });
+      engine.editRows((rows, ctx) => [
+        ...rows,
+        { id: ctx.nextId(), latex: label.latex, color: nextSlot(rows.length), hidden: false },
+      ]);
+    },
+    [engine]
+  );
 
   /** KB-14: `]` and `[` with the graph focused show the next or previous point and announce it. */
   const step = useCallback(
@@ -122,5 +159,5 @@ export function usePoiLabels(snapshot: EngineSnapshot, engine: CalculatorEngine)
     [engine, announcer]
   );
 
-  return { labels, click, viewChanged, step };
+  return { labels, pressDot, hover, close, exportPoint, step };
 }

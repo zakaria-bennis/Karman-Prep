@@ -1,7 +1,7 @@
-import { expect, it } from "vitest";
-import type { Geometry } from "@/lib/calculator/plot/geometry";
+import { describe, expect, it } from "vitest";
 import type { ViewSpec } from "@/lib/calculator/plot/viewport";
-import { SNAP_PX, traceAt, type TraceSource } from "./trace";
+import type { PoiBranch } from "@/lib/calculator/poi/types";
+import { branchDistance, traceAt } from "./trace";
 
 const VIEW: ViewSpec = {
   viewport: { left: -10, right: 10, bottom: -7.5, top: 7.5 },
@@ -10,35 +10,50 @@ const VIEW: ViewSpec = {
 };
 const px = (x: number) => (x + 10) * 40;
 const py = (y: number) => (7.5 - y) * 40;
-const parabola: TraceSource = {
-  curve: { kind: "explicit", independent: "x", f: (x) => x * x - 2 },
-  geometry: null,
-};
-const POIS = [{ x: Math.SQRT2, y: 0, kinds: ["zero" as const], withRowId: null }];
+const parabola: PoiBranch = { independent: "x", f: (x) => x * x - 2 };
 
-it("POI-14 the trace dot follows the nearest curve point even when the pointer leaves the curve", () => {
-  const on = traceAt(parabola, VIEW, [px(1.23456), py(0)], [], "fine");
-  expect(on).toEqual({ x: 1.235, y: 1.235 ** 2 - 2, label: "(1.235, −0.47477)" }); // −0.474775 sits just below half-way in binary
-  const away = traceAt(parabola, VIEW, [px(1.23456), 5], [], "fine");
-  expect(away?.x).toBe(1.235); // x follows the pointer, y stays on the curve
-  const g = {
-    kind: "curve",
-    rowId: "1",
-    evaluations: 0,
-    polylines: new Float64Array([0, 5, 0, -5]),
-    bands: new Float64Array(0),
-    dashed: false,
-  } as Geometry;
-  const implicit = traceAt({ curve: null, geometry: g }, VIEW, [px(2), py(4.9)], [], "fine");
-  expect(implicit).toMatchObject({ x: 0, y: 5 });
+describe("POI-TRACE-23 the trace point", () => {
+  it("blends only the independent coordinate: far above the vertex it stays at x = 0", () => {
+    const p = traceAt([parabola], VIEW, [px(0), py(6)]);
+    expect(p).toMatchObject({ x: 0, y: -2, hole: false });
+    expect(p?.label.text).toBe("(0, −2)");
+  });
+
+  it("moves x to the simplest decimal within half a px and computes y exactly", () => {
+    const p = traceAt([parabola], VIEW, [px(-2.5), py(4.25)]);
+    expect(p).toMatchObject({ x: -2.5, y: 4.25 });
+    expect(p?.label.text).toBe("(−2.5, 4.25)");
+    const q = traceAt([parabola], VIEW, [px(-1.4142), py(0)]);
+    expect(q?.label.text).toBe("(−1.41, −0.0119)"); // no snapping to the zero
+  });
+
+  it("an x=g(y) branch rounds y and computes x", () => {
+    const g: PoiBranch = { independent: "y", f: (y) => y * y - 1 };
+    const p = traceAt([g], VIEW, [px(3.1087), py(2.027)]);
+    expect(p?.y).toBe(2.03);
+    expect(p?.x).toBeCloseTo(2.03 ** 2 - 1, 12);
+  });
+
+  it("at a hole the label reads undefined and the dot sits half a px away", () => {
+    const hole: PoiBranch = { independent: "x", f: (x) => (x * x - 1) / (x - 1) };
+    const p = traceAt([hole], VIEW, [px(1), py(2)]);
+    expect(p?.hole).toBe(true);
+    expect(p?.label.text).toBe("(1, undefined)");
+    expect(p?.x).toBe(1);
+    expect(Math.abs(p!.y - 2)).toBeLessThan(0.02);
+  });
+
+  it("jumps to the nearest of several branches", () => {
+    const lines = [1, 2, 3].map((k): PoiBranch => ({ independent: "x", f: (x) => k * x }));
+    const p = traceAt(lines, VIEW, [px(1), py(2.9)])!;
+    expect(p.y / p.x).toBeCloseTo(3, 9);
+  });
 });
 
-it("POI-14 a fine-pointer trace snaps to a point of interest within 3 px and shows its exact label", () => {
-  expect(SNAP_PX).toBe(3);
-  const near = traceAt(parabola, VIEW, [px(Math.SQRT2) + 2, py(0)], POIS, "fine");
-  expect(near).toEqual({ x: Math.SQRT2, y: 0, label: "(1.41421, 0)" });
-  const far = traceAt(parabola, VIEW, [px(Math.SQRT2) + 5, py(0)], POIS, "fine");
-  expect(far?.label).not.toBe("(1.41421, 0)");
-  const touch = traceAt(parabola, VIEW, [px(Math.SQRT2) + 2, py(0)], POIS, "coarse");
-  expect(touch?.x).not.toBe(Math.SQRT2);
+describe("POI-TRACE-21 curve distance", () => {
+  it("is measured to the centreline in px", () => {
+    expect(branchDistance(parabola, VIEW, [px(0), py(-2) + 10])).toBeCloseTo(10, 6);
+    expect(branchDistance(parabola, VIEW, [px(0), py(-2) + 11])).toBeGreaterThan(10);
+    expect(branchDistance({ independent: "x", f: () => NaN }, VIEW, [0, 0])).toBe(Infinity);
+  });
 });

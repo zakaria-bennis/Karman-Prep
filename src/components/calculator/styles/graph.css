@@ -152,7 +152,8 @@
   pointer-events: none;
 }
 
-/* POI-13, POI-19: open coordinate labels; the overlay never takes pointer input. */
+/* POI-TRACE-12 to POI-TRACE-18: coordinate labels. The overlay itself takes no pointer input;
+   the labels do, so a press on one neither pans nor closes it (POI-TRACE-14). */
 .kc-poi-overlay {
   position: absolute;
   inset: 0;
@@ -160,16 +161,52 @@
   overflow: hidden;
 }
 
-/* GP-37: a white box with a faint 1 px border, 5 px radius and a soft shadow; the coordinates in
-   the 20.24 px math serif in near-black, padded 7/4/5 px, 42.27 px tall in all. */
+/* POI-TRACE-17, GP-37: a white box with a faint 1 px border, 5 px radius and a soft shadow,
+   padded 7/4/5 px; the coordinates typeset as math in near-black at 115% of the 17.6 px label
+   text (20.24 px), 42.27 px tall in all. */
 .kc-poi-label {
   position: absolute;
+  display: flex;
+  align-items: center;
   padding: 7px 4px 5px;
   border: 1px solid color-mix(in srgb, var(--kc-text) 11%, var(--kc-paper));
   border-radius: 5px;
   background: var(--kc-paper);
   color: color-mix(in srgb, var(--kc-text) 87%, var(--kc-paper));
   box-shadow: 0 0 5px color-mix(in srgb, var(--kc-text) 20%, transparent);
-  font: 20.24px/28.27px var(--kc-font-math);
+  font: var(--kc-size-list) / 28.27px var(--kc-font-ui);
   white-space: nowrap;
+  pointer-events: auto;
+  cursor: default;
+}
+
+.kc-poi-label .kc-poi-math {
+  line-height: normal;
+}
+
+/* POI-TRACE-18, GP-39: the export button after the coordinates, 25.6 × 27.6 px at 40% opacity. */
+.kc-poi-export {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 25.6px;
+  height: 27.6px;
+  margin: 0;
+  padding: 5px 5px 5px 3px;
+  border: 0;
+  background: none;
+  color: var(--kc-text);
+  opacity: 0.4;
+  cursor: pointer;
+}
+
+.kc-poi-export:hover {
+  opacity: 0.7;
+}
+
+.kc-poi-export:focus-visible {
+  opacity: 1;
+  outline: 2px solid var(--kc-focus-ring);
+  outline-offset: -2px;
 }

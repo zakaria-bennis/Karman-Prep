@@ -1,32 +1,31 @@
-// The keyboard trace (POI-20, A11Y-9, KB-14, K-9): Alt/Option+T or the keypad's audio key starts a
-// trace of a row's curve at its first point of interest; Page Down and Page Up step through the
-// points in x order, Left and Right move along the curve by 1/100 of the view, Home and End go to
-// its ends in view, Ctrl or Cmd with Up and Down switch expression, and Escape stops and returns
-// focus to the row. Each step is announced; A11Y-13's tones arrive in Phase 4.
+// The keyboard (audio) trace (POI-TRACE-28, A11Y-9, KB-14, K-9): Alt/Option+T or the keypad's audio
+// key starts a trace of a row's curve at its first point of interest. Page Down, Tab or I and
+// Page Up, Shift+Tab or K step through the points in x order; Left/Right or J/L move along the
+// branch by 1/100 of the view; Up and Down switch branch; Alt or Cmd with Up and Down switch
+// expression; Home/End or U/N go to the branch's ends in view; O goes to the origin; X and Y read
+// one coordinate, P the number of points, T the point's type; Escape stops and returns focus to
+// the row. Each step is announced; A11Y-13's tones arrive in Phase 4.
 
 import type { CalculatorEngine } from "@/lib/calculator/core/api/engine";
 import type { ViewSpec } from "@/lib/calculator/plot/viewport";
-import { formatPoiLabel, formatTraceLabel, roundTraceX } from "@/lib/calculator/poi/format";
-import type { PoiKind, PoiPoint } from "@/lib/calculator/poi/types";
+import { formatPoiLabel } from "@/lib/calculator/poi/format";
+import { simplestDecimal } from "@/lib/calculator/poi/simplest";
+import type { PoiBranch, PoiKind, PoiPoint } from "@/lib/calculator/poi/types";
 import { createContext } from "react";
 
 export const TRACE_HELP =
-  "Page Down and Page Up move between points of interest, Left and Right move along the curve, Home and End go to its ends, Escape stops.";
+  "Page Down and Page Up move between points of interest, Left and Right move along the curve, Up and Down change branch, Home and End go to its ends, Escape stops.";
 const NO_MORE = "No more points of interest.";
 const STEP_FRACTION = 0.01; // Desmos steps 1/100 of the view's width
 
 const KIND_WORDS: Readonly<Record<PoiKind, string>> = {
   zero: "Zero",
-  "x-intercept": "X-intercept",
-  "y-intercept": "Y-intercept",
-  maximum: "Maximum",
-  minimum: "Minimum",
-  top: "Top",
-  bottom: "Bottom",
+  intercept: "Intercept",
+  extremum: "Extremum",
   intersection: "Intersection",
 };
 
-/** A11Y-9: "Y-intercept and Minimum", "Intersection with Expression 2". */
+/** A11Y-9, POI-TRACE-28: "Intercept and Extremum", "Intersection with Expression 2". */
 export function kindWords(
   kinds: readonly PoiKind[],
   withRowId: string | null,
@@ -42,10 +41,11 @@ export function kindWords(
     .join(" and ");
 }
 
+const spoken = (s: string) => (s.startsWith("−") ? `negative ${s.slice(1)}` : s);
+
 /** The label's coordinates as words: "(−2, 4)" reads "x negative 2, y 4". */
 function coordinateWords(label: string): string {
   const [x, y] = label.slice(1, -1).split(", ");
-  const spoken = (s: string) => (s.startsWith("−") ? `negative ${s.slice(1)}` : s);
   return `x ${spoken(x)}, y ${spoken(y)}`;
 }
 
@@ -55,7 +55,7 @@ export function poiAnnouncement(
   rowNumbers: ReadonlyMap<string, number>,
   view: ViewSpec
 ): string {
-  return `${kindWords(point.kinds, point.withRowId, rowNumbers)} at ${coordinateWords(formatPoiLabel(point, view))}`;
+  return `${kindWords(point.kinds, point.withRowId, rowNumbers)} at ${coordinateWords(formatPoiLabel(point, view).text)}`;
 }
 
 export interface TraceView {
@@ -63,6 +63,7 @@ export interface TraceView {
   x: number;
   y: number;
 }
+type Current = TraceView & { index: number | null; branch: number };
 export interface KeyboardTraceDeps {
   engine: CalculatorEngine;
   announce(text: string): void;
@@ -72,7 +73,7 @@ type Key = Pick<KeyboardEvent, "key" | "ctrlKey" | "metaKey" | "altKey" | "shift
 
 export class KeyboardTrace {
   private readonly deps: KeyboardTraceDeps;
-  private current: (TraceView & { index: number | null }) | null = null;
+  private current: Current | null = null;
   /** The announcement that waits for the row's points: the text before the point. */
   private pending: string | null = null;
   private readonly listeners = new Set<() => void>();
@@ -120,33 +121,85 @@ export class KeyboardTrace {
   handleKey(e: Key): boolean {
     const c = this.current;
     if (c === null) return false;
-    const command = e.ctrlKey || e.metaKey;
-    switch (e.key) {
+    const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+    const along = (direction: 1 | -1) => {
+      const b = this.branch();
+      const { left, right, bottom, top } = this.view().viewport;
+      const span = b?.independent === "y" ? top - bottom : right - left;
+      const t = b?.independent === "y" ? c.y : c.x;
+      this.moveTo(t + direction * STEP_FRACTION * span);
+    };
+    const edge = (end: boolean) => {
+      const { left, right, bottom, top } = this.view().viewport;
+      this.moveTo(this.branch()?.independent === "y" ? (end ? top : bottom) : end ? right : left);
+    };
+    if ((k === "ArrowUp" || k === "ArrowDown") && (e.altKey || e.metaKey || e.ctrlKey)) {
+      this.switchRow(k === "ArrowDown" ? 1 : -1);
+      return true;
+    }
+    if (e.ctrlKey || e.metaKey || e.altKey) return false;
+    switch (k) {
       case "Escape":
         this.stop();
         return true;
       case "PageDown":
+      case "i":
+        this.step(1);
+        return true;
       case "PageUp":
-        this.step(e.key === "PageDown" ? 1 : -1);
+      case "k":
+        this.step(-1);
+        return true;
+      case "Tab":
+        this.step(e.shiftKey ? -1 : 1);
         return true;
       case "Home":
+      case "u":
+        edge(false);
+        return true;
       case "End":
-        this.moveTo(e.key === "Home" ? this.view().viewport.left : this.view().viewport.right);
+      case "n":
+        edge(true);
         return true;
       case "ArrowLeft":
-      case "ArrowRight": {
-        const { left, right } = this.view().viewport;
-        this.moveTo(c.x + (e.key === "ArrowRight" ? 1 : -1) * STEP_FRACTION * (right - left));
+      case "j":
+        along(-1);
         return true;
-      }
+      case "ArrowRight":
+      case "l":
+        along(1);
+        return true;
       case "ArrowUp":
       case "ArrowDown": {
-        if (!command) return false;
-        const s = this.deps.engine.getSnapshot();
-        const graphed = s.rows.filter((r) => r.id === c.rowId || this.traceable(r.id));
-        const at = graphed.findIndex((r) => r.id === c.rowId);
-        const next = graphed[at + (e.key === "ArrowDown" ? 1 : -1)];
-        if (next !== undefined) this.begin(next.id, `Expression ${s.rows.indexOf(next) + 1}. `);
+        const count = this.deps.engine.poiCurves(c.rowId).length;
+        if (count > 1) {
+          c.branch = (c.branch + (k === "ArrowDown" ? 1 : count - 1)) % count;
+          this.moveTo(
+            this.branch()?.independent === "y" ? c.y : c.x,
+            "Branch " + (c.branch + 1) + ". "
+          );
+        }
+        return true;
+      }
+      case "o":
+        this.moveTo(0);
+        return true;
+      case "x":
+      case "y": {
+        const [x, y] = formatPoiLabel(c, this.view()).text.slice(1, -1).split(", ");
+        this.deps.announce(`${k} ${spoken(k === "x" ? x : y)}`);
+        return true;
+      }
+      case "p":
+        this.deps.announce(`Points of interest, ${this.points().length}.`);
+        return true;
+      case "t": {
+        const here = c.index === null ? undefined : this.points()[c.index];
+        this.deps.announce(
+          here === undefined
+            ? "Not a P O I"
+            : kindWords(here.kinds, here.withRowId, this.rowNumbers())
+        );
         return true;
       }
       default:
@@ -154,9 +207,28 @@ export class KeyboardTrace {
     }
   }
 
+  private switchRow(direction: 1 | -1): void {
+    const c = this.current!;
+    const s = this.deps.engine.getSnapshot();
+    const graphed = s.rows.filter((r) => r.id === c.rowId || this.traceable(r.id));
+    const at = graphed.findIndex((r) => r.id === c.rowId);
+    const next = graphed[at + direction];
+    if (next !== undefined) this.begin(next.id, `Expression ${s.rows.indexOf(next) + 1}. `);
+  }
+
+  private points(): readonly PoiPoint[] {
+    const s = this.deps.engine.getSnapshot();
+    return s.poi?.rowId === this.current?.rowId ? (s.poi?.points ?? []) : [];
+  }
+
+  private branch(): PoiBranch | undefined {
+    const c = this.current;
+    return c === null ? undefined : this.deps.engine.poiCurves(c.rowId)[c.branch];
+  }
+
   private begin(rowId: string, prefix: string): void {
     this.deps.engine.setSelectedRow(rowId);
-    this.current = { rowId, x: 0, y: 0, index: null };
+    this.current = { rowId, x: 0, y: 0, index: null, branch: 0 };
     this.pending = prefix;
     this.notify();
     this.onEngine();
@@ -176,7 +248,7 @@ export class KeyboardTrace {
       this.moveTo((left + right) / 2, prefix);
       return;
     }
-    this.current = { rowId: c.rowId, x: first.x, y: first.y, index: 0 };
+    this.current = { ...c, x: first.x, y: first.y, index: 0 };
     this.notify();
     this.deps.announce(`${prefix}${poiAnnouncement(first, this.rowNumbers(), s.view)}`);
   }
@@ -197,30 +269,39 @@ export class KeyboardTrace {
       const here = c.index === null ? null : points[c.index];
       const tail =
         here === undefined || here === null
-          ? coordinateWords(formatTraceLabel(c.x, c.y, view))
+          ? coordinateWords(formatPoiLabel(c, view).text)
           : poiAnnouncement(here, this.rowNumbers(), view);
       this.deps.announce(`${NO_MORE} ${tail}`);
       return;
     }
     const p = points[index];
-    this.current = { rowId: c.rowId, x: p.x, y: p.y, index };
+    this.current = { ...c, x: p.x, y: p.y, index };
     this.notify();
     this.deps.announce(poiAnnouncement(p, this.rowNumbers(), view));
   }
 
-  /** Moves along an explicit y=f(x) curve to x (rounded to the view's precision) and announces. */
-  private moveTo(x: number, prefix = ""): void {
+  /**
+   * Moves along the current branch to independent value `t`, clamped to the view and moved to the
+   * simplest decimal within half a px (as the pointer trace, POI-TRACE-23), and announces.
+   */
+  private moveTo(t: number, prefix = ""): void {
     const c = this.current!;
     const view = this.view();
-    const curve = this.deps.engine.poiCurves(c.rowId)[0];
-    if (curve === undefined || curve.kind !== "explicit" || curve.independent !== "x") return;
-    const { left, right } = view.viewport;
-    const xr = roundTraceX(Math.min(right, Math.max(left, x)), view);
-    const y = curve.f(xr);
-    if (!Number.isFinite(y)) return;
-    this.current = { rowId: c.rowId, x: xr, y, index: null };
+    const b = this.branch();
+    if (b === undefined) return;
+    const { viewport: v, size } = view;
+    const [lo, hi, px] =
+      b.independent === "x"
+        ? [v.left, v.right, (v.right - v.left) / size.width]
+        : [v.bottom, v.top, (v.top - v.bottom) / size.height];
+    const clamped = Math.min(hi, Math.max(lo, t));
+    const u = simplestDecimal(clamped - px / 2, clamped + px / 2);
+    const w = b.f(u);
+    if (!Number.isFinite(w)) return;
+    const [x, y] = b.independent === "x" ? [u, w] : [w, u];
+    this.current = { ...c, x, y, index: null };
     this.notify();
-    this.deps.announce(`${prefix}${coordinateWords(formatTraceLabel(xr, y, view))}`);
+    this.deps.announce(`${prefix}${coordinateWords(formatPoiLabel({ x, y }, view).text)}`);
   }
 
   /** A row with a curve to trace: graphable, with at least one curve (not a point or region fill). */

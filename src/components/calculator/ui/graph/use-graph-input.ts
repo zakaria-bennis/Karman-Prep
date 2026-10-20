@@ -24,6 +24,7 @@ import {
 } from "@/lib/calculator/render/view-input";
 import type { Pointer } from "../controller/media";
 import type { GraphSize } from "./use-graph-size";
+import { LABEL_SELECTOR } from "./use-poi-labels";
 
 type Ref = RefObject<HTMLElement | null>;
 export type GraphInputOptions = {
@@ -34,19 +35,20 @@ export type GraphInputOptions = {
   interaction?: GraphInteraction;
 };
 /**
- * What the panel does with presses that are not pans (POI-13, POI-14, POI-17): a press that
- * `claim` accepts traces once it moves CLICK_SLOP_PX (move and release follow it, the view stays
- * put); any press released within CLICK_SLOP_PX of where it started is a click; anything that
- * moves the view calls viewChanged.
+ * What the panel does with presses (POI-TRACE-12 to POI-TRACE-14, POI-TRACE-21): `press` decides
+ * at pointer down whether the press is on a point-of-interest dot ("dot": nothing pans), starts a
+ * trace ("trace": move and release follow it, the view stays put) or pans ("pan"); the mouse
+ * hovering with no button down reports `hover` (null when it leaves); anything that moves the view
+ * calls viewChanged.
  */
 export interface GraphInteraction {
-  claim?(at: Point, pointer: Pointer): boolean;
-  move?(at: Point): void;
-  release?(): void;
-  click(at: Point, pointer: Pointer): void;
+  press(at: Point, pointer: Pointer, event: PointerEvent): "dot" | "trace" | "pan";
+  move(at: Point): void;
+  release(): void;
+  hover(at: Point | null): void;
   viewChanged(): void;
 }
-/** A press that moves less than this is a click, not a pan. */
+/** A pan that moves less than this is not a view change yet. */
 export const CLICK_SLOP_PX = 4;
 /** Applies `next(current view)` at once; false (and nothing done) when the size is unknown or it is null. */
 export type ApplyNow = (next: (view: ViewSpec) => Viewport | null) => boolean;
@@ -57,7 +59,7 @@ type Gesture =
   | { kind: "drag"; id: number; start: ViewSpec; at: Point }
   | { kind: "pinch"; ids: [number, number]; start: ViewSpec; from: PinchState };
 
-type Press = { id: number; at: Point; pointer: Pointer; moved: boolean; claimed: boolean };
+type Press = { id: number; at: Point; moved: boolean; kind: "dot" | "trace" | "pan" };
 type InputState = {
   pending: Viewport | null;
   frame: number | null;
@@ -169,7 +171,9 @@ export function useGraphInput(o: GraphInputOptions): GraphInput {
     const onPointerDown = (e: PointerEvent): void => {
       const view = currentView();
       if (view === null) return;
-      if (e.target instanceof Element && e.target.closest(".kc-graph-controls") !== null) return;
+      // The controls and the coordinate labels (POI-TRACE-14, POI-TRACE-18) handle their own presses.
+      if (e.target instanceof Element && e.target.closest(`.kc-graph-controls, ${LABEL_SELECTOR}`))
+        return;
       if (e.button !== 0) return;
       surface.current?.focus({ preventScroll: true });
       try {
@@ -182,34 +186,41 @@ export function useGraphInput(o: GraphInputOptions): GraphInput {
         hooks = latest.current.interaction;
       s.pointers.set(e.pointerId, at);
       if (s.pointers.size === 1) {
-        const claimed = hooks?.claim?.(at, pointer) === true;
-        s.press = { id: e.pointerId, at, pointer, moved: false, claimed };
-        if (claimed) {
+        hooks?.hover(null);
+        const kind = hooks?.press(at, pointer, e) ?? "pan";
+        s.press = { id: e.pointerId, at, moved: false, kind };
+        if (kind !== "pan") {
           s.gesture = null;
           return;
         }
       } else if (s.press !== null) {
-        if (s.press.claimed) hooks?.release?.();
-        s.press = { ...s.press, moved: true, claimed: false };
+        if (s.press.kind === "trace") hooks?.release();
+        s.press = { ...s.press, moved: true, kind: "pan" };
         hooks?.viewChanged();
       }
       if (surface.current !== null) surface.current.dataset.dragging = "";
       anchor(view);
     };
     const onPointerMove = (e: PointerEvent): void => {
-      if (latest.current.size === null || !s.pointers.has(e.pointerId)) return;
+      if (latest.current.size === null) return;
+      if (!s.pointers.has(e.pointerId)) {
+        if (e.pointerType === "mouse" && s.pointers.size === 0)
+          latest.current.interaction?.hover(position(e));
+        return;
+      }
       const at = position(e);
       s.pointers.set(e.pointerId, at);
       const press = s.press;
       if (press !== null && press.id === e.pointerId) {
+        if (press.kind === "trace") {
+          latest.current.interaction?.move(at);
+          return;
+        }
+        if (press.kind === "dot") return;
         if (!press.moved) {
           if (Math.hypot(at[0] - press.at[0], at[1] - press.at[1]) < CLICK_SLOP_PX) return;
           press.moved = true;
-          if (!press.claimed) latest.current.interaction?.viewChanged();
-        }
-        if (press.claimed) {
-          latest.current.interaction?.move?.(at);
-          return;
+          latest.current.interaction?.viewChanged();
         }
       }
       const g = s.gesture;
@@ -226,9 +237,7 @@ export function useGraphInput(o: GraphInputOptions): GraphInput {
       const press = s.press;
       if (press !== null && press.id === e.pointerId) {
         s.press = null;
-        const hooks = latest.current.interaction;
-        if (press.claimed && press.moved) hooks?.release?.();
-        else if (!press.moved && e.type === "pointerup") hooks?.click(press.at, press.pointer);
+        if (press.kind === "trace") latest.current.interaction?.release();
       }
       const view = currentView();
       if (view !== null) anchor(view);
@@ -251,7 +260,10 @@ export function useGraphInput(o: GraphInputOptions): GraphInput {
     element.addEventListener("pointercancel", onPointerEnd);
     element.addEventListener("lostpointercapture", onPointerEnd);
     element.addEventListener("wheel", onWheel, { passive: false });
+    const onLeave = () => latest.current.interaction?.hover(null);
+    element.addEventListener("pointerleave", onLeave);
     return () => {
+      element.removeEventListener("pointerleave", onLeave);
       element.removeEventListener("pointerdown", onPointerDown);
       element.removeEventListener("pointermove", onPointerMove);
       element.removeEventListener("pointerup", onPointerEnd);

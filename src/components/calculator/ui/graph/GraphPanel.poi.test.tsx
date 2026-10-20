@@ -41,7 +41,7 @@ const px = (x: number) => (x + 10) * 40;
 const py = (y: number) => (7.5 - y) * 40;
 const POINTS: PoiPoint[] = [
   { x: -ROOT2, y: 0, kinds: ["zero"], withRowId: null },
-  { x: 0, y: -2, kinds: ["y-intercept", "minimum"], withRowId: null },
+  { x: 0, y: -2, kinds: ["intercept", "extremum"], withRowId: null },
   { x: ROOT2, y: 0, kinds: ["zero"], withRowId: null },
 ];
 
@@ -102,7 +102,8 @@ async function setup(): Promise<void> {
 }
 
 const panel = () => document.querySelector<HTMLElement>("[data-graph-panel]")!;
-const labels = () => [...document.querySelectorAll("[data-poi-label]")].map((l) => l.textContent);
+const labels = () =>
+  [...document.querySelectorAll("[data-poi-label]")].map((l) => l.getAttribute("aria-label"));
 const lastFrame = (): RenderFrame => renderSpy.mock.lastCall![0];
 
 async function tap(x: number, y: number, pointerType = "mouse"): Promise<void> {
@@ -119,7 +120,7 @@ async function tap(x: number, y: number, pointerType = "mouse"): Promise<void> {
   await flush();
 }
 
-it("POI-13 clicking a dot of the selected curve opens its label and clicking it again closes only that label", async () => {
+it("POI-TRACE-13 pressing a dot opens its label, several stay open, pressing it again closes it", async () => {
   await setup();
   expect(lastFrame().poi).toEqual(POINTS.map(({ x, y }) => ({ x, y, open: false })));
   await tap(px(ROOT2) + 5, py(0));
@@ -129,68 +130,77 @@ it("POI-13 clicking a dot of the selected curve opens its label and clicking it 
   expect(labels()).toEqual(["(1.41421, 0)", "(0, −2)"]);
   await tap(px(ROOT2), py(0));
   expect(labels()).toEqual(["(0, −2)"]);
+  expect(t.engine.getSnapshot().selectedRowId).toBe("1");
 });
 
-it("POI-13 several labels stay open, and a click on an unselected curve's dot only selects that curve", async () => {
+it("POI-TRACE-12 hovering within 12 px of a dot shows its label until the mouse leaves", async () => {
   await setup();
-  await tap(px(-ROOT2), py(0));
-  await tap(px(ROOT2), py(0));
-  expect(labels()).toHaveLength(2);
-  await tap(px(4), py(3) + 2); // row 2's line, away from any of row 1's points
-  expect(t.engine.getSnapshot().selectedRowId).toBe("2");
+  const hover = async (x: number, y: number) => {
+    await act(async () => {
+      fireEvent.pointerMove(panel(), {
+        pointerId: 1,
+        clientX: x,
+        clientY: y,
+        pointerType: "mouse",
+      });
+    });
+    await flush();
+  };
+  await hover(px(ROOT2), py(0) + 12);
+  expect(labels()).toEqual(["(1.41421, 0)"]);
+  expect(document.querySelector("[data-poi-label]")?.hasAttribute("data-opened")).toBe(false);
+  await hover(px(ROOT2), py(0) + 13);
   expect(labels()).toEqual([]);
-  expect(lastFrame().rows.find((r) => r.rowId === "2")?.selected).toBe(true);
 });
 
-it("POI-13 empty paper closes every label and deselects; zoom buttons and panning close labels and keep the selection", async () => {
+it("POI-TRACE-14 a press on blank paper or anywhere else in the page closes every label", async () => {
+  await setup();
+  await tap(px(ROOT2), py(0));
+  await tap(px(-ROOT2), py(0));
+  expect(labels()).toHaveLength(2);
+  await act(async () => {
+    fireEvent.pointerDown(document.body, { pointerId: 2, button: 0, pointerType: "mouse" });
+  });
+  await flush();
+  expect(labels()).toEqual([]);
+  expect(t.engine.getSnapshot().selectedRowId).toBe("1");
+  await tap(px(ROOT2), py(0));
+  await tap(px(-6), py(-5)); // blank paper: closes and deselects
+  expect(labels()).toEqual([]);
+  expect(t.engine.getSnapshot().selectedRowId).toBeNull();
+  expect(lastFrame().poi ?? []).toEqual([]);
+});
+
+it("POI-TRACE-15 the zoom buttons close labels and keep the selection", async () => {
   await setup();
   await tap(px(ROOT2), py(0));
   await act(async () => fireEvent.click(screen.getByRole("button", { name: "Zoom in" })));
   await flush();
   expect(labels()).toEqual([]);
   expect(t.engine.getSnapshot().selectedRowId).toBe("1");
-
-  await tap(px(0), py(-2) / 2 + 150); // empty paper after the zoom
-  expect(t.engine.getSnapshot().selectedRowId).toBeNull();
-  expect(lastFrame().poi ?? []).toEqual([]);
 });
 
-it("POI-13 a drag that moves the paper is a pan, not a click, and closes labels", async () => {
+it("POI-TRACE-18 the export button closes the label and appends the point as a new row", async () => {
   await setup();
   await tap(px(ROOT2), py(0));
+  const button = screen.getByRole("button", { name: "Export point to expression list" });
+  expect(button.getAttribute("title")).toBe("Export point to expression list");
   await act(async () => {
-    fireEvent.pointerDown(panel(), {
-      pointerId: 1,
-      button: 0,
-      clientX: 100,
-      clientY: 100,
-      pointerType: "mouse",
-    });
-    fireEvent.pointerMove(panel(), {
-      pointerId: 1,
-      clientX: 140,
-      clientY: 120,
-      pointerType: "mouse",
-    });
-    fireEvent.pointerUp(panel(), {
-      pointerId: 1,
-      button: 0,
-      clientX: 140,
-      clientY: 120,
-      pointerType: "mouse",
-    });
+    fireEvent.pointerDown(button, { pointerId: 1, button: 0, pointerType: "mouse" });
+    fireEvent.click(button);
   });
   await flush();
   expect(labels()).toEqual([]);
+  expect(t.engine.getSnapshot().rows.at(-1)?.latex).toBe("\\left(1.41421,\\ 0\\right)");
   expect(t.engine.getSnapshot().selectedRowId).toBe("1");
 });
 
-it("POI-19 an open label is text reading the coordinates", async () => {
+it("POI-TRACE-17 an open label is a note named by its coordinates, its math hidden", async () => {
   await setup();
   await tap(px(0), py(-2));
-  const label = screen.getByText("(0, −2)");
-  expect(label.closest("[aria-hidden]")).toBeNull();
-  expect(label.getAttribute("role")).toBe("note");
+  const label = screen.getByRole("note", { name: "(0, −2)" });
+  expect(label.querySelector(".mq-math-mode")?.getAttribute("aria-hidden")).toBe("true");
+  expect(label.textContent).toContain("−2");
 });
 
 async function drag(
@@ -222,48 +232,38 @@ async function drag(
   });
   await flush();
 }
-const traceLabel = () => document.querySelector("[data-trace-label]")?.textContent ?? null;
+const traceLabel = () =>
+  document.querySelector("[data-trace-label]")?.getAttribute("aria-label") ?? null;
 
-it("POI-14 pressing on a curve and dragging traces instead of panning", async () => {
+it("POI-TRACE-21 pressing on a curve traces at once instead of panning; labels stay open", async () => {
   await setup();
+  await tap(px(ROOT2), py(0));
   const before = t.engine.getSnapshot().viewport;
-  await drag(
-    [
-      [px(2), py(2)],
-      [px(2.5), py(4.25)],
-      [px(3), py(0)],
-    ],
-    "mouse",
-    false
-  );
-  expect(traceLabel()).toBe("(3, 7)");
+  await drag([[px(-2.5), py(4.25)]], "mouse", false);
+  expect(traceLabel()).toBe("(−2.5, 4.25)");
+  await drag([[px(3), py(7)]], "mouse", false);
   expect(lastFrame().trace).toMatchObject({ x: 3, y: 7 });
   expect(t.engine.getSnapshot().viewport).toEqual(before);
+  expect(labels()).toEqual(["(1.41421, 0)"]);
 });
 
-it("POI-14 releasing a trace removes the dot and label and pins nothing", async () => {
+it("POI-TRACE-26 releasing a trace removes the dot and label and opens nothing", async () => {
   await setup();
   await drag([
     [px(2), py(2)],
-    [px(2.5), py(4.25)],
+    [px(ROOT2), py(0)],
   ]);
   expect(traceLabel()).toBeNull();
   expect(lastFrame().trace ?? null).toBeNull();
   expect(labels()).toEqual([]);
 });
 
-it("POI-14 a trace on a fine pointer snaps to a point of interest and shows its exact label", async () => {
+it("POI-TRACE-27 pressing another curve selects it and traces it", async () => {
   await setup();
-  await drag(
-    [
-      [px(2), py(2)],
-      [px(1.6), py(0.5)],
-      [px(ROOT2) + 2, py(0)],
-    ],
-    "mouse",
-    false
-  );
-  expect(traceLabel()).toBe("(1.41421, 0)");
+  await drag([[px(4), py(3) + 2]], "mouse", false);
+  expect(t.engine.getSnapshot().selectedRowId).toBe("2");
+  expect(traceLabel()).toBe("(4, 3)");
+  expect(lastFrame().rows.find((r) => r.rowId === "2")?.selected).toBe(true);
 });
 
 it("KB-14 with the graph focused ] and [ step through the selected row's points, one label at a time", async () => {
