@@ -1,0 +1,593 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The SAT Program: six seats, nine weeks, one test date | Karman Prep</title>
+<meta name="description" content="A class of six that meets twice a week for nine weeks and finishes on your student's SAT date. Seats by application. $995 for founding cohorts.">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>
+  (function () {
+    var t = null;
+    try { t = localStorage.getItem("karman-theme"); } catch (e) {}
+    if (t === "light" || t === "dark") document.documentElement.setAttribute("data-theme", t);
+  })();
+</script>
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #f1f1ee; --bg-2: #e8e6df; --bg-3: #dcd9cf; --ink: #15202e; --ink-2: #3f4856;
+    --paper: #f1f1ee;
+    --program: #1e5b4b; --program-soft: #2a6f5d; --private: #7b2d35; --private-soft: #8e3a43;
+    --free: #85570c; --free-soft: #966516; --night: #15202e; --night-2: #1f2c3d;
+    --right: #1e5b4b; --right-tint: #dbe8e0; --wrong: #a8432f; --wrong-tint: #f4e0da;
+    --serif: "Source Serif 4", Georgia, serif; --sans: "Hanken Grotesk", system-ui, sans-serif;
+    --m: 32px;
+    --fs-s: 15px; --fs-b: 17px; --fs-l: 20px; --fs-h3: 30px; --fs-h2: clamp(36px, 4vw, 58px); --fs-xl: clamp(40px, 4.6vw, 72px);
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #11161d; --bg-2: #18202a; --bg-3: #212b37; --ink: #ecebe6; --ink-2: #c3c9d1;
+    --right: #7cc4a5; --right-tint: #1c3029; --wrong: #ee9a86; --wrong-tint: #3a2420;
+    --night: #0b0f14; --night-2: #151c26;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --bg: #11161d; --bg-2: #18202a; --bg-3: #212b37; --ink: #ecebe6; --ink-2: #c3c9d1;
+      --right: #7cc4a5; --right-tint: #1c3029; --wrong: #ee9a86; --wrong-tint: #3a2420;
+      --night: #0b0f14; --night-2: #151c26;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-size: var(--fs-b); line-height: 1.55; -webkit-font-smoothing: antialiased; }
+  a { color: inherit; }
+  .wrap { width: calc(100% - var(--m) * 2); max-width: 1376px; margin: 0 auto; }
+  h1, h2, h3 { font-family: var(--serif); font-weight: 500; letter-spacing: -.02em; }
+  h2 { font-size: var(--fs-h2); line-height: 1.04; }
+  .btn { display: inline-flex; align-items: center; justify-content: center; min-height: 56px; padding: 0 26px; font-weight: 600; font-size: var(--fs-b); text-decoration: none; border-radius: 3px; transition: transform .15s ease, background-color .2s ease; }
+  .btn:active { transform: translateY(1px); }
+  .btn:focus-visible, a:focus-visible, button:focus-visible, summary:focus-visible { outline: 3px solid #e2b867; outline-offset: 3px; }
+  .on-dark { color: var(--paper); }
+  .btn-paper { background: var(--paper); color: #15202e; }
+  .btn-paper:hover { background: #e8e8e4; }
+  .btn-ink { background: var(--ink); color: var(--bg); }
+  .field { position: relative; }
+  @media (prefers-reduced-motion: no-preference) {
+    .js .rise { opacity: 0; transform: translateY(24px); transition: opacity .7s ease, transform .7s cubic-bezier(.2,.7,.2,1); }
+    .js .rise.in { opacity: 1; transform: none; }
+  }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+  /* navigation: wordmark, grouped links, one action */
+  header.top { position: absolute; top: 0; left: 0; right: 0; z-index: 20; color: var(--paper); }
+  header.top .wrap { display: flex; align-items: center; height: 88px; gap: 36px; }
+  .mark { font-family: var(--serif); font-size: var(--fs-h3); font-weight: 600; text-decoration: none; white-space: nowrap; }
+  .menu { display: flex; gap: 6px; list-style: none; font-size: var(--fs-b); font-weight: 500; }
+  .menu > li { position: relative; }
+  .menu > li > a, .menu > li > button { display: block; padding: 10px 12px; text-decoration: none; background: none; border: 0; color: inherit; font: inherit; cursor: pointer; }
+  .menu > li > button::after { content: ""; display: inline-block; width: 7px; height: 7px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: translateY(-3px) rotate(45deg); margin-left: 9px; }
+  .sub { position: absolute; top: 100%; left: 0; min-width: 260px; background: var(--bg); color: var(--ink); padding: 10px; border-radius: 4px; list-style: none; display: none; }
+  .menu > li:hover .sub, .menu > li:focus-within .sub { display: block; animation: drop .18s ease both; }
+  @keyframes drop { from { opacity: 0; transform: translateY(6px); } }
+  .sub a { display: block; padding: 11px 14px; text-decoration: none; border-radius: 3px; }
+  .sub a:hover { background: var(--bg-2); }
+  .sub a span { display: block; font-size: var(--fs-s); color: var(--ink-2); }
+  header .right { margin-left: auto; display: flex; align-items: center; gap: 14px; font-size: var(--fs-b); font-weight: 500; }
+  header .right a { text-decoration: none; white-space: nowrap; }
+  .theme { font: inherit; font-size: var(--fs-s); color: inherit; background: transparent; border: 1.5px solid rgba(245,242,235,.55); border-radius: 3px; padding: 9px 14px; cursor: pointer; white-space: nowrap; }
+  .burger { display: none; }
+
+  /* hero: the full-screen film */
+  .hero { height: 100svh; min-height: 680px; max-height: 1000px; overflow: hidden; background: #0e141c; color: var(--paper); }
+  .hero video, .hero .poster { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: sepia(.3) saturate(.8); }
+  .hero .shade { /* taste-skill-ignore: neutral scrim over the hero film */ position: absolute; inset: 0; background: linear-gradient(90deg, rgba(14,20,28,.86) 0%, rgba(14,20,28,.62) 52%, rgba(14,20,28,.28) 100%); }
+  .hero .inner { position: relative; height: 100%; display: flex; flex-direction: column; justify-content: center; padding-top: 40px; }
+  .hero h1 { font-size: clamp(40px, 3.9vw, 58px); line-height: 1.05; max-width: 40ch; }
+  .hero .sub-line { font-size: var(--fs-l); color: #e6e9ec; margin-top: 36px; }
+  .hero .btn { margin-top: 28px; align-self: flex-start; }
+  .stats { position: absolute; left: 0; right: 0; bottom: 0; background: rgba(14,20,28,.55); }
+  .stats .wrap { display: flex; gap: 64px; align-items: baseline; padding: 26px 0; }
+  .stats b { font-family: var(--serif); font-weight: 500; font-size: var(--fs-h3); margin-right: 10px; }
+  .stats span { font-size: var(--fs-b); color: #e3e6e9; }
+
+  /* chapter: the research and the live question */
+  .research { padding: 112px 0; background: var(--bg); }
+  .research .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 72px; align-items: center; }
+  .research .lead { font-size: var(--fs-l); margin-top: 26px; max-width: 34ch; }
+  .research .cite { font-size: var(--fs-s); color: var(--ink-2); margin-top: 18px; }
+  .research .cells { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 44px; max-width: 520px; }
+  .cell { display: flex; align-items: center; justify-content: center; min-height: 64px; text-decoration: none; font-weight: 600; border-radius: 3px; padding: 0 16px; text-align: center; }
+  .cell-ink { background: var(--ink); color: var(--bg); }
+  .cell-tone { background: var(--bg-3); color: var(--ink); }
+  .cell:hover { filter: brightness(1.08); }
+
+  /* the question: a real piece of the product */
+  .q { background: var(--bg-2); border-radius: 4px; padding: 34px 36px 32px; }
+  .q .meta { display: flex; justify-content: space-between; gap: 16px; font-size: var(--fs-s); color: var(--ink-2); }
+  .q .meta b { color: var(--ink); font-weight: 600; }
+  .q .passage { font-family: var(--serif); font-size: var(--fs-b); line-height: 1.6; margin: 20px 0 14px; }
+  .q .ask { font-weight: 600; font-size: var(--fs-b); margin-bottom: 14px; }
+  .choice { display: grid; grid-template-columns: 32px 1fr auto; align-items: center; gap: 12px; width: 100%; text-align: left; padding: 13px 14px; margin-top: 8px; background: var(--bg); border: 1.5px solid transparent; border-radius: 3px; font: inherit; font-size: var(--fs-b); color: var(--ink); cursor: pointer; transition: border-color .15s ease, background-color .15s ease; }
+  .choice:hover:not([disabled]) { border-color: var(--ink-2); }
+  .choice .l { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-size: var(--fs-s); font-weight: 700; background: var(--bg-3); }
+  .choice em { font-style: normal; font-size: var(--fs-s); font-weight: 700; }
+  .choice[disabled] { cursor: default; }
+  .choice.is-wrong { border-color: var(--wrong); background: var(--wrong-tint); }
+  .choice.is-wrong .l { background: var(--wrong); color: var(--bg); }
+  .choice.is-wrong em { color: var(--wrong); }
+  .choice.is-right { border-color: var(--right); background: var(--right-tint); }
+  .choice.is-right .l { background: var(--right); color: var(--bg); }
+  .choice.is-right em { color: var(--right); }
+  .after { display: none; margin-top: 18px; }
+  .after.show { display: block; animation: fadeup .4s ease both; }
+  @keyframes fadeup { from { opacity: 0; transform: translateY(8px); } }
+  .after p { font-size: var(--fs-b); }
+  .next { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+  .next div { background: var(--bg-3); border-radius: 3px; padding: 14px 16px; font-size: var(--fs-s); }
+  .next div b { display: block; font-size: var(--fs-b); margin-bottom: 2px; }
+
+  /* chapter: the ecosystem, drawn as a moving wire mesh */
+  .eco { background: var(--night); color: var(--paper); padding: 112px 0; }
+  .eco .grid { display: grid; grid-template-columns: 5fr 7fr; gap: 56px; align-items: center; margin-top: 48px; }
+  .eco h2 { max-width: 28ch; }
+  .eco .lead { font-size: var(--fs-l); color: #d8dde2; margin-top: 22px; max-width: 36ch; }
+  .rows { list-style: none; margin-top: 34px; display: grid; gap: 4px; }
+  .rows button { display: grid; grid-template-columns: 1fr auto; gap: 16px; width: 100%; text-align: left; background: transparent; color: var(--paper); border: 0; border-radius: 3px; padding: 12px 14px; font: inherit; font-size: var(--fs-b); cursor: pointer; transition: background-color .24s ease; }
+  .rows button span { color: #b9c1ca; font-size: var(--fs-s); }
+  .rows button.active, .rows button:hover { background: var(--night-2); }
+  .rows button.active { color: #9fd8bf; }
+  .stage { position: relative; aspect-ratio: 1 / 1; max-height: 680px; }
+  .stage canvas { width: 100%; height: 100%; display: block; }
+  .eco .btn { margin-top: 30px; }
+
+  /* chapter: the teacher, an inset panel */
+  .teacher { padding: 20px; background: var(--bg); }
+  .teacher .panel { background: var(--bg-2); border-radius: 4px; display: grid; grid-template-columns: 1fr 1fr; gap: 64px; padding: 64px 72px; align-items: center; }
+  .portrait { aspect-ratio: 4 / 5; max-width: 380px; width: 100%; background: var(--bg-3); border-radius: 220px 220px 4px 4px; display: grid; place-items: center; text-align: center; color: var(--ink-2); font-size: var(--fs-b); padding: 40px; }
+  .teacher .lead { font-size: var(--fs-l); margin-top: 24px; max-width: 36ch; }
+  .teacher .facts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 34px; max-width: 520px; }
+  .teacher .facts div { background: var(--bg); border-radius: 3px; padding: 18px 20px; }
+  .teacher .facts b { font-family: var(--serif); font-weight: 500; font-size: var(--fs-h3); display: block; line-height: 1.1; }
+  .teacher .facts span { font-size: var(--fs-b); color: var(--ink-2); }
+  .teacher .btn { margin-top: 32px; }
+
+  /* chapters: the two paths, each in its own colour */
+  .paths { display: grid; grid-template-columns: 1fr 1fr; margin-top: 20px; }
+  .path { min-height: 60svh; padding: 88px 64px 56px; display: flex; flex-direction: column; color: var(--paper); }
+  .path.program { background: var(--program); }
+  .path.private { background: var(--private); }
+  .path .name { font-size: var(--fs-b); font-weight: 600; color: #f5f2eb; opacity: .92; }
+  .path h2 { max-width: 13ch; }
+  .path .big { font-family: var(--serif); font-size: var(--fs-h3); line-height: 1.2; margin-top: 18px; color: #f5f2eb; }
+  .path p { font-size: var(--fs-l); margin-top: 22px; max-width: 34ch; color: #f1f1ee; }
+  .path .bottom { margin-top: auto; padding-top: 48px; }
+  .path .btn { background: var(--paper); color: #15202e; }
+
+  /* chapter: free start, in the free colour */
+  .free { background: var(--free); color: var(--paper); padding: 96px 0; }
+  .free .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 72px; align-items: center; }
+  .free .photo { order: -1; aspect-ratio: 4 / 3; background: center/cover no-repeat url('https://images.unsplash.com/photo-1598981457915-aea220950616?w=1200&q=75&auto=format'); border-radius: 4px; }
+  .free .lead { font-size: var(--fs-l); margin-top: 24px; max-width: 34ch; }
+  .free .btn { margin-top: 34px; }
+  .free .also { margin-top: 28px; font-size: var(--fs-b); }
+  .free .also a { font-weight: 600; }
+
+  /* questions: filled tiles */
+  .faq { padding: 112px 0; background: var(--bg); }
+  .faq .grid { display: grid; grid-template-columns: 4fr 8fr; gap: 56px; align-items: start; }
+  .faq .side { position: sticky; top: 100px; }
+  .faq .all { display: inline-block; margin-top: 22px; font-weight: 600; font-size: var(--fs-b); }
+  details { background: var(--bg-2); border-radius: 3px; margin-bottom: 8px; transition: background-color .2s ease; }
+  details[open] { background: var(--program); color: var(--paper); }
+  summary { list-style: none; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 20px; min-height: 76px; padding: 18px 24px; font-size: var(--fs-l); font-weight: 500; }
+  summary::-webkit-details-marker { display: none; }
+  summary i { position: relative; width: 16px; height: 16px; flex: none; }
+  summary i::before, summary i::after { content: ""; position: absolute; left: 0; top: 6.5px; width: 16px; height: 3px; background: currentColor; transition: transform .2s ease; }
+  summary i::after { transform: rotate(90deg); }
+  details[open] summary i::after { transform: rotate(0deg); }
+  details p { padding: 0 24px 24px; font-size: var(--fs-b); max-width: 58ch; }
+  details[open] p a { color: var(--paper); }
+
+  /* the close, inverted */
+  .close { background: var(--ink); color: var(--bg); min-height: 70svh; padding: 120px 0 56px; display: flex; }
+  .close .wrap { display: flex; flex-direction: column; }
+  .close h2 { font-size: var(--fs-xl); line-height: 1; max-width: 22ch; }
+  .close .base { margin-top: auto; padding-top: 72px; display: flex; justify-content: space-between; align-items: flex-end; gap: 32px; }
+  .close .base p { font-size: var(--fs-l); max-width: 40ch; }
+  .close .btn { background: var(--bg); color: var(--ink); }
+
+  /* footer: tiles */
+  footer { background: var(--bg); padding: 10px; }
+  .tiles { display: grid; grid-template-columns: repeat(12, 1fr); gap: 8px; }
+  .tile { background: var(--bg-2); border-radius: 3px; padding: 26px; min-height: 220px; display: flex; flex-direction: column; }
+  .t1 { grid-column: span 4; }
+  .t2, .t3, .t4 { grid-column: span 2; }
+  .t5 { grid-column: span 2; }
+  .tile h4 { font-size: var(--fs-b); font-weight: 700; margin-bottom: 10px; }
+  .tile a { text-decoration: none; display: block; padding: 4px 0; font-size: var(--fs-b); }
+  .tile a:hover { text-decoration: underline; }
+  .t1 p { font-size: var(--fs-l); font-family: var(--serif); line-height: 1.3; }
+  .t1 small { margin-top: auto; font-size: var(--fs-s); color: var(--ink-2); line-height: 1.5; }
+  .word { grid-column: span 8; background: var(--night); color: var(--paper); min-height: 300px; display: grid; place-items: center; font-family: var(--serif); font-size: clamp(56px, 9vw, 150px); letter-spacing: -.03em; border-radius: 3px; }
+  .go { grid-column: span 4; background: var(--program); color: var(--paper); min-height: 300px; border-radius: 3px; padding: 28px; text-decoration: none; display: flex; flex-direction: column; justify-content: space-between; font-family: var(--serif); font-size: var(--fs-h3); line-height: 1.15; }
+  .go svg { align-self: flex-end; }
+  .go:hover { background: var(--program-soft); }
+
+  @media (max-width: 980px) {
+    :root { --m: 16px; }
+    .menu, header .right .signin { display: none; }
+    .burger { display: inline-block; font: inherit; font-size: var(--fs-s); color: inherit; background: transparent; border: 1.5px solid rgba(245,242,235,.55); border-radius: 3px; padding: 9px 14px; }
+    header.top .wrap { height: 68px; gap: 12px; }
+    .mark { font-size: var(--fs-l); }
+    .theme { padding: 9px 10px; font-size: var(--fs-s); }
+    .hero { height: auto; min-height: 0; max-height: none; }
+    .hero .inner { padding: 132px 0 40px; }
+    .hero h1 { font-size: 32px; }
+    h2 { font-size: 30px; }
+    .close h2 { font-size: 32px; }
+    .hero .sub-line { font-size: var(--fs-b); margin-top: 24px; }
+    .hero .btn { align-self: stretch; }
+    .stats { position: relative; }
+    .stats .wrap { flex-direction: column; gap: 10px; padding: 22px 0; }
+    .stats b { font-size: var(--fs-h3); }
+    .research, .eco, .faq { padding: 80px 0; }
+    .research .grid, .eco .grid, .free .grid, .faq .grid { grid-template-columns: 1fr; gap: 40px; }
+    .q { padding: 22px 18px; }
+    .q .meta { flex-direction: column; gap: 2px; }
+    .next { grid-template-columns: 1fr; }
+    .stage { max-width: 480px; width: 100%; margin: 0 auto; }
+    .teacher { padding: 10px; }
+    .teacher .panel { grid-template-columns: 1fr; padding: 48px 22px; gap: 36px; }
+    .portrait { order: 2; margin: 0 auto; }
+    .paths { grid-template-columns: 1fr; margin-top: 10px; }
+    .path { min-height: 0; padding: 72px 22px 40px; }
+    .path .btn { width: 100%; }
+    .free { padding: 80px 0; }
+    .free .photo { order: 0; }
+    .faq .side { position: static; }
+    .close { min-height: 70svh; padding: 80px 0 32px; }
+    .close .base { flex-direction: column; align-items: stretch; }
+    .close .btn { width: 100%; }
+    .tiles { grid-template-columns: 1fr 1fr; gap: 6px; }
+    .word { grid-column: 1 / -1; min-height: 160px; }
+    .go { grid-column: 1 / -1; min-height: 180px; }
+    .t1 { grid-column: 1 / -1; }
+    .t2, .t3, .t4, .t5 { grid-column: span 1; min-height: 0; }
+  }
+
+  /* program hero: the program's own colour, with the cohort picker as the live thing */
+  .phero { background: var(--program); color: var(--paper); padding: 168px 0 112px; }
+  .phero .grid { display: grid; grid-template-columns: 6fr 5fr; gap: 72px; align-items: center; }
+  .phero h1 { font-size: clamp(56px, 7vw, 112px); line-height: .95; }
+  .phero .lead { font-size: var(--fs-l); margin-top: 32px; max-width: 32ch; color: #f1f1ee; }
+  .phero .note { font-size: var(--fs-b); margin-top: 14px; color: #f1f1ee; }
+  .phero .btn { margin-top: 34px; }
+  .cohorts { background: #174a3d; border-radius: 4px; padding: 30px; }
+  .cohorts h2 { font-size: var(--fs-h3); }
+  .tablist { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 20px; }
+  .tablist button { font: inherit; font-size: var(--fs-b); font-weight: 600; color: var(--paper); background: #123b31; border: 0; border-radius: 3px; padding: 14px 8px; cursor: pointer; transition: background-color .2s ease; }
+  .tablist button[aria-selected="true"] { background: var(--paper); color: #15202e; }
+  .tablist button:hover:not([aria-selected="true"]) { background: #0f342b; }
+  .cohort { margin-top: 22px; }
+  .cohort dl { display: grid; grid-template-columns: auto 1fr; gap: 10px 22px; font-size: var(--fs-b); }
+  .cohort dt { color: #cfe3d8; }
+  .cohort dd { font-weight: 600; }
+  .seats { margin-top: 26px; }
+  .seats .row { display: flex; gap: 8px; }
+  .seat { width: 44px; height: 44px; border-radius: 3px; background: var(--paper); }
+  .seat.sch { background: #e2b867; }
+  .seats p { font-size: var(--fs-s); margin-top: 10px; color: #dbe9e1; }
+
+  /* who gets a seat */
+  .who { padding: 128px 0; }
+  .who .grid { display: grid; grid-template-columns: 4fr 4fr 4fr; gap: 40px; align-items: start; }
+  .who .lead { font-size: var(--fs-l); margin-top: 22px; max-width: 30ch; }
+  .who .col { background: var(--bg-2); border-radius: 4px; padding: 34px; }
+  .who .col.yes { background: var(--program); color: var(--paper); }
+  .who .col.yes li::before { background: var(--paper); }
+  .who-photo { width: 100%; height: auto; aspect-ratio: 3 / 2; object-fit: cover; border-radius: 4px; margin-top: 32px; display: block; }
+  .who .col h3 { font-size: var(--fs-h3); margin-bottom: 18px; }
+  .who .col ul { list-style: none; display: grid; gap: 14px; }
+  .who .col li { font-size: var(--fs-b); padding-left: 22px; position: relative; }
+  .who .col li::before { content: ""; position: absolute; left: 0; top: .62em; width: 10px; height: 10px; border-radius: 2px; background: var(--program); }
+  .who .col.no li::before { background: var(--private); }
+
+  /* a week */
+  .week { background: var(--bg-2); padding: 128px 0; }
+  .week .lead { font-size: var(--fs-l); margin-top: 22px; max-width: 44ch; }
+  .wk-head { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center; }
+  .wk-film { aspect-ratio: 16 / 10; border-radius: 4px; overflow: hidden; background: var(--bg-3); }
+  .wk-film video { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-top: 48px; }
+  .day { background: var(--bg); border-radius: 4px; padding: 18px 16px; min-height: 176px; display: flex; flex-direction: column; gap: 8px; }
+  .day b { font-size: var(--fs-b); }
+  .day span { font-size: var(--fs-s); color: var(--ink-2); }
+  .day.class { background: var(--program); color: var(--paper); }
+  .day.class span { color: #dbe9e1; }
+  .day.test { background: var(--night); color: var(--paper); }
+  .day.test span { color: #c9d0d8; }
+  .every { margin-top: 18px; font-size: var(--fs-b); }
+  .every b { font-weight: 600; }
+
+  /* the nine weeks as one bar */
+  .span { margin-top: 96px; }
+  .span h2 { font-size: var(--fs-h2); }
+  .bar { display: grid; grid-template-columns: repeat(9, 1fr); gap: 4px; margin-top: 40px; }
+  .bar i { height: 18px; background: var(--bg-3); border-radius: 2px; }
+  .bar i.mark { background: var(--program); }
+  .bar i.end { background: var(--private); }
+  .marks { display: grid; grid-template-columns: repeat(9, 1fr); gap: 4px; margin-top: 14px; }
+  .marks div { font-size: var(--fs-s); color: var(--ink-2); }
+  .marks div b { display: block; color: var(--ink); font-size: var(--fs-b); font-weight: 600; }
+  .m1 { grid-column: 1 / span 2; } .m2 { grid-column: 3 / span 4; } .m3 { grid-column: 8 / span 1; } .m4 { grid-column: 9 / span 1; }
+
+  /* what is included */
+  .inc { padding: 128px 0; }
+  .inc-grid { display: grid; grid-template-columns: 4fr 8fr; gap: 8px; margin-top: 48px; }
+  .inc-photo { width: 100%; height: 100%; object-fit: cover; border-radius: 4px; display: block; }
+  .inc .list { display: grid; grid-template-columns: 1fr 1fr; gap: 30px 40px; background: var(--bg-2); border-radius: 4px; padding: 44px; }
+  .inc .item { }
+  .inc .item h3 { font-size: var(--fs-l); font-family: var(--sans); font-weight: 600; letter-spacing: 0; }
+  .inc .item p { font-size: var(--fs-b); color: var(--ink-2); margin-top: 6px; max-width: 46ch; }
+
+  /* guarantee */
+  .guar { background: var(--night); color: var(--paper); padding: 128px 0; }
+  .guar .grid { display: grid; grid-template-columns: 6fr 6fr; gap: 72px; align-items: center; }
+  .g-pic { order: -1; }
+  .g-photo { width: 100%; height: auto; aspect-ratio: 3 / 2; object-fit: cover; border-radius: 4px; display: block; }
+  .guar h2 { font-size: var(--fs-h2); }
+  .guar p { font-size: var(--fs-l); color: #d8dde2; max-width: 40ch; margin-top: 22px; }
+  .guar a { display: inline-block; margin-top: 22px; font-weight: 600; }
+
+  /* price and admission */
+  .apply { background: var(--program); color: var(--paper); padding: 128px 0; }
+  .apply .grid { display: grid; grid-template-columns: 5fr 7fr; gap: 72px; align-items: start; }
+  .apply .price { font-family: var(--serif); font-size: clamp(64px, 8vw, 128px); line-height: .9; }
+  .apply .price-note { font-size: var(--fs-l); margin-top: 18px; color: #e3eee8; max-width: 30ch; }
+  .apply h2 { font-size: var(--fs-h2); }
+  .apply .body p { font-size: var(--fs-l); margin-top: 20px; max-width: 46ch; color: #f1f1ee; }
+  .apply .body p a { color: var(--paper); }
+  .apply .btn { margin-top: 34px; }
+
+  @media (max-width: 980px) {
+    .phero { padding: 120px 0 64px; }
+    .phero .grid, .who .grid, .guar .grid, .apply .grid { grid-template-columns: 1fr; gap: 36px; }
+    .phero h1 { font-size: 56px; }
+    .phero .btn { width: 100%; }
+    .cohorts { padding: 20px; }
+    .who, .week, .inc, .guar, .apply { padding: 80px 0; }
+    .wk-head { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center; }
+  .wk-film { aspect-ratio: 16 / 10; border-radius: 4px; overflow: hidden; background: var(--bg-3); }
+  .wk-film video { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .days { grid-template-columns: 1fr; gap: 6px; }
+    .day { min-height: 0; flex-direction: row; justify-content: space-between; align-items: baseline; padding: 16px; }
+    .bar { grid-template-columns: 1fr; gap: 0; }
+    .bar { display: none; }
+    .marks { grid-template-columns: 1fr; gap: 14px; border-left: 6px solid var(--program); padding-left: 16px; }
+    .marks div { grid-column: auto !important; }
+    .inc .list { grid-template-columns: 1fr; padding: 26px; gap: 22px; }
+    .inc-grid, .wk-head { grid-template-columns: 1fr; gap: 24px; }
+    .inc-photo { aspect-ratio: 3 / 2; height: auto; }
+    .apply .btn { width: 100%; }
+    .g-pic { order: 0; }
+  }
+</style>
+</head>
+<body>
+  <header class="top">
+    <div class="wrap">
+      <a class="mark" href="/">Karman Prep</a>
+      <ul class="menu">
+        <li><button type="button" aria-haspopup="true">Programs</button>
+          <ul class="sub">
+            <li><a href="/program">The SAT Program<span>A new cohort before every test date</span></a></li>
+            <li><a href="/private-tutoring">Private tutoring<span>One-on-one, every week</span></a></li>
+            <li><a href="/pricing">Pricing<span>Both paths, side by side</span></a></li>
+          </ul>
+        </li>
+        <li><button type="button" aria-haspopup="true">Free tools</button>
+          <ul class="sub">
+            <li><a href="/free-practice-test">Free practice test<span>Any time, scored on the spot</span></a></li>
+            <li><a href="/diagnostic">Diagnostic<span>35 questions, about 35 minutes</span></a></li>
+            <li><a href="/daily">Daily Question and word game<span>New every day</span></a></li>
+            <li><a href="/question-bank">Question bank<span>Practice by skill and difficulty</span></a></li>
+          </ul>
+        </li>
+        <li><a href="/method">The method</a></li>
+        <li><a href="/about">About</a></li>
+        <li><a href="/faq">FAQ</a></li>
+      </ul>
+      <div class="right">
+        <button class="theme" type="button" id="theme">Dark mode</button>
+        <a class="signin" href="/sign-in">Sign in</a>
+        <button class="burger" type="button" aria-label="Open menu">Menu</button>
+      </div>
+    </div>
+  </header>
+
+
+  <section class="phero field" aria-labelledby="ph">
+    <div class="wrap grid">
+      <div class="rise">
+        <h1 id="ph">The SAT Program</h1>
+        <p class="lead">A class of six that meets twice a week for nine weeks and finishes on the morning of your student&apos;s SAT.</p>
+        <p class="note">Seats are by application, and every application is read by Zakaria.</p>
+        <a class="btn btn-paper" href="/program/apply">Apply for a seat</a>
+      </div>
+      <div class="cohorts rise" aria-labelledby="ch">
+        <h2 id="ch">Choose a test date</h2>
+        <div class="tablist" role="tablist" aria-label="Upcoming cohorts">
+          <button role="tab" aria-selected="true" aria-controls="c-mar">March 6</button>
+          <button role="tab" aria-selected="false" aria-controls="c-may">May 1</button>
+          <button role="tab" aria-selected="false" aria-controls="c-jun">June 5</button>
+        </div>
+        <div class="cohort" id="c-mar" role="tabpanel">
+          <dl>
+            <dt>The SAT</dt><dd>Saturday, March 6, 2027</dd>
+            <dt>Starts</dt><dd>Monday, January 4</dd>
+            <dt>Classes</dt><dd>Tuesdays and Thursdays, 7:00 to 8:30 p.m. ET</dd>
+            <dt>Applications close</dt><dd>Wednesday, December 30</dd>
+          </dl>
+          <div class="seats"><div class="row" aria-hidden="true"><i class="seat"></i><i class="seat"></i><i class="seat"></i><i class="seat"></i><i class="seat"></i><i class="seat sch"></i></div><p>Six seats: five, and one scholarship seat.</p></div>
+        </div>
+        <div class="cohort" id="c-may" role="tabpanel" hidden>
+          <dl>
+            <dt>The SAT</dt><dd>Saturday, May 1, 2027</dd>
+            <dt>Starts</dt><dd>Nine weeks before, date set in February</dd>
+            <dt>Applications</dt><dd>Open in February</dd>
+          </dl>
+          <div class="seats"><div class="row" aria-hidden="true"><i class="seat"></i><i class="seat"></i><i class="seat"></i><i class="seat"></i><i class="seat"></i><i class="seat sch"></i></div><p>Six seats: five, and one scholarship seat.</p></div>
+        </div>
+        <div class="cohort" id="c-jun" role="tabpanel" hidden>
+          <dl>
+            <dt>The SAT</dt><dd>Saturday, June 5, 2027</dd>
+            <dt>Starts</dt><dd>Nine weeks before, date set in February</dd>
+            <dt>Applications</dt><dd>Open in February</dd>
+          </dl>
+          <div class="seats"><div class="row" aria-hidden="true"><i class="seat"></i><i class="seat"></i><i class="seat"></i><i class="seat"></i><i class="seat"></i><i class="seat sch"></i></div><p>Six seats: five, and one scholarship seat.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="who field" aria-labelledby="wh">
+    <div class="wrap grid">
+      <div class="rise">
+        <h2 id="wh">Who gets a seat</h2>
+        <p class="lead">Six seats means we choose carefully, and we say so when the program won&apos;t help.</p>
+        <img class="who-photo" src="https://images.unsplash.com/photo-1593698054469-2bb6fdf4b512?w=1100&q=75&auto=format" width="1100" height="733" alt="A student writing notes beside a laptop" loading="lazy">
+      </div>
+      <div class="col yes rise">
+        <h3>We say yes when your student</h3>
+        <ul><li>can make both evening classes every week</li><li>will sit all five full-length tests</li><li>is aiming at one specific SAT date</li></ul>
+      </div>
+      <div class="col no rise">
+        <h3>We say no when</h3>
+        <ul><li>your student already scores 1500 or higher</li><li>the test is less than four weeks away</li></ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="week field" aria-labelledby="wk">
+    <div class="wrap">
+      <div class="wk-head">
+        <div>
+          <h2 id="wk" class="rise">A week in the program</h2>
+          <p class="lead rise">Two live classes, a little practice every day, and on test weekends a full-length test that Zakaria reviews with your student one-on-one.</p>
+        </div>
+        <div class="wk-film rise"><video autoplay muted loop playsinline poster="https://images.pexels.com/videos/4495519/pexels-photo-4495519.jpeg?w=1000" aria-hidden="true"><source src="https://videos.pexels.com/video-files/4495519/4495519-sd_960_540_25fps.mp4" type="video/mp4"></video></div>
+      </div>
+      <div class="days rise" data-ui>
+        <div class="day"><b>Monday</b><span>Daily 10</span></div>
+        <div class="day class"><b>Tuesday</b><span>Live class, 7:00 p.m.</span></div>
+        <div class="day"><b>Wednesday</b><span>Daily 10</span></div>
+        <div class="day class"><b>Thursday</b><span>Live class, 7:00 p.m.</span></div>
+        <div class="day"><b>Friday</b><span>Daily 10</span></div>
+        <div class="day test"><b>Saturday</b><span>Full-length test, on test weekends</span></div>
+        <div class="day"><b>Sunday</b><span>Daily 10</span></div>
+      </div>
+      <p class="every rise"><b>Also every week:</b> a live workshop on pacing, Desmos or a hard skill, questions answered in the cohort chat, and an update for you.</p>
+
+      <div class="span">
+        <h2 class="rise">From baseline to test morning</h2>
+        <div class="bar rise" aria-hidden="true"><i class="mark"></i><i></i><i></i><i></i><i></i><i></i><i></i><i class="mark"></i><i class="end"></i></div>
+        <div class="marks rise">
+          <div class="m1"><b>Week one</b>An official practice test, proctored live, then a 1:1 review</div>
+          <div class="m2"><b>Weeks two to seven</b>Three more full-length tests, each reviewed 1:1</div>
+          <div class="m3"><b>Week eight</b>A proctored dress rehearsal</div>
+          <div class="m4"><b>Test day</b>The official SAT</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="inc field" aria-labelledby="ih">
+    <div class="wrap">
+      <h2 id="ih" class="rise">Everything a seat includes</h2>
+      <div class="inc-grid">
+      <img class="inc-photo rise" src="https://images.unsplash.com/photo-1769092992494-a9087da1ab93?w=1000&q=75&auto=format" width="1000" height="1250" alt="A green desk lamp on a library table" loading="lazy">
+      <div class="list rise">
+        <div class="item"><h3>18 live classes</h3><p>Ninety minutes each, twice a week, in a group of up to six, taught by Zakaria.</p></div>
+        <div class="item"><h3>Five full-length practice tests</h3><p>The first and the dress rehearsal are official practice tests, proctored live.</p></div>
+        <div class="item"><h3>A 60-minute 1:1 after every test</h3><p>Zakaria goes through every missed question with your student.</p></div>
+        <div class="item"><h3>A weekly live workshop</h3><p>Pacing, Desmos, the adaptive second module, and the skills students miss most.</p></div>
+        <div class="item"><h3>Daily 10</h3><p>Ten minutes a day. Every missed question comes back after 2, 7 and 21 days.</p></div>
+        <div class="item"><h3>10,000+ practice questions</h3><p>Across all 39 SAT skills at seven difficulty levels.</p></div>
+        <div class="item"><h3>The cohort chat</h3><p>Questions to Zakaria answered every day.</p></div>
+        <div class="item"><h3>A weekly update for you</h3><p>Practice time, attendance, test scores and what comes next.</p></div>
+      </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="guar field" aria-labelledby="gh">
+    <div class="wrap grid">
+            <div class="rise">
+        <h2 id="gh">The 50-point guarantee</h2>
+        <p>If your student&apos;s official SAT isn&apos;t at least 50 points above the week-one baseline, the next cohort is free. Your student attends at least 80% of classes and every review, sits all five tests, and takes the SAT on the program&apos;s date.</p>
+        <a href="/guarantee">Read the full terms</a>
+      </div>
+      <div class="rise g-pic"><img class="g-photo" src="https://images.unsplash.com/photo-1598981457915-aea220950616?w=1200&q=75&auto=format" width="1200" height="800" alt="A student working through a test in a classroom" loading="lazy"></div>
+
+    </div>
+  </section>
+
+  <section class="apply field" aria-labelledby="ah">
+    <div class="wrap grid">
+      <div class="rise">
+        <p class="price">$995</p>
+        <p class="price-note">Founding cohorts. Or three monthly payments of $345. Later cohorts are $1,295.</p>
+      </div>
+      <div class="body rise">
+        <h2 id="ah">How a seat is offered</h2>
+        <p>Your student applies in about three minutes. Zakaria reads it and calls you for twenty minutes. If the program fits, a $100 deposit holds the seat, and it&apos;s refundable.</p>
+        <p>One seat in every cohort is a scholarship seat, free for a student whose family can&apos;t afford the program. <a href="mailto:hello@karmanprep.com">Write to us about it</a>.</p>
+        <a class="btn btn-paper" href="/program/apply">Apply for a seat</a>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="tiles">
+      <div class="tile t1"><p>SAT prep taught live, practiced daily and reviewed one-on-one.</p><small>&copy; 2026 Karman Prep. SAT is a trademark of the College Board, which does not endorse Karman Prep.<br>*From Karman&apos;s 1:1 tutoring, median 16 weeks.</small></div>
+      <div class="tile t2"><h4>Programs</h4><a href="/program">The SAT Program</a><a href="/private-tutoring">Private tutoring</a><a href="/pricing">Pricing</a><a href="/guarantee">Guarantee</a></div>
+      <div class="tile t3"><h4>Free</h4><a href="/free-practice-test">Practice test</a><a href="/diagnostic">Diagnostic</a><a href="/daily">Daily Question</a><a href="/question-bank">Question bank</a></div>
+      <div class="tile t4"><h4>Karman</h4><a href="/method">The method</a><a href="/about">About</a><a href="/faq">FAQ</a><a href="mailto:hello@karmanprep.com">hello@karmanprep.com</a></div>
+      <div class="tile t5"><h4>Legal</h4><a href="/terms">Terms of Service</a><a href="/privacy">Privacy Policy</a><a href="/cookies">Cookie Policy</a><a href="/refunds">Refunds</a></div>
+      <div class="word">Karman Prep</div>
+      <a class="go" href="/free-practice-test">Take a free practice test<svg width="56" height="56" viewBox="0 0 56 56" aria-hidden="true"><path d="M12 44 L44 12 M20 12 H44 V36" fill="none" stroke="currentColor" stroke-width="4"/></svg></a>
+    </div>
+  </footer>
+
+  <script>
+    document.documentElement.classList.add("js");
+    /* theme */
+    (function () {
+      var btn = document.getElementById("theme"), root = document.documentElement;
+      function cur() { var t = root.getAttribute("data-theme"); if (t) return t; return matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"; }
+      function label() { btn.textContent = cur() === "dark" ? "Light mode" : "Dark mode"; }
+      btn.addEventListener("click", function () { var n = cur() === "dark" ? "light" : "dark"; root.setAttribute("data-theme", n); try { localStorage.setItem("karman-theme", n); } catch (e) {} label(); });
+      label();
+    })();
+    /* entrances */
+    (function () {
+      var els = document.querySelectorAll(".rise");
+      if (!("IntersectionObserver" in window)) { els.forEach(function (e) { e.classList.add("in"); }); return; }
+      var io = new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } }); }, { threshold: 0.15 });
+      els.forEach(function (e, i) { e.style.transitionDelay = (i % 3) * 80 + "ms"; io.observe(e); });
+    })();
+    /* cohort picker */
+    (function () {
+      var tabs = document.querySelectorAll(".cohorts [role=tab]");
+      tabs.forEach(function (t) {
+        t.addEventListener("click", function () {
+          tabs.forEach(function (x) { x.setAttribute("aria-selected", x === t ? "true" : "false"); });
+          document.querySelectorAll(".cohort").forEach(function (p) { p.hidden = p.id !== t.getAttribute("aria-controls"); });
+        });
+      });
+    })();
+  </script>
+</body>
+</html>
