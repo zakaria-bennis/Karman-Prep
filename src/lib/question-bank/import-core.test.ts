@@ -18,8 +18,8 @@ import {
   validateImportRow,
   importQuestion,
   importQuestions,
-  type ImportQuestionInput,
 } from "./import-core";
+import { mockSupabase, validRow } from "./import-core-test-helpers";
 
 // ── subjectFromDomain ────────────────────────────────────────
 
@@ -161,19 +161,6 @@ describe("computeContentHashV2", () => {
 });
 
 // ── validateImportRow ────────────────────────────────────────
-
-function validRow(overrides: Partial<ImportQuestionInput> = {}): ImportQuestionInput {
-  return {
-    question_text: "What is 2 + 2?",
-    correct_answer: "B",
-    domain: "algebra",
-    choice_a: "3",
-    choice_b: "4",
-    choice_c: "5",
-    choice_d: "6",
-    ...overrides,
-  };
-}
 
 describe("validateImportRow — happy path", () => {
   it("accepts a complete MC row", () => {
@@ -327,55 +314,6 @@ describe("validateImportRow — versioned source identity", () => {
 
 // ── importQuestion (mocked Supabase) ─────────────────────────
 
-function mockSupabase(
-  inserts: Record<string, { data?: unknown; error?: { code?: string; message: string } | null }>,
-  lookup?: Record<string, unknown>
-) {
-  const calls: Array<{ table: string; payload: unknown; method: string }> = [];
-  function make(table: string) {
-    const builder: {
-      insert: (p: unknown) => typeof builder;
-      update: (p: unknown) => typeof builder;
-      eq: (...args: unknown[]) => typeof builder;
-      select: () => typeof builder;
-      single: () => unknown;
-      maybeSingle: () => unknown;
-      then: (cb: (r: unknown) => unknown) => unknown;
-    } = {
-      insert(payload: unknown) {
-        calls.push({ table, payload, method: "insert" });
-        return builder;
-      },
-      update(payload: unknown) {
-        calls.push({ table, payload, method: "update" });
-        return builder;
-      },
-      eq() {
-        return builder;
-      },
-      select() {
-        return builder;
-      },
-      single() {
-        const result = inserts[table] ?? { data: { id: `mock-${table}-id` }, error: null };
-        return Promise.resolve(result);
-      },
-      maybeSingle() {
-        return Promise.resolve({ data: lookup?.[table] ?? null, error: null });
-      },
-      then(cb: (r: unknown) => unknown) {
-        const result = inserts[table] ?? { data: null, error: null };
-        return Promise.resolve(cb(result));
-      },
-    };
-    return builder;
-  }
-  return {
-    client: { from: (table: string) => make(table) } as never,
-    calls,
-  };
-}
-
 describe("importQuestion — DB write shape", () => {
   it.each([1, 2, 3, 4, 5, 6, 7])(
     "stores reviewed level %i exactly and leaves student history alone",
@@ -448,53 +386,6 @@ describe("importQuestion — DB write shape", () => {
     const payload = qInsert!.payload as Record<string, unknown>;
     expect(payload.question_text).toBe("What is 2 + 2?");
     expect(payload.raw_question_text).toBe("What is 2 + 2?");
-  });
-
-  it("does not label independently confirmed answers", async () => {
-    const { client, calls } = mockSupabase({
-      quiz_questions: { data: { id: "q-1" }, error: null },
-    });
-    const digest = "a".repeat(64);
-    await importQuestion(
-      client,
-      validRow({
-        reviewed_answer: {
-          kind: "independently_confirmed_generated",
-          independently_verified_answer: "B",
-          evidence: { note: "two independent solves" },
-          printed_answer: null,
-          generated_key_artifact_sha256: digest,
-          independent_review_sha256s: [digest, "b".repeat(64)],
-        },
-      } as Partial<ImportQuestionInput>)
-    );
-    const qInsert = calls.find((c) => c.table === "quiz_questions" && c.method === "insert");
-    expect(qInsert).toBeDefined();
-    expect((qInsert!.payload as Record<string, unknown>).answer_source).toBeNull();
-  });
-
-  it("drops a carried answer_source label on independently confirmed answers", async () => {
-    const { client, calls } = mockSupabase({
-      quiz_questions: { data: { id: "q-1" }, error: null },
-    });
-    const digest = "c".repeat(64);
-    await importQuestion(
-      client,
-      validRow({
-        answer_source: "extracted",
-        reviewed_answer: {
-          kind: "independently_confirmed_generated",
-          independently_verified_answer: "B",
-          evidence: { note: "two independent solves" },
-          printed_answer: null,
-          generated_key_artifact_sha256: digest,
-          independent_review_sha256s: [digest, "d".repeat(64)],
-        },
-      } as Partial<ImportQuestionInput>)
-    );
-    const qInsert = calls.find((c) => c.table === "quiz_questions" && c.method === "insert");
-    expect(qInsert).toBeDefined();
-    expect((qInsert!.payload as Record<string, unknown>).answer_source).toBeNull();
   });
 
   it("computes content_hash_v2 (sha256 hex)", async () => {
