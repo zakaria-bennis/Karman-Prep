@@ -1,6 +1,8 @@
 // The graph controls' own glyphs (GP-40 to GP-42), drawn for this package: a wrench for Graph
 // settings and a plus or minus for the zoom buttons. Each fills in currentColor.
 
+import { useId } from "react";
+
 const svgProps = {
   className: "kc-glyph",
   "aria-hidden": true,
@@ -12,16 +14,18 @@ const svgProps = {
  * high right with the jaw opening towards the right (16 px).
  */
 export function GraphWrenchGlyph(): JSX.Element {
+  // One clip path per glyph, so two calculators on a page never share an id.
+  const jaw = `kc-wrench-jaw-${useId().replace(/[^\w-]/g, "")}`;
   return (
     <svg {...svgProps} width={16} height={16} viewBox="0 0 16 16">
-      <clipPath id="kc-wrench-jaw">
+      <clipPath id={jaw}>
         {/* The whole box, less the jaw's slot and the hole in the handle (even-odd). */}
         <path
           clipRule="evenodd"
           d="M0 0H16V16H0Z M12.1 5.61L17.3 2.61L15.9 0.19L10.7 3.19Z M2.55 13.9A0.65 0.65 0 1 0 1.25 13.9A0.65 0.65 0 1 0 2.55 13.9Z"
         />
       </clipPath>
-      <g clipPath="url(#kc-wrench-jaw)" fill="currentColor">
+      <g clipPath={`url(#${jaw})`} fill="currentColor">
         <path d="M1.9 13.9L8.6 7.2" stroke="currentColor" strokeWidth="3.4" strokeLinecap="round" />
         <circle cx="11" cy="4.7" r="4.6" />
       </g>
