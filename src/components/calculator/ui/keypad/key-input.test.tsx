@@ -68,7 +68,7 @@ it("K-9 the audio key starts and stops the keyboard trace of the keypad's row wi
   expect(field.calls.filter((c) => edits.includes(c.method))).toEqual([]); // stopping refocuses the row
 });
 
-it("K-3 Shift capitalises the next letter only", async () => {
+it("K-3, VIS-KEYPAD-23 Shift capitalises letters until it is tapped again", async () => {
   const kit = renderEditor(editor(), { rows: [""] });
   const field = kit.fields.forRow("1");
   const user = userEvent.setup();
@@ -77,10 +77,13 @@ it("K-3 Shift capitalises the next letter only", async () => {
   await user.click(key("Shift"));
   field.calls = [];
   await user.click(key("Q"));
-  await user.click(key("w"));
+  await user.click(key("W"));
+  await user.click(key("Shift"));
+  await user.click(key("e"));
   expect(field.calls).toEqual([
     { method: "typedText", arg: "Q" },
-    { method: "typedText", arg: "w" },
+    { method: "typedText", arg: "W" },
+    { method: "typedText", arg: "e" },
   ]);
   expect(key("Shift")).toHaveAttribute("aria-pressed", "false");
 });

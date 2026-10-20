@@ -1,111 +1,283 @@
-/* The keypad: the K-1 tray, the K-3 letters pages and
-   the K-6 phone keypad. Colours come only from role variables (TH-3); keys are at least 32 px, and
-   44 px on coarse pointers and on the phone keypad (K-1, K-6). */
+/* The keypad, drawn to the reference keypad (rea-targets visual keypad.md, VIS-KEYPAD-1 to 41).
+   Colours are mixed from the skin's roles (TH-3); on the classic skin each mix equals the
+   reference's measured value. */
 
 .kc-keypad {
-  --kc-key-size: 32px;
+  /* Keys */
+  --kc-kp-light-top: var(--kc-key);
+  --kc-kp-light-bottom: color-mix(in srgb, var(--kc-text) 2%, var(--kc-key));
+  --kc-kp-light-border: color-mix(in srgb, var(--kc-text) 15.3%, var(--kc-key));
+  --kc-kp-light-hover: color-mix(in srgb, var(--kc-text) 4%, var(--kc-key));
+  --kc-kp-light-pressed: color-mix(in srgb, var(--kc-text) 7.8%, var(--kc-key));
+  --kc-kp-light-pressed-border: color-mix(in srgb, var(--kc-text) 18.8%, var(--kc-key));
+  --kc-kp-dark-top: color-mix(in srgb, var(--kc-text) 13%, transparent);
+  --kc-kp-dark-bottom: color-mix(in srgb, var(--kc-text) 16%, transparent);
+  --kc-kp-dark-hover: color-mix(in srgb, var(--kc-text) 16%, transparent);
+  --kc-kp-dark-pressed: color-mix(in srgb, var(--kc-text) 19%, transparent);
+  --kc-kp-accent-hover: color-mix(in srgb, var(--kc-text) 10%, var(--kc-accent));
+  --kc-kp-accent-pressed: color-mix(in srgb, var(--kc-text) 20%, var(--kc-accent));
+  --kc-kp-edge: color-mix(in srgb, var(--kc-text) 10%, transparent);
+  --kc-kp-shine: color-mix(in srgb, var(--kc-key) 25%, transparent);
+  --kc-kp-shine-dark: color-mix(in srgb, var(--kc-key) 10%, transparent);
+  --kc-kp-shade: color-mix(in srgb, var(--kc-text) 2%, transparent);
+  --kc-kp-shade-accent: color-mix(in srgb, var(--kc-text) 4%, transparent);
+  --kc-kp-dim: color-mix(in srgb, var(--kc-text) 47%, transparent);
+  /* Functions popover buttons */
+  --kc-kp-fn-top: color-mix(in srgb, var(--kc-text) 3.5%, var(--kc-key));
+  --kc-kp-fn-bottom: color-mix(in srgb, var(--kc-text) 5.9%, var(--kc-key));
+  --kc-kp-fn-hover: color-mix(in srgb, var(--kc-text) 7%, var(--kc-key));
+  --kc-kp-fn-hover-border: color-mix(in srgb, var(--kc-text) 13%, transparent);
+  --kc-kp-fn-pressed: color-mix(in srgb, var(--kc-text) 12%, var(--kc-key));
+  --kc-kp-fn-pressed-border: color-mix(in srgb, var(--kc-text) 15%, transparent);
+  /* Type: keys at 17.6 px, words at 90 % of that, maths at 18.216 px (VIS-KEYPAD-14, 15) */
+  --kc-kp-word: 15.84px;
+  --kc-kp-math: 18.216px;
 }
 
-.kc-keypad:is([data-pointer="coarse"], [data-layout="phone"]) {
-  --kc-key-size: 44px;
-}
-
-/* The bar takes the first line; the groups share the next one, in proportion to their columns. */
+/* VIS-KEYPAD-1: a full-width tray, 1 px edge plus 168 px of keys, fixed to the bottom. */
 .kc-keypad {
   position: relative;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: start;
-  gap: 8px;
-  padding: 4px;
+  box-sizing: border-box;
+  height: 169px;
+  border-top: 1px solid var(--kc-kp-edge);
   background-color: var(--kc-chrome);
+  box-shadow: 0 -1px 3px var(--kc-kp-edge);
   color: var(--kc-text);
   font-family: var(--kc-font-ui);
-  font-size: var(--kc-size-ui);
+  font-size: 17.6px;
 }
 
-/* AN-1: hidden, the keypad stays mounted below its open position (the slide is at the end). It
-   leaves the flow, so the keypad grid row collapses and the graph and list take the calculator's
-   whole height (L-1, L-2); .kc-app clips the tray below its bottom edge. */
-.kc-keypad[data-open="false"] {
+/* VIS-KEYPAD-2: the key block is at most 835 px wide, centred, padded 4 px by 3 px. */
+.kc-keypad-keys {
+  position: relative;
+  box-sizing: border-box;
+  max-width: 835px;
+  margin-inline: auto;
+  padding: 4px 3px;
+}
+
+/* VIS-KEYPAD-3: 40 px rows; each cell carries a 2 px margin round a 36 px key. */
+.kc-keypad-row {
+  position: relative;
+  height: 40px;
+}
+
+/* Inline --kc-x and --kc-w place each cell as fractions of the row. */
+.kc-key {
+  --kc-x: 0;
+  --kc-w: 0;
   position: absolute;
-  inset-inline: 0;
-  bottom: 0;
-  transform: translateY(100%);
-  visibility: hidden;
-}
-
-.kc-keypad-bar {
+  top: 2px;
+  bottom: 2px;
+  left: calc(var(--kc-x) * 100% + 2px);
+  width: calc(var(--kc-w) * 100% - 4px);
   display: flex;
-  flex: 1 0 100%;
-  justify-content: flex-end;
-}
-
-/* The inline --kc-columns of each group overrides this default (TH-3 needs a declaration). */
-.kc-keypad [data-group] {
-  --kc-columns: 4;
-}
-
-.kc-keypad [data-group] {
-  display: grid;
-  flex-grow: var(--kc-columns);
-  flex-basis: 0;
-  grid-template-columns: repeat(var(--kc-columns), minmax(var(--kc-key-size), 1fr));
-  gap: 4px;
-}
-
-.kc-key,
-.kc-keypad-bar button {
-  display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: var(--kc-key-size);
-  min-height: var(--kc-key-size);
+  box-sizing: border-box;
+  min-width: 0;
   padding: 0;
+  overflow: hidden;
+  border: 1px solid transparent;
+  border-radius: 2px;
+  color: var(--kc-text);
+  font-family: var(--kc-font-math);
+  font-size: var(--kc-kp-math);
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  touch-action: manipulation; /* K-7: no double-tap zoom, so a double tap on = reaches the key */
+  user-select: none;
+}
+
+/* A full-width key block starts on a whole pixel; there, like the reference, each key's edges
+   are rounded to whole pixels (browsers without round() keep the plain calc() above). */
+.kc-keypad[data-full-width="true"] .kc-key {
+  left: round(calc(var(--kc-x) * 100% + 2px), 1px);
+  width: calc(
+    round(calc((var(--kc-x) + var(--kc-w)) * 100% - 2px), 1px) -
+      round(calc(var(--kc-x) * 100% + 2px), 1px)
+  );
+}
+
+/* VIS-KEYPAD-6: white keys. */
+.kc-key[data-tone="light"] {
+  border-color: var(--kc-kp-light-border);
+  background: linear-gradient(var(--kc-kp-light-top), var(--kc-kp-light-bottom));
+  box-shadow:
+    inset 0 1px 0 var(--kc-kp-shine),
+    inset 0 -1px 0 var(--kc-kp-shade);
+}
+
+/* VIS-KEYPAD-7: grey keys, a darkening of the tray. */
+.kc-key[data-tone="dark"] {
+  border-color: var(--kc-boundary);
+  background: linear-gradient(var(--kc-kp-dark-top), var(--kc-kp-dark-bottom));
+  box-shadow:
+    inset 0 1px 0 var(--kc-kp-shine-dark),
+    inset 0 -1px 0 var(--kc-kp-shade);
+}
+
+/* VIS-KEYPAD-8: Enter, the one key that eases its colour (200 ms). */
+.kc-key[data-tone="accent"] {
+  border-radius: 3px;
+  background-color: var(--kc-accent);
+  box-shadow:
+    inset 0 1px 0 var(--kc-kp-shine-dark),
+    inset 0 -1px 0 var(--kc-kp-shade-accent);
+  color: var(--kc-accent-label);
+  transition: background-color var(--kc-dur-200) var(--kc-ease);
+}
+
+/* VIS-KEYPAD-10: hover is a flat face (mouse only). */
+@media (hover: hover) {
+  .kc-key[data-tone="light"]:hover {
+    background: var(--kc-kp-light-hover);
+  }
+
+  .kc-key[data-tone="dark"]:hover {
+    background: var(--kc-kp-dark-hover);
+  }
+
+  .kc-key[data-tone="accent"]:hover {
+    background-color: var(--kc-kp-accent-hover);
+  }
+}
+
+/* VIS-KEYPAD-11: pressed is flatter still and drops the inset shadows. */
+.kc-key:is(:active, [data-pressed="true"]) {
+  box-shadow: none;
+}
+
+.kc-key[data-tone="light"]:is(:active, [data-pressed="true"]) {
+  border-color: var(--kc-kp-light-pressed-border);
+  background: var(--kc-kp-light-pressed);
+}
+
+.kc-key[data-tone="dark"]:is(:active, [data-pressed="true"]) {
+  background: var(--kc-kp-dark-pressed);
+}
+
+.kc-key[data-tone="accent"]:is(:active, [data-pressed="true"]) {
+  background-color: var(--kc-kp-accent-pressed);
+}
+
+/* VIS-KEYPAD-14 to 23: the faces. */
+.kc-key-var {
+  font-style: italic;
+}
+
+/* Maths sits 1 px below the key's centre. */
+.kc-key > span:not(.kc-key-word) {
+  position: relative;
+  top: 0.5px;
+}
+
+.kc-key-word {
+  font-family: var(--kc-font-ui);
+  font-size: var(--kc-kp-word);
+}
+
+.kc-key-sup,
+.kc-key-sub {
+  font-size: 80%;
+  line-height: 0;
+}
+
+.kc-key-sup {
+  padding-left: 1px;
+  vertical-align: 0.42em;
+}
+
+.kc-key-sub {
+  font-size: 64%;
+  vertical-align: -0.25em;
+}
+
+.kc-key-raised {
+  font-size: 75%;
+  line-height: 0;
+  vertical-align: 0.45em;
+}
+
+.kc-key-dual {
+  display: flex;
+  gap: 0.3em;
+}
+
+.kc-key-dual > [data-selected="false"] {
+  color: var(--kc-kp-dim);
+}
+
+.kc-key-icon,
+.kc-key-sqrt {
+  flex: none;
+}
+
+.kc-key-sqrt {
+  margin-top: -2px;
+}
+
+/* VIS-KEYPAD-39: the ABC key's smaller font on narrow keypads. */
+.kc-keypad[data-abc-size="m"] .kc-key[data-key="letters"] .kc-key-word {
+  font-size: 14.256px;
+}
+
+.kc-keypad[data-abc-size="s"] .kc-key[data-key="letters"] .kc-key-word {
+  font-size: 12.67px;
+}
+
+.kc-keypad[data-abc-size="xs"] .kc-key[data-key="letters"] .kc-key-word {
+  font-size: 11.09px;
+}
+
+/* VIS-KEYPAD-9: with nothing to trace the audio key is a grey key at half strength, no hover. */
+.kc-key[data-tone="dark"][aria-disabled="true"] {
+  border-color: color-mix(in srgb, var(--kc-boundary) 50%, var(--kc-chrome));
+  background: linear-gradient(
+    color-mix(in srgb, var(--kc-text) 6.5%, transparent),
+    color-mix(in srgb, var(--kc-text) 8%, transparent)
+  );
+  color: color-mix(in srgb, var(--kc-text) 53%, var(--kc-chrome));
+  cursor: auto;
+}
+
+/* VIS-KEYPAD-33: the Hide keypad tab, joined to the tray's top-left corner. */
+.kc-hide-keypad {
+  position: absolute;
+  top: -41px;
+  left: -1px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-sizing: border-box;
+  width: 90px;
+  height: 42px;
+  padding: 0 20px 6px;
   border: none;
-  border-radius: 4px;
+  border-top: 1px solid var(--kc-kp-edge);
+  border-radius: 5px 5px 0 0;
+  background-color: var(--kc-chrome);
+  box-shadow: 0 -1px 3px var(--kc-kp-edge);
   color: var(--kc-text);
   cursor: pointer;
 }
 
-/* Keypad glyphs are text in the math font (TH-18); the two word keys use the UI font. */
-.kc-key {
-  font-family: var(--kc-font-math);
-  font-size: var(--kc-size-math);
-  line-height: 1;
+.kc-hide-keypad > svg {
+  flex: none;
+  opacity: 0.7;
 }
 
-.kc-key:is([data-key="functions"], [data-key="letters"]) {
-  font-family: var(--kc-font-ui);
-  font-size: var(--kc-size-ui);
+.kc-hide-keypad:hover > svg {
+  opacity: var(--kc-icon-hover-graph);
 }
 
-/* TH-3 roles key, keyOperator and accent. */
-.kc-key[data-tone="key"] {
-  background-color: var(--kc-key);
+.kc-hide-keypad:active > svg {
+  opacity: var(--kc-icon-pressed);
 }
 
-.kc-key[data-tone="operator"] {
-  background-color: var(--kc-key-operator);
-}
-
-.kc-key[data-tone="accent"] {
-  background-color: var(--kc-accent);
-  color: var(--kc-accent-label);
-}
-
-/* K-9: the audio key until Phase 4. */
-.kc-key[aria-disabled="true"] {
-  color: var(--kc-text-secondary);
-  cursor: default;
-}
-
-.kc-keypad-bar button {
-  background-color: transparent;
-}
-
-/* K-2, KP-32: the Show keypad pill at the bottom left while the keypad is closed: 78 by 42, 5 px
-   from the edges, a keyboard and an up caret at 0.6 (0.9 hover, 1 pressed). */
+/* VIS-KEYPAD-32: the Show keypad pill at the bottom left while the keypad is closed: 78 by 42,
+   5 px from the edges, a keyboard and an up caret at 0.6 (0.9 hover, 1 pressed). */
 .kc-show-keypad {
   position: absolute;
   inset-inline-start: 5px;
@@ -152,121 +324,143 @@
   opacity: var(--kc-icon-pressed);
 }
 
-/* K-4: the Functions panel sits directly above the keypad from 560 px, scrolling when its
-   categories are taller, and covers the keypad area in the stacked layout below 560 px. */
+/* VIS-KEYPAD-25: the Functions popover, 310 by 344 inside, its right edge on the Functions key's
+   cell and its bottom 12 px above the cell, kept 4 px inside the calculator on narrow widths. */
 .kc-functions-panel {
   position: absolute;
+  right: 2px;
+  bottom: calc(100% + 7px);
   z-index: 1;
   box-sizing: border-box;
+  width: 312px;
+  max-width: calc(100vw - 8px);
+  height: 346px;
   overflow-y: auto;
-  padding: 8px;
-  background: var(--kc-chrome);
+  scrollbar-width: none;
+  padding: 10px 8px 9px 9px;
+  border: 1px solid var(--kc-boundary);
+  border-radius: 6px;
+  background-color: var(--kc-key);
+  box-shadow: var(--kc-popover-shadow);
   color: var(--kc-text);
   font-family: var(--kc-font-ui);
-  font-size: var(--kc-size-ui);
 }
 
-.kc-functions-panel[data-placement="above"] {
-  inset-inline: 0;
-  bottom: 100%;
-  max-height: 240px;
+.kc-keypad[data-narrow="true"] .kc-functions-panel {
+  right: 0;
 }
 
-.kc-functions-panel[data-placement="cover"] {
-  inset: 0;
+.kc-function sup,
+.kc-function sub {
+  font-size: 80%;
+  line-height: 0;
 }
 
+.kc-function sup {
+  vertical-align: 0.45em;
+}
+
+/* VIS-KEYPAD-26: the arrow's tip touches the Functions key's cell (the last two of 11 units). */
+.kc-functions-arrow {
+  position: absolute;
+  right: calc(4px + (100% - 6px) / 11 - 12px);
+  bottom: calc(100% - 5px);
+  z-index: 1;
+  fill: var(--kc-key);
+  stroke: var(--kc-boundary);
+}
+
+/* VIS-KEYPAD-27: upper-case headings and three columns of 93 by 38 buttons. */
 .kc-functions-panel h3 {
-  margin: 8px 0 4px;
+  box-sizing: border-box;
+  height: 25px;
+  margin: 0;
+  padding: 5px;
   color: var(--kc-text-secondary);
-  font-size: var(--kc-size-ui);
+  font-size: 13.2px;
   font-weight: normal;
+  line-height: 15px;
+  text-transform: uppercase;
 }
 
 .kc-functions-category > [role="group"] {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(calc(2 * var(--kc-key-size)), 1fr));
-  gap: 4px;
+  grid-template-columns: repeat(3, 97.23px);
+  margin-bottom: 18px;
 }
 
 .kc-function {
-  min-height: var(--kc-key-size);
-  padding: 0 4px;
-  border: none;
-  border-radius: 4px;
-  background-color: var(--kc-key);
+  box-sizing: border-box;
+  height: 38px;
+  margin: 2px;
+  padding: 0 4px 2px;
+  border: 1px solid var(--kc-kp-edge);
+  border-radius: 3px;
+  background: linear-gradient(var(--kc-kp-fn-top), var(--kc-kp-fn-bottom));
+  box-shadow:
+    inset 0 1px 0 var(--kc-kp-shine),
+    inset 0 -1px 0 var(--kc-kp-shade);
   color: var(--kc-text);
   font-family: var(--kc-font-math);
-  font-size: var(--kc-size-math);
+  font-size: 14.57px;
   cursor: pointer;
 }
 
-.kc-function:focus-visible {
-  outline: 2px solid var(--kc-focus-ring);
-  outline-offset: 2px;
+@media (hover: hover) {
+  .kc-function:hover {
+    border-color: var(--kc-kp-fn-hover-border);
+    background: var(--kc-kp-fn-hover);
+  }
 }
 
-/* K-6: 7 columns of 44 px keys fit 320 px; each key's transparent border draws the gap. */
-.kc-keypad[data-layout="phone"] {
-  padding-inline: 2px;
+.kc-function:active {
+  border-color: var(--kc-kp-fn-pressed-border);
+  background: var(--kc-kp-fn-pressed);
+  box-shadow: none;
 }
 
-.kc-keypad[data-layout="phone"] [data-group] {
-  column-gap: 0;
+/* VIS-KEYPAD-35, 36: hidden, the tray stays mounted 255 px down at opacity 0 (AN-1); it slides
+   and fades over 300 ms with ease, and is visibility:hidden once the slide ends. */
+.kc-keypad[data-open="false"] {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  transform: translateY(255px);
+  opacity: 0;
+  visibility: hidden;
 }
 
-.kc-keypad[data-layout="phone"] .kc-key {
-  border: 2px solid transparent;
-  background-clip: padding-box;
-}
-
-/* K-7: no double-tap zoom, so a double tap on = reaches the keypad; AN-11: a 100 ms tone change on
-   press, with no scale or shadow. */
-.kc-key {
-  touch-action: manipulation;
-  transition: background-color var(--kc-dur-hover) var(--kc-ease);
-}
-
-/* AN-11 press tone: the other 10.3 key role (package Decisions, "Press tone is a 10.3 role") */
-.kc-key[data-tone="key"]:is(:active, [data-pressed="true"]) {
-  background-color: var(--kc-key-operator);
-}
-
-.kc-key[data-tone="operator"]:is(:active, [data-pressed="true"]) {
-  background-color: var(--kc-key);
-}
-
-.kc-key[data-tone="accent"]:is(:active, [data-pressed="true"]) {
-  background-color: var(--kc-key-operator);
-  color: var(--kc-text); /* --kc-accent-label is measured only on the accent */
-}
-
-/* AN-1: the keypad becomes visible at once and hidden only after its 200 ms slide. */
 .kc-keypad {
   transition:
     transform var(--kc-dur-300) var(--kc-ease),
+    opacity var(--kc-dur-300) var(--kc-ease),
     visibility 0s linear var(--kc-dur-300);
 }
 
 .kc-keypad[data-open="true"] {
   transition:
     transform var(--kc-dur-300) var(--kc-ease),
+    opacity var(--kc-dur-300) var(--kc-ease),
     visibility 0s linear 0s;
 }
 
-/* AN-2: the Functions panel fades in rising 8 px over 200 ms and fades out over 100 ms. */
-.kc-functions-panel {
-  transition:
-    opacity var(--kc-dur-300) var(--kc-ease),
-    transform var(--kc-dur-300) var(--kc-ease);
+/* VIS-KEYPAD-40: the narrow layout does not slide; it fades in and leaves at once. */
+.kc-keypad[data-narrow="true"] {
+  transition: opacity var(--kc-dur-300) var(--kc-ease);
 }
 
-.kc-functions-panel[data-state="enter"] {
-  opacity: 0;
-  transform: translateY(8px);
+.kc-keypad[data-narrow="true"][data-open="false"] {
+  transition: none;
 }
 
-.kc-functions-panel[data-state="closing"] {
-  opacity: 0;
-  transition: opacity var(--kc-dur-hover) var(--kc-ease);
+/* VIS-KEYPAD-36: after the tray has gone, Show keypad rises 10 px and fades in over 300 ms. */
+@keyframes kc-show-keypad-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+.kc-show-keypad[data-returning="true"] {
+  animation: kc-show-keypad-in var(--kc-dur-300) var(--kc-ease) var(--kc-dur-300) backwards;
 }

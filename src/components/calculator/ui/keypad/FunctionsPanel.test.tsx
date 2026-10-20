@@ -8,7 +8,6 @@ import { CATEGORY_HEADINGS, panelCategories } from "@/lib/calculator/core/latex/
 import { ExpressionPanel } from "../list/ExpressionPanel";
 import { panelProps, renderEditor } from "../list/__fixtures__/render-editor";
 import { fieldTextbox } from "../list/row-model";
-import { FUNCTIONS_COVER_BELOW, functionsPlacement } from "./FunctionsPanel";
 import { Keypad } from "./Keypad";
 
 const editor = () => (
@@ -37,29 +36,18 @@ it("K-4 Functions panel shows the shipped categories 1, 2 and 8 in K-4 order und
     within(panel)
       .getAllByRole("heading")
       .map((h) => h.textContent)
-  ).toEqual(["Trig", "Inverse trig", "Calculus"]);
+  ).toEqual(["Trig Functions", "Inverse Trig Functions", "Calculus"]); // shown upper case
   const labels = (heading: string) =>
     within(within(panel).getByRole("group", { name: heading }))
       .getAllByRole("button")
       .map((b) => b.textContent);
   expect(labels("Trig")).toEqual(["sin", "cos", "tan", "csc", "sec", "cot"]);
-  expect(labels("Inverse trig")).toEqual(["sin⁻¹", "cos⁻¹", "tan⁻¹", "csc⁻¹", "sec⁻¹", "cot⁻¹"]);
-  expect(labels("Calculus")).toEqual(["exp", "ln", "log", "logₐ"]);
+  expect(labels("Inverse trig")).toEqual(["sin−1", "cos−1", "tan−1", "csc−1", "sec−1", "cot−1"]);
+  expect(labels("Calculus")).toEqual(["exp", "ln", "log", "loga"]); // −1 and a are typeset
 });
 
-it("K-4 the Functions panel covers the keypad area in containers under 450 px (stacked layout) and sits above the keypad from 450 px", async () => {
-  expect(FUNCTIONS_COVER_BELOW).toBe(450);
-  expect([0, 449, 450, 599, 900].map(functionsPlacement)).toEqual([
-    "cover",
-    "cover",
-    "above",
-    "above",
-    "above",
-  ]);
-  for (const [width, placement] of [
-    [449, "cover"],
-    [450, "above"],
-  ] as const) {
+it("VIS-KEYPAD-41 the Functions panel is the same popover above the keypad at every width", async () => {
+  for (const width of [449, 900]) {
     renderEditor(
       <Keypad
         containerWidth={width}
@@ -68,15 +56,12 @@ it("K-4 the Functions panel covers the keypad area in containers under 450 px (s
         open
         onOpenChange={vi.fn()}
       />,
-      {
-        rows: [""],
-      }
+      { rows: [""] }
     );
     await userEvent.setup().click(key("Functions"));
-    expect(screen.getByRole("group", { name: "Functions" })).toHaveAttribute(
-      "data-placement",
-      placement
-    );
+    const panel = screen.getByRole("group", { name: "Functions" });
+    expect(panel.closest(".kc-keypad-keys")).not.toBeNull();
+    expect(panel).not.toHaveAttribute("data-placement");
     cleanup();
   }
 });
@@ -128,15 +113,13 @@ it("K-5 a panel button inserts its template in one run call, closes the panel an
       { op: "cmd", arg: "_" },
     ],
   });
-  await user.click(key("ABC"));
   await user.click(key("Functions"));
   within(screen.getByRole("group", { name: "Functions" }))
     .getAllByRole("button")[0]
     .focus();
-  act(() => kit.pressEscape()); // one press closes only the panel, above the ABC page and keypad
+  act(() => kit.pressEscape()); // one press closes only the panel, above the keypad
   expect(screen.queryByRole("group", { name: "Functions" })).toBeNull();
   expect(key("Functions")).toHaveFocus();
-  expect(key("ABC")).toHaveAttribute("aria-pressed", "true");
   expect(screen.getByRole("region", { name: "Keypad" })).toBeInTheDocument();
 });
 
