@@ -472,6 +472,15 @@
   cursor: inherit;
 }
 
+/* On a touch phone the reference sets a point row's Label box 2 px lower than on a desktop; the
+   caption stays put (phone-375). */
+@media (pointer: coarse) {
+  .kc-list-panel[data-layout="stacked"] .kc-checkbox {
+    position: relative;
+    top: 2px;
+  }
+}
+
 .kc-row-main > .kc-regression {
   padding-right: 35px;
   padding-left: 53px;
