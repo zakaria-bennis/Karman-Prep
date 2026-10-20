@@ -1,34 +1,7 @@
 /* The keypad, drawn to the reference keypad (rea-targets visual keypad.md, VIS-KEYPAD-1 to 41).
-   Colours are mixed from the skin's roles (TH-3); on the classic skin each mix equals the
-   reference's measured value. */
+   Its --kc-kp-* colours are in tokens.css. */
 
 .kc-keypad {
-  /* Keys */
-  --kc-kp-light-top: var(--kc-key);
-  --kc-kp-light-bottom: color-mix(in srgb, var(--kc-text) 2%, var(--kc-key));
-  --kc-kp-light-border: color-mix(in srgb, var(--kc-text) 15.3%, var(--kc-key));
-  --kc-kp-light-hover: color-mix(in srgb, var(--kc-text) 4%, var(--kc-key));
-  --kc-kp-light-pressed: color-mix(in srgb, var(--kc-text) 7.8%, var(--kc-key));
-  --kc-kp-light-pressed-border: color-mix(in srgb, var(--kc-text) 18.8%, var(--kc-key));
-  --kc-kp-dark-top: color-mix(in srgb, var(--kc-text) 13%, transparent);
-  --kc-kp-dark-bottom: color-mix(in srgb, var(--kc-text) 16%, transparent);
-  --kc-kp-dark-hover: color-mix(in srgb, var(--kc-text) 16%, transparent);
-  --kc-kp-dark-pressed: color-mix(in srgb, var(--kc-text) 19%, transparent);
-  --kc-kp-accent-hover: color-mix(in srgb, var(--kc-text) 10%, var(--kc-accent));
-  --kc-kp-accent-pressed: color-mix(in srgb, var(--kc-text) 20%, var(--kc-accent));
-  --kc-kp-edge: color-mix(in srgb, var(--kc-text) 10%, transparent);
-  --kc-kp-shine: color-mix(in srgb, var(--kc-key) 25%, transparent);
-  --kc-kp-shine-dark: color-mix(in srgb, var(--kc-key) 10%, transparent);
-  --kc-kp-shade: color-mix(in srgb, var(--kc-text) 2%, transparent);
-  --kc-kp-shade-accent: color-mix(in srgb, var(--kc-text) 4%, transparent);
-  --kc-kp-dim: color-mix(in srgb, var(--kc-text) 47%, transparent);
-  /* Functions popover buttons */
-  --kc-kp-fn-top: color-mix(in srgb, var(--kc-text) 3.5%, var(--kc-key));
-  --kc-kp-fn-bottom: color-mix(in srgb, var(--kc-text) 5.9%, var(--kc-key));
-  --kc-kp-fn-hover: color-mix(in srgb, var(--kc-text) 7%, var(--kc-key));
-  --kc-kp-fn-hover-border: color-mix(in srgb, var(--kc-text) 13%, transparent);
-  --kc-kp-fn-pressed: color-mix(in srgb, var(--kc-text) 12%, var(--kc-key));
-  --kc-kp-fn-pressed-border: color-mix(in srgb, var(--kc-text) 15%, transparent);
   /* Type: keys at 17.6 px, words at 90 % of that, maths at 18.216 px (VIS-KEYPAD-14, 15) */
   --kc-kp-word: 15.84px;
   --kc-kp-math: 18.216px;

@@ -71,6 +71,34 @@
   --kc-pill-shadow: 0 0 5px color-mix(in srgb, var(--kc-text) 10%, transparent);
   --kc-popover-shadow: 0 5px 10px color-mix(in srgb, var(--kc-text) 20%, transparent);
 
+  /* Keypad (VIS-KEYPAD-1 to 41): mixed from the skin's roles (TH-3); on the classic skin each
+     mix equals the reference's measured value. Keys: */
+  --kc-kp-light-top: var(--kc-key);
+  --kc-kp-light-bottom: color-mix(in srgb, var(--kc-text) 2%, var(--kc-key));
+  --kc-kp-light-border: color-mix(in srgb, var(--kc-text) 15.3%, var(--kc-key));
+  --kc-kp-light-hover: color-mix(in srgb, var(--kc-text) 4%, var(--kc-key));
+  --kc-kp-light-pressed: color-mix(in srgb, var(--kc-text) 7.8%, var(--kc-key));
+  --kc-kp-light-pressed-border: color-mix(in srgb, var(--kc-text) 18.8%, var(--kc-key));
+  --kc-kp-dark-top: color-mix(in srgb, var(--kc-text) 13%, transparent);
+  --kc-kp-dark-bottom: color-mix(in srgb, var(--kc-text) 16%, transparent);
+  --kc-kp-dark-hover: color-mix(in srgb, var(--kc-text) 16%, transparent);
+  --kc-kp-dark-pressed: color-mix(in srgb, var(--kc-text) 19%, transparent);
+  --kc-kp-accent-hover: color-mix(in srgb, var(--kc-text) 10%, var(--kc-accent));
+  --kc-kp-accent-pressed: color-mix(in srgb, var(--kc-text) 20%, var(--kc-accent));
+  --kc-kp-edge: color-mix(in srgb, var(--kc-text) 10%, transparent);
+  --kc-kp-shine: color-mix(in srgb, var(--kc-key) 25%, transparent);
+  --kc-kp-shine-dark: color-mix(in srgb, var(--kc-key) 10%, transparent);
+  --kc-kp-shade: color-mix(in srgb, var(--kc-text) 2%, transparent);
+  --kc-kp-shade-accent: color-mix(in srgb, var(--kc-text) 4%, transparent);
+  --kc-kp-dim: color-mix(in srgb, var(--kc-text) 47%, transparent);
+  /* Keypad Functions popover buttons */
+  --kc-kp-fn-top: color-mix(in srgb, var(--kc-text) 3.5%, var(--kc-key));
+  --kc-kp-fn-bottom: color-mix(in srgb, var(--kc-text) 5.9%, var(--kc-key));
+  --kc-kp-fn-hover: color-mix(in srgb, var(--kc-text) 7%, var(--kc-key));
+  --kc-kp-fn-hover-border: color-mix(in srgb, var(--kc-text) 13%, transparent);
+  --kc-kp-fn-pressed: color-mix(in srgb, var(--kc-text) 12%, var(--kc-key));
+  --kc-kp-fn-pressed-border: color-mix(in srgb, var(--kc-text) 15%, transparent);
+
   /* Motion: hover and press are instant; the rest use ease or ease-out. */
   --kc-dur-hover: 0ms;
   --kc-dur-200: 200ms;
