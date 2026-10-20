@@ -57,18 +57,16 @@ npm run db:push          # applies 20261021000000_question_comparison_key.sql
 k backfill --export $PIPE/live-<date>-2.json --out $PIPE/backfill.sql
 ```
 
-Produces `backfill.sql` and `backfill.dryrun.sql` (keys look like `kn-2:<sha256>`). Run the `.dryrun.sql` first, then `backfill.sql`. Both end with a `SELECT` that prints `rows_still_null`. To check live rows only, run this and expect 0 (image and graph figure rows get no key on purpose, so they are not counted):
+Produces `backfill.sql` and `backfill.dryrun.sql` (keys look like `kn-2:<sha256>`). Run the `.dryrun.sql` first, then `backfill.sql`. Both end with a `SELECT` that prints `rows_still_null`. Some rows stay without a key by design: image and graph figure rows, rows with a broken answer key, and rows whose format disagrees with their choices. The comment at the end of `backfill.sql` counts the last two. To check live rows, run this after the backfill; the number should equal the broken-answer-key plus format-mismatch count in that comment (0 when there are none), because every keyable row now has a key:
 
-````
+```
 SELECT count(*) FROM public.quiz_questions WHERE comparison_key IS NULL AND archived_at IS NULL AND publish_status IN ('publish_ready','publish_ready_with_verified_repair') AND NOT (figure_kind IS NOT NULL AND figure_kind <> 'table');
-``` Image and graph figure rows get no key on purpose.
+```
 
 **O6. Migration B (live write). Needs your OK.**
 
-````
-
-npm run db:push # applies 20261021000100_question_comparison_key_unique.sql
-
+```
+npm run db:push          # applies 20261021000100_question_comparison_key_unique.sql
 ```
 
 It fails safely, changing nothing, if a live duplicate remains. Apply it only after O4 and O5.
@@ -76,9 +74,7 @@ It fails safely, changing nothing, if a live duplicate remains. Apply it only af
 **O7. Corpus count (no OK needed).**
 
 ```
-
-k corpus --c-index <final-current-plus-partial-question-records-\*.json> --ledger <current-readiness-ledger.json> --export $PIPE/live-<date>-2.json --out $PIPE/corpus/
-
+k corpus --c-index <final-current-plus-partial-question-records-*.json> --ledger <current-readiness-ledger.json> --export $PIPE/live-<date>-2.json --out $PIPE/corpus/
 ```
 
 Produces `clusters.json`, `founder_pairs.json`, `report.md`. The summary line gives the unique count to compare against 10,000.
@@ -86,17 +82,13 @@ Produces `clusters.json`, `founder_pairs.json`, `report.md`. The summary line gi
 **O8. Close matches (you answer).**
 
 ```
-
 k pairs render --pairs $PIPE/corpus/founder_pairs.json --out $PIPE/corpus/founder_pairs.html
-
 ```
 
 Send you the HTML page. You answer same or different and copy back the result into `decisions.json`:
 
 ```
-
 k pairs apply --pairs $PIPE/corpus/founder_pairs.json --decisions $PIPE/corpus/decisions.json --clusters $PIPE/corpus/clusters.json --now <time>
-
 ```
 
 Your answers are appended to `founder_decisions.json` next to `clusters.json`. Re-running `corpus` applies them again; answers that no longer match are reported, not fatal.
@@ -104,19 +96,15 @@ Your answers are appended to `founder_decisions.json` next to `clusters.json`. R
 **O9. Review, publish (live write per batch). Needs your OK for each batch.**
 
 ```
-
 k slice --reviewer <name> --clusters $PIPE/corpus/clusters.json --lane $PIPE/lane.json --ledger <ledger> --now <time>
 k lint --reviewed <batch>-reviewed-import-ready.json --frozen <batch>-frozen-inputs-import-ready.json --clusters $PIPE/corpus/clusters.json --lane $PIPE/lane.json --now <time>
-
 ```
 
 Then the existing stage path. After any staging, take a fresh export and re-run the backfill (newly staged rows need keys or the builder refuses). Then:
 
 ```
-
 k intent open --log $PIPE/intents.jsonl --batch <batch> --action publish --question-ids <id,id> --sql-sha256 <sha> --now <time>
 k publish --batch <batch> --readback <batch>-private-readback.json --sealed <batch>-sealed-preview.json --export $PIPE/live-<date>-3.json --intents $PIPE/intents.jsonl --out $PIPE/batches/<batch>/
-
 ```
 
 Produces `publish.sql`, `rollback.sql`, their `.dryrun.sql` twins, `keys.json`, `precheck.json`. `publish.sql` starts with a guard that stops if the bank changed since the export. Run `publish.dryrun.sql`, show you the batch, run it on your OK, read it back, then close the intent. **Needs your OK for each batch** (or one standing OK, if you give it).
@@ -124,16 +112,22 @@ Produces `publish.sql`, `rollback.sql`, their `.dryrun.sql` twins, `keys.json`, 
 Problem questions. `--reason` is one of: needs_figure, asset_hold, no_answer_key, answer_dispute, extraction_repair, skill_unclear, difficulty_unclear, classification_review, variant_review, broken_or_excluded (this last one also needs `--clusters`, so the next copy becomes the canonical). When a new campaign starts, `k lane requeue --lane $PIPE/lane.json --reason <reason>` moves parked and open items of that reason back to open.
 
 ```
-
 k lane set-aside --lane $PIPE/lane.json --id <id> --reason <reason> --detail "<why>" --now <time> [--clusters ...]
 k lane attempt --lane $PIPE/lane.json --id <id> --method <how> --failed --now <time>
 k lane summary --lane $PIPE/lane.json --now <time>
-k slice --reviewer <name> --lane $PIPE/lane.json --release # give back a reviewer's claims
-k slice --lane $PIPE/lane.json --ledger <ledger> --release-done # drop claims that are resolved or live
-
+k slice --reviewer <name> --lane $PIPE/lane.json --release
+k slice --lane $PIPE/lane.json --ledger <ledger> --release-done
 ```
 
-**O10. After 3 batches (no OK needed).** Measure questions per hour and the rework share from the lane summary above. When done: `k lock release --path $PIPE/writer.lock --holder <your-name>`. `--holder` is always required. A readable lock from a session that died is released by passing that session's name (see `since` in the error). `--force` only removes a lock file that cannot be read.
+The last two give back a reviewer's claims, and drop claims that are resolved or live.
+
+**O10. After 3 batches (no OK needed).** Measure questions per hour and the rework share from the lane summary above. When done, release the writer lock:
+
+```
+k lock release --path $PIPE/writer.lock --holder <your-name>
+```
+
+`--holder` is always required. A readable lock from a session that died is released by passing that session's name (the `error: writer lock held by <name>` message from `lock acquire` shows it). `--force` only removes a lock file that cannot be read.
 
 ## If something goes wrong
 
@@ -146,4 +140,5 @@ Messages are quoted from the tool. A `refused:` line means the SQL builder wrote
 - `refused: duplicate check failed: <id> duplicate: same comparison key as <id>` (or `typo-level match`): a batch row duplicates another question. Pull it from the batch or set it aside; nothing was written. If migration B fails with a duplicate-key error, run `sweep` and un-publish (O3, O4), then retry; nothing changed.
 - `error: writer lock held by <name> since <time>`: another session is writing. Wait, or release with that name once they are done. Lane and claims files use `.lock` files that clear on their own when a process dies; `error: ... is in use by another session; try again in a moment` just means retry.
 - `error: clusters were built with normalizer ..., not ...: rebuild clusters`: the clusters file is out of date. Re-run `corpus`; your earlier answers are applied again and any that no longer match are listed as stale, not fatal.
+
 ```
