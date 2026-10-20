@@ -75,6 +75,7 @@ const ENTRY: readonly ShortcutRow[] = [
   same("Next Character", "RIGHT ARROW"),
   same("Move to Numerator Within Fraction", "UP ARROW"),
   same("Move to Denominator Within Fraction", "DOWN ARROW"),
+  same("Exit Current Block", "Tab"),
   { label: "Beginning of Current Block", win: "Home", mac: "Fn + LEFT ARROW" },
   { label: "End of Current Block", win: "End", mac: "Fn + RIGHT ARROW" },
   { label: "Beginning of Current Expression", win: "CTRL + Home", mac: "CTRL + Fn + LEFT ARROW" },

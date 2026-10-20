@@ -57,8 +57,7 @@
   height: 17.6px;
   fill: none;
   stroke: var(--kc-list);
-  stroke-width: 2;
-  stroke-linecap: round;
+  stroke-width: 2.8;
 }
 
 .kc-shortcuts-close:focus-visible {
@@ -85,7 +84,7 @@
   display: flex;
   align-items: center;
   margin: 0 30px;
-  padding: 30px 0 5px;
+  padding: 30.7px 0 5px;
   background: var(--kc-list);
 }
 
@@ -97,6 +96,8 @@
   font-size: 27.2px;
   font-weight: 300;
   line-height: 36px;
+  position: relative;
+  top: -1.7px;
 }
 
 .kc-shortcuts-head > .kc-segments {
@@ -160,42 +161,166 @@
 }
 
 .kc-key-text {
-  margin: 0 3px;
+  margin: 0 3.75px;
 }
 
-.kc-key-text[data-text="("],
+.kc-key-text[data-text=","],
+.kc-key-text[data-text=", or"] {
+  margin: 0 3.5px 0 0;
+}
+
+.kc-key-text[data-text="("] {
+  margin: 0 0 0 3.7px;
+}
+
 .kc-key-text[data-text=")"] {
   margin: 0;
 }
 
-/* The Common Symbols column, set in the math font. */
+/* The Common Symbols column, set in the math font at 115% of the table's 13.6 px. Limits and
+   indices are at 80%, the big operators at twice the size. */
 .kc-sym {
   display: inline-block;
+  padding-left: 2px;
   font-family: var(--kc-font-math);
-  font-size: 17px;
+  font-size: 15.64px;
   line-height: 27.2px;
 }
 
-.kc-sym sup,
-.kc-sym sub {
-  font-size: 0.75em;
+.kc-sym sup {
+  font-size: 90%;
   line-height: 0;
 }
 
-.kc-sym-big[data-op="int"] {
-  min-height: 42.8px;
+.kc-sym sub {
+  font-size: 72%;
+  line-height: 0;
 }
 
-.kc-sym-big[data-op="int"] > .kc-sym-op {
-  line-height: 22px;
+/* Each form sits on the row as the reference's typeset one does. */
+.kc-sym[data-symbol] {
+  position: relative;
 }
 
-.kc-sym-big[data-op="int"] > .kc-sym-limit {
-  line-height: 10px;
+.kc-sym[data-symbol="power"] {
+  top: 1.5px;
+}
+
+.kc-sym[data-symbol="power"] sup {
+  position: relative;
+  top: -0.9px;
+}
+
+.kc-sym[data-symbol="subscript"] {
+  top: -3.3px;
+}
+
+.kc-sym[data-symbol="subscript"] sub {
+  position: relative;
+  top: 0.9px;
+}
+
+.kc-sym[data-symbol="prime"] {
+  top: -1.5px;
+}
+
+.kc-sym-prime {
+  position: relative;
+  top: 2px;
+}
+
+.kc-sym[data-symbol="fraction"] {
+  top: 0.7px;
+}
+
+.kc-sym[data-symbol="sqrt"] {
+  top: -2.3px;
+}
+
+.kc-sym[data-symbol="cbrt"],
+.kc-sym[data-symbol="nthroot"] {
+  top: -0.3px;
+}
+
+.kc-sym[data-symbol="sum"],
+.kc-sym[data-symbol="prod"] {
+  top: -1px;
+}
+
+/* ≤ and ≥ keep a relation's side spacing. */
+.kc-sym-rel {
+  margin-left: 3px;
+}
+
+/* A root: our own drawn sign, then the radicand under a bar that continues the sign's top. */
+.kc-sym-root {
+  display: inline-flex;
+  align-items: flex-start;
+  position: relative;
+  vertical-align: middle;
+  line-height: 17px;
+}
+
+.kc-sym-radical {
+  flex: none;
+  width: 14.8px;
+  height: 15.3px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.2;
+}
+
+.kc-sym-radicand {
+  padding: 0 1px 0 1.6px;
+  border-top: 1px solid currentColor;
+  line-height: 15px;
 }
 
 .kc-sym-index {
-  margin-right: -0.3em;
+  position: absolute;
+  top: -4.5px;
+  left: 2.5px;
+  font-size: 12.5px;
+  line-height: 12px;
+}
+
+.kc-sym-index + .kc-sym-radical {
+  margin-left: 1.5px;
+}
+
+/* The integral: a tall sign with its limits at its right, b above and a below (a tucked under). */
+.kc-sym-int {
+  display: inline-flex;
+  vertical-align: middle;
+  align-items: stretch;
+  min-height: 42.8px;
+  margin-left: 2.3px;
+}
+
+.kc-sym-int > .kc-sym-op {
+  font-size: 31.28px;
+  line-height: 42px;
+}
+
+.kc-sym-limits {
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 0;
+  line-height: 14px;
+}
+
+.kc-sym-limits > :first-child {
+  margin-left: 4.7px;
+}
+
+.kc-sym-limits > :last-child {
+  margin-left: 0.3px;
+}
+
+.kc-sym-eq {
+  margin: 0 4px;
+  font-style: normal;
 }
 
 .kc-sym-frac {
@@ -204,8 +329,12 @@
   flex-direction: column;
   align-items: center;
   height: 36px;
-  font-size: 14px;
-  line-height: 18px;
+  font-size: 14.08px;
+  line-height: 15.5px;
+}
+
+.kc-sym-frac > span {
+  padding: 0 4px;
 }
 
 .kc-sym-frac > span:first-child {
@@ -219,14 +348,15 @@
   align-items: center;
   justify-content: center;
   min-height: 66.6px;
+  margin-left: 3px;
   line-height: 1;
 }
 
 .kc-sym-op {
-  font-size: 28px;
-  line-height: 32px;
+  font-size: 31.28px;
+  line-height: 31.3px;
 }
 
 .kc-sym-limit {
-  font-size: 12px;
+  font-size: 12.5px;
 }
