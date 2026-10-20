@@ -27,12 +27,15 @@ async function withTable(page: Page, rows: string[] = []): Promise<void> {
   );
 }
 
+// RT-23, RT-30: each parameter and statistic is typeset read-only `name=value` math.
 const values = (page: Page) =>
   page
-    .locator("#calc [data-regression] .kc-regression-value")
-    .evaluateAll((els) => els.map((el) => (el as HTMLInputElement).value));
+    .locator(
+      "#calc [data-regression] :is(.kc-regression-params, .kc-tr-stat) .kc-static-math [data-latex]"
+    )
+    .evaluateAll((els) => els.map((el) => el.getAttribute("data-latex")));
 
-const EXPECTED = ["m = 600", "b = -1164000", "R² = 1", "r = 1"];
+const EXPECTED = ["m=600", "b=-1164000", "R^{2}=1", "r=1"];
 
 test("D-2, D-40 typing y_1~mx_1+b fits m = 600, b = −1164000, R² = 1 and r = 1", async ({
   page,
@@ -50,7 +53,7 @@ test("D-2, D-40 typing y_1~mx_1+b fits m = 600, b = −1164000, R² = 1 and r = 
     )
     .toBe("y_{1}\\sim mx_{1}+b");
   await expect.poll(() => values(page)).toEqual(EXPECTED);
-  await expect(page.getByRole("textbox", { name: "b equals negative 1164000" })).toBeVisible();
+  await expect(page.getByRole("img", { name: "b equals negative 1164000" })).toBeVisible();
 });
 
 test("D-40, RT-28 the table's Add Regression fits in one tap and Zoom to fit shows all four points", async ({

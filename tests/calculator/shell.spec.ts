@@ -172,10 +172,10 @@ test("L-14 no horizontal scroll from 320×568 to 1920×1080; keypad and toolbar 
   await page.setViewportSize({ width: 320, height: 568 });
   await openShell(page, `?rows=${enc(["y=x", "1"])}`); // stacked: the popover can reach the list
   await page.getByRole("button", { name: "Graph settings" }).click();
-  await expect(page.locator(".kc-settings[role=dialog]")).toBeVisible();
+  await expect(page.locator(".kc-settings[role=region]")).toBeVisible();
   await api(page, 'c.focusExpression("1")');
   await expect.poll(() => page.evaluate(popoverCoversRow1)).toBe(false);
-}); // .kc-settings[role=dialog] rect vs row 1
+}); // .kc-settings[role=region] rect vs row 1
 test("AR-40 the math needs no web font: no font request fails and no @font-face sits inside the shadow root", async ({
   page,
 }) => {

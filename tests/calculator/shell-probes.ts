@@ -47,7 +47,7 @@ export function measureL14(): L14Measure {
 /** L-14: whether an open settings popover overlaps row 1. */
 export function popoverCoversRow1(): boolean {
   const root = document.querySelector("#calc")!.shadowRoot!;
-  const popover = root.querySelector('.kc-settings[role="dialog"]');
+  const popover = root.querySelector('.kc-settings[role="region"]');
   const row = root.querySelector('[data-row-id="1"]');
   if (!popover || !row) return false;
   const a = popover.getBoundingClientRect();

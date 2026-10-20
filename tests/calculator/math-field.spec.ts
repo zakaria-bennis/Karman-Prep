@@ -10,6 +10,7 @@ import {
   treesEqual,
 } from "../../src/lib/calculator/core/latex";
 import {
+  HIDDEN_OPERATOR_NAMES,
   mathQuillAutoOperatorNames,
   panelCategories,
 } from "../../src/lib/calculator/core/latex/operator-names";
@@ -257,11 +258,18 @@ for (const c of keyCases) {
   });
 }
 
-test("PR-2 every latex corpus case parses to the same tree after a MathField round trip", async ({
+// A hidden built-in (`\operatorname{argmax}`) is no MathQuill name, so the field splits it as typing
+// does (`\arg\max`, as in Desmos); PR-2 leaves those cases out.
+const HIDDEN_NAME = new RegExp(
+  `\\\\operatorname\\{(?:${HIDDEN_OPERATOR_NAMES.map((n) => n.name).join("|")})\\}`
+);
+test("PR-2 every latex corpus case but a hidden built-in parses to the same tree after a MathField round trip", async ({
   page,
 }) => {
   await open(page, "?fields=1&maxLength=1000000");
-  const cases = CORPUS.filter((c) => inputKind(c.input) === "latex");
+  const cases = CORPUS.filter(
+    (c) => inputKind(c.input) === "latex" && !HIDDEN_NAME.test((c.input as { latex: string }).latex)
+  );
   const inputs = cases.map((c) => (c.input as { latex: string }).latex);
   const outputs = await page.evaluate((list) => {
     const f = window.__mathFieldHarness!.fields[0];

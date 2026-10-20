@@ -80,6 +80,15 @@ it("toMathFieldLatex gives \\sqrt a parenthesised radicand as its braced argumen
   for (const s of ["\\sqrt{x}", "\\sqrt2x", "\\sqrt\\left(x\\right)", "\\sqrt(x"])
     expect(toMathFieldLatex(s), s).toBe(s);
 });
+it("toMathFieldLatex gives a bare piecewise brace its \\left or \\right, which MathQuill needs", () => {
+  expect(toMathFieldLatex("\\{x>0\\}")).toBe("\\left\\{x>0\\right\\}");
+  expect(toMathFieldLatex("y=x\\{x>0\\}\\{x<1\\}")).toBe(
+    "y=x\\left\\{x>0\\right\\}\\left\\{x<1\\right\\}"
+  );
+  expect(toMathFieldLatex("L[\\{L>3\\}]")).toBe("L[\\left\\{L>3\\right\\}]");
+  for (const s of ["\\left\\{x>0:1,2\\right\\}", "\\left \\{x\\right \\}", "\\left\\{\\right\\}"])
+    expect(toMathFieldLatex(s), s).toBe(s);
+});
 it("toMathFieldLatex leaves a built-in's run argument as MathQuill reads it, except a sum in braces right after the name", () => {
   expect(toMathFieldLatex("\\sin{x+1}")).toBe("\\sin\\left(x+1\\right)");
   expect(toMathFieldLatex("\\sin^{2}{-x+1}")).toBe("\\sin^{2}\\left(-x+1\\right)");

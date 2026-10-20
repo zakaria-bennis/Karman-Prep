@@ -10,7 +10,8 @@
 //      MathQuill drops the braces;
 //    - a degree sign directly after a superscript (`x^{2}^{\circ}`, PR-20) becomes `\degree`, which
 //      normalizes back to `^{\circ}`; MathQuill would merge it into the superscript;
-//    - `\sqrt(…)` (PR-27) becomes `\sqrt{…}`; MathQuill would take `(` as the radicand.
+//    - `\sqrt(…)` (PR-27) becomes `\sqrt{…}`; MathQuill would take `(` as the radicand;
+//    - a bare piecewise brace `\{…\}` (PR-31) becomes `\left\{…\right\}`; MathQuill cannot read it.
 //    In a built-in's PR-24 run argument `\cdot` would end the run and parentheses right after the
 //    name would make an argument list (PR-25), so the first two rules are skipped there, except
 //    that a sum in braces right after the name becomes parentheses (`\sin{x+1}`). Spellings such as
@@ -145,7 +146,7 @@ function sequence(scan: Scan, close: ")" | "]" | "}" | null): Sequence {
       last = identifier && digits === "" ? "identifier" : "other";
     } else if (ch === "\\") {
       const item = command(scan);
-      out.text += item.text;
+      out.text += bareBrace(item.name, out.text) ?? item.text;
       last = "other";
       if (item.name !== "left" && item.name !== "right") {
         run = OPERATOR_COMMANDS.has(item.name) ? "none" : afterName(item.name, run);
@@ -194,6 +195,16 @@ function sequence(scan: Scan, close: ")" | "]" | "}" | null): Sequence {
     }
   }
   return out;
+}
+
+/**
+ * PR-31: MathQuill reads a piecewise brace only as `\left\{` and `\right\}`, so a bare `\{` or
+ * `\}` (which the parser and Desmos's API accept) gets its `\left` or `\right`; else undefined.
+ */
+function bareBrace(name: string, before: string): string | undefined {
+  if (name !== "{" && name !== "}") return undefined;
+  if (/\\(?:left|right)\s*$/.test(before)) return undefined;
+  return name === "{" ? "\\left\\{" : "\\right\\}";
 }
 
 /** The parser's G7 split of a letter run: the longest name at each position, else one letter. */
