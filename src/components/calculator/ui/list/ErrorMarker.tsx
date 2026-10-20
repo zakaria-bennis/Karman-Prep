@@ -185,8 +185,12 @@ export function ErrorMarker({ id, message, variant }: ErrorMarkerProps): JSX.Ele
         }}
         onClick={() => {
           clearTimer();
-          if (pressRef.current === "touch") return setOpen((was) => !was);
-          if (pressRef.current === "") return setOpen(true); // keyboard activation
+          // The press is spent here: Safari does not focus a clicked button, so no blur would
+          // clear it, and a later keyboard focus must still open the tooltip.
+          const press = pressRef.current;
+          pressRef.current = "";
+          if (press === "touch") return setOpen((was) => !was);
+          if (press === "") return setOpen(true); // keyboard activation
           setPinned((was) => !was);
           setOpen(true);
         }}
