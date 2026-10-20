@@ -44,7 +44,8 @@ it("RC-2, RC-7, RC-8, RC-19, RC-20 row errors and the complex hint use the exact
     ["unsupported", ["t"], "This calculator doesn't support that notation."],
     ["unsupported", ["r"], "r is for polar graphs, which aren't available yet."],
     ["unsupported", ["θ"], "θ is for polar graphs, which aren't available yet."],
-    ["relation-chain", [], "A chain of inequalities must point one way and use at most one =."],
+    ["relation-chain", [], "Cannot mix inequalities and equations in a chain of comparisons."],
+    ["relation-side", [">"], "You need something on both sides of the '>' symbol."],
     ["too-many-nodes", [], "This row is too long to evaluate. Split it into smaller definitions."],
     ["too-deep", [], "This row is nested too deeply."],
     ["too-many-params", [], "Functions can have at most 8 parameters."],
@@ -86,7 +87,7 @@ it("RC-2, RC-7, RC-8, RC-19, RC-20 row errors and the complex hint use the exact
       ["nCr", "2", "1"],
       "Function 'nCr' requires 2 arguments. For example, try typing: nCr(1, 2).",
     ],
-    ["point-coordinates", [], "A point's coordinates can't use x or y."],
+    ["point-coordinates", [], "Too many variables, I don't know what to do with this."],
     ["mixed-variables", [], "Use an equation such as y=… to graph an expression in x and y."],
     ["polar-variable", ["r"], "r only has a meaning in a polar equation."],
     ["timeout", [], "This is taking too long. Try a smaller range or fewer terms."],
@@ -108,12 +109,9 @@ it("RC-2, RC-7, RC-8, RC-19, RC-20 row errors and the complex hint use the exact
   for (const [name, text] of shown) expect(displayName(name)).toBe(text);
 });
 
-it("PR-30, PR-34, NM-30, NM-31, NM-37, G-22 a half-typed regression and deferred list notation have their own copy", () => {
+it("PR-30, PR-34, NM-37, G-22 a half-typed regression and deferred list notation have their own copy", () => {
   const table: [RowErrorCode, string[], string][] = [
     ["sim-side", [], "You need something on both sides of the '∼' symbol."],
-    ["unsupported", ["Indexing a list"], "Indexing a list isn't supported yet."],
-    ["unsupported", ["Slicing a list"], "Slicing a list isn't supported yet."],
-    ["unsupported", ["Filtering a list"], "Filtering a list isn't supported yet."],
     [
       "unsupported",
       ["Building a list with 'for'"],
@@ -126,9 +124,13 @@ it("PR-30, PR-34, NM-30, NM-31, NM-37, G-22 a half-typed regression and deferred
     ],
   ];
   for (const [code, names, text] of table) expect(rowErrorMessage(code, names)).toBe(text);
-  const rows = ["L[2]", "y_{1}\\sim"].map((latex, k) => ({ id: `r${k}`, latex, hidden: false }));
+  const rows = ["[n^{2}\\operatorname{for}n=[1...5]]", "y_{1}\\sim"].map((latex, k) => ({
+    id: `r${k}`,
+    latex,
+    hidden: false,
+  }));
   expect(analyzeRows(rows, REAL).rows.map((r) => r.error?.message)).toEqual([
-    "Indexing a list isn't supported yet.",
+    "Building a list with 'for' isn't supported yet.",
     "You need something on both sides of the '∼' symbol.",
   ]);
 });
@@ -137,8 +139,8 @@ it("NM-34, NM-35, NM-36, NM-32 list errors use their exact copy", () => {
   const table: [RowErrorCode, string[], string][] = [
     ["nested-list", [], "Cannot store a list of numbers in a list."],
     ["list-too-long", [], "Lists may not have more than 10,000 elements."],
-    ["range-step", [], "A range can't step by 0. Make its first two values different."],
-    ["list-mixed", [], "A list can't mix numbers and points."],
+    ["range-step", [], "Ranges must be arithmetic sequences."],
+    ["list-mixed", [], "All elements of a list must have the same type."],
   ];
   for (const [code, names, text] of table) expect(rowErrorMessage(code, names)).toBe(text);
 });

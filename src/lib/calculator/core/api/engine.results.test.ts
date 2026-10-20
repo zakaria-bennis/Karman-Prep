@@ -50,6 +50,7 @@ it("API-9 expressionAnalysis reports graphable, error and displayed number, poin
     { id: "c", latex: "\\frac{" },
     { id: "d", latex: "1/0" },
     { id: "e", latex: "P=(1,2)" },
+    { id: "f", latex: "Q=2(1,2)" },
   ]);
   await m.settled();
   expect(m.engine.expressionAnalysis).toMatchObject({
@@ -67,10 +68,13 @@ it("API-9 expressionAnalysis reports graphable, error and displayed number, poin
       evaluationDisplayed: false,
     },
     d: { evaluationDisplayed: true, evaluation: { type: "undefined" } },
-    e: {
-      isGraphable: false,
+    // RC-6, M5: a point definition draws its point, as in Desmos, which shows no value for a
+    // literal point (R-5, RC-15) and shows a computed one
+    e: { isGraphable: true, evaluationDisplayed: false },
+    f: {
+      isGraphable: true,
       evaluationDisplayed: true,
-      evaluation: { type: "point", value: [1, 2] },
+      evaluation: { type: "point", value: [2, 4] },
     },
   });
   expect(m.engine.expressionAnalysis.b).not.toHaveProperty("evaluation");
@@ -301,13 +305,13 @@ it("AR-54 parse, analysis and evaluation errors are row values and never throw",
   expect(() => m.engine.editRow("b0", "\\frac{1}", "typing")).not.toThrow();
   await m.settled();
   const rows = m.engine.getSnapshot().rows.slice(1); // row "1" comes first; then b0…b11 in input order
-  // codes from the parse-errors corpus (PR-38 cases 35 to 41 and 45; PR-9 cases 8 and 20: matrix
+  // codes from the parse-errors corpus (PR-38 cases 35 to 41 and 45, case 37 being empty-root; PR-9 cases 8 and 20: matrix
   // and \sum are unsupported commands) and the RC-17 list (x+y is mixed-variables); "1/0" has no
   // error and its value is undefined
   expect(rows.map((r) => r.error?.code ?? null)).toEqual([
     "syntax", // b0, edited to \frac{1} (PR-38 case 45)
     "syntax", // x^{}
-    "syntax", // \sqrt{}
+    "empty-root", // \sqrt{}: Desmos's "Radical cannot be empty."
     "syntax", // 2+
     "syntax", // \left(
     "syntax", // \operatorname{}

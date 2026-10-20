@@ -3,7 +3,7 @@
 // `\left(…\right)` ("wrap") where the parser would otherwise group it differently (G2, G5), and a
 // unary minus also wraps a negation (`-\left(-x\right)`).
 
-import type { Node, RelOp } from "./ast";
+import { isAxis, type Node, type RelOp } from "./ast";
 import { isBuiltinName } from "./operator-names";
 
 /** Built-ins MathQuill writes as their own command; every other built-in is `\operatorname{…}`. */
@@ -54,6 +54,8 @@ const BARE_BASES: ReadonlySet<Kind> = new Set([
   "fact",
   "point",
   "list",
+  "index",
+  "piecewise",
 ]);
 /** Wrapped as a sum's right operand and as a product's left factor. */
 const SUMS: ReadonlySet<Kind> = new Set(["add", "sub"]);
@@ -108,7 +110,14 @@ export function printLatex(tree: Node): string {
     case "point":
       return join(["\\left(", printLatex(tree.x), ",", printLatex(tree.y), "\\right)"]);
     case "list":
-      return join(["\\left[", ...listItems(tree.items, tree.range === true), "\\right]"]);
+      return join(["\\left[", ...listItems(tree.items, tree.range), "\\right]"]);
+    case "index": // PR-34: the target is an id, call, list, number or index, each one atom
+      return join([
+        printLatex(tree.target),
+        "\\left[",
+        ...listItems(tree.items, tree.range),
+        "\\right]",
+      ]);
     case "rel":
       return join(
         tree.operands.flatMap((operand, i) =>
@@ -116,51 +125,82 @@ export function printLatex(tree: Node): string {
         )
       );
     case "call":
-      return printCall(tree.name, tree.args);
+      if (tree.member !== undefined) return printMember(tree.name, tree.args, tree.member);
+      return printCall(tree.name, tree.args, tree.base === true);
     case "sim":
       return join([printLatex(tree.left), "\\sim", printLatex(tree.right)]);
+    case "piecewise": // PR-31: `\left\{x>0:x,-x\right\}`
+      return join(["\\left\\{", piecewiseParts(tree).join(","), "\\right\\}"]);
   }
 }
 
 /**
  * `L·R`: the left factor is wrapped when it is a sum, the right one when it is a sum or a product
  * (products group left to right, PR-18). A number juxtaposes with a right factor that starts with
- * a Latin letter or a command (`2x`, `2\pi`); anything else takes `\cdot`.
+ * a Latin letter or a command (`2x`, `2\pi`), and every factor with a restriction (PR-32:
+ * `x\left\{x>0\right\}`, as MathQuill writes it); anything else takes `\cdot`.
  */
 function printProduct(left: Node, right: Node): string {
   const l = wrapIf(left, SUMS);
   const r = wrapIf(right, PRODUCTS);
-  const juxtapose = left.kind === "num" && (isLetter(r[0]) || r[0] === "\\");
+  // PR-34: a `[` right after a number indexes it, so a list factor takes `\cdot`.
+  const juxtapose =
+    right.kind === "piecewise" ||
+    (left.kind === "num" && (isLetter(r[0]) || (r[0] === "\\" && !r.startsWith("\\left["))));
   return juxtapose ? join([l, r]) : join([l, "\\cdot", r]);
 }
 
 /**
  * A call: `\sin`-style commands, `\operatorname{…}` for other built-ins and the bare name for user
- * functions, then the parenthesised arguments. `log` with two arguments writes its base as `_{B}`.
+ * functions, then the parenthesised arguments. A `log` base (PR-27) is written as `_{B}`.
  */
-function printCall(name: string, args: readonly Node[]): string {
+function printCall(name: string, args: readonly Node[], base: boolean): string {
   const head = COMMAND_NAMES.has(name)
     ? `\\${name}`
     : isBuiltinName(name)
       ? `\\operatorname{${name}}`
       : name;
-  if (name === "log" && args.length === 2) {
-    return join([head, "_{", printLatex(args[1]), "}", parenthesised([args[0]])]);
+  if (base) {
+    const written = args.slice(0, -1);
+    return join([head, "_{", printLatex(args[args.length - 1]), "}", parenthesised(written)]);
   }
   return join([head, parenthesised(args)]);
 }
 
+/** PR-45: `T.\operatorname{pdf}\left(x\right)`, or `T.\operatorname{mean}` for a property. */
+function printMember(name: string, args: readonly Node[], member: "method" | "property"): string {
+  const [target, ...rest] = args;
+  // PR-45: a coordinate is typed as the letter, `P.x`; `.\operatorname{x}` is an error in Desmos
+  if (member === "property" && isAxis(name)) return join([printLatex(target), ".", name]);
+  const head = join([printLatex(target), ".\\operatorname{", name, "}"]);
+  return member === "method" ? join([head, parenthesised(rest)]) : head;
+}
+
 /**
- * PR-34: list items separated by commas, as MathQuill writes them; a range puts `\\ldots` before
- * its last item, joined to it directly after one item (`1\\ldots10`) and by commas after two
- * (`1,3,\\ldots,10`).
+ * PR-34: list items separated by commas, as MathQuill writes them; a range puts `\\ldots` after
+ * its `range` starts, joined to them directly after at most one start (`1\\ldots10`, `\\ldots3`)
+ * and by commas after more (`1,3,\\ldots,10`), its ends following it by commas (`1\\ldots9,10`).
+ * An index's range may have no ends (`2\\ldots`, `1,3,\\ldots`).
  */
-function listItems(items: readonly Node[], range: boolean): string[] {
+function listItems(items: readonly Node[], range: number | undefined): string[] {
   const parts = items.map(printLatex);
-  if (!range) return parts.flatMap((part, i) => (i === 0 ? [part] : [",", part]));
-  const last = parts.length - 1;
-  const head = parts.slice(0, last).flatMap((part, i) => (i === 0 ? [part] : [",", part]));
-  return last === 1 ? [...head, "\\ldots", parts[last]] : [...head, ",\\ldots,", parts[last]];
+  const commas = (part: string, i: number) => (i === 0 ? [part] : [",", part]);
+  if (range === undefined) return parts.flatMap(commas);
+  const [starts, ends] = [
+    parts.slice(0, range).flatMap(commas),
+    parts.slice(range).flatMap(commas),
+  ];
+  const several = range >= 2;
+  const after = several && ends.length > 0 ? [","] : [];
+  return [...starts, several ? ",\\ldots" : "\\ldots", ...after, ...ends];
+}
+
+/** A piecewise's parts as MathQuill writes them: `c:v`, a bare `c`, then the otherwise value. */
+function piecewiseParts(tree: Extract<Node, { kind: "piecewise" }>): string[] {
+  const parts = tree.branches.map(({ cond, value }) =>
+    value === null ? printLatex(cond) : join([printLatex(cond), ":", printLatex(value)])
+  );
+  return tree.otherwise === null ? parts : [...parts, printLatex(tree.otherwise)];
 }
 
 function parenthesised(args: readonly Node[]): string {

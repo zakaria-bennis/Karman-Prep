@@ -16,7 +16,7 @@ import {
 
 const ORDER = (
   "parse-literals parse-operators parse-calls parse-relations parse-errors printer sat-forms classify-rows classify-definitions " +
-  "classify-relations display-numbers display-complex domain-real domain-functions number-theory keys graph question-dialect paste lists"
+  "classify-relations display-numbers display-complex domain-real domain-functions number-theory keys graph question-dialect paste lists piecewise"
 ).split(" ");
 const FIELDS: string[] = ["id", "rules", "input", "rows", "settings", ...EXPECTED_FIELDS];
 const base: CorpusCase = { id: "a-1", rules: ["PR-39"], input: { latex: "x" } };

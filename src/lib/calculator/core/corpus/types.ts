@@ -40,7 +40,37 @@ export type RowErrorCode =
   | "list-too-long" // NM-35, NM-42
   | "range-step" // NM-36
   | "list-mixed" // PR-34: numbers and points in one list
-  | "too-many-variables"; // RC-10: undefined names; the row view adds it, the analysis gives chips
+  | "too-many-variables" // RC-10: undefined names; the row view adds it, the analysis gives chips
+  | "index-type" // NM-30: indexing something that is not a list, `5[1]`
+  | "list-length-free" // NM-31, NM-36: a list whose length depends on x or y
+  | "reducer-arguments" // FN-23: `mean()`
+  | "first-argument-list" // FN-27: `quantile(5,0.5)`
+  | "argument-type" // FN-2, FN-23, FN-27: `median(P)` of a list of points P
+  | "both-lists" // FN-30: `cov(1,2)`
+  | "repeat-count" // FN-34: `repeat(1,2.5)`
+  | "repeat-counts" // FN-34: `repeat([1,2],[1.5,2])`
+  | "refused-function" // a Desmos built-in its calculator refuses: `frequencyList(L,M)`
+  | "repeat-lengths" // FN-34: `repeat([1,2,3],[1,2])`
+  | "piecewise-types" // PR-31: branches of different types, `\{1>0:(1,2),3\}`
+  | "comparator-types" // PR-31, NM-31: comparing a point, `\{(1,2)=(1,2):1,0\}`
+  | "chained-equation" // RC-14: graphing `x=y=3`
+  | "long-chain" // RC-14: graphing more than two inequalities, `0<x<y<3`
+  | "double-inequality" // RC-14: a graphed double inequality not solved for x or y, `x<1<2`
+  | "double-direction" // RC-14: a graphed double inequality pointing both ways, `1<y>0`
+  | "distribution-call" // FN-47: `pdf(normaldist())`, pdf without a distribution and a number
+  | "distribution-function" // FN-45: `N(1)` with N a distribution
+  | "add-types" // FN-45: `normaldist()+1`; the next four are the other operators'
+  | "subtract-types"
+  | "multiply-types"
+  | "divide-types"
+  | "power-types"
+  | "negate-type"
+  | "point-coordinate-type" // NM-32: a point as a point's coordinate, `((0,0),(4,0))`
+  | "coordinate-type" // PR-45: `a.x` with a a number
+  | "point-function-arguments" // FN-70, FN-71: `distance(1,2)`
+  | "point-function-arity" // FN-70, FN-71: three arguments
+  | "dot-call" // FN-70: `(0,0).\operatorname{distance}((3,4))`
+  | "member-target"; // FN-71: `(0,0).\operatorname{midpoint}((2,4))`
 export interface CorpusSettings {
   angleMode?: "radians" | "degrees";
   complex?: boolean;

@@ -2,9 +2,15 @@
 // A built-in takes a `(` argument list (a level-11 atom that takes postfix signs, PR-25) or, with
 // no parenthesis, the PR-24 run of implicitly multiplied factors (level 9).
 
-import type { Node, SourceSpan } from "./ast";
+import { isAxis, type Node, type SourceSpan } from "./ast";
 import { isDegreeSign, parsePostfix, takeArgument, takePostfix } from "./atoms";
-import { isShippedBuiltin, OPERATOR_NAMES, PREFIX_FORM_NAMES } from "./operator-names";
+import {
+  HIDDEN_OPERATOR_NAMES,
+  isShippedBuiltin,
+  MEMBER_NAMES,
+  OPERATOR_NAMES,
+  PREFIX_FORM_NAMES,
+} from "./operator-names";
 import {
   enter,
   fail,
@@ -20,9 +26,14 @@ import type { Token } from "./tokens";
 type CommandToken = Extract<Token, { t: "command" }>;
 type CallNode = Extract<Node, { kind: "call" }>;
 
-/** Allowlisted names with a category; `with`, `for`, `and`, `or` and `of` are operators (G8). */
+/**
+ * Allowlisted and hidden names with a category; `with`, `for`, `and`, `or` and `of` are operators
+ * (G8).
+ */
 const BUILTIN_NAMES: ReadonlySet<string> = new Set(
-  OPERATOR_NAMES.filter((n) => n.category !== null).map((n) => n.name)
+  [...OPERATOR_NAMES, ...HIDDEN_OPERATOR_NAMES]
+    .filter((n) => n.category !== null)
+    .map((n) => n.name)
 );
 
 /**
@@ -51,12 +62,16 @@ export function isBuiltinCommand(token: Token): token is CommandToken {
 
 /**
  * A built-in call (G8). An unshipped name is `unsupported` at the name before anything else is
- * read. After the name come an optional `_` base (`log` only) and `^` power, each once, in either
- * order; then a `(` argument list, or else the PR-24 run. A `^{-1}` power on a trig name renames
- * the call to its inverse; any other power raises the call to it (PR-26). `log`'s base is its last
- * argument (PR-27). A prime on the name (`\sin'(x)`, like `f'(x)`) is `unsupported` (PR-9). The
- * run and the power on the name are for PREFIX_FORM_NAMES only; any other built-in written without
- * `(`, or with a power on its name, is `function-parentheses`, as in Desmos.
+ * read. After the name come an optional `_` base and `^` power, each once, in either order; then
+ * a `(` argument list, or else the PR-24 run. A `^{-1}` power on a trig name renames the call to
+ * its inverse; on `log` and `ln` only `^2` is allowed (`log-power`), and on a circular or
+ * hyperbolic trig name or its inverse only `^2` and `^{-1}` (`trig-power`, Desmos's "Only sin^2
+ * and sin^-1 are supported. Otherwise, use parens."); `^2` raises the call to it (PR-26). `log`'s base is its last argument, marked `base` (PR-27), and an empty base
+ * is `empty-subscript`; any other name in PREFIX_FORM_NAMES (trig, hyperbolic, `ln`) takes no
+ * subscript, so `_` after it is `name-subscript` at the name, whatever follows, Desmos's "'ln'
+ * cannot have a subscript.". A prime on the name (`\sin'(x)`, like `f'(x)`) is `unsupported`
+ * (PR-9). The run and the power on the name are for PREFIX_FORM_NAMES only; any other built-in
+ * written without `(`, or with a power on its name, is `function-parentheses`, as in Desmos.
  */
 export function parseBuiltinCall(state: ParserState, name: CommandToken): Node {
   if (!isShippedBuiltin(name.name)) {
@@ -65,12 +80,16 @@ export function parseBuiltinCall(state: ParserState, name: CommandToken): Node {
   take(state);
   let base: Node | null = null;
   let power: Node | null = null;
+  let form: PowerForm = null;
   for (let token = peek(state); ; token = peek(state)) {
-    if (base === null && name.name === "log" && isSymbol(token, "_")) {
+    if (base === null && isSymbol(token, "_") && PREFIX_FORM_NAMES.has(name.name)) {
+      if (name.name !== "log") return fail("name-subscript", name.span, "a subscript", name.name);
       take(state);
+      failIfEmptyGroup(state);
       base = takeArgument(state).node;
     } else if (power === null && isSymbol(token, "^") && !isDegreeSign(state)) {
       take(state);
+      form = powerForm(state);
       power = takeArgument(state).node;
     } else {
       break;
@@ -78,33 +97,45 @@ export function parseBuiltinCall(state: ParserState, name: CommandToken): Node {
   }
   const prefixForm = PREFIX_FORM_NAMES.has(name.name);
   if (power !== null && !prefixForm) return needsParentheses(name);
+  if (power !== null && LOG_NAMES.has(name.name) && form !== "two") {
+    return fail("log-power", name.span, `only ${name.name}^2 is supported`, name.name);
+  }
   const open = peek(state);
   if (isSymbol(open, "'")) return fail("unsupported", open.span, `"'" is not supported`);
   if (open.t === "open" && open.ch === "(") {
-    if (takesFixedArguments(name.name) && takeEmptyList(state)) {
-      // An empty `()` on a fixed-arity built-in is RC-20's arity error, as in Desmos ("Function
-      // 'sin' requires an argument"), not a syntax error; a log base does not count as an argument
-      // (`\log_{2}()` reads "Function 'log' requires an argument").
-      return takePostfix(state, withPower(callNode(name, [], null, previousEnd(state)), power));
+    if (takeEmptyList(state)) {
+      // An empty `()` calls with no arguments: `normaldist()` is the standard normal (FN-45), and
+      // on a built-in that needs arguments it is RC-20's arity error, as in Desmos ("Function
+      // 'sin' requires an argument", "Function 'mean' requires at least one argument"), not a
+      // syntax error; a log base does not count as an argument (`\log_{2}()` reads "Function
+      // 'log' requires an argument"), but it stays on the call.
+      return takePostfix(
+        state,
+        withPower(name, callNode(name, [], base, previousEnd(state)), power, form)
+      );
     }
     const args = parseArgumentList(state);
     const call = callNode(name, args, base, previousEnd(state));
-    return takePostfix(state, withPower(call, power));
+    return takePostfix(state, withPower(name, call, power, form));
   }
   if (!prefixForm) return needsParentheses(name);
   const arg = parseRunArgument(state, name);
-  return withPower(callNode(name, [arg], base, arg.span.end), power);
+  return withPower(name, callNode(name, [arg], base, arg.span.end), power, form);
+}
+
+/** PR-26: the names whose only power is `^2`, Desmos's "Only log^2 is supported." */
+const LOG_NAMES: ReadonlySet<string> = new Set(["log", "ln"]);
+
+/** PR-27: `empty-subscript` at an empty `{}` group, Desmos's "Subscripts cannot be empty." */
+function failIfEmptyGroup(state: ParserState): void {
+  const [open, close] = [peek(state), peek(state, 1)];
+  if (open.t !== "open" || open.ch !== "{" || close.t !== "close" || close.ch !== "}") return;
+  fail("empty-subscript", { start: open.span.start, end: close.span.end }, "an empty subscript");
 }
 
 /** PR-24: Desmos's "'floor' is a function. Try using parentheses." at the name. */
 function needsParentheses(name: CommandToken): never {
   return fail("function-parentheses", name.span, `"${name.name}" needs (`, name.name);
-}
-
-/** Whether a built-in takes a fixed number of arguments, none of them optional down to zero. */
-function takesFixedArguments(name: string): boolean {
-  const arity = OPERATOR_NAMES.find((n) => n.name === name)?.arity;
-  return arity !== undefined && arity !== "variadic" && !arity.includes(0);
 }
 
 /** Takes an empty `()` at the cursor and returns true, or leaves the cursor and returns false. */
@@ -166,6 +197,103 @@ export function parseUserCall(state: ParserState, callee: Node): Node {
 }
 
 /**
+ * The built-ins a dot reads (PR-45): FN-47 to FN-51's methods and statistics of a distribution,
+ * `D.\operatorname{pdf}(x)`, `D.\operatorname{mean}`, and distance and midpoint, whose dot calls
+ * analysis refuses with Desmos's texts (FN-70, FN-71).
+ */
+const DOT_NAMES: ReadonlySet<string> = new Set([
+  "distance",
+  "midpoint",
+  "pdf",
+  "cdf",
+  "inversecdf",
+  "inverseCdf",
+  "mean",
+  "median",
+  "stdev",
+  "stddev",
+  "stdDev",
+  "var",
+  "variance",
+]);
+
+/**
+ * PR-45: the member after the `.` at the cursor, a DOT_NAMES built-in or an inference member
+ * written `\operatorname{pleft}` (MEMBER_NAMES), as the call `name(target, …)` marked `member`:
+ * "method" with a `(` argument list (an empty `()` gives none), else "property". Null, with the
+ * cursor left at the dot, for any other member, which the caller reports as unsupported.
+ */
+export function parseMember(state: ParserState, target: Node): Node | null {
+  const dot = peek(state);
+  const letter = peek(state, 1);
+  if (letter.t === "letter" && isAxis(letter.ch)) {
+    // PR-45, NM-32: `P.x`, `P.y`, `P.z` read a coordinate
+    state.pos += 2;
+    const span = { start: target.span.start, end: letter.span.end };
+    return { kind: "call", name: letter.ch, args: [target], member: "property", span };
+  }
+  // PR-45: another letter on its own, `P.X`, is Desmos's "Sorry, I don't understand the way that
+  // '.' is used here." (captured 2026-10-19); a run of letters (`T.score`) stays unsupported
+  const next = peek(state, 2);
+  if (letter.t === "letter" && next.t !== "letter") {
+    return fail("unexpected-symbol", dot.span, "a letter after a dot", ".");
+  }
+  if (isOneLetterMember(state)) {
+    return fail("unexpected-symbol", dot.span, "a one-letter name after a dot", ".");
+  }
+  const name = memberName(state);
+  if (name === null) return null;
+  state.pos += name.tokens;
+  const open = peek(state);
+  const method = open.t === "open" && open.ch === "(";
+  const args = !method ? [] : takeEmptyList(state) ? [] : parseArgumentList(state);
+  return {
+    kind: "call",
+    name: name.text,
+    args: [target, ...args],
+    member: method ? "method" : "property",
+    span: { start: target.span.start, end: previousEnd(state) },
+  };
+}
+
+/**
+ * A one-letter `\operatorname{p}` after the dot at the cursor: a variable to Desmos, not a
+ * member, so the dot reads "Sorry, I don't understand the way that '.' is used here." whatever
+ * comes before it (`a.\operatorname{p}`, `ttest(L).\operatorname{p}`; captured 2026-10-19).
+ */
+function isOneLetterMember(state: ParserState): boolean {
+  const [command, open, letter, close] = [1, 2, 3, 4].map((k) => peek(state, k));
+  return (
+    command.t === "command" &&
+    command.name === "operatorname" &&
+    isOpen(open, "{") &&
+    letter.t === "letter" &&
+    close.t === "close" &&
+    close.ch === "}"
+  );
+}
+
+/** The member name after the dot at the cursor and how many tokens it spans with the dot. */
+function memberName(state: ParserState): { text: string; tokens: number } | null {
+  const command = peek(state, 1);
+  if (command.t !== "command") return null;
+  if (DOT_NAMES.has(command.name)) return { text: command.name, tokens: 2 };
+  if (command.name !== "operatorname" || !isOpen(peek(state, 2), "{")) return null;
+  let text = "",
+    k = 3;
+  for (let token = peek(state, k); token.t === "letter"; token = peek(state, ++k)) {
+    text += token.ch;
+  }
+  const close = peek(state, k);
+  if (close.t !== "close" || close.ch !== "}" || !MEMBER_NAMES.includes(text)) return null;
+  return { text, tokens: k + 1 };
+}
+
+function isOpen(token: Token, ch: "(" | "[" | "{"): boolean {
+  return token.t === "open" && token.ch === ch;
+}
+
+/**
  * The PR-24 argument: leading signs, then factors while one starts and the next token is not a
  * built-in. An empty run before a built-in takes that call as its argument (`\sin\cos x`), while a
  * run followed by a built-in (`\sin 2\cos 1`) is `argument-parentheses` at the name, Desmos's "Use
@@ -198,20 +326,25 @@ function parseRunArgument(state: ParserState, name: CommandToken): Node {
 
 function callNode(name: CommandToken, args: Node[], base: Node | null, end: number): CallNode {
   const span: SourceSpan = { start: name.span.start, end };
-  return { kind: "call", name: name.name, args: base === null ? args : [...args, base], span };
+  if (base === null) return { kind: "call", name: name.name, args, span };
+  return { kind: "call", name: name.name, args: [...args, base], base: true, span };
 }
 
 /**
  * PR-26: `^{-1}` on a trig name is its inverse and on an inverse trig name the forward function;
- * any other power gives `pow(call, power)`.
+ * `^2` gives `pow(call, power)`, and any other power on a trig name is `trig-power` at the name,
+ * once the argument has been read (Desmos reads `\sin^{-1x}` as a missing argument first).
  */
-function withPower(call: CallNode, power: Node | null): Node {
+function withPower(name: CommandToken, call: CallNode, power: Node | null, form: PowerForm): Node {
   if (power === null) return call;
+  if (!LOG_NAMES.has(call.name) && form === null) {
+    return fail("trig-power", name.span, `only ${name.name}^2 and ^-1 are supported`, name.name);
+  }
   const forward = call.name.slice(3);
-  if (call.name.startsWith("arc") && INVERTIBLE_NAMES.has(forward) && isMinusOne(power)) {
+  if (call.name.startsWith("arc") && INVERTIBLE_NAMES.has(forward) && form === "minus-one") {
     return { ...call, name: forward };
   }
-  if (INVERTIBLE_NAMES.has(call.name) && isMinusOne(power)) {
+  if (INVERTIBLE_NAMES.has(call.name) && form === "minus-one") {
     const name = `arc${call.name}`;
     if (!isShippedBuiltin(name)) {
       return fail("unsupported", call.span, `"${name}" is not supported`);
@@ -221,8 +354,28 @@ function withPower(call: CallNode, power: Node | null): Node {
   return { kind: "pow", left: call, right: power, span: call.span };
 }
 
-function isMinusOne(node: Node): boolean {
-  return node.kind === "neg" && node.arg.kind === "num" && node.arg.value === 1;
+/**
+ * PR-26: which of the two allowed powers on a function name the `^` argument at the cursor is,
+ * read from its tokens as Desmos does: the digit `2` alone (`^2`, `^{2}`) or a minus sign before
+ * the digit `1` alone (`^{-1}`). Any other spelling, even of the same number (`^{2.0}`, `^{02}`,
+ * `^{(2)}`, `^{-1.0}`), is neither, so it is `trig-power` or `log-power`.
+ */
+type PowerForm = "two" | "minus-one" | null;
+
+function powerForm(state: ParserState): PowerForm {
+  const [first, second, third, fourth] = [0, 1, 2, 3].map((k) => peek(state, k));
+  if (first.t === "digits") return first.text[0] === "2" ? "two" : null; // one digit is taken
+  if (first.t !== "open" || first.ch !== "{") return null;
+  if (isDigits(second, "2") && isClose(third)) return "two";
+  return isSymbol(second, "-") && isDigits(third, "1") && isClose(fourth) ? "minus-one" : null;
+}
+
+function isDigits(token: Token, text: string): boolean {
+  return token.t === "digits" && token.text === text;
+}
+
+function isClose(token: Token): boolean {
+  return token.t === "close" && token.ch === "}";
 }
 
 /** Implicit multiplication inside the run, grouping left to right (PR-18). */

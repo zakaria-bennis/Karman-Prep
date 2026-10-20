@@ -102,6 +102,8 @@ function speak(node: Node, source: string): string {
     }
     case "list":
       return words("list", ...node.items.map((item) => speak(item, source)));
+    case "index": // PR-34: "L index 2"
+      return words(at(node.target, 7), "index", ...node.items.map((item) => speak(item, source)));
     case "sim": // PR-30: "y sub 1 is fitted to m x sub 1 plus b"
       return words(speak(node.left, source), "is fitted to", speak(node.right, source));
     case "point":
@@ -111,6 +113,14 @@ function speak(node: Node, source: string): string {
         "comma",
         speak(node.y, source),
         "right parenthesis"
+      );
+    case "piecewise": // PR-31: "piecewise x greater than 0 then x otherwise negative x"
+      return words(
+        "piecewise",
+        ...node.branches.flatMap(({ cond, value }) =>
+          value === null ? [speak(cond, source)] : [speak(cond, source), "then", at(value, 2)]
+        ),
+        ...(node.otherwise === null ? [] : ["otherwise", at(node.otherwise, 2)])
       );
     case "rel": {
       const parts = [speak(node.operands[0], source)];

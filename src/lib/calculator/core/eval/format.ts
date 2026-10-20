@@ -18,6 +18,7 @@ interface Style {
   scientific: (mantissa: string, exponent: string) => string;
   point: (a: string, b: string) => string;
   list: (items: string[], more: boolean) => string; // `more`: elements past the first 30 (NM-38)
+  call: (name: string, args: string[]) => string; // FN-45: a distribution as its constructor
 }
 
 const TEXT: Style = {
@@ -25,6 +26,7 @@ const TEXT: Style = {
   scientific: (m, e) => `${m}${TIMES}10^${e}`,
   point: (a, b) => `(${a}, ${b})`,
   list: (items, more) => `[${[...items, ...(more ? ["…"] : [])].join(", ")}]`,
+  call: (name, args) => `${name}(${args.join(", ")})`,
 };
 
 const LATEX: Style = {
@@ -32,6 +34,7 @@ const LATEX: Style = {
   scientific: (m, e) => `${m}\\times10^{${e}}`,
   point: (a, b) => `\\left(${a},${b}\\right)`,
   list: (items, more) => `\\left[${[...items, ...(more ? ["\\ldots"] : [])].join(",")}\\right]`,
+  call: (name, args) => `\\operatorname{${name}}\\left(${args.join(",")}\\right)`,
 };
 
 /** Trailing fraction zeros and a bare "." removed: "1.500" → "1.5", "2.000" → "2", "10" → "10". */
@@ -76,6 +79,11 @@ function format(v: Value, style: Style): string {
       return style.list(
         v.value.slice(0, LIST_SHOWN).map((item) => format(item, style)),
         v.value.length > LIST_SHOWN
+      );
+    case "distribution":
+      return style.call(
+        v.value.name,
+        v.value.params.map((p) => formatReal(p, style))
       );
     case "undefined":
       return style.undefined;

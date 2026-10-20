@@ -1,7 +1,7 @@
 import { expect, it } from "vitest";
 import { exponentRational, rationalFromValue, realPow, realRoot } from "./real-pow";
-import { C_I, cacos, casin, catan, cln, cpow, csin, csqrt } from "./complex";
-import { divV, mulV, powV, rootV } from "./ops";
+import { C_I, cacos, casin, catan, cexp, cln, cpow, csin, csqrt } from "./complex";
+import { absV, addV, divV, mulV, negV, powV, rootV, subV } from "./ops";
 import { numberValue, UNDEFINED } from "./values";
 import { parseLatex } from "../latex/index";
 
@@ -107,6 +107,16 @@ it("NM-18 complex functions use principal branches, with C99 values on the cuts"
     w.im,
   ]).toEqual([true, true, true, 0]);
 });
+it("NM-18 e^z has an exact zero part at whole multiples of π/2, as in Desmos", () => {
+  expect([cexp(c(0, P)), cexp(c(0, P / 2)), cexp(c(0, -2 * P)), cexp(c(1, 3 * P))]).toEqual([
+    c(-1, 0),
+    c(0, 1),
+    c(1, 0),
+    c(-Math.E, 0),
+  ]);
+  expect(cpow(cln(c(-1, 0)), c(2, 0)).im).toBe(0); // [complex] \ln(-1)^{2} is −π² + 0i
+  expect(cexp(c(0, 1)).im).toBe(Math.sin(1));
+});
 it("NM-19 complex mode keeps every value real mode defines", () => {
   expect([
     powV(n(-8), n(1 / 3), { p: 1, q: 3 }, true),
@@ -115,4 +125,42 @@ it("NM-19 complex mode keeps every value real mode defines", () => {
   ]).toEqual([n(-2), { type: "complex", value: c(0, 2) }, UNDEFINED]);
   const half = powV(n(-8), n(0.5), { p: 1, q: 2 }, true);
   expect(half.type === "complex" && rel(half.value.im, Math.sqrt(8))).toBe(true);
+});
+
+it("NM-32 PR-32 points add, subtract, negate, scale, divide by a number and dot each other, as in Desmos", () => {
+  const p = (x: number, y: number) => ({
+    type: "point" as const,
+    value: [x, y] as [number, number],
+  });
+  expect([
+    addV(p(1, 2), p(3, 4)),
+    subV(p(1, 2), p(3, 4)),
+    negV(p(1, 2)),
+    mulV(p(1, 2), n(1)),
+    mulV(n(2), p(1, 2)),
+    mulV(p(NaN, 2), n(3)),
+    mulV(p(1, 2), UNDEFINED),
+    mulV(p(1, 2), p(3, 4)),
+    divV(p(1, 2), n(2)),
+    divV(p(1, 2), n(0)),
+    absV(p(3, 4)),
+  ]).toEqual([
+    p(4, 6),
+    p(-2, -2),
+    p(-1, -2),
+    p(1, 2),
+    p(2, 4),
+    p(NaN, 6),
+    UNDEFINED,
+    n(11),
+    p(0.5, 1),
+    p(NaN, NaN),
+    n(5),
+  ]);
+  // Desmos refuses these (analysis reports its errors); the values stay undefined
+  expect([addV(p(1, 2), n(1)), divV(n(2), p(1, 2)), divV(p(1, 2), p(3, 4))]).toEqual([
+    UNDEFINED,
+    UNDEFINED,
+    UNDEFINED,
+  ]);
 });

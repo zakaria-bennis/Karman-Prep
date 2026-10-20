@@ -98,27 +98,143 @@ These Desmos behaviours are known and recorded but not yet built:
   expected-failure test "F-A1 a row inserted mid-list continues Desmos's colour cycle" in
   `engine.rows.test.ts` pins the gap; building the counter makes it pass, and its `.fails` must
   then be removed.
-- **Range length (NM-36).** Desmos rounds a range's element count, n = round((c − a)/s) + 1, so
-  `[1...3.5]` is `[1, 2, 3, 4]` and `[1,3,...,8]` is `[1, 3, 5, 7, 9]`. The calculator floors it and stops at
-  the bound. The captured cases are expected failures in `desmos.reference.test.ts`
-  (`RANGE_COUNT_GAP`); fixing NM-36 makes them pass, and that list must then be deleted.
-- **`log` with two arguments.** In Desmos `log(1,2)` is an arity error ("requires only 1
-  argument"), because a base is written only as a subscript. The calculator parses `\log_{b}(x)` and
-  `\log(x, b)` to the same call, so it still evaluates `log(1,2)`.
-- **`length`.** Desmos evaluates `length(L)` (`length([1,5,3,8])` = 4, `length(5)` = 1,
-  `length([])` = 0). The calculator has `length` on the built-in allowlist, so MathQuill turns a typed `length`
-  into an operator name, but it has not shipped: no list-reducing built-in exists yet, so a row
-  using it shows "This calculator doesn't support that notation." It ships with the statistics
-  task (plan T9a), and the captured values are then checked.
-- **An empty piecewise branch.** Desmos reads `\left\{1<0:5,\right\}` as "You need something on
-  both sides of the ',' symbol." Piecewise braces (PR-31) have not shipped, so the calculator shows its
-  unsupported-notation message. The captured error is an expected failure in
-  `desmos.reference.test.ts` (`ERROR_GAP`).
+- **An ellipsis outside a list.** Desmos reads `1...5` as "Sorry, I don't understand the way that
+  '...' is used here."; the calculator shows its syntax error. An expected failure in
+  `desmos.reference.test.ts` (`CATALOGUE_ERROR_GAP`).
+- **Indexing gaps (NM-30, NM-31).** Indexing, slicing and filtering match Desmos (see below)
+  except where they use notation that has not shipped: member access (`L[2].x`, `P[P.x>2].x`,
+  `[1,2,3].\operatorname{length}`, now the unsupported-notation message after any index, list or
+  point), `and` and `or` in a filter, comprehensions, `length`,
+  matrix indexing with `;` ("Cannot index a list of numbers with ';'."; the tokenizer rejects `;`
+  until matrices ship), `\ne` in a filter, and indexing a colour, a tone or a matrix. `P[2]`, an
+  index of a name defined as a list of points, is not graphed yet (M5). Each is an expected
+  failure in `desmos.reference.test.ts` (`INDEX_VALUE_GAP`, `INDEX_ERROR_GAP`, `RELATED_*_GAP`).
+  `E[1...3]` with E=[] shows three undefined elements where Desmos shows no value; only its
+  missing error is checked, since the display is the UI's.
+- **Root gaps (G9).** `\operatorname{sqrt}` and its arity messages, `real`, `\sqrt{4,9}` ("Points are written like this: (1, 2)."), `\sqrt(4)` ("Expected '(' to match
+  ')'."; the calculator reads it as a pasted `sqrt(4)`) and `\sqrt[[2,3]]{64}` ("Expected '[' to
+  match ']'."; normalizing drops `\left` and `\right`, so it reads as `\sqrt[\left[2,3\right]]{64}`,
+  which is [8, 4] in Desmos too). Expected failures in `desmos.reference.test.ts`
+  (`ROOT_VALUE_GAP`, `ROOT_ERROR_GAP`).
+- **An infinite log base.** Desmos gives `\log_{\infty}(5)` = 0; `\infty` is not a value in the
+  calculator yet, so it is undefined. An expected failure in `desmos.reference.test.ts`
+  (`CATALOGUE_VALUE_GAP`).
+- **Statistics gaps (FN-2, FN-23 to FN-29, FN-75).** The reducers, length, gcd, lcm, the
+  aliases gcf, mcd, mcm, stddev, stdDev, stddevp, stdDevP and variance, and inversecdf and
+  inverseCdf of a list match the catalogue (see below) except where a case uses notation that
+  has not shipped: derivatives, colours and tones, distributions, member access
+  (`L.\operatorname{mean}`, `\operatorname{mean}(P).x`), comprehensions and matrices, `shuffle`,
+  `random`, `stats`, `boxplot` and `polygon`, `\arg`,
+  `\infty` as a value, and a point-valued call such as `\operatorname{mean}(P)`, which evaluates to
+  the point but is not graphed yet (M5). Desmos also gives a `y=` row a value when its right side
+  is constant (`y=\operatorname{count}(x,1,2)` = 3); the calculator graphs it as a line. Each is an
+  expected failure in `desmos.reference.test.ts` (`STATISTICS_GAPS`, `POINT_ROWS`). Not built
+  either: the Statistics, List operations and Number theory panel buttons (a UI change, left
+  to the panel work). An unknown `\operatorname{…}` name is unsupported in the calculator, while
+  Desmos reads it as one multi-letter name: `\operatorname{stddevP}()` reads "Function 'stddevP'
+  is not defined.", `\operatorname{stddevP}(L,M)` "Too many variables. Try defining 'stddevP'."
+  and `\operatorname{stddevP}(L)` "Try adding 'y=' to the beginning of this equation." (9 captured
+  errors in the catalogue, not in the fixture). Matching them needs a multi-letter identifier in
+  the parser and free-variable analysis, which is its own task.
+- **List operation gaps (FN-30 to FN-38).** cov, covp, corr, spearman, sort, unique, join,
+  repeat, argmin and argmax match the catalogue except where a case uses unshipped notation:
+  derivatives, colours and tones, member access (`L.\operatorname{sort}`, `.x`), actions (`\to`)
+  and `shuffle`. `frequency` is not a Desmos function: its errors ("Function 'frequency' is not
+  defined.") need multi-letter names, as above. Desmos folds `0.1+0.2` exactly to 0.3, so
+  `unique([0.1+0.2,0.3])` is [0.3] there and two elements here. Rows Desmos graphs as several
+  curves (`\operatorname{join}(x,1)`, `\operatorname{repeat}(x,2)`, G-22) or as a call's points
+  (`\operatorname{sort}(P,[3,1,2])`, M5) do not graph yet. Each is an expected failure in
+  `desmos.reference.test.ts` (`LIST_OPERATION_GAPS`, `LIST_OPERATION_GRAPH_GAPS`). The hidden
+  sortPerm, complexSortPerm and uniquePerm, and the hidden names Desmos refuses (repeatAssert,
+  frequencyList, frequencyListAssert, sortedLastLessIndex, sortedLastLessEqualIndex: "This
+  calculator does not support the 'frequencyList' function."), match; shuffle's do not (T14).
+  Known but not captured live, so not in the fixture: Desmos keeps ±Infinity inside a list where
+  the engine reads undefined, so `\operatorname{sort}([3,1/0,-1/0,1])` puts −∞ first there,
+  `\operatorname{argmin}([3,-1/0,1])` is 2 and `\operatorname{unique}([1/0,1/0,-1/0])` has two
+  elements; and `y=\operatorname{length}([1...x])` graphs in Desmos (only a top-level list
+  needs a constant length) while NM-31's check refuses it here.
+- **Piecewise gaps (PR-31, PR-32).** Piecewise braces and restrictions match Desmos (see below)
+  except where they use notation that has not shipped: derivatives and integrals of a piecewise,
+  distributions in a condition (`invNorm`, `normaldist`), recursion with a piecewise base case
+  (`p(n)=\{n=0:1,np(n-1)\}`, still "p is defined in terms of itself."), `and` and `or` in a
+  condition (and Desmos's "Ambiguous use of 'and' and 'or'."), `\sum` and `polygon`. A list
+  condition on a curve (`y=x\{[0,1]<x\}`) waits for multi-branch graphs (G-22), a restricted
+  parametric (`(t,t^{2})\{t>0.5\}`) for parametric curves, `r=\theta\{\theta<\pi\}` for polar
+  curves and `\{A=A:1,0\}` ("Cannot compare a matrix to a matrix.") for matrices. Each is an
+  expected failure in `desmos-piecewise.reference.test.ts` or `desmos-relations.reference.test.ts`.
+  A point-valued piecewise or restriction (`(1,2)\{a>0\}`) is a point row: a point times a real
+  number scales it, the only point arithmetic shipped before M4. Inferred from Desmos's typed
+  piecewise and not captured live: a scalar condition's pick broadcasts over a list value
+  (`\{1>0:1,[1,2]\}` = [1, 1], `\{1<0:[1,2],[3,4,5]\}` = [3, 4]); a condition comparing points
+  is "Cannot compare a point to a point."; a condition chain may point both ways
+  (`\{0<a>0:5\}`); and the comparator chain errors of PR-29 and RC-14 other than `x<1<2` and the
+  relation operator ones use the bundle's strings.
 
 ### Matched after the 2026-10-19 second review
 
 These were captured from Desmos by the second review and now match. Every captured error,
 including these, is checked in `desmos.reference.test.ts`:
+
+- **Statistics, length, gcd and lcm (FN-2, FN-23 to FN-29, FN-75).** A reducer reduces one list
+  or its number arguments (`mean(1,2,3)` = 2) and broadcasts when a list is among several
+  arguments (`max([1,2],5)` = [5, 5], cut to the shortest list). An undefined element makes the
+  result undefined; count and length count it. `total([])` and `count([])` are 0. stdev and var
+  use n − 1 in two passes; mad is the mean absolute deviation; quantile is type 7 on [0, 1];
+  quartile checks [0, 4], rounds half up and takes the medians of the halves without the middle
+  value. mean and total of points are a point. length never broadcasts. gcd and lcm round first,
+  and in complex mode work on Gaussian integers shown in the first quadrant. count and length do
+  not make a row depend on x (`count(x,1)` = 2). The error texts for `mean()`, `min()`,
+  `quantile(5,0.5)`, `median(P)`, `quantile(P,0.5)` and `length(L,10)` are Desmos's. The spelling
+  aliases evaluate as their canonical function and their errors keep the spelling written
+  (`variance(P)` reads "Function 'variance' cannot be applied to a point."); `inversecdf(L,p)` is
+  `quantile(L,p)`, with "requires 2 arguments" and "must be a list" texts naming inversecdf. A
+  broadcast of mean or total over points is typed a list of points. A list argument the real
+  plotter cannot lay out (`y=\operatorname{mean}([1,2,3]^x)`, `y=\max(\sin([1,2]x))`) is plotted
+  through the general evaluator rather than drawn blank. The values
+  are in `desmos-statistics.fixture.json`.
+- **Indexing, slicing and filtering (PR-34, NM-30, NM-31).** `L[i]` is 1-based and rounds a
+  non-integer index down (`L[1.9]` = L[1], `L[0.6]` undefined); out of range is undefined. A list,
+  several items or a range picks each index in turn (`L[[1,3,5]]`, `L[1,2]`, `L[1,3,...,7]`), and a
+  slice is never cut at the end (`L[8...20]` is L[8] then 12 undefined; `L[4...2]` runs
+  backwards). `L[a...]`, `L[...b]` and `L[...]` run to the end and from 1. One condition filters
+  by position up to the shorter list (`L[L>3]`, `L[2<L<6]`, `L[[1,2,3]>2]` = [4]). `L[]` reads
+  "Square brackets cannot be empty.", `5[1]` "Cannot index a number with a number." (a `[` after a
+  number indexes it, so `2[1,2]` is no longer a product), and a range or filter that uses x, such
+  as `[x...5]` or `L[L>x]`, "Can't plot a list whose length depends on free variable 'x'." `L[x]`
+  graphs as a step function. Every catalogue value and error for these is checked
+  (`desmos-index.fixture.json`), with the gaps listed above.
+- **Index types and free variables (NM-30, NM-31), from the third review.** A `[` after any term
+  indexes it (Desmos's parser binds `[` tighter than every operator but `(`): `(L+1)[2]`,
+  `L^{2}[1]`, `\pi[1,2]`. Indexing a value analysis types as a number or a point, or indexing by a
+  point, reads "Cannot index {a number} with {a point}." with Desmos's ListAccess wording (`a[1]`
+  with a=5, `L[1][1]`, `x[1]`, `(1,2)[1]`, `L[(1,2)]`), and a range or filter on a name no row
+  defines reads "Can't plot a list whose length depends on free variable 'i'." (`L[i>2]`,
+  captured). An index of any list without variables graphs as a step function (`L[2...][x]`,
+  `[1...5][x]`, `L[L>3][x]`), where it plotted nothing before. Only `L[i>2]` was captured live; the
+  rest follow the decompiled parser and type signatures and await a capture.
+- **Piecewise and restrictions (PR-31, PR-32, NM-41).** `\left\{c_1:v_1,c_2:v_2,…,v\right\}`
+  takes the value of the first condition that holds, then the bare last value, else undefined. A
+  part with no `:` is a condition whose value is 1, so `\{1>0,2<1:4\}` is 1 and `\{1>0:5,1<0\}` is
+  5; `\{c\}` alone is 1 or undefined and `\{\}` is 1. Conditions chain (`\{0<a<2:5\}`), `=`
+  compares the full doubles, and degree mode applies inside them. A condition with a list operand
+  broadcasts every part to the shortest list (`\{[1,2,3]>1:10,20\}` = [20, 10, 10],
+  `\{[1,2]>1:[5,6],0\}` = [0, 6]); otherwise only the picked value is evaluated. Braces after an
+  expression multiply it, so they restrict curves, implicit curves, regions and functions
+  (`y=x\{0<x<2\}`, `x^{2}+y^{2}=1\{x>0\}`, `y>x\{x>0\}`, `f(x)=x\{x>0\}` with `f(-1)`
+  undefined) and stack (`\{x>0\}\{x<1\}`); a piecewise in x alone graphs as a curve
+  (`\{x<0:-1,x>0:1\}`). A piecewise index picks by its values (`L[\{L>3\}]`). The errors are
+  Desmos's: "You need something on both sides of the ',' symbol." and "… of the ':' symbol.", "The
+  left side of a ':' must be a condition, like 'x>1'.", "A piecewise expression must have at
+  least one condition." (`\{5,6\}`, `y=x\{x\}`), "Every part of a piecewise expression must
+  have a condition except the last." and "Cannot use a point and a number as the branches in a
+  piecewise. Every branch must have the same type." Every catalogue value and error is checked
+  (`desmos-piecewise.fixture.json`), with the gaps listed above.
+- **Roots (G9).** `\sqrt{}` and `\sqrt[3]{ }` read "Radical cannot be empty." and `\sqrt[]{8}`
+  "Radical index cannot be empty." (checked first), where they were syntax errors. In complex
+  mode a negative radicand takes the principal root (`\sqrt[3]{-8}` = 1 + 1.732i). Every catalogue
+  root value and error is checked (`desmos-root.fixture.json`), with the gaps listed above.
+- **The plan's 14 captured index values** (`L[2]` to `[2...10][4]`, with L=[5,3,8,1]) are a
+  reference family of their own.
 
 - **`exp` needs parentheses.** `\exp 2`, `\exp^{2}(1)` and `\exp` on its own read "'exp' is a
   function. Try using parentheses."; `\exp()` reads "Function 'exp' requires an argument. For
@@ -133,6 +249,57 @@ including these, is checked in `desmos.reference.test.ts`:
 - **Empty arguments.** `\operatorname{nCr}(,2)` and `\operatorname{mod}(1,)` read "You need
   something on both sides of the ',' symbol." (the new `comma-side` error), and `\log_{2}()` reads
   "Function 'log' requires an argument. For example, try typing: log(x)."
+- **`log` with two arguments (PR-27, RC-20).** `\log(10,2)` and `\log_{2}(8,2)` read "Function
+  'log' requires only 1 argument. For example, try typing: log(x).", since a base is written only
+  as a subscript. The parser marks a subscript base on the call (`base`), and the arity check counts
+  only the written arguments. `\log_{}(8)` reads "Subscripts cannot be empty." and `\log^{-1}(100)`
+  "Only log^2 is supported. Otherwise, use parens." (`\ln` likewise). `\ln_{2}(8)` reads "'ln'
+  cannot have a subscript." (the `name-subscript` error), as do the trig and hyperbolic names with
+  a subscript. Every ln value and error in the function catalogue is checked too.
+- **Trig, exp and point arguments (NM-4, NM-26, NM-28, PR-26, FN-4, FN-22).** Desmos is exact
+  only at quarter turns: `\sin(\frac{\pi}{6})` is 0.49999999999999994, `\tan(45)` in degrees is
+  0.9999999999999999 and `\arcsin(0.5)` in degrees is 30.000000000000004, so
+  `\operatorname{floor}(\tan(\frac{\pi}{4}))` is 0; the calculator no longer snaps multiples of
+  π/12, 15° or a degree result. `\arctan(0,0)` is 0 and `\arctan(-0,-1)` is −π. Only `^2` and
+  `^{-1}` go on a trig or hyperbolic name ("Only sin^2 and sin^-1 are supported. Otherwise, use
+  parens."). An elementary built-in or a square root of a point reads "Function 'sin' cannot be
+  applied to a point." Every catalogue value and error for circular trig, inverse trig and exp,
+  and every user-function arity text, is checked in `desmos-trig.reference.test.ts`
+  (`desmos-trig.fixture.json`; real trig values exactly). Not yet matched (`GAPS` there):
+  derivatives, integrals, sums and products, `\infty`, complex mode ignoring the degree setting
+  and its branch signs for arcsin, arccos, arccsc and arcsec at real x outside the domain,
+  `\sin\cos(0)` (Desmos asks for parentheses), θ outside a polar row, and the degree sign, which
+  Desmos does not have.
+- **Hyperbolic and complex trig (FN-68, NM-4).** Complex trig and hyperbolic parts use the same
+  quarter-turn exactness as real trig, so `\cosh(\frac{\pi}{2}i)` is 0, `\tanh(\frac{\pi}{2}i)`
+  has an undefined real part and `\operatorname{sech}(\frac{\pi}{2}i)` is undefined; complex
+  arctanh and arccoth follow Desmos's branches (`\operatorname{arctanh}(2)` is 0.549… − (π/2)i,
+  `\operatorname{arccoth}(0.5)` is 0.549… + (π/2)i). Every catalogue hyperbolic value and error
+  is checked in `desmos-trig.reference.test.ts` (`desmos-hyperbolic.fixture.json`), except
+  derivatives, the `ar`-spelled names (`\operatorname{arsinh}`) and the hidden complexArc… names.
+- **Literal powers and inlined type errors (PR-26, FN-4).** A power on a trig, hyperbolic or log
+  name is allowed only as the literal `2` or `-1`, so `\sin^{2.0}(1)`, `\sin^{(2)}(1)` and
+  `\log^{2.0}(3)` are the power errors. A user function called with a point is type-checked
+  through its body (`f((1,2))` with `f(x)=\sin(x)` reads "Function 'sin' cannot be applied to a
+  point."), and an nth root of a point reads "Function 'nthroot' cannot be applied to a point and
+  a number." (Desmos's parser and type checker; not captured live).
+- **Exact logs (FN-60).** `\log_{3}(81)` is 4 and `\log_{10}(1000)` is 3, as in Desmos, so
+  `\operatorname{ceil}(\log_{3}(81))` is 4, not 5. Every log value and error in the function
+  catalogue is checked in `desmos.reference.test.ts`.
+- **Range length (NM-36).** Desmos rounds a range's element count, n = round((c − a)/s) + 1, so
+  `[1...3.5]` is `[1, 2, 3, 4]` and `[1,3,...,8]` is `[1, 3, 5, 7, 9]`, and the calculator now does
+  the same. A count that is not finite or is smaller than the values written before the ellipsis
+  (`[1,1,...,5]`, `[1...0/0]`, `[1,3,...,1]`, `[1,2,...,0]`) reads "Ranges must be arithmetic
+  sequences." Every range value and error in the function catalogue is checked in
+  `desmos.reference.test.ts` (`desmos-catalogue.fixture.json`), the range values exactly.
+- **Exact ranges (NM-36).** Desmos folds a range of constants in exact fractions, so
+  `[0,0.1,...,1]` holds 0.3, not 0.30000000000000004, and `[1,1.1,...,1.25]` counts 2.5 steps,
+  rounded to 3. The calculator computes the count and elements on fractions too
+  (`core/lib/rational.ts`), and never swaps the last element for the bound (`[1...3.0000000001]`
+  is `[1, 2, 3]`). Ranges may have more values on either side of the ellipsis
+  (`[1,2,3,...,10]`, `[1,...,9,10]`), checked to lie on the sequence (`[1,2,4,...,10]` is "Ranges
+  must be arithmetic sequences."). Only `[0,0.1,...,1]` is captured live; the rest follow Desmos's
+  range builder.
 - **List errors.** `[1,...]` reads "Range must have an upper and lower bound." (the new
   `range-bound` error) and `[1...10001]` reads "Lists may not have more than 10,000 elements."
   (NM-35's wording, changed to Desmos's).

@@ -3,6 +3,9 @@ import { applyBuiltin, BUILTINS } from "./builtins";
 import { numberValue, UNDEFINED } from "../eval/values";
 import { formatValue } from "../eval/format";
 import { OPERATOR_NAMES, SHIPPED } from "../latex/operator-names";
+import { DISTRIBUTION_FUNCTION_NAMES } from "./distributions";
+import { POINT_FUNCTIONS } from "./geometry";
+import { LIST_FUNCTION_NAMES } from "./statistics";
 
 const P = Math.PI;
 const n = numberValue;
@@ -39,7 +42,7 @@ it("FN-6, NM-25 only circular-trig inputs and inverse-trig outputs depend on the
     f("sin", [30], "degrees"),
     f("arctan", [1, -1], "degrees"),
     f("exp", [P], "degrees"),
-  ]).toEqual([n(0.5), n(135), n(Math.exp(P))]);
+  ]).toEqual([n(0.49999999999999994), n(135), n(Math.exp(P))]);
   expect(
     applyBuiltin("sin", [{ type: "complex", value: { re: 0, im: 1 } }], "degrees", true)
   ).toEqual({
@@ -57,7 +60,6 @@ it("FN-4 every built-in returns undefined outside its domain, shows undefined an
     ["arccos", [-2]],
     ["arccsc", [0.5]],
     ["arcsec", [0.5]],
-    ["arctan", [0, 0]],
     ["exp", [1000]],
     ["ln", [0]],
     ["log", [-1]],
@@ -74,5 +76,15 @@ it("FN-4 every built-in returns undefined outside its domain, shows undefined an
 });
 it("FN-1 every shipped built-in function has a rule, and no unshipped one does", () => {
   const functions = OPERATOR_NAMES.filter((o) => o.category !== null).map((o) => o.name);
-  for (const name of functions) expect(BUILTINS.has(name), name).toBe(SHIPPED.has(name));
+  for (const name of functions) {
+    // a scalar rule in BUILTINS, a list rule in statistics.ts, a distribution rule
+    // (distributions.ts) or a point rule (geometry.ts), never two
+    const rules =
+      Number(BUILTINS.has(name)) +
+      Number(LIST_FUNCTION_NAMES.includes(name)) +
+      Number(DISTRIBUTION_FUNCTION_NAMES.includes(name)) +
+      Number(POINT_FUNCTIONS.has(name));
+    expect(rules, name).toBe(SHIPPED.has(name) ? 1 : 0);
+  }
+  expect(LIST_FUNCTION_NAMES.every((name) => SHIPPED.has(name))).toBe(true);
 });

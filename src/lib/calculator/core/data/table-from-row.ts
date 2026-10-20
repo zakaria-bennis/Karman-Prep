@@ -34,6 +34,17 @@ function rename(tree: Node, from: string, to: string): Node {
         return { ...n, operands: n.operands.map(walk) };
       case "list":
         return { ...n, items: n.items.map(walk) };
+      case "index":
+        return { ...n, target: walk(n.target), items: n.items.map(walk) };
+      case "piecewise":
+        return {
+          ...n,
+          branches: n.branches.map(({ cond, value }) => ({
+            cond: { ...cond, operands: cond.operands.map(walk) },
+            value: value === null ? null : walk(value),
+          })),
+          otherwise: n.otherwise === null ? null : walk(n.otherwise),
+        };
       default:
         return n;
     }

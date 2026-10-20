@@ -4,8 +4,9 @@
 // (G11, PR-21); and single-token arguments (G4). Built-in and user calls are in calls.ts (G8).
 
 import type { Node, SourceSpan } from "./ast";
-import { isBuiltinCommand, parseBuiltinCall, parseUserCall } from "./calls";
-import { failIfComprehension, failIfIndexed, parseList } from "./lists";
+import { isBuiltinCommand, parseBuiltinCall, parseMember, parseUserCall } from "./calls";
+import { failIfComprehension, parseIndex, parseList } from "./lists";
+import { isPiecewiseOpen, parsePiecewise } from "./piecewise";
 import {
   enter,
   fail,
@@ -14,6 +15,7 @@ import {
   startsFactor,
   take,
   unexpected,
+  unexpectedAfterSum,
   type ParserState,
 } from "./parser";
 import type { Token } from "./tokens";
@@ -74,15 +76,31 @@ export function parsePostfix(state: ParserState): Node {
  * The postfix loop after `atom` (G2), each sign applying to everything before it (PR-20): `\%`,
  * the degree sign, `^` and `!` (factorial, NM-15). An exponent directly after another is `syntax`
  * (G5, PR-19); `3!^{2}` is (3!)². Every operator position follows this loop, so it reports PR-9's
- * notation there: `'` (prime) is `unsupported`, as is a `.` after an identifier or a call (member
- * access); any other `.` ends the
- * loop and is `syntax` where the caller meets it. A built-in call with a `(` argument list is an
- * atom too (PR-25). A `[` after a name, a call or a list is PR-34's indexing (failIfIndexed).
+ * notation there: `'` (prime) is `unsupported`, as is a `.` after a member base (isMemberBase)
+ * unless parseMember reads the member (PR-45: `D.\operatorname{pdf}(x)`); any other `.` ends the loop and is `syntax` where the caller meets it. A built-in call with a
+ * `(` argument list is an atom too (PR-25). A `[` after any atom or postfix sign is PR-34's
+ * indexing (parseIndex), which takes the postfix signs after it too (`L[2]^{2}`, `L[L>3][1]`,
+ * `(L+1)[2]`).
  */
 export function takePostfix(state: ParserState, atom: Node): Node {
   let node = atom;
   let afterExponent = false;
-  for (let token = peek(state); token.t === "symbol"; token = peek(state)) {
+  for (let token = peek(state); token.t === "symbol" || token.t === "open"; token = peek(state)) {
+    if (token.t === "open") {
+      const indexed = parseIndex(state, node);
+      if (indexed === null) break;
+      node = indexed;
+      afterExponent = false;
+      continue;
+    }
+    if (token.ch === "." && isMemberBase(node)) {
+      const member = parseMember(state, node);
+      if (member !== null) {
+        node = member;
+        afterExponent = false;
+        continue;
+      }
+    }
     if (UNSUPPORTED_POSTFIX.has(token.ch) || (token.ch === "." && isMemberBase(node))) {
       fail("unsupported", token.span, `"${token.ch}" is not supported`);
     }
@@ -107,14 +125,14 @@ export function takePostfix(state: ParserState, atom: Node): Node {
       break;
     }
   }
-  failIfIndexed(state, node);
   return node;
 }
 
 /**
  * An atom (level 11): a number, a Latin or Greek identifier or a constant (G6), an identifier's
- * user-function call (PR-23), a `(` or `{` group (G10), a `[` list or range (PR-34), a fraction
- * or root (G9) or absolute-value bars (G11); any other token fails (G14).
+ * user-function call (PR-23), a `(` or `{` group (G10), a `[` list or range (PR-34), `\{`
+ * piecewise braces (PR-31), a fraction or root (G9) or absolute-value bars (G11); any other token
+ * fails (G14).
  */
 export function parseAtom(state: ParserState): Node {
   const token = peek(state);
@@ -135,6 +153,7 @@ export function parseAtom(state: ParserState): Node {
         return parseRoot(state, token, { kind: "num", value: 3, span: token.span });
       }
       if (token.name === "lvert") return parseBars(state, token, "lvert");
+      if (isPiecewiseOpen(token)) return parsePiecewise(state, token);
       return parseUserCall(state, parseCommandAtom(state, true));
     default:
       return unexpected(state, token);
@@ -175,7 +194,10 @@ function takeDelimited(state: ParserState, open: OpenToken, closer: ")" | "]" | 
   take(state);
   const node = enter(state, open, () => parseSum(state));
   const close = peek(state);
-  if (close.t !== "close" || close.ch !== closer) unexpected(state, close);
+  if (close.t !== "close" || close.ch !== closer) {
+    if (closer === "}") unexpectedAfterSum(state, close);
+    unexpected(state, close);
+  }
   take(state);
   return { node, end: close.span.end };
 }
@@ -196,7 +218,8 @@ export function isDegreeSign(state: ParserState): boolean {
 /**
  * A `(` or `{` group in atom position (G10, PR-22): comma-separated sums, an empty part being
  * `syntax`. One part is that sum, spanning the brackets; a `(` group with two parts is a point and
- * with more is `point-arity` over the group; a `{` group fails at its first top-level comma.
+ * with more is `point-arity` over the group; a `{` group fails at its first top-level comma. A
+ * `.` after a one-part `(` group reads a member of it (PR-45), so `((1,2)+(3,4)).x` is 4.
  */
 function parseGroup(state: ParserState, open: OpenToken): Node {
   take(state);
@@ -217,7 +240,11 @@ function parseGroup(state: ParserState, open: OpenToken): Node {
     return fail("point-arity", span, `a point has 2 coordinates, not ${parts.length}`);
   }
   if (parts.length === 2) return { kind: "point", x: parts[0], y: parts[1], span };
-  return { ...parts[0], span };
+  const group: Node = { ...parts[0], span };
+  // PR-45: a `.` after a `(` group is member access on the whole group, `((1,2)+(3,4)).x`
+  const dot = peek(state);
+  if (open.ch !== "(" || dot.t !== "symbol" || dot.ch !== "." || isMemberBase(group)) return group;
+  return parseMember(state, group) ?? fail("unsupported", dot.span, `"." is not supported`);
 }
 
 /**
@@ -278,18 +305,29 @@ function isOneLetter(node: Node, name: string | null): boolean {
 /**
  * `\sqrt` (G9, PR-27): an optional `[index]` sum, then a braced group, a `(` group (pasted
  * `sqrt(x)`) or a G4 token. A typed `cbrt` (G7) passes its fixed index 3 and reads no `[index]`.
+ * As in Desmos, empty index brackets are `empty-root-index` ("Radical index cannot be empty."),
+ * checked first, and an empty braced argument is `empty-root` ("Radical cannot be empty.").
  */
 function parseRoot(state: ParserState, sqrt: Token, fixedIndex: Node | null): Node {
   take(state);
   const bracket = peek(state);
   let index = fixedIndex;
   if (index === null && bracket.t === "open" && bracket.ch === "[") {
+    failIfEmpty(state, bracket, "empty-root-index");
     index = takeDelimited(state, bracket, "]").node;
   }
   const paren = peek(state);
+  if (paren.t === "open" && paren.ch === "{") failIfEmpty(state, paren, "empty-root");
   const arg =
     paren.t === "open" && paren.ch === "(" ? takeDelimited(state, paren, ")") : takeArgument(state);
   return { kind: "root", arg: arg.node, index, span: { start: sqrt.span.start, end: arg.end } };
+}
+
+/** `code` over the opener at the cursor and its closer when nothing is between them. */
+function failIfEmpty(state: ParserState, open: OpenToken, code: "empty-root" | "empty-root-index") {
+  const close = peek(state, 1);
+  if (close.t !== "close" || close.ch !== (open.ch === "[" ? "]" : "}")) return;
+  fail(code, { start: open.span.start, end: close.span.end }, "an empty root part");
 }
 
 /**
@@ -309,6 +347,29 @@ function parseLetter(state: ParserState, letter: LetterToken): Node {
     return { kind: "id", name: `${letter.ch}_{${next.text}}`, span };
   }
   return { kind: "id", name: letter.ch, span: letter.span };
+}
+
+/**
+ * `or` and `and` join conditions, which have not shipped. In a row with no comparison at all they
+ * cannot be part of one, so they read Desmos's "'or' can only be used as part of a condition."
+ * (captured 2026-10-19 for a typed name that splits, `n\operatorname{or}mal\operatorname{cdf}(0,1)`);
+ * beside a comparison they stay unsupported.
+ */
+function failIfLogicOutsideCondition(state: ParserState, command: Token): void {
+  if (command.t !== "command" || (command.name !== "or" && command.name !== "and")) return;
+  const compares = state.tokens.some(
+    (t) =>
+      (t.t === "symbol" && (t.ch === "<" || t.ch === ">")) ||
+      (t.t === "command" && (t.name === "le" || t.name === "ge"))
+  );
+  if (!compares) {
+    fail(
+      "logic-outside-condition",
+      command.span,
+      `"${command.name}" outside a condition`,
+      command.name
+    );
+  }
 }
 
 /**
@@ -332,6 +393,7 @@ function parseCommandAtom(state: ParserState, subscripts: boolean): Node {
     return { kind: "id", name, span: token.span };
   }
   failIfComprehension(token);
+  failIfLogicOutsideCondition(state, token);
   const [open, close] = [peek(state), peek(state, 1)];
   const emptyGroup =
     open.t === "open" && open.ch === "{" && close.t === "close" && close.ch === "}";
@@ -414,9 +476,15 @@ function isLetterRun(state: ParserState, command: Token): boolean {
   return state.normalized[command.span.start] !== "\\";
 }
 
-/** A name or a call: a `.` after one is member access (PR-45), `unsupported` until Phase 3 (PR-9). */
+/**
+ * A name, a call, a list, a point or an index: a `.` after one is member access (PR-45: `P.x`,
+ * `L[2].x`, `[1,2].\operatorname{length}`), `unsupported` (PR-9) except the members parseMember
+ * reads, which analysis allows on a distribution only (FN-47 to FN-51).
+ */
+const MEMBER_BASES: ReadonlySet<Node["kind"]> = new Set(["id", "call", "list", "point", "index"]);
+
 function isMemberBase(node: Node): boolean {
-  return node.kind === "id" || node.kind === "call";
+  return MEMBER_BASES.has(node.kind);
 }
 
 /** Digits with no decimal point and no inner whitespace (PR-14). */

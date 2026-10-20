@@ -94,7 +94,7 @@ const cases: CorpusCase[] = [
   t(62, ["PR-22"], "(a+1,b)", "(point (add (id a) (num 1)) (id b))"),
   x(64, ["PR-22"], "(1,2,3)", "point-arity"),
   t(63, ["PR-22"], "\\left(1,2\\right)", "(point (num 1) (num 2))"),
-  x(65, ["PR-22"], "1,2", "syntax"),
+  x(65, ["PR-22"], "1,2", "point-syntax"), // Desmos: "Points are written like this: (1, 2)."
   x(66, ["PR-22"], "(,)", "syntax"),
   x(68, ["PR-22"], "{1,2}", "syntax"),
   x(69, ["PR-22"], "{1,2,3}", "syntax"),

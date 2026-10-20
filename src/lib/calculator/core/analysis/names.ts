@@ -15,26 +15,54 @@ export interface NameUse {
   span: SourceSpan; // the id's span, or the whole call's span
   call: boolean; // a call of a name that is not built in
   inPoint: boolean; // below a point node
+  counted: boolean; // in an argument of count or length, which read only how many values it holds
+}
+
+/** FN-2, FN-23: count and length use their arguments' lengths, never their values. */
+const COUNTING_NAMES: ReadonlySet<string> = new Set(["count", "length"]);
+
+/**
+ * FN-2, FN-34, FN-38, NM-31, NM-36: the children of `node` whose values decide how many values it
+ * holds, so count and length read them: a range's bounds, a range or filter index's items,
+ * repeat's counts and every argument of unique. `length([1,2,3]x)` is 3 for every x, while
+ * `length(repeat(1,x))` depends on x.
+ */
+export function lengthShaping(node: Node): readonly Node[] {
+  switch (node.kind) {
+    case "list":
+      return node.range === undefined ? [] : node.items;
+    case "index":
+      return node.range !== undefined || node.items[0]?.kind === "rel" ? node.items : [];
+    case "call":
+      if (node.name === "repeat") return node.args.slice(1);
+      return node.name === "unique" ? node.args : [];
+    default:
+      return [];
+  }
 }
 
 /**
  * Every use of a name in `tree`: each `id`, and each `call` of a non-built-in name (a pre-scanned
- * user function, PR-23) with `call: true`. Sorted by `span.start`; ties keep tree order, a node
+ * user function, PR-23) with `call: true`; a member after a dot (`D.pleft`, PR-45) names nothing. Sorted by `span.start`; ties keep tree order, a node
  * before its children. Iterative, so a deep tree cannot overflow the stack.
  */
 export function collectNameUses(tree: Node): NameUse[] {
   const uses: NameUse[] = [];
-  const pending: [Node, boolean][] = [[tree, false]];
+  const pending: [Node, boolean, boolean][] = [[tree, false, false]];
   for (let entry = pending.pop(); entry !== undefined; entry = pending.pop()) {
-    const [node, inPoint] = entry;
+    const [node, inPoint, counted] = entry;
     if (node.kind === "id") {
-      uses.push({ name: node.name, span: node.span, call: false, inPoint });
-    } else if (node.kind === "call" && !isBuiltinName(node.name)) {
-      uses.push({ name: node.name, span: node.span, call: true, inPoint });
+      uses.push({ name: node.name, span: node.span, call: false, inPoint, counted });
+    } else if (node.kind === "call" && !isBuiltinName(node.name) && node.member === undefined) {
+      uses.push({ name: node.name, span: node.span, call: true, inPoint, counted });
     }
     const below = inPoint || node.kind === "point";
-    const kids = sourceChildren(node);
-    for (let i = kids.length - 1; i >= 0; i -= 1) pending.push([kids[i], below]);
+    const counts = counted || (node.kind === "call" && COUNTING_NAMES.has(node.name));
+    const kids = sourceChildren(node),
+      shaping = counts ? lengthShaping(node) : [];
+    for (let i = kids.length - 1; i >= 0; i -= 1) {
+      pending.push([kids[i], below, counts && !shaping.includes(kids[i])]);
+    }
   }
   return uses.sort((a, b) => a.span.start - b.span.start);
 }

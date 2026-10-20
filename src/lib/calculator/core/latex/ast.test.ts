@@ -59,7 +59,7 @@ it("sourceChildren lists every node kind's children in source order", () => {
     [{ kind: "point", x, y, span: s }, [x, y]],
     [chain, [n(0), x, n(10)]],
     [{ kind: "list", items: [x, y, n(2)], span: s }, [x, y, n(2)]],
-    [{ kind: "list", items: [n(1), n(5)], range: true, span: s }, [n(1), n(5)]],
+    [{ kind: "list", items: [n(1), n(5)], range: 1, span: s }, [n(1), n(5)]],
     [{ kind: "sim", left: y, right: x, span: s }, [y, x]],
   ];
   const kinds = new Set(cases.map(([node]) => node.kind));

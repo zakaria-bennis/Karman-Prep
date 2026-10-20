@@ -12,12 +12,21 @@ import { DeadlineExceeded, NO_DEADLINE, type Deadline } from "../deadline";
 import { evaluateTable, type DataSink } from "../data/evaluate";
 import { evaluateRegression, regressionValues } from "../data/evaluate-regression";
 import { regressionDefinitionId, regressionOf } from "../data/regression-analysis";
-import type { Node } from "../latex/ast";
+import { coordinateAxis, sourceChildren, type Node } from "../latex/ast";
 import { isBuiltinName } from "../latex/operator-names";
 import { applyBuiltin } from "../lib/builtins";
+import { applyPointFunction, coordinate, POINT_FUNCTIONS } from "../lib/geometry";
+import { isDistributionName, readsDistribution } from "../lib/distributions";
+import { applyListFunction, listFunction } from "../lib/statistics";
 import { circular, type CircularName } from "../lib/trig";
 import { C_I } from "./complex";
-import { compileReal, constantValue, degreeArgument, MAX_CALL_DEPTH } from "./compile-real";
+import {
+  compileReal,
+  constantValue,
+  degreeArgument,
+  MAX_CALL_DEPTH,
+  type GeneralCompile,
+} from "./compile-real";
 import {
   absV,
   addV,
@@ -43,6 +52,9 @@ import {
   pointValue,
   rangeValue,
 } from "./lists";
+import { holdsDistribution, makeDistribution, readDistribution } from "./distributions";
+import { conditionAt, filterValue, lengthOf, pickValue } from "./index-list";
+import { piecewiseValue } from "./piecewise";
 import { exponentRational } from "./real-pow";
 import { complexValue, numberValue, UNDEFINED, type Value } from "./values";
 
@@ -59,6 +71,9 @@ export type Compiled = (vars: Readonly<Record<string, Value>>, deadline: Deadlin
 
 type Binary = Extract<Node, { left: Node }>;
 type Call = Extract<Node, { kind: "call" }>;
+type Index = Extract<Node, { kind: "index" }>;
+type Piecewise = Extract<Node, { kind: "piecewise" }>;
+type Relation = Extract<Node, { kind: "rel" }>;
 
 /** A user function, compiled once per compileExpression. */
 interface CompiledFunction {
@@ -149,13 +164,20 @@ function compileNode(node: Node, ctx: Context): Compiled {
     case "list": {
       // PR-34, NM-36: a literal (or a D-11 table column) or a range; each item evaluates on its own
       const items = node.items.map((item) => compileNode(item, ctx));
-      if (node.range !== true) {
+      if (node.range === undefined) {
         return (vars, deadline) => makeList(items.map((item) => item(vars, deadline)));
       }
-      const [from, second, to] = items.length === 2 ? [items[0], null, items[1]] : items;
+      const [starts, ends] = [items.slice(0, node.range), items.slice(node.range)];
       return (vars, deadline) =>
-        rangeValue(from(vars, deadline), second?.(vars, deadline) ?? null, to(vars, deadline));
+        rangeValue(
+          starts.map((start) => start(vars, deadline)),
+          ends.map((end) => end(vars, deadline))
+        );
     }
+    case "index":
+      return indexed(node, ctx);
+    case "piecewise":
+      return piecewise(node, ctx);
     case "sim": // D-2: a regression row is fitted by the values pass, never compiled
       return constant(UNDEFINED);
     case "point": {
@@ -176,6 +198,82 @@ function compileNode(node: Node, ctx: Context): Compiled {
           : UNDEFINED;
     }
   }
+}
+
+/**
+ * PR-34, NM-30, NM-31: `T[…]`. One condition filters T by its element-wise mask; one item picks
+ * by its value; several items pick by their list (makeList's rules); a range picks by its
+ * elements, an empty start side reading 1 and an empty end side the length of T.
+ */
+function indexed(node: Index, ctx: Context): Compiled {
+  const target = compileNode(node.target, ctx);
+  const [first] = node.items;
+  if (node.range === undefined && node.items.length === 1 && first.kind === "rel") {
+    const mask = condition(first, ctx);
+    return (vars, deadline) => filterValue(target(vars, deadline), mask(vars, deadline));
+  }
+  const items = node.items.map((item) => compileNode(item, ctx));
+  const { range } = node;
+  if (range === undefined) {
+    if (items.length === 1)
+      return (vars, deadline) => pickValue(target(vars, deadline), items[0](vars, deadline));
+    return (vars, deadline) =>
+      pickValue(target(vars, deadline), makeList(items.map((item) => item(vars, deadline))));
+  }
+  const [starts, ends] = [items.slice(0, range), items.slice(range)];
+  return (vars, deadline) => {
+    const t = target(vars, deadline);
+    if (t.type !== "list") return UNDEFINED;
+    const from = starts.length === 0 ? [ONE] : starts.map((start) => start(vars, deadline)),
+      to = ends.length === 0 ? [lengthOf(t)] : ends.map((end) => end(vars, deadline));
+    return pickValue(t, rangeValue(from, to));
+  };
+}
+
+/** NM-31, PR-31: a condition, 1 where it holds and undefined elsewhere, element by element. */
+function condition(rel: Relation, ctx: Context): Compiled {
+  const operands = rel.operands.map((operand) => compileNode(operand, ctx)),
+    { ops } = rel;
+  return (vars, deadline) =>
+    mapN(
+      operands.map((operand) => operand(vars, deadline)),
+      (at) => conditionAt(at, ops)
+    );
+}
+
+/**
+ * PR-31, PR-32: a piecewise by piecewiseValue; a value that calls a user function is not safe, so
+ * it runs only when picked.
+ */
+function piecewise(node: Piecewise, ctx: Context): Compiled {
+  const compiled = (value: Node) => ({
+    run: compileNode(value, ctx),
+    safe: !callsUserFunction(value),
+  });
+  const branches = node.branches.map(({ cond, value }) => ({
+      test: condition(cond, ctx),
+      value: value === null ? null : compiled(value),
+    })),
+    otherwise = node.otherwise === null ? null : compiled(node.otherwise);
+  return (vars, deadline) => {
+    const bind = ({ run, safe }: { run: Compiled; safe: boolean }) => ({
+      run: () => run(vars, deadline),
+      safe,
+    });
+    return piecewiseValue(
+      branches.map(({ test, value }) => ({
+        test: () => test(vars, deadline),
+        value: value === null ? null : bind(value),
+      })),
+      otherwise === null ? null : bind(otherwise)
+    );
+  };
+}
+
+/** True when `node` calls a function that is not a built-in. */
+function callsUserFunction(node: Node): boolean {
+  if (node.kind === "call" && !isBuiltinName(node.name)) return true;
+  return sourceChildren(node).some(callsUserFunction);
 }
 
 /** NM-32: a one-operand operator, element by element on a list. */
@@ -205,6 +303,12 @@ function power(node: Binary, ctx: Context): Compiled {
 }
 
 function call(node: Call, ctx: Context): Compiled {
+  const axis = coordinateAxis(node);
+  if (axis !== null) {
+    // PR-45: `P.x`, element by element on a list of points (`L.x`)
+    const target = compileNode(node.args[0], ctx);
+    return (vars, deadline) => map1(target(vars, deadline), (v) => coordinate(v, axis));
+  }
   if (isBuiltinName(node.name)) return builtinCall(node.name, node.args, ctx);
   const fn = userFunction(node.name, ctx);
   if (fn === null || fn.params.length !== node.args.length) return constant(UNDEFINED);
@@ -232,8 +336,37 @@ function builtinCall(name: string, argNodes: readonly Node[], ctx: Context): Com
           : applyBuiltin(name, [degV(a, angleMode)], angleMode, complex)
       );
   }
-  // NM-32: built-ins apply element by element; no list-taking built-in has shipped (FN-).
   const args = argNodes.map((arg) => compileNode(arg, ctx));
+  // FN-70, FN-71: distance and midpoint broadcast over lists of points.
+  if (POINT_FUNCTIONS.has(name)) {
+    return (vars, deadline) =>
+      mapN(
+        args.map((arg) => arg(vars, deadline)),
+        (values) => applyPointFunction(name, values)
+      );
+  }
+  // FN-45: a constructor broadcasts into a list of distributions.
+  if (isDistributionName(name)) {
+    return (vars, deadline) =>
+      mapN(
+        args.map((arg) => arg(vars, deadline)),
+        (values) => makeDistribution(name, values)
+      );
+  }
+  // FN-47 to FN-51: a distribution first is read element by element; pdf and cdf read nothing
+  // else, and the statistics of anything else are the list functions'.
+  const reader = readsDistribution(name);
+  // FN-2, FN-23 to FN-29, FN-75: list functions reduce lists (statistics.ts).
+  if (reader || listFunction(name) !== undefined) {
+    return (vars, deadline) => {
+      const values = args.map((arg) => arg(vars, deadline));
+      if (reader && values.length > 0 && holdsDistribution(values[0])) {
+        return mapN(values, (scalars) => readDistribution(name, scalars));
+      }
+      return listFunction(name) === undefined ? UNDEFINED : applyListFunction(name, values);
+    };
+  }
+  // NM-32: every other built-in applies element by element.
   return (vars, deadline) =>
     mapN(
       args.map((arg) => arg(vars, deadline)),
@@ -305,7 +438,7 @@ export function compileRealFunction1(
   scope: CompileScope
 ): (t: number) => number {
   if (!scope.settings.complex) {
-    const g = compileReal(tree, scope);
+    const g = compileReal(tree, scope, generalWith(scope));
     return variable === "x" ? (t) => g(t, NaN) : (t) => g(NaN, t);
   }
   const f = compileExpression(tree, scope);
@@ -319,9 +452,14 @@ export function compileRealFunction2(
   tree: Node,
   scope: CompileScope
 ): (x: number, y: number) => number {
-  if (!scope.settings.complex) return compileReal(tree, scope);
+  if (!scope.settings.complex) return compileReal(tree, scope, generalWith(scope));
   const f = compileExpression(tree, scope);
   return (x, y) => toPlotNumber(f({ x: numberValue(x), y: numberValue(y) }, NO_DEADLINE));
+}
+
+/** compileReal's GeneralCompile: compileExpression in the same scope. */
+function generalWith(scope: CompileScope): GeneralCompile {
+  return (tree) => compileExpression(tree, scope);
 }
 
 /** decision 5: the rows evaluateRows gives a value, by kind; and only without an error or chips. */

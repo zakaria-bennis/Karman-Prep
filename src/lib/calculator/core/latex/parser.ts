@@ -37,6 +37,7 @@ const OPERATOR_COMMANDS: ReadonlySet<string> = new Set([
   "of",
   "sim",
   "ldots", // PR-34: the range ellipsis, read only inside list brackets
+  "}", // PR-31: the closing piecewise brace `\}`
 ]);
 
 export function createParserState(
@@ -62,6 +63,18 @@ export function unexpected(state: ParserState, token: Token): never {
   if (token.t === "end") return fail("syntax", token.span, "unexpected end of input");
   const text = state.normalized.slice(token.span.start, token.span.end);
   return fail("syntax", token.span, `unexpected "${text}"`);
+}
+
+/**
+ * `token` met where a complete sum must end, at the end of the row or of a braced argument: a
+ * comma there is a point written without its brackets, Desmos's "Points are written like this:
+ * (1, 2)." for `1,000` and `\sqrt{4,9}` (captured 2026-10-19); anything else is unexpected.
+ */
+export function unexpectedAfterSum(state: ParserState, token: Token): never {
+  if (token.t === "symbol" && token.ch === ",") {
+    return fail("point-syntax", token.span, "a comma outside a point, list or call");
+  }
+  return unexpected(state, token);
 }
 
 /** The token `offset` places after the cursor; past the end it is the `end` token. */
@@ -108,19 +121,41 @@ export function parseRow(state: ParserState): Node {
     if (peek(state).t === "end") fail("sim-side", sim.span, "nothing after \\sim");
     const right = parseSum(state);
     const after = peek(state);
-    if (after.t !== "end") unexpected(state, after);
+    if (after.t !== "end") unexpectedAfterSum(state, after);
     return { kind: "sim", left: operands[0], right, span: spanning(operands[0], right) };
   }
+  const tree = takeRelations(state, operands[0]);
+  const next = peek(state);
+  if (next.t !== "end") unexpectedAfterSum(state, next);
+  return tree;
+}
+
+/**
+ * `condition := sum (relop sum)*` (G12): a sum with an optional relation chain, as a filter in
+ * `L[…]` (PR-34, NM-31: `L[L>2]`, `L[2<L<6]`) and a piecewise part (PR-31) write it.
+ */
+export function parseCondition(state: ParserState): Node {
+  return takeRelations(state, parseSum(state));
+}
+
+/**
+ * The relation chain after `first`, checked by checkChain; `first` itself without one. A relation
+ * operator straight after another is `relation-side` naming the second, as Desmos reads `x=>1`
+ * ("You need something on both sides of the '>' symbol.", captured 2026-10-19).
+ */
+function takeRelations(state: ParserState, first: Node): Node {
+  const operands = [first];
   const ops: RelOp[] = [];
   for (let relop = takeRelop(state); relop !== null; relop = takeRelop(state)) {
     checkChain(ops, relop);
     ops.push(relop.op);
+    const next = peek(state);
+    const symbol = relopSymbol(next);
+    if (symbol !== null) fail("relation-side", next.span, "two relation operators", symbol);
     operands.push(parseSum(state));
   }
-  const next = peek(state);
-  if (next.t !== "end") unexpected(state, next);
-  if (ops.length === 0) return operands[0];
-  const span = spanning(operands[0], operands[operands.length - 1]);
+  if (ops.length === 0) return first;
+  const span = spanning(first, operands[operands.length - 1]);
   return { kind: "rel", ops, operands, span };
 }
 
@@ -137,8 +172,9 @@ export function parseSum(state: ParserState): Node {
 
 /**
  * True when the cursor can start an implicitly multiplied factor (G3): digits, a letter, `(`, `{`,
- * `[`, a raw `|` while no bar is open (G11) and any command except `\cdot`, `\le`, `\ge`, `\rvert`
- * and `\operatorname{of}`.
+ * `[`, a raw `|` while no bar is open (G11) and any command except `\cdot`, `\le`, `\ge`, `\rvert`,
+ * `\operatorname{of}`, the ellipsis and `\}`; `\{` starts one, so braces after a factor restrict
+ * it (PR-32).
  */
 export function startsFactor(state: ParserState): boolean {
   const token = peek(state);
@@ -232,14 +268,21 @@ function takeRelop(state: ParserState): { op: RelOp; span: SourceSpan } | null {
   return { op: token.ch, span: token.span };
 }
 
+/** The symbol a relation operator token starts with, as Desmos's messages show it, or null. */
+function relopSymbol(token: Token): string | null {
+  if (token.t === "command") return token.name === "le" ? "≤" : token.name === "ge" ? "≥" : null;
+  return token.t === "symbol" && "=<>".includes(token.ch) ? token.ch : null;
+}
+
 /**
- * PR-29 chains (G12): read left to right, the first operator that mixes `=` with another relation,
- * adds a second `=` or reverses the direction is `relation-chain` at its span.
+ * PR-29 chains (G12): read left to right, the first operator that mixes `=` with an inequality is
+ * `relation-chain` at its span, as Desmos refuses to build such a chain anywhere. Chains of `=`
+ * and inequalities pointing both ways parse; analysis refuses to graph them (RC-14).
  */
 function checkChain(ops: readonly RelOp[], relop: { op: RelOp; span: SourceSpan }): void {
   if (ops.length === 0) return;
   const previous = ops[ops.length - 1];
-  if (relop.op === "=" || previous === "=" || relop.op[0] !== previous[0]) {
+  if ((relop.op === "=") !== (previous === "=")) {
     fail("relation-chain", relop.span, `"${relop.op}" cannot follow "${previous}" in a chain`);
   }
 }

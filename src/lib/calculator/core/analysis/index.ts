@@ -16,9 +16,20 @@ import {
   type RegressionAnalysis,
   type RegressionPlan,
 } from "../data/regression-analysis";
+import { normalizeLatex } from "../latex/index";
 import { classifyRow } from "./classify";
+import { distributionProblem } from "./distributions";
 import { declaredHead, parseRows, userFunctionSet, type ParsedRow } from "./definitions";
-import { inferLists, listCurveProblem, listProblem, type ListTyping } from "./lists";
+import { listCallProblem } from "./list-calls";
+import { pointProblem } from "./points";
+import {
+  comparisonProblem,
+  inferLists,
+  listCurveProblem,
+  listProblem,
+  piecewiseProblem,
+  type ListTyping,
+} from "./lists";
 import { rowErrorMessage } from "./messages";
 import { collectNameUses } from "./names";
 import { resolveDefinitions } from "./resolve";
@@ -109,7 +120,10 @@ export function analyzeRows(
   // PR-34, NM-34 to NM-36: which names hold lists, and the list errors the rows show; D-22: a
   // list definition is regression data like a table column.
   const columnLists = tableNames.flat().filter((n): n is string => n !== null);
-  const early = inferLists(errorFreeHeads(unchecked), columnLists);
+  const early = inferLists(errorFreeHeads(unchecked), columnLists, new Set(), [
+    ...heads,
+    ...dataNames,
+  ]);
   const parsed = unchecked.map((row) => withListError(row, early));
   const plans = planRegressions(
     parsed,
@@ -129,8 +143,8 @@ export function analyzeRows(
   );
   const all = [...parsed, ...synthetic, ...regressionRows];
   const resolution = resolveDefinitions(all);
-  const analysed = all.map((row) => classifyRow(row, resolution, settings));
   const typing = inferLists(errorFreeHeads(all), [], new Set(fitted));
+  const analysed = all.map((row) => classifyRow(row, resolution, settings, typing));
   parsed.forEach((row, k) => {
     const plan = plans.get(row.source.id);
     if (plan !== undefined) analysed[k] = regressionRow(analysed[k], plan, row.source.hidden);
@@ -166,10 +180,23 @@ function errorFreeHeads(rows: readonly ParsedRow[]) {
   return rows.flatMap((row) => (row.head !== null && row.error === null ? [row.head] : []));
 }
 
-/** NM-34 to NM-36: a row's first nested list or invalid literal range, as its row error. */
+/**
+ * NM-34 to NM-36: a row's first nested list or invalid literal range, as its row error; then
+ * PR-31: its first piecewise mixing point and number branches, then its first comparison of a
+ * point; then NM-32, PR-45, FN-70, FN-71: its first misuse of a point (pointProblem); then FN-45
+ * to FN-51: its first misuse of a distribution; then FN-23 to FN-29: its first
+ * list function call with arguments Desmos refuses.
+ */
 function withListError(row: ParsedRow, typing: ListTyping): ParsedRow {
   if (row.error !== null || row.tree === null) return row;
-  const problem = listProblem(row.head?.body ?? row.tree, row.head?.params ?? [], typing);
+  const [tree, locals] = [row.head?.body ?? row.tree, row.head?.params ?? []];
+  const problem =
+    listProblem(tree, locals, typing) ??
+    piecewiseProblem(tree, locals, typing) ??
+    comparisonProblem(tree, locals, typing) ??
+    pointProblem(tree, locals, typing, normalizeLatex(row.source.latex)) ??
+    distributionProblem(tree, locals, typing, normalizeLatex(row.source.latex)) ??
+    listCallProblem(tree, locals, typing);
   if (problem === null) return row;
   const { code, names, span } = problem;
   return { ...row, error: { code, message: rowErrorMessage(code, names), names, span } };

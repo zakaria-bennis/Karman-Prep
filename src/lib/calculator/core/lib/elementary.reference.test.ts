@@ -11,6 +11,10 @@ import {
 import { withinTolerance } from "./tolerance";
 import { BUILTIN_ARITY } from "./arity";
 import { BUILTINS } from "./builtins";
+import { DISTRIBUTION_FUNCTION_NAMES } from "./distributions";
+import { POINT_FUNCTIONS } from "./geometry";
+import { PROBABILITY_RULES } from "./probability";
+import { LIST_FUNCTION_NAMES } from "./statistics";
 import { evaluateLatex } from "../eval/compile";
 import { OPERATOR_NAMES, SHIPPED } from "../latex/operator-names";
 import { readFileSync } from "node:fs";
@@ -30,11 +34,26 @@ it("NM-43 elementary.json is exactly what its generator writes", async () =>
   expect(await formatElementaryReference(buildElementaryReference())).toBe(
     readFileSync(ELEMENTARY_PATH, "utf8")
   ));
+// The list functions (statistics.ts) are checked against Desmos's own values instead, in
+// desmos.reference.test.ts, and the distributions, erf and the legacy distribution names
+// (distributions.ts, probability.ts) in desmos-distributions.reference.test.ts, and distance and
+// midpoint (geometry.ts) in desmos-geometry.reference.test.ts.
+const PROBABILITY_NAMES = [
+  ...PROBABILITY_RULES.map(([name]) => name),
+  ...DISTRIBUTION_FUNCTION_NAMES,
+];
 it("FN-1 every shipped built-in and operator has a committed reference case, with the allowlist's arity", () => {
-  const shipped = OPERATOR_NAMES.filter((o) => SHIPPED.has(o.name) && o.category !== null).map(
-    (o) => o.name
+  const shipped = OPERATOR_NAMES.filter(
+    (o) =>
+      SHIPPED.has(o.name) &&
+      o.category !== null &&
+      !LIST_FUNCTION_NAMES.includes(o.name) &&
+      !PROBABILITY_NAMES.includes(o.name) &&
+      !POINT_FUNCTIONS.has(o.name)
+  ).map((o) => o.name);
+  expect(new Set(shipped)).toEqual(
+    new Set([...BUILTINS.keys()].filter((name) => !PROBABILITY_NAMES.includes(name)))
   );
-  expect(new Set(shipped)).toEqual(new Set(BUILTINS.keys()));
   expect([
     BUILTIN_ARITY.size,
     BUILTIN_ARITY.get("sin"),
@@ -42,7 +61,7 @@ it("FN-1 every shipped built-in and operator has a committed reference case, wit
     BUILTIN_ARITY.get("log"),
     BUILTIN_ARITY.get("round"),
     BUILTIN_ARITY.get("nCr"),
-  ]).toEqual([35, [1], [1, 2], [1, 2], [1, 2], [2]]);
+  ]).toEqual([71, [1], [1, 2], [1, 2], [1, 2], [2]]); // 17 of them hidden names
   const ops = new Set(reference.cases.map((c) => c.op));
   for (const op of [
     ...shipped,

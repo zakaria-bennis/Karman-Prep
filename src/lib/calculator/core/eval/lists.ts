@@ -3,13 +3,11 @@
 // thrown as ListError inside a compiled closure and caught at its root by compileExpression, so
 // it never leaves the evaluator (AR-54). Pure TypeScript: no DOM (AR-44).
 
+import { MAX_LIST_ELEMENTS, rangeShape } from "../lib/range";
 import { toPlotNumber } from "./ops";
-import { UNDEFINED, type ListErrorCode, type Value } from "./values";
+import { type ListErrorCode, type Value } from "./values";
 
-/** NM-35: the most elements a list holds. */
-export const MAX_LIST_ELEMENTS = 10_000;
-/** NM-36: the tolerance of the element count and of the exact last element, relative to the step. */
-const RANGE_TOLERANCE = 1e-9;
+export { MAX_LIST_ELEMENTS };
 
 type ListValue = Extract<Value, { type: "list" }>;
 
@@ -48,29 +46,21 @@ export function makeList(items: Value[]): Value {
 }
 
 /**
- * NM-36: `[a...c]` (second null) steps by 1, or −1 when c < a; `[a,b,...,c]` steps by s = b − a,
- * and s = 0 is `range-step`. The count is n = floor((c − a)/s + 1e-9) + 1 and the elements are
- * a + k·s, the last one exactly c when within 1e-9·|s| of it; n ≤ 0 is the empty list and more
- * than MAX_LIST_ELEMENTS is `list-too-long`. A list bound is `nested-list`; any other bound that
- * is not a finite real number makes the range undefined.
+ * NM-36: the range with `starts` written before its ellipsis and `ends` after it, counted and
+ * filled by rangeShape (`[0,0.1,...,1]` is 0, 0.1, 0.2, 0.3, … 1 exactly). A list bound is
+ * `nested-list`; any other bound that is not a number counts as NaN, so the range is
+ * `range-step`, as Desmos reads `[1...0/0]`.
  */
-export function rangeValue(from: Value, second: Value | null, to: Value): Value {
-  const bounds = second === null ? [from, to] : [from, second, to];
-  if (bounds.some(isList)) throw new ListError("nested-list");
-  const [a, b, c] = [from, second ?? from, to].map((v) => (v.type === "number" ? v.value : NaN));
-  if (![a, b, c].every(Number.isFinite)) return UNDEFINED;
-  const s = second === null ? (c < a ? -1 : 1) : b - a;
-  if (s === 0) throw new ListError("range-step");
-  const n = Math.floor((c - a) / s + RANGE_TOLERANCE) + 1;
-  if (!(n <= MAX_LIST_ELEMENTS)) throw new ListError("list-too-long");
+export function rangeValue(starts: readonly Value[], ends: readonly Value[]): Value {
+  if (starts.some(isList) || ends.some(isList)) throw new ListError("nested-list");
+  const shape = rangeShape(starts.map(numberOf), ends.map(numberOf));
+  if (typeof shape === "string") throw new ListError(shape);
   const items: Value[] = [];
-  for (let k = 0; k < n; k++) {
-    const v = a + k * s;
-    const exact = k === n - 1 && Math.abs(v - c) <= RANGE_TOLERANCE * Math.abs(s);
-    items.push({ type: "number", value: exact ? c : v });
-  }
+  for (let k = 0; k < shape.count; k++) items.push({ type: "number", value: shape.element(k) });
   return { type: "list", value: items };
 }
+
+const numberOf = (v: Value): number => (v.type === "number" ? v.value : NaN);
 
 /** NM-32: `op` on `a`, or on each element of a list `a`. */
 export function map1(a: Value, op: (a: Value) => Value): Value {

@@ -57,6 +57,46 @@ export const SHIPPED: ReadonlySet<string> = new Set([
   "arccsc",
   "arcsec",
   "arccot",
+  // FN-23 to FN-29 statistics and FN-2 length (Phase 2 task 5), FN-30 to FN-32 two-list
+  // statistics and FN-34 to FN-36, FN-38 list operations (task 6), in OPERATOR_NAMES order
+  "mean",
+  "median",
+  "min",
+  "max",
+  "quartile",
+  "quantile",
+  "stdev",
+  "stddev",
+  "stdDev",
+  "stdevp",
+  "stddevp",
+  "stdDevP",
+  "var",
+  "variance",
+  "varp",
+  "cov",
+  "covp",
+  "mad",
+  "corr",
+  "spearman",
+  "count",
+  "total",
+  "repeat",
+  "join",
+  "sort",
+  "unique",
+  "length",
+  // FN-45 to FN-49 normaldist, tdist and binomialdist with pdf and cdf (Phase 2 T7); inversecdf
+  // reads a distribution or, of data, is quantile (FN-27); erf and the legacy distribution names
+  // below are T7's too
+  "normaldist",
+  "tdist",
+  "binomialdist",
+  "pdf",
+  "cdf",
+  "inversecdf",
+  "inverseCdf",
+  "erf",
   "exp",
   "ln",
   "log",
@@ -73,7 +113,16 @@ export const SHIPPED: ReadonlySet<string> = new Set([
   "arccsch",
   "arcsech",
   "arccoth",
-  // FN-76 to FN-78 and abs (Phase 2 T3), in OPERATOR_NAMES order
+  // FN-70 distance and FN-71 midpoint (Phase 2 task 8); polygon waits for its fill renderer
+  "distance",
+  "midpoint",
+  // FN-75 gcd and lcm with their aliases (task 5), FN-76 to FN-78 and abs (Phase 2 T3), in
+  // OPERATOR_NAMES order
+  "lcm",
+  "gcd",
+  "gcf",
+  "mcd",
+  "mcm",
   "mod",
   "ceil",
   "floor",
@@ -82,6 +131,27 @@ export const SHIPPED: ReadonlySet<string> = new Set([
   "nPr",
   "nCr",
   "abs",
+  // hidden names, which only pasted latex reaches (HIDDEN_OPERATOR_NAMES); the refused ones
+  // (REFUSED_NAMES) parse so that analysis can give Desmos's argument errors and refusal
+  "argmin",
+  "argmax",
+  "sortPerm",
+  "complexSortPerm",
+  "uniquePerm",
+  "repeatAssert",
+  "frequencyList",
+  "frequencyListAssert",
+  "sortedLastLessIndex",
+  "sortedLastLessEqualIndex",
+  "normalcdf",
+  "normalpdf",
+  "binomcdf",
+  "binompdf",
+  "invNorm",
+  "tpdf",
+  "tcdf",
+  "invT",
+  "invBinom",
 ]);
 
 /**
@@ -138,8 +208,13 @@ export const OPERATOR_NAMES: readonly OperatorName[] = Object.freeze([
   op("quartile", 3, 2, [2]),
   op("quantile", 3, 2, [2]),
   op("stdev", 3, 2, V),
+  op("stddev", 3, 2, V), // Desmos: stddev and stdDev are stdev, stddevp and stdDevP stdevp,
+  op("stdDev", 3, 2, V), // variance var (typed only)
   op("stdevp", 3, 2, V),
+  op("stddevp", 3, 2, V),
+  op("stdDevP", 3, 2, V),
   op("var", 3, 2, V),
+  op("variance", 3, 2, V),
   op("varp", 3, 2, V),
   op("cov", 3, 3, [2]),
   op("covp", 3, 3, [2]),
@@ -162,17 +237,19 @@ export const OPERATOR_NAMES: readonly OperatorName[] = Object.freeze([
   op("boxplot", 5, 3, [1]),
   // 6 Probability distributions
   op("normaldist", 6, 3, [0, 1, 2]),
-  op("tdist", 6, 3, [1]),
+  op("tdist", 6, 3, [1, 2, 3]), // Desmos: tdist(ν, location, scale)
   op("chisqdist", 6, 3, [1]),
   op("uniformdist", 6, 3, [0, 1, 2]),
-  op("binomialdist", 6, 3, [2]),
+  op("binomialdist", 6, 3, [1, 2]), // Desmos: p defaults to 0.5
   op("poissondist", 6, 3, [1]),
   op("geodist", 6, 3, [1]),
   op("discretedist", 6, 3, [1, 2]),
   op("pdf", 6, 3, [2]),
   op("cdf", 6, 3, [2, 3]),
   op("inversecdf", 6, 3, [2]),
+  op("inverseCdf", 6, 3, [2]), // Desmos: an alias of inversecdf (typed only)
   op("random", 6, 3, [0, 1, 2, 3]),
+  op("erf", 6, 3, [1]), // a Desmos name not in PR-12's list, typed only (not on the panel)
   // 7 Inference
   op("ztest", 7, 3, [2, 4]),
   op("ttest", 7, 3, [1, 2]),
@@ -209,6 +286,9 @@ export const OPERATOR_NAMES: readonly OperatorName[] = Object.freeze([
   // 12 Number theory
   op("lcm", 12, 2, V),
   op("gcd", 12, 2, V),
+  op("gcf", 12, 2, V), // Desmos: gcf and mcd are gcd, mcm is lcm (typed only)
+  op("mcd", 12, 2, V),
+  op("mcm", 12, 2, V),
   op("mod", 12, 2, [2]),
   op("ceil", 12, 2, [1]),
   op("floor", 12, 2, [1]),
@@ -240,10 +320,50 @@ export const OPERATOR_NAMES: readonly OperatorName[] = Object.freeze([
   op("of", null, 1, [2]),
 ]);
 
+/**
+ * Desmos built-ins that only pasted or API latex reaches, `\operatorname{argmin}(L)`: typing
+ * `argmin` gives `\arg\min` in Desmos, so these are not split targets, MathQuill names or panel
+ * entries, and typing `arg` then `min` still splits as before.
+ */
+export const HIDDEN_OPERATOR_NAMES: readonly OperatorName[] = Object.freeze([
+  op("argmin", 3, 2, V),
+  op("argmax", 3, 2, V),
+  op("sortPerm", 3, 2, [1]),
+  op("complexSortPerm", 3, 2, [1]),
+  op("uniquePerm", 3, 2, [1]),
+  op("repeatAssert", 3, 2, [2]),
+  op("frequencyList", 3, 2, [2]),
+  op("frequencyListAssert", 3, 2, [2]),
+  op("sortedLastLessIndex", 3, 2, [2]),
+  op("sortedLastLessEqualIndex", 3, 2, [2]),
+  // Desmos's legacy distribution names, for old saved graphs (typing splits them)
+  op("normalcdf", 6, 3, [2, 3, 4]),
+  op("normalpdf", 6, 3, [1, 2, 3]),
+  op("binomcdf", 6, 3, [3, 4]),
+  op("binompdf", 6, 3, [2, 3]),
+  op("invNorm", 6, 3, [1]),
+  op("tpdf", 6, 3, [2]),
+  op("tcdf", 6, 3, [5]),
+  op("invT", 6, 3, [2]),
+  op("invBinom", 6, 3, [3]),
+]);
+
+/**
+ * Hidden names Desmos's graphing calculator refuses, once their argument count and types pass and
+ * for the bare name, with "This calculator does not support the 'frequencyList' function."
+ * (function catalogue, captured live 2026-10-19).
+ */
+export const REFUSED_NAMES: readonly string[] = Object.freeze([
+  "repeatAssert",
+  "frequencyList",
+  "frequencyListAssert",
+  "sortedLastLessIndex",
+  "sortedLastLessEqualIndex",
+]);
+
 /** Members, read only after `.` (PR-45): never built-ins, split targets or MathQuill names. */
 export const MEMBER_NAMES: readonly string[] = Object.freeze([
   "null",
-  "p",
   "pleft",
   "pright",
   "score",
@@ -271,12 +391,19 @@ export const AUTO_COMMANDS: readonly string[] = Object.freeze([
   "int",
 ]);
 
-const BY_NAME: ReadonlyMap<string, OperatorName> = new Map(OPERATOR_NAMES.map((n) => [n.name, n]));
+const BY_NAME: ReadonlyMap<string, OperatorName> = new Map(
+  [...OPERATOR_NAMES, ...HIDDEN_OPERATOR_NAMES].map((n) => [n.name, n])
+);
 const AUTO_OPERATOR_NAMES = OPERATOR_NAMES.map((n) => n.name).join(" ");
 const AUTO_COMMAND_NAMES = AUTO_COMMANDS.join(" ");
 
 export function isBuiltinName(name: string): boolean {
   return BY_NAME.has(name);
+}
+
+/** The allowlist entry of a built-in or hidden name (HIDDEN_OPERATOR_NAMES), or undefined. */
+export function operatorName(name: string): OperatorName | undefined {
+  return BY_NAME.get(name);
 }
 
 export function isShippedBuiltin(name: string): boolean {

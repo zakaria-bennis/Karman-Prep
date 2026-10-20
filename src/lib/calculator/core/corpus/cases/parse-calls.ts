@@ -65,7 +65,7 @@ const cases: CorpusCase[] = [
   t(39, ["PR-26"], "\\sin^{-1}x", "(call arcsin (id x))"),
   t(40, ["PR-26"], "\\cos^{-1}(0.5)", "(call arccos (num 0.5))"),
   t(41, ["PR-26"], "\\cot^{-1}x", "(call arccot (id x))"),
-  t(42, ["PR-26"], "\\ln^{-1}x", "(pow (call ln (id x)) (neg (num 1)))"),
+  x(42, ["PR-26"], "\\ln^{-1}x", "log-power"), // Desmos: "Only ln^2 is supported. Otherwise, use parens."
   t(43, ["PR-26"], "\\sin^{2}(x)", "(pow (call sin (id x)) (num 2))"),
   t(44, ["PR-27"], "\\log x", "(call log (id x))"),
   t(45, ["PR-27"], "\\log_{2}8", "(call log (num 8) (num 2))"),
@@ -96,5 +96,32 @@ const cases: CorpusCase[] = [
   x(67, ["PR-25"], "\\operatorname{nCr}(,2)", "comma-side"),
   x(68, ["PR-25"], "\\operatorname{mod}(1,)", "comma-side"),
   x(69, ["PR-25", "RC-20"], "\\log_{2}()", "arity"),
+  // A log base is written only as a subscript (Desmos function catalogue, 2026-10-19)
+  x(70, ["PR-27", "RC-20"], "\\log(1,2)", "arity"),
+  x(71, ["PR-27", "RC-20"], "\\log_{2}(8,2)", "arity"),
+  x(72, ["PR-27"], "\\log_{}(8)", "empty-subscript"),
+  x(73, ["PR-26"], "\\log^{3}(8)", "log-power"),
+  // Desmos: "'ln' cannot have a subscript." (captured for \ln_{2}(8)); a subscript is checked
+  // before anything else on the name, so a power or an empty group does not change it.
+  x(74, ["PR-27"], "\\ln_{2}(8)", "name-subscript"),
+  x(75, ["PR-27"], "\\ln_{2}8", "name-subscript"),
+  x(76, ["PR-27"], "\\ln^{2}_{3}(8)", "name-subscript"),
+  x(77, ["PR-27"], "\\ln_{}(8)", "name-subscript"),
+  x(78, ["PR-27"], "\\sin_{2}(x)", "name-subscript"), // trig names share ln's rule in Desmos
+  // Desmos: "Only sin^2 and sin^-1 are supported. Otherwise, use parens." (captured 2026-10-19)
+  x(80, ["PR-26"], "\\sin^{3}(1)", "trig-power"),
+  x(81, ["PR-26"], "\\sin^{-2}x", "trig-power"),
+  x(82, ["PR-26", "FN-68"], "\\cosh^{0.5}(1)", "trig-power"),
+  x(83, ["PR-26"], "\\arctan^{3}(1)", "trig-power"),
+  // Desmos allows only the literal tokens `2` and `-1` (its parser compares the decimal text), so
+  // another spelling of the same number is the power error too.
+  x(84, ["PR-26"], "\\sin^{2.0}(1)", "trig-power"),
+  x(85, ["PR-26"], "\\sin^{02}(1)", "trig-power"),
+  x(86, ["PR-26"], "\\sin^{(2)}(1)", "trig-power"),
+  x(87, ["PR-26"], "\\sin^{-1.0}(0.5)", "trig-power"),
+  x(88, ["PR-26"], "\\log^{2.0}(3)", "log-power"),
+  x(89, ["PR-26"], "\\ln^{2.0}(3)", "log-power"),
+  // An empty argument list keeps the base, so the call prints back as written.
+  t(79, ["PR-27", "RC-20"], "\\log_{2}()", "(call log (num 2))"),
 ];
 export default cases;

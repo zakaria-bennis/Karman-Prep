@@ -52,7 +52,7 @@ const cases: CorpusCase[] = [
   d(32, ["FN-21"], "\\operatorname{arcsec}(0.5)", "undefined"),
   g(33, ["FN-21"], "\\operatorname{arcsec}(2)", "60"),
   d(34, ["FN-22"], "\\arctan(1,-1)", "2.35619449019"),
-  d(35, ["FN-22"], "\\arctan(0,0)", "undefined"),
+  d(35, ["FN-22"], "\\arctan(0,0)", "0"), // Desmos: arctan(0,0) = 0 (captured 2026-10-19)
   d(36, ["FN-22"], "\\arctan(0,-1)", "3.14159265359"),
   g(37, ["FN-22"], "\\arctan(1,-1)", "135"),
   d(38, ["FN-60"], "\\exp(1)", "2.71828182846"),

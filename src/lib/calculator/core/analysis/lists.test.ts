@@ -57,14 +57,76 @@ describe("list errors found by analysis", () => {
       expect(last("a=1", "b=2", "L_{1}=3", latex).error, latex).toBeNull();
   });
 
-  it("NM-35, NM-36, NM-42 a literal range with a zero step or more than 10,000 elements is an analysis error", () => {
+  it("NM-35, NM-36, NM-42 a literal range that is not arithmetic or has more than 10,000 elements is an analysis error", () => {
     expect(last("[1...10000]").error).toBeNull();
     expect(last("[1...10001]").error?.code).toBe("list-too-long");
+    expect(last("[1...10^{6}]").error?.code).toBe("list-too-long");
     expect(last("L=[0,0.0001,...,10]").error?.code).toBe("list-too-long");
     expect(last("[1,1,...,5]").error?.code).toBe("range-step");
-    expect(last("[-2,-2,...,5]").error?.message).toBe(
-      "A range can't step by 0. Make its first two values different."
+    expect(last("[1...0/0]").error?.code).toBe("range-step");
+    expect(last("[1,3,...,1]").error?.code).toBe("range-step");
+    expect(last("[-2,-2,...,5]").error?.message).toBe("Ranges must be arithmetic sequences.");
+    expect(last("[1...(-8)^{1/3}]").error).toBeNull(); // evaluation's power, not JavaScript's
+  });
+});
+
+describe("index errors found by analysis", () => {
+  const message = (...latex: string[]) => last(...latex).error?.message ?? null;
+  const LISTS = ["L=[5,3,8,1]", "P=[(1,2),(3,4)]", "a=5", "A=(1,2)"];
+
+  it("NM-30 indexing a number or a point reads Cannot index … with …, as the ListAccess signature does", () => {
+    expect(
+      ["a[1]", "a[1...2]", "a[[1,2]]", "L[1][1]", "x[1]", "\\pi[1,2]", "(L+1)[2][1]"].map((l) =>
+        message(...LISTS, l)
+      )
+    ).toEqual([
+      "Cannot index a number with a number.",
+      "Cannot index a number with a list of numbers.",
+      "Cannot index a number with a list of numbers.",
+      "Cannot index a number with a number.",
+      "Cannot index a number with a number.",
+      "Cannot index a number with a list of numbers.",
+      "Cannot index a number with a number.",
+    ]);
+    expect(["P[1][1]", "(1,2)[1]", "A[1]"].map((l) => message(...LISTS, l))).toEqual(
+      Array(3).fill("Cannot index a point with a number.")
     );
+  });
+
+  it("NM-30 indexing by a point or a list of points is an error; by numbers it is not", () => {
+    expect(["L[(1,2)]", "L[P]", "P[A]"].map((l) => message(...LISTS, l))).toEqual([
+      "Cannot index a list of numbers with a point.",
+      "Cannot index a list of numbers with a list of points.",
+      "Cannot index a list of points with a point.",
+    ]);
+    expect(
+      ["L[a]", "P[[1,2]]", "L[L>a]", "f(L)[1]", "q[1]"].map((l) => message(...LISTS, l))
+    ).toEqual([null, null, null, null, null]);
+  });
+
+  it("NM-31, NM-36 a range or filter that uses a name no row defines depends on a free variable", () => {
+    expect(["L[i>2]", "[i...5]", "L[1...b]", "[x...5]"].map((l) => message(...LISTS, l))).toEqual([
+      "Can't plot a list whose length depends on free variable 'i'.",
+      "Can't plot a list whose length depends on free variable 'i'.",
+      "Can't plot a list whose length depends on free variable 'b'.",
+      "Can't plot a list whose length depends on free variable 'x'.",
+    ]);
+    expect(message(...LISTS, "f(k,m)=L[k...m]")).toBe(null);
+    expect(message(...LISTS, "L[1...a]")).toBe(null);
+    expect(analyzeRows(rows("L[1...b]", "b=2", "L=[1,2]"), REAL).rows[0].error).toBe(null);
+  });
+
+  it("PR-45 a coordinate after an index, a list or a point reads a point's, as in Desmos", () => {
+    expect(
+      ["L[2].x", "[1,2].x", "(1,2).x", "P[2].y", "P.x", "A.z"].map((l) => message(...LISTS, l))
+    ).toEqual([
+      "Cannot access coordinate '.x' of a number.",
+      "Cannot access coordinate '.x' of a list of numbers.",
+      null,
+      null,
+      null,
+      "Cannot access coordinate '.z' of a 2d point.",
+    ]);
   });
 });
 
@@ -166,4 +228,27 @@ describe("lists as regression data", () => {
     });
     expect(fits.get("r2")!.params[0].value).toBeCloseTo(2, 12);
   });
+});
+
+// FN-4, FN-5: Desmos type-checks a user function's body against each call's argument shapes and
+// names an nth root `nthroot(radicand, index)` (inferred from its source; not captured live).
+it("FN-4 a user function called with a point, and an nth root of a point, read Desmos's type error", () => {
+  const message = (...latex: string[]) => last(...latex).error?.message;
+  expect([
+    message("f(x)=\\sin(x)", "f((1,2))"),
+    message("f(x)=\\sin(x)", "g(x)=f(x)+1", "g([(1,2),(3,4)])"),
+    message("f(a,b)=\\operatorname{mod}(a,b)", "f((1,2),3)"),
+    message("f(x)=\\sin(x)", "f(2)"),
+    message("f(x)=x", "f((1,2))"),
+    message("\\sqrt[3]{(1,2)}"),
+    message("\\sqrt[(1,2)]{8}"),
+  ]).toEqual([
+    "Function 'sin' cannot be applied to a point.",
+    "Function 'sin' cannot be applied to a point.",
+    "Function 'mod' cannot be applied to a point and a number.",
+    undefined,
+    undefined,
+    "Function 'nthroot' cannot be applied to a point and a number.",
+    "Function 'nthroot' cannot be applied to a number and a point.",
+  ]);
 });
