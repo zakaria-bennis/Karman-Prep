@@ -84,7 +84,7 @@ it("D-19 a computed cell reads header, row r, computed, value and is read-only",
   ).toHaveTextContent("4");
 });
 
-it("D-16 Zoom to fit table n fits the view to the plotted points and is disabled when nothing is plotted", async () => {
+it("D-16, TABLES-48 Zoom to fit table n fits the plotted points by the reference rule and is disabled when nothing is plotted", async () => {
   const kit = renderEditor(<ExpressionPanel {...panelProps()} />, { rows: ["y=x"] });
   act(() =>
     kit.engine.setView({
@@ -118,7 +118,7 @@ it("D-16 Zoom to fit table n fits the view to the plotted points and is disabled
   await waitFor(() => expect(fit()).not.toHaveAttribute("aria-disabled"));
   act(() => fit().click());
   const { left, right, bottom, top } = kit.engine.getSnapshot().viewport;
-  expect([left, right, bottom, top].map((v) => Math.round(v))).toEqual([8, 32, 90, 210]);
+  expect([left, right, bottom, top].map((v) => Math.round(v))).toEqual([-15, 45, -100, 300]);
 });
 
 it("D-5 deleting a table leaves an empty expression row with the caret and Undo restores it", () => {

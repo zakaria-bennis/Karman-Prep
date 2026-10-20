@@ -17,7 +17,7 @@ import {
 } from "react";
 import type { RowView } from "@/lib/calculator/core/api/engine";
 import { MAX_TABLE_COLUMNS, MAX_TABLE_ROWS } from "@/lib/calculator/core/api/document";
-import { fitPoints } from "@/lib/calculator/core/data/fit-view";
+import { zoomFitSeries } from "@/lib/calculator/core/api/table-paste";
 import {
   addTableRegression,
   regressionEligibility,
@@ -99,7 +99,7 @@ export function TableItem(props: TableItemProps): JSX.Element {
   const regression = row.table?.analysis.regression ?? undefined;
   // D-16: the plotted points' fitted view, null while nothing is plotted.
   const plotted = geometry.get(row.id);
-  const fit = plotted?.kind === "table" ? fitPoints(plotted.series.map((s) => s.coords)) : null;
+  const fit = plotted?.kind === "table" ? zoomFitSeries(plotted.series.map((s) => s.coords)) : null;
 
   // D-5: the header slot shows while focus is anywhere in the grid.
   const onGridFocus = () => setInside(true);

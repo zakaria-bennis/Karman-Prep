@@ -9,7 +9,7 @@
 import { useContext, type CSSProperties, type JSX } from "react";
 import type { RowView } from "@/lib/calculator/core/api/engine";
 import type { StoredRow } from "@/lib/calculator/core/api/document";
-import { fitPoints } from "@/lib/calculator/core/data/fit-view";
+import { zoomFitSeries } from "@/lib/calculator/core/api/table-paste";
 import {
   exportRegressionEquation,
   plotTableResiduals,
@@ -73,7 +73,7 @@ export function TableRegression(props: {
   const plotted = geometry.get(row.id);
   const residualSeries =
     plotted?.kind === "table" ? plotted.series.find((s) => s.column === residualColumn) : undefined;
-  const residualFit = residualSeries === undefined ? null : fitPoints([residualSeries.coords]);
+  const residualFit = residualSeries === undefined ? null : zoomFitSeries([residualSeries.coords]);
   const zoomWouldMove =
     residualFit !== null &&
     !settings.lockViewport &&

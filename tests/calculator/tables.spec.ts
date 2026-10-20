@@ -124,7 +124,9 @@ test("D-13 Create table from y=x^2 shows the computed column and the undoable to
   await expect(page.getByRole("grid")).toHaveCount(0);
 });
 
-test("D-16 Zoom to fit table 2 fits the view to its points", async ({ page }) => {
+test("D-16, TABLES-48 Zoom to fit table 2 fits the view to its points by the reference rule", async ({
+  page,
+}) => {
   await openShell(page, `?w=900&h=600&rows=${enc(["y=x"])}`);
   await page.evaluate(() =>
     globalThis.__calculatorHarness!.engine.setExpression({
@@ -142,7 +144,9 @@ test("D-16 Zoom to fit table 2 fits the view to its points", async ({ page }) =>
   const view = await page.evaluate(
     () => globalThis.__calculatorHarness!.engine.getSnapshot().viewport
   );
-  expect([view.left, view.right, view.bottom, view.top].map(Math.round)).toEqual([8, 32, 90, 210]);
+  expect([view.left, view.right, view.bottom, view.top].map(Math.round)).toEqual([
+    -15, 45, -100, 300,
+  ]);
   await expect(page.getByRole("button", { name: "Home" })).toBeVisible();
 });
 

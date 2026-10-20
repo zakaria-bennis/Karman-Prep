@@ -116,3 +116,37 @@ test("RT-24 Log Mode on an exponential refits through ln y", async ({ page }) =>
   await expect.poll(() => equation(page)).toBe("y=1.54407\\cdot1.99271^{x}");
   expect((await regression(page))?.isLogMode).toBe(true);
 });
+
+test("TABLES-49, -51 pasting a numeric grid into an empty row makes a table and zooms to fit", async ({
+  page,
+}) => {
+  await openShell(page, "?w=1100&h=760&rows=%5B%22%22%5D");
+  await page.locator("#calc [data-row-id='1'] .mq-root-block").click();
+  await page.evaluate(() => {
+    const deep = (d: Document | ShadowRoot): Element | null =>
+      d.activeElement?.shadowRoot ? deep(d.activeElement.shadowRoot) : d.activeElement;
+    const target = deep(document)!;
+    const data = new DataTransfer();
+    data.setData("text/plain", "time\theight\n1\t2\n3\t4\n50\t60");
+    target.dispatchEvent(
+      new ClipboardEvent("paste", { clipboardData: data, bubbles: true, cancelable: true })
+    );
+  });
+  await expect
+    .poll(() =>
+      page.evaluate(() =>
+        globalThis
+          .__calculatorHarness!.engine.getExpressions()[0]
+          .columns?.map((c) => [c.latex, ...c.values])
+      )
+    )
+    .toEqual([
+      ["x_{1}", "1", "3", "50"],
+      ["y_{1}", "2", "4", "60"],
+    ]);
+  await expect(page.getByText("We zoomed to fit your data.")).toBeVisible();
+  const top = await page.evaluate(
+    () => globalThis.__calculatorHarness!.engine.getSnapshot().viewport.top
+  );
+  expect(top).toBeGreaterThan(60);
+});
