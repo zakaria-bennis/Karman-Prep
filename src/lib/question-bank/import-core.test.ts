@@ -450,6 +450,29 @@ describe("importQuestion — DB write shape", () => {
     expect(payload.raw_question_text).toBe("What is 2 + 2?");
   });
 
+  it("does not label independently confirmed answers", async () => {
+    const { client, calls } = mockSupabase({
+      quiz_questions: { data: { id: "q-1" }, error: null },
+    });
+    const digest = "a".repeat(64);
+    await importQuestion(
+      client,
+      validRow({
+        reviewed_answer: {
+          kind: "independently_confirmed_generated",
+          independently_verified_answer: "B",
+          evidence: { note: "two independent solves" },
+          printed_answer: null,
+          generated_key_artifact_sha256: digest,
+          independent_review_sha256s: [digest, "b".repeat(64)],
+        },
+      } as Partial<ImportQuestionInput>)
+    );
+    const qInsert = calls.find((c) => c.table === "quiz_questions" && c.method === "insert");
+    expect(qInsert).toBeDefined();
+    expect((qInsert!.payload as Record<string, unknown>).answer_source).toBeNull();
+  });
+
   it("computes content_hash_v2 (sha256 hex)", async () => {
     const { client, calls } = mockSupabase({
       quiz_questions: { data: { id: "q-1" }, error: null },
