@@ -36,7 +36,7 @@ it("POI-1 the snapshot holds the selected row's points from the latest generatio
   e.setView(TEST_VIEW);
   e.setSelectedRow("a");
   const gen = t.latestGeneration();
-  const point = { x: 0, y: -2, kinds: ["y-intercept" as const], withRowId: null };
+  const point = { x: 0, y: -2, kinds: ["intercept" as const], withRowId: null };
   t.emit({ v: 1, type: "poi", generation: gen - 1, rowId: "a", points: [point] });
   t.flushFrames();
   expect(e.getSnapshot().poi).toBeNull();
@@ -59,7 +59,7 @@ it("POI-1 the main-thread backend finds the selected row's points of interest en
   }
   expect(m.engine.getSnapshot().poi?.points.map((p) => p.kinds)).toEqual([
     ["zero"],
-    ["y-intercept", "minimum"],
+    ["intercept", "extremum"],
     ["zero"],
   ]);
 });

@@ -26,7 +26,7 @@ it("POI-1 only the selected row gets points of interest, and a hidden or error r
   const [poi] = pois();
   expect(poi).toMatchObject({ type: "poi", generation: 2, rowId: "r0" });
   if (poi.type !== "poi") throw new Error("not poi");
-  expect(poi.points.map((p) => p.kinds)).toContainEqual(["y-intercept", "minimum"]);
+  expect(poi.points.map((p) => p.kinds)).toContainEqual(["intercept", "extremum"]);
   expect(poi.points.filter((p) => p.kinds.includes("intersection"))).toHaveLength(2);
   expect(isWorkerMessage(poi)).toBe(true);
 
