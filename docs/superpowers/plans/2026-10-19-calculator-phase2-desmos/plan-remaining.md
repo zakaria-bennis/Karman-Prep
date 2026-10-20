@@ -40,7 +40,7 @@ yet captured) found the point-arithmetic and point-definition gaps in M4 and M5.
 | T8 list analysis           | Mostly | `nested-list` ("Cannot store a list of numbers in a list."), `list-too-long`, `range-step`, `list-mixed` row errors; `[(1,2),(3,4)]` and points of lists are kind `point` and draw one dot per defined pair (`from-analysis.ts` case `point`).                                                                  | A name whose definition is point-shaped (`P=[(1,2),(3,4)]` then `P`, or `A=(1,2)`) is not graphed (M5). A point times a piecewise restriction waits for T10.                       |
 | T9a statistics, gcd, lcm   | Done   | `length` is on the allowlist but not in `SHIPPED`.                                                                                                                                                                                                                                                              | Everything.                                                                                                                                                                        |
 | T9b two-list functions     | Not    | Nothing.                                                                                                                                                                                                                                                                                                        | Everything.                                                                                                                                                                        |
-| T10 piecewise              | Not    | Keystroke cases 46 and 55 (`{` gives `\left\{x\right\}`). `\left\{…\right\}` is "This calculator doesn't support that notation."                                                                                                                                                                                | Everything, plus removing `ERROR_GAP` in `desmos.reference.test.ts`.                                                                                                               |
+| T10 piecewise              | Done   | Task 7 below.                                                                                                                                                                                                                                                                                                   | Plot-level checks (plot tests are outside the maths fence) and the keystroke case.                                                                                                 |
 | T11 multi-branch graphs    | Not    | `analysis/lists.ts` rejects list-valued curves with `DEFERRED_FEATURES.listCurves`.                                                                                                                                                                                                                             | Everything.                                                                                                                                                                        |
 | T12 no connectors at jumps | Not    | `explicit.ts` phase 2 bisects only pairs that jump more than the view height or change sign by more than 1 px, so `floor(x)` steps are joined by vertical segments.                                                                                                                                             | Everything.                                                                                                                                                                        |
 | T13 output UI and API      | Mostly | `row-results.test.tsx` checks one box per element and `…` after 30 with a hand-built list; `engine.lists.test.ts` checks `valueText` `[1, 2, …, 10]` and `expressionAnalysis` for a list row; `toApiEvaluation` returns `other` for a list of points.                                                           | One engine test that a list of points row reports `{ type: "other" }`, and one row test driven by the engine instead of a hand-built list.                                         |
@@ -316,6 +316,20 @@ differ); and `y=length([1...x])`, which the NM-31 check refuses although the row
 - **Spec:** appendix B moves these from Phase 3 to Phase 2 (Desmos parity).
 
 ### 7. Piecewise and restrictions (PR-31, PR-32, NM-41, G-2, G-18; T10)
+
+**Done** (maths engine). `latex/piecewise.ts` parses the braces with Desmos's errors
+(`comma-side`, `colon-side`, `colon-condition`, `piecewise-condition`, `piecewise-part`);
+`eval/piecewise.ts` evaluates them, lazily unless a condition is a list; `compile-real.ts` plots
+them; `analysis/lists.ts` types them and reports `piecewise-types`. Every catalogue value and
+error is in `core/lib/desmos-piecewise.fixture.json` and `desmos-piecewise.reference.test.ts`
+(23 of 33 values and 6 of 9 errors matched, the rest unshipped notation); the plan capture's 7
+values, its comma error and its 2 graphable piecewise rows match, and `L[\{L>3\}]` now does.
+Desmos facts the capture settled over this plan: a part with no `:` is a condition with value 1
+(`\{1>0,2<1:4\}` = 1), `\{\}` is 1, and `y=x\{x\}` is "A piecewise expression must have at
+least one condition.". Left: the plot tests below (`plot/` is another builder's), the keystroke
+case (Playwright), a restriction on a point (M4) and list conditions on curves (task 8).
+`components/calculator/math-field/speech.ts` gained one `piecewise` case, which the new node kind
+needs to type-check.
 
 - **Parser:** `}` joins `OPERATOR_COMMANDS` in `parser.ts`; new `latex/piecewise.ts`
   `parsePiecewise` with parts `cond : value` separated by commas, a bare last value as otherwise,

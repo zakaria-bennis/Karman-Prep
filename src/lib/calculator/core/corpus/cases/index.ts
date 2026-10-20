@@ -22,6 +22,7 @@ import graph from "./graph";
 import questionDialect from "./question-dialect";
 import paste from "./paste";
 import lists from "./lists";
+import piecewise from "./piecewise";
 
 export const CORPUS_FILES: Readonly<Record<string, readonly CorpusCase[]>> = {
   "parse-literals": parseLiterals,
@@ -44,4 +45,5 @@ export const CORPUS_FILES: Readonly<Record<string, readonly CorpusCase[]>> = {
   "question-dialect": questionDialect,
   paste,
   lists,
+  piecewise,
 };

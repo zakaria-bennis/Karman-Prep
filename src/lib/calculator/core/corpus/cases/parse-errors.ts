@@ -20,8 +20,6 @@ const cases: CorpusCase[] = [
   x(9, ["PR-9"], "x\\simeq3", "unsupported"),
   x(10, ["PR-9"], "y\\propto x", "unsupported"),
   x(16, ["PR-9"], "T.score", "unsupported"),
-  x(18, ["PR-9"], "\\{x>0:1\\}", "unsupported"),
-  x(19, ["PR-9"], "y=x^{2}\\{x>0\\}", "unsupported"),
   x(20, ["PR-9"], "\\sum_{n=1}^{3}n", "unsupported"),
   x(21, ["PR-9"], "\\prod_{n=1}^{3}n", "unsupported"),
   x(22, ["PR-9"], "\\int_{0}^{1}xdx", "unsupported"),

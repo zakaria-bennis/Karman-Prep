@@ -49,7 +49,8 @@ export type RowErrorCode =
   | "repeat-count" // FN-34: `repeat(1,2.5)`
   | "repeat-counts" // FN-34: `repeat([1,2],[1.5,2])`
   | "refused-function" // a Desmos built-in its calculator refuses: `frequencyList(L,M)`
-  | "repeat-lengths"; // FN-34: `repeat([1,2,3],[1,2])`
+  | "repeat-lengths" // FN-34: `repeat([1,2,3],[1,2])`
+  | "piecewise-types"; // PR-31: branches of different types, `\{1>0:(1,2),3\}`
 export interface CorpusSettings {
   angleMode?: "radians" | "degrees";
   complex?: boolean;

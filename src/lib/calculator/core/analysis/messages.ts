@@ -59,7 +59,9 @@ function letter(base: string): string {
  * `range-bound`, `range-step`, `list-too-long`, `log-power`, `empty-subscript`,
  * `name-subscript`, `index-type`, `list-length-free`, `empty-brackets`, `empty-root`,
  * `empty-root-index`, `reducer-arguments`, `first-argument-list`, `argument-type`, `both-lists`,
- * `repeat-count`, `repeat-lengths` and `refused-function` use the text Desmos gave on 2026-10-19;
+ * `repeat-count`, `repeat-lengths`, `refused-function`, `colon-side`, `colon-condition`,
+ * `piecewise-condition`, `piecewise-part` and `piecewise-types` use the text Desmos gave on
+ * 2026-10-19;
  * `repeat-counts` is
  * Desmos's text for a bad count in a list of counts (its bundle's bad-counts string).
  */
@@ -113,6 +115,12 @@ const MESSAGES: Readonly<Record<RowErrorCode, string>> = {
   "repeat-counts": "Each 'repeat' count must be a finite, non-negative integer.",
   "refused-function": "This calculator does not support the '{n}' function.",
   "repeat-lengths": "When the arguments of 'repeat' are lists, they must have the same length.",
+  "colon-side": "You need something on both sides of the ':' symbol.",
+  "colon-condition": "The left side of a ':' must be a condition, like 'x>1'.",
+  "piecewise-condition": "A piecewise expression must have at least one condition.",
+  "piecewise-part": "Every part of a piecewise expression must have a condition except the last.",
+  "piecewise-types":
+    "Cannot use {n} and {k} as the branches in a piecewise. Every branch must have the same type.",
 };
 /** RC-2, Phase 1: `unsupported` naming r or θ, whose polar graphs ship in Phase 2. */
 const POLAR_UNSUPPORTED = "{n} is for polar graphs, which aren't available yet.";

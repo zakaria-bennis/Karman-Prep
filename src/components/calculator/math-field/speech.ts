@@ -114,6 +114,14 @@ function speak(node: Node, source: string): string {
         speak(node.y, source),
         "right parenthesis"
       );
+    case "piecewise": // PR-31: "piecewise x greater than 0 then x otherwise negative x"
+      return words(
+        "piecewise",
+        ...node.branches.flatMap(({ cond, value }) =>
+          value === null ? [speak(cond, source)] : [speak(cond, source), "then", at(value, 2)]
+        ),
+        ...(node.otherwise === null ? [] : ["otherwise", at(node.otherwise, 2)])
+      );
     case "rel": {
       const parts = [speak(node.operands[0], source)];
       node.ops.forEach((op, i) =>

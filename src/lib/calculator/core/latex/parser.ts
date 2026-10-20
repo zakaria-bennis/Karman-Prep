@@ -37,6 +37,7 @@ const OPERATOR_COMMANDS: ReadonlySet<string> = new Set([
   "of",
   "sim",
   "ldots", // PR-34: the range ellipsis, read only inside list brackets
+  "}", // PR-31: the closing piecewise brace `\}`
 ]);
 
 export function createParserState(
@@ -119,7 +120,7 @@ export function parseRow(state: ParserState): Node {
 
 /**
  * `condition := sum (relop sum)*` (G12): a sum with an optional relation chain, as a filter in
- * `L[…]` writes it (PR-34, NM-31: `L[L>2]`, `L[2<L<6]`).
+ * `L[…]` (PR-34, NM-31: `L[L>2]`, `L[2<L<6]`) and a piecewise part (PR-31) write it.
  */
 export function parseCondition(state: ParserState): Node {
   return takeRelations(state, parseSum(state));
@@ -152,8 +153,9 @@ export function parseSum(state: ParserState): Node {
 
 /**
  * True when the cursor can start an implicitly multiplied factor (G3): digits, a letter, `(`, `{`,
- * `[`, a raw `|` while no bar is open (G11) and any command except `\cdot`, `\le`, `\ge`, `\rvert`
- * and `\operatorname{of}`.
+ * `[`, a raw `|` while no bar is open (G11) and any command except `\cdot`, `\le`, `\ge`, `\rvert`,
+ * `\operatorname{of}`, the ellipsis and `\}`; `\{` starts one, so braces after a factor restrict
+ * it (PR-32).
  */
 export function startsFactor(state: ParserState): boolean {
   const token = peek(state);

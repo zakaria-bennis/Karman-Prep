@@ -104,7 +104,7 @@ These Desmos behaviours are known and recorded but not yet built:
 - **Indexing gaps (NM-30, NM-31).** Indexing, slicing and filtering match Desmos (see below)
   except where they use notation that has not shipped: member access (`L[2].x`, `P[P.x>2].x`,
   `[1,2,3].\operatorname{length}`, now the unsupported-notation message after any index, list or
-  point), `and` and `or` in a filter, a piecewise filter (`L[\{L>3\}]`), comprehensions, `length`,
+  point), `and` and `or` in a filter, comprehensions, `length`,
   matrix indexing with `;` ("Cannot index a list of numbers with ';'."; the tokenizer rejects `;`
   until matrices ship), `\ne` in a filter, and indexing a colour, a tone or a matrix. `P[2]`, an
   index of a name defined as a list of points, is not graphed yet (M5). Each is an expected
@@ -154,10 +154,14 @@ These Desmos behaviours are known and recorded but not yet built:
   `\operatorname{argmin}([3,-1/0,1])` is 2 and `\operatorname{unique}([1/0,1/0,-1/0])` has two
   elements; and `y=\operatorname{length}([1...x])` graphs in Desmos (only a top-level list
   needs a constant length) while NM-31's check refuses it here.
-- **An empty piecewise branch.** Desmos reads `\left\{1<0:5,\right\}` as "You need something on
-  both sides of the ',' symbol." Piecewise braces (PR-31) have not shipped, so the calculator shows its
-  unsupported-notation message. The captured error is an expected failure in
-  `desmos.reference.test.ts` (`ERROR_GAP`).
+- **Piecewise gaps (PR-31, PR-32).** Piecewise braces and restrictions match Desmos (see below)
+  except where they use notation that has not shipped: derivatives and integrals of a piecewise,
+  distributions in a condition (`invNorm`, `normaldist`), recursion with a piecewise base case
+  (`p(n)=\{n=0:1,np(n-1)\}`, still "p is defined in terms of itself."), `and` and `or` in a
+  condition (and Desmos's "Ambiguous use of 'and' and 'or'."), `\sum` and `polygon`. A
+  restriction on a point (`(1,2)\{a>0\}`) waits for point arithmetic (M4) and a list condition on
+  a curve (`y=x\{[0,1]<x\}`) for multi-branch graphs (G-22). Each is an expected failure in
+  `desmos-piecewise.reference.test.ts`.
 
 ### Matched after the 2026-10-19 second review
 
@@ -201,6 +205,23 @@ including these, is checked in `desmos.reference.test.ts`:
   captured). An index of any list without variables graphs as a step function (`L[2...][x]`,
   `[1...5][x]`, `L[L>3][x]`), where it plotted nothing before. Only `L[i>2]` was captured live; the
   rest follow the decompiled parser and type signatures and await a capture.
+- **Piecewise and restrictions (PR-31, PR-32, NM-41).** `\left\{c_1:v_1,c_2:v_2,…,v\right\}`
+  takes the value of the first condition that holds, then the bare last value, else undefined. A
+  part with no `:` is a condition whose value is 1, so `\{1>0,2<1:4\}` is 1 and `\{1>0:5,1<0\}` is
+  5; `\{c\}` alone is 1 or undefined and `\{\}` is 1. Conditions chain (`\{0<a<2:5\}`), `=`
+  compares the full doubles, and degree mode applies inside them. A condition with a list operand
+  broadcasts every part to the shortest list (`\{[1,2,3]>1:10,20\}` = [20, 10, 10],
+  `\{[1,2]>1:[5,6],0\}` = [0, 6]); otherwise only the picked value is evaluated. Braces after an
+  expression multiply it, so they restrict curves, implicit curves, regions and functions
+  (`y=x\{0<x<2\}`, `x^{2}+y^{2}=1\{x>0\}`, `y>x\{x>0\}`, `f(x)=x\{x>0\}` with `f(-1)`
+  undefined) and stack (`\{x>0\}\{x<1\}`); a piecewise in x alone graphs as a curve
+  (`\{x<0:-1,x>0:1\}`). A piecewise index picks by its values (`L[\{L>3\}]`). The errors are
+  Desmos's: "You need something on both sides of the ',' symbol." and "… of the ':' symbol.", "The
+  left side of a ':' must be a condition, like 'x>1'.", "A piecewise expression must have at
+  least one condition." (`\{5,6\}`, `y=x\{x\}`), "Every part of a piecewise expression must
+  have a condition except the last." and "Cannot use a point and a number as the branches in a
+  piecewise. Every branch must have the same type." Every catalogue value and error is checked
+  (`desmos-piecewise.fixture.json`), with the gaps listed above.
 - **Roots (G9).** `\sqrt{}` and `\sqrt[3]{ }` read "Radical cannot be empty." and `\sqrt[]{8}`
   "Radical index cannot be empty." (checked first), where they were syntax errors. In complex
   mode a negative radicand takes the principal root (`\sqrt[3]{-8}` = 1 + 1.732i). Every catalogue

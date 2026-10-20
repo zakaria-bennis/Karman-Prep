@@ -1,0 +1,116 @@
+import { describe, expect, it } from "vitest";
+import { analyzeRows } from "../analysis/index";
+import { parseLatex } from "../latex/index";
+import {
+  compileRealFunction1,
+  compileRealFunction2,
+  evaluateLatex,
+  type CompileScope,
+} from "./compile";
+import { piecewiseValue } from "./piecewise";
+import { numberValue, UNDEFINED, type Value } from "./values";
+
+const REAL: CompileScope = {
+  functions: new Map(),
+  values: new Map(),
+  settings: { angleMode: "radians", complex: false },
+};
+const n = numberValue;
+const list = (...items: Value[]): Value => ({ type: "list", value: items });
+
+function tree(latex: string) {
+  const parsed = parseLatex(latex);
+  if (!parsed.ok) throw new Error(`${latex}: ${parsed.error.code}`);
+  return parsed.tree;
+}
+
+describe("PR-31 piecewiseValue", () => {
+  it("picks the first part that holds and evaluates only its value", () => {
+    let runs = 0;
+    const value = (v: number) => () => {
+      runs += 1;
+      return n(v);
+    };
+    const parts = [
+      { test: () => UNDEFINED, value: value(1) },
+      { test: () => n(1), value: value(2) },
+      { test: () => n(1), value: value(3) },
+    ];
+    expect([piecewiseValue(parts, value(4)), runs]).toEqual([n(2), 1]);
+  });
+
+  it("a bare condition is 1, no part holding is the otherwise value or undefined", () => {
+    expect(piecewiseValue([{ test: () => n(1), value: null }], null)).toEqual(n(1));
+    expect(piecewiseValue([{ test: () => UNDEFINED, value: null }], null)).toEqual(UNDEFINED);
+    expect(piecewiseValue([{ test: () => UNDEFINED, value: null }], () => n(7))).toEqual(n(7));
+    expect(piecewiseValue([], null)).toEqual(n(1));
+  });
+
+  it("NM-33 a list condition broadcasts every part, truncating to the shortest list", () => {
+    const parts = [
+      { test: () => list(UNDEFINED, n(1), n(1)), value: () => list(n(5), n(6)) },
+      { test: () => n(1), value: null },
+    ];
+    expect(piecewiseValue(parts, () => n(0))).toEqual(list(n(1), n(6)));
+  });
+});
+
+describe("PR-31 PR-32 evaluation", () => {
+  it("NM-41 `=` compares the full doubles and undefined holds no condition", () => {
+    expect(evaluateLatex("\\{0.1+0.2=0.3:1,0\\}")).toEqual(n(0));
+    expect(evaluateLatex("\\{\\frac{1}{0}>0:1,0\\}")).toEqual(n(0));
+  });
+
+  it("several restrictions multiply: the row is undefined where any is false", () => {
+    expect(evaluateLatex("5\\{a>0\\}\\{a<2\\}", { rows: ["a=1"] })).toEqual(n(5));
+    expect(evaluateLatex("5\\{a>0\\}\\{a<2\\}", { rows: ["a=3"] })).toEqual(UNDEFINED);
+  });
+
+  it("G-2 a restricted curve is NaN outside its restriction in real mode", () => {
+    const f = compileRealFunction1(tree("x^{2}\\{0<x<2\\}"), "x", REAL);
+    expect([f(-1), f(1), f(1.999), f(2), f(3)]).toEqual([NaN, 1, 1.999 ** 2, NaN, NaN]);
+  });
+
+  it("G-2 a step graphs each branch and the otherwise value in real mode", () => {
+    const f = compileRealFunction1(tree("\\{x<0:-1,x>0:1\\}"), "x", REAL);
+    const g = compileRealFunction1(tree("\\{x<0:-1,2\\}"), "x", REAL);
+    expect([
+      f(-3),
+      f(0),
+      f(3),
+      g(-3),
+      g(0),
+      compileRealFunction1(tree("\\{\\}"), "x", REAL)(5),
+    ]).toEqual([-1, NaN, 1, -1, 2, 1]);
+  });
+
+  it("G-2 a restricted region and implicit curve hold only where the restriction does", () => {
+    const region = compileRealFunction2(tree("y-x\\{x>0\\}"), REAL);
+    const circle = compileRealFunction2(tree("x^{2}+y^{2}-1\\{y>0\\}"), REAL);
+    expect([region(1, 2), region(-1, 2), circle(0, 1), circle(0, -1)]).toEqual([1, NaN, 0, NaN]);
+  });
+});
+
+describe("PR-31 branch types", () => {
+  const error = (rows: string[]) => {
+    const analysis = analyzeRows(
+      rows.map((latex, k) => ({ id: `r${k}`, latex, hidden: false })),
+      REAL.settings
+    );
+    return analysis.rows[rows.length - 1].error?.message;
+  };
+
+  it("points and numbers cannot share a piecewise, in either order or through a name", () => {
+    const text = (a: string, b: string) =>
+      `Cannot use ${a} and ${b} as the branches in a piecewise. Every branch must have the same type.`;
+    expect(error(["\\{1>0:3,(1,2)\\}"])).toBe(text("a number", "a point"));
+    expect(error(["\\{1>0,(1,2)\\}"])).toBe(text("a number", "a point"));
+    expect(error(["P=[(1,2),(3,4)]", "\\{1>0:P,3\\}"])).toBe(text("a list of points", "a number"));
+  });
+
+  it("numbers and lists of numbers broadcast, and points share a piecewise", () => {
+    expect(error(["\\{1>0:[1,2],3\\}"])).toBe(undefined);
+    expect(error(["\\{1>0:(1,2),(3,4)\\}"])).toBe(undefined);
+    expect(evaluateLatex("\\{1<0:(1,2),(3,4)\\}")).toEqual({ type: "point", value: [3, 4] });
+  });
+});

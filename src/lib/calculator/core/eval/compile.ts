@@ -51,6 +51,7 @@ import {
   rangeValue,
 } from "./lists";
 import { conditionAt, filterValue, lengthOf, pickValue } from "./index-list";
+import { piecewiseValue } from "./piecewise";
 import { exponentRational } from "./real-pow";
 import { complexValue, numberValue, UNDEFINED, type Value } from "./values";
 
@@ -68,6 +69,8 @@ export type Compiled = (vars: Readonly<Record<string, Value>>, deadline: Deadlin
 type Binary = Extract<Node, { left: Node }>;
 type Call = Extract<Node, { kind: "call" }>;
 type Index = Extract<Node, { kind: "index" }>;
+type Piecewise = Extract<Node, { kind: "piecewise" }>;
+type Relation = Extract<Node, { kind: "rel" }>;
 
 /** A user function, compiled once per compileExpression. */
 interface CompiledFunction {
@@ -170,6 +173,8 @@ function compileNode(node: Node, ctx: Context): Compiled {
     }
     case "index":
       return indexed(node, ctx);
+    case "piecewise":
+      return piecewise(node, ctx);
     case "sim": // D-2: a regression row is fitted by the values pass, never compiled
       return constant(UNDEFINED);
     case "point": {
@@ -201,15 +206,8 @@ function indexed(node: Index, ctx: Context): Compiled {
   const target = compileNode(node.target, ctx);
   const [first] = node.items;
   if (node.range === undefined && node.items.length === 1 && first.kind === "rel") {
-    const operands = first.operands.map((operand) => compileNode(operand, ctx)),
-      ops = first.ops;
-    return (vars, deadline) => {
-      const values = operands.map((operand) => operand(vars, deadline));
-      return filterValue(
-        target(vars, deadline),
-        mapN(values, (at) => conditionAt(at, ops))
-      );
-    };
+    const mask = condition(first, ctx);
+    return (vars, deadline) => filterValue(target(vars, deadline), mask(vars, deadline));
   }
   const items = node.items.map((item) => compileNode(item, ctx));
   const { range } = node;
@@ -227,6 +225,34 @@ function indexed(node: Index, ctx: Context): Compiled {
       to = ends.length === 0 ? [lengthOf(t)] : ends.map((end) => end(vars, deadline));
     return pickValue(t, rangeValue(from, to));
   };
+}
+
+/** NM-31, PR-31: a condition, 1 where it holds and undefined elsewhere, element by element. */
+function condition(rel: Relation, ctx: Context): Compiled {
+  const operands = rel.operands.map((operand) => compileNode(operand, ctx)),
+    { ops } = rel;
+  return (vars, deadline) =>
+    mapN(
+      operands.map((operand) => operand(vars, deadline)),
+      (at) => conditionAt(at, ops)
+    );
+}
+
+/** PR-31, PR-32: a piecewise by piecewiseValue, its values evaluated only when picked. */
+function piecewise(node: Piecewise, ctx: Context): Compiled {
+  const branches = node.branches.map(({ cond, value }) => ({
+      test: condition(cond, ctx),
+      value: value === null ? null : compileNode(value, ctx),
+    })),
+    otherwise = node.otherwise === null ? null : compileNode(node.otherwise, ctx);
+  return (vars, deadline) =>
+    piecewiseValue(
+      branches.map(({ test, value }) => ({
+        test: () => test(vars, deadline),
+        value: value === null ? null : () => value(vars, deadline),
+      })),
+      otherwise === null ? null : () => otherwise(vars, deadline)
+    );
 }
 
 /** NM-32: a one-operand operator, element by element on a list. */

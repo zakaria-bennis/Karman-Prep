@@ -19,7 +19,11 @@ export type ParseErrorCode =
   | "empty-subscript" // PR-27: `\log_{}`
   | "empty-root" // G9: `\sqrt{}`
   | "empty-root-index" // G9: `\sqrt[]{8}`
-  | "name-subscript"; // PR-27: a subscript on a trig, hyperbolic or `ln` name
+  | "name-subscript" // PR-27: a subscript on a trig, hyperbolic or `ln` name
+  | "colon-side" // PR-31: nothing on one side of a piecewise `:`, `\{1>0:\}`
+  | "colon-condition" // PR-31: a `:` whose left side is not a condition, `\{3:4\}`
+  | "piecewise-condition" // PR-31: a piecewise with no condition, `\{5,6\}`
+  | "piecewise-part"; // PR-31: a part before the last without a condition, `\{1>0:5,6,7\}`
 export interface ParseError {
   code: ParseErrorCode;
   span: SourceSpan;
@@ -48,6 +52,10 @@ const PARSE_ERROR_CODES: ReadonlySet<string> = new Set<ParseErrorCode>([
   "empty-root",
   "empty-root-index",
   "name-subscript",
+  "colon-side",
+  "colon-condition",
+  "piecewise-condition",
+  "piecewise-part",
 ]);
 
 export function isParseErrorCode(code: string): code is ParseErrorCode {

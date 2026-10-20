@@ -48,6 +48,8 @@ const FAMILIES: { rules: string; pattern: RegExp; count: number; rows?: string[]
     count: 9,
     rows: ["L=[5,3,8,1]"],
   },
+  // PR-31, NM-33: piecewise braces, bare conditions, chains and list conditions.
+  { rules: "PR-31 NM-33", pattern: /^\\left\\\{/, count: 7 },
 ];
 
 function matches(v: Value, expected: number | null): boolean {
@@ -78,12 +80,7 @@ for (const { rules, pattern, count, rows } of FAMILIES) {
 }
 
 // Every captured Desmos error message, built-in arity (RC-20), "is a function" (PR-24), list
-// (NM-34, NM-35, PR-34) and the rest, is checked, either as the calculator's message or, for the gaps listed
-// under "Not yet matched" in f-desmos-parity.md, as an expected failure that fails once matched.
-const ERROR_GAP: ReadonlySet<string> = new Set([
-  // Piecewise braces (PR-31) have not shipped; the calculator reads this as unsupported notation.
-  "\\left\\{1<0:5,\\right\\}",
-]);
+// (NM-34, NM-35, PR-34), piecewise (PR-31) and the rest, is checked as the calculator's message.
 const ERRORS = Object.entries(captured.errors);
 const { _rows: DEFINITIONS, ...USER_ERRORS } = captured.errorsWithDefinitions;
 
@@ -100,10 +97,8 @@ it("RC-20 PR-24 PR-34 all 41 captured Desmos error messages are checked", () => 
 });
 
 for (const [latex, message] of ERRORS) {
-  const check = () => expect(errorMessage([], latex)).toBe(message);
-  if (ERROR_GAP.has(latex))
-    it.fails(`not yet matched: ${latex} reads "${message}" in Desmos`, check);
-  else it(`RC-20 PR-24 PR-34 ${latex} reads "${message}", as in Desmos`, check);
+  it(`RC-20 PR-24 PR-34 PR-31 ${latex} reads "${message}", as in Desmos`, () =>
+    expect(errorMessage([], latex)).toBe(message));
 }
 
 it("RC-20 all 4 captured user-function arity messages are checked", () =>
@@ -237,7 +232,7 @@ function sameIndexValue(v: Value, expected: Captured): boolean {
 }
 
 // Index values not yet matched, each an expected failure that fails once matched: member access
-// `.x` (PR-9), `and`, `or`, piecewise braces (T10) and comprehensions (NM-37) have not shipped.
+// `.x` (PR-9), `and`, `or` and comprehensions (NM-37) have not shipped.
 const INDEX_VALUE_GAP: ReadonlySet<string> = new Set([
   "[defs: L=\\left[(1,2),(3,4)\\right]] L[2].x",
   "L[L>3 \\operatorname{and} L<9]",
@@ -246,7 +241,6 @@ const INDEX_VALUE_GAP: ReadonlySet<string> = new Set([
   "P[P.x>2].x",
   "[i^2 \\operatorname{for} i=[1...3]][2]",
   "L[(L>3) \\operatorname{or} (L<2)]",
-  "L[\\{L>3\\}]",
 ]);
 
 it("NM-30 NM-31 all 57 catalogue values for indexing, slicing and filtering are checked", () =>

@@ -32,6 +32,7 @@ export const SHAPE_NAMES: Readonly<Record<Shape, string>> = {
 type Bracket = Extract<Node, { kind: "list" | "index" }>;
 type Index = Extract<Node, { kind: "index" }>;
 type Call = Extract<Node, { kind: "call" }>;
+type Piecewise = Extract<Node, { kind: "piecewise" }>;
 
 export interface ListProblem {
   code: RowErrorCode;
@@ -127,12 +128,69 @@ function shapeOf(
       if (!isBuiltinName(node.name)) return null;
       if (listFunction(node.name) !== undefined) return listCallShape(node, node.args.map(of));
       return numeric(node.args.map(of));
+    case "piecewise":
+      return piecewiseShape(node, of);
     case "rel":
     case "sim":
       return null;
     default:
       return numeric(childNodes(node).map(of));
   }
+}
+
+/**
+ * PR-31: a piecewise's branch shapes in source order, a bare condition's value being a number,
+ * and a missing otherwise adding nothing; null for an unknown one.
+ */
+function branchShapes(node: Piecewise, of: (n: Node) => Shape | null): (Shape | null)[] {
+  const values = node.branches.map(({ value }) => (value === null ? "number" : of(value)));
+  return node.otherwise === null ? values : [...values, of(node.otherwise)];
+}
+
+/** True for a point or a list of points, the branch kind Desmos keeps apart from numbers. */
+const pointed = (s: Shape | null) => s === "point" || s === "points";
+
+/**
+ * PR-31, NM-33: a piecewise is a point when its branches are points and a number when they are
+ * numbers, and a list of either when a branch or a condition operand is a list; unknown when a
+ * shape is or when branches mix points and numbers (piecewiseProblem's error).
+ */
+function piecewiseShape(node: Piecewise, of: (n: Node) => Shape | null): Shape | null {
+  const branches = branchShapes(node, of),
+    operands = node.branches.flatMap(({ cond }) => cond.operands.map(of));
+  if (branches.includes(null) || operands.includes(null)) return null;
+  if (branches.some(pointed) !== branches.every(pointed)) return null;
+  const list = [...branches, ...operands].some((s) => s === "numbers" || s === "points");
+  if (branches.some(pointed)) return list ? "points" : "point";
+  return list ? "numbers" : "number";
+}
+
+/**
+ * PR-31: the first piecewise whose branches mix points and numbers, Desmos's "Cannot use a point
+ * and a number as the branches in a piecewise.", naming the first branch's shape and then the
+ * first that differs from it in kind, over the braces.
+ */
+export function piecewiseProblem(
+  tree: Node,
+  locals: readonly string[],
+  typing: ListTyping
+): ListProblem | null {
+  const pending: Node[] = [tree];
+  for (let n = pending.pop(); n !== undefined; n = pending.pop()) {
+    pending.push(...childNodes(n));
+    if (n.kind !== "piecewise") continue;
+    const shapes = branchShapes(n, (b) => typing.shape(b, locals));
+    const [first] = shapes;
+    const other = shapes.find((s) => s !== null && first !== null && pointed(s) !== pointed(first));
+    if (first !== null && other !== undefined && other !== null) {
+      return {
+        code: "piecewise-types",
+        names: [SHAPE_NAMES[first], SHAPE_NAMES[other]],
+        span: n.span,
+      };
+    }
+  }
+  return null;
 }
 
 /**

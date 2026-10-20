@@ -6,6 +6,7 @@
 import type { Node, SourceSpan } from "./ast";
 import { isBuiltinCommand, parseBuiltinCall, parseUserCall } from "./calls";
 import { failIfComprehension, parseIndex, parseList } from "./lists";
+import { isPiecewiseOpen, parsePiecewise } from "./piecewise";
 import {
   enter,
   fail,
@@ -120,8 +121,9 @@ export function takePostfix(state: ParserState, atom: Node): Node {
 
 /**
  * An atom (level 11): a number, a Latin or Greek identifier or a constant (G6), an identifier's
- * user-function call (PR-23), a `(` or `{` group (G10), a `[` list or range (PR-34), a fraction
- * or root (G9) or absolute-value bars (G11); any other token fails (G14).
+ * user-function call (PR-23), a `(` or `{` group (G10), a `[` list or range (PR-34), `\{`
+ * piecewise braces (PR-31), a fraction or root (G9) or absolute-value bars (G11); any other token
+ * fails (G14).
  */
 export function parseAtom(state: ParserState): Node {
   const token = peek(state);
@@ -142,6 +144,7 @@ export function parseAtom(state: ParserState): Node {
         return parseRoot(state, token, { kind: "num", value: 3, span: token.span });
       }
       if (token.name === "lvert") return parseBars(state, token, "lvert");
+      if (isPiecewiseOpen(token)) return parsePiecewise(state, token);
       return parseUserCall(state, parseCommandAtom(state, true));
     default:
       return unexpected(state, token);

@@ -55,6 +55,7 @@ const BARE_BASES: ReadonlySet<Kind> = new Set([
   "point",
   "list",
   "index",
+  "piecewise",
 ]);
 /** Wrapped as a sum's right operand and as a product's left factor. */
 const SUMS: ReadonlySet<Kind> = new Set(["add", "sub"]);
@@ -127,20 +128,24 @@ export function printLatex(tree: Node): string {
       return printCall(tree.name, tree.args, tree.base === true);
     case "sim":
       return join([printLatex(tree.left), "\\sim", printLatex(tree.right)]);
+    case "piecewise": // PR-31: `\left\{x>0:x,-x\right\}`
+      return join(["\\left\\{", piecewiseParts(tree).join(","), "\\right\\}"]);
   }
 }
 
 /**
  * `L·R`: the left factor is wrapped when it is a sum, the right one when it is a sum or a product
  * (products group left to right, PR-18). A number juxtaposes with a right factor that starts with
- * a Latin letter or a command (`2x`, `2\pi`); anything else takes `\cdot`.
+ * a Latin letter or a command (`2x`, `2\pi`), and every factor with a restriction (PR-32:
+ * `x\left\{x>0\right\}`, as MathQuill writes it); anything else takes `\cdot`.
  */
 function printProduct(left: Node, right: Node): string {
   const l = wrapIf(left, SUMS);
   const r = wrapIf(right, PRODUCTS);
   // PR-34: a `[` right after a number indexes it, so a list factor takes `\cdot`.
   const juxtapose =
-    left.kind === "num" && (isLetter(r[0]) || (r[0] === "\\" && !r.startsWith("\\left[")));
+    right.kind === "piecewise" ||
+    (left.kind === "num" && (isLetter(r[0]) || (r[0] === "\\" && !r.startsWith("\\left["))));
   return juxtapose ? join([l, r]) : join([l, "\\cdot", r]);
 }
 
@@ -178,6 +183,14 @@ function listItems(items: readonly Node[], range: number | undefined): string[] 
   const several = range >= 2;
   const after = several && ends.length > 0 ? [","] : [];
   return [...starts, several ? ",\\ldots" : "\\ldots", ...after, ...ends];
+}
+
+/** A piecewise's parts as MathQuill writes them: `c:v`, a bare `c`, then the otherwise value. */
+function piecewiseParts(tree: Extract<Node, { kind: "piecewise" }>): string[] {
+  const parts = tree.branches.map(({ cond, value }) =>
+    value === null ? printLatex(cond) : join([printLatex(cond), ":", printLatex(value)])
+  );
+  return tree.otherwise === null ? parts : [...parts, printLatex(tree.otherwise)];
 }
 
 function parenthesised(args: readonly Node[]): string {

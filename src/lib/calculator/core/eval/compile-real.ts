@@ -24,6 +24,7 @@ const CIRCULAR_NAMES: ReadonlySet<string> = new Set(["sin", "cos", "tan", "csc",
 type Binary = Extract<Node, { left: Node }>;
 type Call = Extract<Node, { kind: "call" }>;
 type Index = Extract<Node, { kind: "index" }>;
+type Piecewise = Extract<Node, { kind: "piecewise" }>;
 type Fn = () => number;
 
 /** A user function, compiled once per compileReal: the slots of its parameters and its body. */
@@ -164,6 +165,8 @@ function compile(node: Node, ctx: Context): Fn {
     }
     case "index":
       return indexed(node, ctx);
+    case "piecewise":
+      return piecewise(node, ctx);
     case "point": // a point is not a real number
     case "list": // nor is a list
     case "sim": // a regression row is fitted by the values pass (D-2)
@@ -530,6 +533,29 @@ function slotOf(name: string, ctx: Context): number {
   ctx.bound.push(0);
   return slot;
 }
+
+/**
+ * PR-31, PR-32: the value of the first condition that holds (1 for a bare condition), else the
+ * otherwise value or NaN; `\{\}` is 1. A list condition gives a list, which analysis graphs
+ * through the general evaluator or rejects (G-22), so here it never holds.
+ */
+function piecewise(node: Piecewise, ctx: Context): Fn {
+  const tests = node.branches.map(({ cond }) => relation(cond.operands, cond.ops, ctx)),
+    values = node.branches.map(({ value }) => (value === null ? one : compile(value, ctx))),
+    otherwise =
+      node.otherwise !== null
+        ? compile(node.otherwise, ctx)
+        : node.branches.length === 0
+          ? one
+          : undefinedFn,
+    count = tests.length;
+  return () => {
+    for (let k = 0; k < count; k++) if (tests[k]() === 1) return values[k]();
+    return otherwise();
+  };
+}
+
+const one: Fn = () => 1;
 
 /** NM-22, : 1 when every operand is a number and every link holds, else NaN. */
 function relation(operandNodes: readonly Node[], ops: readonly RelOp[], ctx: Context): Fn {
