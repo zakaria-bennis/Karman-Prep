@@ -28,7 +28,9 @@
 
 /* The colour icon reuses the row tab's look, placed in the header instead of the gutter. */
 .kc-tr .kc-tr-icon {
-  position: static;
+  position: relative;
+  top: -1px;
+  left: 0;
   flex: none;
   margin-right: 0;
 }
@@ -70,7 +72,7 @@
   box-sizing: border-box;
   width: 100%;
   height: 36px;
-  padding: 0 8px;
+  padding: 1.6px 8px 0;
   border: 2px solid var(--kc-rule);
   border-radius: 5px;
   background: var(--kc-list);
@@ -198,6 +200,8 @@
 }
 
 .kc-tr-more {
+  position: relative;
+  top: 1.5px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -327,7 +331,7 @@
 }
 
 .kc-tr-equation-title {
-  margin-top: 8px;
+  margin-top: 11.3px;
 }
 
 /* RT-30: the EQUATION insert icon, right after the title: a 21 x 17 target whose 26 px glyph (a
@@ -378,8 +382,21 @@
 .kc-tr-equation {
   display: flex;
   align-items: center;
-  min-height: 26px;
-  margin-top: 2px;
+  box-sizing: border-box;
+  height: 26px;
+  margin-top: -1.3px;
+  padding-bottom: 1.2px;
+}
+
+/* An exponent makes the reference's line 1.9 px taller (Log Mode keeps its place below), and
+   ours rides higher than the reference's, so its line is raised a little more. */
+.kc-tr-equation:has(.mq-sup) {
+  height: 27.9px;
+  padding-bottom: 5.1px;
+}
+
+.kc-tr-equation:has(.mq-sup) + .kc-tr-log {
+  margin-top: 8.1px;
 }
 
 .kc-tr-param-warning {
@@ -391,9 +408,10 @@
 .kc-tr-log {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin-top: 8px;
+  gap: 4px;
+  margin-top: 10px;
   font-size: 12.8px;
+  line-height: 15px;
 }
 
 .kc-tr-log label {
@@ -401,6 +419,16 @@
   align-items: center;
   gap: 5px;
   cursor: pointer;
+}
+
+.kc-tr-log input {
+  width: 14px;
+  height: 14px;
+  margin: 0;
+}
+
+.kc-tr-log + .kc-tr-footer {
+  margin-top: 13.8px;
 }
 
 .kc-tr-help {
@@ -419,7 +447,7 @@
 
 .kc-tr-footer {
   display: flex;
-  margin-top: 8px;
+  margin-top: 9px;
 }
 
 .kc-tr-group {
@@ -429,9 +457,9 @@
   min-width: 0;
 }
 
-/* The values start 2 px under the title; the indented r follows R² with no gap. */
+/* The values start right under the title; the indented r follows R² with no gap. */
 .kc-tr-group .kc-tr-title + * {
-  margin-top: 2px;
+  margin-top: 0;
 }
 
 .kc-tr-group .kc-tr-title {
@@ -459,13 +487,20 @@
   gap: 7px;
 }
 
+/* The residual's subscript is set smaller than an ordinary one, as the reference's e₁ is. */
+.kc-tr-residual .mq-sub {
+  font-size: 80%;
+}
+
+/* RT-26: the grey "plot" button, a light top-to-bottom fill as on the reference. */
 .kc-tr-plot {
   box-sizing: border-box;
   height: 22px;
   padding: 2px 8px;
+  margin: 1px 0 0 0.1px;
   border: 1px solid var(--kc-row-rule);
   border-radius: 3px;
-  background: var(--kc-list);
+  background: linear-gradient(var(--kc-letter-top), var(--kc-letter-bottom));
   color: var(--kc-text);
   font-family: var(--kc-font-ui);
   font-size: 12.8px;
@@ -485,7 +520,7 @@
   justify-content: center;
   width: 20px;
   height: 20px;
-  margin-left: -7px;
+  margin: 1px 0 0 -7px;
   padding: 0;
   border: none;
   background: transparent;

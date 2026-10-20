@@ -34,6 +34,19 @@ const OS_OPTIONS = [
 
 const V = (name: string) => <i>{name}</i>;
 
+/** A root sign with its bar over the radicand, and an optional index in the sign's hook. */
+function Radical({ index }: { index?: JSX.Element | string }): JSX.Element {
+  return (
+    <span className="kc-sym-root">
+      {index !== undefined && <span className="kc-sym-index">{index}</span>}
+      <svg className="kc-sym-radical" viewBox="0 0 15 15.3" aria-hidden="true" focusable="false">
+        <path d="M0.6 9.4 2.6 8.3 6.3 14.6 13.6 0.5H15" />
+      </svg>
+      <span className="kc-sym-radicand">{V("a")}</span>
+    </span>
+  );
+}
+
 /** The Common Symbols column's typeset forms (our own simple HTML layout). */
 function Symbol({ id }: { id: SymbolId }): JSX.Element {
   switch (id) {
@@ -52,11 +65,16 @@ function Symbol({ id }: { id: SymbolId }): JSX.Element {
         </>
       );
     case "le":
-      return <>≤</>;
+      return <span className="kc-sym-rel">≤</span>;
     case "ge":
-      return <>≥</>;
+      return <span className="kc-sym-rel">≥</span>;
     case "prime":
-      return <>{V("a")}′</>;
+      return (
+        <>
+          {V("a")}
+          <span className="kc-sym-prime">′</span>
+        </>
+      );
     case "fraction":
       return (
         <span className="kc-sym-frac">
@@ -65,34 +83,31 @@ function Symbol({ id }: { id: SymbolId }): JSX.Element {
         </span>
       );
     case "sqrt":
-      return <>√{V("a")}</>;
+      return <Radical />;
     case "cbrt":
-      return (
-        <>
-          <sup className="kc-sym-index">3</sup>√{V("a")}
-        </>
-      );
+      return <Radical index="3" />;
     case "nthroot":
+      return <Radical index={V("n")} />;
+    case "int":
       return (
-        <>
-          <sup className="kc-sym-index">{V("n")}</sup>√{V("a")}
-        </>
+        <span className="kc-sym-int">
+          <span className="kc-sym-op">∫</span>
+          <span className="kc-sym-limits">
+            <span className="kc-sym-limit">{V("b")}</span>
+            <span className="kc-sym-limit">{V("a")}</span>
+          </span>
+        </span>
       );
     case "sum":
-    case "int":
     case "prod":
       return (
         <span className="kc-sym-big" data-op={id}>
           <span className="kc-sym-limit">{V("b")}</span>
-          <span className="kc-sym-op">{id === "sum" ? "∑" : id === "prod" ? "∏" : "∫"}</span>
+          <span className="kc-sym-op">{id === "sum" ? "∑" : "∏"}</span>
           <span className="kc-sym-limit">
-            {id === "int" ? (
-              V("a")
-            ) : (
-              <>
-                {V("n")}={V("a")}
-              </>
-            )}
+            {V("n")}
+            <span className="kc-sym-eq">=</span>
+            {V("a")}
           </span>
         </span>
       );
@@ -130,7 +145,7 @@ function Row({ row, os }: { row: ShortcutRow; os: Os }): JSX.Element {
           label
         ) : (
           <>
-            <span className="kc-sym" aria-hidden="true">
+            <span className="kc-sym" data-symbol={label.symbol} aria-hidden="true">
               <Symbol id={label.symbol} />
             </span>
             <span className="kc-sr-only">{label.speech}</span>
@@ -236,7 +251,7 @@ export function ShortcutsDialog({ mac, onClose }: ShortcutsDialogProps): JSX.Ele
           onClick={onClose}
         >
           <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
-            <path d="M3 3 13 13M13 3 3 13" />
+            <path d="M1.2 1.2 14.8 14.8M14.8 1.2 1.2 14.8" />
           </svg>
         </button>
         <div className="kc-shortcuts-box" tabIndex={-1}>
