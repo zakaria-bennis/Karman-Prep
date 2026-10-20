@@ -16,12 +16,12 @@ export const FOUNDER = {
 } as const;
 
 /**
- * Zakaria's private-tutoring track record, from before Karman.
- * These are NOT Karman program results — always show
+ * Karman's 1:1 tutoring track record (Zakaria's students). These came
+ * from 1:1 tutoring, not the cohort program, so always show
  * `TRACK_RECORD.sourceLabel` next to them.
  */
 export const TRACK_RECORD = {
-  sourceLabel: "From Zakaria's private tutoring",
+  sourceLabel: "Karman 1:1 tutoring, median 16 weeks",
   averageGain: 285,
   averageBefore: 1235,
   averageAfter: 1520,
@@ -32,11 +32,12 @@ export const TRACK_RECORD = {
 } as const;
 
 export const QUESTION_BANK = {
-  /** Verified, SAT-aligned original questions available today. */
-  verifiedCount: "5,000+",
+  /** Live original questions, rounded down (2,588 live on 2026-10-19). */
+  verifiedCount: "2,500+",
   /** Where the bank is headed — only say "growing to", never "has". */
   targetCount: "10,000+",
-  skills: 89,
+  /** Selectable skills in src/data/curriculum/approved-skill-taxonomy.json. */
+  skills: 39,
   difficultyLevels: 7,
 } as const;
 
@@ -94,8 +95,8 @@ export const MARCH_PROGRAM = {
       detail: "Ten minutes a day. Every question you miss comes back after 2, 7 and 21 days.",
     },
     {
-      title: "5,000+ original practice questions",
-      detail: "Across all 89 SAT skills at seven difficulty levels.",
+      title: "2,500+ original practice questions",
+      detail: "Across all 39 SAT skills at seven difficulty levels.",
     },
     {
       title: "Your cohort, between classes",
@@ -133,7 +134,7 @@ export const PRIVATE_INCLUDES: ProgramInclusion[] = [
   },
   {
     title: "Everything on the platform",
-    detail: "Practice tests, Daily 10 and 5,000+ original questions.",
+    detail: "Practice tests, Daily 10 and 2,500+ original questions.",
   },
   {
     title: "The weekly live session",

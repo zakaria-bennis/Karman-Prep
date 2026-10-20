@@ -20,7 +20,9 @@ claim the site may state is in `src/lib/marketing/offer.ts`. Values marked
 ## Active workstreams
 
 - **Website.** Being rebuilt around the program offer. Design rules are in
-  `docs/design-rules.md` (founder's 31 rules, 2026-10-18). The espresso-and-gold
+  `docs/design-rules.md` (founder's 31 rules, 2026-10-18, plus copy rules and SEO
+  requirements, 2026-10-19). The site is not complete until every item in
+  `docs/launch-checklist.md` (security and performance) is done. The espresso-and-gold
   look is retired, and `docs/design-tokens.md` and the palette in `docs/brand.md`
   no longer apply. The voice section of `docs/brand.md` still does. Every button,
   link and redirect must work, and be clicked through in a browser before it ships.
@@ -92,5 +94,7 @@ claim the site may state is in `src/lib/marketing/offer.ts`. Values marked
 
 ### Marketing honesty
 
-- No testimonials until real ones exist. Label tutoring stats as Zakaria's private
-  results. Give score estimates only as labeled ranges. No fake urgency.
+- No testimonials until real ones exist. Tutoring stats may be shown as Karman's
+  results (founder decision, 2026-10-19: Karman is Zakaria's business), but always
+  with their format: 1:1 tutoring, median 16 weeks. Never imply they came from the
+  9-week cohort. Give score estimates only as labeled ranges. No fake urgency.
