@@ -266,6 +266,36 @@ it("POI-TRACE-27 pressing another curve selects it and traces it", async () => {
   expect(lastFrame().rows.find((r) => r.rowId === "2")?.selected).toBe(true);
 });
 
+it("POI-TRACE-2 pointsOfInterest off hides the dots but keeps the trace", async () => {
+  await setup();
+  await act(async () => t.engine.updateSettings({ pointsOfInterest: false }));
+  await flush();
+  expect(lastFrame().poi ?? []).toEqual([]);
+  await tap(px(ROOT2), py(0)); // no dot to press: the press traces the curve instead
+  expect(labels()).toEqual([]);
+  await drag([[px(-2.5), py(4.25)]], "mouse", false);
+  expect(traceLabel()).toBe("(−2.5, 4.25)");
+});
+
+it("POI-TRACE-2 trace off: no dots, no trace, and a press on a curve only selects it", async () => {
+  await setup();
+  await act(async () => t.engine.updateSettings({ trace: false }));
+  await flush();
+  expect(lastFrame().poi ?? []).toEqual([]);
+  const before = t.engine.getSnapshot().viewport;
+  await drag(
+    [
+      [px(4), py(3) + 2],
+      [px(4) + 40, py(3) + 2],
+    ],
+    "mouse",
+    false
+  );
+  expect(t.engine.getSnapshot().selectedRowId).toBe("2");
+  expect(traceLabel()).toBeNull();
+  expect(t.engine.getSnapshot().viewport).not.toEqual(before); // the press pans
+});
+
 it("KB-14 with the graph focused ] and [ step through the selected row's points, one label at a time", async () => {
   await setup();
   const surface = screen.getByRole("img");

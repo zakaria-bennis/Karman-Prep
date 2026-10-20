@@ -39,20 +39,27 @@ export function useTrace(engine: CalculatorEngine) {
     });
   }, []);
 
-  /** POI-TRACE-21: claims a press on a traceable row, selects it and traces at `at`. */
+  /**
+   * POI-TRACE-21: claims a press on a traceable row, selects it and traces at `at`. With the trace
+   * setting off (POI-TRACE-2) the press only selects the row ("selected"). Null: no row is hit.
+   */
   const claim = useCallback(
     (
       at: readonly [number, number],
       pointer: Pointer,
       view: ViewSpec,
       rows: readonly RenderRow[]
-    ): boolean => {
+    ): "trace" | "selected" | null => {
       const traceable = rows.map((r) => ({
         rowId: r.rowId,
         branches: engine.poiCurves(r.rowId, view),
       }));
       const rowId = hitBranch(traceable, view, at, pointer);
-      if (rowId === null) return false;
+      if (rowId === null) return null;
+      if (!engine.settings.trace) {
+        engine.setSelectedRow(rowId);
+        return "selected";
+      }
       const row = rows.find((r) => r.rowId === rowId)!;
       target.current = {
         rowId,
@@ -61,7 +68,7 @@ export function useTrace(engine: CalculatorEngine) {
       };
       engine.setSelectedRow(rowId);
       move(at, view);
-      return true;
+      return "trace";
     },
     [engine, move]
   );

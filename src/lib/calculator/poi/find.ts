@@ -75,7 +75,9 @@ function ownPoints(b: PoiBranch, view: ViewSpec): Raw[] {
     if (isNum(t) && isNum(v)) out.push({ ...xy(pointOf(b, t, v)), kind, withRowId: null });
   };
   const sc = b.linear ? null : scanRange(b.f, s);
-  for (const t of sc === null ? linearZeros(b, s) : findRoots(b.f, s, false, sc)) add(t, 0, "zero");
+  // A zero keeps f's value there, as Desmos does: a deep zoom on x²−2 reads (1.414214, −4.44089×10⁻¹⁶).
+  for (const t of sc === null ? linearZeros(b, s) : findRoots(b.f, s, false, sc))
+    add(t, b.f(t), "zero");
   if (0 >= s.lo && 0 <= s.hi) add(0, b.f(0), "intercept");
   if (sc !== null) for (const e of findExtrema(b.f, s, sc)) add(e.t, b.f(e.t), "extremum");
   return out.length > OWN_CAP ? [] : out;

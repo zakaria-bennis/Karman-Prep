@@ -44,6 +44,14 @@ describe("one-dimensional search", () => {
     expect(circle.map((r) => Math.round(r * 1e6) / 1e6)).toEqual([-5, 5]);
   });
 
+  it("POI-TRACE-19 a sample landing within rounding of a root still brackets it", () => {
+    // The view [√2 − 1, √2 + 1] samples x²−2 at ≈√2, where it is −4.4e-16 (Desmos opens (1.414214, 0)).
+    const s = { lo: Math.SQRT2 - 1, hi: Math.SQRT2 + 1, samples: 1984, tol: 1.8 / 854 };
+    const roots = findRoots((x) => x * x - 2, s);
+    expect(roots).toHaveLength(1);
+    near(roots[0], Math.SQRT2, 1e-12);
+  });
+
   it("POI-TRACE-8 corner extrema come from a change of direction", () => {
     const ex = findExtrema((x) => Math.abs(x - 1), S);
     expect(ex).toHaveLength(1);

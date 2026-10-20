@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { NO_DEADLINE } from "../core/deadline";
 import type { ViewSpec } from "../plot/viewport";
 import { findPois, INTERSECTION_CAP, OWN_CAP } from "./find";
+import { formatPoiLabel } from "./format";
 import type { PoiBranch, PoiPoint } from "./types";
 
 const view = (left = -10, right = 10, bottom = -8, top = 8): ViewSpec => ({
@@ -111,6 +112,19 @@ describe("points of interest per branch", () => {
     // Not a line: a segment that ends within 5e-8 of 0 at the view's edge has a zero there.
     const flat = pois(fx((x) => 1e-9 * Math.cos(x / 100)));
     expect(flat.filter((q) => q.kinds.includes("zero")).map((q) => q.x)).toEqual([-10, 10]);
+  });
+
+  it("POI-TRACE-19 a zero keeps f's value, so a deep zoom shows its rounding noise", () => {
+    const r2 = Math.SQRT2;
+    const deep: ViewSpec = {
+      viewport: { left: r2 - 1e-5, right: r2 + 1e-5, bottom: -9e-6, top: 9e-6 },
+      size: { width: 992, height: 854 },
+      dpr: 1,
+    };
+    const [zero] = findPois([fx((x) => x * x - 2)], [], deep, NO_DEADLINE);
+    // Live Desmos at this view: (1.414214, −4.44089×10⁻¹⁶)
+    expect(formatPoiLabel(zero, deep).text).toBe("(1.414214, −4.44089×10^−16)");
+    expect(formatPoiLabel(zero, view()).text).toBe("(1.41421, 0)");
   });
 
   it("POI-TRACE-4 coincident records merge into one dot listing every kind", () => {

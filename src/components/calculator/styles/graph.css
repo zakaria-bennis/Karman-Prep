@@ -180,11 +180,15 @@
   cursor: default;
 }
 
+/* The math sets 1em lines, as Desmos's static math does (20.24 px), so the box is 42.27 px tall. */
 .kc-poi-label .kc-poi-math {
-  line-height: normal;
+  line-height: 1;
 }
 
-/* POI-TRACE-18, GP-39: the export button after the coordinates, 25.6 × 27.6 px at 40% opacity. */
+/* POI-TRACE-18, GP-39: the export button after the coordinates, 25.6 × 27.6 px at 40% opacity.
+   As on Desmos it takes 21.6 px of the row (1 px back over the math, 3 px into the padding) and
+   sits 1.73 px above the middle of the row: 1.4 px above the content box of a one-line label,
+   and centred on a fraction's taller one. */
 .kc-poi-export {
   display: inline-flex;
   align-items: center;
@@ -192,7 +196,7 @@
   box-sizing: border-box;
   width: 25.6px;
   height: 27.6px;
-  margin: 0;
+  margin: -3.47px -3px 0 -1px;
   padding: 5px 5px 5px 3px;
   border: 0;
   background: none;

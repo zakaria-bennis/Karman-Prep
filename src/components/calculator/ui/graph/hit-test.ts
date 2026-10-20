@@ -19,6 +19,12 @@ export const POI_HIT_PX: Readonly<Record<Pointer, number>> = Object.freeze({
   coarse: CURVE_HIT_PX.coarse + 2,
 });
 
+/**
+ * Pointer events carry float32 coordinates, so a pointer exactly 12 px from a dot reads as
+ * 12.0000122 px; Desmos still counts that as a hit (12 px hits, 13 px misses), and so do we.
+ */
+const SLACK_PX = 1e-3;
+
 /** The index of the dot nearest `at` within the hit radius, or null. */
 export function hitPoi(
   points: readonly Pick<PoiPoint, "x" | "y">[],
@@ -27,7 +33,7 @@ export function hitPoi(
   pointer: Pointer
 ): number | null {
   let best: number | null = null,
-    bestDistance = POI_HIT_PX[pointer];
+    bestDistance = POI_HIT_PX[pointer] + SLACK_PX;
   points.forEach((p, i) => {
     const [x, y] = worldToPx(view, p.x, p.y);
     const d = Math.hypot(x - at[0], y - at[1]);
@@ -56,7 +62,7 @@ export function hitBranch(
   pointer: Pointer
 ): string | null {
   let best: string | null = null,
-    bestDistance = CURVE_HIT_PX[pointer];
+    bestDistance = CURVE_HIT_PX[pointer] + SLACK_PX;
   for (const row of rows) {
     for (const b of row.branches) {
       const d = branchDistance(b, view, at);

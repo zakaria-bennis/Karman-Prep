@@ -9,6 +9,7 @@ import { CURVE_SLOTS } from "../../theme/skins";
 import { MAX_ROW_CHARACTERS, MAX_ROWS } from "../latex";
 import { KarmanCalculatorError } from "./errors";
 import { MAX_CELL_CHARACTERS, MAX_TABLE_COLUMNS, MAX_TABLE_ROWS } from "./document";
+import { DEFAULT_SETTINGS } from "./types";
 import type {
   AxisSettings,
   CalculatorOptions,
@@ -40,7 +41,12 @@ export const SETTINGS_KEYS: readonly (keyof CalculatorSettings)[] = Object.freez
   "expressionsCollapsed",
   "mode",
   "reducedMotion",
+  "trace",
+  "pointsOfInterest",
 ] as const);
+
+/** Settings a whole settings object may leave out (they came later): missing means the default. */
+const LATER_KEYS: ReadonlySet<keyof CalculatorSettings> = new Set(["trace", "pointsOfInterest"]);
 
 function invalid(method: string, text: string): never {
   throw new KarmanCalculatorError("invalid-argument", `${method}: ${text}`);
@@ -130,6 +136,8 @@ const SETTING_CHECKS: { [K in keyof CalculatorSettings]: Check<CalculatorSetting
   expressionsCollapsed: bool,
   mode: phaseOne(oneOf(["graphing", "scientific"]), "graphing"),
   reducedMotion: bool,
+  trace: bool,
+  pointsOfInterest: bool,
 };
 
 const seed: Check<number> = (value, method, field) =>
@@ -176,7 +184,7 @@ export function validateSettingsUpdate(partial: unknown): SettingsUpdate {
   return settingsFields(partial, "updateSettings", "settings", false);
 }
 
-/** A whole settings object (setState): all 17 keys required. */
+/** A whole settings object (setState): every key required but LATER_KEYS. */
 export function validateSettings(settings: unknown): CalculatorSettings {
   return settingsFields(settings, "setState", "settings", true) as CalculatorSettings;
 }
@@ -193,7 +201,8 @@ function settingsFields(
     const name = complete ? `${field}.${key}` : key;
     const setting = own(fields, key);
     if (setting === undefined) {
-      if (complete) invalid(method, `${name} is missing`);
+      if (complete && LATER_KEYS.has(key)) out[key] = DEFAULT_SETTINGS[key];
+      else if (complete) invalid(method, `${name} is missing`);
       continue;
     }
     out[key] = SETTING_CHECKS[key](setting, method, name);

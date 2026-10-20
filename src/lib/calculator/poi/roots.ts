@@ -210,6 +210,34 @@ function goldenMin(g: (t: number) => number, a: number, b: number): number {
   return g1 <= g2 ? x1 : x2;
 }
 
+const BITS = new Float64Array(1),
+  WORD = new BigInt64Array(BITS.buffer);
+/** The adjacent double above (`up`) or below x (x finite and nonzero, or 0 going up). */
+function adjacent(x: number, up: boolean): number {
+  if (x === 0) return up ? Number.MIN_VALUE : -Number.MIN_VALUE;
+  BITS[0] = x;
+  WORD[0] += x > 0 === up ? BigInt(1) : BigInt(-1);
+  return BITS[0];
+}
+
+/**
+ * A root as Desmos's bisection leaves it: of the two adjacent doubles around the sign change, the
+ * one where |f| is smaller, the lower on a tie (so √2 on x²−2 is 1.4142135623730949, f −4.4e-16).
+ */
+function settleRoot(f: (t: number) => number, t: number): number {
+  const v = f(t);
+  if (v === 0 || !isNum(v)) return t;
+  for (const up of [false, true]) {
+    const u = adjacent(t, up),
+      w = f(u);
+    if (isNum(w) && (w === 0 || w > 0 !== v > 0)) {
+      const [lo, flo, hi, fhi] = up ? [t, v, u, w] : [u, w, t, v];
+      return Math.abs(flo) <= Math.abs(fhi) ? lo : hi;
+    }
+  }
+  return t;
+}
+
 const sameRoot = (a: number, b: number): boolean =>
   Math.abs(a - b) <= 1e-9 * Math.max(1, Math.abs(a));
 
@@ -288,8 +316,9 @@ export function findRoots(
         if (buf.length === 2) pushUnique(out, plateauMiddle(f, sc, buf[1], k - 1));
         else {
           const r = brent(f, t[buf[0]], t[k], p, a);
-          if (r !== null && r.size <= POLE_RATIO * Math.min(Math.abs(p), Math.abs(a)))
-            pushUnique(out, r.t);
+          // A bracket that started next to 0 (x²−2 sampled at ≈√2) only needs to end near 0.
+          const bound = Math.max(POLE_RATIO * Math.min(Math.abs(p), Math.abs(a)), ZERO_EDGE);
+          if (r !== null && r.size <= bound) pushUnique(out, settleRoot(f, r.t));
         }
       } else if (touching && buf.length === 2) {
         pushUnique(out, plateauMiddle(f, sc, buf[1], k - 1)); // touches 0 on exact zeros

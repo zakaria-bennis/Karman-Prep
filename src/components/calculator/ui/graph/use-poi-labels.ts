@@ -32,8 +32,12 @@ const keptPresses = new WeakSet<Event>();
 export const keepLabelsOpen = (e: Event): void => void keptPresses.add(e);
 export const LABEL_SELECTOR = "[data-poi-label], [data-trace-label]";
 
-/** The selected row's points of interest, when the snapshot has them for the selected row. */
+/**
+ * The selected row's points of interest, when the snapshot has them for the selected row and both
+ * the trace and pointsOfInterest settings are on (POI-TRACE-2).
+ */
 export function selectedPoints(s: EngineSnapshot): readonly PoiPoint[] {
+  if (!s.settings.trace || !s.settings.pointsOfInterest) return NO_POINTS;
   return s.poi !== null && s.poi.rowId === s.selectedRowId ? s.poi.points : NO_POINTS;
 }
 

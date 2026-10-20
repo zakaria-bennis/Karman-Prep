@@ -6,14 +6,14 @@
 // keys (KB-8) and the panel drag, pinch and wheel (useGraphInput).
 
 import {
+  type KeyboardEvent,
+  type RefObject,
   useContext,
   useEffect,
   useLayoutEffect,
   useMemo,
   useRef,
   useSyncExternalStore,
-  type KeyboardEvent,
-  type RefObject,
 } from "react";
 import { formatPoiLabel } from "@/lib/calculator/poi/format";
 import type { CalculatorEngine, EngineSnapshot } from "@/lib/calculator/core/api/engine";
@@ -49,6 +49,7 @@ import {
 import { useDebounced } from "./use-debounced";
 import { useGraphInput } from "./use-graph-input";
 import { useGraphSize, type GraphSize } from "./use-graph-size";
+import { useLabelInk } from "./use-label-ink";
 import { keepLabelsOpen, poiDots, shownLabels, usePoiLabels } from "./use-poi-labels";
 import { useTrace, type TraceState } from "./use-trace";
 
@@ -177,17 +178,6 @@ function HomeButton({ phase, homeRef, surface, onActivate }: HomeButtonProps): J
 }
 
 /** The selected row's drawn vertices in CSS px, every 4th, for label placement (POI-19). */
-function selectedCurvePx(s: EngineSnapshot, view: ViewSpec): [number, number][] {
-  const g = s.selectedRowId === null ? undefined : s.geometry.get(s.selectedRowId);
-  if (g === undefined || g.kind !== "curve") return [];
-  const out: [number, number][] = [];
-  for (let k = 0; k + 1 < g.polylines.length; k += 8) {
-    if (Number.isFinite(g.polylines[k]))
-      out.push(worldToPx(view, g.polylines[k], g.polylines[k + 1]));
-  }
-  return out;
-}
-
 const noTrace = () => () => undefined;
 
 /** One viewport animator per engine, cancelled on unmount. */
@@ -230,6 +220,7 @@ export function GraphPanel(props: GraphPanelProps): JSX.Element {
     () => keyboardTrace?.state ?? null
   );
   const current = useRef({ snapshot, skin, size, cache: NO_REGIONS });
+  const readLabelInk = useLabelInk(current, panel, layers, host);
   /** The view and the drawn rows as of the latest commit, or null while unsized. */
   const scene = (): { view: ViewSpec; rows: ReturnType<typeof buildRenderRows> } | null => {
     const { snapshot: s, skin: k, size: g, cache: c } = current.current;
@@ -250,12 +241,14 @@ export function GraphPanel(props: GraphPanelProps): JSX.Element {
           keepLabelsOpen(event);
           return "dot";
         }
-        if (tracer.claim(at, pointer, sc.view, sc.rows)) {
+        const claimed = tracer.claim(at, pointer, sc.view, sc.rows);
+        if (claimed === "trace") {
           keepLabelsOpen(event);
           return "trace";
         }
         poi.close(); // POI-TRACE-14: blank paper closes every label and deselects
-        engine.setSelectedRow(null);
+        // POI-TRACE-2: with trace off a press on a curve only selected it, and pans.
+        if (claimed === null) engine.setSelectedRow(null);
         return "pan";
       },
       move(at) {
@@ -354,8 +347,8 @@ export function GraphPanel(props: GraphPanelProps): JSX.Element {
       {view !== null && (
         <PoiOverlay
           labels={shownLabels(snapshot, poi.labels, view)}
-          curve={selectedCurvePx(snapshot, view)}
           size={view.size}
+          readInk={readLabelInk}
           trace={shownTrace}
           onExport={(l) => poi.exportPoint(l.label, l.point)}
         />
