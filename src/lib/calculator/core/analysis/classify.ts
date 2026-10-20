@@ -8,7 +8,7 @@ import { isBuiltinName } from "../latex/operator-names";
 import { arityText, BUILTIN_ARITY } from "../lib/arity";
 import { listFunction } from "../lib/statistics";
 import { declaredHead, type DefinitionHead, type ParsedRow } from "./definitions";
-import { functionGraph, POLAR_NAMES, shapeOf, type RowShape } from "./graph";
+import { functionGraph, isPointShaped, POLAR_NAMES, shapeOf, type RowShape } from "./graph";
 import type { AnalysisSettings, RowAnalysis, RowError } from "./index";
 import { displayName, rowErrorMessage } from "./messages";
 import { collectNameUses, isReservedName } from "./names";
@@ -184,10 +184,10 @@ function headShape(head: DefinitionHead, span: SourceSpan, resolution: Resolutio
   };
 }
 
-/** RC-2, RC-3: a `t` inside a point while no row defines `t`. */
+/** RC-2, RC-3: a `t` inside a point-shaped row (a restricted one too) while no row defines `t`. */
 function unboundT(tree: Node, resolution: Resolution): boolean {
   return (
-    tree.kind === "point" &&
+    isPointShaped(tree) &&
     !resolution.isDefined("t") &&
     collectNameUses(tree).some((use) => use.name === "t" && use.inPoint)
   );

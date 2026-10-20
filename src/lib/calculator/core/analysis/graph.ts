@@ -19,7 +19,7 @@ export const POLAR_NAMES: readonly string[] = ["r", "\\theta"];
 
 /**
  * Classifies a tree that defines nothing, by RC-2's order: r or θ anywhere is `unsupported`;
- * then a point or a list of points (RC-15, G-3), a relation (RC-11 to RC-14) or a bare expression (RC-17). `coordinatesOf`
+ * then a point or a list of points (RC-15, G-3, isPointShaped), a relation (RC-11 to RC-14) or a bare expression (RC-17). `coordinatesOf`
  * gives the coordinates a node reaches through definitions; `unboundT` is true when a `t` inside
  * the point has no defining row. A relation with no coordinates is a `constant-relation` here:
  * classifyRow makes it an `unsolved-relation` when the row has chips (RC-13), which depend on the
@@ -34,7 +34,7 @@ export function shapeOf(
   const relation = tree.kind === "rel" ? { ops: [...tree.ops] } : null;
   const polar = [...coordinates].find((name) => POLAR_NAMES.includes(name));
   if (polar !== undefined) return failed("unsupported", [displayName(polar)], relation);
-  if (tree.kind === "point" || isPointList(tree)) {
+  if (isPointShaped(tree)) {
     if (unboundT) return failed("unsupported", ["t"], relation);
     if (coordinates.has("x") || coordinates.has("y")) {
       return failed("point-coordinates", [], relation);
@@ -42,6 +42,8 @@ export function shapeOf(
     return shape("point", { kind: "point" });
   }
   if (tree.kind === "rel") {
+    const problem = coordinates.size > 0 ? chainProblem(tree, coordinatesOf) : null;
+    if (problem !== null) return failed(problem, [], relation);
     const shaped =
       tree.ops[0] === "="
         ? equationShape(tree, coordinates, coordinatesOf)
@@ -125,6 +127,30 @@ function solvedFor(
 }
 
 /**
+ * RC-14: why a chain with coordinates cannot graph, as Desmos refuses it: chained equations, more
+ * than two inequalities, a double inequality whose middle is not x or y or whose sides use it
+ * (`x<1<2`), then one pointing both ways (`1<y>0`); null for a single relation or a graphable
+ * double inequality. Chains without coordinates evaluate link by link.
+ */
+function chainProblem(
+  tree: Rel,
+  coordinatesOf: (node: Node) => ReadonlySet<string>
+): RowErrorCode | null {
+  const { ops, operands } = tree;
+  if (ops.length < 2) return null;
+  if (ops[0] === "=") return "chained-equation";
+  if (ops.length > 2) return "long-chain";
+  const [low, middle, high] = operands;
+  const solved =
+    middle.kind === "id" &&
+    (middle.name === "x" || middle.name === "y") &&
+    !coordinatesOf(low).has(middle.name) &&
+    !coordinatesOf(high).has(middle.name);
+  if (!solved) return "double-inequality";
+  return ops[0][0] === ops[1][0] ? null : "double-direction";
+}
+
+/**
  * RC-14: an inequality chain with coordinates is a region, as written; one without is a constant
  * relation that shades the whole view when it holds.
  */
@@ -133,6 +159,35 @@ function chainShape(tree: Rel, coordinates: ReadonlySet<string>): RowShape {
     operands = tree.operands;
   if (coordinates.size > 0) return shape("region", { kind: "region", operands, ops });
   return shape("constant-relation", { kind: "constant-region", operands, ops });
+}
+
+/**
+ * RC-15, G-3, PR-31, PR-32: a tree that is a point or a list of points as written, so plots like
+ * one: a point, a list literal of points or an index of one, a piecewise whose every value is
+ * point-shaped (`\{a>0:(1,2),(3,4)\}`), and a point-shaped tree times a piecewise that is not,
+ * a restriction (`(1,2)\{a>0\}`, `\{a>0\}(1,2)`), as Desmos graphs them (captured 2026-10-19).
+ */
+export function isPointShaped(tree: Node): boolean {
+  switch (tree.kind) {
+    case "point":
+      return true;
+    case "piecewise": {
+      const values = tree.branches.map(({ value }) => value);
+      if (tree.otherwise !== null) values.push(tree.otherwise);
+      return values.length > 0 && values.every((v) => v !== null && isPointShaped(v));
+    }
+    case "mul":
+      return (
+        (isPointShaped(tree.left) && isRestriction(tree.right)) ||
+        (isRestriction(tree.left) && isPointShaped(tree.right))
+      );
+    default:
+      return isPointList(tree);
+  }
+}
+
+function isRestriction(node: Node): boolean {
+  return node.kind === "piecewise" && !isPointShaped(node);
 }
 
 /**

@@ -36,7 +36,7 @@ describe("parse never throws", () => {
     ]);
   });
   it("PR-38 errors carry their code and the span of the offending text", () => {
-    expect(["x\\pm1", "2+", "(1,2,3)", "a<x>b", "  ", "\\left|x|y|\\right|"].map(spanOf)).toEqual([
+    expect(["x\\pm1", "2+", "(1,2,3)", "x=y<3", "  ", "\\left|x|y|\\right|"].map(spanOf)).toEqual([
       ["unsupported", 1, 4],
       ["syntax", 2, 2],
       ["point-arity", 0, 7],

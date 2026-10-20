@@ -12,7 +12,7 @@ import { DeadlineExceeded, NO_DEADLINE, type Deadline } from "../deadline";
 import { evaluateTable, type DataSink } from "../data/evaluate";
 import { evaluateRegression, regressionValues } from "../data/evaluate-regression";
 import { regressionDefinitionId, regressionOf } from "../data/regression-analysis";
-import type { Node } from "../latex/ast";
+import { sourceChildren, type Node } from "../latex/ast";
 import { isBuiltinName } from "../latex/operator-names";
 import { applyBuiltin } from "../lib/builtins";
 import { applyListFunction, listFunction } from "../lib/statistics";
@@ -238,21 +238,39 @@ function condition(rel: Relation, ctx: Context): Compiled {
     );
 }
 
-/** PR-31, PR-32: a piecewise by piecewiseValue, its values evaluated only when picked. */
+/**
+ * PR-31, PR-32: a piecewise by piecewiseValue; a value that calls a user function is not safe, so
+ * it runs only when picked.
+ */
 function piecewise(node: Piecewise, ctx: Context): Compiled {
+  const compiled = (value: Node) => ({
+    run: compileNode(value, ctx),
+    safe: !callsUserFunction(value),
+  });
   const branches = node.branches.map(({ cond, value }) => ({
       test: condition(cond, ctx),
-      value: value === null ? null : compileNode(value, ctx),
+      value: value === null ? null : compiled(value),
     })),
-    otherwise = node.otherwise === null ? null : compileNode(node.otherwise, ctx);
-  return (vars, deadline) =>
-    piecewiseValue(
+    otherwise = node.otherwise === null ? null : compiled(node.otherwise);
+  return (vars, deadline) => {
+    const bind = ({ run, safe }: { run: Compiled; safe: boolean }) => ({
+      run: () => run(vars, deadline),
+      safe,
+    });
+    return piecewiseValue(
       branches.map(({ test, value }) => ({
         test: () => test(vars, deadline),
-        value: value === null ? null : () => value(vars, deadline),
+        value: value === null ? null : bind(value),
       })),
-      otherwise === null ? null : () => otherwise(vars, deadline)
+      otherwise === null ? null : bind(otherwise)
     );
+  };
+}
+
+/** True when `node` calls a function that is not a built-in. */
+function callsUserFunction(node: Node): boolean {
+  if (node.kind === "call" && !isBuiltinName(node.name)) return true;
+  return sourceChildren(node).some(callsUserFunction);
 }
 
 /** NM-32: a one-operand operator, element by element on a list. */

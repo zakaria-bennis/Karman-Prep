@@ -327,7 +327,16 @@ values, its comma error and its 2 graphable piecewise rows match, and `L[\{L>3\}
 Desmos facts the capture settled over this plan: a part with no `:` is a condition with value 1
 (`\{1>0,2<1:4\}` = 1), `\{\}` is 1, and `y=x\{x\}` is "A piecewise expression must have at
 least one condition.". Left: the plot tests below (`plot/` is another builder's), the keystroke
-case (Playwright), a restriction on a point (M4) and list conditions on curves (task 8).
+case (Playwright) and list conditions on curves (task 8). The review of this task added: a
+point-valued piecewise or restriction is a point row (`mulV` scales a point by a real number,
+the one piece of M4 shipped); a scalar condition's pick broadcasts over a list value; a
+condition comparing points is "Cannot compare a point to a point." (captured for `(1,2)=(1,2)`);
+`x=>1`, `1==1` and `x<1<2` give Desmos's captured texts; and chains follow Desmos's
+ComparatorChain rules (mixing `=` with inequalities refused everywhere, other chains evaluated
+link by link and refused only when graphed). All in `desmos-relations.fixture.json` and its
+reference test, with 4 expected failures (matrices, a restricted parametric, polar, G-22).
+A row using a definition that has an error is still silently undefined, as `A+1` after a matrix
+row is; that is not piecewise-specific and stays open.
 `components/calculator/math-field/speech.ts` gained one `piecewise` case, which the new node kind
 needs to type-check.
 

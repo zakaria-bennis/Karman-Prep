@@ -50,7 +50,12 @@ export type RowErrorCode =
   | "repeat-counts" // FN-34: `repeat([1,2],[1.5,2])`
   | "refused-function" // a Desmos built-in its calculator refuses: `frequencyList(L,M)`
   | "repeat-lengths" // FN-34: `repeat([1,2,3],[1,2])`
-  | "piecewise-types"; // PR-31: branches of different types, `\{1>0:(1,2),3\}`
+  | "piecewise-types" // PR-31: branches of different types, `\{1>0:(1,2),3\}`
+  | "comparator-types" // PR-31, NM-31: comparing a point, `\{(1,2)=(1,2):1,0\}`
+  | "chained-equation" // RC-14: graphing `x=y=3`
+  | "long-chain" // RC-14: graphing more than two inequalities, `0<x<y<3`
+  | "double-inequality" // RC-14: a graphed double inequality not solved for x or y, `x<1<2`
+  | "double-direction"; // RC-14: a graphed double inequality pointing both ways, `1<y>0`
 export interface CorpusSettings {
   angleMode?: "radians" | "degrees";
   complex?: boolean;

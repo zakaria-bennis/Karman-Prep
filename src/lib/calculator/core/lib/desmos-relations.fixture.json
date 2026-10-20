@@ -1,0 +1,37 @@
+{
+  "_about": "Live Desmos captures (observed 2026-10-19) for comparisons, relation operators and chains, copied from the function catalogue's ALL.values.json, and every restriction or piecewise row its matrices-advanced capture (tools/out1.json) found graphable. Keys keep the catalogue's form: ' ;; ' separates rows defined first. values: null = the row shows no value. graphable: Desmos's isGraphable was true; 'point (1, 2)' adds the value it displayed.",
+  "errors": {
+    "(1,2)=(1,2)": "Cannot compare a point to a point.",
+    "A=\\begin{bmatrix}1&2\\\\3&4\\end{bmatrix} ;; \\left\\{A=A:1,0\\right\\}": "Cannot compare a matrix to a matrix.",
+    "x=>1": "You need something on both sides of the '>' symbol.",
+    "x=<1": "You need something on both sides of the '<' symbol.",
+    "1<>2": "You need something on both sides of the '>' symbol.",
+    "1==1": "You need something on both sides of the '=' symbol.",
+    "x<1<2": "We only support solved double inequalities. Try deleting one side of the inequality."
+  },
+  "values": {
+    "2\\le3": null,
+    "2\\ge3": null,
+    "x\\le1": null,
+    "x\\ge1": null,
+    "y\\le x": null
+  },
+  "graphable": {
+    "y=\\left\\{x>0:x,-x\\right\\}": "graphable",
+    "\\left\\{x>0:x,-x\\right\\}": "graphable",
+    "y=x\\left\\{x>0\\right\\}": "graphable",
+    "y=x\\left\\{0<x<1\\right\\}": "graphable",
+    "y=x\\left\\{x>0\\right\\}\\left\\{x<1\\right\\}": "graphable",
+    "x^{2}+y^{2}=1\\left\\{y>0\\right\\}": "graphable",
+    "y>x\\left\\{x>0\\right\\}": "graphable",
+    "\\left(t,t^{2}\\right)\\left\\{t>0.5\\right\\}": "graphable",
+    "a=1 ;; \\left(1,2\\right)\\left\\{a>0\\right\\}": "point (1, 2)",
+    "y=x\\left\\{x=1\\right\\}": "graphable",
+    "y=x\\left\\{\\left[0,1\\right]<x\\right\\}": "graphable",
+    "r=\\theta\\left\\{\\theta<\\pi\\right\\}": "graphable",
+    "y=x\\left\\{y>0\\right\\}": "graphable",
+    "a=-1 ;; y=x\\left\\{a>0\\right\\}": "graphable",
+    "f\\left(x\\right)=x\\left\\{x>0\\right\\}": "graphable",
+    "y=x\\left\\{x>0:1\\right\\}": "graphable"
+  }
+}

@@ -6,7 +6,8 @@ export type ParseErrorCode =
   | "syntax"
   | "unsupported"
   | "point-arity"
-  | "relation-chain"
+  | "relation-chain" // PR-29: a chain mixing `=` with an inequality, `x=y<3`
+  | "relation-side" // PR-29: a relation operator straight after another, `x=>1`
   | "too-many-nodes"
   | "too-deep"
   | "sim-side" // PR-30: a regression row with nothing on one side of `\sim`
@@ -30,7 +31,7 @@ export interface ParseError {
   detail: string; // English, logs and tests only
   // `unsupported`: the deferred notation a row error names ("Graphing a list of curves");
   // `function-parentheses`, `argument-parentheses`, `log-power` and `name-subscript`: the
-  // built-in's name ("floor")
+  // built-in's name ("floor"); `relation-side`: the operator's symbol (">")
   feature?: string;
 }
 
@@ -39,6 +40,7 @@ const PARSE_ERROR_CODES: ReadonlySet<string> = new Set<ParseErrorCode>([
   "unsupported",
   "point-arity",
   "relation-chain",
+  "relation-side",
   "too-many-nodes",
   "too-deep",
   "sim-side",

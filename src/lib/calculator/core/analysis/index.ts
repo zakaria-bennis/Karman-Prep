@@ -20,6 +20,7 @@ import { classifyRow } from "./classify";
 import { declaredHead, parseRows, userFunctionSet, type ParsedRow } from "./definitions";
 import { listCallProblem } from "./list-calls";
 import {
+  comparisonProblem,
   inferLists,
   listCurveProblem,
   listProblem,
@@ -178,8 +179,8 @@ function errorFreeHeads(rows: readonly ParsedRow[]) {
 
 /**
  * NM-34 to NM-36: a row's first nested list or invalid literal range, as its row error; then
- * PR-31: its first piecewise mixing point and number branches; then FN-23 to FN-29: its first
- * list function call with arguments Desmos refuses.
+ * PR-31: its first piecewise mixing point and number branches, then its first comparison of a
+ * point; then FN-23 to FN-29: its first list function call with arguments Desmos refuses.
  */
 function withListError(row: ParsedRow, typing: ListTyping): ParsedRow {
   if (row.error !== null || row.tree === null) return row;
@@ -187,6 +188,7 @@ function withListError(row: ParsedRow, typing: ListTyping): ParsedRow {
   const problem =
     listProblem(tree, locals, typing) ??
     piecewiseProblem(tree, locals, typing) ??
+    comparisonProblem(tree, locals, typing) ??
     listCallProblem(tree, locals, typing);
   if (problem === null) return row;
   const { code, names, span } = problem;

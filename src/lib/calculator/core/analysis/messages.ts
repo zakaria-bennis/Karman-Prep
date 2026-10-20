@@ -60,16 +60,18 @@ function letter(base: string): string {
  * `name-subscript`, `index-type`, `list-length-free`, `empty-brackets`, `empty-root`,
  * `empty-root-index`, `reducer-arguments`, `first-argument-list`, `argument-type`, `both-lists`,
  * `repeat-count`, `repeat-lengths`, `refused-function`, `colon-side`, `colon-condition`,
- * `piecewise-condition`, `piecewise-part` and `piecewise-types` use the text Desmos gave on
- * 2026-10-19;
- * `repeat-counts` is
- * Desmos's text for a bad count in a list of counts (its bundle's bad-counts string).
+ * `piecewise-condition`, `piecewise-part`, `piecewise-types`, `relation-side`, `comparator-types`
+ * and `double-inequality` use the text Desmos gave on 2026-10-19; `repeat-counts` is Desmos's
+ * text for a bad count in a list of counts (its bundle's bad-counts string), and
+ * `relation-chain`, `chained-equation`, `long-chain` and `double-direction` are its bundle's
+ * comparator chain strings, not yet captured live.
  */
 const MESSAGES: Readonly<Record<RowErrorCode, string>> = {
   syntax: "This can't be read. Check for a missing bracket or operator.",
   unsupported: "This calculator doesn't support that notation.",
   "point-arity": "A point needs exactly two coordinates.",
-  "relation-chain": "A chain of inequalities must point one way and use at most one =.",
+  "relation-chain": "Cannot mix inequalities and equations in a chain of comparisons.",
+  "relation-side": "You need something on both sides of the '{n}' symbol.",
   "too-many-nodes": "This row is too long to evaluate. Split it into smaller definitions.",
   "too-deep": "This row is nested too deeply.",
   "sim-side": "You need something on both sides of the '∼' symbol.",
@@ -121,6 +123,12 @@ const MESSAGES: Readonly<Record<RowErrorCode, string>> = {
   "piecewise-part": "Every part of a piecewise expression must have a condition except the last.",
   "piecewise-types":
     "Cannot use {n} and {k} as the branches in a piecewise. Every branch must have the same type.",
+  "comparator-types": "Cannot compare {n} to {k}.",
+  "chained-equation": "This calculator cannot plot chained equations.",
+  "long-chain": "This calculator cannot plot chains of more than 2 inequalities.",
+  "double-inequality":
+    "We only support solved double inequalities. Try deleting one side of the inequality.",
+  "double-direction": "Double inequalities must both go the same way, e.g. 1 < y < 2.",
 };
 /** RC-2, Phase 1: `unsupported` naming r or θ, whose polar graphs ship in Phase 2. */
 const POLAR_UNSUPPORTED = "{n} is for polar graphs, which aren't available yet.";

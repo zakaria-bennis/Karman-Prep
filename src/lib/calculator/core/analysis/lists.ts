@@ -94,8 +94,8 @@ export function inferLists(
  * NM-30: the shape of `node` where analysis can tell it, else null: numbers and constants, x, y
  * and `locals` are numbers; a point is a point; a list or range holds numbers, or points when
  * every item is one; an index picks from its target's elements; and arithmetic or a built-in on
- * numbers gives a number, or a list of numbers when an operand is one. Points in arithmetic (M4),
- * user calls, relations and undefined names are unknown.
+ * numbers gives a number, or a list of numbers when an operand is one; a point times a number is
+ * a point. Other point arithmetic (M4), user calls, relations and undefined names are unknown.
  */
 function shapeOf(
   node: Node,
@@ -130,12 +130,24 @@ function shapeOf(
       return numeric(node.args.map(of));
     case "piecewise":
       return piecewiseShape(node, of);
+    case "mul":
+      return scaledShape(of(node.left), of(node.right)) ?? numeric([of(node.left), of(node.right)]);
     case "rel":
     case "sim":
       return null;
     default:
       return numeric(childNodes(node).map(of));
   }
+}
+
+/**
+ * PR-32: a point times a number is a point (a restriction on a point, `(1,2)\{a>0\}`), and a
+ * list of either side gives a list of points; null when neither side is a point.
+ */
+function scaledShape(a: Shape | null, b: Shape | null): Shape | null {
+  const [point, other] = pointed(a) ? [a, b] : [b, a];
+  if (!pointed(point) || (other !== "number" && other !== "numbers")) return null;
+  return point === "points" || other === "numbers" ? "points" : "point";
 }
 
 /**
@@ -188,6 +200,32 @@ export function piecewiseProblem(
         names: [SHAPE_NAMES[first], SHAPE_NAMES[other]],
         span: n.span,
       };
+    }
+  }
+  return null;
+}
+
+/**
+ * PR-31, NM-31: the first comparison of a point, or a list of points, with anything whose shape is
+ * known, in a piecewise condition, a filter or a relation row: Desmos's "Cannot compare a point to
+ * a point." (captured 2026-10-19), naming both sides of the first such link, over the relation.
+ * A relation row compares only when both sides are points, so `y=(1,2)` keeps its own errors.
+ */
+export function comparisonProblem(
+  tree: Node,
+  locals: readonly string[],
+  typing: ListTyping
+): ListProblem | null {
+  const pending: Node[] = [tree];
+  for (let n = pending.pop(); n !== undefined; n = pending.pop()) {
+    pending.push(...childNodes(n));
+    if (n.kind !== "rel") continue;
+    const shapes = n.operands.map((operand) => typing.shape(operand, locals));
+    for (let k = 0; k + 1 < shapes.length; k++) {
+      const [a, b] = [shapes[k], shapes[k + 1]];
+      if (a === null || b === null || !(pointed(a) || pointed(b))) continue;
+      if (n === tree && !(pointed(a) && pointed(b))) continue;
+      return { code: "comparator-types", names: [SHAPE_NAMES[a], SHAPE_NAMES[b]], span: n.span };
     }
   }
   return null;

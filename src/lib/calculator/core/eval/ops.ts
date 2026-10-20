@@ -1,8 +1,9 @@
 // Value-level arithmetic (NM-10 to NM-14, NM-18, NM-19; FN-12 to FN-14), plot numbers (NM-21) and
 // relations (NM-22). Two numbers use the real rules; a non-real operand uses the complex
-// functions; a point, list or undefined operand gives UNDEFINED (decision 7). Every result passes
-// through numberValue or complexValue, so a non-finite result is UNDEFINED. Pure TypeScript: no
-// DOM (AR-44).
+// functions; a point times a real number scales it (PR-32: a restriction multiplies by 1 or
+// undefined); any other point, list or undefined operand gives UNDEFINED (decision 7). Every
+// scalar result passes through numberValue or complexValue, so a non-finite result is UNDEFINED.
+// Pure TypeScript: no DOM (AR-44).
 
 import type { RelOp } from "../latex/ast";
 import { factorial } from "../lib/gamma";
@@ -44,8 +45,19 @@ export function subV(a: Value, b: Value): Value {
   return binary(a, b, (x, y) => x - y, csub);
 }
 
+/**
+ * a · b. A point and a real number, in either order, scale the point's coordinates, an undefined
+ * coordinate staying NaN (decision 7): `(1,2)\{a>0\}` is (1, 2) while a > 0 and undefined
+ * otherwise, as Desmos shows it (captured 2026-10-19).
+ */
 export function mulV(a: Value, b: Value): Value {
+  if (a.type === "point" && b.type === "number") return scaled(a.value, b.value);
+  if (a.type === "number" && b.type === "point") return scaled(b.value, a.value);
   return binary(a, b, (x, y) => x * y, cmul);
+}
+
+function scaled([x, y]: readonly [number, number], k: number): Value {
+  return { type: "point", value: [x * k, y * k] };
 }
 
 /** a / b; ÷ 0 is UNDEFINED (NM-12, FN-14) because the quotient is not finite. */

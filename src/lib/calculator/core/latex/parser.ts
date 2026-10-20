@@ -126,13 +126,20 @@ export function parseCondition(state: ParserState): Node {
   return takeRelations(state, parseSum(state));
 }
 
-/** The relation chain after `first`, checked by checkChain; `first` itself without one. */
+/**
+ * The relation chain after `first`, checked by checkChain; `first` itself without one. A relation
+ * operator straight after another is `relation-side` naming the second, as Desmos reads `x=>1`
+ * ("You need something on both sides of the '>' symbol.", captured 2026-10-19).
+ */
 function takeRelations(state: ParserState, first: Node): Node {
   const operands = [first];
   const ops: RelOp[] = [];
   for (let relop = takeRelop(state); relop !== null; relop = takeRelop(state)) {
     checkChain(ops, relop);
     ops.push(relop.op);
+    const next = peek(state);
+    const symbol = relopSymbol(next);
+    if (symbol !== null) fail("relation-side", next.span, "two relation operators", symbol);
     operands.push(parseSum(state));
   }
   if (ops.length === 0) return first;
@@ -249,14 +256,21 @@ function takeRelop(state: ParserState): { op: RelOp; span: SourceSpan } | null {
   return { op: token.ch, span: token.span };
 }
 
+/** The symbol a relation operator token starts with, as Desmos's messages show it, or null. */
+function relopSymbol(token: Token): string | null {
+  if (token.t === "command") return token.name === "le" ? "≤" : token.name === "ge" ? "≥" : null;
+  return token.t === "symbol" && "=<>".includes(token.ch) ? token.ch : null;
+}
+
 /**
- * PR-29 chains (G12): read left to right, the first operator that mixes `=` with another relation,
- * adds a second `=` or reverses the direction is `relation-chain` at its span.
+ * PR-29 chains (G12): read left to right, the first operator that mixes `=` with an inequality is
+ * `relation-chain` at its span, as Desmos refuses to build such a chain anywhere. Chains of `=`
+ * and inequalities pointing both ways parse; analysis refuses to graph them (RC-14).
  */
 function checkChain(ops: readonly RelOp[], relop: { op: RelOp; span: SourceSpan }): void {
   if (ops.length === 0) return;
   const previous = ops[ops.length - 1];
-  if (relop.op === "=" || previous === "=" || relop.op[0] !== previous[0]) {
+  if ((relop.op === "=") !== (previous === "=")) {
     fail("relation-chain", relop.span, `"${relop.op}" cannot follow "${previous}" in a chain`);
   }
 }

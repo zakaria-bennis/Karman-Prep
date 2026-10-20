@@ -158,10 +158,18 @@ These Desmos behaviours are known and recorded but not yet built:
   except where they use notation that has not shipped: derivatives and integrals of a piecewise,
   distributions in a condition (`invNorm`, `normaldist`), recursion with a piecewise base case
   (`p(n)=\{n=0:1,np(n-1)\}`, still "p is defined in terms of itself."), `and` and `or` in a
-  condition (and Desmos's "Ambiguous use of 'and' and 'or'."), `\sum` and `polygon`. A
-  restriction on a point (`(1,2)\{a>0\}`) waits for point arithmetic (M4) and a list condition on
-  a curve (`y=x\{[0,1]<x\}`) for multi-branch graphs (G-22). Each is an expected failure in
-  `desmos-piecewise.reference.test.ts`.
+  condition (and Desmos's "Ambiguous use of 'and' and 'or'."), `\sum` and `polygon`. A list
+  condition on a curve (`y=x\{[0,1]<x\}`) waits for multi-branch graphs (G-22), a restricted
+  parametric (`(t,t^{2})\{t>0.5\}`) for parametric curves, `r=\theta\{\theta<\pi\}` for polar
+  curves and `\{A=A:1,0\}` ("Cannot compare a matrix to a matrix.") for matrices. Each is an
+  expected failure in `desmos-piecewise.reference.test.ts` or `desmos-relations.reference.test.ts`.
+  A point-valued piecewise or restriction (`(1,2)\{a>0\}`) is a point row: a point times a real
+  number scales it, the only point arithmetic shipped before M4. Inferred from Desmos's typed
+  piecewise and not captured live: a scalar condition's pick broadcasts over a list value
+  (`\{1>0:1,[1,2]\}` = [1, 1], `\{1<0:[1,2],[3,4,5]\}` = [3, 4]); a condition comparing points
+  is "Cannot compare a point to a point."; a condition chain may point both ways
+  (`\{0<a>0:5\}`); and the comparator chain errors of PR-29 and RC-14 other than `x<1<2` and the
+  relation operator ones use the bundle's strings.
 
 ### Matched after the 2026-10-19 second review
 

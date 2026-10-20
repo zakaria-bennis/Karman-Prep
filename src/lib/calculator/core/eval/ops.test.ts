@@ -126,3 +126,17 @@ it("NM-19 complex mode keeps every value real mode defines", () => {
   const half = powV(n(-8), n(0.5), { p: 1, q: 2 }, true);
   expect(half.type === "complex" && rel(half.value.im, Math.sqrt(8))).toBe(true);
 });
+
+it("PR-32 a point times a real number scales it in either order; other point products stay undefined", () => {
+  const p = (x: number, y: number) => ({
+    type: "point" as const,
+    value: [x, y] as [number, number],
+  });
+  expect([
+    mulV(p(1, 2), n(1)),
+    mulV(n(2), p(1, 2)),
+    mulV(p(NaN, 2), n(3)),
+    mulV(p(1, 2), UNDEFINED),
+    mulV(p(1, 2), p(3, 4)),
+  ]).toEqual([p(1, 2), p(2, 4), p(NaN, 6), UNDEFINED, UNDEFINED]);
+});
