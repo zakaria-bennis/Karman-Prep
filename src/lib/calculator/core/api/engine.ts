@@ -615,10 +615,11 @@ export class CalculatorEngine {
 
   /** AR-51: analyses on the main thread; a focused or active row that left the list is dropped. */
   private analyze(): void {
-    const sources = this.doc.rows.map(({ id, latex, hidden, type, columns, logMode }) =>
-      type === "table"
-        ? { id, latex, hidden, columns: columns ?? [] }
-        : { id, latex, hidden, logMode: logMode === true }
+    const sources = this.doc.rows.map(
+      ({ id, latex, hidden, type, columns, logMode, regression }) =>
+        type === "table"
+          ? { id, latex, hidden, columns: columns ?? [], ...(regression ? { regression } : {}) }
+          : { id, latex, hidden, logMode: logMode === true }
     );
     this.analysis = analyzeRows(sources, toWireSettings(this.currentSettings));
     this.observers.markDirty("expressionAnalysis");

@@ -45,7 +45,10 @@ export function sentRows(rows: readonly StoredRow[], analysis: AnalysisResult): 
 /** What makes a row's results stale: its latex, a table's columns, a regression's log mode. */
 function rowSignature(row: StoredRow): string {
   if (row.type === "table") {
-    return JSON.stringify((row.columns ?? []).map((c) => [c.latex, c.values, c.hidden]));
+    return JSON.stringify([
+      (row.columns ?? []).map((c) => [c.latex, c.values, c.hidden]),
+      row.regression ?? null,
+    ]);
   }
   return row.logMode === true ? `${row.latex}\u0000log` : row.latex;
 }

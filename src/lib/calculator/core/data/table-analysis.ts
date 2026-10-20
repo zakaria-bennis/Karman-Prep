@@ -12,6 +12,7 @@ import type { ParsedRow } from "../analysis/definitions";
 import type { RowError, RowSource } from "../analysis/index";
 import { displayName, rowErrorMessage } from "../analysis/messages";
 import { collectNameUses, COORDINATE_NAMES } from "../analysis/names";
+import type { TableRegressionSpec } from "./table-regression";
 
 export type ColumnRole = "variable" | "data" | "computed" | "blank" | "error";
 export interface ColumnAnalysis {
@@ -27,6 +28,7 @@ export interface ColumnAnalysis {
 export interface TableAnalysis {
   columns: ColumnAnalysis[];
   rows: number; // data rows
+  regression: TableRegressionSpec | null; // RT-28
 }
 
 interface ParsedCell {
@@ -67,6 +69,12 @@ function parseCell(latex: string, userFunctions: ReadonlySet<string>): ParsedCel
   return { tree: null, error, blank: false };
 }
 
+/** RT-28: the regression a table's source carries, if any. */
+export function regressionOfSource(source: RowSource): TableRegressionSpec | null {
+  const spec = (source as RowSource & { regression?: TableRegressionSpec }).regression;
+  return spec ?? null;
+}
+
 export function parseTable(source: RowSource, userFunctions: ReadonlySet<string>): ParsedTable {
   const columns = source.columns ?? [];
   return {
@@ -86,8 +94,11 @@ const definable = (name: string) => !COORDINATE_NAMES.includes(name);
  * rows (and regressions) define: a later header naming one of those is a computed column (D-10).
  */
 export function columnNames(t: ParsedTable, external: ReadonlySet<string>): (string | null)[] {
+  // RT-26: the table's own residual column is computed from its regression.
+  const residual = regressionOfSource(t.source)?.residual ?? null;
   return t.headers.map((h, j) => {
     if (!isName(h.tree)) return null;
+    if (j > 0 && h.tree.name === residual) return null;
     if (j > 0 && external.has(h.tree.name)) return null;
     return h.tree.name;
   });
@@ -192,5 +203,5 @@ export function analyzeTable(
     return { ...base, role: "computed", name: null, error: null };
   });
   const rows = Math.max(0, ...t.cells.map((c) => c.length));
-  return { columns, rows };
+  return { columns, rows, regression: regressionOfSource(t.source) };
 }

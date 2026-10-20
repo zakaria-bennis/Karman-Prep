@@ -4,6 +4,7 @@
 // every list and row the document holds is frozen.
 
 import type { PixelSize } from "../../plot/viewport";
+import type { TableModel } from "../../regression/table-models";
 import type { LineStyle, PointStyle } from "./types";
 
 /** Undo steps kept; the oldest is dropped first (Decision 6's plan value; no spec ID sets a size). */
@@ -26,6 +27,17 @@ export interface StoredRow {
   readonly type?: "table"; // D-1: absent for an expression row
   readonly columns?: readonly StoredColumn[]; // tables only
   readonly logMode?: boolean; // D-30: a regression row's Log mode checkbox
+  readonly regression?: StoredTableRegression; // RT-28: a table's one regression
+}
+/** RT-28: a table regression; x is always the first column. */
+export interface StoredTableRegression {
+  readonly type: TableModel;
+  readonly y: number; // the y column's index (at least 1)
+  readonly color: string;
+  readonly hidden: boolean;
+  readonly logMode: boolean; // kept where Log Mode is not offered (RT-24c)
+  readonly lineStyle?: LineStyle;
+  readonly residual?: string; // e_k, chosen on the first fit and cleared by a type or column change (RT-25)
 }
 /** D-1: one table column; `values` holds each cell's LaTeX, "" for a blank cell. */
 export interface StoredColumn {
@@ -53,6 +65,7 @@ function freezeRows(rows: RowList): RowList {
   return Object.freeze(
     rows.map((row) => {
       if (row.sliderBounds !== undefined) Object.freeze(row.sliderBounds);
+      if (row.regression !== undefined) Object.freeze(row.regression);
       if (row.columns !== undefined) {
         for (const column of row.columns) Object.freeze(Object.freeze(column).values);
         Object.freeze(row.columns);
@@ -85,11 +98,26 @@ function sameColumns(a?: readonly StoredColumn[], b?: readonly StoredColumn[]): 
   });
 }
 
+function sameRegression(a?: StoredTableRegression, b?: StoredTableRegression): boolean {
+  if (a === b) return true;
+  if (a === undefined || b === undefined) return false;
+  return (
+    a.type === b.type &&
+    a.y === b.y &&
+    a.color === b.color &&
+    a.hidden === b.hidden &&
+    a.logMode === b.logMode &&
+    a.lineStyle === b.lineStyle &&
+    a.residual === b.residual
+  );
+}
+
 function sameRow(a: StoredRow, b: StoredRow): boolean {
   if (a === b) return true;
   if (a.type !== b.type || a.logMode !== b.logMode || !sameColumns(a.columns, b.columns)) {
     return false;
   }
+  if (!sameRegression(a.regression, b.regression)) return false;
   const sa = a.sliderBounds,
     sb = b.sliderBounds;
   return (

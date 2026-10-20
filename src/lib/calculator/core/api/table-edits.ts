@@ -141,7 +141,15 @@ export function tableFromRow(
 export function withoutColumn(row: StoredRow, column: number): StoredRow {
   const columns = row.columns ?? [];
   if (column < 1 || column >= columns.length) return row;
-  return { ...row, columns: normalizeColumns(columns.filter((_, j) => j !== column)) };
+  const next: StoredRow = {
+    ...row,
+    columns: normalizeColumns(columns.filter((_, j) => j !== column)),
+  };
+  // RT-28: the regression follows its y column, and goes with it.
+  const r = row.regression;
+  if (r !== undefined && r.y === column) delete (next as { regression?: unknown }).regression;
+  else if (r !== undefined && r.y > column) return { ...next, regression: { ...r, y: r.y - 1 } };
+  return next;
 }
 
 /** D-12: one column's style changed. */

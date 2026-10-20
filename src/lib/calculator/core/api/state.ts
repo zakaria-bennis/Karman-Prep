@@ -5,7 +5,7 @@
 import type { PixelSize, Viewport, ViewSpec } from "../../plot/viewport";
 import { nextSlot } from "../../theme/roles";
 import type { MainToWorker, WireRow, WireSettings } from "../../worker/protocol";
-import type { StoredRow } from "./document";
+import type { StoredRow, StoredTableRegression } from "./document";
 import {
   DEFAULT_SETTINGS,
   type AxisSettings,
@@ -14,6 +14,7 @@ import {
   type CalculatorState,
   type ExpressionState,
   type SettingsUpdate,
+  type TableRegressionState,
 } from "./types";
 
 type Mutable<T> = { -readonly [K in keyof T]: T[K] };
@@ -35,6 +36,9 @@ export function toWireRows(rows: readonly StoredRow[]): WireRow[] {
     hidden: row.hidden,
     sliderBounds: row.sliderBounds ? { ...row.sliderBounds } : null,
     logMode: row.logMode === true,
+    ...(row.type === "table" && row.regression !== undefined
+      ? { regression: { ...row.regression } }
+      : {}),
   }));
 }
 
@@ -85,11 +89,27 @@ function mergeRow(base: StoredRow, state: ExpressionState): StoredRow {
       hidden: c.hidden ?? false,
     }));
   }
+  if (state.regression !== undefined)
+    merged.regression = fromRegressionState(state.regression, base);
   if (merged.type === "table") {
     merged.latex = "";
     merged.columns ??= [];
-  }
+  } else delete merged.regression;
   return merged;
+}
+
+/** RT-28: a stored table regression from its public state. */
+function fromRegressionState(state: TableRegressionState, base: StoredRow): StoredTableRegression {
+  const out: Mutable<StoredTableRegression> = {
+    type: state.type,
+    y: state.columns.y,
+    color: state.color ?? base.regression?.color ?? base.color,
+    hidden: state.hidden ?? false,
+    logMode: state.isLogMode ?? false,
+  };
+  if (state.lineStyle !== undefined) out.lineStyle = state.lineStyle;
+  if (state.residualVariable !== undefined) out.residual = state.residualVariable;
+  return out;
 }
 
 /** A new row at `index`: latex "", colour nextSlot(index) (TH-10), shown. */
@@ -142,6 +162,18 @@ export function toExpressionState(row: StoredRow): ExpressionState {
       color: c.color,
       hidden: c.hidden,
     }));
+  }
+  if (row.type === "table" && row.regression !== undefined) {
+    const r = row.regression;
+    state.regression = {
+      type: r.type,
+      columns: { x: 0, y: r.y },
+      color: r.color,
+      hidden: r.hidden,
+      isLogMode: r.logMode,
+    };
+    if (r.lineStyle !== undefined) state.regression.lineStyle = r.lineStyle;
+    if (r.residual !== undefined) state.regression.residualVariable = r.residual;
   }
   if (row.lineStyle !== undefined) state.lineStyle = row.lineStyle;
   if (row.pointStyle !== undefined) state.pointStyle = row.pointStyle;

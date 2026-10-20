@@ -5,6 +5,7 @@
 // Package-internal: the engine calls these before it changes anything.
 
 import type { Viewport } from "../../plot/viewport";
+import { TABLE_MODELS } from "../../regression/table-models";
 import { CURVE_SLOTS } from "../../theme/skins";
 import { MAX_ROW_CHARACTERS, MAX_ROWS } from "../latex";
 import { KarmanCalculatorError } from "./errors";
@@ -16,6 +17,7 @@ import type {
   CalculatorState,
   ExpressionState,
   SettingsUpdate,
+  TableRegressionState,
 } from "./types";
 
 type Check<T> = (value: unknown, method: string, field: string) => T;
@@ -233,6 +235,7 @@ const EXPRESSION_KEYS = [
   "pointStyle",
   "sliderBounds",
   "columns",
+  "regression",
 ] as const;
 // API-2 and OI-23: other item types are rejected as unsupported; tables ship with D-1 (parity)
 const UNSUPPORTED_TYPES: readonly string[] = ["note", "folder", "image", "text"];
@@ -303,6 +306,54 @@ const columns: Check<NonNullable<ExpressionState["columns"]>> = (value, method, 
   });
 };
 
+const REGRESSION_KEYS = [
+  "type",
+  "columns",
+  "color",
+  "hidden",
+  "lineStyle",
+  "isLogMode",
+  "residualVariable",
+] as const;
+
+/** RT-28: a table regression; x is the first column, y a later one. */
+const regression: Check<TableRegressionState> = (value, method, field) => {
+  const fields = strictObject(value, method, field, REGRESSION_KEYS);
+  const type = oneOf(TABLE_MODELS)(own(fields, "type"), method, `${field}.type`);
+  const columnFields = strictObject(own(fields, "columns"), method, `${field}.columns`, ["x", "y"]);
+  const index = (key: "x" | "y") => {
+    const v = own(columnFields, key);
+    return typeof v === "number" && Number.isInteger(v) && v >= 0 && v < MAX_TABLE_COLUMNS
+      ? v
+      : invalid(method, `${field}.columns.${key} must be a column index`);
+  };
+  const x = index("x"),
+    y = index("y");
+  if (x !== 0 || y < 1) invalid(method, `${field}.columns needs x 0 and a later y column`);
+  const out: TableRegressionState = { type, columns: { x, y } };
+  if (own(fields, "color") !== undefined)
+    out.color = colour(own(fields, "color"), method, `${field}.color`);
+  if (own(fields, "hidden") !== undefined)
+    out.hidden = bool(own(fields, "hidden"), method, `${field}.hidden`);
+  if (own(fields, "isLogMode") !== undefined) {
+    out.isLogMode = bool(own(fields, "isLogMode"), method, `${field}.isLogMode`);
+  }
+  if (own(fields, "lineStyle") !== undefined) {
+    out.lineStyle = oneOf(["solid", "dashed", "dotted"] as const)(
+      own(fields, "lineStyle"),
+      method,
+      `${field}.lineStyle`
+    );
+  }
+  if (own(fields, "residualVariable") !== undefined) {
+    const name = text(own(fields, "residualVariable"), method, `${field}.residualVariable`);
+    if (!/^e_\{?[0-9a-z]+\}?$/i.test(name))
+      invalid(method, `${field}.residualVariable must be like e_{1}`);
+    out.residualVariable = name;
+  }
+  return out;
+};
+
 /**
  * One expression state named `field`; `prefix` starts each field's name in messages ("" or
  * "expressions[i]."). Omitted fields stay omitted.
@@ -340,6 +391,10 @@ function expressionFields(
   if (value("columns") !== undefined) {
     if (out.type !== "table") invalid(method, `${prefix}columns needs type "table"`);
     out.columns = check("columns", columns);
+  }
+  if (value("regression") !== undefined) {
+    if (out.type !== "table") invalid(method, `${prefix}regression needs type "table"`);
+    out.regression = check("regression", regression);
   }
   return out;
 }

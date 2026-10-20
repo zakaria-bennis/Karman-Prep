@@ -21,7 +21,7 @@ import { parseLatex, type ParseResult } from "../core/latex/index";
 import { buildCompileScope, plotInputFor } from "../plot/from-analysis";
 import { geometryTransferables } from "../plot/geometry";
 import { plotRow } from "../plot/index";
-import { plotTable } from "../plot/table";
+import { plotTable, tableRegressionCurve } from "../plot/table";
 import { findRowPois } from "../poi/index";
 import type { ViewSpec } from "../plot/viewport";
 import type { RegressionOutcome } from "../core/data/evaluate-regression";
@@ -102,8 +102,10 @@ export function runValuesPass(
   ctx: PassContext,
   fns: ComputeFns = DEFAULT_COMPUTE
 ): ValuesOutcome {
-  const sources = rows.map(({ id, latex, hidden, columns, logMode }) =>
-    columns === null ? { id, latex, hidden, logMode } : { id, latex, hidden, columns }
+  const sources = rows.map(({ id, latex, hidden, columns, logMode, regression }) =>
+    columns === null
+      ? { id, latex, hidden, logMode }
+      : { id, latex, hidden, columns, ...(regression ? { regression } : {}) }
   );
   const full = fns.analyzeRows(sources, settings),
     overrun = new Set<string>();
@@ -174,6 +176,25 @@ export function runPlot(
     const result = outcome.tables.get(rowId);
     if (row.table === undefined || result === undefined) return;
     const geometry = plotTable(rowId, row.table, result); // D-11
+    const curve = tableRegressionCurve(row.table, result);
+    if (curve !== null) {
+      try {
+        const deadline = createWorkDeadline({
+          clock: ctx.clock,
+          now: ctx.now,
+          limitMs: null,
+          rowId,
+        });
+        const plotted = fns.plotRow(
+          { rowId, kind: "explicit", independent: "x", f: curve },
+          view,
+          deadline
+        );
+        if (plotted.kind === "curve") geometry.regression = plotted;
+      } catch (thrown) {
+        postFault(ctx, thrown);
+      }
+    }
     ctx.post({ v: 1, type: "plot", generation, rowId, geometry }, geometryTransferables(geometry));
     return;
   }
