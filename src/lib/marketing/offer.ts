@@ -116,9 +116,29 @@ export const MARCH_PROGRAM = {
   ] satisfies ProgramInclusion[],
 } as const;
 
+/**
+ * Later cohorts. SAT dates are official (College Board 2026-27 calendar,
+ * checked 2026-10-20). Start and close dates follow the March rhythm: classes
+ * start on a Monday 61 days before the test, applications close the Wednesday
+ * before. CONFIRM: start and close dates for May and June.
+ */
 export const NEXT_PROGRAMS = [
-  { testDateLabel: "Saturday, May 1, 2027", testDateShort: "May 1" },
-  { testDateLabel: "Saturday, June 5, 2027", testDateShort: "June 5" },
+  {
+    testDate: "2027-05-01",
+    testDateLabel: "Saturday, May 1, 2027",
+    testDateShort: "May 1",
+    startDate: "2027-03-01",
+    startLabel: "Monday, March 1",
+    enrollmentClosesLabel: "Wednesday, February 24",
+  },
+  {
+    testDate: "2027-06-05",
+    testDateLabel: "Saturday, June 5, 2027",
+    testDateShort: "June 5",
+    startDate: "2027-04-05",
+    startLabel: "Monday, April 5",
+    enrollmentClosesLabel: "Wednesday, March 31",
+  },
 ] as const;
 export const NEXT_PROGRAMS_ENROLLMENT_LABEL = "Enrollment opens in February.";
 
