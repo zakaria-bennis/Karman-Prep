@@ -62,6 +62,12 @@ The ecosystem is sold as separate paths, not a ladder.
 
 - **Private is a separate path** (founder), for students who want 1:1 instead
   of a group. It is not an add-on and not a higher tier of the program.
+- **Admission by application** (founder, 2026-10-20). The SAT Program's call
+  to action is "Apply for a seat" (`/program/apply`): a three-minute
+  application, a 20-minute call with Zakaria, then the refundable $100 deposit
+  holds the seat. The program page states who gets a seat and who is turned
+  away. Exclusivity comes only from true facts: six seats, the application,
+  the intake rules. No countdowns, no invented scarcity.
 - **Free practice test:** available any time, taken in the browser, timed, scored
   automatically with an estimated range and a skill breakdown. A 20-minute
   results call is optional and capped through Cal.com. The monthly live

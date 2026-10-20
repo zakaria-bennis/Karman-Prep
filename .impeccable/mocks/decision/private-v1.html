@@ -1,0 +1,546 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Private SAT tutoring with Zakaria Bennis | Karman Prep</title>
+<meta name="description" content="One-on-one SAT tutoring with Zakaria Bennis every week, planned back from your test date. Private 10 for $1,450, Private 20 for $2,900. Start with a free strategy call.">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>
+  (function () {
+    var t = null;
+    try { t = localStorage.getItem("karman-theme"); } catch (e) {}
+    if (t === "light" || t === "dark") document.documentElement.setAttribute("data-theme", t);
+  })();
+</script>
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #f1f1ee; --bg-2: #e8e6df; --bg-3: #dcd9cf; --ink: #15202e; --ink-2: #3f4856;
+    --paper: #f1f1ee;
+    --program: #1e5b4b; --program-soft: #2a6f5d; --private: #7b2d35; --private-soft: #8e3a43;
+    --free: #85570c; --free-soft: #966516; --night: #15202e; --night-2: #1f2c3d;
+    --right: #1e5b4b; --right-tint: #dbe8e0; --wrong: #a8432f; --wrong-tint: #f4e0da;
+    --serif: "Source Serif 4", Georgia, serif; --sans: "Hanken Grotesk", system-ui, sans-serif;
+    --m: 32px;
+    --fs-s: 15px; --fs-b: 17px; --fs-l: 20px; --fs-h3: 30px; --fs-h2: clamp(36px, 4vw, 58px); --fs-xl: clamp(40px, 4.6vw, 72px);
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #11161d; --bg-2: #18202a; --bg-3: #212b37; --ink: #ecebe6; --ink-2: #c3c9d1;
+    --right: #7cc4a5; --right-tint: #1c3029; --wrong: #ee9a86; --wrong-tint: #3a2420;
+    --night: #0b0f14; --night-2: #151c26;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --bg: #11161d; --bg-2: #18202a; --bg-3: #212b37; --ink: #ecebe6; --ink-2: #c3c9d1;
+      --right: #7cc4a5; --right-tint: #1c3029; --wrong: #ee9a86; --wrong-tint: #3a2420;
+      --night: #0b0f14; --night-2: #151c26;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-size: var(--fs-b); line-height: 1.55; -webkit-font-smoothing: antialiased; }
+  a { color: inherit; }
+  .wrap { width: calc(100% - var(--m) * 2); max-width: 1376px; margin: 0 auto; }
+  h1, h2, h3 { font-family: var(--serif); font-weight: 500; letter-spacing: -.02em; }
+  h2 { font-size: var(--fs-h2); line-height: 1.04; }
+  .btn { display: inline-flex; align-items: center; justify-content: center; min-height: 56px; padding: 0 26px; font-weight: 600; font-size: var(--fs-b); text-decoration: none; border-radius: 3px; transition: transform .15s ease, background-color .2s ease; }
+  .btn:active { transform: translateY(1px); }
+  .btn:focus-visible, a:focus-visible, button:focus-visible, summary:focus-visible { outline: 3px solid #e2b867; outline-offset: 3px; }
+  .on-dark { color: var(--paper); }
+  .btn-paper { background: var(--paper); color: #15202e; }
+  .btn-paper:hover { background: #e8e8e4; }
+  .btn-ink { background: var(--ink); color: var(--bg); }
+  .field { position: relative; }
+  @media (prefers-reduced-motion: no-preference) {
+    .js .rise { opacity: 0; transform: translateY(24px); transition: opacity .7s ease, transform .7s cubic-bezier(.2,.7,.2,1); }
+    .js .rise.in { opacity: 1; transform: none; }
+  }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+  /* navigation: wordmark, grouped links, one action */
+  header.top { position: absolute; top: 0; left: 0; right: 0; z-index: 20; color: var(--paper); }
+  header.top .wrap { display: flex; align-items: center; height: 88px; gap: 36px; }
+  .mark { font-family: var(--serif); font-size: var(--fs-h3); font-weight: 600; text-decoration: none; white-space: nowrap; }
+  .menu { display: flex; gap: 6px; list-style: none; font-size: var(--fs-b); font-weight: 500; }
+  .menu > li { position: relative; }
+  .menu > li > a, .menu > li > button { display: block; padding: 10px 12px; text-decoration: none; background: none; border: 0; color: inherit; font: inherit; cursor: pointer; }
+  .menu > li > button::after { content: ""; display: inline-block; width: 7px; height: 7px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: translateY(-3px) rotate(45deg); margin-left: 9px; }
+  .sub { position: absolute; top: 100%; left: 0; min-width: 260px; background: var(--bg); color: var(--ink); padding: 10px; border-radius: 4px; list-style: none; display: none; }
+  .menu > li:hover .sub, .menu > li:focus-within .sub { display: block; animation: drop .18s ease both; }
+  @keyframes drop { from { opacity: 0; transform: translateY(6px); } }
+  .sub a { display: block; padding: 11px 14px; text-decoration: none; border-radius: 3px; }
+  .sub a:hover { background: var(--bg-2); }
+  .sub a span { display: block; font-size: var(--fs-s); color: var(--ink-2); }
+  header .right { margin-left: auto; display: flex; align-items: center; gap: 14px; font-size: var(--fs-b); font-weight: 500; }
+  header .right a { text-decoration: none; white-space: nowrap; }
+  .theme { font: inherit; font-size: var(--fs-s); color: inherit; background: transparent; border: 1.5px solid rgba(245,242,235,.55); border-radius: 3px; padding: 9px 14px; cursor: pointer; white-space: nowrap; }
+  .burger { display: none; }
+
+  /* hero: the full-screen film */
+  .hero { height: 100svh; min-height: 680px; max-height: 1000px; overflow: hidden; background: #0e141c; color: var(--paper); }
+  .hero video, .hero .poster { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: sepia(.3) saturate(.8); }
+  .hero .shade { /* taste-skill-ignore: neutral scrim over the hero film */ position: absolute; inset: 0; background: linear-gradient(90deg, rgba(14,20,28,.86) 0%, rgba(14,20,28,.62) 52%, rgba(14,20,28,.28) 100%); }
+  .hero .inner { position: relative; height: 100%; display: flex; flex-direction: column; justify-content: center; padding-top: 40px; }
+  .hero h1 { font-size: clamp(40px, 3.9vw, 58px); line-height: 1.05; max-width: 40ch; }
+  .hero .sub-line { font-size: var(--fs-l); color: #e6e9ec; margin-top: 36px; }
+  .hero .btn { margin-top: 28px; align-self: flex-start; }
+  .stats { position: absolute; left: 0; right: 0; bottom: 0; background: rgba(14,20,28,.55); }
+  .stats .wrap { display: flex; gap: 64px; align-items: baseline; padding: 26px 0; }
+  .stats b { font-family: var(--serif); font-weight: 500; font-size: var(--fs-h3); margin-right: 10px; }
+  .stats span { font-size: var(--fs-b); color: #e3e6e9; }
+
+  /* chapter: the research and the live question */
+  .research { padding: 112px 0; background: var(--bg); }
+  .research .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 72px; align-items: center; }
+  .research .lead { font-size: var(--fs-l); margin-top: 26px; max-width: 34ch; }
+  .research .cite { font-size: var(--fs-s); color: var(--ink-2); margin-top: 18px; }
+  .research .cells { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 44px; max-width: 520px; }
+  .cell { display: flex; align-items: center; justify-content: center; min-height: 64px; text-decoration: none; font-weight: 600; border-radius: 3px; padding: 0 16px; text-align: center; }
+  .cell-ink { background: var(--ink); color: var(--bg); }
+  .cell-tone { background: var(--bg-3); color: var(--ink); }
+  .cell:hover { filter: brightness(1.08); }
+
+  /* the question: a real piece of the product */
+  .q { background: var(--bg-2); border-radius: 4px; padding: 34px 36px 32px; }
+  .q .meta { display: flex; justify-content: space-between; gap: 16px; font-size: var(--fs-s); color: var(--ink-2); }
+  .q .meta b { color: var(--ink); font-weight: 600; }
+  .q .passage { font-family: var(--serif); font-size: var(--fs-b); line-height: 1.6; margin: 20px 0 14px; }
+  .q .ask { font-weight: 600; font-size: var(--fs-b); margin-bottom: 14px; }
+  .choice { display: grid; grid-template-columns: 32px 1fr auto; align-items: center; gap: 12px; width: 100%; text-align: left; padding: 13px 14px; margin-top: 8px; background: var(--bg); border: 1.5px solid transparent; border-radius: 3px; font: inherit; font-size: var(--fs-b); color: var(--ink); cursor: pointer; transition: border-color .15s ease, background-color .15s ease; }
+  .choice:hover:not([disabled]) { border-color: var(--ink-2); }
+  .choice .l { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-size: var(--fs-s); font-weight: 700; background: var(--bg-3); }
+  .choice em { font-style: normal; font-size: var(--fs-s); font-weight: 700; }
+  .choice[disabled] { cursor: default; }
+  .choice.is-wrong { border-color: var(--wrong); background: var(--wrong-tint); }
+  .choice.is-wrong .l { background: var(--wrong); color: var(--bg); }
+  .choice.is-wrong em { color: var(--wrong); }
+  .choice.is-right { border-color: var(--right); background: var(--right-tint); }
+  .choice.is-right .l { background: var(--right); color: var(--bg); }
+  .choice.is-right em { color: var(--right); }
+  .after { display: none; margin-top: 18px; }
+  .after.show { display: block; animation: fadeup .4s ease both; }
+  @keyframes fadeup { from { opacity: 0; transform: translateY(8px); } }
+  .after p { font-size: var(--fs-b); }
+  .next { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+  .next div { background: var(--bg-3); border-radius: 3px; padding: 14px 16px; font-size: var(--fs-s); }
+  .next div b { display: block; font-size: var(--fs-b); margin-bottom: 2px; }
+
+  /* chapter: the ecosystem, drawn as a moving wire mesh */
+  .eco { background: var(--night); color: var(--paper); padding: 112px 0; }
+  .eco .grid { display: grid; grid-template-columns: 5fr 7fr; gap: 56px; align-items: center; margin-top: 48px; }
+  .eco h2 { max-width: 28ch; }
+  .eco .lead { font-size: var(--fs-l); color: #d8dde2; margin-top: 22px; max-width: 36ch; }
+  .rows { list-style: none; margin-top: 34px; display: grid; gap: 4px; }
+  .rows button { display: grid; grid-template-columns: 1fr auto; gap: 16px; width: 100%; text-align: left; background: transparent; color: var(--paper); border: 0; border-radius: 3px; padding: 12px 14px; font: inherit; font-size: var(--fs-b); cursor: pointer; transition: background-color .24s ease; }
+  .rows button span { color: #b9c1ca; font-size: var(--fs-s); }
+  .rows button.active, .rows button:hover { background: var(--night-2); }
+  .rows button.active { color: #9fd8bf; }
+  .stage { position: relative; aspect-ratio: 1 / 1; max-height: 680px; }
+  .stage canvas { width: 100%; height: 100%; display: block; }
+  .eco .btn { margin-top: 30px; }
+
+  /* chapter: the teacher, an inset panel */
+  .teacher { padding: 20px; background: var(--bg); }
+  .teacher .panel { background: var(--bg-2); border-radius: 4px; display: grid; grid-template-columns: 1fr 1fr; gap: 64px; padding: 64px 72px; align-items: center; }
+  .portrait { aspect-ratio: 4 / 5; max-width: 380px; width: 100%; background: var(--bg-3); border-radius: 220px 220px 4px 4px; display: grid; place-items: center; text-align: center; color: var(--ink-2); font-size: var(--fs-b); padding: 40px; }
+  .teacher .lead { font-size: var(--fs-l); margin-top: 24px; max-width: 36ch; }
+  .teacher .facts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 34px; max-width: 520px; }
+  .teacher .facts div { background: var(--bg); border-radius: 3px; padding: 18px 20px; }
+  .teacher .facts b { font-family: var(--serif); font-weight: 500; font-size: var(--fs-h3); display: block; line-height: 1.1; }
+  .teacher .facts span { font-size: var(--fs-b); color: var(--ink-2); }
+  .teacher .btn { margin-top: 32px; }
+
+  /* chapters: the two paths, each in its own colour */
+  .paths { display: grid; grid-template-columns: 1fr 1fr; margin-top: 20px; }
+  .path { min-height: 60svh; padding: 88px 64px 56px; display: flex; flex-direction: column; color: var(--paper); }
+  .path.program { background: var(--program); }
+  .path.private { background: var(--private); }
+  .path .name { font-size: var(--fs-b); font-weight: 600; color: #f5f2eb; opacity: .92; }
+  .path h2 { max-width: 13ch; }
+  .path .big { font-family: var(--serif); font-size: var(--fs-h3); line-height: 1.2; margin-top: 18px; color: #f5f2eb; }
+  .path p { font-size: var(--fs-l); margin-top: 22px; max-width: 34ch; color: #f1f1ee; }
+  .path .bottom { margin-top: auto; padding-top: 48px; }
+  .path .btn { background: var(--paper); color: #15202e; }
+
+  /* chapter: free start, in the free colour */
+  .free { background: var(--free); color: var(--paper); padding: 96px 0; }
+  .free .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 72px; align-items: center; }
+  .free .photo { order: -1; aspect-ratio: 4 / 3; background: center/cover no-repeat url('https://images.unsplash.com/photo-1598981457915-aea220950616?w=1200&q=75&auto=format'); border-radius: 4px; }
+  .free .lead { font-size: var(--fs-l); margin-top: 24px; max-width: 34ch; }
+  .free .btn { margin-top: 34px; }
+  .free .also { margin-top: 28px; font-size: var(--fs-b); }
+  .free .also a { font-weight: 600; }
+
+  /* questions: filled tiles */
+  .faq { padding: 112px 0; background: var(--bg); }
+  .faq .grid { display: grid; grid-template-columns: 4fr 8fr; gap: 56px; align-items: start; }
+  .faq .side { position: sticky; top: 100px; }
+  .faq .all { display: inline-block; margin-top: 22px; font-weight: 600; font-size: var(--fs-b); }
+  details { background: var(--bg-2); border-radius: 3px; margin-bottom: 8px; transition: background-color .2s ease; }
+  details[open] { background: var(--program); color: var(--paper); }
+  summary { list-style: none; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 20px; min-height: 76px; padding: 18px 24px; font-size: var(--fs-l); font-weight: 500; }
+  summary::-webkit-details-marker { display: none; }
+  summary i { position: relative; width: 16px; height: 16px; flex: none; }
+  summary i::before, summary i::after { content: ""; position: absolute; left: 0; top: 6.5px; width: 16px; height: 3px; background: currentColor; transition: transform .2s ease; }
+  summary i::after { transform: rotate(90deg); }
+  details[open] summary i::after { transform: rotate(0deg); }
+  details p { padding: 0 24px 24px; font-size: var(--fs-b); max-width: 58ch; }
+  details[open] p a { color: var(--paper); }
+
+  /* the close, inverted */
+  .close { background: var(--ink); color: var(--bg); min-height: 70svh; padding: 120px 0 56px; display: flex; }
+  .close .wrap { display: flex; flex-direction: column; }
+  .close h2 { font-size: var(--fs-xl); line-height: 1; max-width: 22ch; }
+  .close .base { margin-top: auto; padding-top: 72px; display: flex; justify-content: space-between; align-items: flex-end; gap: 32px; }
+  .close .base p { font-size: var(--fs-l); max-width: 40ch; }
+  .close .btn { background: var(--bg); color: var(--ink); }
+
+  /* footer: tiles */
+  footer { background: var(--bg); padding: 10px; }
+  .tiles { display: grid; grid-template-columns: repeat(12, 1fr); gap: 8px; }
+  .tile { background: var(--bg-2); border-radius: 3px; padding: 26px; min-height: 220px; display: flex; flex-direction: column; }
+  .t1 { grid-column: span 4; }
+  .t2, .t3, .t4 { grid-column: span 2; }
+  .t5 { grid-column: span 2; }
+  .tile h4 { font-size: var(--fs-b); font-weight: 700; margin-bottom: 10px; }
+  .tile a { text-decoration: none; display: block; padding: 4px 0; font-size: var(--fs-b); }
+  .tile a:hover { text-decoration: underline; }
+  .t1 p { font-size: var(--fs-l); font-family: var(--serif); line-height: 1.3; }
+  .t1 small { margin-top: auto; font-size: var(--fs-s); color: var(--ink-2); line-height: 1.5; }
+  .word { grid-column: span 8; background: var(--night); color: var(--paper); min-height: 300px; display: grid; place-items: center; font-family: var(--serif); font-size: clamp(56px, 9vw, 150px); letter-spacing: -.03em; border-radius: 3px; }
+  .go { grid-column: span 4; background: var(--program); color: var(--paper); min-height: 300px; border-radius: 3px; padding: 28px; text-decoration: none; display: flex; flex-direction: column; justify-content: space-between; font-family: var(--serif); font-size: var(--fs-h3); line-height: 1.15; }
+  .go svg { align-self: flex-end; }
+  .go:hover { background: var(--program-soft); }
+
+  @media (max-width: 980px) {
+    :root { --m: 16px; }
+    .menu, header .right .signin { display: none; }
+    .burger { display: inline-block; font: inherit; font-size: var(--fs-s); color: inherit; background: transparent; border: 1.5px solid rgba(245,242,235,.55); border-radius: 3px; padding: 9px 14px; }
+    header.top .wrap { height: 68px; gap: 12px; }
+    .mark { font-size: var(--fs-l); }
+    .theme { padding: 9px 10px; font-size: var(--fs-s); }
+    .hero { height: auto; min-height: 0; max-height: none; }
+    .hero .inner { padding: 132px 0 40px; }
+    .hero h1 { font-size: 32px; }
+    h2 { font-size: 30px; }
+    .close h2 { font-size: 32px; }
+    .hero .sub-line { font-size: var(--fs-b); margin-top: 24px; }
+    .hero .btn { align-self: stretch; }
+    .stats { position: relative; }
+    .stats .wrap { flex-direction: column; gap: 10px; padding: 22px 0; }
+    .stats b { font-size: var(--fs-h3); }
+    .research, .eco, .faq { padding: 80px 0; }
+    .research .grid, .eco .grid, .free .grid, .faq .grid { grid-template-columns: 1fr; gap: 40px; }
+    .q { padding: 22px 18px; }
+    .q .meta { flex-direction: column; gap: 2px; }
+    .next { grid-template-columns: 1fr; }
+    .stage { max-width: 480px; width: 100%; margin: 0 auto; }
+    .teacher { padding: 10px; }
+    .teacher .panel { grid-template-columns: 1fr; padding: 48px 22px; gap: 36px; }
+    .portrait { order: 2; margin: 0 auto; }
+    .paths { grid-template-columns: 1fr; margin-top: 10px; }
+    .path { min-height: 0; padding: 72px 22px 40px; }
+    .path .btn { width: 100%; }
+    .free { padding: 80px 0; }
+    .free .photo { order: 0; }
+    .faq .side { position: static; }
+    .close { min-height: 70svh; padding: 80px 0 32px; }
+    .close .base { flex-direction: column; align-items: stretch; }
+    .close .btn { width: 100%; }
+    .tiles { grid-template-columns: 1fr 1fr; gap: 6px; }
+    .word { grid-column: 1 / -1; min-height: 160px; }
+    .go { grid-column: 1 / -1; min-height: 180px; }
+    .t1 { grid-column: 1 / -1; }
+    .t2, .t3, .t4, .t5 { grid-column: span 1; min-height: 0; }
+  }
+
+  .ph { background: var(--private); color: var(--paper); padding: 168px 0 112px; }
+  .ph .grid { display: grid; grid-template-columns: 6fr 5fr; gap: 72px; align-items: center; }
+  .ph h1 { font-size: clamp(56px, 7vw, 112px); line-height: .95; }
+  .ph .lead { font-size: var(--fs-l); margin-top: 32px; max-width: 34ch; color: #f1f1ee; }
+  .ph .note { font-size: var(--fs-b); margin-top: 14px; color: #f1f1ee; }
+  .ph .btn { margin-top: 34px; }
+  .planner { background: #652530; border-radius: 4px; padding: 30px; }
+  .planner h2 { font-size: var(--fs-h3); }
+  .planner .lbl { font-size: var(--fs-s); color: #ecd5d7; margin-top: 20px; }
+  .seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 8px; }
+  .seg.two { grid-template-columns: 1fr 1fr; }
+  .seg button { font: inherit; font-size: var(--fs-b); font-weight: 600; color: var(--paper); background: #561f28; border: 0; border-radius: 3px; padding: 14px 8px; cursor: pointer; transition: background-color .2s ease; }
+  .seg button[aria-pressed="true"] { background: var(--paper); color: #15202e; }
+  .seg button:hover:not([aria-pressed="true"]) { background: #4b1b23; }
+  .plan-out { margin-top: 22px; background: #561f28; border-radius: 3px; padding: 18px 20px; min-height: 104px; }
+  .plan-out b { display: block; font-size: var(--fs-l); font-weight: 600; }
+  .plan-out span { display: block; font-size: var(--fs-b); color: #ecd5d7; margin-top: 4px; }
+
+  .sess { padding: 128px 0; }
+  .sess .grid { display: grid; grid-template-columns: 6fr 6fr; gap: 64px; align-items: center; }
+  .sess .lead { font-size: var(--fs-l); margin-top: 22px; max-width: 40ch; }
+  .film { aspect-ratio: 16 / 10; border-radius: 4px; overflow: hidden; background: var(--bg-2); margin-top: 36px; }
+  .film video { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .snote { background: var(--bg-2); border-radius: 4px; padding: 34px; }
+  .snote .top { display: flex; justify-content: space-between; gap: 16px; font-size: var(--fs-s); color: var(--ink-2); }
+  .snote .top b { color: var(--ink); font-size: var(--fs-b); }
+  .snote dl { display: grid; grid-template-columns: auto 1fr; gap: 16px 24px; margin-top: 24px; font-size: var(--fs-b); }
+  .snote dt { color: var(--ink-2); }
+  .snote dd { font-weight: 600; }
+  .snote .msg { margin-top: 24px; background: var(--bg); border-radius: 3px; padding: 18px 20px; font-family: var(--serif); font-size: var(--fs-l); line-height: 1.45; }
+
+  .packs { background: var(--bg-2); padding: 128px 0; }
+  .packs .two { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 48px; }
+  .pack { background: var(--private); color: var(--paper); border-radius: 4px; padding: 40px; }
+  .pack.p2 { background: #5e222a; }
+  .pack h3 { font-size: var(--fs-h3); }
+  .pack .amt { font-family: var(--serif); font-size: clamp(56px, 6vw, 96px); line-height: 1; margin-top: 20px; }
+  .pack p { font-size: var(--fs-b); color: #ecd5d7; margin-top: 10px; }
+  .packs .incl { display: grid; grid-template-columns: 5fr 7fr; gap: 8px; margin-top: 8px; }
+  .packs .incl img { width: 100%; height: 100%; object-fit: cover; border-radius: 4px; display: block; }
+  .packs .incl .box { background: var(--bg); border-radius: 4px; padding: 40px; }
+  .packs .incl h3 { font-size: var(--fs-h3); }
+  .packs .incl ul { list-style: none; display: grid; gap: 18px; margin-top: 22px; }
+  .packs .incl li b { display: block; font-size: var(--fs-b); }
+  .packs .incl li span { font-size: var(--fs-b); color: var(--ink-2); }
+
+  .who2 { padding: 128px 0; }
+  .who2 .grid { display: grid; grid-template-columns: 5fr 7fr; gap: 72px; align-items: center; }
+  .who2 .portrait { aspect-ratio: 4 / 5; max-width: 420px; width: 100%; background: var(--bg-2); border-radius: 210px 210px 4px 4px; display: grid; place-items: center; text-align: center; color: var(--ink-2); padding: 40px; }
+  .who2 .lead { font-size: var(--fs-l); margin-top: 22px; max-width: 38ch; }
+
+  .cmp { background: var(--night); color: var(--paper); padding: 128px 0; }
+  .cmp .head { display: grid; grid-template-columns: 6fr 6fr; gap: 64px; align-items: center; }
+  .cmp .head img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 4px; display: block; }
+  .cmp .lead { font-size: var(--fs-l); color: #d8dde2; margin-top: 22px; max-width: 40ch; }
+  table { width: 100%; border-collapse: collapse; margin-top: 56px; font-size: var(--fs-b); }
+  th, td { text-align: left; padding: 18px 16px; border-bottom: 1px solid #2f3a48; vertical-align: top; }
+  thead th { font-size: var(--fs-l); font-family: var(--serif); font-weight: 500; }
+  thead th:nth-child(2) { color: #9fd8bf; }
+  thead th:nth-child(3) { color: #f0b3b9; }
+  tbody th { color: #c9d0d8; font-weight: 500; width: 24%; }
+  .cmp .links { display: flex; gap: 12px; margin-top: 36px; flex-wrap: wrap; }
+  .btn-line-paper { border: 1.5px solid var(--paper); color: var(--paper); }
+
+  .close2 { background: var(--private); color: var(--paper); padding: 128px 0 72px; }
+  .close2 h2 { font-size: var(--fs-xl); max-width: none; }
+  .close2 .base { display: flex; justify-content: space-between; align-items: center; gap: 40px; margin-top: 48px; }
+  .close2 .base p { font-size: var(--fs-l); max-width: 42ch; color: #f1f1ee; }
+
+  @media (max-width: 980px) {
+    .ph { padding: 120px 0 64px; }
+    .ph .grid, .sess .grid, .who2 .grid, .cmp .head { grid-template-columns: 1fr; gap: 36px; }
+    .ph h1 { font-size: 56px; }
+    .ph .btn, .close2 .btn { width: 100%; }
+    .planner { padding: 20px; }
+    .sess, .packs, .who2, .cmp { padding: 80px 0; }
+    .packs .two, .packs .incl { grid-template-columns: 1fr; }
+    .packs .incl img { aspect-ratio: 3 / 2; height: auto; }
+    .pack, .packs .incl .box, .snote { padding: 24px; }
+    .who2 .portrait { margin: 0 auto; }
+    table, thead, tbody, tr, th, td { display: block; }
+    thead { display: none; }
+    tbody tr { padding: 16px 0; border-bottom: 1px solid #2f3a48; }
+    tbody th, td { border: 0; padding: 4px 0; width: auto; }
+    td::before { content: attr(data-l); display: block; font-size: var(--fs-s); color: #c9d0d8; }
+    .close2 { padding: 80px 0 40px; }
+    .close2 .base { flex-direction: column; align-items: stretch; margin-top: 40px; }
+  }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+</style>
+</head>
+<body>
+  <header class="top">
+    <div class="wrap">
+      <a class="mark" href="/">Karman Prep</a>
+      <ul class="menu">
+        <li><button type="button" aria-haspopup="true">Programs</button>
+          <ul class="sub">
+            <li><a href="/program">The SAT Program<span>A new cohort before every test date</span></a></li>
+            <li><a href="/private-tutoring">Private tutoring<span>One-on-one, every week</span></a></li>
+            <li><a href="/pricing">Pricing<span>Both paths, side by side</span></a></li>
+          </ul>
+        </li>
+        <li><button type="button" aria-haspopup="true">Free tools</button>
+          <ul class="sub">
+            <li><a href="/free-practice-test">Free practice test<span>Any time, scored on the spot</span></a></li>
+            <li><a href="/diagnostic">Diagnostic<span>35 questions, about 35 minutes</span></a></li>
+            <li><a href="/daily">Daily Question and word game<span>New every day</span></a></li>
+            <li><a href="/question-bank">Question bank<span>Practice by skill and difficulty</span></a></li>
+          </ul>
+        </li>
+        <li><a href="/method">The method</a></li>
+        <li><a href="/about">About</a></li>
+        <li><a href="/faq">FAQ</a></li>
+      </ul>
+      <div class="right">
+        <button class="theme" type="button" id="theme">Dark mode</button>
+        <a class="signin" href="/sign-in">Sign in</a>
+        <button class="burger" type="button" aria-label="Open menu">Menu</button>
+      </div>
+    </div>
+  </header>
+
+
+  <section class="ph field" aria-labelledby="h1">
+    <div class="wrap grid">
+      <div class="rise">
+        <h1 id="h1">Private tutoring</h1>
+        <p class="lead">One-on-one with Zakaria every week, planned back from your student&apos;s test date.</p>
+        <p class="note">Start any time. Sessions are booked around your student&apos;s schedule.</p>
+        <a class="btn btn-paper" href="/private-tutoring/call">Book a free strategy call</a>
+      </div>
+      <div class="planner rise">
+        <h2>Plan back from your test date</h2>
+        <p class="lbl" id="l1">Test date</p>
+        <div class="seg" role="group" aria-labelledby="l1">
+          <button data-date="mar" aria-pressed="true">March 6</button><button data-date="may" aria-pressed="false">May 1</button><button data-date="jun" aria-pressed="false">June 5</button>
+        </div>
+        <p class="lbl" id="l2">Hours</p>
+        <div class="seg two" role="group" aria-labelledby="l2">
+          <button data-pack="p10" aria-pressed="true">Private 10</button><button data-pack="p20" aria-pressed="false">Private 20</button>
+        </div>
+        <div class="plan-out" id="plan-out" aria-live="polite"><b>Start by the week of December 21.</b><span>10 weekly sessions, the last one the week before the March 6 SAT. $1,450.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sess field" aria-labelledby="sh">
+    <div class="wrap grid">
+      <div class="rise">
+        <h2 id="sh">Every session starts from the latest test</h2>
+        <p class="lead">Zakaria goes through every mistake on your student&apos;s most recent full-length test, or works on the one skill holding the score back.</p>
+        <div class="film"><video autoplay muted loop playsinline preload="none" poster="https://images.pexels.com/videos/9198274/pexels-photo-9198274.jpeg?w=1200" aria-hidden="true"><source src="https://videos.pexels.com/video-files/9198274/9198274-sd_960_540_25fps.mp4" type="video/mp4"></video></div>
+      </div>
+      <div class="snote rise" data-ui aria-label="The note parents receive after a session">
+        <div class="top"><b>Note after Thursday&apos;s session</b><span>Sent to you and your student</span></div>
+        <dl>
+          <dt>Covered</dt><dd>Every missed question on practice test 3</dd>
+          <dt>Focus skill</dt><dd>Transitions</dd>
+          <dt>Before next time</dt><dd>20 Transitions questions in the question bank</dd>
+          <dt>Next session</dt><dd>Thursday, 6:00 p.m.</dd>
+        </dl>
+        <p class="msg">&ldquo;Most misses came from reading past the contrast word. We fixed the habit; now it needs repetition.&rdquo;</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="packs field" aria-labelledby="pk">
+    <div class="wrap">
+      <h2 id="pk" class="rise">Choose ten or twenty hours</h2>
+      <div class="two">
+        <div class="pack rise"><h3>Private 10</h3><p class="amt">$1,450</p><p>Ten weekly sessions of 60 minutes.</p></div>
+        <div class="pack p2 rise"><h3>Private 20</h3><p class="amt">$2,900</p><p>Twenty weekly sessions of 60 minutes.</p></div>
+      </div>
+      <div class="incl">
+        <img class="rise" src="https://images.unsplash.com/photo-1758612214848-04e700d192ce?w=1100&q=75&auto=format" width="1100" height="733" alt="A student with headphones working at a laptop" loading="lazy">
+        <div class="box rise">
+          <h3>Both include, at $145 an hour</h3>
+          <ul>
+            <li><b>Sessions planned back from your test date</b><span>Start whenever you&apos;re ready.</span></li>
+            <li><b>Everything on the platform</b><span>Practice tests, Daily 10 and 10,000+ questions.</span></li>
+            <li><b>The weekly live workshop</b><span>Pacing, Desmos and the skills students miss most.</span></li>
+            <li><b>A note after every session</b><span>What was covered, what improved and what comes next.</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="who2 field" aria-labelledby="zh">
+    <div class="wrap grid">
+      <div class="portrait rise">Zakaria&apos;s photo goes here</div>
+      <div class="rise">
+        <h2 id="zh">Every session is with Zakaria</h2>
+        <p class="lead">99th percentile on the SAT, and more than 1,200 students tutored. He plans each student&apos;s hours himself, from the first session to the week before the test.</p>
+        <a class="btn btn-ink" href="/about" style="margin-top:32px">Meet Zakaria</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="cmp field" aria-labelledby="ch2">
+    <div class="wrap">
+      <div class="head">
+        <div class="rise">
+          <h2 id="ch2">Private or the SAT Program?</h2>
+          <p class="lead">Both are taught by Zakaria. The difference is the format, and which one fits your student&apos;s schedule.</p>
+        </div>
+        <img class="rise" src="https://images.unsplash.com/photo-1762857995550-1fc51c8fbf2d?w=1000&q=75&auto=format" width="1000" height="667" alt="Wooden library tables with green lamps" loading="lazy">
+      </div>
+      <table class="rise">
+        <thead><tr><th scope="col"><span class="sr">Compare</span></th><th scope="col">The SAT Program</th><th scope="col">Private tutoring</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Format</th><td data-l="The SAT Program">A class of six</td><td data-l="Private tutoring">One-on-one</td></tr>
+          <tr><th scope="row">Schedule</th><td data-l="The SAT Program">Two set evenings a week</td><td data-l="Private tutoring">Around your student</td></tr>
+          <tr><th scope="row">Starts</th><td data-l="The SAT Program">Nine weeks before a test date</td><td data-l="Private tutoring">Any time</td></tr>
+          <tr><th scope="row">Time with Zakaria 1:1</th><td data-l="The SAT Program">60 minutes after each of five tests</td><td data-l="Private tutoring">60 minutes every week</td></tr>
+          <tr><th scope="row">50-point guarantee</th><td data-l="The SAT Program">Included</td><td data-l="Private tutoring">Not included</td></tr>
+          <tr><th scope="row">Price</th><td data-l="The SAT Program">$995 for founding cohorts</td><td data-l="Private tutoring">From $1,450</td></tr>
+        </tbody>
+      </table>
+      <div class="links rise"><a class="btn btn-line-paper" href="/program">Explore the SAT Program</a></div>
+    </div>
+  </section>
+
+  <section class="close2 field" aria-labelledby="cl">
+    <div class="wrap">
+      <h2 id="cl" class="rise">Talk it through with Zakaria first</h2>
+      <div class="base">
+        <p>A free 20-minute call. If private tutoring isn&apos;t worth it for your student yet, he&apos;ll tell you.</p>
+        <a class="btn btn-paper" href="/private-tutoring/call">Book a free strategy call</a>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="tiles">
+      <div class="tile t1"><p>SAT prep taught live, practiced daily and reviewed one-on-one.</p><small>&copy; 2026 Karman Prep. SAT is a trademark of the College Board, which does not endorse Karman Prep.<br>*From Karman&apos;s 1:1 tutoring, median 16 weeks.</small></div>
+      <div class="tile t2"><h4>Programs</h4><a href="/program">The SAT Program</a><a href="/private-tutoring">Private tutoring</a><a href="/pricing">Pricing</a><a href="/guarantee">Guarantee</a></div>
+      <div class="tile t3"><h4>Free</h4><a href="/free-practice-test">Practice test</a><a href="/diagnostic">Diagnostic</a><a href="/daily">Daily Question</a><a href="/question-bank">Question bank</a></div>
+      <div class="tile t4"><h4>Karman</h4><a href="/method">The method</a><a href="/about">About</a><a href="/faq">FAQ</a><a href="mailto:hello@karmanprep.com">hello@karmanprep.com</a></div>
+      <div class="tile t5"><h4>Legal</h4><a href="/terms">Terms of Service</a><a href="/privacy">Privacy Policy</a><a href="/cookies">Cookie Policy</a><a href="/refunds">Refunds</a></div>
+      <div class="word">Karman Prep</div>
+      <a class="go" href="/free-practice-test">Take a free practice test<svg width="56" height="56" viewBox="0 0 56 56" aria-hidden="true"><path d="M12 44 L44 12 M20 12 H44 V36" fill="none" stroke="currentColor" stroke-width="4"/></svg></a>
+    </div>
+  </footer>
+
+  <script>
+    document.documentElement.classList.add("js");
+    /* theme */
+    (function () {
+      var btn = document.getElementById("theme"), root = document.documentElement;
+      function cur() { var t = root.getAttribute("data-theme"); if (t) return t; return matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"; }
+      function label() { btn.textContent = cur() === "dark" ? "Light mode" : "Dark mode"; }
+      btn.addEventListener("click", function () { var n = cur() === "dark" ? "light" : "dark"; root.setAttribute("data-theme", n); try { localStorage.setItem("karman-theme", n); } catch (e) {} label(); });
+      label();
+    })();
+    /* entrances */
+    (function () {
+      var els = document.querySelectorAll(".rise");
+      if (!("IntersectionObserver" in window)) { els.forEach(function (e) { e.classList.add("in"); }); return; }
+      var io = new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } }); }, { threshold: 0.15 });
+      els.forEach(function (e, i) { e.style.transitionDelay = (i % 3) * 80 + "ms"; io.observe(e); });
+    })();
+    /* planner: work back from the test date */
+    (function () {
+      var dates = { mar: ["March 6", new Date(2027, 2, 6)], may: ["May 1", new Date(2027, 4, 1)], jun: ["June 5", new Date(2027, 5, 5)] };
+      var packs = { p10: [10, "$1,450"], p20: [20, "$2,900"] };
+      var d = "mar", k = "p10", out = document.getElementById("plan-out");
+      var fmt = function (x) { return x.toLocaleDateString("en-US", { month: "long", day: "numeric" }); };
+      function render() {
+        var test = dates[d][1], weeks = packs[k][0];
+        var start = new Date(test); start.setDate(start.getDate() - weeks * 7);
+        var monday = new Date(start); monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7));
+        var today = new Date(); today.setHours(0, 0, 0, 0);
+        if (monday < today) {
+          out.innerHTML = "<b>" + weeks + " weekly sessions no longer fit before " + dates[d][0] + ".</b><span>Book a call and Zakaria will plan what still fits.</span>";
+        } else {
+          out.innerHTML = "<b>Start by the week of " + fmt(monday) + ".</b><span>" + weeks + " weekly sessions, the last one the week before the " + dates[d][0] + " SAT. " + packs[k][1] + ".</span>";
+        }
+      }
+      document.querySelectorAll("[data-date]").forEach(function (b) { b.addEventListener("click", function () { d = b.dataset.date; document.querySelectorAll("[data-date]").forEach(function (x) { x.setAttribute("aria-pressed", x === b ? "true" : "false"); }); render(); }); });
+      document.querySelectorAll("[data-pack]").forEach(function (b) { b.addEventListener("click", function () { k = b.dataset.pack; document.querySelectorAll("[data-pack]").forEach(function (x) { x.setAttribute("aria-pressed", x === b ? "true" : "false"); }); render(); }); });
+      render();
+    })();
+  </script>
+</body>
+</html>
