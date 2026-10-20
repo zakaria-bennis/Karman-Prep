@@ -136,18 +136,21 @@ function shapeOf(
 }
 
 /**
- * FN-2, FN-23 to FN-29, FN-75: a list function's shape. A broadcast gives a list of numbers, or
- * unknown when an argument's shape is; otherwise mean and total of points are a point, and every
- * other result is a number.
+ * FN-2, FN-23 to FN-29, FN-75: a list function's shape, unknown when an argument's shape is and
+ * the result is not always numbers. mean and total of points are a point, and broadcast over
+ * points and lists of points only (`total(P,P)`, `mean(P,(1,1))`) a list of points; any other
+ * broadcast is a list of numbers and any other result a number.
  */
 function listCallShape(node: Call, args: readonly (Shape | null)[]): Shape | null {
-  const lists = args.map((s) => s === "numbers" || s === "points");
-  if (givesList(node.name, lists)) return args.includes(null) ? null : "numbers";
+  const lists = args.map((s) => s === "numbers" || s === "points"),
+    broadcast = givesList(node.name, lists);
   if (listFunction(node.name)?.points !== true || ["count", "length"].includes(node.name)) {
-    return "number";
+    return broadcast ? (args.includes(null) ? null : "numbers") : "number";
   }
   if (args.includes(null)) return null;
-  const one = args.length === 1 && (args[0] === "point" || args[0] === "points");
+  const pointed = (s: Shape | null) => s === "point" || s === "points";
+  if (broadcast) return args.every(pointed) ? "points" : "numbers";
+  const one = args.length === 1 && pointed(args[0]);
   return one || args.every((s) => s === "point") ? "point" : "number";
 }
 

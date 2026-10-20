@@ -120,8 +120,9 @@ These Desmos behaviours are known and recorded but not yet built:
 - **An infinite log base.** Desmos gives `\log_{\infty}(5)` = 0; `\infty` is not a value in the
   calculator yet, so it is undefined. An expected failure in `desmos.reference.test.ts`
   (`CATALOGUE_VALUE_GAP`).
-- **Statistics gaps (FN-2, FN-23 to FN-29, FN-75).** The reducers, length, gcd, lcm and the
-  aliases gcf, mcd and mcm match the catalogue (see below) except where a case uses notation that
+- **Statistics gaps (FN-2, FN-23 to FN-29, FN-75).** The reducers, length, gcd, lcm, the
+  aliases gcf, mcd, mcm, stddev, stdDev, stddevp, stdDevP and variance, and inversecdf and
+  inverseCdf of a list match the catalogue (see below) except where a case uses notation that
   has not shipped: derivatives, colours and tones, distributions, member access
   (`L.\operatorname{mean}`, `\operatorname{mean}(P).x`), comprehensions and matrices, the list
   operations (`join`, `shuffle`, `unique`, `random`, `stats`, `boxplot`, `polygon`), `\arg`,
@@ -129,9 +130,13 @@ These Desmos behaviours are known and recorded but not yet built:
   the point but is not graphed yet (M5). Desmos also gives a `y=` row a value when its right side
   is constant (`y=\operatorname{count}(x,1,2)` = 3); the calculator graphs it as a line. Each is an
   expected failure in `desmos.reference.test.ts` (`STATISTICS_GAPS`, `POINT_ROWS`). Not built
-  either, with no capture asserted: the spelling aliases stddev, stdDev, stddevp, stdDevP and
-  variance, `inversecdf` on a list, argmin and argmax, and the Statistics and Number theory panel
-  buttons (a UI change, left to the panel work).
+  either: argmin and argmax, and the Statistics and Number theory panel buttons (a UI change, left
+  to the panel work). An unknown `\operatorname{…}` name is unsupported in the calculator, while
+  Desmos reads it as one multi-letter name: `\operatorname{stddevP}()` reads "Function 'stddevP'
+  is not defined.", `\operatorname{stddevP}(L,M)` "Too many variables. Try defining 'stddevP'."
+  and `\operatorname{stddevP}(L)` "Try adding 'y=' to the beginning of this equation." (9 captured
+  errors in the catalogue, not in the fixture). Matching them needs a multi-letter identifier in
+  the parser and free-variable analysis, which is its own task.
 - **An empty piecewise branch.** Desmos reads `\left\{1<0:5,\right\}` as "You need something on
   both sides of the ',' symbol." Piecewise braces (PR-31) have not shipped, so the calculator shows its
   unsupported-notation message. The captured error is an expected failure in
@@ -151,7 +156,13 @@ including these, is checked in `desmos.reference.test.ts`:
   value. mean and total of points are a point. length never broadcasts. gcd and lcm round first,
   and in complex mode work on Gaussian integers shown in the first quadrant. count and length do
   not make a row depend on x (`count(x,1)` = 2). The error texts for `mean()`, `min()`,
-  `quantile(5,0.5)`, `median(P)`, `quantile(P,0.5)` and `length(L,10)` are Desmos's. The values
+  `quantile(5,0.5)`, `median(P)`, `quantile(P,0.5)` and `length(L,10)` are Desmos's. The spelling
+  aliases evaluate as their canonical function and their errors keep the spelling written
+  (`variance(P)` reads "Function 'variance' cannot be applied to a point."); `inversecdf(L,p)` is
+  `quantile(L,p)`, with "requires 2 arguments" and "must be a list" texts naming inversecdf. A
+  broadcast of mean or total over points is typed a list of points. A list argument the real
+  plotter cannot lay out (`y=\operatorname{mean}([1,2,3]^x)`, `y=\max(\sin([1,2]x))`) is plotted
+  through the general evaluator rather than drawn blank. The values
   are in `desmos-statistics.fixture.json`.
 - **Indexing, slicing and filtering (PR-34, NM-30, NM-31).** `L[i]` is 1-based and rounds a
   non-integer index down (`L[1.9]` = L[1], `L[0.6]` undefined); out of range is undefined. A list,

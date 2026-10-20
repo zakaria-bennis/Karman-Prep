@@ -243,6 +243,16 @@ from the notes below in two places, and Desmos wins: `count` and `length` argume
 as uses of x, and `mean(L,M)` broadcasts element by element. gcf, mcd and mcm were added to the
 allowlist. Panel buttons were left out because the panel is UI work.
 
+**Parity review (2026-10-19), done.** The spelling aliases stddev, stdDev, stddevp, stdDevP and
+variance, and inversecdf and inverseCdf of a list (= quantile), ship with Desmos's error texts and
+as upright typed words; the catalogue's 46 values and 22 errors for them join the fixture (438
+values, 309 matched; 75 errors, 60 matched; the rest are dot forms or distributions). The real
+plotter sends a list function call or index whose list argument it cannot lay out (a power, a
+built-in or `|…|` of a list, a name defined from x) to `compileExpression`, so those rows no longer
+draw blank. A broadcast of mean or total over points is typed a list of points. Not done: an
+unknown `\operatorname{stddevP}` is unsupported where Desmos reads one multi-letter name (9 errors;
+needs multi-letter identifiers, see `f-desmos-parity.md`).
+
 - **New file `core/lib/statistics.ts`:** `mean`, `median`, `min`, `max`, `total`, `count`,
   `length`, `var`, `varp`, `stdev`, `stdevp`, `mad`, `quantile`, `quartile`, `gcd`, `lcm`, plus a
   `LIST_FUNCTIONS` registry `apply(values: Value[]): Value` that concatenates its arguments

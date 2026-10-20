@@ -3,6 +3,7 @@ import { analyzeRows } from "../analysis/index";
 import {
   compileExpression,
   compileRealFunction1,
+  evaluateLatex,
   evaluateRows,
   type CompileScope,
 } from "../eval/compile";
@@ -125,4 +126,33 @@ it("FN-75 Gaussian gcd and lcm are shown in the first quadrant", () => {
   expect(applyListFunction("lcm", [z(1, 1), z(1, -1)])).toEqual(z(1, 1));
   expect(applyListFunction("lcm", [z(2, 1), n(2)])).toEqual(z(4, 2));
   expect(applyListFunction("gcd", [z(0, -3), n(0)])).toEqual(n(3));
+});
+
+it("FN-23 mean and total broadcasting points are typed as a list of points, as they evaluate", () => {
+  const rows = ["P=[(1,2),(3,4),(5,0)]"],
+    message = (latex: string) =>
+      analyzeRows(
+        [...rows, latex].map((l, k) => ({ id: `r${k}`, latex: l, hidden: false })),
+        REAL
+      ).rows[1].error?.message;
+  expect(evaluateLatex("\\operatorname{total}(P,P)", { rows })).toEqual({
+    type: "list",
+    value: [
+      { type: "point", value: [2, 4] },
+      { type: "point", value: [6, 8] },
+      { type: "point", value: [10, 0] },
+    ],
+  });
+  // Desmos names the shapes this way for length(P,1) (statistics catalogue)
+  for (const latex of [
+    "\\operatorname{length}(\\operatorname{total}(P,P),1)",
+    "\\operatorname{length}(\\operatorname{mean}(P,(1,1)),1)",
+  ]) {
+    expect(message(latex)).toBe(
+      "Function 'length' cannot be applied to a list of points and a number."
+    );
+  }
+  expect(message("\\operatorname{length}(\\operatorname{count}(P,P),1)")).toBe(
+    "Function 'length' cannot be applied to a list of numbers and a number."
+  );
 });
