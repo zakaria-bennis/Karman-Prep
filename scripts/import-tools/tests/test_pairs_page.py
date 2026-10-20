@@ -8,7 +8,8 @@ from pathlib import Path
 
 import importlib.util
 
-from kimport import pairs_page
+from kimport import corpus, pairs_page
+from tests.corpus_fixtures import build_tree, mc
 from kimport.normalize import NORMALIZER_VERSION
 
 
@@ -289,6 +290,128 @@ class ApplyTests(Base):
         self.run_apply(pairs, clusters, {"fp-1": "same"})
         self.assertEqual(sorted(p.name for p in self.dir.iterdir() if p.name.startswith("clusters")),
                          ["clusters.json"])
+
+
+class FixRoundTests(Base):
+    def chain(self, big_first=True):
+        # A (1 member), B (1), C (3 members): C is larger than both
+        pairs = [pair("fp-1", 1, 2, "ca", "cb"), pair("fp-2", 2, 5, "cb", "cc")]
+        clusters = cluster_doc({"ca": [1], "cb": [2], "cc": [5, 6, 7]},
+                               {"ca": ["fp-1"], "cb": ["fp-1", "fp-2"], "cc": ["fp-2"]})
+        return pairs, clusters
+
+    def apply(self, pairs, clusters, answers, **kw):
+        cp = self.write("clusters.json", clusters)
+        pairs_page.apply_decisions(self.pairs_file(pairs), self.write("d.json", answers), cp, **kw)
+        return self.load(cp), cp
+
+    def test_size_driven_chain_merges_into_one(self):
+        pairs, clusters = self.chain()
+        doc, _ = self.apply(pairs, clusters, {"fp-1": "same", "fp-2": "same"})
+        self.assertEqual([c["cluster_id"] for c in doc["clusters"]], ["cc"])
+        self.assertEqual({m["id"] for m in doc["clusters"][0]["members"]}, {"x1", "x2", "x5", "x6", "x7"})
+        self.assertEqual(Counter(doc["roles"].values()), Counter({"canonical": 1, "member": 4}))
+        self.assertEqual(doc["counts"]["unique"], 1)
+
+    def test_different_sorting_first_still_checked_against_chain(self):
+        pairs = [pair("fp-a", 1, 3, "ca", "cc"), pair("fp-b", 1, 2, "ca", "cb"), pair("fp-c", 2, 3, "cb", "cc")]
+        clusters = cluster_doc({"ca": [1], "cb": [2], "cc": [3]},
+                               {"ca": ["fp-a", "fp-b"], "cb": ["fp-b", "fp-c"], "cc": ["fp-a", "fp-c"]})
+        cp = self.write("clusters.json", clusters)
+        before = cp.read_bytes()
+        with self.assertRaises(ValueError) as cm:
+            pairs_page.apply_decisions(self.pairs_file(pairs), self.write(
+                "d.json", {"fp-a": "different", "fp-b": "same", "fp-c": "same"}), cp)
+        msg = str(cm.exception)
+        self.assertIn("x1|x3", msg)
+        self.assertIn("x1|x2", msg)
+        self.assertIn("x2|x3", msg)
+        self.assertIn("nothing was changed", msg)
+        self.assertEqual(cp.read_bytes(), before)
+        self.assertFalse((self.dir / "founder_decisions.json").exists())
+
+    def test_recorded_different_then_later_chain_rejected(self):
+        pairs = [pair("fp-a", 1, 3, "ca", "cc"), pair("fp-b", 1, 2, "ca", "cb"), pair("fp-c", 2, 3, "cb", "cc")]
+        clusters = cluster_doc({"ca": [1], "cb": [2], "cc": [3]},
+                               {"ca": ["fp-a", "fp-b"], "cb": ["fp-b", "fp-c"], "cc": ["fp-a", "fp-c"]})
+        doc, cp = self.apply(pairs, clusters, {"fp-a": "different"})
+        before = cp.read_bytes()
+        log_before = (self.dir / "founder_decisions.json").read_bytes()
+        with self.assertRaises(ValueError) as cm:
+            pairs_page.apply_decisions(self.pairs_file(pairs), self.write(
+                "d2.json", {"fp-b": "same", "fp-c": "same"}), cp)
+        self.assertIn("x1|x3", str(cm.exception))
+        self.assertEqual(cp.read_bytes(), before)
+        self.assertEqual((self.dir / "founder_decisions.json").read_bytes(), log_before)
+
+    def test_log_is_append_only_and_keyed_by_occurrence_ids(self):
+        pairs = [pair("fp-1", 1, 2, "ca", "cb"), pair("fp-2", 3, 4, "cc", "cd")]
+        clusters = cluster_doc({"ca": [1], "cb": [2], "cc": [3], "cd": [4]},
+                               {"ca": ["fp-1"], "cb": ["fp-1"], "cc": ["fp-2"], "cd": ["fp-2"]})
+        self.apply(pairs, clusters, {"fp-1": "same"}, now="2026-10-20T10:00:00Z")
+        doc, _ = self.apply(pairs, self.load(self.dir / "clusters.json"), {"fp-2": "different"},
+                            now="2026-10-20T11:00:00Z")
+        log = self.load(self.dir / "founder_decisions.json")
+        self.assertEqual(log, {"x1|x2": {"decision": "same", "at": "2026-10-20T10:00:00Z"},
+                               "x3|x4": {"decision": "different", "at": "2026-10-20T11:00:00Z"}})
+        self.assertEqual(doc["counts"]["founder_pairs"], 0)
+
+    def test_redeciding_gives_plain_words(self):
+        pairs, clusters = [pair("fp-1", 1, 2, "ca", "cb")], cluster_doc(
+            {"ca": [1], "cb": [2]}, {"ca": ["fp-1"], "cb": ["fp-1"]})
+        _, cp = self.apply(pairs, clusters, {"fp-1": "different"})
+        with self.assertRaises(ValueError) as cm:
+            pairs_page.apply_decisions(self.pairs_file(pairs), self.write("d2.json", {"fp-1": "same"}), cp)
+        self.assertIn("already answered 'different'", str(cm.exception))
+        self.assertIn("remove its line from founder_decisions.json", str(cm.exception))
+
+    def test_decisions_survive_corpus_rerun(self):
+        items = [{"id": "SYN_V1_MATH_M1_Q01", "text": mc("The park has a pond near the old stone "
+                                                         "bridge and the largest fountain in the whole district.")},
+                 {"id": "SYN_V2_MATH_M1_Q01", "text": mc("The park has a lake near the old stone bridge and the "
+                                                         "largest fountain in the whole district.")}]
+        for verdict, canon_count in (("same", 1), ("different", 2)):
+            with tempfile.TemporaryDirectory() as d:
+                d = Path(d)
+                ip, lp = build_tree(d, items)
+                out = d / "out"
+                corpus.run_corpus(ip, lp, None, out)
+                pairs = json.loads((out / "founder_pairs.json").read_text(encoding="utf-8"))
+                self.assertEqual(pairs["pair_count"], 1)
+                ans = d / "ans.json"
+                ans.write_text(json.dumps({pairs["pairs"][0]["pair_id"]: verdict}), encoding="utf-8")
+                pairs_page.apply_decisions(out / "founder_pairs.json", ans, out / "clusters.json")
+                first = json.loads((out / "clusters.json").read_text(encoding="utf-8"))
+                counts = corpus.run_corpus(ip, lp, None, out)
+                again = json.loads((out / "founder_pairs.json").read_text(encoding="utf-8"))
+                self.assertEqual(again["pair_count"], 0)
+                self.assertEqual(counts["founder_pairs"], 0)
+                doc = json.loads((out / "clusters.json").read_text(encoding="utf-8"))
+                self.assertEqual(doc["roles"], first["roles"])
+                self.assertEqual(sum(v == "canonical" for v in doc["roles"].values()), canon_count)
+                self.assertEqual(len(doc["clusters"]), canon_count)
+                self.assertNotIn("founder_review", doc["roles"].values())
+                self.assertEqual(list(doc["founder_decisions"].values()), [verdict])
+
+    def test_curly_quotes_and_dashes_not_highlighted(self):
+        p = pair("fp-1", 1, 2, "a", "b", ta='It\u2019s a \u201cgood\u201d fit \u2013 really', tb='It\'s a "good" fit - really')
+        out = self.dir / "p.html"
+        pairs_page.render_pairs(self.pairs_file([p]), out)
+        body = out.read_text(encoding="utf-8").split('data-pair="fp-1"', 1)[1]
+        self.assertNotIn("<mark>", body.split('class="stem"', 1)[1].split("</p>", 1)[0])
+        self.assertIn("\u2019", body)  # the original characters are still shown
+
+    def test_cli_has_no_traceback_for_bad_files(self):
+        import subprocess, sys
+        cli = Path(__file__).resolve().parent.parent / "kimport-cli.py"
+        bad = self.write("bad.json", {"pairs": [{"nope": 1}], "normalizer_version": NORMALIZER_VERSION})
+        cl = self.write("clusters.json", cluster_doc({"ca": [1]}))
+        d = self.write("d.json", {})
+        r = subprocess.run([sys.executable, "-I", str(cli), "pairs", "apply", "--pairs", str(bad), "--decisions",
+                            str(d), "--clusters", str(cl)], capture_output=True, text=True)
+        self.assertEqual(r.returncode, 1)
+        self.assertNotIn("Traceback", r.stderr)
+        self.assertIn("error:", r.stderr)
 
 
 class WiringTests(unittest.TestCase):

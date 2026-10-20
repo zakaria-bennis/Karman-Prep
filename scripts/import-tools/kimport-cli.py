@@ -122,11 +122,12 @@ def _register_corpus(sub) -> None:
     cp.add_argument("--ledger", required=True, help="current-readiness-ledger.json")
     cp.add_argument("--export", help="saved result of sql/live_export.sql (omit: live status from the ledger)")
     cp.add_argument("--out", required=True, help="output folder, e.g. pipeline/corpus/")
+    cp.add_argument("--decisions", help="founder_decisions.json to re-apply (default: <out>/founder_decisions.json if present)")
     cp.set_defaults(func=lambda a: _guard(lambda: print(
         "corpus: {occurrences} occurrences, {unique} unique, {unique_not_live} not yet live, "
         "{founder_pairs} founder pairs, {unparsed} unparsed".format(
             **corpus.run_corpus(Path(a.c_index), Path(a.ledger), Path(a.export) if a.export else None,
-                                Path(a.out))))))
+                                Path(a.out), Path(a.decisions) if a.decisions else None)))))
 
 
 def _register_pairs(sub) -> None:
@@ -142,8 +143,11 @@ def _register_pairs(sub) -> None:
     ap.add_argument("--pairs", required=True, help="corpus/founder_pairs.json")
     ap.add_argument("--decisions", required=True, help="the JSON he copied from the page")
     ap.add_argument("--clusters", required=True, help="corpus/clusters.json (rewritten in place)")
+    ap.add_argument("--decisions-file", help="append-only answer log (default: founder_decisions.json next to clusters.json)")
+    ap.add_argument("--now", help="ISO-8601 time stamped on new answers (default: now, UTC)")
     ap.set_defaults(func=lambda a: _guard(lambda: pairs_page.apply_decisions(
-        Path(a.pairs), Path(a.decisions), Path(a.clusters)) or print("pairs: decisions applied")))
+        Path(a.pairs), Path(a.decisions), Path(a.clusters),
+        Path(a.decisions_file) if a.decisions_file else None, a.now) or print("pairs: decisions applied")))
 
 
 def _guard(fn) -> int:
@@ -151,6 +155,9 @@ def _guard(fn) -> int:
         fn()
     except publish.RefuseToBuild as e:
         print(f"refused: {e.reason}", file=sys.stderr)
+        return 1
+    except KeyError as e:
+        print(f"error: a file is missing the field {e}; it may be from an older run or the wrong file", file=sys.stderr)
         return 1
     except (writer.LockHeld, writer.WrongHolder, writer.NoLock, writer.OpenIntent,
             writer.CorruptLock, ValueError, OSError) as e:

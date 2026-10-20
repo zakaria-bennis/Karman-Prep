@@ -58,6 +58,7 @@ class ClusterResult:
     cluster_of: dict[str, str] = field(repr=False)
     export_sha256: str | None = None
     inputs: dict = field(default_factory=dict)
+    decisions: dict = field(default_factory=dict)
 
 
 # ---------------------------------------------------------------- records
@@ -515,7 +516,7 @@ def write_outputs(result: ClusterResult, out_dir: Path) -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
     doc = {"normalizer_version": NORMALIZER_VERSION, "export_sha256": result.export_sha256,
            "inputs": result.inputs, "counts": result.counts, "roles": dict(sorted(result.roles.items())),
-           "clusters": result.clusters, "unparsed": result.unparsed, "certified_duplicates": check_certified(result)}
+           "founder_decisions": result.decisions, "clusters": result.clusters, "unparsed": result.unparsed, "certified_duplicates": check_certified(result)}
     (out_dir / "clusters.json").write_text(json.dumps(doc, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     pairs = {"normalizer_version": NORMALIZER_VERSION, "ratio_threshold": FOUNDER_RATIO,
              "pair_count": len(result.founder_pairs), "pairs": result.founder_pairs}
@@ -528,12 +529,31 @@ def _file_sha(path: Path) -> str:
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
-def run_corpus(c_index: Path, ledger: Path, export: Path | None, out_dir: Path) -> dict:
+def apply_saved_decisions(result: ClusterResult, decisions_file: Path) -> None:
+    """Re-apply the founder's saved yes/no answers (pairs_page decision log) to a fresh clustering, so a re-run
+    keeps them and does not ask the same pair again."""
+    from kimport import pairs_page  # pairs_page imports this module
+
+    log = pairs_page.load_decisions(decisions_file)
+    if not log:
+        return
+    doc = {"roles": result.roles, "clusters": result.clusters, "counts": result.counts}
+    result.founder_pairs = pairs_page.apply_to_doc(doc, result.founder_pairs, {k: v["decision"] for k, v in log.items()})
+    result.clusters = doc["clusters"]
+    result.decisions = doc["founder_decisions"]
+    result.cluster_of = {m["id"]: c["cluster_id"] for c in result.clusters for m in c["members"]}
+
+
+def run_corpus(c_index: Path, ledger: Path, export: Path | None, out_dir: Path,
+               decisions: Path | None = None) -> dict:
     corpus = load_corpus(Path(c_index), Path(ledger))
     live = None
     if export is not None:
         live = [record_from_row(row) for row in read_export_doc(Path(export)).rows]
     result = cluster(corpus, live)
+    saved = Path(decisions) if decisions else Path(out_dir) / "founder_decisions.json"
+    if saved.exists():
+        apply_saved_decisions(result, saved)
     result.export_sha256 = _file_sha(export) if export is not None else None
     result.inputs = {"c_index": str(c_index), "c_index_sha256": _file_sha(c_index), "ledger": str(ledger),
                      "ledger_sha256": _file_sha(ledger), "export": str(export) if export is not None else None}

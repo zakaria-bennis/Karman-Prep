@@ -18,6 +18,7 @@ import os
 import re
 import tempfile
 from collections import Counter
+from datetime import datetime, timezone
 from pathlib import Path
 
 from kimport import corpus
@@ -25,6 +26,13 @@ from kimport.keys import QuestionRecord
 
 DECISIONS = ("same", "different")
 _TOKEN = re.compile(r"\s+|\S+")
+_FOLD = str.maketrans({"\u2018": "'", "\u2019": "'", "\u201a": "'", "\u201b": "'", "\u201c": '"', "\u201d": '"',
+                       "\u201e": '"', "\u2013": "-", "\u2014": "-", "\u2212": "-"})
+
+
+def _fold(s: str) -> str:
+    """Curly vs straight quotes and dash widths are scanning noise, not differences."""
+    return s.translate(_FOLD)
 
 # ---------------------------------------------------------------- rendering
 
@@ -32,7 +40,7 @@ _TOKEN = re.compile(r"\s+|\S+")
 def _marked(a: str, b: str) -> tuple[str, str]:
     """HTML for a and b with the word-level differences wrapped in <mark>."""
     ta, tb = _TOKEN.findall(a), _TOKEN.findall(b)
-    sm = difflib.SequenceMatcher(None, ta, tb, autojunk=False)
+    sm = difflib.SequenceMatcher(None, [_fold(t) for t in ta], [_fold(t) for t in tb], autojunk=False)
     out_a, out_b = [], []
     for op, i1, i2, j1, j2 in sm.get_opcodes():
         for out, toks in ((out_a, ta[i1:i2]), (out_b, tb[j1:j2])):
@@ -48,7 +56,7 @@ def _marked(a: str, b: str) -> tuple[str, str]:
 
 def _pair_choices(left: list[str], right: list[str]) -> tuple[dict[int, int], dict[int, int]]:
     """Greedy best-ratio matching, so a reordered choice is compared with its twin."""
-    scored = sorted(((difflib.SequenceMatcher(None, x, y, autojunk=False).ratio(), i, j)
+    scored = sorted(((difflib.SequenceMatcher(None, _fold(x), _fold(y), autojunk=False).ratio(), i, j)
                      for i, x in enumerate(left) for j, y in enumerate(right)), key=lambda t: (-t[0], t[1], t[2]))
     lm: dict[int, int] = {}
     rm: dict[int, int] = {}
@@ -220,6 +228,77 @@ def _stand_in(m: dict) -> QuestionRecord:
                           is_live=bool(m.get("is_live")), meta=meta)
 
 
+def pair_key(a: str, b: str) -> str:
+    """Stable identity of a pair: the two occurrence ids, unordered (pair numbers change between runs)."""
+    return "|".join(sorted([a, b]))
+
+
+def _key_of(p: dict) -> str:
+    return pair_key(p["canonical"]["id"], p["member"]["id"])
+
+
+# ---- decision log (append-only) ----
+
+
+def load_decisions(path: Path | None) -> dict[str, dict]:
+    if path is None or not Path(path).exists():
+        return {}
+    doc = json.loads(Path(path).read_text(encoding="utf-8"))
+    if not isinstance(doc, dict):
+        raise ValueError(f"{path} should be a JSON object of pair -> decision")
+    for k, v in doc.items():
+        if not isinstance(v, dict) or v.get("decision") not in DECISIONS:
+            raise ValueError(f"{path}: the entry for {k} must look like {{\"decision\": \"same\" or \"different\"}}")
+    return doc
+
+
+def check_new(log: dict[str, dict], new: dict[str, str], log_name: str = "founder_decisions.json") -> None:
+    for k, v in sorted(new.items()):
+        old = log.get(k, {}).get("decision")
+        if old and old != v:
+            raise ValueError(f"This pair was already answered '{old}' and you now say '{v}'. If the first answer was "
+                             f"a mistake, remove its line from {log_name} and run again. Pair: {k}")
+
+
+def append_decisions(path: Path, log: dict[str, dict], new: dict[str, str], now: str) -> dict[str, dict]:
+    merged = dict(log)
+    for k, v in new.items():
+        merged.setdefault(k, {"decision": v, "at": now})
+    if merged != log:
+        _atomic_write(Path(path), dict(sorted(merged.items())))
+    return merged
+
+
+# ---- applying decisions to a clusters document ----
+
+
+class _Groups:
+    def __init__(self):
+        self.parent: dict[str, str] = {}
+
+    def find(self, x):
+        while self.parent.get(x, x) != x:
+            self.parent[x] = self.parent.get(self.parent[x], self.parent[x])
+            x = self.parent[x]
+        return x
+
+    def union(self, a, b):
+        ra, rb = self.find(a), self.find(b)
+        if ra != rb:
+            self.parent[rb] = ra
+
+
+def _chain(edges: dict[str, list[tuple[str, str]]], start: str, goal: str) -> list[str]:
+    """The 'same' answers (pair keys) linking two clusters."""
+    seen, queue = {start: []}, [start]
+    for node in queue:
+        for nxt, key in edges.get(node, ()):
+            if nxt not in seen:
+                seen[nxt] = seen[node] + [key]
+                queue.append(nxt)
+    return seen.get(goal, [])
+
+
 def _refresh(doc: dict, c: dict) -> None:
     """Canonical role of a settled cluster: founder_review while it is not live and has undecided pairs."""
     canon = next(m for m in c["members"] if m["id"] == c["canonical"])
@@ -230,93 +309,128 @@ def _refresh(doc: dict, c: dict) -> None:
             doc["roles"][m["id"]] = "member"
 
 
-def _merge(doc: dict, big: dict, small: dict) -> dict:
-    ca = next(m for m in big["members"] if m["id"] == big["canonical"])
-    cb = next(m for m in small["members"] if m["id"] == small["canonical"])
-    winner = corpus.elect([_stand_in(ca), _stand_in(cb)]).ref
-    loser = cb["id"] if winner == ca["id"] else ca["id"]
-    members = [m for m in big["members"] + small["members"]]
-    for m in members:
-        if m["id"] == loser:
-            m["match"] = "founder_same"
-            m["duplicate_of"] = winner
-        elif m["id"] == winner:
-            m["match"] = "canonical"
-            m.pop("duplicate_of", None)
-    members.sort(key=lambda m: (m["id"] != winner,))
-    big["members"] = members
-    big["canonical"] = winner
-    big["is_live"] = big["is_live"] or small["is_live"]
-    big["keeper_tie"] = False
-    big["founder_pairs"] = sorted(set(big["founder_pairs"]) | set(small["founder_pairs"]))
-    return big
-
-
-def apply_decisions(pairs_json: Path, decisions_json: Path, clusters_json: Path) -> None:
-    pairs_doc = json.loads(Path(pairs_json).read_text(encoding="utf-8"))
-    decisions = json.loads(Path(decisions_json).read_text(encoding="utf-8"))
-    doc = json.loads(Path(clusters_json).read_text(encoding="utf-8"))
-    if not isinstance(decisions, dict):
-        raise ValueError("decisions must be a JSON object {pair_id: 'same'|'different'}")
-    if pairs_doc.get("normalizer_version") != doc.get("normalizer_version"):
-        raise ValueError(f"normalizer_version differs: pairs {pairs_doc.get('normalizer_version')!r}, "
-                         f"clusters {doc.get('normalizer_version')!r}")
-    pairs = {p["pair_id"]: p for p in pairs_doc["pairs"]}
-    unknown = sorted(set(decisions) - set(pairs))
-    if unknown:
-        raise ValueError(f"unknown pair ids: {', '.join(unknown)}")
-    bad = {k: v for k, v in decisions.items() if v not in DECISIONS}
-    if bad:
-        raise ValueError(f"decision must be 'same' or 'different': {bad}")
-    recorded = doc.get("founder_decisions", {})
-    changed = sorted(k for k, v in decisions.items() if k in recorded and recorded[k] != v)
-    if changed:
-        raise ValueError(f"already decided differently (a merge cannot be undone here): {', '.join(changed)}")
-
+def apply_to_doc(doc: dict, pairs: list[dict], decided: dict[str, str]) -> list[dict]:
+    """Apply decisions {pair_key: 'same'|'different'} to a clusters document (roles, clusters, counts) in place.
+    Returns the pairs still undecided. Raises ValueError, changing nothing, if the answers contradict
+    each other or touch a held cluster. Used by `pairs apply` and by `corpus` (re-applying saved answers)."""
     clusters = {c["cluster_id"]: c for c in doc["clusters"]}
     owner = {m["id"]: c["cluster_id"] for c in doc["clusters"] for m in c["members"]}
-
-    def of(member_id):
-        if member_id not in owner:
-            raise ValueError(f"pair side {member_id} is not in clusters.json")
-        return clusters[owner[member_id]]
-
-    for pid in sorted(decisions):
-        for s in ("canonical", "member"):
-            c = of(pairs[pid][s]["id"])
+    ends = {_key_of(p): (p["canonical"]["id"], p["member"]["id"]) for p in pairs}
+    for k in decided:
+        ends.setdefault(k, tuple(k.split("|")))
+    for k in sorted(decided):
+        for mid in ends[k]:
+            if mid not in owner:
+                raise ValueError(f"The answer for {k} names {mid}, which is not in this clusters file. "
+                                 "Re-run the corpus step, then apply again.")
+            c = clusters[owner[mid]]
             if c["status"] != "settled":
-                raise ValueError(f"pair {pid}: cluster {c['cluster_id']} is {c['status']}, not decidable here")
+                raise ValueError(f"The answer for {k} is about {mid}, whose group is on hold ({c['status']}). "
+                                 "Held groups cannot be decided on this page.")
+    groups, edges = _Groups(), {}
+    for k in sorted(decided):
+        if decided[k] == "same":
+            a, b = (owner[m] for m in ends[k])
+            groups.union(a, b)
+            edges.setdefault(a, []).append((b, k))
+            edges.setdefault(b, []).append((a, k))
+    clash = []
+    for k in sorted(decided):
+        a, b = (owner[m] for m in ends[k])
+        if decided[k] == "different" and groups.find(a) == groups.find(b):
+            clash.append(f"{k} was answered 'different', but these 'same' answers join its two questions: "
+                         + "; ".join(_chain(edges, a, b)))
+    if clash:
+        raise ValueError("Your answers contradict each other, so nothing was changed. " + " | ".join(clash)
+                         + ". Fix the wrong answer (remove its line from founder_decisions.json) and run again.")
 
-    touched: set[str] = set()
-    merges = 0
-    for pid in sorted(decisions):
-        a, b = of(pairs[pid]["canonical"]["id"]), of(pairs[pid]["member"]["id"])
-        if decisions[pid] == "same":
-            if a is not b:
-                big, small = (a, b) if len(a["members"]) >= len(b["members"]) else (b, a)
-                _merge(doc, big, small)
-                for m in small["members"]:
-                    owner[m["id"]] = big["cluster_id"]
-                del clusters[small["cluster_id"]]
-                merges += 1
-            touched.add(owner[pairs[pid]["canonical"]["id"]])
-        else:
-            if a is b:
-                raise ValueError(f"pair {pid} is 'different' but other answers made both sides one question")
-            touched.update((a["cluster_id"], b["cluster_id"]))
+    members_of: dict[str, list[str]] = {}
+    for cid in clusters:
+        members_of.setdefault(groups.find(cid), []).append(cid)
+    touched, merges = set(), 0
+    for root, cids in members_of.items():
+        if len(cids) == 1:
+            continue
+        cs = sorted((clusters[c] for c in cids), key=lambda c: (-len(c["members"]), c["cluster_id"]))
+        big = cs[0]
+        canons = [next(m for m in c["members"] if m["id"] == c["canonical"]) for c in cs]
+        winner = corpus.elect([_stand_in(m) for m in canons]).ref
+        members = [m for c in cs for m in c["members"]]
+        for m in members:
+            if m["id"] == winner:
+                m["match"] = "canonical"
+                m.pop("duplicate_of", None)
+            elif m["id"] in {x["id"] for x in canons}:
+                m["match"] = "founder_same"
+                m["duplicate_of"] = winner
+        members.sort(key=lambda m: m["id"] != winner)
+        big.update(members=members, canonical=winner, keeper_tie=False,
+                   is_live=any(c["is_live"] for c in cs),
+                   founder_pairs=sorted({p for c in cs for p in c["founder_pairs"]}))
+        for c in cs[1:]:
+            del clusters[c["cluster_id"]]
+        for m in members:
+            owner[m["id"]] = big["cluster_id"]
+        touched.add(big["cluster_id"])
+        merges += len(cs) - 1
 
-    done = set(decisions) | set(recorded)
-    for cid in touched:
-        c = clusters[cid]
-        c["founder_pairs"] = [p for p in c["founder_pairs"] if p not in done]
+    remaining = [p for p in pairs if _key_of(p) not in decided and owner.get(p["canonical"]["id"]) != owner.get(p["member"]["id"])]
+    keep = {p["pair_id"] for p in remaining}
+    for c in clusters.values():
+        pend = [x for x in c["founder_pairs"] if x in keep]
+        if pend != c["founder_pairs"]:
+            c["founder_pairs"] = pend
+            touched.add(c["cluster_id"])
+    for p in remaining:
+        p["canonical"]["cluster_id"], p["member"]["cluster_id"] = owner[p["canonical"]["id"]], owner[p["member"]["id"]]
     doc["clusters"] = [c for c in doc["clusters"] if c["cluster_id"] in clusters]
-    for cid in touched:
+    for cid in sorted(touched):
         _refresh(doc, clusters[cid])
-    doc["founder_decisions"] = dict(sorted({**recorded, **decisions}.items()))
+    doc["founder_decisions"] = {k: decided[k] for k in sorted(decided)}
     counts = doc.setdefault("counts", {})
     counts["roles"] = dict(Counter(doc["roles"].values()))
     for k in ("unique", "unique_not_live", "clusters_settled"):
         if k in counts:
             counts[k] -= merges
-    counts["founder_pairs_undecided"] = len(set(pairs) - set(doc["founder_decisions"]))
-    _atomic_write(Path(clusters_json), doc)
+    counts["founder_pairs"] = len(remaining)
+    if "unique" in counts:
+        g = _Groups()
+        floor = counts["unique"]
+        for p in remaining:
+            a, b = g.find(owner[p["canonical"]["id"]]), g.find(owner[p["member"]["id"]])
+            if a != b:
+                g.union(a, b)
+                floor -= 1
+        counts["unique_floor_if_every_pair_is_same"] = floor
+    return remaining
+
+
+def apply_decisions(pairs_json: Path, decisions_json: Path, clusters_json: Path,
+                    decisions_file: Path | None = None, now: str | None = None) -> None:
+    """Fold the founder's page answers {pair_id: 'same'|'different'} into clusters.json. The answers are first
+    appended to the decision log (default founder_decisions.json next to clusters.json) so a corpus re-run keeps them."""
+    clusters_json = Path(clusters_json)
+    pairs_doc = json.loads(Path(pairs_json).read_text(encoding="utf-8"))
+    answers = json.loads(Path(decisions_json).read_text(encoding="utf-8"))
+    doc = json.loads(clusters_json.read_text(encoding="utf-8"))
+    if not isinstance(answers, dict):
+        raise ValueError("The answers file must be a JSON object like {\"fp-...\": \"same\"}.")
+    if pairs_doc.get("normalizer_version") != doc.get("normalizer_version"):
+        raise ValueError(f"The pairs file (normalizer {pairs_doc.get('normalizer_version')!r}) and clusters file "
+                         f"({doc.get('normalizer_version')!r}) come from different runs. Re-run the corpus step.")
+    pairs = {p["pair_id"]: p for p in pairs_doc["pairs"]}
+    unknown = sorted(set(answers) - set(pairs))
+    if unknown:
+        raise ValueError(f"These pair ids are not in the pairs file (wrong or older file?): {', '.join(unknown)}")
+    bad = {k: v for k, v in answers.items() if v not in DECISIONS}
+    if bad:
+        raise ValueError(f"Each answer must be exactly 'same' or 'different'. Got: {bad}")
+    log_path = Path(decisions_file) if decisions_file else clusters_json.parent / "founder_decisions.json"
+    log = load_decisions(log_path)
+    new = {_key_of(pairs[pid]): v for pid, v in answers.items()}
+    check_new(log, new, log_path.name)
+    decided = {**{k: v["decision"] for k, v in log.items()}, **new}
+    apply_to_doc(doc, [dict(p) for p in pairs_doc["pairs"]], decided)  # raises before anything is written
+    if new:
+        append_decisions(log_path, log, new, now or datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"))
+    _atomic_write(clusters_json, doc)
