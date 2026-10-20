@@ -105,13 +105,40 @@ class WriterTests(unittest.TestCase):
         self.assertEqual(len(lines), 2)
         self.assertEqual(json.loads(lines[1])["intent_id"], iid)
 
-    def test_unclosed_torn_line_in_middle_is_corrupt(self):
+    def test_torn_line_mid_log_is_open_and_closable(self):
         with open(self.log, "w") as f:
             f.write('{"type": "open", "int')
         self._open("batch-08")
-        with self.assertRaises(writer.CorruptLog) as cm:
-            writer.open_intents(self.log)
-        self.assertEqual(cm.exception.line_no, 1)
+        opened = writer.open_intents(self.log)
+        self.assertEqual(sorted(i["intent_id"][:5] for i in opened), sorted(["torn-", self._iid("batch-08")[:5]]))
+        writer.close_intent(self.log, "torn-1", "not_applied", "cd", T2)
+        self.assertEqual([i["batch"] for i in writer.open_intents(self.log)], ["batch-08"])
+
+    def _iid(self, batch):
+        return writer.open_intents(self.log)[-1]["intent_id"]
+
+    def test_recovery_sequence_any_order(self):
+        a = self._open("batch-A")
+        with open(self.log, "a") as f:
+            f.write('{"type": "open", "intent_')  # crash: torn line 2
+        writer.close_intent(self.log, a, "verified", "cd", T2)  # closes after the torn line
+        with self.assertRaises(writer.OpenIntent) as cm:
+            writer.require_no_open_intents(self.log)
+        self.assertIn("torn-2", str(cm.exception))
+        writer.close_intent(self.log, "torn-2", "not_applied", "cd", T2)
+        b = writer.write_intent(self.log, "batch-B", "publish", ["x"], "s", T2)
+        self.assertEqual([i["intent_id"] for i in writer.open_intents(self.log)], [b])
+
+    def test_undecodable_bytes_are_torn_line_and_bad_lock(self):
+        self._open("batch-07")
+        with open(self.log, "ab") as f:
+            f.write(b'\xff\xfe garbage\n')
+        self.assertEqual(len(writer.open_intents(self.log)), 2)
+        self.lock.write_bytes(b"\xff\xfe")
+        with self.assertRaises(writer.LockHeld):
+            writer.acquire_lock(self.lock, "s", T1)
+        with self.assertRaises(writer.CorruptLock):
+            writer.release_lock(self.lock, "s")
 
     def test_torn_line_closed_then_log_readable(self):
         with open(self.log, "w") as f:

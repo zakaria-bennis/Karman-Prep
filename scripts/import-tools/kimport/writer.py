@@ -33,13 +33,6 @@ class CorruptLock(Exception):
     pass
 
 
-class CorruptLog(Exception):
-    def __init__(self, path, line_no: int):
-        self.path = path
-        self.line_no = line_no
-        super().__init__(f"intent log {path} has an unreadable line {line_no} that is not the last line")
-
-
 class OpenIntent(Exception):
     def __init__(self, intents: list):
         self.intents = intents
@@ -50,9 +43,9 @@ class OpenIntent(Exception):
 def _read_lock(lock_path: Path):
     """Return (holder, since), or None when the file cannot be parsed."""
     try:
-        info = json.loads(Path(lock_path).read_text())
+        info = json.loads(Path(lock_path).read_bytes().decode("utf-8"))
         return info["holder"], info["since"]
-    except (ValueError, KeyError, TypeError):
+    except (ValueError, KeyError, TypeError):  # ValueError covers UnicodeDecodeError
         return None
 
 
@@ -99,33 +92,35 @@ def _append(log_path: Path, entry: dict) -> None:
 
 
 def _read(log_path: Path) -> list:
+    """Parse the log. Any unparseable line (torn write, bad bytes) becomes an
+    open intent "torn-<line number>" until a close line for that id exists."""
     log_path = Path(log_path)
     if not log_path.exists():
         return []
     parsed = []  # (line_no, entry or None)
-    for n, line in enumerate(log_path.read_text(encoding="utf-8").splitlines(), 1):
-        if not line.strip():
-            continue
+    for n, raw in enumerate(log_path.read_bytes().split(b"\n"), 1):
         try:
+            line = raw.decode("utf-8")
+            if not line.strip():
+                continue
             entry = json.loads(line)
             if not isinstance(entry, dict) or "type" not in entry or "intent_id" not in entry:
                 raise ValueError
-        except ValueError:
+        except ValueError:  # includes UnicodeDecodeError
+            if not raw.strip():
+                continue
             entry = None
         parsed.append((n, entry))
     closed = {e["intent_id"] for _, e in parsed if e and e["type"] == "close"}
     entries = []
-    for i, (n, entry) in enumerate(parsed):
+    for n, entry in parsed:
         if entry is not None:
             entries.append(entry)
-        elif i == len(parsed) - 1 or f"torn-{n}" not in closed:
-            if i != len(parsed) - 1:
-                raise CorruptLog(log_path, n)
+        elif f"torn-{n}" not in closed:
             entries.append({
                 "type": "open", "intent_id": f"torn-{n}", "batch": f"unknown (torn log line {n})",
                 "action": "unknown", "question_ids": [], "sql_sha256": "", "at": "",
             })
-        # else: a torn line already closed by an explicit torn-N close; skip
     return entries
 
 

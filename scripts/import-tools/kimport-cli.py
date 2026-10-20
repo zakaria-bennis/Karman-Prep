@@ -65,7 +65,7 @@ def _guard(fn) -> int:
     try:
         fn()
     except (writer.LockHeld, writer.WrongHolder, writer.NoLock, writer.OpenIntent,
-            writer.CorruptLog, writer.CorruptLock, ValueError) as e:
+            writer.CorruptLock, ValueError) as e:
         print(f"error: {e}", file=sys.stderr)
         return 1
     return 0
