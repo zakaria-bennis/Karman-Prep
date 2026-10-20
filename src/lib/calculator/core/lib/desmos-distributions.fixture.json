@@ -1,5 +1,5 @@
 {
-  "_about": "Live Desmos values and error texts for normaldist, tdist, binomialdist, their methods and summary statistics, erf and the legacy names normalcdf, normalpdf, binomcdf, binompdf and invNorm, copied from the function catalogue's ALL.values.json (captured 2026-10-19). Keys are the latex set on the row; ' ; ', ' ;; ' or ' ⟹ ' separate helper rows from the case row. null = undefined.",
+  "_about": "Live Desmos values and error texts for normaldist, tdist, binomialdist, their methods and summary statistics, erf and the legacy names normalcdf, normalpdf, binomcdf, binompdf, invNorm, tpdf, tcdf, invT and invBinom, copied from the function catalogue's ALL.values.json (captured 2026-10-19). Keys are the latex set on the row; ' ; ', ' ;; ' or ' ⟹ ' separate helper rows from the case row. null = undefined.",
   "values": {
     "\\operatorname{random}\\left(\\operatorname{normaldist}\\left(\\right)\\right)": 0.23434603166404405,
     "\\operatorname{random}\\left(\\operatorname{normaldist}\\left(\\right),3\\right)": {
@@ -209,7 +209,33 @@
     "D=\\operatorname{normaldist}\\left(\\right) ;; D.\\operatorname{pdf}\\left(0\\right)": 0.3989422804014327,
     "\\operatorname{inversecdf}(\\operatorname{normaldist}(),0.5)": 0,
     "\\operatorname{inverseCdf}(\\operatorname{normaldist}(),0.5)": 0,
-    "\\operatorname{inverseCdf}\\left(\\operatorname{normaldist}\\left(\\right),0.5\\right)": 0
+    "\\operatorname{inverseCdf}\\left(\\operatorname{normaldist}\\left(\\right),0.5\\right)": 0,
+    "\\operatorname{tpdf}\\left(0,3\\right)": 0.36755259694786135,
+    "\\operatorname{tpdf}\\left(1,1\\right)": 0.15915494309189535,
+    "\\operatorname{tpdf}\\left(0,0\\right)": null,
+    "\\operatorname{tpdf}\\left(0,-1\\right)": null,
+    "\\operatorname{tpdf}\\left(\\left[0,1\\right],3\\right)": [
+      0.36755259694786135, 0.20674833578317203
+    ],
+    "\\operatorname{tpdf}\\left(0,\\infty\\right)": 0.3989422804014327,
+    "\\operatorname{tcdf}\\left(0,1,3,0,1\\right)": 0.30449889052211465,
+    "\\operatorname{tcdf}\\left(0,1,3,0,2\\right)": 0.1742760175759246,
+    "\\operatorname{invT}\\left(0.975,3\\right)": 3.1824463052837055,
+    "\\operatorname{invT}\\left(0.5,3\\right)": 0,
+    "\\operatorname{invT}\\left(0,3\\right)": null,
+    "\\operatorname{invT}\\left(1,3\\right)": null,
+    "\\operatorname{invT}\\left(0.975,0\\right)": null,
+    "\\operatorname{invT}\\left(1.5,3\\right)": null,
+    "\\operatorname{invT}\\left(\\left[0.025,0.975\\right],3\\right)": [
+      -3.1824463052837055, 3.1824463052837055
+    ],
+    "\\operatorname{invBinom}\\left(0.5,10,0.5\\right)": 5,
+    "\\operatorname{invBinom}\\left(0.9,10,0.3\\right)": 5,
+    "\\operatorname{invBinom}\\left(0,10,0.5\\right)": 0,
+    "\\operatorname{invBinom}\\left(1,10,0.5\\right)": 10,
+    "\\operatorname{invBinom}\\left(1.5,10,0.5\\right)": null,
+    "\\operatorname{invBinom}\\left(0.5,10,1.5\\right)": null,
+    "\\operatorname{invBinom}\\left(\\left[0.1,0.9\\right],10,0.5\\right)": [3, 7]
   },
   "errors": {
     "\\operatorname{random}\\left(\\operatorname{normaldist}\\left(0,\\left[1,2\\right]\\right)\\right)": "Cannot sample from a list of distributions",
@@ -255,6 +281,31 @@
     "\\operatorname{normaldist}\\left(\\right).\\operatorname{pdf}\\left(i\\right)": "Try adding 'y=' to the beginning of this equation.",
     "\\operatorname{tdist}\\left(1,2,3,4\\right)": "Function 'tdist' requires 3 arguments. For example, try typing: tdist(1, 2, 3).",
     "\\operatorname{normaldist}\\left(\\right)\\cdot 2": "Cannot multiply a distribution by a number.",
-    "\\operatorname{normaldist}\\left(\\right)+1": "Cannot add a distribution and a number."
+    "\\operatorname{normaldist}\\left(\\right)+1": "Cannot add a distribution and a number.",
+    "\\operatorname{pdf}\\left(1,2\\right)": "Function 'pdf' cannot be applied to a number and a number.",
+    "\\operatorname{inversecdf}\\left(0.5\\right)": "Function 'inversecdf' requires 2 arguments. For example, try typing: inversecdf([1,2,3], 1).",
+    "\\operatorname{tpdf}\\left(0\\right)": "Function 'tpdf' requires 2 arguments. For example, try typing: tpdf(1, 2).",
+    "\\operatorname{tpdf}\\left(\\right)": "Function 'tpdf' requires 2 arguments. For example, try typing: tpdf(1, 2).",
+    "\\operatorname{tpdf}\\left(1,2,3\\right)": "Function 'tpdf' requires 2 arguments. For example, try typing: tpdf(1, 2).",
+    "\\operatorname{tcdf}\\left(0,1,3\\right)": "Function 'tcdf' requires 5 arguments. For example, try typing: tcdf(1, 2, 3, 4, 5).",
+    "\\operatorname{tcdf}\\left(-1,1,3\\right)": "Function 'tcdf' requires 5 arguments. For example, try typing: tcdf(1, 2, 3, 4, 5).",
+    "\\operatorname{tcdf}\\left(-\\infty,0,5\\right)": "Function 'tcdf' requires 5 arguments. For example, try typing: tcdf(1, 2, 3, 4, 5).",
+    "\\operatorname{tcdf}\\left(1,0,3\\right)": "Function 'tcdf' requires 5 arguments. For example, try typing: tcdf(1, 2, 3, 4, 5).",
+    "\\operatorname{tcdf}\\left(0,1,0\\right)": "Function 'tcdf' requires 5 arguments. For example, try typing: tcdf(1, 2, 3, 4, 5).",
+    "\\operatorname{tcdf}\\left(\\left[0,1\\right],2,3\\right)": "Function 'tcdf' requires 5 arguments. For example, try typing: tcdf(1, 2, 3, 4, 5).",
+    "\\operatorname{tcdf}\\left(0,1\\right)": "Function 'tcdf' requires 5 arguments. For example, try typing: tcdf(1, 2, 3, 4, 5).",
+    "\\operatorname{tcdf}\\left(\\right)": "Function 'tcdf' requires 5 arguments. For example, try typing: tcdf(1, 2, 3, 4, 5).",
+    "\\operatorname{tcdf}\\left(1,2,3,4,5,6\\right)": "Function 'tcdf' requires 5 arguments. For example, try typing: tcdf(1, 2, 3, 4, 5).",
+    "\\operatorname{invT}\\left(0.975\\right)": "Function 'invT' requires 2 arguments. For example, try typing: invT(1, 2).",
+    "\\operatorname{invT}\\left(\\right)": "Function 'invT' requires 2 arguments. For example, try typing: invT(1, 2).",
+    "\\operatorname{invT}\\left(1,2,3\\right)": "Function 'invT' requires 2 arguments. For example, try typing: invT(1, 2).",
+    "\\operatorname{invBinom}\\left(0.5,10\\right)": "Function 'invBinom' requires 3 arguments. For example, try typing: invBinom(1, 2, 3).",
+    "\\operatorname{invBinom}\\left(\\right)": "Function 'invBinom' requires 3 arguments. For example, try typing: invBinom(1, 2, 3).",
+    "\\operatorname{invBinom}\\left(1,2,3,4\\right)": "Function 'invBinom' requires 3 arguments. For example, try typing: invBinom(1, 2, 3).",
+    "\\left[1,2\\right].\\operatorname{pleft}": "Function '.pleft' cannot be applied to a list of numbers.",
+    "a.\\operatorname{p}": "Sorry, I don't understand the way that '.' is used here.",
+    "\\operatorname{inv}N\\operatorname{or}m\\left(0.975\\right)": "'or' can only be used as part of a condition.",
+    "n\\operatorname{or}mal\\operatorname{cdf}\\left(0,1\\right)": "'or' can only be used as part of a condition.",
+    "t\\operatorname{pdf}\\left(0,3\\right)": "Function 'pdf' cannot be applied to a number and a number."
   }
 }

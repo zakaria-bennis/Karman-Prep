@@ -62,7 +62,7 @@ function letter(base: string): string {
  * `repeat-count`, `repeat-lengths`, `refused-function`, `colon-side`, `colon-condition`,
  * `piecewise-condition`, `piecewise-part`, `piecewise-types`, `relation-side`, `comparator-types`
  * `double-inequality`, `distribution-call`, `distribution-function`, `add-types` and
- * `multiply-types` use the text Desmos gave on 2026-10-19 (the other operator texts are its
+ * `multiply-types`, `unexpected-symbol` and `logic-outside-condition` use the text Desmos gave on 2026-10-19 (the other operator texts are its
  * bundle's, not yet captured live); `repeat-counts` is Desmos's
  * text for a bad count in a list of counts (its bundle's bad-counts string), and
  * `relation-chain`, `chained-equation`, `long-chain` and `double-direction` are its bundle's
@@ -141,6 +141,8 @@ const MESSAGES: Readonly<Record<RowErrorCode, string>> = {
   "divide-types": "Cannot divide {n} by {k}.",
   "power-types": "Cannot raise {n} to {k}.",
   "negate-type": "Cannot negate {n}.",
+  "unexpected-symbol": "Sorry, I don't understand the way that '{n}' is used here.",
+  "logic-outside-condition": "'{n}' can only be used as part of a condition.",
 };
 /** RC-2, Phase 1: `unsupported` naming r or θ, whose polar graphs ship in Phase 2. */
 const POLAR_UNSUPPORTED = "{n} is for polar graphs, which aren't available yet.";

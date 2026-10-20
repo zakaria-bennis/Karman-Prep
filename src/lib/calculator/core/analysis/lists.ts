@@ -77,12 +77,14 @@ export function inferLists(
     shapes.set(name, "numbers");
   }
   for (const name of scalars) shapes.set(name, "number");
+  const functionHeads = new Map(heads.filter((h) => h.type === "function").map((h) => [h.name, h]));
+  const known: Known = { shapes, functions: functionHeads, open: new Set() };
   const typing: ListTyping = {
     names,
     defined: new Set([...defined, ...names, ...scalars, ...heads.map((h) => h.name)]),
     isList: (node, locals) => listValued(node, locals, names, functions),
-    shape: (node, locals, bound = UNBOUND) => shapeOf(node, locals, shapes, bound),
-    functions: new Map(heads.filter((h) => h.type === "function").map((h) => [h.name, h])),
+    shape: (node, locals, bound = UNBOUND) => shapeOf(node, locals, known, bound),
+    functions: functionHeads,
   };
   for (let changed = true; changed; ) {
     changed = false;
@@ -110,15 +112,13 @@ export function inferLists(
  * and `locals` are numbers, unless `bound` gives a local's shape; a point is a point; a list or range holds numbers, or points when
  * every item is one; an index picks from its target's elements; and arithmetic or a built-in on
  * numbers gives a number, or a list of numbers when an operand is one; a point times a number is
- * a point. Other point arithmetic (M4), user calls, relations and undefined names are unknown.
+ * a point; a user call is a distribution, or a list of them, when its body is with its parameters
+ * read as its arguments' shapes (FN-45). Other point arithmetic (M4), other user calls, relations
+ * and undefined names are unknown.
  */
-function shapeOf(
-  node: Node,
-  locals: readonly string[],
-  shapes: ReadonlyMap<string, Shape>,
-  bound: Bound
-): Shape | null {
-  const of = (n: Node) => shapeOf(n, locals, shapes, bound);
+function shapeOf(node: Node, locals: readonly string[], known: Known, bound: Bound): Shape | null {
+  const { shapes } = known;
+  const of = (n: Node) => shapeOf(n, locals, known, bound);
   switch (node.kind) {
     case "num":
     case "const":
@@ -143,7 +143,7 @@ function shapeOf(
       return target === "numbers" ? "number" : "point";
     }
     case "call": {
-      if (!isBuiltinName(node.name)) return null;
+      if (!isBuiltinName(node.name)) return userCallShape(node, node.args.map(of), known);
       const args = node.args.map(of),
         read = distributionCallShape(node, args);
       if (read !== undefined) return read;
@@ -160,6 +160,29 @@ function shapeOf(
     default:
       return numeric(childNodes(node).map(of));
   }
+}
+
+/** The value shapes and function heads shapeOf reads, and the user functions being opened. */
+interface Known {
+  shapes: ReadonlyMap<string, Shape>;
+  functions: ReadonlyMap<string, DefinitionHead>;
+  open: ReadonlySet<string>;
+}
+
+/**
+ * FN-45: the shape of a user call when its body makes a distribution or a list of them, with the
+ * parameters bound to the arguments' shapes (`f(2)` for `f(x)=\operatorname{normaldist}(x,1)`);
+ * unknown otherwise, and for a call inside its own body.
+ */
+function userCallShape(node: Call, args: readonly (Shape | null)[], known: Known): Shape | null {
+  const head = known.functions.get(node.name);
+  if (head === undefined || head.params.length !== args.length || known.open.has(head.name)) {
+    return null;
+  }
+  const bound = new Map(head.params.map((p, k) => [p, args[k]]));
+  const inner: Known = { ...known, open: new Set([...known.open, head.name]) };
+  const shape = shapeOf(head.body, [], inner, bound);
+  return isDistributionShape(shape) ? shape : null;
 }
 
 /**

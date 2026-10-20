@@ -460,10 +460,25 @@ rule should already exist.
   names `normalcdf`, `normalpdf`, `binomcdf`, `binompdf`, `invNorm` in Desmos's slot order
   (`binomcdf(10,0.5,5)` reads the bounds 10 and 0.5 with 5 trials). Maths in `lib/probability.ts`
   and `lib/distributions.ts`, errors in `analysis/distributions.ts`.
-- Checked by `lib/desmos-distributions.reference.test.ts`: 148 of the catalogue's 172 values and
-  35 of its 44 error texts match. Not yet matched: derivatives, `\infty` as a value, `random`
-  (task 13), a stored ±∞ behind "undefined" (`1/invNorm(1)` is 0 in Desmos; NM-6 keeps one
-  undefined state), and "Try adding 'y='…" for `i` in real mode (the calculator offers its chip).
+- Checked by `lib/desmos-distributions.reference.test.ts`: 169 of the catalogue's 194 values and
+  58 of its 69 error texts match, the legacy `tpdf`, `tcdf`, `invT` and `invBinom` included. Not
+  yet matched: derivatives, `\infty` as a value, `random` (task 13), a stored ±∞ behind
+  "undefined" (`1/invNorm(1)` is 0 in Desmos; NM-6 keeps one undefined state), "Try adding
+  'y='…" for `i` in real mode (the calculator offers its chip), and
+  `\operatorname{inv}N\operatorname{or}m(0.975)` (the unknown `\operatorname{inv}` is refused
+  before the `or`).
+- Parity pass (2026-10-20): the binomial pmf is Loader's saddle point form (finite for thousands
+  of trials), its cdf sums Desmos's recurrence until terms stop changing the sum (NaN past 10⁶
+  terms or 2⁵³ trials, never a hang) and invBinom bisects; the t cdf for ν > 1000 near its centre
+  goes through the normal score with a quadrature correction, and the incomplete beta's prefactor
+  uses Stirling errors, so `tdist(10^{14}).cdf(1)` is Φ(1). From Desmos's formulas (not captured
+  live): σ = 0 and scale 0 are point masses, binompdf and binomcdf clamp p, mean round(n)·p and
+  variance round(n)·p·(1 − p) unchecked, tdist's mean and median its location for every ν. A user
+  function returning a distribution reads, errors and graphs as one. `[1,2].\operatorname{pleft}`
+  and `a.\operatorname{p}` read Desmos's texts; `or`/`and` in a row with no comparison reads
+  "'or' can only be used as part of a condition.". Not changed (no live capture): the arity text
+  of `cdf(normaldist())`, `mean(normaldist(),2)`; `L.\operatorname{quantile}(0.5)` waits for
+  PR-45's list members.
 - Outside the maths fence, still to do: a bare distribution row shows its constructor text
   (`tdist(3, 0, 1)`) instead of Desmos's card, and does not graph its pdf (FN-52, render and UI).
   The other five distributions and inference stay unsupported.

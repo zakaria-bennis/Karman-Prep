@@ -145,6 +145,10 @@ export const SHIPPED: ReadonlySet<string> = new Set([
   "binomcdf",
   "binompdf",
   "invNorm",
+  "tpdf",
+  "tcdf",
+  "invT",
+  "invBinom",
 ]);
 
 /**
@@ -335,6 +339,10 @@ export const HIDDEN_OPERATOR_NAMES: readonly OperatorName[] = Object.freeze([
   op("binomcdf", 6, 3, [3, 4]),
   op("binompdf", 6, 3, [2, 3]),
   op("invNorm", 6, 3, [1]),
+  op("tpdf", 6, 3, [2]),
+  op("tcdf", 6, 3, [5]),
+  op("invT", 6, 3, [2]),
+  op("invBinom", 6, 3, [3]),
 ]);
 
 /**
@@ -353,7 +361,6 @@ export const REFUSED_NAMES: readonly string[] = Object.freeze([
 /** Members, read only after `.` (PR-45): never built-ins, split targets or MathQuill names. */
 export const MEMBER_NAMES: readonly string[] = Object.freeze([
   "null",
-  "p",
   "pleft",
   "pright",
   "score",

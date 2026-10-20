@@ -7,17 +7,13 @@
 import type { Distribution, DistributionName } from "../eval/values";
 import {
   binomialBetween,
-  binomialCdf,
   binomialPdf,
   binomialQuantile,
-  binomialTrials,
-  normalBetween,
-  normalCdf,
-  normalPdf,
+  normalCdfBetween,
+  normalDensity,
   normalQuantile,
-  normalSpread,
-  tCdf,
-  tPdf,
+  tBetween,
+  tDensity,
   tQuantile,
 } from "./probability";
 
@@ -89,86 +85,75 @@ export function readsDistribution(name: string): boolean {
   return READERS.has(name);
 }
 
-/** A location and scale family's spread: |scale|, NaN at 0 (σ = 0 is undefined, FN-45). */
-const spread = normalSpread;
-
-/** FN-47: the density, or for binomialdist P(X = x) with x rounded half up. */
+/**
+ * FN-47: the density, or for binomialdist P(X = x) with x rounded half up: Desmos's normalpdf,
+ * tpdf over |scale| and binompdf on the parameters.
+ */
 export function pdf(d: Distribution, x: number): number {
   const [a, b, c] = d.params;
   switch (d.name) {
-    case "normaldist": {
-      const s = spread(b);
-      return normalPdf((x - a) / s) / s;
-    }
-    case "tdist": {
-      const s = spread(c);
-      return tPdf((x - b) / s, a) / s;
-    }
+    case "normaldist":
+      return normalDensity(x, a, b);
+    case "tdist":
+      return tDensity(x, a, b, c);
     case "binomialdist":
       return binomialPdf(x, a, b);
   }
 }
 
 /**
- * FN-48: P(X ≤ x) with one bound, P(lo ≤ X ≤ hi) with two in either order; a binomial counts
- * the whole numbers from ⌈lo⌉ to ⌊hi⌋.
+ * FN-48: P(X ≤ x) with one bound, P(lo ≤ X ≤ hi) with two in either order, by Desmos's
+ * normalcdf, tcdf and binomcdf; a binomial counts the whole numbers from ⌈lo⌉ to ⌊hi⌋, and σ = 0
+ * or scale 0 is a point mass.
  */
 export function cdf(d: Distribution, bounds: readonly number[]): number {
   const [a, b, c] = d.params;
   const [lo, hi] = bounds.length === 1 ? [-Infinity, bounds[0]] : bounds;
   switch (d.name) {
-    case "normaldist": {
-      const s = spread(b);
-      if (bounds.length === 1) return normalCdf((hi - a) / s);
-      return normalBetween((lo - a) / s, (hi - a) / s);
-    }
-    case "tdist": {
-      const s = spread(c);
-      const [low, high] = [(Math.min(lo, hi) - b) / s, (Math.max(lo, hi) - b) / s];
-      if (bounds.length === 1) return tCdf((hi - b) / s, a);
-      return low > 0 ? tCdf(-low, a) - tCdf(-high, a) : tCdf(high, a) - tCdf(low, a);
-    }
+    case "normaldist":
+      return normalCdfBetween(lo, hi, a, b);
+    case "tdist":
+      return tBetween(lo, hi, a, b, c);
     case "binomialdist":
-      return bounds.length === 1 ? binomialCdf(hi, a, b) : binomialBetween(lo, hi, a, b);
+      return binomialBetween(lo, hi, a, b);
   }
 }
 
 /**
- * FN-49: the x whose cdf is p, ±∞ at p = 0 and 1 for the continuous ones (shown as undefined);
- * for a binomial the smallest whole k whose cdf reaches p.
+ * FN-49: the x whose cdf is p, as Desmos composes it: invNorm(p)·|σ| + μ and invT(p, ν)·|scale| +
+ * location, so σ = 0 gives μ; ±∞ at p = 0 and 1 (shown as undefined). For a binomial, invBinom:
+ * the smallest whole k whose cdf reaches p.
  */
 export function inverseCdf(d: Distribution, p: number): number {
   const [a, b, c] = d.params;
   switch (d.name) {
     case "normaldist":
-      return a + spread(b) * normalQuantile(p);
+      return normalQuantile(p) * Math.abs(b) + a;
     case "tdist":
-      return b + spread(c) * tQuantile(p, a);
+      return tQuantile(p, a) * Math.abs(c) + b;
     case "binomialdist":
       return binomialQuantile(p, a, b);
   }
 }
 
 /**
- * FN-51: the theoretical statistic. tdist's mean and median are its location for every ν > 0
- * (`tdist(1).mean` = 0, as in Desmos), and its stdev is infinite for 1 < ν ≤ 2 and undefined below.
+ * FN-51: the theoretical statistic, by Desmos's formulas with no check on the parameters. normaldist:
+ * μ, μ, |σ| and σ². tdist: the location for mean and median whatever ν (`tdist(0).mean` = 0), a
+ * variance ν/(ν − 2)·scale² for ν > 2, ∞ for 1 < ν ≤ 2 and undefined below. binomialdist: a mean
+ * round(n)·p and a variance round(n)·p·(1 − p) (`binomialdist(10,1.5).var` = −7.5), with invBinom's
+ * median.
  */
 export function statistic(d: Distribution, which: DistributionStatistic): number {
-  if (which === "median") return d.name === "binomialdist" ? inverseCdf(d, 0.5) : center(d);
-  if (which === "mean") return center(d);
-  const v = variance(d);
-  return which === "var" ? v : Math.sqrt(v);
-}
-
-function center(d: Distribution): number {
   const [a, b] = d.params;
+  if (which === "stdev") return d.name === "normaldist" ? Math.abs(b) : Math.sqrt(variance(d));
+  if (which === "var") return variance(d);
   switch (d.name) {
     case "normaldist":
       return a;
     case "tdist":
-      return a > 0 ? b : NaN;
+      return b;
     case "binomialdist":
-      return b >= 0 && b <= 1 ? binomialTrials(a) * b : NaN;
+      return which === "median" ? binomialQuantile(0.5, a, b) : Math.round(a) * b;
   }
 }
 
@@ -177,12 +162,9 @@ function variance(d: Distribution): number {
   switch (d.name) {
     case "normaldist":
       return b * b;
-    case "tdist": {
-      if (!(a > 1)) return NaN;
-      const s = spread(c);
-      return a > 2 ? (s * s * a) / (a - 2) : Infinity;
-    }
+    case "tdist":
+      return a > 1 ? (a > 2 ? (a / (a - 2)) * (c * c) : Infinity) : NaN;
     case "binomialdist":
-      return b >= 0 && b <= 1 ? binomialTrials(a) * b * (1 - b) : NaN;
+      return Math.round(a) * (b * (1 - b));
   }
 }

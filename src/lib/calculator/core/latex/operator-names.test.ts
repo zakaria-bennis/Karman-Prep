@@ -14,7 +14,7 @@ describe("operator-name allowlist", () => {
       Array(2).fill("sqrt cbrt nthroot pi theta tau phi infinity infty sum prod int")
     );
     expect(O.MEMBER_NAMES.join(" ")).toBe(
-      "null p pleft pright score dof stderr conf lower upper estimate"
+      "null pleft pright score dof stderr conf lower upper estimate"
     );
     for (const m of O.MEMBER_NAMES)
       expect(O.isBuiltinName(m) || O.mathQuillAutoOperatorNames().split(" ").includes(m)).toBe(
@@ -67,6 +67,10 @@ describe("operator-name allowlist", () => {
       ["binomcdf", 6, [3, 4]],
       ["binompdf", 6, [2, 3]],
       ["invNorm", 6, [1]],
+      ["tpdf", 6, [2]],
+      ["tcdf", 6, [5]],
+      ["invT", 6, [2]],
+      ["invBinom", 6, [3]],
     ]);
     const hidden = O.HIDDEN_OPERATOR_NAMES.map((n) => n.name);
     expect(hidden.every((n) => O.isBuiltinName(n) && O.isShippedBuiltin(n))).toBe(true);

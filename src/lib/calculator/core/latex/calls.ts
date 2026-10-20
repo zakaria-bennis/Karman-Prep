@@ -221,6 +221,10 @@ const DOT_NAMES: ReadonlySet<string> = new Set([
  * cursor left at the dot, for any other member, which the caller reports as unsupported.
  */
 export function parseMember(state: ParserState, target: Node): Node | null {
+  const dot = peek(state);
+  if (isOneLetterMember(state)) {
+    return fail("unexpected-symbol", dot.span, "a one-letter name after a dot", ".");
+  }
   const name = memberName(state);
   if (name === null) return null;
   state.pos += name.tokens;
@@ -234,6 +238,23 @@ export function parseMember(state: ParserState, target: Node): Node | null {
     member: method ? "method" : "property",
     span: { start: target.span.start, end: previousEnd(state) },
   };
+}
+
+/**
+ * A one-letter `\operatorname{p}` after the dot at the cursor: a variable to Desmos, not a
+ * member, so the dot reads "Sorry, I don't understand the way that '.' is used here." whatever
+ * comes before it (`a.\operatorname{p}`, `ttest(L).\operatorname{p}`; captured 2026-10-19).
+ */
+function isOneLetterMember(state: ParserState): boolean {
+  const [command, open, letter, close] = [1, 2, 3, 4].map((k) => peek(state, k));
+  return (
+    command.t === "command" &&
+    command.name === "operatorname" &&
+    isOpen(open, "{") &&
+    letter.t === "letter" &&
+    close.t === "close" &&
+    close.ch === "}"
+  );
 }
 
 /** The member name after the dot at the cursor and how many tokens it spans with the dot. */

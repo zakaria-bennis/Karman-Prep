@@ -299,17 +299,26 @@ function call(node: Call, ctx: Context): Fn {
 /**
  * FN-45 to FN-51: a call generalNode evaluates, since a distribution is not a number: a
  * constructor, a dot, pdf or cdf, or a statistic or quantile whose first argument holds a
- * constructor or a name whose value is a distribution (`y=\operatorname{mean}(N)x`).
+ * constructor, a name whose value is a distribution (`y=\operatorname{mean}(N)x`) or a call of
+ * a user function whose body, or a function it calls, does (`y=\operatorname{mean}(f(2))x` with
+ * `f(x)=\operatorname{normaldist}(x,1)`).
  */
 function readsOrMakesDistribution(node: Call, ctx: Context): boolean {
   if (node.member !== undefined || isDistributionName(node.name)) return true;
   if (node.name === "pdf" || node.name === "cdf") return true;
   if (!readsDistribution(node.name) || node.args.length === 0) return false;
-  const pending: Node[] = [node.args[0]];
+  const pending: Node[] = [node.args[0]],
+    opened = new Set<string>();
   for (let n = pending.pop(); n !== undefined; n = pending.pop()) {
     if (n.kind === "call" && isDistributionName(n.name)) return true;
     const v = n.kind === "id" && isConstantName(n.name, ctx) ? ctx.scope.values.get(n.name) : null;
     if (v !== undefined && v !== null && holdsDistribution(v)) return true;
+    const name = n.kind === "call" || n.kind === "id" ? n.name : null,
+      called = name === null || opened.has(name) ? undefined : ctx.scope.functions.get(name);
+    if (name !== null && called !== undefined) {
+      opened.add(name);
+      pending.push(called.body);
+    }
     pending.push(...sourceChildren(n));
   }
   return false;

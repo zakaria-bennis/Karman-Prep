@@ -3,6 +3,7 @@
 // distributions, captured live 2026-10-19). Pure TypeScript: no DOM (AR-44).
 
 import { sourceChildren, type Node } from "../latex/ast";
+import { MEMBER_NAMES } from "../latex/operator-names";
 import { arityText } from "../lib/arity";
 import { BUILTINS } from "../lib/builtins";
 import { distributionStatistic, isDistributionName, readsDistribution } from "../lib/distributions";
@@ -92,10 +93,16 @@ function callProblem(call: Call, shapes: readonly (Shape | null)[]): Problem | n
   return builtinProblem(call, shapes);
 }
 
-/** A dot: unsupported after a known value that is not a distribution, else checked as a member. */
+/**
+ * A dot: after a list of numbers, an inference member is Desmos's "Function '.pleft' cannot be
+ * applied to a list of numbers." (captured 2026-10-19); any other dot after a known value that is
+ * not a distribution is unsupported (PR-45's list members have not shipped); after a
+ * distribution, it is checked as a member.
+ */
 function memberProblem(call: Call, target: Shape | null): Problem | null {
   const name = `.${call.name}`;
   if (target === null) return null;
+  if (target === "numbers" && MEMBER_NAMES.includes(call.name)) return applied(name, [target]);
   if (!isDistributionShape(target)) return { code: "unsupported", names: [] };
   const written = call.args.length - 1,
     arity = METHOD_ARITY.get(call.name);

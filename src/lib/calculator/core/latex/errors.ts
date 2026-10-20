@@ -25,14 +25,16 @@ export type ParseErrorCode =
   | "colon-side" // PR-31: nothing on one side of a piecewise `:`, `\{1>0:\}`
   | "colon-condition" // PR-31: a `:` whose left side is not a condition, `\{3:4\}`
   | "piecewise-condition" // PR-31: a piecewise with no condition, `\{5,6\}`
-  | "piecewise-part"; // PR-31: a part before the last without a condition, `\{1>0:5,6,7\}`
+  | "piecewise-part" // PR-31: a part before the last without a condition, `\{1>0:5,6,7\}`
+  | "unexpected-symbol" // PR-45: a `.` before a one-letter member, `a.\operatorname{p}`
+  | "logic-outside-condition"; // `or` or `and` in a row with no comparison, `n\operatorname{or}mal`
 export interface ParseError {
   code: ParseErrorCode;
   span: SourceSpan;
   detail: string; // English, logs and tests only
   // `unsupported`: the deferred notation a row error names ("Graphing a list of curves");
   // `function-parentheses`, `argument-parentheses`, `log-power`, `trig-power` and `name-subscript`: the
-  // built-in's name ("floor"); `relation-side`: the operator's symbol (">")
+  // built-in's name ("floor"); `relation-side` and `unexpected-symbol`: the symbol (">", "."); `logic-outside-condition`: "or" or "and"
   feature?: string;
 }
 
@@ -60,6 +62,8 @@ const PARSE_ERROR_CODES: ReadonlySet<string> = new Set<ParseErrorCode>([
   "colon-condition",
   "piecewise-condition",
   "piecewise-part",
+  "unexpected-symbol",
+  "logic-outside-condition",
 ]);
 
 export function isParseErrorCode(code: string): code is ParseErrorCode {

@@ -341,6 +341,29 @@ function parseLetter(state: ParserState, letter: LetterToken): Node {
 }
 
 /**
+ * `or` and `and` join conditions, which have not shipped. In a row with no comparison at all they
+ * cannot be part of one, so they read Desmos's "'or' can only be used as part of a condition."
+ * (captured 2026-10-19 for a typed name that splits, `n\operatorname{or}mal\operatorname{cdf}(0,1)`);
+ * beside a comparison they stay unsupported.
+ */
+function failIfLogicOutsideCondition(state: ParserState, command: Token): void {
+  if (command.t !== "command" || (command.name !== "or" && command.name !== "and")) return;
+  const compares = state.tokens.some(
+    (t) =>
+      (t.t === "symbol" && (t.ch === "<" || t.ch === ">")) ||
+      (t.t === "command" && (t.name === "le" || t.name === "ge"))
+  );
+  if (!compares) {
+    fail(
+      "logic-outside-condition",
+      command.span,
+      `"${command.name}" outside a condition`,
+      command.name
+    );
+  }
+}
+
+/**
  * `\pi` and `\tau` are constants and Greek letters are identifiers (G6). G3's operator and closer
  * commands (`\cdot`, `\le`, `\ge`, `\rvert`, `\operatorname{of}`) start no factor, so they are
  * `syntax` wherever an atom is due. `\operatorname{}`, `\text{}` and `\mathrm{}` with an empty group
@@ -361,6 +384,7 @@ function parseCommandAtom(state: ParserState, subscripts: boolean): Node {
     return { kind: "id", name, span: token.span };
   }
   failIfComprehension(token);
+  failIfLogicOutsideCondition(state, token);
   const [open, close] = [peek(state), peek(state, 1)];
   const emptyGroup =
     open.t === "open" && open.ch === "{" && close.t === "close" && close.ch === "}";

@@ -1,7 +1,8 @@
 // Desmos parity (appendix F decision 2): every live Desmos value and error text the function
 // catalogue captured on 2026-10-19 for normaldist, tdist and binomialdist with their methods and
 // summary statistics (FN-45 to FN-51), erf, and the legacy names normalcdf, normalpdf, binomcdf,
-// binompdf and invNorm (desmos-distributions.fixture.json, copied from the catalogue's
+// binompdf, invNorm, tpdf, tcdf, invT and invBinom, with the dot and typed-name errors around them
+// (desmos-distributions.fixture.json, copied from the catalogue's
 // ALL.values.json). A whole-number value must match exactly, any other within the relative 1e-12,
 // null (undefined in Desmos) must be undefined, and a list must match element by element.
 import { expect, it } from "vitest";
@@ -51,26 +52,29 @@ function errorMessage(key: string): string | undefined {
 // use that has not shipped: derivatives; `\infty` as a value; `random` (T14); a stored ±∞ behind
 // "undefined" (`1/invNorm(1)` is 0 in Desmos, NM-6 keeps one undefined state); Desmos's "Try
 // adding 'y=' to the beginning of this equation." for `i` in real mode, where the calculator
-// offers an `i` chip (NM-17).
+// offers an `i` chip (NM-17); and `\operatorname{inv}N\operatorname{or}m`, whose unknown
+// `\operatorname{inv}` the parser refuses before it reaches the `or`.
 const GAPS: readonly RegExp[] = [
   /\\frac\{d\}/,
   /\\infty/,
   /\\operatorname\{random\}/,
-  /\\frac\{1\}\{\\operatorname\{invNorm\}|\\operatorname\{invNorm\}\\left\(1\\right\)>5|\\arctan/,
+  /\\frac\{1\}\{\\operatorname\{invNorm\}|\\operatorname\{invNorm\}\\left\(1\\right\)>5/,
+  /^\\arctan\\left\(\\operatorname\{tdist\}\\left\(2\\right\)\.\\operatorname\{stdev\}\\right\)$/,
   /\\left\(i\\right\)$/,
+  /^\\operatorname\{inv\}N\\operatorname\{or\}m/,
 ];
 const gap = (key: string) => GAPS.some((g) => g.test(key));
 
 const VALUES = Object.entries(distributions.values) as [string, Expected][];
 const ERRORS = Object.entries(distributions.errors);
 
-it("FN-45 FN-51 all 172 catalogue distribution values and 44 errors are checked, 148 and 35 matched", () =>
+it("FN-45 FN-51 all 194 catalogue distribution values and 69 errors are checked, 169 and 58 matched", () =>
   expect([
     VALUES.length,
     ERRORS.length,
     VALUES.filter(([k]) => !gap(k)).length,
     ERRORS.filter(([k]) => !gap(k)).length,
-  ]).toEqual([172, 44, 148, 35]));
+  ]).toEqual([194, 69, 169, 58]));
 
 for (const [key, expected] of VALUES) {
   const check = () => {
