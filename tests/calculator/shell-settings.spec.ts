@@ -70,7 +70,7 @@ test("NM-29 angle and complex switches post a new generation in the same task; 2
   await openSettings(page);
   for (const [control, want] of [
     [page.getByRole("radio", { name: "Degrees" }), expected(false)],
-    [page.getByRole("checkbox", { name: "Complex mode" }), expected(true)],
+    [page.getByRole("checkbox", { name: "Complex Mode" }), expected(true)],
   ] as const) {
     const t = await control.evaluate(switchAndTime, want);
     expect([t.sameTask, t.stale, t.changes, t.ms <= 250]).toEqual([true, [], [1, 1, 1], true]);

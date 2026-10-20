@@ -1,9 +1,10 @@
-// One axis of the settings popover (S-1, VIS-17): the `Show x-axis` checkbox, the floating-label
-// `x-axis label` field committed on Enter or blur, the bounds line `[x minimum] ≤ x ≤ [x maximum]`
+// One axis of the settings popover (S-1, VIS-17): the `X-Axis` checkbox, the floating-label
+// `x-axis label` field committed on Enter or blur (shown while the axis is, SETTINGS-19), the bounds line `[x minimum] ≤ x ≤ [x maximum]`
 // as two MathFields from MathFieldFactoryContext that show the viewport bound while not focused,
-// and the `x-axis step` field showing the step or blank (y likewise). S-7: a bound applies on
-// Enter or blur once the backend evaluates it to a finite number that keeps min below max; the step
-// takes a positive number or blank for automatic. An error shows below its field, which links it
+// and the `x-axis step` field showing the step or blank, hidden in polar mode (SETTINGS-15; y
+// likewise). S-7: a bound applies on Enter or blur once the backend evaluates it to a finite number
+// that keeps min below max; the step takes a positive number, or 0 or blank for automatic
+// (SETTINGS-25). An error shows below its field, which links it
 // with aria-describedby and sets aria-invalid until a successful commit. Text fields are named by aria-label.
 
 import {
@@ -157,11 +158,11 @@ function withBound(view: Viewport, axis: "x" | "y", side: BoundSide, value: numb
   return side === "min" ? { ...view, bottom: value } : { ...view, top: value };
 }
 
-/** S-7 step text: blank is automatic (null), a finite number above 0 is the step, else invalid. */
-function parseStep(input: string): { step: number | null } | null {
+/** SETTINGS-25 step text: blank or 0 is automatic (null), a finite number above 0 is the step, else invalid. */
+export function parseStep(input: string): { step: number | null } | null {
   const text = input.trim();
   const v = Number(text);
-  if (text === "") return { step: null };
+  if (text === "" || v === 0) return { step: null };
   return Number.isFinite(v) && v > 0 ? { step: v } : null;
 }
 
@@ -244,25 +245,26 @@ export function AxisSection(props: { axis: "x" | "y" }): JSX.Element {
       <div className="kc-settings-axis-title">
         <SettingCheck
           label={`${axis.toUpperCase()}-Axis`}
-          name={`Show ${axis}-axis`}
           size="axis"
           checked={current.show}
           onChange={(show) => update({ show })}
         />
-        <span className="kc-settings-label">
-          <span className="kc-settings-legend" aria-hidden="true">
-            Label
+        {current.show && (
+          <span className="kc-settings-label">
+            <span className="kc-settings-legend" aria-hidden="true">
+              Label
+            </span>
+            <CommitInput
+              name={`${axis}-axis label`}
+              className="kc-settings-label-input"
+              placeholder={`e.g. \u201c${axis}\u201d`}
+              value={current.label}
+              error={null}
+              errorId=""
+              onCommit={(label) => update({ label })}
+            />
           </span>
-          <CommitInput
-            name={`${axis}-axis label`}
-            className="kc-settings-label-input"
-            placeholder={`e.g. \u201c${axis}\u201d`}
-            value={current.label}
-            error={null}
-            errorId=""
-            onCommit={(label) => update({ label })}
-          />
-        </span>
+        )}
       </div>
       <div className="kc-settings-axis-line">
         <span className="kc-settings-bounds">
@@ -274,18 +276,20 @@ export function AxisSection(props: { axis: "x" | "y" }): JSX.Element {
           </span>
           {boundField("max")}
         </span>
-        <span className="kc-settings-step">
-          <span aria-hidden="true">Step:</span>
-          <CommitInput
-            name={`${axis}-axis step`}
-            className="kc-settings-step-input"
-            value={current.step === null ? "" : String(current.step)}
-            inputMode="decimal"
-            error={stepError}
-            errorId={stepErrorId}
-            onCommit={commitStep}
-          />
-        </span>
+        {!settings.polarGrid && (
+          <span className="kc-settings-step">
+            <span aria-hidden="true">Step:</span>
+            <CommitInput
+              name={`${axis}-axis step`}
+              className="kc-settings-step-input"
+              value={current.step === null ? "" : String(current.step)}
+              inputMode="decimal"
+              error={stepError}
+              errorId={stepErrorId}
+              onCommit={commitStep}
+            />
+          </span>
+        )}
       </div>
       {(["min", "max"] as const).map(
         (side) =>

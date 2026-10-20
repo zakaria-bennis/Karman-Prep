@@ -6,6 +6,8 @@ import type { PixelSize, Viewport } from "../../plot/viewport";
 export type AngleMode = "radians" | "degrees";
 export type LineStyle = "solid" | "dashed" | "dotted"; // R-4 (Phase 2 picker)
 export type PointStyle = "filled" | "open" | "cross";
+/** SETTINGS-13: the Braille code the settings popover records (UI only; no Braille input yet). */
+export type BrailleMode = "none" | "nemeth" | "ueb";
 export interface AxisSettings {
   show: boolean;
   label: string;
@@ -29,6 +31,8 @@ export interface CalculatorSettings {
   expressionsCollapsed: boolean;
   mode: "graphing" | "scientific";
   reducedMotion: boolean;
+  brailleMode: BrailleMode;
+  sixKeyInput: boolean;
 }
 
 /** S-9: the per-question defaults (and API-1's option defaults). Deep-frozen. */
@@ -50,6 +54,8 @@ export const DEFAULT_SETTINGS: CalculatorSettings = Object.freeze({
   expressionsCollapsed: false,
   mode: "graphing",
   reducedMotion: false,
+  brailleMode: "none",
+  sixKeyInput: false,
 });
 
 export interface CalculatorOptions {

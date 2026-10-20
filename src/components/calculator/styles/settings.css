@@ -204,17 +204,11 @@
   position: relative;
   display: grid;
   place-items: center;
+  box-sizing: border-box;
   width: 28px;
   height: 28px;
-  cursor: pointer;
-}
-
-.kc-grid-type > input {
-  appearance: none;
-  position: absolute;
-  inset: 0;
-  box-sizing: border-box;
   margin: 0;
+  padding: 0;
   border: 1px solid var(--kc-pop-line);
   border-radius: 50%;
   background: var(--kc-pop-circle);
@@ -222,7 +216,7 @@
   cursor: pointer;
 }
 
-.kc-grid-type > input:checked {
+.kc-grid-type[aria-pressed="true"] {
   background: var(--kc-text-secondary);
 }
 
@@ -234,7 +228,7 @@
   pointer-events: none;
 }
 
-.kc-grid-type > input:checked + svg {
+.kc-grid-type[aria-pressed="true"] > svg {
   color: color-mix(in srgb, var(--kc-list) 55%, var(--kc-text-secondary));
 }
 
@@ -566,7 +560,7 @@
 
 /* VIS-9: a 2 px blue ring 2 px outside the focused control. */
 .kc-check-box > input:focus-visible,
-.kc-grid-type > input:focus-visible,
+.kc-grid-type:focus-visible,
 .kc-settings-label-input:focus-visible {
   outline: 2px solid var(--kc-accent);
   outline-offset: 2px;

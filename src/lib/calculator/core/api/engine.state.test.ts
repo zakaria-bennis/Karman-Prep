@@ -69,7 +69,7 @@ it("API-5 an invalid setState throws and changes nothing", () => {
       [{ ...s, version: 2 }, "invalid-argument"],
       [{ ...s, scientific: { rows: [] } }, "invalid-argument"],
       [{ ...s, mode: "scientific" }, "unsupported"],
-      [{ ...s, settings: { ...s.settings, lockViewport: true } }, "unsupported"],
+      [{ ...s, settings: { ...s.settings, piAxisLabels: true } }, "unsupported"],
       [{ ...s, settings: { angleMode: "radians" } }, "invalid-argument"],
       [{ ...s, viewport: { left: 1, right: 0, bottom: 0, top: 1 } }, "invalid-argument"],
       [{ ...s, expressions: [{ id: "a" }, { id: "a" }] }, "invalid-argument"],
@@ -122,6 +122,8 @@ it("API-6 setBlank restores one empty row 1, the S-9 settings, the default viewp
     expressionsCollapsed: false,
     mode: "graphing",
     reducedMotion: false,
+    brailleMode: "none",
+    sixKeyInput: false,
   });
   expect(e.getState().viewport).toEqual({ left: -10, right: 10, bottom: -5, top: 5 });
   expect(e.canUndo()).toBe(false);
@@ -155,7 +157,7 @@ it("API-7 updateSettings rejects anything outside the list without changing stat
   expect(() => e.updateSettings({ zoom: 2 } as unknown as SettingsUpdate)).toThrow(
     expect.objectContaining({ code: "invalid-argument" })
   );
-  expect(() => e.updateSettings({ angleMode: "degrees", lockViewport: true })).toThrow(
+  expect(() => e.updateSettings({ angleMode: "degrees", piAxisLabels: true })).toThrow(
     expect.objectContaining({ code: "unsupported" })
   );
   expect(e.settings).toEqual(settings);

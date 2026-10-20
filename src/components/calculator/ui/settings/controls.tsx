@@ -9,7 +9,7 @@ export interface SettingCheckProps {
   label: string;
   /** The accessible name when it differs from the visible label (e.g. "Show x-axis"). */
   name?: string;
-  size?: "normal" | "small" | "axis";
+  size?: "normal" | "small" | "axis" | "more";
   checked: boolean;
   onChange(checked: boolean): void;
 }
@@ -71,7 +71,12 @@ export interface SegmentOption<T extends string> {
 
 /**
  * VIS-12: a full-width row of joined radio buttons; the selected one is filled dark grey. VIS-13:
- * the "mini" theme shows icons, the selected one tinted blue.
+ * the "mini" theme shows icons, the selected one tinted blue. "letters" is VIS-12 with each
+ * option's icon in place of its text (Display Size's two A's); "small" is the Braille code choice
+ * (VIS-THEMES-MODES-11), 26 px tall and tinted blue. An option with an icon is named by `label`.
+ * "scale" is VIS-POPOVERS-MENUS-20's text-only mini choice (Linear | Logarithmic). `disabled`
+ * greys the group and blocks choices (SETTINGS-23); `disabledValues` blocks single options; `title`
+ * is the group's tooltip.
  */
 export function SettingSegments<T extends string>(props: {
   name: string; // the radio group's form name
@@ -79,26 +84,37 @@ export function SettingSegments<T extends string>(props: {
   options: readonly SegmentOption<T>[];
   value: T;
   onSelect(value: T): void;
-  theme?: "default" | "mini";
+  theme?: "default" | "mini" | "letters" | "small" | "scale";
+  disabled?: boolean;
+  disabledValues?: readonly T[]; // single options that cannot be chosen (aria-disabled)
+  title?: string;
 }): JSX.Element {
-  const mini = props.theme === "mini";
+  const theme = props.theme ?? "default";
   return (
     <div
       className="kc-segments"
-      data-theme={mini ? "mini" : undefined}
+      data-theme={theme === "default" ? undefined : theme}
+      data-disabled={props.disabled === true ? "true" : undefined}
       role="radiogroup"
       aria-label={props.label}
+      aria-disabled={props.disabled === true ? true : undefined}
+      title={props.title}
     >
       {props.options.map((option) => (
         <label key={option.value} className="kc-segment">
           <input
             type="radio"
             name={props.name}
-            aria-label={mini ? option.label : undefined}
+            aria-label={option.icon !== undefined ? option.label : undefined}
             checked={props.value === option.value}
-            onChange={() => props.onSelect(option.value)}
+            disabled={props.disabled}
+            aria-disabled={props.disabledValues?.includes(option.value) === true ? true : undefined}
+            onChange={() => {
+              if (props.disabledValues?.includes(option.value) !== true)
+                props.onSelect(option.value);
+            }}
           />
-          {mini ? (
+          {option.icon !== undefined ? (
             <span className="kc-segment-icon" aria-hidden="true">
               {option.icon}
             </span>
@@ -111,25 +127,23 @@ export function SettingSegments<T extends string>(props: {
   );
 }
 
-/** VIS-18: one 28 px round grid-type button, a radio named `label` showing `glyph`. */
+/** VIS-18: one 28 px round grid-type button, pressed while its grid shows (SETTINGS-9 item 4). */
 export function GridTypeButton(props: {
-  name: string;
   label: string;
-  checked: boolean;
-  onSelect(): void;
+  pressed: boolean;
+  onPress(): void;
   children: ReactNode;
 }): JSX.Element {
   return (
-    <label className="kc-grid-type">
-      <input
-        type="radio"
-        name={props.name}
-        aria-label={props.label}
-        checked={props.checked}
-        onChange={props.onSelect}
-      />
+    <button
+      type="button"
+      className="kc-grid-type"
+      aria-label={props.label}
+      aria-pressed={props.pressed}
+      onClick={props.onPress}
+    >
       {props.children}
-    </label>
+    </button>
   );
 }
 

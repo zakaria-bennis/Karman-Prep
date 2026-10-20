@@ -41,7 +41,7 @@ it("S-7 bounds apply on Enter or blur and keep min below max; the step takes a p
   });
   expect(await screen.findByText(EDITOR_MESSAGES.boundNotNumber)).toBeInTheDocument();
   const step = screen.getByRole("textbox", { name: "x-axis step" });
-  await user.type(step, "0{Enter}");
+  await user.type(step, "-1{Enter}");
   expect(screen.getByText(EDITOR_MESSAGES.stepInvalid)).toBeInTheDocument();
   expect(kit.engine.settings.xAxis.step).toBeNull();
   await user.clear(step);
