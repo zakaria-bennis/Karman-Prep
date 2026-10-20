@@ -108,12 +108,9 @@ it("RC-2, RC-7, RC-8, RC-19, RC-20 row errors and the complex hint use the exact
   for (const [name, text] of shown) expect(displayName(name)).toBe(text);
 });
 
-it("PR-30, PR-34, NM-30, NM-31, NM-37, G-22 a half-typed regression and deferred list notation have their own copy", () => {
+it("PR-30, PR-34, NM-37, G-22 a half-typed regression and deferred list notation have their own copy", () => {
   const table: [RowErrorCode, string[], string][] = [
     ["sim-side", [], "You need something on both sides of the '∼' symbol."],
-    ["unsupported", ["Indexing a list"], "Indexing a list isn't supported yet."],
-    ["unsupported", ["Slicing a list"], "Slicing a list isn't supported yet."],
-    ["unsupported", ["Filtering a list"], "Filtering a list isn't supported yet."],
     [
       "unsupported",
       ["Building a list with 'for'"],
@@ -126,9 +123,13 @@ it("PR-30, PR-34, NM-30, NM-31, NM-37, G-22 a half-typed regression and deferred
     ],
   ];
   for (const [code, names, text] of table) expect(rowErrorMessage(code, names)).toBe(text);
-  const rows = ["L[2]", "y_{1}\\sim"].map((latex, k) => ({ id: `r${k}`, latex, hidden: false }));
+  const rows = ["[n^{2}\\operatorname{for}n=[1...5]]", "y_{1}\\sim"].map((latex, k) => ({
+    id: `r${k}`,
+    latex,
+    hidden: false,
+  }));
   expect(analyzeRows(rows, REAL).rows.map((r) => r.error?.message)).toEqual([
-    "Indexing a list isn't supported yet.",
+    "Building a list with 'for' isn't supported yet.",
     "You need something on both sides of the '∼' symbol.",
   ]);
 });

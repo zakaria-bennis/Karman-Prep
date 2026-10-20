@@ -23,6 +23,10 @@ export type Node =
   // written before its ellipsis: `[a...b]` is items [a, b] with range 1 and `[a,b,...,c]` items
   // [a, b, c] with range 2. NM-36 expands it when evaluated.
   | { kind: "list"; items: Node[]; range?: number; span: SourceSpan }
+  // PR-34, NM-30, NM-31: `T[…]` after a name, call, list, number or index. `items` and `range` are
+  // the bracket's contents, read as a list's are, except that a range side may be empty (`L[2...]`,
+  // `L[...3]`, `L[...]`); one relation item filters (`L[L>2]`).
+  | { kind: "index"; target: Node; items: Node[]; range?: number; span: SourceSpan }
   | { kind: "sim"; left: Node; right: Node; span: SourceSpan }; // PR-30, D-2: a regression row L ~ M
 
 /**
@@ -58,18 +62,22 @@ export function sourceChildren(node: Node): readonly Node[] {
       return node.operands;
     case "list":
       return node.items;
+    case "index":
+      return [node.target, ...node.items];
   }
 }
 
 /**
- * `(list A B)`; a range `(range A B)` or `(range A S B)`, and with more values on a side, the
- * starts and the ends each grouped: `(range (A B C) (D))`.
+ * `(list A B)`; a range `(range A B)` or `(range A S B)`, and with more values on a side or an
+ * empty side, the starts and the ends each grouped: `(range (A B C) (D))`, `(range (A) ())`.
  */
-function listSExpr(tree: Extract<Node, { kind: "list" }>): string {
+function listSExpr(tree: { items: readonly Node[]; range?: number }): string {
   const items = tree.items.map(toSExpr);
   const { range } = tree;
   if (range === undefined) return `(${["list", ...items].join(" ")})`;
-  if (range <= 2 && items.length === range + 1) return `(${["range", ...items].join(" ")})`;
+  if (range >= 1 && range <= 2 && items.length === range + 1) {
+    return `(${["range", ...items].join(" ")})`;
+  }
   const group = (part: string[]) => `(${part.join(" ")})`;
   return `(range ${group(items.slice(0, range))} ${group(items.slice(range))})`;
 }
@@ -78,6 +86,7 @@ function listSExpr(tree: Extract<Node, { kind: "list" }>): string {
  * The corpus tree notation (PR-40): `(num 0.5)`, `(id a_{1})`, `(const pi)`, `(root A N)`,
  * `(call log X B)`, `(rel = A B)` for one relation and `(rel (<= <) A B C)` for a chain; a list is
  * `(list A B)` and a range `(range A B)`, `(range A S B)` or `(range (A S T) (B))` (PR-34, listSExpr).
+ * An index is `(index T I)` for one item, else `(index T (list I J))` or `(index T (range …))`.
  */
 export function toSExpr(tree: Node): string {
   switch (tree.kind) {
@@ -90,6 +99,10 @@ export function toSExpr(tree: Node): string {
       return `(${["call", tree.name, ...tree.args.map(toSExpr)].join(" ")})`;
     case "list":
       return listSExpr(tree);
+    case "index": {
+      const one = tree.range === undefined && tree.items.length === 1;
+      return `(index ${toSExpr(tree.target)} ${one ? toSExpr(tree.items[0]) : listSExpr(tree)})`;
+    }
     case "root": {
       const parts = tree.index === null ? [tree.arg] : [tree.arg, tree.index];
       return `(${["root", ...parts.map(toSExpr)].join(" ")})`;

@@ -9,12 +9,13 @@ import { analyzeRows } from "../analysis";
 import { evaluateLatex, type EvalSettings } from "../eval/compile";
 import type { Value } from "../eval/values";
 import catalogue from "./desmos-catalogue.fixture.json";
+import indexing from "./desmos-index.fixture.json";
 import { withinTolerance } from "./tolerance";
 
 type Captured = number | number[] | null;
 const VALUES: [string, Captured][] = Object.entries(captured.values);
 
-const FAMILIES: { rules: string; pattern: RegExp; count: number }[] = [
+const FAMILIES: { rules: string; pattern: RegExp; count: number; rows?: string[] }[] = [
   {
     rules: "FN-76 FN-77 FN-78",
     pattern: /^\\operatorname\{(floor|ceil|round|sign|mod|nCr|nPr)\}\(/,
@@ -36,13 +37,13 @@ function matches(v: Value, expected: number | null): boolean {
     : withinTolerance(v.value, expected, "default");
 }
 
-for (const { rules, pattern, count } of FAMILIES) {
+for (const { rules, pattern, count, rows } of FAMILIES) {
   const cases = VALUES.filter(([latex]) => pattern.test(latex));
   it(`${rules} all ${count} captured Desmos values are checked`, () =>
     expect(cases.length).toBe(count));
   for (const [latex, expected] of cases) {
     it(`${rules} ${latex} is ${JSON.stringify(expected)}, as in Desmos`, () => {
-      const v = evaluateLatex(latex);
+      const v = evaluateLatex(latex, { rows });
       if (Array.isArray(expected)) {
         expect(v.type, JSON.stringify(v)).toBe("list");
         const items = v.type === "list" ? v.value : [];
@@ -177,10 +178,9 @@ for (const [latex, expected] of RANGE_VALUES) {
 }
 
 // Catalogue errors not yet matched, each an expected failure that fails once matched: an
-// ellipsis outside a list (the calculator reads a syntax error), a range whose length depends
-// on x (G-22's list-valued graphs, task T11) and a built-in applied to a point (task M4's point
-// arithmetic).
-const CATALOGUE_ERROR_GAP: ReadonlySet<string> = new Set(["1...5", "[x...5]", "\\ln((1,2))"]);
+// ellipsis outside a list (the calculator reads a syntax error) and a built-in applied to a
+// point (task M4's point arithmetic).
+const CATALOGUE_ERROR_GAP: ReadonlySet<string> = new Set(["1...5", "\\ln((1,2))"]);
 const CATALOGUE_ERRORS = Object.entries(catalogue.errors);
 
 it("NM-36 RC-20 all 31 catalogue error messages for ranges, log and ln are checked", () =>
@@ -192,3 +192,98 @@ for (const [latex, message] of CATALOGUE_ERRORS) {
     it.fails(`not yet matched: ${latex} reads "${message}" in Desmos`, check);
   else it(`NM-36 RC-20 ${latex} reads "${message}", as in Desmos`, check);
 }
+
+// NM-30, NM-31: the catalogue's live Desmos values for indexing, slicing and filtering
+// (desmos-index.fixture.json), after its definition rows; a "[defs: R] " key uses the row R
+// instead. A point is [x, y].
+const INDEX_ROWS = indexing._rows;
+const INDEX_VALUES = Object.entries(indexing.values) as [string, Captured][];
+
+function indexCase(key: string): { latex: string; rows: string[] } {
+  const defs = /^\[defs: (.*?)\] (.*)$/.exec(key);
+  return defs === null ? { latex: key, rows: INDEX_ROWS } : { latex: defs[2], rows: [defs[1]] };
+}
+
+function sameIndexValue(v: Value, expected: Captured): boolean {
+  if (!Array.isArray(expected)) return matches(v, expected);
+  if (v.type === "point") return v.value.every((c, k) => c === expected[k]);
+  return (
+    v.type === "list" &&
+    v.value.length === expected.length &&
+    expected.every((e, i) => matches(v.value[i], e))
+  );
+}
+
+// Index values not yet matched, each an expected failure that fails once matched: member access
+// `.x` (PR-9), `and`, `or`, piecewise braces (T10), comprehensions (NM-37) and `length` (T9a)
+// have not shipped.
+const INDEX_VALUE_GAP: ReadonlySet<string> = new Set([
+  "[defs: L=\\left[(1,2),(3,4)\\right]] L[2].x",
+  "L[L>3 \\operatorname{and} L<9]",
+  "[L[i] \\operatorname{for} i=[1...3]]",
+  "P[2].x",
+  "P[P.x>2].x",
+  "[i^2 \\operatorname{for} i=[1...3]][2]",
+  "L[(L>3) \\operatorname{or} (L<2)]",
+  "L[\\{L>3\\}]",
+  "\\operatorname{length}(L[1...0])",
+]);
+
+it("NM-30 NM-31 all 57 catalogue values for indexing, slicing and filtering are checked", () =>
+  expect(INDEX_VALUES.length).toBe(57));
+
+for (const [key, expected] of INDEX_VALUES) {
+  const check = () => {
+    const { latex, rows } = indexCase(key);
+    const v = evaluateLatex(latex, { rows });
+    expect(sameIndexValue(v, expected), JSON.stringify(v)).toBe(true);
+  };
+  const shown = JSON.stringify(expected);
+  if (INDEX_VALUE_GAP.has(key)) it.fails(`not yet matched: ${key} is ${shown} in Desmos`, check);
+  else it(`NM-30 NM-31 ${key} is ${shown}, as in Desmos`, check);
+}
+
+// Index errors not yet matched, each an expected failure that fails once matched: `;` matrix
+// indexing (matrices have not shipped), `\ne`, and a filter on a name no row defines.
+const INDEX_ERROR_GAP: ReadonlySet<string> = new Set([
+  "\\left[1,2,3\\right]\\left[1;2\\right]",
+  "L[L\\ne1]",
+  "L[i>2]",
+]);
+const INDEX_ERRORS = Object.entries(indexing.errors);
+
+it("NM-30 NM-31 all 8 catalogue error messages for indexing are checked", () =>
+  expect(INDEX_ERRORS.length).toBe(8));
+
+for (const [latex, message] of INDEX_ERRORS) {
+  const check = () => expect(errorMessage(INDEX_ROWS, latex)).toBe(message);
+  if (INDEX_ERROR_GAP.has(latex))
+    it.fails(`not yet matched: ${latex} reads "${message}" in Desmos`, check);
+  else it(`NM-30 NM-31 ${latex} reads "${message}", as in Desmos`, check);
+}
+
+// Rows Desmos graphs without a value: `L[x]` is a step function; `P[2]` is a point, which a name
+// defined as a list of points does not graph yet (M5); `E[1...3]` shows no value and no error.
+it("NM-30 all 3 catalogue rows graphed without a value are checked", () =>
+  expect(Object.keys(indexing.graphed).length).toBe(3));
+
+function indexRow(latex: string) {
+  const rows = [...INDEX_ROWS, latex].map((row, i) => ({
+    id: `row-${i}`,
+    latex: row,
+    hidden: false,
+  }));
+  return analyzeRows(rows, { angleMode: "radians", complex: false }).rows[INDEX_ROWS.length];
+}
+
+it("NM-30 L[x] graphs as a step function, as in Desmos", () => {
+  const row = indexRow("L[x]");
+  expect([row.kind, row.isGraphable, row.error]).toEqual(["curve-y", true, null]);
+});
+
+it.fails("not yet matched: P[2] graphs as a point in Desmos", () =>
+  expect(indexRow("P[2]").isGraphable).toBe(true)
+);
+
+it("NM-31 E[1...3] has no error, as in Desmos", () =>
+  expect(indexRow("E[1...3]").error).toBe(null));

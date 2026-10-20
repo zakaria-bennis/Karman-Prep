@@ -1,6 +1,7 @@
 // Which names and calls hold lists, read from the rows before anything evaluates (PR-34, NM-32),
-// and the list errors analysis can report from that: nested lists (NM-34), literal ranges with a
-// count Desmos rejects or too many elements (NM-35, NM-36) and list-valued graphs, which are deferred (G-22).
+// and the list errors analysis can report from that: indexing a number (NM-30), nested lists
+// (NM-34), literal ranges with a count Desmos rejects or too many elements (NM-35, NM-36), lists
+// whose length depends on x or y (NM-31, NM-36) and list-valued graphs, which are deferred (G-22).
 // Evaluation still reports any list error these rules cannot see. Pure TypeScript: no DOM (AR-44).
 
 import type { RowErrorCode } from "../corpus/types";
@@ -9,12 +10,16 @@ import { DEFERRED_FEATURES } from "../latex/errors";
 import { isBuiltinName } from "../latex/operator-names";
 import { rangeShape } from "../lib/range";
 import type { DefinitionHead } from "./definitions";
-import { COORDINATE_NAMES } from "./names";
+import { displayName } from "./messages";
+import { collectNameUses, COORDINATE_NAMES } from "./names";
 
 export interface ListTyping {
   names: ReadonlySet<string>; // value names that hold a list
   isList(node: Node, locals: readonly string[]): boolean; // a list, or a list of points
 }
+type Bracket = Extract<Node, { kind: "list" | "index" }>;
+type Index = Extract<Node, { kind: "index" }>;
+
 export interface ListProblem {
   code: RowErrorCode;
   names: string[];
@@ -65,6 +70,11 @@ function listValued(
     switch (n.kind) {
       case "list":
         return true;
+      case "index":
+        // NM-30, NM-31: an element is a list only when the index is one; T's own list is not
+        if (indexesList(n)) return true;
+        pending.push(n.items[0]);
+        break;
       case "id":
         if (!locals.includes(n.name) && names.has(n.name)) return true;
         break;
@@ -80,24 +90,74 @@ function listValued(
 }
 
 /**
- * NM-34 to NM-36: the first nested list in `tree` (a list-valued item or range bound, at the
- * item's span), then the first literal range that is not an arithmetic sequence (rangeShape) or holds more than 10,000
- * elements (over the range). `locals` are a function head's parameters.
+ * NM-30, then NM-34 to NM-36, in this order: the first index of a number (`5[1]`, at the index);
+ * the first nested list (a list-valued item or range bound, at the item's span); the first literal
+ * range that is not an arithmetic sequence (rangeShape) or holds more than 10,000 elements (over
+ * the range); and the first range or filter whose length depends on x or y (at its brackets).
+ * `locals` are a function head's parameters.
  */
 export function listProblem(
   tree: Node,
   locals: readonly string[],
   typing: ListTyping
 ): ListProblem | null {
-  const lists = listNodes(tree);
-  for (const list of lists) {
-    const item = list.items.find((i) => typing.isList(i, locals));
+  const brackets = bracketNodes(tree);
+  for (const node of brackets) {
+    if (node.kind !== "index" || node.target.kind !== "num") continue;
+    const names = ["a number", indexDescription(node, locals, typing)];
+    return { code: "index-type", names, span: node.span };
+  }
+  for (const node of brackets) {
+    if (node.kind === "index" && !indexesList(node)) continue;
+    if (node.kind === "index" && node.items[0]?.kind === "rel") continue;
+    const item = node.items.find((i) => typing.isList(i, locals));
     if (item !== undefined) return { code: "nested-list", names: [], span: item.span };
   }
-  for (const list of lists) {
-    if (list.range === undefined) continue;
-    const code = literalRangeError(list.items, list.range);
-    if (code !== null) return { code, names: [], span: list.span };
+  for (const node of brackets) {
+    if (node.range === undefined) continue;
+    const code = literalRangeError(node.items, node.range);
+    if (code !== null) return { code, names: [], span: node.span };
+  }
+  for (const node of brackets) {
+    const coordinate = lengthCoordinate(node, locals);
+    if (coordinate !== null) {
+      return { code: "list-length-free", names: [displayName(coordinate)], span: node.span };
+    }
+  }
+  return null;
+}
+
+/** NM-30, NM-31: whether an index gives a list: a range, several items, a filter or one list item. */
+function indexesList(node: Index): boolean {
+  return node.range !== undefined || node.items.length > 1 || node.items[0].kind === "rel";
+}
+
+/** NM-30: how Desmos names what indexes a number: "a number", "a point" or a list of either. */
+function indexDescription(node: Index, locals: readonly string[], typing: ListTyping): string {
+  const [item] = node.items;
+  if (node.range !== undefined) return "a list of numbers";
+  if (node.items.length > 1)
+    return node.items.every(isPoint) ? "a list of points" : "a list of numbers";
+  if (item.kind === "point") return "a point";
+  if (item.kind === "list" && item.items.length > 0 && item.items.every(isPoint)) {
+    return "a list of points";
+  }
+  return item.kind === "rel" || typing.isList(item, locals) ? "a list of numbers" : "a number";
+}
+
+const isPoint = (node: Node) => node.kind === "point";
+
+/**
+ * NM-31, NM-36: the coordinate, x or y, that a range's bounds or a filter's condition use outside
+ * `locals`, which would make the list's length change along the graph (`[x...5]`, `L[L>x]`).
+ */
+function lengthCoordinate(node: Bracket, locals: readonly string[]): string | null {
+  const filter = node.kind === "index" && node.items[0]?.kind === "rel";
+  if (node.range === undefined && !filter) return null;
+  for (const item of node.items) {
+    for (const { name } of collectNameUses(item)) {
+      if ((name === "x" || name === "y") && !locals.includes(name)) return name;
+    }
   }
   return null;
 }
@@ -123,12 +183,12 @@ export function listCurveProblem(
   return { code: "unsupported", names: [DEFERRED_FEATURES.listCurves], span };
 }
 
-/** Every list node in `tree`, in source order. */
-function listNodes(tree: Node): Extract<Node, { kind: "list" }>[] {
-  const found: Extract<Node, { kind: "list" }>[] = [],
+/** Every list and index node in `tree`, in source order. */
+function bracketNodes(tree: Node): Bracket[] {
+  const found: Bracket[] = [],
     pending: Node[] = [tree];
   for (let n = pending.pop(); n !== undefined; n = pending.pop()) {
-    if (n.kind === "list") found.push(n);
+    if (n.kind === "list" || n.kind === "index") found.push(n);
     pending.push(...childNodes(n));
   }
   return found.sort((a, b) => a.span.start - b.span.start);
@@ -136,9 +196,10 @@ function listNodes(tree: Node): Extract<Node, { kind: "list" }>[] {
 
 /**
  * NM-35, NM-36 for a range whose values are all number literals, `starts` of them before the
- * ellipsis; null otherwise or when valid.
+ * ellipsis; null otherwise, when valid, or when a side is empty (an open slice, `L[2...]`).
  */
 function literalRangeError(bounds: readonly Node[], starts: number): RowErrorCode | null {
+  if (starts === 0 || starts === bounds.length) return null;
   const values = bounds.map(literal);
   if (values.some((v) => v === null)) return null;
   const numbers = values as number[];

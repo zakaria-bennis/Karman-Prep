@@ -20,6 +20,7 @@ const CIRCULAR_NAMES: ReadonlySet<string> = new Set(["sin", "cos", "tan", "csc",
 
 type Binary = Extract<Node, { left: Node }>;
 type Call = Extract<Node, { kind: "call" }>;
+type Index = Extract<Node, { kind: "index" }>;
 type Fn = () => number;
 
 /** A user function, compiled once per compileReal: the slots of its parameters and its body. */
@@ -143,11 +144,45 @@ function compile(node: Node, ctx: Context): Fn {
       const a = compile(node.arg, ctx);
       return () => factorial(a());
     }
+    case "index":
+      return indexed(node, ctx);
     case "point": // a point is not a real number
     case "list": // nor is a list
     case "sim": // a regression row is fitted by the values pass (D-2)
       return undefinedFn;
   }
+}
+
+/**
+ * NM-30: `T[i]` with one index item, when T is a list literal or a name whose value is a list, so
+ * `L[x]` graphs a step function; the index is rounded down and out of range is NaN. Any other
+ * index (a slice, a filter, a list of indices or another target) is a list or unknown here: NaN.
+ */
+function indexed(node: Index, ctx: Context): Fn {
+  const [item] = node.items;
+  if (node.range !== undefined || node.items.length !== 1 || item.kind === "rel")
+    return undefinedFn;
+  const elements = listElements(node.target, ctx);
+  if (elements === null) return undefinedFn;
+  const index = compile(item, ctx);
+  return () => {
+    const k = Math.floor(index());
+    return k >= 1 && k <= elements.length ? elements[k - 1]() : NaN;
+  };
+}
+
+/** The elements of a list literal, or of a name's list value (NaN for a non-number); else null. */
+function listElements(target: Node, ctx: Context): Fn[] | null {
+  if (target.kind === "list" && target.range === undefined) {
+    return target.items.map((item) => compile(item, ctx));
+  }
+  if (target.kind !== "id" || ctx.slots.has(target.name)) return null;
+  const value = ctx.scope.values.get(target.name);
+  if (value?.type !== "list") return null;
+  return value.value.map((v) => {
+    const n = v.type === "number" ? v.value : NaN;
+    return () => n;
+  });
 }
 
 function arithmetic(node: Binary, ctx: Context): Fn {

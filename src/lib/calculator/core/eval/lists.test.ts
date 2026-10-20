@@ -34,7 +34,7 @@ function direct(latex: string, rows: string[] = []): Value {
 describe("list values", () => {
   it("NM-32 operators, one-argument built-ins and user functions apply element by element with scalar broadcast", () => {
     expect(evaluateLatex("[1,2,3]+1")).toEqual(list(2, 3, 4));
-    expect(evaluateLatex("2[1,2,3]")).toEqual(list(2, 4, 6));
+    expect(evaluateLatex("2\\cdot[1,2,3]")).toEqual(list(2, 4, 6));
     expect(evaluateLatex("10-[1,2]")).toEqual(list(9, 8));
     expect(evaluateLatex("[1,2,3]^{2}")).toEqual(list(1, 4, 9));
     expect(evaluateLatex("2^{[1,2,3]}")).toEqual(list(2, 4, 8));

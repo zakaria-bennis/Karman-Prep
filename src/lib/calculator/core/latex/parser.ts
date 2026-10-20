@@ -111,16 +111,31 @@ export function parseRow(state: ParserState): Node {
     if (after.t !== "end") unexpected(state, after);
     return { kind: "sim", left: operands[0], right, span: spanning(operands[0], right) };
   }
+  const tree = takeRelations(state, operands[0]);
+  const next = peek(state);
+  if (next.t !== "end") unexpected(state, next);
+  return tree;
+}
+
+/**
+ * `condition := sum (relop sum)*` (G12): a sum with an optional relation chain, as a filter in
+ * `L[…]` writes it (PR-34, NM-31: `L[L>2]`, `L[2<L<6]`).
+ */
+export function parseCondition(state: ParserState): Node {
+  return takeRelations(state, parseSum(state));
+}
+
+/** The relation chain after `first`, checked by checkChain; `first` itself without one. */
+function takeRelations(state: ParserState, first: Node): Node {
+  const operands = [first];
   const ops: RelOp[] = [];
   for (let relop = takeRelop(state); relop !== null; relop = takeRelop(state)) {
     checkChain(ops, relop);
     ops.push(relop.op);
     operands.push(parseSum(state));
   }
-  const next = peek(state);
-  if (next.t !== "end") unexpected(state, next);
-  if (ops.length === 0) return operands[0];
-  const span = spanning(operands[0], operands[operands.length - 1]);
+  if (ops.length === 0) return first;
+  const span = spanning(first, operands[operands.length - 1]);
   return { kind: "rel", ops, operands, span };
 }
 

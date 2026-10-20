@@ -135,8 +135,12 @@ function chainShape(tree: Rel, coordinates: ReadonlySet<string>): RowShape {
   return shape("constant-relation", { kind: "constant-region", operands, ops });
 }
 
-/** G-3: a list literal of points, such as `[(1,2),(3,4)]`, plots like a point (RC-15). */
+/**
+ * G-3: a list literal of points, such as `[(1,2),(3,4)]`, plots like a point (RC-15), and so does
+ * an index of one (NM-30: `[(1,2),(3,4)][1]` is a point).
+ */
 function isPointList(tree: Node): boolean {
+  if (tree.kind === "index") return isPointList(tree.target);
   return (
     tree.kind === "list" &&
     tree.range === undefined &&

@@ -54,6 +54,7 @@ const BARE_BASES: ReadonlySet<Kind> = new Set([
   "fact",
   "point",
   "list",
+  "index",
 ]);
 /** Wrapped as a sum's right operand and as a product's left factor. */
 const SUMS: ReadonlySet<Kind> = new Set(["add", "sub"]);
@@ -109,6 +110,13 @@ export function printLatex(tree: Node): string {
       return join(["\\left(", printLatex(tree.x), ",", printLatex(tree.y), "\\right)"]);
     case "list":
       return join(["\\left[", ...listItems(tree.items, tree.range), "\\right]"]);
+    case "index": // PR-34: the target is an id, call, list, number or index, each one atom
+      return join([
+        printLatex(tree.target),
+        "\\left[",
+        ...listItems(tree.items, tree.range),
+        "\\right]",
+      ]);
     case "rel":
       return join(
         tree.operands.flatMap((operand, i) =>
@@ -130,7 +138,9 @@ export function printLatex(tree: Node): string {
 function printProduct(left: Node, right: Node): string {
   const l = wrapIf(left, SUMS);
   const r = wrapIf(right, PRODUCTS);
-  const juxtapose = left.kind === "num" && (isLetter(r[0]) || r[0] === "\\");
+  // PR-34: a `[` right after a number indexes it, so a list factor takes `\cdot`.
+  const juxtapose =
+    left.kind === "num" && (isLetter(r[0]) || (r[0] === "\\" && !r.startsWith("\\left[")));
   return juxtapose ? join([l, r]) : join([l, "\\cdot", r]);
 }
 
@@ -153,8 +163,9 @@ function printCall(name: string, args: readonly Node[], base: boolean): string {
 
 /**
  * PR-34: list items separated by commas, as MathQuill writes them; a range puts `\\ldots` after
- * its `range` starts, joined to them directly after one start (`1\\ldots10`) and by commas after
- * more (`1,3,\\ldots,10`), its ends following it by commas (`1\\ldots9,10`).
+ * its `range` starts, joined to them directly after at most one start (`1\\ldots10`, `\\ldots3`)
+ * and by commas after more (`1,3,\\ldots,10`), its ends following it by commas (`1\\ldots9,10`).
+ * An index's range may have no ends (`2\\ldots`, `1,3,\\ldots`).
  */
 function listItems(items: readonly Node[], range: number | undefined): string[] {
   const parts = items.map(printLatex);
@@ -164,7 +175,9 @@ function listItems(items: readonly Node[], range: number | undefined): string[] 
     parts.slice(0, range).flatMap(commas),
     parts.slice(range).flatMap(commas),
   ];
-  return [...starts, range === 1 ? "\\ldots" : ",\\ldots,", ...ends];
+  const several = range >= 2;
+  const after = several && ends.length > 0 ? [","] : [];
+  return [...starts, several ? ",\\ldots" : "\\ldots", ...after, ...ends];
 }
 
 function parenthesised(args: readonly Node[]): string {

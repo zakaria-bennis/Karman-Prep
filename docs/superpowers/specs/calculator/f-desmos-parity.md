@@ -101,10 +101,13 @@ These Desmos behaviours are known and recorded but not yet built:
 - **An ellipsis outside a list.** Desmos reads `1...5` as "Sorry, I don't understand the way that
   '...' is used here."; the calculator shows its syntax error. An expected failure in
   `desmos.reference.test.ts` (`CATALOGUE_ERROR_GAP`).
-- **A range whose length depends on x.** Desmos reads `[x...5]` as "Can't plot a list whose length
-  depends on free variable 'x'."; the calculator reads it as a list-valued graph (G-22), "Graphing
-  a list of curves isn't supported yet." An expected failure in `desmos.reference.test.ts`
-  (`CATALOGUE_ERROR_GAP`), for the multi-branch graph task (T11).
+- **Indexing gaps (NM-30, NM-31).** Indexing, slicing and filtering match Desmos (see below)
+  except where they use notation that has not shipped: member access (`L[2].x`, `P[P.x>2].x`),
+  `and` and `or` in a filter, a piecewise filter (`L[\{L>3\}]`), comprehensions, `length`, matrix
+  indexing with `;` ("Cannot index a list of numbers with ';'."), `\ne` in a filter, and a filter on
+  a name no row defines (`L[i>2]` reads "Can't plot a list whose length depends on free variable
+  'i'." in Desmos). `P[2]`, an index of a name defined as a list of points, is not graphed yet (M5).
+  Each is an expected failure in `desmos.reference.test.ts` (`INDEX_VALUE_GAP`, `INDEX_ERROR_GAP`).
 - **An infinite log base.** Desmos gives `\log_{\infty}(5)` = 0; `\infty` is not a value in the
   calculator yet, so it is undefined. An expected failure in `desmos.reference.test.ts`
   (`CATALOGUE_VALUE_GAP`).
@@ -122,6 +125,18 @@ These Desmos behaviours are known and recorded but not yet built:
 
 These were captured from Desmos by the second review and now match. Every captured error,
 including these, is checked in `desmos.reference.test.ts`:
+
+- **Indexing, slicing and filtering (PR-34, NM-30, NM-31).** `L[i]` is 1-based and rounds a
+  non-integer index down (`L[1.9]` = L[1], `L[0.6]` undefined); out of range is undefined. A list,
+  several items or a range picks each index in turn (`L[[1,3,5]]`, `L[1,2]`, `L[1,3,...,7]`), and a
+  slice is never cut at the end (`L[8...20]` is L[8] then 12 undefined; `L[4...2]` runs
+  backwards). `L[a...]`, `L[...b]` and `L[...]` run to the end and from 1. One condition filters
+  by position up to the shorter list (`L[L>3]`, `L[2<L<6]`, `L[[1,2,3]>2]` = [4]). `L[]` reads
+  "Square brackets cannot be empty.", `5[1]` "Cannot index a number with a number." (a `[` after a
+  number indexes it, so `2[1,2]` is no longer a product), and a range or filter that uses x, such
+  as `[x...5]` or `L[L>x]`, "Can't plot a list whose length depends on free variable 'x'." `L[x]`
+  graphs as a step function. Every catalogue value and error for these is checked
+  (`desmos-index.fixture.json`), with the gaps listed above.
 
 - **`exp` needs parentheses.** `\exp 2`, `\exp^{2}(1)` and `\exp` on its own read "'exp' is a
   function. Try using parentheses."; `\exp()` reads "Function 'exp' requires an argument. For

@@ -39,7 +39,9 @@ export type RowErrorCode =
   | "nested-list" // NM-34
   | "list-too-long" // NM-35, NM-42
   | "range-step" // NM-36
-  | "list-mixed"; // PR-34: numbers and points in one list
+  | "list-mixed" // PR-34: numbers and points in one list
+  | "index-type" // NM-30: indexing something that is not a list, `5[1]`
+  | "list-length-free"; // NM-31, NM-36: a list whose length depends on x or y
 export interface CorpusSettings {
   angleMode?: "radians" | "degrees";
   complex?: boolean;

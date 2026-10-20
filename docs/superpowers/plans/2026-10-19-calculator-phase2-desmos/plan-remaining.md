@@ -173,6 +173,17 @@ As described under M2.
 
 ### 3. Indexing `L[i]` and `L[[i,j]]` (PR-34, NM-30)
 
+**Done.** One `index` node (`target`, `items`, `range`, read like a list's contents) covers
+indexing, slicing and filtering (tasks 3 and 4 together); `core/eval/index-list.ts` evaluates it.
+Desmos differs from the notes below in three places, and Desmos wins: a `[` after a number indexes
+it (`5[1]` reads "Cannot index a number with a number.", so `2[1,2]` no longer multiplies); a slice
+is not clipped to the list (`L[8...20]` is L[8] then 12 undefined, `L[4...2]` runs backwards);
+and `L[1,2]` is `L[[1,2]]`. `L[]` reads "Square brackets cannot be empty." and a range or filter
+using x reads "Can't plot a list whose length depends on free variable 'x'." (which also fixes
+`[x...5]`). The catalogue's 57 values and 8 errors are in `core/lib/desmos-index.fixture.json`;
+the unmatched ones wait on unshipped notation (see `f-desmos-parity.md`). `speech.ts` gained the
+one `index` case TypeScript's exhaustive switch needs.
+
 - **AST:** add `{ kind: "index"; target: Node; index: Node; span }` to `latex/ast.ts`, with
   `sourceChildren`, `toSExpr` `(index L I)`, and the printer case (add to `BARE_BASES`).
 - **Parser:** in `latex/lists.ts`, replace `failIfIndexed`'s index branch with `parseIndex(state,
@@ -191,6 +202,8 @@ target)` for an id, call or list (`INDEXED_KINDS`); slicing and filtering stay `
 - **Docs:** NM-30 in `a-math-semantics.md`: a non-integer index floors (Desmos), not undefined.
 
 ### 4. Slicing and filtering `L[a...b]`, `L[a...]`, `L[cond]` (PR-34, NM-31)
+
+**Done** with task 3; `L[3...2]`, `L[0...2]` and `L[2...]` are in the catalogue capture.
 
 - **Parser:** export `parseCondition` from `latex/parser.ts` (a sum with an optional relation
   chain, reusing `takeRelop` and `checkChain`). `parseIndex` reads a range `a...b`, an open range

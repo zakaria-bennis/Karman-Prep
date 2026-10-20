@@ -14,6 +14,7 @@ export type ParseErrorCode =
   | "argument-parentheses" // PR-24: a run without `(` followed by another built-in call
   | "comma-side" // PR-25: an empty argument beside a comma in a call
   | "range-bound" // PR-34: a range with nothing before or after its ellipsis
+  | "empty-brackets" // PR-34: an index with nothing in its brackets, `L[]`
   | "log-power" // PR-26: a power other than 2 on the name `log` or `ln`
   | "empty-subscript" // PR-27: `\log_{}`
   | "name-subscript"; // PR-27: a subscript on a trig, hyperbolic or `ln` name
@@ -21,7 +22,7 @@ export interface ParseError {
   code: ParseErrorCode;
   span: SourceSpan;
   detail: string; // English, logs and tests only
-  // `unsupported`: the deferred notation a row error names ("Indexing a list");
+  // `unsupported`: the deferred notation a row error names ("Graphing a list of curves");
   // `function-parentheses`, `argument-parentheses`, `log-power` and `name-subscript`: the
   // built-in's name ("floor")
   feature?: string;
@@ -39,6 +40,7 @@ const PARSE_ERROR_CODES: ReadonlySet<string> = new Set<ParseErrorCode>([
   "argument-parentheses",
   "comma-side",
   "range-bound",
+  "empty-brackets",
   "log-power",
   "empty-subscript",
   "name-subscript",
@@ -49,14 +51,11 @@ export function isParseErrorCode(code: string): code is ParseErrorCode {
 }
 
 /**
- * Notation the parser or analysis reads but whose meaning has not shipped (PR-34's indexing,
- * slicing, filtering and comprehensions, NM-30, NM-31, NM-37; G-22's list-valued curves). An
- * `unsupported` row error naming one of these reads "{feature} isn't supported yet." (R-2).
+ * Notation the parser or analysis reads but whose meaning has not shipped (PR-34's comprehensions,
+ * NM-37; G-22's list-valued curves). An `unsupported` row error naming one of these reads
+ * "{feature} isn't supported yet." (R-2).
  */
 export const DEFERRED_FEATURES = Object.freeze({
-  index: "Indexing a list",
-  slice: "Slicing a list",
-  filter: "Filtering a list",
   comprehension: "Building a list with 'for'",
   listCurves: "Graphing a list of curves",
 } as const);

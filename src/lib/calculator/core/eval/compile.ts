@@ -43,6 +43,7 @@ import {
   pointValue,
   rangeValue,
 } from "./lists";
+import { conditionAt, filterValue, lengthOf, pickValue } from "./index-list";
 import { exponentRational } from "./real-pow";
 import { complexValue, numberValue, UNDEFINED, type Value } from "./values";
 
@@ -59,6 +60,7 @@ export type Compiled = (vars: Readonly<Record<string, Value>>, deadline: Deadlin
 
 type Binary = Extract<Node, { left: Node }>;
 type Call = Extract<Node, { kind: "call" }>;
+type Index = Extract<Node, { kind: "index" }>;
 
 /** A user function, compiled once per compileExpression. */
 interface CompiledFunction {
@@ -159,6 +161,8 @@ function compileNode(node: Node, ctx: Context): Compiled {
           ends.map((end) => end(vars, deadline))
         );
     }
+    case "index":
+      return indexed(node, ctx);
     case "sim": // D-2: a regression row is fitted by the values pass, never compiled
       return constant(UNDEFINED);
     case "point": {
@@ -179,6 +183,43 @@ function compileNode(node: Node, ctx: Context): Compiled {
           : UNDEFINED;
     }
   }
+}
+
+/**
+ * PR-34, NM-30, NM-31: `T[…]`. One condition filters T by its element-wise mask; one item picks
+ * by its value; several items pick by their list (makeList's rules); a range picks by its
+ * elements, an empty start side reading 1 and an empty end side the length of T.
+ */
+function indexed(node: Index, ctx: Context): Compiled {
+  const target = compileNode(node.target, ctx);
+  const [first] = node.items;
+  if (node.range === undefined && node.items.length === 1 && first.kind === "rel") {
+    const operands = first.operands.map((operand) => compileNode(operand, ctx)),
+      ops = first.ops;
+    return (vars, deadline) => {
+      const values = operands.map((operand) => operand(vars, deadline));
+      return filterValue(
+        target(vars, deadline),
+        mapN(values, (at) => conditionAt(at, ops))
+      );
+    };
+  }
+  const items = node.items.map((item) => compileNode(item, ctx));
+  const { range } = node;
+  if (range === undefined) {
+    if (items.length === 1)
+      return (vars, deadline) => pickValue(target(vars, deadline), items[0](vars, deadline));
+    return (vars, deadline) =>
+      pickValue(target(vars, deadline), makeList(items.map((item) => item(vars, deadline))));
+  }
+  const [starts, ends] = [items.slice(0, range), items.slice(range)];
+  return (vars, deadline) => {
+    const t = target(vars, deadline);
+    if (t.type !== "list") return UNDEFINED;
+    const from = starts.length === 0 ? [ONE] : starts.map((start) => start(vars, deadline)),
+      to = ends.length === 0 ? [lengthOf(t)] : ends.map((end) => end(vars, deadline));
+    return pickValue(t, rangeValue(from, to));
+  };
 }
 
 /** NM-32: a one-operand operator, element by element on a list. */

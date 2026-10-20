@@ -5,7 +5,7 @@
 
 import type { Node, SourceSpan } from "./ast";
 import { isBuiltinCommand, parseBuiltinCall, parseUserCall } from "./calls";
-import { failIfComprehension, failIfIndexed, parseList } from "./lists";
+import { failIfComprehension, parseIndex, parseList } from "./lists";
 import {
   enter,
   fail,
@@ -77,12 +77,20 @@ export function parsePostfix(state: ParserState): Node {
  * notation there: `'` (prime) is `unsupported`, as is a `.` after an identifier or a call (member
  * access); any other `.` ends the
  * loop and is `syntax` where the caller meets it. A built-in call with a `(` argument list is an
- * atom too (PR-25). A `[` after a name, a call or a list is PR-34's indexing (failIfIndexed).
+ * atom too (PR-25). A `[` after a name, a call, a list, a number or an index is PR-34's indexing
+ * (parseIndex), which takes the postfix signs after it too (`L[2]^{2}`, `L[L>3][1]`).
  */
 export function takePostfix(state: ParserState, atom: Node): Node {
   let node = atom;
   let afterExponent = false;
-  for (let token = peek(state); token.t === "symbol"; token = peek(state)) {
+  for (let token = peek(state); token.t === "symbol" || token.t === "open"; token = peek(state)) {
+    if (token.t === "open") {
+      const indexed = parseIndex(state, node);
+      if (indexed === null) break;
+      node = indexed;
+      afterExponent = false;
+      continue;
+    }
     if (UNSUPPORTED_POSTFIX.has(token.ch) || (token.ch === "." && isMemberBase(node))) {
       fail("unsupported", token.span, `"${token.ch}" is not supported`);
     }
@@ -107,7 +115,6 @@ export function takePostfix(state: ParserState, atom: Node): Node {
       break;
     }
   }
-  failIfIndexed(state, node);
   return node;
 }
 

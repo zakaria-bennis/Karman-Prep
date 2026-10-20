@@ -71,16 +71,43 @@ describe("list syntax", () => {
     }
   });
 
-  it("PR-34 a number juxtaposed with a list multiplies it; a name, call or list before [ indexes", () => {
-    expect(tree("2[1,2]")).toBe("(mul (num 2) (list (num 1) (num 2)))");
-    expect(tree("L[2]")).toBe("unsupported: Indexing a list");
-    expect(tree("[1,2,3][2]")).toBe("unsupported: Indexing a list");
-    expect(tree("L_{1}[1...2]")).toBe("unsupported: Slicing a list");
-    expect(tree("L[L>2]")).toBe("unsupported: Filtering a list");
+  it("PR-34, NM-30, NM-31 a [ after a name, call, list, number or index indexes, slices or filters", () => {
+    expect(tree("2[1,2]")).toBe("(index (num 2) (list (num 1) (num 2)))");
+    expect(tree("2\\cdot[1,2]")).toBe("(mul (num 2) (list (num 1) (num 2)))");
+    expect(tree("[1,2,3][2]")).toBe("(index (list (num 1) (num 2) (num 3)) (num 2))");
+    expect(tree("\\sin(1)[2]")).toBe("(index (call sin (num 1)) (num 2))");
+    expect(tree("L_{1}[1...2]")).toBe("(index (id L_{1}) (range (num 1) (num 2)))");
+    expect(tree("L[1,3,...,7]")).toBe("(index (id L) (range (num 1) (num 3) (num 7)))");
+    expect(tree("L[...]")).toBe("(index (id L) (range () ()))");
+    expect(tree("L[2<L<6]")).toBe("(index (id L) (rel (< <) (num 2) (id L) (num 6)))");
+    expect(tree("L[2]^{2}")).toBe("(pow (index (id L) (num 2)) (num 2))");
+    expect(tree("L[]")).toBe("empty-brackets");
+    expect(tree("L[L>2,1]")).toBe("syntax");
+    expect(tree("L[1...L>2]")).toBe("syntax");
+    expect(tree("L[1...2...3]")).toBe("syntax");
     expect(tree("[n^{2}\\operatorname{for}n=[1...5]]")).toBe(
       "unsupported: Building a list with 'for'"
     );
     expect(tree("x\\operatorname{for}")).toBe("unsupported: Building a list with 'for'");
+  });
+
+  it("PR-34 an index prints as MathQuill writes it and reads back the same", () => {
+    for (const [latex, printed] of [
+      ["L[2]", "L\\left[2\\right]"],
+      ["L[1,3,...,7]", "L\\left[1,3,\\ldots,7\\right]"],
+      ["L[2...]", "L\\left[2\\ldots\\right]"],
+      ["L[1,3,...]", "L\\left[1,3,\\ldots\\right]"],
+      ["L[...3]", "L\\left[\\ldots3\\right]"],
+      ["L[...]", "L\\left[\\ldots\\right]"],
+      ["L[L\\ge3]", "L\\left[L\\ge3\\right]"],
+      ["L[L>3][1]", "L\\left[L>3\\right]\\left[1\\right]"],
+      ["2\\cdot[1,2]", "2\\cdot\\left[1,2\\right]"],
+    ]) {
+      const r = parseLatex(latex);
+      if (!r.ok) throw new Error(latex);
+      expect(printLatex(r.tree), latex).toBe(printed);
+      expect(tree(printed), printed).toBe(toSExpr(r.tree));
+    }
   });
 
   it("PR-30 a regression with an empty side is sim-side, not a generic syntax error", () => {
