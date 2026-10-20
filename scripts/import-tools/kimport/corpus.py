@@ -59,6 +59,7 @@ class ClusterResult:
     export_sha256: str | None = None
     inputs: dict = field(default_factory=dict)
     decisions: dict = field(default_factory=dict)
+    stale_answers: list = field(default_factory=list)
 
 
 # ---------------------------------------------------------------- records
@@ -503,6 +504,15 @@ def report_md(result: ClusterResult) -> str:
         lines += [f"- {reason}: {_n(n)}" for reason, n in sorted(c["unparsed_by_reason"].items(),
                                                                   key=lambda t: (-t[1], str(t[0])))]
         lines.append("")
+    if result.stale_answers:
+        n = len(result.stale_answers)
+        lines += ["## Earlier answers that no longer apply", "",
+                  f"{n} earlier yes/no answer{'s no longer apply' if n != 1 else ' no longer applies'} because a "
+                  "copy is now on hold, a question is missing from this run, or the two questions were merged "
+                  "automatically. They stay in founder_decisions.json and are not used for now.", ""]
+        lines += [f"- `{x['pair']}`: answered {x['decision']!r} ({x['reason'].replace('_', ' ')})"
+                  for x in result.stale_answers]
+        lines.append("")
     disputes = [x for x in result.clusters if x["status"] == "answer_dispute"]
     if disputes:
         lines += ["## Same question, different answer key", ""]
@@ -516,7 +526,8 @@ def write_outputs(result: ClusterResult, out_dir: Path) -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
     doc = {"normalizer_version": NORMALIZER_VERSION, "export_sha256": result.export_sha256,
            "inputs": result.inputs, "counts": result.counts, "roles": dict(sorted(result.roles.items())),
-           "founder_decisions": result.decisions, "clusters": result.clusters, "unparsed": result.unparsed, "certified_duplicates": check_certified(result)}
+           "founder_decisions": result.decisions, "stale_answers": result.stale_answers,
+           "clusters": result.clusters, "unparsed": result.unparsed, "certified_duplicates": check_certified(result)}
     (out_dir / "clusters.json").write_text(json.dumps(doc, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     pairs = {"normalizer_version": NORMALIZER_VERSION, "ratio_threshold": FOUNDER_RATIO,
              "pair_count": len(result.founder_pairs), "pairs": result.founder_pairs}
@@ -538,7 +549,11 @@ def apply_saved_decisions(result: ClusterResult, decisions_file: Path) -> None:
     if not log:
         return
     doc = {"roles": result.roles, "clusters": result.clusters, "counts": result.counts}
-    result.founder_pairs = pairs_page.apply_to_doc(doc, result.founder_pairs, {k: v["decision"] for k, v in log.items()})
+    stale: list = []
+    result.founder_pairs = pairs_page.apply_to_doc(doc, result.founder_pairs,
+                                                   {k: v["decision"] for k, v in log.items()}, stale)
+    result.stale_answers = stale
+    result.counts["stale_answers"] = len(stale)
     result.clusters = doc["clusters"]
     result.decisions = doc["founder_decisions"]
     result.cluster_of = {m["id"]: c["cluster_id"] for c in result.clusters for m in c["members"]}

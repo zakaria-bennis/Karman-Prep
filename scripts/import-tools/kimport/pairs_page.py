@@ -309,24 +309,36 @@ def _refresh(doc: dict, c: dict) -> None:
             doc["roles"][m["id"]] = "member"
 
 
-def apply_to_doc(doc: dict, pairs: list[dict], decided: dict[str, str]) -> list[dict]:
+def apply_to_doc(doc: dict, pairs: list[dict], decided: dict[str, str], stale: list | None = None) -> list[dict]:
     """Apply decisions {pair_key: 'same'|'different'} to a clusters document (roles, clusters, counts) in place.
     Returns the pairs still undecided. Raises ValueError, changing nothing, if the answers contradict
-    each other or touch a held cluster. Used by `pairs apply` and by `corpus` (re-applying saved answers)."""
+    each other or touch a held cluster. With a `stale` list (corpus re-runs), an answer that no longer applies
+    (a side missing, in a held group, or a "different" already merged automatically) is skipped and listed
+    there as {"pair", "decision", "reason"} instead of raising. Used by `pairs apply` and by `corpus` (re-applying saved answers)."""
     clusters = {c["cluster_id"]: c for c in doc["clusters"]}
     owner = {m["id"]: c["cluster_id"] for c in doc["clusters"] for m in c["members"]}
     ends = {_key_of(p): (p["canonical"]["id"], p["member"]["id"]) for p in pairs}
     for k in decided:
         ends.setdefault(k, tuple(k.split("|")))
+    decided = dict(decided)
     for k in sorted(decided):
+        why = None
         for mid in ends[k]:
             if mid not in owner:
-                raise ValueError(f"The answer for {k} names {mid}, which is not in this clusters file. "
-                                 "Re-run the corpus step, then apply again.")
+                why = ("missing", f"The answer for {k} names {mid}, which is not in this clusters file. "
+                                  "Re-run the corpus step, then apply again.")
+                break
             c = clusters[owner[mid]]
             if c["status"] != "settled":
-                raise ValueError(f"The answer for {k} is about {mid}, whose group is on hold ({c['status']}). "
-                                 "Held groups cannot be decided on this page.")
+                why = ("on_hold", f"The answer for {k} is about {mid}, whose group is on hold ({c['status']}). "
+                                  "Held groups cannot be decided on this page.")
+                break
+        if why is None and stale is not None and decided[k] == "different" and owner[ends[k][0]] == owner[ends[k][1]]:
+            why = ("merged_automatically", "")
+        if why:
+            if stale is None:
+                raise ValueError(why[1])
+            stale.append({"pair": k, "decision": decided.pop(k), "reason": why[0]})
     groups, edges = _Groups(), {}
     for k in sorted(decided):
         if decided[k] == "same":
@@ -342,12 +354,13 @@ def apply_to_doc(doc: dict, pairs: list[dict], decided: dict[str, str]) -> list[
                          + "; ".join(_chain(edges, a, b)))
     if clash:
         raise ValueError("Your answers contradict each other, so nothing was changed. " + " | ".join(clash)
-                         + ". Fix the wrong answer (remove its line from founder_decisions.json) and run again.")
+                         + ". To fix this, open founder_decisions.json, delete the line for the answer that is wrong (one of the pairs "
+                         "named above), and run the same command again.")
 
     members_of: dict[str, list[str]] = {}
     for cid in clusters:
         members_of.setdefault(groups.find(cid), []).append(cid)
-    touched, merges = set(), 0
+    touched, merges, not_live_drop, live_drop = set(), 0, 0, 0
     for root, cids in members_of.items():
         if len(cids) == 1:
             continue
@@ -364,9 +377,12 @@ def apply_to_doc(doc: dict, pairs: list[dict], decided: dict[str, str]) -> list[
                 m["match"] = "founder_same"
                 m["duplicate_of"] = winner
         members.sort(key=lambda m: m["id"] != winner)
+        n_live = sum(bool(c["is_live"]) for c in cs)  # before big is overwritten
         big.update(members=members, canonical=winner, keeper_tie=False,
                    is_live=any(c["is_live"] for c in cs),
                    founder_pairs=sorted({p for c in cs for p in c["founder_pairs"]}))
+        not_live_drop += (len(cs) - n_live) - (0 if n_live else 1)
+        live_drop += n_live - (1 if n_live else 0)
         for c in cs[1:]:
             del clusters[c["cluster_id"]]
         for m in members:
@@ -389,9 +405,10 @@ def apply_to_doc(doc: dict, pairs: list[dict], decided: dict[str, str]) -> list[
     doc["founder_decisions"] = {k: decided[k] for k in sorted(decided)}
     counts = doc.setdefault("counts", {})
     counts["roles"] = dict(Counter(doc["roles"].values()))
-    for k in ("unique", "unique_not_live", "clusters_settled"):
+    for k, drop in (("unique", merges), ("clusters_settled", merges), ("unique_not_live", not_live_drop),
+                    ("live_unique", live_drop)):
         if k in counts:
-            counts[k] -= merges
+            counts[k] -= drop
     counts["founder_pairs"] = len(remaining)
     if "unique" in counts:
         g = _Groups()

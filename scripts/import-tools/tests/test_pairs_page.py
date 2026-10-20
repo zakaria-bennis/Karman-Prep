@@ -414,6 +414,74 @@ class FixRoundTests(Base):
         self.assertIn("error:", r.stderr)
 
 
+class StaleAnswerTests(Base):
+    """A saved answer that no longer applies is skipped (corpus re-run) instead of aborting every run."""
+
+    def doc(self):
+        return cluster_doc({"ca": [1], "cb": [2], "cc": [3], "cd": [4]})
+
+    def test_stale_kinds_skipped_and_listed(self):
+        doc = self.doc()
+        doc["clusters"][2]["status"] = "live_elsewhere"  # x3 now on hold
+        doc["clusters"][3]["members"].append(member(9, "exact"))
+        stale = []
+        remaining = pairs_page.apply_to_doc(
+            doc, [], {"x1|x2": "same", "x1|x77": "same", "x2|x3": "same", "x4|x9": "different"}, stale)
+        self.assertEqual({s["pair"]: s["reason"] for s in stale},
+                         {"x1|x77": "missing", "x2|x3": "on_hold", "x4|x9": "merged_automatically"})
+        self.assertEqual(remaining, [])
+        self.assertEqual({c["cluster_id"] for c in doc["clusters"]}, {"ca", "cc", "cd"})  # the valid "same" merged
+        self.assertEqual(doc["founder_decisions"], {"x1|x2": "same"})
+
+    def test_strict_mode_still_raises_for_new_answers(self):
+        doc = self.doc()
+        doc["clusters"][2]["status"] = "figure_review"
+        with self.assertRaises(ValueError):
+            pairs_page.apply_to_doc(doc, [], {"x2|x3": "same"})
+        with self.assertRaises(ValueError):
+            pairs_page.apply_to_doc(self.doc(), [], {"x1|x77": "same"})
+
+    def test_real_contradiction_still_fails_in_lenient_mode(self):
+        with self.assertRaises(ValueError) as cm:
+            pairs_page.apply_to_doc(self.doc(), [], {"x1|x2": "same", "x2|x3": "same", "x1|x3": "different"}, [])
+        self.assertIn("founder_decisions.json", str(cm.exception))
+        self.assertIn("delete the line", str(cm.exception))
+
+    def test_corpus_rerun_reports_stale_and_keeps_log(self):
+        items = [{"id": "SYN_V1_MATH_M1_Q01", "text": mc("The park has a pond near the old stone bridge and the "
+                                                         "largest fountain in the whole district.")},
+                 {"id": "SYN_V2_MATH_M1_Q01", "text": mc("The park has a lake near the old stone bridge and the "
+                                                         "largest fountain in the whole district.")}]
+        with tempfile.TemporaryDirectory() as d:
+            d = Path(d)
+            ip, lp = build_tree(d, items)
+            out = d / "out"
+            out.mkdir()
+            log = {"SYN_V1_MATH_M1_Q01|SYN_V9_MATH_M1_Q01": {"decision": "same", "at": "t"},
+                   "SYN_V1_MATH_M1_Q01|SYN_V2_MATH_M1_Q01": {"decision": "different", "at": "t"}}
+            (out / "founder_decisions.json").write_text(json.dumps(log), encoding="utf-8")
+            counts = corpus.run_corpus(ip, lp, None, out)  # must not raise
+            self.assertEqual(counts["stale_answers"], 1)
+            doc = json.loads((out / "clusters.json").read_text(encoding="utf-8"))
+            self.assertEqual([s["reason"] for s in doc["stale_answers"]], ["missing"])
+            self.assertEqual(json.loads((out / "founder_decisions.json").read_text(encoding="utf-8")), log)
+            report = (out / "report.md").read_text(encoding="utf-8")
+            self.assertIn("Earlier answers that no longer apply", report)
+            self.assertIn("1 earlier yes/no answer no longer applies", report)
+
+    def test_unique_counts_from_clusters_when_both_live(self):
+        doc = cluster_doc({"ca": [1], "cb": [2], "cc": [3]}, live=(1, 2))
+        doc["counts"].update(unique=3, unique_not_live=1, clusters_settled=3, live_unique=2)
+        pairs_page.apply_to_doc(doc, [], {"x1|x2": "same"}, [])
+        self.assertEqual((doc["counts"]["unique"], doc["counts"]["unique_not_live"], doc["counts"]["live_unique"]),
+                         (2, 1, 1))
+        doc = cluster_doc({"ca": [1], "cb": [2], "cc": [3], "cd": [4]}, live=(1,))
+        doc["counts"].update(unique=4, unique_not_live=3, clusters_settled=4, live_unique=1)
+        pairs_page.apply_to_doc(doc, [], {"x1|x2": "same", "x3|x4": "same"}, [])
+        self.assertEqual((doc["counts"]["unique"], doc["counts"]["unique_not_live"], doc["counts"]["live_unique"]),
+                         (2, 1, 1))
+
+
 class WiringTests(unittest.TestCase):
     def test_cli_commands_registered(self):
         spec = importlib.util.spec_from_file_location("kcli", Path(__file__).resolve().parent.parent / "kimport-cli.py")
