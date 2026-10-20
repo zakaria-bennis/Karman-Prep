@@ -2,10 +2,11 @@
 // typing tells before anything evaluates, with Desmos's texts (function catalogue,
 // distributions, captured live 2026-10-19). Pure TypeScript: no DOM (AR-44).
 
-import { sourceChildren, type Node } from "../latex/ast";
+import { coordinateAxis, sourceChildren, type Node } from "../latex/ast";
 import { MEMBER_NAMES } from "../latex/operator-names";
 import { arityText } from "../lib/arity";
 import { BUILTINS } from "../lib/builtins";
+import { POINT_FUNCTIONS } from "../lib/geometry";
 import { distributionStatistic, isDistributionName, readsDistribution } from "../lib/distributions";
 import { listFunction } from "../lib/statistics";
 import {
@@ -72,6 +73,8 @@ type Problem = Omit<ListProblem, "span">;
 
 function callProblem(call: Call, shapes: readonly (Shape | null)[]): Problem | null {
   const [first = null] = shapes;
+  // PR-45, FN-70, FN-71: a coordinate and a dot call of a point built-in are points.ts's
+  if (coordinateAxis(call) !== null || POINT_FUNCTIONS.has(call.name)) return null;
   if (call.member !== undefined) return memberProblem(call, first);
   if (isDistributionName(call.name)) {
     const known = shapes.every((s) => s !== null);
@@ -159,7 +162,7 @@ function applied(name: string, shapes: readonly Shape[]): Problem {
 }
 
 /** Every node of `tree` in source order, an outer node before the nodes inside it. */
-function nodesInOrder(tree: Node): Node[] {
+export function nodesInOrder(tree: Node): Node[] {
   const found: Node[] = [],
     pending: Node[] = [tree];
   for (let n = pending.pop(); n !== undefined; n = pending.pop()) {

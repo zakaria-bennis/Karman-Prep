@@ -2,7 +2,7 @@
 // A built-in takes a `(` argument list (a level-11 atom that takes postfix signs, PR-25) or, with
 // no parenthesis, the PR-24 run of implicitly multiplied factors (level 9).
 
-import type { Node, SourceSpan } from "./ast";
+import { isAxis, type Node, type SourceSpan } from "./ast";
 import { isDegreeSign, parsePostfix, takeArgument, takePostfix } from "./atoms";
 import {
   HIDDEN_OPERATOR_NAMES,
@@ -198,9 +198,12 @@ export function parseUserCall(state: ParserState, callee: Node): Node {
 
 /**
  * The built-ins a dot reads (PR-45): FN-47 to FN-51's methods and statistics of a distribution,
- * `D.\operatorname{pdf}(x)`, `D.\operatorname{mean}`.
+ * `D.\operatorname{pdf}(x)`, `D.\operatorname{mean}`, and distance and midpoint, whose dot calls
+ * analysis refuses with Desmos's texts (FN-70, FN-71).
  */
 const DOT_NAMES: ReadonlySet<string> = new Set([
+  "distance",
+  "midpoint",
   "pdf",
   "cdf",
   "inversecdf",
@@ -222,6 +225,19 @@ const DOT_NAMES: ReadonlySet<string> = new Set([
  */
 export function parseMember(state: ParserState, target: Node): Node | null {
   const dot = peek(state);
+  const letter = peek(state, 1);
+  if (letter.t === "letter" && isAxis(letter.ch)) {
+    // PR-45, NM-32: `P.x`, `P.y`, `P.z` read a coordinate
+    state.pos += 2;
+    const span = { start: target.span.start, end: letter.span.end };
+    return { kind: "call", name: letter.ch, args: [target], member: "property", span };
+  }
+  // PR-45: another letter on its own, `P.X`, is Desmos's "Sorry, I don't understand the way that
+  // '.' is used here." (captured 2026-10-19); a run of letters (`T.score`) stays unsupported
+  const next = peek(state, 2);
+  if (letter.t === "letter" && next.t !== "letter") {
+    return fail("unexpected-symbol", dot.span, "a letter after a dot", ".");
+  }
   if (isOneLetterMember(state)) {
     return fail("unexpected-symbol", dot.span, "a one-letter name after a dot", ".");
   }

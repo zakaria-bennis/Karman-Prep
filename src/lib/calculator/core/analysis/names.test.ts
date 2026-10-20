@@ -87,7 +87,7 @@ it("RC-2, RC-7, RC-8, RC-19, RC-20 row errors and the complex hint use the exact
       ["nCr", "2", "1"],
       "Function 'nCr' requires 2 arguments. For example, try typing: nCr(1, 2).",
     ],
-    ["point-coordinates", [], "A point's coordinates can't use x or y."],
+    ["point-coordinates", [], "Too many variables, I don't know what to do with this."],
     ["mixed-variables", [], "Use an equation such as y=… to graph an expression in x and y."],
     ["polar-variable", ["r"], "r only has a meaning in a polar equation."],
     ["timeout", [], "This is taking too long. Try a smaller range or fewer terms."],
@@ -140,7 +140,7 @@ it("NM-34, NM-35, NM-36, NM-32 list errors use their exact copy", () => {
     ["nested-list", [], "Cannot store a list of numbers in a list."],
     ["list-too-long", [], "Lists may not have more than 10,000 elements."],
     ["range-step", [], "Ranges must be arithmetic sequences."],
-    ["list-mixed", [], "A list can't mix numbers and points."],
+    ["list-mixed", [], "All elements of a list must have the same type."],
   ];
   for (const [code, names, text] of table) expect(rowErrorMessage(code, names)).toBe(text);
 });

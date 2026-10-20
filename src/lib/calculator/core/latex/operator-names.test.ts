@@ -21,7 +21,7 @@ describe("operator-name allowlist", () => {
         false
       );
   });
-  it("PR-12 built-ins ship by name: the SHIPPED set is trig, inverse trig, statistics with its aliases, length, normaldist, tdist and binomialdist with pdf, cdf and inversecdf, erf, exp, ln, log, hyperbolic trig and number theory", () => {
+  it("PR-12 built-ins ship by name: the SHIPPED set is trig, inverse trig, statistics with its aliases, length, normaldist, tdist and binomialdist with pdf, cdf and inversecdf, erf, exp, ln, log, hyperbolic trig, number theory, distance and midpoint", () => {
     expect([...O.SHIPPED].every(O.isBuiltinName)).toBe(true);
     const hidden = O.HIDDEN_OPERATOR_NAMES.map((n) => n.name);
     expect([...names(), ...hidden].filter(O.isShippedBuiltin)).toEqual([...O.SHIPPED]);
@@ -35,7 +35,7 @@ describe("operator-name allowlist", () => {
         "var variance varp cov covp mad corr spearman count total repeat join sort unique length " +
         "normaldist tdist binomialdist pdf cdf inversecdf inverseCdf erf " +
         "exp ln log sinh cosh tanh csch sech coth arcsinh arccosh arctanh arccsch arcsech arccoth " +
-        "lcm gcd gcf mcd mcm mod ceil floor round sign nPr nCr abs"
+        "distance midpoint lcm gcd gcf mcd mcm mod ceil floor round sign nPr nCr abs"
     );
     expect(
       O.OPERATOR_NAMES.filter((n) => n.category === null)

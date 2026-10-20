@@ -7,6 +7,8 @@ export interface SourceSpan {
 export type RelOp = "=" | "<" | ">" | "<=" | ">=";
 export type InequalityOp = Exclude<RelOp, "=">;
 export type ConstName = "e" | "pi" | "tau";
+/** PR-45, NM-32: a coordinate member, `P.x`; points have two, so `.z` is an error. */
+export type Axis = "x" | "y" | "z";
 /** A relation or chain, `operands.length === ops.length + 1` (G12, PR-29). */
 export interface Relation {
   kind: "rel";
@@ -29,7 +31,8 @@ export type Node =
   // PR-27: `\log_{b}x` is call "log" with args [x, b] and `base`, which marks the last argument as
   // the subscript, so RC-20 counts only the written ones (`\log(x,b)` is an arity error).
   // PR-45, FN-47 to FN-51: `T.\operatorname{pdf}(x)` is call "pdf" with args [T, x] and `member`
-  // "method"; `T.\operatorname{mean}`, without parentheses, has `member` "property".
+  // "method"; `T.\operatorname{mean}`, without parentheses, has `member` "property", and so has a
+  // coordinate `P.x`, call "x" with args [P] (coordinateAxis).
   | {
       kind: "call";
       name: string;
@@ -52,6 +55,13 @@ export type Node =
   // PR-31, PR-32: `\{c_1:v_1,c_2,…,v\}`, its parts with a condition in order and the bare last
   // value (the otherwise case) or null. A restriction is a product with one (`y=x\{x>0\}`).
   | { kind: "piecewise"; branches: Branch[]; otherwise: Node | null; span: SourceSpan };
+
+export const isAxis = (name: string): name is Axis => name === "x" || name === "y" || name === "z";
+
+/** PR-45, NM-32: the axis a coordinate member `P.x` reads, else null. */
+export function coordinateAxis(node: Node): Axis | null {
+  return node.kind === "call" && node.member === "property" && isAxis(node.name) ? node.name : null;
+}
 
 /**
  * The direct child nodes of `node`, in source order: a root's index comes before its argument.

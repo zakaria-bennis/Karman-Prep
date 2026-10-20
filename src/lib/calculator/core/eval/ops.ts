@@ -1,8 +1,11 @@
 // Value-level arithmetic (NM-10 to NM-14, NM-18, NM-19; FN-12 to FN-14), plot numbers (NM-21) and
 // relations (NM-22). Two numbers use the real rules; a non-real operand uses the complex
-// functions; a point times a real number scales it (PR-32: a restriction multiplies by 1 or
-// undefined); any other point, list or undefined operand gives UNDEFINED (decision 7). Every
-// scalar result passes through numberValue or complexValue, so a non-finite result is UNDEFINED.
+// functions; points add, subtract and negate coordinate by coordinate, scale by and divide by a
+// real number and multiply each other as the dot product, and |P| is P's length (NM-32, as Desmos
+// evaluates them, captured 2026-10-19); any other point, list or undefined operand gives
+// UNDEFINED (decision 7), analysis reporting Desmos's error for it. Every scalar result passes
+// through numberValue or complexValue, so a non-finite result is UNDEFINED; a point keeps an
+// undefined coordinate as NaN.
 // Pure TypeScript: no DOM (AR-44).
 
 import type { RelOp } from "../latex/ast";
@@ -37,35 +40,59 @@ function binary(
   return x && y ? fromComplex(complex(x, y)) : UNDEFINED;
 }
 
+type Point = readonly [number, number];
+/** A point; a coordinate that overflows is undefined, NaN, as a point's undefined parts are. */
+const point = (x: number, y: number): Value => ({ type: "point", value: [finite(x), finite(y)] });
+const finite = (v: number) => (Number.isFinite(v) ? v : NaN);
+
+/** a + b; two points add coordinate by coordinate: (1,2)+(3,4) is (4, 6). */
 export function addV(a: Value, b: Value): Value {
+  if (a.type === "point" && b.type === "point") return pointwise(a.value, b.value, (x, y) => x + y);
   return binary(a, b, (x, y) => x + y, cadd);
 }
 
+/** a − b; two points subtract coordinate by coordinate: (1,2)−(3,4) is (−2, −2). */
 export function subV(a: Value, b: Value): Value {
+  if (a.type === "point" && b.type === "point") return pointwise(a.value, b.value, (x, y) => x - y);
   return binary(a, b, (x, y) => x - y, csub);
+}
+
+function pointwise(p: Point, q: Point, op: (x: number, y: number) => number): Value {
+  return point(op(p[0], q[0]), op(p[1], q[1]));
 }
 
 /**
  * a · b. A point and a real number, in either order, scale the point's coordinates, an undefined
  * coordinate staying NaN (decision 7): `(1,2)\{a>0\}` is (1, 2) while a > 0 and undefined
- * otherwise, as Desmos shows it (captured 2026-10-19).
+ * otherwise, as Desmos shows it (captured 2026-10-19). Two points give their dot product, a
+ * number: `(1,2)\cdot(3,4)` is 11 (analysis refuses the juxtaposed `(1,2)(3,4)`).
  */
 export function mulV(a: Value, b: Value): Value {
   if (a.type === "point" && b.type === "number") return scaled(a.value, b.value);
   if (a.type === "number" && b.type === "point") return scaled(b.value, a.value);
+  if (a.type === "point" && b.type === "point") {
+    return numberValue(a.value[0] * b.value[0] + a.value[1] * b.value[1]);
+  }
   return binary(a, b, (x, y) => x * y, cmul);
 }
 
-function scaled([x, y]: readonly [number, number], k: number): Value {
-  return { type: "point", value: [x * k, y * k] };
+function scaled([x, y]: Point, k: number): Value {
+  return point(x * k, y * k);
 }
 
-/** a / b; ÷ 0 is UNDEFINED (NM-12, FN-14) because the quotient is not finite. */
+/**
+ * a / b; ÷ 0 is UNDEFINED (NM-12, FN-14) because the quotient is not finite. A point divided by a
+ * real number divides each coordinate: (1,2)/2 is (0.5, 1).
+ */
 export function divV(a: Value, b: Value): Value {
+  if (a.type === "point" && b.type === "number") {
+    return point(a.value[0] / b.value, a.value[1] / b.value);
+  }
   return binary(a, b, (x, y) => x / y, cdiv);
 }
 
 export function negV(a: Value): Value {
+  if (a.type === "point") return point(-a.value[0], -a.value[1]);
   if (a.type === "number") return numberValue(-a.value);
   return a.type === "complex" ? complexValue(-a.value.re, -a.value.im) : UNDEFINED;
 }
@@ -76,9 +103,10 @@ export function pctV(a: Value): Value {
   return a.type === "complex" ? complexValue(a.value.re / 100, a.value.im / 100) : UNDEFINED;
 }
 
-/** |a|, the modulus for a complex value. */
+/** |a|, the modulus for a complex value and the length for a point: |(3,4)| is 5. */
 export function absV(a: Value): Value {
   if (a.type === "number") return numberValue(Math.abs(a.value));
+  if (a.type === "point") return numberValue(Math.hypot(a.value[0], a.value[1]));
   return a.type === "complex" ? numberValue(Math.hypot(a.value.re, a.value.im)) : UNDEFINED;
 }
 

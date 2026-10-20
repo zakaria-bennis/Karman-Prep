@@ -63,7 +63,13 @@ export type RowErrorCode =
   | "multiply-types"
   | "divide-types"
   | "power-types"
-  | "negate-type";
+  | "negate-type"
+  | "point-coordinate-type" // NM-32: a point as a point's coordinate, `((0,0),(4,0))`
+  | "coordinate-type" // PR-45: `a.x` with a a number
+  | "point-function-arguments" // FN-70, FN-71: `distance(1,2)`
+  | "point-function-arity" // FN-70, FN-71: three arguments
+  | "dot-call" // FN-70: `(0,0).\operatorname{distance}((3,4))`
+  | "member-target"; // FN-71: `(0,0).\operatorname{midpoint}((2,4))`
 export interface CorpusSettings {
   angleMode?: "radians" | "degrees";
   complex?: boolean;

@@ -4,6 +4,7 @@ import { numberValue, UNDEFINED } from "../eval/values";
 import { formatValue } from "../eval/format";
 import { OPERATOR_NAMES, SHIPPED } from "../latex/operator-names";
 import { DISTRIBUTION_FUNCTION_NAMES } from "./distributions";
+import { POINT_FUNCTIONS } from "./geometry";
 import { LIST_FUNCTION_NAMES } from "./statistics";
 
 const P = Math.PI;
@@ -76,12 +77,13 @@ it("FN-4 every built-in returns undefined outside its domain, shows undefined an
 it("FN-1 every shipped built-in function has a rule, and no unshipped one does", () => {
   const functions = OPERATOR_NAMES.filter((o) => o.category !== null).map((o) => o.name);
   for (const name of functions) {
-    // a scalar rule in BUILTINS, a list rule in statistics.ts or a distribution rule
-    // (distributions.ts), never two
+    // a scalar rule in BUILTINS, a list rule in statistics.ts, a distribution rule
+    // (distributions.ts) or a point rule (geometry.ts), never two
     const rules =
       Number(BUILTINS.has(name)) +
       Number(LIST_FUNCTION_NAMES.includes(name)) +
-      Number(DISTRIBUTION_FUNCTION_NAMES.includes(name));
+      Number(DISTRIBUTION_FUNCTION_NAMES.includes(name)) +
+      Number(POINT_FUNCTIONS.has(name));
     expect(rules, name).toBe(SHIPPED.has(name) ? 1 : 0);
   }
   expect(LIST_FUNCTION_NAMES.every((name) => SHIPPED.has(name))).toBe(true);

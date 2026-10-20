@@ -68,7 +68,7 @@ it("API-9 expressionAnalysis reports graphable, error and displayed number, poin
     },
     d: { evaluationDisplayed: true, evaluation: { type: "undefined" } },
     e: {
-      isGraphable: false,
+      isGraphable: true, // RC-6, M5: a point definition draws its point, as in Desmos
       evaluationDisplayed: true,
       evaluation: { type: "point", value: [1, 2] },
     },

@@ -6,10 +6,12 @@ import type { RowErrorCode } from "../corpus/types";
 import { sourceChildren, type Node, type SourceSpan } from "../latex/ast";
 import { isBuiltinName } from "../latex/operator-names";
 import { arityText, BUILTIN_ARITY } from "../lib/arity";
+import { POINT_FUNCTIONS } from "../lib/geometry";
 import { listFunction } from "../lib/statistics";
 import { declaredHead, type DefinitionHead, type ParsedRow } from "./definitions";
 import { functionGraph, isPointShaped, POLAR_NAMES, shapeOf, type RowShape } from "./graph";
 import type { AnalysisSettings, RowAnalysis, RowError } from "./index";
+import type { ListTyping } from "./lists";
 import { displayName, rowErrorMessage } from "./messages";
 import { collectNameUses, isReservedName } from "./names";
 import type { Resolution } from "./resolve";
@@ -25,7 +27,8 @@ type Call = Extract<Node, { kind: "call" }>;
 export function classifyRow(
   row: ParsedRow,
   resolution: Resolution,
-  settings: AnalysisSettings
+  settings: AnalysisSettings,
+  typing: ListTyping
 ): RowAnalysis {
   const analysis: RowAnalysis = {
     id: row.source.id,
@@ -57,9 +60,10 @@ export function classifyRow(
       ? shapeOf(
           row.tree,
           (node) => resolution.coordinatesOf(node, []),
-          unboundT(row.tree, resolution)
+          unboundT(row.tree, resolution, typing),
+          pointValued(row.tree, typing)
         )
-      : headShape(row.head, row.tree.span, resolution);
+      : headShape(row.head, row.tree.span, resolution, typing);
   if (shape.error !== null) {
     const { code, names } = shape.error,
       span = code === "unsupported" ? firstUseShown(scope, names[0], locals, resolution) : null;
@@ -101,6 +105,7 @@ function conflictError(
   }
   for (const call of callsOf(scope)) {
     if (call.member !== undefined) continue; // FN-47 to FN-51: distributions.ts counts these
+    if (POINT_FUNCTIONS.has(call.name)) continue; // FN-70, FN-71: points.ts gives Desmos's texts
     const arity = expectedArity(call.name, resolution);
     const written = call.args.length - (call.base ? 1 : 0);
     const list = listFunction(call.name);
@@ -164,15 +169,33 @@ function usedNames(tree: Node, locals: readonly string[], settings: AnalysisSett
 }
 
 /**
+ * RC-15, G-3, NM-32: a tree that plots as a point or points: one as written (isPointShaped), or
+ * one whose shape is a point or a list of points, by list typing (`(1,2)+(3,4)`, `P` defined as
+ * a point, `\operatorname{midpoint}((0,0),(2,4))`), as Desmos graphs them (captured 2026-10-19).
+ */
+function pointValued(tree: Node, typing: ListTyping): boolean {
+  if (isPointShaped(tree)) return true;
+  const shape = typing.shape(tree, []);
+  return shape === "point" || shape === "points";
+}
+
+/**
  * A definition row's shape: a value head is a definition, or a dependent definition when its body
- * reaches a coordinate (RC-6); a function head is a function definition with RC-5's graph, and,
+ * reaches a coordinate (RC-6), and a definition whose body plots as points graphs them, as Desmos
+ * draws `A=(1,2)` and `P=[(1,2),(3,4)]` (M5, captured 2026-10-19); a function head is a function definition with RC-5's graph, and,
  * not being an RC-6 definition, `unsupported` when its body reaches r or θ (RC-2).
  */
-function headShape(head: DefinitionHead, span: SourceSpan, resolution: Resolution): RowShape {
+function headShape(
+  head: DefinitionHead,
+  span: SourceSpan,
+  resolution: Resolution,
+  typing: ListTyping
+): RowShape {
   const coordinates = resolution.coordinatesOf(head.body, head.params),
     shape: RowShape = { kind: "definition", graph: null, error: null, relation: null };
   if (head.type === "value") {
-    return coordinates.size > 0 ? { ...shape, kind: "dependent-definition" } : shape;
+    if (coordinates.size > 0) return { ...shape, kind: "dependent-definition" };
+    return pointValued(head.body, typing) ? { ...shape, graph: { kind: "point" } } : shape;
   }
   const polar = [...coordinates].find((name) => POLAR_NAMES.includes(name));
   if (polar !== undefined) {
@@ -186,9 +209,9 @@ function headShape(head: DefinitionHead, span: SourceSpan, resolution: Resolutio
 }
 
 /** RC-2, RC-3: a `t` inside a point-shaped row (a restricted one too) while no row defines `t`. */
-function unboundT(tree: Node, resolution: Resolution): boolean {
+function unboundT(tree: Node, resolution: Resolution, typing: ListTyping): boolean {
   return (
-    isPointShaped(tree) &&
+    pointValued(tree, typing) &&
     !resolution.isDefined("t") &&
     collectNameUses(tree).some((use) => use.name === "t" && use.inPoint)
   );

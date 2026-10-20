@@ -153,7 +153,7 @@ describe("PR-31 PR-32 point rows, broadcasting and conditions", () => {
   });
 
   it("RC-2 a point piecewise using x or y, or a restricted (t, …), keeps the point errors", () => {
-    const coordinates = "A point's coordinates can't use x or y.";
+    const coordinates = "Too many variables, I don't know what to do with this.";
     expect(row(["\\{x>0:(1,2)\\}"])).toEqual(["error", false, coordinates]);
     expect(row(["\\{x>0:(x,1),(0,0)\\}"])).toEqual(["error", false, coordinates]);
     const notation = "This calculator doesn't support that notation.";

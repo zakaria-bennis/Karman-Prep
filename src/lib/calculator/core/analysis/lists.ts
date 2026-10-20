@@ -6,15 +6,22 @@
 // see. Pure TypeScript: no DOM (AR-44).
 
 import type { RowErrorCode } from "../corpus/types";
-import { sourceChildren as childNodes, type Node, type SourceSpan } from "../latex/ast";
+import {
+  coordinateAxis,
+  sourceChildren as childNodes,
+  type Node,
+  type SourceSpan,
+} from "../latex/ast";
 import { DEFERRED_FEATURES } from "../latex/errors";
 import { isBuiltinName } from "../latex/operator-names";
 import { isDistributionName, readsDistribution } from "../lib/distributions";
+import { POINT_FUNCTIONS } from "../lib/geometry";
 import { rangeShape } from "../lib/range";
 import { givesList, listFunction } from "../lib/statistics";
 import type { DefinitionHead } from "./definitions";
 import { displayName } from "./messages";
 import { collectNameUses, COORDINATE_NAMES, lengthShaping } from "./names";
+import { coordinateShape, pointCallShape, pointOperatorShape } from "./points";
 
 export interface ListTyping {
   names: ReadonlySet<string>; // value names that hold a list
@@ -113,12 +120,15 @@ export function inferLists(
  * every item is one; an index picks from its target's elements; and arithmetic or a built-in on
  * numbers gives a number, or a list of numbers when an operand is one; a point times a number is
  * a point; a user call is a distribution, or a list of them, when its body is with its parameters
- * read as its arguments' shapes (FN-45). Other point arithmetic (M4), other user calls, relations
- * and undefined names are unknown.
+ * read as its arguments' shapes (FN-45); point arithmetic, coordinates, distance and midpoint
+ * follow points.ts (NM-32, PR-45, FN-70, FN-71). Other user calls, relations and undefined names
+ * are unknown.
  */
 function shapeOf(node: Node, locals: readonly string[], known: Known, bound: Bound): Shape | null {
   const { shapes } = known;
   const of = (n: Node) => shapeOf(n, locals, known, bound);
+  const axis = coordinateAxis(node);
+  if (axis !== null && node.kind === "call") return coordinateShape(of(node.args[0]), axis);
   switch (node.kind) {
     case "num":
     case "const":
@@ -143,6 +153,7 @@ function shapeOf(node: Node, locals: readonly string[], known: Known, bound: Bou
       return target === "numbers" ? "number" : "point";
     }
     case "call": {
+      if (POINT_FUNCTIONS.has(node.name)) return pointCallShape(node, of);
       if (!isBuiltinName(node.name)) return userCallShape(node, node.args.map(of), known);
       const args = node.args.map(of),
         read = distributionCallShape(node, args);
@@ -152,13 +163,17 @@ function shapeOf(node: Node, locals: readonly string[], known: Known, bound: Bou
     }
     case "piecewise":
       return piecewiseShape(node, of);
-    case "mul":
-      return scaledShape(of(node.left), of(node.right)) ?? numeric([of(node.left), of(node.right)]);
     case "rel":
     case "sim":
       return null;
-    default:
-      return numeric(childNodes(node).map(of));
+    default: {
+      // each operand's shape once, so a deep tree is typed in linear time
+      const operands = childNodes(node).map(of);
+      const point = pointOperatorShape(node.kind, operands);
+      if (point !== undefined) return point;
+      if (node.kind === "mul") return scaledShape(operands[0], operands[1]) ?? numeric(operands);
+      return numeric(operands);
+    }
   }
 }
 

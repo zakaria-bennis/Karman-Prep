@@ -62,7 +62,9 @@ function letter(base: string): string {
  * `repeat-count`, `repeat-lengths`, `refused-function`, `colon-side`, `colon-condition`,
  * `piecewise-condition`, `piecewise-part`, `piecewise-types`, `relation-side`, `comparator-types`
  * `double-inequality`, `distribution-call`, `distribution-function`, `add-types` and
- * `multiply-types`, `unexpected-symbol` and `logic-outside-condition` use the text Desmos gave on 2026-10-19 (the other operator texts are its
+ * `multiply-types`, `unexpected-symbol`, `logic-outside-condition`, `list-mixed`,
+ * `point-coordinates` and the point codes from `point-coordinate-type` to `member-target` use the
+ * text Desmos gave on 2026-10-19 (the other operator texts are its
  * bundle's, not yet captured live); `repeat-counts` is Desmos's
  * text for a bad count in a list of counts (its bundle's bad-counts string), and
  * `relation-chain`, `chained-equation`, `long-chain` and `double-direction` are its bundle's
@@ -92,7 +94,7 @@ const MESSAGES: Readonly<Record<RowErrorCode, string>> = {
   cycle: "{n} is defined in terms of itself.",
   "reserved-name": "{n} is reserved and can't be redefined.",
   arity: "Function '{n}' requires {k} arguments.", // arityMessage gives the full text
-  "point-coordinates": "A point's coordinates can't use x or y.",
+  "point-coordinates": "Too many variables, I don't know what to do with this.",
   "mixed-variables": "Use an equation such as y=… to graph an expression in x and y.",
   "polar-variable": "{n} only has a meaning in a polar equation.",
   timeout: "This is taking too long. Try a smaller range or fewer terms.",
@@ -103,7 +105,7 @@ const MESSAGES: Readonly<Record<RowErrorCode, string>> = {
   "nested-list": "Cannot store a list of numbers in a list.",
   "list-too-long": "Lists may not have more than 10,000 elements.",
   "range-step": "Ranges must be arithmetic sequences.",
-  "list-mixed": "A list can't mix numbers and points.",
+  "list-mixed": "All elements of a list must have the same type.",
   "index-type": "Cannot index {n} with {k}.",
   "list-length-free": "Can't plot a list whose length depends on free variable '{n}'.",
   "empty-brackets": "Square brackets cannot be empty.",
@@ -141,6 +143,13 @@ const MESSAGES: Readonly<Record<RowErrorCode, string>> = {
   "divide-types": "Cannot divide {n} by {k}.",
   "power-types": "Cannot raise {n} to {k}.",
   "negate-type": "Cannot negate {n}.",
+  "point-coordinate-type": "Cannot use {n} as a coordinate of a point.",
+  "coordinate-type": "Cannot access coordinate '.{n}' of {k}.",
+  "point-function-arguments": "Function '{n}' requires {k}.",
+  // Desmos's text ends with a space, the place its example would go (captured 2026-10-19)
+  "point-function-arity": "Function '{n}' requires 2 arguments. ",
+  "dot-call": "Function '{n}' cannot be called with dot notation.",
+  "member-target": "Cannot call '.{n}' on {k}.",
   "unexpected-symbol": "Sorry, I don't understand the way that '{n}' is used here.",
   "logic-outside-condition": "'{n}' can only be used as part of a condition.",
 };

@@ -12,9 +12,10 @@ import { DeadlineExceeded, NO_DEADLINE, type Deadline } from "../deadline";
 import { evaluateTable, type DataSink } from "../data/evaluate";
 import { evaluateRegression, regressionValues } from "../data/evaluate-regression";
 import { regressionDefinitionId, regressionOf } from "../data/regression-analysis";
-import { sourceChildren, type Node } from "../latex/ast";
+import { coordinateAxis, sourceChildren, type Node } from "../latex/ast";
 import { isBuiltinName } from "../latex/operator-names";
 import { applyBuiltin } from "../lib/builtins";
+import { applyPointFunction, coordinate, POINT_FUNCTIONS } from "../lib/geometry";
 import { isDistributionName, readsDistribution } from "../lib/distributions";
 import { applyListFunction, listFunction } from "../lib/statistics";
 import { circular, type CircularName } from "../lib/trig";
@@ -302,6 +303,12 @@ function power(node: Binary, ctx: Context): Compiled {
 }
 
 function call(node: Call, ctx: Context): Compiled {
+  const axis = coordinateAxis(node);
+  if (axis !== null) {
+    // PR-45: `P.x`, element by element on a list of points (`L.x`)
+    const target = compileNode(node.args[0], ctx);
+    return (vars, deadline) => map1(target(vars, deadline), (v) => coordinate(v, axis));
+  }
   if (isBuiltinName(node.name)) return builtinCall(node.name, node.args, ctx);
   const fn = userFunction(node.name, ctx);
   if (fn === null || fn.params.length !== node.args.length) return constant(UNDEFINED);
@@ -330,6 +337,14 @@ function builtinCall(name: string, argNodes: readonly Node[], ctx: Context): Com
       );
   }
   const args = argNodes.map((arg) => compileNode(arg, ctx));
+  // FN-70, FN-71: distance and midpoint broadcast over lists of points.
+  if (POINT_FUNCTIONS.has(name)) {
+    return (vars, deadline) =>
+      mapN(
+        args.map((arg) => arg(vars, deadline)),
+        (values) => applyPointFunction(name, values)
+      );
+  }
   // FN-45: a constructor broadcasts into a list of distributions.
   if (isDistributionName(name)) {
     return (vars, deadline) =>

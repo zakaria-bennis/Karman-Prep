@@ -8,6 +8,7 @@ import { NO_DEADLINE } from "../deadline";
 import { sourceChildren, type ConstName, type Node, type RelOp } from "../latex/ast";
 import { isBuiltinName } from "../latex/operator-names";
 import { BUILTINS } from "../lib/builtins";
+import { POINT_FUNCTIONS } from "../lib/geometry";
 import { isDistributionName, readsDistribution } from "../lib/distributions";
 import { givesList, listFunction, reduceNumbers } from "../lib/statistics";
 import { factorial } from "../lib/gamma";
@@ -285,6 +286,8 @@ function power(node: Binary, ctx: Context): Fn {
 
 function call(node: Call, ctx: Context): Fn {
   if (readsOrMakesDistribution(node, ctx)) return generalNode(node, ctx);
+  // FN-70, FN-71: distance and midpoint read points, which are not numbers
+  if (POINT_FUNCTIONS.has(node.name)) return generalNode(node, ctx);
   if (listFunction(node.name) !== undefined) return listFunctionCall(node, ctx);
   if (isBuiltinName(node.name)) return builtinCall(node.name, node.args, ctx);
   const fn = userFunction(node.name, ctx);
@@ -298,7 +301,7 @@ function call(node: Call, ctx: Context): Fn {
 
 /**
  * FN-45 to FN-51: a call generalNode evaluates, since a distribution is not a number: a
- * constructor, a dot, pdf or cdf, or a statistic or quantile whose first argument holds a
+ * constructor, a dot (a point's coordinate `P.x` too, PR-45), pdf or cdf, or a statistic or quantile whose first argument holds a
  * constructor, a name whose value is a distribution (`y=\operatorname{mean}(N)x`) or a call of
  * a user function whose body, or a function it calls, does (`y=\operatorname{mean}(f(2))x` with
  * `f(x)=\operatorname{normaldist}(x,1)`).

@@ -230,14 +230,11 @@ function sameIndexValue(v: Value, expected: Captured): boolean {
   );
 }
 
-// Index values not yet matched, each an expected failure that fails once matched: member access
-// `.x` (PR-9), `and`, `or` and comprehensions (NM-37) have not shipped.
+// Index values not yet matched, each an expected failure that fails once matched: `and`, `or`
+// and comprehensions (NM-37) have not shipped.
 const INDEX_VALUE_GAP: ReadonlySet<string> = new Set([
-  "[defs: L=\\left[(1,2),(3,4)\\right]] L[2].x",
   "L[L>3 \\operatorname{and} L<9]",
   "[L[i] \\operatorname{for} i=[1...3]]",
-  "P[2].x",
-  "P[P.x>2].x",
   "[i^2 \\operatorname{for} i=[1...3]][2]",
   "L[(L>3) \\operatorname{or} (L<2)]",
 ]);
@@ -274,8 +271,8 @@ for (const [latex, message] of INDEX_ERRORS) {
   else it(`NM-30 NM-31 ${latex} reads "${message}", as in Desmos`, check);
 }
 
-// Rows Desmos graphs without a value: `L[x]` is a step function; `P[2]` is a point, which a name
-// defined as a list of points does not graph yet (M5); `E[1...3]` shows no value and no error.
+// Rows Desmos graphs without a value: `L[x]` is a step function; `P[2]` is a point (M5);
+// `E[1...3]` shows no value and no error.
 it("NM-30 all 3 catalogue rows graphed without a value are checked", () =>
   expect(Object.keys(indexing.graphed).length).toBe(3));
 
@@ -293,18 +290,20 @@ it("NM-30 L[x] graphs as a step function, as in Desmos", () => {
   expect([row.kind, row.isGraphable, row.error]).toEqual(["curve-y", true, null]);
 });
 
-it.fails("not yet matched: P[2] graphs as a point in Desmos", () =>
-  expect(indexRow("P[2]").isGraphable).toBe(true)
-);
+it("NM-30 RC-15 P[2] graphs as a point, as in Desmos", () =>
+  expect(indexRow("P[2]").isGraphable).toBe(true));
 
 it("NM-31 E[1...3] has no error, as in Desmos", () =>
   expect(indexRow("E[1...3]").error).toBe(null));
 
 // NM-30, PR-45: more catalogue cases for indexing and member access, each after its own rows
 // (" ;; " separates them). Not yet matched, each an expected failure that fails once matched:
-// member access (PR-9), colours, tones, matrices and `;` (none has shipped).
+// member access other than coordinates (PR-45), colours, tones, matrices and `;` (none has
+// shipped).
 const RELATED = indexing.related;
-const RELATED_VALUE_GAP: ReadonlySet<string> = new Set(Object.keys(RELATED.values));
+const RELATED_VALUE_GAP: ReadonlySet<string> = new Set([
+  "\\left[1,2,3\\right].\\operatorname{length}",
+]);
 const RELATED_ERROR_GAP: ReadonlySet<string> = new Set(Object.keys(RELATED.errors));
 
 it("NM-30 PR-45 all 3 related values and 10 related errors are checked", () =>
@@ -322,7 +321,7 @@ for (const [key, expected] of Object.entries(RELATED.values) as [string, Capture
   };
   if (RELATED_VALUE_GAP.has(key))
     it.fails(`not yet matched: ${key} is ${expected} in Desmos`, check);
-  else it(`NM-30 ${key} is ${JSON.stringify(expected)}, as in Desmos`, check);
+  else it(`NM-30 PR-45 ${key} is ${JSON.stringify(expected)}, as in Desmos`, check);
 }
 
 for (const [key, message] of Object.entries(RELATED.errors)) {
@@ -397,8 +396,8 @@ function sameStatisticsValue(v: Value, expected: Captured, complex: boolean): bo
 
 // Statistics cases not yet matched, each an expected failure that fails once matched, by the
 // notation they use that has not shipped: derivatives, colours and tones, distributions other than
-// normaldist, tdist and binomialdist (FN-45 to FN-51), member access other than theirs
-// (`L.\operatorname{mean}`, `.x`), comprehensions and matrices, shuffle and random (T14), polygon,
+// normaldist, tdist and binomialdist (FN-45 to FN-51), member access other than theirs and
+// coordinates (`L.\operatorname{mean}`), comprehensions and matrices, shuffle and random (T14), polygon,
 // boxplot and stats, `\arg` (complex mode), `\infty` as a value, a stored +∞ behind undefined
 // (`\arctan` of tdist(2)'s infinite stdev; NM-6 keeps one undefined state), and `y=` rows, which
 // Desmos gives a value when the right side is constant (`y=\operatorname{count}(x,1,2)` = 3) and
@@ -407,7 +406,7 @@ const STATISTICS_GAPS: readonly RegExp[] = [
   /\\frac\{d\}|'\(/,
   /\\operatorname\{(rgb|hsv|okhsv|oklab|oklch|tone)\}/,
   /dist\}/,
-  /\.(\\operatorname|x$|y$)/,
+  /\.\\operatorname/,
   /\\operatorname\{for\}|bmatrix/,
   /\\operatorname\{(shuffle|random|polygon|boxplot|stats)\}/,
   /\\arg/,
@@ -421,11 +420,11 @@ const statisticsGap = (key: string) =>
 
 const STATISTICS_VALUES = Object.entries(statistics.values) as [string, Captured][];
 
-it("FN-2 FN-23 FN-29 FN-75 all 438 catalogue statistics values are checked, 340 matched", () =>
+it("FN-2 FN-23 FN-29 FN-75 all 438 catalogue statistics values are checked, 345 matched", () =>
   expect([
     STATISTICS_VALUES.length,
     STATISTICS_VALUES.filter(([k]) => !statisticsGap(k)).length,
-  ]).toEqual([438, 340]));
+  ]).toEqual([438, 345]));
 
 for (const [key, expected] of STATISTICS_VALUES) {
   const check = () => {
@@ -458,15 +457,9 @@ for (const [key, message] of STATISTICS_ERRORS) {
   else it(`FN-2 FN-23 FN-29 FN-75 ${key} reads "${message}", as in Desmos`, check);
 }
 
-// Rows Desmos graphs without a value, and broadcasts over an empty list, which show no value
-// because they are the empty list. Not yet matched, each an expected failure that fails once
-// matched: a point-valued call (`\operatorname{total}(P)`) does not graph yet (M5).
+// Rows Desmos graphs without a value, point-valued calls (`\operatorname{total}(P)`, M5) among
+// them, and broadcasts over an empty list, which show no value because they are the empty list.
 const STATISTICS_GRAPHED = Object.entries(statistics.graphed);
-const POINT_ROWS: ReadonlySet<string> = new Set([
-  "\\operatorname{mean}(P)",
-  "\\operatorname{total}(P)",
-  "\\operatorname{mean}((1,2),(3,4))",
-]);
 
 it("FN-23 FN-27 all 38 catalogue rows without a value are checked", () =>
   expect(STATISTICS_GRAPHED.length).toBe(38));
@@ -483,8 +476,7 @@ for (const [latex, note] of STATISTICS_GRAPHED) {
       expect(evaluateLatex(latex, { rows: statistics._rows })).toEqual({ type: "list", value: [] });
     }
   };
-  if (POINT_ROWS.has(latex)) it.fails(`not yet matched: ${latex} is ${note} in Desmos`, check);
-  else it(`FN-23 FN-27 ${latex} is ${note}, as in Desmos`, check);
+  it(`FN-23 FN-27 ${latex} is ${note}, as in Desmos`, check);
 }
 
 // FN-30, FN-31, FN-35, FN-36, FN-38 and argmin, argmax: every catalogue value, error and row
@@ -493,23 +485,19 @@ for (const [latex, note] of STATISTICS_GRAPHED) {
 // (desmos-list-operations.fixture.json), keyed and evaluated as the statistics cases. A row's
 // error is its analysis error or, as the row shows it, the error its value carries
 // (`repeat(1,2.5)`). Not yet matched, each an expected failure that fails once matched:
-// derivatives, colours and tones, member access, actions (`\to`) and shuffle (T14); frequency,
-// which Desmos does not define, so its errors need multi-letter names; `[0.1+0.2,0.3]`, whose
-// constant sum Desmos folds exactly to 0.3; and rows Desmos graphs as several curves (G-22) or as
-// a call that gives points (M5).
+// derivatives, colours and tones, member access other than coordinates, actions (`\to`) and
+// shuffle (T14); frequency, which Desmos does not define, so its errors need multi-letter names;
+// `[0.1+0.2,0.3]`, whose constant sum Desmos folds exactly to 0.3; and rows Desmos graphs as
+// several curves (G-22).
 const LIST_OPERATION_GAPS: readonly RegExp[] = [
   /\\frac\{d\}/,
   /\\operatorname\{(rgb|tone|shuffle|frequency)\}/,
-  /\.(\\operatorname|x$)|\\to/,
+  /\.\\operatorname|\\to/,
   /0\.1\+0\.2/,
 ];
 const LIST_OPERATION_GRAPH_GAPS: ReadonlySet<string> = new Set([
   "\\operatorname{sort}([3,-1,2]x)",
-  "\\operatorname{sort}(P,[3,1,2])",
-  "\\operatorname{unique}([(1,2),(1,2),(3,4)])",
-  "\\operatorname{join}(P,(7,8))",
   "\\operatorname{join}(x,1)",
-  "\\operatorname{repeat}((1,2),2)",
   "\\operatorname{repeat}(x,2)",
   "\\operatorname{shuffle}(E)",
 ]);
@@ -524,11 +512,11 @@ function shownError(rows: readonly string[], latex: string): string | undefined 
   return errorMessage(rows, latex) ?? (carried === null ? undefined : rowErrorMessage(carried, []));
 }
 
-it("FN-30 FN-38 all 136 catalogue list operation values are checked, 120 matched", () =>
+it("FN-30 FN-38 all 136 catalogue list operation values are checked, 123 matched", () =>
   expect([
     LIST_OPERATION_VALUES.length,
     LIST_OPERATION_VALUES.filter(([k]) => !listOperationGap(k)).length,
-  ]).toEqual([136, 120]));
+  ]).toEqual([136, 123]));
 
 for (const [key, expected] of LIST_OPERATION_VALUES) {
   const check = () => {

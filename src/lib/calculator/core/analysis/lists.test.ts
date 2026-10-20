@@ -116,10 +116,17 @@ describe("index errors found by analysis", () => {
     expect(analyzeRows(rows("L[1...b]", "b=2", "L=[1,2]"), REAL).rows[0].error).toBe(null);
   });
 
-  it("PR-45 member access after an index, a list or a point is the deferred notation", () => {
-    for (const l of ["L[2].x", "[1,2].x", "(1,2).x"]) {
-      expect(last(...LISTS, l).error?.code).toBe("unsupported");
-    }
+  it("PR-45 a coordinate after an index, a list or a point reads a point's, as in Desmos", () => {
+    expect(
+      ["L[2].x", "[1,2].x", "(1,2).x", "P[2].y", "P.x", "A.z"].map((l) => message(...LISTS, l))
+    ).toEqual([
+      "Cannot access coordinate '.x' of a number.",
+      "Cannot access coordinate '.x' of a list of numbers.",
+      null,
+      null,
+      null,
+      "Cannot access coordinate '.z' of a 2d point.",
+    ]);
   });
 });
 

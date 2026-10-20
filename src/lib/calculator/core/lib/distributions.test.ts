@@ -27,7 +27,7 @@ function rowOf(latex: string, rows: string[] = []) {
   return analyzeRows(all, { angleMode: "radians", complex: false }).rows[rows.length];
 }
 
-it("PR-45 a dot reads a method with its arguments or a property, and prints back", () => {
+it("PR-45 a dot reads a method with its arguments, a property or a coordinate, and prints back", () => {
   const cases: [string, string][] = [
     ["D.\\operatorname{pdf}\\left(x\\right)", "(call .pdf (id D) (id x))"],
     [
@@ -39,6 +39,8 @@ it("PR-45 a dot reads a method with its arguments or a property, and prints back
       "\\operatorname{normaldist}\\left(\\right).\\operatorname{pleft}",
       "(call .pleft (call normaldist))",
     ],
+    // a coordinate prints as typed, `P.x`, since `.\operatorname{x}` is an error in Desmos
+    ["L\\left[2\\right].x+P.y", "(add (call .x (index (id L) (num 2))) (call .y (id P)))"],
   ];
   for (const [latex, tree] of cases) {
     const parsed = parseLatex(latex);
@@ -58,7 +60,7 @@ it("PR-45 a dot after anything but a distribution stays unsupported, but for an 
       "Sorry, I don't understand the way that '.' is used here."
     );
   }
-  expect(rowOf("P.x", ["P=(1,2)"]).error?.code).toBe("unsupported");
+  expect(rowOf("P.x", ["P=(1,2)"]).error).toBe(null); // PR-45: a coordinate (points.ts)
   expect(rowOf("\\operatorname{normaldist}().\\operatorname{random}(2)").error?.code).toBe(
     "unsupported"
   );

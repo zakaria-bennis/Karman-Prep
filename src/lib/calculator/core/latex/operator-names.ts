@@ -113,6 +113,9 @@ export const SHIPPED: ReadonlySet<string> = new Set([
   "arccsch",
   "arcsech",
   "arccoth",
+  // FN-70 distance and FN-71 midpoint (Phase 2 task 8); polygon waits for its fill renderer
+  "distance",
+  "midpoint",
   // FN-75 gcd and lcm with their aliases (task 5), FN-76 to FN-78 and abs (Phase 2 T3), in
   // OPERATOR_NAMES order
   "lcm",

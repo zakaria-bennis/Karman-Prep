@@ -21,6 +21,7 @@ import { classifyRow } from "./classify";
 import { distributionProblem } from "./distributions";
 import { declaredHead, parseRows, userFunctionSet, type ParsedRow } from "./definitions";
 import { listCallProblem } from "./list-calls";
+import { pointProblem } from "./points";
 import {
   comparisonProblem,
   inferLists,
@@ -142,8 +143,8 @@ export function analyzeRows(
   );
   const all = [...parsed, ...synthetic, ...regressionRows];
   const resolution = resolveDefinitions(all);
-  const analysed = all.map((row) => classifyRow(row, resolution, settings));
   const typing = inferLists(errorFreeHeads(all), [], new Set(fitted));
+  const analysed = all.map((row) => classifyRow(row, resolution, settings, typing));
   parsed.forEach((row, k) => {
     const plan = plans.get(row.source.id);
     if (plan !== undefined) analysed[k] = regressionRow(analysed[k], plan, row.source.hidden);
@@ -182,7 +183,8 @@ function errorFreeHeads(rows: readonly ParsedRow[]) {
 /**
  * NM-34 to NM-36: a row's first nested list or invalid literal range, as its row error; then
  * PR-31: its first piecewise mixing point and number branches, then its first comparison of a
- * point; then FN-45 to FN-51: its first misuse of a distribution; then FN-23 to FN-29: its first
+ * point; then NM-32, PR-45, FN-70, FN-71: its first misuse of a point (pointProblem); then FN-45
+ * to FN-51: its first misuse of a distribution; then FN-23 to FN-29: its first
  * list function call with arguments Desmos refuses.
  */
 function withListError(row: ParsedRow, typing: ListTyping): ParsedRow {
@@ -192,6 +194,7 @@ function withListError(row: ParsedRow, typing: ListTyping): ParsedRow {
     listProblem(tree, locals, typing) ??
     piecewiseProblem(tree, locals, typing) ??
     comparisonProblem(tree, locals, typing) ??
+    pointProblem(tree, locals, typing, normalizeLatex(row.source.latex)) ??
     distributionProblem(tree, locals, typing, normalizeLatex(row.source.latex)) ??
     listCallProblem(tree, locals, typing);
   if (problem === null) return row;

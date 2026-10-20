@@ -19,7 +19,7 @@ export const POLAR_NAMES: readonly string[] = ["r", "\\theta"];
 
 /**
  * Classifies a tree that defines nothing, by RC-2's order: r or θ anywhere is `unsupported`;
- * then a point or a list of points (RC-15, G-3, isPointShaped), a relation (RC-11 to RC-14) or a bare expression (RC-17). `coordinatesOf`
+ * then a point or a list of points (RC-15, G-3: `pointed`, isPointShaped or its typed shape), a relation (RC-11 to RC-14) or a bare expression (RC-17). `coordinatesOf`
  * gives the coordinates a node reaches through definitions; `unboundT` is true when a `t` inside
  * the point has no defining row. A relation with no coordinates is a `constant-relation` here:
  * classifyRow makes it an `unsolved-relation` when the row has chips (RC-13), which depend on the
@@ -28,13 +28,14 @@ export const POLAR_NAMES: readonly string[] = ["r", "\\theta"];
 export function shapeOf(
   tree: Node,
   coordinatesOf: (node: Node) => ReadonlySet<string>,
-  unboundT: boolean
+  unboundT: boolean,
+  pointed: boolean
 ): RowShape {
   const coordinates = coordinatesOf(tree);
   const relation = tree.kind === "rel" ? { ops: [...tree.ops] } : null;
   const polar = [...coordinates].find((name) => POLAR_NAMES.includes(name));
   if (polar !== undefined) return failed("unsupported", [displayName(polar)], relation);
-  if (isPointShaped(tree)) {
+  if (pointed) {
     if (unboundT) return failed("unsupported", ["t"], relation);
     if (coordinates.has("x") || coordinates.has("y")) {
       return failed("point-coordinates", [], relation);

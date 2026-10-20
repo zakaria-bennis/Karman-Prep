@@ -234,8 +234,8 @@ category ships in Phase 4.
 ## 12. Geometry
 
 - **FN-69** polygon(P1, P2, …, Pn), polygon(list of points) and polygon(X, Y) with paired lists draw a closed polygon through the vertices in order, edged in the row's colour and line style and filled at the theme's region opacity (TH-); two vertices draw a segment, fewer than two or any undefined vertex is a row error, and self-intersecting polygons fill by the even-odd rule. (Phase 4; verified by visual test)
-- **FN-70** distance(P, Q) = √((x_Q − x_P)² + (y_Q − y_P)²) (distance((1,2), (4,6)) = 5) and broadcasts over point lists. (Phase 4; verified by unit test)
-- **FN-71** midpoint(P, Q) = ((x_P + x_Q)/2, (y_P + y_Q)/2), broadcasts over point lists, and plots as a point when it is a row's value. (Phase 4; verified by unit test)
+- **FN-70** distance(P, Q) = √((x*Q − x_P)² + (y_Q − y_P)²) (distance((1,2), (4,6)) = 5), computed without overflow, and broadcasts over point lists. Anything but two points reads Desmos's "Function 'distance' requires 2 points.", three arguments "Function 'distance' requires 2 arguments. " and a dot call "Function 'distance' cannot be called with dot notation." (\_amended 2026-10-20: ships in Phase 2, captured 2026-10-19*). (Phase 4; verified by unit test)
+- **FN-71** midpoint(P, Q) = ((x*P + x_Q)/2, (y_P + y_Q)/2), computed as P/2 + Q/2 so it cannot overflow, broadcasts over point lists, and plots as a point when it is a row's value. Anything but two points reads Desmos's "Function 'midpoint' requires a segment or 2 points." (\_amended 2026-10-20: ships in Phase 2, captured 2026-10-19*). (Phase 4; verified by unit test)
 
 ## 13. Custom colors
 

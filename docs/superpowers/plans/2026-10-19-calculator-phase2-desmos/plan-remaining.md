@@ -158,28 +158,37 @@ Desmos's source, not captured live). Left, with reasons:
   `core/api/engine.rows.test.ts` pins it. Not a maths task: listed here so the list of known gaps
   is complete; schedule it with the UI work, not in this plan's order.
 
-### M4. Point arithmetic (NM-32, plan.md design note 4) — capture first
+### M4. Point arithmetic, members, distance and midpoint (NM-32, PR-45, FN-70, FN-71) — done
 
-- **Karman now:** `2(1,2)`, `(1,2)\cdot2` and `(1,2)+(3,4)` are value rows that evaluate to undefined.
-- **Desmos (not in the captured file):** point times scalar and point plus point give points,
-  `(2, 4)` and `(4, 6)`. Capture `2(1,2)`, `(1,2)\cdot2`, `(1,2)+(3,4)`, `(1,2)-(3,4)`,
-  `(1,2)/2`, `(1,2)\cdot(3,4)` and `[(1,2),(3,4)]+(1,1)` and add them to the JSON before coding.
-- **Files:** `core/eval/ops.ts` (`binary`: point with number and point with point, NaN coordinates
-  kept as NaN per 04 decision 7), `core/analysis/graph.ts` (a product or sum that is point-shaped is
-  kind `point`).
-- **Tests:** `core/eval/ops.test.ts`, the reference test with a new "point arithmetic" family.
+**Done** (task 8 of the 2026-10-20 run, function catalogue geometry family). `eval/ops.ts`: points
+add, subtract and negate coordinate by coordinate, scale by and divide by a real number, and two
+points multiply to their dot product (`(1,2)\cdot(3,4)` = 11); `|P|` is the length.
+`latex/calls.ts` reads `P.x`, `P.y` and `P.z` as the member call `x` (`coordinateAxis`), a lone
+other letter (`P.X`) as Desmos's "Sorry, I don't understand the way that '.' is used here.".
+`lib/geometry.ts` evaluates distance (overflow-safe hypot) and midpoint (P/2 + Q/2), which
+broadcast over point lists. `analysis/points.ts` types all of it and gives Desmos's errors:
+"Cannot add a point and a number.", "Cannot divide a number by a point.", "Cannot raise a point to
+a number.", the juxtaposed "Cannot multiply a point by a point." (read from the spans: `\cdot` is
+the dot product), "Cannot use a point as a coordinate of a point.", "Cannot access coordinate
+'.x' of a number." (".z" of a 2d point), "Function 'distance' requires 2 points.", "Function
+'midpoint' requires a segment or 2 points.", "Function 'distance' requires 2 arguments. " (with
+its trailing space), "Function 'distance' cannot be called with dot notation." and "Cannot call
+'.midpoint' on a point.". `core/lib/desmos-geometry.fixture.json` holds the catalogue's 114
+values, 61 errors and 7 graphed rows; `desmos-geometry.reference.test.ts` checks them. Not matched
+(expected failures): 3D points and `\times` as the cross product, `for` and `with`, the hidden
+names hypot, pointDot, pointDet, pointPerp and complexMultiplyPoints, `.\operatorname{length}`,
+parametric points in t (RC-16), `y=` rows with a constant side, and Desmos's free-variable texts.
 
-### M5. Point-valued names graph (G-2, RC-6, plan.md design note 4) — capture first
+### M5. Point-valued names graph (G-2, RC-6, RC-15) — done
 
-- **Karman now:** `A=(1,2)` and `P=[(1,2),(3,4)]` are definitions and draw nothing; a later row `P` is
-  kind `value` and draws nothing.
-- **Desmos (from plan.md's notes, not in the captured file):** both definitions draw their points,
-  and so does a bare `P`. Capture these three rows before coding; RC-6 forbids graphing
-  definitions, so the spec text changes with this task.
-- **Files:** `core/analysis/graph.ts` (`isPointShaped(node, lookup)` through `resolve.ts` for ids
-  and definition bodies), `plot/from-analysis.ts` (definition rows of kind point).
-- **Tests:** `core/corpus/cases/classify-rows.ts`, `plot/from-analysis.test.ts`,
-  `core/api/engine.lists.test.ts` (geometry for `A=(1,2)`).
+**Done.** `analysis/classify.ts` graphs a row as points when it is point-shaped as written or its
+list typing is a point or a list of points: `P` and `P[2]` after `P=[(1,2),(3,4)]`,
+`(1,2)+(3,4)`, `\operatorname{midpoint}(…)`, `\operatorname{total}(P)`, `sort(P,[3,1,2])`.
+A value definition whose body is point-valued (`A=(1,2)`, `P=[(1,2),(3,4)]`) keeps kind
+`definition` and gets the graph `{ kind: "point" }`, which `plot/from-analysis.ts` already draws
+from the row's value, so RC-6's "definitions do not graph" now holds only for non-point values.
+The point-coordinates error reads Desmos's "Too many variables, I don't know what to do with
+this." (`(x,y)`, `(x,1)+(1,x)`).
 
 ### M6. Karman wording that has no Desmos capture yet
 
@@ -187,7 +196,7 @@ Not known to be wrong, but chosen without a capture. Capture each and match it, 
 matches, before the lists work is called Desmos-exact:
 
 - `[1,1,...,5]`: Karman "A range can't step by 0. Make its first two values different."
-- `[(1,2),3]`: Karman "A list can't mix numbers and points."
+- `[(1,2),3]`: captured, Desmos's "All elements of a list must have the same type.", now matched.
 - 30 elements then `…` in the row value (NM-38).
 - An empty range with the step pointing away from the bound (`[1,2,...,0]`): Karman `[]`.
 
@@ -436,11 +445,9 @@ otherwise}` with `sourceChildren`, `toSExpr` and printer (`\left\{x>0:x,-x\right
   piecewise case if task 7 did not add it. Check in `tests/calculator/math-field.spec.ts` what
   MathQuill emits for `!` and `:` inside braces.
 
-### 12. Point arithmetic and point-valued names (M4, M5)
+### 12. Point arithmetic and point-valued names (M4, M5) — done
 
-After capturing the cases listed under M4 and M5 in Desmos, implement them as described there, in
-two commits (M4 then M5). They depend on nothing above except that task 3's point-shaped index
-rule should already exist.
+Done as task 8 of the 2026-10-20 run; see M4 and M5.
 
 ### 13 (optional). Seeded `random` and `shuffle` (FN-7, FN-37; T14)
 

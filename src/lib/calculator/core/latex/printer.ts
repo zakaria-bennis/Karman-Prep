@@ -3,7 +3,7 @@
 // `\left(…\right)` ("wrap") where the parser would otherwise group it differently (G2, G5), and a
 // unary minus also wraps a negation (`-\left(-x\right)`).
 
-import type { Node, RelOp } from "./ast";
+import { isAxis, type Node, type RelOp } from "./ast";
 import { isBuiltinName } from "./operator-names";
 
 /** Built-ins MathQuill writes as their own command; every other built-in is `\operatorname{…}`. */
@@ -170,6 +170,8 @@ function printCall(name: string, args: readonly Node[], base: boolean): string {
 /** PR-45: `T.\operatorname{pdf}\left(x\right)`, or `T.\operatorname{mean}` for a property. */
 function printMember(name: string, args: readonly Node[], member: "method" | "property"): string {
   const [target, ...rest] = args;
+  // PR-45: a coordinate is typed as the letter, `P.x`; `.\operatorname{x}` is an error in Desmos
+  if (member === "property" && isAxis(name)) return join([printLatex(target), ".", name]);
   const head = join([printLatex(target), ".\\operatorname{", name, "}"]);
   return member === "method" ? join([head, parenthesised(rest)]) : head;
 }
