@@ -57,7 +57,7 @@ it("D-10 a later header naming a list another row defines is a computed column",
   expect(a.byId.get("a")!.error).toBeNull();
 });
 
-it("D-10 a header name another table also defines warns on both headers", () => {
+it("D-10 a header name another table also defines marks only the rows that use it, as in Desmos", () => {
   const a = analyzeRows(
     [
       table("t", [
@@ -68,14 +68,14 @@ it("D-10 a header name another table also defines warns on both headers", () => 
         ["x_{2}", ["1"]],
         ["y_{1}", ["3"]],
       ]),
+      { id: "w", latex: "y_{1}+1", hidden: false },
     ],
     SETTINGS
   );
-  for (const id of ["t", "u"]) {
-    expect(a.byId.get(id)!.table!.columns[1].error?.message).toBe(
-      "You've defined 'y_1' in more than one place. Try deleting some of the definitions of 'y_1'."
-    );
-  }
+  for (const id of ["t", "u"]) expect(a.byId.get(id)!.table!.columns[1].error).toBeNull();
+  expect(a.byId.get("w")!.error?.message).toBe(
+    "You've defined 'y_1' in more than one place. Try deleting some of the definitions of 'y_1'."
+  );
 });
 
 it("D-11 column names are defined for every other row, so y_1 alone is a value row with no chip", () => {

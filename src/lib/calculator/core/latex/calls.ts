@@ -188,7 +188,14 @@ function failIfCommaSide(comma: Token, next: Token): void {
 export function parseUserCall(state: ParserState, callee: Node): Node {
   const open = peek(state);
   if (callee.kind !== "id" || open.t !== "open" || open.ch !== "(") return callee;
-  if (!state.options.userFunctions?.has(callee.name)) return callee;
+  if (!state.options.userFunctions?.has(callee.name)) {
+    // `a()`: Desmos's "Function 'a' is not defined." (captured 2026-10-20)
+    const close = peek(state, 1);
+    if (close.t === "close" && close.ch === ")") {
+      fail("function-undefined", callee.span, "an empty call of a name", callee.name);
+    }
+    return callee;
+  }
   // An empty `()` is a call with no arguments, so it is RC-20's arity error, as in Desmos
   // ("Function 'f' requires an argument"), not a syntax error.
   const args = takeEmptyList(state) ? [] : parseArgumentList(state);

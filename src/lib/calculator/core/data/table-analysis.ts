@@ -209,8 +209,7 @@ function cellError(
 export function analyzeTable(
   t: ParsedTable,
   names: readonly (string | null)[],
-  declared: ReadonlySet<string>,
-  duplicates: ReadonlySet<string>
+  declared: ReadonlySet<string>
 ): TableAnalysis {
   const own = new Set(names.filter((n): n is string => n !== null));
   const columns = t.headers.map((h, j): ColumnAnalysis => {
@@ -242,16 +241,17 @@ export function analyzeTable(
     const shape = j > 0 && h.tree !== null ? shapeError(h.tree, HEADER_MESSAGES) : null;
     if (shape !== null)
       return { ...base, role: "error", name: null, error: message("syntax", shape) };
+    // a header naming another column of the same table is marked, as in Desmos; a column named
+    // like another table's or row's is not: Desmos marks only the rows that use it (2026-10-20)
     const name = names[j];
-    if (name !== null && duplicates.has(name)) {
+    if (name !== null && names.indexOf(name) !== names.lastIndexOf(name)) {
       const shown = displayName(name);
+      const text = rowErrorMessage("duplicate-definition", [shown]);
       return {
         ...base,
         role: "error",
         name,
-        error: message("duplicate-definition", rowErrorMessage("duplicate-definition", [shown]), [
-          shown,
-        ]),
+        error: message("duplicate-definition", text, [shown]),
       };
     }
     if (name !== null) return { ...base, role: j === 0 ? "variable" : "data", name, error: null };

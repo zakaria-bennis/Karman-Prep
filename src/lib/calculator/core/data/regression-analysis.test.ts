@@ -79,7 +79,9 @@ it("D-44 a shared parameter name errors only in rows that reference it", () => {
   );
   expect(a.byId.get("r")!.error).toBeNull();
   expect(a.byId.get("s")!.error).toBeNull();
-  expect(a.byId.get("u")!.error?.message).toBe("m has more than one definition.");
+  expect(a.byId.get("u")!.error?.message).toBe(
+    "You've defined 'm' in more than one place. Try deleting some of the definitions of 'm'."
+  );
   expect(a.byId.get("v")!.error).toBeNull();
 });
 

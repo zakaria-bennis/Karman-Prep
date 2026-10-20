@@ -100,12 +100,12 @@ const cases: CorpusCase[] = [
   q(22, ["TR-7", "TR-77"], "2πr", {
     latex: "2\\pi r",
     tree: "(mul (mul (num 2) (const pi)) (id r))",
-    error: "unsupported",
+    error: "equation-required", // Desmos: "Try adding 'y=' to the beginning of this equation."
   }),
   q(23, ["TR-7", "TR-77"], "2θ", {
     latex: "2\\theta",
     tree: "(mul (num 2) (id \\theta))",
-    error: "unsupported",
+    error: "equation-required", // Desmos: "Try adding 'r=' to the beginning of this equation."
   }),
   q(24, ["TR-7", "PR-1"], "√(x+1)", {
     latex: "\\sqrt{x+1}",

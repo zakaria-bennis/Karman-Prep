@@ -2,15 +2,23 @@
 // are defined twice, which rows form cycles, the dependency order of the defining rows and which
 // coordinates a tree reaches through definitions. Pure TypeScript: no DOM (AR-44).
 
-import type { Node } from "../latex/ast";
+import type { RowErrorCode } from "../corpus/types";
+import { sourceChildren, type Node } from "../latex/ast";
 import { declaredHead, type DefinitionHead, type ParsedRow } from "./definitions";
+import { displayName } from "./messages";
 import { collectNameUses, COORDINATE_NAMES } from "./names";
 
+/** Why a name cannot be used: its error code and the display names its message shows. */
+export interface Blocked {
+  code: RowErrorCode;
+  names: string[];
+}
 export interface Resolution {
   isDefined(name: string): boolean;
   coordinatesOf(tree: Node, locals: readonly string[]): ReadonlySet<string>; // ⊆ COORDINATE_NAMES, through definitions
   duplicates: ReadonlySet<string>; // names with two or more error-free heads
-  cyclicRows: ReadonlySet<string>; // row ids
+  cycles: ReadonlyMap<string, Blocked>; // each row id in a cycle and the cycle's error
+  blocked: ReadonlyMap<string, Blocked>; // names a row cannot use: duplicated, cyclic, or defined through one
   valueOrder: string[]; // error-free defining rows, dependencies first, ties in list order
   functionArity(name: string): number | null; // a unique, acyclic, error-free function head's parameter count
 }
@@ -37,11 +45,14 @@ interface DependencyGraph {
 export function resolveDefinitions(rows: readonly ParsedRow[]): Resolution {
   const defined = new Set(rows.flatMap((row) => declaredHead(row)?.name ?? []));
   const heads: DefiningRow[] = rows.flatMap((row) =>
-    row.head !== null && row.error === null ? [{ id: row.source.id, head: row.head }] : []
+    row.head !== null && row.error === null && row.head.anonymous !== true
+      ? [{ id: row.source.id, head: row.head }]
+      : []
   );
   const duplicates = repeatedNames(heads.map(({ head }) => head.name)),
     graph = dependencyGraph(heads.filter(({ head }) => !duplicates.has(head.name))),
-    cyclicRows = cyclicRowIds(graph);
+    cycles = cycleErrors(graph),
+    cyclicRows = new Set(cycles.keys());
   const arity = new Map(
     graph.rows.flatMap(({ id, head }) =>
       head.type === "function" && !cyclicRows.has(id)
@@ -62,7 +73,8 @@ export function resolveDefinitions(rows: readonly ParsedRow[]): Resolution {
       return found;
     },
     duplicates,
-    cyclicRows,
+    cycles,
+    blocked: blockedNames(graph, duplicates, cycles),
     valueOrder: postOrder(graph).filter((id) => !cyclicRows.has(id)),
     functionArity: (name) => arity.get(name) ?? null,
   };
@@ -92,14 +104,14 @@ function dependencyGraph(rows: DefiningRow[]): DependencyGraph {
 
 /**
  * RC-8 by Tarjan's strongly connected components: a component of two or more rows, or a row
- * whose body uses its own name, is a cycle, and every row in it is cyclic.
+ * whose body uses its own name, is a cycle; each holds the indices of its rows in list order.
  */
-function cyclicRowIds({ rows, edges }: DependencyGraph): Set<string> {
+function components({ rows, edges }: DependencyGraph): number[][] {
   const order = rows.map(() => -1),
     low = rows.map(() => -1),
     onStack = rows.map(() => false),
     stack: number[] = [],
-    cyclic = new Set<string>();
+    found: number[][] = [];
   let next = 0;
   const visit = (v: number): void => {
     order[v] = low[v] = next;
@@ -115,14 +127,108 @@ function cyclicRowIds({ rows, edges }: DependencyGraph): Set<string> {
     if (low[v] !== order[v]) return;
     const component = stack.splice(stack.lastIndexOf(v));
     for (const w of component) onStack[w] = false;
-    if (component.length > 1 || edges[v].includes(v)) {
-      for (const w of component) cyclic.add(rows[w].id);
-    }
+    if (component.length > 1 || edges[v].includes(v)) found.push(component.sort((a, b) => a - b));
   };
   rows.forEach((_, v) => {
     if (order[v] === -1) visit(v);
   });
-  return cyclic;
+  return found;
+}
+
+/**
+ * RC-8 with Desmos's texts (captured 2026-10-20), for every row of each cycle. A cycle of values,
+ * or of values and functions, names its members alphabetically: "'a', 'b' and 'c' can't be
+ * defined in terms of each other.". A cycle of functions names them as Desmos's depth-first walk
+ * meets them, from the cycle's first row in list order around to that row last ("The definitions
+ * of functions 'g', 'h' and 'f' depend on each other."), and adds its base-case hint when a call
+ * around the cycle passes anything but the caller's own parameters, as a recursion would
+ * (`f(x)=f(x-1)`).
+ */
+function cycleErrors(graph: DependencyGraph): Map<string, Blocked> {
+  const errors = new Map<string, Blocked>();
+  for (const component of components(graph)) {
+    const members = component.map((v) => graph.rows[v]);
+    const error: Blocked = members.every(({ head }) => head.type === "function")
+      ? functionCycle(graph, component)
+      : {
+          code: "cycle",
+          names: members
+            .map(({ head }) => displayName(head.name))
+            .sort((a, b) => (a < b ? -1 : a > b ? 1 : 0)),
+        };
+    for (const { id } of members) errors.set(id, error);
+  }
+  return errors;
+}
+
+function functionCycle(graph: DependencyGraph, component: number[]): Blocked {
+  const inside = new Set(component);
+  const path: number[] = [];
+  const walk = (v: number): number[] | null => {
+    path.push(v);
+    for (const w of graph.edges[v]) {
+      if (!inside.has(w)) continue;
+      const k = path.indexOf(w);
+      if (k >= 0) return path.slice(k);
+      const found = walk(w);
+      if (found !== null) return found;
+    }
+    path.pop();
+    return null;
+  };
+  const cycle = walk(component[0]) ?? component;
+  const order = [...cycle.slice(1), cycle[0]].map((v) => displayName(graph.rows[v].head.name));
+  const names = new Set(component.map((v) => graph.rows[v].head.name));
+  const recursive = component.some((v) => passesOtherArguments(graph.rows[v].head, names));
+  return { code: recursive ? "recursive-cycle" : "function-cycle", names: order };
+}
+
+/** True when `head`'s body calls one of `names` with anything but its own parameters in order. */
+function passesOtherArguments(head: DefinitionHead, names: ReadonlySet<string>): boolean {
+  const pending: Node[] = [head.body];
+  for (let node = pending.pop(); node !== undefined; node = pending.pop()) {
+    if (node.kind === "call" && names.has(node.name)) {
+      const same =
+        node.args.length === head.params.length &&
+        node.args.every((arg, k) => arg.kind === "id" && arg.name === head.params[k]);
+      if (!same) return true;
+    }
+    pending.push(...sourceChildren(node));
+  }
+  return false;
+}
+
+/**
+ * The names a row cannot use, each with the error its use shows: a duplicated name its
+ * duplicate-definition error, a cyclic one its cycle's error, and a name whose definition uses
+ * one of those the same error, through any chain of definitions (Desmos, 2026-10-20).
+ */
+function blockedNames(
+  graph: DependencyGraph,
+  duplicates: ReadonlySet<string>,
+  cycles: ReadonlyMap<string, Blocked>
+): Map<string, Blocked> {
+  const blocked = new Map<string, Blocked>();
+  for (const name of duplicates) {
+    blocked.set(name, { code: "duplicate-definition", names: [displayName(name)] });
+  }
+  for (const { id, head } of graph.rows) {
+    const error = cycles.get(id);
+    if (error !== undefined) blocked.set(head.name, error);
+  }
+  for (let changed = true; changed; ) {
+    changed = false;
+    for (const { head } of graph.rows) {
+      if (blocked.has(head.name)) continue;
+      const use = collectNameUses(head.body).find(
+        ({ name }) => !head.params.includes(name) && blocked.has(name)
+      );
+      if (use === undefined) continue;
+      blocked.set(head.name, blocked.get(use.name)!);
+      changed = true;
+    }
+  }
+  return blocked;
 }
 
 /** RC-9: depth-first post-order from the rows in list order, so dependencies come first. */

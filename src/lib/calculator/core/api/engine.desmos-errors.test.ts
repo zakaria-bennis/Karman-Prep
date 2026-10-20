@@ -117,3 +117,112 @@ describe("Desmos's row error texts (live Desmos, 2026-10-20)", () => {
     expect(await outcomes([latex])).toEqual([message]);
   });
 });
+
+const dup = (n: string) =>
+  `You've defined '${n}' in more than one place. Try deleting some of the definitions of '${n}'.`;
+const IMPLICIT = "We only support implicit equations of x and y.";
+const Y_EQUALS = "Try adding 'y=' to the beginning of this equation.";
+const recursive = (f: string) =>
+  `The definition of function '${f}' depends on itself. If '${f}' is meant to be a recursive function, try adding a valid base case.`;
+
+// Each case is a list of rows and what live Desmos showed on each (captured 2026-10-20).
+const LISTS: [string[], string[]][] = [
+  // a name defined twice: only the rows that use it, directly or through a definition, are marked
+  [
+    ["a=1", "a=2"],
+    ["VALUE", "VALUE"],
+  ],
+  [
+    ["a=1", "a=2", "a+1"],
+    ["VALUE", "VALUE", dup("a")],
+  ],
+  [
+    ["a=1", "a=2", "b=a", "b+1"],
+    ["VALUE", "VALUE", dup("a"), dup("a")],
+  ],
+  [
+    ["a=1", "a=2", "y=ax"],
+    ["VALUE", "VALUE", dup("a")],
+  ],
+  [
+    ["f(x)=x", "f(x)=2x", "f(1)"],
+    ["GRAPH", "GRAPH", dup("f")],
+  ],
+  [
+    ["a=1", "a=2", "f(x)=ax", "f(2)"],
+    ["VALUE", "VALUE", dup("a"), dup("a")],
+  ],
+  // cycles
+  [["a=a+1"], [IMPLICIT]],
+  [["a=2a"], [IMPLICIT]],
+  [
+    ["a=1", "a=a+1"],
+    ["VALUE", IMPLICIT],
+  ],
+  [["a=b", "b=a"], Array(2).fill("'a' and 'b' can't be defined in terms of each other.")],
+  [
+    ["c=b", "b=a", "a=c"],
+    Array(3).fill("'a', 'b' and 'c' can't be defined in terms of each other."),
+  ],
+  [["a=b+1", "b=a", "a+1"], Array(3).fill("'a' and 'b' can't be defined in terms of each other.")],
+  [["a=b", "b=c", "c=b"], Array(3).fill("'b' and 'c' can't be defined in terms of each other.")],
+  [["f(x)=a", "a=f(1)"], Array(2).fill("'a' and 'f' can't be defined in terms of each other.")],
+  [
+    ["f(x)=f(x-1)", "f(2)"],
+    [recursive("f"), recursive("f")],
+  ],
+  [["f(x,y)=f(y,x)"], [recursive("f")]],
+  [["f(x)=1+f(x)"], ["The definition of function 'f' depends on itself."]],
+  [
+    ["f(x)=g(x)", "g(x)=f(x)", "f(1)"],
+    Array(3).fill("The definitions of functions 'g' and 'f' depend on each other."),
+  ],
+  [
+    ["g(x)=f(x)", "f(x)=g(x)"],
+    Array(2).fill("The definitions of functions 'f' and 'g' depend on each other."),
+  ],
+  [
+    ["f(x)=g(x)", "g(x)=h(x)", "h(x)=f(x)"],
+    Array(3).fill("The definitions of functions 'g', 'h' and 'f' depend on each other."),
+  ],
+  [
+    ["f(x)=g(x)", "g(x)=h(x)", "h(x)=g(x)"],
+    Array(3).fill("The definitions of functions 'h' and 'g' depend on each other."),
+  ],
+  [
+    ["f(x)=g(x-1)", "g(x)=f(x)"],
+    Array(2).fill(
+      "The definitions of functions 'g' and 'f' depend on each other. If they are meant to be mutually recursive functions, try adding a valid base case."
+    ),
+  ],
+  // a coordinate or constant called like a function defines a function that graphs
+  [["y(x)=x"], ["GRAPH"]],
+  [["x(t)=t^2"], ["GRAPH"]],
+  // free variables in an expression
+  [["a"], [Y_EQUALS]],
+  [["a+1"], [Y_EQUALS]],
+  [["t"], [Y_EQUALS]],
+  [["a_{1}"], [Y_EQUALS]],
+  [["\\sin(a)"], [Y_EQUALS]],
+  [["n!"], [Y_EQUALS]],
+  [["ab"], ["Too many variables. Try defining 'a' or 'b'."]],
+  [["a+x"], ["Too many variables. Try defining 'a'."]],
+  [["y=mx+b"], ["Too many variables. Try defining 'm' or 'b'."]],
+  [["x+y"], ["Try adding an equals sign to turn this into an equation."]],
+  [["y(x)"], ["Try adding an equals sign to turn this into an equation."]],
+  [["\\theta"], ["Try adding 'r=' to the beginning of this equation."]],
+  // calls
+  [["a()"], ["Function 'a' is not defined."]],
+  [["2()"], ["Parentheses cannot be empty."]],
+  [["g'(2)"], ["Function 'g' is not defined."]],
+  [["x'"], ["Sorry, I don't understand this use of prime notation."]],
+  // a product of a point and x is not a curve: Desmos neither graphs nor marks it
+  [["y=(1,2)x"], ["ok"]],
+  [["y=[(1,2),(3,4)]x"], ["ok"]],
+];
+
+describe("Desmos's errors between rows (live Desmos, 2026-10-20)", () => {
+  it.each(LISTS)("%j", async (rows, shown) => {
+    expect(await outcomes(rows)).toEqual(shown);
+  });
+});

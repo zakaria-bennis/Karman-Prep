@@ -59,8 +59,27 @@ it("RC-2, RC-7, RC-8, RC-19, RC-20 row errors and the complex hint use the exact
       ["θ_1"],
       "You've defined 'θ_1' in more than one place. Try deleting some of the definitions of 'θ_1'.",
     ],
-    ["dependency", ["a"], "a has more than one definition."],
-    ["cycle", ["a"], "a is defined in terms of itself."],
+    ["cycle", ["a", "b"], "'a' and 'b' can't be defined in terms of each other."],
+    ["cycle", ["a", "b", "c"], "'a', 'b' and 'c' can't be defined in terms of each other."],
+    ["function-cycle", ["f"], "The definition of function 'f' depends on itself."],
+    [
+      "recursive-cycle",
+      ["f"],
+      "The definition of function 'f' depends on itself. If 'f' is meant to be a recursive function, try adding a valid base case.",
+    ],
+    [
+      "function-cycle",
+      ["g", "f"],
+      "The definitions of functions 'g' and 'f' depend on each other.",
+    ],
+    [
+      "recursive-cycle",
+      ["g", "f"],
+      "The definitions of functions 'g' and 'f' depend on each other. If they are meant to be mutually recursive functions, try adding a valid base case.",
+    ],
+    ["implicit-variables", [], "We only support implicit equations of x and y."],
+    ["equation-required", ["x="], "Try adding 'x=' to the beginning of this equation."],
+    ["equation-required", [], "Try adding an equals sign to turn this into an equation."],
     ["reserved-name", ["e"], "e is reserved and can't be redefined."],
     [
       "arity",
@@ -88,7 +107,7 @@ it("RC-2, RC-7, RC-8, RC-19, RC-20 row errors and the complex hint use the exact
       "Function 'nCr' requires 2 arguments. For example, try typing: nCr(1, 2).",
     ],
     ["point-coordinates", [], "Too many variables, I don't know what to do with this."],
-    ["mixed-variables", [], "Use an equation such as y=… to graph an expression in x and y."],
+    ["mixed-variables", [], "Try adding an equals sign to turn this into an equation."],
     ["polar-variable", ["r"], "r only has a meaning in a polar equation."],
     ["timeout", [], "This is taking too long. Try a smaller range or fewer terms."],
   ];

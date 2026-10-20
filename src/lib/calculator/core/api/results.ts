@@ -143,6 +143,13 @@ export function rowShowsValue(row: RowAnalysis, value: Value | null, overrun: bo
 function chipsError(row: RowAnalysis): RowError | null {
   if (row.chips.length === 0 || row.complexHint) return null;
   const names = row.chips.map(displayName);
+  if (row.asksForEquation === true) {
+    // RC-17: Desmos's "Try adding 'y=' to the beginning of this equation." for one undefined name
+    // in an expression; a lone name offers no slider (captured 2026-10-20)
+    const message = rowErrorMessage("equation-required", ["y="]);
+    const lone = row.tree?.kind === "id";
+    return { code: lone ? "equation-required" : "too-many-variables", message, names, span: null };
+  }
   return {
     code: "too-many-variables",
     message: rowErrorMessage("too-many-variables", names),

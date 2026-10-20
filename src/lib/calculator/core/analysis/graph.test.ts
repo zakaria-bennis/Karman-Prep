@@ -75,10 +75,15 @@ it("RC-14, RC-15 graph is non-null exactly when the row is graphable, and hidden
   });
 });
 
-it("RC-17, RC-2, RC-19 r, θ and unbound t errors name the variable", () => {
+it("RC-17 a bare expression in r or θ asks for an equation, as in Desmos (2026-10-20)", () => {
+  expect(["2\\pi r", "\\sin\\theta"].map((l) => analyze([l]).rows[0].error)).toMatchObject([
+    { code: "equation-required", message: "Try adding 'y=' to the beginning of this equation." },
+    { code: "equation-required", message: "Try adding 'r=' to the beginning of this equation." },
+  ]);
+});
+
+it("RC-2, RC-19 r, θ and unbound t errors name the variable", () => {
   const rows: [string, string[], string][] = [
-    ["2\\pi r", ["r"], "r is for polar graphs, which aren't available yet."],
-    ["\\sin\\theta", ["θ"], "θ is for polar graphs, which aren't available yet."],
     ["r=2", ["r"], "r is for polar graphs, which aren't available yet."],
     ["\\theta=1", ["θ"], "θ is for polar graphs, which aren't available yet."],
     ["(t,t^{2})", ["t"], "This calculator doesn't support that notation."],

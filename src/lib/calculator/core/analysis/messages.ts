@@ -61,11 +61,15 @@ const MESSAGES: Readonly<Record<RowErrorCode, string>> = {
   "duplicate-definition":
     "You've defined '{n}' in more than one place. Try deleting some of the definitions of '{n}'.",
   dependency: "{n} has more than one definition.",
-  cycle: "{n} is defined in terms of itself.",
+  cycle: "{n} can't be defined in terms of each other.", // cycleMessage gives the full text
+  "function-cycle": "The definitions of functions {n} depend on each other.",
+  "recursive-cycle": "The definitions of functions {n} depend on each other.",
+  "implicit-variables": "We only support implicit equations of x and y.",
+  "equation-required": "Try adding '{n}' to the beginning of this equation.",
   "reserved-name": "{n} is reserved and can't be redefined.",
   arity: "Function '{n}' requires {k} arguments.", // arityMessage gives the full text
   "point-coordinates": "Too many variables, I don't know what to do with this.",
-  "mixed-variables": "Use an equation such as y=… to graph an expression in x and y.",
+  "mixed-variables": "Try adding an equals sign to turn this into an equation.",
   "polar-variable": "{n} only has a meaning in a polar equation.",
   timeout: "This is taking too long. Try a smaller range or fewer terms.",
   "regression-data": "Regression needs a list of data.",
@@ -169,6 +173,12 @@ export function rowErrorMessage(code: RowErrorCode, names: string[]): string {
   const [n = "", k = ""] = names;
   if (code === "arity") return arityMessage(n, k, Number(names[2]));
   if (code === "too-many-variables") return tooManyVariables(names);
+  if (code === "cycle" || code === "function-cycle" || code === "recursive-cycle") {
+    return cycleMessage(code, names);
+  }
+  if (code === "equation-required" && names.length === 0) {
+    return "Try adding an equals sign to turn this into an equation.";
+  }
   if (code === "unmatched") return MESSAGES.unmatched.replace("{n}", n).replace("{k}", CLOSERS[n]);
   // PR-24: a trig, hyperbolic, ln or log name on its own reads as Desmos's empty call.
   if (code === "function-parentheses" && PREFIX_FORM_NAMES.has(n)) {
@@ -238,4 +248,32 @@ function tooManyVariables(names: string[]): string {
   if (names.length === 1) return `Too many variables. Try defining '${names[0]}'.`;
   const last = names[names.length - 1];
   return `Too many variables. Try defining '${names.slice(0, -1).join("', '")}' or '${last}'.`;
+}
+
+/** `'a'`, `'a' and 'b'`, `'a', 'b' and 'c'`: Desmos's list of quoted names. */
+function quotedList(names: readonly string[]): string {
+  const quoted = names.map((n) => `'${n}'`);
+  if (quoted.length < 2) return quoted.join("");
+  return `${quoted.slice(0, -1).join(", ")} and ${quoted[quoted.length - 1]}`;
+}
+
+/**
+ * RC-8, Desmos's cycle texts (captured 2026-10-20): values "'a' and 'b' can't be defined in terms
+ * of each other."; one function "The definition of function 'f' depends on itself." and more
+ * "The definitions of functions 'g' and 'f' depend on each other.", each with its base-case hint
+ * when the cycle is a recursion.
+ */
+function cycleMessage(code: "cycle" | "function-cycle" | "recursive-cycle", names: string[]) {
+  if (code === "cycle") return `${quotedList(names)} can't be defined in terms of each other.`;
+  const hint = code === "recursive-cycle";
+  if (names.length === 1) {
+    const text = `The definition of function '${names[0]}' depends on itself.`;
+    return hint
+      ? `${text} If '${names[0]}' is meant to be a recursive function, try adding a valid base case.`
+      : text;
+  }
+  const text = `The definitions of functions ${quotedList(names)} depend on each other.`;
+  return hint
+    ? `${text} If they are meant to be mutually recursive functions, try adding a valid base case.`
+    : text;
 }
