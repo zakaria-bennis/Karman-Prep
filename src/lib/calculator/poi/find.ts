@@ -6,7 +6,7 @@
 
 import type { Deadline } from "../core/deadline";
 import type { ViewSpec } from "../plot/viewport";
-import { findExtrema, findRoots, type Search1D } from "./roots";
+import { findExtrema, findRoots, scanRange, type Search1D } from "./roots";
 import { POI_KINDS, type PoiBranch, type PoiKind, type PoiPoint } from "./types";
 
 /** POI-TRACE-9: a branch with more zeros, extrema and intercepts than this shows none of them. */
@@ -30,17 +30,42 @@ export interface OtherBranch {
   branch: PoiBranch;
 }
 
-/** The view's range of `axis`, sampled SAMPLES_PER_PX times a px. */
+/**
+ * The view's range of `axis`, sampled SAMPLES_PER_PX times a px; a pair whose value changes by
+ * more than one px of the other axis however far it is halved is a jump.
+ */
 export function searchAlong(view: ViewSpec, axis: "x" | "y"): Search1D {
   const { viewport: v, size } = view;
   return axis === "x"
-    ? { lo: v.left, hi: v.right, samples: Math.ceil(size.width * SAMPLES_PER_PX) }
-    : { lo: v.bottom, hi: v.top, samples: Math.ceil(size.height * SAMPLES_PER_PX) };
+    ? {
+        lo: v.left,
+        hi: v.right,
+        samples: Math.ceil(size.width * SAMPLES_PER_PX),
+        tol: (v.top - v.bottom) / size.height,
+      }
+    : {
+        lo: v.bottom,
+        hi: v.top,
+        samples: Math.ceil(size.height * SAMPLES_PER_PX),
+        tol: (v.right - v.left) / size.width,
+      };
 }
 
 /** (t, f(t)) as a world point of `b`. */
 const pointOf = (b: PoiBranch, t: number, v: number): [number, number] =>
   b.independent === "x" ? [t, v] : [v, t];
+
+/**
+ * POI-TRACE-7: a straight line's zero is −b/m when it lies in the searched range (none when the
+ * line is flat, even along 0), with no extrema.
+ */
+function linearZeros(b: PoiBranch, s: Search1D): number[] {
+  const c = b.f(0),
+    m = b.f(1) - c;
+  if (!isNum(c) || !isNum(m) || m === 0) return [];
+  const t = -c / m;
+  return t >= s.lo && t <= s.hi ? [t] : [];
+}
 
 /** POI-TRACE-6 to POI-TRACE-9: one branch's zeros, intercept and extrema, or none over the cap. */
 function ownPoints(b: PoiBranch, view: ViewSpec): Raw[] {
@@ -49,9 +74,10 @@ function ownPoints(b: PoiBranch, view: ViewSpec): Raw[] {
   const add = (t: number, v: number, kind: PoiKind) => {
     if (isNum(t) && isNum(v)) out.push({ ...xy(pointOf(b, t, v)), kind, withRowId: null });
   };
-  for (const t of findRoots(b.f, s)) add(t, 0, "zero");
+  const sc = b.linear ? null : scanRange(b.f, s);
+  for (const t of sc === null ? linearZeros(b, s) : findRoots(b.f, s, false, sc)) add(t, 0, "zero");
   if (0 >= s.lo && 0 <= s.hi) add(0, b.f(0), "intercept");
-  for (const e of findExtrema(b.f, s)) add(e.t, b.f(e.t), "extremum");
+  if (sc !== null) for (const e of findExtrema(b.f, s, sc)) add(e.t, b.f(e.t), "extremum");
   return out.length > OWN_CAP ? [] : out;
 }
 

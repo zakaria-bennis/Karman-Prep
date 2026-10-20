@@ -78,6 +78,41 @@ describe("points of interest per branch", () => {
     expect(kindsAt(tangent, 0, 0, 1e-7)).toEqual(["intercept", "extremum", "intersection"]);
   });
 
+  it("POI-TRACE-6 steps break the curve: floor gets zeros at its zero step's ends, no extrema", () => {
+    // As live Desmos: floor(x) → (0, 0) and (1, 0); mod(x, 3) − 1 → zeros only, no tops at its jumps.
+    const floor = pois(fx(Math.floor));
+    expect(floor.map((q) => [Math.round(q.x * 1e5) / 1e5, q.y, q.kinds])).toEqual([
+      [0, 0, ["zero", "intercept"]],
+      [1, 0, ["zero"]],
+    ]);
+    const saw = pois(fx((x) => x - 3 * Math.floor(x / 3) - 1));
+    expect(saw.every((q) => !q.kinds.includes("extremum"))).toBe(true);
+    expect(saw.filter((q) => q.kinds.includes("zero"))).toHaveLength(7);
+    const round = pois(fx((x) => Math.round(x / 3)));
+    expect(round.map((q) => [Math.round(q.x * 1e5) / 1e5, q.kinds])).toEqual([
+      [-1.5, ["zero"]],
+      [0, ["intercept"]],
+      [1.5, ["zero"]],
+    ]);
+    // A flat top between a rise and a fall is one extremum at its middle.
+    const top = pois(fx((x) => Math.min(1, 4 - Math.abs(x))));
+    expect(top.filter((q) => q.kinds.includes("extremum")).map((q) => q.x)).toEqual([0]);
+  });
+
+  it("POI-TRACE-7 a straight line's zero is solved; a flat line has none, even near 0", () => {
+    const line = (f: (x: number) => number): PoiBranch => ({ independent: "x", f, linear: true });
+    expect(pois(line(() => 1e-9)).map((q) => q.kinds)).toEqual([["intercept"]]);
+    expect(
+      pois(line((x) => 1e-8 * (x - 3))).map((q) => [Math.round(q.x * 1e9) / 1e9, q.kinds])
+    ).toEqual([
+      [0, ["intercept"]],
+      [3, ["zero"]],
+    ]);
+    // Not a line: a segment that ends within 5e-8 of 0 at the view's edge has a zero there.
+    const flat = pois(fx((x) => 1e-9 * Math.cos(x / 100)));
+    expect(flat.filter((q) => q.kinds.includes("zero")).map((q) => q.x)).toEqual([-10, 10]);
+  });
+
   it("POI-TRACE-4 coincident records merge into one dot listing every kind", () => {
     const p = pois(fx((x) => x * x - 2));
     expect(kindsAt(p, 0, -2)).toEqual(["intercept", "extremum"]);

@@ -21,7 +21,8 @@ describe("one-dimensional search", () => {
     expect(touching).toHaveLength(1);
     near(touching[0], 2, 10 * Math.sqrt(2.2e-16));
     expect(findRoots((x) => (x - 2) ** 2 + 1e-4, S, true)).toEqual([]);
-    expect(findRoots(() => 0, S)).toEqual([]);
+    // Along f ≡ 0 only the ends of the range count, as Desmos meets two identical curves there.
+    expect(findRoots(() => 0, S)).toEqual([-12, 12]);
   });
 
   it("POI-TRACE-6 poles and removable holes are not zeros", () => {

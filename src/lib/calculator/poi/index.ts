@@ -12,7 +12,7 @@ import {
 } from "../core/eval/compile";
 import type { Node } from "../core/latex/ast";
 import type { ViewSpec } from "../plot/viewport";
-import { conicBranches } from "./conic";
+import { conicBranches, polynomialDegree } from "./conic";
 import { findPois, searchAlong } from "./find";
 import { findRoots } from "./roots";
 import type { PoiBranch, PoiPoint } from "./types";
@@ -45,6 +45,7 @@ export function poiBranchesFor(row: RowAnalysis, scope: CompileScope, view: View
         {
           independent: graph.independent,
           f: compileRealFunction1(graph.expr, graph.independent, scope),
+          linear: polynomialDegree(graph.expr, graph.independent) <= 1,
         },
       ];
     case "implicit":
@@ -56,6 +57,7 @@ export function poiBranchesFor(row: RowAnalysis, scope: CompileScope, view: View
       return findRoots(f, searchAlong(view, axis)).map((c) => ({
         independent: vertical ? "y" : "x",
         f: () => c,
+        linear: true,
       }));
     }
     case "region": {
@@ -69,7 +71,11 @@ export function poiBranchesFor(row: RowAnalysis, scope: CompileScope, view: View
         if (solved !== undefined) {
           const expr = isCoordinate(a, solved) ? b : a,
             independent = solved === "y" ? "x" : "y";
-          branches.push({ independent, f: compileRealFunction1(expr, independent, scope) });
+          branches.push({
+            independent,
+            f: compileRealFunction1(expr, independent, scope),
+            linear: polynomialDegree(expr, independent) <= 1,
+          });
         } else {
           branches.push(...implicitBranches(sub(a, b), scope));
         }

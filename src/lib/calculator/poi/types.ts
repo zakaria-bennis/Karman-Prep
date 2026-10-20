@@ -19,4 +19,6 @@ export interface PoiPoint {
 export interface PoiBranch {
   independent: "x" | "y";
   f: (t: number) => number;
+  /** POI-TRACE-7: f is a polynomial of degree at most 1, so its zero is solved, not searched. */
+  linear?: boolean;
 }
