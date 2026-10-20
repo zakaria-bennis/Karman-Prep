@@ -5,6 +5,7 @@ question always normalizes the same way. Bump NORMALIZER_VERSION whenever the
 output for any input changes, because stored comparison keys depend on it.
 """
 
+import functools
 import re
 import unicodedata
 
@@ -223,6 +224,7 @@ def _normalize_once(s: str) -> str:
     return " ".join(_bare_fractions(s).split())
 
 
+@functools.lru_cache(maxsize=1 << 16)  # pure function; the corpus run normalizes each text several times
 def normalize_text(s: str) -> str:
     # Rewrites can expose each other (e.g. `\sqrt${x}`), so repeat until stable.
     for _ in range(_PASSES):

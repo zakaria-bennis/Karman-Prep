@@ -11,7 +11,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))  # -I drops the script dir
 
-from kimport import backfill, lint, publish, sweep, writer  # noqa: E402
+from kimport import backfill, corpus, lint, publish, sweep, writer  # noqa: E402
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -22,6 +22,7 @@ def build_parser() -> argparse.ArgumentParser:
     _register_backfill(sub)
     _register_publish(sub)
     _register_lint(sub)
+    _register_corpus(sub)
     return parser
 
 
@@ -112,6 +113,19 @@ def _register_lint(sub) -> None:
         print("lint: {passed} passed, {pulled_rows} rows pulled".format(**res))
 
     ln.set_defaults(func=lambda a: _guard(lambda: run(a)))
+
+
+def _register_corpus(sub) -> None:
+    cp = sub.add_parser("corpus", help="cluster every captured occurrence; elect canonicals; count unique questions")
+    cp.add_argument("--c-index", required=True, help="final-current-plus-partial-question-records-*.json")
+    cp.add_argument("--ledger", required=True, help="current-readiness-ledger.json")
+    cp.add_argument("--export", help="saved result of sql/live_export.sql (omit: live status from the ledger)")
+    cp.add_argument("--out", required=True, help="output folder, e.g. pipeline/corpus/")
+    cp.set_defaults(func=lambda a: _guard(lambda: print(
+        "corpus: {occurrences} occurrences, {unique} unique, {unique_not_live} not yet live, "
+        "{founder_pairs} founder pairs, {unparsed} unparsed".format(
+            **corpus.run_corpus(Path(a.c_index), Path(a.ledger), Path(a.export) if a.export else None,
+                                Path(a.out))))))
 
 
 def _guard(fn) -> int:
