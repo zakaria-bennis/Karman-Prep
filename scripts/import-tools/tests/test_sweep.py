@@ -12,6 +12,7 @@ from kimport.sweep import (
     find_live_duplicates,
     load_export,
     read_export,
+    report_md,
     republish_sql,
     unpublish_sql,
 )
@@ -95,13 +96,34 @@ class LoadExportTests(unittest.TestCase):
             doc = json.loads((out / "groups.json").read_text(encoding="utf-8"))
             self.assertEqual(doc["broken_answer_key"], [uid(2)])
 
-    def test_question_format_must_agree_with_choices(self):
-        for i, fmt in ((0, "numeric_entry"), (10, "multiple_choice"), (0, "essay")):
-            rows = read_export(FIXTURE)
-            rows[i]["question_format"] = fmt
-            with tempfile.TemporaryDirectory() as d:
-                with self.assertRaises(ValueError, msg=fmt):
-                    load_export(write_rows(d, rows))
+    def test_unknown_question_format_rejected(self):
+        rows = read_export(FIXTURE)
+        rows[0]["question_format"] = "essay"
+        with tempfile.TemporaryDirectory() as d:
+            with self.assertRaises(ValueError):
+                load_export(write_rows(d, rows))
+
+    def test_format_mismatch_excluded_and_reported(self):
+        rows = read_export(FIXTURE)
+        rows[1]["question_format"] = "numeric_entry"  # uid(2): live, has choices
+        rows[2]["question_format"] = "numeric_entry"  # uid(3): not live, skipped quietly
+        rows[10]["question_format"] = "multiple_choice"  # uid(26): live, no choices
+        with tempfile.TemporaryDirectory() as d:
+            recs = load_export(write_rows(d, rows))
+            gs = find_live_duplicates(recs)
+            self.assertIsNone(group_with(gs, uid(2)))
+            self.assertIsNone(group_with(gs, uid(1)))  # its only live partner was excluded
+            out = Path(d) / "out"
+            r = subprocess.run([sys.executable, "-I", str(CLI), "sweep", "--export", str(Path(d) / "x.json"),
+                                "--out", str(out)], capture_output=True, text=True)
+            self.assertEqual(r.returncode, 0, r.stderr)
+            doc = json.loads((out / "groups.json").read_text(encoding="utf-8"))
+            self.assertEqual(doc["format_mismatch"], [uid(2), uid(26)])
+            self.assertEqual(doc["broken_answer_key"], [])
+            section = (out / "report.md").read_text(encoding="utf-8").split("## Format mismatch")[1]
+            self.assertIn(uid(2), section)
+            self.assertIn(uid(26), section)
+            self.assertNotIn(uid(3), section)
 
 
 class FindDuplicatesTests(unittest.TestCase):
@@ -129,6 +151,8 @@ class FindDuplicatesTests(unittest.TestCase):
         b = live("b", "On a calm grey morning the old fisherman tied the rops to the mast.", "2026-01-01T00:00:00+00:00")
         [g] = find_live_duplicates([a, b])
         self.assertEqual((g["keep"], g["remove"], g["relation"]), ("b", ["a"], "ocr_typo"))
+        self.assertTrue(g["keeper_tie"])
+        self.assertIn("please double-check: tie", report_md([g], {}, 2))
 
     def test_no_typo_chaining(self):
         base = "On a calm grey morning the old fisherman tied the rope around the mast while the wind pushed the boat toward the harbor."
@@ -153,6 +177,24 @@ class FindDuplicatesTests(unittest.TestCase):
         b = live("b", clean, "2026-01-02T00:00:00+00:00")
         [g] = find_live_duplicates([a, b])
         self.assertEqual((g["keep"], g["remove"], g["relation"]), ("b", ["a"], "ocr_typo"))
+
+    def test_typo_into_existing_word_does_not_win(self):
+        clean = "At low tide the old fisherman tied the rope to the mast before the storm arrived."
+        gs = find_live_duplicates([
+            live("clean", clean, "2026-01-01T00:00:00+00:00"),
+            live("typo", clean.replace("tied", "tide"), "2026-01-02T00:00:00+00:00"),
+            other("o1", "He tied a knot."), other("o2", "She tied it."),
+        ])
+        self.assertEqual([(g["keep"], g["remove"], g["keeper_tie"]) for g in gs], [("clean", ["typo"], False)])
+
+    def test_three_copies_clean_one_kept(self):
+        clean = "The farmer watered the young trees each evening during the dry summer months."
+        gs = find_live_duplicates([
+            live("t1", clean.replace("watered", "watcred"), "2026-01-01T00:00:00+00:00"),
+            live("t2", clean.replace("young", "yuung"), "2026-01-02T00:00:00+00:00"),
+            live("cl", clean, "2026-01-03T00:00:00+00:00"),
+        ])
+        self.assertEqual([(g["keep"], g["remove"]) for g in gs], [("cl", ["t1", "t2"])])
 
     def test_bucket_matching_keeper_but_not_first_joins(self):
         clean = "The farmer watered the young trees each evening during the dry summer months."
@@ -232,11 +274,16 @@ class SqlTests(unittest.TestCase):
 
     def test_dollar_in_interpolated_value_rejected(self):
         rows = {k: dict(v) for k, v in self.rows.items()}
-        rows[uid(2)]["import_flag_reason"] = f"x $kimport_unpublish_{uid(2).replace('-', '')}$; DROP TABLE t; --"
-        with self.assertRaises(ValueError):
-            unpublish_sql(self.gs, rows)
-        with self.assertRaises(ValueError):
-            republish_sql(self.gs, rows)
+        for kind, build in (("unpublish", unpublish_sql), ("republish", republish_sql)):
+            rows[uid(2)]["import_flag_reason"] = f"x $kimport_{kind}_{uid(2).replace('-', '')}$; DROP TABLE t; --"
+            with self.assertRaises(ValueError, msg=kind):
+                build(self.gs, rows)
+
+    def test_plain_dollar_in_value_allowed(self):
+        rows = {k: dict(v) for k, v in self.rows.items()}
+        rows[uid(2)]["import_flag_reason"] = "answer $5"
+        self.assertIn("IS DISTINCT FROM 'answer $5'", unpublish_sql(self.gs, rows))
+        self.assertIn("import_flag_reason = 'answer $5'", republish_sql(self.gs, rows))
 
     def test_unpublish_rejects_non_uuid_id(self):
         gs = [dict(self.gs[0], remove=["x'; DROP TABLE t; --"])]
@@ -289,6 +336,7 @@ class CliTests(unittest.TestCase):
             self.assertIn(uid(22), report)
             self.assertIn("The gardener planted rows of beans along the fence. According to the text, why", report)
             self.assertIn("check by eye", report)
+            self.assertNotIn("please double-check: tie", report)  # fixture typo group is decided by frequency
 
     def test_bad_export_fails_cleanly(self):
         with tempfile.TemporaryDirectory() as d:

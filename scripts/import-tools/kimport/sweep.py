@@ -9,11 +9,13 @@ Grouping (live records only, see find_live_duplicates):
   2. buckets sharing blocking_key (everything typo_match requires to be equal)
      are compared with typo_match;
   3. a bucket joins a group only by matching the group's keeper (no chains).
-Keeper: the copy whose differing words are most common across the whole
-export (live or not), so a typo copy loses to the usual spelling; only a real
-tie falls back to earliest created_at, then id.
-Live rows whose correct_answer letter matches no choice are left out of
-grouping and listed as "broken answer key".
+Keeper: the copy whose side of the typo spots uses the words most common
+across the whole export (live or not), so a typo copy loses to the usual
+spelling; only a real tie falls back to earliest created_at, then id, and is
+flagged for a double-check.
+Live rows whose correct_answer letter matches no choice ("broken answer key")
+or whose question_format disagrees with having choices ("format mismatch")
+are left out of grouping and listed in the report.
 Any group with a figure (figure_kind or figure_table_data set) is reported as
 "figure_review" with nothing to remove: a person checks those by eye.
 """
@@ -117,20 +119,21 @@ def record_from_row(row: dict) -> QuestionRecord:
         "has_figure": _has_figure(row),
         "figure_kind": row.get("figure_kind"),
         "answer_problem": False,
+        "format_problem": False,
     }
     exported = row.get("question_format")
     if exported not in FORMATS:
         raise ValueError(f"{row['id']}: unknown question_format {exported!r}")
     fmt = FORMATS[exported]
-    if (fmt == "mc") != bool(choices):
-        raise ValueError(f"{row['id']}: question_format {exported} but {len(choices)} choices")
-    if fmt == "mc":
+    if (fmt == "mc") != bool(choices):  # left out of grouping; listed in the report
+        meta["format_problem"] = True
+    elif fmt == "mc":
         by_letter = {(c.get("letter") or "").strip().upper(): c.get("choice_text") or "" for c in choice_rows}
         if correct.upper() in by_letter:
             answer = by_letter[correct.upper()]
         else:  # left out of grouping; listed in the report
             answer, meta["answer_problem"] = "", True
-    else:
+    if fmt == "numeric" or meta["format_problem"]:
         answer = correct
     return QuestionRecord(
         ref=row["id"],
@@ -180,26 +183,35 @@ def _age(r: QuestionRecord):
     return (_created(r), r.ref)
 
 
-def _keeper(cands: list[list[QuestionRecord]], words_of, doc_freq) -> QuestionRecord:
-    """Oldest copy of the bucket whose differing words are most common in the export.
+def _keeper(cands: list[str], buckets, typo, doc_freq) -> tuple[QuestionRecord, bool]:
+    """(keeper, decided by tie) for candidate buckets (comparison keys).
 
-    A bucket's spot words are its words missing from some other candidate. Its
-    score is how many exported texts hold its rarest spot word, so a typo word
-    (found almost nowhere) loses to the usual spelling. Equal scores are a real
-    tie and go to the oldest copy.
+    Each candidate's spot words are its own side of every typo spot against
+    every other candidate it matches. Its score is how many exported texts hold
+    its rarest spot word, so a typo word loses to the usual spelling even when
+    the typo produced a word found elsewhere in the text. A candidate with no
+    spot words scores 0 (never a free win). Equal top scores are a real tie and
+    go to the oldest copy.
     """
-    sets = [words_of(b[0]) for b in cands]
-    common = frozenset.intersection(*sets)
-    score = [min((doc_freq[w] for w in ws - common), default=float("inf")) for ws in sets]
-    best = min(range(len(cands)), key=lambda i: (-score[i], _age(cands[i][0])))
-    return cands[best][0]
+    spot_words: dict[str, set[str]] = {k: set() for k in cands}
+    for x, kx in enumerate(cands):
+        for ky in cands[x + 1:]:
+            result = typo(kx, ky)
+            if result.same:
+                for side_x, side_y in result.spots:
+                    spot_words[kx].update(_WORD.findall(side_x))
+                    spot_words[ky].update(_WORD.findall(side_y))
+    score = {k: min((doc_freq[w] for w in ws), default=0) for k, ws in spot_words.items()}
+    best = min(cands, key=lambda k: (-score[k], _age(buckets[k][0])))
+    tie = sum(score[k] == score[best] for k in cands) > 1
+    return buckets[best][0], tie
 
 
 def find_live_duplicates(records) -> list[DuplicateGroup]:
     """Groups of live copies. `records` should be the whole export: non-live rows
     count as word evidence for picking the keeper but are never grouped."""
     records = list(records)
-    live = sorted((r for r in records if r.is_live and not r.meta.get("answer_problem")), key=_age)
+    live = sorted((r for r in records if r.is_live and not _excluded(r)), key=_age)
     key_of = {r.ref: comparison_key(r) for r in live}  # normalizing is the slow part: once per record
     buckets: dict[str, list[QuestionRecord]] = {}
     for r in live:
@@ -241,10 +253,11 @@ def find_live_duplicates(records) -> list[DuplicateGroup]:
             continue
         pending = [k for k in by_block[block_of[first]] if k != first and k not in done]
         cands = [first] + [k for k in pending if typo(first, k).same]
+        tie = False
         if len(cands) == 1:
             keep, kkey, members = buckets[first][0], first, cands
         else:
-            keep = _keeper([buckets[k] for k in cands], words_of, doc_freq())
+            keep, tie = _keeper(cands, buckets, typo, doc_freq())
             kkey = key_of[keep.ref]
             # Recompute from the keeper: a bucket may match it but not `first`.
             members = [kkey] + [k for k in by_block[block_of[kkey]]
@@ -252,13 +265,23 @@ def find_live_duplicates(records) -> list[DuplicateGroup]:
         done.update(members)  # always holds kkey; `first` stays pending if it missed the keeper
         copies = sorted((c for k in members for c in buckets[k]), key=_age)
         if len(copies) > 1:
-            groups.append(_group(keep, kkey, copies, key_of, typo))
+            groups.append(dict(_group(keep, kkey, copies, key_of, typo), keeper_tie=tie))
     return [_strip(g) for g in sorted(groups, key=lambda g: g["_age"])]
+
+
+def _excluded(r: QuestionRecord) -> bool:
+    return bool(r.meta.get("answer_problem") or r.meta.get("format_problem"))
+
+
+def format_mismatches(records) -> list[str]:
+    """Live rows whose question_format disagrees with whether they have choices."""
+    return [r.ref for r in sorted((r for r in records if r.is_live and r.meta.get("format_problem")), key=_age)]
 
 
 def broken_answer_keys(records) -> list[str]:
     """Live rows whose correct_answer letter matches none of their choices."""
-    return [r.ref for r in sorted((r for r in records if r.is_live and r.meta.get("answer_problem")), key=_age)]
+    return [r.ref for r in sorted((r for r in records if r.is_live and r.meta.get("answer_problem")
+                                   and not r.meta.get("format_problem")), key=_age)]
 
 
 def _group(keep: QuestionRecord, kkey: str, copies: list[QuestionRecord], key_of: dict, typo) -> dict:
@@ -308,8 +331,6 @@ def lit(v) -> str:
     s = str(v)
     if "\x00" in s:
         raise ValueError("NUL byte in SQL value")
-    if "$" in s:  # could close the DO block's dollar quote
-        raise ValueError(f"'$' in a value placed inside a DO block: {s[:60]!r}")
     return "'" + s.replace("'", "''") + "'"
 
 
@@ -456,7 +477,8 @@ def _stem(row: dict | None) -> str:
     return text[:80].replace("|", "/").replace("`", "'")
 
 
-def report_md(groups, rows: dict[str, dict], live_count: int, broken: list[str] = ()) -> str:
+def report_md(groups, rows: dict[str, dict], live_count: int, broken: list[str] = (),
+              mismatched: list[str] = ()) -> str:
     rel = Counter(g["relation"] for g in groups)
     removed = sum(len(g["remove"]) for g in groups)
     lines = [
@@ -476,8 +498,10 @@ def report_md(groups, rows: dict[str, dict], live_count: int, broken: list[str] 
             action = "possible copies " + ", ".join(e["id"] for e in g["evidence"])
         else:
             action = "un-publish " + ", ".join(g["remove"])
+        tie = " (please double-check: tie; the words gave no answer, so the oldest copy was kept)" \
+            if g.get("keeper_tie") else ""
         lines.append(f"{i}. Keep `{g['keep']}`; {action}; {_RELATION_WORDS[g['relation']]}. "
-                     f"\"{_stem(rows.get(g['keep']))}\"")
+                     f"\"{_stem(rows.get(g['keep']))}\"{tie}")
     if not groups:
         lines.append("No duplicates found.")
     if broken:
@@ -486,6 +510,13 @@ def report_md(groups, rows: dict[str, dict], live_count: int, broken: list[str] 
                   "They were left out of the duplicate check and need fixing by hand.", ""]
         lines += [f"- `{rid}` (answer letter {(rows.get(rid) or {}).get('correct_answer')!r}). "
                   f"\"{_stem(rows.get(rid))}\"" for rid in broken]
+    if mismatched:
+        lines += ["", "## Format mismatch", "",
+                  f"{len(mismatched)} live questions say multiple choice but have no choices, or say numeric "
+                  "entry but have choices. They were left out of the duplicate check and need fixing by hand.", ""]
+        lines += [f"- `{rid}` ({(rows.get(rid) or {}).get('question_format')}, "
+                  f"{len((rows.get(rid) or {}).get('choices') or [])} choices). \"{_stem(rows.get(rid))}\""
+                  for rid in mismatched]
     return "\n".join(lines) + "\n"
 
 
@@ -495,15 +526,16 @@ def run_sweep(export_path: Path, out_dir: Path) -> dict:
     by_id = export_by_id(rows)
     groups = find_live_duplicates(records)
     broken = broken_answer_keys(records)
+    mismatched = format_mismatches(records)
     live_count = sum(r.is_live for r in records)
     unpublish, republish = unpublish_sql(groups, by_id), republish_sql(groups, by_id)
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     doc = {"normalizer_version": NORMALIZER_VERSION, "export_rows": len(rows), "live_rows": live_count,
-           "groups": groups, "broken_answer_key": broken}
+           "groups": groups, "broken_answer_key": broken, "format_mismatch": mismatched}
     (out_dir / "groups.json").write_text(json.dumps(doc, indent=2, ensure_ascii=False, sort_keys=True) + "\n",
                                          encoding="utf-8")
-    (out_dir / "report.md").write_text(report_md(groups, by_id, live_count, broken), encoding="utf-8")
+    (out_dir / "report.md").write_text(report_md(groups, by_id, live_count, broken, mismatched), encoding="utf-8")
     (out_dir / "unpublish.sql").write_text(unpublish, encoding="utf-8")
     (out_dir / "republish.sql").write_text(republish, encoding="utf-8")
     return {"groups": len(groups), "remove": sum(len(g["remove"]) for g in groups), "live": live_count}
