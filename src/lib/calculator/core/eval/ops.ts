@@ -103,14 +103,15 @@ export function powV(a: Value, b: Value, rational: Rational | null, complex: boo
 
 /**
  * The nth root of x, or the square root when n is null (NM-11, FN-13). Numbers follow realRoot; in
- * complex mode a NaN from a negative radicand falls back to csqrt or cpow(x, 1/n) (NM-19). A
- * non-real operand always uses the complex function.
+ * complex mode a negative radicand takes csqrt or cpow(x, 1/n), the principal root, even for an
+ * odd n (NM-18, NM-19). A non-real operand always uses the complex function.
  */
 export function rootV(x: Value, n: Value | null, complex: boolean): Value {
   if (x.type === "number" && (n === null || n.type === "number")) {
-    const r = realRoot(x.value, n === null ? 2 : n.value);
-    if (Number.isNaN(r) && complex && x.value < 0) return complexRoot({ re: x.value, im: 0 }, n);
-    return numberValue(r);
+    // NM-18: in complex mode a negative radicand takes the principal root, as Desmos does
+    // (`\sqrt[3]{-8}` is 1 + 1.732i there, −2 in real mode).
+    if (complex && x.value < 0) return complexRoot({ re: x.value, im: 0 }, n);
+    return numberValue(realRoot(x.value, n === null ? 2 : n.value));
   }
   const z = scalar(x);
   return z ? complexRoot(z, n) : UNDEFINED;

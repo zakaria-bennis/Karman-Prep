@@ -1,8 +1,9 @@
 // Which names and calls hold lists, read from the rows before anything evaluates (PR-34, NM-32),
-// and the list errors analysis can report from that: indexing a number (NM-30), nested lists
-// (NM-34), literal ranges with a count Desmos rejects or too many elements (NM-35, NM-36), lists
-// whose length depends on x or y (NM-31, NM-36) and list-valued graphs, which are deferred (G-22).
-// Evaluation still reports any list error these rules cannot see. Pure TypeScript: no DOM (AR-44).
+// and the list errors analysis can report from that: indexing what is not a list, or by a point
+// (NM-30), nested lists (NM-34), literal ranges with a count Desmos rejects or too many elements
+// (NM-35, NM-36), lists whose length depends on a free variable (NM-31, NM-36) and list-valued
+// graphs, which are deferred (G-22). Evaluation still reports any list error these rules cannot
+// see. Pure TypeScript: no DOM (AR-44).
 
 import type { RowErrorCode } from "../corpus/types";
 import { sourceChildren as childNodes, type Node, type SourceSpan } from "../latex/ast";
@@ -15,8 +16,18 @@ import { collectNameUses, COORDINATE_NAMES } from "./names";
 
 export interface ListTyping {
   names: ReadonlySet<string>; // value names that hold a list
+  defined: ReadonlySet<string>; // every name a row, a table column or a regression defines
   isList(node: Node, locals: readonly string[]): boolean; // a list, or a list of points
+  shape(node: Node, locals: readonly string[]): Shape | null; // null when unknown
 }
+/** NM-30: a value's type as Desmos names it in "Cannot index {a number} with {a point}.". */
+export type Shape = "number" | "point" | "numbers" | "points";
+const SHAPE_NAMES: Readonly<Record<Shape, string>> = {
+  number: "a number",
+  point: "a point",
+  numbers: "a list of numbers",
+  points: "a list of points",
+};
 type Bracket = Extract<Node, { kind: "list" | "index" }>;
 type Index = Extract<Node, { kind: "index" }>;
 
@@ -29,25 +40,43 @@ export interface ListProblem {
 /**
  * The list typing of `heads`: a value name holds a list when its body is list-valued, and a
  * function returns one when its body is with its parameters read as numbers. `seeds` hold lists
- * whatever defines them (table columns, regression residuals) and `scalars` never do (fitted
- * parameters). Computed to a fixed point, so definitions resolve in any order and cycles end.
+ * of numbers whatever defines them (table columns, regression residuals) and `scalars` never hold
+ * a list (fitted parameters). A value name's shape is its body's. `defined` adds names defined
+ * where `heads` cannot show it. Computed to a fixed point, so definitions resolve in any order
+ * and cycles end.
  */
 export function inferLists(
   heads: readonly DefinitionHead[],
   seeds: Iterable<string>,
-  scalars: ReadonlySet<string> = new Set()
+  scalars: ReadonlySet<string> = new Set(),
+  defined: Iterable<string> = []
 ): ListTyping {
   const names = new Set<string>(),
-    functions = new Set<string>();
-  for (const name of seeds) if (!COORDINATE_NAMES.includes(name)) names.add(name);
+    functions = new Set<string>(),
+    shapes = new Map<string, Shape>();
+  for (const name of seeds) {
+    if (COORDINATE_NAMES.includes(name)) continue;
+    names.add(name);
+    shapes.set(name, "numbers");
+  }
+  for (const name of scalars) shapes.set(name, "number");
   const typing: ListTyping = {
     names,
+    defined: new Set([...defined, ...names, ...scalars, ...heads.map((h) => h.name)]),
     isList: (node, locals) => listValued(node, locals, names, functions),
+    shape: (node, locals) => shapeOf(node, locals, shapes),
   };
   for (let changed = true; changed; ) {
     changed = false;
     for (const head of heads) {
       const set = head.type === "value" ? names : functions;
+      if (head.type === "value" && !shapes.has(head.name)) {
+        const found = typing.shape(head.body, []);
+        if (found !== null) {
+          shapes.set(head.name, found);
+          changed = true;
+        }
+      }
       if (set.has(head.name) || scalars.has(head.name)) continue;
       if (typing.isList(head.body, head.params)) {
         set.add(head.name);
@@ -56,6 +85,57 @@ export function inferLists(
     }
   }
   return typing;
+}
+
+/**
+ * NM-30: the shape of `node` where analysis can tell it, else null: numbers and constants, x, y
+ * and `locals` are numbers; a point is a point; a list or range holds numbers, or points when
+ * every item is one; an index picks from its target's elements; and arithmetic or a built-in on
+ * numbers gives a number, or a list of numbers when an operand is one. Points in arithmetic (M4),
+ * user calls, relations and undefined names are unknown.
+ */
+function shapeOf(
+  node: Node,
+  locals: readonly string[],
+  shapes: ReadonlyMap<string, Shape>
+): Shape | null {
+  const of = (n: Node) => shapeOf(n, locals, shapes);
+  switch (node.kind) {
+    case "num":
+    case "const":
+      return "number";
+    case "id":
+      if (locals.includes(node.name) || node.name === "x" || node.name === "y") return "number";
+      return shapes.get(node.name) ?? null;
+    case "point":
+      return "point";
+    case "list": {
+      if (node.range !== undefined || node.items.length === 0) return "numbers";
+      const items = node.items.map(of);
+      if (items.every((item) => item === "point")) return "points";
+      return items.every((item) => item === "number") ? "numbers" : null;
+    }
+    case "index": {
+      const target = of(node.target);
+      if (target !== "numbers" && target !== "points") return null;
+      if (indexesList(node)) return target;
+      return target === "numbers" ? "number" : "point";
+    }
+    case "call":
+      if (!isBuiltinName(node.name)) return null;
+      return numeric(node.args.map(of));
+    case "rel":
+    case "sim":
+      return null;
+    default:
+      return numeric(childNodes(node).map(of));
+  }
+}
+
+/** Arithmetic's shape over operand shapes: unknown for a point or an unknown operand. */
+function numeric(operands: readonly (Shape | null)[]): Shape | null {
+  if (operands.some((s) => s === null || s === "point" || s === "points")) return null;
+  return operands.includes("numbers") ? "numbers" : "number";
 }
 
 /** True when `node` evaluates to a list: a literal or range, a list name or call, or any operand. */
@@ -90,11 +170,12 @@ function listValued(
 }
 
 /**
- * NM-30, then NM-34 to NM-36, in this order: the first index of a number (`5[1]`, at the index);
- * the first nested list (a list-valued item or range bound, at the item's span); the first literal
- * range that is not an arithmetic sequence (rangeShape) or holds more than 10,000 elements (over
- * the range); and the first range or filter whose length depends on x or y (at its brackets).
- * `locals` are a function head's parameters.
+ * NM-30, then NM-34 to NM-36, in this order: the first index of a number or a point, or by a point
+ * or a list of points (`5[1]`, `a[1]` with a=5, `L[(1,2)]`, at the index); the first nested list
+ * (a list-valued item or range bound, at the item's span); the first literal range that is not an
+ * arithmetic sequence (rangeShape) or holds more than 10,000 elements (over the range); and the
+ * first range or filter whose length depends on a free variable (at its brackets). `locals` are a
+ * function head's parameters.
  */
 export function listProblem(
   tree: Node,
@@ -103,9 +184,9 @@ export function listProblem(
 ): ListProblem | null {
   const brackets = bracketNodes(tree);
   for (const node of brackets) {
-    if (node.kind !== "index" || node.target.kind !== "num") continue;
-    const names = ["a number", indexDescription(node, locals, typing)];
-    return { code: "index-type", names, span: node.span };
+    if (node.kind !== "index") continue;
+    const names = indexTypeError(node, locals, typing);
+    if (names !== null) return { code: "index-type", names, span: node.span };
   }
   for (const node of brackets) {
     if (node.kind === "index" && !indexesList(node)) continue;
@@ -119,12 +200,30 @@ export function listProblem(
     if (code !== null) return { code, names: [], span: node.span };
   }
   for (const node of brackets) {
-    const coordinate = lengthCoordinate(node, locals);
-    if (coordinate !== null) {
-      return { code: "list-length-free", names: [displayName(coordinate)], span: node.span };
+    const free = lengthDependency(node, locals, typing);
+    if (free !== null) {
+      return { code: "list-length-free", names: [displayName(free)], span: node.span };
     }
   }
   return null;
+}
+
+/**
+ * NM-30: Desmos's ListAccess signature, a list indexed by numbers or a list of them: the target
+ * and index as "Cannot index {n} with {k}." names them when the target is a number or a point, or
+ * the index a point or a list of points; null when it holds or analysis cannot tell.
+ */
+function indexTypeError(
+  node: Index,
+  locals: readonly string[],
+  typing: ListTyping
+): string[] | null {
+  const target = typing.shape(node.target, locals);
+  if (target === null) return null;
+  const pointed = (item: Node) => ["point", "points"].includes(typing.shape(item, locals) ?? "");
+  const byPoints = node.range === undefined && node.items.every(pointed);
+  if (target !== "number" && target !== "point" && !byPoints) return null;
+  return [SHAPE_NAMES[target], indexDescription(node, locals, typing)];
 }
 
 /** NM-30, NM-31: whether an index gives a list: a range, several items, a filter or one list item. */
@@ -132,31 +231,34 @@ function indexesList(node: Index): boolean {
   return node.range !== undefined || node.items.length > 1 || node.items[0].kind === "rel";
 }
 
-/** NM-30: how Desmos names what indexes a number: "a number", "a point" or a list of either. */
+/** NM-30: how Desmos names what indexes: "a number", "a point" or a list of either. */
 function indexDescription(node: Index, locals: readonly string[], typing: ListTyping): string {
   const [item] = node.items;
-  if (node.range !== undefined) return "a list of numbers";
-  if (node.items.length > 1)
-    return node.items.every(isPoint) ? "a list of points" : "a list of numbers";
-  if (item.kind === "point") return "a point";
-  if (item.kind === "list" && item.items.length > 0 && item.items.every(isPoint)) {
-    return "a list of points";
+  if (node.range !== undefined) return SHAPE_NAMES.numbers;
+  const shapes = node.items.map((i) => typing.shape(i, locals));
+  if (node.items.length > 1) {
+    return SHAPE_NAMES[shapes.every((s) => s === "point") ? "points" : "numbers"];
   }
-  return item.kind === "rel" || typing.isList(item, locals) ? "a list of numbers" : "a number";
+  if (shapes[0] !== null) return SHAPE_NAMES[shapes[0]];
+  return SHAPE_NAMES[item.kind === "rel" || typing.isList(item, locals) ? "numbers" : "number"];
 }
 
-const isPoint = (node: Node) => node.kind === "point";
-
 /**
- * NM-31, NM-36: the coordinate, x or y, that a range's bounds or a filter's condition use outside
- * `locals`, which would make the list's length change along the graph (`[x...5]`, `L[L>x]`).
+ * NM-31, NM-36: the first name a range's bounds or a filter's condition use that is not in
+ * `locals` and that no row defines (x, y or a free variable such as `i` in `L[i>2]`), which would
+ * make the list's length change: Desmos's "Can't plot a list whose length depends on free
+ * variable '…'." (`[x...5]`, `L[L>x]`).
  */
-function lengthCoordinate(node: Bracket, locals: readonly string[]): string | null {
+function lengthDependency(
+  node: Bracket,
+  locals: readonly string[],
+  typing: ListTyping
+): string | null {
   const filter = node.kind === "index" && node.items[0]?.kind === "rel";
   if (node.range === undefined && !filter) return null;
   for (const item of node.items) {
-    for (const { name } of collectNameUses(item)) {
-      if ((name === "x" || name === "y") && !locals.includes(name)) return name;
+    for (const { name, call } of collectNameUses(item)) {
+      if (!call && !locals.includes(name) && !typing.defined.has(name)) return name;
     }
   }
   return null;

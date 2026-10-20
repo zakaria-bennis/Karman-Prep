@@ -17,6 +17,8 @@ export type ParseErrorCode =
   | "empty-brackets" // PR-34: an index with nothing in its brackets, `L[]`
   | "log-power" // PR-26: a power other than 2 on the name `log` or `ln`
   | "empty-subscript" // PR-27: `\log_{}`
+  | "empty-root" // G9: `\sqrt{}`
+  | "empty-root-index" // G9: `\sqrt[]{8}`
   | "name-subscript"; // PR-27: a subscript on a trig, hyperbolic or `ln` name
 export interface ParseError {
   code: ParseErrorCode;
@@ -43,6 +45,8 @@ const PARSE_ERROR_CODES: ReadonlySet<string> = new Set<ParseErrorCode>([
   "empty-brackets",
   "log-power",
   "empty-subscript",
+  "empty-root",
+  "empty-root-index",
   "name-subscript",
 ]);
 

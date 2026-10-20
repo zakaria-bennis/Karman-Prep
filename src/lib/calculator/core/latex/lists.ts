@@ -19,12 +19,6 @@ import type { Token } from "./tokens";
 
 type OpenToken = Extract<Token, { t: "open" }>;
 
-/**
- * Atoms a `[` directly after reads as indexing, as the reference does (`L[2]`, `[1,2][1]`,
- * `L[L>3][1]`); after a number it is indexing too, which analysis rejects (`5[1]`).
- */
-const INDEXED_KINDS: ReadonlySet<Node["kind"]> = new Set(["id", "call", "list", "index", "num"]);
-
 interface Bracket {
   items: Node[];
   before: number; // items before the ellipsis; -1 without one
@@ -46,15 +40,17 @@ export function parseList(state: ParserState, open: OpenToken): Node {
 }
 
 /**
- * `T[…]` after an indexable atom, read like a list (NM-30, NM-31): `L[2]`, `L[[1,3]]` and
+ * `T[…]` after any atom and its postfix signs, read like a list (NM-30, NM-31), as the reference's
+ * parser does: `[` binds tighter than every operator but `(`, so `(L+1)[2]`, `L^{2}[1]` and
+ * `\pi[1,2]` index too, and analysis rejects what is not a list (`5[1]`): `L[2]`, `L[[1,3]]` and
  * `L[1,2]` index, `L[2...4]`, `L[2...]`, `L[...3]` and `L[...]` slice, and one condition filters
  * (`L[L>2]`, `L[2<L<6]`). Empty brackets are `empty-brackets`, Desmos's "Square brackets cannot
  * be empty."; a condition beside other items is `syntax` at the condition. Null when the cursor
- * is not a `[` after an indexable atom.
+ * is not a `[`.
  */
 export function parseIndex(state: ParserState, target: Node): Node | null {
   const open = peek(state);
-  if (open.t !== "open" || open.ch !== "[" || !INDEXED_KINDS.has(target.kind)) return null;
+  if (open.t !== "open" || open.ch !== "[") return null;
   const { items, before, span } = parseBracket(state, open, true);
   if (items.length === 0 && before < 0) {
     fail("empty-brackets", span, "an index needs something in its brackets");

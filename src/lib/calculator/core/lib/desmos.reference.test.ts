@@ -10,6 +10,7 @@ import { evaluateLatex, type EvalSettings } from "../eval/compile";
 import type { Value } from "../eval/values";
 import catalogue from "./desmos-catalogue.fixture.json";
 import indexing from "./desmos-index.fixture.json";
+import roots from "./desmos-root.fixture.json";
 import { withinTolerance } from "./tolerance";
 
 type Captured = number | number[] | null;
@@ -27,6 +28,8 @@ const FAMILIES: { rules: string; pattern: RegExp; count: number; rows?: string[]
   // PR-34, NM-32, NM-36: list literals, ranges and element-by-element arithmetic, without
   // indexing (L[…]) or list functions, which have not shipped.
   { rules: "PR-34 NM-32 NM-36", pattern: /^(\[[^\]]*\]([+^\\]|$)|\\sin\(\[)/, count: 17 },
+  // NM-30, NM-31: indexing and slicing after the capture's context row.
+  { rules: "NM-30 NM-31", pattern: /^(L\[|\[[^\]]*\]\[)/, count: 14, rows: ["L=[5,3,8,1]"] },
 ];
 
 function matches(v: Value, expected: number | null): boolean {
@@ -66,10 +69,10 @@ const ERROR_GAP: ReadonlySet<string> = new Set([
 const ERRORS = Object.entries(captured.errors);
 const { _rows: DEFINITIONS, ...USER_ERRORS } = captured.errorsWithDefinitions;
 
-function errorMessage(rows: readonly string[], latex: string): string | undefined {
+function errorMessage(rows: readonly string[], latex: string, complex = false): string | undefined {
   const analysis = analyzeRows(
     [...rows, latex].map((row, i) => ({ id: `row-${i}`, latex: row, hidden: false })),
-    { angleMode: "radians", complex: false }
+    { angleMode: "radians", complex }
   );
   return analysis.rows[rows.length].error?.message;
 }
@@ -102,8 +105,9 @@ const CATALOGUE_VALUES = Object.entries(catalogue.values) as [string, CatalogueV
 const CATALOGUE_ROWS = ["L=[3,1,4,1,5,9,2,6]"]; // the catalogue's statistics-lists definitions
 
 function catalogueCase(key: string): { latex: string; settings: Partial<EvalSettings> } {
-  const [, mode = "", latex = key] = /^(?:\[(deg|complex)\] )?(.*)$/.exec(key) ?? [];
-  if (mode === "deg") return { latex, settings: { angleMode: "degrees" } };
+  const [, mode = "", latex = key, suffix] =
+    /^(?:\[(deg|complex)\] )?(.*?)( @degrees)?$/.exec(key) ?? [];
+  if (mode === "deg" || suffix !== undefined) return { latex, settings: { angleMode: "degrees" } };
   return { latex, settings: { complex: mode === "complex" } };
 }
 
@@ -244,11 +248,10 @@ for (const [key, expected] of INDEX_VALUES) {
 }
 
 // Index errors not yet matched, each an expected failure that fails once matched: `;` matrix
-// indexing (matrices have not shipped), `\ne`, and a filter on a name no row defines.
+// indexing (matrices have not shipped; the tokenizer rejects `;`) and `\ne` (PR-9).
 const INDEX_ERROR_GAP: ReadonlySet<string> = new Set([
   "\\left[1,2,3\\right]\\left[1;2\\right]",
   "L[L\\ne1]",
-  "L[i>2]",
 ]);
 const INDEX_ERRORS = Object.entries(indexing.errors);
 
@@ -287,3 +290,84 @@ it.fails("not yet matched: P[2] graphs as a point in Desmos", () =>
 
 it("NM-31 E[1...3] has no error, as in Desmos", () =>
   expect(indexRow("E[1...3]").error).toBe(null));
+
+// NM-30, PR-45: more catalogue cases for indexing and member access, each after its own rows
+// (" ;; " separates them). Not yet matched, each an expected failure that fails once matched:
+// member access (PR-9), colours, tones, matrices and `;` (none has shipped).
+const RELATED = indexing.related;
+const RELATED_VALUE_GAP: ReadonlySet<string> = new Set(Object.keys(RELATED.values));
+const RELATED_ERROR_GAP: ReadonlySet<string> = new Set(Object.keys(RELATED.errors));
+
+it("NM-30 PR-45 all 3 related values and 10 related errors are checked", () =>
+  expect([Object.keys(RELATED.values).length, Object.keys(RELATED.errors).length]).toEqual([
+    3, 10,
+  ]));
+
+const rowsOf = (key: string) => key.split(" ;; ");
+
+for (const [key, expected] of Object.entries(RELATED.values) as [string, Captured][]) {
+  const check = () => {
+    const rows = rowsOf(key);
+    const v = evaluateLatex(rows[rows.length - 1], { rows: rows.slice(0, -1) });
+    expect(sameIndexValue(v, expected), JSON.stringify(v)).toBe(true);
+  };
+  if (RELATED_VALUE_GAP.has(key))
+    it.fails(`not yet matched: ${key} is ${expected} in Desmos`, check);
+  else it(`NM-30 ${key} is ${JSON.stringify(expected)}, as in Desmos`, check);
+}
+
+for (const [key, message] of Object.entries(RELATED.errors)) {
+  const rows = rowsOf(key);
+  const check = () => expect(errorMessage(rows.slice(0, -1), rows[rows.length - 1])).toBe(message);
+  if (RELATED_ERROR_GAP.has(key))
+    it.fails(`not yet matched: ${key} reads "${message}" in Desmos`, check);
+  else it(`NM-30 ${key} reads "${message}", as in Desmos`, check);
+}
+
+// G9, PR-27, FN-5: every catalogue value and error for square and nth roots
+// (desmos-root.fixture.json), keyed as the catalogue's. Not yet matched, each an expected failure
+// that fails once matched: the name `\operatorname{sqrt}` and `real` (not shipped), a point
+// argument (M4), `\sqrt{4,9}` (a point inside the braces reads as a syntax error), a bare `[`
+// inside the index (normalizing drops `\left` and `\right`, so `\sqrt[[2,3]]{64}` reads as the
+// `\left[` spelling, which is [8, 4] in Desmos too) and `\sqrt(4)`, which the calculator reads
+// as a pasted `sqrt(4)`.
+const ROOT_VALUES = Object.entries(roots.values) as [string, CatalogueValue][];
+const ROOT_ERRORS = Object.entries(roots.errors);
+const ROOT_VALUE_GAP: ReadonlySet<string> = new Set([
+  "\\operatorname{sqrt}(4)",
+  "[complex] \\operatorname{real}(\\sqrt{-4})",
+  "[complex] \\operatorname{sqrt}(4)",
+]);
+const ROOT_ERROR_GAP: ReadonlySet<string> = new Set([
+  "\\sqrt(4)",
+  "\\sqrt{(1,2)}",
+  "\\sqrt[[2,3]]{64}",
+  "\\operatorname{sqrt}()",
+  "\\operatorname{sqrt}(4,2)",
+  "\\sqrt{(1,4)}",
+  "\\sqrt{4,9}",
+]);
+
+it("G9 FN-5 all 55 catalogue root values and 13 root errors are checked", () =>
+  expect([ROOT_VALUES.length, ROOT_ERRORS.length]).toEqual([55, 13]));
+
+for (const [key, expected] of ROOT_VALUES) {
+  const check = () => {
+    const { latex, settings } = catalogueCase(key);
+    const v = evaluateLatex(latex, { settings });
+    expect(sameValue(v, expected, settings.complex === true), JSON.stringify(v)).toBe(true);
+  };
+  const shown = JSON.stringify(expected);
+  if (ROOT_VALUE_GAP.has(key)) it.fails(`not yet matched: ${key} is ${shown} in Desmos`, check);
+  else it(`G9 FN-5 ${key} is ${shown}, as in Desmos`, check);
+}
+
+for (const [key, message] of ROOT_ERRORS) {
+  const check = () => {
+    const { latex, settings } = catalogueCase(key);
+    expect(errorMessage([], latex, settings.complex === true)).toBe(message);
+  };
+  if (ROOT_ERROR_GAP.has(key))
+    it.fails(`not yet matched: ${key} reads "${message}" in Desmos`, check);
+  else it(`G9 PR-27 ${key} reads "${message}", as in Desmos`, check);
+}

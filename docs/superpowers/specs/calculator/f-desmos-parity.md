@@ -102,12 +102,21 @@ These Desmos behaviours are known and recorded but not yet built:
   '...' is used here."; the calculator shows its syntax error. An expected failure in
   `desmos.reference.test.ts` (`CATALOGUE_ERROR_GAP`).
 - **Indexing gaps (NM-30, NM-31).** Indexing, slicing and filtering match Desmos (see below)
-  except where they use notation that has not shipped: member access (`L[2].x`, `P[P.x>2].x`),
-  `and` and `or` in a filter, a piecewise filter (`L[\{L>3\}]`), comprehensions, `length`, matrix
-  indexing with `;` ("Cannot index a list of numbers with ';'."), `\ne` in a filter, and a filter on
-  a name no row defines (`L[i>2]` reads "Can't plot a list whose length depends on free variable
-  'i'." in Desmos). `P[2]`, an index of a name defined as a list of points, is not graphed yet (M5).
-  Each is an expected failure in `desmos.reference.test.ts` (`INDEX_VALUE_GAP`, `INDEX_ERROR_GAP`).
+  except where they use notation that has not shipped: member access (`L[2].x`, `P[P.x>2].x`,
+  `[1,2,3].\operatorname{length}`, now the unsupported-notation message after any index, list or
+  point), `and` and `or` in a filter, a piecewise filter (`L[\{L>3\}]`), comprehensions, `length`,
+  matrix indexing with `;` ("Cannot index a list of numbers with ';'."; the tokenizer rejects `;`
+  until matrices ship), `\ne` in a filter, and indexing a colour, a tone or a matrix. `P[2]`, an
+  index of a name defined as a list of points, is not graphed yet (M5). Each is an expected
+  failure in `desmos.reference.test.ts` (`INDEX_VALUE_GAP`, `INDEX_ERROR_GAP`, `RELATED_*_GAP`).
+  `E[1...3]` with E=[] shows three undefined elements where Desmos shows no value; only its
+  missing error is checked, since the display is the UI's.
+- **Root gaps (G9).** `\operatorname{sqrt}` and its arity messages, `real`, a point inside a root
+  (M4), `\sqrt{4,9}` ("Points are written like this: (1, 2)."), `\sqrt(4)` ("Expected '(' to match
+  ')'."; the calculator reads it as a pasted `sqrt(4)`) and `\sqrt[[2,3]]{64}` ("Expected '[' to
+  match ']'."; normalizing drops `\left` and `\right`, so it reads as `\sqrt[\left[2,3\right]]{64}`,
+  which is [8, 4] in Desmos too). Expected failures in `desmos.reference.test.ts`
+  (`ROOT_VALUE_GAP`, `ROOT_ERROR_GAP`).
 - **An infinite log base.** Desmos gives `\log_{\infty}(5)` = 0; `\infty` is not a value in the
   calculator yet, so it is undefined. An expected failure in `desmos.reference.test.ts`
   (`CATALOGUE_VALUE_GAP`).
@@ -137,6 +146,21 @@ including these, is checked in `desmos.reference.test.ts`:
   as `[x...5]` or `L[L>x]`, "Can't plot a list whose length depends on free variable 'x'." `L[x]`
   graphs as a step function. Every catalogue value and error for these is checked
   (`desmos-index.fixture.json`), with the gaps listed above.
+- **Index types and free variables (NM-30, NM-31), from the third review.** A `[` after any term
+  indexes it (Desmos's parser binds `[` tighter than every operator but `(`): `(L+1)[2]`,
+  `L^{2}[1]`, `\pi[1,2]`. Indexing a value analysis types as a number or a point, or indexing by a
+  point, reads "Cannot index {a number} with {a point}." with Desmos's ListAccess wording (`a[1]`
+  with a=5, `L[1][1]`, `x[1]`, `(1,2)[1]`, `L[(1,2)]`), and a range or filter on a name no row
+  defines reads "Can't plot a list whose length depends on free variable 'i'." (`L[i>2]`,
+  captured). An index of any list without variables graphs as a step function (`L[2...][x]`,
+  `[1...5][x]`, `L[L>3][x]`), where it plotted nothing before. Only `L[i>2]` was captured live; the
+  rest follow the decompiled parser and type signatures and await a capture.
+- **Roots (G9).** `\sqrt{}` and `\sqrt[3]{ }` read "Radical cannot be empty." and `\sqrt[]{8}`
+  "Radical index cannot be empty." (checked first), where they were syntax errors. In complex
+  mode a negative radicand takes the principal root (`\sqrt[3]{-8}` = 1 + 1.732i). Every catalogue
+  root value and error is checked (`desmos-root.fixture.json`), with the gaps listed above.
+- **The plan's 14 captured index values** (`L[2]` to `[2...10][4]`, with L=[5,3,8,1]) are a
+  reference family of their own.
 
 - **`exp` needs parentheses.** `\exp 2`, `\exp^{2}(1)` and `\exp` on its own read "'exp' is a
   function. Try using parentheses."; `\exp()` reads "Function 'exp' requires an argument. For

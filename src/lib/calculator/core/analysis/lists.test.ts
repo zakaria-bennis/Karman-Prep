@@ -70,6 +70,59 @@ describe("list errors found by analysis", () => {
   });
 });
 
+describe("index errors found by analysis", () => {
+  const message = (...latex: string[]) => last(...latex).error?.message ?? null;
+  const LISTS = ["L=[5,3,8,1]", "P=[(1,2),(3,4)]", "a=5", "A=(1,2)"];
+
+  it("NM-30 indexing a number or a point reads Cannot index … with …, as the ListAccess signature does", () => {
+    expect(
+      ["a[1]", "a[1...2]", "a[[1,2]]", "L[1][1]", "x[1]", "\\pi[1,2]", "(L+1)[2][1]"].map((l) =>
+        message(...LISTS, l)
+      )
+    ).toEqual([
+      "Cannot index a number with a number.",
+      "Cannot index a number with a list of numbers.",
+      "Cannot index a number with a list of numbers.",
+      "Cannot index a number with a number.",
+      "Cannot index a number with a number.",
+      "Cannot index a number with a list of numbers.",
+      "Cannot index a number with a number.",
+    ]);
+    expect(["P[1][1]", "(1,2)[1]", "A[1]"].map((l) => message(...LISTS, l))).toEqual(
+      Array(3).fill("Cannot index a point with a number.")
+    );
+  });
+
+  it("NM-30 indexing by a point or a list of points is an error; by numbers it is not", () => {
+    expect(["L[(1,2)]", "L[P]", "P[A]"].map((l) => message(...LISTS, l))).toEqual([
+      "Cannot index a list of numbers with a point.",
+      "Cannot index a list of numbers with a list of points.",
+      "Cannot index a list of points with a point.",
+    ]);
+    expect(
+      ["L[a]", "P[[1,2]]", "L[L>a]", "f(L)[1]", "q[1]"].map((l) => message(...LISTS, l))
+    ).toEqual([null, null, null, null, null]);
+  });
+
+  it("NM-31, NM-36 a range or filter that uses a name no row defines depends on a free variable", () => {
+    expect(["L[i>2]", "[i...5]", "L[1...b]", "[x...5]"].map((l) => message(...LISTS, l))).toEqual([
+      "Can't plot a list whose length depends on free variable 'i'.",
+      "Can't plot a list whose length depends on free variable 'i'.",
+      "Can't plot a list whose length depends on free variable 'b'.",
+      "Can't plot a list whose length depends on free variable 'x'.",
+    ]);
+    expect(message(...LISTS, "f(k,m)=L[k...m]")).toBe(null);
+    expect(message(...LISTS, "L[1...a]")).toBe(null);
+    expect(analyzeRows(rows("L[1...b]", "b=2", "L=[1,2]"), REAL).rows[0].error).toBe(null);
+  });
+
+  it("PR-45 member access after an index, a list or a point is the deferred notation", () => {
+    for (const l of ["L[2].x", "[1,2].x", "(1,2).x"]) {
+      expect(last(...LISTS, l).error?.code).toBe("unsupported");
+    }
+  });
+});
+
 describe("lists in graphs", () => {
   it("G-22 a list-valued curve, line or region is a clear unsupported error, never a NaN curve", () => {
     for (const latex of [

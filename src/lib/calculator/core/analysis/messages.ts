@@ -57,7 +57,8 @@ function letter(base: string): string {
  * place they appear. Appendix F recorded the reference's text for `duplicate-definition` (19),
  * `sim-side` (3) and `nested-list`, which these use; `argument-parentheses`, `comma-side`,
  * `range-bound`, `range-step`, `list-too-long`, `log-power`, `empty-subscript`,
- * `name-subscript`, `index-type`, `list-length-free` and `empty-brackets` use the text
+ * `name-subscript`, `index-type`, `list-length-free`, `empty-brackets`, `empty-root` and
+ * `empty-root-index` use the text
  * Desmos gave on 2026-10-19.
  */
 const MESSAGES: Readonly<Record<RowErrorCode, string>> = {
@@ -97,6 +98,8 @@ const MESSAGES: Readonly<Record<RowErrorCode, string>> = {
   "index-type": "Cannot index {n} with {k}.",
   "list-length-free": "Can't plot a list whose length depends on free variable '{n}'.",
   "empty-brackets": "Square brackets cannot be empty.",
+  "empty-root": "Radical cannot be empty.",
+  "empty-root-index": "Radical index cannot be empty.",
 };
 /** RC-2, Phase 1: `unsupported` naming r or θ, whose polar graphs ship in Phase 2. */
 const POLAR_UNSUPPORTED = "{n} is for polar graphs, which aren't available yet.";

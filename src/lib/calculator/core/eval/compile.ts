@@ -17,7 +17,13 @@ import { isBuiltinName } from "../latex/operator-names";
 import { applyBuiltin } from "../lib/builtins";
 import { circular, type CircularName } from "../lib/trig";
 import { C_I } from "./complex";
-import { compileReal, constantValue, degreeArgument, MAX_CALL_DEPTH } from "./compile-real";
+import {
+  compileReal,
+  constantValue,
+  degreeArgument,
+  MAX_CALL_DEPTH,
+  type FoldConstant,
+} from "./compile-real";
 import {
   absV,
   addV,
@@ -349,7 +355,7 @@ export function compileRealFunction1(
   scope: CompileScope
 ): (t: number) => number {
   if (!scope.settings.complex) {
-    const g = compileReal(tree, scope);
+    const g = compileReal(tree, scope, foldWith(scope));
     return variable === "x" ? (t) => g(t, NaN) : (t) => g(NaN, t);
   }
   const f = compileExpression(tree, scope);
@@ -363,9 +369,14 @@ export function compileRealFunction2(
   tree: Node,
   scope: CompileScope
 ): (x: number, y: number) => number {
-  if (!scope.settings.complex) return compileReal(tree, scope);
+  if (!scope.settings.complex) return compileReal(tree, scope, foldWith(scope));
   const f = compileExpression(tree, scope);
   return (x, y) => toPlotNumber(f({ x: numberValue(x), y: numberValue(y) }, NO_DEADLINE));
+}
+
+/** compileReal's FoldConstant: a tree without variables, evaluated once by compileExpression. */
+function foldWith(scope: CompileScope): FoldConstant {
+  return (tree) => compileExpression(tree, scope)({}, NO_DEADLINE);
 }
 
 /** decision 5: the rows evaluateRows gives a value, by kind; and only without an error or chips. */

@@ -81,5 +81,25 @@
     "P[2]": "graphed, no evaluation",
     "L[x]": "graphed, no evaluation",
     "E[1...3]": "no evaluation (empty list or table card)"
+  },
+  "related": {
+    "_about": "More indexing and member-access cases copied verbatim from the same catalogue (actions-misc, colour-sound and matrices-advanced families): rows separated by ' ;; ' are entered in order and the last is checked, without the statistics-lists rows.",
+    "values": {
+      "\\left[(1,2),(3,4)\\right].x": [1, 3],
+      "\\left[1,2,3\\right].\\operatorname{length}": 3,
+      "\\left[\\left(1,2\\right)\\right].x": [1]
+    },
+    "errors": {
+      "\\operatorname{rgb}\\left(1,1,1\\right)\\left[1\\right]": "Cannot index a color with a number.",
+      "\\operatorname{hsv}\\left(1,1,1\\right)\\left[1\\right]": "Cannot index a color with a number.",
+      "\\operatorname{okhsv}\\left(1,1,1\\right)\\left[1\\right]": "Cannot index a color with a number.",
+      "\\operatorname{oklab}\\left(1,1,1\\right)\\left[1\\right]": "Cannot index a color with a number.",
+      "\\operatorname{oklch}\\left(1,1,1\\right)\\left[1\\right]": "Cannot index a color with a number.",
+      "\\operatorname{tone}\\left(440\\right)\\left[1\\right]": "Cannot index a tone with a number.",
+      "A=\\left[1,2,3\\right] ;; A\\left[1;2\\right]": "Cannot index a list of numbers with ';'.",
+      "M=\\left[i+10j\\operatorname{for}i=\\left[1,2\\right];j=\\left[1,2,3\\right]\\right] ;; M\\left[1\\right]": "Cannot index a matrix with a number.",
+      "M=\\left[i+10j\\operatorname{for}i=\\left[1,2\\right];j=\\left[1,2,3\\right]\\right] ;; M\\left[1;2;3\\right]": "A matrix index must have only one ';'.",
+      "\\begin{bmatrix}1&2\\\\3&4\\end{bmatrix}\\left[\\left(1,2\\right),\\left(0,1\\right)\\right]": "Cannot index a matrix with a list of points."
+    }
   }
 }

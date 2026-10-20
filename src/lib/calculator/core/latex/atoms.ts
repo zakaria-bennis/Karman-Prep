@@ -74,11 +74,11 @@ export function parsePostfix(state: ParserState): Node {
  * The postfix loop after `atom` (G2), each sign applying to everything before it (PR-20): `\%`,
  * the degree sign, `^` and `!` (factorial, NM-15). An exponent directly after another is `syntax`
  * (G5, PR-19); `3!^{2}` is (3!)². Every operator position follows this loop, so it reports PR-9's
- * notation there: `'` (prime) is `unsupported`, as is a `.` after an identifier or a call (member
- * access); any other `.` ends the
- * loop and is `syntax` where the caller meets it. A built-in call with a `(` argument list is an
- * atom too (PR-25). A `[` after a name, a call, a list, a number or an index is PR-34's indexing
- * (parseIndex), which takes the postfix signs after it too (`L[2]^{2}`, `L[L>3][1]`).
+ * notation there: `'` (prime) is `unsupported`, as is a `.` after a member base (isMemberBase);
+ * any other `.` ends the loop and is `syntax` where the caller meets it. A built-in call with a
+ * `(` argument list is an atom too (PR-25). A `[` after any atom or postfix sign is PR-34's
+ * indexing (parseIndex), which takes the postfix signs after it too (`L[2]^{2}`, `L[L>3][1]`,
+ * `(L+1)[2]`).
  */
 export function takePostfix(state: ParserState, atom: Node): Node {
   let node = atom;
@@ -285,18 +285,29 @@ function isOneLetter(node: Node, name: string | null): boolean {
 /**
  * `\sqrt` (G9, PR-27): an optional `[index]` sum, then a braced group, a `(` group (pasted
  * `sqrt(x)`) or a G4 token. A typed `cbrt` (G7) passes its fixed index 3 and reads no `[index]`.
+ * As in Desmos, empty index brackets are `empty-root-index` ("Radical index cannot be empty."),
+ * checked first, and an empty braced argument is `empty-root` ("Radical cannot be empty.").
  */
 function parseRoot(state: ParserState, sqrt: Token, fixedIndex: Node | null): Node {
   take(state);
   const bracket = peek(state);
   let index = fixedIndex;
   if (index === null && bracket.t === "open" && bracket.ch === "[") {
+    failIfEmpty(state, bracket, "empty-root-index");
     index = takeDelimited(state, bracket, "]").node;
   }
   const paren = peek(state);
+  if (paren.t === "open" && paren.ch === "{") failIfEmpty(state, paren, "empty-root");
   const arg =
     paren.t === "open" && paren.ch === "(" ? takeDelimited(state, paren, ")") : takeArgument(state);
   return { kind: "root", arg: arg.node, index, span: { start: sqrt.span.start, end: arg.end } };
+}
+
+/** `code` over the opener at the cursor and its closer when nothing is between them. */
+function failIfEmpty(state: ParserState, open: OpenToken, code: "empty-root" | "empty-root-index") {
+  const close = peek(state, 1);
+  if (close.t !== "close" || close.ch !== (open.ch === "[" ? "]" : "}")) return;
+  fail(code, { start: open.span.start, end: close.span.end }, "an empty root part");
 }
 
 /**
@@ -421,9 +432,14 @@ function isLetterRun(state: ParserState, command: Token): boolean {
   return state.normalized[command.span.start] !== "\\";
 }
 
-/** A name or a call: a `.` after one is member access (PR-45), `unsupported` until Phase 3 (PR-9). */
+/**
+ * A name, a call, a list, a point or an index: a `.` after one is member access (PR-45: `P.x`,
+ * `L[2].x`, `[1,2].\operatorname{length}`), `unsupported` until Phase 3 (PR-9).
+ */
+const MEMBER_BASES: ReadonlySet<Node["kind"]> = new Set(["id", "call", "list", "point", "index"]);
+
 function isMemberBase(node: Node): boolean {
-  return node.kind === "id" || node.kind === "call";
+  return MEMBER_BASES.has(node.kind);
 }
 
 /** Digits with no decimal point and no inner whitespace (PR-14). */

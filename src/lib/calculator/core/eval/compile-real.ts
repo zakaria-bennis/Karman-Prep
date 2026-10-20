@@ -4,7 +4,7 @@
 // slots of its parameters on a shared stack and restores them afterwards, so an evaluation
 // allocates nothing per node. Nothing here throws. Pure TypeScript: no DOM (AR-44).
 
-import type { ConstName, Node, RelOp } from "../latex/ast";
+import { sourceChildren, type ConstName, type Node, type RelOp } from "../latex/ast";
 import { isBuiltinName } from "../latex/operator-names";
 import { BUILTINS } from "../lib/builtins";
 import { factorial } from "../lib/gamma";
@@ -12,6 +12,7 @@ import { circular, type CircularName } from "../lib/trig";
 import type { CompileScope } from "./compile";
 import { linkHolds } from "./ops";
 import { exponentRational, realPow, realRoot } from "./real-pow";
+import type { Value } from "./values";
 
 /** User-function calls nest at most this deep; a call past it is undefined. */
 export const MAX_CALL_DEPTH = 64;
@@ -29,8 +30,13 @@ interface RealFunction {
   body: Fn;
 }
 
+/** The value of a tree that uses no variable, by the general evaluator (compileExpression). */
+export type FoldConstant = (tree: Node) => Value;
+
 interface Context {
   scope: CompileScope;
+  fold: FoldConstant | null;
+  params: string[]; // the parameters of the user-function bodies being compiled
   slots: Map<string, number>; // a variable name's index into env and bound
   env: number[]; // each slot's current value
   bound: number[]; // 1 while the slot's name is a variable: x, y or a parameter of a call in progress
@@ -71,9 +77,15 @@ export function degreeArgument(name: string, args: readonly Node[]): Node | null
  * over the caller's variables; past MAX_CALL_DEPTH nested calls, or for a name without a
  * `scope.functions` entry (a head with an error), it is NaN.
  */
-export function compileReal(tree: Node, scope: CompileScope): (x: number, y: number) => number {
+export function compileReal(
+  tree: Node,
+  scope: CompileScope,
+  fold: FoldConstant | null = null
+): (x: number, y: number) => number {
   const ctx: Context = {
     scope,
+    fold,
+    params: [],
     slots: new Map([
       ["x", 0],
       ["y", 1],
@@ -154,9 +166,10 @@ function compile(node: Node, ctx: Context): Fn {
 }
 
 /**
- * NM-30: `T[i]` with one index item, when T is a list literal or a name whose value is a list, so
- * `L[x]` graphs a step function; the index is rounded down and out of range is NaN. Any other
- * index (a slice, a filter, a list of indices or another target) is a list or unknown here: NaN.
+ * NM-30: `T[i]` with one index item, when T is a list literal, a name whose value is a list, or any
+ * other list that uses no variable (`L[2...][x]`, `[1...5][x]`, `L[L>3][x]`), so these graph a
+ * step function; the index is rounded down and out of range is NaN. Any other index (a slice, a
+ * filter or a list of indices, which are lists, or a target that varies) is NaN.
  */
 function indexed(node: Index, ctx: Context): Fn {
   const [item] = node.items;
@@ -171,18 +184,44 @@ function indexed(node: Index, ctx: Context): Fn {
   };
 }
 
-/** The elements of a list literal, or of a name's list value (NaN for a non-number); else null. */
+/**
+ * The elements of a list literal, or of the list value of a name or of a tree that uses no
+ * variable and no user function (NaN for a non-number); else null.
+ */
 function listElements(target: Node, ctx: Context): Fn[] | null {
   if (target.kind === "list" && target.range === undefined) {
     return target.items.map((item) => compile(item, ctx));
   }
-  if (target.kind !== "id" || ctx.slots.has(target.name)) return null;
-  const value = ctx.scope.values.get(target.name);
+  let value: Value | undefined;
+  if (target.kind === "id") {
+    if (isConstantName(target.name, ctx)) value = ctx.scope.values.get(target.name);
+  } else if (ctx.fold !== null && isConstantTree(target, ctx)) {
+    value = ctx.fold(target);
+  }
   if (value?.type !== "list") return null;
   return value.value.map((v) => {
     const n = v.type === "number" ? v.value : NaN;
     return () => n;
   });
+}
+
+/** A name of a scope value that is not x, y or a parameter of a body being compiled. */
+function isConstantName(name: string, ctx: Context): boolean {
+  return name !== "x" && name !== "y" && !ctx.params.includes(name) && ctx.scope.values.has(name);
+}
+
+/**
+ * True when every name in `tree` is a value of the scope, not x, y or a parameter of a body being
+ * compiled, and `tree` calls no user function.
+ */
+function isConstantTree(tree: Node, ctx: Context): boolean {
+  const pending: Node[] = [tree];
+  for (let n = pending.pop(); n !== undefined; n = pending.pop()) {
+    if (n.kind === "id" && !isConstantName(n.name, ctx)) return false;
+    if (n.kind === "call" && !isBuiltinName(n.name)) return false;
+    pending.push(...sourceChildren(n));
+  }
+  return true;
 }
 
 function arithmetic(node: Binary, ctx: Context): Fn {
@@ -307,7 +346,10 @@ function userFunction(name: string, ctx: Context): RealFunction | null {
     body: undefinedFn,
   };
   ctx.functions.set(name, fn);
+  const outer = ctx.params.length;
+  ctx.params.push(...definition.params);
   fn.body = compile(definition.body, ctx);
+  ctx.params.length = outer;
   return fn;
 }
 

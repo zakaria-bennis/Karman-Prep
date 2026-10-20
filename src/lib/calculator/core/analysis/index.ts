@@ -109,7 +109,10 @@ export function analyzeRows(
   // PR-34, NM-34 to NM-36: which names hold lists, and the list errors the rows show; D-22: a
   // list definition is regression data like a table column.
   const columnLists = tableNames.flat().filter((n): n is string => n !== null);
-  const early = inferLists(errorFreeHeads(unchecked), columnLists);
+  const early = inferLists(errorFreeHeads(unchecked), columnLists, new Set(), [
+    ...heads,
+    ...dataNames,
+  ]);
   const parsed = unchecked.map((row) => withListError(row, early));
   const plans = planRegressions(
     parsed,

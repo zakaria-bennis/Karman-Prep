@@ -41,6 +41,13 @@ describe("indexing, slicing and filtering", () => {
     expect(evaluateLatex("L[L>3]+L[1]", ROWS)).toEqual(list(10, 13));
     expect(evaluateLatex("f(2)", { rows: ["L=[5,3,8,1]", "f(k)=L[k]"] })).toEqual(n(3));
   });
+
+  it("NM-30 a [ after any term indexes it, as the reference's parser binds it tighter than * ", () => {
+    expect(evaluateLatex("(L+1)[2]", ROWS)).toEqual(n(4));
+    expect(evaluateLatex("L^{2}[1]", ROWS)).toEqual(n(25));
+    expect(evaluateLatex("2L[1]", ROWS)).toEqual(n(10));
+    expect(evaluateLatex("-L[1]", ROWS)).toEqual(n(-5));
+  });
 });
 
 it("NM-30 L[x] plots as a step function of x through the values of L", () => {
@@ -54,3 +61,26 @@ it("NM-30 L[x] plots as a step function of x through the values of L", () => {
   const f = compileRealFunction1(parsed.tree, "x", scope);
   expect([0.5, 1, 1.9, 2.5, 4.2, 5].map(f)).toEqual([NaN, 5, 5, 3, 1, NaN]);
 });
+
+it("NM-30 an index of any list that uses no variable plots as a step function too", () => {
+  const scope = {
+    functions: new Map([["f", { name: "f", params: ["a"], body: tree("L[a...][x]"), rowId: "f" }]]),
+    values: new Map([["L", list(5, 3, 8, 1)]]),
+    settings: { angleMode: "radians" as const, complex: false },
+  };
+  const at = (latex: string) => [1, 2.5, 4].map(compileRealFunction1(tree(latex), "x", scope));
+  expect(at("[1...5][x]")).toEqual([1, 2, 4]);
+  expect(at("L[2...][x]")).toEqual([3, 8, NaN]);
+  expect(at("L[L>2][x]")).toEqual([5, 3, NaN]);
+  expect(at("L[[4,3]][x]")).toEqual([1, 8, NaN]);
+  expect(at("(L+1)[x]")).toEqual([6, 4, 2]);
+  // a list that varies is not folded: a parameter, or x itself
+  expect(at("f(2)")).toEqual([NaN, NaN, NaN]);
+  expect(at("[x...5][1]")).toEqual([NaN, NaN, NaN]);
+});
+
+function tree(latex: string) {
+  const parsed = parseLatex(latex);
+  if (!parsed.ok) throw new Error(latex);
+  return parsed.tree;
+}

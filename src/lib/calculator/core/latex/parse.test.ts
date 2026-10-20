@@ -24,16 +24,16 @@ const inRange = (r: ParseResult) =>
 
 describe("parse never throws", () => {
   it("PR-38 half-typed MathQuill structures return syntax errors", () => {
-    for (const input of [
-      "\\frac{}{}",
-      "x^{}",
-      "\\sqrt{}",
-      "2+",
-      "\\left(",
-      "\\operatorname{}",
-      "=",
-    ])
+    for (const input of ["\\frac{}{}", "x^{}", "2+", "\\left(", "\\operatorname{}", "="])
       expect([code(input), inRange(parseLatex(input))]).toEqual(["syntax", true]);
+  });
+  it("PR-38 an empty root or root index has its own code, as Desmos's messages do", () => {
+    expect(["\\sqrt{}", "\\sqrt[3]{ }", "\\sqrt[]{8}", "\\sqrt[ ]{}"].map(spanOf)).toEqual([
+      ["empty-root", 5, 7],
+      ["empty-root", 8, 11],
+      ["empty-root-index", 5, 7],
+      ["empty-root-index", 5, 8],
+    ]);
   });
   it("PR-38 errors carry their code and the span of the offending text", () => {
     expect(["x\\pm1", "2+", "(1,2,3)", "a<x>b", "  ", "\\left|x|y|\\right|"].map(spanOf)).toEqual([

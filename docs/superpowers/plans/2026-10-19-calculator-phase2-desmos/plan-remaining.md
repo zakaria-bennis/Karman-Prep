@@ -184,6 +184,19 @@ using x reads "Can't plot a list whose length depends on free variable 'x'." (wh
 the unmatched ones wait on unshipped notation (see `f-desmos-parity.md`). `speech.ts` gained the
 one `index` case TypeScript's exhaustive switch needs.
 
+**Third review (2026-10-19), done.** A `[` after any term indexes it; analysis types the target
+and index (number, point, list of numbers, list of points) and reads Desmos's "Cannot index … with
+…." for a number or point target or a point index; a range or filter on an undefined name is
+`list-length-free` naming it (`L[i>2]`); `compile-real.ts` folds a constant index target through
+`compileExpression`, so `L[2...][x]` graphs; `.` after an index, list or point is the deferred
+member access; empty roots and root indexes have Desmos's messages; complex-mode roots of
+negatives are principal. The 14 plan values and the catalogue's root cases are reference
+families. Not done, with reasons in `f-desmos-parity.md`: notation that has not shipped (member
+access, `and`/`or`, piecewise, `for`, `length`, `sum`, derivatives, colours, tones, matrices and
+`;`, `random`, actions, `sort`), point arithmetic (M4), `P[2]` graphing (M5), `E[1...3]`'s empty
+display (UI), `\sqrt[[2,3]]{64}` (normalizing drops `\left`), and the probes without a live
+capture, which follow the decompiled code.
+
 - **AST:** add `{ kind: "index"; target: Node; index: Node; span }` to `latex/ast.ts`, with
   `sourceChildren`, `toSExpr` `(index L I)`, and the printer case (add to `BARE_BASES`).
 - **Parser:** in `latex/lists.ts`, replace `failIfIndexed`'s index branch with `parseIndex(state,

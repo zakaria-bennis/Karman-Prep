@@ -40,7 +40,7 @@ const cases: CorpusCase[] = [
   x(55, ["PR-11"], "\\omicron", "unsupported"),
   x(35, ["PR-38"], "\\frac{}{}", "syntax"),
   x(36, ["PR-38"], "x^{}", "syntax"),
-  x(37, ["PR-38"], "\\sqrt{}", "syntax"),
+  x(37, ["PR-38"], "\\sqrt{}", "empty-root"), // Desmos: "Radical cannot be empty."
   x(38, ["PR-38"], "2+", "syntax"),
   x(39, ["PR-38"], "\\left(", "syntax"),
   x(40, ["PR-38"], "\\operatorname{}", "syntax"),
@@ -53,7 +53,7 @@ const cases: CorpusCase[] = [
   x(47, ["PR-38"], "", "syntax"),
   x(48, ["PR-38"], "x_{}", "syntax"),
   x(49, ["PR-38"], "\\text{}", "syntax"),
-  x(50, ["PR-38"], "\\sqrt[]{x}", "syntax"),
+  x(50, ["PR-38"], "\\sqrt[]{x}", "empty-root-index"), // Desmos: "Radical index cannot be empty."
   x(51, ["NM-42", "PR-38"], `-${Array(500).fill("xy").join("+")}=2x`, "too-many-nodes"),
 ];
 export default cases;
