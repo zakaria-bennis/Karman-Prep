@@ -241,11 +241,13 @@
 }
 
 .kc-row:is([data-focused="true"], .kc-app:has(.kc-keypad:focus-within) [data-active="true"])
+  .kc-row-warning
   .kc-warning-mark {
   stroke: var(--kc-focus-bar);
 }
 
 .kc-row:is([data-focused="true"], .kc-app:has(.kc-keypad:focus-within) [data-active="true"])
+  .kc-row-warning
   .kc-warning-mark-dot {
   fill: var(--kc-focus-bar);
 }

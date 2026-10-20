@@ -31,10 +31,10 @@ export interface RegressionPlan {
 }
 
 const ZERO = { start: 0, end: 0 };
-const error = (code: RowErrorCode): RowError => ({
+const error = (code: RowErrorCode, names: string[] = []): RowError => ({
   code,
-  message: rowErrorMessage(code, []),
-  names: [],
+  message: rowErrorMessage(code, names),
+  names,
   span: null,
 });
 const unique = (names: readonly string[]) => [...new Set(names)];
@@ -77,8 +77,13 @@ export function planRegressions(
   for (const row of rows) {
     const tree = row.tree as Extract<Node, { kind: "sim" }>;
     const names = unique(collectNameUses(tree.right).map((u) => u.name));
-    if (names.includes("x") || names.includes("y")) {
-      plans.set(row.source.id, { analysis: null, error: error("regression-predictor") });
+    // The first of x and y the model reads is named (live 2026-10-20).
+    const coordinate = names.find((n) => n === "x" || n === "y");
+    if (coordinate !== undefined) {
+      plans.set(row.source.id, {
+        analysis: null,
+        error: error("regression-predictor", [coordinate]),
+      });
       continue;
     }
     const free = (n: string) => !isReservedName(n, settings) && !defined.has(n) && !allLists.has(n);

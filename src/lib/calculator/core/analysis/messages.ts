@@ -100,7 +100,8 @@ const MESSAGES: Readonly<Record<RowErrorCode, string>> = {
   "polar-variable": "{n} only has a meaning in a polar equation.",
   timeout: "This is taking too long. Try a smaller range or fewer terms.",
   "regression-data": "Regression needs a list of data.",
-  "regression-predictor": "Use the table column, such as x₁, not x.",
+  "regression-predictor":
+    "'{n}' may not be used as a regression parameter. Try using a different variable name.",
   "regression-params": "A regression can fit at most 8 parameters.",
   "regression-fit": "We couldn't find any region where this model is defined.",
   "nested-list": "Cannot store a list of numbers in a list.",

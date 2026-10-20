@@ -1,10 +1,16 @@
 // Glyphs drawn for tables and their regressions, our own drawings sized to the reference's boxes.
 
 import type { JSX } from "react";
+import { POINTS_DOTS, POINTS_DOT_RADIUS } from "../../icons/list";
+
+/** The points glyph's scale in the gutter: the reference sets it 20 px tall there, 23.8 px in a
+ *  colour icon, and offsets it inside the 30 px box by (2.82, 2.98). */
+const GUTTER_SCALE = 20 / 23.8;
 
 /**
- * RT-28: the gutter's Add Regression, drawn in its 30 px box: four scattered points either side
- * of a steep fitted line, the points lighter than the line.
+ * RT-28: the gutter's Add Regression, drawn in its 30 px box: the column icon's four points at
+ * three quarters strength, scaled into the box, and a thin fitted line through them. The line's
+ * ends and width were measured from the reference's rendering at DPR 4 (2026-10-20).
  */
 export function AddRegressionGlyph(): JSX.Element {
   return (
@@ -16,13 +22,17 @@ export function AddRegressionGlyph(): JSX.Element {
       aria-hidden="true"
       focusable="false"
     >
-      <g fill="currentColor" fillOpacity={0.7}>
-        <circle cx={11.4} cy={11.9} r={2} />
-        <circle cx={20.1} cy={9.3} r={2} />
-        <circle cx={17.1} cy={16.9} r={2} />
-        <circle cx={9.8} cy={20.2} r={2} />
+      <g fill="currentColor" fillOpacity={0.75}>
+        {POINTS_DOTS.map(([cx, cy]) => (
+          <circle
+            key={`${cx}-${cy}`}
+            cx={2.82 + cx * GUTTER_SCALE}
+            cy={2.98 + cy * GUTTER_SCALE}
+            r={POINTS_DOT_RADIUS * GUTTER_SCALE}
+          />
+        ))}
       </g>
-      <path d="M18.4 5.8L11.4 23.3" stroke="currentColor" strokeWidth={1.1} />
+      <path d="M18.77 5.5L11.24 24.5" stroke="currentColor" strokeWidth={0.95} />
     </svg>
   );
 }

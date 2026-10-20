@@ -216,7 +216,8 @@
   text-align: center;
 }
 
-.kc-column-style + .kc-table-field .mq-editable-field {
+.kc-column-style + .kc-table-field .mq-editable-field,
+.kc-header-warning + .kc-table-field .mq-editable-field {
   padding-left: 6px;
 }
 
@@ -267,6 +268,12 @@
 .kc-table-add-regression > svg {
   width: 30px;
   height: 30px;
+}
+
+/* RT-28: white on the focus bar while the table is selected, as the reference draws it. */
+.kc-row:is([data-focused="true"], .kc-app:has(.kc-keypad:focus-within) [data-active="true"])
+  .kc-table-add-regression {
+  color: var(--kc-focus-bar-label);
 }
 
 /* RT-6: a computed cell's scientific exponent, raised as in the reference's typeset cells. */

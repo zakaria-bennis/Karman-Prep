@@ -14,6 +14,11 @@
   font-size: var(--kc-size-small);
 }
 
+/* RT-30: with an error only the header shows, and the reference keeps the item's foot below it. */
+.kc-tr:has(.kc-tr-warning) {
+  margin-bottom: -1px;
+}
+
 .kc-tr-header {
   display: flex;
   align-items: center;
@@ -28,6 +33,8 @@
   margin-right: 0;
 }
 
+/* RT-30: the regression's error marker (ErrorMarker), a 22 px triangle in a 29 px target where
+   the colour icon stands; its message opens on hover, focus and click. */
 .kc-tr-warning {
   display: inline-flex;
   flex: none;
@@ -35,16 +42,17 @@
   height: 29px;
   align-items: center;
   justify-content: center;
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
   color: var(--kc-warning);
+  cursor: pointer;
 }
 
-.kc-tr-warning svg {
-  width: 24px;
-  height: 24px;
-}
-
-.kc-tr-warning-mark {
-  fill: var(--kc-list);
+.kc-tr-warning:focus-visible {
+  outline: 2px solid var(--kc-focus-ring);
+  outline-offset: -1px;
 }
 
 .kc-tr-select {

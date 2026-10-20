@@ -45,7 +45,13 @@ it("D-22 no parameter is allowed, a scalar left side and x or y as predictor are
   );
   expect(a.byId.get("r")).toMatchObject({ kind: "regression", error: null });
   expect(a.byId.get("r")!.regression!.params).toEqual([]);
-  expect(a.byId.get("p")!.error?.message).toBe("Use the table column, such as x₁, not x.");
+  expect(a.byId.get("p")!.error?.message).toBe(
+    "'x' may not be used as a regression parameter. Try using a different variable name."
+  );
+  // the first of x and y the model reads is named, as on the reference
+  expect(analyse(row("s", "y_{1}\\sim ny+mx")).byId.get("s")!.error?.message).toBe(
+    "'y' may not be used as a regression parameter. Try using a different variable name."
+  );
   // A scalar left side is found when the values pass reads it (evaluate.regression.test.ts).
   expect(a.byId.get("q")).toMatchObject({ kind: "regression", error: null, graph: null });
 });

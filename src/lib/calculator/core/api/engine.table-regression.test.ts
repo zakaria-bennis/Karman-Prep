@@ -189,3 +189,33 @@ it("RT-3, API-5 the regression round-trips through getState and setState", async
   e.setState(state);
   expect(stateOf("t").regression?.type).toBe("linear");
 });
+
+it("RT-30 the regression's error names empty columns, a trailing text cell and an undefined value as the reference does", async () => {
+  const withData = (x: string[], y: string[]) =>
+    e.setExpression({
+      id: "t",
+      type: "table",
+      columns: [
+        { latex: "x_{1}", values: x },
+        { latex: "y_{1}", values: y },
+      ],
+      regression: { type: "linear", columns: { x: 0, y: 1 } },
+    });
+  const message = async () => {
+    await m.settled();
+    const fit = view("t").table!.result!.regression!.fit;
+    return fit.ok ? null : fit.message;
+  };
+  withData([], []);
+  expect(await message()).toBe("Cannot regress an empty list against an empty list.");
+  withData([], ["2", "4", "7"]);
+  expect(await message()).toBe("Cannot regress a list of numbers against an empty list.");
+  withData(["1", "2", "3"], []);
+  expect(await message()).toBe("Cannot regress an empty list against a list of numbers.");
+  withData(["1", "2", "q"], ["2", "4", "7"]);
+  expect(await message()).toBe("There's an error in the provided data.");
+  withData(["1", "2", "3"], ["2", "\\frac{1}{0}", "7"]);
+  expect(await message()).toBe("We couldn't find any region where this model is defined.");
+  withData(["1", "2", "3"], ["2", "", "7"]);
+  expect(await message()).toBe("There's an error in the provided data.");
+});

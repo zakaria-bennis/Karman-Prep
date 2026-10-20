@@ -17,10 +17,15 @@ export const TABLE_REGRESSION_MESSAGES = {
   fit: "We couldn't find any region where this model is defined.",
 } as const;
 
+/**
+ * One cell of a regression column: its number (NaN when the cell evaluates to undefined), null
+ * when blank, or "error" when the cell cannot evaluate (it shows its own warning).
+ */
+export type TableFitCell = number | null | "error";
 export interface TableFitInput {
   type: TableModel;
-  xs: readonly (number | null)[]; // the x column's values; null for blank, undefined or error
-  ys: readonly (number | null)[];
+  xs: readonly TableFitCell[]; // the x column
+  ys: readonly TableFitCell[];
   logMode: boolean; // the stored flag; ignored where Log Mode is not offered (RT-24c)
 }
 export interface TableFitSuccess {
@@ -40,14 +45,18 @@ export interface TableFitFailure {
 }
 export type TableFitResult = TableFitSuccess | TableFitFailure;
 
-/** The column without its trailing blanks. */
-function trimmed(values: readonly (number | null)[]): (number | null)[] {
+/** The column without its trailing blanks (a trailing cell in error stays, as data). */
+function trimmed(values: readonly TableFitCell[]): TableFitCell[] {
   let n = values.length;
   while (n > 0 && values[n - 1] === null) n--;
   return values.slice(0, n);
 }
 
 const fail = (message: string): TableFitFailure => ({ ok: false, message });
+
+/** RT-30: "Cannot regress a list of numbers against an empty list.", y's column then x's. */
+const listPhrase = (cells: readonly TableFitCell[]) =>
+  cells.length === 0 ? "an empty list" : "a list of numbers";
 
 /** Ordinary least squares v ≈ s·u + c. */
 function line(u: readonly number[], v: readonly number[]): { s: number; c: number } {
@@ -79,19 +88,26 @@ export function fitTableRegression(input: TableFitInput): TableFitResult {
   const spec = TABLE_MODEL_SPECS[input.type];
   const xColumn = trimmed(input.xs),
     yColumn = trimmed(input.ys);
+  if (xColumn.length === 0 || yColumn.length === 0) {
+    return fail(`Cannot regress ${listPhrase(yColumn)} against ${listPhrase(xColumn)}.`);
+  }
   const n = Math.min(xColumn.length, yColumn.length);
   const xs: number[] = [],
     ys: number[] = [];
   for (let i = 0; i < n; i++) {
     const x = xColumn[i],
       y = yColumn[i];
-    if (x === null || y === null || !Number.isFinite(x) || !Number.isFinite(y)) {
+    // A blank or a cell in error inside the used rows is a data error (RT-30).
+    if (typeof x !== "number" || typeof y !== "number") {
       return fail(TABLE_REGRESSION_MESSAGES.data);
     }
     xs.push(x);
     ys.push(y);
   }
-  if (n === 0) return fail(TABLE_REGRESSION_MESSAGES.data);
+  // An undefined value (1/0) leaves no region where the model is defined (RT-30).
+  if (!xs.every(Number.isFinite) || !ys.every(Number.isFinite)) {
+    return fail(TABLE_REGRESSION_MESSAGES.fit);
+  }
   if (input.type === "logarithmic" && !xs.every((x) => x > 0)) {
     return fail(TABLE_REGRESSION_MESSAGES.logarithmicX);
   }

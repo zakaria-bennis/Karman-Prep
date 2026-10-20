@@ -47,9 +47,37 @@ it("D-33 e_1 is a list other rows can use before any plotting", () => {
   expect(formatValue(values.get("v")!)).toBe("2.5");
 });
 
-it("D-22 a scalar left side is the error Regression needs a list of data.", () => {
+it("RT-15 a scalar left side is legal: it is fitted against every predictor value", () => {
   const { fits } = run(table(["1", "2"], ["3", "4"]), row("r", "3\\sim mx_{1}"));
-  expect(fits.get("r")).toMatchObject({ ok: false, error: "Regression needs a list of data." });
+  expect(fits.get("r")).toMatchObject({ ok: true });
+});
+
+it("D-22 a point, a list of points or an empty list on either side is the reference's 'Cannot regress' error", () => {
+  const error = (...rows: RowSource[]) => {
+    const fit = run(...rows).fits.get("r")!;
+    return fit.ok ? null : fit.error;
+  };
+  const data = table(["1", "2"], ["3", "4"]);
+  expect(error(data, row("r", "(1,2)\\sim mx_{1}"))).toBe(
+    "Cannot regress a point against a list of numbers."
+  );
+  expect(error(data, row("r", "y_{1}\\sim(m,x_{1})"))).toBe(
+    "Cannot regress a list of numbers against a list of points."
+  );
+  expect(error(row("r", "(1,2)\\sim m"))).toBe("Cannot regress a point against a number.");
+  expect(error(row("r", "[(1,2),(3,4)]\\sim m"))).toBe(
+    "Cannot regress a list of points against a number."
+  );
+  expect(error(row("r", "[]\\sim m"))).toBe("Cannot regress an empty list against a number.");
+  expect(error(row("E", "E=[]"), row("L", "L=[1,2,3]"), row("r", "L\\sim mE"))).toBe(
+    "Cannot regress a list of numbers against an empty list."
+  );
+  expect(error(table([], []), row("r", "y_{1}\\sim mx_{1}+b"))).toBe(
+    "Cannot regress an empty list against an empty list."
+  );
+  expect(error(table(["1", "2", "3"], []), row("r", "y_{1}\\sim mx_{1}+b"))).toBe(
+    "Cannot regress an empty list against a list of numbers."
+  );
 });
 
 it("D-24 a blank cell in a used list fails the whole fit and leaves its names undefined", () => {

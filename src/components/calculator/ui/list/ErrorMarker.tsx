@@ -1,4 +1,4 @@
-// The warning marker of a row, a table cell or a column header, and its tooltip (R-2, D-6, D-10;
+// The warning marker of a row, a table cell, a column header or a table regression, and its tooltip (R-2, D-6, D-10;
 // founder decision 2026-10-18 to match Desmos; popovers-menus.md VIS-32). The marker is a button
 // that stands where the colour tab would; the message is a role="tooltip" element below it. A grey
 // tooltip opens 500 ms after the pointer rests on the marker (fading in over 300 ms) and leaves
@@ -33,8 +33,17 @@ const EDGE = 2; // the least distance kept from the root's edges (VIS-30)
 export interface ErrorMarkerProps {
   id: string; // the tooltip's id, named by the field's aria-describedby
   message: string;
-  variant: "row" | "cell";
+  /** Where it stands: a row's tab, a table cell, a column header or a table regression's header. */
+  variant: "row" | "cell" | "header" | "regression";
 }
+
+/** Each place's marker class and glyph width, the reference's icon sizes (22 px, cells 14 px). */
+const VARIANTS = {
+  row: { className: "kc-row-warning", size: 22 },
+  cell: { className: "kc-cell-warning", size: 14 },
+  header: { className: "kc-cell-warning kc-header-warning", size: 22 },
+  regression: { className: "kc-tr-warning", size: 22 },
+} as const;
 
 /** Places `tip` centred below `marker` (or above when it does not fit), inside `layer`. */
 function place(tip: HTMLElement, marker: HTMLElement, layer: Element): void {
@@ -148,7 +157,7 @@ export function ErrorMarker({ id, message, variant }: ErrorMarkerProps): JSX.Ele
       <button
         ref={markerRef}
         type="button"
-        className={variant === "row" ? "kc-row-warning" : "kc-cell-warning"}
+        className={VARIANTS[variant].className}
         aria-label="Error"
         aria-describedby={id}
         aria-expanded={open}
@@ -182,7 +191,7 @@ export function ErrorMarker({ id, message, variant }: ErrorMarkerProps): JSX.Ele
           setOpen(true);
         }}
       >
-        <WarningGlyph size={variant === "row" ? 22 : 16} />
+        <WarningGlyph size={VARIANTS[variant].size} />
       </button>
       {layer === null ? null : createPortal(tooltip, layer)}
     </>

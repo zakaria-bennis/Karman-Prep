@@ -95,7 +95,8 @@ function isRowBody(target: EventTarget): boolean {
 
 /** The white glyph in a row's colour icon: a wave, a dot, or a split disc for a region. */
 function kindGlyph(row: RowView, tab: "line" | "point"): KindGlyph {
-  if (tab === "point") return "point";
+  // R-1: a list of points shows the reference's four-dot glyph, a single point one dot.
+  if (tab === "point") return row.value?.type === "list" ? "points" : "point";
   if (row.kind !== "region") return "wave";
   return /\\(?:le|ge|leq|geq)\b|≤|≥/.test(row.latex) ? "region" : "region-strict";
 }
