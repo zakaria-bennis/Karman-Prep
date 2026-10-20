@@ -89,13 +89,15 @@ The calculator is excluded until the founder has reviewed it.
     generated. Screen text is placed from our own rendered screens, never left
     to the image model to invent.
 45. No physical calculators anywhere. The digital SAT has its own on-screen
-    graphing calculator.
-46. Tutoring is on Zoom. Pictures of tutoring show a video call (student and
+    graphing calculator. Questions shown in pictures are Karman originals,
+    never questions imported from College Board material.
+46. Tutoring is on Zoom, and pictures may show Zoom as it is (student and
     tutor each in their own place), never a tutor in the room or over a
     shoulder.
-47. Generated people are never presented as Karman students, parents or
-    tutors: no names, scores or quotes beside them, and no screen in their
-    hands that shows a name or a score result.
+47. Generated people may carry fictional first names as characters in a film
+    or its still (for example "Ava, 6:50 a.m., Daily 10"), but never a score,
+    a quote, a result or a claim that they are enrolled Karman students, and
+    no screen in their hands shows a score result.
 48. Colour in pictures is not limited to the site palette. Pictures must look
     graded and coordinated with each other and with the page around them.
 
