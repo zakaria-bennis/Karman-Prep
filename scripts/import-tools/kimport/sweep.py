@@ -41,7 +41,7 @@ from kimport.keys import (
     table_values,
 )
 from kimport.normalize import NORMALIZER_VERSION, math_tokens, strip_markup
-from kimport.typo import text_words, typo_match, words_within_spots
+from kimport.typo import MAX_SPOT_CHARS, MAX_SPOTS, text_words, typo_match, words_within_spots
 
 PUBLISH_READY = ("publish_ready", "publish_ready_with_verified_repair")
 UNPUBLISHED_STATUS = "needs_human_review"
@@ -179,12 +179,26 @@ def _bare_words(r: QuestionRecord) -> frozenset[str]:
     return frozenset(_WORD.findall(clean_text(r.text)))
 
 
-def _near(ta: tuple[str, ...], tb: tuple[str, ...]) -> bool:
-    """Cheap pre-filter (>= 80% shared word set), then the exact spot check."""
-    sa, sb = set(ta), set(tb)
-    if len(sa & sb) < 0.8 * max(len(sa), len(sb)):
+# Pre-filter slack (ruling R10). words_within_spots allows MAX_SPOTS spots of at
+# most MAX_SPOT_CHARS character edits each: 2 x 3 = 6 edits in all. Only an edit
+# to a space adds or drops a word, so the word counts differ by at most 6, and
+# 6 edits can touch at most 6 words of the shorter text, so at least
+# len(shorter) - 6 of its words are shared. The pre-filter is a necessary
+# condition only: it never rejects a pair the exact check accepts
+# (test_prefilter_never_rejects_a_spot_match checks this on random pairs).
+_NEAR_SLACK = MAX_SPOTS * MAX_SPOT_CHARS
+
+
+def _near_prefilter(ta: tuple[str, ...], tb: tuple[str, ...]) -> bool:
+    if abs(len(ta) - len(tb)) > _NEAR_SLACK:
         return False
-    return words_within_spots(ta, tb)
+    shared = sum((Counter(ta) & Counter(tb)).values())
+    return shared >= min(len(ta), len(tb)) - _NEAR_SLACK
+
+
+def _near(ta: tuple[str, ...], tb: tuple[str, ...]) -> bool:
+    """Cheap necessary pre-filter, then the exact spot check."""
+    return _near_prefilter(ta, tb) and words_within_spots(ta, tb)
 
 
 def _created(r: QuestionRecord) -> datetime:
@@ -265,7 +279,7 @@ def find_live_duplicates(records) -> list[DuplicateGroup]:
         idx = index_all()
         own: Counter = Counter()
         cand_words = [text_words(buckets[k][0].text) for k in cands]
-        for n in {n for cw in cand_words for d in range(-2, 3) for n in idx["by_len"].get(len(cw) + d, ())}:
+        for n in {n for cw in cand_words for d in range(-_NEAR_SLACK, _NEAR_SLACK + 1) for n in idx["by_len"].get(len(cw) + d, ())}:
             ws, bare = idx["rows"][n]
             if any(_near(cw, ws) for cw in cand_words):
                 own.update(bare)

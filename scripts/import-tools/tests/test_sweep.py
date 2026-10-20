@@ -1,4 +1,5 @@
 import json
+import random
 import re
 import subprocess
 import sys
@@ -7,7 +8,9 @@ import unittest
 from pathlib import Path
 
 from kimport.keys import QuestionRecord
+from kimport.typo import MAX_SPOT_CHARS, MAX_SPOTS, words_within_spots
 from kimport.sweep import (
+    _near_prefilter,
     export_by_id,
     find_live_duplicates,
     load_export,
@@ -201,6 +204,64 @@ class FindDuplicatesTests(unittest.TestCase):
         # A held copy with a second typo and different choices: still within spot limits of a candidate.
         self._typo_text_elsewhere(lambda text: live("th", text.replace("young", "yuung"), "2025-01-01T00:00:00+00:00",
                                                     choices=("1", "3", "5", "7"), answer="3", is_live=False))
+
+    def _held_near_copy(self, clean, word, typo_word, edit, outside):
+        """Live typo + live clean + a held copy of the typo text changed by `edit`
+        (still within spot limits of the typo). The held copy is never outside evidence."""
+        typo = clean.replace(word, typo_word)
+        held = live("h", edit(typo), "2025-01-01T00:00:00+00:00", answer="6", is_live=False)
+        recs = [live("t", typo, "2026-01-01T00:00:00+00:00"), live("cl", clean, "2026-01-02T00:00:00+00:00"), held]
+        [g] = find_live_duplicates(recs)
+        self.assertNotIn("cl", g["remove"], g)
+        self.assertTrue(g["keep"] == "cl" or g["relation"] == "typo_review", g)
+        [g] = find_live_duplicates(recs + [other("o", outside)])
+        self.assertEqual((g["keep"], g["remove"], g["relation"]), ("cl", ["t"], "ocr_typo"))
+
+    def test_short_stem_7_words_held_copy_with_more_typos(self):
+        self._held_near_copy("The farmer watered the young trees daily.", "watered", "watcred",
+                             lambda t: t.replace("young", "yuung").replace("daily", "dailv"),
+                             "Rain watered the fields overnight.")
+
+    def test_short_stem_9_words_held_copy_with_more_typos(self):
+        self._held_near_copy("Which choice best describes the function of the sentence?", "describes", "descrlbes",
+                             lambda t: t.replace("function", "functlon").replace("sentence", "sentenco"),
+                             "The writer describes a garden.")
+
+    def test_held_copy_with_words_inserted_twice(self):
+        self._held_near_copy(
+            "The farmer watered the young trees each evening during the dry summer months near the old red barn.",
+            "watered", "watcred", lambda t: t.replace("young trees", "young a b trees").replace("old red", "old a b red"),
+            "Rain watered the fields overnight.")
+
+    def test_prefilter_never_rejects_a_spot_match(self):
+        rnd = random.Random(20261020)
+
+        def mutate(s):
+            s = list(s)
+            for _ in range(rnd.randint(0, MAX_SPOT_CHARS)):
+                i, c = rnd.randrange(len(s) + 1), rnd.choice("ab  ")
+                op = rnd.randrange(3)
+                if op == 0 or not s:
+                    s.insert(i, c)
+                elif op == 1:
+                    del s[min(i, len(s) - 1)]
+                else:
+                    s[min(i, len(s) - 1)] = c
+            return "".join(s)
+
+        accepted = 0
+        for _ in range(2000):
+            a = " ".join("".join(rnd.choice("abc") for _ in range(rnd.randint(1, 3))) for _ in range(rnd.randint(1, 12)))
+            b = a
+            for _ in range(MAX_SPOTS):  # mutate up to two short regions
+                lo = rnd.randint(0, len(b))
+                hi = min(len(b), lo + rnd.randint(0, 6))
+                b = b[:lo] + mutate(b[lo:hi]) + b[hi:]
+            ta, tb = tuple(a.split()), tuple(b.split())
+            if words_within_spots(ta, tb):
+                accepted += 1
+                self.assertTrue(_near_prefilter(ta, tb), (ta, tb))
+        self.assertGreater(accepted, 1000)
 
     def test_equal_copies_without_outside_evidence_go_to_review(self):
         clean = "The farmer watered the young trees each evening during the dry summer months."
