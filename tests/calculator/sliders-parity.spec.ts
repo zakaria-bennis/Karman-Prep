@@ -105,3 +105,24 @@ test("SLIDERS-29, SLIDERS-34 spoken names; Escape from the popover returns to Pl
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await expect(row(page, "1").getByRole("button", { name: "Play alpha Animation" })).toBeFocused();
 });
+
+test("SLIDERS-27, SLIDERS-34 a key on the thumb and Escape from the popover pause playback", async ({
+  page,
+}) => {
+  await openShell(page, `?w=900&h=600&rows=${enc(["a=0", "y=ax+b"])}`);
+  const playing = async () => (await expressionOf(page, "1"))?.slider?.isPlaying === true;
+  await row(page, "1").getByRole("button", { name: "Play a Animation" }).click();
+  await expect.poll(playing).toBe(true);
+  await row(page, "1").getByRole("slider").focus();
+  await page.keyboard.press("Shift");
+  await expect.poll(playing).toBe(false);
+  await row(page, "1").getByRole("button", { name: "Play a Animation" }).click();
+  await row(page, "1").getByRole("button", { name: "Loop forwards and backwards" }).click();
+  await page.keyboard.press("Escape");
+  await expect.poll(playing).toBe(false);
+  await expect(row(page, "1").getByRole("button", { name: "Play a Animation" })).toBeFocused();
+  // SLIDERS-8: a chip pressed from the keyboard returns to the source row's math.
+  await row(page, "2").getByRole("button", { name: "Add slider for b" }).focus();
+  await page.keyboard.press("Enter");
+  await expect.poll(() => focused(page)).toBe("2:Expression 2");
+});

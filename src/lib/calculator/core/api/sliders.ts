@@ -89,6 +89,7 @@ export interface SliderHost {
 }
 
 const STEP: HistoryStep = { kind: "step" };
+const FRAME_MS = 1000 / 60;
 const NONE: HistoryStep = { kind: "none" };
 
 function viewOf(host: SliderHost, id: string): SliderView | null {
@@ -233,10 +234,9 @@ export function pauseSlider(host: SliderHost, id: string): void {
 
 /**
  * SLIDERS-29, SLIDERS-31: Play or Pause. Play saves the soft limits; Play once at its end
- * restarts from min. `now` (the frame clock's ms, as performance.now()) starts the animation's
- * clock at the press, so the first frame already moves by the time since it.
+ * restarts from min.
  */
-export function togglePlay(host: SliderHost, id: string, now?: number): void {
+export function togglePlay(host: SliderHost, id: string): void {
   const view = viewOf(host, id);
   if (view === null) return;
   const { settings, range } = view;
@@ -245,7 +245,7 @@ export function togglePlay(host: SliderHost, id: string, now?: number): void {
     edit(host, id, (_row, s) => ({ slider: { ...s, isPlaying: false } }), STEP);
     return;
   }
-  playersOf(host).set(id, { target: done ? range.min : view.value, last: now ?? null });
+  playersOf(host).set(id, { target: done ? range.min : view.value, last: null });
   edit(
     host,
     id,
@@ -333,9 +333,10 @@ export function tickSliders(host: SliderHost, now: number): boolean {
     if (playOnceDone(settings.loopMode, view.value, range) || view.disabled) continue;
     const player = state.get(row.id) ?? { target: view.value, last: null };
     state.set(row.id, player);
-    const elapsed = player.last === null ? 0 : now - player.last;
-    // A frame stamped before the press (its clock starts at the frame) waits for the next one.
-    if (player.last === null || elapsed > 0) player.last = now;
+    // The first frame after Play moves by one frame, as the reference's always-running frame clock
+    // does, so values fall on whole frames (0.08, 0.17, … at 1x on −10..10).
+    const elapsed = player.last === null ? FRAME_MS : now - player.last;
+    player.last = now;
     if (elapsed <= 0) continue;
     const frame = advance({
       range,

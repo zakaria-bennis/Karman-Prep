@@ -6,7 +6,7 @@
 // row's last tab stop; the mode button is reached by pointer or from Play's menu keys.
 
 import { useRef, useState, type JSX, type RefObject } from "react";
-import { togglePlay } from "@/lib/calculator/core/api/sliders";
+import { pauseSlider, togglePlay } from "@/lib/calculator/core/api/sliders";
 import { playOnceDone } from "@/lib/calculator/sliders/animation";
 import { LOOP_MODE_LABELS } from "@/lib/calculator/sliders/model";
 import type { SliderView } from "@/lib/calculator/sliders/slider";
@@ -38,7 +38,7 @@ export function SliderGutter(props: {
 
   const toggle = () => {
     const done = playOnceDone(settings.loopMode, slider.value, slider.range);
-    togglePlay(engine, rowId, performance.now());
+    togglePlay(engine, rowId);
     announcer.announce(
       playing && !done ? `${name} paused` : done ? `${name} restarted` : `${name} playing`
     );
@@ -62,6 +62,9 @@ export function SliderGutter(props: {
         onMouseDown={(e) => e.preventDefault()}
         {...menu.trigger}
         onKeyDown={(e) => {
+          // SLIDERS-27: as on the reference, a key on Play other than the ones that press it
+          // (Escape, Tab, an arrow) pauses the animation first.
+          if (playing && e.key !== "Enter" && e.key !== " ") pauseSlider(engine, rowId);
           if (e.key === "Tab" && props.onTabOut !== undefined) {
             e.preventDefault();
             props.onTabOut(e.shiftKey ? "back" : "forward");
@@ -96,7 +99,11 @@ export function SliderGutter(props: {
           opener={opener}
           onClose={(refocus) => {
             setMenuFrom(null);
-            if (refocus) play.current?.focus(); // SLIDERS-34: Escape returns to the Play button
+            if (!refocus) return;
+            // SLIDERS-34: Escape pauses (as the reference does) and returns to the Play button.
+            if (engine.getSnapshot().rows.find((r) => r.id === rowId)?.slider?.settings.isPlaying)
+              pauseSlider(engine, rowId);
+            play.current?.focus();
           }}
         />
       )}

@@ -67,10 +67,16 @@ export function SliderLine(props: {
       setAutoFocus(which === "first" ? first : "step");
     },
     focusThumb: () => {
-      if (editing) {
+      // Only a limit error or Play indefinitely keeps the editor up once focus is on Play; a hold
+      // left from the math or limits (its focusout not settled yet) gives way to the thumb.
+      if (slider.error !== null || stepOnly) {
         setHold(true);
         setAutoFocus("step");
-      } else setFocusThumb(true);
+        return;
+      }
+      setHold(false);
+      setFocusRequest(null);
+      setFocusThumb(true);
     },
   };
   const { handle } = props;

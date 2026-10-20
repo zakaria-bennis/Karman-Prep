@@ -8,7 +8,7 @@
 // the limits editor at that field; the labels are not tab stops (the row's math opens the editor).
 
 import { useEffect, useRef, type JSX, type KeyboardEvent, type PointerEvent } from "react";
-import { dragSlider, keySlider } from "@/lib/calculator/core/api/sliders";
+import { dragSlider, keySlider, pauseSlider } from "@/lib/calculator/core/api/sliders";
 import { formatNumber } from "@/lib/calculator/core/eval/format";
 import {
   pixelOfValue,
@@ -116,6 +116,8 @@ export function SliderTrack(props: SliderTrackProps): JSX.Element {
   };
 
   const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    // SLIDERS-27: on the reference any key on the thumb pauses the animation, Shift and Escape too.
+    if (slider.settings.isPlaying) pauseSlider(engine, rowId);
     const move = KEYS[e.key];
     if (move !== undefined) {
       e.preventDefault();

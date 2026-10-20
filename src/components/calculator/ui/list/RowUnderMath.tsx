@@ -51,7 +51,7 @@ function NameText(props: { name: string }): JSX.Element {
 
 export function AddSliderLine(props: {
   names: readonly string[];
-  onAdd(names: readonly string[]): void;
+  onAdd(names: readonly string[], keyboard: boolean): void; // keyboard: Enter or Space, not a click
 }): JSX.Element {
   const { names } = props;
   const single = names.length === 1;
@@ -67,7 +67,7 @@ export function AddSliderLine(props: {
           className="kc-letter-button"
           data-tone={single ? "accent" : undefined}
           aria-label={`Add slider for ${displayName(name)}`}
-          onClick={() => props.onAdd([name])}
+          onClick={(e) => props.onAdd([name], e.detail === 0)}
         >
           <NameText name={name} />
         </button>
@@ -79,7 +79,7 @@ export function AddSliderLine(props: {
           data-tone="accent"
           data-word="true"
           aria-label="Add sliders for all"
-          onClick={() => props.onAdd(names)}
+          onClick={(e) => props.onAdd(names, e.detail === 0)}
         >
           all
         </button>

@@ -450,7 +450,11 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
           {(error?.code === "too-many-variables" || slider !== null) && row.chips.length > 0 && (
             <AddSliderLine
               names={row.chips}
-              onAdd={(names) => addSliders(engine, announcer, row.id, names)}
+              onAdd={(names, keyboard) => {
+                addSliders(engine, announcer, row.id, names);
+                // SLIDERS-8: a keyboard press returns to the row's math; a click leaves focus.
+                if (keyboard) focus.focusRow(row.id, "end");
+              }}
             />
           )}
           {tab === "point" && <PointLabelLine rowNumber={number} />}

@@ -120,3 +120,44 @@ it("SLIDERS-34 Escape from the options popover returns focus to the Play button"
   expect(screen.queryByRole("dialog")).toBeNull();
   expect(active()).toBe(within(rowItem("1")).getByRole("button", { name: "Play a Animation" }));
 });
+
+it("SLIDERS-27 any key on the thumb, and Escape or Tab on Play, pauses; Enter on Play toggles", async () => {
+  const kit = renderEditor(<ExpressionPanel {...panelProps()} />, { rows: ["a=0", "y=x"] });
+  const user = userEvent.setup();
+  const playing = () => kit.engine.getSnapshot().rows[0].slider?.settings.isPlaying;
+  const play = () => within(rowItem("1")).getByRole("button", { name: /Play a|Pause a/ });
+  await user.click(play());
+  expect(playing()).toBe(true);
+  act(() => within(rowItem("1")).getByRole("slider").focus());
+  await user.keyboard("{Shift}");
+  expect(playing()).toBe(false);
+  await user.click(play());
+  act(() => play().focus());
+  await user.keyboard("{Escape}");
+  expect(playing()).toBe(false);
+  await user.keyboard("{Enter}");
+  expect(playing()).toBe(true);
+  await user.keyboard("{Enter}");
+  expect(playing()).toBe(false);
+});
+
+it("SLIDERS-34 Escape from the options popover pauses a playing slider", async () => {
+  const kit = renderEditor(<ExpressionPanel {...panelProps()} />, { rows: ["a=0"] });
+  const user = userEvent.setup();
+  await user.click(within(rowItem("1")).getByRole("button", { name: "Play a Animation" }));
+  await user.click(
+    within(rowItem("1")).getByRole("button", { name: "Loop forwards and backwards" })
+  );
+  expect(kit.engine.getSnapshot().rows[0].slider?.settings.isPlaying).toBe(true);
+  await user.keyboard("{Escape}");
+  expect(kit.engine.getSnapshot().rows[0].slider?.settings.isPlaying).toBe(false);
+});
+
+it("SLIDERS-8 a chip pressed from the keyboard returns focus to the row's math", async () => {
+  const kit = renderEditor(<ExpressionPanel {...panelProps()} />, { rows: ["y=ax+b"] });
+  const user = userEvent.setup();
+  act(() => screen.getByRole("button", { name: "Add slider for a" }).focus());
+  await user.keyboard("{Enter}");
+  expect(kit.engine.getSnapshot().rows.map((r) => r.latex)).toEqual(["y=ax+b", "a=1"]);
+  expect(active()?.getAttribute("aria-label")).toBe("Expression 1");
+});

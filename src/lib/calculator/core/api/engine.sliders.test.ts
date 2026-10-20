@@ -174,11 +174,12 @@ it("SLIDERS-22 typing a value past a hard limit or off the step makes it soft (D
   expect(row("a").slider).toMatchObject({ value: 0, settings: { hardMin: true } });
 });
 
-it("SLIDERS-30 Play starts the clock at the press, so the first frame already moves", () => {
+it("SLIDERS-30 the first frame after Play moves by one frame, so values fall on whole frames", () => {
   e.setExpression({ id: "a", latex: "a=0" });
-  togglePlay(e, "a", 1000);
-  tickSliders(e, 999); // a frame stamped before the press waits
-  expect(expression("a").latex).toBe("a=0");
-  tickSliders(e, 1000 + 1000 / 30);
-  expect(row("a").slider!.value).toBeCloseTo(1 / 6, 1);
+  togglePlay(e, "a");
+  let now = 5000;
+  tickSliders(e, now);
+  expect(expression("a").latex).toBe("a=0.08"); // 20 units per 4 s, for 1/60 s
+  tickSliders(e, (now += 1000 / 60));
+  expect(expression("a").latex).toBe("a=0.17");
 });
