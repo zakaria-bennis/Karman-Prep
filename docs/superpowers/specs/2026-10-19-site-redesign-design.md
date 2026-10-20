@@ -1,8 +1,10 @@
 # Karman Prep site and portals redesign
 
-Date: 2026-10-19. Status: draft for founder review.
-Approved direction: the homepage mockup at `.impeccable/mocks/decision/g-homepage.html`
-(screens in the same folder, `h-*.png`).
+Date: 2026-10-19. Status: draft for founder review. The homepage layout is being
+reworked (section 4.1); the visual system in section 3 stands.
+Visual reference: `.impeccable/mocks/decision/g-homepage.html` (screens in the
+same folder, `h-*.png`). Its colours, type and light and dark themes are approved;
+its homepage layout is not (founder feedback, section 4.1).
 
 ## 1. Goal
 
@@ -45,6 +47,34 @@ Facts that shape the copy:
   pipeline uses internally; marketing states 39, the number a student sees.
 - Track record: shown as Karman's results with "Karman 1:1 tutoring results,
   median 16 weeks" beside it (`TRACK_RECORD.sourceLabel`).
+
+## 2a. Offer structure and access (decided 2026-10-19)
+
+The ecosystem is sold as separate paths, not a ladder.
+
+| Path                    | Price           | Unlocks                                                                                                                                                                                                                                                                  |
+| ----------------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Visitor (no account)    | Free            | Daily Question, daily word game, the free practice test                                                                                                                                                                                                                  |
+| Free account            | Free            | The above, plus the 35-question diagnostic, word-part cards, and a fixed free set of about 150 bank questions across all 39 skills, capped at 20 a day                                                                                                                   |
+| The March Program       | $995 founding   | 18 live classes, 5 full-length tests each with a 60-minute 1:1 review, the weekly live session (test mechanics and skill workshops), Daily 10, the full bank, cohort chat with daily answers, weekly parent updates, the 50-point guarantee, video lessons when recorded |
+| Private 10 / Private 20 | $1,450 / $2,900 | Weekly 1:1 sessions, the full platform, the weekly live session, a note to parents after every session. No group classes, no guarantee                                                                                                                                   |
+
+- **Private is a separate path** (founder), for students who want 1:1 instead
+  of a group. It is not an add-on and not a higher tier of the program.
+- **Free practice test:** available any time, taken in the browser, timed, scored
+  automatically with an estimated range and a skill breakdown. A 20-minute
+  results call is optional and capped through Cal.com. The monthly live
+  proctored session stays as an optional extra. Until the test runner exists,
+  the free-test call to action goes to the diagnostic.
+- **Bank protection:** free accounts only ever receive the free set; questions
+  are served one at a time from the server, answers and explanations only after
+  submission, no endpoint lists questions, a verified email is required, and
+  free use is capped daily. Paid copying is forbidden in the Terms. A
+  per-student invisible marker is built only if a leak is ever found.
+- **Access rules are rebuilt.** The code still uses the retired tiers
+  (`group`, `small_group`, `private`, `elite` in `SubscriptionTier`). They are
+  replaced by `free`, `program`, `private` entitlements tied to the enrollment
+  record, and `/plans` with `PRICING_TIERS` is deleted.
 
 ## 3. Visual system
 
@@ -141,6 +171,27 @@ Removed outright, with 301 redirects so no old link breaks: `/plans` to
 `/blog` to `/` (the blog returns when there is something to publish).
 `/dashboard/student/predicted-sat` is removed with its redirect.
 
+### 4.1 Homepage rules (founder feedback, 2026-10-19)
+
+The first mockup's homepage was rejected. The rebuilt homepage follows these:
+
+- **Sales order:** what Karman is, why it works, proof, how it runs, what can be
+  tried free, objections answered, a free first step. Money comes after belief.
+- **No price above the questions section.** No prices in the product overview,
+  so nothing reads as a pricing table. Cost first appears as one line in the
+  FAQ, linking to `/pricing`.
+- **The primary call to action is free:** the free practice test (any time).
+  "Reserve a seat" and deposits live on the program and pricing pages only.
+- **Hero:** a full-screen video like the first version (stock until the
+  founder's generated video is ready), with only an eyebrow, the headline, one
+  sentence and two buttons. No cards or panels over the video.
+- **The headline sells the whole ecosystem,** not one date or one feature.
+  "Raise your student's SAT score by March 6" is rejected.
+- **Skill names come only from `approved-skill-taxonomy.json`,** word for word.
+  No invented skills or class titles.
+- Generated video must not show people presented as Karman students next to
+  results.
+
 ### Page anatomy
 
 Every product page follows the JW+ pattern: a page-level sub-nav that sticks
@@ -148,10 +199,11 @@ under the header (Overview, What you get, How it runs, Pricing, FAQ), one idea
 per section, one to three points each, proof beside every claim, the objection
 answered right before each call to action, and a closing call to action.
 
-- **Home:** as mocked. Hero with framed video and three rising product cards,
-  proof bar, product index (three rows, one colour each), mistake-review demo,
-  nine-week steps, private 1:1, free tools with Live / season labels, two-path
-  pricing, footer with Terms, Privacy and Cookie Policy.
+- **Home:** per section 4.1. Full-screen video hero, why scores stall, the
+  method (mistake-review demo with a real skill name), the whole ecosystem,
+  how the nine weeks run, who teaches with the labelled results, the two paths
+  without prices, free tools, what parents see, questions (cost appears here),
+  a free closing step. Footer with Terms, Privacy and Cookie Policy.
 - **The March Program:** hero with the program video, the five inclusions from
   `MARCH_PROGRAM.includes`, a week-by-week schedule, the mistake-review demo,
   seat count (5 + 1 scholarship, real numbers only), guarantee, intake honesty
