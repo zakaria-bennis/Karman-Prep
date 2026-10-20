@@ -228,11 +228,13 @@ export function GraphPanel(props: GraphPanelProps): JSX.Element {
     const v: ViewSpec = { viewport: s.viewport, size: g.size, dpr: g.dpr };
     return { view: v, rows: buildRenderRows(s, k, v, c) };
   };
+  const locked = snapshot.settings.lockViewport; // SETTINGS-7, SETTINGS-20
   const input = useGraphInput({
     panel,
     surface,
     engine,
     size,
+    locked,
     interaction: {
       press(at, pointer, event) {
         const sc = scene();
@@ -364,26 +366,29 @@ export function GraphPanel(props: GraphPanelProps): JSX.Element {
         >
           <GraphWrenchGlyph />
         </button>
-        {/* GP-41: one pill holding Zoom in and Zoom out, split by a 1 px rule. */}
-        <div className="kc-zoom-group" role="group" aria-label="Zoom">
-          <button
-            type="button"
-            aria-label={GRAPH_CONTROL_LABELS.zoomIn}
-            title={GRAPH_CONTROL_LABELS.zoomIn}
-            onClick={() => zoom(ZOOM_BUTTON_FACTOR)}
-          >
-            <GraphZoomGlyph />
-          </button>
-          <button
-            type="button"
-            aria-label={GRAPH_CONTROL_LABELS.zoomOut}
-            title={GRAPH_CONTROL_LABELS.zoomOut}
-            onClick={() => zoom(1 / ZOOM_BUTTON_FACTOR)}
-          >
-            <GraphZoomGlyph out />
-          </button>
-        </div>
-        {phase !== "absent" && (
+        {/* GP-41: one pill holding Zoom in and Zoom out, split by a 1 px rule; SETTINGS-7: none
+            while the viewport is locked. */}
+        {!locked && (
+          <div className="kc-zoom-group" role="group" aria-label="Zoom">
+            <button
+              type="button"
+              aria-label={GRAPH_CONTROL_LABELS.zoomIn}
+              title={GRAPH_CONTROL_LABELS.zoomIn}
+              onClick={() => zoom(ZOOM_BUTTON_FACTOR)}
+            >
+              <GraphZoomGlyph />
+            </button>
+            <button
+              type="button"
+              aria-label={GRAPH_CONTROL_LABELS.zoomOut}
+              title={GRAPH_CONTROL_LABELS.zoomOut}
+              onClick={() => zoom(1 / ZOOM_BUTTON_FACTOR)}
+            >
+              <GraphZoomGlyph out />
+            </button>
+          </div>
+        )}
+        {phase !== "absent" && !locked && (
           <HomeButton phase={phase} homeRef={homeRef} surface={surface} onActivate={goHome} />
         )}
       </div>

@@ -443,3 +443,22 @@ it("G-5 a graph key while a wheel frame is pending keeps both changes", async ()
   await nextFrame();
   expectViewport(engine.getSnapshot().viewport, expected);
 });
+
+it("SETTINGS-7, SETTINGS-20 a locked viewport drops Zoom and Home and ignores keys and the wheel", async () => {
+  await mountSized({ reducedMotion: true });
+  await run(() => fireEvent.keyDown(graph(), { key: "ArrowRight" }));
+  expect(button("Home")).toBeInTheDocument();
+  const moved = engine.getSnapshot().viewport;
+  await run(() => engine.updateSettings({ lockViewport: true }));
+  expect(screen.queryByRole("group", { name: "Zoom" })).toBeNull();
+  expect(screen.queryByRole("button", { name: "Home" })).toBeNull();
+  await run(() => fireEvent.keyDown(graph(), { key: "ArrowRight" }));
+  await act(async () => {
+    fireEvent.wheel(panel(), WHEEL);
+  });
+  await nextFrame();
+  expect(engine.getSnapshot().viewport).toEqual(moved);
+  // The API still moves a locked view.
+  await run(() => engine.setMathBounds(DEFAULT));
+  expectViewport(engine.getSnapshot().viewport, DEFAULT);
+});

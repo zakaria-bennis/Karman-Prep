@@ -214,7 +214,7 @@ it("API-1 createEngine validates options before creating a backend and uses the 
   expect(made.getSnapshot().backendKind).toBe("main-thread");
   made.destroy();
   vi.mocked(defaultBackend).mockClear();
-  expect(() => createEngine({ displaySize: "large" })).toThrow(
+  expect(() => createEngine({ mode: "scientific" })).toThrow(
     expect.objectContaining({ code: "unsupported" })
   );
   expect(defaultBackend).not.toHaveBeenCalled();

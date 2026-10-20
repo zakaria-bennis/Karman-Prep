@@ -61,6 +61,7 @@ import { AddSliderLine, addSliders, PointLabelLine } from "./RowUnderMath";
 import { SliderGutter } from "./SliderGutter";
 import { SliderLine, type SliderLineHandle } from "./SliderLine";
 import { tabPastRow } from "./slider-focus";
+import { StylePopover } from "../style-popover/StylePopover";
 import type { RowMotion } from "./row-presence";
 
 export interface ExpressionRowProps {
@@ -143,14 +144,18 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
   const playRef = useRef<HTMLButtonElement>(null);
   const sliderLine = useRef<SliderLineHandle | null>(null);
   const tabRef = useRef<HTMLButtonElement>(null);
-  // D-13: the row menu, from a long-press on the gutter tab or a right-click or Shift+F10 anywhere
-  // on the row (f(x)=E rows have no tab), only while the row has something to offer.
+  // D-13: the row menu, from a right-click or Shift+F10 anywhere on the row (f(x)=E rows have no
+  // tab), only while the row has something to offer.
   const [menuOpen, setMenuOpen] = useState(false);
   const menu = useMenuTrigger(() => {
     const offered = offersCreateTable(engine, row.id);
     if (offered) setMenuOpen(true);
     return offered;
   });
+  // STYLES-20: the style popover, from a long-press on the tab, Shift+Enter on it, or a click in
+  // Edit list mode; a click while it is open closes it without hiding the row (STYLES-21).
+  const [styleOpen, setStyleOpen] = useState(false);
+  const styleMenu = useMenuTrigger(() => setStyleOpen(true));
   const hostRef = useRef<HTMLDivElement>(null);
   const fieldRef = useRef<MathField | null>(null);
   const [fieldFocused, setFieldFocused] = useState(false);
@@ -348,21 +353,36 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
             <button
               type="button"
               className="kc-row-tab"
-              aria-label={`${row.hidden ? "Show" : "Hide"} expression ${number}`}
+              // STYLES-19: "{action}: Expression n", as the reference names it.
+              aria-label={
+                styleOpen
+                  ? `Hide Options: Expression ${number}`
+                  : editing
+                    ? `Show Options: Expression ${number}`
+                    : `${row.hidden ? "Show" : "Hide"}: Expression ${number}`
+              }
               aria-pressed={!row.hidden}
               data-kind={kindGlyph(row, tab)}
               style={{ "--kc-row-color": iconHex } as CSSProperties}
               ref={tabRef}
-              aria-haspopup="menu"
-              aria-expanded={menuOpen}
+              aria-haspopup="dialog"
+              aria-expanded={styleOpen}
               onClick={() => {
-                if (!menu.consumeClick()) engine.setRowHidden(row.id, !row.hidden);
+                if (styleMenu.consumeClick()) return;
+                if (styleOpen) setStyleOpen(false);
+                else if (editing) setStyleOpen(true);
+                else engine.setRowHidden(row.id, !row.hidden);
               }}
-              onPointerDown={menu.trigger.onPointerDown}
+              onKeyDown={(e) => {
+                if (e.key !== "Enter" || !e.shiftKey) return;
+                e.preventDefault();
+                setStyleOpen(true);
+              }}
+              onPointerDown={styleMenu.trigger.onPointerDown}
               // The reference leaves focus where it was when the circle is clicked.
               onMouseDown={(e) => e.preventDefault()}
-              onPointerUp={menu.trigger.onPointerUp}
-              onPointerLeave={menu.trigger.onPointerLeave}
+              onPointerUp={styleMenu.trigger.onPointerUp}
+              onPointerLeave={styleMenu.trigger.onPointerLeave}
             >
               {!row.hidden && <ColourKindGlyph kind={editing ? null : kindGlyph(row, tab)} />}
             </button>
@@ -376,6 +396,17 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
               onTabOut={(direction) => {
                 if (direction === "back") sliderLine.current?.focusThumb();
                 else tabPastRow(engine, focus, row.id, itemRef.current);
+              }}
+            />
+          )}
+          {styleOpen && tab !== null && (
+            <StylePopover
+              row={row}
+              kind={tab === "point" ? "point" : row.kind === "region" ? "region" : "line"}
+              anchor={tabRef}
+              onClose={(refocus) => {
+                setStyleOpen(false);
+                if (refocus) tabRef.current?.focus();
               }}
             />
           )}

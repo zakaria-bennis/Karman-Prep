@@ -1,0 +1,185 @@
+/* The settings popover's display block, More Options, the complex hint and the extra segmented
+   themes (SETTINGS-9, VIS-THEMES-MODES-1 and -11, VIS-POPOVERS-MENUS-13 and -20). Colours come
+   only from role variables (TH-3) and the popover tones in settings.css. */
+
+/* VIS-THEMES-MODES-1: the two A's (16 and 24 px), then Reverse contrast and Braille Mode 8 px
+   apart, closed by the section rule 10 px below. */
+.kc-settings-display-checks {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.kc-segments[data-theme="letters"] .kc-segment-icon {
+  line-height: 34px;
+}
+
+.kc-segment-icon > [data-size="default"] {
+  font-size: 16px;
+}
+
+.kc-segment-icon > [data-size="large"] {
+  font-size: 24px;
+}
+
+/* VIS-THEMES-MODES-11: the Braille block, indented 28 px. */
+.kc-settings-braille {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 8px 0 0 28px;
+}
+
+.kc-settings-note {
+  margin: 0;
+  color: var(--kc-text-secondary);
+  font-size: 15.2px;
+}
+
+/* The small (Braille code) and scale (Linear | Logarithmic) themes: 26 px tall, blue when chosen. */
+.kc-segments[data-theme="small"] .kc-segment,
+.kc-segments[data-theme="scale"] .kc-segment {
+  height: 26px;
+  padding: 0 6px;
+  border-color: var(--kc-boundary);
+  font-size: 14.4px;
+}
+
+.kc-segments[data-theme="scale"] .kc-segment {
+  flex: none;
+}
+
+.kc-segments[data-theme="small"] .kc-segment-text,
+.kc-segments[data-theme="scale"] .kc-segment-text {
+  line-height: 24px;
+}
+
+.kc-segments[data-theme="small"] .kc-segment:has(> input:checked),
+.kc-segments[data-theme="scale"] .kc-segment:has(> input:checked) {
+  border-color: var(--kc-accent);
+  background: var(--kc-pop-mini-on);
+  color: var(--kc-accent);
+}
+
+.kc-segment:has(> input[aria-disabled="true"]),
+.kc-segments[data-disabled="true"] .kc-segment {
+  cursor: default;
+}
+
+.kc-segment > input[aria-disabled="true"],
+.kc-segments[data-disabled="true"] .kc-segment > input {
+  cursor: default;
+}
+
+/* SETTINGS-23: Angle while complex mode is on, greyed. */
+.kc-segments[data-disabled="true"] {
+  opacity: 0.5;
+}
+
+/* VIS-POPOVERS-MENUS-17 item 5: the disclosure 10 px under the axes (whose block ends 3 px
+   higher than the reference's) and level with the next section's rule. */
+.kc-settings-more {
+  margin: 13px 0 -3px;
+}
+
+.kc-more-toggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  height: 22px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--kc-text);
+  font-family: var(--kc-font-ui);
+  font-size: 15.2px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.kc-more-caret {
+  flex: none;
+  width: 13.7px;
+  height: 13.7px;
+  fill: var(--kc-pop-mini-ink);
+  transform: rotate(-90deg);
+  transition: transform var(--kc-dur-200) var(--kc-ease);
+}
+
+.kc-settings-more[data-open="true"] .kc-more-caret {
+  fill: var(--kc-text-secondary);
+  transform: none;
+}
+
+.kc-more-toggle:focus-visible {
+  outline: 2px solid var(--kc-accent);
+  outline-offset: 2px;
+}
+
+/* VIS-POPOVERS-MENUS-20: a 1 px left rule 6 px in, padding 4 10, X-Axis: and Y-Axis: rows. */
+.kc-more-body {
+  display: flex;
+  flex-direction: column;
+  margin-left: 6px;
+  padding: 4px 10px;
+  border-left: 1px solid var(--kc-pop-rule);
+  font-size: 14.4px;
+}
+
+.kc-more-scale {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.kc-more-scale + .kc-more-scale {
+  margin-top: 7px;
+}
+
+/* The lock row's help mark: a 12.24 px grey question mark in a circle (our own drawing). */
+.kc-more-lock {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.kc-more-help {
+  display: inline-grid;
+  place-items: center;
+  width: 12.24px;
+  height: 12.24px;
+  border-radius: 50%;
+  background: var(--kc-pop-mini-ink);
+  color: var(--kc-list);
+  font-size: 9.5px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: help;
+}
+
+.kc-more-scale > span {
+  width: 45.6px;
+}
+
+.kc-check[data-size="more"] {
+  min-height: 28.8px;
+  font-size: 14.4px;
+}
+
+/* SETTINGS-9 item 13: the complex-mode hint and note. */
+.kc-settings-complex-hint {
+  margin-top: 8px;
+  color: var(--kc-text-secondary);
+  font-size: 14.4px;
+}
+
+.kc-settings-complex-hint > p {
+  margin: 4px 0 0;
+}
+
+.kc-settings-complex-hint i {
+  font-family: var(--kc-font-math);
+}

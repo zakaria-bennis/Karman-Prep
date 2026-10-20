@@ -1,11 +1,12 @@
-// The settings popover (S-1; drawn to popovers-menus.md VIS-1 to VIS-17): a dialog named
-// "Graph settings" to the left of its Settings control, top-aligned with it, with a 12 px arrow on
-// the control's centre line. It lists the Phase 1 controls in the reference's order: Grid with the
-// round Cartesian and Polar buttons, Arrows, the small Axis Numbers and Minor Gridlines, each axis
-// (AxisSection), Complex Mode (S-5) and the Radians | Degrees choice (S-6, announced per A11Y-2).
-// Display size, Reverse contrast and More Options are later phases (S-3, S-4, S-8); there is no
-// Braille control (A11Y-15). It appears and leaves at once (VIS-5). Escape (rank "popover", KB-3)
-// or a pointerdown outside closes it.
+// The settings popover (S-1; drawn to popovers-menus.md VIS-1 to VIS-20): a region named
+// "Graph Settings" (SETTINGS-8) to the left of its Settings control, top-aligned with it, with a 12 px arrow on
+// the control's centre line. It lists the controls in the reference's order (SETTINGS-9): Display
+// Size, Reverse contrast and Braille Mode (DisplaySection), Grid with the pressed Cartesian Grid and
+// Polar Grid buttons, Arrows, the small Axis Numbers and Minor Gridlines, each axis (AxisSection),
+// More Options (MoreOptions), Complex Mode (S-5) with its hint, and the Angle Settings choice
+// (S-6, announced per A11Y-2; greyed while complex, SETTINGS-23). Visibility follows SETTINGS-14
+// and -15: no grid type or Minor Gridlines with the grid off, no Minor Gridlines in polar. It
+// appears and leaves at once (VIS-5). Escape (rank "popover", KB-3) or a pointerdown outside closes it.
 
 import { useContext, useEffect, useId, useLayoutEffect, useRef, type JSX } from "react";
 import type { AngleMode } from "@/lib/calculator/core/api/types";
@@ -22,6 +23,8 @@ import {
   SettingSegments,
   SettingToggle,
 } from "./controls";
+import { DisplaySection } from "./DisplaySection";
+import { MoreOptions } from "./MoreOptions";
 
 export interface SettingsPopoverProps {
   anchor: HTMLElement | null;
@@ -31,6 +34,9 @@ export interface SettingsPopoverProps {
 
 const ARROW = 12; // VIS-2: the arrow's depth, also the gap between the popover and its anchor
 const EDGE = 5; // the least distance kept from the offset parent's edges
+
+/** SETTINGS-23: the Angle tooltip while complex mode is on. */
+export const COMPLEX_USES_RADIANS = "Complex mode uses radians";
 
 const ANGLES = [
   { value: "radians", label: "Radians" },
@@ -108,6 +114,11 @@ export function SettingsPopover(props: SettingsPopoverProps): JSX.Element | null
     });
   }, [escape, open]);
 
+  // SETTINGS-32: opening moves focus to the chosen Display Size radio.
+  useEffect(() => {
+    if (open) ref.current?.querySelector<HTMLInputElement>(".kc-segment > input:checked")?.focus();
+  }, [open]);
+
   useEffect(() => {
     const el = ref.current;
     if (!open || el === null) return;
@@ -129,34 +140,36 @@ export function SettingsPopover(props: SettingsPopoverProps): JSX.Element | null
     announcer.announce(EDITOR_MESSAGES.angle(mode));
   };
 
+  const grid = settings.showGrid;
   return (
-    <div ref={ref} className="kc-settings" role="dialog" aria-label="Graph settings">
+    <div ref={ref} className="kc-settings" role="region" aria-label="Graph Settings">
       <div className="kc-settings-body">
-        <div className="kc-settings-grid">
+        <DisplaySection />
+        <div className="kc-settings-section kc-settings-grid">
           <div className="kc-settings-grid-main">
             <SettingCheck
               label="Grid"
-              checked={settings.showGrid}
+              checked={grid}
               onChange={(showGrid) => engine.updateSettings({ showGrid })}
             />
-            <div className="kc-grid-types" role="radiogroup" aria-label="Grid type">
-              <GridTypeButton
-                name={`${radioName}-grid`}
-                label="Cartesian"
-                checked={!settings.polarGrid}
-                onSelect={() => engine.updateSettings({ polarGrid: false })}
-              >
-                <CartesianGlyph />
-              </GridTypeButton>
-              <GridTypeButton
-                name={`${radioName}-grid`}
-                label="Polar"
-                checked={settings.polarGrid}
-                onSelect={() => engine.updateSettings({ polarGrid: true })}
-              >
-                <PolarGlyph />
-              </GridTypeButton>
-            </div>
+            {grid && (
+              <div className="kc-grid-types">
+                <GridTypeButton
+                  label="Cartesian Grid"
+                  pressed={!settings.polarGrid}
+                  onPress={() => engine.updateSettings({ polarGrid: false })}
+                >
+                  <CartesianGlyph />
+                </GridTypeButton>
+                <GridTypeButton
+                  label="Polar Grid"
+                  pressed={settings.polarGrid}
+                  onPress={() => engine.updateSettings({ polarGrid: true })}
+                >
+                  <PolarGlyph />
+                </GridTypeButton>
+              </div>
+            )}
             <SettingCheck
               label="Arrows"
               checked={settings.arrows}
@@ -166,39 +179,53 @@ export function SettingsPopover(props: SettingsPopoverProps): JSX.Element | null
           <div className="kc-settings-grid-side">
             <SettingCheck
               label="Axis Numbers"
-              name="Axis numbers"
               size="small"
               checked={settings.axisNumbers}
               onChange={(axisNumbers) => engine.updateSettings({ axisNumbers })}
             />
-            <SettingCheck
-              label="Minor Gridlines"
-              name="Minor gridlines"
-              size="small"
-              checked={settings.minorGridlines}
-              onChange={(minorGridlines) => engine.updateSettings({ minorGridlines })}
-            />
+            {grid && !settings.polarGrid && (
+              <SettingCheck
+                label="Minor Gridlines"
+                size="small"
+                checked={settings.minorGridlines}
+                onChange={(minorGridlines) => engine.updateSettings({ minorGridlines })}
+              />
+            )}
           </div>
         </div>
         <div className="kc-settings-section kc-settings-axes">
           <AxisSection axis="x" />
           <AxisSection axis="y" />
+          <MoreOptions />
         </div>
-        <div className="kc-settings-section kc-settings-complex">
-          <span aria-hidden="true">Complex Mode</span>
-          <SettingToggle
-            name="Complex mode"
-            checked={settings.complex}
-            onChange={(complex) => engine.updateSettings({ complex })}
-          />
+        <div className="kc-settings-section">
+          <div className="kc-settings-complex">
+            <span aria-hidden="true">Complex Mode</span>
+            <SettingToggle
+              name="Complex Mode"
+              checked={settings.complex}
+              onChange={(complex) => engine.updateSettings({ complex })}
+            />
+          </div>
+          {settings.complex && (
+            <div className="kc-settings-complex-hint">
+              <p>
+                Hint: try writing <i>i</i>
+                <sup>2</sup> or √−4.
+              </p>
+              <p>Note: complex values will be plotted as (real, imag)</p>
+            </div>
+          )}
         </div>
         <div className="kc-settings-section">
           <SettingSegments
             name={`${radioName}-angle`}
-            label="Angle"
+            label="Angle Settings"
             options={ANGLES}
             value={settings.angleMode}
             onSelect={setAngle}
+            disabled={settings.complex}
+            title={settings.complex ? COMPLEX_USES_RADIANS : undefined}
           />
         </div>
       </div>

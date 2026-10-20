@@ -6,7 +6,9 @@
 
 /* Tones of the popovers (wanted as shared tokens, see the report). */
 .kc-settings,
-.kc-style-menu {
+.kc-style-menu,
+.kc-style-popover,
+.kc-shortcuts-backdrop {
   --kc-pop-rule: color-mix(in srgb, var(--kc-text) 11.4%, var(--kc-list)); /* #e2e2e2 */
   --kc-pop-hover-border: color-mix(in srgb, var(--kc-text) 42%, var(--kc-list)); /* #949494 */
   --kc-pop-ink-strong: color-mix(in srgb, var(--kc-text) 73%, var(--kc-list)); /* #454545 */
@@ -204,17 +206,11 @@
   position: relative;
   display: grid;
   place-items: center;
+  box-sizing: border-box;
   width: 28px;
   height: 28px;
-  cursor: pointer;
-}
-
-.kc-grid-type > input {
-  appearance: none;
-  position: absolute;
-  inset: 0;
-  box-sizing: border-box;
   margin: 0;
+  padding: 0;
   border: 1px solid var(--kc-pop-line);
   border-radius: 50%;
   background: var(--kc-pop-circle);
@@ -222,7 +218,7 @@
   cursor: pointer;
 }
 
-.kc-grid-type > input:checked {
+.kc-grid-type[aria-pressed="true"] {
   background: var(--kc-text-secondary);
 }
 
@@ -234,7 +230,7 @@
   pointer-events: none;
 }
 
-.kc-grid-type > input:checked + svg {
+.kc-grid-type[aria-pressed="true"] > svg {
   color: color-mix(in srgb, var(--kc-list) 55%, var(--kc-text-secondary));
 }
 
@@ -251,11 +247,6 @@
 
 .kc-settings-axis + .kc-settings-axis {
   margin-top: 12px;
-}
-
-/* An error line makes room under its axis. */
-.kc-settings-error + .kc-settings-error {
-  margin-top: 0;
 }
 
 .kc-settings-axis-title {
@@ -276,6 +267,7 @@
 
 .kc-settings-legend {
   position: absolute;
+  pointer-events: none;
   top: 2px;
   left: 4px;
   padding: 0 3px;
@@ -300,8 +292,7 @@
   font-size: 13.68px;
 }
 
-.kc-settings-label-input::placeholder,
-.kc-settings-step-input::placeholder {
+.kc-settings-label-input::placeholder {
   color: var(--kc-pop-placeholder);
 }
 
@@ -342,6 +333,11 @@
   border-bottom: 2px solid var(--kc-accent);
 }
 
+/* SETTINGS-24, -25: an invalid bound pair or step is underlined 2 px in the error colour. */
+.kc-settings .kc-settings-bound[data-invalid] > .mq-editable-field {
+  border-bottom: 2px solid var(--kc-error);
+}
+
 .kc-settings-relation > var {
   font-size: 18.4px;
   line-height: 20px;
@@ -378,37 +374,9 @@
   font-size: 13.6px;
 }
 
-.kc-settings-step > span {
+.kc-settings-step > span[aria-hidden] {
   position: relative;
   top: -1px;
-}
-
-/* The field is 22.2 px tall, 1 px inside its 24.2 px line, as the bounds fields are. */
-.kc-settings-step-input {
-  box-sizing: border-box;
-  width: 37px;
-  height: 22.2px;
-  margin: 1px 0;
-  padding: 1px 2px;
-  border: none;
-  border-bottom: 1px solid var(--kc-pop-field-line);
-  border-radius: 0;
-  background: transparent;
-  color: var(--kc-text);
-  font-family: var(--kc-font-math);
-  font-size: 15.2px;
-}
-
-.kc-settings-step-input:focus {
-  outline: none;
-  border-bottom: 2px solid var(--kc-accent);
-}
-
-/* S-7: a bound or step error below its line, on --kc-list (TH-1). */
-.kc-settings-error {
-  margin: 4px 0 0;
-  color: var(--kc-error);
-  font-size: 13.6px;
 }
 
 /* VIS-14: Complex Mode with its toggle on the right. */
@@ -566,7 +534,7 @@
 
 /* VIS-9: a 2 px blue ring 2 px outside the focused control. */
 .kc-check-box > input:focus-visible,
-.kc-grid-type > input:focus-visible,
+.kc-grid-type:focus-visible,
 .kc-settings-label-input:focus-visible {
   outline: 2px solid var(--kc-accent);
   outline-offset: 2px;

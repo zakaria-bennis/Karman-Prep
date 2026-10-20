@@ -141,7 +141,7 @@ export async function api(page: Page, script: string): Promise<void> {
 /** S-6, NM-29: opens the settings popover with the Graph settings button. */
 export async function openSettings(page: Page): Promise<void> {
   await page.getByRole("button", { name: "Graph settings" }).click();
-  await page.getByRole("dialog", { name: "Graph settings" }).waitFor();
+  await page.getByRole("region", { name: "Graph Settings" }).waitFor();
 }
 
 export function announced(page: Page): Promise<string[]> {
@@ -221,7 +221,7 @@ export async function motionAcrossLayers(page: Page): Promise<Motion[]> {
   await settings.click();
   all.push(...(await motionNow(page)));
   await page.keyboard.press("Escape");
-  await expect(page.getByRole("dialog", { name: "Graph settings" })).toHaveCount(0);
+  await expect(page.getByRole("region", { name: "Graph Settings" })).toHaveCount(0);
   await page.keyboard.press("Escape");
   await expect(keypad.getByRole("button", { name: "Functions", exact: true })).toHaveAttribute(
     "aria-expanded",

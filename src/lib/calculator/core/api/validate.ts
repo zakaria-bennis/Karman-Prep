@@ -11,15 +11,15 @@ import { CURVE_SLOTS } from "../../theme/skins";
 import { MAX_ROW_CHARACTERS, MAX_ROWS } from "../latex";
 import { KarmanCalculatorError } from "./errors";
 import { MAX_CELL_CHARACTERS, MAX_TABLE_COLUMNS, MAX_TABLE_ROWS } from "./document";
-import { DEFAULT_SETTINGS } from "./types";
-import type {
-  AxisSettings,
-  CalculatorOptions,
-  CalculatorSettings,
-  CalculatorState,
-  ExpressionState,
-  SettingsUpdate,
-  TableRegressionState,
+import {
+  DEFAULT_SETTINGS,
+  type AxisSettings,
+  type CalculatorOptions,
+  type CalculatorSettings,
+  type CalculatorState,
+  type ExpressionState,
+  type SettingsUpdate,
+  type TableRegressionState,
 } from "./types";
 
 type Check<T> = (value: unknown, method: string, field: string) => T;
@@ -46,10 +46,17 @@ export const SETTINGS_KEYS: readonly (keyof CalculatorSettings)[] = Object.freez
   "reducedMotion",
   "trace",
   "pointsOfInterest",
+  "brailleMode",
+  "sixKeyInput",
 ] as const);
 
-/** Settings a whole settings object may leave out (they came later): missing means the default. */
-const LATER_KEYS: ReadonlySet<keyof CalculatorSettings> = new Set(["trace", "pointsOfInterest"]);
+/** SETTINGS-13: keys added after saved states existed; a whole settings object may leave them out. */
+const DEFAULTED_KEYS: ReadonlySet<keyof CalculatorSettings> = new Set([
+  "brailleMode",
+  "sixKeyInput",
+  "trace",
+  "pointsOfInterest",
+]);
 
 function invalid(method: string, text: string): never {
   throw new KarmanCalculatorError("invalid-argument", `${method}: ${text}`);
@@ -131,16 +138,18 @@ const SETTING_CHECKS: { [K in keyof CalculatorSettings]: Check<CalculatorSetting
   axisNumbers: bool,
   xAxis: axis,
   yAxis: axis,
-  lockViewport: phaseOne(bool, false),
+  lockViewport: bool, // SETTINGS-20
   piAxisLabels: phaseOne(bool, false),
-  displaySize: phaseOne(oneOf(["default", "large"]), "default"),
-  reverseContrast: phaseOne(bool, false),
+  displaySize: oneOf(["default", "large"]), // SETTINGS-11
+  reverseContrast: bool, // SETTINGS-12
   keypad: bool,
   expressionsCollapsed: bool,
   mode: phaseOne(oneOf(["graphing", "scientific"]), "graphing"),
   reducedMotion: bool,
   trace: bool,
   pointsOfInterest: bool,
+  brailleMode: oneOf(["none", "nemeth", "ueb"]),
+  sixKeyInput: bool,
 };
 
 const seed: Check<number> = (value, method, field) =>
@@ -187,7 +196,7 @@ export function validateSettingsUpdate(partial: unknown): SettingsUpdate {
   return settingsFields(partial, "updateSettings", "settings", false);
 }
 
-/** A whole settings object (setState): every key required but LATER_KEYS. */
+/** A whole settings object (setState): every key required except DEFAULTED_KEYS. */
 export function validateSettings(settings: unknown): CalculatorSettings {
   return settingsFields(settings, "setState", "settings", true) as CalculatorSettings;
 }
@@ -204,7 +213,7 @@ function settingsFields(
     const name = complete ? `${field}.${key}` : key;
     const setting = own(fields, key);
     if (setting === undefined) {
-      if (complete && LATER_KEYS.has(key)) out[key] = DEFAULT_SETTINGS[key];
+      if (complete && DEFAULTED_KEYS.has(key)) out[key] = DEFAULT_SETTINGS[key];
       else if (complete) invalid(method, `${name} is missing`);
       continue;
     }

@@ -33,6 +33,8 @@ export type GraphInputOptions = {
   engine: CalculatorEngine;
   size: GraphSize | null;
   interaction?: GraphInteraction;
+  /** SETTINGS-20 Lock Viewport: drag, pinch, wheel, keys and applyNow leave the view alone. */
+  locked?: boolean;
 };
 /**
  * What the panel does with presses (POI-TRACE-12 to POI-TRACE-14, POI-TRACE-21): `press` decides
@@ -78,6 +80,7 @@ const pinchOf = (a: Point, b: Point): PinchState => ({
 
 export function useGraphInput(o: GraphInputOptions): GraphInput {
   const { panel, surface, engine, size, interaction } = o;
+  const locked = o.locked === true;
   const state = useRef<InputState>({
     pending: null,
     frame: null,
@@ -86,9 +89,9 @@ export function useGraphInput(o: GraphInputOptions): GraphInput {
     gesture: null,
     press: null,
   });
-  const latest = useRef({ engine, size, interaction });
+  const latest = useRef({ engine, size, interaction, locked });
   useLayoutEffect(() => {
-    latest.current = { engine, size, interaction };
+    latest.current = { engine, size, interaction, locked };
   });
 
   /** The view every change builds on: the pending viewport, else the engine's; null while unsized. */
@@ -128,7 +131,7 @@ export function useGraphInput(o: GraphInputOptions): GraphInput {
   const applyNow = useCallback<ApplyNow>(
     (next) => {
       const view = currentView();
-      if (view === null) return false;
+      if (view === null || latest.current.locked) return false;
       const viewport = next(view);
       if (viewport === null) return false;
       cancelPending();
@@ -223,7 +226,7 @@ export function useGraphInput(o: GraphInputOptions): GraphInput {
           latest.current.interaction?.viewChanged();
         }
       }
-      const g = s.gesture;
+      const g = latest.current.locked ? null : s.gesture;
       if (g?.kind === "drag" && g.id === e.pointerId) {
         const at = s.pointers.get(g.id)!;
         schedule(dragViewport(g.start, at[0] - g.at[0], at[1] - g.at[1]));
@@ -248,7 +251,7 @@ export function useGraphInput(o: GraphInputOptions): GraphInput {
       const view = currentView();
       if (view === null) return;
       e.preventDefault();
-      if (s.wheeled || e.deltaY === 0) return;
+      if (s.wheeled || e.deltaY === 0 || latest.current.locked) return;
       latest.current.interaction?.viewChanged();
       schedule(wheelViewport(view, e.deltaY, position(e)));
       s.wheeled = true;

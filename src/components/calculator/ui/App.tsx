@@ -31,6 +31,7 @@ import { KeyboardTrace, KeyboardTraceContext } from "./graph/keyboard-trace";
 import { EngineContext, useEngineSnapshot } from "./hooks/use-engine";
 import { CalculatorLayout } from "./layout/CalculatorLayout";
 import { insertRowBelow, performRedo, performUndo } from "./list/row-actions";
+import { ShortcutsHost } from "./shortcuts/ShortcutsHost";
 
 export interface AppProps {
   engine: CalculatorEngine;
@@ -99,6 +100,13 @@ export function App(props: AppProps): JSX.Element {
   useLayoutEffect(() => {
     host.dataset.reducedMotion = String(settings.reducedMotion);
   }, [host, settings.reducedMotion]);
+
+  // SETTINGS-11, -12: display-modes.css reads these to scale the list for Large and invert the
+  // calculator for Reverse contrast (never the host page around it).
+  useLayoutEffect(() => {
+    host.dataset.displaySize = settings.displaySize;
+    host.dataset.reverseContrast = String(settings.reverseContrast);
+  }, [host, settings.displaySize, settings.reverseContrast]);
 
   const toggleSettings = useCallback(
     (anchor: HTMLElement) => setSettingsAnchor((open) => (open === null ? anchor : null)),
@@ -183,6 +191,7 @@ export function App(props: AppProps): JSX.Element {
                   onKeypadChange={changeKeypad}
                   onTouchFocusRow={touchFocusRow}
                 />
+                <ShortcutsHost rootRef={rootRef} />
               </SkinContext.Provider>
             </KeyboardTraceContext.Provider>
           </AnnouncerContext.Provider>

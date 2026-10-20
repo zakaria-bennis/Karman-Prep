@@ -1,0 +1,21 @@
+/* Display size and Reverse contrast (SETTINGS-11, SETTINGS-12, VIS-THEMES-MODES-3 to -10). App
+   writes data-display-size and data-reverse-contrast on the host.
+
+   Reverse contrast inverts the whole calculator, popovers and tooltips included, with
+   filter: invert(1) and no hue turn; the host page around it is untouched. It does not follow
+   prefers-contrast.
+
+   Large scales the expression list's math 20.24 -> 26.4 px (x1.304) and its values by the same
+   ratio. The Graph Settings popover, the top bar, row numbers and the graph's buttons keep their
+   size (VIS-THEMES-MODES-9). The graph paper's Large constants (5 px curves, 19 px axis numbers)
+   and the taller keypad are not drawn yet. */
+
+:host([data-reverse-contrast="true"]) .kc-app {
+  filter: invert(1);
+}
+
+:host([data-display-size="large"]) {
+  --kc-size-math: 26.4px;
+  --kc-size-eval-math: 22.8px;
+  --kc-size-eval: 19.8px;
+}

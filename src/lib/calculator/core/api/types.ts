@@ -8,6 +8,8 @@ import type { SavedSlider } from "../../sliders/model";
 export type AngleMode = "radians" | "degrees";
 export type LineStyle = "solid" | "dashed" | "dotted"; // R-4 (Phase 2 picker)
 export type PointStyle = "filled" | "open" | "cross";
+/** SETTINGS-13: the Braille code the settings popover records (UI only; no Braille input yet). */
+export type BrailleMode = "none" | "nemeth" | "ueb";
 export interface AxisSettings {
   show: boolean;
   label: string;
@@ -35,6 +37,8 @@ export interface CalculatorSettings {
   trace: boolean;
   /** POI-TRACE-2: the selected curve's grey dots (both this and trace must be on). */
   pointsOfInterest: boolean;
+  brailleMode: BrailleMode;
+  sixKeyInput: boolean;
 }
 
 /** S-9: the per-question defaults (and API-1's option defaults). Deep-frozen. */
@@ -58,6 +62,8 @@ export const DEFAULT_SETTINGS: CalculatorSettings = Object.freeze({
   reducedMotion: false,
   trace: true,
   pointsOfInterest: true,
+  brailleMode: "none",
+  sixKeyInput: false,
 });
 
 export interface CalculatorOptions {

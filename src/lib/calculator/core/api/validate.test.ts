@@ -18,8 +18,11 @@ it("API-1 options validate with their defaults and the Phase 1 rules", () => {
     seed: 7,
     keypad: true,
   });
-  for (const o of [{ mode: "scientific" }, { displaySize: "large" }, { reverseContrast: true }])
-    expect(code(() => v.validateOptions(o))).toBe("unsupported");
+  expect(v.validateOptions({ displaySize: "large", reverseContrast: true })).toEqual({
+    displaySize: "large",
+    reverseContrast: true,
+  });
+  expect(code(() => v.validateOptions({ mode: "scientific" }))).toBe("unsupported");
   for (const o of [
     null,
     3,
@@ -53,16 +56,31 @@ it("API-7 updateSettings accepts only the listed keys and the Phase 1 values", (
     "reducedMotion",
     "trace",
     "pointsOfInterest",
+    "brailleMode",
+    "sixKeyInput",
   ]);
   expect(Object.keys(DEFAULT_SETTINGS).sort()).toEqual([...v.SETTINGS_KEYS].sort());
   expect(
     v.validateSettingsUpdate({ angleMode: "degrees", xAxis: { show: false, label: "t", step: 2 } })
   ).toEqual({ angleMode: "degrees", xAxis: { show: false, label: "t", step: 2 } });
+  // SETTINGS-11, -12, -13, -20: display size, reverse contrast, Braille and the viewport lock.
+  expect(
+    v.validateSettingsUpdate({
+      lockViewport: true,
+      displaySize: "large",
+      reverseContrast: true,
+      brailleMode: "ueb",
+      sixKeyInput: true,
+    })
+  ).toEqual({
+    lockViewport: true,
+    displaySize: "large",
+    reverseContrast: true,
+    brailleMode: "ueb",
+    sixKeyInput: true,
+  });
   for (const [k, val] of [
-    ["lockViewport", true],
     ["piAxisLabels", true],
-    ["displaySize", "large"],
-    ["reverseContrast", true],
     ["mode", "scientific"],
   ] as const)
     expect(code(() => v.validateSettingsUpdate({ [k]: val }))).toBe("unsupported");
@@ -72,6 +90,8 @@ it("API-7 updateSettings accepts only the listed keys and the Phase 1 values", (
     { xAxis: { show: true } },
     { yAxis: { show: true, label: "", step: 0 } },
     { mode: "polar" },
+    { brailleMode: "grade2" },
+    { sixKeyInput: "on" },
     null,
   ])
     expect(code(() => v.validateSettingsUpdate(bad))).toBe("invalid-argument");
@@ -86,6 +106,11 @@ it("POI-TRACE-2 trace and pointsOfInterest are booleans a saved settings object 
   void _t;
   void _p;
   expect(v.validateSettings({ ...saved })).toMatchObject({ trace: true, pointsOfInterest: true });
+});
+it("SETTINGS-13 a whole settings object may leave out the Braille keys, which default", () => {
+  const { brailleMode, sixKeyInput, ...older } = DEFAULT_SETTINGS;
+  expect([brailleMode, sixKeyInput]).toEqual(["none", false]);
+  expect(v.validateSettings(older)).toEqual(DEFAULT_SETTINGS);
 });
 it("API-7 bounds need finite left < right and bottom < top", () => {
   expect(v.validateBounds({ left: -1, right: 1, bottom: -2, top: 2 })).toEqual({

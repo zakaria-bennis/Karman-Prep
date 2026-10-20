@@ -43,7 +43,7 @@ it("R-2 an error row shows the warning marker in place of the tab, with a toolti
   expect(marker).toHaveAttribute("type", "button");
   expect(marker).toHaveAttribute("aria-describedby", ids.error);
   expect(row.querySelector(".kc-row-tab")).toBeNull(); // replaces the swatch, no hide toggle
-  expect(within(row).queryByRole("button", { name: /^(Hide|Show) expression/ })).toBeNull();
+  expect(within(row).queryByRole("button", { name: /^(Hide|Show): Expression/ })).toBeNull();
   expect(row.querySelector(".kc-row-error")).toBeNull(); // no inline message
   expect(kit.engine.expressionAnalysis["1"]).toMatchObject({ isGraphable: false, isError: true });
 
@@ -121,7 +121,7 @@ it("R-2 a row that broke while hidden offers no hide or show tab, and the tab re
   act(() => kit.engine.editRow("1", "y=x", "typing"));
   expect(rowItem("1").querySelector(".kc-row-warning")).toBeNull();
   expect(
-    within(rowItem("1")).getByRole("button", { name: "Show expression 1" })
+    within(rowItem("1")).getByRole("button", { name: "Show: Expression 1" })
   ).toBeInTheDocument();
 });
 
