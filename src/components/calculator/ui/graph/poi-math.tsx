@@ -16,12 +16,18 @@ const PAREN_WIDTH = ".55em";
 
 const MINUS = "−";
 
+/** A unary minus as MathQuill writes one (an empty class), so math-field.css gives it the
+ *  reference's 2 px of air each side: "−2" in a label is 15.7 px + 10.3 px wide on Desmos. */
+function Minus(): JSX.Element {
+  return <span className="">{MINUS}</span>;
+}
+
 function Digits({ text }: { text: string }): JSX.Element {
   return (
     <>
       {[...text].map((c, i) =>
         c === "-" ? (
-          <span key={i}>{MINUS}</span>
+          <Minus key={i} />
         ) : (
           <span key={i} className="mq-digit">
             {c}
@@ -50,7 +56,7 @@ function Coordinate({ parts }: { parts: CoordinateParts }): JSX.Element {
     case "pi":
       return (
         <>
-          {parts.negative && <span>{MINUS}</span>}
+          {parts.negative && <Minus />}
           {parts.d === 1 ? (
             <Pi n={parts.n} />
           ) : (

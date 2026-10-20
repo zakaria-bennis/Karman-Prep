@@ -74,6 +74,9 @@ test("GP-37, GP-38 the √2 label sits above right of its dot, 42.27 px tall; th
     page.locator(`#calc [data-poi-label][aria-label="${name}"]`).getAttribute("data-orientation");
   await expect.poll(() => orientation("(−1.41421, 0)")).toBe("tl");
   await expect.poll(() => orientation("(0, −2)")).toBe("br");
+  // Desmos's "(0, −2)" box is 105.03 px wide: its minus has about 2 px of air each side.
+  const vertex = page.locator('#calc [data-poi-label][aria-label="(0, −2)"]');
+  expect((await vertex.boundingBox())!.width).toBeCloseTo(105, 0);
   // The first label keeps its spot when another opens.
   await expect(label).toHaveAttribute("data-orientation", "tr");
 });

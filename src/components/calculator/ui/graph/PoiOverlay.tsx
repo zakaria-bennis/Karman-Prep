@@ -21,20 +21,23 @@ export interface PoiOverlayProps {
   onExport?(label: OpenLabel): void; // absent: no export buttons (the list is hidden)
 }
 
-/** The export icon: a filled card with an arrow leaving it, drawn for Karman at the 17.6 px glyph size. */
+/**
+ * The export icon, drawn for Karman at the 17.6 px glyph size: a small expression list (filled
+ * left column, open panel with one divider) with an arrow coming in from the top right.
+ */
 function ExportGlyph(): JSX.Element {
   return (
     <svg viewBox="0 0 18 18" width="17.6" height="18" aria-hidden="true" focusable="false">
       <path
         fillRule="evenodd"
         fill="currentColor"
-        d="M3.5 3h8A1.5 1.5 0 0 1 13 4.5v9a1.5 1.5 0 0 1-1.5 1.5h-8A1.5 1.5 0 0 1 2 13.5v-9A1.5 1.5 0 0 1 3.5 3ZM5 7.2h5v1.4H5Zm0 2.9h3.5v1.4H5Z"
+        d="M3.5 2.5h11A1.5 1.5 0 0 1 16 4v11.5A1.5 1.5 0 0 1 14.5 17h-11A1.5 1.5 0 0 1 2 15.5V4a1.5 1.5 0 0 1 1.5-1.5ZM6.8 3.7v12.1h8V3.7Z"
       />
       <path
-        d="M10.5 7.5 16 2M12.6 2H16v3.4"
+        d="M6.8 12.9h8M17.4 1.1 10.4 8.1M10.2 4.6v3.9h3.9"
         fill="none"
         stroke="currentColor"
-        strokeWidth="1.5"
+        strokeWidth="1.3"
         strokeLinecap="round"
         strokeLinejoin="round"
       />

@@ -201,6 +201,10 @@ it("POI-TRACE-17 an open label is a note named by its coordinates, its math hidd
   const label = screen.getByRole("note", { name: "(0, −2)" });
   expect(label.querySelector(".mq-math-mode")?.getAttribute("aria-hidden")).toBe("true");
   expect(label.textContent).toContain("−2");
+  // A unary minus carries MathQuill's empty class, so it gets the reference's side padding.
+  const minus = [...label.querySelectorAll("span")].find((el) => el.textContent === "−");
+  expect(minus?.getAttribute("class")).toBe("");
+  expect(label.querySelector(".kc-poi-export svg")).not.toBeNull();
 });
 
 async function drag(
