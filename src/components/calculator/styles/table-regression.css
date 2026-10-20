@@ -446,7 +446,7 @@
   border: none;
   background: transparent;
   color: var(--kc-text);
-  opacity: var(--kc-icon-hover);
+  opacity: var(--kc-icon-rest);
   cursor: pointer;
 }
 

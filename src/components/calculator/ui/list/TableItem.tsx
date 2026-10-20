@@ -2,7 +2,7 @@
 // k columns, m rows" whose first row holds the column headers and whose data rows end in one blank
 // row, each entered cell a TableCell named "header, row r" (", blank" while empty) and each
 // computed cell a read-only gridcell named "header, row r, computed, value". While focus is in the
-// grid a blank header slot right of the last column adds a column (D-5). The Delete control
+// grid's blank header slot right of the last column adds a column (D-5, TABLES-2: always shown). The Delete control
 // removes the table through row-actions (D-16). A cell or header that cannot evaluate shows the
 // warning marker at its left, with the message in a tooltip, and its field is aria-invalid (D-6, D-10).
 
@@ -13,7 +13,6 @@ import {
   useRef,
   useState,
   type CSSProperties,
-  type FocusEvent,
   type JSX,
   type KeyboardEvent,
 } from "react";
@@ -87,7 +86,6 @@ export function TableItem(props: TableItemProps): JSX.Element {
   const focus = useContext(FocusContext)!;
   const announcer = useAnnouncer();
   const keyContext: TableKeyContext = { engine, focus, announcer, tableId: row.id };
-  const [inside, setInside] = useState(false);
   // RT-6, TABLES-28: 29 or more data rows collapse until "Show all" (or a move past the gap).
   const [expanded, setExpanded] = useState(false);
   const gridRef = useRef<HTMLDivElement>(null);
@@ -108,7 +106,8 @@ export function TableItem(props: TableItemProps): JSX.Element {
   const hidden = expanded ? null : collapsedRange(rows);
   const headers = columns.map((c, k) => headerName(c.latex, k));
   const computed = (k: number) => analysis[k]?.role === "computed";
-  const slot = inside && columns.length < MAX_TABLE_COLUMNS;
+  // TABLES-2: the blank header slot and its read-only column always show, as on the reference.
+  const slot = columns.length < MAX_TABLE_COLUMNS;
   // RT-28: Add Regression adds a Linear table regression and focuses its model dropdown.
   const eligibility = regressionEligibility(row);
   const addRegression = (column?: number) => {
@@ -135,13 +134,6 @@ export function TableItem(props: TableItemProps): JSX.Element {
     const down = e.key === "ArrowDown" || e.key === "Enter" || (e.key === "Tab" && !e.shiftKey);
     const up = e.key === "ArrowUp" || (e.key === "Tab" && e.shiftKey);
     if ((down && r === hidden.from - 1) || (up && r === hidden.to)) setExpanded(true);
-  };
-
-  // D-5: the header slot shows while focus is anywhere in the grid.
-  const onGridFocus = () => setInside(true);
-  const onGridBlur = (e: FocusEvent<HTMLDivElement>) => {
-    const next = e.relatedTarget;
-    if (!(next instanceof Node) || !gridRef.current?.contains(next)) setInside(false);
   };
 
   const cell = (k: number, r: number) => {
@@ -235,8 +227,6 @@ export function TableItem(props: TableItemProps): JSX.Element {
             role="grid"
             className="kc-table"
             aria-label={gridName(number, columns.length, rows)}
-            onFocus={onGridFocus}
-            onBlur={onGridBlur}
             onKeyDownCapture={onGridKeyDown}
           >
             <div role="row" className="kc-table-row" data-header="true">
@@ -312,6 +302,14 @@ export function TableItem(props: TableItemProps): JSX.Element {
                   )}
                   <div role="row" className="kc-table-row" data-table-row={r}>
                     {columns.map((_, k) => cell(k, r))}
+                    {slot && (
+                      <div
+                        role="gridcell"
+                        className="kc-table-cell kc-table-slot"
+                        style={columnWidth(null)}
+                        aria-hidden="true"
+                      />
+                    )}
                     {r < rows && (
                       <div role="gridcell" className="kc-table-control">
                         <button

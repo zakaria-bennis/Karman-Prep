@@ -271,7 +271,7 @@ export function TableRegression(props: {
                       title="Zoom Fit"
                       onClick={() => engine.setMathBounds(residualFit)}
                     >
-                      <ZoomFitGlyph size={16} />
+                      <ZoomFitGlyph size={13} />
                     </button>
                   )
                 )}

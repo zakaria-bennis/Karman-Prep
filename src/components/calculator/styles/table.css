@@ -63,7 +63,7 @@
 
 /* D-10, D-19, RT-6: computed cells are read-only and, as on the reference, shaded grey. */
 .kc-table-cell[data-computed="true"] {
-  padding-left: 20px;
+  justify-content: center; /* centred in the column, as the reference sets them */
   background: var(--kc-chip-fill);
 }
 

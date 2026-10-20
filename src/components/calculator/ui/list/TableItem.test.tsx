@@ -31,14 +31,15 @@ it("D-5 typing table into an empty row converts it at once and other words stay 
   expect(tableOf(kit, "1").type).toBe("expression");
 });
 
-it("D-5 a blank header slot shows right of the last column only while a cell or header has focus", () => {
+it("D-5, TABLES-2 the blank header slot and its read-only column show right of the last column, focused or not", () => {
   const kit = renderEditor(<ExpressionPanel {...panelProps()} />, { rows: ["y=x"] });
   act(() => kit.engine.insertTableAfter("1"));
-  expect(screen.queryByRole("textbox", { name: "New column header" })).toBeNull();
-  act(() => box("x₁, row 1, blank").focus());
   expect(box("New column header")).toBeInTheDocument();
+  // one slot cell per body row (a new table has the blank row), hidden from the grid's reading
+  expect(document.querySelectorAll(".kc-table-slot")).toHaveLength(1);
+  act(() => box("x₁, row 1, blank").focus());
   act(() => box("x₁, row 1, blank").blur());
-  expect(screen.queryByRole("textbox", { name: "New column header" })).toBeNull();
+  expect(box("New column header")).toBeInTheDocument();
 });
 
 it("D-19 the table is named Table n, k columns, m rows and each cell header, row r, including blank cells", () => {

@@ -221,14 +221,16 @@ export function CaretUpGlyph(): JSX.Element {
   );
 }
 
-/** EL-41: a table's Zoom Fit, four solid corner brackets around an empty middle. */
+/** EL-41, RT-27: a table's Zoom Fit and its residuals' Zoom Fit. */
 export function ZoomFitGlyph(props: { size?: number }): JSX.Element {
+  // RT-27, TABLES-48: a magnifying glass holding a plus, as the reference's Zoom Fit reads.
   return (
     <Glyph size={props.size ?? 20}>
-      <path
-        d="M1 1H9V4.2H4.2V9H1ZM15 1H23V9H19.8V4.2H15ZM1 15H4.2V19.8H9V23H1ZM19.8 15H23V23H15V19.8H19.8Z"
-        fill="currentColor"
-      />
+      <g fill="none" stroke="currentColor" strokeLinecap="round">
+        <circle cx={9.5} cy={9.5} r={6.6} strokeWidth={2} />
+        <path d="M14.4 14.4L21 21" strokeWidth={2.8} />
+        <path d="M9.5 6.4V12.6M6.4 9.5H12.6" strokeWidth={1.8} />
+      </g>
     </Glyph>
   );
 }
