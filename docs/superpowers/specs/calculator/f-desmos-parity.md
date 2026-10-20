@@ -145,7 +145,15 @@ These Desmos behaviours are known and recorded but not yet built:
   `unique([0.1+0.2,0.3])` is [0.3] there and two elements here. Rows Desmos graphs as several
   curves (`\operatorname{join}(x,1)`, `\operatorname{repeat}(x,2)`, G-22) or as a call's points
   (`\operatorname{sort}(P,[3,1,2])`, M5) do not graph yet. Each is an expected failure in
-  `desmos.reference.test.ts` (`LIST_OPERATION_GAPS`, `LIST_OPERATION_GRAPH_GAPS`).
+  `desmos.reference.test.ts` (`LIST_OPERATION_GAPS`, `LIST_OPERATION_GRAPH_GAPS`). The hidden
+  sortPerm, complexSortPerm and uniquePerm, and the hidden names Desmos refuses (repeatAssert,
+  frequencyList, frequencyListAssert, sortedLastLessIndex, sortedLastLessEqualIndex: "This
+  calculator does not support the 'frequencyList' function."), match; shuffle's do not (T14).
+  Known but not captured live, so not in the fixture: Desmos keeps ±Infinity inside a list where
+  the engine reads undefined, so `\operatorname{sort}([3,1/0,-1/0,1])` puts −∞ first there,
+  `\operatorname{argmin}([3,-1/0,1])` is 2 and `\operatorname{unique}([1/0,1/0,-1/0])` has two
+  elements; and `y=\operatorname{length}([1...x])` graphs in Desmos (only a top-level list
+  needs a constant length) while NM-31's check refuses it here.
 - **An empty piecewise branch.** Desmos reads `\left\{1<0:5,\right\}` as "You need something on
   both sides of the ',' symbol." Piecewise braces (PR-31) have not shipped, so the calculator shows its
   unsupported-notation message. The captured error is an expected failure in

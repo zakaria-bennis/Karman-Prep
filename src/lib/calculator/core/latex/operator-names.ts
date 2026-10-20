@@ -120,9 +120,18 @@ export const SHIPPED: ReadonlySet<string> = new Set([
   "nPr",
   "nCr",
   "abs",
-  // argmin and argmax, which only pasted latex reaches (HIDDEN_OPERATOR_NAMES)
+  // hidden names, which only pasted latex reaches (HIDDEN_OPERATOR_NAMES); the refused ones
+  // (REFUSED_NAMES) parse so that analysis can give Desmos's argument errors and refusal
   "argmin",
   "argmax",
+  "sortPerm",
+  "complexSortPerm",
+  "uniquePerm",
+  "repeatAssert",
+  "frequencyList",
+  "frequencyListAssert",
+  "sortedLastLessIndex",
+  "sortedLastLessEqualIndex",
 ]);
 
 /**
@@ -298,6 +307,27 @@ export const OPERATOR_NAMES: readonly OperatorName[] = Object.freeze([
 export const HIDDEN_OPERATOR_NAMES: readonly OperatorName[] = Object.freeze([
   op("argmin", 3, 2, V),
   op("argmax", 3, 2, V),
+  op("sortPerm", 3, 2, [1]),
+  op("complexSortPerm", 3, 2, [1]),
+  op("uniquePerm", 3, 2, [1]),
+  op("repeatAssert", 3, 2, [2]),
+  op("frequencyList", 3, 2, [2]),
+  op("frequencyListAssert", 3, 2, [2]),
+  op("sortedLastLessIndex", 3, 2, [2]),
+  op("sortedLastLessEqualIndex", 3, 2, [2]),
+]);
+
+/**
+ * Hidden names Desmos's graphing calculator refuses, once their argument count and types pass and
+ * for the bare name, with "This calculator does not support the 'frequencyList' function."
+ * (function catalogue, captured live 2026-10-19).
+ */
+export const REFUSED_NAMES: readonly string[] = Object.freeze([
+  "repeatAssert",
+  "frequencyList",
+  "frequencyListAssert",
+  "sortedLastLessIndex",
+  "sortedLastLessEqualIndex",
 ]);
 
 /** Members, read only after `.` (PR-45): never built-ins, split targets or MathQuill names. */

@@ -492,7 +492,8 @@ for (const [latex, note] of STATISTICS_GRAPHED) {
 }
 
 // FN-30, FN-31, FN-35, FN-36, FN-38 and argmin, argmax: every catalogue value, error and row
-// without a value for the two-list statistics, the list operations and argmin and argmax
+// without a value for the two-list statistics, the list operations, argmin and argmax, the hidden
+// sortPerm, complexSortPerm, uniquePerm and shuffle, and the hidden names Desmos refuses
 // (desmos-list-operations.fixture.json), keyed and evaluated as the statistics cases. A row's
 // error is its analysis error or, as the row shows it, the error its value carries
 // (`repeat(1,2.5)`). Not yet matched, each an expected failure that fails once matched:
@@ -514,6 +515,7 @@ const LIST_OPERATION_GRAPH_GAPS: ReadonlySet<string> = new Set([
   "\\operatorname{join}(x,1)",
   "\\operatorname{repeat}((1,2),2)",
   "\\operatorname{repeat}(x,2)",
+  "\\operatorname{shuffle}(E)",
 ]);
 const listOperationGap = (key: string) => LIST_OPERATION_GAPS.some((gap) => gap.test(key));
 const LIST_OPERATION_VALUES = Object.entries(listOperations.values) as [string, Captured][];
@@ -526,11 +528,11 @@ function shownError(rows: readonly string[], latex: string): string | undefined 
   return errorMessage(rows, latex) ?? (carried === null ? undefined : rowErrorMessage(carried, []));
 }
 
-it("FN-30 FN-38 all 130 catalogue list operation values are checked, 114 matched", () =>
+it("FN-30 FN-38 all 136 catalogue list operation values are checked, 120 matched", () =>
   expect([
     LIST_OPERATION_VALUES.length,
     LIST_OPERATION_VALUES.filter(([k]) => !listOperationGap(k)).length,
-  ]).toEqual([130, 114]));
+  ]).toEqual([136, 120]));
 
 for (const [key, expected] of LIST_OPERATION_VALUES) {
   const check = () => {
@@ -544,11 +546,11 @@ for (const [key, expected] of LIST_OPERATION_VALUES) {
   else it(`FN-30 FN-38 ${key} is ${shown}, as in Desmos`, check);
 }
 
-it("FN-30 FN-38 all 72 catalogue list operation errors are checked, 66 matched", () =>
+it("FN-30 FN-38 all 157 catalogue list operation errors are checked, 143 matched", () =>
   expect([
     LIST_OPERATION_ERRORS.length,
     LIST_OPERATION_ERRORS.filter(([k]) => !listOperationGap(k)).length,
-  ]).toEqual([72, 66]));
+  ]).toEqual([157, 143]));
 
 for (const [key, message] of LIST_OPERATION_ERRORS) {
   const check = () => {
@@ -560,8 +562,8 @@ for (const [key, message] of LIST_OPERATION_ERRORS) {
   else it(`FN-30 FN-38 ${key} reads "${message}", as in Desmos`, check);
 }
 
-it("FN-35 FN-36 all 16 catalogue list operation rows without a value are checked", () =>
-  expect(LIST_OPERATION_GRAPHED.length).toBe(16));
+it("FN-35 FN-36 all 17 catalogue list operation rows without a value are checked", () =>
+  expect(LIST_OPERATION_GRAPHED.length).toBe(17));
 
 for (const [latex, note] of LIST_OPERATION_GRAPHED) {
   const check = () => {

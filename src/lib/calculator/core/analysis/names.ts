@@ -22,6 +22,26 @@ export interface NameUse {
 const COUNTING_NAMES: ReadonlySet<string> = new Set(["count", "length"]);
 
 /**
+ * FN-2, FN-34, FN-38, NM-31, NM-36: the children of `node` whose values decide how many values it
+ * holds, so count and length read them: a range's bounds, a range or filter index's items,
+ * repeat's counts and every argument of unique. `length([1,2,3]x)` is 3 for every x, while
+ * `length(repeat(1,x))` depends on x.
+ */
+export function lengthShaping(node: Node): readonly Node[] {
+  switch (node.kind) {
+    case "list":
+      return node.range === undefined ? [] : node.items;
+    case "index":
+      return node.range !== undefined || node.items[0]?.kind === "rel" ? node.items : [];
+    case "call":
+      if (node.name === "repeat") return node.args.slice(1);
+      return node.name === "unique" ? node.args : [];
+    default:
+      return [];
+  }
+}
+
+/**
  * Every use of a name in `tree`: each `id`, and each `call` of a non-built-in name (a pre-scanned
  * user function, PR-23) with `call: true`. Sorted by `span.start`; ties keep tree order, a node
  * before its children. Iterative, so a deep tree cannot overflow the stack.
@@ -38,8 +58,11 @@ export function collectNameUses(tree: Node): NameUse[] {
     }
     const below = inPoint || node.kind === "point";
     const counts = counted || (node.kind === "call" && COUNTING_NAMES.has(node.name));
-    const kids = sourceChildren(node);
-    for (let i = kids.length - 1; i >= 0; i -= 1) pending.push([kids[i], below, counts]);
+    const kids = sourceChildren(node),
+      shaping = counts ? lengthShaping(node) : [];
+    for (let i = kids.length - 1; i >= 0; i -= 1) {
+      pending.push([kids[i], below, counts && !shaping.includes(kids[i])]);
+    }
   }
   return uses.sort((a, b) => a.span.start - b.span.start);
 }

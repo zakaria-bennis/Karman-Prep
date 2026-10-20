@@ -5,6 +5,7 @@
 // a two-list result undefined. Pure TypeScript: no DOM (AR-44).
 
 import { ListError, MAX_LIST_ELEMENTS } from "../eval/lists";
+import { REFUSED_NAMES } from "../latex/operator-names";
 import { numberValue, UNDEFINED, type Value } from "../eval/values";
 
 export interface ListOperation {
@@ -33,11 +34,14 @@ function moments(xs: readonly number[], ys: readonly number[]): [number, number,
   return [sxy, sxx, syy];
 }
 
-/** FN-30: sample covariance, n − 1; undefined for fewer than two pairs. */
-const cov = (xs: readonly number[], ys: readonly number[]) =>
-  xs.length < 2 ? NaN : moments(xs, ys)[0] / (xs.length - 1);
 /** FN-30: population covariance, n; one pair gives 0. */
 const covp = (xs: readonly number[], ys: readonly number[]) => moments(xs, ys)[0] / xs.length;
+/**
+ * FN-30: sample covariance as Desmos rounds it, covp · n / (n − 1) rather than Σ / (n − 1), so
+ * whole-number results stay whole; one pair is 0 / 0, undefined.
+ */
+const cov = (xs: readonly number[], ys: readonly number[]) =>
+  (covp(xs, ys) * xs.length) / (xs.length - 1);
 
 /** FN-31: Pearson's r, undefined for fewer than two pairs or a list with no spread. */
 function corr(xs: readonly number[], ys: readonly number[]): number {
@@ -95,6 +99,18 @@ function ascending(a: number, b: number): number {
 }
 
 /**
+ * FN-36: the stable ascending order of `keys`' first `n` elements, undefined ones last, as 0-based
+ * indexes: Desmos's sortPerm (`sortPerm([3,1,2])` = [1, 2, 0]), and complexSortPerm, which orders
+ * by real then imaginary part and so agrees with it on real numbers.
+ */
+function sortOrder(keys: readonly Value[], n = keys.length): number[] {
+  const ks = keys.slice(0, n).map(key),
+    order = ks.map((_, i) => i);
+  order.sort((i, j) => ascending(ks[i][0], ks[j][0]) || ascending(ks[i][1], ks[j][1]));
+  return order;
+}
+
+/**
  * FN-36: `sort(L)` sorts numbers ascending with undefined elements last; `sort(L, K)` reorders L
  * (numbers or points) by the keys K, cut to the shorter list. Both are stable.
  */
@@ -102,11 +118,16 @@ function sort(args: readonly Value[]): Value {
   const [items, keys = items] = args;
   if (!isList(items) || !isList(keys)) return UNDEFINED;
   if (keys.value.some((k) => k.type === "point")) return UNDEFINED;
-  const n = Math.min(items.value.length, keys.value.length),
-    ks = keys.value.slice(0, n).map(key),
-    order = ks.map((_, i) => i);
-  order.sort((i, j) => ascending(ks[i][0], ks[j][0]) || ascending(ks[i][1], ks[j][1]));
+  const order = sortOrder(keys.value, Math.min(items.value.length, keys.value.length));
   return list(order.map((i) => items.value[i]));
+}
+
+/** sortPerm and complexSortPerm of one list of numbers: its sort order (sortOrder). */
+function sortPerm(args: readonly Value[]): Value {
+  const [keys] = args;
+  if (args.length !== 1 || !isList(keys) || keys.value.some((k) => k.type === "point"))
+    return UNDEFINED;
+  return list(sortOrder(keys.value).map(numberValue));
 }
 
 /** FN-38: the text Desmos keys a value by, so 0 and −0 match, as do two undefined elements. */
@@ -123,20 +144,27 @@ function identity(v: Value): string {
   }
 }
 
-/** FN-38: each value's first occurrence, in the original order. */
-function unique(args: readonly Value[]): Value {
-  const [items] = args;
-  if (args.length !== 1 || !isList(items)) return UNDEFINED;
+/** FN-38: the 0-based index of each value's first occurrence, in order: Desmos's uniquePerm. */
+function firstOccurrences(items: readonly Value[]): number[] {
   const seen = new Set<string>(),
-    kept: Value[] = [];
-  for (const v of items.value) {
+    kept: number[] = [];
+  items.forEach((v, i) => {
     const id = identity(v);
-    if (seen.has(id)) continue;
+    if (seen.has(id)) return;
     seen.add(id);
-    kept.push(v);
-  }
-  return list(kept);
+    kept.push(i);
+  });
+  return kept;
 }
+
+/** FN-38: `unique(L)` keeps each value's first occurrence; `uniquePerm(L)` gives their indexes. */
+const uniqueBy =
+  (pick: (items: readonly Value[], i: number) => Value) =>
+  (args: readonly Value[]): Value => {
+    const [items] = args;
+    if (args.length !== 1 || !isList(items)) return UNDEFINED;
+    return list(firstOccurrences(items.value).map((i) => pick(items.value, i)));
+  };
 
 /**
  * FN-35: numbers and lists of numbers, or points and lists of points, end to end; points beside
@@ -152,17 +180,21 @@ function join(args: readonly Value[]): Value {
   return list(items);
 }
 
-/** FN-34: a repeat count must be a whole number, 0 or more. */
-function count(v: Value): number {
+/**
+ * FN-34: a repeat count must be a whole number, 0 or more; Desmos words a bad count in a list of
+ * counts (`repeat-counts`) apart from a single bad count (`repeat-count`).
+ */
+function count(v: Value, code: "repeat-count" | "repeat-counts"): number {
   const n = v.type === "number" ? v.value : NaN;
-  if (!Number.isInteger(n) || n < 0) throw new ListError("repeat-count");
+  if (!Number.isInteger(n) || n < 0) throw new ListError(code);
   return n;
 }
 
 /**
  * FN-34: `repeat(v, n)` is n copies of a number or point v; `repeat(L, N)` repeats L's element i
  * N[i] times, the lists of the same length. A count that is not a whole number 0 or more is
- * `repeat-count`, lists of different lengths `repeat-lengths` and a result over 10,000 elements
+ * `repeat-count` (`repeat-counts` in a list of counts), lists of different lengths
+ * `repeat-lengths`, checked before the counts, and a result over 10,000 elements
  * `list-too-long`, Desmos's errors; a list beside a single value is undefined.
  */
 function repeat(args: readonly Value[]): Value {
@@ -171,7 +203,8 @@ function repeat(args: readonly Value[]): Value {
   const values = isList(v) ? v.value : [v],
     counts = isList(n) ? n.value : [n];
   if (values.length !== counts.length) throw new ListError("repeat-lengths");
-  const times = counts.map(count);
+  const code = isList(n) ? "repeat-counts" : "repeat-count",
+    times = counts.map((c) => count(c, code));
   if (times.reduce((s, t) => s + t, 0) > MAX_LIST_ELEMENTS) throw new ListError("list-too-long");
   return list(values.flatMap((value, i) => Array.from({ length: times[i] }, () => value)));
 }
@@ -183,7 +216,17 @@ export const LIST_OPERATIONS: ReadonlyMap<string, ListOperation> = new Map<strin
   ["corr", double(corr)],
   ["spearman", double(spearman)],
   ["sort", { kind: "operation", apply: sort }],
-  ["unique", { kind: "operation", apply: unique }],
+  ["unique", { kind: "operation", apply: uniqueBy((items, i) => items[i]) }],
   ["join", { kind: "operation", minArguments: 2, apply: join }],
   ["repeat", { kind: "operation", apply: repeat }],
+  // hidden names, which only pasted latex reaches (HIDDEN_OPERATOR_NAMES)
+  ["sortPerm", { kind: "operation", apply: sortPerm }],
+  ["complexSortPerm", { kind: "operation", apply: sortPerm }],
+  ["uniquePerm", { kind: "operation", apply: uniqueBy((_, i) => numberValue(i)) }],
+  // Desmos built-ins its calculator refuses after checking their arguments (analysis gives the
+  // refusal, so they never evaluate)
+  ...REFUSED_NAMES.map((name): [string, ListOperation] => [
+    name,
+    { kind: "operation", apply: () => UNDEFINED },
+  ]),
 ]);

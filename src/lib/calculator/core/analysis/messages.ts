@@ -3,7 +3,7 @@
 
 import type { RowErrorCode } from "../corpus/types";
 import { DEFERRED_FEATURES } from "../latex/errors";
-import { PREFIX_FORM_NAMES } from "../latex/operator-names";
+import { PREFIX_FORM_NAMES, REFUSED_NAMES } from "../latex/operator-names";
 
 /** The letters MathQuill shows for each Greek command (PR-11; omicron is not a name). */
 const GREEK_LETTERS: Readonly<Record<string, string>> = {
@@ -59,7 +59,9 @@ function letter(base: string): string {
  * `range-bound`, `range-step`, `list-too-long`, `log-power`, `empty-subscript`,
  * `name-subscript`, `index-type`, `list-length-free`, `empty-brackets`, `empty-root`,
  * `empty-root-index`, `reducer-arguments`, `first-argument-list`, `argument-type`, `both-lists`,
- * `repeat-count` and `repeat-lengths` use the text Desmos gave on 2026-10-19.
+ * `repeat-count`, `repeat-lengths` and `refused-function` use the text Desmos gave on 2026-10-19;
+ * `repeat-counts` is
+ * Desmos's text for a bad count in a list of counts (its bundle's bad-counts string).
  */
 const MESSAGES: Readonly<Record<RowErrorCode, string>> = {
   syntax: "This can't be read. Check for a missing bracket or operator.",
@@ -108,6 +110,8 @@ const MESSAGES: Readonly<Record<RowErrorCode, string>> = {
   "both-lists":
     "Both arguments of '{n}' must be lists. For example, try typing: {n}([1,2,3], [3,2,1]).",
   "repeat-count": "'repeat' count must be a finite, non-negative integer.",
+  "repeat-counts": "Each 'repeat' count must be a finite, non-negative integer.",
+  "refused-function": "This calculator does not support the '{n}' function.",
   "repeat-lengths": "When the arguments of 'repeat' are lists, they must have the same length.",
 };
 /** RC-2, Phase 1: `unsupported` naming r or θ, whose polar graphs ship in Phase 2. */
@@ -130,6 +134,10 @@ export function rowErrorMessage(code: RowErrorCode, names: string[]): string {
   // PR-24: a trig, hyperbolic, ln or log name on its own reads as Desmos's empty call.
   if (code === "function-parentheses" && PREFIX_FORM_NAMES.has(n)) {
     return arityMessage(n, "1", 0);
+  }
+  // A refused name on its own reads as Desmos's refusal, not "is a function".
+  if (code === "function-parentheses" && REFUSED_NAMES.includes(n)) {
+    return rowErrorMessage("refused-function", [n]);
   }
   let template = MESSAGES[code];
   if (code === "unsupported" && POLAR_NAMES.has(n)) template = POLAR_UNSUPPORTED;
@@ -155,6 +163,8 @@ const LIST_EXAMPLES = new Map<string, { one?: string; many?: string }>([
   ["sort", { one: "[3,2,1]", many: "[1,2,3],[3,2,1]" }],
   ["unique", { one: "[1,2,3]" }],
   ["join", { many: "[1,2],[3,4]" }],
+  ["sortedLastLessIndex", QUANTILE_EXAMPLE],
+  ["sortedLastLessEqualIndex", QUANTILE_EXAMPLE],
 ]);
 
 /**

@@ -45,7 +45,7 @@ it("FN-1 every shipped built-in and operator has a committed reference case, wit
     BUILTIN_ARITY.get("log"),
     BUILTIN_ARITY.get("round"),
     BUILTIN_ARITY.get("nCr"),
-  ]).toEqual([46, [1], [1, 2], [1, 2], [1, 2], [2]]);
+  ]).toEqual([54, [1], [1, 2], [1, 2], [1, 2], [2]]); // 8 of them hidden names
   const ops = new Set(reference.cases.map((c) => c.op));
   for (const op of [
     ...shipped,

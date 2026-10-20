@@ -1,14 +1,15 @@
 // Built-in argument counts (RC-20), read from PR-12's one operator-name list so no count is
 // restated here. Pure TypeScript: no DOM (AR-44).
 
-import { isShippedBuiltin, OPERATOR_NAMES } from "../latex/operator-names";
+import { HIDDEN_OPERATOR_NAMES, isShippedBuiltin, OPERATOR_NAMES } from "../latex/operator-names";
 
 /**
- * The accepted argument counts of every shipped built-in function with a panel category and a
- * fixed arity: `[1]` for sin, `[1, 2]` for arctan and log (`\log_{b}x` is `(call log x b)`).
+ * The accepted argument counts of every shipped built-in function, hidden ones included, with a
+ * panel category and a fixed arity: `[1]` for sin, `[1, 2]` for arctan and log (`\log_{b}x` is
+ * `(call log x b)`).
  */
 export const BUILTIN_ARITY: ReadonlyMap<string, readonly number[]> = new Map(
-  OPERATOR_NAMES.flatMap((o) =>
+  [...OPERATOR_NAMES, ...HIDDEN_OPERATOR_NAMES].flatMap((o) =>
     o.category !== null && isShippedBuiltin(o.name) && o.arity !== "variadic"
       ? [[o.name, o.arity] as const]
       : []

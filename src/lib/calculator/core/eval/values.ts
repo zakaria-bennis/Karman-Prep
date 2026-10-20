@@ -17,6 +17,7 @@ export type ListErrorCode =
   | "range-step"
   | "list-mixed"
   | "repeat-count"
+  | "repeat-counts"
   | "repeat-lengths";
 
 export type Value =

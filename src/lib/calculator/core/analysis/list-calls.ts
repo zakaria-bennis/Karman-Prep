@@ -3,6 +3,7 @@
 // tell before anything evaluates. Pure TypeScript: no DOM (AR-44).
 
 import { sourceChildren, type Node } from "../latex/ast";
+import { REFUSED_NAMES } from "../latex/operator-names";
 import { BUILTIN_ARITY } from "../lib/arity";
 import { listFunction } from "../lib/statistics";
 import { SHAPE_NAMES, type ListProblem, type ListTyping, type Shape } from "./lists";
@@ -43,7 +44,12 @@ export function listCallProblem(
         continue;
       const problem = operationProblem(call.name, shapes);
       if (problem === "both-lists") return { code: problem, names: [name], span: call.span };
+      if (problem === "first-list")
+        return { code: "first-argument-list", names: [name], span: call.span };
       if (problem !== null && known) return applied(described(shapes as Shape[]));
+      // Desmos refuses these only once their arguments pass
+      if (REFUSED_NAMES.includes(call.name))
+        return { code: "refused-function", names: [name], span: call.span };
     } else if (fn.kind === "parameterized") {
       if (call.args.length !== 2) continue;
       if (shapes[0] === "number" || shapes[0] === "point") {
@@ -69,14 +75,35 @@ const isListShape = (s: Shape | null) => s === "numbers" || s === "points";
  * statistic has a number or point argument (`cov(1,2)`, `cov(S,x)`), "applied" when Desmos names
  * the argument shapes: a two-list statistic of points, sort or unique of a number or point, sort
  * of points without keys or with keys that are not numbers, repeat other than a value and a
- * number or two lists of numbers counts, and join mixing numbers and points. Else null.
+ * number or two lists of numbers counts, and join mixing numbers and points. The hidden names, by
+ * Desmos's signatures: sortPerm and complexSortPerm take a list of numbers, uniquePerm any list,
+ * repeatAssert a value and a number, frequencyList and frequencyListAssert a list and a list of
+ * numbers, and sortedLastLessIndex and sortedLastLessEqualIndex a list of numbers first
+ * ("first-list" for a number or a point there, as quantile). Else null.
  */
 function operationProblem(
   name: string,
   shapes: readonly (Shape | null)[]
-): "both-lists" | "applied" | null {
+): "both-lists" | "applied" | "first-list" | null {
   const [first, second] = shapes;
+  const unknown = first === null || second === null;
   switch (name) {
+    case "sortPerm":
+    case "complexSortPerm":
+      return first === "numbers" || first === null ? null : "applied";
+    case "uniquePerm":
+      return isListShape(first) || first === null ? null : "applied";
+    case "repeatAssert":
+      return unknown || ((first === "number" || first === "point") && second === "number")
+        ? null
+        : "applied";
+    case "frequencyList":
+    case "frequencyListAssert":
+      return unknown || (isListShape(first) && second === "numbers") ? null : "applied";
+    case "sortedLastLessIndex":
+    case "sortedLastLessEqualIndex":
+      if (first === "number" || first === "point") return "first-list";
+      return first === "points" ? "applied" : null;
     case "cov":
     case "covp":
     case "corr":

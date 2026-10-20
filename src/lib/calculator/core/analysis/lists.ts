@@ -13,7 +13,7 @@ import { rangeShape } from "../lib/range";
 import { givesList, listFunction } from "../lib/statistics";
 import type { DefinitionHead } from "./definitions";
 import { displayName } from "./messages";
-import { collectNameUses, COORDINATE_NAMES } from "./names";
+import { collectNameUses, COORDINATE_NAMES, lengthShaping } from "./names";
 
 export interface ListTyping {
   names: ReadonlySet<string>; // value names that hold a list
@@ -157,13 +157,21 @@ function listCallShape(node: Call, args: readonly (Shape | null)[]): Shape | nul
   return one || args.every((s) => s === "point") ? "point" : "number";
 }
 
+const PERMUTATION_NAMES: ReadonlySet<string> = new Set([
+  "sortPerm",
+  "complexSortPerm",
+  "uniquePerm",
+]);
+
 /**
  * FN-34 to FN-36, FN-38: a list operation's shape: sort and unique keep their list's, repeat
  * gives a list of its first argument's kind, and join a list of numbers or of points when every
- * argument holds that kind. Unknown otherwise, Desmos's errors being list-calls.ts's.
+ * argument holds that kind; sortPerm, complexSortPerm and uniquePerm give indexes, numbers.
+ * Unknown otherwise, Desmos's errors being list-calls.ts's.
  */
 function operationShape(name: string, args: readonly (Shape | null)[]): Shape | null {
   const [first] = args;
+  if (PERMUTATION_NAMES.has(name)) return "numbers";
   if (name === "sort" || name === "unique") {
     return first === "numbers" || first === "points" ? first : null;
   }
@@ -317,7 +325,10 @@ function lengthDependency(
 
 /**
  * G-22, deferred: a list-valued graph is `unsupported`, at its first part that is a list itself: a
- * literal or range, a list name, or a call of a function that returns a list.
+ * literal or range, a list name, or a call of a function that returns a list. FN-34, FN-38: before
+ * that, a list-valued graph whose length depends on a free variable through repeat's counts or
+ * unique's arguments is `list-length-free` (`repeat(1,x)`), Desmos's error for a top-level list
+ * with no constant length; inside count, total or another reducer the row still graphs.
  */
 export function listCurveProblem(
   tree: Node,
@@ -329,6 +340,12 @@ export function listCurveProblem(
   const pending: Node[] = [tree];
   for (let n = pending.pop(); n !== undefined; n = pending.pop()) {
     if (!typing.isList(n, locals)) continue;
+    for (const part of n.kind === "call" ? lengthShaping(n) : []) {
+      for (const { name, call } of collectNameUses(part)) {
+        if (call || locals.includes(name) || typing.defined.has(name)) continue;
+        return { code: "list-length-free", names: [displayName(name)], span: n.span };
+      }
+    }
     const parts = n.kind === "list" ? [] : childNodes(n).filter((c) => typing.isList(c, locals));
     if (parts.length > 0) pending.push(...parts);
     else if (span === null || n.span.start < span.start) span = n.span;

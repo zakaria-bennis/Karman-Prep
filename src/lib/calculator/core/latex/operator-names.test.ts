@@ -50,22 +50,28 @@ describe("operator-name allowlist", () => {
       [true, true, false, true, true, false],
     ]);
   });
-  it("FN-23 argmin and argmax are hidden built-ins: pasted latex only, never typed or on the panel", () => {
+  it("FN-23 FN-36 FN-38 hidden built-ins are pasted latex only, never typed or on the panel", () => {
     expect(O.HIDDEN_OPERATOR_NAMES.map((n) => [n.name, n.category, n.arity])).toEqual([
       ["argmin", 3, "variadic"],
       ["argmax", 3, "variadic"],
+      ["sortPerm", 3, [1]],
+      ["complexSortPerm", 3, [1]],
+      ["uniquePerm", 3, [1]],
+      ["repeatAssert", 3, [2]],
+      ["frequencyList", 3, [2]],
+      ["frequencyListAssert", 3, [2]],
+      ["sortedLastLessIndex", 3, [2]],
+      ["sortedLastLessEqualIndex", 3, [2]],
     ]);
-    expect(["argmin", "argmax"].map((n) => [O.isBuiltinName(n), O.isShippedBuiltin(n)])).toEqual([
-      [true, true],
-      [true, true],
-    ]);
+    const hidden = O.HIDDEN_OPERATOR_NAMES.map((n) => n.name);
+    expect(hidden.every((n) => O.isBuiltinName(n) && O.isShippedBuiltin(n))).toBe(true);
+    expect(O.REFUSED_NAMES.every((n) => hidden.includes(n))).toBe(true);
     const typed = O.mathQuillAutoOperatorNames().split(" ");
-    expect([typed.includes("argmin"), typed.includes("arg"), names().includes("argmax")]).toEqual([
-      false,
-      true,
-      false,
-    ]);
-    expect(O.panelCategories().some((c) => c.entries.some((e) => e.name.startsWith("argm")))).toBe(
+    expect([
+      typed.includes("arg"),
+      hidden.some((n) => typed.includes(n) || names().includes(n)),
+    ]).toEqual([true, false]);
+    expect(O.panelCategories().some((c) => c.entries.some((e) => hidden.includes(e.name)))).toBe(
       false
     );
   });

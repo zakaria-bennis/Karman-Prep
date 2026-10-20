@@ -291,6 +291,22 @@ a reference family. Not matched: derivatives, colours and tones, member access, 
 exactly), and rows that graph several curves (G-22) or a call's points (M5). The plan's "mismatched
 lengths return `L` unchanged" for `sort(L,K)` is wrong: Desmos cuts to the shorter list.
 
+**Review fixes (2026-10-19).** cov is covp · n/(n − 1), Desmos's rounding, so whole-number results
+stay whole (`cov([1,4,1],[-4,-6,8])` = −8, not −7.999999999999999). A bad count in a list of
+counts reads "Each 'repeat' count must be a finite, non-negative integer." (`repeat-counts`).
+count and length read x when it decides the list's length (repeat's counts, unique's values, a
+range's bounds or a filter), so `y=length(repeat(1,x))` graphs; a top-level list whose length
+depends on x through repeat or unique reads "Can't plot a list whose length depends on free
+variable 'x'." (`repeat(1,x)`), Desmos's list-length rule. The hidden sortPerm, complexSortPerm
+and uniquePerm ship (0-based indexes; sort and unique are built on them), and repeatAssert,
+frequencyList, frequencyListAssert, sortedLastLessIndex and sortedLastLessEqualIndex give
+Desmos's argument errors and then its refusal, "This calculator does not support the
+'frequencyList' function." (`refused-function`, also for the bare name). The fixture now holds
+136 values, 157 errors and 17 rows without a value (120, 143 and 9 match). Still open: shuffle
+(T14); ±Infinity, which the engine reads as undefined while Desmos keeps it (so
+`sort([3,1/0,-1/0,1])`, `argmin([3,-1/0,1])`, `argmax([3,1/0,1])` and `unique([1/0,1/0,-1/0])`
+differ); and `y=length([1...x])`, which the NM-31 check refuses although the row is a number.
+
 - **New file `core/lib/list-functions.ts`:** `cov`, `covp`, `corr`, `join`, `sort(L[, K])`,
   `unique`. Desmos: `sort(L,K)` sorts `L` by `K`, and mismatched lengths return `L` unchanged;
   `unique` keeps first-occurrence order; `join(1,2)` = `[1, 2]`.

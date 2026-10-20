@@ -7,6 +7,7 @@ import { compileRealFunction1, evaluateLatex } from "../eval/compile";
 import { parseLatex } from "../latex";
 import { numberValue, type Value } from "../eval/values";
 import { applyListFunction, givesList } from "./statistics";
+import { rowErrorMessage } from "../analysis/messages";
 
 const n = numberValue;
 const list = (...xs: number[]): Value => ({ type: "list", value: xs.map(n) });
@@ -47,6 +48,40 @@ it("FN-34 repeat errors are the row's error, as Desmos shows them", () => {
   });
 });
 
+it("FN-34 a bad count in a list of counts has Desmos's own wording", () => {
+  // No live capture: the wording and order come from Desmos's bundle (bad-counts, checked after
+  // the lengths match, for list counts only).
+  const error = (latex: string) => {
+    const v = evaluateLatex(latex);
+    return v.type === "undefined" ? v.error : v;
+  };
+  expect(
+    [
+      "\\operatorname{repeat}([1,2],[1.5,2])",
+      "\\operatorname{repeat}([1,2],[\\frac{0}{0},1])",
+      "\\operatorname{repeat}([1,2],[-1,1])",
+      "\\operatorname{repeat}([1,2],[1.5,2,3])",
+      "\\operatorname{repeat}(1,-1)",
+    ].map(error)
+  ).toEqual(["repeat-counts", "repeat-counts", "repeat-counts", "repeat-lengths", "repeat-count"]);
+  expect(rowErrorMessage("repeat-counts", [])).toBe(
+    "Each 'repeat' count must be a finite, non-negative integer."
+  );
+});
+
+it("FN-30 cov is covp · n / (n − 1), so Desmos's whole-number results stay whole", () => {
+  // Desmos's rounding, from its bundle: Σ / (n − 1) would give −1.9999999999999998, −7.999999999999999
+  // and −7.000000000000001 here.
+  expect(
+    [
+      "\\operatorname{cov}([-2,-0.8,-2],[-6,-5,6])",
+      "\\operatorname{cov}([1,4,1],[-4,-6,8])",
+      "\\operatorname{cov}([6,0,2],[0,5,1])",
+      "\\operatorname{cov}([1],[2])",
+    ].map((latex) => evaluateLatex(latex))
+  ).toEqual([n(-2), n(-8), n(-7), { type: "undefined" }]);
+});
+
 it("FN-30 FN-35 list operations always give a list and two-list statistics never", () => {
   expect([
     givesList("sort", [true]),
@@ -77,4 +112,52 @@ it("FN-23 argmin and argmax read from pasted latex, and typed arg then min stays
   // typed letters split into arg and min, as in Desmos; arg has not shipped
   const typed = parseLatex("argmin(1)");
   expect(typed.ok ? typed.tree : typed.error.detail).toBe('"arg" is not supported');
+});
+
+it("FN-34 FN-38 count and length read x when repeat's counts or unique's values hold it", () => {
+  // Desmos folds count and length only when the list's length is constant (its bundle's list
+  // length rule), and a top-level list with no constant length is its list-length error.
+  const analyse = (latex: string) =>
+    analyzeRows([{ id: "r", latex, hidden: false }], { angleMode: "radians", complex: false });
+  const curve = (latex: string) => {
+    const analysis = analyse(latex),
+      graph = analysis.rows[0].graph;
+    if (graph?.kind !== "explicit") throw new Error(latex);
+    const scope = {
+      functions: analysis.functions,
+      values: new Map(),
+      settings: { angleMode: "radians" as const, complex: false },
+    };
+    return compileRealFunction1(graph.expr, "x", scope);
+  };
+  const repeated = curve("y=\\operatorname{length}(\\operatorname{repeat}(1,x))"),
+    counted = curve("y=\\operatorname{count}(\\operatorname{repeat}([1,2],[x,1]))"),
+    unique = curve("y=\\operatorname{length}(\\operatorname{unique}([x,1]))");
+  expect([repeated(3), repeated(2.5), counted(2), unique(1), unique(2)]).toEqual([3, NaN, 3, 1, 2]);
+  expect(evaluateLatex("\\operatorname{length}([1,2,3]x)")).toEqual(n(3));
+  expect(analyse("\\operatorname{length}(\\operatorname{repeat}(x,3))").rows[0].kind).toBe("value");
+  const errors = ["y=\\operatorname{repeat}(1,x)", "\\operatorname{unique}([x,1])"].map(
+    (latex) => analyse(latex).rows[0].error?.message
+  );
+  expect(errors).toEqual([
+    "Can't plot a list whose length depends on free variable 'x'.",
+    "Can't plot a list whose length depends on free variable 'x'.",
+  ]);
+});
+
+it("FN-36 FN-38 the hidden sortPerm and uniquePerm give 0-based indexes, of points too", () => {
+  const P = { rows: ["P=[(1,2),(3,4),(1,2)]"] };
+  expect(evaluateLatex("\\operatorname{uniquePerm}(P)", P)).toEqual(list(0, 1));
+  expect(evaluateLatex("\\operatorname{sortPerm}([2,\\frac{0}{0},1,2])")).toEqual(list(2, 0, 3, 1));
+  // indexes are numbers, so uniquePerm(P) adds to a number
+  const analysis = analyzeRows(
+    ["P=[(1,2),(3,4),(1,2)]", "\\operatorname{uniquePerm}(P)+1"].map((latex, k) => ({
+      id: `r${k}`,
+      latex,
+      hidden: false,
+    })),
+    { angleMode: "radians", complex: false }
+  );
+  expect(analysis.rows[1].error).toBe(null);
+  expect(evaluateLatex("\\operatorname{uniquePerm}(P)+1", P)).toEqual(list(1, 2));
 });
