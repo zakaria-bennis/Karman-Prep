@@ -24,6 +24,17 @@ it("S-2 Add item is a menu button whose menu holds Add expression then Add table
   expect(menu()).toBeNull();
 });
 
+it("S-10 a mouse open while Add item holds focus moves focus to the first item; Escape returns it", async () => {
+  const kit = renderEditor(<ExpressionPanel {...panelProps()} />, { rows: [""] });
+  act(() => addItem().focus()); // as App's focusClickedControl leaves it after a click
+  fireEvent.click(addItem(), { detail: 1 });
+  const items = within(menu()!).getAllByRole("menuitem");
+  expect(items[0]).toHaveFocus();
+  act(() => kit.pressEscape());
+  expect(menu()).toBeNull();
+  expect(addItem()).toHaveFocus();
+});
+
 it("S-10 Enter, Space and ArrowDown open the menu with focus on the first item; arrows wrap; Home and End; Tab and Escape close it", async () => {
   const kit = renderEditor(<ExpressionPanel {...panelProps()} />, { rows: [""] });
   const user = userEvent.setup();

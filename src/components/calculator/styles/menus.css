@@ -204,10 +204,21 @@
   visibility: hidden;
 }
 
+/* EL-43: the reference's f(x) icon is italic throughout, brackets included, and sits a little
+   high in its cell. */
 .kc-add-menu-fx {
+  position: relative;
+  top: -1.5px;
   font-family: var(--kc-font-math);
-  font-size: 18.5px;
+  font-size: 17px;
+  font-style: italic;
   line-height: 24px;
+}
+
+/* The label sits 1 px above the cell's centre line, as the reference's does. */
+.kc-add-menu-item > span:last-child {
+  position: relative;
+  top: -1px;
 }
 
 /* VIS-3, VIS-22 to VIS-24, VIS-38: a table column's style menu, the shared popover box 220 px wide

@@ -18,7 +18,7 @@ export interface SettingCheckProps {
 function TickGlyph(): JSX.Element {
   return (
     <svg className="kc-check-tick" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
-      <path d="M3.2 10.4 7.6 14.8 17.4 3.6" />
+      <path d="M3 10.8 9.2 16.2 18.8 4.8" />
     </svg>
   );
 }

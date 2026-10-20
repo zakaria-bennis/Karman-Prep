@@ -18,11 +18,11 @@ export interface AddItemMenuProps {
   layout: "desktop" | "stacked";
 }
 
-/** EL-43: "f(x)" in the math font, italic letters and upright brackets. */
+/** EL-43: "f(x)" in the math font, italic throughout as the reference's icon is (menus.css). */
 function ExpressionItemGlyph(): JSX.Element {
   return (
     <span className="kc-add-menu-fx" aria-hidden="true">
-      <i>f</i>(<i>x</i>)
+      f(x)
     </span>
   );
 }
@@ -38,6 +38,14 @@ function TableMenuGlyph(): JSX.Element {
     </svg>
   );
 }
+
+/** True while DOM focus is on `el` (inside the calculator's shadow root or the document). */
+function holdsFocus(el: Element | null | undefined): boolean {
+  return el != null && (el.getRootNode() as Document | ShadowRoot).activeElement === el;
+}
+
+/** Focus with no focus ring (the `focusVisible` option, which TypeScript's DOM types lack). */
+const QUIET_FOCUS = { preventScroll: true, focusVisible: false };
 
 // EL-43: the reference's lower-case labels; only the item types Karman supports.
 const ITEMS = [
@@ -61,16 +69,24 @@ export function AddItemMenu({ layout }: AddItemMenuProps): JSX.Element {
     if (refocus) button.current?.focus();
   };
 
-  /** Opened from the keyboard: only then does the first item take focus (S-10). A mouse open
-   *  leaves focus where it was (the row being edited), as the reference's menu does. */
+  /** Opened from the keyboard, the first item takes focus (S-10). A mouse open leaves focus in
+   *  the row being edited; when Add item itself holds focus (nothing was being edited), focus
+   *  moves to the first item with no ring, as the reference's menu does. */
   const byKey = useRef(false);
   useEffect(() => {
-    if (open && byKey.current) items.current[0]?.focus();
+    if (!open) return;
+    if (byKey.current) items.current[0]?.focus();
+    else if (holdsFocus(button.current)) {
+      items.current[0]?.focus(QUIET_FOCUS);
+    }
   }, [open]);
-  // KB-3: Escape closes the menu and returns focus to Add item when the keyboard opened it.
+  // KB-3: Escape closes the menu and returns focus to Add item when the menu held it.
   useEffect(() => {
     if (!open || escape === null) return;
-    return escape.push({ id: "add-item-menu", close: () => close(byKey.current) });
+    return escape.push({
+      id: "add-item-menu",
+      close: () => close(byKey.current || items.current.some(holdsFocus)),
+    });
   }, [open, escape]);
   // S-10: a press outside closes the menu and still reaches its target.
   useEffect(() => {
@@ -80,6 +96,8 @@ export function AddItemMenu({ layout }: AddItemMenuProps): JSX.Element {
     const onPress = (e: Event) => {
       const path = e.composedPath();
       if (path.includes(menu.current!) || path.includes(button.current!)) return;
+      // Focus in the closing menu returns to Add item so it stays in the calculator (KB-3).
+      if (items.current.some(holdsFocus)) button.current?.focus(QUIET_FOCUS);
       setOpen(false);
     };
     root.addEventListener("pointerdown", onPress, { capture: true });

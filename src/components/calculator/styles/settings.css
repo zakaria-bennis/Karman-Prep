@@ -378,11 +378,17 @@
   font-size: 13.6px;
 }
 
+.kc-settings-step > span {
+  position: relative;
+  top: -1px;
+}
+
+/* The field is 22.2 px tall, 1 px inside its 24.2 px line, as the bounds fields are. */
 .kc-settings-step-input {
   box-sizing: border-box;
   width: 37px;
-  height: 24.2px;
-  margin: 0;
+  height: 22.2px;
+  margin: 1px 0;
   padding: 1px 2px;
   border: none;
   border-bottom: 1px solid var(--kc-pop-field-line);
