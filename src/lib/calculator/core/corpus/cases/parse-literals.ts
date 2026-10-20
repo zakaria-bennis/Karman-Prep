@@ -35,7 +35,14 @@ const cases: CorpusCase[] = [
   t(16, ["PR-11"], "\\alpha", "(id \\alpha)"),
   t(17, ["PR-11"], "\\alpha_{2}", "(id \\alpha_{2})"),
   x(18, ["PR-11"], "x_{1+2}", "invalid-subscript"),
-  x(19, ["PR-11"], "\\Delta", "unsupported"),
+  // Desmos reads `\\Delta` as a name: "Try adding 'y=' to the beginning of this equation."
+  {
+    id: "parse-literals-19",
+    rules: ["PR-11"],
+    input: { latex: "\\Delta" },
+    kind: "value",
+    chips: ["\\Delta"],
+  },
   t(20, ["PR-14"], "x1", "(id x_{1})"),
   t(21, ["PR-14"], "a12", "(id a_{12})"),
   t(22, ["PR-14"], "2x1", "(mul (num 2) (id x_{1}))"),

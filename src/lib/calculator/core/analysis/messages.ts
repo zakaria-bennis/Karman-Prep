@@ -17,7 +17,11 @@ export function displayName(name: string): string {
 }
 
 function letter(base: string): string {
-  if (base.startsWith("\\")) return GREEK_LETTERS[base.slice(1)] ?? base;
+  // a name Desmos reads from another command shows without its backslash or wrapper: `\ne` is
+  // ne and `\operatorname{foo}` foo (captured 2026-10-20)
+  const wrapped = /^\\operatorname\{(.*)\}$/.exec(base);
+  if (wrapped !== null) return wrapped[1];
+  if (base.startsWith("\\")) return GREEK_LETTERS[base.slice(1)] ?? base.slice(1);
   return base === "pi" || base === "tau" ? GREEK_LETTERS[base] : base;
 }
 
@@ -122,7 +126,7 @@ const MESSAGES: Readonly<Record<RowErrorCode, string>> = {
   "coordinate-type": "Cannot access coordinate '.{n}' of {k}.",
   "point-function-arguments": "Function '{n}' requires {k}.",
   // Desmos's text ends with a space, the place its example would go (captured 2026-10-19)
-  "point-function-arity": "Function '{n}' requires 2 arguments. ",
+  "point-function-arity": "Function '{n}' requires {k} arguments. ",
   "dot-call": "Function '{n}' cannot be called with dot notation.",
   "member-target": "Cannot call '.{n}' on {k}.",
   "unexpected-symbol": "Sorry, I don't understand the way that '{n}' is used here.",
@@ -152,6 +156,14 @@ const MESSAGES: Readonly<Record<RowErrorCode, string>> = {
   "inequality-here": "Cannot use an inequality here.",
   "prime-superscript": "Superscripts and primes cannot be combined.",
   "function-undefined": "Function '{n}' is not defined.",
+  "color-arity": "'{n}' should be called with 3 arguments. For example, try typing: {n}({k}).",
+  "random-arguments":
+    "'random' should be called with no arguments, or an optional number of samples. For example, try random() or random(10).",
+  "requires-list": "'{n}' requires a list. For example, try typing: {n}([1,2,3]).",
+  "too-many-arguments": "'{n}' accepts at most {k} arguments.",
+  "polygon-points": "Function 'polygon' requires several points.",
+  "symbol-context": "You can't use '{n}' in this context.",
+  "complex-only": "The '{n}' function is only available in complex mode.",
 };
 /** The closer each opener of an `unmatched` error pairs with. */
 const CLOSERS: Readonly<Record<string, string>> = { "(": ")", "[": "]", "{": "}" };
@@ -212,6 +224,13 @@ const LIST_EXAMPLES = new Map<string, { one?: string; many?: string }>([
   ["sort", { one: "[3,2,1]", many: "[1,2,3],[3,2,1]" }],
   ["unique", { one: "[1,2,3]" }],
   ["join", { many: "[1,2],[3,4]" }],
+  ["shuffle", { one: "[1,2,3]", many: "[1,2,3],2" }],
+  ["tone", { one: "440", many: "440, 0.5" }],
+  ["lowerQuantileIndex", QUANTILE_EXAMPLE],
+  ["upperQuantileIndex", QUANTILE_EXAMPLE],
+  ["quartileIndex", QUANTILE_EXAMPLE],
+  ["lowerQuartileIndex", QUANTILE_EXAMPLE],
+  ["upperQuartileIndex", QUANTILE_EXAMPLE],
   ["sortedLastLessIndex", QUANTILE_EXAMPLE],
   ["sortedLastLessEqualIndex", QUANTILE_EXAMPLE],
 ]);

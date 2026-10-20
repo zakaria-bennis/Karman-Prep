@@ -1,4 +1,4 @@
-import type { CorpusCase, RowErrorCode } from "../types";
+import type { CorpusCase, RowErrorCode, RowKind } from "../types";
 
 const FILE = "parse-errors";
 const x = (n: number, rules: string[], latex: string, error: RowErrorCode): CorpusCase => ({
@@ -8,17 +8,28 @@ const x = (n: number, rules: string[], latex: string, error: RowErrorCode): Corp
   error,
 });
 
+/** A row that parses: Desmos reads its unknown command as an undefined name. */
+const n = (
+  k: number,
+  rules: string[],
+  latex: string,
+  kind: RowKind,
+  chips: string[]
+): CorpusCase => ({ id: `${FILE}-${k}`, rules, input: { latex }, kind, chips });
+
 const cases: CorpusCase[] = [
-  x(1, ["PR-9"], "\\pm1", "unsupported"),
-  x(2, ["PR-9"], "x\\mp1", "unsupported"),
-  x(3, ["PR-9"], "x\\ne3", "unsupported"),
-  x(4, ["PR-9"], "x\\neq3", "unsupported"),
-  x(5, ["PR-9"], "x\\approx3", "unsupported"),
+  // Desmos reads an unknown command as a name (2026-10-20): `x\\ne3` is x·ne·3, "Too many
+  // variables. Try defining 'ne'."
+  n(1, ["PR-9"], "\\pm1", "value", ["\\pm"]),
+  n(2, ["PR-9"], "x\\mp1", "curve-y", ["\\mp"]),
+  n(3, ["PR-9"], "x\\ne3", "curve-y", ["\\ne"]),
+  n(4, ["PR-9"], "x\\neq3", "curve-y", ["\\neq"]),
+  x(5, ["PR-9"], "x\\approx3", "unknown-symbol"), // "Sorry, I don't understand the '≈' symbol."
   x(6, ["PR-9"], "\\infty", "unsupported"),
-  x(7, ["PR-9"], "\\text{hello}", "unsupported"),
-  x(8, ["PR-9"], "\\begin{matrix}1\\end{matrix}", "unsupported"),
-  x(9, ["PR-9"], "x\\simeq3", "unsupported"),
-  x(10, ["PR-9"], "y\\propto x", "unsupported"),
+  x(7, ["PR-9"], "\\text{hello}", "syntax"), // "Sorry, I don't understand this."
+  x(8, ["PR-9"], "\\begin{matrix}1\\end{matrix}", "syntax"),
+  n(9, ["PR-9"], "x\\simeq3", "curve-y", ["\\simeq"]),
+  n(10, ["PR-9"], "y\\propto x", "value", ["\\propto"]),
   x(16, ["PR-9"], "T.score", "unsupported"),
   x(20, ["PR-9"], "\\sum_{n=1}^{3}n", "unsupported"),
   x(21, ["PR-9"], "\\prod_{n=1}^{3}n", "unsupported"),
@@ -28,14 +39,15 @@ const cases: CorpusCase[] = [
   x(25, ["PR-9"], "x\\operatorname{with}x=1", "unsupported"),
   x(26, ["PR-9"], "x>0\\operatorname{and}y>0", "unsupported"),
   x(27, ["PR-9"], "x>0\\operatorname{or}y>0", "unsupported"),
-  x(28, ["PR-9"], "\\operatorname{stats}(1,2)", "unsupported"),
-  x(29, ["PR-9"], "stats(1,2)", "unsupported"),
-  x(32, ["PR-9"], "\\operatorname{foo}(x)", "unsupported"),
+  // "'stats' requires a list. For example, try typing: stats([1,2,3])."
+  x(28, ["PR-9"], "\\operatorname{stats}(1,2)", "requires-list"),
+  x(29, ["PR-9"], "stats(1,2)", "requires-list"),
+  n(32, ["PR-9"], "\\operatorname{foo}(x)", "curve-y", ["\\operatorname{foo}"]),
   x(33, ["PR-9"], "nthrootx", "unsupported"),
   x(34, ["PR-9"], "infinity", "unsupported"),
   x(52, ["PR-9"], "x^\\infty", "unsupported"),
   x(54, ["PR-9"], "x\\operatorname{for}", "unsupported"),
-  x(55, ["PR-11"], "\\omicron", "unsupported"),
+  n(55, ["PR-11"], "\\omicron", "value", ["\\omicron"]),
   x(35, ["PR-38"], "\\frac{}{}", "fraction-empty"),
   x(36, ["PR-38"], "x^{}", "empty-superscript"),
   x(37, ["PR-38"], "\\sqrt{}", "empty-root"), // Desmos: "Radical cannot be empty."

@@ -110,6 +110,32 @@ const ROWS: [string, string][] = [
   ["y\\sim mx\\sim b", "Sorry, I don't understand the way that '~' is used here."],
   ["(1,2,3)", "This calculator cannot plot a 3d point."],
   ["(1,2,3,4)", "Points may only have 2 coordinates."],
+  // built-ins this calculator reads but does not evaluate, and commands Desmos reads as names
+  [
+    "\\operatorname{factorial}(1,2)",
+    "Function 'factorial' requires only 1 argument. For example, try typing: factorial(x).",
+  ],
+  ["\\operatorname{polygon}\\left(1\\right)", "Function 'polygon' requires several points."],
+  ["\\operatorname{dt}", "You can't use 'dt' in this context."],
+  ["\\operatorname{cumsum}()", "Function 'cumsum' is not defined."],
+  ["-\\operatorname{rgb}\\left(1,2,3\\right)", "Cannot negate a color."],
+  ["x\\ne1", "Too many variables. Try defining 'ne'."],
+  [
+    "\\operatorname{hsv}\\left(1\\right)",
+    "'hsv' should be called with 3 arguments. For example, try typing: hsv(180, 0.5, 0.5).",
+  ],
+  [
+    "\\operatorname{shuffle}\\left(\\right)",
+    "Function 'shuffle' requires an argument. For example, try typing: shuffle([1,2,3]).",
+  ],
+  ["\\operatorname{real}(3)", "The 'real' function is only available in complex mode."],
+  ["x\\approx3", "Sorry, I don't understand the '≈' symbol."],
+  ["\\operatorname{common_log}(100)", "Sorry, I don't understand the 'common_log' symbol."],
+  [
+    "\\operatorname{segment}\\left((0,0),(4,0),(0,3)\\right)",
+    "Function 'segment' requires 2 arguments. ",
+  ],
+  ["\\operatorname{translate}(1,2)", "This calculator does not support the 'translate' function."],
 ];
 
 describe("Desmos's row error texts (live Desmos, 2026-10-20)", () => {

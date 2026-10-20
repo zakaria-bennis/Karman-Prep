@@ -2,6 +2,8 @@
 // parser's built-in names, MathQuill's autoOperatorNames and autoCommands (T-3) and the functions
 // panel entries (K-4, K-5). Member names are a separate list and appear in none of those.
 
+import { DESMOS_BUILTIN_NAMES, DESMOS_ONLY_CALLS } from "./desmos-names";
+
 export type MathFieldAction = { op: "write" | "cmd" | "keystroke" | "typedText"; arg: string };
 export interface OperatorName {
   name: string; // "sin", "arcsin", "log", "mean", "with", "of", …
@@ -349,6 +351,16 @@ export const HIDDEN_OPERATOR_NAMES: readonly OperatorName[] = Object.freeze([
 ]);
 
 /**
+ * The reference's other built-ins, which this calculator reads but does not evaluate
+ * (desmos-calls.ts): hidden names like those above, never typed or on the panel.
+ */
+const DESMOS_ONLY_NAMES: readonly OperatorName[] = Object.freeze(
+  [...new Set([...DESMOS_BUILTIN_NAMES, ...DESMOS_ONLY_CALLS.keys()])]
+    .filter((name) => ![...OPERATOR_NAMES, ...HIDDEN_OPERATOR_NAMES].some((o) => o.name === name))
+    .map((name) => op(name, 0, 4, V))
+);
+
+/**
  * Hidden names Desmos's graphing calculator refuses, once their argument count and types pass and
  * for the bare name, with "This calculator does not support the 'frequencyList' function."
  * (function catalogue, captured live 2026-10-19).
@@ -392,7 +404,7 @@ export const AUTO_COMMANDS: readonly string[] = Object.freeze([
 ]);
 
 const BY_NAME: ReadonlyMap<string, OperatorName> = new Map(
-  [...OPERATOR_NAMES, ...HIDDEN_OPERATOR_NAMES].map((n) => [n.name, n])
+  [...OPERATOR_NAMES, ...HIDDEN_OPERATOR_NAMES, ...DESMOS_ONLY_NAMES].map((n) => [n.name, n])
 );
 const AUTO_OPERATOR_NAMES = OPERATOR_NAMES.map((n) => n.name).join(" ");
 const AUTO_COMMAND_NAMES = AUTO_COMMANDS.join(" ");

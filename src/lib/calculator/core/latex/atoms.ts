@@ -4,6 +4,7 @@
 // (G11, PR-21); and single-token arguments (G4). Built-in and user calls are in calls.ts (G8).
 
 import type { Node, SourceSpan } from "./ast";
+import { commandName } from "./command-names";
 import { displayGreek } from "./greek";
 import { isBuiltinCommand, parseBuiltinCall, parseMember, parseUserCall } from "./calls";
 import { failIfComprehension, parseIndex, parseList } from "./lists";
@@ -480,7 +481,14 @@ function parseCommandAtom(state: ParserState, subscripts: boolean): Node {
   if (NAME_WRAPPERS.has(token.name) && emptyGroup) {
     return fail("syntax", close.span, `"\\${token.name}{}" is empty`);
   }
-  return fail("unsupported", token.span, `"\\${token.name}" is not supported`);
+  // Desmos reads any other command as a name (`x\ne1` is x·ne·1), as commandName decides
+  const name = commandName(state, token);
+  const next = peek(state);
+  if (subscripts && next.t === "symbol" && next.ch === "_") {
+    return parseSubscript(state, name, token.span.start);
+  }
+  const span = { start: token.span.start, end: state.tokens[state.pos - 1].span.end };
+  return { kind: "id", name, span };
 }
 
 /**

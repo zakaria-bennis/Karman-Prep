@@ -28,6 +28,9 @@ export class ParseFailure extends Error {
   }
 }
 
+/** The colour built-ins, which cannot be negated. */
+const COLOR_NAMES: ReadonlySet<string> = new Set(["rgb", "hsv", "okhsv", "oklab", "oklch"]);
+
 /** The operators and the closer that are commands (G3): no factor or atom starts with one. */
 const OPERATOR_COMMANDS: ReadonlySet<string> = new Set([
   "cdot",
@@ -52,10 +55,12 @@ export function fail(
   code: ParseErrorCode,
   span: SourceSpan,
   detail: string,
-  feature?: string
+  feature?: string,
+  names?: string[]
 ): never {
   const error: ParseError = { code, span: { start: span.start, end: span.end }, detail };
-  throw new ParseFailure(feature === undefined ? error : { ...error, feature });
+  const named = names === undefined ? error : { ...error, names };
+  throw new ParseFailure(feature === undefined ? named : { ...named, feature });
 }
 
 /**
@@ -337,6 +342,18 @@ function parseUnary(state: ParserState): { node: Node; factor: Node } {
     state.prefixSigns.add(state.pos);
     take(state);
     if (sign.ch === "-") minuses.push(sign);
+  }
+  const first = peek(state);
+  // Desmos: `-\operatorname{rgb}(1,2,3)` is "Cannot negate a color." (captured 2026-10-20)
+  if (minuses.length % 2 === 1 && first.t === "command" && COLOR_NAMES.has(first.name)) {
+    const color = state.pos;
+    try {
+      parseFactor(state);
+    } catch (thrown) {
+      const unsupported = thrown instanceof ParseFailure && thrown.error.code === "unsupported";
+      if (!unsupported || state.tokens[color] !== first) throw thrown;
+    }
+    fail("negate-type", first.span, "a negated colour", undefined, ["a color"]);
   }
   const factor = parseFactor(state);
   let node = factor;

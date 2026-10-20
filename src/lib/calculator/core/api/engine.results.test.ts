@@ -319,7 +319,7 @@ it("AR-54 parse, analysis and evaluation errors are row values and never throw",
     "operator-side", // =
     null, // 1/0
     "unsupported", // \sum
-    "unsupported", // \begin{matrix}1\end{matrix}
+    "syntax", // \begin{matrix}1\end{matrix}: Desmos's "Sorry, I don't understand this."
     "mixed-variables", // x+y
     "sim-side", // \sim with nothing on either side (PR-30: a half-typed regression)
   ]);

@@ -4,9 +4,12 @@
 
 import { isAxis, type Node, type SourceSpan } from "./ast";
 import { isDegreeSign, parsePostfix, takeArgument, takePostfix } from "./atoms";
+import { failUnevaluatedCall } from "./desmos-calls";
+import { DESMOS_BUILTIN_NAMES, DESMOS_ONLY_CALLS } from "./desmos-names";
 import {
   HIDDEN_OPERATOR_NAMES,
   isShippedBuiltin,
+  operatorName,
   MEMBER_NAMES,
   OPERATOR_NAMES,
   PREFIX_FORM_NAMES,
@@ -30,11 +33,14 @@ type CallNode = Extract<Node, { kind: "call" }>;
  * Allowlisted and hidden names with a category; `with`, `for`, `and`, `or` and `of` are operators
  * (G8).
  */
-const BUILTIN_NAMES: ReadonlySet<string> = new Set(
-  [...OPERATOR_NAMES, ...HIDDEN_OPERATOR_NAMES]
+const BUILTIN_NAMES: ReadonlySet<string> = new Set([
+  ...[...OPERATOR_NAMES, ...HIDDEN_OPERATOR_NAMES]
     .filter((n) => n.category !== null)
-    .map((n) => n.name)
-);
+    .map((n) => n.name),
+  ...[...DESMOS_BUILTIN_NAMES, ...DESMOS_ONLY_CALLS.keys()].filter(
+    (n) => operatorName(n)?.category !== null
+  ),
+]);
 
 /**
  * The circular and hyperbolic trig names whose `^{-1}` is the inverse function (PR-26). On their
@@ -74,9 +80,7 @@ export function isBuiltinCommand(token: Token): token is CommandToken {
  * written without `(`, or with a power on its name, is `function-parentheses`, as in Desmos.
  */
 export function parseBuiltinCall(state: ParserState, name: CommandToken): Node {
-  if (!isShippedBuiltin(name.name)) {
-    return fail("unsupported", name.span, `"${name.name}" is not supported`);
-  }
+  if (!isShippedBuiltin(name.name)) return failUnshippedCall(state, name);
   take(state);
   let base: Node | null = null;
   let power: Node | null = null;
@@ -122,6 +126,29 @@ export function parseBuiltinCall(state: ParserState, name: CommandToken): Node {
   const arg = parseRunArgument(state, name);
   return withPower(name, callNode(name, [arg], base, arg.span.end), power, form);
 }
+
+/**
+ * A built-in this calculator does not evaluate reads its arguments for the reference's errors
+ * (desmos-calls.ts); written without `(` it is "'shuffle' is a function. Try using parentheses.",
+ * as in Desmos. Any other form stays `unsupported` at the name.
+ */
+function failUnshippedCall(state: ParserState, name: CommandToken): never {
+  const open = peek(state, 1);
+  const known = operatorName(name.name);
+  if (known === undefined) return fail("unsupported", name.span, `"${name.name}" is not supported`);
+  if (COMPLEX_ONLY.has(name.name)) {
+    // Desmos, real mode: "The 'arg' function is only available in complex mode." (2026-10-20)
+    return fail("complex-only", name.span, "a complex-mode function", name.name);
+  }
+  if (open.t !== "open" || open.ch !== "(") return needsParentheses(name);
+  take(state);
+  const args = takeEmptyList(state) ? [] : parseArgumentList(state);
+  const counts = known.arity === "variadic" ? null : known.arity;
+  return failUnevaluatedCall(state, name, args, counts);
+}
+
+/** The complex-number built-ins, which Desmos offers only in complex mode. */
+const COMPLEX_ONLY: ReadonlySet<string> = new Set(["arg", "real", "imag", "conj"]);
 
 /** PR-26: the names whose only power is `^2`, Desmos's "Only log^2 is supported." */
 const LOG_NAMES: ReadonlySet<string> = new Set(["log", "ln"]);

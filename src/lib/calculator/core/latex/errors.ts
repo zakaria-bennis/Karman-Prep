@@ -51,7 +51,20 @@ export type ParseErrorCode =
   | "equality-here" // `=` inside brackets, `(x=1)`
   | "inequality-here" // an inequality inside brackets, `(x<1)`
   | "prime-superscript" // a prime beside a power, `f'^{2}(2)`
-  | "function-undefined"; // `a()`, `g'(2)`: a call of a name no row defines as a function
+  | "function-undefined" // `a()`, `g'(2)`: a call of a name no row defines as a function
+  // calls of the reference's built-ins this calculator does not evaluate (desmos-calls.ts)
+  | "arity"
+  | "argument-type"
+  | "refused-function"
+  | "point-function-arity"
+  | "color-arity" // `\operatorname{hsv}(1)`
+  | "random-arguments" // `\operatorname{random}(1,2,3,4)`
+  | "requires-list" // `\operatorname{boxplot}(5)`
+  | "too-many-arguments" // `\operatorname{histogram}(L,2,3)`
+  | "polygon-points" // `\operatorname{polygon}(1)`
+  | "symbol-context" // `\operatorname{dt}` outside a ticker, `\operatorname{ans}`
+  | "negate-type" // `-\operatorname{rgb}(1,2,3)`
+  | "complex-only"; // `\operatorname{arg}(1)`: complex-number built-ins, in real mode
 export interface ParseError {
   code: ParseErrorCode;
   span: SourceSpan;
@@ -112,6 +125,16 @@ const PARSE_ERROR_CODES: ReadonlySet<string> = new Set<ParseErrorCode>([
   "inequality-here",
   "prime-superscript",
   "function-undefined",
+  // "arity", "argument-type", "refused-function" and "point-function-arity" are analysis codes
+  // too: a parse that reports one is checked with the analysis's cases
+  "color-arity",
+  "random-arguments",
+  "requires-list",
+  "too-many-arguments",
+  "polygon-points",
+  "symbol-context",
+  "negate-type",
+  "complex-only",
 ]);
 
 export function isParseErrorCode(code: string): code is ParseErrorCode {

@@ -109,9 +109,10 @@ it("FN-30 a two-list statistic of lists that vary with x plots through the gener
 
 it("FN-23 argmin and argmax read from pasted latex, and typed arg then min stays two names", () => {
   expect(evaluateLatex("\\operatorname{argmin}(L)", L)).toEqual(n(4));
-  // typed letters split into arg and min, as in Desmos; arg has not shipped
+  // typed letters split into arg and min, as in Desmos, whose real mode then reads "The 'arg'
+  // function is only available in complex mode."
   const typed = parseLatex("argmin(1)");
-  expect(typed.ok ? typed.tree : typed.error.detail).toBe('"arg" is not supported');
+  expect(typed.ok ? typed.tree : typed.error.code).toBe("complex-only");
 });
 
 it("FN-34 FN-38 count and length read x when repeat's counts or unique's values hold it", () => {

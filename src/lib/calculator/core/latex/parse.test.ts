@@ -43,14 +43,16 @@ describe("parse never throws", () => {
     ]);
   });
   it("PR-38 errors carry their code and the span of the offending text", () => {
-    expect(["x\\pm1", "2+", "(1,2,3)", "x=y<3", "  ", "\\left|x|y|\\right|"].map(spanOf)).toEqual([
-      ["unsupported", 1, 4],
-      ["operator-side", 1, 2],
-      ["point-3d", 0, 7],
-      ["relation-chain", 3, 4],
-      ["syntax", 0, 0],
-      ["unknown-symbol", 8, 9],
-    ]);
+    expect(["x\\infty", "2+", "(1,2,3)", "x=y<3", "  ", "\\left|x|y|\\right|"].map(spanOf)).toEqual(
+      [
+        ["unsupported", 1, 7],
+        ["operator-side", 1, 2],
+        ["point-3d", 0, 7],
+        ["relation-chain", 3, 4],
+        ["syntax", 0, 0],
+        ["unknown-symbol", 8, 9],
+      ]
+    );
   });
   it("PR-38 the node and depth limits give too-many-nodes and too-deep", () => {
     expect([

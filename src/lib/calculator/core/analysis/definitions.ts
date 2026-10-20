@@ -92,7 +92,11 @@ function parseRow(
   }
   const parsed = parseLatex(source.latex, { userFunctions });
   if (!parsed.ok) {
-    const { code, feature, names, span } = parsed.error;
+    const { feature, names, span } = parsed.error;
+    // complex-number built-ins are Desmos's complex-mode error only in real mode; in complex mode
+    // they have not shipped
+    const code =
+      parsed.error.code === "complex-only" && settings.complex ? "unsupported" : parsed.error.code;
     const named = names ?? (feature === undefined ? [] : [feature]);
     const shown = code === "function-undefined" ? named.map(displayName) : named;
     return { ...row, error: rowError(code, shown, span) };
