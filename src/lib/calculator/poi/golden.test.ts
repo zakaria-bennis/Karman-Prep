@@ -151,3 +151,31 @@ describe("POI-TRACE-19 extrema land on exact values so labels can show π", () =
     expect(pois("y=\\left|x-1\\right|").map((q) => q.x)).toContain(1);
   });
 });
+
+describe("G-22 a list of curves has each element's points, as Desmos marks them", () => {
+  it("each element's zero and intercept, but no dot where two elements of the row meet", () => {
+    const lines = pois("y=[1,-1]x+[0,2]");
+    has(lines, 0, 0, ["zero", "intercept"]);
+    has(lines, 0, 2, ["intercept"]);
+    has(lines, 2, 0, ["zero"]);
+    expect(lines.some((q) => Math.abs(q.x - 1) < 1e-9 && Math.abs(q.y - 1) < 1e-9)).toBe(false);
+  });
+
+  it("each element meets the other rows, and line sets and circles split per element", () => {
+    const fan = pois("y=[1,2]x", "y=2");
+    has(fan, 2, 2, ["intersection"]);
+    has(fan, 1, 2, ["intersection"]);
+    const verticals = pois("x=[1,3]", "y=x");
+    has(verticals, 1, 1, ["intersection"]);
+    has(verticals, 3, 3, ["intersection"]);
+    const circles = pois("x^{2}+y^{2}=[1,4]");
+    for (const r of [1, 2])
+      for (const [x, y] of [
+        [r, 0],
+        [-r, 0],
+        [0, r],
+        [0, -r],
+      ])
+        has(circles, x, y);
+  });
+});

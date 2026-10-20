@@ -144,20 +144,21 @@ class RootFinder {
 
 /**
  * The lines where f(t) = 0: t = x across the width for "vertical", t = y up the height for
- * "horizontal", within EXPLICIT_BUDGET evaluations (G-8, G-15).
+ * "horizontal", within `limit` evaluations (G-8, G-15).
  */
 export function plotLines(
   rowId: string,
   orientation: "vertical" | "horizontal",
   f: RealFn1,
   view: ViewSpec,
-  deadline: Deadline
+  deadline: Deadline,
+  limit = EXPLICIT_BUDGET
 ): LineSetGeometry {
   const { viewport: v, size } = view;
   const [t0, t1, px] =
     orientation === "vertical" ? [v.left, v.right, size.width] : [v.bottom, v.top, size.height];
   const columns = Math.max(1, Math.min(Number.isFinite(px) ? Math.ceil(px) : 1, MAX_COLUMNS));
-  const budget = new EvaluationBudget(EXPLICIT_BUDGET, deadline);
+  const budget = new EvaluationBudget(limit, deadline);
   const roots = new RootFinder(f, t0, t1, columns, budget).roots();
   return {
     rowId,

@@ -1,8 +1,8 @@
 // Which names and calls hold lists, read from the rows before anything evaluates (PR-34, NM-32),
 // and the list errors analysis can report from that: indexing what is not a list, or by a point
 // (NM-30), nested lists (NM-34), literal ranges with a count Desmos rejects or too many elements
-// (NM-35, NM-36), lists whose length depends on a free variable (NM-31, NM-36) and list-valued
-// graphs, which are deferred (G-22). Evaluation still reports any list error these rules cannot
+// (NM-35, NM-36), and lists whose length depends on a free variable (NM-31, NM-36), a list-valued
+// graph's included. Evaluation still reports any list error these rules cannot
 // see. Pure TypeScript: no DOM (AR-44).
 
 import type { RowErrorCode } from "../corpus/types";
@@ -12,7 +12,6 @@ import {
   type Node,
   type SourceSpan,
 } from "../latex/ast";
-import { DEFERRED_FEATURES } from "../latex/errors";
 import { isBuiltinName } from "../latex/operator-names";
 import { isDistributionName, readsDistribution } from "../lib/distributions";
 import { POINT_FUNCTIONS } from "../lib/geometry";
@@ -509,19 +508,17 @@ function lengthDependency(
 }
 
 /**
- * G-22, deferred: a list-valued graph is `unsupported`, at its first part that is a list itself: a
- * literal or range, a list name, or a call of a function that returns a list. FN-34, FN-38: before
- * that, a list-valued graph whose length depends on a free variable through repeat's counts or
- * unique's arguments is `list-length-free` (`repeat(1,x)`), Desmos's error for a top-level list
- * with no constant length; inside count, total or another reducer the row still graphs.
+ * FN-34, FN-38: a list-valued graph whose length depends on a free variable through repeat's
+ * counts or unique's arguments is `list-length-free` (`repeat(1,x)`), Desmos's error for a
+ * top-level list with no constant length, at the call; inside count, total or another reducer the
+ * row still graphs. Null otherwise: G-22, a list-valued graph draws one curve per element.
  */
-export function listCurveProblem(
+export function curveLengthProblem(
   tree: Node,
   locals: readonly string[],
   typing: ListTyping
 ): ListProblem | null {
   if (!typing.isList(tree, locals)) return null;
-  let span: SourceSpan | null = null;
   const pending: Node[] = [tree];
   for (let n = pending.pop(); n !== undefined; n = pending.pop()) {
     if (!typing.isList(n, locals)) continue;
@@ -531,11 +528,9 @@ export function listCurveProblem(
         return { code: "list-length-free", names: [displayName(name)], span: n.span };
       }
     }
-    const parts = n.kind === "list" ? [] : childNodes(n).filter((c) => typing.isList(c, locals));
-    if (parts.length > 0) pending.push(...parts);
-    else if (span === null || n.span.start < span.start) span = n.span;
+    if (n.kind !== "list") pending.push(...childNodes(n).filter((c) => typing.isList(c, locals)));
   }
-  return { code: "unsupported", names: [DEFERRED_FEATURES.listCurves], span };
+  return null;
 }
 
 /** Every list and index node in `tree`, in source order. */

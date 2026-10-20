@@ -17,10 +17,10 @@ const LIMITS = [
 ].map((v) => viewOf(v));
 const CURVES: RealFn1[] = [(x) => x, Math.sin, Math.exp, (x) => x * x];
 const G11: RealFn1[] = [(x) => x * x, (x) => x ** 10, Math.exp, Math.sin, (x) => 1 / x, Math.tan];
-const circle: PlotInput = { rowId: "c", kind: "implicit", F: (x, y) => x * x + y * y - 25 };
+const circle: PlotInput = { rowId: "c", kind: "implicit", Fs: [(x, y) => x * x + y * y - 25] };
 it("G-23 sampling and ticks at the limits stay finite and in budget", () => {
   for (const view of LIMITS) {
-    for (const input of [...CURVES.map((f) => ({ ...EXPLICIT_ROW, f })), circle]) {
+    for (const input of [...CURVES.map((f) => ({ ...EXPLICIT_ROW, fs: [f] })), circle]) {
       const g = plotRow(input, view, NO_DEADLINE) as CurveGeometry;
       const cap = input.kind === "implicit" ? IMPLICIT_BUDGET : EXPLICIT_BUDGET;
       expect(g.evaluations).toBeLessThanOrEqual(cap);
@@ -28,7 +28,7 @@ it("G-23 sampling and ticks at the limits stay finite and in budget", () => {
       for (let k = 0; k < p.length; k += 2) expect(Number.isNaN(p[k])).toBe(Number.isNaN(p[k + 1]));
       expect(p.every((n) => Number.isNaN(n) || Number.isFinite(n))).toBe(true);
       expect(g.bands.every((n) => Number.isFinite(n))).toBe(true);
-      if (input.kind === "explicit") expectG11(view, input.f, segmentsOf(p)); // G-11 at the limits
+      if (input.kind === "explicit") expectG11(view, input.fs[0], segmentsOf(p)); // G-11 at the limits
     }
     const { left, right, bottom, top } = view.viewport;
     const ranges = [left, right, 800, bottom, top, 600];
@@ -44,7 +44,9 @@ it("G-23 sampling and ticks at the limits stay finite and in budget", () => {
 }, 60_000);
 it("G-23, G-11 holds at both zoom limits for each G-11 function", () => {
   const segmentsAt = (f: RealFn1, view: ViewSpec) =>
-    segmentsOf((plotRow({ ...EXPLICIT_ROW, f }, view, NO_DEADLINE) as CurveGeometry).polylines);
+    segmentsOf(
+      (plotRow({ ...EXPLICIT_ROW, fs: [f] }, view, NO_DEADLINE) as CurveGeometry).polylines
+    );
   for (const f of G11) {
     const zoomIn = viewOf(zoomViewport(V0, 1e15, { x: 1, y: f(1) }));
     const inner = segmentsAt(f, zoomIn);

@@ -158,7 +158,7 @@ const MESSAGES: Readonly<Record<RowErrorCode, string>> = {
 /** RC-2, Phase 1: `unsupported` naming r or θ, whose polar graphs ship in Phase 2. */
 const POLAR_UNSUPPORTED = "{n} is for polar graphs, which aren't available yet.";
 const POLAR_NAMES: ReadonlySet<string> = new Set(["r", "θ"]);
-/** PR-34, G-22: `unsupported` naming notation whose meaning has not shipped yet. */
+/** PR-34: `unsupported` naming notation whose meaning has not shipped yet. */
 const DEFERRED = "{n} isn't supported yet.";
 const DEFERRED_NAMES: ReadonlySet<string> = new Set(Object.values(DEFERRED_FEATURES));
 

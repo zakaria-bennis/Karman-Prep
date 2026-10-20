@@ -55,16 +55,17 @@ function shadedSpans(field: SampledField, ops: readonly InequalityOp[], view: Vi
 
 /**
  * The region where terms[k] ops[k] terms[k + 1] holds for every k (G-17), with one boundary per
- * relation, dashed for `<` and `>` and solid for `<=` and `>=` (G-1).
+ * relation, dashed for `<` and `>` and solid for `<=` and `>=` (G-1), within `limit` evaluations.
  */
 export function plotRegion(
   rowId: string,
   terms: readonly RealFn2[],
   ops: readonly InequalityOp[],
   view: ViewSpec,
-  deadline: Deadline
+  deadline: Deadline,
+  limit = IMPLICIT_BUDGET
 ): RegionGeometry {
-  const budget = new EvaluationBudget(IMPLICIT_BUDGET, deadline);
+  const budget = new EvaluationBudget(limit, deadline);
   const values = new Float64Array(terms.length);
   const field = sampleField(
     view,

@@ -485,20 +485,14 @@ for (const [latex, note] of STATISTICS_GRAPHED) {
 // (`repeat(1,2.5)`). Not yet matched, each an expected failure that fails once matched:
 // derivatives, colours and tones, member access other than coordinates, actions (`\to`) and
 // shuffle (T14); frequency, which Desmos does not define, so its errors need multi-letter names;
-// `[0.1+0.2,0.3]`, whose constant sum Desmos folds exactly to 0.3; and rows Desmos graphs as
-// several curves (G-22).
+// and `[0.1+0.2,0.3]`, whose constant sum Desmos folds exactly to 0.3.
 const LIST_OPERATION_GAPS: readonly RegExp[] = [
   /\\frac\{d\}/,
   /\\operatorname\{(rgb|tone|shuffle|frequency)\}/,
   /\.\\operatorname|\\to/,
   /0\.1\+0\.2/,
 ];
-const LIST_OPERATION_GRAPH_GAPS: ReadonlySet<string> = new Set([
-  "\\operatorname{sort}([3,-1,2]x)",
-  "\\operatorname{join}(x,1)",
-  "\\operatorname{repeat}(x,2)",
-  "\\operatorname{shuffle}(E)",
-]);
+const LIST_OPERATION_GRAPH_GAPS: ReadonlySet<string> = new Set(["\\operatorname{shuffle}(E)"]);
 const listOperationGap = (key: string) => LIST_OPERATION_GAPS.some((gap) => gap.test(key));
 const LIST_OPERATION_VALUES = Object.entries(listOperations.values) as [string, Captured][];
 const LIST_OPERATION_ERRORS = Object.entries(listOperations.errors);

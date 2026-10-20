@@ -25,7 +25,7 @@ import { pointProblem } from "./points";
 import {
   comparisonProblem,
   inferLists,
-  listCurveProblem,
+  curveLengthProblem,
   listProblem,
   piecewiseProblem,
   type ListTyping,
@@ -148,7 +148,7 @@ export function analyzeRows(
   parsed.forEach((row, k) => {
     const plan = plans.get(row.source.id);
     if (plan !== undefined) analysed[k] = regressionRow(analysed[k], plan, row.source.hidden);
-    else analysed[k] = withoutListCurves(analysed[k], row, typing);
+    else analysed[k] = withCurveLength(analysed[k], row, typing);
   });
   tables.forEach(({ k, table }, i) => {
     analysed[k] = tableRow(
@@ -214,17 +214,22 @@ const CURVE_KINDS: ReadonlySet<RowKind> = new Set([
 ]);
 
 /**
- * G-22, deferred: a row that would graph a list of curves (a curve, line set or region, or a
- * one-parameter function, RC-5) is an `unsupported` error instead of a curve of undefined values.
+ * FN-34, FN-38: a row that would graph a list of curves (a curve, line set or region, or a
+ * one-parameter function, RC-5) whose length depends on a free variable is that error instead;
+ * any other list of curves graphs one per element (G-22), except a relation without coordinates
+ * (`[1,2]<3`), which Desmos neither graphs nor marks (captured 2026-10-20).
  */
-function withoutListCurves(row: RowAnalysis, parsed: ParsedRow, typing: ListTyping): RowAnalysis {
+function withCurveLength(row: RowAnalysis, parsed: ParsedRow, typing: ListTyping): RowAnalysis {
   if (row.error !== null || parsed.tree === null) return row;
   const head = parsed.head;
   const fn = row.kind === "function-definition" && head !== null && head.params.length === 1;
   if (!fn && !CURVE_KINDS.has(row.kind)) return row;
+  if (row.kind === "constant-relation" && typing.isList(parsed.tree, [])) {
+    return { ...row, isGraphable: false, graph: null };
+  }
   const problem = fn
-    ? listCurveProblem(head.body, head.params, typing)
-    : listCurveProblem(parsed.tree, [], typing);
+    ? curveLengthProblem(head.body, head.params, typing)
+    : curveLengthProblem(parsed.tree, [], typing);
   if (problem === null) return row;
   const { code, names, span } = problem;
   return {

@@ -6,11 +6,11 @@ import { plotRow, type PlotInput } from "./index";
 
 it("G-1 y=f(x), x=g(y), implicit equations and inequalities all graph", () => {
   const inputs: PlotInput[] = [
-    { rowId: "a", kind: "explicit", independent: "x", f: (x) => 2 * x + 3 },
-    { rowId: "b", kind: "explicit", independent: "y", f: (y) => y * y },
-    { rowId: "c", kind: "implicit", F: (x, y) => x * x + y * y - 25 },
-    { rowId: "d", kind: "region", terms: [(x, y) => y, (x) => 2 * x + 1], ops: ["<="] },
-    { rowId: "e", kind: "lines", orientation: "vertical", f: (x) => x * x - 4 },
+    { rowId: "a", kind: "explicit", independent: "x", fs: [(x) => 2 * x + 3] },
+    { rowId: "b", kind: "explicit", independent: "y", fs: [(y) => y * y] },
+    { rowId: "c", kind: "implicit", Fs: [(x, y) => x * x + y * y - 25] },
+    { rowId: "d", kind: "region", branches: [[(x, y) => y, (x) => 2 * x + 1]], ops: ["<="] },
+    { rowId: "e", kind: "lines", orientation: "vertical", fs: [(x) => x * x - 4] },
     { rowId: "f", kind: "points", points: [[2, 3]] },
     { rowId: "g", kind: "constant-region", holds: true },
   ];
@@ -32,6 +32,6 @@ it("G-1 y=f(x), x=g(y), implicit equations and inequalities all graph", () => {
   for (const [x, y] of xOfY) expect(x === y * y || x === 20).toBe(true); // 20: the guard line
   const f = counted((x: number) => x);
   const zero = viewOf(VIEW_800.viewport, { width: 0, height: 0 }); // a hidden graph
-  const empty = plotRow({ ...EXPLICIT_ROW, f: f.fn }, zero, NO_DEADLINE);
+  const empty = plotRow({ ...EXPLICIT_ROW, fs: [f.fn] }, zero, NO_DEADLINE);
   expect([empty.kind, empty.evaluations, f.calls()]).toEqual(["curve", 0, 0]);
 });

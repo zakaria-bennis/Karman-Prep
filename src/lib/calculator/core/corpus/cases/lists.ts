@@ -103,16 +103,16 @@ const cases: CorpusCase[] = [
   d(50, ["NM-36"], "[1,1.1,...,1.25]", "[1, 1.1, 1.2, 1.3]"), // 2.5 steps exactly, rounded up
   x(29, ["NM-36"], "[1,2,...,0]", "range-step"), // Desmos: "Ranges must be arithmetic sequences."
   x(38, ["NM-34"], "[(L,1)]", "nested-list", { rows: ["L=[1,2]"] }),
-  { ...x(39, ["G-22"], "y=[1,2,3]x", "unsupported"), kind: "error" }, // analysis, not parse
-  x(40, ["G-22"], "y=Lx", "unsupported", { rows: ["L=[1,2]"] }),
-  { ...x(41, ["G-22"], "f(x)=[1,2]x", "unsupported"), kind: "error" },
+  k(39, ["G-22"], "y=[1,2,3]x", "curve-y"), // three curves, as in Desmos
+  k(40, ["G-22"], "y=Lx", "curve-y", { rows: ["L=[1,2]"] }),
+  k(41, ["G-22"], "f(x)=[1,2]x", "function-definition"),
   k(42, ["G-3"], "(L_{1},L_{2})", "point", { rows: ["L_{1}=[1,2]", "L_{2}=[3,4]"] }),
   k(43, ["G-3"], "[(1,2),(3,4)]", "point"),
   k(44, ["D-22"], "y_{1}\\sim mx_{1}+b", "regression", {
     rows: ["x_{1}=[1,2,3]", "y_{1}=[3,5,7]"],
   }),
   k(45, ["NM-32"], "[1,2,3]+1", "value"),
-  k(46, ["NM-32"], "f(x)=x^{2}+L_{1}", "error", { rows: ["L_{1}=[1,2]"] }),
+  k(46, ["NM-32", "G-22"], "f(x)=x^{2}+L_{1}", "function-definition", { rows: ["L_{1}=[1,2]"] }),
   // FN-2, FN-23 to FN-29: statistics reducers and length (Desmos values, 2026-10-19)
   d(65, ["FN-23"], "\\operatorname{mean}(1,2)", "1.5"),
   d(66, ["FN-23", "PR-13"], "mean(1,2)", "1.5"),

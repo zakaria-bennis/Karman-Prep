@@ -3,7 +3,7 @@
 // restriction or piecewise row the matrices-advanced capture found graphable. A key's rows are
 // separated by " ;; ", the last one being the case. Not yet matched, each an expected failure that
 // fails once matched, by the notation they use that has not shipped: matrices, parametric curves
-// in t, polar curves and list conditions on curves (task 8, G-22).
+// in t and polar curves.
 import { expect, it } from "vitest";
 import { analyzeRows } from "../analysis";
 import { evaluateRows } from "../eval/compile";
@@ -11,7 +11,7 @@ import { NO_DEADLINE } from "../deadline";
 import relations from "./desmos-relations.fixture.json";
 
 const SETTINGS = { angleMode: "radians", complex: false } as const;
-const GAPS: readonly RegExp[] = [/bmatrix/, /^\\left\(t,/, /\\theta/, /\\left\[0,1\\right\]<x/];
+const GAPS: readonly RegExp[] = [/bmatrix/, /^\\left\(t,/, /\\theta/];
 const isGap = (key: string) => GAPS.some((gap) => gap.test(key));
 
 /** The case row's analysis and the value the engine shows for it (undefined when none). */

@@ -39,3 +39,25 @@ export class EvaluationBudget {
     return true;
   }
 }
+
+/** G-22: the fewest evaluations a branch gets, enough for a smooth curve to sample as a curve. */
+export const MIN_BRANCH_BUDGET = 200;
+
+/**
+ * G-15, G-22: each branch's evaluations when a row draws `branches` curves or line sets: one
+ * curve's EXPLICIT_BUDGET, the row's total capped at 10× it, but never under MIN_BRANCH_BUDGET
+ * (so Desmos's 10,000 branches of `y=[1...10000]x` take at most 2,000,000).
+ */
+export function explicitBranchBudget(branches: number): number {
+  const share = Math.floor((10 * EXPLICIT_BUDGET) / Math.max(1, branches));
+  return Math.max(MIN_BRANCH_BUDGET, Math.min(EXPLICIT_BUDGET, share));
+}
+
+/**
+ * G-15, G-22: each branch's evaluations when a row draws `branches` implicit curves or regions:
+ * IMPLICIT_BUDGET for one, else 2× it split across them, never under MIN_BRANCH_BUDGET.
+ */
+export function implicitBranchBudget(branches: number): number {
+  if (branches <= 1) return IMPLICIT_BUDGET;
+  return Math.max(MIN_BRANCH_BUDGET, Math.floor((2 * IMPLICIT_BUDGET) / branches));
+}

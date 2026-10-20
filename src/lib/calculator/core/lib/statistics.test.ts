@@ -105,7 +105,7 @@ it("FN-23 a reducer gives a list only when it broadcasts, so mean(x,[1,2]) is a 
     [{ id: "r", latex: "y=\\operatorname{mean}(x,[1,2])", hidden: false }],
     REAL
   ).rows[0];
-  expect([row.kind, row.error?.code]).toEqual(["error", "unsupported"]);
+  expect([row.kind, row.error, row.isGraphable]).toEqual(["curve-y", null, true]); // G-22
 });
 
 it("FN-24 the variance is computed in two passes, and stdev of one value is undefined", () => {
