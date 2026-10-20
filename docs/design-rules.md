@@ -47,9 +47,9 @@ The calculator is excluded until the founder has reviewed it.
 32. A Cookie Policy page exists and is linked from the footer (founder, 2026-10-19).
     If the site sets any non-essential cookie (analytics, ads, embedded video
     tracking), a consent banner asks first and declining is as easy as accepting.
-33. Every page works in both light and dark mode (founder, 2026-10-19). The site
-    follows the device setting, a visible toggle overrides it, and the choice is
-    remembered. All text meets WCAG AA contrast (4.5:1, or 3:1 for large text)
+33. Every page works in both light and dark mode (founder, 2026-10-19). Dark is
+    the default on every device (founder, 2026-10-20); a visible toggle switches
+    to light, and the choice is remembered. All text meets WCAG AA contrast (4.5:1, or 3:1 for large text)
     in both modes, checked by calculation, not by eye.
 
 ## Copy rules
