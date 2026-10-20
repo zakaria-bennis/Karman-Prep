@@ -61,6 +61,8 @@ export function evaluateRegression(
     model,
     logForm: r.logForm,
     logMode: r.logMode,
+    plainLeft: r.observed.kind === "id",
+    uniquePredictor: r.predictors.length === 1,
   });
   return { ...result, residualName: r.residual };
 }

@@ -5,7 +5,8 @@
 // undefined), and r for a linear model with a free intercept or a log-mode fit. Pure TypeScript.
 
 import { fitNonlinear } from "./levenberg";
-import { solveLeastSquares } from "./least-squares";
+import { solveColumnOrder } from "./linear-fit";
+import { regressionStatistics, type RegressionStatistics } from "./statistics";
 
 export const FIT_ERROR = "We couldn't find any region where this model is defined.";
 
@@ -26,6 +27,8 @@ export interface FitInput {
   model: (p: Float64Array, i: number) => number;
   logForm: LogFormMatch | null;
   logMode: boolean; // the row's checkbox (D-30: unchecked by default)
+  plainLeft?: boolean; // REG-STATISTICS-8: L is a bare name (default true)
+  uniquePredictor?: boolean; // REG-STATISTICS-7: M reads exactly one list (default true)
 }
 export interface RegressionResult {
   ok: boolean;
@@ -157,8 +160,7 @@ export function fitRegression(input: FitInput): RegressionResult {
     return failure(available, on);
   }
   let p: Float64Array = new Float64Array(k),
-    approximate = false,
-    linearFreeIntercept = false;
+    approximate = false;
   const logFit = trans === null ? null : simple(trans.u, trans.v);
   if (on && logFit !== null) {
     p = logParams(logForm!, k, logFit);
@@ -167,17 +169,13 @@ export function fitRegression(input: FitInput): RegressionResult {
     if (affine !== null) {
       const a = new Float64Array(n * k);
       for (let i = 0; i < n; i++) for (let j = 0; j < k; j++) a[i * k + j] = affine.cols[j][i];
-      p = solveLeastSquares(
+      // RT-17: free (non-pivot) parameters are 0, not a minimum-norm solution.
+      p = solveColumnOrder(
         a,
         n,
         k,
         Float64Array.from(y, (v, i) => v - affine.f0[i])
       );
-      linearFreeIntercept =
-        k === 2 &&
-        affine.f0.every((v) => v === 0) &&
-        affine.cols.some((c) => c.every((v) => v === 1)) &&
-        affine.cols.some((c) => c.every((v, i) => v === x[i]));
     } else {
       const starts = STARTS.map((v) => new Float64Array(k).fill(v));
       if (logFit !== null) starts.push(logParams(logForm!, k, logFit));
@@ -194,24 +192,41 @@ export function fitRegression(input: FitInput): RegressionResult {
   const predicted = Float64Array.from({ length: n }, (_, i) => model(p, i));
   if (!predicted.every(Number.isFinite) || !p.every(Number.isFinite)) return failure(available, on);
   const residuals = Array.from(y, (v, i) => v - predicted[i]);
-  const sse = residuals.reduce((s, e) => s + e * e, 0);
-  let r2: number | null, r: number | null;
+  // RT section 1: exactly one of {RMSE}, {Rsquared}, {r, rsquared}.
+  const plainLeft = input.plainLeft ?? true;
+  let statistics: RegressionStatistics | null;
   if (on && logFit !== null && trans !== null) {
-    r2 = logFit.r === null ? null : logFit.r * logFit.r;
-    r = logFit.r;
+    const logY = logForm!.kind !== "logarithmic";
+    statistics = regressionStatistics({
+      observed: trans.v,
+      predicted: logY ? Array.from(predicted, Math.log) : predicted,
+      predictor: trans.u,
+      plainLeft,
+      forceR: true,
+    });
   } else {
-    const my = mean(y);
-    const sst = y.reduce((s, v) => s + (v - my) ** 2, 0);
-    r2 = n > k && sst > 0 ? 1 - sse / sst : null;
-    r = linearFreeIntercept ? simple(x, y).r : null;
+    statistics = regressionStatistics({
+      observed: y,
+      predicted,
+      predictor: input.uniquePredictor === false ? null : x,
+      plainLeft,
+    });
   }
+  if (statistics === null) return failure(available, on);
+  const r2 =
+    statistics.kind === "r"
+      ? statistics.rsquared
+      : statistics.kind === "Rsquared"
+        ? statistics.Rsquared
+        : null;
+  const r = statistics.kind === "r" ? statistics.r : null;
   return {
     ok: true,
     error: null,
     params: params.map((name, j) => ({ name, value: p[j] })),
     r2,
     r,
-    rmse: r2 === null ? Math.sqrt(sse / n) : null,
+    rmse: statistics.kind === "RMSE" ? statistics.RMSE : null,
     residuals,
     logMode: { available, on },
     approximate,
