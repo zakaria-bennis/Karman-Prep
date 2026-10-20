@@ -136,13 +136,14 @@ function failUnshippedCall(state: ParserState, name: CommandToken): never {
   const open = peek(state, 1);
   const known = operatorName(name.name);
   if (known === undefined) return fail("unsupported", name.span, `"${name.name}" is not supported`);
-  if (COMPLEX_ONLY.has(name.name)) {
+  const complexOnly = () =>
     // Desmos, real mode: "The 'arg' function is only available in complex mode." (2026-10-20)
-    return fail("complex-only", name.span, "a complex-mode function", name.name);
-  }
+    fail("complex-only", name.span, "a complex-mode function", name.name);
+  if (COMPLEX_ONLY.has(name.name) && !(open.t === "open" && open.ch === "(")) complexOnly();
   if (open.t !== "open" || open.ch !== "(") return needsParentheses(name);
   take(state);
   const args = takeEmptyList(state) ? [] : parseArgumentList(state);
+  if (COMPLEX_ONLY.has(name.name) && args.length === 1) complexOnly();
   const counts = known.arity === "variadic" ? null : known.arity;
   return failUnevaluatedCall(state, name, args, counts);
 }
@@ -276,7 +277,7 @@ export function parseMember(state: ParserState, target: Node): Node | null {
     return fail("unexpected-symbol", dot.span, "a one-letter name after a dot", ".");
   }
   const name = memberName(state);
-  if (name === null) return null;
+  if (name === null) return failIfNoMember(state);
   state.pos += name.tokens;
   const open = peek(state);
   const method = open.t === "open" && open.ch === "(";
@@ -305,6 +306,34 @@ function isOneLetterMember(state: ParserState): boolean {
     close.t === "close" &&
     close.ch === "}"
   );
+}
+
+/**
+ * The geometry tools and matrix internals, which have no dot form: Desmos reads `p.\operatorname{area}`
+ * as "Sorry, I don't understand the way that '.' is used here." (catalogue, 2026-10-19).
+ */
+const NO_DOT_FORM: ReadonlySet<string> = new Set([
+  ...["segment", "line", "ray", "vector", "circle", "arc", "angle", "directedangle", "center"],
+  ...["radius", "vertices", "segments", "perimeter", "area", "intersection", "glider"],
+  ...["strictintersection", "parallel", "perpendicular", "anglebisector", "translate", "rotate"],
+  ...["dilate", "reflect", "start", "end", "angles", "directedangles", "coterminal"],
+  ...["supplement", "hcat", "rowCount"],
+]);
+
+/**
+ * A member after the dot at the cursor that no parse reads: a name Desmos does not know
+ * (`L.\operatorname{StdDev}`) or a built-in with no dot form fails as Desmos's "Sorry, I don't
+ * understand the way that '.' is used here."; any other returns null, for the caller's
+ * `unsupported`.
+ */
+function failIfNoMember(state: ParserState): null {
+  const [dot, command] = [peek(state), peek(state, 1)];
+  if (command.t !== "command") return null;
+  const unknown = command.name === "operatorname" && isOpen(peek(state, 2), "{");
+  if (unknown || NO_DOT_FORM.has(command.name)) {
+    return fail("unexpected-symbol", dot.span, "a member with no dot form", ".");
+  }
+  return null;
 }
 
 /** The member name after the dot at the cursor and how many tokens it spans with the dot. */

@@ -46,7 +46,14 @@ export function commandName(state: ParserState, command: CommandToken): string {
   if (command.name !== "operatorname") return `\\${command.name}`;
   const text = groupText(state);
   if (text === null) return fail("syntax", command.span, "\\operatorname without a name");
-  if (CONTEXT_NAMES.has(text)) return fail("symbol-context", command.span, "a context name", text);
+  if (CONTEXT_NAMES.has(text)) {
+    // `\operatorname{ans}_{1}`: "Sorry, I don't understand the way that 'ans' is used here."
+    const next = state.tokens[state.pos];
+    if (next?.t === "symbol" && next.ch === "_") {
+      return fail("unexpected-symbol", command.span, "a context name with a subscript", text);
+    }
+    return fail("symbol-context", command.span, "a context name", text);
+  }
   if (!/^[A-Za-z]+$/.test(text)) return fail("unknown-symbol", command.span, "a name", text);
   return `\\operatorname{${text}}`;
 }

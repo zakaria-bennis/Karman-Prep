@@ -29,6 +29,7 @@ export type RowErrorCode =
   | "function-cycle" // functions defined in terms of each other, in Desmos's order
   | "recursive-cycle" // the same, passing other arguments around the cycle (a recursion)
   | "implicit-variables" // a value defined in terms of itself, `a=a+1`
+  | "repeated-parameter" // `f(x,x)=x`
   | "equation-required" // an expression in x and y, or that is only a name: needs `y=` or `=`
   | "reserved-name"
   | "arity"

@@ -3,6 +3,7 @@
 
 import type { RowErrorCode } from "../corpus/types";
 import { DEFERRED_FEATURES } from "../latex/errors";
+import { DESMOS_ONLY_CALLS } from "../latex/desmos-names";
 import { GREEK_LETTERS } from "../latex/greek";
 import { PREFIX_FORM_NAMES, REFUSED_NAMES } from "../latex/operator-names";
 
@@ -69,6 +70,7 @@ const MESSAGES: Readonly<Record<RowErrorCode, string>> = {
   "function-cycle": "The definitions of functions {n} depend on each other.",
   "recursive-cycle": "The definitions of functions {n} depend on each other.",
   "implicit-variables": "We only support implicit equations of x and y.",
+  "repeated-parameter": "Cannot use '{n}' for multiple parameters of this function.",
   "equation-required": "Try adding '{n}' to the beginning of this equation.",
   "reserved-name": "{n} is reserved and can't be redefined.",
   arity: "Function '{n}' requires {k} arguments.", // arityMessage gives the full text
@@ -165,6 +167,9 @@ const MESSAGES: Readonly<Record<RowErrorCode, string>> = {
   "symbol-context": "You can't use '{n}' in this context.",
   "complex-only": "The '{n}' function is only available in complex mode.",
 };
+/** A built-in the reference's graphing calculator refuses (desmos-names.ts). */
+const isRefused = (name: string) => DESMOS_ONLY_CALLS.get(name)?.refused === true;
+
 /** The closer each opener of an `unmatched` error pairs with. */
 const CLOSERS: Readonly<Record<string, string>> = { "(": ")", "[": "]", "{": "}" };
 /** RC-2, Phase 1: `unsupported` naming r or θ, whose polar graphs ship in Phase 2. */
@@ -197,7 +202,7 @@ export function rowErrorMessage(code: RowErrorCode, names: string[]): string {
     return arityMessage(n, "1", 0);
   }
   // A refused name on its own reads as Desmos's refusal, not "is a function".
-  if (code === "function-parentheses" && REFUSED_NAMES.includes(n)) {
+  if (code === "function-parentheses" && (REFUSED_NAMES.includes(n) || isRefused(n))) {
     return rowErrorMessage("refused-function", [n]);
   }
   let template = MESSAGES[code];

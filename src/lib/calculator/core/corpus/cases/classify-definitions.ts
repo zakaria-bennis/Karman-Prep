@@ -40,7 +40,7 @@ const cases: CorpusCase[] = [
   k(10, ["RC-4"], "f(t)=t+1", "function-definition"),
   k(11, ["RC-4"], "f(a)+a", "value", [], { rows: ["a=5", "f(a)=a+1"] }),
   x(12, ["RC-4"], "f(a,b,c,d,g,h,k,m,n)=a", "too-many-params"),
-  x(13, ["RC-4"], "f(x,x)=x", "duplicate-definition"),
+  x(13, ["RC-4"], "f(x,x)=x", "repeated-parameter"), // Desmos: "Cannot use 'x' for multiple parameters of this function."
   k(14, ["RC-4"], "f(2)", "value", [], { rows: ["f(x,x)=x"] }),
   // Desmos, 2026-10-20: a reserved name written as a function head graphs its body; a name
   // defined twice marks only the rows that use it; `a=a+1` is an implicit equation

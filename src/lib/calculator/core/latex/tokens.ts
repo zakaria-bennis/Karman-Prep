@@ -127,8 +127,12 @@ export function tokenize(normalized: string): Token[] | ParseError {
         detail: '";" (matrix rows) is not supported',
       };
     } else {
-      // Desmos names a character it does not read: "Sorry, I don't understand the '@' symbol."
+      // Desmos names a character it does not read: "Sorry, I don't understand the '@' symbol.";
+      // a matrix's `&` is its generic "Sorry, I don't understand this." (captured 2026-10-20)
       const character = characterAt(normalized, i);
+      if (character === "&") {
+        return { code: "syntax", span: span(i + 1), detail: "a matrix column separator" };
+      }
       return {
         code: "unknown-symbol",
         span: span(i + character.length),

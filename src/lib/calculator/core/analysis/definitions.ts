@@ -128,7 +128,7 @@ function anonymousHead(tree: Node, scanned: { name: string; params: string[] }) 
   };
   const repeated = scanned.params.find((p, k) => scanned.params.indexOf(p) !== k);
   const error =
-    repeated === undefined ? null : rowError("duplicate-definition", [displayName(repeated)], null);
+    repeated === undefined ? null : rowError("repeated-parameter", [displayName(repeated)], null);
   return { head, error };
 }
 
@@ -153,7 +153,8 @@ function readHead(
       span: left.span,
     };
     const names = repeated === undefined ? null : [displayName(repeated)];
-    return { head, error: names === null ? null : rowError("duplicate-definition", names, null) };
+    // Desmos: "Cannot use 'x' for multiple parameters of this function." (captured 2026-10-20)
+    return { head, error: names === null ? null : rowError("repeated-parameter", names, null) };
   }
   if (left.kind === "const") {
     const head = valueHead(left.name, body, left.span);

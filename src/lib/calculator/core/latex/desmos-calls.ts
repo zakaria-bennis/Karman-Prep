@@ -19,6 +19,13 @@ const COLORS: ReadonlyMap<string, string> = new Map([
   ["oklab", "0.7, 0.2, 0"],
   ["oklch", "0.8, 0.1, 8"],
 ]);
+/** Allowlisted names whose accepted counts Desmos widens (catalogue, 2026-10-19). */
+const COUNTS: ReadonlyMap<string, readonly number[]> = new Map([
+  ["chisqgof", [1, 2]],
+  ["ztest", [2, 3, 4]],
+  ["zproptest", [2, 3, 4]],
+  ["ttest", [1, 2, 3, 4, 5, 6, 7, 8]],
+]);
 const PLOTS: ReadonlySet<string> = new Set(["stats", "histogram", "dotplot", "boxplot"]);
 const MATRIX: ReadonlySet<string> = new Set([
   "det",
@@ -63,7 +70,7 @@ export function failUnevaluatedCall(
   if (k === "polygon" && given === 1 && isNumberLiteral(args[0])) {
     return fail("polygon-points", name.span, "a polygon of one number", k);
   }
-  const accepted = rule?.counts ?? counts;
+  const accepted = rule?.counts ?? COUNTS.get(k) ?? counts;
   if (accepted !== null && !accepted.includes(given)) {
     return fail("arity", name.span, "a wrong argument count", k, arityNames(k, accepted, given));
   }

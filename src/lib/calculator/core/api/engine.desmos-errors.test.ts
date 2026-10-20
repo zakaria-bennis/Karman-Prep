@@ -136,6 +136,15 @@ const ROWS: [string, string][] = [
     "Function 'segment' requires 2 arguments. ",
   ],
   ["\\operatorname{translate}(1,2)", "This calculator does not support the 'translate' function."],
+  ["\\operatorname{inv}", "This calculator does not support the 'inv' function."],
+  [
+    "\\operatorname{real}()",
+    "Function 'real' requires an argument. For example, try typing: real(x).",
+  ],
+  ["\\operatorname{ans}_{1}", "Sorry, I don't understand the way that 'ans' is used here."],
+  ["\\begin{matrix}1&2\\end{matrix}", PARSE],
+  ["L.\\operatorname{StdDev}", "Sorry, I don't understand the way that '.' is used here."],
+  ["f(x,x)=x", "Cannot use 'x' for multiple parameters of this function."],
 ];
 
 describe("Desmos's row error texts (live Desmos, 2026-10-20)", () => {
