@@ -13,7 +13,7 @@ from pathlib import Path
 
 from kimport.keys import comparison_key
 from kimport.normalize import NORMALIZER_VERSION
-from kimport.sqlutil import lit, uuid_literal
+from kimport.sqlutil import dryrun_variant, lit, uuid_literal
 
 CHUNK = 500
 
@@ -78,6 +78,7 @@ def run_backfill(export_path: Path, out_path: Path) -> dict:
     out_path = Path(out_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(sql, encoding="utf-8")
+    out_path.with_name(out_path.stem + ".dryrun.sql").write_text(dryrun_variant(sql), encoding="utf-8")
     skipped = sum(1 for r in records if r.meta.get("format_problem") or r.meta.get("answer_problem")
                   or r.meta.get("figure_unkeyable"))
     return {"in_sql": len(records) - skipped, "skipped": skipped}

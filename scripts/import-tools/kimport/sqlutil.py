@@ -28,3 +28,16 @@ def do_block(tag: str, body: list[str]) -> list[str]:
     if f"${tag}$" in "\n".join(body):
         raise ValueError(f"dollar-quote tag {tag} appears inside its own block")
     return [f"DO ${tag}$", *body, f"END ${tag}$;", ""]
+
+
+def dryrun_variant(sql: str) -> str:
+    """The same SQL with its one final top-level COMMIT; turned into ROLLBACK;.
+
+    A dry run must be this file run as-is: wrapping the real file in another
+    transaction would still commit, because the real file ends with COMMIT."""
+    lines = sql.split("\n")
+    at = [i for i, line in enumerate(lines) if line.strip().upper() == "COMMIT;"]
+    if len(at) != 1:
+        raise ValueError(f"expected exactly one top-level COMMIT; but found {len(at)}")
+    lines[at[0]] = "ROLLBACK;"
+    return "\n".join(lines)

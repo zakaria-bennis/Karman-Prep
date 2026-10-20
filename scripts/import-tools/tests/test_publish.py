@@ -379,7 +379,13 @@ class CliTests(PublishTestCase):
         r = self.run_cli(self.batch(self.three(), self.bank()), out)
         self.assertEqual(r.returncode, 0, r.stderr)
         self.assertEqual(sorted(p.name for p in out.iterdir()),
-                         ["keys.json", "precheck.json", "publish.sql", "rollback.sql"])
+                         ["keys.json", "precheck.json", "publish.dryrun.sql", "publish.sql",
+                          "rollback.dryrun.sql", "rollback.sql"])
+        for name in ("publish", "rollback"):
+            dry = (out / f"{name}.dryrun.sql").read_text()
+            self.assertTrue(dry.rstrip().endswith("ROLLBACK;"))
+            self.assertNotIn("COMMIT", dry)
+            self.assertEqual(dry.replace("ROLLBACK;", "COMMIT;"), (out / f"{name}.sql").read_text())
         keys = json.loads((out / "keys.json").read_text())
         self.assertEqual(len(keys), 3)
         self.assertTrue(json.loads((out / "precheck.json").read_text())["passed"])

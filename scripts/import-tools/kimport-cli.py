@@ -232,7 +232,8 @@ def _register_lane(sub) -> None:
             claims = claims or lane.claims_path_for(Path(a.lane))
             print(f"slice: {len(lane.release_done(claims, Path(a.lane), Path(a.ledger)))} finished claims dropped")
         elif a.release:
-            need("reviewer", "claims")
+            need("reviewer", "lane")
+            claims = claims or lane.claims_path_for(Path(a.lane))
             print(f"slice: released {len(lane.release(claims, a.reviewer))} for {a.reviewer}")
         else:
             need("reviewer", "clusters", "lane", "ledger", "now")

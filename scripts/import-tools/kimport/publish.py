@@ -37,7 +37,7 @@ from typing import TypedDict
 from kimport.export import FINGERPRINT_SQL, ExportDoc, read_export_doc
 from kimport.keys import QuestionRecord, comparison_key
 from kimport.normalize import NORMALIZER_VERSION
-from kimport.sqlutil import do_block, lit, uuid_literal
+from kimport.sqlutil import do_block, dryrun_variant, lit, uuid_literal
 from kimport.sweep import blocking_key, record_from_row
 from kimport.typo import typo_match
 from kimport.writer import OpenIntent, require_no_open_intents
@@ -480,13 +480,16 @@ def run_publish(batch: str, readback: Path, sealed: Path, export: Path, intents:
     files = {
         "publish.sql": bundle["publish_sql"],
         "rollback.sql": bundle["rollback_sql"],
+        "rollback.dryrun.sql": dryrun_variant(bundle["rollback_sql"]),
+        "publish.dryrun.sql": dryrun_variant(bundle["publish_sql"]),
         "keys.json": json.dumps(bundle["keys"], indent=2, sort_keys=True) + "\n",
         "precheck.json": json.dumps(bundle["precheck"], indent=2, ensure_ascii=False, sort_keys=True) + "\n",
     }
     # Stage every file first, then rename rollback first and publish last, so a
     # failure never leaves a new publish.sql beside an old rollback.sql.
     staged = []
-    for name in ("rollback.sql", "keys.json", "precheck.json", "publish.sql"):
+    for name in ("rollback.sql", "rollback.dryrun.sql", "keys.json", "precheck.json",
+                 "publish.dryrun.sql", "publish.sql"):
         tmp = out_dir / f".{name}.tmp"
         tmp.write_text(files[name], encoding="utf-8")
         staged.append((tmp, out_dir / name))

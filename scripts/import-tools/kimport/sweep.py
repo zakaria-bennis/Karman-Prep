@@ -41,7 +41,7 @@ from kimport.keys import (
 from kimport.export import export_by_id, read_export
 from kimport.evidence import WORD, OutsideEvidence
 from kimport.normalize import NORMALIZER_VERSION, math_tokens, strip_markup
-from kimport.sqlutil import do_block, lit, uuid_literal
+from kimport.sqlutil import do_block, dryrun_variant, lit, uuid_literal
 from kimport.typo import typo_match
 
 PUBLISH_READY = ("publish_ready", "publish_ready_with_verified_repair")
@@ -509,4 +509,6 @@ def run_sweep(export_path: Path, out_dir: Path) -> dict:
     (out_dir / "report.md").write_text(report_md(groups, by_id, live_count, broken, mismatched), encoding="utf-8")
     (out_dir / "unpublish.sql").write_text(unpublish, encoding="utf-8")
     (out_dir / "republish.sql").write_text(republish, encoding="utf-8")
+    (out_dir / "unpublish.dryrun.sql").write_text(dryrun_variant(unpublish), encoding="utf-8")
+    (out_dir / "republish.dryrun.sql").write_text(dryrun_variant(republish), encoding="utf-8")
     return {"groups": len(groups), "remove": sum(len(g["remove"]) for g in groups), "live": live_count}

@@ -80,6 +80,21 @@ class ExportDocTests(unittest.TestCase):
         out = self.d / "backfill.sql"
         run_backfill(FIXTURE, out)
         self.assertIn("UPDATE public.quiz_questions q SET comparison_key", out.read_text())
+        dry = (self.d / "backfill.dryrun.sql").read_text()
+        self.assertNotIn("COMMIT;", dry)
+        self.assertIn("\nROLLBACK;\n", dry)
+        for name in ("unpublish", "republish"):
+            d = (self.d / "sweep" / f"{name}.dryrun.sql").read_text()
+            self.assertNotIn("COMMIT;", d)
+            self.assertTrue(d.rstrip().endswith("ROLLBACK;"))
+            self.assertTrue((self.d / "sweep" / f"{name}.sql").read_text().rstrip().endswith("COMMIT;"))
+
+    def test_dryrun_variant_needs_exactly_one_commit(self):
+        from kimport.sqlutil import dryrun_variant
+        self.assertEqual(dryrun_variant("BEGIN;\nCOMMIT;\n-- x\n"), "BEGIN;\nROLLBACK;\n-- x\n")
+        for bad in ("BEGIN;\n", "COMMIT;\nCOMMIT;\n"):
+            with self.assertRaises(ValueError):
+                dryrun_variant(bad)
 
     def test_sweep_cli_reads_new_shape(self):
         p = write_export(self.d / "e.json", read_export(FIXTURE))

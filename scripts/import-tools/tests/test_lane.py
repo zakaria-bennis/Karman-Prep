@@ -540,9 +540,12 @@ class LaneCliTests(Base):
         a, b = r1.stdout.split(), r2.stdout.split()
         self.assertEqual((len(a), len(b)), (3, 2), r1.stderr + r2.stderr)
         self.assertFalse(set(a) & set(b))
-        r = self.run_cli("slice", "--release", "--reviewer", "r1", "--claims", str(self.claims))
+        r = self.run_cli("slice", "--release", "--reviewer", "r1", "--lane", str(self.lane))
         self.assertEqual(r.returncode, 0, r.stderr)
         self.assertIn("released 3", r.stdout)
+        r = self.run_cli("slice", "--release", "--reviewer", "r2", "--lane", str(self.lane))
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn("released 2", r.stdout)
         r = self.run_cli("slice", "--release-done", "--claims", str(self.claims), "--lane", str(self.lane),
                          "--ledger", str(self.ledger))
         self.assertEqual(r.returncode, 0, r.stderr)
