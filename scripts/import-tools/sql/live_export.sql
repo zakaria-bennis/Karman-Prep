@@ -6,7 +6,14 @@
 --
 -- The table's format column is answer_format (enum multiple_choice /
 -- numeric_entry); it is exported under the name question_format.
-SELECT coalesce(jsonb_agg(to_jsonb(x) ORDER BY x.created_at, x.id), '[]'::jsonb) AS export
+--
+-- comparison_key is exported only once the column exists (migration
+-- 20261021000000), read through to_jsonb(q) so this query runs before and after
+-- it. `kimport-cli.py publish` refuses an export without the field.
+SELECT coalesce(jsonb_agg(
+         CASE WHEN x.has_comparison_key_column THEN to_jsonb(x) - 'has_comparison_key_column'
+              ELSE to_jsonb(x) - 'has_comparison_key_column' - 'comparison_key' END
+         ORDER BY x.created_at, x.id), '[]'::jsonb) AS export
 FROM (
   SELECT
     q.id,
@@ -26,6 +33,8 @@ FROM (
     q.source_question_number,
     q.content_hash_v2,
     q.created_at,
+    to_jsonb(q) -> 'comparison_key' AS comparison_key,
+    to_jsonb(q) ? 'comparison_key' AS has_comparison_key_column,
     (SELECT coalesce(jsonb_agg(jsonb_build_object('letter', c.letter, 'choice_text', c.choice_text)
                                ORDER BY c.letter), '[]'::jsonb)
        FROM public.answer_choices c

@@ -11,7 +11,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))  # -I drops the script dir
 
-from kimport import backfill, sweep, writer  # noqa: E402
+from kimport import backfill, publish, sweep, writer  # noqa: E402
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -20,6 +20,7 @@ def build_parser() -> argparse.ArgumentParser:
     _register_writer(sub)
     _register_sweep(sub)
     _register_backfill(sub)
+    _register_publish(sub)
     return parser
 
 
@@ -80,9 +81,26 @@ def _register_backfill(sub) -> None:
         "backfill: {in_sql} rows in SQL, {skipped} skipped".format(**backfill.run_backfill(Path(a.export), Path(a.out))))))
 
 
+def _register_publish(sub) -> None:
+    pb = sub.add_parser("publish", help="write guarded publish + rollback SQL for one staged batch (one module)")
+    pb.add_argument("--batch", required=True, help="batch name: lowercase letters, digits and dashes")
+    pb.add_argument("--readback", required=True, help="<batch>-private-readback.json")
+    pb.add_argument("--sealed", required=True, help="<batch>-sealed-preview.json")
+    pb.add_argument("--export", required=True, help="fresh result of sql/live_export.sql, saved after the readback")
+    pb.add_argument("--intents", required=True, help="intent log, e.g. pipeline/intents.jsonl")
+    pb.add_argument("--out", required=True, help="output folder, e.g. pipeline/batches/<name>/")
+    pb.set_defaults(func=lambda a: _guard(lambda: print(
+        "publish: {rows} rows, {keyed} keyed, {figure_no_key} figure rows without a database key".format(
+            **publish.run_publish(a.batch, Path(a.readback), Path(a.sealed), Path(a.export), Path(a.intents),
+                                  Path(a.out))))))
+
+
 def _guard(fn) -> int:
     try:
         fn()
+    except publish.RefuseToBuild as e:
+        print(f"refused: {e.reason}", file=sys.stderr)
+        return 1
     except (writer.LockHeld, writer.WrongHolder, writer.NoLock, writer.OpenIntent,
             writer.CorruptLock, ValueError, OSError) as e:
         print(f"error: {e}", file=sys.stderr)
