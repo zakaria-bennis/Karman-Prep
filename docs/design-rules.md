@@ -68,9 +68,36 @@ The calculator is excluded until the founder has reviewed it.
 39. Internal grading stays internal on marketing pages: no difficulty levels
     ("level 4", "1 to 7", "seven levels"), no skill maps or level meters.
 40. Karman is a company, not a personal site. Marketing copy speaks as Karman,
-    not in the first person. Zakaria is named sparingly (once or twice per
-    page at most, never in headlines or button labels); the About page is where
-    he is introduced in full.
+    not in the first person. Zakaria is not named in the visible text of any
+    page except the About page, where he is introduced in full. Search-engine
+    metadata may keep a founder field.
+
+## Pictures and film, 2026-10-20
+
+41. Karman is a people company, so pictures and film show people: students of
+    16 and 17 first, then parents and tutors. Empty rooms and still lifes on
+    their own read as lazy and generated.
+42. Students are locked in. A small smile is fine; laughing at a laptop, or
+    any staged comedy, is not. No cartoon details such as a pencil behind the
+    ear.
+43. Study happens anywhere: at a desk, on the go, on the bench during a
+    practice break. The product is digital, so pictures centre on phones and
+    laptops, not paper. AirPods Pro or AirPods Max are fine; no visible
+    brand logos.
+44. Screens are readable and show real Karman product screens with logical
+    content. The founder approves each screen's content before anything is
+    generated. Screen text is placed from our own rendered screens, never left
+    to the image model to invent.
+45. No physical calculators anywhere. The digital SAT has its own on-screen
+    graphing calculator.
+46. Tutoring is on Zoom. Pictures of tutoring show a video call (student and
+    tutor each in their own place), never a tutor in the room or over a
+    shoulder.
+47. Generated people are never presented as Karman students, parents or
+    tutors: no names, scores or quotes beside them, and no screen in their
+    hands that shows a name or a score result.
+48. Colour in pictures is not limited to the site palette. Pictures must look
+    graded and coordinated with each other and with the page around them.
 
 ## Copy rules
 
