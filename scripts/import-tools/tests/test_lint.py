@@ -165,6 +165,21 @@ class LintTests(unittest.TestCase):
         self.assertEqual(self.codes(res), ["PF_BINDING"])
         self.assertEqual(len(res["pulled"]), 2)
 
+    def test_duplicate_ids_pulled_even_without_frozen(self):
+        res = self.run_lint([make_row(), make_row()], frozen=False)
+        self.assertEqual(self.codes(res), ["PF_BINDING"])
+        self.assertEqual(len(res["pulled"]), 2)
+
+    def test_malformed_frozen_manifest_is_a_clear_error(self):
+        row = make_row()
+        rp = self.tmp / "r.json"; rp.write_text(json.dumps({"questions": [row]}))
+        cp = self.tmp / "c.json"; cp.write_text(json.dumps(clusters_for([row])))
+        fp = self.tmp / "f.json"
+        for body in ({}, {"rows": [{"row_sha256": "x"}]}, {"rows": "no"}):
+            fp.write_text(json.dumps(body))
+            with self.subTest(body=body), self.assertRaisesRegex(lint.LintError, "frozen manifest"):
+                lint.lint_batch(rp, fp, cp)
+
     def test_pf_binding_tag_hash_must_be_inside_approved_tags(self):
         row = make_row(); ev = row["reviewed_answer"]["evidence"]
         ev["tag_binding_manifest_sha256"] = TAG_HASH

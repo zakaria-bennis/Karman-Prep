@@ -197,7 +197,12 @@ def lint_batch(reviewed: Path, frozen: Path | None, clusters: Path) -> dict:
     dupes = {i for i in ids if ids.count(i) > 1}
     pins = None
     if frozen is not None:
-        pins = {p["stable_question_id"]: p for p in _load(frozen)["rows"]}
+        manifest = _load(frozen)
+        pin_rows = manifest.get("rows") if isinstance(manifest, dict) else None
+        if not isinstance(pin_rows, list) or not all(
+                isinstance(p, dict) and isinstance(p.get("stable_question_id"), str) for p in pin_rows):
+            raise LintError(f"{frozen} is not a frozen manifest: needs rows, each with a stable_question_id")
+        pins = {p["stable_question_id"]: p for p in pin_rows}
     cluster_data = _load(clusters)
     if cluster_data.get("normalizer_version") != NORMALIZER_VERSION:
         raise LintError(f"clusters were built with normalizer {cluster_data.get('normalizer_version')!r}, "
@@ -206,7 +211,7 @@ def lint_batch(reviewed: Path, frozen: Path | None, clusters: Path) -> dict:
     for row in rows:
         sid = row["stable_question_id"]
         binding = _check_binding(row, pins) if pins is not None else []
-        if pins is not None and sid in dupes:
+        if sid in dupes:
             binding.append("stable_question_id repeats within the batch")
         found = {
             "PF_FIGURE": _check_figure(row),
