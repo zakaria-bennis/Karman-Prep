@@ -106,15 +106,14 @@ test("D-13 Create table from y=x^2 shows the computed column and the undoable to
 }) => {
   await openShell(page, `?w=900&h=600&rows=${enc(["y=x^{2}"])}`);
   if (isMobile) {
-    // A long-press on the gutter tab; touch has no right-click.
-    const tab = page.getByRole("button", { name: "Hide expression 1" });
-    await tab.dispatchEvent("pointerdown", { pointerType: "touch", isPrimary: true });
-    await page.waitForTimeout(700);
-    await tab.dispatchEvent("pointerup", { pointerType: "touch", isPrimary: true });
+    // Touch has no right-click (a long-press on the tab opens its style options): Edit list's
+    // Create table control.
+    await page.getByRole("button", { name: "Edit list" }).click();
+    await page.getByRole("button", { name: "Create table from expression 1" }).click();
   } else {
     await rowField(page, "1").click({ button: "right" });
+    await page.getByRole("menuitem", { name: "Create table" }).click();
   }
-  await page.getByRole("menuitem", { name: "Create table" }).click();
   await expect(page.locator("#calc [data-toast]")).toContainText("Table created.");
   await expect(cell(page, "x₁, row 1")).toBeFocused();
   await expect(

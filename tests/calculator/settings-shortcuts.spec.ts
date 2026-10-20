@@ -74,3 +74,33 @@ test("SETTINGS-20 Lock Viewport stops dragging and the wheel and removes the zoo
   await page.waitForTimeout(200);
   expect(await viewport(page)).toEqual(before);
 });
+
+test("STYLES-20, -25 a long-press on the row icon opens the style options; a colour tile recolours the row and Escape returns to the icon", async ({
+  page,
+}) => {
+  await openShell(page, `?w=1200&h=800&rows=${enc(["y=x"])}`);
+  const icon = page.getByRole("button", { name: "Hide expression 1" });
+  const box = await icon.boundingBox();
+  await page.mouse.move(box!.x + box!.width / 2, box!.y + box!.height / 2);
+  await page.mouse.down();
+  await page.waitForTimeout(650);
+  await page.mouse.up();
+  const menu = page.getByRole("region", { name: "Options Menu" });
+  await expect(menu).toBeVisible();
+  await menu.getByRole("option", { name: "orange" }).click();
+  const color = await page.evaluate(
+    () => globalThis.__shell!.handle.calculator.getExpressions()[0].color
+  );
+  expect(color).toBe("c5");
+  await expect(menu.getByRole("option", { name: "orange" })).toHaveAttribute(
+    "aria-selected",
+    "true"
+  );
+  await page.keyboard.press("Escape");
+  await expect(menu).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Hide expression 1" })).toBeFocused();
+  // The long-press did not hide the row.
+  expect(
+    await page.evaluate(() => globalThis.__shell!.handle.calculator.getExpressions()[0].hidden)
+  ).toBe(false);
+});

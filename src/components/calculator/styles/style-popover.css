@@ -1,0 +1,126 @@
+/* An expression row's style popover (ui/style-popover, VIS-POPOVERS-MENUS-21 to -24): the shared
+   popover box, 220 px wide, to the right of the row's colour icon with an 8 px arrow pointing
+   left (a white triangle over a grey one 1 px further out). StylePopover portals it into the
+   calculator root and sets its fixed position, max-height and --kc-arrow-at. Its sections, titles
+   and colour tiles share the column style menu's rules in menus.css. */
+
+.kc-style-popover {
+  --kc-arrow-at: 19px;
+  position: fixed;
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  width: 220px;
+  color: var(--kc-text);
+  font-family: var(--kc-font-ui);
+  font-size: var(--kc-size-ui);
+  line-height: normal;
+  text-align: left;
+  white-space: normal;
+}
+
+.kc-style-popover-body {
+  min-height: 0;
+  margin: -1px;
+  overflow: auto;
+  border: 1px solid var(--kc-boundary);
+  border-radius: 6px;
+  background: var(--kc-list);
+  box-shadow: var(--kc-popover-shadow);
+}
+
+.kc-style-popover::before,
+.kc-style-popover::after {
+  content: "";
+  position: absolute;
+  top: calc(var(--kc-arrow-at) - 8px);
+  z-index: 1;
+  border: 8px solid transparent;
+  border-left-width: 0;
+  pointer-events: none;
+}
+
+.kc-style-popover::before {
+  left: -9px;
+  border-right-color: var(--kc-boundary);
+}
+
+.kc-style-popover::after {
+  left: -8px;
+  border-right-color: var(--kc-list);
+}
+
+/* VIS-13: the line-style buttons are 33 by 30, the point-style ones 28 px squares. */
+.kc-style-popover .kc-segments[data-theme="mini"] {
+  justify-content: flex-end;
+}
+
+.kc-style-popover .kc-segments[data-theme="mini"] .kc-segment {
+  justify-content: center;
+  width: 33px;
+  padding: 0;
+}
+
+/* The chosen tile shows its tick; a focused one the 2 px blue ring. */
+.kc-style-popover .kc-style-swatch[aria-selected="true"] > svg {
+  visibility: visible;
+}
+
+.kc-style-popover .kc-style-swatch:focus-visible {
+  outline: 2px solid var(--kc-accent);
+  outline-offset: 2px;
+}
+
+/* VIS-22, VIS-25: the fields on the left (103 px), the style choice on the right. */
+.kc-style-options {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-top: 0;
+}
+
+.kc-style-options > .kc-segments {
+  margin-top: 8px;
+}
+
+.kc-style-fields {
+  display: flex;
+  flex-direction: column;
+  width: 103px;
+  padding-top: 3px;
+}
+
+.kc-style-field {
+  display: flex;
+  align-items: center;
+  padding: 7px 0 1px;
+}
+
+.kc-style-field-icon {
+  flex: none;
+  width: 13px;
+  height: 16px;
+  margin-right: 5px;
+  fill: none;
+  stroke: var(--kc-pop-mini-ink);
+  stroke-width: 1.5;
+}
+
+.kc-style-field-input {
+  box-sizing: border-box;
+  width: 44px;
+  height: 23.4px;
+  margin: 0;
+  padding: 2px 2px 1px;
+  border: none;
+  border-bottom: 1px solid var(--kc-pop-field-line);
+  background: transparent;
+  color: var(--kc-pop-placeholder);
+  font-family: var(--kc-font-math);
+  font-size: 15.2px;
+}
+
+.kc-style-field-input:focus-visible {
+  outline: 2px solid var(--kc-accent);
+  outline-offset: 2px;
+}
