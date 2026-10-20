@@ -102,6 +102,10 @@ pure white, pill buttons, shadows or checkmark bullets.
 | `wrong`                   | #a8432f                     | #ee9a86                     | Incorrect answers only                  |
 | `band`                    | #15202e                     | #0b0f14                     | Footer and dark bands                   |
 
+Small uppercase labels appear only to name a product (The March Program,
+Private 1:1, Free practice test) in that product's colour. No generic section
+labels above headings; the heading carries the section.
+
 Product colour is the separation device: each product's eyebrow, links,
 buttons and highlights use its colour everywhere it appears, in marketing and
 in the portals. No other accent colours.
