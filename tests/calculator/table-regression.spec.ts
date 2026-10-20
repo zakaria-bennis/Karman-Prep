@@ -156,9 +156,16 @@ test("RT-7 typing 1⏎2⏎3⏎ in a new table continues the sequence with 4", as
   await openShell(page, "?w=900&h=600&rows=%5B%22%22%5D");
   await page.locator("#calc [data-row-id='1'] .mq-root-block").click();
   await page.keyboard.type("table");
-  for (const x of ["1", "2", "3"]) {
+  const focusedName = () =>
+    page.evaluate(
+      () =>
+        document.querySelector("#calc")!.shadowRoot!.activeElement?.getAttribute("aria-label") ?? ""
+    );
+  for (const [i, x] of ["1", "2", "3"].entries()) {
     await page.keyboard.type(x);
     await page.keyboard.press("Enter");
+    // Enter focuses the next cell once it mounts; type there at a person's pace, not mid-frame.
+    await expect.poll(focusedName).toMatch(new RegExp(`^x₁, row ${i + 2}\\b`));
   }
   await expect
     .poll(() =>
