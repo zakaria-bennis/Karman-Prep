@@ -51,6 +51,39 @@ it("FN-23 FN-27 every graphed catalogue row plots as the general evaluator gives
   }
 });
 
+// Rows whose list argument or index target varies with x in a way the real plotter cannot lay out
+// element by element (a power, a built-in or an absolute value of a list, a name defined from x);
+// each must plot as the general evaluator gives it, not as a blank graph.
+const VARYING_LISTS: readonly (readonly string[])[] = [
+  ["y=\\operatorname{mean}([1,2,3]^x)"],
+  ["y=\\operatorname{mean}(\\sin([1,2]x))"],
+  ["y=\\max(\\sin([1,2]x))"],
+  ["L=[3,1,4,1,5,9,2,6]", "y=\\operatorname{mean}((L-x)^2)"],
+  ["y=\\operatorname{mean}(\\left|[1,-2]x\\right|)"],
+  ["A=[x,2x]", "y=\\operatorname{mean}(A)"],
+  ["y=\\operatorname{quantile}(\\sin([1,2,3]x),0.5)"],
+  ["y=\\operatorname{quartile}([1,2,3]^x,1)"],
+  ["f(t)=\\operatorname{mean}(\\sin([1,2]t))", "y=f(x)"],
+  ["y=\\operatorname{total}(\\sin([1,2]x))+\\operatorname{mean}([1,2,3]x)"],
+  ["y=\\sin([1,2]x)[2]"],
+  ["y=([1,2,3]^x)[3]"],
+];
+
+it("FN-23 FN-27 NM-30 a list argument or index target that varies with x plots as the general evaluator gives it", () => {
+  for (const rows of VARYING_LISTS) {
+    const { expr, scope } = graphOf(rows);
+    const real = compileRealFunction1(expr, "x", scope),
+      general = compileExpression(expr, scope);
+    for (const x of [0.5, 1, 2, 3.4]) {
+      const expected = toPlotNumber(general({ x: n(x), y: n(NaN) }, NO_DEADLINE));
+      expect(Number.isFinite(expected), rows.join(" ; ")).toBe(true);
+      expect([rows, x, real(x)]).toEqual([rows, x, expected]);
+    }
+  }
+  const { expr, scope } = graphOf(["y=\\operatorname{mean}([1,2,3]^x)"]);
+  expect(compileRealFunction1(expr, "x", scope)(2)).toBeCloseTo(14 / 3, 12);
+});
+
 it("FN-23 y=max(x,2) graphs, quantile(L,x) is a step function, and count(x,1,2) is a line", () => {
   const max = graphOf(["y=\\max(x,2)"]),
     quantile = graphOf(["L=[3,1,4,1,5,9,2,6]", "\\operatorname{quantile}(L,x)"]),

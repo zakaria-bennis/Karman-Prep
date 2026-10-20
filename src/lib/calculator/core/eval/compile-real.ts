@@ -4,16 +4,17 @@
 // slots of its parameters on a shared stack and restores them afterwards, so an evaluation
 // allocates nothing per node. Nothing here throws. Pure TypeScript: no DOM (AR-44).
 
+import { NO_DEADLINE } from "../deadline";
 import { sourceChildren, type ConstName, type Node, type RelOp } from "../latex/ast";
 import { isBuiltinName } from "../latex/operator-names";
 import { BUILTINS } from "../lib/builtins";
 import { givesList, listFunction, reduceNumbers } from "../lib/statistics";
 import { factorial } from "../lib/gamma";
 import { circular, type CircularName } from "../lib/trig";
-import type { CompileScope } from "./compile";
-import { linkHolds } from "./ops";
+import type { Compiled, CompileScope } from "./compile";
+import { linkHolds, toPlotNumber } from "./ops";
 import { exponentRational, realPow, realRoot } from "./real-pow";
-import type { Value } from "./values";
+import { numberValue, type Value } from "./values";
 
 /** User-function calls nest at most this deep; a call past it is undefined. */
 export const MAX_CALL_DEPTH = 64;
@@ -31,12 +32,16 @@ interface RealFunction {
   body: Fn;
 }
 
-/** The value of a tree that uses no variable, by the general evaluator (compileExpression). */
-export type FoldConstant = (tree: Node) => Value;
+/**
+ * A subtree compiled by the general evaluator (compileExpression): run with no variables, it folds
+ * a tree that uses none; run with x, y and the parameters in scope, it evaluates what the real
+ * rules cannot lay out (see generalNode).
+ */
+export type GeneralCompile = (tree: Node) => Compiled;
 
 interface Context {
   scope: CompileScope;
-  fold: FoldConstant | null;
+  general: GeneralCompile | null;
   params: string[]; // the parameters of the user-function bodies being compiled
   slots: Map<string, number>; // a variable name's index into env and bound
   env: number[]; // each slot's current value
@@ -81,11 +86,11 @@ export function degreeArgument(name: string, args: readonly Node[]): Node | null
 export function compileReal(
   tree: Node,
   scope: CompileScope,
-  fold: FoldConstant | null = null
+  general: GeneralCompile | null = null
 ): (x: number, y: number) => number {
   const ctx: Context = {
     scope,
-    fold,
+    general,
     params: [],
     slots: new Map([
       ["x", 0],
@@ -169,15 +174,15 @@ function compile(node: Node, ctx: Context): Fn {
 /**
  * NM-30: `T[i]` with one index item, when T is a list literal, a name whose value is a list, or any
  * other list that uses no variable (`L[2...][x]`, `[1...5][x]`, `L[L>3][x]`), so these graph a
- * step function; the index is rounded down and out of range is NaN. Any other index (a slice, a
- * filter or a list of indices, which are lists, or a target that varies) is NaN.
+ * step function; the index is rounded down and out of range is NaN. A slice, a filter or a list of
+ * indices is a list, so NaN; any other target (`\sin([1,2]x)[1]`) is evaluated by generalNode.
  */
 function indexed(node: Index, ctx: Context): Fn {
   const [item] = node.items;
   if (node.range !== undefined || node.items.length !== 1 || item.kind === "rel")
     return undefinedFn;
   const elements = listElements(node.target, ctx);
-  if (elements === null) return undefinedFn;
+  if (elements === null) return generalNode(node, ctx);
   const index = compile(item, ctx);
   return () => {
     const k = Math.floor(index());
@@ -195,7 +200,7 @@ function listElements(target: Node, ctx: Context): Fn[] | null {
   if (target.kind === "list" && target.range === undefined) {
     return target.items.map((item) => compile(item, ctx));
   }
-  const foldable = ctx.fold !== null && isConstantTree(target, ctx);
+  const foldable = ctx.general !== null && isConstantTree(target, ctx);
   if (target.kind === "neg" && !foldable) {
     return listElements(target.arg, ctx)?.map((f) => () => -f()) ?? null;
   }
@@ -213,8 +218,8 @@ function listElements(target: Node, ctx: Context): Fn[] | null {
   let value: Value | undefined;
   if (target.kind === "id") {
     if (isConstantName(target.name, ctx)) value = ctx.scope.values.get(target.name);
-  } else if (foldable && ctx.fold !== null) {
-    value = ctx.fold(target);
+  } else if (foldable && ctx.general !== null) {
+    value = ctx.general(target)({}, NO_DEADLINE);
   }
   if (value?.type !== "list") return null;
   return value.value.map((v) => {
@@ -274,6 +279,7 @@ function power(node: Binary, ctx: Context): Fn {
 }
 
 function call(node: Call, ctx: Context): Fn {
+  if (listFunction(node.name) !== undefined) return listFunctionCall(node, ctx);
   if (isBuiltinName(node.name)) return builtinCall(node.name, node.args, ctx);
   const fn = userFunction(node.name, ctx);
   if (fn === null || fn.slots.length !== node.args.length) return undefinedFn;
@@ -296,7 +302,6 @@ function builtinCall(name: string, argNodes: readonly Node[], ctx: Context): Fn 
     const angle = compile(degrees, ctx);
     return () => circular(name as CircularName, angle(), "degrees");
   }
-  if (listFunction(name) !== undefined) return listFunctionCall(name, argNodes, ctx);
   const fn = BUILTINS.get(name);
   if (fn === undefined || !fn.arity.includes(argNodes.length)) return undefinedFn;
   const args = argNodes.map((arg) => compile(arg, ctx)),
@@ -324,11 +329,17 @@ function builtinCall(name: string, argNodes: readonly Node[], ctx: Context): Fn 
 /**
  * FN-2, FN-23 to FN-29, FN-75: a list function whose result is a number (statistics.ts), its list
  * arguments laid out by listElements and its other arguments taken as numbers, so `y=\max(x,2)`
- * and `\operatorname{mean}([1,2,3]x)` graph; a call that gives a list (a broadcast) is NaN. The
- * values are evaluated onto the stack and copied into this call site's buffer, as builtinCall does.
+ * and `\operatorname{mean}([1,2,3]x)` graph; a call that gives a list (a broadcast) is NaN. An
+ * argument listElements cannot lay out that may still be a list (`[1,2,3]^x`, `\sin([1,2]x)`, a
+ * name defined from x) sends the call to generalNode. The values are evaluated onto the stack and
+ * copied into this call site's buffer, as builtinCall does.
  */
-function listFunctionCall(name: string, argNodes: readonly Node[], ctx: Context): Fn {
-  const parts = argNodes.map((arg) => listElements(arg, ctx));
+function listFunctionCall(node: Call, ctx: Context): Fn {
+  const { name, args: argNodes } = node,
+    parts = argNodes.map((arg) => listElements(arg, ctx));
+  if (argNodes.some((arg, k) => parts[k] === null && mayBeList(arg, ctx.params, ctx, new Set()))) {
+    return generalNode(node, ctx);
+  }
   if (
     argNodes.length === 0 ||
     givesList(
@@ -364,6 +375,71 @@ function listFunctionCall(name: string, argNodes: readonly Node[], ctx: Context)
     ctx.sp = base;
     return reduceNumbers(name, buffer, p);
   };
+}
+
+/**
+ * `node` by the general evaluator, for a list the real rules cannot lay out: each run passes x, y
+ * and the parameters of the bodies being compiled, while bound, as numbers, so it allocates where
+ * the rest of this file does not. NaN unless the result is a real number, and without
+ * `ctx.general`.
+ */
+function generalNode(node: Node, ctx: Context): Fn {
+  if (ctx.general === null) return undefinedFn;
+  const run = ctx.general(node),
+    names = [...new Set(["x", "y", ...ctx.params])],
+    slots = names.map((name) => slotOf(name, ctx)),
+    { env, bound } = ctx;
+  return () => {
+    const vars: Record<string, Value> = {};
+    for (let k = 0; k < names.length; k++) {
+      if (bound[slots[k]] === 1) vars[names[k]] = numberValue(env[slots[k]]);
+    }
+    return finite(toPlotNumber(run(vars, NO_DEADLINE)));
+  };
+}
+
+/**
+ * Whether `node` may evaluate to a list, read from its tree: a list; a slice, a filter or a list
+ * of indices; a name whose value is a list, or a function whose body may give one; a list function
+ * that broadcasts; or any other node with an operand that may be a list. x, y and `locals` are
+ * numbers; `seen` holds the functions being read, so a cycle ends.
+ */
+function mayBeList(
+  node: Node,
+  locals: readonly string[],
+  ctx: Context,
+  seen: Set<string>
+): boolean {
+  const of = (n: Node) => mayBeList(n, locals, ctx, seen);
+  switch (node.kind) {
+    case "list":
+      return true;
+    case "index":
+      return (
+        node.range !== undefined ||
+        node.items.length !== 1 ||
+        node.items.some((item) => item.kind === "rel" || of(item))
+      );
+    case "id": {
+      if (node.name === "x" || node.name === "y" || locals.includes(node.name)) return false;
+      const value = ctx.scope.values.get(node.name);
+      return value !== undefined ? value.type === "list" : bodyMayBeList(node.name, ctx, seen);
+    }
+    case "call":
+      if (listFunction(node.name) !== undefined) return givesList(node.name, node.args.map(of));
+      if (node.args.some(of)) return true;
+      return !isBuiltinName(node.name) && bodyMayBeList(node.name, ctx, seen);
+    default:
+      return sourceChildren(node).some(of);
+  }
+}
+
+/** Whether the body of the user function `name` may give a list, its parameters read as numbers. */
+function bodyMayBeList(name: string, ctx: Context, seen: Set<string>): boolean {
+  const definition = ctx.scope.functions.get(name);
+  if (definition === undefined || seen.has(name)) return false;
+  seen.add(name);
+  return mayBeList(definition.body, definition.params, ctx, seen);
 }
 
 /**

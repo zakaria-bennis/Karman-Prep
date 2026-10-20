@@ -74,9 +74,10 @@ it("NM-30 an index of any list that uses no variable plots as a step function to
   expect(at("L[L>2][x]")).toEqual([5, 3, NaN]);
   expect(at("L[[4,3]][x]")).toEqual([1, 8, NaN]);
   expect(at("(L+1)[x]")).toEqual([6, 4, 2]);
-  // a list that varies is not folded: a parameter, or x itself
+  // a list that varies is not folded: the general evaluator runs it with x, which a function
+  // body without x as a parameter does not see, and analysis rejects `[x...5]` as a row
   expect(at("f(2)")).toEqual([NaN, NaN, NaN]);
-  expect(at("[x...5][1]")).toEqual([NaN, NaN, NaN]);
+  expect(at("[x...5][1]")).toEqual([1, 2.5, 4]);
 });
 
 function tree(latex: string) {

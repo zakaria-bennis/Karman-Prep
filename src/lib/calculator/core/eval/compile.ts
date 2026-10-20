@@ -23,7 +23,7 @@ import {
   constantValue,
   degreeArgument,
   MAX_CALL_DEPTH,
-  type FoldConstant,
+  type GeneralCompile,
 } from "./compile-real";
 import {
   absV,
@@ -364,7 +364,7 @@ export function compileRealFunction1(
   scope: CompileScope
 ): (t: number) => number {
   if (!scope.settings.complex) {
-    const g = compileReal(tree, scope, foldWith(scope));
+    const g = compileReal(tree, scope, generalWith(scope));
     return variable === "x" ? (t) => g(t, NaN) : (t) => g(NaN, t);
   }
   const f = compileExpression(tree, scope);
@@ -378,14 +378,14 @@ export function compileRealFunction2(
   tree: Node,
   scope: CompileScope
 ): (x: number, y: number) => number {
-  if (!scope.settings.complex) return compileReal(tree, scope, foldWith(scope));
+  if (!scope.settings.complex) return compileReal(tree, scope, generalWith(scope));
   const f = compileExpression(tree, scope);
   return (x, y) => toPlotNumber(f({ x: numberValue(x), y: numberValue(y) }, NO_DEADLINE));
 }
 
-/** compileReal's FoldConstant: a tree without variables, evaluated once by compileExpression. */
-function foldWith(scope: CompileScope): FoldConstant {
-  return (tree) => compileExpression(tree, scope)({}, NO_DEADLINE);
+/** compileReal's GeneralCompile: compileExpression in the same scope. */
+function generalWith(scope: CompileScope): GeneralCompile {
+  return (tree) => compileExpression(tree, scope);
 }
 
 /** decision 5: the rows evaluateRows gives a value, by kind; and only without an error or chips. */
