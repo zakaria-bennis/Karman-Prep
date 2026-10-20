@@ -166,3 +166,49 @@ it("TABLES-13 a cell holding a point, list, equation or inequality has the refer
     null,
   ]);
 });
+
+it("TABLES-13 a cell or header that cannot be read, or is a point, list, relation or regression, uses the reference's table wording", () => {
+  const cellError = (latex: string) =>
+    analyzeRows(
+      [
+        table("t", [
+          ["x_{1}", ["1", latex]],
+          ["y_{1}", ["3", "4"]],
+        ]),
+      ],
+      SETTINGS
+    ).byId.get("t")!.table!.columns[0].cellErrors[1]?.message;
+  const NOT_ALLOWED =
+    "Table entries must be simple expressions. This type of expression is not allowed.";
+  for (const latex of ["2+", "\\sqrt{}", "\\left|\\right|", "\\sin", "x_{1^{2}}", "a=", "2^{}"])
+    expect(cellError(latex), latex).toBe(NOT_ALLOWED);
+  expect(cellError("1,2")).toBe("Points are written like this: (1, 2).");
+  expect(cellError("1\\sim2")).toBe(
+    "Table entries must be simple expressions. Regressions are not allowed."
+  );
+  const headerError = (latex: string) =>
+    analyzeRows(
+      [
+        table("t", [
+          ["x_{1}", ["1", "2"]],
+          [latex, ["3", "4"]],
+        ]),
+      ],
+      SETTINGS
+    ).byId.get("t")!.table!.columns[1].error?.message;
+  const HEAD_NOT_ALLOWED =
+    "Table headers must be simple expressions. This type of expression is not allowed.";
+  for (const latex of ["y_{1}+", "\\sqrt{}", "y_{1^{2}}", "2^{}", "\\frac{1}{}"])
+    expect(headerError(latex), latex).toBe(HEAD_NOT_ALLOWED);
+  expect(headerError("(1,2)")).toBe("Table header cannot be a point.");
+  expect(headerError("[1,2]")).toBe(
+    "Table headers must be simple expressions. Lists are not allowed."
+  );
+  expect(headerError("y_{1}=2")).toBe(
+    "Table headers must be simple expressions. Equations are not allowed."
+  );
+  expect(headerError("y_{1}<2")).toBe(
+    "Table headers must be simple expressions. Inequalities are not allowed."
+  );
+  expect(headerError("1,2")).toBe("Points are written like this: (1, 2).");
+});

@@ -105,3 +105,25 @@ it("RT-19 yearly data: Exponential fits as written and warns, Power fits without
     "y=\\frac{48.40253}{1+e^{-\\left(0.7484829x-1500.8455\\right)}}"
   );
 });
+
+describe("RT-30 a table regression's error text, as the reference words it (2026-10-20)", () => {
+  const fit = (xs: (number | null | "error")[], ys: (number | null | "error")[]) => {
+    const r = fitTableRegression({ type: "linear", xs, ys, logMode: false });
+    return r.ok ? null : r.message;
+  };
+  it("names the empty columns: y against x", () => {
+    expect(fit([], [])).toBe("Cannot regress an empty list against an empty list.");
+    expect(fit([null, null], [])).toBe("Cannot regress an empty list against an empty list.");
+    expect(fit([], [2, 4, 7])).toBe("Cannot regress a list of numbers against an empty list.");
+    expect(fit([1, 2, 3], [])).toBe("Cannot regress an empty list against a list of numbers.");
+  });
+  it("a blank or a cell in error inside the used rows is a data error, even in the last row", () => {
+    expect(fit([1, 2, 3], [2, null, 7])).toBe("There's an error in the provided data.");
+    expect(fit([1, 2, "error"], [2, 4, 7])).toBe("There's an error in the provided data.");
+  });
+  it("an undefined value finds no region where the model is defined", () => {
+    expect(fit([1, 2, 3], [2, Number.NaN, 7])).toBe(
+      "We couldn't find any region where this model is defined."
+    );
+  });
+});

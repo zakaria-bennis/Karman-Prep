@@ -10,6 +10,7 @@ import { formatTableNumber } from "./table-format";
 import { numberValue, type Value } from "../eval/values";
 import { collectNameUses } from "../analysis/names";
 import type { RegressionOutcome } from "./evaluate-regression";
+import type { TableFitCell } from "../../regression/table-fit";
 import {
   chooseResidualName,
   evaluateTableRegression,
@@ -92,7 +93,18 @@ export function evaluateTable(
     return { values, display: values.map((v, i) => shown(v, i)) };
   });
   if (spec === null || residualName === null || spec.y >= columns.length) return { columns };
-  const regression = evaluateTableRegression(spec, columns, residualName);
+  // RT-30: the regression tells a blank cell (null), a cell in error and an undefined value (NaN)
+  // apart, so it can word its error as the reference does.
+  const fitCells = (j: number): TableFitCell[] => {
+    const c = table.columns[j];
+    return columns[j].values.map((v, i) => {
+      if (v !== null) return v;
+      if (c.cellErrors[i] != null) return "error";
+      const entered = c.role === "computed" ? filled(i) : c.cells[i] != null;
+      return entered ? Number.NaN : null;
+    });
+  };
+  const regression = evaluateTableRegression(spec, [fitCells(0), fitCells(spec.y)], residualName);
   if (regression.fit.ok) {
     const residuals = regression.fit.residuals;
     columns.forEach((c, j) => {

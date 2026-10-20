@@ -25,6 +25,7 @@ import { TABLE_MODELS, TABLE_MODEL_SPECS } from "@/lib/calculator/regression/tab
 import { rowIconHex } from "@/lib/calculator/theme/roles";
 import { ColourKindGlyph, ZoomFitGlyph } from "../../icons/list";
 import { latexToSpeech } from "../../math-field/speech";
+import { ErrorMarker } from "./ErrorMarker";
 import { InsertGlyph } from "./TableGlyphs";
 import { FocusContext } from "../focus/focus-controller";
 import { useSkin } from "../hooks/skin";
@@ -102,12 +103,12 @@ export function TableRegression(props: {
     <div className="kc-tr" data-table-regression="" ref={rootRef}>
       <div className="kc-tr-header">
         {failed !== null ? (
-          <span className="kc-tr-warning" role="img" aria-label={failed} title={failed}>
-            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-              <path d="M12 2.5 23 21.5H1Z" fill="currentColor" />
-              <path d="M11 9h2v6.5h-2zM11 17h2v2h-2z" className="kc-tr-warning-mark" />
-            </svg>
-          </span>
+          // RT-30: the reference's error marker, its message on hover, focus and click.
+          <ErrorMarker
+            id={`kc-row-${row.id}-regression-error`}
+            message={failed}
+            variant="regression"
+          />
         ) : (
           <button
             type="button"

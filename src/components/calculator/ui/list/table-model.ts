@@ -17,12 +17,21 @@ export function headerName(latex: string, column: number): string {
   });
 }
 
-/** D-19: the data rows a table shows, the longest stored column; one blank row follows them. */
+/**
+ * D-19: the data rows a table shows, the longest stored column but at least one; one blank row
+ * follows them. As on the reference, a new table (no values) shows two rows, so a value can be
+ * typed in either row of any column first.
+ */
 export function dataRowCount(row: RowView): number {
+  return Math.max(1, ...(row.columns ?? []).map((c) => c.values.length));
+}
+
+/** D-19: the rows holding values, the longest stored column (0 for a new table). */
+export function storedRowCount(row: RowView): number {
   return Math.max(0, ...(row.columns ?? []).map((c) => c.values.length));
 }
 
-/** D-19: "Table n, k columns, m rows". */
+/** D-19: "Table n, k columns, m rows", m counting the rows that hold values. */
 export function gridName(number: number, columns: number, rows: number): string {
   const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
   return `Table ${number}, ${plural(columns, "column")}, ${plural(rows, "row")}`;

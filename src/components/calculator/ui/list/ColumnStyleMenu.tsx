@@ -22,6 +22,7 @@ import type { LineStyle, PointStyle } from "@/lib/calculator/core/api/types";
 import { resolveRowColor } from "@/lib/calculator/theme/roles";
 import { NEW_ROW_GREEN, PICKER_SLOTS } from "@/lib/calculator/theme/desmos-palette";
 import { PointStyleGlyph } from "../../icons";
+import { PointsGlyph } from "../../icons/list";
 import { EscapeContext } from "../focus/escape-stack";
 import { useSkin } from "../hooks/skin";
 import { useEngine } from "../hooks/use-engine";
@@ -46,23 +47,6 @@ const POINT_STYLES = (
     ["cross", "Cross"],
   ] as const satisfies readonly (readonly [PointStyle, string])[]
 ).map(([value, label]) => ({ value, label, icon: <PointStyleGlyph style={value} /> }));
-
-/** RT-8: the column icon's white points, five dots scattered across the disc (our own drawing). */
-function PointsClusterGlyph(): JSX.Element {
-  return (
-    <svg viewBox="0 0 29 29" width={29} height={29} aria-hidden="true" focusable="false">
-      {[
-        [9, 12],
-        [15, 8.5],
-        [20, 13],
-        [12.5, 18.5],
-        [18.5, 20],
-      ].map(([cx, cy]) => (
-        <circle key={`${cx}-${cy}`} cx={cx} cy={cy} r={2.2} fill="currentColor" />
-      ))}
-    </svg>
-  );
-}
 
 /** VIS-13: a solid, dashed or dotted stroke across the button (our own drawing). */
 function LineStyleGlyph(props: { style: LineStyle }): JSX.Element {
@@ -182,7 +166,7 @@ export function ColumnStyleMenu(props: ColumnStyleMenuProps): JSX.Element {
         }}
         {...trigger}
       >
-        {!stored.hidden && <PointsClusterGlyph />}
+        {!stored.hidden && <PointsGlyph />}
       </button>
       {open &&
         portal(

@@ -9,13 +9,14 @@ const box = (name: string) => screen.getByRole("textbox", { name });
 const tableOf = (kit: ReturnType<typeof renderEditor>, id: string) =>
   kit.engine.getSnapshot().rows.find((r) => r.id === id)!;
 
-it("D-5 a new table shows headers x1 and y1, one blank row and focus in its first cell", () => {
+it("D-5 a new table shows headers x1 and y1, two blank rows as the reference does, and focus in its first cell", () => {
   const kit = renderEditor(<ExpressionPanel {...panelProps()} />, { rows: ["y=x"] });
   act(() => void insertTableItem(kit.engine, kit.focus, kit.announcer, "1"));
   expect(kit.fields.byLabel("Column 1 header").latex()).toBe("x_{1}");
   expect(kit.fields.byLabel("Column 2 header").latex()).toBe("y_{1}");
   expect(screen.getAllByRole("textbox", { name: /, row 1, blank$/ })).toHaveLength(2);
-  expect(screen.queryAllByRole("textbox", { name: /, row 2/ })).toHaveLength(0);
+  expect(screen.getAllByRole("textbox", { name: /, row 2, blank$/ })).toHaveLength(2);
+  expect(screen.queryAllByRole("textbox", { name: /, row 3/ })).toHaveLength(0);
   expect(box("x₁, row 1, blank")).toHaveFocus();
 });
 
@@ -35,8 +36,9 @@ it("D-5, TABLES-2 the blank header slot and its read-only column show right of t
   const kit = renderEditor(<ExpressionPanel {...panelProps()} />, { rows: ["y=x"] });
   act(() => kit.engine.insertTableAfter("1"));
   expect(box("New column header")).toBeInTheDocument();
-  // one slot cell per body row (a new table has the blank row), hidden from the grid's reading
-  expect(document.querySelectorAll(".kc-table-slot")).toHaveLength(1);
+  // one slot cell per body row (a new table has its first row and the blank row), hidden from
+  // the grid's reading
+  expect(document.querySelectorAll(".kc-table-slot")).toHaveLength(2);
   act(() => box("x₁, row 1, blank").focus());
   act(() => box("x₁, row 1, blank").blur());
   expect(box("New column header")).toBeInTheDocument();
@@ -131,6 +133,24 @@ it("D-5 deleting a table leaves an empty expression row with the caret and Undo 
   act(() => kit.engine.undo());
   expect(tableOf(kit, "2").type).toBe("table");
   expect(screen.getByRole("grid", { name: "Table 2, 2 columns, 0 rows" })).toBeInTheDocument();
+});
+
+it("D-19 a new table shows a first row and the trailing blank row, and y can be typed in either before any x", () => {
+  const kit = renderEditor(<ExpressionPanel {...panelProps()} />, { rows: ["y=x"] });
+  act(() => void kit.engine.insertTableAfter("1"));
+  const id = tableOf(kit, "2").id;
+  for (const name of [
+    "x₁, row 1, blank",
+    "y₁, row 1, blank",
+    "x₁, row 2, blank",
+    "y₁, row 2, blank",
+  ])
+    expect(box(name)).toBeInTheDocument();
+  act(() => void kit.engine.editCell(id, 1, 1, "5", "typing"));
+  expect(tableOf(kit, "2").columns![1].values).toEqual(["", "5"]);
+  expect(box("y₁, row 2")).toBeInTheDocument();
+  expect(box("y₁, row 3, blank")).toBeInTheDocument();
+  expect(box("x₁, row 1, blank")).toBeInTheDocument();
 });
 
 it("K-2 a touch focus on a table cell lets the shell open the keypad", () => {

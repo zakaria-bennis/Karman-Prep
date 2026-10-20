@@ -4,7 +4,11 @@
 // (a computed column headed e_k) when it has one. Pure TypeScript: no DOM.
 
 import type { LineStyle } from "../api/types";
-import { fitTableRegression, type TableFitResult } from "../../regression/table-fit";
+import {
+  fitTableRegression,
+  type TableFitCell,
+  type TableFitResult,
+} from "../../regression/table-fit";
 import type { TableModel } from "../../regression/table-models";
 
 /** RT-28: what a table's row source carries about its regression (the stored row's fields). */
@@ -57,14 +61,12 @@ export function columnQualifies(values: readonly (number | null)[]): boolean {
   return true;
 }
 
-/** The fit of `spec` on the first column's and its y column's values. */
+/** The fit of `spec` on its x and y columns' cells, `[x, y]`. */
 export function evaluateTableRegression(
   spec: TableRegressionSpec,
-  columns: readonly { values: readonly (number | null)[] }[],
+  [xs, ys]: readonly [readonly TableFitCell[], readonly TableFitCell[]],
   residualName: string
 ): TableRegressionResult {
-  const xs = columns[0]?.values ?? [],
-    ys = columns[spec.y]?.values ?? [];
   return {
     type: spec.type,
     y: spec.y,
