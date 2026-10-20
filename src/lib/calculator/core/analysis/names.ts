@@ -15,7 +15,11 @@ export interface NameUse {
   span: SourceSpan; // the id's span, or the whole call's span
   call: boolean; // a call of a name that is not built in
   inPoint: boolean; // below a point node
+  counted: boolean; // in an argument of count or length, which read only how many values it holds
 }
+
+/** FN-2, FN-23: count and length use their arguments' lengths, never their values. */
+const COUNTING_NAMES: ReadonlySet<string> = new Set(["count", "length"]);
 
 /**
  * Every use of a name in `tree`: each `id`, and each `call` of a non-built-in name (a pre-scanned
@@ -24,17 +28,18 @@ export interface NameUse {
  */
 export function collectNameUses(tree: Node): NameUse[] {
   const uses: NameUse[] = [];
-  const pending: [Node, boolean][] = [[tree, false]];
+  const pending: [Node, boolean, boolean][] = [[tree, false, false]];
   for (let entry = pending.pop(); entry !== undefined; entry = pending.pop()) {
-    const [node, inPoint] = entry;
+    const [node, inPoint, counted] = entry;
     if (node.kind === "id") {
-      uses.push({ name: node.name, span: node.span, call: false, inPoint });
+      uses.push({ name: node.name, span: node.span, call: false, inPoint, counted });
     } else if (node.kind === "call" && !isBuiltinName(node.name)) {
-      uses.push({ name: node.name, span: node.span, call: true, inPoint });
+      uses.push({ name: node.name, span: node.span, call: true, inPoint, counted });
     }
     const below = inPoint || node.kind === "point";
+    const counts = counted || (node.kind === "call" && COUNTING_NAMES.has(node.name));
     const kids = sourceChildren(node);
-    for (let i = kids.length - 1; i >= 0; i -= 1) pending.push([kids[i], below]);
+    for (let i = kids.length - 1; i >= 0; i -= 1) pending.push([kids[i], below, counts]);
   }
   return uses.sort((a, b) => a.span.start - b.span.start);
 }

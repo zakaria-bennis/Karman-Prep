@@ -6,6 +6,7 @@ import type { RowErrorCode } from "../corpus/types";
 import { sourceChildren, type Node, type SourceSpan } from "../latex/ast";
 import { isBuiltinName } from "../latex/operator-names";
 import { arityText, BUILTIN_ARITY } from "../lib/arity";
+import { listFunction } from "../lib/statistics";
 import { declaredHead, type DefinitionHead, type ParsedRow } from "./definitions";
 import { functionGraph, POLAR_NAMES, shapeOf, type RowShape } from "./graph";
 import type { AnalysisSettings, RowAnalysis, RowError } from "./index";
@@ -101,6 +102,14 @@ function conflictError(
   for (const call of callsOf(scope)) {
     const arity = expectedArity(call.name, resolution);
     const written = call.args.length - (call.base ? 1 : 0);
+    const list = listFunction(call.name);
+    if (list !== undefined && list.kind !== "parameterized" && written === 0) {
+      // FN-23: Desmos's "Function 'mean' requires at least one argument.", and min, max and
+      // length's "Function 'min' requires an argument."
+      const name = displayName(call.name);
+      if (list.oneArgument) return rowError("arity", [name, "1", "0"], call.span);
+      return rowError("reducer-arguments", [name], call.span);
+    }
     if (arity !== null && !arity.includes(written)) {
       const names = [displayName(call.name), arityText(arity), String(written)];
       return rowError("arity", names, call.span);

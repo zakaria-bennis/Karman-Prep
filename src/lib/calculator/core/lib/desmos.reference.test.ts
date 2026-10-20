@@ -11,6 +11,7 @@ import type { Value } from "../eval/values";
 import catalogue from "./desmos-catalogue.fixture.json";
 import indexing from "./desmos-index.fixture.json";
 import roots from "./desmos-root.fixture.json";
+import statistics from "./desmos-statistics.fixture.json";
 import { withinTolerance } from "./tolerance";
 
 type Captured = number | number[] | null;
@@ -30,6 +31,14 @@ const FAMILIES: { rules: string; pattern: RegExp; count: number; rows?: string[]
   { rules: "PR-34 NM-32 NM-36", pattern: /^(\[[^\]]*\]([+^\\]|$)|\\sin\(\[)/, count: 17 },
   // NM-30, NM-31: indexing and slicing after the capture's context row.
   { rules: "NM-30 NM-31", pattern: /^(L\[|\[[^\]]*\]\[)/, count: 14, rows: ["L=[5,3,8,1]"] },
+  // FN-2, FN-23 to FN-29, FN-75: statistics, length, gcd and lcm after the capture's context row.
+  {
+    rules: "FN-2 FN-23 FN-29 FN-75",
+    pattern:
+      /^\\(operatorname\{(length|total|mean|median|min|max|count|stdev|stdevp|var|mad|quantile|quartile|gcd|lcm)\}|min|max)\(/,
+    count: 38,
+    rows: ["L=[5,3,8,1]"],
+  },
 ];
 
 function matches(v: Value, expected: number | null): boolean {
@@ -219,8 +228,7 @@ function sameIndexValue(v: Value, expected: Captured): boolean {
 }
 
 // Index values not yet matched, each an expected failure that fails once matched: member access
-// `.x` (PR-9), `and`, `or`, piecewise braces (T10), comprehensions (NM-37) and `length` (T9a)
-// have not shipped.
+// `.x` (PR-9), `and`, `or`, piecewise braces (T10) and comprehensions (NM-37) have not shipped.
 const INDEX_VALUE_GAP: ReadonlySet<string> = new Set([
   "[defs: L=\\left[(1,2),(3,4)\\right]] L[2].x",
   "L[L>3 \\operatorname{and} L<9]",
@@ -230,7 +238,6 @@ const INDEX_VALUE_GAP: ReadonlySet<string> = new Set([
   "[i^2 \\operatorname{for} i=[1...3]][2]",
   "L[(L>3) \\operatorname{or} (L<2)]",
   "L[\\{L>3\\}]",
-  "\\operatorname{length}(L[1...0])",
 ]);
 
 it("NM-30 NM-31 all 57 catalogue values for indexing, slicing and filtering are checked", () =>
@@ -370,4 +377,107 @@ for (const [key, message] of ROOT_ERRORS) {
   if (ROOT_ERROR_GAP.has(key))
     it.fails(`not yet matched: ${key} reads "${message}" in Desmos`, check);
   else it(`G9 PR-27 ${key} reads "${message}", as in Desmos`, check);
+}
+
+// FN-2, FN-23 to FN-29, FN-75: every catalogue value, error and graphed row for the statistics
+// reducers, length, gcd, lcm and their aliases (desmos-statistics.fixture.json), after the
+// catalogue's rows L, M, E, P, S and N unless the key brings its own (" ;; ", " ; " or " ⟹ "
+// between rows). A point is [x, y]; a "[complex] " value is [re, im].
+function statisticsCase(key: string): { latex: string; rows: string[]; complex: boolean } {
+  const { latex, settings } = catalogueCase(key);
+  const parts = latex.split(/ ;; | ; | ⟹ /);
+  const rows = parts.length > 1 ? parts.slice(0, -1) : statistics._rows;
+  return { latex: parts[parts.length - 1], rows, complex: settings.complex === true };
+}
+
+function sameStatisticsValue(v: Value, expected: Captured, complex: boolean): boolean {
+  if (Array.isArray(expected) && v.type === "point") return sameIndexValue(v, expected);
+  return sameValue(v, expected, complex);
+}
+
+// Statistics cases not yet matched, each an expected failure that fails once matched, by the
+// notation they use that has not shipped: derivatives, colours and tones, distributions, member
+// access (`L.\operatorname{mean}`, `.x`), comprehensions and matrices, the list operations (task
+// 6 and T14), `\arg` (complex mode), `\infty` as a value, and `y=` rows, which Desmos gives a
+// value when the right side
+// is constant (`y=\operatorname{count}(x,1,2)` = 3) and the calculator graphs as a line without one.
+const STATISTICS_GAPS: readonly RegExp[] = [
+  /\\frac\{d\}|'\(/,
+  /\\operatorname\{(rgb|hsv|okhsv|oklab|oklch|tone)\}/,
+  /dist\}/,
+  /\.(\\operatorname|x$|y$)/,
+  /\\operatorname\{for\}|bmatrix/,
+  /\\operatorname\{(shuffle|join|random|unique|polygon|boxplot|stats)\}/,
+  /\\arg/,
+  /\\infty/,
+  /^y=/,
+];
+const statisticsGap = (key: string) => STATISTICS_GAPS.some((gap) => gap.test(key));
+
+const STATISTICS_VALUES = Object.entries(statistics.values) as [string, Captured][];
+
+it("FN-2 FN-23 FN-29 FN-75 all 392 catalogue statistics values are checked, 272 matched", () =>
+  expect([
+    STATISTICS_VALUES.length,
+    STATISTICS_VALUES.filter(([k]) => !statisticsGap(k)).length,
+  ]).toEqual([392, 272]));
+
+for (const [key, expected] of STATISTICS_VALUES) {
+  const check = () => {
+    const { latex, rows, complex } = statisticsCase(key);
+    const settings = { ...catalogueCase(key).settings, complex };
+    const v = evaluateLatex(latex, { rows, settings });
+    expect(sameStatisticsValue(v, expected, complex), JSON.stringify(v)).toBe(true);
+    // an undefined value counts only from a row without an error (not unsupported notation)
+    expect(errorMessage(rows, latex, complex)).toBe(undefined);
+  };
+  const shown = JSON.stringify(expected).slice(0, 60);
+  if (statisticsGap(key)) it.fails(`not yet matched: ${key} is ${shown} in Desmos`, check);
+  else it(`FN-2 FN-23 FN-29 FN-75 ${key} is ${shown}, as in Desmos`, check);
+}
+
+const STATISTICS_ERRORS = Object.entries(statistics.errors);
+
+it("FN-2 FN-23 FN-29 FN-75 all 53 catalogue statistics errors are checked, 38 matched", () =>
+  expect([
+    STATISTICS_ERRORS.length,
+    STATISTICS_ERRORS.filter(([k]) => !statisticsGap(k)).length,
+  ]).toEqual([53, 38]));
+
+for (const [key, message] of STATISTICS_ERRORS) {
+  const check = () => {
+    const { latex, rows, complex } = statisticsCase(key);
+    expect(errorMessage(rows, latex, complex)).toBe(message);
+  };
+  if (statisticsGap(key)) it.fails(`not yet matched: ${key} reads "${message}" in Desmos`, check);
+  else it(`FN-2 FN-23 FN-29 FN-75 ${key} reads "${message}", as in Desmos`, check);
+}
+
+// Rows Desmos graphs without a value, and broadcasts over an empty list, which show no value
+// because they are the empty list. Not yet matched, each an expected failure that fails once
+// matched: a point-valued call (`\operatorname{total}(P)`) does not graph yet (M5).
+const STATISTICS_GRAPHED = Object.entries(statistics.graphed);
+const POINT_ROWS: ReadonlySet<string> = new Set([
+  "\\operatorname{mean}(P)",
+  "\\operatorname{total}(P)",
+  "\\operatorname{mean}((1,2),(3,4))",
+]);
+
+it("FN-23 FN-27 all 38 catalogue rows without a value are checked", () =>
+  expect(STATISTICS_GRAPHED.length).toBe(38));
+
+for (const [latex, note] of STATISTICS_GRAPHED) {
+  const check = () => {
+    if (note.startsWith("graphed")) {
+      const row = analyzeRows(
+        [...statistics._rows, latex].map((l, i) => ({ id: `row-${i}`, latex: l, hidden: false })),
+        { angleMode: "radians", complex: false }
+      ).rows[statistics._rows.length];
+      expect([row.error, row.isGraphable]).toEqual([null, true]);
+    } else {
+      expect(evaluateLatex(latex, { rows: statistics._rows })).toEqual({ type: "list", value: [] });
+    }
+  };
+  if (POINT_ROWS.has(latex)) it.fails(`not yet matched: ${latex} is ${note} in Desmos`, check);
+  else it(`FN-23 FN-27 ${latex} is ${note}, as in Desmos`, check);
 }

@@ -48,5 +48,13 @@ const cases: CorpusCase[] = [
   d(21, ["FN-77", "NM-18"], "\\operatorname{floor}(i)", "undefined", CX),
   x(22, ["RC-20"], "\\operatorname{floor}(2.7,1)", "arity"),
   x(23, ["RC-20"], "\\operatorname{nCr}(5)", "arity"),
+  // FN-75 gcd and lcm, rounding non-integers first, and their aliases (Desmos values, 2026-10-19)
+  d(24, ["FN-75"], "\\operatorname{gcd}(12,18)", "6"),
+  d(25, ["FN-75"], "\\gcd(12,18,8)", "2"),
+  d(26, ["FN-75"], "\\operatorname{lcm}(1.5,3)", "6"),
+  d(27, ["FN-75"], "\\operatorname{gcd}([12,18],4)", "[4, 2]"),
+  d(28, ["FN-75"], "\\operatorname{mcm}(4,6)", "12"),
+  d(29, ["FN-75", "NM-18"], "\\operatorname{gcd}(3+i,1+i)", "1+i", CX),
+  x(30, ["FN-75"], "\\operatorname{gcd}()", "reducer-arguments"),
 ];
 export default cases;

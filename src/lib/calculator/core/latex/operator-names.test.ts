@@ -7,7 +7,7 @@ describe("operator-name allowlist", () => {
       new Set(names()).size,
       O.mathQuillAutoOperatorNames(),
       names().every(O.isBuiltinName),
-    ]).toEqual([106, names().join(" "), true]);
+    ]).toEqual([109, names().join(" "), true]);
     for (const e of O.panelCategories().flatMap((c) => c.entries))
       expect(O.isBuiltinName(e.name) && O.isShippedBuiltin(e.name)).toBe(true);
     expect([O.AUTO_COMMANDS.join(" "), O.mathQuillAutoCommands()]).toEqual(
@@ -21,7 +21,7 @@ describe("operator-name allowlist", () => {
         false
       );
   });
-  it("PR-12 built-ins ship by name: the SHIPPED set is trig, inverse trig, exp, ln, log, hyperbolic trig and number theory", () => {
+  it("PR-12 built-ins ship by name: the SHIPPED set is trig, inverse trig, statistics, length, exp, ln, log, hyperbolic trig and number theory", () => {
     expect([...O.SHIPPED].every(O.isBuiltinName)).toBe(true);
     expect(names().filter(O.isShippedBuiltin)).toEqual([...O.SHIPPED]);
     expect(
@@ -29,9 +29,10 @@ describe("operator-name allowlist", () => {
         .map((n) => n.name)
         .join(" ")
     ).toBe(
-      "sin cos tan csc sec cot arcsin arccos arctan arccsc arcsec arccot exp ln log " +
-        "sinh cosh tanh csch sech coth arcsinh arccosh arctanh arccsch arcsech arccoth " +
-        "mod ceil floor round sign nPr nCr abs"
+      "sin cos tan csc sec cot arcsin arccos arctan arccsc arcsec arccot " +
+        "mean median min max quartile quantile stdev stdevp var varp mad count total length " +
+        "exp ln log sinh cosh tanh csch sech coth arcsinh arccosh arctanh arccsch arcsech arccoth " +
+        "lcm gcd gcf mcd mcm mod ceil floor round sign nPr nCr abs"
     );
     expect(
       O.OPERATOR_NAMES.filter((n) => n.category === null)
@@ -40,10 +41,10 @@ describe("operator-name allowlist", () => {
     ).toBe("with for and or of");
     expect([
       O.OPERATOR_NAMES.find((n) => n.name === "arctan")?.arity,
-      ["mean", "sinh", "nope", "length", "abs"].map(O.isShippedBuiltin),
+      ["mean", "sinh", "nope", "length", "abs", "cov"].map(O.isShippedBuiltin),
     ]).toEqual([
       [1, 2],
-      [false, true, false, false, true],
+      [true, true, false, true, true, false],
     ]);
   });
   it("PR-12 abs and length are Desmos built-in names (appendix F decision 2)", () => {

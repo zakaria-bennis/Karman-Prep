@@ -18,6 +18,7 @@ import {
 } from "../data/regression-analysis";
 import { classifyRow } from "./classify";
 import { declaredHead, parseRows, userFunctionSet, type ParsedRow } from "./definitions";
+import { listCallProblem } from "./list-calls";
 import { inferLists, listCurveProblem, listProblem, type ListTyping } from "./lists";
 import { rowErrorMessage } from "./messages";
 import { collectNameUses } from "./names";
@@ -169,10 +170,14 @@ function errorFreeHeads(rows: readonly ParsedRow[]) {
   return rows.flatMap((row) => (row.head !== null && row.error === null ? [row.head] : []));
 }
 
-/** NM-34 to NM-36: a row's first nested list or invalid literal range, as its row error. */
+/**
+ * NM-34 to NM-36: a row's first nested list or invalid literal range, as its row error; then
+ * FN-23 to FN-29: its first list function call with arguments Desmos refuses.
+ */
 function withListError(row: ParsedRow, typing: ListTyping): ParsedRow {
   if (row.error !== null || row.tree === null) return row;
-  const problem = listProblem(row.head?.body ?? row.tree, row.head?.params ?? [], typing);
+  const [tree, locals] = [row.head?.body ?? row.tree, row.head?.params ?? []];
+  const problem = listProblem(tree, locals, typing) ?? listCallProblem(tree, locals, typing);
   if (problem === null) return row;
   const { code, names, span } = problem;
   return { ...row, error: { code, message: rowErrorMessage(code, names), names, span } };

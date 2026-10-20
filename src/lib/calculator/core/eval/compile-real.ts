@@ -7,6 +7,7 @@
 import { sourceChildren, type ConstName, type Node, type RelOp } from "../latex/ast";
 import { isBuiltinName } from "../latex/operator-names";
 import { BUILTINS } from "../lib/builtins";
+import { givesList, listFunction, reduceNumbers } from "../lib/statistics";
 import { factorial } from "../lib/gamma";
 import { circular, type CircularName } from "../lib/trig";
 import type { CompileScope } from "./compile";
@@ -186,16 +187,33 @@ function indexed(node: Index, ctx: Context): Fn {
 
 /**
  * The elements of a list literal, or of the list value of a name or of a tree that uses no
- * variable and no user function (NaN for a non-number); else null.
+ * variable and no user function (NaN for a non-number), or of a negation or the four operations
+ * with a list operand, element by element with numbers repeated and lists cut to the shorter
+ * (NM-32, NM-33: `[1,2,3]x`); else null.
  */
 function listElements(target: Node, ctx: Context): Fn[] | null {
   if (target.kind === "list" && target.range === undefined) {
     return target.items.map((item) => compile(item, ctx));
   }
+  const foldable = ctx.fold !== null && isConstantTree(target, ctx);
+  if (target.kind === "neg" && !foldable) {
+    return listElements(target.arg, ctx)?.map((f) => () => -f()) ?? null;
+  }
+  if (isArithmetic(target) && !foldable) {
+    const left = listElements(target.left, ctx),
+      right = listElements(target.right, ctx);
+    if (left === null && right === null) return null;
+    const a = left ?? compile(target.left, ctx),
+      b = right ?? compile(target.right, ctx),
+      n = Math.min(left?.length ?? Infinity, right?.length ?? Infinity);
+    return Array.from({ length: n }, (_, k) =>
+      combined(target.kind, Array.isArray(a) ? a[k] : a, Array.isArray(b) ? b[k] : b)
+    );
+  }
   let value: Value | undefined;
   if (target.kind === "id") {
     if (isConstantName(target.name, ctx)) value = ctx.scope.values.get(target.name);
-  } else if (ctx.fold !== null && isConstantTree(target, ctx)) {
+  } else if (foldable && ctx.fold !== null) {
     value = ctx.fold(target);
   }
   if (value?.type !== "list") return null;
@@ -225,9 +243,14 @@ function isConstantTree(tree: Node, ctx: Context): boolean {
 }
 
 function arithmetic(node: Binary, ctx: Context): Fn {
-  const a = compile(node.left, ctx),
-    b = compile(node.right, ctx);
-  switch (node.kind) {
+  return combined(node.kind, compile(node.left, ctx), compile(node.right, ctx));
+}
+
+const isArithmetic = (node: Node): node is Binary =>
+  node.kind === "add" || node.kind === "sub" || node.kind === "mul" || node.kind === "div";
+
+function combined(kind: Binary["kind"], a: Fn, b: Fn): Fn {
+  switch (kind) {
     case "add":
       return () => finite(a() + b());
     case "sub":
@@ -273,6 +296,7 @@ function builtinCall(name: string, argNodes: readonly Node[], ctx: Context): Fn 
     const angle = compile(degrees, ctx);
     return () => circular(name as CircularName, angle(), "degrees");
   }
+  if (listFunction(name) !== undefined) return listFunctionCall(name, argNodes, ctx);
   const fn = BUILTINS.get(name);
   if (fn === undefined || !fn.arity.includes(argNodes.length)) return undefinedFn;
   const args = argNodes.map((arg) => compile(arg, ctx)),
@@ -294,6 +318,51 @@ function builtinCall(name: string, argNodes: readonly Node[], ctx: Context): Fn 
     for (let k = 0; k < count; k++) buffer[k] = stack[base + k];
     ctx.sp = base;
     return fn.real(buffer, angleMode);
+  };
+}
+
+/**
+ * FN-2, FN-23 to FN-29, FN-75: a list function whose result is a number (statistics.ts), its list
+ * arguments laid out by listElements and its other arguments taken as numbers, so `y=\max(x,2)`
+ * and `\operatorname{mean}([1,2,3]x)` graph; a call that gives a list (a broadcast) is NaN. The
+ * values are evaluated onto the stack and copied into this call site's buffer, as builtinCall does.
+ */
+function listFunctionCall(name: string, argNodes: readonly Node[], ctx: Context): Fn {
+  const parts = argNodes.map((arg) => listElements(arg, ctx));
+  if (
+    argNodes.length === 0 ||
+    givesList(
+      name,
+      parts.map((part) => part !== null)
+    )
+  ) {
+    return undefinedFn;
+  }
+  const parameterized = listFunction(name)?.kind === "parameterized";
+  if (parameterized && (argNodes.length !== 2 || parts[0] === null)) return undefinedFn;
+  if (
+    listFunction(name)?.kind === "length" &&
+    argNodes.length > 1 &&
+    parts.some((part) => part !== null)
+  )
+    return undefinedFn;
+  const fns = parameterized
+      ? (parts[0] as Fn[])
+      : argNodes.flatMap((arg, k) => parts[k] ?? [compile(arg, ctx)]),
+    parameter = parameterized ? compile(argNodes[1], ctx) : () => NaN,
+    buffer = fns.map(() => NaN),
+    count = fns.length,
+    stack = ctx.stack;
+  return () => {
+    const p = parameter(),
+      base = ctx.sp;
+    for (let k = 0; k < count; k++) {
+      stack[base + k] = fns[k]();
+      ctx.sp = base + k + 1;
+    }
+    for (let k = 0; k < count; k++) buffer[k] = stack[base + k];
+    ctx.sp = base;
+    return reduceNumbers(name, buffer, p);
   };
 }
 

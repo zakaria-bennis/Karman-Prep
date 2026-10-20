@@ -10,6 +10,7 @@ import { sourceChildren as childNodes, type Node, type SourceSpan } from "../lat
 import { DEFERRED_FEATURES } from "../latex/errors";
 import { isBuiltinName } from "../latex/operator-names";
 import { rangeShape } from "../lib/range";
+import { givesList, listFunction } from "../lib/statistics";
 import type { DefinitionHead } from "./definitions";
 import { displayName } from "./messages";
 import { collectNameUses, COORDINATE_NAMES } from "./names";
@@ -22,7 +23,7 @@ export interface ListTyping {
 }
 /** NM-30: a value's type as Desmos names it in "Cannot index {a number} with {a point}.". */
 export type Shape = "number" | "point" | "numbers" | "points";
-const SHAPE_NAMES: Readonly<Record<Shape, string>> = {
+export const SHAPE_NAMES: Readonly<Record<Shape, string>> = {
   number: "a number",
   point: "a point",
   numbers: "a list of numbers",
@@ -30,6 +31,7 @@ const SHAPE_NAMES: Readonly<Record<Shape, string>> = {
 };
 type Bracket = Extract<Node, { kind: "list" | "index" }>;
 type Index = Extract<Node, { kind: "index" }>;
+type Call = Extract<Node, { kind: "call" }>;
 
 export interface ListProblem {
   code: RowErrorCode;
@@ -123,6 +125,7 @@ function shapeOf(
     }
     case "call":
       if (!isBuiltinName(node.name)) return null;
+      if (listFunction(node.name) !== undefined) return listCallShape(node, node.args.map(of));
       return numeric(node.args.map(of));
     case "rel":
     case "sim":
@@ -130,6 +133,22 @@ function shapeOf(
     default:
       return numeric(childNodes(node).map(of));
   }
+}
+
+/**
+ * FN-2, FN-23 to FN-29, FN-75: a list function's shape. A broadcast gives a list of numbers, or
+ * unknown when an argument's shape is; otherwise mean and total of points are a point, and every
+ * other result is a number.
+ */
+function listCallShape(node: Call, args: readonly (Shape | null)[]): Shape | null {
+  const lists = args.map((s) => s === "numbers" || s === "points");
+  if (givesList(node.name, lists)) return args.includes(null) ? null : "numbers";
+  if (listFunction(node.name)?.points !== true || ["count", "length"].includes(node.name)) {
+    return "number";
+  }
+  if (args.includes(null)) return null;
+  const one = args.length === 1 && (args[0] === "point" || args[0] === "points");
+  return one || args.every((s) => s === "point") ? "point" : "number";
 }
 
 /** Arithmetic's shape over operand shapes: unknown for a point or an unknown operand. */
@@ -160,6 +179,12 @@ function listValued(
         break;
       case "call":
         if (!isBuiltinName(n.name) && functions.has(n.name)) return true;
+        if (listFunction(n.name) !== undefined) {
+          // FN-23: a list function gives a list only when it broadcasts
+          const lists = n.args.map((arg) => listValued(arg, locals, names, functions));
+          if (givesList(n.name, lists)) return true;
+          break;
+        }
         pending.push(...n.args);
         break;
       default:

@@ -113,5 +113,20 @@ const cases: CorpusCase[] = [
   }),
   k(45, ["NM-32"], "[1,2,3]+1", "value"),
   k(46, ["NM-32"], "f(x)=x^{2}+L_{1}", "error", { rows: ["L_{1}=[1,2]"] }),
+  // FN-2, FN-23 to FN-29: statistics reducers and length (Desmos values, 2026-10-19)
+  d(65, ["FN-23"], "\\operatorname{mean}(1,2)", "1.5"),
+  d(66, ["FN-23", "PR-13"], "mean(1,2)", "1.5"),
+  d(67, ["FN-23"], "\\max([1,2],5)", "[5, 5]"),
+  d(68, ["FN-23"], "\\operatorname{total}([])", "0"),
+  d(69, ["FN-23"], "\\operatorname{mean}([])", "undefined"),
+  d(70, ["FN-27"], "\\operatorname{quartile}(L,[1,2,3])", "[2, 4, 6.5]", { rows: ["L=[5,3,8,1]"] }),
+  d(71, ["FN-2"], "\\operatorname{length}(L)", "4", { rows: ["L=[5,3,8,1]"] }),
+  k(72, ["FN-23"], "\\operatorname{mean}(L)", "value", { rows: ["L=[5,3,8,1]"] }),
+  k(73, ["FN-23", "G-22"], "y=\\max(x,2)", "curve-y"),
+  x(74, ["FN-23"], "\\operatorname{mean}()", "reducer-arguments"),
+  x(75, ["FN-23"], "\\min()", "arity"),
+  x(76, ["FN-27"], "\\operatorname{quantile}(5,0.5)", "first-argument-list"),
+  x(77, ["FN-23"], "\\operatorname{median}(P)", "argument-type", { rows: ["P=[(1,2),(3,4)]"] }),
+  x(78, ["FN-2"], "\\operatorname{length}(L,10)", "argument-type", { rows: ["L=[5,3,8,1]"] }),
 ];
 export default cases;

@@ -15,6 +15,7 @@ import { regressionDefinitionId, regressionOf } from "../data/regression-analysi
 import type { Node } from "../latex/ast";
 import { isBuiltinName } from "../latex/operator-names";
 import { applyBuiltin } from "../lib/builtins";
+import { applyListFunction, listFunction } from "../lib/statistics";
 import { circular, type CircularName } from "../lib/trig";
 import { C_I } from "./complex";
 import {
@@ -282,8 +283,16 @@ function builtinCall(name: string, argNodes: readonly Node[], ctx: Context): Com
           : applyBuiltin(name, [degV(a, angleMode)], angleMode, complex)
       );
   }
-  // NM-32: built-ins apply element by element; no list-taking built-in has shipped (FN-).
   const args = argNodes.map((arg) => compileNode(arg, ctx));
+  // FN-2, FN-23 to FN-29, FN-75: list functions reduce lists (statistics.ts).
+  if (listFunction(name) !== undefined) {
+    return (vars, deadline) =>
+      applyListFunction(
+        name,
+        args.map((arg) => arg(vars, deadline))
+      );
+  }
+  // NM-32: every other built-in applies element by element.
   return (vars, deadline) =>
     mapN(
       args.map((arg) => arg(vars, deadline)),

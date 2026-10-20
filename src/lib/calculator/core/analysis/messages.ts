@@ -57,8 +57,8 @@ function letter(base: string): string {
  * place they appear. Appendix F recorded the reference's text for `duplicate-definition` (19),
  * `sim-side` (3) and `nested-list`, which these use; `argument-parentheses`, `comma-side`,
  * `range-bound`, `range-step`, `list-too-long`, `log-power`, `empty-subscript`,
- * `name-subscript`, `index-type`, `list-length-free`, `empty-brackets`, `empty-root` and
- * `empty-root-index` use the text
+ * `name-subscript`, `index-type`, `list-length-free`, `empty-brackets`, `empty-root`,
+ * `empty-root-index`, `reducer-arguments`, `first-argument-list` and `argument-type` use the text
  * Desmos gave on 2026-10-19.
  */
 const MESSAGES: Readonly<Record<RowErrorCode, string>> = {
@@ -100,6 +100,11 @@ const MESSAGES: Readonly<Record<RowErrorCode, string>> = {
   "empty-brackets": "Square brackets cannot be empty.",
   "empty-root": "Radical cannot be empty.",
   "empty-root-index": "Radical index cannot be empty.",
+  "reducer-arguments":
+    "Function '{n}' requires at least one argument. For example, try typing: {n}(1, 2).",
+  "first-argument-list":
+    "The first argument of '{n}' must be a list. For example, try typing: {n}([1,2,3], 1).",
+  "argument-type": "Function '{n}' cannot be applied to {k}.",
 };
 /** RC-2, Phase 1: `unsupported` naming r or θ, whose polar graphs ship in Phase 2. */
 const POLAR_UNSUPPORTED = "{n} is for polar graphs, which aren't available yet.";
@@ -128,6 +133,9 @@ export function rowErrorMessage(code: RowErrorCode, names: string[]): string {
   return template.replaceAll("{n}", () => n).replaceAll("{k}", () => k);
 }
 
+/** FN-27: the names whose arity example takes a list, `quantile([1,2,3], 1)`. */
+const LIST_EXAMPLES: ReadonlySet<string> = new Set(["quantile", "quartile"]);
+
 /**
  * Desmos's arity wording (captured 2026-10-19), from the expected count text `k`
  * ("1", "2", "1 or 2") and the count given. A function accepting one argument "requires an
@@ -144,5 +152,5 @@ function arityMessage(name: string, k: string, given: number): string {
   if (given === 0 && counts.includes(1)) return say("an argument", "x");
   if (max === 1) return say("only 1 argument", "x");
   const args = Array.from({ length: max }, (_, i) => String(i + 1)).join(", ");
-  return say(`${max} arguments`, args);
+  return say(`${max} arguments`, LIST_EXAMPLES.has(name) ? "[1,2,3], 1" : args);
 }

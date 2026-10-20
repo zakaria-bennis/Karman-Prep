@@ -57,6 +57,21 @@ export const SHIPPED: ReadonlySet<string> = new Set([
   "arccsc",
   "arcsec",
   "arccot",
+  // FN-23 to FN-29 statistics and FN-2 length (Phase 2 task 5)
+  "mean",
+  "median",
+  "min",
+  "max",
+  "quartile",
+  "quantile",
+  "stdev",
+  "stdevp",
+  "var",
+  "varp",
+  "mad",
+  "count",
+  "total",
+  "length",
   "exp",
   "ln",
   "log",
@@ -73,7 +88,13 @@ export const SHIPPED: ReadonlySet<string> = new Set([
   "arccsch",
   "arcsech",
   "arccoth",
-  // FN-76 to FN-78 and abs (Phase 2 T3), in OPERATOR_NAMES order
+  // FN-75 gcd and lcm with their aliases (task 5), FN-76 to FN-78 and abs (Phase 2 T3), in
+  // OPERATOR_NAMES order
+  "lcm",
+  "gcd",
+  "gcf",
+  "mcd",
+  "mcm",
   "mod",
   "ceil",
   "floor",
@@ -209,6 +230,9 @@ export const OPERATOR_NAMES: readonly OperatorName[] = Object.freeze([
   // 12 Number theory
   op("lcm", 12, 2, V),
   op("gcd", 12, 2, V),
+  op("gcf", 12, 2, V), // Desmos: gcf and mcd are gcd, mcm is lcm (typed only)
+  op("mcd", 12, 2, V),
+  op("mcm", 12, 2, V),
   op("mod", 12, 2, [2]),
   op("ceil", 12, 2, [1]),
   op("floor", 12, 2, [1]),

@@ -89,10 +89,11 @@ export function parseBuiltinCall(state: ParserState, name: CommandToken): Node {
   const open = peek(state);
   if (isSymbol(open, "'")) return fail("unsupported", open.span, `"'" is not supported`);
   if (open.t === "open" && open.ch === "(") {
-    if (takesFixedArguments(name.name) && takeEmptyList(state)) {
-      // An empty `()` on a fixed-arity built-in is RC-20's arity error, as in Desmos ("Function
-      // 'sin' requires an argument"), not a syntax error; a log base does not count as an argument
-      // (`\log_{2}()` reads "Function 'log' requires an argument"), but it stays on the call.
+    if (needsArguments(name.name) && takeEmptyList(state)) {
+      // An empty `()` on a built-in that needs arguments is RC-20's arity error, as in Desmos
+      // ("Function 'sin' requires an argument", "Function 'mean' requires at least one
+      // argument"), not a syntax error; a log base does not count as an argument (`\log_{2}()`
+      // reads "Function 'log' requires an argument"), but it stays on the call.
       return takePostfix(state, withPower(callNode(name, [], base, previousEnd(state)), power));
     }
     const args = parseArgumentList(state);
@@ -119,10 +120,10 @@ function needsParentheses(name: CommandToken): never {
   return fail("function-parentheses", name.span, `"${name.name}" needs (`, name.name);
 }
 
-/** Whether a built-in takes a fixed number of arguments, none of them optional down to zero. */
-function takesFixedArguments(name: string): boolean {
+/** Whether a built-in needs one or more arguments: a variadic one, or a fixed count above 0. */
+function needsArguments(name: string): boolean {
   const arity = OPERATOR_NAMES.find((n) => n.name === name)?.arity;
-  return arity !== undefined && arity !== "variadic" && !arity.includes(0);
+  return arity !== undefined && (arity === "variadic" || !arity.includes(0));
 }
 
 /** Takes an empty `()` at the cursor and returns true, or leaves the cursor and returns false. */

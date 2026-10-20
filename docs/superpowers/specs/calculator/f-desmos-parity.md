@@ -120,11 +120,18 @@ These Desmos behaviours are known and recorded but not yet built:
 - **An infinite log base.** Desmos gives `\log_{\infty}(5)` = 0; `\infty` is not a value in the
   calculator yet, so it is undefined. An expected failure in `desmos.reference.test.ts`
   (`CATALOGUE_VALUE_GAP`).
-- **`length`.** Desmos evaluates `length(L)` (`length([1,5,3,8])` = 4, `length(5)` = 1,
-  `length([])` = 0). The calculator has `length` on the built-in allowlist, so MathQuill turns a typed `length`
-  into an operator name, but it has not shipped: no list-reducing built-in exists yet, so a row
-  using it shows "This calculator doesn't support that notation." It ships with the statistics
-  task (plan T9a), and the captured values are then checked.
+- **Statistics gaps (FN-2, FN-23 to FN-29, FN-75).** The reducers, length, gcd, lcm and the
+  aliases gcf, mcd and mcm match the catalogue (see below) except where a case uses notation that
+  has not shipped: derivatives, colours and tones, distributions, member access
+  (`L.\operatorname{mean}`, `\operatorname{mean}(P).x`), comprehensions and matrices, the list
+  operations (`join`, `shuffle`, `unique`, `random`, `stats`, `boxplot`, `polygon`), `\arg`,
+  `\infty` as a value, and a point-valued call such as `\operatorname{mean}(P)`, which evaluates to
+  the point but is not graphed yet (M5). Desmos also gives a `y=` row a value when its right side
+  is constant (`y=\operatorname{count}(x,1,2)` = 3); the calculator graphs it as a line. Each is an
+  expected failure in `desmos.reference.test.ts` (`STATISTICS_GAPS`, `POINT_ROWS`). Not built
+  either, with no capture asserted: the spelling aliases stddev, stdDev, stddevp, stdDevP and
+  variance, `inversecdf` on a list, argmin and argmax, and the Statistics and Number theory panel
+  buttons (a UI change, left to the panel work).
 - **An empty piecewise branch.** Desmos reads `\left\{1<0:5,\right\}` as "You need something on
   both sides of the ',' symbol." Piecewise braces (PR-31) have not shipped, so the calculator shows its
   unsupported-notation message. The captured error is an expected failure in
@@ -135,6 +142,17 @@ These Desmos behaviours are known and recorded but not yet built:
 These were captured from Desmos by the second review and now match. Every captured error,
 including these, is checked in `desmos.reference.test.ts`:
 
+- **Statistics, length, gcd and lcm (FN-2, FN-23 to FN-29, FN-75).** A reducer reduces one list
+  or its number arguments (`mean(1,2,3)` = 2) and broadcasts when a list is among several
+  arguments (`max([1,2],5)` = [5, 5], cut to the shortest list). An undefined element makes the
+  result undefined; count and length count it. `total([])` and `count([])` are 0. stdev and var
+  use n − 1 in two passes; mad is the mean absolute deviation; quantile is type 7 on [0, 1];
+  quartile checks [0, 4], rounds half up and takes the medians of the halves without the middle
+  value. mean and total of points are a point. length never broadcasts. gcd and lcm round first,
+  and in complex mode work on Gaussian integers shown in the first quadrant. count and length do
+  not make a row depend on x (`count(x,1)` = 2). The error texts for `mean()`, `min()`,
+  `quantile(5,0.5)`, `median(P)`, `quantile(P,0.5)` and `length(L,10)` are Desmos's. The values
+  are in `desmos-statistics.fixture.json`.
 - **Indexing, slicing and filtering (PR-34, NM-30, NM-31).** `L[i]` is 1-based and rounds a
   non-integer index down (`L[1.9]` = L[1], `L[0.6]` undefined); out of range is undefined. A list,
   several items or a range picks each index in turn (`L[[1,3,5]]`, `L[1,2]`, `L[1,3,...,7]`), and a

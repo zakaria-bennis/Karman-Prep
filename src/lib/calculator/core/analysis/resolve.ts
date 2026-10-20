@@ -54,8 +54,8 @@ export function resolveDefinitions(rows: readonly ParsedRow[]): Resolution {
     isDefined: (name) => defined.has(name),
     coordinatesOf(tree, locals) {
       const found = new Set<string>();
-      for (const { name } of collectNameUses(tree)) {
-        if (locals.includes(name)) continue;
+      for (const { name, counted } of collectNameUses(tree)) {
+        if (locals.includes(name) || counted) continue;
         if (COORDINATE_NAMES.includes(name)) found.add(name);
         else for (const coordinate of reached.get(name) ?? []) found.add(coordinate);
       }
@@ -149,8 +149,8 @@ function reachedCoordinates(heads: readonly DefinitionHead[]): Map<string, Set<s
   for (const head of heads) {
     const own = reached.get(head.name) ?? new Set<string>(),
       used = refs.get(head.name) ?? new Set<string>();
-    for (const { name } of collectNameUses(head.body)) {
-      if (head.params.includes(name)) continue;
+    for (const { name, counted } of collectNameUses(head.body)) {
+      if (head.params.includes(name) || counted) continue;
       if (COORDINATE_NAMES.includes(name)) own.add(name);
       else used.add(name);
     }

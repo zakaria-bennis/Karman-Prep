@@ -41,7 +41,10 @@ export type RowErrorCode =
   | "range-step" // NM-36
   | "list-mixed" // PR-34: numbers and points in one list
   | "index-type" // NM-30: indexing something that is not a list, `5[1]`
-  | "list-length-free"; // NM-31, NM-36: a list whose length depends on x or y
+  | "list-length-free" // NM-31, NM-36: a list whose length depends on x or y
+  | "reducer-arguments" // FN-23: `mean()`
+  | "first-argument-list" // FN-27: `quantile(5,0.5)`
+  | "argument-type"; // FN-2, FN-23, FN-27: `median(P)` of a list of points P
 export interface CorpusSettings {
   angleMode?: "radians" | "degrees";
   complex?: boolean;
