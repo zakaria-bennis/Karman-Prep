@@ -33,7 +33,7 @@ it("T-5 speech text covers every Phase 1 tree head", () => {
     ["0\\le x<10", "0 less than or equal to x less than 10"],
     ["y\\ge2x+1", "y greater than or equal to 2 x plus 1"],
     ["A_{1}+\\theta", "upper A sub 1 plus theta"],
-    ["44\\%", "44 percent"],
+    ["44\\%\\operatorname{of}2", "44 percent times 2"],
     ["30^{\\circ}", "30 degrees"],
     ["f(x)=x^{2}", "f of x equals x squared"],
   ];

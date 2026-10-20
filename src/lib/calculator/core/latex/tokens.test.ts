@@ -9,8 +9,9 @@ it("tokenize joins digits across spaces and keeps at most one decimal point", ()
     { t: "digits", text: ".5", span: sp(4, 6) },
     { t: "end", span: sp(6, 6) },
   ]);
-  expect([kinds("1.2.3"), (tokenize("ab") as Token[])[1]]).toEqual([
-    ["1.2", "symbol", "3", "end"],
+  // Desmos: "Sorry, I don't know what to do with adjacent numbers '1.2' and '.3'. …"
+  expect([tokenize("1.2.3"), (tokenize("ab") as Token[])[1]]).toMatchObject([
+    { code: "adjacent-numbers", span: sp(0, 5), names: ["1.2", ".3"] },
     { t: "letter", ch: "b", span: sp(1, 2) },
   ]);
 });
@@ -26,7 +27,7 @@ it("PR-3 tokenize reads commands, allowlisted operator names and escaped symbols
 });
 it("tokenize reports a character outside the grammar with its span", () => {
   expect([tokenize("x@y"), tokenize("[1;2]")]).toMatchObject([
-    { code: "syntax", span: sp(1, 2) },
+    { code: "unknown-symbol", span: sp(1, 2), feature: "@" },
     { code: "unsupported", span: sp(2, 3) },
   ]);
 });

@@ -313,7 +313,7 @@ test("R-2 the error tooltip opens on hover and focus, closes on Escape, and togg
   await open(page, ["y=2+", "y=x"]);
   const marker = page.locator('li[data-row-id="1"] .kc-row-warning');
   const tip = page.getByRole("tooltip");
-  const message = "This can't be read. Check for a missing bracket or operator.";
+  const message = "You need something on both sides of the '+' symbol.";
   await expect(marker).toHaveAccessibleName("Error");
   await expect(page.locator('li[data-row-id="1"] .kc-row-tab')).toHaveCount(0);
   await expect(tip).toHaveCount(0);

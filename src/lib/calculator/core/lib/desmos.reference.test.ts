@@ -194,9 +194,8 @@ for (const [latex, expected] of RANGE_VALUES) {
   });
 }
 
-// Catalogue errors not yet matched, each an expected failure that fails once matched: an
-// ellipsis outside a list (the calculator reads a syntax error).
-const CATALOGUE_ERROR_GAP: ReadonlySet<string> = new Set(["1...5"]);
+// Catalogue errors not yet matched, each an expected failure that fails once matched.
+const CATALOGUE_ERROR_GAP: ReadonlySet<string> = new Set([]);
 const CATALOGUE_ERRORS = Object.entries(catalogue.errors);
 
 it("NM-36 RC-20 all 31 catalogue error messages for ranges, log and ln are checked", () =>

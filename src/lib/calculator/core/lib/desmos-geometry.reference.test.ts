@@ -23,7 +23,7 @@ type Coordinate = number | null;
 type Captured = Coordinate | Coordinate[] | Coordinate[][];
 
 const GAPS: readonly RegExp[] = [
-  /^(?!.*length).*(\(\d,\d,\d|\\times\()/,
+  /^(?!.*length)(?!\(1,2,3(,4)?\)$).*(\(\d,\d,\d|\\times\()/,
   /\\operatorname\{(for|with)\}/,
   /\\operatorname\{(hypot|pointDot|pointDet|pointPerp|complexMultiplyPoints)\}/,
   /\.\\operatorname\{length\}/,
@@ -101,8 +101,8 @@ for (const [key, expected] of VALUES) {
   else it(`FN-70 FN-71 NM-32 PR-45 ${key} is ${shown}, as in Desmos`, check);
 }
 
-it("FN-70 FN-71 NM-32 PR-45 all 103 catalogue point errors are checked, 75 matched", () =>
-  expect([ERRORS.length, ERRORS.filter(([key]) => !isGap(key)).length]).toEqual([103, 75]));
+it("FN-70 FN-71 NM-32 PR-45 all 103 catalogue point errors are checked, 77 matched", () =>
+  expect([ERRORS.length, ERRORS.filter(([key]) => !isGap(key)).length]).toEqual([103, 77]));
 
 // A row's error is its analysis error or, as the row shows it, the error its value carries
 // (`[(1,2),3]`, NM-32).

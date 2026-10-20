@@ -30,7 +30,7 @@ it("R-5 a numeric row shows its value below the math with NM-1, NM-2 and T-10 di
   expect(screen.queryByRole("button", { name: /fraction|decimal/i })).toBeNull();
 });
 
-const SYNTAX_MESSAGE = "This can't be read. Check for a missing bracket or operator.";
+const SYNTAX_MESSAGE = "You need something on both sides of the '+' symbol.";
 
 it("R-2 an error row shows the warning marker in place of the tab, with a tooltip that opens on hover and focus, closes on leave, blur and Escape, and is pinned by a click or tap until a second one or a press outside; the message is the textbox's description", async () => {
   const kit = renderEditor(<ExpressionPanel {...panelProps()} />, { rows: ["y=2+"] });
@@ -187,9 +187,7 @@ it("A11Y-3 the value element and the error element are linked from the textbox b
   expect(document.getElementById(one.value)).toHaveTextContent("equals 5");
   expect(textbox(1)).not.toHaveAttribute("aria-invalid");
   expect(textbox(2).getAttribute("aria-describedby")!.split(" ")).toEqual([two.speech, two.error]);
-  expect(document.getElementById(two.error)).toHaveTextContent(
-    "This can't be read. Check for a missing bracket or operator."
-  );
+  expect(document.getElementById(two.error)).toHaveTextContent(SYNTAX_MESSAGE);
   expect(textbox(2)).toHaveAttribute("aria-invalid", "true");
 });
 

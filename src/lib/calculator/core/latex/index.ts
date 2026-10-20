@@ -5,6 +5,7 @@ import { countNodes, type Node } from "./ast";
 import type { ParseError } from "./errors";
 import { splitLetterRuns } from "./letters";
 import { MAX_TREE_NODES } from "./limits";
+import { delimiterError } from "./delimiters";
 import { normalizeLatex } from "./normalize";
 import { createParserState, ParseFailure, parseRow } from "./parser";
 import { tokenize } from "./tokens";
@@ -43,6 +44,13 @@ export function parseLatex(input: string, options: ParseOptions = {}): ParseResu
     }
     const tokens = tokenize(normalized);
     if (!Array.isArray(tokens)) return failed(tokens, normalized);
+    // `\left(` without its `\right)` is not LaTeX MathQuill writes: Desmos's generic error
+    if (unpairedLeftRight(input)) {
+      const span = { start: 0, end: normalized.length };
+      return failed({ code: "syntax", span, detail: "an unpaired \\left or \\right" }, normalized);
+    }
+    const unpaired = delimiterError(tokens);
+    if (unpaired !== null) return failed(unpaired, normalized);
     const tree = parseRow(createParserState(splitLetterRuns(tokens), normalized, options));
     const nodes = countNodes(tree);
     if (nodes > MAX_TREE_NODES) {
@@ -60,6 +68,12 @@ export function parseLatex(input: string, options: ParseOptions = {}): ParseResu
     const name = thrown instanceof Error ? thrown.name : typeof thrown;
     return failed({ code: "syntax", span, detail: `internal: ${name}` }, normalized);
   }
+}
+
+/** True when `\left` and `\right` (whole command names) appear a different number of times. */
+function unpairedLeftRight(text: string): boolean {
+  const count = (pattern: RegExp) => text.match(pattern)?.length ?? 0;
+  return count(/\\left(?![A-Za-z])/g) !== count(/\\right(?![A-Za-z])/g);
 }
 
 function failed(error: ParseError, normalized: string): ParseResult {

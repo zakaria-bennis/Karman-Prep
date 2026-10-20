@@ -80,8 +80,9 @@ function parseRow(
   }
   const parsed = parseLatex(source.latex, { userFunctions });
   if (!parsed.ok) {
-    const { code, feature, span } = parsed.error;
-    return { ...row, error: rowError(code, feature === undefined ? [] : [feature], span) };
+    const { code, feature, names, span } = parsed.error;
+    const shown = names ?? (feature === undefined ? [] : [feature]);
+    return { ...row, error: rowError(code, shown, span) };
   }
   const tree = parsed.tree;
   if (scanned !== null && isReservedName(scanned.name, settings)) {

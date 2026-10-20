@@ -143,11 +143,20 @@ export function printLatex(tree: Node): string {
 function printProduct(left: Node, right: Node): string {
   const l = wrapIf(left, SUMS);
   const r = wrapIf(right, PRODUCTS);
+  // PR-7: a percent sign is only read before `of`, as in Desmos (`25\%\operatorname{of}80`)
+  if (endsWithPercent(left)) return join([l, "\\operatorname{of}", r]);
   // PR-34: a `[` right after a number indexes it, so a list factor takes `\cdot`.
   const juxtapose =
     right.kind === "piecewise" ||
     (left.kind === "num" && (isLetter(r[0]) || (r[0] === "\\" && !r.startsWith("\\left["))));
   return juxtapose ? join([l, r]) : join([l, "\\cdot", r]);
+}
+
+/** True when the last factor printed for `node` is a percent, so `of` must follow it. */
+function endsWithPercent(node: Node): boolean {
+  if (node.kind === "pct") return true;
+  if (node.kind === "mul") return endsWithPercent(node.right);
+  return node.kind === "neg" && endsWithPercent(node.arg);
 }
 
 /**

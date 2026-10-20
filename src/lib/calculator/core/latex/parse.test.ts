@@ -23,9 +23,16 @@ const inRange = (r: ParseResult) =>
     r.error.span.end <= r.normalized.length);
 
 describe("parse never throws", () => {
-  it("PR-38 half-typed MathQuill structures return syntax errors", () => {
-    for (const input of ["\\frac{}{}", "x^{}", "2+", "\\left(", "\\operatorname{}", "="])
-      expect([code(input), inRange(parseLatex(input))]).toEqual(["syntax", true]);
+  it("PR-38 half-typed MathQuill structures return Desmos's errors (live Desmos, 2026-10-20)", () => {
+    for (const [input, error] of [
+      ["\\frac{}{}", "fraction-empty"],
+      ["x^{}", "empty-superscript"],
+      ["2+", "operator-side"],
+      ["\\left(", "syntax"],
+      ["\\operatorname{}", "syntax"],
+      ["=", "operator-side"],
+    ])
+      expect([code(input), inRange(parseLatex(input))]).toEqual([error, true]);
   });
   it("PR-38 an empty root or root index has its own code, as Desmos's messages do", () => {
     expect(["\\sqrt{}", "\\sqrt[3]{ }", "\\sqrt[]{8}", "\\sqrt[ ]{}"].map(spanOf)).toEqual([
@@ -38,11 +45,11 @@ describe("parse never throws", () => {
   it("PR-38 errors carry their code and the span of the offending text", () => {
     expect(["x\\pm1", "2+", "(1,2,3)", "x=y<3", "  ", "\\left|x|y|\\right|"].map(spanOf)).toEqual([
       ["unsupported", 1, 4],
-      ["syntax", 2, 2],
-      ["point-arity", 0, 7],
+      ["operator-side", 1, 2],
+      ["point-3d", 0, 7],
       ["relation-chain", 3, 4],
       ["syntax", 0, 0],
-      ["syntax", 8, 9],
+      ["unknown-symbol", 8, 9],
     ]);
   });
   it("PR-38 the node and depth limits give too-many-nodes and too-deep", () => {
@@ -57,7 +64,7 @@ describe("parse never throws", () => {
         "x+".repeat(1000) + "x",
         "-".repeat(5000) + "x",
         "(".repeat(64) + "x" + ")".repeat(64),
-        "\\frac{".repeat(5000),
+        "\\sqrt{".repeat(100) + "x" + "}".repeat(100),
       ].map(code)
     ).toEqual(["ok", "too-many-nodes", "too-many-nodes", "ok", "too-deep"]);
     expect([64, 65].map((k) => code("x^{".repeat(k) + "1" + "}".repeat(k)))).toEqual([

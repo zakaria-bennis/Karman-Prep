@@ -57,7 +57,10 @@ export function parseIndex(state: ParserState, target: Node): Node | null {
   }
   const condition = items.find((item) => item.kind === "rel");
   if (condition !== undefined && (items.length > 1 || before >= 0)) {
-    fail("syntax", condition.span, "a condition must be the only item in an index");
+    // Desmos's "Cannot use an inequality here." (captured 2026-10-20)
+    const equation = condition.kind === "rel" && condition.ops.every((op) => op === "=");
+    const code = equation ? "equality-here" : "inequality-here";
+    fail(code, condition.span, "a condition must be the only item in an index");
   }
   const whole = { start: target.span.start, end: span.end };
   if (before < 0) return { kind: "index", target, items, span: whole };

@@ -3,39 +3,8 @@
 
 import type { RowErrorCode } from "../corpus/types";
 import { DEFERRED_FEATURES } from "../latex/errors";
+import { GREEK_LETTERS } from "../latex/greek";
 import { PREFIX_FORM_NAMES, REFUSED_NAMES } from "../latex/operator-names";
-
-/** The letters MathQuill shows for each Greek command (PR-11; omicron is not a name). */
-const GREEK_LETTERS: Readonly<Record<string, string>> = {
-  alpha: "α",
-  beta: "β",
-  gamma: "γ",
-  delta: "δ",
-  epsilon: "ϵ",
-  varepsilon: "ε",
-  zeta: "ζ",
-  eta: "η",
-  theta: "θ",
-  vartheta: "ϑ",
-  iota: "ι",
-  kappa: "κ",
-  lambda: "λ",
-  mu: "μ",
-  nu: "ν",
-  xi: "ξ",
-  pi: "π",
-  rho: "ρ",
-  varrho: "ϱ",
-  sigma: "σ",
-  varsigma: "ς",
-  tau: "τ",
-  upsilon: "υ",
-  phi: "ϕ",
-  varphi: "φ",
-  chi: "χ",
-  psi: "ψ",
-  omega: "ω",
-};
 
 /**
  * The text a message shows for a name: Greek commands and the constants `pi` and `tau` as their
@@ -71,9 +40,9 @@ function letter(base: string): string {
  * comparator chain strings, not yet captured live.
  */
 const MESSAGES: Readonly<Record<RowErrorCode, string>> = {
-  syntax: "This can't be read. Check for a missing bracket or operator.",
+  syntax: "Sorry, I don't understand this.",
   unsupported: "This calculator doesn't support that notation.",
-  "point-arity": "A point needs exactly two coordinates.",
+  "point-arity": "Points may only have 2 coordinates.",
   "point-syntax": "Points are written like this: (1, 2).",
   "relation-chain": "Cannot mix inequalities and equations in a chain of comparisons.",
   "relation-side": "You need something on both sides of the '{n}' symbol.",
@@ -155,7 +124,33 @@ const MESSAGES: Readonly<Record<RowErrorCode, string>> = {
   "unexpected-symbol": "Sorry, I don't understand the way that '{n}' is used here.",
   "logic-outside-condition": "'{n}' can only be used as part of a condition.",
   "too-many-variables": "Too many variables. Try defining '{n}'.", // tooManyVariables gives the full text
+  // Desmos's surface parse errors (captured 2026-10-20)
+  "operator-side": "You need something on both sides of the '{n}' symbol.",
+  "operator-after": "You need something after the '{n}' symbol.",
+  "operator-before": "You need something before the '{n}' symbol.",
+  unmatched: "Expected '{n}' to match '{k}'.",
+  "unknown-symbol": "Sorry, I don't understand the '{n}' symbol.",
+  "empty-parentheses": "Parentheses cannot be empty.",
+  "empty-pipe": "Absolute value symbol cannot be empty.",
+  "empty-superscript": "Superscripts cannot be empty.",
+  "fraction-empty": "You need a numerator and denominator for your fraction.",
+  "fraction-numerator": "You need a numerator for the top of your fraction.",
+  "fraction-denominator": "You need a denominator for the bottom of your fraction.",
+  "invalid-subscript": "Subscripts may only contain letters and digits. '{n}' is not allowed.",
+  "subscript-target": "Only functions and variables may have subscripts.",
+  "adjacent-numbers":
+    "Sorry, I don't know what to do with adjacent numbers '{n}' and '{k}'. Try using parentheses or a '*' symbol.",
+  "number-dot": "Sorry, I don't understand this use of '.' after a constant number.",
+  "point-3d": "This calculator cannot plot a 3d point.",
+  "percent-of": "'%' must be used with 'of'. Try '25% of 12'.",
+  "prime-use": "Sorry, I don't understand this use of prime notation.",
+  "equality-here": "Cannot use an equality here.",
+  "inequality-here": "Cannot use an inequality here.",
+  "prime-superscript": "Superscripts and primes cannot be combined.",
+  "function-undefined": "Function '{n}' is not defined.",
 };
+/** The closer each opener of an `unmatched` error pairs with. */
+const CLOSERS: Readonly<Record<string, string>> = { "(": ")", "[": "]", "{": "}" };
 /** RC-2, Phase 1: `unsupported` naming r or θ, whose polar graphs ship in Phase 2. */
 const POLAR_UNSUPPORTED = "{n} is for polar graphs, which aren't available yet.";
 const POLAR_NAMES: ReadonlySet<string> = new Set(["r", "θ"]);
@@ -174,6 +169,7 @@ export function rowErrorMessage(code: RowErrorCode, names: string[]): string {
   const [n = "", k = ""] = names;
   if (code === "arity") return arityMessage(n, k, Number(names[2]));
   if (code === "too-many-variables") return tooManyVariables(names);
+  if (code === "unmatched") return MESSAGES.unmatched.replace("{n}", n).replace("{k}", CLOSERS[n]);
   // PR-24: a trig, hyperbolic, ln or log name on its own reads as Desmos's empty call.
   if (code === "function-parentheses" && PREFIX_FORM_NAMES.has(n)) {
     return arityMessage(n, "1", 0);

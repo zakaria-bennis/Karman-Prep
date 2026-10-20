@@ -39,8 +39,8 @@ it("RC-3 name uses come in source order with call and point flags", () => {
 
 it("RC-2, RC-7, RC-8, RC-19, RC-20 row errors and the complex hint use the exact spec copy", () => {
   const table: [RowErrorCode, string[], string][] = [
-    ["syntax", [], "This can't be read. Check for a missing bracket or operator."],
-    ["point-arity", [], "A point needs exactly two coordinates."],
+    ["syntax", [], "Sorry, I don't understand this."],
+    ["point-arity", [], "Points may only have 2 coordinates."],
     ["unsupported", ["t"], "This calculator doesn't support that notation."],
     ["unsupported", ["r"], "r is for polar graphs, which aren't available yet."],
     ["unsupported", ["θ"], "θ is for polar graphs, which aren't available yet."],

@@ -35,17 +35,19 @@ describe("list syntax", () => {
     expect(tree("[1,2,...,9,10]")).toBe("(range ((num 1) (num 2)) ((num 9) (num 10)))");
   });
 
-  it("PR-34 a malformed range or list is syntax, never a partial tree", () => {
-    for (const latex of [
-      "[1...5...9]",
-      "[1,...,5,...]",
-      "[1,2",
-      "[1,]",
-      "[,1]",
-      "1...5",
-      "x\\ldots",
+  it("PR-34 a malformed range or list is Desmos's error, never a partial tree", () => {
+    // live Desmos, 2026-10-20
+    const dots = "unexpected-symbol: ...";
+    for (const [latex, error] of [
+      ["[1...5...9]", dots],
+      ["[1,...,5,...]", dots],
+      ["[1,2", "unmatched: ["],
+      ["[1,]", "operator-side: ,"],
+      ["[,1]", "operator-side: ,"],
+      ["1...5", dots],
+      ["x\\ldots", dots],
     ])
-      expect(tree(latex), latex).toBe("syntax");
+      expect(tree(latex), latex).toBe(error);
   });
 
   it("PR-34 a range with nothing before or after its ellipsis is range-bound, as in Desmos", () => {
@@ -82,9 +84,9 @@ describe("list syntax", () => {
     expect(tree("L[2<L<6]")).toBe("(index (id L) (rel (< <) (num 2) (id L) (num 6)))");
     expect(tree("L[2]^{2}")).toBe("(pow (index (id L) (num 2)) (num 2))");
     expect(tree("L[]")).toBe("empty-brackets");
-    expect(tree("L[L>2,1]")).toBe("syntax");
-    expect(tree("L[1...L>2]")).toBe("syntax");
-    expect(tree("L[1...2...3]")).toBe("syntax");
+    expect(tree("L[L>2,1]")).toBe("inequality-here");
+    expect(tree("L[1...L>2]")).toBe("inequality-here");
+    expect(tree("L[1...2...3]")).toBe("unexpected-symbol: ...");
     expect(tree("[n^{2}\\operatorname{for}n=[1...5]]")).toBe(
       "unsupported: Building a list with 'for'"
     );
@@ -113,7 +115,7 @@ describe("list syntax", () => {
   it("PR-30 a regression with an empty side is sim-side, not a generic syntax error", () => {
     for (const latex of ["\\sim", "y\\sim", "y_{1}\\sim", "\\sim x", "~", "y~ "])
       expect(tree(latex), latex).toBe("sim-side");
-    expect(tree("y\\sim x\\sim2")).toBe("syntax");
-    expect(tree("y=\\sim x")).toBe("syntax");
+    expect(tree("y\\sim x\\sim2")).toBe("unexpected-symbol: ~");
+    expect(tree("y=\\sim x")).toBe("sim-side");
   });
 });

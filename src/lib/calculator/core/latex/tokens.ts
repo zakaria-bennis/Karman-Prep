@@ -83,7 +83,21 @@ export function tokenize(normalized: string): Token[] | ParseError {
       // PR-34: a typed or pasted `...` is the range ellipsis, the same token as `\ldots`.
       tokens.push({ t: "command", name: "ldots", span: span(i + ELLIPSIS.length) });
       i += ELLIPSIS.length;
-    } else if (isDigit(ch) || (ch === "." && isDigit(normalized[i + 1]) && !afterDecimal(tokens))) {
+    } else if (ch === "." && isDigit(normalized[i + 1]) && afterDecimal(tokens)) {
+      // `1.2.3`: Desmos's "Sorry, I don't know what to do with adjacent numbers '1.2' and '.3'."
+      const before = tokens[tokens.length - 1] as Extract<Token, { t: "digits" }>;
+      const next = readDigits(normalized, i);
+      if (before.text.endsWith(".")) {
+        // `1..5`: "Sorry, I don't understand this use of '.' after a constant number."
+        return { code: "number-dot", span: span(i + 1), detail: "a dot after a number" };
+      }
+      return {
+        code: "adjacent-numbers",
+        span: { start: before.span.start, end: next.span.end },
+        detail: "two numbers side by side",
+        names: [before.text, next.text],
+      };
+    } else if (isDigit(ch) || (ch === "." && isDigit(normalized[i + 1]))) {
       const digits = readDigits(normalized, i);
       tokens.push(digits);
       i = digits.span.end;
@@ -113,11 +127,13 @@ export function tokenize(normalized: string): Token[] | ParseError {
         detail: '";" (matrix rows) is not supported',
       };
     } else {
+      // Desmos names a character it does not read: "Sorry, I don't understand the '@' symbol."
       const character = characterAt(normalized, i);
       return {
-        code: "syntax",
+        code: "unknown-symbol",
         span: span(i + character.length),
         detail: `unexpected character "${character}"`,
+        feature: character,
       };
     }
   }
