@@ -118,7 +118,14 @@
   border: 1px solid var(--kc-rule);
   border-top: none;
   border-radius: 0 0 5px 5px;
+  overflow-y: auto;
   background: var(--kc-list);
+}
+
+.kc-tr-select-list[data-side="above"] {
+  border-top: 1px solid var(--kc-rule);
+  border-bottom: none;
+  border-radius: 5px 5px 0 0;
 }
 
 .kc-tr-option {
@@ -235,6 +242,25 @@
 .kc-tr-options::after {
   top: -8px;
   border-bottom-color: var(--kc-list);
+}
+
+/* Opened above ⋮: the arrow points down from the bottom edge. */
+.kc-tr-options[data-side="above"]::before,
+.kc-tr-options[data-side="above"]::after {
+  top: auto;
+  border-top-width: 8px;
+  border-bottom-width: 0;
+  border-bottom-color: transparent;
+}
+
+.kc-tr-options[data-side="above"]::before {
+  bottom: -9px;
+  border-top-color: var(--kc-boundary);
+}
+
+.kc-tr-options[data-side="above"]::after {
+  bottom: -8px;
+  border-top-color: var(--kc-list);
 }
 
 .kc-tr-options-section {

@@ -112,6 +112,8 @@ test("SETTINGS-11, -12 Large display enlarges the list math and Reverse contrast
 
 test("SETTINGS-20 Lock Viewport stops dragging and the wheel and removes the zoom buttons", async ({
   page,
+  browserName,
+  isMobile,
 }) => {
   await openShell(page, `?w=1200&h=800&rows=${enc(["y=x"])}`);
   await openSettings(page);
@@ -127,7 +129,20 @@ test("SETTINGS-20 Lock Viewport stops dragging and the wheel and removes the zoo
   await page.mouse.down();
   await page.mouse.move(x + 120, y + 60, { steps: 6 });
   await page.mouse.up();
-  await page.mouse.wheel(0, -200);
+  if (browserName === "webkit" && isMobile) {
+    // Playwright's mobile WebKit has no mouse wheel: the same wheel event, sent where it points.
+    await page.evaluate(
+      ([cx, cy]) => {
+        const root = document.querySelector("#calc")!.shadowRoot!;
+        const target = root.elementFromPoint(cx, cy)!;
+        const init = { deltaY: -200, clientX: cx, clientY: cy, bubbles: true, composed: true };
+        target.dispatchEvent(new WheelEvent("wheel", { ...init, cancelable: true }));
+      },
+      [x, y]
+    );
+  } else {
+    await page.mouse.wheel(0, -200);
+  }
   await page.waitForTimeout(200);
   expect(await viewport(page)).toEqual(before);
 });

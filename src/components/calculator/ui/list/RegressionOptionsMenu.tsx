@@ -1,8 +1,17 @@
 // The table regression's ⋮ menu (RT-32, REG-MODELS-23): "REGRESSION MODEL STRUCTURE" with the
 // typeset template, then "Export as custom regression" or, when export is impossible, the reason in
 // its place, then "Delete regression" (red). Escape (one KB-3 layer) or a press outside closes it.
+// With no room under ⋮ (a phone's short screen) it opens above ⋮ when there is more room there.
 
-import { useContext, useEffect, useRef, useState, type JSX } from "react";
+import {
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type JSX,
+} from "react";
 import type { StoredRow } from "@/lib/calculator/core/api/document";
 import {
   EXPORT_BLOCK_TEXT,
@@ -18,6 +27,9 @@ import { useEngine } from "../hooks/use-engine";
 import { usePopupDismiss } from "./menu-trigger";
 import { StaticMath } from "./StaticMath";
 
+/** The gap between ⋮ and the menu, which its arrow spans. */
+const GAP = 8;
+
 export function RegressionOptionsMenu(props: {
   tableId: string;
   stored: Pick<StoredRow, "columns" | "regression">;
@@ -28,7 +40,8 @@ export function RegressionOptionsMenu(props: {
   const escape = useContext(EscapeContext);
   const [open, setOpen] = useState(false);
   // Fixed to the viewport under ⋮ (its arrow 16 px in from the right), so no list item clips it.
-  const [place, setPlace] = useState<{ top: number; left: number } | null>(null);
+  const [place, setPlace] = useState<CSSProperties | null>(null);
+  const [above, setAbove] = useState(false);
   const button = useRef<HTMLButtonElement>(null);
   const panel = useRef<HTMLDivElement>(null);
   const close = (refocus: boolean) => {
@@ -42,6 +55,16 @@ export function RegressionOptionsMenu(props: {
     escape,
     close
   );
+  useLayoutEffect(() => {
+    const el = panel.current;
+    const rect = button.current?.getBoundingClientRect();
+    if (!open || el === null || rect === undefined) return;
+    const viewHeight = el.ownerDocument.defaultView?.innerHeight ?? rect.bottom + el.offsetHeight;
+    const roomBelow = viewHeight - rect.bottom - GAP;
+    const flip = el.offsetHeight > roomBelow && rect.top - GAP > roomBelow;
+    setAbove(flip);
+    if (flip) setPlace((p) => ({ ...p, top: undefined, bottom: viewHeight - rect.top + GAP }));
+  }, [open]);
   useEffect(() => {
     if (open) panel.current?.querySelector<HTMLElement>("button")?.focus();
   }, [open]);
@@ -61,7 +84,8 @@ export function RegressionOptionsMenu(props: {
         aria-expanded={open}
         onClick={() => {
           const rect = button.current?.getBoundingClientRect();
-          if (rect !== undefined) setPlace({ top: rect.bottom + 8, left: rect.right + 12 - 245 });
+          if (rect !== undefined) setPlace({ top: rect.bottom + GAP, left: rect.right + 12 - 245 });
+          setAbove(false);
           setOpen((o) => !o);
         }}
       >
@@ -75,6 +99,7 @@ export function RegressionOptionsMenu(props: {
         <div
           ref={panel}
           className="kc-tr-options"
+          data-side={above ? "above" : undefined}
           role="dialog"
           aria-label="Regression options"
           style={place ?? undefined}

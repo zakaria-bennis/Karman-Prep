@@ -16,9 +16,10 @@ async function at(page: Page, x: number, y: number): Promise<[number, number]> {
     () => globalThis.__calculatorHarness!.engine.getSnapshot().view!
   );
   const { left, right, bottom, top } = view.viewport;
+  // Whole pixels: WebKit truncates a fractional pointer position (180.99999 becomes 180).
   return [
-    box.x + ((x - left) / (right - left)) * view.size.width,
-    box.y + ((top - y) / (top - bottom)) * view.size.height,
+    Math.round(box.x + ((x - left) / (right - left)) * view.size.width),
+    Math.round(box.y + ((top - y) / (top - bottom)) * view.size.height),
   ];
 }
 

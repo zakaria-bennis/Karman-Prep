@@ -305,7 +305,7 @@ in rows.
 - **D-20** Each committed cell edit, row or column change, paste and table creation is one undo step for the list's Undo and Redo controls. (Phase 3; verified by component test)
 - **D-21** A 1,000-row table renders only its visible cells, and a single cell edit updates the plotted points within 50 ms on the desktop CI profile and within 150 ms on the 4× CPU-throttled mobile profile. (Phase 3; verified by perf test)
 - **D-41** With the on-screen keypad (K-1), a table's keys edit the cell or header that last had focus, each key one keypad edit of that cell (K-10, D-20); the keypad's ← and → move the caret and cross into the neighbouring cell at the caret's edge as hardware arrows do (D-7), its Enter moves down the column (D-7), and keypad keys always reach an editable cell, never the blank header slot: with the slot or a removed cell last focused they edit the first cell of the blank row (appendix F: the reference closes its keypad on the slot). (Phase 3; verified by component test and browser test)
-- **D-42** On narrow lists (390 px phones), every table column keeps its width (96 px) and a table wider than the list scrolls sideways inside its own item, never the page or the list (L-1); the focused cell is scrolled into view. (Phase 3; verified by browser test)
+- **D-42** On narrow lists (390 px phones), every table column keeps its content width (at least 61 px for the first column and 81 px for later ones, RT-6) and a table wider than the list scrolls sideways inside its own item, never the page or the list (L-1); the focused cell is scrolled into view. (Phase 3; verified by browser test)
 
 ## 19. Regressions
 

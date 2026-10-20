@@ -171,13 +171,18 @@ test("D-41, D-42 at 390 px a wide table scrolls inside its item and the keypad's
     client: el.clientWidth,
     page: document.documentElement.scrollWidth,
     view: window.innerWidth,
-    cells: [...el.querySelectorAll('[role="columnheader"]')].map(
-      (c) => c.getBoundingClientRect().width
-    ),
+    cells: [
+      ...el.querySelectorAll('[role="columnheader"]:not([data-slot="true"], .kc-table-slot)'),
+    ].map((c) => Math.round(c.getBoundingClientRect().width)),
   }));
   expect(sizes.scroll).toBeGreaterThan(sizes.client); // the table scrolls inside its item
   expect(sizes.page).toBeLessThanOrEqual(sizes.view); // and the page never does
-  expect(new Set(sizes.cells.map(Math.round)).size).toBe(1); // every column keeps its width
+  // every column keeps its RT-6 content width: the first at least 61 px, later ones at least 81 px
+  const [first, ...later] = sizes.cells;
+  expect(first).toBeGreaterThanOrEqual(61);
+  expect(later).toHaveLength(5);
+  expect(new Set(later).size).toBe(1);
+  expect(later[0]).toBeGreaterThanOrEqual(81);
   await cellField(page, "x₁, row 1").tap();
   await expect(page.getByRole("region", { name: "Keypad" })).toBeVisible();
   await page.getByRole("button", { name: "Right arrow" }).tap(); // caret at the end of 1
