@@ -14,8 +14,17 @@ from .normalize import NORMALIZER_VERSION, strip_markup
 
 # Matches REVIEWED_DIFFICULTY_RUBRIC_VERSION in karman-release reviewed-difficulty.ts.
 RUBRIC_VERSION = "karman-legacy-1-7-v1"
-_VISUAL = re.compile(r"\b(figure|graph|table|scatterplot|diagram|shown|chart)\b", re.IGNORECASE)
-_KNOWN_FIGURE_FIELDS = ("figure_kind", "figure_table_data")
+_V = r"(?:graph|figure|diagram|table|scatterplot|chart|plot)s?"
+_NEEDS_VISUAL = tuple(re.compile(p, re.IGNORECASE) for p in (
+    r"\b(?:in|from|according to|based on|using)\s+the\s+" + _V + r"\b(?!\s+of\b)",
+    r"\bthe\s+" + _V + r"\s+(?:above|below|shown|shows|show|gives|give|represents|displays|models|"
+    r"summarizes|lists|contains|records|describes)\b",
+    r"\b(?:is|are)\s+shown\b(?!\s+(?:it|that|to|how)\b)",
+    r"\bshown\s+(?:above|below|here)\b",
+    r"\b(?:scatterplot|bar graph|line graph|histogram|dot plot|box plot|circle graph|pie chart|frequency table)s?\b",
+    r"\b(?:which|following|each)\s+" + _V + r"\b",
+))
+_KNOWN_FIGURE_FIELDS = ("figure_kind", "figure_table_data", "choice_tables")
 _ASSET_KEY = re.compile(r"asset|image|figure", re.IGNORECASE)
 
 LANE_REASON = {
@@ -60,6 +69,8 @@ def row_sha256(row) -> str:
 
 
 def _has_asset(row: dict) -> bool:
+    if row.get("choice_tables") not in (None, "", [], {}):
+        return True
     for key, value in row.items():
         if key in _KNOWN_FIGURE_FIELDS or not _ASSET_KEY.search(key):
             continue
@@ -73,13 +84,16 @@ def _check_figure(row: dict) -> list[str]:
     if kind not in (None, "table"):
         return [f"figure_kind {kind!r} is not null or table"]
     if kind == "table":
-        if row.get("figure_table_data") is None:
-            return ["figure_kind is table but figure_table_data is null"]
+        if row.get("figure_table_data") in (None, "", [], {}):
+            return ["figure_kind is table but figure_table_data is empty"]
         return []
     text, _ = strip_markup(str(row.get("question_text") or ""))
-    match = _VISUAL.search(text)
-    if match and not _has_asset(row):
-        return [f"text mentions {match.group(0)!r} but the row has no reviewed asset"]
+    if row.get("figure_table_data") not in (None, "", [], {}) or _has_asset(row):
+        return []
+    for rx in _NEEDS_VISUAL:
+        match = rx.search(text)
+        if match:
+            return [f"text refers to a visual ({match.group(0)!r}) but the row has no reviewed asset"]
     return []
 
 
@@ -124,10 +138,13 @@ def _check_binding(row: dict, pins: dict) -> list[str]:
             problems.append("content_sha256 differs from the frozen manifest")
         if version.get("student_content_sha256") != pin.get("student_content_sha256"):
             problems.append("student_content_sha256 differs from the frozen manifest")
+    version = _object(row.get("source_version")) or {}
+    if row.get("difficulty_content_sha256") != version.get("student_content_sha256"):
+        problems.append("difficulty_content_sha256 differs from source_version.student_content_sha256")
     _, evidence = _approved_tags(row)
     tags = _object((evidence or {}).get("approved_tags")) or {}
-    if not (tags.get("tag_binding_manifest_sha256") or (evidence or {}).get("tag_binding_manifest_sha256")):
-        problems.append("evidence lacks tag_binding_manifest_sha256")
+    if not tags.get("tag_binding_manifest_sha256"):
+        problems.append("approved_tags lacks tag_binding_manifest_sha256")
     return problems
 
 
@@ -149,8 +166,6 @@ def _check_difficulty(row: dict) -> list[str]:
 def _check_dedup(row: dict, clusters: dict) -> list[str]:
     sid = row.get("stable_question_id")
     roles = _object(clusters.get("roles")) or {}
-    if clusters.get("normalizer_version") != NORMALIZER_VERSION:
-        return [f"clusters were built with normalizer {clusters.get('normalizer_version')!r}, not {NORMALIZER_VERSION!r}"]
     if sid not in roles:
         return ["row has no cluster entry"]
     if roles[sid] != "canonical":
@@ -162,21 +177,41 @@ def _load(path: Path):
     return json.loads(Path(path).read_bytes().decode("utf-8"))
 
 
+class LintError(ValueError):
+    pass
+
+
 def lint_batch(reviewed: Path, frozen: Path | None, clusters: Path) -> dict:
     """Return {"passed": [ids], "pulled": [{id, code, detail}]}. A row with several
     problems gets one pulled entry per code and is not in `passed`."""
-    rows = _load(reviewed)["questions"]
+    data = _load(reviewed)
+    rows = data.get("questions") if isinstance(data, dict) else None
+    if not isinstance(rows, list):
+        raise LintError(f"{reviewed} has no 'questions' list")
+    ids = []
+    for i, row in enumerate(rows):
+        sid = row.get("stable_question_id") if isinstance(row, dict) else None
+        if not isinstance(sid, str) or not sid:
+            raise LintError(f"row {i + 1} of {reviewed} has no stable_question_id")
+        ids.append(sid)
+    dupes = {i for i in ids if ids.count(i) > 1}
     pins = None
     if frozen is not None:
         pins = {p["stable_question_id"]: p for p in _load(frozen)["rows"]}
     cluster_data = _load(clusters)
+    if cluster_data.get("normalizer_version") != NORMALIZER_VERSION:
+        raise LintError(f"clusters were built with normalizer {cluster_data.get('normalizer_version')!r}, "
+                        f"not {NORMALIZER_VERSION!r}: rebuild clusters")
     passed, pulled = [], []
     for row in rows:
-        sid = row.get("stable_question_id")
+        sid = row["stable_question_id"]
+        binding = _check_binding(row, pins) if pins is not None else []
+        if pins is not None and sid in dupes:
+            binding.append("stable_question_id repeats within the batch")
         found = {
             "PF_FIGURE": _check_figure(row),
             "PF_ENVELOPE": _check_envelope(row),
-            "PF_BINDING": _check_binding(row, pins) if pins is not None else [],
+            "PF_BINDING": binding,
             "PF_DIFFICULTY": _check_difficulty(row),
             "PF_DEDUP_STALE": _check_dedup(row, cluster_data),
         }
@@ -192,7 +227,7 @@ def lint_batch(reviewed: Path, frozen: Path | None, clusters: Path) -> dict:
 
 def write_lane(lane_path: Path, pulled: list, now: str) -> int:
     """Add or update open lane entries for pulled rows; never remove entries.
-    Entries that are no longer open are left as they are. Returns entries written."""
+    Entries that were closed are reopened with a failed-lint attempt. Returns entries written."""
     lane_path = Path(lane_path)
     if lane_path.exists():
         try:
@@ -212,15 +247,13 @@ def write_lane(lane_path: Path, pulled: list, now: str) -> int:
     for sid, entries in by_id.items():
         entries.sort(key=lambda p: _CODE_ORDER.index(p["code"]))
         existing = items.get(sid)
+        detail = " | ".join(f"{p['code']}: {p['detail']}" for p in entries)
+        base = dict(existing) if existing else {"since": now, "attempts": []}
+        attempts = list(base.get("attempts", []))
         if existing is not None and existing.get("status") != "open":
-            continue
-        items[sid] = {
-            "reason": LANE_REASON[entries[0]["code"]],
-            "status": "open",
-            "detail": " | ".join(f"{p['code']}: {p['detail']}" for p in entries),
-            "since": existing["since"] if existing else now,
-            "attempts": existing.get("attempts", []) if existing else [],
-        }
+            attempts.append({"method": "lint", "ok": False, "at": now, "detail": detail})
+        items[sid] = {**base, "reason": LANE_REASON[entries[0]["code"]], "status": "open",
+                      "detail": detail, "attempts": attempts}
         written += 1
     tmp = lane_path.with_name(lane_path.name + f".tmp{os.getpid()}")
     tmp.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")

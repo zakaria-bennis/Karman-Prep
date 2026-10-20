@@ -1,4 +1,3 @@
-import copy
 import hashlib
 import json
 import tempfile
@@ -24,6 +23,7 @@ def make_row(n=1):
         "difficulty_rationale": "Synthetic rationale.",
         "difficulty_rubric_version": "karman-legacy-1-7-v1",
         "difficulty_uncertain": False,
+        "difficulty_content_sha256": "c" * 64,
         "source_version": {"content_sha256": "b" * 64, "student_content_sha256": "c" * 64},
         "reviewed_answer": {
             "kind": "official", "printed_answer": "A", "independently_verified_answer": "A",
@@ -87,18 +87,38 @@ class LintTests(unittest.TestCase):
         row = make_row(); row["figure_kind"] = "table"
         self.assertEqual(self.codes(self.run_lint([row])), ["PF_FIGURE"])
 
-    def test_pf_figure_text_mentions_visual_without_asset(self):
-        row = make_row(); row["question_text"] = "In the Graph above, what is x?"
+    def test_pf_figure_table_with_empty_data(self):
+        row = make_row(); row["figure_kind"] = "table"; row["figure_table_data"] = []
         self.assertEqual(self.codes(self.run_lint([row])), ["PF_FIGURE"])
 
-    def test_visual_word_inside_markup_is_ignored(self):
-        row = make_row(); row["question_text"] = "Synthetic <u>shown</u> thing?"
-        # strip_markup keeps text of underline, so the word still counts
-        self.assertEqual(self.codes(self.run_lint([row])), ["PF_FIGURE"])
+    def figure_codes(self, text, **extra):
+        row = make_row(); row["question_text"] = text; row.update(extra)
+        return self.codes(self.run_lint([row]))
 
-    def test_visual_word_as_part_of_other_word_is_ignored(self):
-        row = make_row(); row["question_text"] = "The tablet and the figures are fine."
-        self.assertEqual(self.run_lint([row])["pulled"], [])
+    def test_visual_references_are_pulled(self):
+        for text in ("Consider the graph shown. What is x?", "What is x in the figure?",
+                     "Look at the scatterplot of synthetic data.", "Which graph has slope 2?",
+                     "The table summarizes synthetic data.",
+                     "A bar graph is used here.", "The Chart below lists items."):
+            with self.subTest(text=text):
+                self.assertEqual(self.figure_codes(text), ["PF_FIGURE"])
+
+    def test_non_visual_uses_are_not_pulled(self):
+        for text in ("What is the graph of y = 2x at x = 1?", "Studies have shown that x grows.",
+                     "A book sits on a table.", "The Argand diagram is a tool.",
+                     "A well known figure in history.", "It is shown that x is 2.",
+                     "The values are shown to be equal.", "The data set shown has mean 3."  # pinned: not matched):
+            with self.subTest(text=text):
+                self.assertEqual(self.figure_codes(text), [])
+
+    def test_which_table_with_choice_tables_is_fine(self):
+        self.assertEqual(self.figure_codes("Which table shows y = 2x?", choice_tables=[[["x"]]]), [])
+
+    def test_table_data_counts_as_asset(self):
+        self.assertEqual(self.figure_codes("In the figure, x is 2.", figure_table_data=[["a"]]), [])
+
+    def test_visual_word_inside_underline_markup_still_counts(self):
+        self.assertEqual(self.figure_codes("In the <u>figure</u>, x is 2."), ["PF_FIGURE"])
 
     def test_asset_field_counts_as_reviewed_asset(self):
         row = make_row(); row["question_text"] = "In the diagram, what is x?"
@@ -134,6 +154,23 @@ class LintTests(unittest.TestCase):
         row = make_row()
         self.assertEqual(self.codes(self.run_lint([row], pins=[])), ["PF_BINDING"])
 
+    def test_pf_binding_difficulty_hash_differs(self):
+        row = make_row(); row["difficulty_content_sha256"] = "9" * 64
+        pins = [pin_for(row)]
+        self.assertEqual(self.codes(self.run_lint([row], pins=pins)), ["PF_BINDING"])
+
+    def test_pf_binding_duplicate_ids_both_pulled(self):
+        a, b = make_row(), make_row()
+        res = self.run_lint([a, b])
+        self.assertEqual(self.codes(res), ["PF_BINDING"])
+        self.assertEqual(len(res["pulled"]), 2)
+
+    def test_pf_binding_tag_hash_must_be_inside_approved_tags(self):
+        row = make_row(); ev = row["reviewed_answer"]["evidence"]
+        ev["tag_binding_manifest_sha256"] = TAG_HASH
+        del ev["approved_tags"]["tag_binding_manifest_sha256"]
+        self.assertEqual(self.codes(self.run_lint([row])), ["PF_BINDING"])
+
     def test_pf_binding_missing_tag_binding_hash(self):
         row = make_row(); del row["reviewed_answer"]["evidence"]["approved_tags"]["tag_binding_manifest_sha256"]
         self.assertEqual(self.codes(self.run_lint([row])), ["PF_BINDING"])
@@ -155,12 +192,25 @@ class LintTests(unittest.TestCase):
         row = make_row()
         cases = {
             "missing": {**clusters_for([row]), "roles": {}},
-            "version": clusters_for([row], version="kn-0"),
             "member": clusters_for([row], role="member"),
         }
         for name, cl in cases.items():
             with self.subTest(name):
                 self.assertEqual(self.codes(self.run_lint([row], clusters=cl)), ["PF_DEDUP_STALE"])
+
+    def test_stale_normalizer_refuses_whole_run(self):
+        row = make_row()
+        with self.assertRaisesRegex(ValueError, "rebuild clusters"):
+            self.run_lint([row], clusters=clusters_for([row], version="kn-0"))
+
+    def test_missing_questions_key_and_missing_id_are_clear_errors(self):
+        rp = self.tmp / "bad.json"; cp = self.tmp / "c.json"; cp.write_text(json.dumps(clusters_for([])))
+        rp.write_text("{}")
+        with self.assertRaisesRegex(lint.LintError, "questions"):
+            lint.lint_batch(rp, None, cp)
+        rp.write_text(json.dumps({"questions": [{"question_text": "x"}]}))
+        with self.assertRaisesRegex(lint.LintError, "stable_question_id"):
+            lint.lint_batch(rp, None, cp)
 
     def test_pulled_rows_dont_block_others(self):
         rows = [make_row(1), make_row(2), make_row(3)]
@@ -213,12 +263,18 @@ class LintTests(unittest.TestCase):
         item = json.loads(lane.read_text())["items"]["X"]
         self.assertEqual((item["since"], item["detail"], len(item["attempts"])), ("t1", "PF_FIGURE: d2", 1))
 
-    def test_lane_leaves_non_open_item_alone(self):
+    def test_lane_reopens_closed_item_with_attempt_and_keeps_other_fields(self):
         lane = self.tmp / "lane.json"
-        lane.write_text(json.dumps({"items": {"X": {"reason": "extraction_repair", "status": "resolved",
-                                                    "detail": "old", "since": "t0", "attempts": []}}}))
+        lane.write_text(json.dumps({"items": {"X": {"reason": "variant_review", "status": "resolved",
+                                                    "detail": "old", "since": "t0", "attempts": [{"n": 1}],
+                                                    "note": "keep"}}}))
         lint.write_lane(lane, [{"id": "X", "code": "PF_FIGURE", "detail": "d"}], "t1")
-        self.assertEqual(json.loads(lane.read_text())["items"]["X"]["status"], "resolved")
+        item = json.loads(lane.read_text())["items"]["X"]
+        self.assertEqual((item["status"], item["reason"], item["since"], item["note"]),
+                         ("open", "extraction_repair", "t0", "keep"))
+        self.assertEqual(item["attempts"][0], {"n": 1})
+        self.assertEqual(item["attempts"][1], {"method": "lint", "ok": False, "at": "t1",
+                                               "detail": "PF_FIGURE: d"})
 
     def test_lane_corrupt_file_refuses(self):
         lane = self.tmp / "lane.json"; lane.write_text("{nope")
@@ -244,6 +300,16 @@ class RealFileTests(unittest.TestCase):
         res = lint.lint_batch(REAL / "asia23decv2-reviewed-import-ready.json",
                               REAL / "asia23decv2-frozen-inputs-import-ready.json", cl)
         self.assertEqual([p for p in res["pulled"] if p["code"] in ("PF_BINDING", "PF_ENVELOPE", "PF_DIFFICULTY")], [])
+
+    @unittest.skipUnless(list(REAL.glob("*-reviewed-import-ready.json")), "workspace files missing")
+    def test_real_data_has_no_figure_pulls(self):
+        tmp = Path(tempfile.mkdtemp())
+        pulled = 0
+        for rp in REAL.glob("*-reviewed-import-ready.json"):
+            rows = json.loads(rp.read_text())["questions"]
+            cl = tmp / "c.json"; cl.write_text(json.dumps(clusters_for(rows)))
+            pulled += sum(p["code"] == "PF_FIGURE" for p in lint.lint_batch(rp, None, cl)["pulled"])
+        self.assertEqual(pulled, 0)
 
 
 class LintCliTests(unittest.TestCase):
