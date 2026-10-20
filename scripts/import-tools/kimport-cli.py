@@ -11,7 +11,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))  # -I drops the script dir
 
-from kimport import sweep, writer  # noqa: E402
+from kimport import backfill, sweep, writer  # noqa: E402
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -19,6 +19,7 @@ def build_parser() -> argparse.ArgumentParser:
     sub = parser.add_subparsers(dest="command", metavar="<command>")
     _register_writer(sub)
     _register_sweep(sub)
+    _register_backfill(sub)
     return parser
 
 
@@ -69,6 +70,14 @@ def _register_sweep(sub) -> None:
     sw.set_defaults(func=lambda a: _guard(lambda: print(
         "sweep: {live} live, {groups} groups, {remove} to un-publish".format(
             **sweep.run_sweep(Path(a.export), Path(a.out))))))
+
+
+def _register_backfill(sub) -> None:
+    bf = sub.add_parser("backfill", help="write guarded SQL that fills comparison_key from a live export")
+    bf.add_argument("--export", required=True, help="saved result of sql/live_export.sql")
+    bf.add_argument("--out", required=True, help="output file, e.g. pipeline/backfill.sql")
+    bf.set_defaults(func=lambda a: _guard(lambda: print(
+        "backfill: {keyed} to key, {skipped} skipped".format(**backfill.run_backfill(Path(a.export), Path(a.out))))))
 
 
 def _guard(fn) -> int:

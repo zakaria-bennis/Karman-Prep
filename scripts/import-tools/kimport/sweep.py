@@ -41,6 +41,7 @@ from kimport.keys import (
     table_values,
 )
 from kimport.normalize import NORMALIZER_VERSION, math_tokens, strip_markup
+from kimport.sqlutil import do_block, lit, uuid_literal
 from kimport.typo import MAX_SPOT_CHARS, MAX_SPOTS, text_words, typo_match, words_within_spots
 
 PUBLISH_READY = ("publish_ready", "publish_ready_with_verified_repair")
@@ -48,7 +49,6 @@ UNPUBLISHED_STATUS = "needs_human_review"
 UNPUBLISHED_IMPORT = "needs_review"
 FORMATS = {"multiple_choice": "mc", "numeric_entry": "numeric"}
 _WORD = re.compile(r"[^\W_]+")
-_UUID = re.compile(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")
 _FAR_FUTURE = datetime.max.replace(tzinfo=timezone.utc)
 
 
@@ -365,22 +365,6 @@ def _strip(g: dict) -> DuplicateGroup:
 # ---------------------------------------------------------------- SQL
 
 
-def _uuid(s: str) -> str:
-    if not isinstance(s, str) or not _UUID.fullmatch(s):
-        raise ValueError(f"not a lowercase uuid: {s!r}")
-    return s
-
-
-def lit(v) -> str:
-    """SQL literal for a text value (NULL for None)."""
-    if v is None:
-        return "NULL"
-    s = str(v)
-    if "\x00" in s:
-        raise ValueError("NUL byte in SQL value")
-    return "'" + s.replace("'", "''") + "'"
-
-
 _MISSING = object()  # flag key absent (or no key object): `->` gives SQL NULL
 
 
@@ -396,12 +380,6 @@ def _jsonb(v) -> str:
     return "NULL" if v is _MISSING else lit(json.dumps(v)) + "::jsonb"
 
 
-def _do_block(tag: str, body: list[str]) -> list[str]:
-    if f"${tag}$" in "\n".join(body):
-        raise ValueError(f"dollar-quote tag {tag} appears inside its own block")
-    return [f"DO ${tag}$", *body, f"END ${tag}$;", ""]
-
-
 def _reason(keep: str) -> str:
     return f"duplicate of {keep}; un-published by sweep"
 
@@ -410,9 +388,9 @@ def _plan(groups, rows: dict[str, dict]) -> list[tuple[str, str, dict]]:
     """(removed id, keeper id, exported row) for every removed copy, in group order."""
     plan = []
     for g in groups:
-        keep = _uuid(g["keep"])
+        keep = uuid_literal(g["keep"])
         for rid in g["remove"]:
-            row = rows.get(_uuid(rid))
+            row = rows.get(uuid_literal(rid))
             if row is None:
                 raise ValueError(f"{rid}: not in the export")
             if not _row_is_live(row):
@@ -474,7 +452,7 @@ def unpublish_sql(groups, export_by_id: dict[str, dict]) -> str:
         if isinstance(row.get("raw_model_response"), dict):
             body.append(" UPDATE public.answer_key_entries SET raw_model_response = jsonb_set(raw_model_response,"
                         " '{student_publication_allowed}', 'false'::jsonb) WHERE question_id = q.id;")
-        out += _do_block(tag, body)
+        out += do_block(tag, body)
     return "\n".join(out + ["COMMIT;", ""])
 
 
@@ -506,7 +484,7 @@ def republish_sql(groups, export_by_id: dict[str, dict]) -> str:
             restore = ("raw_model_response - 'student_publication_allowed'" if flag is _MISSING else
                        f"jsonb_set(raw_model_response, '{{student_publication_allowed}}', {_jsonb(flag)})")
             body.append(f" UPDATE public.answer_key_entries SET raw_model_response = {restore} WHERE question_id = q.id;")
-        out += _do_block(tag, body)
+        out += do_block(tag, body)
     return "\n".join(out + ["COMMIT;", ""])
 
 
