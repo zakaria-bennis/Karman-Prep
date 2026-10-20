@@ -11,13 +11,14 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))  # -I drops the script dir
 
-from kimport import writer  # noqa: E402
+from kimport import sweep, writer  # noqa: E402
 
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="kimport-cli", description="kimport: question import tools")
     sub = parser.add_subparsers(dest="command", metavar="<command>")
     _register_writer(sub)
+    _register_sweep(sub)
     return parser
 
 
@@ -61,11 +62,20 @@ def _register_writer(sub) -> None:
     ls.set_defaults(func=lambda a: _guard(lambda: [print(json.dumps(i)) for i in writer.open_intents(Path(a.log))]))
 
 
+def _register_sweep(sub) -> None:
+    sw = sub.add_parser("sweep", help="find live duplicates; write groups, report and un-publish SQL")
+    sw.add_argument("--export", required=True, help="saved result of sql/live_export.sql")
+    sw.add_argument("--out", required=True, help="output folder, e.g. pipeline/sweep/")
+    sw.set_defaults(func=lambda a: _guard(lambda: print(
+        "sweep: {live} live, {groups} groups, {remove} to un-publish".format(
+            **sweep.run_sweep(Path(a.export), Path(a.out))))))
+
+
 def _guard(fn) -> int:
     try:
         fn()
     except (writer.LockHeld, writer.WrongHolder, writer.NoLock, writer.OpenIntent,
-            writer.CorruptLock, ValueError) as e:
+            writer.CorruptLock, ValueError, OSError) as e:
         print(f"error: {e}", file=sys.stderr)
         return 1
     return 0
