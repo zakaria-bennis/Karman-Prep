@@ -437,3 +437,48 @@
 .kc-show-keypad[data-returning="true"] {
   animation: kc-show-keypad-in var(--kc-dur-300) var(--kc-ease) var(--kc-dur-300) backwards;
 }
+
+/* Phone faces at 2x and above (measured against the reference at 375 by 812, DPR 2): there the
+   1x half-pixel drop above shows as a whole device pixel, so digits and the like sit 1 px higher,
+   italic letters and brackets higher still, and the ABC word and the audio icon move by 1 px. */
+@media (min-resolution: 2dppx) {
+  .kc-key > span:not(.kc-key-word) {
+    top: -0.5px;
+  }
+
+  .kc-key > i {
+    position: relative;
+    top: -1px;
+  }
+
+  .kc-key:is([data-key="lparen"], [data-key="rparen"]) > span {
+    top: -1.5px;
+  }
+
+  .kc-key:is(
+      [data-key="squared"],
+      [data-key="power"],
+      [data-key="divide"],
+      [data-key="times"],
+      [data-key="minus"],
+      [data-key="plus"],
+      [data-key="equals"],
+      [data-key="lt"],
+      [data-key="gt"],
+      [data-key="le"],
+      [data-key="ge"]
+    )
+    > span {
+    top: 0.5px;
+  }
+
+  .kc-key[data-key="letters"] .kc-key-word {
+    position: relative;
+    top: 1px;
+  }
+
+  .kc-key[data-key="audio"] > svg {
+    position: relative;
+    top: -1px;
+  }
+}

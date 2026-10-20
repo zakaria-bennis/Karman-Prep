@@ -450,9 +450,12 @@
   cursor: not-allowed;
 }
 
+/* "Label" at its normal line height, its box 1.5 px below the centred position, puts the text on
+   the reference's device pixel at both 1x and 2x. */
 .kc-point-label > label {
   position: relative;
-  top: 1px;
+  top: 1.5px;
+  line-height: normal;
   cursor: inherit;
 }
 
@@ -493,6 +496,7 @@
   margin-top: -1px;
   border-top: 1px solid var(--kc-row-rule);
   border-right: 1px solid transparent; /* as a row's, so the rule stops short of the panel edge */
+  background: var(--kc-list); /* as a row's, so its rule covers a focused row's lower bar pixel */
   cursor: text;
 }
 
