@@ -81,3 +81,23 @@ it("NM-34, G-22 the founder's nested-list row and a list-valued curve show their
   expect(row("c").error?.span).toEqual({ start: 2, end: 7 });
   expect(m.engine.getSnapshot().geometry.has("c")).toBe(false);
 });
+
+it("API-9, R-5 a list of points reports other and an indexed row reports a number", async () => {
+  const { m, row } = await run([
+    { id: "L", latex: "L=[5,3,8,1]" },
+    { id: "i", latex: "L[2]" },
+    { id: "p", latex: "[(1,2),(3,4)]+(1,1)" },
+  ]);
+  expect(row("i").valueText).toBe("3");
+  expect(m.engine.expressionAnalysis.i).toMatchObject({
+    isError: false,
+    evaluationDisplayed: true,
+    evaluation: { type: "number", value: 3 },
+  });
+  expect(row("p").error).toBeNull();
+  expect(m.engine.expressionAnalysis.p).toMatchObject({
+    isError: false,
+    evaluation: { type: "other" },
+  });
+  expect(m.engine.getSnapshot().geometry.get("p")?.kind).toBe("points");
+});

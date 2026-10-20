@@ -460,12 +460,21 @@ otherwise}` with `sourceChildren`, `toSExpr` and printer (`\left\{x>0:x,-x\right
 
 ### 10. Output and API checks (NM-38, R-5, API-9; T13 remainder)
 
+**Engine half done** (2026-10-20): `engine.lists.test.ts` checks that `L[2]` reports the number 3
+and that `[(1,2),(3,4)]+(1,1)` reports `{ type: "other" }` and draws points (a literal list of
+points shows no value, so the test uses a computed one). The row test below is UI work, outside
+the maths fence.
+
 - `core/api/engine.lists.test.ts`: a list-of-points row reports `{ type: "other" }` in
   `expressionAnalysis`, and an indexed row (`L[2]`) reports a number.
 - `src/components/calculator/ui/list/row-results.test.tsx`: replace the hand-built list with
   an engine-evaluated `[1...40]` row now that list syntax exists, keeping the `…` after 30 check.
 
 ### 11. Keystroke corpus (PR-36; T15 remainder)
+
+**Waiting on the UI builders:** `tests/calculator/math-field.spec.ts` pins the keys.ts count at 56
+and runs every case on the real MathField, so adding `3!` and a piecewise case has to land with
+that spec's count change and a Playwright run, outside the maths fence.
 
 - `core/corpus/cases/keys.ts`: `3!` typed as `["3", "!"]` gives `3!` and `(fact (num 3))`; the
   piecewise case if task 7 did not add it. Check in `tests/calculator/math-field.spec.ts` what
@@ -476,6 +485,13 @@ otherwise}` with `sourceChildren`, `toSExpr` and printer (`\left\{x>0:x,-x\right
 Done as task 8 of the 2026-10-20 run; see M4 and M5.
 
 ### 13 (optional). Seeded `random` and `shuffle` (FN-7, FN-37; T14)
+
+**Not started, needs the plot fence:** Desmos keeps a sample fixed per row and call site until
+re-randomize, and two identical rows differ (`random(5,3)-random(5,3)` is not 0), so the seed has
+to reach every compile with the row id. Rows get it in `evaluateRows`, but plotted rows
+(`y=random()` is a line at the row's sample) are compiled through `buildCompileScope` in
+`plot/from-analysis.ts`, which must pass the same row seed; do this task with the plot owner.
+The catalogue's forms and error texts are in `statistics-lists.md` section 7.
 
 - `worker/executor.ts` stores `hello.seed`; `runValuesPass` and `evaluateRows` pass it on;
   `CompileScope` gains `rowSeed` hashed from the seed and the row id.
