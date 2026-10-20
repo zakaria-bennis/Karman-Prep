@@ -463,7 +463,10 @@ export async function importQuestion(
     passage_b: row.passage_b || null,
     domain: row.domain,
     concept_slug: row.concept_slug || null,
-    answer_source: row.answer_source ?? null,
+    answer_source:
+      row.reviewed_answer?.kind === "independently_confirmed_generated"
+        ? null
+        : (row.answer_source ?? null),
     source_pdf: row.source_pdf || null,
     source_page: Number.isFinite(source_page as number) ? (source_page as number) : null,
     source_provider: row.source_provider || null,

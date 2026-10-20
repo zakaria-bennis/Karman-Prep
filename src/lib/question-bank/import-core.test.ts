@@ -473,6 +473,30 @@ describe("importQuestion — DB write shape", () => {
     expect((qInsert!.payload as Record<string, unknown>).answer_source).toBeNull();
   });
 
+  it("drops a carried answer_source label on independently confirmed answers", async () => {
+    const { client, calls } = mockSupabase({
+      quiz_questions: { data: { id: "q-1" }, error: null },
+    });
+    const digest = "c".repeat(64);
+    await importQuestion(
+      client,
+      validRow({
+        answer_source: "extracted",
+        reviewed_answer: {
+          kind: "independently_confirmed_generated",
+          independently_verified_answer: "B",
+          evidence: { note: "two independent solves" },
+          printed_answer: null,
+          generated_key_artifact_sha256: digest,
+          independent_review_sha256s: [digest, "d".repeat(64)],
+        },
+      } as Partial<ImportQuestionInput>)
+    );
+    const qInsert = calls.find((c) => c.table === "quiz_questions" && c.method === "insert");
+    expect(qInsert).toBeDefined();
+    expect((qInsert!.payload as Record<string, unknown>).answer_source).toBeNull();
+  });
+
   it("computes content_hash_v2 (sha256 hex)", async () => {
     const { client, calls } = mockSupabase({
       quiz_questions: { data: { id: "q-1" }, error: null },
