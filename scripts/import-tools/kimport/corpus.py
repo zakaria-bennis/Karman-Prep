@@ -91,6 +91,11 @@ def _prio(r: QuestionRecord, typo_flag: int = 0):
             len(r.meta.get("holds") or ()), r.ref)
 
 
+def elect(recs) -> QuestionRecord:
+    """The canonical among records (no typo evidence): live, printed key, fewest holds, lowest id."""
+    return min(recs, key=_prio)
+
+
 def _cid(prefix: str, key: str) -> str:
     return prefix + hashlib.sha256(key.encode("utf-8")).hexdigest()[:16]
 
@@ -122,7 +127,7 @@ def _typo_flags(cands, rep, typo, evidence) -> tuple[dict[str, int], bool]:
 
 def _member(r, match, spots=(), reason=None) -> dict:
     out = {"id": r.ref, "source": r.meta.get("source", "corpus"), "is_live": r.is_live, "match": match,
-           "spots": [list(s) for s in spots]}
+           "spots": [list(s) for s in spots], "printed_key": _official(r), "holds": len(r.meta.get("holds") or ())}
     if reason:
         out["reason"] = reason
     return out

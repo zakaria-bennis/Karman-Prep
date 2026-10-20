@@ -11,7 +11,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))  # -I drops the script dir
 
-from kimport import backfill, corpus, lint, publish, sweep, writer  # noqa: E402
+from kimport import backfill, corpus, lint, pairs_page, publish, sweep, writer  # noqa: E402
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -23,6 +23,7 @@ def build_parser() -> argparse.ArgumentParser:
     _register_publish(sub)
     _register_lint(sub)
     _register_corpus(sub)
+    _register_pairs(sub)
     return parser
 
 
@@ -126,6 +127,23 @@ def _register_corpus(sub) -> None:
         "{founder_pairs} founder pairs, {unparsed} unparsed".format(
             **corpus.run_corpus(Path(a.c_index), Path(a.ledger), Path(a.export) if a.export else None,
                                 Path(a.out))))))
+
+
+def _register_pairs(sub) -> None:
+    pr = sub.add_parser("pairs", help="founder close-match page: render it, then apply his answers")
+    pr.set_defaults(func=lambda a: pr.print_help(sys.stderr) or 2)
+    psub = pr.add_subparsers(dest="pairs_action", metavar="<action>")
+    rd = psub.add_parser("render", help="write the self-contained yes/no HTML page")
+    rd.add_argument("--pairs", required=True, help="corpus/founder_pairs.json")
+    rd.add_argument("--out", required=True, help="output file, e.g. pipeline/corpus/founder_pairs.html")
+    rd.set_defaults(func=lambda a: _guard(lambda: print(
+        "pairs: {} pairs written".format(pairs_page.render_pairs(Path(a.pairs), Path(a.out))))))
+    ap = psub.add_parser("apply", help="fold his answers ({pair_id: same|different}) into clusters.json")
+    ap.add_argument("--pairs", required=True, help="corpus/founder_pairs.json")
+    ap.add_argument("--decisions", required=True, help="the JSON he copied from the page")
+    ap.add_argument("--clusters", required=True, help="corpus/clusters.json (rewritten in place)")
+    ap.set_defaults(func=lambda a: _guard(lambda: pairs_page.apply_decisions(
+        Path(a.pairs), Path(a.decisions), Path(a.clusters)) or print("pairs: decisions applied")))
 
 
 def _guard(fn) -> int:
