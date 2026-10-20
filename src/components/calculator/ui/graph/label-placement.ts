@@ -1,6 +1,8 @@
 // Placement of coordinate labels (POI-19): each label goes diagonally off its dot into the
 // quadrant with the least curve under it, never over another label and inside the graph when it
-// can. Box sizes follow the label font (Arial 13 px, ~7 px a character, padding 4 px).
+// can. Box sizes follow the label (GP-37): a 20.24 px math serif at about 10 px a character,
+// 4 px side padding and a 1 px border, 42.27 px tall; GP-38: the box touches the 10 px dot
+// corner to corner, 5 px off its centre on each axis.
 
 export type Quadrant = "ne" | "nw" | "se" | "sw";
 export interface PlacedLabel {
@@ -9,10 +11,10 @@ export interface PlacedLabel {
   quadrant: Quadrant;
 }
 
-export const LABEL_OFFSET_PX = 8;
-const CHAR_PX = 7;
-const PAD_PX = 8;
-const HEIGHT_PX = 22;
+export const LABEL_OFFSET_PX = 5;
+const CHAR_PX = 10;
+const PAD_PX = 10;
+const HEIGHT_PX = 42.27;
 const ORDER: readonly Quadrant[] = ["ne", "nw", "se", "sw"];
 
 export function labelBoxSize(text: string): { width: number; height: number } {

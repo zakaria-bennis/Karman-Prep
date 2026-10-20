@@ -1,15 +1,44 @@
-// Inequality shading for the graph (G-5, G-17, F-A1). Region spans become opaque device-px
-// rectangles, each painted the compositeShading colour of every region covering it: the 40% fills
-// stacked over the paper with no cap, as Desmos shows overlaps. alignRegionSpans keeps a region's spans under
+// Inequality shading for the graph (G-5, G-17, F-A1, GP-26, GP-27). Region spans become device-px
+// rectangles, each painted one translucent colour equal to the fills of every region covering it
+// stacked in row order (the later row on top) with no cap, so the grid below shows through as on
+// the reference. alignRegionSpans keeps a region's spans under
 // the pointer through a pan while fresh geometry is pending. Pure: no DOM.
 
 import type { RegionGeometry } from "../plot/geometry";
 import { worldToPx, type PixelSize, type Viewport, type ViewSpec } from "../plot/viewport";
-import { compositeShading } from "../theme/contrast";
 
 // spans: CSS px [yTop, yBottom, x0, x1, …]
 export type ShadingRegion = { spans: Float32Array; color: string; fillAlpha: number };
-export type ShadingRect = { x: number; y: number; width: number; height: number; color: string }; // device px
+// device px, painted in `color` at `alpha`
+export type ShadingRect = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  color: string;
+  alpha: number;
+};
+
+type Fill = { color: string; alpha: number };
+
+const hex2 = (v: number) => Math.round(v).toString(16).padStart(2, "0");
+
+/**
+ * `fills` painted one over another in order, as one colour at one alpha: the stack's coverage
+ * 1 − Π(1 − αᵢ) and its premultiplied colour over that coverage.
+ */
+export function stackFills(fills: readonly Fill[]): Fill {
+  let a = 0;
+  const rgb = [0, 0, 0]; // premultiplied
+  for (const { color, alpha } of fills) {
+    const t = Math.min(1, Math.max(0, alpha));
+    const c = [1, 3, 5].map((i) => parseInt(color.slice(i, i + 2), 16));
+    for (let i = 0; i < 3; i++) rgb[i] = c[i] * t + rgb[i] * (1 - t);
+    a = t + a * (1 - t);
+  }
+  if (a === 0) return { color: fills[0]?.color ?? "", alpha: 0 };
+  return { color: `#${rgb.map((v) => hex2(v / a)).join("")}`, alpha: a };
+}
 
 /** One span clipped to the device grid: rows [r0, r1) and columns [c0, c1) of region `index`. */
 type DeviceSpan = { r0: number; r1: number; c0: number; c1: number; index: number };
@@ -62,13 +91,12 @@ const sameRuns = (p: readonly Run[], q: readonly Run[]) =>
   p.every((r, i) => r.x0 === q[i].x0 && r.x1 === q[i].x1 && r.key === q[i].key);
 
 /**
- * Opaque device-px rectangles for `regions` (row order) on a `size` canvas at `dpr`. A device pixel
- * is shaded when its centre lies inside a span, in compositeShading(paper, the fills of every
- * region covering it, in row order); rows with equal runs merge into one rect. Sorted by y, then x.
+ * Device-px rectangles for `regions` (row order) on a `size` canvas at `dpr`. A device pixel is
+ * shaded when its centre lies inside a span, in stackFills(the fills of every region covering it,
+ * in row order); rows with equal runs merge into one rect. Sorted by y, then x.
  */
 export function buildShadingRects(
   regions: readonly ShadingRegion[],
-  paper: string,
   size: PixelSize,
   dpr: number
 ): ShadingRect[] {
@@ -78,14 +106,11 @@ export function buildShadingRects(
   const spans = deviceSpans(regions, w, h, dpr);
   const rows = [...new Set(spans.flatMap((s) => [s.r0, s.r1]))].sort((p, q) => p - q);
   const fill = (r: ShadingRegion) => ({ color: r.color, alpha: r.fillAlpha });
-  const colours = new Map<string, string>(); // memoised per region set
+  const colours = new Map<string, Fill>(); // memoised per region set
   const colourOf = (key: string) => {
     let colour = colours.get(key);
     if (colour === undefined) {
-      colour = compositeShading(
-        paper,
-        key.split(",").map((i) => fill(regions[Number(i)]))
-      );
+      colour = stackFills(key.split(",").map((i) => fill(regions[Number(i)])));
       colours.set(key, colour);
     }
     return colour;
@@ -106,7 +131,7 @@ export function buildShadingRects(
     if (runs.length > 0 && sameRuns(runs, previous)) {
       for (const rect of open) rect.height += height;
     } else {
-      open = runs.map((r) => ({ x: r.x0, y, width: r.x1 - r.x0, height, color: colourOf(r.key) }));
+      open = runs.map((r) => ({ x: r.x0, y, width: r.x1 - r.x0, height, ...colourOf(r.key) }));
       rects.push(...open);
     }
     previous = runs;

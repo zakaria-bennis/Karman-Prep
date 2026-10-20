@@ -4,13 +4,16 @@ import type { PixelSize, Viewport, ViewSpec } from "../plot/viewport";
 import { createRecordingContext, type RecordedCall } from "./__fixtures__/recording-context";
 import {
   AXIS_LINE_PX,
+  CROSS_ARM_PX,
+  CURVE_CUT_PX,
   CURVE_LINE_PX,
   CURVE_SELECTED_LINE_PX,
   DASH_PX,
   GRID_LINE_PX,
+  POINT_HOLE_PX,
   POINT_RADIUS_PX,
 } from "./constants";
-import { drawCurveLayer, drawPointLayer } from "./draw-geometry";
+import { drawCurveLayer, drawPointLayer, orientRuns } from "./draw-geometry";
 import type { RenderRow } from "./types";
 
 const vp = (l: number, r: number, b: number, t: number): Viewport => ({
@@ -28,6 +31,7 @@ const view = (v: Viewport = DEFAULT, size: PixelSize = SIZE): ViewSpec => ({
 });
 
 const COLOR = "#1f5fbf";
+const PAPER = "#ffffff";
 const curve = (polylines: number[], dashed: boolean): CurveGeometry => ({
   kind: "curve",
   rowId: "1",
@@ -82,7 +86,7 @@ it("G-5 strict region boundaries stroke with the dash pattern and non-strict one
     }),
   ]);
   const drawn = strokes(calls);
-  expect(drawn.map((c) => c.state.lineDash)).toEqual([[12, 6], []]);
+  expect(drawn.map((c) => c.state.lineDash)).toEqual([[11, 7], []]);
   for (const c of drawn) {
     expect(c.state.strokeStyle).toBe(COLOR);
     expect(c.state.lineWidth).toBe(2.5);
@@ -96,13 +100,23 @@ it("G-5 the dash phase continues across runs that meet", () => {
   expect(strokes(calls).map((c) => c.state.lineDashOffset)).toEqual([0, 200, 0]);
 });
 
-it("G-5 a point is a filled circle of radius 5 px at its view position (G-7, G-25)", () => {
+it("G-5 a point is a filled circle of radius 4 px at its view position (G-7, GP-28)", () => {
   const { ctx, calls } = createRecordingContext();
-  drawPointLayer(ctx, view(), [
-    rowOf({ kind: "points", rowId: "1", evaluations: 0, coords: new Float64Array([2, 3, NaN, 1]) }),
-  ]);
+  drawPointLayer(
+    ctx,
+    view(),
+    [
+      rowOf({
+        kind: "points",
+        rowId: "1",
+        evaluations: 0,
+        coords: new Float64Array([2, 3, NaN, 1]),
+      }),
+    ],
+    PAPER
+  );
   expect(calls.filter((c) => c.name === "arc").map((c) => c.args)).toEqual([
-    [480, 180, 5, 0, 2 * Math.PI],
+    [480, 180, 4, 0, 2 * Math.PI],
   ]);
   expect(calls.filter((c) => c.name === "fill").map((c) => c.state.fillStyle)).toEqual([COLOR]);
 });
@@ -111,9 +125,10 @@ it("G-5 curves map through the current view and far vertices are clipped", () =>
   const path = pathCalls(drawCurves([curveRow([0, 0, 1e12, 1e12], false)]));
   expect(path.map((c) => c.name)).toEqual(["moveTo", "lineTo", "stroke"]);
   expectAt(path[0], "moveTo", 400, 300, 9);
-  // The far vertex is clipped where the segment leaves the view expanded by 2·CURVE_LINE_PX.
-  expect(-2 * CURVE_LINE_PX).toBe(-5);
-  expectAt(path[1], "lineTo", 705, -5, 6);
+  // GP-20: the far vertex is clipped where the segment leaves the view grown by the line width
+  // and CURVE_CUT_PX.
+  expect(-(CURVE_LINE_PX + CURVE_CUT_PX)).toBe(-5.5);
+  expectAt(path[1], "lineTo", 705.5, -5.5, 6);
 });
 
 it("G-8 a line set strokes the full view height or width at its position", () => {
@@ -137,30 +152,68 @@ it("POI-17 the selected row's curve strokes at CURVE_SELECTED_LINE_PX and others
   expect(widths).toEqual([CURVE_LINE_PX, CURVE_SELECTED_LINE_PX]);
 });
 
-it("D-12 open circles stroke, crosses draw two strokes, and a dotted column line uses the dot pattern", () => {
+it("D-12, GP-29, GP-30 open points are discs with a paper hole, crosses two round strokes, and a dotted line dots", () => {
   const { ctx, calls } = createRecordingContext();
   const coords = new Float64Array([2, 3]);
-  drawPointLayer(ctx, view(), [
-    { ...rowOf({ kind: "points", rowId: "1", evaluations: 0, coords }), pointStyle: "open" },
-    { ...rowOf({ kind: "points", rowId: "1", evaluations: 0, coords }), pointStyle: "cross" },
+  drawPointLayer(
+    ctx,
+    view(),
+    [
+      { ...rowOf({ kind: "points", rowId: "1", evaluations: 0, coords }), pointStyle: "open" },
+      { ...rowOf({ kind: "points", rowId: "1", evaluations: 0, coords }), pointStyle: "cross" },
+    ],
+    PAPER
+  );
+  expect(calls.filter((c) => c.name === "fill").map((c) => c.state.fillStyle)).toEqual([
+    COLOR,
+    PAPER,
   ]);
-  expect(calls.filter((c) => c.name === "fill")).toHaveLength(0);
   expect(calls.filter((c) => c.name === "arc").map((c) => c.args)).toEqual([
-    [480, 180, 5, 0, 2 * Math.PI],
+    [480, 180, POINT_RADIUS_PX, 0, 2 * Math.PI],
+    [480, 180, POINT_HOLE_PX, 0, 2 * Math.PI],
   ]);
   const lines = calls.filter((c) => c.name === "lineTo").map((c) => c.args);
   expect(lines).toEqual([
-    [485, 185],
-    [485, 175],
+    [480 + CROSS_ARM_PX, 180 + CROSS_ARM_PX],
+    [480 + CROSS_ARM_PX, 180 - CROSS_ARM_PX],
   ]);
-  expect(strokes(calls)).toHaveLength(2);
-  const dotted = drawCurves([{ ...curveRow([-5, 1, 5, 1], false), lineStyle: "dotted" }]);
-  expect(strokes(dotted).map((c) => c.state.lineDash)).toEqual([[0.1, 6]]);
+  expect(strokes(calls)).toHaveLength(1);
+  const dotted = strokes(drawCurves([{ ...curveRow([-5, 1, 5, 1], false), lineStyle: "dotted" }]));
+  expect(dotted.map((c) => [c.state.lineWidth, c.state.lineDash])).toEqual([[5, [0.1, 8]]]);
 });
 
-it("G-25 curves stroke 2.5 px, points are 10 px discs, strict boundaries dash 12 on 6 off and axes are 1.5 px", () => {
-  expect([CURVE_LINE_PX, CURVE_SELECTED_LINE_PX, 2 * POINT_RADIUS_PX]).toEqual([2.5, 4, 10]);
-  expect([[...DASH_PX], AXIS_LINE_PX, GRID_LINE_PX]).toEqual([[12, 6], 1.5, 1]);
+it("GP-20, GP-22, GP-33 curves stroke 2.5 px (selected 3.5), points are 8 px discs, strict boundaries dash 11 on 7 off and axes are 1.5 px", () => {
+  expect([CURVE_LINE_PX, CURVE_SELECTED_LINE_PX, 2 * POINT_RADIUS_PX]).toEqual([2.5, 3.5, 8]);
+  expect([[...DASH_PX], AXIS_LINE_PX, GRID_LINE_PX]).toEqual([[11, 7], 1.5, 1]);
   const drawn = strokes(drawCurves([curveRow([-5, 1, 5, 1], true)]));
-  expect(drawn.map((c) => [c.state.lineWidth, c.state.lineDash])).toEqual([[2.5, [12, 6]]]);
+  expect(drawn.map((c) => [c.state.lineWidth, c.state.lineDash])).toEqual([[2.5, [11, 7]]]);
+});
+
+it("GP-22 dashed boundary runs are stroked left to right, or upward when steep; closed runs keep their order", () => {
+  const f64 = (...n: number[]) => Float64Array.from(n);
+  // right-to-left run, then a NaN gap, then a downward steep run, then a closed loop
+  const input = f64(3, 0, 1, 1, -2, 0, NaN, NaN, 0, 5, 1, -5, NaN, NaN, 0, 0, 1, 1, 0, 0);
+  expect(Array.from(orientRuns(input))).toEqual([
+    -2,
+    0,
+    1,
+    1,
+    3,
+    0,
+    NaN,
+    NaN,
+    1,
+    -5,
+    0,
+    5,
+    NaN,
+    NaN,
+    0,
+    0,
+    1,
+    1,
+    0,
+    0,
+  ]);
+  expect(Array.from(orientRuns(f64(-1, -1, 2, 3)))).toEqual([-1, -1, 2, 3]);
 });

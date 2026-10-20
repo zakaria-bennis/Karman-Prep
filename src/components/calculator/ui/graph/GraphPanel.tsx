@@ -5,23 +5,24 @@
 // the centre; Home shows only off the default view and fades (AN-8); the surface takes the graph
 // keys (KB-8) and the panel drag, pinch and wheel (useGraphInput).
 
-import { House } from "lucide-react";
 import {
   useContext,
   useEffect,
   useLayoutEffect,
+  useMemo,
   useRef,
   useSyncExternalStore,
   type KeyboardEvent,
   type RefObject,
 } from "react";
 import { formatPoiLabel, formatTraceLabel } from "@/lib/calculator/poi/format";
-import type { EngineSnapshot } from "@/lib/calculator/core/api/engine";
+import type { CalculatorEngine, EngineSnapshot } from "@/lib/calculator/core/api/engine";
 import {
   defaultViewport,
   isDefaultViewport,
   ZOOM_BUTTON_FACTOR,
   zoomViewport,
+  type Viewport,
   type ViewSpec,
   worldToPx,
 } from "@/lib/calculator/plot/viewport";
@@ -29,12 +30,13 @@ import { NAME_DEBOUNCE_MS, NAME_MAX_WAIT_MS } from "@/lib/calculator/render/cons
 import { pickGrid } from "@/lib/calculator/render/grid-plan";
 import { GraphRenderer, readRenderTheme } from "@/lib/calculator/render/renderer";
 import type { SkinId } from "@/lib/calculator/theme/skins";
-import { WrenchGlyph, ZoomGlyph } from "../../icons/list";
 import { useSkin } from "../hooks/skin";
 import { useEngine, useEngineSnapshot } from "../hooks/use-engine";
 import { countPlots, graphAccessibleName } from "./accessible-name";
+import { createViewportAnimator, type ViewportAnimator } from "./animate-viewport";
 import { homeFadeMs, useHomePresence, type HomePhase } from "./home-presence";
 import { KeyboardTraceContext, type KeyboardTrace } from "./keyboard-trace";
+import { GraphHomeGlyph, GraphWrenchGlyph, GraphZoomGlyph } from "./graph-glyphs";
 import { GRAPH_CONTROL_LABELS } from "./labels";
 import { PoiOverlay } from "./PoiOverlay";
 import type { LabelState } from "./poi-labels";
@@ -169,7 +171,7 @@ function HomeButton({ phase, homeRef, surface, onActivate }: HomeButtonProps): J
       aria-hidden={leaving ? "true" : undefined}
       onClick={onActivate}
     >
-      <House size={16} aria-hidden="true" />
+      <GraphHomeGlyph />
     </button>
   );
 }
@@ -187,6 +189,13 @@ function selectedCurvePx(s: EngineSnapshot, view: ViewSpec): [number, number][] 
 }
 
 const noTrace = () => () => undefined;
+
+/** One viewport animator per engine, cancelled on unmount. */
+function useViewportAnimator(engine: CalculatorEngine): ViewportAnimator {
+  const animator = useMemo(() => createViewportAnimator(engine), [engine]);
+  useEffect(() => () => animator.cancel(), [animator]);
+  return animator;
+}
 
 /** POI-20: the keyboard trace's point as a drawn trace (dot and label), or null. */
 function keyboardTracePoint(
@@ -302,14 +311,26 @@ export function GraphPanel(props: GraphPanelProps): JSX.Element {
   const offDefault = size !== null && !isDefaultViewport(snapshot.viewport, size.size);
   const phase = useHomePresence(offDefault, fadeMs);
 
-  const zoom = (factor: number) =>
+  // GP-46, GP-47: the buttons and Home animate unless motion is reduced; a click during an
+  // animation builds on its target.
+  const animator = useViewportAnimator(engine);
+  const animateTo = (next: (v: ViewSpec) => Viewport): void => {
     input.applyNow((v) => {
+      const target = next({ ...v, viewport: animator.target() ?? v.viewport });
+      if (reducedMotion) return target;
+      poi.viewChanged();
+      animator.run(target, false);
+      return null;
+    });
+  };
+  const zoom = (factor: number) =>
+    animateTo((v) => {
       const { left, right, bottom, top } = v.viewport;
       return zoomViewport(v.viewport, factor, { x: (left + right) / 2, y: (bottom + top) / 2 });
     });
   const goHome = (): void => {
     surface.current?.focus({ preventScroll: true });
-    input.applyNow((v) => defaultViewport(v.size));
+    animateTo((v) => defaultViewport(v.size));
   };
 
   return (
@@ -340,7 +361,7 @@ export function GraphPanel(props: GraphPanelProps): JSX.Element {
           aria-expanded={settingsOpen}
           onClick={(e) => onOpenSettings(e.currentTarget)}
         >
-          <WrenchGlyph />
+          <GraphWrenchGlyph />
         </button>
         {/* GP-41: one pill holding Zoom in and Zoom out, split by a 1 px rule. */}
         <div className="kc-zoom-group" role="group" aria-label="Zoom">
@@ -350,7 +371,7 @@ export function GraphPanel(props: GraphPanelProps): JSX.Element {
             title={GRAPH_CONTROL_LABELS.zoomIn}
             onClick={() => zoom(ZOOM_BUTTON_FACTOR)}
           >
-            <ZoomGlyph />
+            <GraphZoomGlyph />
           </button>
           <button
             type="button"
@@ -358,7 +379,7 @@ export function GraphPanel(props: GraphPanelProps): JSX.Element {
             title={GRAPH_CONTROL_LABELS.zoomOut}
             onClick={() => zoom(1 / ZOOM_BUTTON_FACTOR)}
           >
-            <ZoomGlyph out />
+            <GraphZoomGlyph out />
           </button>
         </div>
         {phase !== "absent" && (

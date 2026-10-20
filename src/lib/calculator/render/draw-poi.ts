@@ -3,7 +3,12 @@
 // after the row points, which drawPointLayer has already cleared and scaled.
 
 import { worldToPx, type ViewSpec } from "../plot/viewport";
-import { POI_DOT_TEXT_SHARE, POI_OPEN_RADIUS_PX, POI_RADIUS_PX } from "./constants";
+import {
+  POI_DOT_TEXT_SHARE,
+  POI_OPEN_RADIUS_PX,
+  POI_RADIUS_PX,
+  TRACE_RADIUS_PX,
+} from "./constants";
 import type { PoiDot, RenderTheme } from "./types";
 
 type Ctx = CanvasRenderingContext2D;
@@ -47,20 +52,15 @@ export function drawPoiDots(
   }
 }
 
-/** POI-14: the trace dot, in the traced curve's colour with a paper ring so it reads over the curve. */
+/** POI-14, GP-36: the trace dot, a TRACE_RADIUS_PX disc in the traced curve's colour. */
 export function drawTraceDot(
   ctx: Ctx,
   view: ViewSpec,
-  theme: Pick<RenderTheme, "paper">,
   dot: { x: number; y: number; color: string }
 ): void {
   const [x, y] = worldToPx(view, dot.x, dot.y);
   ctx.beginPath();
-  ctx.arc(x, y, POI_OPEN_RADIUS_PX + 1.5, 0, 2 * Math.PI);
-  ctx.fillStyle = theme.paper;
-  ctx.fill();
-  ctx.beginPath();
-  ctx.arc(x, y, POI_OPEN_RADIUS_PX, 0, 2 * Math.PI);
+  ctx.arc(x, y, TRACE_RADIUS_PX, 0, 2 * Math.PI);
   ctx.fillStyle = dot.color;
   ctx.fill();
 }

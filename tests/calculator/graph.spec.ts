@@ -140,20 +140,20 @@ test("G-5 the default view is x -10 to 10, y centred on 0 with equal units", asy
   await expect(button(page, "Home")).toHaveCount(0);
 });
 
-test("G-5 Zoom in and Zoom out zoom about the view centre by 2 per press, instantly", async ({
+test("G-5 Zoom in and Zoom out zoom about the view centre by 2 per press over a short animation (GP-46)", async ({
   page,
   isMobile,
 }) => {
   await openGraph(page, isMobile);
   await button(page, "Zoom in").click();
-  expect(await viewport(page)).toEqual(near(vp(-5, 5, -3.75, 3.75)));
+  await expect.poll(() => viewport(page)).toEqual(near(vp(-5, 5, -3.75, 3.75)));
   await button(page, "Zoom out").click();
   await button(page, "Zoom out").click();
-  expect(await viewport(page)).toEqual(near(vp(-20, 20, -15, 15)));
+  await expect.poll(() => viewport(page)).toEqual(near(vp(-20, 20, -15, 15)));
   await graph(page).focus();
   await page.keyboard.press("ArrowRight");
   await button(page, "Zoom in").click();
-  expect(await viewport(page)).toEqual(near(vp(-6, 14, -7.5, 7.5)));
+  await expect.poll(() => viewport(page)).toEqual(near(vp(-6, 14, -7.5, 7.5)));
 });
 
 test("G-5 Home restores the default view by button and by key", async ({ page, isMobile }) => {
@@ -162,7 +162,7 @@ test("G-5 Home restores the default view by button and by key", async ({ page, i
   await page.keyboard.press("ArrowUp");
   await button(page, "Zoom in").click();
   await button(page, "Home").click();
-  expect(await viewport(page)).toEqual(near(DEFAULT));
+  await expect.poll(() => viewport(page)).toEqual(near(DEFAULT));
   await graph(page).focus();
   await page.keyboard.press("ArrowRight");
   await graph(page).press("Home");
@@ -460,34 +460,23 @@ test("G-17 overlap of two regions has higher contrast than either and the curve 
   }
 });
 
-test("F-A1 combined canvas shading is the uncapped stack of 40% fills in all 12 skins", async ({
+test("F-A1 canvas shading is the uncapped stack of 40% fills in all 12 skins", async ({
   page,
   isMobile,
 }) => {
   test.setTimeout(180_000);
   for (const skin of SKIN_IDS) {
     const rows = ["y>0", "x>0", "y>x", "y>-x"];
-    await openGraph(page, isMobile, { rows, skin, plots: 4 });
+    const { w, h } = await openGraph(page, isMobile, { rows, skin, plots: 4 });
     const paper = SKIN_COLORS[skin].normal.roles.paper;
     // The colours the rows actually take: F-A1's new-row cycle, whose third step is #388c46.
     const fills = [0, 1, 2, 3].map((index) => {
       const { hex, fillAlpha } = resolveRowColor(nextSlot(index), skin);
       return { color: hex, alpha: fillAlpha };
     });
-    const allowed = new Set<string>();
-    for (let mask = 1; mask < 16; mask++) {
-      allowed.add(
-        compositeShading(
-          paper,
-          fills.filter((_, i) => (mask >> i) & 1)
-        )
-      );
-    }
-    const { opaque, partial } = await layerColors(page, "shading");
-    expect(partial, skin).toBe(0);
-    for (const colour of opaque) {
-      expect(allowed.has(colour), `${skin} ${colour}`).toBe(true);
-    }
-    expect(opaque, skin).toContain(compositeShading(paper, fills));
+    // GP-4: each row's translucent shading lies over the grid, so read the composite between
+    // gridlines where all four regions overlap.
+    const all = await pixel(page, "composite", ...px(1.25, 5.25, w, h));
+    expect(rgbDistance(all, compositeShading(paper, fills)), skin).toBeLessThanOrEqual(4);
   }
 });

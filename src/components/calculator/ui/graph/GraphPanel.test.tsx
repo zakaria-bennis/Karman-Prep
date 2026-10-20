@@ -313,18 +313,47 @@ it("G-5 graph controls: Zoom in and out by 2 about the centre, Home restores the
   await click("Graph settings");
   expect(onOpenSettings).toHaveBeenCalledWith(settings);
 
+  // GP-46: the view moves over 7 frames, a tenth of the way after the first.
+  const settle = async () => {
+    for (let i = 0; i < 7; i++) await nextFrame();
+  };
   await click("Zoom in");
+  expect(engine.getSnapshot().viewport).toEqual(DEFAULT);
+  await nextFrame();
+  expectViewport(engine.getSnapshot().viewport, vp(-9.5, 9.5, -7.125, 7.125));
+  await settle();
   expect(engine.getSnapshot().viewport).toEqual(vp(-5, 5, -3.75, 3.75));
+  // A click during an animation builds on its target.
   await click("Zoom out");
+  await nextFrame();
   await click("Zoom out");
+  await settle();
   expectViewport(engine.getSnapshot().viewport, vp(-20, 20, -15, 15));
 
   await run(() => engine.setMathBounds(P));
   await click("Zoom in");
+  await settle();
   expectViewport(engine.getSnapshot().viewport, vp(-3, 7, -3.75, 3.75));
 
   await click("Home");
+  await settle();
   expectViewport(engine.getSnapshot().viewport, DEFAULT);
+});
+
+it("GP-46 another change of the view stops a zoom animation where it is", async () => {
+  await mountSized();
+  await click("Zoom in");
+  await nextFrame();
+  await run(() => fireEvent.keyDown(graph(), { key: "ArrowRight" }));
+  const moved = engine.getSnapshot().viewport;
+  for (let i = 0; i < 7; i++) await nextFrame();
+  expect(engine.getSnapshot().viewport).toEqual(moved);
+});
+
+it("GP-46 with reduced motion the zoom buttons apply at once", async () => {
+  await mountSized({ reducedMotion: true });
+  await click("Zoom in");
+  expect(engine.getSnapshot().viewport).toEqual(vp(-5, 5, -3.75, 3.75));
 });
 
 it("AN-8 Home shows only off the default view and hands focus to the graph as it leaves", async () => {
@@ -388,7 +417,7 @@ it("G-5 unmounting GraphPanel destroys the renderer and leaves no timer or frame
   expect(vi.getTimerCount()).toBe(0);
 });
 
-it("G-5 wheel events within one frame accumulate", async () => {
+it("GP-48 only the first wheel event of a frame zooms, by one fixed step", async () => {
   await mountSized();
   await act(async () => {
     expect(fireEvent.wheel(panel(), WHEEL)).toBe(false);
@@ -396,10 +425,10 @@ it("G-5 wheel events within one frame accumulate", async () => {
     expectViewport(engine.getSnapshot().viewport, DEFAULT);
   });
   await nextFrame();
-  const k = Math.exp(0.4);
+  const k = 17 / 16;
   const { viewport } = engine.getSnapshot();
   expectViewport(viewport, vp(-10 / k, 10 / k, -7.5 / k, 7.5 / k));
-  expect(viewport.right - viewport.left).toBeCloseTo(20 / Math.exp(0.4), 9);
+  expect(viewport.right - viewport.left).toBeCloseTo(20 / k, 9);
 });
 
 it("G-5 a graph key while a wheel frame is pending keeps both changes", async () => {
@@ -408,7 +437,7 @@ it("G-5 a graph key while a wheel frame is pending keeps both changes", async ()
     fireEvent.wheel(panel(), WHEEL);
   });
   await run(() => fireEvent.keyDown(graph(), { key: "ArrowRight" }));
-  const k = Math.exp(0.2);
+  const k = 17 / 16;
   const expected = vp(-8 / k, 12 / k, -7.5 / k, 7.5 / k);
   expectViewport(engine.getSnapshot().viewport, expected);
   await nextFrame();

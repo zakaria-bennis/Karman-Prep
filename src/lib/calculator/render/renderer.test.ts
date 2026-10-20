@@ -32,14 +32,14 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-it("G-5 GraphRenderer stacks four hidden canvases, skips frames it cannot draw and releases them", () => {
+it("G-5 GraphRenderer stacks three hidden canvases, skips frames it cannot draw and releases them", () => {
   const restore = installDomStubs();
   const container = document.createElement("div");
   document.body.append(container);
   try {
     const renderer = new GraphRenderer(container);
     const canvases = Array.from(container.querySelectorAll("canvas"));
-    expect(canvases.map((c) => c.dataset.layer)).toEqual(["shading", "grid", "curves", "points"]);
+    expect(canvases.map((c) => c.dataset.layer)).toEqual(["grid", "curves", "points"]);
     for (const canvas of canvases) {
       expect(canvas.getAttribute("aria-hidden")).toBe("true");
       expect(canvas.hasAttribute("tabindex")).toBe(false);

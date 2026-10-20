@@ -15,7 +15,7 @@ import {
   type Viewport,
   type ViewSpec,
 } from "../plot/viewport";
-import { WHEEL_DELTA_LIMIT, WHEEL_LINE_PX, WHEEL_ZOOM_RATE } from "./constants";
+import { WHEEL_ZOOM_FACTOR } from "./constants";
 
 export type GraphKeyField = "key" | "ctrlKey" | "metaKey" | "altKey" | "isComposing";
 export type GraphKeyInput = Pick<KeyboardEvent, GraphKeyField>; // a native KeyboardEvent fits
@@ -75,12 +75,15 @@ export function pinchViewport(start: ViewSpec, from: PinchState, to: PinchState)
   );
 }
 
-/** G-5: the wheel zooms about the pointer at a fixed rate, with the delta in px clamped. */
-export function wheelViewport(view: ViewSpec, dy: number, mode: number, at: Point): Viewport {
-  const scale = mode === 1 ? WHEEL_LINE_PX : mode === 2 ? view.size.height : 1;
-  const px = Math.min(WHEEL_DELTA_LIMIT, Math.max(-WHEEL_DELTA_LIMIT, dy * scale));
+/**
+ * G-5, GP-48: one wheel step zooms about the pointer by WHEEL_ZOOM_FACTOR, in for a wheel up
+ * (dy < 0) and out for a wheel down, whatever the delta's size or mode; dy 0 changes nothing.
+ */
+export function wheelViewport(view: ViewSpec, dy: number, at: Point): Viewport {
+  if (!(dy !== 0 && Number.isFinite(dy))) return view.viewport;
   const [x, y] = pxToWorld(view, ...at);
-  return zoomViewport(view.viewport, Math.exp(-px * WHEEL_ZOOM_RATE), { x, y });
+  const factor = dy < 0 ? WHEEL_ZOOM_FACTOR : 1 / WHEEL_ZOOM_FACTOR;
+  return zoomViewport(view.viewport, factor, { x, y });
 }
 
 /**

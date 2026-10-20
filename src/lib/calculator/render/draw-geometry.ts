@@ -6,13 +6,17 @@
 import type { CurveGeometry, LineSetGeometry } from "../plot/geometry";
 import { worldToPx, type ViewSpec } from "../plot/viewport";
 import {
+  CROSS_ARM_PX,
+  CROSS_STROKE_PX,
+  CURVE_CUT_PX,
   CURVE_LINE_PX,
   CURVE_SELECTED_LINE_PX,
   DASH_PX,
-  DOT_PX,
+  DOT_LENGTH_PX,
+  DOT_PERIOD_PX,
   JOIN_TOLERANCE_PX,
+  POINT_HOLE_PX,
   POINT_RADIUS_PX,
-  POINT_STROKE_PX,
 } from "./constants";
 import type { ShadingRect } from "./shading";
 import type { RenderRow } from "./types";
@@ -71,18 +75,17 @@ export function clipSegment(a: Point, b: Point, r: ClipRect): [Point, Point] | n
   return [t0 === 0 ? a : at(t0), t1 === 1 ? b : at(t1)];
 }
 
-/** Fills each opaque device-px shading rectangle (from buildShadingRects) in its colour. */
-export function drawShadingLayer(ctx: Ctx, rects: readonly ShadingRect[]): void {
+/** Fills translucent device-px shading rectangles (from buildShadingRects), each in its colour. */
+function fillShading(ctx: Ctx, rects: readonly ShadingRect[], dpr: number): void {
+  if (rects.length === 0) return;
   ctx.setTransform(1, 0, 0, 1, 0, 0);
-  ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-  let colour: string | null = null;
   for (const rect of rects) {
-    if (rect.color !== colour) {
-      colour = rect.color;
-      ctx.fillStyle = colour;
-    }
+    ctx.fillStyle = rect.color;
+    ctx.globalAlpha = rect.alpha;
     ctx.fillRect(rect.x, rect.y, rect.width, rect.height);
   }
+  ctx.globalAlpha = 1;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
 
 const finitePair = (a: Float64Array, k: number) =>
@@ -106,6 +109,68 @@ function fillBands(ctx: Ctx, view: ViewSpec, bands: Float64Array, clip: ClipRect
   }
 }
 
+const EDGE_SLACK_PX = 1;
+const SAMPLE_LEAD_PX = 0.5;
+
+/**
+ * GP-20, GP-22: where the reference's dash pattern starts. It cuts a curve at `clip` above and
+ * below the view and samples explicit curves from about SAMPLE_LEAD_PX past the left and right
+ * edges, starting the pattern where the drawn path starts. A run that starts at the view's edge
+ * (within EDGE_SLACK_PX of it, or past it) is taken to continue back to that start: the length of
+ * the lead-in, along the run's first segment `a`→`b`, is the dash phase at `a`. Any other start
+ * begins the pattern afresh.
+ */
+function leadIn(view: ViewSpec, a: Point, b: Point, clip: ClipRect): number {
+  const { width, height } = view.size;
+  const atEdge =
+    a[0] <= EDGE_SLACK_PX ||
+    a[1] <= EDGE_SLACK_PX ||
+    a[0] >= width - EDGE_SLACK_PX ||
+    a[1] >= height - EDGE_SLACK_PX;
+  if (!atEdge || !isInside(a, clip) || a[0] < -SAMPLE_LEAD_PX || a[0] > width + SAMPLE_LEAD_PX)
+    return 0;
+  const length = Math.hypot(a[0] - b[0], a[1] - b[1]);
+  if (!(length > 0)) return 0;
+  const u = [(a[0] - b[0]) / length, (a[1] - b[1]) / length];
+  let t = Infinity;
+  for (const axis of [0, 1]) {
+    const [lo, hi] =
+      axis === 0 ? [-SAMPLE_LEAD_PX, width + SAMPLE_LEAD_PX] : [clip.top, clip.bottom];
+    if (u[axis] > 0) t = Math.min(t, (hi - a[axis]) / u[axis]);
+    else if (u[axis] < 0) t = Math.min(t, (lo - a[axis]) / u[axis]);
+  }
+  return Number.isFinite(t) ? t : 0;
+}
+
+/**
+ * GP-22: the reference strokes an inequality's boundary in its sampling order, left to right (up
+ * the view when the boundary runs more up than across), so its dashes start at that end's cut.
+ * A traced contour has no such order: each open run (in world coordinates) is reversed when it
+ * starts at the other end. Closed runs keep their order.
+ */
+export function orientRuns(p: Float64Array): Float64Array {
+  const out = Float64Array.from(p);
+  for (let k = 0; k + 1 < p.length; ) {
+    if (!finitePair(p, k)) {
+      k += 2;
+      continue;
+    }
+    let end = k + 2;
+    while (end + 1 < p.length && finitePair(p, end)) end += 2;
+    const dx = p[end - 2] - p[k];
+    const dy = p[end - 1] - p[k + 1];
+    const across = Math.abs(dx) >= Math.abs(dy);
+    if ((across && dx < 0) || (!across && dy < 0)) {
+      for (let j = k; j < end; j += 2) {
+        out[k + end - 2 - j] = p[j];
+        out[k + end - 1 - j] = p[j + 1];
+      }
+    }
+    k = end;
+  }
+  return out;
+}
+
 /**
  * A curve's polylines: each NaN-separated run is its own path and stroke, clipped segment by
  * segment. A dashed run that starts within JOIN_TOLERANCE_PX of the previous run's end continues
@@ -119,7 +184,12 @@ function strokeCurve(
   dotted: boolean
 ): void {
   const patterned = dotted || g.dashed;
-  ctx.setLineDash(dotted ? [...DOT_PX] : g.dashed ? [...DASH_PX] : []);
+  const width = ctx.lineWidth;
+  // GP-23: dots are stroked at twice the line width, one every DOT_PERIOD_PX.
+  if (dotted) ctx.lineWidth = 2 * width;
+  ctx.setLineDash(
+    dotted ? [DOT_LENGTH_PX, DOT_PERIOD_PX - DOT_LENGTH_PX] : g.dashed ? [...DASH_PX] : []
+  );
   const p = g.polylines;
   let phase = 0;
   let previousEnd: Point | null = null;
@@ -135,7 +205,7 @@ function strokeCurve(
       const joins =
         previousEnd !== null &&
         Math.hypot(start[0] - previousEnd[0], start[1] - previousEnd[1]) <= JOIN_TOLERANCE_PX;
-      if (!joins) phase = 0;
+      if (!joins) phase = leadIn(view, start, worldToPx(view, p[k + 2], p[k + 3]), clip);
       const runPhase = phase;
       let pen: Point | null = null;
       let a = start;
@@ -160,6 +230,7 @@ function strokeCurve(
     }
     k = end;
   }
+  ctx.lineWidth = width;
 }
 
 /**
@@ -205,15 +276,23 @@ function drawStrokes(
 }
 
 /**
- * Curves (bands, then polylines), line sets and region boundaries in list order, each in its row
- * colour at CURVE_LINE_PX with round joins and caps; region spans are the shading layer's.
+ * Rows in list order, each complete before the next (GP-4, as the reference paints them, so a later
+ * row's shading lies over an earlier row's curve): a region's shading (`shading`, by row id) then
+ * its boundaries; curves (bands, then polylines) and line sets. Strokes are in the row colour at
+ * CURVE_LINE_PX with round joins and caps, cut CURVE_CUT_PX past their width outside the view
+ * (GP-20).
  */
-export function drawCurveLayer(ctx: Ctx, view: ViewSpec, rows: readonly RenderRow[]): void {
+export function drawCurveLayer(
+  ctx: Ctx,
+  view: ViewSpec,
+  rows: readonly RenderRow[],
+  shading: ReadonlyMap<string, readonly ShadingRect[]> = new Map()
+): void {
   startLayer(ctx, view.dpr);
   ctx.lineWidth = CURVE_LINE_PX;
   ctx.lineJoin = "round";
   ctx.lineCap = "round";
-  const clip = grown(view, 2 * CURVE_LINE_PX);
+  const clip = grown(view, CURVE_LINE_PX + CURVE_CUT_PX);
   for (const row of rows) {
     const g = row.geometry;
     if (g.kind === "points" || g.kind === "table") continue; // render-rows splits tables
@@ -221,7 +300,15 @@ export function drawCurveLayer(ctx: Ctx, view: ViewSpec, rows: readonly RenderRo
     ctx.fillStyle = row.color;
     ctx.lineWidth = row.selected === true ? CURVE_SELECTED_LINE_PX : CURVE_LINE_PX;
     if (g.kind === "region") {
-      for (const boundary of g.boundaries) drawStrokes(ctx, view, boundary, clip);
+      fillShading(ctx, shading.get(row.rowId) ?? [], view.dpr);
+      ctx.fillStyle = row.color;
+      for (const boundary of g.boundaries) {
+        const oriented =
+          boundary.kind === "curve" && boundary.dashed
+            ? { ...boundary, polylines: orientRuns(boundary.polylines) }
+            : boundary;
+        drawStrokes(ctx, view, oriented, clip);
+      }
     } else {
       drawStrokes(ctx, view, g, clip, row.lineStyle === "dotted");
     }
@@ -229,44 +316,59 @@ export function drawCurveLayer(ctx: Ctx, view: ViewSpec, rows: readonly RenderRo
 }
 
 /**
- * G-7, D-12: each finite coordinate pair as a filled circle of POINT_RADIUS_PX, one path per row;
- * a table column may instead ask for open circles or crosses, stroked at POINT_STROKE_PX.
+ * G-7, D-12, GP-28 to GP-30: each finite coordinate pair as a disc of POINT_RADIUS_PX, one path per
+ * row; a table column may instead ask for open points (the disc with a `paper` hole of
+ * POINT_HOLE_PX) or crosses (two diagonals of ±CROSS_ARM_PX, stroked round at CROSS_STROKE_PX).
  */
-export function drawPointLayer(ctx: Ctx, view: ViewSpec, rows: readonly RenderRow[]): void {
+export function drawPointLayer(
+  ctx: Ctx,
+  view: ViewSpec,
+  rows: readonly RenderRow[],
+  paper: string
+): void {
   startLayer(ctx, view.dpr);
   const clip = grown(view, 2 * POINT_RADIUS_PX);
   ctx.setLineDash([]);
   ctx.lineCap = "round";
+  ctx.lineWidth = CROSS_STROKE_PX;
   for (const row of rows) {
     const g = row.geometry;
     if (g.kind !== "points") continue;
     const style = row.pointStyle ?? "filled";
-    let started = false;
+    const centres: Point[] = [];
     for (let k = 0; k + 1 < g.coords.length; k += 2) {
       if (!finitePair(g.coords, k)) continue;
       const centre = worldToPx(view, g.coords[k], g.coords[k + 1]);
-      if (!isInside(centre, clip)) continue;
-      if (!started) {
-        started = true;
-        ctx.fillStyle = row.color;
-        ctx.strokeStyle = row.color;
-        ctx.lineWidth = POINT_STROKE_PX;
-        ctx.beginPath();
-      }
-      const [x, y] = centre;
-      const r = POINT_RADIUS_PX;
+      if (isInside(centre, clip)) centres.push(centre);
+    }
+    if (centres.length === 0) continue;
+    ctx.fillStyle = row.color;
+    ctx.strokeStyle = row.color;
+    ctx.beginPath();
+    for (const [x, y] of centres) {
       if (style === "cross") {
-        ctx.moveTo(x - r, y - r);
-        ctx.lineTo(x + r, y + r);
-        ctx.moveTo(x - r, y + r);
-        ctx.lineTo(x + r, y - r);
+        const a = CROSS_ARM_PX;
+        ctx.moveTo(x - a, y - a);
+        ctx.lineTo(x + a, y + a);
+        ctx.moveTo(x - a, y + a);
+        ctx.lineTo(x + a, y - a);
       } else {
-        ctx.moveTo(x + r, y);
-        ctx.arc(x, y, r, 0, 2 * Math.PI);
+        ctx.moveTo(x + POINT_RADIUS_PX, y);
+        ctx.arc(x, y, POINT_RADIUS_PX, 0, 2 * Math.PI);
       }
     }
-    if (!started) continue;
-    if (style === "filled") ctx.fill();
-    else ctx.stroke();
+    if (style === "cross") {
+      ctx.stroke();
+      continue;
+    }
+    ctx.fill();
+    if (style !== "open") continue;
+    ctx.fillStyle = paper;
+    ctx.beginPath();
+    for (const [x, y] of centres) {
+      ctx.moveTo(x + POINT_HOLE_PX, y);
+      ctx.arc(x, y, POINT_HOLE_PX, 0, 2 * Math.PI);
+    }
+    ctx.fill();
   }
 }
