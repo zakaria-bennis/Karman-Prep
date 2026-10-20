@@ -78,7 +78,7 @@ test("AR-38 CSS transitions and keyframes stop under prefers-reduced-motion and 
   await page.waitForTimeout(300);
   expect(await keypad.boundingBox()).toEqual(first);
 });
-test("TH-15 data-calculator-skin, contrast and forced-colour changes repaint within one frame with no remount and no lost rows; prefers-contrast never toggles Reverse contrast; the colour scheme leaves classic alone", async ({
+test("TH-15 site theme (light to dark), contrast and forced-colour changes repaint within one frame with no remount and no lost rows; prefers-contrast never toggles Reverse contrast; with no site theme the calculator is classic whatever the colour scheme", async ({
   page,
 }) => {
   await page.addInitScript(recordStrokes);
@@ -114,14 +114,16 @@ test("TH-15 data-calculator-skin, contrast and forced-colour changes repaint wit
     colorScheme: "light",
   });
   await page.evaluate(() => {
-    delete document.documentElement.dataset.calculatorSkin;
+    delete document.documentElement.dataset.theme;
   });
   await frames(page);
   const classic = SKIN_COLORS.classic.normal.roles.paper.toLowerCase();
-  expect(await paper()).toBe(classic); // no calculator skin named: classic
+  expect(await paper()).toBe(classic); // no site theme: classic
   await page.emulateMedia({ colorScheme: "dark" });
   await frames(page, 1);
-  expect(await paper()).toBe(classic); // the OS colour scheme no longer changes the calculator
+  expect(await paper()).toBe(classic); // the OS colour scheme does not change the calculator
+  const back = await page.evaluate(setThemeAndWait, "sage"); // and a light site theme again
+  expect(back.paper).toBe(SKIN_COLORS.sage.normal.roles.paper.toLowerCase());
 });
 for (const skin of SKIN_IDS)
   test(`TH-14 every shell focusable shows a 2px solid focus-ring outline (offset 2px; rows and the list resizer -2px, OI-31; the delete cross -4px, AK-17) at 3:1 or more in ${skin}`, async ({

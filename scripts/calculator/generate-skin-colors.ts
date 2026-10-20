@@ -20,7 +20,7 @@ import {
   type SkinId,
   type SkinPalette,
 } from "../../src/lib/calculator/theme/skins";
-import { CHROME_VARS, type ChromeRole } from "../../src/lib/calculator/theme/vars";
+import { CHROME_VARS, TONES, type ChromeRole } from "../../src/lib/calculator/theme/vars";
 import { SITE_THEMES } from "../../src/lib/themes/palettes";
 
 type SkinTable = Readonly<Record<SkinId, { normal: SkinPalette }>>;
@@ -44,6 +44,7 @@ function paletteLiteral(palette: SkinPalette): string {
   return objectLiteral([
     ["dark", String(palette.dark)],
     ["roles", objectLiteral(COLOR_ROLES.map((r) => [r, JSON.stringify(palette.roles[r])]))],
+    ["tones", objectLiteral(TONES.map((t) => [t, String(palette.tones[t])]))],
     ["curves", objectLiteral(CURVE_SLOTS.map((k) => [k, JSON.stringify(palette.curves[k])]))],
     ["fillAlpha", objectLiteral(CURVE_SLOTS.map((k) => [k, String(palette.fillAlpha[k])]))],
   ]);

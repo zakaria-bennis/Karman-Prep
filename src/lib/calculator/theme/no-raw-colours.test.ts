@@ -7,7 +7,7 @@ import postcss, { type Declaration, type Node as CssNode, type Rule } from "post
 import ts from "typescript";
 import { expect, it } from "vitest";
 import { GENERATED_FILES } from "../../../../scripts/calculator/generate-skin-colors";
-import { CHROME_VARS, CURVE_VARS, FILL_ALPHA_VARS, ROLE_VARS } from "./vars";
+import { CHROME_VARS, CURVE_VARS, FILL_ALPHA_VARS, ROLE_VARS, TONE_VARS } from "./vars";
 
 const ROOT = resolve(__dirname, "../../../..");
 const MQ_CSS = "vendor/mathquill/mathquill.css";
@@ -115,7 +115,9 @@ const COVERS: Readonly<Record<string, readonly string[]>> = {
 
 /** Every `--kc-`/`--kcc-` property a theme map declares on `:host` or in the chrome sheet. */
 const THEME_VARS: ReadonlySet<string> = new Set(
-  [ROLE_VARS, CURVE_VARS, FILL_ALPHA_VARS, CHROME_VARS].flatMap((map) => Object.values(map))
+  [ROLE_VARS, TONE_VARS, CURVE_VARS, FILL_ALPHA_VARS, CHROME_VARS].flatMap((map) =>
+    Object.values(map)
+  )
 );
 
 type VendorColour = { selector: string; property: string; value: string; important: boolean };

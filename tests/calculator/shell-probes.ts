@@ -158,7 +158,7 @@ export async function setThemeAndWait(
 ): Promise<{ strokes: string[]; paper: string }> {
   const store = globalThis as unknown as { __strokes?: string[] };
   const start = store.__strokes?.length ?? 0;
-  document.documentElement.dataset.calculatorSkin = theme; // TH-15: the calculator's own skin
+  document.documentElement.dataset.theme = theme; // TH-15: the site theme the calculator follows
   await new Promise((r) => requestAnimationFrame(r));
   await new Promise((r) => setTimeout(r, 0));
   const paper = getComputedStyle(document.querySelector("#calc")!).getPropertyValue("--kc-paper");

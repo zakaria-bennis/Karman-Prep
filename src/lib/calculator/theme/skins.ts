@@ -1,6 +1,7 @@
-// Skin ids, colour roles and curve slots of the calculator theme (section 6). "classic" is the
-// hand-set default that matches the reference graphing calculator (desmos-palette.ts); the 12 site
-// skins are the site themes of src/lib/themes/palettes.ts in order (TH-5), derived by derive.ts.
+// Skin ids, colour roles, tones and curve slots of the calculator theme (section 6). "classic" is
+// the hand-set skin that matches the reference graphing calculator (desmos-palette.ts), used when
+// no site theme applies; the 12 site skins are the site themes of src/lib/themes/palettes.ts in
+// order (TH-5), derived by derive.ts.
 
 export const SITE_SKIN_IDS = [
   "observatory",
@@ -44,9 +45,21 @@ export type ForegroundRole =
   | "boundary";
 export type ColorRole = BackgroundRole | ForegroundRole;
 export type CurveSlot = "c1" | "c2" | "c3" | "c4" | "c5" | "c6";
+/** A tone: a role's ink mixed over a background at a per-skin strength (tones.ts). */
+export type Tone =
+  | "rowNumber"
+  | "textMuted"
+  | "equals"
+  | "fieldText"
+  | "fieldPlaceholder"
+  | "segmentText"
+  | "selectedFill"
+  | "fieldLine"
+  | "errorTip";
 export interface SkinPalette {
   dark: boolean;
   roles: Record<ColorRole, string>; // "#rrggbb"
+  tones: Record<Tone, number>; // ink strength 0 to 1, in hundredths
   curves: Record<CurveSlot, string>; // F-A1: Desmos's six colours, inverted on dark skins
   fillAlpha: Record<CurveSlot, number>; // F-A1: Desmos's 40% inequality fill
 }
