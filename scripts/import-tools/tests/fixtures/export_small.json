@@ -553,5 +553,49 @@
       }
     },
     "answer_key_count": 1
+  },
+  {
+    "id": "00000000-0000-4000-8000-000000000027",
+    "question_text": "A gardener sells 12 tomatoes at the market. How many are left after 5 are sold?",
+    "correct_answer": "B",
+    "question_format": "multiple_choice",
+    "figure_kind": null,
+    "figure_table_data": null,
+    "publish_status": "needs_human_review",
+    "import_status": "needs_review",
+    "import_flag_reason": "synthetic held row",
+    "is_live": false,
+    "archived_at": null,
+    "source_version": "synthetic-v1",
+    "source_section": "math",
+    "source_module": "M1",
+    "source_question_number": 27,
+    "content_hash_v2": "000000000000000000000000000000000000000000000000000000000000001b",
+    "created_at": "2025-11-01T09:00:00+00:00",
+    "choices": [
+      {
+        "letter": "A",
+        "choice_text": "5"
+      },
+      {
+        "letter": "B",
+        "choice_text": "7"
+      },
+      {
+        "letter": "C",
+        "choice_text": "12"
+      },
+      {
+        "letter": "D",
+        "choice_text": "17"
+      }
+    ],
+    "raw_model_response": {
+      "student_publication_allowed": false,
+      "approved_tags": {
+        "skill_label": "Synthetic"
+      }
+    },
+    "answer_key_count": 1
   }
 ]

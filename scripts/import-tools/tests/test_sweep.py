@@ -54,7 +54,7 @@ def group_with(gs, ref):
 class LoadExportTests(unittest.TestCase):
     def test_mc_answer_is_choice_text_and_live_needs_publish_ready(self):
         recs = {r.ref: r for r in load_export(FIXTURE)}
-        self.assertEqual(len(recs), 13)
+        self.assertEqual(len(recs), 14)
         self.assertEqual(recs[uid(1)].answer, "4")
         self.assertEqual(recs[uid(1)].answer_format, "mc")
         self.assertEqual(recs[uid(1)].choices, ("2", "4", "6", "8"))
@@ -146,13 +146,49 @@ class FindDuplicatesTests(unittest.TestCase):
         self.assertEqual(typo["match"], "ocr_typo")
         self.assertEqual(typo["spots"], [["gardener", "gardner"]])
 
-    def test_typo_tie_keeps_earliest(self):
+    def test_typo_tie_goes_to_review(self):
         a = live("a", "On a calm grey morning the old fisherman tied the rope to the mast.", "2026-01-02T00:00:00+00:00")
         b = live("b", "On a calm grey morning the old fisherman tied the rops to the mast.", "2026-01-01T00:00:00+00:00")
         [g] = find_live_duplicates([a, b])
-        self.assertEqual((g["keep"], g["remove"], g["relation"]), ("b", ["a"], "ocr_typo"))
-        self.assertTrue(g["keeper_tie"])
-        self.assertIn("please double-check: tie", report_md([g], {}, 2))
+        self.assertEqual((g["keep"], g["remove"], g["relation"], g["keeper_tie"]), ("b", [], "typo_review", True))
+        report = report_md([g], {}, 2)
+        self.assertIn("## Needs a person to pick the copy to keep", report)
+        self.assertIn("`b`, `a`; differing words: rops / rope", report)
+
+    def test_repeated_typo_does_not_outvote_single_clean_copy(self):
+        clean = "The farmer watered the young trees each evening during the dry summer months."
+        typo = clean.replace("watered", "watcred")
+        for n in (2, 3):
+            recs = [live(f"t{i}", typo, f"2026-01-0{i + 1}T00:00:00+00:00") for i in range(n)]
+            recs += [live("cl", clean, "2026-01-09T00:00:00+00:00"), other("o", "Rain watered the fields overnight.")]
+            [g] = find_live_duplicates(recs)
+            self.assertEqual((g["keep"], sorted(g["remove"]), g["relation"]),
+                             ("cl", [f"t{i}" for i in range(n)], "ocr_typo"), n)
+
+    def test_non_live_copies_of_typo_do_not_count(self):
+        clean = "The farmer watered the young trees each evening during the dry summer months."
+        typo = clean.replace("watered", "watcred")
+        recs = [live("t", typo, "2026-01-01T00:00:00+00:00"), live("cl", clean, "2026-01-02T00:00:00+00:00"),
+                live("h1", typo, "2025-01-01T00:00:00+00:00", is_live=False),  # held copies of the typo
+                live("h2", typo.replace("young", "yuung"), "2025-01-02T00:00:00+00:00", is_live=False),
+                other("o", "Rain watered the fields overnight.")]
+        [g] = find_live_duplicates(recs)
+        self.assertEqual((g["keep"], g["remove"]), ("cl", ["t"]))
+
+    def test_equal_copies_without_outside_evidence_go_to_review(self):
+        clean = "The farmer watered the young trees each evening during the dry summer months."
+        typo = clean.replace("watered", "watcred")
+        recs = [live("t1", typo, "2026-01-01T00:00:00+00:00"), live("t2", typo, "2026-01-02T00:00:00+00:00"),
+                live("c1", clean, "2026-01-03T00:00:00+00:00"), live("c2", clean, "2026-01-04T00:00:00+00:00")]
+        [g] = find_live_duplicates(recs)
+        self.assertEqual((g["relation"], g["remove"], g["keeper_tie"]), ("typo_review", [], True))
+
+    def test_clean_word_found_nowhere_else_goes_to_review(self):
+        clean = "The quartermaster inventoried the barrels each evening during the dry summer months."
+        recs = [live("ty", clean.replace("inventoried", "inventorled"), "2026-01-01T00:00:00+00:00"),
+                live("cl", clean, "2026-01-02T00:00:00+00:00"), other("o", "The barrels were dry.")]
+        [g] = find_live_duplicates(recs)
+        self.assertEqual((g["relation"], g["remove"]), ("typo_review", []))
 
     def test_no_typo_chaining(self):
         base = "On a calm grey morning the old fisherman tied the rope around the mast while the wind pushed the boat toward the harbor."
@@ -175,7 +211,7 @@ class FindDuplicatesTests(unittest.TestCase):
         clean = "The farmer watered the young trees each evening during the dry summer months."
         a = live("a", "Thc" + clean[3:], "2026-01-01T00:00:00+00:00")
         b = live("b", clean, "2026-01-02T00:00:00+00:00")
-        [g] = find_live_duplicates([a, b])
+        [g] = find_live_duplicates([a, b, other("o", "The fields were dry.")])
         self.assertEqual((g["keep"], g["remove"], g["relation"]), ("b", ["a"], "ocr_typo"))
 
     def test_typo_into_existing_word_does_not_win(self):
@@ -193,6 +229,7 @@ class FindDuplicatesTests(unittest.TestCase):
             live("t1", clean.replace("watered", "watcred"), "2026-01-01T00:00:00+00:00"),
             live("t2", clean.replace("young", "yuung"), "2026-01-02T00:00:00+00:00"),
             live("cl", clean, "2026-01-03T00:00:00+00:00"),
+            other("o", "Rain watered the young plants."),
         ])
         self.assertEqual([(g["keep"], g["remove"]) for g in gs], [("cl", ["t1", "t2"])])
 
@@ -336,7 +373,7 @@ class CliTests(unittest.TestCase):
             self.assertIn(uid(22), report)
             self.assertIn("The gardener planted rows of beans along the fence. According to the text, why", report)
             self.assertIn("check by eye", report)
-            self.assertNotIn("please double-check: tie", report)  # fixture typo group is decided by frequency
+            self.assertNotIn("Needs a person", report)  # the fixture's typo group is decided by outside evidence
 
     def test_bad_export_fails_cleanly(self):
         with tempfile.TemporaryDirectory() as d:

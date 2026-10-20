@@ -9,10 +9,12 @@ Grouping (live records only, see find_live_duplicates):
   2. buckets sharing blocking_key (everything typo_match requires to be equal)
      are compared with typo_match;
   3. a bucket joins a group only by matching the group's keeper (no chains).
-Keeper: the copy whose side of the typo spots uses the words most common
-across the whole export (live or not), so a typo copy loses to the usual
-spelling; only a real tie falls back to earliest created_at, then id, and is
-flagged for a double-check.
+Keeper (ruling R8): exact-only groups keep the earliest created_at. A group
+with typo edges keeps the copy whose side of the typo spots uses words more
+common in rows OUTSIDE the group (live or not; every copy of the group and
+every row typo-matching it is left out of the count), so a typo imported
+several times cannot outvote the clean copy. If that is a tie the group is
+"typo_review": nothing is removed and a person picks the keeper.
 Live rows whose correct_answer letter matches no choice ("broken answer key")
 or whose question_format disagrees with having choices ("format mismatch")
 are left out of grouping and listed in the report.
@@ -49,10 +51,11 @@ _FAR_FUTURE = datetime.max.replace(tzinfo=timezone.utc)
 
 
 class DuplicateGroup(TypedDict):
-    keep: str
-    remove: list[str]
-    relation: str  # "exact" | "ocr_typo" | "figure_review"
+    keep: str  # for typo_review / figure_review: the oldest candidate, not a decision
+    remove: list[str]  # empty for typo_review / figure_review
+    relation: str  # "exact" | "ocr_typo" | "typo_review" | "figure_review"
     evidence: list[dict]
+    keeper_tie: bool  # True exactly when a typo group's keeper had no word evidence
 
 
 # ---------------------------------------------------------------- export
@@ -183,15 +186,14 @@ def _age(r: QuestionRecord):
     return (_created(r), r.ref)
 
 
-def _keeper(cands: list[str], buckets, typo, doc_freq) -> tuple[QuestionRecord, bool]:
-    """(keeper, decided by tie) for candidate buckets (comparison keys).
+def _keeper(cands: list[str], age_of, typo, outside_freq) -> tuple[str, bool]:
+    """(keeper key, decided by tie) among candidate buckets (comparison keys).
 
     Each candidate's spot words are its own side of every typo spot against
-    every other candidate it matches. Its score is how many exported texts hold
-    its rarest spot word, so a typo word loses to the usual spelling even when
-    the typo produced a word found elsewhere in the text. A candidate with no
-    spot words scores 0 (never a free win). Equal top scores are a real tie and
-    go to the oldest copy.
+    every other candidate it matches. Its score is how many rows outside the
+    group hold its rarest spot word. A candidate with no spot words scores 0
+    (never a free win). Equal top scores are a tie, broken by age only so the
+    output is stable; the caller turns a tie into typo_review.
     """
     spot_words: dict[str, set[str]] = {k: set() for k in cands}
     for x, kx in enumerate(cands):
@@ -201,10 +203,10 @@ def _keeper(cands: list[str], buckets, typo, doc_freq) -> tuple[QuestionRecord, 
                 for side_x, side_y in result.spots:
                     spot_words[kx].update(_WORD.findall(side_x))
                     spot_words[ky].update(_WORD.findall(side_y))
-    score = {k: min((doc_freq[w] for w in ws), default=0) for k, ws in spot_words.items()}
-    best = min(cands, key=lambda k: (-score[k], _age(buckets[k][0])))
+    score = {k: min((outside_freq(w) for w in ws), default=0) for k, ws in spot_words.items()}
+    best = min(cands, key=lambda k: (-score[k], age_of(k)))
     tie = sum(score[k] == score[best] for k in cands) > 1
-    return buckets[best][0], tie
+    return best, tie
 
 
 def find_live_duplicates(records) -> list[DuplicateGroup]:
@@ -222,26 +224,40 @@ def find_live_duplicates(records) -> list[DuplicateGroup]:
     for k in order:
         by_block.setdefault(block_of[k], []).append(k)
 
+    # Every exported row (live, non-live, excluded) by comparison key, built lazily:
+    # only needed once a typo candidate appears.
+    every: dict = {}
+
+    def index_all() -> dict:
+        if not every:
+            by_key: dict[str, list[QuestionRecord]] = {}
+            for r in records:
+                by_key.setdefault(key_of.get(r.ref) or comparison_key(r), []).append(r)
+            blocks: dict[str, list[str]] = {}
+            for k, rs in by_key.items():
+                blocks.setdefault(block_of.get(k) or blocking_key(rs[0]), []).append(k)
+            total = Counter(w for r in records for w in _bare_words(r))
+            every.update(by_key=by_key, blocks=blocks, total=total)
+        return every
+
+    def rep_of(k: str) -> QuestionRecord:
+        return buckets[k][0] if k in buckets else index_all()["by_key"][k][0]
+
     cache: dict[tuple[str, str], object] = {}
 
     def typo(k1: str, k2: str):
         if (k1, k2) not in cache:
-            cache[(k1, k2)] = typo_match(buckets[k1][0], buckets[k2][0])
+            cache[(k1, k2)] = typo_match(rep_of(k1), rep_of(k2))
         return cache[(k1, k2)]
 
-    words: dict[str, frozenset[str]] = {}
-
-    def words_of(r: QuestionRecord) -> frozenset[str]:
-        if r.ref not in words:
-            words[r.ref] = _bare_words(r)
-        return words[r.ref]
-
-    freq: list[Counter] = []
-
-    def doc_freq() -> Counter:  # built only when a typo candidate first appears
-        if not freq:
-            freq.append(Counter(w for r in records for w in words_of(r)))
-        return freq[0]
+    def outside_freq_for(cands: list[str]):
+        """Word counts over rows outside the group: drops every row (any status)
+        that is a copy of a candidate or typo-matches one."""
+        idx = index_all()
+        inside = set(cands) | {k for k in idx["blocks"][block_of[cands[0]]]
+                               if any(typo(c, k).same for c in cands)}
+        own = Counter(w for k in inside for r in idx["by_key"].get(k, ()) for w in _bare_words(r))
+        return lambda w: idx["total"][w] - own[w]
 
     done: set[str] = set()
     groups: list[dict] = []
@@ -255,17 +271,16 @@ def find_live_duplicates(records) -> list[DuplicateGroup]:
         cands = [first] + [k for k in pending if typo(first, k).same]
         tie = False
         if len(cands) == 1:
-            keep, kkey, members = buckets[first][0], first, cands
+            kkey, members = first, cands
         else:
-            keep, tie = _keeper(cands, buckets, typo, doc_freq())
-            kkey = key_of[keep.ref]
+            kkey, tie = _keeper(cands, lambda k: _age(buckets[k][0]), typo, outside_freq_for(cands))
             # Recompute from the keeper: a bucket may match it but not `first`.
             members = [kkey] + [k for k in by_block[block_of[kkey]]
                                 if k != kkey and k not in done and typo(kkey, k).same]
         done.update(members)  # always holds kkey; `first` stays pending if it missed the keeper
         copies = sorted((c for k in members for c in buckets[k]), key=_age)
         if len(copies) > 1:
-            groups.append(dict(_group(keep, kkey, copies, key_of, typo), keeper_tie=tie))
+            groups.append(_group(buckets[kkey][0], kkey, copies, key_of, typo, tie))
     return [_strip(g) for g in sorted(groups, key=lambda g: g["_age"])]
 
 
@@ -284,7 +299,7 @@ def broken_answer_keys(records) -> list[str]:
                                    and not r.meta.get("format_problem")), key=_age)]
 
 
-def _group(keep: QuestionRecord, kkey: str, copies: list[QuestionRecord], key_of: dict, typo) -> dict:
+def _group(keep: QuestionRecord, kkey: str, copies: list[QuestionRecord], key_of: dict, typo, tie: bool) -> dict:
     evidence = []
     for c in copies:
         if c.ref == keep.ref:
@@ -305,10 +320,13 @@ def _group(keep: QuestionRecord, kkey: str, copies: list[QuestionRecord], key_of
     if any(c.meta.get("has_figure") for c in copies):
         relation, remove = "figure_review", []
     elif any(e["match"] == "ocr_typo" for e in evidence):
-        relation = "ocr_typo"
+        relation = "typo_review" if tie else "ocr_typo"
+        if tie:
+            remove = []
     else:
-        relation = "exact"
-    return {"keep": keep.ref, "remove": remove, "relation": relation, "evidence": evidence, "_age": _age(keep)}
+        relation, tie = "exact", False
+    return {"keep": keep.ref, "remove": remove, "relation": relation, "evidence": evidence,
+            "keeper_tie": tie, "_age": _age(keep)}
 
 
 def _strip(g: dict) -> DuplicateGroup:
@@ -468,6 +486,7 @@ def republish_sql(groups, export_by_id: dict[str, dict]) -> str:
 _RELATION_WORDS = {
     "exact": "exact copy",
     "ocr_typo": "same question with a small scanning typo",
+    "typo_review": "small typo, but no way to tell which copy is clean (nothing un-published)",
     "figure_review": "has a figure, check by eye (nothing un-published)",
 }
 
@@ -486,6 +505,7 @@ def report_md(groups, rows: dict[str, dict], live_count: int, broken: list[str] 
         "",
         f"- {len(rows)} questions in the export, {live_count} of them visible to students.",
         f"- {len(groups)} duplicate groups: {rel['exact']} exact copies, {rel['ocr_typo']} with a small typo, "
+        f"{rel['typo_review']} with a typo where a person must pick the copy to keep, "
         f"{rel['figure_review']} with a figure to check by eye.",
         f"- {removed} questions would be un-published. Nothing is deleted, and republish.sql undoes it.",
         "- Nothing runs until you say yes.",
@@ -493,17 +513,26 @@ def report_md(groups, rows: dict[str, dict], live_count: int, broken: list[str] 
         "## Groups",
         "",
     ]
-    for i, g in enumerate(groups, 1):
+    review = [g for g in groups if g["relation"] == "typo_review"]
+    listed = [g for g in groups if g["relation"] != "typo_review"]
+    for i, g in enumerate(listed, 1):
         if g["relation"] == "figure_review":
             action = "possible copies " + ", ".join(e["id"] for e in g["evidence"])
         else:
             action = "un-publish " + ", ".join(g["remove"])
-        tie = " (please double-check: tie; the words gave no answer, so the oldest copy was kept)" \
-            if g.get("keeper_tie") else ""
         lines.append(f"{i}. Keep `{g['keep']}`; {action}; {_RELATION_WORDS[g['relation']]}. "
-                     f"\"{_stem(rows.get(g['keep']))}\"{tie}")
-    if not groups:
-        lines.append("No duplicates found.")
+                     f"\"{_stem(rows.get(g['keep']))}\"")
+    if not listed:
+        lines.append("No duplicates to un-publish or check by eye.")
+    if review:
+        lines += ["", "## Needs a person to pick the copy to keep", "",
+                  "These copies differ by a small typo, and nothing else in the bank shows which spelling is "
+                  "right. Nothing was un-published. Pick the clean copy; the others can then be un-published.", ""]
+        for g in review:
+            ids = [g["keep"]] + [e["id"] for e in g["evidence"]]
+            spots = "; ".join(f"{a} / {b}" for e in g["evidence"] for a, b in e["spots"])
+            lines.append(f"- Copies {', '.join(f'`{x}`' for x in ids)}; differing words: {spots}. "
+                         f"\"{_stem(rows.get(g['keep']))}\"")
     if broken:
         lines += ["", "## Broken answer key", "",
                   f"{len(broken)} live questions have a correct answer letter that matches none of their choices. "
