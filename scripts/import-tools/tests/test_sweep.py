@@ -24,9 +24,20 @@ def uid(n: int) -> str:
     return f"00000000-0000-4000-8000-{n:012d}"
 
 
-def live(ref, text, created, choices=("2", "4", "6", "8"), answer="4"):
+def live(ref, text, created, choices=("2", "4", "6", "8"), answer="4", is_live=True):
     return QuestionRecord(ref=ref, text=text, choices=tuple(choices), answer=answer,
-                          answer_format="mc", is_live=True, meta={"created_at": created})
+                          answer_format="mc", is_live=is_live, meta={"created_at": created})
+
+
+def other(ref, text):
+    """An unrelated non-live exported row: only its words matter."""
+    return live(ref, text, "2020-01-01T00:00:00+00:00", choices=("q", "r", "s", "t"), answer="q", is_live=False)
+
+
+def write_rows(d, rows):
+    p = Path(d) / "x.json"
+    p.write_text(json.dumps(rows), encoding="utf-8")
+    return p
 
 
 def groups():
@@ -67,14 +78,30 @@ class LoadExportTests(unittest.TestCase):
             p.write_text(json.dumps([{"export": rows}]), encoding="utf-8")
             self.assertEqual(read_export(p), rows)
 
-    def test_live_row_with_unknown_answer_letter_rejected(self):
+    def test_live_row_with_unknown_answer_letter_excluded_and_reported(self):
         rows = read_export(FIXTURE)
-        rows[0]["correct_answer"] = "E"
+        rows[1]["correct_answer"] = "E"  # uid(2), the later exact copy
         with tempfile.TemporaryDirectory() as d:
-            p = Path(d) / "bad.json"
-            p.write_text(json.dumps(rows), encoding="utf-8")
-            with self.assertRaises(ValueError):
-                load_export(p)
+            recs = {r.ref: r for r in load_export(write_rows(d, rows))}
+            self.assertTrue(recs[uid(2)].meta["answer_problem"])
+            self.assertIsNone(group_with(find_live_duplicates(recs.values()), uid(2)))
+            out = Path(d) / "out"
+            r = subprocess.run([sys.executable, "-I", str(CLI), "sweep", "--export", str(Path(d) / "x.json"),
+                                "--out", str(out)], capture_output=True, text=True)
+            self.assertEqual(r.returncode, 0, r.stderr)
+            report = (out / "report.md").read_text(encoding="utf-8")
+            self.assertIn("## Broken answer key", report)
+            self.assertIn(uid(2), report.split("## Broken answer key")[1])
+            doc = json.loads((out / "groups.json").read_text(encoding="utf-8"))
+            self.assertEqual(doc["broken_answer_key"], [uid(2)])
+
+    def test_question_format_must_agree_with_choices(self):
+        for i, fmt in ((0, "numeric_entry"), (10, "multiple_choice"), (0, "essay")):
+            rows = read_export(FIXTURE)
+            rows[i]["question_format"] = fmt
+            with tempfile.TemporaryDirectory() as d:
+                with self.assertRaises(ValueError, msg=fmt):
+                    load_export(write_rows(d, rows))
 
 
 class FindDuplicatesTests(unittest.TestCase):
@@ -108,8 +135,33 @@ class FindDuplicatesTests(unittest.TestCase):
         a = live("a", base, "2026-01-01T00:00:00+00:00")
         b = live("b", base.replace("rope", "rops").replace("mast", "masl"), "2026-01-02T00:00:00+00:00")
         c = live("c", b.text.replace("harbor", "harbar"), "2026-01-03T00:00:00+00:00")
-        gs = find_live_duplicates([a, b, c])
+        extra = [other(f"o{i}", "A rope and a mast lay on the dock.") for i in range(2)]
+        gs = find_live_duplicates([a, b, c, *extra])
         self.assertEqual([(g["keep"], g["remove"]) for g in gs], [("a", ["b"])])
+
+    def test_older_typo_copy_loses_to_common_spelling(self):
+        clean = "The farmer watered the young trees each evening during the dry summer months."
+        old = live("old", clean.replace("watered", "watcred"), "2026-01-01T00:00:00+00:00")
+        new = live("new", clean, "2026-01-05T00:00:00+00:00")
+        [g] = find_live_duplicates([old, new, other("o", "Rain watered the fields overnight.")])
+        self.assertEqual((g["keep"], g["remove"], g["relation"]), ("new", ["old"], "ocr_typo"))
+        self.assertEqual(g["evidence"][0]["spots"], [["watered", "watcred"]])
+
+    def test_typo_in_first_word_found(self):
+        clean = "The farmer watered the young trees each evening during the dry summer months."
+        a = live("a", "Thc" + clean[3:], "2026-01-01T00:00:00+00:00")
+        b = live("b", clean, "2026-01-02T00:00:00+00:00")
+        [g] = find_live_duplicates([a, b])
+        self.assertEqual((g["keep"], g["remove"], g["relation"]), ("b", ["a"], "ocr_typo"))
+
+    def test_bucket_matching_keeper_but_not_first_joins(self):
+        clean = "The farmer watered the young trees each evening during the dry summer months."
+        first = live("first", clean.replace("watered", "watcred"), "2026-01-01T00:00:00+00:00")
+        keeper = live("keeper", clean, "2026-01-02T00:00:00+00:00")
+        # Two spots from the keeper, three from first: joins only via the keeper.
+        late = live("late", clean.replace("young", "yuung").replace("evening", "evenirg"), "2026-01-03T00:00:00+00:00")
+        gs = find_live_duplicates([first, keeper, late, other("o", "Rain watered the fields overnight.")])
+        self.assertEqual([(g["keep"], g["remove"]) for g in gs], [("keeper", ["first", "late"])])
 
     def test_sign_change_not_grouped(self):
         gs = groups()
@@ -159,6 +211,32 @@ class SqlTests(unittest.TestCase):
         self.assertIn("jsonb_set(raw_model_response, '{student_publication_allowed}', 'false'::jsonb)", block)
         self.assertIn("'keeper not live", block)
         self.assertNotRegex(sql, r"is_live\s*=\s*(true|false)\s*[,W]")  # generated column: never assigned
+
+    def test_unpublish_guards_flag_reason_and_locks_key_row(self):
+        for sql in (unpublish_sql(self.gs, self.rows), republish_sql(self.gs, self.rows)):
+            for block in sql.split("\nDO ")[1:]:
+                self.assertIn("FROM public.answer_key_entries WHERE question_id = q.id FOR UPDATE;", block)
+        un = unpublish_sql(self.gs, self.rows)
+        self.assertEqual(un.count("q.import_flag_reason IS DISTINCT FROM NULL"), len(self.removed))
+
+    def test_json_null_and_missing_flag_handled_exactly(self):
+        rows = {k: dict(v) for k, v in self.rows.items()}
+        rows[uid(2)]["raw_model_response"] = {"student_publication_allowed": None}
+        rows[uid(11)]["raw_model_response"] = {"approved_tags": {}}
+        un, re_ = unpublish_sql(self.gs, rows), republish_sql(self.gs, rows)
+        block = lambda sql, n: [b for b in sql.split("\nDO ") if f"'{uid(n)}'::uuid FOR UPDATE" in b][0]
+        self.assertIn("IS DISTINCT FROM 'null'::jsonb", block(un, 2))
+        self.assertIn("'{student_publication_allowed}', 'null'::jsonb)", block(re_, 2))
+        self.assertRegex(block(un, 11), r"->'student_publication_allowed' FROM public.answer_key_entries WHERE question_id = q.id\) IS DISTINCT FROM NULL")
+        self.assertIn("raw_model_response - 'student_publication_allowed'", block(re_, 11))
+
+    def test_dollar_in_interpolated_value_rejected(self):
+        rows = {k: dict(v) for k, v in self.rows.items()}
+        rows[uid(2)]["import_flag_reason"] = f"x $kimport_unpublish_{uid(2).replace('-', '')}$; DROP TABLE t; --"
+        with self.assertRaises(ValueError):
+            unpublish_sql(self.gs, rows)
+        with self.assertRaises(ValueError):
+            republish_sql(self.gs, rows)
 
     def test_unpublish_rejects_non_uuid_id(self):
         gs = [dict(self.gs[0], remove=["x'; DROP TABLE t; --"])]

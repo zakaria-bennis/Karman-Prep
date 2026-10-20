@@ -6,10 +6,14 @@ connects to a database; the SQL is text for a human-approved run.
 
 Grouping (live records only, see find_live_duplicates):
   1. copies with the same comparison_key form one exact bucket;
-  2. buckets sharing blocking_key are compared with typo_match;
+  2. buckets sharing blocking_key (everything typo_match requires to be equal)
+     are compared with typo_match;
   3. a bucket joins a group only by matching the group's keeper (no chains).
-Keeper: the copy whose words all appear in the most copies (so a typo copy
-loses to clean copies), ties broken by earliest created_at, then id.
+Keeper: the copy whose differing words are most common across the whole
+export (live or not), so a typo copy loses to the usual spelling; only a real
+tie falls back to earliest created_at, then id.
+Live rows whose correct_answer letter matches no choice are left out of
+grouping and listed as "broken answer key".
 Any group with a figure (figure_kind or figure_table_data set) is reported as
 "figure_review" with nothing to remove: a person checks those by eye.
 """
@@ -21,14 +25,23 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import TypedDict
 
-from kimport.keys import QuestionRecord, answer_value, clean_text, comparison_key
-from kimport.normalize import NORMALIZER_VERSION
+from kimport.keys import (
+    QuestionRecord,
+    answer_value,
+    clean_text,
+    comparison_key,
+    figure_value,
+    sorted_choices,
+    table_values,
+)
+from kimport.normalize import NORMALIZER_VERSION, math_tokens, strip_markup
 from kimport.typo import typo_match
 
 PUBLISH_READY = ("publish_ready", "publish_ready_with_verified_repair")
 UNPUBLISHED_STATUS = "needs_human_review"
 UNPUBLISHED_IMPORT = "needs_review"
-BLOCK_CHARS = 40
+FORMATS = {"multiple_choice": "mc", "numeric_entry": "numeric"}
+_WORD = re.compile(r"[^\W_]+")
 _UUID = re.compile(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")
 _FAR_FUTURE = datetime.max.replace(tzinfo=timezone.utc)
 
@@ -105,17 +118,20 @@ def record_from_row(row: dict) -> QuestionRecord:
         "figure_kind": row.get("figure_kind"),
         "answer_problem": False,
     }
-    if choices:
-        fmt = "mc"
+    exported = row.get("question_format")
+    if exported not in FORMATS:
+        raise ValueError(f"{row['id']}: unknown question_format {exported!r}")
+    fmt = FORMATS[exported]
+    if (fmt == "mc") != bool(choices):
+        raise ValueError(f"{row['id']}: question_format {exported} but {len(choices)} choices")
+    if fmt == "mc":
         by_letter = {(c.get("letter") or "").strip().upper(): c.get("choice_text") or "" for c in choice_rows}
         if correct.upper() in by_letter:
             answer = by_letter[correct.upper()]
-        elif is_live:
-            raise ValueError(f"{row['id']}: live question's correct_answer {correct!r} is not one of its choice letters")
-        else:
+        else:  # left out of grouping; listed in the report
             answer, meta["answer_problem"] = "", True
     else:
-        fmt, answer = "numeric", correct
+        answer = correct
     return QuestionRecord(
         ref=row["id"],
         text=row.get("question_text") or "",
@@ -137,7 +153,19 @@ def load_export(path: Path) -> list[QuestionRecord]:
 
 
 def blocking_key(r: QuestionRecord) -> str:
-    return clean_text(r.text)[:BLOCK_CHARS] + "\x1f" + answer_value(r)
+    """Everything typo_match requires to be equal, so blocking loses no pair it would accept."""
+    return json.dumps([
+        r.answer_format,
+        answer_value(r),
+        list(sorted_choices(r)),
+        [list(row) for row in table_values(r)],
+        figure_value(r),
+        list(math_tokens(strip_markup(r.text)[0])),
+    ], ensure_ascii=False)
+
+
+def _bare_words(r: QuestionRecord) -> frozenset[str]:
+    return frozenset(_WORD.findall(clean_text(r.text)))
 
 
 def _created(r: QuestionRecord) -> datetime:
@@ -152,16 +180,26 @@ def _age(r: QuestionRecord):
     return (_created(r), r.ref)
 
 
-def _keeper(copies: list[QuestionRecord]) -> QuestionRecord:
-    """The copy whose rarest word appears in the most copies; then the oldest."""
-    words = {c.ref: set(clean_text(c.text).split()) for c in copies}
-    counts = Counter(w for ws in words.values() for w in ws)
-    score = {ref: min((counts[w] for w in ws), default=0) for ref, ws in words.items()}
-    return min(copies, key=lambda c: (-score[c.ref], _age(c)))
+def _keeper(cands: list[list[QuestionRecord]], words_of, doc_freq) -> QuestionRecord:
+    """Oldest copy of the bucket whose differing words are most common in the export.
+
+    A bucket's spot words are its words missing from some other candidate. Its
+    score is how many exported texts hold its rarest spot word, so a typo word
+    (found almost nowhere) loses to the usual spelling. Equal scores are a real
+    tie and go to the oldest copy.
+    """
+    sets = [words_of(b[0]) for b in cands]
+    common = frozenset.intersection(*sets)
+    score = [min((doc_freq[w] for w in ws - common), default=float("inf")) for ws in sets]
+    best = min(range(len(cands)), key=lambda i: (-score[i], _age(cands[i][0])))
+    return cands[best][0]
 
 
 def find_live_duplicates(records) -> list[DuplicateGroup]:
-    live = sorted((r for r in records if r.is_live), key=_age)
+    """Groups of live copies. `records` should be the whole export: non-live rows
+    count as word evidence for picking the keeper but are never grouped."""
+    records = list(records)
+    live = sorted((r for r in records if r.is_live and not r.meta.get("answer_problem")), key=_age)
     key_of = {r.ref: comparison_key(r) for r in live}  # normalizing is the slow part: once per record
     buckets: dict[str, list[QuestionRecord]] = {}
     for r in live:
@@ -179,6 +217,20 @@ def find_live_duplicates(records) -> list[DuplicateGroup]:
             cache[(k1, k2)] = typo_match(buckets[k1][0], buckets[k2][0])
         return cache[(k1, k2)]
 
+    words: dict[str, frozenset[str]] = {}
+
+    def words_of(r: QuestionRecord) -> frozenset[str]:
+        if r.ref not in words:
+            words[r.ref] = _bare_words(r)
+        return words[r.ref]
+
+    freq: list[Counter] = []
+
+    def doc_freq() -> Counter:  # built only when a typo candidate first appears
+        if not freq:
+            freq.append(Counter(w for r in records for w in words_of(r)))
+        return freq[0]
+
     done: set[str] = set()
     groups: list[dict] = []
     i = 0
@@ -187,19 +239,26 @@ def find_live_duplicates(records) -> list[DuplicateGroup]:
         if first in done:
             i += 1
             continue
-        peers = [k for k in by_block[block_of[first]] if k != first and k not in done]
-        cands = [first] + [k for k in peers if typo(first, k).same]
+        pending = [k for k in by_block[block_of[first]] if k != first and k not in done]
+        cands = [first] + [k for k in pending if typo(first, k).same]
         if len(cands) == 1:
             keep, kkey, members = buckets[first][0], first, cands
         else:
-            keep = _keeper([c for k in cands for c in buckets[k]])
+            keep = _keeper([buckets[k] for k in cands], words_of, doc_freq())
             kkey = key_of[keep.ref]
-            members = [k for k in cands if k == kkey or typo(kkey, k).same]
-        done.update(members)  # always holds kkey, so the loop makes progress
+            # Recompute from the keeper: a bucket may match it but not `first`.
+            members = [kkey] + [k for k in by_block[block_of[kkey]]
+                                if k != kkey and k not in done and typo(kkey, k).same]
+        done.update(members)  # always holds kkey; `first` stays pending if it missed the keeper
         copies = sorted((c for k in members for c in buckets[k]), key=_age)
         if len(copies) > 1:
             groups.append(_group(keep, kkey, copies, key_of, typo))
     return [_strip(g) for g in sorted(groups, key=lambda g: g["_age"])]
+
+
+def broken_answer_keys(records) -> list[str]:
+    """Live rows whose correct_answer letter matches none of their choices."""
+    return [r.ref for r in sorted((r for r in records if r.is_live and r.meta.get("answer_problem")), key=_age)]
 
 
 def _group(keep: QuestionRecord, kkey: str, copies: list[QuestionRecord], key_of: dict, typo) -> dict:
@@ -249,16 +308,30 @@ def lit(v) -> str:
     s = str(v)
     if "\x00" in s:
         raise ValueError("NUL byte in SQL value")
+    if "$" in s:  # could close the DO block's dollar quote
+        raise ValueError(f"'$' in a value placed inside a DO block: {s[:60]!r}")
     return "'" + s.replace("'", "''") + "'"
+
+
+_MISSING = object()  # flag key absent (or no key object): `->` gives SQL NULL
 
 
 def _flag(row: dict):
     raw = row.get("raw_model_response")
-    return raw.get("student_publication_allowed") if isinstance(raw, dict) else None
+    if isinstance(raw, dict) and "student_publication_allowed" in raw:
+        return raw["student_publication_allowed"]
+    return _MISSING
 
 
 def _jsonb(v) -> str:
-    return "NULL" if v is None else lit(json.dumps(v)) + "::jsonb"
+    """Exact jsonb value; a JSON null stays 'null'::jsonb, a missing key is SQL NULL."""
+    return "NULL" if v is _MISSING else lit(json.dumps(v)) + "::jsonb"
+
+
+def _do_block(tag: str, body: list[str]) -> list[str]:
+    if f"${tag}$" in "\n".join(body):
+        raise ValueError(f"dollar-quote tag {tag} appears inside its own block")
+    return [f"DO ${tag}$", *body, f"END ${tag}$;", ""]
 
 
 def _reason(keep: str) -> str:
@@ -292,6 +365,9 @@ def _key_guard(row: dict, flag) -> list[str]:
     ]
 
 
+_LOCK_KEYS = " PERFORM 1 FROM public.answer_key_entries WHERE question_id = q.id FOR UPDATE;"
+
+
 def _header(title: str, n: int) -> list[str]:
     return [
         f"-- kimport sweep: {title} ({n} rows). Normalizer {NORMALIZER_VERSION}.",
@@ -308,18 +384,18 @@ def unpublish_sql(groups, export_by_id: dict[str, dict]) -> str:
     ready = ", ".join(lit(s) for s in PUBLISH_READY)
     for rid, keep, row in plan:
         tag = "kimport_unpublish_" + rid.replace("-", "")
-        flag = _flag(row)
-        out += [
-            f"DO ${tag}$",
+        body = [
             "DECLARE q public.quiz_questions%rowtype; keeper public.quiz_questions%rowtype;",
             "BEGIN",
             f" SELECT * INTO STRICT q FROM public.quiz_questions WHERE id = '{rid}'::uuid FOR UPDATE;",
+            _LOCK_KEYS,
             f" IF q.publish_status IS DISTINCT FROM {lit(row.get('publish_status'))}",
             f"   OR q.import_status IS DISTINCT FROM {lit(row.get('import_status'))}",
+            f"   OR q.import_flag_reason IS DISTINCT FROM {lit(row.get('import_flag_reason'))}",
             "   OR q.is_live IS DISTINCT FROM true",
             f"   OR q.content_hash_v2 IS DISTINCT FROM {lit(row.get('content_hash_v2'))}",
             f"   OR coalesce(q.publish_status, '') NOT IN ({ready})",
-            *_key_guard(row, flag),
+            *_key_guard(row, _flag(row)),
             " THEN RAISE EXCEPTION 'published state changed: %', q.id; END IF;",
             f" SELECT * INTO STRICT keeper FROM public.quiz_questions WHERE id = '{keep}'::uuid FOR SHARE;",
             f" IF keeper.is_live IS DISTINCT FROM true OR coalesce(keeper.publish_status, '') NOT IN ({ready})",
@@ -328,9 +404,9 @@ def unpublish_sql(groups, export_by_id: dict[str, dict]) -> str:
             f" publish_status = {lit(UNPUBLISHED_STATUS)}, import_flag_reason = {lit(_reason(keep))} WHERE id = q.id;",
         ]
         if isinstance(row.get("raw_model_response"), dict):
-            out.append(" UPDATE public.answer_key_entries SET raw_model_response = jsonb_set(raw_model_response,"
-                       " '{student_publication_allowed}', 'false'::jsonb) WHERE question_id = q.id;")
-        out += [f"END ${tag}$;", ""]
+            body.append(" UPDATE public.answer_key_entries SET raw_model_response = jsonb_set(raw_model_response,"
+                        " '{student_publication_allowed}', 'false'::jsonb) WHERE question_id = q.id;")
+        out += _do_block(tag, body)
     return "\n".join(out + ["COMMIT;", ""])
 
 
@@ -341,11 +417,11 @@ def republish_sql(groups, export_by_id: dict[str, dict]) -> str:
         tag = "kimport_republish_" + rid.replace("-", "")
         has_key = isinstance(row.get("raw_model_response"), dict)
         flag = _flag(row)
-        out += [
-            f"DO ${tag}$",
+        body = [
             "DECLARE q public.quiz_questions%rowtype;",
             "BEGIN",
             f" SELECT * INTO STRICT q FROM public.quiz_questions WHERE id = '{rid}'::uuid FOR UPDATE;",
+            _LOCK_KEYS,
             f" IF q.publish_status IS DISTINCT FROM {lit(UNPUBLISHED_STATUS)}",
             f"   OR q.import_status IS DISTINCT FROM {lit(UNPUBLISHED_IMPORT)}",
             f"   OR q.import_flag_reason IS DISTINCT FROM {lit(_reason(keep))}",
@@ -359,10 +435,10 @@ def republish_sql(groups, export_by_id: dict[str, dict]) -> str:
             f" import_flag_reason = {lit(row.get('import_flag_reason'))} WHERE id = q.id;",
         ]
         if has_key:
-            restore = ("raw_model_response - 'student_publication_allowed'" if flag is None else
+            restore = ("raw_model_response - 'student_publication_allowed'" if flag is _MISSING else
                        f"jsonb_set(raw_model_response, '{{student_publication_allowed}}', {_jsonb(flag)})")
-            out.append(f" UPDATE public.answer_key_entries SET raw_model_response = {restore} WHERE question_id = q.id;")
-        out += [f"END ${tag}$;", ""]
+            body.append(f" UPDATE public.answer_key_entries SET raw_model_response = {restore} WHERE question_id = q.id;")
+        out += _do_block(tag, body)
     return "\n".join(out + ["COMMIT;", ""])
 
 
@@ -380,7 +456,7 @@ def _stem(row: dict | None) -> str:
     return text[:80].replace("|", "/").replace("`", "'")
 
 
-def report_md(groups, rows: dict[str, dict], live_count: int) -> str:
+def report_md(groups, rows: dict[str, dict], live_count: int, broken: list[str] = ()) -> str:
     rel = Counter(g["relation"] for g in groups)
     removed = sum(len(g["remove"]) for g in groups)
     lines = [
@@ -404,6 +480,12 @@ def report_md(groups, rows: dict[str, dict], live_count: int) -> str:
                      f"\"{_stem(rows.get(g['keep']))}\"")
     if not groups:
         lines.append("No duplicates found.")
+    if broken:
+        lines += ["", "## Broken answer key", "",
+                  f"{len(broken)} live questions have a correct answer letter that matches none of their choices. "
+                  "They were left out of the duplicate check and need fixing by hand.", ""]
+        lines += [f"- `{rid}` (answer letter {(rows.get(rid) or {}).get('correct_answer')!r}). "
+                  f"\"{_stem(rows.get(rid))}\"" for rid in broken]
     return "\n".join(lines) + "\n"
 
 
@@ -412,15 +494,16 @@ def run_sweep(export_path: Path, out_dir: Path) -> dict:
     records = [record_from_row(r) for r in rows]
     by_id = export_by_id(rows)
     groups = find_live_duplicates(records)
+    broken = broken_answer_keys(records)
     live_count = sum(r.is_live for r in records)
     unpublish, republish = unpublish_sql(groups, by_id), republish_sql(groups, by_id)
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     doc = {"normalizer_version": NORMALIZER_VERSION, "export_rows": len(rows), "live_rows": live_count,
-           "groups": groups}
+           "groups": groups, "broken_answer_key": broken}
     (out_dir / "groups.json").write_text(json.dumps(doc, indent=2, ensure_ascii=False, sort_keys=True) + "\n",
                                          encoding="utf-8")
-    (out_dir / "report.md").write_text(report_md(groups, by_id, live_count), encoding="utf-8")
+    (out_dir / "report.md").write_text(report_md(groups, by_id, live_count, broken), encoding="utf-8")
     (out_dir / "unpublish.sql").write_text(unpublish, encoding="utf-8")
     (out_dir / "republish.sql").write_text(republish, encoding="utf-8")
     return {"groups": len(groups), "remove": sum(len(g["remove"]) for g in groups), "live": live_count}
