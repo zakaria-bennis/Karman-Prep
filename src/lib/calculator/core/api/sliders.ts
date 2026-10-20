@@ -14,7 +14,7 @@ import {
   type SliderSettings,
 } from "../../sliders/model";
 import { plainDecimal } from "../../sliders/numbers";
-import { keyMove, type KeyMove } from "../../sliders/range";
+import { keyMove, snap, type KeyMove } from "../../sliders/range";
 import {
   describeSlider,
   sliderTarget,
@@ -93,6 +93,54 @@ const NONE: HistoryStep = { kind: "none" };
 
 function viewOf(host: SliderHost, id: string): SliderView | null {
   return host.getSnapshot().rows.find((r) => r.id === id)?.slider ?? null;
+}
+
+/**
+ * SLIDERS-22: a latex edit to row `id` (`commit` stores it). When a person typed a slider value
+ * past a hard limit, that limit goes back to soft (−10 or 10); when the value is off the step, the
+ * step is cleared, so the row then shows and uses what was typed. The change joins the edit's
+ * history step. A row that was not a slider just before the edit (`a=`, `a=-`) has nothing to
+ * loosen: the reference checks against the row's previous evaluation (typing `-` then `3` keeps a
+ * hard min of 0, and the row shows 0).
+ */
+export function editSliderLatex(
+  host: SliderHost,
+  id: string,
+  step: HistoryStep,
+  typed: boolean,
+  commit: () => void
+): void {
+  const before = viewOf(host, id);
+  commit();
+  const view = viewOf(host, id);
+  if (!typed || view === null || view.error !== null || before === null || before.error !== null)
+    return;
+  const t = view.typed;
+  const { range } = before; // the limits and step as last evaluated, before this edit
+  const belowMin = range.hardMin && t < range.min;
+  const aboveMax = range.hardMax && t > range.max;
+  const offStep =
+    range.step > 0 &&
+    snap({
+      target: t,
+      step: range.step,
+      hardMin: range.hardMin && !belowMin ? range.min : undefined,
+      hardMax: range.hardMax && !aboveMax ? range.max : undefined,
+    }) !== t;
+  if (!belowMin && !aboveMax && !offStep) return;
+  edit(
+    host,
+    id,
+    (_row, s) => ({
+      slider: {
+        ...s,
+        ...(belowMin && { hardMin: false, min: "-10" }),
+        ...(aboveMax && { hardMax: false, max: "10" }),
+        ...(offStep && { step: "" }),
+      },
+    }),
+    step.kind === "group" ? step : NONE // a typing group takes it in; otherwise the edit's step
+  );
 }
 
 /** One row changed by `change` (latex and settings), as one history step of `step`. */
@@ -185,9 +233,10 @@ export function pauseSlider(host: SliderHost, id: string): void {
 
 /**
  * SLIDERS-29, SLIDERS-31: Play or Pause. Play saves the soft limits; Play once at its end
- * restarts from min.
+ * restarts from min. `now` (the frame clock's ms, as performance.now()) starts the animation's
+ * clock at the press, so the first frame already moves by the time since it.
  */
-export function togglePlay(host: SliderHost, id: string): void {
+export function togglePlay(host: SliderHost, id: string, now?: number): void {
   const view = viewOf(host, id);
   if (view === null) return;
   const { settings, range } = view;
@@ -196,7 +245,7 @@ export function togglePlay(host: SliderHost, id: string): void {
     edit(host, id, (_row, s) => ({ slider: { ...s, isPlaying: false } }), STEP);
     return;
   }
-  playersOf(host).set(id, { target: done ? range.min : view.value, last: null });
+  playersOf(host).set(id, { target: done ? range.min : view.value, last: now ?? null });
   edit(
     host,
     id,
@@ -285,7 +334,8 @@ export function tickSliders(host: SliderHost, now: number): boolean {
     const player = state.get(row.id) ?? { target: view.value, last: null };
     state.set(row.id, player);
     const elapsed = player.last === null ? 0 : now - player.last;
-    player.last = now;
+    // A frame stamped before the press (its clock starts at the frame) waits for the next one.
+    if (player.last === null || elapsed > 0) player.last = now;
     if (elapsed <= 0) continue;
     const frame = advance({
       range,

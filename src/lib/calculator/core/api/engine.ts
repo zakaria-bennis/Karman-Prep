@@ -35,7 +35,7 @@ import { HelperRegistry, type HelperExpression } from "./helper-expression";
 import { ResultInbox, sentRows } from "./inbox";
 import { EngineObservers } from "./observers";
 import { buildRowView, latestValues, snapshotAnalysis, type EngineSnapshot } from "./results";
-import { analyzeDocument, type DocumentAnalysis } from "./sliders";
+import { analyzeDocument, editSliderLatex, type DocumentAnalysis } from "./sliders";
 import {
   acceptView,
   blankSettings,
@@ -334,7 +334,8 @@ export class CalculatorEngine {
       source === "typing" || source === "keypad"
         ? { kind: "group", rowId: id, at: this.deps.now() }
         : STEP;
-    this.commitRows(this.withRow(id, { latex }), step, true);
+    const commit = () => this.commitRows(this.withRow(id, { latex }), step, true);
+    editSliderLatex(this, id, step, source !== "api", commit); // SLIDERS-22: typing loosens limits
     return null;
   }
 

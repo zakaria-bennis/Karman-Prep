@@ -10,7 +10,7 @@ import {
   speedText,
   type SliderSettings,
 } from "./model";
-import { describeSlider, sliderTarget, withSliderValue } from "./slider";
+import { describeSlider, sliderTarget, spokenName, withSliderValue } from "./slider";
 
 const SETTINGS = { angleMode: "radians", complex: false } as const;
 const target = (latex: string) => {
@@ -101,9 +101,33 @@ describe("describeSlider", () => {
     expect(view("a=1", { hardMin: true, min: "1", hardMax: true, max: "1" }).disabled).toBe(true);
   });
 
+  it("reads a limit on the slider's own name beside an undefined name as Too many variables (Desmos)", () => {
+    // Live reference 2026-10-19: min a, max b+c names b then c, in source order, with chips.
+    expect(view("a=1", { hardMin: true, min: "a", hardMax: true, max: "b+c" })).toMatchObject({
+      error: "Too many variables. Try defining 'b' or 'c'.",
+      limitNames: ["b", "c"],
+    });
+    expect(view("a=1", { hardMin: true, min: "a+b" }).error).toBe(
+      "Too many variables. Try defining 'b'."
+    );
+    expect(view("a=1", { hardMin: true, min: "b", step: "a" }).limitNames).toEqual(["b"]);
+  });
+
   it("lets limits use other sliders' values", () => {
     const v = view("a=1", { hardMax: true, max: "b" }, new Map([["b", 4]]));
     expect([v.error, v.range.max]).toEqual([null, 4]);
+  });
+});
+
+describe("spokenName (SLIDERS-25, SLIDERS-29)", () => {
+  it.each([
+    ["a", "a"],
+    ["a_{1}", "a_1"],
+    ["A_{bc}", "A_bc"],
+    ["\\alpha", "alpha"],
+    ["\\alpha_{2}", "alpha_2"],
+  ])("%s is spoken %s", (name, spoken) => {
+    expect(spokenName(name)).toBe(spoken);
   });
 });
 

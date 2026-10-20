@@ -2,7 +2,8 @@
 // rows have their colour icon, and under it the loop-mode button that opens the options popover.
 // A click toggles playback; Shift+click, a long press, a right-click or Shift+F10 on the Play
 // button opens the popover instead. Both buttons carry real aria-labels: "Play a Animation" /
-// "Pause a Animation", and the current mode's name ("Loop forwards and backwards").
+// "Pause a Animation", and the current mode's name ("Loop forwards and backwards"). Play is the
+// row's last tab stop; the mode button is reached by pointer or from Play's menu keys.
 
 import { useRef, useState, type JSX, type RefObject } from "react";
 import { togglePlay } from "@/lib/calculator/core/api/sliders";
@@ -20,6 +21,7 @@ export function SliderGutter(props: {
   name: string; // display name ("a", "a_1")
   slider: SliderView;
   playRef?: RefObject<HTMLButtonElement>;
+  onTabOut?(direction: "forward" | "back"): void; // SLIDERS-25: Tab and Shift+Tab from Play
 }): JSX.Element {
   const { rowId, name, slider } = props;
   const engine = useEngine();
@@ -36,7 +38,7 @@ export function SliderGutter(props: {
 
   const toggle = () => {
     const done = playOnceDone(settings.loopMode, slider.value, slider.range);
-    togglePlay(engine, rowId);
+    togglePlay(engine, rowId, performance.now());
     announcer.announce(
       playing && !done ? `${name} paused` : done ? `${name} restarted` : `${name} playing`
     );
@@ -59,6 +61,14 @@ export function SliderGutter(props: {
         }}
         onMouseDown={(e) => e.preventDefault()}
         {...menu.trigger}
+        onKeyDown={(e) => {
+          if (e.key === "Tab" && props.onTabOut !== undefined) {
+            e.preventDefault();
+            props.onTabOut(e.shiftKey ? "back" : "forward");
+            return;
+          }
+          menu.trigger.onKeyDown(e);
+        }}
       >
         <span className="kc-slider-play-ring" aria-hidden="true">
           {showPause ? <PauseGlyph size={10.4} /> : <PlayGlyph size={10.4} />}
@@ -68,6 +78,7 @@ export function SliderGutter(props: {
         type="button"
         ref={opener}
         className="kc-slider-mode"
+        tabIndex={-1} // not a tab stop, as the reference; Shift+Enter or Shift+F10 on Play opens it
         aria-label={LOOP_MODE_LABELS[settings.loopMode]}
         aria-haspopup="dialog"
         aria-expanded={menuFrom !== null}
@@ -85,7 +96,7 @@ export function SliderGutter(props: {
           opener={opener}
           onClose={(refocus) => {
             setMenuFrom(null);
-            if (refocus) opener.current?.focus();
+            if (refocus) play.current?.focus(); // SLIDERS-34: Escape returns to the Play button
           }}
         />
       )}

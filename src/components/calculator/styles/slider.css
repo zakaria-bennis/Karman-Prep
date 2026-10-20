@@ -191,8 +191,9 @@
   box-shadow: 0 0 0 2px var(--kc-focus-ring);
 }
 
-.kc-slider[data-disabled="true"] .kc-slider-thumb {
-  display: none;
+/* SLIDERS-14: with min = max the thumb has no position and rests at the track's left end. */
+.kc-slider[data-disabled="true"] .kc-slider-interior {
+  cursor: default;
 }
 
 /* SLIDERS-15: [min] ≤ a ≤ [max]  Step: [step], from the math's left edge. */

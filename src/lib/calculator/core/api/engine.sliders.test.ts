@@ -147,3 +147,38 @@ it("SLIDERS-31, SLIDERS-33 Play indefinitely clears the limits; speed steps the 
   for (let k = 0; k < 20; k++) changeSpeed(e, "a", 1);
   expect(expression("a").slider?.animationPeriod).toBe(200);
 });
+
+it("SLIDERS-22 typing a value past a hard limit or off the step makes it soft (Desmos)", () => {
+  e.setExpression({ id: "a", latex: "a=1", sliderBounds: { min: "0", max: "10", step: "" } });
+  e.editRow("a", "a=15", "typing");
+  expect(row("a").slider).toMatchObject({ value: 15, range: { min: 0, max: 15 } });
+  expect(expression("a").slider).toEqual({ hardMin: true, min: "0" });
+  e.undo(); // one typing step: the hard max comes back with the old value
+  expect(expression("a")).toMatchObject({ latex: "a=1", slider: { hardMax: true } });
+  e.editRow("a", "a=-3", "typing");
+  expect(expression("a").slider).toEqual({ hardMax: true });
+  e.setExpression({ id: "a", latex: "a=1", sliderBounds: { min: "0", max: "10", step: "0.5" } });
+  e.editRow("a", "a=1.2", "typing");
+  expect(expression("a").slider).toEqual({ hardMin: true, min: "0", hardMax: true });
+  // An API write keeps the limits and shows the snapped value.
+  e.setExpression({ id: "a", latex: "a=15", sliderBounds: { min: "0", max: "10", step: "" } });
+  expect(row("a").slider).toMatchObject({ typed: 15, value: 10 });
+  expect(sentLatex("a")).toBe("a=10");
+  // A row that was not a slider before the edit has no step to clear: a=3 on step 2 shows 4.
+  e.setExpression({ id: "a", latex: "a=", sliderBounds: { min: "0", max: "10", step: "2" } });
+  e.editRow("a", "a=3", "typing");
+  expect(row("a").slider).toMatchObject({ value: 4, settings: { step: "2" } });
+  e.setExpression({ id: "a", latex: "a=1", sliderBounds: { min: "0", max: "10", step: "" } });
+  e.editRow("a", "a=-", "typing"); // not a slider: typing on to a=-3 keeps the hard min
+  e.editRow("a", "a=-3", "typing");
+  expect(row("a").slider).toMatchObject({ value: 0, settings: { hardMin: true } });
+});
+
+it("SLIDERS-30 Play starts the clock at the press, so the first frame already moves", () => {
+  e.setExpression({ id: "a", latex: "a=0" });
+  togglePlay(e, "a", 1000);
+  tickSliders(e, 999); // a frame stamped before the press waits
+  expect(expression("a").latex).toBe("a=0");
+  tickSliders(e, 1000 + 1000 / 30);
+  expect(row("a").slider!.value).toBeCloseTo(1 / 6, 1);
+});

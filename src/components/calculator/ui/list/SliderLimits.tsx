@@ -3,7 +3,8 @@
 // only) in Play indefinitely mode. The min and max fields are empty unless that limit was typed;
 // typing one makes it hard and clearing it makes it soft again. Enter or Escape closes the editor
 // onto the thumb (only while every limit is valid); Right at the end of a field moves to the next,
-// Left at the start to the previous; Up goes to the row's math and Down to the next row.
+// Left at the start to the previous; Up goes to the row's math and Down to the next row. Tab past
+// the last field and Shift+Tab before the first leave the editor (SLIDERS-25).
 
 import { useContext, useLayoutEffect, useRef, type JSX } from "react";
 import { setSliderLimit, type LimitField } from "@/lib/calculator/core/api/sliders";
@@ -26,9 +27,11 @@ export interface SliderLimitsProps {
   invalid: Readonly<Record<LimitField, boolean>>;
   valid: boolean; // every limit valid: Enter and Escape may close the editor
   autoFocus: LimitField | null;
+  autoFocusKey: number; // a new key focuses autoFocus again
   onFocusChange(focused: boolean): void;
   onDone(): void; // Enter or Escape: close onto the thumb
   onLeave(direction: "up" | "down"): void;
+  onTabOut(direction: "forward" | "back"): void; // Tab from the last field, Shift+Tab from the first
 }
 
 function LimitField(props: {
@@ -111,7 +114,7 @@ export function SliderLimits(props: SliderLimitsProps): JSX.Element {
 
   useLayoutEffect(() => {
     if (props.autoFocus !== null) fields.current.get(props.autoFocus)?.focus();
-  }, [props.autoFocus]);
+  }, [props.autoFocus, props.autoFocusKey]);
 
   const field = (f: LimitField) => (
     <LimitField
@@ -127,6 +130,18 @@ export function SliderLimits(props: SliderLimitsProps): JSX.Element {
     <div
       className="kc-slider-limits"
       onKeyDownCapture={(e) => {
+        if (e.key === "Tab") {
+          // SLIDERS-25: Tab leaves the last field for the thumb, Shift+Tab the first for delete.
+          const field = (e.target as Element).closest<HTMLElement>(".kc-slider-limit")?.dataset
+            .field;
+          const list = orderRef.current;
+          const edge = e.shiftKey ? list[0] : list[list.length - 1];
+          if (field !== edge) return;
+          e.preventDefault();
+          e.stopPropagation();
+          latest.current.onTabOut(e.shiftKey ? "back" : "forward");
+          return;
+        }
         if (e.key !== "Escape" || !latest.current.valid) return;
         e.preventDefault();
         e.stopPropagation();

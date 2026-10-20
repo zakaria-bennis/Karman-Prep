@@ -3,8 +3,9 @@
 // on the track starts a drag from there (a press on the thumb keeps its offset); the value follows
 // the pointer once per frame, as a short number or snapped to the step, and the first write of a
 // drag is its undo step. The thumb is a role="slider" with the arrow, Page and Home/End keys; Up
-// and Down leave for the neighbouring rows, Enter adds a row below, Escape blurs and Tab goes to
-// the row's Play button. A click on either label opens the limits editor at that field.
+// and Down leave for the neighbouring rows, Enter adds a row below, Escape blurs, Tab goes to the
+// row's Play button and Shift+Tab opens the limits editor at Step. A click on either label opens
+// the limits editor at that field; the labels are not tab stops (the row's math opens the editor).
 
 import { useEffect, useRef, type JSX, type KeyboardEvent, type PointerEvent } from "react";
 import { dragSlider, keySlider } from "@/lib/calculator/core/api/sliders";
@@ -36,12 +37,12 @@ export function limitText(n: number): string {
 
 export interface SliderTrackProps {
   rowId: string;
-  name: string; // display name, the thumb's accessible name (SLIDERS-25)
+  name: string; // spoken name; the thumb's accessible name is it in quotes, `"a"` (SLIDERS-25)
   slider: SliderView;
   focusThumb: boolean; // focus the thumb once mounted (Enter or Escape from the limits editor)
   onThumbFocused(): void;
   onEditLimits(field: "min" | "max"): void;
-  onKey(key: "up" | "down" | "enter" | "tab"): void;
+  onKey(key: "up" | "down" | "enter" | "tab" | "back"): void; // back: Shift+Tab
 }
 
 export function SliderTrack(props: SliderTrackProps): JSX.Element {
@@ -128,9 +129,9 @@ export function SliderTrack(props: SliderTrackProps): JSX.Element {
     } else if (e.key === "Escape") {
       e.stopPropagation();
       thumb.current?.blur();
-    } else if (e.key === "Tab" && !e.shiftKey) {
+    } else if (e.key === "Tab") {
       e.preventDefault();
-      props.onKey("tab");
+      props.onKey(e.shiftKey ? "back" : "tab");
     }
   };
 
@@ -141,6 +142,7 @@ export function SliderTrack(props: SliderTrackProps): JSX.Element {
       <button
         type="button"
         className="kc-slider-label kc-slider-min"
+        tabIndex={-1}
         aria-label={`Edit "${props.name}" Limits`}
         onClick={() => props.onEditLimits("min")}
       >
@@ -165,7 +167,7 @@ export function SliderTrack(props: SliderTrackProps): JSX.Element {
           className="kc-slider-thumb"
           role="slider"
           tabIndex={0}
-          aria-label={props.name}
+          aria-label={`"${props.name}"`}
           aria-valuemin={range.min}
           aria-valuemax={range.max}
           aria-valuenow={value}
@@ -180,6 +182,7 @@ export function SliderTrack(props: SliderTrackProps): JSX.Element {
       <button
         type="button"
         className="kc-slider-label kc-slider-max"
+        tabIndex={-1}
         aria-label={`Slider Maximum: ${formatNumber(range.max)}`}
         onClick={() => props.onEditLimits("max")}
       >

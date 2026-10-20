@@ -54,12 +54,13 @@ interface Limit {
   names: string[]; // names no slider defines
 }
 
+/** The names in `tree`, in source order (the order the error message lists them). */
 function namesIn(tree: Node): string[] {
   const out: string[] = [];
   const pending = [tree];
   for (let node = pending.pop(); node !== undefined; node = pending.pop()) {
     if (node.kind === "id" && !out.includes(node.name)) out.push(node.name);
-    pending.push(...sourceChildren(node));
+    pending.push(...[...sourceChildren(node)].reverse());
   }
   return out;
 }
@@ -69,8 +70,8 @@ function evaluateLimit(latex: string, name: string, known: ReadonlyMap<string, n
   const parsed = parseLatex(latex);
   if (!parsed.ok) return { value: NaN, invalid: true, self: false, names: [] };
   const used = namesIn(parsed.tree);
-  if (used.includes(name)) return { value: NaN, invalid: true, self: true, names: [] };
-  const names = used.filter((n) => !known.has(n));
+  const names = used.filter((n) => n !== name && !known.has(n));
+  if (used.includes(name)) return { value: NaN, invalid: true, self: true, names };
   if (names.length > 0 || parsed.tree.kind === "rel") {
     return { value: NaN, invalid: true, self: false, names };
   }
@@ -109,6 +110,24 @@ const MESSAGES: Record<LimitField, string> = {
 };
 const ORDER_MESSAGE = "Invalid slider limits. Min should be less than max.";
 
+/** The analysis's wording for names nothing defines: 'a', 'b' or 'c'. */
+function tooManyVariables(names: string[]): string {
+  if (names.length === 1) return `Too many variables. Try defining '${names[0]}'.`;
+  const last = names[names.length - 1];
+  return `Too many variables. Try defining '${names.slice(0, -1).join("', '")}' or '${last}'.`;
+}
+
+/**
+ * SLIDERS-25, SLIDERS-29: a slider's name as its controls speak it: `\alpha` is alpha and
+ * `a_{1}` is a_1 (the thumb is `"a"`, the Play button "Play alpha Animation").
+ */
+export function spokenName(name: string): string {
+  const match = /^(.*?)_\{(.*)\}$/.exec(name);
+  const [base, subscript] = match === null ? [name, null] : [match[1], match[2]];
+  const letter = base.replace(/^\\/, "");
+  return subscript === null ? letter : `${letter}_${subscript}`;
+}
+
 /**
  * A slider row's view from its target and settings; `known` maps other sliders' names to their
  * values, which limits may use. Limits are checked in the order min, max, step, then min > max.
@@ -132,7 +151,14 @@ export function describeSlider(
   const hi = hardMax ?? softMax(parseFloat(settings.max), typed, hardMin, step || 0);
   let error: string | null = null;
   const self = [min, max, stepLimit].some((l) => l.self);
-  if (self) error = `Slider limits cannot depend on the slider variable '${displayName(name)}'.`;
+  const limitNames = [...min.names, ...max.names, ...stepLimit.names].filter(
+    (n, i, all) => all.indexOf(n) === i
+  );
+  // A limit on the slider's own name next to a name nothing defines reads as the analysis's
+  // "Too many variables" for the undefined names (Desmos, 2026-10-19: min b, max a).
+  if (self && limitNames.length > 0) error = tooManyVariables(limitNames.map(displayName));
+  else if (self)
+    error = `Slider limits cannot depend on the slider variable '${displayName(name)}'.`;
   else if (min.invalid) error = MESSAGES.min;
   else if (max.invalid) error = MESSAGES.max;
   else if (stepLimit.invalid) error = MESSAGES.step;
@@ -150,9 +176,6 @@ export function describeSlider(
   };
   const value =
     error === null ? snap({ target: typed, hardMin, hardMax, step: range.step }) : typed;
-  const limitNames = [...min.names, ...max.names, ...stepLimit.names].filter(
-    (n, i, all) => all.indexOf(n) === i
-  );
   return {
     name,
     typed,
