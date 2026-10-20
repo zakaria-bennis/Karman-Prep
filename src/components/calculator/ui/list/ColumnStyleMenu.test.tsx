@@ -33,7 +33,7 @@ it("D-12 activating the column icon toggles its points and the icon shows an out
   await userEvent.setup().click(icon());
   expect(column(kit).hidden).toBe(true);
   expect(icon()).toHaveAttribute("aria-pressed", "false");
-  expect(icon().querySelector("svg")).toHaveAttribute("data-hidden", "true");
+  expect(icon().querySelector("svg")).toBeNull(); // RT-8: an empty ring, drawn by the stylesheet
   expect(screen.queryByRole("button", { name: "Points for x₁" })).toBeNull(); // the first column has none
 });
 

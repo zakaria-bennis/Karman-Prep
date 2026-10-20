@@ -6,11 +6,22 @@
 // removes the table through row-actions (D-16). A cell or header that cannot evaluate shows the
 // warning marker at its left, with the message in a tooltip, and its field is aria-invalid (D-6, D-10).
 
-import { useContext, useLayoutEffect, useRef, useState, type FocusEvent, type JSX } from "react";
+import {
+  useContext,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type FocusEvent,
+  type JSX,
+} from "react";
 import type { RowView } from "@/lib/calculator/core/api/engine";
 import { MAX_TABLE_COLUMNS, MAX_TABLE_ROWS } from "@/lib/calculator/core/api/document";
 import { fitPoints } from "@/lib/calculator/core/data/fit-view";
-import { insertRegressionBelow } from "@/lib/calculator/core/api/row-commands";
+import {
+  addTableRegression,
+  regressionEligibility,
+} from "@/lib/calculator/core/api/table-regression-commands";
 import { AddGlyph, RegressionGlyph, RemoveGlyph, ZoomFitGlyph } from "../../icons/list";
 import { useAnnouncer } from "../a11y/announcer";
 import { cellKey, FocusContext } from "../focus/focus-controller";
@@ -21,6 +32,7 @@ import { deleteRowByControl } from "./row-actions";
 import type { RowMotion } from "./row-presence";
 import { addTableRow, cellKeys, deleteTableRowByControl, type TableKeyContext } from "./table-keys";
 import { TableCell } from "./TableCell";
+import { TableRegression } from "./TableRegression";
 import {
   cellErrorId,
   cellName,
@@ -39,6 +51,12 @@ export interface TableItemProps {
   onExitDone(rowId: string): void;
   onTouchFocus(rowId: string): void; // K-2
 }
+
+/** RT-6: the reference's widths for short values: 70 px first, 81 px later (room for the colour
+ * icon), 60 px for the blank header slot. */
+const columnWidth = (k: number | null): CSSProperties => ({
+  flexBasis: k === null ? "60px" : k === 0 ? "70px" : "81px",
+});
 
 export function TableItem(props: TableItemProps): JSX.Element {
   const { row, number, keypadOpen, motion } = props;
@@ -67,11 +85,18 @@ export function TableItem(props: TableItemProps): JSX.Element {
   const headers = columns.map((c, k) => headerName(c.latex, k));
   const computed = (k: number) => analysis[k]?.role === "computed";
   const slot = inside && columns.length < MAX_TABLE_COLUMNS;
-  // D-3, K-8: one tap to a linear regression of `column` against the first column, focused.
-  const addRegression = (column: number) => {
-    const made = insertRegressionBelow(engine, row.id, column);
-    if (made !== null && typeof made !== "string") focus.focusRow(made.id, "end");
+  // RT-28: Add Regression adds a Linear table regression and focuses its model dropdown.
+  const eligibility = regressionEligibility(row);
+  const addRegression = (column?: number) => {
+    if (!addTableRegression(engine, row.id, column)) return;
+    requestAnimationFrame(() =>
+      gridRef.current
+        ?.closest(".kc-table-item")
+        ?.querySelector<HTMLElement>(".kc-tr-model .kc-tr-select-button")
+        ?.focus()
+    );
   };
+  const regression = row.table?.analysis.regression ?? undefined;
   // D-16: the plotted points' fitted view, null while nothing is plotted.
   const plotted = geometry.get(row.id);
   const fit = plotted?.kind === "table" ? fitPoints(plotted.series.map((s) => s.coords)) : null;
@@ -92,6 +117,7 @@ export function TableItem(props: TableItemProps): JSX.Element {
           key={k}
           role="gridcell"
           className="kc-table-cell"
+          style={columnWidth(k)}
           data-computed="true"
           aria-readonly="true"
           aria-label={computedCellName(headers[k], r, value)}
@@ -103,7 +129,7 @@ export function TableItem(props: TableItemProps): JSX.Element {
     const error = analysis[k]?.cellErrors[r] ?? null;
     const errorId = error === null ? null : cellErrorId(row.id, k, r);
     return (
-      <div key={k} role="gridcell" className="kc-table-cell">
+      <div key={k} role="gridcell" className="kc-table-cell" style={columnWidth(k)}>
         {error !== null && <ErrorMarker id={errorId!} message={error.message} variant="cell" />}
         <TableCell
           tableId={row.id}
@@ -133,6 +159,38 @@ export function TableItem(props: TableItemProps): JSX.Element {
       <div className="kc-row-inner">
         <div className="kc-row-gutter">
           <span className="kc-row-number">{exiting ? null : number}</span>
+          {/* RT-8, RT-28: the table's actions sit at the foot of its gutter, as the reference's do. */}
+          <div className="kc-table-actions">
+            <button
+              type="button"
+              className="kc-table-add-row"
+              aria-label={`Add row to table ${number}`}
+              aria-disabled={rows >= MAX_TABLE_ROWS ? "true" : undefined}
+              onClick={() => addTableRow(keyContext)}
+            >
+              <AddGlyph size={14} />
+            </button>
+            <button
+              type="button"
+              className="kc-table-add-row"
+              aria-label={`Zoom to fit table ${number}`}
+              aria-disabled={fit === null ? "true" : undefined}
+              onClick={() => fit !== null && engine.setMathBounds(fit)}
+            >
+              <ZoomFitGlyph size={14} />
+            </button>
+            {eligibility.canAdd && (
+              <button
+                type="button"
+                className="kc-table-add-row"
+                aria-label="Add Regression"
+                title="Add Regression"
+                onClick={() => addRegression()}
+              >
+                <RegressionGlyph size={14} />
+              </button>
+            )}
+          </div>
         </div>
         <div className="kc-row-main">
           <div
@@ -149,7 +207,12 @@ export function TableItem(props: TableItemProps): JSX.Element {
                 const error = latex === null ? null : (analysis[k]?.error ?? null);
                 const errorId = error === null ? null : cellErrorId(row.id, k, "h");
                 return (
-                  <div key={`h-${k}`} role="columnheader" className="kc-table-cell">
+                  <div
+                    key={`h-${k}`}
+                    role="columnheader"
+                    className="kc-table-cell"
+                    style={columnWidth(latex === null ? null : k)}
+                  >
                     {error !== null && (
                       <ErrorMarker id={errorId!} message={error.message} variant="cell" />
                     )}
@@ -197,33 +260,9 @@ export function TableItem(props: TableItemProps): JSX.Element {
               </div>
             ))}
           </div>
-          <button
-            type="button"
-            className="kc-table-add-row"
-            aria-label={`Add row to table ${number}`}
-            aria-disabled={rows >= MAX_TABLE_ROWS ? "true" : undefined}
-            onClick={() => addTableRow(keyContext)}
-          >
-            <AddGlyph size={14} />
-          </button>
-          <button
-            type="button"
-            className="kc-table-add-row"
-            aria-label={`Zoom to fit table ${number}`}
-            aria-disabled={fit === null ? "true" : undefined}
-            onClick={() => fit !== null && engine.setMathBounds(fit)}
-          >
-            <ZoomFitGlyph size={14} />
-          </button>
-          <button
-            type="button"
-            className="kc-table-add-row"
-            aria-label={`Add regression for table ${number}`}
-            aria-disabled={columns.length < 2 ? "true" : undefined}
-            onClick={() => addRegression(1)}
-          >
-            <RegressionGlyph size={14} />
-          </button>
+          {regression !== undefined && (
+            <TableRegression row={row} stored={{ columns, regression }} />
+          )}
         </div>
         <button
           type="button"

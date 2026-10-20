@@ -45,6 +45,23 @@ const POINT_STYLES = (
   ] as const satisfies readonly (readonly [PointStyle, string])[]
 ).map(([value, label]) => ({ value, label, icon: <PointStyleGlyph style={value} /> }));
 
+/** RT-8: the column icon's white points, five dots scattered across the disc (our own drawing). */
+function PointsClusterGlyph(): JSX.Element {
+  return (
+    <svg viewBox="0 0 29 29" width={29} height={29} aria-hidden="true" focusable="false">
+      {[
+        [9, 12],
+        [15, 8.5],
+        [20, 13],
+        [12.5, 18.5],
+        [18.5, 20],
+      ].map(([cx, cy]) => (
+        <circle key={`${cx}-${cy}`} cx={cx} cy={cy} r={2.2} fill="currentColor" />
+      ))}
+    </svg>
+  );
+}
+
 /** VIS-13: a solid, dashed or dotted stroke across the button (our own drawing). */
 function LineStyleGlyph(props: { style: LineStyle }): JSX.Element {
   const dash = props.style === "dashed" ? "4.5 3" : props.style === "dotted" ? "0.1 4" : undefined;
@@ -160,7 +177,7 @@ export function ColumnStyleMenu(props: ColumnStyleMenuProps): JSX.Element {
         }}
         {...trigger}
       >
-        <PointStyleGlyph style={pointStyle} hidden={stored.hidden} />
+        {!stored.hidden && <PointsClusterGlyph />}
       </button>
       {open &&
         portal(

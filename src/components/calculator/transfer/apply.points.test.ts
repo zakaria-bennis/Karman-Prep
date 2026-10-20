@@ -1,7 +1,6 @@
 import { expect, it } from "vitest";
 import { createTestEngine } from "@/lib/calculator/core/api/__fixtures__/test-engine";
 import type { CalculatorEngine } from "@/lib/calculator/core/api/engine";
-import { insertRegressionBelow } from "@/lib/calculator/core/api/row-commands";
 import type { ExpressionState } from "@/lib/calculator/core/api/types";
 import { fitPoints } from "@/lib/calculator/core/data/fit-view";
 import type { Viewport } from "@/lib/calculator/plot/viewport";
@@ -211,8 +210,7 @@ it("D-18 a transferred table is editable and removed by the per-question reset",
   expect(e.editCell("1", 1, 0, "3", "api")).toBeNull();
   e.deleteTableRow("1", 2);
   expect(e.editHeader("1", 1, "y_{5}", "api")).toBeNull();
-  const regression = insertRegressionBelow(e, "1");
-  expect(regression).toMatchObject({ id: "2" });
+  e.setExpression({ id: "2", latex: "y_{5}\\sim mx_{1}+b" });
   const rows = e.getSnapshot().rows;
   expect(rows[0].columns?.map((c) => [c.latex, ...c.values])).toEqual([
     ["x_{1}", "1", "2"],
