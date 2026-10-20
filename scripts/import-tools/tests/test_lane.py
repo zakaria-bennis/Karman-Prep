@@ -60,7 +60,7 @@ class LaneTests(Base):
         it = self.items()["X"]
         self.assertEqual((it["reason"], it["status"], it["since"], it["detail"], it["attempts"]),
                          ("needs_figure", "open", "t1", "no chart", []))
-        self.assertEqual(list(self.tmp.glob("lane.json.*")), [])
+        self.assertEqual(list(self.tmp.glob("lane.json.tmp*")), [])
 
     def test_two_different_methods_park(self):
         lane.set_aside(self.lane, "X", "no_answer_key", "d", "t0")
@@ -99,6 +99,25 @@ class LaneTests(Base):
         self.assertEqual(it["attempts"][-1]["method"], "set_aside")
         lane.requeue(self.lane, "needs_figure")
         self.assertEqual(self.items()["X"]["status"], "open")
+
+    def test_parked_reason_stays_fixed_when_a_new_reason_arrives(self):
+        lane.set_aside(self.lane, "X", "needs_figure", "d", "t0")
+        lane.record_attempt(self.lane, "X", "m1", False, "t1")
+        lane.record_attempt(self.lane, "X", "m2", False, "t2")
+        lane.set_aside(self.lane, "X", "variant_review", "dup?", "t3")
+        it = self.items()["X"]
+        self.assertEqual((it["reason"], it["status"]), ("needs_figure", "parked"))
+        self.assertTrue(it["attempts"][-1]["detail"].startswith("[reason now variant_review]"))
+        self.assertEqual(lane.requeue(self.lane, "variant_review"), [])
+        self.assertEqual(self.items()["X"]["status"], "parked")
+        self.assertEqual(lane.requeue(self.lane, "needs_figure"), ["X"])
+
+    def test_fail_resolve_fail_starts_a_fresh_count(self):
+        lane.set_aside(self.lane, "X", "needs_figure", "d", "t0")
+        lane.record_attempt(self.lane, "X", "m1", False, "t1")
+        lane.record_attempt(self.lane, "X", "m2", True, "t2")           # resolved
+        self.assertEqual(lane.record_attempt(self.lane, "X", "m3", False, "t3"), "open")   # not parked by m1+m3
+        self.assertEqual(lane.record_attempt(self.lane, "X", "m4", False, "t4"), "parked")
 
     def test_attempt_on_unknown_item_raises(self):
         lane.set_aside(self.lane, "X", "needs_figure", "d", "t0")
@@ -175,42 +194,67 @@ class LaneTests(Base):
         self.assertEqual(s["total"], 0)
 
 
+_HOLDER = """
+import sys, time
+sys.path.insert(0, sys.argv[1])
+from pathlib import Path
+from kimport import lane
+with lane._FileLock(Path(sys.argv[2])):
+    print("held", flush=True)
+    time.sleep(60)
+"""
+
+_WORKER = """
+import sys, os, time
+sys.path.insert(0, sys.argv[1])
+from pathlib import Path
+from kimport import lane
+target, marker = Path(sys.argv[2]), Path(sys.argv[3])
+for _ in range(15):
+    with lane._FileLock(target):
+        n = int(marker.read_text() or 0) if marker.exists() else 0
+        marker.write_text(str(n + 1))        # inside the lock only one process may be here
+        time.sleep(0.002)
+        marker.write_text(str(n))
+        with open(str(marker) + ".log", "a") as f:
+            f.write("ok\\n")
+"""
+
+
 class LockTests(Base):
-    def test_dead_pid_lock_is_broken(self):
-        lock = self.tmp / "lane.json.lock"
-        lock.write_text(json.dumps({"pid": 2 ** 22 + 12345, "host": __import__("socket").gethostname(), "at": "t"}))
-        lane.set_aside(self.lane, "X", "needs_figure", "d", "t")
-        self.assertIn("X", self.items())
-        self.assertFalse(lock.exists())
+    ROOT = str(Path(__file__).resolve().parent.parent)
 
-    def test_old_lock_is_broken(self):
-        import os
-        lock = self.tmp / "lane.json.lock"
-        lock.write_text(json.dumps({"pid": os.getpid(), "host": "other-host", "at": "t"}))
-        os.utime(lock, (1, 1))
-        lane.set_aside(self.lane, "X", "needs_figure", "d", "t")
-        self.assertIn("X", self.items())
+    def test_concurrent_processes_never_overlap(self):
+        marker = self.tmp / "marker"
+        procs = [subprocess.Popen([sys.executable, "-I", "-c", _WORKER, self.ROOT, str(self.lane), str(marker)])
+                 for _ in range(6)]
+        for p in procs:
+            self.assertEqual(p.wait(timeout=60), 0)
+        # every entry saw marker == 0 before incrementing, so the lock was never shared
+        self.assertEqual(marker.read_text(), "0")
+        self.assertEqual((self.tmp / "marker.log").read_text().count("ok"), 90)
 
-    def test_live_fresh_lock_blocks(self):
-        import os
-        lock = self.tmp / "lane.json.lock"
-        lock.write_text(json.dumps({"pid": os.getpid(), "host": __import__("socket").gethostname(), "at": "t"}))
+    def test_killed_holder_lock_is_immediately_acquirable(self):
+        p = subprocess.Popen([sys.executable, "-I", "-c", _HOLDER, self.ROOT, str(self.lane)],
+                             stdout=subprocess.PIPE, text=True)
+        self.assertEqual(p.stdout.readline().strip(), "held")
         old = lane._LOCK_WAIT_SECONDS
         lane._LOCK_WAIT_SECONDS = 0.1
         try:
-            with self.assertRaises(ValueError) as cm:
+            with self.assertRaises(ValueError) as cm:   # live holder blocks
                 lane.set_aside(self.lane, "X", "needs_figure", "d", "t")
+            self.assertIn("in use", str(cm.exception))
+            p.kill()
+            p.wait()
+            lane._LOCK_WAIT_SECONDS = 5
+            lane.set_aside(self.lane, "X", "needs_figure", "d", "t")   # no stale-break needed
         finally:
             lane._LOCK_WAIT_SECONDS = old
-        self.assertIn("lane unlock", str(cm.exception))
-        self.assertTrue(lock.exists())
+        self.assertIn("X", self.items())
 
-    def test_lock_records_pid_host_at_and_unlock_removes(self):
-        with lane._FileLock(self.lane) as lk:
-            info = json.loads(lk.path.read_text())
-            self.assertEqual(set(info), {"pid", "host", "at"})
-            self.assertTrue(lane.unlock(self.lane))
-        self.assertFalse(lane.unlock(self.lane))
+    def test_lockfile_is_persistent(self):
+        lane.set_aside(self.lane, "X", "needs_figure", "d", "t")
+        self.assertTrue((self.tmp / "lane.json.lock").exists())
 
 
 class PromoteTests(Base):
@@ -227,7 +271,7 @@ class PromoteTests(Base):
         by = {m["id"]: m["match"] for m in c["members"]}
         self.assertEqual(by["E_RW_M1_Q02"], "canonical")
         self.assertNotEqual(by["E_RW_M1_Q01"], "canonical")
-        self.assertEqual(list(self.tmp.glob("clusters.json.*")), [])
+        self.assertEqual(list(self.tmp.glob("clusters.json.tmp*")), [])
 
     def test_election_prefers_printed_key(self):
         cl = settled("A_Q01", ["A_Q02", "A_Q03"])
@@ -466,16 +510,12 @@ class LaneCliTests(Base):
         self.assertIn("needs_figure", r.stdout)
         self.assertEqual(self.items()["X"]["status"], "open")
 
-    def test_cli_broken_without_clusters_refused_and_unlock(self):
+    def test_cli_broken_without_clusters_refused(self):
         r = self.run_cli("lane", "set-aside", "--lane", str(self.lane), "--id", "X",
                          "--reason", "broken_or_excluded", "--detail", "d", "--now", "t")
         self.assertEqual(r.returncode, 1)
         self.assertIn("--clusters", r.stderr)
         self.assertFalse(self.lane.exists())
-        (self.tmp / "lane.json.lock").write_text("{}")
-        r = self.run_cli("lane", "unlock", "--path", str(self.lane))
-        self.assertEqual(r.returncode, 0, r.stderr)
-        self.assertFalse((self.tmp / "lane.json.lock").exists())
 
     def test_cli_parked_canonical_promotes_when_clusters_given(self):
         self.put(self.clusters, clusters_doc([settled("2025-10_US_V1_RW_M1_Q01", ["2025-10_US_V1_RW_M1_Q02"])]))

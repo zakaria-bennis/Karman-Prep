@@ -266,7 +266,7 @@ class LintTests(unittest.TestCase):
         self.assertEqual(items["SYN_TEST_Q01"]["since"], "2026-10-20T10:00:00Z")
         self.assertEqual(items["SYN_TEST_Q01"]["attempts"], [])
         self.assertIn("PF_FIGURE", items["SYN_TEST_Q01"]["detail"])
-        self.assertEqual(list(self.tmp.glob("lane.json.*")), [])
+        self.assertEqual(list(self.tmp.glob("lane.json.tmp*")), [])
 
     def test_lane_rerun_keeps_since_and_attempts(self):
         lane = self.tmp / "lane.json"

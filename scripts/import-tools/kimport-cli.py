@@ -195,10 +195,6 @@ def _register_lane(sub) -> None:
     rq.add_argument("--reason", required=True)
     rq.set_defaults(func=lambda a: _guard(lambda: print(
         "lane: {} requeued".format(len(lane.requeue(Path(a.lane), a.reason))))))
-    ul = lsub.add_parser("unlock", help="remove a stuck lockfile (only when no session is running)")
-    ul.add_argument("--path", required=True, help="the .lock file, or the file it guards")
-    ul.set_defaults(func=lambda a: _guard(lambda: print(
-        "lane: lock removed" if lane.unlock(Path(a.path)) else "lane: no lock there")))
     sm = lsub.add_parser("summary", help="counts by reason and status, with the oldest age per reason")
     sm.add_argument("--lane", required=True)
     sm.add_argument("--now", required=True)

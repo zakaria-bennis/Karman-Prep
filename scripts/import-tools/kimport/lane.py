@@ -11,13 +11,12 @@ temp-file-then-rename. Nothing here reads the clock (callers pass `now`) and
 nothing edits question text.
 """
 
+import fcntl
 import json
 import os
 import re
-import socket
-import sys
 import time
-from datetime import datetime, timezone
+from datetime import datetime
 from pathlib import Path
 
 from .corpus import elect
@@ -30,7 +29,6 @@ STATUSES = ("open", "parked", "resolved")
 LINT_METHOD = "lint"  # a pull by the batch checks is not a fix method; it never counts toward parking
 SLICE_SIZE = 27
 _LOCK_WAIT_SECONDS = 10.0
-LOCK_STALE_SECONDS = 600   # a lock older than 10 minutes is dead
 NOT_REVIEWABLE_BUCKETS = ("certified_broken", "certified_duplicate")
 _ID = re.compile(r"^(?P<exam>.+)_(?P<section>[A-Za-z]+)_M(?P<module>[A-Za-z0-9]+)_Q(?P<q>\d+)(?P<suffix>_[a-z]+)?$")   # e.g. ..._Q01_retained
 
@@ -68,80 +66,32 @@ def _check_reason(reason: str) -> None:
         raise ValueError(f"unknown lane reason {reason!r}; use one of {', '.join(REASONS)}")
 
 
-def _pid_alive(pid) -> bool:
-    try:
-        os.kill(int(pid), 0)
-    except ProcessLookupError:
-        return False
-    except (PermissionError, ValueError, TypeError, OverflowError):
-        return True   # exists but not ours, or unreadable: do not break on a guess
-    return True
-
-
-def _lock_is_dead(path: Path) -> str | None:
-    """Why the lock can be broken ('process N is gone', 'older than 10 minutes'), else None."""
-    try:
-        age = time.time() - path.stat().st_mtime
-    except FileNotFoundError:
-        return None
-    try:
-        info = json.loads(path.read_bytes().decode("utf-8"))
-        pid, host = info["pid"], info["host"]
-    except (ValueError, KeyError, TypeError):
-        info = None
-    if info is not None and host == socket.gethostname() and not _pid_alive(pid):
-        return f"process {pid} is gone"
-    if age > LOCK_STALE_SECONDS:
-        return "older than 10 minutes"
-    return None
-
-
-def unlock(lock_path: Path) -> bool:
-    """Manual recovery: remove a lockfile (pass the .lock file or the file it guards)."""
-    lock_path = Path(lock_path)
-    if lock_path.suffix != ".lock":
-        lock_path = lock_path.with_name(lock_path.name + ".lock")
-    try:
-        lock_path.unlink()
-        return True
-    except FileNotFoundError:
-        return False
-
-
 class _FileLock:
-    """O_EXCL lockfile around a read-modify-write, so two callers never interleave.
-    The lock holds {pid, host, at}; a lock whose process is gone (same host) or that is
-    older than 10 minutes is broken with a one-line warning."""
+    """Exclusive flock on a persistent `<file>.lock`, around a read-modify-write.
+    The file is never deleted; the OS drops the lock when its holder dies, so there is
+    nothing stale to break. Waits up to 10 seconds, then gives a plain message."""
 
     def __init__(self, target: Path):
         self.path = Path(target).with_name(Path(target).name + ".lock")
+        self.fd = None
 
     def __enter__(self):
+        fd = os.open(self.path, os.O_CREAT | os.O_RDWR, 0o644)
         deadline = time.monotonic() + _LOCK_WAIT_SECONDS
         while True:
             try:
-                fd = os.open(self.path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o644)
-            except FileExistsError:
-                why = _lock_is_dead(self.path)
-                if why:
-                    print(f"warning: breaking stale lock {self.path} ({why})", file=sys.stderr)
-                    unlock(self.path)
-                    continue
+                fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                self.fd = fd
+                return self
+            except BlockingIOError:
                 if time.monotonic() > deadline:
-                    raise ValueError(f"{self.path} is held by another session; wait for it to finish, or if "
-                                     f"none is running, run: kimport-cli.py lane unlock --path {self.path}") from None
+                    os.close(fd)
+                    raise ValueError(f"{self.path} is in use by another session; try again in a moment") from None
                 time.sleep(0.01)
-                continue
-            with os.fdopen(fd, "w") as f:
-                json.dump({"pid": os.getpid(), "host": socket.gethostname(),
-                           "at": datetime.now(timezone.utc).isoformat()}, f)
-            return self
 
     def __exit__(self, *exc):
-        try:
-            self.path.unlink()
-        except FileNotFoundError:
-            pass
+        os.close(self.fd)   # closing releases the flock
+        self.fd = None
 
 
 # ---------------------------------------------------------------- lane
@@ -150,7 +100,7 @@ class _FileLock:
 def add_open(lane_path: Path, entries: dict, now: str, source: str) -> int:
     """Add or update open entries ({id: (reason, detail)}); never remove entries.
     A resolved entry is reopened with a failed `source` attempt; a parked one records the
-    attempt and detail but stays parked (spec section 6).
+    attempt and detail but stays parked with its reason unchanged (spec section 6).
     Existing fields, `since` and attempts are kept. Returns entries written."""
     for reason, _ in entries.values():
         _check_reason(reason)
@@ -163,12 +113,16 @@ def add_open(lane_path: Path, entries: dict, now: str, source: str) -> int:
             base = dict(existing) if existing else {"since": now, "attempts": []}
             attempts = list(base.get("attempts", []))
             status = "open"
-            if existing is not None and existing.get("status") != "open":
+            if existing is not None and existing.get("status") == "parked":
+                # only a campaign requeue for its reason brings it back; the reason stays fixed
+                status = "parked"
+                if reason != existing.get("reason"):
+                    detail = f"[reason now {reason}] {detail}"
+                    reason = existing["reason"]
                 attempts.append({"method": source, "ok": False, "at": now, "detail": detail})
-                if existing.get("status") == "parked":
-                    status = "parked"   # only a campaign requeue for its reason brings it back
-                else:
-                    base["epoch"] = len(attempts)   # resolved: a fresh two-method count after a reopen
+            elif existing is not None and existing.get("status") != "open":
+                attempts.append({"method": source, "ok": False, "at": now, "detail": detail})
+                base["epoch"] = len(attempts)   # resolved: a fresh two-method count after a reopen
             items[sid] = {**base, "reason": reason, "status": status, "detail": detail, "attempts": attempts}
         _write(lane_path, data)
     return len(entries)
@@ -193,6 +147,8 @@ def record_attempt(lane_path: Path, occ_id: str, method: str, ok: bool, now: str
         item = data["items"].get(occ_id)
         if item is None:
             raise ValueError(f"{occ_id} is not in the lane")
+        if item.get("status") == "resolved" and not ok:
+            item["epoch"] = len(item.get("attempts", []))   # fresh count once it leaves resolved
         item["attempts"] = list(item.get("attempts", [])) + [{"method": method, "ok": bool(ok), "at": now,
                                                               "detail": detail}]
         if ok:
