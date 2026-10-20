@@ -84,6 +84,61 @@ class NormalizeTextTests(unittest.TestCase):
             self.assertEqual(normalize_text(once), once, s)
 
 
+    def test_operator_spacing_equal(self):
+        groups = [
+            ["3*4", "3 * 4", r"3 \times 4"],
+            ["1/2", "1 / 2"],
+            ["x^2", "x ^ 2"],
+            ["x+1", "x + 1"],
+            [r"x\ge 3", "x ≥ 3", "x>=3"],
+            ["(x+1)", "( x + 1 )"],
+        ]
+        for forms in groups:
+            self.assertEqual(len({normalize_text(f) for f in forms}), 1, forms)
+
+    def test_prose_hyphen_untouched(self):
+        self.assertEqual(normalize_text("well - known"), "well - known")
+        self.assertEqual(normalize_text("a well - known fact"), "a well - known fact")
+
+    def test_thin_space_is_space(self):
+        self.assertEqual(normalize_text("A\u2009B"), "a b")
+        self.assertEqual(normalize_text(r"A\,B"), "a b")
+        self.assertEqual(normalize_text(r"A\;B\:C\ D"), "a b c d")
+
+    def test_paren_fraction_equal(self):
+        self.assertEqual(normalize_text("(x+1)/2"), normalize_text(r"\frac{x+1}{2}"))
+        self.assertEqual(normalize_text("2/(x+1)"), normalize_text(r"\frac{2}{x+1}"))
+        self.assertEqual(normalize_text(r"\frac{(x+1)}{2}"), normalize_text("(x+1)/2"))
+        self.assertNotIn("((", normalize_text("(x+1)/2"))
+        # function call is not a fraction operand
+        self.assertEqual(normalize_text("f(x)/2"), "f(x)/2")
+
+    def test_mixed_number_equal(self):
+        self.assertEqual(normalize_text("1½"), normalize_text("1 1/2"))
+        self.assertNotEqual(normalize_text("1½"), normalize_text("½"))
+
+    def test_latex_aliases(self):
+        pairs = [
+            (r"\frac12", r"\frac{1}{2}"),
+            (r"\sqrt2", r"\sqrt{2}"),
+            (r"x \lt 3", "x < 3"),
+            (r"x \gt 3", "x > 3"),
+            ("x>=3", "x ≥ 3"),
+            ("x<=3", "x ≤ 3"),
+            (r"\pi r^2", "π r²"),
+            (r"50\%", "50%"),
+            (r"\$5", "5"),
+        ]
+        for a, b in pairs:
+            self.assertEqual(normalize_text(a), normalize_text(b), (a, b))
+
+    def test_idempotent_malformed(self):
+        for s in [r"\sqrt${x}", r"\frac${1}{2}", r"\sqrt{\sqrt${x}}", "x^${2}"]:
+            once = normalize_text(s)
+            self.assertEqual(normalize_text(once), once, s)
+        self.assertEqual(normalize_text(r"\sqrt${x}"), normalize_text("√(x)"))
+
+
 class StripMarkupTests(unittest.TestCase):
     def test_strip_markup_spans(self):
         text, spans = strip_markup("a <u>bc</u> d ______")

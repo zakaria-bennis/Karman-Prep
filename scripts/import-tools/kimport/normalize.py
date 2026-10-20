@@ -23,8 +23,13 @@ _LATEX_SYMBOLS = (
     (re.compile(r"\\(?:leq|le)(?![A-Za-z])"), "≤"),
     (re.compile(r"\\(?:geq|ge)(?![A-Za-z])"), "≥"),
     (re.compile(r"\\(?:neq|ne)(?![A-Za-z])"), "≠"),
+    (re.compile(r"\\lt(?![A-Za-z])"), "<"),
+    (re.compile(r"\\gt(?![A-Za-z])"), ">"),
+    (re.compile(r"\\pi(?![A-Za-z])"), "π"),
+    (re.compile(r"\\%"), "%"),
+    (re.compile(r"\\[,;: ]|[   ]"), " "),
 )
-_LATEX_NOISE = re.compile(r"\\(?:left|right)(?![A-Za-z])|\\[(),;!\[\]]|\$|[   ]")
+_LATEX_NOISE = re.compile(r"\\(?:left|right)(?![A-Za-z])|\\[!()\[\]$]|\$")
 _FRAC = re.compile(r"\\[dt]?frac(?![A-Za-z])")
 _SQRT = re.compile(r"\\sqrt(?![A-Za-z])")
 _SCRIPT = re.compile(r"([\^_])\{")
@@ -32,34 +37,71 @@ _SCRIPT = re.compile(r"([\^_])\{")
 _QUOTES = str.maketrans("“”„‟‘’‚‛", "\"\"\"\"''''")
 _DASHES = str.maketrans({c: "-" for c in "‐‑‒–—―−"})
 
-_TOKEN = r"(?:[A-Za-z]|\d+(?:\.\d+)?)"
-_BARE_FRACTION = re.compile(rf"(?<![\w./])({_TOKEN})/({_TOKEN})(?![\w./(])")
+_OPERATORS = "+-*/^=<>≤≥≠√"
+_OP_OR_BRACKET = _OPERATORS + "()"
+_PASSES = 5
 
 
-def _read_group(s: str, i: int):
-    """Return (content, index after the closing brace) for s[i] == '{', or None."""
-    if i >= len(s) or s[i] != "{":
+def _read_arg(s: str, i: int):
+    """Read a brace group or a single alphanumeric char at s[i]: (content, next index)."""
+    if i >= len(s):
         return None
-    depth = 0
-    for j in range(i, len(s)):
-        if s[j] == "{":
-            depth += 1
-        elif s[j] == "}":
-            depth -= 1
-            if depth == 0:
-                return s[i + 1 : j], j + 1
+    if s[i] == "{":
+        depth = 0
+        for j in range(i, len(s)):
+            if s[j] == "{":
+                depth += 1
+            elif s[j] == "}":
+                depth -= 1
+                if depth == 0:
+                    return s[i + 1 : j], j + 1
+        return None
+    if s[i].isascii() and s[i].isalnum():
+        return s[i], i + 1
     return None
 
 
+def _match_close(s: str, open_idx: int):
+    depth = 0
+    for j in range(open_idx, len(s)):
+        if s[j] == "(":
+            depth += 1
+        elif s[j] == ")":
+            depth -= 1
+            if depth == 0:
+                return j
+    return None
+
+
+def _match_open(s: str, close_idx: int):
+    depth = 0
+    for j in range(close_idx, -1, -1):
+        if s[j] == ")":
+            depth += 1
+        elif s[j] == "(":
+            depth -= 1
+            if depth == 0:
+                return j
+    return None
+
+
+def _wrap(a: str) -> str:
+    """Parenthesize an operand unless it is already one parenthesized group."""
+    a = a.strip()
+    if a.startswith("(") and _match_close(a, 0) == len(a) - 1:
+        return a
+    return f"({a})"
+
+
 def _replace_commands(s: str, pattern: re.Pattern, groups: int, build) -> str:
-    """Replace each `\\cmd{..}{..}` match (with `groups` brace groups) using build()."""
+    """Replace each `\\cmd{..}{..}` match (with `groups` arguments) using build()."""
     out, pos = [], 0
     for m in pattern.finditer(s):
         if m.start() < pos:
             continue
         i, args = m.end(), []
         for _ in range(groups):
-            got = _read_group(s, i)
+            got = _read_arg(s, i)
             if got is None:
                 break
             args.append(got[0])
@@ -76,15 +118,17 @@ def _replace_commands(s: str, pattern: re.Pattern, groups: int, build) -> str:
 def _unicode_math(s: str) -> str:
     for ch in _VULGAR:
         num, den = unicodedata.normalize("NFKD", ch).split("⁄")
-        s = s.replace(ch, f"({num})/({den})")
+        frac = f"({num})/({den})"
+        s = re.sub(f"(?<=\\d){ch}", " " + frac, s)  # mixed number: 1½ -> 1 (1)/(2)
+        s = s.replace(ch, frac)
     s = _SUP_RUN.sub(lambda m: "^" + "".join(_SUPERSCRIPTS[c] for c in m.group()), s)
     s = _SUB_RUN.sub(lambda m: "_" + "".join(_SUBSCRIPTS[c] for c in m.group()), s)
     return s.replace("−", "-").replace("×", "*").replace("÷", "/")
 
 
 def _latex_math(s: str) -> str:
-    s = _replace_commands(s, _FRAC, 2, lambda a, b: f"({a})/({b})")
-    s = _replace_commands(s, _SQRT, 1, lambda a: f"√({a})")
+    s = _replace_commands(s, _FRAC, 2, lambda a, b: f"{_wrap(a)}/{_wrap(b)}")
+    s = _replace_commands(s, _SQRT, 1, lambda a: "√" + _wrap(a))
     for pattern, repl in _LATEX_SYMBOLS:
         s = pattern.sub(repl, s)
     return _LATEX_NOISE.sub("", s)
@@ -96,7 +140,7 @@ def _unbrace_scripts(s: str) -> str:
     for m in _SCRIPT.finditer(s):
         if m.start() < pos:
             continue
-        got = _read_group(s, m.end() - 1)
+        got = _read_arg(s, m.end() - 1)
         if got is None or not _SIMPLE_GROUP.fullmatch(got[0]):
             continue
         out.append(s[pos : m.start()])
@@ -106,14 +150,84 @@ def _unbrace_scripts(s: str) -> str:
     return "".join(out)
 
 
-def normalize_text(s: str) -> str:
+def _math_spacing(s: str) -> str:
+    """Drop whitespace next to an operator or bracket when both sides look like math.
+
+    Math-like: a digit, an operator or bracket, or a single standalone letter.
+    Prose such as "well - known" keeps its spaces.
+    """
+
+    def left_ok(i):
+        c = s[i - 1]
+        return c.isdigit() or c in _OP_OR_BRACKET or (c.isalpha() and (i < 2 or not s[i - 2].isalpha()))
+
+    def right_ok(j):
+        c = s[j]
+        return c.isdigit() or c in _OP_OR_BRACKET or (c.isalpha() and (j + 1 >= len(s) or not s[j + 1].isalpha()))
+
+    def gap(m):
+        i, j = m.start(), m.end()
+        touches = s[i - 1] in _OP_OR_BRACKET or s[j] in _OP_OR_BRACKET
+        return "" if touches and left_ok(i) and right_ok(j) else m.group()
+
+    return re.sub(r"(?<=\S)\s+(?=\S)", gap, s)
+
+
+_NUMBER_OR_LETTER = r"(?:[A-Za-z]|\d+(?:\.\d+)?)"
+_LEFT_TOKEN = re.compile(rf"(?<![\w./]){_NUMBER_OR_LETTER}$")
+_RIGHT_TOKEN = re.compile(rf"{_NUMBER_OR_LETTER}(?![\w./(])")
+
+
+def _bare_fractions(s: str) -> str:
+    """`a/b`, `(x+1)/2`, `2/(x+1)` -> `(a)/(b)` for single tokens and bracket groups."""
+    out, pos = [], 0
+    for k, c in enumerate(s):
+        if c != "/" or k < pos:
+            continue
+        if k > 0 and s[k - 1] == ")":
+            o = _match_open(s, k - 1)
+            if o is None or o < pos or (o > 0 and (s[o - 1].isalnum() or s[o - 1] in "_./")):
+                continue
+            left = (o, k)
+        elif (m := _LEFT_TOKEN.search(s, 0, k)) and m.start() >= pos:
+            left = (m.start(), k)
+        else:
+            continue
+        if s[k + 1 : k + 2] == "(":
+            c2 = _match_close(s, k + 1)
+            if c2 is None or (c2 + 1 < len(s) and (s[c2 + 1].isalnum() or s[c2 + 1] in "_./")):
+                continue
+            right = (k + 1, c2 + 1)
+        elif m := _RIGHT_TOKEN.match(s, k + 1):
+            right = (k + 1, m.end())
+        else:
+            continue
+        out.append(s[pos : left[0]])
+        out.append(f"{_wrap(s[left[0]:left[1]])}/{_wrap(s[right[0]:right[1]])}")
+        pos = right[1]
+    out.append(s[pos:])
+    return "".join(out)
+
+
+def _normalize_once(s: str) -> str:
     s = _unicode_math(s)
     s = _unbrace_scripts(_latex_math(s))
     s = unicodedata.normalize("NFKC", s).casefold()
     s = unicodedata.normalize("NFKC", s)
     s = s.translate(_QUOTES).translate(_DASHES).replace("…", "...")
-    s = _BARE_FRACTION.sub(r"(\1)/(\2)", s)
-    return " ".join(s.split())
+    s = s.replace(">=", "≥").replace("<=", "≤")
+    s = _math_spacing(" ".join(s.split()))
+    return " ".join(_bare_fractions(s).split())
+
+
+def normalize_text(s: str) -> str:
+    # Rewrites can expose each other (e.g. `\sqrt${x}`), so repeat until stable.
+    for _ in range(_PASSES):
+        nxt = _normalize_once(s)
+        if nxt == s:
+            break
+        s = nxt
+    return s
 
 
 _MARKUP = re.compile(r"</?([ui])>|_{4,}", re.IGNORECASE)
